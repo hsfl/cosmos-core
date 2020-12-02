@@ -327,6 +327,7 @@ int main(int argc, char *argv[])
 // need support for decimal points
 // need support for negative numbers?
 // need to convert contents of output into a double stack-wise
+// need to work without leading 0 before decimal?
 
 	cout<<"\nFor my next trick I will try to implement to concept of equations for Namespace 2.0"<<endl;
 	// given a string with parenthesis (), algebraic operators +-*/^, numbers (treated as doubles), and name from the namespace whose value is numbers
@@ -336,15 +337,16 @@ int main(int argc, char *argv[])
 
 
 
-	string test_equation = "1.23456 + 4.4 * 2. / ( 1 - 555.4321 ) ^ 2 ^ 3";
-
+	//string test_equation = "1.23456 + 4.4 * 0.000000000000000000002 / ( 12345678901234567890 - 555.4321 ) ^ 2 ^ 3";
+	string test_equation = "3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3";
 // first need to be able to read tokens, which is either operator or number (or, later) variable names
 
 
 	string str = test_equation;
+	stack<double> answer;
 
 	// operator stack
-	std::stack<char> ops;
+	stack<char> ops;
 	// output stack-ish
 	string output = "";
 
@@ -368,8 +370,6 @@ int main(int argc, char *argv[])
 			integer.push_back(*it-'0');
 			while(isdigit(*(it+1)))	{ integer.push_back(*(++it)-'0'); }
 			// if a decimal number
-
-			cout<<"\t\tit = <"<<*(it+1)<<">";
 			if(*(it+1)=='.')	{ ++it; while(isdigit(*(it+1)))	{ fraction.push_back(*(++it)-'0'); } }
 
 			// convert to double and push onto number stack
@@ -384,20 +384,43 @@ int main(int argc, char *argv[])
 				numnum += fraction[i]*1.0 * pow(10.0, -(i+1.0));
 			}
 
-			output += to_string(numnum) + " ";
+			//cout<<"numnum = "<<numnum<<endl;
+
+			// to_string only does 6 decimals
+			//output += to_string(numnum) + " ";
+			stringstream ss;
+			ss<<std::setprecision(16)<<numnum;
+			output += ss.str() + " ";
+			answer.push(numnum);
 			continue;
 		}
 
 		// if token is operator
 		if(*it=='+'||*it=='-'||*it=='*'||*it=='/'||*it=='^')	{
 
-			cout<<"TOCKEM = "<<*it<<endl;
+			//cout<<"TOCKEM = "<<*it<<endl;
 			// while operators on the stack
 			while(	!ops.empty() &&
 					( higher(ops.top(), *it)  || (equal(ops.top(), *it)  && left(*it) ) ) &&
 					ops.top()!='('
 			)	{
 				output += string(1,ops.top()) + " ";
+			double b = answer.top();
+			answer.pop();
+			double a = answer.top();
+			answer.pop();
+		switch(ops.top())	{
+			case '+':	answer.push(a+b);
+						break;
+			case '-':	answer.push(a-b);
+						break;
+			case '*':	answer.push(a*b);
+						break;
+			case '/':	answer.push(a/b);
+						break;
+			case '^':	answer.push(pow(a,b));
+						break;
+		}
 				ops.pop();
 			}
 			ops.push(*it);
@@ -406,6 +429,22 @@ int main(int argc, char *argv[])
 		} else if(*it == ')')	{
 			while(ops.top()!='(')	{
 				output += string(1,ops.top()) + " ";
+			double b = answer.top();
+			answer.pop();
+			double a = answer.top();
+			answer.pop();
+		switch(ops.top())	{
+			case '+':	answer.push(a+b);
+						break;
+			case '-':	answer.push(a-b);
+						break;
+			case '*':	answer.push(a*b);
+						break;
+			case '/':	answer.push(a/b);
+						break;
+			case '^':	answer.push(pow(a,b));
+						break;
+		}
 				ops.pop();
 			}
 			if(ops.top()=='(')	{ ops.pop(); }
@@ -414,11 +453,29 @@ int main(int argc, char *argv[])
 
 	while(!ops.empty())	{
 		output += string(1,ops.top()) + " ";
+			double b = answer.top();
+			answer.pop();
+			double a = answer.top();
+			answer.pop();
+		switch(ops.top())	{
+			case '+':	answer.push(a+b);
+						break;
+			case '-':	answer.push(a-b);
+						break;
+			case '*':	answer.push(a*b);
+						break;
+			case '/':	answer.push(a/b);
+						break;
+			case '^':	answer.push(pow(a,b));
+						break;
+		}
 		ops.pop();
 	}
-
 cout<<"OUTPUT == <"<<output<<">"<<endl;
 
+cout<<"but seriously...  let's calculate already"<<endl;
+
+cout<<setprecision(16)<<"ANSWER == <"<<answer.top()<<">"<<endl;
 /*
 
 	string js = agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC");	
