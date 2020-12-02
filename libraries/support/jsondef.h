@@ -3819,7 +3819,29 @@ struct cosmosstruc
         }
 
         void add_name(const string& s, void* v)	{ names.insert(name_mapping(s,v)); };
-        //TODO:   add remove_name(..), change_name(..) functions, match_name(), find_aliases(), etc
+        //TODO:   change_name(..) functions, match_name(), find_aliases(), etc
+
+        // Remove single name from name map
+        void remove_name(const string& s) { names.erase(s); }
+
+        // Remove name of object/collection and its members from name map
+        void remove_names_object(const string& s) {
+            auto p = names.lower_bound(s);
+            auto q = names.end();
+            const string sbracket = s + "[";
+            const string sdot = s + ".";
+            
+            // search through name map for names of the object/collection and its members
+            while (p != q) {
+                if (p->first.compare(s) == 0 ||                                 // if exact match s is found. eg: "jmap" but not "jmapped"
+                    p->first.compare(0, sbracket.size(), sbracket) == 0 ||      // if search string s + [ is found. eg: "jmap[0]"
+                    p->first.compare(0, sdot.size(), sdot) == 0) {              // if search string s + . is found. eg: "node.name"
+                    names.erase(p++);
+                } else {
+                    ++p;
+                }
+            }
+        }
 
         void add_default_names()	{
 
