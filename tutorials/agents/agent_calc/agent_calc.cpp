@@ -343,9 +343,9 @@ int main(int argc, char *argv[])
 		agent->cinfo->print_all_names();
 	}
 
-// need support for decimal points
-// need support for negative numbers?
-// need to convert contents of output into a double stack-wise
+// need support for decimal points DONE!
+// need support for negative numbers? 
+// need to convert contents of output into a double stack-wise DONE!
 // need to work without leading 0 before decimal?
 
 	cout<<"\nFor my next trick I will try to implement to concept of equations for Namespace 2.0"<<endl;
@@ -357,13 +357,17 @@ int main(int argc, char *argv[])
 
 
 	//string test_equation = "1.23456 + 4.4 * 0.000000000000000000002 / ( 12345678901234567890 - 555.4321 ) ^ 2 ^ 3";
-	string test_equation = "3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3";
+	//string test_equation = "3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3";
+	//string test_equation = "9 - 5 / (8 - 3) * 2 + 6"      ;
+	//string test_equation = "5 * 8 + 6 / 6 - 12 * 2 "      ;
+	string test_equation = "(5) * (8) + (6) / (6) - (12) * (2) "      ;
+
 // first need to be able to read tokens, which is either operator or number (or, later) variable names
 
 
 	string str = test_equation;
+	// answer stack
 	stack<double> answer;
-
 	// operator stack
 	stack<char> ops;
 	// output stack-ish
@@ -372,15 +376,14 @@ int main(int argc, char *argv[])
 	cout<<"equation = <"<<str<<">"<<endl;
 
 	for(std::string::iterator it = str.begin(); it != str.end(); ++it) {
-							// debug
-							cout<<"OUTPUT=<"<<output<<">     OPERATORS=<";
-							for (std::stack<char> dump = ops; !dump.empty(); dump.pop())
-        						std::cout << dump.top();
-							cout<<">"<<endl;
-
+				// debug
+				cout<<"OUTPUT=<"<<output<<">     OPERATORS=<";
+				for (std::stack<char> dump = ops; !dump.empty(); dump.pop())
+       				std::cout << dump.top();
+				cout<<">"<<endl;
 
 		// skip all whitespace
-		if(*it == ' ') continue;
+		if(*it==' '||*it=='\n'||*it=='\t') continue;
 
 		// if token is number
 		if(isdigit(*it))	{
@@ -390,23 +393,10 @@ int main(int argc, char *argv[])
 			while(isdigit(*(it+1)))	{ integer.push_back(*(++it)-'0'); }
 			// if a decimal number
 			if(*(it+1)=='.')	{ ++it; while(isdigit(*(it+1)))	{ fraction.push_back(*(++it)-'0'); } }
-
 			// convert to double and push onto number stack
-
-			//spit out the number
 			double numnum = 0.;
-			
-			for(size_t i = 0; i < integer.size(); ++i)	{
-				numnum += integer[i]*1.0 * pow(10, integer.size()-i-1);
-			}
-			for(size_t i = 0; i < fraction.size(); ++i)	{
-				numnum += fraction[i]*1.0 * pow(10.0, -(i+1.0));
-			}
-
-			//cout<<"numnum = "<<numnum<<endl;
-
-			// to_string only does 6 decimals
-			//output += to_string(numnum) + " ";
+			for(size_t i = 0; i < integer.size(); ++i)	{ numnum += integer[i]*1.0 * pow(10, integer.size()-i-1); }
+			for(size_t i = 0; i < fraction.size(); ++i)	{ numnum += fraction[i]*1.0 * pow(10.0, -(i+1.0)); }
 			stringstream ss;
 			ss<<std::setprecision(16)<<numnum;
 			output += ss.str() + " ";
@@ -414,13 +404,14 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
+		// add support for number without leading zero?
+		// if(*it == '.')	{
+		//}
+
 		// if token is operator
 		if(*it=='+'||*it=='-'||*it=='*'||*it=='/'||*it=='^')	{
-
-			//cout<<"TOCKEM = "<<*it<<endl;
-			// while operators on the stack
 			while(	!ops.empty() &&
-					( higher(ops.top(), *it)  || (equal(ops.top(), *it)  && left(*it) ) ) &&
+					( higher(ops.top(), *it) || (equal(ops.top(), *it) && left(*it)) ) &&
 					ops.top()!='('
 			)	{
 				output += string(1,ops.top()) + " ";
@@ -442,6 +433,7 @@ int main(int argc, char *argv[])
 		output += string(1,ops.top()) + " ";
 		apply_op(ops, answer);
 	}
+
 cout<<"OUTPUT == <"<<output<<">"<<endl;
 
 cout<<"but seriously...  let's calculate already"<<endl;
