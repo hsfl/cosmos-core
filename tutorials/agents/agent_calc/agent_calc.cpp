@@ -359,8 +359,8 @@ int main(int argc, char *argv[])
 	//string test_equation = "1.23456 + 4.4 * 0.000000000000000000002 / ( 12345678901234567890 - 555.4321 ) ^ 2 ^ 3";
 	//string test_equation = "3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3";
 	//string test_equation = "9 - 5 / (8 - 3) * 2 + 6"      ;
-	//string test_equation = "5 * 8 + 6 / 6 - 12 * 2 "      ;
-	string test_equation = "(5) * (8) + (6) / (6) - (12) * (2) "      ;
+	string test_equation = ".5 * 8 + .6 / 6 - 12 * 2 "      ;
+	//string test_equation = "(5) * (8) + (6) / (6) - (12) * (2) "      ;
 
 // first need to be able to read tokens, which is either operator or number (or, later) variable names
 
@@ -386,10 +386,14 @@ int main(int argc, char *argv[])
 		if(*it==' '||*it=='\n'||*it=='\t') continue;
 
 		// if token is number
-		if(isdigit(*it))	{
+		if(isdigit(*it)||*it=='.')	{
 			vector<int> integer;
 			vector<int> fraction;
-			integer.push_back(*it-'0');
+			if(isdigit(*it))	{
+				integer.push_back(*it-'0');
+			} else {
+				integer.push_back(0); --it;
+			}
 			while(isdigit(*(it+1)))	{ integer.push_back(*(++it)-'0'); }
 			// if a decimal number
 			if(*(it+1)=='.')	{ ++it; while(isdigit(*(it+1)))	{ fraction.push_back(*(++it)-'0'); } }
@@ -398,6 +402,7 @@ int main(int argc, char *argv[])
 			for(size_t i = 0; i < integer.size(); ++i)	{ numnum += integer[i]*1.0 * pow(10, integer.size()-i-1); }
 			for(size_t i = 0; i < fraction.size(); ++i)	{ numnum += fraction[i]*1.0 * pow(10.0, -(i+1.0)); }
 			stringstream ss;
+			//JIMNOTE: should be using limits
 			ss<<std::setprecision(16)<<numnum;
 			output += ss.str() + " ";
 			answer.push(numnum);
