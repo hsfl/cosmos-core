@@ -219,18 +219,18 @@ void apply_op(stack<char>& ops, stack<double>& answer)	{
 	return;
 }
 
-double equationator(string& eq)	{
+double equationator(const string& eq)	{
 	if(eq.empty())	return nan("");
 	stack<double> answer;
 	stack<char> ops;
-	for(std::string::iterator it = eq.begin(); it != eq.end(); ++it) {
+	for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
 		// skip all whitespace
 		if(*it==' '||*it=='\n'||*it=='\t') continue;
 		// if token is number
 		if(isdigit(*it)||*it=='.')	{
 			bool negative = false;
 			if(*(it-1)=='+'||*(it-1)=='-')	{
-				string::iterator iit = it-1;
+				string::const_iterator iit = it-1;
 				if(iit==eq.begin())	{
 					if(*(it-1)=='-')	negative = true;
 					ops.pop();
