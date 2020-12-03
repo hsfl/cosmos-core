@@ -115,6 +115,15 @@ void pretty_form(string& js)	{
 	return;
 }
 */
+void replace(std::string& str, const std::string& from, const std::string& to) {
+	if(from.empty()) return;
+	size_t start_pos = 0;
+	while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length();
+	}
+	return;
+}
 
 // has left association?
 bool left(char a)	{
@@ -198,7 +207,8 @@ bool higher(char a, char b)	{
 	return false;
 }
 
-void apply_op(stack<char>& ops, stack<double>& answer)	{
+int apply_op(stack<char>& ops, stack<double>& answer)	{
+	if(answer.size()<2) return -1;
 	double b = answer.top();
 	answer.pop();
 	double a = answer.top();
@@ -217,24 +227,44 @@ void apply_op(stack<char>& ops, stack<double>& answer)	{
 	}
 	//cout<<"		calculating "<<a<<" "<<ops.top()<<" "<<b<<" = "<<answer.top()<<endl;
 	ops.pop();
-	return;
+	return 0;
 }
 
+// TODO:  make sure it never segfaults!
 double equationator(const string& str)	{
-	if(str.empty())	return nan("");
+	string eq(str);
+	// check if empty
+	if(eq.empty())	return nan("");
+
+	// replace {}[] with ()
+	replace(eq, "{", "(");
+	replace(eq, "[", "(");
+	replace(eq, "}", ")");
+	replace(eq, "]", ")");
+	
+	// check if parenthesis are balanced
+	int p_count = 0;
+	for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
+		if(*it=='(')	p_count++;
+		if(*it==')')	p_count--;
+		if(p_count<0)	return nan("");
+	}
+	if(p_count!=0)	return nan("");
+
+	// you should never have #( or )#...  implied multiplication, but make explicit already!
 	// trim leading whitespace
- 	const auto notwhite = str.find_first_not_of(" \n\r\t\f\v");
-	string eq = str.substr(notwhite);
+ 	const auto notwhite = eq.find_first_not_of(" \n\r\t\f\v");
+	eq = eq.substr(notwhite);
 	string output;
 	stack<double> answer;
 	stack<char> ops;
-	int count = 0;
+				//int count = 0;
 	for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
-		// debug
-		// cout<<"char #"<<count++<<" = '"<<*it<<"' :\n\t<"<<output<<">"<<endl;
-		// cout<<"\t: operators = <";
-		// for(stack<char> op = ops; !op.empty(); op.pop())	{ cout<<op.top()<<" "; }
-		// cout<<">"<<endl;
+				// debug
+				// cout<<"char #"<<count++<<" = '"<<*it<<"' :\n\t<"<<output<<">"<<endl;
+				// cout<<"\t: operators = <";
+				// for(stack<char> op = ops; !op.empty(); op.pop())	{ cout<<op.top()<<" "; }
+				// cout<<">"<<endl;
 
 		// skip all whitespace
 		if(isspace(*it))	continue;
@@ -296,16 +326,16 @@ double equationator(const string& str)	{
 			while(	!ops.empty() &&
 					( higher(ops.top(), *it) || (equal(ops.top(), *it) && left(*it)) ) &&
 					ops.top()!='('
-			)	{ output += string(1,(*it)) + " "; apply_op(ops, answer); }
+			)	{ output += string(1,(*it)) + " "; if(apply_op(ops, answer)<0) return nan(""); }
 			ops.push(*it);
 		} else if(*it == '(')	{
 			ops.push(*it);
 		} else if(*it == ')')	{
-			while(ops.top()!='(')	{ output += string(1,(*it)) + " "; apply_op(ops, answer); }
-			if(ops.top()=='(')	{ ops.pop(); }
+			while(ops.top()!='(')	{ output += string(1,(*it)) + " "; if(apply_op(ops, answer)<0) return nan(""); }
+			if(ops.top()=='(')	{ if(ops.empty()) return nan(""); else ops.pop(); }
 		}
 	}
-	while(!ops.empty())	{ output += string(1,ops.top()) + " "; apply_op(ops, answer); }
+	while(!ops.empty())	{ output += string(1,ops.top()) + " "; if(apply_op(ops, answer)<0) return nan(""); }
 	return answer.top();
 }
 
