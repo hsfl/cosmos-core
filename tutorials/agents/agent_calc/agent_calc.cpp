@@ -215,17 +215,29 @@ void apply_op(stack<char>& ops, stack<double>& answer)	{
 		case '^':	answer.push(pow(a,b));
 					break;
 	}
+	//cout<<"		calculating "<<a<<" "<<ops.top()<<" "<<b<<" = "<<answer.top()<<endl;
 	ops.pop();
 	return;
 }
 
-double equationator(const string& eq)	{
-	if(eq.empty())	return nan("");
+double equationator(const string& str)	{
+	if(str.empty())	return nan("");
+	// trim leading whitespace
+ 	const auto notwhite = str.find_first_not_of(" \n\r\t\f\v");
+	string eq = str.substr(notwhite);
+	string output;
 	stack<double> answer;
 	stack<char> ops;
+	int count = 0;
 	for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
+		// debug
+		// cout<<"char #"<<count++<<" = '"<<*it<<"' :\n\t<"<<output<<">"<<endl;
+		// cout<<"\t: operators = <";
+		// for(stack<char> op = ops; !op.empty(); op.pop())	{ cout<<op.top()<<" "; }
+		// cout<<">"<<endl;
+
 		// skip all whitespace
-		if(*it==' '||*it=='\n'||*it=='\t') continue;
+		if(isspace(*it))	continue;
 		// if token is number
 		if(isdigit(*it)||*it=='.')	{
 			bool negative = false;
@@ -236,7 +248,7 @@ double equationator(const string& eq)	{
 					ops.pop();
 				} else {
 					while(iit--!=eq.begin())	{
-						if(*iit==' '||*iit=='\t'||*iit=='\n')	continue;
+						if(isspace(*iit))	continue;
 						if(*iit=='('||*iit=='+'||*iit=='-'||*iit=='*'||*iit=='/'||*iit=='^')	{
 							if(*(it-1)=='-')	negative = true;
 							ops.pop();
@@ -263,28 +275,37 @@ double equationator(const string& eq)	{
 			for(size_t i = 0; i < integer.size(); ++i)	{ numnum += integer[i]*1.0 * pow(10, integer.size()-i-1); }
 			for(size_t i = 0; i < fraction.size(); ++i)	{ numnum += fraction[i]*1.0 * pow(10.0, -(i+1.0)); }
 			if(negative) numnum *= -1.;
+			stringstream ss;
+			ss<<setprecision(16)<<numnum;
+			output += ss.str() + " ";
 			answer.push(numnum);
 			continue;
 		}
 		// if token is operator
 		if(*it=='+'||*it=='-'||*it=='*'||*it=='/'||*it=='^')	{
 			if((*it=='+'||*it=='-')&&(isdigit(*(it+1))||*(it+1)=='.'))	{
-				ops.push(*it);
-				continue;
+				if(it==eq.begin())	{ ops.push(*it); continue; }
+				string::const_iterator t = it-1;
+				while(t!=eq.begin() && (*t==' '||*t=='\n'||*t=='\t')) --t;
+				if(*t=='+'||*t=='-'||*t=='*'||*t=='/'||*t=='^')	{
+					// only gently pushed, will be popped when negative number found
+					ops.push(*it);
+					continue;
+				}
 			}
 			while(	!ops.empty() &&
 					( higher(ops.top(), *it) || (equal(ops.top(), *it) && left(*it)) ) &&
 					ops.top()!='('
-			)	{ apply_op(ops, answer); }
+			)	{ output += string(1,(*it)) + " "; apply_op(ops, answer); }
 			ops.push(*it);
 		} else if(*it == '(')	{
 			ops.push(*it);
 		} else if(*it == ')')	{
-			while(ops.top()!='(')	{ apply_op(ops, answer); }
+			while(ops.top()!='(')	{ output += string(1,(*it)) + " "; apply_op(ops, answer); }
 			if(ops.top()=='(')	{ ops.pop(); }
 		}
 	}
-	while(!ops.empty())	{ apply_op(ops, answer); }
+	while(!ops.empty())	{ output += string(1,ops.top()) + " "; apply_op(ops, answer); }
 	return answer.top();
 }
 
