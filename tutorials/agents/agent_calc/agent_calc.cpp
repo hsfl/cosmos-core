@@ -492,7 +492,7 @@ int main(int argc, char *argv[])
 	string str = test_equation;
 
 // truncate leading whitespace?
-	cout<<"equation = <"<<str<<">"<<endl;
+	//cout<<"equation = <"<<str<<">"<<endl;
 
 
 
@@ -501,7 +501,9 @@ int main(int argc, char *argv[])
 
 cout<<"but seriously...  let's calculate already"<<endl;
 
-cout<<setprecision(16)<<"ANSWER == <"<<equationator(str)<<">"<<endl;
+//cout<<setprecision(16)<<"ANSWER == <"<<equationator(str)<<">"<<endl;
+cin.clear();
+cin.ignore(100000,'\n');
 
 while(1)	{
 	cout<<"Please enter an equation:\t";
