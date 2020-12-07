@@ -1520,18 +1520,53 @@ namespace Support
                 }
                 // Use result to discover interfaces.
                 ifra = confa.ifc_req;
+                bool found_bcast = false;
+                int16_t lo_index = -1;
                 for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++) {
-                    if (ifra->ifr_addr.sa_family != AF_INET) { continue; }
+
+                    if (ifra->ifr_addr.sa_family != AF_INET)
+                    {
+                        continue;
+                    }
+
                     inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address));
                     memcpy((char *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
 
                     if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
 
-                    if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK))
 //                            if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
+                    if ((ifra->ifr_flags & IFF_UP) == 0)
                     {
                         continue;
                     }
+                    else if (ifra->ifr_flags & IFF_LOOPBACK)
+                    {
+                        // Don't enable loopback if we found broadcast interface
+                        if (found_bcast)
+                        {
+                            continue;
+                        }
+                        lo_index = cinfo->agent[0].ifcnt;
+                    }
+                    else if (ifra->ifr_flags & IFF_BROADCAST)
+                    {
+                        found_bcast = true;
+                        if (lo_index >= 0)
+                        {
+                            // Remove loopback if we found broadcast interface
+                            if (cinfo->agent[0].pub[lo_index].cudp >= 0)
+                            {
+                                CLOSE_SOCKET(cinfo->agent[0].pub[lo_index].cudp);
+                            }
+                            for (uint16_t i=lo_index+1; i<cinfo->agent[0].ifcnt+1; ++i)
+                            {
+                                cinfo->agent[0].pub[i-1] = cinfo->agent[0].pub[i];
+                            }
+                            lo_index = -1;
+                            --cinfo->agent[0].ifcnt;
+                        }
+                    }
+
 
                     // Open socket again if we had to close it
                     if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp < 0)
@@ -1620,6 +1655,8 @@ namespace Support
                     inet_pton(AF_INET,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr);
                     cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_port = htons(port);
                     cinfo->agent[0].pub[cinfo->agent[0].ifcnt].type = type;
+
+
                     cinfo->agent[0].ifcnt++;
                 }
 #endif // COSMOS_WIN_OS

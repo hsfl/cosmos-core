@@ -437,7 +437,7 @@ enum {
 //! Maximum AGENT transfer buffer size
 #define AGENTMAXBUFFER 60000
 //! Maximum number of supported publication interfaces
-#define AGENTMAXIF 7
+#define AGENTMAXIF 10
 //! Maximum number of builtin AGENT requests
 #define AGENTMAXBUILTINCOUNT 6
 //! Maximum number of user defined AGENT requests
