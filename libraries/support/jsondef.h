@@ -3893,7 +3893,7 @@ struct cosmosstruc
                         string basename = "equation[" + std::to_string(i) + "]";
                         add_name(basename, &equation[i]);
                         add_name(basename+".name", &equation[i].name, "string");
-                        add_name(basename+".value", &equation[i].value), "string";
+                        add_name(basename+".value", &equation[i].value, "string");
                 }
 
             // nodestruc node

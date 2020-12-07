@@ -521,6 +521,14 @@ while(1)	{
 	cout<<"Please enter an equation:\t";
 	string eq;
 	getline(cin,eq);
+	//std::regex rgx("\"([^\"]*)\""); // will capture "me too"
+	//std::sregex_iterator current(eq.begin(), eq.end(), rgx);
+	//std::sregex_iterator end;
+	//while (current != end)
+    	//std::cout << "<"<< *current.str()++ >>">"<<endl;
+
+
+
 	vector<string> all_names = agent->cinfo->get_all_names();
 	for(size_t i = 0; i < all_names.size(); ++i)	{
 		// replace names with values
@@ -531,6 +539,21 @@ while(1)	{
 			}
 			if(type=="float")	{
 				replace(eq, all_names[i], to_string(agent->cinfo->get_value<float>(all_names[i])));
+			}
+			if(type=="int")	{
+				replace(eq, all_names[i], to_string(agent->cinfo->get_value<int>(all_names[i])));
+			}
+			if(type=="uint16_t")	{
+				replace(eq, all_names[i], to_string(agent->cinfo->get_value<uint16_t>(all_names[i])));
+			}
+			if(type=="int16_t")	{
+				replace(eq, all_names[i], to_string(agent->cinfo->get_value<int16_t>(all_names[i])));
+			}
+			if(type=="uint32_t")	{
+				replace(eq, all_names[i], to_string(agent->cinfo->get_value<uint32_t>(all_names[i])));
+			}
+			if(type=="int32_t")	{
+				replace(eq, all_names[i], to_string(agent->cinfo->get_value<int32_t>(all_names[i])));
 			}
 		}
 	}

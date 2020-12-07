@@ -85,6 +85,7 @@ using std::cerr;
 using std::endl;
 #include <sstream>
 using std::stringstream;
+#include <regex>
 #include <iomanip>
 using std::fixed;
 using std::setprecision;
