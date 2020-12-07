@@ -161,7 +161,8 @@ static uint16_t radioaddr;
 static bool radioconnected = false;
 static bool radioenabled = false;
 //static size_t channelnum = 0;
-static float freqoffset;
+static float freqoffset = 0.;
+static float morefreqoffset = 0.;
 static string port;
 
 static uint16_t model;
@@ -200,6 +201,7 @@ int32_t request_set_opmode(string &request, string &response, Agent *);
 int32_t request_set_modulation(string &request, string &response, Agent *);
 int32_t request_set_maxpower(string &request, string &response, Agent *);
 int32_t request_set_offset(string &request, string &response, Agent *);
+int32_t request_set_moreoffset(string &request, string &response, Agent *);
 int32_t request_set_repeater_squelch(string &request, string &response, Agent *);
 int32_t request_set_record(string &request, string &response, Agent *);
 
@@ -425,6 +427,8 @@ int main(int argc, char *argv[])
         exit (iretn);
     if ((iretn=agent->add_request("set_offset",request_set_offset,"Hz", "sets the radio frequency offset")))
         exit (iretn);
+    if ((iretn=agent->add_request("set_moreoffset",request_set_moreoffset,"Hz", "sets the radio frequency offset")))
+        exit (iretn);
     if ((iretn=agent->add_request("set_repeater_squelch",request_set_repeater_squelch,"frequency", "sets the repeater squelch tone frequency (0. = off)")))
         exit (iretn);
     if ((iretn=agent->add_request("get_repeater_squelch",request_get_repeater_squelch,"", "gets the repeater squelch tone frequency (0. = off)")))
@@ -508,7 +512,7 @@ int main(int argc, char *argv[])
 
     iretn = connect_radio();
 
-    agent->cinfo->agent[0].aprd = 5.;
+    agent->cinfo->agent[0].aprd = 1.;
     agent->start_active_loop();
     while (agent->running())
     {
@@ -523,9 +527,9 @@ int main(int argc, char *argv[])
                 if (iretn >= 0)
                 {
                     agent->cinfo->device[deviceindex].tcv.freq = usrp.frequency;
-                    if (radioenabled && (target.freq + freqoffset != usrp.frequency))
+                    if (radioenabled && (target.freq + (freqoffset + morefreqoffset) != usrp.frequency))
                     {
-                        iretn = usrp_set_frequency(usrp, target.freq + freqoffset);
+                        iretn = usrp_set_frequency(usrp, target.freq + (freqoffset + morefreqoffset));
                     }
                 }
                 else
@@ -545,7 +549,7 @@ int main(int argc, char *argv[])
                 break;
             case DEVICE_MODEL_LOOPBACK:
                 {
-                    agent->cinfo->device[deviceindex].tcv.freq = actual.freq - freqoffset;
+                    agent->cinfo->device[deviceindex].tcv.freq = actual.freq - (freqoffset + morefreqoffset);
                     if (radioenabled && target.freq != actual.freq)
                     {
                         actual.freq = target.freq;
@@ -579,9 +583,9 @@ int main(int argc, char *argv[])
                         iretn = ic9100_get_frequency(ic9100);
                     }
 */
-                    if (radioenabled && (target.freq + freqoffset) != ic9100.frequency)
+                    if (radioenabled && (target.freq + (freqoffset + morefreqoffset)) != ic9100.frequency)
                     {
-                        iretn = ic9100_set_frequency(ic9100, target.freq + freqoffset);
+                        iretn = ic9100_set_frequency(ic9100, target.freq + (freqoffset + morefreqoffset));
                     }
                 }
                 else
@@ -702,7 +706,7 @@ int32_t request_get_state(string &req, string &response, Agent *)
 {
     response = '[' + to_mjd(currentmjd()) + "] Cx: " + to_bool(radioconnected) + " En: " + to_bool(radioenabled);
     response += " Mode: " + opmode2string(agent->cinfo->device[deviceindex].tcv.opmode) + " TFreq: " + to_double(target.freq, 9);
-    response += " AFreq: " + to_double(agent->cinfo->device[deviceindex].tcv.freq, 9) + " Offset: " + to_double(freqoffset);
+    response += " AFreq: " + to_double(agent->cinfo->device[deviceindex].tcv.freq, 9) + " Offset: " + to_double((freqoffset + morefreqoffset));
     response += " PowerIn: " + to_double(agent->cinfo->device[deviceindex].tcv.powerin) + " PowerOut: " + to_double(agent->cinfo->device[deviceindex].tcv.powerout);
     response += " MaxPower: " + to_double(agent->cinfo->device[deviceindex].tcv.maxpower) + " Record: " + to_unsigned(target_record,1);
     return (0);
@@ -718,7 +722,7 @@ int32_t request_set_frequency(string &request, string &response, Agent *)
 {
     //	int32_t iretn;
 
-    sscanf(request.c_str(), "set_frequency %lf", &target.freq);
+    sscanf(request.c_str(), "%*s %lf", &target.freq);
     return 0;
 }
 
@@ -746,7 +750,7 @@ int32_t request_set_bandpass(string &request, string &response, Agent *)
 {
     int32_t iretn = 0;
 
-    sscanf(request.c_str(), "set_bandpass %f", &target.band);
+    sscanf(request.c_str(), "%*s %f", &target.band);
     return iretn;
 }
 
@@ -764,13 +768,19 @@ int32_t request_get_powerout(string &request, string &response, Agent *)
 
 int32_t request_set_maxpower(string &request, string &response, Agent *)
 {
-    sscanf(request.c_str(), "set_power %f", &target.maxpower);
+    sscanf(request.c_str(), "%*s %f", &target.maxpower);
     return 0;
 }
 
 int32_t request_set_offset(string &request, string &response, Agent *)
 {
-    sscanf(request.c_str(), "set_offset %f", &freqoffset);
+    sscanf(request.c_str(), "%*s %f", &freqoffset);
+    return 0;
+}
+
+int32_t request_set_moreoffset(string &request, string &response, Agent *)
+{
+    sscanf(request.c_str(), "%*s %f", &morefreqoffset);
     return 0;
 }
 
@@ -783,7 +793,7 @@ int32_t request_get_opmode(string &request, string &response, Agent *)
 int32_t request_set_opmode(string &request, string &response, Agent *)
 {
     char mode[20];
-    sscanf(request.c_str(), "set_opmode %s", mode);
+    sscanf(request.c_str(), "%*s %s", mode);
     switch (mode[strlen(mode)-1])
     {
     case '0':
@@ -885,7 +895,7 @@ int32_t request_get_modulation(string &request, string &response, Agent *)
 int32_t request_set_modulation(string &request, string &response, Agent *)
 {
     char mode[20];
-    sscanf(request.c_str(), "set_modulation %s", mode);
+    sscanf(request.c_str(), "%*s %s", mode);
     target.modulation = string2modulation(mode);
 
     return 0;
