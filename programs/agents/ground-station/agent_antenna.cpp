@@ -685,7 +685,7 @@ void rotctl_loop()
             }
         }
 
-        if (rotctlchannel.cudp)
+        if (rotctlchannel.cudp >= 0)
         {
             if (clientchannel.cudp < 0)
             {
