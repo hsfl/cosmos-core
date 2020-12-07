@@ -336,16 +336,22 @@ int main(int argc, char *argv[])
                     {
                         tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.txr[i]].pidx].name;
 						tradio.type = DeviceType::TXR;
-                        tradio.info = cinfo->device[cinfo->devspec.txr[i]].tcv;
+                        tradio.info.band = cinfo->device[cinfo->devspec.txr[i]].txr.band;
+                        tradio.info.freq = cinfo->device[cinfo->devspec.txr[i]].txr.freq;
+                        tradio.info.opmode = cinfo->device[cinfo->devspec.txr[i]].txr.opmode;
+                        tradio.info.modulation = cinfo->device[cinfo->devspec.txr[i]].txr.modulation;
                         tradio.otherradioindex = 9999;
-						ttrack.radios.push_back(tradio);
+                        ttrack.radios.push_back(tradio);
                     }
 
                     for (size_t i=0; i<cinfo->devspec.rxr_cnt; ++i)
                     {
                         tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.rxr[i]].pidx].name;
 						tradio.type = DeviceType::RXR;
-                        tradio.info = cinfo->device[cinfo->devspec.rxr[i]].tcv;
+                        tradio.info.band = cinfo->device[cinfo->devspec.rxr[i]].rxr.band;
+                        tradio.info.freq = cinfo->device[cinfo->devspec.rxr[i]].rxr.freq;
+                        tradio.info.opmode = cinfo->device[cinfo->devspec.rxr[i]].rxr.opmode;
+                        tradio.info.modulation = cinfo->device[cinfo->devspec.rxr[i]].rxr.modulation;
                         tradio.otherradioindex = 9999;
                         ttrack.radios.push_back(tradio);
                     }

@@ -158,16 +158,25 @@ int main(int argc, char *argv[])
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::TXR);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
             radioindex = agent->cinfo->device[deviceindex].didx;
+            agent->cinfo->device[deviceindex].txr.freq = freq;
+            agent->cinfo->device[deviceindex].txr.band = band;
+            agent->cinfo->device[deviceindex].txr.opmode = opmode;
             break;
         case static_cast<uint16_t>(DeviceType::RXR):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::RXR);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
             radioindex = agent->cinfo->device[deviceindex].didx;
+            agent->cinfo->device[deviceindex].rxr.freq = freq;
+            agent->cinfo->device[deviceindex].rxr.band = band;
+            agent->cinfo->device[deviceindex].rxr.opmode = opmode;
             break;
         case static_cast<uint16_t>(DeviceType::TCV):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::TCV);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
             radioindex = agent->cinfo->device[deviceindex].didx;
+            agent->cinfo->device[deviceindex].tcv.freq = freq;
+            agent->cinfo->device[deviceindex].tcv.band = band;
+            agent->cinfo->device[deviceindex].tcv.opmode = opmode;
             break;
         }
         agent->cinfo->device[deviceindex].model = model;
