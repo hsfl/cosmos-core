@@ -3879,8 +3879,8 @@ struct cosmosstruc
                         for(size_t j = 0; j < unit[i].size(); ++j)	{
                                 string rebasename = basename + "[" + std::to_string(j) + "]";
                                 add_name(rebasename, &unit[i][j]);
-                                add_name(rebasename+".name", &unit[i][j].name);
-                                add_name(rebasename+".type", &unit[i][j].type);
+                                add_name(rebasename+".name", &unit[i][j].name, "string");
+                                add_name(rebasename+".type", &unit[i][j].type, "uint16_t");
                                 add_name(rebasename+".p0", &unit[i][j].p0, "float");
                                 add_name(rebasename+".p1", &unit[i][j].p1, "float");
                                 add_name(rebasename+".p2", &unit[i][j].p2, "float");
@@ -3892,45 +3892,46 @@ struct cosmosstruc
                 for(size_t i = 0; i < equation.capacity(); ++i)	{
                         string basename = "equation[" + std::to_string(i) + "]";
                         add_name(basename, &equation[i]);
-                        add_name(basename+".name", &equation[i].name);
-                        add_name(basename+".value", &equation[i].value);
+                        add_name(basename+".name", &equation[i].name, "string");
+                        add_name(basename+".value", &equation[i].value), "string";
                 }
 
             // nodestruc node
             add_name("node", &node);
             add_name("node.name", &node.name);
             add_name("node.lastevent", &node.lastevent);
-            add_name("node.lasteventutc", &node.lasteventutc);
-            add_name("node.type", &node.type);
-            add_name("node.state", &node.state);
-            add_name("node.vertex_cnt", &node.vertex_cnt);
-            add_name("node.normal_cnt", &node.normal_cnt);
-            add_name("node.face_cnt", &node.face_cnt);
-            add_name("node.piece_cnt", &node.piece_cnt);
-            add_name("node.device_cnt", &node.device_cnt);
-            add_name("node.port_cnt", &node.port_cnt);
-            add_name("node.agent_cnt", &node.agent_cnt);
-            add_name("node.event_cnt", &node.event_cnt);
-            add_name("node.target_cnt", &node.target_cnt);
-            add_name("node.user_cnt", &node.user_cnt);
-            add_name("node.tle_cnt", &node.tle_cnt);
-            add_name("node.flags", &node.flags);
-            add_name("node.powmode", &node.powmode);
-            add_name("node.downtime", &node.downtime);
-            add_name("node.azfrom", &node.azfrom);
-            add_name("node.elfrom", &node.elfrom);
-            add_name("node.azto", &node.azto);
-            add_name("node.elto", &node.elto);
-            add_name("node.range", &node.range);
-            add_name("node.utcoffset", &node.utcoffset);
-            add_name("node.utc", &node.utc);
-            add_name("node.utcstart", &node.utcstart);
+            add_name("node.lasteventutc", &node.lasteventutc, "double");
+            add_name("node.type", &node.type, "uint16_t");
+            add_name("node.state", &node.state, "uint16_t");
+            add_name("node.vertex_cnt", &node.vertex_cnt, "uint16_t");
+            add_name("node.normal_cnt", &node.normal_cnt, "uint16_t");
+            add_name("node.face_cnt", &node.face_cnt, "uint16_t");
+            add_name("node.piece_cnt", &node.piece_cnt, "uint16_t");
+            add_name("node.device_cnt", &node.device_cnt, "uint16_t");
+            add_name("node.port_cnt", &node.port_cnt, "uint16_t");
+            add_name("node.agent_cnt", &node.agent_cnt, "uint16_t");
+            add_name("node.event_cnt", &node.event_cnt, "uint16_t");
+            add_name("node.target_cnt", &node.target_cnt, "uint16_t");
+            add_name("node.user_cnt", &node.user_cnt, "uint16_t");
+            add_name("node.tle_cnt", &node.tle_cnt, "uint16_t");
+            add_name("node.flags", &node.flags, "uint16_t");
+            add_name("node.powmode", &node.powmode, "int16_t");
+            add_name("node.downtime", &node.downtime, "uint32_t");
+            add_name("node.azfrom", &node.azfrom, "float");
+            add_name("node.elfrom", &node.elfrom, "float");
+            add_name("node.azto", &node.azto, "float");
+            add_name("node.elto", &node.elto, "float");
+            add_name("node.range", &node.range, "float");
+            add_name("node.utcoffset", &node.utcoffset, "double");
+            add_name("node.utc", &node.utc, "double");
+            add_name("node.utcstart", &node.utcstart, "double");
+
             add_name("node.loc", &node.loc);
-            add_name("node.loc.utc", &node.loc.utc);
+            add_name("node.loc.utc", &node.loc.utc, "double");
             add_name("node.loc.pos", &node.loc.pos);
-            add_name("node.loc.pos.utc", &node.loc.pos.utc);
+            add_name("node.loc.pos.utc", &node.loc.pos.utc, "double");
             add_name("node.loc.pos.icrf", &node.loc.pos.icrf);
-            add_name("node.loc.pos.icrf.utc", &node.loc.pos.icrf.utc);
+            add_name("node.loc.pos.icrf.utc", &node.loc.pos.icrf.utc, "double");
             add_name("node.loc.pos.icrf.s", &node.loc.pos.icrf.s);
             add_name("node.loc.pos.icrf.s.col", &node.loc.pos.icrf.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.icrf.s.col)/sizeof(node.loc.pos.icrf.s.col[0]); ++i) {
@@ -3951,7 +3952,7 @@ struct cosmosstruc
             }
             add_name("node.loc.pos.icrf.pass", &node.loc.pos.icrf.pass);
             add_name("node.loc.pos.eci", &node.loc.pos.eci);
-            add_name("node.loc.pos.eci.utc", &node.loc.pos.eci.utc);
+            add_name("node.loc.pos.eci.utc", &node.loc.pos.eci.utc, "double");
             add_name("node.loc.pos.eci.s", &node.loc.pos.eci.s);
             add_name("node.loc.pos.eci.s.col", &node.loc.pos.eci.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.eci.s.col)/sizeof(node.loc.pos.eci.s.col[0]); ++i) {
@@ -3972,7 +3973,7 @@ struct cosmosstruc
             }
             add_name("node.loc.pos.eci.pass", &node.loc.pos.eci.pass);
             add_name("node.loc.pos.sci", &node.loc.pos.sci);
-            add_name("node.loc.pos.sci.utc", &node.loc.pos.sci.utc);
+            add_name("node.loc.pos.sci.utc", &node.loc.pos.sci.utc, "double");
             add_name("node.loc.pos.sci.s", &node.loc.pos.sci.s);
             add_name("node.loc.pos.sci.s.col", &node.loc.pos.sci.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.sci.s.col)/sizeof(node.loc.pos.sci.s.col[0]); ++i) {
@@ -3993,7 +3994,7 @@ struct cosmosstruc
             }
             add_name("node.loc.pos.sci.pass", &node.loc.pos.sci.pass);
             add_name("node.loc.pos.geoc", &node.loc.pos.geoc);
-            add_name("node.loc.pos.geoc.utc", &node.loc.pos.geoc.utc);
+            add_name("node.loc.pos.geoc.utc", &node.loc.pos.geoc.utc, "double");
             add_name("node.loc.pos.geoc.s", &node.loc.pos.geoc.s);
             add_name("node.loc.pos.geoc.s.col", &node.loc.pos.geoc.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.geoc.s.col)/sizeof(node.loc.pos.geoc.s.col[0]); ++i) {
@@ -4014,7 +4015,7 @@ struct cosmosstruc
             }
             add_name("node.loc.pos.geoc.pass", &node.loc.pos.geoc.pass);
             add_name("node.loc.pos.selc", &node.loc.pos.selc);
-            add_name("node.loc.pos.selc.utc", &node.loc.pos.selc.utc);
+            add_name("node.loc.pos.selc.utc", &node.loc.pos.selc.utc, "double");
             add_name("node.loc.pos.selc.s", &node.loc.pos.selc.s);
             add_name("node.loc.pos.selc.s.col", &node.loc.pos.selc.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.selc.s.col)/sizeof(node.loc.pos.selc.s.col[0]); ++i) {
@@ -4035,55 +4036,55 @@ struct cosmosstruc
             }
             add_name("node.loc.pos.selc.pass", &node.loc.pos.selc.pass);
             add_name("node.loc.pos.geod", &node.loc.pos.geod);
-            add_name("node.loc.pos.geod.utc", &node.loc.pos.geod.utc);
+            add_name("node.loc.pos.geod.utc", &node.loc.pos.geod.utc, "double");
             add_name("node.loc.pos.geod.s", &node.loc.pos.geod.s);
-            add_name("node.loc.pos.geod.s.lat", &node.loc.pos.geod.s.lat);
-            add_name("node.loc.pos.geod.s.lon", &node.loc.pos.geod.s.lon);
-            add_name("node.loc.pos.geod.s.h", &node.loc.pos.geod.s.h);
+            add_name("node.loc.pos.geod.s.lat", &node.loc.pos.geod.s.lat, "double");
+            add_name("node.loc.pos.geod.s.lon", &node.loc.pos.geod.s.lon, "double");
+            add_name("node.loc.pos.geod.s.h", &node.loc.pos.geod.s.h, "double");
             add_name("node.loc.pos.geod.v", &node.loc.pos.geod.v);
-            add_name("node.loc.pos.geod.v.lat", &node.loc.pos.geod.v.lat);
-            add_name("node.loc.pos.geod.v.lon", &node.loc.pos.geod.v.lon);
-            add_name("node.loc.pos.geod.v.h", &node.loc.pos.geod.v.h);
+            add_name("node.loc.pos.geod.v.lat", &node.loc.pos.geod.v.lat, "double");
+            add_name("node.loc.pos.geod.v.lon", &node.loc.pos.geod.v.lon, "double");
+            add_name("node.loc.pos.geod.v.h", &node.loc.pos.geod.v.h, "double");
             add_name("node.loc.pos.geod.a", &node.loc.pos.geod.a);
-            add_name("node.loc.pos.geod.a.lat", &node.loc.pos.geod.a.lat);
-            add_name("node.loc.pos.geod.a.lon", &node.loc.pos.geod.a.lon);
-            add_name("node.loc.pos.geod.a.h", &node.loc.pos.geod.a.h);
+            add_name("node.loc.pos.geod.a.lat", &node.loc.pos.geod.a.lat, "double");
+            add_name("node.loc.pos.geod.a.lon", &node.loc.pos.geod.a.lon, "double");
+            add_name("node.loc.pos.geod.a.h", &node.loc.pos.geod.a.h, "double");
             add_name("node.loc.pos.geod.pass", &node.loc.pos.geod.pass);
             add_name("node.loc.pos.selg", &node.loc.pos.selg);
-            add_name("node.loc.pos.selg.utc", &node.loc.pos.selg.utc);
+            add_name("node.loc.pos.selg.utc", &node.loc.pos.selg.utc, "double");
             add_name("node.loc.pos.selg.s", &node.loc.pos.selg.s);
-            add_name("node.loc.pos.selg.s.lat", &node.loc.pos.selg.s.lat);
-            add_name("node.loc.pos.selg.s.lon", &node.loc.pos.selg.s.lon);
-            add_name("node.loc.pos.selg.s.h", &node.loc.pos.selg.s.h);
+            add_name("node.loc.pos.selg.s.lat", &node.loc.pos.selg.s.lat, "double");
+            add_name("node.loc.pos.selg.s.lon", &node.loc.pos.selg.s.lon, "double");
+            add_name("node.loc.pos.selg.s.h", &node.loc.pos.selg.s.h, "double");
             add_name("node.loc.pos.selg.v", &node.loc.pos.selg.v);
-            add_name("node.loc.pos.selg.v.lat", &node.loc.pos.selg.v.lat);
-            add_name("node.loc.pos.selg.v.lon", &node.loc.pos.selg.v.lon);
-            add_name("node.loc.pos.selg.v.h", &node.loc.pos.selg.v.h);
+            add_name("node.loc.pos.selg.v.lat", &node.loc.pos.selg.v.lat, "double");
+            add_name("node.loc.pos.selg.v.lon", &node.loc.pos.selg.v.lon, "double");
+            add_name("node.loc.pos.selg.v.h", &node.loc.pos.selg.v.h, "double");
             add_name("node.loc.pos.selg.a", &node.loc.pos.selg.a);
-            add_name("node.loc.pos.selg.a.lat", &node.loc.pos.selg.a.lat);
-            add_name("node.loc.pos.selg.a.lon", &node.loc.pos.selg.a.lon);
-            add_name("node.loc.pos.selg.a.h", &node.loc.pos.selg.a.h);
+            add_name("node.loc.pos.selg.a.lat", &node.loc.pos.selg.a.lat, "double");
+            add_name("node.loc.pos.selg.a.lon", &node.loc.pos.selg.a.lon, "double");
+            add_name("node.loc.pos.selg.a.h", &node.loc.pos.selg.a.h, "double");
             add_name("node.loc.pos.selg.pass", &node.loc.pos.selg.pass);
             add_name("node.loc.pos.geos", &node.loc.pos.geos);
-            add_name("node.loc.pos.geos.utc", &node.loc.pos.geos.utc);
+            add_name("node.loc.pos.geos.utc", &node.loc.pos.geos.utc, "double");
             add_name("node.loc.pos.geos.s", &node.loc.pos.geos.s);
-            add_name("node.loc.pos.geos.s.phi", &node.loc.pos.geos.s.phi);
-            add_name("node.loc.pos.geos.s.lambda", &node.loc.pos.geos.s.lambda);
-            add_name("node.loc.pos.geos.s.r", &node.loc.pos.geos.s.r);
+            add_name("node.loc.pos.geos.s.phi", &node.loc.pos.geos.s.phi, "double");
+            add_name("node.loc.pos.geos.s.lambda", &node.loc.pos.geos.s.lambda, "double");
+            add_name("node.loc.pos.geos.s.r", &node.loc.pos.geos.s.r, "double");
             add_name("node.loc.pos.geos.v", &node.loc.pos.geos.v);
-            add_name("node.loc.pos.geos.v.phi", &node.loc.pos.geos.v.phi);
-            add_name("node.loc.pos.geos.v.lambda", &node.loc.pos.geos.v.lambda);
-            add_name("node.loc.pos.geos.v.r", &node.loc.pos.geos.v.r);
+            add_name("node.loc.pos.geos.v.phi", &node.loc.pos.geos.v.phi, "double");
+            add_name("node.loc.pos.geos.v.lambda", &node.loc.pos.geos.v.lambda, "double");
+            add_name("node.loc.pos.geos.v.r", &node.loc.pos.geos.v.r, "double");
             add_name("node.loc.pos.geos.a", &node.loc.pos.geos.a);
-            add_name("node.loc.pos.geos.a.phi", &node.loc.pos.geos.a.phi);
-            add_name("node.loc.pos.geos.a.lambda", &node.loc.pos.geos.a.lambda);
-            add_name("node.loc.pos.geos.a.r", &node.loc.pos.geos.a.r);
+            add_name("node.loc.pos.geos.a.phi", &node.loc.pos.geos.a.phi, "double");
+            add_name("node.loc.pos.geos.a.lambda", &node.loc.pos.geos.a.lambda, "double");
+            add_name("node.loc.pos.geos.a.r", &node.loc.pos.geos.a.r, "double");
             add_name("node.loc.pos.geos.pass", &node.loc.pos.geos.pass);
             add_name("node.loc.pos.extra", &node.loc.pos.extra);
-            add_name("node.loc.pos.extra.utc", &node.loc.pos.extra.utc);
-            add_name("node.loc.pos.extra.tt", &node.loc.pos.extra.tt);
-            add_name("node.loc.pos.extra.ut", &node.loc.pos.extra.ut);
-            add_name("node.loc.pos.extra.tdb", &node.loc.pos.extra.tdb);
+            add_name("node.loc.pos.extra.utc", &node.loc.pos.extra.utc, "double");
+            add_name("node.loc.pos.extra.tt", &node.loc.pos.extra.tt, "double");
+            add_name("node.loc.pos.extra.ut", &node.loc.pos.extra.ut, "double");
+            add_name("node.loc.pos.extra.tdb", &node.loc.pos.extra.tdb, "double");
             add_name("node.loc.pos.extra.j2e", &node.loc.pos.extra.j2e);
             add_name("node.loc.pos.extra.j2e.row", &node.loc.pos.extra.j2e.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.j2e.row)/sizeof(node.loc.pos.extra.j2e.row[0]); ++i) {
@@ -4204,7 +4205,7 @@ struct cosmosstruc
             }
             add_name("node.loc.pos.extra.sun2earth.pass", &node.loc.pos.extra.sun2earth.pass);
             add_name("node.loc.pos.extra.sun2moon", &node.loc.pos.extra.sun2moon);
-            add_name("node.loc.pos.extra.sun2moon.utc", &node.loc.pos.extra.sun2moon.utc);
+            add_name("node.loc.pos.extra.sun2moon.utc", &node.loc.pos.extra.sun2moon.utc, "double");
             add_name("node.loc.pos.extra.sun2moon.s", &node.loc.pos.extra.sun2moon.s);
             add_name("node.loc.pos.extra.sun2moon.s.col", &node.loc.pos.extra.sun2moon.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.sun2moon.s.col)/sizeof(node.loc.pos.extra.sun2moon.s.col[0]); ++i) {
@@ -5618,14 +5619,17 @@ struct cosmosstruc
         }
 
 
-
-
-
         string get_name(void* v)	{
                 name_map::const_iterator it = names.begin();
                 while(it->second != v && it != names.end())	{ it++; }
                 if(it == names.end())	{	cerr<<"address <"<<v<<"> not found!"<<endl; return "";	}
                 return it->first;
+        }
+
+        string get_type(const string& s) const	{
+                type_map::const_iterator it = types.find(s);
+                if(it == types.end())	{	/*cerr<<"type for <"<<s<<"> not found!"<<endl;*/ return "";	}
+                return it->second;
         }
 
         template<class T>

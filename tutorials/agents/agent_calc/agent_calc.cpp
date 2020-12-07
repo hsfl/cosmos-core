@@ -524,7 +524,15 @@ while(1)	{
 	vector<string> all_names = agent->cinfo->get_all_names();
 	for(size_t i = 0; i < all_names.size(); ++i)	{
 		// replace names with values
-		replace(eq, all_names[i], to_string(agent->cinfo->get_value<double>(all_names[i])));
+		string type = agent->cinfo->get_type(all_names[i]);
+		if(type != "")	{
+			if(type=="double")	{
+				replace(eq, all_names[i], to_string(agent->cinfo->get_value<double>(all_names[i])));
+			}
+			if(type=="float")	{
+				replace(eq, all_names[i], to_string(agent->cinfo->get_value<float>(all_names[i])));
+			}
+		}
 	}
 
 	cout<<"The answer is "<<std::setprecision(std::numeric_limits<double>::digits10)<<equationator(eq)<<endl;
