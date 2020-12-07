@@ -2137,7 +2137,7 @@ int32_t data_execute(string cmd, string& result, string shell)
         cmd.insert(0, shell + " -c ");
     }
 
-    if (shell.find("csh"))
+    if (shell.find("csh") != string::npos)
     {
         cmd.append(" |& cat");
     }
