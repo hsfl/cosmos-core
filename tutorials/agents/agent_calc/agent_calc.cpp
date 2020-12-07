@@ -68,6 +68,8 @@ int32_t request_change_node_name(string &request, string &response, Agent *agent
 #define MAXBUFFERSIZE 100000 // comm buffer for agents
 
 static Agent *agent; // to access the cosmos data, will change later
+
+
 /*
 void replace(std::string& str, const std::string& from, const std::string& to) {
     if(from.empty()) return;
@@ -76,6 +78,7 @@ void replace(std::string& str, const std::string& from, const std::string& to) {
         str.replace(start_pos, from.length(), to);
         start_pos += to.length();
     }
+	return;
 }
 
 vector<size_t> find_newlines(const string& sample) {
@@ -251,10 +254,16 @@ double equationator(const string& str)	{
 	}
 	if(p_count!=0)	return nan("");
 
+
+	
 	// you should never have #( or )#...  implied multiplication, but make explicit already!
 	// trim leading whitespace
  	const auto notwhite = eq.find_first_not_of(" \n\r\t\f\v");
 	eq = eq.substr(notwhite);
+
+
+
+
 	string output;
 	stack<double> answer;
 	stack<char> ops;
@@ -306,7 +315,7 @@ double equationator(const string& str)	{
 			for(size_t i = 0; i < fraction.size(); ++i)	{ numnum += fraction[i]*1.0 * pow(10.0, -(i+1.0)); }
 			if(negative) numnum *= -1.;
 			stringstream ss;
-			ss<<setprecision(16)<<numnum;
+			ss<<std::setprecision(std::numeric_limits<double>::digits10)<<numnum;
 			output += ss.str() + " ";
 			answer.push(numnum);
 			continue;
@@ -501,16 +510,24 @@ int main(int argc, char *argv[])
 
 cout<<"but seriously...  let's calculate already"<<endl;
 
-//cout<<setprecision(16)<<"ANSWER == <"<<equationator(str)<<">"<<endl;
+//cout<<std::setprecision(std::numeric_limits<double>::digits10)<<"ANSWER == <"<<equationator(str)<<">"<<endl;
 cin.clear();
 cin.ignore(100000,'\n');
+
+	//cout<<"<"<<agent->cinfo->get_json<eventstruc>("event[0]")<<">"<<endl;
+	//cout<<"<"<<agent->cinfo->get_json_pretty<eventstruc>("event[0]")<<">"<<endl;
 
 while(1)	{
 	cout<<"Please enter an equation:\t";
 	string eq;
 	getline(cin,eq);
+	vector<string> all_names = agent->cinfo->get_all_names();
+	for(size_t i = 0; i < all_names.size(); ++i)	{
+		// replace names with values
+		replace(eq, all_names[i], to_string(agent->cinfo->get_value<double>(all_names[i])));
+	}
 
-	cout<<"The answer is "<<equationator(eq)<<endl;
+	cout<<"The answer is "<<std::setprecision(std::numeric_limits<double>::digits10)<<equationator(eq)<<endl;
 }
 
 
@@ -540,7 +557,6 @@ while(1)	{
 	cout<<agent->cinfo->get_json_pretty<userstruc>("user[9]")<<endl;
 
 
-	cout<<"<"<<agent->cinfo->get_json_pretty<eventstruc>("event[0]")<<">"<<endl;
 */
 /*
 	agent->cinfo->add_name("Entire COSMOSSTRUC Unit", &agent->cinfo->unit);
