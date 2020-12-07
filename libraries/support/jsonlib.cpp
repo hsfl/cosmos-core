@@ -410,7 +410,7 @@ void json_init_node(cosmosstruc* cinfo)	{
     cinfo->node.name[0] = 0;
 }
 
-void json_init_resize(cosmosstruc* cinfo) {
+void json_init_reserve(cosmosstruc* cinfo) {
 	// JIMNOTE: change all to reserve
 	// reserve/resize fixed-sized vectors
     cinfo->unit.reserve(JSON_UNIT_COUNT);
@@ -418,11 +418,14 @@ void json_init_resize(cosmosstruc* cinfo) {
     cinfo->jmap.resize(JSON_MAX_HASH);
     cinfo->emap.resize(JSON_MAX_HASH);
 
+	// TODO: enforce this maximum for all vert/tri.push_back calls
+    cinfo->node.phys.vertices.reserve(MAX_NUMBER_OF_VERTICES);
+    cinfo->node.phys.triangles.reserve(MAX_NUMBER_OF_TRIANGLES);
+
     cinfo->user.reserve(MAX_NUMBER_OF_USERS);
     cinfo->user.resize(1);
 
     cinfo->user.reserve(MAX_NUMBER_OF_EQUATIONS);
-
     cinfo->agent.resize(1);
 
     cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
@@ -446,12 +449,14 @@ cosmosstruc* json_init()
     if ((cinfo = new cosmosstruc()) == nullptr) { return nullptr; }
 
 	json_init_device_type_string();
-	json_init_resize(cinfo);
-    if (cinfo == nullptr) { return nullptr; }
 // would be nice to have unit test for these three guys
+	//SCOTTNOTE: reserve capacity for all vectors in these strucs
 	cinfo->node = nodestruc();
     cinfo->node.phys = physicsstruc();
 	cinfo->devspec = devspecstruc();
+
+	json_init_reserve(cinfo);
+    if (cinfo == nullptr) { return nullptr; }
 
 	json_init_unit(cinfo);
 	json_init_node(cinfo);

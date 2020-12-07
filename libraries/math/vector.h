@@ -637,31 +637,9 @@ namespace Cosmos {
                 w = 0.;
             }
 
-            //! X value
-            union
-            {
-                double x;
-                double phi;
-                double lat;
-                double head;
-            };
-            //! Y value
-            union
-            {
+            double x;
             double y;
-            double lambda;
-            double lon;
-            double elev;
-            };
-            //! Z value
-            union
-            {
             double z;
-            double radius;
-            double alt;
-            double bank;
-            };
-            //! W value
             double w;
 
             // TODO: check if we can iterated the vector

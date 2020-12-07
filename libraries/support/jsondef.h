@@ -446,6 +446,11 @@ enum {
 #define AGENTMAXREQUESTCOUNT (AGENTMAXBUILTINCOUNT+AGENTMAXUSERCOUNT)
 
 // Maximums for pre-allocated (and never reallocated) vector storage inside cosmosstruc
+//* Maximum number of vertices
+#define MAX_NUMBER_OF_VERTICES 10
+
+//* Maximum number of triangles
+#define MAX_NUMBER_OF_TRIANGLES 10
 
 //* Maximum number of equations
 #define MAX_NUMBER_OF_EQUATIONS 25
@@ -3091,8 +3096,8 @@ struct physicsstruc
             { "com" , com },
             { "vertices" , vertices },
             { "triangles" , triangles }
-                };
-        }
+        };
+    }
 
     // Set class contents from JSON string
     void from_json(const string& js) {
@@ -3807,18 +3812,33 @@ struct cosmosstruc
         using name_map = map<string,void*>;
         using name_mapping = pair<string,void*>;
 
+        using type_map = map<string,string>;
+        using type_mapping = pair<string,string>;
+
         name_map names;
+		type_map types;
 
         bool name_exists(const string& s)	{ return (names.find(s) == names.end()) ? false : true; }
 
 		size_t size()	{	return names.size();	}
 
         void print_all_names() const	{
-                name_map::const_iterator it = names.begin();
-                while(it != names.end())	{ cout<<(it++)->first<<endl; }
+            name_map::const_iterator it = names.begin();
+            while(it != names.end())	{ cout<<(it++)->first<<endl; }
+        }
+
+        vector<string> get_all_names() const	{
+			vector<string> all_names;
+            name_map::const_iterator it = names.begin();
+            while(it != names.end())	{ all_names.push_back((it++)->first); }
+			return all_names;
         }
 
         void add_name(const string& s, void* v)	{ names.insert(name_mapping(s,v)); };
+        void add_name(const string& s, void* v, string t)	{
+			names.insert(name_mapping(s,v));
+			types.insert(type_mapping(s,t));
+		};
         //TODO:   change_name(..) functions, match_name(), find_aliases(), etc
 
         // Remove single name from name map
@@ -3846,10 +3866,10 @@ struct cosmosstruc
         void add_default_names()	{
 
         // double timestamp
-                add_name("timestamp", &timestamp);
+                add_name("timestamp", &timestamp, "double");
 
         // uint16_t jmapped
-                add_name("jmapped", &jmapped);
+                add_name("jmapped", &jmapped, "uint16_t");
 
         // vector<vector<unitstruc>> unit
                 add_name("unit", &unit);
@@ -3861,9 +3881,9 @@ struct cosmosstruc
                                 add_name(rebasename, &unit[i][j]);
                                 add_name(rebasename+".name", &unit[i][j].name);
                                 add_name(rebasename+".type", &unit[i][j].type);
-                                add_name(rebasename+".p0", &unit[i][j].p0);
-                                add_name(rebasename+".p1", &unit[i][j].p1);
-                                add_name(rebasename+".p2", &unit[i][j].p2);
+                                add_name(rebasename+".p0", &unit[i][j].p0, "float");
+                                add_name(rebasename+".p1", &unit[i][j].p1, "float");
+                                add_name(rebasename+".p2", &unit[i][j].p2, "float");
                         }
                 }
 
@@ -3915,19 +3935,19 @@ struct cosmosstruc
             add_name("node.loc.pos.icrf.s.col", &node.loc.pos.icrf.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.icrf.s.col)/sizeof(node.loc.pos.icrf.s.col[0]); ++i) {
                 string basename = "node.loc.pos.icrf.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.icrf.s.col[i]);
+                add_name(basename, &node.loc.pos.icrf.s.col[i], "double");
             }
             add_name("node.loc.pos.icrf.v", &node.loc.pos.icrf.v);
             add_name("node.loc.pos.icrf.v.col", &node.loc.pos.icrf.v.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.icrf.v.col)/sizeof(node.loc.pos.icrf.v.col[0]); ++i) {
                 string basename = "node.loc.pos.icrf.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.icrf.v.col[i]);
+                add_name(basename, &node.loc.pos.icrf.v.col[i], "double");
             }
             add_name("node.loc.pos.icrf.a", &node.loc.pos.icrf.a);
             add_name("node.loc.pos.icrf.a.col", &node.loc.pos.icrf.a.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.icrf.a.col)/sizeof(node.loc.pos.icrf.a.col[0]); ++i) {
                 string basename = "node.loc.pos.icrf.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.icrf.a.col[i]);
+                add_name(basename, &node.loc.pos.icrf.a.col[i], "double");
             }
             add_name("node.loc.pos.icrf.pass", &node.loc.pos.icrf.pass);
             add_name("node.loc.pos.eci", &node.loc.pos.eci);
@@ -3936,19 +3956,19 @@ struct cosmosstruc
             add_name("node.loc.pos.eci.s.col", &node.loc.pos.eci.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.eci.s.col)/sizeof(node.loc.pos.eci.s.col[0]); ++i) {
                 string basename = "node.loc.pos.eci.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.eci.s.col[i]);
+                add_name(basename, &node.loc.pos.eci.s.col[i], "double");
             }
             add_name("node.loc.pos.eci.v", &node.loc.pos.eci.v);
             add_name("node.loc.pos.eci.v.col", &node.loc.pos.eci.v.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.eci.v.col)/sizeof(node.loc.pos.eci.v.col[0]); ++i) {
                 string basename = "node.loc.pos.eci.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.eci.v.col[i]);
+                add_name(basename, &node.loc.pos.eci.v.col[i], "double");
             }
             add_name("node.loc.pos.eci.a", &node.loc.pos.eci.a);
             add_name("node.loc.pos.eci.a.col", &node.loc.pos.eci.a.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.eci.a.col)/sizeof(node.loc.pos.eci.a.col[0]); ++i) {
                 string basename = "node.loc.pos.eci.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.eci.a.col[i]);
+                add_name(basename, &node.loc.pos.eci.a.col[i], "double");
             }
             add_name("node.loc.pos.eci.pass", &node.loc.pos.eci.pass);
             add_name("node.loc.pos.sci", &node.loc.pos.sci);
@@ -3957,19 +3977,19 @@ struct cosmosstruc
             add_name("node.loc.pos.sci.s.col", &node.loc.pos.sci.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.sci.s.col)/sizeof(node.loc.pos.sci.s.col[0]); ++i) {
                 string basename = "node.loc.pos.sci.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.sci.s.col[i]);
+                add_name(basename, &node.loc.pos.sci.s.col[i], "double");
             }
             add_name("node.loc.pos.sci.v", &node.loc.pos.sci.v);
             add_name("node.loc.pos.sci.v.col", &node.loc.pos.sci.v.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.sci.v.col)/sizeof(node.loc.pos.sci.v.col[0]); ++i) {
                 string basename = "node.loc.pos.sci.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.sci.v.col[i]);
+                add_name(basename, &node.loc.pos.sci.v.col[i], "double");
             }
             add_name("node.loc.pos.sci.a", &node.loc.pos.sci.a);
             add_name("node.loc.pos.sci.a.col", &node.loc.pos.sci.a.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.sci.a.col)/sizeof(node.loc.pos.sci.a.col[0]); ++i) {
                 string basename = "node.loc.pos.sci.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.sci.a.col[i]);
+                add_name(basename, &node.loc.pos.sci.a.col[i], "double");
             }
             add_name("node.loc.pos.sci.pass", &node.loc.pos.sci.pass);
             add_name("node.loc.pos.geoc", &node.loc.pos.geoc);
@@ -3978,19 +3998,19 @@ struct cosmosstruc
             add_name("node.loc.pos.geoc.s.col", &node.loc.pos.geoc.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.geoc.s.col)/sizeof(node.loc.pos.geoc.s.col[0]); ++i) {
                 string basename = "node.loc.pos.geoc.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.geoc.s.col[i]);
+                add_name(basename, &node.loc.pos.geoc.s.col[i], "double");
             }
             add_name("node.loc.pos.geoc.v", &node.loc.pos.geoc.v);
             add_name("node.loc.pos.geoc.v.col", &node.loc.pos.geoc.v.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.geoc.v.col)/sizeof(node.loc.pos.geoc.v.col[0]); ++i) {
                 string basename = "node.loc.pos.geoc.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.geoc.v.col[i]);
+                add_name(basename, &node.loc.pos.geoc.v.col[i], "double");
             }
             add_name("node.loc.pos.geoc.a", &node.loc.pos.geoc.a);
             add_name("node.loc.pos.geoc.a.col", &node.loc.pos.geoc.a.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.geoc.a.col)/sizeof(node.loc.pos.geoc.a.col[0]); ++i) {
                 string basename = "node.loc.pos.geoc.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.geoc.a.col[i]);
+                add_name(basename, &node.loc.pos.geoc.a.col[i], "double");
             }
             add_name("node.loc.pos.geoc.pass", &node.loc.pos.geoc.pass);
             add_name("node.loc.pos.selc", &node.loc.pos.selc);
@@ -3999,19 +4019,19 @@ struct cosmosstruc
             add_name("node.loc.pos.selc.s.col", &node.loc.pos.selc.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.selc.s.col)/sizeof(node.loc.pos.selc.s.col[0]); ++i) {
                 string basename = "node.loc.pos.selc.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.selc.s.col[i]);
+                add_name(basename, &node.loc.pos.selc.s.col[i], "double");
             }
             add_name("node.loc.pos.selc.v", &node.loc.pos.selc.v);
             add_name("node.loc.pos.selc.v.col", &node.loc.pos.selc.v.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.selc.v.col)/sizeof(node.loc.pos.selc.v.col[0]); ++i) {
                 string basename = "node.loc.pos.selc.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.selc.v.col[i]);
+                add_name(basename, &node.loc.pos.selc.v.col[i], "double");
             }
             add_name("node.loc.pos.selc.a", &node.loc.pos.selc.a);
             add_name("node.loc.pos.selc.a.col", &node.loc.pos.selc.a.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.selc.a.col)/sizeof(node.loc.pos.selc.a.col[0]); ++i) {
                 string basename = "node.loc.pos.selc.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.selc.a.col[i]);
+                add_name(basename, &node.loc.pos.selc.a.col[i], "double");
             }
             add_name("node.loc.pos.selc.pass", &node.loc.pos.selc.pass);
             add_name("node.loc.pos.geod", &node.loc.pos.geod);
@@ -4068,84 +4088,98 @@ struct cosmosstruc
             add_name("node.loc.pos.extra.j2e.row", &node.loc.pos.extra.j2e.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.j2e.row)/sizeof(node.loc.pos.extra.j2e.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.j2e.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.j2e.row[i]);
             }
             add_name("node.loc.pos.extra.dj2e", &node.loc.pos.extra.dj2e);
             add_name("node.loc.pos.extra.dj2e.row", &node.loc.pos.extra.dj2e.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.dj2e.row)/sizeof(node.loc.pos.extra.dj2e.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.dj2e.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.dj2e.row[i]);
             }
             add_name("node.loc.pos.extra.ddj2e", &node.loc.pos.extra.ddj2e);
             add_name("node.loc.pos.extra.ddj2e.row", &node.loc.pos.extra.ddj2e.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.ddj2e.row)/sizeof(node.loc.pos.extra.ddj2e.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.ddj2e.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.ddj2e.row[i]);
             }
             add_name("node.loc.pos.extra.e2j", &node.loc.pos.extra.e2j);
             add_name("node.loc.pos.extra.e2j.row", &node.loc.pos.extra.e2j.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.e2j.row)/sizeof(node.loc.pos.extra.e2j.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.e2j.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.e2j.row[i]);
             }
             add_name("node.loc.pos.extra.de2j", &node.loc.pos.extra.de2j);
             add_name("node.loc.pos.extra.de2j.row", &node.loc.pos.extra.de2j.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.de2j.row)/sizeof(node.loc.pos.extra.de2j.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.de2j.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.de2j.row[i]);
             }
             add_name("node.loc.pos.extra.dde2j", &node.loc.pos.extra.dde2j);
             add_name("node.loc.pos.extra.dde2j.row", &node.loc.pos.extra.dde2j.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.dde2j.row)/sizeof(node.loc.pos.extra.dde2j.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.dde2j.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.dde2j.row[i]);
             }
             add_name("node.loc.pos.extra.j2t", &node.loc.pos.extra.j2t);
             add_name("node.loc.pos.extra.j2t.row", &node.loc.pos.extra.j2t.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.j2t.row)/sizeof(node.loc.pos.extra.j2t.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.j2t.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.j2t.row[i]);
             }
             add_name("node.loc.pos.extra.j2s", &node.loc.pos.extra.j2s);
             add_name("node.loc.pos.extra.j2s.row", &node.loc.pos.extra.j2s.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.j2s.row)/sizeof(node.loc.pos.extra.j2s.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.j2s.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.j2s.row[i]);
             }
             add_name("node.loc.pos.extra.t2j", &node.loc.pos.extra.t2j);
             add_name("node.loc.pos.extra.t2j.row", &node.loc.pos.extra.t2j.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.t2j.row)/sizeof(node.loc.pos.extra.t2j.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.t2j.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.t2j.row[i]);
             }
             add_name("node.loc.pos.extra.s2j", &node.loc.pos.extra.s2j);
             add_name("node.loc.pos.extra.s2j.row", &node.loc.pos.extra.s2j.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.s2j.row)/sizeof(node.loc.pos.extra.s2j.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.s2j.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.s2j.row[i]);
             }
             add_name("node.loc.pos.extra.s2t", &node.loc.pos.extra.s2t);
             add_name("node.loc.pos.extra.s2t.row", &node.loc.pos.extra.s2t.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.s2t.row)/sizeof(node.loc.pos.extra.s2t.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.s2t.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.s2t.row[i]);
             }
             add_name("node.loc.pos.extra.ds2t", &node.loc.pos.extra.ds2t);
             add_name("node.loc.pos.extra.ds2t.row", &node.loc.pos.extra.ds2t.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.ds2t.row)/sizeof(node.loc.pos.extra.ds2t.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.ds2t.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.ds2t.row[i]);
             }
             add_name("node.loc.pos.extra.t2s", &node.loc.pos.extra.t2s);
             add_name("node.loc.pos.extra.t2s.row", &node.loc.pos.extra.t2s.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.t2s.row)/sizeof(node.loc.pos.extra.t2s.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.t2s.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.t2s.row[i]);
             }
             add_name("node.loc.pos.extra.dt2s", &node.loc.pos.extra.dt2s);
             add_name("node.loc.pos.extra.dt2s.row", &node.loc.pos.extra.dt2s.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.dt2s.row)/sizeof(node.loc.pos.extra.dt2s.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.dt2s.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.dt2s.row[i]);
             }
             add_name("node.loc.pos.extra.sun2earth", &node.loc.pos.extra.sun2earth);
@@ -4154,19 +4188,19 @@ struct cosmosstruc
             add_name("node.loc.pos.extra.sun2earth.s.col", &node.loc.pos.extra.sun2earth.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.sun2earth.s.col)/sizeof(node.loc.pos.extra.sun2earth.s.col[0]); ++i) {
                 string basename = "node.loc.pos.extra.sun2earth.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.extra.sun2earth.s.col[i]);
+                add_name(basename, &node.loc.pos.extra.sun2earth.s.col[i], "double");
             }
             add_name("node.loc.pos.extra.sun2earth.v", &node.loc.pos.extra.sun2earth.v);
             add_name("node.loc.pos.extra.sun2earth.v.col", &node.loc.pos.extra.sun2earth.v.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.sun2earth.v.col)/sizeof(node.loc.pos.extra.sun2earth.v.col[0]); ++i) {
                 string basename = "node.loc.pos.extra.sun2earth.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.extra.sun2earth.v.col[i]);
+                add_name(basename, &node.loc.pos.extra.sun2earth.v.col[i], "double");
             }
             add_name("node.loc.pos.extra.sun2earth.a", &node.loc.pos.extra.sun2earth.a);
             add_name("node.loc.pos.extra.sun2earth.a.col", &node.loc.pos.extra.sun2earth.a.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.sun2earth.a.col)/sizeof(node.loc.pos.extra.sun2earth.a.col[0]); ++i) {
                 string basename = "node.loc.pos.extra.sun2earth.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.extra.sun2earth.a.col[i]);
+                add_name(basename, &node.loc.pos.extra.sun2earth.a.col[i], "double");
             }
             add_name("node.loc.pos.extra.sun2earth.pass", &node.loc.pos.extra.sun2earth.pass);
             add_name("node.loc.pos.extra.sun2moon", &node.loc.pos.extra.sun2moon);
@@ -4175,19 +4209,19 @@ struct cosmosstruc
             add_name("node.loc.pos.extra.sun2moon.s.col", &node.loc.pos.extra.sun2moon.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.sun2moon.s.col)/sizeof(node.loc.pos.extra.sun2moon.s.col[0]); ++i) {
                 string basename = "node.loc.pos.extra.sun2moon.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.extra.sun2moon.s.col[i]);
+                add_name(basename, &node.loc.pos.extra.sun2moon.s.col[i], "double");
             }
             add_name("node.loc.pos.extra.sun2moon.v", &node.loc.pos.extra.sun2moon.v);
             add_name("node.loc.pos.extra.sun2moon.v.col", &node.loc.pos.extra.sun2moon.v.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.sun2moon.v.col)/sizeof(node.loc.pos.extra.sun2moon.v.col[0]); ++i) {
                 string basename = "node.loc.pos.extra.sun2moon.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.extra.sun2moon.v.col[i]);
+                add_name(basename, &node.loc.pos.extra.sun2moon.v.col[i], "double");
             }
             add_name("node.loc.pos.extra.sun2moon.a", &node.loc.pos.extra.sun2moon.a);
             add_name("node.loc.pos.extra.sun2moon.a.col", &node.loc.pos.extra.sun2moon.a.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.sun2moon.a.col)/sizeof(node.loc.pos.extra.sun2moon.a.col[0]); ++i) {
                 string basename = "node.loc.pos.extra.sun2moon.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.extra.sun2moon.a.col[i]);
+                add_name(basename, &node.loc.pos.extra.sun2moon.a.col[i], "double");
             }
             add_name("node.loc.pos.extra.sun2moon.pass", &node.loc.pos.extra.sun2moon.pass);
             add_name("node.loc.pos.extra.closest", &node.loc.pos.extra.closest);
@@ -4199,7 +4233,7 @@ struct cosmosstruc
             add_name("node.loc.pos.bearth.col", &node.loc.pos.bearth.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.bearth.col)/sizeof(node.loc.pos.bearth.col[0]); ++i) {
                 string basename = "node.loc.pos.bearth.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.pos.bearth.col[i]);
+                add_name(basename, &node.loc.pos.bearth.col[i], "double");
             }
             add_name("node.loc.pos.orbit", &node.loc.pos.orbit);
             add_name("node.loc.att", &node.loc.att);
@@ -4216,13 +4250,13 @@ struct cosmosstruc
             add_name("node.loc.att.topo.v.col", &node.loc.att.topo.v.col);
             for(size_t i = 0; i < sizeof(node.loc.att.topo.v.col)/sizeof(node.loc.att.topo.v.col[0]); ++i) {
                 string basename = "node.loc.att.topo.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.att.topo.v.col[i]);
+                add_name(basename, &node.loc.att.topo.v.col[i], "double");
             }
             add_name("node.loc.att.topo.a", &node.loc.att.topo.a);
             add_name("node.loc.att.topo.a.col", &node.loc.att.topo.a.col);
             for(size_t i = 0; i < sizeof(node.loc.att.topo.a.col)/sizeof(node.loc.att.topo.a.col[0]); ++i) {
                 string basename = "node.loc.att.topo.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.att.topo.a.col[i]);
+                add_name(basename, &node.loc.att.topo.a.col[i], "double");
             }
             add_name("node.loc.att.topo.pass", &node.loc.att.topo.pass);
             add_name("node.loc.att.lvlh", &node.loc.att.lvlh);
@@ -4237,13 +4271,13 @@ struct cosmosstruc
             add_name("node.loc.att.lvlh.v.col", &node.loc.att.lvlh.v.col);
             for(size_t i = 0; i < sizeof(node.loc.att.lvlh.v.col)/sizeof(node.loc.att.lvlh.v.col[0]); ++i) {
                 string basename = "node.loc.att.lvlh.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.att.lvlh.v.col[i]);
+                add_name(basename, &node.loc.att.lvlh.v.col[i], "double");
             }
             add_name("node.loc.att.lvlh.a", &node.loc.att.lvlh.a);
             add_name("node.loc.att.lvlh.a.col", &node.loc.att.lvlh.a.col);
             for(size_t i = 0; i < sizeof(node.loc.att.lvlh.a.col)/sizeof(node.loc.att.lvlh.a.col[0]); ++i) {
                 string basename = "node.loc.att.lvlh.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.att.lvlh.a.col[i]);
+                add_name(basename, &node.loc.att.lvlh.a.col[i], "double");
             }
             add_name("node.loc.att.lvlh.pass", &node.loc.att.lvlh.pass);
             add_name("node.loc.att.geoc", &node.loc.att.geoc);
@@ -4258,13 +4292,13 @@ struct cosmosstruc
             add_name("node.loc.att.geoc.v.col", &node.loc.att.geoc.v.col);
             for(size_t i = 0; i < sizeof(node.loc.att.geoc.v.col)/sizeof(node.loc.att.geoc.v.col[0]); ++i) {
                 string basename = "node.loc.att.geoc.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.att.geoc.v.col[i]);
+                add_name(basename, &node.loc.att.geoc.v.col[i], "double");
             }
             add_name("node.loc.att.geoc.a", &node.loc.att.geoc.a);
             add_name("node.loc.att.geoc.a.col", &node.loc.att.geoc.a.col);
             for(size_t i = 0; i < sizeof(node.loc.att.geoc.a.col)/sizeof(node.loc.att.geoc.a.col[0]); ++i) {
                 string basename = "node.loc.att.geoc.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.att.geoc.a.col[i]);
+                add_name(basename, &node.loc.att.geoc.a.col[i], "double");
             }
             add_name("node.loc.att.geoc.pass", &node.loc.att.geoc.pass);
             add_name("node.loc.att.selc", &node.loc.att.selc);
@@ -4279,13 +4313,13 @@ struct cosmosstruc
             add_name("node.loc.att.selc.v.col", &node.loc.att.selc.v.col);
             for(size_t i = 0; i < sizeof(node.loc.att.selc.v.col)/sizeof(node.loc.att.selc.v.col[0]); ++i) {
                 string basename = "node.loc.att.selc.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.att.selc.v.col[i]);
+                add_name(basename, &node.loc.att.selc.v.col[i], "double");
             }
             add_name("node.loc.att.selc.a", &node.loc.att.selc.a);
             add_name("node.loc.att.selc.a.col", &node.loc.att.selc.a.col);
             for(size_t i = 0; i < sizeof(node.loc.att.selc.a.col)/sizeof(node.loc.att.selc.a.col[0]); ++i) {
                 string basename = "node.loc.att.selc.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.att.selc.a.col[i]);
+                add_name(basename, &node.loc.att.selc.a.col[i], "double");
             }
             add_name("node.loc.att.selc.pass", &node.loc.att.selc.pass);
             add_name("node.loc.att.icrf", &node.loc.att.icrf);
@@ -4300,13 +4334,13 @@ struct cosmosstruc
             add_name("node.loc.att.icrf.v.col", &node.loc.att.icrf.v.col);
             for(size_t i = 0; i < sizeof(node.loc.att.icrf.v.col)/sizeof(node.loc.att.icrf.v.col[0]); ++i) {
                 string basename = "node.loc.att.icrf.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.att.icrf.v.col[i]);
+                add_name(basename, &node.loc.att.icrf.v.col[i], "double");
             }
             add_name("node.loc.att.icrf.a", &node.loc.att.icrf.a);
             add_name("node.loc.att.icrf.a.col", &node.loc.att.icrf.a.col);
             for(size_t i = 0; i < sizeof(node.loc.att.icrf.a.col)/sizeof(node.loc.att.icrf.a.col[0]); ++i) {
                 string basename = "node.loc.att.icrf.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc.att.icrf.a.col[i]);
+                add_name(basename, &node.loc.att.icrf.a.col[i], "double");
             }
             add_name("node.loc.att.icrf.pass", &node.loc.att.icrf.pass);
             add_name("node.loc.att.extra", &node.loc.att.extra);
@@ -4315,12 +4349,14 @@ struct cosmosstruc
             add_name("node.loc.att.extra.j2b.row", &node.loc.att.extra.j2b.row);
             for(size_t i = 0; i < sizeof(node.loc.att.extra.j2b.row)/sizeof(node.loc.att.extra.j2b.row[0]); ++i) {
                 string basename = "node.loc.att.extra.j2b.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.att.extra.j2b.row[i]);
             }
             add_name("node.loc.att.extra.b2j", &node.loc.att.extra.b2j);
             add_name("node.loc.att.extra.b2j.row", &node.loc.att.extra.b2j.row);
             for(size_t i = 0; i < sizeof(node.loc.att.extra.b2j.row)/sizeof(node.loc.att.extra.b2j.row[0]); ++i) {
                 string basename = "node.loc.att.extra.b2j.row[" + std::to_string(i) + "]";
+				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.att.extra.b2j.row[i]);
             }
             add_name("node.phys", &node.phys);
@@ -4341,202 +4377,79 @@ struct cosmosstruc
             add_name("node.phys.mode", &node.phys.mode);
             add_name("node.phys.ftorque", &node.phys.ftorque);
             add_name("node.phys.ftorque.x", &node.phys.ftorque.x);
-            add_name("node.phys.ftorque.phi", &node.phys.ftorque.phi);
-            add_name("node.phys.ftorque.lat", &node.phys.ftorque.lat);
-            add_name("node.phys.ftorque.head", &node.phys.ftorque.head);
             add_name("node.phys.ftorque.y", &node.phys.ftorque.y);
-            add_name("node.phys.ftorque.lambda", &node.phys.ftorque.lambda);
-            add_name("node.phys.ftorque.lon", &node.phys.ftorque.lon);
-            add_name("node.phys.ftorque.elev", &node.phys.ftorque.elev);
             add_name("node.phys.ftorque.z", &node.phys.ftorque.z);
-            add_name("node.phys.ftorque.radius", &node.phys.ftorque.radius);
-            add_name("node.phys.ftorque.alt", &node.phys.ftorque.alt);
-            add_name("node.phys.ftorque.bank", &node.phys.ftorque.bank);
             add_name("node.phys.ftorque.w", &node.phys.ftorque.w);
             add_name("node.phys.atorque", &node.phys.atorque);
             add_name("node.phys.atorque.x", &node.phys.atorque.x);
-            add_name("node.phys.atorque.phi", &node.phys.atorque.phi);
-            add_name("node.phys.atorque.lat", &node.phys.atorque.lat);
-            add_name("node.phys.atorque.head", &node.phys.atorque.head);
             add_name("node.phys.atorque.y", &node.phys.atorque.y);
-            add_name("node.phys.atorque.lambda", &node.phys.atorque.lambda);
-            add_name("node.phys.atorque.lon", &node.phys.atorque.lon);
-            add_name("node.phys.atorque.elev", &node.phys.atorque.elev);
             add_name("node.phys.atorque.z", &node.phys.atorque.z);
-            add_name("node.phys.atorque.radius", &node.phys.atorque.radius);
-            add_name("node.phys.atorque.alt", &node.phys.atorque.alt);
-            add_name("node.phys.atorque.bank", &node.phys.atorque.bank);
             add_name("node.phys.atorque.w", &node.phys.atorque.w);
             add_name("node.phys.rtorque", &node.phys.rtorque);
             add_name("node.phys.rtorque.x", &node.phys.rtorque.x);
-            add_name("node.phys.rtorque.phi", &node.phys.rtorque.phi);
-            add_name("node.phys.rtorque.lat", &node.phys.rtorque.lat);
-            add_name("node.phys.rtorque.head", &node.phys.rtorque.head);
             add_name("node.phys.rtorque.y", &node.phys.rtorque.y);
-            add_name("node.phys.rtorque.lambda", &node.phys.rtorque.lambda);
-            add_name("node.phys.rtorque.lon", &node.phys.rtorque.lon);
-            add_name("node.phys.rtorque.elev", &node.phys.rtorque.elev);
             add_name("node.phys.rtorque.z", &node.phys.rtorque.z);
-            add_name("node.phys.rtorque.radius", &node.phys.rtorque.radius);
-            add_name("node.phys.rtorque.alt", &node.phys.rtorque.alt);
-            add_name("node.phys.rtorque.bank", &node.phys.rtorque.bank);
             add_name("node.phys.rtorque.w", &node.phys.rtorque.w);
             add_name("node.phys.gtorque", &node.phys.gtorque);
             add_name("node.phys.gtorque.x", &node.phys.gtorque.x);
-            add_name("node.phys.gtorque.phi", &node.phys.gtorque.phi);
-            add_name("node.phys.gtorque.lat", &node.phys.gtorque.lat);
-            add_name("node.phys.gtorque.head", &node.phys.gtorque.head);
             add_name("node.phys.gtorque.y", &node.phys.gtorque.y);
-            add_name("node.phys.gtorque.lambda", &node.phys.gtorque.lambda);
-            add_name("node.phys.gtorque.lon", &node.phys.gtorque.lon);
-            add_name("node.phys.gtorque.elev", &node.phys.gtorque.elev);
             add_name("node.phys.gtorque.z", &node.phys.gtorque.z);
-            add_name("node.phys.gtorque.radius", &node.phys.gtorque.radius);
-            add_name("node.phys.gtorque.alt", &node.phys.gtorque.alt);
-            add_name("node.phys.gtorque.bank", &node.phys.gtorque.bank);
             add_name("node.phys.gtorque.w", &node.phys.gtorque.w);
             add_name("node.phys.htorque", &node.phys.htorque);
             add_name("node.phys.htorque.x", &node.phys.htorque.x);
-            add_name("node.phys.htorque.phi", &node.phys.htorque.phi);
-            add_name("node.phys.htorque.lat", &node.phys.htorque.lat);
-            add_name("node.phys.htorque.head", &node.phys.htorque.head);
             add_name("node.phys.htorque.y", &node.phys.htorque.y);
-            add_name("node.phys.htorque.lambda", &node.phys.htorque.lambda);
-            add_name("node.phys.htorque.lon", &node.phys.htorque.lon);
-            add_name("node.phys.htorque.elev", &node.phys.htorque.elev);
             add_name("node.phys.htorque.z", &node.phys.htorque.z);
-            add_name("node.phys.htorque.radius", &node.phys.htorque.radius);
-            add_name("node.phys.htorque.alt", &node.phys.htorque.alt);
-            add_name("node.phys.htorque.bank", &node.phys.htorque.bank);
             add_name("node.phys.htorque.w", &node.phys.htorque.w);
             add_name("node.phys.hmomentum", &node.phys.hmomentum);
             add_name("node.phys.hmomentum.x", &node.phys.hmomentum.x);
-            add_name("node.phys.hmomentum.phi", &node.phys.hmomentum.phi);
-            add_name("node.phys.hmomentum.lat", &node.phys.hmomentum.lat);
-            add_name("node.phys.hmomentum.head", &node.phys.hmomentum.head);
             add_name("node.phys.hmomentum.y", &node.phys.hmomentum.y);
-            add_name("node.phys.hmomentum.lambda", &node.phys.hmomentum.lambda);
-            add_name("node.phys.hmomentum.lon", &node.phys.hmomentum.lon);
-            add_name("node.phys.hmomentum.elev", &node.phys.hmomentum.elev);
             add_name("node.phys.hmomentum.z", &node.phys.hmomentum.z);
-            add_name("node.phys.hmomentum.radius", &node.phys.hmomentum.radius);
-            add_name("node.phys.hmomentum.alt", &node.phys.hmomentum.alt);
-            add_name("node.phys.hmomentum.bank", &node.phys.hmomentum.bank);
             add_name("node.phys.hmomentum.w", &node.phys.hmomentum.w);
             add_name("node.phys.ctorque", &node.phys.ctorque);
             add_name("node.phys.ctorque.x", &node.phys.ctorque.x);
-            add_name("node.phys.ctorque.phi", &node.phys.ctorque.phi);
-            add_name("node.phys.ctorque.lat", &node.phys.ctorque.lat);
-            add_name("node.phys.ctorque.head", &node.phys.ctorque.head);
             add_name("node.phys.ctorque.y", &node.phys.ctorque.y);
-            add_name("node.phys.ctorque.lambda", &node.phys.ctorque.lambda);
-            add_name("node.phys.ctorque.lon", &node.phys.ctorque.lon);
-            add_name("node.phys.ctorque.elev", &node.phys.ctorque.elev);
             add_name("node.phys.ctorque.z", &node.phys.ctorque.z);
-            add_name("node.phys.ctorque.radius", &node.phys.ctorque.radius);
-            add_name("node.phys.ctorque.alt", &node.phys.ctorque.alt);
-            add_name("node.phys.ctorque.bank", &node.phys.ctorque.bank);
             add_name("node.phys.ctorque.w", &node.phys.ctorque.w);
             add_name("node.phys.fdrag", &node.phys.fdrag);
             add_name("node.phys.fdrag.x", &node.phys.fdrag.x);
-            add_name("node.phys.fdrag.phi", &node.phys.fdrag.phi);
-            add_name("node.phys.fdrag.lat", &node.phys.fdrag.lat);
-            add_name("node.phys.fdrag.head", &node.phys.fdrag.head);
             add_name("node.phys.fdrag.y", &node.phys.fdrag.y);
-            add_name("node.phys.fdrag.lambda", &node.phys.fdrag.lambda);
-            add_name("node.phys.fdrag.lon", &node.phys.fdrag.lon);
-            add_name("node.phys.fdrag.elev", &node.phys.fdrag.elev);
             add_name("node.phys.fdrag.z", &node.phys.fdrag.z);
-            add_name("node.phys.fdrag.radius", &node.phys.fdrag.radius);
-            add_name("node.phys.fdrag.alt", &node.phys.fdrag.alt);
-            add_name("node.phys.fdrag.bank", &node.phys.fdrag.bank);
             add_name("node.phys.fdrag.w", &node.phys.fdrag.w);
             add_name("node.phys.adrag", &node.phys.adrag);
             add_name("node.phys.adrag.x", &node.phys.adrag.x);
-            add_name("node.phys.adrag.phi", &node.phys.adrag.phi);
-            add_name("node.phys.adrag.lat", &node.phys.adrag.lat);
-            add_name("node.phys.adrag.head", &node.phys.adrag.head);
             add_name("node.phys.adrag.y", &node.phys.adrag.y);
-            add_name("node.phys.adrag.lambda", &node.phys.adrag.lambda);
-            add_name("node.phys.adrag.lon", &node.phys.adrag.lon);
-            add_name("node.phys.adrag.elev", &node.phys.adrag.elev);
             add_name("node.phys.adrag.z", &node.phys.adrag.z);
-            add_name("node.phys.adrag.radius", &node.phys.adrag.radius);
-            add_name("node.phys.adrag.alt", &node.phys.adrag.alt);
-            add_name("node.phys.adrag.bank", &node.phys.adrag.bank);
             add_name("node.phys.adrag.w", &node.phys.adrag.w);
             add_name("node.phys.rdrag", &node.phys.rdrag);
             add_name("node.phys.rdrag.x", &node.phys.rdrag.x);
-            add_name("node.phys.rdrag.phi", &node.phys.rdrag.phi);
-            add_name("node.phys.rdrag.lat", &node.phys.rdrag.lat);
-            add_name("node.phys.rdrag.head", &node.phys.rdrag.head);
             add_name("node.phys.rdrag.y", &node.phys.rdrag.y);
-            add_name("node.phys.rdrag.lambda", &node.phys.rdrag.lambda);
-            add_name("node.phys.rdrag.lon", &node.phys.rdrag.lon);
-            add_name("node.phys.rdrag.elev", &node.phys.rdrag.elev);
             add_name("node.phys.rdrag.z", &node.phys.rdrag.z);
-            add_name("node.phys.rdrag.radius", &node.phys.rdrag.radius);
-            add_name("node.phys.rdrag.alt", &node.phys.rdrag.alt);
-            add_name("node.phys.rdrag.bank", &node.phys.rdrag.bank);
             add_name("node.phys.rdrag.w", &node.phys.rdrag.w);
             add_name("node.phys.thrust", &node.phys.thrust);
             add_name("node.phys.thrust.x", &node.phys.thrust.x);
-            add_name("node.phys.thrust.phi", &node.phys.thrust.phi);
-            add_name("node.phys.thrust.lat", &node.phys.thrust.lat);
-            add_name("node.phys.thrust.head", &node.phys.thrust.head);
             add_name("node.phys.thrust.y", &node.phys.thrust.y);
-            add_name("node.phys.thrust.lambda", &node.phys.thrust.lambda);
-            add_name("node.phys.thrust.lon", &node.phys.thrust.lon);
-            add_name("node.phys.thrust.elev", &node.phys.thrust.elev);
             add_name("node.phys.thrust.z", &node.phys.thrust.z);
-            add_name("node.phys.thrust.radius", &node.phys.thrust.radius);
-            add_name("node.phys.thrust.alt", &node.phys.thrust.alt);
-            add_name("node.phys.thrust.bank", &node.phys.thrust.bank);
             add_name("node.phys.thrust.w", &node.phys.thrust.w);
             add_name("node.phys.moi", &node.phys.moi);
             add_name("node.phys.moi.x", &node.phys.moi.x);
-            add_name("node.phys.moi.phi", &node.phys.moi.phi);
-            add_name("node.phys.moi.lat", &node.phys.moi.lat);
-            add_name("node.phys.moi.head", &node.phys.moi.head);
             add_name("node.phys.moi.y", &node.phys.moi.y);
-            add_name("node.phys.moi.lambda", &node.phys.moi.lambda);
-            add_name("node.phys.moi.lon", &node.phys.moi.lon);
-            add_name("node.phys.moi.elev", &node.phys.moi.elev);
             add_name("node.phys.moi.z", &node.phys.moi.z);
-            add_name("node.phys.moi.radius", &node.phys.moi.radius);
-            add_name("node.phys.moi.alt", &node.phys.moi.alt);
-            add_name("node.phys.moi.bank", &node.phys.moi.bank);
             add_name("node.phys.moi.w", &node.phys.moi.w);
             add_name("node.phys.com", &node.phys.com);
             add_name("node.phys.com.x", &node.phys.com.x);
-            add_name("node.phys.com.phi", &node.phys.com.phi);
-            add_name("node.phys.com.lat", &node.phys.com.lat);
-            add_name("node.phys.com.head", &node.phys.com.head);
             add_name("node.phys.com.y", &node.phys.com.y);
-            add_name("node.phys.com.lambda", &node.phys.com.lambda);
-            add_name("node.phys.com.lon", &node.phys.com.lon);
-            add_name("node.phys.com.elev", &node.phys.com.elev);
             add_name("node.phys.com.z", &node.phys.com.z);
-            add_name("node.phys.com.radius", &node.phys.com.radius);
-            add_name("node.phys.com.alt", &node.phys.com.alt);
-            add_name("node.phys.com.bank", &node.phys.com.bank);
             add_name("node.phys.com.w", &node.phys.com.w);
             add_name("node.phys.vertices", &node.phys.vertices);
+			cout<<"ADDING VERTICES"<<endl;
+			cout<<"CAPACITY = "<<node.phys.vertices.capacity()<<endl;
             for(size_t i = 0; i < node.phys.vertices.capacity(); ++i) {
+				cout<<"ADDING VERTICES MEMBERS"<<endl;
                 string basename = "node.phys.vertices[" + std::to_string(i) + "]";
                 add_name(basename, &node.phys.vertices[i]);
                 add_name(basename+".x", &node.phys.vertices[i].x);
-                add_name(basename+".phi", &node.phys.vertices[i].phi);
-                add_name(basename+".lat", &node.phys.vertices[i].lat);
-                add_name(basename+".head", &node.phys.vertices[i].head);
                 add_name(basename+".y", &node.phys.vertices[i].y);
-                add_name(basename+".lambda", &node.phys.vertices[i].lambda);
-                add_name(basename+".lon", &node.phys.vertices[i].lon);
-                add_name(basename+".elev", &node.phys.vertices[i].elev);
                 add_name(basename+".z", &node.phys.vertices[i].z);
-                add_name(basename+".radius", &node.phys.vertices[i].radius);
-                add_name(basename+".alt", &node.phys.vertices[i].alt);
-                add_name(basename+".bank", &node.phys.vertices[i].bank);
                 add_name(basename+".w", &node.phys.vertices[i].w);
             }
             add_name("node.phys.triangles", &node.phys.triangles);
@@ -4546,59 +4459,23 @@ struct cosmosstruc
                 add_name(basename+".external", &node.phys.triangles[i].external);
                 add_name(basename+".com", &node.phys.triangles[i].com);
                 add_name(basename+".x", &node.phys.triangles[i].com.x);
-                add_name(basename+".phi", &node.phys.triangles[i].com.phi);
-                add_name(basename+".lat", &node.phys.triangles[i].com.lat);
-                add_name(basename+".head", &node.phys.triangles[i].com.head);
                 add_name(basename+".y", &node.phys.triangles[i].com.y);
-                add_name(basename+".lambda", &node.phys.triangles[i].com.lambda);
-                add_name(basename+".lon", &node.phys.triangles[i].com.lon);
-                add_name(basename+".elev", &node.phys.triangles[i].com.elev);
                 add_name(basename+".z", &node.phys.triangles[i].com.z);
-                add_name(basename+".radius", &node.phys.triangles[i].com.radius);
-                add_name(basename+".alt", &node.phys.triangles[i].com.alt);
-                add_name(basename+".bank", &node.phys.triangles[i].com.bank);
                 add_name(basename+".w", &node.phys.triangles[i].com.w);
                 add_name(basename+".normal", &node.phys.triangles[i].normal);
                 add_name(basename+".x", &node.phys.triangles[i].normal.x);
-                add_name(basename+".phi", &node.phys.triangles[i].normal.phi);
-                add_name(basename+".lat", &node.phys.triangles[i].normal.lat);
-                add_name(basename+".head", &node.phys.triangles[i].normal.head);
                 add_name(basename+".y", &node.phys.triangles[i].normal.y);
-                add_name(basename+".lambda", &node.phys.triangles[i].normal.lambda);
-                add_name(basename+".lon", &node.phys.triangles[i].normal.lon);
-                add_name(basename+".elev", &node.phys.triangles[i].normal.elev);
                 add_name(basename+".z", &node.phys.triangles[i].normal.z);
-                add_name(basename+".radius", &node.phys.triangles[i].normal.radius);
-                add_name(basename+".alt", &node.phys.triangles[i].normal.alt);
-                add_name(basename+".bank", &node.phys.triangles[i].normal.bank);
                 add_name(basename+".w", &node.phys.triangles[i].normal.w);
                 add_name(basename+".shove", &node.phys.triangles[i].shove);
                 add_name(basename+".x", &node.phys.triangles[i].shove.x);
-                add_name(basename+".phi", &node.phys.triangles[i].shove.phi);
-                add_name(basename+".lat", &node.phys.triangles[i].shove.lat);
-                add_name(basename+".head", &node.phys.triangles[i].shove.head);
                 add_name(basename+".y", &node.phys.triangles[i].shove.y);
-                add_name(basename+".lambda", &node.phys.triangles[i].shove.lambda);
-                add_name(basename+".lon", &node.phys.triangles[i].shove.lon);
-                add_name(basename+".elev", &node.phys.triangles[i].shove.elev);
                 add_name(basename+".z", &node.phys.triangles[i].shove.z);
-                add_name(basename+".radius", &node.phys.triangles[i].shove.radius);
-                add_name(basename+".alt", &node.phys.triangles[i].shove.alt);
-                add_name(basename+".bank", &node.phys.triangles[i].shove.bank);
                 add_name(basename+".w", &node.phys.triangles[i].shove.w);
                 add_name(basename+".twist", &node.phys.triangles[i].twist);
                 add_name(basename+".x", &node.phys.triangles[i].twist.x);
-                add_name(basename+".phi", &node.phys.triangles[i].twist.phi);
-                add_name(basename+".lat", &node.phys.triangles[i].twist.lat);
-                add_name(basename+".head", &node.phys.triangles[i].twist.head);
                 add_name(basename+".y", &node.phys.triangles[i].twist.y);
-                add_name(basename+".lambda", &node.phys.triangles[i].twist.lambda);
-                add_name(basename+".lon", &node.phys.triangles[i].twist.lon);
-                add_name(basename+".elev", &node.phys.triangles[i].twist.elev);
                 add_name(basename+".z", &node.phys.triangles[i].twist.z);
-                add_name(basename+".radius", &node.phys.triangles[i].twist.radius);
-                add_name(basename+".alt", &node.phys.triangles[i].twist.alt);
-                add_name(basename+".bank", &node.phys.triangles[i].twist.bank);
                 add_name(basename+".w", &node.phys.triangles[i].twist.w);
                 add_name(basename+".pidx", &node.phys.triangles[i].pidx);
                 add_name(basename+".tidx", &node.phys.triangles[i].tidx);
@@ -4635,17 +4512,8 @@ struct cosmosstruc
                 string basename = "vertexs[" + std::to_string(i) + "]";
                 add_name(basename, &vertexs[i]);
                 add_name(basename+".x", &vertexs[i].x);
-                add_name(basename+".phi", &vertexs[i].phi);
-                add_name(basename+".lat", &vertexs[i].lat);
-                add_name(basename+".head", &vertexs[i].head);
                 add_name(basename+".y", &vertexs[i].y);
-                add_name(basename+".lambda", &vertexs[i].lambda);
-                add_name(basename+".lon", &vertexs[i].lon);
-                add_name(basename+".elev", &vertexs[i].elev);
                 add_name(basename+".z", &vertexs[i].z);
-                add_name(basename+".radius", &vertexs[i].radius);
-                add_name(basename+".alt", &vertexs[i].alt);
-                add_name(basename+".bank", &vertexs[i].bank);
                 add_name(basename+".w", &vertexs[i].w);
             }
 
@@ -4655,17 +4523,8 @@ struct cosmosstruc
                 string basename = "normals[" + std::to_string(i) + "]";
                 add_name(basename, &normals[i]);
                 add_name(basename+".x", &normals[i].x);
-                add_name(basename+".phi", &normals[i].phi);
-                add_name(basename+".lat", &normals[i].lat);
-                add_name(basename+".head", &normals[i].head);
                 add_name(basename+".y", &normals[i].y);
-                add_name(basename+".lambda", &normals[i].lambda);
-                add_name(basename+".lon", &normals[i].lon);
-                add_name(basename+".elev", &normals[i].elev);
                 add_name(basename+".z", &normals[i].z);
-                add_name(basename+".radius", &normals[i].radius);
-                add_name(basename+".alt", &normals[i].alt);
-                add_name(basename+".bank", &normals[i].bank);
                 add_name(basename+".w", &normals[i].w);
             }
 
@@ -4682,31 +4541,13 @@ struct cosmosstruc
                 }
                 add_name(basename+".com", &faces[i].com);
                 add_name(basename+".x", &faces[i].com.x);
-                add_name(basename+".phi", &faces[i].com.phi);
-                add_name(basename+".lat", &faces[i].com.lat);
-                add_name(basename+".head", &faces[i].com.head);
                 add_name(basename+".y", &faces[i].com.y);
-                add_name(basename+".lambda", &faces[i].com.lambda);
-                add_name(basename+".lon", &faces[i].com.lon);
-                add_name(basename+".elev", &faces[i].com.elev);
                 add_name(basename+".z", &faces[i].com.z);
-                add_name(basename+".radius", &faces[i].com.radius);
-                add_name(basename+".alt", &faces[i].com.alt);
-                add_name(basename+".bank", &faces[i].com.bank);
                 add_name(basename+".w", &faces[i].com.w);
                 add_name(basename+".normal", &faces[i].normal);
                 add_name(basename+".x", &faces[i].normal.x);
-                add_name(basename+".phi", &faces[i].normal.phi);
-                add_name(basename+".lat", &faces[i].normal.lat);
-                add_name(basename+".head", &faces[i].normal.head);
                 add_name(basename+".y", &faces[i].normal.y);
-                add_name(basename+".lambda", &faces[i].normal.lambda);
-                add_name(basename+".lon", &faces[i].normal.lon);
-                add_name(basename+".elev", &faces[i].normal.elev);
                 add_name(basename+".z", &faces[i].normal.z);
-                add_name(basename+".radius", &faces[i].normal.radius);
-                add_name(basename+".alt", &faces[i].normal.alt);
-                add_name(basename+".bank", &faces[i].normal.bank);
                 add_name(basename+".w", &faces[i].normal.w);
                 add_name(basename+".area=0.", &faces[i].area);
             }
@@ -4734,47 +4575,24 @@ struct cosmosstruc
                     string rebasename = basename + "[" + std::to_string(j) + "]";
                     add_name(rebasename, &pieces[i].face_idx[j]);
                 }
+
+				// SCOTTNOTE:  these do not have the correct names, should be basename.com.x, etc.
+				// the goal is to reflect the naming conventions of cosmosstruc
+
                 add_name(basename+".com", &pieces[i].com);
                 add_name(basename+".x", &pieces[i].com.x);
-                add_name(basename+".phi", &pieces[i].com.phi);
-                add_name(basename+".lat", &pieces[i].com.lat);
-                add_name(basename+".head", &pieces[i].com.head);
                 add_name(basename+".y", &pieces[i].com.y);
-                add_name(basename+".lambda", &pieces[i].com.lambda);
-                add_name(basename+".lon", &pieces[i].com.lon);
-                add_name(basename+".elev", &pieces[i].com.elev);
                 add_name(basename+".z", &pieces[i].com.z);
-                add_name(basename+".radius", &pieces[i].com.radius);
-                add_name(basename+".alt", &pieces[i].com.alt);
-                add_name(basename+".bank", &pieces[i].com.bank);
                 add_name(basename+".w", &pieces[i].com.w);
                 add_name(basename+".shove", &pieces[i].shove);
                 add_name(basename+".x", &pieces[i].shove.x);
-                add_name(basename+".phi", &pieces[i].shove.phi);
-                add_name(basename+".lat", &pieces[i].shove.lat);
-                add_name(basename+".head", &pieces[i].shove.head);
                 add_name(basename+".y", &pieces[i].shove.y);
-                add_name(basename+".lambda", &pieces[i].shove.lambda);
-                add_name(basename+".lon", &pieces[i].shove.lon);
-                add_name(basename+".elev", &pieces[i].shove.elev);
                 add_name(basename+".z", &pieces[i].shove.z);
-                add_name(basename+".radius", &pieces[i].shove.radius);
-                add_name(basename+".alt", &pieces[i].shove.alt);
-                add_name(basename+".bank", &pieces[i].shove.bank);
                 add_name(basename+".w", &pieces[i].shove.w);
                 add_name(basename+".twist", &pieces[i].twist);
                 add_name(basename+".x", &pieces[i].twist.x);
-                add_name(basename+".phi", &pieces[i].twist.phi);
-                add_name(basename+".lat", &pieces[i].twist.lat);
-                add_name(basename+".head", &pieces[i].twist.head);
                 add_name(basename+".y", &pieces[i].twist.y);
-                add_name(basename+".lambda", &pieces[i].twist.lambda);
-                add_name(basename+".lon", &pieces[i].twist.lon);
-                add_name(basename+".elev", &pieces[i].twist.elev);
                 add_name(basename+".z", &pieces[i].twist.z);
-                add_name(basename+".radius", &pieces[i].twist.radius);
-                add_name(basename+".alt", &pieces[i].twist.alt);
-                add_name(basename+".bank", &pieces[i].twist.bank);
                 add_name(basename+".w", &pieces[i].twist.w);
                 add_name(basename+".heat", &pieces[i].heat);
                 add_name(basename+".temp", &pieces[i].temp);
@@ -4782,45 +4600,18 @@ struct cosmosstruc
                 add_name(basename+".material_density", &pieces[i].material_density);
                 add_name(basename+".material_ambient", &pieces[i].material_ambient);
                 add_name(basename+".x", &pieces[i].material_ambient.x);
-                add_name(basename+".phi", &pieces[i].material_ambient.phi);
-                add_name(basename+".lat", &pieces[i].material_ambient.lat);
-                add_name(basename+".head", &pieces[i].material_ambient.head);
                 add_name(basename+".y", &pieces[i].material_ambient.y);
-                add_name(basename+".lambda", &pieces[i].material_ambient.lambda);
-                add_name(basename+".lon", &pieces[i].material_ambient.lon);
-                add_name(basename+".elev", &pieces[i].material_ambient.elev);
                 add_name(basename+".z", &pieces[i].material_ambient.z);
-                add_name(basename+".radius", &pieces[i].material_ambient.radius);
-                add_name(basename+".alt", &pieces[i].material_ambient.alt);
-                add_name(basename+".bank", &pieces[i].material_ambient.bank);
                 add_name(basename+".w", &pieces[i].material_ambient.w);
                 add_name(basename+".material_diffuse", &pieces[i].material_diffuse);
                 add_name(basename+".x", &pieces[i].material_diffuse.x);
-                add_name(basename+".phi", &pieces[i].material_diffuse.phi);
-                add_name(basename+".lat", &pieces[i].material_diffuse.lat);
-                add_name(basename+".head", &pieces[i].material_diffuse.head);
                 add_name(basename+".y", &pieces[i].material_diffuse.y);
-                add_name(basename+".lambda", &pieces[i].material_diffuse.lambda);
-                add_name(basename+".lon", &pieces[i].material_diffuse.lon);
-                add_name(basename+".elev", &pieces[i].material_diffuse.elev);
                 add_name(basename+".z", &pieces[i].material_diffuse.z);
-                add_name(basename+".radius", &pieces[i].material_diffuse.radius);
-                add_name(basename+".alt", &pieces[i].material_diffuse.alt);
-                add_name(basename+".bank", &pieces[i].material_diffuse.bank);
                 add_name(basename+".w", &pieces[i].material_diffuse.w);
                 add_name(basename+".material_specular", &pieces[i].material_specular);
                 add_name(basename+".x", &pieces[i].material_specular.x);
-                add_name(basename+".phi", &pieces[i].material_specular.phi);
-                add_name(basename+".lat", &pieces[i].material_specular.lat);
-                add_name(basename+".head", &pieces[i].material_specular.head);
                 add_name(basename+".y", &pieces[i].material_specular.y);
-                add_name(basename+".lambda", &pieces[i].material_specular.lambda);
-                add_name(basename+".lon", &pieces[i].material_specular.lon);
-                add_name(basename+".elev", &pieces[i].material_specular.elev);
                 add_name(basename+".z", &pieces[i].material_specular.z);
-                add_name(basename+".radius", &pieces[i].material_specular.radius);
-                add_name(basename+".alt", &pieces[i].material_specular.alt);
-                add_name(basename+".bank", &pieces[i].material_specular.bank);
                 add_name(basename+".w", &pieces[i].material_specular.w);
             }
 
@@ -4831,17 +4622,8 @@ struct cosmosstruc
                 string basename = "obj.Vg[" + std::to_string(i) + "]";
                 add_name(basename, &obj.Vg[i]);
                 add_name(basename+".x", &obj.Vg[i].x);
-                add_name(basename+".phi", &obj.Vg[i].phi);
-                add_name(basename+".lat", &obj.Vg[i].lat);
-                add_name(basename+".head", &obj.Vg[i].head);
                 add_name(basename+".y", &obj.Vg[i].y);
-                add_name(basename+".lambda", &obj.Vg[i].lambda);
-                add_name(basename+".lon", &obj.Vg[i].lon);
-                add_name(basename+".elev", &obj.Vg[i].elev);
                 add_name(basename+".z", &obj.Vg[i].z);
-                add_name(basename+".radius", &obj.Vg[i].radius);
-                add_name(basename+".alt", &obj.Vg[i].alt);
-                add_name(basename+".bank", &obj.Vg[i].bank);
                 add_name(basename+".w", &obj.Vg[i].w);
             }
 
@@ -5886,13 +5668,13 @@ struct cosmosstruc
         }
 
         void replace(std::string& str, const std::string& from, const std::string& to) {
-        if(from.empty()) return;
-        size_t start_pos = 0;
-        while((start_pos = str.find(from, start_pos)) != std::string::npos) {
-                str.replace(start_pos, from.length(), to);
-                start_pos += to.length();
-        }
-        return;
+        	if(from.empty()) return;
+        	size_t start_pos = 0;
+        	while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+               	str.replace(start_pos, from.length(), to);
+               	start_pos += to.length();
+        	}
+        	return;
         }
 
         void pretty_form(string& js)    {
