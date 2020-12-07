@@ -1,4 +1,5 @@
 SET(CMAKE_SYSTEM_NAME Linux)
+SET(CROSS_TYPE iobc)
 
 SET(CMAKE_C_COMPILER   /scratch/localuser/kubos/iobc_toolchain/bin/arm-linux-gcc)
 SET(CMAKE_CXX_COMPILER /scratch/localuser/kubos/iobc_toolchain/bin/arm-linux-g++)
