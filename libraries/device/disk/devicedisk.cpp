@@ -185,7 +185,12 @@ vector <DeviceDisk::info> DeviceDisk::getInfo()
     uint64_t tsize;
 
     int32_t iretn = data_execute("lsblk -fbl -o SIZE,MOUNTPOINT", tdata);
-    vector<string> lines = string_split(tdata, "\n");
+	vector<string> lines;
+    if(iretn<0)	{
+		return result;
+	} else	{
+		lines = string_split(tdata, "\n");
+	}
     for (string line : lines)
     {
         char tmount[50];

@@ -534,7 +534,7 @@ int32_t request_disable(string &req, string &response, Agent *)
 
 int32_t request_set_rotctl(string &req, string &response, Agent *)
 {
-    uint16_t newport;
+    //uint16_t newport;
 
     vector<string> args = string_split(req, " ");
     if (args.size() > 1)
@@ -651,7 +651,7 @@ void rotctl_loop()
     uint16_t speed;
     float az;
     float el;
-    double utc;
+    double utc = 0;
     socket_channel clientchannel;
     clientchannel.cudp = -1;
 

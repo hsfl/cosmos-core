@@ -748,9 +748,9 @@ int32_t request_add_command(string &request, string &response, Agent *)
 // Run the command and return the output in the response.
 int32_t request_remote_command(string &request, string &response, Agent *)
 {
-    char request_re[AGENTMAXBUFFER + 5];
+    //char request_re[AGENTMAXBUFFER + 5];
     int32_t iretn = 0;
-    FILE *pd;
+    //FILE *pd;
     int i;
 
     // Locate where our command starts.
@@ -903,13 +903,16 @@ int32_t get_power_mode()
     uint16_t tindex;
     string tdata;
     int32_t iretn = data_execute("power_mode_get", tdata);
-    if (sscanf(tdata.c_str(), "%u\n", &tindex) == 1)
-    {
-        if (tindex > 0)
-        {
-            powermode = tindex;
-        }
-    }
+	if(iretn<0)	{
+		return powermode;
+	} else	{
+    	if (sscanf(tdata.c_str(), "%u\n", &tindex) == 1)
+    	{
+        	if (tindex > 0)
+        	{
+            	powermode = tindex;
+        	}
+    	}
     //    FILE *fp = popen("/cosmos/scripts/power_mode_get", "r");
 //    if (fp == nullptr)
 //    {
@@ -928,7 +931,8 @@ int32_t get_power_mode()
 //        }
 //    }
 //    pclose(fp);
-    return powermode;
+    	return powermode;
+	}
 }
 
 //void get_beacon_cpu() {
