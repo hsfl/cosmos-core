@@ -5225,6 +5225,40 @@ struct cosmosstruc
             }
 
 
+            // devspecstruc devspec
+            add_name("devspec", &devspec);
+            add_name("devspec.all_cnt", &devspec.all_cnt, "uint16_t");
+            add_name("devspec.ant_cnt", &devspec.ant_cnt, "uint16_t");
+            add_name("devspec.batt_cnt", &devspec.batt_cnt, "uint16_t");
+            add_name("devspec.bus_cnt", &devspec.bus_cnt, "uint16_t");
+            add_name("devspec.cam_cnt", &devspec.cam_cnt, "uint16_t");
+            add_name("devspec.cpu_cnt", &devspec.cpu_cnt, "uint16_t");
+            add_name("devspec.disk_cnt", &devspec.disk_cnt, "uint16_t");
+            add_name("devspec.gps_cnt", &devspec.gps_cnt, "uint16_t");
+            add_name("devspec.htr_cnt", &devspec.htr_cnt, "uint16_t");
+            add_name("devspec.imu_cnt", &devspec.imu_cnt, "uint16_t");
+            add_name("devspec.mcc_cnt", &devspec.mcc_cnt, "uint16_t");
+            add_name("devspec.motr_cnt", &devspec.motr_cnt, "uint16_t");
+            add_name("devspec.mtr_cnt", &devspec.mtr_cnt, "uint16_t");
+            add_name("devspec.pload_cnt", &devspec.pload_cnt, "uint16_t");
+            add_name("devspec.prop_cnt", &devspec.prop_cnt, "uint16_t");
+            add_name("devspec.psen_cnt", &devspec.psen_cnt, "uint16_t");
+            add_name("devspec.bcreg_cnt", &devspec.bcreg_cnt, "uint16_t");
+            add_name("devspec.rot_cnt", &devspec.rot_cnt, "uint16_t");
+            add_name("devspec.rw_cnt", &devspec.rw_cnt, "uint16_t");
+            add_name("devspec.rxr_cnt", &devspec.rxr_cnt, "uint16_t");
+            add_name("devspec.ssen_cnt", &devspec.ssen_cnt, "uint16_t");
+            add_name("devspec.pvstrg_cnt", &devspec.pvstrg_cnt, "uint16_t");
+            add_name("devspec.stt_cnt", &devspec.stt_cnt, "uint16_t");
+            add_name("devspec.suchi_cnt", &devspec.suchi_cnt, "uint16_t");
+            add_name("devspec.swch_cnt", &devspec.swch_cnt, "uint16_t");
+            add_name("devspec.tcu_cnt", &devspec.tcu_cnt, "uint16_t");
+            add_name("devspec.tcv_cnt", &devspec.tcv_cnt, "uint16_t");
+            add_name("devspec.telem_cnt", &devspec.telem_cnt, "uint16_t");
+            add_name("devspec.thst_cnt", &devspec.thst_cnt, "uint16_t");
+            add_name("devspec.tsen_cnt", &devspec.tsen_cnt, "uint16_t");
+            add_name("devspec.tnc_cnt", &devspec.tnc_cnt, "uint16_t");
+            add_name("devspec.txr_cnt", &devspec.txr_cnt, "uint16_t");
 
 
             // vector<portstruc> port
