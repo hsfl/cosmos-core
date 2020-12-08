@@ -52,6 +52,7 @@ using namespace std;
 #include "agent/agentclass.h"
 #include "physics/physicslib.h"
 #include "support/jsonlib.h"
+#include "support/jsondef.h"
 
 int myagent();
 
@@ -128,284 +129,11 @@ void replace(std::string& str, const std::string& from, const std::string& to) {
 	return;
 }
 
-// has left association?
-bool left(char a)	{
-	if(a == '+')	return true;
-	if(a == '-')	return true;
-	if(a == '*')	return true;
-	if(a == '/')	return true;
-	if(a == '^')	return false;
 
-	return false;
-}
-
-// has equal precedence?
-bool equal(char a, char b)	{
-	if(a == '+' && b == '+')	return true;	
-	if(a == '+' && b == '-')	return true;	
-	if(a == '+' && b == '*')	return false;	
-	if(a == '+' && b == '/')	return false;	
-	if(a == '+' && b == '^')	return false;	
-	
-	if(a == '-' && b == '+')	return true;	
-	if(a == '-' && b == '-')	return true;	
-	if(a == '-' && b == '*')	return false;	
-	if(a == '-' && b == '/')	return false;	
-	if(a == '-' && b == '^')	return false;	
-	
-	if(a == '*' && b == '+')	return false;	
-	if(a == '*' && b == '-')	return false;	
-	if(a == '*' && b == '*')	return true;	
-	if(a == '*' && b == '/')	return true;	
-	if(a == '*' && b == '^')	return false;	
-	
-	if(a == '/' && b == '+')	return false;	
-	if(a == '/' && b == '-')	return false;	
-	if(a == '/' && b == '*')	return true;	
-	if(a == '/' && b == '/')	return true;	
-	if(a == '/' && b == '^')	return false;	
-	
-	if(a == '^' && b == '+')	return false;	
-	if(a == '^' && b == '-')	return false;	
-	if(a == '^' && b == '*')	return false;	
-	if(a == '^' && b == '/')	return false;	
-	if(a == '^' && b == '^')	return true;	
-
-	return false;
-}
-
-// has higher precedence?
-bool higher(char a, char b)	{
-
-	if(a == '+' && b == '+')	return false;	
-	if(a == '+' && b == '-')	return false;	
-	if(a == '+' && b == '*')	return false;	
-	if(a == '+' && b == '/')	return false;	
-	if(a == '+' && b == '^')	return false;	
-	
-	if(a == '-' && b == '+')	return false;	
-	if(a == '-' && b == '-')	return false;	
-	if(a == '-' && b == '*')	return false;	
-	if(a == '-' && b == '/')	return false;	
-	if(a == '-' && b == '^')	return false;	
-	
-	if(a == '*' && b == '+')	return true;	
-	if(a == '*' && b == '-')	return true;	
-	if(a == '*' && b == '*')	return false;	
-	if(a == '*' && b == '/')	return false;	
-	if(a == '*' && b == '^')	return false;	
-	
-	if(a == '/' && b == '+')	return true;	
-	if(a == '/' && b == '-')	return true;	
-	if(a == '/' && b == '*')	return false;	
-	if(a == '/' && b == '/')	return false;	
-	if(a == '/' && b == '^')	return false;	
-	
-	if(a == '^' && b == '+')	return true;	
-	if(a == '^' && b == '-')	return true;	
-	if(a == '^' && b == '*')	return true;	
-	if(a == '^' && b == '/')	return true;	
-	if(a == '^' && b == '^')	return false;	
-
-	return false;
-}
-
-int apply_op(stack<char>& ops, stack<double>& answer)	{
-	if(answer.size()<2) return -1;
-	double b = answer.top();
-	answer.pop();
-	double a = answer.top();
-	answer.pop();
-	switch(ops.top())	{
-		case '+':	answer.push(a+b);
-					break;
-		case '-':	answer.push(a-b);
-					break;
-		case '*':	answer.push(a*b);
-					break;
-		case '/':	answer.push(a/b);
-					break;
-		case '^':	answer.push(pow(a,b));
-					break;
-	}
-	//cout<<"		calculating "<<a<<" "<<ops.top()<<" "<<b<<" = "<<answer.top()<<endl;
-	ops.pop();
-	return 0;
-}
-
-// TODO:  make sure it never segfaults!
-double equationator(const string& str, cosmosstruc* c)	{
-	string eq(str);
-
-// START EQUATION PRE-PROCESSING
-
-	// check if empty
-	if(eq.empty())	return nan("");
-
-	// check if double quotes are balanced
-	int q_count = 0;
-	for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
-		if(*it=='"')	q_count++;
-	}
-	if(q_count%2==1)	return nan("");
-
-	// TODO: you should never have #( or )#...  implied multiplication, but make explicit already!
-	// trim leading whitespace
- 	const auto notwhite = eq.find_first_not_of(" \n\r\t\f\v");
-	eq = eq.substr(notwhite);
-
-	// replace "cosmos_variable_names" with values
-	vector<string> replacements;
-	for(size_t i = 0; i < eq.size(); ++i)	{
-		//cout<<"char = <"<<eq[i]<<">"<<endl;
-		if(eq[i]=='"')	{
-			string name("");
-			//cout<<"found opening quote"<<endl;
-			while(eq[++i]!='"'&&i<eq.size())	{ name.push_back(eq[i]); }
-			//cout<<"name = "<<name<<endl;
-			replacements.push_back(name);
-		}
-	}
-
-	for(size_t i = 0; i < replacements.size(); ++i)	{
-		string replace_me = "\"" + replacements[i] + "\"";
-		string type = c->get_type(replacements[i]);
-		if(type=="double")	{
-			replace(eq, replace_me, to_string(c->get_value<double>(replacements[i])));
-		} else if(type=="float")	{
-			replace(eq, replace_me, to_string(c->get_value<float>(replacements[i])));
-		} else if(type=="size_t")	{
-			replace(eq, replace_me, to_string(c->get_value<size_t>(replacements[i])));
-		} else if(type=="int")	{
-			replace(eq, replace_me, to_string(c->get_value<int>(replacements[i])));
-		} else if(type=="uint16_t")	{
-			replace(eq, replace_me, to_string(c->get_value<uint16_t>(replacements[i])));
-		} else if(type=="int16_t")	{
-			replace(eq, replace_me, to_string(c->get_value<int16_t>(replacements[i])));
-		} else if(type=="uint32_t")	{
-			replace(eq, replace_me, to_string(c->get_value<uint32_t>(replacements[i])));
-		} else if(type=="int32_t")	{
-			replace(eq, replace_me, to_string(c->get_value<int32_t>(replacements[i])));
-		} else if(type=="uint8_t")	{
-			replace(eq, replace_me, to_string(c->get_value<uint8_t>(replacements[i])));
-		} else if(type=="int8_t")	{
-			replace(eq, replace_me, to_string(c->get_value<int8_t>(replacements[i])));
-		} else if(type=="bool")	{
-			replace(eq, replace_me, to_string(c->get_value<bool>(replacements[i])));
-		} else	{
-			cout<<"type <"<<type<<"> for <"<<replacements[i]<<"> not supported... NAN!!!"<<endl;
-		}
-	}
-	
-	// replace {}[] with ()
-	replace(eq, "{", "(");
-	replace(eq, "[", "(");
-	replace(eq, "}", ")");
-	replace(eq, "]", ")");
-	
-	// check if parenthesis are balanced
-	int p_count = 0;
-	for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
-		if(*it=='(')	p_count++;
-		if(*it==')')	p_count--;
-		if(p_count<0)	return nan("");
-	}
-	if(p_count!=0)	return nan("");
-
-
-// START EQUATION PROCESSING
-
-	string output;
-	stack<double> answer;
-	stack<char> ops;
-				//int count = 0;
-	for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
-				// debug
-				// cout<<"char #"<<count++<<" = '"<<*it<<"' :\n\t<"<<output<<">"<<endl;
-				// cout<<"\t: operators = <";
-				// for(stack<char> op = ops; !op.empty(); op.pop())	{ cout<<op.top()<<" "; }
-					// cout<<">"<<endl;
-
-		// all letters should have been replaced by values
-		if(isalpha(*it))	return nan("");
-		// skip all whitespace
-		if(isspace(*it))	continue;
-		// if token is number
-		if(isdigit(*it)||*it=='.')	{
-			bool negative = false;
-			if(*(it-1)=='+'||*(it-1)=='-')	{
-				string::const_iterator iit = it-1;
-				if(iit==eq.begin())	{
-					if(*(it-1)=='-')	negative = true;
-					ops.pop();
-				} else {
-					while(iit--!=eq.begin())	{
-						if(isspace(*iit))	continue;
-						if(*iit=='('||*iit=='+'||*iit=='-'||*iit=='*'||*iit=='/'||*iit=='^')	{
-							if(*(it-1)=='-')	negative = true;
-							ops.pop();
-							break;
-						} else	{
-							break;
-						}
-					}
-					if(iit==eq.begin() && (*iit==' '||*iit=='\t'||*iit=='\n'))	{
-						if(*(it-1)=='-')	negative = true;
-						ops.pop();
-					}
-				}
-			}
-			vector<int> integer, fraction;
-			if(isdigit(*it))	{
-				integer.push_back(*it-'0');
-			} else {
-				integer.push_back(0); --it;
-			}
-			while(isdigit(*(it+1)))	{ integer.push_back(*(++it)-'0'); }
-			if(*(it+1)=='.')	{ ++it; while(isdigit(*(it+1)))	{ fraction.push_back(*(++it)-'0'); } }
-			double numnum = 0.;
-			for(size_t i = 0; i < integer.size(); ++i)	{ numnum += integer[i]*1.0 * pow(10, integer.size()-i-1); }
-			for(size_t i = 0; i < fraction.size(); ++i)	{ numnum += fraction[i]*1.0 * pow(10.0, -(i+1.0)); }
-			if(negative) numnum *= -1.;
-			stringstream ss;
-			ss<<std::setprecision(std::numeric_limits<double>::digits10)<<numnum;
-			output += ss.str() + " ";
-			answer.push(numnum);
-			continue;
-		}
-		// if token is operator
-		if(*it=='+'||*it=='-'||*it=='*'||*it=='/'||*it=='^')	{
-			if((*it=='+'||*it=='-')&&(isdigit(*(it+1))||*(it+1)=='.'))	{
-				if(it==eq.begin())	{ ops.push(*it); continue; }
-				string::const_iterator t = it-1;
-				while(t!=eq.begin() && (*t==' '||*t=='\n'||*t=='\t')) --t;
-				if(*t=='+'||*t=='-'||*t=='*'||*t=='/'||*t=='^')	{
-					// only gently pushed, will be popped when negative number found
-					ops.push(*it);
-					continue;
-				}
-			}
-			while(	!ops.empty() &&
-					( higher(ops.top(), *it) || (equal(ops.top(), *it) && left(*it)) ) &&
-					ops.top()!='('
-			)	{ output += string(1,(*it)) + " "; if(apply_op(ops, answer)<0) return nan(""); }
-			ops.push(*it);
-		} else if(*it == '(')	{
-			ops.push(*it);
-		} else if(*it == ')')	{
-			while(ops.top()!='(')	{ output += string(1,(*it)) + " "; if(apply_op(ops, answer)<0) return nan(""); }
-			if(ops.top()=='(')	{ if(ops.empty()) return nan(""); else ops.pop(); }
-		}
-	}
-	while(!ops.empty())	{ output += string(1,ops.top()) + " "; if(apply_op(ops, answer)<0) return nan(""); }
-	return answer.top();
-}
 
 int main(int argc, char *argv[])
 {
     int iretn;
-
-    // Process arguments if present
 
     // Make node_name = 1st argument
 	if (argc == 2)
@@ -457,7 +185,6 @@ int main(int argc, char *argv[])
 	}
 
 // hijack agent_calc to demonstrate namespace 2.0
-
 
 	// verify the counts
 		size_t n1 = 0;
@@ -553,30 +280,19 @@ int main(int argc, char *argv[])
 
 	string str = test_equation;
 
-// truncate leading whitespace?
-	//cout<<"equation = <"<<str<<">"<<endl;
-
-
-
-
-
-
 cout<<"but seriously...  let's calculate already"<<endl;
 
 //cout<<std::setprecision(std::numeric_limits<double>::digits10)<<"ANSWER == <"<<equationator(str)<<">"<<endl;
 cin.clear();
 cin.ignore(100000,'\n');
 
-	//cout<<"<"<<agent->cinfo->get_json<eventstruc>("event[0]")<<">"<<endl;
-	//cout<<"<"<<agent->cinfo->get_json_pretty<eventstruc>("event[0]")<<">"<<endl;
-
-while(1)	{
+double answer = 0;
+while(answer != -1)	{
 	cout<<"Please enter an equation:\t";
 	string eq;
 	getline(cin,eq);
-
-	cout<<"The answer is "<<std::setprecision(std::numeric_limits<double>::digits10)<<equationator(eq,agent->cinfo)<<endl;
-
+	answer = agent->cinfo->equationator(eq);
+	cout<<"The answer is "<<std::setprecision(std::numeric_limits<double>::digits10)<<answer<<endl;
 }
 
 /*
