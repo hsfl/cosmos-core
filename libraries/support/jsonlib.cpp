@@ -422,11 +422,17 @@ void json_init_reserve(cosmosstruc* cinfo) {
     cinfo->node.phys.vertices.reserve(MAX_NUMBER_OF_VERTICES);
     cinfo->node.phys.triangles.reserve(MAX_NUMBER_OF_TRIANGLES);
 
+    cinfo->vertexs.reserve(MAX_NUMBER_OF_VERTEXS);
+    cinfo->normals.reserve(MAX_NUMBER_OF_NORMALS);
+
+
     cinfo->user.reserve(MAX_NUMBER_OF_USERS);
     cinfo->user.resize(1);
 
-    cinfo->user.reserve(MAX_NUMBER_OF_EQUATIONS);
+    cinfo->agent.reserve(MAX_NUMBER_OF_AGENTS);
     cinfo->agent.resize(1);
+
+    cinfo->equation.reserve(MAX_NUMBER_OF_EQUATIONS);
 
     cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
     cinfo->event.resize(1);
