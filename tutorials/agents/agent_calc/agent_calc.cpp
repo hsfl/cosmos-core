@@ -234,11 +234,69 @@ int apply_op(stack<char>& ops, stack<double>& answer)	{
 }
 
 // TODO:  make sure it never segfaults!
-double equationator(const string& str)	{
+double equationator(const string& str, cosmosstruc* c)	{
 	string eq(str);
+
+// START EQUATION PRE-PROCESSING
+
 	// check if empty
 	if(eq.empty())	return nan("");
 
+	// check if double quotes are balanced
+	int q_count = 0;
+	for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
+		if(*it=='"')	q_count++;
+	}
+	if(q_count%2==1)	return nan("");
+
+	// TODO: you should never have #( or )#...  implied multiplication, but make explicit already!
+	// trim leading whitespace
+ 	const auto notwhite = eq.find_first_not_of(" \n\r\t\f\v");
+	eq = eq.substr(notwhite);
+
+	// replace "cosmos_variable_names" with values
+	vector<string> replacements;
+	for(size_t i = 0; i < eq.size(); ++i)	{
+		//cout<<"char = <"<<eq[i]<<">"<<endl;
+		if(eq[i]=='"')	{
+			string name("");
+			//cout<<"found opening quote"<<endl;
+			while(eq[++i]!='"'&&i<eq.size())	{ name.push_back(eq[i]); }
+			//cout<<"name = "<<name<<endl;
+			replacements.push_back(name);
+		}
+	}
+
+	for(size_t i = 0; i < replacements.size(); ++i)	{
+		string replace_me = "\"" + replacements[i] + "\"";
+		string type = c->get_type(replacements[i]);
+		if(type=="double")	{
+			replace(eq, replace_me, to_string(c->get_value<double>(replacements[i])));
+		} else if(type=="float")	{
+			replace(eq, replace_me, to_string(c->get_value<float>(replacements[i])));
+		} else if(type=="size_t")	{
+			replace(eq, replace_me, to_string(c->get_value<size_t>(replacements[i])));
+		} else if(type=="int")	{
+			replace(eq, replace_me, to_string(c->get_value<int>(replacements[i])));
+		} else if(type=="uint16_t")	{
+			replace(eq, replace_me, to_string(c->get_value<uint16_t>(replacements[i])));
+		} else if(type=="int16_t")	{
+			replace(eq, replace_me, to_string(c->get_value<int16_t>(replacements[i])));
+		} else if(type=="uint32_t")	{
+			replace(eq, replace_me, to_string(c->get_value<uint32_t>(replacements[i])));
+		} else if(type=="int32_t")	{
+			replace(eq, replace_me, to_string(c->get_value<int32_t>(replacements[i])));
+		} else if(type=="uint8_t")	{
+			replace(eq, replace_me, to_string(c->get_value<uint8_t>(replacements[i])));
+		} else if(type=="int8_t")	{
+			replace(eq, replace_me, to_string(c->get_value<int8_t>(replacements[i])));
+		} else if(type=="bool")	{
+			replace(eq, replace_me, to_string(c->get_value<bool>(replacements[i])));
+		} else	{
+			cout<<"type <"<<type<<"> for <"<<replacements[i]<<"> not supported... NAN!!!"<<endl;
+		}
+	}
+	
 	// replace {}[] with ()
 	replace(eq, "{", "(");
 	replace(eq, "[", "(");
@@ -255,14 +313,7 @@ double equationator(const string& str)	{
 	if(p_count!=0)	return nan("");
 
 
-	
-	// you should never have #( or )#...  implied multiplication, but make explicit already!
-	// trim leading whitespace
- 	const auto notwhite = eq.find_first_not_of(" \n\r\t\f\v");
-	eq = eq.substr(notwhite);
-
-
-
+// START EQUATION PROCESSING
 
 	string output;
 	stack<double> answer;
@@ -273,8 +324,10 @@ double equationator(const string& str)	{
 				// cout<<"char #"<<count++<<" = '"<<*it<<"' :\n\t<"<<output<<">"<<endl;
 				// cout<<"\t: operators = <";
 				// for(stack<char> op = ops; !op.empty(); op.pop())	{ cout<<op.top()<<" "; }
-				// cout<<">"<<endl;
+					// cout<<">"<<endl;
 
+		// all letters should have been replaced by values
+		if(isalpha(*it))	return nan("");
 		// skip all whitespace
 		if(isspace(*it))	continue;
 		// if token is number
@@ -521,47 +574,10 @@ while(1)	{
 	cout<<"Please enter an equation:\t";
 	string eq;
 	getline(cin,eq);
-	//std::regex rgx("\"([^\"]*)\""); // will capture "me too"
-	//std::sregex_iterator current(eq.begin(), eq.end(), rgx);
-	//std::sregex_iterator end;
-	//while (current != end)
-    	//std::cout << "<"<< *current.str()++ >>">"<<endl;
 
+	cout<<"The answer is "<<std::setprecision(std::numeric_limits<double>::digits10)<<equationator(eq,agent->cinfo)<<endl;
 
-
-	vector<string> all_names = agent->cinfo->get_all_names();
-	for(size_t i = 0; i < all_names.size(); ++i)	{
-		// replace names with values
-		string type = agent->cinfo->get_type(all_names[i]);
-		if(type != "")	{
-			if(type=="double")	{
-				replace(eq, all_names[i], to_string(agent->cinfo->get_value<double>(all_names[i])));
-			}
-			if(type=="float")	{
-				replace(eq, all_names[i], to_string(agent->cinfo->get_value<float>(all_names[i])));
-			}
-			if(type=="int")	{
-				replace(eq, all_names[i], to_string(agent->cinfo->get_value<int>(all_names[i])));
-			}
-			if(type=="uint16_t")	{
-				replace(eq, all_names[i], to_string(agent->cinfo->get_value<uint16_t>(all_names[i])));
-			}
-			if(type=="int16_t")	{
-				replace(eq, all_names[i], to_string(agent->cinfo->get_value<int16_t>(all_names[i])));
-			}
-			if(type=="uint32_t")	{
-				replace(eq, all_names[i], to_string(agent->cinfo->get_value<uint32_t>(all_names[i])));
-			}
-			if(type=="int32_t")	{
-				replace(eq, all_names[i], to_string(agent->cinfo->get_value<int32_t>(all_names[i])));
-			}
-		}
-	}
-
-	cout<<"The answer is "<<std::setprecision(std::numeric_limits<double>::digits10)<<equationator(eq)<<endl;
 }
-
-
 
 /*
 
