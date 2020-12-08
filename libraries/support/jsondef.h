@@ -452,23 +452,32 @@ enum {
 //* Maximum number of triangles
 #define MAX_NUMBER_OF_TRIANGLES 10
 
+//* Maximum number of vertices
+#define MAX_NUMBER_OF_VERTEXS 5
+
+//* Maximum number of normals
+#define MAX_NUMBER_OF_NORMALS 5
+
 //* Maximum number of equations
 #define MAX_NUMBER_OF_EQUATIONS 25
+
+//* Maximum number of agents
+#define MAX_NUMBER_OF_AGENTS 5
 
 //* Maximum number of ports
 #define MAX_NUMBER_OF_PORTS 5
 
 //* Maximum number of events
-#define MAX_NUMBER_OF_EVENTS 20
+#define MAX_NUMBER_OF_EVENTS 10
 
 //* Maximum number of targets
-#define MAX_NUMBER_OF_TARGETS 15
+#define MAX_NUMBER_OF_TARGETS 10
 
 //* Maximum number of users
-#define MAX_NUMBER_OF_USERS 10
+#define MAX_NUMBER_OF_USERS 3
 
 //* Maximum number of TLES
-#define MAX_NUMBER_OF_TLES 50
+#define MAX_NUMBER_OF_TLES 5
 
 //! @}
 //! \ingroup defs
