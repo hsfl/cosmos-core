@@ -3873,10 +3873,10 @@ struct cosmosstruc
 
         // vector<vector<unitstruc>> unit
                 add_name("unit", &unit);
-                for(size_t i = 0; i < unit.size(); ++i)	{
+                for(size_t i = 0; i < unit.capacity(); ++i)	{
                         string basename = "unit[" + std::to_string(i) + "]";
                         add_name(basename, &unit[i]);
-                        for(size_t j = 0; j < unit[i].size(); ++j)	{
+                        for(size_t j = 0; j < unit[i].capacity(); ++j)	{
                                 string rebasename = basename + "[" + std::to_string(j) + "]";
                                 add_name(rebasename, &unit[i][j]);
                                 add_name(rebasename+".name", &unit[i][j].name, "string");
@@ -3925,7 +3925,6 @@ struct cosmosstruc
             add_name("node.utcoffset", &node.utcoffset, "double");
             add_name("node.utc", &node.utc, "double");
             add_name("node.utcstart", &node.utcstart, "double");
-
             add_name("node.loc", &node.loc);
             add_name("node.loc.utc", &node.loc.utc, "double");
             add_name("node.loc.pos", &node.loc.pos);
@@ -3950,7 +3949,7 @@ struct cosmosstruc
                 string basename = "node.loc.pos.icrf.a.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.pos.icrf.a.col[i], "double");
             }
-            add_name("node.loc.pos.icrf.pass", &node.loc.pos.icrf.pass);
+            add_name("node.loc.pos.icrf.pass", &node.loc.pos.icrf.pass, "uint32_t");
             add_name("node.loc.pos.eci", &node.loc.pos.eci);
             add_name("node.loc.pos.eci.utc", &node.loc.pos.eci.utc, "double");
             add_name("node.loc.pos.eci.s", &node.loc.pos.eci.s);
@@ -3971,7 +3970,7 @@ struct cosmosstruc
                 string basename = "node.loc.pos.eci.a.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.pos.eci.a.col[i], "double");
             }
-            add_name("node.loc.pos.eci.pass", &node.loc.pos.eci.pass);
+            add_name("node.loc.pos.eci.pass", &node.loc.pos.eci.pass, "uint32_t");
             add_name("node.loc.pos.sci", &node.loc.pos.sci);
             add_name("node.loc.pos.sci.utc", &node.loc.pos.sci.utc, "double");
             add_name("node.loc.pos.sci.s", &node.loc.pos.sci.s);
@@ -3992,7 +3991,7 @@ struct cosmosstruc
                 string basename = "node.loc.pos.sci.a.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.pos.sci.a.col[i], "double");
             }
-            add_name("node.loc.pos.sci.pass", &node.loc.pos.sci.pass);
+            add_name("node.loc.pos.sci.pass", &node.loc.pos.sci.pass, "uint32_t");
             add_name("node.loc.pos.geoc", &node.loc.pos.geoc);
             add_name("node.loc.pos.geoc.utc", &node.loc.pos.geoc.utc, "double");
             add_name("node.loc.pos.geoc.s", &node.loc.pos.geoc.s);
@@ -4013,7 +4012,7 @@ struct cosmosstruc
                 string basename = "node.loc.pos.geoc.a.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.pos.geoc.a.col[i], "double");
             }
-            add_name("node.loc.pos.geoc.pass", &node.loc.pos.geoc.pass);
+            add_name("node.loc.pos.geoc.pass", &node.loc.pos.geoc.pass, "uint32_t");
             add_name("node.loc.pos.selc", &node.loc.pos.selc);
             add_name("node.loc.pos.selc.utc", &node.loc.pos.selc.utc, "double");
             add_name("node.loc.pos.selc.s", &node.loc.pos.selc.s);
@@ -4034,7 +4033,7 @@ struct cosmosstruc
                 string basename = "node.loc.pos.selc.a.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.pos.selc.a.col[i], "double");
             }
-            add_name("node.loc.pos.selc.pass", &node.loc.pos.selc.pass);
+            add_name("node.loc.pos.selc.pass", &node.loc.pos.selc.pass, "uint32_t");
             add_name("node.loc.pos.geod", &node.loc.pos.geod);
             add_name("node.loc.pos.geod.utc", &node.loc.pos.geod.utc, "double");
             add_name("node.loc.pos.geod.s", &node.loc.pos.geod.s);
@@ -4049,7 +4048,7 @@ struct cosmosstruc
             add_name("node.loc.pos.geod.a.lat", &node.loc.pos.geod.a.lat, "double");
             add_name("node.loc.pos.geod.a.lon", &node.loc.pos.geod.a.lon, "double");
             add_name("node.loc.pos.geod.a.h", &node.loc.pos.geod.a.h, "double");
-            add_name("node.loc.pos.geod.pass", &node.loc.pos.geod.pass);
+            add_name("node.loc.pos.geod.pass", &node.loc.pos.geod.pass, "uint32_t");
             add_name("node.loc.pos.selg", &node.loc.pos.selg);
             add_name("node.loc.pos.selg.utc", &node.loc.pos.selg.utc, "double");
             add_name("node.loc.pos.selg.s", &node.loc.pos.selg.s);
@@ -4064,7 +4063,7 @@ struct cosmosstruc
             add_name("node.loc.pos.selg.a.lat", &node.loc.pos.selg.a.lat, "double");
             add_name("node.loc.pos.selg.a.lon", &node.loc.pos.selg.a.lon, "double");
             add_name("node.loc.pos.selg.a.h", &node.loc.pos.selg.a.h, "double");
-            add_name("node.loc.pos.selg.pass", &node.loc.pos.selg.pass);
+            add_name("node.loc.pos.selg.pass", &node.loc.pos.selg.pass, "uint32_t");
             add_name("node.loc.pos.geos", &node.loc.pos.geos);
             add_name("node.loc.pos.geos.utc", &node.loc.pos.geos.utc, "double");
             add_name("node.loc.pos.geos.s", &node.loc.pos.geos.s);
@@ -4079,7 +4078,7 @@ struct cosmosstruc
             add_name("node.loc.pos.geos.a.phi", &node.loc.pos.geos.a.phi, "double");
             add_name("node.loc.pos.geos.a.lambda", &node.loc.pos.geos.a.lambda, "double");
             add_name("node.loc.pos.geos.a.r", &node.loc.pos.geos.a.r, "double");
-            add_name("node.loc.pos.geos.pass", &node.loc.pos.geos.pass);
+            add_name("node.loc.pos.geos.pass", &node.loc.pos.geos.pass, "uint32_t");
             add_name("node.loc.pos.extra", &node.loc.pos.extra);
             add_name("node.loc.pos.extra.utc", &node.loc.pos.extra.utc, "double");
             add_name("node.loc.pos.extra.tt", &node.loc.pos.extra.tt, "double");
@@ -4089,102 +4088,158 @@ struct cosmosstruc
             add_name("node.loc.pos.extra.j2e.row", &node.loc.pos.extra.j2e.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.j2e.row)/sizeof(node.loc.pos.extra.j2e.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.j2e.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.j2e.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.j2e.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.j2e.row[i].col)/sizeof(node.loc.pos.extra.j2e.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.j2e.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.dj2e", &node.loc.pos.extra.dj2e);
             add_name("node.loc.pos.extra.dj2e.row", &node.loc.pos.extra.dj2e.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.dj2e.row)/sizeof(node.loc.pos.extra.dj2e.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.dj2e.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.dj2e.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.dj2e.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.dj2e.row[i].col)/sizeof(node.loc.pos.extra.dj2e.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.dj2e.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.ddj2e", &node.loc.pos.extra.ddj2e);
             add_name("node.loc.pos.extra.ddj2e.row", &node.loc.pos.extra.ddj2e.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.ddj2e.row)/sizeof(node.loc.pos.extra.ddj2e.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.ddj2e.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.ddj2e.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.ddj2e.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.ddj2e.row[i].col)/sizeof(node.loc.pos.extra.ddj2e.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.ddj2e.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.e2j", &node.loc.pos.extra.e2j);
             add_name("node.loc.pos.extra.e2j.row", &node.loc.pos.extra.e2j.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.e2j.row)/sizeof(node.loc.pos.extra.e2j.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.e2j.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.e2j.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.e2j.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.e2j.row[i].col)/sizeof(node.loc.pos.extra.e2j.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.e2j.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.de2j", &node.loc.pos.extra.de2j);
             add_name("node.loc.pos.extra.de2j.row", &node.loc.pos.extra.de2j.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.de2j.row)/sizeof(node.loc.pos.extra.de2j.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.de2j.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.de2j.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.de2j.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.de2j.row[i].col)/sizeof(node.loc.pos.extra.de2j.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.de2j.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.dde2j", &node.loc.pos.extra.dde2j);
             add_name("node.loc.pos.extra.dde2j.row", &node.loc.pos.extra.dde2j.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.dde2j.row)/sizeof(node.loc.pos.extra.dde2j.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.dde2j.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.dde2j.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.dde2j.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.dde2j.row[i].col)/sizeof(node.loc.pos.extra.dde2j.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.dde2j.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.j2t", &node.loc.pos.extra.j2t);
             add_name("node.loc.pos.extra.j2t.row", &node.loc.pos.extra.j2t.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.j2t.row)/sizeof(node.loc.pos.extra.j2t.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.j2t.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.j2t.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.j2t.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.j2t.row[i].col)/sizeof(node.loc.pos.extra.j2t.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.j2t.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.j2s", &node.loc.pos.extra.j2s);
             add_name("node.loc.pos.extra.j2s.row", &node.loc.pos.extra.j2s.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.j2s.row)/sizeof(node.loc.pos.extra.j2s.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.j2s.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.j2s.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.j2s.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.j2s.row[i].col)/sizeof(node.loc.pos.extra.j2s.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.j2s.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.t2j", &node.loc.pos.extra.t2j);
             add_name("node.loc.pos.extra.t2j.row", &node.loc.pos.extra.t2j.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.t2j.row)/sizeof(node.loc.pos.extra.t2j.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.t2j.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.t2j.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.t2j.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.t2j.row[i].col)/sizeof(node.loc.pos.extra.t2j.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.t2j.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.s2j", &node.loc.pos.extra.s2j);
             add_name("node.loc.pos.extra.s2j.row", &node.loc.pos.extra.s2j.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.s2j.row)/sizeof(node.loc.pos.extra.s2j.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.s2j.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.s2j.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.s2j.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.s2j.row[i].col)/sizeof(node.loc.pos.extra.s2j.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.s2j.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.s2t", &node.loc.pos.extra.s2t);
             add_name("node.loc.pos.extra.s2t.row", &node.loc.pos.extra.s2t.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.s2t.row)/sizeof(node.loc.pos.extra.s2t.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.s2t.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.s2t.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.s2t.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.s2t.row[i].col)/sizeof(node.loc.pos.extra.s2t.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.s2t.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.ds2t", &node.loc.pos.extra.ds2t);
             add_name("node.loc.pos.extra.ds2t.row", &node.loc.pos.extra.ds2t.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.ds2t.row)/sizeof(node.loc.pos.extra.ds2t.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.ds2t.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.ds2t.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.ds2t.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.ds2t.row[i].col)/sizeof(node.loc.pos.extra.ds2t.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.ds2t.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.t2s", &node.loc.pos.extra.t2s);
             add_name("node.loc.pos.extra.t2s.row", &node.loc.pos.extra.t2s.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.t2s.row)/sizeof(node.loc.pos.extra.t2s.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.t2s.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.t2s.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.t2s.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.t2s.row[i].col)/sizeof(node.loc.pos.extra.t2s.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.t2s.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.dt2s", &node.loc.pos.extra.dt2s);
             add_name("node.loc.pos.extra.dt2s.row", &node.loc.pos.extra.dt2s.row);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.dt2s.row)/sizeof(node.loc.pos.extra.dt2s.row[0]); ++i) {
                 string basename = "node.loc.pos.extra.dt2s.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.pos.extra.dt2s.row[i]);
+                add_name(basename+".col", &node.loc.pos.extra.dt2s.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.pos.extra.dt2s.row[i].col)/sizeof(node.loc.pos.extra.dt2s.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.pos.extra.dt2s.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.pos.extra.sun2earth", &node.loc.pos.extra.sun2earth);
-            add_name("node.loc.pos.extra.sun2earth.utc", &node.loc.pos.extra.sun2earth.utc);
+            add_name("node.loc.pos.extra.sun2earth.utc", &node.loc.pos.extra.sun2earth.utc, "double");
             add_name("node.loc.pos.extra.sun2earth.s", &node.loc.pos.extra.sun2earth.s);
             add_name("node.loc.pos.extra.sun2earth.s.col", &node.loc.pos.extra.sun2earth.s.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.extra.sun2earth.s.col)/sizeof(node.loc.pos.extra.sun2earth.s.col[0]); ++i) {
@@ -4203,7 +4258,7 @@ struct cosmosstruc
                 string basename = "node.loc.pos.extra.sun2earth.a.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.pos.extra.sun2earth.a.col[i], "double");
             }
-            add_name("node.loc.pos.extra.sun2earth.pass", &node.loc.pos.extra.sun2earth.pass);
+            add_name("node.loc.pos.extra.sun2earth.pass", &node.loc.pos.extra.sun2earth.pass, "uint32_t");
             add_name("node.loc.pos.extra.sun2moon", &node.loc.pos.extra.sun2moon);
             add_name("node.loc.pos.extra.sun2moon.utc", &node.loc.pos.extra.sun2moon.utc, "double");
             add_name("node.loc.pos.extra.sun2moon.s", &node.loc.pos.extra.sun2moon.s);
@@ -4224,29 +4279,29 @@ struct cosmosstruc
                 string basename = "node.loc.pos.extra.sun2moon.a.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.pos.extra.sun2moon.a.col[i], "double");
             }
-            add_name("node.loc.pos.extra.sun2moon.pass", &node.loc.pos.extra.sun2moon.pass);
-            add_name("node.loc.pos.extra.closest", &node.loc.pos.extra.closest);
-            add_name("node.loc.pos.earthsep", &node.loc.pos.earthsep);
-            add_name("node.loc.pos.moonsep", &node.loc.pos.moonsep);
-            add_name("node.loc.pos.sunsize", &node.loc.pos.sunsize);
-            add_name("node.loc.pos.sunradiance", &node.loc.pos.sunradiance);
+            add_name("node.loc.pos.extra.sun2moon.pass", &node.loc.pos.extra.sun2moon.pass, "uint32_t");
+            add_name("node.loc.pos.extra.closest", &node.loc.pos.extra.closest, "uint16_t");
+            add_name("node.loc.pos.earthsep", &node.loc.pos.earthsep, "float");
+            add_name("node.loc.pos.moonsep", &node.loc.pos.moonsep, "float");
+            add_name("node.loc.pos.sunsize", &node.loc.pos.sunsize, "float");
+            add_name("node.loc.pos.sunradiance", &node.loc.pos.sunradiance, "float");
             add_name("node.loc.pos.bearth", &node.loc.pos.bearth);
             add_name("node.loc.pos.bearth.col", &node.loc.pos.bearth.col);
             for(size_t i = 0; i < sizeof(node.loc.pos.bearth.col)/sizeof(node.loc.pos.bearth.col[0]); ++i) {
                 string basename = "node.loc.pos.bearth.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.pos.bearth.col[i], "double");
             }
-            add_name("node.loc.pos.orbit", &node.loc.pos.orbit);
+            add_name("node.loc.pos.orbit", &node.loc.pos.orbit, "double");
             add_name("node.loc.att", &node.loc.att);
-            add_name("node.loc.att.utc", &node.loc.att.utc);
+            add_name("node.loc.att.utc", &node.loc.att.utc, "double");
             add_name("node.loc.att.topo", &node.loc.att.topo);
-            add_name("node.loc.att.topo.utc", &node.loc.att.topo.utc);
+            add_name("node.loc.att.topo.utc", &node.loc.att.topo.utc, "double");
             add_name("node.loc.att.topo.s", &node.loc.att.topo.s);
             add_name("node.loc.att.topo.s.d", &node.loc.att.topo.s.d);
-            add_name("node.loc.att.topo.s.d.x", &node.loc.att.topo.s.d.x);
-            add_name("node.loc.att.topo.s.d.y", &node.loc.att.topo.s.d.y);
-            add_name("node.loc.att.topo.s.d.z", &node.loc.att.topo.s.d.z);
-            add_name("node.loc.att.topo.s.w", &node.loc.att.topo.s.w);
+            add_name("node.loc.att.topo.s.d.x", &node.loc.att.topo.s.d.x, "double");
+            add_name("node.loc.att.topo.s.d.y", &node.loc.att.topo.s.d.y, "double");
+            add_name("node.loc.att.topo.s.d.z", &node.loc.att.topo.s.d.z, "double");
+            add_name("node.loc.att.topo.s.w", &node.loc.att.topo.s.w, "double");
             add_name("node.loc.att.topo.v", &node.loc.att.topo.v);
             add_name("node.loc.att.topo.v.col", &node.loc.att.topo.v.col);
             for(size_t i = 0; i < sizeof(node.loc.att.topo.v.col)/sizeof(node.loc.att.topo.v.col[0]); ++i) {
@@ -4259,15 +4314,15 @@ struct cosmosstruc
                 string basename = "node.loc.att.topo.a.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.att.topo.a.col[i], "double");
             }
-            add_name("node.loc.att.topo.pass", &node.loc.att.topo.pass);
+            add_name("node.loc.att.topo.pass", &node.loc.att.topo.pass, "uint32_t");
             add_name("node.loc.att.lvlh", &node.loc.att.lvlh);
-            add_name("node.loc.att.lvlh.utc", &node.loc.att.lvlh.utc);
+            add_name("node.loc.att.lvlh.utc", &node.loc.att.lvlh.utc, "double");
             add_name("node.loc.att.lvlh.s", &node.loc.att.lvlh.s);
             add_name("node.loc.att.lvlh.s.d", &node.loc.att.lvlh.s.d);
-            add_name("node.loc.att.lvlh.s.d.x", &node.loc.att.lvlh.s.d.x);
-            add_name("node.loc.att.lvlh.s.d.y", &node.loc.att.lvlh.s.d.y);
-            add_name("node.loc.att.lvlh.s.d.z", &node.loc.att.lvlh.s.d.z);
-            add_name("node.loc.att.lvlh.s.w", &node.loc.att.lvlh.s.w);
+            add_name("node.loc.att.lvlh.s.d.x", &node.loc.att.lvlh.s.d.x, "double");
+            add_name("node.loc.att.lvlh.s.d.y", &node.loc.att.lvlh.s.d.y, "double");
+            add_name("node.loc.att.lvlh.s.d.z", &node.loc.att.lvlh.s.d.z, "double");
+            add_name("node.loc.att.lvlh.s.w", &node.loc.att.lvlh.s.w, "double");
             add_name("node.loc.att.lvlh.v", &node.loc.att.lvlh.v);
             add_name("node.loc.att.lvlh.v.col", &node.loc.att.lvlh.v.col);
             for(size_t i = 0; i < sizeof(node.loc.att.lvlh.v.col)/sizeof(node.loc.att.lvlh.v.col[0]); ++i) {
@@ -4280,15 +4335,15 @@ struct cosmosstruc
                 string basename = "node.loc.att.lvlh.a.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.att.lvlh.a.col[i], "double");
             }
-            add_name("node.loc.att.lvlh.pass", &node.loc.att.lvlh.pass);
+            add_name("node.loc.att.lvlh.pass", &node.loc.att.lvlh.pass, "uint32_t");
             add_name("node.loc.att.geoc", &node.loc.att.geoc);
-            add_name("node.loc.att.geoc.utc", &node.loc.att.geoc.utc);
+            add_name("node.loc.att.geoc.utc", &node.loc.att.geoc.utc, "double");
             add_name("node.loc.att.geoc.s", &node.loc.att.geoc.s);
             add_name("node.loc.att.geoc.s.d", &node.loc.att.geoc.s.d);
-            add_name("node.loc.att.geoc.s.d.x", &node.loc.att.geoc.s.d.x);
-            add_name("node.loc.att.geoc.s.d.y", &node.loc.att.geoc.s.d.y);
-            add_name("node.loc.att.geoc.s.d.z", &node.loc.att.geoc.s.d.z);
-            add_name("node.loc.att.geoc.s.w", &node.loc.att.geoc.s.w);
+            add_name("node.loc.att.geoc.s.d.x", &node.loc.att.geoc.s.d.x, "double");
+            add_name("node.loc.att.geoc.s.d.y", &node.loc.att.geoc.s.d.y, "double");
+            add_name("node.loc.att.geoc.s.d.z", &node.loc.att.geoc.s.d.z, "double");
+            add_name("node.loc.att.geoc.s.w", &node.loc.att.geoc.s.w, "double");
             add_name("node.loc.att.geoc.v", &node.loc.att.geoc.v);
             add_name("node.loc.att.geoc.v.col", &node.loc.att.geoc.v.col);
             for(size_t i = 0; i < sizeof(node.loc.att.geoc.v.col)/sizeof(node.loc.att.geoc.v.col[0]); ++i) {
@@ -4301,15 +4356,15 @@ struct cosmosstruc
                 string basename = "node.loc.att.geoc.a.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.att.geoc.a.col[i], "double");
             }
-            add_name("node.loc.att.geoc.pass", &node.loc.att.geoc.pass);
+            add_name("node.loc.att.geoc.pass", &node.loc.att.geoc.pass, "uint32_t");
             add_name("node.loc.att.selc", &node.loc.att.selc);
-            add_name("node.loc.att.selc.utc", &node.loc.att.selc.utc);
+            add_name("node.loc.att.selc.utc", &node.loc.att.selc.utc, "double");
             add_name("node.loc.att.selc.s", &node.loc.att.selc.s);
             add_name("node.loc.att.selc.s.d", &node.loc.att.selc.s.d);
-            add_name("node.loc.att.selc.s.d.x", &node.loc.att.selc.s.d.x);
-            add_name("node.loc.att.selc.s.d.y", &node.loc.att.selc.s.d.y);
-            add_name("node.loc.att.selc.s.d.z", &node.loc.att.selc.s.d.z);
-            add_name("node.loc.att.selc.s.w", &node.loc.att.selc.s.w);
+            add_name("node.loc.att.selc.s.d.x", &node.loc.att.selc.s.d.x, "double");
+            add_name("node.loc.att.selc.s.d.y", &node.loc.att.selc.s.d.y, "double");
+            add_name("node.loc.att.selc.s.d.z", &node.loc.att.selc.s.d.z, "double");
+            add_name("node.loc.att.selc.s.w", &node.loc.att.selc.s.w, "double");
             add_name("node.loc.att.selc.v", &node.loc.att.selc.v);
             add_name("node.loc.att.selc.v.col", &node.loc.att.selc.v.col);
             for(size_t i = 0; i < sizeof(node.loc.att.selc.v.col)/sizeof(node.loc.att.selc.v.col[0]); ++i) {
@@ -4322,15 +4377,15 @@ struct cosmosstruc
                 string basename = "node.loc.att.selc.a.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.att.selc.a.col[i], "double");
             }
-            add_name("node.loc.att.selc.pass", &node.loc.att.selc.pass);
+            add_name("node.loc.att.selc.pass", &node.loc.att.selc.pass, "uint32_t");
             add_name("node.loc.att.icrf", &node.loc.att.icrf);
-            add_name("node.loc.att.icrf.utc", &node.loc.att.icrf.utc);
+            add_name("node.loc.att.icrf.utc", &node.loc.att.icrf.utc, "double");
             add_name("node.loc.att.icrf.s", &node.loc.att.icrf.s);
             add_name("node.loc.att.icrf.s.d", &node.loc.att.icrf.s.d);
-            add_name("node.loc.att.icrf.s.d.x", &node.loc.att.icrf.s.d.x);
-            add_name("node.loc.att.icrf.s.d.y", &node.loc.att.icrf.s.d.y);
-            add_name("node.loc.att.icrf.s.d.z", &node.loc.att.icrf.s.d.z);
-            add_name("node.loc.att.icrf.s.w", &node.loc.att.icrf.s.w);
+            add_name("node.loc.att.icrf.s.d.x", &node.loc.att.icrf.s.d.x, "double");
+            add_name("node.loc.att.icrf.s.d.y", &node.loc.att.icrf.s.d.y, "double");
+            add_name("node.loc.att.icrf.s.d.z", &node.loc.att.icrf.s.d.z, "double");
+            add_name("node.loc.att.icrf.s.w", &node.loc.att.icrf.s.w, "double");
             add_name("node.loc.att.icrf.v", &node.loc.att.icrf.v);
             add_name("node.loc.att.icrf.v.col", &node.loc.att.icrf.v.col);
             for(size_t i = 0; i < sizeof(node.loc.att.icrf.v.col)/sizeof(node.loc.att.icrf.v.col[0]); ++i) {
@@ -4343,215 +4398,226 @@ struct cosmosstruc
                 string basename = "node.loc.att.icrf.a.col[" + std::to_string(i) + "]";
                 add_name(basename, &node.loc.att.icrf.a.col[i], "double");
             }
-            add_name("node.loc.att.icrf.pass", &node.loc.att.icrf.pass);
+            add_name("node.loc.att.icrf.pass", &node.loc.att.icrf.pass, "uint32_t");
             add_name("node.loc.att.extra", &node.loc.att.extra);
-            add_name("node.loc.att.extra.utc", &node.loc.att.extra.utc);
+            add_name("node.loc.att.extra.utc", &node.loc.att.extra.utc, "double");
             add_name("node.loc.att.extra.j2b", &node.loc.att.extra.j2b);
             add_name("node.loc.att.extra.j2b.row", &node.loc.att.extra.j2b.row);
             for(size_t i = 0; i < sizeof(node.loc.att.extra.j2b.row)/sizeof(node.loc.att.extra.j2b.row[0]); ++i) {
                 string basename = "node.loc.att.extra.j2b.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.att.extra.j2b.row[i]);
+                add_name(basename+".col", &node.loc.att.extra.j2b.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.att.extra.j2b.row[i].col)/sizeof(node.loc.att.extra.j2b.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.att.extra.j2b.row[i].col[j], "double");
+                }
             }
             add_name("node.loc.att.extra.b2j", &node.loc.att.extra.b2j);
             add_name("node.loc.att.extra.b2j.row", &node.loc.att.extra.b2j.row);
             for(size_t i = 0; i < sizeof(node.loc.att.extra.b2j.row)/sizeof(node.loc.att.extra.b2j.row[0]); ++i) {
                 string basename = "node.loc.att.extra.b2j.row[" + std::to_string(i) + "]";
-				//SCOTTNOTE: add rvector names
                 add_name(basename, &node.loc.att.extra.b2j.row[i]);
+                add_name(basename+".col", &node.loc.att.extra.b2j.row[i].col);
+                for(size_t j = 0; j < sizeof(node.loc.att.extra.b2j.row[i].col)/sizeof(node.loc.att.extra.b2j.row[i].col[0]); ++j) {
+                    string rebasename = basename + ".col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.loc.att.extra.b2j.row[i].col[j], "double");
+                }
             }
             add_name("node.phys", &node.phys);
-            add_name("node.phys.dt", &node.phys.dt);
-            add_name("node.phys.dtj", &node.phys.dtj);
-            add_name("node.phys.utc", &node.phys.utc);
-            add_name("node.phys.mjdaccel", &node.phys.mjdaccel);
-            add_name("node.phys.mjddiff", &node.phys.mjddiff);
-            add_name("node.phys.hcap", &node.phys.hcap);
-            add_name("node.phys.mass", &node.phys.mass);
-            add_name("node.phys.temp", &node.phys.temp);
-            add_name("node.phys.heat", &node.phys.heat);
-            add_name("node.phys.area", &node.phys.area);
-            add_name("node.phys.battcap", &node.phys.battcap);
-            add_name("node.phys.battlev", &node.phys.battlev);
-            add_name("node.phys.powgen", &node.phys.powgen);
-            add_name("node.phys.powuse", &node.phys.powuse);
-            add_name("node.phys.mode", &node.phys.mode);
+            add_name("node.phys.dt", &node.phys.dt, "double");
+            add_name("node.phys.dtj", &node.phys.dtj, "double");
+            add_name("node.phys.utc", &node.phys.utc, "double");
+            add_name("node.phys.mjdaccel", &node.phys.mjdaccel, "double");
+            add_name("node.phys.mjddiff", &node.phys.mjddiff, "double");
+            add_name("node.phys.hcap", &node.phys.hcap, "float");
+            add_name("node.phys.mass", &node.phys.mass, "float");
+            add_name("node.phys.temp", &node.phys.temp, "float");
+            add_name("node.phys.heat", &node.phys.heat, "float");
+            add_name("node.phys.area", &node.phys.area, "float");
+            add_name("node.phys.battcap", &node.phys.battcap, "float");
+            add_name("node.phys.battlev", &node.phys.battlev, "float");
+            add_name("node.phys.powgen", &node.phys.powgen, "float");
+            add_name("node.phys.powuse", &node.phys.powuse, "float");
+            add_name("node.phys.mode", &node.phys.mode, "int32_t");
             add_name("node.phys.ftorque", &node.phys.ftorque);
-            add_name("node.phys.ftorque.x", &node.phys.ftorque.x);
-            add_name("node.phys.ftorque.y", &node.phys.ftorque.y);
-            add_name("node.phys.ftorque.z", &node.phys.ftorque.z);
-            add_name("node.phys.ftorque.w", &node.phys.ftorque.w);
+            add_name("node.phys.ftorque.x", &node.phys.ftorque.x, "double");
+            add_name("node.phys.ftorque.y", &node.phys.ftorque.y, "double");
+            add_name("node.phys.ftorque.z", &node.phys.ftorque.z, "double");
+            add_name("node.phys.ftorque.w", &node.phys.ftorque.w, "double");
             add_name("node.phys.atorque", &node.phys.atorque);
-            add_name("node.phys.atorque.x", &node.phys.atorque.x);
-            add_name("node.phys.atorque.y", &node.phys.atorque.y);
-            add_name("node.phys.atorque.z", &node.phys.atorque.z);
-            add_name("node.phys.atorque.w", &node.phys.atorque.w);
+            add_name("node.phys.atorque.x", &node.phys.atorque.x, "double");
+            add_name("node.phys.atorque.y", &node.phys.atorque.y, "double");
+            add_name("node.phys.atorque.z", &node.phys.atorque.z, "double");
+            add_name("node.phys.atorque.w", &node.phys.atorque.w, "double");
             add_name("node.phys.rtorque", &node.phys.rtorque);
-            add_name("node.phys.rtorque.x", &node.phys.rtorque.x);
-            add_name("node.phys.rtorque.y", &node.phys.rtorque.y);
-            add_name("node.phys.rtorque.z", &node.phys.rtorque.z);
-            add_name("node.phys.rtorque.w", &node.phys.rtorque.w);
+            add_name("node.phys.rtorque.x", &node.phys.rtorque.x, "double");
+            add_name("node.phys.rtorque.y", &node.phys.rtorque.y, "double");
+            add_name("node.phys.rtorque.z", &node.phys.rtorque.z, "double");
+            add_name("node.phys.rtorque.w", &node.phys.rtorque.w, "double");
             add_name("node.phys.gtorque", &node.phys.gtorque);
-            add_name("node.phys.gtorque.x", &node.phys.gtorque.x);
-            add_name("node.phys.gtorque.y", &node.phys.gtorque.y);
-            add_name("node.phys.gtorque.z", &node.phys.gtorque.z);
-            add_name("node.phys.gtorque.w", &node.phys.gtorque.w);
+            add_name("node.phys.gtorque.x", &node.phys.gtorque.x, "double");
+            add_name("node.phys.gtorque.y", &node.phys.gtorque.y, "double");
+            add_name("node.phys.gtorque.z", &node.phys.gtorque.z, "double");
+            add_name("node.phys.gtorque.w", &node.phys.gtorque.w, "double");
             add_name("node.phys.htorque", &node.phys.htorque);
-            add_name("node.phys.htorque.x", &node.phys.htorque.x);
-            add_name("node.phys.htorque.y", &node.phys.htorque.y);
-            add_name("node.phys.htorque.z", &node.phys.htorque.z);
-            add_name("node.phys.htorque.w", &node.phys.htorque.w);
+            add_name("node.phys.htorque.x", &node.phys.htorque.x, "double");
+            add_name("node.phys.htorque.y", &node.phys.htorque.y, "double");
+            add_name("node.phys.htorque.z", &node.phys.htorque.z, "double");
+            add_name("node.phys.htorque.w", &node.phys.htorque.w, "double");
             add_name("node.phys.hmomentum", &node.phys.hmomentum);
-            add_name("node.phys.hmomentum.x", &node.phys.hmomentum.x);
-            add_name("node.phys.hmomentum.y", &node.phys.hmomentum.y);
-            add_name("node.phys.hmomentum.z", &node.phys.hmomentum.z);
-            add_name("node.phys.hmomentum.w", &node.phys.hmomentum.w);
+            add_name("node.phys.hmomentum.x", &node.phys.hmomentum.x, "double");
+            add_name("node.phys.hmomentum.y", &node.phys.hmomentum.y, "double");
+            add_name("node.phys.hmomentum.z", &node.phys.hmomentum.z, "double");
+            add_name("node.phys.hmomentum.w", &node.phys.hmomentum.w, "double");
             add_name("node.phys.ctorque", &node.phys.ctorque);
-            add_name("node.phys.ctorque.x", &node.phys.ctorque.x);
-            add_name("node.phys.ctorque.y", &node.phys.ctorque.y);
-            add_name("node.phys.ctorque.z", &node.phys.ctorque.z);
-            add_name("node.phys.ctorque.w", &node.phys.ctorque.w);
+            add_name("node.phys.ctorque.x", &node.phys.ctorque.x, "double");
+            add_name("node.phys.ctorque.y", &node.phys.ctorque.y, "double");
+            add_name("node.phys.ctorque.z", &node.phys.ctorque.z, "double");
+            add_name("node.phys.ctorque.w", &node.phys.ctorque.w, "double");
             add_name("node.phys.fdrag", &node.phys.fdrag);
-            add_name("node.phys.fdrag.x", &node.phys.fdrag.x);
-            add_name("node.phys.fdrag.y", &node.phys.fdrag.y);
-            add_name("node.phys.fdrag.z", &node.phys.fdrag.z);
-            add_name("node.phys.fdrag.w", &node.phys.fdrag.w);
+            add_name("node.phys.fdrag.x", &node.phys.fdrag.x, "double");
+            add_name("node.phys.fdrag.y", &node.phys.fdrag.y, "double");
+            add_name("node.phys.fdrag.z", &node.phys.fdrag.z, "double");
+            add_name("node.phys.fdrag.w", &node.phys.fdrag.w, "double");
             add_name("node.phys.adrag", &node.phys.adrag);
-            add_name("node.phys.adrag.x", &node.phys.adrag.x);
-            add_name("node.phys.adrag.y", &node.phys.adrag.y);
-            add_name("node.phys.adrag.z", &node.phys.adrag.z);
-            add_name("node.phys.adrag.w", &node.phys.adrag.w);
+            add_name("node.phys.adrag.x", &node.phys.adrag.x, "double");
+            add_name("node.phys.adrag.y", &node.phys.adrag.y, "double");
+            add_name("node.phys.adrag.z", &node.phys.adrag.z, "double");
+            add_name("node.phys.adrag.w", &node.phys.adrag.w, "double");
             add_name("node.phys.rdrag", &node.phys.rdrag);
-            add_name("node.phys.rdrag.x", &node.phys.rdrag.x);
-            add_name("node.phys.rdrag.y", &node.phys.rdrag.y);
-            add_name("node.phys.rdrag.z", &node.phys.rdrag.z);
-            add_name("node.phys.rdrag.w", &node.phys.rdrag.w);
+            add_name("node.phys.rdrag.x", &node.phys.rdrag.x, "double");
+            add_name("node.phys.rdrag.y", &node.phys.rdrag.y, "double");
+            add_name("node.phys.rdrag.z", &node.phys.rdrag.z, "double");
+            add_name("node.phys.rdrag.w", &node.phys.rdrag.w, "double");
             add_name("node.phys.thrust", &node.phys.thrust);
-            add_name("node.phys.thrust.x", &node.phys.thrust.x);
-            add_name("node.phys.thrust.y", &node.phys.thrust.y);
-            add_name("node.phys.thrust.z", &node.phys.thrust.z);
-            add_name("node.phys.thrust.w", &node.phys.thrust.w);
+            add_name("node.phys.thrust.x", &node.phys.thrust.x, "double");
+            add_name("node.phys.thrust.y", &node.phys.thrust.y, "double");
+            add_name("node.phys.thrust.z", &node.phys.thrust.z, "double");
+            add_name("node.phys.thrust.w", &node.phys.thrust.w, "double");
             add_name("node.phys.moi", &node.phys.moi);
-            add_name("node.phys.moi.x", &node.phys.moi.x);
-            add_name("node.phys.moi.y", &node.phys.moi.y);
-            add_name("node.phys.moi.z", &node.phys.moi.z);
-            add_name("node.phys.moi.w", &node.phys.moi.w);
+            add_name("node.phys.moi.x", &node.phys.moi.x, "double");
+            add_name("node.phys.moi.y", &node.phys.moi.y, "double");
+            add_name("node.phys.moi.z", &node.phys.moi.z, "double");
+            add_name("node.phys.moi.w", &node.phys.moi.w, "double");
             add_name("node.phys.com", &node.phys.com);
-            add_name("node.phys.com.x", &node.phys.com.x);
-            add_name("node.phys.com.y", &node.phys.com.y);
-            add_name("node.phys.com.z", &node.phys.com.z);
-            add_name("node.phys.com.w", &node.phys.com.w);
+            add_name("node.phys.com.x", &node.phys.com.x, "double");
+            add_name("node.phys.com.y", &node.phys.com.y, "double");
+            add_name("node.phys.com.z", &node.phys.com.z, "double");
+            add_name("node.phys.com.w", &node.phys.com.w, "double");
             add_name("node.phys.vertices", &node.phys.vertices);
-			cout<<"ADDING VERTICES"<<endl;
-			cout<<"CAPACITY = "<<node.phys.vertices.capacity()<<endl;
             for(size_t i = 0; i < node.phys.vertices.capacity(); ++i) {
-				cout<<"ADDING VERTICES MEMBERS"<<endl;
                 string basename = "node.phys.vertices[" + std::to_string(i) + "]";
                 add_name(basename, &node.phys.vertices[i]);
-                add_name(basename+".x", &node.phys.vertices[i].x);
-                add_name(basename+".y", &node.phys.vertices[i].y);
-                add_name(basename+".z", &node.phys.vertices[i].z);
-                add_name(basename+".w", &node.phys.vertices[i].w);
+                add_name(basename+".x", &node.phys.vertices[i].x, "double");
+                add_name(basename+".y", &node.phys.vertices[i].y, "double");
+                add_name(basename+".z", &node.phys.vertices[i].z, "double");
+                add_name(basename+".w", &node.phys.vertices[i].w, "double");
             }
             add_name("node.phys.triangles", &node.phys.triangles);
             for(size_t i = 0; i < node.phys.triangles.capacity(); ++i) {
                 string basename = "node.phys.triangles[" + std::to_string(i) + "]";
                 add_name(basename, &node.phys.triangles[i]);
-                add_name(basename+".external", &node.phys.triangles[i].external);
+                add_name(basename+".external", &node.phys.triangles[i].external, "bool");
                 add_name(basename+".com", &node.phys.triangles[i].com);
-                add_name(basename+".x", &node.phys.triangles[i].com.x);
-                add_name(basename+".y", &node.phys.triangles[i].com.y);
-                add_name(basename+".z", &node.phys.triangles[i].com.z);
-                add_name(basename+".w", &node.phys.triangles[i].com.w);
+                add_name(basename+".com.x", &node.phys.triangles[i].com.x, "double");
+                add_name(basename+".com.y", &node.phys.triangles[i].com.y, "double");
+                add_name(basename+".com.z", &node.phys.triangles[i].com.z, "double");
+                add_name(basename+".com.w", &node.phys.triangles[i].com.w, "double");
                 add_name(basename+".normal", &node.phys.triangles[i].normal);
-                add_name(basename+".x", &node.phys.triangles[i].normal.x);
-                add_name(basename+".y", &node.phys.triangles[i].normal.y);
-                add_name(basename+".z", &node.phys.triangles[i].normal.z);
-                add_name(basename+".w", &node.phys.triangles[i].normal.w);
+                add_name(basename+".normal.x", &node.phys.triangles[i].normal.x, "double");
+                add_name(basename+".normal.y", &node.phys.triangles[i].normal.y, "double");
+                add_name(basename+".normal.z", &node.phys.triangles[i].normal.z, "double");
+                add_name(basename+".normal.w", &node.phys.triangles[i].normal.w, "double");
                 add_name(basename+".shove", &node.phys.triangles[i].shove);
-                add_name(basename+".x", &node.phys.triangles[i].shove.x);
-                add_name(basename+".y", &node.phys.triangles[i].shove.y);
-                add_name(basename+".z", &node.phys.triangles[i].shove.z);
-                add_name(basename+".w", &node.phys.triangles[i].shove.w);
+                add_name(basename+".shove.x", &node.phys.triangles[i].shove.x, "double");
+                add_name(basename+".shove.y", &node.phys.triangles[i].shove.y, "double");
+                add_name(basename+".shove.z", &node.phys.triangles[i].shove.z, "double");
+                add_name(basename+".shove.w", &node.phys.triangles[i].shove.w, "double");
                 add_name(basename+".twist", &node.phys.triangles[i].twist);
-                add_name(basename+".x", &node.phys.triangles[i].twist.x);
-                add_name(basename+".y", &node.phys.triangles[i].twist.y);
-                add_name(basename+".z", &node.phys.triangles[i].twist.z);
-                add_name(basename+".w", &node.phys.triangles[i].twist.w);
-                add_name(basename+".pidx", &node.phys.triangles[i].pidx);
+                add_name(basename+".twist.x", &node.phys.triangles[i].twist.x, "double");
+                add_name(basename+".twist.y", &node.phys.triangles[i].twist.y, "double");
+                add_name(basename+".twist.z", &node.phys.triangles[i].twist.z, "double");
+                add_name(basename+".twist.w", &node.phys.triangles[i].twist.w, "double");
+                add_name(basename+".pidx", &node.phys.triangles[i].pidx, "uint16_t");
                 add_name(basename+".tidx", &node.phys.triangles[i].tidx);
                 for(size_t j = 0; j < sizeof(node.phys.triangles[i].tidx)/sizeof(node.phys.triangles[i].tidx[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.phys.triangles[i].tidx[j]);
+                    string rebasename = basename + ".tidx[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.phys.triangles[i].tidx[j], "uint16_t");
                 }
-                add_name(basename+".heat", &node.phys.triangles[i].heat);
-                add_name(basename+".hcap", &node.phys.triangles[i].hcap);
-                add_name(basename+".emi", &node.phys.triangles[i].emi);
-                add_name(basename+".abs", &node.phys.triangles[i].abs);
-                add_name(basename+".mass", &node.phys.triangles[i].mass);
-                add_name(basename+".temp", &node.phys.triangles[i].temp);
-                add_name(basename+".area", &node.phys.triangles[i].area);
-                add_name(basename+".perimeter", &node.phys.triangles[i].perimeter);
-                add_name(basename+".irradiation", &node.phys.triangles[i].irradiation);
-                add_name(basename+".pcell", &node.phys.triangles[i].pcell);
-                add_name(basename+".ecellbase", &node.phys.triangles[i].ecellbase);
-                add_name(basename+".ecellslope", &node.phys.triangles[i].ecellslope);
+                add_name(basename+".heat", &node.phys.triangles[i].heat, "float");
+                add_name(basename+".hcap", &node.phys.triangles[i].hcap, "float");
+                add_name(basename+".emi", &node.phys.triangles[i].emi, "float");
+                add_name(basename+".abs", &node.phys.triangles[i].abs, "float");
+                add_name(basename+".mass", &node.phys.triangles[i].mass, "float");
+                add_name(basename+".temp", &node.phys.triangles[i].temp, "float");
+                add_name(basename+".area", &node.phys.triangles[i].area, "float");
+                add_name(basename+".perimeter", &node.phys.triangles[i].perimeter, "float");
+                add_name(basename+".irradiation", &node.phys.triangles[i].irradiation, "float");
+                add_name(basename+".pcell", &node.phys.triangles[i].pcell, "float");
+                add_name(basename+".ecellbase", &node.phys.triangles[i].ecellbase, "float");
+                add_name(basename+".ecellslope", &node.phys.triangles[i].ecellslope, "float");
                 add_name(basename+".triangleindex", &node.phys.triangles[i].triangleindex);
                 for(size_t j = 0; j < node.phys.triangles[i].triangleindex.capacity(); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
+                    string rebasename = basename + ".triangleindex[" + std::to_string(j) + "]";
                     add_name(rebasename, &node.phys.triangles[i].triangleindex[j]);
                     for(size_t k = 0; k < node.phys.triangles[i].triangleindex[j].capacity(); ++k) {
                         string rebasename2 = rebasename + "[" + std::to_string(k) + "]";
-                        add_name(rebasename2, &node.phys.triangles[i].triangleindex[j][k]);
+                        add_name(rebasename2, &node.phys.triangles[i].triangleindex[j][k], "uint16_t");
                     }
                 }
             }
+
+
 
             // vector<vertexstruc> vertexs
             add_name("vertexs", &vertexs);
             for(size_t i = 0; i < vertexs.capacity(); ++i) {
                 string basename = "vertexs[" + std::to_string(i) + "]";
                 add_name(basename, &vertexs[i]);
-                add_name(basename+".x", &vertexs[i].x);
-                add_name(basename+".y", &vertexs[i].y);
-                add_name(basename+".z", &vertexs[i].z);
-                add_name(basename+".w", &vertexs[i].w);
+                add_name(basename+".x", &vertexs[i].x, "double");
+                add_name(basename+".y", &vertexs[i].y, "double");
+                add_name(basename+".z", &vertexs[i].z, "double");
+                add_name(basename+".w", &vertexs[i].w, "double");
             }
+
 
             // vector<vertexstruc> normals
             add_name("normals", &normals);
             for(size_t i = 0; i < normals.capacity(); ++i) {
                 string basename = "normals[" + std::to_string(i) + "]";
                 add_name(basename, &normals[i]);
-                add_name(basename+".x", &normals[i].x);
-                add_name(basename+".y", &normals[i].y);
-                add_name(basename+".z", &normals[i].z);
-                add_name(basename+".w", &normals[i].w);
+                add_name(basename+".x", &normals[i].x, "double");
+                add_name(basename+".y", &normals[i].y, "double");
+                add_name(basename+".z", &normals[i].z, "double");
+                add_name(basename+".w", &normals[i].w, "double");
             }
+
 
             // vector<facestruc> faces
             add_name("faces", &faces);
             for(size_t i = 0; i < faces.capacity(); ++i) {
                 string basename = "faces[" + std::to_string(i) + "]";
                 add_name(basename, &faces[i]);
-                add_name(basename+".vertex_cnt", &faces[i].vertex_cnt);
+                add_name(basename+".vertex_cnt", &faces[i].vertex_cnt, "uint16_t");
                 add_name(basename+".vertex_idx", &faces[i].vertex_idx);
                 for(size_t j = 0; j < faces[i].vertex_idx.capacity(); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &faces[i].vertex_idx[j]);
+                    string rebasename = basename + ".vertex_idx[" + std::to_string(j) + "]";
+                    add_name(rebasename, &faces[i].vertex_idx[j], "uint16_t");
                 }
                 add_name(basename+".com", &faces[i].com);
-                add_name(basename+".x", &faces[i].com.x);
-                add_name(basename+".y", &faces[i].com.y);
-                add_name(basename+".z", &faces[i].com.z);
-                add_name(basename+".w", &faces[i].com.w);
+                add_name(basename+".com.x", &faces[i].com.x, "double");
+                add_name(basename+".com.y", &faces[i].com.y, "double");
+                add_name(basename+".com.z", &faces[i].com.z, "double");
+                add_name(basename+".com.w", &faces[i].com.w, "double");
                 add_name(basename+".normal", &faces[i].normal);
-                add_name(basename+".x", &faces[i].normal.x);
-                add_name(basename+".y", &faces[i].normal.y);
-                add_name(basename+".z", &faces[i].normal.z);
-                add_name(basename+".w", &faces[i].normal.w);
-                add_name(basename+".area=0.", &faces[i].area);
+                add_name(basename+".normal.x", &faces[i].normal.x, "double");
+                add_name(basename+".normal.y", &faces[i].normal.y, "double");
+                add_name(basename+".normal.z", &faces[i].normal.z, "double");
+                add_name(basename+".normal.w", &faces[i].normal.w, "double");
+                add_name(basename+".area", &faces[i].area, "double");
             }
+
+
             
             // vector<piecestruc> pieces
             add_name("pieces", &pieces);
@@ -4559,61 +4625,57 @@ struct cosmosstruc
                 string basename = "pieces[" + std::to_string(i) + "]";
                 add_name(basename, &pieces[i]);
                 add_name(basename+".name", &pieces[i].name);
-                add_name(basename+".enabled", &pieces[i].enabled);
-                add_name(basename+".cidx", &pieces[i].cidx);
-                add_name(basename+".density", &pieces[i].density);
-                add_name(basename+".mass", &pieces[i].mass);
-                add_name(basename+".emi", &pieces[i].emi);
-                add_name(basename+".abs", &pieces[i].abs);
-                add_name(basename+".hcap", &pieces[i].hcap);
-                add_name(basename+".hcon", &pieces[i].hcon);
-                add_name(basename+".dim", &pieces[i].dim);
-                add_name(basename+".area", &pieces[i].area);
-                add_name(basename+".volume", &pieces[i].volume);
-                add_name(basename+".face_cnt", &pieces[i].face_cnt);
+                add_name(basename+".enabled", &pieces[i].enabled, "bool");
+                add_name(basename+".cidx", &pieces[i].cidx, "uint16_t");
+                add_name(basename+".density", &pieces[i].density, "float");
+                add_name(basename+".mass", &pieces[i].mass, "float");
+                add_name(basename+".emi", &pieces[i].emi, "float");
+                add_name(basename+".abs", &pieces[i].abs, "float");
+                add_name(basename+".hcap", &pieces[i].hcap, "float");
+                add_name(basename+".hcon", &pieces[i].hcon, "float");
+                add_name(basename+".dim", &pieces[i].dim, "float");
+                add_name(basename+".area", &pieces[i].area, "float");
+                add_name(basename+".volume", &pieces[i].volume, "float");
+                add_name(basename+".face_cnt", &pieces[i].face_cnt, "uint16_t");
                 add_name(basename+".face_idx", &pieces[i].face_idx);
                 for(size_t j = 0; j < pieces[i].face_idx.capacity(); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &pieces[i].face_idx[j]);
+                    string rebasename = basename + ".face_idx[" + std::to_string(j) + "]";
+                    add_name(rebasename, &pieces[i].face_idx[j], "uint16_t");
                 }
-
-				// SCOTTNOTE:  these do not have the correct names, should be basename.com.x, etc.
-				// the goal is to reflect the naming conventions of cosmosstruc
-
                 add_name(basename+".com", &pieces[i].com);
-                add_name(basename+".x", &pieces[i].com.x);
-                add_name(basename+".y", &pieces[i].com.y);
-                add_name(basename+".z", &pieces[i].com.z);
-                add_name(basename+".w", &pieces[i].com.w);
+                add_name(basename+".com.x", &pieces[i].com.x, "double");
+                add_name(basename+".com.y", &pieces[i].com.y, "double");
+                add_name(basename+".com.z", &pieces[i].com.z, "double");
+                add_name(basename+".com.w", &pieces[i].com.w, "double");
                 add_name(basename+".shove", &pieces[i].shove);
-                add_name(basename+".x", &pieces[i].shove.x);
-                add_name(basename+".y", &pieces[i].shove.y);
-                add_name(basename+".z", &pieces[i].shove.z);
-                add_name(basename+".w", &pieces[i].shove.w);
+                add_name(basename+".shove.x", &pieces[i].shove.x, "double");
+                add_name(basename+".shove.y", &pieces[i].shove.y, "double");
+                add_name(basename+".shove.z", &pieces[i].shove.z, "double");
+                add_name(basename+".shove.w", &pieces[i].shove.w, "double");
                 add_name(basename+".twist", &pieces[i].twist);
-                add_name(basename+".x", &pieces[i].twist.x);
-                add_name(basename+".y", &pieces[i].twist.y);
-                add_name(basename+".z", &pieces[i].twist.z);
-                add_name(basename+".w", &pieces[i].twist.w);
-                add_name(basename+".heat", &pieces[i].heat);
-                add_name(basename+".temp", &pieces[i].temp);
-                add_name(basename+".insol", &pieces[i].insol);
-                add_name(basename+".material_density", &pieces[i].material_density);
+                add_name(basename+".twist.x", &pieces[i].twist.x, "double");
+                add_name(basename+".twist.y", &pieces[i].twist.y, "double");
+                add_name(basename+".twist.z", &pieces[i].twist.z, "double");
+                add_name(basename+".twist.w", &pieces[i].twist.w, "double");
+                add_name(basename+".heat", &pieces[i].heat, "float");
+                add_name(basename+".temp", &pieces[i].temp, "float");
+                add_name(basename+".insol", &pieces[i].insol, "float");
+                add_name(basename+".material_density", &pieces[i].material_density, "float");
                 add_name(basename+".material_ambient", &pieces[i].material_ambient);
-                add_name(basename+".x", &pieces[i].material_ambient.x);
-                add_name(basename+".y", &pieces[i].material_ambient.y);
-                add_name(basename+".z", &pieces[i].material_ambient.z);
-                add_name(basename+".w", &pieces[i].material_ambient.w);
+                add_name(basename+".material_ambient.x", &pieces[i].material_ambient.x, "double");
+                add_name(basename+".material_ambient.y", &pieces[i].material_ambient.y, "double");
+                add_name(basename+".material_ambient.z", &pieces[i].material_ambient.z, "double");
+                add_name(basename+".material_ambient.w", &pieces[i].material_ambient.w, "double");
                 add_name(basename+".material_diffuse", &pieces[i].material_diffuse);
-                add_name(basename+".x", &pieces[i].material_diffuse.x);
-                add_name(basename+".y", &pieces[i].material_diffuse.y);
-                add_name(basename+".z", &pieces[i].material_diffuse.z);
-                add_name(basename+".w", &pieces[i].material_diffuse.w);
+                add_name(basename+".material_diffuse.x", &pieces[i].material_diffuse.x, "double");
+                add_name(basename+".material_diffuse.y", &pieces[i].material_diffuse.y, "double");
+                add_name(basename+".material_diffuse.z", &pieces[i].material_diffuse.z, "double");
+                add_name(basename+".material_diffuse.w", &pieces[i].material_diffuse.w, "double");
                 add_name(basename+".material_specular", &pieces[i].material_specular);
-                add_name(basename+".x", &pieces[i].material_specular.x);
-                add_name(basename+".y", &pieces[i].material_specular.y);
-                add_name(basename+".z", &pieces[i].material_specular.z);
-                add_name(basename+".w", &pieces[i].material_specular.w);
+                add_name(basename+".material_specular.x", &pieces[i].material_specular.x, "double");
+                add_name(basename+".material_specular.y", &pieces[i].material_specular.y, "double");
+                add_name(basename+".material_specular.z", &pieces[i].material_specular.z, "double");
+                add_name(basename+".material_specular.w", &pieces[i].material_specular.w, "double");
             }
 
             // wavefront obj
@@ -4622,10 +4684,151 @@ struct cosmosstruc
             for(size_t i = 0; i < obj.Vg.capacity(); ++i) {
                 string basename = "obj.Vg[" + std::to_string(i) + "]";
                 add_name(basename, &obj.Vg[i]);
-                add_name(basename+".x", &obj.Vg[i].x);
-                add_name(basename+".y", &obj.Vg[i].y);
-                add_name(basename+".z", &obj.Vg[i].z);
-                add_name(basename+".w", &obj.Vg[i].w);
+                add_name(basename+".x", &obj.Vg[i].x, "double");
+                add_name(basename+".y", &obj.Vg[i].y, "double");
+                add_name(basename+".z", &obj.Vg[i].z, "double");
+                add_name(basename+".w", &obj.Vg[i].w, "double");
+            }
+            add_name("obj.Vt", &obj.Vt);
+            for(size_t i = 0; i < obj.Vt.capacity(); ++i) {
+                string basename = "obj.Vt[" + std::to_string(i) + "]";
+                add_name(basename, &obj.Vt[i]);
+                add_name(basename+".x", &obj.Vt[i].x, "double");
+                add_name(basename+".y", &obj.Vt[i].y, "double");
+                add_name(basename+".z", &obj.Vt[i].z, "double");
+                add_name(basename+".w", &obj.Vt[i].w, "double");
+            }
+            add_name("obj.Vn", &obj.Vn);
+            for(size_t i = 0; i < obj.Vn.capacity(); ++i) {
+                string basename = "obj.Vn[" + std::to_string(i) + "]";
+                add_name(basename, &obj.Vn[i]);
+                add_name(basename+".x", &obj.Vn[i].x, "double");
+                add_name(basename+".y", &obj.Vn[i].y, "double");
+                add_name(basename+".z", &obj.Vn[i].z, "double");
+                add_name(basename+".w", &obj.Vn[i].w, "double");
+            }
+            add_name("obj.Vp", &obj.Vp);
+            for(size_t i = 0; i < obj.Vp.capacity(); ++i) {
+                string basename = "obj.Vp[" + std::to_string(i) + "]";
+                add_name(basename, &obj.Vp[i]);
+                add_name(basename+".x", &obj.Vp[i].x, "double");
+                add_name(basename+".y", &obj.Vp[i].y, "double");
+                add_name(basename+".z", &obj.Vp[i].z, "double");
+                add_name(basename+".w", &obj.Vp[i].w, "double");
+            }
+            add_name("obj.Materials", &obj.Materials);
+            for(size_t i = 0; i < obj.Materials.capacity(); ++i) {
+                string basename = "obj.Materials[" + std::to_string(i) + "]";
+                add_name(basename, &obj.Materials[i]);
+                add_name(basename+".name", &obj.Materials[i].name, "string");
+                add_name(basename+".density", &obj.Materials[i].density, "float");
+                add_name(basename+".ambient", &obj.Materials[i].ambient);
+                add_name(basename+".ambient.x", &obj.Materials[i].ambient.x, "double");
+                add_name(basename+".ambient.y", &obj.Materials[i].ambient.y, "double");
+                add_name(basename+".ambient.z", &obj.Materials[i].ambient.z, "double");
+                add_name(basename+".ambient.w", &obj.Materials[i].ambient.w, "double");
+                add_name(basename+".diffuse", &obj.Materials[i].diffuse);
+                add_name(basename+".diffuse.x", &obj.Materials[i].diffuse.x, "double");
+                add_name(basename+".diffuse.y", &obj.Materials[i].diffuse.y, "double");
+                add_name(basename+".diffuse.z", &obj.Materials[i].diffuse.z, "double");
+                add_name(basename+".diffuse.w", &obj.Materials[i].diffuse.w, "double");
+                add_name(basename+".specular", &obj.Materials[i].specular);
+                add_name(basename+".specular.x", &obj.Materials[i].specular.x, "double");
+                add_name(basename+".specular.y", &obj.Materials[i].specular.y, "double");
+                add_name(basename+".specular.z", &obj.Materials[i].specular.z, "double");
+                add_name(basename+".specular.w", &obj.Materials[i].specular.w, "double");
+            }
+            add_name("obj.Points", &obj.Points);
+            for(size_t i = 0; i < obj.Points.capacity(); ++i) {
+                string basename = "obj.Points[" + std::to_string(i) + "]";
+                add_name(basename, &obj.Points[i]);
+                add_name(basename+".groups", &obj.Points[i].groups);
+                for(size_t j = 0; j < obj.Points[i].groups.capacity(); ++j) {
+                    string rebasename = basename + ".groups[" + std::to_string(j) + "]";
+                    add_name(rebasename, &obj.Points[i].groups[j], "size_t");
+                }
+                add_name(basename+".vertex", &obj.Points[i].vertex, "size_t");
+            }
+            add_name("obj.Lines", &obj.Lines);
+            for(size_t i = 0; i < obj.Lines.capacity(); ++i) {
+                string basename = "obj.Lines[" + std::to_string(i) + "]";
+                add_name(basename, &obj.Lines[i]);
+                add_name(basename+".groups", &obj.Lines[i].groups);
+                for(size_t j = 0; j < obj.Lines[i].groups.capacity(); ++j) {
+                    string rebasename = basename + ".groups[" + std::to_string(j) + "]";
+                    add_name(rebasename, &obj.Lines[i].groups[j], "size_t");
+                }
+                add_name(basename+".vertices", &obj.Lines[i].vertices);
+                for(size_t j = 0; j < obj.Lines[i].vertices.capacity(); ++j) {
+                    string rebasename = basename + ".vertices[" + std::to_string(j) + "]";
+                    add_name(rebasename, &obj.Lines[i].vertices[j]);
+                    add_name(rebasename+".v", &obj.Lines[i].vertices[j].v, "size_t");
+                    add_name(rebasename+".vt", &obj.Lines[i].vertices[j].vt, "size_t");
+                    add_name(rebasename+".vn", &obj.Lines[i].vertices[j].vn, "size_t");
+                }
+                add_name(basename+".centroid", &obj.Lines[i].centroid);
+                add_name(basename+".centroid.x", &obj.Lines[i].centroid.x, "double");
+                add_name(basename+".centroid.y", &obj.Lines[i].centroid.y, "double");
+                add_name(basename+".centroid.z", &obj.Lines[i].centroid.z, "double");
+                add_name(basename+".centroid.w", &obj.Lines[i].centroid.w, "double");
+                add_name(basename+".length", &obj.Lines[i].length, "double");
+            }
+            add_name("obj.Faces", &obj.Faces);
+            for(size_t i = 0; i < obj.Faces.capacity(); ++i) {
+                string basename = "obj.Faces[" + std::to_string(i) + "]";
+                add_name(basename, &obj.Faces[i]);
+                add_name(basename+".groups", &obj.Faces[i].groups);
+                for(size_t j = 0; j < obj.Faces[i].groups.capacity(); ++j) {
+                    string rebasename = basename + ".groups[" + std::to_string(j) + "]";
+                    add_name(rebasename, &obj.Faces[i].groups[j], "size_t");
+                }
+                add_name(basename+".vertices", &obj.Faces[i].vertices);
+                for(size_t j = 0; j < obj.Faces[i].vertices.capacity(); ++j) {
+                    string rebasename = basename + ".vertices[" + std::to_string(j) + "]";
+                    add_name(rebasename, &obj.Faces[i].vertices[j]);
+                    add_name(rebasename+".v", &obj.Faces[i].vertices[j].v, "size_t");
+                    add_name(rebasename+".vt", &obj.Faces[i].vertices[j].vt, "size_t");
+                    add_name(rebasename+".vn", &obj.Faces[i].vertices[j].vn, "size_t");
+                }
+                add_name(basename+".com", &obj.Faces[i].com);
+                add_name(basename+".com.x", &obj.Faces[i].com.x, "double");
+                add_name(basename+".com.y", &obj.Faces[i].com.y, "double");
+                add_name(basename+".com.z", &obj.Faces[i].com.z, "double");
+                add_name(basename+".com.w", &obj.Faces[i].com.w, "double");
+                add_name(basename+".normal", &obj.Faces[i].normal);
+                add_name(basename+".normal.x", &obj.Faces[i].normal.x, "double");
+                add_name(basename+".normal.y", &obj.Faces[i].normal.y, "double");
+                add_name(basename+".normal.z", &obj.Faces[i].normal.z, "double");
+                add_name(basename+".normal.w", &obj.Faces[i].normal.w, "double");
+                add_name(basename+".area", &obj.Faces[i].area, "double");
+            }
+            add_name("obj.Groups", &obj.Groups);
+            for(size_t i = 0; i < obj.Groups.capacity(); ++i) {
+                string basename = "obj.Groups[" + std::to_string(i) + "]";
+                add_name(basename, &obj.Groups[i]);
+                add_name(basename+".name", &obj.Groups[i].name, "string");
+                add_name(basename+".materialidx", &obj.Groups[i].materialidx, "size_t");
+                add_name(basename+".pointidx", &obj.Groups[i].pointidx);
+                for(size_t j = 0; j < obj.Groups[i].pointidx.capacity(); ++j) {
+                    string rebasename = basename + ".pointidx[" + std::to_string(j) + "]";
+                    add_name(rebasename, &obj.Groups[i].pointidx[j], "size_t");
+                }
+                add_name(basename+".lineidx", &obj.Groups[i].lineidx);
+                for(size_t j = 0; j < obj.Groups[i].lineidx.capacity(); ++j) {
+                    string rebasename = basename + ".lineidx[" + std::to_string(j) + "]";
+                    add_name(rebasename, &obj.Groups[i].lineidx[j], "size_t");
+                }
+                add_name(basename+".faceidx", &obj.Groups[i].faceidx);
+                for(size_t j = 0; j < obj.Groups[i].faceidx.capacity(); ++j) {
+                    string rebasename = basename + ".faceidx[" + std::to_string(j) + "]";
+                    add_name(rebasename, &obj.Groups[i].faceidx[j], "size_t");
+                }
+                add_name(basename+".com", &obj.Groups[i].com);
+                add_name(basename+".com.x", &obj.Groups[i].com.x, "double");
+                add_name(basename+".com.y", &obj.Groups[i].com.y, "double");
+                add_name(basename+".com.z", &obj.Groups[i].com.z, "double");
+                add_name(basename+".com.w", &obj.Groups[i].com.w, "double");
+                add_name(basename+".volume", &obj.Groups[i].volume, "double");
             }
 
             // vector<devicestruc> device
@@ -4634,988 +4837,1045 @@ struct cosmosstruc
                 string basename = "device[" + std::to_string(i) + "]";
                 add_name(basename, &device[i]);
                 add_name(basename+".all", &device[i].all);
-                add_name(basename+".enabled", &device[i].all.enabled);
-                add_name(basename+".type", &device[i].all.type);
-                add_name(basename+".model", &device[i].all.model);
-                add_name(basename+".flag", &device[i].all.flag);
-                add_name(basename+".addr", &device[i].all.addr);
-                add_name(basename+".cidx", &device[i].all.cidx);
-                add_name(basename+".didx", &device[i].all.didx);
-                add_name(basename+".pidx", &device[i].all.pidx);
-                add_name(basename+".bidx", &device[i].all.bidx);
-                add_name(basename+".portidx", &device[i].all.portidx);
-                add_name(basename+".namp", &device[i].all.namp);
-                add_name(basename+".nvolt", &device[i].all.nvolt);
-                add_name(basename+".amp", &device[i].all.amp);
-                add_name(basename+".volt", &device[i].all.volt);
-                add_name(basename+".power", &device[i].all.power);
-                add_name(basename+".energy", &device[i].all.energy);
-                add_name(basename+".drate", &device[i].all.drate);
-                add_name(basename+".temp", &device[i].all.temp);
-                add_name(basename+".utc", &device[i].all.utc);
+                add_name(basename+".all.enabled", &device[i].all.enabled, "bool");
+                add_name(basename+".all.type", &device[i].all.type, "uint16_t");
+                add_name(basename+".all.model", &device[i].all.model, "uint16_t");
+                add_name(basename+".all.flag", &device[i].all.flag, "uint32_t");
+                add_name(basename+".all.addr", &device[i].all.addr, "uint16_t");
+                add_name(basename+".all.cidx", &device[i].all.cidx, "uint16_t");
+                add_name(basename+".all.didx", &device[i].all.didx, "uint16_t");
+                add_name(basename+".all.pidx", &device[i].all.pidx, "uint16_t");
+                add_name(basename+".all.bidx", &device[i].all.bidx, "uint16_t");
+                add_name(basename+".all.portidx", &device[i].all.portidx, "uint16_t");
+                add_name(basename+".all.namp", &device[i].all.namp, "float");
+                add_name(basename+".all.nvolt", &device[i].all.nvolt, "float");
+                add_name(basename+".all.amp", &device[i].all.amp, "float");
+                add_name(basename+".all.volt", &device[i].all.volt, "float");
+                add_name(basename+".all.power", &device[i].all.power, "float");
+                add_name(basename+".all.energy", &device[i].all.energy, "float");
+                add_name(basename+".all.drate", &device[i].all.drate, "float");
+                add_name(basename+".all.temp", &device[i].all.temp, "float");
+                add_name(basename+".all.utc", &device[i].all.utc, "double");
                 add_name(basename+".ant", &device[i].ant);
-                add_name(basename+".align", &device[i].ant.align);
-                add_name(basename+".d", &device[i].ant.align.d);
-                add_name(basename+".x", &device[i].ant.align.d.x);
-                add_name(basename+".y", &device[i].ant.align.d.y);
-                add_name(basename+".z", &device[i].ant.align.d.z);
-                add_name(basename+".w", &device[i].ant.align.w);
-                add_name(basename+".azim", &device[i].ant.azim);
-                add_name(basename+".elev", &device[i].ant.elev);
-                add_name(basename+".minelev", &device[i].ant.minelev);
-                add_name(basename+".maxelev", &device[i].ant.maxelev);
-                add_name(basename+".minazim", &device[i].ant.minazim);
-                add_name(basename+".maxazim", &device[i].ant.maxazim);
-                add_name(basename+".threshelev", &device[i].ant.threshelev);
+                add_name(basename+".ant.align", &device[i].ant.align);
+                add_name(basename+".ant.align.d", &device[i].ant.align.d);
+                add_name(basename+".ant.align.d.x", &device[i].ant.align.d.x, "double");
+                add_name(basename+".ant.align.d.y", &device[i].ant.align.d.y, "double");
+                add_name(basename+".ant.align.d.z", &device[i].ant.align.d.z, "double");
+                add_name(basename+".ant.align.w", &device[i].ant.align.w, "double");
+                add_name(basename+".ant.azim", &device[i].ant.azim, "float");
+                add_name(basename+".ant.elev", &device[i].ant.elev, "float");
+                add_name(basename+".ant.minelev", &device[i].ant.minelev, "float");
+                add_name(basename+".ant.maxelev", &device[i].ant.maxelev, "float");
+                add_name(basename+".ant.minazim", &device[i].ant.minazim, "float");
+                add_name(basename+".ant.maxazim", &device[i].ant.maxazim, "float");
+                add_name(basename+".ant.threshelev", &device[i].ant.threshelev, "float");
                 add_name(basename+".batt", &device[i].batt);
-                add_name(basename+".capacity", &device[i].batt.capacity);
-                add_name(basename+".efficiency", &device[i].batt.efficiency);
-                add_name(basename+".charge", &device[i].batt.charge);
-                add_name(basename+".r_in", &device[i].batt.r_in);
-                add_name(basename+".r_out", &device[i].batt.r_out);
-                add_name(basename+".percentage", &device[i].batt.percentage);
-                add_name(basename+".time_remaining", &device[i].batt.time_remaining);
+                add_name(basename+".batt.capacity", &device[i].batt.capacity, "float");
+                add_name(basename+".batt.efficiency", &device[i].batt.efficiency, "float");
+                add_name(basename+".batt.charge", &device[i].batt.charge, "float");
+                add_name(basename+".batt.r_in", &device[i].batt.r_in, "float");
+                add_name(basename+".batt.r_out", &device[i].batt.r_out, "float");
+                add_name(basename+".batt.percentage", &device[i].batt.percentage, "float");
+                add_name(basename+".batt.time_remaining", &device[i].batt.time_remaining, "float");
                 add_name(basename+".bcreg", &device[i].bcreg);
                 add_name(basename+".bus", &device[i].bus);
-                add_name(basename+".wdt", &device[i].bus.wdt);
+                add_name(basename+".bus.wdt", &device[i].bus.wdt, "float");
                 add_name(basename+".cam", &device[i].cam);
-                add_name(basename+".pwidth", &device[i].cam.pwidth);
-                add_name(basename+".pheight", &device[i].cam.pheight);
-                add_name(basename+".width", &device[i].cam.width);
-                add_name(basename+".height", &device[i].cam.height);
-                add_name(basename+".flength", &device[i].cam.flength);
+                add_name(basename+".cam.pwidth", &device[i].cam.pwidth, "uint16_t");
+                add_name(basename+".cam.pheight", &device[i].cam.pheight, "uint16_t");
+                add_name(basename+".cam.width", &device[i].cam.width, "float");
+                add_name(basename+".cam.height", &device[i].cam.height, "float");
+                add_name(basename+".cam.flength", &device[i].cam.flength, "float");
                 add_name(basename+".cpu", &device[i].cpu);
-                add_name(basename+".uptime", &device[i].cpu.uptime);
-                add_name(basename+".load", &device[i].cpu.load);
-                add_name(basename+".maxload", &device[i].cpu.maxload);
-                add_name(basename+".maxgib", &device[i].cpu.maxgib);
-                add_name(basename+".gib", &device[i].cpu.gib);
-                add_name(basename+".boot_count", &device[i].cpu.boot_count);
+                add_name(basename+".cpu.uptime", &device[i].cpu.uptime, "uint32_t");
+                add_name(basename+".cpu.load", &device[i].cpu.load, "float");
+                add_name(basename+".cpu.maxload", &device[i].cpu.maxload, "float");
+                add_name(basename+".cpu.maxgib", &device[i].cpu.maxgib, "float");
+                add_name(basename+".cpu.gib", &device[i].cpu.gib, "float");
+                add_name(basename+".cpu.boot_count", &device[i].cpu.boot_count, "uint32_t");
                 add_name(basename+".disk", &device[i].disk);
-                add_name(basename+".maxgib", &device[i].disk.maxgib);
-                add_name(basename+".gib", &device[i].disk.gib);
-                add_name(basename+".path", &device[i].disk.path);
+                add_name(basename+".disk.maxgib", &device[i].disk.maxgib, "float");
+                add_name(basename+".disk.gib", &device[i].disk.gib, "float");
+                add_name(basename+".disk.path", &device[i].disk.path);
                 add_name(basename+".gps", &device[i].gps);
-                add_name(basename+".dutc", &device[i].gps.dutc);
-                add_name(basename+".geocs", &device[i].gps.geocs);
-                add_name(basename+".col", &device[i].gps.geocs.col);
+                add_name(basename+".gps.dutc", &device[i].gps.dutc, "double");
+                add_name(basename+".gps.geocs", &device[i].gps.geocs);
+                add_name(basename+".gps.geocs.col", &device[i].gps.geocs.col);
                 for(size_t j = 0; j < sizeof(device[i].gps.geocs.col)/sizeof(device[i].gps.geocs.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].gps.geocs.col[j]);
+                    string rebasename = basename + "gps.geocs.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].gps.geocs.col[j], "double");
                 }
-                add_name(basename+".geocv", &device[i].gps.geocv);
-                add_name(basename+".col", &device[i].gps.geocv.col);
+                add_name(basename+".gps.geocv", &device[i].gps.geocv);
+                add_name(basename+".gps.geocv.col", &device[i].gps.geocv.col);
                 for(size_t j = 0; j < sizeof(device[i].gps.geocv.col)/sizeof(device[i].gps.geocv.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].gps.geocv.col[j]);
+                    string rebasename = basename + "gps.geocv.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].gps.geocv.col[j], "double");
                 }
-                add_name(basename+".dgeocs", &device[i].gps.dgeocs);
-                add_name(basename+".col", &device[i].gps.dgeocs.col);
+                add_name(basename+".gps.dgeocs", &device[i].gps.dgeocs);
+                add_name(basename+".gps.dgeocs.col", &device[i].gps.dgeocs.col);
                 for(size_t j = 0; j < sizeof(device[i].gps.dgeocs.col)/sizeof(device[i].gps.dgeocs.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].gps.dgeocs.col[j]);
+                    string rebasename = basename + "gps.dgeocs.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].gps.dgeocs.col[j], "double");
                 }
-                add_name(basename+".dgeocv", &device[i].gps.dgeocv);
-                add_name(basename+".col", &device[i].gps.dgeocv.col);
+                add_name(basename+".gps.dgeocv", &device[i].gps.dgeocv);
+                add_name(basename+".gps.dgeocv.col", &device[i].gps.dgeocv.col);
                 for(size_t j = 0; j < sizeof(device[i].gps.dgeocv.col)/sizeof(device[i].gps.dgeocv.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].gps.dgeocv.col[j]);
+                    string rebasename = basename + "gps.dgeocv.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].gps.dgeocv.col[j], "double");
                 }
-                add_name(basename+".geods", &device[i].gps.geods);
-                add_name(basename+".lat", &device[i].gps.geods.lat);
-                add_name(basename+".lon", &device[i].gps.geods.lon);
-                add_name(basename+".h", &device[i].gps.geods.h);
-                add_name(basename+".geodv", &device[i].gps.geodv);
-                add_name(basename+".lat", &device[i].gps.geodv.lat);
-                add_name(basename+".lon", &device[i].gps.geodv.lon);
-                add_name(basename+".h", &device[i].gps.geodv.h);
-                add_name(basename+".dgeods", &device[i].gps.dgeods);
-                add_name(basename+".lat", &device[i].gps.dgeods.lat);
-                add_name(basename+".lon", &device[i].gps.dgeods.lon);
-                add_name(basename+".h", &device[i].gps.dgeods.h);
-                add_name(basename+".dgeodv", &device[i].gps.dgeodv);
-                add_name(basename+".lat", &device[i].gps.dgeodv.lat);
-                add_name(basename+".lon", &device[i].gps.dgeodv.lon);
-                add_name(basename+".h", &device[i].gps.dgeodv.h);
-                add_name(basename+".heading", &device[i].gps.heading);
-                add_name(basename+".sats_used", &device[i].gps.sats_used);
-                add_name(basename+".sats_visible", &device[i].gps.sats_visible);
-                add_name(basename+".time_status", &device[i].gps.time_status);
-                add_name(basename+".position_type", &device[i].gps.position_type);
-                add_name(basename+".solution_status", &device[i].gps.solution_status);
+                add_name(basename+".gps.geods", &device[i].gps.geods);
+                add_name(basename+".gps.geods.lat", &device[i].gps.geods.lat, "double");
+                add_name(basename+".gps.geods.lon", &device[i].gps.geods.lon, "double");
+                add_name(basename+".gps.geods.h", &device[i].gps.geods.h, "double");
+                add_name(basename+".gps.geodv", &device[i].gps.geodv);
+                add_name(basename+".gps.geodv.lat", &device[i].gps.geodv.lat, "double");
+                add_name(basename+".gps.geodv.lon", &device[i].gps.geodv.lon, "double");
+                add_name(basename+".gps.geodv.h", &device[i].gps.geodv.h, "double");
+                add_name(basename+".gps.dgeods", &device[i].gps.dgeods);
+                add_name(basename+".gps.dgeods.lat", &device[i].gps.dgeods.lat, "double");
+                add_name(basename+".gps.dgeods.lon", &device[i].gps.dgeods.lon, "double");
+                add_name(basename+".gps.dgeods.h", &device[i].gps.dgeods.h, "double");
+                add_name(basename+".gps.dgeodv", &device[i].gps.dgeodv);
+                add_name(basename+".gps.dgeodv.lat", &device[i].gps.dgeodv.lat, "double");
+                add_name(basename+".gps.dgeodv.lon", &device[i].gps.dgeodv.lon, "double");
+                add_name(basename+".gps.dgeodv.h", &device[i].gps.dgeodv.h, "double");
+                add_name(basename+".gps.heading", &device[i].gps.heading, "float");
+                add_name(basename+".gps.sats_used", &device[i].gps.sats_used, "uint16_t");
+                add_name(basename+".gps.sats_visible", &device[i].gps.sats_visible, "uint16_t");
+                add_name(basename+".gps.time_status", &device[i].gps.time_status, "uint16_t");
+                add_name(basename+".gps.position_type", &device[i].gps.position_type, "uint16_t");
+                add_name(basename+".gps.solution_status", &device[i].gps.solution_status, "uint16_t");
                 add_name(basename+".htr", &device[i].htr);
-                add_name(basename+".state", &device[i].htr.state);
-                add_name(basename+".setvertex", &device[i].htr.setvertex);
+                add_name(basename+".htr.state", &device[i].htr.state, "bool");
+                add_name(basename+".htr.setvertex", &device[i].htr.setvertex, "float");
                 add_name(basename+".imu", &device[i].imu);
-                add_name(basename+".align", &device[i].imu.align);
-                add_name(basename+".d", &device[i].imu.align.d);
-                add_name(basename+".x", &device[i].imu.align.d.x);
-                add_name(basename+".y", &device[i].imu.align.d.y);
-                add_name(basename+".z", &device[i].imu.align.d.z);
-                add_name(basename+".w", &device[i].imu.align.w);
-                add_name(basename+".accel", &device[i].imu.accel);
-                add_name(basename+".col", &device[i].imu.accel.col);
+                add_name(basename+".imu.align", &device[i].imu.align);
+                add_name(basename+".imu.align.d", &device[i].imu.align.d);
+                add_name(basename+".imu.align.d.x", &device[i].imu.align.d.x, "double");
+                add_name(basename+".imu.align.d.y", &device[i].imu.align.d.y, "double");
+                add_name(basename+".imu.align.d.z", &device[i].imu.align.d.z, "double");
+                add_name(basename+".imu.align.w", &device[i].imu.align.w, "double");
+                add_name(basename+".imu.accel", &device[i].imu.accel);
+                add_name(basename+".imu.accel.col", &device[i].imu.accel.col);
                 for(size_t j = 0; j < sizeof(device[i].imu.accel.col)/sizeof(device[i].imu.accel.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].imu.accel.col[j]);
+                    string rebasename = basename + "imu.accel.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].imu.accel.col[j], "double");
                 }
-                add_name(basename+".theta", &device[i].imu.theta);
-                add_name(basename+".d", &device[i].imu.theta.d);
-                add_name(basename+".x", &device[i].imu.theta.d.x);
-                add_name(basename+".y", &device[i].imu.theta.d.y);
-                add_name(basename+".z", &device[i].imu.theta.d.z);
-                add_name(basename+".w", &device[i].imu.theta.w);
-                add_name(basename+".euler", &device[i].imu.euler);
-                add_name(basename+".h", &device[i].imu.euler.h);
-                add_name(basename+".e", &device[i].imu.euler.e);
-                add_name(basename+".b", &device[i].imu.euler.b);
-                add_name(basename+".omega", &device[i].imu.omega);
-                add_name(basename+".col", &device[i].imu.omega.col);
+                add_name(basename+".imu.theta", &device[i].imu.theta);
+                add_name(basename+".imu.theta.d", &device[i].imu.theta.d);
+                add_name(basename+".imu.theta.d.x", &device[i].imu.theta.d.x, "double");
+                add_name(basename+".imu.theta.d.y", &device[i].imu.theta.d.y, "double");
+                add_name(basename+".imu.theta.d.z", &device[i].imu.theta.d.z, "double");
+                add_name(basename+".imu.theta.w", &device[i].imu.theta.w, "double");
+                add_name(basename+".imu.euler", &device[i].imu.euler);
+                add_name(basename+".imu.euler.h", &device[i].imu.euler.h, "double");
+                add_name(basename+".imu.euler.e", &device[i].imu.euler.e, "double");
+                add_name(basename+".imu.euler.b", &device[i].imu.euler.b, "double");
+                add_name(basename+".imu.omega", &device[i].imu.omega);
+                add_name(basename+".imu.omega.col", &device[i].imu.omega.col);
                 for(size_t j = 0; j < sizeof(device[i].imu.omega.col)/sizeof(device[i].imu.omega.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].imu.omega.col[j]);
+                    string rebasename = basename + "imu.omega.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].imu.omega.col[j], "double");
                 }
-                add_name(basename+".alpha", &device[i].imu.alpha);
-                add_name(basename+".col", &device[i].imu.alpha.col);
+                add_name(basename+".imu.alpha", &device[i].imu.alpha);
+                add_name(basename+".imu.alpha.col", &device[i].imu.alpha.col);
                 for(size_t j = 0; j < sizeof(device[i].imu.alpha.col)/sizeof(device[i].imu.alpha.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].imu.alpha.col[j]);
+                    string rebasename = basename + "imu.alpha.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].imu.alpha.col[j], "double");
                 }
-                add_name(basename+".mag", &device[i].imu.mag);
-                add_name(basename+".col", &device[i].imu.mag.col);
+                add_name(basename+".imu.mag", &device[i].imu.mag);
+                add_name(basename+".imu.mag.col", &device[i].imu.mag.col);
                 for(size_t j = 0; j < sizeof(device[i].imu.mag.col)/sizeof(device[i].imu.mag.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].imu.mag.col[j]);
+                    string rebasename = basename + "imu.mag.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].imu.mag.col[j], "double");
                 }
-                add_name(basename+".bdot", &device[i].imu.bdot);
-                add_name(basename+".col", &device[i].imu.bdot.col);
+                add_name(basename+".imu.bdot", &device[i].imu.bdot);
+                add_name(basename+".imu.bdot.col", &device[i].imu.bdot.col);
                 for(size_t j = 0; j < sizeof(device[i].imu.bdot.col)/sizeof(device[i].imu.bdot.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].imu.bdot.col[j]);
+                    string rebasename = basename + "imu.bdot.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].imu.bdot.col[j], "double");
                 }
                 add_name(basename+".mcc", &device[i].mcc);
-                add_name(basename+".align", &device[i].mcc.align);
-                add_name(basename+".d", &device[i].mcc.align.d);
-                add_name(basename+".x", &device[i].mcc.align.d.x);
-                add_name(basename+".y", &device[i].mcc.align.d.y);
-                add_name(basename+".z", &device[i].mcc.align.d.z);
-                add_name(basename+".w", &device[i].mcc.align.w);
-                add_name(basename+".q", &device[i].mcc.q);
-                add_name(basename+".d", &device[i].mcc.q.d);
-                add_name(basename+".x", &device[i].mcc.q.d.x);
-                add_name(basename+".y", &device[i].mcc.q.d.y);
-                add_name(basename+".z", &device[i].mcc.q.d.z);
-                add_name(basename+".w", &device[i].mcc.q.w);
-                add_name(basename+".o", &device[i].mcc.o);
-                add_name(basename+".col", &device[i].mcc.o.col);
+                add_name(basename+".mcc.align", &device[i].mcc.align);
+                add_name(basename+".mcc.align.d", &device[i].mcc.align.d);
+                add_name(basename+".mcc.align.d.x", &device[i].mcc.align.d.x, "double");
+                add_name(basename+".mcc.align.d.y", &device[i].mcc.align.d.y, "double");
+                add_name(basename+".mcc.align.d.z", &device[i].mcc.align.d.z, "double");
+                add_name(basename+".mcc.align.w", &device[i].mcc.align.w, "double");
+                add_name(basename+".mcc.q", &device[i].mcc.q);
+                add_name(basename+".mcc.q.d", &device[i].mcc.q.d);
+                add_name(basename+".mcc.q.d.x", &device[i].mcc.q.d.x, "double");
+                add_name(basename+".mcc.q.d.y", &device[i].mcc.q.d.y, "double");
+                add_name(basename+".mcc.q.d.z", &device[i].mcc.q.d.z, "double");
+                add_name(basename+".mcc.q.w", &device[i].mcc.q.w, "double");
+                add_name(basename+".mcc.o", &device[i].mcc.o);
+                add_name(basename+".mcc.o.col", &device[i].mcc.o.col);
                 for(size_t j = 0; j < sizeof(device[i].mcc.o.col)/sizeof(device[i].mcc.o.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].mcc.o.col[j]);
+                    string rebasename = basename + "mcc.o.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].mcc.o.col[j], "double");
                 }
-                add_name(basename+".a", &device[i].mcc.a);
-                add_name(basename+".col", &device[i].mcc.a.col);
+                add_name(basename+".mcc.a", &device[i].mcc.a);
+                add_name(basename+".mcc.a.col", &device[i].mcc.a.col);
                 for(size_t j = 0; j < sizeof(device[i].mcc.a.col)/sizeof(device[i].mcc.a.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].mcc.a.col[j]);
+                    string rebasename = basename + "mcc.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].mcc.a.col[j], "double");
                 }
                 add_name(basename+".motr", &device[i].motr);
-                add_name(basename+".max", &device[i].motr.max);
-                add_name(basename+".rat", &device[i].motr.rat);
-                add_name(basename+".spd", &device[i].motr.spd);
+                add_name(basename+".motr.max", &device[i].motr.max, "float");
+                add_name(basename+".motr.rat", &device[i].motr.rat, "float");
+                add_name(basename+".motr.spd", &device[i].motr.spd, "float");
                 add_name(basename+".mtr", &device[i].mtr);
-                add_name(basename+".align", &device[i].mtr.align);
-                add_name(basename+".d", &device[i].mtr.align.d);
-                add_name(basename+".x", &device[i].mtr.align.d.x);
-                add_name(basename+".y", &device[i].mtr.align.d.y);
-                add_name(basename+".z", &device[i].mtr.align.d.z);
-                add_name(basename+".w", &device[i].mtr.align.w);
-                add_name(basename+".npoly", &device[i].mtr.npoly);
+                add_name(basename+".mtr.align", &device[i].mtr.align);
+                add_name(basename+".mtr.align.d", &device[i].mtr.align.d);
+                add_name(basename+".mtr.align.d.x", &device[i].mtr.align.d.x, "double");
+                add_name(basename+".mtr.align.d.y", &device[i].mtr.align.d.y, "double");
+                add_name(basename+".mtr.align.d.z", &device[i].mtr.align.d.z, "double");
+                add_name(basename+".mtr.align.w", &device[i].mtr.align.w, "double");
+                add_name(basename+".mtr.npoly", &device[i].mtr.npoly);
                 for(size_t j = 0; j < sizeof(device[i].mtr.npoly)/sizeof(device[i].mtr.npoly[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].mtr.npoly[j]);
+                    string rebasename = basename + "mtr.npoly[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].mtr.npoly[j], "float");
                 }
-                add_name(basename+".ppoly", &device[i].mtr.ppoly);
+                add_name(basename+".mtr.ppoly", &device[i].mtr.ppoly);
                 for(size_t j = 0; j < sizeof(device[i].mtr.ppoly)/sizeof(device[i].mtr.ppoly[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].mtr.ppoly[j]);
+                    string rebasename = basename + "mtr.ppoly[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].mtr.ppoly[j], "float");
                 }
-                add_name(basename+".mxmom", &device[i].mtr.mxmom);
-                add_name(basename+".tc", &device[i].mtr.tc);
-                add_name(basename+".rmom", &device[i].mtr.rmom);
-                add_name(basename+".mom", &device[i].mtr.mom);
+                add_name(basename+".mtr.mxmom", &device[i].mtr.mxmom, "float");
+                add_name(basename+".mtr.tc", &device[i].mtr.tc, "float");
+                add_name(basename+".mtr.rmom", &device[i].mtr.rmom, "float");
+                add_name(basename+".mtr.mom", &device[i].mtr.mom, "float");
                 add_name(basename+".pload", &device[i].pload);
-                add_name(basename+".key_cnt", &device[i].pload.key_cnt);
-                add_name(basename+".keyidx[MAXPLOADKEYCNT]", &device[i].pload.keyidx[MAXPLOADKEYCNT]);
+                add_name(basename+".pload.key_cnt", &device[i].pload.key_cnt, "uint16_t");
+                add_name(basename+".pload.keyidx", &device[i].pload.keyidx);
                 for(size_t j = 0; j < sizeof(device[i].pload.keyidx)/sizeof(device[i].pload.keyidx[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].pload.keyidx[j]);
+                    string rebasename = basename + "pload.keyidx[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].pload.keyidx[j], "uint16_t");
                 }
-                add_name(basename+".keyval[MAXPLOADKEYCNT]", &device[i].pload.keyval[MAXPLOADKEYCNT]);
+                add_name(basename+".pload.keyval", &device[i].pload.keyval);
                 for(size_t j = 0; j < sizeof(device[i].pload.keyval)/sizeof(device[i].pload.keyval[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].pload.keyval[j]);
+                    string rebasename = basename + "pload.keyval[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].pload.keyval[j], "float");
                 }
                 add_name(basename+".prop", &device[i].prop);
-                add_name(basename+".cap", &device[i].prop.cap);
-                add_name(basename+".lev", &device[i].prop.lev);
+                add_name(basename+".prop.cap", &device[i].prop.cap, "float");
+                add_name(basename+".prop.lev", &device[i].prop.lev, "float");
                 add_name(basename+".psen", &device[i].psen);
-                add_name(basename+".press", &device[i].psen.press);
+                add_name(basename+".psen.press", &device[i].psen.press, "float");
                 add_name(basename+".pvstrg", &device[i].pvstrg);
-                add_name(basename+".bcidx", &device[i].pvstrg.bcidx);
-                add_name(basename+".effbase", &device[i].pvstrg.effbase);
-                add_name(basename+".effslope", &device[i].pvstrg.effslope);
-                add_name(basename+".maxpower", &device[i].pvstrg.maxpower);
-                add_name(basename+".power", &device[i].pvstrg.power);
+                add_name(basename+".pvstrg.bcidx", &device[i].pvstrg.bcidx, "uint16_t");
+                add_name(basename+".pvstrg.effbase", &device[i].pvstrg.effbase, "float");
+                add_name(basename+".pvstrg.effslope", &device[i].pvstrg.effslope, "float");
+                add_name(basename+".pvstrg.maxpower", &device[i].pvstrg.maxpower, "float");
+                add_name(basename+".pvstrg.power", &device[i].pvstrg.power, "float");
                 add_name(basename+".rot", &device[i].rot);
-                add_name(basename+".angle", &device[i].rot.angle);
+                add_name(basename+".rot.angle", &device[i].rot.angle, "float");
                 add_name(basename+".rw", &device[i].rw);
-                add_name(basename+".align", &device[i].rw.align);
-                add_name(basename+".d", &device[i].rw.align.d);
-                add_name(basename+".x", &device[i].rw.align.d.x);
-                add_name(basename+".y", &device[i].rw.align.d.y);
-                add_name(basename+".z", &device[i].rw.align.d.z);
-                add_name(basename+".w", &device[i].rw.align.w);
-                add_name(basename+".mom", &device[i].rw.mom);
-                add_name(basename+".col", &device[i].rw.mom.col);
+                add_name(basename+".rw.align", &device[i].rw.align);
+                add_name(basename+".rw.align.d", &device[i].rw.align.d);
+                add_name(basename+".rw.align.d.x", &device[i].rw.align.d.x, "double");
+                add_name(basename+".rw.align.d.y", &device[i].rw.align.d.y, "double");
+                add_name(basename+".rw.align.d.z", &device[i].rw.align.d.z, "double");
+                add_name(basename+".rw.align.w", &device[i].rw.align.w, "double");
+                add_name(basename+".rw.mom", &device[i].rw.mom);
+                add_name(basename+".rw.mom.col", &device[i].rw.mom.col);
                 for(size_t j = 0; j < sizeof(device[i].rw.mom.col)/sizeof(device[i].rw.mom.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].rw.mom.col[j]);
+                    string rebasename = basename + "rw.mom.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].rw.mom.col[j], "double");
                 }
-                add_name(basename+".mxomg", &device[i].rw.mxomg);
-                add_name(basename+".mxalp", &device[i].rw.mxalp);
-                add_name(basename+".tc", &device[i].rw.tc);
-                add_name(basename+".omg", &device[i].rw.omg);
-                add_name(basename+".alp", &device[i].rw.alp);
-                add_name(basename+".romg", &device[i].rw.romg);
-                add_name(basename+".ralp", &device[i].rw.ralp);
+                add_name(basename+".rw.mxomg", &device[i].rw.mxomg, "float");
+                add_name(basename+".rw.mxalp", &device[i].rw.mxalp, "float");
+                add_name(basename+".rw.tc", &device[i].rw.tc, "float");
+                add_name(basename+".rw.omg", &device[i].rw.omg, "float");
+                add_name(basename+".rw.alp", &device[i].rw.alp, "float");
+                add_name(basename+".rw.romg", &device[i].rw.romg, "float");
+                add_name(basename+".rw.ralp", &device[i].rw.ralp, "float");
                 add_name(basename+".rxr", &device[i].rxr);
-                add_name(basename+".opmode", &device[i].rxr.opmode);
-                add_name(basename+".modulation", &device[i].rxr.modulation);
-                add_name(basename+".rssi", &device[i].rxr.rssi);
-                add_name(basename+".pktsize", &device[i].rxr.pktsize);
-                add_name(basename+".freq", &device[i].rxr.freq);
-                add_name(basename+".maxfreq", &device[i].rxr.maxfreq);
-                add_name(basename+".minfreq", &device[i].rxr.minfreq);
-                add_name(basename+".powerin", &device[i].rxr.powerin);
-                add_name(basename+".powerout", &device[i].rxr.powerout);
-                add_name(basename+".maxpower", &device[i].rxr.maxpower);
-                add_name(basename+".band", &device[i].rxr.band);
-                add_name(basename+".squelch_tone", &device[i].rxr.squelch_tone);
-                add_name(basename+".goodratio", &device[i].rxr.goodratio);
-                add_name(basename+".rxutc", &device[i].rxr.rxutc);
-                add_name(basename+".uptime", &device[i].rxr.uptime);
+                add_name(basename+".rxr.opmode", &device[i].rxr.opmode, "uint16_t");
+                add_name(basename+".rxr.modulation", &device[i].rxr.modulation, "uint16_t");
+                add_name(basename+".rxr.rssi", &device[i].rxr.rssi, "uint16_t");
+                add_name(basename+".rxr.pktsize", &device[i].rxr.pktsize, "uint16_t");
+                add_name(basename+".rxr.freq", &device[i].rxr.freq, "double");
+                add_name(basename+".rxr.maxfreq", &device[i].rxr.maxfreq, "double");
+                add_name(basename+".rxr.minfreq", &device[i].rxr.minfreq, "double");
+                add_name(basename+".rxr.powerin", &device[i].rxr.powerin, "float");
+                add_name(basename+".rxr.powerout", &device[i].rxr.powerout, "float");
+                add_name(basename+".rxr.maxpower", &device[i].rxr.maxpower, "float");
+                add_name(basename+".rxr.band", &device[i].rxr.band, "float");
+                add_name(basename+".rxr.squelch_tone", &device[i].rxr.squelch_tone, "float");
+                add_name(basename+".rxr.goodratio", &device[i].rxr.goodratio, "double");
+                add_name(basename+".rxr.rxutc", &device[i].rxr.rxutc, "double");
+                add_name(basename+".rxr.uptime", &device[i].rxr.uptime, "double");
                 add_name(basename+".ssen", &device[i].ssen);
-                add_name(basename+".align", &device[i].ssen.align);
-                add_name(basename+".d", &device[i].ssen.align.d);
-                add_name(basename+".x", &device[i].ssen.align.d.x);
-                add_name(basename+".y", &device[i].ssen.align.d.y);
-                add_name(basename+".z", &device[i].ssen.align.d.z);
-                add_name(basename+".w", &device[i].ssen.align.w);
-                add_name(basename+".qva", &device[i].ssen.qva);
-                add_name(basename+".qvb", &device[i].ssen.qvb);
-                add_name(basename+".qvc", &device[i].ssen.qvc);
-                add_name(basename+".qvd", &device[i].ssen.qvd);
-                add_name(basename+".azimuth", &device[i].ssen.azimuth);
-                add_name(basename+".elevation", &device[i].ssen.elevation);
+                add_name(basename+".ssen.align", &device[i].ssen.align);
+                add_name(basename+".ssen.align.d", &device[i].ssen.align.d);
+                add_name(basename+".ssen.align.d.x", &device[i].ssen.align.d.x, "double");
+                add_name(basename+".ssen.align.d.y", &device[i].ssen.align.d.y, "double");
+                add_name(basename+".ssen.align.d.z", &device[i].ssen.align.d.z, "double");
+                add_name(basename+".ssen.align.w", &device[i].ssen.align.w, "double");
+                add_name(basename+".ssen.qva", &device[i].ssen.qva, "float");
+                add_name(basename+".ssen.qvb", &device[i].ssen.qvb, "float");
+                add_name(basename+".ssen.qvc", &device[i].ssen.qvc, "float");
+                add_name(basename+".ssen.qvd", &device[i].ssen.qvd, "float");
+                add_name(basename+".ssen.azimuth", &device[i].ssen.azimuth, "float");
+                add_name(basename+".ssen.elevation", &device[i].ssen.elevation, "float");
                 add_name(basename+".stt", &device[i].stt);
-                add_name(basename+".align", &device[i].stt.align);
-                add_name(basename+".d", &device[i].stt.align.d);
-                add_name(basename+".x", &device[i].stt.align.d.x);
-                add_name(basename+".y", &device[i].stt.align.d.y);
-                add_name(basename+".z", &device[i].stt.align.d.z);
-                add_name(basename+".w", &device[i].stt.align.w);
-                add_name(basename+".att", &device[i].stt.att);
-                add_name(basename+".d", &device[i].stt.att.d);
-                add_name(basename+".x", &device[i].stt.att.d.x);
-                add_name(basename+".y", &device[i].stt.att.d.y);
-                add_name(basename+".z", &device[i].stt.att.d.z);
-                add_name(basename+".w", &device[i].stt.att.w);
-                add_name(basename+".omega", &device[i].stt.omega);
-                add_name(basename+".col", &device[i].stt.omega.col);
+                add_name(basename+".stt.align", &device[i].stt.align);
+                add_name(basename+".stt.align.d", &device[i].stt.align.d);
+                add_name(basename+".stt.align.d.x", &device[i].stt.align.d.x, "double");
+                add_name(basename+".stt.align.d.y", &device[i].stt.align.d.y, "double");
+                add_name(basename+".stt.align.d.z", &device[i].stt.align.d.z, "double");
+                add_name(basename+".stt.align.w", &device[i].stt.align.w, "double");
+                add_name(basename+".stt.att", &device[i].stt.att);
+                add_name(basename+".stt.att.d", &device[i].stt.att.d);
+                add_name(basename+".stt.att.d.x", &device[i].stt.att.d.x, "double");
+                add_name(basename+".stt.att.d.y", &device[i].stt.att.d.y, "double");
+                add_name(basename+".stt.att.d.z", &device[i].stt.att.d.z, "double");
+                add_name(basename+".stt.att.w", &device[i].stt.att.w, "double");
+                add_name(basename+".stt.omega", &device[i].stt.omega);
+                add_name(basename+".stt.omega.col", &device[i].stt.omega.col);
                 for(size_t j = 0; j < sizeof(device[i].stt.omega.col)/sizeof(device[i].stt.omega.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].stt.omega.col[j]);
+                    string rebasename = basename + "stt.omega.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].stt.omega.col[j], "double");
                 }
-                add_name(basename+".alpha", &device[i].stt.alpha);
-                add_name(basename+".col", &device[i].stt.alpha.col);
+                add_name(basename+".stt.alpha", &device[i].stt.alpha);
+                add_name(basename+".stt.alpha.col", &device[i].stt.alpha.col);
                 for(size_t j = 0; j < sizeof(device[i].stt.alpha.col)/sizeof(device[i].stt.alpha.col[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].stt.alpha.col[j]);
+                    string rebasename = basename + "stt.alpha.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].stt.alpha.col[j], "double");
                 }
-                add_name(basename+".retcode", &device[i].stt.retcode);
-                add_name(basename+".status", &device[i].stt.status);
+                add_name(basename+".stt.retcode", &device[i].stt.retcode, "uint16_t");
+                add_name(basename+".stt.status", &device[i].stt.status, "uint32_t");
                 add_name(basename+".suchi", &device[i].suchi);
-                add_name(basename+".align", &device[i].suchi.align);
-                add_name(basename+".d", &device[i].suchi.align.d);
-                add_name(basename+".x", &device[i].suchi.align.d.x);
-                add_name(basename+".y", &device[i].suchi.align.d.y);
-                add_name(basename+".z", &device[i].suchi.align.d.z);
-                add_name(basename+".w", &device[i].suchi.align.w);
-                add_name(basename+".press", &device[i].suchi.press);
-                add_name(basename+".temps", &device[i].suchi.temps);
+                add_name(basename+".suchi.align", &device[i].suchi.align);
+                add_name(basename+".suchi.align.d", &device[i].suchi.align.d);
+                add_name(basename+".suchi.align.d.x", &device[i].suchi.align.d.x, "double");
+                add_name(basename+".suchi.align.d.y", &device[i].suchi.align.d.y, "double");
+                add_name(basename+".suchi.align.d.z", &device[i].suchi.align.d.z, "double");
+                add_name(basename+".suchi.align.w", &device[i].suchi.align.w, "double");
+                add_name(basename+".suchi.press", &device[i].suchi.press, "float");
+                add_name(basename+".suchi.temps", &device[i].suchi.temps);
                 for(size_t j = 0; j < sizeof(device[i].suchi.temps)/sizeof(device[i].suchi.temps[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].suchi.temps[j]);
+                    string rebasename = basename + "suchi.temps[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].suchi.temps[j], "float");
                 }
                 add_name(basename+".swch", &device[i].swch);
                 add_name(basename+".tcu", &device[i].tcu);
-                add_name(basename+".mcnt", &device[i].tcu.mcnt);
-                add_name(basename+".mcidx", &device[i].tcu.mcidx);
+                add_name(basename+".tcu.mcnt", &device[i].tcu.mcnt, "uint16_t");
+                add_name(basename+".tcu.mcidx", &device[i].tcu.mcidx);
                 for(size_t j = 0; j < sizeof(device[i].tcu.mcidx)/sizeof(device[i].tcu.mcidx[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
-                    add_name(rebasename, &device[i].tcu.mcidx[j]);
+                    string rebasename = basename + "tcu.mcidx[" + std::to_string(j) + "]";
+                    add_name(rebasename, &device[i].tcu.mcidx[j], "uint16_t");
                 }
                 add_name(basename+".tcv", &device[i].tcv);
-                add_name(basename+".opmode", &device[i].tcv.opmode);
-                add_name(basename+".modulation", &device[i].tcv.modulation);
-                add_name(basename+".rssi", &device[i].tcv.rssi);
-                add_name(basename+".pktsize", &device[i].tcv.pktsize);
-                add_name(basename+".freq", &device[i].tcv.freq);
-                add_name(basename+".maxfreq", &device[i].tcv.maxfreq);
-                add_name(basename+".minfreq", &device[i].tcv.minfreq);
-                add_name(basename+".powerin", &device[i].tcv.powerin);
-                add_name(basename+".powerout", &device[i].tcv.powerout);
-                add_name(basename+".maxpower", &device[i].tcv.maxpower);
-                add_name(basename+".band", &device[i].tcv.band);
-                add_name(basename+".squelch_tone", &device[i].tcv.squelch_tone);
-                add_name(basename+".goodratio", &device[i].tcv.goodratio);
-                add_name(basename+".txutc", &device[i].tcv.txutc);
-                add_name(basename+".rxutc", &device[i].tcv.rxutc);
-                add_name(basename+".uptime", &device[i].tcv.uptime);
+                add_name(basename+".tcv.opmode", &device[i].tcv.opmode, "uint16_t");
+                add_name(basename+".tcv.modulation", &device[i].tcv.modulation, "uint16_t");
+                add_name(basename+".tcv.rssi", &device[i].tcv.rssi, "uint16_t");
+                add_name(basename+".tcv.pktsize", &device[i].tcv.pktsize, "uint16_t");
+                add_name(basename+".tcv.freq", &device[i].tcv.freq, "double");
+                add_name(basename+".tcv.maxfreq", &device[i].tcv.maxfreq, "double");
+                add_name(basename+".tcv.minfreq", &device[i].tcv.minfreq, "double");
+                add_name(basename+".tcv.powerin", &device[i].tcv.powerin, "float");
+                add_name(basename+".tcv.powerout", &device[i].tcv.powerout, "float");
+                add_name(basename+".tcv.maxpower", &device[i].tcv.maxpower, "float");
+                add_name(basename+".tcv.band", &device[i].tcv.band, "float");
+                add_name(basename+".tcv.squelch_tone", &device[i].tcv.squelch_tone, "float");
+                add_name(basename+".tcv.goodratio", &device[i].tcv.goodratio, "double");
+                add_name(basename+".tcv.txutc", &device[i].tcv.txutc, "double");
+                add_name(basename+".tcv.rxutc", &device[i].tcv.rxutc, "double");
+                add_name(basename+".tcv.uptime", &device[i].tcv.uptime, "double");
                 add_name(basename+".telem", &device[i].telem);
-                add_name(basename+".vuint8", &device[i].telem.vuint8);
-                add_name(basename+".vint8", &device[i].telem.vint8);
-                add_name(basename+".vuint16", &device[i].telem.vuint16);
-                add_name(basename+".vint16", &device[i].telem.vint16);
-                add_name(basename+".vuint32", &device[i].telem.vuint32);
-                add_name(basename+".vint32", &device[i].telem.vint32);
-                add_name(basename+".vfloat", &device[i].telem.vfloat);
-                add_name(basename+".vdouble", &device[i].telem.vdouble);
-                add_name(basename+".vstring", &device[i].telem.vstring);
+                add_name(basename+".telem.vuint8", &device[i].telem.vuint8, "uint8_t");
+                add_name(basename+".telem.vint8", &device[i].telem.vint8, "int8_t");
+                add_name(basename+".telem.vuint16", &device[i].telem.vuint16, "uint16_t");
+                add_name(basename+".telem.vint16", &device[i].telem.vint16, "int16_t");
+                add_name(basename+".telem.vuint32", &device[i].telem.vuint32, "uint32_t");
+                add_name(basename+".telem.vint32", &device[i].telem.vint32, "int32_t");
+                add_name(basename+".telem.vfloat", &device[i].telem.vfloat, "float");
+                add_name(basename+".telem.vdouble", &device[i].telem.vdouble, "double");
+                add_name(basename+".telem.vstring", &device[i].telem.vstring);
                 add_name(basename+".thst", &device[i].thst);
-                add_name(basename+".align", &device[i].thst.align);
-                add_name(basename+".d", &device[i].thst.align.d);
-                add_name(basename+".x", &device[i].thst.align.d.x);
-                add_name(basename+".y", &device[i].thst.align.d.y);
-                add_name(basename+".z", &device[i].thst.align.d.z);
-                add_name(basename+".w", &device[i].thst.align.w);
-                add_name(basename+".flw", &device[i].thst.flw);
-                add_name(basename+".isp", &device[i].thst.isp);
+                add_name(basename+".thst.align", &device[i].thst.align);
+                add_name(basename+".thst.align.d", &device[i].thst.align.d);
+                add_name(basename+".thst.align.d.x", &device[i].thst.align.d.x, "double");
+                add_name(basename+".thst.align.d.y", &device[i].thst.align.d.y, "double");
+                add_name(basename+".thst.align.d.z", &device[i].thst.align.d.z, "double");
+                add_name(basename+".thst.align.w", &device[i].thst.align.w, "double");
+                add_name(basename+".thst.flw", &device[i].thst.flw, "float");
+                add_name(basename+".thst.isp", &device[i].thst.isp, "float");
                 add_name(basename+".tnc", &device[i].tnc);
                 add_name(basename+".tsen", &device[i].tsen);
                 add_name(basename+".txr", &device[i].txr);
-                add_name(basename+".opmode", &device[i].txr.opmode);
-                add_name(basename+".modulation", &device[i].txr.modulation);
-                add_name(basename+".rssi", &device[i].txr.rssi);
-                add_name(basename+".pktsize", &device[i].txr.pktsize);
-                add_name(basename+".freq", &device[i].txr.freq);
-                add_name(basename+".maxfreq", &device[i].txr.maxfreq);
-                add_name(basename+".minfreq", &device[i].txr.minfreq);
-                add_name(basename+".powerin", &device[i].txr.powerin);
-                add_name(basename+".powerout", &device[i].txr.powerout);
-                add_name(basename+".maxpower", &device[i].txr.maxpower);
-                add_name(basename+".band", &device[i].txr.band);
-                add_name(basename+".squelch_tone", &device[i].txr.squelch_tone);
-                add_name(basename+".goodratio", &device[i].txr.goodratio);
-                add_name(basename+".txutc", &device[i].txr.txutc);
-                add_name(basename+".uptime", &device[i].txr.uptime);
+                add_name(basename+".txr.opmode", &device[i].txr.opmode, "uint16_t");
+                add_name(basename+".txr.modulation", &device[i].txr.modulation, "uint16_t");
+                add_name(basename+".txr.rssi", &device[i].txr.rssi, "uint16_t");
+                add_name(basename+".txr.pktsize", &device[i].txr.pktsize, "uint16_t");
+                add_name(basename+".txr.freq", &device[i].txr.freq, "double");
+                add_name(basename+".txr.maxfreq", &device[i].txr.maxfreq, "double");
+                add_name(basename+".txr.minfreq", &device[i].txr.minfreq, "double");
+                add_name(basename+".txr.powerin", &device[i].txr.powerin, "float");
+                add_name(basename+".txr.powerout", &device[i].txr.powerout, "float");
+                add_name(basename+".txr.maxpower", &device[i].txr.maxpower, "float");
+                add_name(basename+".txr.band", &device[i].txr.band, "float");
+                add_name(basename+".txr.squelch_tone", &device[i].txr.squelch_tone, "float");
+                add_name(basename+".txr.goodratio", &device[i].txr.goodratio, "double");
+                add_name(basename+".txr.txutc", &device[i].txr.txutc, "double");
+                add_name(basename+".txr.uptime", &device[i].txr.uptime, "double");
             }
 
-            // devspecstruc devspec
-            add_name("devspec", &devspec);
-            add_name("devspec.all_cnt", &devspec.all_cnt);
-            add_name("devspec.ant_cnt", &devspec.ant_cnt);
-            add_name("devspec.batt_cnt", &devspec.batt_cnt);
-            add_name("devspec.bus_cnt", &devspec.bus_cnt);
-            add_name("devspec.cam_cnt", &devspec.cam_cnt);
-            add_name("devspec.cpu_cnt", &devspec.cpu_cnt);
-            add_name("devspec.disk_cnt", &devspec.disk_cnt);
-            add_name("devspec.gps_cnt", &devspec.gps_cnt);
-            add_name("devspec.htr_cnt", &devspec.htr_cnt);
-            add_name("devspec.imu_cnt", &devspec.imu_cnt);
-            add_name("devspec.mcc_cnt", &devspec.mcc_cnt);
-            add_name("devspec.motr_cnt", &devspec.motr_cnt);
-            add_name("devspec.mtr_cnt", &devspec.mtr_cnt);
-            add_name("devspec.pload_cnt", &devspec.pload_cnt);
-            add_name("devspec.prop_cnt", &devspec.prop_cnt);
-            add_name("devspec.psen_cnt", &devspec.psen_cnt);
-            add_name("devspec.bcreg_cnt", &devspec.bcreg_cnt);
-            add_name("devspec.rot_cnt", &devspec.rot_cnt);
-            add_name("devspec.rw_cnt", &devspec.rw_cnt);
-            add_name("devspec.rxr_cnt", &devspec.rxr_cnt);
-            add_name("devspec.ssen_cnt", &devspec.ssen_cnt);
-            add_name("devspec.pvstrg_cnt", &devspec.pvstrg_cnt);
-            add_name("devspec.stt_cnt", &devspec.stt_cnt);
-            add_name("devspec.suchi_cnt", &devspec.suchi_cnt);
-            add_name("devspec.swch_cnt", &devspec.swch_cnt);
-            add_name("devspec.tcu_cnt", &devspec.tcu_cnt);
-            add_name("devspec.tcv_cnt", &devspec.tcv_cnt);
-            add_name("devspec.telem_cnt", &devspec.telem_cnt);
-            add_name("devspec.thst_cnt", &devspec.thst_cnt);
-            add_name("devspec.tsen_cnt", &devspec.tsen_cnt);
-            add_name("devspec.tnc_cnt", &devspec.tnc_cnt);
-            add_name("devspec.txr_cnt", &devspec.txr_cnt);
 
 
 
-        // vector<portstruc> port
-                add_name("port", &port);
-                for(size_t i = 0; i < port.capacity(); ++i)	{
-                        string basename = "port[" + std::to_string(i) + "]";
-                        add_name(basename, &port[i]);
-                        add_name(basename+".type", &port[i].type);
-                        add_name(basename+".name", &port[i].name);
-                }
+            // vector<portstruc> port
+            add_name("port", &port);
+            for(size_t i = 0; i < port.capacity(); ++i) {
+                string basename = "port[" + std::to_string(i) + "]";
+                add_name(basename, &port[i]);
+                add_name(basename+".type", &port[i].type);
+                add_name(basename+".name", &port[i].name);
+            }
+
+
             // vector<agentstruc> agent
             add_name("agent", &agent);
             for(size_t i = 0; i < agent.capacity(); ++i) {
                 string basename = "agent[" + std::to_string(i) + "]";
                 add_name(basename, &agent[i]);
-                add_name(basename+".client", &agent[i].client);
+                add_name(basename+".client", &agent[i].client, "bool");
                 add_name(basename+".sub", &agent[i].sub);
-                add_name(basename+".type", &agent[i].sub.type);
-                add_name(basename+".cudp=-1", &agent[i].sub.cudp);
-                add_name(basename+".server", &agent[i].server);
-                add_name(basename+".ifcnt", &agent[i].ifcnt);
-                add_name(basename+".pub[AGENTMAXIF]", &agent[i].pub[AGENTMAXIF]);
+                add_name(basename+".sub.type", &agent[i].sub.type);
+                add_name(basename+".sub.cudp", &agent[i].sub.cudp, "int32_t");
+                add_name(basename+".server", &agent[i].server, "bool");
+                add_name(basename+".ifcnt", &agent[i].ifcnt, "size_t");
+                add_name(basename+".pub", &agent[i].pub);
                 for(size_t j = 0; j < sizeof(agent[i].pub)/sizeof(agent[i].pub[0]); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
+                    string rebasename = basename + ".pub[" + std::to_string(j) + "]";
                     add_name(rebasename, &agent[i].pub[j]);
+                    add_name(rebasename+".type", &agent[i].pub[j].type);
+                    add_name(rebasename+".cudp", &agent[i].pub[j].cudp, "int32_t");
                 }
                 add_name(basename+".req", &agent[i].req);
-                add_name(basename+".type", &agent[i].req.type);
-                add_name(basename+".cudp=-1", &agent[i].req.cudp);
-                add_name(basename+".pid", &agent[i].pid);
-                add_name(basename+".aprd", &agent[i].aprd);
-                add_name(basename+".stateflag", &agent[i].stateflag);
+                add_name(basename+".req.type", &agent[i].req.type);
+                add_name(basename+".req.cudp", &agent[i].req.cudp, "int32_t");
+                add_name(basename+".pid", &agent[i].pid, "int32_t");
+                add_name(basename+".aprd", &agent[i].aprd, "double");
+                add_name(basename+".stateflag", &agent[i].stateflag, "uint16_t");
                 add_name(basename+".reqs", &agent[i].reqs);
                 for(size_t j = 0; j < agent[i].reqs.capacity(); ++j) {
-                    string rebasename = basename + "[" + std::to_string(j) + "]";
+                    string rebasename = basename + ".reqs[" + std::to_string(j) + "]";
                     add_name(rebasename, &agent[i].reqs[j]);
-                    add_name(rebasename+".token", &agent[i].reqs[j].token);
+                    add_name(rebasename+".token", &agent[i].reqs[j].token, "string");
                     add_name(rebasename+".function", &agent[i].reqs[j].function);
-                    add_name(rebasename+".synopsis", &agent[i].reqs[j].synopsis);
-                    add_name(rebasename+".description", &agent[i].reqs[j].description);
-	            }
+                    add_name(rebasename+".synopsis", &agent[i].reqs[j].synopsis, "string");
+                    add_name(rebasename+".description", &agent[i].reqs[j].description, "string");
+                }
                 add_name(basename+".beat", &agent[i].beat);
-                add_name(basename+".utc", &agent[i].beat.utc);
-                add_name(basename+".node", &agent[i].beat.node);
-                add_name(basename+".proc", &agent[i].beat.proc);
-                add_name(basename+".ntype", &agent[i].beat.ntype);
-                add_name(basename+".addr", &agent[i].beat.addr);
-                add_name(basename+".port", &agent[i].beat.port);
-                add_name(basename+".bsz", &agent[i].beat.bsz);
-                add_name(basename+".bprd", &agent[i].beat.bprd);
-                add_name(basename+".user", &agent[i].beat.user);
-                add_name(basename+".cpu", &agent[i].beat.cpu);
-                add_name(basename+".memory", &agent[i].beat.memory);
-                add_name(basename+".jitter", &agent[i].beat.jitter);
-                add_name(basename+".exists", &agent[i].beat.exists);
+                add_name(basename+".beat.utc", &agent[i].beat.utc, "double");
+                add_name(basename+".beat.node", &agent[i].beat.node);
+                add_name(basename+".beat.proc", &agent[i].beat.proc);
+                add_name(basename+".beat.ntype", &agent[i].beat.ntype);
+                add_name(basename+".beat.addr", &agent[i].beat.addr);
+                add_name(basename+".beat.port", &agent[i].beat.port, "uint16_t");
+                add_name(basename+".beat.bsz", &agent[i].beat.bsz, "uint32_t");
+                add_name(basename+".beat.bprd", &agent[i].beat.bprd, "double");
+                add_name(basename+".beat.user", &agent[i].beat.user);
+                add_name(basename+".beat.cpu", &agent[i].beat.cpu, "float");
+                add_name(basename+".beat.memory", &agent[i].beat.memory, "float");
+                add_name(basename+".beat.jitter", &agent[i].beat.jitter, "double");
+                add_name(basename+".beat.exists", &agent[i].beat.exists, "bool");
             }
 
-        // vector<eventstruc> event
-                add_name("event", &event);
-                for(size_t i = 0; i < event.capacity(); ++i)	{
-                        string basename = "event[" + std::to_string(i) + "]";
-                        add_name(basename, &event[i]);
-                        add_name(basename+".utc", &event[i].utc);
-                        add_name(basename+".utcexec", &event[i].utcexec);
-                        add_name(basename+".node", &event[i].node);
-                        add_name(basename+".name", &event[i].name);
-                        add_name(basename+".user", &event[i].user);
-                        add_name(basename+".flag", &event[i].flag);
-                        add_name(basename+".type", &event[i].type);
-                        add_name(basename+".value", &event[i].value);
-                        add_name(basename+".dtime", &event[i].dtime);
-                        add_name(basename+".ctime", &event[i].ctime);
-                        add_name(basename+".denergy", &event[i].denergy);
-                        add_name(basename+".cenergy", &event[i].cenergy);
-                        add_name(basename+".dmass", &event[i].dmass);
-                        add_name(basename+".cmass", &event[i].cmass);
-                        add_name(basename+".dbytes", &event[i].dbytes);
-                        add_name(basename+".cbytes", &event[i].cbytes);
-                        add_name(basename+".handle", &event[i].handle);
-                        add_name(basename+".data", &event[i].data);
-                        add_name(basename+".condition", &event[i].condition);
-                }
 
-        // vector<targetstruc> target
-                add_name("target", &target);
-                for(size_t i = 0; i < target.capacity(); ++i) {
-                    string basename = "target[" + std::to_string(i) + "]";
-                    add_name(basename, &target[i]);
-                    add_name(basename+".utc", &target[i].utc);
-                    add_name(basename+".name", &target[i].name);
-                    add_name(basename+".type", &target[i].type);
-                    add_name(basename+".azfrom", &target[i].azfrom);
-                    add_name(basename+".elfrom", &target[i].elfrom);
-                    add_name(basename+".azto", &target[i].azto);
-                    add_name(basename+".elto", &target[i].elto);
-                    add_name(basename+".range", &target[i].range);
-                    add_name(basename+".close", &target[i].close);
-                    add_name(basename+".min", &target[i].min);
-                    add_name(basename+".loc", &target[i].loc);
-                    add_name(basename+".utc", &target[i].loc.utc);
-                    add_name(basename+".pos", &target[i].loc.pos);
-                    add_name(basename+".utc", &target[i].loc.pos.utc);
-                    add_name(basename+".icrf", &target[i].loc.pos.icrf);
-                    add_name(basename+".utc", &target[i].loc.pos.icrf.utc);
-                    add_name(basename+".s", &target[i].loc.pos.icrf.s);
-                    add_name(basename+".col", &target[i].loc.pos.icrf.s.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.icrf.s.col)/sizeof(target[i].loc.pos.icrf.s.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.icrf.s.col[j]);
-                    }
-                    add_name(basename+".v", &target[i].loc.pos.icrf.v);
-                    add_name(basename+".col", &target[i].loc.pos.icrf.v.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.icrf.v.col)/sizeof(target[i].loc.pos.icrf.v.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.icrf.v.col[j]);
-                    }
-                    add_name(basename+".a", &target[i].loc.pos.icrf.a);
-                    add_name(basename+".col", &target[i].loc.pos.icrf.a.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.icrf.a.col)/sizeof(target[i].loc.pos.icrf.a.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.icrf.a.col[j]);
-                    }
-                    add_name(basename+".pass", &target[i].loc.pos.icrf.pass);
-                    add_name(basename+".eci", &target[i].loc.pos.eci);
-                    add_name(basename+".utc", &target[i].loc.pos.eci.utc);
-                    add_name(basename+".s", &target[i].loc.pos.eci.s);
-                    add_name(basename+".col", &target[i].loc.pos.eci.s.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.eci.s.col)/sizeof(target[i].loc.pos.eci.s.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.eci.s.col[j]);
-                    }
-                    add_name(basename+".v", &target[i].loc.pos.eci.v);
-                    add_name(basename+".col", &target[i].loc.pos.eci.v.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.eci.v.col)/sizeof(target[i].loc.pos.eci.v.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.eci.v.col[j]);
-                    }
-                    add_name(basename+".a", &target[i].loc.pos.eci.a);
-                    add_name(basename+".col", &target[i].loc.pos.eci.a.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.eci.a.col)/sizeof(target[i].loc.pos.eci.a.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.eci.a.col[j]);
-                    }
-                    add_name(basename+".pass", &target[i].loc.pos.eci.pass);
-                    add_name(basename+".sci", &target[i].loc.pos.sci);
-                    add_name(basename+".utc", &target[i].loc.pos.sci.utc);
-                    add_name(basename+".s", &target[i].loc.pos.sci.s);
-                    add_name(basename+".col", &target[i].loc.pos.sci.s.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.sci.s.col)/sizeof(target[i].loc.pos.sci.s.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.sci.s.col[j]);
-                    }
-                    add_name(basename+".v", &target[i].loc.pos.sci.v);
-                    add_name(basename+".col", &target[i].loc.pos.sci.v.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.sci.v.col)/sizeof(target[i].loc.pos.sci.v.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.sci.v.col[j]);
-                    }
-                    add_name(basename+".a", &target[i].loc.pos.sci.a);
-                    add_name(basename+".col", &target[i].loc.pos.sci.a.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.sci.a.col)/sizeof(target[i].loc.pos.sci.a.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.sci.a.col[j]);
-                    }
-                    add_name(basename+".pass", &target[i].loc.pos.sci.pass);
-                    add_name(basename+".geoc", &target[i].loc.pos.geoc);
-                    add_name(basename+".utc", &target[i].loc.pos.geoc.utc);
-                    add_name(basename+".s", &target[i].loc.pos.geoc.s);
-                    add_name(basename+".col", &target[i].loc.pos.geoc.s.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.geoc.s.col)/sizeof(target[i].loc.pos.geoc.s.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.geoc.s.col[j]);
-                    }
-                    add_name(basename+".v", &target[i].loc.pos.geoc.v);
-                    add_name(basename+".col", &target[i].loc.pos.geoc.v.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.geoc.v.col)/sizeof(target[i].loc.pos.geoc.v.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.geoc.v.col[j]);
-                    }
-                    add_name(basename+".a", &target[i].loc.pos.geoc.a);
-                    add_name(basename+".col", &target[i].loc.pos.geoc.a.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.geoc.a.col)/sizeof(target[i].loc.pos.geoc.a.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.geoc.a.col[j]);
-                    }
-                    add_name(basename+".pass", &target[i].loc.pos.geoc.pass);
-                    add_name(basename+".selc", &target[i].loc.pos.selc);
-                    add_name(basename+".utc", &target[i].loc.pos.selc.utc);
-                    add_name(basename+".s", &target[i].loc.pos.selc.s);
-                    add_name(basename+".col", &target[i].loc.pos.selc.s.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.selc.s.col)/sizeof(target[i].loc.pos.selc.s.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.selc.s.col[j]);
-                    }
-                    add_name(basename+".v", &target[i].loc.pos.selc.v);
-                    add_name(basename+".col", &target[i].loc.pos.selc.v.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.selc.v.col)/sizeof(target[i].loc.pos.selc.v.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.selc.v.col[j]);
-                    }
-                    add_name(basename+".a", &target[i].loc.pos.selc.a);
-                    add_name(basename+".col", &target[i].loc.pos.selc.a.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.selc.a.col)/sizeof(target[i].loc.pos.selc.a.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.selc.a.col[j]);
-                    }
-                    add_name(basename+".pass", &target[i].loc.pos.selc.pass);
-                    add_name(basename+".geod", &target[i].loc.pos.geod);
-                    add_name(basename+".utc", &target[i].loc.pos.geod.utc);
-                    add_name(basename+".s", &target[i].loc.pos.geod.s);
-                    add_name(basename+".lat", &target[i].loc.pos.geod.s.lat);
-                    add_name(basename+".lon", &target[i].loc.pos.geod.s.lon);
-                    add_name(basename+".h", &target[i].loc.pos.geod.s.h);
-                    add_name(basename+".v", &target[i].loc.pos.geod.v);
-                    add_name(basename+".lat", &target[i].loc.pos.geod.v.lat);
-                    add_name(basename+".lon", &target[i].loc.pos.geod.v.lon);
-                    add_name(basename+".h", &target[i].loc.pos.geod.v.h);
-                    add_name(basename+".a", &target[i].loc.pos.geod.a);
-                    add_name(basename+".lat", &target[i].loc.pos.geod.a.lat);
-                    add_name(basename+".lon", &target[i].loc.pos.geod.a.lon);
-                    add_name(basename+".h", &target[i].loc.pos.geod.a.h);
-                    add_name(basename+".pass", &target[i].loc.pos.geod.pass);
-                    add_name(basename+".selg", &target[i].loc.pos.selg);
-                    add_name(basename+".utc", &target[i].loc.pos.selg.utc);
-                    add_name(basename+".s", &target[i].loc.pos.selg.s);
-                    add_name(basename+".lat", &target[i].loc.pos.selg.s.lat);
-                    add_name(basename+".lon", &target[i].loc.pos.selg.s.lon);
-                    add_name(basename+".h", &target[i].loc.pos.selg.s.h);
-                    add_name(basename+".v", &target[i].loc.pos.selg.v);
-                    add_name(basename+".lat", &target[i].loc.pos.selg.v.lat);
-                    add_name(basename+".lon", &target[i].loc.pos.selg.v.lon);
-                    add_name(basename+".h", &target[i].loc.pos.selg.v.h);
-                    add_name(basename+".a", &target[i].loc.pos.selg.a);
-                    add_name(basename+".lat", &target[i].loc.pos.selg.a.lat);
-                    add_name(basename+".lon", &target[i].loc.pos.selg.a.lon);
-                    add_name(basename+".h", &target[i].loc.pos.selg.a.h);
-                    add_name(basename+".pass", &target[i].loc.pos.selg.pass);
-                    add_name(basename+".geos", &target[i].loc.pos.geos);
-                    add_name(basename+".utc", &target[i].loc.pos.geos.utc);
-                    add_name(basename+".s", &target[i].loc.pos.geos.s);
-                    add_name(basename+".phi", &target[i].loc.pos.geos.s.phi);
-                    add_name(basename+".lambda", &target[i].loc.pos.geos.s.lambda);
-                    add_name(basename+".r", &target[i].loc.pos.geos.s.r);
-                    add_name(basename+".v", &target[i].loc.pos.geos.v);
-                    add_name(basename+".phi", &target[i].loc.pos.geos.v.phi);
-                    add_name(basename+".lambda", &target[i].loc.pos.geos.v.lambda);
-                    add_name(basename+".r", &target[i].loc.pos.geos.v.r);
-                    add_name(basename+".a", &target[i].loc.pos.geos.a);
-                    add_name(basename+".phi", &target[i].loc.pos.geos.a.phi);
-                    add_name(basename+".lambda", &target[i].loc.pos.geos.a.lambda);
-                    add_name(basename+".r", &target[i].loc.pos.geos.a.r);
-                    add_name(basename+".pass", &target[i].loc.pos.geos.pass);
-                    add_name(basename+".extra", &target[i].loc.pos.extra);
-                    add_name(basename+".utc", &target[i].loc.pos.extra.utc);
-                    add_name(basename+".tt", &target[i].loc.pos.extra.tt);
-                    add_name(basename+".ut", &target[i].loc.pos.extra.ut);
-                    add_name(basename+".tdb", &target[i].loc.pos.extra.tdb);
-                    add_name(basename+".j2e", &target[i].loc.pos.extra.j2e);
-                    add_name(basename+".row", &target[i].loc.pos.extra.j2e.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.j2e.row)/sizeof(target[i].loc.pos.extra.j2e.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.j2e.row[j]);
-                    }
-                    add_name(basename+".dj2e", &target[i].loc.pos.extra.dj2e);
-                    add_name(basename+".row", &target[i].loc.pos.extra.dj2e.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.dj2e.row)/sizeof(target[i].loc.pos.extra.dj2e.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.dj2e.row[j]);
-                    }
-                    add_name(basename+".ddj2e", &target[i].loc.pos.extra.ddj2e);
-                    add_name(basename+".row", &target[i].loc.pos.extra.ddj2e.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.ddj2e.row)/sizeof(target[i].loc.pos.extra.ddj2e.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.ddj2e.row[j]);
-                    }
-                    add_name(basename+".e2j", &target[i].loc.pos.extra.e2j);
-                    add_name(basename+".row", &target[i].loc.pos.extra.e2j.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.e2j.row)/sizeof(target[i].loc.pos.extra.e2j.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.e2j.row[j]);
-                    }
-                    add_name(basename+".de2j", &target[i].loc.pos.extra.de2j);
-                    add_name(basename+".row", &target[i].loc.pos.extra.de2j.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.de2j.row)/sizeof(target[i].loc.pos.extra.de2j.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.de2j.row[j]);
-                    }
-                    add_name(basename+".dde2j", &target[i].loc.pos.extra.dde2j);
-                    add_name(basename+".row", &target[i].loc.pos.extra.dde2j.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.dde2j.row)/sizeof(target[i].loc.pos.extra.dde2j.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.dde2j.row[j]);
-                    }
-                    add_name(basename+".j2t", &target[i].loc.pos.extra.j2t);
-                    add_name(basename+".row", &target[i].loc.pos.extra.j2t.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.j2t.row)/sizeof(target[i].loc.pos.extra.j2t.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.j2t.row[j]);
-                    }
-                    add_name(basename+".j2s", &target[i].loc.pos.extra.j2s);
-                    add_name(basename+".row", &target[i].loc.pos.extra.j2s.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.j2s.row)/sizeof(target[i].loc.pos.extra.j2s.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.j2s.row[j]);
-                    }
-                    add_name(basename+".t2j", &target[i].loc.pos.extra.t2j);
-                    add_name(basename+".row", &target[i].loc.pos.extra.t2j.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.t2j.row)/sizeof(target[i].loc.pos.extra.t2j.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.t2j.row[j]);
-                    }
-                    add_name(basename+".s2j", &target[i].loc.pos.extra.s2j);
-                    add_name(basename+".row", &target[i].loc.pos.extra.s2j.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.s2j.row)/sizeof(target[i].loc.pos.extra.s2j.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.s2j.row[j]);
-                    }
-                    add_name(basename+".s2t", &target[i].loc.pos.extra.s2t);
-                    add_name(basename+".row", &target[i].loc.pos.extra.s2t.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.s2t.row)/sizeof(target[i].loc.pos.extra.s2t.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.s2t.row[j]);
-                    }
-                    add_name(basename+".ds2t", &target[i].loc.pos.extra.ds2t);
-                    add_name(basename+".row", &target[i].loc.pos.extra.ds2t.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.ds2t.row)/sizeof(target[i].loc.pos.extra.ds2t.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.ds2t.row[j]);
-                    }
-                    add_name(basename+".t2s", &target[i].loc.pos.extra.t2s);
-                    add_name(basename+".row", &target[i].loc.pos.extra.t2s.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.t2s.row)/sizeof(target[i].loc.pos.extra.t2s.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.t2s.row[j]);
-                    }
-                    add_name(basename+".dt2s", &target[i].loc.pos.extra.dt2s);
-                    add_name(basename+".row", &target[i].loc.pos.extra.dt2s.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.dt2s.row)/sizeof(target[i].loc.pos.extra.dt2s.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.dt2s.row[j]);
-                    }
-                    add_name(basename+".sun2earth", &target[i].loc.pos.extra.sun2earth);
-                    add_name(basename+".utc", &target[i].loc.pos.extra.sun2earth.utc);
-                    add_name(basename+".s", &target[i].loc.pos.extra.sun2earth.s);
-                    add_name(basename+".col", &target[i].loc.pos.extra.sun2earth.s.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.sun2earth.s.col)/sizeof(target[i].loc.pos.extra.sun2earth.s.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.sun2earth.s.col[j]);
-                    }
-                    add_name(basename+".v", &target[i].loc.pos.extra.sun2earth.v);
-                    add_name(basename+".col", &target[i].loc.pos.extra.sun2earth.v.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.sun2earth.v.col)/sizeof(target[i].loc.pos.extra.sun2earth.v.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.sun2earth.v.col[j]);
-                    }
-                    add_name(basename+".a", &target[i].loc.pos.extra.sun2earth.a);
-                    add_name(basename+".col", &target[i].loc.pos.extra.sun2earth.a.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.sun2earth.a.col)/sizeof(target[i].loc.pos.extra.sun2earth.a.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.sun2earth.a.col[j]);
-                    }
-                    add_name(basename+".pass", &target[i].loc.pos.extra.sun2earth.pass);
-                    add_name(basename+".sun2moon", &target[i].loc.pos.extra.sun2moon);
-                    add_name(basename+".utc", &target[i].loc.pos.extra.sun2moon.utc);
-                    add_name(basename+".s", &target[i].loc.pos.extra.sun2moon.s);
-                    add_name(basename+".col", &target[i].loc.pos.extra.sun2moon.s.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.sun2moon.s.col)/sizeof(target[i].loc.pos.extra.sun2moon.s.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.sun2moon.s.col[j]);
-                    }
-                    add_name(basename+".v", &target[i].loc.pos.extra.sun2moon.v);
-                    add_name(basename+".col", &target[i].loc.pos.extra.sun2moon.v.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.sun2moon.v.col)/sizeof(target[i].loc.pos.extra.sun2moon.v.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.sun2moon.v.col[j]);
-                    }
-                    add_name(basename+".a", &target[i].loc.pos.extra.sun2moon.a);
-                    add_name(basename+".col", &target[i].loc.pos.extra.sun2moon.a.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.sun2moon.a.col)/sizeof(target[i].loc.pos.extra.sun2moon.a.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.extra.sun2moon.a.col[j]);
-                    }
-                    add_name(basename+".pass", &target[i].loc.pos.extra.sun2moon.pass);
-                    add_name(basename+".closest", &target[i].loc.pos.extra.closest);
-                    add_name(basename+".earthsep", &target[i].loc.pos.earthsep);
-                    add_name(basename+".moonsep", &target[i].loc.pos.moonsep);
-                    add_name(basename+".sunsize", &target[i].loc.pos.sunsize);
-                    add_name(basename+".sunradiance", &target[i].loc.pos.sunradiance);
-                    add_name(basename+".bearth", &target[i].loc.pos.bearth);
-                    add_name(basename+".col", &target[i].loc.pos.bearth.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.pos.bearth.col)/sizeof(target[i].loc.pos.bearth.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.pos.bearth.col[j]);
-                    }
-                    add_name(basename+".orbit", &target[i].loc.pos.orbit);
-                    add_name(basename+".att", &target[i].loc.att);
-                    add_name(basename+".utc", &target[i].loc.att.utc);
-                    add_name(basename+".topo", &target[i].loc.att.topo);
-                    add_name(basename+".utc", &target[i].loc.att.topo.utc);
-                    add_name(basename+".s", &target[i].loc.att.topo.s);
-                    add_name(basename+".d", &target[i].loc.att.topo.s.d);
-                    add_name(basename+".x", &target[i].loc.att.topo.s.d.x);
-                    add_name(basename+".y", &target[i].loc.att.topo.s.d.y);
-                    add_name(basename+".z", &target[i].loc.att.topo.s.d.z);
-                    add_name(basename+".w", &target[i].loc.att.topo.s.w);
-                    add_name(basename+".v", &target[i].loc.att.topo.v);
-                    add_name(basename+".col", &target[i].loc.att.topo.v.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.att.topo.v.col)/sizeof(target[i].loc.att.topo.v.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.att.topo.v.col[j]);
-                    }
-                    add_name(basename+".a", &target[i].loc.att.topo.a);
-                    add_name(basename+".col", &target[i].loc.att.topo.a.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.att.topo.a.col)/sizeof(target[i].loc.att.topo.a.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.att.topo.a.col[j]);
-                    }
-                    add_name(basename+".pass", &target[i].loc.att.topo.pass);
-                    add_name(basename+".lvlh", &target[i].loc.att.lvlh);
-                    add_name(basename+".utc", &target[i].loc.att.lvlh.utc);
-                    add_name(basename+".s", &target[i].loc.att.lvlh.s);
-                    add_name(basename+".d", &target[i].loc.att.lvlh.s.d);
-                    add_name(basename+".x", &target[i].loc.att.lvlh.s.d.x);
-                    add_name(basename+".y", &target[i].loc.att.lvlh.s.d.y);
-                    add_name(basename+".z", &target[i].loc.att.lvlh.s.d.z);
-                    add_name(basename+".w", &target[i].loc.att.lvlh.s.w);
-                    add_name(basename+".v", &target[i].loc.att.lvlh.v);
-                    add_name(basename+".col", &target[i].loc.att.lvlh.v.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.att.lvlh.v.col)/sizeof(target[i].loc.att.lvlh.v.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.att.lvlh.v.col[j]);
-                    }
-                    add_name(basename+".a", &target[i].loc.att.lvlh.a);
-                    add_name(basename+".col", &target[i].loc.att.lvlh.a.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.att.lvlh.a.col)/sizeof(target[i].loc.att.lvlh.a.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.att.lvlh.a.col[j]);
-                    }
-                    add_name(basename+".pass", &target[i].loc.att.lvlh.pass);
-                    add_name(basename+".geoc", &target[i].loc.att.geoc);
-                    add_name(basename+".utc", &target[i].loc.att.geoc.utc);
-                    add_name(basename+".s", &target[i].loc.att.geoc.s);
-                    add_name(basename+".d", &target[i].loc.att.geoc.s.d);
-                    add_name(basename+".x", &target[i].loc.att.geoc.s.d.x);
-                    add_name(basename+".y", &target[i].loc.att.geoc.s.d.y);
-                    add_name(basename+".z", &target[i].loc.att.geoc.s.d.z);
-                    add_name(basename+".w", &target[i].loc.att.geoc.s.w);
-                    add_name(basename+".v", &target[i].loc.att.geoc.v);
-                    add_name(basename+".col", &target[i].loc.att.geoc.v.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.att.geoc.v.col)/sizeof(target[i].loc.att.geoc.v.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.att.geoc.v.col[j]);
-                    }
-                    add_name(basename+".a", &target[i].loc.att.geoc.a);
-                    add_name(basename+".col", &target[i].loc.att.geoc.a.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.att.geoc.a.col)/sizeof(target[i].loc.att.geoc.a.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.att.geoc.a.col[j]);
-                    }
-                    add_name(basename+".pass", &target[i].loc.att.geoc.pass);
-                    add_name(basename+".selc", &target[i].loc.att.selc);
-                    add_name(basename+".utc", &target[i].loc.att.selc.utc);
-                    add_name(basename+".s", &target[i].loc.att.selc.s);
-                    add_name(basename+".d", &target[i].loc.att.selc.s.d);
-                    add_name(basename+".x", &target[i].loc.att.selc.s.d.x);
-                    add_name(basename+".y", &target[i].loc.att.selc.s.d.y);
-                    add_name(basename+".z", &target[i].loc.att.selc.s.d.z);
-                    add_name(basename+".w", &target[i].loc.att.selc.s.w);
-                    add_name(basename+".v", &target[i].loc.att.selc.v);
-                    add_name(basename+".col", &target[i].loc.att.selc.v.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.att.selc.v.col)/sizeof(target[i].loc.att.selc.v.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.att.selc.v.col[j]);
-                    }
-                    add_name(basename+".a", &target[i].loc.att.selc.a);
-                    add_name(basename+".col", &target[i].loc.att.selc.a.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.att.selc.a.col)/sizeof(target[i].loc.att.selc.a.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.att.selc.a.col[j]);
-                    }
-                    add_name(basename+".pass", &target[i].loc.att.selc.pass);
-                    add_name(basename+".icrf", &target[i].loc.att.icrf);
-                    add_name(basename+".utc", &target[i].loc.att.icrf.utc);
-                    add_name(basename+".s", &target[i].loc.att.icrf.s);
-                    add_name(basename+".d", &target[i].loc.att.icrf.s.d);
-                    add_name(basename+".x", &target[i].loc.att.icrf.s.d.x);
-                    add_name(basename+".y", &target[i].loc.att.icrf.s.d.y);
-                    add_name(basename+".z", &target[i].loc.att.icrf.s.d.z);
-                    add_name(basename+".w", &target[i].loc.att.icrf.s.w);
-                    add_name(basename+".v", &target[i].loc.att.icrf.v);
-                    add_name(basename+".col", &target[i].loc.att.icrf.v.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.att.icrf.v.col)/sizeof(target[i].loc.att.icrf.v.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.att.icrf.v.col[j]);
-                    }
-                    add_name(basename+".a", &target[i].loc.att.icrf.a);
-                    add_name(basename+".col", &target[i].loc.att.icrf.a.col);
-                    for(size_t j = 0; j < sizeof(target[i].loc.att.icrf.a.col)/sizeof(target[i].loc.att.icrf.a.col[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.att.icrf.a.col[j]);
-                    }
-                    add_name(basename+".pass", &target[i].loc.att.icrf.pass);
-                    add_name(basename+".extra", &target[i].loc.att.extra);
-                    add_name(basename+".utc", &target[i].loc.att.extra.utc);
-                    add_name(basename+".j2b", &target[i].loc.att.extra.j2b);
-                    add_name(basename+".row", &target[i].loc.att.extra.j2b.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.att.extra.j2b.row)/sizeof(target[i].loc.att.extra.j2b.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.att.extra.j2b.row[j]);
-                    }
-                    add_name(basename+".b2j", &target[i].loc.att.extra.b2j);
-                    add_name(basename+".row", &target[i].loc.att.extra.b2j.row);
-                    for(size_t j = 0; j < sizeof(target[i].loc.att.extra.b2j.row)/sizeof(target[i].loc.att.extra.b2j.row[0]); ++j) {
-                        string rebasename = basename + "[" + std::to_string(j) + "]";
-                        add_name(rebasename, &target[i].loc.att.extra.b2j.row[j]);
-                    }
-                }
+            // vector<eventstruc> event
+            add_name("event", &event);
+            for(size_t i = 0; i < event.capacity(); ++i) {
+                string basename = "event[" + std::to_string(i) + "]";
+                add_name(basename, &event[i]);
+                add_name(basename+".utc", &event[i].utc, "double");
+                add_name(basename+".utcexec", &event[i].utcexec, "double");
+                add_name(basename+".node", &event[i].node);
+                add_name(basename+".name", &event[i].name);
+                add_name(basename+".user", &event[i].user);
+                add_name(basename+".flag", &event[i].flag, "uint32_t");
+                add_name(basename+".type", &event[i].type, "uint32_t");
+                add_name(basename+".value", &event[i].value, "double");
+                add_name(basename+".dtime", &event[i].dtime, "double");
+                add_name(basename+".ctime", &event[i].ctime, "double");
+                add_name(basename+".denergy", &event[i].denergy, "float");
+                add_name(basename+".cenergy", &event[i].cenergy, "float");
+                add_name(basename+".dmass", &event[i].dmass, "float");
+                add_name(basename+".cmass", &event[i].cmass, "float");
+                add_name(basename+".dbytes", &event[i].dbytes, "float");
+                add_name(basename+".cbytes", &event[i].cbytes, "float");
+                add_name(basename+".handle", &event[i].handle);
+                add_name(basename+".handle.hash", &event[i].handle.hash, "uint16_t");
+                add_name(basename+".handle.index", &event[i].handle.index, "uint16_t");
+                add_name(basename+".data", &event[i].data);
+                add_name(basename+".condition", &event[i].condition);
+            }
 
-       // vector<userstruc> user
-                add_name("user", &user);
-                for(size_t i = 0; i < user.capacity(); ++i)	{
-                        string basename = "user[" + std::to_string(i) + "]";
-                        add_name(basename, &user[i]);
-                        add_name(basename+".name", &user[i].name);
-                        add_name(basename+".node", &user[i].node);
-                        add_name(basename+".tool", &user[i].tool);
-                        add_name(basename+".cpu", &user[i].cpu);
-                }
 
-        // vector<tlestruc> tle
-                add_name("tle", &tle);
-                for(size_t i = 0; i < tle.capacity(); ++i)	{
-                        string basename = "tle[" + std::to_string(i) + "]";
-                        add_name(basename, &tle[i]);
-                        add_name(basename+".utc", &tle[i].utc);
-                        add_name(basename+".name", &tle[i].name);
-                        add_name(basename+".snumber", &tle[i].snumber);
-                        add_name(basename+".id", &tle[i].id);
-                        add_name(basename+".bstar", &tle[i].bstar);
-                        add_name(basename+".i", &tle[i].i);
-                        add_name(basename+".raan", &tle[i].raan);
-                        add_name(basename+".e", &tle[i].e);
-                        add_name(basename+".ap", &tle[i].ap);
-                        add_name(basename+".ma", &tle[i].ma);
-                        add_name(basename+".mm", &tle[i].mm);
-                        add_name(basename+".orbit", &tle[i].orbit);
+            // vector<targetstruc> target
+            add_name("target", &target);
+            for(size_t i = 0; i < target.capacity(); ++i) {
+                string basename = "target[" + std::to_string(i) + "]";
+                add_name(basename, &target[i]);
+                add_name(basename+".utc", &target[i].utc, "double");
+                add_name(basename+".name", &target[i].name);
+                add_name(basename+".type", &target[i].type, "uint16_t");
+                add_name(basename+".azfrom", &target[i].azfrom, "float");
+                add_name(basename+".elfrom", &target[i].elfrom, "float");
+                add_name(basename+".azto", &target[i].azto, "float");
+                add_name(basename+".elto", &target[i].elto, "float");
+                add_name(basename+".range", &target[i].range, "double");
+                add_name(basename+".close", &target[i].close, "double");
+                add_name(basename+".min", &target[i].min, "float");
+                add_name(basename+".loc", &target[i].loc);
+                add_name(basename+".loc.utc", &target[i].loc.utc, "double");
+                add_name(basename+".loc.pos", &target[i].loc.pos);
+                add_name(basename+".loc.pos.utc", &target[i].loc.pos.utc, "double");
+                add_name(basename+".loc.pos.icrf", &target[i].loc.pos.icrf);
+                add_name(basename+".loc.pos.icrf.utc", &target[i].loc.pos.icrf.utc, "double");
+                add_name(basename+".loc.pos.icrf.s", &target[i].loc.pos.icrf.s);
+                add_name(basename+".loc.pos.icrf.s.col", &target[i].loc.pos.icrf.s.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.icrf.s.col)/sizeof(target[i].loc.pos.icrf.s.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.icrf.s.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.icrf.s.col[j], "double");
                 }
-                // jsonnode json
-                add_name("json", &json);
-                add_name("json.name", &json.name);
-                add_name("json.node", &json.node);
-                add_name("json.state", &json.state);
-                add_name("json.utcstart", &json.utcstart);
-                add_name("json.vertexs", &json.vertexs);
-                add_name("json.faces", &json.faces);
-                add_name("json.pieces", &json.pieces);
-                add_name("json.devgen", &json.devgen);
-                add_name("json.devspec", &json.devspec);
-                add_name("json.ports", &json.ports);
-                add_name("json.targets", &json.targets);
+                add_name(basename+".loc.pos.icrf.v", &target[i].loc.pos.icrf.v);
+                add_name(basename+".loc.pos.icrf.v.col", &target[i].loc.pos.icrf.v.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.icrf.v.col)/sizeof(target[i].loc.pos.icrf.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.icrf.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.icrf.v.col[j], "double");
+                }
+                add_name(basename+".loc.pos.icrf.a", &target[i].loc.pos.icrf.a);
+                add_name(basename+".loc.pos.icrf.a.col", &target[i].loc.pos.icrf.a.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.icrf.a.col)/sizeof(target[i].loc.pos.icrf.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.icrf.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.icrf.a.col[j], "double");
+                }
+                add_name(basename+".loc.pos.icrf.pass", &target[i].loc.pos.icrf.pass, "uint32_t");
+                add_name(basename+".loc.pos.eci", &target[i].loc.pos.eci);
+                add_name(basename+".loc.pos.eci.utc", &target[i].loc.pos.eci.utc, "double");
+                add_name(basename+".loc.pos.eci.s", &target[i].loc.pos.eci.s);
+                add_name(basename+".loc.pos.eci.s.col", &target[i].loc.pos.eci.s.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.eci.s.col)/sizeof(target[i].loc.pos.eci.s.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.eci.s.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.eci.s.col[j], "double");
+                }
+                add_name(basename+".loc.pos.eci.v", &target[i].loc.pos.eci.v);
+                add_name(basename+".loc.pos.eci.v.col", &target[i].loc.pos.eci.v.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.eci.v.col)/sizeof(target[i].loc.pos.eci.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.eci.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.eci.v.col[j], "double");
+                }
+                add_name(basename+".loc.pos.eci.a", &target[i].loc.pos.eci.a);
+                add_name(basename+".loc.pos.eci.a.col", &target[i].loc.pos.eci.a.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.eci.a.col)/sizeof(target[i].loc.pos.eci.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.eci.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.eci.a.col[j], "double");
+                }
+                add_name(basename+".loc.pos.eci.pass", &target[i].loc.pos.eci.pass, "uint32_t");
+                add_name(basename+".loc.pos.sci", &target[i].loc.pos.sci);
+                add_name(basename+".loc.pos.sci.utc", &target[i].loc.pos.sci.utc, "double");
+                add_name(basename+".loc.pos.sci.s", &target[i].loc.pos.sci.s);
+                add_name(basename+".loc.pos.sci.s.col", &target[i].loc.pos.sci.s.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.sci.s.col)/sizeof(target[i].loc.pos.sci.s.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.sci.s.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.sci.s.col[j], "double");
+                }
+                add_name(basename+".loc.pos.sci.v", &target[i].loc.pos.sci.v);
+                add_name(basename+".loc.pos.sci.v.col", &target[i].loc.pos.sci.v.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.sci.v.col)/sizeof(target[i].loc.pos.sci.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.sci.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.sci.v.col[j], "double");
+                }
+                add_name(basename+".loc.pos.sci.a", &target[i].loc.pos.sci.a);
+                add_name(basename+".loc.pos.sci.a.col", &target[i].loc.pos.sci.a.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.sci.a.col)/sizeof(target[i].loc.pos.sci.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.sci.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.sci.a.col[j], "double");
+                }
+                add_name(basename+".loc.pos.sci.pass", &target[i].loc.pos.sci.pass, "uint32_t");
+                add_name(basename+".loc.pos.geoc", &target[i].loc.pos.geoc);
+                add_name(basename+".loc.pos.geoc.utc", &target[i].loc.pos.geoc.utc, "double");
+                add_name(basename+".loc.pos.geoc.s", &target[i].loc.pos.geoc.s);
+                add_name(basename+".loc.pos.geoc.s.col", &target[i].loc.pos.geoc.s.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.geoc.s.col)/sizeof(target[i].loc.pos.geoc.s.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.geoc.s.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.geoc.s.col[j], "double");
+                }
+                add_name(basename+".loc.pos.geoc.v", &target[i].loc.pos.geoc.v);
+                add_name(basename+".loc.pos.geoc.v.col", &target[i].loc.pos.geoc.v.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.geoc.v.col)/sizeof(target[i].loc.pos.geoc.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.geoc.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.geoc.v.col[j], "double");
+                }
+                add_name(basename+".loc.pos.geoc.a", &target[i].loc.pos.geoc.a);
+                add_name(basename+".loc.pos.geoc.a.col", &target[i].loc.pos.geoc.a.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.geoc.a.col)/sizeof(target[i].loc.pos.geoc.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.geoc.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.geoc.a.col[j], "double");
+                }
+                add_name(basename+".loc.pos.geoc.pass", &target[i].loc.pos.geoc.pass, "uint32_t");
+                add_name(basename+".loc.pos.selc", &target[i].loc.pos.selc);
+                add_name(basename+".loc.pos.selc.utc", &target[i].loc.pos.selc.utc, "double");
+                add_name(basename+".loc.pos.selc.s", &target[i].loc.pos.selc.s);
+                add_name(basename+".loc.pos.selc.s.col", &target[i].loc.pos.selc.s.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.selc.s.col)/sizeof(target[i].loc.pos.selc.s.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.selc.s.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.selc.s.col[j], "double");
+                }
+                add_name(basename+".loc.pos.selc.v", &target[i].loc.pos.selc.v);
+                add_name(basename+".loc.pos.selc.v.col", &target[i].loc.pos.selc.v.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.selc.v.col)/sizeof(target[i].loc.pos.selc.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.selc.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.selc.v.col[j], "double");
+                }
+                add_name(basename+".loc.pos.selc.a", &target[i].loc.pos.selc.a);
+                add_name(basename+".loc.pos.selc.a.col", &target[i].loc.pos.selc.a.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.selc.a.col)/sizeof(target[i].loc.pos.selc.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.selc.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.selc.a.col[j], "double");
+                }
+                add_name(basename+".loc.pos.selc.pass", &target[i].loc.pos.selc.pass, "uint32_t");
+                add_name(basename+".loc.pos.geod", &target[i].loc.pos.geod);
+                add_name(basename+".loc.pos.geod.utc", &target[i].loc.pos.geod.utc, "double");
+                add_name(basename+".loc.pos.geod.s", &target[i].loc.pos.geod.s);
+                add_name(basename+".loc.pos.geod.s.lat", &target[i].loc.pos.geod.s.lat, "double");
+                add_name(basename+".loc.pos.geod.s.lon", &target[i].loc.pos.geod.s.lon, "double");
+                add_name(basename+".loc.pos.geod.s.h", &target[i].loc.pos.geod.s.h, "double");
+                add_name(basename+".loc.pos.geod.v", &target[i].loc.pos.geod.v);
+                add_name(basename+".loc.pos.geod.v.lat", &target[i].loc.pos.geod.v.lat, "double");
+                add_name(basename+".loc.pos.geod.v.lon", &target[i].loc.pos.geod.v.lon, "double");
+                add_name(basename+".loc.pos.geod.v.h", &target[i].loc.pos.geod.v.h, "double");
+                add_name(basename+".loc.pos.geod.a", &target[i].loc.pos.geod.a);
+                add_name(basename+".loc.pos.geod.a.lat", &target[i].loc.pos.geod.a.lat, "double");
+                add_name(basename+".loc.pos.geod.a.lon", &target[i].loc.pos.geod.a.lon, "double");
+                add_name(basename+".loc.pos.geod.a.h", &target[i].loc.pos.geod.a.h, "double");
+                add_name(basename+".loc.pos.geod.pass", &target[i].loc.pos.geod.pass, "uint32_t");
+                add_name(basename+".loc.pos.selg", &target[i].loc.pos.selg);
+                add_name(basename+".loc.pos.selg.utc", &target[i].loc.pos.selg.utc, "double");
+                add_name(basename+".loc.pos.selg.s", &target[i].loc.pos.selg.s);
+                add_name(basename+".loc.pos.selg.s.lat", &target[i].loc.pos.selg.s.lat, "double");
+                add_name(basename+".loc.pos.selg.s.lon", &target[i].loc.pos.selg.s.lon, "double");
+                add_name(basename+".loc.pos.selg.s.h", &target[i].loc.pos.selg.s.h, "double");
+                add_name(basename+".loc.pos.selg.v", &target[i].loc.pos.selg.v);
+                add_name(basename+".loc.pos.selg.v.lat", &target[i].loc.pos.selg.v.lat, "double");
+                add_name(basename+".loc.pos.selg.v.lon", &target[i].loc.pos.selg.v.lon, "double");
+                add_name(basename+".loc.pos.selg.v.h", &target[i].loc.pos.selg.v.h, "double");
+                add_name(basename+".loc.pos.selg.a", &target[i].loc.pos.selg.a);
+                add_name(basename+".loc.pos.selg.a.lat", &target[i].loc.pos.selg.a.lat, "double");
+                add_name(basename+".loc.pos.selg.a.lon", &target[i].loc.pos.selg.a.lon, "double");
+                add_name(basename+".loc.pos.selg.a.h", &target[i].loc.pos.selg.a.h, "double");
+                add_name(basename+".loc.pos.selg.pass", &target[i].loc.pos.selg.pass, "uint32_t");
+                add_name(basename+".loc.pos.geos", &target[i].loc.pos.geos);
+                add_name(basename+".loc.pos.geos.utc", &target[i].loc.pos.geos.utc, "double");
+                add_name(basename+".loc.pos.geos.s", &target[i].loc.pos.geos.s);
+                add_name(basename+".loc.pos.geos.s.phi", &target[i].loc.pos.geos.s.phi, "double");
+                add_name(basename+".loc.pos.geos.s.lambda", &target[i].loc.pos.geos.s.lambda, "double");
+                add_name(basename+".loc.pos.geos.s.r", &target[i].loc.pos.geos.s.r, "double");
+                add_name(basename+".loc.pos.geos.v", &target[i].loc.pos.geos.v);
+                add_name(basename+".loc.pos.geos.v.phi", &target[i].loc.pos.geos.v.phi, "double");
+                add_name(basename+".loc.pos.geos.v.lambda", &target[i].loc.pos.geos.v.lambda, "double");
+                add_name(basename+".loc.pos.geos.v.r", &target[i].loc.pos.geos.v.r, "double");
+                add_name(basename+".loc.pos.geos.a", &target[i].loc.pos.geos.a);
+                add_name(basename+".loc.pos.geos.a.phi", &target[i].loc.pos.geos.a.phi, "double");
+                add_name(basename+".loc.pos.geos.a.lambda", &target[i].loc.pos.geos.a.lambda, "double");
+                add_name(basename+".loc.pos.geos.a.r", &target[i].loc.pos.geos.a.r, "double");
+                add_name(basename+".loc.pos.geos.pass", &target[i].loc.pos.geos.pass, "uint32_t");
+                add_name(basename+".loc.pos.extra", &target[i].loc.pos.extra);
+                add_name(basename+".loc.pos.extra.utc", &target[i].loc.pos.extra.utc, "double");
+                add_name(basename+".loc.pos.extra.tt", &target[i].loc.pos.extra.tt, "double");
+                add_name(basename+".loc.pos.extra.ut", &target[i].loc.pos.extra.ut, "double");
+                add_name(basename+".loc.pos.extra.tdb", &target[i].loc.pos.extra.tdb, "double");
+                add_name(basename+".loc.pos.extra.j2e", &target[i].loc.pos.extra.j2e);
+                add_name(basename+".loc.pos.extra.j2e.row", &target[i].loc.pos.extra.j2e.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.j2e.row)/sizeof(target[i].loc.pos.extra.j2e.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.j2e.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.j2e.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.j2e.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.j2e.row[j].col)/sizeof(target[i].loc.pos.extra.j2e.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.j2e.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.dj2e", &target[i].loc.pos.extra.dj2e);
+                add_name(basename+".loc.pos.extra.dj2e.row", &target[i].loc.pos.extra.dj2e.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.dj2e.row)/sizeof(target[i].loc.pos.extra.dj2e.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.dj2e.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.dj2e.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.dj2e.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.dj2e.row[j].col)/sizeof(target[i].loc.pos.extra.dj2e.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.dj2e.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.ddj2e", &target[i].loc.pos.extra.ddj2e);
+                add_name(basename+".loc.pos.extra.ddj2e.row", &target[i].loc.pos.extra.ddj2e.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.ddj2e.row)/sizeof(target[i].loc.pos.extra.ddj2e.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.ddj2e.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.ddj2e.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.ddj2e.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.ddj2e.row[j].col)/sizeof(target[i].loc.pos.extra.ddj2e.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.ddj2e.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.e2j", &target[i].loc.pos.extra.e2j);
+                add_name(basename+".loc.pos.extra.e2j.row", &target[i].loc.pos.extra.e2j.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.e2j.row)/sizeof(target[i].loc.pos.extra.e2j.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.e2j.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.e2j.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.e2j.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.e2j.row[j].col)/sizeof(target[i].loc.pos.extra.e2j.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.e2j.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.de2j", &target[i].loc.pos.extra.de2j);
+                add_name(basename+".loc.pos.extra.de2j.row", &target[i].loc.pos.extra.de2j.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.de2j.row)/sizeof(target[i].loc.pos.extra.de2j.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.de2j.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.de2j.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.de2j.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.de2j.row[j].col)/sizeof(target[i].loc.pos.extra.de2j.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.de2j.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.dde2j", &target[i].loc.pos.extra.dde2j);
+                add_name(basename+".loc.pos.extra.dde2j.row", &target[i].loc.pos.extra.dde2j.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.dde2j.row)/sizeof(target[i].loc.pos.extra.dde2j.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.dde2j.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.dde2j.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.dde2j.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.dde2j.row[j].col)/sizeof(target[i].loc.pos.extra.dde2j.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.dde2j.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.j2t", &target[i].loc.pos.extra.j2t);
+                add_name(basename+".loc.pos.extra.j2t.row", &target[i].loc.pos.extra.j2t.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.j2t.row)/sizeof(target[i].loc.pos.extra.j2t.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.j2t.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.j2t.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.j2t.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.j2t.row[j].col)/sizeof(target[i].loc.pos.extra.j2t.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.j2t.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.j2s", &target[i].loc.pos.extra.j2s);
+                add_name(basename+".loc.pos.extra.j2s.row", &target[i].loc.pos.extra.j2s.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.j2s.row)/sizeof(target[i].loc.pos.extra.j2s.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.j2s.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.j2s.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.j2s.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.j2s.row[j].col)/sizeof(target[i].loc.pos.extra.j2s.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.j2s.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.t2j", &target[i].loc.pos.extra.t2j);
+                add_name(basename+".loc.pos.extra.t2j.row", &target[i].loc.pos.extra.t2j.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.t2j.row)/sizeof(target[i].loc.pos.extra.t2j.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.t2j.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.t2j.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.t2j.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.t2j.row[j].col)/sizeof(target[i].loc.pos.extra.t2j.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.t2j.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.s2j", &target[i].loc.pos.extra.s2j);
+                add_name(basename+".loc.pos.extra.s2j.row", &target[i].loc.pos.extra.s2j.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.s2j.row)/sizeof(target[i].loc.pos.extra.s2j.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.s2j.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.s2j.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.s2j.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.s2j.row[j].col)/sizeof(target[i].loc.pos.extra.s2j.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.s2j.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.s2t", &target[i].loc.pos.extra.s2t);
+                add_name(basename+".loc.pos.extra.s2t.row", &target[i].loc.pos.extra.s2t.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.s2t.row)/sizeof(target[i].loc.pos.extra.s2t.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.s2t.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.s2t.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.s2t.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.s2t.row[j].col)/sizeof(target[i].loc.pos.extra.s2t.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.s2t.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.ds2t", &target[i].loc.pos.extra.ds2t);
+                add_name(basename+".loc.pos.extra.ds2t.row", &target[i].loc.pos.extra.ds2t.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.ds2t.row)/sizeof(target[i].loc.pos.extra.ds2t.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.ds2t.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.ds2t.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.ds2t.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.ds2t.row[j].col)/sizeof(target[i].loc.pos.extra.ds2t.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.ds2t.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.t2s", &target[i].loc.pos.extra.t2s);
+                add_name(basename+".loc.pos.extra.t2s.row", &target[i].loc.pos.extra.t2s.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.t2s.row)/sizeof(target[i].loc.pos.extra.t2s.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.t2s.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.t2s.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.t2s.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.t2s.row[j].col)/sizeof(target[i].loc.pos.extra.t2s.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.t2s.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.dt2s", &target[i].loc.pos.extra.dt2s);
+                add_name(basename+".loc.pos.extra.dt2s.row", &target[i].loc.pos.extra.dt2s.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.dt2s.row)/sizeof(target[i].loc.pos.extra.dt2s.row[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.dt2s.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.dt2s.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.pos.extra.dt2s.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.pos.extra.dt2s.row[j].col)/sizeof(target[i].loc.pos.extra.dt2s.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.pos.extra.dt2s.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.pos.extra.sun2earth", &target[i].loc.pos.extra.sun2earth);
+                add_name(basename+".loc.pos.extra.sun2earth.utc", &target[i].loc.pos.extra.sun2earth.utc, "double");
+                add_name(basename+".loc.pos.extra.sun2earth.s", &target[i].loc.pos.extra.sun2earth.s);
+                add_name(basename+".loc.pos.extra.sun2earth.s.col", &target[i].loc.pos.extra.sun2earth.s.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.sun2earth.s.col)/sizeof(target[i].loc.pos.extra.sun2earth.s.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.sun2earth.s.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.sun2earth.s.col[j], "double");
+                }
+                add_name(basename+".loc.pos.extra.sun2earth.v", &target[i].loc.pos.extra.sun2earth.v);
+                add_name(basename+".loc.pos.extra.sun2earth.v.col", &target[i].loc.pos.extra.sun2earth.v.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.sun2earth.v.col)/sizeof(target[i].loc.pos.extra.sun2earth.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.sun2earth.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.sun2earth.v.col[j], "double");
+                }
+                add_name(basename+".loc.pos.extra.sun2earth.a", &target[i].loc.pos.extra.sun2earth.a);
+                add_name(basename+".loc.pos.extra.sun2earth.a.col", &target[i].loc.pos.extra.sun2earth.a.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.sun2earth.a.col)/sizeof(target[i].loc.pos.extra.sun2earth.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.sun2earth.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.sun2earth.a.col[j], "double");
+                }
+                add_name(basename+".loc.pos.extra.sun2earth.pass", &target[i].loc.pos.extra.sun2earth.pass, "uint32_t");
+                add_name(basename+".loc.pos.extra.sun2moon", &target[i].loc.pos.extra.sun2moon);
+                add_name(basename+".loc.pos.extra.sun2moon.utc", &target[i].loc.pos.extra.sun2moon.utc, "double");
+                add_name(basename+".loc.pos.extra.sun2moon.s", &target[i].loc.pos.extra.sun2moon.s);
+                add_name(basename+".loc.pos.extra.sun2moon.s.col", &target[i].loc.pos.extra.sun2moon.s.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.sun2moon.s.col)/sizeof(target[i].loc.pos.extra.sun2moon.s.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.sun2moon.s.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.sun2moon.s.col[j], "double");
+                }
+                add_name(basename+".loc.pos.extra.sun2moon.v", &target[i].loc.pos.extra.sun2moon.v);
+                add_name(basename+".loc.pos.extra.sun2moon.v.col", &target[i].loc.pos.extra.sun2moon.v.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.sun2moon.v.col)/sizeof(target[i].loc.pos.extra.sun2moon.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.sun2moon.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.sun2moon.v.col[j], "double");
+                }
+                add_name(basename+".loc.pos.extra.sun2moon.a", &target[i].loc.pos.extra.sun2moon.a);
+                add_name(basename+".loc.pos.extra.sun2moon.a.col", &target[i].loc.pos.extra.sun2moon.a.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.extra.sun2moon.a.col)/sizeof(target[i].loc.pos.extra.sun2moon.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.extra.sun2moon.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.extra.sun2moon.a.col[j], "double");
+                }
+                add_name(basename+".loc.pos.extra.sun2moon.pass", &target[i].loc.pos.extra.sun2moon.pass, "uint32_t");
+                add_name(basename+".loc.pos.extra.closest", &target[i].loc.pos.extra.closest, "uint16_t");
+                add_name(basename+".loc.pos.earthsep", &target[i].loc.pos.earthsep, "float");
+                add_name(basename+".loc.pos.moonsep", &target[i].loc.pos.moonsep, "float");
+                add_name(basename+".loc.pos.sunsize", &target[i].loc.pos.sunsize, "float");
+                add_name(basename+".loc.pos.sunradiance", &target[i].loc.pos.sunradiance, "float");
+                add_name(basename+".loc.pos.bearth", &target[i].loc.pos.bearth);
+                add_name(basename+".loc.pos.bearth.col", &target[i].loc.pos.bearth.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.bearth.col)/sizeof(target[i].loc.pos.bearth.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.bearth.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.bearth.col[j], "double");
+                }
+                add_name(basename+".loc.pos.orbit", &target[i].loc.pos.orbit, "double");
+                add_name(basename+".loc.att", &target[i].loc.att);
+                add_name(basename+".loc.att.utc", &target[i].loc.att.utc, "double");
+                add_name(basename+".loc.att.topo", &target[i].loc.att.topo);
+                add_name(basename+".loc.att.topo.utc", &target[i].loc.att.topo.utc, "double");
+                add_name(basename+".loc.att.topo.s", &target[i].loc.att.topo.s);
+                add_name(basename+".loc.att.topo.s.d", &target[i].loc.att.topo.s.d);
+                add_name(basename+".loc.att.topo.s.d.x", &target[i].loc.att.topo.s.d.x, "double");
+                add_name(basename+".loc.att.topo.s.d.y", &target[i].loc.att.topo.s.d.y, "double");
+                add_name(basename+".loc.att.topo.s.d.z", &target[i].loc.att.topo.s.d.z, "double");
+                add_name(basename+".loc.att.topo.s.w", &target[i].loc.att.topo.s.w, "double");
+                add_name(basename+".loc.att.topo.v", &target[i].loc.att.topo.v);
+                add_name(basename+".loc.att.topo.v.col", &target[i].loc.att.topo.v.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.att.topo.v.col)/sizeof(target[i].loc.att.topo.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.att.topo.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.att.topo.v.col[j], "double");
+                }
+                add_name(basename+".loc.att.topo.a", &target[i].loc.att.topo.a);
+                add_name(basename+".loc.att.topo.a.col", &target[i].loc.att.topo.a.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.att.topo.a.col)/sizeof(target[i].loc.att.topo.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.att.topo.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.att.topo.a.col[j], "double");
+                }
+                add_name(basename+".loc.att.topo.pass", &target[i].loc.att.topo.pass, "uint32_t");
+                add_name(basename+".loc.att.lvlh", &target[i].loc.att.lvlh);
+                add_name(basename+".loc.att.lvlh.utc", &target[i].loc.att.lvlh.utc, "double");
+                add_name(basename+".loc.att.lvlh.s", &target[i].loc.att.lvlh.s);
+                add_name(basename+".loc.att.lvlh.s.d", &target[i].loc.att.lvlh.s.d);
+                add_name(basename+".loc.att.lvlh.s.d.x", &target[i].loc.att.lvlh.s.d.x, "double");
+                add_name(basename+".loc.att.lvlh.s.d.y", &target[i].loc.att.lvlh.s.d.y, "double");
+                add_name(basename+".loc.att.lvlh.s.d.z", &target[i].loc.att.lvlh.s.d.z, "double");
+                add_name(basename+".loc.att.lvlh.s.w", &target[i].loc.att.lvlh.s.w, "double");
+                add_name(basename+".loc.att.lvlh.v", &target[i].loc.att.lvlh.v);
+                add_name(basename+".loc.att.lvlh.v.col", &target[i].loc.att.lvlh.v.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.att.lvlh.v.col)/sizeof(target[i].loc.att.lvlh.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.att.lvlh.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.att.lvlh.v.col[j], "double");
+                }
+                add_name(basename+".loc.att.lvlh.a", &target[i].loc.att.lvlh.a);
+                add_name(basename+".loc.att.lvlh.a.col", &target[i].loc.att.lvlh.a.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.att.lvlh.a.col)/sizeof(target[i].loc.att.lvlh.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.att.lvlh.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.att.lvlh.a.col[j], "double");
+                }
+                add_name(basename+".loc.att.lvlh.pass", &target[i].loc.att.lvlh.pass, "uint32_t");
+                add_name(basename+".loc.att.geoc", &target[i].loc.att.geoc);
+                add_name(basename+".loc.att.geoc.utc", &target[i].loc.att.geoc.utc, "double");
+                add_name(basename+".loc.att.geoc.s", &target[i].loc.att.geoc.s);
+                add_name(basename+".loc.att.geoc.s.d", &target[i].loc.att.geoc.s.d);
+                add_name(basename+".loc.att.geoc.s.d.x", &target[i].loc.att.geoc.s.d.x, "double");
+                add_name(basename+".loc.att.geoc.s.d.y", &target[i].loc.att.geoc.s.d.y, "double");
+                add_name(basename+".loc.att.geoc.s.d.z", &target[i].loc.att.geoc.s.d.z, "double");
+                add_name(basename+".loc.att.geoc.s.w", &target[i].loc.att.geoc.s.w, "double");
+                add_name(basename+".loc.att.geoc.v", &target[i].loc.att.geoc.v);
+                add_name(basename+".loc.att.geoc.v.col", &target[i].loc.att.geoc.v.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.att.geoc.v.col)/sizeof(target[i].loc.att.geoc.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.att.geoc.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.att.geoc.v.col[j], "double");
+                }
+                add_name(basename+".loc.att.geoc.a", &target[i].loc.att.geoc.a);
+                add_name(basename+".loc.att.geoc.a.col", &target[i].loc.att.geoc.a.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.att.geoc.a.col)/sizeof(target[i].loc.att.geoc.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.att.geoc.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.att.geoc.a.col[j], "double");
+                }
+                add_name(basename+".loc.att.geoc.pass", &target[i].loc.att.geoc.pass, "uint32_t");
+                add_name(basename+".loc.att.selc", &target[i].loc.att.selc);
+                add_name(basename+".loc.att.selc.utc", &target[i].loc.att.selc.utc, "double");
+                add_name(basename+".loc.att.selc.s", &target[i].loc.att.selc.s);
+                add_name(basename+".loc.att.selc.s.d", &target[i].loc.att.selc.s.d);
+                add_name(basename+".loc.att.selc.s.d.x", &target[i].loc.att.selc.s.d.x, "double");
+                add_name(basename+".loc.att.selc.s.d.y", &target[i].loc.att.selc.s.d.y, "double");
+                add_name(basename+".loc.att.selc.s.d.z", &target[i].loc.att.selc.s.d.z, "double");
+                add_name(basename+".loc.att.selc.s.w", &target[i].loc.att.selc.s.w, "double");
+                add_name(basename+".loc.att.selc.v", &target[i].loc.att.selc.v);
+                add_name(basename+".loc.att.selc.v.col", &target[i].loc.att.selc.v.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.att.selc.v.col)/sizeof(target[i].loc.att.selc.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.att.selc.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.att.selc.v.col[j], "double");
+                }
+                add_name(basename+".loc.att.selc.a", &target[i].loc.att.selc.a);
+                add_name(basename+".loc.att.selc.a.col", &target[i].loc.att.selc.a.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.att.selc.a.col)/sizeof(target[i].loc.att.selc.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.att.selc.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.att.selc.a.col[j], "double");
+                }
+                add_name(basename+".loc.att.selc.pass", &target[i].loc.att.selc.pass, "uint32_t");
+                add_name(basename+".loc.att.icrf", &target[i].loc.att.icrf);
+                add_name(basename+".loc.att.icrf.utc", &target[i].loc.att.icrf.utc, "double");
+                add_name(basename+".loc.att.icrf.s", &target[i].loc.att.icrf.s);
+                add_name(basename+".loc.att.icrf.s.d", &target[i].loc.att.icrf.s.d);
+                add_name(basename+".loc.att.icrf.s.d.x", &target[i].loc.att.icrf.s.d.x, "double");
+                add_name(basename+".loc.att.icrf.s.d.y", &target[i].loc.att.icrf.s.d.y, "double");
+                add_name(basename+".loc.att.icrf.s.d.z", &target[i].loc.att.icrf.s.d.z, "double");
+                add_name(basename+".loc.att.icrf.s.w", &target[i].loc.att.icrf.s.w, "double");
+                add_name(basename+".loc.att.icrf.v", &target[i].loc.att.icrf.v);
+                add_name(basename+".loc.att.icrf.v.col", &target[i].loc.att.icrf.v.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.att.icrf.v.col)/sizeof(target[i].loc.att.icrf.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.att.icrf.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.att.icrf.v.col[j], "double");
+                }
+                add_name(basename+".loc.att.icrf.a", &target[i].loc.att.icrf.a);
+                add_name(basename+".loc.att.icrf.a.col", &target[i].loc.att.icrf.a.col);
+                for(size_t j = 0; j < sizeof(target[i].loc.att.icrf.a.col)/sizeof(target[i].loc.att.icrf.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.att.icrf.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.att.icrf.a.col[j], "double");
+                }
+                add_name(basename+".loc.att.icrf.pass", &target[i].loc.att.icrf.pass, "uint32_t");
+                add_name(basename+".loc.att.extra", &target[i].loc.att.extra);
+                add_name(basename+".loc.att.extra.utc", &target[i].loc.att.extra.utc, "double");
+                add_name(basename+".loc.att.extra.j2b", &target[i].loc.att.extra.j2b);
+                add_name(basename+".loc.att.extra.j2b.row", &target[i].loc.att.extra.j2b.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.att.extra.j2b.row)/sizeof(target[i].loc.att.extra.j2b.row[0]); ++j) {
+                    string rebasename = basename + "loc.att.extra.j2b.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.att.extra.j2b.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.att.extra.j2b.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.att.extra.j2b.row[j].col)/sizeof(target[i].loc.att.extra.j2b.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.att.extra.j2b.row[j].col[k], "double");
+                    }
+                }
+                add_name(basename+".loc.att.extra.b2j", &target[i].loc.att.extra.b2j);
+                add_name(basename+".loc.att.extra.b2j.row", &target[i].loc.att.extra.b2j.row);
+                for(size_t j = 0; j < sizeof(target[i].loc.att.extra.b2j.row)/sizeof(target[i].loc.att.extra.b2j.row[0]); ++j) {
+                    string rebasename = basename + "loc.att.extra.b2j.row[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.att.extra.b2j.row[j]);
+                    add_name(rebasename+".col", &target[i].loc.att.extra.b2j.row[j].col);
+                    for(size_t k = 0; k < sizeof(target[i].loc.att.extra.b2j.row[j].col)/sizeof(target[i].loc.att.extra.b2j.row[j].col[0]); ++k) {
+                        string rebasename2 = rebasename + ".col[" + std::to_string(k) + "]";
+                        add_name(rebasename2, &target[i].loc.att.extra.b2j.row[j].col[k], "double");
+                    }
+                }
+            }
+
+
+            // vector<userstruc> user
+            add_name("user", &user);
+            for(size_t i = 0; i < user.capacity(); ++i) {
+                string basename = "user[" + std::to_string(i) + "]";
+                add_name(basename, &user[i]);
+                add_name(basename+".name", &user[i].name, "string");
+                add_name(basename+".node", &user[i].node, "string");
+                add_name(basename+".tool", &user[i].tool, "string");
+                add_name(basename+".cpu", &user[i].cpu, "string");
+            }
+
+            // vector<tlestruc> tle
+            add_name("tle", &tle);
+            for(size_t i = 0; i < tle.capacity(); ++i) {
+                string basename = "tle[" + std::to_string(i) + "]";
+                add_name(basename, &tle[i]);
+                add_name(basename+".utc", &tle[i].utc, "double");
+                add_name(basename+".name", &tle[i].name);
+                add_name(basename+".snumber", &tle[i].snumber, "uint16_t");
+                add_name(basename+".id", &tle[i].id);
+                add_name(basename+".bstar", &tle[i].bstar, "double");
+                add_name(basename+".i", &tle[i].i, "double");
+                add_name(basename+".raan", &tle[i].raan, "double");
+                add_name(basename+".e", &tle[i].e, "double");
+                add_name(basename+".ap", &tle[i].ap, "double");
+                add_name(basename+".ma", &tle[i].ma, "double");
+                add_name(basename+".mm", &tle[i].mm, "double");
+                add_name(basename+".orbit", &tle[i].orbit, "uint32_t");
+            }
+
+            // jsonnode json
+            add_name("json", &json);
+            add_name("json.name", &json.name, "string");
+            add_name("json.node", &json.node, "string");
+            add_name("json.state", &json.state, "string");
+            add_name("json.utcstart", &json.utcstart, "string");
+            add_name("json.vertexs", &json.vertexs, "string");
+            add_name("json.faces", &json.faces, "string");
+            add_name("json.pieces", &json.pieces, "string");
+            add_name("json.devgen", &json.devgen, "string");
+            add_name("json.devspec", &json.devspec, "string");
+            add_name("json.ports", &json.ports, "string");
+            add_name("json.targets", &json.targets, "string");
+
         }
 
 
