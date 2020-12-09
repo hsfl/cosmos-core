@@ -251,6 +251,24 @@ int main(int argc, char *argv[])
 		agent->cinfo->print_all_names();
 	}
 
+	cout<<"\nWould you like to see the names and types from Namespace 2.0? (y/n) : ";
+	cin>>see;
+	if(see == 'Y' || see == 'y')	{
+		// printout all namespace 2.0 names and values
+		cout<<endl;
+		agent->cinfo->print_all_names_types();
+	}
+
+	cout<<"\nWould you like to see the names, types, and values from Namespace 2.0? (y/n) : ";
+	cin>>see;
+	if(see == 'Y' || see == 'y')	{
+		// printout all namespace 2.0 names and values
+		cout<<endl;
+		agent->cinfo->print_all_names_types_values();
+	}
+
+
+
 // need support for decimal points DONE!
 // need support for negative numbers? 
 // need to convert contents of output into a double stack-wise DONE!

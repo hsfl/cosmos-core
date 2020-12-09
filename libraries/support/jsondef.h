@@ -459,7 +459,7 @@ enum {
 #define MAX_NUMBER_OF_NORMALS 5
 
 //* Maximum number of equations
-#define MAX_NUMBER_OF_EQUATIONS 25
+#define MAX_NUMBER_OF_EQUATIONS 3 
 
 //* Maximum number of agents
 #define MAX_NUMBER_OF_AGENTS 5
@@ -3837,6 +3837,60 @@ struct cosmosstruc
             while(it != names.end())	{ cout<<(it++)->first<<endl; }
         }
 
+        void print_all_names_types() const	{
+            name_map::const_iterator n = names.begin();
+            while(n != names.end())	{ 
+            	type_map::const_iterator t = types.find(n->first);
+            	if(t == types.end())	{
+					cout<<left<<setw(40)<<(n++)->first<<endl;
+				} else {
+					cout<<left<<setw(40)<<(n++)->first<<t->second<<endl;
+				}
+        	}
+			return;
+		}
+///*
+        void print_all_names_types_values() const	{
+            name_map::const_iterator n = names.begin();
+            while(n != names.end())	{ 
+            	type_map::const_iterator t = types.find(n->first);
+            	if(t == types.end())	{
+					cout<<left<<setw(40)<<(n++)->first<<endl;
+				} else {
+					cout<<left<<setw(40)<<(n++)->first<<left<<setw(16)<<t->second;
+					if(t->second=="double")	{
+						cout<<left<<setw(32)<<setprecision(std::numeric_limits<double>::digits10)<<fixed<<get_value<double>(t->first)<<endl;
+					} else if(t->second=="float")	{
+						cout<<left<<setw(32)<<setprecision(std::numeric_limits<float>::digits10)<<fixed<<get_value<float>(t->first)<<endl;
+					} else if(t->second=="int")	{
+						cout<<left<<setw(32)<<get_value<int>(t->first)<<endl;
+					} else if(t->second=="uint32_t")	{
+						cout<<left<<setw(32)<<get_value<uint32_t>(t->first)<<endl;
+					} else if(t->second=="int32_t")	{
+						cout<<left<<setw(32)<<get_value<int32_t>(t->first)<<endl;
+					} else if(t->second=="uint16_t")	{
+						cout<<left<<setw(32)<<get_value<uint16_t>(t->first)<<endl;
+					} else if(t->second=="int16_t")	{
+						cout<<left<<setw(32)<<get_value<int16_t>(t->first)<<endl;
+					} else if(t->second=="uint8_t")	{
+						cout<<left<<setw(32)<<get_value<uint8_t>(t->first)<<endl;
+					} else if(t->second=="int8_t")	{
+						cout<<left<<setw(32)<<get_value<int8_t>(t->first)<<endl;
+					} else if(t->second=="size_t")	{
+						cout<<left<<setw(32)<<get_value<size_t>(t->first)<<endl;
+					} else if(t->second=="bool")	{
+						cout<<left<<setw(32)<<get_value<bool>(t->first)<<endl;
+					} else if(t->second=="string")	{
+						cout<<left<<setw(32)<<get_value<string>(t->first)<<endl;
+					} else	{
+						cout<<endl;
+					}
+				}
+			}
+			return;
+		}
+
+//*/
         vector<string> get_all_names() const	{
 			vector<string> all_names;
             name_map::const_iterator it = names.begin();
@@ -6121,7 +6175,7 @@ struct cosmosstruc
     }
 
 	// has left association?
-	bool left(char a)	{
+	bool left_ass(char a)	{
 		if(a == '+')	return true;
 		if(a == '-')	return true;
 		if(a == '*')	return true;
@@ -6132,7 +6186,7 @@ struct cosmosstruc
 	}
 
 	// has equal precedence?
-	bool equal(char a, char b)	{
+	bool equal_ass(char a, char b)	{
 		if(a == '+' && b == '+')	return true;	
 		if(a == '+' && b == '-')	return true;	
 		if(a == '+' && b == '*')	return false;	
@@ -6242,6 +6296,7 @@ struct cosmosstruc
 		if(q_count%2==1)	return nan("");
 
 		// TODO: you should never have #( or )#...  implied multiplication, but make explicit already!
+
 		// trim leading whitespace
  		const auto notwhite = eq.find_first_not_of(" \n\r\t\f\v");
 		eq = eq.substr(notwhite);
@@ -6295,7 +6350,11 @@ struct cosmosstruc
 		replace(eq, "[", "(");
 		replace(eq, "}", ")");
 		replace(eq, "]", ")");
-	
+
+		// replace ÷,– with /,-
+		replace(eq, "÷", "/");
+		replace(eq, "–", "-");
+			
 		// check if parenthesis are balanced
 		int p_count = 0;
 		for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
@@ -6308,9 +6367,10 @@ struct cosmosstruc
 
 	// START EQUATION PROCESSING
 
-		string output;
-		stack<double> answer;
-		stack<char> ops;
+		string			output;
+		stack<double>	answer;
+		stack<char>		ops;
+
 					//int count = 0;
 		for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
 					// debug
@@ -6361,7 +6421,7 @@ struct cosmosstruc
 				for(size_t i = 0; i < fraction.size(); ++i)	{ numnum += fraction[i]*1.0 * pow(10.0, -(i+1.0)); }
 				if(negative) numnum *= -1.;
 				stringstream ss;
-				ss<<std::setprecision(std::numeric_limits<double>::digits10)<<numnum;
+				ss<<setprecision(std::numeric_limits<double>::digits10)<<numnum;
 				output += ss.str() + " ";
 				answer.push(numnum);
 				continue;
@@ -6379,7 +6439,7 @@ struct cosmosstruc
 					}
 				}
 				while(	!ops.empty() &&
-						( higher(ops.top(), *it) || (equal(ops.top(), *it) && left(*it)) ) &&
+						( higher(ops.top(), *it) || (equal_ass(ops.top(), *it) && left_ass(*it)) ) &&
 						ops.top()!='('
 				)	{ output += string(1,(*it)) + " "; if(apply_op(ops, answer)<0) return nan(""); }
 				ops.push(*it);

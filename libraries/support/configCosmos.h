@@ -89,6 +89,9 @@ using std::stringstream;
 #include <iomanip>
 using std::fixed;
 using std::setprecision;
+using std::setw;
+using std::left;
+using std::right;
 #ifdef COSMOS_WIN_BUILD_MSVC
 #include <io.h> // replaces in some ways unistd for windows
 #else
@@ -96,6 +99,7 @@ using std::setprecision;
 #endif
 #include <fcntl.h>
 
+#include <limits>
 #include <string>
 using std::string;
 using std::to_string;
