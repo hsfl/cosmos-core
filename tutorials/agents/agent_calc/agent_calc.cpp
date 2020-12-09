@@ -59,6 +59,9 @@ int myagent();
 static char nodename[COSMOS_MAX_NAME + 1] = "otb";
 static char agentname[COSMOS_MAX_NAME + 1] = "calc";
 
+int32_t request_get_value(string &request, string &response, Agent *agent);
+
+
 int32_t request_add(string &request, string &response, Agent *agent);
 int32_t request_sub(string &request, string &response, Agent *agent);
 int32_t request_mul(string &request, string &response, Agent *agent);

@@ -432,7 +432,9 @@ namespace Cosmos
             static int32_t req_status(string &request, string &response, Agent *agent);
             static int32_t req_debug_level(string &request, string &response, Agent *agent);
             static int32_t req_getvalue(string &request, string &response, Agent *agent);
+            static int32_t req_get_value(string &request, string &response, Agent *agent);
             static int32_t req_setvalue(string &request, string &response, Agent *agent);
+            static int32_t req_set_value(string &request, string &response, Agent *agent);
             static int32_t req_listnames(string &request, string &response, Agent *agent);
             static int32_t req_nodejson(string &request, string &response, Agent *agent);
             static int32_t req_statejson(string &request, string &response, Agent *agent);
