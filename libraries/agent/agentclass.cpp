@@ -431,9 +431,9 @@ namespace Support
         ep.start();
 
         if ((iretn=socket_open(&sendchan, NetworkType::UDP, hbeat.addr, hbeat.port, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0) { return (-errno); }
-
         //nbytes = strnlen(request.c_str(), hbeat.bsz);
         nbytes = std::min(request.size(), (size_t)hbeat.bsz);
+
         if ((nbytes=sendto(sendchan.cudp, request.c_str(), nbytes, 0, (struct sockaddr *)&sendchan.caddr, sizeof(struct sockaddr_in))) < 0) {
             CLOSE_SOCKET(sendchan.cudp);
 #ifdef COSMOS_WIN_OS
@@ -1115,7 +1115,33 @@ namespace Support
     }
 
 int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
-	cout<<"request = <"<<request<<">"<<endl;
+	cout<<"incoming request = <"<<request<<">"<<endl;
+	cout<<"incoming request length = <"<<request.length()<<">"<<endl;
+	cout<<"incoming request size = <"<<request.size()<<">"<<endl;
+	string req = request;
+	// for some reason incoming request has a double quote and curly brace appended...
+	// will remove for now, but need Eric to look and fix
+	//req.erase(req.length()-2,2);
+	cout<<"fixed incoming request = <"<<req<<">"<<endl;
+	// remove function call and space
+	req.erase(0,10);
+	cout<<"2nd fixed incoming request = <"<<req<<">"<<endl;
+// strip out all names from request
+    vector<string> names;
+    for(size_t i = 0; i < req.size(); ++i)   {
+        if(req[i]=='"')  {
+            string name("");
+            //cout<<"found opening quote"<<endl;
+            while(req[++i]!='"'&&i<req.size())    { name.push_back(req[i]); }
+            //cout<<"name = "<<name<<endl;
+            names.push_back(name);
+        }
+    }
+	cout<<"req = <"<<req<<">"<<endl;
+	cout<<"names.size = <"<<names.size()<<">"<<endl;
+	cout<<"names[0] = <"<<names[0]<<">"<<endl;
+//cout<<"Cooler UTC() = <"<<agent->cinfo->get_value<double>("Cooler UTC")<<">"<<endl;
+	response = to_string(agent->cinfo->get_value<double>(names[0]));
 	cout<<"response = <"<<response<<">"<<endl;
 	cout<<"agent rcv? = <"<<agent->agentName<<">"<<endl;
 	return 0;

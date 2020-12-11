@@ -93,7 +93,7 @@ TEST(cosmosstruc, json_init_json)	{
 // check all get_value methods
 TEST(cosmosstruc, get_value)	{
 	cosmosstruc* c = json_init();
-	c->add_name("UTC", &c->node.loc.utc);
+	c->add_name("UTC", &c->node.loc.utc, "double");
 	EXPECT_DOUBLE_EQ(c->get_value<double>("UTC"), 0.0);
 }
 
@@ -102,7 +102,7 @@ TEST(cosmosstruc, get_value)	{
 // check all set_value methods
 TEST(cosmosstruc, set_value)	{
 	cosmosstruc* c = json_init();
-	c->add_name("UTC", &c->node.loc.utc);
+	c->add_name("UTC", &c->node.loc.utc, "double");
 	c->set_value<double>("UTC", 5.432);
 	EXPECT_DOUBLE_EQ(c->get_value<double>("UTC"), 5.432);
 }
