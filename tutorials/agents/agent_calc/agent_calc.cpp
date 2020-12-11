@@ -56,7 +56,8 @@ using namespace std;
 
 int myagent();
 
-static char nodename[COSMOS_MAX_NAME + 1] = "otb";
+//static char nodename[COSMOS_MAX_NAME + 1] = "otb";
+static char nodename[COSMOS_MAX_NAME + 1] = "sat_001";
 static char agentname[COSMOS_MAX_NAME + 1] = "calc";
 
 int32_t request_get_value(string &request, string &response, Agent *agent);
@@ -137,7 +138,7 @@ void replace(std::string& str, const std::string& from, const std::string& to) {
 int main(int argc, char *argv[])
 {
     int iretn;
-
+/*
     // Make node_name = 1st argument
 	if (argc == 2)
         strcpy(nodename, argv[1]);
@@ -146,7 +147,7 @@ int main(int argc, char *argv[])
         strcpy(agentname, argv[2]);
         strcpy(nodename, argv[1]);
 	}
-
+*/
     // Initialize agents. Set nodename if provided through command line args
 	if (argc > 1)
     {
@@ -170,7 +171,7 @@ int main(int argc, char *argv[])
 	else
     {
         // Initialize agent instance with unspecified node name but specified agent name
-        agent = new Agent("", agentname);
+        agent = new Agent("otb", agentname);
 
         // Check if agent was successfully constructed.
         if ((iretn = agent->wait()) < 0)
@@ -389,7 +390,8 @@ int myagent()
 int32_t request_add(string &request, string &response, Agent *agent)
 {
 	float a,b;
-
+	cout<<"request.size() = "<<request.size()<<endl;
+	cout<<"request.length() =  "<<request.length()<<endl;
 	sscanf(request.c_str(),"%*s %f %f",&a,&b);
     response = std::to_string(a + b);
 

@@ -732,6 +732,8 @@ namespace Support
             if (iretn > 0) {
                 string bufferout;
                 bufferin[iretn] = 0;
+				// Eric's proposed fix
+				bufferin.resize(iretn+1);
                 process_request(bufferin, bufferout);
             }
         }
@@ -1102,12 +1104,16 @@ namespace Support
  */
     int32_t Agent::req_getvalue(string &request, string &output, Agent* agent)
     {
+	cout<<"req_getvalue(): incoming request          = <"<<request<<">"<<endl;
+	cout<<"req_getvalue(): incoming request.size()   = "<<request.size()<<endl;
+	cout<<"req_getvalue(): incoming request.length() = "<<request.length()<<endl;
         string jstring;
         if (json_of_list(jstring, request, agent->cinfo) != NULL) {
             output = jstring;
             if (output.length() > agent->cinfo->agent[0].beat.bsz) {
                 output[agent->cinfo->agent[0].beat.bsz-1] = 0;
             }
+	cout<<"req_getvalue(): outgoing response         = <"<<output<<">"<<endl;
             return 0;
         } else {
             return (JSON_ERROR_EOS);
@@ -1115,35 +1121,31 @@ namespace Support
     }
 
 int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
-	cout<<"incoming request = <"<<request<<">"<<endl;
-	cout<<"incoming request length = <"<<request.length()<<">"<<endl;
-	cout<<"incoming request size = <"<<request.size()<<">"<<endl;
 	string req = request;
-	// for some reason incoming request has a double quote and curly brace appended...
-	// will remove for now, but need Eric to look and fix
-	//req.erase(req.length()-2,2);
-	cout<<"fixed incoming request = <"<<req<<">"<<endl;
+	cout<<"req_get_value():incoming request          = <"<<request<<">"<<endl;
+	cout<<"req_get_value():incoming request.size()   = "<<request.size()<<endl;
+	cout<<"req_get_value():incoming request.length() = "<<request.length()<<endl;
 	// remove function call and space
 	req.erase(0,10);
-	cout<<"2nd fixed incoming request = <"<<req<<">"<<endl;
-// strip out all names from request
+	// strip out all names from request
     vector<string> names;
     for(size_t i = 0; i < req.size(); ++i)   {
         if(req[i]=='"')  {
             string name("");
-            //cout<<"found opening quote"<<endl;
             while(req[++i]!='"'&&i<req.size())    { name.push_back(req[i]); }
-            //cout<<"name = "<<name<<endl;
             names.push_back(name);
         }
     }
-	cout<<"req = <"<<req<<">"<<endl;
-	cout<<"names.size = <"<<names.size()<<">"<<endl;
-	cout<<"names[0] = <"<<names[0]<<">"<<endl;
-//cout<<"Cooler UTC() = <"<<agent->cinfo->get_value<double>("Cooler UTC")<<">"<<endl;
-	response = to_string(agent->cinfo->get_value<double>(names[0]));
-	cout<<"response = <"<<response<<">"<<endl;
-	cout<<"agent rcv? = <"<<agent->agentName<<">"<<endl;
+    for(size_t i = 0; i < names.size(); ++i)   {
+		// look up type
+
+		// get value
+		//response = to_string(agent->cinfo->get_value<double>(names[0]));
+
+		// get json value
+		response = agent->cinfo->get_json<double>(names[i]);
+	}
+	cout<<"req_get_value():outgoing response         = <"<<response<<">"<<endl;
 	return 0;
 }
 

@@ -78,9 +78,15 @@ int main(int argc, char **argv)
     string response; // Variable to store agent_002's response
 
     // Start executing the agent
-	agent->cinfo->add_name("Cooler UTC", &agent->cinfo->node.loc.utc);
+	agent->cinfo->add_name("Short UTC", &agent->cinfo->node.loc.utc, "double");
+	agent->cinfo->add_name("Longest Ever UTC", &agent->cinfo->node.loc.utc, "double");
+	agent->cinfo->set_value<double>("Short UTC", 213.0);
+	cout<<"Short UTC        = <"<<agent->cinfo->get_value<double>("Short UTC")<<">"<<endl;
+	cout<<"Longest Ever UTC = <"<<agent->cinfo->get_value<double>("Longest Ever UTC")<<">"<<endl;
 
     while (agent->running()) {
+
+/* old tests
 		string target_request_name = "any_body_out_there";
 		cout<<"["<<node_name<<":"<<agent_name<<"] running..."<<endl;
 		agent->cinfo->set_value<double>("Cooler UTC", 99.99);
@@ -112,6 +118,7 @@ int main(int argc, char **argv)
 				cout<<agent_target_heartbeat<<endl;
 			}
         }
+*/
         // Sleep for 5 sec
         COSMOS_SLEEP(5.);
     }
