@@ -724,9 +724,10 @@ namespace Support
 
         cinfo->agent[0].beat.port = cinfo->agent[0].req.cport;
 
-        bufferin.resize(cinfo->agent[0].beat.bsz);
+        //bufferin.resize(cinfo->agent[0].beat.bsz);
 
         while (cinfo->agent[0].stateflag) {
+        	bufferin.resize(cinfo->agent[0].beat.bsz);
             iretn = recvfrom(cinfo->agent[0].req.cudp, &bufferin[0], bufferin.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, (socklen_t *)&cinfo->agent[0].req.addrlen);
 
             if (iretn > 0) {
