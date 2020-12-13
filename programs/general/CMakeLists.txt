@@ -48,4 +48,5 @@ target_link_libraries(tle2state CosmosConvert)
 target_link_libraries(udp_listen CosmosAgent)
 target_link_libraries(udp_send CosmosAgent)
 target_link_libraries(initialize_time CosmosAgent)
+target_link_libraries(check_satnogs CosmosString)
 

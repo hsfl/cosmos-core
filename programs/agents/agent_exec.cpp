@@ -239,7 +239,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    // Add agent request functions
+    // Event related request functions
     if ((iretn=agent->add_request("getqueuesize", request_get_queue_size, "", "returns the current size of the command queue")))
         exit (iretn);
     if ((iretn=agent->add_request("delcommand", request_del_command, "entry-string", "deletes the specified command event from the queue according to its JSON string")))
@@ -247,6 +247,8 @@ int main(int argc, char *argv[])
     if ((iretn=agent->add_request("delcommandid", request_del_command_id, "entry #", "deletes the specified command event from the queue according to its position")))
         exit (iretn);
     if ((iretn=agent->add_request("getcommand", request_get_command, "[ entry # ]", "returns the requested command queue entry (or all if none specified)")))
+        exit (iretn);
+    if ((iretn=agent->add_request("getqueue", request_get_command, "[ entry # ]", "returns the requested command queue entry (or all if none specified)")))
         exit (iretn);
     if ((iretn=agent->add_request("addcommand", request_add_command, "{\"event_name\":\"\"}{\"event_utc\":0}{\"event_utcexec\":0}{\"event_flag\":0}{\"event_type\":0}{\"event_data\":\"\"}{\"event_condition\":\"\"}", "adds the specified command event to the queue")))
         exit (iretn);
@@ -262,58 +264,29 @@ int main(int argc, char *argv[])
         exit (iretn);
     if ((iretn=agent->add_request("savecommand", request_save_command, "{file}", "Save current command list to optional file name (default: .queue)")))
         exit (iretn);
+    if ((iretn=agent->add_request("savequeue", request_save_command, "{file}", "Save current command list to optional file name (default: .queue)")))
+        exit (iretn);
 
-    // Reload existing queue
-    cmd_queue.restore_commands(temp_dir);
-//    string infilepath = temp_dir + ".queue";
-//    std::ifstream infile(infilepath.c_str());
-//    if(!infile.is_open())
-//    {
-//        cout<<"unable to read file <"<<infilepath<<">"<<endl;
-//    }
-//    else
-//    {
-//        //file is open for reading commands
-//        string line;
-//        Event cmd;
-//        std::cout << "===\n";
-
-//        while(std::getline(infile,line))
-//        {
-//            //cmd.set_command(line, agent);
-//            cmd.set_command(line);
-
-//            if(cmd.is_command())
-//            {
-//                cmd_queue.add_command(cmd);
-//                printf("Loaded command: %s\n", line.c_str());
-//            }
-//            else
-//            {
-//                cout<<"Not a command!"<<endl;
-//            }
-//        }
-//        infile.close();
-//    }
-
-    // Establish SOH functions
-
-    if ((iretn=agent->add_request("reopen_soh", request_reopen_soh, "", "flushes soh log files out of temp directory")))
+    // SOH related request functions
+    if ((iretn=agent->add_request("reopensoh", request_reopen_soh, "", "flushes soh log files out of temp directory")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_logperiod" ,request_set_logperiod, "logperiod", "set how often we log our SOH data")))
+    if ((iretn=agent->add_request("setlogperiod" ,request_set_logperiod, "logperiod", "set how often we log our SOH data")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_logperiod" ,request_get_logperiod, "", "return how often we log our SOH data")))
+    if ((iretn=agent->add_request("getlogperiod" ,request_get_logperiod, "", "return how often we log our SOH data")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_logstring", request_set_logstring, "logstring", "set what parts of our SOH that we log.")))
+    if ((iretn=agent->add_request("setlogstring", request_set_logstring, "logstring", "set what parts of our SOH that we log.")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_logstring", request_get_logstring, "", "return what portions of our SOH that we log")))
+    if ((iretn=agent->add_request("getlogstring", request_get_logstring, "", "return what portions of our SOH that we log")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_logstride_soh", request_set_logstride_soh, "logstride", "modify how frequently we flush our soh log files out of temp directory")))
+    if ((iretn=agent->add_request("setlogstride_soh", request_set_logstride_soh, "logstride", "modify how frequently we flush our soh log files out of temp directory")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_logstride_soh", request_get_logstride_soh, "", "return how frequently we flush our soh log files out of temp directory")))
+    if ((iretn=agent->add_request("getlogstride_soh", request_get_logstride_soh, "", "return how frequently we flush our soh log files out of temp directory")))
         exit (iretn);
 
     load_dictionary(eventdict, agent->cinfo, "events.dict");
+
+    // Reload existing queue
+    cmd_queue.restore_commands(temp_dir);
 
     // Start thread to collect SOH data
     bool log_data_flag = true;
@@ -704,8 +677,13 @@ int32_t request_del_command(string &request, string &response, Agent *)
     Event cmd;
     string line(request);
 
-    // remove "del_command " from request string
-    line.erase(0, 10);
+    // Check for valid request
+    if (line.find(" ") == string::npos)
+    {
+        return GENERAL_ERROR_UNDEFINED;
+    }
+
+    line.erase(0, line.find(" ")+1);
     cmd.set_command(line);
 
     //delete command
@@ -727,8 +705,13 @@ int32_t request_add_command(string &request, string &response, Agent *)
     Event cmd;
     string line(request);
 
-    // remove "add_command " from request string
-    line.erase(0, 10);
+    // Check for valid request
+    if (line.find(" ") == string::npos)
+    {
+        return GENERAL_ERROR_UNDEFINED;
+    }
+
+    line.erase(0, line.find(" ")+1);
     cmd.set_command(line);
 
     // add command
@@ -748,9 +731,9 @@ int32_t request_add_command(string &request, string &response, Agent *)
 // Run the command and return the output in the response.
 int32_t request_remote_command(string &request, string &response, Agent *)
 {
-    //char request_re[AGENTMAXBUFFER + 5];
+//    char request_re[AGENTMAXBUFFER + 5];
     int32_t iretn = 0;
-    //FILE *pd;
+//    FILE *pd;
     int i;
 
     // Locate where our command starts.
@@ -769,32 +752,8 @@ int32_t request_remote_command(string &request, string &response, Agent *)
         response = "Unable to find an appropriate command.";
     }
     else {
-        // Redirect error into buffer as well.
-//        strcpy(request_re, &request[i]);
-//        strcat(request_re, " 2>&1");
-
         // Run the process and create a pipe.
         iretn = data_execute(request.substr(request.find(" ") + 1), response);
-//#ifdef COSMOS_WIN_BUILD_MSVC
-//        if ((pd=_popen(request_re, "r")) != NULL)
-//#else
-//        if ((pd=popen(request_re, "r")) != nullptr)
-//#endif
-//        {
-//            response.resize(AGENTMAXBUFFER);
-//            iretn = fread(&response[0], 1, AGENTMAXBUFFER-1, pd);
-//            response[iretn] = '\0';
-//            iretn = 0;
-//#ifdef COSMOS_WIN_BUILD_MSVC
-//            _pclose(pd);
-//#else
-//            pclose(pd);
-//#endif
-//        }
-//        else {
-//            response[0] = '\0';
-//            iretn = 0;
-//        }
     }
 
     return iretn;
@@ -823,9 +782,9 @@ int32_t request_get_logperiod(string &, string &response, Agent *)
 
 int32_t request_set_logstring(string &request, string &, Agent *agent)
 {
-    logstring = &request[strlen("set_logstring")+1];
+    request.erase(0, request.find(" ")+1);
     logtable.clear();
-    json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
+    json_table_of_list(logtable, request.c_str(), agent->cinfo);
     return 0;
 }
 

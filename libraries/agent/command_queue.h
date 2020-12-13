@@ -121,7 +121,7 @@ namespace Cosmos
                 \param	incoming_dir	Directory where the .queue file will be read from
 
             */
-            void load_commands(string incoming_dir);
+            int32_t load_commands(string incoming_dir);
 
             //!	Save the queue of Events to a file
             /*!
@@ -129,7 +129,7 @@ namespace Cosmos
 
                 \param	temp_dir	Directory where the .queue file will be written
             */
-            void save_commands(string temp_dir, string name=".queue");
+            int32_t save_commands(string temp_dir, string name=".queue");
 
             //!	Restore the queue of Events from a file
             /*!
@@ -137,7 +137,7 @@ namespace Cosmos
 
                 \param	temp_dir	Directory where the .queue file will be written
             */
-            void restore_commands(string temp_dir, string name=".queue");
+            int32_t restore_commands(string temp_dir, string name=".queue");
 
             //! Run the given Event
             /*!
@@ -149,7 +149,7 @@ namespace Cosmos
                 \param	nodename	Name of node
                 \param	logdate_exec	Time of execution (for logging purposes)
             */
-            void run_command(Event &cmd, string nodename, double logdate_exec);
+            int32_t run_command(Event &cmd, string nodename, double logdate_exec);
 
             //!	Traverse the entire queue of Events, clearing those that have finished.
             /*!
@@ -161,7 +161,7 @@ namespace Cosmos
                 \param	nodename	Name of the node
                 \param	logdate_exec	Time of execution (for logging purposes)
             */
-            void flush_commands();
+//            int32_t flush_commands();
 
             //!	Traverse the entire queue of Events, and run those which qualify.
             /*!
@@ -174,7 +174,7 @@ namespace Cosmos
                 \param	nodename	Name of the node
                 \param	logdate_exec	Time of execution (for logging purposes)
             */
-            void run_commands(Agent *agent, string nodename, double logdate_exec);
+            int32_t run_commands(Agent *agent, string nodename, double logdate_exec);
 
             //!	Remove **all** matching Event from the queue
             /*!
@@ -183,7 +183,7 @@ namespace Cosmos
 
                 JIMNOTE:	this only adds given Event to the queue if the Event has flag for EVENT_TYPE_COMMAND set to true
             */
-            void add_command(Event& c);
+            int32_t add_command(Event& c);
 
             ///	Remove **all** matching Event from the queue
             /**
@@ -192,7 +192,7 @@ namespace Cosmos
 
                 This function only removes events from the queue if the are exactly equal to the given Event.
             */
-            int del_command(Event& c);
+            int32_t del_command(Event& c);
 
             //! Remove Event from the queue based on position
             /*!
@@ -201,7 +201,7 @@ namespace Cosmos
 
                  This function removes events based on their queue position (0-indexed).
             */
-            int del_command(int pos);
+            int32_t del_command(int pos);
 
             //!	Sort the Events in the queue by Event exectution time
             /*!

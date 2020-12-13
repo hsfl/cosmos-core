@@ -152,7 +152,7 @@ namespace Cosmos
             \param	nodename	Name of node
             \param	logdate_exec	Time of execution (for logging purposes)
         */
-        void CommandQueue::run_command(Event& cmd, string node_name, double logdate_exec)
+        int32_t CommandQueue::run_command(Event& cmd, string node_name, double logdate_exec)
         {
             queue_changed = true;
 
@@ -244,6 +244,7 @@ namespace Cosmos
 
             // log to event file
             log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
+            return 0;
         }
 
         //!	Traverse the entire queue of Events, and run those which qualify.
@@ -257,7 +258,7 @@ namespace Cosmos
             \param	nodename	Name of the node
             \param	logdate_exec	Time of execution (for logging purposes)
         */
-        void CommandQueue::run_commands(Agent *agent, string node_name, double logdate_exec)
+        int32_t CommandQueue::run_commands(Agent *agent, string node_name, double logdate_exec)
         {
             for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
             {
@@ -338,7 +339,7 @@ namespace Cosmos
                     ;//cout<<"This command is *NOT* ready to run! ";
                 }
             }
-            return;
+            return static_cast<int32_t>(commands.size());
         }
 
         //!	Save the queue of Events to a file
@@ -349,11 +350,11 @@ namespace Cosmos
             \param	temp_dir	Directory where the .queue file will be written
             \param	name	File where the .queue will be written
         */
-        void CommandQueue::save_commands(string temp_dir, string name)
+        int32_t CommandQueue::save_commands(string temp_dir, string name)
         {
             if (!queue_changed)
             {
-                return;
+                return 0;
             }
             queue_changed = false;
 
@@ -362,7 +363,7 @@ namespace Cosmos
 
             // Open the outgoing file
             FILE *fd = fopen((temp_dir+name).c_str(), "w");
-            if (fd != NULL)
+            if (fd != nullptr)
             {
                 for (Event cmd: commands)
                 {
@@ -370,6 +371,7 @@ namespace Cosmos
                 }
                 fclose(fd);
             }
+            return static_cast<int32_t>(commands.size());
         }
 
         //!	Restore the queue of Events from a file
@@ -380,7 +382,7 @@ namespace Cosmos
             \param	temp_dir	Directory where the .queue file will be read from
             \param	name	File where the .queue will be read from
         */
-        void CommandQueue::restore_commands(string temp_dir, std::string name)
+        int32_t CommandQueue::restore_commands(string temp_dir, std::string name)
         {
             queue_changed = false;
 
@@ -405,6 +407,7 @@ namespace Cosmos
                 }
                 infile.close();
             }
+            return static_cast<int32_t>(commands.size());
         }
 
 
@@ -414,20 +417,19 @@ namespace Cosmos
         // *.command files are removed, and the command list is sorted by utc.
             \param	incoming_dir	Directory where the .command files will be read from
         */
-        void CommandQueue::load_commands(string incoming_dir)
+        int32_t CommandQueue::load_commands(string incoming_dir)
         {
-            DIR *dir = NULL;
-            struct dirent *dir_entry = NULL;
+            DIR *dir = nullptr;
+            struct dirent *dir_entry = nullptr;
 
             // open the incoming directory
-            if ((dir = opendir((char *)incoming_dir.c_str())) == NULL)
+            if ((dir = opendir((char *)incoming_dir.c_str())) == nullptr)
             {
-                std::cout<<"error: unable to open node's incoming directory <"<<incoming_dir<<"> not found"<<std::endl;
-                return;
+                return GENERAL_ERROR_OPEN;
             }
 
             // cycle through all the file names in the incoming directory
-            while((dir_entry = readdir(dir)) != NULL)
+            while((dir_entry = readdir(dir)) != nullptr)
             {
                 string filename = dir_entry->d_name;
 
@@ -438,7 +440,7 @@ namespace Cosmos
                     std::ifstream infile(infilepath.c_str());
                     if(!infile.is_open())
                     {
-                        std::cout<<"unable to read file <"<<infilepath<<">"<<std::endl;
+//                        std::cout<<"unable to read file <"<<infilepath<<">"<<std::endl;
                         continue;
                     }
 
@@ -449,22 +451,24 @@ namespace Cosmos
                     while(getline(infile,line))
                     {
                         cmd.set_command(line);
-                        std::cout << "Command added: " << cmd;
 
                         if(cmd.is_command())
+                        {
+//                            std::cout << "Command added: " << cmd;
                             add_command(cmd);
-                        else
-                            std::cout<<"Not a command!"<<std::endl;
+                        }
+//                        else
+//                            std::cout<<"Not a command!"<<std::endl;
                     }
                     infile.close();
 
                     //remove the .command file from incoming directory
                     if(remove(infilepath.c_str()))	{
-                        std::cout<<"unable to delete file <"<<filename<<">"<<std::endl;
+//                        std::cout<<"unable to delete file <"<<filename<<">"<<std::endl;
                         continue;
                     }
 
-                    std::cout<<"\nThe size of the command queue is: "<< get_command_size()<<std::endl;
+//                    std::cout<<"\nThe size of the command queue is: "<< get_command_size()<<std::endl;
                 }
             }
 
@@ -472,7 +476,7 @@ namespace Cosmos
 
             closedir(dir);
 
-            return;
+            return 0;
         }
         ///	Remove **all** matching Event from the queue
         /**
@@ -481,7 +485,7 @@ namespace Cosmos
 
             This function only removes events from the queue if the are exactly equal to the given Event.
         */
-        int CommandQueue::del_command(Event& c)
+        int32_t CommandQueue::del_command(Event& c)
         {
             size_t prev_sz = commands.size();
             for (std::list<Event>::iterator ii = commands.begin();
@@ -493,20 +497,8 @@ namespace Cosmos
             }
 
             queue_changed = true;
-            return static_cast<int>(prev_sz - commands.size());
+            return static_cast<int32_t>(prev_sz - commands.size());
 
-            //	int n = 0;
-            //    for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
-            //    {
-            //
-            //		if(c==*ii)
-            //		{
-            //            commands.erase(ii--);
-            //			n++;
-            //		}
-            //	}
-            //	queue_changed = true;
-            //	return n;
         }
 
         //! Remove Event from the queue based on position
@@ -516,7 +508,7 @@ namespace Cosmos
 
              This function removes events based on their queue position (0-indexed).
         */
-        int CommandQueue::del_command(int pos)
+        int32_t CommandQueue::del_command(int pos)
         {
             size_t prev_sz = commands.size();
             std::list<Event>::iterator b = commands.begin();
@@ -524,13 +516,23 @@ namespace Cosmos
             std::advance(b, pos);
             commands.erase(b);
             queue_changed = true;
-            return static_cast<int>(prev_sz - commands.size());
+            return static_cast<int32_t>(prev_sz - commands.size());
         }
 
-        void CommandQueue::add_command(Event& c)
+        int32_t CommandQueue::add_command(Event& c)
         {
+            // Replace if it matches an existing command, otherwise add to queue
+            for (std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii) {
+                if (c.get_name() == ii->get_name()) {
+                    *ii = c;
+                    queue_changed = true;
+                    return 0;
+                }
+            }
+
             commands.push_back(c);
             queue_changed = true;
+            return 1;
         }
 
         //!	Extraction operator

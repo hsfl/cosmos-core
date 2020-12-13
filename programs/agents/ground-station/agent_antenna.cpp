@@ -423,8 +423,7 @@ int main(int argc, char *argv[])
 
 int32_t request_get_state(string &req, string &response, Agent *)
 {
-    response = "[";
-    response += ' ' + to_mjd(currentmjd());
+    response = to_mjd(currentmjd());
     response += " C:" + to_bool(antconnected);
     response += " E:" + to_bool(antenabled);
     response += " Target: " + to_angle(target.azim, 'D');
@@ -654,6 +653,7 @@ void rotctl_loop()
     double utc = 0;
     socket_channel clientchannel;
     clientchannel.cudp = -1;
+    ElapsedTime et;
 
     while (agent->running())
     {
@@ -697,31 +697,62 @@ void rotctl_loop()
                         return;
                     }
                 } while (iretn < 0);
+                et.reset();
             }
 
             iretn = socket_recvfrom(clientchannel, command, 100);
             if (iretn > 0)
             {
+                printf("[%f] In: %s", et.split(), command.c_str());
                 switch (command[0])
                 {
+                case '\\':
+                    if (command.find("dump_state") != string::npos)
+                    {
+                        socket_sendto(clientchannel, "0 603 0.000000 360.000000 0.000000 180.000000\n");
+                        printf("Out: 0 603 0.000000 360.000000 0.000000 180.000000\n");
+                    }
+                break;
                 case 'q':
                 case 'Q':
                     // Disconnect
                     socket_sendto(clientchannel, "RPRT 0\n");
+                    printf("Out: RPRT 0\n");
                     iretn = socket_close(&clientchannel);
                     break;
                 case 'P':
                     // set_pos
                     sscanf(command.c_str() ,"%*s %f %f",&az, &el);
-                    target.azim = RADOF(az);
+                    if (az > 360.)
+                    {
+                        target.azim = RADOF(az-360.);
+                    }
+                    else if (az < 0.)
+                    {
+                        target.azim = RADOF(az+360.);
+                    }
+                    else
+                    {
+                        target.azim = RADOF(az);
+                    }
                     target.elev = RADOF(el);
                     trackflag = false;
                     socket_sendto(clientchannel, "RPRT 0\n");
+                    printf("Out: RPRT 0\n");
                     break;
                 case 'p':
                     // get_pos
-                    socket_sendto(clientchannel, to_double(DEGOF(current.azim), 6)+'\n');
+                    if (current.azim > D2PI)
+                    {
+                    socket_sendto(clientchannel, to_double(DEGOF(current.azim-D2PI), 6)+'\n');
+                    printf("Out: %s ", to_double(DEGOF(current.azim-D2PI), 6).c_str());
+                    }
+                    else {
+                        socket_sendto(clientchannel, to_double(DEGOF(current.azim), 6)+'\n');
+                        printf("Out: %s ", to_double(DEGOF(current.azim), 6).c_str());
+                    }
                     socket_sendto(clientchannel, to_double(DEGOF(current.elev), 6)+'\n');
+                    printf("%s\n", to_double(DEGOF(current.elev), 6).c_str());
                     break;
                 case 'M':
                     // move
@@ -752,6 +783,7 @@ void rotctl_loop()
                         trackel.update(utc, RADOF(el));
                         trackflag = true;
                         socket_sendto(clientchannel, "RPRT 0\n");
+                        printf("Out: RPRT 0\n");
                     }
                     break;
                 case 'S':
@@ -760,6 +792,7 @@ void rotctl_loop()
                     antenabled = false;
                     stop_antenna();
                     socket_sendto(clientchannel, "RPRT 0\n");
+                    printf("Out: RPRT 0\n");
                     break;
                 case 'K':
                     // park
@@ -767,10 +800,12 @@ void rotctl_loop()
                     target.elev = RADOF(90);
                     trackflag = false;
                     socket_sendto(clientchannel, "RPRT 0\n");
+                    printf("Out: RPRT 0\n");
                     break;
                 case 'R':
                     // reset
                     socket_sendto(clientchannel, "RPRT 0\n");
+                    printf("Out: RPRT 0\n");
                     break;
                 case 'D':
                     {
@@ -785,9 +820,11 @@ void rotctl_loop()
                                 dec *= -1;
                             }
                             socket_sendto(clientchannel, to_double(dec, 9)+'\n');
+                            printf("Out: %s\n", to_double(dec, 9).c_str());
                         }
                         else {
                             socket_sendto(clientchannel, "RPRT -1\n");
+                            printf("Out: RPRT -1\n");
                         }
                     }
                     break;
@@ -809,12 +846,17 @@ void rotctl_loop()
                             fdec = (fdec - min) * 60.;
 
                             socket_sendto(clientchannel, to_unsigned(deg)+'\n');
+                            printf("Out: %s ", to_unsigned(deg).c_str());
                             socket_sendto(clientchannel, to_unsigned(min)+'\n');
+                            printf("%s ", to_unsigned(min).c_str());
                             socket_sendto(clientchannel, to_double(fdec)+'\n');
+                            printf("%s ", to_double(fdec).c_str());
                             socket_sendto(clientchannel, to_unsigned(sign)+'\n');
+                            printf("%s\n", to_unsigned(sign).c_str());
                         }
                         else {
                             socket_sendto(clientchannel, "RPRT -1\n");
+                            printf("Out: RPRT -1\n");
                         }
                     }
                 case 'E':
@@ -829,9 +871,11 @@ void rotctl_loop()
                                 dec *= -1;
                             }
                             socket_sendto(clientchannel, to_double(dec, 9)+'\n');
+                            printf("Out: %s\n", to_double(dec, 9).c_str());
                         }
                         else {
                             socket_sendto(clientchannel, "RPRT -1\n");
+                            printf("Out: RPRT -1\n");
                         }
                     }
                     break;
@@ -851,11 +895,15 @@ void rotctl_loop()
                             double fdec = (dec - deg) * 60.;
 
                             socket_sendto(clientchannel, to_unsigned(deg)+'\n');
+                            printf("Out: %s ", to_unsigned(deg).c_str());
                             socket_sendto(clientchannel, to_double(fdec)+'\n');
+                            printf("%s ", to_double(fdec).c_str());
                             socket_sendto(clientchannel, to_unsigned(sign)+'\n');
+                            printf("%s\n", to_unsigned(sign).c_str());
                         }
                         else {
                             socket_sendto(clientchannel, "RPRT -1\n");
+                            printf("Out: RPRT -1\n");
                         }
                     }
                 }

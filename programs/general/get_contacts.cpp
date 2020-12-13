@@ -219,9 +219,9 @@ void proptrack(size_t index, double utcnow)
             track[index].visible = false;
             if (track[index].tca.elfrom >= minelev)
             {
-                printf("%s %13.5f [%6.1f %6.1f] AOS0: %.0f m/s %s\n", mjdToGregorian(track[index].aos.utc).c_str(), track[index].aos.utc, DEGOF(track[index].aos.azfrom), DEGOF(track[index].aos.elfrom), track[index].aos.close, track[index].name.c_str());
-                printf("%s %13.5f [%6.1f %6.1f] TCA: %4.0f sec %s\n", mjdToGregorian(track[index].tca.utc).c_str(), track[index].tca.utc, DEGOF(track[index].tca.azfrom), DEGOF(track[index].tca.elfrom), 86400.*(utcnow-track[index].startutc), track[index].name.c_str());
-                printf("%s %13.5f [%6.1f %6.1f] LOS0: %4.0f sec %.0f m/s %s\n", mjdToGregorian(track[index].los.utc).c_str(), track[index].los.utc, DEGOF(track[index].los.azfrom), DEGOF(track[index].los.elfrom), 86400.*(utcnow-track[index].startutc), track[index].los.close, track[index].name.c_str());
+                printf("%s AOS0: %s %13.5f [ %6.1f %6.1f ] ", track[index].name.c_str(), mjdToGregorian(track[index].aos.utc).c_str(), track[index].aos.utc, DEGOF(track[index].aos.azfrom), DEGOF(track[index].aos.elfrom));
+                printf("TCA[ %3.0f ]: %s %13.5f [ %6.1f %6.1f ] ", 86400.*(track[index].tca.utc-track[index].startutc), mjdToGregorian(track[index].tca.utc).c_str(), track[index].tca.utc, DEGOF(track[index].tca.azfrom), DEGOF(track[index].tca.elfrom));
+                printf("LOS0[ %3.0f ]: %s %13.5f [ %6.1f %6.1f ]\n", 86400.*(utcnow-track[index].startutc), mjdToGregorian(track[index].los.utc).c_str(), track[index].los.utc, DEGOF(track[index].los.azfrom), DEGOF(track[index].los.elfrom));
                 fflush(stdout);
             }
         }

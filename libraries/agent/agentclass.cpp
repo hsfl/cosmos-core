@@ -724,8 +724,6 @@ namespace Support
 
         cinfo->agent[0].beat.port = cinfo->agent[0].req.cport;
 
-        //bufferin.resize(cinfo->agent[0].beat.bsz);
-
         while (cinfo->agent[0].stateflag) {
         	bufferin.resize(cinfo->agent[0].beat.bsz);
             iretn = recvfrom(cinfo->agent[0].req.cudp, &bufferin[0], bufferin.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, (socklen_t *)&cinfo->agent[0].req.addrlen);
@@ -733,7 +731,6 @@ namespace Support
             if (iretn > 0) {
                 string bufferout;
                 bufferin[iretn] = 0;
-				// Eric's proposed fix
 				bufferin.resize(iretn+1);
                 process_request(bufferin, bufferout);
             }

@@ -548,18 +548,19 @@ string lookup_node_id_name(PACKET_NODE_ID_TYPE node_id)
 
 int32_t load_nodeids()
 {
-    //    int32_t iretn;
-    //    char name[100];
     char buf[103];
     if (nodeids.size() == 0)
     {
         FILE *fp = data_open(get_cosmosnodes()+"/nodeids.ini", "rb");
         if (fp)
         {
-            nodeids.resize(256);
-            uint16_t index = 1;
+            uint16_t max_index = 0;
+            vector<uint16_t> tindex;
+            vector<string> tnodeid;
             while (fgets(buf, 102, fp) != nullptr)
             {
+                uint16_t index = 0;
+                string nodeid;
                 if (buf[strlen(buf)-1] == '\n')
                 {
                     buf[strlen(buf)-1] = 0;
@@ -568,28 +569,40 @@ int32_t load_nodeids()
                 {
                     buf[1] = 0;
                     index = atoi(buf);
-                    nodeids[index] = &buf[2];
+                    nodeid = &buf[2];
                 }
                 else if (buf[2] == ' ')
                 {
                     buf[2] = 0;
                     index = atoi(buf);
-                    nodeids[index] = &buf[3];
+                    nodeid = &buf[3];
                 }
                 else if (buf[3] == ' ')
                 {
                     buf[3] = 0;
                     index = atoi(buf);
-                    nodeids[index] = &buf[4];
+                    nodeid = &buf[4];
                 }
                 else
                 {
                     index = 0;
                 }
-                //                sscanf(buf, "%u %s\n", &index, name);
-                //                nodeids[index] = name;
+                if (index)
+                {
+                    if (index > max_index)
+                    {
+                        max_index = index;
+                    }
+                    tindex.push_back(index);
+                    tnodeid.push_back(nodeid);
+                }
             }
-            nodeids.resize(index);
+            fclose(fp);
+            nodeids.resize(max_index+1);
+            for (uint16_t i=0; i<tindex.size(); ++i)
+            {
+                nodeids[tindex[i]] = tnodeid[i];
+            }
         }
         else
         {
