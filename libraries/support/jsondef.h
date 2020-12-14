@@ -3931,6 +3931,9 @@ struct cosmosstruc
 
 		void add_default_names()	{
 cout<<"add default names..."<<endl;
+			// the whole she-bang
+			add_name("cinfo", this, "cosmosstruc");
+
 			// double timestamp
 			add_name("timestamp", &timestamp, "double");
 
@@ -3963,7 +3966,6 @@ cout<<"add default names..."<<endl;
 				add_name(basename+".value", &equation[i].value, "string");
 			}
 
-cout<<"adding node default names..."<<endl;
 			// nodestruc node
 			add_name("node", &node, "nodestruc");
 			add_name("node.name", &node.name, "char[]");
@@ -4635,9 +4637,7 @@ cout<<"adding node default names..."<<endl;
 				}
 			}
 
-cout<<"done adding node default names..."<<endl;
 
-cout<<"adding vertexs default names..."<<endl;
 			// vector<vertexstruc> vertexs
 			add_name("vertexs", &vertexs, "vector<vertexstruc>");
 			for(size_t i = 0; i < vertexs.capacity(); ++i) {
@@ -4649,9 +4649,6 @@ cout<<"adding vertexs default names..."<<endl;
 				add_name(basename+".w", &vertexs[i].w, "double");
 			}
 
-cout<<"done adding vertexs default names..."<<endl;
-
-cout<<"adding normals default names..."<<endl;
 			// vector<vertexstruc> normals
 			add_name("normals", &normals, "vector<vertexstruc>");
 			for(size_t i = 0; i < normals.capacity(); ++i) {
@@ -4662,10 +4659,6 @@ cout<<"adding normals default names..."<<endl;
 				add_name(basename+".z", &normals[i].z, "double");
 				add_name(basename+".w", &normals[i].w, "double");
 			}
-
-cout<<"done adding normals default names..."<<endl;
-
-cout<<"adding faces default names..."<<endl;
 
 			// vector<facestruc> faces
 			add_name("faces", &faces, "vector<facestruc>");
@@ -4691,9 +4684,6 @@ cout<<"adding faces default names..."<<endl;
 				add_name(basename+".area", &faces[i].area, "double");
 			}
 
-cout<<"done adding faces default names..."<<endl;
-
-cout<<"adding pieces default names..."<<endl;
 			// vector<piecestruc> pieces
 			add_name("pieces", &pieces, "vector<piecestruc>");
 			for(size_t i = 0; i < pieces.capacity(); ++i) {
@@ -4753,10 +4743,6 @@ cout<<"adding pieces default names..."<<endl;
 				add_name(basename+".material_specular.w", &pieces[i].material_specular.w, "double");
 			}
 			
-cout<<"done adding pieces default names..."<<endl;
-
-cout<<"adding obj default names..."<<endl;
-
 			// wavefront obj
 			add_name("obj", &obj, "wavefront");
 			add_name("obj.Vg", &obj.Vg, "vector<Vector>");
@@ -4909,8 +4895,6 @@ cout<<"adding obj default names..."<<endl;
 				add_name(basename+".com.w", &obj.Groups[i].com.w, "double");
 				add_name(basename+".volume", &obj.Groups[i].volume, "double");
 			}
-
-cout<<"done adding obj default names..."<<endl;
 
 			// vector<devicestruc> device
 			add_name("device", &device, "vector<devicestruc>");
@@ -6040,16 +6024,36 @@ cout<<"done adding obj default names..."<<endl;
 				if(!p[name].is_null())	{
 					if(name_exists(name))  {
 						string type = get_type(name);
-						if(type == "double")	{
+						if(type == "string")	{
+							set_value<string>(name, p[name].string_value());
+						} else if(type == "double")	{
 							set_value<double>(name, p[name].number_value());
 						} else if (type == "float")	{
 							set_value<float>(name, p[name].number_value());
 						} else if (type == "int")	{
 							set_value<int>(name, p[name].number_value());
-						} else if (type == "size_t")	{
-							set_value<size_t>(name, p[name].number_value());
+						} else if (type == "bool")	{
+							set_value<bool>(name, p[name].bool_value());
+						} else if (type == "uint32_t")	{
+							set_value<uint32_t>(name, p[name].int_value());
+						} else if (type == "int32_t")	{
+							set_value<int32_t>(name, p[name].int_value());
+						} else if (type == "uint16_t")	{
+							set_value<uint16_t>(name, p[name].int_value());
+						} else if (type == "int16_t")	{
+							set_value<int16_t>(name, p[name].int_value());
+						} else if (type == "uint8_t")	{
+							set_value<uint8_t>(name, p[name].int_value());
+						} else if (type == "int8_t")	{
+							set_value<int8_t>(name, p[name].int_value());
+
+	//etc.
+	//etc.
+	//etc.
+						} else if (type == "cosmosstruc")	{
+							get_pointer<cosmosstruc>(name)->from_json(json);
 						} else	{
-							//get_pointer<T>(s)->from_json(json);
+							//get_pointer<T>(name)->from_json(json);
 							return;
 						}
 					}
@@ -6122,8 +6126,6 @@ cout<<"done adding obj default names..."<<endl;
 					json = json11::Json::object { { s, this->get_value<float>(s) } };
 				} else if (type == "int")   {
 					json = json11::Json::object { { s, this->get_value<int>(s) } };
-				} else if (type == "char")  {
-					json = json11::Json::object { { s, this->get_value<char>(s) } };
 				} else if (type == "bool")  {
 					json = json11::Json::object { { s, this->get_value<bool>(s) } };
 				} else if (type == "uint32_t")  {
