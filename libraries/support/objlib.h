@@ -7,6 +7,10 @@
 using namespace Cosmos::Math::Vectors;
 using namespace Cosmos::Math::Quaternions;
 
+//* Maximum number of elements in cosmosstruc vectors
+//* TEMPORARY! Make sure to replace, SCOTTNOTE
+#define MAX_NUMBER_VEC_ELEM_TEMP 10
+
 
 namespace Cosmos
 {
@@ -50,6 +54,10 @@ namespace Cosmos
             vector <size_t> groups;
             size_t vertex = 0;
 
+            point() {
+                groups.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
+            }
+
             // Convert class contents to JSON object
             json11::Json to_json() const {
                 vector<double> d_groups(groups.begin(), groups.end());
@@ -82,6 +90,11 @@ namespace Cosmos
             vector <vertex> vertices;
             Vector centroid;
             double length = 0.;
+
+            line() {
+                groups.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
+                vertices.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
+            }
 
             // Convert class contents to JSON object
             json11::Json to_json() const {
@@ -122,6 +135,11 @@ namespace Cosmos
             Vector com;
             Vector normal;
             double area = 0.;
+
+            face() {
+                groups.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
+                vertices.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
+            }
 
             // Convert class contents to JSON object
             json11::Json to_json() const {
@@ -166,6 +184,12 @@ namespace Cosmos
             vector <size_t> faceidx;
             Vector com;
             double volume = 0;
+
+            group() {
+                pointidx.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
+                lineidx.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
+                faceidx.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
+            }
 
             // Convert class contents to JSON object
             json11::Json to_json() const {
