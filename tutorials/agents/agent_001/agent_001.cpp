@@ -77,6 +77,7 @@ int main(int argc, char **argv)
 
     string response; // Variable to store agent_002's response
 
+	agent->cinfo->add_default_names();
     // Start executing the agent
 	agent->cinfo->add_name("Short UTC", &agent->cinfo->node.loc.utc, "double");
 	agent->cinfo->add_name("Longest Ever UTC", &agent->cinfo->node.loc.utc, "double");
@@ -93,13 +94,17 @@ int main(int argc, char **argv)
 	//cout<<"cosmosdata       = <"<<agent->cinfo->get_json_pretty<cosmosstruc>("cosmosdata")<<">"<<endl;
 
 	agent->cinfo->add_name("My Favorite Users", &agent->cinfo->user, "vector<userstruc>");
-	cout<<"User Data       = <"<<agent->cinfo->get_json_pretty<vector<userstruc>>("My Favorite Users")<<">"<<endl;
+	cout<<"Old User Data       = <"<<agent->cinfo->get_json<vector<userstruc>>("My Favorite Users")<<">"<<endl;
 
-	cout<<"names = "<<agent->cinfo->names.size()<<endl;
-	agent->cinfo->add_default_names();
-	cout<<"names = "<<agent->cinfo->names.size()<<endl;
-	agent->cinfo->print_all_names_types_values();
-	cout<<"names = "<<agent->cinfo->names.size()<<endl;
+	string raw = "{\"My Favorite Users\": [{\"cpu\": \"\", \"name\": \"\", \"node\": \"\", \"tool\": \"\"},{\"cpu\": \"cpu2\", \"name\": \"name2\", \"node\": \"node2\", \"tool\": \"tool2\"}]}";
+	agent->cinfo->set_json(raw);
+	
+	cout<<"New User Data       = <"<<agent->cinfo->get_json<vector<userstruc>>("My Favorite Users")<<">"<<endl;
+	cout<<"New User Data       = <"<<agent->cinfo->get_json<userstruc>("user[1]")<<">"<<endl;
+	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
+	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
+	//agent->cinfo->print_all_names_types_values();
+	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
 
     while (agent->running()) {
 

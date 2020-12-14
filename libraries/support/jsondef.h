@@ -6050,6 +6050,13 @@ cout<<"add default names..."<<endl;
 	//etc.
 	//etc.
 	//etc.
+						} else if (type == "userstruc")	{
+							get_pointer<userstruc>(name)->from_json(json);
+						} else if (type == "vector<userstruc>")	{
+							for(size_t i = 0; i < get_pointer<vector<userstruc>>(name)->capacity(); ++i)	{
+								if(!p[name][i].is_null())	{ user[i].from_json(p[name][i].dump()); } 
+							}
+							cout<<"size == "<<get_pointer<vector<userstruc>>(name)->size()<<endl;
 						} else if (type == "cosmosstruc")	{
 							get_pointer<cosmosstruc>(name)->from_json(json);
 						} else	{
@@ -6060,48 +6067,6 @@ cout<<"add default names..."<<endl;
 				}
 			}
 		}
-/*
-		//void set_json(const string& s, const string& json) const 	{
-		void set_json(const string& s, const string& json) 	{
-			if(name_exists(s))  {
-				string type = get_type(s);
-				if(type == "string")	{
-					//get_pointer<string>(s)->from_json(json);
-				} else if (type == "double")	{
-					//get_pointer<double>(s)->from_json(json);
-				} else if (type == "float") {
-					//get_pointer<float>(s)->from_json(json);
-				} else if (type == "int")   {
-					//get_pointer<int>(s)->from_json(json);
-				} else if (type == "char")  {
-					//get_pointer<char>(s)->from_json(json);
-				} else if (type == "bool")  {
-					//get_pointer<bool>(s)->from_json(json);
-				} else if (type == "uint32_t")  {
-					//get_pointer<uint32_t>(s)->from_json(json);
-				} else if (type == "int32_t")   {
-					//get_pointer<int32_t>(s)->from_json(json);
-				} else if (type == "uint16_t")  {
-					//get_pointer<uint16_t>(s)->from_json(json);
-				} else if (type == "int16_t")   {
-					//get_pointer<int16_t>(s)->from_json(json);
-				} else if (type == "uint8_t")  {
-					//get_pointer<uint8_t>(s)->from_json(json);
-				} else if (type == "int8_t")   {
-					//get_pointer<int8_t>(s)->from_json(json);
-// etc...
-// etc...
-// etc...
-				} else if (type == "cosmosstruc")   {
-					get_pointer<cosmosstruc>(s)->from_json(json);
-				}
-
-				// add type logic
-			} else	{
-				return;
-			}
-		}
-*/
 
 		template<class T>
 		string get_json(const string& s)	{
@@ -6113,40 +6078,39 @@ cout<<"add default names..."<<endl;
 				}
 		}
 
-	   //template<class T>
 		string get_json(const string& s)	{
 			if(name_exists(s))  {
 				json11::Json json;
 				string type = get_type(s);
 				if(type == "string")	{
-					json = json11::Json::object { { s, this->get_value<string>(s) } };
+					json = json11::Json::object { { s, get_value<string>(s) } };
 				} else if (type == "double")	{
-					json = json11::Json::object { { s, this->get_value<double>(s) } };
+					json = json11::Json::object { { s, get_value<double>(s) } };
 				} else if (type == "float") {
-					json = json11::Json::object { { s, this->get_value<float>(s) } };
+					json = json11::Json::object { { s, get_value<float>(s) } };
 				} else if (type == "int")   {
-					json = json11::Json::object { { s, this->get_value<int>(s) } };
+					json = json11::Json::object { { s, get_value<int>(s) } };
 				} else if (type == "bool")  {
-					json = json11::Json::object { { s, this->get_value<bool>(s) } };
+					json = json11::Json::object { { s, get_value<bool>(s) } };
 				} else if (type == "uint32_t")  {
 					// ambiguous for json11 :(
-					//json = json11::Json::object { { s, this->get_value<uint32_t>(s) } };
-					json = json11::Json::object { { s, this->get_value<int>(s) } };
+					//json = json11::Json::object { { s, get_value<uint32_t>(s) } };
+					json = json11::Json::object { { s, get_value<int>(s) } };
 				} else if (type == "int32_t")   {
-					json = json11::Json::object { { s, this->get_value<int32_t>(s) } };
+					json = json11::Json::object { { s, get_value<int32_t>(s) } };
 				} else if (type == "uint16_t")   {
-					json = json11::Json::object { { s, this->get_value<uint16_t>(s) } };
+					json = json11::Json::object { { s, get_value<uint16_t>(s) } };
 				} else if (type == "int16_t")   {
-					json = json11::Json::object { { s, this->get_value<int16_t>(s) } };
+					json = json11::Json::object { { s, get_value<int16_t>(s) } };
 				} else if (type == "uint8_t")   {
-					json = json11::Json::object { { s, this->get_value<uint8_t>(s) } };
+					json = json11::Json::object { { s, get_value<uint8_t>(s) } };
 				} else if (type == "int8_t")   {
-					json = json11::Json::object { { s, this->get_value<int8_t>(s) } };
+					json = json11::Json::object { { s, get_value<int8_t>(s) } };
 // etc...
 // etc...
 // etc...
 				} else if (type == "cosmosstruc")   {
-					json = json11::Json::object { { s, this->get_value<cosmosstruc>(s) } };
+					json = json11::Json::object { { s, get_value<cosmosstruc>(s) } };
 				}
 				return json.dump();
 			} else {
@@ -6261,36 +6225,36 @@ cout<<"add default names..."<<endl;
 						}
 						if(!p[obj]["node"].is_null())	node.from_json(p[obj]["node"].dump());
 						for(size_t i = 0; i < vertexs.size(); ++i)	{
-								if(!p[obj]["vertexs"][i].is_null())	vertexs[i].from_json(p[obj]["vertexs"][i].dump());
+							if(!p[obj]["vertexs"][i].is_null())	vertexs[i].from_json(p[obj]["vertexs"][i].dump());
 						}
 						for(size_t i = 0; i < normals.size(); ++i)	{
-								if(!p[obj]["normals"][i].is_null())	normals[i].from_json(p[obj]["normals"][i].dump());
+							if(!p[obj]["normals"][i].is_null())	normals[i].from_json(p[obj]["normals"][i].dump());
 						}
 			for(size_t i = 0; i < faces.size(); ++i)	{
-								if(!p[obj]["faces"][i].is_null())	faces[i].from_json(p[obj]["faces"][i].dump());
+							if(!p[obj]["faces"][i].is_null())	faces[i].from_json(p[obj]["faces"][i].dump());
 						}
 			if(!p["obj"].is_null()) cosmosstruc::obj.from_json(p[obj]["obj"].dump());
 			for(size_t i = 0; i < device.size(); ++i)	{
-								if(!p[obj]["device"][i].is_null())	device[i].from_json(p[obj]["device"][i].dump());
+							if(!p[obj]["device"][i].is_null())	device[i].from_json(p[obj]["device"][i].dump());
 						}
 			if(!p[obj]["devspec"].is_null()) devspec.from_json(p[obj]["devspec"].dump());
 			for(size_t i = 0; i < port.size(); ++i)	{
-								if(!p[obj]["port"][i].is_null())	port[i].from_json(p[obj]["port"][i].dump());
+							if(!p[obj]["port"][i].is_null())	port[i].from_json(p[obj]["port"][i].dump());
 						}
 			for(size_t i = 0; i < agent.size(); ++i)	{
-								if(!p[obj]["agent"][i].is_null())	agent[i].from_json(p[obj]["agent"][i].dump());
+							if(!p[obj]["agent"][i].is_null())	agent[i].from_json(p[obj]["agent"][i].dump());
 						}
 			for(size_t i = 0; i < event.size(); ++i)	{
-								if(!p[obj]["event"][i].is_null())	event[i].from_json(p[obj]["event"][i].dump());
+							if(!p[obj]["event"][i].is_null())	event[i].from_json(p[obj]["event"][i].dump());
 						}
 			for(size_t i = 0; i < target.size(); ++i)	{
-								if(!p[obj]["target"][i].is_null())	target[i].from_json(p[obj]["target"][i].dump());
+							if(!p[obj]["target"][i].is_null())	target[i].from_json(p[obj]["target"][i].dump());
 						}
 						for(size_t i = 0; i < user.size(); ++i)	{
-								if(!p[obj]["user"][i].is_null())	user[i].from_json(p[obj]["user"][i].dump());
+							if(!p[obj]["user"][i].is_null())	user[i].from_json(p[obj]["user"][i].dump());
 						}
 						for(size_t i = 0; i < tle.size(); ++i)	{
-								if(!p[obj]["tle"][i].is_null())	tle[i].from_json(p[obj]["tle"][i].dump());
+							if(!p[obj]["tle"][i].is_null())	tle[i].from_json(p[obj]["tle"][i].dump());
 						}
 						//if(!p[obj]["json"].is_null())	json.from_json(p[obj]["json"].dump());
 				} else {

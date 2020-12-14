@@ -142,6 +142,19 @@ int main(int argc, char **argv)
 	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
 		cout<<"  response = <"<<res<<">"<<endl;
 
+		//req.clear();
+		//req =R"set_value {"My Favorite Users": [{"cpu": "", "name": "", "node": "", "tool": ""},{"cpu": "cpu2", "name": "name2", "node": "node2", "tool": "tool2"}]}";
+		//cout<<"  request  = <"<<req<<">"<<endl;
+		//res.clear();
+	   	//agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+		//cout<<"  response = <"<<res<<">"<<endl;
+
+		req.clear();
+		req = "get_value \"user\"";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
 
 		// try out agent_calc
 		//string request5 = "add 3 4";

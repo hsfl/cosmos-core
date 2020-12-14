@@ -426,7 +426,7 @@ void json_init_reserve(cosmosstruc* cinfo) {
     cinfo->normals.reserve(MAX_NUMBER_OF_NORMALS);
 
     cinfo->user.reserve(MAX_NUMBER_OF_USERS);
-    cinfo->user.resize(1);
+    cinfo->user.resize(MAX_NUMBER_OF_USERS);
 
     cinfo->agent.reserve(MAX_NUMBER_OF_AGENTS);
     cinfo->agent.resize(1);
