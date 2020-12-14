@@ -427,7 +427,7 @@ void json_init_reserve(cosmosstruc* cinfo) {
     cinfo->vertexs.reserve(MAX_NUMBER_OF_VERTEXS);
     cinfo->normals.reserve(MAX_NUMBER_OF_NORMALS);
 
-    cinfo->faces.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
+    //cinfo->faces.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
     cinfo->pieces.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
     cinfo->device.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
 

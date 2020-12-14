@@ -1000,9 +1000,9 @@ struct agentstruc
 	//! Heartbeat
 	beatstruc beat;
 
-	agentstruc() {
-		reqs.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
-	}
+	//agentstruc() {
+		//reqs.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
+	//}
 
 	// Convert class contents to JSON object
 	json11::Json to_json() const {
@@ -2969,9 +2969,9 @@ struct trianglestruc
 	vector<vector<uint16_t>> triangleindex;
 
 	// Reserve fixed-sized vectors
-	trianglestruc() {
-		triangleindex.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
-	}
+	//trianglestruc() {
+		//triangleindex.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
+	//}
 
 	// Convert class contents to JSON object
 	json11::Json to_json() const {
@@ -3902,8 +3902,8 @@ struct cosmosstruc
 			}
 			return;
 		}
-
 //*/
+
 		vector<string> get_all_names() const	{
 			vector<string> all_names;
 			name_map::const_iterator it = names.begin();
@@ -3943,7 +3943,7 @@ struct cosmosstruc
 		}
 
 		void add_default_names()	{
-
+cout<<"add default names..."<<endl;
 			// double timestamp
 			add_name("timestamp", &timestamp, "double");
 
@@ -3976,6 +3976,7 @@ struct cosmosstruc
 				add_name(basename+".value", &equation[i].value, "string");
 			}
 
+cout<<"adding node default names..."<<endl;
 			// nodestruc node
 			add_name("node", &node, "nodestruc");
 			add_name("node.name", &node.name, "char[]");
@@ -4647,7 +4648,9 @@ struct cosmosstruc
 				}
 			}
 
+cout<<"done adding node default names..."<<endl;
 
+cout<<"adding vertexs default names..."<<endl;
 			// vector<vertexstruc> vertexs
 			add_name("vertexs", &vertexs, "vector<vertexstruc>");
 			for(size_t i = 0; i < vertexs.capacity(); ++i) {
@@ -4659,7 +4662,9 @@ struct cosmosstruc
 				add_name(basename+".w", &vertexs[i].w, "double");
 			}
 
+cout<<"done adding vertexs default names..."<<endl;
 
+cout<<"adding normals default names..."<<endl;
 			// vector<vertexstruc> normals
 			add_name("normals", &normals, "vector<vertexstruc>");
 			for(size_t i = 0; i < normals.capacity(); ++i) {
@@ -4671,6 +4676,9 @@ struct cosmosstruc
 				add_name(basename+".w", &normals[i].w, "double");
 			}
 
+cout<<"done adding normals default names..."<<endl;
+
+cout<<"adding faces default names..."<<endl;
 
 			// vector<facestruc> faces
 			add_name("faces", &faces, "vector<facestruc>");
@@ -4696,7 +4704,9 @@ struct cosmosstruc
 				add_name(basename+".area", &faces[i].area, "double");
 			}
 
+cout<<"done adding faces default names..."<<endl;
 
+cout<<"adding pieces default names..."<<endl;
 			// vector<piecestruc> pieces
 			add_name("pieces", &pieces, "vector<piecestruc>");
 			for(size_t i = 0; i < pieces.capacity(); ++i) {
@@ -4756,6 +4766,9 @@ struct cosmosstruc
 				add_name(basename+".material_specular.w", &pieces[i].material_specular.w, "double");
 			}
 			
+cout<<"done adding pieces default names..."<<endl;
+
+cout<<"adding obj default names..."<<endl;
 
 			// wavefront obj
 			add_name("obj", &obj, "wavefront");
@@ -4910,6 +4923,7 @@ struct cosmosstruc
 				add_name(basename+".volume", &obj.Groups[i].volume, "double");
 			}
 
+cout<<"done adding obj default names..."<<endl;
 
 			// vector<devicestruc> device
 			add_name("device", &device, "vector<devicestruc>");
@@ -6029,9 +6043,83 @@ struct cosmosstruc
 				*get_pointer<T>(s) = value;
 		}
 
+		// should have non-templated version as well
+		//template<class T>
+		void set_json(const string& json) 	{
+			string error;
+			json11::Json p = json11::Json::parse(json,error);
+			string name(p.object_items().begin()->first);
+			if(error.empty()) {
+				if(!p[name].is_null())	{
+					if(name_exists(name))  {
+						string type = get_type(name);
+						if(type == "double")	{
+							set_value<double>(name, p[name].number_value());
+						} else if (type == "float")	{
+							set_value<float>(name, p[name].number_value());
+						} else if (type == "int")	{
+							set_value<int>(name, p[name].number_value());
+						} else if (type == "size_t")	{
+							set_value<size_t>(name, p[name].number_value());
+						} else	{
+							//get_pointer<T>(s)->from_json(json);
+							return;
+						}
+					}
+				}
+			}
+		}
+/*
+		//void set_json(const string& s, const string& json) const 	{
+		void set_json(const string& s, const string& json) 	{
+			if(name_exists(s))  {
+				string type = get_type(s);
+				if(type == "string")	{
+					//get_pointer<string>(s)->from_json(json);
+				} else if (type == "double")	{
+					//get_pointer<double>(s)->from_json(json);
+				} else if (type == "float") {
+					//get_pointer<float>(s)->from_json(json);
+				} else if (type == "int")   {
+					//get_pointer<int>(s)->from_json(json);
+				} else if (type == "char")  {
+					//get_pointer<char>(s)->from_json(json);
+				} else if (type == "bool")  {
+					//get_pointer<bool>(s)->from_json(json);
+				} else if (type == "uint32_t")  {
+					//get_pointer<uint32_t>(s)->from_json(json);
+				} else if (type == "int32_t")   {
+					//get_pointer<int32_t>(s)->from_json(json);
+				} else if (type == "uint16_t")  {
+					//get_pointer<uint16_t>(s)->from_json(json);
+				} else if (type == "int16_t")   {
+					//get_pointer<int16_t>(s)->from_json(json);
+				} else if (type == "uint8_t")  {
+					//get_pointer<uint8_t>(s)->from_json(json);
+				} else if (type == "int8_t")   {
+					//get_pointer<int8_t>(s)->from_json(json);
+// etc...
+// etc...
+// etc...
+				} else if (type == "cosmosstruc")   {
+					get_pointer<cosmosstruc>(s)->from_json(json);
+				}
+
+				// add type logic
+			} else	{
+				return;
+			}
+		}
+*/
+
 		template<class T>
-		void set_json(const string& s, const string& json) const 	{
-				get_pointer<T>(s)->from_json(json);
+		string get_json(const string& s)	{
+				if(name_exists(s))	{
+						json11::Json json = json11::Json::object { { s, this->get_value<T>(s) } };
+						return json.dump();
+				} else {
+						return "";
+				}
 		}
 
 	   //template<class T>
@@ -6075,18 +6163,6 @@ struct cosmosstruc
 			} else {
 					return "";
 			}
-		}
-
-
-
-		template<class T>
-		string get_json(const string& s)	{
-				if(name_exists(s))	{
-						json11::Json json = json11::Json::object { { s, this->get_value<T>(s) } };
-						return json.dump();
-				} else {
-						return "";
-				}
 		}
 
 		void replace(std::string& str, const std::string& from, const std::string& to) {

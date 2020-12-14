@@ -81,20 +81,31 @@ int main(int argc, char **argv)
 	agent->cinfo->add_name("Short UTC", &agent->cinfo->node.loc.utc, "double");
 	agent->cinfo->add_name("Longest Ever UTC", &agent->cinfo->node.loc.utc, "double");
 	agent->cinfo->set_value<double>("Short UTC", 213.0);
+
+	// test set_json with double
+	//agent->cinfo->set_json("Short UTC", "{\"Short UTC\": 214.5}");
+	agent->cinfo->set_json("{\"Short UTC\": 214.5}");
+
 	cout<<"Short UTC        = <"<<agent->cinfo->get_value<double>("Short UTC")<<">"<<endl;
 	cout<<"Longest Ever UTC = <"<<agent->cinfo->get_value<double>("Longest Ever UTC")<<">"<<endl;
 
 	agent->cinfo->add_name("cosmosdata", &*agent->cinfo, "cosmosstruc");
-	cout<<"cosmosdata       = <"<<agent->cinfo->get_json_pretty<cosmosstruc>("cosmosdata")<<">"<<endl;
+	//cout<<"cosmosdata       = <"<<agent->cinfo->get_json_pretty<cosmosstruc>("cosmosdata")<<">"<<endl;
 
 	agent->cinfo->add_name("My Favorite Users", &agent->cinfo->user, "vector<userstruc>");
 	cout<<"User Data       = <"<<agent->cinfo->get_json_pretty<vector<userstruc>>("My Favorite Users")<<">"<<endl;
 
+	cout<<"names = "<<agent->cinfo->names.size()<<endl;
+	agent->cinfo->add_default_names();
+	cout<<"names = "<<agent->cinfo->names.size()<<endl;
+	agent->cinfo->print_all_names_types_values();
+	cout<<"names = "<<agent->cinfo->names.size()<<endl;
+
     while (agent->running()) {
 
+		cout<<"["<<node_name<<":"<<agent_name<<"] running..."<<endl;
 /* old tests
 		string target_request_name = "any_body_out_there";
-		cout<<"["<<node_name<<":"<<agent_name<<"] running..."<<endl;
 		agent->cinfo->set_value<double>("Cooler UTC", 99.99);
 		cout<<"\tUTC == "<< agent->cinfo->node.loc.utc <<endl;
 		cout<<"\tCooler UTC == "<< agent->cinfo->get_value<double>("Cooler UTC")<<endl;
