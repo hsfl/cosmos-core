@@ -415,8 +415,6 @@ void json_init_reserve(cosmosstruc* cinfo) {
 	// reserve/resize fixed-sized vectors
     cinfo->unit.reserve(JSON_UNIT_COUNT);
 
-    cinfo->equation.reserve(MAX_NUMBER_OF_EQUATIONS);
-
     cinfo->jmap.resize(JSON_MAX_HASH);
     cinfo->emap.resize(JSON_MAX_HASH);
 
@@ -427,22 +425,19 @@ void json_init_reserve(cosmosstruc* cinfo) {
     cinfo->vertexs.reserve(MAX_NUMBER_OF_VERTEXS);
     cinfo->normals.reserve(MAX_NUMBER_OF_NORMALS);
 
-    //cinfo->faces.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
-    cinfo->pieces.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
-    cinfo->device.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
-
-    cinfo->port.reserve(MAX_NUMBER_OF_PORTS);
+    cinfo->user.reserve(MAX_NUMBER_OF_USERS);
+    cinfo->user.resize(1);
 
     cinfo->agent.reserve(MAX_NUMBER_OF_AGENTS);
     cinfo->agent.resize(1);
 
+    cinfo->equation.reserve(MAX_NUMBER_OF_EQUATIONS);
+
     cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
     cinfo->event.resize(1);
 
-    cinfo->target.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
 
-    cinfo->user.reserve(MAX_NUMBER_OF_USERS);
-    cinfo->user.resize(1);
+    cinfo->port.reserve(MAX_NUMBER_OF_PORTS);
 
 	cinfo->tle.reserve(MAX_NUMBER_OF_TLES);
 	return;
@@ -460,9 +455,9 @@ cosmosstruc* json_init()
 
 	json_init_device_type_string();
 // would be nice to have unit test for these three guys
+	//SCOTTNOTE: reserve capacity for all vectors in these strucs
 	cinfo->node = nodestruc();
     cinfo->node.phys = physicsstruc();
-    cinfo->obj = wavefront();
 	cinfo->devspec = devspecstruc();
 
 	json_init_reserve(cinfo);

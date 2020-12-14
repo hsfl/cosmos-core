@@ -479,10 +479,6 @@ enum {
 //* Maximum number of TLES
 #define MAX_NUMBER_OF_TLES 5
 
-//* Maximum number of elements in cosmosstruc vectors
-//* TEMPORARY! Make sure to replace, SCOTTNOTE
-#define MAX_NUMBER_VEC_ELEM_TEMP 10
-
 //! @}
 //! \ingroup defs
 //! \defgroup defs_comp Constants defining Components.
@@ -999,10 +995,6 @@ struct agentstruc
 	vector <agent_request_entry> reqs;
 	//! Heartbeat
 	beatstruc beat;
-
-	//agentstruc() {
-		//reqs.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
-	//}
 
 	// Convert class contents to JSON object
 	json11::Json to_json() const {
@@ -2967,11 +2959,6 @@ struct trianglestruc
 	//! Solar cell efficiency with temp
 	float ecellslope = 0.f;
 	vector<vector<uint16_t>> triangleindex;
-
-	// Reserve fixed-sized vectors
-	//trianglestruc() {
-		//triangleindex.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
-	//}
 
 	// Convert class contents to JSON object
 	json11::Json to_json() const {

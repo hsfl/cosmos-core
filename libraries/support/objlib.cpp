@@ -6,30 +6,18 @@ namespace Cosmos {
     wavefront::wavefront()
     {
         Vg.clear();
-        Vg.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
         Vg.push_back(Vector());
-        
         Vt.clear();
-        Vt.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
         Vt.push_back(Vector());
-
         Vn.clear();
-        Vn.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
         Vn.push_back(Vector());
-
         Vp.clear();
-        Vp.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
         Vp.push_back(Vector());
-
         Points.clear();
-        Points.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
         Lines.clear();
-        Lines.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
         Faces.clear();
-        Faces.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
 
         Materials.clear();
-        Materials.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
         material tmaterial;
         tmaterial.name = "Any";
         tmaterial.density = 1.;
@@ -38,7 +26,6 @@ namespace Cosmos {
         Materials.push_back(tmaterial);
 
         Groups.clear();
-        Groups.reserve(MAX_NUMBER_VEC_ELEM_TEMP);
         group tgroup;
         tgroup.name = "All";
         Groups.push_back(tgroup);
