@@ -6034,6 +6034,51 @@ struct cosmosstruc
 				get_pointer<T>(s)->from_json(json);
 		}
 
+	   //template<class T>
+		string get_json(const string& s)	{
+			if(name_exists(s))  {
+				json11::Json json;
+				string type = get_type(s);
+				if(type == "string")	{
+					json = json11::Json::object { { s, this->get_value<string>(s) } };
+				} else if (type == "double")	{
+					json = json11::Json::object { { s, this->get_value<double>(s) } };
+				} else if (type == "float") {
+					json = json11::Json::object { { s, this->get_value<float>(s) } };
+				} else if (type == "int")   {
+					json = json11::Json::object { { s, this->get_value<int>(s) } };
+				} else if (type == "char")  {
+					json = json11::Json::object { { s, this->get_value<char>(s) } };
+				} else if (type == "bool")  {
+					json = json11::Json::object { { s, this->get_value<bool>(s) } };
+				} else if (type == "uint32_t")  {
+					// ambiguous for json11 :(
+					//json = json11::Json::object { { s, this->get_value<uint32_t>(s) } };
+					json = json11::Json::object { { s, this->get_value<int>(s) } };
+				} else if (type == "int32_t")   {
+					json = json11::Json::object { { s, this->get_value<int32_t>(s) } };
+				} else if (type == "uint16_t")   {
+					json = json11::Json::object { { s, this->get_value<uint16_t>(s) } };
+				} else if (type == "int16_t")   {
+					json = json11::Json::object { { s, this->get_value<int16_t>(s) } };
+				} else if (type == "uint8_t")   {
+					json = json11::Json::object { { s, this->get_value<uint8_t>(s) } };
+				} else if (type == "int8_t")   {
+					json = json11::Json::object { { s, this->get_value<int8_t>(s) } };
+// etc...
+// etc...
+// etc...
+				} else if (type == "cosmosstruc")   {
+					json = json11::Json::object { { s, this->get_value<cosmosstruc>(s) } };
+				}
+				return json.dump();
+			} else {
+					return "";
+			}
+		}
+
+
+
 		template<class T>
 		string get_json(const string& s)	{
 				if(name_exists(s))	{

@@ -1134,6 +1134,8 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
             names.push_back(name);
         }
     }
+	// response comes to here with the request function name inside it? it that a bug or a feature?
+	response.clear();
     for(size_t i = 0; i < names.size(); ++i)   {
 		// look up type
 
@@ -1141,7 +1143,52 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
 		//response = to_string(agent->cinfo->get_value<double>(names[0]));
 
 		// get json value
-		response = agent->cinfo->get_json<double>(names[i]);
+		// SCOTTNOTE:  need to work out *all* the types
+		//string type = agent->cinfo->get_type(names[i]);
+		//if(type == "double")	{
+		//	response += agent->cinfo->get_json<double>(names[i]);
+			response += agent->cinfo->get_json(names[i]);
+			/*
+		} else if (type == "float")	{
+			response += agent->cinfo->get_json<float>(names[i]);
+		} else if (type == "int")	{
+			response += agent->cinfo->get_json<int>(names[i]);
+		} else if (type == "size_t")	{
+			response += agent->cinfo->get_json<size_t>(names[i]);
+		} else if (type == "uint32_t")	{
+			response += agent->cinfo->get_json<uint32_t>(names[i]);
+		} else if (type == "int32_t")	{
+			response += agent->cinfo->get_json<int32_t>(names[i]);
+		} else if (type == "uint16_t")	{
+			response += agent->cinfo->get_json<uint16_t>(names[i]);
+		} else if (type == "int16_t")	{
+			response += agent->cinfo->get_json<int16_t>(names[i]);
+		} else if (type == "uint8_t")	{
+			response += agent->cinfo->get_json<uint8_t>(names[i]);
+		} else if (type == "int8_t")	{
+			response += agent->cinfo->get_json<int8_t>(names[i]);
+		} else if (type == "char")	{
+			response += agent->cinfo->get_json<char>(names[i]);
+		} else if (type == "string")	{
+			response += agent->cinfo->get_json<string>(names[i]);
+		} else if (type == "cosmosstruc")	{
+			response += agent->cinfo->get_json<cosmosstruc>(names[i]);
+		} else if (type == "cosmosstruc")	{
+			response += agent->cinfo->get_json<cosmosstruc>(names[i]);
+		} else if (type == "cosmosstruc")	{
+			response += agent->cinfo->get_json<cosmosstruc>(names[i]);
+		} else if (type == "cosmosstruc")	{
+			response += agent->cinfo->get_json<cosmosstruc>(names[i]);
+		} else if (type == "cosmosstruc")	{
+			response += agent->cinfo->get_json<cosmosstruc>(names[i]);
+		} else if (type == "cosmosstruc")	{
+			response += agent->cinfo->get_json<cosmosstruc>(names[i]);
+		} else if (type == "cosmosstruc")	{
+			response += agent->cinfo->get_json<cosmosstruc>(names[i]);
+		} else if (type == "cosmosstruc")	{
+			response += agent->cinfo->get_json<cosmosstruc>(names[i]);
+		}
+*/
 	}
 	cout<<"req_get_value():outgoing response         = <"<<response<<">"<<endl;
 	return 0;

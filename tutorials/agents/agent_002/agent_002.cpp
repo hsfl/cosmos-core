@@ -52,8 +52,8 @@ static Agent* agent;
 /// Program to demonstrate inter-communication between agents
 int main(int argc, char **argv)
 {
-		int jah = 420;
-		int jah2 = 240;
+		//int jah = 420;
+		//int jah2 = 240;
     // construct agent 
 	cout << node_agent_name <<" starting..."<<endl;
 	agent = new Agent(node_name, agent_name, 1.);
@@ -128,6 +128,20 @@ int main(int argc, char **argv)
 		cout<<"  request  = <"<<request7<<">"<<endl;
 	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), request7, response7, 2.);
 		cout<<"  response = <"<<response7<<">"<<endl;
+
+		string req = "get_value \"Longest Ever UTC\" \"Short UTC\"";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		string res;
+	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+
+		req.clear();
+		req = "get_value \"cosmosdata\"";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+
 
 		// try out agent_calc
 		//string request5 = "add 3 4";
