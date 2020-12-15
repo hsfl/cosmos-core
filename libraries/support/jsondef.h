@@ -3841,16 +3841,17 @@ struct cosmosstruc
 		double	y_acc = 0.0;
 		double	z_acc = 0.0;
 
-		// attitude
-		double	pitch = 0.0;
-		double	roll =  0.0;
-		double	yaw =   0.0;
-
 		// waypoint
 		double	t_way = 0.0;
 		double	x_way = 0.0;
 		double	y_way = 0.0;
 		double	z_way = 0.0;
+
+		// attitude
+		double	pitch = 0.0;
+		double	roll =  0.0;
+		double	yaw =   0.0;
+
 
 
 		/// Support for Namespace 2.0
@@ -3966,7 +3967,36 @@ struct cosmosstruc
 		}
 
 		void add_default_names()	{
-cout<<"add default names..."<<endl;
+
+			// default names for Simulation
+			add_name("mass", &mass, "double");
+			add_name("density", &dens, "double");
+
+			add_name("t_position", &t_pos, "double");
+			add_name("x_position", &x_pos, "double");
+			add_name("y_position", &y_pos, "double");
+			add_name("z_position", &z_pos, "double");
+
+			add_name("t_velocity", &t_vel, "double");
+			add_name("x_velocity", &x_vel, "double");
+			add_name("y_velocity", &y_vel, "double");
+			add_name("z_velocity", &z_vel, "double");
+
+			add_name("t_acceleration", &t_acc, "double");
+			add_name("x_acceleration", &x_acc, "double");
+			add_name("y_acceleration", &y_acc, "double");
+			add_name("z_acceleration", &z_acc, "double");
+
+			add_name("t_waypoint", &t_way, "double");
+			add_name("x_waypoint", &x_way, "double");
+			add_name("y_waypoint", &y_way, "double");
+			add_name("z_waypoint", &z_way, "double");
+
+			add_name("pitch", &pitch, "double");
+			add_name("roll", &roll, "double");
+			add_name("yaw", &yaw, "double");
+
+
 			// the whole she-bang
 			add_name("cinfo", this, "cosmosstruc");
 
