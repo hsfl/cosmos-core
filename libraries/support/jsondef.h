@@ -3938,6 +3938,16 @@ struct cosmosstruc
 		// deprecate for now to force types to be known for all names
 		//void add_name(const string& s, void* v)	{ names.insert(name_mapping(s,v)); };
 
+		/// Adds a name, memory location, and datatype to Namespace 2.0
+		/** Associates a name with a specific memory location of the COSMOS Data Structure (::cosmosstruc) and a specific data type.  Multiple names may point to the same memory address.  Names may point to primative datatypes, user-defined objects, vectors of primitive datatypes, or vectors of user-defined objects.  Whitespace and all punctuation besides unescaped double quotes are supported for inclusion in names.
+
+		@param	s	string representing name of data
+		@param	v	void* representing memory address of data
+		@param	t	string representing datatype of data
+
+		@return	n/a
+			
+		*/
 		void add_name(const string& s, void* v, string t)	{
 			names.insert(name_mapping(s,v));
 			types.insert(type_mapping(s,t));
@@ -6088,7 +6098,7 @@ struct cosmosstruc
 					if(name_exists(name))  {
 						string type = get_type(name);
 
-	//// how to do a base data type
+	//// how to do a base data type (choices are string_value, number_value, integer_value, bool_value)
 						if(type == "string")	{
 							set_value<string>(name, p[name].string_value());
 						} else if(type == "double")	{
@@ -6130,6 +6140,9 @@ struct cosmosstruc
 						} else if (type == "cosmosstruc")	{
 							get_pointer<cosmosstruc>(name)->from_json(json);
 						} else	{
+							// I guess the type is not supported!
+							// could re-add templated version of set_json so user
+							// can explicitly call for given unsupported datatype
 							//get_pointer<T>(name)->from_json(json);
 							return;
 						}
