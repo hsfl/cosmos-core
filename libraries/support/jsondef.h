@@ -3817,6 +3817,42 @@ struct cosmosstruc
 	jsonnode json;
 
 
+	/// Support for Simulation (just for testing and integration)
+
+		// fictional mass and density
+		double mass = 1.0;
+		double dens = 1.0;
+
+		// position
+		double	t_pos = 0.0;
+		double	x_pos = 0.0;
+		double	y_pos = 0.0;
+		double	z_pos = 0.0;
+
+		// velocity
+		double	t_vel = 0.0;
+		double	x_vel = 0.0;
+		double	y_vel = 0.0;
+		double	z_vel = 0.0;
+
+		// acceleration
+		double	t_acc = 0.0;
+		double	x_acc = 0.0;
+		double	y_acc = 0.0;
+		double	z_acc = 0.0;
+
+		// attitude
+		double	pitch = 0.0;
+		double	roll =  0.0;
+		double	yaw =   0.0;
+
+		// waypoint
+		double	t_way = 0.0;
+		double	x_way = 0.0;
+		double	y_way = 0.0;
+		double	z_way = 0.0;
+
+
 		/// Support for Namespace 2.0
 
 		using name_map = map<string,void*>;
