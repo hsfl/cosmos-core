@@ -5976,7 +5976,6 @@ cout<<"add default names..."<<endl;
 
 		}
 
-
 		string get_name(void* v)	{
 				name_map::const_iterator it = names.begin();
 				while(it->second != v && it != names.end())	{ it++; }
@@ -6014,8 +6013,6 @@ cout<<"add default names..."<<endl;
 				*get_pointer<T>(s) = value;
 		}
 
-		// should have non-templated version as well
-		//template<class T>
 		void set_json(const string& json) 	{
 			string error;
 			json11::Json p = json11::Json::parse(json,error);
@@ -6024,6 +6021,8 @@ cout<<"add default names..."<<endl;
 				if(!p[name].is_null())	{
 					if(name_exists(name))  {
 						string type = get_type(name);
+
+	//// how to do a base data type
 						if(type == "string")	{
 							set_value<string>(name, p[name].string_value());
 						} else if(type == "double")	{
@@ -6050,13 +6049,18 @@ cout<<"add default names..."<<endl;
 	//etc.
 	//etc.
 	//etc.
+
+	//// how to do a user-defined class
 						} else if (type == "userstruc")	{
 							get_pointer<userstruc>(name)->from_json(json);
+
+	//// how to do a vector of user-defined class
 						} else if (type == "vector<userstruc>")	{
-							for(size_t i = 0; i < get_pointer<vector<userstruc>>(name)->capacity(); ++i)	{
-								if(!p[name][i].is_null())	{ user[i].from_json(p[name][i].dump()); } 
+							for(size_t i = 0; i < get_pointer<vector<userstruc>>(name)->size(); ++i)	{
+								if(!p[name][i].is_null())	{
+									get_pointer<vector<userstruc>>(name)->at(i).from_json(p[name][i].dump());
+								} 
 							}
-							cout<<"size == "<<get_pointer<vector<userstruc>>(name)->size()<<endl;
 						} else if (type == "cosmosstruc")	{
 							get_pointer<cosmosstruc>(name)->from_json(json);
 						} else	{
