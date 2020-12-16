@@ -53,19 +53,6 @@
 const int REQUEST_WAIT_TIME = 2;
 const int SERVER_WAIT_TIME = 6;
 
-//void print_node_list(vector<string>& nlp) {
-
-//    if(nlp.empty())
-//    {
-//        return;
-//    }
-
-//    for(string n: nlp)
-//    {
-//        printf("    %s\n", n.c_str());
-//    }
-//    return;
-//}
 string output;
 string node_name = "";
 string agent_name = "";
@@ -75,12 +62,11 @@ int main(int argc, char *argv[])
 {
     int nbytes;
     beatstruc cbeat;
-    vector<string> nl;
-    data_list_nodes(nl);
     Agent *agent;
 
     // dont' print debug messages
     //agent->debug_level = 0;
+
     agent = new Agent();
     if (agent->cinfo == nullptr)
     {
@@ -95,9 +81,6 @@ int main(int argc, char *argv[])
     case 1:
         {
             printf("Usage: agent [ list | dump [soh, beat, ###] | node_name agent_name \"request [ arguments ]\" ]\n");
-            //      printf("\n    List of available nodes:\n\n");
-            //      print_node_list(nl);
-            //      printf("\n");
             exit(1);
         }
         break;
@@ -110,7 +93,7 @@ int main(int argc, char *argv[])
         {
             double lmjd = 0., dmjd;
             string channel;
-            Agent::AgentMessage cnum;
+            Agent::AgentMessage message_type;
             Agent::messstruc message;
             int i;
             locstruc loc;
@@ -127,40 +110,40 @@ int main(int argc, char *argv[])
                 channel = argv[2];
                 if (channel == "soh")
                 {
-                    cnum = Agent::AgentMessage::SOH;
+                    message_type = Agent::AgentMessage::SOH;
                 }
                 else if (channel == "beat")
                 {
-                    cnum = Agent::AgentMessage::BEAT;
+                    message_type = Agent::AgentMessage::BEAT;
                 }
                 else if (channel == "request")
                 {
-                    cnum = Agent::AgentMessage::REQUEST;
+                    message_type = Agent::AgentMessage::REQUEST;
                 }
                 else if (channel == "response")
                 {
-                    cnum = Agent::AgentMessage::RESPONSE;
+                    message_type = Agent::AgentMessage::RESPONSE;
                 }
                 else
                 {
-                    cnum = (Agent::AgentMessage)atoi(channel.c_str());
+                    message_type = (Agent::AgentMessage)atoi(channel.c_str());
                 }
                 break;
             case 2:
                 channel.clear();
-                cnum = Agent::AgentMessage::ALL;
+                message_type = Agent::AgentMessage::ALL;
                 break;
             }
 
             while (1)
             {
                 int32_t iretn;
-                if ((iretn=agent->readring(message, cnum, 1., Agent::Where::TAIL)) > 0)
+                if ((iretn=agent->readring(message, message_type, 1., Agent::Where::TAIL)) > 0)
                 {
-                    Agent::AgentMessage pretn = (Agent::AgentMessage)iretn;
+                    Agent::AgentMessage message_type_read = (Agent::AgentMessage)iretn;
 
                     // Skip if either not Agent::AgentMessage::ALL, or not desired AGENT_MESSAGE
-                    if (!channel.empty() && cnum != pretn)
+                    if (!channel.empty() && message_type != message_type_read)
                     {
                         continue;
                     }
@@ -175,7 +158,7 @@ int main(int argc, char *argv[])
                         continue;
                     }
 
-                    switch (pretn)
+                    switch (message_type_read)
                     {
                     case Agent::AgentMessage::SOH:
                         printf("[SOH]");
@@ -190,13 +173,13 @@ int main(int argc, char *argv[])
                         printf("[RESPONSE]");
                         break;
                     default:
-                        printf("[%d]",pretn);
+                        printf("[%d]",message_type_read);
                         break;
                     }
 
                     printf("%.15g:[%s:%s][%s:%u](%lu:%lu:%zu)\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, message.jdata.size(), message.adata.size(), message.bdata.size());
                     printf("%s\n",message.jdata.c_str());
-                    if (pretn < Agent::AgentMessage::BINARY)
+                    if (message_type_read < Agent::AgentMessage::BINARY)
                     {
                         if (!channel.empty())
                         {
@@ -204,7 +187,7 @@ int main(int argc, char *argv[])
                         }
                     }
 
-                    if ((channel=="info") && pretn == Agent::AgentMessage::TRACK)
+                    if ((channel=="info") && message_type_read == Agent::AgentMessage::TRACK)
                     {
                         if (agent->cinfo->node.loc.utc > 0.)
                         {
@@ -220,12 +203,9 @@ int main(int argc, char *argv[])
                         }
                     }
 
-                    if ((channel=="imu") && pretn == Agent::AgentMessage::IMU)
-                    {
-                        for (i=0; i<agent->cinfo->devspec.imu_cnt; i++)
-                        {
-                            if (agent->cinfo->agent[0].beat.utc > 0.)
-                            {
+                    if ((channel=="imu") && message_type_read == Agent::AgentMessage::IMU) {
+                        for (i=0; i<agent->cinfo->devspec.imu_cnt; i++) {
+                            if (agent->cinfo->agent[0].beat.utc > 0.) {
                                 if (lmjd > 0.)
                                     dmjd = 86400.*(agent->cinfo->agent[0].beat.utc-lmjd);
                                 else
@@ -246,14 +226,14 @@ int main(int argc, char *argv[])
             ElapsedTime et;
             agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
             COSMOS_SLEEP(.5);
-            do
-            {
-                if (agent->agent_list.size() > agent_count)
-                {
-                    for (size_t i=agent_count; i<agent->agent_list.size(); ++i)
-                    {
+            do {
+                if (agent->agent_list.size() > agent_count) {
+                    for (size_t i=agent_count; i<agent->agent_list.size(); ++i) {
                         beatstruc cbeat = agent->agent_list[i];
-                        agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
+						// NS1
+                        //agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
+						// NS2 -- works!
+                        agent->send_request(cbeat, "get_value {\"agent[0].pid\"}", output, REQUEST_WAIT_TIME);
                         printf("[%lu] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
                         printf("\t%s\n",output.c_str());
                         fflush(stdout);
@@ -264,23 +244,21 @@ int main(int argc, char *argv[])
             } while (et.split() < SERVER_WAIT_TIME);
             exit(0);
             break;
-        }
-        else if (!strcmp(argv[1],"list_json"))
-        {
+        } else if (!strcmp(argv[1],"list_json")) {
             size_t agent_count = 0;
             ElapsedTime et;
             agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
             COSMOS_SLEEP(.1);
             printf("{\"agent_list\":[");
-            do
-            {
-                if (agent->agent_list.size() > agent_count)
-                {
-
-                    for (size_t i=agent_count; i<agent->agent_list.size(); ++i)
-                    {
+            do {
+                if (agent->agent_list.size() > agent_count) {
+                    for (size_t i=agent_count; i<agent->agent_list.size(); ++i) {
                         beatstruc cbeat = agent->agent_list[i];
-                        agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
+						// NS1
+                        //agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
+						// NS2 -- works!
+                        agent->send_request(cbeat, "get_value {\"agent[0].pid\"}", output, REQUEST_WAIT_TIME);
+
                         if(i>0) printf(",");
                         printf("{\"agent_proc\": \"%s\", ", cbeat.proc);
                         printf("\"agent_utc\": %.15g, ", cbeat.utc);
@@ -308,7 +286,6 @@ int main(int argc, char *argv[])
                         }
                         fflush(stdout);
                     }
-
                     fflush(stdout);
                     agent_count = agent->agent_list.size();
                 }
@@ -317,99 +294,81 @@ int main(int argc, char *argv[])
             printf("]}\n");
             exit(0);
             break;
-        }
+	}
 
     default:
-        if (!strcmp(argv[1],"dump"))
-        {
+        if (!strcmp(argv[1],"dump")) {
             double lmjd = 0., dmjd;
             string channel;
-            Agent::AgentMessage cnum;
+            Agent::AgentMessage message_type;
             Agent::messstruc message;
             string header;
             int i;
             locstruc loc;
 
-            if(argc == 3)
-            {
+            if(argc == 3) {
                 channel = argv[2];
-                if (channel == "soh")
-                {
-                    cnum = Agent::AgentMessage::SOH;
-                }
-                else
-                {
-                    if (channel == "beat")
-                    {
-                        cnum = Agent::AgentMessage::BEAT;
-                    }
-                    else
-                    {
-                        cnum = (Agent::AgentMessage)atoi(channel.c_str());
+                if (channel == "soh") {
+                    message_type = Agent::AgentMessage::SOH;
+                } else {
+                    if (channel == "beat") {
+                        message_type = Agent::AgentMessage::BEAT;
+                    } else {
+                        message_type = (Agent::AgentMessage)atoi(channel.c_str());
                     }
                 }
-            }
-            else
-            {
+            } else {
                 channel.clear();
-                cnum = Agent::AgentMessage::ALL;
+                message_type = Agent::AgentMessage::ALL;
             }
 
             while (1)
             {
                 int32_t iretn;
-                if ((iretn=agent->readring(message, Agent::AgentMessage::ALL, 1., Agent::Where::TAIL)) > 0)
-                {
-                    Agent::AgentMessage pretn = (Agent::AgentMessage)iretn;
+                if ((iretn=agent->readring(message, Agent::AgentMessage::ALL, 1., Agent::Where::TAIL)) > 0) {
+                    Agent::AgentMessage message_type_read = (Agent::AgentMessage)iretn;
                     // Skip if either not Agent::AgentMessage::ALL, or not desired AGENT_MESSAGE
-                    if (!channel.empty() && cnum != pretn)
-                    {
-                        continue;
-                    }
+                    if (!channel.empty() && message_type != message_type_read) { continue; }
 
                     header.resize(message.meta.jlength);
-                    if (pretn < Agent::AgentMessage::BINARY)
+                    if (message_type_read < Agent::AgentMessage::BINARY)
                     {
+						// NS1
                         memcpy(&header[0], message.adata.data(), message.meta.jlength);
                         json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo);
                         json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo);
                         json_parse(message.adata.c_str(), agent->cinfo);
-                    }
-                    else
-                    {
+						// NS2
+                    } else {
                         memcpy(&header[0], message.bdata.data(), message.meta.jlength);
                     }
 
-                    switch (pretn)
-                    {
-                    case Agent::AgentMessage::SOH:
-                        printf("[SOH]");
-                        break;
-                    case Agent::AgentMessage::BEAT:
-                        printf("[BEAT]");
-                        break;
-                    case Agent::AgentMessage::REQUEST:
-                        printf("[REQUEST]");
-                        break;
-                    case Agent::AgentMessage::RESPONSE:
-                        printf("[RESPONSE]");
-                        break;
-                    default:
-                        printf("[%d]",pretn);
-                        break;
-                    }
+                    switch (message_type_read) {
+                    	case Agent::AgentMessage::SOH:
+                        	printf("[SOH]");
+                        	break;
+                    	case Agent::AgentMessage::BEAT:
+                        	printf("[BEAT]");
+                        	break;
+                    	case Agent::AgentMessage::REQUEST:
+                        	printf("[REQUEST]");
+                        	break;
+                    	case Agent::AgentMessage::RESPONSE:
+                        	printf("[RESPONSE]");
+                        	break;
+                    	default:
+                        	printf("[%d]",message_type_read);
+                        	break;
+ 					}
 
                     printf("[%d] %.15g %s %s %s %hu %u\n",i,message.meta.beat.utc,message.meta.beat.node,message.meta.beat.proc,message.meta.beat.addr,message.meta.beat.port,message.meta.beat.bsz);
 
-                    if (pretn < Agent::AgentMessage::BINARY && !channel.empty())
-                    {
+                    if (message_type_read < Agent::AgentMessage::BINARY && !channel.empty()) {
                         printf("%s\n",message.adata.c_str());
                     }
 
-                    if ((channel=="info") && pretn == Agent::AgentMessage::TRACK)
-                    {
-                        if (agent->cinfo->node.loc.utc > 0.)
-                        {
+                    if ((channel=="info") && message_type_read == Agent::AgentMessage::TRACK) {
+                        if (agent->cinfo->node.loc.utc > 0.) {
                             if (lmjd > 0.)
                                 dmjd = 86400.*(agent->cinfo->node.loc.utc-lmjd);
                             else
@@ -422,12 +381,9 @@ int main(int argc, char *argv[])
                         }
                     }
 
-                    if ((channel=="imu") && pretn == Agent::AgentMessage::IMU)
-                    {
-                        for (i=0; i<agent->cinfo->devspec.imu_cnt; i++)
-                        {
-                            if (agent->cinfo->agent[0].beat.utc > 0.)
-                            {
+                    if ((channel=="imu") && message_type_read == Agent::AgentMessage::IMU) {
+                        for (i=0; i<agent->cinfo->devspec.imu_cnt; i++) {
+                            if (agent->cinfo->agent[0].beat.utc > 0.) {
                                 if (lmjd > 0.)
                                     dmjd = 86400.*(agent->cinfo->agent[0].beat.utc-lmjd);
                                 else
@@ -440,62 +396,56 @@ int main(int argc, char *argv[])
                 }
                 fflush(stdout);
             } //end infinite while loop
-        }
-    else
-        {
-        nl.clear();
+        } else {
 
 //        cbeat = agent->find_agent(argv[1], argv[2], SERVER_WAIT_TIME);
 //        if (cbeat.exists)
-        if ((nbytes = agent->get_agent(argv[1], argv[2], SERVER_WAIT_TIME, cbeat)) > 0)
-        {
-            if(argc == 3)
-            {
-                nbytes = agent->send_request(cbeat, "help", std::ref(output), REQUEST_WAIT_TIME);
-                printf("%s [%d]\n", output.c_str(), nbytes);
-            }
-            else
-            {
-                string request;
-                request = argv[3];
-                for (size_t i=0; i<(size_t)argc-4; ++i)
-                {
-                    request += " ";
-                    request += argv[i+4];
-                }
-                nbytes = agent->send_request(cbeat,request.c_str(), output, REQUEST_WAIT_TIME);
-//                printf("%s [%d]\n", output.c_str(), nbytes);
-//                printf("{\"request_output\": %s, \"bytes\": %d }\n", output.c_str(), nbytes);
-                // HANDLE RESPONSE OUTPUT FORMAT
-                printf("{");
-                size_t status_pos;
-                if((status_pos= output.find("[OK]")  )!= string::npos){
-                    if(output.at(0) == '{'){
-                        if(status_pos - 1 >= 0 && output.at(status_pos - 1) == '}'){
-                            printf("\"output\": %s,", output.substr(0, status_pos).c_str());
-                        } else {
-                            printf("\"output\": %s,", output.c_str());
-                        }
-                    } else {
-                        printf("\"output\": \"%s\",", output.substr(0,status_pos ).c_str());
-                    }
-                    printf("\"status\": \"OK\"}\n");
-                } else if((status_pos = output.find("[NOK]") )!= string::npos){
-                    printf("\"status\": \"NOK\"}\n");
-                } else {
-                     printf("\"output\": %s }\n", output.c_str());
-                }
-            }
-        }
-        else
-        {
-            if (!nbytes){
-                fprintf(stderr,"node-agent pair [%s:%s] not found\n",argv[1],argv[2]);
-                printf("{\"error\": \"node-agent pair [%s:%s] not found\" }\n",argv[1],argv[2]);
-            }
-            else
-                printf("Error: %d\n", nbytes);
-        }
-    }
+        	if ((nbytes = agent->get_agent(argv[1], argv[2], SERVER_WAIT_TIME, cbeat)) > 0) {
+            	if(argc == 3)
+            	{
+                	nbytes = agent->send_request(cbeat, "help", std::ref(output), REQUEST_WAIT_TIME);
+                	printf("%s [%d]\n", output.c_str(), nbytes);
+            	}
+            	else
+            	{
+                	string request;
+                	request = argv[3];
+                	for (size_t i=0; i<(size_t)argc-4; ++i)
+                	{
+                    	request += " ";
+                    	request += argv[i+4];
+                	}
+                	nbytes = agent->send_request(cbeat,request.c_str(), output, REQUEST_WAIT_TIME);
+	//                printf("%s [%d]\n", output.c_str(), nbytes);
+	//                printf("{\"request_output\": %s, \"bytes\": %d }\n", output.c_str(), nbytes);
+                	// HANDLE RESPONSE OUTPUT FORMAT
+                	printf("{");
+                	size_t status_pos;
+                	if((status_pos= output.find("[OK]")  )!= string::npos){
+                    	if(output.at(0) == '{'){
+                        	if(status_pos - 1 >= 0 && output.at(status_pos - 1) == '}'){
+                            	printf("\"output\": %s,", output.substr(0, status_pos).c_str());
+                        	} else {
+                            	printf("\"output\": %s,", output.c_str());
+                        	}
+                    	} else {
+                        	printf("\"output\": \"%s\",", output.substr(0,status_pos ).c_str());
+                    	}
+                    	printf("\"status\": \"OK\"}\n");
+                	} else if((status_pos = output.find("[NOK]") )!= string::npos){
+                    	printf("\"status\": \"NOK\"}\n");
+                	} else {
+                     	printf("\"output\": %s }\n", output.c_str());
+                	}
+            	}
+        	} else {
+            	if (!nbytes){
+                	fprintf(stderr,"node-agent pair [%s:%s] not found\n",argv[1],argv[2]);
+                	printf("{\"error\": \"node-agent pair [%s:%s] not found\" }\n",argv[1],argv[2]);
+            	}
+            	else
+                	printf("Error: %d\n", nbytes);
+        	}
+    	}
     }
 }

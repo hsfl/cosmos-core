@@ -67,6 +67,9 @@ int main(int argc, char **argv)
     // add custom request functions for this agent
     agent->add_request("any_body_out_there", hello_agent_002_request_function, "a request to respond with 'hello'");
 
+	// add Namespace 2.0 default names
+	agent->cinfo->add_default_names();
+
     // Start executing the agent
     while(agent->running()) {
 		cout<<node_agent_name<<" running..."<<endl;

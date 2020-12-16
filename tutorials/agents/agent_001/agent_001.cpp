@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 
 	// add custom request functions for this agent
 	string request_name = "identify_yourself";
-	agent->add_request(request_name, sample_agent_request_function, "request to support the reporting of identification");
+	agent->add_request(request_name, sample_agent_request_function, "\n\t\trequest to support the reporting of identification");
 
 	// try to locate a specific agent (agent_002)
     string agent_target = "agent_002"; // The name of the agent this agent will send requests to
