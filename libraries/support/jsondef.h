@@ -6126,15 +6126,23 @@ struct cosmosstruc
 	//etc.
 	//etc.
 
-	//// how to do a user-defined class
+	//// how to do a user-defined class (nodestruc, agentstruc, etc...)
 						} else if (type == "userstruc")	{
 							get_pointer<userstruc>(name)->from_json(json);
+
+	//// how to do a vector of base types
 
 	//// how to do a vector of user-defined class
 						} else if (type == "vector<userstruc>")	{
 							for(size_t i = 0; i < get_pointer<vector<userstruc>>(name)->size(); ++i)	{
 								if(!p[name][i].is_null())	{
 									get_pointer<vector<userstruc>>(name)->at(i).from_json(p[name][i].dump());
+								} 
+							}
+						} else if (type == "vector<facestruc>")	{
+							for(size_t i = 0; i < get_pointer<vector<facestruc>>(name)->size(); ++i)	{
+								if(!p[name][i].is_null())	{
+									get_pointer<vector<facestruc>>(name)->at(i).from_json(p[name][i].dump());
 								} 
 							}
 						} else if (type == "cosmosstruc")	{
@@ -6161,6 +6169,7 @@ struct cosmosstruc
 				}
 		}
 
+		// get called from agents (no template)
 		string get_json(const string& s)	{
 			if(name_exists(s))  {
 				json11::Json json;
@@ -6192,6 +6201,8 @@ struct cosmosstruc
 // etc...
 // etc...
 // etc...
+				} else if (type == "agentstruc")   {
+					json = json11::Json::object { { s, get_value<agentstruc>(s) } };
 				} else if (type == "cosmosstruc")   {
 					json = json11::Json::object { { s, get_value<cosmosstruc>(s) } };
 				}

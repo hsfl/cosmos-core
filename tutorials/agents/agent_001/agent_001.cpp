@@ -90,8 +90,9 @@ int main(int argc, char **argv)
 	cout<<"Short UTC        = <"<<agent->cinfo->get_value<double>("Short UTC")<<">"<<endl;
 	cout<<"Longest Ever UTC = <"<<agent->cinfo->get_value<double>("Longest Ever UTC")<<">"<<endl;
 
-	agent->cinfo->add_name("cosmosdata", &*agent->cinfo, "cosmosstruc");
-	//cout<<"cosmosdata       = <"<<agent->cinfo->get_json_pretty<cosmosstruc>("cosmosdata")<<">"<<endl;
+	//agent->cinfo->add_name("cosmosdata", &*agent->cinfo, "cosmosstruc");
+	agent->cinfo->add_name("cosmosdata", agent->cinfo, "cosmosstruc");
+	cout<<"cosmosdata       = <"<<agent->cinfo->get_json_pretty<cosmosstruc>("cosmosdata")<<">"<<endl;
 
 	agent->cinfo->add_name("My Favorite Users", &agent->cinfo->user, "vector<userstruc>");
 	cout<<"Old User Data       = <"<<agent->cinfo->get_json<vector<userstruc>>("My Favorite Users")<<">"<<endl;
