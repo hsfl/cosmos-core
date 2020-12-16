@@ -47,7 +47,6 @@ bool printStatus = true;
 //int agent_cpu(), create_node();
 int32_t get_last_offset();
 
-//int32_t request_soh(string &request, string &response, Agent *);
 int32_t request_bootCount(string &request, string &response, Agent *);
 
 // disk
@@ -101,6 +100,9 @@ int main(int argc, char *argv[])
         fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
+	// NS1
+    // iretn = json_createpiece(agent->cinfo, agent->nodeName + "_cpu", DeviceType::CPU);
+	// NS2 ...  hmm...  nothing really happens inside json_createpiece except direct memory calls and adding Namespace 1.0 names (which already exist as default for Namespace 2.0, so no need to change
     iretn = json_createpiece(agent->cinfo, agent->nodeName + "_cpu", DeviceType::CPU);
 
     if (iretn < 0)
@@ -124,6 +126,7 @@ int main(int argc, char *argv[])
 
     static const double GiB = 1024. * 1024. * 1024.;
 
+	// update CPU info
     agent->cinfo->device[cpu_cidx].cpu.load = static_cast <float>(deviceCpu.getLoad());
     agent->cinfo->device[cpu_cidx].cpu.gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/GiB);
     agent->cinfo->device[cpu_cidx].cpu.maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/GiB);
@@ -136,6 +139,9 @@ int main(int argc, char *argv[])
     {
         char name[10];
         sprintf(name, "disk_%02u", i);
+		// NS1
+        //iretn = json_createpiece(agent->cinfo, name, DeviceType::DISK);
+		// NS2 ...  hmm...  nothing really happens inside json_createpiece except direct memory calls and adding Namespace 1.0 names (which already exist as default for Namespace 2.0, so no need to change
         iretn = json_createpiece(agent->cinfo, name, DeviceType::DISK);
         if (iretn < 0)
         {
@@ -144,7 +150,6 @@ int main(int argc, char *argv[])
             exit(1);
         }
         uint16_t cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-//        uint16_t didx = agent->cinfo->device[cidx].didx;
         strncpy(agent->cinfo->device[cidx].disk.path, dinfo[i].mount.c_str(), COSMOS_MAX_NAME);
         sohstring += ",\"device_disk_utc_00" + std::to_string(cpu_didx) + "\"";
         sohstring += ",\"device_disk_temp_00" + std::to_string(cpu_didx) + "\"";
@@ -157,8 +162,6 @@ int main(int argc, char *argv[])
     sohstring += "}";
     agent->set_sohstring(sohstring);
     printf("SOH String: %s\n", sohstring.c_str());
-
-//    json_dump_node(agent->cinfo);
 
     // TODO: determine number of disks automatically
     PrintUtils print;
@@ -284,16 +287,6 @@ int32_t get_last_offset()
     return offset;
 }
 
-//int32_t request_soh(string &, string &response, Agent *)
-//{
-//    string rjstring;
-//    //	response = (json_of_list(rjstring,sohstring,agent->cinfo));
-//    response = (json_of_table(rjstring, agent->sohtable, agent->cinfo));
-
-//    return 0;
-//}
-
-
 
 // ----------------------------------------------
 // disk
@@ -352,7 +345,6 @@ int32_t request_mem_kib(string &, string &response, Agent *)
 
 int32_t request_mem_percent (string &, string &response, Agent *)
 {
-
     return ((response = std::to_string(deviceCpu.getVirtualMemoryUsedPercent())).length());
 }
 

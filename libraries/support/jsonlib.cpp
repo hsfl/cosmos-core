@@ -7601,6 +7601,9 @@ int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo)
 *	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
  */
+
+ // this really just adds Namespace 1.0 names
+ // with Namespace 2.0 default names should already be added from MAX_NUMBER_OF_PIECES
 int32_t json_mappieceentry(uint16_t pidx, cosmosstruc *cinfo)
 {
     int32_t iretn;
@@ -7671,6 +7674,9 @@ int32_t json_togglepieceentry(uint16_t pidx, cosmosstruc *cinfo, bool state)
 *	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be
  */
+
+ // this really just adds Namespace 1.0 names
+ // with Namespace 2.0 default names should already be added from MAX_NUMBER_OF_DEVICES
 int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo)
 {
     int32_t iretn;
@@ -7681,7 +7687,7 @@ int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo)
     json_addentry("device_all_addr",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx].addr, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_all_cidx",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx].cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_all_didx",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx].didx, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("device_all_pidx",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]. pidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_all_pidx",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx].pidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_all_bidx",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx].bidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_all_portidx",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx].portidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_all_namp",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx].namp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CURRENT);
