@@ -6201,6 +6201,14 @@ struct cosmosstruc
 // etc...
 // etc...
 // etc...
+
+// how to do user-defined types
+				} else if (type == "userstruc")   {
+					json = json11::Json::object { { s, get_value<userstruc>(s) } };
+// how to do vectors of user-defined types
+				} else if (type == "vector<userstruc>")   {
+					json = json11::Json::object { { s, get_value<vector<userstruc>>(s) } };
+
 				} else if (type == "agentstruc")   {
 					json = json11::Json::object { { s, get_value<agentstruc>(s) } };
 				} else if (type == "cosmosstruc")   {
