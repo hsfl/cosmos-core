@@ -383,9 +383,9 @@ struct JsonParser final {
      *
      * Advance until the current character is non-whitespace.
      */
-	 // there are other whitespace characters yo!!
+	 // there are other whitespace characters yo!! " \n\r\t\f\v"
     void consume_whitespace() {
-        while (str[i] == ' ' || str[i] == '\r' || str[i] == '\n' || str[i] == '\t')
+        while (str[i] == ' ' || str[i] == '\r' || str[i] == '\n' || str[i] == '\t' || str[i] == '\f' || str[i] == '\v')
             i++;
     }
 
