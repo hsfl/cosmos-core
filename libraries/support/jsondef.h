@@ -3969,7 +3969,7 @@ struct cosmosstruc
 		//void add_name(const string& s, void* v)	{ names.insert(name_mapping(s,v)); };
 
 		/// Adds a name, memory location, and datatype to Namespace 2.0
-		/** Associates a name with a specific memory location of the COSMOS Data Structure (::cosmosstruc) and a specific data type.  Multiple names may point to the same memory address.  Names may point to primative datatypes, user-defined objects, vectors of primitive datatypes, or vectors of user-defined objects.  Whitespace and all punctuation besides unescaped double quotes are supported for inclusion in names.
+		/** Associates a name with a specific memory location of the COSMOS Data Structure (::cosmosstruc) and a specific data type.  Multiple names may point to the same memory address.  Names may point to primitive datatypes, user-defined objects, vectors of primitive datatypes, or vectors of user-defined objects.  Whitespace and all punctuation besides unescaped double quotes are supported for inclusion in names.
 
 		@param	s	string representing name of data
 		@param	v	void* representing memory address of data
@@ -3984,11 +3984,24 @@ struct cosmosstruc
 		};
 		//TODO:   change_name(..) functions, match_name(), find_aliases(), etc
 
-		// Remove single name from name map
-		void remove_name(const string& s) { names.erase(s); }
+		/// Removes a name, memory location, and datatype from Namespace 2.0.
+		/** Removes a single entry added into Namespace 2.0 with #add_name().
+		@param	s	string representing name of data to remove
 
-		// Remove name of object/collection and its members from name map
-		void remove_names_object(const string& s) {
+		@return n/a
+		*/
+		void remove_name(const string& s) {
+			names.erase(s);
+			types.erase(s);
+		}
+
+		/// Removes names from Namespace 2.0 recursively.
+		/** Removes reference to memory location and data type associated with the provided name, then searches through Namespace 2.0 removing entries for all children of the provided name. E.g., if provided the name of an array, will remove the entry associated with the array and also the entries of every one of its elements.
+		@param	s	string representing name of data (and its children) to remove
+
+		@return n/a
+		 */
+		void remove_name_recursive(const string& s) {
 			auto p = names.lower_bound(s);
 			auto q = names.end();
 			const string sbracket = s + "[";
@@ -4004,8 +4017,27 @@ struct cosmosstruc
 					++p;
 				}
 			}
+
+			auto p2 = types.lower_bound(s);
+			auto q2 = types.end();
+			while (p != q) {
+				if (p->first.compare(s) == 0 ||								 // if exact match s is found. eg: "jmap" but not "jmapped"
+					p->first.compare(0, sbracket.size(), sbracket) == 0 ||	  // if search string s + [ is found. eg: "jmap[0]"
+					p->first.compare(0, sdot.size(), sdot) == 0) {			  // if search string s + . is found. eg: "node.name"
+					names.erase(p++);
+				} else {
+					++p;
+				}
+			}
+
 		}
 
+		/// Add default names for every accessible memory location within the COSMOS Data Structure (::cosmosstruc) to Namespace 2.0.
+		/** Provide a default name for every accessible memory location within the COSMOS Data Structure (::cosmosstruc) for Namespace 2.0. Naming convention follows the exact representation of the object in code. E.g., default name for `equation[0].name` is `"equation[0].name"`.
+		@param none
+
+		@return n/a
+		*/
 		void add_default_names()	{
 
 			// default names for Simulation
@@ -6082,6 +6114,12 @@ struct cosmosstruc
 
 		}
 
+		/// Gets the name associated with the provided memory address in Namespace 2.0.
+		/** Searches through Namespace 2.0 and returns the first name associated with the provided memory address.
+		@param	v	void pointer to memory address of an entry within Namespace 2.0 to search for
+
+		@return	string name of memory address associated with \p v. Returns empty string if address is not found.
+		*/
 		string get_name(void* v)	{
 				name_map::const_iterator it = names.begin();
 				while(it->second != v && it != names.end())	{ it++; }
@@ -6089,12 +6127,24 @@ struct cosmosstruc
 				return it->first;
 		}
 
+		/// Gets the data type associated with the provided name in Namespace 2.0.
+		/** Finds the data type associated with the provided name in Namespace 2.0.
+		@param	s	string representing name to search for
+
+		@return	string representing the data type associated with the provided name. Returns empty string if name is not found.
+		*/
 		string get_type(const string& s) const	{
 				type_map::const_iterator it = types.find(s);
 				if(it == types.end())	{	/*cerr<<"type for <"<<s<<"> not found!"<<endl;*/ return "";	}
 				return it->second;
 		}
 
+		/// Gets the pointer to the memory address associated with the provided name in Namespace 2.0.
+		/** Searches through Namespace 2.0 and returns a pointer to the associated memory address casted into the data type given to the template.
+		@param	s	string representing name to search for
+
+		@return	type casted pointer to associated memory address. Returns `nullptr` if name is not found.
+		*/
 		template<class T>
 		T* get_pointer(const string& s) const	{
 				name_map::const_iterator it = names.find(s);
@@ -6102,6 +6152,12 @@ struct cosmosstruc
 				return (T*)(it->second);
 		}
 
+		/// Gets the value of the data associated with the provided name in Namespace 2.0.
+		/** Searches through Namespace 2.0 and returns the value of the dereferenced pointer to the associated memory address.
+		@param	s	string representing name to search for
+
+		@return	value of the data pointed to by the pointer of the associated name. Returns a new instance of type `T` if name is not found.
+		*/
 		template<class T>
 		T get_value(const string& s) const	{
 				// change to static null object?
@@ -6111,6 +6167,13 @@ struct cosmosstruc
 				return *get_pointer<T>(s);
 		}
 
+		/// Sets the value of the data associated with the provided name in Namespace 2.0.
+		/** Searches through Namespace 2.0 and sets the value of the data pointed to by the pointer to the memory address associated with the provided name.
+		@param	s	string representing name to search for
+		@param	value	new value to set the data to
+
+		@return	n/a
+		*/
 		template<class T>
 		void set_value(const string& s, const T& value) const	{
 				// maybe if not found should be inserted??  hmmm....  ask Eric
