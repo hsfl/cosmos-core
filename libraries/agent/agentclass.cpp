@@ -234,7 +234,7 @@ namespace Support
         add_request("getvalue",req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
         add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent");
         add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
-        add_request("set_value",req_set_value,"{\"name1\":value}{\"name2\":value}...","set specified value(s) in agent");
+        add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent");
         add_request("listnames",req_listnames,"","list the Namespace of the agent");
         add_request("forward",req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
         add_request("echo",req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
