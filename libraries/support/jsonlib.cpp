@@ -6873,6 +6873,9 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     // First: parse data for summary information - includes piece_cnt, device_cnt and port_cnt
     if (!json.node.empty())
     {
+		// NS1
+        // if ((iretn = json_parse(json.node, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
+		// NS2 maybe use set_json?  do we even need this?  what is the purpose of jsonnode?
         if ((iretn = json_parse(json.node, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
         {
             return iretn;
@@ -6898,6 +6901,9 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     // 1A: load state vector, if it is present
     if (!json.state.empty())
     {
+		// NS1
+        // if ((iretn = json_parse(json.state, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
+		// NS2 maybe use set_json?  do we even need this?  what is the purpose of jsonnode?
         if ((iretn = json_parse(json.state, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
         {
             return iretn;
@@ -6908,6 +6914,9 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     // Set node_utcstart
     if (!json.utcstart.empty())
     {
+		// NS1
+        // if ((iretn = json_parse(json.utcstart, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
+		// NS2 maybe use set_json?  do we even need this?  what is the purpose of jsonnode?
         if ((iretn = json_parse(json.utcstart, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
         {
             return iretn;
@@ -6919,6 +6928,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     cinfo->vertexs.clear();
     if (cinfo->node.vertex_cnt)
     {
+		// be careful about resizing vertex past MAX_NUMBER_VERTEXS
         cinfo->vertexs.resize(cinfo->node.vertex_cnt);
         if (cinfo->vertexs.size() != cinfo->node.vertex_cnt)
         {
@@ -7301,6 +7311,8 @@ int32_t json_dump_node(cosmosstruc *cinfo)
 //! Add or update all possible entries in the Namespace map.
 //! \param cinfo Reference to ::cosmosstruc to use.
 //! \return The current number of entries, if successful, 0 if the entry could not be mapped.
+
+ // similar to cosmosstruc::add_default_names() for Namespace 2.0
 int32_t json_mapentries(cosmosstruc *cinfo)
 {
     json_mapbaseentries(cinfo);
@@ -7343,6 +7355,8 @@ int32_t json_mapentries(cosmosstruc *cinfo)
 *	\param cinfo Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be
  */
+
+ // similar to cosmosstruc::add_default_names() for Namespace 2.0
 int32_t json_mapbaseentries(cosmosstruc *cinfo)
 {
     int32_t iretn;
@@ -7552,6 +7566,9 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
 *	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
  */
+
+ // this really just adds Namespace 1.0 names
+ // with Namespace 2.0 default names should already be added from MAX_NUMBER_OF_VERTEXS
 int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo)
 {
     int32_t iretn=0;
@@ -7574,6 +7591,9 @@ int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo)
 *	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
  */
+
+ // this really just adds Namespace 1.0 names
+ // with Namespace 2.0 default names should already be added from MAX_NUMBER_OF_FACES
 int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo)
 {
     int32_t iretn=0;

@@ -73,7 +73,7 @@ int usercount=0;
 char username[1000][50];        //move up when finished
 char password[1000][50];
 
-// Here are some variables we will map to JSON names
+// Here are some variables we will map to JSON names (says Eric in 2014!)
 int32_t diskfree;
 int32_t stateflag;
 int32_t myport;
