@@ -6089,77 +6089,82 @@ struct cosmosstruc
 				*get_pointer<T>(s) = value;
 		}
 
+		// TODO: add support for multiple JSON string concatenated
 		void set_json(const string& json) 	{
 			cout<<"\tJSON received = <"<<json<<">"<<endl;
 			string error;
-			json11::Json p = json11::Json::parse(json,error);
+			vector<json11::Json> vp = json11::Json::parse_multi(json,error);
 			cout<<"\tJSON error    = <"<<error<<">"<<endl;
-			string name(p.object_items().begin()->first);
-			cout<<"\tJSON name     = <"<<name<<">"<<endl;
-			if(error.empty()) {
-				if(!p[name].is_null())	{
-					if(name_exists(name))  {
-						string type = get_type(name);
+			for(size_t i = 0; i < vp.size(); ++i)	{
+				json11::Json p = vp[i];
+
+				string name(p.object_items().begin()->first);
+				cout<<"\tJSON name     = <"<<name<<">"<<endl;
+				if(error.empty()) {
+					if(!p[name].is_null())	{
+						if(name_exists(name))  {
+							string type = get_type(name);
 
 	//// how to do a base data type (choices are string_value, number_value, integer_value, bool_value)
-						if(type == "string")	{
-							set_value<string>(name, p[name].string_value());
-						} else if(type == "double")	{
-							set_value<double>(name, p[name].number_value());
-						} else if (type == "float")	{
-							set_value<float>(name, p[name].number_value());
-						} else if (type == "int")	{
-							set_value<int>(name, p[name].number_value());
-						} else if (type == "bool")	{
-							set_value<bool>(name, p[name].bool_value());
-						} else if (type == "uint32_t")	{
-							set_value<uint32_t>(name, p[name].int_value());
-						} else if (type == "int32_t")	{
-							set_value<int32_t>(name, p[name].int_value());
-						} else if (type == "uint16_t")	{
-							set_value<uint16_t>(name, p[name].int_value());
-						} else if (type == "int16_t")	{
-							set_value<int16_t>(name, p[name].int_value());
-						} else if (type == "uint8_t")	{
-							set_value<uint8_t>(name, p[name].int_value());
-						} else if (type == "int8_t")	{
-							set_value<int8_t>(name, p[name].int_value());
+							if(type == "string")	{
+								set_value<string>(name, p[name].string_value());
+							} else if(type == "double")	{
+								set_value<double>(name, p[name].number_value());
+							} else if (type == "float")	{
+								set_value<float>(name, p[name].number_value());
+							} else if (type == "int")	{
+								set_value<int>(name, p[name].number_value());
+							} else if (type == "bool")	{
+								set_value<bool>(name, p[name].bool_value());
+							} else if (type == "uint32_t")	{
+								set_value<uint32_t>(name, p[name].int_value());
+							} else if (type == "int32_t")	{
+								set_value<int32_t>(name, p[name].int_value());
+							} else if (type == "uint16_t")	{
+								set_value<uint16_t>(name, p[name].int_value());
+							} else if (type == "int16_t")	{
+								set_value<int16_t>(name, p[name].int_value());
+							} else if (type == "uint8_t")	{
+								set_value<uint8_t>(name, p[name].int_value());
+							} else if (type == "int8_t")	{
+								set_value<int8_t>(name, p[name].int_value());
 
 	//etc.
 	//etc.
 	//etc.
 
 	//// how to do a user-defined class (nodestruc, agentstruc, etc...)
-						} else if (type == "userstruc")	{
-							get_pointer<userstruc>(name)->from_json(json);
+							} else if (type == "userstruc")	{
+								get_pointer<userstruc>(name)->from_json(json);
 
 	//// how to do a vector of base types
 
 	//// how to do a vector of user-defined class
-						} else if (type == "vector<userstruc>")	{
-							for(size_t i = 0; i < get_pointer<vector<userstruc>>(name)->size(); ++i)	{
-								if(!p[name][i].is_null())	{
-									get_pointer<vector<userstruc>>(name)->at(i).from_json(p[name][i].dump());
-								} 
+							} else if (type == "vector<userstruc>")	{
+								for(size_t i = 0; i < get_pointer<vector<userstruc>>(name)->size(); ++i)	{
+									if(!p[name][i].is_null())	{
+										get_pointer<vector<userstruc>>(name)->at(i).from_json(p[name][i].dump());
+									} 
+								}
+							} else if (type == "vector<facestruc>")	{
+								for(size_t i = 0; i < get_pointer<vector<facestruc>>(name)->size(); ++i)	{
+									if(!p[name][i].is_null())	{
+										get_pointer<vector<facestruc>>(name)->at(i).from_json(p[name][i].dump());
+									} 
+								}
+							} else if (type == "cosmosstruc")	{
+								get_pointer<cosmosstruc>(name)->from_json(json);
+							} else	{
+								// I guess this block means the type is not supported!
+								// could re-add templated version of set_json so user
+								// can explicitly call for given unsupported datatype
+								//get_pointer<T>(name)->from_json(json);
+								return;
 							}
-						} else if (type == "vector<facestruc>")	{
-							for(size_t i = 0; i < get_pointer<vector<facestruc>>(name)->size(); ++i)	{
-								if(!p[name][i].is_null())	{
-									get_pointer<vector<facestruc>>(name)->at(i).from_json(p[name][i].dump());
-								} 
-							}
-						} else if (type == "cosmosstruc")	{
-							get_pointer<cosmosstruc>(name)->from_json(json);
-						} else	{
-							// I guess the type is not supported!
-							// could re-add templated version of set_json so user
-							// can explicitly call for given unsupported datatype
-							//get_pointer<T>(name)->from_json(json);
-							return;
 						}
 					}
 				}
-			}
+			}// end for loop
 		}
 
 		template<class T>

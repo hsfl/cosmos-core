@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 		//cout<<"  response = <"<<res<<">"<<endl;
 
 		req.clear();
-		req = "set_value {\"Longest Ever UTC\": 215}";
+		req = "set_value {\"Longest Ever UTC\": 215}{\"user[0].tool\": \"Super Tool!\"}";
 		cout<<"  request  = <"<<req<<">"<<endl;
 		res.clear();
 	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
