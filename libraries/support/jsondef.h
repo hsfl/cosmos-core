@@ -6090,9 +6090,12 @@ struct cosmosstruc
 		}
 
 		void set_json(const string& json) 	{
+			cout<<"\tJSON received = <"<<json<<">"<<endl;
 			string error;
 			json11::Json p = json11::Json::parse(json,error);
+			cout<<"\tJSON error    = <"<<error<<">"<<endl;
 			string name(p.object_items().begin()->first);
+			cout<<"\tJSON name     = <"<<name<<">"<<endl;
 			if(error.empty()) {
 				if(!p[name].is_null())	{
 					if(name_exists(name))  {

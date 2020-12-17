@@ -448,6 +448,9 @@ void json_init_reserve(cosmosstruc* cinfo) {
  * for each of the non Node based elements to the JSON Name Map.
     \return Pointer to new ::cosmosstruc or nullptr.
 */
+
+// this should completely reserve all memory used up to MAX_NUMBER_OF_######
+// add_default_names at the very end
 cosmosstruc* json_init()
 {
 	cosmosstruc* cinfo = nullptr;
@@ -468,11 +471,16 @@ cosmosstruc* json_init()
 
     cinfo->timestamp = currentmjd();
 
+	// NS1 check
     int32_t iretn = json_mapbaseentries(cinfo);
     if (iretn < 0) {
         delete cinfo;
 		cinfo = nullptr;
     }
+
+	// NS2
+	cinfo->add_default_names();
+
     return cinfo;
 }
 

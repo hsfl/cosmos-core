@@ -67,8 +67,6 @@ int main(int argc, char **argv)
     // add custom request functions for this agent
     agent->add_request("any_body_out_there", hello_agent_002_request_function, "a request to respond with 'hello'");
 
-	// add Namespace 2.0 default names
-	agent->cinfo->add_default_names();
 
     // Start executing the agent
     while(agent->running()) {
@@ -138,19 +136,19 @@ int main(int argc, char **argv)
 	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
 		cout<<"  response = <"<<res<<">"<<endl;
 
-		req.clear();
-		req = "get_value \"cosmosdata\"";
-		cout<<"  request  = <"<<req<<">"<<endl;
-		res.clear();
-	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
-		cout<<"  response = <"<<res<<">"<<endl;
-
 		//req.clear();
-		//req =R"set_value {"My Favorite Users": [{"cpu": "", "name": "", "node": "", "tool": ""},{"cpu": "cpu2", "name": "name2", "node": "node2", "tool": "tool2"}]}";
+		//req = "get_value \"cosmosdata\"";
 		//cout<<"  request  = <"<<req<<">"<<endl;
 		//res.clear();
 	   	//agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
 		//cout<<"  response = <"<<res<<">"<<endl;
+
+		req.clear();
+		req = "set_value {\"Longest Ever UTC\": 215}";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
 
 		req.clear();
 		req = "get_value \"user\"";

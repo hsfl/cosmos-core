@@ -77,7 +77,6 @@ int main(int argc, char **argv)
 
     string response; // Variable to store agent_002's response
 
-	agent->cinfo->add_default_names();
     // Start executing the agent
 	agent->cinfo->add_name("Short UTC", &agent->cinfo->node.loc.utc, "double");
 	agent->cinfo->add_name("Longest Ever UTC", &agent->cinfo->node.loc.utc, "double");

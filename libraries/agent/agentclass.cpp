@@ -730,8 +730,7 @@ namespace Support
 
             if (iretn > 0) {
                 string bufferout;
-                bufferin[iretn] = 0;
-				bufferin.resize(iretn+1);
+				bufferin.resize(iretn);
                 process_request(bufferin, bufferout);
             }
         }
@@ -1159,15 +1158,17 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
     }
 
 int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
-	string req = request;
-	// remove function call and space
-	req.erase(0,10);
+	// remove function call and space ('set_value ')
+	request.erase(0,10);
+	cout<<"req_set_value():incoming request          = <"<<request<<">"<<endl;
+	cout<<"req_set_value():incoming request.size()   = "<<request.size()<<endl;
+	cout<<"req_set_value():incoming request.length() = "<<request.length()<<endl;
+	cout<<"req_set_value():incoming response         = <"<<response<<">"<<endl;
 
-	// TODO
+	// set the value from json string
+	agent->cinfo->set_json(request);
 
-	cout<<"request = <"<<request<<">"<<endl;
-	cout<<"response = <"<<response<<">"<<endl;
-	cout<<"agent rcv? = <"<<agent->agentName<<">"<<endl;
+	cout<<"req_set_value():outgoing response         = <"<<response<<">"<<endl;
 	return 0;
 }
     //! Built-in List Name Space Names request
