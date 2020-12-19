@@ -78,69 +78,30 @@ int main(int argc, char **argv)
     string response; // Variable to store agent_002's response
 
     // Start executing the agent
-	agent->cinfo->add_name("Short UTC", &agent->cinfo->node.loc.utc, "double");
-	agent->cinfo->add_name("Longest Ever UTC", &agent->cinfo->node.loc.utc, "double");
-	agent->cinfo->set_value<double>("Short UTC", 213.0);
+	//auto test = agent->cinfo->get_json<vector<vector<unitstruc>>>("unit");
+	//agent->cinfo->set_value<string>("unit[35][1].name", "NAME");
+	//agent->cinfo->set_json(test);
+	//cout<<"<vector<vector<unitstruc>>> = <"<<agent->cinfo->get_json_pretty<vector<vector<unitstruc>>>("unit")<<">"<<endl;
 
-	// test set_json with double
-	//agent->cinfo->set_json("Short UTC", "{\"Short UTC\": 214.5}");
-	agent->cinfo->set_json("{\"Short UTC\": 214.5}");
+	vector<vector<uint16_t>> vvuint16 {{1},{1,2},{1,2,3},{1,2,3,4},{1,2,3,4,5}};
+	agent->cinfo->add_name("vvuint16", &vvuint16, "vector<vector<uint16_t>>");
+	agent->cinfo->add_name("vvuint16[4][4]", &vvuint16[4][4], "int16_t");
+	auto j_vvuint16 = agent->cinfo->get_json<vector<vector<uint16_t>>>("vvuint16");
+	agent->cinfo->set_value<uint16_t>("vvuint16[4][4]", 9);
+	agent->cinfo->set_json(j_vvuint16);
+	cout<<"<vector<vector<uint16_t>>> = <"<<agent->cinfo->get_json_pretty<vector<vector<uint16_t>>>("vvuint16")<<">"<<endl;
 
-	cout<<"Short UTC        = <"<<agent->cinfo->get_value<double>("Short UTC")<<">"<<endl;
-	cout<<"Longest Ever UTC = <"<<agent->cinfo->get_value<double>("Longest Ever UTC")<<">"<<endl;
+	uint32_t t_uint32 = 1;
+	agent->cinfo->add_name("t_uint32", &t_uint32, "uint32_t");
+	auto j_t_uint32 = agent->cinfo->get_json<int>("t_uint32"); // SCOTTNOTE: error if type is uint32_t, should fix get_json and get_json_pretty
+	agent->cinfo->set_value<uint32_t>("t_uint32", 99);
+	agent->cinfo->set_json(j_t_uint32);
+	cout<<"uint32_t> = <"<<agent->cinfo->get_json_pretty<int>("t_uint32")<<">"<<endl;
 
-	//agent->cinfo->add_name("cosmosdata", &*agent->cinfo, "cosmosstruc");
-	agent->cinfo->add_name("cosmosdata", agent->cinfo, "cosmosstruc");
-	cout<<"cosmosdata       = <"<<agent->cinfo->get_json_pretty<cosmosstruc>("cosmosdata")<<">"<<endl;
-
-	agent->cinfo->add_name("My Favorite Users", &agent->cinfo->user, "vector<userstruc>");
-	cout<<"Old User Data       = <"<<agent->cinfo->get_json<vector<userstruc>>("My Favorite Users")<<">"<<endl;
-
-	string raw = "{\"My Favorite Users\": [{\"cpu\": \"\", \"name\": \"\", \"node\": \"\", \"tool\": \"\"},{\"cpu\": \"cpu2\", \"name\": \"name2\", \"node\": \"node2\", \"tool\": \"tool2\"}]}";
-	agent->cinfo->set_json(raw);
-	
-	cout<<"New User Data       = <"<<agent->cinfo->get_json<vector<userstruc>>("My Favorite Users")<<">"<<endl;
-	cout<<"New User Data       = <"<<agent->cinfo->get_json<userstruc>("user[1]")<<">"<<endl;
-	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
-	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
-	//agent->cinfo->print_all_names_types_values();
-	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
 
     while (agent->running()) {
 
 		cout<<"["<<node_name<<":"<<agent_name<<"] running..."<<endl;
-/* old tests
-		string target_request_name = "any_body_out_there";
-		agent->cinfo->set_value<double>("Cooler UTC", 99.99);
-		cout<<"\tUTC == "<< agent->cinfo->node.loc.utc <<endl;
-		cout<<"\tCooler UTC == "<< agent->cinfo->get_value<double>("Cooler UTC")<<endl;
-        cout<<"\tORBIT == "<< agent->cinfo->node.loc.pos.orbit <<endl;
-
-		// this agent can set his own values ... obvs...  can another agent?
-		//agent->cinfo->node.loc.utc = 13.456;
-
-		cout<<node_agent_name<<" transmit <"<<target_request_name<<"> request to ["<<node_name<<":"<<agent_target<<"]..."<<endl;
-        // Initiate request to agent_002
-        agent->send_request(agent_target_heartbeat, "any_body_out_there", response, 2.);
-
-        // Check for response from agent_002
-        if (response.size() > 1) {
-            // The case if agent_002 is on and successfully receives the request
-            cout << node_agent_name << " received <"<<target_request_name<<"> response from ["<<agent_target_heartbeat.node<<":"<<agent_target_heartbeat.proc<<"]:\n    RX: \"" << response << "\" ("<<response.size()<<" bytes)"<<endl;
-
-            // Clear the response for next request
-            response.clear();
-        } else {
-            // The case if agent_002 is not running
-			//cout<<"["<<node_name<<":"<<agent_name<<"] looking for ["<<node_name<<":"<<agent_target<<"]..."<<endl;
-
-    		agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
-			if(agent->debug_level>1)	{
-				cout<<"B agent "<<agent_target<<" beatstruc:"<<endl;
-				cout<<agent_target_heartbeat<<endl;
-			}
-        }
-*/
         // Sleep for 5 sec
         COSMOS_SLEEP(5.);
     }

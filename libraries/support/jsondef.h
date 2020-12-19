@@ -6197,7 +6197,7 @@ struct cosmosstruc
 					if(!p[name].is_null())	{
 						if(name_exists(name))  {
 							string type = get_type(name);
-							// base data type
+						// base data type
 							if(type == "string")	{
 								set_value<string>(name, p[name].string_value());
 							} else if(type == "double")	{
@@ -6223,7 +6223,7 @@ struct cosmosstruc
 							} else if (type == "size_t") {
 								set_value<size_t>(name, p[name].int_value());
 
-							// user-defined class
+						// user-defined class
 							} else if (type == "agent_request_entry") {
 								//get_pointer<agent_request_entry>(name)->from_json(json);
 							} else if (type == "agentstruc") {
@@ -6317,23 +6317,298 @@ struct cosmosstruc
 							} else if (type == "wavefront") {
 								get_pointer<wavefront>(name)->from_json(json);
 
-	//// how to do a vector of base types
+						// vector of base types
+							} else if (type == "vector<uint32_t>") {
+								for(size_t i = 0; i < get_pointer<vector<uint32_t>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<uint32_t>>(name)->at(i) = p[name][i].int_value();
+									}
+								}
+							} else if (type == "vector<vector<uint32_t>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<uint32_t>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<uint32_t>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<uint32_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+										}
+									}
+								}
+							} else if (type == "vector<int32_t>") {
+								for(size_t i = 0; i < get_pointer<vector<int32_t>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<int32_t>>(name)->at(i) = p[name][i].int_value();
+									}
+								}
+							} else if (type == "vector<vector<int32_t>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<int32_t>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<int32_t>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<int32_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+										}
+									}
+								}
+							} else if (type == "vector<uint16_t>") {
+								for(size_t i = 0; i < get_pointer<vector<uint16_t>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<uint16_t>>(name)->at(i) = p[name][i].int_value();
+									}
+								}
+							} else if (type == "vector<vector<uint16_t>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<uint16_t>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<uint16_t>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<uint16_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+										}
+									}
+								}
+							} else if (type == "vector<int16_t>") {
+								for(size_t i = 0; i < get_pointer<vector<int16_t>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<int16_t>>(name)->at(i) = p[name][i].int_value();
+									}
+								}
+							} else if (type == "vector<vector<int16_t>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<int16_t>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<int16_t>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<int16_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+										}
+									}
+								}
+							} else if (type == "vector<uint8_t>") {
+								for(size_t i = 0; i < get_pointer<vector<uint8_t>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<uint8_t>>(name)->at(i) = p[name][i].int_value();
+									}
+								}
+							} else if (type == "vector<vector<uint8_t>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<uint8_t>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<uint8_t>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<uint8_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+										}
+									}
+								}
+							} else if (type == "vector<int8_t>") {
+								for(size_t i = 0; i < get_pointer<vector<int8_t>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<int8_t>>(name)->at(i) = p[name][i].int_value();
+									}
+								}
+							} else if (type == "vector<vector<int8_t>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<int8_t>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<int8_t>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<int8_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+										}
+									}
+								}
+							} else if (type == "vector<size_t>") {
+								for(size_t i = 0; i < get_pointer<vector<size_t>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<size_t>>(name)->at(i) = p[name][i].int_value();
+									}
+								}
+							} else if (type == "vector<vector<size_t>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<size_t>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<size_t>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<size_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+										}
+									}
+								}
+							} else if (type == "vector<bool>") {
+								for(size_t i = 0; i < get_pointer<vector<bool>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<bool>>(name)->at(i) = p[name][i].bool_value();
+									}
+								}
+							} else if (type == "vector<vector<bool>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<bool>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<bool>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<bool>>>(name)->at(i).at(j) = p[name][i][j].bool_value();
+										}
+									}
+								}
+							} else if (type == "vector<string>") {
+								for(size_t i = 0; i < get_pointer<vector<string>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<string>>(name)->at(i) = p[name][i].string_value();
+									}
+								}
+							} else if (type == "vector<vector<string>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<string>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<string>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<string>>>(name)->at(i).at(j) = p[name][i][j].string_value();
+										}
+									}
+								}
+							} else if (type == "vector<float>") {
+								for(size_t i = 0; i < get_pointer<vector<float>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<float>>(name)->at(i) = p[name][i].number_value();
+									}
+								}
+							} else if (type == "vector<vector<float>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<float>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<float>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<float>>>(name)->at(i).at(j) = p[name][i][j].number_value();
+										}
+									}
+								}
+							} else if (type == "vector<double>") {
+								for(size_t i = 0; i < get_pointer<vector<double>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<double>>(name)->at(i) = p[name][i].number_value();
+									}
+								}
+							} else if (type == "vector<vector<double>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<double>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<double>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<double>>>(name)->at(i).at(j) = p[name][i][j].number_value();
+										}
+									}
+								}
 
-	//// how to do a vector of user-defined class
-							} else if (type == "vector<userstruc>")	{
-								for(size_t i = 0; i < get_pointer<vector<userstruc>>(name)->size(); ++i)	{
-									if(!p[name][i].is_null())	{
-										get_pointer<vector<userstruc>>(name)->at(i).from_json(p[name][i].dump());
-									} 
+						// vector of user-defined objects
+							//} else if (type == "vector<agent_request_entry>") {
+							//	for(size_t i = 0; i < get_pointer<vector<agent_request_entry>>(name)->size(); ++i) {
+							//		if(!p[name][i].is_null()) {
+							//			get_pointer<vector<agent_request_entry>>(name)->at(i).from_json(p[name][i].dump());
+							//		}
+							//	}
+							} else if (type == "vector<agentstruc>") {
+								for(size_t i = 0; i < get_pointer<vector<agentstruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<agentstruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
 								}
-							} else if (type == "vector<facestruc>")	{
-								for(size_t i = 0; i < get_pointer<vector<facestruc>>(name)->size(); ++i)	{
-									if(!p[name][i].is_null())	{
+							} else if (type == "vector<devicestruc>") {
+								for(size_t i = 0; i < get_pointer<vector<devicestruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<devicestruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<equationstruc>") {
+								for(size_t i = 0; i < get_pointer<vector<equationstruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<equationstruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<eventstruc>") {
+								for(size_t i = 0; i < get_pointer<vector<eventstruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<eventstruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<face>") {
+								for(size_t i = 0; i < get_pointer<vector<Cosmos::wavefront::face>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<Cosmos::wavefront::face>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<facestruc>") {
+								for(size_t i = 0; i < get_pointer<vector<facestruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
 										get_pointer<vector<facestruc>>(name)->at(i).from_json(p[name][i].dump());
-									} 
+									}
 								}
-							} else if (type == "cosmosstruc")	{
-								get_pointer<cosmosstruc>(name)->from_json(json);
+							} else if (type == "vector<group>") {
+								for(size_t i = 0; i < get_pointer<vector<Cosmos::wavefront::group>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<Cosmos::wavefront::group>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<line>") {
+								for(size_t i = 0; i < get_pointer<vector<Cosmos::wavefront::line>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<Cosmos::wavefront::line>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<material>") {
+								for(size_t i = 0; i < get_pointer<vector<Cosmos::wavefront::material>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<Cosmos::wavefront::material>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<piecestruc>") {
+								for(size_t i = 0; i < get_pointer<vector<piecestruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<piecestruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<point>") {
+								for(size_t i = 0; i < get_pointer<vector<Cosmos::wavefront::point>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<Cosmos::wavefront::point>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<portstruc>") {
+								for(size_t i = 0; i < get_pointer<vector<portstruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<portstruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<targetstruc>") {
+								for(size_t i = 0; i < get_pointer<vector<targetstruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<targetstruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<tlestruc>") {
+								for(size_t i = 0; i < get_pointer<vector<tlestruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<tlestruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<trianglestruc>") {
+								for(size_t i = 0; i < get_pointer<vector<trianglestruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<trianglestruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<unitstruc>") {
+								for(size_t i = 0; i < get_pointer<vector<unitstruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<unitstruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<userstruc>") {
+								for(size_t i = 0; i < get_pointer<vector<userstruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<userstruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<Vector>") {
+								for(size_t i = 0; i < get_pointer<vector<Vector>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<Vector>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<unitstruc>") {
+								for(size_t i = 0; i < get_pointer<vector<unitstruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<unitstruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<vector<unitstruc>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<unitstruc>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<unitstruc>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<unitstruc>>>(name)->at(i).at(j).from_json(p[name][i][j].dump());
+										}
+									}
+								}
+							} else if (type == "vector<vertexstruc>") {
+								for(size_t i = 0; i < get_pointer<vector<vertexstruc>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<vertexstruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+
 							} else	{
 								// I guess this block means the type is not supported!
 								// could re-add templated version of set_json so user
