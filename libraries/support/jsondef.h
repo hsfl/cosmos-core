@@ -6183,6 +6183,12 @@ struct cosmosstruc
 		}
 
 		// TODO: add support for multiple JSON string concatenated
+		/// Sets the data in Namespace 2.0 with a JSON-formatted string.
+		/** Searches through Namespace 2.0 and sets the value of the appropriate data by parsing the provided JSON-formatted string. The name used to search Namespace 2.0 is the key of the first entry in the JSON-formatted string.
+		@param	json	JSON formatted string to set the data to
+
+		@return	n/a
+		*/
 		void set_json(const string& json) 	{
 			cout<<"\tJSON received = <"<<json<<">"<<endl;
 			string error;
@@ -6205,7 +6211,7 @@ struct cosmosstruc
 							} else if (type == "float")	{
 								set_value<float>(name, p[name].number_value());
 							} else if (type == "int")	{
-								set_value<int>(name, p[name].number_value());
+								set_value<int>(name, p[name].int_value());
 							} else if (type == "bool")	{
 								set_value<bool>(name, p[name].bool_value());
 							} else if (type == "uint32_t")	{
@@ -6635,17 +6641,29 @@ struct cosmosstruc
 			}// end for loop
 		}
 
+		/// Gets a JSON-formatted string of the data associated with the provided name in Namespace 2.0.
+		/** Searches through Namespace 2.0 and gets the JSON-formatted string of the data pointed to by the pointer to the memory address associated with the provided name.
+		@param	s	string representing name to search for
+
+		@return	JSON-formatted string of data. Returns empty string if name is not found.
+		*/
 		template<class T>
 		string get_json(const string& s)	{
-				if(name_exists(s))	{
-						json11::Json json = json11::Json::object { { s, this->get_value<T>(s) } };
-						return json.dump();
-				} else {
-						return "";
-				}
+			if(name_exists(s))	{
+				json11::Json json = json11::Json::object { { s, this->get_value<T>(s) } };
+				return json.dump();
+			} else {
+				return "";
+			}
 		}
 
 		// get called from agents (no template)
+		/// Gets a JSON-formatted string of the data associated with the provided name in Namespace 2.0. (Non-template version)
+		/** Searches through Namespace 2.0 and gets the JSON-formatted string of the data pointed to by the pointer to the memory address associated with the provided name.
+		@param	s	string representing name to search for
+
+		@return	JSON-formatted string of data. Returns empty string if name is not found.
+		*/
 		string get_json(const string& s)	{
 			if(name_exists(s))  {
 				json11::Json json;
