@@ -4018,8 +4018,8 @@ struct cosmosstruc
 				}
 			}
 
-			auto p2 = types.lower_bound(s);
-			auto q2 = types.end();
+			//auto p2 = types.lower_bound(s);
+			//auto q2 = types.end();
 			while (p != q) {
 				if (p->first.compare(s) == 0 ||								 // if exact match s is found. eg: "jmap" but not "jmapped"
 					p->first.compare(0, sbracket.size(), sbracket) == 0 ||	  // if search string s + [ is found. eg: "jmap[0]"
