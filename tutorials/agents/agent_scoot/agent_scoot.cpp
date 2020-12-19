@@ -86,17 +86,19 @@ int main(int argc, char **argv)
 	vector<vector<uint16_t>> vvuint16 {{1},{1,2},{1,2,3},{1,2,3,4},{1,2,3,4,5}};
 	agent->cinfo->add_name("vvuint16", &vvuint16, "vector<vector<uint16_t>>");
 	agent->cinfo->add_name("vvuint16[4][4]", &vvuint16[4][4], "int16_t");
-	auto j_vvuint16 = agent->cinfo->get_json<vector<vector<uint16_t>>>("vvuint16");
+	auto j_vvuint16 = agent->cinfo->get_json("vvuint16");
 	agent->cinfo->set_value<uint16_t>("vvuint16[4][4]", 9);
 	agent->cinfo->set_json(j_vvuint16);
 	cout<<"<vector<vector<uint16_t>>> = <"<<agent->cinfo->get_json_pretty<vector<vector<uint16_t>>>("vvuint16")<<">"<<endl;
 
 	uint32_t t_uint32 = 1;
 	agent->cinfo->add_name("t_uint32", &t_uint32, "uint32_t");
-	auto j_t_uint32 = agent->cinfo->get_json<int>("t_uint32"); // SCOTTNOTE: error if type is uint32_t, should fix get_json and get_json_pretty
+	auto j_t_uint32 = agent->cinfo->get_json("t_uint32"); // SCOTTNOTE: error if type is uint32_t, should fix get_json and get_json_pretty
 	agent->cinfo->set_value<uint32_t>("t_uint32", 99);
 	agent->cinfo->set_json(j_t_uint32);
 	cout<<"uint32_t> = <"<<agent->cinfo->get_json_pretty<int>("t_uint32")<<">"<<endl;
+
+	//auto a = agent->cinfo->get_value("")
 
 
     while (agent->running()) {

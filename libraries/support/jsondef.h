@@ -6223,7 +6223,7 @@ struct cosmosstruc
 							} else if (type == "size_t") {
 								set_value<size_t>(name, p[name].int_value());
 
-						// user-defined class
+						// user-defined types
 							} else if (type == "agent_request_entry") {
 								//get_pointer<agent_request_entry>(name)->from_json(json);
 							} else if (type == "agentstruc") {
@@ -6402,6 +6402,20 @@ struct cosmosstruc
 										}
 									}
 								}
+							} else if (type == "vector<int>") {
+								for(size_t i = 0; i < get_pointer<vector<int>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<int>>(name)->at(i) = p[name][i].int_value();
+									}
+								}
+							} else if (type == "vector<vector<int>>") {
+								for(size_t i = 0; i < get_pointer<vector<vector<int>>>(name)->size(); ++i) {
+									for(size_t j = 0; j < get_pointer<vector<vector<int>>>(name)->at(i).size(); ++j) {
+										if(!p[name][i][j].is_null()) {
+											get_pointer<vector<vector<int>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+										}
+									}
+								}
 							} else if (type == "vector<size_t>") {
 								for(size_t i = 0; i < get_pointer<vector<size_t>>(name)->size(); ++i) {
 									if(!p[name][i].is_null()) {
@@ -6473,7 +6487,7 @@ struct cosmosstruc
 									}
 								}
 
-						// vector of user-defined objects
+						// vector of user-defined types
 							//} else if (type == "vector<agent_request_entry>") {
 							//	for(size_t i = 0; i < get_pointer<vector<agent_request_entry>>(name)->size(); ++i) {
 							//		if(!p[name][i].is_null()) {
@@ -6608,7 +6622,6 @@ struct cosmosstruc
 										get_pointer<vector<vertexstruc>>(name)->at(i).from_json(p[name][i].dump());
 									}
 								}
-
 							} else	{
 								// I guess this block means the type is not supported!
 								// could re-add templated version of set_json so user
@@ -6637,45 +6650,223 @@ struct cosmosstruc
 			if(name_exists(s))  {
 				json11::Json json;
 				string type = get_type(s);
-				if(type == "string")	{
+			// base data types
+				if (type == "uint32_t") {
+					json = json11::Json::object { { s, get_value<int>(s) } };
+				} else if (type == "int32_t") {
+					json = json11::Json::object { { s, get_value<int32_t>(s) } };
+				} else if (type == "uint16_t") {
+					json = json11::Json::object { { s, get_value<uint16_t>(s) } };
+				} else if (type == "int16_t") {
+					json = json11::Json::object { { s, get_value<int16_t>(s) } };
+				} else if (type == "uint8_t") {
+					json = json11::Json::object { { s, get_value<uint8_t>(s) } };
+				} else if (type == "int8_t") {
+					json = json11::Json::object { { s, get_value<int8_t>(s) } };
+				} else if (type == "int") {
+					json = json11::Json::object { { s, get_value<int>(s) } };
+				} else if (type == "size_t") {
+					json = json11::Json::object { { s, get_value<int>(s) } };
+				} else if (type == "bool") {
+					json = json11::Json::object { { s, get_value<bool>(s) } };
+				} else if (type == "string") {
 					json = json11::Json::object { { s, get_value<string>(s) } };
-				} else if (type == "double")	{
-					json = json11::Json::object { { s, get_value<double>(s) } };
 				} else if (type == "float") {
 					json = json11::Json::object { { s, get_value<float>(s) } };
-				} else if (type == "int")   {
-					json = json11::Json::object { { s, get_value<int>(s) } };
-				} else if (type == "bool")  {
-					json = json11::Json::object { { s, get_value<bool>(s) } };
-				} else if (type == "uint32_t")  {
-					// ambiguous for json11 :(
-					//json = json11::Json::object { { s, get_value<uint32_t>(s) } };
-					json = json11::Json::object { { s, get_value<int>(s) } };
-				} else if (type == "int32_t")   {
-					json = json11::Json::object { { s, get_value<int32_t>(s) } };
-				} else if (type == "uint16_t")   {
-					json = json11::Json::object { { s, get_value<uint16_t>(s) } };
-				} else if (type == "int16_t")   {
-					json = json11::Json::object { { s, get_value<int16_t>(s) } };
-				} else if (type == "uint8_t")   {
-					json = json11::Json::object { { s, get_value<uint8_t>(s) } };
-				} else if (type == "int8_t")   {
-					json = json11::Json::object { { s, get_value<int8_t>(s) } };
-// etc...
-// etc...
-// etc...
+				} else if (type == "double") {
+					json = json11::Json::object { { s, get_value<double>(s) } };
 
-// how to do user-defined types
-				} else if (type == "userstruc")   {
-					json = json11::Json::object { { s, get_value<userstruc>(s) } };
-// how to do vectors of user-defined types
-				} else if (type == "vector<userstruc>")   {
-					json = json11::Json::object { { s, get_value<vector<userstruc>>(s) } };
-
-				} else if (type == "agentstruc")   {
+			// user-defined types
+				} else if (type == "agent_request_entry") {
+				//	json = json11::Json::object { { s, get_value<agent_request_entry>(s) } };
+				} else if (type == "agentstruc") {
 					json = json11::Json::object { { s, get_value<agentstruc>(s) } };
-				} else if (type == "cosmosstruc")   {
+				} else if (type == "attstruc") {
+					json = json11::Json::object { { s, get_value<attstruc>(s) } };
+				} else if (type == "beatstruc") {
+					json = json11::Json::object { { s, get_value<beatstruc>(s) } };
+				} else if (type == "cartpos") {
+					json = json11::Json::object { { s, get_value<cartpos>(s) } };
+				} else if (type == "cosmosstruc") {
 					json = json11::Json::object { { s, get_value<cosmosstruc>(s) } };
+				} else if (type == "cvector") {
+					json = json11::Json::object { { s, get_value<cvector>(s) } };
+				} else if (type == "devicestruc") {
+					json = json11::Json::object { { s, get_value<devicestruc>(s) } };
+				} else if (type == "devspecstruc") {
+					json = json11::Json::object { { s, get_value<devspecstruc>(s) } };
+				} else if (type == "equationstruc") {
+					json = json11::Json::object { { s, get_value<equationstruc>(s) } };
+				} else if (type == "eventstruc") {
+					json = json11::Json::object { { s, get_value<eventstruc>(s) } };
+				} else if (type == "extraatt") {
+					json = json11::Json::object { { s, get_value<extraatt>(s) } };
+				} else if (type == "extrapos") {
+					json = json11::Json::object { { s, get_value<extrapos>(s) } };
+				} else if (type == "face") {
+					json = json11::Json::object { { s, get_value<Cosmos::wavefront::face>(s) } };
+				} else if (type == "facestruc") {
+					json = json11::Json::object { { s, get_value<facestruc>(s) } };
+				} else if (type == "geoidpos") {
+					json = json11::Json::object { { s, get_value<geoidpos>(s) } };
+				} else if (type == "group") {
+					json = json11::Json::object { { s, get_value<Cosmos::wavefront::group>(s) } };
+				} else if (type == "gvector") {
+					json = json11::Json::object { { s, get_value<gvector>(s) } };
+				} else if (type == "line") {
+					json = json11::Json::object { { s, get_value<Cosmos::wavefront::line>(s) } };
+				} else if (type == "jsonhandle") {
+					json = json11::Json::object { { s, get_value<jsonhandle>(s) } };
+				} else if (type == "jsonnode") {
+					json = json11::Json::object { { s, get_value<jsonnode>(s) } };
+				} else if (type == "locstruc") {
+					json = json11::Json::object { { s, get_value<locstruc>(s) } };
+				} else if (type == "material") {
+					json = json11::Json::object { { s, get_value<Cosmos::wavefront::material>(s) } };
+				} else if (type == "NetworkType") {
+				//	json = json11::Json::object { { s, get_value<NetworkType>(s) } };
+				} else if (type == "nodestruc") {
+					json = json11::Json::object { { s, get_value<nodestruc>(s) } };
+				} else if (type == "piecestruc") {
+					json = json11::Json::object { { s, get_value<piecestruc>(s) } };
+				} else if (type == "physicsstruc") {
+					json = json11::Json::object { { s, get_value<physicsstruc>(s) } };
+				} else if (type == "point") {
+					json = json11::Json::object { { s, get_value<Cosmos::wavefront::point>(s) } };
+				} else if (type == "portstruc") {
+					json = json11::Json::object { { s, get_value<portstruc>(s) } };
+				} else if (type == "PORT_TYPE") {
+					json = json11::Json::object { { s, get_value<PORT_TYPE>(s) } };
+				} else if (type == "posstruc") {
+					json = json11::Json::object { { s, get_value<posstruc>(s) } };
+				} else if (type == "qatt") {
+					json = json11::Json::object { { s, get_value<qatt>(s) } };
+				} else if (type == "quaternion") {
+					json = json11::Json::object { { s, get_value<quaternion>(s) } };
+				} else if (type == "rmatrix") {
+					json = json11::Json::object { { s, get_value<rmatrix>(s) } };
+				} else if (type == "rvector") {
+					json = json11::Json::object { { s, get_value<rvector>(s) } };
+				} else if (type == "rvector[]") {
+				//	json = json11::Json::object { { s, get_value<rvector[]>(s) } };
+				} else if (type == "socket_channel") {
+				//	json = json11::Json::object { { s, get_value<socket_channel>(s) } };
+				} else if (type == "socket_channel[]") {
+				//	json = json11::Json::object { { s, get_value<socket_channel[]>(s) } };
+				} else if (type == "spherpos") {
+					json = json11::Json::object { { s, get_value<spherpos>(s) } };
+				} else if (type == "svector") {
+					json = json11::Json::object { { s, get_value<svector>(s) } };
+				} else if (type == "targetstruc") {
+					json = json11::Json::object { { s, get_value<targetstruc>(s) } };
+				} else if (type == "tlestruc") {
+					json = json11::Json::object { { s, get_value<tlestruc>(s) } };
+				} else if (type == "trianglestruc") {
+					json = json11::Json::object { { s, get_value<trianglestruc>(s) } };
+				} else if (type == "unitstruc") {
+					json = json11::Json::object { { s, get_value<unitstruc>(s) } };
+				} else if (type == "userstruc") {
+					json = json11::Json::object { { s, get_value<userstruc>(s) } };
+				} else if (type == "Vector") {
+					json = json11::Json::object { { s, get_value<Vector>(s) } };
+				} else if (type == "vertexstruc") {
+					json = json11::Json::object { { s, get_value<vertexstruc>(s) } };
+				} else if (type == "wavefront") {
+					json = json11::Json::object { { s, get_value<wavefront>(s) } };
+
+			// vector of primitives
+				} else if (type == "vector<uint32_t>") {
+					json = json11::Json::object { { s, get_value<vector<int>>(s) } };
+				} else if (type == "vector<vector<uint32_t>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<int>>>(s) } };
+				} else if (type == "vector<int32_t>") {
+					json = json11::Json::object { { s, get_value<vector<int32_t>>(s) } };
+				} else if (type == "vector<vector<int32_t>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<int32_t>>>(s) } };
+				} else if (type == "vector<uint16_t>") {
+					json = json11::Json::object { { s, get_value<vector<uint16_t>>(s) } };
+				} else if (type == "vector<vector<uint16_t>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<uint16_t>>>(s) } };
+				} else if (type == "vector<int16_t>") {
+					json = json11::Json::object { { s, get_value<vector<int16_t>>(s) } };
+				} else if (type == "vector<vector<int16_t>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<int16_t>>>(s) } };
+				} else if (type == "vector<uint8_t>") {
+					json = json11::Json::object { { s, get_value<vector<uint8_t>>(s) } };
+				} else if (type == "vector<vector<uint8_t>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<uint8_t>>>(s) } };
+				} else if (type == "vector<int8_t>") {
+					json = json11::Json::object { { s, get_value<vector<int8_t>>(s) } };
+				} else if (type == "vector<vector<int8_t>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<int8_t>>>(s) } };
+				} else if (type == "vector<int>") {
+					json = json11::Json::object { { s, get_value<vector<int>>(s) } };
+				} else if (type == "vector<vector<int>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<int>>>(s) } };
+				} else if (type == "vector<size_t>") {
+					json = json11::Json::object { { s, get_value<vector<int>>(s) } };
+				} else if (type == "vector<vector<size_t>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<int>>>(s) } };
+				} else if (type == "vector<bool>") {
+					json = json11::Json::object { { s, get_value<vector<bool>>(s) } };
+				} else if (type == "vector<vector<bool>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<bool>>>(s) } };
+				} else if (type == "vector<string>") {
+					json = json11::Json::object { { s, get_value<vector<string>>(s) } };
+				} else if (type == "vector<vector<string>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<string>>>(s) } };
+				} else if (type == "vector<float>") {
+					json = json11::Json::object { { s, get_value<vector<float>>(s) } };
+				} else if (type == "vector<vector<float>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<float>>>(s) } };
+				} else if (type == "vector<double>") {
+					json = json11::Json::object { { s, get_value<vector<double>>(s) } };
+				} else if (type == "vector<vector<double>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<double>>>(s) } };
+
+			// vector of user-defined types
+				} else if (type == "vector<agent_request_entry>") {
+				//	json = json11::Json::object { { s, get_value<vector<agent_request_entry>>(s) } };
+				} else if (type == "vector<agentstruc>") {
+					json = json11::Json::object { { s, get_value<vector<agentstruc>>(s) } };
+				} else if (type == "vector<devicestruc>") {
+					json = json11::Json::object { { s, get_value<vector<devicestruc>>(s) } };
+				} else if (type == "vector<equationstruc>") {
+					json = json11::Json::object { { s, get_value<vector<equationstruc>>(s) } };
+				} else if (type == "vector<eventstruc>") {
+					json = json11::Json::object { { s, get_value<vector<eventstruc>>(s) } };
+				} else if (type == "vector<face>") {
+					json = json11::Json::object { { s, get_value<vector<Cosmos::wavefront::face>>(s) } };
+				} else if (type == "vector<facestruc>") {
+					json = json11::Json::object { { s, get_value<vector<facestruc>>(s) } };
+				} else if (type == "vector<group>") {
+					json = json11::Json::object { { s, get_value<vector<Cosmos::wavefront::group>>(s) } };
+				} else if (type == "vector<line>") {
+					json = json11::Json::object { { s, get_value<vector<Cosmos::wavefront::line>>(s) } };
+				} else if (type == "vector<material>") {
+					json = json11::Json::object { { s, get_value<vector<Cosmos::wavefront::material>>(s) } };
+				} else if (type == "vector<piecestruc>") {
+					json = json11::Json::object { { s, get_value<vector<piecestruc>>(s) } };
+				} else if (type == "vector<point>") {
+					json = json11::Json::object { { s, get_value<vector<Cosmos::wavefront::point>>(s) } };
+				} else if (type == "vector<portstruc>") {
+					json = json11::Json::object { { s, get_value<vector<portstruc>>(s) } };
+				} else if (type == "vector<targetstruc>") {
+					json = json11::Json::object { { s, get_value<vector<targetstruc>>(s) } };
+				} else if (type == "vector<tlestruc>") {
+					json = json11::Json::object { { s, get_value<vector<tlestruc>>(s) } };
+				} else if (type == "vector<trianglestruc>") {
+					json = json11::Json::object { { s, get_value<vector<trianglestruc>>(s) } };
+				} else if (type == "vector<unitstruc>") {
+					json = json11::Json::object { { s, get_value<vector<unitstruc>>(s) } };
+				} else if (type == "vector<userstruc>") {
+					json = json11::Json::object { { s, get_value<vector<userstruc>>(s) } };
+				} else if (type == "vector<Vector>") {
+					json = json11::Json::object { { s, get_value<vector<Vector>>(s) } };
+				} else if (type == "vector<vector<unitstruc>>") {
+					json = json11::Json::object { { s, get_value<vector<vector<unitstruc>>>(s) } };
+				} else if (type == "vector<vertexstruc>") {
+					json = json11::Json::object { { s, get_value<vector<vertexstruc>>(s) } };
 				}
 				return json.dump();
 			} else {
