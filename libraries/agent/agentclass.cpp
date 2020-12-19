@@ -233,6 +233,7 @@ namespace Support
         add_request("debug_level",req_debug_level,"{\"name1\",\"name2\",...}","get/set debug_level of agent");
         add_request("getvalue",req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
         add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent");
+        add_request("get_time",req_get_time,"","return the current time of the agent");
         add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
         add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent");
         add_request("listnames",req_listnames,"","list the Namespace of the agent");
@@ -1142,6 +1143,12 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
 	return 0;
 }
 
+int32_t Agent::req_get_time(string &request, string &response, Agent* agent)	{
+	stringstream ss;
+	ss<<setprecision(numeric_limits<double>::digits10)<<currentmjd();
+	response = ss.str();
+	return 0;
+}
 
     //! Built-in Set Internal Value request
     /*! Sets the current value of the requested Name Space values. Names and values are expressed as a JSON object.
