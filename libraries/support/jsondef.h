@@ -6892,6 +6892,14 @@ struct cosmosstruc
 			}
 		}
 
+		/// Replace every occurance of a substring within a string with another subtring.
+		/** Search through a string for every instance of a specified substring, then replace. For internal use.
+		@param	str		string to search through
+		@param	from	substring to replace
+		@param	to		substring to be replaced with
+
+		@return	n/a
+		*/
 		void replace(std::string& str, const std::string& from, const std::string& to) {
 			if(from.empty()) return;
 			size_t start_pos = 0;
@@ -6902,6 +6910,12 @@ struct cosmosstruc
 			return;
 		}
 
+		/// Pretty-fy text
+		/** Takes an input JSON-formatted string and makes it more readable. For internal use.
+		@param	js		JSON-formatted string
+
+		@return	n/a
+		*/
 		void pretty_form(string& js)	{
 
 // JIMNOTE: fix bug with splitting lines over array indices [#]
@@ -6954,7 +6968,10 @@ struct cosmosstruc
 		}
 
 
-	// Convert class contents to JSON object
+	/// Convert class contents to a JSON object
+	/** Returns a json11 JSON object of the COSMOS Data Structure (::cosmosstruc)
+	@return	A json11 JSON object containing every member variable within the COSMOS Data Structure (::cosmosstruc)
+	*/
 	json11::Json to_json() const {
 		return json11::Json::object {
 			{ "timestamp" , timestamp },
@@ -6973,13 +6990,18 @@ struct cosmosstruc
 			{ "agent" , agent },
 			{ "event" , event },
 			{ "target" , target },
-						{ "user" , user },
-						{ "tle" , tle },
-						//{ "json" , json }
-				};
-		}
+			{ "user" , user },
+			{ "tle" , tle },
+			//{ "json" , json }
+		};
+	}
 
-	// Set class contents from JSON string
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
 	void from_json(const string& s) {
 		string error;
 		json11::Json p = json11::Json::parse(s,error);
@@ -7035,7 +7057,12 @@ struct cosmosstruc
 		return;
 	}
 
-	// has left association?
+	/// Checks if operator is left-associative
+	/**	For internal use.
+	@param	a	char representing operator to check left-associativity for
+
+	@return Returns true if operator is left-associative. Returns false if not.
+	*/
 	bool left_ass(char a)	{
 		if(a == '+')	return true;
 		if(a == '-')	return true;
@@ -7046,7 +7073,13 @@ struct cosmosstruc
 		return false;
 	}
 
-	// has equal precedence?
+	/// Checks if two operators have equal precedence.
+	/**	For internal use.
+	@param	a	char representing operator
+	@param	b	char representing operator
+
+	@return Returns true if operators have equal precedence. Returns false if not.
+	*/
 	bool equal_ass(char a, char b)	{
 		if(a == '+' && b == '+')	return true;	
 		if(a == '+' && b == '-')	return true;	
@@ -7081,7 +7114,13 @@ struct cosmosstruc
 		return false;
 	}
 
-	// has higher precedence?
+	/// Checks for higher operator precedence
+	/**	For internal use.
+	@param	a	char representing operator
+	@param	b	char representing operator
+
+	@return Returns true if operator `a` has higher precedence than operator `b`. Returns false if not.
+	*/
 	bool higher(char a, char b)	{
 
 		if(a == '+' && b == '+')	return false;	
