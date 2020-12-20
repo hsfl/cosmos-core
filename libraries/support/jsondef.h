@@ -3895,15 +3895,33 @@ struct cosmosstruc
 		name_map names;
 		type_map types;
 
+		/// Checks if provided name exists within Namespace 2.0
+		/**	
+		@param	s	string representing name to search for
+
+		@return Returns true if name exists. Returns false if not.
+		*/
 		bool name_exists(const string& s)	{ return (names.find(s) == names.end()) ? false : true; }
 
+		/// Returns the length of the map used to represent Namespace 2.0
+		/**
+		@return Size size_t of the map used to represent Namespace 2.0
+		*/
 		size_t size()	{	return names.size();	}
 
+		/// Prints every name within Namespace 2.0
+		/**	For debug use.
+		@return n/a
+		*/
 		void print_all_names() const	{
 			name_map::const_iterator it = names.begin();
 			while(it != names.end())	{ cout<<(it++)->first<<endl; }
 		}
 
+		/// Prints every name and the associated type within Namespace 2.0
+		/**	For debug use.
+		@return n/a
+		*/
 		void print_all_names_types() const	{
 			name_map::const_iterator n = names.begin();
 			while(n != names.end())	{ 
@@ -3916,7 +3934,12 @@ struct cosmosstruc
 			}
 			return;
 		}
-///*
+
+		/// Prints every name and the associated value and type within Namespace 2.0
+		/**	For debug use.
+
+		@return n/a
+		*/
 		void print_all_names_types_values() const	{
 			name_map::const_iterator n = names.begin();
 			while(n != names.end())	{ 
@@ -3956,8 +3979,11 @@ struct cosmosstruc
 			}
 			return;
 		}
-//*/
 
+		/// Get every name within Namespace 2.0
+		/** Returns a vector of strings containing every name within Namespace 2.0.
+		@return Vector of strings of all names within Namespace 2.0.
+		*/
 		vector<string> get_all_names() const	{
 			vector<string> all_names;
 			name_map::const_iterator it = names.begin();
@@ -7156,6 +7182,13 @@ struct cosmosstruc
 		return false;
 	}
 
+	/// Applies an arithmetic operation between two values
+	/**	Two operands are popped from the `answer` stack, and one operator is popped from the `ops` stack. The result of the operation is pushed onto the `answer` stack. For internal use.
+	@param	ops		stack of operators
+	@param	answer	stack of operands
+
+	@return Returns -1 if `answer` does not contain at least 2 operands. Returns 0 if operation was successfully applied.
+	*/
 	int apply_op(stack<char>& ops, stack<double>& answer)	{
 		if(answer.size()<2) return -1;
 		double b = answer.top();
@@ -7179,7 +7212,12 @@ struct cosmosstruc
 		return 0;
 	}
 
-	// TODO:  make sure it never segfaults!
+	/// Evaluate the expression of a python?Matlab? equation
+	/**	Parses a python?Matlab? formatted string and evaluates the expression
+	@param	str	string representing a python?Matlab? formatted expression
+
+	@return Returns a double type result of the expression. Returns *NaN* if an error is encountered.
+	*/
 	double equationator(const string& str)	{
 		string eq(str);
 
