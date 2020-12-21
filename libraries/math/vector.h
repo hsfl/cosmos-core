@@ -61,14 +61,22 @@ struct rvector
         col[2] = d2;
     }
 
-    // Convert class contents to JSON object
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
     json11::Json to_json() const {
         vector<double> v_col = vector<double>(col, col+sizeof(col)/sizeof(col[0]));
         return json11::Json::object {
             { "col" , v_col }
         };
     }
-    // Set class contents from JSON string
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
@@ -121,7 +129,10 @@ public:
     cvector normalized(double scale=1.);
     double& operator[] (const int index);
 
-    // Convert class contents to JSON object
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
     json11::Json to_json() const {
         return json11::Json::object {
             { "x" , x },
@@ -130,7 +141,12 @@ public:
         };
     }
 
-    // Set class contents from JSON string
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
@@ -164,7 +180,10 @@ struct svector
         r = tr;
     }
 
-    // Convert class contents to JSON object
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
     json11::Json to_json() const {
         return json11::Json::object {
             { "phi" , phi },
@@ -173,7 +192,12 @@ struct svector
         };
     }
 
-    // Set class contents from JSON string
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
@@ -211,7 +235,10 @@ struct gvector
         h = th;
     }
 
-    // Convert class contents to JSON object
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
     json11::Json to_json() const {
         return json11::Json::object {
             { "lat" , lat },
@@ -220,7 +247,12 @@ struct gvector
         };
     }
 
-    // Set class contents from JSON string
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
@@ -258,7 +290,10 @@ struct avector
         b = tb;
     }
 
-    // Convert class contents to JSON object
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
     json11::Json to_json() const {
         return json11::Json::object {
             { "h" , h },
@@ -267,7 +302,12 @@ struct avector
         };
     }
 
-    // Set class contents from JSON string
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
@@ -372,14 +412,22 @@ struct quaternion
         w = tw;
     }
 
-    // Convert class contents to JSON object
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
     json11::Json to_json() const {
         return json11::Json::object {
             { "d" , d },
             { "w" , w }
         };
     }
-    // Set class contents from JSON string
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
@@ -414,7 +462,10 @@ struct qcomplex
         r = tr;
     }
 
-    // Convert class contents to JSON object
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
     json11::Json to_json() const {
         return json11::Json::object {
             { "i" , i },
@@ -424,7 +475,12 @@ struct qcomplex
         };
     }
 
-    // Set class contents from JSON string
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
@@ -462,7 +518,10 @@ struct qlast
         q4 = tq4;
     }
 
-    // Convert class contents to JSON object
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
     json11::Json to_json() const {
         return json11::Json::object {
             { "q1" , q1 },
@@ -472,7 +531,12 @@ struct qlast
         };
     }
 
-    // Set class contents from JSON string
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
@@ -510,7 +574,10 @@ struct qfirst
         q3 = tq3;
     }
 
-    // Convert class contents to JSON object
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
     json11::Json to_json() const {
         return json11::Json::object {
             { "q0" , q0 },
@@ -520,7 +587,12 @@ struct qfirst
         };
     }
 
-    // Set class contents from JSON string
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
@@ -689,7 +761,10 @@ namespace Cosmos {
             bool operator == (const Vector &v2) const; // Compares two vectors
             bool operator != (const Vector &v2) const; // Compares two vectors
         
-            // Convert class contents to JSON object
+        	/// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+            @return	A json11 JSON object containing every member variable within the class
+            */
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "x" , x },
@@ -699,7 +774,12 @@ namespace Cosmos {
                 };
             }
 
-            // Set class contents from JSON string
+        	/// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+            @param	s	JSON-formatted string to set class contents to
+
+            @return n/a
+            */
             void from_json(const string& s) {
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
@@ -806,7 +886,10 @@ namespace Cosmos {
             Vector irotate(const Vector &v);
             Vector drotate(const Vector &v);
 
-            // Convert class contents to JSON object
+        	/// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+            @return	A json11 JSON object containing every member variable within the class
+            */
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "x" , x },
@@ -816,7 +899,12 @@ namespace Cosmos {
                 };
             }
 
-            // Set class contents from JSON string
+        	/// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+            @param	s	JSON-formatted string to set class contents to
+
+            @return n/a
+            */
             void from_json(const string& s) {
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);

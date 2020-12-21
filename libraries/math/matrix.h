@@ -49,7 +49,10 @@ struct rmatrix
         row[2] = rv2;
     }
 
-    // Convert class contents to JSON object
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
     json11::Json to_json() const {
         vector<rvector> v_row = vector<rvector>(row, row+sizeof(row)/sizeof(row[0]));
         return json11::Json::object {
@@ -57,7 +60,12 @@ struct rmatrix
         };
     }
 
-    // Set class contents from JSON string
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
@@ -94,7 +102,10 @@ struct cmatrix
     //! Row 3
     cvector r3;
 
-    // Convert class contents to JSON object
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
     json11::Json to_json() const {
         return json11::Json::object {
             { "r1" , r1 },
@@ -103,7 +114,12 @@ struct cmatrix
         };
     }
 
-    // Set class contents from JSON string
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
@@ -371,7 +387,10 @@ namespace  Cosmos {
 
                 double determinant();
 
-    			// Convert class contents to JSON object
+    			/// Convert class contents to JSON object
+                /** Returns a json11 JSON object of the class
+                @return	A json11 JSON object containing every member variable within the class
+                */
     			json11::Json to_json() const {
         			return json11::Json::object {
             			{ "r0" , r0 },
@@ -380,7 +399,12 @@ namespace  Cosmos {
         			};
     			}
 			
-    			// Set class contents from JSON string
+    			/// Set class contents from JSON string
+                /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+                @param	s	JSON-formatted string to set class contents to
+
+                @return n/a
+                */
     			void from_json(const string& s) {
         			string error;
         			json11::Json parsed = json11::Json::parse(s,error);

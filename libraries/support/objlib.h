@@ -21,7 +21,10 @@ namespace Cosmos
             size_t vt=0;
             size_t vn=0;
 
-            // Convert class contents to JSON object
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+            @return	A json11 JSON object containing every member variable within the class
+            */
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "v"  , static_cast<double>(v) },
@@ -30,7 +33,12 @@ namespace Cosmos
                 };
             }
 
-            // Set class contents from JSON string
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+            @param	s	JSON-formatted string to set class contents to
+
+            @return n/a
+            */
             void from_json(const string& s) {
                 string error;
                 json11::Json p = json11::Json::parse(s,error);
@@ -50,7 +58,10 @@ namespace Cosmos
             vector <size_t> groups;
             size_t vertex = 0;
 
-            // Convert class contents to JSON object
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+            @return	A json11 JSON object containing every member variable within the class
+            */
             json11::Json to_json() const {
                 vector<double> d_groups(groups.begin(), groups.end());
                 return json11::Json::object {
@@ -59,7 +70,12 @@ namespace Cosmos
                 };
             }
 
-            // Set class contents from JSON string
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+            @param	s	JSON-formatted string to set class contents to
+
+            @return n/a
+            */
             void from_json(const string& s) {
                 string error;
                 json11::Json p = json11::Json::parse(s,error);
@@ -83,7 +99,10 @@ namespace Cosmos
             Vector centroid;
             double length = 0.;
 
-            // Convert class contents to JSON object
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+            @return	A json11 JSON object containing every member variable within the class
+            */
             json11::Json to_json() const {
                 vector<double> d_groups(groups.begin(), groups.end());
                 return json11::Json::object {
@@ -94,7 +113,12 @@ namespace Cosmos
                 };
             }
 
-            // Set class contents from JSON string
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+            @param	s	JSON-formatted string to set class contents to
+
+            @return n/a
+            */
             void from_json(const string& s) {
                 string error;
                 json11::Json p = json11::Json::parse(s,error);
@@ -123,7 +147,10 @@ namespace Cosmos
             Vector normal;
             double area = 0.;
 
-            // Convert class contents to JSON object
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+            @return	A json11 JSON object containing every member variable within the class
+            */
             json11::Json to_json() const {
                 vector<double> d_groups(groups.begin(), groups.end());
                 return json11::Json::object {
@@ -135,7 +162,12 @@ namespace Cosmos
                 };
             }
 
-            // Set class contents from JSON string
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+            @param	s	JSON-formatted string to set class contents to
+
+            @return n/a
+            */
             void from_json(const string& s) {
                 string error;
                 json11::Json p = json11::Json::parse(s,error);
@@ -167,7 +199,10 @@ namespace Cosmos
             Vector com;
             double volume = 0;
 
-            // Convert class contents to JSON object
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+            @return	A json11 JSON object containing every member variable within the class
+            */
             json11::Json to_json() const {
                 vector<double> d_pointidx(pointidx.begin(), pointidx.end());
                 vector<double> d_lineidx(lineidx.begin(), lineidx.end());
@@ -183,7 +218,12 @@ namespace Cosmos
                 };
             }
 
-            // Set class contents from JSON string
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+            @param	s	JSON-formatted string to set class contents to
+
+            @return n/a
+            */
             void from_json(const string& s) {
                 string error;
                 json11::Json p = json11::Json::parse(s,error);
@@ -219,7 +259,10 @@ namespace Cosmos
             Vector diffuse;
             Vector specular;
 
-            // Convert class contents to JSON object
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+            @return	A json11 JSON object containing every member variable within the class
+            */
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "name" , name },
@@ -230,7 +273,12 @@ namespace Cosmos
                 };
             }
 
-            // Set class contents from JSON string
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+            @param	s	JSON-formatted string to set class contents to
+
+            @return n/a
+            */
             void from_json(const string& s) {
                 string error;
                 json11::Json p = json11::Json::parse(s,error);
@@ -280,7 +328,10 @@ namespace Cosmos
         vector <group> Groups;
         string name = "";
 
-        // Convert class contents to JSON object
+        /// Convert class contents to JSON object
+        /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+        */
         json11::Json to_json() const {
             return json11::Json::object {
                 { "Vg" , Vg },
@@ -296,7 +347,12 @@ namespace Cosmos
             };
         }
 
-        // Set class contents from JSON string
+        /// Set class contents from JSON string
+        /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param	s	JSON-formatted string to set class contents to
+
+        @return n/a
+        */
         void from_json(const string& s) {
             string error;
             json11::Json p = json11::Json::parse(s,error);
