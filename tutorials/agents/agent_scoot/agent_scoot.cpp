@@ -98,6 +98,17 @@ int main(int argc, char **argv)
 	agent->cinfo->set_json(j_t_uint32);
 	cout<<"uint32_t> = <"<<agent->cinfo->get_json_pretty<int>("t_uint32")<<">"<<endl;
 
+	auto arptrtest = agent->cinfo->get_pointer<double*>("node.loc.pos.icrf.s.col");
+	cout<<"double* = "<<arptrtest<<endl;
+	cout<<"actual* = "<<&agent->cinfo->node.loc.pos.icrf.s.col<<endl;
+
+	auto charptest = agent->cinfo->get_pointer<char[41]>("node.name");
+	cout<<"char  * = "<<charptest<<endl;
+	cout<<"actual* = "<<&agent->cinfo->node.name<<endl;
+	if(charptest == &agent->cinfo->node.name) {
+		cout<<"char* == actual*"<<endl;
+	}
+
 	//auto a = agent->cinfo->get_value("")
 
 
