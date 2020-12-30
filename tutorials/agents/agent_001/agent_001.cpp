@@ -106,6 +106,86 @@ int main(int argc, char **argv)
 	//agent->cinfo->print_all_names_types_values();
 	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
 
+// test orbital dynamics for simulation
+
+// km
+	agent->cinfo->P_pos_t = 6285.0;
+	agent->cinfo->Q_pos_t = 3628.6;
+	agent->cinfo->W_pos_t = 0.0;
+// km/s
+	agent->cinfo->P_vel_t = -2.4913;
+	agent->cinfo->Q_vel_t = 11.290;
+	agent->cinfo->W_vel_t = 0.0;
+
+
+	agent->cinfo->O = 40.0 * ( M_PI / 180.0);
+	agent->cinfo->i = 30.0 * ( M_PI / 180.0);
+	agent->cinfo->w = 60.0 * ( M_PI / 180.0);
+
+	agent->cinfo->set_up_rotation_matrix();
+	cout<<"("<<agent->cinfo->R_0_0<<", "<<agent->cinfo->R_0_1<<", "<<agent->cinfo->R_0_2<<")"<<endl;
+	cout<<"("<<agent->cinfo->R_1_0<<", "<<agent->cinfo->R_1_1<<", "<<agent->cinfo->R_1_2<<")"<<endl;
+	cout<<"("<<agent->cinfo->R_2_0<<", "<<agent->cinfo->R_2_1<<", "<<agent->cinfo->R_2_2<<")"<<endl;
+
+	agent->cinfo->set_IJK_from_PQW();
+
+	cout<<"("<<agent->cinfo->I_pos_t<<", "<<agent->cinfo->J_pos_t<<", "<<agent->cinfo->K_pos_t<<")"<<endl;
+	cout<<"("<<agent->cinfo->I_vel_t<<", "<<agent->cinfo->J_vel_t<<", "<<agent->cinfo->K_vel_t<<")"<<endl;
+
+	agent->cinfo->P_pos_t = -1;
+	agent->cinfo->Q_pos_t = -1;
+	agent->cinfo->W_pos_t = -1;
+
+	agent->cinfo->P_vel_t = -1;
+	agent->cinfo->Q_vel_t = -1;
+	agent->cinfo->W_vel_t = -1;
+
+	cout<<"("<<agent->cinfo->P_pos_t<<", "<<agent->cinfo->Q_pos_t<<", "<<agent->cinfo->W_pos_t<<")"<<endl;
+	cout<<"("<<agent->cinfo->P_vel_t<<", "<<agent->cinfo->Q_vel_t<<", "<<agent->cinfo->W_vel_t<<")"<<endl;
+	agent->cinfo->set_PQW_from_IJK();
+	cout<<"("<<agent->cinfo->P_pos_t<<", "<<agent->cinfo->Q_pos_t<<", "<<agent->cinfo->W_pos_t<<")"<<endl;
+	cout<<"("<<agent->cinfo->P_vel_t<<", "<<agent->cinfo->Q_vel_t<<", "<<agent->cinfo->W_vel_t<<")"<<endl;
+
+cout<<"Okay, that co-ord transformation works!"<<endl<<endl;
+
+cout<<"Now to try to get the orbis of ISS..."<<endl;	
+
+	// shorter name for cosmosdata
+	cosmosstruc* c = agent->cinfo;
+
+	// here is a TLE
+	// try to figure out the orbit!
+	//		1 25544U 98067A   20358.21750033  .00016717  00000-0  10270-3 0  9095
+	//		2 25544  51.6435 133.1544 0001122 148.6515 211.4702 15.49226224 21314
+	//		         ******* --> inclination in degrees
+	//		                 ******** --> longitude of the right ascending node in degrees
+	//		                          ******* --> eccentricity (assumed leading decimal)
+	//		                                  ******** --> argument of the perigee in degrees
+	//		                                                    *********** --> mean (angular) motion in rev/day
+	//		                                                    must convert to rad/s !!!
+
+	// semi-major axis from mean motion of TLE (mean elements vs osculating elements)
+	double N = 15.49226224; // rev/day
+
+	// convert to rad/s
+
+	c->n = (2.0*M_PI*N / 86400); // convert to rad / s
+	c->a = pow(c->mu, 1.0/3.0) / pow(c->n, 2.0/3.0);
+	cout<< "calculated a from TLE = "<<c->a<<endl;
+
+	c->T = ( 2.0 * M_PI ) / c->n;
+	cout<< "calculated T (in seconds) = "<<c->T<<endl;
+
+	// eccentricity
+	c->e = 0.0001122;
+	// longitude of the right ascending node
+	c->O = 133.1544 * (M_PI/180.0); // radians
+	// inclination
+	c->i =  51.6435 * (M_PI/180.0); // radians
+	// argument of periapsis
+	c->w = 148.6515 * (M_PI/180.0); // radians
+
+
     while (agent->running()) {
 
 		cout<<"["<<node_name<<":"<<agent_name<<"] running..."<<endl;

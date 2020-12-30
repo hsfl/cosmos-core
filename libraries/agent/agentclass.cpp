@@ -234,6 +234,7 @@ namespace Support
         add_request("getvalue",req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
         add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent");
         add_request("get_time",req_get_time,"","return the current time of the agent");
+        add_request("get_position",req_get_position,"","return the current perifocal position of the agent");
         add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
         add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent");
         add_request("listnames",req_listnames,"","list the Namespace of the agent");
@@ -1149,6 +1150,90 @@ int32_t Agent::req_get_time(string &request, string &response, Agent* agent)	{
 	response = ss.str();
 	return 0;
 }
+
+// request = "get_position mjdtime"
+int32_t Agent::req_get_position(string &request, string &response, Agent* agent)	{
+
+	// remove function call and space
+	request.erase(0,13);
+
+	cout<<"req_get_position():incoming request          = <"<<request<<">"<<endl;
+	cout<<"req_get_position():incoming request.size()   = "<<request.size()<<endl;
+	cout<<"req_get_position():incoming request.length() = "<<request.length()<<endl;
+
+	// read in mjdtime
+	stringstream ss;
+	ss<<request;
+	double timemjd;
+	ss>>timemjd;
+	//cout<<"timemjd = <"<<timemjd<<">"<<endl;
+	cout<<"timemjd = <"<<setprecision(numeric_limits<double>::digits10)<<timemjd<<">"<<endl;
+
+	// use mjd to calculate position
+		cosmosstruc* c = agent->cinfo;
+       // orbital equations
+
+        // to find position and velocity at time t
+            // 0    Make sure all necessary orbital elements are set
+			c->t = timemjd;
+			c->l = c->a*(1.0-pow(c->e,2.0));
+            // 1    Calculate mean anamoly (M)
+        	c->M = fmod(c->n * (c->t - c->tau), 2*M_PI);
+            // 2    Calculate true anamoly (v)
+		    c->v = c->M + (2.0*c->e-0.25*pow(c->e,3.0))*sin(c->M) + 1.25*pow(c->e,2.0)*sin(2.0*c->M) + (13.0/12.0)*pow(c->e,3.0)*sin(3.0*c->M);	
+            // 3    Calculate radius (r)
+			c->r = c->l / (1.0 + c->e*cos(c->v));
+            // 4    Calculate position vector <P_pos_t, Q_pos_t, W_pos_t>
+			c->P_pos_t = c->r * cos(c->v);
+			c->Q_pos_t = c->r * sin(c->v);
+			c->W_pos_t = 0.0;
+			c->P_vel_t = sqrt(c->mu/c->l) * -sin(c->v);
+			c->Q_vel_t = sqrt(c->mu/c->l) * (c->e+cos(c->v))*sin(c->v);
+			c->W_vel_t = 0.0;
+
+			response.clear();
+
+			response =    "time:     [" + request + "]";
+			response += "\nposition: [";
+			stringstream sss;
+			sss<<setprecision(numeric_limits<double>::digits10)<<c->P_pos_t;
+			response += sss.str();
+			sss.str("");
+			response += " ";
+			sss<<setprecision(numeric_limits<double>::digits10)<<c->Q_pos_t;
+			response += sss.str();
+			sss.str("");
+			response += " ";
+			sss<<setprecision(numeric_limits<double>::digits10)<<c->W_pos_t;
+			response += sss.str();
+			sss.str("");
+			response += "]";
+
+            // 5    Calculate velocity vector <P_vel_t, Q_vel_t, W_vel_t>
+			response += "\nvelocity: [";
+			sss<<setprecision(numeric_limits<double>::digits10)<<c->P_vel_t;
+			response += sss.str();
+			sss.str("");
+			response += " ";
+			sss<<setprecision(numeric_limits<double>::digits10)<<c->Q_vel_t;
+			response += sss.str();
+			sss.str("");
+			response += " ";
+			sss<<setprecision(numeric_limits<double>::digits10)<<c->W_vel_t;
+			response += sss.str();
+			sss.str("");
+			response += "]";
+
+            // 6    Transform perifocal (PQW) co-ords to geocentric equatorial (IJK) co-ords
+
+	// ...
+
+	//response = request;
+	cout<<"req_get_position():outgoing response         = <"<<response<<">"<<endl;
+	return 0;
+}
+
+
 
     //! Built-in Set Internal Value request
     /*! Sets the current value of the requested Name Space values. Names and values are expressed as a JSON object.

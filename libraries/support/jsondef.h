@@ -4275,6 +4275,166 @@ struct cosmosstruc
 		double	roll =  0.0;
 		double	yaw =   0.0;
 
+	// orbital elements
+
+		// epoch (do i wanna do it this way?)
+
+				// initial position
+				//double	x_0_pos = 0.0;
+				//double	y_0_pos = 0.0;
+				//double	z_0_pos = 0.0;
+
+				// initial velocity
+				//double	x_0_vel = 0.0;
+				//double	y_0_vel = 0.0;
+				//double	z_0_vel = 0.0;
+
+				// t0 = time of epoch
+				//double	t0 = 0.0;
+				// v0 = true anomaly of epoch
+				//double	v0 = 0.0;
+
+		// a = semi-major axis (m)
+		double	a = 0.0;
+		// e = eccentricity
+		double	e = 0.0;
+
+									// BONUS ROUND
+
+									// b = semi-minor axis (m)
+									double b = a*sqrt(1.0 - pow(e,2.0));
+
+									// l = semi-latus rectum = h^2/mu = b^2/a = a*(1-e^2) = wow!
+									double l = a*(1.0-pow(e,2.0));
+
+
+		// i = inclination (radians)
+		double	i = 0.0;
+		// O = longitude of the right ascending node (radians)
+		double	O = 0.0;
+		// w = argument of the periapsis (radians)
+		double	w = 0.0;
+		// tau = time of periapsis passage (seconds)
+		double	tau = 0.0;
+
+
+		// G = gravitational constant = 6.67430(15)*10^(−11) m3⋅kg–1⋅s–2
+		double G = 6.6743015e-11;
+
+		// M = Mass of the Earth = 5.9722*10^24 kg
+		double mass_of_Earth = 5.9722e24;
+
+		// mu = standard gravitational parameter (m3/s2)
+		double mu = G * mass_of_Earth;
+
+		// n = mean angular motion (rad/s) [ used to find a in TLEs ]
+		double n = pow( (mu / pow(a,3.0) ), (0.5) );
+
+		// T = period of orbit (seconds)
+		double T = ( 2.0 * M_PI ) / n;
+
+		// t = current time (should this be seconds?  or days?)
+		double t = 0.0;
+
+		// M = mean anamoly
+		//double M = n * (t - tau);
+		double M = fmod(n * (t - tau), 2*M_PI);
+
+		// v = true anomaly (Fourier approximation)
+		double v = M + (2.0*e-0.25*pow(e,3.0))*sin(M) + 1.25*pow(e,2.0)*sin(2.0*M) + (13.0/12.0)*pow(e,3.0)*sin(3.0*M);
+			
+		// r(v(t)) = radius (distance from focus of attraction to orbiting body)
+		double r = l / (1.0 + e*cos(v));
+
+		// position at time t in perifocal co-ords (as function of v(t))
+		double P_pos_t = r * cos(v);
+		double Q_pos_t = r * sin(v);
+		double W_pos_t = 0.0;
+
+		// velocity at time t in perifocal co-ords (as function of v(t))
+		double P_vel_t = sqrt(mu/l) * -sin(v);
+		double Q_vel_t = sqrt(mu/l) * (e+cos(v))*sin(v);
+		double W_vel_t = 0.0;
+
+		// rotation matrix from perifocal to equitorial coordinates (R_row_col)
+
+			//	|R_0_0	R_0_1	R_0_2|	[ P ]     [I]
+			//	|R_1_0	R_1_1	R_1_2|* | Q | ==> |J|
+			//	|R_2_0	R_2_1	R_2_2|	[ W ]     [K]
+
+		// (inverse transform is the transpose of R)
+
+		double R_0_0 = 0.0;
+		double R_1_0 = 0.0;
+		double R_2_0 = 0.0;
+
+		double R_0_1 = 0.0;
+		double R_1_1 = 0.0;
+		double R_2_1 = 0.0;
+
+		double R_0_2 = 0.0;
+		double R_1_2 = 0.0;
+		double R_2_2 = 0.0;
+
+		void set_up_rotation_matrix ()	{
+			R_0_0 =	-sin(O)*cos(i)*sin(w) + cos(O)*cos(w);
+			R_0_1 =	-sin(O)*cos(i)*cos(w) - cos(O)*sin(w);
+			R_0_2 =	        sin(O)*sin(i);
+
+			R_1_0 =	 cos(O)*cos(i)*sin(w) + sin(O)*cos(w);
+			R_1_1 =	 cos(O)*cos(i)*cos(w) - sin(O)*sin(w);
+			R_1_2 =	-cos(O)*sin(i);
+
+			R_2_0 =	        sin(i)*sin(w);
+			R_2_1 =	        sin(i)*cos(w);
+			R_2_2 =	        cos(i);
+			return;
+		}
+
+		double I_pos_t = 0.0;
+		double J_pos_t = 0.0;
+		double K_pos_t = 0.0;
+		double I_vel_t = 0.0;
+		double J_vel_t = 0.0;
+		double K_vel_t = 0.0;
+
+		// perifocal to geocentric equatorial co-ordinate conversion
+		void set_IJK_from_PQW ()	{
+			I_pos_t = R_0_0 * P_pos_t + R_0_1 * Q_pos_t + R_0_2 * W_pos_t;
+			J_pos_t = R_1_0 * P_pos_t + R_1_1 * Q_pos_t + R_1_2 * W_pos_t;
+			K_pos_t = R_2_0 * P_pos_t + R_2_1 * Q_pos_t + R_2_2 * W_pos_t;
+
+			I_vel_t = R_0_0 * P_vel_t + R_0_1 * Q_vel_t + R_0_2 * W_vel_t;
+			J_vel_t = R_1_0 * P_vel_t + R_1_1 * Q_vel_t + R_1_2 * W_vel_t;
+			K_vel_t = R_2_0 * P_vel_t + R_2_1 * Q_vel_t + R_2_2 * W_vel_t;
+			return;
+		}
+
+		// geocentric equatorial to perifocal co-ordinate conversion
+		void set_PQW_from_IJK ()	{
+			P_pos_t = R_0_0 * I_pos_t + R_1_0 * J_pos_t + R_2_0 * K_pos_t;
+			Q_pos_t = R_0_1 * I_pos_t + R_1_1 * J_pos_t + R_2_1 * K_pos_t;
+			W_pos_t = R_0_2 * I_pos_t + R_1_2 * J_pos_t + R_2_2 * K_pos_t;
+
+			P_vel_t = R_0_0 * I_vel_t + R_1_0 * J_vel_t + R_2_0 * K_vel_t;
+			Q_vel_t = R_0_1 * I_vel_t + R_1_1 * J_vel_t + R_2_1 * K_vel_t;
+			W_vel_t = R_0_2 * I_vel_t + R_1_2 * J_vel_t + R_2_2 * K_vel_t;
+			return;
+		}
+
+
+		// orbital equations
+
+		// to find position and velocity at time t
+			// 0	Make sure all orbital elements are set
+			// 1	Calculate mean anamoly (M)
+			// 2	Calculate true anamoly (v)
+			// 3	Calculate radius (r)
+			// 4	Calculate position vector <P_pos_t, Q_pos_t, R_pos_t>
+			// 5	Calculate velocity vector <P_vel_t, Q_vel_t, R_vel_t>
+			// 6	Transform perifocal (PQW) co-ords to geocentric equatorial (IJK) co-ords
+
+
 
 
 		/// Support for Namespace 2.0
