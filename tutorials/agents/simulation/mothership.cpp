@@ -41,7 +41,7 @@ int32_t are_you_out_there(string &request, string &response, Agent *cdata);
 /// ensure the Agent constructor creates only one instance per process
 static Agent *agent;
 string node_name = "mothership"; 
-string agent_name = "krista";
+string agent_name = "mother";
 string node_agent_name = "["+node_name+":"+agent_name+"]";
 
 
