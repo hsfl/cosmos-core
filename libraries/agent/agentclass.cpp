@@ -1154,20 +1154,19 @@ int32_t Agent::req_get_time(string &request, string &response, Agent* agent)	{
 // request = "get_position mjdtime"
 int32_t Agent::req_get_position(string &request, string &response, Agent* agent)	{
 
+	cout<<"\tincoming request          = <"<<request<<">"<<endl;
+	//cout<<"req_get_position():incoming request.size()   = "<<request.size()<<endl;
+	//cout<<"req_get_position():incoming request.length() = "<<request.length()<<endl;
+
 	// remove function call and space
 	request.erase(0,13);
-
-	cout<<"req_get_position():incoming request          = <"<<request<<">"<<endl;
-	cout<<"req_get_position():incoming request.size()   = "<<request.size()<<endl;
-	cout<<"req_get_position():incoming request.length() = "<<request.length()<<endl;
 
 	// read in mjdtime
 	stringstream ss;
 	ss<<request;
 	double timemjd;
 	ss>>timemjd;
-	//cout<<"timemjd = <"<<timemjd<<">"<<endl;
-	cout<<"timemjd = <"<<setprecision(numeric_limits<double>::digits10)<<timemjd<<">"<<endl;
+	//cout<<"timemjd = <"<<setprecision(numeric_limits<double>::digits10)<<timemjd<<">"<<endl;
 
 	// use mjd to calculate position
 		cosmosstruc* c = agent->cinfo;
@@ -1193,8 +1192,8 @@ int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
 
 			response.clear();
 
-			response =    "time:     [" + request + "]";
-			response += "\nposition: [";
+			response =    "\t\ttime:     [ " + request + " ]";
+			response += "\n\t\tposition: [ ";
 			stringstream sss;
 			sss<<setprecision(numeric_limits<double>::digits10)<<c->P_pos_t;
 			response += sss.str();
@@ -1207,10 +1206,10 @@ int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
 			sss<<setprecision(numeric_limits<double>::digits10)<<c->W_pos_t;
 			response += sss.str();
 			sss.str("");
-			response += "]";
+			response += " ]";
 
             // 5    Calculate velocity vector <P_vel_t, Q_vel_t, W_vel_t>
-			response += "\nvelocity: [";
+			response += "\n\t\tvelocity: [ ";
 			sss<<setprecision(numeric_limits<double>::digits10)<<c->P_vel_t;
 			response += sss.str();
 			sss.str("");
@@ -1222,14 +1221,16 @@ int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
 			sss<<setprecision(numeric_limits<double>::digits10)<<c->W_vel_t;
 			response += sss.str();
 			sss.str("");
-			response += "]";
+			response += " ]";
 
             // 6    Transform perifocal (PQW) co-ords to geocentric equatorial (IJK) co-ords
+
+			// also calculate distance from mothership?
 
 	// ...
 
 	//response = request;
-	cout<<"req_get_position():outgoing response         = <"<<response<<">"<<endl;
+	//cout<<"req_get_position():outgoing response         = <"<<response<<">"<<endl;
 	return 0;
 }
 

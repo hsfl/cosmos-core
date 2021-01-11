@@ -40,8 +40,8 @@ int32_t are_you_out_there(string &request, string &response, Agent *cdata);
 
 /// ensure the Agent constructor creates only one instance per process
 static Agent *agent;
-string node_name = "daughtership_02"; 
-string agent_name = "becky";
+string node_name = "daughter_04"; 
+string agent_name = "delilah";
 string node_agent_name = "["+node_name+":"+agent_name+"]";
 
 int main(int argc, char **argv)
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     c->i =  51.6407 * (M_PI/180.0); // radians
     c->O = 126.7653 * (M_PI/180.0); // radians
     c->w = 163.1572 * (M_PI/180.0); // radians
-    c->tau = 0.02;
+    c->tau = 4.0;
 
     // n = mean angular motion (rad/s) [ used to find a in TLEs ]
     c->n = pow( (c->mu / pow(c->a,3.0) ), (0.5) );
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 		cout<<node_agent_name<<" running..."<<endl;
 
 		// see if you can locate the mothership
-		// see if you can locate each of the daughterships
+		// see if you can locate each of the daughters
 
         // Sleep for 5 sec
         COSMOS_SLEEP(5.);
