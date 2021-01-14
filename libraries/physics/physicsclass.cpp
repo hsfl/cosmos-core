@@ -60,6 +60,8 @@ namespace Cosmos
                 add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
                 break;
             }
+
+            return 0;
         }
 
         int32_t Structure::add_cuboid(string name, Vector size, double depth, Quaternion orientation, Vector offset)
