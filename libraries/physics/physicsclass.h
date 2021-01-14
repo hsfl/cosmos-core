@@ -42,126 +42,44 @@ namespace Cosmos
 {
     namespace Physics
     {
-        //! Finite Triangle Element
-        //! Holds minimum information necessary to use smallest possible triangular element
-        //! of a larger piece.
-//        struct trianglestruc
-//        {
-//            //! center of mass
-//            Vector com;
-//            //! outward facing normal
-//            Vector normal;
-//            //! Area
-//            float area;
-//            //! Index to parent piece
-//            uint16_t pidx;
-//            uint16_t tidx[3];
-//            float heat;
-//            float temp;
-//            float irradiance;
-//            float cell_percentage;
-//            vector<vector<size_t>> triangleindex;
-//        };
 
-        //! Satellite structure as triangles
-//        struct structurestruc
-//        {
-//            vector <Vector> vertices;
-//            vector <trianglestruc> triangles;
-//        };
+        class Structure
+        {
+        public:
+            physicsstruc *phys;
 
-        //! Propagator Simulation Structure
-        /*! Holds parameters used specifically for the physical simulation of the
-     * environment and hardware of a Node.
-    */
-//        struct physicsstruc
-//        {
-//            //! Time step in seconds
-//            double dt;
-//            //! Time step in Julian days
-//            double dtj;
-//            //! Simulated starting time in MJD
-//            double mjdbase;
-//            //! Acceleration factor for simulated time
-//            double mjdaccel;
-//            //! Offset factor for simulated time (simtime = mjdaccel * realtime + mjddiff)
-//            double mjddiff;
-//            //! Simulation mode as listed in \def defs_physics
-//            int32_t mode;
-//            Vector ftorque;
-//            Vector atorque;
-//            Vector rtorque;
-//            Vector gtorque;
-//            Vector htorque;
-//            Vector hmomentum;
-//            Vector ctorque;
-//            Vector fdrag;
-//            Vector adrag;
-//            Vector rdrag;
-//            Vector thrust;
-//            Vector moi = Vector(1.,1.,1.);
-//            Vector com;
-//            float heat = 300. * 900. * 1.;
-//            float hcap = 900.;
-//            float charge;
-//            float mass = 1.;
-//            float area = .001f;
-//            vector <Vector> vertices;
-//            vector <trianglestruc> faces;
-//        } ;
+            enum ExternalPanelType
+                {
+                None = 0,
+                X,
+                Y,
+                XY
+                };
 
-//        class GaussJacksonPropagator
-//        {
-//        public:
-//            GaussJacksonPropagator(uint16_t order, double iutc, double dt);
-//            void Init(locstruc iloc, physicsstruc iphys);
-//            void Init(double iutc, vector<tlestruc>lines, attstruc att, physicsstruc phys);
-//            void Init(double iutc, vector <cartpos> ipos, vector <qatt> iatt, physicsstruc phys);
-//            int32_t Propagate();
-//            int32_t Converge();
+            Structure(physicsstruc *physp) : phys{physp}
+            {
 
-//        private:
-//            locstruc loc;
-//            physicsstruc phys;
+            }
 
-//            //! Gauss Jackson Integration structure
-//            /*! Holds the working variables for one step of an order N Gauss Jackson
-//             * Integration. A complete integration will require an array of N+2.
-//            */
-//            struct gjstruc
-//            {
-//                vector <double> a;
-//                vector <double> b;
-//                rvector s;
-//                rvector ss;
-//                rvector sa;
-//                rvector sb;
-//                rvector tau;
-//                locstruc loc;
-//            };
+            int32_t Setup(uint16_t type);
+            int32_t add_u(double x, double y, double z, ExternalPanelType type);
+            int32_t add_cuboid(string name, Vector size, double depth, Quaternion orientation, Vector offset);
+            int32_t add_face(string name, Vector point0, Vector point1, Vector point2, Vector point3, double depth, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector(), bool external=true, float pcell=.85);
+            int32_t add_face(string name, Vector size, Quaternion orientation, Vector offset);
+            int32_t add_triangle(Vector pointa, Vector pointb, Vector pointc, double depth, bool external=true, float pcell=.85);
+            int32_t add_vertex(Vector point);
 
-//            vector< vector<int32_t> > binom;
-//            vector<double> c;
-//            vector<double> gam;
-//            vector< vector<double> > beta;
-//            vector<double> q;
-//            vector<double> lam;
-//            vector< vector<double> > alpha;
-//            double dt;
-//            double dtj;
-//            double dtsq;
-//            uint32_t order;
-//            uint32_t order2;
-//            vector<gjstruc> step;
-//        };
+        };
 
         class Propagator
         {
         public:
             double dt;
             double dtj;
-            locstruc *loc;
-            physicsstruc *phys;
+            locstruc *oldloc;
+            locstruc *newloc;
+            physicsstruc *oldphys;
+            physicsstruc *newphys;
 
             enum Type
                 {
@@ -177,7 +95,7 @@ namespace Cosmos
                 };
             Type type;
 
-            Propagator(locstruc *locp, physicsstruc *physp, double idt) : loc{locp}, phys{physp}
+            Propagator(locstruc *locp, physicsstruc *physp, double idt) : newloc{locp}, newphys{physp}
             {
                 dt = 86400.*((locp->utc + (idt / 86400.))-locp->utc);
                 dtj = dt / 86400.;
@@ -227,6 +145,7 @@ namespace Cosmos
                 : Propagator{ locp, physp, idt }, order { iorder }
             {
                 type = PositionGaussJackson;
+                Setup(iorder);
             }
             int32_t Setup(uint16_t order);
             int32_t Init(vector<tlestruc> lines);
@@ -339,8 +258,10 @@ namespace Cosmos
         class State
         {
         public:
-            locstruc *loc;
-            physicsstruc *phys;
+            locstruc *oldloc;
+            locstruc *newloc;
+            physicsstruc *oldphys;
+            physicsstruc *newphys;
             double dt;
             double dtj;
             Propagator *position;

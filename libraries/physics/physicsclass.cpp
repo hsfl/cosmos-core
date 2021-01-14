@@ -4,6 +4,169 @@ namespace Cosmos
 {
     namespace Physics
     {
+        int32_t Structure::Setup(uint16_t type)
+        {
+            return 0;
+        }
+
+        int32_t Structure::add_u(double x, double y, double z, ExternalPanelType type)
+        {
+            switch (type)
+            {
+            case None:
+                add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004);
+                add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
+                add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
+                add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
+                break;
+            case X:
+                add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004, Math::Quaternions::eye(), Vector(), true, 0.);
+                add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, Math::Quaternions::eye(), Vector(), true, 0.);
+                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .004);
+                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .004);
+
+                add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
+                add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
+
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
+                break;
+            case Y:
+                add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004);
+                add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
+
+                add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004, Math::Quaternions::eye(), Vector(), true, 0.);
+                add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, Math::Quaternions::eye(), Vector(), true, 0.);
+                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .004);
+                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .004);
+
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
+                break;
+            case XY:
+                add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004, Math::Quaternions::eye(), Vector(), true, 0.);
+                add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, Math::Quaternions::eye(), Vector(), true, 0.);
+                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .004);
+                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .004);
+
+                add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004, Math::Quaternions::eye(), Vector(), true, 0.);
+                add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, Math::Quaternions::eye(), Vector(), true, 0.);
+                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .004);
+                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .004);
+
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
+                break;
+            }
+        }
+
+        int32_t Structure::add_cuboid(string name, Vector size, double depth, Quaternion orientation, Vector offset)
+        {
+            add_face(name+"+x", Vector(size.x/2., -size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(size.x/2., -size.y/2., size.z/2.), depth, orientation, offset, false);
+            add_face(name+"-x", Vector(-size.x/2., -size.y/2., -size.z/2.), Vector(-size.x/2., size.y/2., -size.z/2.), Vector(-size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., -size.y/2., size.z/2.), depth, orientation, offset, false);
+            add_face(name+"+y", Vector(-size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., size.y/2., size.z/2.), depth, orientation, offset, false);
+            add_face(name+"-y", Vector(-size.x/2., -size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., -size.y/2., size.z/2.), depth, orientation, offset, false);
+            add_face(name+"+z", Vector(-size.x/2., -size.y/2., size.z/2.), Vector(size.x/2., -size.y/2., size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., -size.y/2., size.z/2.), depth, orientation, offset, false);
+            add_face(name+"-z", Vector(-size.x/2., -size.y/2., -size.z/2.), Vector(size.x/2., -size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., -size.z/2.), Vector(-size.x/2., -size.y/2., -size.z/2.), depth, orientation, offset, false);
+
+            return 0;
+        }
+
+        int32_t Structure::add_face(string name, Vector point0, Vector point1, Vector point2, Vector point3, double depth, Quaternion orientation, Vector offset, bool external, float pcell)
+        {
+            point0 = orientation.irotate(point0);
+            point0 += offset;
+            point1 = orientation.irotate(point1);
+            point1 += offset;
+            point2 = orientation.irotate(point2);
+            point2 += offset;
+            point3 = orientation.irotate(point3);
+            point3 += offset;
+            Vector point4 = (point0 + point1 + point2 + point3) / 4.;
+
+            add_triangle(point0, point1, point4, depth, external, pcell);
+            add_triangle(point1, point2, point4, depth, external, pcell);
+            add_triangle(point2, point3, point4, depth, external, pcell);
+            add_triangle(point3, point0, point4, depth, external, pcell);
+
+            return 0;
+        }
+
+        int32_t Structure::add_face(string name, Vector size, Quaternion orientation, Vector offset)
+        {
+            Vector points[5];
+
+            points[0].x = -size.x / 2.;
+            points[2].x = -size.x / 2.;
+            points[1].x = size.x / 2.;
+            points[3].x = size.x / 2.;
+
+            points[0].y = -size.y / 2.;
+            points[1].y = -size.y / 2.;
+            points[2].y = size.y / 2.;
+            points[3].y = size.y / 2.;
+
+            for (uint16_t i=0; i<5; ++i)
+            {
+                points[i] = orientation.irotate(points[i]);
+                points[i] += offset;
+            }
+
+            add_triangle(points[0], points[1], points[4], size.z);
+            add_triangle(points[1], points[1], points[4], size.z);
+            add_triangle(points[2], points[3], points[4], size.z);
+            add_triangle(points[3], points[0], points[4], size.z);
+
+            return 4;
+        }
+
+        int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, double depth, bool external, float pcell)
+        {
+            trianglestruc triangle;
+
+            triangle.tidx[0] = add_vertex(pointa);
+            triangle.tidx[1] = add_vertex(pointb);
+            triangle.tidx[2] = add_vertex(pointc);
+
+            triangle.external = external;
+            triangle.depth = depth;
+            triangle.pcell = pcell;
+            triangle.normal = (phys->vertices[triangle.tidx[1]] - phys->vertices[triangle.tidx[0]]).cross(phys->vertices[triangle.tidx[2]] - phys->vertices[triangle.tidx[0]]);
+            triangle.com = (phys->vertices[triangle.tidx[0]] + phys->vertices[triangle.tidx[1]] + phys->vertices[triangle.tidx[2]]) / 3.;
+            triangle.area = (phys->vertices[triangle.tidx[1]] - phys->vertices[triangle.tidx[0]]).area(phys->vertices[triangle.tidx[2]] - phys->vertices[triangle.tidx[0]]);
+            triangle.perimeter = (phys->vertices[triangle.tidx[1]] - phys->vertices[triangle.tidx[0]]).norm() + (phys->vertices[triangle.tidx[2]] - phys->vertices[triangle.tidx[1]]).norm() + (phys->vertices[triangle.tidx[0]] - phys->vertices[triangle.tidx[2]]).norm();
+            phys->triangles.push_back(triangle);
+
+            return 1;
+        }
+
+        int32_t Structure::add_vertex(Vector point)
+        {
+            bool found = false;
+
+            int32_t index = -1;
+            for (uint16_t i=0; i<phys->vertices.size(); ++ i)
+            {
+                if ((point - phys->vertices[i]).norm() < .001)
+                {
+                    found = true;
+                    index = i;
+                    break;
+                }
+            }
+
+            if (found)
+            {
+                return index;
+            }
+            else {
+                phys->vertices.push_back(point);
+                return phys->vertices.size() - 1;
+            }
+        }
+
         State::State()
         {
         }
@@ -12,14 +175,16 @@ namespace Cosmos
         {
             int32_t iretn = 0;
 
+            oldloc = newloc;
+            oldphys = newphys;
 
             position = posprop;
             attitude = attprop;
             thermal = thermprop;
             electrical = elecprop;
 
-            phys = position->phys;
-            loc = position->loc;
+            newphys = position->newphys;
+            newloc = position->newloc;
             dt = position->dt;
             dtj = position->dtj;
 
@@ -31,7 +196,7 @@ namespace Cosmos
             int32_t count = 0;
             do
             {
-                loc->utc += dtj;
+                newloc->utc += dtj;
                 switch (position->type)
                 {
                 case Propagator::Type::PositionIterative:
@@ -63,7 +228,7 @@ namespace Cosmos
                 static_cast<ThermalPropagator *>(thermal)->Propagate();
                 static_cast<ElectricalPropagator *>(electrical)->Propagate();
                 ++count;
-            } while (loc->utc < nextutc);
+            } while (newloc->utc < nextutc);
             return count;
         }
 
@@ -76,6 +241,8 @@ namespace Cosmos
 
         int32_t InertialAttitudePropagator::Propagate()
         {
+            oldloc->att = newloc->att;
+            AttAccel(*newloc, *newphys);
 
             return 0;
         }
@@ -90,37 +257,44 @@ namespace Cosmos
         {
             quaternion q1;
 
-            q1 = q_axis2quaternion_rv(rv_smult(dt, loc->att.icrf.v));
-            loc->att.icrf.s = q_fmult(q1, loc->att.icrf.s);
-            normalize_q(&loc->att.icrf.s);
+            oldloc->att = newloc->att;
+
+            q1 = q_axis2quaternion_rv(rv_smult(dt, newloc->att.icrf.v));
+            newloc->att.icrf.s = q_fmult(q1, newloc->att.icrf.s);
+            normalize_q(&newloc->att.icrf.s);
             // Calculate new v from da
-            loc->att.icrf.v = rv_add(loc->att.icrf.v, rv_smult(dt, loc->att.icrf.a));
-            loc->att.icrf.utc = loc->utc;
-            att_icrf(loc);
+            newloc->att.icrf.v = rv_add(newloc->att.icrf.v, rv_smult(dt, newloc->att.icrf.a));
+            newloc->att.icrf.utc = newloc->utc;
+            att_icrf(newloc);
+            AttAccel(*newloc, *newphys);
 
             return 0;
         }
 
         int32_t LVLHAttitudePropagator::Init()
         {
-            loc->att.lvlh.utc = loc->utc;
-            loc->att.lvlh.s = q_eye();
-            loc->att.lvlh.v = rv_zero();
-            loc->att.lvlh.a = rv_zero();
-            ++loc->att.lvlh.pass;
-            att_lvlh(loc);
+            newloc->att.lvlh.utc = newloc->utc;
+            newloc->att.lvlh.s = q_eye();
+            newloc->att.lvlh.v = rv_zero();
+            newloc->att.lvlh.a = rv_zero();
+            ++newloc->att.lvlh.pass;
+            att_lvlh(newloc);
+            AttAccel(*newloc, *newphys);
 
             return  0;
         }
 
         int32_t LVLHAttitudePropagator::Propagate()
         {
-            loc->att.lvlh.utc = loc->utc;
-            loc->att.lvlh.s = q_eye();
-            loc->att.lvlh.v = rv_zero();
-            loc->att.lvlh.a = rv_zero();
-            ++loc->att.lvlh.pass;
-            att_lvlh(loc);
+            oldloc->att = newloc->att;
+
+            newloc->att.lvlh.utc = newloc->utc;
+            newloc->att.lvlh.s = q_eye();
+            newloc->att.lvlh.v = rv_zero();
+            newloc->att.lvlh.a = rv_zero();
+            ++newloc->att.lvlh.pass;
+            att_lvlh(newloc);
+            AttAccel(*newloc, *newphys);
 
             return 0;
         }
@@ -154,6 +328,12 @@ namespace Cosmos
 
         int32_t InertialPositionPropagator::Propagate()
         {
+            oldloc = newloc;
+            oldphys = newphys;
+            newloc->pos.eci.pass++;
+            pos_eci(newloc);
+            PosAccel(*newloc, *newphys);
+
             return 0;
         }
 
@@ -164,6 +344,16 @@ namespace Cosmos
 
         int32_t IterativePositionPropagator::Propagate()
         {
+            oldloc = newloc;
+            oldphys = newphys;
+            rvector ds = rv_smult(.5 * dt * dt, newloc->pos.eci.a);
+            ds = rv_add(ds, rv_smult(dt, newloc->pos.eci.v));
+            newloc->pos.eci.s = rv_add(newloc->pos.eci.s, ds);
+            newloc->pos.eci.v = rv_add(newloc->pos.eci.v, rv_smult(dt, newloc->pos.eci.a));
+            newloc->pos.eci.pass++;
+            pos_eci(newloc);
+            PosAccel(*newloc, *newphys);
+
             return 0;
         }
 
@@ -297,13 +487,15 @@ namespace Cosmos
         {
             int32_t iretn = 0;
 
+            oldloc = newloc;
+            oldphys = newphys;
             loc_clear(step[order+1].loc);
-            lines2eci(loc->utc, lines, loc->pos.eci);
-            ++loc->pos.eci.pass;
-            pos_eci(loc);
-            PosAccel(*loc, *phys);
-            AttAccel(*loc, *phys);
-            step[order2].loc = *loc;
+            lines2eci(newloc->utc, lines, newloc->pos.eci);
+            ++newloc->pos.eci.pass;
+            pos_eci(newloc);
+            PosAccel(*newloc, *newphys);
+            AttAccel(*newloc, *newphys);
+            step[order2].loc = *newloc;
 
             // Position at t0-dt
             for (uint32_t i=order2-1; i<order2; --i)
@@ -317,8 +509,8 @@ namespace Cosmos
                 step[i].loc.att.lvlh = step[i+1].loc.att.lvlh;
                 att_lvlh2icrf(step[i].loc);
 
-                PosAccel(step[i].loc, *phys);
-                AttAccel(step[i].loc, *phys);
+                PosAccel(step[i].loc, *newphys);
+                AttAccel(step[i].loc, *newphys);
             }
 
             for (uint32_t i=order2+1; i<=order; i++)
@@ -333,12 +525,12 @@ namespace Cosmos
                 step[i].loc.att.lvlh = step[i-1].loc.att.lvlh;
                 att_lvlh2icrf(step[i].loc);
 
-                PosAccel(step[i].loc, *phys);
-                AttAccel(step[i].loc, *phys);
+                PosAccel(step[i].loc, *newphys);
+                AttAccel(step[i].loc, *newphys);
             }
 
             iretn = Converge();
-            phys->utc = loc->utc;
+            newphys->utc = newloc->utc;
 
             return iretn;
         }
@@ -365,21 +557,21 @@ namespace Cosmos
             int32_t iretn = 0;
 
             // Make sure ::locstruc is internally self consistent
-            ++loc->pos.eci.pass;
-            pos_eci(loc);
+            ++newloc->pos.eci.pass;
+            pos_eci(newloc);
 
             // Zero out original N+1 bin
             loc_clear(step[order+1].loc);
 
             // Calculate initial accelerations
-            PosAccel(*loc, *phys);
-            AttAccel(*loc, *phys);
+            PosAccel(*newloc, *newphys);
+            AttAccel(*newloc, *newphys);
 
             // Set central bin to initial state vector
-            step[order2].loc = *loc;
+            step[order2].loc = *newloc;
 
             // Position at t0-dt
-            eci2kep(loc->pos.eci, kep);
+            eci2kep(newloc->pos.eci, kep);
 
             // Initialize past bins
             for (i=order2-1; i<order2; --i)
@@ -407,11 +599,11 @@ namespace Cosmos
                 step[i].loc.att.icrf.utc = kep.utc;
                 pos_eci(step[i].loc);
 
-                PosAccel(step[i].loc, *phys);
-                AttAccel(step[i].loc, *phys);
+                PosAccel(step[i].loc, *newphys);
+                AttAccel(step[i].loc, *newphys);
             }
 
-            eci2kep(loc->pos.eci, kep);
+            eci2kep(newloc->pos.eci, kep);
             for (i=order2+1; i<=order; i++)
             {
                 step[i] = step[i-1];
@@ -437,11 +629,11 @@ namespace Cosmos
                 step[i].loc.att.icrf.utc = kep.utc;
                 pos_eci(step[i].loc);
 
-                PosAccel(step[i].loc, *phys);
-                AttAccel(step[i].loc, *phys);
+                PosAccel(step[i].loc, *newphys);
+                AttAccel(step[i].loc, *newphys);
             }
             iretn = Converge();
-            phys->utc = loc->utc;
+            newphys->utc = newloc->utc;
             return iretn;
         }
 
@@ -450,18 +642,18 @@ namespace Cosmos
             int32_t iretn = 0;
 
             // Make sure ::locstruc is internally self consistent
-            ++loc->pos.eci.pass;
-            pos_eci(loc);
+            ++newloc->pos.eci.pass;
+            pos_eci(newloc);
 
             // Zero out original N+1 bin
             loc_clear(step[order+1].loc);
 
             // Calculate initial accelerations
-            PosAccel(*loc, *phys);
-            AttAccel(*loc, *phys);
+            PosAccel(*newloc, *newphys);
+            AttAccel(*newloc, *newphys);
 
             // Set central bin to initial state vector
-            step[order2].loc = *loc;
+            step[order2].loc = *newloc;
 
             // Initialize past bins
             for (uint32_t i=order2-1; i<order2; --i)
@@ -484,8 +676,8 @@ namespace Cosmos
                     step[i].loc = locs[index];
                 }
 
-                PosAccel(step[i].loc, *phys);
-                AttAccel(step[i].loc, *phys);
+                PosAccel(step[i].loc, *newphys);
+                AttAccel(step[i].loc, *newphys);
             }
 
             for (uint32_t i=order2+1; i<=order; i++)
@@ -508,11 +700,11 @@ namespace Cosmos
                     step[i].loc = locs[index];
                 }
 
-                PosAccel(step[i].loc, *phys);
-                AttAccel(step[i].loc, *phys);
+                PosAccel(step[i].loc, *newphys);
+                AttAccel(step[i].loc, *newphys);
             }
             iretn = Converge();
-            phys->utc = loc->utc;
+            newphys->utc = newloc->utc;
             return iretn;
         }
 
@@ -522,8 +714,11 @@ namespace Cosmos
             Vector lunitp1(.1,.1,0.);
             Vector tvector;
 
+            oldloc = newloc;
+            oldphys = newphys;
+
             // Don't bother if too low
-            if (Vector(loc->pos.eci.s).norm() < REARTHM)
+            if (Vector(newloc->pos.eci.s).norm() < REARTHM)
             {
                 return GENERAL_ERROR_TOO_LOW;
             }
@@ -559,8 +754,8 @@ namespace Cosmos
             step[order+1].loc.pos.eci.pass++;
             pos_eci(step[order+1].loc);
 
-            AttAccel(step[order+1].loc, *phys);
-            PosAccel(step[order+1].loc, *phys);
+            AttAccel(step[order+1].loc, *newphys);
+            PosAccel(step[order+1].loc, *newphys);
 
             // Calculate s(order/2+1)
             step[order+1].s.col[0] = step[order].s.col[0] + (step[order].loc.pos.eci.a.col[0]+step[order+1].loc.pos.eci.a.col[0])/2.;
@@ -573,7 +768,7 @@ namespace Cosmos
                 step[j] = step[j+1];
             }
 
-            *loc = step[order].loc;
+            *newloc = step[order].loc;
 
             return 0;
         }
@@ -582,6 +777,9 @@ namespace Cosmos
         {
             uint32_t c_cnt, cflag=0, k;
             rvector oldsa;
+
+            oldloc = newloc;
+            oldphys = newphys;
 
             c_cnt = 0;
             do
@@ -665,7 +863,7 @@ namespace Cosmos
                         //		eci2earth(&step[order2+i*n].loc.pos,&step[order2+i*n].att);
 
                         // Calculate acceleration at new position
-                        PosAccel(step[order2+i*n].loc, *phys);
+                        PosAccel(step[order2+i*n].loc, *newphys);
 
                         // Compare acceleration at new position to previous iteration
                         if (fabs(oldsa.col[0]-step[order2+i*n].loc.pos.eci.a.col[0])>1e-14 || fabs(oldsa.col[1]-step[order2+i*n].loc.pos.eci.a.col[1])>1e-14 || fabs(oldsa.col[2]-step[order2+i*n].loc.pos.eci.a.col[2])>1e-14)
@@ -675,9 +873,9 @@ namespace Cosmos
                 c_cnt++;
             } while (c_cnt<10 && cflag);
 
-            *loc = step[order].loc;
-            ++loc->pos.eci.pass;
-            pos_eci(loc);
+            *newloc = step[order].loc;
+            ++newloc->pos.eci.pass;
+            pos_eci(newloc);
             return 0;
         }
 
@@ -1149,34 +1347,6 @@ namespace Cosmos
                 }
             }
         }
-
-        //! Update Ground Station data
-        /*!
-        * Calculates aziumth and elevation for each gound station in the list of ground stations
-        * for a satellite at the indicated position.
-            \param satellite pointer to a ::locstruc specifying satellite position
-            \param groundstation pointer to a ::locstruc specifying groundstation to be targeted
-            \return ::svector containing azimuth in lambda, elevation in phi
-            and slant range in r.
-            \see geoc2topo
-            \see topo2azel
-        */
-        //        svector groundstation(locstruc &satellite,locstruc &groundstation)
-        //        {
-        //            Vector topo;
-        //            svector azel = {0.,0.,0.};
-        //            float lambda, phi;
-
-        //            pos_icrf2eci(&satellite);
-        //            pos_eci2geoc(&satellite);
-        //            geoc2topo(groundstation.pos.geod.s,satellite.pos.geoc.s,topo);
-        //            topo2azel(topo, lambda, phi);
-        //            azel.lambda = lambda;
-        //            azel.phi = phi;
-        //            azel.r = length_rv(topo);
-        //            return (azel);
-        //        }
-
 
     }
 

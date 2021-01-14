@@ -709,8 +709,8 @@ void rotctl_loop()
                 case '\\':
                     if (command.find("dump_state") != string::npos)
                     {
-                        socket_sendto(clientchannel, "0 603 0.000000 360.000000 0.000000 180.000000\n");
-                        printf("Out: 0 603 0.000000 360.000000 0.000000 180.000000\n");
+                        socket_sendto(clientchannel, "0\n603\n0.000000\n450.000000\n0.000000\n180.000000\n");
+                        printf("Out: 0 603 0.000000 450.000000 0.000000 180.000000\n");
                     }
                 break;
                 case 'q':

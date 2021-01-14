@@ -42,8 +42,7 @@ struct trackstruc
     targetstruc aos;
     targetstruc tca;
     targetstruc los;
-    physicsstruc physics;
-    gj_handle gjh;
+    vector<tlestruc> tles;
     std::string name;
     bool visible;
     bool peaked;
@@ -56,17 +55,16 @@ struct trackstruc
 static std::vector <trackstruc> track;
 
 static float highest = -RADOF(90.);
-static double utcnow;
+static double utcstart;
+static double period = 1.;
 static double minelev = RADOF(15.);
 
-void propinit(size_t index, double dt);
 void proptrack(size_t index, double utcnow);
-void propthread(size_t index);
 
 int main(int argc, char *argv[])
 {
-    double period = 1.;
 
+    utcstart = currentmjd();
     switch (argc)
     {
     case 12:
@@ -89,6 +87,11 @@ int main(int argc, char *argv[])
         tracknames += argv[3];
     case 3:
         period = atof(argv[2]);
+        if (period < 0.)
+        {
+            period = -period;
+            utcstart -= period;
+        }
     case 2:
         nodename = argv[1];
         if (nodename.find(":") != string::npos)
@@ -128,23 +131,20 @@ int main(int argc, char *argv[])
                 switch (type)
                 {
                 case NODE_TYPE_SATELLITE:
+                    path = data_base_path(nodes[i]) + "/state.tle";
                     trackstruc ttrack;
                     ttrack.name = nodes[i];
-                    cosmosstruc *cinfo = json_init();
-                    iretn = json_setup_node(ttrack.name, cinfo);
-                    if (iretn == 0)
+                    iretn = load_lines(path, ttrack.tles);
+                    if (iretn >= 0)
                     {
-                        if (iretn == 0 && (currentmjd()-cinfo->node.loc.pos.eci.utc) < 10.)
+                        iretn = lines2eci(utcstart, ttrack.tles, ttrack.target.loc.pos.eci);
+                        if (iretn >= 0)
                         {
                             // Valid node. Initialize tracking and push it to list
                             ttrack.visible = false;
                             ttrack.peaked = false;
-                            ttrack.target.type = cinfo->node.type;
-                            ttrack.target.loc = cinfo->node.loc;
-                            ttrack.target.utc = cinfo->node.loc.utc;
-                            ttrack.physics = cinfo->node.phys;
+                            ttrack.target.type = type;
                             track.push_back(ttrack);
-                            json_destroy(cinfo);
                         }
                     }
                 }
@@ -152,14 +152,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    for (size_t i=0; i<track.size(); ++i)
-    {
-        propinit(i, 10.);
-        propinit(i, 1.);
-    }
-
     double utc;
-    for (utc=currentmjd(); utc<currentmjd()+period; utc+=1./86400)
+    for (utc=utcstart; utc<utcstart+period; utc+=1./86400)
     {
         for (size_t i=0; i<track.size(); ++i)
         {
@@ -169,23 +163,11 @@ int main(int argc, char *argv[])
 
 }
 
-void propinit(size_t index, double dt)
-{
-    printf("Propagating Node %s forward %f seconds\n", track[index].name.c_str(), 86400.*(currentmjd()-track[index].target.loc.pos.eci.utc));
-    track[index].physics.mass = 1.;
-    track[index].physics.area = .01f;
-    gauss_jackson_init_eci(track[index].gjh, 12, 0, dt, track[index].target.loc.pos.eci.utc, track[index].target.loc.pos.eci, track[index].target.loc.att.icrf, track[index].physics, track[index].target.loc);
-    gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, currentmjd());
-    track[index].running = true;
-    track[index].tca.elfrom = 0.;
-    track[index].visible = false;
-    track[index].target.utc = track[index].target.loc.utc;
-}
-
 void proptrack(size_t index, double utcnow)
 {
-
-    gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, utcnow);
+    lines2eci(utcnow, track[index].tles, track[index].target.loc.pos.eci);
+    track[index].target.loc.pos.eci.pass++;
+    pos_eci(track[index].target.loc);
     update_target(agent->cinfo->node.loc, track[index].target);
     if (track[index].target.elfrom > highest)
     {
@@ -221,67 +203,13 @@ void proptrack(size_t index, double utcnow)
             {
                 kepstruc kep;
                 eci2kep(track[index].tca.loc.pos.eci, kep);
-                printf("%s %f %f ", track[index].name.c_str(), DEGOF(track[index].tca.loc.pos.earthsep), DEGOF(kep.beta));
-                printf("AOS0: %s %13.5f [ %6.1f %6.1f ] ", mjdToGregorian(track[index].aos.utc).c_str(), track[index].aos.utc, DEGOF(track[index].aos.azfrom), DEGOF(track[index].aos.elfrom));
-                printf("TCA[ %3.0f ]: %s %13.5f [ %6.1f %6.1f ] ", 86400.*(track[index].tca.utc-track[index].startutc), mjdToGregorian(track[index].tca.utc).c_str(), track[index].tca.utc, DEGOF(track[index].tca.azfrom), DEGOF(track[index].tca.elfrom));
-                printf("LOS0[ %3.0f ]: %s %13.5f [ %6.1f %6.1f ]\n", 86400.*(utcnow-track[index].startutc), mjdToGregorian(track[index].los.utc).c_str(), track[index].los.utc, DEGOF(track[index].los.azfrom), DEGOF(track[index].los.elfrom));
+                printf("%s\t%f\t%f\t", track[index].name.c_str(), DEGOF(track[index].tca.loc.pos.earthsep), DEGOF(kep.beta));
+                printf("AOS0:\t%s\t%13.5f\t[\t%6.1f\t%6.1f\t]\t", mjdToGregorian(track[index].aos.utc).c_str(), track[index].aos.utc, DEGOF(track[index].aos.azfrom), DEGOF(track[index].aos.elfrom));
+                printf("TCA[ %3.0f ]:\t%s\t%13.5f\t[ %6.1f\t%6.1f ]\t", 86400.*(track[index].tca.utc-track[index].startutc), mjdToGregorian(track[index].tca.utc).c_str(), track[index].tca.utc, DEGOF(track[index].tca.azfrom), DEGOF(track[index].tca.elfrom));
+                printf("LOS0[ %3.0f ]:\t%s\t%13.5f\t[ %6.1f\t%6.1f ]\n", 86400.*(utcnow-track[index].startutc), mjdToGregorian(track[index].los.utc).c_str(), track[index].los.utc, DEGOF(track[index].los.azfrom), DEGOF(track[index].los.elfrom));
                 fflush(stdout);
             }
         }
         break;
-    }
-}
-
-void propthread(size_t index)
-{
-    printf("Propagating Node %s forward %f seconds\n", track[index].name.c_str(), 86400.*(currentmjd()-track[index].target.loc.pos.eci.utc));
-    track[index].physics.mass = 1.;
-    track[index].physics.area = .01;
-    gauss_jackson_init_eci(track[index].gjh, 12, 0, 1., track[index].target.loc.pos.eci.utc, track[index].target.loc.pos.eci, track[index].target.loc.att.icrf, track[index].physics, track[index].target.loc);
-    gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, currentmjd());
-    track[index].running = true;
-
-    while (track[index].running)
-    {
-        track[index].control_mutex->lock();
-        gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, utcnow);
-        update_target(agent->cinfo->node.loc, track[index].target);
-        if (track[index].target.elfrom > highest)
-        {
-            highest = track[index].target.elfrom;
-        }
-        switch ((uint8_t)track[index].visible)
-        {
-        case 0:
-            if (track[index].target.elfrom > 0.)
-            {
-                track[index].highest = 0.;
-                track[index].startutc = utcnow;
-                track[index].visible = true;
-                track[index].peaked = false;
-                printf("%s %13.5f %6.1f         AOS0: %s\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.azfrom), track[index].name.c_str());
-                fflush(stdout);
-            }
-            break;
-        case 1:
-            if (track[index].target.elfrom > track[index].highest)
-            {
-                track[index].highest = track[index].target.elfrom;
-            }
-            else if (!track[index].peaked)
-            {
-                track[index].peaked = true;
-                printf("%s %13.5f %6.1f             MAX: %4.0f sec %5.1f deg %s\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.azfrom), 86400.*(utcnow-track[index].startutc), DEGOF(track[index].target.elfrom), track[index].name.c_str());
-            }
-            if (track[index].target.elfrom < 0.)
-            {
-                track[index].visible = false;
-                printf("%s %13.5f %6.1f     LOS0: %4.0f sec %s\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.azfrom), 86400.*(utcnow-track[index].startutc), track[index].name.c_str());
-                fflush(stdout);
-            }
-            break;
-        }
-        track[index].control_mutex->unlock();
-        COSMOS_USLEEP(1);
     }
 }

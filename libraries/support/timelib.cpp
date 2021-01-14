@@ -1302,6 +1302,16 @@ string utc2iso8601(double utc)
     return string(buffer);
 }
 
+double iso86012utc(string date)
+{
+    double utc = 0.;
+    int32_t iy=0, im=0, id=0, ihh, imm, iss;
+
+    sscanf(date.c_str(), "%d-%d-%dT%d:%d:%d", &iy, &im, &id, &ihh, &imm, &iss);
+    utc = cal2mjd(iy, im, id, ihh, imm, iss);
+    return utc;
+}
+
 // just call utc2iso8601(double utc)
 string mjd2iso8601(double mjd){
     return utc2iso8601(mjd);

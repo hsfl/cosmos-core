@@ -43,39 +43,47 @@ int main(int argc, char *argv[])
         exit(-errno);
     }
     Json jobject(buf);
-    for (uint16_t i=0; i<jobject.Members.size(); ++i)
+    for (const auto& member : jobject.ObjectContents)
     {
-        if (jobject.Members[i].value.name.find("event_") == 0)
+        if (member.first.find("event_") == 0)
         {
-            fprintf(fpo, "%s\t", jobject.Members[i].value.name.c_str());
+            fprintf(fpo, "%s\t", member.first.c_str());
         }
     }
+//    for (uint16_t i=0; i<jobject.Members.size(); ++i)
+//    {
+//        if (jobject.Members[i].value.name.find("event_") == 0)
+//        {
+//            fprintf(fpo, "%s\t", jobject.Members[i].value.name.c_str());
+//        }
+//    }
     fprintf(fpo, "\n");
-    for (uint16_t i=0; i<jobject.Members.size(); ++i)
+    for (const auto& member : jobject.ObjectContents)
+//    for (uint16_t i=0; i<jobject.Members.size(); ++i)
     {
-        if (jobject.Members[i].value.name.find("event_utc") == 0)
+        if (member.first.find("event_utc") == 0)
         {
-            fprintf(fpo, "%f\t", jobject.Members[i].value.nvalue);
+            fprintf(fpo, "%f\t", member.second.nvalue);
         }
-        else if (jobject.Members[i].value.name.find("event_name") == 0)
+        else if (member.first.find("event_name") == 0)
         {
-            fprintf(fpo, "%s\t", jobject.Members[i].value.svalue.c_str());
+            fprintf(fpo, "%s\t", member.second.svalue.c_str());
         }
-        else if (jobject.Members[i].value.name.find("event_type") == 0)
+        else if (member.first.find("event_type") == 0)
         {
-            fprintf(fpo, "%u\t", static_cast<uint32_t>(jobject.Members[i].value.nvalue));
+            fprintf(fpo, "%u\t", static_cast<uint32_t>(member.second.nvalue));
         }
-        else if (jobject.Members[i].value.name.find("event_flag") == 0)
+        else if (member.first.find("event_flag") == 0)
         {
-            fprintf(fpo, "%u\t", static_cast<uint32_t>(jobject.Members[i].value.nvalue));
+            fprintf(fpo, "%u\t", static_cast<uint32_t>(member.second.nvalue));
         }
-        else if (jobject.Members[i].value.name.find("event_data") == 0)
+        else if (member.first.find("event_data") == 0)
         {
-            fprintf(fpo, "%s\t", jobject.Members[i].value.svalue.c_str());
+            fprintf(fpo, "%s\t", member.second.svalue.c_str());
         }
-        else if (jobject.Members[i].value.name.find("event_condition") == 0)
+        else if (member.first.find("event_condition") == 0)
         {
-            fprintf(fpo, "%s\t", jobject.Members[i].value.svalue.c_str());
+            fprintf(fpo, "%s\t", member.second.svalue.c_str());
         }
     }
     fprintf(fpo, "\n");
@@ -83,31 +91,32 @@ int main(int argc, char *argv[])
     while (fgets(buf, 1000, fpi) != nullptr)
     {
         Json jobject(buf);
-        for (uint16_t i=0; i<jobject.Members.size(); ++i)
+        for (const auto& member : jobject.ObjectContents)
+//        for (uint16_t i=0; i<jobject.Members.size(); ++i)
         {
-            if (jobject.Members[i].value.name.find("event_utc") == 0)
+            if (member.first.find("event_utc") == 0)
             {
-                fprintf(fpo, "%f\t", jobject.Members[i].value.nvalue);
+                fprintf(fpo, "%f\t", member.second.nvalue);
             }
-            else if (jobject.Members[i].value.name.find("event_name") == 0)
+            else if (member.first.find("event_name") == 0)
             {
-                fprintf(fpo, "%s\t", jobject.Members[i].value.svalue.c_str());
+                fprintf(fpo, "%s\t", member.second.svalue.c_str());
             }
-            else if (jobject.Members[i].value.name.find("event_type") == 0)
+            else if (member.first.find("event_type") == 0)
             {
-                fprintf(fpo, "%u\t", static_cast<uint32_t>(jobject.Members[i].value.nvalue));
+                fprintf(fpo, "%u\t", static_cast<uint32_t>(member.second.nvalue));
             }
-            else if (jobject.Members[i].value.name.find("event_flag") == 0)
+            else if (member.first.find("event_flag") == 0)
             {
-                fprintf(fpo, "%u\t", static_cast<uint32_t>(jobject.Members[i].value.nvalue));
+                fprintf(fpo, "%u\t", static_cast<uint32_t>(member.second.nvalue));
             }
-            else if (jobject.Members[i].value.name.find("event_data") == 0)
+            else if (member.first.find("event_data") == 0)
             {
-                fprintf(fpo, "%s\t", jobject.Members[i].value.svalue.c_str());
+                fprintf(fpo, "%s\t", member.second.svalue.c_str());
             }
-            else if (jobject.Members[i].value.name.find("event_condition") == 0)
+            else if (member.first.find("event_condition") == 0)
             {
-                fprintf(fpo, "%s\t", jobject.Members[i].value.svalue.c_str());
+                fprintf(fpo, "%s\t", member.second.svalue.c_str());
             }
         }
         fprintf(fpo, "\n");

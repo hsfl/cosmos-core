@@ -446,17 +446,17 @@ enum {
 #define AGENTMAXREQUESTCOUNT (AGENTMAXBUILTINCOUNT+AGENTMAXUSERCOUNT)
 
 // Maximums for pre-allocated (and never reallocated) vector storage inside cosmosstruc
-//* Maximum number of vertices
-#define MAX_NUMBER_OF_VERTICES 10
+//* Maximum number of vertices - Cube = 14
+#define MAX_NUMBER_OF_VERTICES 28
 
-//* Maximum number of triangles
-#define MAX_NUMBER_OF_TRIANGLES 10
+//* Maximum number of triangles - Cube = 24
+#define MAX_NUMBER_OF_TRIANGLES 48
 
 //* Maximum number of vertices
-#define MAX_NUMBER_OF_VERTEXS 5
+#define MAX_NUMBER_OF_VERTEXS (MAX_NUMBER_OF_VERTICES)
 
 //* Maximum number of normals
-#define MAX_NUMBER_OF_NORMALS 5
+#define MAX_NUMBER_OF_NORMALS (MAX_NUMBER_OF_TRIANGLES)
 
 //* Maximum number of equations
 #define MAX_NUMBER_OF_EQUATIONS 3 
@@ -3301,6 +3301,8 @@ struct trianglestruc
 	float temp = 0.f;
 	//! Area
 	float area = 0.f;
+    //! Depth
+    float depth = 0.f;
 	//! perimeter
 	float perimeter = 0.f;
 	//! Insolation in Watts/sq m
@@ -3334,6 +3336,7 @@ struct trianglestruc
 			{ "mass"  , mass },
 			{ "temp"  , temp },
 			{ "area"  , area },
+            { "depth" , depth },
 			{ "perimeter"   , perimeter },
 			{ "irradiation" , irradiation },
 			{ "pcell" , pcell },
@@ -3360,19 +3363,21 @@ struct trianglestruc
 			if(!parsed["twist"].is_null())	{ twist.from_json(parsed["twist"].dump()); }
 			if(!parsed["pidx"].is_null())	{ pidx = parsed["pidx"].int_value(); }
 
-			// Array
-			if(!parsed["heat"].is_null())	{ heat = parsed["heat"].number_value(); }
-			if(!parsed["hcap"].is_null())	{ hcap = parsed["hcap"].number_value(); }
-			if(!parsed["emi"].is_null())	{ emi = parsed["emi"].number_value(); }
-			if(!parsed["abs"].is_null())	{ abs = parsed["abs"].number_value(); }
-			if(!parsed["mass"].is_null())	{ mass = parsed["mass"].number_value(); }
-			if(!parsed["temp"].is_null())	{ temp = parsed["temp"].number_value(); }
-			if(!parsed["area"].is_null())	{ area = parsed["area"].number_value(); }
-			if(!parsed["perimeter"].is_null())	{ perimeter = parsed["perimeter"].number_value(); }
-			if(!parsed["irradiation"].is_null())	{ irradiation = parsed["irradiation"].number_value(); }
-			if(!parsed["pcell"].is_null())	{ pcell = parsed["pcell"].number_value(); }
-			if(!parsed["ecellbase"].is_null())	{ ecellbase = parsed["ecellbase"].number_value(); }
-			if(!parsed["ecellslope"].is_null())	{ ecellslope = parsed["ecellslope"].number_value(); }
+						// array
+
+			if(!parsed["heat"].is_null())	heat = parsed["heat"].number_value();
+			if(!parsed["hcap"].is_null())	hcap = parsed["hcap"].number_value();
+			if(!parsed["emi"].is_null())	emi = parsed["emi"].number_value();
+			if(!parsed["abs"].is_null())	abs = parsed["abs"].number_value();
+			if(!parsed["mass"].is_null())	mass = parsed["mass"].number_value();
+			if(!parsed["temp"].is_null())	temp = parsed["temp"].number_value();
+            if(!parsed["area"].is_null())	area = parsed["area"].number_value();
+            if(!parsed["depth"].is_null())	area = parsed["depth"].number_value();
+            if(!parsed["perimeter"].is_null())	perimeter = parsed["perimeter"].number_value();
+			if(!parsed["irradiation"].is_null())	irradiation = parsed["irradiation"].number_value();
+			if(!parsed["pcell"].is_null())	pcell = parsed["pcell"].number_value();
+			if(!parsed["ecellbase"].is_null())	ecellbase = parsed["ecellbase"].number_value();
+			if(!parsed["ecellslope"].is_null())	ecellslope = parsed["ecellslope"].number_value();
 			for(size_t i = 0; i < triangleindex.size(); ++i) {
 				for(size_t j = 0; j < triangleindex[i].size(); ++j)  {
 					if(!parsed["triangleindex"][i][j].is_null()) { triangleindex[i][j] = parsed["triangleindex"][i][j].number_value(); }

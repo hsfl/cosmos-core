@@ -9,17 +9,76 @@ namespace Cosmos
         {
             if (!json.empty())
             {
-                extract_object(json);
+                extract_contents(json);
             }
         }
 
-        int32_t Json::extract_object(string json)
+        int32_t Json::extract_contents(string json)
         {
             int32_t iretn = 0;
 
             Content = json;
 
-            iretn = extract_members(json.begin(), json.end(), Members);
+            // Determine overall type
+            string::iterator begin = json.begin();
+            string::iterator end = json.end();
+
+            iretn = skip_to_character(begin, end, "[{");
+            switch (iretn)
+            {
+            case '[':
+                {
+                    JType = Type::Array;
+                    iretn = skip_character(begin, end, '[');
+                    if (iretn <= 0)
+                    {
+                        return iretn;
+                    }
+                    iretn = extract_values(begin, end, ArrayContents);
+                    if (iretn < 0)
+                    {
+                        return iretn;
+                    }
+                    iretn = skip_white(begin, end);
+                    if (iretn < 0)
+                    {
+                        return iretn;
+                    }
+                    iretn = skip_character(begin, end, ']');
+                    if (iretn <= 0)
+                    {
+                        return iretn;
+                    }
+                }
+                break;
+            case '{':
+                {
+                    JType = Type::Object;
+                    iretn = skip_character(begin, end, '{');
+                    if (iretn <= 0)
+                    {
+                        return iretn;
+                    }
+                    iretn = extract_members(begin, end, ObjectContents);
+                    if (iretn < 0)
+                    {
+                        return iretn;
+                    }
+                    iretn = skip_white(begin, end);
+                    if (iretn < 0)
+                    {
+                        return iretn;
+                    }
+                    iretn = skip_character(begin, end, '}');
+                    if (iretn <= 0)
+                    {
+                        return iretn;
+                    }
+                }
+                break;
+            default:
+                return iretn;
+            }
             return iretn;
         }
 
@@ -27,12 +86,10 @@ namespace Cosmos
         //! Build JSON Object from values extracted from string containing JSON.
         //! \param json String containing JSON values.
         //! \return ::Object containing heirarchical vector of ::Member
-        int32_t Json::extract_members(string::iterator begin, string::iterator end, vector <Member> &members)
+        int32_t Json::extract_members(string::iterator &begin, string::iterator &end, Object &members)
         {
-            skip_white(begin, end);
-            skip_character(begin, end, '{');
             members.clear();
-            while (*begin != '}' && begin != end)
+            while (begin != end)
             {
                 Member tmember;
                 int32_t iretn = extract_member(begin, end, tmember);
@@ -40,30 +97,39 @@ namespace Cosmos
                 {
                     return iretn;
                 }
-                members.push_back(tmember);
-                skip_white(begin, end);
+                else if (iretn > 0)
+                {
+                    members.emplace(tmember);
+                }
+                else {
+                    break;
+                }
             }
-            skip_character(begin, end, '}');
 
-            return members.size();
+            return static_cast<int32_t>(members.size());
         }
 
-        int32_t Json::extract_values(string::iterator begin, string::iterator end, vector <Member> &members)
+        int32_t Json::extract_values(string::iterator &begin, string::iterator &end, Array &values)
         {
-            members.clear();
+            values.clear();
             while (begin != end)
             {
-                Member tmember;
-                tmember.value.name = "";
-                int32_t iretn = extract_value(begin, end, tmember.value);
+                Value tvalue;
+                int32_t iretn = extract_value(begin, end, tvalue);
                 if (iretn < 0)
                 {
                     return iretn;
                 }
-                members.push_back(tmember);
+                else if (iretn > 0)
+                {
+                    values.push_back(tvalue);
+                }
+                else {
+                    break;
+                }
             }
 
-            return 0;
+            return static_cast<int32_t>(values.size());
         }
 
         //! Extract JSON member.
@@ -75,37 +141,12 @@ namespace Cosmos
         int32_t Json::extract_member(string::iterator &begin, string::iterator &end, Member &member)
         {
             int32_t iretn = 0;
-            iretn = extract_name(begin, end, member.value.name);
-            if (iretn < 0)
+            iretn = extract_name(begin, end, member.first);
+            if (iretn <= 0)
             {
                 return iretn;
             }
-            iretn = extract_value(begin, end, member.value);
-            if (iretn < 0)
-            {
-                return iretn;
-            }
-            switch (member.value.type)
-            {
-            case Type::True:
-            case Type::False:
-            case Type::Null:
-            case Type::Number:
-            case Type::String:
-                break;
-            case Type::Undefined:
-                return JSON_ERROR_SCAN;
-                break;
-            case Type::Object:
-                extract_members(member.value.begin, member.value.end, member.object.members);
-                break;
-            case Type::Array:
-                extract_values(member.value.begin, member.value.end, member.object.members);
-                break;
-            default:
-                return JSON_ERROR_SCAN;
-                break;
-            }
+            iretn = extract_value(begin, end, member.second);
             return iretn;
         }
 
@@ -116,7 +157,6 @@ namespace Cosmos
         //! \return A pointer the the discovered value, or a nullptr.
         int32_t Json::extract_value(string::iterator &begin, string::iterator &end, Value &value)
         {
-            uint32_t count;
             int32_t iretn;
 
             iretn = skip_white(begin, end);
@@ -128,45 +168,62 @@ namespace Cosmos
             value.begin = begin;
             switch (*begin)
             {
+            case '}':
+            case ']':
+                return 0;
             case '{':
-                count = 1;
-                do
-                {
-                    if (++begin == end || *begin == 0)
-                    {
-                        return JSON_ERROR_EOS;
-                    }
-                    switch (*begin)
-                    {
-                    case '}':
-                        --count;
-                        break;
-                    case '{':
-                        ++count;
-                        break;
-                    }
-                } while (count);
                 value.type = Type::Object;
+                iretn = skip_character(begin, end, '{');
+                if (iretn <= 0)
+                {
+                    return iretn;
+                }
+                iretn = extract_members(begin, end, value.object);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+                iretn = skip_white(begin, end);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+                iretn = skip_character(begin, end, '}');
+                if (iretn <= 0)
+                {
+                    return iretn;
+                }
+//                if (++begin == end || *begin == 0)
+//                {
+//                    return JSON_ERROR_EOS;
+//                }
                 break;
             case '[':
-                count = 1;
-                do
-                {
-                    if (++begin == end || *begin == 0)
-                    {
-                        return JSON_ERROR_EOS;
-                    }
-                    switch (*begin)
-                    {
-                    case ']':
-                        --count;
-                        break;
-                    case '[':
-                        ++count;
-                        break;
-                    }
-                } while (count);
                 value.type = Type::Array;
+                iretn = skip_character(begin, end, '[');
+                if (iretn <= 0)
+                {
+                    return iretn;
+                }
+                iretn = extract_values(begin, end, value.array);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+                iretn = skip_white(begin, end);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+                iretn = skip_character(begin, end, ']');
+                if (iretn <= 0)
+                {
+                    return iretn;
+                }
+//                if (++begin == end || *begin == 0)
+//                {
+//                    return JSON_ERROR_EOS;
+//                }
                 break;
             case '"':
                 {
@@ -258,6 +315,10 @@ namespace Cosmos
                     return JSON_ERROR_SCAN;
                 }
                 value.type = Type::False;
+                if (++begin == end || *begin == 0)
+                {
+                    return JSON_ERROR_EOS;
+                }
                 break;
             case 't':
 
@@ -288,6 +349,10 @@ namespace Cosmos
                     return JSON_ERROR_SCAN;
                 }
                 value.type = Type::True;
+                if (++begin == end || *begin == 0)
+                {
+                    return JSON_ERROR_EOS;
+                }
                 break;
             case 'n':
 
@@ -318,7 +383,10 @@ namespace Cosmos
                     return JSON_ERROR_SCAN;
                 }
                 value.type = Type::Null;
-
+                if (++begin == end || *begin == 0)
+                {
+                    return JSON_ERROR_EOS;
+                }
                 break;
             case 0:
                 return JSON_ERROR_EOS;
@@ -343,10 +411,23 @@ namespace Cosmos
             skip_white(begin, end);
             skip_character(begin, end, ',');
             skip_white(begin, end);
-//            ++begin;
             value.end = begin;
 
-            return 0;
+            switch (value.type)
+            {
+            case Type::True:
+            case Type::False:
+            case Type::Null:
+            case Type::Number:
+            case Type::String:
+            case Type::Object:
+            case Type::Array:
+                break;
+            case Type::Undefined:
+            default:
+                return JSON_ERROR_SCAN;
+            }
+            return static_cast<int32_t>(value.type);
         }
 
         int32_t Json::skip_white(string::iterator &begin, string::iterator &end)
@@ -382,16 +463,43 @@ namespace Cosmos
 
             if (*begin != character)
             {
-                return (JSON_ERROR_SCAN);
+                return 0;
             }
             ++begin;
+
+            return 1;
+        }
+
+        int32_t Json::skip_to_character(string::iterator &begin, string::iterator &end, string characters)
+        {
+
+            if (begin == end || *begin == 0)
+            {
+                return (JSON_ERROR_EOS);
+            }
+
+            while (begin != end && *begin != 0)
+            {
+                for (char character : characters)
+                {
+                    if (*begin == character)
+                    {
+                        return *begin;
+                    }
+                }
+                ++begin;
+                if (begin == end || *begin == 0)
+                {
+                    return (JSON_ERROR_EOS);
+                }
+            }
 
             return (0);
         }
 
         int32_t Json::extract_name(string::iterator &begin, string::iterator &end, string &name)
         {
-            int32_t iretn = 0;
+            int32_t iretn = 1;
 
             if (begin == end || *begin == 0)
                 return (JSON_ERROR_EOS);
@@ -404,6 +512,10 @@ namespace Cosmos
 
             //Parse name
             iretn = extract_string(begin, end, name);
+            if (iretn <= 0)
+            {
+                return iretn;
+            }
 
             //Skip whitespace after name
             if ((iretn = skip_white(begin, end)) < 0)
@@ -411,7 +523,7 @@ namespace Cosmos
                 return iretn;
             }
 
-            if ((iretn = skip_character(begin, end, ':')) < 0)
+            if ((iretn = skip_character(begin, end, ':')) <= 0)
                 return iretn;
 
             //Skip whitespace after seperator
@@ -420,7 +532,7 @@ namespace Cosmos
                 return iretn;
             }
 
-            return iretn;
+            return 1;
         }
 
         //! Extract next JSON string.
@@ -442,7 +554,7 @@ namespace Cosmos
             }
 
             //Skip '"' before string
-            if ((iretn = skip_character(begin, end, '"')) < 0)
+            if ((iretn = skip_character(begin, end, '"')) <= 0)
             {
                 return iretn;
             }
@@ -503,7 +615,7 @@ namespace Cosmos
             }
 
             //Skip '"' afer string
-            if ((iretn = skip_character(begin, end, '"')) < 0)
+            if ((iretn = skip_character(begin, end, '"')) <= 0)
             {
                 return iretn;
             }

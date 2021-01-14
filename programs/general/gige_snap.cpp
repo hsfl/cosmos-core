@@ -269,11 +269,11 @@ int main(int argc, char *argv[])
 
         width = gige_readreg(handle,PT1000::WidthReg);
         printf("Read PT1000_WIDTH %d\n",width);
-        width = 320;
+//        width = 320;
 
         height = gige_readreg(handle,PT1000::HeightReg);
         printf("Read PT1000_HEIGHT %d\n",height);
-        height = 240;
+//        height = 240;
 
         iretn = pt1000_config(handle, width, height);
         if (iretn < 0)

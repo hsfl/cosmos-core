@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     physicsstruc phys;
 
     posprop = new Physics::GaussJacksonPositionPropagator(&loc, &phys, 10., 6);
-    posprop->Setup(6);
+//    posprop->Setup(6);
     attprop = new Physics::LVLHAttitudePropagator(&loc, &phys, 10.);
     thermprop = new Physics::ThermalPropagator(&loc, &phys, 10., 300.);
     elecprop = new Physics::ElectricalPropagator(&loc, &phys, 10., 40.);

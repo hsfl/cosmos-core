@@ -41,9 +41,13 @@ add_library(CosmosNamespace STATIC json11.cpp jsonlib.cpp jsonlib.h jsondef.h)
 install(TARGETS CosmosNamespace DESTINATION lib)
 target_link_libraries(CosmosNamespace CosmosConvert CosmosCad CosmosTime CosmosDeviceCpu)
 
-add_library(CosmosString STATIC stringlib.cpp stringlib.h jsonobject.cpp jsonobject.h jsonclass.cpp jsonclass.h jsonvalue.cpp jsonvalue.h )
+add_library(CosmosString STATIC stringlib.cpp stringlib.h jsonobject.cpp jsonobject.h jsonvalue.cpp jsonvalue.h)
 install(TARGETS CosmosString DESTINATION lib)
 #target_link_libraries(CosmosString CosmosSupport)
+
+add_library(CosmosJson STATIC jsonclass.cpp jsonclass.h )
+install(TARGETS CosmosJson DESTINATION lib)
+target_link_libraries(CosmosJson CosmosString)
 
 add_library(CosmosCad STATIC objlib.cpp objlib.h)
 install(TARGETS CosmosCad DESTINATION lib)

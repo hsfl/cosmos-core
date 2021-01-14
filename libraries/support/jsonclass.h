@@ -27,47 +27,60 @@ public:
         Object
         };
 
+
     //! JSON Value
     //! Structure containg the Value portion of a JSON Member
     struct Value
     {
-        string name;
+//        string name;
         Type type = Type::Undefined;
         string svalue;
         double nvalue;
+        bool bvalue;
+        map<string, Value> object;
+        vector<Value> array;
         string::iterator begin;
         string::iterator end;
     };
 
-    struct Member;
-
-    //! JSON Object
-    //! Complete JSON Object, containing both the string of characters and a heirarchical vector of values.
-    struct Object
-    {
-        vector <Member> members;
-    };
+    typedef pair<string, Value> Member;
+    typedef map<string, Value> Object;
+    typedef vector<Value> Array;
 
     //! JSON Member elements
     //! Structure containing the 2 basic parts of a JSON member, plus some supporting information.
-    struct Member
-    {
-        Value value;
-        Object object;
-    };
+//    struct Member
+//    {
+//        string name;
+//        Value value;
+//    };
 
-    int32_t extract_object(string json);
-    int32_t extract_members(string::iterator begin, string::iterator end, vector<Member> &members);
-    int32_t extract_values(string::iterator begin, string::iterator end, vector <Member> &members);
+    //! JSON Object
+    //! Complete JSON Object, containing both the string of characters and a heirarchical vector of values.
+//    struct Object
+//    {
+//        vector <Member> members;
+//    };
+
+    int32_t extract_contents(string json);
+//    int32_t extract_members(string::iterator begin, string::iterator end, vector<Member> &members);
+//    int32_t extract_values(string::iterator begin, string::iterator end, vector <Member> &members);
+    int32_t extract_members(string::iterator &begin, string::iterator &end, Object &members);
+    int32_t extract_values(string::iterator &begin, string::iterator &end, Array &values);
     int32_t extract_string(string::iterator &bit, string::iterator &eit, string &ostring);
     int32_t extract_name(string::iterator &bit, string::iterator &eit, string &name);
     int32_t extract_value(string::iterator &bit, string::iterator &eit, Value &value);
     int32_t extract_member(string::iterator &bit, string::iterator &eit, Member &value);
+//    int32_t extract_member(string::iterator &bit, string::iterator &eit, Member &value);
     int32_t skip_character(string::iterator &bit, string::iterator &eit, const char character);
+    int32_t skip_to_character(string::iterator &bit, string::iterator &eit, string characters);
     int32_t skip_white(string::iterator &bit, string::iterator &eit);
 
     string Content;
-    vector <Member> Members;
+    Type JType;
+    Object ObjectContents;
+    Array ArrayContents;
+//    vector <Member> Members;
 
     private:
 

@@ -3154,7 +3154,7 @@ int32_t topo2azel(Vector tpos, float &az, float &el)
     */
 int lines2eci(double utc, vector<tlestruc>lines, cartpos &eci)
 {
-    static uint16_t lindex=0;
+    uint16_t lindex=0;
     int32_t iretn;
 
     if (utc >= lines[lindex].utc)
@@ -3164,6 +3164,8 @@ int lines2eci(double utc, vector<tlestruc>lines, cartpos &eci)
             if (utc >= lines[i].utc)
             {
                 lindex = i;
+            }
+            else {
                 break;
             }
         }
