@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	std::vector<gige_acknowledge_ack> gige_list;
 
 	std::string extra = "";
-	uint32_t exposure=0;
+    uint32_t exposure=1;
 	uint32_t gain=1;
 	uint32_t binning=1;
 	char ipaddress[20];
@@ -134,31 +134,31 @@ int main(int argc, char *argv[])
 	}
 
 	iretn = gige_readreg(handle,GIGE_REG_CCP);
-	//	printf("Read CCP: %u\n",iretn);
+    printf("Read CCP: %u\n",iretn);
 
 	iretn = gige_readreg(handle,GIGE_REG_DEVICE_MAC_HIGH);
-	//	printf("Read DEVICE_MAC_HIGH: %0x\n",iretn);
+    printf("Read DEVICE_MAC_HIGH: %0x\n",iretn);
 
 	iretn = gige_readreg(handle,GIGE_REG_DEVICE_MAC_LOW);
-	//	printf("Read DEVICE_MAC_LOW: %0x\n",iretn);
+    printf("Read DEVICE_MAC_LOW: %0x\n",iretn);
 
 	iretn = gige_readreg(handle,GIGE_REG_CCP);
-	//	printf("Read CCP: %u\n",iretn);
+    printf("Read CCP: %u\n",iretn);
 
 	iretn = gige_readreg(handle,GIGE_REG_VERSION);
-	//	printf("Read VERSION: %u\n",iretn);
+    printf("Read VERSION: %u\n",iretn);
 
 	iretn = gige_readreg(handle,GIGE_REG_DEVICE_MODE);
-	//	printf("Read DEVICE_MODE: %u\n",iretn);
+    printf("Read DEVICE_MODE: %u\n",iretn);
 
 	iretn = gige_readreg(handle,GIGE_REG_GVCP_HEARTBEAT_TIMEOUT);
-	//	printf("Read GVCP_HEARTBEAT_TIMEOUT %u\n",iretn);
+    printf("Read GVCP_HEARTBEAT_TIMEOUT %u\n",iretn);
 
 	iretn = gige_readreg(handle,GIGE_REG_PRIMARY_APPLICATION_IP_ADDRESS);
-	//	printf("Read PRIMARY_APPLICATION_IP_ADDRESS %x\n",iretn);
+    printf("Read PRIMARY_APPLICATION_IP_ADDRESS %x\n",iretn);
 
-	/*
-	iretn = gige_readmem(handle,GIGE_REG_FIRST_URL,512);
+    /*
+    iretn = gige_readmem(handle,GIGE_REG_FIRST_URL,512);
 	char *ptr = (char *)handle->cack_mem.data;
 	do
 	{
@@ -262,6 +262,83 @@ int main(int argc, char *argv[])
 			printf("A35_TEMPERATURE: %u A35_TEMPERATUREFPA: %f\n", gige_readreg(handle, A35_TEMPERATURE), gige_readreg(handle, A35_TEMPERATUREFPA)/10.);
 		}
 	}
+    else if (strncmp((char *)handle->cack_mem.data, "PT1000", 6) == 0 )
+    {
+        iretn = gige_readreg(handle,PT1000::PixelFormatReg);
+        printf("Read PT1000PIXELFORMAT %d\n",iretn);
+
+        width = gige_readreg(handle,PT1000::WidthReg);
+        printf("Read PT1000_WIDTH %d\n",width);
+        width = 320;
+
+        height = gige_readreg(handle,PT1000::HeightReg);
+        printf("Read PT1000_HEIGHT %d\n",height);
+        height = 240;
+
+        iretn = pt1000_config(handle, width, height);
+        if (iretn < 0)
+        {
+            printf("Error configuring: %s\n", cosmos_error_string(iretn).c_str());
+        }
+        expbytes = width * height * exposure * 2;
+        tbytes = pt1000_image(handle, exposure, image, bsize);
+
+        if (expbytes == tbytes)
+        {
+            FILE *fp;
+            fp = fopen("pt1000_test.img","wb");
+            fwrite((void *)image,tbytes,1,fp);
+            fclose(fp);
+
+            fp = fopen("pt1000_test", "w");
+            uint16_t *cube = (uint16_t *)image;
+            vector<vector<float>> mean;
+            mean.resize(width);
+            vector<float> high;
+            high.resize(width);
+            for (uint32_t icol=0; icol<width; ++icol)
+            {
+                high[icol]=0.;
+                mean[icol].resize(height);
+                for (uint32_t irow=0; irow<height; ++irow)
+                {
+                    mean[icol][irow] = 0.;
+                    for (uint32_t ilayer=0; ilayer<exposure; ++ilayer)
+                    {
+                        mean[icol][irow] += cube[ilayer*width*height+irow*width+icol];
+                    }
+                    mean[icol][irow] /= (float)exposure;
+                    if (mean[icol][irow] > high[icol])
+                    {
+                        high[icol] = mean[icol][irow];
+                        printf("[%d,%d] %f\r",icol,irow,high[icol]);
+                    }
+                }
+                printf("\n");
+            }
+
+            fclose(fp);
+        }
+
+        iretn = gige_readreg(handle,PT1000::AcquisitionModeReg);
+        printf("Read PT1000_AcquisitionMode %d\n",iretn);
+
+        iretn = gige_readreg(handle,PT1000::PixelFormatReg);
+        printf("Read PT1000_PixelFormat %d\n",iretn);
+
+        iretn = gige_readreg(handle,PT1000::SensorWidthReg);
+        printf("Read PT1000_SensorWidth %d\n",iretn);
+
+        iretn = gige_readreg(handle,PT1000::SensorHeightReg);
+        printf("Read PT1000_SensorHeight %d\n",iretn);
+
+        iretn = gige_readreg(handle,PT1000::WidthReg);
+        printf("Read PT1000_Width %d\n",iretn);
+
+        iretn = gige_readreg(handle,PT1000::HeightReg);
+        printf("Read PT1000_Height %d\n",iretn);
+
+    }
 	else
 	{
 

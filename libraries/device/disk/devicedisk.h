@@ -3,6 +3,8 @@
 
 #include "support/configCosmos.h"
 #include "support/jsondef.h"
+#include "support/datalib.h"
+#include "support/stringlib.h"
 
 #include <cstdint> // uint64_t
 #ifndef COSMOS_MAC_OS

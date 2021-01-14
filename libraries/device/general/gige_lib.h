@@ -385,6 +385,8 @@ int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32
 int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint32_t gain, uint8_t *buffer, uint16_t bsize);
 int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
 int a35_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t video_rate);
+int pt1000_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
+int pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize);
 //! @}
 
 
@@ -461,5 +463,80 @@ uint32_t gige_request(gige_handle *handle, uint32_t address);
 
 //#define NETWORKMASK                 0xFFFFFF00  //255.255.255.0
 //!	@}
+
+//! \ingroup gige
+//!	\defgroup gige_pt1000_constants GigE Vision PT1000-CL4 constants
+//!	@{
+enum PT1000
+    {
+    DeviceScanTypeReg = 0xD32C,
+    DeviceResetReg = 0xD340,
+    SensorWidthReg = 0xA020,
+    SensorHeightReg = 0xA024,
+    WidthReg = 0xD300,
+    HeightReg = 0xD304,
+    OffsetXReg = 0xD31C,
+    OffsetYReg = 0xD320,
+    PixelFormatReg = 0xD308,
+    TestImageSelectorReg = 0xD33C,
+    AcquisitionModeReg = 0xD310,
+    AcquisitionStartReg = 0xD314,
+    AcquisitionStopReg = 0xD318,
+    AcquisitionFrameCount = 0xD334
+    };
+
+enum PT1000AcquisitionMode
+    {
+    Continuous = 0,
+    SingleFrame,
+    MultiFrame,
+    ContinuousRecording,
+    ContinuousReadout,
+    SingleFrameRecording,
+    SingleFrameReadout
+    };
+
+enum PT1000Format
+    {
+    Mono8 = 17301505,
+    Mono8Signed = 17301506,
+    Mono10 = 17825795,
+    Mono10Packed = 17563652,
+    Mono12 = 17825797,
+    Mono12Packed = 17563654,
+    Mono14 = 17825829,
+    Mono16 = 17825799,
+    BayerGR8 = 17301512,
+    BayerRG8 = 17301513,
+    BayerGB8 = 17301514,
+    BayerBG8 = 17301515,
+    BayerGR10 = 17825804,
+    BayerRG10 = 17825805,
+    BayerGB10 = 17825806,
+    BayerBG10 = 17825807,
+    BayerGR12 = 17825808,
+    BayerRG12 = 17825809,
+    BayerGB12 = 17825810,
+    BayerBG12 = 17825811,
+    BayerGR10Packed = 17563686,
+    BayerRG10Packed = 17563687,
+    BayerGB10Packed = 17563688,
+    BayerGR12Packed = 17563690,
+    BayerRG12Packed = 17563691,
+    BayerGB12Packed = 17563692,
+    BayerBG12Packed = 17563693,
+    BayerGR16 = 17825838,
+    BayerRG16 = 17825839,
+    BayerGB16 = 17825840,
+    BayerBG16 = 17825841,
+    RGB8Packed = 35127316,
+    BGR8Packed = 35127317,
+    YUV411Packed = 34340894,
+    YUV422Packed = 34603039,
+    YUV444Packed = 35127328
+    };
+
+//!	@}
+
 
 #endif

@@ -158,7 +158,7 @@
 struct cartpos
 {
     //! UTC of Position
-    double utc;
+    double utc = 0.;
     //! Location
     rvector s;
     //! Velocity
@@ -167,7 +167,42 @@ struct cartpos
     rvector a;
 	// TODO: get rid of this kind of stuff?
     //! pass indicator: allows synchronization with other attitude and position values.
-    uint32_t pass;
+    uint32_t pass = 0.;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "s", s },
+            { "v", v },
+            { "a", a },
+            { "pass", static_cast<int>(pass) }
+        };
+    }
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())	utc = parsed["utc"].number_value();
+            if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
+            if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
+            if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
+            if(!parsed["pass"].is_null())	pass = parsed["pass"].int_value();
+        } else {
+			cerr<<"ERROR = "<<error<<endl;
+		}
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const cartpos& a);
@@ -180,9 +215,38 @@ std::istream& operator >> (std::istream& in, cartpos& a);
 struct cposstruc
 {
     //! UTC as Modified Julian Day
-    double utc;
+    double utc = 0.;
     //! Cartesian structure with all elements of position
     cartpos pos;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+			{ "utc", utc },
+			{ "pos", pos }
+		};
+	}
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())    utc = parsed["utc"].number_value();
+            if(!parsed["pos"].is_null())    pos.from_json(parsed["pos"].dump());
+        } else {
+			cerr << "ERROR = "<<error<<endl;
+    	}
+        return;
+	}
 };
 
 std::ostream& operator << (std::ostream& out, const cposstruc& a);
@@ -194,7 +258,7 @@ std::istream& operator >> (std::istream& in, cposstruc& a);
 */
 struct geoidpos
 {
-    double utc;
+    double utc = 0.;
     //! Position vector
     gvector s;
     //! Velocity vector
@@ -202,7 +266,42 @@ struct geoidpos
     //! Acceleration vector
     gvector a;
     //! pass indicator: allows synchronization with other attitude and position values.
-    uint32_t pass;
+    uint32_t pass = 0;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "s", s },
+            { "v", v },
+            { "a", a },
+            { "pass", static_cast<int>(pass) }
+        };
+    }
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())	utc = parsed["utc"].number_value();
+            if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
+            if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
+            if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
+            if(!parsed["pass"].is_null())	pass = parsed["pass"].int_value();
+        } else {
+			cerr<<"ERROR = "<<error<<endl;
+		}
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const geoidpos& a);
@@ -214,7 +313,7 @@ std::istream& operator >> (std::istream& in, geoidpos& a);
 */
 struct spherpos
 {
-    double utc;
+    double utc = 0.;
     //! Position vector
     svector s;
     //! Velocity vector
@@ -222,7 +321,42 @@ struct spherpos
     //! Acceleration vector
     svector a;
     //! pass indicator: allows synchronization with other attitude and position values.
-    uint32_t pass;
+    uint32_t pass = 0;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "s", s },
+            { "v", v },
+            { "a", a },
+            { "pass", static_cast<int>(pass) }
+        };
+    }
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())	utc = parsed["utc"].number_value();
+            if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
+            if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
+            if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
+            if(!parsed["pass"].is_null())	pass = parsed["pass"].int_value();
+        } else {
+			cerr<<"ERROR = "<<error<<endl;
+		}
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const spherpos& a);
@@ -230,10 +364,42 @@ std::istream& operator >> (std::istream& in, spherpos& a);
 
 struct aattstruc
 {
-    double utc;
+    double utc = 0.;
     avector s;
     avector v;
     avector a;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "s" , s },
+            { "v" , v },
+            { "a" , a }
+        };
+    }
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())	utc = parsed["utc"].number_value();
+            if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
+            if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
+            if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
+        } else  {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const aattstruc& a);
@@ -256,13 +422,46 @@ std::istream& operator >> (std::istream& in, quatatt& a);
 */
 struct dcmatt
 {
-    double utc;
+    double utc = 0.;
     //! 0th derivative
     rmatrix s;
     //! 1st derivative
     rvector v;
     //! 2nd derivative
     rvector a;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            //{ "s", s },
+            { "v", v },
+            { "a", a }
+        };
+    }
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())	utc = parsed["utc"].number_value();
+            //if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
+            if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
+            if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
+        } else {
+			cerr<<"ERROR = "<<error<<endl;
+		}
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const dcmatt& a);
@@ -275,7 +474,7 @@ std::istream& operator >> (std::istream& in, dcmatt& a);
 */
 struct qatt
 {
-    double utc;
+    double utc = 0.;
     //! 0th derivative: Quaternion
     quaternion s; //q
     //! 1st derivative: Omega - angular velocity
@@ -283,7 +482,42 @@ struct qatt
     //! 2nd derivative: Alpha - acceleration
     rvector a;  //ddq
     //! pass indicator: allows synchronization with other attitude and position values.
-    uint32_t pass;
+    uint32_t pass = 0;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "s" , s },
+            { "v" , v },
+            { "a" , a },
+            { "pass" , static_cast<int>(pass) }
+		};
+	}
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())    utc = parsed["utc"].number_value();
+            if(!parsed["s"].is_null())    s.from_json(parsed["s"].dump());
+            if(!parsed["v"].is_null())    v.from_json(parsed["v"].dump());
+            if(!parsed["a"].is_null())    a.from_json(parsed["a"].dump());
+            if(!parsed["pass"].is_null())    pass = parsed["pass"].int_value();
+		} else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const qatt& a);
@@ -345,13 +579,13 @@ std::istream& operator << (std::istream& in, bodypos& a);
 struct extrapos
 {
     //! Coordinated Universal Time
-    double utc;
+    double utc = 0.;
     //! Terrestrial Time
-    double tt;
+    double tt = 0.;
     //! UT0
-    double ut;
+    double ut = 0.;
     //! Dynamical Barycentric Time
-    double tdb;
+    double tdb = 0.;
     //! Transform from ICRF to Geocentric
     rmatrix j2e;
     rmatrix dj2e;
@@ -370,7 +604,82 @@ struct extrapos
     rmatrix dt2s;
     cartpos sun2earth;
     cartpos sun2moon;
-    uint16_t closest;
+    uint16_t closest = 0;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc"   , utc },
+            { "tt"    , tt },
+            { "ut"    , ut },
+            { "tdb"   , tdb },
+
+            { "j2e"   , j2e },
+            { "dj2e"  , dj2e },
+            { "ddj2e" , ddj2e },
+
+            { "e2j"   , e2j },
+            { "de2j"  , de2j },
+            { "dde2j" , dde2j },
+
+            { "j2t"   , j2t },
+            { "j2s"   , j2s },
+            { "t2j"   , t2j },
+            { "s2j"   , s2j },
+            { "s2t"   , s2t },
+            { "ds2t"  , ds2t },
+            { "t2s"   , t2s },
+            { "dt2s"  , dt2s },
+            
+            { "sun2earth" , sun2earth },
+            { "sun2moon"  , sun2moon },
+            { "closest"   , closest }
+        };
+    }
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& s) {
+        string error;
+        json11::Json p = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!p["utc"].is_null())     utc = p["utc"].number_value();
+            if(!p["tt"].is_null())      tt = p["tt"].number_value();
+            if(!p["ut"].is_null())      ut = p["ut"].number_value();
+            if(!p["tdb"].is_null())     tdb = p["tdb"].number_value();
+
+            if(!p["j2e"].is_null())     j2e.from_json(p["j2e"].dump());
+            if(!p["dj2e"].is_null())    dj2e.from_json(p["dj2e"].dump());
+            if(!p["ddj2e"].is_null())   ddj2e.from_json(p["ddj2e"].dump());
+           
+            if(!p["e2j"].is_null())     e2j.from_json(p["e2j"].dump());
+            if(!p["de2j"].is_null())    de2j.from_json(p["de2j"].dump());
+            if(!p["dde2j"].is_null())   dde2j.from_json(p["dde2j"].dump());
+           
+            if(!p["j2t"].is_null())     j2t.from_json(p["j2t"].dump());
+            if(!p["j2s"].is_null())     j2s.from_json(p["j2s"].dump());
+            if(!p["t2j"].is_null())     t2j.from_json(p["t2j"].dump());
+            if(!p["s2j"].is_null())     s2j.from_json(p["s2j"].dump());
+            if(!p["s2t"].is_null())     s2t.from_json(p["s2t"].dump());
+            if(!p["ds2t"].is_null())    ds2t.from_json(p["ds2t"].dump());
+            if(!p["t2s"].is_null())     t2s.from_json(p["t2s"].dump());
+            if(!p["dt2s"].is_null())    dt2s.from_json(p["dt2s"].dump());
+            
+            if(!p["sun2earth"].is_null())   sun2earth.from_json(p["sun2earth"].dump());
+            if(!p["sun2moon"].is_null())    sun2moon.from_json(p["sun2moon"].dump());
+            if(!p["closest"].is_null()) closest = p["closest"].int_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const extrapos& a);
@@ -380,11 +689,42 @@ std::istream& operator >> (std::istream& in, extrapos& a);
 struct extraatt
 {
     //! Coordinated Universal Time
-    double utc;
+    double utc = 0.;
     //! Transform from ICRF to Body frame
     rmatrix j2b;
     //! Transform from Body frame to ICRF
     rmatrix b2j;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "j2b" , j2b },
+            { "b2j" , b2j }
+        };
+    }
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())     utc =  parsed["utc"].number_value();
+            if(!parsed["j2b"].is_null())    j2b.from_json(parsed["j2b"].dump());
+            if(!parsed["b2j"].is_null())    b2j.from_json(parsed["b2j"].dump());
+        } else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const extraatt& a);
@@ -392,7 +732,7 @@ std::istream& operator >> (std::istream& in, extraatt& a);
 
 struct posstruc
 {
-    double utc;
+    double utc = 0.;
     cartpos icrf;
     cartpos eci;
     cartpos sci;
@@ -403,17 +743,78 @@ struct posstruc
     spherpos geos;
     extrapos extra;
     //! Separation between sun/satellite and sun/limbofearth vectors in radians
-    float earthsep;
+    float earthsep = 0.f;
     //! Separation between sun/satellite and sun/limbofmoon vectors in radians
-    float moonsep;
+    float moonsep = 0.f;
     //! Radius of sun in radians
-    float sunsize;
+    float sunsize = 0.f;
     //! Watts per square meter per steradian
-    float sunradiance;
+    float sunradiance = 0.f;
     //! Earth magnetic vector in ITRS for this time and location.
     rvector bearth;
     //! Decimal Orbit number
-    double orbit;
+    double orbit = 0.;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc"  , utc },
+			{ "icrf" , icrf },
+            { "eci"  , eci },
+            { "sci"  , sci },
+            { "geoc" , geoc },
+            { "selc" , selc },
+            { "geod" , geod },
+            { "selg" , selg },
+            { "geos" , geos },
+            { "extra", extra },
+
+            { "earthsep" , earthsep },
+            { "moonsep"  , moonsep },
+            { "sunsize"  , sunsize },
+            { "sunradiance" , sunradiance },
+            { "bearth"   , bearth },
+            { "orbit"    , orbit }
+		};
+	}
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())    utc = parsed["utc"].number_value();
+            if(!parsed["icrf"].is_null())   icrf.from_json(parsed["icrf"].dump());
+            if(!parsed["eci"].is_null())    eci.from_json(parsed["eci"].dump());
+            if(!parsed["sci"].is_null())    sci.from_json(parsed["sci"].dump());
+            if(!parsed["geoc"].is_null())   geoc.from_json(parsed["geoc"].dump());
+            if(!parsed["selc"].is_null())   selc.from_json(parsed["selc"].dump());
+            if(!parsed["geod"].is_null())   geod.from_json(parsed["geod"].dump());
+            if(!parsed["selg"].is_null())   selg.from_json(parsed["selg"].dump());
+            if(!parsed["geos"].is_null())   geos.from_json(parsed["geos"].dump());
+            if(!parsed["extra"].is_null())  extra.from_json(parsed["extra"].dump());
+
+            if(!parsed["earthsep"].is_null())    earthsep = parsed["earthsep"].number_value();
+            if(!parsed["moonsep"].is_null())     moonsep = parsed["moonsep"].number_value();
+            if(!parsed["sunsize"].is_null())     sunsize = parsed["sunsize"].number_value();
+            if(!parsed["sunradiance"].is_null()) sunradiance = parsed["sunradiance"].number_value();
+
+            if(!parsed["bearth"].is_null())   bearth.from_json(parsed["bearth"].dump());
+            if(!parsed["orbit"].is_null())    orbit = parsed["orbit"].number_value();
+
+		} else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const posstruc& a);
@@ -421,13 +822,52 @@ std::istream& operator >> (std::istream& in, posstruc& a);
 
 struct attstruc
 {
-    double utc;
+    double utc = 0.;
     qatt topo;
     qatt lvlh;
     qatt geoc;
     qatt selc;
     qatt icrf;
     extraatt extra;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc"  , utc },
+            { "topo" , topo },
+            { "lvlh" , lvlh },
+            { "geoc" , geoc },
+            { "selc" , selc },
+            { "icrf" , icrf },
+            { "extra" , extra }
+		};
+	}
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())     utc =  parsed["utc"].number_value();
+            if(!parsed["topo"].is_null())    topo.from_json(parsed["utc"].dump());
+            if(!parsed["lvlh"].is_null())    lvlh.from_json(parsed["lvlh"].dump());
+            if(!parsed["geoc"].is_null())    geoc.from_json(parsed["geoc"].dump());
+            if(!parsed["selc"].is_null())    selc.from_json(parsed["selc"].dump());
+            if(!parsed["icrf"].is_null())    icrf.from_json(parsed["icrf"].dump());
+            if(!parsed["extra"].is_null())   extra.from_json(parsed["extra"].dump());
+		} else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const attstruc& a);
@@ -436,13 +876,42 @@ std::istream& operator >> (std::istream& in, attstruc& a);
 struct locstruc
 {
     //! Master time for location, in Modified Julian Day
-    double utc;
+    double utc = 0.;
     //! ::posstruc for this time.
     posstruc pos;
     //! ::attstruc for this time.
     attstruc att;
-    //! Earth magnetic vector in ITRS for this time and location.
-//    rvector bearth;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "pos" , pos },
+            { "att" , att }
+		};
+	}
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+            if(!parsed["pos"].is_null())    pos.from_json(parsed["pos"].dump());
+            if(!parsed["att"].is_null())    att.from_json(parsed["att"].dump());
+		} else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const locstruc& a);
@@ -451,27 +920,76 @@ std::istream& operator >> (std::istream& in, locstruc& a);
 //! In units **for** the SGP4 propogator (not NORAD TLE itself).
 struct tlestruc
 {
-    double utc;
+    double utc = 0.;
 	// JIMNOTE: remove magic number
-    char name[25];
-    uint16_t snumber;
+    char name[25] = "";
+    uint16_t snumber = 0;
 	// JIMNOTE: remove magic number
-    char id[9];
+    char id[9] = "";
     //! Drag (1/Earth radii)
-    double bstar;
+    double bstar = 0.;
     //! Inclination (radians)
-    double i;
+    double i = 0.;
     //! Right ascension of ascending node (radians)
-    double raan;
+    double raan = 0.;
     //! Eccentricity (unitless)
-    double e;
+    double e = 0.;
     //! Argument of perigee (radians)
-    double ap;
+    double ap = 0.;
     //! Mean anomaly (radians)
-    double ma;
+    double ma = 0.;
     //! Mean motion (radians / minute)
-    double mm;
-    uint32_t orbit;
+    double mm = 0.;
+    uint32_t orbit = 0;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "name" , name },
+            { "snumber" , snumber },
+            { "id" , id },
+            { "bstar" , bstar },
+            { "i" , i },
+            { "raan" , raan },
+            { "e" , e },
+            { "ap" , ap },
+            { "ma" , ma },
+            { "mm" , mm },
+            { "orbit" , static_cast<int>(orbit) }
+		};
+	}
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+            if(!parsed["name"].is_null())    strcpy(name, parsed["name"].string_value().c_str());
+            if(!parsed["snumber"].is_null())    snumber =  parsed["snumber"].int_value();
+            if(!parsed["id"].is_null())    strcpy(id, parsed["id"].string_value().c_str());
+            if(!parsed["bstar"].is_null())    bstar =  parsed["bstar"].number_value();
+            if(!parsed["i"].is_null())    i =  parsed["i"].number_value();
+            if(!parsed["raan"].is_null())    raan =  parsed["raan"].number_value();
+            if(!parsed["e"].is_null())    e =  parsed["e"].number_value();
+            if(!parsed["ap"].is_null())    ap =  parsed["ap"].number_value();
+            if(!parsed["ma"].is_null())    ma =  parsed["ma"].number_value();
+            if(!parsed["mm"].is_null())    mm =  parsed["mm"].number_value();
+            if(!parsed["orbit"].is_null())    orbit =  parsed["orbit"].int_value();
+		} else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 //! STK positions structure

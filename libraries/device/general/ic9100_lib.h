@@ -88,6 +88,7 @@ struct ic9100_handle
     float powerin;
     float powerout;
     float maxpower;
+    float repeater_squelch;
     double frequency;
 };
 
@@ -110,7 +111,7 @@ int32_t ic9100_get_freqband(ic9100_handle &handle);
 int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass);
 int32_t ic9100_get_bandpass(ic9100_handle &handle);
 int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode);
-int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode, uint8_t filtband);
+int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode, uint8_t filtband, uint16_t modulation=0);
 int32_t ic9100_get_mode(ic9100_handle &handle);
 int32_t ic9100_set_rfgain(ic9100_handle &handle, uint8_t rfgain);
 int32_t ic9100_get_rfgain(ic9100_handle &handle);
@@ -118,6 +119,8 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power);
 int32_t ic9100_get_rfpower(ic9100_handle &handle);
 int32_t ic9100_set_squelch(ic9100_handle &handle, uint8_t squelch);
 int32_t ic9100_get_squelch(ic9100_handle &handle);
+int32_t ic9100_get_repeater_squelch(ic9100_handle &handle);
+int32_t ic9100_set_repeater_squelch(ic9100_handle &handle, float frequency);
 int32_t ic9100_set_datamode(ic9100_handle &handle, uint8_t mode);
 int32_t ic9100_get_datamode(ic9100_handle &handle);
 int32_t ic9100_set_bps9600mode(ic9100_handle &handle, uint8_t mode);

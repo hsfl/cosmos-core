@@ -24,6 +24,7 @@ set(CMAKE_BUILD_TYPE Debug) # Release or Debug
 
 # Type of architecture (arm, ...)
 add_definitions( -DCROSS_TYPE_${CROSS_TYPE})
+message(STATUS "Architecture: ${CROSS_TYPE}")
 
 # define folder where your programs are going to be installed
 #set(INSTALL_DIR run)
@@ -104,6 +105,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/macros.cmake)
 
 # -----------------------------------------------
 # Linux specific
+message(STATUS "System: ${CMAKE_SYSTEM_NAME} Cross: ${CROSS_TYPE}")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
 
     # Configure compiler arguments (GCC)
@@ -132,6 +134,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
         endif("$ENV{COSMOS}" STREQUAL "")
 
         set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/build/toolchain_${CROSS_TYPE}_linux.cmake")
+        message(STATUS "Cross compile: ${CROSS_TYPE}")
 
     else()
         if("$ENV{COSMOS}" STREQUAL "")

@@ -41,7 +41,7 @@
 */
 double sep_rv(rvector v1, rvector v2)
 {
-    rvector dv = {{0.}};
+    rvector dv;
 
     normalize_rv(v1);
     normalize_rv(v2);
@@ -106,7 +106,7 @@ rvector rv_convert(svector from)
 */
 rvector rv_zero()
 {
-    rvector v={{0.,0.,0.}};
+    rvector v;
 
     return (v);
 }
@@ -117,7 +117,7 @@ rvector rv_zero()
 */
 rvector rv_unitx(double scale)
 {
-    rvector v={{1.,0.,0.}};
+    rvector v={1.,0.,0.};
     v.col[0] *= scale;
     return (v);
 }
@@ -128,7 +128,7 @@ rvector rv_unitx(double scale)
 */
 rvector rv_unity(double scale)
 {
-    rvector v={{0.,1.,0.}};
+    rvector v={0.,1.,0.};
     v.col[1] *= scale;
     return (v);
 }
@@ -139,7 +139,7 @@ rvector rv_unity(double scale)
 */
 rvector rv_unitz(double scale)
 {
-    rvector v={{0.,0.,1.}};
+    rvector v={0.,0.,1.};
     v.col[2] *= scale;
     return (v);
 }
@@ -150,7 +150,7 @@ rvector rv_unitz(double scale)
 */
 rvector rv_one()
 {
-    rvector v={{1.,1.,1.}};
+    rvector v={1.,1.,1.};
 
     return (v);
 }
@@ -161,7 +161,7 @@ rvector rv_one()
 */
 rvector rv_one(double x, double y, double z)
 {
-    rvector v={{1.,1.,1.}};
+    rvector v={1.,1.,1.};
     v.col[0] *= x;
     v.col[1] *= y;
     v.col[2] *= z;
@@ -176,7 +176,7 @@ rvector rv_one(double x, double y, double z)
 */
 rvector rv_shortest(rvector v)
 {
-    rvector a={{1.,0.,0.}};
+    rvector a={1.,0.,0.};
 
     for (int i=1; i<3; i++)
     {
@@ -191,9 +191,9 @@ rvector rv_shortest(rvector v)
 
 rvector rv_shortest2(rvector v)
 {
-    rvector rx = {{1,0,0}};
-    rvector ry = {{0,1,0}};
-    rvector rz = {{0,0,1}};
+    rvector rx = {1,0,0};
+    rvector ry = {0,1,0};
+    rvector rz = {0,0,1};
 
     if (v.col[0]<=v.col[1] && v.col[0]<=v.col[2])
         return (rx);
@@ -265,7 +265,7 @@ void normalizeVector3(double &x, double &y, double &z)
 */
 rvector rv_smult(double a, rvector b)
 {
-    rvector c = {{0.}};
+    rvector c;
 
     c.col[0] = a * b.col[0];
     c.col[1] = a * b.col[1];
@@ -282,7 +282,7 @@ rvector rv_smult(double a, rvector b)
 */
 rvector rv_sadd(double a, rvector b)
 {
-    rvector c = {{0.}};
+    rvector c;
 
     c.col[0] = a + b.col[0];
     c.col[1] = a + b.col[1];
@@ -298,7 +298,7 @@ rvector rv_sadd(double a, rvector b)
 */
 rvector rv_add(rvector a, rvector b)
 {
-    rvector c = {{0.}};
+    rvector c;
 
     c.col[0] = a.col[0] + b.col[0];
     c.col[1] = a.col[1] + b.col[1];
@@ -314,7 +314,7 @@ rvector rv_add(rvector a, rvector b)
 */
 rvector rv_sub(rvector a, rvector b)
 {
-    rvector c = {{0.}};
+    rvector c;
 
     c.col[0] = a.col[0] - b.col[0];
     c.col[1] = a.col[1] - b.col[1];
@@ -330,7 +330,7 @@ rvector rv_sub(rvector a, rvector b)
 */
 rvector rv_div(rvector a, rvector b)
 {
-    rvector c = {{0.}};
+    rvector c;
 
     c.col[0] = a.col[0] / b.col[0];
     c.col[1] = a.col[1] / b.col[1];
@@ -346,7 +346,7 @@ rvector rv_div(rvector a, rvector b)
 */
 rvector rv_mult(rvector a, rvector b)
 {
-    rvector c = {{0.}};
+    rvector c;
 
     c.col[0] = a.col[0] * b.col[0];
     c.col[1] = a.col[1] * b.col[1];
@@ -362,7 +362,7 @@ rvector rv_mult(rvector a, rvector b)
 */
 rvector rv_cross(rvector a, rvector b)
 {
-    rvector c = {{0.}};
+    rvector c;
 
     c.col[0] = a.col[1]*b.col[2] - a.col[2]*b.col[1];
     c.col[1] = a.col[2]*b.col[0] - a.col[0]*b.col[2];
@@ -785,7 +785,7 @@ double sum_rv(rvector vec)
 */
 rvector rv_sqrt(rvector vec)
 {
-    rvector s = {{0.}};
+    rvector s;
 
     s.col[0] = sqrt(vec.col[0]);
     s.col[1] = sqrt(vec.col[1]);

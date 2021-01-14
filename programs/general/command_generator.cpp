@@ -31,7 +31,7 @@
 #include "support/datalib.h"
 #include "support/jsonlib.h"
 #include "support/timelib.h"
-#include "support/event.h"
+#include "agent/event.h"
 #include "agent/scheduler.h"
 
 using std::cout;
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
     }
 
     Event event;
-    cout << "Command string:" << endl;
+//    cout << "Command string:" << endl;
 	// JIMNOTE: this could be done in the constructor
 
     cout << event.generator(name, data, utc, condition, flag) << endl << endl;

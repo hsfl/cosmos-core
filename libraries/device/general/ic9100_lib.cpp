@@ -985,7 +985,7 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode)
 
 }
 
-int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode, uint8_t filtband)
+int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode, uint8_t filtband, uint16_t modulation)
 {
     int32_t iretn = 0;
     if (iretn < 0)
@@ -1438,24 +1438,31 @@ int32_t ic9100_set_datamode(ic9100_handle &handle, uint8_t mode)
     switch (mode)
     {
     case IC9100_DATAMODE_ON:
-    case IC9100_DATAMODE_OFF:
         {
             vector <uint8_t> data { 0x0, 0x0 };
             data[0] = mode;
-            if (mode == IC9100_DATAMODE_ON)
+            data[1] = handle.filtband;
+            if (data[1] == 0 || data[1] > 3)
             {
-                data[1] = handle.filtband;
-                if (data[1] == 0 || data[1] > 3)
-                {
-                    data[1] = 1;
-                }
+                data[1] = 1;
             }
             iretn = ic9100_write(handle, 0x1a, 0x6, data);
             if (iretn < 0)
             {
                 return iretn;
             }
-            iretn = ic9100_set_bps9600mode(handle, IC9100_9600MODE_ON);
+//            iretn = ic9100_set_bps9600mode(handle, IC9100_9600MODE_ON);
+        }
+        break;
+    case IC9100_DATAMODE_OFF:
+        {
+            vector <uint8_t> data { 0x0, 0x0 };
+            data[0] = mode;
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            iretn = ic9100_set_bps9600mode(handle, IC9100_9600MODE_OFF);
         }
         break;
     default:
@@ -1488,3 +1495,89 @@ int32_t ic9100_get_datamode(ic9100_handle &handle)
 
     return 0;
 }
+
+int32_t ic9100_set_repeater_squelch(ic9100_handle &handle, float frequency)
+{
+    int32_t iretn = 0;
+
+    vector <uint8_t> data { 0x0 };
+
+    if  (frequency == 0.f)
+    {
+        iretn = ic9100_write(handle, 0x16, 0x42, data);
+        if (iretn != 1)
+        {
+            return IC9100_ERROR_OUTOFRANGE;
+        }
+        return iretn;
+    }
+    else
+    {
+        data[0] = 1;
+        iretn = ic9100_write(handle, 0x16, 0x42, data);
+        if (iretn != 1)
+        {
+            return IC9100_ERROR_OUTOFRANGE;
+        }
+    }
+
+    data.resize(3);
+    frequency = truncf(frequency * 10.f);
+    for (size_t i=0; i<3; ++i)
+    {
+        data[i] = 0;
+        for (size_t j=0; j<2; ++j)
+        {
+            uint8_t digit = static_cast <uint8_t>(fmodf(frequency, 10.));
+            switch (j)
+            {
+            case 0:
+                data[2-i] += digit;
+                break;
+            case 1:
+                data[2-i] += digit << 4;
+                break;
+            }
+            frequency = truncf(frequency / 10.f);
+        }
+    }
+
+
+    iretn = ic9100_write(handle, 0x1b, 0x00, data);
+
+    return iretn;
+}
+
+int32_t ic9100_get_repeater_squelch(ic9100_handle &handle)
+{
+    int32_t iretn = 0;
+
+    iretn = ic9100_write(handle, 0x16, 0x42);
+    if (iretn != 1)
+    {
+        return IC9100_ERROR_OUTOFRANGE;
+    }
+
+    if (handle.response[0] == 0)
+    {
+        handle.repeater_squelch = 0.;
+        return 0;
+    }
+
+    iretn = ic9100_write(handle, 0x1b, 0x00);
+    if (iretn != 3)
+    {
+        return IC9100_ERROR_OUTOFRANGE;
+    }
+
+    float frequency = 0.;
+    for (size_t i=0; i<3; ++i)
+    {
+        frequency *= 100.f;
+        frequency += 10.f * (handle.response[i] >> 4) + (handle.response[i] % 16);
+    }
+    handle.repeater_squelch = frequency / 10.f;
+
+    return iretn;
+}
+

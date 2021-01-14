@@ -52,8 +52,8 @@ static Agent* agent;
 /// Program to demonstrate inter-communication between agents
 int main(int argc, char **argv)
 {
-		int jah = 420;
-		int jah2 = 240;
+		//int jah = 420;
+		//int jah2 = 240;
     // construct agent 
 	cout << node_agent_name <<" starting..."<<endl;
 	agent = new Agent(node_name, agent_name, 1.);
@@ -67,16 +67,18 @@ int main(int argc, char **argv)
     // add custom request functions for this agent
     agent->add_request("any_body_out_there", hello_agent_002_request_function, "a request to respond with 'hello'");
 
+
     // Start executing the agent
     while(agent->running()) {
 		cout<<node_agent_name<<" running..."<<endl;
-	
+
         // Sleep for 4 sec
         COSMOS_SLEEP(4.);
         // Initiate request to agent_001
 		// name of agent target for request
 		string agent_target = "agent_001";
 
+/* old tests	
 		beatstruc agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
 		string target_request_name = "identify_yourself";
 		string response;
@@ -102,12 +104,66 @@ int main(int argc, char **argv)
 		string request1 = "setvalue {\"node_loc_utc\":"+std::to_string((jah2--))+"}";
 		cout<<"attempting setting UTC value..."<<endl;
 	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), request1, response1, 2.);
+*/
 
+		// old way
 		string response3;
-		cout<<"attempting getting UTC value..."<<endl;
+		cout<<"attempting 1.0 way of getting UTC value..."<<endl;
 		string request3 = "getvalue {\"node_loc_utc\"}";
+		cout<<"  request  = <"<<request3<<">"<<endl;
 	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), request3, response3, 2.);
-		cout<<"    response == <"<<response3<<">"<<endl;
+		cout<<"  response = <"<<response3<<">"<<endl;
+
+		// new way short name
+		string response4;
+		cout<<"attempting 2.0 way of getting UTC value with short name..."<<endl;
+		string request4 = "get_value \"Short UTC\"";
+		cout<<"  request  = <"<<request4<<">"<<endl;
+	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), request4, response4, 2.);
+		cout<<"  response = <"<<response4<<">"<<endl;
+
+		// new way long name
+		string response7;
+		cout<<"attempting 2.0 way of getting UTC value with long name..."<<endl;
+		string request7 = "get_value \"Longest Ever UTC\"";
+		cout<<"  request  = <"<<request7<<">"<<endl;
+	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), request7, response7, 2.);
+		cout<<"  response = <"<<response7<<">"<<endl;
+
+		string req = "get_value \"Longest Ever UTC\" \"Short UTC\"";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		string res;
+	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+
+		//req.clear();
+		//req = "get_value \"cosmosdata\"";
+		//cout<<"  request  = <"<<req<<">"<<endl;
+		//res.clear();
+	   	//agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+		//cout<<"  response = <"<<res<<">"<<endl;
+
+		req.clear();
+		req = "set_value {\"Longest Ever UTC\": 215},{\"user[0].tool\": \"Super Tool!\"}";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+
+		req.clear();
+		req = "get_value \"user\"";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+
+		// try out agent_calc
+		//string request5 = "add 3 4";
+		//string response5;
+		//cout<<"attempting calc..."<<endl;
+	   	//agent->send_request(agent->find_agent("otb", "calc", 2.), request5, response5, 2.);
+		//cout<<"  response = <"<<response5<<">"<<endl;
+
     }
     return 0;
 }

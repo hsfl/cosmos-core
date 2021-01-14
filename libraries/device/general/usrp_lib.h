@@ -66,6 +66,7 @@
 
 struct usrp_handle
 {
+    uint8_t record=0;
     uint8_t channelnum;
     socket_channel socket;
     uint16_t port;
@@ -124,6 +125,8 @@ int32_t usrp_get_rfmeter(usrp_handle &handle);
 int32_t usrp_get_swrmeter(usrp_handle &handle);
 int32_t usrp_get_alcmeter(usrp_handle &handle);
 int32_t usrp_get_compmeter(usrp_handle &handle);
+int32_t usrp_get_record(usrp_handle &handle);
+int32_t usrp_set_record(usrp_handle &handle, uint8_t record);
 
 #endif // USRP_LIB_H
 

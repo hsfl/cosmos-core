@@ -265,6 +265,7 @@ int main(int argc, char *argv[])
             exit(0);
             break;
         }
+		 // bug: no trailing ] for JSON vector (Scott try fix)
         else if (!strcmp(argv[1],"list_json"))
         {
             size_t agent_count = 0;

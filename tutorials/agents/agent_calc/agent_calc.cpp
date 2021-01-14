@@ -52,11 +52,16 @@ using namespace std;
 #include "agent/agentclass.h"
 #include "physics/physicslib.h"
 #include "support/jsonlib.h"
+#include "support/jsondef.h"
 
 int myagent();
 
-static char nodename[COSMOS_MAX_NAME + 1] = "otb";
+//static char nodename[COSMOS_MAX_NAME + 1] = "otb";
+static char nodename[COSMOS_MAX_NAME + 1] = "sat_001";
 static char agentname[COSMOS_MAX_NAME + 1] = "calc";
+
+int32_t request_get_value(string &request, string &response, Agent *agent);
+
 
 int32_t request_add(string &request, string &response, Agent *agent);
 int32_t request_sub(string &request, string &response, Agent *agent);
@@ -69,12 +74,71 @@ int32_t request_change_node_name(string &request, string &response, Agent *agent
 
 static Agent *agent; // to access the cosmos data, will change later
 
+
+/*
+void replace(std::string& str, const std::string& from, const std::string& to) {
+    if(from.empty()) return;
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length();
+    }
+	return;
+}
+
+vector<size_t> find_newlines(const string& sample) {
+    vector<size_t> characterLocations;
+    for(size_t i =0; i < sample.size(); i++) if(sample[i] == '\n') characterLocations.push_back(i);
+    return characterLocations;
+}
+
+void pretty_form(string& js)	{
+
+	replace(js, ", ", ",\n");
+	replace(js, "{", "{\n");
+	replace(js, "[", "[\n");
+	replace(js, "}", "\n}");
+	replace(js, "]", "\n]");
+
+	// create vector[char position] = # of indents
+	int indent = 0;
+	vector<size_t> indents;
+	for(size_t i = 0; i < js.size(); ++i)	{
+		if(js[i]=='['){	++indent;}
+		if(js[i]=='{'){	++indent;}
+		if(js[i]==']'){	--indent; indents[i-1]--;}
+		if(js[i]=='}'){	--indent; indents[i-1]--;}
+		indents.push_back(indent);
+	}
+
+	// find position of all '\n' characters
+	vector<size_t> newlines = find_newlines(js);
+
+	// insert the appropriate # of indents after the '\n' char
+    for(size_t i = newlines.size(); --i!=0; ) {
+		string indent_string;
+		for(size_t j = 0; j < indents[newlines[i]]; ++j)	indent_string += "  ";
+		js.insert(newlines[i]+1, indent_string);
+	}
+	return;
+}
+*/
+void replace(std::string& str, const std::string& from, const std::string& to) {
+	if(from.empty()) return;
+	size_t start_pos = 0;
+	while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length();
+	}
+	return;
+}
+
+
+
 int main(int argc, char *argv[])
 {
     int iretn;
-
-    // Process arguments if present
-
+/*
     // Make node_name = 1st argument
 	if (argc == 2)
         strcpy(nodename, argv[1]);
@@ -83,7 +147,7 @@ int main(int argc, char *argv[])
         strcpy(agentname, argv[2]);
         strcpy(nodename, argv[1]);
 	}
-
+*/
     // Initialize agents. Set nodename if provided through command line args
 	if (argc > 1)
     {
@@ -107,7 +171,7 @@ int main(int argc, char *argv[])
 	else
     {
         // Initialize agent instance with unspecified node name but specified agent name
-        agent = new Agent("", agentname);
+        agent = new Agent("otb", agentname);
 
         // Check if agent was successfully constructed.
         if ((iretn = agent->wait()) < 0)
@@ -124,20 +188,172 @@ int main(int argc, char *argv[])
         cout << "Hello, I am an agent. My name is [null:" << agentname << "]" << endl << endl;
 	}
 
-    for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i)
-	{
-        if (agent->cinfo->jmap[i].size())
-		{
-            cout << "jmap[" << i << "]:" << agent->cinfo->jmap[i][0].name << endl;
-		}
-	}
+// hijack agent_calc to demonstrate namespace 2.0
 
+	// verify the counts
+		size_t n1 = 0;
+    	for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i) {
+    		for (uint16_t j=0; j<agent->cinfo->jmap[i].size(); ++j) {
+				n1++;
+			}
+		}
+	cout<<"There were "<<n1<<" entries in namespace 1.0 and "<<agent->cinfo->jmapped<<" is the value of jmapped."<<endl;
+
+	cout<<"\nWould you like to see the names from Namespace 1.0? (y/n) : ";
+	char see;
+	cin>>see;
+	if(see == 'Y' || see == 'y')	{
+		cout<<endl;
+		// printout all namespace 1.0 names
+    	for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i) {
+    		for (uint16_t j=0; j<agent->cinfo->jmap[i].size(); ++j) {
+           		cout << "jmap[" << i << "]["<<j<<"] :\t" << agent->cinfo->jmap[i][j].name << endl;
+			}
+		}
+	}	
+
+/*	old namespace 1.0 way of getting values with json_out(..)
     cout << agent->cinfo->node.name << endl;
 
 	string jsp;
-    json_out_name(jsp, const_cast<char *>("node_name"));
-    cout << jsp << endl;
+    json_out(jsp, "node_name", agent->cinfo);
+    cout << "<" << jsp << ">" << endl;
+	jsp.clear();
+    json_out(jsp, "event_name", agent->cinfo);
+    cout << "before <" << jsp << ">" << endl;
+	
+	//set_json_value("event_name", "EVENT NAME");
+	strcpy(agent->cinfo->event[0].name, "NEW NAME");
+	jsp.clear();
+    json_out(jsp, "event_name", agent->cinfo);
 
+	cout << " after <" << jsp << ">" << endl;
+
+	agent->cinfo->equation.push_back(equationstruc{ "string1", "string2" });
+*/
+
+
+// see if we can print out entire cosmosstruc in JSON
+
+	//agent->cinfo->add_name("Entire COSMOSSTRUC", agent->cinfo);
+	//cout<<"Output:\n\t<"<<agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC")<<">"<<endl;
+
+	//cout<<"all done";
+	//cout<<"The size of the namespace for cosmosstruc using namespace 2.0 is "<<agent->cinfo->size()<<"."<<endl;
+
+	cout<<"\nFor my next trick... I will add all the default names supported by Namespace 2.0"<<endl;
+
+	agent->cinfo->add_default_names();
+
+	cout<<"\nThe size of the namespace for cosmosstruc using namespace 2.0 is "<<agent->cinfo->size()<<"."<<endl;
+
+	cout<<"\nWould you like to see the names from Namespace 2.0? (y/n) : ";
+	cin>>see;
+	if(see == 'Y' || see == 'y')	{
+		// printout all namespace 2.0 names
+		cout<<endl;
+		agent->cinfo->print_all_names();
+	}
+
+	cout<<"\nWould you like to see the names and types from Namespace 2.0? (y/n) : ";
+	cin>>see;
+	if(see == 'Y' || see == 'y')	{
+		// printout all namespace 2.0 names and values
+		cout<<endl;
+		agent->cinfo->print_all_names_types();
+	}
+
+	cout<<"\nWould you like to see the names, types, and values from Namespace 2.0? (y/n) : ";
+	cin>>see;
+	if(see == 'Y' || see == 'y')	{
+		// printout all namespace 2.0 names and values
+		cout<<endl;
+		agent->cinfo->print_all_names_types_values();
+	}
+
+
+
+// need support for decimal points DONE!
+// need support for negative numbers? 
+// need to convert contents of output into a double stack-wise DONE!
+// need to work without leading 0 before decimal?
+
+	cout<<"\nFor my next trick I will try to implement to concept of equations for Namespace 2.0"<<endl;
+	// given a string with parenthesis (), algebraic operators +-*/^, numbers (treated as doubles), and name from the namespace whose value is numbers
+
+	// all results are doubles
+	// ignore whitespace
+
+
+
+	//string test_equation = "1.23456 + 4.4 * 0.000000000000000000002 / ( 12345678901234567890 - 555.4321 ) ^ 2 ^ 3";
+	//string test_equation = "3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3";
+	//string test_equation = "9 - 5 / (8 - 3) * 2 + 6"      ;
+	//string test_equation = "+0.5 * 8 + .6 / 6 - 12 * 2 "      ;
+	//string test_equation = "(5) * (8) + (6) / (6) - (12) * (2) "      ;
+
+// this dumps cuz * -  need parenthesis around negatives
+	string test_equation = "0.5 * (-8) + .6 / 6 - 12 * 2 "      ;
+//wrong answer cuz + - 
+	//string test_equation = "(-1) * (-8 + -2)";
+	//string test_equation = "(-1) * (-8 -2)";
+// first need to be able to read tokens, which is either operator or number (or, later) variable names
+
+
+	string str = test_equation;
+
+cout<<"but seriously...  let's calculate already"<<endl;
+
+//cout<<std::setprecision(std::numeric_limits<double>::digits10)<<"ANSWER == <"<<equationator(str)<<">"<<endl;
+cin.clear();
+cin.ignore(100000,'\n');
+
+double answer = 0;
+while(answer != -1)	{
+	cout<<"Please enter an equation:\t";
+	string eq;
+	getline(cin,eq);
+	answer = agent->cinfo->equationator(eq);
+	cout<<"The answer is "<<std::setprecision(std::numeric_limits<double>::digits10)<<answer<<endl;
+}
+
+/*
+
+	string js = agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC");	
+	cout<<"Output:<\n"<<js<<"\n>"<<endl;
+
+	devicestruc d;
+	agent->cinfo->device.push_back(d);
+
+	js = agent->cinfo->get_json_pretty<cosmosstruc>("Entire COSMOSSTRUC");	
+	cout<<"Output:<\n"<<js<<"\n>"<<endl;
+
+	agent->cinfo->add_name("Entire COSMOSSTRUC Equations", &agent->cinfo->equation);
+	cout<<"Output:\n\t<\n"<<agent->cinfo->get_json<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;
+	cout<<"Output:\n\t<\n"<<agent->cinfo->get_json_pretty<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;
+
+	agent->cinfo->add_default_names();
+	agent->cinfo->print_all_names();
+	//cout<<agent->cinfo->get_json_pretty<locstruc>("node.loc")<<endl;
+
+	// try to set some shit out of bounds
+	agent->cinfo->set_value<string>("user[9].tool", "OUT OF BOUNDS!!!!");
+	cout<<agent->cinfo->get_json_pretty<vector<userstruc>>("user")<<endl;
+	cout<<agent->cinfo->get_json_pretty<userstruc>("user[9]")<<endl;
+
+
+*/
+/*
+	agent->cinfo->add_name("Entire COSMOSSTRUC Unit", &agent->cinfo->unit);
+	cout<<"Output:\n\t<"<<agent->cinfo->get_json<vector<vector<unitstruc>>>("Entire COSMOSSTRUC Unit")<<">"<<endl;
+
+	equationstruc eq = { "Test Name", "Test Value" };
+	vector<equationstruc> eqs;
+	eqs.push_back(eq);
+	agent->cinfo->set_value<vector<equationstruc>>("Entire COSMOSSTRUC Equations", eqs);
+	cout<<"Output:\n\t<"<<agent->cinfo->get_json<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;
+
+*/
 
     // Define the requests that we need for this agent
     if ((iretn=agent->add_request("add",request_add)))
@@ -174,7 +390,8 @@ int myagent()
 int32_t request_add(string &request, string &response, Agent *agent)
 {
 	float a,b;
-
+	cout<<"request.size() = "<<request.size()<<endl;
+	cout<<"request.length() =  "<<request.length()<<endl;
 	sscanf(request.c_str(),"%*s %f %f",&a,&b);
     response = std::to_string(a + b);
 

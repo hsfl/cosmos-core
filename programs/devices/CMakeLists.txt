@@ -2,10 +2,13 @@
 
 file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
+message(STATUS "${CMAKE_CURRENT_SOURCE_DIR} : ")
+message(${files})
+
 foreach(file ${files})
     get_filename_component(bfile ${file} NAME_WE)
     add_executable(${bfile} ${bfile}.cpp)
-    target_link_libraries(${bfile} ${COSMOS_LIBS})
+    target_link_libraries(${bfile} CosmosTime CosmosDeviceI2C CosmosError)
     install(TARGETS ${bfile} DESTINATION bin)
 
     if(${DEPLOY_FILES_TO_REMOTE} MATCHES "yes")
@@ -14,8 +17,7 @@ foreach(file ${files})
     endif()
 endforeach()
 
-#add_executable(i2ctalk i2ctalk.cpp)
-#target_link_libraries(i2ctalk CosmosDeviceI2C)
+target_link_libraries(i2ctalk CosmosTime CosmosDeviceI2C CosmosError)
 
 add_deployment_binary(i2ctalk "bin")
 

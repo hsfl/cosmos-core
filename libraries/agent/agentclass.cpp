@@ -232,7 +232,11 @@ namespace Support
         add_request("status",req_status,"","request the status of this agent");
         add_request("debug_level",req_debug_level,"{\"name1\",\"name2\",...}","get/set debug_level of agent");
         add_request("getvalue",req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
-        add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent");
+        add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent");
+        add_request("get_time",req_get_time,"","return the current time of the agent");
+        add_request("get_position",req_get_position,"","return the current perifocal position of the agent");
+        add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
+        add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent");
         add_request("listnames",req_listnames,"","list the Namespace of the agent");
         add_request("forward",req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
         add_request("echo",req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
@@ -246,7 +250,6 @@ namespace Support
         add_request("devspecjson",req_devspecjson,"","return description JSON for Specific Devices");
         add_request("portsjson",req_portsjson,"","return description JSON for Ports");
         add_request("targetsjson",req_targetsjson,"","return description JSON for Targets");
-        add_request("aliasesjson",req_aliasesjson,"","return description JSON for Aliases");
         add_request("heartbeat",req_heartbeat,"","Post a hearbeat");
         add_request("postsoh",req_postsoh,"","Post a SOH");
         add_request("utc",req_utc,"","Get UTC as both Modified Julian Day and Unix Time");
@@ -430,9 +433,9 @@ namespace Support
         ep.start();
 
         if ((iretn=socket_open(&sendchan, NetworkType::UDP, hbeat.addr, hbeat.port, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0) { return (-errno); }
-
         //nbytes = strnlen(request.c_str(), hbeat.bsz);
         nbytes = std::min(request.size(), (size_t)hbeat.bsz);
+
         if ((nbytes=sendto(sendchan.cudp, request.c_str(), nbytes, 0, (struct sockaddr *)&sendchan.caddr, sizeof(struct sockaddr_in))) < 0) {
             CLOSE_SOCKET(sendchan.cudp);
 #ifdef COSMOS_WIN_OS
@@ -491,8 +494,6 @@ namespace Support
         iretn = send_request(hbeat, "devspecjson", jnode.devspec, waitsec);
         if (iretn < 0) { return iretn; }
         iretn = send_request(hbeat, "portsjson", jnode.ports, waitsec);
-        if (iretn < 0) { return iretn; }
-        iretn = send_request(hbeat, "aliasesjson", jnode.aliases, waitsec);
         if (iretn < 0) { return iretn; }
         iretn = send_request(hbeat, "targetsjson", jnode.targets, waitsec);
         return iretn;
@@ -725,14 +726,13 @@ namespace Support
 
         cinfo->agent[0].beat.port = cinfo->agent[0].req.cport;
 
-        bufferin.resize(cinfo->agent[0].beat.bsz);
-
         while (cinfo->agent[0].stateflag) {
+        	bufferin.resize(cinfo->agent[0].beat.bsz);
             iretn = recvfrom(cinfo->agent[0].req.cudp, &bufferin[0], bufferin.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, (socklen_t *)&cinfo->agent[0].req.addrlen);
 
             if (iretn > 0) {
                 string bufferout;
-                bufferin[iretn] = 0;
+				bufferin.resize(iretn);
                 process_request(bufferin, bufferout);
             }
         }
@@ -1103,17 +1103,138 @@ namespace Support
  */
     int32_t Agent::req_getvalue(string &request, string &output, Agent* agent)
     {
+	cout<<"req_getvalue(): incoming request          = <"<<request<<">"<<endl;
+	cout<<"req_getvalue(): incoming request.size()   = "<<request.size()<<endl;
+	cout<<"req_getvalue(): incoming request.length() = "<<request.length()<<endl;
         string jstring;
         if (json_of_list(jstring, request, agent->cinfo) != NULL) {
             output = jstring;
             if (output.length() > agent->cinfo->agent[0].beat.bsz) {
                 output[agent->cinfo->agent[0].beat.bsz-1] = 0;
             }
+	cout<<"req_getvalue(): outgoing response         = <"<<output<<">"<<endl;
             return 0;
         } else {
             return (JSON_ERROR_EOS);
 		}
     }
+
+int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
+	string req = request;
+	cout<<"req_get_value():incoming request          = <"<<request<<">"<<endl;
+	cout<<"req_get_value():incoming request.size()   = "<<request.size()<<endl;
+	cout<<"req_get_value():incoming request.length() = "<<request.length()<<endl;
+	// remove function call and space
+	req.erase(0,10);
+	// strip out all names from request
+    vector<string> names;
+    for(size_t i = 0; i < req.size(); ++i)   {
+        if(req[i]=='"')  {
+            string name("");
+            while(req[++i]!='"'&&i<req.size())    { name.push_back(req[i]); }
+            names.push_back(name);
+        }
+    }
+	// response comes to here with the request function name inside it? it that a bug or a feature?
+	response.clear();
+    for(size_t i = 0; i < names.size(); ++i)   {
+		response += agent->cinfo->get_json(names[i]);
+	}
+	cout<<"req_get_value():outgoing response         = <"<<response<<">"<<endl;
+	return 0;
+}
+
+int32_t Agent::req_get_time(string &request, string &response, Agent* agent)	{
+	stringstream ss;
+	ss<<setprecision(numeric_limits<double>::digits10)<<currentmjd();
+	response = ss.str();
+	return 0;
+}
+
+// request = "get_position mjdtime"
+int32_t Agent::req_get_position(string &request, string &response, Agent* agent)	{
+
+	cout<<"\tincoming request          = <"<<request<<">"<<endl;
+	//cout<<"req_get_position():incoming request.size()   = "<<request.size()<<endl;
+	//cout<<"req_get_position():incoming request.length() = "<<request.length()<<endl;
+
+	// remove function call and space
+	request.erase(0,13);
+
+	// read in mjdtime
+	stringstream ss;
+	ss<<request;
+	double timemjd;
+	ss>>timemjd;
+	//cout<<"timemjd = <"<<setprecision(numeric_limits<double>::digits10)<<timemjd<<">"<<endl;
+
+	// use mjd to calculate position
+		cosmosstruc* c = agent->cinfo;
+       // orbital equations
+
+        // to find position and velocity at time t
+            // 0    Make sure all necessary orbital elements are set
+			c->t = timemjd;
+			c->l = c->a*(1.0-pow(c->e,2.0));
+            // 1    Calculate mean anamoly (M)
+        	c->M = fmod(c->n * (c->t - c->tau), 2*M_PI);
+            // 2    Calculate true anamoly (v)
+		    c->v = c->M + (2.0*c->e-0.25*pow(c->e,3.0))*sin(c->M) + 1.25*pow(c->e,2.0)*sin(2.0*c->M) + (13.0/12.0)*pow(c->e,3.0)*sin(3.0*c->M);	
+            // 3    Calculate radius (r)
+			c->r = c->l / (1.0 + c->e*cos(c->v));
+            // 4    Calculate position vector <P_pos_t, Q_pos_t, W_pos_t>
+			c->P_pos_t = c->r * cos(c->v);
+			c->Q_pos_t = c->r * sin(c->v);
+			c->W_pos_t = 0.0;
+			c->P_vel_t = sqrt(c->mu/c->l) * -sin(c->v);
+			c->Q_vel_t = sqrt(c->mu/c->l) * (c->e+cos(c->v))*sin(c->v);
+			c->W_vel_t = 0.0;
+
+			response.clear();
+
+			response =    "\t\ttime:     [ " + request + " ]";
+			response += "\n\t\tposition: [ ";
+			stringstream sss;
+			sss<<setprecision(numeric_limits<double>::digits10)<<c->P_pos_t;
+			response += sss.str();
+			sss.str("");
+			response += " ";
+			sss<<setprecision(numeric_limits<double>::digits10)<<c->Q_pos_t;
+			response += sss.str();
+			sss.str("");
+			response += " ";
+			sss<<setprecision(numeric_limits<double>::digits10)<<c->W_pos_t;
+			response += sss.str();
+			sss.str("");
+			response += " ]";
+
+            // 5    Calculate velocity vector <P_vel_t, Q_vel_t, W_vel_t>
+			response += "\n\t\tvelocity: [ ";
+			sss<<setprecision(numeric_limits<double>::digits10)<<c->P_vel_t;
+			response += sss.str();
+			sss.str("");
+			response += " ";
+			sss<<setprecision(numeric_limits<double>::digits10)<<c->Q_vel_t;
+			response += sss.str();
+			sss.str("");
+			response += " ";
+			sss<<setprecision(numeric_limits<double>::digits10)<<c->W_vel_t;
+			response += sss.str();
+			sss.str("");
+			response += " ]";
+
+            // 6    Transform perifocal (PQW) co-ords to geocentric equatorial (IJK) co-ords
+
+			// also calculate distance from mothership?
+
+	// ...
+
+	//response = request;
+	//cout<<"req_get_position():outgoing response         = <"<<response<<">"<<endl;
+	return 0;
+}
+
+
 
     //! Built-in Set Internal Value request
     /*! Sets the current value of the requested Name Space values. Names and values are expressed as a JSON object.
@@ -1128,6 +1249,21 @@ namespace Support
         output = std::to_string(iretn);
         return(iretn);
     }
+
+int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
+	// remove function call and space ('set_value ')
+	request.erase(0,10);
+	cout<<"req_set_value():incoming request          = <"<<request<<">"<<endl;
+	cout<<"req_set_value():incoming request.size()   = "<<request.size()<<endl;
+	cout<<"req_set_value():incoming request.length() = "<<request.length()<<endl;
+	cout<<"req_set_value():incoming response         = <"<<response<<">"<<endl;
+
+	// set the value from json string
+	agent->cinfo->set_json(request);
+
+	cout<<"req_set_value():outgoing response         = <"<<response<<">"<<endl;
+	return 0;
+}
 
     //! Built-in List Name Space Names request
     /*! Returns a list of all names in the JSON Name Space.
@@ -1288,23 +1424,6 @@ namespace Support
         output = agent->cinfo->json.targets.c_str();
         if (output.length() > agent->cinfo->agent[0].beat.bsz)
         {
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        }
-        return 0;
-    }
-
-    //! Built-in Return Alias JSON request
-    /*! Returns a JSON string representing the alias information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-//        int32_t Agent::req_aliasesjson(char *, char* output, Agent* agent)
-    int32_t Agent::req_aliasesjson(string &, string & output, Agent* agent) {
-//            strncpy(output, agent->cinfo->json.aliases.c_str(), agent->cinfo->json.aliases.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.aliases.size():agent->cinfo->agent[0].beat.bsz-1);
-        output = agent->cinfo->json.aliases;
-        if (output.size() > agent->cinfo->agent[0].beat.bsz) {
             output[agent->cinfo->agent[0].beat.bsz-1] = 0;
         }
         return 0;
@@ -1540,18 +1659,53 @@ namespace Support
                 }
                 // Use result to discover interfaces.
                 ifra = confa.ifc_req;
+                bool found_bcast = false;
+                int16_t lo_index = -1;
                 for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++) {
-                    if (ifra->ifr_addr.sa_family != AF_INET) { continue; }
+
+                    if (ifra->ifr_addr.sa_family != AF_INET)
+                    {
+                        continue;
+                    }
+
                     inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address));
                     memcpy((char *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
 
                     if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
 
-                    if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK))
 //                            if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
+                    if ((ifra->ifr_flags & IFF_UP) == 0)
                     {
                         continue;
                     }
+                    else if (ifra->ifr_flags & IFF_LOOPBACK)
+                    {
+                        // Don't enable loopback if we found broadcast interface
+                        if (found_bcast)
+                        {
+                            continue;
+                        }
+                        lo_index = cinfo->agent[0].ifcnt;
+                    }
+                    else if (ifra->ifr_flags & IFF_BROADCAST)
+                    {
+                        found_bcast = true;
+                        if (lo_index >= 0)
+                        {
+                            // Remove loopback if we found broadcast interface
+                            if (cinfo->agent[0].pub[lo_index].cudp >= 0)
+                            {
+                                CLOSE_SOCKET(cinfo->agent[0].pub[lo_index].cudp);
+                            }
+                            for (uint16_t i=lo_index+1; i<cinfo->agent[0].ifcnt+1; ++i)
+                            {
+                                cinfo->agent[0].pub[i-1] = cinfo->agent[0].pub[i];
+                            }
+                            lo_index = -1;
+                            --cinfo->agent[0].ifcnt;
+                        }
+                    }
+
 
                     // Open socket again if we had to close it
                     if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp < 0)
@@ -1640,6 +1794,8 @@ namespace Support
                     inet_pton(AF_INET,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr);
                     cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_port = htons(port);
                     cinfo->agent[0].pub[cinfo->agent[0].ifcnt].type = type;
+
+
                     cinfo->agent[0].ifcnt++;
                 }
 #endif // COSMOS_WIN_OS
@@ -2398,7 +2554,7 @@ acquired.
                 if (debug_fd != nullptr) {
                     fclose(debug_fd);
                 }
-                    debug_fd = stdout;
+                debug_fd = stdout;
                 debug_pathName.clear();
             }
         } else {

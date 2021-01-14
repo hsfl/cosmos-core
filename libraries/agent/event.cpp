@@ -31,7 +31,7 @@
 	\brief Agent support functions
 */
 
-#include "support/event.h"
+#include "agent/event.h"
 
 namespace Cosmos {
 
@@ -71,7 +71,7 @@ string Event::generator(
     return event_string;
 }
 
-string Event::generator(longeventstruc event) {
+string Event::generator(eventstruc event) {
 
     // returns a string with the event and also puts the string in "event_string"
     return generator(event.name, event.data, event.utc, event.condition, event.flag);;
@@ -126,13 +126,13 @@ void Event::set_command(string jstring)
 	// load Event information (from jstring) into agent
     json_parse(jstring, dummy);
 
-    mjd = dummy->event[0].l.utc;
-    utcexec = dummy->event[0].l.utcexec;
-    name = dummy->event[0].l.name;
-    type = dummy->event[0].l.type;
-    flag = dummy->event[0].l.flag;
-    data = dummy->event[0].l.data;
-    condition = dummy->event[0].l.condition;
+    mjd = dummy->event[0].utc;
+    utcexec = dummy->event[0].utcexec;
+    name = dummy->event[0].name;
+    type = dummy->event[0].type;
+    flag = dummy->event[0].flag;
+    data = dummy->event[0].data;
+    condition = dummy->event[0].condition;
 }
 
 string Event::get_event_string()

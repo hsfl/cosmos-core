@@ -60,8 +60,8 @@ static string agent_name = "propagator_simple";
 static char buffer[255] = "";
 
 static Agent *agent;
-static vector<shorteventstruc> eventdict;
-static vector<shorteventstruc> events;
+static vector<eventstruc> eventdict;
+static vector<eventstruc> events;
 static string mainjstring={0,0,0};
 
 void printMjdAndDateTime(double mjd){

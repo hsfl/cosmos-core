@@ -205,11 +205,6 @@ public:
     typedef std::initializer_list<std::pair<std::string, Type>> shape;
     bool has_shape(const shape & types, std::string & err) const;
 
-    template <class T>
-    static std::vector<T> carray_to_vector(const T* array) {
-        return std::vector<T>(array, array+sizeof(array)/sizeof(array[0]));
-    }
-
 private:
     std::shared_ptr<JsonValue> m_ptr;
 };

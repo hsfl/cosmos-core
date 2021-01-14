@@ -40,8 +40,8 @@
 
 Agent *agent;
 gj_handle gjh;
-std::vector<shorteventstruc> eventdict;
-std::vector<shorteventstruc> events;
+std::vector<eventstruc> eventdict;
+std::vector<eventstruc> events;
 std::string mainjstring;
 
 void endline(){

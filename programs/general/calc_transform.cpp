@@ -33,8 +33,8 @@
 
 int main(int argc, char *argv[])
 {
-	rvector sourcea = {{1., 0., 0.}};
-	rvector sourceb = {{0., 1., 0.}};
+	rvector sourcea = {1., 0., 0.};
+	rvector sourceb = {0., 1., 0.};
 	rvector targeta;
 	rvector targetb;
 

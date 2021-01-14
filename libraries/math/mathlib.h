@@ -370,7 +370,7 @@ private:
         // Independent variable
         double x;
         // Double, rvector or quaternion dependent variable
-        uvector y;
+        uvector y{};
     } ;
 
     //! Least Squares Fit Structure
@@ -394,9 +394,9 @@ private:
 
 public:
     double meanx;
-    uvector meany;
+    uvector meany{};
     double stdevx;
-    uvector stdevy;
+    uvector stdevy{};
     // Minimum reasonable step in dependent variable
     double resolution;
 

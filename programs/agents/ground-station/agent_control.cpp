@@ -98,9 +98,6 @@ List of available requests:
         targetsjson
                 return description JSON for Targets
 
-        aliasesjson
-                return description JSON for Aliases
-
         get_state
                 returns current state
 
@@ -152,6 +149,7 @@ static bool trackinit = true;
 struct radiostruc
 {
     string name;
+	uint16_t type;
     tcvstruc info;
     uint16_t otherradioindex;
     beatstruc beat;
@@ -250,7 +248,8 @@ int main(int argc, char *argv[])
     myradios.push_back(tradio);
     for (size_t i=0; i<agent->cinfo->devspec.tcv_cnt; ++i)
     {
-        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].all.pidx].name;
+        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].pidx].name;
+		tradio.type = DeviceType::TCV;
         tradio.info = agent->cinfo->device[agent->cinfo->devspec.tcv[i]].tcv;
         tradio.basefreq = tradio.info.freq;
         tradio.baseopmode = tradio.info.opmode;
@@ -260,7 +259,8 @@ int main(int argc, char *argv[])
     }
     for (size_t i=0; i<agent->cinfo->devspec.rxr_cnt; ++i)
     {
-        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.rxr[i]].all.pidx].name;
+        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.rxr[i]].pidx].name;
+		tradio.type = DeviceType::RXR;
         tradio.info = agent->cinfo->device[agent->cinfo->devspec.rxr[i]].tcv;
         tradio.basefreq = tradio.info.freq;
         tradio.baseopmode = tradio.info.opmode;
@@ -270,7 +270,8 @@ int main(int argc, char *argv[])
     }
     for (size_t i=0; i<agent->cinfo->devspec.txr_cnt; ++i)
     {
-        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.txr[i]].all.pidx].name;
+        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.txr[i]].pidx].name;
+		tradio.type = DeviceType::TXR;
         tradio.info = agent->cinfo->device[agent->cinfo->devspec.txr[i]].tcv;
         tradio.basefreq = tradio.info.freq;
         tradio.baseopmode = tradio.info.opmode;
@@ -283,7 +284,7 @@ int main(int argc, char *argv[])
     myantennas.resize(agent->cinfo->devspec.ant_cnt);
     for (size_t i=0; i<myantennas.size(); ++i)
     {
-        myantennas[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.ant[i]].all.pidx].name;
+        myantennas[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.ant[i]].pidx].name;
         myantennas[i].info = agent->cinfo->device[agent->cinfo->devspec.ant[i]].ant;
         myantennas[i].beat = agent->find_agent(nodename, myantennas[i].name, 3.);
     }
@@ -324,7 +325,8 @@ int main(int argc, char *argv[])
                     // Build up table of radios
                     for (size_t i=0; i<cinfo->devspec.tcv_cnt; ++i)
                     {
-                        tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.tcv[i]].all.pidx].name;
+                        tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.tcv[i]].pidx].name;
+						tradio.type = DeviceType::TCV;
                         tradio.info = cinfo->device[cinfo->devspec.tcv[i]].tcv;
                         tradio.otherradioindex = 9999;
                         ttrack.radios.push_back(tradio);
@@ -332,16 +334,24 @@ int main(int argc, char *argv[])
 
                     for (size_t i=0; i<cinfo->devspec.txr_cnt; ++i)
                     {
-                        tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.txr[i]].all.pidx].name;
-                        tradio.info = cinfo->device[cinfo->devspec.txr[i]].tcv;
+                        tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.txr[i]].pidx].name;
+						tradio.type = DeviceType::TXR;
+                        tradio.info.band = cinfo->device[cinfo->devspec.txr[i]].txr.band;
+                        tradio.info.freq = cinfo->device[cinfo->devspec.txr[i]].txr.freq;
+                        tradio.info.opmode = cinfo->device[cinfo->devspec.txr[i]].txr.opmode;
+                        tradio.info.modulation = cinfo->device[cinfo->devspec.txr[i]].txr.modulation;
                         tradio.otherradioindex = 9999;
                         ttrack.radios.push_back(tradio);
                     }
 
                     for (size_t i=0; i<cinfo->devspec.rxr_cnt; ++i)
                     {
-                        tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.rxr[i]].all.pidx].name;
-                        tradio.info = cinfo->device[cinfo->devspec.rxr[i]].tcv;
+                        tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.rxr[i]].pidx].name;
+						tradio.type = DeviceType::RXR;
+                        tradio.info.band = cinfo->device[cinfo->devspec.rxr[i]].rxr.band;
+                        tradio.info.freq = cinfo->device[cinfo->devspec.rxr[i]].rxr.freq;
+                        tradio.info.opmode = cinfo->device[cinfo->devspec.rxr[i]].rxr.opmode;
+                        tradio.info.modulation = cinfo->device[cinfo->devspec.rxr[i]].rxr.modulation;
                         tradio.otherradioindex = 9999;
                         ttrack.radios.push_back(tradio);
                     }
@@ -504,6 +514,8 @@ int main(int argc, char *argv[])
     ElapsedTime et;
 
     // Start main thread
+    agent->cinfo->agent[0].aprd = 1.;
+    agent->start_active_loop();
     while (agent->running())
     {
         double mjdnow = currentmjd() + .1/86400.;
@@ -580,12 +592,12 @@ int main(int argc, char *argv[])
                             {
                                 track[i].radios[idx].dfreq = track[i].radios[idx].info.freq * track[i].target.close / CLIGHT;
                                 myradios[j].dfreq = track[i].radios[idx].dfreq;
-                                if (track[i].radios[idx].info.type == static_cast<uint16_t>(DeviceType::TXR))
+                                if (track[i].radios[idx].type == static_cast<uint16_t>(DeviceType::TXR))
                                 {
                                     myradios[j].info.freq = track[i].radios[idx].info.freq + track[i].radios[idx].dfreq;
                                 }
                                 else {
-                                    myradios[j].info.freq = track[i].radios[idx].info.freq - track[i].radios[idx].dfreq;
+									myradios[j].info.freq = track[i].radios[idx].info.freq - track[i].radios[idx].dfreq;
                                 }
                                 sprintf(request, "set_frequency %f", track[i].radios[idx].info.freq + track[i].radios[idx].dfreq);
                                 iretn = agent->send_request(myradios[j].beat, request, output, 5.);
@@ -626,7 +638,7 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        COSMOS_SLEEP(.1);
+        agent->finish_active_loop();
     }
 
     monitor_thread.join();
@@ -883,8 +895,8 @@ int32_t request_get_state(string &req, string &response, Agent *)
         response = '[' + to_mjd(currentmjd()) + "] ";
         response += track[trackindex].name + '(';
         response += to_unsigned(trackindex) + ") ";
-        response += '[' + to_angle(fixangle(track[trackindex].target.azfrom), 'D', 3) + ' ';
-        response += to_angle(track[trackindex].target.elfrom, 'D', 3) + "] ";
+        response += '[' + to_angle(fixangle(track[trackindex].target.azfrom), 'D', 5) + ' ';
+        response += to_angle(track[trackindex].target.elfrom, 'D', 4) + "] ";
     }
     for (size_t i=0; i<myradios.size(); ++i)
     {

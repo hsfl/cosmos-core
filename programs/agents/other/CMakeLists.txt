@@ -10,7 +10,7 @@ foreach(file ${files})
 
     add_executable(${bfile} ${bfile}.cpp)
 
-    target_link_libraries(${bfile} ${COSMOS_LIBS})
+#    target_link_libraries(${bfile} CosmosAgent CosmosPhysics CosmosDeviceGeneral)
 
     install(TARGETS ${bfile} DESTINATION bin)
 
@@ -21,3 +21,11 @@ foreach(file ${files})
 
 
 endforeach()
+
+target_link_libraries(agent_arduino CosmosAgent CosmosPhysics CosmosDeviceGeneral)
+target_link_libraries(agent_example CosmosAgent CosmosPhysics CosmosDeviceGeneral)
+target_link_libraries(agent_node CosmosAgent CosmosPhysics CosmosDeviceGeneral)
+target_link_libraries(agent_orig CosmosAgent CosmosPhysics CosmosDeviceGeneral)
+target_link_libraries(agent_physics CosmosAgent CosmosPhysics CosmosDeviceGeneral)
+target_link_libraries(agent_transmitter CosmosAgent CosmosPhysics CosmosDeviceGeneral)
+target_link_libraries(agent_transmitter2 CosmosAgent CosmosPhysics CosmosDeviceGeneral)

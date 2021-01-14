@@ -383,8 +383,18 @@ struct JsonParser final {
      *
      * Advance until the current character is non-whitespace.
      */
+	 // there are other whitespace characters yo!! " \n\r\t\f\v"
     void consume_whitespace() {
-        while (str[i] == ' ' || str[i] == '\r' || str[i] == '\n' || str[i] == '\t')
+        while (str[i] == ' ' || str[i] == '\r' || str[i] == '\n' || str[i] == '\t' || str[i] == '\f' || str[i] == '\v')
+            i++;
+    }
+
+    /* consume_commas()
+     *
+     * Advance until the current character is non-comma.
+     */
+    void consume_commas() {
+        while (str[i] == ',')
             i++;
     }
 
@@ -431,6 +441,25 @@ struct JsonParser final {
      * Advance until the current character is non-whitespace and non-comment.
      */
     void consume_garbage() {
+      consume_whitespace();
+      if(strategy == JsonParse::COMMENTS) {
+        bool comment_found = false;
+        do {
+          comment_found = consume_comment();
+          if (failed) return;
+          consume_whitespace();
+        }
+        while(comment_found);
+      }
+    }
+
+    /* consume_multi_garbage()
+     *
+     * Advance until the current character is non-whitespace, non-comma, and non-comment.
+     */
+    void consume_multi_garbage() {
+      consume_whitespace();
+      consume_commas();
       consume_whitespace();
       if(strategy == JsonParse::COMMENTS) {
         bool comment_found = false;
@@ -766,7 +795,9 @@ vector<Json> Json::parse_multi(const string &in,
             break;
 
         // Check for another object
-        parser.consume_garbage();
+        // parser.consume_garbage();
+		// homebrew to be backwards compatible with Namespace 1.0
+        parser.consume_multi_garbage();
         if (parser.failed)
             break;
         parser_stop_pos = parser.i;

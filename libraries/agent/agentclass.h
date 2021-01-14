@@ -113,7 +113,6 @@
 //!     - "devgenjson" - return the JSON representing the contents of devgen.ini.
 //!     - "devspecjson" - return the JSON representing the contents of devspec.ini.
 //!     - "portsjson" - return the JSON representing the contents of ports.ini.
-//!     - "aliasesjson" - return the JSON representing the contents of aliases.ini.
 //!     - "targetsjson" - return the JSON representing the contents of targets.ini.
 //!     - "heartbeat" - Sends a Heartbeat immediatelly.
 //!
@@ -433,7 +432,11 @@ namespace Cosmos
             static int32_t req_status(string &request, string &response, Agent *agent);
             static int32_t req_debug_level(string &request, string &response, Agent *agent);
             static int32_t req_getvalue(string &request, string &response, Agent *agent);
+            static int32_t req_get_value(string &request, string &response, Agent *agent);
+            static int32_t req_get_time(string &request, string &response, Agent *agent);
+            static int32_t req_get_position(string &request, string &response, Agent *agent);
             static int32_t req_setvalue(string &request, string &response, Agent *agent);
+            static int32_t req_set_value(string &request, string &response, Agent *agent);
             static int32_t req_listnames(string &request, string &response, Agent *agent);
             static int32_t req_nodejson(string &request, string &response, Agent *agent);
             static int32_t req_statejson(string &request, string &response, Agent *agent);
@@ -445,7 +448,6 @@ namespace Cosmos
             static int32_t req_devspecjson(string &request, string &response, Agent *agent);
             static int32_t req_portsjson(string &request, string &response, Agent *agent);
             static int32_t req_targetsjson(string &request, string &response, Agent *agent);
-            static int32_t req_aliasesjson(string &request, string &response, Agent *agent);
             static int32_t req_heartbeat(string &request, string &response, Agent *agent);
             static int32_t req_postsoh(string &request, string &response, Agent *agent);
             static int32_t req_utc(string &request, string &response, Agent *agent);

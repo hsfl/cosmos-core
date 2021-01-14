@@ -230,15 +230,15 @@ int main(int argc, char *argv[])
             agent->cinfo->device[agent->cinfo->devspec.psen[0]].psen.press = press / 1000.;
 
 			// Temperatures
-            agent->cinfo->device[agent->cinfo->devspec.tsen[0]].tsen.temp = etemp;
-            agent->cinfo->device[agent->cinfo->devspec.tsen[1]].tsen.temp = btemp;
-            agent->cinfo->device[agent->cinfo->devspec.tsen[2]].tsen.temp = atemp + 273.15;
+            agent->cinfo->device[agent->cinfo->devspec.tsen[0]].temp = etemp;
+            agent->cinfo->device[agent->cinfo->devspec.tsen[1]].temp = btemp;
+            agent->cinfo->device[agent->cinfo->devspec.tsen[2]].temp = atemp + 273.15;
 
 			// GPS
 			if (fix == 1)
 			{
 			mjd = (int)currentmjd(0.) + hour / 24. + min / 1400. + sec / 86400. + hsec / 8640000.;;
-            agent->cinfo->device[agent->cinfo->devspec.gps[0]].gps.utc = agent->cinfo->node.loc.utc = agent->cinfo->node.loc.pos.geod.utc = mjd;
+            agent->cinfo->device[agent->cinfo->devspec.gps[0]].utc = agent->cinfo->node.loc.utc = agent->cinfo->node.loc.pos.geod.utc = mjd;
             agent->cinfo->device[agent->cinfo->devspec.gps[0]].gps.geocs = agent->cinfo->node.loc.pos.geoc.s;
             agent->cinfo->node.loc.pos.geod.s.lat = RADOF(lat / 1.e5);
             agent->cinfo->node.loc.pos.geod.s.lon = RADOF(lon / 1.e5);

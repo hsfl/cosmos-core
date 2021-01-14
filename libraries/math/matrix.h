@@ -41,7 +41,46 @@ using namespace Cosmos::Math::Vectors;
 struct rmatrix
 {
     rvector row[3];
-} ;
+
+    rmatrix() {}
+    rmatrix(rvector rv0, rvector rv1, rvector rv2) {
+        row[0] = rv0;
+        row[1] = rv1;
+        row[2] = rv2;
+    }
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        vector<rvector> v_row = vector<rvector>(row, row+sizeof(row)/sizeof(row[0]));
+        return json11::Json::object {
+            { "row" , v_row }
+        };
+    }
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            auto p_row = parsed["row"].array_items();
+            for(size_t i = 0; i != p_row.size(); ++i) {
+                if(!p_row[i].is_null()) row[i].from_json(p_row[i].dump());
+            }
+        } else  {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
+
+};
 
 std::ostream& operator << (std::ostream& out, const rmatrix& a);
 std::ostream& operator << (std::ostream& out, const vector<rmatrix>& a);
@@ -62,6 +101,39 @@ struct cmatrix
     cvector r2;
     //! Row 3
     cvector r3;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "r1" , r1 },
+            { "r2" , r2 },
+            { "r3" , r3 }
+        };
+    }
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!parsed["r1"].is_null()) r1.from_json(parsed["r1"].dump());
+            if(!parsed["r2"].is_null()) r2.from_json(parsed["r2"].dump());
+            if(!parsed["r3"].is_null()) r3.from_json(parsed["r3"].dump());
+        } else  {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
+
+
 } ;
 
 std::ostream& operator << (std::ostream& out, const cmatrix& a);
@@ -315,6 +387,36 @@ namespace  Cosmos {
 
                 double determinant();
 
+    			/// Convert class contents to JSON object
+                /** Returns a json11 JSON object of the class
+                @return	A json11 JSON object containing every member variable within the class
+                */
+    			json11::Json to_json() const {
+        			return json11::Json::object {
+            			{ "r0" , r0 },
+            			{ "r1" , r1 },
+            			{ "r2" , r2 }
+        			};
+    			}
+			
+    			/// Set class contents from JSON string
+                /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+                @param	s	JSON-formatted string to set class contents to
+
+                @return n/a
+                */
+    			void from_json(const string& s) {
+        			string error;
+        			json11::Json parsed = json11::Json::parse(s,error);
+        			if(error.empty()) {
+            			if(!parsed["r0"].is_null()) r0.from_json(parsed["r0"].dump());
+            			if(!parsed["r1"].is_null()) r1.from_json(parsed["r1"].dump());
+            			if(!parsed["r2"].is_null()) r2.from_json(parsed["r2"].dump());
+        			} else {
+            			cerr<<"ERROR: <"<<error<<">"<<endl;
+        			}
+        			return;
+    			}
             };
 
             Matrix operator * (const double scale, Matrix &v);

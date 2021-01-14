@@ -321,19 +321,10 @@ int main(int argc, char *argv[])
         logstride_sec = 600.; // longer logstride
     }
 
-    if (argc > 1 && (argv[1][0] >= '0' && argv[1][0] <= '9'))
-    {
-        agent->debug_level = argv[1][0] - '0';
-    }
-    else
-    {
-        agent->debug_level = 0;
-    }
-
     // Initialize Transfer Queue
-    if ((iretn = load_nodeids()) < 1)
+    if ((iretn = load_nodeids()) < 2)
     {
-        fprintf(agent->get_debug_fd(), "%.4f Couldn't load node lookup tablee\n", tet.split());
+        fprintf(agent->get_debug_fd(), "%.4f Couldn't load node lookup table\n", tet.split());
         agent->shutdown();
         exit (iretn);
     }
@@ -345,6 +336,15 @@ int main(int argc, char *argv[])
             txq[i].node_id = i;
             txq[i].node_name = lookup_node_id_name(i);
         }
+    }
+
+    if (argc > 1 && (argv[1][0] >= '0' && argv[1][0] <= '9'))
+    {
+        agent->debug_level = argv[1][0] - '0';
+    }
+    else
+    {
+        agent->debug_level = 0;
     }
 
     // Restore in progress transfers from previous run
@@ -2211,9 +2211,10 @@ int32_t request_list_outgoing(string &request, string &response, Agent *agent)
 
 int32_t request_get_channels(string &request, string &response, Agent *agent)
 {
+    response.clear();
     for (uint16_t channel=0; channel<out_comm_channel.size(); ++channel)
     {
-        response = "{";
+        response += "{";
         response += to_json("channel", channel);
         response += to_json("node", out_comm_channel[channel].node);
         response += to_json("ip", out_comm_channel[channel].chanip);

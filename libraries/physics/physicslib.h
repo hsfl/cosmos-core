@@ -84,7 +84,7 @@
 
 #include "support/cosmos-defs.h"
 #include "math/mathlib.h"
-#include "support/nrlmsise-00.h"
+#include "physics/nrlmsise-00.h"
 #include "support/convertlib.h"
 #include "support/demlib.h"
 #include "physics/physicsdef.h"

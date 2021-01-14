@@ -44,7 +44,7 @@
 // flag to turn on/off print
 bool printStatus = true;
 
-int agent_cpu(), create_node();
+//int agent_cpu(), create_node();
 int32_t get_last_offset();
 
 //int32_t request_soh(string &request, string &response, Agent *);
@@ -76,6 +76,7 @@ static string sohstring;
 static ElapsedTime et;
 static DeviceDisk deviceDisk;
 static DeviceCpu deviceCpu;
+
 //static DeviceCpu cpu;
 static uint16_t cpu_cidx;
 static uint16_t cpu_didx;
@@ -86,26 +87,22 @@ int main(int argc, char *argv[])
 {
     int32_t iretn;
 
-    if (argc == 2)
-    {
-        agent = new Agent(argv[1], "cpu", 15.);
-    }
-    else
-    {
-        agent = new Agent("", "cpu", 15.);
-    }
+	cout<<"size of devicestruc = "<<sizeof(devicestruc)<<endl;
+    if (argc == 2) {
+		agent = new Agent(argv[1], "cpu", 15.);
+	} else {
+		agent = new Agent("", "cpu", 15.);
+	}
 
-    if ((iretn = agent->wait()) < 0)
-    {
+    if ((iretn = agent->wait()) < 0) {
         fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
-    }
-    else
-    {
+    } else {
         fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
     iretn = json_createpiece(agent->cinfo, agent->nodeName + "_cpu", DeviceType::CPU);
+
     if (iretn < 0)
     {
         fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
@@ -113,7 +110,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
     cpu_cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-    cpu_didx = agent->cinfo->device[cpu_cidx].all.didx;
+    cpu_didx = agent->cinfo->device[cpu_cidx].didx;
 
     sohstring = "{\"node_downtime\"";
     sohstring += ",\"device_cpu_utc_00" + std::to_string(cpu_didx) + "\"";
@@ -147,7 +144,7 @@ int main(int argc, char *argv[])
             exit(1);
         }
         uint16_t cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-//        uint16_t didx = agent->cinfo->device[cidx].all.didx;
+//        uint16_t didx = agent->cinfo->device[cidx].didx;
         strncpy(agent->cinfo->device[cidx].disk.path, dinfo[i].mount.c_str(), COSMOS_MAX_NAME);
         sohstring += ",\"device_disk_utc_00" + std::to_string(cpu_didx) + "\"";
         sohstring += ",\"device_disk_temp_00" + std::to_string(cpu_didx) + "\"";
@@ -187,7 +184,6 @@ int main(int argc, char *argv[])
     agent->add_request("printStatus",request_printStatus,"","print the status data");
     agent->add_request("bootCount",request_bootCount,"","reboot count");
 
-
     et.start();
 
     agent->cinfo->agent[0].aprd = agent->cinfo->agent[0].beat.bprd;
@@ -199,10 +195,10 @@ int main(int argc, char *argv[])
     agent->debug_level = 0;
     while(agent->running())
     {
-        agent->cinfo->device[cpu_cidx].all.utc = currentmjd();
+        agent->cinfo->device[cpu_cidx].utc = currentmjd();
         if (agent->debug_level)
         {
-            fprintf(agent->get_debug_fd(), "%16.10f ", agent->cinfo->device[cpu_cidx].all.utc);
+            fprintf(agent->get_debug_fd(), "%16.10f ", agent->cinfo->device[cpu_cidx].utc);
         }
         agent->cinfo->node.downtime = get_last_offset();
 
@@ -225,7 +221,7 @@ int main(int argc, char *argv[])
         // get disk info
         for (size_t i=0; i<agent->cinfo->devspec.disk_cnt; ++i)
         {
-            agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.utc = currentmjd();
+            agent->cinfo->device[agent->cinfo->devspec.disk[i]].utc = currentmjd();
 
             string node_path = agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.path;
 
@@ -238,17 +234,26 @@ int main(int argc, char *argv[])
         }
 
         // get temperature
-        FILE *cmd_pipe = popen("/cosmos/scripts/get_cpu_temperature", "r");
-
-        if (cmd_pipe != nullptr)
+        string response;
+        iretn = data_execute("get_cpu_temperature", response);
+        if (iretn > 0)
         {
-            float ctemp;
-            fscanf(cmd_pipe, "%f", &ctemp);
-            pclose( cmd_pipe );
-
+            float ctemp = stof(response);
             cputemp.update(currentmjd(), ctemp);
-            agent->cinfo->device[cpu_cidx].cpu.temp = cputemp.eval(currentmjd());
+            agent->cinfo->device[cpu_cidx].temp = cputemp.eval(currentmjd());
         }
+
+//        FILE *cmd_pipe = popen("/cosmos/scripts/get_cpu_temperature", "r");
+
+//        if (cmd_pipe != nullptr)
+//        {
+//            float ctemp;
+//            fscanf(cmd_pipe, "%f", &ctemp);
+//            pclose( cmd_pipe );
+
+//            cputemp.update(currentmjd(), ctemp);
+//            agent->cinfo->device[cpu_cidx].temp = cputemp.eval(currentmjd());
+//        }
 
         if (agent->debug_level)
         {
@@ -256,7 +261,6 @@ int main(int argc, char *argv[])
         }
 
         agent->finish_active_loop();
-
     }
 
     agent->shutdown();
@@ -279,13 +283,6 @@ int32_t get_last_offset()
     }
     return offset;
 }
-
-//int agent_cpu()
-//{
-
-//    return 0;
-//}
-
 
 //int32_t request_soh(string &, string &response, Agent *)
 //{
