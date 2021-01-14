@@ -3015,3 +3015,44 @@ double LsFit::getbasex()
 
 
 //! @}
+
+uint16_t calc_crc16ccitt_lsb(vector<uint8_t> buf)
+{
+    uint16_t crc;
+    uint8_t ch;
+
+    crc = 0xffff;
+
+    for (uint16_t i=0; i<buf.size(); i++)
+    {
+        ch = buf[i];
+        for (uint16_t j=0; j<8; j++)
+        {
+            crc = (crc >> 1) ^ (((ch^crc)&0x01)?CRC16CCITTLSB:0);
+            ch >>= 1;
+
+        }
+    }
+    return (crc);
+}
+
+uint16_t calc_crc16ccitt_msb(vector<uint8_t> buf)
+{
+    uint16_t crc;
+    uint8_t ch;
+
+        crc = 0;
+
+    for (uint16_t i=0; i<buf.size(); i++)
+    {
+        ch = buf[i];
+        for (uint16_t j=0; j<8; j++)
+        {
+
+                crc = (crc << 1) ^ (((ch&0x80)^((crc&0x8000)>>8))?CRC16CCITTMSB:0);
+                ch <<= 1;
+
+        }
+    }
+    return (crc);
+}
