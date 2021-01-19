@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     switch (argc)
     {
     case 8:
-        if (!strcmp(argv[8], "rtscts"))
+        if (!strcmp(argv[7], "rtscts"))
         {
             rtscts = true;
         }
@@ -42,56 +42,48 @@ int main(int argc, char *argv[])
     endcount = duration * baud / (bits + parity + stop + 1.);
     Serial *port = new Serial(name, baud, bits, parity, stop);
     port->set_flowcontrol(rtscts, xonxoff);
-    port->set_timeout(1.);
 
     size_t writecount = 0;
+    size_t twritecount = 0;
     size_t errorcount = 0;
     size_t timeoutcount = 0;
     int32_t result;
     ElapsedTime et;
+    ElapsedTime tet;
     for (uint8_t i=1; i<255; ++i)
     {
         vector <uint8_t> data;
         for (size_t j=0; j<endcount; ++j)
         {
             data.push_back(i);
-//            result = port->put_char(i);
-//            if (result > 0)
-//            {
-//                ++writecount;
-//            }
-//            else
-//            {
-//                if (result == SERIAL_ERROR_TIMEOUT)
-//                {
-//                    ++timeoutcount;
-//                }
-//                else
-//                {
-//                    ++errorcount;
-//                }
-//            }
         }
-        result = port->put_data(data);
-        if (result > 0)
+        writecount = 0;
+        do
         {
-            writecount = data.size();
-        }
-        else
-        {
-            if (result == SERIAL_ERROR_TIMEOUT)
+            result = port->put_data(&data[writecount], data.size() - writecount);
+            if (result > 0)
             {
-                ++timeoutcount;
+                writecount += result;
+                twritecount += result;
             }
             else
             {
-                ++errorcount;
+                if (result == SERIAL_ERROR_TIMEOUT)
+                {
+                    ++timeoutcount;
+                }
+                else
+                {
+                    ++errorcount;
+                }
+                COSMOS_SLEEP(.001);
             }
-        }
-        printf("%f %f: %lu Writes @ %lf BPS Errors: %lu Timeouts: %lu\n", writecount, writecount/et.split(), errorcount, timeoutcount);
+        } while (result < 0 || writecount < data.size());
+        printf("%lf %hhu: %lu/%lu Writes @ %.0lf BPS Errors: %lu Timeouts: %lu\n", tet.split(), i, writecount, twritecount, writecount/tet.lap(), errorcount, timeoutcount);
+        tet.reset();
     }
     result = port->put_char(4);
 
-    printf("\nWrites: %lu @ %lf BPS Errors: %lu Timeouts: %lu\n", writecount, writecount/et.split(), errorcount, timeoutcount);
+    printf("\n%lf Writes: %lu @ %lf BPS Errors: %lu Timeouts: %lu\n", et.split(), twritecount, twritecount/et.split(), errorcount, timeoutcount);
 
 }

@@ -47,24 +47,10 @@ int main(int argc, char **argv)
         }
         ++loopcnt;
     } while (et.split() < 5.);
-    double dassign = et.split() / (loopcnt*10000.);
+    double dtime = et.split();
+    double dassign = dtime / (loopcnt*10000.);
     printf("%6.3lf Massignps (%.1lf) : ",1e-6/dassign, dassign/dassign);
     fflush(stdout);
-
-//    // Check speed of split
-//    loopcnt = 0;
-//    et.reset();
-//    do
-//    {
-//        for (size_t i=0; i<10000; ++i)
-//        {
-//            buffer1[i] = et.split();
-//        }
-//        ++loopcnt;
-//    } while (et.split() < 5.);
-//    double dsplit = (et.split() / (loopcnt*10000.)) - dassign;
-//    printf("%6.3lf Msplitps (%.1lf) : ",1e-6/dsplit, dsplit/dassign);
-//    fflush(stdout);
 
     // Check speed of multiply by constant
     loopcnt = 0;
@@ -77,8 +63,8 @@ int main(int argc, char **argv)
         }
         ++loopcnt;
     } while (et.split() < 5.);
-    double dscalar = (et.split() / (loopcnt*10000.)) - (dassign);
-//    double dscalar = (et.split() / (loopcnt*10000.));
+    dtime = et.split();
+    double dscalar = (dtime / (loopcnt*10000.));
     printf("%6.3lf Msflops (%.1lf) : ",1e-6/dscalar, dscalar/dassign);
     fflush(stdout);
 
@@ -93,7 +79,7 @@ int main(int argc, char **argv)
         }
         ++loopcnt;
     } while (et.split() < 5.);
-    double dvariable = (et.split() / (loopcnt*10000.)) - (dassign);
+    double dvariable = (et.split() / (loopcnt*10000.));
     printf("%6.3lf Mvflops (%.1lf) : ",1e-6/dvariable, dvariable/dassign);
     fflush(stdout);
 
@@ -111,7 +97,7 @@ int main(int argc, char **argv)
         }
         ++loopcnt;
     } while (et.split() < 5.);
-    double dvariable100 = (et.split() / (loopcnt*10000.)) - (dassign);
+    double dvariable100 = (et.split() / (loopcnt*10000.));
     printf("%6.3lf Mv100flops (%.1lf) : ",1e-6/dvariable100, dvariable100/dassign);
     fflush(stdout);
 
@@ -135,7 +121,7 @@ int main(int argc, char **argv)
         }
         ++loopcnt;
     } while (et.split() < 5.);
-    double dvariable1000 = (et.split() / (loopcnt*1000000.)) - (dassign);
+    double dvariable1000 = (et.split() / (loopcnt*1000000.));
     printf("%6.3lf Mv1000flops (%.1lf) : ",1e-6/dvariable1000, dvariable1000/dassign);
     fflush(stdout);
 
@@ -158,7 +144,7 @@ int main(int argc, char **argv)
         }
         ++loopcnt;
     } while (et.split() < 5.);
-    double dvariable10000 = (et.split() / (loopcnt*100000000.)) - (dassign);
+    double dvariable10000 = (et.split() / (loopcnt*100000000.));
     printf("%6.3lf Mv10000flops (%.1lf)",1e-6/dvariable10000, dvariable10000/dassign);
     printf("\n");
 
