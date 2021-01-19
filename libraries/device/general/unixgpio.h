@@ -20,7 +20,7 @@ namespace Cosmos {
                     HIGH = 1
                 };
 
-                UnixGpio(Direction dir, string pin );
+                UnixGpio(Direction dir, string pin , string name="");
 
                 int32_t setDirection(Direction dir);
                 int32_t write(string filename, string value);
@@ -28,15 +28,18 @@ namespace Cosmos {
 
 
                 int32_t write(Value val);
+                int32_t read();
+                int32_t geterror();
 
 
             private:
                 std::ofstream stream;
                 Direction direction;
+                string pinname;
                 string path;
                 string pin;
-
-
+                int32_t error;
+                bool open;
 
             };
         }
