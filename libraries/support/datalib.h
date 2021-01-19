@@ -156,7 +156,7 @@ string data_base_path(string node, string location, string agent, string filenam
 string data_archive_path(string node, string agent, double mjd);
 string data_type_path(string node, string location, string agent, double mjd, string type);
 string data_type_path(string node, string location, string agent, double mjd, string extra, string type);
-string data_name_path(string node, string location, string agent, double mjd, string name);
+string data_name_path(string node, string location="", string agent="", double mjd=0., string name="");
 string data_resource_path(string name);
 bool data_exists(string& path);
 bool data_isdir(string path);
