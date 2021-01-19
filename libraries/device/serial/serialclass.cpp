@@ -706,23 +706,24 @@ namespace Cosmos {
 
     int32_t Serial::put_data(vector<uint8_t> data)
     {
-        if (fd < 0)
-        {
-            error = SERIAL_ERROR_OPEN;
-            return (error);
-        }
+        return put_data(data.data(), data.size());
+//        if (fd < 0)
+//        {
+//            error = SERIAL_ERROR_OPEN;
+//            return (error);
+//        }
 
-        int nbytes = write(fd, data.data(), data.size());
-        if (nbytes < 0)
-        {
-            error = -errno;
-            return error;
-        }
-        else
-        {
-            error = 0;
-            return nbytes;
-        }
+//        int nbytes = write(fd, data.data(), data.size());
+//        if (nbytes < 0)
+//        {
+//            error = -errno;
+//            return error;
+//        }
+//        else
+//        {
+//            error = 0;
+//            return nbytes;
+//        }
     }
 
     int32_t Serial::put_data(const uint8_t *data, size_t size)
@@ -733,17 +734,30 @@ namespace Cosmos {
             return (error);
         }
 
+//        ElapsedTime et;
+//        int32_t tbytes = 0;
+//        error = 0;
+//        double timeout = ictimeout * size;
+//        if (timeout > 5.)
+//        {
+//            timeout = 5.;
+//        }
+//        do
+//        {
+//        int nbytes = write(fd, &data[tbytes], size);
         int nbytes = write(fd, data, size);
-        if (nbytes < 0)
-        {
-            error = -errno;
-            return error;
-        }
-        else
-        {
-            error = 0;
-            return nbytes;
-        }
+            if (nbytes < 0)
+            {
+                error = -errno;
+                return error;
+            }
+            else {
+                error = 0;
+                return nbytes;
+            }
+//            tbytes += nbytes;
+//        } while (tbytes < size && et.split() < timeout);
+//        return tbytes;
     }
 
     int32_t Serial::put_slip(vector<uint8_t> data)
