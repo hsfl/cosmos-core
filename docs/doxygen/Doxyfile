@@ -790,6 +790,7 @@ INPUT += ../../libraries/
 
 INPUT += ../../programs/agents/
 INPUT += ../../programs/general/
+INPUT += ../../simulation/
 
 # these are not needed
 #INPUT += ../../programs/device_tests
@@ -844,7 +845,7 @@ FILE_PATTERNS          = *.c \
                          *.php5 \
                          *.phtml \
                          *.inc \
-                         *.m \
+#                         *.m \
                          *.markdown \
                          *.md \
                          *.mm \
@@ -876,6 +877,8 @@ RECURSIVE              = YES
 
 EXCLUDE                = ../../libraries/support/save/
 EXCLUDE                += ../../libraries/save/
+EXCLUDE								+= ../../simulation/Eigen/
+EXCLUDE								+= ../../simulation/unsupported/
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -1527,7 +1530,7 @@ FORMULA_TRANSPARENT    = YES
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-USE_MATHJAX            = NO
+USE_MATHJAX            = YES
 
 # When MathJax is enabled you can set the default output format to be used for
 # the MathJax output. See the MathJax site (see:
