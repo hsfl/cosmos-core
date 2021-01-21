@@ -1,17 +1,18 @@
 #ifndef __TEST_SPH_SIM
 #define __TEST_SPH_SIM
 
+#include <math.h>
+
 #include "../simulation/sph_sim.h"
 #include "gtest/gtest.h"
 
-TEST(sph_sim, ObviouslyTrue)   { EXPECT_EQ(0.0, 0.0); }
-
 // Kernel function
 TEST(sph_sim, kernel) {
-	double r = 1;
-	double h = 1;
-	int type = 1;
-	EXPECT_DOUBLE_EQ(kernel(r,h,type),1.0);
+	int type1 = 1;
+	int type2 = 2;
+	EXPECT_DOUBLE_EQ(kernel(1,2,type1),23/(256*M_PI));
+	EXPECT_DOUBLE_EQ(kernel(1,1,type1),1/(4*M_PI));
+
 }
 
 
