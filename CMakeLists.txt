@@ -330,6 +330,12 @@ if(${BUILD_PROGRAMS} MATCHES "YES")
 endif()
 
 # -----------------------------------------------
+# build simulation
+if(${BUILD_SIMULATION} MATCHES "YES")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/simulation)
+endif()
+
+# -----------------------------------------------
 # now that the libraries have been compiled let's add the cosmos-core programs
 if(${BUILD_TESTS} MATCHES "YES")
     add_subdirectory(${PROJECT_SOURCE_DIR}/programs/tests)
