@@ -3274,9 +3274,9 @@ struct bcregstruc  {
 //! of a larger piece.
 struct trianglestruc
 {
-	//! External facing?
-	bool external = true;
-	//! center of mass
+    //! External facing sides
+    uint8_t external = 1;
+    //! center of mass
 	Vector com;
 	//! outward facing normal
 	Vector normal;
@@ -3291,11 +3291,15 @@ struct trianglestruc
 	float heat = 0.f;
 	//! Heat Capacity in Joules / (Kg Kelvin)
 	float hcap = 900.f;
-	//! Emissivity: 0-1
-	float emi = .9f;
-	//! Absorptivity: 0-1
-	float abs = .9f;
-	//! mass in Kg
+    //! Emissivity: 0-1
+    float emi = .88f;
+    //! Absorptivity: 0-1
+    float abs = .18f;
+    //! Internal Emissivity: 0-1
+    float iemi = .88f;
+    //! Internal Absorptivity: 0-1
+    float iabs = .88f;
+    //! mass in Kg
 	float mass = 1.f;
 	//! Temperature in Kelvin
 	float temp = 0.f;
@@ -3313,7 +3317,15 @@ struct trianglestruc
 	float ecellbase = .25f;
 	//! Solar cell efficiency with temp
 	float ecellslope = 0.f;
-	vector<vector<uint16_t>> triangleindex;
+    //! Nominal voltage of Solar cell
+    float vcell = 10.;
+    //! Power generated in watts
+    float power = 0.f;
+    //! Voltage generated in volts
+    float volt = 0.f;
+    //! Current generated in amps
+    float amp = 0.f;
+    vector<vector<uint16_t>> triangleindex;
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
@@ -3411,6 +3423,7 @@ struct physicsstruc
 	float mass = 1.f;
 	float temp = 300.f;
 	float heat = 300. * 900. * 1.;
+    float radiation;
 	float area = .001f;
 	float battcap = 36000.f;
 	float battlev = 0.f;
