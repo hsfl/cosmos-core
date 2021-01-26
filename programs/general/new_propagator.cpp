@@ -33,6 +33,9 @@
 
 int main(int argc, char *argv[])
 {
+    double initialutc;
+    double dp = 60.;
+    double endp = 86400.;
     int32_t iretn = 0;
     gj_handle gjh;
 //    physicsstruc gphys;
@@ -40,24 +43,28 @@ int main(int argc, char *argv[])
 //    int32_t iretn;
     vector<tlestruc>lines;
 
-//    Physics::State *state;
-    Physics::GaussJacksonPositionPropagator *posprop;
-    Physics::LVLHAttitudePropagator *attprop;
-    Physics::ThermalPropagator *thermprop;
-    Physics::ElectricalPropagator *elecprop;
+    Physics::State *state;
+//    Physics::GaussJacksonPositionPropagator *posprop;
+//    Physics::LVLHAttitudePropagator *attprop;
+//    Physics::ThermalPropagator *thermprop;
+//    Physics::ElectricalPropagator *elecprop;
     locstruc loc;
     physicsstruc phys;
 
-    posprop = new Physics::GaussJacksonPositionPropagator(&loc, &phys, 10., 6);
-//    posprop->Setup(6);
-    attprop = new Physics::LVLHAttitudePropagator(&loc, &phys, 10.);
-    thermprop = new Physics::ThermalPropagator(&loc, &phys, 10., 300.);
-    elecprop = new Physics::ElectricalPropagator(&loc, &phys, 10., 40.);
+    state = new Physics::State();
+//    posprop = new Physics::GaussJacksonPositionPropagator(&loc, &phys, 1., 6);
+//    attprop = new Physics::LVLHAttitudePropagator(&loc, &phys, 1.);
+//    thermprop = new Physics::ThermalPropagator(&loc, &phys, 1., 300.);
+//    elecprop = new Physics::ElectricalPropagator(&loc, &phys, 1., 40.);
 
     loc_clear(loc);
     loc.utc = currentmjd();
     switch (argc)
     {
+    case 5:
+        endp = atof(argv[4]);
+    case 4:
+        dp = atof(argv[3]);
     case 3:
         loc.utc = atof(argv[2]);
     case 2:
@@ -66,7 +73,7 @@ int main(int argc, char *argv[])
             if (fname.find(".tle") != string::npos)
             {
                 iretn = load_lines(fname, lines);
-                posprop->Init(lines);
+                state->Init(Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, &loc, &phys, dp/10., lines);
             }
         }
         break;
@@ -80,25 +87,28 @@ int main(int argc, char *argv[])
         loc.pos.eci.v.col[2] = atof(argv[7]);
         loc.pos.eci.utc = loc.utc;
         ++loc.pos.eci.pass;
-        posprop->Init();
+        state->Init(Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, &loc, &phys, dp/10., lines);
     }
 
-    locstruc cloc = loc;
-    for (uint16_t hour=0; hour<24; ++hour)
+//    locstruc cloc = loc;
+    initialutc = loc.utc;
+    for (double second=0.; second<endp; ++second)
     {
-        for (uint16_t minute=0; minute<60; ++minute)
+        state->Increment(initialutc + second / 86400.);
+//        posprop->Propagate();
+//        attprop->Propagate();
+//        thermprop->Propagate();
+//        elecprop->Propagate();
+        if (second == dp*static_cast<int32_t>(second/(dp)))
         {
-            printf("%s %10f %10f %10f %7f %7f %7f\n", mjd2iso8601(loc.utc).c_str(),DEGOF(loc.pos.geod.s.lat), DEGOF(loc.pos.geod.s.lon), loc.pos.geod.s.h, DEGOF(loc.pos.geod.v.lat), DEGOF(loc.pos.geod.v.lon), loc.pos.geod.v.h);
+            printf("%s %10f %10f %10f %7f %7f %7f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n"
+                   , mjd2iso8601(loc.utc).c_str(),DEGOF(loc.pos.geod.s.lat), DEGOF(loc.pos.geod.s.lon)
+                   , loc.pos.geod.s.h, DEGOF(loc.pos.geod.v.lat), DEGOF(loc.pos.geod.v.lon), loc.pos.geod.v.h
+                   , loc.pos.eci.s.col[0], loc.pos.eci.s.col[1], loc.pos.eci.s.col[2]
+                    , loc.pos.eci.v.col[0], loc.pos.eci.v.col[1], loc.pos.eci.v.col[2]
+                    , loc.pos.eci.a.col[0], loc.pos.eci.a.col[1], loc.pos.eci.a.col[2]
+                    , phys.temp);
             fflush(stdout);
-            cloc = loc;
-            for (uint16_t i=0; i<6; ++i)
-            {
-                posprop->Propagate();
-                attprop->Propagate();
-                thermprop->Propagate();
-                elecprop->Propagate();
-            }
-
         }
     }
 	return iretn;
