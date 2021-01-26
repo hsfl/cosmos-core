@@ -30,6 +30,8 @@ namespace Cosmos {
                 int32_t write(Value val);
                 int32_t read();
                 int32_t geterror();
+                bool isopen();
+                string getpath();
 
 
             private:

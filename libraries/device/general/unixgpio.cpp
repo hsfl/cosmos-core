@@ -4,8 +4,15 @@
 namespace Cosmos {
     namespace Devices {
         namespace General {
+            //! Establish GPIO by pin number, with alternate name
+            //! Exports GPIO pin number. Some implementations use an alternate name, instead
+            //! of gpiopin#. If provided name is not empty, it will be used instead.
+            //! \param dir IN or OUT
+            //! \param pin Pin number as string
+            //! \param name Alternate name to use instead of gpioppp (where ppp is pin number)
             UnixGpio::UnixGpio(UnixGpio::Direction dir, string pin, string name)
             {
+                int32_t iretn;
                 if (name.empty())
                 {
                     name = "gpio"+pin;
@@ -22,12 +29,14 @@ namespace Cosmos {
                     }
                     fs << pin;
                     fs.close();
+                    path = "/sys/class/gpio/" + name + "/";
                 }
+                open = true;
                 direction = dir;
-                setDirection(dir);
-                if (!data_isfile(path))
+                iretn = setDirection(dir);
+                if (iretn < 0)
                 {
-                    error = GENERAL_ERROR_OUTOFRANGE;
+                    error = iretn;
                     open = false;
                     return;
                 }
@@ -119,7 +128,20 @@ namespace Cosmos {
                 }
             }
 
+            int32_t UnixGpio::geterror()
+            {
+                return error;
+            }
 
+            bool UnixGpio::isopen()
+            {
+                return  open;
+            }
+
+            string UnixGpio::getpath()
+            {
+                return path;
+            }
 
         }
     }
