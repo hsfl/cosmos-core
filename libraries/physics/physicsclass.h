@@ -46,7 +46,35 @@ namespace Cosmos
         class Structure
         {
         public:
-            physicsstruc *phys;
+            physicsstruc *newphys;
+
+            enum Type
+                {
+                U1,
+                U1X,
+                U1Y,
+                U1XY,
+                U1_5,
+                U1_5X,
+                U1_5Y,
+                U1_5XY,
+                U2,
+                U2X,
+                U2Y,
+                U2XY,
+                U3,
+                U3X,
+                U3Y,
+                U3XY,
+                U6,
+                U6X,
+                U6Y,
+                U6XY,
+                U12,
+                U12X,
+                U12Y,
+                U12XY
+                };
 
             enum ExternalPanelType
                 {
@@ -56,18 +84,21 @@ namespace Cosmos
                 XY
                 };
 
-            Structure(physicsstruc *physp) : phys{physp}
+            Structure(physicsstruc *physp) : newphys{physp}
             {
 
             }
 
-            int32_t Setup(uint16_t type);
+            int32_t Setup(Type type);
             int32_t add_u(double x, double y, double z, ExternalPanelType type);
             int32_t add_cuboid(string name, Vector size, double depth, Quaternion orientation, Vector offset);
-            int32_t add_face(string name, Vector point0, Vector point1, Vector point2, Vector point3, double depth, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector(), bool external=true, float pcell=.85);
+            int32_t add_face(string name, Vector point0, Vector point1, Vector point2, Vector point3, double depth, uint8_t external=1, float pcell=.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector());
             int32_t add_face(string name, Vector size, Quaternion orientation, Vector offset);
             int32_t add_triangle(Vector pointa, Vector pointb, Vector pointc, double depth, bool external=true, float pcell=.85);
             int32_t add_vertex(Vector point);
+
+        private:
+            Type type;
 
         };
 
@@ -76,9 +107,9 @@ namespace Cosmos
         public:
             double dt;
             double dtj;
-            locstruc *oldloc;
+            locstruc oldloc;
             locstruc *newloc;
-            physicsstruc *oldphys;
+            physicsstruc oldphys;
             physicsstruc *newphys;
 
             enum Type
@@ -232,8 +263,15 @@ namespace Cosmos
                 : Propagator{ locp, physp, idt }, temperature{itemperature}
             {
                 type = AttitudeLVLH;
+                newphys->temp = temperature;
+                newphys->heat = newphys->temp * (newphys->mass * newphys->hcap);
+                newphys->radiation = SIGMA * pow(temperature, 4.);
+                for (trianglestruc& triangle : newphys->triangles)
+                {
+                    triangle.temp = temperature;
+                    triangle.heat = triangle.temp * (triangle.mass * triangle.hcap);
+                }
             }
-
             int32_t Init(float temp);
             int32_t Propagate();
 
@@ -258,19 +296,35 @@ namespace Cosmos
         class State
         {
         public:
-            locstruc *oldloc;
+            locstruc oldloc;
             locstruc *newloc;
-            physicsstruc *oldphys;
+            physicsstruc oldphys;
             physicsstruc *newphys;
             double dt;
             double dtj;
-            Propagator *position;
-            Propagator *attitude;
-            Propagator *thermal;
-            Propagator *electrical;
+            Propagator::Type ptype;
+            InertialPositionPropagator *inposition;
+            IterativePositionPropagator *itposition;
+            GaussJacksonPositionPropagator *gjposition;
+
+            Propagator::Type atype;
+            InertialAttitudePropagator *inattitude;
+            IterativeAttitudePropagator *itattitude;
+            LVLHAttitudePropagator *lvattitude;
+
+            Propagator::Type ttype;
+            ThermalPropagator *thermal;
+
+            Propagator::Type etype;
+            ElectricalPropagator *electrical;
+            vector<tlestruc> tle;
+
+            Structure::Type stype;
+            Structure *structure;
 
             State();
             int32_t Init(Propagator *posprop, Propagator *attprop, Propagator *thermprop, Propagator *elecprop);
+            int32_t Init(Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc *loc, physicsstruc *phys, double idt, vector<tlestruc> lines);
             int32_t Increment(double nextutc);
         };
 
@@ -280,8 +334,10 @@ namespace Cosmos
         int32_t GravityParams(int16_t model);
         double Nplgndr(uint32_t l, uint32_t m, double x);
 
-        int32_t PosAccel(locstruc &loc, physicsstruc &physics);
-        int32_t AttAccel(locstruc &loc, physicsstruc &physics);
+        int32_t PosAccel(locstruc* loc, physicsstruc* physics);
+        int32_t AttAccel(locstruc* loc, physicsstruc* physics);
+        int32_t PhysSetup(physicsstruc *phys);
+        int32_t PhysCalc(locstruc* loc, physicsstruc *phys);
 
 
     } //end of namespace Physics
