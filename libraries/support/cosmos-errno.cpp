@@ -662,6 +662,9 @@ string cosmos_error_string(int32_t cosmos_errno)
         case GENERAL_ERROR_ERROR:
             error_string = "General Error";
             break;
+        case GENERAL_ERROR_NOTREADY:
+            error_string = "Not Ready";
+            break;
         default:
             char tval[30];
             sprintf(tval,"Undefined Value %d", cosmos_errno);
