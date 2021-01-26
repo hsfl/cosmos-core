@@ -695,7 +695,7 @@ TEST(cosmosstruc, add_default_names) {
 	EXPECT_EQ(c->get_pointer<vector<trianglestruc>>("node.phys.triangles"), &c->node.phys.triangles);
 	for(size_t i = 0; i < c->node.phys.triangles.capacity(); ++i) {
 		EXPECT_EQ(c->get_pointer<trianglestruc>("node.phys.triangles[" + std::to_string(i) + "]"), &c->node.phys.triangles[i]);
-		EXPECT_EQ(c->get_pointer<bool>("node.phys.triangles[" + std::to_string(i) + "].external"), &c->node.phys.triangles[i].external);
+        EXPECT_EQ(c->get_pointer<uint8_t>("node.phys.triangles[" + std::to_string(i) + "].external"), &c->node.phys.triangles[i].external);
 		EXPECT_EQ(c->get_pointer<Vector>("node.phys.triangles[" + std::to_string(i) + "].com"), &c->node.phys.triangles[i].com);
 		EXPECT_EQ(c->get_pointer<double>("node.phys.triangles[" + std::to_string(i) + "].com.x"), &c->node.phys.triangles[i].com.x);
 		EXPECT_EQ(c->get_pointer<double>("node.phys.triangles[" + std::to_string(i) + "].com.y"), &c->node.phys.triangles[i].com.y);
