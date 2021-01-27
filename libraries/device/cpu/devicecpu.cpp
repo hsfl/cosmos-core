@@ -1042,7 +1042,7 @@ int32_t DeviceCpuLinux::getUptime()
         //    if ((fgets(tdata, 100, fp)) == tdata)
     {
         calstruc cal;
-        if (sscanf(tdata.c_str(), "%u-%u-%u %u:%u:%u\n", &cal.year, &cal.month, &cal.dom, &cal.hour, &cal.minute, &cal.second) == 6)
+        if (sscanf(tdata.c_str(), "%d-%d-%d %d:%d:%d\n", &cal.year, &cal.month, &cal.dom, &cal.hour, &cal.minute, &cal.second) == 6)
         {
             uptime = 86400. * (currentmjd() - cal2mjd(cal));
         }

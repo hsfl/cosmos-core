@@ -1732,16 +1732,16 @@ void debug_packet(vector<PACKET_BYTE> buf, uint8_t direction, string type, int32
             {
                 if (!node_name.empty())
                 {
-                    fprintf(agent->get_debug_fd(), "%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %u ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                    fprintf(agent->get_debug_fd(), "%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
                 }
                 else
                 {
-                    fprintf(agent->get_debug_fd(), "%.4f %.4f RECV L %u R %u Unknown %s [%s] In: %u Out: %u Size: %u ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                    fprintf(agent->get_debug_fd(), "%.4f %.4f RECV L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
                 }
             }
             else
             {
-                fprintf(agent->get_debug_fd(), "%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %u ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                fprintf(agent->get_debug_fd(), "%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
             }
         }
         else if (direction == PACKET_OUT)
@@ -1750,16 +1750,16 @@ void debug_packet(vector<PACKET_BYTE> buf, uint8_t direction, string type, int32
             {
                 if (!node_name.empty())
                 {
-                    fprintf(agent->get_debug_fd(), "%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %u ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                    fprintf(agent->get_debug_fd(), "%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
                 }
                 else
                 {
-                    fprintf(agent->get_debug_fd(), "%.4f %.4f SEND L %u R %u Unknown %s [%s] In: %u Out: %u Size: %u ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                    fprintf(agent->get_debug_fd(), "%.4f %.4f SEND L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
                 }
             }
             else
             {
-                fprintf(agent->get_debug_fd(), "%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %u ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                fprintf(agent->get_debug_fd(), "%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
             }
         }
 
