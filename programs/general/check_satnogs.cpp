@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
                 targetstruc aos;
                 targetstruc tca;
                 targetstruc los;
-                double startutc;
+                //double startutc;
                 bool visible = false;
                 bool peaked = false;
                 float highest = -RADOF(90.);
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
                         {
                             aos = target;
                             highest = 0.;
-                            startutc = utcnow;
+                            //startutc = utcnow;
                             visible = true;
                             peaked = false;
                         }

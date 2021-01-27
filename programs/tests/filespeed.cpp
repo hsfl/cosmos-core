@@ -8,7 +8,7 @@
 
 char buffer[70000000];
 struct timeval tp;
-size_t size;
+ssize_t size;
 long start_s, start_u, diff_u;
 long i, j;
 int inb;

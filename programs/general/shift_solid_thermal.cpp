@@ -35,8 +35,6 @@
 
 int main(int argc, char *argv[])
 {
-    int32_t iretn = 0;
-
     string filename = argv[1];
     double deltat = atof(argv[2])/86400.;
 
