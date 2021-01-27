@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
                             loc.pos.icrf.s = agent->cinfo->node.loc.pos.icrf.s;
                             loc.pos.utc = agent->cinfo->node.loc.utc;
                             pos_eci(&loc);
-                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n", agent->cinfo->node.loc.utc,dmjd, agent->cinfo->node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h, agent->cinfo->node.powgen, agent->cinfo->node.powuse, agent->cinfo->node.battlev);
+                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n", agent->cinfo->node.loc.utc,dmjd, agent->cinfo->node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h, agent->cinfo->node.phys.powgen, agent->cinfo->node.phys.powuse, agent->cinfo->node.phys.battlev);
                             lmjd = agent->cinfo->node.loc.utc;
                         }
                     }
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
         else if (!strcmp(argv[1],"list"))
         {
             std::vector<beatstruc> cbeat;
-            cbeat = agent->find_servers(SERVER_WAIT_TIME);
+            cbeat = agent->find_agents(SERVER_WAIT_TIME);
 
             if (cbeat.size() > 0)
             {
@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
         //      if (is_node(nl,argv[1]))
         //      {
         //          std::vector<beatstruc> cbeat;
-        //          cbeat = agent->find_servers(SERVER_WAIT_TIME);
+        //          cbeat = agent->find_agents(SERVER_WAIT_TIME);
 
         //          printf("\n    List of available agents:\n\n");
 
@@ -361,7 +361,7 @@ int main(int argc, char *argv[])
                             loc.pos.icrf.s = agent->cinfo->node.loc.pos.icrf.s;
                             loc.pos.utc = agent->cinfo->node.loc.utc;
                             pos_eci(&loc);
-                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n", agent->cinfo->node.loc.utc,dmjd, agent->cinfo->node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h, agent->cinfo->node.powgen, agent->cinfo->node.powuse, agent->cinfo->node.battlev);
+                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n", agent->cinfo->node.loc.utc,dmjd, agent->cinfo->node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h, agent->cinfo->node.phys.powgen, agent->cinfo->node.phys.powuse, agent->cinfo->node.phys.battlev);
                             lmjd = agent->cinfo->node.loc.utc;
                         }
                     }
@@ -388,7 +388,7 @@ int main(int argc, char *argv[])
         {
         nl.clear();
 
-        if ((nbytes = agent->get_server(argv[1],argv[2],SERVER_WAIT_TIME,&cbeat)) > 0)
+        if ((nbytes = agent->get_agent(argv[1], argv[2], SERVER_WAIT_TIME, cbeat)) > 0)
         {
             if(argc == 3)
             {

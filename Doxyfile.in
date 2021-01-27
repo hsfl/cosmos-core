@@ -51,7 +51,7 @@ PROJECT_BRIEF          = "Comprehensive Open-architecture Solution for Mission O
 # pixels and the maximum width should not exceed 200 pixels. Doxygen will copy
 # the logo to the output directory.
 
-PROJECT_LOGO           = logo80.png
+PROJECT_LOGO           = ../../logo80.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) path
 # into which the generated documentation will be written. If a relative path is

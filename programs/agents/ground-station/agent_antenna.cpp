@@ -78,8 +78,6 @@ List of available requests:
                 return description JSON for Ports
         targetsjson
                 return description JSON for Targets
-        aliasesjson
-                return description JSON for Aliases
         track_azel track_azel
                 Supply next azimuth and elevation for tracking.
         debug debug
@@ -144,8 +142,12 @@ int32_t request_disable(string &req, string &response, Agent *);
 int32_t request_stop(string &req, string &response, Agent *);
 int32_t request_pause(string &req, string &response, Agent *);
 int32_t request_set_offset(string &req, string &response, Agent *);
+int32_t request_set_rotctl(string &req, string &response, Agent *);
+int32_t request_get_rotctl(string &req, string &response, Agent *);
 
 int32_t connect_antenna();
+int32_t stop_antenna();
+void rotctl_loop();
 
 static float gsmin = RADOF(10.);
 //char tlename[20];
@@ -160,6 +162,10 @@ static antstruc current;
 static bool antconnected = false;
 static bool antenabled = false;
 static bool debug;
+static uint16_t targetrotctlport = 0;
+static uint16_t rotctlport = 0;
+static socket_channel rotctlchannel;
+static thread rthread;
 
 // Here are internally provided functions
 //int json_init();
@@ -200,14 +206,14 @@ int main(int argc, char *argv[])
         exit (1);
     }
 
-    if (nodename.empty())
-    {
-        agent = new Agent("", (antbase+"antenna").c_str(), 5.);
-    }
-    else
-    {
-        agent = new Agent(nodename, (antbase+"antenna").c_str(), 5.);
-    }
+    //    if (nodename.empty())
+    //    {
+    //        agent = new Agent("", (antbase+"antenna").c_str(), 5.);
+    //    }
+    //    else
+    //    {
+    agent = new Agent(nodename, (antbase).c_str(), 5.);
+    //    }
 
     if ((iretn = agent->wait()) < 0)
     {
@@ -218,8 +224,9 @@ int main(int argc, char *argv[])
     {
         fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
+    nodename = agent->nodeName;
 
-    iretn = json_createpiece(agent->cinfo, antbase.c_str(), DeviceType::ANT);
+    iretn = json_createpiece(agent->cinfo, antbase, DeviceType::ANT);
     if (iretn < 0)
     {
         fprintf(agent->get_debug_fd(), "Failed to add %s ANT %s\n", antbase.c_str(), cosmos_error_string(iretn).c_str());
@@ -227,19 +234,19 @@ int main(int argc, char *argv[])
         exit(iretn);
     }
     devindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-    antindex = agent->cinfo->device[devindex].ant.didx;
-    agent->cinfo->device[devindex].ant.minelev = RADOF(10.);
+    antindex = agent->cinfo->device[devindex].didx;
+    agent->cinfo->device[devindex].ant.minelev = RADOF(5.);
     if (antbase == "sband")
     {
-        agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_PRKX2SU;
+        agent->cinfo->device[devindex].model = DEVICE_MODEL_PRKX2SU;
     }
-    else if (antbase == "yagi")
+    else if (antbase.find("loop") != string::npos)
     {
-        agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_GS232B;
+        agent->cinfo->device[devindex].model = DEVICE_MODEL_LOOPBACK;
     }
     else
     {
-        agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_LOOPBACK;
+        agent->cinfo->device[devindex].model = DEVICE_MODEL_GS232B;
     }
 
     iretn = json_dump_node(agent->cinfo);
@@ -251,31 +258,35 @@ int main(int argc, char *argv[])
     }
 
     // Add requests
-    if ((iretn=agent->add_request("track_azel",request_track_azel,"track_azel", "Supply next azimuth and elevation for tracking.")))
+    if ((iretn=agent->add_request("track_azel",request_track_azel,"", "Supply next azimuth and elevation for tracking.")))
         exit (iretn);
-    if ((iretn=agent->add_request("debug",request_debug,"debug", "Toggle debug messages.")))
+    if ((iretn=agent->add_request("debug",request_debug,"", "Toggle debug messages.")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_offset",request_get_offset,"get_offset", "Return a report on the offset of the agent.")))
+    if ((iretn=agent->add_request("get_offset",request_get_offset,"", "Return a report on the offset of the agent.")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_state",request_get_state,"get_state", "Return a report on the state of the agent.")))
+    if ((iretn=agent->add_request("get_state",request_get_state,"", "Return a report on the state of the agent.")))
         exit (iretn);
-    if ((iretn=agent->add_request("jog",request_jog,"jog {degrees aziumth} {degrees elevation}", "Jog the antenna azimuth and elevation in degrees.")))
+    if ((iretn=agent->add_request("jog",request_jog,"{degrees aziumth} {degrees elevation}", "Jog the antenna azimuth and elevation in degrees.")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_horizon",request_get_horizon,"get_horizon", "Return the antennas minimu elevation in degrees.")))
+    if ((iretn=agent->add_request("get_horizon",request_get_horizon,"", "Return the antennas minimu elevation in degrees.")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_azel",request_get_azel,"get_azel", "Return the antenna azimuth and elevation in degrees.")))
+    if ((iretn=agent->add_request("get_azel",request_get_azel,"", "Return the antenna azimuth and elevation in degrees.")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_azel",request_set_azel,"set_azel aaa.a eee.e", "Set the antenna azimuth and elevation in degrees.")))
+    if ((iretn=agent->add_request("set_azel",request_set_azel,"aaa.a eee.e", "Set the antenna azimuth and elevation in degrees.")))
         exit (iretn);
-    if ((iretn=agent->add_request("enable",request_enable,"enable", "Enable antenna motion.")))
+    if ((iretn=agent->add_request("enable",request_enable,"", "Enable antenna motion.")))
         exit (iretn);
-    if ((iretn=agent->add_request("disable",request_disable,"disable", "Disable antenna motion.")))
+    if ((iretn=agent->add_request("disable",request_disable,"", "Disable antenna motion.")))
         exit (iretn);
-    if ((iretn=agent->add_request("pause",request_pause,"pause", "Stop where you are and make it your new target.")))
+    if ((iretn=agent->add_request("pause",request_pause,"", "Stop where you are and make it your new target.")))
         exit (iretn);
-    if ((iretn=agent->add_request("stop",request_stop,"stop", "Stop where you are, make it your new target AND disable antenna motion.")))
+    if ((iretn=agent->add_request("stop",request_stop,"", "Stop where you are, make it your new target AND disable antenna motion.")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_offset",request_set_offset,"set_offset aaa.a eee.e", "Set the antenna azimuth and elevation correction in degrees.")))
+    if ((iretn=agent->add_request("set_offset",request_set_offset,"aaa.a eee.e", "Set the antenna azimuth and elevation correction in degrees.")))
+        exit (iretn);
+    if ((iretn=agent->add_request("set_rotctl",request_set_rotctl,"[n]", "Set the rotctl port number. No argument sets it to the default of 4533. Zero turns it off.")))
+        exit (iretn);
+    if ((iretn=agent->add_request("get_rotctl",request_get_rotctl,"", "Return the current rotctl port number.")))
         exit (iretn);
 
     // Set SOH string
@@ -283,17 +294,17 @@ int main(int argc, char *argv[])
     sprintf(sohstring, "{\"device_ant_temp_%03lu\",\"device_ant_align_%03lu\",\"device_ant_azim_%03lu\",\"device_ant_elev_%03lu\"}", antindex, antindex, antindex, antindex);
     agent->set_sohstring(sohstring);
 
-//    antdevice = agent->cinfo->port[agent->cinfo->device[devindex].all.portidx].name;
+    //    antdevice = agent->cinfo->port[agent->cinfo->device[devindex].all.portidx].name;
     antdevice = "/dev/tty_" + antbase;
 
     // Connect to antenna and set sensitivity;
-    if (agent->cinfo->device[devindex].all.model == DEVICE_MODEL_PRKX2SU)
+    if (agent->cinfo->device[devindex].model == DEVICE_MODEL_PRKX2SU)
     {
         iretn = prkx2su_init(antdevice);
     }
 
     iretn = connect_antenna();
-    switch (agent->cinfo->device[devindex].all.model)
+    switch (agent->cinfo->device[devindex].model)
     {
     case DEVICE_MODEL_GS232B:
         gs232b_set_sensitivity(RADOF(1.));
@@ -303,24 +314,42 @@ int main(int argc, char *argv[])
         break;
     }
 
+    // Restore default offsets
+    string offsetname = get_nodedir(nodename) + '/' + antbase + ".offset";
+    FILE *op = fopen(offsetname.c_str(), "r");
+    if (op)
+    {
+        fscanf(op, "%f %f", &antennaoffset.az, &antennaoffset.el);
+        antennaoffset.az = RADOF(antennaoffset.az);
+        antennaoffset.el = RADOF(antennaoffset.el);
+    }
+
+    rthread = thread([=] { rotctl_loop(); });
+
     ElapsedTime et;
 
     // Start performing the body of the agent
+    agent->cinfo->agent[0].aprd = .5;
+    agent->start_active_loop();
     while(agent->running())
     {
         if (antconnected)
         {
             // Find most recent position
-            switch (agent->cinfo->device[devindex].all.model)
+            switch (agent->cinfo->device[devindex].model)
             {
             case DEVICE_MODEL_LOOPBACK:
                 iretn = 0;
                 break;
             case DEVICE_MODEL_GS232B:
                 iretn = gs232b_get_az_el(current.azim, current.elev);
+                current.azim -= antennaoffset.az;
+                current.elev -= antennaoffset.el;
                 break;
             case DEVICE_MODEL_PRKX2SU:
                 iretn = prkx2su_get_az_el(current.azim, current.elev);
+                current.azim -= antennaoffset.az;
+                current.elev -= antennaoffset.el;
                 break;
             }
             if (iretn < 0)
@@ -329,8 +358,8 @@ int main(int argc, char *argv[])
             }
             else
             {
-                agent->cinfo->device[devindex].ant.azim = current.azim -  antennaoffset.az;
-                agent->cinfo->device[devindex].ant.elev = current.elev -  antennaoffset.el;
+                agent->cinfo->device[devindex].ant.azim = current.azim;
+                agent->cinfo->device[devindex].ant.elev = current.elev;
                 if (antenabled)
                 {
                     if (trackflag)
@@ -351,7 +380,12 @@ int main(int argc, char *argv[])
                         current.azim = target.azim;
                         current.elev = target.elev;
                     }
-                    switch (agent->cinfo->device[devindex].all.model)
+
+                    if (current.elev < agent->cinfo->device[devindex].ant.minelev)
+                    {
+                        current.elev = agent->cinfo->device[devindex].ant.minelev;
+                    }
+                    switch (agent->cinfo->device[devindex].model)
                     {
                     case DEVICE_MODEL_GS232B:
                         iretn = gs232b_goto(current.azim + antennaoffset.az, current.elev + antennaoffset.el);
@@ -370,7 +404,7 @@ int main(int argc, char *argv[])
                     }
                 }
             }
-            COSMOS_SLEEP(.1);
+            //            COSMOS_SLEEP(.1);
         }
         else
         {
@@ -379,8 +413,9 @@ int main(int argc, char *argv[])
                 printf("%f: Connect Antenna\n", et.lap());
             }
             connect_antenna();
-            COSMOS_SLEEP(.1);
+            //            COSMOS_SLEEP(.1);
         }
+        agent->finish_active_loop();
     }
 
     agent->shutdown();
@@ -407,16 +442,17 @@ int32_t request_stop(string &req, string &response, Agent *)
 
     target = agent->cinfo->device[devindex].ant;
     antenabled = false;
-    switch (agent->cinfo->device[devindex].all.model)
-    {
-    case DEVICE_MODEL_GS232B:
-        gs232b_stop();
-        break;
-    case DEVICE_MODEL_PRKX2SU:
-        prkx2su_stop(PRKX2SU_AXIS_AZ);
-        prkx2su_stop(PRKX2SU_AXIS_EL);
-        break;
-    }
+    stop_antenna();
+    //    switch (agent->cinfo->device[devindex].all.model)
+    //    {
+    //    case DEVICE_MODEL_GS232B:
+    //        gs232b_stop();
+    //        break;
+    //    case DEVICE_MODEL_PRKX2SU:
+    //        prkx2su_stop(PRKX2SU_AXIS_AZ);
+    //        prkx2su_stop(PRKX2SU_AXIS_EL);
+    //        break;
+    //    }
 
     return 0;
 }
@@ -444,7 +480,7 @@ int32_t request_get_offset(string &req, string &response, Agent *)
 {
     float az = antennaoffset.az;
     float el = antennaoffset.el;
-    response = to_angle(az) + ' ' + to_angle(el);
+    response = to_angle(az, 'D') + ' ' + to_angle(el, 'D');
     return (0);
 }
 
@@ -462,9 +498,9 @@ int32_t request_set_azel(string &req, string &response, Agent *)
 
 int32_t request_get_azel(string &req, string &response, Agent *)
 {
-    double az = agent->cinfo->device[devindex].ant.azim;
-    double el = agent->cinfo->device[devindex].ant.elev;
-    response = to_angle(az) + ' ' + to_angle(el);
+    //    double az = agent->cinfo->device[devindex].ant.azim;
+    //    double el = agent->cinfo->device[devindex].ant.elev;
+    response = to_angle(current.azim, 'D') + ' ' + to_angle(current.elev, 'D');
     return (0);
 }
 
@@ -492,7 +528,30 @@ int32_t request_enable(string &req, string &response, Agent *)
 int32_t request_disable(string &req, string &response, Agent *)
 {
     antenabled = false;
+    stop_antenna();
     return 0;
+}
+
+int32_t request_set_rotctl(string &req, string &response, Agent *)
+{
+    //uint16_t newport;
+
+    vector<string> args = string_split(req, " ");
+    if (args.size() > 1)
+    {
+        targetrotctlport = stoi(args[1]);
+    }
+    else {
+        targetrotctlport = 4533;
+    }
+
+    return (0);
+}
+
+int32_t request_get_rotctl(string &req, string &response, Agent *)
+{
+    response = to_unsigned(rotctlport);
+    return (0);
 }
 
 int32_t connect_antenna()
@@ -500,7 +559,7 @@ int32_t connect_antenna()
     int32_t iretn;
     antconnected = false;
 
-    switch (agent->cinfo->device[devindex].all.model)
+    switch (agent->cinfo->device[devindex].model)
     {
     case DEVICE_MODEL_LOOPBACK:
         antconnected = true;
@@ -541,6 +600,22 @@ int32_t connect_antenna()
 
 }
 
+int32_t stop_antenna()
+{
+    switch (agent->cinfo->device[devindex].all.model)
+    {
+    case DEVICE_MODEL_GS232B:
+        gs232b_stop();
+        break;
+    case DEVICE_MODEL_PRKX2SU:
+        prkx2su_stop(PRKX2SU_AXIS_AZ);
+        prkx2su_stop(PRKX2SU_AXIS_EL);
+        break;
+    }
+
+    return 0;
+}
+
 int32_t request_debug(string &req, string &response, Agent *)
 {
     if (debug)
@@ -566,4 +641,289 @@ int32_t request_track_azel(string &req, string &response, Agent *)
     trackel.update(utc, RADOF(el));
     trackflag = true;
     return 0;
+}
+
+void rotctl_loop()
+{
+    int32_t iretn;
+    string command;
+    uint16_t direction;
+    uint16_t speed;
+    float az;
+    float el;
+    double utc = 0;
+    socket_channel clientchannel;
+    clientchannel.cudp = -1;
+    ElapsedTime et;
+
+    while (agent->running())
+    {
+        if (targetrotctlport != rotctlport)
+        {
+            if (rotctlport)
+            {
+                // Shut down active rotctl support if it is running
+                if (clientchannel.cudp)
+                {
+                    // Disconnect
+                    iretn = socket_close(&clientchannel);
+                }
+                socket_close(rotctlchannel);
+                rotctlport = 0;
+            }
+
+            if (targetrotctlport)
+            {
+                // Establish new rotctl support if port is not zero
+                iretn  = socket_open(&rotctlchannel, NetworkType::TCP, "", targetrotctlport, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000);
+                if (iretn < 0)
+                {
+                    fprintf(agent->get_debug_fd(), "Error creating rotctl channel: %s\n", cosmos_error_string(iretn).c_str());
+                }
+                else {
+                    rotctlport = targetrotctlport;
+                }
+            }
+        }
+
+        if (rotctlchannel.cudp >= 0)
+        {
+            if (clientchannel.cudp < 0)
+            {
+                do
+                {
+                    iretn = socket_accept(rotctlchannel, clientchannel);
+                    if (iretn < 0 && (-iretn != EWOULDBLOCK || -iretn != EAGAIN))
+                    {
+                        return;
+                    }
+                } while (iretn < 0);
+                et.reset();
+            }
+
+            iretn = socket_recvfrom(clientchannel, command, 100);
+            if (iretn > 0)
+            {
+                printf("[%f] In: %s", et.split(), command.c_str());
+                switch (command[0])
+                {
+                case '\\':
+                    if (command.find("dump_state") != string::npos)
+                    {
+                        socket_sendto(clientchannel, "0\n603\n0.000000\n450.000000\n0.000000\n180.000000\n");
+                        printf("Out: 0 603 0.000000 450.000000 0.000000 180.000000\n");
+                    }
+                break;
+                case 'q':
+                case 'Q':
+                    // Disconnect
+                    socket_sendto(clientchannel, "RPRT 0\n");
+                    printf("Out: RPRT 0\n");
+                    iretn = socket_close(&clientchannel);
+                    break;
+                case 'P':
+                    // set_pos
+                    sscanf(command.c_str() ,"%*s %f %f",&az, &el);
+                    if (az > 360.)
+                    {
+                        target.azim = RADOF(az-360.);
+                    }
+                    else if (az < 0.)
+                    {
+                        target.azim = RADOF(az+360.);
+                    }
+                    else
+                    {
+                        target.azim = RADOF(az);
+                    }
+                    target.elev = RADOF(el);
+                    trackflag = false;
+                    socket_sendto(clientchannel, "RPRT 0\n");
+                    printf("Out: RPRT 0\n");
+                    break;
+                case 'p':
+                    // get_pos
+                    if (current.azim > D2PI)
+                    {
+                    socket_sendto(clientchannel, to_double(DEGOF(current.azim-D2PI), 6)+'\n');
+                    printf("Out: %s ", to_double(DEGOF(current.azim-D2PI), 6).c_str());
+                    }
+                    else {
+                        socket_sendto(clientchannel, to_double(DEGOF(current.azim), 6)+'\n');
+                        printf("Out: %s ", to_double(DEGOF(current.azim), 6).c_str());
+                    }
+                    socket_sendto(clientchannel, to_double(DEGOF(current.elev), 6)+'\n');
+                    printf("%s\n", to_double(DEGOF(current.elev), 6).c_str());
+                    break;
+                case 'M':
+                    // move
+                    {
+                        sscanf(command.c_str() ,"%*s %hu %hu",&direction, &speed);
+                        double utcstart = currentmjd();
+                        double utcstep = 200. / speed;
+                        trackaz.initialize(5, 2);
+                        trackel.initialize(5, 2);
+                        switch (direction)
+                        {
+                        case 2:
+                        case 4:
+                            for (uint16_t i=0; i<5; ++i)
+                            {
+                                trackaz.update(utcstart+i*utcstep, i*(direction==2?RADOF(2.):RADOF(-2.)));
+                            }
+                            break;
+                        case 8:
+                        case 16:
+                            for (uint16_t i=0; i<5; ++i)
+                            {
+                                trackel.update(utcstart+i*utcstep, i*(direction==16?RADOF(2.):RADOF(-2.)));
+                            }
+                            break;
+                        }
+                        trackaz.update(utc, RADOF(az));
+                        trackel.update(utc, RADOF(el));
+                        trackflag = true;
+                        socket_sendto(clientchannel, "RPRT 0\n");
+                        printf("Out: RPRT 0\n");
+                    }
+                    break;
+                case 'S':
+                    // stop
+                    target = agent->cinfo->device[devindex].ant;
+                    antenabled = false;
+                    stop_antenna();
+                    socket_sendto(clientchannel, "RPRT 0\n");
+                    printf("Out: RPRT 0\n");
+                    break;
+                case 'K':
+                    // park
+                    target.azim = RADOF(180);
+                    target.elev = RADOF(90);
+                    trackflag = false;
+                    socket_sendto(clientchannel, "RPRT 0\n");
+                    printf("Out: RPRT 0\n");
+                    break;
+                case 'R':
+                    // reset
+                    socket_sendto(clientchannel, "RPRT 0\n");
+                    printf("Out: RPRT 0\n");
+                    break;
+                case 'D':
+                    {
+                        vector<string> args = string_split(command, " ");
+                        if (args.size() == 5)
+                        {
+                            double dec = stof(args[1]);
+                            dec += stof(args[2]) / 60.;
+                            dec += stof(args[3]) / 3600.;
+                            if (args[4][0] == '1')
+                            {
+                                dec *= -1;
+                            }
+                            socket_sendto(clientchannel, to_double(dec, 9)+'\n');
+                            printf("Out: %s\n", to_double(dec, 9).c_str());
+                        }
+                        else {
+                            socket_sendto(clientchannel, "RPRT -1\n");
+                            printf("Out: RPRT -1\n");
+                        }
+                    }
+                    break;
+                case 'd':
+                    {
+                        vector<string> args = string_split(command, " ");
+                        if (args.size() == 2)
+                        {
+                            uint8_t sign = 0;
+                            double dec = stof(args[1]);
+                            if (dec < 0)
+                            {
+                                sign = 1;
+                                dec = -dec;
+                            }
+                            uint16_t deg = static_cast<uint16_t>(dec);
+                            double fdec = (dec - deg) * 60.;
+                            uint16_t min = static_cast<uint16_t>(fdec);
+                            fdec = (fdec - min) * 60.;
+
+                            socket_sendto(clientchannel, to_unsigned(deg)+'\n');
+                            printf("Out: %s ", to_unsigned(deg).c_str());
+                            socket_sendto(clientchannel, to_unsigned(min)+'\n');
+                            printf("%s ", to_unsigned(min).c_str());
+                            socket_sendto(clientchannel, to_double(fdec)+'\n');
+                            printf("%s ", to_double(fdec).c_str());
+                            socket_sendto(clientchannel, to_unsigned(sign)+'\n');
+                            printf("%s\n", to_unsigned(sign).c_str());
+                        }
+                        else {
+                            socket_sendto(clientchannel, "RPRT -1\n");
+                            printf("Out: RPRT -1\n");
+                        }
+                    }
+                case 'E':
+                    {
+                        vector<string> args = string_split(command, " ");
+                        if (args.size() == 4)
+                        {
+                            double dec = stof(args[1]);
+                            dec += stof(args[2]) / 60.;
+                            if (args[3][0] == '1')
+                            {
+                                dec *= -1;
+                            }
+                            socket_sendto(clientchannel, to_double(dec, 9)+'\n');
+                            printf("Out: %s\n", to_double(dec, 9).c_str());
+                        }
+                        else {
+                            socket_sendto(clientchannel, "RPRT -1\n");
+                            printf("Out: RPRT -1\n");
+                        }
+                    }
+                    break;
+                case 'e':
+                    {
+                        vector<string> args = string_split(command, " ");
+                        if (args.size() == 2)
+                        {
+                            uint8_t sign = 0;
+                            double dec = stof(args[1]);
+                            if (dec < 0)
+                            {
+                                sign = 1;
+                                dec = -dec;
+                            }
+                            uint16_t deg = static_cast<uint16_t>(dec);
+                            double fdec = (dec - deg) * 60.;
+
+                            socket_sendto(clientchannel, to_unsigned(deg)+'\n');
+                            printf("Out: %s ", to_unsigned(deg).c_str());
+                            socket_sendto(clientchannel, to_double(fdec)+'\n');
+                            printf("%s ", to_double(fdec).c_str());
+                            socket_sendto(clientchannel, to_unsigned(sign)+'\n');
+                            printf("%s\n", to_unsigned(sign).c_str());
+                        }
+                        else {
+                            socket_sendto(clientchannel, "RPRT -1\n");
+                            printf("Out: RPRT -1\n");
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            COSMOS_SLEEP(1.);
+        }
+    }
+
+    if (rotctlport)
+    {
+        // Shut down active rotctl support if it is running
+        if (clientchannel.cudp)
+        {
+            // Disconnect
+            iretn = socket_close(&clientchannel);
+        }
+        socket_close(rotctlchannel);
+        rotctlport = 0;
+    }
 }

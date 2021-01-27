@@ -13,7 +13,7 @@ foreach(direct ${directs})
     else()
         get_filename_component(bdirect ${direct} NAME_WE)
         add_subdirectory(${bdirect})
-        message("Adding " ${bdirect})
+#        message("Adding " ${bdirect})
     endif()
 
 endforeach()

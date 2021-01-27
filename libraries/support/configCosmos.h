@@ -44,7 +44,7 @@
 
 #define COSMOS_WIN_OS
 
-//! // determined if we're compiling with MSVC
+//! // determine if we're compiling with MSVC
 #ifdef _MSC_BUILD
 #define COSMOS_WIN_BUILD_MSVC
 #endif
@@ -81,18 +81,32 @@ using std::ifstream;
 using std::ofstream;
 #include <iostream>
 using std::cout;
+using std::cerr;
 using std::endl;
+#include <sstream>
+using std::stringstream;
+#include <regex>
+#include <iomanip>
+using std::fixed;
+using std::setprecision;
+using std::setw;
+using std::left;
+using std::right;
 #ifdef COSMOS_WIN_BUILD_MSVC
-#include <io.h> // replaces in someways unistd for windows
+#include <io.h> // replaces in some ways unistd for windows
 #else
 #include <unistd.h>
 #endif
 #include <fcntl.h>
 
+#include <limits>
 #include <string>
 using std::string;
+using std::to_string;
 #include <vector>
 using std::vector;
+#include <stack>
+using std::stack;
 #include <deque>
 using std::deque;
 #include <mutex>
@@ -108,6 +122,7 @@ using std::queue;
 using std::istringstream;
 #include <map>
 using std::map;
+using std::pair;
 
 //#include "support/cosmos-errno.h"
 #include "support/cosmos-defs.h"
@@ -235,5 +250,8 @@ using namespace Cosmos::Support;
 #include <sys/time.h>
 #include <sys/vfs.h>
 #endif // COSMOS_CYGWIN_OS
+
+#include "json11.hpp"
+
 
 #endif // CONFIGCOSMOS_H

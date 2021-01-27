@@ -47,8 +47,8 @@ using namespace std;
 // User config
 
 // config agent
-string node_name = "cubesat1";
-string agent_name = "propagator_simple";
+static string node_name = "cubesat1";
+static string agent_name = "propagator_simple";
 
 //bool    use_agent       = true;
 //bool    use_propagator   = true; //
@@ -57,12 +57,12 @@ string agent_name = "propagator_simple";
 // Other vars
 
 // general purpose buffer
-char buffer[255] = "";
+static char buffer[255] = "";
 
-Agent *agent;
-vector<shorteventstruc> eventdict;
-vector<shorteventstruc> events;
-string mainjstring={0,0,0};
+static Agent *agent;
+static vector<eventstruc> eventdict;
+static vector<eventstruc> events;
+static string mainjstring={0,0,0};
 
 void printMjdAndDateTime(double mjd){
     cout << mjdToGregorianFormat(mjd) << setprecision(10) << " (MJD=" <<  mjd << ")"; // << endl;
@@ -71,14 +71,14 @@ void printMjdAndDateTime(double mjd){
 int main(int argc, char* argv[]){
 
     // for propagator
-    int32_t order   = 6; // integration order
+    uint32_t order   = 6; // integration order
     int32_t mode    = 1; // attitude mode (0 - propagate?, 1-LVLH, ...)
     double dt       = 1; // >> check with Eric .1 or 1?
 
     double triger_time = 0;
     double iteration_rate = 1; //in sec
     double trigger_offset_ms = 10; // ms before sending the command
-    int precision = 1/iteration_rate;
+    uint32_t precision = static_cast <uint32_t>(1/iteration_rate);
     double sleep_time = 0.7*iteration_rate;
     double set_time = 0;
     double elapsed_seconds = 0;
@@ -129,7 +129,6 @@ int main(int argc, char* argv[]){
     default:
         cout << "Usage: propogator_simple nodename [mjd|0]" << endl;
         exit (-1);
-        break;
     }
 
     //	cout << "-----------------------------------------------" << endl;
@@ -145,7 +144,7 @@ int main(int argc, char* argv[]){
         exit (AGENT_ERROR_JSON_CREATE);
     }
 
-    //agent->cinfo->physics.mode = mode;
+    //agent->cinfo->node.phys.mode = mode;
     //json_clone(cinfo);
 
     //load_dictionary(eventdict, cinfo, (char *)"events.dict");
@@ -166,11 +165,11 @@ int main(int argc, char* argv[]){
 
     pos_clear(initState);
 
-    if ((iretn=stat(fname.c_str(), &fstat)) == 0 && (fdes=fopen(fname.c_str(),"r")) != NULL)
+    if ((iretn=stat(fname.c_str(), &fstat)) == 0 && (fdes=fopen(fname.c_str(),"r")) != nullptr)
     {
-        char* ibuf = (char *)calloc(1,fstat.st_size+1);
+        char* ibuf = static_cast <char *>(calloc(1,static_cast <size_t>(fstat.st_size)+1));
 
-        fread(ibuf, 1, fstat.st_size, fdes);
+        fread(ibuf, 1, static_cast <size_t>(fstat.st_size), fdes);
         //		fgets(ibuf,fstat.st_size,fdes);
         json_parse(ibuf, agent->cinfo);
 
@@ -213,13 +212,13 @@ int main(int argc, char* argv[]){
                            currentmjd(),// use curretn time instead of initState.utc for this demo, otherwise it will take a long time to update
                            initState.pos.eci,
                            initState.att.icrf,
-                           agent->cinfo->physics,
+                           agent->cinfo->node.phys,
                            agent->cinfo->node.loc);
 
     // propagate state to current time so we get an updated state vector
     // to initialize the GPS sim
     //CT 2017-06-26: couldn't find a gj_handle data type for this function to use
-    gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, currentmjd());
+    gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, currentmjd());
 
     //get initial sim tim
     double mjd_start_sim = currentmjd();
@@ -244,7 +243,7 @@ int main(int argc, char* argv[]){
         if (elapsed_seconds > triger_time){ // send the command 100 ms before the set time
 
             // propagate
-            gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc,  utc_now);
+            gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc,  utc_now);
             state = agent->cinfo->node.loc;
 
             // break down state vector for this demo
@@ -281,7 +280,7 @@ int main(int argc, char* argv[]){
             // TODO: print attitude
 
             // print magnetic field in micro-Tesla
-            print.vector("mag field:", agent->cinfo->node.loc.bearth, 1e6, " uT", 1,3);
+            print.vector("mag field:", agent->cinfo->node.loc.pos.bearth, 1e6, " uT", 1,3);
 
             // TODO: print solar vector
 

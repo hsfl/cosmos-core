@@ -8,84 +8,20 @@ JSONValue::JSONValue()
     value_as_string = "null";
 }
 
-JSONValue::JSONValue(string val)
-{
-    set(val);
-}
-
-JSONValue::JSONValue(float val)
-{
-    set(val);
-}
-
-JSONValue::JSONValue(double val)
-{
-    set(val);
-}
-
-JSONValue::JSONValue(uint64_t val)
-{
-    set(val);
-}
-
-JSONValue::JSONValue(uint32_t val)
-{
-    set(val);
-}
-
-JSONValue::JSONValue(uint16_t val)
-{
-    set(val);
-}
-
-JSONValue::JSONValue(uint8_t val)
-{
-    set(val);
-}
-
-JSONValue::JSONValue(int64_t val)
-{
-    set(val);
-}
-
-JSONValue::JSONValue(int32_t val)
-{
-    set(val);
-}
-
-JSONValue::JSONValue(int16_t val)
-{
-    set(val);
-}
-
-JSONValue::JSONValue(int8_t val)
-{
-    set(val);
-}
-
-//JSONValue::JSONValue(uint8_t val)
-//{
-//    type = JSONValue::JsonValueType::NUMBER;
-//    value_as_string = std::to_string(val);
-//}
-
-JSONValue::JSONValue(char val)
-{
-    set(val);
-}
-
-JSONValue::JSONValue(JSONObject val)
-{
-    set(val);
-
-}
-
-JSONValue::JSONValue(JSONArray val)
-{
-    set(val);
-
-}
-
+JSONValue::JSONValue(string val) { set(val); }
+JSONValue::JSONValue(float val) { set(val); }
+JSONValue::JSONValue(double val) { set(val); }
+JSONValue::JSONValue(uint64_t val) { set(val); }
+JSONValue::JSONValue(uint32_t val) { set(val); }
+JSONValue::JSONValue(uint16_t val) { set(val); }
+JSONValue::JSONValue(uint8_t val) { set(val); }
+JSONValue::JSONValue(int64_t val) { set(val); }
+JSONValue::JSONValue(int32_t val) { set(val); }
+JSONValue::JSONValue(int16_t val) { set(val); }
+JSONValue::JSONValue(int8_t val) { set(val); }
+JSONValue::JSONValue(char val) { set(val); }
+JSONValue::JSONValue(JSONObject val) { set(val); }
+JSONValue::JSONValue(JSONArray val) { set(val); }
 JSONValue::JSONValue(bool val)
 {
     if(val){
@@ -98,15 +34,8 @@ JSONValue::JSONValue(bool val)
 
 }
 
-JSONValue::JSONValue(Vector val)
-{
-    set(val);
-}
-
-JSONValue::JSONValue(Quaternion val)
-{
-    set(val);
-}
+JSONValue::JSONValue(Vector val) { set(val); }
+JSONValue::JSONValue(Quaternion val) { set(val); }
 
 void JSONValue::set_null()
 {
@@ -245,9 +174,7 @@ void JSONValue::set(JSONArray val)
         }
     }
     jsonStr += "]";
-
     value_as_string = jsonStr;
-
 }
 
 void JSONValue::set(bool val)
@@ -259,7 +186,6 @@ void JSONValue::set(bool val)
         type = JSONValue::JsonValueType::BOOL_FALSE;
         value_as_string = "false";
     }
-
 }
 
 void JSONValue::set(Vector val)
@@ -335,7 +261,4 @@ bool JSONValue::isBool()
     return false;
 }
 
-string JSONValue::to_json_string()
-{
-    return value_as_string;
-}
+string JSONValue::to_json_string() { return value_as_string; }

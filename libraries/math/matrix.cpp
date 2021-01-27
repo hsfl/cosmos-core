@@ -40,7 +40,7 @@
 */
 rvector rv_mmult(rmatrix m, rvector v)
 {
-    rvector o = {{0.}};
+    rvector o;
 
     o.col[0] = m.row[0].col[0]*v.col[0] + m.row[0].col[1]*v.col[1] + m.row[0].col[2]*v.col[2];
     o.col[1] = m.row[1].col[0]*v.col[0] + m.row[1].col[1]*v.col[1] + m.row[1].col[2]*v.col[2];
@@ -62,7 +62,7 @@ rvector operator * (rmatrix m, rvector v)
 */
 rvector rv_diag(rmatrix a)
 {
-    rvector b = {{0.}};
+    rvector b;
 
     b.col[0] = a.row[0].col[0];
     b.col[1] = a.row[1].col[1];
@@ -96,7 +96,7 @@ cvector cv_mmult(cmatrix m, cvector v)
  */
 rmatrix rm_diag(rvector a)
 {
-    rmatrix b = {{{{0.}}}};;
+    rmatrix b;
 
     b.row[0].col[0] = a.col[0];
     b.row[1].col[1] = a.col[1];
@@ -113,7 +113,7 @@ rmatrix rm_diag(rvector a)
 */
 rmatrix rm_eye()
 {
-    rmatrix mat = {{{{1.,0.,0.}}, {{0.,1.,0.}}, {{0.,0.,1.}} }};
+    rmatrix mat = {{1.,0.,0.}, {0.,1.,0.}, {0.,0.,1.}};
 
     return (mat);
 }
@@ -124,7 +124,7 @@ rmatrix rm_eye()
 */
 rmatrix rm_zero()
 {
-    rmatrix mat = {{{{0.,0.,0.}},{{0.,0.,0.}},{{0.,0.,0.}}}};
+    rmatrix mat;
     return (mat);
 }
 
@@ -171,7 +171,7 @@ double trace_rm(rmatrix mat)
  */
 rmatrix rm_transpose(rmatrix a)
 {
-    rmatrix b = {{{{0.}}}};;
+    rmatrix b;
 
     b.row[0].col[0] = a.row[0].col[0];
     b.row[0].col[1] = a.row[1].col[0];
@@ -197,7 +197,7 @@ rmatrix rm_transpose(rmatrix a)
 */
 rmatrix rm_mmult(rmatrix a, rmatrix b)
 {
-    rmatrix mat = {{{{0.}}}};;
+    rmatrix mat;
 
     mat.row[0].col[0]  = a.row[0].col[0]*b.row[0].col[0] + a.row[0].col[1]*b.row[1].col[0] + a.row[0].col[2]*b.row[2].col[0];
     mat.row[0].col[1]  = a.row[0].col[0]*b.row[0].col[1] + a.row[0].col[1]*b.row[1].col[1] + a.row[0].col[2]*b.row[2].col[1];
@@ -222,7 +222,7 @@ rmatrix rm_mmult(rmatrix a, rmatrix b)
  */
 rmatrix rm_mult(rmatrix a, rmatrix b)
 {
-    rmatrix mat = {{{{0.}}}};
+    rmatrix mat;
     rvector *va, *vb;
 
     va = &a.row[0];
@@ -246,7 +246,7 @@ rmatrix rm_mult(rmatrix a, rmatrix b)
  */
 rmatrix rm_smult(double a, rmatrix b)
 {
-    rmatrix mat = {{{{0.}}}};
+    rmatrix mat;
     rvector *vb;
 
     vb = &b.row[0];
@@ -268,7 +268,7 @@ rmatrix rm_smult(double a, rmatrix b)
  */
 rmatrix rm_add(rmatrix a, rmatrix b)
 {
-    rmatrix mat = {{{{0.}}}};
+    rmatrix mat;
     rvector *va, *vb;
 
     va = &a.row[0];
@@ -293,7 +293,7 @@ rmatrix rm_add(rmatrix a, rmatrix b)
  */
 rmatrix rm_sub(rmatrix a, rmatrix b)
 {
-    rmatrix mat = {{{{0.}}}};
+    rmatrix mat;
     rvector *va, *vb;
 
     va = &a.row[0];
@@ -316,7 +316,7 @@ rmatrix rm_sub(rmatrix a, rmatrix b)
 */
 rmatrix rm_square(rmatrix a)
 {
-    rmatrix b = {{{{0.}}}};
+    rmatrix b;
     rvector r1, r2, r3, c1, c2, c3;
 
     r1 = a.row[0];
@@ -396,7 +396,7 @@ rmatrix rm_change_around_z(double angle)
 */
 rmatrix rm_change_around(int axis,double angle)
 {
-    rmatrix a = {{{{1.,0.,0.}},{{0.,1.,0.}},{{0.,0.,1.}}}};
+    rmatrix a = {{1.,0.,0.}, {0.,1.,0.}, {0.,0.,1.}};
 
     switch (axis)
     {
@@ -803,7 +803,7 @@ cmatrix cm_change_around(int axis,double angle)
 */
 rmatrix rm_from_cm(cmatrix matrix)
 {
-    rmatrix rm = {{{{0.}}}};
+    rmatrix rm;
 
     rm.row[0].col[0] = matrix.r1.x;
     rm.row[0].col[1] = matrix.r1.y;
@@ -827,7 +827,7 @@ rmatrix rm_from_cm(cmatrix matrix)
 */
 rmatrix rm_from_rv(rvector vector,int direction)
 {
-    rmatrix answer = {{{{0.}}}};;
+    rmatrix answer;
     uint16_t i;
 
     answer = rm_zero();
@@ -856,7 +856,7 @@ rmatrix rm_from_rv(rvector vector,int direction)
 */
 rmatrix rm_skew(rvector row)
 {
-    rmatrix answer = {{{{0.}}}};;
+    rmatrix answer;
 
     answer = rm_zero();
 
@@ -879,7 +879,7 @@ rmatrix rm_skew(rvector row)
 */
 rvector rv_unskew(rmatrix matrix)
 {
-    rvector answer={{0.,0.,0.}};
+    rvector answer;
 
     answer.col[0] = -matrix.row[1].col[2];
     answer.col[1] = matrix.row[0].col[2];
@@ -896,7 +896,7 @@ rvector rv_unskew(rmatrix matrix)
 */
 rmatrix rm_inverse(rmatrix m)
 {
-    rmatrix wm = {{{{0.}}}};;
+    rmatrix wm;
 
     wm.row[0].col[0] = m.row[1].col[1]*m.row[2].col[2] - m.row[1].col[2]*m.row[2].col[1];
     wm.row[0].col[1] = m.row[0].col[2]*m.row[2].col[1] - m.row[0].col[1]*m.row[2].col[2];
@@ -920,7 +920,7 @@ rmatrix rm_inverse(rmatrix m)
 */
 rmatrix rm_from_m2(matrix2d matrix)
 {
-    rmatrix rm = {{{{0.}}}};;
+    rmatrix rm;
     int i, j;
 
     for (i=0; i<3; i++)

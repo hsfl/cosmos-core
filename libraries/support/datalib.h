@@ -33,7 +33,6 @@
 // COSMOS libs
 #include "support/configCosmos.h"
 #include "support/cosmos-errno.h"
-#include "support/datadef.h"
 #include "support/jsondef.h"
 #include "support/jsonlib.h"
 #include "thirdparty/zlib/zlib.h"
@@ -106,6 +105,25 @@
 //! \defgroup datalib_functions Data Management function declarations
 //! @{
 
+#define DATA_LOG_TYPE_SOH 0
+#define DATA_LOG_TYPE_EVENT 1
+#define DATA_LOG_TYPE_BEACON 2
+#define DATA_LOG_TYPE_PROGRAM 3 // to log program status information while running
+
+typedef struct
+{
+    string node;
+    string agent;
+    string name;
+    string type;
+    string path;
+    off_t size;
+    uint16_t year;
+    uint16_t jday;
+    uint32_t seconds;
+    double utc;
+} filestruc;
+
 void log_reopen();
 void log_write(string node, int type, double utc, const char* data, string directory="temp");
 void log_write(string node, string agent, double utc, string type, const char *data);
@@ -138,13 +156,14 @@ string data_base_path(string node, string location, string agent, string filenam
 string data_archive_path(string node, string agent, double mjd);
 string data_type_path(string node, string location, string agent, double mjd, string type);
 string data_type_path(string node, string location, string agent, double mjd, string extra, string type);
-string data_name_path(string node, string location, string agent, double mjd, string name);
+string data_name_path(string node, string location="", string agent="", double mjd=0., string name="");
 string data_resource_path(string name);
 bool data_exists(string& path);
 bool data_isdir(string path);
 bool data_ischardev(string path);
 bool data_isfile(string path, off_t size=0);
 double data_ctime(string path);
+int32_t data_execute(string cmd, string& result, string shell="");
 off_t data_size(string path);
 int32_t set_cosmosroot(string name, bool create_flag=false);
 int32_t set_cosmosroot(bool create_flag=false);

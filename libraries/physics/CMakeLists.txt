@@ -9,6 +9,7 @@ FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 FILE(GLOB INCLUDESPP ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 add_library(CosmosPhysics STATIC ${SOURCES} ${INCLUDES})
+target_link_libraries(CosmosPhysics CosmosConvert CosmosData)
 
 install(TARGETS CosmosPhysics DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/physics)

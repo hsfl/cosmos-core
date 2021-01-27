@@ -11,7 +11,7 @@ FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 set(libraryName CosmosDeviceCpu PARENT_SCOPE)
 
 add_library(CosmosDeviceCpu STATIC ${SOURCES} ${INCLUDES})
-target_link_libraries(CosmosDeviceCpu CosmosDeviceGeneral)
+target_link_libraries(CosmosDeviceCpu CosmosData CosmosTime)
 
 install(TARGETS CosmosDeviceCpu DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/cpu)

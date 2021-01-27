@@ -98,9 +98,6 @@ List of available requests:
         targetsjson
                 return description JSON for Targets
 
-        aliasesjson
-                return description JSON for Aliases
-
         get_state
                 returns current state
 
@@ -147,14 +144,18 @@ static mutex cdata_mutex;
 
 static vector <double> lastantutc;
 static vector <double> lasttcvutc;
+static bool trackinit = true;
 
 struct radiostruc
 {
     string name;
-	tcvstruc info;
-	uint16_t otherradioindex;
-	beatstruc beat;
-	float dfreq;
+	uint16_t type;
+    tcvstruc info;
+    uint16_t otherradioindex;
+    beatstruc beat;
+    float dfreq;
+    double basefreq;
+    uint16_t baseopmode;
 };
 static vector <radiostruc> myradios;
 
@@ -164,10 +165,10 @@ static float highestvalue = -DPI2;
 struct trackstruc
 {
     uint16_t type;
-	targetstruc target;
-	physicsstruc physics;
+    targetstruc target;
+    physicsstruc physics;
     string name;
-	gj_handle gjh;
+    gj_handle gjh;
     vector <LsFit> position;
     vector <radiostruc> radios;
 };
@@ -176,8 +177,8 @@ static vector <trackstruc> track;
 struct antennastruc
 {
     string name;
-	antstruc info;
-	beatstruc beat;
+    antstruc info;
+    beatstruc beat;
 };
 static vector <antennastruc> myantennas;
 
@@ -199,23 +200,23 @@ string opmode2string(uint8_t opmode);
 
 int main(int argc, char *argv[])
 {
-	int32_t iretn;
+    int32_t iretn;
 
-	switch (argc)
-	{
+    switch (argc)
+    {
     case 3:
         nodename = argv[2];
     case 2:
         trajectoryname = argv[1];
     case 1:
-		break;
-	default:
+        break;
+    default:
         printf("Usage: agent->control {nodename}");
-		exit (1);
-		break;
-	}
+        exit (1);
+        break;
+    }
 
-	// Establish the command channel and heartbeat
+    // Establish the command channel and heartbeat
     if (nodename.empty())
     {
         agent = new Agent("", agentname, 5.);
@@ -236,109 +237,179 @@ int main(int argc, char *argv[])
     }
 
     // Build up table of our radios
-    myradios.resize(agent->cinfo->devspec.tcv_cnt);
-	for (size_t i=0; i<myradios.size(); ++i)
-	{
-        myradios[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].all.pidx].name;
-        myradios[i].info = agent->cinfo->device[agent->cinfo->devspec.tcv[i]].tcv;
-		myradios[i].otherradioindex = 9999;
-        myradios[i].beat = agent->find_server(nodename, myradios[i].name, 3.);
-	}
+    radiostruc tradio;
+    tradio.name = "Direct";
+    tradio.info.freq = 0.;
+    tradio.info.opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_FMD);
+    tradio.otherradioindex = 9999;
+    tradio.beat.utc = 0.;
+    tradio.basefreq = 0.;
+    tradio.baseopmode = 0;
+    myradios.push_back(tradio);
+    for (size_t i=0; i<agent->cinfo->devspec.tcv_cnt; ++i)
+    {
+        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].pidx].name;
+		tradio.type = DeviceType::TCV;
+        tradio.info = agent->cinfo->device[agent->cinfo->devspec.tcv[i]].tcv;
+        tradio.basefreq = tradio.info.freq;
+        tradio.baseopmode = tradio.info.opmode;
+        tradio.otherradioindex = 9999;
+        tradio.beat = agent->find_agent(nodename, tradio.name, 3.);
+        myradios.push_back(tradio);
+    }
+    for (size_t i=0; i<agent->cinfo->devspec.rxr_cnt; ++i)
+    {
+        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.rxr[i]].pidx].name;
+		tradio.type = DeviceType::RXR;
+        tradio.info = agent->cinfo->device[agent->cinfo->devspec.rxr[i]].tcv;
+        tradio.basefreq = tradio.info.freq;
+        tradio.baseopmode = tradio.info.opmode;
+        tradio.otherradioindex = 9999;
+        tradio.beat = agent->find_agent(nodename, tradio.name, 3.);
+        myradios.push_back(tradio);
+    }
+    for (size_t i=0; i<agent->cinfo->devspec.txr_cnt; ++i)
+    {
+        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.txr[i]].pidx].name;
+		tradio.type = DeviceType::TXR;
+        tradio.info = agent->cinfo->device[agent->cinfo->devspec.txr[i]].tcv;
+        tradio.basefreq = tradio.info.freq;
+        tradio.baseopmode = tradio.info.opmode;
+        tradio.otherradioindex = 9999;
+        tradio.beat = agent->find_agent(nodename, tradio.name, 3.);
+        myradios.push_back(tradio);
+    }
 
-	// Build up table of our antennas
+    // Build up table of our antennas
     myantennas.resize(agent->cinfo->devspec.ant_cnt);
-	for (size_t i=0; i<myantennas.size(); ++i)
-	{
-        myantennas[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.ant[i]].all.pidx].name;
+    for (size_t i=0; i<myantennas.size(); ++i)
+    {
+        myantennas[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.ant[i]].pidx].name;
         myantennas[i].info = agent->cinfo->device[agent->cinfo->devspec.ant[i]].ant;
-        myantennas[i].beat = agent->find_server(nodename, myantennas[i].name, 3.);
-	}
+        myantennas[i].beat = agent->find_agent(nodename, myantennas[i].name, 3.);
+    }
 
-	// Build up table of other nodes. Look through node directory and choose any valid node that
-	// is a satellite or a celestial object. First entry is null, none tracking.
-	track.resize(1);
-	trackindex = 0;
-	track[0].name = "idle";
-	track[0].target.type = NODE_TYPE_DATA;
+    // Build up table of other nodes. Look through node directory and choose any valid node that
+    // is a satellite or a celestial object. First entry is null, none tracking.
+    track.resize(1);
+    trackindex = 0;
+    track[0].name = "idle";
+    track[0].target.type = NODE_TYPE_DATA;
     vector <string> nodes;
-	iretn = data_list_nodes(nodes);
-	for (size_t i=0; i<nodes.size(); ++i)
-	{
+    iretn = data_list_nodes(nodes);
+    for (size_t i=0; i<nodes.size(); ++i)
+    {
         string path = data_base_path(nodes[i]) + "/node.ini";
-		FILE *fp = fopen(path.c_str(), "r");
-		if (fp != nullptr)
-		{
-			int32_t type;
-			fscanf(fp, "{\"node_type\":%d", &type);
-			fclose(fp);
-			switch (type)
-			{
-			case NODE_TYPE_SATELLITE:
-			case NODE_TYPE_SUN:
-				trackstruc ttrack;
-				ttrack.name = nodes[i];
+        FILE *fp = fopen(path.c_str(), "r");
+        if (fp != nullptr)
+        {
+            int32_t type;
+            fscanf(fp, "{\"node_type\":%d", &type);
+            fclose(fp);
+            switch (type)
+            {
+            case NODE_TYPE_SATELLITE:
+            case NODE_TYPE_SUN:
+            case NODE_TYPE_MOON:
+                trackstruc ttrack;
+                ttrack.name = nodes[i];
                 cosmosstruc *cinfo = json_init();
                 iretn = json_setup_node(ttrack.name, cinfo);
                 if (iretn == 0 && (currentmjd()-cinfo->node.loc.pos.eci.utc) < 10.)
-				{
-					// Valid node. Initialize tracking and push it to list
+                {
+                    // Valid node. Initialize tracking and push it to list
                     ttrack.target.type = cinfo->node.type;
                     ttrack.target.loc = cinfo->node.loc;
-                    ttrack.physics = cinfo->physics;
+                    ttrack.physics = cinfo->node.phys;
 
-					// Build up table of radios
-                    ttrack.radios.resize(cinfo->devspec.tcv_cnt);
-					for (size_t i=0; i<ttrack.radios.size(); ++i)
-					{
-                        ttrack.radios[i].name = cinfo->pieces[cinfo->device[cinfo->devspec.tcv[i]].all.pidx].name;
-                        ttrack.radios[i].info = cinfo->device[cinfo->devspec.tcv[i]].tcv;
-						ttrack.radios[i].otherradioindex = 9999;
-					}
+                    // Build up table of radios
+                    for (size_t i=0; i<cinfo->devspec.tcv_cnt; ++i)
+                    {
+                        tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.tcv[i]].pidx].name;
+						tradio.type = DeviceType::TCV;
+                        tradio.info = cinfo->device[cinfo->devspec.tcv[i]].tcv;
+                        tradio.otherradioindex = 9999;
+                        ttrack.radios.push_back(tradio);
+                    }
 
-					if (type == NODE_TYPE_SATELLITE)
-					{
-                        printf("Propagating Node %s forward %f seconds\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
-						gauss_jackson_init_eci(ttrack.gjh, 12, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
-						gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
-					}
-					track.push_back(ttrack);
+                    for (size_t i=0; i<cinfo->devspec.txr_cnt; ++i)
+                    {
+                        tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.txr[i]].pidx].name;
+						tradio.type = DeviceType::TXR;
+                        tradio.info.band = cinfo->device[cinfo->devspec.txr[i]].txr.band;
+                        tradio.info.freq = cinfo->device[cinfo->devspec.txr[i]].txr.freq;
+                        tradio.info.opmode = cinfo->device[cinfo->devspec.txr[i]].txr.opmode;
+                        tradio.info.modulation = cinfo->device[cinfo->devspec.txr[i]].txr.modulation;
+                        tradio.otherradioindex = 9999;
+                        ttrack.radios.push_back(tradio);
+                    }
+
+                    for (size_t i=0; i<cinfo->devspec.rxr_cnt; ++i)
+                    {
+                        tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.rxr[i]].pidx].name;
+						tradio.type = DeviceType::RXR;
+                        tradio.info.band = cinfo->device[cinfo->devspec.rxr[i]].rxr.band;
+                        tradio.info.freq = cinfo->device[cinfo->devspec.rxr[i]].rxr.freq;
+                        tradio.info.opmode = cinfo->device[cinfo->devspec.rxr[i]].rxr.opmode;
+                        tradio.info.modulation = cinfo->device[cinfo->devspec.rxr[i]].rxr.modulation;
+                        tradio.otherradioindex = 9999;
+                        ttrack.radios.push_back(tradio);
+                    }
+
+                    if (type == NODE_TYPE_SATELLITE)
+                    {
+                        printf("Propagating Node %s forward %.0f\r", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
+                        gauss_jackson_init_eci(ttrack.gjh, 12, 0, 5., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
+                        double tutc = ttrack.target.loc.pos.eci.utc + 60./86400.;
+                        while (tutc < currentmjd())
+                        {
+                            printf("Propagating Node %s forward %.0f\r", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
+                            gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, tutc);
+                            fflush(stdout);
+                            tutc += 600./86400.;
+                        }
+                        printf("Propagating Node %s forward %.0f\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
+                        gauss_jackson_init_eci(ttrack.gjh, 12, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
+                        gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
+                        fflush(stdout);
+                    }
+                    track.push_back(ttrack);
                     json_destroy(cinfo);
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
 
-	// Look for TLE file
-	char fname[200];
-	sprintf(fname,"%s/tle.ini",get_nodedir(nodename).c_str());
+    // Look for TLE file
+    char fname[200];
+    sprintf(fname,"%s/tle.ini",get_nodedir(nodename).c_str());
     vector <tlestruc> tle;
-	if ((iretn=load_lines_multi(fname, tle)) > 0)
-	{
-		for (size_t i=0; i<tle.size(); ++i)
-		{
-			// Valid node. Initialize tracking and push it to list
-			trackstruc ttrack;
+    if ((iretn=load_lines_multi(fname, tle)) > 0)
+    {
+        for (size_t i=0; i<tle.size(); ++i)
+        {
+            // Valid node. Initialize tracking and push it to list
+            trackstruc ttrack;
             ttrack.type = 0;
-			ttrack.name = tle[i].name;
-			ttrack.target.type = NODE_TYPE_SATELLITE;
-			tle2eci(currentmjd()-10./86400., tle[i], ttrack.target.loc.pos.eci);
-			ttrack.target.loc.att.icrf.s = q_eye();
-			ttrack.target.loc.att.icrf.v = rv_zero();
-			ttrack.target.loc.att.icrf.a = rv_zero();
-			ttrack.physics.area = .01;
-			ttrack.physics.mass = 1.;
+            ttrack.name = tle[i].name;
+            ttrack.target.type = NODE_TYPE_SATELLITE;
+            tle2eci(currentmjd()-10./86400., tle[i], ttrack.target.loc.pos.eci);
+            ttrack.target.loc.att.icrf.s = q_eye();
+            ttrack.target.loc.att.icrf.v = rv_zero();
+            ttrack.target.loc.att.icrf.a = rv_zero();
+            ttrack.physics.area = .01;
+            ttrack.physics.mass = 1.;
 
-			// Build up table of radios
-			ttrack.radios.resize(1);
-			ttrack.radios[0].name = "radio";
-			//					ttrack.radios[0].info;
-			ttrack.radios[0].otherradioindex = 9999;
+            // Build up table of radios
+            ttrack.radios.resize(1);
+            ttrack.radios[0].name = "radio";
+            ttrack.radios[0].otherradioindex = 9999;
 
-			gauss_jackson_init_eci(ttrack.gjh, 6, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
-			gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
-			track.push_back(ttrack);
-		}
-	}
+            gauss_jackson_init_eci(ttrack.gjh, 6, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
+            gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
+            track.push_back(ttrack);
+        }
+    }
 
     struct gentry
     {
@@ -378,7 +449,6 @@ int main(int argc, char *argv[])
                 // Build up table of radios
                 ttrack.radios.resize(1);
                 ttrack.radios[0].name = "radio";
-                //					ttrack.radios[0].info;
                 ttrack.radios[0].otherradioindex = 9999;
 
                 LsFit tfit(3);
@@ -407,7 +477,7 @@ int main(int argc, char *argv[])
                     ttrack.position.push_back(tfit);
                 }
 
-				for (double timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=1.)
+                for (double timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=1.)
                 {
                     uint16_t timeidx = static_cast<uint16_t>(timestep);
                     gvector tpos = ttrack.position[timeidx].evalgvector(timestep);
@@ -417,115 +487,161 @@ int main(int argc, char *argv[])
             }
         }
     }
-	// Add requests
+    // Add requests
     if ((iretn=agent->add_request("get_state",request_get_state,"", "returns current state")))
-		exit (iretn);
+        exit (iretn);
     if ((iretn=agent->add_request("list_tracks",request_list_tracks,"", "returns the list of possible tracks")))
-		exit (iretn);
+        exit (iretn);
     if ((iretn=agent->add_request("set_track",request_set_track,"", "sets the desired track")))
-		exit (iretn);
+        exit (iretn);
     if ((iretn=agent->add_request("get_track",request_get_track,"", "returns current setting for desired track")))
-		exit (iretn);
+        exit (iretn);
     if ((iretn=agent->add_request("list_radios",request_list_radios,"", "returns the list of possible radios, mine and others")))
-		exit (iretn);
+        exit (iretn);
     if ((iretn=agent->add_request("match_radio",request_match_radio,"", "matches one of my radios with one of other radios")))
-		exit (iretn);
+        exit (iretn);
     if ((iretn=agent->add_request("unmatch_radio",request_unmatch_radio,"", "matches one of my radios with one of other radios")))
-		exit (iretn);
+        exit (iretn);
     if ((iretn=agent->add_request("list_antennas",request_list_antennas,"", "returns the list of my antennas")))
-		exit (iretn);
+        exit (iretn);
     if ((iretn=agent->add_request("get_highest",request_get_highest,"", "returns the highes trackable object")))
-		exit (iretn);
+        exit (iretn);
     if ((iretn=agent->add_request("debug",request_debug,"", "TUrn debugging on or off.")))
-		exit (iretn);
+        exit (iretn);
 
-	// Start monitoring thread
-	thread monitor_thread(monitor);
-	ElapsedTime et;
+    // Start monitoring thread
+    thread monitor_thread(monitor);
+    ElapsedTime et;
 
-	// Start main thread
+    // Start main thread
+    agent->cinfo->agent[0].aprd = 1.;
+    agent->start_active_loop();
     while (agent->running())
-	{
-		double mjdnow = currentmjd() + .1/86400.;
+    {
+        double mjdnow = currentmjd() + .1/86400.;
 
-		// Update all node positions, track if enabled
-		highestindex = 9999;
-		highestvalue = -DPI2;
-		for (size_t i=0; i<track.size(); ++i)
-		{
-			switch (track[i].target.type)
-			{
-			case NODE_TYPE_SATELLITE:
-				gauss_jackson_propagate(track[i].gjh, track[i].physics, track[i].target.loc, mjdnow);
-				break;
-			case NODE_TYPE_SUN:
-				jplpos(JPL_EARTH, JPL_SUN, mjdnow, &track[i].target.loc.pos.eci);
-				track[i].target.loc.pos.eci.pass++;
-				pos_eci(&track[i].target.loc);
-				break;
-			}
+        // Update all node positions, track if enabled
+        highestindex = 9999;
+        highestvalue = -DPI2;
+        for (size_t i=0; i<track.size(); ++i)
+        {
+            switch (track[i].target.type)
+            {
+            case NODE_TYPE_SATELLITE:
+                gauss_jackson_propagate(track[i].gjh, track[i].physics, track[i].target.loc, mjdnow);
+                break;
+            case NODE_TYPE_SUN:
+                jplpos(JPL_EARTH, JPL_SUN, mjdnow, &track[i].target.loc.pos.eci);
+                track[i].target.loc.pos.eci.pass++;
+                pos_eci(&track[i].target.loc);
+                break;
+            case NODE_TYPE_MOON:
+                jplpos(JPL_EARTH, JPL_MOON, mjdnow, &track[i].target.loc.pos.eci);
+                track[i].target.loc.pos.eci.pass++;
+                pos_eci(&track[i].target.loc);
+                break;
+            }
 
             update_target(agent->cinfo->node.loc, track[i].target);
 
-			if (track[i].target.type == NODE_TYPE_SATELLITE)
-			{
-				if (highestindex == 9999)
-				{
-					highestindex = i;
-					highestvalue = track[i].target.elfrom;
-				}
-				else
-				{
-					if (track[i].target.elfrom > highestvalue)
-					{
-						highestindex = i;
-						highestvalue = track[i].target.elfrom;
-					}
-				}
-			}
+            if (track[i].target.type == NODE_TYPE_SATELLITE)
+            {
+                if (highestindex == 9999)
+                {
+                    highestindex = i;
+                    highestvalue = track[i].target.elfrom;
+                }
+                else
+                {
+                    if (track[i].target.elfrom > highestvalue)
+                    {
+                        highestindex = i;
+                        highestvalue = track[i].target.elfrom;
+                    }
+                }
+            }
 
-			if (trackindex && i == trackindex)
-			{
+            if (i == trackindex)
+            {
                 string output;
-				char request[100];
-				sprintf(request, "track_azel %f %f %f", mjdnow, DEGOF(fixangle(track[i].target.azfrom)), DEGOF((track[i].target.elfrom)));
-				if (debug)
-				{
-					printf("%f: Request: %s\n", et.lap(), request);
-				}
+                char request[100];
+                if (trackindex)
+                {
+                    sprintf(request, "track_azel %f %f %f", mjdnow, DEGOF(fixangle(track[i].target.azfrom)), DEGOF((track[i].target.elfrom)));
+                    if (debug)
+                    {
+                        printf("%f: Request: %s\n", et.lap(), request);
+                    }
 
-				// Command antennas to track
-				for (size_t j=0; j<myantennas.size(); ++j)
-				{
-					if (mjdnow - myantennas[j].beat.utc < 10.)
-					{
-                        iretn = agent->send_request(myantennas[j].beat, request, output, 5.);
-					}
-				}
+                    // Command antennas to track
+                    for (size_t j=0; j<myantennas.size(); ++j)
+                    {
+                        if (mjdnow - myantennas[j].beat.utc < 10.)
+                        {
+                            iretn = agent->send_request(myantennas[j].beat, request, output, 5.);
+                        }
+                    }
 
-				// Calculate frequencies for radios
-				for (size_t j=0; j<myradios.size(); ++j)
-				{
-					if (myradios[j].otherradioindex < track[i].radios.size())
-					{
-						size_t idx = myradios[j].otherradioindex;
-						if (mjdnow - myradios[j].beat.utc < 10.)
-						{
-							track[i].radios[idx].dfreq = track[i].radios[idx].info.freq * track[i].target.close / CLIGHT;
-							myradios[j].info.freq = track[i].radios[idx].info.freq + track[i].radios[idx].dfreq;
-							sprintf(request, "set_frequency %f", track[i].radios[idx].info.freq + track[i].radios[idx].dfreq);
-                            iretn = agent->send_request(myradios[j].beat, request, output, 5.);
-							sprintf(request, "set_opmode %u", track[i].radios[idx].info.opmode);
-                            iretn = agent->send_request(myradios[j].beat, request, output, 5.);
-						}
-					}
-				}
-			}
-		}
-		COSMOS_SLEEP(.1);
-	}
+                    // Calculate frequencies for radios
+                    for (size_t j=0; j<myradios.size(); ++j)
+                    {
+                        if (myradios[j].otherradioindex < track[i].radios.size())
+                        {
+                            size_t idx = myradios[j].otherradioindex;
+                            if (mjdnow - myradios[j].beat.utc < 10.)
+                            {
+                                track[i].radios[idx].dfreq = track[i].radios[idx].info.freq * track[i].target.close / CLIGHT;
+                                myradios[j].dfreq = track[i].radios[idx].dfreq;
+                                if (track[i].radios[idx].type == static_cast<uint16_t>(DeviceType::TXR))
+                                {
+                                    myradios[j].info.freq = track[i].radios[idx].info.freq + track[i].radios[idx].dfreq;
+                                }
+                                else {
+									myradios[j].info.freq = track[i].radios[idx].info.freq - track[i].radios[idx].dfreq;
+                                }
+                                sprintf(request, "set_frequency %f", track[i].radios[idx].info.freq + track[i].radios[idx].dfreq);
+                                iretn = agent->send_request(myradios[j].beat, request, output, 5.);
+                                sprintf(request, "set_opmode %u", track[i].radios[idx].info.opmode);
+                                iretn = agent->send_request(myradios[j].beat, request, output, 5.);
+                            }
+                        }
+                    }
+                }
+                else if (trackinit)
+                {
+                    string output;
+                    string request;
 
-	monitor_thread.join();
+                    // Set radios to base frequency
+                    for (size_t i=0; i<myradios.size(); ++i)
+                    {
+                        myradios[i].otherradioindex = 9999;
+                        myradios[i].info.freq = myradios[i].basefreq;
+                        myradios[i].info.opmode = myradios[i].baseopmode;
+                        request = "set_frequency " + to_double(myradios[i].info.freq);
+                        iretn = agent->send_request(myradios[i].beat, request, output, 5.);
+                        request = "set_opmode " + to_unsigned(myradios[i].info.opmode);
+                        iretn = agent->send_request(myradios[i].beat, request, output, 5.);
+                    }
+
+                    // Command antennas to park
+                    request = "set_azel 180. 90.";
+                    for (size_t j=0; j<myantennas.size(); ++j)
+                    {
+                        if (mjdnow - myantennas[j].beat.utc < 10.)
+                        {
+                            iretn = agent->send_request(myantennas[j].beat, request, output, 5.);
+                        }
+                    }
+
+                    trackinit = false;
+                }
+            }
+        }
+        agent->finish_active_loop();
+    }
+
+    monitor_thread.join();
     agent->shutdown();
 }
 
@@ -535,203 +651,209 @@ void monitor()
     Agent::AgentMessage iretn;
 
     while (agent->running())
-	{
+    {
         Agent::messstruc mess;
 
         iretn = (Agent::AgentMessage)agent->readring(mess, Agent::AgentMessage::BEAT, 5.0);
 
-		// Only process if this is a heartbeat message for our node
+        // Only process if this is a heartbeat message for our node
         if (iretn == Agent::AgentMessage::BEAT && !strcmp(mess.meta.beat.node, agent->cinfo->node.name))
-		{
-			cdata_mutex.lock();
-			// Extract telemetry
+        {
+            cdata_mutex.lock();
+            // Extract telemetry
             json_parse(mess.adata, agent->cinfo);
 
-			// Extract agent information
-			for (size_t i=0; i<myantennas.size(); ++i)
-			{
+            // Extract agent information
+            for (size_t i=0; i<myantennas.size(); ++i)
+            {
                 if (!strcmp(mess.meta.beat.proc, myantennas[i].name.c_str()))
-				{
+                {
                     myantennas[i].beat = mess.meta.beat;
-				}
-			}
-			for (size_t i=0; i<myradios.size(); ++i)
-			{
+                }
+            }
+            for (size_t i=0; i<myradios.size(); ++i)
+            {
                 if (!strcmp(mess.meta.beat.proc, myradios[i].name.c_str()))
-				{
+                {
                     myradios[i].beat = mess.meta.beat;
-				}
-			}
-			cdata_mutex.unlock();
+                }
+            }
+            cdata_mutex.unlock();
 
-		}
-	}
+        }
+    }
 
 }
 
 int32_t request_list_tracks(string &request, string &response, Agent *)
 {
     response.clear();
-	for (size_t i=0; i<track.size(); ++i)
-	{
+    for (size_t i=0; i<track.size(); ++i)
+    {
         response += '\n' + track[i].name + ' ' + to_angle(DPI2-track[i].target.elfrom, 'D');
-	}
+    }
     response += '\n';
 
-	return 0;
+    return 0;
 }
 
 int32_t request_set_track(string &request, string &response, Agent *)
 {
-	size_t tracki;
+    size_t tracki;
 
-	switch (request[10])
-	{
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-		sscanf(request.c_str(), "set_track %lu", &tracki);
-		if (tracki < track.size())
-		{
-			trackindex = tracki;
-		}
-		break;
-	default:
-		char trackname[41];
-		sscanf(request.c_str(), "set_track %40s", trackname);
-		for (tracki=0; tracki<track.size(); ++tracki)
-		{
-			if (!strcmp(track[tracki].name.c_str(), trackname))
-			{
-				trackindex = tracki;
-				break;
-			}
-		}
-		break;
-	}
+    switch (request[10])
+    {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+        sscanf(request.c_str(), "set_track %lu", &tracki);
+        if (tracki < track.size())
+        {
+            trackindex = tracki;
+        }
+        break;
+    default:
+        char trackname[41];
+        sscanf(request.c_str(), "set_track %40s", trackname);
+        for (tracki=0; tracki<track.size(); ++tracki)
+        {
+            if (!strcmp(track[tracki].name.c_str(), trackname))
+            {
+                trackindex = tracki;
+                break;
+            }
+        }
+        break;
+    }
 
-	for (size_t i=0; i<myradios.size(); ++i)
-	{
-		myradios[i].otherradioindex = 9999;
-	}
+    for (size_t i=0; i<myradios.size(); ++i)
+    {
+        myradios[i].otherradioindex = 9999;
+    }
 
-	for (size_t i=0; i<track[trackindex].radios.size(); ++i)
-	{
-		track[trackindex].radios[i].otherradioindex = 9999;
-	}
+    for (size_t i=0; i<track[trackindex].radios.size(); ++i)
+    {
+        track[trackindex].radios[i].otherradioindex = 9999;
+    }
 
-	return 0;
+    trackinit = true;
+
+    return 0;
 }
 
 int32_t request_get_track(string &request, string &response, Agent *)
 {
-	if (trackindex != 9999)
+    if (trackindex != 9999)
     {
         response = to_unsigned(trackindex) + ' ' +  track[trackindex].name + ' ' + to_double(track[trackindex].target.range) + ' ' + to_double(track[trackindex].target.range/track[trackindex].target.close);
-	}
+    }
 
-	return 0;
+    return 0;
 }
 
 int32_t request_list_radios(string &request, string &response, Agent *)
 {
-    response = ("My Radios\n");
-	for (size_t i=0; i<myradios.size(); ++i)
+    response = ("My Radios");
+    for (size_t i=0; i<myradios.size(); ++i)
     {
-        response += myradios[i].name + ' ' + to_unsigned(myradios[i].otherradioindex) + ' ' + to_double(myradios[i].info.freq) + ' ' + opmode2string(myradios[i].info.opmode);
-	}
+        response += '\n' + to_signed(i) + ' ' + to_label("Name", myradios[i].name) + ' ' + to_label("OtherIndex", myradios[i].otherradioindex) + ' ' + to_label("Freq", myradios[i].info.freq, 9) + ' ' + to_label("Opmode", opmode2string(myradios[i].info.opmode));
+    }
 
-    response += ("Other Radios\n");
-	for (size_t i=0; i<track[trackindex].radios.size(); ++i)
-	{
-        response += ( to_unsigned(i) + ' ' + track[trackindex].radios[i].name.c_str() + ' ' + to_unsigned(track[trackindex].radios[i].otherradioindex) + ' ' + to_double(track[trackindex].radios[i].info.freq) + ' ' + opmode2string(track[trackindex].radios[i].info.opmode).c_str());
-	}
+    response += ("\nOther Radios");
+    for (size_t i=0; i<track[trackindex].radios.size(); ++i)
+    {
+        response += '\n' + to_signed(i) + ' ' + to_label("Name", track[trackindex].radios[i].name) + ' ' + to_label("MyIndex", track[trackindex].radios[i].otherradioindex) + ' ' + to_label("Freq", track[trackindex].radios[i].info.freq, 9) + ' ' + to_label("Opmode", opmode2string(track[trackindex].radios[i].info.opmode));
+    }
 
-	return 0;
+    return 0;
 }
 
 int32_t request_match_radio(string &request, string &response, Agent *)
 {
-	char fromname[41];
-	char toname[41];
-	uint16_t fromi = 9999;
-	uint16_t toi = 9999;
+    string fromname;
+    string toname;
+    uint16_t fromi = 9999;
+    uint16_t toi = 9999;
 
-	sscanf(request.c_str(), "match_radio %40s %40s", fromname, toname);
+    size_t firstspace = request.find(' ');
+    size_t lastspace = request.find_last_of(' ');
 
-	if (fromname[0] < '0' && fromname[0] > '9')
-	{
-		for (fromi=0; fromi<myradios.size(); ++fromi)
-		{
-			if (!strcmp(myradios[fromi].name.c_str(), fromname))
-			{
-				break;
-			}
-		}
-	}
-	else
-	{
-		fromi = atoi(fromname);
-	}
+    fromname = request.substr(firstspace+1, (lastspace-firstspace)-1);
+    toname = request.substr(lastspace+1);
 
-	if (toname[0] < '0' && toname[0] > '9')
-	{
-		for (toi=0; toi<myradios.size(); ++toi)
-		{
-			if (!strcmp(myradios[toi].name.c_str(), toname))
-			{
-				break;
-			}
-		}
-	}
-	else
-	{
-		toi = atoi(toname);
-	}
+    if (fromname[0] < '0' && fromname[0] > '9')
+    {
+        for (fromi=0; fromi<myradios.size(); ++fromi)
+        {
+            if (myradios[fromi].name == fromname)
+            {
+                break;
+            }
+        }
+    }
+    else
+    {
+        fromi = stoi(fromname);
+    }
 
-	if (fromi < myradios.size() && toi < track[trackindex].radios.size())
-	{
-		myradios[fromi].otherradioindex = toi;
-		track[trackindex].radios[toi].otherradioindex = fromi;
+    if (toname[0] < '0' && toname[0] > '9')
+    {
+        for (toi=0; toi<myradios.size(); ++toi)
+        {
+            if (myradios[toi].name == toname)
+            {
+                break;
+            }
+        }
+    }
+    else
+    {
+        toi = stoi(toname);
+    }
+
+    if (fromi < myradios.size() && toi < track[trackindex].radios.size())
+    {
+        myradios[fromi].otherradioindex = toi;
+        track[trackindex].radios[toi].otherradioindex = fromi;
         response = ("Matched " + myradios[fromi].name + " to " + track[trackindex].radios[toi].name);
     }
-	else
-	{
+    else
+    {
         response = ("No match");
-	}
+    }
 
-	return 0;
+    return 0;
 }
 
 int32_t request_unmatch_radio(string &request, string &response, Agent *)
 {
-	char fromname[41];
-	uint16_t fromi = 9999;
-	uint16_t toi = 9999;
+    char fromname[41];
+    uint16_t fromi = 9999;
+    uint16_t toi = 9999;
 
-	sscanf(request.c_str(), "unmatch_radio %40s", fromname);
+    sscanf(request.c_str(), "unmatch_radio %40s", fromname);
 
-	if (fromname[0] < '0' && fromname[0] > '9')
-	{
-		for (fromi=0; fromi<myradios.size(); ++fromi)
-		{
-			if (!strcmp(myradios[fromi].name.c_str(), fromname))
-			{
-				break;
-			}
-		}
-	}
-	else
-	{
-		fromi = atoi(fromname);
-	}
+    if (fromname[0] < '0' && fromname[0] > '9')
+    {
+        for (fromi=0; fromi<myradios.size(); ++fromi)
+        {
+            if (!strcmp(myradios[fromi].name.c_str(), fromname))
+            {
+                break;
+            }
+        }
+    }
+    else
+    {
+        fromi = atoi(fromname);
+    }
 
 
 	if (fromi < myradios.size())
@@ -749,7 +871,7 @@ int32_t request_unmatch_radio(string &request, string &response, Agent *)
         response = "No match";
 	}
 
-	return 0;
+    return 0;
 }
 
 int32_t request_list_antennas(string &request, string &response, Agent *)
@@ -759,113 +881,119 @@ int32_t request_list_antennas(string &request, string &response, Agent *)
 		response += std::to_string(i) + " " + myantennas[i].name + " " + std::to_string(myantennas[i].info.minelev) + "\n";
 	}
 
-	return 0;
+    return 0;
 }
 
 int32_t request_get_state(string &req, string &response, Agent *)
 {
-	if (trackindex == 0)
-	{
-        response = '[' + to_mjd(currentmjd()) + "] 0: idle [na na] CxTime: ";
-	}
-	else
-	{
+    if (trackindex == 0)
+    {
+        response = '[' + to_mjd(currentmjd()) + "] 0: idle [0.D 0.D] ";
+    }
+    else
+    {
         response = '[' + to_mjd(currentmjd()) + "] ";
-        response += to_unsigned(trackindex) + ": ";
-        response += track[trackindex].name + ' ';
-        response += '[' + to_angle(fixangle(track[trackindex].target.azfrom), 'D', 1) + ' ';
-        response += to_angle(track[trackindex].target.elfrom, 'D', 1) + "] CxTime: ";
-	}
-	for (size_t i=0; i<myradios.size(); ++i)
-	{
-        response += '{' + myradios[i].name + ' ' + to_double(myradios[i].info.freq) + ' ';
-		if (myradios[i].otherradioindex != 9999)
-		{
-			size_t idx = myradios[i].otherradioindex;
-            response += '(' + track[trackindex].radios[idx].name + ' ' + to_double(86400. * (currentmjd() - myradios[i].beat.utc), 3) + '}';
-		}
-		else
-		{
-            response += ("} ");
-		}
-	}
-	for (size_t i=0; i<myantennas.size(); ++i)
-	{
-        response += '{' + myantennas[i].name + " (" + to_double(86400. * (currentmjd() - myantennas[i].beat.utc), 3) + ")} ";
-	}
-	return (0);
+        response += track[trackindex].name + '(';
+        response += to_unsigned(trackindex) + ") ";
+        response += '[' + to_angle(fixangle(track[trackindex].target.azfrom), 'D', 5) + ' ';
+        response += to_angle(track[trackindex].target.elfrom, 'D', 4) + "] ";
+    }
+    for (size_t i=0; i<myradios.size(); ++i)
+    {
+        if (myradios[i].otherradioindex != 9999)
+        {
+            size_t idx = myradios[i].otherradioindex;
+            response += "{ ";
+            response += to_label("GS", myradios[i].name) + ' ';
+            response += to_label("Sat", track[trackindex].radios[idx].name) + ' ';
+            response += to_label("Freq", myradios[i].info.freq, 9) + " (" + to_double(myradios[i].dfreq, 5) + ") } ";
+        }
+        else {
+            response += "{ ";
+            response += to_label("GS", myradios[i].name) + ' ';
+            response += to_label("Freq", myradios[i].info.freq, 9) + " (" + to_double(myradios[i].dfreq, 5) + ") } ";
+        }
+    }
+    for (size_t i=0; i<myantennas.size(); ++i)
+    {
+        if (86400. * (currentmjd() - myantennas[i].beat.utc) < 1.)
+        {
+            response += '{' + myantennas[i].name + "} ";
+        }
+    }
+    return (0);
 }
 
 int32_t request_get_highest(string &req, string &response, Agent *)
 {
-	if (highestindex != 9999)
-	{
+    if (highestindex != 9999)
+    {
         response = to_unsigned(highestindex) + ": " + track[highestindex].name + " [" + to_angle(fixangle(track[highestindex].target.azfrom), 'D', 1) + ' ' + to_angle(track[highestindex].target.elfrom, 'D', 1) + ']';
-	}
-	return 0;
+    }
+    return 0;
 }
 
 int32_t request_debug(string &req, string &response, Agent *)
 {
     if (debug)
-	{
-		debug = false;
-}
+    {
+        debug = false;
+    }
     else
     {
         debug = true;
-	}
+    }
 
-	return 0;
+    return 0;
 }
 
 string opmode2string(uint8_t opmode)
 {
     string result;
-	switch (opmode)
-	{
-	case DEVICE_RADIO_MODE_AM:
-		result = "AM";
-		break;
-	case DEVICE_RADIO_MODE_AMD:
-		result = "AM Data";
-		break;
-	case DEVICE_RADIO_MODE_FM:
-		result = "FM";
-		break;
-	case DEVICE_RADIO_MODE_FMD:
-		result = "FM Data";
-		break;
-	case DEVICE_RADIO_MODE_LSB:
-		result = "LSB";
-		break;
-	case DEVICE_RADIO_MODE_LSBD:
-		result = "LSB Data";
-		break;
-	case DEVICE_RADIO_MODE_USB:
-		result = "USB";
-		break;
-	case DEVICE_RADIO_MODE_USBD:
-		result = "USB Data";
-		break;
-	case DEVICE_RADIO_MODE_RTTY:
-		result = "RTTY";
-		break;
-	case DEVICE_RADIO_MODE_RTTYR:
-		result = "RTTYR";
-		break;
-	case DEVICE_RADIO_MODE_DV:
-		result = "DV";
-		break;
-	case DEVICE_RADIO_MODE_DVD:
-		result = "DV Data";
-		break;
-	case DEVICE_RADIO_MODE_CWR:
-		result = "CWR";
-		break;
-	case DEVICE_RADIO_MODE_CW:
-		result = "CW";
-		break;
-	}
-	return result;
+    switch (opmode)
+    {
+    case DEVICE_RADIO_MODE_AM:
+        result = "AM";
+        break;
+    case DEVICE_RADIO_MODE_AMD:
+        result = "AM Data";
+        break;
+    case DEVICE_RADIO_MODE_FM:
+        result = "FM";
+        break;
+    case DEVICE_RADIO_MODE_FMD:
+        result = "FM Data";
+        break;
+    case DEVICE_RADIO_MODE_LSB:
+        result = "LSB";
+        break;
+    case DEVICE_RADIO_MODE_LSBD:
+        result = "LSB Data";
+        break;
+    case DEVICE_RADIO_MODE_USB:
+        result = "USB";
+        break;
+    case DEVICE_RADIO_MODE_USBD:
+        result = "USB Data";
+        break;
+    case DEVICE_RADIO_MODE_RTTY:
+        result = "RTTY";
+        break;
+    case DEVICE_RADIO_MODE_RTTYR:
+        result = "RTTYR";
+        break;
+    case DEVICE_RADIO_MODE_DV:
+        result = "DV";
+        break;
+    case DEVICE_RADIO_MODE_DVD:
+        result = "DV Data";
+        break;
+    case DEVICE_RADIO_MODE_CWR:
+        result = "CWR";
+        break;
+    case DEVICE_RADIO_MODE_CW:
+        result = "CW";
+        break;
+    }
+    return result;
 }

@@ -66,7 +66,7 @@ int main(int, char **)
         exit(1);
     }
 
-    beatstruc beat_agent_004 = agent->find_server(nodename, agent004, 2.);
+    beatstruc beat_agent_004 = agent->find_agent(nodename, agent004, 2.);
 
     string requestString = "request_hello"; // The name of agent_002's request
     std::string response; // Variable to store agent_002's response
@@ -91,7 +91,7 @@ int main(int, char **)
             cout << "What happened to agent_004? Let's try to find it..." << endl;
 
             beat_agent_004.node[0] = '\0'; // reset
-            beat_agent_004 = agent->find_server(nodename, agent004, 2.);
+            beat_agent_004 = agent->find_agent(nodename, agent004, 2.);
 
             cout << "beat agent_004 node: " << beat_agent_004.utc << endl;
         }

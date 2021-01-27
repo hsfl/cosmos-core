@@ -99,9 +99,9 @@
 //! Events
 //!
 //! Unlike Targetting, information about Physical Events is not stored directly in the ::cosmosstruc. Instead,
-//! the user keeps a table of type ::shorteventstruc, initialized with ::load_dictionary, that provides templates
+//! the user keeps a table of type ::eventstruc, initialized with ::load_dictionary, that provides templates
 //! for all possible events. These templates can be matched against current conditions using ::calc_events.
-//! This will return a second table of type ::shorteventstruc that includes an entry for each event that:
+//! This will return a second table of type ::eventstruc that includes an entry for each event that:
 //! - had its condition calculate non zero
 //! - did not have its condition calculate non zero previously
 //!
@@ -134,7 +134,7 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
 int32_t json_findpiece(cosmosstruc *cinfo, string name);
 int32_t json_findcomp(cosmosstruc *cinfo, string name);
 int32_t json_finddev(cosmosstruc *cinfo, string name);
-int32_t json_createport(cosmosstruc *cinfo, string name, uint16_t type);
+int32_t json_createport(cosmosstruc *cinfo, string name, PORT_TYPE type);
 //uint16_t json_addequation(const char *text, cosmosstruc *cinfo, uint16_t unit);
 int32_t json_addentry(string name, string value, cosmosstruc *cinfo);
 int32_t json_addentry(jsonentry entry, cosmosstruc *cinfo);
@@ -210,7 +210,7 @@ int32_t json_out_ecipos(string &jstring,cartpos value);
 int32_t json_out_posstruc(string &jstring,posstruc value);
 int32_t json_out_attstruc(string &jstring,attstruc value);
 int32_t json_out_locstruc(string &jstring,locstruc value);
-int32_t json_out_commandevent(string &jstring, longeventstruc event);
+int32_t json_out_commandevent(string &jstring, eventstruc event);
 
 uint8_t *json_ptrto(string token, cosmosstruc *cinfo);
 uint8_t *json_ptrto_1d(const char *token, uint16_t index1, cosmosstruc *cinfo);
@@ -333,17 +333,20 @@ int32_t node_init(string name, cosmosstruc *cinfo);
 int32_t node_calc(cosmosstruc *cinfo);
 void create_databases(cosmosstruc *cinfo);
 //void load_databases(char *name, uint16_t type, cosmosstruc *cinfo);
-size_t load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cinfo, const char *file);
+size_t load_dictionary(vector<eventstruc> &dict, cosmosstruc *cinfo, const char *file);
 int32_t load_target(cosmosstruc *cinfo);
 int32_t update_target(cosmosstruc *cinfo);
 int32_t update_target(locstruc source, targetstruc &target);
-size_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cinfo, vector<shorteventstruc> &events);
+size_t calc_events(vector<eventstruc> &dictionary, cosmosstruc *cinfo, vector<eventstruc> &events);
 uint16_t device_type_index(string name);
 string device_type_name(uint32_t type);
 string port_type_name(uint32_t type);
 
-
 //! @}
+
+std::ostream& operator<<(std::ostream& out, const beatstruc& b);
+
+
 
 
 #endif

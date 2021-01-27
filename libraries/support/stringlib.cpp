@@ -44,36 +44,26 @@
     \param delimeter string of delimeters.
     \return vector of sub strings.
 */
-vector < string > string_split(string in, string delimeters)
-{
+vector < string > string_split(string in, string delimeters) {
     vector<string> result;
     const char *str = in.data();
-
-    do
-    {
+    do {
         const char *begin = str;
-
-        while(*str)
-        {
+        while(*str) {
             bool match = false;
-
-            for (size_t i=0; i<delimeters.size(); ++i)
-            {
-                if (*str == delimeters[i])
-                {
+            for (size_t i=0; i<delimeters.size(); ++i) {
+                if (*str == delimeters[i]) {
                     match = true;
                     break;
                 }
             }
-            if (match)
-            {
+            if (match) {
                 break;
             }
             str++;
         }
         result.push_back(string(begin, str));
     } while (0 != *str++);
-
     return result;
 }
 
@@ -85,75 +75,54 @@ vector < string > string_split(string in, string delimeters)
     \param wmax maximum number of words that can be stored in words array.
     \return Number of words
 */
-uint16_t string_parse(char *string, char *words[], uint16_t wmax)
-{
+uint16_t string_parse(char *string, char *words[], uint16_t wmax) {
     uint16_t wcount, ccount, i;
-
-    if (string == NULL)
-        return 0;
+    if (string == NULL) return 0;
 
     wcount = ccount = i = 0;
-    while (string[i] == ' ' || string[i] == '\t')
+    while (string[i] == ' ' || string[i] == '\t')	{
         i++;
+	}
 
-    if (string[i] == 0)
-        return 0;
+    if (string[i] == 0) return 0;
 
-    while (string[i] != 0)
-    {
-        if (string[i] == ' ' || string[i] == '\t')
-        {
+    while (string[i] != 0) {
+        if (string[i] == ' ' || string[i] == '\t') {
             words[wcount][ccount] = 0;
             ccount = 0;
             wcount++;
-            if (wcount == wmax-1)
-                break;
-            do
-            {
+            if (wcount == wmax-1) break;
+            do {
                 i++;
             } while (string[i] == ' ' || string[i] == '\t');
-        }
-        else
-        {
+        } else {
             if (!ccount)
                 words[wcount] = &string[i];
             ccount++;
             i++;
         }
     }
-    if (ccount)
-        wcount++;
+    if (ccount) wcount++;
     words[wcount] = (char *)nullptr;
     return (wcount);
 }
 
-int string_cmp(const char *wild, const char *string)
-{
+int string_cmp(const char *wild, const char *string) {
     // Written by Jack Handy - <A href="mailto:jakkhandy@hotmail.com">jakkhandy@hotmail.com</A>
     const char *cp = NULL, *mp = NULL;
 
-    while ((*string) && (*wild != '*'))
-    {
-        if ((*wild != *string) && (*wild != '?'))
-        {
-            return 0;
-        }
+    while ((*string) && (*wild != '*')) {
+        if ((*wild != *string) && (*wild != '?')) { return 0; }
         wild++;
         string++;
     }
 
-    while (*string)
-    {
-        if (*wild == '*')
-        {
-            if (!*++wild)
-            {
-                return 1;
-            }
+    while (*string) {
+        if (*wild == '*') {
+            if (!*++wild) { return 1; }
             mp = wild;
             cp = string+1;
-        } else if ((*wild == *string) || (*wild == '?'))
-        {
+        } else if ((*wild == *string) || (*wild == '?')) {
             wild++;
             string++;
         } else {
@@ -162,8 +131,7 @@ int string_cmp(const char *wild, const char *string)
         }
     }
 
-    while (*wild == '*')
-    {
+    while (*wild == '*') {
         wild++;
     }
     return !*wild;
@@ -172,16 +140,10 @@ int string_cmp(const char *wild, const char *string)
 
 
 // default constructor
-StringParser::StringParser(string str)
-{
-    splitString(str, ',');
-}
+StringParser::StringParser(string str) { splitString(str, ','); }
 
 // overladed constructor
-StringParser::StringParser(string str, char delimiter)
-{
-    splitString(str,delimiter);
-}
+StringParser::StringParser(string str, char delimiter) { splitString(str,delimiter); }
 
 
 //  splits the string into a vector field of strings
@@ -190,8 +152,7 @@ void StringParser::splitString(string str, char delimiter)
     std::stringstream ss(str);
     string token;
 
-    while(std::getline(ss, token, delimiter))
-    {
+    while(std::getline(ss, token, delimiter)) {
         //std::cout << token << '\n';
         vect.push_back(token);
     }
@@ -206,28 +167,24 @@ void StringParser::splitString(string str, char delimiter)
 // Ex: string = "SOL_COMPUTED,NARROW_INT,-1634531.5683"
 // StringParser::getFieldNumber(1) => "SOL_COMPUTED"
 // StringParser::getFieldNumber(0) => NULL (does not return a meaning value)
-string StringParser::getFieldNumber(uint32_t index)
-{
+string StringParser::getFieldNumber(uint32_t index) {
     string out;
     uint32_t real_offset = index + offset;
 
     if ( index>0 && numberOfFields >= (real_offset) && real_offset < vect.size() ){
-
         out = vect.at(real_offset);
-        //std::cout <<out << std::endl;
     } else { // fail safe
         return "";
     }
-
     return out;
 }
 
 
+// JIMNOTE:  why is this code using exceptions?  should we have exceptions at all?
 double StringParser::getFieldNumberAsDouble(uint32_t index)
 {
     double out;
     if ( (index > 0) && (numberOfFields >= index)){
-
         try {
             out = stod(vect.at(index + offset));
             //std::cout <<out << std::endl;
@@ -242,40 +199,42 @@ double StringParser::getFieldNumberAsDouble(uint32_t index)
     return out;
 }
 
-int StringParser::getFieldNumberAsInteger(uint32_t index)
-{
-    return getFieldNumberAsDouble(index);
+int StringParser::getFieldNumberAsInteger(uint32_t index) { return getFieldNumberAsDouble(index); }
+
+string to_hex_string(vector <uint8_t> buffer, bool ascii) {
+    string output;
+    output.resize(buffer.size() * 4);
+    for (uint16_t i=0; i<buffer.size(); ++i) {
+        if (ascii && buffer[i] > 31 && buffer[i] < 127)
+        {
+            sprintf(&output[strlen(output.c_str())], " %02x(%c)", buffer[i], buffer[i]);
+        }
+        else
+        {
+            sprintf(&output[strlen(output.c_str())], " %02x", buffer[i]);
+        }
+    }
+    return output;
 }
 
-string to_string(char *value)
-{
+string to_string(char *value) {
     string output = value;
     return output;
 }
 
-string to_hex(int64_t value, uint16_t digits, bool zerofill)
-{
+string to_hex(int64_t value, uint16_t digits, bool zerofill) {
     string output="";
     output.resize(digits?digits+2:20);
-    if (zerofill)
-    {
-        if (digits)
-        {
+    if (zerofill) {
+        if (digits) {
             sprintf(&output[0], "%0*lx", digits, value);
-        }
-        else
-        {
+        } else {
             sprintf(&output[0], "%0lx", value);
         }
-    }
-    else
-    {
-        if (digits)
-        {
+    } else {
+        if (digits) {
             sprintf(&output[0], "%*lx", digits, value);
-        }
-        else
-        {
+        } else {
             sprintf(&output[0], "%lx", value);
         }
     }
@@ -283,29 +242,19 @@ string to_hex(int64_t value, uint16_t digits, bool zerofill)
     return output;
 }
 
-string to_signed(int64_t value, uint16_t digits, bool zerofill)
-{
+string to_signed(int64_t value, uint16_t digits, bool zerofill) {
     string output="";
     output.resize((value==0?0:size_t(log10(std::abs(value))))+digits+5);
-    if (zerofill)
-    {
-        if (digits)
-        {
+    if (zerofill) {
+        if (digits) {
             sprintf(&output[0], "%0*ld", digits, value);
-        }
-        else
-        {
+        } else {
             sprintf(&output[0], "%0ld", value);
         }
-    }
-    else
-    {
-        if (digits)
-        {
+    } else {
+        if (digits) {
             sprintf(&output[0], "%*ld", digits, value);
-        }
-        else
-        {
+        } else {
             sprintf(&output[0], "%ld", value);
         }
     }
@@ -313,29 +262,19 @@ string to_signed(int64_t value, uint16_t digits, bool zerofill)
     return output;
 }
 
-string to_unsigned(uint64_t value, uint16_t digits, bool zerofill)
-{
+string to_unsigned(uint64_t value, uint16_t digits, bool zerofill) {
     string output="";
     output.resize((value==0?0:size_t(log10((value))))+digits+5);
-    if (zerofill)
-    {
-        if (digits)
-        {
+    if (zerofill) {
+        if (digits) {
             sprintf(&output[0], "%0*lu", digits, value);
-        }
-        else
-        {
+        } else {
             sprintf(&output[0], "%0lu", value);
         }
-    }
-    else
-    {
-        if (digits)
-        {
+    } else {
+        if (digits) {
             sprintf(&output[0], "%*lu", digits, value);
-        }
-        else
-        {
+        } else {
             sprintf(&output[0], "%lu", value);
         }
     }
@@ -343,32 +282,24 @@ string to_unsigned(uint64_t value, uint16_t digits, bool zerofill)
     return output;
 }
 
-string to_double(double value, uint16_t precision)
-{
+string to_double(double value, uint16_t precision) {
     string output="";
 //    output.resize((value==0.?0:size_t(log10(std::abs(value))))+precision+5);
     output.resize(17+precision);
-    if (precision)
-    {
+    if (precision) {
         sprintf(&output[0], "%.*g", precision, value);
-    }
-    else
-    {
+    } else {
         sprintf(&output[0], "%g", value);
     }
     output.resize(strlen(&output[0]));
     return output;
 }
 
-string to_mjd(double value)
-{
-    return to_double(value, 17);
-}
+string to_mjd(double value) { return to_double(value, 13); }
 
 string to_temperature(double value, char units, uint8_t precision)
 {
-    switch (units)
-    {
+    switch (units) {
     case 'K':
         return to_double(value, precision) + " K";
     case 'C':
@@ -379,8 +310,7 @@ string to_temperature(double value, char units, uint8_t precision)
     return "";
 }
 
-string to_angle(double value, char units, uint8_t precision)
-{
+string to_angle(double value, char units, uint8_t precision) {
     switch (units)
     {
     case 'R':
@@ -393,8 +323,7 @@ string to_angle(double value, char units, uint8_t precision)
     return "";
 }
 
-string to_bool(bool value)
-{
+string to_bool(bool value) {
     string output="";
     output.resize(2);
     output[0] =  value?'1':'0';
@@ -402,151 +331,111 @@ string to_bool(bool value)
     return output;
 }
 
-string to_json(string key, string value)
-{
+string to_json(string key, string value) {
     JSONObject jobject;
     jobject.addElement(key, value);
     return jobject.to_json_object();
 }
 
-string to_json(string key, double value)
-{
+string to_json(string key, double value) {
     JSONObject jobject;
     jobject.addElement(key, value);
     return jobject.to_json_object();
 }
 
-string to_json(string key, int64_t value)
-{
+string to_json(string key, int64_t value) {
     JSONObject jobject;
     jobject.addElement(key, value);
     return jobject.to_json_object();
 }
 
-string to_json(string key, int32_t value)
-{
+string to_json(string key, int32_t value) {
     return to_json(key, static_cast<int64_t>(value));
 }
 
-string to_json(string key, int16_t value)
-{
+string to_json(string key, int16_t value) {
     return to_json(key, static_cast<int64_t>(value));
 }
 
-string to_json(string key, int8_t value)
-{
+string to_json(string key, int8_t value) {
     return to_json(key, static_cast<int64_t>(value));
 }
 
-string to_json(string key, uint64_t value)
-{
+string to_json(string key, uint64_t value) {
     JSONObject jobject;
     jobject.addElement(key, value);
     return jobject.to_json_object();
 }
 
-string to_json(string key, uint32_t value)
-{
-    return to_json(key, static_cast<uint64_t>(value));
-}
+string to_json(string key, uint32_t value) { return to_json(key, static_cast<uint64_t>(value)); }
 
-string to_json(string key, uint16_t value)
-{
-    return to_json(key, static_cast<uint64_t>(value));
-}
+string to_json(string key, uint16_t value) { return to_json(key, static_cast<uint64_t>(value)); }
 
-string to_json(string key, uint8_t value)
-{
-    return to_json(key, static_cast<uint64_t>(value));
-}
+string to_json(string key, uint8_t value) { return to_json(key, static_cast<uint64_t>(value)); }
 
-string to_label(string label, double value, uint16_t precision, bool mjd)
-{
-    if (mjd)
-    {
+string to_label(string label, double value, uint16_t precision, bool mjd) {
+    if (mjd) {
         return label + ": " + to_mjd(value);
-    }
-    else
-    {
+    } else {
         return label + ": " + to_double(value, precision);
     }
 }
 
-string to_label(string label, uint64_t value, uint16_t digits, bool hex)
-{
-    if (hex)
-    {
+string to_label(string label, uint64_t value, uint16_t digits, bool hex) {
+    if (hex) {
         return label + ": " + to_hex(value, digits);
-    }
-    else
-    {
+    } else {
         return label + ": " + to_unsigned(value, digits);
     }
 }
 
-string to_label(string label, uint32_t value, uint16_t digits, bool hex)
-{
+string to_label(string label, uint32_t value, uint16_t digits, bool hex) {
     return to_label(label, static_cast<uint64_t>(value), digits, hex);
 }
 
-string to_label(string label, uint16_t value, uint16_t digits, bool hex)
-{
+string to_label(string label, uint16_t value, uint16_t digits, bool hex) {
     return to_label(label, static_cast<uint64_t>(value), digits, hex);
 }
 
-string to_label(string label, uint8_t value, uint16_t digits, bool hex)
-{
+string to_label(string label, uint8_t value, uint16_t digits, bool hex) {
     return to_label(label, static_cast<uint64_t>(value), digits, hex);
 }
 
-string to_label(string label, int64_t value, uint16_t digits, bool hex)
-{
-    if (hex)
-    {
+string to_label(string label, int64_t value, uint16_t digits, bool hex) {
+    if (hex) {
         return label + ": " + to_hex(value, digits);
-    }
-    else
-    {
+    } else {
         return label + ": " + to_signed(value, digits);
     }
 }
 
-string to_label(string label, int32_t value, uint16_t digits, bool hex)
-{
+string to_label(string label, int32_t value, uint16_t digits, bool hex) {
     return to_label(label, static_cast<int64_t>(value), digits, hex);
 }
 
-string to_label(string label, int16_t value, uint16_t digits, bool hex)
-{
+string to_label(string label, int16_t value, uint16_t digits, bool hex) {
     return to_label(label, static_cast<int64_t>(value), digits, hex);
 }
 
-string to_label(string label, int8_t value, uint16_t digits, bool hex)
-{
+string to_label(string label, int8_t value, uint16_t digits, bool hex) {
     return to_label(label, static_cast<int64_t>(value), digits, hex);
 }
 
-string to_label(string label, bool value)
-{
+string to_label(string label, bool value) {
     return label + ": " + to_bool(value);
 }
 
-string to_label(string label, string value)
-{
+string to_label(string label, string value) {
     return label + ": " + (value);
 }
 
-string clean_string(string value)
-{
+string clean_string(string value) {
     string output;
-    for (uint16_t i=0; i<value.length(); ++i)
-    {
-        if (value[i] != 0)
-        {
+    for (uint16_t i=0; i<value.length(); ++i) {
+        if (value[i] != 0) {
             output.push_back(value[i]);
             printf("%c", value[i]);
-        }
-        else {
+        } else {
             printf(" [0] ");
         }
     }

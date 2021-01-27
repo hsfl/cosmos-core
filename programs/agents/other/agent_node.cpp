@@ -37,7 +37,6 @@
 
 #include "agent/agentclass.h"
 #include "support/jsonlib.h"
-#include "support/jsonlib.h"
 #include "physics/physicslib.h"
 
 #include <iostream>
@@ -73,8 +72,8 @@ int32_t mindex;
 nodestruc *node;
 
 //eventstruc tevent;
-std::vector<shorteventstruc> eventdict;
-std::vector<shorteventstruc> commanddict;
+std::vector<eventstruc> eventdict;
+std::vector<eventstruc> commanddict;
 
 Agent *agent;
 nodestruc statnode;
@@ -191,7 +190,7 @@ int main(int argc, char *argv[])
 		// Initialize hardware
         hardware_init_eci(agent->cinfo, agent->cinfo->node.loc);
 		// Initialize orbit
-        gauss_jackson_init_eci(gjh, 8, 0, .1, agent->cinfo->node.loc.utc, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
+        gauss_jackson_init_eci(gjh, 8, 0, .1, agent->cinfo->node.loc.utc, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
         simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
         agent->cinfo->node.utcoffset = agent->cinfo->node.loc.utc - currentmjd(0.);
         agent->set_sohstring((char *)"{\"node_utc\",\"node_name\",\"node_type\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"}");
@@ -219,7 +218,7 @@ int main(int argc, char *argv[])
         switch (agent->cinfo->node.type)
 		{
 		case NODE_TYPE_SATELLITE:
-            gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, currentmjd(agent->cinfo->node.utcoffset));
+            gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, currentmjd(agent->cinfo->node.utcoffset));
             simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
             break;
 		default:
@@ -284,7 +283,7 @@ void loadephemeris()
 	int j;
 	uint32_t k;
 	double stime, ctime, etime;
-    std::vector<shorteventstruc> events;
+    std::vector<eventstruc> events;
 
 	// Return immediately if we haven't loaded any data
 	if (cache[3].utime > 0.)
@@ -310,7 +309,7 @@ void loadephemeris()
     ctime = agent->cinfo->node.loc.utc;
 	stime = (int)ctime;
 	etime = stime + MAXEPHEM + 1;
-    gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
+    gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
     simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
     update_target(agent->cinfo);
 	do
@@ -319,14 +318,14 @@ void loadephemeris()
         calc_events(eventdict,  agent->cinfo, events);
 		for (k=0; k<events.size(); ++k)
 		{
-            memcpy(&agent->cinfo->event[0].s,&events[k],sizeof(shorteventstruc));
-            strcpy(agent->cinfo->event[0].l.condition, agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+            memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
+            strcpy(agent->cinfo->event[0].condition, agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
             cache[3+(int)(ctime-stime)].event.push_back(json_of_event(myjstring, agent->cinfo));
 		}
 		cache[3+(int)(ctime-stime)].mjd = (int)ctime;
 		cache[3+(int)(ctime-stime)].utime = ctime;
 		ctime += 20./86400.;
-        gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, ctime);
+        gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, ctime);
         simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
         update_target(agent->cinfo);
 	} while (ctime < etime);
@@ -519,7 +518,7 @@ int32_t request_next(string &request, string &response, Agent *)
 	case 'd':
 		if (dindex <= commanddict.size())
 		{
-            agent->cinfo->event[0].s = commanddict[dindex];
+            agent->cinfo->event[0] = commanddict[dindex];
             response = (json_of_event(myjstring, agent->cinfo));
 			if (dindex < commanddict.size()-1)
 				++dindex;

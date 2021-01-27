@@ -1944,4 +1944,224 @@ off_t data_size(string path)
 
 }
 
+int32_t data_execute(string cmd, string& result, string shell)
+{
+#if defined(COSMOS_WIN_OS)
+    if (!data_isfile(cmd))
+    {
+        return GENERAL_ERROR_UNDEFINED;
+    }
+
+    /* child process's STDIN is the user input or data that you enter into the child process - READ */
+    void * g_hChildStd_IN_Rd = NULL;
+    /* child process's STDIN is the user input or data that you enter into the child process - WRITE */
+    void * g_hChildStd_IN_Wr = NULL;
+    /* child process's STDOUT is the program output or data that child process returns - READ */
+    void * g_hChildStd_OUT_Rd = NULL;
+    /* child process's STDOUT is the program output or data that child process returns - WRITE */
+    void * g_hChildStd_OUT_Wr = NULL;
+    SECURITY_ATTRIBUTES saAttr;
+
+    cmd.insert(0, "cmd.exe /c ");
+
+    // Set the bInheritHandle flag so pipe handles are inherited.
+    saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+    saAttr.bInheritHandle = TRUE;
+    saAttr.lpSecurityDescriptor = NULL;
+
+    //child process's STDOUT is the program output or data that child process returns
+    // Create a pipe for the child process's STDOUT.
+    if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0))
+    {
+        return -1;
+    }
+
+    // Ensure the read handle to the pipe for STDOUT is not inherited.
+    if (!SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0))
+    {
+        return -1;
+    }
+
+    //child process's STDIN is the user input or data that you enter into the child process
+    // Create a pipe for the child process's STDIN.
+    if (!CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0))
+    {
+        return -1;
+    }
+
+    // Ensure the write handle to the pipe for STDIN is not inherited.
+    if (!SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0))
+    {
+        return -1;
+    }
+
+    // Create child process
+    PROCESS_INFORMATION piProcInfo;
+    STARTUPINFO siStartInfo;
+    BOOL bSuccess = FALSE;
+
+    // Set up members of the PROCESS_INFORMATION structure.
+
+    ZeroMemory(&piProcInfo, sizeof(PROCESS_INFORMATION));
+
+    // Set up members of the STARTUPINFO structure.
+    // This structure specifies the STDIN and STDOUT handles for redirection.
+
+    ZeroMemory(&siStartInfo, sizeof(STARTUPINFO));
+    siStartInfo.cb = sizeof(STARTUPINFO);
+    siStartInfo.hStdError = g_hChildStd_OUT_Wr;
+    siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
+    siStartInfo.hStdInput = g_hChildStd_IN_Rd;
+    siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+
+    // Create the child process.
+
+    bSuccess = CreateProcess(NULL,
+        (LPSTR)cmd.c_str(),                // command line
+        NULL,               // process security attributes
+        NULL,               // primary thread security attributes
+        TRUE,               // handles are inherited
+        CREATE_NO_WINDOW,   // creation flags
+        NULL,               // use parent's environment
+        NULL,               // use parent's current directory
+        &siStartInfo,       // STARTUPINFO pointer
+        &piProcInfo);       // receives PROCESS_INFORMATION
+
+    // If an error occurs, exit the application.
+    if (bSuccess)
+    {
+        // Close handles to the child process and its primary thread.
+        CloseHandle(piProcInfo.hProcess);
+        CloseHandle(piProcInfo.hThread);
+        CloseHandle(g_hChildStd_OUT_Wr);
+
+        COMMTIMEOUTS ct;
+        int size_recv = 0;
+        unsigned long dwRead;
+        BOOL bSuccess = TRUE;
+        string accum;
+
+        //Set timeouts for stream
+        ct.ReadIntervalTimeout = 0;
+        ct.ReadTotalTimeoutMultiplier = 0;
+        ct.ReadTotalTimeoutConstant = 10;
+        ct.WriteTotalTimeoutConstant = 0;
+        ct.WriteTotalTimeoutMultiplier = 0;
+        SetCommTimeouts(g_hChildStd_OUT_Rd, &ct);
+
+
+        //This accumulates each read into one buffer,
+        //and copies back into rsp before leaving
+        size_t size = result.size();
+        accum.resize(size);
+        result.clear();
+
+        do
+        {
+            //Reads stream from child stdout
+            bSuccess = ReadFile(g_hChildStd_OUT_Rd, (LPVOID)&accum[0], size-1, &dwRead, NULL);
+            if (!bSuccess || dwRead == 0)
+            {
+                return 0;//successful - reading is done
+            }
+
+            accum[dwRead] = 0;
+            size_recv = accum.length();
+
+
+            if(size_recv == 0)
+            {
+                //should not get here for streaming
+                return result.size();
+            }
+            else
+            {
+                //New Chunk:
+                accum[size_recv]=0;
+                result += accum;
+            }
+
+
+        }while(1);
+    }
+
+
+#else
+    FILE * stream;
+    char *buffer = new char[198];
+    result.clear();
+
+    vector<string> cmds = string_split(cmd, " ");
+    if (data_isfile(cmds[0]))
+    {
+
+    }
+    else if (data_isfile("/bin/" + cmds[0]))
+    {
+        cmd.insert(0, "/bin/");
+    }
+    else if (data_isfile("/usr/bin/" + cmds[0]))
+    {
+        cmd.insert(0, "/usr/bin/");
+    }
+    else if (data_isfile("/sbin/" + cmds[0]))
+    {
+        cmd.insert(0, "/sbin/");
+    }
+    else if (data_isfile("/usr/sbin/" + cmds[0]))
+    {
+        cmd.insert(0, "/usr/sbin/");
+    }
+    else if (data_isfile(get_cosmosroot() + "/scripts/" + cmds[0]))
+    {
+        cmd.insert(0, get_cosmosroot() + "/scripts/");
+    }
+    else if (data_isfile(get_cosmosroot() + "/bin/" + cmds[0]))
+    {
+        cmd.insert(0, get_cosmosroot() + "/bin/");
+    }
+    else {
+        return GENERAL_ERROR_UNDEFINED;
+    }
+
+    if (shell.empty())
+    {
+        char *eshell = getenv("SHELL");
+        if ((eshell) != nullptr)
+        {
+            shell = eshell;
+        }
+    }
+    else if (data_isfile(shell))
+    {
+        cmd.insert(0, shell + " -c ");
+    }
+
+    if (shell.find("csh") != string::npos)
+    {
+        cmd.append(" |& cat");
+    }
+    else
+    {
+        cmd.append(" 2>&1");
+    }
+
+    stream = popen(cmd.c_str(), "r");
+    if (stream)
+    {
+        while (!feof(stream))
+        {
+            if (fgets(buffer, 198, stream) != nullptr)
+            {
+                result.append(buffer);
+            }
+        }
+        pclose(stream);
+    }
+#endif
+
+    return result.size();
+
+}
+
 //! @}

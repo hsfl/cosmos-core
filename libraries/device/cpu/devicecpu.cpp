@@ -28,6 +28,7 @@
 ********************************************************************/
 #include "device/cpu/devicecpu.h"
 #include "support/timelib.h"
+#include "support/datalib.h"
 
 DeviceCpu::DeviceCpu()
 {
@@ -359,7 +360,7 @@ double DeviceCpuLinux::getLoad1minAverage()
 void DeviceCpuLinux::initCpuUtilization(){
 
     FILE* file;
-//    struct tms timeSample;
+    //    struct tms timeSample;
     char line[128];
 
 
@@ -634,18 +635,27 @@ string DeviceCpuLinux::getHostName() // NOT TESTED
 
 pid_t DeviceCpuLinux::getPidOf(string processName)
 {
-    char buf[512] = {'\0'};
     string tmp = "pidof " + processName;
-    FILE *cmd_pipe = popen(tmp.c_str(), "r");
-    if (cmd_pipe == nullptr)
+    string tdata;
+    int32_t iretn;
+
+    iretn = data_execute(tmp, tdata);
+    if (iretn < 0)
     {
-        return -errno;
+        return iretn;
     }
+    //    char buf[512] = {'\0'};
+    //    FILE *cmd_pipe = popen(tmp.c_str(), "r");
+    //    if (cmd_pipe == nullptr)
+//    {
+//        return -errno;
+//    }
 
-    fgets(buf, 512, cmd_pipe);
-    pid_t pid = strtoul(buf, NULL, 10);
+    //    fgets(buf, 512, cmd_pipe);
+    //        pid_t pid = strtoul(buf, NULL, 10);
+    pid_t pid = strtoul(tdata.c_str(), nullptr, 10);
 
-    pclose( cmd_pipe );
+    //    pclose( cmd_pipe );
 
     return pid;
 }
@@ -907,7 +917,7 @@ DeviceCpuLinux::procPidStat::procPidStat(string processName)
 
     string pid = std::to_string(dev.getPidOf(processName));
 
-//    cout << pid << endl;
+    //    cout << pid << endl;
 
     if (pid.empty() || pid == "0") {
         return;
@@ -919,7 +929,7 @@ DeviceCpuLinux::procPidStat::procPidStat(string processName)
     string proc = "/proc/" + pid + "/stat";
     ifstream stat_pid_stream(proc,std::ios_base::in);
 
-//    cout << stat_pid_stream.good() << endl;
+    //    cout << stat_pid_stream.good() << endl;
 
     if (!stat_pid_stream.good()) {
         stat_pid_stream.close();
@@ -955,63 +965,89 @@ DeviceCpuLinux::procStat::procStat()
 int32_t DeviceCpuLinux::getCpuCount()
 {
     uint16_t tcount = 0;
-    FILE *fp = popen("lscpu -p=cpu", "r");
-    if (fp == nullptr)
-    {
-        return -errno;
-    }
-    char tdata[100];
     uint16_t tindex;
-    while ((fgets(tdata, 100, fp)) == tdata)
+    string tdata;
+    int32_t iretn;
+
+//    FILE *fp = popen("/usr/bin/lscpu -p=cpu", "r");
+//    if (fp == nullptr)
+//    {
+//        return -errno;
+//    }
+//    char tdata[100];
+//    while ((fgets(tdata, 100, fp)) == tdata)
+//    {
+//        if (sscanf(tdata.c_str(), "%hu\n", &tindex) == 1)
+//        {
+//            ++tcount;
+//        }
+//    }
+//    pclose( fp );
+
+    iretn = data_execute("lscpu -p=cpu", tdata);
+    if (iretn > 0)
     {
-        if (sscanf(tdata, "%u\n", &tindex) == 1)
+        vector<string> lines = string_split(tdata, "\n");
+        for (string line : lines)
         {
-            ++tcount;
+            if (sscanf(line.c_str(), "%hu\n", &tindex) == 1)
+            {
+                ++tcount;
+            }
         }
     }
-    pclose( fp );
     return tcount;
 }
 
 int32_t DeviceCpuLinux::getBootCount()
 {
     uint16_t bootcount = 0;
-    FILE *fp = popen("boot_count_get", "r");
-    if (fp == nullptr)
-    {
-        return -errno;
-    }
-    char tdata[100];
+    string tdata;
+    int32_t iretn;
     uint16_t tindex;
-    if ((fgets(tdata, 100, fp)) == tdata)
+
+    iretn = data_execute("boot_count_get", tdata);
+    if (iretn > 0)
+        //    FILE *fp = popen("boot_count_get", "r");
+        //    if (fp == nullptr)
+        //    {
+        //        return -errno;
+        //    }
+        //    char tdata[100];
+        //    if ((fgets(tdata, 100, fp)) == tdata)
     {
-        if (sscanf(tdata, "%u\n", &tindex) == 1)
+        if (sscanf(tdata.c_str(), "%hu\n", &tindex) == 1)
         {
             bootcount = tindex;
         }
     }
-    pclose( fp );
+    //    pclose( fp );
     return bootcount;
 }
 
 int32_t DeviceCpuLinux::getUptime()
 {
     uint32_t uptime = 0.;
-    FILE *fp = popen("uptime -s", "r");
-    if (fp == nullptr)
-    {
-        return -errno;
-    }
-    char tdata[100];
-    if ((fgets(tdata, 100, fp)) == tdata)
+    string tdata;
+    int32_t iretn;
+
+    iretn = data_execute("uptime", tdata);
+    if (iretn > 0)
+        //    FILE *fp = popen("uptime -s", "r");
+        //    if (fp == nullptr)
+        //    {
+        //        return -errno;
+        //    }
+        //    char tdata[100];
+        //    if ((fgets(tdata, 100, fp)) == tdata)
     {
         calstruc cal;
-        if (sscanf(tdata, "%u-%u-%u %u:%u:%u\n", &cal.year, &cal.month, &cal.dom, &cal.hour, &cal.minute, &cal.second) == 6)
+        if (sscanf(tdata.c_str(), "%d-%d-%d %d:%d:%d\n", &cal.year, &cal.month, &cal.dom, &cal.hour, &cal.minute, &cal.second) == 6)
         {
             uptime = 86400. * (currentmjd() - cal2mjd(cal));
         }
     }
-    pclose( fp );
+    //    pclose( fp );
     return uptime;
 }
 #endif

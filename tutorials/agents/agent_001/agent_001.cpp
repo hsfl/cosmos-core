@@ -35,78 +35,208 @@
 #include <iostream>
 #include <string>
 
-/// The agent constructor
-static Agent *agent;
 
-//!
-//! \brief agent_001 is a test agent that demonstrates the interconnectivity with another agent, namely agent_002, through the use of agent requests.
-//! This agent will send a request to agent_002 and will print the response that agent_002 provides.
-//! \param argc Number of arguments provided
-//! \param argv The arguments provided
-//! \return int
-//!
+// The request function prototype
+int32_t sample_agent_request_function(string &request, string &response, Agent *cdata);
+static uint64_t request_counter = 10000;
+
+
+/// ensure the Agent constructor creates only one instance per process
+static Agent *agent;
+string node_name = "sat_001"; 
+string agent_name = "agent_001";
+string node_agent_name = "["+node_name+":"+agent_name+"]";
+
 int main(int argc, char **argv)
 {
-    cout << "Starting agent_001" << endl;
+    // construct agent
+    cout << node_agent_name << " starting..."<<endl;
+    agent = new Agent(node_name, agent_name, 1.);
 
-    // Initialize agent parameters; its name, node and communicating agent
-    string agentname = "001"; // Forward facing name of the agent
-    string nodename = "cubesat1"; // The node that the agent will run on
-    string agent002 = "002"; // The name of the agent this agent will speak to
-
-    // Specify agent parameters via command line arguments
-    switch (argc)
-    {
-    case 3:
-        nodename = argv[2];
-    case 2:
-        agentname = static_cast<string>(argv[1]) + "_001";
-        agent002  = static_cast<string>(argv[1]) + "_002";
-    }
-
-    // Construct agent with above parameters
-    agent = new Agent(nodename, agentname);
-
-    // Exit if error is found
-    if (agent->last_error() < 0)
-    {
-        cout << "Unable to start agent_exec (" << agent->last_error() << ") " << cosmos_error_string(agent->last_error()) << endl;
+    // exit with error if unable to start agent
+    if(agent->last_error() < 0) {
+        cout<<"error: unable to start "<<node_agent_name<<" ("<<agent->last_error()<<") "<<cosmos_error_string(agent->last_error())<<endl;
         exit(1);
-    }
+    } else {
+    	cout << node_agent_name << " started."<<endl;
+	}
 
-    beatstruc beat_agent_002 = agent->find_server(nodename, agent002, 2.);
+	// add custom request functions for this agent
+	string request_name = "identify_yourself";
+	agent->add_request(request_name, sample_agent_request_function, "\n\t\trequest to support the reporting of identification");
 
-    string requestString = "request_hello"; // The name of agent_002's request
-    std::string response; // Variable to store agent_002's response
+	// try to locate a specific agent (agent_002)
+    string agent_target = "agent_002"; // The name of the agent this agent will send requests to
+    beatstruc agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
+	//cout<<"["<<node_name<<":"<<agent_name<<"] looking for ["<<node_name<<":"<<agent_target<<"]..."<<endl;
+
+	if(agent->debug_level>1)	{
+		cout<<"A agent "<<agent_target<<" beatstruc:"<<endl;
+		cout<<agent_target_heartbeat;
+	}
+
+    string response; // Variable to store agent_002's response
 
     // Start executing the agent
-    while (agent->running())
-    {
-        // Initiate request from agent_002
-        agent->send_request(beat_agent_002, requestString, response, 2.);
+	agent->cinfo->add_name("Short UTC", &agent->cinfo->node.loc.utc, "double");
+	agent->cinfo->add_name("Longest Ever UTC", &agent->cinfo->node.loc.utc, "double");
+	agent->cinfo->set_value<double>("Short UTC", 213.0);
+
+	// test set_json with double
+	//agent->cinfo->set_json("Short UTC", "{\"Short UTC\": 214.5}");
+	agent->cinfo->set_json("{\"Short UTC\": 214.5}");
+
+	cout<<"Short UTC        = <"<<agent->cinfo->get_value<double>("Short UTC")<<">"<<endl;
+	cout<<"Longest Ever UTC = <"<<agent->cinfo->get_value<double>("Longest Ever UTC")<<">"<<endl;
+
+	//agent->cinfo->add_name("cosmosdata", &*agent->cinfo, "cosmosstruc");
+	agent->cinfo->add_name("cosmosdata", agent->cinfo, "cosmosstruc");
+	cout<<"cosmosdata       = <"<<agent->cinfo->get_json_pretty<cosmosstruc>("cosmosdata")<<">"<<endl;
+
+	agent->cinfo->add_name("My Favorite Users", &agent->cinfo->user, "vector<userstruc>");
+	cout<<"Old User Data       = <"<<agent->cinfo->get_json<vector<userstruc>>("My Favorite Users")<<">"<<endl;
+
+	string raw = "{\"My Favorite Users\": [{\"cpu\": \"\", \"name\": \"\", \"node\": \"\", \"tool\": \"\"},{\"cpu\": \"cpu2\", \"name\": \"name2\", \"node\": \"node2\", \"tool\": \"tool2\"}]}";
+	agent->cinfo->set_json(raw);
+	
+	cout<<"New User Data       = <"<<agent->cinfo->get_json<vector<userstruc>>("My Favorite Users")<<">"<<endl;
+	cout<<"New User Data       = <"<<agent->cinfo->get_json<userstruc>("user[1]")<<">"<<endl;
+	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
+	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
+	//agent->cinfo->print_all_names_types_values();
+	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
+
+// test orbital dynamics for simulation
+
+// km
+	agent->cinfo->P_pos_t = 6285.0;
+	agent->cinfo->Q_pos_t = 3628.6;
+	agent->cinfo->W_pos_t = 0.0;
+// km/s
+	agent->cinfo->P_vel_t = -2.4913;
+	agent->cinfo->Q_vel_t = 11.290;
+	agent->cinfo->W_vel_t = 0.0;
+
+
+	agent->cinfo->O = 40.0 * ( M_PI / 180.0);
+	agent->cinfo->i = 30.0 * ( M_PI / 180.0);
+	agent->cinfo->w = 60.0 * ( M_PI / 180.0);
+
+	agent->cinfo->set_up_rotation_matrix();
+	cout<<"("<<agent->cinfo->R_0_0<<", "<<agent->cinfo->R_0_1<<", "<<agent->cinfo->R_0_2<<")"<<endl;
+	cout<<"("<<agent->cinfo->R_1_0<<", "<<agent->cinfo->R_1_1<<", "<<agent->cinfo->R_1_2<<")"<<endl;
+	cout<<"("<<agent->cinfo->R_2_0<<", "<<agent->cinfo->R_2_1<<", "<<agent->cinfo->R_2_2<<")"<<endl;
+
+	agent->cinfo->set_IJK_from_PQW();
+
+	cout<<"("<<agent->cinfo->I_pos_t<<", "<<agent->cinfo->J_pos_t<<", "<<agent->cinfo->K_pos_t<<")"<<endl;
+	cout<<"("<<agent->cinfo->I_vel_t<<", "<<agent->cinfo->J_vel_t<<", "<<agent->cinfo->K_vel_t<<")"<<endl;
+
+	agent->cinfo->P_pos_t = -1;
+	agent->cinfo->Q_pos_t = -1;
+	agent->cinfo->W_pos_t = -1;
+
+	agent->cinfo->P_vel_t = -1;
+	agent->cinfo->Q_vel_t = -1;
+	agent->cinfo->W_vel_t = -1;
+
+	cout<<"("<<agent->cinfo->P_pos_t<<", "<<agent->cinfo->Q_pos_t<<", "<<agent->cinfo->W_pos_t<<")"<<endl;
+	cout<<"("<<agent->cinfo->P_vel_t<<", "<<agent->cinfo->Q_vel_t<<", "<<agent->cinfo->W_vel_t<<")"<<endl;
+	agent->cinfo->set_PQW_from_IJK();
+	cout<<"("<<agent->cinfo->P_pos_t<<", "<<agent->cinfo->Q_pos_t<<", "<<agent->cinfo->W_pos_t<<")"<<endl;
+	cout<<"("<<agent->cinfo->P_vel_t<<", "<<agent->cinfo->Q_vel_t<<", "<<agent->cinfo->W_vel_t<<")"<<endl;
+
+cout<<"Okay, that co-ord transformation works!"<<endl<<endl;
+
+cout<<"Now to try to get the orbis of ISS..."<<endl;	
+
+	// shorter name for cosmosdata
+	cosmosstruc* c = agent->cinfo;
+
+	// here is a TLE
+	// try to figure out the orbit!
+	//		1 25544U 98067A   20358.21750033  .00016717  00000-0  10270-3 0  9095
+	//		2 25544  51.6435 133.1544 0001122 148.6515 211.4702 15.49226224 21314
+	//		         ******* --> inclination in degrees
+	//		                 ******** --> longitude of the right ascending node in degrees
+	//		                          ******* --> eccentricity (assumed leading decimal)
+	//		                                  ******** --> argument of the perigee in degrees
+	//		                                                    *********** --> mean (angular) motion in rev/day
+	//		                                                    must convert to rad/s !!!
+
+	// semi-major axis from mean motion of TLE (mean elements vs osculating elements)
+	double N = 15.49226224; // rev/day
+
+	// convert to rad/s
+
+	c->n = (2.0*M_PI*N / 86400); // convert to rad / s
+	c->a = pow(c->mu, 1.0/3.0) / pow(c->n, 2.0/3.0);
+	cout<< "calculated a from TLE = "<<c->a<<endl;
+
+	c->T = ( 2.0 * M_PI ) / c->n;
+	cout<< "calculated T (in seconds) = "<<c->T<<endl;
+
+	// eccentricity
+	c->e = 0.0001122;
+	// longitude of the right ascending node
+	c->O = 133.1544 * (M_PI/180.0); // radians
+	// inclination
+	c->i =  51.6435 * (M_PI/180.0); // radians
+	// argument of periapsis
+	c->w = 148.6515 * (M_PI/180.0); // radians
+
+
+    while (agent->running()) {
+
+		cout<<"["<<node_name<<":"<<agent_name<<"] running..."<<endl;
+/* old tests
+		string target_request_name = "any_body_out_there";
+		agent->cinfo->set_value<double>("Cooler UTC", 99.99);
+		cout<<"\tUTC == "<< agent->cinfo->node.loc.utc <<endl;
+		cout<<"\tCooler UTC == "<< agent->cinfo->get_value<double>("Cooler UTC")<<endl;
+        cout<<"\tORBIT == "<< agent->cinfo->node.loc.pos.orbit <<endl;
+
+		// this agent can set his own values ... obvs...  can another agent?
+		//agent->cinfo->node.loc.utc = 13.456;
+
+		cout<<node_agent_name<<" transmit <"<<target_request_name<<"> request to ["<<node_name<<":"<<agent_target<<"]..."<<endl;
+        // Initiate request to agent_002
+        agent->send_request(agent_target_heartbeat, "any_body_out_there", response, 2.);
 
         // Check for response from agent_002
         if (response.size() > 1) {
             // The case if agent_002 is on and successfully receives the request
-            cout << "Received response from agent_002: " << response.size() << " bytes: " << response << endl;
+            cout << node_agent_name << " received <"<<target_request_name<<"> response from ["<<agent_target_heartbeat.node<<":"<<agent_target_heartbeat.proc<<"]:\n    RX: \"" << response << "\" ("<<response.size()<<" bytes)"<<endl;
 
             // Clear the response for next request
             response.clear();
-        }
-        else
-        {
+        } else {
             // The case if agent_002 is not running
-            cout << "What happened to agent_002? Let's try to find it..." << endl;
+			//cout<<"["<<node_name<<":"<<agent_name<<"] looking for ["<<node_name<<":"<<agent_target<<"]..."<<endl;
 
-            beat_agent_002.node[0] = '\0'; // reset
-            beat_agent_002 = agent->find_server(nodename, agent002, 2.);
-
-            cout << "Beat agent_002 node: " << beat_agent_002.utc << endl;
+    		agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
+			if(agent->debug_level>1)	{
+				cout<<"B agent "<<agent_target<<" beatstruc:"<<endl;
+				cout<<agent_target_heartbeat<<endl;
+			}
         }
-
-        // Sleep for 1 sec
-        COSMOS_SLEEP(1.);
+*/
+        // Sleep for 5 sec
+        COSMOS_SLEEP(5.);
     }
+    return 0;
+}
+
+int32_t sample_agent_request_function(string & request, string &response, Agent *)
+{
+    // Send response back to agent_002
+	response = "I am the one they call [sat_001:agent_001]";
+	//JIMNOTE: there is a actually a bug with the string request variable supplied...  it is not passed properly to the user's request function after multiple different requests have been made.  the request is parsed properly, i.e. this function is still called, but the request string contains overflow characters from previous requests beyond the null character.  somewhere a string.resize() call is missing.  HACKY FIX: mixing char[] within a string only prints correctly if cast as c_str(), so do that for now.
+    cout << "[" << node_name << ":" << agent_name << "]"<<" received <"<<request.c_str()<<"> request!"<<endl;
+	cout << "[" << node_name << ":" << agent_name << "] transmit <"<<request.c_str()<<"> response:\n    TX: \"" << response << "\" ("<<response.size()<<" bytes)"<<endl;
+
+    // Increment counter of how many requests were run
+    request_counter--;
 
     return 0;
 }

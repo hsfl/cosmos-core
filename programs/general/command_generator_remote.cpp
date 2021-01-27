@@ -31,7 +31,7 @@
 #include "support/datalib.h"
 #include "support/jsonlib.h"
 #include "support/timelib.h"
-#include "support/event.h"
+#include "agent/event.h"
 #include "agent/scheduler.h"
 
 using std::cout;

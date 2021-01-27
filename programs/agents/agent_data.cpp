@@ -93,7 +93,7 @@ if (set_cosmosnodes(dataDir) < 0)
 }
 
 // check if we are already running the agent
-if ((iretn=agent->get_server((char *)"hmoc",agentname,waitsec,(beatstruc *)nullptr)) > 0)
+if ((iretn=agent->check_agent((char *)"hmoc", agentname, waitsec)) > 0)
 	exit (iretn);
 
 // Load user list
@@ -258,8 +258,8 @@ json_parse(&request[i], agent->cinfo); //cinfo->stat.agent.user
 													// .event
 													// .utc ->date
 													// .node
-utc = (int)(agent->cinfo->event[0].s.utc);
-log = data_open(data_type_path(agent->cinfo->event[0].s.node, (char *)"data", (char *)"outgoing", utc, (char*)"request_log"), (char*)"a");
+utc = (int)(agent->cinfo->event[0].utc);
+log = data_open(data_type_path(agent->cinfo->event[0].node, (char *)"data", (char *)"outgoing", utc, (char*)"request_log"), (char*)"a");
 fprintf(log,"%s\n",&request[i]);
 fclose(log);
 return 0;

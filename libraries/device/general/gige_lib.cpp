@@ -440,31 +440,31 @@ char *gige_value_to_address(uint32_t value)
  */
 int a35_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t video_rate)
 {
-	uint32_t maxx, maxy;
-	int32_t iretn;
+    uint32_t maxx, maxy;
+    int32_t iretn;
 
-	if((iretn=gige_readreg(handle,A35_WIDTH)) < 0) return iretn;
-	maxx = iretn;
-	if((iretn=gige_readreg(handle,A35_HEIGHT)) < 0) return iretn;
-	maxy = iretn;
+    if((iretn=gige_readreg(handle,A35_WIDTH)) < 0) return iretn;
+    maxx = iretn;
+    if((iretn=gige_readreg(handle,A35_HEIGHT)) < 0) return iretn;
+    maxy = iretn;
 
-	if (xsize > (maxx)) xsize = (maxx);
-	if (ysize > (maxy)) ysize = (maxy);
+    if (xsize > (maxx)) xsize = (maxx);
+    if (ysize > (maxy)) ysize = (maxy);
 
-	if ((iretn=gige_writereg(handle,A35_WIDTH,xsize)) < 0) return iretn;
-	if ((iretn=gige_writereg(handle,A35_HEIGHT,ysize)) < 0) return iretn;
-	if ((iretn=gige_writereg(handle,0xE984, 3)) < 0) return iretn;            // Set to 14 bit mode
-	if ((iretn=gige_writereg(handle,A35_PIXELFORMAT, A35_PIXELFORMAT_14BIT)) < 0) return iretn;            // Set to 14 bit mode
-	if ((iretn=gige_writereg(handle,A35_CMOSBITDEPTH,3)) < 0) return iretn;
-	if ((iretn=gige_writereg(handle,A35_SENSORVIDEOSTANDARD,video_rate)) < 0) return iretn;
+    if ((iretn=gige_writereg(handle,A35_WIDTH,xsize)) < 0) return iretn;
+    if ((iretn=gige_writereg(handle,A35_HEIGHT,ysize)) < 0) return iretn;
+    if ((iretn=gige_writereg(handle,0xE984, 3)) < 0) return iretn;            // Set to 14 bit mode
+    if ((iretn=gige_writereg(handle,A35_PIXELFORMAT, A35_PIXELFORMAT_14BIT)) < 0) return iretn;            // Set to 14 bit mode
+    if ((iretn=gige_writereg(handle,A35_CMOSBITDEPTH,3)) < 0) return iretn;
+    if ((iretn=gige_writereg(handle,A35_SENSORVIDEOSTANDARD,video_rate)) < 0) return iretn;
 //	if ((iretn=gige_writereg(handle,A35_IMAGEADJUST,A35_IMAGEADJUST_MANUAL)) < 0) return iretn;
-	if ((iretn=gige_writereg(handle,A35_IMAGEADJUST,A35_IMAGEADJUST_AUTOBRIGHT)) < 0) return iretn;
+    if ((iretn=gige_writereg(handle,A35_IMAGEADJUST,A35_IMAGEADJUST_AUTOBRIGHT)) < 0) return iretn;
 
-	// Set shutter to manual
+    // Set shutter to manual
 //	gige_writereg(handle, A35_FFCMODE, A35_FFCMODE_EXTERNAL); // Set FFC to manual
-	gige_writereg(handle, A35_FFCMODE, A35_FFCMODE_MANUAL); // Set FFC to manual
+    gige_writereg(handle, A35_FFCMODE, A35_FFCMODE_MANUAL); // Set FFC to manual
 
-	return 0;
+    return 0;
 }
 
 //! Take A35 image stream.
@@ -478,54 +478,149 @@ int a35_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t vid
  */
 int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize)
 {
-	int32_t iretn, nbytes;
-	uint32_t tbytes, pbytes;
-	uint8_t *bufferin;
-	double mjd;
+    int32_t iretn, nbytes;
+    uint32_t tbytes, pbytes;
+    uint8_t *bufferin;
+    double mjd;
 
-	bufferin = (uint8_t *)malloc(bsize);
-	if (bufferin == NULL)
-		return (-errno);
+    bufferin = (uint8_t *)malloc(bsize);
+    if (bufferin == NULL)
+        return (-errno);
 
-	gige_writereg(handle,GIGE_REG_SCDA, gige_address_to_value(handle->stream.address));
+    gige_writereg(handle,GIGE_REG_SCDA, gige_address_to_value(handle->stream.address));
 
-	iretn = gige_writereg(handle,GIGE_REG_SCP,handle->stream.cport);
-	if ((iretn=gige_writereg(handle,GIGE_REG_SCPS,bsize)) < 0)
-		return iretn;
-	if ((iretn=gige_writereg(handle,A35_ACQUISITIONSTART,1)) < 0)
-		return iretn;
-	pbytes = gige_readreg(handle,A35_WIDTH) * gige_readreg(handle,A35_HEIGHT) * frames * 2;
+    iretn = gige_writereg(handle,GIGE_REG_SCP,handle->stream.cport);
+    if ((iretn=gige_writereg(handle,GIGE_REG_SCPS,bsize)) < 0)
+        return iretn;
+    if ((iretn=gige_writereg(handle,A35_ACQUISITIONSTART,1)) < 0)
+        return iretn;
+    pbytes = gige_readreg(handle,A35_WIDTH) * gige_readreg(handle,A35_HEIGHT) * frames * 2;
 
-	tbytes = 0;
-	uint32_t elapsed=0;
-	uint32_t telapsed=500000 + 2 * 1e6 * pbytes / handle->streambps;
-	mjd = currentmjd(0.);
-	while (tbytes < pbytes && elapsed<telapsed)
-	{
-		if ((nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr))) > 0)
-		{
-			switch (bufferin[4])
-			{
-			case 1:
-				break;
-			case 2:
-				break;
-			case 3:
-				memcpy(&buffer[tbytes], &bufferin[8], nbytes-8);
-				tbytes += nbytes-8;
-				break;
-			}
-		}
-		elapsed = (uint32_t)(1e6*86400.*(currentmjd(0.)-mjd)+.5);
+    tbytes = 0;
+    uint32_t elapsed=0;
+    uint32_t telapsed=500000 + 2 * 1e6 * pbytes / handle->streambps;
+    mjd = currentmjd(0.);
+    while (tbytes < pbytes && elapsed<telapsed)
+    {
+        if ((nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr))) > 0)
+        {
+            switch (bufferin[4])
+            {
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                memcpy(&buffer[tbytes], &bufferin[8], nbytes-8);
+                tbytes += nbytes-8;
+                break;
+            }
+        }
+        elapsed = (uint32_t)(1e6*86400.*(currentmjd(0.)-mjd)+.5);
 //		iretn = gige_readreg(handle,GIGE_REG_CCP);
-	}
+    }
 
 //	sdt2 = sqrt((sdt2 - sdt*sdt/count)/(count-1));
 //	sdt /= count;
-	iretn = gige_writereg(handle,A35_ACQUISITIONSTOP,1);
-	iretn = gige_writereg(handle,GIGE_REG_SCP,0);
-	free(bufferin);
-	return (tbytes);
+    iretn = gige_writereg(handle,A35_ACQUISITIONSTOP,1);
+    iretn = gige_writereg(handle,GIGE_REG_SCP,0);
+    free(bufferin);
+    return (tbytes);
+
+}
+
+//! Configure pt1000 camera
+/*! Setup the basic image parameters for a pt1000 camera being used over GIGE.
+ * The camera must first be opened with a call to ::gige_open.
+ * \param handle Pointer to ::gige_handle returned by ::gige_open.
+ * \param xsize Number of pixels in x direction.
+ * \param ysize Number of pixels in y direction.
+ * \param video_rate 30 or 60 Hz.
+ * \return Zero, or negative error.
+ */
+int pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize)
+{
+    uint32_t maxx, maxy;
+    int32_t iretn;
+
+    if((iretn=gige_readreg(handle,PT1000::WidthReg)) < 0) return iretn;
+    maxx = iretn;
+    if((iretn=gige_readreg(handle,PT1000::HeightReg)) < 0) return iretn;
+    maxy = iretn;
+
+    if (xsize > (maxx)) xsize = (maxx);
+    if (ysize > (maxy)) ysize = (maxy);
+
+    if ((iretn=gige_writereg(handle,PT1000::WidthReg,xsize)) < 0) return iretn;
+    if ((iretn=gige_writereg(handle,PT1000::HeightReg,ysize)) < 0) return iretn;
+//    if ((iretn=gige_writereg(handle,0xE984, 3)) < 0) return iretn;            // Set to 14 bit mode
+    if ((iretn=gige_writereg(handle,PT1000::PixelFormatReg, PT1000Format::Mono16)) < 0) return iretn;            // Set to 14 bit mode
+
+    // Set shutter to manual
+    gige_writereg(handle, PT1000::AcquisitionModeReg, PT1000AcquisitionMode::Continuous); // Set FFC to manual
+
+    return 0;
+}
+
+//! Take PT1000 image stream.
+/*! Command PT1000 camera being used over GIGE to take a stream of images of the indicated
+ * exposure length. The resulting image will be stored in the provided image buffer.
+ * \param handle Pointer to ::gige_handle returned by ::gige_open.
+ * \param frames Number of images to store.
+ * \param buffer Pointer to buffer for storing image.
+ * \param bsize Number of bytes to expect at a go.
+ * \return Zero, or negative error.
+ */
+int pt1000_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize)
+{
+    int32_t iretn, nbytes;
+    uint32_t tbytes, pbytes;
+    uint8_t *bufferin;
+    double mjd;
+
+    bufferin = (uint8_t *)malloc(bsize);
+    if (bufferin == nullptr)
+        return (-errno);
+
+    gige_writereg(handle,GIGE_REG_SCDA, gige_address_to_value(handle->stream.address));
+
+    iretn = gige_writereg(handle,GIGE_REG_SCP,handle->stream.cport);
+    if ((iretn=gige_writereg(handle,GIGE_REG_SCPS,bsize)) < 0)
+        return iretn;
+    if ((iretn=gige_writereg(handle,PT1000::AcquisitionStartReg,1)) < 0)
+        return iretn;
+    pbytes = gige_readreg(handle,PT1000::WidthReg) * gige_readreg(handle,PT1000::HeightReg) * frames * 2;
+
+    tbytes = 0;
+    uint32_t elapsed=0;
+    uint32_t telapsed=500000 + 2 * 1e6 * pbytes / handle->streambps;
+    mjd = currentmjd(0.);
+    while (tbytes < pbytes && elapsed<telapsed)
+    {
+        if ((nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr))) > 0)
+        {
+            switch (bufferin[4])
+            {
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                memcpy(&buffer[tbytes], &bufferin[8], nbytes-8);
+                tbytes += nbytes-8;
+                break;
+            }
+        }
+        elapsed = (uint32_t)(1e6*86400.*(currentmjd(0.)-mjd)+.5);
+//		iretn = gige_readreg(handle,GIGE_REG_CCP);
+    }
+
+//	sdt2 = sqrt((sdt2 - sdt*sdt/count)/(count-1));
+//	sdt /= count;
+    iretn = gige_writereg(handle,PT1000::AcquisitionStopReg,1);
+    iretn = gige_writereg(handle,GIGE_REG_SCP,0);
+    free(bufferin);
+    return (tbytes);
 
 }
 

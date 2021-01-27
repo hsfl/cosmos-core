@@ -102,7 +102,6 @@ typedef struct
 	uint32_t ycount;
 	double dlon;
 	double dlat;
-//	dem_pixel **pixel;
 	vector< vector<dem_pixel> > pixel;
 } map_dem_dem;
 

@@ -32,6 +32,7 @@
 
 #include "support/configCosmos.h"
 #include "support/sliplib.h"
+#include "support/cosmos-errno.h"
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 #include <termios.h>
 #include <sys/select.h>
