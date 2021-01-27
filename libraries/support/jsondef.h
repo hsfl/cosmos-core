@@ -453,10 +453,10 @@ enum {
 #define MAX_NUMBER_OF_TRIANGLES 48
 
 //* Maximum number of vertices
-#define MAX_NUMBER_OF_VERTEXS (MAX_NUMBER_OF_VERTICES)
+#define MAX_NUMBER_OF_VERTEXS 5
 
 //* Maximum number of normals
-#define MAX_NUMBER_OF_NORMALS (MAX_NUMBER_OF_TRIANGLES)
+#define MAX_NUMBER_OF_NORMALS 5
 
 //* Maximum number of equations
 #define MAX_NUMBER_OF_EQUATIONS 3 
@@ -3305,8 +3305,8 @@ struct trianglestruc
 	float temp = 0.f;
 	//! Area
 	float area = 0.f;
-    //! Depth
-    float depth = 0.f;
+	//! Depth
+	float depth = 0.f;
 	//! perimeter
 	float perimeter = 0.f;
 	//! Insolation in Watts/sq m
@@ -3348,7 +3348,7 @@ struct trianglestruc
 			{ "mass"  , mass },
 			{ "temp"  , temp },
 			{ "area"  , area },
-            { "depth" , depth },
+			{ "depth" , depth },
 			{ "perimeter"   , perimeter },
 			{ "irradiation" , irradiation },
 			{ "pcell" , pcell },
@@ -3375,21 +3375,19 @@ struct trianglestruc
 			if(!parsed["twist"].is_null())	{ twist.from_json(parsed["twist"].dump()); }
 			if(!parsed["pidx"].is_null())	{ pidx = parsed["pidx"].int_value(); }
 
-						// array
-
-			if(!parsed["heat"].is_null())	heat = parsed["heat"].number_value();
-			if(!parsed["hcap"].is_null())	hcap = parsed["hcap"].number_value();
-			if(!parsed["emi"].is_null())	emi = parsed["emi"].number_value();
-			if(!parsed["abs"].is_null())	abs = parsed["abs"].number_value();
-			if(!parsed["mass"].is_null())	mass = parsed["mass"].number_value();
-			if(!parsed["temp"].is_null())	temp = parsed["temp"].number_value();
-            if(!parsed["area"].is_null())	area = parsed["area"].number_value();
-            if(!parsed["depth"].is_null())	area = parsed["depth"].number_value();
-            if(!parsed["perimeter"].is_null())	perimeter = parsed["perimeter"].number_value();
-			if(!parsed["irradiation"].is_null())	irradiation = parsed["irradiation"].number_value();
-			if(!parsed["pcell"].is_null())	pcell = parsed["pcell"].number_value();
-			if(!parsed["ecellbase"].is_null())	ecellbase = parsed["ecellbase"].number_value();
-			if(!parsed["ecellslope"].is_null())	ecellslope = parsed["ecellslope"].number_value();
+			// Array
+			if(!parsed["heat"].is_null())	{ heat = parsed["heat"].number_value(); }
+			if(!parsed["hcap"].is_null())	{ hcap = parsed["hcap"].number_value(); }
+			if(!parsed["emi"].is_null())	{ emi = parsed["emi"].number_value(); }
+			if(!parsed["abs"].is_null())	{ abs = parsed["abs"].number_value(); }
+			if(!parsed["mass"].is_null())	{ mass = parsed["mass"].number_value(); }
+			if(!parsed["temp"].is_null())	{ temp = parsed["temp"].number_value(); }
+			if(!parsed["area"].is_null())	{ area = parsed["area"].number_value(); }
+			if(!parsed["perimeter"].is_null())	{ perimeter = parsed["perimeter"].number_value(); }
+			if(!parsed["irradiation"].is_null())	{ irradiation = parsed["irradiation"].number_value(); }
+			if(!parsed["pcell"].is_null())	{ pcell = parsed["pcell"].number_value(); }
+			if(!parsed["ecellbase"].is_null())	{ ecellbase = parsed["ecellbase"].number_value(); }
+			if(!parsed["ecellslope"].is_null())	{ ecellslope = parsed["ecellslope"].number_value(); }
 			for(size_t i = 0; i < triangleindex.size(); ++i) {
 				for(size_t j = 0; j < triangleindex[i].size(); ++j)  {
 					if(!parsed["triangleindex"][i][j].is_null()) { triangleindex[i][j] = parsed["triangleindex"][i][j].number_value(); }
@@ -4371,7 +4369,7 @@ struct cosmosstruc
 
 		// velocity at time t in perifocal co-ords (as function of v(t))
 		double P_vel_t = sqrt(mu/l) * -sin(v);
-		double Q_vel_t = sqrt(mu/l) * (e+cos(v))*sin(v);
+		double Q_vel_t = sqrt(mu/l) * (e+cos(v));
 		double W_vel_t = 0.0;
 
 		// rotation matrix from perifocal to equitorial coordinates (R_row_col)
@@ -4409,6 +4407,7 @@ struct cosmosstruc
 			return;
 		}
 
+		// equatorial co-ordinates (ECI)
 		double I_pos_t = 0.0;
 		double J_pos_t = 0.0;
 		double K_pos_t = 0.0;
@@ -4416,8 +4415,35 @@ struct cosmosstruc
 		double J_vel_t = 0.0;
 		double K_vel_t = 0.0;
 
+		// set location
+		void set_PQW(double time)	{
+
+// to find position and velocity at time t
+            // 0    Make sure all necessary orbital elements are set
+            t = time;
+            l = a*(1.0-pow(e,2.0));
+            // 1    Calculate mean anamoly (M)
+            M = fmod(n * (t - tau), 2*M_PI);
+            // 2    Calculate true anamoly (v)
+            v = M + (2.0*e-0.25*pow(e,3.0))*sin(M) + 1.25*pow(e,2.0)*sin(2.0*M) + (13.0/12.0)*pow(e,3.0)*sin(3.0*M);
+            // 3    Calculate radius (r)
+            r = l / (1.0 + e*cos(v));
+            // 4    Calculate position vector <P_pos_t, Q_pos_t, W_pos_t>
+            P_pos_t = r * cos(v);
+            Q_pos_t = r * sin(v);
+            W_pos_t = 0.0;
+            P_vel_t = sqrt(mu/l) * -sin(v);
+            //Q_vel_t = sqrt(mu/l) * (e+cos(v))*sin(v);
+            Q_vel_t = sqrt(mu/l) * (e+cos(v));
+            W_vel_t = 0.0;
+
+			return;
+
+		}
+
 		// perifocal to geocentric equatorial co-ordinate conversion
 		void set_IJK_from_PQW ()	{
+			set_up_rotation_matrix();
 			I_pos_t = R_0_0 * P_pos_t + R_0_1 * Q_pos_t + R_0_2 * W_pos_t;
 			J_pos_t = R_1_0 * P_pos_t + R_1_1 * Q_pos_t + R_1_2 * W_pos_t;
 			K_pos_t = R_2_0 * P_pos_t + R_2_1 * Q_pos_t + R_2_2 * W_pos_t;
@@ -4430,6 +4456,7 @@ struct cosmosstruc
 
 		// geocentric equatorial to perifocal co-ordinate conversion
 		void set_PQW_from_IJK ()	{
+			set_up_rotation_matrix();
 			P_pos_t = R_0_0 * I_pos_t + R_1_0 * J_pos_t + R_2_0 * K_pos_t;
 			Q_pos_t = R_0_1 * I_pos_t + R_1_1 * J_pos_t + R_2_1 * K_pos_t;
 			W_pos_t = R_0_2 * I_pos_t + R_1_2 * J_pos_t + R_2_2 * K_pos_t;

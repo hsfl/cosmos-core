@@ -114,6 +114,7 @@ namespace Cosmos {
                     error = GENERAL_ERROR_NOTREADY;
                     return error;
                 }
+				return 0;
             }
 
             int32_t UnixGpio::read()
