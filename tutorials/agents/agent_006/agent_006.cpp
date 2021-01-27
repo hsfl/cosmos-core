@@ -77,7 +77,7 @@ int main(int, char **)
 // implement request function
 int32_t request_hello(string &, string &response, Agent *)
 {
-    response = ("hello %d ", request_counter);
+    response = "hello " + std::to_string(request_counter);
 
     // Send response back to agent
     cout << "agent_006 got a request! Its response is: " << response << endl;

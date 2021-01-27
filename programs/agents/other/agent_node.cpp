@@ -402,7 +402,7 @@ int32_t request_loadmjd(string &request, string &response, Agent *)
 
 	value = loadmjd(value);
 
-	response = ("%f",cache[cindex].mjd);
+	response = std::to_string(cache[cindex].mjd);
 	return 0;
 }
 
@@ -411,7 +411,7 @@ int32_t request_loadmjd(string &request, string &response, Agent *)
 */
 int32_t request_counts(string &, string &response, Agent *)
 {
-    response = ("%" PRIu64 " %" PRIu64 " %" PRIu64 " %d",cache[cindex].telem.size(),cache[cindex].event.size(),commanddict.size(),agent->cinfo->node.target_cnt);
+    response = std::to_string(cache[cindex].telem.size()) + " " + std::to_string(cache[cindex].event.size()) + " " + std::to_string(commanddict.size()) + " " + std::to_string(agent->cinfo->node.target_cnt);
 	return 0;
 }
 
@@ -420,7 +420,7 @@ int32_t request_counts(string &, string &response, Agent *)
 */
 int32_t request_days(string &request, string &response, Agent *)
 {
-	response = ("%d %d",(int)firstday,(int)lastday);
+	response = std::to_string((int)firstday) + " " + std::to_string((int)lastday);
 	return 0;
 }
 
@@ -460,7 +460,7 @@ int32_t request_rewind(string &request, string &response, Agent *)
 */
 int32_t request_indexes(string &, string &response, Agent *)
 {
-	response = ("%d %d %d %d",cache[cindex].tindex,cache[cindex].eindex,dindex,mindex);
+	response = std::to_string(cache[cindex].tindex) + " " + std::to_string(cache[cindex].eindex) + " " + std::to_string(dindex) + " " + std::to_string(mindex);
 	return 0;
 }
 
@@ -469,7 +469,7 @@ int32_t request_indexes(string &, string &response, Agent *)
 */
 int32_t request_getmjd(string &, string &response, Agent *)
 {
-	response = ("%f",cache[cindex].mjd);
+	response = std::to_string(cache[cindex].mjd);
 	return 0;
 }
 

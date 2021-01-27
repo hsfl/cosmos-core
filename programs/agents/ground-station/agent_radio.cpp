@@ -471,7 +471,8 @@ int32_t request_disable(string &req, string &response, Agent *)
 
 int32_t request_get_state(string &req, string &response, Agent *)
 {
-    response = ("[%.6f] Cx: %u En: %u Mode: %s TFreq: %.0f AFreq: %.0f Offset: %.0f PowerIn: %.2f PowerOut: %.2f MaxPower: %.2f",
+	char buff[512];
+    sprintf(buff,"[%.6f] Cx: %u En: %u Mode: %s TFreq: %.0f AFreq: %.0f Offset: %.0f PowerIn: %.2f PowerOut: %.2f MaxPower: %.2f",
             currentmjd(),
             radioconnected,
             radioenabled,
@@ -481,12 +482,13 @@ int32_t request_get_state(string &req, string &response, Agent *)
             agent->cinfo->device[deviceindex].tcv.powerin,
             agent->cinfo->device[deviceindex].tcv.powerout,
             agent->cinfo->device[deviceindex].tcv.maxpower);
+	response = string(buff);
     return (0);
 }
 
 int32_t request_get_frequency(string &request, string &response, Agent *)
 {
-    response = ("%f", agent->cinfo->device[deviceindex].tcv.freq);
+    response = std::to_string(agent->cinfo->device[deviceindex].tcv.freq);
     return 0;
 }
 
@@ -500,7 +502,7 @@ int32_t request_set_frequency(string &request, string &response, Agent *)
 
 int32_t request_get_bandpass(string &request, string &response, Agent *)
 {
-    response = ("%f", agent->cinfo->device[deviceindex].tcv.band);
+    response = std::to_string(agent->cinfo->device[deviceindex].tcv.band);
     return 0;
 }
 
@@ -514,13 +516,13 @@ int32_t request_set_bandpass(string &request, string &response, Agent *)
 
 int32_t request_get_powerin(string &request, string &response, Agent *)
 {
-    response = ("%f", agent->cinfo->device[deviceindex].tcv.powerin);
+    response = std::to_string(agent->cinfo->device[deviceindex].tcv.powerin);
     return 0;
 }
 
 int32_t request_get_powerout(string &request, string &response, Agent *)
 {
-    response = ("%f", agent->cinfo->device[deviceindex].tcv.powerout);
+    response = std::to_string(agent->cinfo->device[deviceindex].tcv.powerout);
     return 0;
 }
 

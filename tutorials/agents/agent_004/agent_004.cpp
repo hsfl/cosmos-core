@@ -84,7 +84,7 @@ int main(int, char **)
 //!
 int32_t request_hello(string &, string &response, Agent *)
 {
-    response = ("hello %d ", request_counter);
+    response = "hello " + std::to_string(request_counter);
 
     cout << "agent_004 got a request! Its response is: " << response << endl;
 
