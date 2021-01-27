@@ -101,13 +101,13 @@ int main(int argc, char *argv[])
 //        elecprop->Propagate();
         if (second == dp*static_cast<int32_t>(second/(dp)))
         {
-            printf("%s %10f %10f %10f %7f %7f %7f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n"
+            printf("%s %10f %10f %10f %7f %7f %7f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n"
                    , mjd2iso8601(loc.utc).c_str(),DEGOF(loc.pos.geod.s.lat), DEGOF(loc.pos.geod.s.lon)
                    , loc.pos.geod.s.h, DEGOF(loc.pos.geod.v.lat), DEGOF(loc.pos.geod.v.lon), loc.pos.geod.v.h
                    , loc.pos.eci.s.col[0], loc.pos.eci.s.col[1], loc.pos.eci.s.col[2]
                     , loc.pos.eci.v.col[0], loc.pos.eci.v.col[1], loc.pos.eci.v.col[2]
                     , loc.pos.eci.a.col[0], loc.pos.eci.a.col[1], loc.pos.eci.a.col[2]
-                    , phys.temp);
+                    , phys.temp, phys.radiation);
             fflush(stdout);
         }
     }
