@@ -3343,9 +3343,11 @@ struct trianglestruc
 			{ "tidx"  , v_tidx },
 			{ "heat"  , heat },
 			{ "hcap"  , hcap },
-			{ "emi"   , emi },
-			{ "abs"   , abs },
-			{ "mass"  , mass },
+            { "emi"   , emi },
+            { "abs"   , abs },
+            { "iemi"   , iemi },
+            { "iabs"   , iabs },
+            { "mass"  , mass },
 			{ "temp"  , temp },
 			{ "area"  , area },
 			{ "depth" , depth },
@@ -3368,7 +3370,7 @@ struct trianglestruc
 		string error;
 		json11::Json parsed = json11::Json::parse(s,error);
 		if(error.empty()) {
-			if(!parsed["external"].is_null())	{ external = parsed["external"].bool_value(); }
+            if(!parsed["external"].is_null())	{ external = parsed["external"].int_value(); }
 			if(!parsed["com"].is_null())	{ com.from_json(parsed["com"].dump()); }
 			if(!parsed["normal"].is_null())	{ normal.from_json(parsed["normal"].dump()); }
 			if(!parsed["shove"].is_null())	{ shove.from_json(parsed["shove"].dump()); }
@@ -3378,9 +3380,11 @@ struct trianglestruc
 			// Array
 			if(!parsed["heat"].is_null())	{ heat = parsed["heat"].number_value(); }
 			if(!parsed["hcap"].is_null())	{ hcap = parsed["hcap"].number_value(); }
-			if(!parsed["emi"].is_null())	{ emi = parsed["emi"].number_value(); }
-			if(!parsed["abs"].is_null())	{ abs = parsed["abs"].number_value(); }
-			if(!parsed["mass"].is_null())	{ mass = parsed["mass"].number_value(); }
+            if(!parsed["emi"].is_null())	{ emi = parsed["emi"].number_value(); }
+            if(!parsed["abs"].is_null())	{ abs = parsed["abs"].number_value(); }
+            if(!parsed["iemi"].is_null())	{ emi = parsed["iemi"].number_value(); }
+            if(!parsed["iabs"].is_null())	{ abs = parsed["iabs"].number_value(); }
+            if(!parsed["mass"].is_null())	{ mass = parsed["mass"].number_value(); }
 			if(!parsed["temp"].is_null())	{ temp = parsed["temp"].number_value(); }
 			if(!parsed["area"].is_null())	{ area = parsed["area"].number_value(); }
 			if(!parsed["perimeter"].is_null())	{ perimeter = parsed["perimeter"].number_value(); }
@@ -3462,8 +3466,9 @@ struct physicsstruc
 			{ "mass" , mass },
 			{ "temp" , temp },
 			{ "heat" , heat },
-			{ "area" , area },
-			{ "battcap" , battcap },
+            { "area" , area },
+            { "radiation" , radiation },
+            { "battcap" , battcap },
 			{ "battlev" , battlev },
 			{ "powgen" , powgen },
 			{ "powuse" , powuse },
@@ -3505,8 +3510,9 @@ struct physicsstruc
 			if(!parsed["hcap"].is_null())	{ hcap = parsed["hcap"].number_value(); }
 			if(!parsed["mass"].is_null())	{ mass = parsed["mass"].number_value(); }
 			if(!parsed["temp"].is_null())	{ temp = parsed["temp"].number_value(); }
-			if(!parsed["heat"].is_null())	{ heat = parsed["heat"].number_value(); }
-			if(!parsed["area"].is_null())	{ area = parsed["area"].number_value(); }
+            if(!parsed["heat"].is_null())	{ heat = parsed["heat"].number_value(); }
+            if(!parsed["radiation"].is_null())	{ radiation = parsed["radiation"].number_value(); }
+            if(!parsed["area"].is_null())	{ area = parsed["area"].number_value(); }
 			if(!parsed["battcap"].is_null())	{ battcap = parsed["battcap"].number_value(); }
 			if(!parsed["battlev"].is_null())	{ battlev = parsed["battlev"].number_value(); }
 			if(!parsed["powgen"].is_null())	{ powgen = parsed["powgen"].number_value(); }
