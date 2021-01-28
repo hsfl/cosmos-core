@@ -1,0 +1,7 @@
+<map id="phuff_entropy_decoder" name="phuff_entropy_decoder">
+<area shape="rect" id="node2" href="$structd__derived__tbl.html" title="{d_derived_tbl\n|+ maxcode\l+ valoffset\l+ look_nbits\l+ look_sym\l|}" alt="" coords="5,175,104,296"/>
+<area shape="rect" id="node3" href="$struct_j_h_u_f_f___t_b_l.html" title="{JHUFF_TBL\n|+ bits\l+ huffval\l+ sent_table\l|}" alt="" coords="7,5,103,112"/>
+<area shape="rect" id="node4" href="$structbitread__perm__state.html" title="{bitread_perm_state\n|+ get_buffer\l+ bits_left\l|}" alt="" coords="128,189,261,281"/>
+<area shape="rect" id="node5" href="$structsavable__state.html" title="{savable_state\n|+ put_buffer\l+ put_bits\l+ last_dc_val\l+ EOBRUN\l|}" alt="" coords="286,175,389,296"/>
+<area shape="rect" id="node6" href="$structjpeg__entropy__decoder.html" title="{jpeg_entropy_decoder\n|+ insufficient_data\l|+ JMETHOD()\l+ JMETHOD()\l}" alt="" coords="413,189,563,281"/>
+</map>

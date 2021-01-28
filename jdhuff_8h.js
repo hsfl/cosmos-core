@@ -1,0 +1,27 @@
+var jdhuff_8h =
+[
+    [ "d_derived_tbl", "structd__derived__tbl.html", "structd__derived__tbl" ],
+    [ "bitread_perm_state", "structbitread__perm__state.html", "structbitread__perm__state" ],
+    [ "bitread_working_state", "structbitread__working__state.html", "structbitread__working__state" ],
+    [ "HUFF_LOOKAHEAD", "jdhuff_8h.html#a51937b71b3fbef28d57cc49f69ec8e7d", null ],
+    [ "BIT_BUF_SIZE", "jdhuff_8h.html#af1bdc52b149ed3624eae0843033e7ee8", null ],
+    [ "BITREAD_STATE_VARS", "jdhuff_8h.html#a980b37b80ff5f9f5f61f355e94971f2d", null ],
+    [ "BITREAD_LOAD_STATE", "jdhuff_8h.html#aac92a9696088b68207ea708322b692ca", null ],
+    [ "BITREAD_SAVE_STATE", "jdhuff_8h.html#afe3920d8725ec70f0c4cc68395266b1e", null ],
+    [ "CHECK_BIT_BUFFER", "jdhuff_8h.html#af6bdea3084471f67f52a9c3bd330fe5a", null ],
+    [ "GET_BITS", "jdhuff_8h.html#a2a9341c1fe1afae135e1a50c4c1a6416", null ],
+    [ "PEEK_BITS", "jdhuff_8h.html#af206f5a6e7f0e147e85e4e772e2276cb", null ],
+    [ "DROP_BITS", "jdhuff_8h.html#a4d2644ad3912b6b94de83233b191d96e", null ],
+    [ "HUFF_DECODE", "jdhuff_8h.html#aaeab72644a8012bb53c7b2426bbe2cf9", null ],
+    [ "bit_buf_type", "jdhuff_8h.html#a8dd540f79c1c81be64d713624636d868", null ],
+    [ "EXTERN", "jdhuff_8h.html#a0a473a27ae612feb8373c0097a4327f5", null ],
+    [ "EXTERN", "jdhuff_8h.html#a931bd06ed347a65a931b1de5f5b80ae1", null ],
+    [ "isDC", "jdhuff_8h.html#a3b9fc61fd5e263607c9367d1113b842d", null ],
+    [ "tblno", "jdhuff_8h.html#ac15aa4f86b719988961b67992d37851a", null ],
+    [ "pdtbl", "jdhuff_8h.html#a1c37b580fbf7abb6d73c7a0e97bb8f85", null ],
+    [ "get_buffer", "jdhuff_8h.html#ae15c100ca18037da04f1ec2622c9b94d", null ],
+    [ "bits_left", "jdhuff_8h.html#a2afb9d9b8a0a25e71a1df546e243c858", null ],
+    [ "nbits", "jdhuff_8h.html#a034e890b652caee4240249e8997dc8ce", null ],
+    [ "htbl", "jdhuff_8h.html#a96e5848dc7b33f2b107dab5087620307", null ],
+    [ "min_bits", "jdhuff_8h.html#a3010ecbf76f555268979d82a97a5bcb6", null ]
+];

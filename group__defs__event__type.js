@@ -1,0 +1,27 @@
+var group__defs__event__type =
+[
+    [ "EVENT_TYPE_REQUEST", "group__defs__event__type.html#ga2a23d353c9c00382440fb6aa1817a04b", null ],
+    [ "EVENT_TYPE_PHYSICAL", "group__defs__event__type.html#ga40723122629bd786ed03816faca69aef", null ],
+    [ "EVENT_TYPE_LATA", "group__defs__event__type.html#gaf75b85ea28d5068406ca9c910a06926d", null ],
+    [ "EVENT_TYPE_LATD", "group__defs__event__type.html#ga82ad9a859f0b9b2efdd7f467aa55ab10", null ],
+    [ "EVENT_TYPE_LATMAX", "group__defs__event__type.html#gaaefbb3313999d3af13fb48d9e2f694e0", null ],
+    [ "EVENT_TYPE_LATMIN", "group__defs__event__type.html#ga05a1fb7b6f6099ab0ba54f1caa09a135", null ],
+    [ "EVENT_TYPE_APOGEE", "group__defs__event__type.html#ga8115806ab77c5130867b22b0cbc14dae", null ],
+    [ "EVENT_TYPE_PERIGEE", "group__defs__event__type.html#ga4b253ab46d3ae668e0d6763ca674d26c", null ],
+    [ "EVENT_TYPE_UMBRA", "group__defs__event__type.html#gaf53ab4f492570679d8eb64bbcb21502f", null ],
+    [ "EVENT_TYPE_PENUMBRA", "group__defs__event__type.html#ga59bb38b3e718a3dc3937ef46ecfe84ac", null ],
+    [ "EVENT_TYPE_GS", "group__defs__event__type.html#ga1d919f981777c59dd1c49d356664ac89", null ],
+    [ "EVENT_TYPE_GS5", "group__defs__event__type.html#gae5c63e3aafc794854cd2b5de4e9455b9", null ],
+    [ "EVENT_TYPE_GS10", "group__defs__event__type.html#gae9589658eee729aaa32c41777c65e3cf", null ],
+    [ "EVENT_TYPE_GSMAX", "group__defs__event__type.html#ga2b52ef34a42886de5fa7eb00e3acb40b", null ],
+    [ "EVENT_TYPE_TARG", "group__defs__event__type.html#ga62442a0a684ae2194b4983bc6da98ea3", null ],
+    [ "EVENT_TYPE_TARGMIN", "group__defs__event__type.html#ga892ca48ddd95397b1f5b539ea177add0", null ],
+    [ "EVENT_TYPE_COMMAND", "group__defs__event__type.html#ga8250ca1ee7a39414da2a3e978b0dd550", null ],
+    [ "EVENT_TYPE_BUS", "group__defs__event__type.html#gaf2ec1151031531cff0f504d287d754c5", null ],
+    [ "EVENT_TYPE_EPS", "group__defs__event__type.html#ga01397b1d7a1d4222ea5b7f6a4e826a73", null ],
+    [ "EVENT_TYPE_ADCS", "group__defs__event__type.html#gab0c2c5f21b1930eac5ad11af3556aa6c", null ],
+    [ "EVENT_TYPE_PAYLOAD", "group__defs__event__type.html#ga8f1e0d71f66662e677a1d4beedd3a947", null ],
+    [ "EVENT_TYPE_SYSTEM", "group__defs__event__type.html#ga0b43f3f081ad6dffb97492b8b90de7de", null ],
+    [ "EVENT_TYPE_LOG", "group__defs__event__type.html#ga53945a32009ac8cc8f90f93cf38e322b", null ],
+    [ "EVENT_TYPE_MESSAGE", "group__defs__event__type.html#ga146c9eacbf0e2f5dbddbb287dbec6f43", null ]
+];

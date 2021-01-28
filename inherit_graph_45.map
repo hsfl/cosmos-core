@@ -1,0 +1,7 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$class_cosmos_1_1_math_1_1_vectors_1_1_vector.html" title="Vector Class. " alt="" coords="5,104,167,145"/>
+<area shape="rect" id="node2" href="$class_cosmos_1_1_math_1_1_quaternions_1_1_quaternion.html" title="Cosmos::Math::Quaternions\l::Quaternion" alt="" coords="215,5,401,47"/>
+<area shape="rect" id="node3" href="$class_cosmos_1_1_math_1_1_vectors_1_1euler_vector.html" title="Cosmos::Math::Vectors\l::eulerVector" alt="" coords="227,71,389,112"/>
+<area shape="rect" id="node4" href="$class_cosmos_1_1_math_1_1_vectors_1_1geodetic_vector.html" title="Cosmos::Math::Vectors\l::geodeticVector" alt="" coords="227,136,389,177"/>
+<area shape="rect" id="node5" href="$class_cosmos_1_1_math_1_1_vectors_1_1spherical_vector.html" title="Cosmos::Math::Vectors\l::sphericalVector" alt="" coords="227,201,389,243"/>
+</map>

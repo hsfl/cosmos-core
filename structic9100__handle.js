@@ -1,0 +1,28 @@
+var structic9100__handle =
+[
+    [ "address", "structic9100__handle.html#a028fb453b90d6e90df7a61cb0cca93a9", null ],
+    [ "channelnum", "structic9100__handle.html#a0fb1323e13349f668d468fd05e18a621", null ],
+    [ "serial", "structic9100__handle.html#abd0a41e26e441017aab97667e28d07d5", null ],
+    [ "mut", "structic9100__handle.html#a939da933f3a3ce50cbc74c6a8c90e3f3", null ],
+    [ "response", "structic9100__handle.html#ad5520abb06f424d3a65b33fb2f65acf5", null ],
+    [ "freqband", "structic9100__handle.html#a1472cdc716f91db927e8aa11ed613304", null ],
+    [ "filtband", "structic9100__handle.html#a5108d5e00638fd4b3248f32ff99eb9e4", null ],
+    [ "mode", "structic9100__handle.html#a8877e9ca7b416032bd219de0a4ba7e06", null ],
+    [ "datamode", "structic9100__handle.html#affa3e1ccb3a17036d213cbd694f1fcb3", null ],
+    [ "bps9600mode", "structic9100__handle.html#a7fd2bc0e8b06dd2ea5b9be0b3a764afd", null ],
+    [ "rfgain", "structic9100__handle.html#aae86e780176797a79efa78f8e3735777", null ],
+    [ "squelch", "structic9100__handle.html#afce15a5f35236bcc4d757e4582594d6d", null ],
+    [ "rfpower", "structic9100__handle.html#a77b8ed7b4e53a18c7dfa820c037c06b3", null ],
+    [ "smeter", "structic9100__handle.html#ab0a700f8a835cb2bc99bdad1c90d0a22", null ],
+    [ "rfmeter", "structic9100__handle.html#a12291d7fa62a3f3e9f227361a2603c31", null ],
+    [ "swrmeter", "structic9100__handle.html#a10838a9a1940241f4cdd56a295116f2d", null ],
+    [ "alcmeter", "structic9100__handle.html#a60cabeb3b7142889ae4219cf823aec6d", null ],
+    [ "compmeter", "structic9100__handle.html#ad9549bb19ca5bd18976985c7c755d4af", null ],
+    [ "opmode", "structic9100__handle.html#a257d8114b7f5b68da6eb2b17ec7bb26c", null ],
+    [ "bandpass", "structic9100__handle.html#a0b76263af15f0fb63e635dad7c7e56d3", null ],
+    [ "powerin", "structic9100__handle.html#a70af07f44452e2d1cbda86551cecfeee", null ],
+    [ "powerout", "structic9100__handle.html#a0f1d900ebc0ce988445e415f218d3712", null ],
+    [ "maxpower", "structic9100__handle.html#a308e1cecc9a2cd21a70f4dadd4fb3b8f", null ],
+    [ "repeater_squelch", "structic9100__handle.html#a8ed419a22b9efb9a361b3759ad391a6d", null ],
+    [ "frequency", "structic9100__handle.html#a7eb9d5cae2b3c47978ff44812e769eeb", null ]
+];

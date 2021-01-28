@@ -1,0 +1,4 @@
+<map id="user_chunk_data" name="user_chunk_data">
+<area shape="rect" id="node2" href="$structpng__info__def.html" title="{png_info_def\n|+ width\l+ height\l+ valid\l+ rowbytes\l+ num_palette\l+ num_trans\l+ bit_depth\l+ color_type\l+ compression_type\l+ filter_type\l+ interlace_type\l+ channels\l+ pixel_depth\l+ spare_byte\l+ free_me\l|}" alt="" coords="5,175,145,457"/>
+<area shape="rect" id="node3" href="$structpng__color__struct.html" title="{png_color_struct\n|+ red\l+ green\l+ blue\l|}" alt="" coords="16,5,135,112"/>
+</map>

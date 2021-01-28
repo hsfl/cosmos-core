@@ -1,0 +1,19 @@
+<map id="physicsclass.h" name="physicsclass.h">
+<area shape="rect" id="node2" href="$config_cosmos_8h.html" title="Headers and definitions common to all COSMOS. " alt="" coords="1141,603,1305,629"/>
+<area shape="rect" id="node32" href="$jsondef_8h.html" title="support/jsondef.h" alt="" coords="991,229,1113,256"/>
+<area shape="rect" id="node40" href="$convertlib_8h.html" title="convertlib include file A library providing functions for conversion between the various position and..." alt="" coords="756,304,892,331"/>
+<area shape="rect" id="node41" href="$timelib_8h.html" title="timelib include file A library providing functions for handling various types of time. " alt="" coords="301,379,419,405"/>
+<area shape="rect" id="node47" href="$nrlmsise-00_8h.html" title="NRLMSISE&#45;00 Extended Support header file. " alt="" coords="1513,229,1663,256"/>
+<area shape="rect" id="node48" href="$datalib_8h.html" title="Data Management header file. " alt="" coords="1017,80,1135,107"/>
+<area shape="rect" id="node30" href="$cosmos-defs_8h.html" title="COSMOS definitions Definitions specific to the COSMOS environement. " alt="" coords="1049,677,1204,704"/>
+<area shape="rect" id="node31" href="$json11_8hpp.html" title="json11.hpp" alt="" coords="839,677,924,704"/>
+<area shape="rect" id="node33" href="$mathlib_8h.html" title="mathlib include file " alt="" coords="706,453,814,480"/>
+<area shape="rect" id="node36" href="$convertdef_8h.html" title="support/convertdef.h" alt="" coords="857,379,999,405"/>
+<area shape="rect" id="node37" href="$physicsdef_8h.html" title="Orbit library support definitions. " alt="" coords="1090,304,1235,331"/>
+<area shape="rect" id="node38" href="$socketlib_8h.html" title="Socket Support header file. " alt="" coords="978,528,1110,555"/>
+<area shape="rect" id="node39" href="$objlib_8h.html" title="support/objlib.h" alt="" coords="1074,379,1185,405"/>
+<area shape="rect" id="node34" href="$cosmos-errno_8h.html" title="COSMOS Error Codes. " alt="" coords="459,528,618,555"/>
+<area shape="rect" id="node42" href="$elapsedtime_8h.html" title="Elapsed Time header file. " alt="" coords="87,528,238,555"/>
+<area shape="rect" id="node49" href="$jsonlib_8h.html" title="JSON Support definitions. " alt="" coords="1107,155,1224,181"/>
+<area shape="rect" id="node50" href="$zlib_8h.html" title="thirdparty/zlib/zlib.h" alt="" coords="947,155,1082,181"/>
+</map>

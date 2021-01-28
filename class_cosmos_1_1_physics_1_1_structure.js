@@ -1,0 +1,45 @@
+var class_cosmos_1_1_physics_1_1_structure =
+[
+    [ "Type", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220d", [
+      [ "U1", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220dac96596dba67bca02dc0b562f7db2ced2", null ],
+      [ "U1X", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da7dbb1a940aaea90c3140c4347106fe46", null ],
+      [ "U1Y", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da6f1c67ca7b9a9f49976f5c27f88c4a2c", null ],
+      [ "U1XY", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220dac49d2d49b98e50d5c250ab0d531283af", null ],
+      [ "U1_5", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220dad1d89168cc6c80feb1bd69e696f1be58", null ],
+      [ "U1_5X", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220dacd949f199b913f33d7eaccf59f6b1863", null ],
+      [ "U1_5Y", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220daabe652a9f9860ba172a16b3d791b35f0", null ],
+      [ "U1_5XY", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da7ad53cded90b395f73ea3bf43e0c5a08", null ],
+      [ "U2", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220dab724153a4e4633d20ed9ff4af01c0e42", null ],
+      [ "U2X", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da2956bc78902510f74bc92fb08f0f9475", null ],
+      [ "U2Y", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220dad064dbb153079e505ee4e41bdd9c2665", null ],
+      [ "U2XY", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da78f64a26b2edf60657deed00bf984a2e", null ],
+      [ "U3", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da84b9ee5981b8d9159f85835e5ab213f2", null ],
+      [ "U3X", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da978f1f0b5bd05e30d7a62a341283b48b", null ],
+      [ "U3Y", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da918c7e85f6533d41594f54ab3b34b0f5", null ],
+      [ "U3XY", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da651b07e1224c5a46117951416b56f088", null ],
+      [ "U6", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da992690f04eb464dfd49d1facf3c0f82d", null ],
+      [ "U6X", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da256bc0615451f498bec0e71975fbd7eb", null ],
+      [ "U6Y", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220dadbe5bb73b7f62e7f68fbf6aaa375696f", null ],
+      [ "U6XY", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da22871bb317697cf45c3a6cb321c2b7b9", null ],
+      [ "U12", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220dab841a61ec3a961db0860a1b46f89e346", null ],
+      [ "U12X", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220dad6cb8b9b13914b4906e231f240f4664b", null ],
+      [ "U12Y", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da4d6610877b52ebce961882e57c68f766", null ],
+      [ "U12XY", "class_cosmos_1_1_physics_1_1_structure.html#a35c15852d58b28fb8fdcd24c88d2220da72bdb44482bc446f7472561630f8b6d8", null ]
+    ] ],
+    [ "ExternalPanelType", "class_cosmos_1_1_physics_1_1_structure.html#a1e7944256c2baac05ea6981afd73dafd", [
+      [ "None", "class_cosmos_1_1_physics_1_1_structure.html#a1e7944256c2baac05ea6981afd73dafdae124b05929044364c76788375725700b", null ],
+      [ "X", "class_cosmos_1_1_physics_1_1_structure.html#a1e7944256c2baac05ea6981afd73dafdac80b1ec376ec5396d9a41b81c93ddc30", null ],
+      [ "Y", "class_cosmos_1_1_physics_1_1_structure.html#a1e7944256c2baac05ea6981afd73dafda7adaebb33ab455917828f28e08846994", null ],
+      [ "XY", "class_cosmos_1_1_physics_1_1_structure.html#a1e7944256c2baac05ea6981afd73dafdae24d5f675d32237cf9d3893f24b887ef", null ]
+    ] ],
+    [ "Structure", "class_cosmos_1_1_physics_1_1_structure.html#adcd3584282a582fbaef9dc29289e3c59", null ],
+    [ "Setup", "class_cosmos_1_1_physics_1_1_structure.html#aef3faef021f19619d42fd2df8df7f699", null ],
+    [ "add_u", "class_cosmos_1_1_physics_1_1_structure.html#a8f4dd06d73082fbad8a0218e7fc6d32f", null ],
+    [ "add_cuboid", "class_cosmos_1_1_physics_1_1_structure.html#ad3301c9911e1c77f1df03432193297f8", null ],
+    [ "add_face", "class_cosmos_1_1_physics_1_1_structure.html#ab00cb2c63cc5ea877f3d6e7e2fc2e9f9", null ],
+    [ "add_face", "class_cosmos_1_1_physics_1_1_structure.html#ace0e55f11b2a2d012621db70c9151dd3", null ],
+    [ "add_triangle", "class_cosmos_1_1_physics_1_1_structure.html#a72c31755bf33b9543b9418341822e158", null ],
+    [ "add_vertex", "class_cosmos_1_1_physics_1_1_structure.html#a6b8440719498246e7533f80939354ff7", null ],
+    [ "newphys", "class_cosmos_1_1_physics_1_1_structure.html#a2052468da5728989bf757711a0118bef", null ],
+    [ "type", "class_cosmos_1_1_physics_1_1_structure.html#afb27144e060b3e769485286a52e5b867", null ]
+];

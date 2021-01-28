@@ -1,0 +1,4 @@
+<map id="channelstruc" name="channelstruc">
+<area shape="rect" id="node2" href="$structpacket__struct__heartbeat.html" title="{packet_struct_heartbeat\n|+ node_id\l+ node_name\l+ beat_period\l+ throughput\l+ funixtime\l|}" alt="" coords="5,49,168,185"/>
+<area shape="rect" id="node3" href="$structsocket__channel.html" title="{socket_channel\n|+ type\l+ cudp\l+ caddr\l+ baddr\l+ caddr6\l+ addrlen\l+ cport\l+ msgsize\l+ address\l+ baddress\l+ name\l|}" alt="" coords="193,5,306,229"/>
+</map>

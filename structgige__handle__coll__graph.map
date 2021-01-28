@@ -1,0 +1,7 @@
+<map id="gige_handle" name="gige_handle">
+<area shape="rect" id="node2" href="$structgige__acknowledge__mem.html" title="{gige_acknowledge_mem\n|+ status\l+ acknowledge\l+ length\l+ ack_id\l+ address\l+ data\l|}" alt="" coords="5,42,171,193"/>
+<area shape="rect" id="node3" href="$structgige__acknowledge__ack.html" title="{gige_acknowledge_ack\n|+ status\l+ acknowledge\l+ length\l+ ack_id\l+ spec_major\l+ spec_minor\l+ device_mode\l+ res1\l+ mac_high\l+ mac_low\land 14 more...\l|}" alt="" coords="195,5,352,229"/>
+<area shape="rect" id="node4" href="$structgige__command.html" title="{gige_command\n|+ flag\l+ command\l+ length\l+ req_id\l+ address\l+ data\l|}" alt="" coords="377,42,487,193"/>
+<area shape="rect" id="node5" href="$structsocket__channel.html" title="{socket_channel\n|+ type\l+ cudp\l+ caddr\l+ baddr\l+ caddr6\l+ addrlen\l+ cport\l+ msgsize\l+ address\l+ baddress\l+ name\l|}" alt="" coords="511,5,625,229"/>
+<area shape="rect" id="node6" href="$structgige__acknowledge.html" title="{gige_acknowledge\n|+ status\l+ acknowledge\l+ length\l+ ack_id\l+ data\l|}" alt="" coords="649,49,778,185"/>
+</map>

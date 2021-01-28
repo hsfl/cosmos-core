@@ -1,0 +1,10 @@
+<map id="Agent programs" name="Agent programs">
+<area shape="rect" id="node1" href="$group__agent__cpu.html" title="CPU monitoring agent" alt="" coords="443,5,593,32"/>
+<area shape="rect" id="node2" href="$group__agent__radio.html" title="Agent Radio" alt="" coords="471,56,565,83"/>
+<area shape="rect" id="node3" href="$group__programs.html" title="COSMOS Programs" alt="" coords="5,160,147,187"/>
+<area shape="rect" id="node4" href="$group__agent__exec.html" title="Executive Agent program" alt="" coords="433,107,603,133"/>
+<area shape="rect" id="node6" href="$group__agent__file.html" title="File Transfer Agent\l program" alt="" coords="451,158,585,199"/>
+<area shape="rect" id="node7" href="$group__agent__calc.html" title="Calculation Agent" alt="" coords="455,224,581,251"/>
+<area shape="rect" id="node8" href="$group__agent__control.html" title="Agent Control" alt="" coords="467,275,569,301"/>
+<area shape="rect" id="node9" href="$group__agent__antenna.html" title="Agent Antenna" alt="" coords="464,325,572,352"/>
+</map>

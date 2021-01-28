@@ -1,0 +1,12 @@
+<map id="png_image" name="png_image">
+<area shape="rect" id="node2" href="$structpng__control.html" title="{png_control\n|+ error_buf\l+ memory\l+ size\l+ for_write\l+ owned_file\l|}" alt="" coords="114,1137,210,1273"/>
+<area shape="rect" id="node3" href="$structpng__info__def.html" title="{png_info_def\n|+ width\l+ height\l+ valid\l+ rowbytes\l+ num_palette\l+ num_trans\l+ bit_depth\l+ color_type\l+ compression_type\l+ filter_type\l+ interlace_type\l+ channels\l+ pixel_depth\l+ spare_byte\l+ free_me\l|}" alt="" coords="5,792,145,1075"/>
+<area shape="rect" id="node4" href="$structpng__color__struct.html" title="{png_color_struct\n|+ red\l+ green\l+ blue\l|}" alt="" coords="59,520,177,627"/>
+<area shape="rect" id="node5" href="$structpng__struct__def.html" title="{png_struct_def\n|+ error_ptr\l+ io_ptr\l+ mode\l+ flags\l+ transformations\l+ zowner\l+ width\l+ height\l+ num_rows\l+ usr_width\land 30 more...\l|}" alt="" coords="169,821,293,1045"/>
+<area shape="rect" id="node6" href="$structz__stream__s.html" title="{z_stream_s\n|+ next_in\l+ avail_in\l+ total_in\l+ next_out\l+ avail_out\l+ total_out\l+ msg\l+ zalloc\l+ zfree\l+ opaque\l+ data_type\l+ adler\l+ reserved\l|}" alt="" coords="310,447,401,700"/>
+<area shape="rect" id="node7" href="$structinternal__state.html" title="{internal_state\n|+ status\l+ pending_buf\l+ pending_buf_size\l+ pending_out\l+ pending\l+ wrap\l+ gzindex\l+ method\l+ last_flush\l+ w_size\land 42 more...\l|}" alt="" coords="432,821,567,1045"/>
+<area shape="rect" id="node8" href="$structgz__header__s.html" title="{gz_header_s\n|+ text\l+ time\l+ xflags\l+ os\l+ extra\l+ extra_len\l+ extra_max\l+ name\l+ name_max\l+ comment\l+ comm_max\l+ hcrc\l+ done\l|}" alt="" coords="437,447,540,700"/>
+<area shape="rect" id="node9" href="$structtree__desc__s.html" title="{tree_desc_s\n|+ max_code\l|}" alt="" coords="616,535,711,612"/>
+<area shape="rect" id="node10" href="$structstatic__tree__desc__s.html" title="{static_tree_desc_s\n|+ dummy\l+ extra_bits\l+ extra_base\l+ elems\l+ max_length\l|}" alt="" coords="751,219,883,355"/>
+<area shape="rect" id="node11" href="$structct__data__s.html" title="{ct_data_s\n|+ freq\l+ code\l+ fc\l+ dad\l+ len\l+ dl\l|}" alt="" coords="624,5,703,156"/>
+</map>

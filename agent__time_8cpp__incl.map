@@ -1,0 +1,22 @@
+<map id="agent_time.cpp" name="agent_time.cpp">
+<area shape="rect" id="node2" href="$config_cosmos_8h.html" title="Headers and definitions common to all COSMOS. " alt="" coords="1329,677,1493,704"/>
+<area shape="rect" id="node32" href="$agentclass_8h.html" title="Agent Server and Client header file. " alt="" coords="1457,155,1589,181"/>
+<area shape="rect" id="node42" href="$jsonlib_8h.html" title="JSON Support definitions. " alt="" coords="1253,229,1371,256"/>
+<area shape="rect" id="node43" href="$datalib_8h.html" title="Data Management header file. " alt="" coords="1146,304,1265,331"/>
+<area shape="rect" id="node49" href="$convertlib_8h.html" title="convertlib include file A library providing functions for conversion between the various position and..." alt="" coords="1908,379,2044,405"/>
+<area shape="rect" id="node50" href="$command__queue_8h.html" title="Command Queue Class. " alt="" coords="1429,80,1597,107"/>
+<area shape="rect" id="node30" href="$cosmos-defs_8h.html" title="COSMOS definitions Definitions specific to the COSMOS environement. " alt="" coords="1088,752,1243,779"/>
+<area shape="rect" id="node31" href="$json11_8hpp.html" title="json11.hpp" alt="" coords="1368,752,1453,779"/>
+<area shape="rect" id="node33" href="$cosmos-errno_8h.html" title="COSMOS Error Codes. " alt="" coords="1658,603,1817,629"/>
+<area shape="rect" id="node34" href="$stringlib_8h.html" title="stringlib include file A library providing functions for handling various types of string..." alt="" coords="1193,528,1319,555"/>
+<area shape="rect" id="node35" href="$timelib_8h.html" title="timelib include file A library providing functions for handling various types of time. " alt="" coords="2174,453,2293,480"/>
+<area shape="rect" id="node36" href="$elapsedtime_8h.html" title="Elapsed Time header file. " alt="" coords="2298,603,2449,629"/>
+<area shape="rect" id="node38" href="$jsondef_8h.html" title="support/jsondef.h" alt="" coords="1496,379,1619,405"/>
+<area shape="rect" id="node40" href="$socketlib_8h.html" title="Socket Support header file. " alt="" coords="1547,453,1679,480"/>
+<area shape="rect" id="node41" href="$sliplib_8h.html" title="COSMOS SLIP support include file. " alt="" coords="1754,528,1867,555"/>
+<area shape="rect" id="node48" href="$devicecpu_8h.html" title="devicecpu include file. " alt="" coords="674,304,833,331"/>
+<area shape="rect" id="node37" href="$mathlib_8h.html" title="mathlib include file " alt="" coords="1953,528,2061,555"/>
+<area shape="rect" id="node39" href="$convertdef_8h.html" title="support/convertdef.h" alt="" coords="1907,453,2048,480"/>
+<area shape="rect" id="node44" href="$zlib_8h.html" title="thirdparty/zlib/zlib.h" alt="" coords="838,379,973,405"/>
+<area shape="rect" id="node47" href="$dirent_8h.html" title="dirent.h" alt="" coords="1102,379,1167,405"/>
+</map>

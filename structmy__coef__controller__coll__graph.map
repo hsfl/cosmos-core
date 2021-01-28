@@ -1,0 +1,6 @@
+<map id="my_coef_controller" name="my_coef_controller">
+<area shape="rect" id="node2" href="$structjvirt__barray__control.html" title="{jvirt_barray_control\n|+ mem_buffer\l+ rows_in_array\l+ blocksperrow\l+ maxaccess\l+ rows_in_mem\l+ rowsperchunk\l+ cur_start_row\l+ first_undef_row\l+ pre_zero\l+ dirty\l+ b_s_open\l|}" alt="" coords="11,189,143,413"/>
+<area shape="rect" id="node4" href="$structjpeg__d__coef__controller.html" title="{jpeg_d_coef_controller\n||+ JMETHOD()\l+ JMETHOD()\l+ JMETHOD()\l+ JMETHOD()\l}" alt="" coords="133,476,285,597"/>
+<area shape="rect" id="node3" href="$structbacking__store__struct.html" title="{backing_store_struct\n|+ temp_file\l+ temp_name\l|+ JMETHOD()\l+ JMETHOD()\l+ JMETHOD()\l}" alt="" coords="5,5,148,127"/>
+<area shape="rect" id="node5" href="$structjpeg__c__coef__controller.html" title="{jpeg_c_coef_controller\n||+ JMETHOD()\l+ JMETHOD()\l}" alt="" coords="309,491,461,583"/>
+</map>

@@ -1,0 +1,3 @@
+<map id="tx_entry" name="tx_entry">
+<area shape="rect" id="node2" href="$structtx__progress.html" title="{tx_progress\n|+ tx_id\l+ enabled\l+ havemeta\l+ havedata\l+ sendmeta\l+ sentmeta\l+ senddata\l+ sentdata\l+ complete\l+ savetime\l+ datatime\l+ file_size\l+ total_bytes\l+ fp\l|}" alt="" coords="121,204,220,472"/>
+</map>

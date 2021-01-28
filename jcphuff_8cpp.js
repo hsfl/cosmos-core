@@ -1,0 +1,25 @@
+var jcphuff_8cpp =
+[
+    [ "phuff_entropy_encoder", "structphuff__entropy__encoder.html", "structphuff__entropy__encoder" ],
+    [ "JPEG_INTERNALS", "jcphuff_8cpp.html#ad5c3cdfae3019b8223973041a2a1304b", null ],
+    [ "MAX_CORR_BITS", "jcphuff_8cpp.html#ad1fe6569ffbe4b0fe1496d3b3f97136c", null ],
+    [ "ISHIFT_TEMPS", "jcphuff_8cpp.html#a1782895810a7c6dd95d870de9366b948", null ],
+    [ "IRIGHT_SHIFT", "jcphuff_8cpp.html#a7f291127ecba34f0b64be39e09411e8b", null ],
+    [ "emit_byte", "jcphuff_8cpp.html#a0b98ab18003c8c3749dd106884392d70", null ],
+    [ "phuff_entropy_ptr", "jcphuff_8cpp.html#a7e9448e2c297381f95f4aa5ac1f0f3b9", null ],
+    [ "encode_mcu_DC_first", "jcphuff_8cpp.html#ad3bdb7d5af7d4134fdc5982a752c345c", null ],
+    [ "encode_mcu_AC_first", "jcphuff_8cpp.html#acc6b50f6303373067713baf8663fdcbb", null ],
+    [ "encode_mcu_DC_refine", "jcphuff_8cpp.html#a377b6f8712c7df658a2a79ef5cc4b0fc", null ],
+    [ "encode_mcu_AC_refine", "jcphuff_8cpp.html#a7374fb01116bc55c075c730aa5d6796b", null ],
+    [ "finish_pass_phuff", "jcphuff_8cpp.html#a937e262c5c259623254ebdfc2cb49f53", null ],
+    [ "finish_pass_gather_phuff", "jcphuff_8cpp.html#ac90a1b6d9f16790b43398f12871c5042", null ],
+    [ "start_pass_phuff", "jcphuff_8cpp.html#ab49e6aa830a4b6ce3ba667e771df6011", null ],
+    [ "dump_buffer", "jcphuff_8cpp.html#a22ddc81c86db501237012772583f9a97", null ],
+    [ "emit_bits", "jcphuff_8cpp.html#a46269fdceddbd3107661c1851732ae94", null ],
+    [ "flush_bits", "jcphuff_8cpp.html#a5b1c5894f814e678f3ceeb5b3ebf126e", null ],
+    [ "emit_symbol", "jcphuff_8cpp.html#aa86974f018c75f1de77ee4c9cf877f73", null ],
+    [ "emit_buffered_bits", "jcphuff_8cpp.html#a348ee5dec2288a909ca2a4ee7f38981d", null ],
+    [ "emit_eobrun", "jcphuff_8cpp.html#a1050c4d89838f0508c3f027664379b38", null ],
+    [ "emit_restart", "jcphuff_8cpp.html#af7339167a4c9729c206ad3ad86b95d6a", null ],
+    [ "jinit_phuff_encoder", "jcphuff_8cpp.html#ab604f00dccb6cb30f3be269bbd1809b9", null ]
+];

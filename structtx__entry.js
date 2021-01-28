@@ -1,0 +1,27 @@
+var structtx__entry =
+[
+    [ "node_name", "structtx__entry.html#ae8c1a77950de2ce9a7c32a2f3f504005", null ],
+    [ "node_id", "structtx__entry.html#a47f4257e9a746727b031f741f51dfab3", null ],
+    [ "progress", "structtx__entry.html#a0cbfbf0f280e481687f27285a48fde7a", null ],
+    [ "size", "structtx__entry.html#ac758506ad7de60cc7c98f50f109473bc", null ],
+    [ "id", "structtx__entry.html#a2651ee5b299ef5c2ef09d15387d9ecf1", null ],
+    [ "next_id", "structtx__entry.html#ae90a1a6d2b6851e6bed462ebdc9e4148", null ],
+    [ "state", "structtx__entry.html#afaeccc5cd9ecb804c97da095b1a9ac05", null ],
+    [ "nmjd", "structtx__entry.html#a7237b135a79651ce7521163a4f010bc9", null ],
+    [ "progress", "structtx__entry.html#a3fa37bebceb94c4d962ec5505bdc0550", null ],
+    [ "meta_id", "structtx__entry.html#ac760194bf469b9708777040aacc9eccf", null ],
+    [ "activity", "structtx__entry.html#ac84695a4164798136558bbffa31c0a70", null ],
+    [ "node_name", "structtx__entry.html#ae8c1a77950de2ce9a7c32a2f3f504005", null ],
+    [ "completeclock", "structtx__entry.html#aca942299e2d46a0cd269fdc9d2c7fcd1", null ],
+    [ "dataclock", "structtx__entry.html#a9f8c4f21bb2d71dbe3bc9bf36cae7e4e", null ],
+    [ "metaclock", "structtx__entry.html#afa26d7e74c9c0a4eeee1b31ca832297e", null ],
+    [ "queueclock", "structtx__entry.html#aa96ca0bbc95c57cf9da0efede85db9b5", null ],
+    [ "heartbeatclock", "structtx__entry.html#a86436b1572c2b9ee0f0644ca1d51e87c", null ],
+    [ "sendqueue", "structtx__entry.html#a5417fc43af50e245c0afcef718372878", null ],
+    [ "sentqueue", "structtx__entry.html#a1b40ed0f453c8e2a55849b54ffc074c4", null ],
+    [ "rcvdqueue", "structtx__entry.html#ad0567c05a581e4089f16e4f2b3c399fe", null ],
+    [ "rcvdmeta", "structtx__entry.html#a71ef35f59cc5890446ec27365c1efe3a", null ],
+    [ "rcvddata", "structtx__entry.html#a16a70ac9979cbaa2e5ed16960c36976a", null ],
+    [ "reqmetaclock", "structtx__entry.html#acd95a2dd681c04be7112777ffcb06e77", null ],
+    [ "reqdataclock", "structtx__entry.html#a65951990f4a39a664c8cedca343c4bc3", null ]
+];

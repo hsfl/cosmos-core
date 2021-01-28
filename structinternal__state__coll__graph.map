@@ -1,0 +1,7 @@
+<map id="internal_state" name="internal_state">
+<area shape="rect" id="node6" href="$structz__stream__s.html" title="{z_stream_s\n|+ next_in\l+ avail_in\l+ total_in\l+ next_out\l+ avail_out\l+ total_out\l+ msg\l+ zalloc\l+ zfree\l+ opaque\l+ data_type\l+ adler\l+ reserved\l|}" alt="" coords="101,1079,191,1332"/>
+<area shape="rect" id="node2" href="$structgz__header__s.html" title="{gz_header_s\n|+ text\l+ time\l+ xflags\l+ os\l+ extra\l+ extra_len\l+ extra_max\l+ name\l+ name_max\l+ comment\l+ comm_max\l+ hcrc\l+ done\l|}" alt="" coords="5,447,108,700"/>
+<area shape="rect" id="node3" href="$structtree__desc__s.html" title="{tree_desc_s\n|+ max_code\l|}" alt="" coords="184,535,279,612"/>
+<area shape="rect" id="node4" href="$structstatic__tree__desc__s.html" title="{static_tree_desc_s\n|+ dummy\l+ extra_bits\l+ extra_base\l+ elems\l+ max_length\l|}" alt="" coords="319,219,451,355"/>
+<area shape="rect" id="node5" href="$structct__data__s.html" title="{ct_data_s\n|+ freq\l+ code\l+ fc\l+ dad\l+ len\l+ dl\l|}" alt="" coords="192,5,271,156"/>
+</map>

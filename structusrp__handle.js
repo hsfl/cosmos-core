@@ -1,0 +1,28 @@
+var structusrp__handle =
+[
+    [ "record", "structusrp__handle.html#ab9f6da978285848545dc96dc216e67fa", null ],
+    [ "channelnum", "structusrp__handle.html#ada6346717d17c52e101a06067d2d8917", null ],
+    [ "socket", "structusrp__handle.html#a1d42def29dbda3d9e4ed838b050c5150", null ],
+    [ "port", "structusrp__handle.html#ac980d0adafeb4b2be2b0cdf5606c890e", null ],
+    [ "mut", "structusrp__handle.html#a157adb08d2f4940b588f43bcd23e1aa2", null ],
+    [ "response", "structusrp__handle.html#a86cdb2c53a1da578173f1de522a3563e", null ],
+    [ "freqband", "structusrp__handle.html#acaf9742cc3b98149d6ed8548b422d1c1", null ],
+    [ "filtband", "structusrp__handle.html#a6eb5c4e98b901fa32af05a180419447c", null ],
+    [ "mode", "structusrp__handle.html#a002aa3cbe3b828de8f46a58fd759aec7", null ],
+    [ "datamode", "structusrp__handle.html#a00fc0bae52f047208f793d25e8a757c1", null ],
+    [ "bps9600mode", "structusrp__handle.html#ac5b7f047214d7a0d32a61c3e7750b09c", null ],
+    [ "rfgain", "structusrp__handle.html#a6571252b2f95f2875245062bb3911cd1", null ],
+    [ "squelch", "structusrp__handle.html#a03918f658ff35cc3906f6cdc53c5faa4", null ],
+    [ "rfpower", "structusrp__handle.html#a13fb1f3e62ecd0af3978862b6d3aa6e6", null ],
+    [ "smeter", "structusrp__handle.html#aeabf71d77a6803efd90961c9fedb16f7", null ],
+    [ "rfmeter", "structusrp__handle.html#a2036f0bf7075505bb7beedd2f38aac8b", null ],
+    [ "swrmeter", "structusrp__handle.html#ab143715d4bc28bc5f34ca4ed484c2b11", null ],
+    [ "alcmeter", "structusrp__handle.html#a0369414863d589b504fef4a4e61987d7", null ],
+    [ "compmeter", "structusrp__handle.html#acb894d3ccbd6447d4663e46172f364a4", null ],
+    [ "opmode", "structusrp__handle.html#ab01954357694c636b085c845646949a4", null ],
+    [ "bandpass", "structusrp__handle.html#a3d2abe09eca72c805eeb28a0ce030ac5", null ],
+    [ "powerin", "structusrp__handle.html#af3024fb43d060c0a7ec6166894d00df8", null ],
+    [ "powerout", "structusrp__handle.html#aa39d2947f9925ff493f53aabfecebbaf", null ],
+    [ "maxpower", "structusrp__handle.html#a16059da7839f9906d7fc62d027bda199", null ],
+    [ "frequency", "structusrp__handle.html#acf1e50e845896ba5cc75f260b02365eb", null ]
+];

@@ -1,0 +1,4 @@
+<map id="my_marker_reader" name="my_marker_reader">
+<area shape="rect" id="node2" href="$structjpeg__marker__struct.html" title="{jpeg_marker_struct\n|+ marker\l+ original_length\l+ data_length\l+ data\l|}" alt="" coords="5,20,139,141"/>
+<area shape="rect" id="node3" href="$structjpeg__marker__reader.html" title="{jpeg_marker_reader\n|+ read_restart_marker\l+ saw_SOI\l+ saw_SOF\l+ next_restart_num\l+ discarded_bytes\l|+ JMETHOD()\l+ JMETHOD()\l}" alt="" coords="225,5,375,156"/>
+</map>

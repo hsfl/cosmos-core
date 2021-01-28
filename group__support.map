@@ -1,0 +1,23 @@
+<map id="Support Libraries" name="Support Libraries">
+<area shape="rect" id="node1" href="$group__demlib.html" title="DEM Library" alt="" coords="353,5,447,32"/>
+<area shape="rect" id="node2" href="$group__datalib.html" title="Data Management" alt="" coords="335,56,465,83"/>
+<area shape="rect" id="node3" href="$group__jpleph.html" title="JPL Ephemeris Library" alt="" coords="323,107,477,133"/>
+<area shape="rect" id="node4" href="$group__nrlmsise.html" title="NRLMSISE&#45;00 Library" alt="" coords="324,157,476,184"/>
+<area shape="rect" id="node6" href="$group__elapsedtime.html" title="Elapsed Time" alt="" coords="349,208,451,235"/>
+<area shape="rect" id="node7" href="$group__ephemlib.html" title="Ephemeris library" alt="" coords="339,259,461,285"/>
+<area shape="rect" id="node8" href="$group__socketlib.html" title="Socket Library" alt="" coords="347,309,453,336"/>
+<area shape="rect" id="node9" href="$group__printutils.html" title="Output Utilities" alt="" coords="345,360,455,387"/>
+<area shape="rect" id="node10" href="$group__sliplib.html" title="COSMOS SLIP encoding\l library" alt="" coords="315,411,485,453"/>
+<area shape="rect" id="node11" href="$group__jsonlib.html" title="JSON Library" alt="" coords="349,477,451,504"/>
+<area shape="rect" id="node12" href="$group__timelib.html" title="Time handling library" alt="" coords="329,528,471,555"/>
+<area shape="rect" id="node13" href="$group__physicslib.html" title="Physics Simulation\l Library" alt="" coords="333,579,467,621"/>
+<area shape="rect" id="node14" href="$group__mathlib.html" title="Matrix and vector math\l library" alt="" coords="322,645,478,686"/>
+<area shape="rect" id="node15" href="$group__agentlib.html" title="Agent Server and Client\l Library" alt="" coords="319,710,481,751"/>
+<area shape="rect" id="node16" href="$group__stringlib.html" title="String handling library" alt="" coords="327,776,473,803"/>
+<area shape="rect" id="node17" href="$group__error.html" title="COSMOS Error codes" alt="" coords="324,827,476,853"/>
+<area shape="rect" id="node19" href="$group__agentclass.html" title="Agent Server and Client\l Library" alt="" coords="319,878,481,919"/>
+<area shape="rect" id="node20" href="$group__geomag.html" title="Earth Geomagnetic Field\l calculation" alt="" coords="317,943,483,985"/>
+<area shape="rect" id="node21" href="$group__transferlib.html" title="File Transfer Library" alt="" coords="331,1009,469,1036"/>
+<area shape="rect" id="node22" href="$group__convertlib.html" title="Coordinate conversion\l library" alt="" coords="324,1061,476,1102"/>
+<area shape="rect" id="node18" href="$group__libraries.html" title="API libraries" alt="" coords="5,503,99,529"/>
+</map>

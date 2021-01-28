@@ -1,0 +1,18 @@
+<map id="devicedisk.h" name="devicedisk.h">
+<area shape="rect" id="node2" href="$config_cosmos_8h.html" title="Headers and definitions common to all COSMOS. " alt="" coords="1185,603,1349,629"/>
+<area shape="rect" id="node32" href="$jsondef_8h.html" title="support/jsondef.h" alt="" coords="1315,229,1437,256"/>
+<area shape="rect" id="node39" href="$datalib_8h.html" title="Data Management header file. " alt="" coords="1686,80,1805,107"/>
+<area shape="rect" id="node41" href="$stringlib_8h.html" title="stringlib include file A library providing functions for handling various types of string..." alt="" coords="2128,528,2253,555"/>
+<area shape="rect" id="node30" href="$cosmos-defs_8h.html" title="COSMOS definitions Definitions specific to the COSMOS environement. " alt="" coords="657,677,812,704"/>
+<area shape="rect" id="node31" href="$json11_8hpp.html" title="json11.hpp" alt="" coords="988,677,1073,704"/>
+<area shape="rect" id="node33" href="$mathlib_8h.html" title="mathlib include file " alt="" coords="1574,453,1682,480"/>
+<area shape="rect" id="node35" href="$convertdef_8h.html" title="support/convertdef.h" alt="" coords="1491,379,1632,405"/>
+<area shape="rect" id="node36" href="$physicsdef_8h.html" title="Orbit library support definitions. " alt="" coords="1378,304,1523,331"/>
+<area shape="rect" id="node37" href="$socketlib_8h.html" title="Socket Support header file. " alt="" coords="1097,453,1229,480"/>
+<area shape="rect" id="node38" href="$objlib_8h.html" title="support/objlib.h" alt="" coords="1355,379,1466,405"/>
+<area shape="rect" id="node34" href="$cosmos-errno_8h.html" title="COSMOS Error Codes. " alt="" coords="1666,528,1825,555"/>
+<area shape="rect" id="node40" href="$jsonlib_8h.html" title="JSON Support definitions. " alt="" coords="1317,155,1435,181"/>
+<area shape="rect" id="node42" href="$zlib_8h.html" title="thirdparty/zlib/zlib.h" alt="" coords="1547,155,1682,181"/>
+<area shape="rect" id="node43" href="$timelib_8h.html" title="timelib include file A library providing functions for handling various types of time. " alt="" coords="2034,379,2153,405"/>
+<area shape="rect" id="node46" href="$dirent_8h.html" title="dirent.h" alt="" coords="1458,155,1523,181"/>
+</map>

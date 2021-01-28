@@ -1,0 +1,26 @@
+var kisstnc__lib_8h =
+[
+    [ "kisstnc_frame", "structkisstnc__frame.html", "structkisstnc__frame" ],
+    [ "kisstnc_handle", "structkisstnc__handle.html", "structkisstnc__handle" ],
+    [ "KISSTNC_MTU", "kisstnc__lib_8h.html#a2eca61e0a51c8fafa0b049a632ca8980", null ],
+    [ "KISSTNC_PAYLOAD_SIZE", "kisstnc__lib_8h.html#a0581086dc43bee93a5878030e38ecd89", null ],
+    [ "KISSTNC_FULL_SIZE", "kisstnc__lib_8h.html#a187db9e91a452148a85d85d812d2aaeb", null ],
+    [ "AX25_FLAG", "kisstnc__lib_8h.html#ad57eab26b84aad1e6eefaeae95b94288", null ],
+    [ "AX25_NOLAYER3", "kisstnc__lib_8h.html#aaf0fc34d92e943f89c7742ed236d1fa2", null ],
+    [ "KISSTNC_ID", "kisstnc__lib_8h.html#a57d21df2639e486e5097a6ba073bafcc", null ],
+    [ "KISSTNC_BAUD", "kisstnc__lib_8h.html#a70aaacfc62fdba3a8a79c5f72f4a1201", null ],
+    [ "KISSTNC_BITS", "kisstnc__lib_8h.html#a6b70c6d2c24bcb0492fbe1aa38ba6104", null ],
+    [ "KISSTNC_PARITY", "kisstnc__lib_8h.html#a6b3af47ece3ffab1da631c9a9b81741b", null ],
+    [ "KISSTNC_STOPBITS", "kisstnc__lib_8h.html#a7f79f941f999e50f5a58b44dc311cc60", null ],
+    [ "kisstnc_connect", "kisstnc__lib_8h.html#ad4c87eaadb680719a9f5ffa0b96b123c", null ],
+    [ "kisstnc_disconnect", "kisstnc__lib_8h.html#a5214ca9bae4fc380261612692a758d67", null ],
+    [ "kisstnc_recvframe", "kisstnc__lib_8h.html#a35e23a9f7df2b30eea4b5894c11bb33c", null ],
+    [ "kisstnc_sendframe", "kisstnc__lib_8h.html#aacc8b4b61d584b6f6a0dbce69cb68259", null ],
+    [ "kisstnc_loadframe", "kisstnc__lib_8h.html#a11231891dc23fc7b2af625fe8d6b18c9", null ],
+    [ "kisstnc_loadframe", "kisstnc__lib_8h.html#adc706486c71a14ccc9f76576fc3120b0", null ],
+    [ "kisstnc_unloadframe", "kisstnc__lib_8h.html#ae5b2342741e647887b122b67177295a9", null ],
+    [ "kisstnc_unloadframe", "kisstnc__lib_8h.html#a3135f95ba0a470663f083e3855d35756", null ],
+    [ "kisstnc_calc_fcs", "kisstnc__lib_8h.html#a7036ed2c557fae1c9cdb85bd8c416cb6", null ],
+    [ "kisstnc_exitkiss", "kisstnc__lib_8h.html#af9573e4a6ca46c2a31df929b9dc51a4b", null ],
+    [ "kisstnc_enterkiss", "kisstnc__lib_8h.html#aecb607e8b531b67d3588653db4b74496", null ]
+];

@@ -1,0 +1,27 @@
+var kpc9612p__lib_8h =
+[
+    [ "kpc9612p_frame", "structkpc9612p__frame.html", "structkpc9612p__frame" ],
+    [ "kpc9612p_handle", "structkpc9612p__handle.html", "structkpc9612p__handle" ],
+    [ "KPC9612P_MTU", "kpc9612p__lib_8h.html#a5aa70d0eeb468541fee4223d30844b4b", null ],
+    [ "KPC9612P_PAYLOAD_SIZE", "kpc9612p__lib_8h.html#aab58ec68bcae842d6c53a7afcbdf99e9", null ],
+    [ "KPC9612P_FULL_SIZE", "kpc9612p__lib_8h.html#ae5a8474f0843ba9e0121138b847f48d8", null ],
+    [ "AX25_FLAG", "kpc9612p__lib_8h.html#ad57eab26b84aad1e6eefaeae95b94288", null ],
+    [ "AX25_NOLAYER3", "kpc9612p__lib_8h.html#aaf0fc34d92e943f89c7742ed236d1fa2", null ],
+    [ "KPC9612P_ID", "kpc9612p__lib_8h.html#a54a1ac96d1f71648692eae78f28561a4", null ],
+    [ "KPC9612P_BAUD", "kpc9612p__lib_8h.html#ae555137e8234632384cc9832a6406080", null ],
+    [ "KPC9612P_BITS", "kpc9612p__lib_8h.html#a1362de8084d80e3e65d97a52fccf9b30", null ],
+    [ "KPC9612P_PARITY", "kpc9612p__lib_8h.html#a28bb764fc720df16073cd9e64f414f20", null ],
+    [ "KPC9612P_STOPBITS", "kpc9612p__lib_8h.html#a54805db0957963481f50307fe7cc370a", null ],
+    [ "kpc9612p_connect", "kpc9612p__lib_8h.html#a9e055aa1c443bad2896a87e2c54d047f", null ],
+    [ "kpc9612p_disconnect", "kpc9612p__lib_8h.html#af2ccb3f6420cc3196b8c4bf17a7aef92", null ],
+    [ "kpc9612p_recvframe", "kpc9612p__lib_8h.html#ab3144c75e001396e7c36906d353ba9ed", null ],
+    [ "kpc9612p_sendframe", "kpc9612p__lib_8h.html#a65a8e84f47736c6b7f18561cb271f97d", null ],
+    [ "kpc9612p_loadframe", "kpc9612p__lib_8h.html#ad3120c9da60983af0b3c3475802dc80e", null ],
+    [ "kpc9612p_loadframe", "kpc9612p__lib_8h.html#af4c4214641c6f469d5cdc6c97cc81e18", null ],
+    [ "kpc9612p_unloadframe", "kpc9612p__lib_8h.html#ac65426ac5ce039fbbb5060861141b54e", null ],
+    [ "kpc9612p_unloadframe", "kpc9612p__lib_8h.html#a470a5cd1175e74e4f7e42953cffe13c9", null ],
+    [ "kpc9612p_calc_fcs", "kpc9612p__lib_8h.html#a64094bbf9b3e7cb752afdedf4dc10e68", null ],
+    [ "kpc9612p_exitkiss", "kpc9612p__lib_8h.html#a80572ff061b0f3efe96606a748ad46b9", null ],
+    [ "kpc9612p_enterkiss", "kpc9612p__lib_8h.html#a6acfe86fb200c904105b7a6fe2623d5b", null ],
+    [ "kpc9612p_entercmd", "kpc9612p__lib_8h.html#a521f962fe703beff7e074813de3f4ccd", null ]
+];

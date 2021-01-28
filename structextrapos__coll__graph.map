@@ -1,0 +1,5 @@
+<map id="extrapos" name="extrapos">
+<area shape="rect" id="node2" href="$structcartpos.html" title="Cartesian full position structure. " alt="" coords="5,226,104,333"/>
+<area shape="rect" id="node3" href="$structrvector.html" title="3 element generic row vector " alt="" coords="75,5,173,127"/>
+<area shape="rect" id="node4" href="$structrmatrix.html" title="3x3 element generic matrix " alt="" coords="128,219,227,340"/>
+</map>

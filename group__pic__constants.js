@@ -1,0 +1,25 @@
+var group__pic__constants =
+[
+    [ "PIC_BAUD", "group__pic__constants.html#gadd45e731468c6d9d6c8ab203c596777b", null ],
+    [ "PIC_BITS", "group__pic__constants.html#ga884132c3f9d4ab80d773d011f0450767", null ],
+    [ "PIC_PARITY", "group__pic__constants.html#ga919743a3f0c6a6ce63bff9d124f1ff66", null ],
+    [ "PIC_STOPBITS", "group__pic__constants.html#gaea322e81016f1e0d67b13ad998b96354", null ],
+    [ "PIC_HEADER_SIZE", "group__pic__constants.html#ga16d97b91d5e4303212e633209ac9367b", null ],
+    [ "PIC_DATA_SIZE", "group__pic__constants.html#gaec752ef5a7da1dff9ebaf9b1fdb0fc37", null ],
+    [ "SUCHI_CMD_SET_HEATER_ON", "group__pic__constants.html#gab90fa0fe4c9b04b36d4b4e03db8da18c", null ],
+    [ "SUCHI_CMD_SET_HEATER_OFF", "group__pic__constants.html#ga3196f5d5ae5e0e55604dcb6c6b9d67a9", null ],
+    [ "SUCHI_CMD_SET_SHUTTER_OPEN", "group__pic__constants.html#ga3288eb68e28597e89661e68c43c6cb15", null ],
+    [ "SUCHI_CMD_SET_SHUTTER_CLOSED", "group__pic__constants.html#gadd210fd470dd988797f9e5bc203d762e", null ],
+    [ "SUCHI_CMD_SET_CAMERA_ON", "group__pic__constants.html#ga34d593a599c68b1238e538e782be8828", null ],
+    [ "SUCHI_CMD_SET_CAMERA_OFF", "group__pic__constants.html#gada877117f9943a303ce6c42e967bacfd", null ],
+    [ "SUCHI_CMD_GET_REPORT", "group__pic__constants.html#ga47f488b3ced8d07e1bf17c1312036ec8", null ],
+    [ "SUCHI_STATE_HEATER_ON_1", "group__pic__constants.html#gac4cacc7f6f1d8467ed5b2069c578bd7f", null ],
+    [ "SUCHI_STATE_HEATER_ON_2", "group__pic__constants.html#gab68dbfcd72587d5409dd243405df1bc2", null ],
+    [ "SUCHI_STATE_HEATER_ON_3", "group__pic__constants.html#ga96cd4f9eca59fc1b391ff75e92c76659", null ],
+    [ "SUCHI_STATE_HEATER_ON_4", "group__pic__constants.html#ga26ae4702a2217c1458e24338f433e8b1", null ],
+    [ "SUCHI_STATE_SHUTTER_OPEN_1", "group__pic__constants.html#gab0f1c7ff6d18b6940f79f46c9a15db00", null ],
+    [ "SUCHI_STATE_SHUTTER_OPEN_2", "group__pic__constants.html#gace8e086af6c177e44b1cb8ef08ba2cfb", null ],
+    [ "SUCHI_STATE_SHUTTER_OPEN_3", "group__pic__constants.html#gaa9ec9c5df85be0ce3c588cbbfcea4c17", null ],
+    [ "SUCHI_STATE_SHUTTER_OPEN_4", "group__pic__constants.html#gab64bf151991c09116d90e9e3905c0249", null ],
+    [ "SUCHI_STATE_CAMERA_ON", "group__pic__constants.html#ga84e7c95e5c49edce96d09b01df4c0864", null ]
+];

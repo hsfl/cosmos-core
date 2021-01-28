@@ -1,0 +1,19 @@
+<map id="acq_a35.cpp" name="acq_a35.cpp">
+<area shape="rect" id="node2" href="$agentclass_8h.html" title="Agent Server and Client header file. " alt="" coords="1669,169,1801,196"/>
+<area shape="rect" id="node38" href="$elapsedtime_8h.html" title="Elapsed Time header file. " alt="" coords="2361,408,2511,435"/>
+<area shape="rect" id="node48" href="$gige__lib_8h.html" title="device/general/gige\l_lib.h" alt="" coords="1105,244,1239,285"/>
+<area shape="rect" id="node49" href="$acq__a35_8h.html" title="device/general/acq\l_a35.h" alt="" coords="1619,80,1749,121"/>
+<area shape="rect" id="node3" href="$config_cosmos_8h.html" title="Headers and definitions common to all COSMOS. " alt="" coords="1297,557,1461,584"/>
+<area shape="rect" id="node33" href="$cosmos-errno_8h.html" title="COSMOS Error Codes. " alt="" coords="1923,483,2082,509"/>
+<area shape="rect" id="node35" href="$stringlib_8h.html" title="stringlib include file A library providing functions for handling various types of string..." alt="" coords="1723,483,1848,509"/>
+<area shape="rect" id="node37" href="$timelib_8h.html" title="timelib include file A library providing functions for handling various types of time. " alt="" coords="2095,333,2214,360"/>
+<area shape="rect" id="node43" href="$jsondef_8h.html" title="support/jsondef.h" alt="" coords="1409,333,1532,360"/>
+<area shape="rect" id="node44" href="$socketlib_8h.html" title="Socket Support header file. " alt="" coords="1158,408,1290,435"/>
+<area shape="rect" id="node45" href="$sliplib_8h.html" title="COSMOS SLIP support include file. " alt="" coords="1803,408,1917,435"/>
+<area shape="rect" id="node46" href="$jsonlib_8h.html" title="JSON Support definitions. " alt="" coords="1412,251,1529,278"/>
+<area shape="rect" id="node47" href="$devicecpu_8h.html" title="devicecpu include file. " alt="" coords="1467,408,1626,435"/>
+<area shape="rect" id="node31" href="$cosmos-defs_8h.html" title="COSMOS definitions Definitions specific to the COSMOS environement. " alt="" coords="1440,632,1595,659"/>
+<area shape="rect" id="node32" href="$json11_8hpp.html" title="json11.hpp" alt="" coords="1853,632,1939,659"/>
+<area shape="rect" id="node36" href="$jsonobject_8h.html" title="support/jsonobject.h" alt="" coords="1735,557,1873,584"/>
+<area shape="rect" id="node41" href="$mathlib_8h.html" title="mathlib include file " alt="" coords="1993,408,2101,435"/>
+</map>

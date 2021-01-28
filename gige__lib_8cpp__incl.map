@@ -1,0 +1,15 @@
+<map id="gige_lib.cpp" name="gige_lib.cpp">
+<area shape="rect" id="node2" href="$gige__lib_8h.html" title="device/general/gige\l_lib.h" alt="" coords="1275,80,1410,121"/>
+<area shape="rect" id="node37" href="$timelib_8h.html" title="timelib include file A library providing functions for handling various types of time. " alt="" coords="2146,87,2265,114"/>
+<area shape="rect" id="node40" href="$mathlib_8h.html" title="mathlib include file " alt="" coords="1854,169,1962,196"/>
+<area shape="rect" id="node3" href="$config_cosmos_8h.html" title="Headers and definitions common to all COSMOS. " alt="" coords="1371,543,1535,569"/>
+<area shape="rect" id="node33" href="$socketlib_8h.html" title="Socket Support header file. " alt="" coords="1277,169,1409,196"/>
+<area shape="rect" id="node31" href="$cosmos-defs_8h.html" title="COSMOS definitions Definitions specific to the COSMOS environement. " alt="" coords="404,617,559,644"/>
+<area shape="rect" id="node32" href="$json11_8hpp.html" title="json11.hpp" alt="" coords="684,617,769,644"/>
+<area shape="rect" id="node38" href="$elapsedtime_8h.html" title="Elapsed Time header file. " alt="" coords="2358,468,2509,495"/>
+<area shape="rect" id="node41" href="$cosmos-errno_8h.html" title="COSMOS Error Codes. " alt="" coords="1770,244,1929,271"/>
+<area shape="rect" id="node43" href="$math_2constants_8h.html" title="constants.h" alt="" coords="1939,468,2029,495"/>
+<area shape="rect" id="node44" href="$vector_8h.html" title="vector.h" alt="" coords="1931,393,2000,420"/>
+<area shape="rect" id="node45" href="$matrix_8h.html" title="matrix.h" alt="" coords="1693,319,1763,345"/>
+<area shape="rect" id="node46" href="$rotation_8h.html" title="rotation.h" alt="" coords="1618,244,1694,271"/>
+</map>

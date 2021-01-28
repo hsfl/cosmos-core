@@ -1,0 +1,4 @@
+<map id="tx_queue" name="tx_queue">
+<area shape="rect" id="node2" href="$structtx__entry.html" title="{tx_entry\n|+ node_id\l+ size\l+ id\l+ next_id\l+ state\l+ nmjd\l+ activity\l+ completeclock\l+ dataclock\l+ metaclock\land 9 more...\l|}" alt="" coords="127,535,246,759"/>
+<area shape="rect" id="node3" href="$structtx__progress.html" title="{tx_progress\n|+ tx_id\l+ enabled\l+ havemeta\l+ havedata\l+ sendmeta\l+ sentmeta\l+ senddata\l+ sentdata\l+ complete\l+ savetime\l+ datatime\l+ file_size\l+ total_bytes\l+ fp\l|}" alt="" coords="391,204,489,472"/>
+</map>

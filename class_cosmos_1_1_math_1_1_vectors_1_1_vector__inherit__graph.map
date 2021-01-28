@@ -1,0 +1,6 @@
+<map id="Cosmos::Math::Vectors::Vector" name="Cosmos::Math::Vectors::Vector">
+<area shape="rect" id="node2" href="$class_cosmos_1_1_math_1_1_quaternions_1_1_quaternion.html" title="{Cosmos::Math::Quaternions\l::Quaternion\n||+ Quaternion()\l+ Quaternion()\l+ Quaternion()\l+ Quaternion()\l+ to_q()\l+ getQuaternion()\l+ quaternion2Quaternion()\l+ Quaternion2quaternion()\l+ operator=()\l+ operator*()\land 16 more...\l}" alt="" coords="5,336,192,575"/>
+<area shape="rect" id="node3" href="$class_cosmos_1_1_math_1_1_vectors_1_1euler_vector.html" title="{Cosmos::Math::Vectors\l::eulerVector\n||}" alt="" coords="217,409,378,501"/>
+<area shape="rect" id="node4" href="$class_cosmos_1_1_math_1_1_vectors_1_1geodetic_vector.html" title="{Cosmos::Math::Vectors\l::geodeticVector\n||}" alt="" coords="402,409,563,501"/>
+<area shape="rect" id="node5" href="$class_cosmos_1_1_math_1_1_vectors_1_1spherical_vector.html" title="{Cosmos::Math::Vectors\l::sphericalVector\n||}" alt="" coords="587,409,749,501"/>
+</map>

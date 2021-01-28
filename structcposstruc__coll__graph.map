@@ -1,0 +1,4 @@
+<map id="cposstruc" name="cposstruc">
+<area shape="rect" id="node2" href="$structcartpos.html" title="Cartesian full position structure. " alt="" coords="5,219,104,325"/>
+<area shape="rect" id="node3" href="$structrvector.html" title="3 element generic row vector " alt="" coords="5,5,104,127"/>
+</map>

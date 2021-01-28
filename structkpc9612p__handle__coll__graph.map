@@ -1,0 +1,4 @@
+<map id="kpc9612p_handle" name="kpc9612p_handle">
+<area shape="rect" id="node2" href="$structkpc9612p__frame.html" title="{kpc9612p_frame\n|+ flag\l+ destination_address\l+ source_address\l+ control\l+ protocol_id\l+ header\l+ preamble\l+ payload\l+ part\l+ full\l+ @13\l+ size\l|}" alt="" coords="5,5,156,244"/>
+<area shape="rect" id="node3" href="$struct____cssl__t.html" title="{__cssl_t\n|+ buffer\l+ fd\l+ dcb\l+ olddcb\l+ handle\l+ baud\l|}" alt="" coords="181,49,253,200"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="Cosmos::Support::Agent::messstruc" name="Cosmos::Support::Agent::messstruc">
+<area shape="rect" id="node3" href="$struct_cosmos_1_1_support_1_1_agent_1_1pollstruc.html" title="{Cosmos::Support::Agent\l::pollstruc\n|+ type\l+ jlength\l|}" alt="" coords="151,336,317,443"/>
+<area shape="rect" id="node4" href="$structbeatstruc.html" title="{beatstruc\n|+ utc\l+ node\l+ proc\l+ ntype\l+ addr\l+ port\l+ bsz\l+ bprd\l+ user\l+ cpu\l+ memory\l+ jitter\l+ exists\l|+ to_json()\l+ from_json()\l}" alt="" coords="185,5,283,273"/>
+</map>

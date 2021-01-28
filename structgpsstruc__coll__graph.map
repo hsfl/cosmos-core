@@ -1,0 +1,4 @@
+<map id="gpsstruc" name="gpsstruc">
+<area shape="rect" id="node2" href="$structrvector.html" title="3 element generic row vector " alt="" coords="5,20,104,141"/>
+<area shape="rect" id="node3" href="$structgvector.html" title="3 element geodetic vector " alt="" coords="128,5,227,156"/>
+</map>

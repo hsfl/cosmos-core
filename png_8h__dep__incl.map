@@ -1,0 +1,19 @@
+<map id="png.h" name="png.h">
+<area shape="rect" id="node2" href="$pngpriv_8h.html" title="pngpriv.h" alt="" coords="701,80,775,107"/>
+<area shape="rect" id="node18" href="$pngtest_8c.html" title="pngtest.c" alt="" coords="800,80,876,107"/>
+<area shape="rect" id="node3" href="$png_8c.html" title="png.c" alt="" coords="5,155,60,181"/>
+<area shape="rect" id="node4" href="$pngerror_8c.html" title="pngerror.c" alt="" coords="85,155,165,181"/>
+<area shape="rect" id="node5" href="$pngget_8c.html" title="pngget.c" alt="" coords="189,155,261,181"/>
+<area shape="rect" id="node6" href="$pngmem_8c.html" title="pngmem.c" alt="" coords="285,155,367,181"/>
+<area shape="rect" id="node7" href="$pngpread_8c.html" title="pngpread.c" alt="" coords="392,155,479,181"/>
+<area shape="rect" id="node8" href="$pngread_8c.html" title="pngread.c" alt="" coords="503,155,581,181"/>
+<area shape="rect" id="node9" href="$pngrio_8c.html" title="pngrio.c" alt="" coords="605,155,673,181"/>
+<area shape="rect" id="node10" href="$pngrtran_8c.html" title="pngrtran.c" alt="" coords="698,155,778,181"/>
+<area shape="rect" id="node11" href="$pngrutil_8c.html" title="pngrutil.c" alt="" coords="802,155,877,181"/>
+<area shape="rect" id="node12" href="$pngset_8c.html" title="pngset.c" alt="" coords="901,155,973,181"/>
+<area shape="rect" id="node13" href="$pngtrans_8c.html" title="pngtrans.c" alt="" coords="997,155,1079,181"/>
+<area shape="rect" id="node14" href="$pngwio_8c.html" title="pngwio.c" alt="" coords="1103,155,1178,181"/>
+<area shape="rect" id="node15" href="$pngwrite_8c.html" title="pngwrite.c" alt="" coords="1202,155,1285,181"/>
+<area shape="rect" id="node16" href="$pngwtran_8c.html" title="pngwtran.c" alt="" coords="1309,155,1396,181"/>
+<area shape="rect" id="node17" href="$pngwutil_8c.html" title="pngwutil.c" alt="" coords="1420,155,1501,181"/>
+</map>

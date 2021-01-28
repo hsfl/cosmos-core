@@ -1,0 +1,18 @@
+<map id="Cosmos::Support::Agent" name="Cosmos::Support::Agent">
+<area shape="rect" id="node3" href="$class_device_cpu.html" title="{DeviceCpu\n|+ percentUseForCurrentProcess\l+ numProcessors\l+ memoryUsed\l+ memoryTotal\l+ memoryFree\l+ memoryBuffers\l+ virtualMemoryUsed\l+ virtualMemoryTotal\l+ virtualMemoryFree\l+ load\l|+ DeviceCpu()\l+ stress()\l+ getLoad()\l+ getCpuCount()\l+ getUptime()\l+ getBootCount()\l+ getVirtualMemoryTotal()\l+ getVirtualMemoryUsed()\l+ getVirtualMemoryFree()\l+ getVirtualMemoryUsedPercent()\land 20 more...\l}" alt="" coords="79,1465,299,1821"/>
+<area shape="rect" id="node10" href="$structjsonnode.html" title="{jsonnode\n|+ devspec\l|+ to_json()\l+ from_json()\l}" alt="" coords="772,1261,871,1353"/>
+<area shape="rect" id="node15" href="$class_cosmos_1_1wavefront.html" title="{Cosmos::wavefront\n||+ wavefront()\l+ add_geometric_vertex()\l+ add_texture_vertex()\l+ add_normal_vertex()\l+ add_parameter_vertex()\l+ add_material()\l+ add_point()\l+ add_line()\l+ add_face()\l+ update_line()\land 13 more...\l&#45; parseobj()\l&#45; parsemtl()\l}" alt="" coords="1135,1181,1305,1434"/>
+<area shape="rect" id="node7" href="$struct_cosmos_1_1_support_1_1_agent_1_1pollstruc.html" title="{Cosmos::Support::Agent\l::pollstruc\n|+ type\l+ jlength\l|}" alt="" coords="291,1985,458,2091"/>
+<area shape="rect" id="node8" href="$structbeatstruc.html" title="{beatstruc\n|+ utc\l+ node\l+ proc\l+ ntype\l+ addr\l+ port\l+ bsz\l+ bprd\l+ user\l+ cpu\l+ memory\l+ jitter\l+ exists\l|+ to_json()\l+ from_json()\l}" alt="" coords="272,1173,371,1441"/>
+<area shape="rect" id="node9" href="$structcosmosstruc.html" title="{cosmosstruc\n|+ timestamp\l+ jmapped\l+ mass\l+ dens\l+ t_pos\l+ x_pos\l+ y_pos\l+ z_pos\l+ t_vel\l+ x_vel\land 51 more...\l|+ set_up_rotation_matrix()\l+ set_PQW()\l+ set_IJK_from_PQW()\l+ set_PQW_from_IJK()\l+ name_exists()\l+ size()\l+ print_all_names()\l+ print_all_names_types()\l+ print_all_names_types\l_values()\l+ get_all_names()\land 22 more...\l}" alt="" coords="1658,1845,1833,2231"/>
+<area shape="rect" id="node44" href="$structphysicsstruc.html" title="Physics Simulation Structure. " alt="" coords="3335,725,3433,964"/>
+<area shape="rect" id="node24" href="$structdevspecstruc.html" title="Specific Device structure. " alt="" coords="3257,1188,3364,1427"/>
+<area shape="rect" id="node37" href="$structnodestruc.html" title="{nodestruc\n|+ name\l+ lastevent\l+ lasteventutc\l+ type\l+ state\l+ vertex_cnt\l+ normal_cnt\l+ face_cnt\l+ piece_cnt\l+ device_cnt\land 17 more...\l|+ to_json()\l+ from_json()\l}" alt="" coords="3388,1188,3495,1427"/>
+<area shape="rect" id="node38" href="$structlocstruc.html" title="{locstruc\n|+ utc\l|+ to_json()\l+ from_json()\l}" alt="" coords="3488,799,3587,891"/>
+<area shape="rect" id="node39" href="$structposstruc.html" title="{posstruc\n|+ utc\l+ earthsep\l+ moonsep\l+ sunsize\l+ sunradiance\l+ orbit\l|+ to_json()\l+ from_json()\l}" alt="" coords="3485,292,3589,457"/>
+<area shape="rect" id="node40" href="$structgeoidpos.html" title="Geodetic position structure. " alt="" coords="3365,5,3464,112"/>
+<area shape="rect" id="node41" href="$structspherpos.html" title="Spherical position structure. " alt="" coords="3488,5,3587,112"/>
+<area shape="rect" id="node42" href="$structcartpos.html" title="Cartesian full position structure. " alt="" coords="3611,5,3709,112"/>
+<area shape="rect" id="node43" href="$structattstruc.html" title="{attstruc\n|+ utc\l|+ to_json()\l+ from_json()\l}" alt="" coords="3613,329,3712,421"/>
+<area shape="rect" id="node45" href="$class_cosmos_1_1_math_1_1_vectors_1_1_vector.html" title="Vector Class. " alt="" coords="3122,233,3283,516"/>
+</map>

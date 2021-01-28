@@ -1,0 +1,13 @@
+<map id="gs232b_lib.h" name="gs232b_lib.h">
+<area shape="rect" id="node2" href="$config_cosmos_8h.html" title="Headers and definitions common to all COSMOS. " alt="" coords="1365,468,1529,495"/>
+<area shape="rect" id="node35" href="$mathlib_8h.html" title="mathlib include file " alt="" coords="1719,80,1827,107"/>
+<area shape="rect" id="node36" href="$cosmos-errno_8h.html" title="COSMOS Error Codes. " alt="" coords="1239,393,1398,420"/>
+<area shape="rect" id="node42" href="$cssl__lib_8h.html" title="Simple Serial library header file. " alt="" coords="1365,229,1499,271"/>
+<area shape="rect" id="node30" href="$cosmos-defs_8h.html" title="COSMOS definitions Definitions specific to the COSMOS environement. " alt="" coords="1255,543,1409,569"/>
+<area shape="rect" id="node32" href="$json11_8hpp.html" title="json11.hpp" alt="" coords="1585,543,1671,569"/>
+<area shape="rect" id="node38" href="$math_2constants_8h.html" title="constants.h" alt="" coords="1916,393,2007,420"/>
+<area shape="rect" id="node39" href="$vector_8h.html" title="vector.h" alt="" coords="1849,319,1919,345"/>
+<area shape="rect" id="node40" href="$matrix_8h.html" title="matrix.h" alt="" coords="1727,237,1796,263"/>
+<area shape="rect" id="node41" href="$rotation_8h.html" title="rotation.h" alt="" coords="1698,155,1774,181"/>
+<area shape="rect" id="node43" href="$sliplib_8h.html" title="COSMOS SLIP support include file. " alt="" coords="1335,319,1449,345"/>
+</map>

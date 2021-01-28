@@ -1,0 +1,6 @@
+<map id="i2c.h" name="i2c.h">
+<area shape="rect" id="node2" href="$config_cosmos_8h.html" title="Headers and definitions common to all COSMOS. " alt="" coords="1173,87,1337,114"/>
+<area shape="rect" id="node35" href="$i2c-dev-smbus_8h.html" title="device/i2c/i2c&#45;dev\l&#45;smbus.h" alt="" coords="1361,80,1488,121"/>
+<area shape="rect" id="node30" href="$cosmos-defs_8h.html" title="COSMOS definitions Definitions specific to the COSMOS environement. " alt="" coords="1718,169,1873,196"/>
+<area shape="rect" id="node32" href="$json11_8hpp.html" title="json11.hpp" alt="" coords="2049,169,2134,196"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="__attribute__" name="__attribute__">
+<area shape="rect" id="node2" href="$structpic__header.html" title="{pic_header\n|+ cmd\l+ flags\l+ seq\l+ size\l|}" alt="" coords="5,42,91,163"/>
+<area shape="rect" id="node3" href="$structpic__res__suchireport.html" title="{pic_res_suchireport\n|+ suchi_state\l+ sw_wdt_heaters\l+ sw_wdt_shutters\l+ reserved\l+ temperatures\l+ pressure\l+ uptime\l+ uart_frames_rx\l+ uart_bytes_discard\l|}" alt="" coords="115,5,259,200"/>
+<area shape="rect" id="node4" href="$structpic__cmd__args0.html" title="{pic_cmd_args0\n||}" alt="" coords="283,64,394,141"/>
+<area shape="rect" id="node5" href="$structpic__cmd__args1.html" title="{pic_cmd_args1\n|+ arg\l|}" alt="" coords="418,64,529,141"/>
+</map>

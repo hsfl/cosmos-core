@@ -1,0 +1,27 @@
+var class_device_disk =
+[
+    [ "info", "struct_device_disk_1_1info.html", "struct_device_disk_1_1info" ],
+    [ "DeviceDisk", "class_device_disk.html#a99e9be4f6b11a8295c64d7f1807025a6", null ],
+    [ "getInfo", "class_device_disk.html#a5be76a00aea1628cbb51a8abb52ba8c7", null ],
+    [ "getAll", "class_device_disk.html#a2bacacf2946be00cd0b8026e15531034", null ],
+    [ "getSize", "class_device_disk.html#aa2b29ca4340d946f603a9db1c9f69a47", null ],
+    [ "getUsed", "class_device_disk.html#a990ad2e44e859fa22c409daf08b94848", null ],
+    [ "getFree", "class_device_disk.html#a67d5cdd0d58253ef441aed74253d2fc1", null ],
+    [ "getAll", "class_device_disk.html#a45185e3e3d9cd4fc944c5b9326617a55", null ],
+    [ "getSize", "class_device_disk.html#a3c08079df8097a074b7150bf46c5369e", null ],
+    [ "getUsed", "class_device_disk.html#abe896c6dc822f862c2e43be26a035fe6", null ],
+    [ "getFree", "class_device_disk.html#aa793aa672f6ec1254f0de7ebbd31f79e", null ],
+    [ "getFreeGiB", "class_device_disk.html#a4b9a885908c11c8987c11c0a93a480d0", null ],
+    [ "getUsedGiB", "class_device_disk.html#a3df362e856ebece78e68d938df91c66b", null ],
+    [ "getSizeGiB", "class_device_disk.html#a4313d9224bab7c03c1f369229484dd46", null ],
+    [ "getFreeGiB", "class_device_disk.html#a3964ab57957aefb7fd16c8ab01a0e226", null ],
+    [ "getUsedGiB", "class_device_disk.html#ad488c153ba68f2efb4d844f893986e17", null ],
+    [ "getSizeGiB", "class_device_disk.html#ade863c9b1b162c06e670d266d9572c22", null ],
+    [ "Size", "class_device_disk.html#a3ee5986a722c07d385ee13b6a0842ece", null ],
+    [ "Used", "class_device_disk.html#aa96132b607a37eb4c485ceb28183d374", null ],
+    [ "Free", "class_device_disk.html#ae2d90297708d4894a52164ed6bc82297", null ],
+    [ "SizeGiB", "class_device_disk.html#a90a9e3c9f7a36aa675a02a8d308727be", null ],
+    [ "UsedGiB", "class_device_disk.html#aa9514de8c0ad58f974215f0abb6054cf", null ],
+    [ "FreeGiB", "class_device_disk.html#ae316bdedd570354d24ab47cf9e6a0183", null ],
+    [ "FreePercent", "class_device_disk.html#a0d1f59542bde3b9fab0435bca343ce45", null ]
+];

@@ -1,0 +1,8 @@
+<map id="my_memory_mgr" name="my_memory_mgr">
+<area shape="rect" id="node2" href="$structjpeg__memory__mgr.html" title="{jpeg_memory_mgr\n|+ alloc_small\l+ alloc_large\l+ alloc_sarray\l+ alloc_barray\l+ realize_virt_arrays\l+ access_virt_sarray\l+ access_virt_barray\l+ free_pool\l+ self_destruct\l+ max_memory_to_use\l+ max_alloc_chunk\l|}" alt="" coords="172,476,331,700"/>
+<area shape="rect" id="node3" href="$structjvirt__barray__control.html" title="{jvirt_barray_control\n|+ mem_buffer\l+ rows_in_array\l+ blocksperrow\l+ maxaccess\l+ rows_in_mem\l+ rowsperchunk\l+ cur_start_row\l+ first_undef_row\l+ pre_zero\l+ dirty\l+ b_s_open\l|}" alt="" coords="5,189,137,413"/>
+<area shape="rect" id="node4" href="$structbacking__store__struct.html" title="{backing_store_struct\n|+ temp_file\l+ temp_name\l|+ JMETHOD()\l+ JMETHOD()\l+ JMETHOD()\l}" alt="" coords="124,5,267,127"/>
+<area shape="rect" id="node5" href="$structjvirt__sarray__control.html" title="{jvirt_sarray_control\n|+ mem_buffer\l+ rows_in_array\l+ samplesperrow\l+ maxaccess\l+ rows_in_mem\l+ rowsperchunk\l+ cur_start_row\l+ first_undef_row\l+ pre_zero\l+ dirty\l+ b_s_open\l|}" alt="" coords="223,189,355,413"/>
+<area shape="rect" id="node6" href="$unionsmall__pool__struct.html" title="{small_pool_struct\n|+ bytes_used\l+ bytes_left\l+ hdr\l+ dummy\l|}" alt="" coords="515,527,639,649"/>
+<area shape="rect" id="node7" href="$unionlarge__pool__struct.html" title="{large_pool_struct\n|+ bytes_used\l+ bytes_left\l+ hdr\l+ dummy\l|}" alt="" coords="724,527,845,649"/>
+</map>

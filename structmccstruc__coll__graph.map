@@ -1,0 +1,5 @@
+<map id="mccstruc" name="mccstruc">
+<area shape="rect" id="node2" href="$structquaternion.html" title="Quaternion, scalar last, using x, y, z. " alt="" coords="7,307,109,428"/>
+<area shape="rect" id="node3" href="$classcvector.html" title="3 element cartesian vector " alt="" coords="5,5,111,244"/>
+<area shape="rect" id="node4" href="$structrvector.html" title="3 element generic row vector " alt="" coords="134,307,233,428"/>
+</map>

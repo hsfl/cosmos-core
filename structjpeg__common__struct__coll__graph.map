@@ -1,0 +1,8 @@
+<map id="jpeg_common_struct" name="jpeg_common_struct">
+<area shape="rect" id="node2" href="$structjpeg__memory__mgr.html" title="{jpeg_memory_mgr\n|+ alloc_small\l+ alloc_large\l+ alloc_sarray\l+ alloc_barray\l+ realize_virt_arrays\l+ access_virt_sarray\l+ access_virt_barray\l+ free_pool\l+ self_destruct\l+ max_memory_to_use\l+ max_alloc_chunk\l|}" alt="" coords="85,476,244,700"/>
+<area shape="rect" id="node3" href="$structjvirt__barray__control.html" title="{jvirt_barray_control\n|+ mem_buffer\l+ rows_in_array\l+ blocksperrow\l+ maxaccess\l+ rows_in_mem\l+ rowsperchunk\l+ cur_start_row\l+ first_undef_row\l+ pre_zero\l+ dirty\l+ b_s_open\l|}" alt="" coords="5,189,137,413"/>
+<area shape="rect" id="node4" href="$structbacking__store__struct.html" title="{backing_store_struct\n|+ temp_file\l+ temp_name\l|+ JMETHOD()\l+ JMETHOD()\l+ JMETHOD()\l}" alt="" coords="124,5,267,127"/>
+<area shape="rect" id="node5" href="$structjvirt__sarray__control.html" title="{jvirt_sarray_control\n|+ mem_buffer\l+ rows_in_array\l+ samplesperrow\l+ maxaccess\l+ rows_in_mem\l+ rowsperchunk\l+ cur_start_row\l+ first_undef_row\l+ pre_zero\l+ dirty\l+ b_s_open\l|}" alt="" coords="223,189,355,413"/>
+<area shape="rect" id="node6" href="$structjpeg__progress__mgr.html" title="{jpeg_progress_mgr\n|+ progress_monitor\l+ pass_counter\l+ pass_limit\l+ completed_passes\l+ total_passes\l|}" alt="" coords="268,520,411,656"/>
+<area shape="rect" id="node7" href="$structjpeg__error__mgr.html" title="{jpeg_error_mgr\n|+ error_exit\l+ emit_message\l+ output_message\l+ format_message\l+ reset_error_mgr\l+ msg_code\l+ i\l+ s\l+ msg_parm\l+ trace_level\land 6 more...\l|}" alt="" coords="434,476,565,700"/>
+</map>

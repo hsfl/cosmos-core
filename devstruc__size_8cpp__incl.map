@@ -1,0 +1,16 @@
+<map id="devstruc_size.cpp" name="devstruc_size.cpp">
+<area shape="rect" id="node2" href="$config_cosmos_8h.html" title="Headers and definitions common to all COSMOS. " alt="" coords="921,677,1085,704"/>
+<area shape="rect" id="node35" href="$jsondef_8h.html" title="support/jsondef.h" alt="" coords="741,80,864,107"/>
+<area shape="rect" id="node30" href="$cosmos-defs_8h.html" title="COSMOS definitions Definitions specific to the COSMOS environement. " alt="" coords="2088,752,2243,779"/>
+<area shape="rect" id="node32" href="$json11_8hpp.html" title="json11.hpp" alt="" coords="1827,752,1912,779"/>
+<area shape="rect" id="node36" href="$mathlib_8h.html" title="mathlib include file " alt="" coords="323,304,431,331"/>
+<area shape="rect" id="node43" href="$convertdef_8h.html" title="support/convertdef.h" alt="" coords="824,229,965,256"/>
+<area shape="rect" id="node44" href="$physicsdef_8h.html" title="Orbit library support definitions. " alt="" coords="730,155,875,181"/>
+<area shape="rect" id="node45" href="$socketlib_8h.html" title="Socket Support header file. " alt="" coords="574,155,706,181"/>
+<area shape="rect" id="node49" href="$objlib_8h.html" title="support/objlib.h" alt="" coords="273,229,383,256"/>
+<area shape="rect" id="node37" href="$cosmos-errno_8h.html" title="COSMOS Error Codes. " alt="" coords="567,379,726,405"/>
+<area shape="rect" id="node39" href="$math_2constants_8h.html" title="constants.h" alt="" coords="364,603,455,629"/>
+<area shape="rect" id="node40" href="$vector_8h.html" title="vector.h" alt="" coords="241,528,311,555"/>
+<area shape="rect" id="node41" href="$matrix_8h.html" title="matrix.h" alt="" coords="452,453,521,480"/>
+<area shape="rect" id="node42" href="$rotation_8h.html" title="rotation.h" alt="" coords="415,379,491,405"/>
+</map>

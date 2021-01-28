@@ -1,0 +1,4 @@
+<map id="extraatt" name="extraatt">
+<area shape="rect" id="node2" href="$structrmatrix.html" title="3x3 element generic matrix " alt="" coords="5,189,104,311"/>
+<area shape="rect" id="node3" href="$structrvector.html" title="3 element generic row vector " alt="" coords="5,5,104,127"/>
+</map>

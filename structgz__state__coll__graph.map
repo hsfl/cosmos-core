@@ -1,0 +1,9 @@
+<map id="gz_state" name="gz_state">
+<area shape="rect" id="node2" href="$structgz_file__s.html" title="{gzFile_s\n|+ have\l+ next\l+ pos\l|}" alt="" coords="5,520,76,627"/>
+<area shape="rect" id="node3" href="$structz__stream__s.html" title="{z_stream_s\n|+ next_in\l+ avail_in\l+ total_in\l+ next_out\l+ avail_out\l+ total_out\l+ msg\l+ zalloc\l+ zfree\l+ opaque\l+ data_type\l+ adler\l+ reserved\l|}" alt="" coords="115,447,206,700"/>
+<area shape="rect" id="node4" href="$structinternal__state.html" title="{internal_state\n|+ status\l+ pending_buf\l+ pending_buf_size\l+ pending_out\l+ pending\l+ wrap\l+ gzindex\l+ method\l+ last_flush\l+ w_size\land 42 more...\l|}" alt="" coords="235,792,369,1016"/>
+<area shape="rect" id="node5" href="$structgz__header__s.html" title="{gz_header_s\n|+ text\l+ time\l+ xflags\l+ os\l+ extra\l+ extra_len\l+ extra_max\l+ name\l+ name_max\l+ comment\l+ comm_max\l+ hcrc\l+ done\l|}" alt="" coords="243,447,345,700"/>
+<area shape="rect" id="node6" href="$structtree__desc__s.html" title="{tree_desc_s\n|+ max_code\l|}" alt="" coords="421,535,516,612"/>
+<area shape="rect" id="node7" href="$structstatic__tree__desc__s.html" title="{static_tree_desc_s\n|+ dummy\l+ extra_bits\l+ extra_base\l+ elems\l+ max_length\l|}" alt="" coords="556,219,688,355"/>
+<area shape="rect" id="node8" href="$structct__data__s.html" title="{ct_data_s\n|+ freq\l+ code\l+ fc\l+ dad\l+ len\l+ dl\l|}" alt="" coords="429,5,508,156"/>
+</map>

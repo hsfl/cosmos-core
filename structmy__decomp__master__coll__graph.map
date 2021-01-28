@@ -1,0 +1,4 @@
+<map id="my_decomp_master" name="my_decomp_master">
+<area shape="rect" id="node2" href="$structjpeg__color__quantizer.html" title="{jpeg_color_quantizer\n||+ JMETHOD()\l+ JMETHOD()\l+ JMETHOD()\l+ JMETHOD()\l}" alt="" coords="5,5,147,127"/>
+<area shape="rect" id="node3" href="$structjpeg__decomp__master.html" title="{jpeg_decomp_master\n|+ is_dummy_pass\l|+ JMETHOD()\l+ JMETHOD()\l}" alt="" coords="171,20,317,112"/>
+</map>

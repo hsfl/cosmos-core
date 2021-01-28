@@ -1,0 +1,19 @@
+<map id="datalib.h" name="datalib.h">
+<area shape="rect" id="node2" href="$config_cosmos_8h.html" title="Headers and definitions common to all COSMOS. " alt="" coords="1264,528,1428,555"/>
+<area shape="rect" id="node32" href="$cosmos-errno_8h.html" title="COSMOS Error Codes. " alt="" coords="1587,453,1745,480"/>
+<area shape="rect" id="node34" href="$jsondef_8h.html" title="support/jsondef.h" alt="" coords="1566,155,1689,181"/>
+<area shape="rect" id="node40" href="$jsonlib_8h.html" title="JSON Support definitions. " alt="" coords="1809,80,1926,107"/>
+<area shape="rect" id="node42" href="$zlib_8h.html" title="thirdparty/zlib/zlib.h" alt="" coords="2052,80,2187,107"/>
+<area shape="rect" id="node44" href="$timelib_8h.html" title="timelib include file A library providing functions for handling various types of time. " alt="" coords="2009,304,2128,331"/>
+<area shape="rect" id="node50" href="$dirent_8h.html" title="dirent.h" alt="" coords="2407,80,2472,107"/>
+<area shape="rect" id="node30" href="$cosmos-defs_8h.html" title="COSMOS definitions Definitions specific to the COSMOS environement. " alt="" coords="1435,603,1590,629"/>
+<area shape="rect" id="node31" href="$json11_8hpp.html" title="json11.hpp" alt="" coords="1715,603,1801,629"/>
+<area shape="rect" id="node35" href="$mathlib_8h.html" title="mathlib include file " alt="" coords="1608,379,1716,405"/>
+<area shape="rect" id="node36" href="$convertdef_8h.html" title="support/convertdef.h" alt="" coords="1389,304,1530,331"/>
+<area shape="rect" id="node37" href="$physicsdef_8h.html" title="Orbit library support definitions. " alt="" coords="1419,229,1564,256"/>
+<area shape="rect" id="node38" href="$socketlib_8h.html" title="Socket Support header file. " alt="" coords="1263,229,1395,256"/>
+<area shape="rect" id="node39" href="$objlib_8h.html" title="support/objlib.h" alt="" coords="1555,304,1665,331"/>
+<area shape="rect" id="node41" href="$stringlib_8h.html" title="stringlib include file A library providing functions for handling various types of string..." alt="" coords="1821,453,1946,480"/>
+<area shape="rect" id="node43" href="$zconf_8h.html" title="zconf.h" alt="" coords="2188,155,2253,181"/>
+<area shape="rect" id="node45" href="$elapsedtime_8h.html" title="Elapsed Time header file. " alt="" coords="2072,453,2223,480"/>
+</map>

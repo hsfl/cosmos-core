@@ -1,0 +1,4 @@
+<map id="radiostruc" name="radiostruc">
+<area shape="rect" id="node3" href="$structtcvstruc.html" title="Transceiver information. " alt="" coords="85,20,183,259"/>
+<area shape="rect" id="node4" href="$structbeatstruc.html" title="{beatstruc\n|+ utc\l+ node\l+ proc\l+ ntype\l+ addr\l+ port\l+ bsz\l+ bprd\l+ user\l+ cpu\l+ memory\l+ jitter\l+ exists\l|+ to_json()\l+ from_json()\l}" alt="" coords="207,5,306,273"/>
+</map>

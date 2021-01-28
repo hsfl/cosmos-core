@@ -1,0 +1,27 @@
+var pngtrans_8c =
+[
+    [ "png_set_bgr", "pngtrans_8c.html#a1cf9bca3d842908535989e94b429c028", null ],
+    [ "png_set_swap", "pngtrans_8c.html#a569bca70be29dfda8cd7c82e5c620ba7", null ],
+    [ "png_set_packing", "pngtrans_8c.html#a462329bb7c499c867ecb36d15a616277", null ],
+    [ "png_set_packswap", "pngtrans_8c.html#a1fb464baf8c73bfa9759389cf9d62335", null ],
+    [ "png_set_shift", "pngtrans_8c.html#a64d19d7be7d4126528e70435341555a4", null ],
+    [ "png_set_interlace_handling", "pngtrans_8c.html#a89c3b2bff482b4054d45d572be5bd270", null ],
+    [ "png_set_filler", "pngtrans_8c.html#a31eca2cda1c15d793defb2814d977872", null ],
+    [ "png_set_add_alpha", "pngtrans_8c.html#a528850216c902d8c49b61a4e937a258c", null ],
+    [ "png_set_swap_alpha", "pngtrans_8c.html#a17f2dab9785a50c346e8da1707818879", null ],
+    [ "png_set_invert_alpha", "pngtrans_8c.html#addccbb41efdd2245e077b2f9181828c0", null ],
+    [ "png_set_invert_mono", "pngtrans_8c.html#a04e2b3e31e5a88c850f8da7a4bc21200", null ],
+    [ "png_do_invert", "pngtrans_8c.html#ad6a6f7e864a9754571ef7ff809bb27db", null ],
+    [ "png_do_swap", "pngtrans_8c.html#a99033adb0eeeb092471e92783055df7b", null ],
+    [ "png_do_packswap", "pngtrans_8c.html#a34b1e9a582bbeb827db329cb741ac2d4", null ],
+    [ "png_do_strip_channel", "pngtrans_8c.html#ab222b59c8d87629019d3f7d0e4da91f9", null ],
+    [ "png_do_bgr", "pngtrans_8c.html#a0c93ed1664534f6ba58326b1aae229e3", null ],
+    [ "png_do_check_palette_indexes", "pngtrans_8c.html#a13c510cbc07af36d34cead3954971bb3", null ],
+    [ "png_set_user_transform_info", "pngtrans_8c.html#a429f66878fe79b45538e2c86aa42a0e4", null ],
+    [ "png_get_user_transform_ptr", "pngtrans_8c.html#a8c9d13b7af2e3472f36f4f78aa51372e", null ],
+    [ "png_get_current_row_number", "pngtrans_8c.html#a9eb767b675e7c76ec64d6c025c912b0f", null ],
+    [ "png_get_current_pass_number", "pngtrans_8c.html#a844241f4ffce6d61d49ee366d4cc4045", null ],
+    [ "onebppswaptable", "pngtrans_8c.html#a5a91a19516de59deda4676eebc5f3932", null ],
+    [ "twobppswaptable", "pngtrans_8c.html#af89d46a3a1caefd013153a8a57490be4", null ],
+    [ "fourbppswaptable", "pngtrans_8c.html#abac84a569b0776a5dbcfbd69ad578476", null ]
+];

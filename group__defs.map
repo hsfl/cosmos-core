@@ -1,0 +1,7 @@
+<map id="COSMOS Definitions" name="COSMOS Definitions">
+<area shape="rect" id="node2" href="$group__defs__node__type.html" title="Constants defining\l Node types." alt="" coords="222,5,353,47"/>
+<area shape="rect" id="node3" href="$group__defs__comp.html" title="Constants defining\l Components." alt="" coords="222,71,353,112"/>
+<area shape="rect" id="node4" href="$group__defs__storage.html" title="Constants defining\l limits on storage." alt="" coords="222,136,353,177"/>
+<area shape="rect" id="node5" href="$group__defs__macros.html" title="Special COSMOS macros" alt="" coords="200,202,375,229"/>
+<area shape="rect" id="node6" href="$group__defs__piece.html" title="Constants defining\l Part types." alt="" coords="222,253,353,295"/>
+</map>

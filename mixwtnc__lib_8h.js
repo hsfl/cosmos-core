@@ -1,0 +1,27 @@
+var mixwtnc__lib_8h =
+[
+    [ "mixwtnc_frame", "structmixwtnc__frame.html", "structmixwtnc__frame" ],
+    [ "mixwtnc_handle", "structmixwtnc__handle.html", "structmixwtnc__handle" ],
+    [ "MIXWTNC_MTU", "mixwtnc__lib_8h.html#ae8c4f608e1a84996d5011be306f33142", null ],
+    [ "MIXWTNC_PAYLOAD_SIZE", "mixwtnc__lib_8h.html#addcf13748aae67335fb4cc1facc650c7", null ],
+    [ "MIXWTNC_FULL_SIZE", "mixwtnc__lib_8h.html#ab60eb42bef1681b1b063a3f54c6f45ef", null ],
+    [ "AX25_FLAG", "mixwtnc__lib_8h.html#ad57eab26b84aad1e6eefaeae95b94288", null ],
+    [ "AX25_NOLAYER3", "mixwtnc__lib_8h.html#aaf0fc34d92e943f89c7742ed236d1fa2", null ],
+    [ "MIXWTNC_ID", "mixwtnc__lib_8h.html#a2aa29a12d383db1538d3648e79fbc806", null ],
+    [ "MIXWTNC_BAUD", "mixwtnc__lib_8h.html#ab3f343e73bc9f18689337c3d18a3cb8c", null ],
+    [ "MIXWTNC_BITS", "mixwtnc__lib_8h.html#a94afc313b463bd229e64b3fae6b4fc5f", null ],
+    [ "MIXWTNC_PARITY", "mixwtnc__lib_8h.html#a5dbd2e4aee72461153d298383f028485", null ],
+    [ "MIXWTNC_STOPBITS", "mixwtnc__lib_8h.html#a4cb2e73b9c8b6e6e1264d1a64bd02ac9", null ],
+    [ "mixwtnc_connect", "mixwtnc__lib_8h.html#af12d04deffa6f4cad96b4f7e47acf30a", null ],
+    [ "mixwtnc_disconnect", "mixwtnc__lib_8h.html#abc7893d1e7426b09af6d97adff3adbc7", null ],
+    [ "mixwtnc_recvframe", "mixwtnc__lib_8h.html#a3433233bbe5e4601fdc499a377d850b0", null ],
+    [ "mixwtnc_sendframe", "mixwtnc__lib_8h.html#a17f087a3cd97a9f5b65552b416325a45", null ],
+    [ "mixwtnc_loadframe", "mixwtnc__lib_8h.html#a56f2403f942807d81608b7eb6e9c33ad", null ],
+    [ "mixwtnc_loadframe", "mixwtnc__lib_8h.html#aa5f04aaedef19cc9ff4377e05d0b5464", null ],
+    [ "mixwtnc_unloadframe", "mixwtnc__lib_8h.html#a81b368c444e99da370ceef1cb4ddcd3f", null ],
+    [ "mixwtnc_unloadframe", "mixwtnc__lib_8h.html#a64464eaacce55448bb73727b72269e77", null ],
+    [ "mixwtnc_unloadframe", "mixwtnc__lib_8h.html#a9635d0ceb5cb6d3232101fde5e624c1a", null ],
+    [ "mixwtnc_calc_fcs", "mixwtnc__lib_8h.html#a528a209a7e57df545f7c5424cc17f019", null ],
+    [ "mixwtnc_exitkiss", "mixwtnc__lib_8h.html#a1a6ca72be9f77e85ce6f771b550d09e2", null ],
+    [ "mixwtnc_enterkiss", "mixwtnc__lib_8h.html#a7b35fb3574c3b377f8ccf92e1158b69a", null ]
+];

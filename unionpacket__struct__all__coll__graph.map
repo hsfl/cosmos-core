@@ -1,0 +1,13 @@
+<map id="packet_struct_all" name="packet_struct_all">
+<area shape="rect" id="node2" href="$structpacket__struct__raw.html" title="{packet_struct_raw\n|+ node_id\l+ tx_id\l|}" alt="" coords="5,27,135,119"/>
+<area shape="rect" id="node3" href="$structpacket__struct__heartbeat.html" title="{packet_struct_heartbeat\n|+ node_id\l+ node_name\l+ beat_period\l+ throughput\l+ funixtime\l|}" alt="" coords="159,5,322,141"/>
+<area shape="rect" id="node4" href="$structpacket__struct__cancel.html" title="{packet_struct_cancel\n|+ node_id\l+ tx_id\l|}" alt="" coords="346,27,493,119"/>
+<area shape="rect" id="node5" href="$structpacket__struct__reqmeta.html" title="{packet_struct_reqmeta\n|+ node_id\l+ node_name\l+ tx_id\l|}" alt="" coords="517,20,671,127"/>
+<area shape="rect" id="node6" href="$structpacket__struct__metashort.html" title="{packet_struct_metashort\n|+ node_id\l+ tx_id\l+ agent_name\l+ file_name\l+ file_size\l|}" alt="" coords="696,5,863,141"/>
+<area shape="rect" id="node7" href="$structpacket__struct__queue.html" title="{packet_struct_queue\n|+ node_id\l+ node_name\l+ tx_id\l|}" alt="" coords="887,20,1029,127"/>
+<area shape="rect" id="node8" href="$structpacket__struct__reqdata.html" title="{packet_struct_reqdata\n|+ node_id\l+ tx_id\l+ hole_start\l+ hole_end\l|}" alt="" coords="1053,13,1204,134"/>
+<area shape="rect" id="node9" href="$structpacket__struct__reqqueue.html" title="{packet_struct_reqqueue\n|+ node_id\l+ node_name\l|}" alt="" coords="1228,27,1389,119"/>
+<area shape="rect" id="node10" href="$structpacket__struct__complete.html" title="{packet_struct_complete\n|+ node_id\l+ tx_id\l|}" alt="" coords="1413,27,1575,119"/>
+<area shape="rect" id="node11" href="$structpacket__struct__data.html" title="{packet_struct_data\n|+ node_id\l+ tx_id\l+ byte_count\l+ chunk_start\l+ chunk\l|}" alt="" coords="1599,5,1733,141"/>
+<area shape="rect" id="node12" href="$structpacket__struct__metalong.html" title="{packet_struct_metalong\n|+ node_name\l+ tx_id\l+ agent_name\l+ file_name\l+ file_size\l|}" alt="" coords="1757,5,1919,141"/>
+</map>

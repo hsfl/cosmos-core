@@ -1,0 +1,4 @@
+<map id="inflate_state" name="inflate_state">
+<area shape="rect" id="node2" href="$structgz__header__s.html" title="{gz_header_s\n|+ text\l+ time\l+ xflags\l+ os\l+ extra\l+ extra_len\l+ extra_max\l+ name\l+ name_max\l+ comment\l+ comm_max\l+ hcrc\l+ done\l|}" alt="" coords="5,5,108,259"/>
+<area shape="rect" id="node3" href="$structcode.html" title="{code\n|+ op\l+ bits\l+ val\l|}" alt="" coords="132,79,187,185"/>
+</map>

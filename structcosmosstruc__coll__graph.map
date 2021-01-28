@@ -1,0 +1,23 @@
+<map id="cosmosstruc" name="cosmosstruc">
+<area shape="rect" id="node2" href="$structjsonnode.html" title="{jsonnode\n|+ devspec\l|+ to_json()\l+ from_json()\l}" alt="" coords="256,2047,355,2139"/>
+<area shape="rect" id="node8" href="$class_cosmos_1_1wavefront.html" title="{Cosmos::wavefront\n||+ wavefront()\l+ add_geometric_vertex()\l+ add_texture_vertex()\l+ add_normal_vertex()\l+ add_parameter_vertex()\l+ add_material()\l+ add_point()\l+ add_line()\l+ add_face()\l+ update_line()\land 13 more...\l&#45; parseobj()\l&#45; parsemtl()\l}" alt="" coords="651,1967,822,2220"/>
+<area shape="rect" id="node46" href="$structphysicsstruc.html" title="Physics Simulation Structure. " alt="" coords="1484,1519,1583,1757"/>
+<area shape="rect" id="node17" href="$structdevspecstruc.html" title="Specific Device structure. " alt="" coords="2130,1974,2236,2213"/>
+<area shape="rect" id="node30" href="$structnodestruc.html" title="{nodestruc\n|+ name\l+ lastevent\l+ lasteventutc\l+ type\l+ state\l+ vertex_cnt\l+ normal_cnt\l+ face_cnt\l+ piece_cnt\l+ device_cnt\land 17 more...\l|+ to_json()\l+ from_json()\l}" alt="" coords="1094,1974,1200,2213"/>
+<area shape="rect" id="node31" href="$structlocstruc.html" title="{locstruc\n|+ utc\l|+ to_json()\l+ from_json()\l}" alt="" coords="1346,1592,1444,1684"/>
+<area shape="rect" id="node32" href="$structposstruc.html" title="{posstruc\n|+ utc\l+ earthsep\l+ moonsep\l+ sunsize\l+ sunradiance\l+ orbit\l|+ to_json()\l+ from_json()\l}" alt="" coords="1040,1085,1144,1251"/>
+<area shape="rect" id="node33" href="$structgeoidpos.html" title="Geodetic position structure. " alt="" coords="810,747,908,854"/>
+<area shape="rect" id="node34" href="$structgvector.html" title="3 element geodetic vector " alt="" coords="810,336,908,487"/>
+<area shape="rect" id="node35" href="$structspherpos.html" title="Spherical position structure. " alt="" coords="932,747,1031,854"/>
+<area shape="rect" id="node36" href="$structsvector.html" title="3 element spherical vector " alt="" coords="932,336,1031,487"/>
+<area shape="rect" id="node37" href="$structcartpos.html" title="Cartesian full position structure. " alt="" coords="1123,358,1222,465"/>
+<area shape="rect" id="node39" href="$structextrapos.html" title="Additional parameters relating to position that need only be calculated once. " alt="" coords="1140,696,1239,905"/>
+<area shape="rect" id="node38" href="$structrvector.html" title="3 element generic row vector " alt="" coords="1259,64,1358,185"/>
+<area shape="rect" id="node40" href="$structrmatrix.html" title="3x3 element generic matrix " alt="" coords="1314,351,1412,472"/>
+<area shape="rect" id="node42" href="$structqatt.html" title="Quaternion Attitude. " alt="" coords="1460,747,1559,854"/>
+<area shape="rect" id="node45" href="$structextraatt.html" title="Additional parameters relating to position that need only be calculated once. " alt="" coords="1338,755,1436,847"/>
+<area shape="rect" id="node41" href="$structattstruc.html" title="{attstruc\n|+ utc\l|+ to_json()\l+ from_json()\l}" alt="" coords="1338,1122,1436,1214"/>
+<area shape="rect" id="node43" href="$structquaternion.html" title="Quaternion, scalar last, using x, y, z. " alt="" coords="1521,351,1624,472"/>
+<area shape="rect" id="node44" href="$classcvector.html" title="3 element cartesian vector " alt="" coords="1520,5,1625,244"/>
+<area shape="rect" id="node47" href="$class_cosmos_1_1_math_1_1_vectors_1_1_vector.html" title="Vector Class. " alt="" coords="1461,1027,1622,1309"/>
+</map>
