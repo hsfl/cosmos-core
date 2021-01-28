@@ -74,45 +74,6 @@ static vector <string> device_type_string;
 // function to initialize the vector<vector<unitstruc>> unit
 void json_init_unit(cosmosstruc* cinfo)	{
 
-    //    cinfo->jmapbase = &etext;
-    cinfo->jmapped = 0;
-    cinfo->unit.resize(JSON_UNIT_COUNT);
-    //    cinfo->target.resize(100);
-    cinfo->jmap.resize(JSON_MAX_HASH);
-    cinfo->emap.resize(JSON_MAX_HASH);
-
-    // Make sure we aren't running out of memory
-    if (cinfo->unit.size() != JSON_UNIT_COUNT ||
-        cinfo->jmap.size() != JSON_MAX_HASH ||
-        cinfo->emap.size() != JSON_MAX_HASH)
-    {
-        delete [] cinfo;
-        return nullptr;
-    }
-
-    cinfo->glossary.resize(1);
-    cinfo->agent.resize(1);
-    cinfo->event.resize(1);
-    cinfo->user.resize(1);
-    memset(&cinfo->node, 0, sizeof(nodestruc));
-
-
-	//fix no trival copy-assignment warning for memset
-    //memset(&cinfo->physics, 0, sizeof(physicsstruc));
-    //memset(&cinfo->devspec, 0, sizeof(devspecstruc));
-	cinfo->physics = physicsstruc();
-	cinfo->devspec = devspecstruc();
-
-    // Make sure we aren't running out of memory
-    if (cinfo->glossary.size() != 1 ||
-        cinfo->agent.size() != 1 ||
-        cinfo->event.size() != 1 ||
-        cinfo->user.size() != 1)
-    {
-        delete [] cinfo;
-        return nullptr;
-    }
-
     // Create JSON Map unit table
     for (uint16_t i=0; i<JSON_UNIT_COUNT; ++i)
     {
@@ -6321,14 +6282,10 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo)
         cinfo->device.clear();
         break;
     case JSON_STRUCT_DEVSPEC:
-		//fix no trival copy-assignment warning for memset
-        //memset(&(cinfo->devspec),0, sizeof(devspecstruc));
 		cinfo->devspec = devspecstruc();
         break;
     case JSON_STRUCT_PHYSICS:
-		//fix no trival copy-assignment warning for memset
-        //memset(&(cinfo->physics),0,sizeof(physicsstruc));
-		cinfo->physics = physicsstruc();
+        cinfo->node.phys = physicsstruc();
         break;
     case JSON_STRUCT_AGENT:
         cinfo->agent.clear();
