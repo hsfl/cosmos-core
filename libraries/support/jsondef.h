@@ -4378,6 +4378,11 @@ struct cosmosstruc
 		double Q_vel_t = sqrt(mu/l) * (e+cos(v));
 		double W_vel_t = 0.0;
 
+		// acceleration at time t in perifocal co-ords (as function of v(t))
+		double P_acc_t = 0.0;
+		double Q_acc_t = 0.0;
+		double W_acc_t = 0.0;
+
 		// rotation matrix from perifocal to equitorial coordinates (R_row_col)
 
 			//	|R_0_0	R_0_1	R_0_2|	[ P ]     [I]
@@ -4417,11 +4422,16 @@ struct cosmosstruc
 		double I_pos_t = 0.0;
 		double J_pos_t = 0.0;
 		double K_pos_t = 0.0;
+
 		double I_vel_t = 0.0;
 		double J_vel_t = 0.0;
 		double K_vel_t = 0.0;
 
-		// set location
+		double I_acc_t = 0.0;
+		double J_acc_t = 0.0;
+		double K_acc_t = 0.0;
+
+		// set position, velocity, acceleration at given time
 		void set_PQW(double time)	{
 
 // to find position and velocity at time t
@@ -4438,10 +4448,27 @@ struct cosmosstruc
             P_pos_t = r * cos(v);
             Q_pos_t = r * sin(v);
             W_pos_t = 0.0;
+
+            // 4    Calculate velocity vector <P_pos_t, Q_pos_t, W_pos_t>
             P_vel_t = sqrt(mu/l) * -sin(v);
-            //Q_vel_t = sqrt(mu/l) * (e+cos(v))*sin(v);
             Q_vel_t = sqrt(mu/l) * (e+cos(v));
             W_vel_t = 0.0;
+
+
+			// 5	Calculate acceleration vector <P_acc_t, Q_acc_t, W_acc_t>
+			// a nanosecond apart
+			double dt = time + 0.000000001;
+            double M_dt = fmod(n * (dt - tau), 2*M_PI);
+            double v_dt = M_dt + (2.0*e-0.25*pow(e,3.0))*sin(M_dt) + 1.25*pow(e,2.0)*sin(2.0*M_dt) + (13.0/12.0)*pow(e,3.0)*sin(3.0*M_dt);
+            //double r_dt = l / (1.0 + e*cos(v_dt));
+
+            double P_vel_dt = sqrt(mu/l) * -sin(v_dt);
+            double Q_vel_dt = sqrt(mu/l) * (e+cos(v_dt));
+            double W_vel_dt = 0.0;
+
+			P_acc_t = (P_vel_t - P_vel_dt) / (t-dt);
+			Q_acc_t = (Q_vel_t - Q_vel_dt) / (t-dt);
+			W_acc_t = (W_vel_t - W_vel_dt) / (t-dt);
 
 			return;
 
@@ -4457,6 +4484,10 @@ struct cosmosstruc
 			I_vel_t = R_0_0 * P_vel_t + R_0_1 * Q_vel_t + R_0_2 * W_vel_t;
 			J_vel_t = R_1_0 * P_vel_t + R_1_1 * Q_vel_t + R_1_2 * W_vel_t;
 			K_vel_t = R_2_0 * P_vel_t + R_2_1 * Q_vel_t + R_2_2 * W_vel_t;
+
+			I_acc_t = R_0_0 * P_acc_t + R_0_1 * Q_acc_t + R_0_2 * W_acc_t;
+			J_acc_t = R_1_0 * P_acc_t + R_1_1 * Q_acc_t + R_1_2 * W_acc_t;
+			K_acc_t = R_2_0 * P_acc_t + R_2_1 * Q_acc_t + R_2_2 * W_acc_t;
 			return;
 		}
 
@@ -4470,6 +4501,10 @@ struct cosmosstruc
 			P_vel_t = R_0_0 * I_vel_t + R_1_0 * J_vel_t + R_2_0 * K_vel_t;
 			Q_vel_t = R_0_1 * I_vel_t + R_1_1 * J_vel_t + R_2_1 * K_vel_t;
 			W_vel_t = R_0_2 * I_vel_t + R_1_2 * J_vel_t + R_2_2 * K_vel_t;
+
+			P_acc_t = R_0_0 * I_acc_t + R_1_0 * J_acc_t + R_2_0 * K_acc_t;
+			Q_acc_t = R_0_1 * I_acc_t + R_1_1 * J_acc_t + R_2_1 * K_acc_t;
+			W_acc_t = R_0_2 * I_acc_t + R_1_2 * J_acc_t + R_2_2 * K_acc_t;
 			return;
 		}
 
