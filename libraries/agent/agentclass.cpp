@@ -1174,9 +1174,10 @@ int32_t Agent::req_get_position_data(string &request, string &response, Agent* a
        // orbital equations
 
 c->set_PQW(timemjd);
-//cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->P_pos_t<<", "<<c->Q_pos_t<<", "<<c->W_pos_t<<", "<<c->P_vel_t<<", "<<c->Q_vel_t<<", "<<c->W_vel_t<<endl;
+//cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->P_pos_t<<", "<<c->Q_pos_t<<", "<<c->W_pos_t<<", "<<c->P_vel_t<<", "<<c->Q_vel_t<<", "<<c->W_vel_t<<", "<<c->P_acc_t<<", "<<c->Q_acc_t<<", "<<c->W_acc_t<<endl;
+
 c->set_IJK_from_PQW();
-cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->I_pos_t<<", "<<c->J_pos_t<<", "<<c->K_pos_t<<", "<<c->I_vel_t<<", "<<c->J_vel_t<<", "<<c->K_vel_t<<endl;
+cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->I_pos_t<<", "<<c->J_pos_t<<", "<<c->K_pos_t<<", "<<c->I_vel_t<<", "<<c->J_vel_t<<", "<<c->K_vel_t<<", "<<c->I_acc_t<<", "<<c->J_acc_t<<", "<<c->K_acc_t<<endl;
 
 /*
         // to find position and velocity at time t
