@@ -58,6 +58,7 @@ string to_hex(int64_t value, uint16_t digits=0, bool zerofill=false);
 string to_signed(int64_t value, uint16_t digits=0, bool zerofill=false);
 string to_unsigned(uint64_t value, uint16_t digits=0, bool zerofill=false);
 string to_double(double value, uint16_t precision=0);
+string to_float(float value, uint16_t precision=0);
 string to_mjd(double value);
 string to_temperature(double value, char units='K', uint8_t precision=4);
 string to_angle(double value, char units='R', uint8_t precision=4);

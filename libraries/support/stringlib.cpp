@@ -282,6 +282,19 @@ string to_unsigned(uint64_t value, uint16_t digits, bool zerofill) {
     return output;
 }
 
+string to_float(float value, uint16_t precision) {
+    string output="";
+//    output.resize((value==0.?0:size_t(log10(std::abs(value))))+precision+5);
+    output.resize(17+precision);
+    if (precision) {
+        sprintf(&output[0], "%.*g", precision, static_cast<double>(value));
+    } else {
+        sprintf(&output[0], "%g", static_cast<double>(value));
+    }
+    output.resize(strlen(&output[0]));
+    return output;
+}
+
 string to_double(double value, uint16_t precision) {
     string output="";
 //    output.resize((value==0.?0:size_t(log10(std::abs(value))))+precision+5);
