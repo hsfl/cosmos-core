@@ -56,6 +56,8 @@ namespace Cosmos {
         int32_t set_timeout(int, double timeout);
 #endif
         int32_t set_timeout(double timeout);
+        int32_t set_wtimeout(double timeout);
+        int32_t set_rtimeout(double timeout);
         int32_t set_dtr(bool state);
         int32_t set_rts(bool state);
         bool get_cts();
@@ -92,7 +94,8 @@ namespace Cosmos {
             {57600, 115200, 230400, 460800, 500000, 576000, 921600, 1000000, 1152000, 1500000, 2000000, 2500000, 3000000, 3500000, 4000000}
         };
         // timeout in sec 2 ms
-        double ictimeout = .002;
+        double wictimeout = .002;
+        double rictimeout = .05;
         bool restoreonclose = true;
 
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
