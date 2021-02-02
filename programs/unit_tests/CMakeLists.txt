@@ -14,4 +14,4 @@ foreach(file ${files})
     install(TARGETS ${bfile} DESTINATION bin)
 endforeach()
 
-target_link_libraries(test_all SPHSim CosmosNamespace gtest gtest_main)
+target_link_libraries(test_all MacHcl CosmosNamespace gtest gtest_main)

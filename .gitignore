@@ -1,7 +1,7 @@
 *.user
 *.autosave
 simulation/main
-simulation/scribbles.cpp
+build/*
 build/qtarm/*
 build/arm/*
 build/armtest/*
