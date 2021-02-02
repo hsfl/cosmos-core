@@ -455,6 +455,7 @@ namespace Cosmos
             static int32_t req_soh(string &, string &response, Agent *agent);
             static int32_t req_fullsoh(string &, string &response, Agent *agent);
             static int32_t req_jsondump(string &, string &response, Agent *agent);
+            static int32_t req_get_agent_states(string &, string &response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos

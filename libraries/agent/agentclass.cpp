@@ -257,6 +257,7 @@ namespace Support
         add_request("soh",req_soh,"","Get Limited SOH string");
         add_request("fullsoh",req_fullsoh,"","Get Full SOH string");
         add_request("jsondump",req_jsondump,"","Dump JSON ini files to node folder");
+        add_request("get_agent_states",req_get_agent_states, "", "return a vector of state vectors of agents");
 
         // Set up Full SOH string
 //            set_fullsohstring(json_list_of_fullsoh(cinfo));
@@ -1578,6 +1579,28 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
         json_dump_node(agent->cinfo);
         return 0;
     }
+
+	/// Request state vectors of the agents
+	/** This returns the pre-time-coordinated state vectors of every (relevant) agent
+	\param request Text of request.
+	\param output Text of response to request.
+	\param agent Pointer to Cosmos::Agent to use.
+	\return 0, or negative error.
+	*/
+	int32_t Agent::req_get_agent_states(string &request, string &response, Agent *agent) {
+		cout<<"\tincoming request          = <"<<request<<">"<<endl;
+
+		// remove function call and space
+		request.erase(0,17);
+		
+		// Get agent state vectors (probably in json format), what Jim is working on
+
+		// return state vectors
+		response.clear();
+		response += "This is the vector of state vectors";
+
+		return 0;
+	}
 
     //! Open COSMOS output channel
     /*! Establish a multicast socket for publishing COSMOS messages using the specified address and
