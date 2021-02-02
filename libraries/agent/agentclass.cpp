@@ -1593,7 +1593,8 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 		// remove function call and space
 		request.erase(0,17);
 		
-		// Get agent state vectors (probably in json format), what Jim is working on
+		// Get agent state vectors (probably in json format)
+		// what Jim is working on. Until then, just get numbers from the simulation
 
 		// return state vectors
 		response.clear();

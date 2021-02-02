@@ -28,7 +28,7 @@ TEST(simulation, sph_output) {
 
 
 // (for the simulation)
-// Start agents at random substeps of dt
+// Start agents at not really random substeps of dt
 TEST(simulation, start_agents) {
 	
 }
