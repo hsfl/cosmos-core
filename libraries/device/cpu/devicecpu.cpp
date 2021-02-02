@@ -969,21 +969,6 @@ int32_t DeviceCpuLinux::getCpuCount()
     string tdata;
     int32_t iretn;
 
-//    FILE *fp = popen("/usr/bin/lscpu -p=cpu", "r");
-//    if (fp == nullptr)
-//    {
-//        return -errno;
-//    }
-//    char tdata[100];
-//    while ((fgets(tdata, 100, fp)) == tdata)
-//    {
-//        if (sscanf(tdata.c_str(), "%hu\n", &tindex) == 1)
-//        {
-//            ++tcount;
-//        }
-//    }
-//    pclose( fp );
-
     iretn = data_execute("lscpu -p=cpu", tdata);
     if (iretn > 0)
     {
@@ -994,6 +979,13 @@ int32_t DeviceCpuLinux::getCpuCount()
             {
                 ++tcount;
             }
+        }
+    }
+    else {
+        iretn = data_execute("grep processor /proc/cpuinfo | wc -l", tdata);
+        if (iretn > 0)
+        {
+            tcount = stoi(tdata);
         }
     }
     return tcount;

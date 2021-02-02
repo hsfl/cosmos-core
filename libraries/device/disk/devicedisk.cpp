@@ -185,39 +185,46 @@ vector <DeviceDisk::info> DeviceDisk::getInfo()
     uint64_t tsize;
 
     int32_t iretn = data_execute("lsblk -fbl -o SIZE,MOUNTPOINT", tdata);
-	vector<string> lines;
+    vector<string> lines;
     if(iretn<0)	{
-		return result;
-	} else	{
-		lines = string_split(tdata, "\n");
-	}
-    for (string line : lines)
-    {
-        char tmount[50];
-        if (sscanf(line.c_str(), "%lu %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
+        iretn = data_execute("df", tdata);
+        if(iretn<0)	{
+            return result;
+        }
+        lines = string_split(tdata, "\n");
+        for (string line : lines)
         {
-            tinfo.mount = tmount;
-            tinfo.size = tsize;
-            tinfo.used = getUsed(tinfo.mount);
-            tinfo.free = tinfo.size - tinfo.used;
-            result.push_back(tinfo);
+            if (line.find("/") != string::npos)
+            {
+                char tmount[50];
+                if (sscanf(line.c_str(), "%*s %lu %*s %*s %*s %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
+                {
+                    tinfo.mount = tmount;
+                    tinfo.size = tsize * 1024;
+                    tinfo.used = getUsed(tinfo.mount);
+                    tinfo.free = tinfo.size - tinfo.used;
+                    result.push_back(tinfo);
+                }
+            }
+        }
+    } else	{
+        lines = string_split(tdata, "\n");
+        for (string line : lines)
+        {
+            if (line.find("/") != string::npos)
+            {
+                char tmount[50];
+                if (sscanf(line.c_str(), "%lu %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
+                {
+                    tinfo.mount = tmount;
+                    tinfo.size = tsize;
+                    tinfo.used = getUsed(tinfo.mount);
+                    tinfo.free = tinfo.size - tinfo.used;
+                    result.push_back(tinfo);
+                }
+            }
         }
     }
-//    FILE *fp = popen("/bin/lsblk -fbl -o SIZE,MOUNTPOINT", "r");
-//    char tdata[100];
-//    uint64_t tsize;
-//    while ((fgets(tdata, 100, fp)) == tdata)
-//    {
-//        char tmount[50];
-//        if (sscanf(tdata, "%lu %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
-//        {
-//            tinfo.mount = tmount;
-//            tinfo.size = tsize;
-//            tinfo.used = getUsed(tinfo.mount);
-//            tinfo.free = tinfo.size - tinfo.used;
-//            result.push_back(tinfo);
-//        }
-//    }
 #endif
 #ifdef COSMOS_WIN_OS
     getAll();
