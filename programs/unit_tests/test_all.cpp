@@ -1,6 +1,6 @@
 #include "test_all.h"
 #include "test_cosmosstruc.h"
-#include "test_sph_sim.h"
+#include "test_sph.h"
 
 int main(int argc, char** argv)	{
 
