@@ -518,7 +518,7 @@ namespace Cosmos {
         return set_timeout(timeout);
     }
 
-    int32_t Serial::set_timeout(double timeout)
+    int32_t Serial::set_wtimeout(double timeout)
     {
         if (fd < 0)
         {
@@ -526,11 +526,26 @@ namespace Cosmos {
         }
 
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-        //    tio.c_cc[VMIN]=minchar;
-        //    tio.c_cc[VTIME]=(int)(timeout*10.+.4);
+        wictimeout = timeout;
+#else // windows
+        _COMMTIMEOUTS timeouts;
+        timeouts.WriteTotalTimeoutMultiplier = timeout * 1000.;
+        SetCommTimeouts(handle, &timeouts);
+#endif
 
-        //    tcsetattr(fd,TCSANOW,&(tio));
-        ictimeout = timeout;
+        error=0;
+        return 0;
+    }
+
+    int32_t Serial::set_rtimeout(double timeout)
+    {
+        if (fd < 0)
+        {
+            return SERIAL_ERROR_OPEN;
+        }
+
+#if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
+        rictimeout = timeout;
 #else // windows
         _COMMTIMEOUTS timeouts;
         timeouts.ReadIntervalTimeout = timeout * 1000.;
@@ -538,6 +553,32 @@ namespace Cosmos {
 #endif
 
         error=0;
+        return 0;
+    }
+
+    int32_t Serial::set_timeout(double timeout)
+    {
+        if (fd < 0)
+        {
+            return SERIAL_ERROR_OPEN;
+        }
+
+//#if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
+//        ictimeout = timeout;
+//#else // windows
+//        _COMMTIMEOUTS timeouts;
+//        timeouts.ReadIntervalTimeout = timeout * 1000.;
+//        SetCommTimeouts(handle, &timeouts);
+//#endif
+
+        if ((error = set_rtimeout(timeout)) < 0)
+        {
+            return error;
+        }
+        if ((error = set_wtimeout(timeout)) < 0)
+        {
+            return error;
+        }
         return 0;
     }
 
@@ -632,7 +673,7 @@ namespace Cosmos {
             FD_ZERO(&set);
             FD_SET(fd, &set);
             timeval timeout;
-            double rtimeout = ictimeout - et.split();
+            double rtimeout = wictimeout - et.split();
             if (rtimeout >= 0.)
             {
                 timeout.tv_sec = static_cast<int32_t>(rtimeout);
@@ -667,7 +708,7 @@ namespace Cosmos {
                     }
                 }
             }
-        } while (et.split() < ictimeout);
+        } while (et.split() < wictimeout);
 #endif
 
         // These sleeps are necessary to keep from overrunning the serial output buffer
@@ -852,7 +893,7 @@ namespace Cosmos {
             error = put_char(data[j]);
             message_sent += data[j];
             // check sum (xor?)
-            cs_in ^= (uint8_t)data[j];
+            cs_in ^= static_cast<uint8_t>(data[j]);
         }
         // end of command '*'
         error = put_char('*');
@@ -1019,8 +1060,8 @@ namespace Cosmos {
             {
                 error = result;
             }
-            COSMOS_SLEEP(ictimeout < 1. ? ictimeout/10. : .1);
-        } while (error == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
+            COSMOS_SLEEP(rictimeout < 1. ? rictimeout/10. : .1);
+        } while (error == SERIAL_ERROR_TIMEOUT && et.split() < rictimeout);
 #else
         ElapsedTime et;
         do
@@ -1029,8 +1070,8 @@ namespace Cosmos {
             FD_ZERO(&set);
             FD_SET(fd, &set);
             timeval timeout;
-            timeout.tv_sec = static_cast<int32_t>(ictimeout);
-            timeout.tv_usec = static_cast<int32_t>(1000000. * (ictimeout - timeout.tv_sec));
+            timeout.tv_sec = static_cast<int32_t>(rictimeout);
+            timeout.tv_usec = static_cast<int32_t>(1000000. * (rictimeout - timeout.tv_sec));
             int rv = select(fd+1, &set, nullptr, nullptr, &timeout);
             if (rv == -1)
             {
@@ -1063,7 +1104,7 @@ namespace Cosmos {
                     }
                 }
             }
-        } while (et.split() < ictimeout);
+        } while (et.split() < rictimeout);
 #endif
 
         return error;
@@ -1104,8 +1145,8 @@ namespace Cosmos {
             {
                 error = result;
             }
-            COSMOS_SLEEP(ictimeout < 1. ? ictimeout/10. : .1);
-        } while (error == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
+            COSMOS_SLEEP(rictimeout < 1. ? rictimeout/10. : .1);
+        } while (error == SERIAL_ERROR_TIMEOUT && et.split() < rictimeout);
 #else
         ElapsedTime et;
         do
@@ -1123,12 +1164,12 @@ namespace Cosmos {
                     error = -errno;
                 }
             }
-        } while (et.split() < ictimeout);
+        } while (et.split() < rictimeout);
 #endif
 
 //        printf("{%.5f}", et.split());
 
-        if (et.split() > ictimeout)
+        if (et.split() > rictimeout)
         {
             return SERIAL_ERROR_TIMEOUT;
         }
