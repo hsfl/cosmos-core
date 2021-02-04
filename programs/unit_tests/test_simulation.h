@@ -4,11 +4,13 @@
 #include <math.h>
 
 #include "gtest/gtest.h"
+#include "agent/agentclass.h"
+static Agent* agent;
 
 // (for a single agent)
 // Make a request for the agent states
 TEST(simulation, request_agent_states) {
-	
+	agent = new Agent("world","controller",1.);
 }
 
 // HCL happens here
