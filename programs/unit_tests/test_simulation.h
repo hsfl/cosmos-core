@@ -37,9 +37,10 @@ TEST(simulation, sph_output) {
 // (for the simulation)
 // Sim agent role call
 TEST(simulation, all_sim_agents_running) {
-	/*agent = new Agent("world","controller",1.);
+	agent = new Agent("world","controller",1.);
 	simulation sim(agent);
-	ASSERT_TRUE(sim.all_sim_agents_running());*/
+	ASSERT_TRUE(sim.all_sim_agents_running());
+	agent->shutdown();
 }
 // Start agents at not really random substeps of dt
 TEST(simulation, start_agents) {
@@ -54,6 +55,7 @@ TEST(simulation, start_agents) {
 	for(size_t i = 0; i < initial_times.size(); ++i) {
 		ASSERT_DOUBLE_EQ(initial_times[i], 0);
 	}
+	agent->shutdown();
 }
 
 // Populate and calculate world history
