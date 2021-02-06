@@ -53,7 +53,7 @@ TEST(simulation, start_agents) {
     	return std::stod(val);
 	});
 	for(size_t i = 0; i < initial_times.size(); ++i) {
-		ASSERT_DOUBLE_EQ(initial_times[i], 0);
+		ASSERT_DOUBLE_EQ(initial_times[i], sim.get_initial_time()+i*0.01);
 	}
 	agent->shutdown();
 }
