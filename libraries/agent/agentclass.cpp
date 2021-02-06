@@ -257,7 +257,8 @@ namespace Support
         add_request("soh",req_soh,"","Get Limited SOH string");
         add_request("fullsoh",req_fullsoh,"","Get Full SOH string");
         add_request("jsondump",req_jsondump,"","Dump JSON ini files to node folder");
-        add_request("get_agent_states",req_get_agent_states, "", "return a vector of state vectors of agents");
+        add_request("get_state_vector",req_get_state_vector, "", "return the state vector");
+        add_request("set_state_vector",req_set_state_vector, "", "set the state vector");
 
         // Set up Full SOH string
 //            set_fullsohstring(json_list_of_fullsoh(cinfo));
@@ -1587,18 +1588,43 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 	\param agent Pointer to Cosmos::Agent to use.
 	\return 0, or negative error.
 	*/
-	int32_t Agent::req_get_agent_states(string &request, string &response, Agent *agent) {
+	int32_t Agent::req_get_state_vector(string &request, string &response, Agent *agent) {
 		cout<<"\tincoming request          = <"<<request<<">"<<endl;
 
 		// remove function call and space
 		request.erase(0,17);
 		
-		// Get agent state vectors (probably in json format)
-		// what Jim is working on. Until then, just get numbers from the simulation
+		// Get simulation values and construct as a json
+		stringstream ss;
+		ss 	<<  "{\"x_position\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->x_pos << ","
+			<< 	 "\"y_position\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->y_pos << ","
+			<< 	 "\"z_position\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->z_pos << ","
+			<< 	 "\"x_velocity\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->x_vel << ","
+			<< 	 "\"y_velocity\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->y_vel << ","
+			<< 	 "\"z_velocity\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->z_vel << "}";
 
 		// return state vectors
 		response.clear();
-		response += "This is the vector of state vectors";
+		response = ss.str();
+
+		return 0;
+	}
+
+	/// Set state vectors of the agents
+	/** This returns the pre-time-coordinated state vectors of every (relevant) agent
+	\param request Text of request.
+	\param output Text of response to request.
+	\param agent Pointer to Cosmos::Agent to use.
+	\return 0, or negative error.
+	*/
+	int32_t Agent::req_set_state_vector(string &request, string &response, Agent *agent) {
+		cout<<"\tincoming request          = <"<<request<<">"<<endl;
+
+		// remove function call and space
+		request.erase(0,17);
+		
+		// Call to cosmosstruc from_json to set values
+		agent->cinfo->from_json(request);
 
 		return 0;
 	}

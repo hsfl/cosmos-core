@@ -7671,51 +7671,59 @@ struct cosmosstruc
 		string error;
 		json11::Json p = json11::Json::parse(s,error);
 		if(error.empty()) {
-			string obj(p.object_items().begin()->first); // NOTE: Should we rename this to something else? We already have a wavefront obj member var
-			if (!p[obj]["timestamp"].is_null()) { timestamp = p[obj]["timestamp"].number_value(); }
-			if (!p[obj]["jmapped"].is_null()) { jmapped = p[obj]["jmapped"].number_value(); }
+			if (!p["timestamp"].is_null()) { timestamp = p["timestamp"].number_value(); }
+			if (!p["jmapped"].is_null()) { jmapped = p["jmapped"].number_value(); }
 			for (size_t i = 0; i < unit.size(); ++i) {
 				for (size_t j = 0; j < unit[i].size(); ++j) {
-					if (!p[obj]["unit"][i][j].is_null()) { unit[i][j].from_json(p[obj]["unit"][i][j].dump()); }
+					if (!p["unit"][i][j].is_null()) { unit[i][j].from_json(p["unit"][i][j].dump()); }
 				}
 			}
 			for (size_t i = 0; i < equation.size(); ++i) {
-				if (!p[obj]["equation"][i].is_null()) { equation[i].from_json(p[obj]["equation"][i].dump()); }
+				if (!p["equation"][i].is_null()) { equation[i].from_json(p["equation"][i].dump()); }
 			}
-			if (!p[obj]["node"].is_null()) { node.from_json(p[obj]["node"].dump()); }
+			if (!p["node"].is_null()) { node.from_json(p["node"].dump()); }
 			for (size_t i = 0; i < vertexs.size(); ++i) {
-				if (!p[obj]["vertexs"][i].is_null()) { vertexs[i].from_json(p[obj]["vertexs"][i].dump()); }
+				if (!p["vertexs"][i].is_null()) { vertexs[i].from_json(p["vertexs"][i].dump()); }
 			}
 			for (size_t i = 0; i < normals.size(); ++i) {
-				if (!p[obj]["normals"][i].is_null()) { normals[i].from_json(p[obj]["normals"][i].dump()); }
+				if (!p["normals"][i].is_null()) { normals[i].from_json(p["normals"][i].dump()); }
 			}
 			for (size_t i = 0; i < faces.size(); ++i) {
-				if (!p[obj]["faces"][i].is_null()) { faces[i].from_json(p[obj]["faces"][i].dump()); }
+				if (!p["faces"][i].is_null()) { faces[i].from_json(p["faces"][i].dump()); }
 			}
-			if (!p["obj"].is_null()) { cosmosstruc::obj.from_json(p[obj]["obj"].dump()); }
+			if (!p["obj"].is_null()) { cosmosstruc::obj.from_json(p["obj"].dump()); }
 			for (size_t i = 0; i < device.size(); ++i) {
-				if (!p[obj]["device"][i].is_null()) { device[i].from_json(p[obj]["device"][i].dump()); }
+				if (!p["device"][i].is_null()) { device[i].from_json(p["device"][i].dump()); }
 			}
-			if (!p[obj]["devspec"].is_null()) { devspec.from_json(p[obj]["devspec"].dump()); }
+			if (!p["devspec"].is_null()) { devspec.from_json(p["devspec"].dump()); }
 			for (size_t i = 0; i < port.size(); ++i) {
-				if (!p[obj]["port"][i].is_null()) { port[i].from_json(p[obj]["port"][i].dump()); }
+				if (!p["port"][i].is_null()) { port[i].from_json(p["port"][i].dump()); }
 			}
 			for (size_t i = 0; i < agent.size(); ++i) {
-				if (!p[obj]["agent"][i].is_null()) { agent[i].from_json(p[obj]["agent"][i].dump()); }
+				if (!p["agent"][i].is_null()) { agent[i].from_json(p["agent"][i].dump()); }
 			}
 			for (size_t i = 0; i < event.size(); ++i) {
-				if (!p[obj]["event"][i].is_null()) { event[i].from_json(p[obj]["event"][i].dump()); }
+				if (!p["event"][i].is_null()) { event[i].from_json(p["event"][i].dump()); }
 			}
 			for (size_t i = 0; i < target.size(); ++i) {
-				if (!p[obj]["target"][i].is_null()) { target[i].from_json(p[obj]["target"][i].dump()); }
+				if (!p["target"][i].is_null()) { target[i].from_json(p["target"][i].dump()); }
 			}
 			for (size_t i = 0; i < user.size(); ++i) {
-				if (!p[obj]["user"][i].is_null()) { user[i].from_json(p[obj]["user"][i].dump()); }
+				if (!p["user"][i].is_null()) { user[i].from_json(p["user"][i].dump()); }
 			}
 			for (size_t i = 0; i < tle.size(); ++i) {
-				if (!p[obj]["tle"][i].is_null()) { tle[i].from_json(p[obj]["tle"][i].dump()); }
+				if (!p["tle"][i].is_null()) { tle[i].from_json(p["tle"][i].dump()); }
 			}
 			//if(!p[obj]["json"].is_null())	json.from_json(p[obj]["json"].dump());
+
+			// temporary simulation state variables
+			if (!p["x_position"].is_null()) { x_pos = p["x_position"].number_value(); }
+			if (!p["y_position"].is_null()) { y_pos = p["y_position"].number_value(); }
+			if (!p["z_position"].is_null()) { z_pos = p["z_position"].number_value(); }
+			if (!p["x_velocity"].is_null()) { x_vel = p["x_velocity"].number_value(); }
+			if (!p["y_velocity"].is_null()) { x_vel = p["y_velocity"].number_value(); }
+			if (!p["z_velocity"].is_null()) { x_vel = p["z_velocity"].number_value(); }
+			
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
