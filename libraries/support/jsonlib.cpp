@@ -440,6 +440,9 @@ void json_init_reserve(cosmosstruc* cinfo) {
     cinfo->port.reserve(MAX_NUMBER_OF_PORTS);
 
 	cinfo->tle.reserve(MAX_NUMBER_OF_TLES);
+
+	// for simulation, using 9 agents for now
+	cinfo->state.reserve(9);
 	return;
 }
 

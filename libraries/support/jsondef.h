@@ -4191,6 +4191,121 @@ struct jsonentry
 	uint16_t subsystem = 0;
 };
 
+//! Struct for state variables required for simulationn
+struct statestruct
+{
+	/// Support for Simulation (just for testing and integration)
+	// fictional mass and density
+	double mass = 1.0;
+	double dens = 1.0;
+
+	// position
+	double	t_pos = 0.0;
+	double	x_pos = 0.0;
+	double	y_pos = 0.0;
+	double	z_pos = 0.0;
+
+	// velocity
+	double	t_vel = 0.0;
+	double	x_vel = 0.0;
+	double	y_vel = 0.0;
+	double	z_vel = 0.0;
+
+	// acceleration
+	double	t_acc = 0.0;
+	double	x_acc = 0.0;
+	double	y_acc = 0.0;
+	double	z_acc = 0.0;
+
+	// waypoint
+	double	t_way = 0.0;
+	double	x_way = 0.0;
+	double	y_way = 0.0;
+	double	z_way = 0.0;
+
+	// attitude
+	double	pitch = 0.0;
+	double	roll =  0.0;
+	double	yaw =   0.0;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+	@return	A json11 JSON object containing every member variable within the class
+	*/
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "mass" , mass },
+			{ "density" , dens},
+
+			{ "t_position", t_pos },
+			{ "x_position", x_pos },
+			{ "y_position", y_pos },
+			{ "z_position", z_pos },
+
+			{ "t_velocity", t_vel },
+			{ "x_velocity", x_vel },
+			{ "y_velocity", y_vel },
+			{ "z_velocity", z_vel },
+
+			{ "t_acceleration" , t_acc },
+			{ "x_acceleration" , x_acc },
+			{ "y_acceleration" , y_acc },
+			{ "z_acceleration" , z_acc },
+
+			{ "t_waypoint" , t_way },
+			{ "x_waypoint" , x_way },
+			{ "y_waypoint" , y_way },
+			{ "z_waypoint" , z_way },
+
+			{ "pitch" , pitch },
+			{ "roll" , roll },
+			{ "yaw" , yaw }
+		};
+	}
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+	@param	s	JSON-formatted string to set class contents to
+
+	@return n/a
+	*/
+	void from_json(const string& js) {
+		string error;
+		json11::Json parsed = json11::Json::parse(js,error);
+		if(error.empty()) {
+			if(!parsed["mass"].is_null())	{ mass = parsed["mass"].number_value(); }
+			if(!parsed["density"].is_null())	{ dens = parsed["density"].number_value(); }
+
+			if(!parsed["t_position"].is_null())	{ t_pos = parsed["t_position"].number_value(); }
+			if(!parsed["x_position"].is_null())	{ x_pos = parsed["x_position"].number_value(); }
+			if(!parsed["y_position"].is_null())	{ y_pos = parsed["y_position"].number_value(); }
+			if(!parsed["z_position"].is_null())	{ z_pos = parsed["z_position"].number_value(); }
+
+			if(!parsed["t_velocity"].is_null())	{ t_vel = parsed["t_velocity"].number_value(); }
+			if(!parsed["x_velocity"].is_null())	{ x_vel = parsed["x_velocity"].number_value(); }
+			if(!parsed["y_velocity"].is_null())	{ y_vel = parsed["y_velocity"].number_value(); }
+			if(!parsed["z_velocity"].is_null())	{ z_vel = parsed["z_velocity"].number_value(); }
+
+			if(!parsed["t_acceleration"].is_null())	{ t_acc = parsed["t_acceleration"].number_value(); }
+			if(!parsed["x_acceleration"].is_null())	{ x_acc = parsed["x_acceleration"].number_value(); }
+			if(!parsed["y_acceleration"].is_null())	{ y_acc = parsed["y_acceleration"].number_value(); }
+			if(!parsed["z_acceleration"].is_null())	{ z_acc = parsed["z_acceleration"].number_value(); }
+
+			if(!parsed["t_waypoint"].is_null())	{ t_way = parsed["t_waypoint"].number_value(); }
+			if(!parsed["x_waypoint"].is_null())	{ x_way = parsed["x_waypoint"].number_value(); }
+			if(!parsed["y_waypoint"].is_null())	{ y_way = parsed["y_waypoint"].number_value(); }
+			if(!parsed["z_waypoint"].is_null())	{ z_way = parsed["z_waypoint"].number_value(); }
+
+			if(!parsed["pitch"].is_null())	{ pitch = parsed["pitch"].number_value(); }
+			if(!parsed["roll"].is_null())	{ roll = parsed["roll"].number_value(); }
+			if(!parsed["yaw"].is_null())	{ yaw = parsed["yaw"].number_value(); }
+		} else {
+			cerr<<"ERROR = "<<error<<endl;
+		}
+		return;
+	}
+};
+
 //void replace(std::string& str, const std::string& from, const std::string& to);
 //vector<size_t> find_newlines(const string& sample);
 //void pretty_form(string& js);
@@ -4260,6 +4375,9 @@ struct cosmosstruc
 
 	//! JSON descriptive information
 	jsonnode json;
+
+	//! Vector of states for simulation (for testing and integration)
+	vector<statestruct> state;
 
 
 	/// Support for Simulation (just for testing and integration)
@@ -4732,6 +4850,38 @@ struct cosmosstruc
 			add_name("pitch", &pitch, "double");
 			add_name("roll", &roll, "double");
 			add_name("yaw", &yaw, "double");
+
+			add_name("state", &state, "vector<statestruct>");
+			for(size_t i = 0; i < state.capacity(); ++i) {
+				string basename = "state[" + std::to_string(i) + "]";
+				add_name(basename, &state[i], "equationstruc");
+				add_name(basename+".mass", &state[i].mass, "double");
+				add_name(basename+".density", &state[i].dens, "double");
+
+				add_name(basename+".t_position", &state[i].t_pos, "double");
+				add_name(basename+".x_position", &state[i].x_pos, "double");
+				add_name(basename+".y_position", &state[i].y_pos, "double");
+				add_name(basename+".z_position", &state[i].z_pos, "double");
+
+				add_name(basename+".t_velocity", &state[i].t_vel, "double");
+				add_name(basename+".x_velocity", &state[i].x_vel, "double");
+				add_name(basename+".y_velocity", &state[i].y_vel, "double");
+				add_name(basename+".z_velocity", &state[i].z_vel, "double");
+
+				add_name(basename+".t_acceleration", &state[i].t_acc, "double");
+				add_name(basename+".x_acceleration", &state[i].x_acc, "double");
+				add_name(basename+".y_acceleration", &state[i].y_acc, "double");
+				add_name(basename+".z_acceleration", &state[i].z_acc, "double");
+
+				add_name(basename+".t_waypoint", &state[i].t_way, "double");
+				add_name(basename+".x_waypoint", &state[i].x_way, "double");
+				add_name(basename+".y_waypoint", &state[i].y_way, "double");
+				add_name(basename+".z_waypoint", &state[i].z_way, "double");
+
+				add_name(basename+".pitch", &state[i].pitch, "double");
+				add_name(basename+".roll", &state[i].roll, "double");
+				add_name(basename+".yaw", &state[i].yaw, "double");
+			}
 
 
 			// the whole she-bang
@@ -7550,6 +7700,8 @@ struct cosmosstruc
 					json = json11::Json::object { { s, get_value<vector<vector<unitstruc>>>(s) } };
 				} else if (type == "vector<vertexstruc>") {
 					json = json11::Json::object { { s, get_value<vector<vertexstruc>>(s) } };
+				} else if (type == "vector<statestruct>") {
+					json = json11::Json::object { { s, get_value<vector<statestruct>>(s) } };
 				}
 				return json.dump();
 			} else {
@@ -7658,6 +7810,7 @@ struct cosmosstruc
 			{ "user" , user },
 			{ "tle" , tle },
 			//{ "json" , json }
+			{ "state", state }
 		};
 	}
 
@@ -7723,6 +7876,9 @@ struct cosmosstruc
 			if (!p["x_velocity"].is_null()) { x_vel = p["x_velocity"].number_value(); }
 			if (!p["y_velocity"].is_null()) { x_vel = p["y_velocity"].number_value(); }
 			if (!p["z_velocity"].is_null()) { x_vel = p["z_velocity"].number_value(); }
+			for (size_t i = 0; i < state.size(); ++i) {
+				if (!p["state"][i].is_null()) { state[i].from_json(p["state"][i].dump()); }
+			}
 			
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
