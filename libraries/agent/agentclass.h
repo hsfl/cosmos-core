@@ -457,6 +457,7 @@ namespace Cosmos
             static int32_t req_jsondump(string &, string &response, Agent *agent);
             static int32_t req_get_state_vector(string &, string &response, Agent *agent);
             static int32_t req_set_state_vector(string &, string &response, Agent *agent);
+            static int32_t req_get_state_vectors(string &, string &response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos

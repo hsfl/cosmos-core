@@ -259,6 +259,7 @@ namespace Support
         add_request("jsondump",req_jsondump,"","Dump JSON ini files to node folder");
         add_request("get_state_vector",req_get_state_vector, "", "return the state vector");
         add_request("set_state_vector",req_set_state_vector, "", "set the state vector");
+        add_request("get_state_vectors",req_get_state_vectors, "", "get the vector of state vectors");
 
         // Set up Full SOH string
 //            set_fullsohstring(json_list_of_fullsoh(cinfo));
@@ -1581,8 +1582,8 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
         return 0;
     }
 
-	/// Request state vectors of the agents
-	/** This returns the pre-time-coordinated state vectors of every (relevant) agent
+	/// Request state vector of the agent
+	/** This returns the state vector of this agent
 	\param request Text of request.
 	\param output Text of response to request.
 	\param agent Pointer to Cosmos::Agent to use.
@@ -1610,8 +1611,8 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 		return 0;
 	}
 
-	/// Set state vectors of the agents
-	/** This returns the pre-time-coordinated state vectors of every (relevant) agent
+	/// Set state vector of the agent
+	/** This returns the state vectors of this agent
 	\param request Text of request.
 	\param output Text of response to request.
 	\param agent Pointer to Cosmos::Agent to use.
@@ -1625,6 +1626,28 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 		
 		// Call to cosmosstruc from_json to set values
 		agent->cinfo->from_json(request);
+
+		return 0;
+	}
+
+	/// Get state vectors of the agents
+	/** This returns the pre-time-coordinated state vectors of every (relevant) agent
+	\param request Text of request.
+	\param output Text of response to request.
+	\param agent Pointer to Cosmos::Agent to use.
+	\return 0, or negative error.
+	*/
+	int32_t Agent::req_get_state_vectors(string &request, string &response, Agent *agent) {
+		//cout<<"\tincoming request          = <"<<request<<">"<<endl;
+
+		// remove function call and space
+		request.erase(0,18);
+
+		string state = agent->cinfo->get_json<statestruct>("state");
+		
+		// return state vectors
+		response.clear();
+		response = state;
 
 		return 0;
 	}

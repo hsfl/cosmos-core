@@ -4228,6 +4228,9 @@ struct statestruct
 	double	roll =  0.0;
 	double	yaw =   0.0;
 
+	// timestamp of last update
+	double timestamp = 0.0;
+
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
 	@return	A json11 JSON object containing every member variable within the class
@@ -4259,7 +4262,8 @@ struct statestruct
 
 			{ "pitch" , pitch },
 			{ "roll" , roll },
-			{ "yaw" , yaw }
+			{ "yaw" , yaw },
+			{ "timestamp" , timestamp }
 		};
 	}
 
@@ -4299,6 +4303,7 @@ struct statestruct
 			if(!parsed["pitch"].is_null())	{ pitch = parsed["pitch"].number_value(); }
 			if(!parsed["roll"].is_null())	{ roll = parsed["roll"].number_value(); }
 			if(!parsed["yaw"].is_null())	{ yaw = parsed["yaw"].number_value(); }
+			if(!parsed["timestamp"].is_null())	{ timestamp = parsed["timestamp"].number_value(); }
 		} else {
 			cerr<<"ERROR = "<<error<<endl;
 		}
@@ -4881,6 +4886,7 @@ struct cosmosstruc
 				add_name(basename+".pitch", &state[i].pitch, "double");
 				add_name(basename+".roll", &state[i].roll, "double");
 				add_name(basename+".yaw", &state[i].yaw, "double");
+				add_name(basename+".timestamp", &state[i].timestamp, "double");
 			}
 
 
@@ -7441,6 +7447,12 @@ struct cosmosstruc
 								for(size_t i = 0; i < get_pointer<vector<vertexstruc>>(name)->size(); ++i) {
 									if(!p[name][i].is_null()) {
 										get_pointer<vector<vertexstruc>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
+							} else if (type == "vector<statestruct>") {
+								for(size_t i = 0; i < get_pointer<vector<statestruct>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<statestruct>>(name)->at(i).from_json(p[name][i].dump());
 									}
 								}
 							} else	{
