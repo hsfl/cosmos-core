@@ -1643,7 +1643,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 		// remove function call and space
 		request.erase(0,18);
 
-		string state = agent->cinfo->get_json<statestruct>("state");
+		string state = agent->cinfo->get_json<vector<statestruct>>("state");
 		
 		// return state vectors
 		response.clear();

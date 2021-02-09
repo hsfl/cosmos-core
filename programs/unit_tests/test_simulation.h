@@ -11,10 +11,35 @@
 
 static Agent* agent;
 
+TEST(simulation, create_new_agent) {
+	agent = new Agent("world","controller",1.);
+}
+
 // (for a single agent)
 // Make a request for the agent states
 TEST(simulation, request_agent_states) {
-
+	simulation sim(agent);
+	sim.init_sim_agents();
+	string response;
+	agent->send_request(agent->find_agent("world", "controller", 2.), "get_state_vectors", response, 2.);
+	std::vector<double> x = {-5,0,5, -5,0,5, -5,0,5};
+	std::vector<double> y = { 5,5,5,  0,0,0, -5,-5,-5};
+	for(size_t i = 0; i < response.size(); ++i) {
+		// state json object
+		string error;
+		json11::Json parsed = json11::Json::parse(response,error);
+		if(error.empty()) {
+			if(!parsed["x_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed["x_position"].number_value(), x[i]); }
+			if(!parsed["y_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed["y_position"].number_value(), y[i]); }
+			if(!parsed["z_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed["z_position"].number_value(), 0); }
+			if(!parsed["x_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["x_velocity"].number_value(), 0); }
+			if(!parsed["y_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["y_velocity"].number_value(), 0); }
+			if(!parsed["z_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["z_velocity"].number_value(), 0); }
+			if(!parsed["timestamp"].is_null()) { EXPECT_DOUBLE_EQ(parsed["timestamp"].number_value(), sim.get_initial_time()+i*0.01); }
+		} else {
+			std::cerr << "State vector json object from agent " << to_string(i+1) << "was empty."  << endl;
+		}
+	}
 }
 
 // HCL happens here
@@ -37,29 +62,16 @@ TEST(simulation, sph_output) {
 // (for the simulation)
 // Sim agent role call
 TEST(simulation, all_sim_agents_running) {
-	agent = new Agent("world","controller",1.);
 	simulation sim(agent);
 	EXPECT_TRUE(sim.all_sim_agents_running());
-	agent->shutdown();
 }
 // Initialize agents, for their initial time and initial states.
 TEST(simulation, init_agents) {
-	agent = new Agent("world","controller",1.);
 	simulation sim(agent);
 	sim.init_sim_agents();
-	// vector of initial times
-	std::vector<string> response = sim.send_req_to_all_agents("get_initial_time");
-	std::vector<double> initial_times(response.size());
-	std::transform(response.begin(), response.end(), initial_times.begin(), [](const std::string& val) {
-    	return std::stod(val);
-	});
-	for(size_t i = 0; i < initial_times.size(); ++i) {
-		EXPECT_DOUBLE_EQ(initial_times[i], sim.get_initial_time()+i*0.01);
-		
-	}
 
 	// vector of states
-	response = sim.send_req_to_all_agents("get_state_vector");
+	std::vector<string> response = sim.send_req_to_all_agents("get_state_vector");
 	std::vector<double> x = {-5,0,5, -5,0,5, -5,0,5};
 	std::vector<double> y = { 5,5,5,  0,0,0, -5,-5,-5};
 	for(size_t i = 0; i < response.size(); ++i) {
@@ -73,11 +85,11 @@ TEST(simulation, init_agents) {
 			if(!parsed["x_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["x_velocity"].number_value(), 0); }
 			if(!parsed["y_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["y_velocity"].number_value(), 0); }
 			if(!parsed["z_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["z_velocity"].number_value(), 0); }
+			if(!parsed["timestamp"].is_null()) { EXPECT_DOUBLE_EQ(parsed["timestamp"].number_value(), sim.get_initial_time()+i*0.01); }
 		} else {
 			std::cerr << "State vector json object from agent " << to_string(i+1) << "was empty."  << endl;
 		}
 	}
-	agent->shutdown();
 }
 
 // Populate and calculate world history
@@ -93,6 +105,10 @@ TEST(simulation, update_world_state) {
 // Plot at each substep of dt
 TEST(simulation, plot_simulation) {
 	
+}
+
+TEST(simulation, shutdown_agent) {
+	agent->shutdown();
 }
 
 

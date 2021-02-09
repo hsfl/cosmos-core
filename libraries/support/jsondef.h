@@ -7143,6 +7143,8 @@ struct cosmosstruc
 								get_pointer<vertexstruc>(name)->from_json(json);
 							} else if (type == "wavefront") {
 								get_pointer<wavefront>(name)->from_json(json);
+							} else if (type == "statestruct") {
+								get_pointer<statestruct>(name)->from_json(json);
 
 						// vector of base types
 							} else if (type == "vector<uint32_t>") {
@@ -7618,6 +7620,8 @@ struct cosmosstruc
 					json = json11::Json::object { { s, get_value<vertexstruc>(s) } };
 				} else if (type == "wavefront") {
 					json = json11::Json::object { { s, get_value<wavefront>(s) } };
+				} else if (type == "statestruct") {
+					json = json11::Json::object { { s, get_value<statestruct>(s) } };
 
 			// vector of primitives
 				} else if (type == "vector<uint32_t>") {
