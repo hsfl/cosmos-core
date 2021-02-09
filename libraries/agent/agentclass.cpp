@@ -233,11 +233,13 @@ namespace Support
         add_request("debug_level",req_debug_level,"{\"name1\",\"name2\",...}","get/set debug_level of agent");
         add_request("getvalue",req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
         add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent");
+        add_request("get_state",req_get_state,"[{] \"name1\",\"name2\",... [}]","get current state value(s) from agent");
         add_request("get_time",req_get_time,"","return the current time of the agent");
         add_request("get_position",req_get_position,"","return the current perifocal position of the agent");
         add_request("get_position_data",req_get_position_data,"","return the current perifocal position of the agent");
         add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
         add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent");
+       	add_request("set_state",req_set_state,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set state value(s) in agent");
         add_request("listnames",req_listnames,"","list the Namespace of the agent");
         add_request("forward",req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
         add_request("echo",req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
@@ -1137,7 +1139,7 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
 	cout<<"req_get_value():incoming request.length() = "<<request.length()<<endl;
 	// remove function call and space
 	req.erase(0,10);
-	// strip out all names from request
+	// strip out requested names
     vector<string> names;
     for(size_t i = 0; i < req.size(); ++i)   {
         if(req[i]=='"')  {
@@ -1146,7 +1148,9 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
             names.push_back(name);
         }
     }
-	// response comes to here with the request function name inside it? it that a bug or a feature?
+
+
+	// ERIC: response string comes to here with the request function name inside it? it that a bug or a feature?
 	response.clear();
     for(size_t i = 0; i < names.size(); ++i)   {
 		response += agent->cinfo->get_json(names[i]);
@@ -1154,6 +1158,45 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
 	cout<<"req_get_value():outgoing response         = <"<<response<<">"<<endl;
 	return 0;
 }
+
+int32_t Agent::req_get_state(string &request, string &response, Agent* agent)	{
+	string req = request;
+	// remove function call and space
+	req.erase(0,10);
+
+	// define all agent state names
+    vector<string> names;
+	names.push_back("t_position");
+	names.push_back("x_position");
+	names.push_back("y_position");
+	names.push_back("z_position");
+
+	names.push_back("t_velocity");
+	names.push_back("x_velocity");
+	names.push_back("y_velocity");
+	names.push_back("z_velocity");
+
+	names.push_back("t_acceleration");
+	names.push_back("x_acceleration");
+	names.push_back("y_acceleration");
+	names.push_back("z_acceleration");
+
+	names.push_back("t_waypoint");
+	names.push_back("x_waypoint");
+	names.push_back("y_waypoint");
+	names.push_back("z_waypoint");
+
+
+	response.clear();
+    for(size_t i = 0; i < names.size(); ++i)   {
+		response += agent->cinfo->get_json(names[i]);
+	}
+	cout<<"req_get_state():outgoing response         = <"<<response<<">"<<endl;
+	return 0;
+
+}
+
+
 
 int32_t Agent::req_get_time(string &request, string &response, Agent* agent)	{
 	stringstream ss;
@@ -1374,6 +1417,22 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 	cout<<"req_set_value():outgoing response         = <"<<response<<">"<<endl;
 	return 0;
 }
+
+int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
+	// remove function call and space ('set_value ')
+	request.erase(0,10);
+	cout<<"req_set_state():incoming request          = <"<<request<<">"<<endl;
+	cout<<"req_set_state():incoming request.size()   = "<<request.size()<<endl;
+	cout<<"req_set_state():incoming request.length() = "<<request.length()<<endl;
+	cout<<"req_set_state():incoming response         = <"<<response<<">"<<endl;
+
+	// set the value from json string
+	agent->cinfo->set_json(request);
+
+	cout<<"req_set_state():outgoing response         = <"<<response<<">"<<endl;
+	return 0;
+}
+
 
     //! Built-in List Name Space Names request
     /*! Returns a list of all names in the JSON Name Space.
@@ -1769,8 +1828,8 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                 }
                 // Use result to discover interfaces.
                 ifra = confa.ifc_req;
-                bool found_bcast = false;
-                int16_t lo_index = -1;
+                //bool found_bcast = false;
+                //int16_t lo_index = -1;
                 for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++) {
 
                     if (ifra->ifr_addr.sa_family != AF_INET)
@@ -1800,7 +1859,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     }
                     else if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_BROADCAST)
                     {
-                        found_bcast = true;
+                        //found_bcast = true;
 //                        if (lo_index >= 0)
 //                        {
 //                            // Remove loopback if we found broadcast interface

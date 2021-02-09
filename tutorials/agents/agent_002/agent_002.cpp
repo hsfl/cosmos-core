@@ -67,6 +67,8 @@ int main(int argc, char **argv)
     // add custom request functions for this agent
     agent->add_request("any_body_out_there", hello_agent_002_request_function, "a request to respond with 'hello'");
 
+	// turn debug off
+	agent->debug_level=0;
 
     // Start executing the agent
     while(agent->running()) {
@@ -105,7 +107,7 @@ int main(int argc, char **argv)
 		cout<<"attempting setting UTC value..."<<endl;
 	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), request1, response1, 2.);
 */
-
+///*
 		// old way
 		string response3;
 		cout<<"attempting 1.0 way of getting UTC value..."<<endl;
@@ -135,14 +137,14 @@ int main(int argc, char **argv)
 		string res;
 	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
 		cout<<"  response = <"<<res<<">"<<endl;
-
+//*/
 		//req.clear();
 		//req = "get_value \"cosmosdata\"";
 		//cout<<"  request  = <"<<req<<">"<<endl;
 		//res.clear();
 	   	//agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
 		//cout<<"  response = <"<<res<<">"<<endl;
-
+/*
 		req.clear();
 		req = "set_value {\"Longest Ever UTC\": 215},{\"user[0].tool\": \"Super Tool!\"}";
 		cout<<"  request  = <"<<req<<">"<<endl;
@@ -156,13 +158,39 @@ int main(int argc, char **argv)
 		res.clear();
 	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
 		cout<<"  response = <"<<res<<">"<<endl;
-
+*/
 		// try out agent_calc
 		//string request5 = "add 3 4";
 		//string response5;
 		//cout<<"attempting calc..."<<endl;
 	   	//agent->send_request(agent->find_agent("otb", "calc", 2.), request5, response5, 2.);
 		//cout<<"  response = <"<<response5<<">"<<endl;
+
+		// tests for Agent State Request Functions
+			// replace with set_state
+		//req.clear();
+
+		req.clear();
+		req = "set_value {\"t_position\": 123456.789012345678901234567}";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+//
+		req.clear();
+		req = "set_state {\"t_position\": 12.23}{\"x_position\":2.34}{\"y_position\":3.45}{\"z_position\":4.56}";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+//
+//
+		req.clear();
+		req = "get_state";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
 
     }
     return 0;

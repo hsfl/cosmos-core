@@ -4293,6 +4293,7 @@ struct cosmosstruc
 		double	z_way = 0.0;
 
 		// attitude
+		double	t_att = 0.0;
 		double	pitch = 0.0;
 		double	roll =  0.0;
 		double	yaw =   0.0;
@@ -4729,10 +4730,12 @@ struct cosmosstruc
 			add_name("y_waypoint", &y_way, "double");
 			add_name("z_waypoint", &z_way, "double");
 
+			add_name("t_attitude", &t_att, "double");
 			add_name("pitch", &pitch, "double");
 			add_name("roll", &roll, "double");
 			add_name("yaw", &yaw, "double");
 
+			// add attitude waypoint
 
 			// the whole she-bang
 			add_name("cinfo", this, "cosmosstruc");
@@ -6847,7 +6850,6 @@ struct cosmosstruc
 				*get_pointer<T>(s) = value;
 		}
 
-		// TODO: add support for multiple JSON string concatenated
 		/// Sets the data in Namespace 2.0 with a JSON-formatted string.
 		/** Searches through Namespace 2.0 and sets the value of the appropriate data by parsing the provided JSON-formatted string. The name used to search Namespace 2.0 is the key of the first entry in the JSON-formatted string.
 		@param	json	JSON formatted string to set the data to
@@ -6857,6 +6859,7 @@ struct cosmosstruc
 		void set_json(const string& json) 	{
 			cout<<"\tJSON received = <"<<json<<">"<<endl;
 			string error;
+			// parses multiple JSON strings
 			vector<json11::Json> vp = json11::Json::parse_multi(json,error);
 			cout<<"\tJSON error    = <"<<error<<">"<<endl;
 			for(size_t i = 0; i < vp.size(); ++i)	{
