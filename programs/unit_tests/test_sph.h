@@ -57,7 +57,7 @@ TEST(sph_sim, update_state) {
 	// Update sph state with new state matrix, 2 vehicles = 2
 	// Currently can't change the number of vehicles, since states is only created once at initialization.
 	// To change, would have to change when init2d() is run in init(), among other things and considerations.
-	vector<statestruct> newstate;
+	/*vector<statestruct> newstate;
 	newstate.resize(9);
 	for(int i = 0; i < 9; ++i) {
 		newstate[i].x_pos = i;
@@ -76,7 +76,7 @@ TEST(sph_sim, update_state) {
 			EXPECT_DOUBLE_EQ(state(i,0), i);
 			EXPECT_DOUBLE_EQ(state(i,1), i);
 		}
-	}
+	}*/
 
 
 

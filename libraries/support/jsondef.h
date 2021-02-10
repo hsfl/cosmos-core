@@ -4308,7 +4308,7 @@ struct statestruct
 			if(!parsed["roll"].is_null())	{ roll = parsed["roll"].number_value(); }
 			if(!parsed["yaw"].is_null())	{ yaw = parsed["yaw"].number_value(); }
 			if(!parsed["timestamp"].is_null())	{ timestamp = parsed["timestamp"].number_value(); }
-			if(!parsed["agent_id"].is_null())	{ timestamp = parsed["agent_id"].int_value(); }
+			if(!parsed["agent_id"].is_null())	{ agent_id = parsed["agent_id"].int_value(); }
 		} else {
 			cerr<<"ERROR = "<<error<<endl;
 		}
@@ -4864,7 +4864,7 @@ struct cosmosstruc
 			add_name("state", &state, "vector<statestruct>");
 			for(size_t i = 0; i < state.capacity(); ++i) {
 				string basename = "state[" + std::to_string(i) + "]";
-				add_name(basename, &state[i], "equationstruc");
+				add_name(basename, &state[i], "statestruct");
 				add_name(basename+".mass", &state[i].mass, "double");
 				add_name(basename+".density", &state[i].dens, "double");
 
