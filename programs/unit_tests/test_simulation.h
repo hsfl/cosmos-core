@@ -45,12 +45,18 @@ TEST(simulation, request_agent_states) {
 // HCL happens here
 // ie: time coordinating the state vectors
 TEST(simulation, hcl) {
-	
+	simulation sim(agent);
+	sim.init_sim_agents();
 }
 
 // State is properly fed into SPH. Conversions, etc.
 TEST(simulation, sph_interface) {
 	
+}
+
+// Send sph results back to world controller
+TEST(simulation, send_world_new_state) {
+
 }
 
 // SPH outputs correct values
@@ -79,13 +85,14 @@ TEST(simulation, init_agents) {
 		string error;
 		json11::Json parsed = json11::Json::parse(response[i],error);
 		if(error.empty()) {
-			if(!parsed["x_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed["x_position"].number_value(), x[i]); }
-			if(!parsed["y_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed["y_position"].number_value(), y[i]); }
-			if(!parsed["z_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed["z_position"].number_value(), 0); }
-			if(!parsed["x_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["x_velocity"].number_value(), 0); }
-			if(!parsed["y_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["y_velocity"].number_value(), 0); }
-			if(!parsed["z_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["z_velocity"].number_value(), 0); }
-			if(!parsed["timestamp"].is_null()) { EXPECT_DOUBLE_EQ(parsed["timestamp"].number_value(), sim.get_initial_time()+i*0.01); }
+			if(!parsed["state"][i]["x_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["x_position"].number_value(), x[i]); }
+			if(!parsed["state"][i]["y_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["y_position"].number_value(), y[i]); }
+			if(!parsed["state"][i]["z_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["z_position"].number_value(), 0); }
+			if(!parsed["state"][i]["x_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["x_velocity"].number_value(), 0); }
+			if(!parsed["state"][i]["y_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["y_velocity"].number_value(), 0); }
+			if(!parsed["state"][i]["z_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["z_velocity"].number_value(), 0); }
+			if(!parsed["state"][i]["timestamp"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["timestamp"].number_value(), sim.get_initial_time()+i*0.01); }
+			if(!parsed["state"][i]["agent_id"].is_null()) { EXPECT_EQ(parsed["state"][i]["agent_id"].int_value(), i+1); }
 		} else {
 			std::cerr << "State vector json object from agent " << to_string(i+1) << "was empty."  << endl;
 		}

@@ -4231,6 +4231,9 @@ struct statestruct
 	// timestamp of last update
 	double timestamp = 0.0;
 
+	// unique id of this agent
+	int agent_id = 0;
+
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
 	@return	A json11 JSON object containing every member variable within the class
@@ -4263,7 +4266,8 @@ struct statestruct
 			{ "pitch" , pitch },
 			{ "roll" , roll },
 			{ "yaw" , yaw },
-			{ "timestamp" , timestamp }
+			{ "timestamp" , timestamp },
+			{ "agent_id" , agent_id }
 		};
 	}
 
@@ -4304,6 +4308,7 @@ struct statestruct
 			if(!parsed["roll"].is_null())	{ roll = parsed["roll"].number_value(); }
 			if(!parsed["yaw"].is_null())	{ yaw = parsed["yaw"].number_value(); }
 			if(!parsed["timestamp"].is_null())	{ timestamp = parsed["timestamp"].number_value(); }
+			if(!parsed["agent_id"].is_null())	{ timestamp = parsed["agent_id"].int_value(); }
 		} else {
 			cerr<<"ERROR = "<<error<<endl;
 		}
@@ -4887,6 +4892,7 @@ struct cosmosstruc
 				add_name(basename+".roll", &state[i].roll, "double");
 				add_name(basename+".yaw", &state[i].yaw, "double");
 				add_name(basename+".timestamp", &state[i].timestamp, "double");
+				add_name(basename+".agent_id", &state[i].agent_id, "int");
 			}
 
 
