@@ -1095,6 +1095,9 @@ struct agentstruc
 class sim_state	{
 	public:
 
+	string	node_name;
+	string	agent_name;
+
 	double	t_pos = 0.0;
 	double	x_pos = 0.0;
 	double	y_pos = 0.0;
@@ -1123,6 +1126,9 @@ class sim_state	{
     */
     json11::Json to_json() const {
         return json11::Json::object {
+            { "node_name"   , node_name },
+            { "agent_name"  , agent_name },
+
             { "t_pos"   , t_pos },
             { "x_pos"   , x_pos },
             { "y_pos"   , y_pos },
@@ -1154,6 +1160,9 @@ class sim_state	{
 		string error;
 		json11::Json p = json11::Json::parse(s,error);
 		if(error.empty()) {
+			if(!p["node_name"].is_null()) { node_name = p["node_name"].string_value(); }
+			if(!p["agent_name"].is_null()) { agent_name = p["agent_name"].string_value(); }
+
 			if(!p["t_pos"].is_null()) { t_pos = p["t_pos"].number_value(); }
 			if(!p["x_pos"].is_null()) { x_pos = p["x_pos"].number_value(); }
 			if(!p["y_pos"].is_null()) { y_pos = p["y_pos"].number_value(); }
@@ -4579,7 +4588,7 @@ struct cosmosstruc
 			I_pos_t = R_0_0 * P_pos_t + R_0_1 * Q_pos_t + R_0_2 * W_pos_t;
 			J_pos_t = R_1_0 * P_pos_t + R_1_1 * Q_pos_t + R_1_2 * W_pos_t;
 			K_pos_t = R_2_0 * P_pos_t + R_2_1 * Q_pos_t + R_2_2 * W_pos_t;
-
+		
 			I_vel_t = R_0_0 * P_vel_t + R_0_1 * Q_vel_t + R_0_2 * W_vel_t;
 			J_vel_t = R_1_0 * P_vel_t + R_1_1 * Q_vel_t + R_1_2 * W_vel_t;
 			K_vel_t = R_2_0 * P_vel_t + R_2_1 * Q_vel_t + R_2_2 * W_vel_t;
@@ -4587,6 +4596,37 @@ struct cosmosstruc
 			I_acc_t = R_0_0 * P_acc_t + R_0_1 * Q_acc_t + R_0_2 * W_acc_t;
 			J_acc_t = R_1_0 * P_acc_t + R_1_1 * Q_acc_t + R_1_2 * W_acc_t;
 			K_acc_t = R_2_0 * P_acc_t + R_2_1 * Q_acc_t + R_2_2 * W_acc_t;
+
+
+			// update the state for the calling agent
+
+			// find index of calling agent in sim_states[]
+			for(size_t i = 0; i < sim_states.size(); ++i)	{
+				string node_name(agent[0].beat.node);
+				string agent_name(agent[0].beat.proc);
+				if(sim_states[i].node_name == node_name && sim_states[i].agent_name == agent_name)	{
+
+					// update to most recent values
+					sim_states[i].t_pos = t;
+					sim_states[i].x_pos = I_pos_t;
+					sim_states[i].y_pos = J_pos_t;
+					sim_states[i].z_pos = K_pos_t;
+
+					sim_states[i].t_vel = t;
+					sim_states[i].x_vel = I_vel_t;
+					sim_states[i].y_vel = J_vel_t;
+					sim_states[i].z_vel = K_vel_t;
+
+					sim_states[i].t_acc = t;
+					sim_states[i].x_acc = I_acc_t;
+					sim_states[i].y_acc = J_acc_t;
+					sim_states[i].z_acc = K_acc_t;
+
+					break;
+				}
+			}
+
+
 			return;
 		}
 
@@ -4635,9 +4675,8 @@ struct cosmosstruc
 
 		/// Checks if provided name exists within Namespace 2.0
 		/**	
-		@param	s	string representing name to search for
-
-		@return Returns true if name exists. Returns false if not.
+			@param	s	string representing name to search for
+			@return Returns true if name exists. Returns false if not.
 		*/
 		bool name_exists(const string& s)	{ return (names.find(s) == names.end()) ? false : true; }
 
@@ -6293,6 +6332,9 @@ struct cosmosstruc
 			for(size_t i = 0; i < sim_states.capacity(); ++i) {
 				string basename = "sim_states[" + std::to_string(i) + "]";
 				add_name(basename, &sim_states[i], "sim_state");
+				add_name(basename+".node_name", &sim_states[i].node_name, "string");
+				add_name(basename+".agent_name", &sim_states[i].agent_name, "string");
+
 				add_name(basename+".t_pos", &sim_states[i].t_pos, "double");
 				add_name(basename+".x_pos", &sim_states[i].x_pos, "double");
 				add_name(basename+".y_pos", &sim_states[i].y_pos, "double");
@@ -7765,6 +7807,19 @@ struct cosmosstruc
 			if(name_exists(s))	{
 				json11::Json json = json11::Json::object { { s, this->get_value<T>(s) } };
 				string pretty = json.dump();
+				pretty_form(pretty);
+				return pretty;
+			} else {
+				return "";
+			}
+		}
+
+		string get_json_pretty(const string& s)	{
+			if(name_exists(s))	{
+				//json11::Json json = json11::Json::object { { s, this->get_value(s) } };
+				//string pretty = json.dump();
+				//pretty_form(pretty);
+				string pretty = get_json(s);
 				pretty_form(pretty);
 				return pretty;
 			} else {
