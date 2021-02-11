@@ -49,6 +49,7 @@ int main(int argc, char **argv)
     // construct agent
     cout << node_agent_name << " starting..."<<endl;
     agent = new Agent(node_name, agent_name, 1.);
+	agent->debug_level=0;
 
     // exit with error if unable to start agent
     if(agent->last_error() < 0) {
