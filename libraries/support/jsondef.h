@@ -1095,25 +1095,25 @@ struct agentstruc
 class sim_state	{
 	public:
 
-	double	t_pos;
-	double	x_pos;
-	double	y_pos;
-	double	z_pos;
+	double	t_pos = 0.0;
+	double	x_pos = 0.0;
+	double	y_pos = 0.0;
+	double	z_pos = 0.0;
 
-	double	t_vel;
-	double	x_vel;
-	double	y_vel;
-	double	z_vel;
+	double	t_vel = 0.0;
+	double	x_vel = 0.0;
+	double	y_vel = 0.0;
+	double	z_vel = 0.0;
 
-	double	t_acc;
-	double	x_acc;
-	double	y_acc;
-	double	z_acc;
+	double	t_acc = 0.0;
+	double	x_acc = 0.0;
+	double	y_acc = 0.0;
+	double	z_acc = 0.0;
 
-	double	t_way;
-	double	x_way;
-	double	y_way;
-	double	z_way;
+	double	t_way = 0.0;
+	double	x_way = 0.0;
+	double	y_way = 0.0;
+	double	z_way = 0.0;
 
 	//  double	etc...
 

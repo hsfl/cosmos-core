@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 		cout<<"  response = <"<<res<<">"<<endl;
 //
 		req.clear();
-		req = "set_state {\"t_position\": 12.23}{\"x_position\":2.34}{\"y_position\":3.45}{\"z_position\":4.56}";
+		req = "set_state {\"t_position\": 12.23},{\"x_position\":2.34},{\"y_position\":3.45},{\"z_position\":4.56}";
 		cout<<"  request  = <"<<req<<">"<<endl;
 		res.clear();
 	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
@@ -191,6 +191,20 @@ int main(int argc, char **argv)
 		res.clear();
 	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
 		cout<<"  response = <"<<res<<">"<<endl;
+
+		req.clear();
+		req = "help";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	//agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+	   	agent->send_request(agent->find_agent(node_name, "agent_002", 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+
+        cout<<"Available Agents..."<<endl;
+        for(size_t i = 0; i < agent->agent_list.size(); ++i)    {
+            cout<<agent->agent_list[i].node<<":"<<agent->agent_list[i].proc<<endl;
+        }
+
 
     }
     return 0;

@@ -64,6 +64,8 @@ int main(int argc, char **argv)
 	// add custom request functions for this agent
 	agent->add_request("are_you_out_there", are_you_out_there, "\n\t\trequest to determine if specific agent exists");
 
+
+	// shorter name for agent->cinfo
 	cosmosstruc* c = agent->cinfo;
 
     // set the orbital elements (psuedo ISS orbit)
@@ -98,54 +100,23 @@ int main(int argc, char **argv)
 		sss<<setprecision(numeric_limits<double>::digits10)<<t;
 		string time = sss.str();
 
-		// calculate position of Mothership
-		//double mother_x = 0.0, mother_y = 0.0, mother_z = 0.0;
-
-
+//  ALLISON
 		agent->send_request(agent->find_agent("daughter_01", "allison", 2.), request, response, 2.);
+		// if daughter found
 		if(response.size())	{
 			cout<<left<<setw(40)<<"\t[daughter_01:allison]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
 			response.clear();
-
-
-			// (see how long to send/receive requests)
-			//double tx_time = currentmjd();
-			//agent->send_request(agent->find_agent("daughter_01", "allison", 2.), "get_time", response, 2.);
-			//double rx_time = currentmjd();
-			//cout<<"get_time = "<<response<<endl;
-			//stringstream ss;
-			//ss<<response;
-			//double go_time;
-			//ss>>go_time;
-			//cout<<"\t\trequest time = <"<<setprecision(numeric_limits<double>::digits10)<<go_time-tx_time<<">"<<endl;
-			//cout<<"\t\treceive time = <"<<setprecision(numeric_limits<double>::digits10)<<rx_time-go_time<<">"<<endl;
-
-			//cout<<setprecision(numeric_limits<double>::digits10)<<"time = "<<tx_time<<endl;
-			//cout<<setprecision(numeric_limits<double>::digits10)<<"time = "<<go_time<<endl;
-			//cout<<setprecision(numeric_limits<double>::digits10)<<"time = "<<rx_time<<endl;
-
-
 			// ask for their location
 			agent->send_request(agent->find_agent("daughter_01", "allison", 2.), "get_position " + time, response, 2.);
 			cout<<"\n"<<response<<endl;
-
-			// de-stringify location data
-			//stringstream ss;
-			//string junk;
-			//double x_coord = 0.0;
-			//double y_coord = 0.0;
-			//double z_coord = 0.0;
-			//ss<<response;
-			//ss>>junk>>junk>>junk>>junk>>junk>>junk>>x_coord>>y_coord>>z_coord;
-			//ss>>x_coord>>y_coord>>z_coord;
-
-			
 		} else {
 			cout<<left<<setw(40)<<"\t[daughter_01:allison]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
 
+//  BECKY
 		response.clear();
 		agent->send_request(agent->find_agent("daughter_02", "becky", 2.), request, response, 2.);
+		// if daughter found
 		if(response.size())	{
 			cout<<left<<setw(40)<<"\t[daughter_02:becky]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
 			// ask for their location
@@ -156,8 +127,10 @@ int main(int argc, char **argv)
 			cout<<left<<setw(40)<<"\t[daughter_02:becky]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
 
+//  CECILIA
 		response.clear();
 		agent->send_request(agent->find_agent("daughter_03", "cecilia", 2.), request, response, 2.);
+		// if daughter found
 		if(response.size())	{
 			cout<<left<<setw(40)<<"\t[daughter_03:cecilia]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
 			// ask for their location
@@ -168,7 +141,9 @@ int main(int argc, char **argv)
 			cout<<left<<setw(40)<<"\t[daughter_03:cecilia]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
 
+//  DELILIAH
 		response.clear();
+		// if daughter found
 		agent->send_request(agent->find_agent("daughter_04", "delilah", 2.), request, response, 2.);
 		if(response.size())	{
 			cout<<left<<setw(40)<<"\t[daughter_04:deliliah]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
@@ -176,6 +151,7 @@ int main(int argc, char **argv)
 			response.clear();
 			agent->send_request(agent->find_agent("daughter_04", "delilah", 2.), "get_position " + time, response, 2.);
 			cout<<"\n"<<response<<endl;
+			}
 		} else {
 			cout<<left<<setw(40)<<"\t[daughter_04:deliliah]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}

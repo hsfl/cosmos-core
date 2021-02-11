@@ -227,6 +227,11 @@ cout<<"Now to try to get the orbis of ISS..."<<endl;
         }
 */
         // Sleep for 5 sec
+
+		cout<<"Available Agents..."<<endl;
+		for(size_t i = 0; i < agent->agent_list.size(); ++i)	{
+			cout<<agent->agent_list[i].node<<":"<<agent->agent_list[i].proc<<endl;
+		}
         COSMOS_SLEEP(5.);
     }
     return 0;
