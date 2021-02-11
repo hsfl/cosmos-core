@@ -85,7 +85,7 @@ int main(int argc, char **argv)
         c->update_sim_state(currentmjd());
 
         // display latest state information
-        cout<<c->get_json_pretty("sim_states[2]")<<endl;
+        cout<<c->get_json_pretty("sim_states")<<endl;
 
 		// see if you can locate the mothership
 		// see if you can locate each of the daughters

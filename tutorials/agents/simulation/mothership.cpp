@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 		c->update_sim_state(t);
 
 		// output state
-		cout<<c->get_json_pretty("sim_states[0]")<<endl;
+		cout<<c->get_json_pretty("sim_states")<<endl;
 
 
 		// stringify the current time
