@@ -75,7 +75,7 @@ TEST(simulation, all_sim_agents_running) {
 TEST(simulation, init_agents) {
 	simulation sim(agent);
 	sim.init_sim_agents();
-/*
+
 	// vector of states
 	std::vector<string> response = sim.send_req_to_all_agents("get_state_vector");
 	std::vector<double> x = {-5,0,5, -5,0,5, -5,0,5};
@@ -96,7 +96,7 @@ TEST(simulation, init_agents) {
 		} else {
 			std::cerr << "State vector json object from agent " << to_string(i+1) << "was empty."  << endl;
 		}
-	}*/
+	}
 }
 
 // Populate and calculate world history
@@ -120,3 +120,6 @@ TEST(simulation, shutdown_agent) {
 
 
 #endif
+
+// Note to self:
+// Due to the way agents work, test_simulation.h has to be the first one included in test_all.cpp. Otherwise happy segfault surprise.

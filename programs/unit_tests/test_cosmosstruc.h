@@ -10,6 +10,7 @@ TEST(cosmosstruc, allocation)   {
 	cosmosstruc* c = json_init();	
 	cout<<"\t\t\t\t\t\t\tcinfo = <"<<c<<">"<<endl;
 	EXPECT_NE(c, nullptr);
+	
 }
 
 
