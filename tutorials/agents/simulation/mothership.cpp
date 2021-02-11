@@ -51,6 +51,9 @@ int main(int argc, char **argv)
     cout << node_agent_name << " starting..."<<endl;
     agent = new Agent(node_name, agent_name, 1.);
 
+	// turn off debug
+	agent->debug_level=0;
+
     // exit with error if unable to start agent
     if(agent->last_error() < 0) {
         cerr<<"error: unable to start "<<node_agent_name
@@ -90,15 +93,43 @@ int main(int argc, char **argv)
 
 		cout<<node_agent_name<<" running..."<<endl;
 
-		// see if you can locate each of the daughters
-		string request = "are_you_out_there";
-		string response = "";
+		// get the current time
+		double t = currentmjd();
+
+		// first, try to update current state
+		cout<<"\ttrying to update my own damn position..."<<endl;
+		cout<<"\tmight as well find my damn specifier..."<<endl;
+		cout<<"node  = <"<<c->agent[0].beat.node<<">"<<endl;
+		cout<<"agent = <"<<c->agent[0].beat.proc<<">"<<endl;
+		cout<<t<<endl;
+		cout<<setprecision(numeric_limits<double>::digits10)<<t<<endl;
+
+		cout<<"works!"<<endl;
+
+		// output state
+		// one way
+		//cout<<c->get_json_pretty("sim_states[0]")<<endl;
+		// another way (if the type is not known to COSMOS)
+		//cout<<c->get_json_pretty<sim_state>("sim_state[0]")<<endl;
+
+		cout<<c->get_json_pretty("sim_states")<<endl;
+		// set state
+		c->set_PQW(t);
+		c->set_IJK_from_PQW();
+
+		// output state
+		cout<<c->get_json_pretty("sim_states")<<endl;
+
 
 		// stringify the current time
-		double t = currentmjd();
 		stringstream sss;
 		sss<<setprecision(numeric_limits<double>::digits10)<<t;
 		string time = sss.str();
+
+
+// second, see if you can locate each of the daughters
+		string request = "are_you_out_there";
+		string response = "";
 
 //  ALLISON
 		agent->send_request(agent->find_agent("daughter_01", "allison", 2.), request, response, 2.);
@@ -151,7 +182,6 @@ int main(int argc, char **argv)
 			response.clear();
 			agent->send_request(agent->find_agent("daughter_04", "delilah", 2.), "get_position " + time, response, 2.);
 			cout<<"\n"<<response<<endl;
-			}
 		} else {
 			cout<<left<<setw(40)<<"\t[daughter_04:deliliah]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
