@@ -93,18 +93,14 @@ int main(int argc, char **argv)
 
 		cout<<node_agent_name<<" running..."<<endl;
 
-		// get the current time
-		double t = currentmjd();
 
 		// first, try to update current state
 		cout<<"\ttrying to update my own damn position..."<<endl;
 		cout<<"\tmight as well find my damn specifier..."<<endl;
 		cout<<"node  = <"<<c->agent[0].beat.node<<">"<<endl;
 		cout<<"agent = <"<<c->agent[0].beat.proc<<">"<<endl;
-		cout<<t<<endl;
-		cout<<setprecision(numeric_limits<double>::digits10)<<t<<endl;
-
 		cout<<"works!"<<endl;
+
 
 		// output state
 		// one way
@@ -112,13 +108,13 @@ int main(int argc, char **argv)
 		// another way (if the type is not known to COSMOS)
 		//cout<<c->get_json_pretty<sim_state>("sim_state[0]")<<endl;
 
-		cout<<c->get_json_pretty("sim_states")<<endl;
 		// set state
-		c->set_PQW(t);
-		c->set_IJK_from_PQW();
+		double t = currentmjd();
+		//double t_secs = fmod(t*24.*60.*60.,c->T);
+		c->update_sim_state(t);
 
 		// output state
-		cout<<c->get_json_pretty("sim_states")<<endl;
+		cout<<c->get_json_pretty("sim_states[0]")<<endl;
 
 
 		// stringify the current time
@@ -132,6 +128,7 @@ int main(int argc, char **argv)
 		string response = "";
 
 //  ALLISON
+		response.clear();
 		agent->send_request(agent->find_agent("daughter_01", "allison", 2.), request, response, 2.);
 		// if daughter found
 		if(response.size())	{
@@ -177,13 +174,13 @@ int main(int argc, char **argv)
 		// if daughter found
 		agent->send_request(agent->find_agent("daughter_04", "delilah", 2.), request, response, 2.);
 		if(response.size())	{
-			cout<<left<<setw(40)<<"\t[daughter_04:deliliah]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
+			cout<<left<<setw(40)<<"\t[daughter_04:delilah]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
 			// ask for their location
 			response.clear();
 			agent->send_request(agent->find_agent("daughter_04", "delilah", 2.), "get_position " + time, response, 2.);
 			cout<<"\n"<<response<<endl;
 		} else {
-			cout<<left<<setw(40)<<"\t[daughter_04:deliliah]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
+			cout<<left<<setw(40)<<"\t[daughter_04:delilah]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
 
         // Sleep for 5 sec

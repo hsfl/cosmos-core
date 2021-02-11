@@ -81,11 +81,19 @@ int main(int argc, char **argv)
 
 		cout<<node_agent_name<<" running..."<<endl;
 
+		// update state information
+		c->update_sim_state(currentmjd());
+
+		// display latest state information
+		cout<<c->get_json_pretty("sim_states[1]")<<endl;
+		
+
+
 		// see if you can locate the mothership
 		// see if you can locate each of the other daughters
 
         // Sleep for 5 sec
-        COSMOS_SLEEP(5.);
+        COSMOS_SLEEP(1.);
     }
     return 0;
 }

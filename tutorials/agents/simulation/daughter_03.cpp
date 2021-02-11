@@ -80,6 +80,12 @@ int main(int argc, char **argv)
 
 		cout<<node_agent_name<<" running..."<<endl;
 
+        // update state information
+        c->update_sim_state(currentmjd());
+
+        // display latest state information
+        cout<<c->get_json_pretty("sim_states[3]")<<endl;
+
 		// see if you can locate the mothership...  the other daughters?
 		// see if you can locate each of the daughters
 

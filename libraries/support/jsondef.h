@@ -4539,15 +4539,16 @@ struct cosmosstruc
 		double J_acc_t = 0.0;
 		double K_acc_t = 0.0;
 
-		// set position, velocity, acceleration at given time
+		// set position, velocity, acceleration at given time (in MJD)
 		void set_PQW(double time)	{
 
 // to find position and velocity at time t
             // 0    Make sure all necessary orbital elements are set
-            t = time;
+            t = time; // in MJD
+			double t_secs = fmod(time*24.*60.*60.,T); // in seconds of orbit
             l = a*(1.0-pow(e,2.0));
             // 1    Calculate mean anamoly (M)
-            M = fmod(n * (t - tau), 2*M_PI);
+            M = fmod(n * (t_secs - tau), 2*M_PI);
             // 2    Calculate true anamoly (v)
             v = M + (2.0*e-0.25*pow(e,3.0))*sin(M) + 1.25*pow(e,2.0)*sin(2.0*M) + (13.0/12.0)*pow(e,3.0)*sin(3.0*M);
             // 3    Calculate radius (r)
@@ -4565,7 +4566,7 @@ struct cosmosstruc
 
 			// 5	Calculate acceleration vector <P_acc_t, Q_acc_t, W_acc_t>
 			// a nanosecond apart
-			double dt = time + 0.000000001;
+			double dt = t_secs + 0.000000001;
             double M_dt = fmod(n * (dt - tau), 2*M_PI);
             double v_dt = M_dt + (2.0*e-0.25*pow(e,3.0))*sin(M_dt) + 1.25*pow(e,2.0)*sin(2.0*M_dt) + (13.0/12.0)*pow(e,3.0)*sin(3.0*M_dt);
             //double r_dt = l / (1.0 + e*cos(v_dt));
@@ -4574,9 +4575,9 @@ struct cosmosstruc
             double Q_vel_dt = sqrt(mu/l) * (e+cos(v_dt));
             double W_vel_dt = 0.0;
 
-			P_acc_t = (P_vel_t - P_vel_dt) / (t-dt);
-			Q_acc_t = (Q_vel_t - Q_vel_dt) / (t-dt);
-			W_acc_t = (W_vel_t - W_vel_dt) / (t-dt);
+			P_acc_t = (P_vel_t - P_vel_dt) / (t_secs-dt);
+			Q_acc_t = (Q_vel_t - Q_vel_dt) / (t_secs-dt);
+			W_acc_t = (W_vel_t - W_vel_dt) / (t_secs-dt);
 
 			return;
 
@@ -4597,9 +4598,17 @@ struct cosmosstruc
 			J_acc_t = R_1_0 * P_acc_t + R_1_1 * Q_acc_t + R_1_2 * W_acc_t;
 			K_acc_t = R_2_0 * P_acc_t + R_2_1 * Q_acc_t + R_2_2 * W_acc_t;
 
+			return;
+		}
+
+
+		// placeholder for state updater from Eric's propagator
+		// time t is in MJD
+		void update_sim_state(double t)	{
+			set_PQW(t);
+			set_IJK_from_PQW();
 
 			// update the state for the calling agent
-
 			// find index of calling agent in sim_states[]
 			for(size_t i = 0; i < sim_states.size(); ++i)	{
 				string node_name(agent[0].beat.node);
@@ -4625,10 +4634,9 @@ struct cosmosstruc
 					break;
 				}
 			}
-
-
 			return;
 		}
+
 
 		// geocentric equatorial to perifocal co-ordinate conversion
 		void set_PQW_from_IJK ()	{
