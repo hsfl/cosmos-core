@@ -4425,6 +4425,9 @@ struct cosmosstruc
 		double	roll =  0.0;
 		double	yaw =   0.0;
 
+		// unique id of this agent, accesses state vector
+		int agent_id = 0;
+
 	// orbital elements
 
 		// epoch (do i wanna do it this way?)
@@ -4860,6 +4863,7 @@ struct cosmosstruc
 			add_name("pitch", &pitch, "double");
 			add_name("roll", &roll, "double");
 			add_name("yaw", &yaw, "double");
+			add_name("agent_id", &agent_id, "agent_id");
 
 			add_name("state", &state, "vector<statestruct>");
 			for(size_t i = 0; i < state.capacity(); ++i) {
@@ -7898,6 +7902,7 @@ struct cosmosstruc
 			if (!p["x_velocity"].is_null()) { x_vel = p["x_velocity"].number_value(); }
 			if (!p["y_velocity"].is_null()) { x_vel = p["y_velocity"].number_value(); }
 			if (!p["z_velocity"].is_null()) { x_vel = p["z_velocity"].number_value(); }
+			if (!p["agent_id"].is_null()) { agent_id = p["agent_id"].int_value(); }
 			for (size_t i = 0; i < state.size(); ++i) {
 				if (!p["state"][i].is_null()) { state[i].from_json(p["state"][i].dump()); }
 			}

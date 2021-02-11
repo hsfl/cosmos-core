@@ -1596,17 +1596,17 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 		request.erase(0,17);
 		
 		// Get simulation values and construct as a json
-		stringstream ss;
+		/*stringstream ss;
 		ss 	<<  "{\"x_position\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->x_pos << ","
 			<< 	 "\"y_position\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->y_pos << ","
 			<< 	 "\"z_position\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->z_pos << ","
 			<< 	 "\"x_velocity\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->x_vel << ","
 			<< 	 "\"y_velocity\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->y_vel << ","
-			<< 	 "\"z_velocity\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->z_vel << "}";
+			<< 	 "\"z_velocity\":" << setprecision(numeric_limits<double>::digits10) << agent->cinfo->z_vel << "}";*/
 
 		// return state vectors
 		response.clear();
-		response = ss.str();
+		response = agent->cinfo->get_json<statestruct>("state["+to_string(agent->cinfo->get_value<int>("agent_id"))+"]");
 
 		return 0;
 	}

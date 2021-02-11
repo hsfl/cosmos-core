@@ -64,12 +64,12 @@ TEST(sph_sim, update_state) {
 		newstate[i].y_pos = i;
 	}
 	json11::Json json_newstate = json11::Json::object { {"state", newstate } };
-	int agent_id = 2;
+	int agent_id = 1;
 	SPH.sph_update_state(json_newstate.dump(), agent_id);
 	auto state = SPH.get_states();
 	EXPECT_EQ(state.rows(),9 + SPH.get_nobs() + SPH.get_nrd());
 	for(int i = 0; i < 9; ++i) {
-		if(i == agent_id-1) {
+		if(i == agent_id) {
 			EXPECT_DOUBLE_EQ(state(i,0), -1.3333333309643272);
 			EXPECT_DOUBLE_EQ(state(i,1), 2.3094010663786895);
 		} else {
