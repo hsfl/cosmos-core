@@ -7153,8 +7153,10 @@ struct cosmosstruc
 								get_pointer<vertexstruc>(name)->from_json(json);
 							} else if (type == "wavefront") {
 								get_pointer<wavefront>(name)->from_json(json);
-							} else if (type == "statestruct") {
-								get_pointer<statestruct>(name)->from_json(json);
+							} else if (type == "statestruct") { // SCOTTNOTE: should all the user-defined types be like this?
+								if(!p[name].is_null()) {
+									get_pointer<statestruct>(name)->from_json(p[name].dump());
+								}
 
 						// vector of base types
 							} else if (type == "vector<uint32_t>") {

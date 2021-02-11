@@ -58,19 +58,41 @@ TEST(simulation, sph_interface) {
 TEST(simulation, send_world_new_state) {
 	simulation sim(agent);
 	sim.init_sim_agents();
-	vector<statestruct> newstate;
+	statestruct newstate;
 	int agent_id = 1;
-	newstate.resize(9);
-	newstate[agent_id].x_pos = 98;
-	newstate[agent_id].y_pos = 99;
-	newstate[agent_id].agent_id = agent_id;
-	json11::Json json_newstate = json11::Json::object { {"state", newstate } };
+	newstate.x_pos = 98;
+	newstate.y_pos = 99;
+	newstate.agent_id = agent_id;
+	json11::Json json_newstate = json11::Json::object { {"state["+to_string(agent_id)+"]", newstate } };
 	string request = "send_world_new_state " + json_newstate.dump();
-	string response = "";
-	send_world_new_state(request, response, agent);
+	string res = "";
+	send_world_new_state(request, res, agent);
 	EXPECT_DOUBLE_EQ(agent->cinfo->get_value<double>("state[" + to_string(agent_id) + "].x_position"), 98);
 	EXPECT_DOUBLE_EQ(agent->cinfo->get_value<double>("state[" + to_string(agent_id) + "].y_position"), 99);
 	EXPECT_EQ(agent->cinfo->get_value<int>("state[" + to_string(agent_id) + "].agent_id"), agent_id);
+	// make sure nothing else has changed
+	std::vector<string> response = sim.send_req_to_all_agents("get_state_vector");
+	std::vector<double> x = {-5,0,5, -5,0,5, -5,0,5};
+	std::vector<double> y = { 5,5,5,  0,0,0, -5,-5,-5};
+	for(size_t i = 0; i < response.size(); ++i) {
+		// state json object
+		string error;
+		json11::Json parsed = json11::Json::parse(response[i],error);
+		if(error.empty()) {
+			if(int(i) != agent_id) {
+				string key = "state[" + to_string(i) + "]";
+				if(!parsed[key]["x_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["x_position"].number_value(), x[i]); }
+				if(!parsed[key]["y_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["y_position"].number_value(), y[i]); }
+				if(!parsed[key]["z_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["z_position"].number_value(), 0); }
+				if(!parsed[key]["x_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["x_velocity"].number_value(), 0); }
+				if(!parsed[key]["y_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["y_velocity"].number_value(), 0); }
+				if(!parsed[key]["z_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["z_velocity"].number_value(), 0); }
+				if(!parsed[key]["agent_id"].is_null()) { EXPECT_EQ(parsed[key]["agent_id"].int_value(), i); }
+			}	
+		} else {
+			std::cerr << "State vector json object from agent " << to_string(i) << " was empty."  << endl;
+		}
+	}
 }
 
 // SPH outputs correct values
