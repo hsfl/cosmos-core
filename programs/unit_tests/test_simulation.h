@@ -19,7 +19,7 @@ TEST(simulation, create_new_agent) {
 // Make a request for the agent states
 TEST(simulation, request_agent_states) {
 	simulation sim(agent);
-	sim.init_sim_agents();
+	sim.init_sim_agents(true);
 	string response;
 	agent->send_request(agent->find_agent("world", "controller", 2.), "get_state_vectors", response, 2.);
 	std::vector<double> x = {-5,0,5, -5,0,5, -5,0,5};
@@ -46,7 +46,7 @@ TEST(simulation, request_agent_states) {
 // ie: time coordinating the state vectors
 TEST(simulation, hcl) {
 	simulation sim(agent);
-	sim.init_sim_agents();
+	sim.init_sim_agents(true);
 }
 
 // State is properly fed into SPH. Conversions, etc.
@@ -57,7 +57,7 @@ TEST(simulation, sph_interface) {
 // Send sph results back to world controller
 TEST(simulation, send_world_new_state) {
 	simulation sim(agent);
-	sim.init_sim_agents();
+	sim.init_sim_agents(true);
 	statestruct newstate;
 	int agent_id = 1;
 	newstate.x_pos = 98;
@@ -111,7 +111,7 @@ TEST(simulation, all_sim_agents_running) {
 // Initialize agents, for their initial time and initial states.
 TEST(simulation, init_agents) {
 	simulation sim(agent);
-	sim.init_sim_agents();
+	sim.init_sim_agents(true);
 
 	// vector of states
 	std::vector<string> response = sim.send_req_to_all_agents("get_state_vector");
