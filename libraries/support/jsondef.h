@@ -467,6 +467,9 @@ enum {
 //* Maximum number of ports
 #define MAX_NUMBER_OF_PORTS 5
 
+//* Maximum number of satellites
+#define MAX_NUMBER_OF_SATELLITES 5
+
 //* Maximum number of events
 #define MAX_NUMBER_OF_EVENTS 10
 
@@ -1086,6 +1089,99 @@ struct agentstruc
 	}
 };
 
+//! STTR Simulation State Class
+/** Yes it is.
+*/
+class sim_state	{
+	public:
+
+	double	t_pos;
+	double	x_pos;
+	double	y_pos;
+	double	z_pos;
+
+	double	t_vel;
+	double	x_vel;
+	double	y_vel;
+	double	z_vel;
+
+	double	t_acc;
+	double	x_acc;
+	double	y_acc;
+	double	z_acc;
+
+	double	t_way;
+	double	x_way;
+	double	y_way;
+	double	z_way;
+
+	//  double	etc...
+
+    /// Convert class contents to JSON object
+    /** Returns a json11 JSON object of the class
+    @return A json11 JSON object containing every member variable within the class
+    */
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "t_pos"   , t_pos },
+            { "x_pos"   , x_pos },
+            { "y_pos"   , y_pos },
+            { "z_pos"   , z_pos },
+
+            { "t_vel"   , t_vel },
+            { "x_vel"   , x_vel },
+            { "y_vel"   , y_vel },
+            { "z_vel"   , z_vel },
+
+            { "t_acc"   , t_acc },
+            { "x_acc"   , x_acc },
+            { "y_acc"   , y_acc },
+            { "z_acc"   , z_acc },
+
+            { "t_way"   , t_way },
+            { "x_way"   , x_way },
+            { "y_way"   , y_way },
+            { "z_way"   , z_way }
+		};
+	}
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
+	*/
+	void from_json(const string& s) {
+		string error;
+		json11::Json p = json11::Json::parse(s,error);
+		if(error.empty()) {
+			if(!p["t_pos"].is_null()) { t_pos = p["t_pos"].number_value(); }
+			if(!p["x_pos"].is_null()) { x_pos = p["x_pos"].number_value(); }
+			if(!p["y_pos"].is_null()) { y_pos = p["y_pos"].number_value(); }
+			if(!p["z_pos"].is_null()) { z_pos = p["z_pos"].number_value(); }
+
+			if(!p["t_vel"].is_null()) { t_vel = p["t_vel"].number_value(); }
+			if(!p["x_vel"].is_null()) { x_vel = p["x_vel"].number_value(); }
+			if(!p["y_vel"].is_null()) { y_vel = p["y_vel"].number_value(); }
+			if(!p["z_vel"].is_null()) { z_vel = p["z_vel"].number_value(); }
+
+			if(!p["t_acc"].is_null()) { t_acc = p["t_acc"].number_value(); }
+			if(!p["x_acc"].is_null()) { x_acc = p["x_acc"].number_value(); }
+			if(!p["y_acc"].is_null()) { y_acc = p["y_acc"].number_value(); }
+			if(!p["z_acc"].is_null()) { z_acc = p["z_acc"].number_value(); }
+
+			if(!p["t_way"].is_null()) { t_way = p["t_way"].number_value(); }
+			if(!p["x_way"].is_null()) { x_way = p["x_way"].number_value(); }
+			if(!p["y_way"].is_null()) { y_way = p["y_way"].number_value(); }
+			if(!p["z_way"].is_null()) { z_way = p["z_way"].number_value(); }
+
+		} else {
+			cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
+		return;
+	}
+};
+
+
 //! Full COSMOS Event structure
 /*! This is the struct that holds each Event, along with associated
  * resources and conditions.
@@ -1134,7 +1230,7 @@ struct eventstruc
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-	@return	A json11 JSON object containing every member variable within the class
+		@return	A json11 JSON object containing every member variable within the class
 	*/
 	json11::Json to_json() const {
 		return json11::Json::object {
@@ -1162,9 +1258,8 @@ struct eventstruc
 
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-	@param	s	JSON-formatted string to set class contents to
-
-	@return n/a
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
 	*/
 	void from_json(const string& s) {
 		string error;
@@ -4246,6 +4341,9 @@ struct cosmosstruc
 	//! Single entry vector for agent information.
 	vector<agentstruc> agent;
 
+	//! Vector of State information for all nodes
+	vector<sim_state> sim_states;
+
 	//! Single entry vector for event information.
 	vector<eventstruc> event;
 
@@ -6190,6 +6288,33 @@ struct cosmosstruc
 				add_name(basename+".beat.exists", &agent[i].beat.exists, "bool");
 			}
 
+			// vector<sim_state> sim_states
+			add_name("sim_states", &sim_states, "vector<sim_state>");
+			for(size_t i = 0; i < sim_states.capacity(); ++i) {
+				string basename = "sim_states[" + std::to_string(i) + "]";
+				add_name(basename, &sim_states[i], "sim_state");
+				add_name(basename+".t_pos", &sim_states[i].t_pos, "double");
+				add_name(basename+".x_pos", &sim_states[i].x_pos, "double");
+				add_name(basename+".y_pos", &sim_states[i].y_pos, "double");
+				add_name(basename+".z_pos", &sim_states[i].z_pos, "double");
+
+				add_name(basename+".t_vel", &sim_states[i].t_vel, "double");
+				add_name(basename+".x_vel", &sim_states[i].x_vel, "double");
+				add_name(basename+".y_vel", &sim_states[i].y_vel, "double");
+				add_name(basename+".z_vel", &sim_states[i].z_vel, "double");
+
+				add_name(basename+".t_acc", &sim_states[i].t_acc, "double");
+				add_name(basename+".x_acc", &sim_states[i].x_acc, "double");
+				add_name(basename+".y_acc", &sim_states[i].y_acc, "double");
+				add_name(basename+".z_acc", &sim_states[i].z_acc, "double");
+
+				add_name(basename+".t_way", &sim_states[i].t_way, "double");
+				add_name(basename+".x_way", &sim_states[i].x_way, "double");
+				add_name(basename+".y_way", &sim_states[i].y_way, "double");
+				add_name(basename+".z_way", &sim_states[i].z_way, "double");
+
+			}
+
 			// vector<eventstruc> event
 			add_name("event", &event, "vector<eventstruc>");
 			for(size_t i = 0; i < event.capacity(); ++i) {
@@ -6918,6 +7043,8 @@ struct cosmosstruc
 								get_pointer<devspecstruc>(name)->from_json(json);
 							} else if (type == "equationstruc") {
 								get_pointer<equationstruc>(name)->from_json(json);
+							} else if (type == "sim_state") {
+								get_pointer<sim_state>(name)->from_json(json);
 							} else if (type == "eventstruc") {
 								get_pointer<eventstruc>(name)->from_json(json);
 							} else if (type == "extraatt") {
@@ -7186,6 +7313,12 @@ struct cosmosstruc
 										get_pointer<vector<equationstruc>>(name)->at(i).from_json(p[name][i].dump());
 									}
 								}
+							} else if (type == "vector<sim_state>") {
+								for(size_t i = 0; i < get_pointer<vector<sim_state>>(name)->size(); ++i) {
+									if(!p[name][i].is_null()) {
+										get_pointer<vector<sim_state>>(name)->at(i).from_json(p[name][i].dump());
+									}
+								}
 							} else if (type == "vector<eventstruc>") {
 								for(size_t i = 0; i < get_pointer<vector<eventstruc>>(name)->size(); ++i) {
 									if(!p[name][i].is_null()) {
@@ -7383,6 +7516,8 @@ struct cosmosstruc
 					json = json11::Json::object { { s, get_value<devspecstruc>(s) } };
 				} else if (type == "equationstruc") {
 					json = json11::Json::object { { s, get_value<equationstruc>(s) } };
+				} else if (type == "sim_state") {
+					json = json11::Json::object { { s, get_value<sim_state>(s) } };
 				} else if (type == "eventstruc") {
 					json = json11::Json::object { { s, get_value<eventstruc>(s) } };
 				} else if (type == "extraatt") {
@@ -7519,6 +7654,8 @@ struct cosmosstruc
 					json = json11::Json::object { { s, get_value<vector<devicestruc>>(s) } };
 				} else if (type == "vector<equationstruc>") {
 					json = json11::Json::object { { s, get_value<vector<equationstruc>>(s) } };
+				} else if (type == "vector<sim_state>") {
+					json = json11::Json::object { { s, get_value<vector<sim_state>>(s) } };
 				} else if (type == "vector<eventstruc>") {
 					json = json11::Json::object { { s, get_value<vector<eventstruc>>(s) } };
 				} else if (type == "vector<face>") {

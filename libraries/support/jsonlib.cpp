@@ -433,6 +433,9 @@ void json_init_reserve(cosmosstruc* cinfo) {
 
     cinfo->equation.reserve(MAX_NUMBER_OF_EQUATIONS);
 
+    cinfo->sim_states.reserve(MAX_NUMBER_OF_SATELLITES);
+    cinfo->sim_states.resize(MAX_NUMBER_OF_SATELLITES);
+
     cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
     cinfo->event.resize(1);
 
