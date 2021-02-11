@@ -443,6 +443,7 @@ void json_init_reserve(cosmosstruc* cinfo) {
 
 	// for simulation, using 9 agents for now
 	cinfo->state.reserve(9);
+	cinfo->state.resize(9);
 	return;
 }
 

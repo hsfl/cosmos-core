@@ -14,7 +14,7 @@ static Agent* agent;
 TEST(simulation, create_new_agent) {
 	agent = new Agent("world","controller",1.);
 }
-/*
+
 // (for a single agent)
 // Make a request for the agent states
 TEST(simulation, request_agent_states) {
@@ -86,8 +86,6 @@ TEST(simulation, all_sim_agents_running) {
 	EXPECT_TRUE(sim.all_sim_agents_running());
 }
 
-*/
-
 // Initialize agents, for their initial time and initial states.
 TEST(simulation, init_agents) {
 	simulation sim(agent);
@@ -102,15 +100,16 @@ TEST(simulation, init_agents) {
 		string error;
 		json11::Json parsed = json11::Json::parse(response[i],error);
 		if(error.empty()) {
-			if(!parsed["state"][i]["x_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["x_position"].number_value(), x[i]); }
-			if(!parsed["state"][i]["y_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["y_position"].number_value(), y[i]); }
-			if(!parsed["state"][i]["z_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["z_position"].number_value(), 0); }
-			if(!parsed["state"][i]["x_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["x_velocity"].number_value(), 0); }
-			if(!parsed["state"][i]["y_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["y_velocity"].number_value(), 0); }
-			if(!parsed["state"][i]["z_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["z_velocity"].number_value(), 0); }
-			if(!parsed["state"][i]["timestamp"].is_null()) { EXPECT_DOUBLE_EQ(parsed["state"][i]["timestamp"].number_value(), sim.get_initial_time()+i*0.01); }
-			if(!parsed["state"][i]["agent_id"].is_null()) { EXPECT_EQ(parsed["state"][i]["agent_id"].int_value(), i); }
-			cout << parsed.dump() << " " << i << endl;
+			string key = "state[" + to_string(i) + "]";
+			if(!parsed[key]["x_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["x_position"].number_value(), x[i]); }
+			if(!parsed[key]["y_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["y_position"].number_value(), y[i]); }
+			if(!parsed[key]["z_position"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["z_position"].number_value(), 0); }
+			if(!parsed[key]["x_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["x_velocity"].number_value(), 0); }
+			if(!parsed[key]["y_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["y_velocity"].number_value(), 0); }
+			if(!parsed[key]["z_velocity"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["z_velocity"].number_value(), 0); }
+			if(!parsed[key]["timestamp"].is_null()) { EXPECT_DOUBLE_EQ(parsed[key]["timestamp"].number_value(), sim.get_initial_time()+i*0.01); }
+			if(!parsed[key]["agent_id"].is_null()) { EXPECT_EQ(parsed[key]["agent_id"].int_value(), i); }
+			//cout << parsed.dump() << endl;
 		} else {
 			std::cerr << "State vector json object from agent " << to_string(i) << " was empty."  << endl;
 		}
