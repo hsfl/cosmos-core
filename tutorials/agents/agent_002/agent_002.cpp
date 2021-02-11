@@ -79,13 +79,14 @@ int main(int argc, char **argv)
         // Initiate request to agent_001
 		// name of agent target for request
 		string agent_target = "agent_001";
+		string node_target = "sat_111";
 
 /* old tests	
-		beatstruc agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
+		beatstruc agent_target_heartbeat = agent->find_agent(node_target, agent_target, 2.);
 		string target_request_name = "identify_yourself";
 		string response;
 	    agent->send_request(agent_target_heartbeat, target_request_name, response, 2.);
-		cout<<node_agent_name<<" transmit <"<<target_request_name<<"> request to ["<<node_name<<":"<<agent_target<<"]..."<<endl;
+		cout<<node_agent_name<<" transmit <"<<target_request_name<<"> request to ["<<node_target<<":"<<agent_target<<"]..."<<endl;
 
 		if (response.size() > 1) {
         	// The case if agent_001 is on and successfully receives the request
@@ -98,14 +99,14 @@ int main(int argc, char **argv)
 		string request2 = "setvalue {\"node_loc_orbit\":"+std::to_string((jah++))+"}";
 		// orphan request for testing
 		cout<<"attempting setting orbit value..."<<endl;
-	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), request2, response2, 2.);
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), request2, response2, 2.);
 
         COSMOS_SLEEP(2.);
 		// orphan request for testing
 		string response1;
 		string request1 = "setvalue {\"node_loc_utc\":"+std::to_string((jah2--))+"}";
 		cout<<"attempting setting UTC value..."<<endl;
-	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), request1, response1, 2.);
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), request1, response1, 2.);
 */
 ///*
 		// old way
@@ -113,7 +114,7 @@ int main(int argc, char **argv)
 		cout<<"attempting 1.0 way of getting UTC value..."<<endl;
 		string request3 = "getvalue {\"node_loc_utc\"}";
 		cout<<"  request  = <"<<request3<<">"<<endl;
-	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), request3, response3, 2.);
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), request3, response3, 2.);
 		cout<<"  response = <"<<response3<<">"<<endl;
 
 		// new way short name
@@ -121,7 +122,7 @@ int main(int argc, char **argv)
 		cout<<"attempting 2.0 way of getting UTC value with short name..."<<endl;
 		string request4 = "get_value \"Short UTC\"";
 		cout<<"  request  = <"<<request4<<">"<<endl;
-	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), request4, response4, 2.);
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), request4, response4, 2.);
 		cout<<"  response = <"<<response4<<">"<<endl;
 
 		// new way long name
@@ -129,34 +130,34 @@ int main(int argc, char **argv)
 		cout<<"attempting 2.0 way of getting UTC value with long name..."<<endl;
 		string request7 = "get_value \"Longest Ever UTC\"";
 		cout<<"  request  = <"<<request7<<">"<<endl;
-	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), request7, response7, 2.);
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), request7, response7, 2.);
 		cout<<"  response = <"<<response7<<">"<<endl;
 
 		string req = "get_value \"Longest Ever UTC\" \"Short UTC\"";
 		cout<<"  request  = <"<<req<<">"<<endl;
 		string res;
-	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
 		cout<<"  response = <"<<res<<">"<<endl;
 //*/
 		//req.clear();
 		//req = "get_value \"cosmosdata\"";
 		//cout<<"  request  = <"<<req<<">"<<endl;
 		//res.clear();
-	   	//agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+	   	//agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
 		//cout<<"  response = <"<<res<<">"<<endl;
 /*
 		req.clear();
 		req = "set_value {\"Longest Ever UTC\": 215},{\"user[0].tool\": \"Super Tool!\"}";
 		cout<<"  request  = <"<<req<<">"<<endl;
 		res.clear();
-	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
 		cout<<"  response = <"<<res<<">"<<endl;
 
 		req.clear();
 		req = "get_value \"user\"";
 		cout<<"  request  = <"<<req<<">"<<endl;
 		res.clear();
-	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
 		cout<<"  response = <"<<res<<">"<<endl;
 */
 		// try out agent_calc
@@ -174,14 +175,14 @@ int main(int argc, char **argv)
 		req = "set_value {\"t_position\": 123456.789012345678901234567}";
 		cout<<"  request  = <"<<req<<">"<<endl;
 		res.clear();
-	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
 		cout<<"  response = <"<<res<<">"<<endl;
 //
 		req.clear();
 		req = "set_state {\"t_position\": 12.23},{\"x_position\":2.34},{\"y_position\":3.45},{\"z_position\":4.56}";
 		cout<<"  request  = <"<<req<<">"<<endl;
 		res.clear();
-	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
 		cout<<"  response = <"<<res<<">"<<endl;
 //
 //
@@ -189,23 +190,21 @@ int main(int argc, char **argv)
 		req = "get_state";
 		cout<<"  request  = <"<<req<<">"<<endl;
 		res.clear();
-	   	agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
 		cout<<"  response = <"<<res<<">"<<endl;
 
 		req.clear();
 		req = "help";
 		cout<<"  request  = <"<<req<<">"<<endl;
 		res.clear();
-	   	//agent->send_request(agent->find_agent(node_name, agent_target, 2.), req, res, 2.);
-	   	agent->send_request(agent->find_agent(node_name, "agent_002", 2.), req, res, 2.);
+	   	//agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
+	   	agent->send_request(agent->find_agent(node_target, "agent_002", 2.), req, res, 2.);
 		cout<<"  response = <"<<res<<">"<<endl;
 
         cout<<"Available Agents..."<<endl;
         for(size_t i = 0; i < agent->agent_list.size(); ++i)    {
             cout<<agent->agent_list[i].node<<":"<<agent->agent_list[i].proc<<endl;
         }
-
-
     }
     return 0;
 }

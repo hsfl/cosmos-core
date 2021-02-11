@@ -43,7 +43,7 @@ static uint64_t request_counter = 10000;
 
 /// ensure the Agent constructor creates only one instance per process
 static Agent *agent;
-string node_name = "sat_001"; 
+string node_name = "sat_111"; 
 string agent_name = "agent_001";
 string node_agent_name = "["+node_name+":"+agent_name+"]";
 
