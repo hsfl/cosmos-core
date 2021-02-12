@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 	// agent loop
     while (agent->running()) {
 
-		cout<<node_agent_name<<" running..."<<endl;
+		cout<<endl<<node_agent_name<<" running..."<<endl;
 
 
 		// first, try to update current state
@@ -202,8 +202,8 @@ int main(int argc, char **argv)
 			cout<<left<<setw(40)<<"\t[daughter_04:delilah]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
 
-        // Sleep for 5 sec
-        COSMOS_SLEEP(5.);
+        // Sleep for 1 sec
+        COSMOS_SLEEP(1.);
     }
 
 
