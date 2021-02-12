@@ -110,7 +110,6 @@ int main(int argc, char **argv)
 
 		// set state
 		double t = currentmjd();
-		//double t_secs = fmod(t*24.*60.*60.,c->T);
 		c->update_sim_state(t);
 
 		// output state
@@ -137,6 +136,11 @@ int main(int argc, char **argv)
 			// ask for their location
 			agent->send_request(agent->find_agent("daughter_01", "allison", 2.), "get_position " + time, response, 2.);
 			cout<<"\n"<<response<<endl;
+			// ask for their state
+			response.clear();
+			agent->send_request(agent->find_agent("daughter_01", "allison", 2.), "get_state", response, 2.);
+			// update the record for the mothership
+			c->get_pointer<sim_state>("sim_states[1]")->from_json(response);
 		} else {
 			cout<<left<<setw(40)<<"\t[daughter_01:allison]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
@@ -151,6 +155,11 @@ int main(int argc, char **argv)
 			response.clear();
 			agent->send_request(agent->find_agent("daughter_02", "becky", 2.), "get_position " + time, response, 2.);
 			cout<<"\n"<<response<<endl;
+			// ask for their state
+			response.clear();
+			agent->send_request(agent->find_agent("daughter_02", "becky", 2.), "get_state", response, 2.);
+			// update the record for the mothership
+			c->get_pointer<sim_state>("sim_states[2]")->from_json(response);
 		} else {
 			cout<<left<<setw(40)<<"\t[daughter_02:becky]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
@@ -165,11 +174,16 @@ int main(int argc, char **argv)
 			response.clear();
 			agent->send_request(agent->find_agent("daughter_03", "cecilia", 2.), "get_position " + time, response, 2.);
 			cout<<"\n"<<response<<endl;
+			// ask for their state
+			response.clear();
+			agent->send_request(agent->find_agent("daughter_03", "cecilia", 2.), "get_state", response, 2.);
+			// update the record for the mothership
+			c->get_pointer<sim_state>("sim_states[3]")->from_json(response);
 		} else {
 			cout<<left<<setw(40)<<"\t[daughter_03:cecilia]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
 
-//  DELILIAH
+//  DELILAH
 		response.clear();
 		// if daughter found
 		agent->send_request(agent->find_agent("daughter_04", "delilah", 2.), request, response, 2.);
@@ -179,6 +193,11 @@ int main(int argc, char **argv)
 			response.clear();
 			agent->send_request(agent->find_agent("daughter_04", "delilah", 2.), "get_position " + time, response, 2.);
 			cout<<"\n"<<response<<endl;
+			// ask for their state
+			response.clear();
+			agent->send_request(agent->find_agent("daughter_04", "delilah", 2.), "get_state", response, 2.);
+			// update the record for the mothership
+			c->get_pointer<sim_state>("sim_states[4]")->from_json(response);
 		} else {
 			cout<<left<<setw(40)<<"\t[daughter_04:delilah]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
@@ -186,6 +205,8 @@ int main(int argc, char **argv)
         // Sleep for 5 sec
         COSMOS_SLEEP(5.);
     }
+
+
     return 0;
 }
 

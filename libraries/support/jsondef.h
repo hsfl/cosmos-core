@@ -1159,6 +1159,7 @@ class sim_state	{
 	void from_json(const string& s) {
 		string error;
 		json11::Json p = json11::Json::parse(s,error);
+
 		if(error.empty()) {
 			if(!p["node_name"].is_null()) { node_name = p["node_name"].string_value(); }
 			if(!p["agent_name"].is_null()) { agent_name = p["agent_name"].string_value(); }
@@ -7073,6 +7074,8 @@ struct cosmosstruc
 								set_value<size_t>(name, p[name].int_value());
 
 						// user-defined types
+
+						// SCOTTNOTE: do these actually work? seems like maybe they need the value of the json string, not the full name-key and value
 							} else if (type == "agent_request_entry") {
 								//get_pointer<agent_request_entry>(name)->from_json(json);
 							} else if (type == "agentstruc") {

@@ -1159,41 +1159,32 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
 	return 0;
 }
 
+
+// returns state of agent recieving request as JSON
 int32_t Agent::req_get_state(string &request, string &response, Agent* agent)	{
 	string req = request;
 	// remove function call and space
 	req.erase(0,10);
-
-	// define all agent state names
-    vector<string> names;
-	names.push_back("t_position");
-	names.push_back("x_position");
-	names.push_back("y_position");
-	names.push_back("z_position");
-
-	names.push_back("t_velocity");
-	names.push_back("x_velocity");
-	names.push_back("y_velocity");
-	names.push_back("z_velocity");
-
-	names.push_back("t_acceleration");
-	names.push_back("x_acceleration");
-	names.push_back("y_acceleration");
-	names.push_back("z_acceleration");
-
-	names.push_back("t_waypoint");
-	names.push_back("x_waypoint");
-	names.push_back("y_waypoint");
-	names.push_back("z_waypoint");
-
-
+	
 	response.clear();
-    for(size_t i = 0; i < names.size(); ++i)   {
-		response += agent->cinfo->get_json(names[i]);
+    // find index of calling agent in sim_states[]
+    for(size_t i = 0; i < agent->cinfo->sim_states.size(); ++i)   {
+        string node_name(agent->cinfo->agent[0].beat.node);
+        string agent_name(agent->cinfo->agent[0].beat.proc);
+        if(agent->cinfo->sim_states[i].node_name == node_name && agent->cinfo->sim_states[i].agent_name == agent_name)  {
+
+			// this wraps as a json object
+			//string j = "sim_states[" + to_string(i) + "]";
+			//response = agent->cinfo->get_json(j);
+
+			// this does not wrap
+			response = agent->cinfo->sim_states[i].to_json().dump();
+			break;
+		}
 	}
+
 	cout<<"req_get_state():outgoing response         = <"<<response<<">"<<endl;
 	return 0;
-
 }
 
 
@@ -1326,6 +1317,8 @@ int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
 
         // to find position and velocity at time t
             // 0    Make sure all necessary orbital elements are set
+
+			//JIMFIX:  this should actually be seconds into orbit for Kepler calcluation
 			c->t = timemjd;
 			c->l = c->a*(1.0-pow(c->e,2.0));
             // 1    Calculate mean anamoly (M)
@@ -1413,21 +1406,20 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 
 	// set the value from json string
 	agent->cinfo->set_json(request);
-
-	cout<<"req_set_value():outgoing response         = <"<<response<<">"<<endl;
-	return 0;
+    cout<<"req_set_value():outgoing response         = <"<<response<<">"<<endl;
+    return 0;
 }
 
 int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
-	// remove function call and space ('set_value ')
-	request.erase(0,10);
-	cout<<"req_set_state():incoming request          = <"<<request<<">"<<endl;
-	cout<<"req_set_state():incoming request.size()   = "<<request.size()<<endl;
-	cout<<"req_set_state():incoming request.length() = "<<request.length()<<endl;
-	cout<<"req_set_state():incoming response         = <"<<response<<">"<<endl;
+    // remove function call and space ('set_value ')
+    request.erase(0,10);
+    cout<<"req_set_state():incoming request          = <"<<request<<">"<<endl;
+    cout<<"req_set_state():incoming request.size()   = "<<request.size()<<endl;
+    cout<<"req_set_state():incoming request.length() = "<<request.length()<<endl;
+    cout<<"req_set_state():incoming response         = <"<<response<<">"<<endl;
 
-	// set the value from json string
-	agent->cinfo->set_json(request);
+    // set the value from json string
+    agent->cinfo->set_json(request);
 
 	cout<<"req_set_state():outgoing response         = <"<<response<<">"<<endl;
 	return 0;
