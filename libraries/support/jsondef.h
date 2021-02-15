@@ -4470,6 +4470,7 @@ struct cosmosstruc
 	double R_1_2 = 0.0;
 	double R_2_2 = 0.0;
 
+	/// Support for Simulation (just for testing and integration)
 	void set_up_rotation_matrix ()	{
 		R_0_0 =	-sin(O)*cos(i)*sin(w) + cos(O)*cos(w);
 		R_0_1 =	-sin(O)*cos(i)*cos(w) - cos(O)*sin(w);
@@ -4649,13 +4650,13 @@ struct cosmosstruc
 
 	/// Returns the length of the map used to represent Namespace 2.0
 	/**
-	@return Size size_t of the map used to represent Namespace 2.0
+		@return Size size_t of the map used to represent Namespace 2.0
 	*/
 	size_t size()	{	return names.size();	}
 
 	/// Prints every name within Namespace 2.0
 	/**	For debug use.
-	@return n/a
+		@return n/a
 	*/
 	void print_all_names() const	{
 		name_map::const_iterator it = names.begin();
@@ -4664,7 +4665,7 @@ struct cosmosstruc
 
 	/// Prints every name and the associated type within Namespace 2.0
 	/**	For debug use.
-	@return n/a
+		@return n/a
 	*/
 	void print_all_names_types() const	{
 		name_map::const_iterator n = names.begin();
@@ -4681,8 +4682,7 @@ struct cosmosstruc
 
 	/// Prints every name and the associated value and type within Namespace 2.0
 	/**	For debug use.
-
-	@return n/a
+		@return n/a
 	*/
 	void print_all_names_types_values() const	{
 		name_map::const_iterator n = names.begin();
@@ -4726,7 +4726,7 @@ struct cosmosstruc
 
 	/// Get every name within Namespace 2.0
 	/** Returns a vector of strings containing every name within Namespace 2.0.
-	@return Vector of strings of all names within Namespace 2.0.
+		@return Vector of strings of all names within Namespace 2.0.
 	*/
 	vector<string> get_all_names() const	{
 		vector<string> all_names;
@@ -4740,12 +4740,10 @@ struct cosmosstruc
 
 	/// Adds a name, memory location, and datatype to Namespace 2.0
 	/** Associates a name with a specific memory location of the COSMOS Data Structure (::cosmosstruc) and a specific data type.  Multiple names may point to the same memory address.  Names may point to primitive datatypes, user-defined objects, vectors of primitive datatypes, or vectors of user-defined objects.  Whitespace and all punctuation besides unescaped double quotes are supported for inclusion in names.
-
-	@param	s	string representing name of data
-	@param	v	void* representing memory address of data
-	@param	t	string representing datatype of data
-
-	@return	n/a
+		@param	s	string representing name of data
+		@param	v	void* representing memory address of data
+		@param	t	string representing datatype of data
+		@return	n/a
 		
 	*/
 	void add_name(const string& s, void* v, string t)	{
@@ -4756,9 +4754,8 @@ struct cosmosstruc
 
 	/// Removes a name, memory location, and datatype from Namespace 2.0.
 	/** Removes a single entry added into Namespace 2.0 with #add_name().
-	@param	s	string representing name of data to remove
-
-	@return n/a
+		@param	s	string representing name of data to remove
+		@return n/a
 	*/
 	void remove_name(const string& s) {
 		names.erase(s);
@@ -4767,10 +4764,9 @@ struct cosmosstruc
 
 	/// Removes names from Namespace 2.0 recursively.
 	/** Removes reference to memory location and data type associated with the provided name, then searches through Namespace 2.0 removing entries for all children of the provided name. E.g., if provided the name of an array, will remove the entry associated with the array and also the entries of every one of its elements.
-	@param	s	string representing name of data (and its children) to remove
-
-	@return n/a
-		*/
+		@param	s	string representing name of data (and its children) to remove
+		@return n/a
+	*/
 	void remove_name_recursive(const string& s) {
 		auto p = names.lower_bound(s);
 		auto q = names.end();
@@ -4804,9 +4800,8 @@ struct cosmosstruc
 
 	/// Add default names for every accessible memory location within the COSMOS Data Structure (::cosmosstruc) to Namespace 2.0.
 	/** Provide a default name for every accessible memory location within the COSMOS Data Structure (::cosmosstruc) for Namespace 2.0. Naming convention follows the exact representation of the object in code. E.g., default name for `equation[0].name` is `"equation[0].name"`.
-	@param none
-
-	@return n/a
+		@param none
+		@return n/a
 	*/
 	void add_default_names()	{
 
@@ -6918,9 +6913,8 @@ struct cosmosstruc
 
 	/// Gets the name associated with the provided memory address in Namespace 2.0.
 	/** Searches through Namespace 2.0 and returns the first name associated with the provided memory address.
-	@param	v	void pointer to memory address of an entry within Namespace 2.0 to search for
-
-	@return	string name of memory address associated with \p v. Returns empty string if address is not found.
+		@param	v	void pointer to memory address of an entry within Namespace 2.0 to search for
+		@return	string name of memory address associated with \p v. Returns empty string if address is not found.
 	*/
 	string get_name(void* v)	{
 			name_map::const_iterator it = names.begin();
@@ -6931,9 +6925,8 @@ struct cosmosstruc
 
 	/// Gets the data type associated with the provided name in Namespace 2.0.
 	/** Finds the data type associated with the provided name in Namespace 2.0.
-	@param	s	string representing name to search for
-
-	@return	string representing the data type associated with the provided name. Returns empty string if name is not found.
+		@param	s	string representing name to search for
+		@return	string representing the data type associated with the provided name. Returns empty string if name is not found.
 	*/
 	string get_type(const string& s) const	{
 			type_map::const_iterator it = types.find(s);
@@ -6943,9 +6936,8 @@ struct cosmosstruc
 
 	/// Gets the pointer to the memory address associated with the provided name in Namespace 2.0.
 	/** Searches through Namespace 2.0 and returns a pointer to the associated memory address casted into the data type given to the template.
-	@param	s	string representing name to search for
-
-	@return	type casted pointer to associated memory address. Returns `nullptr` if name is not found.
+		@param	s	string representing name to search for
+		@return	type casted pointer to associated memory address. Returns `nullptr` if name is not found.
 	*/
 	template<class T>
 	T* get_pointer(const string& s) const	{
@@ -6956,9 +6948,8 @@ struct cosmosstruc
 
 	/// Gets the value of the data associated with the provided name in Namespace 2.0.
 	/** Searches through Namespace 2.0 and returns the value of the dereferenced pointer to the associated memory address.
-	@param	s	string representing name to search for
-
-	@return	value of the data pointed to by the pointer of the associated name. Returns a new instance of type `T` if name is not found.
+		@param	s	string representing name to search for
+		@return	value of the data pointed to by the pointer of the associated name. Returns a new instance of type `T` if name is not found.
 	*/
 	template<class T>
 	T get_value(const string& s) const	{
@@ -6971,10 +6962,9 @@ struct cosmosstruc
 
 	/// Sets the value of the data associated with the provided name in Namespace 2.0.
 	/** Searches through Namespace 2.0 and sets the value of the data pointed to by the pointer to the memory address associated with the provided name.
-	@param	s	string representing name to search for
-	@param	value	new value to set the data to
-
-	@return	n/a
+		@param	s	string representing name to search for
+		@param	value	new value to set the data to
+		@return	n/a
 	*/
 	template<class T>
 	void set_value(const string& s, const T& value) const	{
@@ -6986,9 +6976,8 @@ struct cosmosstruc
 
 	/// Sets the data in Namespace 2.0 with a JSON-formatted string.
 	/** Searches through Namespace 2.0 and sets the value of the appropriate data by parsing the provided JSON-formatted string. The name used to search Namespace 2.0 is the key of the first entry in the JSON-formatted string.
-	@param	json	JSON formatted string to set the data to
-
-	@return	n/a
+		@param	json	JSON formatted string to set the data to
+		@return	n/a
 	*/
 	void set_json(const string& json) 	{
 		cout<<"\tJSON received = <"<<json<<">"<<endl;
@@ -7455,9 +7444,8 @@ struct cosmosstruc
 
 	/// Gets a JSON-formatted string of the data associated with the provided name in Namespace 2.0.
 	/** Searches through Namespace 2.0 and gets the JSON-formatted string of the data pointed to by the pointer to the memory address associated with the provided name.
-	@param	s	string representing name to search for
-
-	@return	JSON-formatted string of data. Returns empty string if name is not found.
+		@param	s	string representing name to search for
+		@return	JSON-formatted string of data. Returns empty string if name is not found.
 	*/
 	template<class T>
 	string get_json(const string& s)	{
@@ -7472,9 +7460,8 @@ struct cosmosstruc
 	// get called from agents (no template)
 	/// Gets a JSON-formatted string of the data associated with the provided name in Namespace 2.0. (Non-template version)
 	/** Searches through Namespace 2.0 and gets the JSON-formatted string of the data pointed to by the pointer to the memory address associated with the provided name.
-	@param	s	string representing name to search for
-
-	@return	JSON-formatted string of data. Returns empty string if name is not found.
+		@param	s	string representing name to search for
+		@return	JSON-formatted string of data. Returns empty string if name is not found.
 	*/
 	string get_json(const string& s)	{
 		if(name_exists(s))  {
@@ -7710,11 +7697,10 @@ struct cosmosstruc
 
 	/// Replace every occurance of a substring within a string with another subtring.
 	/** Search through a string for every instance of a specified substring, then replace. For internal use.
-	@param	str		string to search through
-	@param	from	substring to replace
-	@param	to		substring to be replaced with
-
-	@return	n/a
+		@param	str		string to search through
+		@param	from	substring to replace
+		@param	to		substring to be replaced with
+		@return	n/a
 	*/
 	void replace(std::string& str, const std::string& from, const std::string& to) {
 		if(from.empty()) return;
@@ -7728,9 +7714,8 @@ struct cosmosstruc
 
 	/// Pretty-fy text
 	/** Takes an input JSON-formatted string and makes it more readable. For internal use.
-	@param	js		JSON-formatted string
-
-	@return	n/a
+		@param	js		JSON-formatted string
+		@return	n/a
 	*/
 	void pretty_form(string& js)	{
 
@@ -7771,6 +7756,11 @@ struct cosmosstruc
 		return;
 	}
 
+	/// Gets a human-readable JSON-formatted string of the data associated with the provided name in Namespace 2.0.
+	/** Searches through Namespace 2.0 and gets the JSON-formatted string of the data pointed to by the pointer to the memory address associated with the provided name.
+		@param	s	string representing name to search for
+		@return	JSON-formatted string of data. Returns empty string if name is not found.
+	*/
 	template<class T>
 	string get_json_pretty(const string& s)	{
 		if(name_exists(s))	{
@@ -7783,6 +7773,11 @@ struct cosmosstruc
 		}
 	}
 
+	/// Gets a human-readable JSON-formatted string of the data associated with the provided name in Namespace 2.0. (Non-template version)
+	/** Searches through Namespace 2.0 and gets the JSON-formatted string of the data pointed to by the pointer to the memory address associated with the provided name.
+		@param	s	string representing name to search for
+		@return	JSON-formatted string of data. Returns empty string if name is not found.
+	*/
 	string get_json_pretty(const string& s)	{
 		if(name_exists(s))	{
 			//json11::Json json = json11::Json::object { { s, this->get_value(s) } };
@@ -7799,7 +7794,7 @@ struct cosmosstruc
 
 	/// Convert class contents to a JSON object
 	/** Returns a json11 JSON object of the COSMOS Data Structure (::cosmosstruc)
-	@return	A json11 JSON object containing every member variable within the COSMOS Data Structure (::cosmosstruc)
+		@return	A json11 JSON object containing every member variable within the COSMOS Data Structure (::cosmosstruc)
 	*/
 	json11::Json to_json() const {
 		return json11::Json::object {
@@ -7827,9 +7822,8 @@ struct cosmosstruc
 
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-	@param	s	JSON-formatted string to set class contents to
-
-	@return n/a
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
 	*/
 	void from_json(const string& s) {
 		string error;
@@ -7888,9 +7882,8 @@ struct cosmosstruc
 
 	/// Checks if operator is left-associative
 	/**	For internal use.
-	@param	a	char representing operator to check left-associativity for
-
-	@return Returns true if operator is left-associative. Returns false if not.
+		@param	a	char representing operator to check left-associativity for
+		@return Returns true if operator is left-associative. Returns false if not.
 	*/
 	bool left_ass(char a)	{
 		if(a == '+')	return true;
@@ -7904,10 +7897,9 @@ struct cosmosstruc
 
 	/// Checks if two operators have equal precedence.
 	/**	For internal use.
-	@param	a	char representing operator
-	@param	b	char representing operator
-
-	@return Returns true if operators have equal precedence. Returns false if not.
+		@param	a	char representing operator
+		@param	b	char representing operator
+		@return Returns true if operators have equal precedence. Returns false if not.
 	*/
 	bool equal_ass(char a, char b)	{
 		if(a == '+' && b == '+')	return true;	
@@ -7945,10 +7937,9 @@ struct cosmosstruc
 
 	/// Checks for higher operator precedence
 	/**	For internal use.
-	@param	a	char representing operator
-	@param	b	char representing operator
-
-	@return Returns true if operator `a` has higher precedence than operator `b`. Returns false if not.
+		@param	a	char representing operator
+		@param	b	char representing operator
+		@return Returns true if operator `a` has higher precedence than operator `b`. Returns false if not.
 	*/
 	bool higher(char a, char b)	{
 
@@ -7987,10 +7978,9 @@ struct cosmosstruc
 
 	/// Applies an arithmetic operation between two values
 	/**	Two operands are popped from the `answer` stack, and one operator is popped from the `ops` stack. The result of the operation is pushed onto the `answer` stack. For internal use.
-	@param	ops		stack of operators
-	@param	answer	stack of operands
-
-	@return Returns -1 if `answer` does not contain at least 2 operands. Returns 0 if operation was successfully applied.
+		@param	ops		stack of operators
+		@param	answer	stack of operands
+		@return Returns -1 if `answer` does not contain at least 2 operands. Returns 0 if operation was successfully applied.
 	*/
 	int apply_op(stack<char>& ops, stack<double>& answer)	{
 		if(answer.size()<2) return -1;
@@ -8017,9 +8007,8 @@ struct cosmosstruc
 
 	/// Evaluate the expression of a python?Matlab? equation
 	/**	Parses a python?Matlab? formatted string and evaluates the expression
-	@param	str	string representing a python?Matlab? formatted expression
-
-	@return Returns a double type result of the expression. Returns *NaN* if an error is encountered.
+		@param	str	string representing a python?Matlab? formatted expression
+		@return Returns a double type result of the expression. Returns *NaN* if an error is encountered.
 	*/
 	double equationator(const string& str)	{
 		string eq(str);
