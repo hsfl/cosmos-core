@@ -420,9 +420,21 @@ namespace Cosmos
             return 0;
         }
 
+        int32_t State::Init(Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc *loc, physicsstruc *phys, double idt)
+        {
+            int32_t iretn;
+            vector<tlestruc> tles;
+            iretn = Init(stype, ptype, atype, ttype, etype, loc, phys, idt, tles);
+            return iretn;
+        }
+
         int32_t State::Increment(double nextutc)
         {
             int32_t count = 0;
+            if (nextutc == 0.)
+            {
+                nextutc = newloc->utc + dtj;
+            }
             do
             {
                 newloc->utc += dtj;
@@ -1872,6 +1884,35 @@ namespace Cosmos
             }
         }
 
+        locstruc shape2eci(double utc, double altitude, double angle, double hour)
+        {
+            locstruc loc;
+            double lon;
+
+            lon = 2. * DPI * (fabs(hour)/24. - (utc - (int)utc));
+
+            pos_clear(loc);
+
+            // Initial position
+            loc.pos.geod.utc = loc.att.geoc.utc = utc;
+            loc.pos.geod.s.h = altitude;
+            loc.pos.geos.s.r = rearth(0.) + altitude;
+            loc.pos.geod.s.lat = 0.;
+            loc.pos.geod.s.lon = lon;
+            loc.pos.geod.v.lat =  sin(angle) * sqrt(GM/loc.pos.geos.s.r) / loc.pos.geos.s.r;
+            loc.pos.geod.v.h = 0.;
+            loc.pos.geod.v.lon = cos(angle) * sqrt(GM/loc.pos.geos.s.r) / loc.pos.geos.s.r;
+            if (hour < 0)
+            {
+                loc.pos.geod.v.lat = -loc.pos.geod.v.lat;
+                loc.pos.geod.v.lon = -loc.pos.geod.v.lon;
+            }
+            loc.pos.geod.v.lon -= DPI / 43200.;
+            loc.pos.geod.pass++;
+            pos_geod(&loc);
+
+            return loc;
+        }
     }
 
 }

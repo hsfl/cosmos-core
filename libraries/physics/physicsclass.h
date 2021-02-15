@@ -325,7 +325,8 @@ namespace Cosmos
             State();
             int32_t Init(Propagator *posprop, Propagator *attprop, Propagator *thermprop, Propagator *elecprop);
             int32_t Init(Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc *loc, physicsstruc *phys, double idt, vector<tlestruc> lines);
-            int32_t Increment(double nextutc);
+            int32_t Init(Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc *loc, physicsstruc *phys, double idt);
+            int32_t Increment(double nextutc=0.);
         };
 
 
@@ -338,6 +339,8 @@ namespace Cosmos
         int32_t AttAccel(locstruc* loc, physicsstruc* physics);
         int32_t PhysSetup(physicsstruc *phys);
         int32_t PhysCalc(locstruc* loc, physicsstruc *phys);
+
+        locstruc shape2eci(double utc, double altitude, double angle, double hour);
 
 
     } //end of namespace Physics
