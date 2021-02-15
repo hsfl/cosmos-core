@@ -49,6 +49,7 @@ int main(int argc, char **argv)
     // construct agent
     cout << node_agent_name << " starting..."<<endl;
     agent = new Agent(node_name, agent_name, 1.);
+	agent->debug_level=0;
 
     // exit with error if unable to start agent
     if(agent->last_error() < 0) {
@@ -80,11 +81,19 @@ int main(int argc, char **argv)
 
 		cout<<node_agent_name<<" running..."<<endl;
 
+		// update state information
+		c->update_sim_state(currentmjd());
+
+		// display latest state information
+		cout<<c->get_json_pretty("sim_states")<<endl;
+		
+
+
 		// see if you can locate the mothership
 		// see if you can locate each of the other daughters
 
         // Sleep for 5 sec
-        COSMOS_SLEEP(5.);
+        COSMOS_SLEEP(1.);
     }
     return 0;
 }

@@ -1371,6 +1371,7 @@ namespace Cosmos
                     }
                 }
             }
+			return 0;
         }
 
         //! Calculate static physical attributes

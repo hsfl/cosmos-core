@@ -52,44 +52,43 @@
 // it can be used for specific projects that require it
 struct rvector
 {
-    double col[3] = {0.};
+	double col[3] = {0.};
 
-    rvector() {}
-    rvector(double d0, double d1, double d2) {
-        col[0] = d0;
-        col[1] = d1;
-        col[2] = d2;
-    }
+	rvector() {}
+	rvector(double d0, double d1, double d2) {
+		col[0] = d0;
+		col[1] = d1;
+		col[2] = d2;
+	}
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-	@return	A json11 JSON object containing every member variable within the class
+		@return	A json11 JSON object containing every member variable within the class
 	*/
-    json11::Json to_json() const {
-        vector<double> v_col = vector<double>(col, col+sizeof(col)/sizeof(col[0]));
-        return json11::Json::object {
-            { "col" , v_col }
-        };
-    }
+	json11::Json to_json() const {
+		vector<double> v_col = vector<double>(col, col+sizeof(col)/sizeof(col[0]));
+		return json11::Json::object {
+			{ "col" , v_col }
+		};
+	}
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-	@param	s	JSON-formatted string to set class contents to
-
-	@return n/a
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
 	*/
-    void from_json(const string& s) {
-        string error;
-        json11::Json parsed = json11::Json::parse(s,error);
-        if(error.empty()) {
-            auto p_col = parsed["col"].array_items();
-            for(size_t i = 0; i != p_col.size(); ++i) {
-                if(!p_col[i].is_null())	col[i] = p_col[i].number_value();
-            }
-       	} else	{
-       		cerr<<"ERROR: <"<<error<<">"<<endl;
+	void from_json(const string& s) {
+		string error;
+		json11::Json parsed = json11::Json::parse(s,error);
+		if(error.empty()) {
+			auto p_col = parsed["col"].array_items();
+			for(size_t i = 0; i != p_col.size(); ++i) {
+				if(!p_col[i].is_null())	col[i] = p_col[i].number_value();
+			}
+		} else	{
+			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
-        return;
-    }
+		return;
+	}
 };
 
 std::ostream& operator << (std::ostream& out, const rvector& a);
@@ -103,113 +102,111 @@ bool operator != (rvector a, rvector b); // Compares two vectors
 
 //! 3 element cartesian vector
 /*! 3 double precision numbers representing a vector in a right handed
- * cartesian space */
+* cartesian space */
 class cvector
 {
 
 public:
-    //! X value
-    double x = 0.;
-    //! Y value
-    double y = 0.;
-    //! Z value
-    double z = 0.;
+	//! X value
+	double x = 0.;
+	//! Y value
+	double y = 0.;
+	//! Z value
+	double z = 0.;
 
-    cvector() {}
-    cvector(double tx, double ty, double tz) {
-        x = tx;
-        y = ty;
-        z = tz;
-    }
+	cvector() {}
+	cvector(double tx, double ty, double tz) {
+		x = tx;
+		y = ty;
+		z = tz;
+	}
 
-    void normalize(double scale=1.);
-    double length();
-    double norm();
-    double norm2();
-    cvector normalized(double scale=1.);
-    double& operator[] (const int index);
+	void normalize(double scale=1.);
+	double length();
+	double norm();
+	double norm2();
+	cvector normalized(double scale=1.);
+	double& operator[] (const int index);
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-	@return	A json11 JSON object containing every member variable within the class
+		@return	A json11 JSON object containing every member variable within the class
 	*/
-    json11::Json to_json() const {
-        return json11::Json::object {
-            { "x" , x },
-            { "y" , y },
-            { "z" , z }
-        };
-    }
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "x" , x },
+			{ "y" , y },
+			{ "z" , z }
+		};
+	}
 
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-	@param	s	JSON-formatted string to set class contents to
-
-	@return n/a
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
 	*/
-    void from_json(const string& s) {
-        string error;
-        json11::Json parsed = json11::Json::parse(s,error);
-        if(error.empty()) {
-            if(!parsed["x"].is_null())	x = parsed["x"].number_value();
-            if(!parsed["y"].is_null())	y = parsed["y"].number_value();
-            if(!parsed["z"].is_null())	z = parsed["z"].number_value();
-        } else	{
-            cerr<<"ERROR: <"<<error<<">"<<endl;
+	void from_json(const string& s) {
+		string error;
+		json11::Json parsed = json11::Json::parse(s,error);
+		if(error.empty()) {
+			if(!parsed["x"].is_null())	x = parsed["x"].number_value();
+			if(!parsed["y"].is_null())	y = parsed["y"].number_value();
+			if(!parsed["z"].is_null())	z = parsed["z"].number_value();
+		} else	{
+			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
-        return;
-    }
+		return;
+	}
 };
 
 //! 3 element spherical vector
 /*! 3 double precision numbers representing a vector in a spherical
- * space. Lambda increases east. */
+* space. Lambda increases east. */
 struct svector
 {
-    //! N/S in radians
-    double phi = 0.;
-    //! E/W in radians
-    double lambda = 0.;
-    //! Radius in meters
-    double r = 0.;
+	//! N/S in radians
+	double phi = 0.;
+	//! E/W in radians
+	double lambda = 0.;
+	//! Radius in meters
+	double r = 0.;
 
-    svector() {}
-    svector(double tphi, double tlambda, double tr) {
-        phi = tphi;
-        lambda = tlambda;
-        r = tr;
-    }
+	svector() {}
+	svector(double tphi, double tlambda, double tr) {
+		phi = tphi;
+		lambda = tlambda;
+		r = tr;
+	}
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-	@return	A json11 JSON object containing every member variable within the class
+		@return	A json11 JSON object containing every member variable within the class
 	*/
-    json11::Json to_json() const {
-        return json11::Json::object {
-            { "phi" , phi },
-            { "lambda" , lambda },
-            { "r"   , r }
-        };
-    }
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "phi" , phi },
+			{ "lambda" , lambda },
+			{ "r"   , r }
+		};
+	}
 
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-	@param	s	JSON-formatted string to set class contents to
-
-	@return n/a
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
 	*/
-    void from_json(const string& s) {
-        string error;
-        json11::Json parsed = json11::Json::parse(s,error);
-        if(error.empty()) {
-            if(!parsed["phi"].is_null())	phi = parsed["phi"].number_value();
-            if(!parsed["lambda"].is_null())	lambda = parsed["lambda"].number_value();
-            if(!parsed["r"].is_null())		r = parsed["r"].number_value();
-        } else	{
-            cerr<<"ERROR: <"<<error<<">"<<endl;
+	void from_json(const string& s) {
+		string error;
+		json11::Json parsed = json11::Json::parse(s,error);
+		if(error.empty()) {
+			if(!parsed["phi"].is_null())	phi = parsed["phi"].number_value();
+			if(!parsed["lambda"].is_null())	lambda = parsed["lambda"].number_value();
+			if(!parsed["r"].is_null())		r = parsed["r"].number_value();
+		} else	{
+			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
-        return;
-    }
+		return;
+	}
 } ;
 
 std::ostream& operator << (std::ostream& out, const svector& a);
@@ -217,54 +214,53 @@ std::istream& operator >> (std::istream& out, svector& a);
 
 //! 3 element geodetic vector
 /*! 3 double precision numbers representing a vector in a WGS84
- * based geodetic space. Longitude increases east. */
+* based geodetic space. Longitude increases east. */
 // TODO: replace name gvector->geodetic
 struct gvector
 {
-    //! Latitude in radians
-    double lat = 0.;
-    //! Longitude in radians
-    double lon = 0.;
-    //! Height in meters
-    double h = 0.;
+	//! Latitude in radians
+	double lat = 0.;
+	//! Longitude in radians
+	double lon = 0.;
+	//! Height in meters
+	double h = 0.;
 
-    gvector() {}
-    gvector(double tlat, double tlon, double th) {
-        lat = tlat;
-        lon = tlon;
-        h = th;
-    }
+	gvector() {}
+	gvector(double tlat, double tlon, double th) {
+		lat = tlat;
+		lon = tlon;
+		h = th;
+	}
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-	@return	A json11 JSON object containing every member variable within the class
+		@return	A json11 JSON object containing every member variable within the class
 	*/
-    json11::Json to_json() const {
-        return json11::Json::object {
-            { "lat" , lat },
-            { "lon" , lon },
-            { "h"   , h }
-        };
-    }
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "lat" , lat },
+			{ "lon" , lon },
+			{ "h"   , h }
+		};
+	}
 
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-	@param	s	JSON-formatted string to set class contents to
-
-	@return n/a
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
 	*/
-    void from_json(const string& s) {
-        string error;
-        json11::Json parsed = json11::Json::parse(s,error);
-        if(error.empty()) {
-            if(!parsed["lat"].is_null())	lat = parsed["lat"].number_value();
-            if(!parsed["lon"].is_null())	lon = parsed["lon"].number_value();
-            if(!parsed["h"].is_null())		h = parsed["h"].number_value();
-        } else	{
-            cerr<<"ERROR: <"<<error<<">"<<endl;
+	void from_json(const string& s) {
+		string error;
+		json11::Json parsed = json11::Json::parse(s,error);
+		if(error.empty()) {
+			if(!parsed["lat"].is_null())	lat = parsed["lat"].number_value();
+			if(!parsed["lon"].is_null())	lon = parsed["lon"].number_value();
+			if(!parsed["h"].is_null())		h = parsed["h"].number_value();
+		} else	{
+			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
-        return;
-    }
+		return;
+	}
 };
 
 std::ostream& operator << (std::ostream& out, const gvector& a);
@@ -272,54 +268,53 @@ std::istream& operator >> (std::istream& out, gvector& a);
 
 //! 3 element attitude vector.
 /*! Uses Tait-Bryan representation in a  zyx, right handed order of
- * rotation */
+* rotation */
 // TODO: change name to something more explicit
 struct avector
 {
-    //! Heading
-    double h = 0.;
-    //! Elevation
-    double e = 0.;
-    //! Bank
-    double b = 0.;
+	//! Heading
+	double h = 0.;
+	//! Elevation
+	double e = 0.;
+	//! Bank
+	double b = 0.;
 
-    avector() {}
-    avector(double th, double te, double tb) {
-        h = th;
-        e = te;
-        b = tb;
-    }
+	avector() {}
+	avector(double th, double te, double tb) {
+		h = th;
+		e = te;
+		b = tb;
+	}
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-	@return	A json11 JSON object containing every member variable within the class
+		@return	A json11 JSON object containing every member variable within the class
 	*/
-    json11::Json to_json() const {
-        return json11::Json::object {
-            { "h" , h },
-            { "e" , e },
-            { "b" , b }
-        };
-    }
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "h" , h },
+			{ "e" , e },
+			{ "b" , b }
+		};
+	}
 
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-	@param	s	JSON-formatted string to set class contents to
-
-	@return n/a
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
 	*/
-    void from_json(const string& s) {
-        string error;
-        json11::Json parsed = json11::Json::parse(s,error);
-        if(error.empty()) {
-            if(!parsed["h"].is_null())	h = parsed["h"].number_value();
-            if(!parsed["e"].is_null())	e = parsed["e"].number_value();
-            if(!parsed["b"].is_null())	b = parsed["b"].number_value();
-        } else	{
+	void from_json(const string& s) {
+		string error;
+		json11::Json parsed = json11::Json::parse(s,error);
+		if(error.empty()) {
+			if(!parsed["h"].is_null())	h = parsed["h"].number_value();
+			if(!parsed["e"].is_null())	e = parsed["e"].number_value();
+			if(!parsed["b"].is_null())	b = parsed["b"].number_value();
+		} else	{
 			cerr<<"ERROR = "<<error<<endl;
 		}
-        return;
-    }
+		return;
+	}
 } ;
 
 std::ostream& operator << (std::ostream& out, const avector& a);
@@ -394,51 +389,50 @@ double sum_cv(cvector a);
 
 //! Quaternion, scalar last, using x, y, z.
 /*! Can be thought of as ::rvector with scalar last. One can be set equal to other.
- * First 3 elements are the scaled orientation axis. Fourth element is the scaled
- * amount of rotation. Can alternatively be thought of as a ::cvector,
- * followed by a scalar.
+* First 3 elements are the scaled orientation axis. Fourth element is the scaled
+* amount of rotation. Can alternatively be thought of as a ::cvector,
+* followed by a scalar.
 */
 // TODO: replace cvector with x,y,z
 struct quaternion
 {
-    //! Orientation
-    cvector d;
-    //! Rotation
-    double w = 0.;
+	//! Orientation
+	cvector d;
+	//! Rotation
+	double w = 0.;
 
-    quaternion() {}
-    quaternion(cvector td, double tw) {
-        d = td;
-        w = tw;
-    }
+	quaternion() {}
+	quaternion(cvector td, double tw) {
+		d = td;
+		w = tw;
+	}
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-	@return	A json11 JSON object containing every member variable within the class
+		@return	A json11 JSON object containing every member variable within the class
 	*/
-    json11::Json to_json() const {
-        return json11::Json::object {
-            { "d" , d },
-            { "w" , w }
-        };
-    }
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "d" , d },
+			{ "w" , w }
+		};
+	}
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-	@param	s	JSON-formatted string to set class contents to
-
-	@return n/a
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
 	*/
-    void from_json(const string& s) {
-        string error;
-        json11::Json parsed = json11::Json::parse(s,error);
-        if(error.empty()) {
-            if(!parsed["d"].is_null())	d.from_json(parsed["d"].dump());
-            if(!parsed["w"].is_null())	w = parsed["w"].number_value();
-        } else	{
-            cerr<<"ERROR: <"<<error<<">"<<endl;
+	void from_json(const string& s) {
+		string error;
+		json11::Json parsed = json11::Json::parse(s,error);
+		if(error.empty()) {
+			if(!parsed["d"].is_null())	d.from_json(parsed["d"].dump());
+			if(!parsed["w"].is_null())	w = parsed["w"].number_value();
+		} else	{
+			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
-        return;
-    }
+		return;
+	}
 } ;
 
 std::ostream& operator << (std::ostream& out, const quaternion& a);
@@ -449,51 +443,50 @@ std::istream& operator >> (std::istream& out, quaternion& a);
 */
 struct qcomplex
 {
-    double i = 0.;
-    double j = 0.;
-    double k = 0.;
-    double r = 0.;
+	double i = 0.;
+	double j = 0.;
+	double k = 0.;
+	double r = 0.;
 
-    qcomplex() {}
-    qcomplex(double ti, double tj, double tk, double tr) {
-        i = ti;
-        j = tj;
-        k = tk;
-        r = tr;
-    }
+	qcomplex() {}
+	qcomplex(double ti, double tj, double tk, double tr) {
+		i = ti;
+		j = tj;
+		k = tk;
+		r = tr;
+	}
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-	@return	A json11 JSON object containing every member variable within the class
+		@return	A json11 JSON object containing every member variable within the class
 	*/
-    json11::Json to_json() const {
-        return json11::Json::object {
-            { "i" , i },
-            { "j" , j },
-            { "k" , k },
-            { "r" , r }
-        };
-    }
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "i" , i },
+			{ "j" , j },
+			{ "k" , k },
+			{ "r" , r }
+		};
+	}
 
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-	@param	s	JSON-formatted string to set class contents to
-
-	@return n/a
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
 	*/
-    void from_json(const string& s) {
-        string error;
-        json11::Json parsed = json11::Json::parse(s,error);
-        if(error.empty()) {
-            if(!parsed["i"].is_null())	i = parsed["i"].number_value();
-            if(!parsed["j"].is_null())	j = parsed["j"].number_value();
-            if(!parsed["k"].is_null())	k = parsed["k"].number_value();
-            if(!parsed["r"].is_null())	r = parsed["r"].number_value();
-        } else	{
-            cerr<<"ERROR: <"<<error<<">"<<endl;
+	void from_json(const string& s) {
+		string error;
+		json11::Json parsed = json11::Json::parse(s,error);
+		if(error.empty()) {
+			if(!parsed["i"].is_null())	i = parsed["i"].number_value();
+			if(!parsed["j"].is_null())	j = parsed["j"].number_value();
+			if(!parsed["k"].is_null())	k = parsed["k"].number_value();
+			if(!parsed["r"].is_null())	r = parsed["r"].number_value();
+		} else	{
+			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
-        return;
-    }
+		return;
+	}
 };
 
 std::ostream& operator << (std::ostream& out, const qcomplex& a);
@@ -501,55 +494,54 @@ std::istream& operator >> (std::istream& out, qcomplex& a);
 
 //! Quaternion, scalar last, using vector elements.
 /*! Can be thought of as vector elements, q1, q2, q3, followed by
- * scalar q4.
+* scalar q4.
 */
 struct qlast
 {
-    double q1 = 0.; // x
-    double q2 = 0.; // y
-    double q3 = 0.; // z
-    double q4 = 0.; // w
+	double q1 = 0.; // x
+	double q2 = 0.; // y
+	double q3 = 0.; // z
+	double q4 = 0.; // w
 
-    qlast() {}
-    qlast(double tq1, double tq2, double tq3, double tq4) {
-        q1 = tq1;
-        q2 = tq2;
-        q3 = tq3;
-        q4 = tq4;
-    }
+	qlast() {}
+	qlast(double tq1, double tq2, double tq3, double tq4) {
+		q1 = tq1;
+		q2 = tq2;
+		q3 = tq3;
+		q4 = tq4;
+	}
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-	@return	A json11 JSON object containing every member variable within the class
+		@return	A json11 JSON object containing every member variable within the class
 	*/
-    json11::Json to_json() const {
-        return json11::Json::object {
-            { "q1" , q1 },
-            { "q2" , q2 },
-            { "q3" , q3 },
-            { "q4" , q4 }
-        };
-    }
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "q1" , q1 },
+			{ "q2" , q2 },
+			{ "q3" , q3 },
+			{ "q4" , q4 }
+		};
+	}
 
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-	@param	s	JSON-formatted string to set class contents to
-
-	@return n/a
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
 	*/
-    void from_json(const string& s) {
-        string error;
-        json11::Json parsed = json11::Json::parse(s,error);
-        if(error.empty()) {
-            if(!parsed["q1"].is_null())	q1 = parsed["q1"].number_value();
-            if(!parsed["q2"].is_null())	q2 = parsed["q2"].number_value();
-            if(!parsed["q3"].is_null())	q3 = parsed["q3"].number_value();
-            if(!parsed["q4"].is_null())	q4 = parsed["q4"].number_value();
-        } else	{
-            cerr<<"ERROR: <"<<error<<">"<<endl;
+	void from_json(const string& s) {
+		string error;
+		json11::Json parsed = json11::Json::parse(s,error);
+		if(error.empty()) {
+			if(!parsed["q1"].is_null())	q1 = parsed["q1"].number_value();
+			if(!parsed["q2"].is_null())	q2 = parsed["q2"].number_value();
+			if(!parsed["q3"].is_null())	q3 = parsed["q3"].number_value();
+			if(!parsed["q4"].is_null())	q4 = parsed["q4"].number_value();
+		} else	{
+			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
-        return;
-    }
+		return;
+	}
 };
 
 std::ostream& operator << (std::ostream& out, const qlast& a);
@@ -557,55 +549,54 @@ std::istream& operator >> (std::istream& out, qlast& a);
 
 //! Quaternion, scalar first using vector elements.
 /*! Can be thought of as scalar element, q0, followed by vector
- * elements, q1, q2, q3.
+* elements, q1, q2, q3.
 */
 struct qfirst
 {
-    double q0; // w
-    double q1; // x
-    double q2; // y
-    double q3; // z
+	double q0; // w
+	double q1; // x
+	double q2; // y
+	double q3; // z
 
-    qfirst() {}
-    qfirst(double tq0, double tq1, double tq2, double tq3) {
-        q0 = tq0;
-        q1 = tq1;
-        q2 = tq2;
-        q3 = tq3;
-    }
+	qfirst() {}
+	qfirst(double tq0, double tq1, double tq2, double tq3) {
+		q0 = tq0;
+		q1 = tq1;
+		q2 = tq2;
+		q3 = tq3;
+	}
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-	@return	A json11 JSON object containing every member variable within the class
+		@return	A json11 JSON object containing every member variable within the class
 	*/
-    json11::Json to_json() const {
-        return json11::Json::object {
-            { "q0" , q0 },
-            { "q1" , q1 },
-            { "q2" , q2 },
-            { "q3" , q3 }
-        };
-    }
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "q0" , q0 },
+			{ "q1" , q1 },
+			{ "q2" , q2 },
+			{ "q3" , q3 }
+		};
+	}
 
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-	@param	s	JSON-formatted string to set class contents to
-
-	@return n/a
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
 	*/
-    void from_json(const string& s) {
-        string error;
-        json11::Json parsed = json11::Json::parse(s,error);
-        if(error.empty()) {
-            if(!parsed["q0"].is_null())	q0 = parsed["q0"].number_value();
-            if(!parsed["q1"].is_null())	q1 = parsed["q1"].number_value();
-            if(!parsed["q2"].is_null())	q2 = parsed["q2"].number_value();
-            if(!parsed["q3"].is_null())	q3 = parsed["q3"].number_value();
-        } else	{
-            cerr<<"ERROR: <"<<error<<">"<<endl;
+	void from_json(const string& s) {
+		string error;
+		json11::Json parsed = json11::Json::parse(s,error);
+		if(error.empty()) {
+			if(!parsed["q0"].is_null())	q0 = parsed["q0"].number_value();
+			if(!parsed["q1"].is_null())	q1 = parsed["q1"].number_value();
+			if(!parsed["q2"].is_null())	q2 = parsed["q2"].number_value();
+			if(!parsed["q3"].is_null())	q3 = parsed["q3"].number_value();
+		} else	{
+			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
-        return;
-    }
+		return;
+	}
 };
 
 std::ostream& operator << (std::ostream& out, const qfirst& a);
@@ -664,277 +655,275 @@ quaternion q_change_between_rv(rvector from, rvector to);
 //cvector irotate(quaternion q,cvector v); // doesn't exist in .cpp?
 
 namespace Cosmos {
-    namespace Math {
-        namespace Vectors {
-        //! Vector Class
-        /*! eventually this is where all row vector stuff would come?
+	namespace Math {
+		namespace Vectors {
+		//! Vector Class
+		/*! eventually this is where all row vector stuff would come?
 */
-        class Vector
-        {
+		class Vector
+		{
 
-        public:
+		public:
 
-            //! Constructor and initializer.
-            //! Initialize ::Vector to zero.
+			//! Constructor and initializer.
+			//! Initialize ::Vector to zero.
 
-            explicit Vector(double x0=0., double y0=0., double z0=0., double w0=0.)
-            {
-                x = x0;
-                y = y0;
-                z = z0;
-                w = w0;
-            }
+			explicit Vector(double x0=0., double y0=0., double z0=0., double w0=0.)
+			{
+				x = x0;
+				y = y0;
+				z = z0;
+				w = w0;
+			}
 
-            explicit Vector(rvector rv)
-            {
-                x = rv.col[0];
-                y = rv.col[1];
-                z = rv.col[2];
-                w = 0.;
-            }
+			explicit Vector(rvector rv)
+			{
+				x = rv.col[0];
+				y = rv.col[1];
+				z = rv.col[2];
+				w = 0.;
+			}
 
-            explicit Vector(quaternion q)
-            {
-                x = q.d.x;
-                y = q.d.y;
-                z = q.d.z;
-                w = q.w;
-            }
+			explicit Vector(quaternion q)
+			{
+				x = q.d.x;
+				y = q.d.y;
+				z = q.d.z;
+				w = q.w;
+			}
 
-            explicit Vector(cvector cv)
-            {
-                x = cv.x;
-                y = cv.y;
-                z = cv.z;
-                w = 0.;
-            }
+			explicit Vector(cvector cv)
+			{
+				x = cv.x;
+				y = cv.y;
+				z = cv.z;
+				w = 0.;
+			}
 
-            double x;
-            double y;
-            double z;
-            double w;
+			double x;
+			double y;
+			double z;
+			double w;
 
-            // TODO: check if we can iterated the vector
-            double at(int i);
-            // convert from cartesian vector to row vector
+			// TODO: check if we can iterated the vector
+			double at(int i);
+			// convert from cartesian vector to row vector
 //            Vector from_cv(cvector cv);
 //            Vector from_rv(rvector rv);
 //            Vector from_q(quaternion q);
-            rvector to_rv();
-            cvector to_cv();
-            quaternion to_q();
-            Vector cross(Vector b);
-            double dot(Vector b);
-            Vector &normalize(double size=1.);
-            Vector &clear(double x0=0., double y0=0., double z0=0., double w0=0.);
-            double norm();
-            double separation(Vector b);
-            double area(Vector b);
-            Vector vector();
-            Vector flattenx();
-            Vector flatteny();
-            Vector flattenz();
-            double sum();
+			rvector to_rv();
+			cvector to_cv();
+			quaternion to_q();
+			Vector cross(Vector b);
+			double dot(Vector b);
+			Vector &normalize(double size=1.);
+			Vector &clear(double x0=0., double y0=0., double z0=0., double w0=0.);
+			double norm();
+			double separation(Vector b);
+			double area(Vector b);
+			Vector vector();
+			Vector flattenx();
+			Vector flatteny();
+			Vector flattenz();
+			double sum();
 
-            Vector &operator = (const rvector rv)
-            {
-                *this = Vector(rv);
-                return *this;
-            }
+			Vector &operator = (const rvector rv)
+			{
+				*this = Vector(rv);
+				return *this;
+			}
 
-            double &operator [] (const int &index);
+			double &operator [] (const int &index);
 
-            Vector operator *(const double scale) const; // multiply vector by scalar operator
-            Vector &operator *=( const double &scale); // multiply vector by scalar operator in place
-            Vector operator * (const Vector &v2) const; // multiply vector by vector operator
+			Vector operator *(const double scale) const; // multiply vector by scalar operator
+			Vector &operator *=( const double &scale); // multiply vector by scalar operator in place
+			Vector operator * (const Vector &v2) const; // multiply vector by vector operator
 
-            Vector operator / (const double scale) const; // divide vector by scalar operator
-            Vector &operator /= (const double &scale); // divide vector by scalar operator in place
+			Vector operator / (const double scale) const; // divide vector by scalar operator
+			Vector &operator /= (const double &scale); // divide vector by scalar operator in place
 
-            Vector operator - (const Vector &v2) const; // Subtract vector by vector operator
-            Vector &operator -= (const Vector &v2); // subtract vector by vector operator in place
-            Vector operator - () const; // Negate vector operator
+			Vector operator - (const Vector &v2) const; // Subtract vector by vector operator
+			Vector &operator -= (const Vector &v2); // subtract vector by vector operator in place
+			Vector operator - () const; // Negate vector operator
 
-            Vector operator + (const Vector &v2) const; // add vector by vector operator
-            Vector &operator += (const Vector &v2); // add vector by vector operator in place
+			Vector operator + (const Vector &v2) const; // add vector by vector operator
+			Vector &operator += (const Vector &v2); // add vector by vector operator in place
 
-            bool operator == (const Vector &v2) const; // Compares two vectors
-            bool operator != (const Vector &v2) const; // Compares two vectors
-        
-        	/// Convert class contents to JSON object
-            /** Returns a json11 JSON object of the class
-            @return	A json11 JSON object containing every member variable within the class
-            */
-            json11::Json to_json() const {
-                return json11::Json::object {
-                    { "x" , x },
-                    { "y" , y },
-                    { "z" , z },
-                    { "w" , w }
-                };
-            }
+			bool operator == (const Vector &v2) const; // Compares two vectors
+			bool operator != (const Vector &v2) const; // Compares two vectors
+		
+			/// Convert class contents to JSON object
+			/** Returns a json11 JSON object of the class
+				@return	A json11 JSON object containing every member variable within the class
+			*/
+			json11::Json to_json() const {
+				return json11::Json::object {
+					{ "x" , x },
+					{ "y" , y },
+					{ "z" , z },
+					{ "w" , w }
+				};
+			}
 
-        	/// Set class contents from JSON string
-            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-            @param	s	JSON-formatted string to set class contents to
-
-            @return n/a
-            */
-            void from_json(const string& s) {
-                string error;
-                json11::Json parsed = json11::Json::parse(s,error);
-                if(error.empty()) {
-                    if(!parsed["x"].is_null())	x = parsed["x"].number_value();
-                    if(!parsed["y"].is_null())	y = parsed["y"].number_value();
-                    if(!parsed["z"].is_null())	z = parsed["z"].number_value();
-                    if(!parsed["w"].is_null())	w = parsed["w"].number_value();
-        		} else	{
-            		cerr<<"ERROR: <"<<error<<">"<<endl;
+			/// Set class contents from JSON string
+			/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+				@param	s	JSON-formatted string to set class contents to
+				@return n/a
+			*/
+			void from_json(const string& s) {
+				string error;
+				json11::Json parsed = json11::Json::parse(s,error);
+				if(error.empty()) {
+					if(!parsed["x"].is_null())	x = parsed["x"].number_value();
+					if(!parsed["y"].is_null())	y = parsed["y"].number_value();
+					if(!parsed["z"].is_null())	z = parsed["z"].number_value();
+					if(!parsed["w"].is_null())	w = parsed["w"].number_value();
+				} else	{
+					cerr<<"ERROR: <"<<error<<">"<<endl;
 				}
-                return;
-            }
-        };
+				return;
+			}
+		};
 
-        Vector operator * (const double scale, const Vector &v);
-        std::ostream& operator << (std::ostream& out, const Vector& v);
-        Vector eye(double scale=1.);
-        Vector unitxV(double scale=1.);
-        Vector unityV(double scale=1.);
-        Vector unitzV(double scale=1.);
+		Vector operator * (const double scale, const Vector &v);
+		std::ostream& operator << (std::ostream& out, const Vector& v);
+		Vector eye(double scale=1.);
+		Vector unitxV(double scale=1.);
+		Vector unityV(double scale=1.);
+		Vector unitzV(double scale=1.);
 
-        class geodeticVector : public Vector {};
+		class geodeticVector : public Vector {};
 
-        class sphericalVector : public Vector {};
+		class sphericalVector : public Vector {};
 
-        class eulerVector : public Vector {}; 
-        }
-
-
-        namespace Quaternions {
-        class Quaternion : public Vectors::Vector
-        {
-
-        public:
-
-            explicit Quaternion(double qx=0., double qy=0., double qz=0., double qw=0.) : Vector(qx, qy, qz, qw)
-            {
-                x = qx;
-                y = qy;
-                z = qz;
-                w = qw;
-            }
-
-            explicit Quaternion(Vector v)
-            {
-                x = v.x;
-                y = v.y;
-                z = v.z;
-                w = 0.;
-            }
-
-            explicit Quaternion(quaternion q)
-            {
-                x = q.d.x;
-                y = q.d.y;
-                z = q.d.z;
-                w = q.w;
-            }
-
-            explicit Quaternion(rvector rv) : Vector(rv)
-            {
-                x = rv.col[0];
-                y = rv.col[1];
-                z = rv.col[2];
-                w = 0.;
-            }
-
-            quaternion to_q();
-            Quaternion getQuaternion();
-
-            // temporary while the new Quaternion class is not finisheds
-            Quaternion quaternion2Quaternion(quaternion q);
-            quaternion Quaternion2quaternion(Quaternion Q);
+		class eulerVector : public Vector {}; 
+		}
 
 
-            // operators
+		namespace Quaternions {
+		class Quaternion : public Vectors::Vector
+		{
+
+		public:
+
+			explicit Quaternion(double qx=0., double qy=0., double qz=0., double qw=0.) : Vector(qx, qy, qz, qw)
+			{
+				x = qx;
+				y = qy;
+				z = qz;
+				w = qw;
+			}
+
+			explicit Quaternion(Vector v)
+			{
+				x = v.x;
+				y = v.y;
+				z = v.z;
+				w = 0.;
+			}
+
+			explicit Quaternion(quaternion q)
+			{
+				x = q.d.x;
+				y = q.d.y;
+				z = q.d.z;
+				w = q.w;
+			}
+
+			explicit Quaternion(rvector rv) : Vector(rv)
+			{
+				x = rv.col[0];
+				y = rv.col[1];
+				z = rv.col[2];
+				w = 0.;
+			}
+
+			quaternion to_q();
+			Quaternion getQuaternion();
+
+			// temporary while the new Quaternion class is not finisheds
+			Quaternion quaternion2Quaternion(quaternion q);
+			quaternion Quaternion2quaternion(Quaternion Q);
+
+
+			// operators
 //            Quaternion &operator = (const Quaternion &q) { return *this; }
-            Quaternion &operator = (const quaternion &q2);
-            Quaternion operator * (const double scale) const; // multiply vector by scalar operator
-            Quaternion &operator *= ( const double scale); // multiply vector by scalar operator in place
-            Quaternion operator * (const Quaternion &q2) const;
+			Quaternion &operator = (const quaternion &q2);
+			Quaternion operator * (const double scale) const; // multiply vector by scalar operator
+			Quaternion &operator *= ( const double scale); // multiply vector by scalar operator in place
+			Quaternion operator * (const Quaternion &q2) const;
 
 //            Quaternion operator / (double scale); // multiply vector by scalar operator
 //            Quaternion &operator /= (const double &scale); // multiply vector by scalar operator in place
 
-            Quaternion operator - (const Quaternion &q2) const; // Subtract vector by vector operator
-            Quaternion &operator -= (const Quaternion &q2); // subtract vector by vector operator in place
-            Quaternion operator - () const; // Negate vector operator
+			Quaternion operator - (const Quaternion &q2) const; // Subtract vector by vector operator
+			Quaternion &operator -= (const Quaternion &q2); // subtract vector by vector operator in place
+			Quaternion operator - () const; // Negate vector operator
 
-            Quaternion operator + (const Quaternion &q2); // add vector by vector operator
-            Quaternion &operator += (const Quaternion &q2); // add vector by vector operator in place
-            //std::ostream& operator<<(std::ostream& os, const Quaternion& q);
-            //friend std::ostream& operator << (std::ostream& os, const Quaternion& q);
-            //std::istream& operator >> (std::istream& out, Quaternion& a);
+			Quaternion operator + (const Quaternion &q2); // add vector by vector operator
+			Quaternion &operator += (const Quaternion &q2); // add vector by vector operator in place
+			//std::ostream& operator<<(std::ostream& os, const Quaternion& q);
+			//friend std::ostream& operator << (std::ostream& os, const Quaternion& q);
+			//std::istream& operator >> (std::istream& out, Quaternion& a);
 
-            Quaternion multiplyScalar(double a);
-            Quaternion conjugate() const;
-            Vector vector();
-            Vector omegaFromDerivative(Quaternion dq);
+			Quaternion multiplyScalar(double a);
+			Quaternion conjugate() const;
+			Vector vector();
+			Vector omegaFromDerivative(Quaternion dq);
 //            Quaternion &normalize();
 //            double norm();
-            Vector toEuler();
-            Vector irotate(const Vector &v);
-            Vector drotate(const Vector &v);
+			Vector toEuler();
+			Vector irotate(const Vector &v);
+			Vector drotate(const Vector &v);
 
-        	/// Convert class contents to JSON object
-            /** Returns a json11 JSON object of the class
-            @return	A json11 JSON object containing every member variable within the class
-            */
-            json11::Json to_json() const {
-                return json11::Json::object {
-                    { "x" , x },
-                    { "y" , y },
-                    { "z" , z },
-                    { "w" , w }
-                };
-            }
+			/// Convert class contents to JSON object
+			/** Returns a json11 JSON object of the class
+				@return	A json11 JSON object containing every member variable within the class
+			*/
+			json11::Json to_json() const {
+				return json11::Json::object {
+					{ "x" , x },
+					{ "y" , y },
+					{ "z" , z },
+					{ "w" , w }
+				};
+			}
 
-        	/// Set class contents from JSON string
-            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-            @param	s	JSON-formatted string to set class contents to
-
-            @return n/a
-            */
-            void from_json(const string& s) {
-                string error;
-                json11::Json parsed = json11::Json::parse(s,error);
-                if(error.empty()) {
-                    if(!parsed["x"].is_null())	x = parsed["x"].number_value();
-                    if(!parsed["y"].is_null())	y = parsed["y"].number_value();
-                    if(!parsed["z"].is_null())	z = parsed["z"].number_value();
-                    if(!parsed["w"].is_null())	w = parsed["w"].number_value();
-        		} else	{
-            		cerr<<"ERROR: <"<<error<<">"<<endl;
+			/// Set class contents from JSON string
+			/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+				@param	s	JSON-formatted string to set class contents to
+				@return n/a
+			*/
+			void from_json(const string& s) {
+				string error;
+				json11::Json parsed = json11::Json::parse(s,error);
+				if(error.empty()) {
+					if(!parsed["x"].is_null())	x = parsed["x"].number_value();
+					if(!parsed["y"].is_null())	y = parsed["y"].number_value();
+					if(!parsed["z"].is_null())	z = parsed["z"].number_value();
+					if(!parsed["w"].is_null())	w = parsed["w"].number_value();
+				} else	{
+					cerr<<"ERROR: <"<<error<<">"<<endl;
 				}
-                return;
-            }
+				return;
+			}
 
-        };
+		};
 
-        // declared outside class because it does not need to access members of the class Quaternion
-        Quaternion operator * (double scale, const Quaternion &q);
-        Quaternion operator * (const Vectors::Vector &v, const Quaternion &q);
-        std::ostream& operator << (std::ostream& os, const Quaternion& q);
-        Quaternion irotate_for(Vectors::Vector sourcea, Vectors::Vector sourceb, Vectors::Vector targeta, Vectors::Vector targetb);
-        Quaternion drotate_between(Vectors::Vector a, Vectors::Vector b);
-        Quaternion drotate_around_x(double angle);
-        Quaternion drotate_around_y(double angle);
-        Quaternion drotate_around_z(double angle);
-        Quaternion drotate_around(int axis, double angle);
-        Quaternion eye(double scale = 1.);
+		// declared outside class because it does not need to access members of the class Quaternion
+		Quaternion operator * (double scale, const Quaternion &q);
+		Quaternion operator * (const Vectors::Vector &v, const Quaternion &q);
+		std::ostream& operator << (std::ostream& os, const Quaternion& q);
+		Quaternion irotate_for(Vectors::Vector sourcea, Vectors::Vector sourceb, Vectors::Vector targeta, Vectors::Vector targetb);
+		Quaternion drotate_between(Vectors::Vector a, Vectors::Vector b);
+		Quaternion drotate_around_x(double angle);
+		Quaternion drotate_around_y(double angle);
+		Quaternion drotate_around_z(double angle);
+		Quaternion drotate_around(int axis, double angle);
+		Quaternion eye(double scale = 1.);
 
 		}
-    } // end namespace Math
+	} // end namespace Math
 } // end namespace COSMOS
 
 #endif // _MATH_VECTOR_H

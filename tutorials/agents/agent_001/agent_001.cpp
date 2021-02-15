@@ -43,7 +43,7 @@ static uint64_t request_counter = 10000;
 
 /// ensure the Agent constructor creates only one instance per process
 static Agent *agent;
-string node_name = "sat_001"; 
+string node_name = "sat_111"; 
 string agent_name = "agent_001";
 string node_agent_name = "["+node_name+":"+agent_name+"]";
 
@@ -60,6 +60,11 @@ int main(int argc, char **argv)
     } else {
     	cout << node_agent_name << " started."<<endl;
 	}
+
+
+	// turn off debug
+	agent->debug_level=0;
+
 
 	// add custom request functions for this agent
 	string request_name = "identify_yourself";
@@ -222,6 +227,11 @@ cout<<"Now to try to get the orbis of ISS..."<<endl;
         }
 */
         // Sleep for 5 sec
+
+		cout<<"Available Agents..."<<endl;
+		for(size_t i = 0; i < agent->agent_list.size(); ++i)	{
+			cout<<agent->agent_list[i].node<<":"<<agent->agent_list[i].proc<<endl;
+		}
         COSMOS_SLEEP(5.);
     }
     return 0;
