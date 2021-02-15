@@ -13,6 +13,69 @@ namespace Cosmos
             }
         }
 
+        Json::Type Json::contents_type(string name)
+        {
+            Object::iterator mit;
+            if ((mit=ObjectContents.find(name)) != ObjectContents.end())
+            {
+                return mit->second.type;
+            }
+            else {
+                return Type::Undefined;
+            }
+        }
+
+        string Json::contents_string(string name)
+        {
+            string contents = "";
+            if (contents_type(name) == Type::String)
+            {
+                contents = ObjectContents.at(name).svalue;
+            }
+            return contents;
+        }
+
+        double Json::contents_number(string name)
+        {
+            double contents = 0.;
+            if (contents_type(name) == Type::Number)
+            {
+                contents = ObjectContents.at(name).nvalue;
+            }
+            return contents;
+        }
+
+        bool Json::contents_bool(string name)
+        {
+            bool contents = false;
+            if (contents_type(name) == Type::True)
+            {
+                contents = ObjectContents.at(name).bvalue;
+            }
+            return contents;
+        }
+
+        Json::Object Json::contents_object(string name)
+        {
+            Object contents;
+            if (contents_type(name) == Type::Object)
+            {
+                contents = ObjectContents.at(name).object;
+            }
+            return contents;
+        }
+
+        Json::Array Json::contents_array(string name)
+        {
+            Array contents;
+            if (contents_type(name) == Type::Array)
+            {
+                contents = ObjectContents.at(name).array;
+            }
+            return contents;
+        }
+
+
         int32_t Json::extract_contents(string json)
         {
             int32_t iretn = 0;
