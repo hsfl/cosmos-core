@@ -89,6 +89,27 @@ int main(int argc, char **argv)
 
 		// see if you can locate the mothership
 		// see if you can locate each of the daughters
+            string response;
+            // ask for their state
+            response.clear();
+            agent->send_request(agent->find_agent("mothership", "mother", 2.), "get_state", response, 2.);
+            if(response.size()) c->get_pointer<sim_state>("sim_states[0]")->from_json(response);
+
+            response.clear();
+            agent->send_request(agent->find_agent("daughter_01", "allison", 2.), "get_state", response, 2.);
+            if(response.size()) c->get_pointer<sim_state>("sim_states[1]")->from_json(response);
+
+            //response.clear();
+            //agent->send_request(agent->find_agent("daughter_02", "becky", 2.), "get_state", response, 2.);
+            //if(response.size()) c->get_pointer<sim_state>("sim_states[2]")->from_json(response);
+
+            response.clear();
+            agent->send_request(agent->find_agent("daughter_03", "cecilia", 2.), "get_state", response, 2.);
+            if(response.size()) c->get_pointer<sim_state>("sim_states[3]")->from_json(response);
+
+            response.clear();
+            agent->send_request(agent->find_agent("daughter_04", "delilah", 2.), "get_state", response, 2.);
+            if(response.size()) c->get_pointer<sim_state>("sim_states[4]")->from_json(response);
 
         // Sleep for 5 sec
         COSMOS_SLEEP(5.);
