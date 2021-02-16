@@ -72,13 +72,13 @@ static string nodedir;
  * \param type Type part of name.
  * \param record String to be appended to file.
  */
-void log_write(string node, string agent, double utc, string extra, string type, string record, string location)
+string log_write(string node, string agent, double utc, string extra, string type, string record, string location)
 {
     FILE *fout;
     string path;
 
     if (utc == 0.)
-        return;
+        return "";
 
     if (extra.empty())
     {
@@ -102,22 +102,8 @@ void log_write(string node, string agent, double utc, string extra, string type,
         fprintf(fout,"%s\n",record.c_str());
         fclose(fout);
     }
+    return path;
 }
-
-//! Write log entry - fixed location
-/*! Append the provided string to a file in the {node}/temp/{agent} directory. The file name
- * is created as {node}_yyyyjjjsssss_{extra}.{type}
- * \param node Node name.
- * \param agent Agent name.
- * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
- * \param extra Extra part  of name.
- * \param type Type part of name.
- * \param record String to be appended to file.
- */
-//void log_write(string node, string agent, double utc, string extra, string type, string record)
-//{
-//    log_write(node, "temp", agent, utc, extra, type, record);
-//}
 
 //! Write log entry - fixed location, no extra
 /*! Append the provided string to a file in the {node}/temp/{agent} directory. The file name
@@ -128,22 +114,9 @@ void log_write(string node, string agent, double utc, string extra, string type,
  * \param type Type part of name.
  * \param record String to be appended to file.
  */
-void log_write(string node, string agent, double utc, string type, const char *record)
+string log_write(string node, string agent, double utc, string type, const char *record)
 {
-    log_write(node, agent, utc, "", type, record);
-    //    FILE *fout;
-    //    string path;
-
-    //    if (utc == 0.)
-    //        return;
-
-    //    path = data_type_path(node, "temp", agent, utc, type);
-
-    //    if ((fout = data_open(path, (char *)"a+")) != nullptr)
-    //    {
-    //        fprintf(fout,"%s\n",record);
-    //        fclose(fout);
-    //    }
+    return log_write(node, agent, utc, "", type, record);
 }
 
 //! Write log entry - fixed location, no extra, integer type and agent
@@ -154,39 +127,21 @@ void log_write(string node, string agent, double utc, string type, const char *r
  * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
  * \param record String to be appended to file.
  */
-void log_write(string node, int type, double utc, const char *record, string directory)
+string log_write(string node, int type, double utc, const char *record, string directory)
 {
-    //    FILE *fout;
-    //    string path;
-
-    //    if (utc == 0.)
-    //        return;
 
     switch (type)
     {
     case DATA_LOG_TYPE_SOH:
-        log_write(node, "soh", utc, "", "telemetry", record);
-        //        path = data_type_path(node, "temp", "soh", utc, "telemetry");
-        break;
+        return log_write(node, "soh", utc, "", "telemetry", record);
     case DATA_LOG_TYPE_EVENT:
-        log_write(node, "soh", utc, "", "event", record);
-        //        path = data_type_path(node, "temp", "soh", utc, "event");
-        break;
+        return log_write(node, "soh", utc, "", "event", record);
     case DATA_LOG_TYPE_BEACON:
-        log_write(node, "beacon", utc, "", "beacon", record);
-        //        path = data_type_path(node, "temp", "beacon", utc, "beacon");
-        break;
+        return log_write(node, "beacon", utc, "", "beacon", record);
     default:
-        log_write(node, "soh", utc, "", "log", record);
-        //        path = data_type_path(node, "temp", "soh", utc, "log");
-        break;
+        return log_write(node, "soh", utc, "", "log", record);
     }
 
-    //    if ((fout = data_open(path, (char *)"a+")) != nullptr)
-    //    {
-    //        fprintf(fout,"%s\n",record);
-    //        fclose(fout);
-    //    }
 }
 
 //! Move log file - path version.
