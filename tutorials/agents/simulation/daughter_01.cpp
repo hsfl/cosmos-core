@@ -114,6 +114,14 @@ int main(int argc, char **argv)
             if(response.size())	c->get_pointer<sim_state>("sim_states[4]")->from_json(response);
 
 
+			//  At this point:  Most up-dated info possible HERE
+
+			// HCL
+
+			// MAC
+
+			//  c->sim_states[2].x_acc = 17.2;
+
         // Sleep for 5 sec
         COSMOS_SLEEP(1.);
     }

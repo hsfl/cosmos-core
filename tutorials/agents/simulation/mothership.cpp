@@ -202,6 +202,25 @@ int main(int argc, char **argv)
 			cout<<left<<setw(40)<<"\t[daughter_04:delilah]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
 
+		// Everything is Up to Date (!)
+
+
+		// insert ability to call a Python function that takes vector<sim_state> (or get the individual info and call f(a,b,c,d,...) )
+		// returns a (hopefully updated) sim_state
+
+		//  sim_state = f(vector<sim_state>)
+
+		// x position of mothership
+		//double a = sim_state[0].x_pos 
+		// z acceleration of becky
+		//double b = sim_state[2].z_acc 
+		// everybody directly accessible thru cosmosstruc
+
+		// y velocity for cecilia
+		//double m = agent->cinfo->get_value("sim_state[3].y_vel");
+
+
+		
         // Sleep for 1 sec
         COSMOS_SLEEP(1.);
     }
