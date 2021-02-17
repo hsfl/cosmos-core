@@ -1093,25 +1093,39 @@ class sim_state	{
 	string	node_name;
 	string	agent_name;
 
+	// position
 	double	t_pos = 0.0;
 	double	x_pos = 0.0;
 	double	y_pos = 0.0;
 	double	z_pos = 0.0;
 
+	// velocity
 	double	t_vel = 0.0;
 	double	x_vel = 0.0;
 	double	y_vel = 0.0;
 	double	z_vel = 0.0;
 
+	// acceleration
 	double	t_acc = 0.0;
 	double	x_acc = 0.0;
 	double	y_acc = 0.0;
 	double	z_acc = 0.0;
 
+	// attitude ( quaternion q = a + bi + cj + dk )
+	double	a_att = 0.0;
+	double	b_att = 0.0;
+	double	c_att = 0.0;
+	double	d_att = 0.0;
+
+	// waypoint
 	double	t_way = 0.0;
 	double	x_way = 0.0;
 	double	y_way = 0.0;
 	double	z_way = 0.0;
+
+	// target
+	double	target_latitude = 0.0;
+	double	target_longitude = 0.0;
 
 	//  double	etc...
 
@@ -1139,10 +1153,18 @@ class sim_state	{
 			{ "y_acc"   , y_acc },
 			{ "z_acc"   , z_acc },
 
+			{ "a_att"   , a_att },
+			{ "b_att"   , b_att },
+			{ "c_att"   , c_att },
+			{ "d_att"   , d_att },
+
 			{ "t_way"   , t_way },
 			{ "x_way"   , x_way },
 			{ "y_way"   , y_way },
-			{ "z_way"   , z_way }
+			{ "z_way"   , z_way },
+
+			{ "target_latitude"   , target_latitude },
+			{ "target_longitude"   , target_longitude }
 		};
 	}
 
@@ -1174,10 +1196,18 @@ class sim_state	{
 			if(!p["y_acc"].is_null()) { y_acc = p["y_acc"].number_value(); }
 			if(!p["z_acc"].is_null()) { z_acc = p["z_acc"].number_value(); }
 
+			if(!p["a_att"].is_null()) { a_att = p["a_att"].number_value(); }
+			if(!p["b_att"].is_null()) { b_att = p["b_att"].number_value(); }
+			if(!p["c_att"].is_null()) { c_att = p["c_att"].number_value(); }
+			if(!p["d_att"].is_null()) { d_att = p["d_att"].number_value(); }
+
 			if(!p["t_way"].is_null()) { t_way = p["t_way"].number_value(); }
 			if(!p["x_way"].is_null()) { x_way = p["x_way"].number_value(); }
 			if(!p["y_way"].is_null()) { y_way = p["y_way"].number_value(); }
 			if(!p["z_way"].is_null()) { z_way = p["z_way"].number_value(); }
+
+			if(!p["target_latitude"].is_null()) { target_latitude = p["target_latitude"].number_value(); }
+			if(!p["target_longitude"].is_null()) { target_longitude = p["target_longitude"].number_value(); }
 
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -6312,10 +6342,18 @@ struct cosmosstruc
 			add_name(basename+".y_acc", &sim_states[i].y_acc, "double");
 			add_name(basename+".z_acc", &sim_states[i].z_acc, "double");
 
+			add_name(basename+".a_att", &sim_states[i].a_att, "double");
+			add_name(basename+".b_att", &sim_states[i].b_att, "double");
+			add_name(basename+".c_att", &sim_states[i].c_att, "double");
+			add_name(basename+".d_att", &sim_states[i].d_att, "double");
+
 			add_name(basename+".t_way", &sim_states[i].t_way, "double");
 			add_name(basename+".x_way", &sim_states[i].x_way, "double");
 			add_name(basename+".y_way", &sim_states[i].y_way, "double");
 			add_name(basename+".z_way", &sim_states[i].z_way, "double");
+
+			add_name(basename+".target_latitude", &sim_states[i].target_latitude, "double");
+			add_name(basename+".target_longitude", &sim_states[i].target_longitude, "double");
 
 		}
 
