@@ -31,6 +31,7 @@
 #include "support/elapsedtime.h"
 #include "support/timeutils.h"
 #include "agent/agentclass.h"
+#include "support/pybind11/pybind11/embed.h"
 
 #include <iostream>
 #include <string>
@@ -87,6 +88,9 @@ int main(int argc, char **argv)
 	cout<<"\tPeriod in seconds = "<<setprecision(numeric_limits<double>::digits10)<<c->T<<endl;
 	cout<<"\tRevolutions / day = "<<setprecision(numeric_limits<double>::digits10)<<86400.0/c->T<<endl;
 
+
+	// Start interpreter, dies when out of scope
+	pybind11::scoped_interpreter guard{};
 
 	// agent loop
     while (agent->running()) {
@@ -207,17 +211,15 @@ int main(int argc, char **argv)
 
 		// insert ability to call a Python function that takes vector<sim_state> (or get the individual info and call f(a,b,c,d,...) )
 		// returns a (hopefully updated) sim_state
-
-		//  sim_state = f(vector<sim_state>)
-
-		// x position of mothership
-		//double a = sim_state[0].x_pos 
-		// z acceleration of becky
-		//double b = sim_state[2].z_acc 
-		// everybody directly accessible thru cosmosstruc
-
-		// y velocity for cecilia
-		//double m = agent->cinfo->get_value("sim_state[3].y_vel");
+		
+		// Find the function "modify_sim_states" in the python script "testscript.py" (which should be in the same directory as this executable)
+		pybind11::function modify_sim_states = pybind11::reinterpret_borrow<pybind11::function>(
+			pybind11::module::import("testscript").attr("modify_sim_states")
+		);
+		// Pass in the json string of the sim_states
+		string modifiedStates = modify_sim_states(c->get_json("sim_states")).cast<string>();
+		c->from_json(modifiedStates);
+		//cout << "modify_sim_states:\n" << modify_sim_states << endl;
 
 
 		
