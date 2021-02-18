@@ -37,7 +37,7 @@ def testfunc2(vec_of_vec):
 
 # Called from the agents
 # Accepts as argument a json string of vector<sim_state>, which the python json module can automatically parse as a list of dicts
-# Adds 1 to the xyz position and velocity to prove that we can:
+# Adds 1 to the xyz position, velocity, and waypoints to prove that we can:
 #	1) Read in the state vectors over from cosmosstruc
 #	2) Parse the data structure and modify the values in the python script
 #	3) Return back the modified values to the agent

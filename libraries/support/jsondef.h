@@ -7155,6 +7155,10 @@ struct cosmosstruc
 							get_pointer<vertexstruc>(name)->from_json(json);
 						} else if (type == "wavefront") {
 							get_pointer<wavefront>(name)->from_json(json);
+						} else if (type == "sim_state") { // SCOTTNOTE: should all the user-defined types be like this?
+							if(!p[name].is_null()) {
+								get_pointer<sim_state>(name)->from_json(p[name].dump());
+							}
 
 					// vector of base types
 						} else if (type == "vector<uint32_t>") {
@@ -7467,6 +7471,12 @@ struct cosmosstruc
 									get_pointer<vector<vertexstruc>>(name)->at(i).from_json(p[name][i].dump());
 								}
 							}
+						} else if (type == "vector<sim_state>") {
+							for(size_t i = 0; i < get_pointer<vector<sim_state>>(name)->size(); ++i) {
+								if(!p[name][i].is_null()) {
+									get_pointer<vector<sim_state>>(name)->at(i).from_json(p[name][i].dump());
+								}
+							}
 						} else	{
 							// I guess this block means the type is not supported!
 							// could re-add templated version of set_json so user
@@ -7630,6 +7640,8 @@ struct cosmosstruc
 				json = json11::Json::object { { s, get_value<vertexstruc>(s) } };
 			} else if (type == "wavefront") {
 				json = json11::Json::object { { s, get_value<wavefront>(s) } };
+			} else if (type == "sim_state") {
+					json = json11::Json::object { { s, get_value<sim_state>(s) } };
 
 		// vector of primitives
 			} else if (type == "vector<uint32_t>") {
@@ -7726,6 +7738,8 @@ struct cosmosstruc
 				json = json11::Json::object { { s, get_value<vector<vector<unitstruc>>>(s) } };
 			} else if (type == "vector<vertexstruc>") {
 				json = json11::Json::object { { s, get_value<vector<vertexstruc>>(s) } };
+			} else if (type == "vector<sim_state>") {
+				json = json11::Json::object { { s, get_value<vector<sim_state>>(s) } };
 			}
 			return json.dump();
 		} else {
@@ -7854,7 +7868,8 @@ struct cosmosstruc
 			{ "target" , target },
 			{ "user" , user },
 			{ "tle" , tle },
-			//{ "json" , json }
+			//{ "json" , json },
+			{ "sim_states" , sim_states }
 		};
 	}
 
@@ -7911,6 +7926,9 @@ struct cosmosstruc
 				if (!p["tle"][i].is_null()) { tle[i].from_json(p["tle"][i].dump()); }
 			}
 			//if(!p["json"].is_null())	json.from_json(p["json"].dump());
+			for (size_t i = 0; i < sim_states.size(); ++i) {
+				if (!p["sim_states"][i].is_null()) { sim_states[i].from_json(p["sim_states"][i].dump()); }
+			}
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}

@@ -219,7 +219,6 @@ int main(int argc, char **argv)
 		// Pass in the json string of the sim_states
 		string modifiedStates = modify_sim_states(c->get_json("sim_states")).cast<string>();
 		c->from_json(modifiedStates);
-		//cout << "modify_sim_states:\n" << modify_sim_states << endl;
 
 
 		
