@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 	cout<<"\tRevolutions / day = "<<setprecision(numeric_limits<double>::digits10)<<86400.0/c->T<<endl;
 
 
-	// Start interpreter, dies when out of scope
+	// Start python interpreter, dies when out of scope
 	pybind11::scoped_interpreter guard{};
 
 	// agent loop
@@ -219,6 +219,21 @@ int main(int argc, char **argv)
 		// Pass in the json string of the sim_states
 		string modifiedStates = modify_sim_states(c->get_json("sim_states")).cast<string>();
 		c->from_json(modifiedStates);
+
+		// Commented out section here is another example of the python stuff
+		/*
+		pybind11::function testfunc = pybind11::reinterpret_borrow<pybind11::function>(
+			// Import method "testfunc" from python "module".
+			// User is responsible for making sure Pymodule.attr is actually a python function.
+			pybind11::module::import("testscript").attr("testfunc")
+		);
+		// Note: automatic type conversion from c++'s vector<double> to python's list by including pybind11/stl.h
+		pybind11::object result = testfunc("teststr", vector<double>{1,2,3,4,5}); // <-- here
+		// Our testfunc function in the python script returns a testclass object, and we can access its members and cast it
+		string name = result.attr("name").cast<string>();
+		vector<double> vec = result.attr("vec").cast<vector<double>>();
+		bool success = result.attr("retval").cast<bool>();
+		*/
 
 
 		

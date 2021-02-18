@@ -31,6 +31,7 @@
 #include "support/elapsedtime.h"
 #include "support/timeutils.h"
 #include "agent/agentclass.h"
+#include "support/pybind11/pybind11/embed.h"
 
 #include <iostream>
 #include <string>
@@ -76,6 +77,9 @@ int main(int argc, char **argv)
     // T = period of orbit (seconds)
     c->T = ( 2.0 * M_PI ) / c->n;
 
+	// Start python interpreter, dies when out of scope
+	pybind11::scoped_interpreter guard{};
+
     while (agent->running()) {
 
 		cout<<node_agent_name<<" running..."<<endl;
@@ -109,6 +113,19 @@ int main(int argc, char **argv)
             response.clear();
             agent->send_request(agent->find_agent("daughter_04", "delilah", 2.), "get_state", response, 2.);
             if(response.size()) c->get_pointer<sim_state>("sim_states[4]")->from_json(response);
+
+			//  At this point:  Most up-dated info possible HERE
+
+			// HCL
+
+			// MAC
+			// Find the function "modify_sim_states" in the python script "testscript.py" (which should be in the same directory as this executable)
+			pybind11::function modify_sim_states = pybind11::reinterpret_borrow<pybind11::function>(
+				pybind11::module::import("testscript").attr("modify_sim_states")
+			);
+			// Pass in the json string of the sim_states
+			string modifiedStates = modify_sim_states(c->get_json("sim_states")).cast<string>();
+			c->from_json(modifiedStates);
 
         // Sleep for 5 sec
         COSMOS_SLEEP(5.);
