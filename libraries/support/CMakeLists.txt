@@ -69,4 +69,4 @@ if(${DEPLOY_SOURCE_FILES_TO_REMOTE} MATCHES "yes")
 endif()
 
 # For the simulation/integration stuff.
-add_subdirectory(pybind11)
+#add_subdirectory(pybind11)
