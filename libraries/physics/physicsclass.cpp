@@ -684,8 +684,6 @@ namespace Cosmos
         {
             quaternion q1;
 
-            initialloc.att = newloc->att;
-
             if (nextutc == 0.)
             {
                 nextutc = currentutc + dtj;
