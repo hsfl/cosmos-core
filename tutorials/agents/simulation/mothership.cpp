@@ -31,6 +31,7 @@
 #include "support/elapsedtime.h"
 #include "support/timeutils.h"
 #include "agent/agentclass.h"
+#include "support/pybind11/pybind11/embed.h"
 
 #include <iostream>
 #include <string>
@@ -87,6 +88,9 @@ int main(int argc, char **argv)
 	cout<<"\tPeriod in seconds = "<<setprecision(numeric_limits<double>::digits10)<<c->T<<endl;
 	cout<<"\tRevolutions / day = "<<setprecision(numeric_limits<double>::digits10)<<86400.0/c->T<<endl;
 
+
+	// Start python interpreter, dies when out of scope
+	pybind11::scoped_interpreter guard{};
 
 	// agent loop
     while (agent->running()) {
@@ -202,6 +206,37 @@ int main(int argc, char **argv)
 			cout<<left<<setw(40)<<"\t[daughter_04:delilah]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
 
+		// Everything is Up to Date (!)
+
+
+		// insert ability to call a Python function that takes vector<sim_state> (or get the individual info and call f(a,b,c,d,...) )
+		// returns a (hopefully updated) sim_state
+		
+		// Find the function "modify_sim_states" in the python script "testscript.py" (which should be in the same directory as this executable)
+		pybind11::function modify_sim_states = pybind11::reinterpret_borrow<pybind11::function>(
+			pybind11::module::import("testscript").attr("modify_sim_states")
+		);
+		// Pass in the json string of the sim_states
+		string modifiedStates = modify_sim_states(c->get_json("sim_states")).cast<string>();
+		c->from_json(modifiedStates);
+
+		// Commented out section here is another example of the python stuff
+		/*
+		pybind11::function testfunc = pybind11::reinterpret_borrow<pybind11::function>(
+			// Import method "testfunc" from python "module".
+			// User is responsible for making sure Pymodule.attr is actually a python function.
+			pybind11::module::import("testscript").attr("testfunc")
+		);
+		// Note: automatic type conversion from c++'s vector<double> to python's list by including pybind11/stl.h
+		pybind11::object result = testfunc("teststr", vector<double>{1,2,3,4,5}); // <-- here
+		// Our testfunc function in the python script returns a testclass object, and we can access its members and cast it
+		string name = result.attr("name").cast<string>();
+		vector<double> vec = result.attr("vec").cast<vector<double>>();
+		bool success = result.attr("retval").cast<bool>();
+		*/
+
+
+		
         // Sleep for 1 sec
         COSMOS_SLEEP(1.);
     }

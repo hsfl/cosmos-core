@@ -67,3 +67,6 @@ install(FILES ${INCLUDESPP} DESTINATION include/support)
 if(${DEPLOY_SOURCE_FILES_TO_REMOTE} MATCHES "yes")
     add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
 endif()
+
+# For the simulation/integration stuff.
+add_subdirectory(pybind11)

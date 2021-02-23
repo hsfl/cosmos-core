@@ -1093,25 +1093,39 @@ class sim_state	{
 	string	node_name;
 	string	agent_name;
 
+	// position
 	double	t_pos = 0.0;
 	double	x_pos = 0.0;
 	double	y_pos = 0.0;
 	double	z_pos = 0.0;
 
+	// velocity
 	double	t_vel = 0.0;
 	double	x_vel = 0.0;
 	double	y_vel = 0.0;
 	double	z_vel = 0.0;
 
+	// acceleration
 	double	t_acc = 0.0;
 	double	x_acc = 0.0;
 	double	y_acc = 0.0;
 	double	z_acc = 0.0;
 
+	// attitude ( quaternion q = a + bi + cj + dk )
+	double	a_att = 0.0;
+	double	b_att = 0.0;
+	double	c_att = 0.0;
+	double	d_att = 0.0;
+
+	// waypoint
 	double	t_way = 0.0;
 	double	x_way = 0.0;
 	double	y_way = 0.0;
 	double	z_way = 0.0;
+
+	// target
+	double	target_latitude = 0.0;
+	double	target_longitude = 0.0;
 
 	//  double	etc...
 
@@ -1139,10 +1153,18 @@ class sim_state	{
 			{ "y_acc"   , y_acc },
 			{ "z_acc"   , z_acc },
 
+			{ "a_att"   , a_att },
+			{ "b_att"   , b_att },
+			{ "c_att"   , c_att },
+			{ "d_att"   , d_att },
+
 			{ "t_way"   , t_way },
 			{ "x_way"   , x_way },
 			{ "y_way"   , y_way },
-			{ "z_way"   , z_way }
+			{ "z_way"   , z_way },
+
+			{ "target_latitude"   , target_latitude },
+			{ "target_longitude"   , target_longitude }
 		};
 	}
 
@@ -1174,10 +1196,18 @@ class sim_state	{
 			if(!p["y_acc"].is_null()) { y_acc = p["y_acc"].number_value(); }
 			if(!p["z_acc"].is_null()) { z_acc = p["z_acc"].number_value(); }
 
+			if(!p["a_att"].is_null()) { a_att = p["a_att"].number_value(); }
+			if(!p["b_att"].is_null()) { b_att = p["b_att"].number_value(); }
+			if(!p["c_att"].is_null()) { c_att = p["c_att"].number_value(); }
+			if(!p["d_att"].is_null()) { d_att = p["d_att"].number_value(); }
+
 			if(!p["t_way"].is_null()) { t_way = p["t_way"].number_value(); }
 			if(!p["x_way"].is_null()) { x_way = p["x_way"].number_value(); }
 			if(!p["y_way"].is_null()) { y_way = p["y_way"].number_value(); }
 			if(!p["z_way"].is_null()) { z_way = p["z_way"].number_value(); }
+
+			if(!p["target_latitude"].is_null()) { target_latitude = p["target_latitude"].number_value(); }
+			if(!p["target_longitude"].is_null()) { target_longitude = p["target_longitude"].number_value(); }
 
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -6312,10 +6342,18 @@ struct cosmosstruc
 			add_name(basename+".y_acc", &sim_states[i].y_acc, "double");
 			add_name(basename+".z_acc", &sim_states[i].z_acc, "double");
 
+			add_name(basename+".a_att", &sim_states[i].a_att, "double");
+			add_name(basename+".b_att", &sim_states[i].b_att, "double");
+			add_name(basename+".c_att", &sim_states[i].c_att, "double");
+			add_name(basename+".d_att", &sim_states[i].d_att, "double");
+
 			add_name(basename+".t_way", &sim_states[i].t_way, "double");
 			add_name(basename+".x_way", &sim_states[i].x_way, "double");
 			add_name(basename+".y_way", &sim_states[i].y_way, "double");
 			add_name(basename+".z_way", &sim_states[i].z_way, "double");
+
+			add_name(basename+".target_latitude", &sim_states[i].target_latitude, "double");
+			add_name(basename+".target_longitude", &sim_states[i].target_longitude, "double");
 
 		}
 
@@ -7117,6 +7155,10 @@ struct cosmosstruc
 							get_pointer<vertexstruc>(name)->from_json(json);
 						} else if (type == "wavefront") {
 							get_pointer<wavefront>(name)->from_json(json);
+						} else if (type == "sim_state") { // SCOTTNOTE: should all the user-defined types be like this?
+							if(!p[name].is_null()) {
+								get_pointer<sim_state>(name)->from_json(p[name].dump());
+							}
 
 					// vector of base types
 						} else if (type == "vector<uint32_t>") {
@@ -7429,6 +7471,12 @@ struct cosmosstruc
 									get_pointer<vector<vertexstruc>>(name)->at(i).from_json(p[name][i].dump());
 								}
 							}
+						} else if (type == "vector<sim_state>") {
+							for(size_t i = 0; i < get_pointer<vector<sim_state>>(name)->size(); ++i) {
+								if(!p[name][i].is_null()) {
+									get_pointer<vector<sim_state>>(name)->at(i).from_json(p[name][i].dump());
+								}
+							}
 						} else	{
 							// I guess this block means the type is not supported!
 							// could re-add templated version of set_json so user
@@ -7592,6 +7640,8 @@ struct cosmosstruc
 				json = json11::Json::object { { s, get_value<vertexstruc>(s) } };
 			} else if (type == "wavefront") {
 				json = json11::Json::object { { s, get_value<wavefront>(s) } };
+			} else if (type == "sim_state") {
+					json = json11::Json::object { { s, get_value<sim_state>(s) } };
 
 		// vector of primitives
 			} else if (type == "vector<uint32_t>") {
@@ -7688,6 +7738,8 @@ struct cosmosstruc
 				json = json11::Json::object { { s, get_value<vector<vector<unitstruc>>>(s) } };
 			} else if (type == "vector<vertexstruc>") {
 				json = json11::Json::object { { s, get_value<vector<vertexstruc>>(s) } };
+			} else if (type == "vector<sim_state>") {
+				json = json11::Json::object { { s, get_value<vector<sim_state>>(s) } };
 			}
 			return json.dump();
 		} else {
@@ -7816,7 +7868,8 @@ struct cosmosstruc
 			{ "target" , target },
 			{ "user" , user },
 			{ "tle" , tle },
-			//{ "json" , json }
+			//{ "json" , json },
+			{ "sim_states" , sim_states }
 		};
 	}
 
@@ -7873,6 +7926,9 @@ struct cosmosstruc
 				if (!p["tle"][i].is_null()) { tle[i].from_json(p["tle"][i].dump()); }
 			}
 			//if(!p["json"].is_null())	json.from_json(p["json"].dump());
+			for (size_t i = 0; i < sim_states.size(); ++i) {
+				if (!p["sim_states"][i].is_null()) { sim_states[i].from_json(p["sim_states"][i].dump()); }
+			}
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
