@@ -584,32 +584,8 @@ string cosmos_error_string(int32_t cosmos_errno)
         case SCPI_ERROR_OUTSIDE_RANGE:
             error_string = "SCPI Request Outside Supported Range";
             break;
-        case GENERAL_ERROR_BAD_SIZE:
-            error_string = "Bad Size";
-            break;
-        case GENERAL_ERROR_BUSY:
-            error_string = "Busy";
-            break;
-        case GENERAL_ERROR_CRC:
-            error_string = "CRC";
-            break;
-        case GENERAL_ERROR_EMPTY:
-            error_string = "Empty";
-            break;
-        case GENERAL_ERROR_INPUT:
-            error_string = "Input";
-            break;
-        case GENERAL_ERROR_MEMORY:
-            error_string = "Memory";
-            break;
-        case GENERAL_ERROR_NO_ANSWER:
-            error_string = "No Answer";
-            break;
-        case GENERAL_ERROR_NO_CARRIER:
-            error_string = "No Carrier";
-            break;
-        case GENERAL_ERROR_NO_DIALTONE:
-            error_string = "No Dial Tone";
+        case GENERAL_OK:
+            error_string = "No Problem";
             break;
         case GENERAL_ERROR_NO_SIGNAL:
             error_string = "No Signal";
@@ -623,35 +599,65 @@ string cosmos_error_string(int32_t cosmos_errno)
         case GENERAL_ERROR_OOPS:
             error_string = "Oops";
             break;
+        case GENERAL_ERROR_MEMORY:
+            error_string = "Memory";
+            break;
         case GENERAL_ERROR_OPEN:
             error_string = "Open";
             break;
-        case GENERAL_ERROR_OUTOFRANGE:
-            error_string = "Out Of Range";
-            break;
-        case GENERAL_ERROR_OUTPUT:
-            error_string = "Output";
+        case GENERAL_ERROR_CRC:
+            error_string = "CRC";
             break;
         case GENERAL_ERROR_OVERSIZE:
             error_string = "Over Size";
             break;
-        case GENERAL_ERROR_TIMEOUT:
-            error_string = "Time Out";
-            break;
-        case GENERAL_ERROR_UNDEFINED:
-            error_string = "Undefined";
-            break;
-        case GENERAL_ERROR_UNDERSIZE:
-            error_string = "Under Size";
-            break;
-        case GENERAL_ERROR_UNHANDLED_ERR:
-            error_string = "Unhandled Error";
+        case GENERAL_ERROR_ZEROSIZE:
+            error_string = "Zero Size";
             break;
         case GENERAL_ERROR_UNIMPLEMENTED:
             error_string = "Unimplemented";
             break;
-        case GENERAL_ERROR_ZEROSIZE:
-            error_string = "Zero Size";
+        case GENERAL_ERROR_EMPTY:
+            error_string = "Empty";
+            break;
+        case GENERAL_ERROR_UNHANDLED_ERR:
+            error_string = "Unhandled Error";
+            break;
+        case GENERAL_ERROR_UNDERSIZE:
+            error_string = "Under Size";
+            break;
+        case GENERAL_ERROR_BAD_SIZE:
+            error_string = "Bad Size";
+            break;
+        case GENERAL_ERROR_TIMEOUT:
+            error_string = "Time Out";
+            break;
+        case GENERAL_ERROR_INPUT:
+            error_string = "Input";
+            break;
+        case GENERAL_ERROR_OUTPUT:
+            error_string = "Output";
+            break;
+        case GENERAL_ERROR_UNDEFINED:
+            error_string = "Undefined";
+            break;
+        case GENERAL_ERROR_OUTOFRANGE:
+            error_string = "Out Of Range";
+            break;
+        case GENERAL_ERROR_NOTREADY:
+            error_string = "Not Ready";
+            break;
+        case GENERAL_ERROR_BUSY:
+            error_string = "Busy";
+            break;
+        case GENERAL_ERROR_NO_CARRIER:
+            error_string = "No Carrier";
+            break;
+        case GENERAL_ERROR_NO_DIALTONE:
+            error_string = "No Dial Tone";
+            break;
+        case GENERAL_ERROR_NO_ANSWER:
+            error_string = "No Answer";
             break;
         case GENERAL_ERROR_DUPLICATE:
             error_string = "Duplicate";
@@ -662,8 +668,17 @@ string cosmos_error_string(int32_t cosmos_errno)
         case GENERAL_ERROR_ERROR:
             error_string = "General Error";
             break;
-        case GENERAL_ERROR_NOTREADY:
-            error_string = "Not Ready";
+        case GENERAL_ERROR_ARGS:
+            error_string = "Wrong Rguments";
+            break;
+        case GENERAL_ERROR_TOO_LOW:
+            error_string = "Value Too Low";
+            break;
+        case GENERAL_ERROR_POSITION:
+            error_string = "Improper Position";
+            break;
+        case GENERAL_ERROR_ATTITUDE:
+            error_string = "Improper Attitude";
             break;
         default:
             char tval[30];
