@@ -7769,7 +7769,7 @@ struct cosmosstruc
 		@param	js		JSON-formatted string
 		@return	n/a
 	*/
-	void pretty_form(string& js)	{
+	string pretty_form(string& js)	{
 
 // JIMNOTE: fix bug with splitting lines over array indices [#]
 
@@ -7805,7 +7805,7 @@ struct cosmosstruc
 			for(size_t j = 0; j < indents[newlines[i]]; ++j)	indent_string += "  ";
 			js.insert(newlines[i]+1, indent_string);
 		}
-		return;
+		return js;
 	}
 
 	/// Gets a human-readable JSON-formatted string of the data associated with the provided name in Namespace 2.0.

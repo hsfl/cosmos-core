@@ -44,7 +44,7 @@ def testfunc2(vec_of_vec):
 def modify_sim_states(sim_states):
 	j = json.loads(sim_states)
 	for state in j["sim_states"]:
-		state["x_pos"] += 1
+		state["x_pos"] += 0.00000001
 		state["y_pos"] += 1
 		state["z_pos"] += 1
 		state["x_vel"] += 1
