@@ -1117,6 +1117,24 @@ class sim_state	{
 	double	c_att = 0.0;
 	double	d_att = 0.0;
 
+	// angular acceleration
+	double x_omega = 0.0;
+	double y_omega = 0.0;
+	double z_omega = 0.0;
+
+	double x_alpha = 0.0;
+	double y_alpha = 0.0;
+	double z_alpha = 0.0;
+
+	double x_thrust = 0.0;
+	double y_thrust = 0.0;
+	double z_thrust = 0.0;
+
+	double x_torque = 0.0;
+	double y_torque = 0.0;
+	double z_torque = 0.0;
+
+
 	// waypoint
 	double	t_way = 0.0;
 	double	x_way = 0.0;
@@ -1157,6 +1175,22 @@ class sim_state	{
 			{ "b_att"   , b_att },
 			{ "c_att"   , c_att },
 			{ "d_att"   , d_att },
+
+			{ "x_omega" , x_omega },
+			{ "y_omega" , y_omega },
+			{ "z_omega" , z_omega },
+
+			{ "x_alpha" , x_alpha },
+			{ "y_alpha" , y_alpha },
+			{ "z_alpha" , z_alpha },
+
+			{ "x_thrust", x_thrust },
+			{ "y_thrust", y_thrust },
+			{ "z_thrust", z_thrust },
+
+			{ "x_torque", x_torque },
+			{ "y_torque", y_torque },
+			{ "z_torque", z_torque },
 
 			{ "t_way"   , t_way },
 			{ "x_way"   , x_way },
@@ -1200,6 +1234,22 @@ class sim_state	{
 			if(!p["b_att"].is_null()) { b_att = p["b_att"].number_value(); }
 			if(!p["c_att"].is_null()) { c_att = p["c_att"].number_value(); }
 			if(!p["d_att"].is_null()) { d_att = p["d_att"].number_value(); }
+
+			if(!p["x_omega"].is_null()) { x_omega = p["x_omega"].number_value(); }
+			if(!p["y_omega"].is_null()) { y_omega = p["y_omega"].number_value(); }
+			if(!p["z_omega"].is_null()) { z_omega = p["z_omega"].number_value(); }
+
+			if(!p["x_alpha"].is_null()) { x_alpha = p["x_alpha"].number_value(); }
+			if(!p["y_alpha"].is_null()) { y_alpha = p["y_alpha"].number_value(); }
+			if(!p["z_alpha"].is_null()) { z_alpha = p["z_alpha"].number_value(); }
+
+			if(!p["x_thrust"].is_null()) { x_thrust = p["x_thrust"].number_value(); }
+			if(!p["y_thrust"].is_null()) { y_thrust = p["y_thrust"].number_value(); }
+			if(!p["z_thrust"].is_null()) { z_thrust = p["z_thrust"].number_value(); }
+
+			if(!p["x_torque"].is_null()) { x_torque = p["x_torque"].number_value(); }
+			if(!p["y_torque"].is_null()) { y_torque = p["y_torque"].number_value(); }
+			if(!p["z_torque"].is_null()) { z_torque = p["z_torque"].number_value(); }
 
 			if(!p["t_way"].is_null()) { t_way = p["t_way"].number_value(); }
 			if(!p["x_way"].is_null()) { x_way = p["x_way"].number_value(); }
@@ -6346,6 +6396,22 @@ struct cosmosstruc
 			add_name(basename+".b_att", &sim_states[i].b_att, "double");
 			add_name(basename+".c_att", &sim_states[i].c_att, "double");
 			add_name(basename+".d_att", &sim_states[i].d_att, "double");
+
+			add_name(basename+".x_omega", &sim_states[i].x_omega, "double");
+			add_name(basename+".y_omega", &sim_states[i].y_omega, "double");
+			add_name(basename+".z_omega", &sim_states[i].z_omega, "double");
+
+			add_name(basename+".x_alpha", &sim_states[i].x_alpha, "double");
+			add_name(basename+".y_alpha", &sim_states[i].y_alpha, "double");
+			add_name(basename+".z_alpha", &sim_states[i].z_alpha, "double");
+
+			add_name(basename+".x_thrust", &sim_states[i].x_thrust, "double");
+			add_name(basename+".y_thrust", &sim_states[i].y_thrust, "double");
+			add_name(basename+".z_thrust", &sim_states[i].z_thrust, "double");
+
+			add_name(basename+".x_torque", &sim_states[i].x_torque, "double");
+			add_name(basename+".y_torque", &sim_states[i].y_torque, "double");
+			add_name(basename+".z_torque", &sim_states[i].z_torque, "double");
 
 			add_name(basename+".t_way", &sim_states[i].t_way, "double");
 			add_name(basename+".x_way", &sim_states[i].x_way, "double");
