@@ -304,6 +304,8 @@
 #define GENERAL_ERROR_ERROR             -2027
 #define GENERAL_ERROR_ARGS             -2028
 #define GENERAL_ERROR_TOO_LOW           -2029
+#define GENERAL_ERROR_POSITION          -2030
+#define GENERAL_ERROR_ATTITUDE          -2031
 
 #define GPHOTO2_ERROR -3000
 

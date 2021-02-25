@@ -107,9 +107,10 @@ namespace Cosmos
         public:
             double dt;
             double dtj;
-            locstruc oldloc;
+            double currentutc;
+            locstruc initialloc;
             locstruc *newloc;
-            physicsstruc oldphys;
+            physicsstruc initialphys;
             physicsstruc *newphys;
 
             enum Type
@@ -130,9 +131,11 @@ namespace Cosmos
             {
                 dt = 86400.*((locp->utc + (idt / 86400.))-locp->utc);
                 dtj = dt / 86400.;
+                initialloc = *newloc;
+                initialphys = *newphys;
             }
 
-            int32_t Increment(double nextutc);
+            int32_t Increment(double nextutc=0.);
 
         private:
         };
@@ -147,7 +150,8 @@ namespace Cosmos
             }
 
             int32_t Init();
-            int32_t Propagate();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
 
         private:
         };
@@ -162,7 +166,8 @@ namespace Cosmos
             }
 
             int32_t Init();
-            int32_t Propagate();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
 
         private:
         };
@@ -183,7 +188,8 @@ namespace Cosmos
             int32_t Init(vector<locstruc> locs);
             int32_t Init();
             int32_t Converge();
-            int32_t Propagate();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
 
         private:
 
@@ -221,7 +227,8 @@ namespace Cosmos
             }
 
             int32_t Init();
-            int32_t Propagate();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
 
         private:
         };
@@ -236,7 +243,8 @@ namespace Cosmos
             }
 
             int32_t Init();
-            int32_t Propagate();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
 
         private:
         };
@@ -251,7 +259,8 @@ namespace Cosmos
             }
 
             int32_t Init();
-            int32_t Propagate();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
 
         private:
         };
@@ -272,8 +281,9 @@ namespace Cosmos
                     triangle.heat = triangle.temp * (triangle.mass * triangle.hcap);
                 }
             }
-            int32_t Init(float temp);
-            int32_t Propagate();
+            int32_t Init(float temp=300.);
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(float temp=0.);
 
             float temperature;
         };
@@ -287,8 +297,9 @@ namespace Cosmos
                 type = AttitudeLVLH;
             }
 
-            int32_t Init(float bp);
-            int32_t Propagate();
+            int32_t Init(float bp=.5);
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(float bp=0.);
 
             float battery_charge;
         };
@@ -296,10 +307,11 @@ namespace Cosmos
         class State
         {
         public:
-            locstruc oldloc;
-            locstruc *newloc;
-            physicsstruc oldphys;
-            physicsstruc *newphys;
+            string nodename;
+            locstruc initialloc;
+            locstruc currentloc;
+            physicsstruc initialphys;
+            physicsstruc currentphys;
             double dt;
             double dtj;
             Propagator::Type ptype;
@@ -324,9 +336,11 @@ namespace Cosmos
 
             State();
             int32_t Init(Propagator *posprop, Propagator *attprop, Propagator *thermprop, Propagator *elecprop);
-            int32_t Init(Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc *loc, physicsstruc *phys, double idt, vector<tlestruc> lines);
-            int32_t Init(Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc *loc, physicsstruc *phys, double idt);
-            int32_t Increment(double nextutc=0.);
+            int32_t Init(string name, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, double utc, vector<tlestruc> lines, double idt);
+            int32_t Init(string name, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, posstruc pos, double idt);
+            int32_t Init(string name, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc loc, double idt);
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
         };
 
 
@@ -335,12 +349,15 @@ namespace Cosmos
         int32_t GravityParams(int16_t model);
         double Nplgndr(uint32_t l, uint32_t m, double x);
 
+        int32_t PosAccel(locstruc &loc, physicsstruc &physics);
         int32_t PosAccel(locstruc* loc, physicsstruc* physics);
+        int32_t AttAccel(locstruc &loc, physicsstruc &physics);
         int32_t AttAccel(locstruc* loc, physicsstruc* physics);
         int32_t PhysSetup(physicsstruc *phys);
         int32_t PhysCalc(locstruc* loc, physicsstruc *phys);
 
         locstruc shape2eci(double utc, double altitude, double angle, double hour);
+        locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double hour);
 
 
     } //end of namespace Physics
