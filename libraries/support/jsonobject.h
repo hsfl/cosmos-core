@@ -35,7 +35,8 @@ public:
     void addElement(string key, bool value);
     string to_json_string();
     string to_json_object();
-    void get_json_string(string &jstring);    void clear();
+    void get_json_string(string &jstring);
+    void clear();
 
 private:
     vector<jsonTuple> contents;
