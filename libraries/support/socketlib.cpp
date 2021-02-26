@@ -228,6 +228,7 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
         switch (ntype)
         {
         case NetworkType::BROADCAST:
+        case NetworkType::UDP:
             if ((iretn=setsockopt(channel.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
             {
                 CLOSE_SOCKET(channel.cudp);
@@ -937,6 +938,7 @@ int32_t Udp::socketOpen()
         switch (sok.type)
         {
         case NetworkType::UDP:
+        case NetworkType::BROADCAST:
             if ((iretn=setsockopt(sok.handle,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
             {
                 CLOSE_SOCKET(sok.handle);
