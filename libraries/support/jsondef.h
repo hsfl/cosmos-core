@@ -1093,55 +1093,57 @@ class sim_state	{
 	string	node_name;
 	string	agent_name;
 
-	// position
+	/** position */
 	double	t_pos = 0.0;
 	double	x_pos = 0.0;
 	double	y_pos = 0.0;
 	double	z_pos = 0.0;
 
-	// velocity
+	/** velocity */
 	double	t_vel = 0.0;
 	double	x_vel = 0.0;
 	double	y_vel = 0.0;
 	double	z_vel = 0.0;
 
-	// acceleration
+	/** acceleration */
 	double	t_acc = 0.0;
 	double	x_acc = 0.0;
 	double	y_acc = 0.0;
 	double	z_acc = 0.0;
 
-	// attitude ( quaternion q = a + bi + cj + dk )
+	/** attitude ( quaternion q = a + bi + cj + dk ) */
 	double	a_att = 0.0;
 	double	b_att = 0.0;
 	double	c_att = 0.0;
 	double	d_att = 0.0;
 
-	// angular acceleration
+	/** angular velocity */
 	double x_omega = 0.0;
 	double y_omega = 0.0;
 	double z_omega = 0.0;
 
+	/** angular acceleration **/
 	double x_alpha = 0.0;
 	double y_alpha = 0.0;
 	double z_alpha = 0.0;
 
+	/** thrust */
 	double x_thrust = 0.0;
 	double y_thrust = 0.0;
 	double z_thrust = 0.0;
 
+	/** torque */
 	double x_torque = 0.0;
 	double y_torque = 0.0;
 	double z_torque = 0.0;
 
-
-	// waypoint
+	/** waypoint */
 	double	t_way = 0.0;
 	double	x_way = 0.0;
 	double	y_way = 0.0;
 	double	z_way = 0.0;
 
-	// target
+	/** target */
 	double	target_latitude = 0.0;
 	double	target_longitude = 0.0;
 
