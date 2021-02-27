@@ -167,7 +167,7 @@ struct cartpos
 	rvector a;
 	// TODO: get rid of this kind of stuff?
 	//! pass indicator: allows synchronization with other attitude and position values.
-	uint32_t pass = 0.;
+        uint32_t pass = 0;
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class

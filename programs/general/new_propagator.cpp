@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
             if (fname.find(".tle") != string::npos)
             {
                 iretn = load_lines(fname, lines);
-                state->Init("test",Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, loc.utc, lines, dp/10.);
+                state->Init("test", dp/10., Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, lines, loc.utc);
             }
         }
         break;
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
         loc.pos.eci.v.col[2] = atof(argv[7]);
         loc.pos.eci.utc = loc.utc;
         ++loc.pos.eci.pass;
-        state->Init("test", Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, loc, dp/10.);
+        state->Init("test", dp/10., Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, loc);
     }
 
     initialutc = loc.utc;
