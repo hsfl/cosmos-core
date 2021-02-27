@@ -1137,12 +1137,6 @@ class sim_state	{
 	double y_torque = 0.0;
 	double z_torque = 0.0;
 
-	/** waypoint */
-	double	t_way = 0.0;
-	double	x_way = 0.0;
-	double	y_way = 0.0;
-	double	z_way = 0.0;
-
 	/** target */
 	double	target_latitude = 0.0;
 	double	target_longitude = 0.0;
@@ -1193,11 +1187,6 @@ class sim_state	{
 			{ "x_torque", x_torque },
 			{ "y_torque", y_torque },
 			{ "z_torque", z_torque },
-
-			{ "t_way"   , t_way },
-			{ "x_way"   , x_way },
-			{ "y_way"   , y_way },
-			{ "z_way"   , z_way },
 
 			{ "target_latitude"   , target_latitude },
 			{ "target_longitude"   , target_longitude }
@@ -1252,11 +1241,6 @@ class sim_state	{
 			if(!p["x_torque"].is_null()) { x_torque = p["x_torque"].number_value(); }
 			if(!p["y_torque"].is_null()) { y_torque = p["y_torque"].number_value(); }
 			if(!p["z_torque"].is_null()) { z_torque = p["z_torque"].number_value(); }
-
-			if(!p["t_way"].is_null()) { t_way = p["t_way"].number_value(); }
-			if(!p["x_way"].is_null()) { x_way = p["x_way"].number_value(); }
-			if(!p["y_way"].is_null()) { y_way = p["y_way"].number_value(); }
-			if(!p["z_way"].is_null()) { z_way = p["z_way"].number_value(); }
 
 			if(!p["target_latitude"].is_null()) { target_latitude = p["target_latitude"].number_value(); }
 			if(!p["target_longitude"].is_null()) { target_longitude = p["target_longitude"].number_value(); }
@@ -4434,12 +4418,6 @@ struct cosmosstruc
 	double	y_acc = 0.0;
 	double	z_acc = 0.0;
 
-	// waypoint
-	double	t_way = 0.0;
-	double	x_way = 0.0;
-	double	y_way = 0.0;
-	double	z_way = 0.0;
-
 	// attitude
 	double	t_att = 0.0;
 	double	pitch = 0.0;
@@ -4905,11 +4883,6 @@ struct cosmosstruc
 		add_name("x_acceleration", &x_acc, "double");
 		add_name("y_acceleration", &y_acc, "double");
 		add_name("z_acceleration", &z_acc, "double");
-
-		add_name("t_waypoint", &t_way, "double");
-		add_name("x_waypoint", &x_way, "double");
-		add_name("y_waypoint", &y_way, "double");
-		add_name("z_waypoint", &z_way, "double");
 
 		add_name("t_attitude", &t_att, "double");
 		add_name("pitch", &pitch, "double");
@@ -6414,11 +6387,6 @@ struct cosmosstruc
 			add_name(basename+".x_torque", &sim_states[i].x_torque, "double");
 			add_name(basename+".y_torque", &sim_states[i].y_torque, "double");
 			add_name(basename+".z_torque", &sim_states[i].z_torque, "double");
-
-			add_name(basename+".t_way", &sim_states[i].t_way, "double");
-			add_name(basename+".x_way", &sim_states[i].x_way, "double");
-			add_name(basename+".y_way", &sim_states[i].y_way, "double");
-			add_name(basename+".z_way", &sim_states[i].z_way, "double");
 
 			add_name(basename+".target_latitude", &sim_states[i].target_latitude, "double");
 			add_name(basename+".target_longitude", &sim_states[i].target_longitude, "double");
