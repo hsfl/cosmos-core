@@ -7,7 +7,7 @@ using namespace Cosmos::Math::Quaternions;
 
 class JSONObject;
 class JSONValue;
-typedef struct vector<JSONValue> JSONArray;
+typedef vector<JSONValue> JSONArray;
 
 
 class JSONValue {
