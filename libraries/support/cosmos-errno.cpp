@@ -680,6 +680,9 @@ string cosmos_error_string(int32_t cosmos_errno)
         case GENERAL_ERROR_ATTITUDE:
             error_string = "Improper Attitude";
             break;
+        case GENERAL_ERROR_NAME:
+            error_string = "Bad File or Device Name";
+            break;
         default:
             char tval[30];
             sprintf(tval,"Undefined Value %d", cosmos_errno);
