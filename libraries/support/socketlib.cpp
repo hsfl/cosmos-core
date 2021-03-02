@@ -225,17 +225,36 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
         }
         break;
     case SOCKET_JABBER:
+#ifdef COSMOS_MAC_OS
+        if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
+#else
+        if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on)) < 0)
+#endif
+        {
+            CLOSE_SOCKET(channel.cudp);
+            channel.cudp = -errno;
+            return (-errno);
+        }
+
         switch (ntype)
         {
         case NetworkType::BROADCAST:
         case NetworkType::UDP:
+            // Set up output
             if ((iretn=setsockopt(channel.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
             {
                 CLOSE_SOCKET(channel.cudp);
                 channel.cudp = -errno;
                 return (-errno);
             }
-            channel.caddr.sin_addr.s_addr = 0xffffffff;
+            // Set up input
+            channel.caddr.sin_addr.s_addr = htonl(INADDR_ANY);
+            if (::bind(channel.cudp,(struct sockaddr *)&channel.caddr, sizeof(struct sockaddr_in)) < 0)
+            {
+                CLOSE_SOCKET(channel.cudp);
+                channel.cudp = -errno;
+                return (-errno);
+            }
             break;
         case NetworkType::MULTICAST:
             inet_pton(AF_INET,address,&channel.caddr.sin_addr);
