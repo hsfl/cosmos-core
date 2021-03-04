@@ -683,6 +683,9 @@ string cosmos_error_string(int32_t cosmos_errno)
         case GENERAL_ERROR_NAME:
             error_string = "Bad File or Device Name";
             break;
+        case GENERAL_ERROR_BAD_FD:
+            error_string = "Bad or No File Descriptor";
+            break;
         default:
             char tval[30];
             sprintf(tval,"Undefined Value %d", cosmos_errno);
