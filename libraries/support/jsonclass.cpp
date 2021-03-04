@@ -76,6 +76,12 @@ namespace Cosmos
         }
 
 
+		// JIMNOTE:	this function isn't really needed any more with Namespace 2.0 (and maybe others)
+		//			do the following for the class you are trying to initialize from a json string:
+		//
+		//			my_class my_instance m;			// declare an instance of your class
+		//			m.from_json(input_JSON_string); // now the instance holds the contents of the JSON string!
+		//
         int32_t Json::extract_contents(string json)
         {
             int32_t iretn = 0;
