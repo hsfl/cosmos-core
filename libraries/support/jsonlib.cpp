@@ -4088,7 +4088,8 @@ you call this function.
 string json_get_string(const jsonentry &entry, cosmosstruc *cinfo)
 {
     string tstring;
-    char tbuf[200];
+    //char tbuf[200];
+	char tbuf[232];
 
     //    if (entry == nullptr)
     //    {
