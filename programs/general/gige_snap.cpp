@@ -455,7 +455,7 @@ int main(int argc, char *argv[])
 
 		// write image:
 
-        imagename = data_type_path("hiakasat", "temp", "gige", currentmjd(0.), extra, "imgdata");
+        imagename = data_type_path("lab", "temp", "gige", currentmjd(0.), extra, "imgdata");
 		fp = fopen(imagename.c_str(),"wb");
 		fwrite((void *)image,tbytes,1,fp);
 		fclose(fp);
