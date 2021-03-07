@@ -61,6 +61,9 @@ add_library(CosmosData STATIC datalib.cpp datalib.h)
 install(TARGETS CosmosData DESTINATION lib)
 target_link_libraries(CosmosData CosmosTime CosmosString CosmosNamespace CosmosConvert localzlib)
 
+add_library(Envi STATIC envi.cpp envi.h)
+install(TARGETS Envi DESTINATION lib)
+
 install(FILES ${INCLUDES} DESTINATION include/support)
 install(FILES ${INCLUDESPP} DESTINATION include/support)
 
