@@ -642,19 +642,26 @@ string data_name(string node, double mjd, string extra, string type)
     string name;
     char ntemp[100];
 
-    int year, month, seconds;
+    int32_t year, month, seconds;
     double jday, day;
 
     mjd2ymd(mjd,year,month,day,jday);
-    seconds = (int)(86400.*(jday-(int)jday));
-    sprintf(ntemp,"_%04d%03d%05d",year,(int32_t)jday,seconds);
-    if (extra.empty())
+    seconds = static_cast<int32_t>(86400.*(jday-static_cast<int32_t>(jday)));
+    if (node.empty())
     {
-        name = node + ntemp + "." + type;
+        sprintf(ntemp,"%04d%03d%05d", year, static_cast<int32_t>(jday), seconds);
     }
     else
     {
-        name = node + ntemp + "_" + extra + "." + type;
+        sprintf(ntemp,"%s_%04d%03d%05d", node.c_str(), year, static_cast<int32_t>(jday), seconds);
+    }
+    if (extra.empty())
+    {
+        name = ntemp + ("." + type);
+    }
+    else
+    {
+        name = ntemp + ("_" + extra + "." + type);
     }
     return (name);
 }
