@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
                         printf("[RESPONSE]");
                         break;
                     default:
-                        printf("[%d]",pretn);
+                        printf("[%d]",static_cast<int>(pretn));
                         break;
                     }
 
@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
                         printf("[RESPONSE]");
                         break;
                     default:
-                        printf("[%d]",pretn);
+                        printf("[%d]", static_cast<int>(pretn));
                         break;
                     }
 
