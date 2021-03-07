@@ -38,24 +38,13 @@ int main(int argc, char *argv[])
     double endp = 86400.;
     int32_t iretn = 0;
     gj_handle gjh;
-//    physicsstruc gphys;
-//    locstruc gloc;
-//    int32_t iretn;
     vector<tlestruc>lines;
 
     Physics::State *state;
-//    Physics::GaussJacksonPositionPropagator *posprop;
-//    Physics::LVLHAttitudePropagator *attprop;
-//    Physics::ThermalPropagator *thermprop;
-//    Physics::ElectricalPropagator *elecprop;
     locstruc loc;
     physicsstruc phys;
 
     state = new Physics::State();
-//    posprop = new Physics::GaussJacksonPositionPropagator(&loc, &phys, 1., 6);
-//    attprop = new Physics::LVLHAttitudePropagator(&loc, &phys, 1.);
-//    thermprop = new Physics::ThermalPropagator(&loc, &phys, 1., 300.);
-//    elecprop = new Physics::ElectricalPropagator(&loc, &phys, 1., 40.);
 
     loc_clear(loc);
     loc.utc = currentmjd();
@@ -73,7 +62,7 @@ int main(int argc, char *argv[])
             if (fname.find(".tle") != string::npos)
             {
                 iretn = load_lines(fname, lines);
-                state->Init(Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, &loc, &phys, dp/10., lines);
+                state->Init("test", dp/10., Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, lines, loc.utc);
             }
         }
         break;
@@ -87,18 +76,13 @@ int main(int argc, char *argv[])
         loc.pos.eci.v.col[2] = atof(argv[7]);
         loc.pos.eci.utc = loc.utc;
         ++loc.pos.eci.pass;
-        state->Init(Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, &loc, &phys, dp/10., lines);
+        state->Init("test", dp/10., Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, loc);
     }
 
-//    locstruc cloc = loc;
     initialutc = loc.utc;
     for (double second=0.; second<endp; ++second)
     {
-        state->Increment(initialutc + second / 86400.);
-//        posprop->Propagate();
-//        attprop->Propagate();
-//        thermprop->Propagate();
-//        elecprop->Propagate();
+        state->Propagate(initialutc + second / 86400.);
         if (second == dp*static_cast<int32_t>(second/(dp)))
         {
             printf("%s %10f %10f %10f %7f %7f %7f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n"

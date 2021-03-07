@@ -4270,7 +4270,7 @@ int32_t eci2tlestring(cartpos eci, string &tle, string ref_tle, double bstar)
     char *line_1 = strstr(static_cast<char *>(&ref_tle[0]), "\n");
     sprintf(field_buffer, "%14s", epoch.c_str());
     strncpy(line_1+19, field_buffer, 14);
-    sprintf(field_buffer, "");
+    //sprintf(field_buffer, "");
 
     // Populate our fields for line 2.
     char *line_2 = strstr(line_1 + 1, "\n");

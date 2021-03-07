@@ -4,7 +4,7 @@
 
 #FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
-#FILE(GLOB INCLUDESPP ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
+FILE(GLOB INCLUDESPP ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 
 add_library(CosmosSupport STATIC
     estimation_lib.cpp
@@ -37,7 +37,7 @@ add_library(CosmosNetwork STATIC socketlib.cpp socketlib.h )
 install(TARGETS CosmosNetwork DESTINATION lib)
 target_link_libraries(CosmosNetwork CosmosTime)
 
-add_library(CosmosNamespace STATIC json11.cpp jsonlib.cpp jsonlib.h jsondef.h)
+add_library(CosmosNamespace STATIC json11.cpp jsonlib.cpp json11.hpp jsonlib.h jsondef.h)
 install(TARGETS CosmosNamespace DESTINATION lib)
 target_link_libraries(CosmosNamespace CosmosConvert CosmosCad CosmosTime CosmosDeviceCpu)
 
@@ -60,6 +60,9 @@ target_link_libraries(CosmosTime CosmosData CosmosEphem)
 add_library(CosmosData STATIC datalib.cpp datalib.h)
 install(TARGETS CosmosData DESTINATION lib)
 target_link_libraries(CosmosData CosmosTime CosmosString CosmosNamespace CosmosConvert localzlib)
+
+add_library(Envi STATIC envi.cpp envi.h)
+install(TARGETS Envi DESTINATION lib)
 
 install(FILES ${INCLUDES} DESTINATION include/support)
 install(FILES ${INCLUDESPP} DESTINATION include/support)

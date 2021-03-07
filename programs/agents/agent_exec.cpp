@@ -865,7 +865,7 @@ int32_t get_power_mode()
 	if(iretn<0)	{
 		return powermode;
 	} else	{
-    	if (sscanf(tdata.c_str(), "%u\n", &tindex) == 1)
+    	if (sscanf(tdata.c_str(), "%hu\n", &tindex) == 1)
     	{
         	if (tindex > 0)
         	{

@@ -433,9 +433,29 @@ void json_init_reserve(cosmosstruc* cinfo) {
 
     cinfo->equation.reserve(MAX_NUMBER_OF_EQUATIONS);
 
+    cinfo->sim_states.reserve(MAX_NUMBER_OF_SATELLITES);
+    //cinfo->sim_states.resize(MAX_NUMBER_OF_SATELLITES);
+
+	// init sim_states
+	sim_state s;
+	s.node_name = "mothership";
+	s.agent_name = "mother";
+	cinfo->sim_states.push_back(s);
+	s.node_name = "daughter_01";
+	s.agent_name = "allison";
+	cinfo->sim_states.push_back(s);
+	s.node_name = "daughter_02";
+	s.agent_name = "becky";
+	cinfo->sim_states.push_back(s);
+	s.node_name = "daughter_03";
+	s.agent_name = "cecilia";
+	cinfo->sim_states.push_back(s);
+	s.node_name = "daughter_04";
+	s.agent_name = "delilah";
+	cinfo->sim_states.push_back(s);
+
     cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
     cinfo->event.resize(1);
-
 
     cinfo->port.reserve(MAX_NUMBER_OF_PORTS);
 
@@ -4068,7 +4088,8 @@ you call this function.
 string json_get_string(const jsonentry &entry, cosmosstruc *cinfo)
 {
     string tstring;
-    char tbuf[200];
+    //char tbuf[200];
+	char tbuf[232];
 
     //    if (entry == nullptr)
     //    {

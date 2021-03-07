@@ -233,11 +233,13 @@ namespace Support
         add_request("debug_level",req_debug_level,"{\"name1\",\"name2\",...}","get/set debug_level of agent");
         add_request("getvalue",req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
         add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent");
+        add_request("get_state",req_get_state,"[{] \"name1\",\"name2\",... [}]","get current state value(s) from agent");
         add_request("get_time",req_get_time,"","return the current time of the agent");
         add_request("get_position",req_get_position,"","return the current perifocal position of the agent");
         add_request("get_position_data",req_get_position_data,"","return the current perifocal position of the agent");
         add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
         add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent");
+       	add_request("set_state",req_set_state,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set state value(s) in agent");
         add_request("listnames",req_listnames,"","list the Namespace of the agent");
         add_request("forward",req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
         add_request("echo",req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
@@ -436,8 +438,12 @@ namespace Support
         if ((iretn=socket_open(&sendchan, NetworkType::UDP, hbeat.addr, hbeat.port, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0) { return (-errno); }
         //nbytes = strnlen(request.c_str(), hbeat.bsz);
         nbytes = std::min(request.size(), (size_t)hbeat.bsz);
+        nbytes=sendto(sendchan.cudp, request.c_str(), nbytes, 0, (struct sockaddr *)&sendchan.caddr, sizeof(struct sockaddr_in));
+        if (debug_level) {
+            printf("Send Request: [%s:%u:%d] %s\n", sendchan.address, sendchan.cport, iretn, &request[0]);
+        }
 
-        if ((nbytes=sendto(sendchan.cudp, request.c_str(), nbytes, 0, (struct sockaddr *)&sendchan.caddr, sizeof(struct sockaddr_in))) < 0) {
+        if ((nbytes) < 0) {
             CLOSE_SOCKET(sendchan.cudp);
 #ifdef COSMOS_WIN_OS
             return(-WSAGetLastError());
@@ -746,8 +752,8 @@ namespace Support
 
         process_mutex.lock();
 
-        if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG)) {
-            printf("Request: [%lu] %s ",bufferin.size(), &bufferin[0]);
+        if (debug_level) {
+            printf("Request: [%lu] %s\n",bufferin.size(), &bufferin[0]);
             fflush(stdout);
         }
 
@@ -793,8 +799,8 @@ namespace Support
         }
 
         iretn = sendto(cinfo->agent[0].req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, sizeof(struct sockaddr_in));
-        if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG)) {
-            printf("[%d] %s\n", iretn, bufferout.data());
+        if (debug_level) {
+            printf("Response: [%s:%u:%d] %s\n", cinfo->agent[0].req.address, cinfo->agent[0].req.cport, iretn, &bufferout[0]);
         }
 
         process_mutex.unlock();
@@ -802,7 +808,10 @@ namespace Support
         return iretn;
     }
 
-    // TODO: describe function, what does it do?
+    //! Start listening for incoming messages over COSMOS Agent channel.
+    //! Keep track of any new Agents.
+    //! Add messages to message ring.
+    //! Perform and broadcast requests.
     void Agent::message_loop() {
         messstruc mess;
         int32_t iretn;
@@ -863,6 +872,9 @@ namespace Support
         {
 //                iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.length()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
             iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.size()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
+            if (agent->debug_level) {
+                printf("Forward: [%s:%u:%d] %s\n", agent->cinfo->agent[0].pub[i].address, agent->cinfo->agent[0].pub[i].cport, iretn, (const char *)&request[request.size()-count]);
+            }
         }
 //            sprintf(output,"%.17g %d ",currentmjd(0),iretn);
         output = std::to_string(currentmjd()) + ' ' + std::to_string(iretn);
@@ -1104,16 +1116,16 @@ namespace Support
  */
     int32_t Agent::req_getvalue(string &request, string &output, Agent* agent)
     {
-	cout<<"req_getvalue(): incoming request          = <"<<request<<">"<<endl;
-	cout<<"req_getvalue(): incoming request.size()   = "<<request.size()<<endl;
-	cout<<"req_getvalue(): incoming request.length() = "<<request.length()<<endl;
+//	cout<<"req_getvalue(): incoming request          = <"<<request<<">"<<endl;
+//	cout<<"req_getvalue(): incoming request.size()   = "<<request.size()<<endl;
+//	cout<<"req_getvalue(): incoming request.length() = "<<request.length()<<endl;
         string jstring;
         if (json_of_list(jstring, request, agent->cinfo) != NULL) {
             output = jstring;
             if (output.length() > agent->cinfo->agent[0].beat.bsz) {
                 output[agent->cinfo->agent[0].beat.bsz-1] = 0;
             }
-	cout<<"req_getvalue(): outgoing response         = <"<<output<<">"<<endl;
+//	cout<<"req_getvalue(): outgoing response         = <"<<output<<">"<<endl;
             return 0;
         } else {
             return (JSON_ERROR_EOS);
@@ -1127,7 +1139,7 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
 	cout<<"req_get_value():incoming request.length() = "<<request.length()<<endl;
 	// remove function call and space
 	req.erase(0,10);
-	// strip out all names from request
+	// strip out requested names
     vector<string> names;
     for(size_t i = 0; i < req.size(); ++i)   {
         if(req[i]=='"')  {
@@ -1136,7 +1148,9 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
             names.push_back(name);
         }
     }
-	// response comes to here with the request function name inside it? it that a bug or a feature?
+
+
+	// ERIC: response string comes to here with the request function name inside it? it that a bug or a feature?
 	response.clear();
     for(size_t i = 0; i < names.size(); ++i)   {
 		response += agent->cinfo->get_json(names[i]);
@@ -1144,6 +1158,36 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
 	cout<<"req_get_value():outgoing response         = <"<<response<<">"<<endl;
 	return 0;
 }
+
+
+// returns state of agent recieving request as JSON
+int32_t Agent::req_get_state(string &request, string &response, Agent* agent)	{
+	string req = request;
+	// remove function call and space
+	req.erase(0,10);
+	
+	response.clear();
+    // find index of calling agent in sim_states[]
+    for(size_t i = 0; i < agent->cinfo->sim_states.size(); ++i)   {
+        string node_name(agent->cinfo->agent[0].beat.node);
+        string agent_name(agent->cinfo->agent[0].beat.proc);
+        if(agent->cinfo->sim_states[i].node_name == node_name && agent->cinfo->sim_states[i].agent_name == agent_name)  {
+
+			// this wraps as a json object
+			//string j = "sim_states[" + to_string(i) + "]";
+			//response = agent->cinfo->get_json(j);
+
+			// this does not wrap
+			response = agent->cinfo->sim_states[i].to_json().dump();
+			break;
+		}
+	}
+
+	//cout<<"req_get_state():outgoing response         = <"<<response<<">"<<endl;
+	return 0;
+}
+
+
 
 int32_t Agent::req_get_time(string &request, string &response, Agent* agent)	{
 	stringstream ss;
@@ -1177,7 +1221,7 @@ c->set_PQW(timemjd);
 //cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->P_pos_t<<", "<<c->Q_pos_t<<", "<<c->W_pos_t<<", "<<c->P_vel_t<<", "<<c->Q_vel_t<<", "<<c->W_vel_t<<", "<<c->P_acc_t<<", "<<c->Q_acc_t<<", "<<c->W_acc_t<<endl;
 
 c->set_IJK_from_PQW();
-cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->I_pos_t<<", "<<c->J_pos_t<<", "<<c->K_pos_t<<", "<<c->I_vel_t<<", "<<c->J_vel_t<<", "<<c->K_vel_t<<", "<<c->I_acc_t<<", "<<c->J_acc_t<<", "<<c->K_acc_t<<endl;
+//cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->I_pos_t<<", "<<c->J_pos_t<<", "<<c->K_pos_t<<", "<<c->I_vel_t<<", "<<c->J_vel_t<<", "<<c->K_vel_t<<", "<<c->I_acc_t<<", "<<c->J_acc_t<<", "<<c->K_acc_t<<endl;
 
 /*
         // to find position and velocity at time t
@@ -1253,7 +1297,7 @@ cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->I_pos_t<
 // request = "get_position mjdtime"
 int32_t Agent::req_get_position(string &request, string &response, Agent* agent)	{
 
-	cout<<"\tincoming request          = <"<<request<<">"<<endl;
+	//cout<<"\tincoming request          = <"<<request<<">"<<endl;
 	//cout<<"req_get_position():incoming request.size()   = "<<request.size()<<endl;
 	//cout<<"req_get_position():incoming request.length() = "<<request.length()<<endl;
 
@@ -1273,6 +1317,8 @@ int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
 
         // to find position and velocity at time t
             // 0    Make sure all necessary orbital elements are set
+
+			//JIMFIX:  this should actually be seconds into orbit for Kepler calcluation
 			c->t = timemjd;
 			c->l = c->a*(1.0-pow(c->e,2.0));
             // 1    Calculate mean anamoly (M)
@@ -1360,10 +1406,25 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 
 	// set the value from json string
 	agent->cinfo->set_json(request);
+    cout<<"req_set_value():outgoing response         = <"<<response<<">"<<endl;
+    return 0;
+}
 
-	cout<<"req_set_value():outgoing response         = <"<<response<<">"<<endl;
+int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
+    // remove function call and space ('set_value ')
+    request.erase(0,10);
+    cout<<"req_set_state():incoming request          = <"<<request<<">"<<endl;
+    cout<<"req_set_state():incoming request.size()   = "<<request.size()<<endl;
+    cout<<"req_set_state():incoming request.length() = "<<request.length()<<endl;
+    cout<<"req_set_state():incoming response         = <"<<response<<">"<<endl;
+
+    // set the value from json string
+    agent->cinfo->set_json(request);
+
+	cout<<"req_set_state():outgoing response         = <"<<response<<">"<<endl;
 	return 0;
 }
+
 
     //! Built-in List Name Space Names request
     /*! Returns a list of all names in the JSON Name Space.
@@ -1759,8 +1820,8 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                 }
                 // Use result to discover interfaces.
                 ifra = confa.ifc_req;
-                bool found_bcast = false;
-                int16_t lo_index = -1;
+                //bool found_bcast = false;
+                //int16_t lo_index = -1;
                 for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++) {
 
                     if (ifra->ifr_addr.sa_family != AF_INET)
@@ -1772,38 +1833,39 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     memcpy((char *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
 
                     if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
+                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags = ifra->ifr_flags;
 
-//                            if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
-                    if ((ifra->ifr_flags & IFF_UP) == 0)
+//                            if ((cinfo->agent[0].pub[0].flags & IFF_POINTOPOINT) || (cinfo->agent[0].pub[0].flags & IFF_UP) == 0 || (cinfo->agent[0].pub[0].flags & IFF_LOOPBACK) || (cinfo->agent[0].pub[0].flags & (IFF_BROADCAST)) == 0)
+                    if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_UP) == 0)
                     {
                         continue;
                     }
-                    else if (ifra->ifr_flags & IFF_LOOPBACK)
+                    else if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_LOOPBACK)
                     {
                         // Don't enable loopback if we found broadcast interface
-                        if (found_bcast)
+//                        if (found_bcast)
                         {
                             continue;
                         }
-                        lo_index = cinfo->agent[0].ifcnt;
+//                        lo_index = cinfo->agent[0].ifcnt;
                     }
-                    else if (ifra->ifr_flags & IFF_BROADCAST)
+                    else if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_BROADCAST)
                     {
-                        found_bcast = true;
-                        if (lo_index >= 0)
-                        {
-                            // Remove loopback if we found broadcast interface
-                            if (cinfo->agent[0].pub[lo_index].cudp >= 0)
-                            {
-                                CLOSE_SOCKET(cinfo->agent[0].pub[lo_index].cudp);
-                            }
-                            for (uint16_t i=lo_index+1; i<cinfo->agent[0].ifcnt+1; ++i)
-                            {
-                                cinfo->agent[0].pub[i-1] = cinfo->agent[0].pub[i];
-                            }
-                            lo_index = -1;
-                            --cinfo->agent[0].ifcnt;
-                        }
+                        //found_bcast = true;
+//                        if (lo_index >= 0)
+//                        {
+//                            // Remove loopback if we found broadcast interface
+//                            if (cinfo->agent[0].pub[lo_index].cudp >= 0)
+//                            {
+//                                CLOSE_SOCKET(cinfo->agent[0].pub[lo_index].cudp);
+//                            }
+//                            for (uint16_t i=lo_index+1; i<cinfo->agent[0].ifcnt+1; ++i)
+//                            {
+//                                cinfo->agent[0].pub[i-1] = cinfo->agent[0].pub[i];
+//                            }
+//                            lo_index = -1;
+//                            --cinfo->agent[0].ifcnt;
+//                        }
                     }
 
 
@@ -1838,7 +1900,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 //                                continue;
 //                            }
 
-                        if ((ifra->ifr_flags & IFF_POINTOPOINT))
+                        if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_POINTOPOINT))
                         {
                             if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
                             {
@@ -2026,8 +2088,9 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,tiface.address,sizeof(tiface.address));
 
                     if (ioctl(cudp,SIOCGIFFLAGS, (char *)ifra) < 0) { continue; }
+                    tiface.flags = ifra->ifr_flags;
 
-                    if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
+                    if ((tiface.flags & IFF_UP) == 0 || (tiface.flags & IFF_LOOPBACK) || (tiface.flags & (IFF_BROADCAST)) == 0)
                     {
                         continue;
                     }
@@ -2144,6 +2207,22 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
                     sizeof(struct sockaddr_in)                  // size of address to socket pointer
                     );
+            if (debug_level) {
+                printf("Post: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
+            }
+            if (cinfo->agent[0].pub[i].flags & IFF_POINTOPOINT)
+            {
+                iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+                        (const char *)post,                         // buffer to send
+                        nbytes+message.size(),                      // size of buffer
+                        0,                                          // flags
+                        (struct sockaddr *)&cinfo->agent[0].pub[i].caddr, // socket address
+                        sizeof(struct sockaddr_in)                  // size of address to socket pointer
+                        );
+                if (debug_level) {
+                    printf("Post: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
+                }
+            }
             if (iretn < 0)
             {
 #ifdef COSMOS_WIN_OS

@@ -393,8 +393,9 @@ int32_t request_bootCount(string &, string &response, Agent *)
 // debug info
 int32_t request_printStatus(string &request, string &, Agent *)
 {
-
-    sscanf(request.c_str(),"%*s %d",&printStatus);
+	int tempint;
+    sscanf(request.c_str(),"%*s %d",&tempint);
+	printStatus = tempint;
     cout << "printStatus is " << printStatus <<  endl;
 
     return 0;

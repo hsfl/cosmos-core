@@ -54,6 +54,8 @@ build/minix/
 
 build/arm_Release/
 
+build/arm_release/
+
 tags
 QtCreatorDeployment.txt
 

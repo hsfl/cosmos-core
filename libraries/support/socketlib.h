@@ -114,28 +114,30 @@ enum class NetworkType : std::uint16_t
 //! Storage for socket information
 struct socket_channel
 {
-	// Channel type
+    // Channel type
     NetworkType type;
-	// Channel UDP socket handle
+    // Channel UDP socket handle
     int32_t cudp=-1;
-	// Channel UDP INET4 address
-	struct sockaddr_in caddr;
-	// Channel UDP INET4 broadcast address
-	struct sockaddr_in baddr;
-	// Channel UDP INET6 address
-	struct sockaddr_in6 caddr6;
-	// Length for chosen address
-	int addrlen;
-	// Channel port
-	uint16_t cport;
-	// Channel's maximum message size
-	uint16_t msgsize;
-	// Channel's protocol address in string form
-	char address[17];
-	// Channel's broadcast address in string form
-	char baddress[17];
-	// Channel's interface name
-	char name[COSMOS_MAX_NAME+1];
+    // Channel UDP INET4 address
+    struct sockaddr_in caddr;
+    // Channel UDP INET4 broadcast address
+    struct sockaddr_in baddr;
+    // Channel UDP INET6 address
+    struct sockaddr_in6 caddr6;
+    // Length for chosen address
+    int addrlen;
+    // Channel port
+    uint16_t cport;
+    // Channel's maximum message size
+    uint16_t msgsize;
+    // Channel's protocol address in string form
+    char address[17];
+    // Channel's broadcast address in string form
+    char baddress[17];
+    // Channel's interface name
+    char name[COSMOS_MAX_NAME+1];
+    // Interface flags
+    int16_t flags;
 };
 
 
@@ -166,35 +168,35 @@ vector <socket_channel> socket_find_addresses(NetworkType ntype);
 
 struct SocketOptions
 {
-	// set the defaults
-	// Channel type
+    // set the defaults
+    // Channel type
     NetworkType type = NetworkType::UDP;
-	// UDP socket handle
-	int32_t handle = 0;
-	// UDP INET4 address
-	struct sockaddr_in server;
-	struct sockaddr_in s_other;
-	// to use socket connect function
-	bool connect = false;
+    // UDP socket handle
+    int32_t handle = 0;
+    // UDP INET4 address
+    struct sockaddr_in server;
+    struct sockaddr_in s_other;
+    // to use socket connect function
+    bool connect = false;
 
-	// Channel's protocol address in string form
+    // Channel's protocol address in string form
     string address = "127.0.0.1";
-	// port
-	uint16_t port = 8888;
+    // port
+    uint16_t port = 8888;
 
-	// Length for chosen address
-	int addrlen = sizeof(server);
+    // Length for chosen address
+    int addrlen = sizeof(server);
 
-	uint16_t role = SOCKET_TALK;
-	bool blocking = SOCKET_BLOCKING;
-	uint32_t timeout = SOCKET_RCVTIMEO;
+    uint16_t role = SOCKET_TALK;
+    bool blocking = SOCKET_BLOCKING;
+    uint32_t timeout = SOCKET_RCVTIMEO;
 
-	bool stream = false; // for SOCK_STREAM in simgen
+    bool stream = false; // for SOCK_STREAM in simgen
 
 public:
-	// constructor
-	SocketOptions(){}
-	//SocketOptions():type(0),handle(0),address(""),port(),addrlen(0),role(0),blocking(false),timeout(0){}
+    // constructor
+    SocketOptions(){}
+    //SocketOptions():type(0),handle(0),address(""),port(),addrlen(0),role(0),blocking(false),timeout(0){}
 
     // using list initialization is not supported be gcc 4.8 and/or MSVC 2013
     // so for the moment keep these commented out
@@ -213,42 +215,42 @@ class Udp
 {
 
 private:
-	// agent stuff
-	//socket_channel socket;
-	SocketOptions sok;
-	//beatstruc hbeat;
+    // agent stuff
+    //socket_channel socket;
+    SocketOptions sok;
+    //beatstruc hbeat;
 
-	int32_t iretn = 0; // return error
+    int32_t iretn = 0; // return error
 
-	//int32_t openClient();
-	int32_t openServer();
+    //int32_t openClient();
+    int32_t openServer();
     int32_t errorStatus(string functionName);
 
 public:
-	// constructors
-	Udp(); // : sok("127.0.0.1",8888){}
-	//Udp(uint16_t p);
+    // constructors
+    Udp(); // : sok("127.0.0.1",8888){}
+    //Udp(uint16_t p);
     //Udp(string a, uint16_t p);
     //Udp(string a, uint16_t p, uint16_t r);
 
-	int32_t socketOpen();
+    int32_t socketOpen();
 
-	int32_t setupClient();
+    int32_t setupClient();
     int32_t setupClient(string a, uint16_t p);
 
     int32_t setupClientSimGen(string a, uint16_t p);
     int32_t setupClientAcstb(string a, uint16_t p);
 
-	//int32_t setupServer();
-	//int32_t setupServer(uint16_t p);
-	int32_t setupServer(uint16_t port, float timeout_sec);
+    //int32_t setupServer();
+    //int32_t setupServer(uint16_t p);
+    int32_t setupServer(uint16_t port, float timeout_sec);
 
 
     int32_t send(string package2send);
-	int32_t receiveLoop();
-	int32_t receiveOnce();
+    int32_t receiveLoop();
+    int32_t receiveOnce();
 
-	int32_t close();
+    int32_t close();
 
     string receivedData; // container for received data
 

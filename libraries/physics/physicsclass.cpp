@@ -80,7 +80,7 @@ namespace Cosmos
             }
 
             // Calculate physical quantities
-            iretn = PhysSetup(newphys);
+            iretn = PhysSetup(currentphys);
             if (iretn < 0)
             {
                 return iretn;
@@ -215,11 +215,11 @@ namespace Cosmos
             triangle.external = external;
             triangle.depth = depth;
             triangle.pcell = pcell;
-            triangle.normal = (newphys->vertices[triangle.tidx[1]] - newphys->vertices[triangle.tidx[0]]).cross(newphys->vertices[triangle.tidx[2]] - newphys->vertices[triangle.tidx[0]]);
-            triangle.com = (newphys->vertices[triangle.tidx[0]] + newphys->vertices[triangle.tidx[1]] + newphys->vertices[triangle.tidx[2]]) / 3.;
-            triangle.area = (newphys->vertices[triangle.tidx[1]] - newphys->vertices[triangle.tidx[0]]).area(newphys->vertices[triangle.tidx[2]] - newphys->vertices[triangle.tidx[0]]);
-            triangle.perimeter = (newphys->vertices[triangle.tidx[1]] - newphys->vertices[triangle.tidx[0]]).norm() + (newphys->vertices[triangle.tidx[2]] - newphys->vertices[triangle.tidx[1]]).norm() + (newphys->vertices[triangle.tidx[0]] - newphys->vertices[triangle.tidx[2]]).norm();
-            newphys->triangles.push_back(triangle);
+            triangle.normal = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).cross(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]);
+            triangle.com = (currentphys->vertices[triangle.tidx[0]] + currentphys->vertices[triangle.tidx[1]] + currentphys->vertices[triangle.tidx[2]]) / 3.;
+            triangle.area = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).area(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]);
+            triangle.perimeter = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).norm() + (currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[1]]).norm() + (currentphys->vertices[triangle.tidx[0]] - currentphys->vertices[triangle.tidx[2]]).norm();
+            currentphys->triangles.push_back(triangle);
 
             return 1;
         }
@@ -229,9 +229,9 @@ namespace Cosmos
             bool found = false;
 
             int32_t index = -1;
-            for (uint16_t i=0; i<newphys->vertices.size(); ++ i)
+            for (uint16_t i=0; i<currentphys->vertices.size(); ++ i)
             {
-                if ((point - newphys->vertices[i]).norm() < .001)
+                if ((point - currentphys->vertices[i]).norm() < .001)
                 {
                     found = true;
                     index = i;
@@ -244,119 +244,127 @@ namespace Cosmos
                 return index;
             }
             else {
-                newphys->vertices.push_back(point);
-                return newphys->vertices.size() - 1;
+                currentphys->vertices.push_back(point);
+                return currentphys->vertices.size() - 1;
             }
         }
 
-        State::State()
+//        int32_t State::Init(Propagator *posprop, Propagator *attprop, Propagator *thermprop, Propagator *elecprop)
+//        {
+//            int32_t iretn = 0;
+
+//            dt = posprop->dt;
+//            dtj = posprop->dtj;
+
+//            initialloc = currentloc;
+//            initialphys = currentphys;
+//            initialloc = *posprop->currentloc;
+//            initialphys = *posprop->currentphys;
+
+//            switch (posprop->type)
+//            {
+//            case Propagator::Type::PositionInertial:
+//                inposition = static_cast<InertialPositionPropagator *>(posprop);
+//                break;
+//            case Propagator::Type::PositionIterative:
+//                itposition = static_cast<IterativePositionPropagator *>(posprop);
+//                break;
+//            case Propagator::Type::PositionGaussJackson:
+//                gjposition = static_cast<GaussJacksonPositionPropagator *>(posprop);
+//                if (tle.size())
+//                {
+//                    gjposition->Init(tle);
+//                }
+//                else {
+//                    gjposition->Init();
+//                }
+//                break;
+//            default:
+//                inposition = static_cast<InertialPositionPropagator *>(posprop);
+//                break;
+//            }
+//            this->ptype = posprop->type;
+
+//            switch (attprop->type)
+//            {
+//            case Propagator::Type::AttitudeInertial:
+//                inattitude = static_cast<InertialAttitudePropagator *>(attprop);
+//                break;
+//            case Propagator::Type::AttitudeIterative:
+//                itattitude = static_cast<IterativeAttitudePropagator *>(attprop);
+//                break;
+//            case Propagator::Type::AttitudeLVLH:
+//                lvattitude = static_cast<LVLHAttitudePropagator *>(attprop);
+//                break;
+//            default:
+//                inattitude = static_cast<InertialAttitudePropagator *>(attprop);
+//                break;
+//            }
+//            this->atype = attprop->type;
+
+//            switch (thermprop->type)
+//            {
+//            case Propagator::Type::Thermal:
+//                thermal = static_cast<ThermalPropagator *>(thermprop);
+//                break;
+//            default:
+//                thermal = static_cast<ThermalPropagator *>(thermprop);
+//                break;
+//            }
+//            this->ttype = thermprop->type;
+
+//            switch (elecprop->type)
+//            {
+//            case Propagator::Type::Electrical:
+//                electrical = static_cast<ElectricalPropagator *>(elecprop);
+//                break;
+//            default:
+//                electrical = static_cast<ElectricalPropagator *>(elecprop);
+//                break;
+//            }
+//            this->etype = elecprop->type;
+
+//            currentphys = posprop->currentphys;
+//            currentloc = posprop->currentloc;
+//            currentutc = currentloc.utc;
+
+//            return iretn;
+//        }
+
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, vector<tlestruc> lines, double utc)
         {
-        }
-
-        int32_t State::Init(Propagator *posprop, Propagator *attprop, Propagator *thermprop, Propagator *elecprop)
-        {
-            int32_t iretn = 0;
-
-            oldloc = *posprop->newloc;
-            oldphys = *posprop->newphys;
-
-            switch (posprop->type)
-            {
-            case Propagator::Type::PositionInertial:
-                inposition = static_cast<InertialPositionPropagator *>(posprop);
-                break;
-            case Propagator::Type::PositionIterative:
-                itposition = static_cast<IterativePositionPropagator *>(posprop);
-                break;
-            case Propagator::Type::PositionGaussJackson:
-                gjposition = static_cast<GaussJacksonPositionPropagator *>(posprop);
-                if (tle.size())
-                {
-                    gjposition->Init(tle);
-                }
-                else {
-                    gjposition->Init();
-                }
-                break;
-            default:
-                inposition = static_cast<InertialPositionPropagator *>(posprop);
-                break;
-            }
-            this->ptype = posprop->type;
-
-            switch (posprop->type)
-            {
-            case Propagator::Type::AttitudeInertial:
-                inattitude = static_cast<InertialAttitudePropagator *>(posprop);
-                break;
-            case Propagator::Type::AttitudeIterative:
-                itattitude = static_cast<IterativeAttitudePropagator *>(posprop);
-                break;
-            case Propagator::Type::AttitudeLVLH:
-                lvattitude = static_cast<LVLHAttitudePropagator *>(posprop);
-                break;
-            default:
-                inattitude = static_cast<InertialAttitudePropagator *>(posprop);
-                break;
-            }
-            this->atype = posprop->type;
-
-            switch (posprop->type)
-            {
-            case Propagator::Type::Thermal:
-                thermal = static_cast<ThermalPropagator *>(posprop);
-                break;
-            default:
-                thermal = static_cast<ThermalPropagator *>(posprop);
-                break;
-            }
-            this->ttype = posprop->type;
-
-            switch (posprop->type)
-            {
-            case Propagator::Type::Electrical:
-                electrical = static_cast<ElectricalPropagator *>(posprop);
-                break;
-            default:
-                electrical = static_cast<ElectricalPropagator *>(posprop);
-                break;
-            }
-            this->etype = posprop->type;
-
-            newphys = posprop->newphys;
-            newloc = posprop->newloc;
-            dt = posprop->dt;
-            dtj = posprop->dtj;
-
-            return iretn;
-        }
-
-        int32_t State::Init(Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc *loc, physicsstruc *phys, double idt, vector<tlestruc> lines)
-        {
-            oldloc = *loc;
-            oldphys = *phys;
-            tle = lines;
-            dt = 86400.*((loc->utc + (idt / 86400.))-loc->utc);
+            dt = 86400.*((currentloc.utc + (idt / 86400.))-currentloc.utc);
             dtj = dt / 86400.;
 
-            structure = new Structure(phys);
+            nodename = name;
+            currentloc.utc = utc;
+            if (lines.size())
+            {
+                lines2eci(currentloc.utc, lines, currentloc.pos.eci);
+                tle = lines;
+            }
+            else {
+                return GENERAL_ERROR_POSITION;
+            }
+
+            structure = new Structure(&currentphys);
             structure->Setup(stype);
             this->stype = stype;
 
             switch (ptype)
             {
             case Propagator::Type::PositionInertial:
-                inposition = new InertialPositionPropagator(loc, phys, dt);
+                inposition = new InertialPositionPropagator(&currentloc, &currentphys, dt);
                 dt = inposition->dt;
                 dtj = inposition->dtj;
                 break;
             case Propagator::Type::PositionIterative:
-                itposition = new IterativePositionPropagator(loc, phys, dt);
+                itposition = new IterativePositionPropagator(&currentloc, &currentphys, dt);
                 dt = itposition->dt;
                 dtj = itposition->dtj;
                 break;
             case Propagator::Type::PositionGaussJackson:
-                gjposition = new GaussJacksonPositionPropagator(loc, phys, dt, 6);
+                gjposition = new GaussJacksonPositionPropagator(&currentloc, &currentphys, dt, 6);
                 dt = gjposition->dt;
                 dtj = gjposition->dtj;
                 if (tle.size())
@@ -368,7 +376,7 @@ namespace Cosmos
                 }
                 break;
             default:
-                inposition = new InertialPositionPropagator(loc, phys, dt);
+                inposition = new InertialPositionPropagator(&currentloc, &currentphys, dt);
                 dt = inposition->dt;
                 dtj = inposition->dtj;
                 break;
@@ -378,16 +386,16 @@ namespace Cosmos
             switch (atype)
             {
             case Propagator::Type::AttitudeInertial:
-                inattitude = new InertialAttitudePropagator(loc, phys, dt);
+                inattitude = new InertialAttitudePropagator(&currentloc, &currentphys, dt);
                 break;
             case Propagator::Type::AttitudeIterative:
-                itattitude = new IterativeAttitudePropagator(loc, phys, dt);
+                itattitude = new IterativeAttitudePropagator(&currentloc, &currentphys, dt);
                 break;
             case Propagator::Type::AttitudeLVLH:
-                lvattitude = new LVLHAttitudePropagator(loc, phys, dt);
+                lvattitude = new LVLHAttitudePropagator(&currentloc, &currentphys, dt);
                 break;
             default:
-                inattitude = new InertialAttitudePropagator(loc, phys, dt);
+                inattitude = new InertialAttitudePropagator(&currentloc, &currentphys, dt);
                 break;
             }
             this->atype = atype;
@@ -395,10 +403,10 @@ namespace Cosmos
             switch (ttype)
             {
             case Propagator::Type::Thermal:
-                thermal = new ThermalPropagator(loc, phys, dt, 300.);
+                thermal = new ThermalPropagator(&currentloc, &currentphys, dt, 300.);
                 break;
             default:
-                thermal = new ThermalPropagator(loc, phys, dt, 300.);
+                thermal = new ThermalPropagator(&currentloc, &currentphys, dt, 300.);
                 break;
             }
             this->ttype = ttype;
@@ -406,36 +414,155 @@ namespace Cosmos
             switch (etype)
             {
             case Propagator::Type::Electrical:
-                electrical = new ElectricalPropagator(loc, phys, dt, .5);
+                electrical = new ElectricalPropagator(&currentloc, &currentphys, dt, .5);
                 break;
             default:
-                electrical = new ElectricalPropagator(loc, phys, dt, .5);
+                electrical = new ElectricalPropagator(&currentloc, &currentphys, dt, .5);
                 break;
             }
             this->etype = etype;
 
-            newphys = phys;
-            newloc = loc;
+            pos_eci(currentloc);
+            att_icrf(currentloc);
+            PosAccel(currentloc, currentphys);
+            AttAccel(currentloc, currentphys);
 
+            initialloc = currentloc;
+            initialphys = currentphys;
+            currentutc = currentloc.utc;
             return 0;
         }
 
-        int32_t State::Increment(double nextutc)
+        int32_t State::Init(std::string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, posstruc pos)
+        {
+            currentloc.pos = pos;
+            currentloc.att.lvlh.pass++;
+            currentloc.att.lvlh.s = q_eye();
+            currentloc.att.lvlh.v = rv_zero();
+            currentloc.att.lvlh.a = rv_zero();
+            att_lvlh(currentloc);
+
+            return Init(name, idt, stype, ptype, atype, ttype, etype);
+        }
+
+        int32_t State::Init(std::string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc loc)
+        {
+            currentloc = loc;
+
+            return Init(name, idt, stype, ptype, atype, ttype, etype);
+        }
+
+        int32_t State::Init(std::string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
+        {
+            dt = 86400.*((currentloc.utc + (idt / 86400.))-currentloc.utc);
+            dtj = dt / 86400.;
+
+            nodename = name;
+
+            structure = new Structure(&currentphys);
+            structure->Setup(stype);
+            this->stype = stype;
+
+            switch (ptype)
+            {
+            case Propagator::Type::PositionInertial:
+                inposition = new InertialPositionPropagator(&currentloc, &currentphys, dt);
+                inposition->Init();
+                break;
+            case Propagator::Type::PositionIterative:
+                itposition = new IterativePositionPropagator(&currentloc, &currentphys, dt);
+                itposition->Init();
+                break;
+            case Propagator::Type::PositionGaussJackson:
+                gjposition = new GaussJacksonPositionPropagator(&currentloc, &currentphys, dt, 6);
+                gjposition->Init();
+                break;
+            default:
+                inposition = new InertialPositionPropagator(&currentloc, &currentphys, dt);
+                inposition->Init();
+                break;
+            }
+            this->ptype = ptype;
+
+            switch (atype)
+            {
+            case Propagator::Type::AttitudeInertial:
+                inattitude = new InertialAttitudePropagator(&currentloc, &currentphys, dt);
+                inattitude->Init();
+                break;
+            case Propagator::Type::AttitudeIterative:
+                itattitude = new IterativeAttitudePropagator(&currentloc, &currentphys, dt);
+                itattitude->Init();
+                break;
+            case Propagator::Type::AttitudeLVLH:
+                lvattitude = new LVLHAttitudePropagator(&currentloc, &currentphys, dt);
+                lvattitude->Init();
+                break;
+            default:
+                inattitude = new InertialAttitudePropagator(&currentloc, &currentphys, dt);
+                inattitude->Init();
+                break;
+            }
+            this->atype = atype;
+
+            switch (ttype)
+            {
+            case Propagator::Type::Thermal:
+                thermal = new ThermalPropagator(&currentloc, &currentphys, dt, 300.);
+                thermal->Init();
+                break;
+            default:
+                thermal = new ThermalPropagator(&currentloc, &currentphys, dt, 300.);
+                thermal->Init();
+                break;
+            }
+            this->ttype = ttype;
+
+            switch (etype)
+            {
+            case Propagator::Type::Electrical:
+                electrical = new ElectricalPropagator(&currentloc, &currentphys, dt, .5);
+                electrical->Init();
+                break;
+            default:
+                electrical = new ElectricalPropagator(&currentloc, &currentphys, dt, .5);
+                electrical->Init();
+                break;
+            }
+            this->etype = etype;
+
+            pos_eci(currentloc);
+            att_icrf(currentloc);
+            PosAccel(currentloc, currentphys);
+            AttAccel(currentloc, currentphys);
+
+            initialloc = currentloc;
+            initialphys = currentphys;
+            currentutc = currentloc.utc;
+            return 0;
+        }
+
+        int32_t State::Propagate(double nextutc)
         {
             int32_t count = 0;
-            do
+            if (nextutc == 0.)
             {
-                newloc->utc += dtj;
+                nextutc = currentutc + dtj;
+            }
+
+            while ((nextutc - currentutc) > dtj / 2.)
+            {
+                currentutc += dtj;
                 switch (ptype)
                 {
                 case Propagator::Type::PositionIterative:
-                    static_cast<IterativePositionPropagator *>(itposition)->Propagate();
+                    static_cast<IterativePositionPropagator *>(itposition)->Propagate(nextutc);
                     break;
                 case Propagator::Type::PositionInertial:
-                    static_cast<InertialPositionPropagator *>(inposition)->Propagate();
+                    static_cast<InertialPositionPropagator *>(inposition)->Propagate(nextutc);
                     break;
                 case Propagator::Type::PositionGaussJackson:
-                    static_cast<GaussJacksonPositionPropagator *>(gjposition)->Propagate();
+                    static_cast<GaussJacksonPositionPropagator *>(gjposition)->Propagate(nextutc);
                     break;
                 default:
                     break;
@@ -443,24 +570,37 @@ namespace Cosmos
                 switch (atype)
                 {
                 case Propagator::Type::AttitudeIterative:
-                    static_cast<IterativeAttitudePropagator *>(itattitude)->Propagate();
+                    static_cast<IterativeAttitudePropagator *>(itattitude)->Propagate(nextutc);
                     break;
                 case Propagator::Type::AttitudeInertial:
-                    static_cast<InertialAttitudePropagator *>(inattitude)->Propagate();
+                    static_cast<InertialAttitudePropagator *>(inattitude)->Propagate(nextutc);
                     break;
                 case Propagator::Type::AttitudeLVLH:
-                    static_cast<LVLHAttitudePropagator *>(lvattitude)->Propagate();
+                    static_cast<LVLHAttitudePropagator *>(lvattitude)->Propagate(nextutc);
                     break;
                 default:
                     break;
                 }
-                static_cast<ThermalPropagator *>(thermal)->Propagate();
-                static_cast<ElectricalPropagator *>(electrical)->Propagate();
+                static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
+                static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
+                pos_eci(currentloc);
+                att_icrf(currentloc);
+                PosAccel(currentloc, currentphys);
+                AttAccel(currentloc, currentphys);
                 ++count;
-            } while (newloc->utc < nextutc);
+            } ;
             return count;
         }
 
+        int32_t State::Reset(double nextutc)
+        {
+            int32_t iretn;
+            currentloc = initialloc;
+            currentutc = currentloc.utc;
+            iretn = Propagate(nextutc);
+
+            return iretn;
+        }
 
         int32_t InertialAttitudePropagator::Init()
         {
@@ -468,141 +608,167 @@ namespace Cosmos
             return  0;
         }
 
-        int32_t InertialAttitudePropagator::Propagate()
+        int32_t InertialAttitudePropagator::Reset(double nextutc)
         {
-            oldloc.att = newloc->att;
-            AttAccel(newloc, newphys);
+            currentloc->att = initialloc.att;
+            currentutc = currentloc->att.utc;
+            Propagate(nextutc);
+
+            return  0;
+        }
+
+        int32_t InertialAttitudePropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            currentloc->att.icrf = initialloc.att.icrf;
+            currentutc = nextutc;
+            currentloc->att.icrf.utc = nextutc;
+            currentloc->att.icrf.pass++;
+            att_icrf(currentloc);
 
             return 0;
         }
 
         int32_t IterativeAttitudePropagator::Init()
         {
+            AttAccel(currentloc, currentphys);
 
             return  0;
         }
 
-        int32_t IterativeAttitudePropagator::Propagate()
+        int32_t IterativeAttitudePropagator::Reset(double nextutc)
+        {
+            currentloc->att = initialloc.att;
+            currentutc = currentloc->att.utc;
+            Propagate(nextutc);
+
+            return 0;
+        }
+
+        int32_t IterativeAttitudePropagator::Propagate(double nextutc)
         {
             quaternion q1;
 
-            oldloc.att = newloc->att;
-
-            q1 = q_axis2quaternion_rv(rv_smult(dt, newloc->att.icrf.v));
-            newloc->att.icrf.s = q_fmult(q1, newloc->att.icrf.s);
-            normalize_q(&newloc->att.icrf.s);
-            // Calculate new v from da
-            newloc->att.icrf.v = rv_add(newloc->att.icrf.v, rv_smult(dt, newloc->att.icrf.a));
-            newloc->att.icrf.utc = newloc->utc;
-            att_icrf(newloc);
-            AttAccel(newloc, newphys);
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            while ((nextutc - currentutc) > dtj / 2.)
+            {
+                currentutc += dtj;
+                q1 = q_axis2quaternion_rv(rv_smult(dt, currentloc->att.icrf.v));
+                currentloc->att.icrf.s = q_fmult(q1, currentloc->att.icrf.s);
+                normalize_q(&currentloc->att.icrf.s);
+                // Calculate new v from da
+                currentloc->att.icrf.v = rv_add(currentloc->att.icrf.v, rv_smult(dt, currentloc->att.icrf.a));
+                currentloc->att.icrf.utc = currentutc;
+                currentloc->att.icrf.pass++;
+                AttAccel(currentloc, currentphys);
+                att_icrf(currentloc);
+            }
 
             return 0;
         }
 
         int32_t LVLHAttitudePropagator::Init()
         {
-            newloc->att.lvlh.utc = newloc->utc;
-            newloc->att.lvlh.s = q_eye();
-            newloc->att.lvlh.v = rv_zero();
-            newloc->att.lvlh.a = rv_zero();
-            ++newloc->att.lvlh.pass;
-            att_lvlh(newloc);
-            AttAccel(newloc, newphys);
+            currentloc->att.lvlh.utc = currentutc;
+            currentloc->att.lvlh.s = q_eye();
+            currentloc->att.lvlh.v = rv_zero();
+            currentloc->att.lvlh.a = rv_zero();
+            ++currentloc->att.lvlh.pass;
+            att_lvlh2icrf(currentloc);
+            AttAccel(currentloc, currentphys);
+            att_icrf(currentloc);
 
             return  0;
         }
 
-        int32_t LVLHAttitudePropagator::Propagate()
+        int32_t LVLHAttitudePropagator::Reset(double nextutc)
         {
-            oldloc.att = newloc->att;
+            currentloc->att = initialloc.att;
+            currentutc = currentloc->att.utc;
+            Propagate(nextutc);
 
-            newloc->att.lvlh.utc = newloc->utc;
-            newloc->att.lvlh.s = q_eye();
-            newloc->att.lvlh.v = rv_zero();
-            newloc->att.lvlh.a = rv_zero();
-            ++newloc->att.lvlh.pass;
-            att_lvlh(newloc);
-            AttAccel(newloc, newphys);
+            return  0;
+        }
+
+        int32_t LVLHAttitudePropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+
+            currentutc = nextutc;
+            currentloc->att.lvlh.utc = nextutc;
+            currentloc->att.lvlh.s = q_eye();
+            currentloc->att.lvlh.v = rv_zero();
+            currentloc->att.lvlh.a = rv_zero();
+            ++currentloc->att.lvlh.pass;
+            att_lvlh2icrf(currentloc);
+            AttAccel(currentloc, currentphys);
+            att_icrf(currentloc);
 
             return 0;
         }
 
-        //        int32_t ThermalPropagator::Init(float temp)
-        //        {
-        //            newphys->temp = temp;
-        //            return 0;
-        //        }
-
-        int32_t ThermalPropagator::Propagate()
+        int32_t ThermalPropagator::Init(float temp)
         {
-            Vector units = Quaternion(newloc->att.icrf.s).irotate(Vector(newloc->pos.icrf.s).normalize());
-            Vector unite = Vector(newloc->pos.eci.s).normalize(-1.);
-            unite = Vector(newloc->pos.eci.s).normalize(-1.);
-            unite = Quaternion(newloc->att.icrf.s).irotate(Vector(newloc->pos.eci.s).normalize(-1.));
-            double energyd;
-            double sdot;
-            double edot;
-            newphys->temp = newphys->heat / (newphys->mass * newphys->hcap);
-            newphys->heat = 0.;
-            double ienergyd = newphys->radiation / newphys->area;
-            for (trianglestruc& triangle : newphys->triangles)
+            currentphys->temp = temp;
+            return 0;
+        }
+
+        int32_t ThermalPropagator::Reset(float temp)
+        {
+            currentutc = currentloc->utc;
+            if (temp == 0.f)
             {
-                triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
+                currentphys->temp = initialphys.temp;
+            }
+            else
+            {
+                currentphys->temp = temp;
+            }
+            return 0;
+        }
 
-                // First do all inputs
-
-                if (triangle.external)
+        int32_t ThermalPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            while ((nextutc - currentutc) > dtj / 2.)
+            {
+                currentutc += dtj;
+                Vector units = Quaternion(currentloc->att.icrf.s).irotate(Vector(currentloc->pos.icrf.s).normalize());
+                Vector unite = Vector(currentloc->pos.eci.s).normalize(-1.);
+                unite = Vector(currentloc->pos.eci.s).normalize(-1.);
+                unite = Quaternion(currentloc->att.icrf.s).irotate(Vector(currentloc->pos.eci.s).normalize(-1.));
+                double energyd;
+                double sdot;
+                double edot;
+                currentphys->temp = currentphys->heat / (currentphys->mass * currentphys->hcap);
+                currentphys->heat = 0.;
+                double ienergyd = currentphys->radiation / currentphys->area;
+                for (trianglestruc& triangle : currentphys->triangles)
                 {
-                    // External Normal face
-                    // Solar effects
-                    sdot = units.dot(triangle.normal);
+                    triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
 
-                    // Earth effects
-                    edot = acos(unite.dot(triangle.normal) / triangle.normal.norm()) - RADOF(5.);
-                    if (edot < 0.)
-                    {
-                        edot = 1.;
-                    }
-                    else
-                    {
-                        edot = cos(edot);
-                    }
+                    // First do all inputs
 
-                    energyd = 0.;
-                    if (newloc->pos.sunradiance && sdot > 0)
+                    if (triangle.external)
                     {
-                        energyd +=  sdot * triangle.irradiation * dt;
-                    }
-
-                    if (edot > 0)
-                    {
-                        energyd += edot * dt * SIGMA * pow(290.,4);
-                    }
-
-                    // Area not covered with cells
-                    triangle.heat += (1. - triangle.pcell) * triangle.area * triangle.abs * energyd;
-                    if (triangle.pcell > 0.)
-                    {
-                        // Area covered with cells
-                        if (triangle.ecellbase > 0.)
-                        {
-                            double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
-                            triangle.heat += (triangle.pcell) * triangle.area * (triangle.abs - efficiency) * energyd;
-                        }
-                        else {
-                            triangle.heat += (triangle.pcell) * triangle.area * triangle.abs * energyd;
-                        }
-                    }
-
-                    if (triangle.external == 2)
-                    {
-                        // External Anti-Normal face
+                        // External Normal face
                         // Solar effects
-                        sdot = units.dot(-triangle.normal);
+                        sdot = units.dot(triangle.normal);
 
                         // Earth effects
-                        edot = acos(unite.dot(-triangle.normal) / -triangle.normal.norm()) - RADOF(5.);
+                        edot = acos(unite.dot(triangle.normal) / triangle.normal.norm()) - RADOF(5.);
                         if (edot < 0.)
                         {
                             edot = 1.;
@@ -613,7 +779,7 @@ namespace Cosmos
                         }
 
                         energyd = 0.;
-                        if (newloc->pos.sunradiance && sdot > 0)
+                        if (currentloc->pos.sunradiance && sdot > 0)
                         {
                             energyd +=  sdot * triangle.irradiation * dt;
                         }
@@ -623,64 +789,108 @@ namespace Cosmos
                             energyd += edot * dt * SIGMA * pow(290.,4);
                         }
 
-                        triangle.heat += triangle.area * triangle.abs * energyd;
+                        // Area not covered with cells
+                        triangle.heat += (1. - triangle.pcell) * triangle.area * triangle.abs * energyd;
+                        if (triangle.pcell > 0.)
+                        {
+                            // Area covered with cells
+                            if (triangle.ecellbase > 0.)
+                            {
+                                double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
+                                triangle.heat += (triangle.pcell) * triangle.area * (triangle.abs - efficiency) * energyd;
+                            }
+                            else {
+                                triangle.heat += (triangle.pcell) * triangle.area * triangle.abs * energyd;
+                            }
+                        }
+
+                        if (triangle.external == 2)
+                        {
+                            // External Anti-Normal face
+                            // Solar effects
+                            sdot = units.dot(-triangle.normal);
+
+                            // Earth effects
+                            edot = acos(unite.dot(-triangle.normal) / -triangle.normal.norm()) - RADOF(5.);
+                            if (edot < 0.)
+                            {
+                                edot = 1.;
+                            }
+                            else
+                            {
+                                edot = cos(edot);
+                            }
+
+                            energyd = 0.;
+                            if (currentloc->pos.sunradiance && sdot > 0)
+                            {
+                                energyd +=  sdot * triangle.irradiation * dt;
+                            }
+
+                            if (edot > 0)
+                            {
+                                energyd += edot * dt * SIGMA * pow(290.,4);
+                            }
+
+                            triangle.heat += triangle.area * triangle.abs * energyd;
+                        }
+                        else {
+                            // Internal Anti-Normal face
+                            triangle.heat += triangle.iabs * triangle.area * ienergyd;
+                            currentphys->radiation -= triangle.iabs * triangle.area * ienergyd;
+                        }
                     }
                     else {
+                        // Internal Normal face
+                        triangle.heat += triangle.iabs * triangle.area * ienergyd;
+                        currentphys->radiation -= triangle.iabs * triangle.area * ienergyd;
+
                         // Internal Anti-Normal face
                         triangle.heat += triangle.iabs * triangle.area * ienergyd;
-                        newphys->radiation -= triangle.iabs * triangle.area * ienergyd;
+                        currentphys->radiation -= triangle.iabs * triangle.area * ienergyd;
                     }
-                }
-                else {
-                    // Internal Normal face
-                    triangle.heat += triangle.iabs * triangle.area * ienergyd;
-                    newphys->radiation -= triangle.iabs * triangle.area * ienergyd;
 
-                    // Internal Anti-Normal face
-                    triangle.heat += triangle.iabs * triangle.area * ienergyd;
-                    newphys->radiation -= triangle.iabs * triangle.area * ienergyd;
-                }
+                    // Self emission
+                    //                energyd = dt * SIGMA * pow(triangle.temp ,4);
+                    //                triangle.heat -= triangle.iemi * triangle.area * energyd;
+                    //                currentphys->radiation += triangle.iemi * triangle.area * energyd;
 
-                // Self emission
-                //                energyd = dt * SIGMA * pow(triangle.temp ,4);
-                //                triangle.heat -= triangle.iemi * triangle.area * energyd;
-                //                newphys->radiation += triangle.iemi * triangle.area * energyd;
-
-                // Then do outputs
-                energyd = dt * SIGMA * pow(triangle.temp ,4);
-                if (triangle.external)
-                {
-                    // External Normal face
-                    triangle.heat -= triangle.emi * triangle.area * energyd;
-                    if (triangle.external == 2)
+                    // Then do outputs
+                    energyd = dt * SIGMA * pow(triangle.temp ,4);
+                    if (triangle.external)
                     {
-                        // External Anti-Normal face
+                        // External Normal face
                         triangle.heat -= triangle.emi * triangle.area * energyd;
+                        if (triangle.external == 2)
+                        {
+                            // External Anti-Normal face
+                            triangle.heat -= triangle.emi * triangle.area * energyd;
+                        }
+                        else {
+                            // Internal Anti-Normal face
+                            triangle.heat -= triangle.iemi * triangle.area * energyd;
+                            currentphys->radiation += triangle.iemi * triangle.area * energyd;
+                        }
                     }
                     else {
-                        // Internal Anti-Normal face
-                        triangle.heat -= triangle.iemi * triangle.area * energyd;
-                        newphys->radiation += triangle.iemi * triangle.area * energyd;
+                        {
+                            // Internal Normal face
+                            triangle.heat -= triangle.iemi * triangle.area * energyd;
+                            currentphys->radiation += triangle.iemi * triangle.area * energyd;
+
+                            // Internal Anti-Normal face
+                            triangle.heat -= triangle.iemi * triangle.area * energyd;
+                            currentphys->radiation += triangle.iemi * triangle.area * energyd;
+
+                        }
                     }
+
+                    currentphys->heat += triangle.heat;
+                    triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
                 }
-                else {
-                    {
-                        // Internal Normal face
-                        triangle.heat -= triangle.iemi * triangle.area * energyd;
-                        newphys->radiation += triangle.iemi * triangle.area * energyd;
-
-                        // Internal Anti-Normal face
-                        triangle.heat -= triangle.iemi * triangle.area * energyd;
-                        newphys->radiation += triangle.iemi * triangle.area * energyd;
-
-                    }
-                }
-
-                newphys->heat += triangle.heat;
-                triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
+                currentphys->temp = currentphys->heat / (currentphys->mass * currentphys->hcap);
+                temperature = currentphys->temp;
             }
-            newphys->temp = newphys->heat / (newphys->mass * newphys->hcap);
-            temperature = newphys->temp;
 
             return 0;
         }
@@ -691,96 +901,152 @@ namespace Cosmos
             return 0;
         }
 
-        int32_t ElectricalPropagator::Propagate()
+        int32_t ElectricalPropagator::Reset(float bp)
         {
-            Vector units = Quaternion(newloc->att.icrf.s).irotate(Vector(newloc->pos.icrf.s).normalize());
-            Vector unite = Vector(newloc->pos.eci.s).normalize(-1.);
-            unite = Vector(newloc->pos.eci.s).normalize(-1.);
-            unite = Quaternion(newloc->att.icrf.s).irotate(Vector(newloc->pos.eci.s).normalize(-1.));
-            double energyd;
-            for (trianglestruc& triangle : newphys->triangles)
+            currentutc = currentloc->utc;
+            if (bp == 0.f)
             {
-                if (triangle.external)
-                {
-                    // Solar effects
-                    double sdot = units.dot(triangle.normal);
+                currentphys->battlev = initialphys.battlev;
+            }
+            else
+            {
+                currentphys->battlev = bp;
+            }
+            return  0;
+        }
 
-                    // Earth effects
-                    double edot = acos(unite.dot(triangle.normal) / triangle.normal.norm()) - RADOF(5.);
-                    if (edot < 0.)
+        int32_t ElectricalPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            while ((nextutc - currentutc) > dtj / 2.)
+            {
+                currentutc += dtj;
+                Vector units = Quaternion(currentloc->att.icrf.s).irotate(Vector(currentloc->pos.icrf.s).normalize());
+                Vector unite = Vector(currentloc->pos.eci.s).normalize(-1.);
+                unite = Vector(currentloc->pos.eci.s).normalize(-1.);
+                unite = Quaternion(currentloc->att.icrf.s).irotate(Vector(currentloc->pos.eci.s).normalize(-1.));
+                double energyd;
+                for (trianglestruc& triangle : currentphys->triangles)
+                {
+                    if (triangle.external)
                     {
-                        edot = 1.;
+                        // Solar effects
+                        double sdot = units.dot(triangle.normal);
+
+                        // Earth effects
+                        double edot = acos(unite.dot(triangle.normal) / triangle.normal.norm()) - RADOF(5.);
+                        if (edot < 0.)
+                        {
+                            edot = 1.;
+                        }
+                        else
+                        {
+                            edot = cos(edot);
+                        }
+
+                        energyd = 0.;
+                        if (currentloc->pos.sunradiance && sdot > 0)
+                        {
+                            energyd +=  sdot * triangle.irradiation * dt;
+                        }
+
+                        if (edot > 0)
+                        {
+                            energyd += edot * dt * SIGMA * pow(290.,4);
+                        }
+                        if (triangle.pcell > 0.)
+                        {
+                            if (triangle.ecellbase > 0.)
+                            {
+                                double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
+                                triangle.power = triangle.area * efficiency * energyd / dt;
+                                triangle.volt = triangle.vcell;
+                                triangle.amp = -triangle.power / triangle.volt;
+                                currentphys->powgen += triangle.power;
+                            }
+                        }
                     }
                     else
                     {
-                        edot = cos(edot);
+                        triangle.power = 0.;
+                        triangle.volt = 0.;
+                        triangle.amp = 0.;
                     }
 
-                    energyd = 0.;
-                    if (newloc->pos.sunradiance && sdot > 0)
-                    {
-                        energyd +=  sdot * triangle.irradiation * dt;
-                    }
-
-                    if (edot > 0)
-                    {
-                        energyd += edot * dt * SIGMA * pow(290.,4);
-                    }
-                    if (triangle.pcell > 0.)
-                    {
-                        if (triangle.ecellbase > 0.)
-                        {
-                            double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
-                            triangle.power = triangle.area * efficiency * energyd / dt;
-                            triangle.volt = triangle.vcell;
-                            triangle.amp = -triangle.power / triangle.volt;
-                            newphys->powgen += triangle.power;
-                        }
-                    }
                 }
-                else
-                {
-                    triangle.power = 0.;
-                    triangle.volt = 0.;
-                    triangle.amp = 0.;
-                }
-
             }
             return 0;
         }
 
         int32_t InertialPositionPropagator::Init()
         {
+            PosAccel(currentloc, currentphys);
+
             return 0;
         }
 
-        int32_t InertialPositionPropagator::Propagate()
+        int32_t InertialPositionPropagator::Reset(double nextutc)
         {
-            oldloc = *newloc;
-            oldphys = *newphys;
-            newloc->pos.eci.pass++;
-            pos_eci(newloc);
-            PosAccel(newloc, newphys);
+            currentloc->pos = initialloc.pos;
+            currentutc = currentloc->pos.utc;
+            Propagate(nextutc);
+
+            return 0;
+        }
+
+        int32_t InertialPositionPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            currentloc->pos.icrf = initialloc.pos.icrf;
+            currentutc = nextutc;
+            currentloc->pos.icrf.utc = nextutc;
+            currentloc->pos.icrf.pass++;
+            pos_icrf(currentloc);
+            PosAccel(currentloc, currentphys);
 
             return 0;
         }
 
         int32_t IterativePositionPropagator::Init()
         {
+            PosAccel(currentloc, currentphys);
+
             return 0;
         }
 
-        int32_t IterativePositionPropagator::Propagate()
+        int32_t IterativePositionPropagator::Reset(double nextutc)
         {
-            oldloc = *newloc;
-            oldphys = *newphys;
-            rvector ds = rv_smult(.5 * dt * dt, newloc->pos.eci.a);
-            ds = rv_add(ds, rv_smult(dt, newloc->pos.eci.v));
-            newloc->pos.eci.s = rv_add(newloc->pos.eci.s, ds);
-            newloc->pos.eci.v = rv_add(newloc->pos.eci.v, rv_smult(dt, newloc->pos.eci.a));
-            newloc->pos.eci.pass++;
-            pos_eci(newloc);
-            PosAccel(newloc, newphys);
+            currentloc->pos = initialloc.pos;
+            currentutc = currentloc->pos.utc;
+            Propagate(nextutc);
+
+            return 0;
+        }
+
+        int32_t IterativePositionPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            while ((nextutc - currentutc) > dtj / 2.)
+            {
+                currentutc += dtj;
+                rvector ds = rv_smult(.5 * dt * dt, currentloc->pos.eci.a);
+                ds = rv_add(ds, rv_smult(dt, currentloc->pos.eci.v));
+                currentloc->pos.eci.s = rv_add(currentloc->pos.eci.s, ds);
+                currentloc->pos.eci.v = rv_add(currentloc->pos.eci.v, rv_smult(dt, currentloc->pos.eci.a));
+                currentloc->pos.eci.utc = currentutc;
+                currentloc->pos.eci.pass++;
+                PosAccel(currentloc, currentphys);
+                pos_eci(currentloc);
+            }
 
             return 0;
         }
@@ -915,15 +1181,13 @@ namespace Cosmos
         {
             int32_t iretn = 0;
 
-            oldloc = *newloc;
-            oldphys = *newphys;
             loc_clear(step[order+1].loc);
-            lines2eci(newloc->utc, lines, newloc->pos.eci);
-            ++newloc->pos.eci.pass;
-            pos_eci(newloc);
-            PosAccel(newloc, newphys);
-            AttAccel(newloc, newphys);
-            step[order2].loc = *newloc;
+            lines2eci(currentloc->utc, lines, currentloc->pos.eci);
+            ++currentloc->pos.eci.pass;
+            pos_eci(currentloc);
+            PosAccel(currentloc, currentphys);
+//            AttAccel(currentloc, currentphys);
+            step[order2].loc = *currentloc;
 
             // Position at t0-dt
             for (uint32_t i=order2-1; i<order2; --i)
@@ -937,8 +1201,8 @@ namespace Cosmos
                 step[i].loc.att.lvlh = step[i+1].loc.att.lvlh;
                 att_lvlh2icrf(step[i].loc);
 
-                PosAccel(&step[i].loc, newphys);
-                AttAccel(&step[i].loc, newphys);
+                PosAccel(&step[i].loc, currentphys);
+                AttAccel(&step[i].loc, currentphys);
             }
 
             for (uint32_t i=order2+1; i<=order; i++)
@@ -953,12 +1217,13 @@ namespace Cosmos
                 step[i].loc.att.lvlh = step[i-1].loc.att.lvlh;
                 att_lvlh2icrf(step[i].loc);
 
-                PosAccel(&step[i].loc, newphys);
-                AttAccel(&step[i].loc, newphys);
+                PosAccel(&step[i].loc, currentphys);
+                AttAccel(&step[i].loc, currentphys);
             }
 
             iretn = Converge();
-            newphys->utc = newloc->utc;
+            currentphys->utc = currentloc->utc;
+            currentutc = currentloc->utc;
 
             return iretn;
         }
@@ -985,21 +1250,21 @@ namespace Cosmos
             int32_t iretn = 0;
 
             // Make sure ::locstruc is internally self consistent
-            ++newloc->pos.eci.pass;
-            pos_eci(newloc);
+            ++currentloc->pos.eci.pass;
+            pos_eci(currentloc);
 
             // Zero out original N+1 bin
             loc_clear(step[order+1].loc);
 
             // Calculate initial accelerations
-            PosAccel(newloc, newphys);
-            AttAccel(newloc, newphys);
+            PosAccel(currentloc, currentphys);
+//            AttAccel(currentloc, currentphys);
 
             // Set central bin to initial state vector
-            step[order2].loc = *newloc;
+            step[order2].loc = *currentloc;
 
             // Position at t0-dt
-            eci2kep(newloc->pos.eci, kep);
+            eci2kep(currentloc->pos.eci, kep);
 
             // Initialize past bins
             for (i=order2-1; i<order2; --i)
@@ -1027,11 +1292,11 @@ namespace Cosmos
                 step[i].loc.att.icrf.utc = kep.utc;
                 pos_eci(step[i].loc);
 
-                PosAccel(&step[i].loc, newphys);
-                AttAccel(&step[i].loc, newphys);
+                PosAccel(&step[i].loc, currentphys);
+//                AttAccel(&step[i].loc, currentphys);
             }
 
-            eci2kep(newloc->pos.eci, kep);
+            eci2kep(currentloc->pos.eci, kep);
             for (i=order2+1; i<=order; i++)
             {
                 step[i] = step[i-1];
@@ -1057,11 +1322,13 @@ namespace Cosmos
                 step[i].loc.att.icrf.utc = kep.utc;
                 pos_eci(step[i].loc);
 
-                PosAccel(&step[i].loc, newphys);
-                AttAccel(&step[i].loc, newphys);
+                PosAccel(&step[i].loc, currentphys);
+//                AttAccel(&step[i].loc, currentphys);
             }
             iretn = Converge();
-            newphys->utc = newloc->utc;
+
+            currentphys->utc = currentloc->utc;
+            currentutc = currentloc->utc;
             return iretn;
         }
 
@@ -1070,18 +1337,18 @@ namespace Cosmos
             int32_t iretn = 0;
 
             // Make sure ::locstruc is internally self consistent
-            ++newloc->pos.eci.pass;
-            pos_eci(newloc);
+            ++currentloc->pos.eci.pass;
+            pos_eci(currentloc);
 
             // Zero out original N+1 bin
             loc_clear(step[order+1].loc);
 
             // Calculate initial accelerations
-            PosAccel(newloc, newphys);
-            AttAccel(newloc, newphys);
+            PosAccel(currentloc, currentphys);
+//            AttAccel(currentloc, currentphys);
 
             // Set central bin to initial state vector
-            step[order2].loc = *newloc;
+            step[order2].loc = *currentloc;
 
             // Initialize past bins
             for (uint32_t i=order2-1; i<order2; --i)
@@ -1104,8 +1371,8 @@ namespace Cosmos
                     step[i].loc = locs[index];
                 }
 
-                PosAccel(&step[i].loc, newphys);
-                AttAccel(&step[i].loc, newphys);
+                PosAccel(&step[i].loc, currentphys);
+//                AttAccel(&step[i].loc, currentphys);
             }
 
             for (uint32_t i=order2+1; i<=order; i++)
@@ -1128,75 +1395,93 @@ namespace Cosmos
                     step[i].loc = locs[index];
                 }
 
-                PosAccel(&step[i].loc, newphys);
-                AttAccel(&step[i].loc, newphys);
+                PosAccel(&step[i].loc, currentphys);
+//                AttAccel(&step[i].loc, currentphys);
             }
             iretn = Converge();
-            newphys->utc = newloc->utc;
+
+            currentphys->utc = currentloc->utc;
+            currentutc = currentloc->utc;
             return iretn;
         }
 
-        int32_t GaussJacksonPositionPropagator::Propagate()
+        int32_t GaussJacksonPositionPropagator::Reset(double nextutc)
         {
-            Vector normal, unitv, unitx, unitp, unitp1, unitp2;
-            Vector lunitp1(.1,.1,0.);
-            Vector tvector;
+            int32_t iretn;
+            currentloc->pos = initialloc.pos;
+            currentutc = currentloc->pos.utc;
+            iretn = Init();
+            Propagate(nextutc);
+            return iretn;
+        }
 
-            oldloc = *newloc;
-            oldphys = *newphys;
-
-            // Don't bother if too low
-            if (Vector(newloc->pos.eci.s).norm() < REARTHM)
+        int32_t GaussJacksonPositionPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
             {
-                return GENERAL_ERROR_TOO_LOW;
+                nextutc = currentutc + dtj;
             }
 
-            step[order+1].loc.utc = step[order+1].loc.pos.utc = step[order+1].loc.pos.eci.utc = step[order].loc.pos.eci.utc + dtj;
-
-            // Calculate S(order/2+1)
-            step[order+1].ss.col[0] = step[order].ss.col[0] + step[order].s.col[0] + step[order].loc.pos.eci.a.col[0]/2.;
-            step[order+1].ss.col[1] = step[order].ss.col[1] + step[order].s.col[1] + step[order].loc.pos.eci.a.col[1]/2.;
-            step[order+1].ss.col[2] = step[order].ss.col[2] + step[order].s.col[2] + step[order].loc.pos.eci.a.col[2]/2.;
-
-            // Calculate Sum(order/2+1) for a and b
-            step[order+1].sb = step[order+1].sa = rv_zero();
-            for (uint16_t k=0; k<=order; k++)
+            while ((nextutc - currentutc) > dtj / 2.)
             {
-                step[order+1].sb.col[0] += step[order+1].b[k] * step[k].loc.pos.eci.a.col[0];
-                step[order+1].sa.col[0] += step[order+1].a[k] * step[k].loc.pos.eci.a.col[0];
-                step[order+1].sb.col[1] += step[order+1].b[k] * step[k].loc.pos.eci.a.col[1];
-                step[order+1].sa.col[1] += step[order+1].a[k] * step[k].loc.pos.eci.a.col[1];
-                step[order+1].sb.col[2] += step[order+1].b[k] * step[k].loc.pos.eci.a.col[2];
-                step[order+1].sa.col[2] += step[order+1].a[k] * step[k].loc.pos.eci.a.col[2];
+                currentutc += dtj;
+                Vector normal, unitv, unitx, unitp, unitp1, unitp2;
+                Vector lunitp1(.1,.1,0.);
+                Vector tvector;
+
+                // Don't bother if too low
+                if (Vector(currentloc->pos.eci.s).norm() < REARTHM)
+                {
+                    return GENERAL_ERROR_TOO_LOW;
+                }
+
+                step[order+1].loc.utc = step[order+1].loc.pos.utc = step[order+1].loc.pos.eci.utc = step[order].loc.pos.eci.utc + dtj;
+
+                // Calculate S(order/2+1)
+                step[order+1].ss.col[0] = step[order].ss.col[0] + step[order].s.col[0] + step[order].loc.pos.eci.a.col[0]/2.;
+                step[order+1].ss.col[1] = step[order].ss.col[1] + step[order].s.col[1] + step[order].loc.pos.eci.a.col[1]/2.;
+                step[order+1].ss.col[2] = step[order].ss.col[2] + step[order].s.col[2] + step[order].loc.pos.eci.a.col[2]/2.;
+
+                // Calculate Sum(order/2+1) for a and b
+                step[order+1].sb = step[order+1].sa = rv_zero();
+                for (uint16_t k=0; k<=order; k++)
+                {
+                    step[order+1].sb.col[0] += step[order+1].b[k] * step[k].loc.pos.eci.a.col[0];
+                    step[order+1].sa.col[0] += step[order+1].a[k] * step[k].loc.pos.eci.a.col[0];
+                    step[order+1].sb.col[1] += step[order+1].b[k] * step[k].loc.pos.eci.a.col[1];
+                    step[order+1].sa.col[1] += step[order+1].a[k] * step[k].loc.pos.eci.a.col[1];
+                    step[order+1].sb.col[2] += step[order+1].b[k] * step[k].loc.pos.eci.a.col[2];
+                    step[order+1].sa.col[2] += step[order+1].a[k] * step[k].loc.pos.eci.a.col[2];
+                }
+
+                // Calculate pos.v(order/2+1)
+                step[order+1].loc.pos.eci.v.col[0] = this->dt * (step[order].s.col[0] + step[order].loc.pos.eci.a.col[0]/2. + step[order+1].sb.col[0]);
+                step[order+1].loc.pos.eci.v.col[1] = this->dt * (step[order].s.col[1] + step[order].loc.pos.eci.a.col[1]/2. + step[order+1].sb.col[1]);
+                step[order+1].loc.pos.eci.v.col[2] = this->dt * (step[order].s.col[2] + step[order].loc.pos.eci.a.col[2]/2. + step[order+1].sb.col[2]);
+
+                // Calculate pos.s(order/2+1)
+                step[order+1].loc.pos.eci.s.col[0] = this->dtsq * (step[order+1].ss.col[0] + step[order+1].sa.col[0]);
+                step[order+1].loc.pos.eci.s.col[1] = this->dtsq * (step[order+1].ss.col[1] + step[order+1].sa.col[1]);
+                step[order+1].loc.pos.eci.s.col[2] = this->dtsq * (step[order+1].ss.col[2] + step[order+1].sa.col[2]);
+                step[order+1].loc.pos.eci.pass++;
+                pos_eci(step[order+1].loc);
+
+//                AttAccel(&step[order+1].loc, currentphys);
+                PosAccel(&step[order+1].loc, currentphys);
+
+                // Calculate s(order/2+1)
+                step[order+1].s.col[0] = step[order].s.col[0] + (step[order].loc.pos.eci.a.col[0]+step[order+1].loc.pos.eci.a.col[0])/2.;
+                step[order+1].s.col[1] = step[order].s.col[1] + (step[order].loc.pos.eci.a.col[1]+step[order+1].loc.pos.eci.a.col[1])/2.;
+                step[order+1].s.col[2] = step[order].s.col[2] + (step[order].loc.pos.eci.a.col[2]+step[order+1].loc.pos.eci.a.col[2])/2.;
+
+                // Shift everything over 1
+                for (uint16_t j=0; j<=order; j++)
+                {
+                    step[j] = step[j+1];
+                }
+
+                currentloc->pos = step[order].loc.pos;
             }
-
-            // Calculate pos.v(order/2+1)
-            step[order+1].loc.pos.eci.v.col[0] = this->dt * (step[order].s.col[0] + step[order].loc.pos.eci.a.col[0]/2. + step[order+1].sb.col[0]);
-            step[order+1].loc.pos.eci.v.col[1] = this->dt * (step[order].s.col[1] + step[order].loc.pos.eci.a.col[1]/2. + step[order+1].sb.col[1]);
-            step[order+1].loc.pos.eci.v.col[2] = this->dt * (step[order].s.col[2] + step[order].loc.pos.eci.a.col[2]/2. + step[order+1].sb.col[2]);
-
-            // Calculate pos.s(order/2+1)
-            step[order+1].loc.pos.eci.s.col[0] = this->dtsq * (step[order+1].ss.col[0] + step[order+1].sa.col[0]);
-            step[order+1].loc.pos.eci.s.col[1] = this->dtsq * (step[order+1].ss.col[1] + step[order+1].sa.col[1]);
-            step[order+1].loc.pos.eci.s.col[2] = this->dtsq * (step[order+1].ss.col[2] + step[order+1].sa.col[2]);
-            step[order+1].loc.pos.eci.pass++;
-            pos_eci(step[order+1].loc);
-
-            AttAccel(&step[order+1].loc, newphys);
-            PosAccel(&step[order+1].loc, newphys);
-
-            // Calculate s(order/2+1)
-            step[order+1].s.col[0] = step[order].s.col[0] + (step[order].loc.pos.eci.a.col[0]+step[order+1].loc.pos.eci.a.col[0])/2.;
-            step[order+1].s.col[1] = step[order].s.col[1] + (step[order].loc.pos.eci.a.col[1]+step[order+1].loc.pos.eci.a.col[1])/2.;
-            step[order+1].s.col[2] = step[order].s.col[2] + (step[order].loc.pos.eci.a.col[2]+step[order+1].loc.pos.eci.a.col[2])/2.;
-
-            // Shift everything over 1
-            for (uint16_t j=0; j<=order; j++)
-            {
-                step[j] = step[j+1];
-            }
-
-            *newloc = step[order].loc;
 
             return 0;
         }
@@ -1206,8 +1491,8 @@ namespace Cosmos
             uint32_t c_cnt, cflag=0, k;
             rvector oldsa;
 
-            oldloc = *newloc;
-            oldphys = *newphys;
+            initialloc = *currentloc;
+            initialphys = *currentphys;
 
             c_cnt = 0;
             do
@@ -1291,7 +1576,7 @@ namespace Cosmos
                         //		eci2earth(&step[order2+i*n].loc.pos,&step[order2+i*n].att);
 
                         // Calculate acceleration at new position
-                        PosAccel(&step[order2+i*n].loc, newphys);
+                        PosAccel(&step[order2+i*n].loc, currentphys);
 
                         // Compare acceleration at new position to previous iteration
                         if (fabs(oldsa.col[0]-step[order2+i*n].loc.pos.eci.a.col[0])>1e-14 || fabs(oldsa.col[1]-step[order2+i*n].loc.pos.eci.a.col[1])>1e-14 || fabs(oldsa.col[2]-step[order2+i*n].loc.pos.eci.a.col[2])>1e-14)
@@ -1301,9 +1586,10 @@ namespace Cosmos
                 c_cnt++;
             } while (c_cnt<10 && cflag);
 
-            *newloc = step[order].loc;
-            ++newloc->pos.eci.pass;
-            pos_eci(newloc);
+            *currentloc = step[order].loc;
+            ++currentloc->pos.eci.pass;
+            PosAccel(currentloc, currentphys);
+            pos_eci(currentloc);
             return 0;
         }
 
@@ -1359,6 +1645,7 @@ namespace Cosmos
                     }
                 }
             }
+            return 0;
         }
 
         //! Calculate static physical attributes
@@ -1408,6 +1695,11 @@ namespace Cosmos
             \param physics Pointer to structure specifying satellite.
             \param loc Structure specifying location.
         */
+        int32_t AttAccel(locstruc &loc, physicsstruc &phys)
+        {
+            return AttAccel(&loc, &phys);
+        }
+
         int32_t AttAccel(locstruc *loc, physicsstruc *phys)
         {
             //    rvector ue, ta, tv;
@@ -1474,6 +1766,11 @@ namespace Cosmos
             \param phys Pointer to structure specifying satellite.
             \param loc Structure specifying location.
         */
+        int32_t PosAccel(locstruc &loc, physicsstruc &phys)
+        {
+            return PosAccel(&loc, &phys);
+        }
+
         int32_t PosAccel(locstruc* loc, physicsstruc* phys)
         {
             int32_t iretn;
@@ -1484,6 +1781,7 @@ namespace Cosmos
             radius = length_rv(loc->pos.eci.s);
 
             loc->pos.eci.a = rv_zero();
+            pos_eci2geoc(*loc);
 
             // Earth gravity
             // Calculate Geocentric acceleration vector
@@ -1561,6 +1859,12 @@ namespace Cosmos
             if (phys->fdrag.norm() > 0.)
             {
                 da = iratt.irotate(phys->fdrag);
+                loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
+            }
+            // Thrust
+            if (phys->thrust.norm() > 0.)
+            {
+                da = iratt.irotate(phys->thrust);
                 loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
             }
 
@@ -1872,6 +2176,39 @@ namespace Cosmos
             }
         }
 
+        locstruc shape2eci(double utc, double altitude, double angle, double hour)
+        {
+            return shape2eci(utc, 0., 0., altitude, angle, hour);
+        }
+
+        locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double hour)
+        {
+            locstruc loc;
+
+            longitude += 2. * DPI * (fabs(hour)/24. - (utc - (int)utc));
+
+            pos_clear(loc);
+
+            // Initial position
+            loc.pos.geod.utc = loc.att.geoc.utc = utc;
+            loc.pos.geod.s.h = altitude;
+            loc.pos.geod.s.lat = latitude;
+            loc.pos.geod.s.lon = longitude;
+            double radius = rearth(0.) + altitude;
+            loc.pos.geod.v.lat =  sin(angle) * sqrt(GM/radius) / radius;
+            loc.pos.geod.v.h = -2. * FLATTENING * REARTHKM * sin(latitude) * cos(latitude) * loc.pos.geod.v.lat;
+            loc.pos.geod.v.lon = cos(angle) * sqrt(GM/radius) / radius;
+            if (hour < 0)
+            {
+                loc.pos.geod.v.lat = -loc.pos.geod.v.lat;
+                loc.pos.geod.v.lon = -loc.pos.geod.v.lon;
+            }
+            loc.pos.geod.v.lon -= DPI / 43200.;
+            loc.pos.geod.pass++;
+            pos_geod(&loc);
+
+            return loc;
+        }
     }
 
 }
