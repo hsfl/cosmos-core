@@ -322,11 +322,10 @@ namespace Support
         request_entry tentry;
         if (token.size() > COSMOS_MAX_NAME) { token.resize(COSMOS_MAX_NAME); }
         tentry.token = token;
-//            tentry.ifunction = nullptr;
         tentry.efunction = function;
         tentry.synopsis = synopsis;
         tentry.description = description;
-        reqs.push_back(tentry);
+        reqs[token] = tentry;
         return 0;
     }
 
@@ -769,23 +768,15 @@ namespace Support
         //request[i] = 0;
 		request.resize(i);
 
-        for (i=0; i<reqs.size(); i++) { if (!strcmp(request.c_str(),reqs[i].token.c_str())) break; }
-
-        if (i < reqs.size()) {
+        //for (i=0; i<reqs.size(); i++) { if (!strcmp(request.c_str(),reqs[i].token.c_str())) break; }
+        if(reqs.find(request) == reqs.end()) {
+            iretn = AGENT_ERROR_NULL;
+            bufferout = "[NOK] " + std::to_string(iretn);
+        } else {
+            request_entry &rentry = reqs[request];
             iretn = -1;
-//                if (reqs[i].ifunction)
-//                {
-//                    iretn = (this->*reqs[i].ifunction)(&bufferin[0], &request[0]);
-//                }
-//                else
-//                {
-//                    if (reqs[i].efunction != nullptr)
-//                    {
-//                        iretn = reqs[i].efunction(&bufferin[0], &request[0], this);
-//                    }
-//                }
-            if (reqs[i].efunction != nullptr) {
-                iretn = reqs[i].efunction(bufferin, request, this);
+            if (rentry.efunction != nullptr) {
+                iretn = rentry.efunction(bufferin, request, this);
             }
             if (iretn >= 0) {
                 request.resize(strlen(&request[0]));
@@ -793,9 +784,6 @@ namespace Support
             } else {
                 bufferout = "[NOK] " + std::to_string(iretn);
             }
-        } else {
-            iretn = AGENT_ERROR_NULL;
-            bufferout = "[NOK] " + std::to_string(iretn);
         }
 
         iretn = sendto(cinfo->agent[0].req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, sizeof(struct sockaddr_in));
@@ -908,50 +896,38 @@ namespace Support
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-//        int32_t Agent::req_help_json(char*, char* output, Agent* agent)
     int32_t Agent::req_help_json(string &, string &output, Agent* agent) {
         string help_string, s;
         size_t qpos, prev_qpos = 0;
-        //        help_string += "\n";
         help_string += "{\"requests\": [";
-        for(uint32_t i = 0; i < agent->reqs.size(); ++i) {
+        for(map<string, request_entry>::iterator it = agent->reqs.begin(); it != agent->reqs.end(); ++it) {
             //            help_string += "        ";
-            if(i>0) help_string+=",";
+            if(it != agent->reqs.begin()) help_string+=",";
             help_string += "{\"token\": \"";
-            help_string += agent->reqs[i].token;
-            //            help_string += " ";
+            help_string += it->second.token;
             help_string += "\", \"synopsis\": \"";
-            //            help_string += agent->reqs[i].synopsis;
             qpos = 0;
             prev_qpos = 0;
-            s = agent->reqs[i].synopsis;
+            s = it->second.synopsis;
             while((qpos=s.substr(prev_qpos).find("\""))!= string::npos)
             {
                 s.replace(qpos+prev_qpos, 1, "\\\"");
                 prev_qpos +=qpos+2;
             }
             help_string+= s;
-            //            help_string += "\n";
-            //size_t blanks = (20 - (signed int)strlen(agent->reqs[i].token)) > 0 ? 20 - strlen(agent->reqs[i].token) : 4;
-            //string blank(blanks,' ');
-            //help_string += blank;
-            //            help_string += "                ";
             help_string += "\", \"description\": \"";
             qpos = 0;
             prev_qpos = 0;
-            s = agent->reqs[i].description;
+            s = it->second.description;
             while((qpos=s.substr(prev_qpos).find("\""))!= string::npos){
                 s.replace(qpos+prev_qpos, 1, "\\\"");
                 prev_qpos +=qpos+2;
             }
             help_string+= s;
-            //            help_string += agent->reqs[i].description;
-            //            help_string += "\n\n";
+
             help_string +="\"}";
         }
-        //        help_string += "\n";
         help_string += "]}";
-//            strcpy(output, (char*)help_string.c_str());
         output = help_string;
         return 0;
     }
@@ -959,18 +935,14 @@ namespace Support
     int32_t Agent::req_help(string &, string &output, Agent* agent) {
         string help_string;
         help_string += "\n";
-        for(uint32_t i = 0; i < agent->reqs.size(); ++i)
-        {
+        for(map<string, request_entry>::iterator it = agent->reqs.begin(); it != agent->reqs.end(); ++it) {
             help_string += "        ";
-            help_string += agent->reqs[i].token;
+            help_string += it->second.token;
             help_string += " ";
-            help_string += agent->reqs[i].synopsis;
+            help_string += it->second.synopsis;
             help_string += "\n";
-            //size_t blanks = (20 - (signed int)strlen(agent->reqs[i].token)) > 0 ? 20 - strlen(agent->reqs[i].token) : 4;
-            //string blank(blanks,' ');
-            //help_string += blank;
             help_string += "                ";
-            help_string += agent->reqs[i].description;
+            help_string += it->second.description;
             help_string += "\n\n";
         }
         help_string += "\n";

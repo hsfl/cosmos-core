@@ -409,7 +409,7 @@ namespace Cosmos
                 string description;
             };
 
-            vector <request_entry> reqs;
+            map<string, request_entry> reqs;
 
             void heartbeat_loop();
             void request_loop() noexcept;
