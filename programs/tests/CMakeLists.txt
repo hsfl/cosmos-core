@@ -33,6 +33,7 @@ target_link_libraries(track_sband CosmosSupport CosmosDeviceGeneral CosmosDevice
 target_link_libraries(serial_setdtr CosmosDeviceSerial CosmosSupport)
 target_link_libraries(serialPutData CosmosDeviceSerial CosmosSupport)
 target_link_libraries(serialSendChar CosmosDeviceSerial CosmosSupport)
+target_link_libraries(agent_simple_request CosmosSupport CosmosAgent)
 
 #include(CTest)
 #enable_testing()

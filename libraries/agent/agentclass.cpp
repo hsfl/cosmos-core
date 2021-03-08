@@ -329,6 +329,67 @@ namespace Support
         return 0;
     }
 
+    int32_t Agent::add_request(std::string token, Agent::simple_request_function function, std::string synopsis, std::string description)
+    {
+
+        external_request_function external_request_wrapper = [] (string& request_string, string& output_string, Agent* agent){
+            vector<string> args;
+            istringstream iss(request_string);
+            string arg;
+
+            while ( getline(iss, arg, ' ') ){
+                args.push_back(arg);
+            }
+            string request = args[0];
+            args.erase(args.begin());
+
+            int32_t error = 0;
+            output_string = agent->reqs[request].sfunction(args, error);
+            return error;
+
+        };
+
+        request_entry tentry;
+        if (token.size() > COSMOS_MAX_NAME) { token.resize(COSMOS_MAX_NAME); }
+        tentry.token = token;
+        tentry.efunction = external_request_wrapper;
+        tentry.sfunction = function;
+        tentry.synopsis = synopsis;
+        tentry.description = description;
+        reqs[token] = tentry;
+        return 0;
+    }
+
+    int32_t Agent::add_request(std::string token, Agent::no_arg_request_function function, std::string synopsis, std::string description)
+    {
+        external_request_function external_request_wrapper = [] (string& request_string, string& output_string, Agent* agent){
+            vector<string> args;
+            istringstream iss(request_string);
+            string arg;
+
+            while ( getline(iss, arg, ' ') ){
+                args.push_back(arg);
+            }
+            string request = args[0];
+            args.erase(args.begin());
+
+            int32_t error = 0;
+            output_string = agent->reqs[request].nafunction(error);
+            return error;
+
+        };
+
+        request_entry tentry;
+        if (token.size() > COSMOS_MAX_NAME) { token.resize(COSMOS_MAX_NAME); }
+        tentry.token = token;
+        tentry.efunction = external_request_wrapper;
+        tentry.nafunction = function;
+        tentry.synopsis = synopsis;
+        tentry.description = description;
+        reqs[token] = tentry;
+        return 0;
+    }
+
         //! Start Agent Request and Heartbeat loops
         /*!	Starts the request and heartbeat threads for an Agent server initialized with
  * Cosmos::Agent::Agent. The Agent will open its request and heartbeat channels using the
