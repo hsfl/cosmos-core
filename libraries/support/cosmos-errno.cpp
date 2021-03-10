@@ -280,37 +280,41 @@ namespace Cosmos {
             return error_string;
         }
 
-        int32_t Error::Set(uint16_t level, string pathname, double interval)
+        int32_t Error::Set(uint16_t type, string pathname, double interval)
         {
-            if (level == 0) {
+            log_interval = interval;
+            log_type = type;
+            switch (log_type)
+            {
+            case LOG_NONE:
                 if (log_fd != nullptr && log_fd != stdout) {
                     fclose(log_fd);
                 }
                 log_fd = nullptr;
                 log_pathName.clear();
-            }
-            else if (level == 1) {
-                if (log_fd != stdout) {
-                    if (log_fd != nullptr) {
-                        fclose(log_fd);
-                    }
-                    log_fd = stdout;
+                break;
+            case LOG_STDOUT_FAST:
+            case LOG_STDOUT_FFLUSH:
+                if (log_fd != nullptr && log_fd != stdout) {
+                    fclose(log_fd);
                 }
+                log_fd = stdout;
                 log_pathName.clear();
-            } else {
+                break;
+            default:
                 log_pathName = pathname;
+                break;
             }
-            log_level = level;
-            return level;
+            return type;
         }
 
         FILE* Error::Open()
         {
-            if (log_level == 0) {
+            if (log_type == 0) {
                 log_fd = nullptr;
                 log_pathName.clear();
             }
-            else if (log_level == 1) {
+            else if (log_type == 1) {
                 if (log_fd != stdout) {
                     if (log_fd != nullptr) {
                         fclose(log_fd);
@@ -323,7 +327,7 @@ namespace Cosmos {
                 mjd -= fmod(mjd - floor(mjd), log_interval);
                 if (fabs(mjd - oldmjd) > log_interval / 2.)
                 {
-                    string pathName = log_pathName + data_name("", mjd, "log"+to_unsigned(log_level));
+                    string pathName = log_pathName + data_name("", mjd, "log"+to_unsigned(log_type));
 
                     if (log_fd != nullptr) {
                         if (pathName != log_pathName) {
@@ -371,12 +375,25 @@ namespace Cosmos {
         {
             int32_t iretn = 0;
 
+            Open();
             if (log_fd != nullptr)
             {
                 va_list args;
                 va_start(args, fmt);
                 iretn = vfprintf(log_fd, fmt, args);
                 va_end(args);
+                switch (log_type)
+                {
+                case LOG_STDOUT_FFLUSH:
+                case LOG_FILE_FFLUSH:
+                    fflush(log_fd);
+                    break;
+                case LOG_FILE_CLOSE:
+                    fclose(log_fd);
+                    break;
+                default:
+                    break;
+                }
             }
 
             return iretn;
