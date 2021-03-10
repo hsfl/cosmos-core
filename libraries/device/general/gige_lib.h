@@ -386,6 +386,7 @@ int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint
 int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
 int a35_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t video_rate);
 int pt1000_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
+int pt1000_image(gige_handle *handle, uint32_t frames, vector<vector<vector<uint16_t>>> &buffer);
 int pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize);
 //! @}
 

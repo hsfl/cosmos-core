@@ -571,6 +571,79 @@ int pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize)
  * \param bsize Number of bytes to expect at a go.
  * \return Zero, or negative error.
  */
+int pt1000_image(gige_handle *handle, uint32_t frames, vector<vector<vector<uint16_t>>> &buffer)
+{
+    int32_t iretn, nbytes;
+    uint32_t tbytes, pbytes;
+    vector<uint8_t> bufferin;
+    vector<uint16_t> bufferout;
+    double mjd;
+
+//    iretn = gige_readmem(handle,GIGE_REG_MODEL_NAME,GIGE_MAX_MODEL_NAME);
+    bufferin.resize(handle->bestsize);
+    if (bufferin.size() != handle->bestsize)
+        return (-errno);
+
+    gige_writereg(handle,GIGE_REG_SCDA, gige_address_to_value(handle->stream.address));
+
+    iretn = gige_writereg(handle,GIGE_REG_SCP,handle->stream.cport);
+    if ((iretn=gige_writereg(handle,GIGE_REG_SCPS,handle->bestsize)) < 0)
+        return iretn;
+    if ((iretn=gige_writereg(handle,PT1000::AcquisitionStartReg,1)) < 0)
+        return iretn;
+    uint16_t width = gige_readreg(handle,PT1000::WidthReg);
+    uint16_t height = gige_readreg(handle,PT1000::HeightReg);
+    bufferout.resize(width * height * frames);
+    pbytes =   bufferout.size() * 2;
+
+    tbytes = 0;
+    uint32_t elapsed=0;
+    uint32_t telapsed=500000 + 2 * 1e6 * pbytes / handle->streambps;
+    mjd = currentmjd(0.);
+    uint16_t cframe = 0;
+    uint16_t crow = 0;
+    uint16_t ccol = 0;
+    while (tbytes < pbytes && elapsed<telapsed)
+    {
+        if ((nbytes=recvfrom(handle->stream.cudp, bufferin.data() ,handle->bestsize, 0, static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr))) > 0)
+        {
+            switch (bufferin[4])
+            {
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                memcpy(&bufferout[0] + tbytes, &bufferin[8], nbytes-8);
+                tbytes += nbytes-8;
+                break;
+            }
+        }
+        elapsed = (uint32_t)(1e6*86400.*(currentmjd(0.)-mjd)+.5);
+//		iretn = gige_readreg(handle,GIGE_REG_CCP);
+    }
+
+    iretn = gige_writereg(handle,PT1000::AcquisitionStopReg,1);
+    iretn = gige_writereg(handle,GIGE_REG_SCP,0);
+
+    buffer.resize(frames);
+    size_t ipix = 0;
+    for (uint16_t ip=0; ip<frames; ++ip)
+    {
+        buffer[ip].resize(height);
+        for (uint16_t ir=0; ir<height; ++ir)
+        {
+            buffer[ip][ir].resize(width);
+            for (uint16_t ic=0; ic<width; ++ic)
+            {
+                buffer[ip][ir][ic] = bufferout[ipix++];
+            }
+        }
+    }
+
+    return (tbytes);
+}
+
 int pt1000_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize)
 {
     int32_t iretn, nbytes;
