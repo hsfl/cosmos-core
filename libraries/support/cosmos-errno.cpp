@@ -310,11 +310,14 @@ namespace Cosmos {
 
         FILE* Error::Open()
         {
-            if (log_type == 0) {
+            switch (log_type)
+            {
+            case LOG_NONE:
                 log_fd = nullptr;
                 log_pathName.clear();
-            }
-            else if (log_type == 1) {
+                break;
+            case LOG_STDOUT_FAST:
+            case LOG_STDOUT_FFLUSH:
                 if (log_fd != stdout) {
                     if (log_fd != nullptr) {
                         fclose(log_fd);
@@ -322,7 +325,8 @@ namespace Cosmos {
                     log_fd = stdout;
                     log_pathName.clear();
                 }
-            } else {
+                break;
+            default:
                 double mjd = currentmjd();
                 mjd -= fmod(mjd - floor(mjd), log_interval);
                 if (fabs(mjd - oldmjd) > log_interval / 2.)
@@ -350,6 +354,7 @@ namespace Cosmos {
                     }
                     oldmjd = mjd;
                 }
+                break;
             }
             return log_fd;
         }
