@@ -281,13 +281,24 @@ namespace Cosmos
             //! Format of a user supplied function to handle a given request
             typedef int32_t (*external_request_function)(string& request_string, string& output_string, Agent* agent);
 
+            //! Simplified Agent Request Function
+            //! Format of a user supplied function to handle a given request
+            //! returns response string
+            typedef string (*simple_request_function)(vector<string>& request_args, int32_t &error);
+            //! Simplified Agent Request Function
+            //! Format of a user supplied function to handle a given request
+            //! returns response string
+            typedef string (*no_arg_request_function)(int32_t &error);
+
             //! @}
-            //!
+            //!s
             // agent functions
             int32_t start();
             int32_t start_active_loop();
             int32_t finish_active_loop();
             int32_t add_request(string token, external_request_function function, string synopsis="", string description="");
+            int32_t add_request(string token, simple_request_function function, string synopsis="", string description="");
+            int32_t add_request(string token, no_arg_request_function function, string synopsis="", string description="");
             int32_t send_request(beatstruc cbeat, string request, string &output, float waitsec=5.);
             int32_t send_request_jsonnode(beatstruc cbeat, jsonnode &jnode, float waitsec=5.);
             int32_t get_agent(string node, string agent, double waitsec, beatstruc &cbeat);
@@ -405,11 +416,13 @@ namespace Cosmos
                 string token;
                 //! Pointer to function to call with request string as argument and returning any error
                 external_request_function efunction;
+                simple_request_function sfunction;
+                no_arg_request_function nafunction;
                 string synopsis;
                 string description;
             };
 
-            vector <request_entry> reqs;
+            map<string, request_entry> reqs;
 
             void heartbeat_loop();
             void request_loop() noexcept;
