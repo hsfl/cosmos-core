@@ -6,10 +6,10 @@ rm -r linux
 
 mkdir linux
 
-do_cmake linux
+./do_cmake linux
 
 cp ../scripts/build_all linux
 
 cd linux
 
-build_all
+./build_all
