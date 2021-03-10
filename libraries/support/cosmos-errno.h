@@ -511,7 +511,7 @@ namespace Cosmos {
                 {ErrorNumbers::COSMOS_GENERAL_ERROR_DUPLICATE, "Duplicate"},
                 {ErrorNumbers::COSMOS_GENERAL_ERROR_MISMATCH, "Mismatch"},
                 {ErrorNumbers::COSMOS_GENERAL_ERROR_ERROR, "General Error"},
-                {ErrorNumbers::COSMOS_GENERAL_ERROR_ARGS, "Wrong Rguments"},
+                {ErrorNumbers::COSMOS_GENERAL_ERROR_ARGS, "Wrong Arguments"},
                 {ErrorNumbers::COSMOS_GENERAL_ERROR_TOO_LOW, "Value Too Low"},
                 {ErrorNumbers::COSMOS_GENERAL_ERROR_POSITION, "Improper Position"},
                 {ErrorNumbers::COSMOS_GENERAL_ERROR_ATTITUDE, "Improper Attitude"},
@@ -520,8 +520,18 @@ namespace Cosmos {
                 {ErrorNumbers::COSMOS_GENERAL_ERROR_BAD_ACK, "Bad Acknowledgement"}
             };
 
+            enum LogType
+                {
+                LOG_NONE = 0,
+                LOG_STDOUT_FAST = 1,
+                LOG_STDOUT_FFLUSH = 2,
+                LOG_FILE_FAST = 3,
+                LOG_FILE_FFLUSH = 4,
+                LOG_FILE_CLOSE = 5
+                };
+
             string ErrorString(int16_t number);
-            int32_t Set(uint16_t level=0, string pathname="", double interval=1800.);
+            int32_t Set(uint16_t type=0, string pathname="", double interval=1800.);
             FILE *Open();
             int32_t Close();
             int32_t Printf(string output);
@@ -531,7 +541,7 @@ namespace Cosmos {
         private:
             double log_interval = 30. / 1440.;
             double oldmjd = 0.;
-            uint16_t log_level = 0;
+            uint16_t log_type = 0;
             string log_pathName;
             FILE *log_fd = nullptr;
         };
