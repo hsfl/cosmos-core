@@ -31,6 +31,7 @@
 #include "support/elapsedtime.h"
 #include "support/timeutils.h"
 #include "agent/agentclass.h"
+#include "support/stringlib.h"
 
 #include <iostream>
 #include <string>
@@ -228,9 +229,9 @@ cout<<"Now to try to get the orbis of ISS..."<<endl;
 */
         // Sleep for 5 sec
 
-		cout<<"Available Agents..."<<endl;
+        cout<<to_unsigned(agent->agent_list.size()) + " Available Agents..."<<endl;
 		for(size_t i = 0; i < agent->agent_list.size(); ++i)	{
-			cout<<agent->agent_list[i].node<<":"<<agent->agent_list[i].proc<<endl;
+            cout<<"Agent_"<<to_unsigned(i)<<" "<<agent->agent_list[i].node<<":"<<agent->agent_list[i].proc<<endl;
 		}
         COSMOS_SLEEP(5.);
     }
