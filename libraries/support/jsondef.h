@@ -467,6 +467,9 @@ enum {
 //* Maximum number of ports
 #define MAX_NUMBER_OF_PORTS 5
 
+//* Maximum number of parameter sets
+#define MAX_NUMBER_OF_PARAMETER_SETS 5
+
 //* Maximum number of satellites
 #define MAX_NUMBER_OF_SATELLITES 5
 
@@ -1077,6 +1080,75 @@ struct agentstruc
 //				}
 //			}
 			if(!p["beat"].is_null()) { beat.from_json(p["beat"].dump()); }
+		} else {
+			cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
+		return;
+	}
+};
+
+//! STTR Simulation Parameter Class
+/** Yes it is.
+*/
+class sim_param	{
+	public:
+
+	/** param_01 represents ... */
+	double	param_01 = 0.0;
+	/** param_02 represents ... */
+	double	param_02 = 0.0;
+	/** param_03 represents ... */
+	double	param_03 = 0.0;
+	/** param_04 represents ... */
+	double	param_04 = 0.0;
+	/** param_05 represents ... */
+	double	param_05 = 0.0;
+	/** param_06 represents ... */
+	double	param_06 = 0.0;
+	/** param_07 represents ... */
+	double	param_07 = 0.0;
+	/** param_08 represents ... */
+	double	param_08 = 0.0;
+	/** param_09 represents ... */
+	double	param_09 = 0.0;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+		@return A json11 JSON object containing every member variable within the class
+	*/
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "param_01"   , param_01 },
+			{ "param_02"   , param_02 },
+			{ "param_03"   , param_03 },
+			{ "param_04"   , param_04 },
+			{ "param_05"   , param_05 },
+			{ "param_06"   , param_06 },
+			{ "param_07"   , param_07 },
+			{ "param_08"   , param_08 },
+			{ "param_09"   , param_09 }
+		};
+	}
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
+	*/
+	void from_json(const string& s) {
+		string error;
+		json11::Json p = json11::Json::parse(s,error);
+
+		if(error.empty()) {
+			if(!p["param_01"].is_null()) { param_01 = p["param_01"].number_value(); }
+			if(!p["param_02"].is_null()) { param_02 = p["param_02"].number_value(); }
+			if(!p["param_03"].is_null()) { param_03 = p["param_03"].number_value(); }
+			if(!p["param_04"].is_null()) { param_04 = p["param_04"].number_value(); }
+			if(!p["param_05"].is_null()) { param_05 = p["param_05"].number_value(); }
+			if(!p["param_06"].is_null()) { param_06 = p["param_06"].number_value(); }
+			if(!p["param_07"].is_null()) { param_07 = p["param_07"].number_value(); }
+			if(!p["param_08"].is_null()) { param_08 = p["param_08"].number_value(); }
+			if(!p["param_09"].is_null()) { param_09 = p["param_09"].number_value(); }
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
@@ -4375,6 +4447,9 @@ struct cosmosstruc
 	//! Single entry vector for agent information.
 	vector<agentstruc> agent;
 
+	//! Vector of Parameter information for all nodes
+	vector<sim_param> sim_params;
+
 	//! Vector of State information for all nodes
 	vector<sim_state> sim_states;
 
@@ -6344,6 +6419,22 @@ struct cosmosstruc
 			add_name(basename+".beat.exists", &agent[i].beat.exists, "bool");
 		}
 
+		// vector<sim_param> sim_params
+		add_name("sim_params", &sim_params, "vector<sim_param>");
+		for(size_t i = 0; i < sim_params.capacity(); ++i) {
+			string basename = "sim_params[" + std::to_string(i) + "]";
+			add_name(basename, &sim_params[i], "sim_param");
+			add_name(basename+".param_01", &sim_params[i].param_01, "double");
+			add_name(basename+".param_02", &sim_params[i].param_02, "double");
+			add_name(basename+".param_03", &sim_params[i].param_03, "double");
+			add_name(basename+".param_04", &sim_params[i].param_04, "double");
+			add_name(basename+".param_05", &sim_params[i].param_05, "double");
+			add_name(basename+".param_06", &sim_params[i].param_06, "double");
+			add_name(basename+".param_07", &sim_params[i].param_07, "double");
+			add_name(basename+".param_08", &sim_params[i].param_08, "double");
+			add_name(basename+".param_09", &sim_params[i].param_09, "double");
+		}
+
 		// vector<sim_state> sim_states
 		add_name("sim_states", &sim_states, "vector<sim_state>");
 		for(size_t i = 0; i < sim_states.capacity(); ++i) {
@@ -6390,7 +6481,6 @@ struct cosmosstruc
 
 			add_name(basename+".target_latitude", &sim_states[i].target_latitude, "double");
 			add_name(basename+".target_longitude", &sim_states[i].target_longitude, "double");
-
 		}
 
 		// vector<eventstruc> event
@@ -7117,6 +7207,8 @@ struct cosmosstruc
 							get_pointer<devspecstruc>(name)->from_json(json);
 						} else if (type == "equationstruc") {
 							get_pointer<equationstruc>(name)->from_json(json);
+						} else if (type == "sim_param") {
+							get_pointer<sim_param>(name)->from_json(json);
 						} else if (type == "sim_state") {
 							get_pointer<sim_state>(name)->from_json(json);
 						} else if (type == "eventstruc") {
@@ -7191,7 +7283,11 @@ struct cosmosstruc
 							get_pointer<vertexstruc>(name)->from_json(json);
 						} else if (type == "wavefront") {
 							get_pointer<wavefront>(name)->from_json(json);
-						} else if (type == "sim_state") { // SCOTTNOTE: should all the user-defined types be like this?
+						} else if (type == "sim_param") { // SCOTTNOTE: should all the user-defined types be like this?
+							if(!p[name].is_null()) {
+								get_pointer<sim_param>(name)->from_json(p[name].dump());
+							}
+						} else if (type == "sim_state") {
 							if(!p[name].is_null()) {
 								get_pointer<sim_state>(name)->from_json(p[name].dump());
 							}
@@ -7391,6 +7487,12 @@ struct cosmosstruc
 									get_pointer<vector<equationstruc>>(name)->at(i).from_json(p[name][i].dump());
 								}
 							}
+						} else if (type == "vector<sim_param>") {
+							for(size_t i = 0; i < get_pointer<vector<sim_param>>(name)->size(); ++i) {
+								if(!p[name][i].is_null()) {
+									get_pointer<vector<sim_param>>(name)->at(i).from_json(p[name][i].dump());
+								}
+							}
 						} else if (type == "vector<sim_state>") {
 							for(size_t i = 0; i < get_pointer<vector<sim_state>>(name)->size(); ++i) {
 								if(!p[name][i].is_null()) {
@@ -7507,6 +7609,12 @@ struct cosmosstruc
 									get_pointer<vector<vertexstruc>>(name)->at(i).from_json(p[name][i].dump());
 								}
 							}
+						} else if (type == "vector<sim_param>") {
+							for(size_t i = 0; i < get_pointer<vector<sim_param>>(name)->size(); ++i) {
+								if(!p[name][i].is_null()) {
+									get_pointer<vector<sim_param>>(name)->at(i).from_json(p[name][i].dump());
+								}
+							}
 						} else if (type == "vector<sim_state>") {
 							for(size_t i = 0; i < get_pointer<vector<sim_state>>(name)->size(); ++i) {
 								if(!p[name][i].is_null()) {
@@ -7598,6 +7706,8 @@ struct cosmosstruc
 				json = json11::Json::object { { s, get_value<devspecstruc>(s) } };
 			} else if (type == "equationstruc") {
 				json = json11::Json::object { { s, get_value<equationstruc>(s) } };
+			} else if (type == "sim_param") {
+				json = json11::Json::object { { s, get_value<sim_param>(s) } };
 			} else if (type == "sim_state") {
 				json = json11::Json::object { { s, get_value<sim_state>(s) } };
 			} else if (type == "eventstruc") {
@@ -7676,6 +7786,8 @@ struct cosmosstruc
 				json = json11::Json::object { { s, get_value<vertexstruc>(s) } };
 			} else if (type == "wavefront") {
 				json = json11::Json::object { { s, get_value<wavefront>(s) } };
+			} else if (type == "sim_param") {
+					json = json11::Json::object { { s, get_value<sim_param>(s) } };
 			} else if (type == "sim_state") {
 					json = json11::Json::object { { s, get_value<sim_state>(s) } };
 
@@ -7738,6 +7850,8 @@ struct cosmosstruc
 				json = json11::Json::object { { s, get_value<vector<devicestruc>>(s) } };
 			} else if (type == "vector<equationstruc>") {
 				json = json11::Json::object { { s, get_value<vector<equationstruc>>(s) } };
+			} else if (type == "vector<sim_param>") {
+				json = json11::Json::object { { s, get_value<vector<sim_param>>(s) } };
 			} else if (type == "vector<sim_state>") {
 				json = json11::Json::object { { s, get_value<vector<sim_state>>(s) } };
 			} else if (type == "vector<eventstruc>") {
@@ -7774,6 +7888,8 @@ struct cosmosstruc
 				json = json11::Json::object { { s, get_value<vector<vector<unitstruc>>>(s) } };
 			} else if (type == "vector<vertexstruc>") {
 				json = json11::Json::object { { s, get_value<vector<vertexstruc>>(s) } };
+			} else if (type == "vector<sim_param>") {
+				json = json11::Json::object { { s, get_value<vector<sim_param>>(s) } };
 			} else if (type == "vector<sim_state>") {
 				json = json11::Json::object { { s, get_value<vector<sim_state>>(s) } };
 			}
@@ -7905,6 +8021,7 @@ struct cosmosstruc
 			{ "user" , user },
 			{ "tle" , tle },
 			//{ "json" , json },
+			{ "sim_params" , sim_params },
 			{ "sim_states" , sim_states }
 		};
 	}
@@ -7962,6 +8079,9 @@ struct cosmosstruc
 				if (!p["tle"][i].is_null()) { tle[i].from_json(p["tle"][i].dump()); }
 			}
 			//if(!p["json"].is_null())	json.from_json(p["json"].dump());
+			for (size_t i = 0; i < sim_params.size(); ++i) {
+				if (!p["sim_params"][i].is_null()) { sim_params[i].from_json(p["sim_params"][i].dump()); }
+			}
 			for (size_t i = 0; i < sim_states.size(); ++i) {
 				if (!p["sim_states"][i].is_null()) { sim_states[i].from_json(p["sim_states"][i].dump()); }
 			}
