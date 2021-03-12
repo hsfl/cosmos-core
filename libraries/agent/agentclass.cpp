@@ -710,6 +710,18 @@ namespace Support
         return 0;
     }
 
+    int32_t Agent::set_sohstring(vector<std::string> list)
+    {
+        if(list.size() == 0) return ErrorNumbers::COSMOS_GENERAL_ERROR_EMPTY;
+        string jsonlist = "{";
+        for(string name: list){
+            jsonlist += "\"" + name + "\",";
+        }
+        jsonlist.pop_back(); // remove last ","
+        jsonlist += "}";
+        set_sohstring(jsonlist);
+    }
+
     //! Set Full SOH string
     /*! Set the Full SOH string to a JSON list of \ref jsonlib_namespace names. A
  * proper JSON list will begin and end with matched curly braces, be comma separated,
@@ -2854,6 +2866,102 @@ acquired.
             return GENERAL_ERROR_TIMEOUT;
         }
     }
+
+    int32_t Agent::set_activity_period(double period)
+    {
+        this->cinfo->agent[0].aprd = period;
+    }
+
+    devicestruc* Agent::add_device(std::string name, DeviceType type, int32_t &error)
+    {
+        int32_t pindex = json_createpiece(cinfo, name, type);
+        if(pindex < 0) {
+            error = pindex;
+            return nullptr;
+        }
+        int32_t cindex = cinfo->pieces[pindex].cidx;
+        return &cinfo->device[cindex];
+
+    }
+
+    std::string Agent::get_soh_name(std::string devicename, std::string propertyname, int32_t &error)
+    {
+        int32_t pidx = json_findpiece(cinfo, devicename);
+        if(pidx < 0 ) {
+            error = pidx;
+            return "";
+        }
+        int32_t cindex = cinfo->pieces[pidx].cidx;
+        int32_t didx = cinfo->device[cindex].didx;
+        if(didx < 0) {
+            error = didx;
+            return "";
+        }
+        uint16_t type = cinfo->device[cindex].type;
+        string devtype = device_type_name(type);
+        // check if property exists in device
+        if(!device_has_property(type, propertyname)){
+            error = ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
+            return "";
+        }
+        char dindex[4];
+        sprintf(dindex, "%03u", didx);
+        return "device_" + devtype+"_"+propertyname + "_" + string(dindex);
+    }
+
+    int32_t Agent::send_request_getvalue(beatstruc agent, vector<std::string> names, Json &jresult)
+    {
+        if(names.size() == 0){
+            return ErrorNumbers::COSMOS_GENERAL_ERROR_EMPTY;
+        }
+        string request_args = "{";
+        for(string name : names){
+            request_args += "\"" + name + "\",";
+        }
+        request_args.pop_back(); // remove last ,
+        request_args += "}";
+
+        if(!agent.exists) {
+            return ErrorNumbers::COSMOS_AGENT_ERROR_NULL;
+        }
+        string response;
+        int32_t error = send_request(agent, "getvalue " + request_args, response);
+        if(error < 0) {
+            return error;
+        }
+
+        error = jresult.extract_contents(response);
+
+        return error;
+    }
+
+    std::map<std::string, Json::Value> Agent::send_request_getvalue(beatstruc agent, std::vector<std::string> names)
+    {
+        std::map<std::string, Json::Value> e;
+        if(names.size() == 0) return e;
+        Json jresult;
+        int32_t error = send_request_getvalue( agent, names, jresult);
+        if(error < 0) {
+            return e;
+        }
+        return jresult.ObjectContents;
+    }
+
+    int32_t Agent::set_value(std::string jsonname, double value)
+    {
+        if(jsonname.length() == 0) {
+            return ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
+        }
+        jsonentry* jentry = json_entry_of(jsonname, cinfo);
+        return json_set_number(value, jentry, cinfo);
+
+    }
+
+    double Agent::get_value_double(std::string jsonname)
+    {
+        return json_get_double(jsonname, cinfo);
+    }
+
 } // end of namespace Support
 } // end namespace Cosmos
 
