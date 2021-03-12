@@ -719,7 +719,7 @@ namespace Support
         }
         jsonlist.pop_back(); // remove last ","
         jsonlist += "}";
-        set_sohstring(jsonlist);
+        return set_sohstring(jsonlist);
     }
 
     //! Set Full SOH string
@@ -2870,6 +2870,7 @@ acquired.
     int32_t Agent::set_activity_period(double period)
     {
         this->cinfo->agent[0].aprd = period;
+        return 0;
     }
 
     devicestruc* Agent::add_device(std::string name, DeviceType type, int32_t &error)
@@ -2909,6 +2910,70 @@ acquired.
         return "device_" + devtype+"_"+propertyname + "_" + string(dindex);
     }
 
+    std::string Agent::create_device_value_alias(std::string devicename, std::string propertyname, std::string alias, int32_t &error)
+    {
+        int32_t pidx = json_findpiece(cinfo, devicename);
+        if(pidx < 0 ) {
+            error = pidx;
+            return "";
+        }
+        int32_t cindex = cinfo->pieces[pidx].cidx;
+        int32_t didx = cinfo->device[cindex].didx;
+        if(didx < 0) {
+            error = didx;
+            return "";
+        }
+        uint16_t type = cinfo->device[cindex].type;
+        string devtype = device_type_name(type);
+        // check if property exists in device
+        if(!device_has_property(type, propertyname)){
+            error = ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
+            return "";
+        }
+        char dindex[4];
+        sprintf(dindex, "%03u", didx);
+        string cosmos_soh_name = "device_" + devtype+"_"+propertyname + "_" + string(dindex);
+        string alias_soh_name = "device_" + devtype+"_"+alias + "_" + string(dindex);
+        error = create_alias(cosmos_soh_name, alias_soh_name);
+        return alias_soh_name;
+    }
+
+    int32_t Agent::create_alias(std::string cosmosname, std::string alias)
+    {
+        string equation = "(\""+cosmosname+"\"*1.0)";
+        jsonhandle eqhandle;
+        int32_t error = json_equation_map(equation, cinfo, &eqhandle);
+        if(error < 0) return error;
+        //error = json_addentry(alias, equation, cinfo);
+        return error;
+    }
+
+    std::string Agent::get_device_alias(std::string devicename, std::string propertyname, std::string alias, int32_t &error)
+    {
+        int32_t pidx = json_findpiece(cinfo, devicename);
+        if(pidx < 0 ) {
+            error = pidx;
+            return "";
+        }
+        int32_t cindex = cinfo->pieces[pidx].cidx;
+        int32_t didx = cinfo->device[cindex].didx;
+        if(didx < 0) {
+            error = didx;
+            return "";
+        }
+        uint16_t type = cinfo->device[cindex].type;
+        string devtype = device_type_name(type);
+        // check if property exists in device
+        if(!device_has_property(type, propertyname)){
+            error = ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
+            return "";
+        }
+        char dindex[4];
+        sprintf(dindex, "%03u", didx);
+        string alias_soh_name = "device_" + devtype+"_"+alias + "_" + string(dindex);
+        return alias_soh_name;
+    }
+
     int32_t Agent::send_request_getvalue(beatstruc agent, vector<std::string> names, Json &jresult)
     {
         if(names.size() == 0){
@@ -2935,12 +3000,12 @@ acquired.
         return error;
     }
 
-    std::map<std::string, Json::Value> Agent::send_request_getvalue(beatstruc agent, std::vector<std::string> names)
+    std::map<std::string, Json::Value> Agent::send_request_getvalue(beatstruc agent, std::vector<std::string> names, int32_t &error)
     {
         std::map<std::string, Json::Value> e;
         if(names.size() == 0) return e;
         Json jresult;
-        int32_t error = send_request_getvalue( agent, names, jresult);
+        error = send_request_getvalue( agent, names, jresult);
         if(error < 0) {
             return e;
         }
@@ -2960,6 +3025,53 @@ acquired.
     double Agent::get_value_double(std::string jsonname)
     {
         return json_get_double(jsonname, cinfo);
+    }
+
+    std::string Agent::get_device_values(std::string devicename, vector<std::string> props, int32_t &error)
+    {
+        if(props.size() == 0) return "";
+        int32_t pidx = json_findpiece(cinfo, devicename);
+        if(pidx < 0 ) {
+            error = pidx;
+            return "";
+        }
+        int32_t cindex = cinfo->pieces[pidx].cidx;
+        int32_t didx = cinfo->device[cindex].didx;
+        if(didx < 0) {
+            error = didx;
+            return "";
+        }
+        uint16_t type = cinfo->device[cindex].type;
+        string devtype = device_type_name(type);
+        // check if property exists in device
+
+        char dindex[4];
+        sprintf(dindex, "%03u", didx);
+        string name;
+        vector<string> names;
+        for(string p: props){
+            name = "device_" + devtype+"_"+p + "_" + string(dindex);
+            if(!device_has_property(type, p) && json_entry_of(name, cinfo) == nullptr){
+                error = ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
+                return "";
+            }
+            names.push_back(name);
+        }
+        return get_values(names, error);
+    }
+
+    std::string Agent::get_values(vector<std::string> names, int32_t &error)
+    {
+        if(names.size() == 0) return "";
+        string jsonlist = "{";
+        for(string p: names) {
+            jsonlist += "\"" + p + "\"";
+        }
+        jsonlist.pop_back();
+        jsonlist+="}";
+        string jstring ="";
+        error = req_getvalue(jsonlist, jstring, this);
+        return jstring;
     }
 
 } // end of namespace Support
