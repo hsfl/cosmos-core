@@ -15,7 +15,7 @@ int inb;
 struct stat sbuf;
 off_t tsize;
 
-int main(int argc, char *argv[])
+int main()
 {
 ssize_t iw, ir;
 long werr, rerr;

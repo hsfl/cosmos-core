@@ -1100,7 +1100,7 @@ namespace Cosmos {
         }
 
         FILE* get_cosmos_error_fd(double mjd) {
-            static double oldmjd=0.;
+//            static double oldmjd=0.;
             if (debug_level == 0) {
                 debug_fd = nullptr;
                 debug_pathName.clear();
@@ -1116,7 +1116,7 @@ namespace Cosmos {
             } else {
                 if (mjd == 0.) {
                     mjd = currentmjd();
-                    oldmjd = mjd;
+//                    oldmjd = mjd;
                 }
                 mjd = mjd - fmod(mjd, 1./24.);
                 string pathName = debug_pathName + data_name("", mjd, "log"+to_unsigned(debug_level));
@@ -1131,7 +1131,7 @@ namespace Cosmos {
                             debug_fd = fd;
                             debug_pathName = pathName;
                         }
-                        oldmjd = mjd;
+//                        oldmjd = mjd;
                     }
                 } else {
                     FILE *fd = fopen(pathName.c_str(), "a");

@@ -102,7 +102,7 @@ gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_ms
     if (socket_usec < (uint32_t)(16384000000./streambps)) socket_usec = (uint32_t)(16384000000/streambps);
 
 	// Open Stream socket
-	if ((iretn=socket_open(&handle->stream, NetworkType::UDP, (char *)"", 0, SOCKET_LISTEN,true,socket_usec)) < 0)
+    if ((iretn=socket_open(&handle->stream, NetworkType::UDP, "", 0, SOCKET_LISTEN,true,socket_usec)) < 0)
 	{
 		close(handle->command.cudp);
 		return nullptr;
