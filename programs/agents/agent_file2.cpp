@@ -2718,7 +2718,7 @@ int32_t check_node_id_2(std::string node_name)
 int32_t check_node_id_2(PACKET_NODE_ID_TYPE node_id)
 {
     int32_t id = -1;
-    if (node_id >= 0 && node_id < txq.size())
+    if (node_id > 0 && node_id < txq.size())
     {
         id = node_id;
     }
@@ -2740,7 +2740,7 @@ int32_t check_channel(PACKET_NODE_ID_TYPE node_id)
 int32_t check_remote_node_id(PACKET_NODE_ID_TYPE node_id)
 {
     int32_t id = -1;
-    if (node_id >=0 && node_id < txq.size())
+    if (node_id > 0 && node_id < txq.size())
     {
         if (txq[node_id].node_id > 0)
         {
@@ -2768,7 +2768,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
 {
     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[static_cast <size_t>(node)].incoming, choose_incoming_tx_id(node));
 
-    if (tx_id < PROGRESS_QUEUE_SIZE && tx_id > 0)
+    if (tx_id > 0)
     {
         // See if we know what the remote node_id is for this
         int32_t remote_node = check_remote_node_id(node);

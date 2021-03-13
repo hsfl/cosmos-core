@@ -2444,7 +2444,7 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
     }
 
     // Only add if we have room
-    if (txq[(node_id)].outgoing.size == PROGRESS_QUEUE_SIZE)
+    if (txq[(node_id)].outgoing.size == PROGRESS_QUEUE_SIZE-1)
     {
         return TRANSFER_ERROR_QUEUEFULL;
     }
@@ -2714,7 +2714,7 @@ int32_t outgoing_tx_load(uint8_t node_id)
     }
 
     // Go through outgoing directories, adding files not already in queue
-    if (txq[(node_id)].outgoing.size < PROGRESS_QUEUE_SIZE)
+    if (txq[(node_id)].outgoing.size < PROGRESS_QUEUE_SIZE-1)
     {
         vector<filestruc> file_names;
         for (filestruc file : data_list_files(txq[(node_id)].node_name, "outgoing", ""))
@@ -2730,7 +2730,7 @@ int32_t outgoing_tx_load(uint8_t node_id)
         for(uint16_t i=0; i<file_names.size(); ++i)
         {
             filestruc file = file_names[i];
-            if (txq[(node_id)].outgoing.size >= PROGRESS_QUEUE_SIZE)
+            if (txq[(node_id)].outgoing.size == PROGRESS_QUEUE_SIZE - 1)
             {
                 break;
             }
@@ -3295,7 +3295,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
 {
     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[(node)].incoming, choose_incoming_tx_id(node));
 
-    if (tx_id < PROGRESS_QUEUE_SIZE && tx_id > 0)
+    if (tx_id > 0)
     {
         // See if we know what the remote node_id is for this
         if (txq[node].node_id > 0)

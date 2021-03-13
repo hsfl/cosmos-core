@@ -13,7 +13,8 @@ int read_envi_hdr(std::string file, envi_hdr &hdr)
     fp = fopen(fname,"r");
     if (fp == nullptr)
     {
-        for (size_t i=file.size()-1; i>=0; --i)
+//        for (size_t i=file.size()-1; i<file.size(); --i)
+        for (size_t i=file.size()-1; (i>0 && i<file.size()); --i)
         {
             if (file[i] == '.')
             {
