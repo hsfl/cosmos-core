@@ -358,13 +358,15 @@ typedef struct
 	//! Best packet size
 	uint16_t bestsize;
 	//! Detector Width
-	uint16_t maxwidth;
+    size_t maxwidth;
 	//! Detector Height
-	uint16_t maxheight;
+    size_t maxheight;
 	//! Requested Width
-	uint16_t width;
+    size_t width;
 	//! Requested Height
-	uint16_t height;
+    size_t height;
+    vector<uint8_t> bufferin;
+    vector<uint16_t> bufferout;
 } gige_handle;
 
 struct gige_data
@@ -391,8 +393,10 @@ int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32
 int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint32_t gain, uint8_t *buffer, uint16_t bsize);
 int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
 int a35_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t video_rate);
-int pt1000_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
+int pt1000_start_image(gige_handle *handle);
+int32_t pt1000_stop_image(gige_handle *handle);
 int pt1000_image(gige_handle *handle, uint32_t frames, gige_data &data);
+int pt1000_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
 int pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize);
 //! @}
 
