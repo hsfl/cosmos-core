@@ -11770,3 +11770,191 @@ std::ostream& operator<<(std::ostream& out, const beatstruc& b)	{
 
 //! @}
 
+
+int32_t device_index(cosmosstruc *cinfo, std::string name)
+{
+    int32_t pidx = json_findpiece(cinfo, name);
+    if(pidx < 0 ) {
+        return pidx;
+    }
+    int32_t cindex = cinfo->pieces[pidx].cidx;
+    int32_t dindex = cinfo->device[cindex].all.didx;
+    return dindex;
+}
+
+int32_t json_set_number(double val, jsonentry *entry, cosmosstruc *cinfo)
+{
+    uint8_t *data;
+    int32_t iretn = 0;
+
+    data = json_ptr_of_entry(*entry, cinfo);
+
+    switch (entry->type)
+    {
+    case JSON_TYPE_UINT8:
+        *(uint8_t *)data = (uint8_t)val;
+        break;
+    case JSON_TYPE_INT8:
+        *(int8_t *)data = (int8_t)val;
+        break;
+    case JSON_TYPE_UINT16:
+        *(uint16_t *)data = (uint16_t)val;
+        break;
+    case JSON_TYPE_UINT32:
+        *(uint32_t *)data = (uint32_t)val;
+        break;
+    case JSON_TYPE_INT16:
+        *(int16_t *)data = (int16_t)val;
+        break;
+    case JSON_TYPE_INT32:
+        *(int32_t *)data = (int32_t)val;
+        break;
+    case JSON_TYPE_FLOAT:
+        *(float *)data = (float)val;
+        break;
+    case JSON_TYPE_TIMESTAMP:
+    case JSON_TYPE_DOUBLE:
+        *(double *)data = (double)val;
+        break;
+    }
+    return iretn;
+}
+
+bool device_has_property(uint16_t deviceType, std::string prop)
+{
+    devicestruc e;
+    json11::Json json = e.to_json();
+    if(!json[prop].is_null()) return true;
+    switch(deviceType){
+    case DeviceType::PLOAD:
+       json = e.pload.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::SSEN:
+       json = e.ssen.to_json();
+       if(!json[prop].is_null()) return true;
+        break;
+    case DeviceType::IMU:
+       json = e.imu.to_json();
+       if(!json[prop].is_null()) return true;
+        break;
+    case DeviceType::RW:
+       json = e.rw.to_json();
+       if(!json[prop].is_null()) return true;
+        break;
+    case DeviceType::MTR:
+       json = e.mtr.to_json();
+       if(!json[prop].is_null()) return true;
+        break;
+    case DeviceType::CPU:
+       json = e.cpu.to_json();
+       if(!json[prop].is_null()) return true;
+        break;
+    case DeviceType::GPS:
+       json = e.gps.to_json();
+       if(!json[prop].is_null()) return true;
+        break;
+
+    case DeviceType::ANT:
+       json = e.ant.to_json();
+       if(!json[prop].is_null()) return true;
+        break;
+    case DeviceType::RXR:
+       json = e.rxr.to_json();
+       if(!json[prop].is_null()) return true;
+        break;
+    case DeviceType::TXR:
+       json = e.txr.to_json();
+       if(!json[prop].is_null()) return true;
+        break;
+    case DeviceType::TCV:
+       json = e.tcv.to_json();
+       if(!json[prop].is_null()) return true;
+        break;
+    case DeviceType::PVSTRG:
+       json = e.pvstrg.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::BATT:
+       json = e.batt.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::HTR:
+       json = e.htr.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::MOTR:
+       json = e.motr.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::TSEN:
+       json = e.tsen.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::THST:
+       json = e.thst.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::PROP:
+       json = e.prop.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::SWCH:
+       json = e.swch.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::ROT:
+       json = e.rot.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::STT:
+       json = e.stt.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::MCC:
+       json = e.mcc.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::TCU:
+       json = e.tcu.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::BUS:
+       json = e.bus.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::PSEN:
+       json = e.psen.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::SUCHI:
+       json = e.suchi.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::CAM:
+       json = e.cam.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::TELEM:
+       json = e.telem.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::DISK:
+       json = e.disk.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::TNC:
+       json = e.tnc.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    case DeviceType::BCREG:
+       json = e.bcreg.to_json();
+       if(!json[prop].is_null()) return true;
+       break;
+    default:
+        return false;
+        break;
+
+    }
+    return false;
+}

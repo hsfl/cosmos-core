@@ -132,6 +132,7 @@
 #include "support/jsonlib.h"
 #include "support/elapsedtime.h"
 #include "device/cpu/devicecpu.h"
+#include "support/jsonclass.h"
 
 namespace Cosmos
 {
@@ -310,6 +311,7 @@ namespace Cosmos
             int32_t wait(State state=State::RUN, double waitsec=10.);
             int32_t last_error();
             int32_t set_sohstring(string list);
+            int32_t set_sohstring(vector<string> list);
             int32_t set_fullsohstring(string list);
             cosmosstruc *get_cosmosstruc();
             void get_ip(char* buffer, size_t buflen);
@@ -348,6 +350,23 @@ namespace Cosmos
 
             int32_t set_agent_time_producer(double (*source)());
             int32_t get_agent_time(double &agent_time, double &epsilon, double &delta, string agent, string node="any", double wait_sec=2.);
+            // general functionality for artemis
+            int32_t set_activity_period(double period);
+            devicestruc* add_device(std::string name, DeviceType type, int32_t &error);
+            string get_soh_name(string devicename, string propertyname, int32_t &error);
+
+            int32_t send_request_getvalue(beatstruc agent, std::vector<std::string> names, Json &jresult);
+            std::map<std::string, Json::Value> send_request_getvalue(beatstruc agent, std::vector<std::string> names, int32_t &error);
+            string create_device_value_alias(string devicename, string propertyname, string alias, int32_t &error);
+            int32_t create_alias(string cosmosname, string alias);
+            string get_device_alias(string devicename, string propertyname, string alias, int32_t &error);
+
+            int32_t set_value(string jsonname, double value);
+            double get_value_double(string jsonname);
+            string get_device_values(string devicename, vector<string> props, int32_t& error);
+            string get_values( vector<string> names, int32_t& error);
+
+
 
             // poll
             pollstruc metaRx;
