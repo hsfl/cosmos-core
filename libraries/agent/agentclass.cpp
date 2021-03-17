@@ -881,19 +881,27 @@ namespace Support
         while (Agent::running()) {
             iretn = Agent::poll(mess, AgentMessage::ALL, 0.);
             if (iretn > 0) {
-                if (!strcmp(mess.meta.beat.proc, "") && mess.adata.empty()) { continue; }
-                bool agent_found = false;
-
-                for (beatstruc &i : agent_list) {
-                    if (!strcmp(i.node, mess.meta.beat.node) && !strcmp(i.proc, mess.meta.beat.proc)) {
-                        agent_found = true;
-						// update all information for the last contact with given (node, agent)...
-						i = mess.meta.beat;
-                        break;
-                    }
+                if (!strcmp(mess.meta.beat.proc, "") && mess.adata.empty()) {
+                    continue;
                 }
 
-                if (!agent_found) { agent_list.push_back(mess.meta.beat); }
+                if (mess.meta.beat.port)
+                {
+                    bool agent_found = false;
+
+                    for (beatstruc &i : agent_list) {
+                        if (!strcmp(i.node, mess.meta.beat.node) && !strcmp(i.proc, mess.meta.beat.proc)) {
+                            agent_found = true;
+                            // update all information for the last contact with given (node, agent)...
+                            i = mess.meta.beat;
+                            break;
+                        }
+                    }
+
+                    if (!agent_found) {
+                        agent_list.push_back(mess.meta.beat);
+                    }
+                }
 
                 if (mess.meta.type == AgentMessage::REQUEST && strcmp(cinfo->agent[0].beat.proc, "")) {
                     string response;
@@ -1179,9 +1187,9 @@ namespace Support
 
 int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
 	string req = request;
-	cout<<"req_get_value():incoming request          = <"<<request<<">"<<endl;
-	cout<<"req_get_value():incoming request.size()   = "<<request.size()<<endl;
-	cout<<"req_get_value():incoming request.length() = "<<request.length()<<endl;
+//	cout<<"req_get_value():incoming request          = <"<<request<<">"<<endl;
+//	cout<<"req_get_value():incoming request.size()   = "<<request.size()<<endl;
+//	cout<<"req_get_value():incoming request.length() = "<<request.length()<<endl;
 	// remove function call and space
 	req.erase(0,10);
 	// strip out requested names
@@ -1200,7 +1208,7 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
     for(size_t i = 0; i < names.size(); ++i)   {
 		response += agent->cinfo->get_json(names[i]);
 	}
-	cout<<"req_get_value():outgoing response         = <"<<response<<">"<<endl;
+//	cout<<"req_get_value():outgoing response         = <"<<response<<">"<<endl;
 	return 0;
 }
 
@@ -2395,6 +2403,9 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
 
         if (!cinfo->agent[0].sub.cport) { return (AGENT_ERROR_CHANNEL); }
 
+        // Clear out message
+        memset(&mess.meta.beat, 0, COSMOS_SIZEOF(beatstruc));
+
         ElapsedTime ep;
         ep.start();
         do
@@ -2495,7 +2506,10 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
                                &mess.meta.beat.memory,
                                &mess.meta.beat.jitter);
                     }
-                    return ((int)mess.meta.type);
+                    if (strcmp(mess.meta.beat.node, cinfo->agent[0].beat.node) || strcmp(mess.meta.beat.proc, cinfo->agent[0].beat.proc))
+                    {
+                        return ((int)mess.meta.type);
+                    }
                 }
             }
             if (ep.split() >= waitsec) {

@@ -1280,7 +1280,7 @@ void send_loop()
                 {
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[(local_node)].incoming, choose_incoming_tx_id(local_node));
 
-                    if (tx_id < PROGRESS_QUEUE_SIZE && tx_id > 0)
+                    if (tx_id > 0)
                     {
                         // Ask for missing data
                         vector<file_progress> missing;
@@ -3261,7 +3261,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
 {
     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[(node)].incoming, choose_incoming_tx_id(node));
 
-    if (tx_id < PROGRESS_QUEUE_SIZE && tx_id > 0)
+    if (tx_id > 0)
     {
         // See if we know what the remote node_id is for this
         if (txq[node].remote_id > 0)

@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
                         size_t status_pos;
                         if((status_pos= output.find("[OK]")  )!= string::npos){
                             if(output.at(0) == '{'){
-                                if(status_pos - 1 >= 0 && output.at(status_pos - 1) == '}'){
+                                if(status_pos > 0 && output.at(status_pos - 1) == '}'){
                                     printf("\"output\": %s,", output.substr(0, status_pos).c_str());
                                 } else {
                                     printf("\"output\": %s,", output.c_str());
@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
                 	size_t status_pos;
                 	if((status_pos= output.find("[OK]")  )!= string::npos){
                     	if(output.at(0) == '{'){
-                        	if(status_pos - 1 >= 0 && output.at(status_pos - 1) == '}'){
+                            if(status_pos > 0 && output.at(status_pos - 1) == '}'){
                             	printf("\"output\": %s,", output.substr(0, status_pos).c_str());
                         	} else {
                             	printf("\"output\": %s,", output.c_str());

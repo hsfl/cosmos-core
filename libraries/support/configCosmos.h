@@ -123,6 +123,8 @@ using std::istringstream;
 #include <map>
 using std::map;
 using std::pair;
+#include <list>
+using std::list;
 
 //#include "support/cosmos-errno.h"
 #include "support/cosmos-defs.h"
