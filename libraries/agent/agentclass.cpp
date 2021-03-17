@@ -3023,7 +3023,7 @@ acquired.
         jsonhandle eqhandle;
         int32_t error = json_equation_map(equation, cinfo, &eqhandle);
         if(error < 0) return error;
-        //error = json_addentry(alias, equation, cinfo);
+        error = json_addentry(alias, equation, cinfo);
         return error;
     }
 
