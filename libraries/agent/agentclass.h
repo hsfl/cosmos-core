@@ -147,7 +147,7 @@ namespace Cosmos
 				bool mflag = false,
 				int32_t portnum = 0,
 				NetworkType ntype = NetworkType::UDP,
-				uint16_t dlevel = 1
+				uint16_t dlevel = 0
 			);
 
             ~Agent();
