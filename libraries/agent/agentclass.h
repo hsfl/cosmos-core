@@ -353,11 +353,13 @@ namespace Cosmos
             int32_t set_activity_period(double period);
             devicestruc* add_device(std::string name, DeviceType type, int32_t &error);
             string get_soh_name(string devicename, string propertyname, int32_t &error);
+
+            int32_t send_request_getvalue(beatstruc agent, std::vector<std::string> names, Json &jresult);
+            std::map<std::string, Json::Value> send_request_getvalue(beatstruc agent, std::vector<std::string> names, int32_t &error);
             string create_device_value_alias(string devicename, string propertyname, string alias, int32_t &error);
             int32_t create_alias(string cosmosname, string alias);
             string get_device_alias(string devicename, string propertyname, string alias, int32_t &error);
-            int32_t send_request_getvalue(beatstruc agent, std::vector<std::string> names, Json &jresult);
-            std::map<std::string, Json::Value> send_request_getvalue(beatstruc agent, std::vector<std::string> names, int32_t &error);
+
             int32_t set_value(string jsonname, double value);
             double get_value_double(string jsonname);
             string get_device_values(string devicename, vector<string> props, int32_t& error);

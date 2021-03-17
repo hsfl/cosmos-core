@@ -2873,6 +2873,13 @@ acquired.
         return 0;
     }
 
+    /**
+     * @brief adds a device to the agents cosmossstruc
+     * @param name piecename
+     * @param type Device Type
+     * @param error reference for returning an error
+     * @return pointer to the devicestruc
+     */
     devicestruc* Agent::add_device(std::string name, DeviceType type, int32_t &error)
     {
         int32_t pindex = json_createpiece(cinfo, name, type);
@@ -2885,59 +2892,97 @@ acquired.
 
     }
 
+    /**
+     * @brief generates the cosmos jsonname for a device property
+     * @param devicename piecename - for looking up the device index
+     * @param propertyname
+     * @param error reference for returning an error
+     * @return cosmos json name for the device property ex: "device_tsen_temp_000"
+     */
     std::string Agent::get_soh_name(std::string devicename, std::string propertyname, int32_t &error)
     {
+        //! get the device index
         int32_t pidx = json_findpiece(cinfo, devicename);
         if(pidx < 0 ) {
             error = pidx;
             return "";
         }
+
         int32_t cindex = cinfo->pieces[pidx].cidx;
         int32_t didx = cinfo->device[cindex].didx;
         if(didx < 0) {
             error = didx;
             return "";
         }
-        uint16_t type = cinfo->device[cindex].type;
-        string devtype = device_type_name(type);
-        // check if property exists in device
-        if(!device_has_property(type, propertyname)){
+
+        //! get the device type
+        uint16_t device_type = cinfo->device[cindex].type;
+        string devtype = device_type_name(device_type);
+
+        //! check if property exists in device
+        if(!device_has_property(device_type, propertyname)){
             error = ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
             return "";
         }
+
         char dindex[4];
-        sprintf(dindex, "%03u", didx);
-        return "device_" + devtype+"_"+propertyname + "_" + string(dindex);
+        sprintf(dindex, "%03u", didx); //! int to string conversion
+
+        return "device_" + devtype + "_" + propertyname + "_" + string(dindex);
     }
 
+    /**
+     * @brief creating and storing an alias for a device property
+     *   ex: creating alias from device_imu_alpha_000 to device_imu_acceleration_000
+     * @param devicename piecename - for looking up the device index
+     * @param propertyname
+     * @param alias name that will replace property name in alias
+     * @param error reference for returning an error
+     * @return cosmos json name for the device property alias ex: "device_imu_acceleration_000"
+     */
     std::string Agent::create_device_value_alias(std::string devicename, std::string propertyname, std::string alias, int32_t &error)
     {
+        //! get the device index, through piece index
         int32_t pidx = json_findpiece(cinfo, devicename);
         if(pidx < 0 ) {
             error = pidx;
             return "";
         }
+
         int32_t cindex = cinfo->pieces[pidx].cidx;
         int32_t didx = cinfo->device[cindex].didx;
         if(didx < 0) {
             error = didx;
             return "";
         }
+
         uint16_t type = cinfo->device[cindex].type;
         string devtype = device_type_name(type);
-        // check if property exists in device
+
+        //! check if property exists in device
         if(!device_has_property(type, propertyname)){
             error = ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
             return "";
         }
+
         char dindex[4];
         sprintf(dindex, "%03u", didx);
-        string cosmos_soh_name = "device_" + devtype+"_"+propertyname + "_" + string(dindex);
-        string alias_soh_name = "device_" + devtype+"_"+alias + "_" + string(dindex);
+
+        string cosmos_soh_name = "device_" + devtype + "_" + propertyname + "_" + string(dindex);
+        string alias_soh_name = "device_" + devtype + "_" + alias + "_" + string(dindex);
+
         error = create_alias(cosmos_soh_name, alias_soh_name);
+
         return alias_soh_name;
     }
 
+    /**
+     * @brief creating a direct alias WIP
+     *   ex: creating alias from device_imu_alpha_000 to imu_acceleration
+     * @param cosmosname piecename - for looking up the device index
+     * @param alias name that will replace cosmosname
+     * @return error
+     */
     int32_t Agent::create_alias(std::string cosmosname, std::string alias)
     {
         string equation = "(\""+cosmosname+"\"*1.0)";
@@ -2948,29 +2993,45 @@ acquired.
         return error;
     }
 
+    /**
+     * @brief get the alias name from creating a device alias usign create_device_value_alias
+     *   ex: creating alias from device_imu_alpha_000 to device_imu_acceleration_000
+     * @param devicename piecename - for looking up the device index
+     * @param propertyname
+     * @param alias name that will replace property name in alias
+     * @param error reference for returning an error
+     * @return cosmos json name for the device property alias ex: "device_imu_acceleration_000"
+     */
     std::string Agent::get_device_alias(std::string devicename, std::string propertyname, std::string alias, int32_t &error)
     {
+        //! get the device index, through piece index
         int32_t pidx = json_findpiece(cinfo, devicename);
         if(pidx < 0 ) {
             error = pidx;
             return "";
         }
+
         int32_t cindex = cinfo->pieces[pidx].cidx;
         int32_t didx = cinfo->device[cindex].didx;
         if(didx < 0) {
             error = didx;
             return "";
         }
+
         uint16_t type = cinfo->device[cindex].type;
         string devtype = device_type_name(type);
-        // check if property exists in device
+
+        //! check if property exists in device
         if(!device_has_property(type, propertyname)){
             error = ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
             return "";
         }
+
         char dindex[4];
         sprintf(dindex, "%03u", didx);
-        string alias_soh_name = "device_" + devtype+"_"+alias + "_" + string(dindex);
+
+        string alias_soh_name = "device_" + devtype + "_" + alias + "_" + string(dindex);
+
         return alias_soh_name;
     }
 
