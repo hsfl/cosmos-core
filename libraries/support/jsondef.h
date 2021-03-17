@@ -140,39 +140,41 @@ enum {
 //! JSON Namelist Group
 //Namespace 1.0
 enum {
-	//! Absolute pointer
-	JSON_STRUCT_ABSOLUTE,
-	//! ::nodestruc
-	JSON_STRUCT_NODE,
-	//! ::agentstruc
-	JSON_STRUCT_AGENT,
-	//! ::devicestruc
-	JSON_STRUCT_DEVICE,
-	//! ::devspecstruc
-	JSON_STRUCT_DEVSPEC,
-	//! ::physicsstruc
-	JSON_STRUCT_PHYSICS,
-	//! ::eventstruc
-	JSON_STRUCT_EVENT,
-	//! ::piecestruc
-	JSON_STRUCT_PIECE,
-	//! ::targetstruc
-	JSON_STRUCT_TARGET,
-	//! ::userstruc
-	JSON_STRUCT_USER,
-	//! ::portstruc
-	JSON_STRUCT_PORT,
-	//! ::tlestruc
-	JSON_STRUCT_TLE,
-	//! ::equationstruc
-	JSON_STRUCT_EQUATION,
-	//! ::vertexstruc
-	JSON_STRUCT_POINT,
-	//! ::facestruc
-	JSON_STRUCT_FACE,
-	JSON_STRUCT_PTR,
-	//! entirety
-	JSON_STRUCT_ALL
+    //! Absolute pointer
+    JSON_STRUCT_ABSOLUTE,
+    //! ::nodestruc
+    JSON_STRUCT_NODE,
+    //! ::agentstruc
+    JSON_STRUCT_AGENT,
+    //! ::devicestruc
+    JSON_STRUCT_DEVICE,
+    //! ::devspecstruc
+    JSON_STRUCT_DEVSPEC,
+    //! ::physicsstruc
+    JSON_STRUCT_PHYSICS,
+    //! ::eventstruc
+    JSON_STRUCT_EVENT,
+    //! ::piecestruc
+    JSON_STRUCT_PIECE,
+    //! ::targetstruc
+    JSON_STRUCT_TARGET,
+    //! ::userstruc
+    JSON_STRUCT_USER,
+    //! ::portstruc
+    JSON_STRUCT_PORT,
+    //! ::tlestruc
+    JSON_STRUCT_TLE,
+    //! ::aliasstruc
+    JSON_STRUCT_ALIAS,
+    //! ::equationstruc
+    JSON_STRUCT_EQUATION,
+    //! ::vertexstruc
+    JSON_STRUCT_POINT,
+    //! ::facestruc
+    JSON_STRUCT_FACE,
+    JSON_STRUCT_PTR,
+    //! entirety
+    JSON_STRUCT_ALL
 };
 
 //! Constants defining the data types supported in the \ref jsonlib_namespace.
@@ -728,63 +730,59 @@ struct unitstruc
 //! can be loaded from disk, or transferred from another agent.
 struct jsonnode
 {
-	string name = "";
-	string node = "";
-	string state = "";
-	string utcstart = "";
-	string vertexs = "";
-	string faces = "";
-	string pieces = "";
-	string devgen = "";
-	string devspec = "";
-	string ports = "";
-	string targets = "";
+    string name = "";
+    string node = "";
+    string state = "";
+    string utcstart = "";
+    string vertexs = "";
+    string faces = "";
+    string pieces = "";
+    string devgen = "";
+    string devspec = "";
+    string ports = "";
+    string targets = "";
+    string aliases = "";
 
-	/// Convert class contents to JSON object
-	/** Returns a json11 JSON object of the class
-		@return	A json11 JSON object containing every member variable within the class
-	*/
-	json11::Json to_json() const {
-		return json11::Json::object {
-			{ "name" , name },
-			{ "node" , node },
-			{ "state" , state },
-			{ "utcstart" , utcstart },
-			{ "vertexs" , vertexs },
-			{ "faces" , faces },
-			{ "pieces" , pieces },
-			{ "devgen" , devgen },
-			{ "devspec" , devspec },
-			{ "ports" , ports },
-			{ "targets" , targets },
-		};
-	}
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "name" , name },
+            { "node" , node },
+            { "state" , state },
+            { "utcstart" , utcstart },
+            { "vertexs" , vertexs },
+            { "faces" , faces },
+            { "pieces" , pieces },
+            { "devgen" , devgen },
+            { "devspec" , devspec },
+            { "ports" , ports },
+            { "targets" , targets },
+            { "aliases" , aliases }
+        };
+    }
 
-	/// Set class contents from JSON string
-	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-		@param	s	JSON-formatted string to set class contents to
-		@return n/a
-	*/
-	void from_json(const string& s) {
-		string error;
-		json11::Json parsed = json11::Json::parse(s,error);
-		if(error.empty()) {
-			if(!parsed["name"].is_null())		{ name = parsed["name"].string_value(); }
-			if(!parsed["node"].is_null())		{ node = parsed["node"].string_value(); }
-			if(!parsed["state"].is_null())		{ state = parsed["state"].string_value(); }
-			if(!parsed["utcstart"].is_null())	{ utcstart = parsed["utcstart"].string_value(); }
-			if(!parsed["vertexs"].is_null())	{ vertexs = parsed["vertexs"].string_value(); }
-			if(!parsed["faces"].is_null())		{ faces = parsed["faces"].string_value(); }
-			if(!parsed["pieces"].is_null())		{ pieces = parsed["pieces"].string_value(); }
-			if(!parsed["devgen"].is_null())		{ devgen = parsed["devgen"].string_value(); }
-			if(!parsed["devspec"].is_null())	{ devspec = parsed["devspec"].string_value(); }
-			if(!parsed["ports"].is_null())		{ ports = parsed["ports"].string_value(); }
-			if(!parsed["targets"].is_null())	{ targets = parsed["targets"].string_value(); }
-		} else {
-			cerr<<"ERROR: <"<<error<<">"<<endl;
-		}
-		return;
-	}
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!parsed["name"].is_null())		name = parsed["name"].string_value();
+            if(!parsed["node"].is_null())		node = parsed["node"].string_value();
+            if(!parsed["state"].is_null())		state = parsed["state"].string_value();
+            if(!parsed["utcstart"].is_null())	utcstart = parsed["utcstart"].string_value();
+            if(!parsed["vertexs"].is_null())	vertexs = parsed["vertexs"].string_value();
+            if(!parsed["faces"].is_null())		faces = parsed["faces"].string_value();
+            if(!parsed["pieces"].is_null())		pieces = parsed["pieces"].string_value();
+            if(!parsed["devgen"].is_null())		devgen = parsed["devgen"].string_value();
+            if(!parsed["devspec"].is_null())	devspec = parsed["devspec"].string_value();
+            if(!parsed["ports"].is_null())		ports = parsed["ports"].string_value();
+            if(!parsed["targets"].is_null())	targets = parsed["targets"].string_value();
+            if(!parsed["aliases"].is_null())	aliases = parsed["aliases"].string_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 //! JSON handle
@@ -1479,6 +1477,20 @@ struct userstruc
 		}
 		return;
 	}
+};
+
+//! Alias structure
+/*! Contains the name of an alias and the ::jsonmap entry it vertexs to,
+ * stored as a ::jsonhandle.
+*/
+struct aliasstruc
+{
+    // Alias name
+    string name;
+    // Namespace handle
+    jsonhandle handle;
+    //! JSON Data Type
+    uint16_t type;
 };
 
 //! Equation structure
@@ -4417,8 +4429,11 @@ struct cosmosstruc
 	//! Vector of Equations
 	vector<equationstruc> equation;
 
-	//! Structure for summary information in node
-	nodestruc node;
+    //! Array of Aliases
+    vector<aliasstruc> alias;
+
+    //! Structure for summary information in node
+    nodestruc node;
 
 	//! Vector of all vertexs in node.
 	vector <vertexstruc> vertexs;

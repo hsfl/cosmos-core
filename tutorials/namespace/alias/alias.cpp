@@ -18,7 +18,7 @@ cosmosstruc *cdata; // to access the cosmos data, will change later
  */
 int main()
 {
-    cout << "Example for COSMOS Namespace Equations" << endl;
+    cout << "Example for COSMOS Namespace (elements) Aliases" << endl;
 
     //! define the node name (it must be installed in COSMOS/nodes
     string nodename = "cubesat1";
@@ -44,6 +44,11 @@ int main()
     // map/connect the equation to the handle
     json_equation_map(equation,cdata,&eqhandle);
 
+    // add the equation to the system usin the alias "tempCelcius"
+    // for easy retrieval of the imu temperature in celcius
+    string alias = "imuTempCelcius";
+    json_addentry(alias, equation, cdata);
+
     // set initial IMU temperature in Kelvin
     cdata->devspec.imu[0]->gen.temp = 0;
 
@@ -57,6 +62,10 @@ int main()
         // using the equation handle get the result of the equation
         double temp = json_equation(&eqhandle, cdata);
         cout << "temperature value from handle   [C] : " << temp << endl;
+
+        // using the alias get the result of the equation
+        temp = json_get_double(alias, cdata);
+        cout << "temperature value from alias    [C] : " <<  temp << endl;
 
         // change temperature value for demo only
         // set temp in Kelvin

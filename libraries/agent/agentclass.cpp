@@ -253,6 +253,7 @@ namespace Support
         add_request("devspecjson",req_devspecjson,"","return description JSON for Specific Devices");
         add_request("portsjson",req_portsjson,"","return description JSON for Ports");
         add_request("targetsjson",req_targetsjson,"","return description JSON for Targets");
+        add_request("aliasesjson",req_aliasesjson,"","return description JSON for Aliases");
         add_request("heartbeat",req_heartbeat,"","Post a hearbeat");
         add_request("postsoh",req_postsoh,"","Post a SOH");
         add_request("utc",req_utc,"","Get UTC as both Modified Julian Day and Unix Time");
@@ -561,6 +562,8 @@ namespace Support
         iretn = send_request(hbeat, "devspecjson", jnode.devspec, waitsec);
         if (iretn < 0) { return iretn; }
         iretn = send_request(hbeat, "portsjson", jnode.ports, waitsec);
+        if (iretn < 0) { return iretn; }
+        iretn = send_request(hbeat, "aliasesjson", jnode.aliases, waitsec);
         if (iretn < 0) { return iretn; }
         iretn = send_request(hbeat, "targetsjson", jnode.targets, waitsec);
         return iretn;
@@ -1626,6 +1629,23 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
         output = agent->cinfo->json.targets.c_str();
         if (output.length() > agent->cinfo->agent[0].beat.bsz)
         {
+            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+        }
+        return 0;
+    }
+
+    //! Built-in Return Alias JSON request
+    /*! Returns a JSON string representing the alias information.
+ * \param request Text of request.
+ * \param output Text of response to request.
+ * \param agent Pointer to Cosmos::Agent to use.
+ * \return 0, or negative error.
+ */
+//        int32_t Agent::req_aliasesjson(char *, char* output, Agent* agent)
+    int32_t Agent::req_aliasesjson(string &, string & output, Agent* agent) {
+//            strncpy(output, agent->cinfo->json.aliases.c_str(), agent->cinfo->json.aliases.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.aliases.size():agent->cinfo->agent[0].beat.bsz-1);
+        output = agent->cinfo->json.aliases;
+        if (output.size() > agent->cinfo->agent[0].beat.bsz) {
             output[agent->cinfo->agent[0].beat.bsz-1] = 0;
         }
         return 0;

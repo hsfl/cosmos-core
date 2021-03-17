@@ -217,6 +217,14 @@ int main(int argc, char* argv[])
     printf("Units: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(unitstruc), count*COSMOS_SIZEOF(unitstruc), total);
 
     count = 0;
+    for (size_t i=0; i<myagent->cinfo->alias.size(); ++i)
+    {
+        ++count;
+        total += COSMOS_SIZEOF(aliasstruc);
+    }
+    printf("Aliass: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(aliasstruc), count*COSMOS_SIZEOF(aliasstruc), total);
+
+    count = 0;
     for (size_t i=0; i<myagent->cinfo->equation.size(); ++i)
     {
         ++count;
