@@ -7144,16 +7144,16 @@ struct cosmosstruc
 		@return	n/a
 	*/
 	void set_json(const string& json) 	{
-		cout<<"\tJSON received = <"<<json<<">"<<endl;
+		//cout<<"\tJSON received = <"<<json<<">"<<endl;
 		string error;
 		// parses multiple JSON strings
 		vector<json11::Json> vp = json11::Json::parse_multi(json,error);
-		cout<<"\tJSON error    = <"<<error<<">"<<endl;
+		//cout<<"\tJSON error    = <"<<error<<">"<<endl;
 		for(size_t i = 0; i < vp.size(); ++i)	{
 			json11::Json p = vp[i];
 
 			string name(p.object_items().begin()->first);
-			cout<<"\tJSON name     = <"<<name<<">"<<endl;
+			//cout<<"\tJSON name     = <"<<name<<">"<<endl;
 			if(error.empty()) {
 				if(!p[name].is_null())	{
 					if(name_exists(name))  {
