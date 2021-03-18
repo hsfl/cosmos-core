@@ -146,7 +146,7 @@ for (i=0; i<nodes.size(); ++i)
 	switch(pid)
 	{
 	case -1:
-        strcpy(tempagent.beat.node, nodes[i].node.name);
+        tempagent.beat.node = nodes[i].node.name;
 		tempagent.pid=pid;
         agents.push_back(tempagent);
 		break;

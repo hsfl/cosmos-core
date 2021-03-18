@@ -657,7 +657,7 @@ void monitor()
         iretn = (Agent::AgentMessage)agent->readring(mess, Agent::AgentMessage::BEAT, 5.0);
 
         // Only process if this is a heartbeat message for our node
-        if (iretn == Agent::AgentMessage::BEAT && !strcmp(mess.meta.beat.node, agent->cinfo->node.name))
+        if (iretn == Agent::AgentMessage::BEAT && !mess.meta.beat.node.compare(agent->cinfo->node.name))
         {
             cdata_mutex.lock();
             // Extract telemetry
@@ -666,14 +666,14 @@ void monitor()
             // Extract agent information
             for (size_t i=0; i<myantennas.size(); ++i)
             {
-                if (!strcmp(mess.meta.beat.proc, myantennas[i].name.c_str()))
+                if (!mess.meta.beat.proc.compare(myantennas[i].name.c_str()))
                 {
                     myantennas[i].beat = mess.meta.beat;
                 }
             }
             for (size_t i=0; i<myradios.size(); ++i)
             {
-                if (!strcmp(mess.meta.beat.proc, myradios[i].name.c_str()))
+                if (!mess.meta.beat.proc.compare(myradios[i].name.c_str()))
                 {
                     myradios[i].beat = mess.meta.beat;
                 }
