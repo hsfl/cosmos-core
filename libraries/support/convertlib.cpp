@@ -3466,8 +3466,7 @@ int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
 int tle2eci(double utc, tlestruc tle, cartpos &eci)
 {
 
-    // call sgp4, eci is passed by pointer
-    // cartpos *teme;
+    // call sgp4, eci is passed by reference
     sgp4(utc, tle, eci);
 
 
