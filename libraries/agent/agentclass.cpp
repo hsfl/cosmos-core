@@ -748,7 +748,9 @@ namespace Support
             timer_beat.start();
 
             // post comes first
-            if (cinfo->agent[0].beat.bprd != 0.) { post_beat(); }
+            if (cinfo->agent[0].beat.bprd != 0.) {
+                post_beat();
+            }
 
             // TODO: move the monitoring calculations to another thread with its own loop time that can be controlled
             // Compute other monitored quantities if monitoring
@@ -1210,10 +1212,11 @@ int32_t Agent::req_get_state(string &request, string &response, Agent* agent)	{
 	response.clear();
     // find index of calling agent in sim_states[]
     for(size_t i = 0; i < agent->cinfo->sim_states.size(); ++i)   {
-        string node_name(agent->cinfo->agent[0].beat.node);
-        string agent_name(agent->cinfo->agent[0].beat.proc);
-        if(agent->cinfo->sim_states[i].node_name == node_name && agent->cinfo->sim_states[i].agent_name == agent_name)  {
-
+//        string node_name(agent->cinfo->agent[0].beat.node);
+//        string agent_name(agent->cinfo->agent[0].beat.proc);
+//        if(agent->cinfo->sim_states[i].node_name == node_name && agent->cinfo->sim_states[i].agent_name == agent_name)  {
+        if(agent->cinfo->sim_states[i].node_name == agent->cinfo->agent[0].beat.node)
+        {
 			// this wraps as a json object
 			//string j = "sim_states[" + to_string(i) + "]";
 			//response = agent->cinfo->get_json(j);
@@ -1873,7 +1876,10 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
                     inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address));
                     memcpy((char *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
 
-                    if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
+                    if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0)
+                    {
+                        continue;
+                    }
                     cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags = ifra->ifr_flags;
 
 //                            if ((cinfo->agent[0].pub[0].flags & IFF_POINTOPOINT) || (cinfo->agent[0].pub[0].flags & IFF_UP) == 0 || (cinfo->agent[0].pub[0].flags & IFF_LOOPBACK) || (cinfo->agent[0].pub[0].flags & (IFF_BROADCAST)) == 0)
@@ -2387,12 +2393,30 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
         int nbytes;
         uint8_t input[AGENTMAXBUFFER+1];
 
-        if (cinfo == nullptr) { return AGENT_ERROR_NULL; }
+        if (cinfo == nullptr) {
+            return AGENT_ERROR_NULL;
+        }
 
-        if (!cinfo->agent[0].sub.cport) { return (AGENT_ERROR_CHANNEL); }
+        if (!cinfo->agent[0].sub.cport) {
+            return (AGENT_ERROR_CHANNEL);
+        }
 
         // Clear out message
-        memset(&mess.meta.beat, 0, COSMOS_SIZEOF(beatstruc));
+        mess.meta.beat.addr[0] = 0;
+        mess.meta.beat.bprd = 0;
+        mess.meta.beat.bsz = 0;
+        mess.meta.beat.cpu = 0;
+        mess.meta.beat.exists = false;
+        mess.meta.beat.jitter = 0;
+        mess.meta.beat.memory = 0;
+        mess.meta.beat.ntype = NetworkType::BROADCAST;
+        mess.meta.beat.port = 0;
+        mess.meta.beat.user[0] = 0;
+        mess.meta.beat.utc = 0;
+        mess.meta.beat.node.clear();
+        mess.meta.beat.proc.clear();
+
+//        memset(&mess.meta.beat, 0, COSMOS_SIZEOF(beatstruc));
 
         ElapsedTime ep;
         ep.start();
