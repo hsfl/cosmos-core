@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     agent = new Agent("","test_simple_request");
 
     agent->add_request("add", request_add, "int1 int2", "returns the sum of 2 integers");
-    agent->add_request("hello", request_hello, "", "an example usage of simple requests");
+    agent->add_request("hello", request_hello, "", "replies with: \"HelloWorld\"");
     devicestruc* sun1 = agent->add_device("sun1", DeviceType::SSEN, error);
     devicestruc* sun2 =agent->add_device("sun2", DeviceType::SSEN, error);
     devicestruc* ant1 =agent->add_device("ant1", DeviceType::ANT, error);
@@ -49,19 +49,17 @@ int main(int argc, char **argv)
         cout << e.ErrorString(error) << endl;
     }
     cout << sun2_utc << endl;
-    string azi = agent->get_soh_name("ant1", "azim", error);
+    string azi = agent->get_soh_name("sun2", "azimuth", error);
     if(error < 0){
         cout << e.ErrorString(error) << endl;
     }
     cout << azi  << endl;
     agent->set_value(azi, 45);
 
-    double utc = json_get_double(azi, agent->cinfo);
-    cout << utc;
 
-    while(agent->running()){
+//    while(agent->running()){
 
-        COSMOS_SLEEP(2.);
-    }
+//        COSMOS_SLEEP(2.);
+//    }
 
 }
