@@ -66,6 +66,7 @@ namespace Cosmos {
         int32_t put_data(vector <uint8_t> data);
         int32_t put_data(const uint8_t *data, size_t size);
         int32_t put_slip(vector <uint8_t> data);
+        int32_t put_slip(const uint8_t *data, size_t size);
         int32_t put_nmea(vector <uint8_t> data);
         int32_t drain();
         int32_t poll_char();
@@ -76,6 +77,7 @@ namespace Cosmos {
         int32_t get_string(string &data, char endc=0);
         int32_t get_data(uint8_t *data, size_t size);
         int32_t get_slip(vector <uint8_t> &data, size_t size=SIZE_MAX);
+        int32_t get_slip(uint8_t *data, size_t size=0);
         int32_t get_nmea(vector <uint8_t> &data, size_t size);
         int32_t get_xmodem(vector <uint8_t> &data, size_t size);
         int32_t get_error();

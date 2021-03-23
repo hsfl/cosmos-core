@@ -863,6 +863,68 @@ namespace Cosmos {
         return (i);
     }
 
+    int32_t Serial::put_slip(const uint8_t *data, size_t size)
+    {
+        if (fd < 0)
+        {
+            error = SERIAL_ERROR_OPEN;
+            return (error);
+        }
+
+        size_t i = 0;
+        error = put_char(SLIP_FEND);
+        if (error < 0)
+        {
+            return error;
+        }
+        for (size_t j=0; j<size; j++)
+        {
+            switch (data[j])
+            {
+            case SLIP_FEND:
+                error = put_char(SLIP_FESC);
+                if (error < 0)
+                {
+                    return error;
+                }
+                error = put_char(SLIP_TFEND);
+                if (error < 0)
+                {
+                    return error;
+                }
+                i+=2;
+                break;
+            case SLIP_FESC:
+                error = put_char(SLIP_FESC);
+                if (error < 0)
+                {
+                    return error;
+                }
+                error = put_char(SLIP_TFESC);
+                if (error < 0)
+                {
+                    return error;
+                }
+                i+=2;
+                break;
+            default:
+                error = put_char(data[j]);
+                if (error < 0)
+                {
+                    return error;
+                }
+                i++;
+                break;
+            }
+        }
+        error = put_char(SLIP_FEND);
+        if (error < 0)
+        {
+            return error;
+        }
+        return (i);
+    }
+
     int32_t Serial::put_nmea(vector<uint8_t> data)
     {
         if (fd < 0)
@@ -1363,7 +1425,6 @@ namespace Cosmos {
     int32_t Serial::get_slip(vector <uint8_t> &data, size_t size)
     {
         int32_t ch;
-//        uint16_t i;
 
         data.clear();
         do
@@ -1382,7 +1443,6 @@ namespace Cosmos {
             }
         } while (ch != SLIP_FEND);
 
-//        i = 0;
         do
         {
             ch = get_char();
@@ -1397,7 +1457,6 @@ namespace Cosmos {
                     return (ch);
                 }
             }
-//            if (i < size)
             if (data.size() < size)
             {
                 switch (ch)
@@ -1413,20 +1472,83 @@ namespace Cosmos {
                         data.push_back(SLIP_FESC);
                         break;
                     }
-//                    ++i;
                     break;
                 case SLIP_FEND:
                     break;
                 default:
                     data.push_back(static_cast<uint8_t>(ch));
-//                    ++i;
                     break;
                 }
             }
         } while (ch != SLIP_FEND);
 
-//        return (i);
         return data.size();
+    }
+
+    int32_t Serial::get_slip(uint8_t *data, size_t size)
+    {
+        int32_t ch;
+        uint16_t i;
+
+        do
+        {
+            ch = get_char();
+            if (ch < 0)
+            {
+                if (ch == SERIAL_ERROR_TIMEOUT)
+                {
+                    return (SERIAL_ERROR_SLIPIN);
+                }
+                else
+                {
+                    return (ch);
+                }
+            }
+        } while (ch != SLIP_FEND);
+
+        i = 0;
+        do
+        {
+            ch = get_char();
+            if (ch < 0)
+            {
+                if (ch == SERIAL_ERROR_TIMEOUT)
+                {
+                    return (SERIAL_ERROR_SLIPOUT);
+                }
+                else
+                {
+                    return (ch);
+                }
+            }
+            if (i < size)
+            {
+                switch (ch)
+                {
+                case SLIP_FESC:
+                    ch = get_char();
+                    switch (ch)
+                    {
+                    case SLIP_TFEND:
+                        data[i] = SLIP_FEND;
+                        break;
+                    case SLIP_TFESC:
+                        data[i] = SLIP_FESC;
+                        break;
+                    }
+                    ++i;
+                    break;
+                case SLIP_FEND:
+                    break;
+                default:
+                    data[i] = static_cast<uint8_t>(ch);
+                    ++i;
+                    break;
+                }
+            }
+        } while (ch != SLIP_FEND);
+
+        return (i);
     }
 
     //! Read NMEA response.
