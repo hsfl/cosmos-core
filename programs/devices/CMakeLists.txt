@@ -3,7 +3,6 @@
 file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
 message(STATUS "${CMAKE_CURRENT_SOURCE_DIR} : ")
-message(${files})
 
 foreach(file ${files})
     get_filename_component(bfile ${file} NAME_WE)
@@ -17,7 +16,7 @@ foreach(file ${files})
     endif()
 endforeach()
 
-target_link_libraries(i2ctalk CosmosTime CosmosDeviceI2C CosmosError)
+#target_link_libraries(i2ctalk CosmosTime CosmosDeviceI2C CosmosError)
 
-add_deployment_binary(i2ctalk "bin")
+#add_deployment_binary(i2ctalk "bin")
 
