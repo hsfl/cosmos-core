@@ -357,7 +357,7 @@ namespace Cosmos
 
             int32_t send_request_getvalue(beatstruc agent, std::vector<std::string> names, Json &jresult);
             std::map<std::string, Json::Value> send_request_getvalue(beatstruc agent, std::vector<std::string> names, int32_t &error);
-            string create_device_value_alias(string devicename, string propertyname, string alias, int32_t &error);
+            int32_t create_device_value_alias(string devicename, string propertyname, string alias);
             int32_t create_alias(string cosmosname, string alias);
             string get_device_alias(string devicename, string propertyname, string alias, int32_t &error);
 

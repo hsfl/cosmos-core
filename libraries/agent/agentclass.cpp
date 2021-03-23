@@ -3022,15 +3022,14 @@ acquired.
      * @param error reference for returning an error
      * @return alias name for the device property alias ex: "imu_acceleration"
      */
-    std::string Agent::create_device_value_alias(std::string devicename, std::string propertyname, std::string alias, int32_t &error)
+    int32_t Agent::create_device_value_alias(std::string devicename, std::string propertyname, std::string alias)
     {
+        int32_t error = 0;
         string cosmos_soh_name = get_soh_name(devicename, propertyname, error);
-        if(error < 0) return "";
+        if(error < 0) return error;
 
         error = create_alias(cosmos_soh_name, alias);
-        if(error < 0) return "";
-
-        return alias;
+        return error;
     }
 
     /**
