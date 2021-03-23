@@ -119,7 +119,7 @@ namespace Support
 
         cinfo->agent[0].client = 1;
         cinfo->node.utc = 0.;
-        strncpy(cinfo->agent[0].beat.node, cinfo->node.name ,COSMOS_MAX_NAME);
+        cinfo->agent[0].beat.node = cinfo->node.name;
 
         // Establish publish channel
         cinfo->agent[0].beat.ntype = ntype;
@@ -136,7 +136,7 @@ namespace Support
 
         // Return if all we are doing is setting up client.
         if (agent_name.empty()) {
-            strcpy(cinfo->agent[0].beat.proc, "");
+            cinfo->agent[0].beat.proc = "";
             cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
             return;
         }
@@ -178,8 +178,8 @@ namespace Support
 
         // Initialize important server variables
 
-        strncpy(cinfo->agent[0].beat.node, cinfo->node.name, COSMOS_MAX_NAME);
-        strncpy(cinfo->agent[0].beat.proc, tname, COSMOS_MAX_NAME);
+        cinfo->agent[0].beat.node = cinfo->node.name;
+        cinfo->agent[0].beat.proc = tname;
         agentName = cinfo->agent[0].beat.proc;
 
         if (debug_level>2) {
@@ -683,7 +683,7 @@ namespace Support
             for (size_t k=0; k<agent_list.size(); ++k) {
                 size_t i;
                 for (i=0; i<slist.size(); i++) {
-                    if (!strcmp(agent_list[k].node, slist[i].node) && !strcmp(agent_list[k].proc, slist[i].proc))
+                    if (!agent_list[k].node.compare(slist[i].node) && !agent_list[k].proc.compare(slist[i].proc))
                         break;
                 }
                 if (i == slist.size()) {
@@ -763,7 +763,9 @@ namespace Support
             timer_beat.start();
 
             // post comes first
-            if (cinfo->agent[0].beat.bprd != 0.) { post_beat(); }
+            if (cinfo->agent[0].beat.bprd != 0.) {
+                post_beat();
+            }
 
             // TODO: move the monitoring calculations to another thread with its own loop time that can be controlled
             // Compute other monitored quantities if monitoring
@@ -884,7 +886,7 @@ namespace Support
         while (Agent::running()) {
             iretn = Agent::poll(mess, AgentMessage::ALL, 0.);
             if (iretn > 0) {
-                if (!strcmp(mess.meta.beat.proc, "") && mess.adata.empty()) {
+                if (!mess.meta.beat.proc.compare("") && mess.adata.empty()) {
                     continue;
                 }
 
@@ -893,7 +895,7 @@ namespace Support
                     bool agent_found = false;
 
                     for (beatstruc &i : agent_list) {
-                        if (!strcmp(i.node, mess.meta.beat.node) && !strcmp(i.proc, mess.meta.beat.proc)) {
+                        if (!i.node.compare(mess.meta.beat.node) && !i.proc.compare(mess.meta.beat.proc)) {
                             agent_found = true;
                             // update all information for the last contact with given (node, agent)...
                             i = mess.meta.beat;
@@ -906,7 +908,7 @@ namespace Support
                     }
                 }
 
-                if (mess.meta.type == AgentMessage::REQUEST && strcmp(cinfo->agent[0].beat.proc, "")) {
+                if (mess.meta.type == AgentMessage::REQUEST && cinfo->agent[0].beat.proc.compare("")) {
                     string response;
                     process_request(mess.adata, response);
                     Agent::post(AgentMessage::RESPONSE, response);
@@ -1225,10 +1227,11 @@ int32_t Agent::req_get_state(string &request, string &response, Agent* agent)	{
 	response.clear();
     // find index of calling agent in sim_states[]
     for(size_t i = 0; i < agent->cinfo->sim_states.size(); ++i)   {
-        string node_name(agent->cinfo->agent[0].beat.node);
-        string agent_name(agent->cinfo->agent[0].beat.proc);
-        if(agent->cinfo->sim_states[i].node_name == node_name && agent->cinfo->sim_states[i].agent_name == agent_name)  {
-
+//        string node_name(agent->cinfo->agent[0].beat.node);
+//        string agent_name(agent->cinfo->agent[0].beat.proc);
+//        if(agent->cinfo->sim_states[i].node_name == node_name && agent->cinfo->sim_states[i].agent_name == agent_name)  {
+        if(agent->cinfo->sim_states[i].node_name == agent->cinfo->agent[0].beat.node)
+        {
 			// this wraps as a json object
 			//string j = "sim_states[" + to_string(i) + "]";
 			//response = agent->cinfo->get_json(j);
@@ -1905,7 +1908,10 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
                     inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address));
                     memcpy((char *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
 
-                    if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
+                    if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0)
+                    {
+                        continue;
+                    }
                     cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags = ifra->ifr_flags;
 
 //                            if ((cinfo->agent[0].pub[0].flags & IFF_POINTOPOINT) || (cinfo->agent[0].pub[0].flags & IFF_UP) == 0 || (cinfo->agent[0].pub[0].flags & IFF_LOOPBACK) || (cinfo->agent[0].pub[0].flags & (IFF_BROADCAST)) == 0)
@@ -2252,8 +2258,8 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
         {
             sprintf((char *)&post[3],"{\"agent_utc\":%.15g,\"agent_node\":\"%s\",\"agent_proc\":\"%s\",\"agent_addr\":\"%s\",\"agent_port\":%u,\"agent_bprd\":%f,\"agent_bsz\":%u,\"agent_cpu\":%f,\"agent_memory\":%f,\"agent_jitter\":%f,\"node_utcoffset\":%.15g}",
                     cinfo->agent[0].beat.utc,
-                    cinfo->agent[0].beat.node,
-                    cinfo->agent[0].beat.proc,
+                    cinfo->agent[0].beat.node.c_str(),
+                    cinfo->agent[0].beat.proc.c_str(),
                     cinfo->agent[0].pub[i].address,
                     cinfo->agent[0].beat.port,
                     cinfo->agent[0].beat.bprd,
@@ -2419,12 +2425,30 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
         int nbytes;
         uint8_t input[AGENTMAXBUFFER+1];
 
-        if (cinfo == nullptr) { return AGENT_ERROR_NULL; }
+        if (cinfo == nullptr) {
+            return AGENT_ERROR_NULL;
+        }
 
-        if (!cinfo->agent[0].sub.cport) { return (AGENT_ERROR_CHANNEL); }
+        if (!cinfo->agent[0].sub.cport) {
+            return (AGENT_ERROR_CHANNEL);
+        }
 
         // Clear out message
-        memset(&mess.meta.beat, 0, COSMOS_SIZEOF(beatstruc));
+        mess.meta.beat.addr[0] = 0;
+        mess.meta.beat.bprd = 0;
+        mess.meta.beat.bsz = 0;
+        mess.meta.beat.cpu = 0;
+        mess.meta.beat.exists = false;
+        mess.meta.beat.jitter = 0;
+        mess.meta.beat.memory = 0;
+        mess.meta.beat.ntype = NetworkType::BROADCAST;
+        mess.meta.beat.port = 0;
+        mess.meta.beat.user[0] = 0;
+        mess.meta.beat.utc = 0;
+        mess.meta.beat.node.clear();
+        mess.meta.beat.proc.clear();
+
+//        memset(&mess.meta.beat, 0, COSMOS_SIZEOF(beatstruc));
 
         ElapsedTime ep;
         ep.start();
@@ -2489,10 +2513,12 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
                     // Extract meta data
                     if (mess.jdata.find("}{") == string::npos)
                     {
+						char node[COSMOS_MAX_NAME+1] = {};
+						char proc[COSMOS_MAX_NAME+1] = {};
                         sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg,\"agent_node\":\"%40[^\"]\",\"agent_proc\":\"%40[^\"]\",\"agent_addr\":\"%17[^\"]\",\"agent_port\":%hu,\"agent_bprd\":%lf,\"agent_bsz\":%u,\"agent_cpu\":%f,\"agent_memory\":%f,\"agent_jitter\":%lf}",
                                &mess.meta.beat.utc,
-                               mess.meta.beat.node,
-                               mess.meta.beat.proc,
+                               node,
+                               proc,
                                mess.meta.beat.addr,
                                &mess.meta.beat.port,
                                &mess.meta.beat.bprd,
@@ -2500,24 +2526,40 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
                                &mess.meta.beat.cpu,
                                &mess.meta.beat.memory,
                                &mess.meta.beat.jitter);
+						if(node[0] != '\0') {
+							mess.meta.beat.node = node;
+						}
+						if(proc[0] != '\0') {
+							mess.meta.beat.proc = proc;
+						}
                     }
                     else if (mess.jdata.find("agent_bprd") == string::npos)
                     {
+						char node[COSMOS_MAX_NAME+1] = {};
+						char proc[COSMOS_MAX_NAME+1] = {};
                         sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
                                &mess.meta.beat.utc,
-                               mess.meta.beat.node,
-                               mess.meta.beat.proc,
+                               node,
+                               proc,
                                mess.meta.beat.addr,
                                &mess.meta.beat.port,
                                &mess.meta.beat.bsz,
                                &mess.meta.beat.cpu,
                                &mess.meta.beat.memory,
                                &mess.meta.beat.jitter);
+						if(node[0] != '\0') {
+							mess.meta.beat.node = node;
+						}
+						if(proc[0] != '\0') {
+							mess.meta.beat.proc = proc;
+						}
                     } else {
+						char node[COSMOS_MAX_NAME+1] = {};
+						char proc[COSMOS_MAX_NAME+1] = {};
                         sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bprd\":%lf}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
                                &mess.meta.beat.utc,
-                               mess.meta.beat.node,
-                               mess.meta.beat.proc,
+                               node,
+                               proc,
                                mess.meta.beat.addr,
                                &mess.meta.beat.port,
                                &mess.meta.beat.bprd,
@@ -2525,8 +2567,14 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
                                &mess.meta.beat.cpu,
                                &mess.meta.beat.memory,
                                &mess.meta.beat.jitter);
+						if(node[0] != '\0') {
+							mess.meta.beat.node = node;
+						}
+						if(proc[0] != '\0') {
+							mess.meta.beat.proc = proc;
+						}
                     }
-                    if (strcmp(mess.meta.beat.node, cinfo->agent[0].beat.node) || strcmp(mess.meta.beat.proc, cinfo->agent[0].beat.proc))
+                    if (mess.meta.beat.node.compare(cinfo->agent[0].beat.node) || mess.meta.beat.proc.compare(cinfo->agent[0].beat.proc))
                     {
                         return ((int)mess.meta.type);
                     }
@@ -2563,8 +2611,8 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
                 message = message_queue.front();
                 message_queue.pop_front();
                 if (type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type)) {
-                    if (proc.empty() || !strcmp(proc.c_str(), message.meta.beat.proc)) {
-                        if (node.empty() || !strcmp(node.c_str(), message.meta.beat.node)) {
+                    if (proc.empty() || !proc.compare(message.meta.beat.proc)) {
+                        if (node.empty() || !node.compare(message.meta.beat.node)) {
                             return (static_cast<int32_t>(message.meta.type));
                         }
                     }
@@ -2876,7 +2924,7 @@ acquired.
         if (!agent_beat.exists) {
             agent_beat = find_agent(node, agent, wait_sec);
         } else {
-            if (strcmp(node.c_str(), agent_beat.node) || (strcmp(agent.c_str(), agent_beat.proc))) {
+            if (node.compare(agent_beat.node) || (agent.compare(agent_beat.proc))) {
                 agent_beat = find_agent(node, agent, wait_sec);
             }
         }

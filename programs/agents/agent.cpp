@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
                         break;
                     }
 
-                    printf("%.15g:[%s:%s][%s:%u](%lu:%lu:%zu)\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, message.jdata.size(), message.adata.size(), message.bdata.size());
+                    printf("%.15g:[%s:%s][%s:%u](%lu:%lu:%zu)\n",message.meta.beat.utc, message.meta.beat.node.c_str(), message.meta.beat.proc.c_str(), message.meta.beat.addr, message.meta.beat.port, message.jdata.size(), message.adata.size(), message.bdata.size());
                     printf("%s\n",message.jdata.c_str());
                     if (pretn < Agent::AgentMessage::BINARY)
                     {
@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
                     {
                         beatstruc cbeat = agent->agent_list[i];
                         agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
-                        printf("[%lu] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
+                        printf("[%lu] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node.c_str(),cbeat.proc.c_str(),cbeat.addr,cbeat.port,cbeat.bsz);
                         printf("\t%s\n",output.c_str());
                         fflush(stdout);
                     }
@@ -283,9 +283,9 @@ int main(int argc, char *argv[])
                         beatstruc cbeat = agent->agent_list[i];
                         agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
                         if(i>0) printf(",");
-                        printf("{\"agent_proc\": \"%s\", ", cbeat.proc);
+                        printf("{\"agent_proc\": \"%s\", ", cbeat.proc.c_str());
                         printf("\"agent_utc\": %.15g, ", cbeat.utc);
-                        printf("\"agent_node\": \"%s\", ", cbeat.node);
+                        printf("\"agent_node\": \"%s\", ", cbeat.node.c_str());
                         printf("\"agent_addr\": \"%s\", ", cbeat.addr);
                         printf("\"agent_port\": %hu, ", cbeat.port);
                         printf("\"agent_bsz\": %u, ", cbeat.bsz);
@@ -400,7 +400,7 @@ int main(int argc, char *argv[])
                         break;
                     }
 
-                    printf("[%d] %.15g %s %s %s %hu %u\n",i,message.meta.beat.utc,message.meta.beat.node,message.meta.beat.proc,message.meta.beat.addr,message.meta.beat.port,message.meta.beat.bsz);
+                    printf("[%d] %.15g %s %s %s %hu %u\n",i,message.meta.beat.utc,message.meta.beat.node.c_str(),message.meta.beat.proc.c_str(),message.meta.beat.addr,message.meta.beat.port,message.meta.beat.bsz);
 
                     if (pretn < Agent::AgentMessage::BINARY && !channel.empty())
                     {

@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
     vector <beatstruc> servers = agent->find_agents(1.);
     for (beatstruc &i : servers)
     {
-        if (strcmp(i.node, agent->nodeName.c_str()) && !strcmp(i.proc, "exec"))
+        if (i.node.compare(agent->nodeName.c_str()) && !i.proc.compare("exec"))
         {
             log_data_flag = false;
             break;

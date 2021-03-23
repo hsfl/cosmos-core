@@ -926,9 +926,9 @@ struct beatstruc
 	/** Heartbeat timestamp */
 	double utc = 0.;
 	/** Heartbeat Node Name */
-	char node[COSMOS_MAX_NAME+1] = {};  // TODO: change to string
+	string node = "";
 	//! Heartbeat Agent Name
-	char proc[COSMOS_MAX_NAME+1] = {}; // TODO: change to string
+	string proc = "";
 	// Type of address protocol
 	NetworkType ntype = NetworkType::MULTICAST;
 	//! Protocol Address
@@ -982,8 +982,8 @@ struct beatstruc
 		json11::Json p = json11::Json::parse(s,error);
 		if(error.empty()) {
 			if(!p["utc"].is_null()) { utc = p["utc"].number_value(); }
-			if(!p["node"].is_null()) { strcpy(node, p["node"].string_value().c_str()); }
-			if(!p["proc"].is_null()) { strcpy(proc, p["proc"].string_value().c_str()); }
+			if(!p["node"].is_null()) { node = p["node"].string_value(); }
+			if(!p["proc"].is_null()) { proc = p["proc"].string_value(); }
 			if(!p["ntype"].is_null()) { ntype = static_cast<NetworkType>(p["ntype"].int_value()); }
 			if(!p["addr"].is_null()) { strcpy(addr, p["addr"].string_value().c_str()); }
 			if(!p["port"].is_null()) { port = p["port"].int_value(); }
@@ -6420,8 +6420,8 @@ struct cosmosstruc
 			}
 			add_name(basename+".beat", &agent[i].beat, "beatstruc");
 			add_name(basename+".beat.utc", &agent[i].beat.utc, "double");
-			add_name(basename+".beat.node", &agent[i].beat.node, "char[]");
-			add_name(basename+".beat.proc", &agent[i].beat.proc, "char[]");
+			add_name(basename+".beat.node", &agent[i].beat.node, "string");
+			add_name(basename+".beat.proc", &agent[i].beat.proc, "string");
 			add_name(basename+".beat.ntype", &agent[i].beat.ntype, "NetworkType");
 			add_name(basename+".beat.addr", &agent[i].beat.addr, "char[]");
 			add_name(basename+".beat.port", &agent[i].beat.port, "uint16_t");
@@ -7159,16 +7159,16 @@ struct cosmosstruc
 		@return	n/a
 	*/
 	void set_json(const string& json) 	{
-		cout<<"\tJSON received = <"<<json<<">"<<endl;
+		//cout<<"\tJSON received = <"<<json<<">"<<endl;
 		string error;
 		// parses multiple JSON strings
 		vector<json11::Json> vp = json11::Json::parse_multi(json,error);
-		cout<<"\tJSON error    = <"<<error<<">"<<endl;
+		//cout<<"\tJSON error    = <"<<error<<">"<<endl;
 		for(size_t i = 0; i < vp.size(); ++i)	{
 			json11::Json p = vp[i];
 
 			string name(p.object_items().begin()->first);
-			cout<<"\tJSON name     = <"<<name<<">"<<endl;
+			//cout<<"\tJSON name     = <"<<name<<">"<<endl;
 			if(error.empty()) {
 				if(!p[name].is_null())	{
 					if(name_exists(name))  {

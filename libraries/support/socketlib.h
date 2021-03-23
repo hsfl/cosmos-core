@@ -140,6 +140,8 @@ struct socket_channel
     int16_t flags;
 };
 
+typedef vector<socket_channel> socket_bus;
+
 
 //! @}
 
@@ -147,6 +149,7 @@ struct socket_channel
 //! \defgroup socketlib_functions Socket library functions
 //! @{
 
+int32_t socket_open(socket_bus &bus, uint16_t port, uint32_t usectimeout=0);
 int32_t socket_open(socket_channel* channel, NetworkType ntype, const char *address, uint16_t port, uint16_t direction, bool blocking=true, uint32_t usectimeo=0, uint32_t rcvbuf=0, uint32_t sndbuf=0);
 int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *address, uint16_t port, uint16_t direction, bool blocking=true, uint32_t usectimeo=0, uint32_t rcvbuf=0, uint32_t sndbuf=0);
 int32_t socket_accept(socket_channel server, socket_channel& client);
@@ -159,9 +162,13 @@ int32_t socket_close(socket_channel* channel);
 int32_t socket_close(socket_channel& channel);
 int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags=0);
 int32_t socket_recvfrom(socket_channel &channel,string &buffer, size_t maxlen, int flags=0);
+int32_t socket_post(socket_bus &channel, const string buffer, int flags=0);
+int32_t socket_post(socket_channel &channel, const string buffer, int flags=0);
+int32_t socket_post(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
+int32_t socket_sendto(socket_bus &channel, const string buffer, int flags=0);
 int32_t socket_sendto(socket_channel &channel, const string buffer, int flags=0);
 int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
-vector <socket_channel> socket_find_addresses(NetworkType ntype);
+vector <socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port=0);
 
 //-------------------------------------------------------------------
 // Simple UDP class to send data
