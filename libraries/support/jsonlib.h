@@ -247,6 +247,7 @@ string json_get_string(const jsonentry &entry, cosmosstruc *cinfo);
 posstruc json_get_posstruc(const jsonentry &entry, cosmosstruc *cinfo);
 
 int32_t json_set_number(double val, const jsonentry &entry, cosmosstruc *cinfo);
+int32_t json_set_number(double val, jsonentry *entry, cosmosstruc *cinfo);
 int32_t json_set_string(string val, const jsonentry &entry, cosmosstruc *cinfo);
 
 int32_t json_scan(char *istring);
@@ -341,6 +342,8 @@ size_t calc_events(vector<eventstruc> &dictionary, cosmosstruc *cinfo, vector<ev
 uint16_t device_type_index(string name);
 string device_type_name(uint32_t type);
 string port_type_name(uint32_t type);
+int32_t device_index(cosmosstruc* cinfo, string name);
+bool device_has_property(uint16_t deviceType, string prop);
 
 //! @}
 

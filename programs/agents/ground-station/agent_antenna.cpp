@@ -78,6 +78,8 @@ List of available requests:
                 return description JSON for Ports
         targetsjson
                 return description JSON for Targets
+        aliasesjson
+                return description JSON for Aliases
         track_azel track_azel
                 Supply next azimuth and elevation for tracking.
         debug debug
