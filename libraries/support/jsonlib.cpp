@@ -452,9 +452,6 @@ void json_init_reserve(cosmosstruc* cinfo) {
 
 	// init sim_states
 	sim_state s;
-	s.node_name = "mothership";
-	s.agent_name = "mother";
-	cinfo->sim_states.push_back(s);
 	s.node_name = "daughter_01";
 	s.agent_name = "allison";
 	cinfo->sim_states.push_back(s);
@@ -466,6 +463,9 @@ void json_init_reserve(cosmosstruc* cinfo) {
 	cinfo->sim_states.push_back(s);
 	s.node_name = "daughter_04";
 	s.agent_name = "delilah";
+	cinfo->sim_states.push_back(s);
+	s.node_name = "mothership";
+	s.agent_name = "mother";
 	cinfo->sim_states.push_back(s);
 
     cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
