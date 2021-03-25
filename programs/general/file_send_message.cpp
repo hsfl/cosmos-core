@@ -75,7 +75,7 @@ int main(int argc, char*argv[])
     out_comm_channel.resize(1);
     if((iretn = socket_open(&out_comm_channel[0].chansock, NetworkType::UDP, "", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f Main: Node: %s Agent: %s - Listening socket failure\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
+        agent->debug_error.Printf("%16.10f Main: Node: %s Agent: %s - Listening socket failure\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
         agent->shutdown();
         exit (-errno);
     }
@@ -89,8 +89,8 @@ int main(int argc, char*argv[])
     out_comm_channel[0].node = "";
     out_comm_channel[0].throughput = 1000;
     out_comm_channel[0].packet_size = (200-(PACKET_DATA_OFFSET_HEADER_TOTAL+28));
-    fprintf(agent->get_debug_fd(), "%16.10f Node: %s Agent: %s - Listening socket open\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
-    fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
+    agent->debug_error.Printf("%16.10f Node: %s Agent: %s - Listening socket open\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
+    // fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
     out_comm_channel.resize(2);
     out_comm_channel[1].node = argv[1];
@@ -105,7 +105,7 @@ int main(int argc, char*argv[])
 
     if((iretn = socket_open(&out_comm_channel[1].chansock, NetworkType::UDP, out_comm_channel[1].chanip.c_str(), AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f Node: %s IP: %s - Sending socket failure\n", currentmjd(), out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str());
+        agent->debug_error.Printf("%16.10f Node: %s IP: %s - Sending socket failure\n", currentmjd(), out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str());
         agent->shutdown();
         exit (-errno);
     }
@@ -115,8 +115,8 @@ int main(int argc, char*argv[])
     out_comm_channel[1].fmjd = out_comm_channel[1].nmjd;
     out_comm_channel[1].throughput = 1000;
     out_comm_channel[1].packet_size = (200-(PACKET_DATA_OFFSET_HEADER_TOTAL+28));
-    fprintf(agent->get_debug_fd(), "%16.10f Network: Old: %u %s %s %u\n", currentmjd(), 1, out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str(), ntohs(out_comm_channel[1].chansock.caddr.sin_port));
-    fflush(agent->get_debug_fd());
+    agent->debug_error.Printf("%16.10f Network: Old: %u %s %s %u\n", currentmjd(), 1, out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str(), ntohs(out_comm_channel[1].chansock.caddr.sin_port));
+    // fflush(agent->get_debug_fd());
 
     iretn = sendto(out_comm_channel[1].chansock.cudp, reinterpret_cast<const char*>(&packet[0]), packet.size(), 0, reinterpret_cast<sockaddr*>(&out_comm_channel[1].chansock.caddr), sizeof(struct sockaddr_in));
 

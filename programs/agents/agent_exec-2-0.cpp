@@ -901,7 +901,7 @@ int32_t get_power_mode()
 //    iretn = json_createpiece(agent->cinfo, "main_cpu", DeviceType::CPU);
 //    if (iretn < 0)
 //    {
-//        fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
+//        agent->debug_error.Printf("Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
 //        agent->shutdown();
 //        exit(1);
 //    }

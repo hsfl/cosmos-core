@@ -370,9 +370,15 @@ namespace Cosmos
             size_t message_tail = MESSAGE_RING_SIZE;
 
             //! Flag for level of debugging, keep it public so that it can be controlled from the outside
-            uint16_t debug_level = 0;
+            int32_t set_debug_level(uint16_t level);
+            int32_t get_debug_level();
             FILE *get_debug_fd(double mjd=0.);
             int32_t close_debug_fd();
+
+            // Add implementation of new COSMOS Error
+            Error debug_error;
+            int32_t Printf(string output);
+            int32_t Printf(const char *fmt, ...);
 
             // agent variables
             string nodeName;
@@ -382,6 +388,7 @@ namespace Cosmos
         protected:
         private:
 
+            uint16_t debug_level = 0;
             NetworkType networkType = NetworkType::UDP;
             double activeTimeout = 0.0; // in MJD
             uint32_t bufferSize = AGENTMAXBUFFER;

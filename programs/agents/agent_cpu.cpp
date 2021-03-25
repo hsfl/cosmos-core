@@ -95,17 +95,17 @@ int main(int argc, char *argv[])
 	}
 
     if ((iretn = agent->wait()) < 0) {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
     } else {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+        agent->debug_error.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
     iretn = json_createpiece(agent->cinfo, agent->nodeName + "_cpu", DeviceType::CPU);
 
     if (iretn < 0)
     {
-        fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
         agent->shutdown();
         exit(1);
     }
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
         iretn = json_createpiece(agent->cinfo, name, DeviceType::DISK);
         if (iretn < 0)
         {
-            fprintf(agent->get_debug_fd(), "Failed to add DISK %s : %s\n", dinfo[i].mount.c_str(), cosmos_error_string(iretn).c_str());
+            agent->debug_error.Printf("Failed to add DISK %s : %s\n", dinfo[i].mount.c_str(), cosmos_error_string(iretn).c_str());
             agent->shutdown();
             exit(1);
         }
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
     print.scalar("Number of Cores: ",agent->cinfo->device[cpu_cidx].cpu.maxload);
     print.endline();
 
-    fprintf(agent->get_debug_fd(), "CPU Agent initialized\n");
+    agent->debug_error.Printf("CPU Agent initialized\n");
 
 //    agent->add_request("soh",request_soh,"","current state of health message");
     agent->add_request("diskSize",request_diskSize,"","disk size in GB");
@@ -192,13 +192,13 @@ int main(int argc, char *argv[])
     // Initialize temperature Fit
     LsFit cputemp(4, 1);
     // Start performing the body of the agent
-    agent->debug_level = 0;
+    agent->set_debug_level(0);
     while(agent->running())
     {
         agent->cinfo->device[cpu_cidx].utc = currentmjd();
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
-            fprintf(agent->get_debug_fd(), "%16.10f ", agent->cinfo->device[cpu_cidx].utc);
+            agent->debug_error.Printf("%16.10f ", agent->cinfo->device[cpu_cidx].utc);
         }
         agent->cinfo->node.downtime = get_last_offset();
 
@@ -212,10 +212,10 @@ int main(int argc, char *argv[])
             agent->cinfo->device[cpu_cidx].cpu.maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
             deviceCpu.getPercentUseForCurrentProcess();
         }
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
-            fprintf(agent->get_debug_fd(), "Load %6.2f %6.2f ", agent->cinfo->device[cpu_cidx].cpu.load, agent->cinfo->device[cpu_cidx].cpu.maxload);
-            fprintf(agent->get_debug_fd(), "Memory %6.2f %6.2f ", agent->cinfo->device[cpu_cidx].cpu.gib, agent->cinfo->device[cpu_cidx].cpu.maxgib);
+            agent->debug_error.Printf("Load %6.2f %6.2f ", agent->cinfo->device[cpu_cidx].cpu.load, agent->cinfo->device[cpu_cidx].cpu.maxload);
+            agent->debug_error.Printf("Memory %6.2f %6.2f ", agent->cinfo->device[cpu_cidx].cpu.gib, agent->cinfo->device[cpu_cidx].cpu.maxgib);
         }
 
         // get disk info
@@ -227,9 +227,9 @@ int main(int argc, char *argv[])
 
             agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.gib = deviceDisk.getUsedGiB(node_path);
             agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.maxgib = deviceDisk.getSizeGiB(node_path);
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
-                fprintf(agent->get_debug_fd(), "%s %6.2f %6.2f ", node_path.c_str(), agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.gib, agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.maxgib);
+                agent->debug_error.Printf("%s %6.2f %6.2f ", node_path.c_str(), agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.gib, agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.maxgib);
             }
         }
 
@@ -255,9 +255,9 @@ int main(int argc, char *argv[])
 //            agent->cinfo->device[cpu_cidx].temp = cputemp.eval(currentmjd());
 //        }
 
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
-            fprintf(agent->get_debug_fd(), "\n");
+            agent->debug_error.Printf("\n");
         }
 
         agent->finish_active_loop();

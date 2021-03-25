@@ -61,7 +61,6 @@ int main(int argc, char *argv[])
     errorlog.Set(1);
 	for (uint16_t i=0; i<gige_list.size(); ++i)
 	{
-//		printf("Camera %u: %s %s %s\n", i, gige_value_to_address(gige_list[i].address), gige_list[i].serial_number, gige_list[i].manufacturer);
         errorlog.Printf("Camera %u: %s %s %s\n", i, gige_value_to_address(gige_list[i].address), gige_list[i].serial_number, gige_list[i].manufacturer);
 	}
 

@@ -87,6 +87,7 @@ namespace Support
 	{
         int32_t iretn;
         debug_level = dlevel;
+        debug_error.Set(dlevel,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
 
         // Initialize COSMOS data space
         cinfo = json_init();
@@ -184,12 +185,12 @@ namespace Support
 
         if (debug_level>2) {
         	double timeStart = currentmjd();
-            fprintf(get_debug_fd(), "------------------------------------------------------\n");
-            fprintf(get_debug_fd(), "COSMOS AGENT '%s' on node '%s'\n", agent_name.c_str(), node_name.c_str());
-            fprintf(get_debug_fd(), "Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
-            fprintf(get_debug_fd(), "Agent started at %s\n", mjdToGregorian(timeStart).c_str());
-            fprintf(get_debug_fd(), "Debug level %u\n", debug_level);
-            fprintf(get_debug_fd(), "------------------------------------------------------\n");
+            debug_error.Printf("------------------------------------------------------\n");
+            debug_error.Printf("COSMOS AGENT '%s' on node '%s'\n", agent_name.c_str(), node_name.c_str());
+            debug_error.Printf("Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
+            debug_error.Printf("Agent started at %s\n", mjdToGregorian(timeStart).c_str());
+            debug_error.Printf("Debug level %u\n", debug_level);
+            debug_error.Printf("------------------------------------------------------\n");
         }
 
         if (bprd >= AGENT_HEARTBEAT_PERIOD_MIN) {
@@ -428,7 +429,7 @@ namespace Support
     int32_t Agent::shutdown()
     {
         if (debug_level) {
-            fprintf(get_debug_fd(), "Shutting down Agent. Last error: %s\n", cosmos_error_string(error_value).c_str());
+            debug_error.Printf("Shutting down Agent. Last error: %s\n", cosmos_error_string(error_value).c_str());
             fflush(stdout);
         }
 
@@ -931,7 +932,7 @@ namespace Support
         {
 //                iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.length()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
             iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.size()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
-            if (agent->debug_level) {
+            if (agent->get_debug_level()) {
                 printf("Forward: [%s:%u:%d] %s\n", agent->cinfo->agent[0].pub[i].address, agent->cinfo->agent[0].pub[i].cport, iretn, (const char *)&request[request.size()-count]);
             }
         }
@@ -1144,9 +1145,11 @@ namespace Support
 //        int32_t Agent::req_debug_level(string &request, char* output, Agent* agent)
     int32_t Agent::req_debug_level(string &request, string &output, Agent* agent) {
         if (request != "debug_level") {
-            sscanf(request.c_str(), "debug_level %hu", &agent->debug_level);
+            uint16_t level;
+            sscanf(request.c_str(), "debug_level %hu", &level);
+            agent->set_debug_level(level);
         }
-        output = std::to_string(agent->debug_level);
+        output = std::to_string(agent->get_debug_level());
         return 0;
     }
 
@@ -2815,6 +2818,17 @@ acquired.
         if (!node_found) { iretn = GENERAL_ERROR_UNDEFINED; }
 
         return iretn;
+    }
+
+    int32_t Agent::set_debug_level(uint16_t level)
+    {
+        debug_level = level;
+        return debug_error.Type(level);
+    }
+
+    int32_t Agent::get_debug_level()
+    {
+        return debug_error.Type();
     }
 
     FILE *Agent::get_debug_fd(double mjd) {

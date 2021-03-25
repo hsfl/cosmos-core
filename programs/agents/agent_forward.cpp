@@ -57,12 +57,12 @@ int main(int argc, char *argv[])
     agent = new Agent("", "forward", 5.);
     if ((iretn = agent->wait()) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
     else
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+        agent->debug_error.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
 
@@ -141,15 +141,15 @@ int main(int argc, char *argv[])
                 if (sendchan[i].cudp >= 0)
                 {
                     iretn = socket_sendto(sendchan[i], post);
-                    if (agent->debug_level > 1)
+                    if (agent->get_debug_level() > 1)
                     {
                         if (iretn < 0)
                         {
-                            fprintf(agent->get_debug_fd(), "%s: Failed To %s\n", mjd2iso8601(currentmjd()).c_str(), sendchan[i].address);
+                            agent->debug_error.Printf("%s: Failed To %s\n", mjd2iso8601(currentmjd()).c_str(), sendchan[i].address);
                         }
                         else
                         {
-                            fprintf(agent->get_debug_fd(), "%s: Sent %zu Bytes To %s\n", mjd2iso8601(currentmjd()).c_str(), post.size(), sendchan[i].address);
+                            agent->debug_error.Printf("%s: Sent %zu Bytes To %s\n", mjd2iso8601(currentmjd()).c_str(), post.size(), sendchan[i].address);
                         }
                     }
                 }
@@ -209,9 +209,9 @@ void forwarding_loop()
                 socket_channel tempchan;
                 strncpy(tempchan.address, rcvchan.address, 17);
                 sendchan.push_back(tempchan);
-                if (agent->debug_level)
+                if (agent->get_debug_level())
                 {
-                    fprintf(agent->get_debug_fd(), "%s: Added %s\n", mjd2iso8601(currentmjd()).c_str(), tempchan.address);
+                    agent->debug_error.Printf("%s: Added %s\n", mjd2iso8601(currentmjd()).c_str(), tempchan.address);
                 }
             }
 

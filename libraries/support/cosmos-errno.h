@@ -532,7 +532,9 @@ namespace Cosmos {
                 };
 
             string ErrorString(int16_t number);
-            int32_t Set(uint16_t type=0, string pathname="", double interval=1800.);
+            int32_t Set(uint16_t type=0, string ipathname="", double iinterval=1800., string iextension="log");
+            int32_t Type(uint16_t type);
+            int32_t Type();
             FILE *Open();
             int32_t Close();
             int32_t Printf(string output);
@@ -540,10 +542,11 @@ namespace Cosmos {
 
 
         private:
-            double log_interval = 30. / 1440.;
+            double interval = 30. / 1440.;
             double oldmjd = 0.;
-            uint16_t log_type = 0;
-            string log_pathName;
+            uint16_t type = 0;
+            string pathName;
+            string Extension = "log";
             FILE *log_fd = nullptr;
         };
 

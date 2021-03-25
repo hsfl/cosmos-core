@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     iretn = json_createpiece(agent->cinfo, antbase.c_str(), DeviceType::ANT);
     if (iretn < 0)
     {
-        fprintf(agent->get_debug_fd(), "Failed to add %s ANT %s\n", antbase.c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("Failed to add %s ANT %s\n", antbase.c_str(), cosmos_error_string(iretn).c_str());
         agent->shutdown();
         exit(iretn);
     }
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
     iretn = json_dump_node(agent->cinfo);
     if (iretn < 0)
     {
-        fprintf(agent->get_debug_fd(), "Failed to save node %s\n", cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("Failed to save node %s\n", cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
 

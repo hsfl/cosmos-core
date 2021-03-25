@@ -167,12 +167,12 @@ int main(int argc, char *argv[])
 
     if ((iretn = agent->wait()) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
     else
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+        agent->debug_error.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
     // Fix time
@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
     logdate_exec = 0.;
     logstride_exec = 0.;
     agent->start_active_loop();
-    agent->debug_level = 0;
+    agent->set_debug_level(0);
     ElapsedTime postet;
     ElapsedTime savet;
     while(agent->running())
@@ -901,7 +901,7 @@ int32_t get_power_mode()
 //    iretn = json_createpiece(agent->cinfo, "main_cpu", DeviceType::CPU);
 //    if (iretn < 0)
 //    {
-//        fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
+//        agent->debug_error.Printf("Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
 //        agent->shutdown();
 //        exit(1);
 //    }

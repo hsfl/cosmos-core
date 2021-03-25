@@ -280,18 +280,29 @@ namespace Cosmos {
             return error_string;
         }
 
-        int32_t Error::Set(uint16_t type, string pathname, double interval)
+        int32_t Error::Type(uint16_t type)
         {
-            log_interval = interval;
-            log_type = type;
-            switch (log_type)
+            return Set(type, pathName, interval, Extension);
+        }
+
+        int32_t Error::Type()
+        {
+            return type;
+        }
+
+        int32_t Error::Set(uint16_t type, string ipathname, double iinterval, string iextension)
+        {
+            interval = iinterval;
+            Extension = iextension;
+            type = type;
+            switch (type)
             {
             case LOG_NONE:
                 if (log_fd != nullptr && log_fd != stdout) {
                     fclose(log_fd);
                 }
                 log_fd = nullptr;
-                log_pathName.clear();
+                pathName.clear();
                 break;
             case LOG_STDOUT_FAST:
             case LOG_STDOUT_FFLUSH:
@@ -299,10 +310,10 @@ namespace Cosmos {
                     fclose(log_fd);
                 }
                 log_fd = stdout;
-                log_pathName.clear();
+                pathName.clear();
                 break;
             default:
-                log_pathName = pathname;
+                pathName = ipathname;
                 break;
             }
             return type;
@@ -310,11 +321,11 @@ namespace Cosmos {
 
         FILE* Error::Open()
         {
-            switch (log_type)
+            switch (type)
             {
             case LOG_NONE:
                 log_fd = nullptr;
-                log_pathName.clear();
+                pathName.clear();
                 break;
             case LOG_STDOUT_FAST:
             case LOG_STDOUT_FFLUSH:
@@ -323,33 +334,40 @@ namespace Cosmos {
                         fclose(log_fd);
                     }
                     log_fd = stdout;
-                    log_pathName.clear();
+                    pathName.clear();
                 }
                 break;
             default:
                 double mjd = currentmjd();
-                mjd -= fmod(mjd - floor(mjd), log_interval);
-                if (fabs(mjd - oldmjd) > log_interval / 2.)
+                mjd -= fmod(mjd - floor(mjd), interval);
+                if (fabs(mjd - oldmjd) > interval / 2.)
                 {
-                    string pathName = log_pathName + data_name("", mjd, "log"+to_unsigned(log_type));
+                    string npathName;
+                    if (Extension == "log")
+                    {
+                        npathName = pathName + data_name("", mjd, Extension + to_unsigned(type));
+                    }
+                    else {
+                        npathName = pathName + data_name("", mjd, Extension);
+                    }
 
                     if (log_fd != nullptr) {
-                        if (pathName != log_pathName) {
-                            FILE *fd = fopen(pathName.c_str(), "a");
+                        if (npathName != pathName) {
+                            FILE *fd = fopen(npathName.c_str(), "a");
                             if (fd != nullptr) {
                                 if (log_fd != stdout) {
                                     fclose(log_fd);
                                 }
                                 log_fd = fd;
-                                log_pathName = pathName;
+                                pathName = npathName;
                             }
                         }
                     }
                     else {
-                        FILE *fd = fopen(pathName.c_str(), "a");
+                        FILE *fd = fopen(npathName.c_str(), "a");
                         if (fd != nullptr) {
                             log_fd = fd;
-                            log_pathName = pathName;
+                            pathName = npathName;
                         }
                     }
                     oldmjd = mjd;
@@ -387,7 +405,7 @@ namespace Cosmos {
                 va_start(args, fmt);
                 iretn = vfprintf(log_fd, fmt, args);
                 va_end(args);
-                switch (log_type)
+                switch (type)
                 {
                 case LOG_STDOUT_FFLUSH:
                 case LOG_FILE_FFLUSH:
