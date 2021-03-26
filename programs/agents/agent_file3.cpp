@@ -316,11 +316,11 @@ int main(int argc, char *argv[])
 
     if (argc > 1 && (argv[1][0] >= '0' && argv[1][0] <= '9'))
     {
-        agent->debug_level = argv[1][0] - '0';
+        agent->set_debug_level(argv[1][0] - '0');
     }
     else
     {
-        agent->debug_level = 0;
+        agent->set_debug_level(0);
     }
 
     // Restore in progress transfers from previous run
@@ -453,7 +453,7 @@ int main(int argc, char *argv[])
         }
     } // End WHILE Loop
 
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         agent->debug_error.Printf("%16.10f %.4f Main: Node: %s Agent: %s - Exiting\n", currentmjd(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
         // fflush(agent->get_debug_fd());
@@ -465,7 +465,7 @@ int main(int argc, char *argv[])
     transmit_loop_thread.join();
     txq.clear();
 
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         agent->debug_error.Printf("%16.10f %.4f Main: Node: %s Agent: %s - Shutting down\n", currentmjd(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
         // fflush(agent->get_debug_fd());
@@ -907,7 +907,7 @@ void recv_loop()
 
                             if (txq[local_node].incoming.progress[tx_id].fp == nullptr)
                             {
-                                if (agent->debug_level)
+                                if (agent->get_debug_level())
                                 {
                                     debug_fd_lock.lock();
                                     agent->debug_error.Printf("%16.10f %.4f Incoming: File Error: %s %s on ID: %u Chunk: %u\n", currentmjd(), dt.lap(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
@@ -922,7 +922,7 @@ void recv_loop()
                                 fflush(txq[local_node].incoming.progress[tx_id].fp);
                                 // Write latest meta data to disk
                                 write_meta(txq[local_node].incoming.progress[tx_id]);
-                                if (agent->debug_level)
+                                if (agent->get_debug_level())
                                 {
                                     uint32_t total = 0;
                                     for (uint16_t i=0; i<data.byte_count; ++i)
@@ -941,7 +941,7 @@ void recv_loop()
                             if (txq[local_node].remote_id > 0)
                             {
                                 tx_progress tx_in = txq[local_node].incoming.progress[tx_id];
-                                if (agent->debug_level)
+                                if (agent->get_debug_level())
                                 {
                                     debug_fd_lock.lock();
                                     agent->debug_error.Printf("%16.10f %.4f Incoming: Complete: %u %s %u %u\n", currentmjd(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.file_size, tx_in.total_bytes);
@@ -961,7 +961,7 @@ void recv_loop()
                                     int iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
                                     // Make sure metadata is recorded
                                     write_meta(txq[local_node].incoming.progress[tx_id], 0.);
-                                    if (agent->debug_level)
+                                    if (agent->get_debug_level())
                                     {
                                         debug_fd_lock.lock();
                                         agent->debug_error.Printf("%16.10f %.4f Incoming: Renamed/Data: %d %s\n", currentmjd(), dt.lap(), iret, tx_in.filepath.c_str());
@@ -1504,7 +1504,7 @@ int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf)
         ++packet_out_count;
         out_comm_channel[use_channel].lomjd = currentmjd();
         out_comm_channel[use_channel].nmjd = out_comm_channel[use_channel].lomjd + ((28+iretn) / (float)out_comm_channel[use_channel].throughput)/86400.;
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_packet(buf, PACKET_OUT, type, use_channel);
         }
@@ -1576,7 +1576,7 @@ int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& bu
                             {
                                 ++packet_in_count;
                                 buf.resize(nbytes);
-                                if (agent->debug_level)
+                                if (agent->get_debug_level())
                                 {
                                     debug_packet(buf, PACKET_IN, type, i);
                                 }
@@ -1652,7 +1652,7 @@ void debug_packet(vector<PACKET_BYTE> buf, uint8_t direction, string type, int32
 {
     static ElapsedTime dt;
 
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
 
@@ -1928,7 +1928,7 @@ int32_t read_meta(tx_progress& tx)
         tx.file_info.push_back(progress_info);
     } while(!file_name.eof());
     file_name.close();
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
         agent->debug_error.Printf("%16.10f %.4f Main: read_meta: %s tx_id: %u chunks: %" PRIu32 "\n", currentmjd(), dt.lap(), (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
@@ -2227,7 +2227,7 @@ int32_t request_remove_file(string &request, string &response, Agent *agent)
 
 int32_t outgoing_tx_add(tx_progress &tx_out)
 {
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
         agent->debug_error.Printf("%16.10f %.4f Main: outgoing_tx_add: ", currentmjd(), dt.lap());
@@ -2238,7 +2238,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
     int32_t local_node = lookup_local_node_id(tx_out.node_name);
     if (local_node == 0)
     {
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
             agent->debug_error.Printf("TRANSFER_ERROR_NODE\n");
@@ -2251,7 +2251,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
     // Only add if we have room
     if (txq[(local_node)].outgoing.size == TRANSFER_QUEUE_LIMIT)
     {
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
             agent->debug_error.Printf("TRANSFER_ERROR_QUEUEFULL\n");
@@ -2268,7 +2268,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
     }
     else
     {
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
             agent->debug_error.Printf("TRANSFER_ERROR_FILENAME\n");
@@ -2287,7 +2287,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
         if (!txq[(local_node)].outgoing.progress[i].filepath.empty() && tx_out.filepath == txq[(local_node)].outgoing.progress[i].filepath)
         {
             // Remove the META file
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
                 debug_fd_lock.lock();
                 agent->debug_error.Printf("%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str());
@@ -2313,7 +2313,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
     tx_out.sentdata = false;
     tx_out.complete = false;
 
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
         agent->debug_error.Printf("%u %s %s %s %lu ", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str(), PROGRESS_QUEUE_SIZE);
@@ -2348,7 +2348,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
     ++txq[(local_node)].outgoing.size;
     outgoing_tx_lock.unlock();
 
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
         agent->debug_error.Printf(" %u\n", txq[(local_node)].outgoing.size);
@@ -2363,7 +2363,7 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
 {
     if (node_name.empty() || agent_name.empty() || file_name.empty())
     {
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
             agent->debug_error.Printf("%16.10f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILENAME\n", currentmjd(), dt.lap());
@@ -2434,7 +2434,7 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
 
         if(tx_out.file_size < 0)
         {
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
                 debug_fd_lock.lock();
                 agent->debug_error.Printf("%16.10f %.4f Main: outgoing_tx_add: DATA_ERROR_SIZE_MISMATCH\n", currentmjd(), dt.lap());
@@ -2448,7 +2448,7 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
         filename.open(tx_out.filepath, std::ios::in|std::ios::binary);
         if(!filename.is_open())
         {
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
                 debug_fd_lock.lock();
                 agent->debug_error.Printf("%16.10f %.4f Main: outgoing_tx_add: %s\n", currentmjd(), dt.lap(), cosmos_error_string(-errno).c_str());
@@ -2522,7 +2522,7 @@ int32_t outgoing_tx_del(uint8_t local_node, uint16_t tx_id)
         // Remove the file
         if(remove(tx_out.filepath.c_str()))
         {
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
                 debug_fd_lock.lock();
                 agent->debug_error.Printf("%16.10f %.4f Main/Outgoing: Del outgoing: %u %s %s %s - Unable to remove file\n", currentmjd(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
@@ -2535,7 +2535,7 @@ int32_t outgoing_tx_del(uint8_t local_node, uint16_t tx_id)
         string meta_filepath = tx_out.temppath + ".meta";
         remove(meta_filepath.c_str());
 
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
             agent->debug_error.Printf("%16.10f %.4f Main/Outgoing: Del outgoing: %u %s %s %s\n", currentmjd(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
@@ -2676,7 +2676,7 @@ int32_t outgoing_tx_load(uint8_t local_node)
             if (addtoqueue)
             {
                 iretn = outgoing_tx_add(file.node, file.agent, file.name);
-                if (agent->debug_level)
+                if (agent->get_debug_level())
                 {
                     debug_fd_lock.lock();
                     agent->debug_error.Printf("%16.10f %.4f Main/Load: outgoing_tx_add: %s [%d]\n", currentmjd(), dt.lap(), file.path.c_str(), iretn);
@@ -2695,7 +2695,7 @@ int32_t incoming_tx_add(tx_progress &tx_in)
     uint8_t local_node = lookup_local_node_id(tx_in.node_name);
     if (local_node == 0)
     {
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
             agent->debug_error.Printf("%16.10f %.4f Main: incoming_tx_add: TRANSFER_ERROR_NODE\n", currentmjd(), dt.lap());
@@ -2723,7 +2723,7 @@ int32_t incoming_tx_add(tx_progress &tx_in)
     {
         if (!txq[(local_node)].incoming.progress[i].filepath.empty() && tx_in.filepath == txq[(local_node)].incoming.progress[i].filepath)
         {
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
                 debug_fd_lock.lock();
                 agent->debug_error.Printf("%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str());
@@ -2774,7 +2774,7 @@ int32_t incoming_tx_add(tx_progress &tx_in)
     txq[(local_node)].incoming.progress[tx_in.tx_id].fp = tx_in.fp;
     ++txq[(local_node)].incoming.size;
 
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
         agent->debug_error.Printf("%16.10f %.4f Main/Incoming: Add incoming: %u %s %s %s %lu\n", currentmjd(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str(), PROGRESS_QUEUE_SIZE);
@@ -2853,7 +2853,7 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
             write_meta(txq[(local_node)].incoming.progress[meta.tx_id]);
         }
 
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
             agent->debug_error.Printf("%16.10f %.4f Incoming: Update incoming: %u %s %s %s\n", currentmjd(), dt.lap(), txq[(local_node)].incoming.progress[meta.tx_id].tx_id, txq[(local_node)].incoming.progress[meta.tx_id].node_name.c_str(), txq[(local_node)].incoming.progress[meta.tx_id].agent_name.c_str(), txq[(local_node)].incoming.progress[meta.tx_id].file_name.c_str());
@@ -2917,7 +2917,7 @@ int32_t incoming_tx_del(uint8_t local_node, uint16_t tx_id)
         filepath = tx_in.temppath + ".meta";
         remove(filepath.c_str());
 
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
             agent->debug_error.Printf("%16.10f %.4f Incoming: Del incoming: %u %s\n", currentmjd(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str());
@@ -3270,7 +3270,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
             if(txq[(node)].incoming.progress[tx_id].file_size == txq[(node)].incoming.progress[tx_id].total_bytes && txq[(node)].incoming.progress[tx_id].havemeta)
             {
                 //                tx_progress tx_in = txq[(node)].incoming.progress[tx_id];
-                if (agent->debug_level)
+                if (agent->get_debug_level())
                 {
                     debug_fd_lock.lock();
                     agent->debug_error.Printf("%16.10f %.4f Incoming(next_incoming_tx): Complete: %u %s %u %u\n", currentmjd(), dt.lap(), txq[(node)].incoming.progress[tx_id].tx_id, txq[(node)].incoming.progress[tx_id].node_name.c_str(), txq[(node)].incoming.progress[tx_id].file_size, txq[(node)].incoming.progress[tx_id].total_bytes);
@@ -3290,7 +3290,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
                     int32_t iret = rename(final_filepath.c_str(), txq[(node)].incoming.progress[tx_id].filepath.c_str());
                     // Make sure metadata is recorded
                     write_meta(txq[(node)].incoming.progress[tx_id], 0.);
-                    if (agent->debug_level)
+                    if (agent->get_debug_level())
                     {
                         debug_fd_lock.lock();
                         agent->debug_error.Printf("%16.10f %.4f Incoming(next_incoming_tx): Renamed: %d %s\n", currentmjd(), dt.lap(), iret, txq[(node)].incoming.progress[tx_id].filepath.c_str());
@@ -3302,7 +3302,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
             }
             else
             {
-                if (agent->debug_level)
+                if (agent->get_debug_level())
                 {
                     debug_fd_lock.lock();
                     agent->debug_error.Printf("%16.10f %.4f Incoming(next_incoming_tx): More: %u %s %u %u\n", currentmjd(), dt.lap(), txq[(node)].incoming.progress[tx_id].tx_id, txq[(node)].incoming.progress[tx_id].node_name.c_str(), txq[(node)].incoming.progress[tx_id].file_size, txq[(node)].incoming.progress[tx_id].total_bytes);
@@ -3322,9 +3322,9 @@ int32_t request_debug(string &request, string &, Agent *)
     string requestString = string(request);
     StringParser sp(requestString, ' ');
 
-    agent->debug_level = sp.getFieldNumberAsDouble(2); // should be getFieldNumberAsBoolean
+    agent->set_debug_level(sp.getFieldNumberAsDouble(2)); // should be getFieldNumberAsBoolean
 
-    std::cout << "agent->debug_level: " << agent->debug_level << std::endl;
+    std::cout << "agent->get_debug_level(): " << agent->get_debug_level() << std::endl;
     return 0;
 }
 

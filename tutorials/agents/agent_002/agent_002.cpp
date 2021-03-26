@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     agent->add_request("any_body_out_there", hello_agent_002_request_function, "a request to respond with 'hello'");
 
 	// turn debug off
-	agent->debug_level=0;
+    agent->set_debug_level(0);
 
     // Start executing the agent
     while(agent->running()) {

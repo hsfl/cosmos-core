@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
     logdate_exec = 0.;
     logstride_exec = 0.;
     agent->start_active_loop();
-    agent->debug_level = 0;
+    agent->set_debug_level(0);
     ElapsedTime postet;
     ElapsedTime savet;
     while(agent->running())

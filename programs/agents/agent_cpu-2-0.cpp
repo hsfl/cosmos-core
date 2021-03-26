@@ -195,11 +195,11 @@ int main(int argc, char *argv[])
     // Initialize temperature Fit
     LsFit cputemp(4, 1);
     // Start performing the body of the agent
-    agent->debug_level = 0;
+    agent->set_debug_level(0);
     while(agent->running())
     {
         agent->cinfo->device[cpu_cidx].utc = currentmjd();
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             agent->debug_error.Printf("%16.10f ", agent->cinfo->device[cpu_cidx].utc);
         }
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
             agent->cinfo->device[cpu_cidx].cpu.maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
             deviceCpu.getPercentUseForCurrentProcess();
         }
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             agent->debug_error.Printf("Load %6.2f %6.2f ", agent->cinfo->device[cpu_cidx].cpu.load, agent->cinfo->device[cpu_cidx].cpu.maxload);
             agent->debug_error.Printf("Memory %6.2f %6.2f ", agent->cinfo->device[cpu_cidx].cpu.gib, agent->cinfo->device[cpu_cidx].cpu.maxgib);
@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
 
             agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.gib = deviceDisk.getUsedGiB(node_path);
             agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.maxgib = deviceDisk.getSizeGiB(node_path);
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
                 agent->debug_error.Printf("%s %6.2f %6.2f ", node_path.c_str(), agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.gib, agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.maxgib);
             }
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
 //            agent->cinfo->device[cpu_cidx].temp = cputemp.eval(currentmjd());
 //        }
 
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             agent->debug_error.Printf("\n");
         }

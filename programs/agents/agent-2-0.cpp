@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     Agent *agent;
 
     // dont' print debug messages
-    //agent->debug_level = 0;
+    //agent->set_debug_level(0;
 
     agent = new Agent();
     if (agent->cinfo == nullptr)

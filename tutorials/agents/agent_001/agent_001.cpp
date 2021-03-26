@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 
 
 	// turn off debug
-	agent->debug_level=0;
+    agent->set_debug_level(0);
 
 
 	// add custom request functions for this agent
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     beatstruc agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
 	//cout<<"["<<node_name<<":"<<agent_name<<"] looking for ["<<node_name<<":"<<agent_target<<"]..."<<endl;
 
-	if(agent->debug_level>1)	{
+	if(agent->get_debug_level()>1)	{
 		cout<<"A agent "<<agent_target<<" beatstruc:"<<endl;
 		cout<<agent_target_heartbeat;
 	}
@@ -221,7 +221,7 @@ cout<<"Now to try to get the orbis of ISS..."<<endl;
 			//cout<<"["<<node_name<<":"<<agent_name<<"] looking for ["<<node_name<<":"<<agent_target<<"]..."<<endl;
 
     		agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
-			if(agent->debug_level>1)	{
+			if(agent->get_debug_level()>1)	{
 				cout<<"B agent "<<agent_target<<" beatstruc:"<<endl;
 				cout<<agent_target_heartbeat<<endl;
 			}
