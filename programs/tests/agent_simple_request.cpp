@@ -41,9 +41,9 @@ int main(int argc, char **argv)
 
     agent->add_request("add", request_add, "int1 int2", "returns the sum of 2 integers");
     agent->add_request("hello", request_hello, "", "replies with: \"HelloWorld\"");
-    devicestruc* sun1 = agent->add_device("sun1", DeviceType::SSEN, error);
-    devicestruc* sun2 =agent->add_device("sun2", DeviceType::SSEN, error);
-    devicestruc* ant1 =agent->add_device("ant1", DeviceType::ANT, error);
+//    devicestruc* sun1 = agent->add_device("sun1", DeviceType::SSEN, error);
+//    devicestruc* sun2 =agent->add_device("sun2", DeviceType::SSEN, error);
+//    devicestruc* ant1 =agent->add_device("ant1", DeviceType::ANT, error);
     string sun2_utc = agent->get_soh_name("sun2", "utc", error);
     if(error < 0){
         cout << e.ErrorString(error) << endl;
