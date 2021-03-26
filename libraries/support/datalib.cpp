@@ -637,7 +637,7 @@ int32_t data_get_nodes(vector<cosmosstruc> &node)
 *    \param type Any valid extension type
 *    \return Filename string, otherwise nullptr
 */
-string data_name(string node, double mjd, string extra, string type)
+string data_name(string node, double mjd, string type, string extra)
 {
     string name;
     char ntemp[100];
@@ -667,10 +667,10 @@ string data_name(string node, double mjd, string extra, string type)
     return (name);
 }
 
-string data_name(string node, double mjd, string type)
-{
-    return data_name(node, mjd, "", type);
-}
+//string data_name(string node, double mjd, string type)
+//{
+//    return data_name(node, mjd, type, "");
+//}
 
 //! Get date from file name.
 /*! Assuming the COSMOS standard filename format from ::data_name, extract
