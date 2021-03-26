@@ -655,13 +655,14 @@ string data_name(string node, double mjd, string extra, string type)
     {
         sprintf(ntemp,"%s_%04d%03d%05d", node.c_str(), year, static_cast<int32_t>(jday), seconds);
     }
-    if (extra.empty())
+    name = ntemp;
+    if (!extra.empty())
     {
-        name = ntemp + ("." + type);
+        name += ("_" + extra);
     }
-    else
+    if (!type.empty())
     {
-        name = ntemp + ("_" + extra + "." + type);
+        name += ("." + type);
     }
     return (name);
 }
