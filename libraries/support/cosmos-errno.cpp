@@ -290,11 +290,11 @@ namespace Cosmos {
             return type;
         }
 
-        int32_t Error::Set(uint16_t type, string ipathname, double iinterval, string iextension)
+        int32_t Error::Set(uint16_t itype, string ipathname, double iinterval, string iextension)
         {
             interval = iinterval;
             Extension = iextension;
-            type = type;
+            type = itype;
             switch (type)
             {
             case LOG_NONE:
