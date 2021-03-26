@@ -262,6 +262,14 @@ namespace Cosmos {
             COSMOS_SCPI_ERROR_OUTSIDE_LIMITS = -633,
             COSMOS_SCPI_ERROR_OUTSIDE_RANGE = -634,
 
+            COSMOS_ISIS_CMD_REJECTED = -640,
+            COSMOS_ISIS_INVALID_COMMAND_CODE = -641,
+            COSMOS_ISIS_PARAM_MISSING = -642,
+            COSMOS_ISIS_PARAM_INVALID = -643,
+            COSMOS_ISIS_UNAVAILABLE_IN_CURRENT_MODE = -644,
+            COSMOS_ISIS_INVALID_SYSTYPE_OR_IVID_OR_BID = -645,
+            COSMOS_ISIS_INTERNAL_ERROR = -646,
+
             COSMOS_GENERAL_OK = -0,      /* everything is all right */
             COSMOS_GENERAL_ERROR_NO_SIGNAL         = -2001,     /* there's no free signal */
             COSMOS_GENERAL_ERROR_NOTSTARTED       = -2002,     /* uninitialized error */
