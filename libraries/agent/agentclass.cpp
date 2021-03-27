@@ -2970,45 +2970,43 @@ acquired.
     }
 
     /**
-     * @brief adds a device to the agents cosmossstruc
+     * @brief Agent::add_device
      * @param name piecename
-     * @param type Device Type
-     * @param error reference for returning an error
-     * @return pointer to the devicestruc
+     * @param type of device
+     * @param device pointer to devicestruc
+     * @return status (negative on error)
      */
-    devicestruc* Agent::add_device(std::string name, DeviceType type, int32_t &error)
+    int32_t Agent::add_device(std::string name, DeviceType type, devicestruc **device)
     {
         int32_t pindex = json_createpiece(cinfo, name, type);
         if(pindex < 0) {
-            error = pindex;
-            return nullptr;
+            device = nullptr;
+            return pindex;
         }
         int32_t cindex = cinfo->pieces[pindex].cidx;
-        return &cinfo->device[cindex];
-
+        *device = &cinfo->device[cindex];
+        return cindex;
     }
 
     /**
-     * @brief generates the cosmos jsonname for a device property
-     * @param devicename piecename - for looking up the device index
-     * @param propertyname
-     * @param error reference for returning an error
-     * @return cosmos json name for the device property ex: "device_tsen_temp_000"
+     * @brief Agent::device_property_name
+     * @param device (piecename) - for looking up the device index
+     * @param property
+     * @param name reference to output (ex: device_imu_alpha_000)
+     * @return status (negative on error)
      */
-    std::string Agent::get_soh_name(std::string devicename, std::string propertyname, int32_t &error)
+    int32_t Agent::device_property_name(std::string device, std::string property, std::string &name)
     {
         //! get the device index
-        int32_t pidx = json_findpiece(cinfo, devicename);
+        int32_t pidx = json_findpiece(cinfo, device);
         if(pidx < 0 ) {
-            error = pidx;
-            return "";
+            return pidx;
         }
 
         int32_t cindex = cinfo->pieces[pidx].cidx;
         int32_t didx = cinfo->device[cindex].didx;
         if(didx < 0) {
-            error = didx;
-            return "";
+            return didx;
         }
 
         //! get the device type
@@ -3016,15 +3014,16 @@ acquired.
         string devtype = device_type_name(device_type);
 
         //! check if property exists in device
-        if(!device_has_property(device_type, propertyname)){
-            error = ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
-            return "";
+        if(!device_has_property(device_type, property)){
+            return ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
+
         }
 
         char dindex[4];
         sprintf(dindex, "%03u", didx); //! int to string conversion
 
-        return "device_" + devtype + "_" + propertyname + "_" + string(dindex);
+        name = "device_" + devtype + "_" + property + "_" + string(dindex);
+        return 0;
     }
 
     /**
@@ -3034,16 +3033,17 @@ acquired.
      * @param propertyname
      * @param alias name that will replace property name in alias
      * @param error reference for returning an error
-     * @return alias name for the device property alias ex: "imu_acceleration"
+     * @return status (negative on error)
      */
     int32_t Agent::create_device_value_alias(std::string devicename, std::string propertyname, std::string alias)
     {
-        int32_t error = 0;
-        string cosmos_soh_name = get_soh_name(devicename, propertyname, error);
-        if(error < 0) return error;
+        int32_t status = 0;
+        string cosmos_soh_name;
+        status = device_property_name(devicename, propertyname, cosmos_soh_name);
+        if(status < 0) return status;
 
-        error = create_alias(cosmos_soh_name, alias);
-        return error;
+        status = create_alias(cosmos_soh_name, alias);
+        return status;
     }
 
     /**
@@ -3058,15 +3058,16 @@ acquired.
         //! Namespace 1.0 method of adding aliases
         string equation = "(\""+cosmosname+"\"*1.0)";
         jsonhandle eqhandle;
-        int32_t error = json_equation_map(equation, cinfo, &eqhandle);
-        if(error < 0) return error;
+        int32_t status = json_equation_map(equation, cinfo, &eqhandle);
+        if(status < 0) return status;
 
-        error = json_addentry(alias, equation, cinfo);
-        return error;
+        status = json_addentry(alias, equation, cinfo);
+        return status;
     }
 
-    int32_t Agent::send_request_getvalue(beatstruc agent, vector<std::string> names, Json &jresult)
+    int32_t Agent::send_request_getvalue(beatstruc agent, vector<std::string> names, Json::Object &jobj)
     {
+        int32_t status = 0;
         if(names.size() == 0){
             return ErrorNumbers::COSMOS_GENERAL_ERROR_EMPTY;
         }
@@ -3081,27 +3082,17 @@ acquired.
             return ErrorNumbers::COSMOS_AGENT_ERROR_NULL;
         }
         string response;
-        int32_t error = send_request(agent, "getvalue " + request_args, response);
-        if(error < 0) {
-            return error;
+        status = send_request(agent, "getvalue " + request_args, response);
+        if(status < 0) {
+            return status;
         }
-
-        error = jresult.extract_contents(response);
-
-        return error;
-    }
-
-    std::map<std::string, Json::Value> Agent::send_request_getvalue(beatstruc agent, std::vector<std::string> names, int32_t &error)
-    {
-        std::map<std::string, Json::Value> e;
-        if(names.size() == 0) return e;
         Json jresult;
-        error = send_request_getvalue( agent, names, jresult);
-        if(error < 0) {
-            return e;
-        }
-        return jresult.ObjectContents;
+        status = jresult.extract_contents(response);
+        jobj = jresult.ObjectContents;
+
+        return status;
     }
+
 
     int32_t Agent::set_value(std::string jsonname, double value)
     {
@@ -3113,25 +3104,31 @@ acquired.
 
     }
 
-    double Agent::get_value_double(std::string jsonname)
+    double Agent::get_value(std::string jsonname)
     {
         return json_get_double(jsonname, cinfo);
     }
 
-    std::string Agent::get_device_values(std::string devicename, vector<std::string> props, int32_t &error)
+    /**
+     * @brief Agent::get_device_values
+     * @param device device name or piece name
+     * @param props property names
+     * @param json json string of device values {"name1": value ,"name2": value2}
+     * @return status (negative on error)
+     */
+    int32_t Agent::get_device_values(std::string device, vector<std::string> props, std::string &json)
     {
-        if(props.size() == 0) return "";
-        int32_t pidx = json_findpiece(cinfo, devicename);
+        if(props.size() == 0) return 0;
+        int32_t pidx = json_findpiece(cinfo, device);
         if(pidx < 0 ) {
-            error = pidx;
-            return "";
+            return pidx;
         }
         int32_t cindex = cinfo->pieces[pidx].cidx;
         int32_t didx = cinfo->device[cindex].didx;
         if(didx < 0) {
-            error = didx;
-            return "";
+            return didx;
         }
+
         uint16_t type = cinfo->device[cindex].type;
         string devtype = device_type_name(type);
         // check if property exists in device
@@ -3143,27 +3140,28 @@ acquired.
         for(string p: props){
             name = "device_" + devtype+"_"+p + "_" + string(dindex);
             if(!device_has_property(type, p) && json_entry_of(name, cinfo) == nullptr){
-                error = ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
-                return "";
+                return ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
             }
             names.push_back(name);
         }
-        return get_values(names, error);
+        return get_values(names, json);
     }
 
-    std::string Agent::get_values(vector<std::string> names, int32_t &error)
+
+    int32_t Agent::get_values(vector<std::string> names, std::string &json)
     {
-        if(names.size() == 0) return "";
+        if(names.size() == 0) return 0;
         string jsonlist = "{";
         for(string p: names) {
             jsonlist += "\"" + p + "\"";
         }
         jsonlist.pop_back();
-        jsonlist+="}";
-        string jstring ="";
-        error = req_getvalue(jsonlist, jstring, this);
-        return jstring;
+        jsonlist+= "}";
+
+        int32_t status = req_getvalue(jsonlist, json, this);
+        return status;
     }
+
 
 } // end of namespace Support
 } // end namespace Cosmos

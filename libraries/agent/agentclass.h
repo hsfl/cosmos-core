@@ -352,19 +352,19 @@ namespace Cosmos
             int32_t get_agent_time(double &agent_time, double &epsilon, double &delta, string agent, string node="any", double wait_sec=2.);
             // general functionality for artemis
             int32_t set_activity_period(double period);
-            devicestruc* add_device(std::string name, DeviceType type, int32_t &error);
-            string get_soh_name(string devicename, string propertyname, int32_t &error);
 
-            int32_t send_request_getvalue(beatstruc agent, std::vector<std::string> names, Json &jresult);
-            std::map<std::string, Json::Value> send_request_getvalue(beatstruc agent, std::vector<std::string> names, int32_t &error);
-            int32_t create_device_value_alias(string devicename, string propertyname, string alias);
-            int32_t create_alias(string cosmosname, string alias);
-            string get_device_alias(string devicename, string propertyname, string alias, int32_t &error);
+            int32_t add_device(std::string name, DeviceType type, devicestruc **device);
+            int32_t device_property_name(std::string device, std::string property, std::string& name);
 
-            int32_t set_value(string jsonname, double value);
-            double get_value_double(string jsonname);
-            string get_device_values(string devicename, vector<string> props, int32_t& error);
-            string get_values( vector<string> names, int32_t& error);
+            int32_t send_request_getvalue(beatstruc agent, std::vector<std::string> names, Json::Object &jobj);
+            int32_t create_device_value_alias(std::string devicename, std::string propertyname, std::string alias);
+            int32_t create_alias(std::string cosmosname, std::string alias);
+
+            int32_t set_value(std::string jsonname, double value);
+            double get_value(std::string jsonname);
+            int32_t get_device_values(std::string device, std::vector<std::string>props, std::string& json);
+            int32_t get_values(std::vector<std::string> names, std::string& json);
+
 
 
 
