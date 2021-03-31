@@ -9,10 +9,10 @@
 
 Cosmos::Support::Error e;
 static Agent *agent;
-string request_add(vector<string> &args, int32_t &error){
+string request_add(vector<string> &args, int32_t &status){
 
     if(args.size() < 2) { // incorrect arg count
-        error = AGENT_ERROR_REQUEST;    // update error
+        status = AGENT_ERROR_REQUEST;    // update error
         return "";
     }
 
@@ -27,7 +27,7 @@ string request_add(vector<string> &args, int32_t &error){
     return to_string(sum);
 }
 
-string request_hello(int32_t &error){
+string request_hello(int32_t &status){
 
     string response ="HelloWorld";
 
@@ -36,30 +36,36 @@ string request_hello(int32_t &error){
 
 int main(int argc, char **argv)
 {
-    int32_t error = 0;
+    int32_t status = 0;
     agent = new Agent("","test_simple_request");
 
-    agent->add_request("add", request_add, "int1 int2", "returns the sum of 2 integers");
-    agent->add_request("hello", request_hello, "", "replies with: \"HelloWorld\"");
-//    devicestruc* sun1 = agent->add_device("sun1", DeviceType::SSEN, error);
-//    devicestruc* sun2 =agent->add_device("sun2", DeviceType::SSEN, error);
-//    devicestruc* ant1 =agent->add_device("ant1", DeviceType::ANT, error);
-    string sun2_utc = agent->get_soh_name("sun2", "utc", error);
-    if(error < 0){
-        cout << e.ErrorString(error) << endl;
+    status = agent->add_request("add", request_add, "int1 int2", "returns the sum of 2 integers");
+    status = agent->add_request("hello", request_hello, "", "replies with: \"HelloWorld\"");
+
+    //adding a device
+    devicestruc *sun1 = nullptr;
+    status = agent->add_device("sun1", DeviceType::SSEN, &sun1);
+    if(status < 0){
+        cout << e.ErrorString(status) << endl;
+    }
+    sun1->ssen.azimuth = 50.;
+    cout << sun1->ssen.azimuth << endl;
+
+    string sun2_utc;
+    status = agent->device_property_name("sun2", "utc", sun2_utc);
+    if(status < 0){
+        cout << e.ErrorString(status) << endl;
     }
     cout << sun2_utc << endl;
-    string azi = agent->get_soh_name("sun2", "azimuth", error);
-    if(error < 0){
-        cout << e.ErrorString(error) << endl;
+    string azi;
+    status = agent->device_property_name("sun2", "azimuth", azi);
+    if(status < 0){
+        cout << e.ErrorString(status) << endl;
     }
     cout << azi  << endl;
-    agent->set_value(azi, 45);
 
 
-//    while(agent->running()){
 
-//        COSMOS_SLEEP(2.);
-//    }
+
 
 }

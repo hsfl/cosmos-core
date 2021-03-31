@@ -4992,10 +4992,10 @@ struct cosmosstruc
 
 		// vector<vector<unitstruc>> unit
 		add_name("unit", &unit, "vector<vector<unitstruc>>");
-		for(size_t i = 0; i < unit.capacity(); ++i) {
+        for(size_t i = 0; i < unit.size(); ++i) {
 			string basename = "unit[" + std::to_string(i) + "]";
 			add_name(basename, &unit[i], "vector<unitstruc>");
-			for(size_t j = 0; j < unit[i].capacity(); ++j) {
+            for(size_t j = 0; j < unit[i].size(); ++j) {
 				string rebasename = basename + "[" + std::to_string(j) + "]";
 				add_name(rebasename, &unit[i][j], "unitstruc");
 				add_name(rebasename+".name", &unit[i][j].name, "string");
@@ -5009,7 +5009,7 @@ struct cosmosstruc
 
 		// vector<equationstruc> equation
 		add_name("equation", &equation, "vector<equationstruc>");
-		for(size_t i = 0; i < equation.capacity(); ++i) {
+        for(size_t i = 0; i < equation.size(); ++i) {
 			string basename = "equation[" + std::to_string(i) + "]";
 			add_name(basename, &equation[i], "equationstruc");
 			add_name(basename+".name", &equation[i].name, "string");
@@ -5625,7 +5625,7 @@ struct cosmosstruc
 		add_name("node.phys.com.z", &node.phys.com.z, "double");
 		add_name("node.phys.com.w", &node.phys.com.w, "double");
 		add_name("node.phys.vertices", &node.phys.vertices, "vector<Vector>");
-		for(size_t i = 0; i < node.phys.vertices.capacity(); ++i) {
+        for(size_t i = 0; i < node.phys.vertices.size(); ++i) {
 			string basename = "node.phys.vertices[" + std::to_string(i) + "]";
 			add_name(basename, &node.phys.vertices[i], "Vector");
 			add_name(basename+".x", &node.phys.vertices[i].x, "double");
@@ -5634,7 +5634,7 @@ struct cosmosstruc
 			add_name(basename+".w", &node.phys.vertices[i].w, "double");
 		}
 		add_name("node.phys.triangles", &node.phys.triangles, "vector<trianglestruc>");
-		for(size_t i = 0; i < node.phys.triangles.capacity(); ++i) {
+        for(size_t i = 0; i < node.phys.triangles.size(); ++i) {
 			string basename = "node.phys.triangles[" + std::to_string(i) + "]";
 			add_name(basename, &node.phys.triangles[i], "trianglestruc");
 			add_name(basename+".external", &node.phys.triangles[i].external, "bool");
@@ -5677,10 +5677,10 @@ struct cosmosstruc
 			add_name(basename+".ecellbase", &node.phys.triangles[i].ecellbase, "float");
 			add_name(basename+".ecellslope", &node.phys.triangles[i].ecellslope, "float");
 			add_name(basename+".triangleindex", &node.phys.triangles[i].triangleindex, "vector<vector<uint16_t>>");
-			for(size_t j = 0; j < node.phys.triangles[i].triangleindex.capacity(); ++j) {
+            for(size_t j = 0; j < node.phys.triangles[i].triangleindex.size(); ++j) {
 				string rebasename = basename + ".triangleindex[" + std::to_string(j) + "]";
 				add_name(rebasename, &node.phys.triangles[i].triangleindex[j], "vector<uint16_t>");
-				for(size_t k = 0; k < node.phys.triangles[i].triangleindex[j].capacity(); ++k) {
+                for(size_t k = 0; k < node.phys.triangles[i].triangleindex[j].size(); ++k) {
 					string rebasename2 = rebasename + "[" + std::to_string(k) + "]";
 					add_name(rebasename2, &node.phys.triangles[i].triangleindex[j][k], "uint16_t");
 				}
@@ -5690,7 +5690,7 @@ struct cosmosstruc
 
 		// vector<vertexstruc> vertexs
 		add_name("vertexs", &vertexs, "vector<vertexstruc>");
-		for(size_t i = 0; i < vertexs.capacity(); ++i) {
+        for(size_t i = 0; i < vertexs.size(); ++i) {
 			string basename = "vertexs[" + std::to_string(i) + "]";
 			add_name(basename, &vertexs[i], "vertexstruc");
 			add_name(basename+".x", &vertexs[i].x, "double");
@@ -5701,7 +5701,7 @@ struct cosmosstruc
 
 		// vector<vertexstruc> normals
 		add_name("normals", &normals, "vector<vertexstruc>");
-		for(size_t i = 0; i < normals.capacity(); ++i) {
+        for(size_t i = 0; i < normals.size(); ++i) {
 			string basename = "normals[" + std::to_string(i) + "]";
 			add_name(basename, &normals[i], "vertexstruc");
 			add_name(basename+".x", &normals[i].x, "double");
@@ -5712,12 +5712,12 @@ struct cosmosstruc
 
 		// vector<facestruc> faces
 		add_name("faces", &faces, "vector<facestruc>");
-		for(size_t i = 0; i < faces.capacity(); ++i) {
+        for(size_t i = 0; i < faces.size(); ++i) {
 			string basename = "faces[" + std::to_string(i) + "]";
 			add_name(basename, &faces[i], "facestruc");
 			add_name(basename+".vertex_cnt", &faces[i].vertex_cnt, "uint16_t");
 			add_name(basename+".vertex_idx", &faces[i].vertex_idx, "vector<uint16_t>");
-			for(size_t j = 0; j < faces[i].vertex_idx.capacity(); ++j) {
+            for(size_t j = 0; j < faces[i].vertex_idx.size(); ++j) {
 				string rebasename = basename + ".vertex_idx[" + std::to_string(j) + "]";
 				add_name(rebasename, &faces[i].vertex_idx[j], "uint16_t");
 			}
@@ -5736,7 +5736,7 @@ struct cosmosstruc
 
 		// vector<piecestruc> pieces
 		add_name("pieces", &pieces, "vector<piecestruc>");
-		for(size_t i = 0; i < pieces.capacity(); ++i) {
+        for(size_t i = 0; i < pieces.size(); ++i) {
 			string basename = "pieces[" + std::to_string(i) + "]";
 			add_name(basename, &pieces[i], "piecestruc");
 			add_name(basename+".name", &pieces[i].name, "char[]");
@@ -5753,7 +5753,7 @@ struct cosmosstruc
 			add_name(basename+".volume", &pieces[i].volume, "float");
 			add_name(basename+".face_cnt", &pieces[i].face_cnt, "uint16_t");
 			add_name(basename+".face_idx", &pieces[i].face_idx, "vector<uint16_t>");
-			for(size_t j = 0; j < pieces[i].face_idx.capacity(); ++j) {
+            for(size_t j = 0; j < pieces[i].face_idx.size(); ++j) {
 				string rebasename = basename + ".face_idx[" + std::to_string(j) + "]";
 				add_name(rebasename, &pieces[i].face_idx[j], "uint16_t");
 			}
@@ -5796,7 +5796,7 @@ struct cosmosstruc
 		// wavefront obj
 		add_name("obj", &obj, "wavefront");
 		add_name("obj.Vg", &obj.Vg, "vector<Vector>");
-		for(size_t i = 0; i < obj.Vg.capacity(); ++i) {
+        for(size_t i = 0; i < obj.Vg.size(); ++i) {
 			string basename = "obj.Vg[" + std::to_string(i) + "]";
 			add_name(basename, &obj.Vg[i], "Vector");
 			add_name(basename+".x", &obj.Vg[i].x, "double");
@@ -5805,7 +5805,7 @@ struct cosmosstruc
 			add_name(basename+".w", &obj.Vg[i].w, "double");
 		}
 		add_name("obj.Vt", &obj.Vt, "vector<Vector>");
-		for(size_t i = 0; i < obj.Vt.capacity(); ++i) {
+        for(size_t i = 0; i < obj.Vt.size(); ++i) {
 			string basename = "obj.Vt[" + std::to_string(i) + "]";
 			add_name(basename, &obj.Vt[i], "Vector");
 			add_name(basename+".x", &obj.Vt[i].x, "double");
@@ -5814,7 +5814,7 @@ struct cosmosstruc
 			add_name(basename+".w", &obj.Vt[i].w, "double");
 		}
 		add_name("obj.Vn", &obj.Vn, "vector<Vector>");
-		for(size_t i = 0; i < obj.Vn.capacity(); ++i) {
+        for(size_t i = 0; i < obj.Vn.size(); ++i) {
 			string basename = "obj.Vn[" + std::to_string(i) + "]";
 			add_name(basename, &obj.Vn[i], "Vector");
 			add_name(basename+".x", &obj.Vn[i].x, "double");
@@ -5823,7 +5823,7 @@ struct cosmosstruc
 			add_name(basename+".w", &obj.Vn[i].w, "double");
 		}
 		add_name("obj.Vp", &obj.Vp, "vector<Vector>");
-		for(size_t i = 0; i < obj.Vp.capacity(); ++i) {
+        for(size_t i = 0; i < obj.Vp.size(); ++i) {
 			string basename = "obj.Vp[" + std::to_string(i) + "]";
 			add_name(basename, &obj.Vp[i], "Vector");
 			add_name(basename+".x", &obj.Vp[i].x, "double");
@@ -5832,7 +5832,7 @@ struct cosmosstruc
 			add_name(basename+".w", &obj.Vp[i].w, "double");
 		}
 		add_name("obj.Materials", &obj.Materials, "vector<material>");
-		for(size_t i = 0; i < obj.Materials.capacity(); ++i) {
+        for(size_t i = 0; i < obj.Materials.size(); ++i) {
 			string basename = "obj.Materials[" + std::to_string(i) + "]";
 			add_name(basename, &obj.Materials[i], "material");
 			add_name(basename+".name", &obj.Materials[i].name, "string");
@@ -5854,27 +5854,27 @@ struct cosmosstruc
 			add_name(basename+".specular.w", &obj.Materials[i].specular.w, "double");
 		}
 		add_name("obj.Points", &obj.Points, "vector<point>");
-		for(size_t i = 0; i < obj.Points.capacity(); ++i) {
+        for(size_t i = 0; i < obj.Points.size(); ++i) {
 			string basename = "obj.Points[" + std::to_string(i) + "]";
 			add_name(basename, &obj.Points[i], "point");
 			add_name(basename+".groups", &obj.Points[i].groups, "vector<size_t>");
-			for(size_t j = 0; j < obj.Points[i].groups.capacity(); ++j) {
+            for(size_t j = 0; j < obj.Points[i].groups.size(); ++j) {
 				string rebasename = basename + ".groups[" + std::to_string(j) + "]";
 				add_name(rebasename, &obj.Points[i].groups[j], "size_t");
 			}
 			add_name(basename+".vertex", &obj.Points[i].vertex, "size_t");
 		}
 		add_name("obj.Lines", &obj.Lines, "vector<line>");
-		for(size_t i = 0; i < obj.Lines.capacity(); ++i) {
+        for(size_t i = 0; i < obj.Lines.size(); ++i) {
 			string basename = "obj.Lines[" + std::to_string(i) + "]";
 			add_name(basename, &obj.Lines[i], "line");
 			add_name(basename+".groups", &obj.Lines[i].groups, "vector<size_t>");
-			for(size_t j = 0; j < obj.Lines[i].groups.capacity(); ++j) {
+            for(size_t j = 0; j < obj.Lines[i].groups.size(); ++j) {
 				string rebasename = basename + ".groups[" + std::to_string(j) + "]";
 				add_name(rebasename, &obj.Lines[i].groups[j], "size_t");
 			}
 			add_name(basename+".vertices", &obj.Lines[i].vertices, "vector<vertex>");
-			for(size_t j = 0; j < obj.Lines[i].vertices.capacity(); ++j) {
+            for(size_t j = 0; j < obj.Lines[i].vertices.size(); ++j) {
 				string rebasename = basename + ".vertices[" + std::to_string(j) + "]";
 				add_name(rebasename, &obj.Lines[i].vertices[j], "vertex");
 				add_name(rebasename+".v", &obj.Lines[i].vertices[j].v, "size_t");
@@ -5889,16 +5889,16 @@ struct cosmosstruc
 			add_name(basename+".length", &obj.Lines[i].length, "double");
 		}
 		add_name("obj.Faces", &obj.Faces, "vector<face>");
-		for(size_t i = 0; i < obj.Faces.capacity(); ++i) {
+        for(size_t i = 0; i < obj.Faces.size(); ++i) {
 			string basename = "obj.Faces[" + std::to_string(i) + "]";
 			add_name(basename, &obj.Faces[i], "face");
 			add_name(basename+".groups", &obj.Faces[i].groups, "vector<size_t>");
-			for(size_t j = 0; j < obj.Faces[i].groups.capacity(); ++j) {
+            for(size_t j = 0; j < obj.Faces[i].groups.size(); ++j) {
 				string rebasename = basename + ".groups[" + std::to_string(j) + "]";
 				add_name(rebasename, &obj.Faces[i].groups[j], "size_t");
 			}
 			add_name(basename+".vertices", &obj.Faces[i].vertices, "vector<vertex>");
-			for(size_t j = 0; j < obj.Faces[i].vertices.capacity(); ++j) {
+            for(size_t j = 0; j < obj.Faces[i].vertices.size(); ++j) {
 				string rebasename = basename + ".vertices[" + std::to_string(j) + "]";
 				add_name(rebasename, &obj.Faces[i].vertices[j], "vertex");
 				add_name(rebasename+".v", &obj.Faces[i].vertices[j].v, "size_t");
@@ -5918,23 +5918,23 @@ struct cosmosstruc
 			add_name(basename+".area", &obj.Faces[i].area, "double");
 		}
 		add_name("obj.Groups", &obj.Groups, "vector<group>");
-		for(size_t i = 0; i < obj.Groups.capacity(); ++i) {
+        for(size_t i = 0; i < obj.Groups.size(); ++i) {
 			string basename = "obj.Groups[" + std::to_string(i) + "]";
 			add_name(basename, &obj.Groups[i], "group");
 			add_name(basename+".name", &obj.Groups[i].name, "string");
 			add_name(basename+".materialidx", &obj.Groups[i].materialidx, "size_t");
 			add_name(basename+".pointidx", &obj.Groups[i].pointidx, "vector<size_t>");
-			for(size_t j = 0; j < obj.Groups[i].pointidx.capacity(); ++j) {
+            for(size_t j = 0; j < obj.Groups[i].pointidx.size(); ++j) {
 				string rebasename = basename + ".pointidx[" + std::to_string(j) + "]";
 				add_name(rebasename, &obj.Groups[i].pointidx[j], "size_t");
 			}
 			add_name(basename+".lineidx", &obj.Groups[i].lineidx, "vector<size_t>");
-			for(size_t j = 0; j < obj.Groups[i].lineidx.capacity(); ++j) {
+            for(size_t j = 0; j < obj.Groups[i].lineidx.size(); ++j) {
 				string rebasename = basename + ".lineidx[" + std::to_string(j) + "]";
 				add_name(rebasename, &obj.Groups[i].lineidx[j], "size_t");
 			}
 			add_name(basename+".faceidx", &obj.Groups[i].faceidx, "vector<size_t>");
-			for(size_t j = 0; j < obj.Groups[i].faceidx.capacity(); ++j) {
+            for(size_t j = 0; j < obj.Groups[i].faceidx.size(); ++j) {
 				string rebasename = basename + ".faceidx[" + std::to_string(j) + "]";
 				add_name(rebasename, &obj.Groups[i].faceidx[j], "size_t");
 			}
@@ -5948,7 +5948,7 @@ struct cosmosstruc
 
 		// vector<devicestruc> device
 		add_name("device", &device, "vector<devicestruc>");
-		for(size_t i = 0; i < device.capacity(); ++i) {
+        for(size_t i = 0; i < device.size(); ++i) {
 			string basename = "device[" + std::to_string(i) + "]";
 			add_name(basename, &device[i], "devicestruc");
 			add_name(basename+".all", &device[i].all, "allstruc");
@@ -6378,7 +6378,7 @@ struct cosmosstruc
 
 		// vector<portstruc> port
 		add_name("port", &port, "vector<portstruc>");
-		for(size_t i = 0; i < port.capacity(); ++i) {
+        for(size_t i = 0; i < port.size(); ++i) {
 			string basename = "port[" + std::to_string(i) + "]";
 			add_name(basename, &port[i], "portstruc");
 			add_name(basename+".type", &port[i].type, "PORT_TYPE");
@@ -6387,7 +6387,7 @@ struct cosmosstruc
 
 		// vector<agentstruc> agent
 		add_name("agent", &agent, "vector<agentstruc>");
-		for(size_t i = 0; i < agent.capacity(); ++i) {
+        for(size_t i = 0; i < agent.size(); ++i) {
 			string basename = "agent[" + std::to_string(i) + "]";
 			add_name(basename, &agent[i], "agentstruc");
 			add_name(basename+".client", &agent[i].client, "bool");
@@ -6410,7 +6410,7 @@ struct cosmosstruc
 			add_name(basename+".aprd", &agent[i].aprd, "double");
 			add_name(basename+".stateflag", &agent[i].stateflag, "uint16_t");
 			add_name(basename+".reqs", &agent[i].reqs, "vector<agent_request_entry>");
-			for(size_t j = 0; j < agent[i].reqs.capacity(); ++j) {
+            for(size_t j = 0; j < agent[i].reqs.size(); ++j) {
 				string rebasename = basename + ".reqs[" + std::to_string(j) + "]";
 				add_name(rebasename, &agent[i].reqs[j], "agent_request_entry");
 				add_name(rebasename+".token", &agent[i].reqs[j].token, "string");
@@ -6436,7 +6436,7 @@ struct cosmosstruc
 
 		// vector<sim_param> sim_params
 		add_name("sim_params", &sim_params, "vector<sim_param>");
-		for(size_t i = 0; i < sim_params.capacity(); ++i) {
+        for(size_t i = 0; i < sim_params.size(); ++i) {
 			string basename = "sim_params[" + std::to_string(i) + "]";
 			add_name(basename, &sim_params[i], "sim_param");
 			add_name(basename+".param_01", &sim_params[i].param_01, "double");
@@ -6452,7 +6452,7 @@ struct cosmosstruc
 
 		// vector<sim_state> sim_states
 		add_name("sim_states", &sim_states, "vector<sim_state>");
-		for(size_t i = 0; i < sim_states.capacity(); ++i) {
+        for(size_t i = 0; i < sim_states.size(); ++i) {
 			string basename = "sim_states[" + std::to_string(i) + "]";
 			add_name(basename, &sim_states[i], "sim_state");
 			add_name(basename+".node_name", &sim_states[i].node_name, "string");
@@ -6500,7 +6500,7 @@ struct cosmosstruc
 
 		// vector<eventstruc> event
 		add_name("event", &event, "vector<eventstruc>");
-		for(size_t i = 0; i < event.capacity(); ++i) {
+        for(size_t i = 0; i < event.size(); ++i) {
 			string basename = "event[" + std::to_string(i) + "]";
 			add_name(basename, &event[i], "eventstruc");
 			add_name(basename+".utc", &event[i].utc, "double");
@@ -6529,7 +6529,7 @@ struct cosmosstruc
 
 		// vector<targetstruc> target
 		add_name("target", &target, "vector<targetstruc>");
-		for(size_t i = 0; i < target.capacity(); ++i) {
+        for(size_t i = 0; i < target.size(); ++i) {
 			string basename = "target[" + std::to_string(i) + "]";
 			add_name(basename, &target[i], "targetstruc");
 			add_name(basename+".utc", &target[i].utc, "double");
@@ -7045,7 +7045,7 @@ struct cosmosstruc
 
 		// vector<userstruc> user
 		add_name("user", &user, "vector<userstruc>");
-		for(size_t i = 0; i < user.capacity(); ++i) {
+        for(size_t i = 0; i < user.size(); ++i) {
 			string basename = "user[" + std::to_string(i) + "]";
 			add_name(basename, &user[i], "userstruc");
 			add_name(basename+".name", &user[i].name, "string");
@@ -7056,7 +7056,7 @@ struct cosmosstruc
 
 		// vector<tlestruc> tle
 		add_name("tle", &tle, "vector<tlestruc>");
-		for(size_t i = 0; i < tle.capacity(); ++i) {
+        for(size_t i = 0; i < tle.size(); ++i) {
 			string basename = "tle[" + std::to_string(i) + "]";
 			add_name(basename, &tle[i], "tlestruc");
 			add_name(basename+".utc", &tle[i].utc, "double");
