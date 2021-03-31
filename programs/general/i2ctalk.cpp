@@ -2,6 +2,7 @@
 #include "support/cosmos-errno.h"
 #include "support/elapsedtime.h"
 #include "support/stringlib.h"
+#include "support/datalib.h"
 #include "device/i2c/i2c.h"
 #include <iostream>
 #include <string>
@@ -36,6 +37,19 @@ int main(int argc, char *argv[])
     // input format
     // <device> <address> <rx_nbytes> <tx_byte0> <tx_byte1>
 
+    if (data_ischardev("/dev/i2c-0"))
+    {
+        device = "/dev/i2c-0";
+    }
+    else if (data_ischardev("/dev/i2c-1"))
+    {
+        device = "/dev/i2c-1";
+    }
+    else if (data_ischardev("/dev/i2c-2"))
+    {
+        device = "/dev/i2c-2";
+    }
+
     string outstring = "";
     switch (argc)
     {
@@ -59,6 +73,12 @@ int main(int argc, char *argv[])
     if (outstring.empty())
     {
         printf("Nothing to send\n");
+        exit(0);
+    }
+
+    if (!data_ischardev(device))
+    {
+        printf("No Device %s\n", device.c_str());
         exit(0);
     }
 
