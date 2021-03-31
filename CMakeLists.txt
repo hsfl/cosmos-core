@@ -67,7 +67,7 @@ endif()
 
 
 #Note: Actual flags are COSMOS_CXX_FLAGS + COSMOS_CXX_FLAGS_RELEASE/DEBUG?
-set(COSMOS_CXX_FLAGS "-Wtype-limits -Wall -pedantic -std=c++11 -U__STRICT_ANSI__ -Wno-invalid-offsetof -Wno-format")
+set(COSMOS_CXX_FLAGS "-Wmaybe-uninitialized -Wtype-limits -Wall -pedantic -std=c++11 -U__STRICT_ANSI__ -Wno-invalid-offsetof -Wno-format")
 
 # Force strict ANSI
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -U__STRICT_ANSI__")

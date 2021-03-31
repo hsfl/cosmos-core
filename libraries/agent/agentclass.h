@@ -397,8 +397,8 @@ namespace Cosmos
 
             // Add implementation of new COSMOS Error
             Error debug_error;
-            int32_t Printf(string output);
-            int32_t Printf(const char *fmt, ...);
+//            int32_t Printf(string output);
+//            int32_t Printf(const char *fmt, ...);
 
             // agent variables
             string nodeName;

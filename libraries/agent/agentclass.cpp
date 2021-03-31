@@ -2870,63 +2870,71 @@ acquired.
         return debug_error.Type();
     }
 
-    FILE *Agent::get_debug_fd(double mjd) {
-        static double oldmjd=0.;
-        if (debug_level == 0) {
-            debug_fd = nullptr;
-            debug_pathName.clear();
-        }
-        else if (debug_level == 1) {
-            if (debug_fd != stdout) {
-                if (debug_fd != nullptr) {
-                    fclose(debug_fd);
-                }
-                debug_fd = stdout;
-                debug_pathName.clear();
-            }
-        } else {
-            if (mjd == 0.) {
-                mjd = currentmjd();
-                oldmjd = mjd;
-            }
-            mjd = mjd - fmod(mjd, 1./24.);
-            string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
-
-            if (debug_fd != nullptr) {
-                if (pathName != debug_pathName) {
-                    FILE *fd = fopen(pathName.c_str(), "a");
-                    if (fd != nullptr) {
-                        if (debug_fd != stdout) {
-                            fclose(debug_fd);
-                            string final_filepath = data_type_path(nodeName, "outgoing", agentName, oldmjd, agentName, "debug");
-                            rename(debug_pathName.c_str(), final_filepath.c_str());
-                        }
-                        debug_fd = fd;
-                        debug_pathName = pathName;
-                    }
-                    oldmjd = mjd;
-                }
-            } else {
-                FILE *fd = fopen(pathName.c_str(), "a");
-                if (fd != nullptr) {
-                    debug_fd = fd;
-                    debug_pathName = pathName;
-                }
-            }
-        }
-        return debug_fd;
+    FILE *Agent::get_debug_fd(double mjd)
+    {
+        return debug_error.Open();
     }
+//    {
+//        static double oldmjd=0.;
+//        if (debug_level == 0) {
+//            debug_fd = nullptr;
+//            debug_pathName.clear();
+//        }
+//        else if (debug_level == 1) {
+//            if (debug_fd != stdout) {
+//                if (debug_fd != nullptr) {
+//                    fclose(debug_fd);
+//                }
+//                debug_fd = stdout;
+//                debug_pathName.clear();
+//            }
+//        } else {
+//            if (mjd == 0.) {
+//                mjd = currentmjd();
+//                oldmjd = mjd;
+//            }
+//            mjd = mjd - fmod(mjd, 1./24.);
+//            string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
 
-    int32_t Agent::close_debug_fd() {
-        int32_t iretn;
-        if (debug_fd != nullptr && debug_fd != stdout)
-        {
-            iretn = fclose(debug_fd);
-            if (iretn != 0) { return -errno; }
-            debug_fd = nullptr;
-        }
-        return 0;
+//            if (debug_fd != nullptr) {
+//                if (pathName != debug_pathName) {
+//                    FILE *fd = fopen(pathName.c_str(), "a");
+//                    if (fd != nullptr) {
+//                        if (debug_fd != stdout) {
+//                            fclose(debug_fd);
+//                            string final_filepath = data_type_path(nodeName, "outgoing", agentName, oldmjd, agentName, "debug");
+//                            rename(debug_pathName.c_str(), final_filepath.c_str());
+//                        }
+//                        debug_fd = fd;
+//                        debug_pathName = pathName;
+//                    }
+//                    oldmjd = mjd;
+//                }
+//            } else {
+//                FILE *fd = fopen(pathName.c_str(), "a");
+//                if (fd != nullptr) {
+//                    debug_fd = fd;
+//                    debug_pathName = pathName;
+//                }
+//            }
+//        }
+//        return debug_fd;
+//    }
+
+    int32_t Agent::close_debug_fd()
+    {
+        debug_error.Close();
     }
+//    {
+//        int32_t iretn;
+//        if (debug_fd != nullptr && debug_fd != stdout)
+//        {
+//            iretn = fclose(debug_fd);
+//            if (iretn != 0) { return -errno; }
+//            debug_fd = nullptr;
+//        }
+//        return 0;
+//    }
 
     // Set our producer for all functions associated with time authority (i.e. the mjd request).
     int32_t Agent::set_agent_time_producer(double (*source)()) {
