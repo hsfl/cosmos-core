@@ -725,6 +725,33 @@ namespace Support
         return set_sohstring(jsonlist);
     }
 
+	//! Set SOH string
+    /*! Set the SOH string to a json list of \ref namespace 2.0 names.
+		\param list Vector of strings of namespace 2.0 names.
+		\return 0, otherwise a negative error.
+	*/
+	int32_t Agent::set_sohstring2(vector<std::string> list) {
+		string jsonlist = "{";
+		// Iterate through list of names, get json for each name if it's in Namespace 2.0
+        for(string name: list){
+			string jsonname = cinfo->get_json(name);
+			if(jsonname.size() > 1) {
+				// Trim beginning and ending curly braces
+				jsonname = jsonname.substr(1, jsonname.size()-2);
+				jsonlist += jsonname + ",";
+			}
+        }
+		if(jsonlist.size() > 1) {
+			jsonlist.pop_back(); // remove last ","
+			jsonlist += "}";
+			sohstring = jsonlist;
+		} else {
+			sohstring = "";
+		}
+        
+		return 0;
+	}
+
     //! Set Full SOH string
     /*! Set the Full SOH string to a JSON list of \ref jsonlib_namespace names. A
  * proper JSON list will begin and end with matched curly braces, be comma separated,
@@ -1696,6 +1723,11 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 
         return 0;
     }
+
+	int32_t Agent::req_soh2(string &, string &response, Agent *agent) {
+		response = agent->sohstring;
+		return 0;
+	}
 
     int32_t Agent::req_fullsoh(string &, string &response, Agent *agent) {
         string rjstring;
