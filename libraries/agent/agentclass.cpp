@@ -240,7 +240,6 @@ namespace Support
         add_request("get_position_data",req_get_position_data,"","return the current perifocal position of the agent");
         add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
         add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent (Namespace 2.0)");
-       	add_request("set_state",req_set_state,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set state value(s) in agent");
         add_request("listnames",req_listnames,"","list the Namespace of the agent");
         add_request("forward",req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
         add_request("echo",req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
@@ -1478,22 +1477,6 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
     cout<<"req_set_value():outgoing response         = <"<<response<<">"<<endl;
     return 0;
 }
-
-int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
-    // remove function call and space ('set_value ')
-    request.erase(0,10);
-    cout<<"req_set_state():incoming request          = <"<<request<<">"<<endl;
-    cout<<"req_set_state():incoming request.size()   = "<<request.size()<<endl;
-    cout<<"req_set_state():incoming request.length() = "<<request.length()<<endl;
-    cout<<"req_set_state():incoming response         = <"<<response<<">"<<endl;
-
-    // set the value from json string
-    agent->cinfo->set_json(request);
-
-	cout<<"req_set_state():outgoing response         = <"<<response<<">"<<endl;
-	return 0;
-}
-
 
     //! Built-in List Name Space Names request
     /*! Returns a list of all names in the JSON Name Space.
