@@ -258,6 +258,7 @@ namespace Support
         add_request("postsoh",req_postsoh,"","Post a SOH");
         add_request("utc",req_utc,"","Get UTC as both Modified Julian Day and Unix Time");
         add_request("soh",req_soh,"","Get Limited SOH string");
+        add_request("soh2",req_soh2,"","Get SOH string (Namespace 2.0 names)");
         add_request("fullsoh",req_fullsoh,"","Get Full SOH string");
         add_request("jsondump",req_jsondump,"","Dump JSON ini files to node folder");
 
