@@ -137,7 +137,7 @@ int32_t pos_selc2eci(locstruc &loc);
 int32_t eci2kep(cartpos &eci, kepstruc &kep);
 int32_t kep2eci(kepstruc &kep,cartpos &eci);
 double rearth(double lat);
-double mjd2year(double mjd);
+//double mjd2year(double mjd);
 
 int32_t att_extra(locstruc *loc);
 int32_t att_icrf(locstruc *loc);
