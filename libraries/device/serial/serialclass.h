@@ -81,7 +81,7 @@ namespace Cosmos {
         int32_t get_nmea(vector <uint8_t> &data, size_t size);
         int32_t get_xmodem(vector <uint8_t> &data, size_t size);
         int32_t get_error();
-		bool get_open();
+        bool get_open() const;
 
 
         int32_t SendByte(uint8_t byte);

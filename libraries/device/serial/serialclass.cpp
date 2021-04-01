@@ -155,7 +155,7 @@ namespace Cosmos {
         close_device();
     }
 
-    bool Serial::get_open()
+    bool Serial::get_open() const
     {
         if (fd >= 0)
         {
