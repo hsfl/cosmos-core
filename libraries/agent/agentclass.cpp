@@ -233,13 +233,13 @@ namespace Support
         add_request("status",req_status,"","request the status of this agent");
         add_request("debug_level",req_debug_level,"{\"name1\",\"name2\",...}","get/set debug_level of agent");
         add_request("getvalue",req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
-        add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent");
+        add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent (Namespace 2.0)");
         add_request("get_state",req_get_state,"[{] \"name1\",\"name2\",... [}]","get current state value(s) from agent");
         add_request("get_time",req_get_time,"","return the current time of the agent");
         add_request("get_position",req_get_position,"","return the current perifocal position of the agent");
         add_request("get_position_data",req_get_position_data,"","return the current perifocal position of the agent");
         add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
-        add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent");
+        add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent (Namespace 2.0)");
        	add_request("set_state",req_set_state,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set state value(s) in agent");
         add_request("listnames",req_listnames,"","list the Namespace of the agent");
         add_request("forward",req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
@@ -502,7 +502,7 @@ namespace Support
         nbytes = std::min(request.size(), (size_t)hbeat.bsz);
         nbytes=sendto(sendchan.cudp, request.c_str(), nbytes, 0, (struct sockaddr *)&sendchan.caddr, sizeof(struct sockaddr_in));
         if (debug_level) {
-            printf("Send Request: [%s:%u:%d] %s\n", sendchan.address, sendchan.cport, iretn, &request[0]);
+            debug_error.Printf("Send Request: [%s:%u:%d] %s\n", sendchan.address, sendchan.cport, iretn, &request[0]);
         }
 
         if ((nbytes) < 0) {
@@ -831,7 +831,7 @@ namespace Support
         process_mutex.lock();
 
         if (debug_level) {
-            printf("Request: [%lu] %s\n",bufferin.size(), &bufferin[0]);
+            debug_error.Printf("Request: [%lu] %s\n",bufferin.size(), &bufferin[0]);
             fflush(stdout);
         }
 
@@ -867,7 +867,7 @@ namespace Support
 
         iretn = sendto(cinfo->agent[0].req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, sizeof(struct sockaddr_in));
         if (debug_level) {
-            printf("Response: [%s:%u:%d] %s\n", cinfo->agent[0].req.address, cinfo->agent[0].req.cport, iretn, &bufferout[0]);
+            debug_error.Printf("Response: [%s:%u:%d] %s\n", cinfo->agent[0].req.address, cinfo->agent[0].req.cport, iretn, &bufferout[0]);
         }
 
         process_mutex.unlock();
@@ -948,7 +948,7 @@ namespace Support
 //                iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.length()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
             iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.size()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
             if (agent->get_debug_level()) {
-                printf("Forward: [%s:%u:%d] %s\n", agent->cinfo->agent[0].pub[i].address, agent->cinfo->agent[0].pub[i].cport, iretn, (const char *)&request[request.size()-count]);
+                agent->debug_error.Printf("Forward: [%s:%u:%d] %s\n", agent->cinfo->agent[0].pub[i].address, agent->cinfo->agent[0].pub[i].cport, iretn, (const char *)&request[request.size()-count]);
             }
         }
 //            sprintf(output,"%.17g %d ",currentmjd(0),iretn);
@@ -1458,6 +1458,13 @@ int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
         return(iretn);
     }
 
+/**
+ * @brief Agent::req_set_value (Namespace 2.0)
+ * @param request
+ * @param response
+ * @param agent
+ * @return
+ */
 int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 	// remove function call and space ('set_value ')
 	request.erase(0,10);
@@ -2290,7 +2297,7 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
                     sizeof(struct sockaddr_in)                  // size of address to socket pointer
                     );
             if (debug_level) {
-                printf("Post: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
+                debug_error.Printf("Post: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
             }
             if (cinfo->agent[0].pub[i].flags & IFF_POINTOPOINT)
             {
@@ -2302,7 +2309,7 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
                         sizeof(struct sockaddr_in)                  // size of address to socket pointer
                         );
                 if (debug_level) {
-                    printf("Post: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
+                    debug_error.Printf("Post: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
                 }
             }
             if (iretn < 0)
@@ -2916,7 +2923,7 @@ acquired.
 
     int32_t Agent::close_debug_fd()
     {
-        debug_error.Close();
+        return debug_error.Close();
     }
 //    {
 //        int32_t iretn;
@@ -3161,7 +3168,7 @@ acquired.
         if(names.size() == 0) return 0;
         string jsonlist = "{";
         for(string p: names) {
-            jsonlist += "\"" + p + "\"";
+            jsonlist += "\"" + p + "\",";
         }
         jsonlist.pop_back();
         jsonlist+= "}";
