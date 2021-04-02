@@ -109,7 +109,6 @@ int main(int argc, char **argv)
 	cout<<"New User Data       = <"<<agent->cinfo->get_json<vector<userstruc>>("My Favorite Users")<<">"<<endl;
 	cout<<"New User Data       = <"<<agent->cinfo->get_json<userstruc>("user[1]")<<">"<<endl;
 	agent->set_sohstring2({"Short UTC","Longest Ever UTC","A_NAME_NOT_IN_NAMESPACE","devspec"});
-	cout<<"sohstring: "<< agent->sohstring<<endl;
 	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
 	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
 	//agent->cinfo->print_all_names_types_values();

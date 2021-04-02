@@ -157,7 +157,7 @@ namespace Cosmos
             //! State of Health element vector
             vector<jsonentry*> sohtable;
             vector<jsonentry*> fullsohtable;
-			string sohstring;
+			vector<string> sohstring;
 
             enum class State : uint16_t {
                 //! Shut down Agent
