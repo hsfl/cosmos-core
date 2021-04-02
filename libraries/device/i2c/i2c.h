@@ -30,7 +30,8 @@
 #ifndef COSMOS_DEVICE_I2C_CLASS_H
 #define COSMOS_DEVICE_I2C_CLASS_H
 
-#include "support/configCosmos.h"
+#include "support/cosmos-errno.h"
+#include "support/timelib.h"
 //#include <linux/i2c-dev.h> /* for I2C_SLAVE */
 #if !defined(COSMOS_WIN_OS)
 #include "device/i2c/i2c-dev-smbus.h"
@@ -63,6 +64,7 @@ namespace Cosmos {
         int32_t receive(string &data);
         int32_t receive(uint8_t *data, size_t len);
         int32_t receive(vector <uint8_t> &data);
+        int32_t poll(uint8_t *data, size_t len, uint8_t markchar='0xff', double timeout=0.);
         int32_t get_error();
 	int32_t get_fh();
 

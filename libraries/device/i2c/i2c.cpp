@@ -27,7 +27,6 @@
                     * condititons and terms to use this software.
                     ********************************************************************/
 
-#include "support/configCosmos.h"
 #include "device/i2c/i2c.h"
 #include "support/elapsedtime.h"
 
@@ -249,6 +248,60 @@ namespace Cosmos {
         } while(et.split() <= .0001 * (data.size()+1));
 
         return data.size();
+    }
+
+    int32_t I2C::poll(uint8_t *data, size_t len, uint8_t markchar, double timeout)
+    {
+        if (data == nullptr)
+        {
+            return COSMOS_GENERAL_ERROR_MEMORY;
+        }
+
+        size_t count = 0;
+        if (timeout >10.)
+        {
+            timeout = 10.;
+        }
+
+        if (len)
+        {
+            ElapsedTime et;
+            do
+            {
+                int32_t rcvd = ::read(handle.fh, &data[0], 1);
+                if (rcvd < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+                {
+                    error = -errno;
+                    return error;
+                }
+                if (rcvd == 1 && data[0] != markchar)
+                {
+                    break;
+                }
+                microsleep(5000);
+            } while(et.split() < timeout);
+            if (et.split() >= timeout)
+            {
+                error = COSMOS_GENERAL_ERROR_TIMEOUT;
+                return error;
+            }
+            count = 1;
+            do
+            {
+                int32_t rcvd = ::read(handle.fh, &data[count], 1);
+
+                if (rcvd < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+                {
+                    error = -errno;
+                    return error;
+                }
+                if (rcvd == 1)
+                {
+                    ++count;
+                }
+            } while(count < len && et.split() < timeout);
+        }
+        return count;
     }
 
     int32_t I2C::get_error()
