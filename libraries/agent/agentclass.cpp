@@ -240,7 +240,6 @@ namespace Support
         add_request("get_position_data",req_get_position_data,"","return the current perifocal position of the agent");
         add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
         add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent (Namespace 2.0)");
-       	add_request("set_state",req_set_state,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set state value(s) in agent");
         add_request("listnames",req_listnames,"","list the Namespace of the agent");
         add_request("forward",req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
         add_request("echo",req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
@@ -259,6 +258,7 @@ namespace Support
         add_request("postsoh",req_postsoh,"","Post a SOH");
         add_request("utc",req_utc,"","Get UTC as both Modified Julian Day and Unix Time");
         add_request("soh",req_soh,"","Get Limited SOH string");
+        add_request("soh2",req_soh2,"","Get SOH string (Namespace 2.0 names)");
         add_request("fullsoh",req_fullsoh,"","Get Full SOH string");
         add_request("jsondump",req_jsondump,"","Dump JSON ini files to node folder");
 
@@ -725,6 +725,17 @@ namespace Support
         jsonlist += "}";
         return set_sohstring(jsonlist);
     }
+
+	//! Set SOH string
+    /*! Set the SOH string to a json list of \ref namespace 2.0 names.
+		\param list Vector of strings of namespace 2.0 names.
+		\return 0, otherwise a negative error.
+	*/
+	int32_t Agent::set_sohstring2(vector<std::string> list) {
+		sohstring = list;
+        
+		return 0;
+	}
 
     //! Set Full SOH string
     /*! Set the Full SOH string to a JSON list of \ref jsonlib_namespace names. A
@@ -1479,22 +1490,6 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
     return 0;
 }
 
-int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
-    // remove function call and space ('set_value ')
-    request.erase(0,10);
-    cout<<"req_set_state():incoming request          = <"<<request<<">"<<endl;
-    cout<<"req_set_state():incoming request.size()   = "<<request.size()<<endl;
-    cout<<"req_set_state():incoming request.length() = "<<request.length()<<endl;
-    cout<<"req_set_state():incoming response         = <"<<response<<">"<<endl;
-
-    // set the value from json string
-    agent->cinfo->set_json(request);
-
-	cout<<"req_set_state():outgoing response         = <"<<response<<">"<<endl;
-	return 0;
-}
-
-
     //! Built-in List Name Space Names request
     /*! Returns a list of all names in the JSON Name Space.
  * \param request Text of request.
@@ -1713,6 +1708,27 @@ int32_t Agent::req_set_state(string &request, string &response, Agent* agent) {
 
         return 0;
     }
+
+	int32_t Agent::req_soh2(string &, string &response, Agent *agent) {
+		string jsonlist = "{";
+		// Iterate through list of names, get json for each name if it's in Namespace 2.0
+        for(string name: agent->sohstring){
+			string jsonname = agent->cinfo->get_json(name);
+			if(jsonname.size() > 1) {
+				// Trim beginning and ending curly braces
+				jsonname = jsonname.substr(1, jsonname.size()-2);
+				jsonlist += jsonname + ",";
+			}
+        }
+		if(jsonlist.size() > 1) {
+			jsonlist.pop_back(); // remove last ","
+			jsonlist += "}";
+		} else {
+			jsonlist = "";
+		}
+		response = jsonlist;
+		return 0;
+	}
 
     int32_t Agent::req_fullsoh(string &, string &response, Agent *agent) {
         string rjstring;

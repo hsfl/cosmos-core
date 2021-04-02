@@ -157,6 +157,7 @@ namespace Cosmos
             //! State of Health element vector
             vector<jsonentry*> sohtable;
             vector<jsonentry*> fullsohtable;
+			vector<string> sohstring;
 
             enum class State : uint16_t {
                 //! Shut down Agent
@@ -312,6 +313,7 @@ namespace Cosmos
             int32_t last_error();
             int32_t set_sohstring(string list);
             int32_t set_sohstring(vector<string> list);
+            int32_t set_sohstring2(vector<string> list);
             int32_t set_fullsohstring(string list);
             cosmosstruc *get_cosmosstruc();
             void get_ip(char* buffer, size_t buflen);
@@ -479,7 +481,6 @@ namespace Cosmos
             static int32_t req_get_position_data(string &request, string &response, Agent *agent);
             static int32_t req_setvalue(string &request, string &response, Agent *agent);
             static int32_t req_set_value(string &request, string &response, Agent *agent);
-            static int32_t req_set_state(string &request, string &response, Agent *agent);
             static int32_t req_listnames(string &request, string &response, Agent *agent);
             static int32_t req_nodejson(string &request, string &response, Agent *agent);
             static int32_t req_statejson(string &request, string &response, Agent *agent);
@@ -496,6 +497,7 @@ namespace Cosmos
             static int32_t req_postsoh(string &request, string &response, Agent *agent);
             static int32_t req_utc(string &request, string &response, Agent *agent);
             static int32_t req_soh(string &, string &response, Agent *agent);
+            static int32_t req_soh2(string &, string &response, Agent *agent);
             static int32_t req_fullsoh(string &, string &response, Agent *agent);
             static int32_t req_jsondump(string &, string &response, Agent *agent);
         };

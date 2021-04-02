@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 
 
 	// turn off debug
-    agent->set_debug_level(0);
+	agent->set_debug_level(0);
 
 
 	// add custom request functions for this agent
@@ -72,6 +72,7 @@ int main(int argc, char **argv)
 	agent->add_request(request_name, sample_agent_request_function, "\n\t\trequest to support the reporting of identification");
 
 	// try to locate a specific agent (agent_002)
+	string node_target = "sat_001";
     string agent_target = "agent_002"; // The name of the agent this agent will send requests to
     beatstruc agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
 	//cout<<"["<<node_name<<":"<<agent_name<<"] looking for ["<<node_name<<":"<<agent_target<<"]..."<<endl;
@@ -107,6 +108,7 @@ int main(int argc, char **argv)
 	
 	cout<<"New User Data       = <"<<agent->cinfo->get_json<vector<userstruc>>("My Favorite Users")<<">"<<endl;
 	cout<<"New User Data       = <"<<agent->cinfo->get_json<userstruc>("user[1]")<<">"<<endl;
+	agent->set_sohstring2({"Short UTC","Longest Ever UTC","A_NAME_NOT_IN_NAMESPACE","devspec"});
 	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
 	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
 	//agent->cinfo->print_all_names_types_values();
@@ -195,6 +197,12 @@ cout<<"Now to try to get the orbis of ISS..."<<endl;
     while (agent->running()) {
 
 		cout<<"["<<node_name<<":"<<agent_name<<"] running..."<<endl;
+
+		// get_value of beat
+	agent->send_request(agent->find_agent(node_target, agent_target, 2.), "get_value {\"agent[0].beat\"}", response, 2.);
+		cout<<"beat = "<<response<<endl;
+		response.clear();
+
 /* old tests
 		string target_request_name = "any_body_out_there";
 		agent->cinfo->set_value<double>("Cooler UTC", 99.99);
