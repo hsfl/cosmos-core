@@ -1,7 +1,4 @@
-#include <cstdio>
-#include <cstdint>
-#include <string>
-#include <vector>
+#include "cosmos-errno.h"
 
 #define BSQ 1
 #define BIL 2
@@ -41,5 +38,7 @@ typedef struct envi_hdr
     } envi_hdr;
 
 
-int read_envi_hdr(std::string file, envi_hdr &hdr);
-int write_envi_hdr(envi_hdr &hdr);
+int32_t read_envi_hdr(std::string file, envi_hdr &hdr);
+int32_t write_envi_hdr(envi_hdr &hdr);
+int32_t write_envi_data(string name, size_t columns, size_t rows, size_t frames, uint8_t datatype, uint8_t byteorder, uint8_t *data);
+int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data);

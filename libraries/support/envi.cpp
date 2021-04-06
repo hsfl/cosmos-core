@@ -3,7 +3,7 @@
 #include <string>
 #include "envi.h"
 
-int read_envi_hdr(std::string file, envi_hdr &hdr)
+int32_t read_envi_hdr(std::string file, envi_hdr &hdr)
 {
     char fname[250], inbuf[1000];
     FILE *fp;
@@ -13,7 +13,7 @@ int read_envi_hdr(std::string file, envi_hdr &hdr)
     fp = fopen(fname,"r");
     if (fp == nullptr)
     {
-//        for (size_t i=file.size()-1; i<file.size(); --i)
+        //        for (size_t i=file.size()-1; i<file.size(); --i)
         for (size_t i=file.size()-1; (i>0 && i<file.size()); --i)
         {
             if (file[i] == '.')
@@ -133,13 +133,20 @@ int read_envi_hdr(std::string file, envi_hdr &hdr)
     return (0);
 }
 
-int write_envi_hdr(envi_hdr &hdr)
+int32_t write_envi_hdr(envi_hdr &hdr)
 {
-    char fname[1000];
+    string fname;
     FILE *fp;
 
-    sprintf(fname,"%s.hdr",hdr.basename.data());
-    fp = fopen(fname,"w");
+    size_t extension;
+    if ((extension = hdr.basename.find_last_of(".")) != string::npos)
+    {
+        fname = hdr.basename.substr(0, extension) + ".hdr";
+    }
+    else {
+        fname = hdr.basename + ".hdr";
+    }
+    fp = fopen(fname.c_str(),"w");
     fprintf(fp,"ENVI\n");
     //    for (size_t k=0; k<hdr.keys.size(); ++k)
     //    {
@@ -249,4 +256,117 @@ int write_envi_hdr(envi_hdr &hdr)
 
     fclose(fp);
     return (0);
+}
+
+int32_t write_envi_data(string name, size_t columns, size_t rows, size_t planes, uint8_t datatype, uint8_t byteorder, uint8_t *data)
+{
+    envi_hdr ehdr;
+    int32_t iretn;
+
+    ehdr.basename = name;
+    ehdr.columns = columns;
+    ehdr.rows = rows;
+    ehdr.planes = planes;
+    ehdr.datatype = datatype;
+    ehdr.byteorder = byteorder;
+    iretn = write_envi_data(ehdr, data);
+    return iretn;
+
+}
+
+int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data)
+{
+    int32_t iretn;
+
+    iretn = write_envi_hdr(ehdr);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    size_t extension;
+    string fname;
+    if ((extension = ehdr.basename.find_last_of(".")) != string::npos)
+    {
+        fname = ehdr.basename;
+    }
+    else {
+        fname = ehdr.basename.substr(0, extension);
+        switch (ehdr.byteorder)
+        {
+        case BSQ:
+            fname += ".bsq";
+            break;
+        case BIL:
+            fname += ".bil";
+            break;
+        case BIP:
+            fname += ".bip";
+            break;
+        default:
+            fname += ".img";
+            break;
+        }
+    }
+    FILE *fp = fopen(fname.c_str(), "wb");
+    if (fp == nullptr)
+    {
+        return -errno;
+    }
+
+    uint8_t datasize=1;
+    switch (ehdr.datatype)
+    {
+    case DT_BYTE:
+        datasize = 1;
+        break;
+    case DT_INT:
+    case DT_U_INT:
+        datasize = 2;
+        break;
+    case DT_LONG:
+    case DT_U_LONG:
+    case DT_FLOAT:
+        datasize = 4;
+        break;
+    case DT_DOUBLE:
+        datasize = 8;
+        break;
+    }
+
+    switch (ehdr.byteorder)
+    {
+    case BSQ:
+        for (size_t ip=0; ip<ehdr.planes; ++ip)
+        {
+            for (size_t ir=0; ir<ehdr.rows; ++ir)
+            {
+                fwrite(data, datasize, ehdr.columns, fp);
+            }
+        }
+        break;
+    case BIL:
+        for (size_t ir=0; ir<ehdr.rows; ++ir)
+        {
+            for (size_t ip=0; ip<ehdr.planes; ++ip)
+            {
+                fwrite(data, datasize, ehdr.columns, fp);
+            }
+        }
+        break;
+    case BIP:
+        for (size_t ir=0; ir<ehdr.rows; ++ir)
+        {
+            for (size_t ip=0; ip<ehdr.columns; ++ip)
+            {
+                fwrite(data, datasize, ehdr.planes, fp);
+            }
+        }
+        break;
+    default:
+        break;
+    }
+
+    fclose(fp);
+    return datasize * ehdr.planes * ehdr.columns * ehdr.rows;
 }
