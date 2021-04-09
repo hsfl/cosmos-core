@@ -160,14 +160,18 @@ int32_t socket_blocking(socket_channel* channel, bool blocking);
 int32_t socket_blocking(socket_channel& channel, bool blocking);
 int32_t socket_close(socket_channel* channel);
 int32_t socket_close(socket_channel& channel);
+int32_t socket_poll(socket_bus &channel, vector<uint8_t> &buffer, size_t maxlen, int flags=0);
 int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags=0);
 int32_t socket_recvfrom(socket_channel &channel,string &buffer, size_t maxlen, int flags=0);
+int32_t socket_recv(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags=0);
 int32_t socket_post(socket_bus &channel, const string buffer, int flags=0);
+int32_t socket_post(socket_bus &channel, const vector<uint8_t> buffer, int flags=0);
 int32_t socket_post(socket_channel &channel, const string buffer, int flags=0);
 int32_t socket_post(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
 int32_t socket_sendto(socket_bus &channel, const string buffer, int flags=0);
 int32_t socket_sendto(socket_channel &channel, const string buffer, int flags=0);
 int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
+int32_t socket_send(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
 vector <socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port=0);
 
 //-------------------------------------------------------------------

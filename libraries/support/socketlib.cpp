@@ -816,6 +816,19 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port)
     return (iface);
 }
 
+int32_t socket_poll(socket_bus &bus, vector<uint8_t> &buffer, size_t maxlen, int flags)
+{
+    for (socket_channel channel : bus)
+    {
+        int count;
+        if (ioctl(channel.cudp, FIONREAD, count) == 0 && count)
+        {
+            return socket_recvfrom(channel, buffer, maxlen, flags);
+        }
+    }
+    return 0;
+}
+
 int32_t socket_recvfrom(socket_channel &channel, string &buffer, size_t maxlen, int flags)
 {
     int32_t iretn;
@@ -843,7 +856,29 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     return nbytes;
 }
 
-int32_t socket_post(socket_bus &bus, const string buffer, int flags)
+int32_t socket_recv(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags)
+    {
+    int32_t nbytes;
+    buffer.resize(maxlen);
+    if ((nbytes = recv(channel.cudp, (char *)buffer.data(), maxlen, flags)) > 0)
+    {
+        buffer.resize(nbytes);
+    }
+    else
+    {
+        buffer.clear();
+        nbytes = -errno;
+    }
+    return nbytes;
+}
+
+int32_t socket_post(socket_bus &channel, const string buffer, int flags)
+{
+    vector<uint8_t> data(buffer.begin(), buffer.end());
+    return socket_post(channel, data, flags);
+}
+
+int32_t socket_post(socket_bus &bus, const vector<uint8_t> buffer, int flags)
 {
     vector<uint8_t> data(buffer.begin(), buffer.end());
     for (socket_channel channel : bus)
@@ -904,6 +939,20 @@ int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int
     nbytes = sendto(channel.cudp, (const char *)(buffer.data()), buffer.size(), flags, (struct sockaddr *)&channel.caddr, sizeof(struct sockaddr_in));
 #else
     if ((nbytes = sendto(channel.cudp, const_cast<uint8_t*>(buffer.data()), buffer.size(), flags, reinterpret_cast<struct sockaddr *>(&channel.caddr), static_cast<socklen_t>(sizeof(struct sockaddr_in)))) < 0)
+    {
+        nbytes = -errno;
+    }
+#endif
+    return nbytes;
+}
+
+int32_t socket_send(socket_channel &channel, const vector<uint8_t> buffer, int flags)
+{
+    int32_t nbytes;
+#if defined(COSMOS_WIN_OS)
+    nbytes = send(channel.cudp, (const char *)(buffer.data()), buffer.size(), flags);
+#else
+    if ((nbytes = send(channel.cudp, const_cast<uint8_t*>(buffer.data()), buffer.size(), flags)) < 0)
     {
         nbytes = -errno;
     }

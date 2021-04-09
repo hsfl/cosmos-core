@@ -64,7 +64,7 @@ namespace Cosmos {
         int32_t receive(string &data);
         int32_t receive(uint8_t *data, size_t len);
         int32_t receive(vector <uint8_t> &data);
-        int32_t poll(uint8_t *data, size_t len, uint8_t markchar='0xff', double timeout=0.);
+        int32_t poll(uint8_t *data, size_t len, uint8_t markchar=0xff, double timeout=0.);
         int32_t get_error();
 	int32_t get_fh();
 
