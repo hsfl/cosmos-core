@@ -1,6 +1,6 @@
-#include <cstring>
-#include <cstdio>
-#include <string>
+//#include <cstring>
+//#include <cstdio>
+//#include <string>
 #include "envi.h"
 
 int32_t read_envi_hdr(std::string file, envi_hdr &hdr)
@@ -8,8 +8,16 @@ int32_t read_envi_hdr(std::string file, envi_hdr &hdr)
     char fname[250], inbuf[1000];
     FILE *fp;
 
-    hdr.basename = file;
-    sprintf(fname,"%s.hdr",file.data());
+    size_t ext=file.find_last_of(".");
+    if (ext != string::npos)
+    {
+        hdr.basename = file.substr(0, ext);
+    }
+    else
+    {
+        hdr.basename = file;
+    }
+    sprintf(fname,"%s.hdr",hdr.basename.c_str());
     fp = fopen(fname,"r");
     if (fp == nullptr)
     {

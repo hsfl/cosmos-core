@@ -1453,7 +1453,7 @@ int32_t json_out_entry(string &jstring, const jsonentry &entry, cosmosstruc *cin
     uint8_t *data;
 
     jstring.erase(jstring.find_last_not_of(" \n\r\t")+1);
-    if (jstring.back() =='}')       //replaces '}' with ',' to allow the continuation of the json object (if node json is to remain separate, input ' ' at end?
+    if (!jstring.empty() && jstring.back() =='}')       //replaces '}' with ',' to allow the continuation of the json object (if node json is to remain separate, input ' ' at end?
     {
         jstring.back()=',';
     }
@@ -8214,6 +8214,9 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_gps_utc",didx, UINT16_MAX, (uint8_t *)&device.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_gps_cidx",didx, UINT16_MAX, (uint8_t *)&device.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_gps_temp",didx, UINT16_MAX, (uint8_t *)&device.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_gps_amp",didx, UINT16_MAX, (uint8_t *)&device.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CURRENT);
+        json_addentry("device_gps_volt",didx, UINT16_MAX, (uint8_t *)&device.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_VOLTAGE);
+        json_addentry("device_gps_power",didx, UINT16_MAX, (uint8_t *)&device.power, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
         json_addentry("device_gps_dutc",didx, UINT16_MAX, (uint8_t *)&device.gps.dutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_gps_geocs",didx, UINT16_MAX, (uint8_t *)&device.gps.geocs, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
         json_addentry("device_gps_geocs_x",didx, UINT16_MAX, (uint8_t *)&device.gps.geocs.col[0], (uint16_t)JSON_TYPE_DOUBLE, cinfo);
@@ -8704,6 +8707,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
     case DeviceType::GPS:
         json_toggleentry("device_gps_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_gps_cidx",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_gps_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_gps_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_gps_power",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_gps_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_gps_dutc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_gps_geocs",didx, UINT16_MAX, cinfo, state);

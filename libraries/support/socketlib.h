@@ -119,11 +119,11 @@ struct socket_channel
     // Channel UDP socket handle
     int32_t cudp=-1;
     // Channel UDP INET4 address
-    struct sockaddr_in caddr;
+    struct sockaddr_in caddr = {0};
     // Channel UDP INET4 broadcast address
-    struct sockaddr_in baddr;
+    struct sockaddr_in baddr = {0};
     // Channel UDP INET6 address
-    struct sockaddr_in6 caddr6;
+    struct sockaddr_in6 caddr6 = {0};
     // Length for chosen address
     int addrlen;
     // Channel port
@@ -131,11 +131,11 @@ struct socket_channel
     // Channel's maximum message size
     uint16_t msgsize;
     // Channel's protocol address in string form
-    char address[17];
+    char address[17] = {0};
     // Channel's broadcast address in string form
-    char baddress[17];
+    char baddress[17] = {0};
     // Channel's interface name
-    char name[COSMOS_MAX_NAME+1];
+    char name[COSMOS_MAX_NAME+1] = {0};
     // Interface flags
     int16_t flags;
 };

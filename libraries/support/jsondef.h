@@ -2895,8 +2895,8 @@ struct battstruc
 	*/
 	json11::Json to_json() const {
 		return json11::Json::object {
-			{ "capacity"  , capacity },
-			{ "efficiency", efficiency },
+            { "cap"  , capacity },
+            { "eff", efficiency },
 			{ "charge"	, charge },
 			{ "r_in"  , r_in },
 			{ "r_out" , r_out },
@@ -2914,8 +2914,8 @@ struct battstruc
 		string error;
 		json11::Json parsed = json11::Json::parse(s,error);
 		if(error.empty()) {
-			if(!parsed["capacity"].is_null()) { capacity = parsed["capacity"].number_value(); }
-			if(!parsed["efficiency"].is_null()) { efficiency = parsed["efficiency"].number_value(); }
+            if(!parsed["cap"].is_null()) { capacity = parsed["cap"].number_value(); }
+            if(!parsed["eff"].is_null()) { efficiency = parsed["eff"].number_value(); }
 			if(!parsed["charge"].is_null()) { charge = parsed["charge"].number_value(); }
 			if(!parsed["r_in"].is_null()) { r_in = parsed["r_in"].number_value(); }
 			if(!parsed["r_out"].is_null()) { r_out = parsed["r_out"].number_value(); }

@@ -101,8 +101,8 @@ namespace Cosmos {
         bool restoreonclose = true;
 
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-        struct termios tio;       /* termios structure for the port */
-        struct termios oldtio;    /* old termios structure */
+        struct termios tio = {0};       /* termios structure for the port */
+        struct termios oldtio = {0};    /* old termios structure */
 #else // windows
         DCB dcb; // port settings
         HANDLE handle;
