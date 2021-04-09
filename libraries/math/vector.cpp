@@ -1882,6 +1882,23 @@ namespace Cosmos {
                 return (c);
             }
 
+            //! Divide two ::Vector
+            /*! Divide two vectors in ::Vector form, returning a ::Vector.
+                \param a first vector to be divided, in ::Vector form
+                \param b second vector to be divided, in ::Vector form
+                \result the transformed vector, in ::Vector form
+        */
+            Vector Vector::operator / (const Vector &b) const
+            {
+                Vector c;
+
+                c.x = this->x / b.x;
+                c.y = this->y / b.y;
+                c.z = this->z / b.z;
+                c.w = this->w / b.z;
+                return (c);
+            }
+
             //! Add two ::Vector
             /*! Add two vectors in ::Vector form, returning a ::Vector.
                 \param a first vector to be added, in ::Vector form
