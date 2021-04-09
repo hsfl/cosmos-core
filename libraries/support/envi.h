@@ -1,7 +1,8 @@
-#include <cstdio>
-#include <cstdint>
-#include <string>
-#include <vector>
+#include "support/configCosmos.h"
+//#include <cstdio>
+//#include <cstdint>
+//#include <string>
+//#include <vector>
 
 #define BSQ 1
 #define BIL 2
