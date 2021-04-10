@@ -1091,14 +1091,14 @@ struct agentstruc
 class sim_param	{
 	public:
 
-	/** param_01 represents ... */
-	double	param_01 = 0.0;
-	/** param_02 represents ... */
-	double	param_02 = 0.0;
-	/** param_03 represents ... */
-	double	param_03 = 0.0;
-	/** param_04 represents ... */
-	double	param_04 = 0.0;
+	/** h represents ... */
+	double	h = 1000.0;
+	/** Re represents ... */
+	double	Re = 20.0;
+	/** v_max represents ... */
+	double	v_max = 15.0;
+	/** a_max represents ... */
+	double	a_max = 1.0;
 	/** param_05 represents ... */
 	double	param_05 = 0.0;
 	/** param_06 represents ... */
@@ -1116,10 +1116,10 @@ class sim_param	{
 	*/
 	json11::Json to_json() const {
 		return json11::Json::object {
-			{ "param_01"   , param_01 },
-			{ "param_02"   , param_02 },
-			{ "param_03"   , param_03 },
-			{ "param_04"   , param_04 },
+			{ "h"   , h },
+			{ "Re"   , Re },
+			{ "v_max"   , v_max },
+			{ "a_max"   , a_max },
 			{ "param_05"   , param_05 },
 			{ "param_06"   , param_06 },
 			{ "param_07"   , param_07 },
@@ -1138,10 +1138,10 @@ class sim_param	{
 		json11::Json p = json11::Json::parse(s,error);
 
 		if(error.empty()) {
-			if(!p["param_01"].is_null()) { param_01 = p["param_01"].number_value(); }
-			if(!p["param_02"].is_null()) { param_02 = p["param_02"].number_value(); }
-			if(!p["param_03"].is_null()) { param_03 = p["param_03"].number_value(); }
-			if(!p["param_04"].is_null()) { param_04 = p["param_04"].number_value(); }
+			if(!p["h"].is_null()) { h = p["h"].number_value(); }
+			if(!p["Re"].is_null()) { Re = p["Re"].number_value(); }
+			if(!p["v_max"].is_null()) { v_max = p["v_max"].number_value(); }
+			if(!p["a_max"].is_null()) { a_max = p["a_max"].number_value(); }
 			if(!p["param_05"].is_null()) { param_05 = p["param_05"].number_value(); }
 			if(!p["param_06"].is_null()) { param_06 = p["param_06"].number_value(); }
 			if(!p["param_07"].is_null()) { param_07 = p["param_07"].number_value(); }
@@ -6439,10 +6439,10 @@ struct cosmosstruc
         for(size_t i = 0; i < sim_params.size(); ++i) {
 			string basename = "sim_params[" + std::to_string(i) + "]";
 			add_name(basename, &sim_params[i], "sim_param");
-			add_name(basename+".param_01", &sim_params[i].param_01, "double");
-			add_name(basename+".param_02", &sim_params[i].param_02, "double");
-			add_name(basename+".param_03", &sim_params[i].param_03, "double");
-			add_name(basename+".param_04", &sim_params[i].param_04, "double");
+			add_name(basename+".h", &sim_params[i].h, "double");
+			add_name(basename+".Re", &sim_params[i].Re, "double");
+			add_name(basename+".v_max", &sim_params[i].v_max, "double");
+			add_name(basename+".a_max", &sim_params[i].a_max, "double");
 			add_name(basename+".param_05", &sim_params[i].param_05, "double");
 			add_name(basename+".param_06", &sim_params[i].param_06, "double");
 			add_name(basename+".param_07", &sim_params[i].param_07, "double");

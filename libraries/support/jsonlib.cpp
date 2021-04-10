@@ -437,10 +437,10 @@ void json_init_reserve(cosmosstruc* cinfo) {
 
 	// init sim_params
 	sim_param p;
-	p.param_01 = 1.23;
-	p.param_02 = 2.34;
-	p.param_03 = 3.45;
-	p.param_04 = 4.56;
+	p.h = 1000.0;
+	p.Re = 20.0;
+	p.v_max = 15.0;
+	p.a_max = 1.0;
 	p.param_05 = 5.67;
 	p.param_06 = 6.78;
 	p.param_07 = 7.89;
