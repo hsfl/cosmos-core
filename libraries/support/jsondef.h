@@ -1207,9 +1207,15 @@ class sim_state	{
 	double y_torque = 0.0;
 	double z_torque = 0.0;
 
+	/** acceleration differentials */
+	double x_acc_diff = 0.0;
+	double y_acc_diff = 0.0;
+	double z_acc_diff = 0.0;
+
 	/** target */
 	double	target_latitude = 0.0;
 	double	target_longitude = 0.0;
+	double	target_altitude = 0.0;
 
 	//  double	etc...
 
@@ -1258,8 +1264,13 @@ class sim_state	{
 			{ "y_torque", y_torque },
 			{ "z_torque", z_torque },
 
+			{ "x_acc_diff"   , x_acc_diff },
+			{ "y_acc_diff"   , y_acc_diff },
+			{ "z_acc_diff"   , z_acc_diff },
+
 			{ "target_latitude"   , target_latitude },
-			{ "target_longitude"   , target_longitude }
+			{ "target_longitude"   , target_longitude },
+			{ "target_altitude"	  , target_altitude }
 		};
 	}
 
@@ -1312,8 +1323,13 @@ class sim_state	{
 			if(!p["y_torque"].is_null()) { y_torque = p["y_torque"].number_value(); }
 			if(!p["z_torque"].is_null()) { z_torque = p["z_torque"].number_value(); }
 
+			if(!p["x_acc_diff"].is_null()) { x_acc_diff = p["x_acc_diff"].number_value(); }
+			if(!p["y_acc_diff"].is_null()) { y_acc_diff = p["y_acc_diff"].number_value(); }
+			if(!p["z_acc_diff"].is_null()) { z_acc_diff = p["z_acc_diff"].number_value(); }
+
 			if(!p["target_latitude"].is_null()) { target_latitude = p["target_latitude"].number_value(); }
 			if(!p["target_longitude"].is_null()) { target_longitude = p["target_longitude"].number_value(); }
+			if(!p["target_altitude"].is_null()) { target_altitude = p["target_altitude"].number_value(); }
 
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -6494,8 +6510,13 @@ struct cosmosstruc
 			add_name(basename+".y_torque", &sim_states[i].y_torque, "double");
 			add_name(basename+".z_torque", &sim_states[i].z_torque, "double");
 
+			add_name(basename+".x_acc_diff", &sim_states[i].x_acc_diff, "double");
+			add_name(basename+".y_acc_diff", &sim_states[i].y_acc_diff, "double");
+			add_name(basename+".z_acc_diff", &sim_states[i].z_acc_diff, "double");
+
 			add_name(basename+".target_latitude", &sim_states[i].target_latitude, "double");
 			add_name(basename+".target_longitude", &sim_states[i].target_longitude, "double");
+			add_name(basename+".target_altitude", &sim_states[i].target_altitude, "double");
 		}
 
 		// vector<eventstruc> event
