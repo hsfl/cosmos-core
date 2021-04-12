@@ -116,6 +116,11 @@ int main(int argc, char **argv)
 	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
 	//agent->cinfo->print_all_names_types_values();
 	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
+	if(agent->sohtable.empty()) {
+		cout<<"EMPTY"<<endl;
+	} else {
+		cout<<"NOT EMPTY"<<endl;
+	}
 
 // test orbital dynamics for simulation
 
