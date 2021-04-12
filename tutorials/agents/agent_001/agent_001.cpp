@@ -30,7 +30,7 @@
 #include "support/configCosmos.h"
 #include "support/elapsedtime.h"
 #include "support/timeutils.h"
-#include "agent/agentclass2.h"
+#include "agent/agentclass.h"
 #include "support/stringlib.h"
 
 #include <iostream>
@@ -43,7 +43,7 @@ static uint64_t request_counter = 10000;
 
 
 /// ensure the Agent constructor creates only one instance per process
-static Agent2 *agent;
+static Agent *agent;
 string node_name = "sat_111"; 
 string agent_name = "agent_001";
 string node_agent_name = "["+node_name+":"+agent_name+"]";
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 {
     // construct agent
     cout << node_agent_name << " starting..."<<endl;
-    agent = new Agent2(node_name, agent_name, 1.);
+    agent = new Agent(node_name, agent_name, 1.);
 
     // exit with error if unable to start agent
     if(agent->last_error() < 0) {
@@ -108,10 +108,10 @@ int main(int argc, char **argv)
 	
 	cout<<"New User Data       = <"<<agent->cinfo->get_json<vector<userstruc>>("My Favorite Users")<<">"<<endl;
 	cout<<"New User Data       = <"<<agent->cinfo->get_json<userstruc>("user[1]")<<">"<<endl;
-	agent->set_sohstring({});
-	agent->set_sohstring({"Short UTC"});
-	agent->set_sohstring({"A_NAME_NOT_IN_NAMESPACE"});
-	agent->set_sohstring({"Short UTC","Longest Ever UTC","A_NAME_NOT_IN_NAMESPACE","devspec"});
+	//agent->set_sohstring2({});	// works!
+	//agent->set_sohstring2({"Short UTC"});		// works!
+	//agent->set_sohstring2({"A_NAME_NOT_IN_NAMESPACE"});	// works!
+	agent->set_sohstring2({"Short UTC","Longest Ever UTC","A_NAME_NOT_IN_NAMESPACE","devspec"});
 	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
 	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
 	//agent->cinfo->print_all_names_types_values();

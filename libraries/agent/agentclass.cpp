@@ -258,6 +258,7 @@ namespace Support
         add_request("postsoh",req_postsoh,"","Post a SOH");
         add_request("utc",req_utc,"","Get UTC as both Modified Julian Day and Unix Time");
         add_request("soh",req_soh,"","Get Limited SOH string");
+        add_request("soh2",req_soh2,"","Get Limited SOH string");
         add_request("fullsoh",req_fullsoh,"","Get Full SOH string");
         add_request("jsondump",req_jsondump,"","Dump JSON ini files to node folder");
 
@@ -724,6 +725,17 @@ namespace Support
         jsonlist += "}";
         return set_sohstring(jsonlist);
     }
+
+	//! Set SOH string
+	/*! Set the SOH string to a json list of \ref namespace 2.0 names.
+		\param list Vector of strings of namespace 2.0 names.
+		\return 0, otherwise a negative error.
+	*/
+	int32_t Agent::set_sohstring2(vector<std::string> list) {
+		sohstring = list;
+		
+		return 0;
+	}
 
     //! Set Full SOH string
     /*! Set the Full SOH string to a JSON list of \ref jsonlib_namespace names. A
@@ -1696,6 +1708,27 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 
         return 0;
     }
+
+	int32_t Agent::req_soh2(string &, string &response, Agent *agent) {
+		string jsonlist = "{";
+		// Iterate through list of names, get json for each name if it's in Namespace 2.0
+        for(string name: agent->sohstring) {
+			string jsonname = agent->cinfo->get_json(name);
+			if(jsonname.size() > 1) {
+				// Trim beginning and ending curly braces
+				jsonname = jsonname.substr(1, jsonname.size()-2);
+				jsonlist += jsonname + ",";
+			}
+        }
+		if(jsonlist.size() > 1) {
+			jsonlist.pop_back(); // remove last ","
+			jsonlist += "}";
+		} else {
+			jsonlist = "";
+		}
+		response = jsonlist;
+		return 0;
+	}
 
     int32_t Agent::req_fullsoh(string &, string &response, Agent *agent) {
         string rjstring;
