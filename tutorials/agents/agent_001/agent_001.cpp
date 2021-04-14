@@ -108,11 +108,19 @@ int main(int argc, char **argv)
 	
 	cout<<"New User Data       = <"<<agent->cinfo->get_json<vector<userstruc>>("My Favorite Users")<<">"<<endl;
 	cout<<"New User Data       = <"<<agent->cinfo->get_json<userstruc>("user[1]")<<">"<<endl;
+	//agent->set_sohstring2({});	// works!
+	//agent->set_sohstring2({"Short UTC"});		// works!
+	//agent->set_sohstring2({"A_NAME_NOT_IN_NAMESPACE"});	// works!
 	agent->set_sohstring2({"Short UTC","Longest Ever UTC","A_NAME_NOT_IN_NAMESPACE","devspec"});
 	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
 	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
 	//agent->cinfo->print_all_names_types_values();
 	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
+	if(agent->sohtable.empty()) {
+		cout<<"EMPTY"<<endl;
+	} else {
+		cout<<"NOT EMPTY"<<endl;
+	}
 
 // test orbital dynamics for simulation
 

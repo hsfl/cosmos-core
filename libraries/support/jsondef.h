@@ -1091,14 +1091,14 @@ struct agentstruc
 class sim_param	{
 	public:
 
-	/** param_01 represents ... */
-	double	param_01 = 0.0;
-	/** param_02 represents ... */
-	double	param_02 = 0.0;
-	/** param_03 represents ... */
-	double	param_03 = 0.0;
-	/** param_04 represents ... */
-	double	param_04 = 0.0;
+	/** h represents ... */
+	double	h = 1000.0;
+	/** Re represents ... */
+	double	Re = 20.0;
+	/** v_max represents ... */
+	double	v_max = 15.0;
+	/** a_max represents ... */
+	double	a_max = 1.0;
 	/** param_05 represents ... */
 	double	param_05 = 0.0;
 	/** param_06 represents ... */
@@ -1116,10 +1116,10 @@ class sim_param	{
 	*/
 	json11::Json to_json() const {
 		return json11::Json::object {
-			{ "param_01"   , param_01 },
-			{ "param_02"   , param_02 },
-			{ "param_03"   , param_03 },
-			{ "param_04"   , param_04 },
+			{ "h"   , h },
+			{ "Re"   , Re },
+			{ "v_max"   , v_max },
+			{ "a_max"   , a_max },
 			{ "param_05"   , param_05 },
 			{ "param_06"   , param_06 },
 			{ "param_07"   , param_07 },
@@ -1138,10 +1138,10 @@ class sim_param	{
 		json11::Json p = json11::Json::parse(s,error);
 
 		if(error.empty()) {
-			if(!p["param_01"].is_null()) { param_01 = p["param_01"].number_value(); }
-			if(!p["param_02"].is_null()) { param_02 = p["param_02"].number_value(); }
-			if(!p["param_03"].is_null()) { param_03 = p["param_03"].number_value(); }
-			if(!p["param_04"].is_null()) { param_04 = p["param_04"].number_value(); }
+			if(!p["h"].is_null()) { h = p["h"].number_value(); }
+			if(!p["Re"].is_null()) { Re = p["Re"].number_value(); }
+			if(!p["v_max"].is_null()) { v_max = p["v_max"].number_value(); }
+			if(!p["a_max"].is_null()) { a_max = p["a_max"].number_value(); }
 			if(!p["param_05"].is_null()) { param_05 = p["param_05"].number_value(); }
 			if(!p["param_06"].is_null()) { param_06 = p["param_06"].number_value(); }
 			if(!p["param_07"].is_null()) { param_07 = p["param_07"].number_value(); }
@@ -1207,9 +1207,15 @@ class sim_state	{
 	double y_torque = 0.0;
 	double z_torque = 0.0;
 
+	/** acceleration differentials */
+	double x_acc_diff = 0.0;
+	double y_acc_diff = 0.0;
+	double z_acc_diff = 0.0;
+
 	/** target */
 	double	target_latitude = 0.0;
 	double	target_longitude = 0.0;
+	double	target_altitude = 0.0;
 
 	//  double	etc...
 
@@ -1258,8 +1264,13 @@ class sim_state	{
 			{ "y_torque", y_torque },
 			{ "z_torque", z_torque },
 
+			{ "x_acc_diff"   , x_acc_diff },
+			{ "y_acc_diff"   , y_acc_diff },
+			{ "z_acc_diff"   , z_acc_diff },
+
 			{ "target_latitude"   , target_latitude },
-			{ "target_longitude"   , target_longitude }
+			{ "target_longitude"   , target_longitude },
+			{ "target_altitude"	  , target_altitude }
 		};
 	}
 
@@ -1312,8 +1323,13 @@ class sim_state	{
 			if(!p["y_torque"].is_null()) { y_torque = p["y_torque"].number_value(); }
 			if(!p["z_torque"].is_null()) { z_torque = p["z_torque"].number_value(); }
 
+			if(!p["x_acc_diff"].is_null()) { x_acc_diff = p["x_acc_diff"].number_value(); }
+			if(!p["y_acc_diff"].is_null()) { y_acc_diff = p["y_acc_diff"].number_value(); }
+			if(!p["z_acc_diff"].is_null()) { z_acc_diff = p["z_acc_diff"].number_value(); }
+
 			if(!p["target_latitude"].is_null()) { target_latitude = p["target_latitude"].number_value(); }
 			if(!p["target_longitude"].is_null()) { target_longitude = p["target_longitude"].number_value(); }
+			if(!p["target_altitude"].is_null()) { target_altitude = p["target_altitude"].number_value(); }
 
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -6439,10 +6455,10 @@ struct cosmosstruc
         for(size_t i = 0; i < sim_params.size(); ++i) {
 			string basename = "sim_params[" + std::to_string(i) + "]";
 			add_name(basename, &sim_params[i], "sim_param");
-			add_name(basename+".param_01", &sim_params[i].param_01, "double");
-			add_name(basename+".param_02", &sim_params[i].param_02, "double");
-			add_name(basename+".param_03", &sim_params[i].param_03, "double");
-			add_name(basename+".param_04", &sim_params[i].param_04, "double");
+			add_name(basename+".h", &sim_params[i].h, "double");
+			add_name(basename+".Re", &sim_params[i].Re, "double");
+			add_name(basename+".v_max", &sim_params[i].v_max, "double");
+			add_name(basename+".a_max", &sim_params[i].a_max, "double");
 			add_name(basename+".param_05", &sim_params[i].param_05, "double");
 			add_name(basename+".param_06", &sim_params[i].param_06, "double");
 			add_name(basename+".param_07", &sim_params[i].param_07, "double");
@@ -6494,8 +6510,13 @@ struct cosmosstruc
 			add_name(basename+".y_torque", &sim_states[i].y_torque, "double");
 			add_name(basename+".z_torque", &sim_states[i].z_torque, "double");
 
+			add_name(basename+".x_acc_diff", &sim_states[i].x_acc_diff, "double");
+			add_name(basename+".y_acc_diff", &sim_states[i].y_acc_diff, "double");
+			add_name(basename+".z_acc_diff", &sim_states[i].z_acc_diff, "double");
+
 			add_name(basename+".target_latitude", &sim_states[i].target_latitude, "double");
 			add_name(basename+".target_longitude", &sim_states[i].target_longitude, "double");
+			add_name(basename+".target_altitude", &sim_states[i].target_altitude, "double");
 		}
 
 		// vector<eventstruc> event
@@ -7201,111 +7222,106 @@ struct cosmosstruc
 
 					// user-defined types
 
-					// SCOTTNOTE: do these actually work? seems like maybe they need the value of the json string, not the full name-key and value
 						} else if (type == "agent_request_entry") {
 							//get_pointer<agent_request_entry>(name)->from_json(json);
 						} else if (type == "agentstruc") {
-							get_pointer<agentstruc>(name)->from_json(json);
+							get_pointer<agentstruc>(name)->from_json(p[name].dump());
 						} else if (type == "attstruc") {
-							get_pointer<attstruc>(name)->from_json(json);
+							get_pointer<attstruc>(name)->from_json(p[name].dump());
 						} else if (type == "beatstruc") {
-							get_pointer<beatstruc>(name)->from_json(json);
+							get_pointer<beatstruc>(name)->from_json(p[name].dump());
 						} else if (type == "cartpos") {
-							get_pointer<cartpos>(name)->from_json(json);
+							get_pointer<cartpos>(name)->from_json(p[name].dump());
 						} else if (type == "cosmosstruc") {
-							get_pointer<cosmosstruc>(name)->from_json(json);
+							get_pointer<cosmosstruc>(name)->from_json(p[name].dump());
 						} else if (type == "cvector") {
-							get_pointer<cvector>(name)->from_json(json);
+							get_pointer<cvector>(name)->from_json(p[name].dump());
 						} else if (type == "devicestruc") {
-							get_pointer<devicestruc>(name)->from_json(json);
+							get_pointer<devicestruc>(name)->from_json(p[name].dump());
 						} else if (type == "devspecstruc") {
-							get_pointer<devspecstruc>(name)->from_json(json);
+							get_pointer<devspecstruc>(name)->from_json(p[name].dump());
 						} else if (type == "equationstruc") {
-							get_pointer<equationstruc>(name)->from_json(json);
+							get_pointer<equationstruc>(name)->from_json(p[name].dump());
 						} else if (type == "sim_param") {
-							get_pointer<sim_param>(name)->from_json(json);
+							get_pointer<sim_param>(name)->from_json(p[name].dump());
 						} else if (type == "sim_state") {
-							get_pointer<sim_state>(name)->from_json(json);
+							get_pointer<sim_state>(name)->from_json(p[name].dump());
 						} else if (type == "eventstruc") {
-							get_pointer<eventstruc>(name)->from_json(json);
+							get_pointer<eventstruc>(name)->from_json(p[name].dump());
 						} else if (type == "extraatt") {
-							get_pointer<extraatt>(name)->from_json(json);
+							get_pointer<extraatt>(name)->from_json(p[name].dump());
 						} else if (type == "extrapos") {
-							get_pointer<extrapos>(name)->from_json(json);
+							get_pointer<extrapos>(name)->from_json(p[name].dump());
 						} else if (type == "face") {
-							get_pointer<Cosmos::wavefront::face>(name)->from_json(json);
+							get_pointer<Cosmos::wavefront::face>(name)->from_json(p[name].dump());
 						} else if (type == "facestruc") {
-							get_pointer<facestruc>(name)->from_json(json);
+							get_pointer<facestruc>(name)->from_json(p[name].dump());
 						} else if (type == "geoidpos") {
-							get_pointer<geoidpos>(name)->from_json(json);
+							get_pointer<geoidpos>(name)->from_json(p[name].dump());
 						} else if (type == "group") {
-							get_pointer<Cosmos::wavefront::group>(name)->from_json(json);
+							get_pointer<Cosmos::wavefront::group>(name)->from_json(p[name].dump());
 						} else if (type == "gvector") {
-							get_pointer<gvector>(name)->from_json(json);
+							get_pointer<gvector>(name)->from_json(p[name].dump());
 						} else if (type == "jsonhandle") {
-							get_pointer<jsonhandle>(name)->from_json(json);
+							get_pointer<jsonhandle>(name)->from_json(p[name].dump());
 						} else if (type == "jsonnode") {
-							get_pointer<jsonnode>(name)->from_json(json);
+							get_pointer<jsonnode>(name)->from_json(p[name].dump());
 						} else if (type == "line") {
-							get_pointer<Cosmos::wavefront::line>(name)->from_json(json);
+							get_pointer<Cosmos::wavefront::line>(name)->from_json(p[name].dump());
 						} else if (type == "locstruc") {
-							get_pointer<locstruc>(name)->from_json(json);
+							get_pointer<locstruc>(name)->from_json(p[name].dump());
 						} else if (type == "material") {
-							get_pointer<Cosmos::wavefront::material>(name)->from_json(json);
+							get_pointer<Cosmos::wavefront::material>(name)->from_json(p[name].dump());
 						} else if (type == "NetworkType") {
-							//get_pointer<NetworkType>(name)->from_json(json);
+							//get_pointer<NetworkType>(name)->from_json(p[name].dump());
 						} else if (type == "nodestruc") {
-							get_pointer<nodestruc>(name)->from_json(json);
+							get_pointer<nodestruc>(name)->from_json(p[name].dump());
 						} else if (type == "physicsstruc") {
-							get_pointer<physicsstruc>(name)->from_json(json);
+							get_pointer<physicsstruc>(name)->from_json(p[name].dump());
 						} else if (type == "piecestruc") {
-							get_pointer<piecestruc>(name)->from_json(json);
+							get_pointer<piecestruc>(name)->from_json(p[name].dump());
 						} else if (type == "point") {
-							get_pointer<Cosmos::wavefront::point>(name)->from_json(json);
+							get_pointer<Cosmos::wavefront::point>(name)->from_json(p[name].dump());
 						} else if (type == "portstruc") {
-							get_pointer<portstruc>(name)->from_json(json);
+							get_pointer<portstruc>(name)->from_json(p[name].dump());
 						} else if (type == "PORT_TYPE") {
 							set_value<PORT_TYPE>(name, static_cast<PORT_TYPE>(p[name].int_value()));
 						} else if (type == "posstruc") {
-							get_pointer<posstruc>(name)->from_json(json);
+							get_pointer<posstruc>(name)->from_json(p[name].dump());
 						} else if (type == "qatt") {
-							get_pointer<qatt>(name)->from_json(json);
+							get_pointer<qatt>(name)->from_json(p[name].dump());
 						} else if (type == "quaternion") {
-							get_pointer<quaternion>(name)->from_json(json);
+							get_pointer<quaternion>(name)->from_json(p[name].dump());
 						} else if (type == "rmatrix") {
-							get_pointer<rmatrix>(name)->from_json(json);
+							get_pointer<rmatrix>(name)->from_json(p[name].dump());
 						} else if (type == "rvector") {
-							get_pointer<rvector>(name)->from_json(json);
+							get_pointer<rvector>(name)->from_json(p[name].dump());
 						} else if (type == "socket_channel") {
-							//get_pointer<socket_channel>(name)->from_json(json);
+							//get_pointer<socket_channel>(name)->from_json(p[name].dump());
 						} else if (type == "spherpos") {
-							get_pointer<spherpos>(name)->from_json(json);
+							get_pointer<spherpos>(name)->from_json(p[name].dump());
 						} else if (type == "svector") {
-							get_pointer<svector>(name)->from_json(json);
+							get_pointer<svector>(name)->from_json(p[name].dump());
 						} else if (type == "targetstruc") {
-							get_pointer<targetstruc>(name)->from_json(json);
+							get_pointer<targetstruc>(name)->from_json(p[name].dump());
 						} else if (type == "tlestruc") {
-							get_pointer<tlestruc>(name)->from_json(json);
+							get_pointer<tlestruc>(name)->from_json(p[name].dump());
 						} else if (type == "trianglestruc") {
-							get_pointer<trianglestruc>(name)->from_json(json);
+							get_pointer<trianglestruc>(name)->from_json(p[name].dump());
 						} else if (type == "unitstruc") {
-							get_pointer<unitstruc>(name)->from_json(json);
+							get_pointer<unitstruc>(name)->from_json(p[name].dump());
 						} else if (type == "userstruc") {
-							get_pointer<userstruc>(name)->from_json(json);
+							get_pointer<userstruc>(name)->from_json(p[name].dump());
 						} else if (type == "Vector") {
-							get_pointer<Vector>(name)->from_json(json);
+							get_pointer<Vector>(name)->from_json(p[name].dump());
 						} else if (type == "vertexstruc") {
-							get_pointer<vertexstruc>(name)->from_json(json);
+							get_pointer<vertexstruc>(name)->from_json(p[name].dump());
 						} else if (type == "wavefront") {
-							get_pointer<wavefront>(name)->from_json(json);
-						} else if (type == "sim_param") { // SCOTTNOTE: should all the user-defined types be like this?
-							if(!p[name].is_null()) {
-								get_pointer<sim_param>(name)->from_json(p[name].dump());
-							}
+							get_pointer<wavefront>(name)->from_json(p[name].dump());
+						} else if (type == "sim_param") {
+							get_pointer<sim_param>(name)->from_json(p[name].dump());
 						} else if (type == "sim_state") {
-							if(!p[name].is_null()) {
-								get_pointer<sim_state>(name)->from_json(p[name].dump());
-							}
+							get_pointer<sim_state>(name)->from_json(p[name].dump());
 
 					// vector of base types
 						} else if (type == "vector<uint32_t>") {
