@@ -7222,111 +7222,106 @@ struct cosmosstruc
 
 					// user-defined types
 
-					// SCOTTNOTE: do these actually work? seems like maybe they need the value of the json string, not the full name-key and value
 						} else if (type == "agent_request_entry") {
 							//get_pointer<agent_request_entry>(name)->from_json(json);
 						} else if (type == "agentstruc") {
-							get_pointer<agentstruc>(name)->from_json(json);
+							get_pointer<agentstruc>(name)->from_json(p[name].dump());
 						} else if (type == "attstruc") {
-							get_pointer<attstruc>(name)->from_json(json);
+							get_pointer<attstruc>(name)->from_json(p[name].dump());
 						} else if (type == "beatstruc") {
-							get_pointer<beatstruc>(name)->from_json(json);
+							get_pointer<beatstruc>(name)->from_json(p[name].dump());
 						} else if (type == "cartpos") {
-							get_pointer<cartpos>(name)->from_json(json);
+							get_pointer<cartpos>(name)->from_json(p[name].dump());
 						} else if (type == "cosmosstruc") {
-							get_pointer<cosmosstruc>(name)->from_json(json);
+							get_pointer<cosmosstruc>(name)->from_json(p[name].dump());
 						} else if (type == "cvector") {
-							get_pointer<cvector>(name)->from_json(json);
+							get_pointer<cvector>(name)->from_json(p[name].dump());
 						} else if (type == "devicestruc") {
-							get_pointer<devicestruc>(name)->from_json(json);
+							get_pointer<devicestruc>(name)->from_json(p[name].dump());
 						} else if (type == "devspecstruc") {
-							get_pointer<devspecstruc>(name)->from_json(json);
+							get_pointer<devspecstruc>(name)->from_json(p[name].dump());
 						} else if (type == "equationstruc") {
-							get_pointer<equationstruc>(name)->from_json(json);
+							get_pointer<equationstruc>(name)->from_json(p[name].dump());
 						} else if (type == "sim_param") {
-							get_pointer<sim_param>(name)->from_json(json);
+							get_pointer<sim_param>(name)->from_json(p[name].dump());
 						} else if (type == "sim_state") {
-							get_pointer<sim_state>(name)->from_json(json);
+							get_pointer<sim_state>(name)->from_json(p[name].dump());
 						} else if (type == "eventstruc") {
-							get_pointer<eventstruc>(name)->from_json(json);
+							get_pointer<eventstruc>(name)->from_json(p[name].dump());
 						} else if (type == "extraatt") {
-							get_pointer<extraatt>(name)->from_json(json);
+							get_pointer<extraatt>(name)->from_json(p[name].dump());
 						} else if (type == "extrapos") {
-							get_pointer<extrapos>(name)->from_json(json);
+							get_pointer<extrapos>(name)->from_json(p[name].dump());
 						} else if (type == "face") {
-							get_pointer<Cosmos::wavefront::face>(name)->from_json(json);
+							get_pointer<Cosmos::wavefront::face>(name)->from_json(p[name].dump());
 						} else if (type == "facestruc") {
-							get_pointer<facestruc>(name)->from_json(json);
+							get_pointer<facestruc>(name)->from_json(p[name].dump());
 						} else if (type == "geoidpos") {
-							get_pointer<geoidpos>(name)->from_json(json);
+							get_pointer<geoidpos>(name)->from_json(p[name].dump());
 						} else if (type == "group") {
-							get_pointer<Cosmos::wavefront::group>(name)->from_json(json);
+							get_pointer<Cosmos::wavefront::group>(name)->from_json(p[name].dump());
 						} else if (type == "gvector") {
-							get_pointer<gvector>(name)->from_json(json);
+							get_pointer<gvector>(name)->from_json(p[name].dump());
 						} else if (type == "jsonhandle") {
-							get_pointer<jsonhandle>(name)->from_json(json);
+							get_pointer<jsonhandle>(name)->from_json(p[name].dump());
 						} else if (type == "jsonnode") {
-							get_pointer<jsonnode>(name)->from_json(json);
+							get_pointer<jsonnode>(name)->from_json(p[name].dump());
 						} else if (type == "line") {
-							get_pointer<Cosmos::wavefront::line>(name)->from_json(json);
+							get_pointer<Cosmos::wavefront::line>(name)->from_json(p[name].dump());
 						} else if (type == "locstruc") {
-							get_pointer<locstruc>(name)->from_json(json);
+							get_pointer<locstruc>(name)->from_json(p[name].dump());
 						} else if (type == "material") {
-							get_pointer<Cosmos::wavefront::material>(name)->from_json(json);
+							get_pointer<Cosmos::wavefront::material>(name)->from_json(p[name].dump());
 						} else if (type == "NetworkType") {
-							//get_pointer<NetworkType>(name)->from_json(json);
+							//get_pointer<NetworkType>(name)->from_json(p[name].dump());
 						} else if (type == "nodestruc") {
-							get_pointer<nodestruc>(name)->from_json(json);
+							get_pointer<nodestruc>(name)->from_json(p[name].dump());
 						} else if (type == "physicsstruc") {
-							get_pointer<physicsstruc>(name)->from_json(json);
+							get_pointer<physicsstruc>(name)->from_json(p[name].dump());
 						} else if (type == "piecestruc") {
-							get_pointer<piecestruc>(name)->from_json(json);
+							get_pointer<piecestruc>(name)->from_json(p[name].dump());
 						} else if (type == "point") {
-							get_pointer<Cosmos::wavefront::point>(name)->from_json(json);
+							get_pointer<Cosmos::wavefront::point>(name)->from_json(p[name].dump());
 						} else if (type == "portstruc") {
-							get_pointer<portstruc>(name)->from_json(json);
+							get_pointer<portstruc>(name)->from_json(p[name].dump());
 						} else if (type == "PORT_TYPE") {
 							set_value<PORT_TYPE>(name, static_cast<PORT_TYPE>(p[name].int_value()));
 						} else if (type == "posstruc") {
-							get_pointer<posstruc>(name)->from_json(json);
+							get_pointer<posstruc>(name)->from_json(p[name].dump());
 						} else if (type == "qatt") {
-							get_pointer<qatt>(name)->from_json(json);
+							get_pointer<qatt>(name)->from_json(p[name].dump());
 						} else if (type == "quaternion") {
-							get_pointer<quaternion>(name)->from_json(json);
+							get_pointer<quaternion>(name)->from_json(p[name].dump());
 						} else if (type == "rmatrix") {
-							get_pointer<rmatrix>(name)->from_json(json);
+							get_pointer<rmatrix>(name)->from_json(p[name].dump());
 						} else if (type == "rvector") {
-							get_pointer<rvector>(name)->from_json(json);
+							get_pointer<rvector>(name)->from_json(p[name].dump());
 						} else if (type == "socket_channel") {
-							//get_pointer<socket_channel>(name)->from_json(json);
+							//get_pointer<socket_channel>(name)->from_json(p[name].dump());
 						} else if (type == "spherpos") {
-							get_pointer<spherpos>(name)->from_json(json);
+							get_pointer<spherpos>(name)->from_json(p[name].dump());
 						} else if (type == "svector") {
-							get_pointer<svector>(name)->from_json(json);
+							get_pointer<svector>(name)->from_json(p[name].dump());
 						} else if (type == "targetstruc") {
-							get_pointer<targetstruc>(name)->from_json(json);
+							get_pointer<targetstruc>(name)->from_json(p[name].dump());
 						} else if (type == "tlestruc") {
-							get_pointer<tlestruc>(name)->from_json(json);
+							get_pointer<tlestruc>(name)->from_json(p[name].dump());
 						} else if (type == "trianglestruc") {
-							get_pointer<trianglestruc>(name)->from_json(json);
+							get_pointer<trianglestruc>(name)->from_json(p[name].dump());
 						} else if (type == "unitstruc") {
-							get_pointer<unitstruc>(name)->from_json(json);
+							get_pointer<unitstruc>(name)->from_json(p[name].dump());
 						} else if (type == "userstruc") {
-							get_pointer<userstruc>(name)->from_json(json);
+							get_pointer<userstruc>(name)->from_json(p[name].dump());
 						} else if (type == "Vector") {
-							get_pointer<Vector>(name)->from_json(json);
+							get_pointer<Vector>(name)->from_json(p[name].dump());
 						} else if (type == "vertexstruc") {
-							get_pointer<vertexstruc>(name)->from_json(json);
+							get_pointer<vertexstruc>(name)->from_json(p[name].dump());
 						} else if (type == "wavefront") {
-							get_pointer<wavefront>(name)->from_json(json);
-						} else if (type == "sim_param") { // SCOTTNOTE: should all the user-defined types be like this?
-							if(!p[name].is_null()) {
-								get_pointer<sim_param>(name)->from_json(p[name].dump());
-							}
+							get_pointer<wavefront>(name)->from_json(p[name].dump());
+						} else if (type == "sim_param") {
+							get_pointer<sim_param>(name)->from_json(p[name].dump());
 						} else if (type == "sim_state") {
-							if(!p[name].is_null()) {
-								get_pointer<sim_state>(name)->from_json(p[name].dump());
-							}
+							get_pointer<sim_state>(name)->from_json(p[name].dump());
 
 					// vector of base types
 						} else if (type == "vector<uint32_t>") {
