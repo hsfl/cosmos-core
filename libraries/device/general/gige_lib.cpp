@@ -560,32 +560,54 @@ the CCP register and closing all sockets.
  * \param ysize Number of pixels in y direction.
  * \return Zero, or negative error.
  */
-        int32_t pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize)
+        int32_t pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin, uint32_t ybin)
         {
-            uint32_t maxx, maxy;
             int32_t iretn;
 
-            if((iretn=gige_readreg(handle,PT1000::WidthReg)) < 0)
+            if((iretn=gige_readreg(handle,PT1000::SensorWidthReg)) < 0)
             {
                 return iretn;
             }
-            maxx = iretn;
-            if((iretn=gige_readreg(handle,PT1000::HeightReg)) < 0)
+            handle->maxwidth = iretn;
+            if((iretn=gige_readreg(handle,PT1000::SensorHeightReg)) < 0)
             {
                 return iretn;
             }
-            maxy = iretn;
+            handle->maxheight = iretn;
 
-            if (xsize > (maxx)) xsize = (maxx);
-            if (ysize > (maxy)) ysize = (maxy);
+            if (handle->width > (handle->maxwidth))
+            {
+                handle->width = (handle->maxwidth);
+            }
+            else
+            {
+                handle->width = xsize;
+            }
+            if (handle->height > (handle->maxheight))
+            {
+                handle->height = (handle->maxheight);
+            }
+            else
+            {
+                handle->height = ysize;
+            }
 
-            if ((iretn=gige_writereg(handle,PT1000::WidthReg,xsize)) < 0) return iretn;
-            if ((iretn=gige_writereg(handle,PT1000::HeightReg,ysize)) < 0) return iretn;
+            if ((iretn=gige_writereg(handle,PT1000::WidthReg, handle->width)) < 0)
+            {
+                return iretn;
+            }
+            if ((iretn=gige_writereg(handle,PT1000::HeightReg, handle->height)) < 0)
+            {
+                return iretn;
+            }
             //    if ((iretn=gige_writereg(handle,0xE984, 3)) < 0) return iretn;            // Set to 14 bit mode
             if ((iretn=gige_writereg(handle,PT1000::PixelFormatReg, PT1000Format::Mono16)) < 0) return iretn;            // Set to 14 bit mode
 
             // Set shutter to manual
             gige_writereg(handle, PT1000::AcquisitionModeReg, PT1000AcquisitionMode::Continuous); // Set FFC to manual
+
+            handle->binwidth = xbin;
+            handle->binheight = ybin;
 
             return 0;
         }
@@ -665,8 +687,8 @@ the CCP register and closing all sockets.
             while (et.split() < timeout && handle->ptqueue.size() > 0)
             {
                 handle->ptmutex.lock();
-                tbytes += handle->ptqueue.front().size();
-                handle->ptqueue.pop_front();
+                tbytes = handle->ptqueue.size();
+                handle->ptqueue.clear();
                 handle->ptmutex.unlock();
             }
 
@@ -698,23 +720,22 @@ the CCP register and closing all sockets.
             int32_t iretn;
             uint32_t tbytes=0;
 
-//            iretn = pt1000_start_image(handle);
-            iretn = pt1000_drain(handle, 1.);
+            iretn = pt1000_drain(handle, 10.);
             if (iretn < 0)
             {
                 return iretn;
             }
 
-            data.mean.resize(handle->height);
-            data.std.resize(handle->height);
-            for (uint16_t ir=0; ir<handle->height; ++ir)
+            data.mean.resize(handle->height/handle->binheight);
+            data.std.resize(handle->height/handle->binheight);
+            for (uint16_t ir=0; ir<handle->height/handle->binheight; ++ir)
             {
-                data.mean[ir].resize(handle->width);
-                data.std[ir].resize(handle->width);
+                data.mean[ir].resize(handle->width/handle->binwidth);
+                data.std[ir].resize(handle->width/handle->binwidth);
             }
 
             ElapsedTime et;
-            double tframes = frames * 4. * handle->bufferout.size() / handle->streambps;
+            double tframes = frames * 10. * handle->bufferout.size() / handle->streambps;
             while (et.split() < tframes)
             {
                 if (handle->ptqueue.size())
@@ -741,6 +762,7 @@ the CCP register and closing all sockets.
 
             for (uint32_t ip=0; ip<frames; ++ip)
             {
+//                printf("A: %u %f %u\n", ip, et.split(), tbytes);
                 tbytes = 0;
                 while (tbytes < handle->bufferout.size()*2)
                 {
@@ -769,22 +791,27 @@ the CCP register and closing all sockets.
                     }
                 }
 
+//                printf("B: %u %f %u\n", ip, et.split(), tbytes);
                 if (tbytes == handle->bufferout.size()*2)
                 {
                     size_t ipix = 0;
-                    for (uint16_t ir=0; ir<handle->height; ++ir)
+                    for (uint16_t ir=0; ir<handle->height/handle->binheight; ++ir)
                     {
-                        data.mean[ir].clear();
-                        data.std[ir].clear();
-                        for (uint16_t ic=0; ic<handle->width; ++ic)
+                        for (uint16_t irb=0; irb<handle->binheight; ++irb)
                         {
-                            if (!ip)
+                            for (uint16_t ic=0; ic<handle->width/handle->binwidth; ++ic)
                             {
-                                data.mean[ir][ic] = 0;
-                                data.std[ir][ic] = 0;
+                                for (uint16_t icb=0; icb<handle->binwidth; ++icb)
+                                {
+                                    if (ip == 0 && irb == 0 && icb == 0)
+                                    {
+                                        data.mean[ir][ic] = 0;
+                                        data.std[ir][ic] = 0;
+                                    }
+                                    data.std[ir][ic] += handle->bufferout[ipix] * handle->bufferout[ipix];
+                                    data.mean[ir][ic] += handle->bufferout[ipix++];
+                                }
                             }
-                            data.std[ir][ic] += handle->bufferout[ipix] * handle->bufferout[ipix];
-                            data.mean[ir][ic] += handle->bufferout[ipix++];
                         }
                     }
 
@@ -795,15 +822,15 @@ the CCP register and closing all sockets.
                 }
             }
 
-            data.max.x = handle->width;
-            data.max.y = handle->height;
+            data.max.x = handle->width/handle->binwidth;
+            data.max.y = handle->height/handle->binheight;
             data.max.z = 0.;
-            data.min.x = handle->width;
-            data.min.y = handle->height;
+            data.min.x = handle->width/handle->binwidth;
+            data.min.y = handle->height/handle->binheight;
             data.min.z = 65536. * 65536.;
-            for (uint16_t ir=0; ir<handle->height; ++ir)
+            for (uint16_t ir=0; ir<handle->height/handle->binheight; ++ir)
             {
-                for (uint16_t ic=0; ic<handle->width; ++ic)
+                for (uint16_t ic=0; ic<handle->width/handle->binwidth; ++ic)
                 {
                     if (frames > 1)
                     {
@@ -840,15 +867,15 @@ the CCP register and closing all sockets.
             {
                 return tbytes;
             }
-            data.max.x = handle->width;
-            data.max.y = handle->height;
+            data.max.x = handle->width/handle->binwidth;
+            data.max.y = handle->height/handle->binheight;
             data.max.z = 0.;
-            data.min.x = handle->width;
-            data.min.y = handle->height;
+            data.min.x = handle->width/handle->binwidth;
+            data.min.y = handle->height/handle->binheight;
             data.min.z = 65536. * 65536.;
-            for (size_t ir=0; ir<handle->height; ++ir)
+            for (size_t ir=0; ir<handle->height/handle->binheight; ++ir)
             {
-                for (size_t ic=0; ic<handle->width; ++ic)
+                for (size_t ic=0; ic<handle->width/handle->binwidth; ++ic)
                 {
                     data.mean[ir][ic] -= dark.mean[ir][ic];
                     if (data.mean[ir][ic] > data.max.z)
