@@ -1182,10 +1182,18 @@ class sim_state	{
 	double	z_acc = 0.0;
 
 	/** attitude ( quaternion q = a + bi + cj + dk ) */
+	double	t_att = 0.0;
 	double	a_att = 0.0;
 	double	b_att = 0.0;
 	double	c_att = 0.0;
 	double	d_att = 0.0;
+
+	/** target attitude ( quaternion q = a + bi + cj + dk ) */
+	double	t_att_target = 0.0;
+	double	a_att_target = 0.0;
+	double	b_att_target = 0.0;
+	double	c_att_target = 0.0;
+	double	d_att_target = 0.0;
 
 	/** angular velocity */
 	double x_omega = 0.0;
@@ -1243,10 +1251,17 @@ class sim_state	{
 			{ "y_acc"   , y_acc },
 			{ "z_acc"   , z_acc },
 
+			{ "t_att"   , t_att },
 			{ "a_att"   , a_att },
 			{ "b_att"   , b_att },
 			{ "c_att"   , c_att },
 			{ "d_att"   , d_att },
+
+			{ "t_att_target"   , t_att_target },
+			{ "a_att_target"   , a_att_target },
+			{ "b_att_target"   , b_att_target },
+			{ "c_att_target"   , c_att_target },
+			{ "d_att_target"   , d_att_target },
 
 			{ "x_omega" , x_omega },
 			{ "y_omega" , y_omega },
@@ -1302,10 +1317,17 @@ class sim_state	{
 			if(!p["y_acc"].is_null()) { y_acc = p["y_acc"].number_value(); }
 			if(!p["z_acc"].is_null()) { z_acc = p["z_acc"].number_value(); }
 
+			if(!p["t_att"].is_null()) { t_att = p["t_att"].number_value(); }
 			if(!p["a_att"].is_null()) { a_att = p["a_att"].number_value(); }
 			if(!p["b_att"].is_null()) { b_att = p["b_att"].number_value(); }
 			if(!p["c_att"].is_null()) { c_att = p["c_att"].number_value(); }
 			if(!p["d_att"].is_null()) { d_att = p["d_att"].number_value(); }
+
+			if(!p["t_att_target"].is_null()) { t_att_target = p["t_att_target"].number_value(); }
+			if(!p["a_att_target"].is_null()) { a_att_target = p["a_att_target"].number_value(); }
+			if(!p["b_att_target"].is_null()) { b_att_target = p["b_att_target"].number_value(); }
+			if(!p["c_att_target"].is_null()) { c_att_target = p["c_att_target"].number_value(); }
+			if(!p["d_att_target"].is_null()) { d_att_target = p["d_att_target"].number_value(); }
 
 			if(!p["x_omega"].is_null()) { x_omega = p["x_omega"].number_value(); }
 			if(!p["y_omega"].is_null()) { y_omega = p["y_omega"].number_value(); }
@@ -4970,7 +4992,7 @@ struct cosmosstruc
 		@return n/a
 	*/
 	void add_default_names()	{
-
+/*
 		// default names for Simulation
 		add_name("mass", &mass, "double");
 		add_name("density", &dens, "double");
@@ -4994,6 +5016,7 @@ struct cosmosstruc
 		add_name("pitch", &pitch, "double");
 		add_name("roll", &roll, "double");
 		add_name("yaw", &yaw, "double");
+*/
 
 		// add attitude waypoint
 
@@ -6489,10 +6512,17 @@ struct cosmosstruc
 			add_name(basename+".y_acc", &sim_states[i].y_acc, "double");
 			add_name(basename+".z_acc", &sim_states[i].z_acc, "double");
 
+			add_name(basename+".t_att", &sim_states[i].t_att, "double");
 			add_name(basename+".a_att", &sim_states[i].a_att, "double");
 			add_name(basename+".b_att", &sim_states[i].b_att, "double");
 			add_name(basename+".c_att", &sim_states[i].c_att, "double");
 			add_name(basename+".d_att", &sim_states[i].d_att, "double");
+
+			add_name(basename+".t_att_target", &sim_states[i].t_att_target, "double");
+			add_name(basename+".a_att_target", &sim_states[i].a_att_target, "double");
+			add_name(basename+".b_att_target", &sim_states[i].b_att_target, "double");
+			add_name(basename+".c_att_target", &sim_states[i].c_att_target, "double");
+			add_name(basename+".d_att_target", &sim_states[i].d_att_target, "double");
 
 			add_name(basename+".x_omega", &sim_states[i].x_omega, "double");
 			add_name(basename+".y_omega", &sim_states[i].y_omega, "double");
