@@ -32,6 +32,7 @@
 #include "support/timeutils.h"
 #include "agent/agentclass.h"
 #include "support/stringlib.h"
+#include "support/convertlib.h"
 
 #include <iostream>
 #include <string>
@@ -108,19 +109,27 @@ int main(int argc, char **argv)
 	
 	cout<<"New User Data       = <"<<agent->cinfo->get_json<vector<userstruc>>("My Favorite Users")<<">"<<endl;
 	cout<<"New User Data       = <"<<agent->cinfo->get_json<userstruc>("user[1]")<<">"<<endl;
+
+
 	//agent->set_sohstring2({});	// works!
 	//agent->set_sohstring2({"Short UTC"});		// works!
 	//agent->set_sohstring2({"A_NAME_NOT_IN_NAMESPACE"});	// works!
 	agent->set_sohstring2({"Short UTC","Longest Ever UTC","A_NAME_NOT_IN_NAMESPACE","devspec"});
-	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
-	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
-	//agent->cinfo->print_all_names_types_values();
-	//cout<<"names = "<<agent->cinfo->names.size()<<endl;
-	if(agent->sohtable.empty()) {
-		cout<<"EMPTY"<<endl;
-	} else {
-		cout<<"NOT EMPTY"<<endl;
-	}
+	
+	// testing longitude/latitude/altitude (ie: geodetic) conversion to eci
+	locstruc testtarget;
+	loc_clear(testtarget);
+	testtarget.pos.geod.s = {0.1047197551,-1.308996938995,1000}; // remember cosmos uses radians
+	testtarget.pos.geod.utc = 55213.43097222;
+	testtarget.pos.geod.pass++;
+	agent->cinfo->add_name("testtarget", &testtarget, "locstruc");
+	agent->cinfo->add_name("testtarget.pos.geod", &testtarget.pos.geod, "geoidpos");
+	agent->cinfo->add_name("testtarget.pos.eci", &testtarget.pos.eci, "cartpos");
+	pos_geod2geoc(agent->cinfo->get_pointer<locstruc>("testtarget"));
+	pos_geoc2eci(agent->cinfo->get_pointer<locstruc>("testtarget"));
+	cout<<"testtarget.pos.geod    = " << agent->cinfo->get_json_pretty<geoidpos>("testtarget.pos.geod") << endl;
+	cout<<"testtarget.pos.eci     = " << agent->cinfo->get_json_pretty<cartpos>("testtarget.pos.eci") << endl;
+	// Successful conversion should give us about: [-6.0744, -1.8289, 0.6685] * 1E06, which it does. Cool!
 
 // test orbital dynamics for simulation
 
