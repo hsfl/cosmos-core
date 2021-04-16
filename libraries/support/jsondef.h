@@ -670,24 +670,26 @@ enum PORT_TYPE {
 class sim_param	{
 	public:
 
-	/** h represents ... */
+	/** Interaction radius, m */
 	double	h = 1000.0;
-	/** Re represents ... */
+	/** Reynolds number, dimensionless */
 	double	Re = 20.0;
-	/** v_max represents ... */
+	/** Maximum inter-agent relative velocity, m/s */
 	double	v_max = 15.0;
-	/** a_max represents ... */
+	/** Maximum acceleration, m/s^2 */
 	double	a_max = 1.0;
-	/** param_05 represents ... */
-	double	param_05 = 0.0;
-	/** param_06 represents ... */
-	double	param_06 = 0.0;
-	/** param_07 represents ... */
-	double	param_07 = 0.0;
-	/** param_08 represents ... */
-	double	param_08 = 0.0;
-	/** param_09 represents ... */
-	double	param_09 = 0.0;
+	/** Mach number, dimensionless */
+	double	M = 1.0;
+	/** exponent on a term in the pressure function */
+	double	gamma = 1.0;
+	/** reference density, kg/m^3 */
+	double	rho_0 = 1.0;
+	/** hydrodynamics force weighting, repulsion force */
+	double	inter_agent_w = 1.0;
+	/** attractor force weighing */
+	double	attractor_w = 1.0;
+	/** obstacle force weighing */
+	double obstacle_w = 1.0;
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
@@ -696,14 +698,15 @@ class sim_param	{
 	json11::Json to_json() const {
 		return json11::Json::object {
 			{ "h"   , h },
-			{ "Re"   , Re },
+			{ "Re"  , Re },
 			{ "v_max"   , v_max },
 			{ "a_max"   , a_max },
-			{ "param_05"   , param_05 },
-			{ "param_06"   , param_06 },
-			{ "param_07"   , param_07 },
-			{ "param_08"   , param_08 },
-			{ "param_09"   , param_09 }
+			{ "M"  	, M },
+			{ "gamma"   , gamma },
+			{ "rho_0" 	, rho_0 },
+			{ "inter_agent_w"	, inter_agent_w },
+			{ "attractor_w"		, attractor_w },
+			{ "obstacle_w"		, obstacle_w },
 		};
 	}
 
@@ -721,11 +724,12 @@ class sim_param	{
 			if(!p["Re"].is_null()) { Re = p["Re"].number_value(); }
 			if(!p["v_max"].is_null()) { v_max = p["v_max"].number_value(); }
 			if(!p["a_max"].is_null()) { a_max = p["a_max"].number_value(); }
-			if(!p["param_05"].is_null()) { param_05 = p["param_05"].number_value(); }
-			if(!p["param_06"].is_null()) { param_06 = p["param_06"].number_value(); }
-			if(!p["param_07"].is_null()) { param_07 = p["param_07"].number_value(); }
-			if(!p["param_08"].is_null()) { param_08 = p["param_08"].number_value(); }
-			if(!p["param_09"].is_null()) { param_09 = p["param_09"].number_value(); }
+			if(!p["M"].is_null()) { M = p["M"].number_value(); }
+			if(!p["gamma"].is_null()) { gamma = p["gamma"].number_value(); }
+			if(!p["rho_0"].is_null()) { rho_0 = p["rho_0"].number_value(); }
+			if(!p["inter_agent_w"].is_null()) { inter_agent_w = p["inter_agent_w"].number_value(); }
+			if(!p["attractor_w"].is_null()) { attractor_w = p["attractor_w"].number_value(); }
+			if(!p["obstacle_w"].is_null()) { obstacle_w = p["obstacle_w"].number_value(); }
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
