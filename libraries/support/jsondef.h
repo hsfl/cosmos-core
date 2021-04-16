@@ -670,9 +670,9 @@ enum PORT_TYPE {
 class sim_param	{
 	public:
 
-	/** Interaction radius, m */
+	/** half-kernel radius for inter-agent control (interaction radius), m */
 	double	h = 1000.0;
-	/** Reynolds number, dimensionless */
+	/** Reynolds number, controls viscosity, dimensionless */
 	double	Re = 20.0;
 	/** Maximum inter-agent relative velocity, m/s */
 	double	v_max = 15.0;
