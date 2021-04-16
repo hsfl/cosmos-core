@@ -1155,6 +1155,78 @@ struct agentstruc
 	}
 };
 
+//! STTR Simulation Parameter Class
+/** Yes it is.
+*/
+class sim_param	{
+	public:
+
+	/** Interaction radius, m */
+	double	h = 1000.0;
+	/** Reynolds number, dimensionless */
+	double	Re = 20.0;
+	/** Maximum inter-agent relative velocity, m/s */
+	double	v_max = 15.0;
+	/** Maximum acceleration, m/s^2 */
+	double	a_max = 1.0;
+	/** M, Mach number, dimensionless */
+	double	param_05 = 1.0;
+	/** gamma, exponent on a term in the pressure function */
+	double	param_06 = 1.0;
+	/** rho_0, reference density, kg/m^3 */
+	double	param_07 = 1.0;
+	/** inter_agent_w, hydrodynamics force weighting, repulsion force */
+	double	param_08 = 1.0;
+	/** attractor_w, attractor force weighing  */
+	double	param_09 = 1.0;
+	/** obstacle_w */
+	double	param_10 = 1.0;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+		@return A json11 JSON object containing every member variable within the class
+	*/
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "h"   , h },
+			{ "Re"   , Re },
+			{ "v_max"   , v_max },
+			{ "a_max"   , a_max },
+			{ "param_05"   , param_05 },
+			{ "param_06"   , param_06 },
+			{ "param_07"   , param_07 },
+			{ "param_08"   , param_08 },
+			{ "param_09"   , param_09 },
+			{ "param_10"   , param_10 },
+		};
+	}
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
+	*/
+	void from_json(const string& s) {
+		string error;
+		json11::Json p = json11::Json::parse(s,error);
+
+		if(error.empty()) {
+			if(!p["h"].is_null()) { h = p["h"].number_value(); }
+			if(!p["Re"].is_null()) { Re = p["Re"].number_value(); }
+			if(!p["v_max"].is_null()) { v_max = p["v_max"].number_value(); }
+			if(!p["a_max"].is_null()) { a_max = p["a_max"].number_value(); }
+			if(!p["param_05"].is_null()) { param_05 = p["param_05"].number_value(); }
+			if(!p["param_06"].is_null()) { param_06 = p["param_06"].number_value(); }
+			if(!p["param_07"].is_null()) { param_07 = p["param_07"].number_value(); }
+			if(!p["param_08"].is_null()) { param_08 = p["param_08"].number_value(); }
+			if(!p["param_09"].is_null()) { param_09 = p["param_09"].number_value(); }
+			if(!p["param_10"].is_null()) { param_10 = p["param_10"].number_value(); }
+		} else {
+			cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
+		return;
+	}
+};
 
 //! STTR Simulation State Class
 /** Yes it is.
