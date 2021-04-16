@@ -1091,24 +1091,26 @@ struct agentstruc
 class sim_param	{
 	public:
 
-	/** h represents ... */
+	/** Interaction radius, m */
 	double	h = 1000.0;
-	/** Re represents ... */
+	/** Reynolds number, dimensionless */
 	double	Re = 20.0;
-	/** v_max represents ... */
+	/** Maximum inter-agent relative velocity, m/s */
 	double	v_max = 15.0;
-	/** a_max represents ... */
+	/** Maximum acceleration, m/s^2 */
 	double	a_max = 1.0;
-	/** param_05 represents ... */
-	double	param_05 = 0.0;
-	/** param_06 represents ... */
-	double	param_06 = 0.0;
-	/** param_07 represents ... */
-	double	param_07 = 0.0;
-	/** param_08 represents ... */
-	double	param_08 = 0.0;
-	/** param_09 represents ... */
-	double	param_09 = 0.0;
+	/** M, Mach number, dimensionless */
+	double	param_05 = 1.0;
+	/** gamma, exponent on a term in the pressure function */
+	double	param_06 = 1.0;
+	/** rho_0, reference density, kg/m^3 */
+	double	param_07 = 1.0;
+	/** inter_agent_w, hydrodynamics force weighting, repulsion force */
+	double	param_08 = 1.0;
+	/** attractor_w, attractor force weighing  */
+	double	param_09 = 1.0;
+	/** obstacle_w */
+	double	param_10 = 1.0;
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
@@ -1124,7 +1126,8 @@ class sim_param	{
 			{ "param_06"   , param_06 },
 			{ "param_07"   , param_07 },
 			{ "param_08"   , param_08 },
-			{ "param_09"   , param_09 }
+			{ "param_09"   , param_09 },
+			{ "param_10"   , param_10 },
 		};
 	}
 
@@ -1147,6 +1150,7 @@ class sim_param	{
 			if(!p["param_07"].is_null()) { param_07 = p["param_07"].number_value(); }
 			if(!p["param_08"].is_null()) { param_08 = p["param_08"].number_value(); }
 			if(!p["param_09"].is_null()) { param_09 = p["param_09"].number_value(); }
+			if(!p["param_10"].is_null()) { param_10 = p["param_10"].number_value(); }
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
@@ -6487,6 +6491,7 @@ struct cosmosstruc
 			add_name(basename+".param_07", &sim_params[i].param_07, "double");
 			add_name(basename+".param_08", &sim_params[i].param_08, "double");
 			add_name(basename+".param_09", &sim_params[i].param_09, "double");
+			add_name(basename+".param_10", &sim_params[i].param_10, "double");
 		}
 
 		// vector<sim_state> sim_states
