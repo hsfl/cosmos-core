@@ -433,21 +433,6 @@ void json_init_reserve(cosmosstruc* cinfo) {
 
     cinfo->equation.reserve(MAX_NUMBER_OF_EQUATIONS);
 
-    cinfo->sim_params.reserve(MAX_NUMBER_OF_PARAMETER_SETS);
-
-	// init sim_params
-	sim_param p;
-	p.h = 1000.0;
-	p.Re = 20.0;
-	p.v_max = 15.0;
-	p.a_max = 1.0;
-	p.param_05 = 5.67;
-	p.param_06 = 6.78;
-	p.param_07 = 7.89;
-	p.param_08 = 8.90;
-	p.param_09 = 9.01;
-	cinfo->sim_params.push_back(p);
-
     cinfo->sim_states.reserve(MAX_NUMBER_OF_SATELLITES);
 
 	// init sim_states

@@ -470,7 +470,7 @@ enum {
 #define MAX_NUMBER_OF_PORTS 5
 
 //* Maximum number of parameter sets
-#define MAX_NUMBER_OF_PARAMETER_SETS 5
+#define MAX_NUMBER_OF_PARAMETER_SETS 1
 
 //* Maximum number of satellites
 #define MAX_NUMBER_OF_SATELLITES 5
@@ -661,6 +661,76 @@ enum PORT_TYPE {
 	PORT_TYPE_PROPAGATOR = 8,
 	PORT_TYPE_COUNT,
 	PORT_TYPE_NONE = UINT16_MAX
+};
+
+//! STTR Simulation Parameter Class
+/** Yes it is.
+*/
+
+class sim_param	{
+	public:
+
+	/** h represents ... */
+	double	h = 1000.0;
+	/** Re represents ... */
+	double	Re = 20.0;
+	/** v_max represents ... */
+	double	v_max = 15.0;
+	/** a_max represents ... */
+	double	a_max = 1.0;
+	/** param_05 represents ... */
+	double	param_05 = 0.0;
+	/** param_06 represents ... */
+	double	param_06 = 0.0;
+	/** param_07 represents ... */
+	double	param_07 = 0.0;
+	/** param_08 represents ... */
+	double	param_08 = 0.0;
+	/** param_09 represents ... */
+	double	param_09 = 0.0;
+
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+		@return A json11 JSON object containing every member variable within the class
+	*/
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "h"   , h },
+			{ "Re"   , Re },
+			{ "v_max"   , v_max },
+			{ "a_max"   , a_max },
+			{ "param_05"   , param_05 },
+			{ "param_06"   , param_06 },
+			{ "param_07"   , param_07 },
+			{ "param_08"   , param_08 },
+			{ "param_09"   , param_09 }
+		};
+	}
+
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
+	*/
+	void from_json(const string& s) {
+		string error;
+		json11::Json p = json11::Json::parse(s,error);
+
+		if(error.empty()) {
+			if(!p["h"].is_null()) { h = p["h"].number_value(); }
+			if(!p["Re"].is_null()) { Re = p["Re"].number_value(); }
+			if(!p["v_max"].is_null()) { v_max = p["v_max"].number_value(); }
+			if(!p["a_max"].is_null()) { a_max = p["a_max"].number_value(); }
+			if(!p["param_05"].is_null()) { param_05 = p["param_05"].number_value(); }
+			if(!p["param_06"].is_null()) { param_06 = p["param_06"].number_value(); }
+			if(!p["param_07"].is_null()) { param_07 = p["param_07"].number_value(); }
+			if(!p["param_08"].is_null()) { param_08 = p["param_08"].number_value(); }
+			if(!p["param_09"].is_null()) { param_09 = p["param_09"].number_value(); }
+		} else {
+			cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
+		return;
+	}
 };
 
 //! @}
@@ -1085,74 +1155,6 @@ struct agentstruc
 	}
 };
 
-//! STTR Simulation Parameter Class
-/** Yes it is.
-*/
-class sim_param	{
-	public:
-
-	/** h represents ... */
-	double	h = 1000.0;
-	/** Re represents ... */
-	double	Re = 20.0;
-	/** v_max represents ... */
-	double	v_max = 15.0;
-	/** a_max represents ... */
-	double	a_max = 1.0;
-	/** param_05 represents ... */
-	double	param_05 = 0.0;
-	/** param_06 represents ... */
-	double	param_06 = 0.0;
-	/** param_07 represents ... */
-	double	param_07 = 0.0;
-	/** param_08 represents ... */
-	double	param_08 = 0.0;
-	/** param_09 represents ... */
-	double	param_09 = 0.0;
-
-	/// Convert class contents to JSON object
-	/** Returns a json11 JSON object of the class
-		@return A json11 JSON object containing every member variable within the class
-	*/
-	json11::Json to_json() const {
-		return json11::Json::object {
-			{ "h"   , h },
-			{ "Re"   , Re },
-			{ "v_max"   , v_max },
-			{ "a_max"   , a_max },
-			{ "param_05"   , param_05 },
-			{ "param_06"   , param_06 },
-			{ "param_07"   , param_07 },
-			{ "param_08"   , param_08 },
-			{ "param_09"   , param_09 }
-		};
-	}
-
-	/// Set class contents from JSON string
-	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-		@param	s	JSON-formatted string to set class contents to
-		@return n/a
-	*/
-	void from_json(const string& s) {
-		string error;
-		json11::Json p = json11::Json::parse(s,error);
-
-		if(error.empty()) {
-			if(!p["h"].is_null()) { h = p["h"].number_value(); }
-			if(!p["Re"].is_null()) { Re = p["Re"].number_value(); }
-			if(!p["v_max"].is_null()) { v_max = p["v_max"].number_value(); }
-			if(!p["a_max"].is_null()) { a_max = p["a_max"].number_value(); }
-			if(!p["param_05"].is_null()) { param_05 = p["param_05"].number_value(); }
-			if(!p["param_06"].is_null()) { param_06 = p["param_06"].number_value(); }
-			if(!p["param_07"].is_null()) { param_07 = p["param_07"].number_value(); }
-			if(!p["param_08"].is_null()) { param_08 = p["param_08"].number_value(); }
-			if(!p["param_09"].is_null()) { param_09 = p["param_09"].number_value(); }
-		} else {
-			cerr<<"ERROR: <"<<error<<">"<<endl;
-		}
-		return;
-	}
-};
 
 //! STTR Simulation State Class
 /** Yes it is.
@@ -4500,9 +4502,6 @@ struct cosmosstruc
 	//! Single entry vector for agent information.
 	vector<agentstruc> agent;
 
-	//! Vector of Parameter information for all nodes
-	vector<sim_param> sim_params;
-
 	//! Vector of State information for all nodes
 	vector<sim_state> sim_states;
 
@@ -6473,22 +6472,6 @@ struct cosmosstruc
 			add_name(basename+".beat.exists", &agent[i].beat.exists, "bool");
 		}
 
-		// vector<sim_param> sim_params
-		add_name("sim_params", &sim_params, "vector<sim_param>");
-        for(size_t i = 0; i < sim_params.size(); ++i) {
-			string basename = "sim_params[" + std::to_string(i) + "]";
-			add_name(basename, &sim_params[i], "sim_param");
-			add_name(basename+".h", &sim_params[i].h, "double");
-			add_name(basename+".Re", &sim_params[i].Re, "double");
-			add_name(basename+".v_max", &sim_params[i].v_max, "double");
-			add_name(basename+".a_max", &sim_params[i].a_max, "double");
-			add_name(basename+".param_05", &sim_params[i].param_05, "double");
-			add_name(basename+".param_06", &sim_params[i].param_06, "double");
-			add_name(basename+".param_07", &sim_params[i].param_07, "double");
-			add_name(basename+".param_08", &sim_params[i].param_08, "double");
-			add_name(basename+".param_09", &sim_params[i].param_09, "double");
-		}
-
 		// vector<sim_state> sim_states
 		add_name("sim_states", &sim_states, "vector<sim_state>");
         for(size_t i = 0; i < sim_states.size(); ++i) {
@@ -8082,7 +8065,6 @@ struct cosmosstruc
 			{ "user" , user },
 			{ "tle" , tle },
 			//{ "json" , json },
-			{ "sim_params" , sim_params },
 			{ "sim_states" , sim_states }
 		};
 	}
@@ -8138,10 +8120,6 @@ struct cosmosstruc
 			}
 			for (size_t i = 0; i < tle.size(); ++i) {
 				if (!p["tle"][i].is_null()) { tle[i].from_json(p["tle"][i].dump()); }
-			}
-			//if(!p["json"].is_null())	json.from_json(p["json"].dump());
-			for (size_t i = 0; i < sim_params.size(); ++i) {
-				if (!p["sim_params"][i].is_null()) { sim_params[i].from_json(p["sim_params"][i].dump()); }
 			}
 			for (size_t i = 0; i < sim_states.size(); ++i) {
 				if (!p["sim_states"][i].is_null()) { sim_states[i].from_json(p["sim_states"][i].dump()); }
