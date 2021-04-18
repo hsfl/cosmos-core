@@ -33,6 +33,7 @@
 
 int main(int argc, char *argv[])
 {
+    int32_t iretn;
     Agent *agent = new Agent();
 
 
@@ -60,7 +61,14 @@ int main(int argc, char *argv[])
         double rmjd;
         double epsilon;
         double offset;
-        int32_t iretn = agent->get_agent_time(rmjd, epsilon, offset, "ntp");
+        if (argc == 2)
+        {
+            iretn = agent->get_agent_time(rmjd, epsilon, offset, argv[1]);
+        }
+        else
+        {
+            iretn = agent->get_agent_time(rmjd, epsilon, offset, "ntp");
+        }
         if (iretn >= 0)
         {
             if (offset > 3.5e-4)
