@@ -10,8 +10,10 @@ namespace Cosmos
 
             switch (type)
             {
+            case NoType:
+                iretn = add_u();
             case U1:
-                iretn = add_u(1, 1, 1, None);
+                iretn = add_u(1, 1, 1, NoPanel);
                 break;
             case U1X:
                 iretn = add_u(1, 1, 1, X);
@@ -23,7 +25,7 @@ namespace Cosmos
                 iretn = add_u(1, 1, 1, XY);
                 break;
             case U1_5:
-                iretn = add_u(1, 1, 1.5, None);
+                iretn = add_u(1, 1, 1.5, NoPanel);
                 break;
             case U1_5X:
                 iretn = add_u(1, 1, 1.5, X);
@@ -35,7 +37,7 @@ namespace Cosmos
                 iretn = add_u(1, 1, 1.5, XY);
                 break;
             case U3:
-                iretn = add_u(1, 1, 3, None);
+                iretn = add_u(1, 1, 3, NoPanel);
                 break;
             case U3X:
                 iretn = add_u(1, 1, 3, X);
@@ -47,7 +49,7 @@ namespace Cosmos
                 iretn = add_u(1, 1, 3, XY);
                 break;
             case U6:
-                iretn = add_u(1, 2, 3, None);
+                iretn = add_u(1, 2, 3, NoPanel);
                 break;
             case U6X:
                 iretn = add_u(1, 2, 3, X);
@@ -59,7 +61,7 @@ namespace Cosmos
                 iretn = add_u(1, 2, 3, XY);
                 break;
             case U12:
-                iretn = add_u(2, 2, 3, None);
+                iretn = add_u(2, 2, 3, NoPanel);
                 break;
             case U12X:
                 iretn = add_u(2, 2, 3, X);
@@ -93,7 +95,7 @@ namespace Cosmos
         {
             switch (type)
             {
-            case None:
+            case NoType:
                 add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004);
                 add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
                 add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
@@ -249,87 +251,6 @@ namespace Cosmos
             }
         }
 
-//        int32_t State::Init(Propagator *posprop, Propagator *attprop, Propagator *thermprop, Propagator *elecprop)
-//        {
-//            int32_t iretn = 0;
-
-//            dt = posprop->dt;
-//            dtj = posprop->dtj;
-
-//            initialloc = currentloc;
-//            initialphys = currentphys;
-//            initialloc = *posprop->currentloc;
-//            initialphys = *posprop->currentphys;
-
-//            switch (posprop->type)
-//            {
-//            case Propagator::Type::PositionInertial:
-//                inposition = static_cast<InertialPositionPropagator *>(posprop);
-//                break;
-//            case Propagator::Type::PositionIterative:
-//                itposition = static_cast<IterativePositionPropagator *>(posprop);
-//                break;
-//            case Propagator::Type::PositionGaussJackson:
-//                gjposition = static_cast<GaussJacksonPositionPropagator *>(posprop);
-//                if (tle.size())
-//                {
-//                    gjposition->Init(tle);
-//                }
-//                else {
-//                    gjposition->Init();
-//                }
-//                break;
-//            default:
-//                inposition = static_cast<InertialPositionPropagator *>(posprop);
-//                break;
-//            }
-//            this->ptype = posprop->type;
-
-//            switch (attprop->type)
-//            {
-//            case Propagator::Type::AttitudeInertial:
-//                inattitude = static_cast<InertialAttitudePropagator *>(attprop);
-//                break;
-//            case Propagator::Type::AttitudeIterative:
-//                itattitude = static_cast<IterativeAttitudePropagator *>(attprop);
-//                break;
-//            case Propagator::Type::AttitudeLVLH:
-//                lvattitude = static_cast<LVLHAttitudePropagator *>(attprop);
-//                break;
-//            default:
-//                inattitude = static_cast<InertialAttitudePropagator *>(attprop);
-//                break;
-//            }
-//            this->atype = attprop->type;
-
-//            switch (thermprop->type)
-//            {
-//            case Propagator::Type::Thermal:
-//                thermal = static_cast<ThermalPropagator *>(thermprop);
-//                break;
-//            default:
-//                thermal = static_cast<ThermalPropagator *>(thermprop);
-//                break;
-//            }
-//            this->ttype = thermprop->type;
-
-//            switch (elecprop->type)
-//            {
-//            case Propagator::Type::Electrical:
-//                electrical = static_cast<ElectricalPropagator *>(elecprop);
-//                break;
-//            default:
-//                electrical = static_cast<ElectricalPropagator *>(elecprop);
-//                break;
-//            }
-//            this->etype = elecprop->type;
-
-//            currentphys = posprop->currentphys;
-//            currentloc = posprop->currentloc;
-//            currentutc = currentloc.utc;
-
-//            return iretn;
-//        }
 
         int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, vector<tlestruc> lines, double utc)
         {
@@ -375,6 +296,11 @@ namespace Cosmos
                     gjposition->Init();
                 }
                 break;
+            case Propagator::Type::PositionGeo:
+                geoposition = new GeoPositionPropagator(&currentloc, &currentphys, dt);
+                dt = geoposition->dt;
+                dtj = geoposition->dtj;
+                break;
             default:
                 inposition = new InertialPositionPropagator(&currentloc, &currentphys, dt);
                 dt = inposition->dt;
@@ -393,6 +319,9 @@ namespace Cosmos
                 break;
             case Propagator::Type::AttitudeLVLH:
                 lvattitude = new LVLHAttitudePropagator(&currentloc, &currentphys, dt);
+                break;
+            case Propagator::Type::AttitudeGeo:
+                geoattitude = new GeoAttitudePropagator(&currentloc, &currentphys, dt);
                 break;
             default:
                 inattitude = new InertialAttitudePropagator(&currentloc, &currentphys, dt);
@@ -477,6 +406,10 @@ namespace Cosmos
                 gjposition = new GaussJacksonPositionPropagator(&currentloc, &currentphys, dt, 6);
                 gjposition->Init();
                 break;
+            case Propagator::Type::PositionGeo:
+                geoposition = new GeoPositionPropagator(&currentloc, &currentphys, dt);
+                geoposition->Init();
+                break;
             default:
                 inposition = new InertialPositionPropagator(&currentloc, &currentphys, dt);
                 inposition->Init();
@@ -489,6 +422,10 @@ namespace Cosmos
             case Propagator::Type::AttitudeInertial:
                 inattitude = new InertialAttitudePropagator(&currentloc, &currentphys, dt);
                 inattitude->Init();
+                break;
+            case Propagator::Type::AttitudeGeo:
+                geoattitude = new GeoAttitudePropagator(&currentloc, &currentphys, dt);
+                geoattitude->Init();
                 break;
             case Propagator::Type::AttitudeIterative:
                 itattitude = new IterativeAttitudePropagator(&currentloc, &currentphys, dt);
@@ -564,6 +501,9 @@ namespace Cosmos
                 case Propagator::Type::PositionGaussJackson:
                     static_cast<GaussJacksonPositionPropagator *>(gjposition)->Propagate(nextutc);
                     break;
+                case Propagator::Type::PositionGeo:
+                    static_cast<GeoPositionPropagator *>(geoposition)->Propagate(nextutc);
+                    break;
                 default:
                     break;
                 }
@@ -577,6 +517,9 @@ namespace Cosmos
                     break;
                 case Propagator::Type::AttitudeLVLH:
                     static_cast<LVLHAttitudePropagator *>(lvattitude)->Propagate(nextutc);
+                    break;
+                case Propagator::Type::AttitudeGeo:
+                    static_cast<GeoAttitudePropagator *>(geoattitude)->Propagate(nextutc);
                     break;
                 default:
                     break;
@@ -628,6 +571,36 @@ namespace Cosmos
             currentloc->att.icrf.utc = nextutc;
             currentloc->att.icrf.pass++;
             att_icrf(currentloc);
+
+            return 0;
+        }
+
+        int32_t GeoAttitudePropagator::Init()
+        {
+
+            return  0;
+        }
+
+        int32_t GeoAttitudePropagator::Reset(double nextutc)
+        {
+            currentloc->att = initialloc.att;
+            currentutc = currentloc->att.utc;
+            Propagate(nextutc);
+
+            return  0;
+        }
+
+        int32_t GeoAttitudePropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            currentloc->att.geoc = initialloc.att.geoc;
+            currentutc = nextutc;
+            currentloc->att.geoc.utc = nextutc;
+            currentloc->att.geoc.pass++;
+            att_geoc(currentloc);
 
             return 0;
         }
@@ -1009,6 +982,38 @@ namespace Cosmos
             currentloc->pos.icrf.pass++;
             pos_icrf(currentloc);
             PosAccel(currentloc, currentphys);
+
+            return 0;
+        }
+
+        int32_t GeoPositionPropagator::Init()
+        {
+//            PosAccel(currentloc, currentphys);
+
+            return 0;
+        }
+
+        int32_t GeoPositionPropagator::Reset(double nextutc)
+        {
+            currentloc->pos = initialloc.pos;
+            currentutc = currentloc->pos.utc;
+            Propagate(nextutc);
+
+            return 0;
+        }
+
+        int32_t GeoPositionPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            currentloc->pos.geod = initialloc.pos.geod;
+            currentutc = nextutc;
+            currentloc->pos.geod.utc = nextutc;
+            currentloc->pos.geod.pass++;
+            pos_geod(currentloc);
+//            PosAccel(currentloc, currentphys);
 
             return 0;
         }
@@ -2176,16 +2181,16 @@ namespace Cosmos
             }
         }
 
-        locstruc shape2eci(double utc, double altitude, double angle, double hour)
+        locstruc shape2eci(double utc, double altitude, double angle, double timeshift)
         {
-            return shape2eci(utc, 0., 0., altitude, angle, hour);
+            return shape2eci(utc, 0., 0., altitude, angle, timeshift);
         }
 
-        locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double hour)
+        locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift)
         {
             locstruc loc;
 
-            longitude += 2. * DPI * (fabs(hour)/24. - (utc - (int)utc));
+//            longitude += 2. * DPI * (fabs(hour)/24. - (utc - (int)utc));
 
             pos_clear(loc);
 
@@ -2198,14 +2203,32 @@ namespace Cosmos
             loc.pos.geod.v.lat =  sin(angle) * sqrt(GM/radius) / radius;
             loc.pos.geod.v.h = -2. * FLATTENING * REARTHKM * sin(latitude) * cos(latitude) * loc.pos.geod.v.lat;
             loc.pos.geod.v.lon = cos(angle) * sqrt(GM/radius) / radius;
-            if (hour < 0)
-            {
-                loc.pos.geod.v.lat = -loc.pos.geod.v.lat;
-                loc.pos.geod.v.lon = -loc.pos.geod.v.lon;
-            }
+//            if (hour < 0)
+//            {
+//                loc.pos.geod.v.lat = -loc.pos.geod.v.lat;
+//                loc.pos.geod.v.lon = -loc.pos.geod.v.lon;
+//            }
             loc.pos.geod.v.lon -= DPI / 43200.;
             loc.pos.geod.pass++;
-            pos_geod(&loc);
+            pos_geod(loc);
+
+            if (timeshift != 0.)
+            {
+                kepstruc kep;
+                double dea;
+                eci2kep(loc.pos.eci, kep);
+                kep.ma += timeshift * kep.mm;
+                uint16_t count = 0;
+                do
+                {
+                    dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+                    kep.ea -= dea;
+                } while (++count < 100 && fabs(dea) > .000001);
+                kep2eci(kep, loc.pos.eci);
+                loc.pos.eci.pass++;
+                pos_eci(loc);
+            }
+
 
             return loc;
         }

@@ -50,6 +50,7 @@ namespace Cosmos
 
             enum Type
                 {
+                NoType,
                 U1,
                 U1X,
                 U1Y,
@@ -78,7 +79,7 @@ namespace Cosmos
 
             enum ExternalPanelType
                 {
-                None = 0,
+                NoPanel = 0,
                 X,
                 Y,
                 XY
@@ -90,7 +91,7 @@ namespace Cosmos
             }
 
             int32_t Setup(Type type);
-            int32_t add_u(double x, double y, double z, ExternalPanelType type);
+            int32_t add_u(double x=1, double y=1, double z=1, ExternalPanelType type=NoPanel);
             int32_t add_cuboid(string name, Vector size, double depth, Quaternion orientation, Vector offset);
             int32_t add_face(string name, Vector point0, Vector point1, Vector point2, Vector point3, double depth, uint8_t external=1, float pcell=.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector());
             int32_t add_face(string name, Vector size, Quaternion orientation, Vector offset);
@@ -128,9 +129,11 @@ namespace Cosmos
                 PositionInertial = 10,
                 PositionIterative = 11,
                 PositionGaussJackson = 12,
+                PositionGeo = 13,
                 AttitudeInertial = 20,
                 AttitudeIterative = 21,
                 AttitudeLVLH = 22,
+                AttitudeGeo = 23,
                 Thermal = 30,
                 Electrical = 40
                 };
@@ -148,6 +151,22 @@ namespace Cosmos
                 : Propagator{ newloc, newphys, idt }
             {
                 type = PositionInertial;
+            }
+
+            int32_t Init();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
+
+        private:
+        };
+
+        class GeoPositionPropagator : public Propagator
+        {
+        public:
+            GeoPositionPropagator(locstruc *newloc, physicsstruc *newphys, double idt)
+                : Propagator{ newloc, newphys, idt }
+            {
+                type = PositionGeo;
             }
 
             int32_t Init();
@@ -225,6 +244,22 @@ namespace Cosmos
                 : Propagator{ newloc, newphys, idt }
             {
                 type = AttitudeInertial;
+            }
+
+            int32_t Init();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
+
+        private:
+        };
+
+        class GeoAttitudePropagator : public Propagator
+        {
+        public:
+            GeoAttitudePropagator(locstruc *newloc, physicsstruc *newphys, double idt)
+                : Propagator{ newloc, newphys, idt }
+            {
+                type = AttitudeGeo;
             }
 
             int32_t Init();
@@ -329,6 +364,7 @@ namespace Cosmos
             double dtj;
             Propagator::Type ptype;
             InertialPositionPropagator *inposition;
+            GeoPositionPropagator *geoposition;
             IterativePositionPropagator *itposition;
             GaussJacksonPositionPropagator *gjposition;
 
@@ -336,6 +372,7 @@ namespace Cosmos
             InertialAttitudePropagator *inattitude;
             IterativeAttitudePropagator *itattitude;
             LVLHAttitudePropagator *lvattitude;
+            GeoAttitudePropagator *geoattitude;
 
             Propagator::Type ttype;
             ThermalPropagator *thermal;
@@ -369,8 +406,8 @@ namespace Cosmos
         int32_t PhysSetup(physicsstruc *phys);
         int32_t PhysCalc(locstruc* loc, physicsstruc *phys);
 
-        locstruc shape2eci(double utc, double altitude, double angle, double hour);
-        locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double hour);
+        locstruc shape2eci(double utc, double altitude, double angle, double timeshift);
+        locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift);
 
 
     } //end of namespace Physics
