@@ -369,6 +369,10 @@ namespace Cosmos {
             size_t width;
             //! Requested Height
             size_t height;
+            //! Bin Width
+            size_t binwidth;
+            //! Bin Height
+            size_t binheight;
             vector<uint8_t> bufferin;
             vector<uint16_t> bufferout;
             thread ptthread;
@@ -412,7 +416,7 @@ namespace Cosmos {
         int32_t pt1000_image(gige_handle *handle, uint32_t frames, gige_data &data);
         int32_t pt1000_image(gige_handle *handle, uint32_t frames, gige_data &data, gige_data &dark);
         int32_t pt1000_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
-        int32_t pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize);
+        int32_t pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin=1, uint32_t ybin=1);
         //! @}
 
 

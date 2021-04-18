@@ -266,25 +266,51 @@ int32_t write_envi_hdr(envi_hdr &hdr)
     return (0);
 }
 
-int32_t write_envi_data(string name, size_t columns, size_t rows, size_t planes, uint8_t datatype, uint8_t byteorder, uint8_t *data)
+int32_t write_envi_data(string name, uint8_t interleave, vector<vector<double>> &data)
 {
+    vector<vector<vector<double>>> stack;
+    stack.push_back(data);
+    write_envi_data(name, interleave, stack);
+}
+
+int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<double>>> &data)
+    {
     envi_hdr ehdr;
     int32_t iretn;
 
     ehdr.basename = name;
-    ehdr.columns = columns;
-    ehdr.rows = rows;
-    ehdr.planes = planes;
-    ehdr.datatype = datatype;
-    ehdr.byteorder = byteorder;
-    iretn = write_envi_data(ehdr, data);
-    return iretn;
-
-}
-
-int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data)
-{
-    int32_t iretn;
+    ehdr.datatype = DT_DOUBLE;
+    ehdr.interleave = interleave;
+    ehdr.offset = 0;
+    if (BYTE_ORDER == LITTLE_ENDIAN)
+    {
+        ehdr.byteorder = BO_INTEL;
+    }
+    else
+    {
+        ehdr.byteorder = BO_NETWORK;
+    }
+    switch (ehdr.interleave)
+    {
+    case BSQ:
+        ehdr.planes = data.size();
+        ehdr.rows = data[0].size();
+        ehdr.columns = data[0][0].size();
+        break;
+    case BIL:
+        ehdr.rows = data.size();
+        ehdr.planes = data[0].size();
+        ehdr.columns = data[0][0].size();
+        break;
+    case BIP:
+        ehdr.rows = data.size();
+        ehdr.columns = data[0].size();
+        ehdr.planes = data[0][0].size();
+        break;
+    default:
+        return COSMOS_GENERAL_ERROR_OUTOFRANGE;
+        break;
+    }
 
     iretn = write_envi_hdr(ehdr);
     if (iretn < 0)
@@ -300,7 +326,7 @@ int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data)
     }
     else {
         fname = ehdr.basename.substr(0, extension);
-        switch (ehdr.byteorder)
+        switch (ehdr.interleave)
         {
         case BSQ:
             fname += ".bsq";
@@ -342,7 +368,130 @@ int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data)
         break;
     }
 
-    switch (ehdr.byteorder)
+    switch (ehdr.interleave)
+    {
+    case BSQ:
+        for (size_t ip=0; ip<ehdr.planes; ++ip)
+        {
+            for (size_t ir=0; ir<ehdr.rows; ++ir)
+            {
+                fwrite(data[ip][ir].data(), datasize, ehdr.columns, fp);
+            }
+        }
+        break;
+    case BIL:
+        for (size_t ir=0; ir<ehdr.rows; ++ir)
+        {
+            for (size_t ip=0; ip<ehdr.planes; ++ip)
+            {
+                fwrite(data[ir][ip].data(), datasize, ehdr.columns, fp);
+            }
+        }
+        break;
+    case BIP:
+        for (size_t ir=0; ir<ehdr.rows; ++ir)
+        {
+            for (size_t ic=0; ic<ehdr.columns; ++ic)
+            {
+                fwrite(data[ir][ic].data(), datasize, ehdr.planes, fp);
+            }
+        }
+        break;
+    default:
+        break;
+    }
+
+    fclose(fp);
+    return datasize * ehdr.planes * ehdr.columns * ehdr.rows;
+
+}
+
+int32_t write_envi_data(string name, size_t columns, size_t rows, size_t planes, uint8_t datatype, uint8_t interleave, uint8_t *data)
+{
+    envi_hdr ehdr;
+    int32_t iretn;
+
+    ehdr.basename = name;
+    ehdr.columns = columns;
+    ehdr.rows = rows;
+    ehdr.planes = planes;
+    ehdr.datatype = datatype;
+    ehdr.interleave = interleave;
+    ehdr.offset = 0;
+    if (BYTE_ORDER == LITTLE_ENDIAN)
+    {
+        ehdr.byteorder = BO_INTEL;
+    }
+    else
+    {
+        ehdr.byteorder = BO_NETWORK;
+    }
+    iretn = write_envi_data(ehdr, data);
+    return iretn;
+
+}
+
+int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data)
+{
+    int32_t iretn;
+
+    iretn = write_envi_hdr(ehdr);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    size_t extension;
+    string fname;
+    if ((extension = ehdr.basename.find_last_of(".")) != string::npos)
+    {
+        fname = ehdr.basename;
+    }
+    else {
+        fname = ehdr.basename.substr(0, extension);
+        switch (ehdr.interleave)
+        {
+        case BSQ:
+            fname += ".bsq";
+            break;
+        case BIL:
+            fname += ".bil";
+            break;
+        case BIP:
+            fname += ".bip";
+            break;
+        default:
+            fname += ".img";
+            break;
+        }
+    }
+    FILE *fp = fopen(fname.c_str(), "wb");
+    if (fp == nullptr)
+    {
+        return -errno;
+    }
+
+    uint8_t datasize=1;
+    switch (ehdr.datatype)
+    {
+    case DT_BYTE:
+        datasize = 1;
+        break;
+    case DT_INT:
+    case DT_U_INT:
+        datasize = 2;
+        break;
+    case DT_LONG:
+    case DT_U_LONG:
+    case DT_FLOAT:
+        datasize = 4;
+        break;
+    case DT_DOUBLE:
+        datasize = 8;
+        break;
+    }
+
+    switch (ehdr.interleave)
     {
     case BSQ:
         for (size_t ip=0; ip<ehdr.planes; ++ip)

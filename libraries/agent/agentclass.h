@@ -497,7 +497,6 @@ namespace Cosmos
             static int32_t req_postsoh(string &request, string &response, Agent *agent);
             static int32_t req_utc(string &request, string &response, Agent *agent);
             static int32_t req_soh(string &, string &response, Agent *agent);
-            static int32_t req_soh2(string &, string &response, Agent *agent);
             static int32_t req_fullsoh(string &, string &response, Agent *agent);
             static int32_t req_jsondump(string &, string &response, Agent *agent);
         };
