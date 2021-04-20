@@ -12,6 +12,6 @@ install(TARGETS localjpeg DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/thirdparty/jpeg)
 
 
-if(${DEPLOY_SOURCE_FILES_TO_REMOTE} MATCHES "yes")
+if(${DEPLOY_SRC_FILES_TO_REMOTE} MATCHES "YES")
     add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
 endif()

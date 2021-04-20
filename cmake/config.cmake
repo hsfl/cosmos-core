@@ -69,6 +69,6 @@ if (NOT BUILD_LIBRARIES_DEVICES)
     set(BUILD_LIBRARIES_DEVICES i2c)
 endif()
 
-# do you want to deploy all the files to the remote device?
-set(DEPLOY_FILES_TO_REMOTE no)
-set(DEPLOY_SOURCE_FILES_TO_REMOTE no)
+# do you want to deploy files to the remote device?
+set(DEPLOY_BIN_FILES_TO_REMOTE YES)
+set(DEPLOY_SRC_FILES_TO_REMOTE NO)

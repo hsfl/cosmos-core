@@ -53,8 +53,11 @@ foreach(file ${files})
 
     install(TARGETS ${bfile} DESTINATION bin)
 
-    if(${DEPLOY_FILES_TO_REMOTE} MATCHES "yes")
+    if(${DEPLOY_BIN_FILES_TO_REMOTE} MATCHES "YES")
         add_deployment_binary(${bfile} "bin")
+    endif()
+
+    if(${DEPLOY_SRC_FILES_TO_REMOTE} MATCHES "YES")
         add_deployment_source(${bfile}.cpp "src")
     endif()
 
