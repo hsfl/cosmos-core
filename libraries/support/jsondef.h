@@ -690,6 +690,10 @@ class sim_param	{
 	double	attractor_w = 1.0;
 	/** obstacle force weighing */
 	double obstacle_w = 1.0;
+	/** target (local or ECI?) */
+	double x_target_pos = 0.0;
+	double y_target_pos = 0.0;
+	double z_target_pos = 0.0;
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
@@ -707,6 +711,9 @@ class sim_param	{
 			{ "inter_agent_w"	, inter_agent_w },
 			{ "attractor_w"		, attractor_w },
 			{ "obstacle_w"		, obstacle_w },
+			{ "x_target_pos"		, x_target_pos },
+			{ "y_target_pos"		, y_target_pos },
+			{ "z_target_pos"		, z_target_pos }
 		};
 	}
 
@@ -730,6 +737,9 @@ class sim_param	{
 			if(!p["inter_agent_w"].is_null()) { inter_agent_w = p["inter_agent_w"].number_value(); }
 			if(!p["attractor_w"].is_null()) { attractor_w = p["attractor_w"].number_value(); }
 			if(!p["obstacle_w"].is_null()) { obstacle_w = p["obstacle_w"].number_value(); }
+			if(!p["x_target_pos"].is_null()) { x_target_pos = p["x_target_pos"].number_value(); }
+			if(!p["y_target_pos"].is_null()) { y_target_pos = p["y_target_pos"].number_value(); }
+			if(!p["z_target_pos"].is_null()) { z_target_pos = p["z_target_pos"].number_value(); }
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
