@@ -1,6 +1,6 @@
 # run this to create QtCreatorDeployment.txt for remote device deployment
 # http://qt-project.org/doc/qtcreator-3.0/creator-project-cmake.html
-file(WRITE "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "/cosmos\n")
+file(WRITE "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "cosmos\n")
 
 macro(add_deployment_binary SRC DEST)
     file(RELATIVE_PATH path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})

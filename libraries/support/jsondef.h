@@ -753,93 +753,95 @@ namespace Cosmos
         /** Yes it is.
 */
 
-        class sim_param	{
-        public:
+class sim_param	{
+	public:
 
-            /** half-kernel radius for inter-agent control (interaction radius), m */
-            double	h = 1000.0;
-            /** Reynolds number, controls viscosity, dimensionless */
-            double	Re = 20.0;
-            /** Maximum inter-agent relative velocity, m/s */
-            double	v_max = 15.0;
-            /** Maximum acceleration, m/s^2 */
-            double	a_max = 1.0;
-            /** Mach number, dimensionless */
-            double	M = 1.0;
-            /** exponent on a term in the pressure function */
-            double	gamma = 1.0;
-            /** reference density, kg/m^3 */
-            double	rho_0 = 1.0;
-            /** hydrodynamics force weighting, repulsion force */
-            double	inter_agent_w = 1.0;
-            /** attractor force weighing */
-            double	attractor_w = 1.0;
-            /** obstacle force weighing */
-            double obstacle_w = 1.0;
-            double x_target_pos;
-            double y_target_pos;
-            double z_target_pos;
+	/** half-kernel radius for inter-agent control (interaction radius), m */
+	double	h = 1000.0;
+	/** Reynolds number, controls viscosity, dimensionless */
+	double	Re = 20.0;
+	/** Maximum inter-agent relative velocity, m/s */
+	double	v_max = 15.0;
+	/** Maximum acceleration, m/s^2 */
+	double	a_max = 1.0;
+	/** Mach number, dimensionless */
+	double	M = 1.0;
+	/** exponent on a term in the pressure function */
+	double	gamma = 1.0;
+	/** reference density, kg/m^3 */
+	double	rho_0 = 1.0;
+	/** hydrodynamics force weighting, repulsion force */
+	double	inter_agent_w = 1.0;
+	/** attractor force weighing */
+	double	attractor_w = 1.0;
+	/** obstacle force weighing */
+	double obstacle_w = 1.0;
+	/** target (local or ECI?) */
+	double x_target_pos = 0.0;
+	double y_target_pos = 0.0;
+	double z_target_pos = 0.0;
 
-            /// Convert class contents to JSON object
-            /** Returns a json11 JSON object of the class
-        @return A json11 JSON object containing every member variable within the class
-    */
-            json11::Json to_json() const {
-                return json11::Json::object {
-                    { "h"   , h },
-                    { "Re"  , Re },
-                    { "v_max"   , v_max },
-                    { "a_max"   , a_max },
-                    { "M"  	, M },
-                    { "gamma"   , gamma },
-                    { "rho_0" 	, rho_0 },
-                    { "inter_agent_w"	, inter_agent_w },
-                    { "attractor_w"		, attractor_w },
-                    { "x_target_pos"		, x_target_pos },
-                    { "y_target_pos"		, y_target_pos },
-                    { "z_target_pos"		, z_target_pos },
-                };
-            }
+	/// Convert class contents to JSON object
+	/** Returns a json11 JSON object of the class
+		@return A json11 JSON object containing every member variable within the class
+	*/
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "h"   , h },
+			{ "Re"  , Re },
+			{ "v_max"   , v_max },
+			{ "a_max"   , a_max },
+			{ "M"  	, M },
+			{ "gamma"   , gamma },
+			{ "rho_0" 	, rho_0 },
+			{ "inter_agent_w"	, inter_agent_w },
+			{ "attractor_w"		, attractor_w },
+			{ "obstacle_w"		, obstacle_w },
+			{ "x_target_pos"		, x_target_pos },
+			{ "y_target_pos"		, y_target_pos },
+			{ "z_target_pos"		, z_target_pos }
+		};
+	}
 
-            /// Set class contents from JSON string
-            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
-    */
-            void from_json(const string& s) {
-                string error;
-                json11::Json p = json11::Json::parse(s,error);
+	/// Set class contents from JSON string
+	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+		@param	s	JSON-formatted string to set class contents to
+		@return n/a
+	*/
+	void from_json(const string& s) {
+		string error;
+		json11::Json p = json11::Json::parse(s,error);
 
-                if(error.empty()) {
-                    if(!p["h"].is_null()) { h = p["h"].number_value(); }
-                    if(!p["Re"].is_null()) { Re = p["Re"].number_value(); }
-                    if(!p["v_max"].is_null()) { v_max = p["v_max"].number_value(); }
-                    if(!p["a_max"].is_null()) { a_max = p["a_max"].number_value(); }
-                    if(!p["M"].is_null()) { M = p["M"].number_value(); }
-                    if(!p["gamma"].is_null()) { gamma = p["gamma"].number_value(); }
-                    if(!p["rho_0"].is_null()) { rho_0 = p["rho_0"].number_value(); }
-                    if(!p["inter_agent_w"].is_null()) { inter_agent_w = p["inter_agent_w"].number_value(); }
-                    if(!p["attractor_w"].is_null()) { attractor_w = p["attractor_w"].number_value(); }
-                    if(!p["obstacle_w"].is_null()) { obstacle_w = p["obstacle_w"].number_value(); }
-                    if(!p["x_target_pos"].is_null()) { obstacle_w = p["x_target_pos"].number_value(); }
-                    if(!p["y_target_pos"].is_null()) { obstacle_w = p["y_target_pos"].number_value(); }
-                    if(!p["z_target_pos"].is_null()) { obstacle_w = p["z_target_pos"].number_value(); }
-                } else {
-                    cerr<<"ERROR: <"<<error<<">"<<endl;
-                }
-                return;
-            }
-        };
+		if(error.empty()) {
+			if(!p["h"].is_null()) { h = p["h"].number_value(); }
+			if(!p["Re"].is_null()) { Re = p["Re"].number_value(); }
+			if(!p["v_max"].is_null()) { v_max = p["v_max"].number_value(); }
+			if(!p["a_max"].is_null()) { a_max = p["a_max"].number_value(); }
+			if(!p["M"].is_null()) { M = p["M"].number_value(); }
+			if(!p["gamma"].is_null()) { gamma = p["gamma"].number_value(); }
+			if(!p["rho_0"].is_null()) { rho_0 = p["rho_0"].number_value(); }
+			if(!p["inter_agent_w"].is_null()) { inter_agent_w = p["inter_agent_w"].number_value(); }
+			if(!p["attractor_w"].is_null()) { attractor_w = p["attractor_w"].number_value(); }
+			if(!p["obstacle_w"].is_null()) { obstacle_w = p["obstacle_w"].number_value(); }
+			if(!p["x_target_pos"].is_null()) { x_target_pos = p["x_target_pos"].number_value(); }
+			if(!p["y_target_pos"].is_null()) { y_target_pos = p["y_target_pos"].number_value(); }
+			if(!p["z_target_pos"].is_null()) { z_target_pos = p["z_target_pos"].number_value(); }
+		} else {
+			cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
+		return;
+	}
+};
 
-        //! @}
-        //! @}
+//! @}
+//! @}
 
-        //! \ingroup jsonlib
-        //! \defgroup jsonlib_typedefs JSON typedefs
-        //! @{
+//! \ingroup jsonlib
+//! \defgroup jsonlib_typedefs JSON typedefs
+//! @{
 
-        //! JSON unit type entry
-        /*! To be used in the ::cosmosstruc table of units. Each entry represents
+//! JSON unit type entry
+/*! To be used in the ::cosmosstruc table of units. Each entry represents
  * one specific variant of one type of unit. Each entry includes:
  * - a name for the unit
  * - a type for the unit conversion: 0 = identity, 1 = linear, 2 = log
