@@ -125,6 +125,8 @@ using std::map;
 using std::pair;
 #include <list>
 using std::list;
+#include <limits>
+using std::numeric_limits;
 
 //#include "support/cosmos-errno.h"
 #include "support/cosmos-defs.h"

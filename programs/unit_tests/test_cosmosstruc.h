@@ -717,7 +717,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.phys.triangles[" + std::to_string(i) + "].twist.y"), &c->node.phys.triangles[i].twist.y);
 		EXPECT_EQ(c->get_pointer<double>("node.phys.triangles[" + std::to_string(i) + "].twist.z"), &c->node.phys.triangles[i].twist.z);
 		EXPECT_EQ(c->get_pointer<double>("node.phys.triangles[" + std::to_string(i) + "].twist.w"), &c->node.phys.triangles[i].twist.w);
-		EXPECT_EQ(c->get_pointer<uint16_t>("node.phys.triangles[" + std::to_string(i) + "].pidx"), &c->node.phys.triangles[i].pidx);
+        EXPECT_EQ(c->get_pointer<uint16_t>("node.phys.triangles[" + std::to_string(i) + "].pidx"), &c->node.phys.triangles[i].pidx);
 		//EXPECT_EQ(c->get_pointer<uint16_t[X]>("node.phys.triangles[" + std::to_string(i) + "].tidx"), &c->node.phys.triangles[i].tidx);
 		for(size_t j = 0; j < sizeof(c->node.phys.triangles[i].tidx)/sizeof(c->node.phys.triangles[i].tidx[0]); ++j) {
 			EXPECT_EQ(c->get_pointer<uint16_t>("node.phys.triangles[" + std::to_string(i) + "].tidx[" + std::to_string(j) + "]"), &c->node.phys.triangles[i].tidx[j]);
@@ -898,380 +898,440 @@ TEST(cosmosstruc, add_default_names) {
 	}
 
 	// vector<devicestruc> device
-	EXPECT_EQ(c->get_pointer<vector<devicestruc>>("device"), &c->device);
+    EXPECT_EQ(c->get_pointer<vector<devicestruc*>>("device"), &c->device);
 	for(size_t i = 0; i < c->device.capacity(); ++i) {
-		EXPECT_EQ(c->get_pointer<devicestruc>("device[" + std::to_string(i) + "]"), &c->device[i]);
-		EXPECT_EQ(c->get_pointer<allstruc>("device[" + std::to_string(i) + "].all"), &c->device[i].all);
-		EXPECT_EQ(c->get_pointer<bool>("device[" + std::to_string(i) + "].all.enabled"), &c->device[i].all.enabled);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].all.type"), &c->device[i].all.type);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].all.model"), &c->device[i].all.model);
-		EXPECT_EQ(c->get_pointer<uint32_t>("device[" + std::to_string(i) + "].all.flag"), &c->device[i].all.flag);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].all.addr"), &c->device[i].all.addr);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].all.cidx"), &c->device[i].all.cidx);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].all.didx"), &c->device[i].all.didx);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].all.pidx"), &c->device[i].all.pidx);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].all.bidx"), &c->device[i].all.bidx);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].all.portidx"), &c->device[i].all.portidx);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].all.namp"), &c->device[i].all.namp);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].all.nvolt"), &c->device[i].all.nvolt);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].all.amp"), &c->device[i].all.amp);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].all.volt"), &c->device[i].all.volt);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].all.power"), &c->device[i].all.power);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].all.energy"), &c->device[i].all.energy);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].all.drate"), &c->device[i].all.drate);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].all.temp"), &c->device[i].all.temp);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].all.utc"), &c->device[i].all.utc);
-		EXPECT_EQ(c->get_pointer<antstruc>("device[" + std::to_string(i) + "].ant"), &c->device[i].ant);
-		EXPECT_EQ(c->get_pointer<quaternion>("device[" + std::to_string(i) + "].ant.align"), &c->device[i].ant.align);
-		EXPECT_EQ(c->get_pointer<cvector>("device[" + std::to_string(i) + "].ant.align.d"), &c->device[i].ant.align.d);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].ant.align.d.x"), &c->device[i].ant.align.d.x);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].ant.align.d.y"), &c->device[i].ant.align.d.y);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].ant.align.d.z"), &c->device[i].ant.align.d.z);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].ant.align.w"), &c->device[i].ant.align.w);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ant.azim"), &c->device[i].ant.azim);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ant.elev"), &c->device[i].ant.elev);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ant.minelev"), &c->device[i].ant.minelev);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ant.maxelev"), &c->device[i].ant.maxelev);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ant.minazim"), &c->device[i].ant.minazim);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ant.maxazim"), &c->device[i].ant.maxazim);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ant.threshelev"), &c->device[i].ant.threshelev);
-		EXPECT_EQ(c->get_pointer<battstruc>("device[" + std::to_string(i) + "].batt"), &c->device[i].batt);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].batt.capacity"), &c->device[i].batt.capacity);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].batt.efficiency"), &c->device[i].batt.efficiency);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].batt.charge"), &c->device[i].batt.charge);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].batt.r_in"), &c->device[i].batt.r_in);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].batt.r_out"), &c->device[i].batt.r_out);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].batt.percentage"), &c->device[i].batt.percentage);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].batt.time_remaining"), &c->device[i].batt.time_remaining);
-		EXPECT_EQ(c->get_pointer<bcregstruc>("device[" + std::to_string(i) + "].bcreg"), &c->device[i].bcreg);
-		EXPECT_EQ(c->get_pointer<busstruc>("device[" + std::to_string(i) + "].bus"), &c->device[i].bus);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].bus.wdt"), &c->device[i].bus.wdt);
-		EXPECT_EQ(c->get_pointer<camstruc>("device[" + std::to_string(i) + "].cam"), &c->device[i].cam);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].cam.pwidth"), &c->device[i].cam.pwidth);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].cam.pheight"), &c->device[i].cam.pheight);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].cam.width"), &c->device[i].cam.width);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].cam.height"), &c->device[i].cam.height);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].cam.flength"), &c->device[i].cam.flength);
-		EXPECT_EQ(c->get_pointer<cpustruc>("device[" + std::to_string(i) + "].cpu"), &c->device[i].cpu);
-		EXPECT_EQ(c->get_pointer<uint32_t>("device[" + std::to_string(i) + "].cpu.uptime"), &c->device[i].cpu.uptime);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].cpu.load"), &c->device[i].cpu.load);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].cpu.maxload"), &c->device[i].cpu.maxload);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].cpu.maxgib"), &c->device[i].cpu.maxgib);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].cpu.gib"), &c->device[i].cpu.gib);
-		EXPECT_EQ(c->get_pointer<uint32_t>("device[" + std::to_string(i) + "].cpu.boot_count"), &c->device[i].cpu.boot_count);
-		EXPECT_EQ(c->get_pointer<diskstruc>("device[" + std::to_string(i) + "].disk"), &c->device[i].disk);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].disk.maxgib"), &c->device[i].disk.maxgib);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].disk.gib"), &c->device[i].disk.gib);
-		//EXPECT_EQ(c->get_pointer<char[X]>("device[" + std::to_string(i) + "].disk.path"), &c->device[i].disk.path);
-		EXPECT_EQ(c->get_pointer<gpsstruc>("device[" + std::to_string(i) + "].gps"), &c->device[i].gps);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.dutc"), &c->device[i].gps.dutc);
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].gps.geocs"), &c->device[i].gps.geocs);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].gps.geocs.col"), &c->device[i].gps.geocs.col);
-		for(size_t j = 0; j < sizeof(c->device[i].gps.geocs.col)/sizeof(c->device[i].gps.geocs.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.geocs.col[" + std::to_string(j) + "]"), &c->device[i].gps.geocs.col[j]);
+        EXPECT_EQ(c->get_pointer<devicestruc>("device[" + std::to_string(i) + "]"), c->device[i]);
+        EXPECT_EQ(c->get_pointer<bool>("device[" + std::to_string(i) + "].enabled"), &c->device[i]->enabled);
+        EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].type"), &c->device[i]->type);
+        EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].model"), &c->device[i]->model);
+        EXPECT_EQ(c->get_pointer<uint32_t>("device[" + std::to_string(i) + "].flag"), &c->device[i]->flag);
+        EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].addr"), &c->device[i]->addr);
+        EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].cidx"), &c->device[i]->cidx);
+        EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].all->didx"), &c->device[i]->didx);
+        EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].all->pidx"), &c->device[i]->pidx);
+        EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].bidx"), &c->device[i]->bidx);
+        EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].portidx"), &c->device[i]->portidx);
+        EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].namp"), &c->device[i]->namp);
+        EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].nvolt"), &c->device[i]->nvolt);
+        EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].amp"), &c->device[i]->amp);
+        EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].volt"), &c->device[i]->volt);
+        EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].power"), &c->device[i]->power);
+        EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].energy"), &c->device[i]->energy);
+        EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].drate"), &c->device[i]->drate);
+        EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].temp"), &c->device[i]->temp);
+        EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].utc"), &c->device[i]->utc);
+    }
+    for(size_t i = 0; i < c->devspec.ant.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<antstruc>("devspec.ant[" + std::to_string(i) + "]"), &c->devspec.ant[i]);
+        EXPECT_EQ(c->get_pointer<quaternion>("devspec.ant[" + std::to_string(i) + "].align"), &c->devspec.ant[i].align);
+        EXPECT_EQ(c->get_pointer<cvector>("devspec.ant[" + std::to_string(i) + "].align.d"), &c->devspec.ant[i].align.d);
+        EXPECT_EQ(c->get_pointer<double>("devspec.ant[" + std::to_string(i) + "].align.d.x"), &c->devspec.ant[i].align.d.x);
+        EXPECT_EQ(c->get_pointer<double>("devspec.ant[" + std::to_string(i) + "].align.d.y"), &c->devspec.ant[i].align.d.y);
+        EXPECT_EQ(c->get_pointer<double>("devspec.ant[" + std::to_string(i) + "].align.d.z"), &c->devspec.ant[i].align.d.z);
+        EXPECT_EQ(c->get_pointer<double>("devspec.ant[" + std::to_string(i) + "].align.w"), &c->devspec.ant[i].align.w);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ant[" + std::to_string(i) + "].azim"), &c->devspec.ant[i].azim);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ant[" + std::to_string(i) + "].elev"), &c->devspec.ant[i].elev);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ant[" + std::to_string(i) + "].minelev"), &c->devspec.ant[i].minelev);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ant[" + std::to_string(i) + "].maxelev"), &c->devspec.ant[i].maxelev);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ant[" + std::to_string(i) + "].minazim"), &c->devspec.ant[i].minazim);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ant[" + std::to_string(i) + "].maxazim"), &c->devspec.ant[i].maxazim);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ant[" + std::to_string(i) + "].threshelev"), &c->devspec.ant[i].threshelev);
+    }
+    for(size_t i = 0; i < c->devspec.batt.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<battstruc>("devspec.batt[" + std::to_string(i) + "]"), &c->devspec.batt[i]);
+        EXPECT_EQ(c->get_pointer<float>("devspec.batt[" + std::to_string(i) + "].capacity"), &c->devspec.batt[i].capacity);
+        EXPECT_EQ(c->get_pointer<float>("devspec.batt[" + std::to_string(i) + "].efficiency"), &c->devspec.batt[i].efficiency);
+        EXPECT_EQ(c->get_pointer<float>("devspec.batt[" + std::to_string(i) + "].charge"), &c->devspec.batt[i].charge);
+        EXPECT_EQ(c->get_pointer<float>("devspec.batt[" + std::to_string(i) + "].r_in"), &c->devspec.batt[i].r_in);
+        EXPECT_EQ(c->get_pointer<float>("devspec.batt[" + std::to_string(i) + "].r_out"), &c->devspec.batt[i].r_out);
+        EXPECT_EQ(c->get_pointer<float>("devspec.batt[" + std::to_string(i) + "].percentage"), &c->devspec.batt[i].percentage);
+        EXPECT_EQ(c->get_pointer<float>("devspec.batt[" + std::to_string(i) + "].time_remaining"), &c->devspec.batt[i].time_remaining);
+    }
+    for(size_t i = 0; i < c->devspec.bcreg.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<bcregstruc>("devspec.bcreg[" + std::to_string(i) + "]"), &c->devspec.bcreg[i]);
+    }
+    for(size_t i = 0; i < c->devspec.bus.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<busstruc>("devspec.bus[" + std::to_string(i) + "]"), &c->devspec.bus[i]);
+        EXPECT_EQ(c->get_pointer<float>("devspec.bus[" + std::to_string(i) + "].wdt"), &c->devspec.bus[i].wdt);
+    }
+    for(size_t i = 0; i < c->devspec.cam.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<camstruc>("devspec.cam[" + std::to_string(i) + "]"), &c->devspec.cam[i]);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.cam[" + std::to_string(i) + "].pwidth"), &c->devspec.cam[i].pwidth);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.cam[" + std::to_string(i) + "].pheight"), &c->devspec.cam[i].pheight);
+        EXPECT_EQ(c->get_pointer<float>("devspec.cam[" + std::to_string(i) + "].width"), &c->devspec.cam[i].width);
+        EXPECT_EQ(c->get_pointer<float>("devspec.cam[" + std::to_string(i) + "].height"), &c->devspec.cam[i].height);
+        EXPECT_EQ(c->get_pointer<float>("devspec.cam[" + std::to_string(i) + "].flength"), &c->devspec.cam[i].flength);
+    }
+    for(size_t i = 0; i < c->devspec.cpu.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<cpustruc>("devspec.cpu[" + std::to_string(i) + "]"), &c->devspec.cpu[i]);
+        EXPECT_EQ(c->get_pointer<uint32_t>("devspec.cpu[" + std::to_string(i) + "].uptime"), &c->devspec.cpu[i].uptime);
+        EXPECT_EQ(c->get_pointer<float>("devspec.cpu[" + std::to_string(i) + "].load"), &c->devspec.cpu[i].load);
+        EXPECT_EQ(c->get_pointer<float>("devspec.cpu[" + std::to_string(i) + "].maxload"), &c->devspec.cpu[i].maxload);
+        EXPECT_EQ(c->get_pointer<float>("devspec.cpu[" + std::to_string(i) + "].maxgib"), &c->devspec.cpu[i].maxgib);
+        EXPECT_EQ(c->get_pointer<float>("devspec.cpu[" + std::to_string(i) + "].gib"), &c->devspec.cpu[i].gib);
+        EXPECT_EQ(c->get_pointer<uint32_t>("devspec.cpu[" + std::to_string(i) + "].boot_count"), &c->devspec.cpu[i].boot_count);
+    }
+    for(size_t i = 0; i < c->devspec.disk.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<diskstruc>("devspec.disk[" + std::to_string(i) + "]"), &c->devspec.disk[i]);
+        EXPECT_EQ(c->get_pointer<float>("devspec.disk[" + std::to_string(i) + "].maxgib"), &c->devspec.disk[i].maxgib);
+        EXPECT_EQ(c->get_pointer<float>("devspec.disk[" + std::to_string(i) + "].gib"), &c->devspec.disk[i].gib);
+        //EXPECT_EQ(c->get_pointer<char[X]>("devspec.disk[" + std::to_string(i) + "].path"), &c->devspec.disk[i].path);
+    }
+    for(size_t i = 0; i < c->devspec.gps.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<gpsstruc>("devspec.gps[" + std::to_string(i) + "]"), &c->devspec.gps[i]);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].dutc"), &c->devspec.gps[i].dutc);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.gps[" + std::to_string(i) + "].geocs"), &c->devspec.gps[i].geocs);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.gps[" + std::to_string(i) + "].geocs.col"), &c->devspec.gps[i].geocs.col);
+        for(size_t j = 0; j < sizeof(c->devspec.gps[i].geocs.col)/sizeof(c->devspec.gps[i].geocs.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].geocs.col[" + std::to_string(j) + "]"), &c->devspec.gps[i].geocs.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].gps.geocv"), &c->device[i].gps.geocv);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].gps.geocv.col"), &c->device[i].gps.geocv.col);
-		for(size_t j = 0; j < sizeof(c->device[i].gps.geocv.col)/sizeof(c->device[i].gps.geocv.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.geocv.col[" + std::to_string(j) + "]"), &c->device[i].gps.geocv.col[j]);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.gps[" + std::to_string(i) + "].geocv"), &c->devspec.gps[i].geocv);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.gps[" + std::to_string(i) + "].geocv.col"), &c->devspec.gps[i].geocv.col);
+        for(size_t j = 0; j < sizeof(c->devspec.gps[i].geocv.col)/sizeof(c->devspec.gps[i].geocv.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].geocv.col[" + std::to_string(j) + "]"), &c->devspec.gps[i].geocv.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].gps.dgeocs"), &c->device[i].gps.dgeocs);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].gps.dgeocs.col"), &c->device[i].gps.dgeocs.col);
-		for(size_t j = 0; j < sizeof(c->device[i].gps.dgeocs.col)/sizeof(c->device[i].gps.dgeocs.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.dgeocs.col[" + std::to_string(j) + "]"), &c->device[i].gps.dgeocs.col[j]);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.gps[" + std::to_string(i) + "].dgeocs"), &c->devspec.gps[i].dgeocs);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.gps[" + std::to_string(i) + "].dgeocs.col"), &c->devspec.gps[i].dgeocs.col);
+        for(size_t j = 0; j < sizeof(c->devspec.gps[i].dgeocs.col)/sizeof(c->devspec.gps[i].dgeocs.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].dgeocs.col[" + std::to_string(j) + "]"), &c->devspec.gps[i].dgeocs.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].gps.dgeocv"), &c->device[i].gps.dgeocv);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].gps.dgeocv.col"), &c->device[i].gps.dgeocv.col);
-		for(size_t j = 0; j < sizeof(c->device[i].gps.dgeocv.col)/sizeof(c->device[i].gps.dgeocv.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.dgeocv.col[" + std::to_string(j) + "]"), &c->device[i].gps.dgeocv.col[j]);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.gps[" + std::to_string(i) + "].dgeocv"), &c->devspec.gps[i].dgeocv);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.gps[" + std::to_string(i) + "].dgeocv.col"), &c->devspec.gps[i].dgeocv.col);
+        for(size_t j = 0; j < sizeof(c->devspec.gps[i].dgeocv.col)/sizeof(c->devspec.gps[i].dgeocv.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].dgeocv.col[" + std::to_string(j) + "]"), &c->devspec.gps[i].dgeocv.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<gvector>("device[" + std::to_string(i) + "].gps.geods"), &c->device[i].gps.geods);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.geods.lat"), &c->device[i].gps.geods.lat);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.geods.lon"), &c->device[i].gps.geods.lon);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.geods.h"), &c->device[i].gps.geods.h);
-		EXPECT_EQ(c->get_pointer<gvector>("device[" + std::to_string(i) + "].gps.geodv"), &c->device[i].gps.geodv);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.geodv.lat"), &c->device[i].gps.geodv.lat);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.geodv.lon"), &c->device[i].gps.geodv.lon);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.geodv.h"), &c->device[i].gps.geodv.h);
-		EXPECT_EQ(c->get_pointer<gvector>("device[" + std::to_string(i) + "].gps.dgeods"), &c->device[i].gps.dgeods);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.dgeods.lat"), &c->device[i].gps.dgeods.lat);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.dgeods.lon"), &c->device[i].gps.dgeods.lon);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.dgeods.h"), &c->device[i].gps.dgeods.h);
-		EXPECT_EQ(c->get_pointer<gvector>("device[" + std::to_string(i) + "].gps.dgeodv"), &c->device[i].gps.dgeodv);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.dgeodv.lat"), &c->device[i].gps.dgeodv.lat);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.dgeodv.lon"), &c->device[i].gps.dgeodv.lon);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].gps.dgeodv.h"), &c->device[i].gps.dgeodv.h);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].gps.heading"), &c->device[i].gps.heading);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].gps.sats_used"), &c->device[i].gps.sats_used);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].gps.sats_visible"), &c->device[i].gps.sats_visible);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].gps.time_status"), &c->device[i].gps.time_status);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].gps.position_type"), &c->device[i].gps.position_type);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].gps.solution_status"), &c->device[i].gps.solution_status);
-		EXPECT_EQ(c->get_pointer<htrstruc>("device[" + std::to_string(i) + "].htr"), &c->device[i].htr);
-		EXPECT_EQ(c->get_pointer<bool>("device[" + std::to_string(i) + "].htr.state"), &c->device[i].htr.state);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].htr.setvertex"), &c->device[i].htr.setvertex);
-		EXPECT_EQ(c->get_pointer<imustruc>("device[" + std::to_string(i) + "].imu"), &c->device[i].imu);
-		EXPECT_EQ(c->get_pointer<quaternion>("device[" + std::to_string(i) + "].imu.align"), &c->device[i].imu.align);
-		EXPECT_EQ(c->get_pointer<cvector>("device[" + std::to_string(i) + "].imu.align.d"), &c->device[i].imu.align.d);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.align.d.x"), &c->device[i].imu.align.d.x);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.align.d.y"), &c->device[i].imu.align.d.y);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.align.d.z"), &c->device[i].imu.align.d.z);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.align.w"), &c->device[i].imu.align.w);
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].imu.accel"), &c->device[i].imu.accel);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].imu.accel.col"), &c->device[i].imu.accel.col);
-		for(size_t j = 0; j < sizeof(c->device[i].imu.accel.col)/sizeof(c->device[i].imu.accel.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.accel.col[" + std::to_string(j) + "]"), &c->device[i].imu.accel.col[j]);
+        EXPECT_EQ(c->get_pointer<gvector>("devspec.gps[" + std::to_string(i) + "].geods"), &c->devspec.gps[i].geods);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].geods.lat"), &c->devspec.gps[i].geods.lat);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].geods.lon"), &c->devspec.gps[i].geods.lon);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].geods.h"), &c->devspec.gps[i].geods.h);
+        EXPECT_EQ(c->get_pointer<gvector>("devspec.gps[" + std::to_string(i) + "].geodv"), &c->devspec.gps[i].geodv);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].geodv.lat"), &c->devspec.gps[i].geodv.lat);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].geodv.lon"), &c->devspec.gps[i].geodv.lon);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].geodv.h"), &c->devspec.gps[i].geodv.h);
+        EXPECT_EQ(c->get_pointer<gvector>("devspec.gps[" + std::to_string(i) + "].dgeods"), &c->devspec.gps[i].dgeods);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].dgeods.lat"), &c->devspec.gps[i].dgeods.lat);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].dgeods.lon"), &c->devspec.gps[i].dgeods.lon);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].dgeods.h"), &c->devspec.gps[i].dgeods.h);
+        EXPECT_EQ(c->get_pointer<gvector>("devspec.gps[" + std::to_string(i) + "].dgeodv"), &c->devspec.gps[i].dgeodv);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].dgeodv.lat"), &c->devspec.gps[i].dgeodv.lat);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].dgeodv.lon"), &c->devspec.gps[i].dgeodv.lon);
+        EXPECT_EQ(c->get_pointer<double>("devspec.gps[" + std::to_string(i) + "].dgeodv.h"), &c->devspec.gps[i].dgeodv.h);
+        EXPECT_EQ(c->get_pointer<float>("devspec.gps[" + std::to_string(i) + "].heading"), &c->devspec.gps[i].heading);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.gps[" + std::to_string(i) + "].sats_used"), &c->devspec.gps[i].sats_used);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.gps[" + std::to_string(i) + "].sats_visible"), &c->devspec.gps[i].sats_visible);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.gps[" + std::to_string(i) + "].time_status"), &c->devspec.gps[i].time_status);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.gps[" + std::to_string(i) + "].position_type"), &c->devspec.gps[i].position_type);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.gps[" + std::to_string(i) + "].solution_status"), &c->devspec.gps[i].solution_status);
+    }
+    for(size_t i = 0; i < c->devspec.htr.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<htrstruc>("devspec.htr[" + std::to_string(i) + "]"), &c->devspec.htr[i]);
+        EXPECT_EQ(c->get_pointer<bool>("devspec.htr[" + std::to_string(i) + "].state"), &c->devspec.htr[i].state);
+        EXPECT_EQ(c->get_pointer<float>("devspec.htr[" + std::to_string(i) + "].setvertex"), &c->devspec.htr[i].setvertex);
+    }
+    for(size_t i = 0; i < c->devspec.imu.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<imustruc>("devspec.imu[" + std::to_string(i) + "]"), &c->devspec.imu[i]);
+        EXPECT_EQ(c->get_pointer<quaternion>("devspec.imu[" + std::to_string(i) + "].align"), &c->devspec.imu[i].align);
+        EXPECT_EQ(c->get_pointer<cvector>("devspec.imu[" + std::to_string(i) + "].align.d"), &c->devspec.imu[i].align.d);
+        EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].align.d.x"), &c->devspec.imu[i].align.d.x);
+        EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].align.d.y"), &c->devspec.imu[i].align.d.y);
+        EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].align.d.z"), &c->devspec.imu[i].align.d.z);
+        EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].align.w"), &c->devspec.imu[i].align.w);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.imu[" + std::to_string(i) + "].accel"), &c->devspec.imu[i].accel);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.imu[" + std::to_string(i) + "].accel.col"), &c->devspec.imu[i].accel.col);
+        for(size_t j = 0; j < sizeof(c->devspec.imu[i].accel.col)/sizeof(c->devspec.imu[i].accel.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].accel.col[" + std::to_string(j) + "]"), &c->devspec.imu[i].accel.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<quaternion>("device[" + std::to_string(i) + "].imu.theta"), &c->device[i].imu.theta);
-		EXPECT_EQ(c->get_pointer<cvector>("device[" + std::to_string(i) + "].imu.theta.d"), &c->device[i].imu.theta.d);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.theta.d.x"), &c->device[i].imu.theta.d.x);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.theta.d.y"), &c->device[i].imu.theta.d.y);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.theta.d.z"), &c->device[i].imu.theta.d.z);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.theta.w"), &c->device[i].imu.theta.w);
-		EXPECT_EQ(c->get_pointer<avector>("device[" + std::to_string(i) + "].imu.euler"), &c->device[i].imu.euler);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.euler.h"), &c->device[i].imu.euler.h);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.euler.e"), &c->device[i].imu.euler.e);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.euler.b"), &c->device[i].imu.euler.b);
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].imu.omega"), &c->device[i].imu.omega);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].imu.omega.col"), &c->device[i].imu.omega.col);
-		for(size_t j = 0; j < sizeof(c->device[i].imu.omega.col)/sizeof(c->device[i].imu.omega.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.omega.col[" + std::to_string(j) + "]"), &c->device[i].imu.omega.col[j]);
+        EXPECT_EQ(c->get_pointer<quaternion>("devspec.imu[" + std::to_string(i) + "].theta"), &c->devspec.imu[i].theta);
+        EXPECT_EQ(c->get_pointer<cvector>("devspec.imu[" + std::to_string(i) + "].theta.d"), &c->devspec.imu[i].theta.d);
+        EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].theta.d.x"), &c->devspec.imu[i].theta.d.x);
+        EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].theta.d.y"), &c->devspec.imu[i].theta.d.y);
+        EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].theta.d.z"), &c->devspec.imu[i].theta.d.z);
+        EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].theta.w"), &c->devspec.imu[i].theta.w);
+        EXPECT_EQ(c->get_pointer<avector>("devspec.imu[" + std::to_string(i) + "].euler"), &c->devspec.imu[i].euler);
+        EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].euler.h"), &c->devspec.imu[i].euler.h);
+        EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].euler.e"), &c->devspec.imu[i].euler.e);
+        EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].euler.b"), &c->devspec.imu[i].euler.b);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.imu[" + std::to_string(i) + "].omega"), &c->devspec.imu[i].omega);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.imu[" + std::to_string(i) + "].omega.col"), &c->devspec.imu[i].omega.col);
+        for(size_t j = 0; j < sizeof(c->devspec.imu[i].omega.col)/sizeof(c->devspec.imu[i].omega.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].omega.col[" + std::to_string(j) + "]"), &c->devspec.imu[i].omega.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].imu.alpha"), &c->device[i].imu.alpha);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].imu.alpha.col"), &c->device[i].imu.alpha.col);
-		for(size_t j = 0; j < sizeof(c->device[i].imu.alpha.col)/sizeof(c->device[i].imu.alpha.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.alpha.col[" + std::to_string(j) + "]"), &c->device[i].imu.alpha.col[j]);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.imu[" + std::to_string(i) + "].alpha"), &c->devspec.imu[i].alpha);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.imu[" + std::to_string(i) + "].alpha.col"), &c->devspec.imu[i].alpha.col);
+        for(size_t j = 0; j < sizeof(c->devspec.imu[i].alpha.col)/sizeof(c->devspec.imu[i].alpha.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].alpha.col[" + std::to_string(j) + "]"), &c->devspec.imu[i].alpha.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].imu.mag"), &c->device[i].imu.mag);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].imu.mag.col"), &c->device[i].imu.mag.col);
-		for(size_t j = 0; j < sizeof(c->device[i].imu.mag.col)/sizeof(c->device[i].imu.mag.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.mag.col[" + std::to_string(j) + "]"), &c->device[i].imu.mag.col[j]);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.imu[" + std::to_string(i) + "].mag"), &c->devspec.imu[i].mag);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.imu[" + std::to_string(i) + "].mag.col"), &c->devspec.imu[i].mag.col);
+        for(size_t j = 0; j < sizeof(c->devspec.imu[i].mag.col)/sizeof(c->devspec.imu[i].mag.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].mag.col[" + std::to_string(j) + "]"), &c->devspec.imu[i].mag.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].imu.bdot"), &c->device[i].imu.bdot);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].imu.bdot.col"), &c->device[i].imu.bdot.col);
-		for(size_t j = 0; j < sizeof(c->device[i].imu.bdot.col)/sizeof(c->device[i].imu.bdot.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].imu.bdot.col[" + std::to_string(j) + "]"), &c->device[i].imu.bdot.col[j]);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.imu[" + std::to_string(i) + "].bdot"), &c->devspec.imu[i].bdot);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.imu[" + std::to_string(i) + "].bdot.col"), &c->devspec.imu[i].bdot.col);
+        for(size_t j = 0; j < sizeof(c->devspec.imu[i].bdot.col)/sizeof(c->devspec.imu[i].bdot.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.imu[" + std::to_string(i) + "].bdot.col[" + std::to_string(j) + "]"), &c->devspec.imu[i].bdot.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<mccstruc>("device[" + std::to_string(i) + "].mcc"), &c->device[i].mcc);
-		EXPECT_EQ(c->get_pointer<quaternion>("device[" + std::to_string(i) + "].mcc.align"), &c->device[i].mcc.align);
-		EXPECT_EQ(c->get_pointer<cvector>("device[" + std::to_string(i) + "].mcc.align.d"), &c->device[i].mcc.align.d);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mcc.align.d.x"), &c->device[i].mcc.align.d.x);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mcc.align.d.y"), &c->device[i].mcc.align.d.y);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mcc.align.d.z"), &c->device[i].mcc.align.d.z);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mcc.align.w"), &c->device[i].mcc.align.w);
-		EXPECT_EQ(c->get_pointer<quaternion>("device[" + std::to_string(i) + "].mcc.q"), &c->device[i].mcc.q);
-		EXPECT_EQ(c->get_pointer<cvector>("device[" + std::to_string(i) + "].mcc.q.d"), &c->device[i].mcc.q.d);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mcc.q.d.x"), &c->device[i].mcc.q.d.x);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mcc.q.d.y"), &c->device[i].mcc.q.d.y);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mcc.q.d.z"), &c->device[i].mcc.q.d.z);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mcc.q.w"), &c->device[i].mcc.q.w);
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].mcc.o"), &c->device[i].mcc.o);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].mcc.o.col"), &c->device[i].mcc.o.col);
-		for(size_t j = 0; j < sizeof(c->device[i].mcc.o.col)/sizeof(c->device[i].mcc.o.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mcc.o.col[" + std::to_string(j) + "]"), &c->device[i].mcc.o.col[j]);
+    }
+    for(size_t i = 0; i < c->devspec.mcc.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<mccstruc>("devspec.mcc[" + std::to_string(i) + "]"), &c->devspec.mcc[i]);
+        EXPECT_EQ(c->get_pointer<quaternion>("devspec.mcc[" + std::to_string(i) + "].align"), &c->devspec.mcc[i].align);
+        EXPECT_EQ(c->get_pointer<cvector>("devspec.mcc[" + std::to_string(i) + "].align.d"), &c->devspec.mcc[i].align.d);
+        EXPECT_EQ(c->get_pointer<double>("devspec.mcc[" + std::to_string(i) + "].align.d.x"), &c->devspec.mcc[i].align.d.x);
+        EXPECT_EQ(c->get_pointer<double>("devspec.mcc[" + std::to_string(i) + "].align.d.y"), &c->devspec.mcc[i].align.d.y);
+        EXPECT_EQ(c->get_pointer<double>("devspec.mcc[" + std::to_string(i) + "].align.d.z"), &c->devspec.mcc[i].align.d.z);
+        EXPECT_EQ(c->get_pointer<double>("devspec.mcc[" + std::to_string(i) + "].align.w"), &c->devspec.mcc[i].align.w);
+        EXPECT_EQ(c->get_pointer<quaternion>("devspec.mcc[" + std::to_string(i) + "].q"), &c->devspec.mcc[i].q);
+        EXPECT_EQ(c->get_pointer<cvector>("devspec.mcc[" + std::to_string(i) + "].q.d"), &c->devspec.mcc[i].q.d);
+        EXPECT_EQ(c->get_pointer<double>("devspec.mcc[" + std::to_string(i) + "].q.d.x"), &c->devspec.mcc[i].q.d.x);
+        EXPECT_EQ(c->get_pointer<double>("devspec.mcc[" + std::to_string(i) + "].q.d.y"), &c->devspec.mcc[i].q.d.y);
+        EXPECT_EQ(c->get_pointer<double>("devspec.mcc[" + std::to_string(i) + "].q.d.z"), &c->devspec.mcc[i].q.d.z);
+        EXPECT_EQ(c->get_pointer<double>("devspec.mcc[" + std::to_string(i) + "].q.w"), &c->devspec.mcc[i].q.w);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.mcc[" + std::to_string(i) + "].o"), &c->devspec.mcc[i].o);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.mcc[" + std::to_string(i) + "].o.col"), &c->devspec.mcc[i].o.col);
+        for(size_t j = 0; j < sizeof(c->devspec.mcc[i].o.col)/sizeof(c->devspec.mcc[i].o.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.mcc[" + std::to_string(i) + "].o.col[" + std::to_string(j) + "]"), &c->devspec.mcc[i].o.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].mcc.a"), &c->device[i].mcc.a);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].mcc.a.col"), &c->device[i].mcc.a.col);
-		for(size_t j = 0; j < sizeof(c->device[i].mcc.a.col)/sizeof(c->device[i].mcc.a.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mcc.a.col[" + std::to_string(j) + "]"), &c->device[i].mcc.a.col[j]);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.mcc[" + std::to_string(i) + "].a"), &c->devspec.mcc[i].a);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.mcc[" + std::to_string(i) + "].a.col"), &c->devspec.mcc[i].a.col);
+        for(size_t j = 0; j < sizeof(c->devspec.mcc[i].a.col)/sizeof(c->devspec.mcc[i].a.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.mcc[" + std::to_string(i) + "].a.col[" + std::to_string(j) + "]"), &c->devspec.mcc[i].a.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<motrstruc>("device[" + std::to_string(i) + "].motr"), &c->device[i].motr);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].motr.max"), &c->device[i].motr.max);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].motr.rat"), &c->device[i].motr.rat);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].motr.spd"), &c->device[i].motr.spd);
-		EXPECT_EQ(c->get_pointer<mtrstruc>("device[" + std::to_string(i) + "].mtr"), &c->device[i].mtr);
-		EXPECT_EQ(c->get_pointer<quaternion>("device[" + std::to_string(i) + "].mtr.align"), &c->device[i].mtr.align);
-		EXPECT_EQ(c->get_pointer<cvector>("device[" + std::to_string(i) + "].mtr.align.d"), &c->device[i].mtr.align.d);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mtr.align.d.x"), &c->device[i].mtr.align.d.x);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mtr.align.d.y"), &c->device[i].mtr.align.d.y);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mtr.align.d.z"), &c->device[i].mtr.align.d.z);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].mtr.align.w"), &c->device[i].mtr.align.w);
-		//EXPECT_EQ(c->get_pointer<float[X]>("device[" + std::to_string(i) + "].mtr.npoly"), &c->device[i].mtr.npoly);
-		for(size_t j = 0; j < sizeof(c->device[i].mtr.npoly)/sizeof(c->device[i].mtr.npoly[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].mtr.npoly[" + std::to_string(j) + "]"), &c->device[i].mtr.npoly[j]);
+    }
+    for(size_t i = 0; i < c->devspec.motr.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<motrstruc>("devspec.motr[" + std::to_string(i) + "]"), &c->devspec.motr[i]);
+        EXPECT_EQ(c->get_pointer<float>("devspec.motr[" + std::to_string(i) + "].max"), &c->devspec.motr[i].max);
+        EXPECT_EQ(c->get_pointer<float>("devspec.motr[" + std::to_string(i) + "].rat"), &c->devspec.motr[i].rat);
+        EXPECT_EQ(c->get_pointer<float>("devspec.motr[" + std::to_string(i) + "].spd"), &c->devspec.motr[i].spd);
+    }
+    for(size_t i = 0; i < c->devspec.mtr.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<mtrstruc>("devspec.mtr[" + std::to_string(i) + "]"), &c->devspec.mtr[i]);
+        EXPECT_EQ(c->get_pointer<quaternion>("devspec.mtr[" + std::to_string(i) + "].align"), &c->devspec.mtr[i].align);
+        EXPECT_EQ(c->get_pointer<cvector>("devspec.mtr[" + std::to_string(i) + "].align.d"), &c->devspec.mtr[i].align.d);
+        EXPECT_EQ(c->get_pointer<double>("devspec.mtr[" + std::to_string(i) + "].align.d.x"), &c->devspec.mtr[i].align.d.x);
+        EXPECT_EQ(c->get_pointer<double>("devspec.mtr[" + std::to_string(i) + "].align.d.y"), &c->devspec.mtr[i].align.d.y);
+        EXPECT_EQ(c->get_pointer<double>("devspec.mtr[" + std::to_string(i) + "].align.d.z"), &c->devspec.mtr[i].align.d.z);
+        EXPECT_EQ(c->get_pointer<double>("devspec.mtr[" + std::to_string(i) + "].align.w"), &c->devspec.mtr[i].align.w);
+        //EXPECT_EQ(c->get_pointer<float[X]>("devspec.mtr[" + std::to_string(i) + "].npoly"), &c->devspec.mtr[i].npoly);
+        for(size_t j = 0; j < sizeof(c->devspec.mtr[i].npoly)/sizeof(c->devspec.mtr[i].npoly[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<float>("devspec.mtr[" + std::to_string(i) + "].npoly[" + std::to_string(j) + "]"), &c->devspec.mtr[i].npoly[j]);
 		}
-		//EXPECT_EQ(c->get_pointer<float[X]>("device[" + std::to_string(i) + "].mtr.ppoly"), &c->device[i].mtr.ppoly);
-		for(size_t j = 0; j < sizeof(c->device[i].mtr.ppoly)/sizeof(c->device[i].mtr.ppoly[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].mtr.ppoly[" + std::to_string(j) + "]"), &c->device[i].mtr.ppoly[j]);
+        //EXPECT_EQ(c->get_pointer<float[X]>("devspec.mtr[" + std::to_string(i) + "].ppoly"), &c->devspec.mtr[i].ppoly);
+        for(size_t j = 0; j < sizeof(c->devspec.mtr[i].ppoly)/sizeof(c->devspec.mtr[i].ppoly[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<float>("devspec.mtr[" + std::to_string(i) + "].ppoly[" + std::to_string(j) + "]"), &c->devspec.mtr[i].ppoly[j]);
 		}
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].mtr.mxmom"), &c->device[i].mtr.mxmom);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].mtr.tc"), &c->device[i].mtr.tc);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].mtr.rmom"), &c->device[i].mtr.rmom);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].mtr.mom"), &c->device[i].mtr.mom);
-		EXPECT_EQ(c->get_pointer<ploadstruc>("device[" + std::to_string(i) + "].pload"), &c->device[i].pload);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].pload.key_cnt"), &c->device[i].pload.key_cnt);
-		//EXPECT_EQ(c->get_pointer<uint16_t[X]>("device[" + std::to_string(i) + "].pload.keyidx"), &c->device[i].pload.keyidx);
-		for(size_t j = 0; j < sizeof(c->device[i].pload.keyidx)/sizeof(c->device[i].pload.keyidx[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].pload.keyidx[" + std::to_string(j) + "]"), &c->device[i].pload.keyidx[j]);
+        EXPECT_EQ(c->get_pointer<float>("devspec.mtr[" + std::to_string(i) + "].mxmom"), &c->devspec.mtr[i].mxmom);
+        EXPECT_EQ(c->get_pointer<float>("devspec.mtr[" + std::to_string(i) + "].tc"), &c->devspec.mtr[i].tc);
+        EXPECT_EQ(c->get_pointer<float>("devspec.mtr[" + std::to_string(i) + "].rmom"), &c->devspec.mtr[i].rmom);
+        EXPECT_EQ(c->get_pointer<float>("devspec.mtr[" + std::to_string(i) + "].mom"), &c->devspec.mtr[i].mom);
+    }
+    for(size_t i = 0; i < c->devspec.pload.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<ploadstruc>("devspec.pload[" + std::to_string(i) + "]"), &c->devspec.pload[i]);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.pload[" + std::to_string(i) + "].key_cnt"), &c->devspec.pload[i].key_cnt);
+        //EXPECT_EQ(c->get_pointer<uint16_t[X]>("devspec.pload[" + std::to_string(i) + "].keyidx"), &c->devspec.pload[i].keyidx);
+        for(size_t j = 0; j < sizeof(c->devspec.pload[i].keyidx)/sizeof(c->devspec.pload[i].keyidx[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<uint16_t>("devspec.pload[" + std::to_string(i) + "].keyidx[" + std::to_string(j) + "]"), &c->devspec.pload[i].keyidx[j]);
 		}
-		//EXPECT_EQ(c->get_pointer<float[X]>("device[" + std::to_string(i) + "].pload.keyval"), &c->device[i].pload.keyval);
-		for(size_t j = 0; j < sizeof(c->device[i].pload.keyval)/sizeof(c->device[i].pload.keyval[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].pload.keyval[" + std::to_string(j) + "]"), &c->device[i].pload.keyval[j]);
+        //EXPECT_EQ(c->get_pointer<float[X]>("devspec.pload[" + std::to_string(i) + "].keyval"), &c->devspec.pload[i].keyval);
+        for(size_t j = 0; j < sizeof(c->devspec.pload[i].keyval)/sizeof(c->devspec.pload[i].keyval[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<float>("devspec.pload[" + std::to_string(i) + "].keyval[" + std::to_string(j) + "]"), &c->devspec.pload[i].keyval[j]);
 		}
-		EXPECT_EQ(c->get_pointer<propstruc>("device[" + std::to_string(i) + "].prop"), &c->device[i].prop);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].prop.cap"), &c->device[i].prop.cap);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].prop.lev"), &c->device[i].prop.lev);
-		EXPECT_EQ(c->get_pointer<psenstruc>("device[" + std::to_string(i) + "].psen"), &c->device[i].psen);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].psen.press"), &c->device[i].psen.press);
-		EXPECT_EQ(c->get_pointer<pvstrgstruc>("device[" + std::to_string(i) + "].pvstrg"), &c->device[i].pvstrg);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].pvstrg.bcidx"), &c->device[i].pvstrg.bcidx);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].pvstrg.effbase"), &c->device[i].pvstrg.effbase);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].pvstrg.effslope"), &c->device[i].pvstrg.effslope);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].pvstrg.maxpower"), &c->device[i].pvstrg.maxpower);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].pvstrg.power"), &c->device[i].pvstrg.power);
-		EXPECT_EQ(c->get_pointer<rotstruc>("device[" + std::to_string(i) + "].rot"), &c->device[i].rot);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rot.angle"), &c->device[i].rot.angle);
-		EXPECT_EQ(c->get_pointer<rwstruc>("device[" + std::to_string(i) + "].rw"), &c->device[i].rw);
-		EXPECT_EQ(c->get_pointer<quaternion>("device[" + std::to_string(i) + "].rw.align"), &c->device[i].rw.align);
-		EXPECT_EQ(c->get_pointer<cvector>("device[" + std::to_string(i) + "].rw.align.d"), &c->device[i].rw.align.d);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].rw.align.d.x"), &c->device[i].rw.align.d.x);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].rw.align.d.y"), &c->device[i].rw.align.d.y);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].rw.align.d.z"), &c->device[i].rw.align.d.z);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].rw.align.w"), &c->device[i].rw.align.w);
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].rw.mom"), &c->device[i].rw.mom);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].rw.mom.col"), &c->device[i].rw.mom.col);
-		for(size_t j = 0; j < sizeof(c->device[i].rw.mom.col)/sizeof(c->device[i].rw.mom.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].rw.mom.col[" + std::to_string(j) + "]"), &c->device[i].rw.mom.col[j]);
+    }
+    for(size_t i = 0; i < c->devspec.prop.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<propstruc>("devspec.prop[" + std::to_string(i) + "]"), &c->devspec.prop[i]);
+        EXPECT_EQ(c->get_pointer<float>("devspec.prop[" + std::to_string(i) + "].cap"), &c->devspec.prop[i].cap);
+        EXPECT_EQ(c->get_pointer<float>("devspec.prop[" + std::to_string(i) + "].lev"), &c->devspec.prop[i].lev);
+    }
+    for(size_t i = 0; i < c->devspec.psen.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<psenstruc>("devspec.psen[" + std::to_string(i) + "]"), &c->devspec.psen[i]);
+        EXPECT_EQ(c->get_pointer<float>("devspec.psen[" + std::to_string(i) + "].press"), &c->devspec.psen[i].press);
+    }
+    for(size_t i = 0; i < c->devspec.pvstrg.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<pvstrgstruc>("devspec.pvstrg[" + std::to_string(i) + "]"), &c->devspec.pvstrg[i]);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.pvstrg[" + std::to_string(i) + "].bcidx"), &c->devspec.pvstrg[i].bcidx);
+        EXPECT_EQ(c->get_pointer<float>("devspec.pvstrg[" + std::to_string(i) + "].effbase"), &c->devspec.pvstrg[i].effbase);
+        EXPECT_EQ(c->get_pointer<float>("devspec.pvstrg[" + std::to_string(i) + "].effslope"), &c->devspec.pvstrg[i].effslope);
+        EXPECT_EQ(c->get_pointer<float>("devspec.pvstrg[" + std::to_string(i) + "].maxpower"), &c->devspec.pvstrg[i].maxpower);
+        EXPECT_EQ(c->get_pointer<float>("devspec.pvstrg[" + std::to_string(i) + "].power"), &c->devspec.pvstrg[i].power);
+    }
+    for(size_t i = 0; i < c->devspec.rot.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<rotstruc>("devspec.rot[" + std::to_string(i) + "]"), &c->devspec.rot[i]);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rot[" + std::to_string(i) + "].angle"), &c->devspec.rot[i].angle);
+    }
+    for(size_t i = 0; i < c->devspec.rw.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<rwstruc>("devspec.rw[" + std::to_string(i) + "]"), &c->devspec.rw[i]);
+        EXPECT_EQ(c->get_pointer<quaternion>("devspec.rw[" + std::to_string(i) + "].align"), &c->devspec.rw[i].align);
+        EXPECT_EQ(c->get_pointer<cvector>("devspec.rw[" + std::to_string(i) + "].align.d"), &c->devspec.rw[i].align.d);
+        EXPECT_EQ(c->get_pointer<double>("devspec.rw[" + std::to_string(i) + "].align.d.x"), &c->devspec.rw[i].align.d.x);
+        EXPECT_EQ(c->get_pointer<double>("devspec.rw[" + std::to_string(i) + "].align.d.y"), &c->devspec.rw[i].align.d.y);
+        EXPECT_EQ(c->get_pointer<double>("devspec.rw[" + std::to_string(i) + "].align.d.z"), &c->devspec.rw[i].align.d.z);
+        EXPECT_EQ(c->get_pointer<double>("devspec.rw[" + std::to_string(i) + "].align.w"), &c->devspec.rw[i].align.w);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.rw[" + std::to_string(i) + "].mom"), &c->devspec.rw[i].mom);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.rw[" + std::to_string(i) + "].mom.col"), &c->devspec.rw[i].mom.col);
+        for(size_t j = 0; j < sizeof(c->devspec.rw[i].mom.col)/sizeof(c->devspec.rw[i].mom.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.rw[" + std::to_string(i) + "].mom.col[" + std::to_string(j) + "]"), &c->devspec.rw[i].mom.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rw.mxomg"), &c->device[i].rw.mxomg);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rw.mxalp"), &c->device[i].rw.mxalp);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rw.tc"), &c->device[i].rw.tc);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rw.omg"), &c->device[i].rw.omg);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rw.alp"), &c->device[i].rw.alp);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rw.romg"), &c->device[i].rw.romg);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rw.ralp"), &c->device[i].rw.ralp);
-		EXPECT_EQ(c->get_pointer<rxrstruc>("device[" + std::to_string(i) + "].rxr"), &c->device[i].rxr);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].rxr.opmode"), &c->device[i].rxr.opmode);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].rxr.modulation"), &c->device[i].rxr.modulation);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].rxr.rssi"), &c->device[i].rxr.rssi);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].rxr.pktsize"), &c->device[i].rxr.pktsize);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].rxr.freq"), &c->device[i].rxr.freq);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].rxr.maxfreq"), &c->device[i].rxr.maxfreq);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].rxr.minfreq"), &c->device[i].rxr.minfreq);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rxr.powerin"), &c->device[i].rxr.powerin);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rxr.powerout"), &c->device[i].rxr.powerout);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rxr.maxpower"), &c->device[i].rxr.maxpower);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rxr.band"), &c->device[i].rxr.band);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].rxr.squelch_tone"), &c->device[i].rxr.squelch_tone);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].rxr.goodratio"), &c->device[i].rxr.goodratio);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].rxr.rxutc"), &c->device[i].rxr.rxutc);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].rxr.uptime"), &c->device[i].rxr.uptime);
-		EXPECT_EQ(c->get_pointer<ssenstruc>("device[" + std::to_string(i) + "].ssen"), &c->device[i].ssen);
-		EXPECT_EQ(c->get_pointer<quaternion>("device[" + std::to_string(i) + "].ssen.align"), &c->device[i].ssen.align);
-		EXPECT_EQ(c->get_pointer<cvector>("device[" + std::to_string(i) + "].ssen.align.d"), &c->device[i].ssen.align.d);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].ssen.align.d.x"), &c->device[i].ssen.align.d.x);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].ssen.align.d.y"), &c->device[i].ssen.align.d.y);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].ssen.align.d.z"), &c->device[i].ssen.align.d.z);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].ssen.align.w"), &c->device[i].ssen.align.w);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ssen.qva"), &c->device[i].ssen.qva);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ssen.qvb"), &c->device[i].ssen.qvb);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ssen.qvc"), &c->device[i].ssen.qvc);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ssen.qvd"), &c->device[i].ssen.qvd);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ssen.azimuth"), &c->device[i].ssen.azimuth);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].ssen.elevation"), &c->device[i].ssen.elevation);
-		EXPECT_EQ(c->get_pointer<sttstruc>("device[" + std::to_string(i) + "].stt"), &c->device[i].stt);
-		EXPECT_EQ(c->get_pointer<quaternion>("device[" + std::to_string(i) + "].stt.align"), &c->device[i].stt.align);
-		EXPECT_EQ(c->get_pointer<cvector>("device[" + std::to_string(i) + "].stt.align.d"), &c->device[i].stt.align.d);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].stt.align.d.x"), &c->device[i].stt.align.d.x);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].stt.align.d.y"), &c->device[i].stt.align.d.y);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].stt.align.d.z"), &c->device[i].stt.align.d.z);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].stt.align.w"), &c->device[i].stt.align.w);
-		EXPECT_EQ(c->get_pointer<quaternion>("device[" + std::to_string(i) + "].stt.att"), &c->device[i].stt.att);
-		EXPECT_EQ(c->get_pointer<cvector>("device[" + std::to_string(i) + "].stt.att.d"), &c->device[i].stt.att.d);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].stt.att.d.x"), &c->device[i].stt.att.d.x);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].stt.att.d.y"), &c->device[i].stt.att.d.y);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].stt.att.d.z"), &c->device[i].stt.att.d.z);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].stt.att.w"), &c->device[i].stt.att.w);
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].stt.omega"), &c->device[i].stt.omega);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].stt.omega.col"), &c->device[i].stt.omega.col);
-		for(size_t j = 0; j < sizeof(c->device[i].stt.omega.col)/sizeof(c->device[i].stt.omega.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].stt.omega.col[" + std::to_string(j) + "]"), &c->device[i].stt.omega.col[j]);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rw[" + std::to_string(i) + "].mxomg"), &c->devspec.rw[i].mxomg);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rw[" + std::to_string(i) + "].mxalp"), &c->devspec.rw[i].mxalp);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rw[" + std::to_string(i) + "].tc"), &c->devspec.rw[i].tc);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rw[" + std::to_string(i) + "].omg"), &c->devspec.rw[i].omg);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rw[" + std::to_string(i) + "].alp"), &c->devspec.rw[i].alp);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rw[" + std::to_string(i) + "].romg"), &c->devspec.rw[i].romg);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rw[" + std::to_string(i) + "].ralp"), &c->devspec.rw[i].ralp);
+    }
+    for(size_t i = 0; i < c->devspec.rxr.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<rxrstruc>("devspec.rxr[" + std::to_string(i) + "]"), &c->devspec.rxr[i]);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.rxr[" + std::to_string(i) + "].opmode"), &c->devspec.rxr[i].opmode);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.rxr[" + std::to_string(i) + "].modulation"), &c->devspec.rxr[i].modulation);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.rxr[" + std::to_string(i) + "].rssi"), &c->devspec.rxr[i].rssi);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.rxr[" + std::to_string(i) + "].pktsize"), &c->devspec.rxr[i].pktsize);
+        EXPECT_EQ(c->get_pointer<double>("devspec.rxr[" + std::to_string(i) + "].freq"), &c->devspec.rxr[i].freq);
+        EXPECT_EQ(c->get_pointer<double>("devspec.rxr[" + std::to_string(i) + "].maxfreq"), &c->devspec.rxr[i].maxfreq);
+        EXPECT_EQ(c->get_pointer<double>("devspec.rxr[" + std::to_string(i) + "].minfreq"), &c->devspec.rxr[i].minfreq);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rxr[" + std::to_string(i) + "].powerin"), &c->devspec.rxr[i].powerin);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rxr[" + std::to_string(i) + "].powerout"), &c->devspec.rxr[i].powerout);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rxr[" + std::to_string(i) + "].maxpower"), &c->devspec.rxr[i].maxpower);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rxr[" + std::to_string(i) + "].band"), &c->devspec.rxr[i].band);
+        EXPECT_EQ(c->get_pointer<float>("devspec.rxr[" + std::to_string(i) + "].squelch_tone"), &c->devspec.rxr[i].squelch_tone);
+        EXPECT_EQ(c->get_pointer<double>("devspec.rxr[" + std::to_string(i) + "].goodratio"), &c->devspec.rxr[i].goodratio);
+        EXPECT_EQ(c->get_pointer<double>("devspec.rxr[" + std::to_string(i) + "].rxutc"), &c->devspec.rxr[i].rxutc);
+        EXPECT_EQ(c->get_pointer<double>("devspec.rxr[" + std::to_string(i) + "].uptime"), &c->devspec.rxr[i].uptime);
+    }
+    for(size_t i = 0; i < c->devspec.ssen.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<ssenstruc>("devspec.ssen[" + std::to_string(i) + "]"), &c->devspec.ssen[i]);
+        EXPECT_EQ(c->get_pointer<quaternion>("devspec.ssen[" + std::to_string(i) + "].align"), &c->devspec.ssen[i].align);
+        EXPECT_EQ(c->get_pointer<cvector>("devspec.ssen[" + std::to_string(i) + "].align.d"), &c->devspec.ssen[i].align.d);
+        EXPECT_EQ(c->get_pointer<double>("devspec.ssen[" + std::to_string(i) + "].align.d.x"), &c->devspec.ssen[i].align.d.x);
+        EXPECT_EQ(c->get_pointer<double>("devspec.ssen[" + std::to_string(i) + "].align.d.y"), &c->devspec.ssen[i].align.d.y);
+        EXPECT_EQ(c->get_pointer<double>("devspec.ssen[" + std::to_string(i) + "].align.d.z"), &c->devspec.ssen[i].align.d.z);
+        EXPECT_EQ(c->get_pointer<double>("devspec.ssen[" + std::to_string(i) + "].align.w"), &c->devspec.ssen[i].align.w);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ssen[" + std::to_string(i) + "].qva"), &c->devspec.ssen[i].qva);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ssen[" + std::to_string(i) + "].qvb"), &c->devspec.ssen[i].qvb);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ssen[" + std::to_string(i) + "].qvc"), &c->devspec.ssen[i].qvc);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ssen[" + std::to_string(i) + "].qvd"), &c->devspec.ssen[i].qvd);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ssen[" + std::to_string(i) + "].azimuth"), &c->devspec.ssen[i].azimuth);
+        EXPECT_EQ(c->get_pointer<float>("devspec.ssen[" + std::to_string(i) + "].elevation"), &c->devspec.ssen[i].elevation);
+    }
+    for(size_t i = 0; i < c->devspec.stt.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<sttstruc>("devspec.stt[" + std::to_string(i) + "]"), &c->devspec.stt[i]);
+        EXPECT_EQ(c->get_pointer<quaternion>("devspec.stt[" + std::to_string(i) + "].align"), &c->devspec.stt[i].align);
+        EXPECT_EQ(c->get_pointer<cvector>("devspec.stt[" + std::to_string(i) + "].align.d"), &c->devspec.stt[i].align.d);
+        EXPECT_EQ(c->get_pointer<double>("devspec.stt[" + std::to_string(i) + "].align.d.x"), &c->devspec.stt[i].align.d.x);
+        EXPECT_EQ(c->get_pointer<double>("devspec.stt[" + std::to_string(i) + "].align.d.y"), &c->devspec.stt[i].align.d.y);
+        EXPECT_EQ(c->get_pointer<double>("devspec.stt[" + std::to_string(i) + "].align.d.z"), &c->devspec.stt[i].align.d.z);
+        EXPECT_EQ(c->get_pointer<double>("devspec.stt[" + std::to_string(i) + "].align.w"), &c->devspec.stt[i].align.w);
+        EXPECT_EQ(c->get_pointer<quaternion>("devspec.stt[" + std::to_string(i) + "].att"), &c->devspec.stt[i].att);
+        EXPECT_EQ(c->get_pointer<cvector>("devspec.stt[" + std::to_string(i) + "].att.d"), &c->devspec.stt[i].att.d);
+        EXPECT_EQ(c->get_pointer<double>("devspec.stt[" + std::to_string(i) + "].att.d.x"), &c->devspec.stt[i].att.d.x);
+        EXPECT_EQ(c->get_pointer<double>("devspec.stt[" + std::to_string(i) + "].att.d.y"), &c->devspec.stt[i].att.d.y);
+        EXPECT_EQ(c->get_pointer<double>("devspec.stt[" + std::to_string(i) + "].att.d.z"), &c->devspec.stt[i].att.d.z);
+        EXPECT_EQ(c->get_pointer<double>("devspec.stt[" + std::to_string(i) + "].att.w"), &c->devspec.stt[i].att.w);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.stt[" + std::to_string(i) + "].omega"), &c->devspec.stt[i].omega);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.stt[" + std::to_string(i) + "].omega.col"), &c->devspec.stt[i].omega.col);
+        for(size_t j = 0; j < sizeof(c->devspec.stt[i].omega.col)/sizeof(c->devspec.stt[i].omega.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.stt[" + std::to_string(i) + "].omega.col[" + std::to_string(j) + "]"), &c->devspec.stt[i].omega.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<rvector>("device[" + std::to_string(i) + "].stt.alpha"), &c->device[i].stt.alpha);
-		//EXPECT_EQ(c->get_pointer<double[X]>("device[" + std::to_string(i) + "].stt.alpha.col"), &c->device[i].stt.alpha.col);
-		for(size_t j = 0; j < sizeof(c->device[i].stt.alpha.col)/sizeof(c->device[i].stt.alpha.col[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].stt.alpha.col[" + std::to_string(j) + "]"), &c->device[i].stt.alpha.col[j]);
+        EXPECT_EQ(c->get_pointer<rvector>("devspec.stt[" + std::to_string(i) + "].alpha"), &c->devspec.stt[i].alpha);
+        //EXPECT_EQ(c->get_pointer<double[X]>("devspec.stt[" + std::to_string(i) + "].alpha.col"), &c->devspec.stt[i].alpha.col);
+        for(size_t j = 0; j < sizeof(c->devspec.stt[i].alpha.col)/sizeof(c->devspec.stt[i].alpha.col[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<double>("devspec.stt[" + std::to_string(i) + "].alpha.col[" + std::to_string(j) + "]"), &c->devspec.stt[i].alpha.col[j]);
 		}
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].stt.retcode"), &c->device[i].stt.retcode);
-		EXPECT_EQ(c->get_pointer<uint32_t>("device[" + std::to_string(i) + "].stt.status"), &c->device[i].stt.status);
-		EXPECT_EQ(c->get_pointer<suchistruc>("device[" + std::to_string(i) + "].suchi"), &c->device[i].suchi);
-		EXPECT_EQ(c->get_pointer<quaternion>("device[" + std::to_string(i) + "].suchi.align"), &c->device[i].suchi.align);
-		EXPECT_EQ(c->get_pointer<cvector>("device[" + std::to_string(i) + "].suchi.align.d"), &c->device[i].suchi.align.d);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].suchi.align.d.x"), &c->device[i].suchi.align.d.x);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].suchi.align.d.y"), &c->device[i].suchi.align.d.y);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].suchi.align.d.z"), &c->device[i].suchi.align.d.z);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].suchi.align.w"), &c->device[i].suchi.align.w);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].suchi.press"), &c->device[i].suchi.press);
-		//EXPECT_EQ(c->get_pointer<float[X]>("device[" + std::to_string(i) + "].suchi.temps"), &c->device[i].suchi.temps);
-		for(size_t j = 0; j < sizeof(c->device[i].suchi.temps)/sizeof(c->device[i].suchi.temps[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].suchi.temps[" + std::to_string(j) + "]"), &c->device[i].suchi.temps[j]);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.stt[" + std::to_string(i) + "].retcode"), &c->devspec.stt[i].retcode);
+        EXPECT_EQ(c->get_pointer<uint32_t>("devspec.stt[" + std::to_string(i) + "].status"), &c->devspec.stt[i].status);
+    }
+    for(size_t i = 0; i < c->devspec.suchi.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<suchistruc>("devspec.suchi[" + std::to_string(i) + "]"), &c->devspec.suchi[i]);
+        EXPECT_EQ(c->get_pointer<quaternion>("devspec.suchi[" + std::to_string(i) + "].align"), &c->devspec.suchi[i].align);
+        EXPECT_EQ(c->get_pointer<cvector>("devspec.suchi[" + std::to_string(i) + "].align.d"), &c->devspec.suchi[i].align.d);
+        EXPECT_EQ(c->get_pointer<double>("devspec.suchi[" + std::to_string(i) + "].align.d.x"), &c->devspec.suchi[i].align.d.x);
+        EXPECT_EQ(c->get_pointer<double>("devspec.suchi[" + std::to_string(i) + "].align.d.y"), &c->devspec.suchi[i].align.d.y);
+        EXPECT_EQ(c->get_pointer<double>("devspec.suchi[" + std::to_string(i) + "].align.d.z"), &c->devspec.suchi[i].align.d.z);
+        EXPECT_EQ(c->get_pointer<double>("devspec.suchi[" + std::to_string(i) + "].align.w"), &c->devspec.suchi[i].align.w);
+        EXPECT_EQ(c->get_pointer<float>("devspec.suchi[" + std::to_string(i) + "].press"), &c->devspec.suchi[i].press);
+        //EXPECT_EQ(c->get_pointer<float[X]>("devspec.suchi[" + std::to_string(i) + "].temps"), &c->devspec.suchi[i].temps);
+        for(size_t j = 0; j < sizeof(c->devspec.suchi[i].temps)/sizeof(c->devspec.suchi[i].temps[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<float>("devspec.suchi[" + std::to_string(i) + "].temps[" + std::to_string(j) + "]"), &c->devspec.suchi[i].temps[j]);
 		}
-		EXPECT_EQ(c->get_pointer<swchstruc>("device[" + std::to_string(i) + "].swch"), &c->device[i].swch);
-		EXPECT_EQ(c->get_pointer<tcustruc>("device[" + std::to_string(i) + "].tcu"), &c->device[i].tcu);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].tcu.mcnt"), &c->device[i].tcu.mcnt);
-		//EXPECT_EQ(c->get_pointer<uint16_t[X]>("device[" + std::to_string(i) + "].tcu.mcidx"), &c->device[i].tcu.mcidx);
-		for(size_t j = 0; j < sizeof(c->device[i].tcu.mcidx)/sizeof(c->device[i].tcu.mcidx[0]); ++j) {
-			EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].tcu.mcidx[" + std::to_string(j) + "]"), &c->device[i].tcu.mcidx[j]);
+    }
+    for(size_t i = 0; i < c->devspec.swch.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<swchstruc>("devspec.swch[" + std::to_string(i) + "]"), &c->devspec.swch[i]);
+    }
+    for(size_t i = 0; i < c->devspec.tcu.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<tcustruc>("devspec.tcu[" + std::to_string(i) + "]"), &c->devspec.tcu[i]);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.tcu[" + std::to_string(i) + "].mcnt"), &c->devspec.tcu[i].mcnt);
+        //EXPECT_EQ(c->get_pointer<uint16_t[X]>("devspec.tcu[" + std::to_string(i) + "].mcidx"), &c->devspec.tcu[i].mcidx);
+        for(size_t j = 0; j < sizeof(c->devspec.tcu[i].mcidx)/sizeof(c->devspec.tcu[i].mcidx[0]); ++j) {
+            EXPECT_EQ(c->get_pointer<uint16_t>("devspec.tcu[" + std::to_string(i) + "].mcidx[" + std::to_string(j) + "]"), &c->devspec.tcu[i].mcidx[j]);
 		}
-		EXPECT_EQ(c->get_pointer<tcvstruc>("device[" + std::to_string(i) + "].tcv"), &c->device[i].tcv);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].tcv.opmode"), &c->device[i].tcv.opmode);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].tcv.modulation"), &c->device[i].tcv.modulation);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].tcv.rssi"), &c->device[i].tcv.rssi);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].tcv.pktsize"), &c->device[i].tcv.pktsize);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].tcv.freq"), &c->device[i].tcv.freq);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].tcv.maxfreq"), &c->device[i].tcv.maxfreq);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].tcv.minfreq"), &c->device[i].tcv.minfreq);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].tcv.powerin"), &c->device[i].tcv.powerin);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].tcv.powerout"), &c->device[i].tcv.powerout);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].tcv.maxpower"), &c->device[i].tcv.maxpower);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].tcv.band"), &c->device[i].tcv.band);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].tcv.squelch_tone"), &c->device[i].tcv.squelch_tone);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].tcv.goodratio"), &c->device[i].tcv.goodratio);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].tcv.txutc"), &c->device[i].tcv.txutc);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].tcv.rxutc"), &c->device[i].tcv.rxutc);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].tcv.uptime"), &c->device[i].tcv.uptime);
-		EXPECT_EQ(c->get_pointer<telemstruc>("device[" + std::to_string(i) + "].telem"), &c->device[i].telem);
-		EXPECT_EQ(c->get_pointer<uint8_t>("device[" + std::to_string(i) + "].telem.vuint8"), &c->device[i].telem.vuint8);
-		EXPECT_EQ(c->get_pointer<int8_t>("device[" + std::to_string(i) + "].telem.vint8"), &c->device[i].telem.vint8);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].telem.vuint16"), &c->device[i].telem.vuint16);
-		EXPECT_EQ(c->get_pointer<int16_t>("device[" + std::to_string(i) + "].telem.vint16"), &c->device[i].telem.vint16);
-		EXPECT_EQ(c->get_pointer<uint32_t>("device[" + std::to_string(i) + "].telem.vuint32"), &c->device[i].telem.vuint32);
-		EXPECT_EQ(c->get_pointer<int32_t>("device[" + std::to_string(i) + "].telem.vint32"), &c->device[i].telem.vint32);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].telem.vfloat"), &c->device[i].telem.vfloat);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].telem.vdouble"), &c->device[i].telem.vdouble);
-		//EXPECT_EQ(c->get_pointer<char[X]>("device[" + std::to_string(i) + "].telem.vstring"), &c->device[i].telem.vstring);
-		EXPECT_EQ(c->get_pointer<thststruc>("device[" + std::to_string(i) + "].thst"), &c->device[i].thst);
-		EXPECT_EQ(c->get_pointer<quaternion>("device[" + std::to_string(i) + "].thst.align"), &c->device[i].thst.align);
-		EXPECT_EQ(c->get_pointer<cvector>("device[" + std::to_string(i) + "].thst.align.d"), &c->device[i].thst.align.d);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].thst.align.d.x"), &c->device[i].thst.align.d.x);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].thst.align.d.y"), &c->device[i].thst.align.d.y);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].thst.align.d.z"), &c->device[i].thst.align.d.z);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].thst.align.w"), &c->device[i].thst.align.w);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].thst.flw"), &c->device[i].thst.flw);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].thst.isp"), &c->device[i].thst.isp);
-		EXPECT_EQ(c->get_pointer<tncstruc>("device[" + std::to_string(i) + "].tnc"), &c->device[i].tnc);
-		EXPECT_EQ(c->get_pointer<tsenstruc>("device[" + std::to_string(i) + "].tsen"), &c->device[i].tsen);
-		EXPECT_EQ(c->get_pointer<txrstruc>("device[" + std::to_string(i) + "].txr"), &c->device[i].txr);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].txr.opmode"), &c->device[i].txr.opmode);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].txr.modulation"), &c->device[i].txr.modulation);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].txr.rssi"), &c->device[i].txr.rssi);
-		EXPECT_EQ(c->get_pointer<uint16_t>("device[" + std::to_string(i) + "].txr.pktsize"), &c->device[i].txr.pktsize);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].txr.freq"), &c->device[i].txr.freq);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].txr.maxfreq"), &c->device[i].txr.maxfreq);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].txr.minfreq"), &c->device[i].txr.minfreq);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].txr.powerin"), &c->device[i].txr.powerin);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].txr.powerout"), &c->device[i].txr.powerout);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].txr.maxpower"), &c->device[i].txr.maxpower);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].txr.band"), &c->device[i].txr.band);
-		EXPECT_EQ(c->get_pointer<float>("device[" + std::to_string(i) + "].txr.squelch_tone"), &c->device[i].txr.squelch_tone);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].txr.goodratio"), &c->device[i].txr.goodratio);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].txr.txutc"), &c->device[i].txr.txutc);
-		EXPECT_EQ(c->get_pointer<double>("device[" + std::to_string(i) + "].txr.uptime"), &c->device[i].txr.uptime);
+    }
+    for(size_t i = 0; i < c->devspec.tcv.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<tcvstruc>("devspec.tcv[" + std::to_string(i) + "]"), &c->devspec.tcv[i]);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.tcv[" + std::to_string(i) + "].opmode"), &c->devspec.tcv[i].opmode);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.tcv[" + std::to_string(i) + "].modulation"), &c->devspec.tcv[i].modulation);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.tcv[" + std::to_string(i) + "].rssi"), &c->devspec.tcv[i].rssi);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.tcv[" + std::to_string(i) + "].pktsize"), &c->devspec.tcv[i].pktsize);
+        EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].freq"), &c->devspec.tcv[i].freq);
+        EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].maxfreq"), &c->devspec.tcv[i].maxfreq);
+        EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].minfreq"), &c->devspec.tcv[i].minfreq);
+        EXPECT_EQ(c->get_pointer<float>("devspec.tcv[" + std::to_string(i) + "].powerin"), &c->devspec.tcv[i].powerin);
+        EXPECT_EQ(c->get_pointer<float>("devspec.tcv[" + std::to_string(i) + "].powerout"), &c->devspec.tcv[i].powerout);
+        EXPECT_EQ(c->get_pointer<float>("devspec.tcv[" + std::to_string(i) + "].maxpower"), &c->devspec.tcv[i].maxpower);
+        EXPECT_EQ(c->get_pointer<float>("devspec.tcv[" + std::to_string(i) + "].band"), &c->devspec.tcv[i].band);
+        EXPECT_EQ(c->get_pointer<float>("devspec.tcv[" + std::to_string(i) + "].squelch_tone"), &c->devspec.tcv[i].squelch_tone);
+        EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].goodratio"), &c->devspec.tcv[i].goodratio);
+        EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].txutc"), &c->devspec.tcv[i].txutc);
+        EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].rxutc"), &c->devspec.tcv[i].rxutc);
+        EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].uptime"), &c->devspec.tcv[i].uptime);
+    }
+    for(size_t i = 0; i < c->devspec.telem.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<telemstruc>("devspec.telem[" + std::to_string(i) + "]"), &c->devspec.telem[i]);
+        EXPECT_EQ(c->get_pointer<uint8_t>("devspec.telem[" + std::to_string(i) + "].vuint8"), &c->devspec.telem[i].vuint8);
+        EXPECT_EQ(c->get_pointer<int8_t>("devspec.telem[" + std::to_string(i) + "].vint8"), &c->devspec.telem[i].vint8);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.telem[" + std::to_string(i) + "].vuint16"), &c->devspec.telem[i].vuint16);
+        EXPECT_EQ(c->get_pointer<int16_t>("devspec.telem[" + std::to_string(i) + "].vint16"), &c->devspec.telem[i].vint16);
+        EXPECT_EQ(c->get_pointer<uint32_t>("devspec.telem[" + std::to_string(i) + "].vuint32"), &c->devspec.telem[i].vuint32);
+        EXPECT_EQ(c->get_pointer<int32_t>("devspec.telem[" + std::to_string(i) + "].vint32"), &c->devspec.telem[i].vint32);
+        EXPECT_EQ(c->get_pointer<float>("devspec.telem[" + std::to_string(i) + "].vfloat"), &c->devspec.telem[i].vfloat);
+        EXPECT_EQ(c->get_pointer<double>("devspec.telem[" + std::to_string(i) + "].vdouble"), &c->devspec.telem[i].vdouble);
+        //EXPECT_EQ(c->get_pointer<char[X]>("devspec.telem[" + std::to_string(i) + "].vstring"), &c->devspec.telem[i].vstring);
+    }
+    for(size_t i = 0; i < c->devspec.thst.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<thststruc>("devspec.thst[" + std::to_string(i) + "]"), &c->devspec.thst[i]);
+        EXPECT_EQ(c->get_pointer<quaternion>("devspec.thst[" + std::to_string(i) + "].align"), &c->devspec.thst[i].align);
+        EXPECT_EQ(c->get_pointer<cvector>("devspec.thst[" + std::to_string(i) + "].align.d"), &c->devspec.thst[i].align.d);
+        EXPECT_EQ(c->get_pointer<double>("devspec.thst[" + std::to_string(i) + "].align.d.x"), &c->devspec.thst[i].align.d.x);
+        EXPECT_EQ(c->get_pointer<double>("devspec.thst[" + std::to_string(i) + "].align.d.y"), &c->devspec.thst[i].align.d.y);
+        EXPECT_EQ(c->get_pointer<double>("devspec.thst[" + std::to_string(i) + "].align.d.z"), &c->devspec.thst[i].align.d.z);
+        EXPECT_EQ(c->get_pointer<double>("devspec.thst[" + std::to_string(i) + "].align.w"), &c->devspec.thst[i].align.w);
+        EXPECT_EQ(c->get_pointer<float>("devspec.thst[" + std::to_string(i) + "].flw"), &c->devspec.thst[i].flw);
+        EXPECT_EQ(c->get_pointer<float>("devspec.thst[" + std::to_string(i) + "].isp"), &c->devspec.thst[i].isp);
+    }
+    for(size_t i = 0; i < c->devspec.tnc.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<tncstruc>("devspec.tnc[" + std::to_string(i) + "]"), &c->devspec.tnc[i]);
+    }
+    for(size_t i = 0; i < c->devspec.tsen.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<tsenstruc>("devspec.tsen[" + std::to_string(i) + "]"), &c->devspec.tsen[i]);
+    }
+    for(size_t i = 0; i < c->devspec.txr.capacity(); ++i) {
+        EXPECT_EQ(c->get_pointer<txrstruc>("devspec.txr[" + std::to_string(i) + "]"), &c->devspec.txr[i]);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.txr[" + std::to_string(i) + "].opmode"), &c->devspec.txr[i].opmode);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.txr[" + std::to_string(i) + "].modulation"), &c->devspec.txr[i].modulation);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.txr[" + std::to_string(i) + "].rssi"), &c->devspec.txr[i].rssi);
+        EXPECT_EQ(c->get_pointer<uint16_t>("devspec.txr[" + std::to_string(i) + "].pktsize"), &c->devspec.txr[i].pktsize);
+        EXPECT_EQ(c->get_pointer<double>("devspec.txr[" + std::to_string(i) + "].freq"), &c->devspec.txr[i].freq);
+        EXPECT_EQ(c->get_pointer<double>("devspec.txr[" + std::to_string(i) + "].maxfreq"), &c->devspec.txr[i].maxfreq);
+        EXPECT_EQ(c->get_pointer<double>("devspec.txr[" + std::to_string(i) + "].minfreq"), &c->devspec.txr[i].minfreq);
+        EXPECT_EQ(c->get_pointer<float>("devspec.txr[" + std::to_string(i) + "].powerin"), &c->devspec.txr[i].powerin);
+        EXPECT_EQ(c->get_pointer<float>("devspec.txr[" + std::to_string(i) + "].powerout"), &c->devspec.txr[i].powerout);
+        EXPECT_EQ(c->get_pointer<float>("devspec.txr[" + std::to_string(i) + "].maxpower"), &c->devspec.txr[i].maxpower);
+        EXPECT_EQ(c->get_pointer<float>("devspec.txr[" + std::to_string(i) + "].band"), &c->devspec.txr[i].band);
+        EXPECT_EQ(c->get_pointer<float>("devspec.txr[" + std::to_string(i) + "].squelch_tone"), &c->devspec.txr[i].squelch_tone);
+        EXPECT_EQ(c->get_pointer<double>("devspec.txr[" + std::to_string(i) + "].goodratio"), &c->devspec.txr[i].goodratio);
+        EXPECT_EQ(c->get_pointer<double>("devspec.txr[" + std::to_string(i) + "].txutc"), &c->devspec.txr[i].txutc);
+        EXPECT_EQ(c->get_pointer<double>("devspec.txr[" + std::to_string(i) + "].uptime"), &c->devspec.txr[i].uptime);
 	}
 
 	// devspecstruc devspec
 	EXPECT_EQ(c->get_pointer<devspecstruc>("devspec"), &c->devspec);
-	EXPECT_EQ(c->get_pointer<uint16_t>("devspec.all_cnt"), &c->devspec.all_cnt);
 	EXPECT_EQ(c->get_pointer<uint16_t>("devspec.ant_cnt"), &c->devspec.ant_cnt);
 	EXPECT_EQ(c->get_pointer<uint16_t>("devspec.batt_cnt"), &c->devspec.batt_cnt);
 	EXPECT_EQ(c->get_pointer<uint16_t>("devspec.bus_cnt"), &c->devspec.bus_cnt);

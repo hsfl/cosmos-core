@@ -6,14 +6,13 @@ int main(int argc, char *argv[])
 {
     vector<tlestruc>lines;
     locstruc loc;
-    int32_t iretn;
 
     loc_clear(loc);
     string fname = argv[1];
     if (fname.find(".tle") != string::npos)
     {
-        iretn = load_lines(fname, lines);
-        iretn = lines2eci(lines[0].utc, lines, loc.pos.eci);
+        load_lines(fname, lines);
+        lines2eci(lines[0].utc, lines, loc.pos.eci);
     }
 
     tlestruc tle2;

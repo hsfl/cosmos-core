@@ -1804,11 +1804,11 @@ int32_t kml_write(cosmosstruc *cinfo)
     fout = data_open(path, (char *)"w");
     fprintf(fout,"<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n");
     fprintf(fout,"<Document>\n");
-    fprintf(fout,"<name>%s JD%5.0f</name>\n",cinfo->node.name,utc);
+    fprintf(fout,"<name>%s JD%5.0f</name>\n",cinfo->node.name.c_str(),utc);
     fprintf(fout,"<description>Track of node.</description>\n");
     fprintf(fout,"<Style id=\"yellowLineGreenPoly\">\n<LineStyle>\n<color>7f00ffff</color>\n<width>4</width>\n</LineStyle>\n");
     fprintf(fout,"<PolyStyle>\n<color>7f00ff00</color>\n</PolyStyle>\n</Style>\n");
-    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cinfo->node.name,utc);
+    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cinfo->node.name.c_str(),utc);
     fprintf(fout,"<styleUrl>#yellowLineGreenPoly</styleUrl>\n<LineString>\n<extrude>1</extrude>\n<tessellate>1</tessellate>\n<altitudeMode>absolute</altitudeMode>\n");
     fprintf(fout,"<coordinates>\n");
 

@@ -116,7 +116,8 @@ namespace Support
             return;
         }
 
-        strcpy(cinfo->node.name, nodeName.c_str());
+//        strcpy(cinfo->node.name, nodeName.c_str());
+        cinfo->node.name = node_name;
 
         cinfo->agent[0].client = 1;
         cinfo->node.utc = 0.;
@@ -142,7 +143,8 @@ namespace Support
             return;
         }
 
-        if (strlen(cinfo->node.name)>COSMOS_MAX_NAME || agent_name.length()>COSMOS_MAX_NAME) {
+//        if (strlen(cinfo->node.name)>COSMOS_MAX_NAME || agent_name.length()>COSMOS_MAX_NAME) {
+        if (cinfo->node.name.size() > COSMOS_MAX_NAME || agent_name.length()>COSMOS_MAX_NAME) {
             error_value = JSON_ERROR_NAME_LENGTH;
             shutdown();
             return;
@@ -160,7 +162,8 @@ namespace Support
             strcpy(tname,agent_name.c_str());
         } else {
         	// then there is an agent running with the given name, so let's make the name unique
-            if (strlen(cinfo->node.name)>COSMOS_MAX_NAME-4 || agent_name.size()>COSMOS_MAX_NAME-4) {
+//            if (strlen(cinfo->node.name)>COSMOS_MAX_NAME-4 || agent_name.size()>COSMOS_MAX_NAME-4) {
+            if (cinfo->node.name.size()>COSMOS_MAX_NAME-4 || agent_name.size()>COSMOS_MAX_NAME-4) {
                 error_value = JSON_ERROR_NAME_LENGTH;
                 shutdown();
                 return;
@@ -208,7 +211,7 @@ namespace Support
         cinfo->agent[0].pid = getpid();
 #endif
         cinfo->agent[0].aprd = 1.;
-        strncpy(cinfo->agent[0].beat.user, "cosmos", COSMOS_MAX_NAME);
+        cinfo->agent[0].beat.user = "cosmos";
 
         // Start the heartbeat and request threads running
         //    iretn = start();
@@ -2305,27 +2308,43 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     return (AGENT_ERROR_BUFLEN);
                 memcpy(&post[nbytes], &message[0], message.size());
             }
-            iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
-                    (const char *)post,                         // buffer to send
-                    nbytes+message.size(),                      // size of buffer
-                    0,                                          // flags
-                    (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
-                    sizeof(struct sockaddr_in)                  // size of address to socket pointer
-                    );
-            if (debug_level) {
-                debug_error.Printf("Post: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
-            }
             if (cinfo->agent[0].pub[i].flags & IFF_POINTOPOINT)
             {
-                iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+                if (cinfo->agent[0].ifcnt == 1)
+                {
+                    iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
                         (const char *)post,                         // buffer to send
                         nbytes+message.size(),                      // size of buffer
                         0,                                          // flags
                         (struct sockaddr *)&cinfo->agent[0].pub[i].caddr, // socket address
                         sizeof(struct sockaddr_in)                  // size of address to socket pointer
                         );
+                    if (debug_level) {
+                        debug_error.Printf("Post PTP Local: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
+                    }
+                }
+                iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+                        (const char *)post,                         // buffer to send
+                        nbytes+message.size(),                      // size of buffer
+                        0,                                          // flags
+                        (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
+                        sizeof(struct sockaddr_in)                  // size of address to socket pointer
+                        );
                 if (debug_level) {
-                    debug_error.Printf("Post: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
+                    debug_error.Printf("Post PTP Remote: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
+                }
+            }
+            else
+            {
+                iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+                        (const char *)post,                         // buffer to send
+                        nbytes+message.size(),                      // size of buffer
+                        0,                                          // flags
+                        (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
+                        sizeof(struct sockaddr_in)                  // size of address to socket pointer
+                        );
+                if (debug_level) {
+                    debug_error.Printf("Post Broadcast: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
                 }
             }
             if (iretn < 0)
@@ -2878,6 +2897,7 @@ acquired.
     int32_t Agent::set_debug_level(uint16_t level)
     {
         debug_level = level;
+        debug_error.Set(level,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
         return debug_error.Type(level);
     }
 
@@ -3015,7 +3035,7 @@ acquired.
             return pindex;
         }
         int32_t cindex = cinfo->pieces[pindex].cidx;
-        *device = &cinfo->device[cindex];
+        *device = cinfo->device[cindex];
         return cindex;
     }
 
@@ -3035,13 +3055,13 @@ acquired.
         }
 
         int32_t cindex = cinfo->pieces[pidx].cidx;
-        int32_t didx = cinfo->device[cindex].didx;
+        int32_t didx = cinfo->device[cindex]->didx;
         if(didx < 0) {
             return didx;
         }
 
         //! get the device type
-        uint16_t device_type = cinfo->device[cindex].type;
+        uint16_t device_type = cinfo->device[cindex]->type;
         string devtype = device_type_name(device_type);
 
         //! check if property exists in device
@@ -3155,12 +3175,12 @@ acquired.
             return pidx;
         }
         int32_t cindex = cinfo->pieces[pidx].cidx;
-        int32_t didx = cinfo->device[cindex].didx;
+        int32_t didx = cinfo->device[cindex]->didx;
         if(didx < 0) {
             return didx;
         }
 
-        uint16_t type = cinfo->device[cindex].type;
+        uint16_t type = cinfo->device[cindex]->type;
         string devtype = device_type_name(type);
         // check if property exists in device
 

@@ -236,19 +236,19 @@ int main(int argc, char *argv[])
         exit(iretn);
     }
     devindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-    antindex = agent->cinfo->device[devindex].didx;
-    agent->cinfo->device[devindex].ant.minelev = RADOF(5.);
+    antindex = agent->cinfo->device[devindex]->didx;
+    agent->cinfo->devspec.ant[antindex].minelev = RADOF(5.);
     if (antbase == "sband")
     {
-        agent->cinfo->device[devindex].model = DEVICE_MODEL_PRKX2SU;
+        agent->cinfo->devspec.ant[antindex].model = DEVICE_MODEL_PRKX2SU;
     }
     else if (antbase.find("loop") != string::npos)
     {
-        agent->cinfo->device[devindex].model = DEVICE_MODEL_LOOPBACK;
+        agent->cinfo->devspec.ant[antindex].model = DEVICE_MODEL_LOOPBACK;
     }
     else
     {
-        agent->cinfo->device[devindex].model = DEVICE_MODEL_GS232B;
+        agent->cinfo->devspec.ant[antindex].model = DEVICE_MODEL_GS232B;
     }
 
     iretn = json_dump_node(agent->cinfo);
@@ -296,17 +296,17 @@ int main(int argc, char *argv[])
     sprintf(sohstring, "{\"device_ant_temp_%03lu\",\"device_ant_align_%03lu\",\"device_ant_azim_%03lu\",\"device_ant_elev_%03lu\"}", antindex, antindex, antindex, antindex);
     agent->set_sohstring(sohstring);
 
-    //    antdevice = agent->cinfo->port[agent->cinfo->device[devindex].all.portidx].name;
+    //    antdevice = agent->cinfo->port[agent->cinfo->device[devindex]->portidx].name;
     antdevice = "/dev/tty_" + antbase;
 
     // Connect to antenna and set sensitivity;
-    if (agent->cinfo->device[devindex].model == DEVICE_MODEL_PRKX2SU)
+    if (agent->cinfo->devspec.ant[antindex].model == DEVICE_MODEL_PRKX2SU)
     {
         iretn = prkx2su_init(antdevice);
     }
 
     iretn = connect_antenna();
-    switch (agent->cinfo->device[devindex].model)
+    switch (agent->cinfo->devspec.ant[antindex].model)
     {
     case DEVICE_MODEL_GS232B:
         gs232b_set_sensitivity(RADOF(1.));
@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
         if (antconnected)
         {
             // Find most recent position
-            switch (agent->cinfo->device[devindex].model)
+            switch (agent->cinfo->devspec.ant[antindex].model)
             {
             case DEVICE_MODEL_LOOPBACK:
                 iretn = 0;
@@ -360,8 +360,8 @@ int main(int argc, char *argv[])
             }
             else
             {
-                agent->cinfo->device[devindex].ant.azim = current.azim;
-                agent->cinfo->device[devindex].ant.elev = current.elev;
+                agent->cinfo->devspec.ant[antindex].azim = current.azim;
+                agent->cinfo->devspec.ant[antindex].elev = current.elev;
                 if (antenabled)
                 {
                     if (trackflag)
@@ -383,11 +383,11 @@ int main(int argc, char *argv[])
                         current.elev = target.elev;
                     }
 
-                    if (current.elev < agent->cinfo->device[devindex].ant.minelev)
+                    if (current.elev < agent->cinfo->devspec.ant[antindex].minelev)
                     {
-                        current.elev = agent->cinfo->device[devindex].ant.minelev;
+                        current.elev = agent->cinfo->devspec.ant[antindex].minelev;
                     }
-                    switch (agent->cinfo->device[devindex].model)
+                    switch (agent->cinfo->devspec.ant[antindex].model)
                     {
                     case DEVICE_MODEL_GS232B:
                         iretn = gs232b_goto(current.azim + antennaoffset.az, current.elev + antennaoffset.el);
@@ -430,8 +430,8 @@ int32_t request_get_state(string &req, string &response, Agent *)
     response += " E:" + to_bool(antenabled);
     response += " Target: " + to_angle(target.azim, 'D');
     response += ' ' + to_angle(target.elev, 'D');
-    response += " Delta: " + to_angle(target.azim-agent->cinfo->device[devindex].ant.azim, 'D');
-    response += ' ' + to_angle(target.elev-agent->cinfo->device[devindex].ant.elev, 'D');
+    response += " Delta: " + to_angle(target.azim-agent->cinfo->devspec.ant[antindex].azim, 'D');
+    response += ' ' + to_angle(target.elev-agent->cinfo->devspec.ant[antindex].elev, 'D');
     response += " Actual: " + to_angle(current.azim+antennaoffset.az, 'D');
     response += ' ' + to_angle(current.elev+antennaoffset.el, 'D');
     response += " Offset: " + to_angle(antennaoffset.az, 'D') + ' ' + to_angle(antennaoffset.el, 'D');
@@ -441,10 +441,10 @@ int32_t request_get_state(string &req, string &response, Agent *)
 int32_t request_stop(string &req, string &response, Agent *)
 {
 
-    target = agent->cinfo->device[devindex].ant;
+    target = agent->cinfo->devspec.ant[antindex];
     antenabled = false;
     stop_antenna();
-    //    switch (agent->cinfo->device[devindex].all.model)
+    //    switch (agent->cinfo->device[devindex]->model)
     //    {
     //    case DEVICE_MODEL_GS232B:
     //        gs232b_stop();
@@ -461,7 +461,7 @@ int32_t request_stop(string &req, string &response, Agent *)
 int32_t request_pause(string &req, string &response, Agent *)
 {
 
-    target = agent->cinfo->device[devindex].ant;
+    target = agent->cinfo->devspec.ant[antindex];
 
     return 0;
 }
@@ -499,8 +499,8 @@ int32_t request_set_azel(string &req, string &response, Agent *)
 
 int32_t request_get_azel(string &req, string &response, Agent *)
 {
-    //    double az = agent->cinfo->device[devindex].ant.azim;
-    //    double el = agent->cinfo->device[devindex].ant.elev;
+    //    double az = agent->cinfo->devspec.ant[antindex].azim;
+    //    double el = agent->cinfo->devspec.ant[antindex].elev;
     response = to_angle(current.azim, 'D') + ' ' + to_angle(current.elev, 'D');
     return (0);
 }
@@ -560,7 +560,7 @@ int32_t connect_antenna()
     int32_t iretn;
     antconnected = false;
 
-    switch (agent->cinfo->device[devindex].model)
+    switch (agent->cinfo->devspec.ant[antindex].model)
     {
     case DEVICE_MODEL_LOOPBACK:
         antconnected = true;
@@ -571,11 +571,11 @@ int32_t connect_antenna()
         // Initialize values if we are connected
         if (iretn == 0)
         {
-            iretn = gs232b_get_az_el(agent->cinfo->device[devindex].ant.azim, agent->cinfo->device[devindex].ant.elev);
+            iretn = gs232b_get_az_el(agent->cinfo->devspec.ant[antindex].azim, agent->cinfo->devspec.ant[antindex].elev);
             if (iretn >= 0)
             {
-                target.azim = agent->cinfo->device[devindex].ant.azim - antennaoffset.az;
-                target.elev = agent->cinfo->device[devindex].ant.elev - antennaoffset.el;
+                target.azim = agent->cinfo->devspec.ant[antindex].azim - antennaoffset.az;
+                target.elev = agent->cinfo->devspec.ant[antindex].elev - antennaoffset.el;
                 antconnected = true;
             }
         }
@@ -586,11 +586,11 @@ int32_t connect_antenna()
         // Initialize values if we are connected
         if (iretn == 0)
         {
-            iretn = prkx2su_get_az_el(agent->cinfo->device[devindex].ant.azim, agent->cinfo->device[devindex].ant.elev);
+            iretn = prkx2su_get_az_el(agent->cinfo->devspec.ant[antindex].azim, agent->cinfo->devspec.ant[antindex].elev);
             if (iretn >= 0)
             {
-                target.azim = agent->cinfo->device[devindex].ant.azim - antennaoffset.az;
-                target.elev = agent->cinfo->device[devindex].ant.elev - antennaoffset.el;
+                target.azim = agent->cinfo->devspec.ant[antindex].azim - antennaoffset.az;
+                target.elev = agent->cinfo->devspec.ant[antindex].elev - antennaoffset.el;
                 antconnected = true;
             }
         }
@@ -603,7 +603,7 @@ int32_t connect_antenna()
 
 int32_t stop_antenna()
 {
-    switch (agent->cinfo->device[devindex].all.model)
+    switch (agent->cinfo->device[devindex]->model)
     {
     case DEVICE_MODEL_GS232B:
         gs232b_stop();
@@ -790,7 +790,7 @@ void rotctl_loop()
                     break;
                 case 'S':
                     // stop
-                    target = agent->cinfo->device[devindex].ant;
+                    target = agent->cinfo->devspec.ant[antindex];
                     antenabled = false;
                     stop_antenna();
                     socket_sendto(clientchannel, "RPRT 0\n");

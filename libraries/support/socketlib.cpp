@@ -820,7 +820,7 @@ int32_t socket_poll(socket_bus &bus, vector<uint8_t> &buffer, size_t maxlen, int
 {
     for (socket_channel channel : bus)
     {
-        int count;
+        int count=0;
         if (ioctl(channel.cudp, FIONREAD, count) == 0 && count)
         {
             return socket_recvfrom(channel, buffer, maxlen, flags);

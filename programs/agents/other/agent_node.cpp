@@ -319,9 +319,10 @@ void loadephemeris()
 		for (k=0; k<events.size(); ++k)
 		{
             memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
-            strcpy(agent->cinfo->event[0].condition, agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+            //                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+            agent->cinfo->event[0].condition = agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text;
             cache[3+(int)(ctime-stime)].event.push_back(json_of_event(myjstring, agent->cinfo));
-		}
+        }
 		cache[3+(int)(ctime-stime)].mjd = (int)ctime;
 		cache[3+(int)(ctime-stime)].utime = ctime;
 		ctime += 20./86400.;

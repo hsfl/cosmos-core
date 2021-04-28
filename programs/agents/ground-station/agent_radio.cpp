@@ -343,41 +343,41 @@ int main(int argc, char *argv[])
         case static_cast<uint16_t>(DeviceType::TXR):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::TXR);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            radioindex = agent->cinfo->device[deviceindex].didx;
-            agent->cinfo->device[deviceindex].txr.freq = freq;
-            agent->cinfo->device[deviceindex].txr.band = band;
-            agent->cinfo->device[deviceindex].txr.opmode = opmode;
+            radioindex = agent->cinfo->device[deviceindex]->didx;
+            agent->cinfo->devspec.txr[radioindex].freq = freq;
+            agent->cinfo->devspec.txr[radioindex].band = band;
+            agent->cinfo->devspec.txr[radioindex].opmode = opmode;
             break;
         case static_cast<uint16_t>(DeviceType::RXR):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::RXR);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            radioindex = agent->cinfo->device[deviceindex].didx;
-            agent->cinfo->device[deviceindex].rxr.freq = freq;
-            agent->cinfo->device[deviceindex].rxr.band = band;
-            agent->cinfo->device[deviceindex].rxr.opmode = opmode;
+            radioindex = agent->cinfo->device[deviceindex]->didx;
+            agent->cinfo->devspec.rxr[radioindex].freq = freq;
+            agent->cinfo->devspec.rxr[radioindex].band = band;
+            agent->cinfo->devspec.rxr[radioindex].opmode = opmode;
             break;
         case static_cast<uint16_t>(DeviceType::TCV):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::TCV);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            radioindex = agent->cinfo->device[deviceindex].didx;
-            agent->cinfo->device[deviceindex].tcv.freq = freq;
-            agent->cinfo->device[deviceindex].tcv.band = band;
-            agent->cinfo->device[deviceindex].tcv.opmode = opmode;
+            radioindex = agent->cinfo->device[deviceindex]->didx;
+            agent->cinfo->devspec.tcv[radioindex].freq = freq;
+            agent->cinfo->devspec.tcv[radioindex].band = band;
+            agent->cinfo->devspec.tcv[radioindex].opmode = opmode;
             break;
         }
-        agent->cinfo->device[deviceindex].model = model;
-        agent->cinfo->device[deviceindex].type = radiotype;
-        agent->cinfo->device[deviceindex].tcv.freq = freq;
-        agent->cinfo->device[deviceindex].tcv.band = band;
-        agent->cinfo->device[deviceindex].tcv.opmode = opmode;
+        agent->cinfo->device[deviceindex]->model = model;
+        agent->cinfo->device[deviceindex]->type = radiotype;
+        agent->cinfo->devspec.tcv[radioindex].freq = freq;
+        agent->cinfo->devspec.tcv[radioindex].band = band;
+        agent->cinfo->devspec.tcv[radioindex].opmode = opmode;
 
         if (model == static_cast<uint16_t>(DEVICE_MODEL_IC9100))
         {
-            agent->cinfo->device[deviceindex].addr = radioaddr;
+            agent->cinfo->device[deviceindex]->addr = radioaddr;
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].portidx = iretn;
+                agent->cinfo->device[deviceindex]->portidx = iretn;
             }
         }
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_TS2000))
@@ -385,25 +385,25 @@ int main(int argc, char *argv[])
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].portidx = iretn;
+                agent->cinfo->device[deviceindex]->portidx = iretn;
             }
         }
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_USRP))
         {
-            agent->cinfo->device[deviceindex].addr = radioaddr;
+            agent->cinfo->device[deviceindex]->addr = radioaddr;
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_UDP);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].portidx = iretn;
+                agent->cinfo->device[deviceindex]->portidx = iretn;
             }
         }
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_DIRECT))
         {
-            agent->cinfo->device[deviceindex].addr = radioaddr;
+            agent->cinfo->device[deviceindex]->addr = radioaddr;
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_SIM);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].portidx = iretn;
+                agent->cinfo->device[deviceindex]->portidx = iretn;
             }
         }
     }
@@ -454,9 +454,10 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->devspec.rxr_cnt; ++i)
         {
-            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.rxr[i]].pidx].name))
+//            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->devspec.rxr[i].pidx].name))
+            if (radioname == agent->cinfo->pieces[agent->cinfo->devspec.rxr[i].pidx].name)
             {
-                deviceindex = agent->cinfo->devspec.rxr[i];
+                deviceindex = agent->cinfo->devspec.rxr[i].cidx;
                 radioindex = i;
                 radiotype = static_cast<uint16_t>(DeviceType::RXR);
                 break;
@@ -468,9 +469,10 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->devspec.txr_cnt; ++i)
         {
-            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.txr[i]].pidx].name))
+//            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->devspec.txr[i].pidx].name))
+            if (radioname == agent->cinfo->pieces[agent->cinfo->devspec.txr[i].pidx].name)
             {
-                deviceindex = agent->cinfo->devspec.txr[i];
+                deviceindex = agent->cinfo->devspec.txr[i].cidx;
                 radioindex = i;
                 radiotype = static_cast<uint16_t>(DeviceType::TXR);
                 break;
@@ -482,9 +484,10 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->devspec.tcv_cnt; ++i)
         {
-            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].pidx].name))
+//            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->devspec.tcv[i].pidx].name))
+            if (radioname == agent->cinfo->pieces[agent->cinfo->devspec.tcv[i].pidx].name)
             {
-                deviceindex = agent->cinfo->devspec.tcv[i];
+                deviceindex = agent->cinfo->devspec.tcv[i].cidx;
                 radioindex = i;
                 radiotype = static_cast<uint16_t>(DeviceType::TCV);
                 break;
@@ -515,12 +518,12 @@ int main(int argc, char *argv[])
     }
     agent->set_sohstring(sohstring);
 
-    radiodevice = agent->cinfo->port[agent->cinfo->device[deviceindex].portidx].name;
-    radioaddr = agent->cinfo->device[deviceindex].addr;
+    radiodevice = agent->cinfo->port[agent->cinfo->device[deviceindex]->portidx].name;
+    radioaddr = agent->cinfo->device[deviceindex]->addr;
 
     // Initialize values so connect_radio will work
-    target = agent->cinfo->device[deviceindex].tcv;
-    actual = agent->cinfo->device[deviceindex].tcv;
+    target = agent->cinfo->devspec.tcv[radioindex];
+    actual = agent->cinfo->devspec.tcv[radioindex];
 
     iretn = connect_radio();
 
@@ -530,7 +533,7 @@ int main(int argc, char *argv[])
     {
         if (radioconnected)
         {
-            switch (agent->cinfo->device[deviceindex].model)
+            switch (agent->cinfo->device[deviceindex]->model)
             {
             case DEVICE_MODEL_DIRECT:
                 break;
@@ -538,7 +541,7 @@ int main(int argc, char *argv[])
                 iretn = usrp_get_frequency(usrp);
                 if (iretn >= 0)
                 {
-                    agent->cinfo->device[deviceindex].tcv.freq = usrp.frequency;
+                    agent->cinfo->devspec.tcv[radioindex].freq = usrp.frequency;
                     if (radioenabled && (target.freq + (freqoffset + morefreqoffset) != usrp.frequency))
                     {
                         iretn = usrp_set_frequency(usrp, target.freq + (freqoffset + morefreqoffset));
@@ -561,19 +564,19 @@ int main(int argc, char *argv[])
                 break;
             case DEVICE_MODEL_LOOPBACK:
                 {
-                    agent->cinfo->device[deviceindex].tcv.freq = actual.freq - (freqoffset + morefreqoffset);
+                    agent->cinfo->devspec.tcv[radioindex].freq = actual.freq - (freqoffset + morefreqoffset);
                     if (radioenabled && target.freq != actual.freq)
                     {
                         actual.freq = target.freq;
                     }
-                    agent->cinfo->device[deviceindex].tcv.band = actual.band;
+                    agent->cinfo->devspec.tcv[radioindex].band = actual.band;
                     if (radioenabled && target.band != actual.band)
                     {
                         actual.band = target.band;
                     }
                     actual.band = target.band;
-                    agent->cinfo->device[deviceindex].tcv.opmode = actual.opmode;
-                    agent->cinfo->device[deviceindex].tcv.modulation = actual.opmode;
+                    agent->cinfo->devspec.tcv[radioindex].opmode = actual.opmode;
+                    agent->cinfo->devspec.tcv[radioindex].modulation = actual.opmode;
                     if (radioenabled && target.opmode != actual.opmode)
                     {
                         actual.opmode = target.opmode;
@@ -587,7 +590,7 @@ int main(int argc, char *argv[])
                 iretn = ic9100_get_frequency(ic9100);
                 if (iretn >= 0)
                 {
-                    agent->cinfo->device[deviceindex].tcv.freq = ic9100.frequency;
+                    agent->cinfo->devspec.tcv[radioindex].freq = ic9100.frequency;
                     /*
                     if (ic9100_freq2band(target.freq) != ic9100.freqband)
                     {
@@ -608,7 +611,7 @@ int main(int argc, char *argv[])
                 iretn = ic9100_get_bandpass(ic9100);
                 if (iretn >= 0)
                 {
-                    agent->cinfo->device[deviceindex].tcv.band = ic9100.bandpass;
+                    agent->cinfo->devspec.tcv[radioindex].band = ic9100.bandpass;
                     if (radioenabled && target.band != ic9100.bandpass)
                     {
                         iretn = ic9100_set_bandpass(ic9100, target.band);
@@ -622,7 +625,7 @@ int main(int argc, char *argv[])
                 iretn = ic9100_get_mode(ic9100);
                 if (iretn >= 0)
                 {
-                    agent->cinfo->device[deviceindex].tcv.opmode = ic9100.opmode;
+                    agent->cinfo->devspec.tcv[radioindex].opmode = ic9100.opmode;
                     if (radioenabled && target.opmode != ic9100.opmode)
                     {
                         iretn = ic9100_set_mode(ic9100, target.opmode);
@@ -636,7 +639,7 @@ int main(int argc, char *argv[])
                 iretn = ic9100_get_repeater_squelch(ic9100);
                 if (iretn >= 0)
                 {
-                    agent->cinfo->device[deviceindex].tcv.squelch_tone = ic9100.repeater_squelch;
+                    agent->cinfo->devspec.tcv[radioindex].squelch_tone = ic9100.repeater_squelch;
                     if (radioenabled && target.squelch_tone != ic9100.repeater_squelch)
                     {
                         iretn = ic9100_set_repeater_squelch(ic9100, target.squelch_tone);
@@ -650,7 +653,7 @@ int main(int argc, char *argv[])
                 iretn = ic9100_get_rfpower(ic9100);
                 if (iretn >= 0)
                 {
-                    agent->cinfo->device[deviceindex].txr.maxpower = ic9100.maxpower;
+                    agent->cinfo->devspec.txr[radioindex].maxpower = ic9100.maxpower;
                     //					if (radioenabled && target.maxpower != ic9100.maxpower)
                     //					{
                     //						iretn = ic9100_set_rfpower(ic9100, target.maxpower);
@@ -664,7 +667,7 @@ int main(int argc, char *argv[])
                 iretn = ic9100_get_smeter(ic9100);
                 if (iretn >= 0)
                 {
-                    agent->cinfo->device[deviceindex].tcv.powerin = ic9100.powerin;
+                    agent->cinfo->devspec.tcv[radioindex].powerin = ic9100.powerin;
                 }
                 else
                 {
@@ -674,7 +677,7 @@ int main(int argc, char *argv[])
                 iretn = ic9100_get_rfmeter(ic9100);
                 if (iretn >= 0)
                 {
-                    agent->cinfo->device[deviceindex].tcv.powerout = ic9100.powerout;
+                    agent->cinfo->devspec.tcv[radioindex].powerout = ic9100.powerout;
                 }
                 else
                 {
@@ -717,16 +720,16 @@ int32_t request_disable(string &req, string &response, Agent *)
 int32_t request_get_state(string &req, string &response, Agent *)
 {
     response = '[' + to_mjd(currentmjd()) + "] Cx: " + to_bool(radioconnected) + " En: " + to_bool(radioenabled);
-    response += " Mode: " + opmode2string(agent->cinfo->device[deviceindex].tcv.opmode) + " TFreq: " + to_double(target.freq, 9);
-    response += " AFreq: " + to_double(agent->cinfo->device[deviceindex].tcv.freq, 9) + " Offset: " + to_double((freqoffset + morefreqoffset));
-    response += " PowerIn: " + to_double(agent->cinfo->device[deviceindex].tcv.powerin) + " PowerOut: " + to_double(agent->cinfo->device[deviceindex].tcv.powerout);
-    response += " MaxPower: " + to_double(agent->cinfo->device[deviceindex].tcv.maxpower) + " Record: " + to_unsigned(target_record,1);
+    response += " Mode: " + opmode2string(agent->cinfo->devspec.tcv[radioindex].opmode) + " TFreq: " + to_double(target.freq, 9);
+    response += " AFreq: " + to_double(agent->cinfo->devspec.tcv[radioindex].freq, 9) + " Offset: " + to_double((freqoffset + morefreqoffset));
+    response += " PowerIn: " + to_double(agent->cinfo->devspec.tcv[radioindex].powerin) + " PowerOut: " + to_double(agent->cinfo->devspec.tcv[radioindex].powerout);
+    response += " MaxPower: " + to_double(agent->cinfo->devspec.tcv[radioindex].maxpower) + " Record: " + to_unsigned(target_record,1);
     return (0);
 }
 
 int32_t request_get_frequency(string &request, string &response, Agent *)
 {
-    response = std::to_string(agent->cinfo->device[deviceindex].tcv.freq);
+    response = std::to_string(agent->cinfo->devspec.tcv[radioindex].freq);
     return 0;
 }
 
@@ -740,7 +743,7 @@ int32_t request_set_frequency(string &request, string &response, Agent *)
 
 int32_t request_get_repeater_squelch(string &request, string &response, Agent *)
 {
-    response = std::to_string(agent->cinfo->device[deviceindex].tcv.squelch_tone);
+    response = std::to_string(agent->cinfo->devspec.tcv[radioindex].squelch_tone);
     return 0;
 }
 
@@ -754,7 +757,7 @@ int32_t request_set_repeater_squelch(string &request, string &response, Agent *)
 
 int32_t request_get_bandpass(string &request, string &response, Agent *)
 {
-    response = std::to_string(agent->cinfo->device[deviceindex].tcv.band);
+    response = std::to_string(agent->cinfo->devspec.tcv[radioindex].band);
     return 0;
 }
 
@@ -768,13 +771,13 @@ int32_t request_set_bandpass(string &request, string &response, Agent *)
 
 int32_t request_get_powerin(string &request, string &response, Agent *)
 {
-    response = std::to_string(agent->cinfo->device[deviceindex].tcv.powerin);
+    response = std::to_string(agent->cinfo->devspec.tcv[radioindex].powerin);
     return 0;
 }
 
 int32_t request_get_powerout(string &request, string &response, Agent *)
 {
-    response = std::to_string(agent->cinfo->device[deviceindex].tcv.powerout);
+    response = std::to_string(agent->cinfo->devspec.tcv[radioindex].powerout);
     return 0;
 }
 
@@ -798,7 +801,7 @@ int32_t request_set_moreoffset(string &request, string &response, Agent *)
 
 int32_t request_get_opmode(string &request, string &response, Agent *)
 {
-    response = ( opmode2string(agent->cinfo->device[deviceindex].tcv.opmode).c_str());
+    response = ( opmode2string(agent->cinfo->devspec.tcv[radioindex].opmode).c_str());
     return 0;
 }
 
@@ -900,7 +903,7 @@ int32_t request_set_opmode(string &request, string &response, Agent *)
 
 int32_t request_get_modulation(string &request, string &response, Agent *)
 {
-    response = (modulation2string(agent->cinfo->device[deviceindex].tcv.modulation).c_str());
+    response = (modulation2string(agent->cinfo->devspec.tcv[radioindex].modulation).c_str());
     return 0;
 }
 
@@ -925,7 +928,7 @@ int32_t connect_radio()
     int32_t iretn;
     radioconnected = false;
 
-    switch (agent->cinfo->device[deviceindex].model)
+    switch (agent->cinfo->device[deviceindex]->model)
     {
     case DEVICE_MODEL_USRP:
         if (usrp.socket.cudp != 0)
@@ -1033,7 +1036,7 @@ int32_t connect_radio()
     case DEVICE_MODEL_TS2000:
         break;
     default:
-        sprintf(lasterrormessage, "Unknow radio model: %d", agent->cinfo->device[deviceindex].model);
+        sprintf(lasterrormessage, "Unknow radio model: %d", agent->cinfo->device[deviceindex]->model);
         lasterrorcode = GENERAL_ERROR_UNDEFINED;
         return GENERAL_ERROR_UNDEFINED;
         break;
@@ -1049,7 +1052,7 @@ int32_t disconnect_radio()
 
     if (initialized)
     {
-        switch (agent->cinfo->device[deviceindex].model)
+        switch (agent->cinfo->device[deviceindex]->model)
         {
         case DEVICE_MODEL_LOOPBACK:
             {
@@ -1087,7 +1090,7 @@ int32_t disconnect_radio()
         case DEVICE_MODEL_TS2000:
             break;
         default:
-            sprintf(lasterrormessage, "Unknow radio model: %d", agent->cinfo->device[deviceindex].model);
+            sprintf(lasterrormessage, "Unknow radio model: %d", agent->cinfo->device[deviceindex]->model);
             lasterrorcode = GENERAL_ERROR_UNDEFINED;
             iretn = GENERAL_ERROR_UNDEFINED;
             break;

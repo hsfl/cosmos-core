@@ -27,32 +27,32 @@
 #endif
 
 
-static const double GiB = 1024. * 1024. * 1024.;
+//static const double GiB = 1024. * 1024. * 1024.;
 
 class DeviceDisk
 {
 public:
-    uint64_t Size;
-    uint64_t Used;
-    uint64_t Free;
-    double SizeGiB;
-    double UsedGiB;
-    double FreeGiB;
-    double FreePercent;
+    uint64_t Size=0;
+    uint64_t Used=0;
+    uint64_t Free=0;
+    double SizeGiB=0.;
+    double UsedGiB=0.;
+    double FreeGiB=0.;
+    double FreePercent=0.;
 
     struct info
     {
-        string mount;
-        uint64_t size;
-        uint64_t used;
-        uint64_t free;
+        string mount="";
+        uint64_t size=0;
+        uint64_t used=0;
+        uint64_t free=0;
     };
 
     DeviceDisk();
     vector <info> getInfo();
-    double getAll(string path);
-    uint64_t getSize(string path);
-    uint64_t getUsed(string path);
+    double getAll(const string path);
+    uint64_t getSize(const string path);
+    uint64_t getUsed(const string path);
     uint64_t getFree(string path);
     double getAll();
     uint64_t getSize();

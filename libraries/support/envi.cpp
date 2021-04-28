@@ -268,9 +268,11 @@ int32_t write_envi_hdr(envi_hdr &hdr)
 
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<double>> &data)
 {
+    int32_t iretn;
     vector<vector<vector<double>>> stack;
     stack.push_back(data);
-    write_envi_data(name, interleave, stack);
+    iretn = write_envi_data(name, interleave, stack);
+    return iretn;
 }
 
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<double>>> &data)

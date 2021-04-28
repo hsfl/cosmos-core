@@ -157,7 +157,7 @@ for (i=0; i<nodes.size(); ++i)
 		dup2(STDOUT_FILENO, devn);
 		dup2(STDERR_FILENO,	devn);
 		close(devn);
-        execl("agent_node", (const char*)nodes[i].node.name,(char*)nullptr);
+        execl("agent_node", (const char*)nodes[i].node.name.c_str(),(char*)nullptr);
 
 		fflush(stdout);
 		exit(0);

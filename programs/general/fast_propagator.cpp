@@ -298,7 +298,8 @@ int main(int argc, char* argv[])
 		for (uint32_t k=0; k<events.size(); ++k)
 		{
             memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
-            strcpy(agent->cinfo->event[0].condition, agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+//            strcpy(agent->cinfo->event[0].condition, agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+            agent->cinfo->event[0].condition = agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text;
             log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate, json_of_event(mainjstring, agent->cinfo));
 		}
 

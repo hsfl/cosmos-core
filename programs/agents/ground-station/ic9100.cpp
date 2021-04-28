@@ -159,31 +159,31 @@ int main(int argc, char *argv[])
         case static_cast<uint16_t>(DeviceType::TXR):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::TXR);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            radioindex = agent->cinfo->device[deviceindex].didx;
+            radioindex = agent->cinfo->device[deviceindex]->didx;
             break;
         case static_cast<uint16_t>(DeviceType::RXR):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::RXR);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            radioindex = agent->cinfo->device[deviceindex].didx;
+            radioindex = agent->cinfo->device[deviceindex]->didx;
             break;
         case static_cast<uint16_t>(DeviceType::TCV):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::TCV);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            radioindex = agent->cinfo->device[deviceindex].didx;
+            radioindex = agent->cinfo->device[deviceindex]->didx;
             break;
         }
-        agent->cinfo->device[deviceindex].model = model;
-        agent->cinfo->device[deviceindex].type = radiotype;
-        agent->cinfo->device[deviceindex].tcv.freq = freq;
-        agent->cinfo->device[deviceindex].tcv.band = band;
-        agent->cinfo->device[deviceindex].tcv.opmode = opmode;
+        agent->cinfo->device[deviceindex]->model = model;
+        agent->cinfo->device[deviceindex]->type = radiotype;
+        agent->cinfo->devspec.tcv[radioindex].freq = freq;
+        agent->cinfo->devspec.tcv[radioindex].band = band;
+        agent->cinfo->devspec.tcv[radioindex].opmode = opmode;
         if (model == static_cast<uint16_t>(DEVICE_MODEL_IC9100))
         {
-            agent->cinfo->device[deviceindex].addr = radioaddr;
+            agent->cinfo->device[deviceindex]->addr = radioaddr;
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].portidx = iretn;
+                agent->cinfo->device[deviceindex]->portidx = iretn;
             }
         }
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_TS2000))
@@ -191,16 +191,16 @@ int main(int argc, char *argv[])
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].portidx = iretn;
+                agent->cinfo->device[deviceindex]->portidx = iretn;
             }
         }
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_USRP))
         {
-            agent->cinfo->device[deviceindex].addr = radioaddr;
+            agent->cinfo->device[deviceindex]->addr = radioaddr;
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_UDP);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].portidx = iretn;
+                agent->cinfo->device[deviceindex]->portidx = iretn;
             }
         }
         iretn = json_dump_node(agent->cinfo);
@@ -211,9 +211,10 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->devspec.rxr_cnt; ++i)
         {
-            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.rxr[i]].pidx].name))
+//            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->devspec.rxr[i].pidx].name))
+            if (radioname == agent->cinfo->pieces[agent->cinfo->devspec.rxr[i].pidx].name)
             {
-                deviceindex = agent->cinfo->devspec.rxr[i];
+                deviceindex = agent->cinfo->devspec.rxr[i].cidx;
                 radioindex = i;
                 radiotype = static_cast<uint16_t>(DeviceType::RXR);
                 break;
@@ -225,9 +226,10 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->devspec.txr_cnt; ++i)
         {
-            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.txr[i]].pidx].name))
+//            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->devspec.txr[i].pidx].name))
+            if (radioname == agent->cinfo->pieces[agent->cinfo->devspec.txr[i].pidx].name)
             {
-                deviceindex = agent->cinfo->devspec.txr[i];
+                deviceindex = agent->cinfo->devspec.txr[i].cidx;
                 radioindex = i;
                 radiotype = static_cast<uint16_t>(DeviceType::TXR);
                 break;
@@ -239,9 +241,10 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->devspec.tcv_cnt; ++i)
         {
-            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].pidx].name))
+//            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->devspec.tcv[i].pidx].name))
+            if (radioname == agent->cinfo->pieces[agent->cinfo->devspec.tcv[i].pidx].name)
             {
-                deviceindex = agent->cinfo->devspec.tcv[i];
+                deviceindex = agent->cinfo->devspec.tcv[i].cidx;
                 radioindex = i;
                 radiotype = static_cast<uint16_t>(DeviceType::TCV);
                 break;
@@ -256,9 +259,9 @@ int main(int argc, char *argv[])
         exit (1);
     }
 
-    if (agent->cinfo->device[deviceindex].model == DEVICE_MODEL_IC9100)
+    if (agent->cinfo->device[deviceindex]->model == DEVICE_MODEL_IC9100)
     {
-        iretn = ic9100_connect(agent->cinfo->port[agent->cinfo->device[deviceindex].portidx].name, agent->cinfo->device[deviceindex].addr, ic9100);
+        iretn = ic9100_connect(agent->cinfo->port[agent->cinfo->device[deviceindex]->portidx].name, agent->cinfo->device[deviceindex]->addr, ic9100);
         if (iretn < 0)
         {
             printf("Unable to connect to IC9100: %s\n", cosmos_error_string(iretn).c_str());
@@ -310,9 +313,9 @@ int main(int argc, char *argv[])
             }
         }
     }
-    else if (agent->cinfo->device[deviceindex].model == DEVICE_MODEL_USRP)
+    else if (agent->cinfo->device[deviceindex]->model == DEVICE_MODEL_USRP)
     {
-        iretn = usrp_connect(agent->cinfo->port[agent->cinfo->device[deviceindex].portidx].name, agent->cinfo->device[deviceindex].addr, usrp);
+        iretn = usrp_connect(agent->cinfo->port[agent->cinfo->device[deviceindex]->portidx].name, agent->cinfo->device[deviceindex]->addr, usrp);
         if (command == "freq")
         {
             if (argc == 3)

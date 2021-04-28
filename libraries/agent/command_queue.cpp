@@ -289,7 +289,8 @@ namespace Cosmos
 //                                    if(!ii->already_ran)
                                     if (!ii->is_alreadyrun())
                                     {
-                                        strncpy(agent->cinfo->node.lastevent, ii->name.c_str(), COSMOS_MAX_NAME);
+//                                        strncpy(agent->cinfo->node.lastevent, ii->name.c_str(), COSMOS_MAX_NAME);
+                                        agent->cinfo->node.lastevent = ii->name;
                                         agent->cinfo->node.lasteventutc = currentmjd();
                                         run_command(*ii, node_name, logdate_exec);
                                         ii->set_alreadyrun(true);

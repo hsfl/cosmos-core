@@ -48,8 +48,8 @@ int main(int argc, char **argv)
     if(status < 0){
         cout << e.ErrorString(status) << endl;
     }
-    sun1->ssen.azimuth = 50.;
-    cout << sun1->ssen.azimuth << endl;
+    reinterpret_cast<ssenstruc *>(sun1)->azimuth = 50.;
+    cout << reinterpret_cast<ssenstruc *>(sun1)->azimuth << endl;
 
     string sun2_utc;
     status = agent->device_property_name("sun2", "utc", sun2_utc);

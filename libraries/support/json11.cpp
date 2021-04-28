@@ -167,7 +167,10 @@ protected:
     }
 
     const T m_value;
-    void dump(string &out) const override { json11::dump(m_value, out); }
+    void dump(string &out) const override
+    {
+        json11::dump(m_value, out);
+    }
 };
 
 class JsonDouble final : public Value<Json::NUMBER, double> {

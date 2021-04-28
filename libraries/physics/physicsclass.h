@@ -345,21 +345,17 @@ namespace Cosmos
         public:
             State()
             {
+                json_init(&currentinfo);
+                currentinfo.node.utc = 0.;
             }
-//            State(locstruc *newloc, physicsstruc *newphys, double idt) : currentloc{newloc}, currentphys{newphys}
-//            {
-//                dt = 86400.*((currentloc->utc + (idt / 86400.))-currentloc->utc);
-//                dtj = dt / 86400.;
-//                initialloc = *currentloc;
-//                initialphys = *currentphys;
-//            }
 
-            string nodename;
-            double currentutc=0.;
+//            string nodename;
+            cosmosstruc currentinfo;
+//            double currentutc=0.;
             locstruc initialloc;
-            locstruc currentloc;
+//            locstruc currentloc;
             physicsstruc initialphys;
-            physicsstruc currentphys;
+//            physicsstruc currentphys;
             double dt;
             double dtj;
             Propagator::Type ptype;

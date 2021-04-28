@@ -254,38 +254,40 @@ namespace Cosmos
 
         int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, vector<tlestruc> lines, double utc)
         {
-            dt = 86400.*((currentloc.utc + (idt / 86400.))-currentloc.utc);
+            dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
             dtj = dt / 86400.;
 
-            nodename = name;
-            currentloc.utc = utc;
+//            strncpy(currentinfo.node.name, name.c_str(), COSMOS_MAX_NAME);
+            currentinfo.node.name = name;
+            currentinfo.node.agent = "sim";
+            currentinfo.node.loc.utc = utc;
             if (lines.size())
             {
-                lines2eci(currentloc.utc, lines, currentloc.pos.eci);
+                lines2eci(currentinfo.node.loc.utc, lines, currentinfo.node.loc.pos.eci);
                 tle = lines;
             }
             else {
                 return GENERAL_ERROR_POSITION;
             }
 
-            structure = new Structure(&currentphys);
+            structure = new Structure(&currentinfo.node.phys);
             structure->Setup(stype);
             this->stype = stype;
 
             switch (ptype)
             {
             case Propagator::Type::PositionInertial:
-                inposition = new InertialPositionPropagator(&currentloc, &currentphys, dt);
+                inposition = new InertialPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 dt = inposition->dt;
                 dtj = inposition->dtj;
                 break;
             case Propagator::Type::PositionIterative:
-                itposition = new IterativePositionPropagator(&currentloc, &currentphys, dt);
+                itposition = new IterativePositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 dt = itposition->dt;
                 dtj = itposition->dtj;
                 break;
             case Propagator::Type::PositionGaussJackson:
-                gjposition = new GaussJacksonPositionPropagator(&currentloc, &currentphys, dt, 6);
+                gjposition = new GaussJacksonPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 6);
                 dt = gjposition->dt;
                 dtj = gjposition->dtj;
                 if (tle.size())
@@ -297,12 +299,12 @@ namespace Cosmos
                 }
                 break;
             case Propagator::Type::PositionGeo:
-                geoposition = new GeoPositionPropagator(&currentloc, &currentphys, dt);
+                geoposition = new GeoPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 dt = geoposition->dt;
                 dtj = geoposition->dtj;
                 break;
             default:
-                inposition = new InertialPositionPropagator(&currentloc, &currentphys, dt);
+                inposition = new InertialPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 dt = inposition->dt;
                 dtj = inposition->dtj;
                 break;
@@ -312,19 +314,19 @@ namespace Cosmos
             switch (atype)
             {
             case Propagator::Type::AttitudeInertial:
-                inattitude = new InertialAttitudePropagator(&currentloc, &currentphys, dt);
+                inattitude = new InertialAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 break;
             case Propagator::Type::AttitudeIterative:
-                itattitude = new IterativeAttitudePropagator(&currentloc, &currentphys, dt);
+                itattitude = new IterativeAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 break;
             case Propagator::Type::AttitudeLVLH:
-                lvattitude = new LVLHAttitudePropagator(&currentloc, &currentphys, dt);
+                lvattitude = new LVLHAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 break;
             case Propagator::Type::AttitudeGeo:
-                geoattitude = new GeoAttitudePropagator(&currentloc, &currentphys, dt);
+                geoattitude = new GeoAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 break;
             default:
-                inattitude = new InertialAttitudePropagator(&currentloc, &currentphys, dt);
+                inattitude = new InertialAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 break;
             }
             this->atype = atype;
@@ -332,10 +334,10 @@ namespace Cosmos
             switch (ttype)
             {
             case Propagator::Type::Thermal:
-                thermal = new ThermalPropagator(&currentloc, &currentphys, dt, 300.);
+                thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
                 break;
             default:
-                thermal = new ThermalPropagator(&currentloc, &currentphys, dt, 300.);
+                thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
                 break;
             }
             this->ttype = ttype;
@@ -343,75 +345,92 @@ namespace Cosmos
             switch (etype)
             {
             case Propagator::Type::Electrical:
-                electrical = new ElectricalPropagator(&currentloc, &currentphys, dt, .5);
+                electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
                 break;
             default:
-                electrical = new ElectricalPropagator(&currentloc, &currentphys, dt, .5);
+                electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
                 break;
             }
             this->etype = etype;
 
-            pos_eci(currentloc);
-            att_icrf(currentloc);
-            PosAccel(currentloc, currentphys);
-            AttAccel(currentloc, currentphys);
+            if (ptype == Propagator::PositionGeo)
+            {
+                pos_geod(currentinfo.node.loc);
+            }
+            else
+            {
+                pos_eci(currentinfo.node.loc);
+                PosAccel(currentinfo.node.loc, currentinfo.node.phys);
+            }
+            if (atype == Propagator::AttitudeGeo)
+            {
+                att_geoc(currentinfo.node.loc);
+            }
+            else
+            {
+                att_icrf(currentinfo.node.loc);
+                AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+            }
 
-            initialloc = currentloc;
-            initialphys = currentphys;
-            currentutc = currentloc.utc;
+            initialloc = currentinfo.node.loc;
+            initialphys = currentinfo.node.phys;
+            currentinfo.node.utc = currentinfo.node.loc.utc;
             return 0;
         }
 
         int32_t State::Init(std::string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, posstruc pos)
         {
-            currentloc.pos = pos;
-            currentloc.att.lvlh.pass++;
-            currentloc.att.lvlh.s = q_eye();
-            currentloc.att.lvlh.v = rv_zero();
-            currentloc.att.lvlh.a = rv_zero();
-            att_lvlh(currentloc);
+            currentinfo.node.loc.pos = pos;
+            currentinfo.node.loc.att.lvlh.pass++;
+            currentinfo.node.loc.att.lvlh.s = q_eye();
+            currentinfo.node.loc.att.lvlh.v = rv_zero();
+            currentinfo.node.loc.att.lvlh.a = rv_zero();
+            att_lvlh(currentinfo.node.loc);
 
             return Init(name, idt, stype, ptype, atype, ttype, etype);
         }
 
         int32_t State::Init(std::string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc loc)
         {
-            currentloc = loc;
+            currentinfo.node.loc = loc;
 
             return Init(name, idt, stype, ptype, atype, ttype, etype);
         }
 
         int32_t State::Init(std::string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
         {
-            dt = 86400.*((currentloc.utc + (idt / 86400.))-currentloc.utc);
+            dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
             dtj = dt / 86400.;
 
-            nodename = name;
+//            strncpy(currentinfo.node.name, name.c_str(), COSMOS_MAX_NAME);
+//            strncpy(currentinfo.node.agent, "sim", COSMOS_MAX_NAME);
+            currentinfo.node.name = name;
+            currentinfo.node.agent = "sim";
 
-            structure = new Structure(&currentphys);
+            structure = new Structure(&currentinfo.node.phys);
             structure->Setup(stype);
             this->stype = stype;
 
             switch (ptype)
             {
             case Propagator::Type::PositionInertial:
-                inposition = new InertialPositionPropagator(&currentloc, &currentphys, dt);
+                inposition = new InertialPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 inposition->Init();
                 break;
             case Propagator::Type::PositionIterative:
-                itposition = new IterativePositionPropagator(&currentloc, &currentphys, dt);
+                itposition = new IterativePositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 itposition->Init();
                 break;
             case Propagator::Type::PositionGaussJackson:
-                gjposition = new GaussJacksonPositionPropagator(&currentloc, &currentphys, dt, 6);
+                gjposition = new GaussJacksonPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 6);
                 gjposition->Init();
                 break;
             case Propagator::Type::PositionGeo:
-                geoposition = new GeoPositionPropagator(&currentloc, &currentphys, dt);
+                geoposition = new GeoPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 geoposition->Init();
                 break;
             default:
-                inposition = new InertialPositionPropagator(&currentloc, &currentphys, dt);
+                inposition = new InertialPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 inposition->Init();
                 break;
             }
@@ -420,23 +439,23 @@ namespace Cosmos
             switch (atype)
             {
             case Propagator::Type::AttitudeInertial:
-                inattitude = new InertialAttitudePropagator(&currentloc, &currentphys, dt);
+                inattitude = new InertialAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 inattitude->Init();
                 break;
             case Propagator::Type::AttitudeGeo:
-                geoattitude = new GeoAttitudePropagator(&currentloc, &currentphys, dt);
+                geoattitude = new GeoAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 geoattitude->Init();
                 break;
             case Propagator::Type::AttitudeIterative:
-                itattitude = new IterativeAttitudePropagator(&currentloc, &currentphys, dt);
+                itattitude = new IterativeAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 itattitude->Init();
                 break;
             case Propagator::Type::AttitudeLVLH:
-                lvattitude = new LVLHAttitudePropagator(&currentloc, &currentphys, dt);
+                lvattitude = new LVLHAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 lvattitude->Init();
                 break;
             default:
-                inattitude = new InertialAttitudePropagator(&currentloc, &currentphys, dt);
+                inattitude = new InertialAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 inattitude->Init();
                 break;
             }
@@ -445,11 +464,11 @@ namespace Cosmos
             switch (ttype)
             {
             case Propagator::Type::Thermal:
-                thermal = new ThermalPropagator(&currentloc, &currentphys, dt, 300.);
+                thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
                 thermal->Init();
                 break;
             default:
-                thermal = new ThermalPropagator(&currentloc, &currentphys, dt, 300.);
+                thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
                 thermal->Init();
                 break;
             }
@@ -458,24 +477,38 @@ namespace Cosmos
             switch (etype)
             {
             case Propagator::Type::Electrical:
-                electrical = new ElectricalPropagator(&currentloc, &currentphys, dt, .5);
+                electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
                 electrical->Init();
                 break;
             default:
-                electrical = new ElectricalPropagator(&currentloc, &currentphys, dt, .5);
+                electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
                 electrical->Init();
                 break;
             }
             this->etype = etype;
 
-            pos_eci(currentloc);
-            att_icrf(currentloc);
-            PosAccel(currentloc, currentphys);
-            AttAccel(currentloc, currentphys);
+            if (ptype == Propagator::PositionGeo)
+            {
+                pos_geod(currentinfo.node.loc);
+            }
+            else
+            {
+                pos_eci(currentinfo.node.loc);
+                PosAccel(currentinfo.node.loc, currentinfo.node.phys);
+            }
+            if (atype == Propagator::AttitudeGeo)
+            {
+                att_geoc(currentinfo.node.loc);
+            }
+            else
+            {
+                att_icrf(currentinfo.node.loc);
+                AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+            }
 
-            initialloc = currentloc;
-            initialphys = currentphys;
-            currentutc = currentloc.utc;
+            initialloc = currentinfo.node.loc;
+            initialphys = currentinfo.node.phys;
+            currentinfo.node.utc = currentinfo.node.loc.utc;
             return 0;
         }
 
@@ -484,12 +517,12 @@ namespace Cosmos
             int32_t count = 0;
             if (nextutc == 0.)
             {
-                nextutc = currentutc + dtj;
+                nextutc = currentinfo.node.utc + dtj;
             }
 
-            while ((nextutc - currentutc) > dtj / 2.)
+            while ((nextutc - currentinfo.node.utc) > dtj / 2.)
             {
-                currentutc += dtj;
+                currentinfo.node.utc += dtj;
                 switch (ptype)
                 {
                 case Propagator::Type::PositionIterative:
@@ -526,10 +559,24 @@ namespace Cosmos
                 }
                 static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
                 static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
-                pos_eci(currentloc);
-                att_icrf(currentloc);
-                PosAccel(currentloc, currentphys);
-                AttAccel(currentloc, currentphys);
+                if (ptype == Propagator::PositionGeo)
+                {
+                    pos_geod(currentinfo.node.loc);
+                }
+                else
+                {
+                    pos_eci(currentinfo.node.loc);
+                    PosAccel(currentinfo.node.loc, currentinfo.node.phys);
+                }
+                if (atype == Propagator::AttitudeGeo)
+                {
+                    att_geoc(currentinfo.node.loc);
+                }
+                else
+                {
+                    att_icrf(currentinfo.node.loc);
+                    AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+                }
                 ++count;
             } ;
             return count;
@@ -538,8 +585,8 @@ namespace Cosmos
         int32_t State::Reset(double nextutc)
         {
             int32_t iretn;
-            currentloc = initialloc;
-            currentutc = currentloc.utc;
+            currentinfo.node.loc = initialloc;
+            currentinfo.node.utc = currentinfo.node.loc.utc;
             iretn = Propagate(nextutc);
 
             return iretn;
@@ -1834,6 +1881,9 @@ namespace Cosmos
             da = rv_smult(GMOON/(radius*radius*radius),bodypos.s);
             tda -= da;
             loc->pos.eci.a = rv_sub(loc->pos.eci.a, da.to_rv());
+
+            // Add thrust
+            loc->pos.eci.a = rv_add(loc->pos.eci.a, rv_smult(1./phys->mass, phys->thrust.to_rv()));
 
             /*
         // Jupiter gravity

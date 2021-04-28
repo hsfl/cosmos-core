@@ -434,7 +434,8 @@ int32_t request_change_node_name(string &request, string &response, Agent *agent
 	char new_name[41];
 	sscanf(request.c_str(),"%*s %40s", new_name);
 
-    strcpy(agent->cinfo->node.name, new_name);
+//    strcpy(agent->cinfo->node.name.c_str(), new_name);
+    agent->cinfo->node.name = new_name;
     cout << "The new node name is <" << agent->cinfo->node.name << ">" << endl;
 
 	return 0;

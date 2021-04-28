@@ -664,7 +664,6 @@ namespace Cosmos {
 		{
 
 		public:
-
 			//! Constructor and initializer.
 			//! Initialize ::Vector to zero.
 

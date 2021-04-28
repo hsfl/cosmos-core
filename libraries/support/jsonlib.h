@@ -113,24 +113,29 @@
 #include "support/jsondef.h"
 #include "support/datalib.h"
 #include "support/stringlib.h"
-#include <limits>
-using std::numeric_limits;
 
 //! \ingroup jsonlib
 //! \defgroup jsonlib_functions JSON functions
 //! @{
 
+void json_init_unit(cosmosstruc* cinfo);
+void json_init_device_type_string();
+void json_init_node(cosmosstruc* cinfo);
+void json_init_reserve(cosmosstruc* cinfo);
+cosmosstruc *json_init(cosmosstruc *cinfo);
 cosmosstruc *json_init();
 int32_t json_create_node(cosmosstruc *cinfo, string &node_name, uint16_t node_type=NODE_TYPE_COMPUTER);
 int32_t json_create_cpu(string &node_name);
-int32_t json_clone(cosmosstruc *cinfo);
-int32_t json_clone(cosmosstruc *cinfo1, cosmosstruc *cinfo2);
+int32_t json_shrink(cosmosstruc *cinfo);
+//int32_t json_clone(cosmosstruc *cinfo1, cosmosstruc *cinfo2);
 int32_t json_repoint(cosmosstruc *cinfo);
 void json_destroy(cosmosstruc *cinfo);
-int32_t json_pushdevspec(uint16_t cidx, cosmosstruc *cinfo);
+//int32_t json_pushdevspec(uint16_t cidx, cosmosstruc *cinfo);
+int32_t json_updatedevices(cosmosstruc *cinfo);
 
 int32_t json_createpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi=1.0, double abs=1.0, double hcap=0.9, double hcon=205., double density=2710.);
 int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi=1.0, double abs=1.0, double hcap=0.9, double hcon=205., double density=2710.);
+int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype);
 int32_t json_findpiece(cosmosstruc *cinfo, string name);
 int32_t json_findcomp(cosmosstruc *cinfo, string name);
 int32_t json_finddev(cosmosstruc *cinfo, string name);
@@ -148,7 +153,7 @@ int32_t json_mappieceentry(uint16_t pidx, cosmosstruc *cinfo);
 int32_t json_togglepieceentry(uint16_t pidx, cosmosstruc *cinfo, bool state);
 int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo);
 int32_t json_togglecompentry(uint16_t cidx, cosmosstruc *cinfo, bool state);
-uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo);
+uint16_t json_mapdeviceentry(devicestruc *devicein, cosmosstruc *cinfo);
 int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinfo, bool state);
 uint16_t json_mapportentry(uint16_t portidx, cosmosstruc *cinfo);
 int32_t json_toggleportentry(uint16_t portidx, cosmosstruc *cinfo, bool state);

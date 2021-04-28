@@ -220,11 +220,11 @@ int main(int argc, char *argv[])
 //	sscanf(request.c_str(),"set_bus %d %d",&j, &k);
 //	if (k)
 //	{
-//        agent->cinfo->device[agent->cinfo->devspec.bus[j]].all.flag |= DEVICE_FLAG_ON;
+//        agent->cinfo->devspec.bus[j]].all.flag |= DEVICE_FLAG_ON;
 //	}
 //	else
 //	{
-//        agent->cinfo->device[agent->cinfo->devspec.bus[j]].all.flag &= ~DEVICE_FLAG_ON;
+//        agent->cinfo->devspec.bus[j]].all.flag &= ~DEVICE_FLAG_ON;
 //	}
 //	return (output);
 //}
@@ -256,9 +256,9 @@ int main(int argc, char *argv[])
 
 //	sscanf(request.c_str(),"set_rw_moment %d %lf %lf %lf",&j,&value[0],&value[1],&value[2]);
 
-//    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.mom.col[0] = value[0];
-//    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.mom.col[1] = value[1];
-//    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.mom.col[2] = value[2];
+//    agent->cinfo->devspec.rw[j]].rw.mom.col[0] = value[0];
+//    agent->cinfo->devspec.rw[j]].rw.mom.col[1] = value[1];
+//    agent->cinfo->devspec.rw[j]].rw.mom.col[2] = value[2];
 //    output = (json_of_rw(reqjstring, j, agent->cinfo));
 //	printf("%s\n",output);
 //	return (output);
@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
 //	double value;
 
 //	sscanf(request.c_str(),"%*s %d %lf",&j,&value);
-//    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.omg = value;
+//    agent->cinfo->devspec.rw[j]].rw.omg = value;
 //    output = (json_of_rw(reqjstring, j, agent->cinfo));
 //	printf("%s\n",output);
 //	return (output);
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
 //	double value;
 
 //	sscanf(request.c_str(),"%*s %d %lf",&j,&value);
-//    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.alp = value;
+//    agent->cinfo->devspec.rw[j]].rw.alp = value;
 //    output = (json_of_rw(reqjstring, j, agent->cinfo));
 //	printf("%s\n",output);
 //	return (output);
@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
 
 //	sscanf(request.c_str(),"set_mtr_current %d %lf",&j,&value);
 
-//    agent->cinfo->device[agent->cinfo->devspec.mtr[j]].all.amp = value;
+//    agent->cinfo->devspec.mtr[j]].all.amp = value;
 //    output = (json_of_mtr(reqjstring, j, agent->cinfo));
 //	printf("%s\n",output);
 //	return (output);
@@ -333,7 +333,7 @@ int main(int argc, char *argv[])
 
 //	sscanf(request.c_str(),"set_mtr_field %d %lf",&j,&value);
 
-//    agent->cinfo->device[agent->cinfo->devspec.mtr[j]].all.amp = value*(4.838e-3+value*(-3.958e-5+value*3.053e-6));
+//    agent->cinfo->devspec.mtr[j]].all.amp = value*(4.838e-3+value*(-3.958e-5+value*3.053e-6));
 //    output = (json_of_rw(reqjstring, j, agent->cinfo));
 //	return (output);
 //}

@@ -1023,7 +1023,7 @@ int32_t DeviceCpuLinux::getUptime()
     string tdata;
     int32_t iretn;
 
-    iretn = data_execute("uptime", tdata);
+    iretn = data_execute("uptime -s", tdata);
     if (iretn > 0)
         //    FILE *fp = popen("uptime -s", "r");
         //    if (fp == nullptr)

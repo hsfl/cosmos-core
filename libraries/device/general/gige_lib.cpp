@@ -614,7 +614,7 @@ the CCP register and closing all sockets.
 
         void pt1000_loop(gige_handle *handle)
         {
-            int32_t iretn;
+            size_t iretn;
             handle->ptrun = true;
             ElapsedTime bt;
             while (handle->ptrun)

@@ -162,7 +162,9 @@ int main(int argc, char *argv[])
     }
     else
     {
-        agent = new Agent("", "exec", 0.);
+        char hostname[60];
+        gethostname(hostname, sizeof (hostname));
+        agent = new Agent(hostname, "exec", 0.);
     }
 
     if ((iretn = agent->wait()) < 0)
@@ -290,15 +292,19 @@ int main(int argc, char *argv[])
 
     // Start thread to collect SOH data
     bool log_data_flag = true;
-    vector <beatstruc> servers = agent->find_agents(1.);
-    for (beatstruc &i : servers)
+    if (argc == 3 && !strcmp(argv[2], "secondary"))
     {
-        if (i.node.compare(agent->nodeName.c_str()) && !i.proc.compare("exec"))
-        {
-            log_data_flag = false;
-            break;
-        }
+        log_data_flag = false;
     }
+//    vector <beatstruc> servers = agent->find_agents(1.);
+//    for (beatstruc &i : servers)
+//    {
+//        if (i.node.compare(agent->nodeName.c_str()) && !i.proc.compare("exec"))
+//        {
+//            log_data_flag = false;
+//            break;
+//        }
+//    }
 
     if (log_data_flag)
     {
@@ -437,7 +443,8 @@ int main(int argc, char *argv[])
             for (uint32_t k=0; k<events.size(); ++k)
             {
                 memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
-                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+                //                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+                agent->cinfo->event[0].condition = agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text;
                 log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo));
             }
         }
@@ -821,11 +828,11 @@ void collect_data_loop() noexcept
                 json_parse(mess.adata, agent->cinfo);
                 agent->cinfo->node.utc = currentmjd(0.);
 
-                for (devicestruc device: agent->cinfo->device)
+                for (devicestruc* device: agent->cinfo->device)
                 {
-                    if (device.utc > agent->cinfo->node.utc)
+                    if (device->utc > agent->cinfo->node.utc)
                     {
-                        agent->cinfo->node.utc = device.utc;
+                        agent->cinfo->node.utc = device->utc;
                     }
                 }
             }

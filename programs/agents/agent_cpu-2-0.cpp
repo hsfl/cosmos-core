@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
     cpu_cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-    cpu_didx = agent->cinfo->device[cpu_cidx].didx;
+    cpu_didx = agent->cinfo->device[cpu_cidx]->didx;
 
     sohstring = "{\"node_downtime\"";
     sohstring += ",\"device_cpu_utc_00" + std::to_string(cpu_didx) + "\"";
@@ -127,11 +127,11 @@ int main(int argc, char *argv[])
     static const double GiB = 1024. * 1024. * 1024.;
 
 	// update CPU info
-    agent->cinfo->device[cpu_cidx].cpu.load = static_cast <float>(deviceCpu.getLoad());
-    agent->cinfo->device[cpu_cidx].cpu.gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/GiB);
-    agent->cinfo->device[cpu_cidx].cpu.maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/GiB);
-    agent->cinfo->device[cpu_cidx].cpu.maxload = deviceCpu.getCpuCount();
-    deviceCpu.numProcessors = agent->cinfo->device[cpu_cidx].cpu.maxload;
+    agent->cinfo->devspec.cpu[cpu_didx].load = static_cast <float>(deviceCpu.getLoad());
+    agent->cinfo->devspec.cpu[cpu_didx].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/GiB);
+    agent->cinfo->devspec.cpu[cpu_didx].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/GiB);
+    agent->cinfo->devspec.cpu[cpu_didx].maxload = deviceCpu.getCpuCount();
+    deviceCpu.numProcessors = agent->cinfo->devspec.cpu[cpu_didx].maxload;
     deviceCpu.getPercentUseForCurrentProcess();
 
     vector <DeviceDisk::info> dinfo = deviceDisk.getInfo();
@@ -150,7 +150,8 @@ int main(int argc, char *argv[])
             exit(1);
         }
         uint16_t cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-        strncpy(agent->cinfo->device[cidx].disk.path, dinfo[i].mount.c_str(), COSMOS_MAX_NAME);
+        uint16_t didx = agent->cinfo->device[cidx]->didx;
+        agent->cinfo->devspec.disk[didx].path = dinfo[i].mount;
         sohstring += ",\"device_disk_utc_00" + std::to_string(cpu_didx) + "\"";
         sohstring += ",\"device_disk_temp_00" + std::to_string(cpu_didx) + "\"";
         sohstring += ",\"device_disk_path_00" + std::to_string(cpu_didx) + "\"";
@@ -167,7 +168,7 @@ int main(int argc, char *argv[])
     PrintUtils print;
     print.scalar("Number of Disks: ",agent->cinfo->devspec.disk_cnt);
     print.endline();
-    print.scalar("Number of Cores: ",agent->cinfo->device[cpu_cidx].cpu.maxload);
+    print.scalar("Number of Cores: ",agent->cinfo->devspec.cpu[cpu_didx].maxload);
     print.endline();
 
     agent->debug_error.Printf("CPU Agent initialized\n");
@@ -198,41 +199,41 @@ int main(int argc, char *argv[])
     agent->set_debug_level(0);
     while(agent->running())
     {
-        agent->cinfo->device[cpu_cidx].utc = currentmjd();
+        agent->cinfo->device[cpu_cidx]->utc = currentmjd();
         if (agent->get_debug_level())
         {
-            agent->debug_error.Printf("%16.10f ", agent->cinfo->device[cpu_cidx].utc);
+            agent->debug_error.Printf("%16.10f ", agent->cinfo->device[cpu_cidx]->utc);
         }
         agent->cinfo->node.downtime = get_last_offset();
 
         // get cpu info
         if (agent->cinfo->devspec.cpu_cnt)
         {
-            agent->cinfo->device[cpu_cidx].cpu.uptime = deviceCpu.getUptime();
-            agent->cinfo->device[cpu_cidx].cpu.boot_count = deviceCpu.getBootCount();
-            agent->cinfo->device[cpu_cidx].cpu.load = deviceCpu.getLoad();
-            agent->cinfo->device[cpu_cidx].cpu.gib = deviceCpu.getVirtualMemoryUsed()/GiB;
-            agent->cinfo->device[cpu_cidx].cpu.maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
+            agent->cinfo->devspec.cpu[cpu_didx].uptime = deviceCpu.getUptime();
+            agent->cinfo->devspec.cpu[cpu_didx].boot_count = deviceCpu.getBootCount();
+            agent->cinfo->devspec.cpu[cpu_didx].load = deviceCpu.getLoad();
+            agent->cinfo->devspec.cpu[cpu_didx].gib = deviceCpu.getVirtualMemoryUsed()/GiB;
+            agent->cinfo->devspec.cpu[cpu_didx].maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
             deviceCpu.getPercentUseForCurrentProcess();
         }
         if (agent->get_debug_level())
         {
-            agent->debug_error.Printf("Load %6.2f %6.2f ", agent->cinfo->device[cpu_cidx].cpu.load, agent->cinfo->device[cpu_cidx].cpu.maxload);
-            agent->debug_error.Printf("Memory %6.2f %6.2f ", agent->cinfo->device[cpu_cidx].cpu.gib, agent->cinfo->device[cpu_cidx].cpu.maxgib);
+            agent->debug_error.Printf("Load %6.2f %6.2f ", agent->cinfo->devspec.cpu[cpu_didx].load, agent->cinfo->devspec.cpu[cpu_didx].maxload);
+            agent->debug_error.Printf("Memory %6.2f %6.2f ", agent->cinfo->devspec.cpu[cpu_didx].gib, agent->cinfo->devspec.cpu[cpu_didx].maxgib);
         }
 
         // get disk info
         for (size_t i=0; i<agent->cinfo->devspec.disk_cnt; ++i)
         {
-            agent->cinfo->device[agent->cinfo->devspec.disk[i]].utc = currentmjd();
+            agent->cinfo->devspec.disk[i].utc = currentmjd();
 
-            string node_path = agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.path;
+            string node_path = agent->cinfo->devspec.disk[i].path;
 
-            agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.gib = deviceDisk.getUsedGiB(node_path);
-            agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.maxgib = deviceDisk.getSizeGiB(node_path);
+            agent->cinfo->devspec.disk[i].gib = deviceDisk.getUsedGiB(node_path);
+            agent->cinfo->devspec.disk[i].maxgib = deviceDisk.getSizeGiB(node_path);
             if (agent->get_debug_level())
             {
-                agent->debug_error.Printf("%s %6.2f %6.2f ", node_path.c_str(), agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.gib, agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.maxgib);
+                agent->debug_error.Printf("%s %6.2f %6.2f ", node_path.c_str(), agent->cinfo->devspec.disk[i].gib, agent->cinfo->devspec.disk[i].maxgib);
             }
         }
 
@@ -243,7 +244,7 @@ int main(int argc, char *argv[])
         {
             float ctemp = stof(response);
             cputemp.update(currentmjd(), ctemp);
-            agent->cinfo->device[cpu_cidx].temp = cputemp.eval(currentmjd());
+            agent->cinfo->device[cpu_cidx]->temp = cputemp.eval(currentmjd());
         }
 
 //        FILE *cmd_pipe = popen("/cosmos/scripts/get_cpu_temperature", "r");
@@ -303,7 +304,7 @@ int32_t request_diskUsed(string &, string &response, Agent *)
 int32_t request_diskFree(string &, string &response, Agent *)
 {
     // TODO: implement diskFree
-    //return (response =  "%.1f", agent->cinfo->device[cpu_cidx].cpugib));
+    //return (response =  "%.1f", agent->cinfo->devspec.cpu[cpu_didxgib));
 
     // in the mean time use this
     return ((response = std::to_string(deviceDisk.FreeGiB)).length());
