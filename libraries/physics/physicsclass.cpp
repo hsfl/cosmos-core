@@ -220,6 +220,7 @@ namespace Cosmos
             triangle.normal = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).cross(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]);
             triangle.com = (currentphys->vertices[triangle.tidx[0]] + currentphys->vertices[triangle.tidx[1]] + currentphys->vertices[triangle.tidx[2]]) / 3.;
             triangle.area = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).area(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]);
+            triangle.mass = triangle.area * triangle.depth;
             triangle.perimeter = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).norm() + (currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[1]]).norm() + (currentphys->vertices[triangle.tidx[0]] - currentphys->vertices[triangle.tidx[2]]).norm();
             currentphys->triangles.push_back(triangle);
 
@@ -1883,7 +1884,7 @@ namespace Cosmos
             loc->pos.eci.a = rv_sub(loc->pos.eci.a, da.to_rv());
 
             // Add thrust
-            loc->pos.eci.a = rv_add(loc->pos.eci.a, rv_smult(1./phys->mass, phys->thrust.to_rv()));
+            loc->pos.eci.a = rv_add(loc->pos.eci.a, rv_smult(1./phys->mass, phys->fpush.to_rv()));
 
             /*
         // Jupiter gravity
