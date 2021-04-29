@@ -90,7 +90,9 @@ int main(int argc, char *argv[])
     int32_t iretn;
     map<string, float> temps;
 
-	cout<<"size of devicestruc = "<<sizeof(devicestruc)<<endl;
+//	cout<<"size of devicestruc = "<<sizeof(devicestruc)<<endl;
+    printf("Mmeory: %s\n", json_memory_usage().c_str());
+
     if (argc == 2) {
 		agent = new Agent(argv[1], "cpu", 15.);
 	} else {
@@ -98,6 +100,7 @@ int main(int argc, char *argv[])
         gethostname(hostname, sizeof (hostname));
         agent = new Agent(hostname, "cpu", 15.);
 	}
+    printf("Mmeory: %s\n", json_memory_usage().c_str());
     agent->set_debug_level(1);
 
     if ((iretn = agent->wait()) < 0) {
@@ -186,7 +189,8 @@ int main(int argc, char *argv[])
 
     sohstring += "}";
     agent->set_sohstring(sohstring);
-    json_updatedevices(agent->cinfo);
+    json_updatecosmosstruc(agent->cinfo);
+    printf("Mmeory: %s\n", json_memory_usage().c_str());
 
     printf("SOH String: %s\n", sohstring.c_str());
 

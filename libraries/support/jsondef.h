@@ -4101,6 +4101,7 @@ union as a ::devicestruc.
             Vector adrag;
             Vector rdrag;
             Vector thrust;
+            Vector fpush;
             Vector moi = Vector(1.,1.,1.);
             Vector com;
 
@@ -4227,13 +4228,13 @@ union as a ::devicestruc.
 
             //! Node Name.
             //    char name[COSMOS_MAX_NAME+1] = "";
-            string name;
+            string name="";
             //! Agent Name.
             //    char agent[COSMOS_MAX_NAME+1] = "";
-            string agent;
+            string agent="";
             //! Last event
             //	char lastevent[COSMOS_MAX_NAME+1] = "";
-            string lastevent;
+            string lastevent="";
             //! Last event UTC
             double lasteventutc = 0.;
             //! Node Type as listed in \ref NODE_TYPE.

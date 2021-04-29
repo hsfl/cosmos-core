@@ -131,7 +131,7 @@ int32_t json_shrink(cosmosstruc *cinfo);
 int32_t json_repoint(cosmosstruc *cinfo);
 void json_destroy(cosmosstruc *cinfo);
 //int32_t json_pushdevspec(uint16_t cidx, cosmosstruc *cinfo);
-int32_t json_updatedevices(cosmosstruc *cinfo);
+int32_t json_updatecosmosstruc(cosmosstruc *cinfo);
 
 int32_t json_createpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi=1.0, double abs=1.0, double hcap=0.9, double hcon=205., double density=2710.);
 int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi=1.0, double abs=1.0, double hcap=0.9, double hcon=205., double density=2710.);
@@ -349,6 +349,7 @@ string device_type_name(uint32_t type);
 string port_type_name(uint32_t type);
 int32_t device_index(cosmosstruc* cinfo, string name);
 bool device_has_property(uint16_t deviceType, string prop);
+string json_memory_usage();
 
 //! @}
 

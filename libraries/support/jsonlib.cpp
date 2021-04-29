@@ -44,6 +44,7 @@
 #include <iostream>
 #include <limits>
 #include <fstream>
+#include <malloc.h>
 
 static vector <string> device_type_string;
 
@@ -416,43 +417,43 @@ void json_init_reserve(cosmosstruc* cinfo) {
     // JIMNOTE: change all to reserve
     // reserve/resize fixed-sized vectors
     cinfo->unit.clear();
-    cinfo->unit.reserve(JSON_UNIT_COUNT);
+//    cinfo->unit.reserve(JSON_UNIT_COUNT);
 
     cinfo->jmap.resize(JSON_MAX_HASH);
     cinfo->emap.resize(JSON_MAX_HASH);
 
-    cinfo->node.name.reserve(COSMOS_MAX_NAME+1);
-    cinfo->node.agent.reserve(COSMOS_MAX_NAME+1);
-    cinfo->node.lastevent.reserve(COSMOS_MAX_NAME+1);
+//    cinfo->node.name.reserve(COSMOS_MAX_NAME+1);
+//    cinfo->node.agent.reserve(COSMOS_MAX_NAME+1);
+//    cinfo->node.lastevent.reserve(COSMOS_MAX_NAME+1);
 
     // TODO: enforce this maximum for all vert/tri.push_back calls
     cinfo->node.phys.vertices.clear();
-    cinfo->node.phys.vertices.reserve(MAX_NUMBER_OF_VERTICES);
+//    cinfo->node.phys.vertices.reserve(MAX_NUMBER_OF_VERTICES);
     cinfo->node.phys.triangles.clear();
-    cinfo->node.phys.triangles.reserve(MAX_NUMBER_OF_TRIANGLES);
+//    cinfo->node.phys.triangles.reserve(MAX_NUMBER_OF_TRIANGLES);
 
     cinfo->vertexs.clear();
-    cinfo->vertexs.reserve(MAX_NUMBER_OF_VERTEXS);
+//    cinfo->vertexs.reserve(MAX_NUMBER_OF_VERTEXS);
     cinfo->normals.clear();
-    cinfo->normals.reserve(MAX_NUMBER_OF_NORMALS);
+//    cinfo->normals.reserve(MAX_NUMBER_OF_NORMALS);
 
-    cinfo->user.reserve(MAX_NUMBER_OF_USERS);
-    cinfo->user.resize(MAX_NUMBER_OF_USERS);
+//    cinfo->user.reserve(MAX_NUMBER_OF_USERS);
+//    cinfo->user.resize(MAX_NUMBER_OF_USERS);
 
-    cinfo->agent.reserve(MAX_NUMBER_OF_AGENTS);
+//    cinfo->agent.reserve(MAX_NUMBER_OF_AGENTS);
     cinfo->agent.resize(1);
 
     cinfo->equation.clear();
-    cinfo->equation.reserve(MAX_NUMBER_OF_EQUATIONS);
+//    cinfo->equation.reserve(MAX_NUMBER_OF_EQUATIONS);
     cinfo->pieces.clear();
-    cinfo->pieces.reserve(MAX_NUMBER_OF_PIECES);
+//    cinfo->pieces.reserve(MAX_NUMBER_OF_PIECES);
     cinfo->device.clear();
-    cinfo->device.reserve(MAX_NUMBER_OF_DEVICES);
+//    cinfo->device.reserve(MAX_NUMBER_OF_DEVICES);
     cinfo->target.clear();
-    cinfo->target.reserve(MAX_NUMBER_OF_TARGETS);
+//    cinfo->target.reserve(MAX_NUMBER_OF_TARGETS);
 
     cinfo->sim_states.clear();
-    cinfo->sim_states.reserve(MAX_NUMBER_OF_SATELLITES);
+//    cinfo->sim_states.reserve(MAX_NUMBER_OF_SATELLITES);
 
     // init sim_states
     sim_state s;
@@ -472,14 +473,14 @@ void json_init_reserve(cosmosstruc* cinfo) {
     s.agent_name = "mother";
     cinfo->sim_states.push_back(s);
 
-    cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
+//    cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
     cinfo->event.resize(1);
 
     cinfo->port.clear();
-    cinfo->port.reserve(MAX_NUMBER_OF_PORTS);
+//    cinfo->port.reserve(MAX_NUMBER_OF_PORTS);
 
     cinfo->tle.clear();
-    cinfo->tle.reserve(MAX_NUMBER_OF_TLES);
+//    cinfo->tle.reserve(MAX_NUMBER_OF_TLES);
     return;
 }
 
@@ -496,19 +497,19 @@ cosmosstruc* json_init(cosmosstruc *cinfo)
     json_init_device_type_string();
     // would be nice to have unit test for these three guys
     //SCOTTNOTE: reserve capacity for all vectors in these strucs
-    cinfo->node.name = "";
-    cinfo->node.agent = "";
-    cinfo->node.lastevent = "";
+//    cinfo->node.name = "";
+//    cinfo->node.agent = "";
+//    cinfo->node.lastevent = "";
     //	cinfo->node = nodestruc();
     //    cinfo->node.phys = physicsstruc();
     //	cinfo->devspec = devspecstruc();
 
-    json_init_reserve(cinfo);
     if (cinfo == nullptr)
     {
         return nullptr;
     }
 
+    json_init_reserve(cinfo);
     json_init_unit(cinfo);
     json_init_node(cinfo);
 
@@ -7258,226 +7259,244 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
     return 0;
 }
 
-int32_t json_updatedevices(cosmosstruc *cinfo)
+int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
 {
     int32_t iretn = 0;
+
     for (auto &dev : cinfo->devspec.ant)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.batt)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.bcreg)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.bus)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.cam)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.cpu)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.disk)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.gps)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.htr)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.imu)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.mcc)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.motr)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.mtr)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.pload)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.prop)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.psen)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.pvstrg)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.rot)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.rw)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.rxr)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.ssen)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.stt)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.suchi)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.swch)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.tcu)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.tcv)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.telem)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.thst)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.tnc)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.tsen)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
     for (auto &dev : cinfo->devspec.txr)
     {
         cinfo->device[dev.cidx] = &dev;
-        json_mapcompentry(dev.cidx, cinfo);
-        json_mapdeviceentry(&dev, cinfo);
+//        json_mapcompentry(dev.cidx, cinfo);
+//        json_mapdeviceentry(&dev, cinfo);
         ++iretn;
     }
+
+    cinfo->node.vertex_cnt = cinfo->vertexs.size();
+    cinfo->node.normal_cnt = cinfo->normals.size();
+    cinfo->node.face_cnt = cinfo->faces.size();
+    cinfo->node.piece_cnt = cinfo->pieces.size();
+    cinfo->node.device_cnt = cinfo->device.size();
+    cinfo->node.port_cnt = cinfo->port.size();
+    cinfo->node.agent_cnt = cinfo->agent.size();
+    cinfo->node.event_cnt = cinfo->event.size();
+    cinfo->node.target_cnt = cinfo->target.size();
+    cinfo->node.user_cnt = cinfo->user.size();
+    cinfo->node.tle_cnt = cinfo->tle.size();
+
+    json_mapentries(cinfo);
+
+    cinfo->add_default_names();
+
     return iretn;
 }
 
@@ -7891,7 +7910,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
                 }
             }
 
-            json_updatedevices(cinfo);
+            json_updatecosmosstruc(cinfo);
 
             for (uint16_t i=0; i< cinfo->node.device_cnt; i++)
             {
@@ -8079,7 +8098,8 @@ int32_t json_dump_node(cosmosstruc *cinfo)
 {
     string jst;
     string filename;
-    json_mapentries(cinfo);
+//    json_mapentries(cinfo);
+    json_updatecosmosstruc(cinfo);
 
     // Node
     string output = json_node(jst, cinfo);
@@ -8174,15 +8194,15 @@ int32_t json_mapentries(cosmosstruc *cinfo)
 {
     json_mapbaseentries(cinfo);
 
-    for (uint16_t i=0; i<cinfo->node.vertex_cnt; i++)
-    {
-        json_mapvertexentry(i, cinfo);
-    }
+//    for (uint16_t i=0; i<cinfo->node.vertex_cnt; i++)
+//    {
+//        json_mapvertexentry(i, cinfo);
+//    }
 
-    for (uint16_t i=0; i<cinfo->node.face_cnt; i++)
-    {
-        json_mapfaceentry(i, cinfo);
-    }
+//    for (uint16_t i=0; i<cinfo->node.face_cnt; i++)
+//    {
+//        json_mapfaceentry(i, cinfo);
+//    }
 
     for (uint16_t i=0; i<cinfo->node.piece_cnt; i++)
     {
@@ -12813,4 +12833,20 @@ bool device_has_property(uint16_t deviceType, std::string prop)
 
     }
     return false;
+}
+
+string json_memory_usage()
+{
+    string output;
+    struct mallinfo m = mallinfo();
+    output += to_label("arena", m.arena) + "\n";
+    output += to_label("ordblks", m.ordblks) + "\n";
+    output += to_label("smblks", m.smblks) + "\n";
+    output += to_label("hblks" ,m.hblks) + "\n";
+    output += to_label("hblkhd", m.hblkhd) + "\n";
+    output += to_label("usmblks", m.usmblks) + "\n";
+    output += to_label("fsmblks", m.fsmblks) + "\n";
+    output += to_label("uordblks", m.uordblks) + "\n";
+    output += to_label("fordblks", m.fordblks);
+    return output;
 }
