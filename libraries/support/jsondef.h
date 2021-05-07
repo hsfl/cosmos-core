@@ -777,9 +777,11 @@ class sim_param	{
 	/** obstacle force weighing */
 	double obstacle_w = 1.0;
 	/** target (local or ECI?) */
-	double x_target_pos = 0.0;
-	double y_target_pos = 0.0;
-	double z_target_pos = 0.0;
+	double	x_target_pos = 0.0;
+	double	y_target_pos = 0.0;
+	double	z_target_pos = 0.0;
+	/** objective */
+	double	internode_distance = 5000.0;
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
@@ -799,7 +801,8 @@ class sim_param	{
 			{ "obstacle_w"		, obstacle_w },
 			{ "x_target_pos"		, x_target_pos },
 			{ "y_target_pos"		, y_target_pos },
-			{ "z_target_pos"		, z_target_pos }
+			{ "z_target_pos"		, z_target_pos },
+			{ "internode_distance"	, internode_distance }
 		};
 	}
 
@@ -826,6 +829,7 @@ class sim_param	{
 			if(!p["x_target_pos"].is_null()) { x_target_pos = p["x_target_pos"].number_value(); }
 			if(!p["y_target_pos"].is_null()) { y_target_pos = p["y_target_pos"].number_value(); }
 			if(!p["z_target_pos"].is_null()) { z_target_pos = p["z_target_pos"].number_value(); }
+			if(!p["internode_distance"].is_null()) { internode_distance = p["internode_distance"].number_value(); }
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
