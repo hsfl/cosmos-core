@@ -11,58 +11,65 @@ add_library(CosmosSupport STATIC
     cosmos-defs.h estimation_lib.h
     configCosmos.h)
 install(TARGETS CosmosSupport DESTINATION lib)
-target_link_libraries(CosmosSupport CosmosMath)
+#target_link_libraries(CosmosSupport CosmosMath)
+target_link_libraries(CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosSlip STATIC sliplib.cpp sliplib.h)
 install(TARGETS CosmosSlip DESTINATION lib)
 
 add_library(CosmosTransfer STATIC transferlib.cpp transferlib.h)
 install(TARGETS CosmosTransfer DESTINATION lib)
+target_link_libraries(CosmosTransfer  CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosPrint STATIC print_utils.cpp print_utils.h)
 install(TARGETS CosmosPrint DESTINATION lib)
+target_link_libraries(CosmosPrint  CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosError STATIC cosmos-errno.cpp cosmos-errno.h )
 install(TARGETS CosmosError DESTINATION lib)
+target_link_libraries(CosmosError CosmosString CosmosData CosmosSupport ${COSMOS_LIBS})
 
-add_library(CosmosConvert STATIC convertlib.cpp convertlib.h convertdef.h demlib.cpp demlib.h jpleph.cpp jpleph.h geomag.cpp geomag.h)
+add_library(CosmosConvert STATIC convertlib.cpp convertlib.h convertdef.h demlib.cpp demlib.h jpleph.cpp jpleph.h geomag.cpp geomag.h ephemlib.cpp ephemlib.h)
 install(TARGETS CosmosConvert DESTINATION lib)
-target_link_libraries(CosmosConvert CosmosTime CosmosMath CosmosData CosmosEphem)
+target_link_libraries(CosmosConvert CosmosData CosmosTime CosmosMath CosmosSupport ${COSMOS_LIBS})
 
-add_library(CosmosEphem STATIC ephemlib.cpp ephemlib.h)
-install(TARGETS CosmosEphem DESTINATION lib)
-target_link_libraries(CosmosEphem CosmosTime CosmosMath)
+#add_library(CosmosEphem STATIC ephemlib.cpp ephemlib.h)
+#install(TARGETS CosmosEphem DESTINATION lib)
+##target_link_libraries(CosmosEphem CosmosTime CosmosMath)
+#target_link_libraries(CosmosEphem CosmosConvert CosmosData CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosNetwork STATIC socketlib.cpp socketlib.h )
 install(TARGETS CosmosNetwork DESTINATION lib)
-target_link_libraries(CosmosNetwork CosmosTime)
+#target_link_libraries(CosmosNetwork CosmosTime)
+target_link_libraries(CosmosNetwork CosmosTime CosmosMath CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosNamespace STATIC json11.cpp jsonlib.cpp json11.hpp jsonlib.h jsondef.h)
 install(TARGETS CosmosNamespace DESTINATION lib)
-target_link_libraries(CosmosNamespace CosmosJson CosmosConvert CosmosCad CosmosTime CosmosDeviceCpu CosmosDeviceDisk)
+target_link_libraries(CosmosNamespace CosmosConvert CosmosCad CosmosJson CosmosDeviceCpu CosmosDeviceDisk CosmosString CosmosMath CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosString STATIC stringlib.cpp stringlib.h jsonobject.cpp jsonobject.h jsonvalue.cpp jsonvalue.h)
 install(TARGETS CosmosString DESTINATION lib)
-#target_link_libraries(CosmosString CosmosSupport)
+target_link_libraries(CosmosString CosmosMath CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosJson STATIC jsonclass.cpp jsonclass.h )
 install(TARGETS CosmosJson DESTINATION lib)
-target_link_libraries(CosmosJson CosmosString)
+target_link_libraries(CosmosJson CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosCad STATIC objlib.cpp objlib.h)
 install(TARGETS CosmosCad DESTINATION lib)
-target_link_libraries(CosmosCad CosmosMath CosmosData)
+target_link_libraries(CosmosCad CosmosMath CosmosData CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosTime STATIC timelib.cpp timelib.h timeutils.cpp timeutils.h elapsedtime.cpp elapsedtime.h )
 install(TARGETS CosmosTime DESTINATION lib)
-target_link_libraries(CosmosTime CosmosData CosmosEphem)
+target_link_libraries(CosmosTime CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosData STATIC datalib.cpp datalib.h)
 install(TARGETS CosmosData DESTINATION lib)
-target_link_libraries(CosmosData CosmosTime CosmosString CosmosNamespace CosmosConvert localzlib)
+target_link_libraries(CosmosData CosmosTime CosmosString localzlib CosmosError CosmosSupport ${COSMOS_LIBS})
 
 add_library(Envi STATIC envi.cpp envi.h)
 install(TARGETS Envi DESTINATION lib)
+#target_link_libraries(Envi CosmosSupport ${COSMOS_LIBS})
 
 install(FILES ${INCLUDES} DESTINATION include/support)
 install(FILES ${INCLUDESPP} DESTINATION include/support)

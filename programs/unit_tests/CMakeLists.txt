@@ -10,7 +10,7 @@ message(${files})
 foreach(file ${files})
     get_filename_component(bfile ${file} NAME_WE)
     add_executable(${bfile} ${bfile}.cpp)
-#    target_link_libraries(${bfile} ${COSMOS_LIBS} gtest gtest_main)
+#    target_link_libraries(${bfile} CosmosSupport ${COSMOS_LIBS} gtest gtest_main)
     install(TARGETS ${bfile} DESTINATION bin)
 
     if(${DEPLOY_BIN_FILES_TO_REMOTE} MATCHES "YES")

@@ -6,6 +6,7 @@ FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 add_library(CosmosMath STATIC ${SOURCES} ${INCLUDES})
+target_link_libraries(CosmosMath CosmosSupport ${COSMOS_LIBS})
 
 install(TARGETS CosmosMath DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/math)
