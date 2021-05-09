@@ -217,7 +217,7 @@ namespace Cosmos
                 Writes the given CommandQueue to the given output stream (in JSON format) and returns a reference to the modified ostream.
 
             */
-            friend std::ostream& operator<<(std::ostream& out, CommandQueue& cmdq);
+            friend ::std::ostream& operator<<(::std::ostream& out, CommandQueue& cmdq);
 
 
         }; // end of Command Queue Class

@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     size_t total = 0;
     size_t count = 0;
     cosmosstruc* c = myagent->cinfo;
-//    c->shrinkusage();
+    c->shrinkusage();
 
     total += sizeof(c->timestamp);
     total += sizeof(c->jmapped);
@@ -228,6 +228,20 @@ int main(int argc, char* argv[])
     count = sizeof(c->json);
     total += sizeof(c->json);
     printf("JSON:\t\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->names) + sizeof(c->types);
+    total += sizeof(c->names) + sizeof(c->types);
+    for (auto &name : c->names)
+    {
+        count += sizeof(name) + name.first.capacity() + sizeof(name.second);
+        total += sizeof(name) + name.first.capacity() + sizeof(name.second);
+    }
+    for (auto &type : c->types)
+    {
+        count += sizeof(type) + type.first.capacity() + type.second.capacity();
+        total += sizeof(type) + type.first.capacity() + type.second.capacity();
+    }
+    printf("Names 2.0:\t%lu\t%lu\n", count, total);
 
     fflush(stdout);
 }

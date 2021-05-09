@@ -9,7 +9,7 @@ int main()
     bool rtscts = false;
     string name = "\\\\.\\COM4"; // /dev/ttyUSB0
     int32_t baud = 115200;
-    size_t parity = 0;
+    string parity = "none";
     size_t bits = 6;
     size_t stop = 1;
 

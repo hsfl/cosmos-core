@@ -86,7 +86,7 @@ private:
     vector <uint8_t> raw_packet;
     int32_t error;
 
-    friend std::ostream& operator<<(std::ostream& out, Ax25Handle& K);
+    friend ::std::ostream& operator<<(::std::ostream& out, Ax25Handle& K);
 };
 
 //Functions to print packets

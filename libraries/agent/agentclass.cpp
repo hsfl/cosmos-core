@@ -32,8 +32,12 @@
 */
 
 #include "agent/agentclass.h"
-#include "support/socketlib.h"
 #include "support/cosmos-errno.h"
+#include "support/stringlib.h"
+#include "support/timelib.h"
+//#include "support/jsondef.h"
+#include "support/socketlib.h"
+#include "support/elapsedtime.h"
 #if defined (COSMOS_MAC_OS)
 #include <net/if.h>
 #include <net/if_dl.h>
@@ -333,7 +337,7 @@ namespace Support
         return 0;
     }
 
-    int32_t Agent::add_request(std::string token, Agent::simple_request_function function, std::string synopsis, std::string description)
+    int32_t Agent::add_request(string token, Agent::simple_request_function function, string synopsis, string description)
     {
 
         external_request_function external_request_wrapper = [] (string& request_string, string& output_string, Agent* agent){
@@ -364,7 +368,7 @@ namespace Support
         return 0;
     }
 
-    int32_t Agent::add_request(std::string token, Agent::no_arg_request_function function, std::string synopsis, std::string description)
+    int32_t Agent::add_request(string token, Agent::no_arg_request_function function, string synopsis, string description)
     {
         external_request_function external_request_wrapper = [] (string& request_string, string& output_string, Agent* agent){
             vector<string> args;
@@ -716,7 +720,7 @@ namespace Support
         return 0;
     }
 
-    int32_t Agent::set_sohstring(vector<std::string> list)
+    int32_t Agent::set_sohstring(vector<string> list)
     {
         if(list.size() == 0) return ErrorNumbers::COSMOS_GENERAL_ERROR_EMPTY;
         string jsonlist = "{";
@@ -733,7 +737,7 @@ namespace Support
 		\param list Vector of strings of namespace 2.0 names.
 		\return 0, otherwise a negative error.
 	*/
-	int32_t Agent::set_sohstring2(vector<std::string> list) {
+	int32_t Agent::set_sohstring2(vector<string> list) {
 		sohstring = list;
 		
 		return 0;
@@ -2776,10 +2780,10 @@ acquired.
 \return ::locstruc with acquired location. The UTC will be set to 0 if no heartbeat was
 acquired.
 */
-    //    locstruc Agent::poll_location(float waitsec)
+    //    Convert::locstruc Agent::poll_location(float waitsec)
     //    {
     //        int32_t iretn;
-    //        locstruc loc;
+    //        Convert::locstruc loc;
     //        messstruc mess;
 
     //		iretn = Agent::poll(mess, Agent::AgentMessage::LOCATION, waitsec);
@@ -3027,7 +3031,7 @@ acquired.
      * @param device pointer to devicestruc
      * @return status (negative on error)
      */
-    int32_t Agent::add_device(std::string name, DeviceType type, devicestruc **device)
+    int32_t Agent::add_device(string name, DeviceType type, devicestruc **device)
     {
         int32_t pindex = json_createpiece(cinfo, name, type);
         if(pindex < 0) {
@@ -3046,7 +3050,7 @@ acquired.
      * @param name reference to output (ex: device_imu_alpha_000)
      * @return status (negative on error)
      */
-    int32_t Agent::device_property_name(std::string device, std::string property, std::string &name)
+    int32_t Agent::device_property_name(string device, string property, string &name)
     {
         //! get the device index
         int32_t pidx = json_findpiece(cinfo, device);
@@ -3086,7 +3090,7 @@ acquired.
      * @param error reference for returning an error
      * @return status (negative on error)
      */
-    int32_t Agent::create_device_value_alias(std::string devicename, std::string propertyname, std::string alias)
+    int32_t Agent::create_device_value_alias(string devicename, string propertyname, string alias)
     {
         int32_t status = 0;
         string cosmos_soh_name;
@@ -3104,7 +3108,7 @@ acquired.
      * @param alias name that will replace cosmosname
      * @return error
      */
-    int32_t Agent::create_alias(std::string cosmosname, std::string alias)
+    int32_t Agent::create_alias(string cosmosname, string alias)
     {
         //! Namespace 1.0 method of adding aliases
         string equation = "(\""+cosmosname+"\"*1.0)";
@@ -3116,7 +3120,7 @@ acquired.
         return status;
     }
 
-    int32_t Agent::send_request_getvalue(beatstruc agent, vector<std::string> names, Json::Object &jobj)
+    int32_t Agent::send_request_getvalue(beatstruc agent, vector<string> names, Json::Object &jobj)
     {
         int32_t status = 0;
         if(names.size() == 0){
@@ -3145,7 +3149,7 @@ acquired.
     }
 
 
-    int32_t Agent::set_value(std::string jsonname, double value)
+    int32_t Agent::set_value(string jsonname, double value)
     {
         if(jsonname.length() == 0) {
             return ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
@@ -3155,7 +3159,7 @@ acquired.
 
     }
 
-    double Agent::get_value(std::string jsonname)
+    double Agent::get_value(string jsonname)
     {
         return json_get_double(jsonname, cinfo);
     }
@@ -3167,7 +3171,7 @@ acquired.
      * @param json json string of device values {"name1": value ,"name2": value2}
      * @return status (negative on error)
      */
-    int32_t Agent::get_device_values(std::string device, vector<std::string> props, std::string &json)
+    int32_t Agent::get_device_values(string device, vector<string> props, string &json)
     {
         if(props.size() == 0) return 0;
         int32_t pidx = json_findpiece(cinfo, device);
@@ -3199,7 +3203,7 @@ acquired.
     }
 
 
-    int32_t Agent::get_values(vector<std::string> names, std::string &json)
+    int32_t Agent::get_values(vector<string> names, string &json)
     {
         if(names.size() == 0) return 0;
         string jsonlist = "{";

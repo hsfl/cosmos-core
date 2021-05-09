@@ -91,9 +91,9 @@ struct rvector
 	}
 };
 
-std::ostream& operator << (std::ostream& out, const rvector& a);
-std::ostream& operator << (std::ostream& out, const vector<rvector>& a);
-std::istream& operator >> (std::istream& out, rvector& a);
+::std::ostream& operator << (::std::ostream& out, const rvector& a);
+::std::ostream& operator << (::std::ostream& out, const vector<rvector>& a);
+::std::istream& operator >> (::std::istream& out, rvector& a);
 rvector operator * (rvector v, double scalar); // multiply vector by vector operator
 rvector operator * (rvector v1, rvector v2); // multiply vector by vector operator
 rvector operator / (rvector v, double scalar); // divide vector by scalar operator
@@ -209,8 +209,8 @@ struct svector
 	}
 } ;
 
-std::ostream& operator << (std::ostream& out, const svector& a);
-std::istream& operator >> (std::istream& out, svector& a);
+::std::ostream& operator << (::std::ostream& out, const svector& a);
+::std::istream& operator >> (::std::istream& out, svector& a);
 
 //! 3 element geodetic vector
 /*! 3 double precision numbers representing a vector in a WGS84
@@ -263,8 +263,8 @@ struct gvector
 	}
 };
 
-std::ostream& operator << (std::ostream& out, const gvector& a);
-std::istream& operator >> (std::istream& out, gvector& a);
+::std::ostream& operator << (::std::ostream& out, const gvector& a);
+::std::istream& operator >> (::std::istream& out, gvector& a);
 
 //! 3 element attitude vector.
 /*! Uses Tait-Bryan representation in a  zyx, right handed order of
@@ -317,11 +317,11 @@ struct avector
 	}
 } ;
 
-std::ostream& operator << (std::ostream& out, const avector& a);
-std::istream& operator >> (std::istream& out, avector& a);
+::std::ostream& operator << (::std::ostream& out, const avector& a);
+::std::istream& operator >> (::std::istream& out, avector& a);
 
-std::ostream& operator << (std::ostream& out, const cvector& a);
-std::istream& operator >> (std::istream& in, cvector& a);
+::std::ostream& operator << (::std::ostream& out, const cvector& a);
+::std::istream& operator >> (::std::istream& in, cvector& a);
 
 // Geodetic Vector operations
 gvector gv_zero();
@@ -435,8 +435,8 @@ struct quaternion
 	}
 } ;
 
-std::ostream& operator << (std::ostream& out, const quaternion& a);
-std::istream& operator >> (std::istream& out, quaternion& a);
+::std::ostream& operator << (::std::ostream& out, const quaternion& a);
+::std::istream& operator >> (::std::istream& out, quaternion& a);
 
 //! Quaternion, scalar last, using imaginary elements.
 /*! Can be thought of as i, j, k elements, followed by scalar.
@@ -489,8 +489,8 @@ struct qcomplex
 	}
 };
 
-std::ostream& operator << (std::ostream& out, const qcomplex& a);
-std::istream& operator >> (std::istream& out, qcomplex& a);
+::std::ostream& operator << (::std::ostream& out, const qcomplex& a);
+::std::istream& operator >> (::std::istream& out, qcomplex& a);
 
 //! Quaternion, scalar last, using vector elements.
 /*! Can be thought of as vector elements, q1, q2, q3, followed by
@@ -544,8 +544,8 @@ struct qlast
 	}
 };
 
-std::ostream& operator << (std::ostream& out, const qlast& a);
-std::istream& operator >> (std::istream& out, qlast& a);
+::std::ostream& operator << (::std::ostream& out, const qlast& a);
+::std::istream& operator >> (::std::istream& out, qlast& a);
 
 //! Quaternion, scalar first using vector elements.
 /*! Can be thought of as scalar element, q0, followed by vector
@@ -599,8 +599,8 @@ struct qfirst
 	}
 };
 
-std::ostream& operator << (std::ostream& out, const qfirst& a);
-std::istream& operator >> (std::istream& out, qfirst& a);
+::std::ostream& operator << (::std::ostream& out, const qfirst& a);
+::std::istream& operator >> (::std::istream& out, qfirst& a);
 
 cvector cv_quaternion2axis(quaternion q);
 void normalize_q(quaternion *q);
@@ -786,7 +786,7 @@ namespace Cosmos {
 		};
 
 		Vector operator * (const double scale, const Vector &v);
-		std::ostream& operator << (std::ostream& out, const Vector& v);
+		::std::ostream& operator << (::std::ostream& out, const Vector& v);
 		Vector eye(double scale=1.);
 		Vector unitxV(double scale=1.);
 		Vector unityV(double scale=1.);
@@ -862,9 +862,9 @@ namespace Cosmos {
 
 			Quaternion operator + (const Quaternion &q2); // add vector by vector operator
 			Quaternion &operator += (const Quaternion &q2); // add vector by vector operator in place
-			//std::ostream& operator<<(std::ostream& os, const Quaternion& q);
-			//friend std::ostream& operator << (std::ostream& os, const Quaternion& q);
-			//std::istream& operator >> (std::istream& out, Quaternion& a);
+			//::std::ostream& operator<<(::std::ostream& os, const Quaternion& q);
+			//friend ::std::ostream& operator << (::std::ostream& os, const Quaternion& q);
+			//::std::istream& operator >> (::std::istream& out, Quaternion& a);
 
 			Quaternion multiplyScalar(double a);
 			Quaternion conjugate() const;
@@ -913,7 +913,7 @@ namespace Cosmos {
 		// declared outside class because it does not need to access members of the class Quaternion
 		Quaternion operator * (double scale, const Quaternion &q);
 		Quaternion operator * (const Vectors::Vector &v, const Quaternion &q);
-		std::ostream& operator << (std::ostream& os, const Quaternion& q);
+		::std::ostream& operator << (::std::ostream& os, const Quaternion& q);
 		Quaternion irotate_for(Vectors::Vector sourcea, Vectors::Vector sourceb, Vectors::Vector targeta, Vectors::Vector targetb);
 		Quaternion drotate_between(Vectors::Vector a, Vectors::Vector b);
 		Quaternion drotate_around_x(double angle);

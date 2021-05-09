@@ -3,7 +3,7 @@
 //#include <string>
 #include "envi.h"
 
-int32_t read_envi_hdr(std::string file, envi_hdr &hdr)
+int32_t read_envi_hdr(string file, envi_hdr &hdr)
 {
     char fname[250], inbuf[1000];
     FILE *fp;
@@ -44,18 +44,18 @@ int32_t read_envi_hdr(std::string file, envi_hdr &hdr)
     while(fgets(inbuf,999,fp) != NULL)
     {
         size_t loc;
-        std::string line = inbuf;
+        string line = inbuf;
 
-        if (line[0] != ';' && (loc=line.find(" = ")) != (std::string::npos))
+        if (line[0] != ';' && (loc=line.find(" = ")) != (string::npos))
         {
             if (inbuf[loc+3] == '{')
             {
-                if ((loc=line.find("}")) == std::string::npos)
+                if ((loc=line.find("}")) == string::npos)
                 {
                     while(fgets(inbuf,999,fp) != NULL)
                     {
                         line = inbuf;
-                        if ((loc=line.find("}")) != std::string::npos)
+                        if ((loc=line.find("}")) != string::npos)
                         {
                             break;
                         }

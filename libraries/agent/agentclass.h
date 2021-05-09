@@ -123,16 +123,9 @@
 //! with Cosmos::COSMOS_SLEEP. Upon exiting from this loop, you should call Cosmos::Agent::shutdown.
 
 #include "support/configCosmos.h"
-#include "support/cosmos-errno.h"
-#include "support/stringlib.h"
-#include "support/timelib.h"
-#include "support/jsondef.h"
-#include "support/sliplib.h"
-#include "support/socketlib.h"
 #include "support/jsonlib.h"
-#include "support/elapsedtime.h"
-#include "device/cpu/devicecpu.h"
 #include "support/jsonclass.h"
+#include "device/cpu/devicecpu.h"
 
 namespace Cosmos
 {
@@ -337,7 +330,7 @@ namespace Cosmos
             int32_t clearring();
             //    timestruc poll_time(float waitsec);
             //    beatstruc poll_beat(float waitsec);
-            //    locstruc poll_location(float waitsec);
+            //    Convert::locstruc poll_location(float waitsec);
             //    nodestruc poll_info(float waitsec);
             //    imustruc poll_imu(float waitsec);
             int json_map_agentstruc(agentstruc **agent);
@@ -355,17 +348,17 @@ namespace Cosmos
             // general functionality for artemis
             int32_t set_activity_period(double period);
 
-            int32_t add_device(std::string name, DeviceType type, devicestruc **device);
-            int32_t device_property_name(std::string device, std::string property, std::string& name);
+            int32_t add_device(string name, DeviceType type, devicestruc **device);
+            int32_t device_property_name(string device, string property, string& name);
 
-            int32_t send_request_getvalue(beatstruc agent, std::vector<std::string> names, Json::Object &jobj);
-            int32_t create_device_value_alias(std::string devicename, std::string propertyname, std::string alias);
-            int32_t create_alias(std::string cosmosname, std::string alias);
+            int32_t send_request_getvalue(beatstruc agent, std::vector<string> names, Json::Object &jobj);
+            int32_t create_device_value_alias(string devicename, string propertyname, string alias);
+            int32_t create_alias(string cosmosname, string alias);
 
-            int32_t set_value(std::string jsonname, double value);
-            double get_value(std::string jsonname);
-            int32_t get_device_values(std::string device, std::vector<std::string>props, std::string& json);
-            int32_t get_values(std::vector<std::string> names, std::string& json);
+            int32_t set_value(string jsonname, double value);
+            double get_value(string jsonname);
+            int32_t get_device_values(string device, std::vector<string>props, string& json);
+            int32_t get_values(std::vector<string> names, string& json);
 
 
 

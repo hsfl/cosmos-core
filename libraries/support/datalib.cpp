@@ -32,6 +32,10 @@
 */
 
 #include "support/datalib.h"
+//#include "support/jsonlib.h"
+//#include "support/jsondef.h"
+#include "support/stringlib.h"
+#include "support/timelib.h"
 #include <algorithm>
 
 //! \ingroup datalib
@@ -575,50 +579,6 @@ int32_t data_list_nodes(vector<string>& nodes)
             {
                 tnode = td->d_name;
                 nodes.push_back(tnode);
-            }
-        }
-        closedir(jdp);
-    }
-    return 0;
-}
-
-//! Get vector of Node structures.
-/*! Scan the COSMOS root directory and return a ::cosmosstruc for each
- * Node that is found.
- * \param node Vector of ::cosmosstruc for each Node.
- * \return Zero or negative error.
- */
-int32_t data_get_nodes(vector<cosmosstruc> &node)
-{
-    DIR *jdp;
-    string dtemp;
-    string rootd;
-    struct dirent *td;
-    cosmosstruc *tnode;
-
-    int32_t iretn = get_cosmosnodes(rootd);
-    if (iretn < 0)
-    {
-        return iretn;
-    }
-
-    if ((tnode=json_init()) == nullptr)
-    {
-        return (NODE_ERROR_NODE);
-    }
-
-    dtemp = rootd;
-    if ((jdp=opendir(dtemp.c_str())) != nullptr)
-    {
-        while ((td=readdir(jdp)) != nullptr)
-        {
-            if (td->d_name[0] != '.')
-            {
-                string nodepath = td->d_name;
-                if (!json_setup_node(nodepath, tnode))
-                {
-                    node.push_back(*tnode);
-                }
             }
         }
         closedir(jdp);
@@ -1620,19 +1580,19 @@ int32_t data_load_archive(string node, string agent, double mjd, string type, ve
     return iretn;
 }
 
-int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc *cinfo)
-{
-    int32_t iretn;
+//int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc *cinfo)
+//{
+//    int32_t iretn;
 
-    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "telemetry", telem);
-    if (iretn < 0)
-    {
-        return iretn;
-    }
-    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "event", event);
+//    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "telemetry", telem);
+//    if (iretn < 0)
+//    {
+//        return iretn;
+//    }
+//    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "event", event);
 
-    return iretn;
-}
+//    return iretn;
+//}
 
 //! Find last day in archive
 /*! Searches through data archives for this Node to find most recent
@@ -1780,49 +1740,6 @@ double findfirstday(string name)
     {
         return 0.;
     }
-}
-
-//! Add to KML path
-/*! Write a KML file to keep track of the path the node is following. Create the file if it doesn't alreay exist.
-             * Append to it if it already exists.
-             \param cinfo Pointer to ::cosmosstruc to use.
-             \return 0, otherwise negative error.
-            */
-int32_t kml_write(cosmosstruc *cinfo)
-{
-    char buf[500];
-    FILE *fin, *fout;
-    double utc;
-
-    utc = floor(cinfo->node.loc.utc);
-
-    string path = data_type_path((string)cinfo->node.name, "outgoing", "google", utc, "points");
-    fin = data_open(path, (char *)"a+");
-    fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->node.loc.pos.geod.s.lon),DEGOF(cinfo->node.loc.pos.geod.s.lat),cinfo->node.loc.pos.geod.s.h);
-
-    path = data_type_path(cinfo->node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
-    fout = data_open(path, (char *)"w");
-    fprintf(fout,"<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n");
-    fprintf(fout,"<Document>\n");
-    fprintf(fout,"<name>%s JD%5.0f</name>\n",cinfo->node.name.c_str(),utc);
-    fprintf(fout,"<description>Track of node.</description>\n");
-    fprintf(fout,"<Style id=\"yellowLineGreenPoly\">\n<LineStyle>\n<color>7f00ffff</color>\n<width>4</width>\n</LineStyle>\n");
-    fprintf(fout,"<PolyStyle>\n<color>7f00ff00</color>\n</PolyStyle>\n</Style>\n");
-    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cinfo->node.name.c_str(),utc);
-    fprintf(fout,"<styleUrl>#yellowLineGreenPoly</styleUrl>\n<LineString>\n<extrude>1</extrude>\n<tessellate>1</tessellate>\n<altitudeMode>absolute</altitudeMode>\n");
-    fprintf(fout,"<coordinates>\n");
-
-    rewind (fin);
-    while (fgets(buf, 500, fin) != nullptr)
-    {
-        fputs(buf, fout);
-    }
-    fclose(fin);
-
-    fprintf(fout,"</coordinates>\n</LineString>\n</Placemark>\n</Document>\n</kml>\n");
-    fclose(fout);
-
-    return 0;
 }
 
 bool data_isdir(string path)

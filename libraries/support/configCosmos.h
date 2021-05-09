@@ -76,6 +76,7 @@
 using std::isfinite;
 //using std::isinf;
 //using std::isnan;
+#include <fstream>
 #include <iosfwd>
 using std::ifstream;
 using std::ofstream;
@@ -102,7 +103,7 @@ using std::right;
 #include <limits>
 #include <string>
 using std::string;
-using std::to_string;
+//using std::to_string;
 #include <vector>
 using std::vector;
 #include <stack>

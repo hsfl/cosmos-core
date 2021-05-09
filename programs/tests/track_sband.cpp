@@ -97,7 +97,7 @@ static bool antconnected = false;
 int load_tle_info(char *file);
 
 // Here are variables for internal use
-static tlestruc tle;
+static Convert::tlestruc tle;
 static string tlename;
 static Agent *agent;
 
@@ -130,7 +130,7 @@ struct trackstruc
     targetstruc target;
     physicsstruc physics;
     string name;
-    gj_handle gjh;
+    Physics::gj_handle gjh;
     vector <LsFit> position;
 };
 static trackstruc track;
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
     // Connect to antenna and set sensitivity;
     if (agent->cinfo->devspec.ant[antindex].model == DEVICE_MODEL_PRKX2SU)
     {
-//        iretn = prkx2su_init(antdevice);
+        //        iretn = prkx2su_init(antdevice);
         sband = new Prkx2su(antdevice);
     }
 
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
         gs232b_set_sensitivity(RADOF(1.));
         break;
     case DEVICE_MODEL_PRKX2SU:
-//        prkx2su_set_sensitivity(RADOF(.5));
+        //        prkx2su_set_sensitivity(RADOF(.5));
         sband->set_sensitivity(RADOF(.5));
         break;
     }
@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
     agent->cinfo->node.loc.pos.geod.s.h = 348.;
     agent->cinfo->node.loc.pos.geod.v = gv_zero();
     agent->cinfo->node.loc.pos.geod.pass++;
-    pos_geod(&agent->cinfo->node.loc);
+    Convert::pos_geod(&agent->cinfo->node.loc);
 
     if (mode == "tra")
     {
@@ -287,12 +287,12 @@ int main(int argc, char *argv[])
                     for (timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=1.)
                     {
                         uint16_t timeidx = static_cast<uint16_t>(timestep);
-                        geoidpos tg;
+                        Convert::geoidpos tg;
                         tg.utc = currentmjd();
                         tg.s = track.position[timeidx].evalgvector(timestep);
                         tg.v = track.position[timeidx].slopegvector(timestep);
-                        cartpos tc;
-                        geod2geoc(tg, tc);
+                        Convert::cartpos tc;
+                        Convert::geod2geoc(tg, tc);
                         printf("%f %f %f %f %f %f %f %f %f %f\n", timestep, DEGOF(tg.s.lat), DEGOF(tg.s.lon), tg.s.h, DEGOF(tg.v.lat), DEGOF(tg.v.lon), tg.v.h, tc.s.col[0], tc.s.col[1], tc.s.col[2]);
                     }
                 }
@@ -327,8 +327,8 @@ int main(int argc, char *argv[])
             startdate = currentmjd();
         }
         tle2eci(startdate-10./86400., tle, track.target.loc.pos.eci);
-        gauss_jackson_init_eci(track.gjh, 6, 0, 1., track.target.loc.pos.eci.utc, track.target.loc.pos.eci, track.target.loc.att.icrf, track.physics, track.target.loc);
-        gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, startdate);
+        Physics::gauss_jackson_init_eci(track.gjh, 6, 0, 1., track.target.loc.pos.eci.utc, track.target.loc.pos.eci, track.target.loc.att.icrf, track.physics, track.target.loc);
+        Physics::gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, startdate);
         if (argc == 6 || argc == 8)
         {
             offset_az = atof(argv[argc-2]);
@@ -433,7 +433,7 @@ int main(int argc, char *argv[])
                         track.target.loc.pos.geod.s = track.position[timeidx].evalgvector(timestep);
                         track.target.loc.pos.geod.v = track.position[timeidx].slopegvector(timestep);
                         track.target.loc.pos.geod.pass++;
-                        pos_geod(&track.target.loc);
+                        Convert::pos_geod(&track.target.loc);
                         update_target(agent->cinfo->node.loc, track.target);
                         target.azim = track.target.azfrom;
                         target.elev = track.target.elfrom;
@@ -446,16 +446,16 @@ int main(int argc, char *argv[])
                 }
                 else if (mode == "sun")
                 {
-                    jplpos(JPL_EARTH, JPL_SUN, ctime, &track.target.loc.pos.eci);
+                    Convert::jplpos(JPL_EARTH, JPL_SUN, ctime, &track.target.loc.pos.eci);
                     track.target.loc.pos.eci.pass++;
-                    pos_eci(track.target.loc);
+                    Convert::pos_eci(track.target.loc);
                     update_target(agent->cinfo->node.loc, track.target);
                     target.azim = track.target.azfrom;
                     target.elev = track.target.elfrom;
                 }
                 else if (mode == "tle")
                 {
-                    gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, ctime);
+                    Physics::gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, ctime);
                     update_target(agent->cinfo->node.loc, track.target);
                     target.azim = track.target.azfrom;
                     target.elev = track.target.elfrom;
@@ -468,8 +468,8 @@ int main(int argc, char *argv[])
                     {
                         tle2eci(newtime, tle, ttrack.target.loc.pos.eci);
                         ttrack.target.loc.pos.eci.pass++;
-                        pos_eci(ttrack.target.loc);
-//                        gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, newtime);
+                        Convert::pos_eci(ttrack.target.loc);
+                        //                        Physics::gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, newtime);
                         update_target(agent->cinfo->node.loc, ttrack.target);
                         if (ttrack.target.elfrom > RADOF(15.))
                         {
@@ -520,7 +520,7 @@ int main(int argc, char *argv[])
                     antconnected = false;
                 }
             }
-//            COSMOS_SLEEP(.5);
+            //            COSMOS_SLEEP(.5);
         }
         else
         {
@@ -529,7 +529,7 @@ int main(int argc, char *argv[])
                    ctime,
                    86400.*(ctime - startdate));
             connect_antenna();
-//            COSMOS_SLEEP(.1);
+            //            COSMOS_SLEEP(.1);
         }
         agent->finish_active_loop();
     }

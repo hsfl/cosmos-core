@@ -27,9 +27,10 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "agent/agentclass.h"
+//#include "agent/agentclass.h"
 #include "support/jsondef.h"
 #include "support/sliplib.h"
+#include "support/timelib.h"
 
 #define INFO_SIZE 32
 
@@ -84,7 +85,7 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	if ((iretn=socket_open(&chan, NetworkType::UDP, address, 6101, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
+    if ((iretn=socket_open(&chan, NetworkType::UDP, address, 6101, SOCKET_TALK, SOCKET_BLOCKING, 100000)) < 0)
 	{
 		printf("Unable to open connection to [%s:6101]\n",address);
 	}

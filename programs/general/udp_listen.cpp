@@ -73,8 +73,8 @@ int main(int argc, char *argv[])
 {
     // **** Declare Variables
 
-    std::string input;
-    std::string token;
+    string input;
+    string token;
 
 	/*
     char gps_time[50];
@@ -100,8 +100,8 @@ int main(int argc, char *argv[])
     int received; // Num bytes received per UDP packet
     uint8_t buf1[BUFSIZE]; // RX Buffer
 
-    std::string myjstring;
-    std::string jjstring;
+    string myjstring;
+    string jjstring;
 
 
 	uint32_t i, j, tlen;
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
             // 11- acc_y,
             // 12- acc_z (g)
 
-            //std::string string_input;
+            //string string_input;
             //string_input = buf1;
             //char string_input[100];
             //strcpy(input,string_input);
@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
             agent->cinfo->node.loc.att.geoc.a = rv_zero();
 
             ++agent->cinfo->node.loc.pos.geod.pass;
-            pos_geod(&agent->cinfo->node.loc);
+            Convert::pos_geod(&agent->cinfo->node.loc);
 			}
 
 			// Broadcast it

@@ -253,7 +253,7 @@ namespace Cosmos
         }
 
 
-        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, vector<tlestruc> lines, double utc)
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, vector<Convert::tlestruc> lines, double utc)
         {
             dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
             dtj = dt / 86400.;
@@ -356,11 +356,11 @@ namespace Cosmos
 
             if (ptype == Propagator::PositionGeo)
             {
-                pos_geod(currentinfo.node.loc);
+                Convert::pos_geod(currentinfo.node.loc);
             }
             else
             {
-                pos_eci(currentinfo.node.loc);
+                Convert::pos_eci(currentinfo.node.loc);
                 PosAccel(currentinfo.node.loc, currentinfo.node.phys);
             }
             if (atype == Propagator::AttitudeGeo)
@@ -369,7 +369,7 @@ namespace Cosmos
             }
             else
             {
-                att_icrf(currentinfo.node.loc);
+                Convert::att_icrf(currentinfo.node.loc);
                 AttAccel(currentinfo.node.loc, currentinfo.node.phys);
             }
 
@@ -379,26 +379,26 @@ namespace Cosmos
             return 0;
         }
 
-        int32_t State::Init(std::string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, posstruc pos)
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::posstruc pos)
         {
             currentinfo.node.loc.pos = pos;
             currentinfo.node.loc.att.lvlh.pass++;
             currentinfo.node.loc.att.lvlh.s = q_eye();
             currentinfo.node.loc.att.lvlh.v = rv_zero();
             currentinfo.node.loc.att.lvlh.a = rv_zero();
-            att_lvlh(currentinfo.node.loc);
+            Convert::att_lvlh(currentinfo.node.loc);
 
             return Init(name, idt, stype, ptype, atype, ttype, etype);
         }
 
-        int32_t State::Init(std::string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc loc)
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::locstruc loc)
         {
             currentinfo.node.loc = loc;
 
             return Init(name, idt, stype, ptype, atype, ttype, etype);
         }
 
-        int32_t State::Init(std::string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
         {
             dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
             dtj = dt / 86400.;
@@ -490,11 +490,11 @@ namespace Cosmos
 
             if (ptype == Propagator::PositionGeo)
             {
-                pos_geod(currentinfo.node.loc);
+                Convert::pos_geod(currentinfo.node.loc);
             }
             else
             {
-                pos_eci(currentinfo.node.loc);
+                Convert::pos_eci(currentinfo.node.loc);
                 PosAccel(currentinfo.node.loc, currentinfo.node.phys);
             }
             if (atype == Propagator::AttitudeGeo)
@@ -503,7 +503,7 @@ namespace Cosmos
             }
             else
             {
-                att_icrf(currentinfo.node.loc);
+                Convert::att_icrf(currentinfo.node.loc);
                 AttAccel(currentinfo.node.loc, currentinfo.node.phys);
             }
 
@@ -562,11 +562,11 @@ namespace Cosmos
                 static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
                 if (ptype == Propagator::PositionGeo)
                 {
-                    pos_geod(currentinfo.node.loc);
+                    Convert::pos_geod(currentinfo.node.loc);
                 }
                 else
                 {
-                    pos_eci(currentinfo.node.loc);
+                    Convert::pos_eci(currentinfo.node.loc);
                     PosAccel(currentinfo.node.loc, currentinfo.node.phys);
                 }
                 if (atype == Propagator::AttitudeGeo)
@@ -575,7 +575,7 @@ namespace Cosmos
                 }
                 else
                 {
-                    att_icrf(currentinfo.node.loc);
+                    Convert::att_icrf(currentinfo.node.loc);
                     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
                 }
                 ++count;
@@ -618,7 +618,7 @@ namespace Cosmos
             currentutc = nextutc;
             currentloc->att.icrf.utc = nextutc;
             currentloc->att.icrf.pass++;
-            att_icrf(currentloc);
+            Convert::att_icrf(currentloc);
 
             return 0;
         }
@@ -688,7 +688,7 @@ namespace Cosmos
                 currentloc->att.icrf.utc = currentutc;
                 currentloc->att.icrf.pass++;
                 AttAccel(currentloc, currentphys);
-                att_icrf(currentloc);
+                Convert::att_icrf(currentloc);
             }
 
             return 0;
@@ -701,9 +701,9 @@ namespace Cosmos
             currentloc->att.lvlh.v = rv_zero();
             currentloc->att.lvlh.a = rv_zero();
             ++currentloc->att.lvlh.pass;
-            att_lvlh2icrf(currentloc);
+            Convert::att_lvlh2icrf(currentloc);
             AttAccel(currentloc, currentphys);
-            att_icrf(currentloc);
+            Convert::att_icrf(currentloc);
 
             return  0;
         }
@@ -730,9 +730,9 @@ namespace Cosmos
             currentloc->att.lvlh.v = rv_zero();
             currentloc->att.lvlh.a = rv_zero();
             ++currentloc->att.lvlh.pass;
-            att_lvlh2icrf(currentloc);
+            Convert::att_lvlh2icrf(currentloc);
             AttAccel(currentloc, currentphys);
-            att_icrf(currentloc);
+            Convert::att_icrf(currentloc);
 
             return 0;
         }
@@ -1028,7 +1028,7 @@ namespace Cosmos
             currentutc = nextutc;
             currentloc->pos.icrf.utc = nextutc;
             currentloc->pos.icrf.pass++;
-            pos_icrf(currentloc);
+            Convert::pos_icrf(currentloc);
             PosAccel(currentloc, currentphys);
 
             return 0;
@@ -1060,7 +1060,7 @@ namespace Cosmos
             currentutc = nextutc;
             currentloc->pos.geod.utc = nextutc;
             currentloc->pos.geod.pass++;
-            pos_geod(currentloc);
+            Convert::pos_geod(currentloc);
 //            PosAccel(currentloc, currentphys);
 
             return 0;
@@ -1098,7 +1098,7 @@ namespace Cosmos
                 currentloc->pos.eci.utc = currentutc;
                 currentloc->pos.eci.pass++;
                 PosAccel(currentloc, currentphys);
-                pos_eci(currentloc);
+                Convert::pos_eci(currentloc);
             }
 
             return 0;
@@ -1230,14 +1230,14 @@ namespace Cosmos
             return 0;
         }
 
-        int32_t GaussJacksonPositionPropagator::Init(vector<tlestruc>lines)
+        int32_t GaussJacksonPositionPropagator::Init(vector<Convert::tlestruc>lines)
         {
             int32_t iretn = 0;
 
             loc_clear(step[order+1].loc);
             lines2eci(currentloc->utc, lines, currentloc->pos.eci);
             ++currentloc->pos.eci.pass;
-            pos_eci(currentloc);
+            Convert::pos_eci(currentloc);
             PosAccel(currentloc, currentphys);
 //            AttAccel(currentloc, currentphys);
             step[order2].loc = *currentloc;
@@ -1249,10 +1249,10 @@ namespace Cosmos
                 step[i].loc.utc -= dtj;
                 lines2eci(step[i].loc.utc, lines, step[i].loc.pos.eci);
                 step[i].loc.pos.eci.pass++;
-                pos_eci(step[i].loc);
+                Convert::pos_eci(step[i].loc);
 
                 step[i].loc.att.lvlh = step[i+1].loc.att.lvlh;
-                att_lvlh2icrf(step[i].loc);
+                Convert::att_lvlh2icrf(step[i].loc);
 
                 PosAccel(&step[i].loc, currentphys);
                 AttAccel(&step[i].loc, currentphys);
@@ -1265,10 +1265,10 @@ namespace Cosmos
                 step[i].loc.utc += dtj;
                 lines2eci(step[i].loc.utc, lines, step[i].loc.pos.eci);
                 step[i].loc.pos.eci.pass++;
-                pos_eci(step[i].loc);
+                Convert::pos_eci(step[i].loc);
 
                 step[i].loc.att.lvlh = step[i-1].loc.att.lvlh;
-                att_lvlh2icrf(step[i].loc);
+                Convert::att_lvlh2icrf(step[i].loc);
 
                 PosAccel(&step[i].loc, currentphys);
                 AttAccel(&step[i].loc, currentphys);
@@ -1296,7 +1296,7 @@ namespace Cosmos
         // TODO: split the orbit from the attitude propagation sections of the code
         int32_t GaussJacksonPositionPropagator::Init()
         {
-            kepstruc kep;
+            Convert::kepstruc kep;
             double dea;
             uint32_t i;
             quaternion q1;
@@ -1304,7 +1304,7 @@ namespace Cosmos
 
             // Make sure ::locstruc is internally self consistent
             ++currentloc->pos.eci.pass;
-            pos_eci(currentloc);
+            Convert::pos_eci(currentloc);
 
             // Zero out original N+1 bin
             loc_clear(step[order+1].loc);
@@ -1317,7 +1317,7 @@ namespace Cosmos
             step[order2].loc = *currentloc;
 
             // Position at t0-dt
-            eci2kep(currentloc->pos.eci, kep);
+            Convert::eci2kep(currentloc->pos.eci, kep);
 
             // Initialize past bins
             for (i=order2-1; i<order2; --i)
@@ -1343,13 +1343,13 @@ namespace Cosmos
                 // Calculate new v from da
                 step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(-dt,step[i].loc.att.icrf.a));
                 step[i].loc.att.icrf.utc = kep.utc;
-                pos_eci(step[i].loc);
+                Convert::pos_eci(step[i].loc);
 
                 PosAccel(&step[i].loc, currentphys);
 //                AttAccel(&step[i].loc, currentphys);
             }
 
-            eci2kep(currentloc->pos.eci, kep);
+            Convert::eci2kep(currentloc->pos.eci, kep);
             for (i=order2+1; i<=order; i++)
             {
                 step[i] = step[i-1];
@@ -1373,7 +1373,7 @@ namespace Cosmos
                 // Calculate new v from da
                 step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(dt,step[i].loc.att.icrf.a));
                 step[i].loc.att.icrf.utc = kep.utc;
-                pos_eci(step[i].loc);
+                Convert::pos_eci(step[i].loc);
 
                 PosAccel(&step[i].loc, currentphys);
 //                AttAccel(&step[i].loc, currentphys);
@@ -1385,13 +1385,13 @@ namespace Cosmos
             return iretn;
         }
 
-        int32_t GaussJacksonPositionPropagator::Init(vector<locstruc> locs)
+        int32_t GaussJacksonPositionPropagator::Init(vector<Convert::locstruc> locs)
         {
             int32_t iretn = 0;
 
             // Make sure ::locstruc is internally self consistent
             ++currentloc->pos.eci.pass;
-            pos_eci(currentloc);
+            Convert::pos_eci(currentloc);
 
             // Zero out original N+1 bin
             loc_clear(step[order+1].loc);
@@ -1517,7 +1517,7 @@ namespace Cosmos
                 step[order+1].loc.pos.eci.s.col[1] = this->dtsq * (step[order+1].ss.col[1] + step[order+1].sa.col[1]);
                 step[order+1].loc.pos.eci.s.col[2] = this->dtsq * (step[order+1].ss.col[2] + step[order+1].sa.col[2]);
                 step[order+1].loc.pos.eci.pass++;
-                pos_eci(step[order+1].loc);
+                Convert::pos_eci(step[order+1].loc);
 
 //                AttAccel(&step[order+1].loc, currentphys);
                 PosAccel(&step[order+1].loc, currentphys);
@@ -1624,8 +1624,8 @@ namespace Cosmos
 
                         // Perform conversions between different systems
                         step[order2+i*n].loc.pos.eci.pass++;
-                        pos_eci(&step[order2+i*n].loc);
-                        att_icrf2lvlh(&step[order2+i*n].loc);
+                        Convert::pos_eci(&step[order2+i*n].loc);
+                        Convert::att_icrf2lvlh(&step[order2+i*n].loc);
                         //		eci2earth(&step[order2+i*n].loc.pos,&step[order2+i*n].att);
 
                         // Calculate acceleration at new position
@@ -1642,7 +1642,7 @@ namespace Cosmos
             *currentloc = step[order].loc;
             ++currentloc->pos.eci.pass;
             PosAccel(currentloc, currentphys);
-            pos_eci(currentloc);
+            Convert::pos_eci(currentloc);
             return 0;
         }
 
@@ -1651,7 +1651,7 @@ namespace Cosmos
         //! \param loc Pointer to ::locstruc
         //! \param phys Pointer to ::physstruc
         //! \return Zero, or negative error.
-        int32_t PhysCalc(locstruc* loc, physicsstruc* phys)
+        int32_t PhysCalc(Convert::locstruc* loc, physicsstruc* phys)
         {
             Vector unitv = Quaternion(loc->att.geoc.s).irotate(Vector(loc->pos.geoc.v).normalize());
             Vector units = Quaternion(loc->att.icrf.s).irotate(Vector(loc->pos.icrf.s).normalize());
@@ -1748,12 +1748,12 @@ namespace Cosmos
             \param physics Pointer to structure specifying satellite.
             \param loc Structure specifying location.
         */
-        int32_t AttAccel(locstruc &loc, physicsstruc &phys)
+        int32_t AttAccel(Convert::locstruc &loc, physicsstruc &phys)
         {
             return AttAccel(&loc, &phys);
         }
 
-        int32_t AttAccel(locstruc *loc, physicsstruc *phys)
+        int32_t AttAccel(Convert::locstruc *loc, physicsstruc *phys)
         {
             //    rvector ue, ta, tv;
             //    rvector ttorque;
@@ -1819,22 +1819,22 @@ namespace Cosmos
             \param phys Pointer to structure specifying satellite.
             \param loc Structure specifying location.
         */
-        int32_t PosAccel(locstruc &loc, physicsstruc &phys)
+        int32_t PosAccel(Convert::locstruc &loc, physicsstruc &phys)
         {
             return PosAccel(&loc, &phys);
         }
 
-        int32_t PosAccel(locstruc* loc, physicsstruc* phys)
+        int32_t PosAccel(Convert::locstruc* loc, physicsstruc* phys)
         {
             int32_t iretn;
             double radius;
             Vector ctpos, da, tda;
-            cartpos bodypos;
+            Convert::cartpos bodypos;
 
             radius = length_rv(loc->pos.eci.s);
 
             loc->pos.eci.a = rv_zero();
-            pos_eci2geoc(*loc);
+            Convert::pos_eci2geoc(*loc);
 
             // Earth gravity
             // Calculate Geocentric acceleration vector
@@ -1889,7 +1889,7 @@ namespace Cosmos
             /*
         // Jupiter gravity
         // Calculate Satellite to Jupiter vector
-        jplpos(JPL_EARTH,JPL_JUPITER, loc->pos.extra.tt,(cartpos *)&bodypos);
+        Convert::jplpos(JPL_EARTH,JPL_JUPITER, loc->pos.extra.tt,(Convert::cartpos *)&bodypos);
         ctpos = rv_sub(bodypos.s, loc->pos.eci.s);
         radius = length_rv(ctpos);
 
@@ -1925,7 +1925,7 @@ namespace Cosmos
             }
 
             loc->pos.eci.pass++;
-            iretn = pos_eci(loc);
+            iretn = Convert::pos_eci(loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -1946,7 +1946,7 @@ namespace Cosmos
             \param magidx Ap daily geomagnetic index
             \return Density in kg/m3
         */
-        double Msis00Density(posstruc pos, float f107avg, float f107, float magidx)
+        double Msis00Density(Convert::posstruc pos, float f107avg, float f107, float magidx)
         {
             struct nrlmsise_output output;
             struct nrlmsise_input input;
@@ -2007,7 +2007,7 @@ namespace Cosmos
             \return A ::Vector pointing toward the earth
             \see pgm2000a_coef.txt
         */
-        Vector GravityAccel(posstruc pos, uint16_t model, uint32_t degree)
+        Vector GravityAccel(Convert::posstruc pos, uint16_t model, uint32_t degree)
         {
             uint32_t il, im;
             double tmult;
@@ -2232,18 +2232,29 @@ namespace Cosmos
             }
         }
 
-        locstruc shape2eci(double utc, double altitude, double angle, double timeshift)
+        double rearth(double lat)
+        {
+            double st,ct;
+            double c;
+
+            st = sin(lat);
+            ct = cos(lat);
+            c = sqrt(((FRATIO2 * FRATIO2 * st * st) + (ct * ct))/((ct * ct) + (FRATIO2 * st * st)));
+            return (REARTHM * c);
+        }
+
+        Convert::locstruc shape2eci(double utc, double altitude, double angle, double timeshift)
         {
             return shape2eci(utc, 0., 0., altitude, angle, timeshift);
         }
 
-        locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift)
+        Convert::locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift)
         {
-            locstruc loc;
+            Convert::locstruc loc;
 
 //            longitude += 2. * DPI * (fabs(hour)/24. - (utc - (int)utc));
 
-            pos_clear(loc);
+            Convert::pos_clear(loc);
 
             // Initial position
             loc.pos.geod.utc = loc.att.geoc.utc = utc;
@@ -2261,13 +2272,13 @@ namespace Cosmos
 //            }
             loc.pos.geod.v.lon -= DPI / 43200.;
             loc.pos.geod.pass++;
-            pos_geod(loc);
+            Convert::pos_geod(loc);
 
             if (timeshift != 0.)
             {
-                kepstruc kep;
+                Convert::kepstruc kep;
                 double dea;
-                eci2kep(loc.pos.eci, kep);
+                Convert::eci2kep(loc.pos.eci, kep);
                 kep.ma += timeshift * kep.mm;
                 uint16_t count = 0;
                 do
@@ -2277,7 +2288,7 @@ namespace Cosmos
                 } while (++count < 100 && fabs(dea) > .000001);
                 kep2eci(kep, loc.pos.eci);
                 loc.pos.eci.pass++;
-                pos_eci(loc);
+                Convert::pos_eci(loc);
             }
 
 

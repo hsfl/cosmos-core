@@ -31,8 +31,9 @@
 #define SERIALCLASS_H
 
 #include "support/configCosmos.h"
-#include "support/sliplib.h"
 #include "support/cosmos-errno.h"
+#include "support/sliplib.h"
+#include "support/elapsedtime.h"
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 #include <termios.h>
 #include <sys/select.h>
@@ -43,7 +44,7 @@ namespace Cosmos {
     class Serial
     {
     public:
-        Serial(string dname, size_t dbaud=9600, size_t dbits=8, size_t dparity=0, size_t dstop=1);
+        Serial(string dname, size_t dbaud=9600, size_t dbits=8, std::string dparity="none", size_t dstop=1);
         ~Serial();
         int32_t open_device();
         int32_t close_device();
@@ -88,6 +89,9 @@ namespace Cosmos {
         int32_t ReceiveBuffer(uint8_t *buf, int size);
         int32_t ReceiveByte(uint8_t &buf);
         int32_t SendBuffer(uint8_t *buffer, int size);
+
+        map<string, size_t> Parity = {{"none", 0}, {"odd", 1}, {"even", 2}};
+
     private:
         int fd = -1;                   /* tty file descriptor */
         int32_t error;

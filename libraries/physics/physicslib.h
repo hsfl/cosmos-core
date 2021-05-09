@@ -81,8 +81,7 @@
 //! Many of the elements used in the ::cosmosstruc are defined here.
 
 #include "support/configCosmos.h"
-
-#include "support/cosmos-defs.h"
+#include "support/timelib.h"
 #include "math/mathlib.h"
 #include "physics/nrlmsise-00.h"
 #include "support/convertlib.h"
@@ -90,69 +89,75 @@
 #include "physics/physicsdef.h"
 #include "support/jsondef.h"
 
-#include <fcntl.h>
-#include <cmath>
-#include <time.h>
-#include <errno.h>
-
-//! \ingroup physicslib
-//! \defgroup physicslib_functions Physics Library functions
-//! @{
+//#include <fcntl.h>
+//#include <cmath>
+//#include <time.h>
+//#include <errno.h>
+namespace Cosmos {
+    namespace Physics {
 
 
-void pleph_(double [], long *, long *, double []);
-void dpleph_(double [], long *, long *, double []);
+        //! \ingroup physicslib
+        //! \defgroup physicslib_functions Physics Library functions
+        //! @{
 
-rvector gravity_vector(svector pos,int model,uint32_t degree);
-double gravity_potential(double lon, double lat, double r,int model,uint32_t degree);
-//! Calculates geocentric acceleration vector from chosen model. 
-rvector gravity_accel(posstruc pos, int model, uint32_t degree);
-//! Calculates geocentric acceleration vector from chosen model. 
-rvector gravity_accel2(posstruc pos, int model, uint32_t degree);
-//! Calculates geocentric acceleration magnitude from chosen model.
-double gravity(double radius, double colat, double elon, int model, uint32_t degree);
-//! Gravitational model parameters
-int32_t gravity_params(int model);
-//! Legendre polynomial
-double nplgndr(uint32_t l, uint32_t m, double x);
-//! Ground station values
-svector groundstation(locstruc &satellite, locstruc &groundstation);
-//! Simulate all devices
-void simulate_hardware(cosmosstruc *cinfo, locstruc &loc);
-void simulate_hardware(cosmosstruc *cinfo, vector <locstruc> &locvec);
-//! Initialize IMU simulation
-void initialize_imu(uint16_t index, devspecstruc &devspec, locstruc &loc);
-//! Simulated IMU values
-void simulate_imu(int index, cosmosstruc *root, locstruc &loc);
-//! Acceleration
-int32_t pos_accel(physicsstruc &physics, locstruc &loc);
-//! Torque
-void att_accel(physicsstruc &physics, locstruc &loc);
-//! Geodetic to Heliocentric
-void geod2icrf(posstruc *pos);
-double msis86_density(posstruc pos,float f107avg,float f107,float magidx);
-double msis00_density(posstruc pos,float f107avg,float f107,float magidx);
-void orbit_init_tle(int32_t mode, double dt, double mjd, cosmosstruc *root);
-void orbit_init_eci(int32_t mode, double dt, double mjd, cartpos ipos, cosmosstruc *root);
-void orbit_init_shape(int32_t mode, double dt, double mjd, double altitude, double angle, double hour, cosmosstruc *root);
-void propagate(cosmosstruc *root, double mjd);
-double rearth(double lat);
-int update_eci(cosmosstruc *root, double utc, cartpos pos);
 
-void hardware_init_eci(cosmosstruc *cinfo, locstruc &loc);
-void gauss_jackson_setup(gj_handle &gjh, uint32_t order, double utc, double &dt);
-void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, cosmosstruc *cinfo);
-void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, cartpos ipos, qatt iatt, physicsstruc &physics, locstruc &loc);
-void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, stkstruc &stk, physicsstruc &physics, locstruc &loc);
-void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, double altitude, double angle, double hour, locstruc &iloc, physicsstruc &physics, locstruc &loc);
-locstruc gauss_jackson_converge_orbit(gj_handle &gjh, physicsstruc &physics);
-void gauss_jackson_converge_hardware(gj_handle &gjh, physicsstruc &physics);
-vector<locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &loc, double mjd);
-//! Load TLE's from file
-int orbit_propagate(cosmosstruc *root, double mjd);
-int orbit_init(int32_t mode, double dt, double mjd, string ofile, cosmosstruc *root);
-//void SolidTide(posstruc pos, double dc[5][4], double ds[5][4]);
+        void pleph_(double [], long *, long *, double []);
+        void dpleph_(double [], long *, long *, double []);
 
-//! @}
+        rvector gravity_vector(svector pos,int model,uint32_t degree);
+        double gravity_potential(double lon, double lat, double r,int model,uint32_t degree);
+        //! Calculates geocentric acceleration vector from chosen model.
+        rvector gravity_accel(Convert::posstruc pos, int model, uint32_t degree);
+        //! Calculates geocentric acceleration vector from chosen model.
+        rvector gravity_accel2(Convert::posstruc pos, int model, uint32_t degree);
+        //! Calculates geocentric acceleration magnitude from chosen model.
+        double gravity(double radius, double colat, double elon, int model, uint32_t degree);
+        //! Gravitational model parameters
+        int32_t gravity_params(int model);
+        //! Legendre polynomial
+        double nplgndr(uint32_t l, uint32_t m, double x);
+        //! Radius of Earth at Latitude
+        double rearth(double lat);
+        //! Ground station values
+        svector groundstation(Convert::locstruc &satellite, Convert::locstruc &groundstation);
+        //! Simulate all devices
+        void simulate_hardware(cosmosstruc *cinfo, Convert::locstruc &loc);
+        void simulate_hardware(cosmosstruc *cinfo, vector <Convert::locstruc> &locvec);
+        //! Initialize IMU simulation
+        void initialize_imu(uint16_t index, devspecstruc &devspec, Convert::locstruc &loc);
+        //! Simulated IMU values
+        void simulate_imu(int index, cosmosstruc *root, Convert::locstruc &loc);
+        //! Acceleration
+        int32_t pos_accel(physicsstruc &physics, Convert::locstruc &loc);
+        //! Torque
+        void att_accel(physicsstruc &physics, Convert::locstruc &loc);
+        //! Geodetic to Heliocentric
+        void geod2icrf(Convert::posstruc *pos);
+        double msis86_density(Convert::posstruc pos,float f107avg,float f107,float magidx);
+        double msis00_density(Convert::posstruc pos,float f107avg,float f107,float magidx);
+        void orbit_init_tle(int32_t mode, double dt, double mjd, cosmosstruc *root);
+        void orbit_init_eci(int32_t mode, double dt, double mjd, Convert::cartpos ipos, cosmosstruc *root);
+        void orbit_init_shape(int32_t mode, double dt, double mjd, double altitude, double angle, double hour, cosmosstruc *root);
+        void propagate(cosmosstruc *root, double mjd);
+        double rearth(double lat);
+        int update_eci(cosmosstruc *root, double utc, Convert::cartpos pos);
 
+        void hardware_init_eci(cosmosstruc *cinfo, Convert::locstruc &loc);
+        void gauss_jackson_setup(gj_handle &gjh, uint32_t order, double utc, double &dt);
+        void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, cosmosstruc *cinfo);
+        void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, Convert::cartpos ipos, Convert::qatt iatt, physicsstruc &physics, Convert::locstruc &loc);
+        void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, Convert::stkstruc &stk, physicsstruc &physics, Convert::locstruc &loc);
+        void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, double altitude, double angle, double hour, Convert::locstruc &iloc, physicsstruc &physics, Convert::locstruc &loc);
+        Convert::locstruc gauss_jackson_converge_orbit(gj_handle &gjh, physicsstruc &physics);
+        void gauss_jackson_converge_hardware(gj_handle &gjh, physicsstruc &physics);
+        vector<Convert::locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, Convert::locstruc &loc, double mjd);
+        //! Load TLE's from file
+        int orbit_propagate(cosmosstruc *root, double mjd);
+        int orbit_init(int32_t mode, double dt, double mjd, string ofile, cosmosstruc *root);
+        //void SolidTide(Convert::posstruc pos, double dc[5][4], double ds[5][4]);
+
+        //! @}
+    }
+}
 #endif

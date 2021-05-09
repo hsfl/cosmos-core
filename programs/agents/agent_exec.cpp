@@ -436,7 +436,7 @@ int main(int argc, char *argv[])
             postet.reset();
             agent->post(Agent::AgentMessage::REQUEST, "postsoh");
 
-            loc_update(&agent->cinfo->node.loc);
+            Convert::loc_update(&agent->cinfo->node.loc);
             update_target(agent->cinfo);
             //            agent->post(Agent::AgentMessage::SOH, json_of_table(myjstring, logtable, agent->cinfo));
             calc_events(eventdict, agent->cinfo, events);

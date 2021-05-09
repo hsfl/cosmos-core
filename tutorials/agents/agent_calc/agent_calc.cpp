@@ -76,10 +76,10 @@ static Agent *agent; // to access the cosmos data, will change later
 
 
 /*
-void replace(std::string& str, const std::string& from, const std::string& to) {
+void replace(string& str, const string& from, const string& to) {
     if(from.empty()) return;
     size_t start_pos = 0;
-    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+    while((start_pos = str.find(from, start_pos)) != string::npos) {
         str.replace(start_pos, from.length(), to);
         start_pos += to.length();
     }
@@ -123,10 +123,10 @@ void pretty_form(string& js)	{
 	return;
 }
 */
-void replace(std::string& str, const std::string& from, const std::string& to) {
+void replace(string& str, const string& from, const string& to) {
 	if(from.empty()) return;
 	size_t start_pos = 0;
-	while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+	while((start_pos = str.find(from, start_pos)) != string::npos) {
         str.replace(start_pos, from.length(), to);
         start_pos += to.length();
 	}
@@ -334,7 +334,7 @@ while(answer != -1)	{
 
 	agent->cinfo->add_default_names();
 	agent->cinfo->print_all_names();
-	//cout<<agent->cinfo->get_json_pretty<locstruc>("node.loc")<<endl;
+	//cout<<agent->cinfo->get_json_pretty<Convert::locstruc>("node.loc")<<endl;
 
 	// try to set some shit out of bounds
 	agent->cinfo->set_value<string>("user[9].tool", "OUT OF BOUNDS!!!!");

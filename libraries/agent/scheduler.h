@@ -45,7 +45,6 @@
 
 using std::cout;
 using std::endl;
-using std::string;
 
 namespace Cosmos
 {

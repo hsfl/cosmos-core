@@ -6,11 +6,11 @@
 static ic9100_handle ic9100;
 static usrp_handle usrp;
 static Agent *agent;
-static std::string nodename="";
-static std::string radioname;
+static string nodename="";
+static string radioname;
 static size_t deviceindex;
 static size_t radioindex = 9999;
-static std::string radiodevice;
+static string radiodevice;
 static uint16_t radioaddr;
 //static bool radioconnected = false;
 //static bool radioenabled = false;

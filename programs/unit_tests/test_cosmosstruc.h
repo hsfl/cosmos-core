@@ -3,6 +3,7 @@
 
 #include "support/configCosmos.h"
 #include "support/jsonlib.h"
+#include "support/timelib.h"
 #include "gtest/gtest.h"
 
 TEST(cosmosstruc, allocation)   {
@@ -170,11 +171,11 @@ TEST(cosmosstruc, add_default_names) {
 	EXPECT_EQ(c->get_pointer<double>("node.utcoffset"), &c->node.utcoffset);
 	EXPECT_EQ(c->get_pointer<double>("node.utc"), &c->node.utc);
 	EXPECT_EQ(c->get_pointer<double>("node.utcstart"), &c->node.utcstart);
-	EXPECT_EQ(c->get_pointer<locstruc>("node.loc"), &c->node.loc);
+	EXPECT_EQ(c->get_pointer<Convert::locstruc>("node.loc"), &c->node.loc);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.utc"), &c->node.loc.utc);
-	EXPECT_EQ(c->get_pointer<posstruc>("node.loc.pos"), &c->node.loc.pos);
+	EXPECT_EQ(c->get_pointer<Convert::posstruc>("node.loc.pos"), &c->node.loc.pos);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.utc"), &c->node.loc.pos.utc);
-	EXPECT_EQ(c->get_pointer<cartpos>("node.loc.pos.icrf"), &c->node.loc.pos.icrf);
+	EXPECT_EQ(c->get_pointer<Convert::cartpos>("node.loc.pos.icrf"), &c->node.loc.pos.icrf);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.icrf.utc"), &c->node.loc.pos.icrf.utc);
 	EXPECT_EQ(c->get_pointer<rvector>("node.loc.pos.icrf.s"), &c->node.loc.pos.icrf.s);
 	//EXPECT_EQ(c->get_pointer<double[X]>("node.loc.pos.icrf.s.col"), &c->node.loc.pos.icrf.s.col);
@@ -192,7 +193,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.loc.pos.icrf.a.col[" + std::to_string(i) + "]"), &c->node.loc.pos.icrf.a.col[i]);
 	}
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.pos.icrf.pass"), &c->node.loc.pos.icrf.pass);
-	EXPECT_EQ(c->get_pointer<cartpos>("node.loc.pos.eci"), &c->node.loc.pos.eci);
+	EXPECT_EQ(c->get_pointer<Convert::cartpos>("node.loc.pos.eci"), &c->node.loc.pos.eci);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.eci.utc"), &c->node.loc.pos.eci.utc);
 	EXPECT_EQ(c->get_pointer<rvector>("node.loc.pos.eci.s"), &c->node.loc.pos.eci.s);
 	//EXPECT_EQ(c->get_pointer<double[X]>("node.loc.pos.eci.s.col"), &c->node.loc.pos.eci.s.col);
@@ -210,7 +211,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.loc.pos.eci.a.col[" + std::to_string(i) + "]"), &c->node.loc.pos.eci.a.col[i]);
 	}
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.pos.eci.pass"), &c->node.loc.pos.eci.pass);
-	EXPECT_EQ(c->get_pointer<cartpos>("node.loc.pos.sci"), &c->node.loc.pos.sci);
+	EXPECT_EQ(c->get_pointer<Convert::cartpos>("node.loc.pos.sci"), &c->node.loc.pos.sci);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.sci.utc"), &c->node.loc.pos.sci.utc);
 	EXPECT_EQ(c->get_pointer<rvector>("node.loc.pos.sci.s"), &c->node.loc.pos.sci.s);
 	//EXPECT_EQ(c->get_pointer<double[X]>("node.loc.pos.sci.s.col"), &c->node.loc.pos.sci.s.col);
@@ -228,7 +229,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.loc.pos.sci.a.col[" + std::to_string(i) + "]"), &c->node.loc.pos.sci.a.col[i]);
 	}
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.pos.sci.pass"), &c->node.loc.pos.sci.pass);
-	EXPECT_EQ(c->get_pointer<cartpos>("node.loc.pos.geoc"), &c->node.loc.pos.geoc);
+	EXPECT_EQ(c->get_pointer<Convert::cartpos>("node.loc.pos.geoc"), &c->node.loc.pos.geoc);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.geoc.utc"), &c->node.loc.pos.geoc.utc);
 	EXPECT_EQ(c->get_pointer<rvector>("node.loc.pos.geoc.s"), &c->node.loc.pos.geoc.s);
 	//EXPECT_EQ(c->get_pointer<double[X]>("node.loc.pos.geoc.s.col"), &c->node.loc.pos.geoc.s.col);
@@ -246,7 +247,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.loc.pos.geoc.a.col[" + std::to_string(i) + "]"), &c->node.loc.pos.geoc.a.col[i]);
 	}
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.pos.geoc.pass"), &c->node.loc.pos.geoc.pass);
-	EXPECT_EQ(c->get_pointer<cartpos>("node.loc.pos.selc"), &c->node.loc.pos.selc);
+	EXPECT_EQ(c->get_pointer<Convert::cartpos>("node.loc.pos.selc"), &c->node.loc.pos.selc);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.selc.utc"), &c->node.loc.pos.selc.utc);
 	EXPECT_EQ(c->get_pointer<rvector>("node.loc.pos.selc.s"), &c->node.loc.pos.selc.s);
 	//EXPECT_EQ(c->get_pointer<double[X]>("node.loc.pos.selc.s.col"), &c->node.loc.pos.selc.s.col);
@@ -264,7 +265,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.loc.pos.selc.a.col[" + std::to_string(i) + "]"), &c->node.loc.pos.selc.a.col[i]);
 	}
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.pos.selc.pass"), &c->node.loc.pos.selc.pass);
-	EXPECT_EQ(c->get_pointer<geoidpos>("node.loc.pos.geod"), &c->node.loc.pos.geod);
+	EXPECT_EQ(c->get_pointer<Convert::geoidpos>("node.loc.pos.geod"), &c->node.loc.pos.geod);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.geod.utc"), &c->node.loc.pos.geod.utc);
 	EXPECT_EQ(c->get_pointer<gvector>("node.loc.pos.geod.s"), &c->node.loc.pos.geod.s);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.geod.s.lat"), &c->node.loc.pos.geod.s.lat);
@@ -279,7 +280,7 @@ TEST(cosmosstruc, add_default_names) {
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.geod.a.lon"), &c->node.loc.pos.geod.a.lon);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.geod.a.h"), &c->node.loc.pos.geod.a.h);
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.pos.geod.pass"), &c->node.loc.pos.geod.pass);
-	EXPECT_EQ(c->get_pointer<geoidpos>("node.loc.pos.selg"), &c->node.loc.pos.selg);
+	EXPECT_EQ(c->get_pointer<Convert::geoidpos>("node.loc.pos.selg"), &c->node.loc.pos.selg);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.selg.utc"), &c->node.loc.pos.selg.utc);
 	EXPECT_EQ(c->get_pointer<gvector>("node.loc.pos.selg.s"), &c->node.loc.pos.selg.s);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.selg.s.lat"), &c->node.loc.pos.selg.s.lat);
@@ -294,7 +295,7 @@ TEST(cosmosstruc, add_default_names) {
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.selg.a.lon"), &c->node.loc.pos.selg.a.lon);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.selg.a.h"), &c->node.loc.pos.selg.a.h);
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.pos.selg.pass"), &c->node.loc.pos.selg.pass);
-	EXPECT_EQ(c->get_pointer<spherpos>("node.loc.pos.geos"), &c->node.loc.pos.geos);
+	EXPECT_EQ(c->get_pointer<Convert::spherpos>("node.loc.pos.geos"), &c->node.loc.pos.geos);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.geos.utc"), &c->node.loc.pos.geos.utc);
 	EXPECT_EQ(c->get_pointer<svector>("node.loc.pos.geos.s"), &c->node.loc.pos.geos.s);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.geos.s.phi"), &c->node.loc.pos.geos.s.phi);
@@ -309,7 +310,7 @@ TEST(cosmosstruc, add_default_names) {
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.geos.a.lambda"), &c->node.loc.pos.geos.a.lambda);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.geos.a.r"), &c->node.loc.pos.geos.a.r);
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.pos.geos.pass"), &c->node.loc.pos.geos.pass);
-	EXPECT_EQ(c->get_pointer<extrapos>("node.loc.pos.extra"), &c->node.loc.pos.extra);
+	EXPECT_EQ(c->get_pointer<Convert::extrapos>("node.loc.pos.extra"), &c->node.loc.pos.extra);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.extra.utc"), &c->node.loc.pos.extra.utc);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.extra.tt"), &c->node.loc.pos.extra.tt);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.extra.ut"), &c->node.loc.pos.extra.ut);
@@ -440,7 +441,7 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("node.loc.pos.extra.dt2s.row[" + std::to_string(i) + "].col[" + std::to_string(j) + "]"), &c->node.loc.pos.extra.dt2s.row[i].col[j]);
 		}
 	}
-	EXPECT_EQ(c->get_pointer<cartpos>("node.loc.pos.extra.sun2earth"), &c->node.loc.pos.extra.sun2earth);
+	EXPECT_EQ(c->get_pointer<Convert::cartpos>("node.loc.pos.extra.sun2earth"), &c->node.loc.pos.extra.sun2earth);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.extra.sun2earth.utc"), &c->node.loc.pos.extra.sun2earth.utc);
 	EXPECT_EQ(c->get_pointer<rvector>("node.loc.pos.extra.sun2earth.s"), &c->node.loc.pos.extra.sun2earth.s);
 	//EXPECT_EQ(c->get_pointer<double[X]>("node.loc.pos.extra.sun2earth.s.col"), &c->node.loc.pos.extra.sun2earth.s.col);
@@ -458,7 +459,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.loc.pos.extra.sun2earth.a.col[" + std::to_string(i) + "]"), &c->node.loc.pos.extra.sun2earth.a.col[i]);
 	}
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.pos.extra.sun2earth.pass"), &c->node.loc.pos.extra.sun2earth.pass);
-	EXPECT_EQ(c->get_pointer<cartpos>("node.loc.pos.extra.sun2moon"), &c->node.loc.pos.extra.sun2moon);
+	EXPECT_EQ(c->get_pointer<Convert::cartpos>("node.loc.pos.extra.sun2moon"), &c->node.loc.pos.extra.sun2moon);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.extra.sun2moon.utc"), &c->node.loc.pos.extra.sun2moon.utc);
 	EXPECT_EQ(c->get_pointer<rvector>("node.loc.pos.extra.sun2moon.s"), &c->node.loc.pos.extra.sun2moon.s);
 	//EXPECT_EQ(c->get_pointer<double[X]>("node.loc.pos.extra.sun2moon.s.col"), &c->node.loc.pos.extra.sun2moon.s.col);
@@ -487,9 +488,9 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.loc.pos.bearth.col[" + std::to_string(i) + "]"), &c->node.loc.pos.bearth.col[i]);
 	}
 	EXPECT_EQ(c->get_pointer<double>("node.loc.pos.orbit"), &c->node.loc.pos.orbit);
-	EXPECT_EQ(c->get_pointer<attstruc>("node.loc.att"), &c->node.loc.att);
+	EXPECT_EQ(c->get_pointer<Convert::attstruc>("node.loc.att"), &c->node.loc.att);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.att.utc"), &c->node.loc.att.utc);
-	EXPECT_EQ(c->get_pointer<qatt>("node.loc.att.topo"), &c->node.loc.att.topo);
+	EXPECT_EQ(c->get_pointer<Convert::qatt>("node.loc.att.topo"), &c->node.loc.att.topo);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.att.topo.utc"), &c->node.loc.att.topo.utc);
 	EXPECT_EQ(c->get_pointer<quaternion>("node.loc.att.topo.s"), &c->node.loc.att.topo.s);
 	EXPECT_EQ(c->get_pointer<cvector>("node.loc.att.topo.s.d"), &c->node.loc.att.topo.s.d);
@@ -508,7 +509,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.loc.att.topo.a.col[" + std::to_string(i) + "]"), &c->node.loc.att.topo.a.col[i]);
 	}
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.att.topo.pass"), &c->node.loc.att.topo.pass);
-	EXPECT_EQ(c->get_pointer<qatt>("node.loc.att.lvlh"), &c->node.loc.att.lvlh);
+	EXPECT_EQ(c->get_pointer<Convert::qatt>("node.loc.att.lvlh"), &c->node.loc.att.lvlh);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.att.lvlh.utc"), &c->node.loc.att.lvlh.utc);
 	EXPECT_EQ(c->get_pointer<quaternion>("node.loc.att.lvlh.s"), &c->node.loc.att.lvlh.s);
 	EXPECT_EQ(c->get_pointer<cvector>("node.loc.att.lvlh.s.d"), &c->node.loc.att.lvlh.s.d);
@@ -527,7 +528,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.loc.att.lvlh.a.col[" + std::to_string(i) + "]"), &c->node.loc.att.lvlh.a.col[i]);
 	}
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.att.lvlh.pass"), &c->node.loc.att.lvlh.pass);
-	EXPECT_EQ(c->get_pointer<qatt>("node.loc.att.geoc"), &c->node.loc.att.geoc);
+	EXPECT_EQ(c->get_pointer<Convert::qatt>("node.loc.att.geoc"), &c->node.loc.att.geoc);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.att.geoc.utc"), &c->node.loc.att.geoc.utc);
 	EXPECT_EQ(c->get_pointer<quaternion>("node.loc.att.geoc.s"), &c->node.loc.att.geoc.s);
 	EXPECT_EQ(c->get_pointer<cvector>("node.loc.att.geoc.s.d"), &c->node.loc.att.geoc.s.d);
@@ -546,7 +547,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.loc.att.geoc.a.col[" + std::to_string(i) + "]"), &c->node.loc.att.geoc.a.col[i]);
 	}
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.att.geoc.pass"), &c->node.loc.att.geoc.pass);
-	EXPECT_EQ(c->get_pointer<qatt>("node.loc.att.selc"), &c->node.loc.att.selc);
+	EXPECT_EQ(c->get_pointer<Convert::qatt>("node.loc.att.selc"), &c->node.loc.att.selc);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.att.selc.utc"), &c->node.loc.att.selc.utc);
 	EXPECT_EQ(c->get_pointer<quaternion>("node.loc.att.selc.s"), &c->node.loc.att.selc.s);
 	EXPECT_EQ(c->get_pointer<cvector>("node.loc.att.selc.s.d"), &c->node.loc.att.selc.s.d);
@@ -565,7 +566,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.loc.att.selc.a.col[" + std::to_string(i) + "]"), &c->node.loc.att.selc.a.col[i]);
 	}
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.att.selc.pass"), &c->node.loc.att.selc.pass);
-	EXPECT_EQ(c->get_pointer<qatt>("node.loc.att.icrf"), &c->node.loc.att.icrf);
+	EXPECT_EQ(c->get_pointer<Convert::qatt>("node.loc.att.icrf"), &c->node.loc.att.icrf);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.att.icrf.utc"), &c->node.loc.att.icrf.utc);
 	EXPECT_EQ(c->get_pointer<quaternion>("node.loc.att.icrf.s"), &c->node.loc.att.icrf.s);
 	EXPECT_EQ(c->get_pointer<cvector>("node.loc.att.icrf.s.d"), &c->node.loc.att.icrf.s.d);
@@ -584,7 +585,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("node.loc.att.icrf.a.col[" + std::to_string(i) + "]"), &c->node.loc.att.icrf.a.col[i]);
 	}
 	EXPECT_EQ(c->get_pointer<uint32_t>("node.loc.att.icrf.pass"), &c->node.loc.att.icrf.pass);
-	EXPECT_EQ(c->get_pointer<extraatt>("node.loc.att.extra"), &c->node.loc.att.extra);
+	EXPECT_EQ(c->get_pointer<Convert::extraatt>("node.loc.att.extra"), &c->node.loc.att.extra);
 	EXPECT_EQ(c->get_pointer<double>("node.loc.att.extra.utc"), &c->node.loc.att.extra.utc);
 	EXPECT_EQ(c->get_pointer<rmatrix>("node.loc.att.extra.j2b"), &c->node.loc.att.extra.j2b);
 	//EXPECT_EQ(c->get_pointer<rvector[X]>("node.loc.att.extra.j2b.row"), &c->node.loc.att.extra.j2b.row);
@@ -1459,11 +1460,11 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].range"), &c->target[i].range);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].close"), &c->target[i].close);
 		EXPECT_EQ(c->get_pointer<float>("target[" + std::to_string(i) + "].min"), &c->target[i].min);
-		EXPECT_EQ(c->get_pointer<locstruc>("target[" + std::to_string(i) + "].loc"), &c->target[i].loc);
+		EXPECT_EQ(c->get_pointer<Convert::locstruc>("target[" + std::to_string(i) + "].loc"), &c->target[i].loc);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.utc"), &c->target[i].loc.utc);
-		EXPECT_EQ(c->get_pointer<posstruc>("target[" + std::to_string(i) + "].loc.pos"), &c->target[i].loc.pos);
+		EXPECT_EQ(c->get_pointer<Convert::posstruc>("target[" + std::to_string(i) + "].loc.pos"), &c->target[i].loc.pos);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.utc"), &c->target[i].loc.pos.utc);
-		EXPECT_EQ(c->get_pointer<cartpos>("target[" + std::to_string(i) + "].loc.pos.icrf"), &c->target[i].loc.pos.icrf);
+		EXPECT_EQ(c->get_pointer<Convert::cartpos>("target[" + std::to_string(i) + "].loc.pos.icrf"), &c->target[i].loc.pos.icrf);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.icrf.utc"), &c->target[i].loc.pos.icrf.utc);
 		EXPECT_EQ(c->get_pointer<rvector>("target[" + std::to_string(i) + "].loc.pos.icrf.s"), &c->target[i].loc.pos.icrf.s);
 		//EXPECT_EQ(c->get_pointer<double[X]>("target[" + std::to_string(i) + "].loc.pos.icrf.s.col"), &c->target[i].loc.pos.icrf.s.col);
@@ -1481,7 +1482,7 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.icrf.a.col[" + std::to_string(j) + "]"), &c->target[i].loc.pos.icrf.a.col[j]);
 		}
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.pos.icrf.pass"), &c->target[i].loc.pos.icrf.pass);
-		EXPECT_EQ(c->get_pointer<cartpos>("target[" + std::to_string(i) + "].loc.pos.eci"), &c->target[i].loc.pos.eci);
+		EXPECT_EQ(c->get_pointer<Convert::cartpos>("target[" + std::to_string(i) + "].loc.pos.eci"), &c->target[i].loc.pos.eci);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.eci.utc"), &c->target[i].loc.pos.eci.utc);
 		EXPECT_EQ(c->get_pointer<rvector>("target[" + std::to_string(i) + "].loc.pos.eci.s"), &c->target[i].loc.pos.eci.s);
 		//EXPECT_EQ(c->get_pointer<double[X]>("target[" + std::to_string(i) + "].loc.pos.eci.s.col"), &c->target[i].loc.pos.eci.s.col);
@@ -1499,7 +1500,7 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.eci.a.col[" + std::to_string(j) + "]"), &c->target[i].loc.pos.eci.a.col[j]);
 		}
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.pos.eci.pass"), &c->target[i].loc.pos.eci.pass);
-		EXPECT_EQ(c->get_pointer<cartpos>("target[" + std::to_string(i) + "].loc.pos.sci"), &c->target[i].loc.pos.sci);
+		EXPECT_EQ(c->get_pointer<Convert::cartpos>("target[" + std::to_string(i) + "].loc.pos.sci"), &c->target[i].loc.pos.sci);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.sci.utc"), &c->target[i].loc.pos.sci.utc);
 		EXPECT_EQ(c->get_pointer<rvector>("target[" + std::to_string(i) + "].loc.pos.sci.s"), &c->target[i].loc.pos.sci.s);
 		//EXPECT_EQ(c->get_pointer<double[X]>("target[" + std::to_string(i) + "].loc.pos.sci.s.col"), &c->target[i].loc.pos.sci.s.col);
@@ -1517,7 +1518,7 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.sci.a.col[" + std::to_string(j) + "]"), &c->target[i].loc.pos.sci.a.col[j]);
 		}
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.pos.sci.pass"), &c->target[i].loc.pos.sci.pass);
-		EXPECT_EQ(c->get_pointer<cartpos>("target[" + std::to_string(i) + "].loc.pos.geoc"), &c->target[i].loc.pos.geoc);
+		EXPECT_EQ(c->get_pointer<Convert::cartpos>("target[" + std::to_string(i) + "].loc.pos.geoc"), &c->target[i].loc.pos.geoc);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.geoc.utc"), &c->target[i].loc.pos.geoc.utc);
 		EXPECT_EQ(c->get_pointer<rvector>("target[" + std::to_string(i) + "].loc.pos.geoc.s"), &c->target[i].loc.pos.geoc.s);
 		//EXPECT_EQ(c->get_pointer<double[X]>("target[" + std::to_string(i) + "].loc.pos.geoc.s.col"), &c->target[i].loc.pos.geoc.s.col);
@@ -1535,7 +1536,7 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.geoc.a.col[" + std::to_string(j) + "]"), &c->target[i].loc.pos.geoc.a.col[j]);
 		}
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.pos.geoc.pass"), &c->target[i].loc.pos.geoc.pass);
-		EXPECT_EQ(c->get_pointer<cartpos>("target[" + std::to_string(i) + "].loc.pos.selc"), &c->target[i].loc.pos.selc);
+		EXPECT_EQ(c->get_pointer<Convert::cartpos>("target[" + std::to_string(i) + "].loc.pos.selc"), &c->target[i].loc.pos.selc);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.selc.utc"), &c->target[i].loc.pos.selc.utc);
 		EXPECT_EQ(c->get_pointer<rvector>("target[" + std::to_string(i) + "].loc.pos.selc.s"), &c->target[i].loc.pos.selc.s);
 		//EXPECT_EQ(c->get_pointer<double[X]>("target[" + std::to_string(i) + "].loc.pos.selc.s.col"), &c->target[i].loc.pos.selc.s.col);
@@ -1553,7 +1554,7 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.selc.a.col[" + std::to_string(j) + "]"), &c->target[i].loc.pos.selc.a.col[j]);
 		}
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.pos.selc.pass"), &c->target[i].loc.pos.selc.pass);
-		EXPECT_EQ(c->get_pointer<geoidpos>("target[" + std::to_string(i) + "].loc.pos.geod"), &c->target[i].loc.pos.geod);
+		EXPECT_EQ(c->get_pointer<Convert::geoidpos>("target[" + std::to_string(i) + "].loc.pos.geod"), &c->target[i].loc.pos.geod);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.geod.utc"), &c->target[i].loc.pos.geod.utc);
 		EXPECT_EQ(c->get_pointer<gvector>("target[" + std::to_string(i) + "].loc.pos.geod.s"), &c->target[i].loc.pos.geod.s);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.geod.s.lat"), &c->target[i].loc.pos.geod.s.lat);
@@ -1568,7 +1569,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.geod.a.lon"), &c->target[i].loc.pos.geod.a.lon);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.geod.a.h"), &c->target[i].loc.pos.geod.a.h);
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.pos.geod.pass"), &c->target[i].loc.pos.geod.pass);
-		EXPECT_EQ(c->get_pointer<geoidpos>("target[" + std::to_string(i) + "].loc.pos.selg"), &c->target[i].loc.pos.selg);
+		EXPECT_EQ(c->get_pointer<Convert::geoidpos>("target[" + std::to_string(i) + "].loc.pos.selg"), &c->target[i].loc.pos.selg);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.selg.utc"), &c->target[i].loc.pos.selg.utc);
 		EXPECT_EQ(c->get_pointer<gvector>("target[" + std::to_string(i) + "].loc.pos.selg.s"), &c->target[i].loc.pos.selg.s);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.selg.s.lat"), &c->target[i].loc.pos.selg.s.lat);
@@ -1583,7 +1584,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.selg.a.lon"), &c->target[i].loc.pos.selg.a.lon);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.selg.a.h"), &c->target[i].loc.pos.selg.a.h);
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.pos.selg.pass"), &c->target[i].loc.pos.selg.pass);
-		EXPECT_EQ(c->get_pointer<spherpos>("target[" + std::to_string(i) + "].loc.pos.geos"), &c->target[i].loc.pos.geos);
+		EXPECT_EQ(c->get_pointer<Convert::spherpos>("target[" + std::to_string(i) + "].loc.pos.geos"), &c->target[i].loc.pos.geos);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.geos.utc"), &c->target[i].loc.pos.geos.utc);
 		EXPECT_EQ(c->get_pointer<svector>("target[" + std::to_string(i) + "].loc.pos.geos.s"), &c->target[i].loc.pos.geos.s);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.geos.s.phi"), &c->target[i].loc.pos.geos.s.phi);
@@ -1598,7 +1599,7 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.geos.a.lambda"), &c->target[i].loc.pos.geos.a.lambda);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.geos.a.r"), &c->target[i].loc.pos.geos.a.r);
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.pos.geos.pass"), &c->target[i].loc.pos.geos.pass);
-		EXPECT_EQ(c->get_pointer<extrapos>("target[" + std::to_string(i) + "].loc.pos.extra"), &c->target[i].loc.pos.extra);
+		EXPECT_EQ(c->get_pointer<Convert::extrapos>("target[" + std::to_string(i) + "].loc.pos.extra"), &c->target[i].loc.pos.extra);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.extra.utc"), &c->target[i].loc.pos.extra.utc);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.extra.tt"), &c->target[i].loc.pos.extra.tt);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.extra.ut"), &c->target[i].loc.pos.extra.ut);
@@ -1729,7 +1730,7 @@ TEST(cosmosstruc, add_default_names) {
 				EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.extra.dt2s.row[" + std::to_string(j) + "].col[" + std::to_string(k) + "]"), &c->target[i].loc.pos.extra.dt2s.row[j].col[k]);
 			}
 		}
-		EXPECT_EQ(c->get_pointer<cartpos>("target[" + std::to_string(i) + "].loc.pos.extra.sun2earth"), &c->target[i].loc.pos.extra.sun2earth);
+		EXPECT_EQ(c->get_pointer<Convert::cartpos>("target[" + std::to_string(i) + "].loc.pos.extra.sun2earth"), &c->target[i].loc.pos.extra.sun2earth);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.extra.sun2earth.utc"), &c->target[i].loc.pos.extra.sun2earth.utc);
 		EXPECT_EQ(c->get_pointer<rvector>("target[" + std::to_string(i) + "].loc.pos.extra.sun2earth.s"), &c->target[i].loc.pos.extra.sun2earth.s);
 		//EXPECT_EQ(c->get_pointer<double[X]>("target[" + std::to_string(i) + "].loc.pos.extra.sun2earth.s.col"), &c->target[i].loc.pos.extra.sun2earth.s.col);
@@ -1747,7 +1748,7 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.extra.sun2earth.a.col[" + std::to_string(j) + "]"), &c->target[i].loc.pos.extra.sun2earth.a.col[j]);
 		}
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.pos.extra.sun2earth.pass"), &c->target[i].loc.pos.extra.sun2earth.pass);
-		EXPECT_EQ(c->get_pointer<cartpos>("target[" + std::to_string(i) + "].loc.pos.extra.sun2moon"), &c->target[i].loc.pos.extra.sun2moon);
+		EXPECT_EQ(c->get_pointer<Convert::cartpos>("target[" + std::to_string(i) + "].loc.pos.extra.sun2moon"), &c->target[i].loc.pos.extra.sun2moon);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.extra.sun2moon.utc"), &c->target[i].loc.pos.extra.sun2moon.utc);
 		EXPECT_EQ(c->get_pointer<rvector>("target[" + std::to_string(i) + "].loc.pos.extra.sun2moon.s"), &c->target[i].loc.pos.extra.sun2moon.s);
 		//EXPECT_EQ(c->get_pointer<double[X]>("target[" + std::to_string(i) + "].loc.pos.extra.sun2moon.s.col"), &c->target[i].loc.pos.extra.sun2moon.s.col);
@@ -1776,9 +1777,9 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.bearth.col[" + std::to_string(j) + "]"), &c->target[i].loc.pos.bearth.col[j]);
 		}
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.pos.orbit"), &c->target[i].loc.pos.orbit);
-		EXPECT_EQ(c->get_pointer<attstruc>("target[" + std::to_string(i) + "].loc.att"), &c->target[i].loc.att);
+		EXPECT_EQ(c->get_pointer<Convert::attstruc>("target[" + std::to_string(i) + "].loc.att"), &c->target[i].loc.att);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.att.utc"), &c->target[i].loc.att.utc);
-		EXPECT_EQ(c->get_pointer<qatt>("target[" + std::to_string(i) + "].loc.att.topo"), &c->target[i].loc.att.topo);
+		EXPECT_EQ(c->get_pointer<Convert::qatt>("target[" + std::to_string(i) + "].loc.att.topo"), &c->target[i].loc.att.topo);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.att.topo.utc"), &c->target[i].loc.att.topo.utc);
 		EXPECT_EQ(c->get_pointer<quaternion>("target[" + std::to_string(i) + "].loc.att.topo.s"), &c->target[i].loc.att.topo.s);
 		EXPECT_EQ(c->get_pointer<cvector>("target[" + std::to_string(i) + "].loc.att.topo.s.d"), &c->target[i].loc.att.topo.s.d);
@@ -1797,7 +1798,7 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.att.topo.a.col[" + std::to_string(j) + "]"), &c->target[i].loc.att.topo.a.col[j]);
 		}
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.att.topo.pass"), &c->target[i].loc.att.topo.pass);
-		EXPECT_EQ(c->get_pointer<qatt>("target[" + std::to_string(i) + "].loc.att.lvlh"), &c->target[i].loc.att.lvlh);
+		EXPECT_EQ(c->get_pointer<Convert::qatt>("target[" + std::to_string(i) + "].loc.att.lvlh"), &c->target[i].loc.att.lvlh);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.att.lvlh.utc"), &c->target[i].loc.att.lvlh.utc);
 		EXPECT_EQ(c->get_pointer<quaternion>("target[" + std::to_string(i) + "].loc.att.lvlh.s"), &c->target[i].loc.att.lvlh.s);
 		EXPECT_EQ(c->get_pointer<cvector>("target[" + std::to_string(i) + "].loc.att.lvlh.s.d"), &c->target[i].loc.att.lvlh.s.d);
@@ -1816,7 +1817,7 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.att.lvlh.a.col[" + std::to_string(j) + "]"), &c->target[i].loc.att.lvlh.a.col[j]);
 		}
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.att.lvlh.pass"), &c->target[i].loc.att.lvlh.pass);
-		EXPECT_EQ(c->get_pointer<qatt>("target[" + std::to_string(i) + "].loc.att.geoc"), &c->target[i].loc.att.geoc);
+		EXPECT_EQ(c->get_pointer<Convert::qatt>("target[" + std::to_string(i) + "].loc.att.geoc"), &c->target[i].loc.att.geoc);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.att.geoc.utc"), &c->target[i].loc.att.geoc.utc);
 		EXPECT_EQ(c->get_pointer<quaternion>("target[" + std::to_string(i) + "].loc.att.geoc.s"), &c->target[i].loc.att.geoc.s);
 		EXPECT_EQ(c->get_pointer<cvector>("target[" + std::to_string(i) + "].loc.att.geoc.s.d"), &c->target[i].loc.att.geoc.s.d);
@@ -1835,7 +1836,7 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.att.geoc.a.col[" + std::to_string(j) + "]"), &c->target[i].loc.att.geoc.a.col[j]);
 		}
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.att.geoc.pass"), &c->target[i].loc.att.geoc.pass);
-		EXPECT_EQ(c->get_pointer<qatt>("target[" + std::to_string(i) + "].loc.att.selc"), &c->target[i].loc.att.selc);
+		EXPECT_EQ(c->get_pointer<Convert::qatt>("target[" + std::to_string(i) + "].loc.att.selc"), &c->target[i].loc.att.selc);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.att.selc.utc"), &c->target[i].loc.att.selc.utc);
 		EXPECT_EQ(c->get_pointer<quaternion>("target[" + std::to_string(i) + "].loc.att.selc.s"), &c->target[i].loc.att.selc.s);
 		EXPECT_EQ(c->get_pointer<cvector>("target[" + std::to_string(i) + "].loc.att.selc.s.d"), &c->target[i].loc.att.selc.s.d);
@@ -1854,7 +1855,7 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.att.selc.a.col[" + std::to_string(j) + "]"), &c->target[i].loc.att.selc.a.col[j]);
 		}
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.att.selc.pass"), &c->target[i].loc.att.selc.pass);
-		EXPECT_EQ(c->get_pointer<qatt>("target[" + std::to_string(i) + "].loc.att.icrf"), &c->target[i].loc.att.icrf);
+		EXPECT_EQ(c->get_pointer<Convert::qatt>("target[" + std::to_string(i) + "].loc.att.icrf"), &c->target[i].loc.att.icrf);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.att.icrf.utc"), &c->target[i].loc.att.icrf.utc);
 		EXPECT_EQ(c->get_pointer<quaternion>("target[" + std::to_string(i) + "].loc.att.icrf.s"), &c->target[i].loc.att.icrf.s);
 		EXPECT_EQ(c->get_pointer<cvector>("target[" + std::to_string(i) + "].loc.att.icrf.s.d"), &c->target[i].loc.att.icrf.s.d);
@@ -1873,7 +1874,7 @@ TEST(cosmosstruc, add_default_names) {
 			EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.att.icrf.a.col[" + std::to_string(j) + "]"), &c->target[i].loc.att.icrf.a.col[j]);
 		}
 		EXPECT_EQ(c->get_pointer<uint32_t>("target[" + std::to_string(i) + "].loc.att.icrf.pass"), &c->target[i].loc.att.icrf.pass);
-		EXPECT_EQ(c->get_pointer<extraatt>("target[" + std::to_string(i) + "].loc.att.extra"), &c->target[i].loc.att.extra);
+		EXPECT_EQ(c->get_pointer<Convert::extraatt>("target[" + std::to_string(i) + "].loc.att.extra"), &c->target[i].loc.att.extra);
 		EXPECT_EQ(c->get_pointer<double>("target[" + std::to_string(i) + "].loc.att.extra.utc"), &c->target[i].loc.att.extra.utc);
 		EXPECT_EQ(c->get_pointer<rmatrix>("target[" + std::to_string(i) + "].loc.att.extra.j2b"), &c->target[i].loc.att.extra.j2b);
 		//EXPECT_EQ(c->get_pointer<rvector[X]>("target[" + std::to_string(i) + "].loc.att.extra.j2b.row"), &c->target[i].loc.att.extra.j2b.row);
@@ -1905,10 +1906,10 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<string>("user[" + std::to_string(i) + "].cpu"), &c->user[i].cpu);
 	}
 
-	// vector<tlestruc> tle
-	EXPECT_EQ(c->get_pointer<vector<tlestruc>>("tle"), &c->tle);
+	// vector<Convert::tlestruc> tle
+	EXPECT_EQ(c->get_pointer<vector<Convert::tlestruc>>("tle"), &c->tle);
 	for(size_t i = 0; i < c->tle.capacity(); ++i) {
-		EXPECT_EQ(c->get_pointer<tlestruc>("tle[" + std::to_string(i) + "]"), &c->tle[i]);
+		EXPECT_EQ(c->get_pointer<Convert::tlestruc>("tle[" + std::to_string(i) + "]"), &c->tle[i]);
 		EXPECT_EQ(c->get_pointer<double>("tle[" + std::to_string(i) + "].utc"), &c->tle[i].utc);
 		//EXPECT_EQ(c->get_pointer<char[X]>("tle[" + std::to_string(i) + "].name"), &c->tle[i].name);
 		EXPECT_EQ(c->get_pointer<uint16_t>("tle[" + std::to_string(i) + "].snumber"), &c->tle[i].snumber);

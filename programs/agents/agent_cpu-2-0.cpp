@@ -311,7 +311,7 @@ int32_t request_diskFree(string &, string &response, Agent *)
 
 }
 
-int32_t request_diskFreePercent (std::string &, std::string &response, Agent *)
+int32_t request_diskFreePercent (string &, string &response, Agent *)
 {
     return ((response = std::to_string(deviceDisk.FreePercent)).length());
 }

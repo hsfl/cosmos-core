@@ -33,14 +33,12 @@
 // COSMOS libs
 #include "support/configCosmos.h"
 #include "support/cosmos-errno.h"
-#include "support/jsondef.h"
-#include "support/jsonlib.h"
 #include "thirdparty/zlib/zlib.h"
-#include "support/timelib.h"
+//#include "support/jsondef.h"
 
 // C libs
-#include <sys/stat.h>
-#include <fstream>
+//#include <sys/stat.h>
+//#include <fstream>
 
 #ifdef _MSC_BUILD
 #include "dirent/dirent.h"
@@ -132,8 +130,7 @@ void log_move(string node, string agent, string srclocation, string dstlocation,
 void log_move(string node, string agent);
 void log_move(string oldpath, string newpath, bool compress);
 string log_read(gzFile &file, int num);
-int check_events(eventstruc* events, int max, cosmosstruc* data);
-int32_t data_get_nodes(vector<cosmosstruc> &data);
+//int check_events(eventstruc* events, int max, cosmosstruc* data);
 vector<string> data_list_nodes();
 int32_t data_list_nodes(vector<string>& nodes);
 vector<filestruc> data_list_files(string directory);
@@ -183,10 +180,9 @@ string get_cosmosnodes(bool create_flag=false);
 string get_nodedir(string node, bool create_flag=false);
 int32_t data_load_archive(string node, string agent, double utcbegin, double utcend, string type, vector<string> &result);
 int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result);
-int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc* root);
+//int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc* root);
 double findlastday(string node);
 double findfirstday(string node);
-int32_t kml_write(cosmosstruc* cinfo);
 
 //! @}
 

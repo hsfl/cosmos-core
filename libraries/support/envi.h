@@ -27,18 +27,18 @@ typedef struct envi_hdr
 	float y0;
 	float xmpp;
 	float ympp;
-    std::string map_info;
-    std::string projection_info;
-    std::vector <std::string> band_name;
+    string map_info;
+    string projection_info;
+    std::vector <string> band_name;
     std::vector <float> wavelength;
-    std::string description;
-    std::vector <std::string> keys;
-    std::vector <std::string> values;
-    std::string basename;
+    string description;
+    std::vector <string> keys;
+    std::vector <string> values;
+    string basename;
     } envi_hdr;
 
 
-int32_t read_envi_hdr(std::string file, envi_hdr &hdr);
+int32_t read_envi_hdr(string file, envi_hdr &hdr);
 int32_t write_envi_hdr(envi_hdr &hdr);
 int32_t write_envi_data(string name, size_t columns, size_t rows, size_t planes, uint8_t datatype, uint8_t interleave, uint8_t *data);
 int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data);

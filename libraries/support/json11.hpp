@@ -3,12 +3,12 @@
  * json11 is a tiny JSON library for C++11, providing JSON parsing and serialization.
  *
  * The core object provided by the library is json11::Json. A Json object represents any JSON
- * value: null, bool, number (int or double), string (std::string), array (std::vector), or
+ * value: null, bool, number (int or double), string (string), array (std::vector), or
  * object (std::map).
  *
  * Json objects act like values: they can be assigned, copied, moved, compared for equality or
  * order, etc. There are also helper methods Json::dump, to serialize a Json to a string, and
- * Json::parse (static) to parse a std::string as a Json object.
+ * Json::parse (static) to parse a string as a Json object.
  *
  * Internally, the various types of Json object are represented by the JsonValue class
  * hierarchy.
@@ -49,12 +49,13 @@
  */
 
 #pragma once
+#include "support/configCosmos.h"
 
-#include <string>
-#include <vector>
-#include <map>
-#include <memory>
-#include <initializer_list>
+//#include <string>
+//#include <vector>
+//#include <map>
+//#include <memory>
+//#include <initializer_list>
 
 #ifdef _MSC_VER
     #if _MSC_VER <= 1800 // VS 2013
@@ -85,7 +86,7 @@ public:
 
     // Array and object typedefs
     typedef std::vector<Json> array;
-    typedef std::map<std::string, Json> object;
+    typedef std::map<string, Json> object;
 
     // Constructors for the various types of JSON value.
     Json() noexcept;                // NUL
@@ -93,8 +94,8 @@ public:
     Json(double value);             // NUMBER
     Json(int value);                // NUMBER
     Json(bool value);               // BOOL
-    Json(const std::string &value); // STRING
-    Json(std::string &&value);      // STRING
+    Json(const string &value); // STRING
+    Json(string &&value);      // STRING
     Json(const char * value);       // STRING
     Json(const array &values);      // ARRAY
     Json(array &&values);           // ARRAY
@@ -107,7 +108,7 @@ public:
 
     // Implicit constructor: map-like objects (std::map, std::unordered_map, etc)
     template <class M, typename std::enable_if<
-        std::is_constructible<std::string, decltype(std::declval<M>().begin()->first)>::value
+        std::is_constructible<string, decltype(std::declval<M>().begin()->first)>::value
         && std::is_constructible<Json, decltype(std::declval<M>().begin()->second)>::value,
             int>::type = 0>
     Json(const M & m) : Json(object(m.begin(), m.end())) {}
@@ -124,7 +125,7 @@ public:
 
     // Accessors
     Type type() const;
-    std::string type_name() const;
+    string type_name() const;
 
     bool is_null()   const { return type() == NUL; }
     bool is_number() const { return type() == NUMBER; }
@@ -142,7 +143,7 @@ public:
     // Return the enclosed value if this is a boolean, false otherwise.
     bool bool_value() const;
     // Return the enclosed string if this is a string, "" otherwise.
-    const std::string &string_value() const;
+    const string &string_value() const;
     // Return the enclosed std::vector if this is an array, or an empty vector otherwise.
     const array &array_items() const;
     // Return the enclosed std::map if this is an object, or an empty map otherwise.
@@ -151,25 +152,25 @@ public:
     // Return a reference to arr[i] if this is an array, Json() otherwise.
     const Json & operator[](size_t i) const;
     // Return a reference to obj[key] if this is an object, Json() otherwise.
-    const Json & operator[](const std::string &key) const;
+    const Json & operator[](const string &key) const;
 
     // Serialize.
-    void dump(std::string &out) const;
-    std::string dump() const {
-        std::string out;
+    void dump(string &out) const;
+    string dump() const {
+        string out;
         dump(out);
         return out;
     }
 
     // Parse. If parse fails, return Json() and assign an error message to err.
-    static Json parse(const std::string & in,
-                      std::string & err,
+    static Json parse(const string & in,
+                      string & err,
                       JsonParse strategy = JsonParse::STANDARD);
     static Json parse(const char * in,
-                      std::string & err,
+                      string & err,
                       JsonParse strategy = JsonParse::STANDARD) {
         if (in) {
-            return parse(std::string(in), err, strategy);
+            return parse(string(in), err, strategy);
         } else {
             err = "null input";
             return nullptr;
@@ -177,16 +178,16 @@ public:
     }
     // Parse multiple objects, concatenated or separated by whitespace
     static std::vector<Json> parse_multi(
-        const std::string & in,
-        std::string::size_type & parser_stop_pos,
-        std::string & err,
+        const string & in,
+        string::size_type & parser_stop_pos,
+        string & err,
         JsonParse strategy = JsonParse::STANDARD);
 
     static inline std::vector<Json> parse_multi(
-        const std::string & in,
-        std::string & err,
+        const string & in,
+        string & err,
         JsonParse strategy = JsonParse::STANDARD) {
-        std::string::size_type parser_stop_pos;
+        string::size_type parser_stop_pos;
         return parse_multi(in, parser_stop_pos, err, strategy);
     }
 
@@ -202,8 +203,8 @@ public:
      * Return true if this is a JSON object and, for each item in types, has a field of
      * the given type. If not, return false and set err to a descriptive message.
      */
-    typedef std::initializer_list<std::pair<std::string, Type>> shape;
-    bool has_shape(const shape & types, std::string & err) const;
+    typedef std::initializer_list<std::pair<string, Type>> shape;
+    bool has_shape(const shape & types, string & err) const;
 
 private:
     std::shared_ptr<JsonValue> m_ptr;
@@ -218,15 +219,15 @@ protected:
     virtual Json::Type type() const = 0;
     virtual bool equals(const JsonValue * other) const = 0;
     virtual bool less(const JsonValue * other) const = 0;
-    virtual void dump(std::string &out) const = 0;
+    virtual void dump(string &out) const = 0;
     virtual double number_value() const;
     virtual int int_value() const;
     virtual bool bool_value() const;
-    virtual const std::string &string_value() const;
+    virtual const string &string_value() const;
     virtual const Json::array &array_items() const;
     virtual const Json &operator[](size_t i) const;
     virtual const Json::object &object_items() const;
-    virtual const Json &operator[](const std::string &key) const;
+    virtual const Json &operator[](const string &key) const;
     virtual ~JsonValue() {}
 };
 

@@ -146,12 +146,12 @@ int main(int argc, char *argv[])
     else {
 
         // create outgoing directory if it doesnt exist
-        std::string outgoing_dir = data_base_path(node, "outgoing", "exec") + "/";
+        string outgoing_dir = data_base_path(node, "outgoing", "exec") + "/";
 
         cout << "Adding command/event to node directory:" << outgoing_dir << endl;
 
         // write command string to file in outgoing_dir
-        std::string outfilename = data_name(node, currentmjd(),"","command");
+        string outfilename = data_name(node, currentmjd(),"","command");
         ofstream cmdfile;
         cmdfile.open(outgoing_dir + outfilename);
         cmdfile << event;

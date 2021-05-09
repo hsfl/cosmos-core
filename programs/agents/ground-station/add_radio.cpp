@@ -4,8 +4,8 @@
 
 static ic9100_handle ic9100;
 static Agent *agent;
-static std::string nodename="";
-static std::string radioname;
+static string nodename="";
+static string radioname;
 static size_t deviceindex;
 static size_t radioindex = 9999;
 static string radiodevice="";

@@ -31,7 +31,7 @@
 #define PHYSICSCLASS_H
 
 #include "support/configCosmos.h"
-#include "support/jsondef.h"
+#include "support/jsonlib.h"
 #include "support/convertlib.h"
 #include "support/timelib.h"
 #include "physics/nrlmsise-00.h"
@@ -106,7 +106,7 @@ namespace Cosmos
         class Propagator
         {
         public:
-            Propagator(locstruc *newloc, physicsstruc *newphys, double idt) : currentloc{newloc}, currentphys{newphys}
+            Propagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt) : currentloc{newloc}, currentphys{newphys}
             {
                 dt = 86400.*((currentloc->utc + (idt / 86400.))-currentloc->utc);
                 dtj = dt / 86400.;
@@ -118,8 +118,8 @@ namespace Cosmos
             double dt;
             double dtj;
             double currentutc=0.;
-            locstruc initialloc;
-            locstruc *currentloc;
+            Convert::locstruc initialloc;
+            Convert::locstruc *currentloc;
             physicsstruc initialphys;
             physicsstruc *currentphys;
 
@@ -147,7 +147,7 @@ namespace Cosmos
         class InertialPositionPropagator : public Propagator
         {
         public:
-            InertialPositionPropagator(locstruc *newloc, physicsstruc *newphys, double idt)
+            InertialPositionPropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
                 : Propagator{ newloc, newphys, idt }
             {
                 type = PositionInertial;
@@ -163,7 +163,7 @@ namespace Cosmos
         class GeoPositionPropagator : public Propagator
         {
         public:
-            GeoPositionPropagator(locstruc *newloc, physicsstruc *newphys, double idt)
+            GeoPositionPropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
                 : Propagator{ newloc, newphys, idt }
             {
                 type = PositionGeo;
@@ -179,7 +179,7 @@ namespace Cosmos
         class IterativePositionPropagator : public Propagator
         {
         public:
-            IterativePositionPropagator(locstruc *newloc, physicsstruc *newphys, double idt)
+            IterativePositionPropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
                 : Propagator{ newloc, newphys, idt }
             {
                 type = PositionIterative;
@@ -197,15 +197,15 @@ namespace Cosmos
         public:
             uint16_t order;
 
-            GaussJacksonPositionPropagator(locstruc *newloc, physicsstruc *newphys, double idt, uint16_t iorder)
+            GaussJacksonPositionPropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt, uint16_t iorder)
                 : Propagator{ newloc, newphys, idt }, order { iorder }
             {
                 type = PositionGaussJackson;
                 Setup(iorder);
             }
             int32_t Setup(uint16_t order);
-            int32_t Init(vector<tlestruc> lines);
-            int32_t Init(vector<locstruc> locs);
+            int32_t Init(vector<Convert::tlestruc> lines);
+            int32_t Init(vector<Convert::locstruc> locs);
             int32_t Init();
             int32_t Converge();
             int32_t Propagate(double nextutc=0.);
@@ -222,7 +222,7 @@ namespace Cosmos
                 rvector sa;
                 rvector sb;
                 rvector tau;
-                locstruc loc;
+                Convert::locstruc loc;
             };
 
             vector< vector<int32_t> > binom;
@@ -240,7 +240,7 @@ namespace Cosmos
         class InertialAttitudePropagator : public Propagator
         {
         public:
-            InertialAttitudePropagator(locstruc *newloc, physicsstruc *newphys, double idt)
+            InertialAttitudePropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
                 : Propagator{ newloc, newphys, idt }
             {
                 type = AttitudeInertial;
@@ -256,7 +256,7 @@ namespace Cosmos
         class GeoAttitudePropagator : public Propagator
         {
         public:
-            GeoAttitudePropagator(locstruc *newloc, physicsstruc *newphys, double idt)
+            GeoAttitudePropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
                 : Propagator{ newloc, newphys, idt }
             {
                 type = AttitudeGeo;
@@ -272,7 +272,7 @@ namespace Cosmos
         class IterativeAttitudePropagator : public Propagator
         {
         public:
-            IterativeAttitudePropagator(locstruc *newloc, physicsstruc *newphys, double idt)
+            IterativeAttitudePropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
                 : Propagator{ newloc, newphys, idt }
             {
                 type = AttitudeIterative;
@@ -288,7 +288,7 @@ namespace Cosmos
         class LVLHAttitudePropagator : public Propagator
         {
         public:
-            LVLHAttitudePropagator(locstruc *newloc, physicsstruc *newphys, double idt)
+            LVLHAttitudePropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
                 : Propagator{ newloc, newphys, idt }
             {
                 type = AttitudeLVLH;
@@ -304,7 +304,7 @@ namespace Cosmos
         class ThermalPropagator : public Propagator
         {
         public:
-            ThermalPropagator(locstruc *newloc, physicsstruc *newphys, double idt, float itemperature)
+            ThermalPropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt, float itemperature)
                 : Propagator{ newloc, newphys, idt }, temperature{itemperature}
             {
                 type = AttitudeLVLH;
@@ -327,7 +327,7 @@ namespace Cosmos
         class ElectricalPropagator : public Propagator
         {
         public:
-            ElectricalPropagator(locstruc *newloc, physicsstruc *newphys, double idt, float ibattery_charge)
+            ElectricalPropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt, float ibattery_charge)
                 : Propagator{ newloc, newphys, idt }, battery_charge{ibattery_charge}
             {
                 type = AttitudeLVLH;
@@ -352,8 +352,8 @@ namespace Cosmos
 //            string nodename;
             cosmosstruc currentinfo;
 //            double currentutc=0.;
-            locstruc initialloc;
-//            locstruc currentloc;
+            Convert::locstruc initialloc;
+//            Convert::locstruc currentloc;
             physicsstruc initialphys;
 //            physicsstruc currentphys;
             double dt;
@@ -375,35 +375,35 @@ namespace Cosmos
 
             Propagator::Type etype;
             ElectricalPropagator *electrical;
-            vector<tlestruc> tle;
+            vector<Convert::tlestruc> tle;
 
             Structure::Type stype;
             Structure *structure;
 
 //            int32_t Init(Propagator *posprop, Propagator *attprop, Propagator *thermprop, Propagator *elecprop);
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, vector<tlestruc> lines, double utc);
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, posstruc pos);
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc loc);
+            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, vector<Convert::tlestruc> lines, double utc);
+            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::posstruc pos);
+            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::locstruc loc);
             int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype);
             int32_t Propagate(double nextutc=0.);
             int32_t Reset(double nextutc=0.);
         };
 
 
-        double Msis00Density(posstruc pos,float f107avg,float f107,float magidx);
-        Vector GravityAccel(posstruc pos, uint16_t model, uint32_t degree);
+        double Msis00Density(Convert::posstruc pos,float f107avg,float f107,float magidx);
+        Vector GravityAccel(Convert::posstruc pos, uint16_t model, uint32_t degree);
         int32_t GravityParams(int16_t model);
         double Nplgndr(uint32_t l, uint32_t m, double x);
 
-        int32_t PosAccel(locstruc &loc, physicsstruc &physics);
-        int32_t PosAccel(locstruc* loc, physicsstruc* physics);
-        int32_t AttAccel(locstruc &loc, physicsstruc &physics);
-        int32_t AttAccel(locstruc* loc, physicsstruc* physics);
+        int32_t PosAccel(Convert::locstruc &loc, physicsstruc &physics);
+        int32_t PosAccel(Convert::locstruc* loc, physicsstruc* physics);
+        int32_t AttAccel(Convert::locstruc &loc, physicsstruc &physics);
+        int32_t AttAccel(Convert::locstruc* loc, physicsstruc* physics);
         int32_t PhysSetup(physicsstruc *phys);
-        int32_t PhysCalc(locstruc* loc, physicsstruc *phys);
+        int32_t PhysCalc(Convert::locstruc* loc, physicsstruc *phys);
 
-        locstruc shape2eci(double utc, double altitude, double angle, double timeshift);
-        locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift);
+        Convert::locstruc shape2eci(double utc, double altitude, double angle, double timeshift);
+        Convert::locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift);
 
 
     } //end of namespace Physics

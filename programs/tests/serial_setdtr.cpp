@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 //    bool rtscts = false;
     string name = "/dev/ttyUSB0";
     int32_t baud = 115200;
-    size_t parity = 0;
+    string parity = "none";
     size_t bits = 8;
     size_t stop = 1;
     bool dtr_state = false;

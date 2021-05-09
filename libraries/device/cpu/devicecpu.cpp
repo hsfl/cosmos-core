@@ -27,8 +27,6 @@
 * condititons and terms to use this software.
 ********************************************************************/
 #include "device/cpu/devicecpu.h"
-#include "support/timelib.h"
-#include "support/datalib.h"
 
 DeviceCpu::DeviceCpu()
 {
@@ -309,8 +307,7 @@ double getTimeInSec() {
 // used to get the information from 'ps' or other commands
 string exec(string command) {
 
-    const char* cmd = command.c_str();
-    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    std::shared_ptr<FILE> pipe(popen(command.c_str(), "r"), pclose);
     if (!pipe) return "ERROR";
     char buffer[128];
     string result = "";
@@ -457,63 +454,6 @@ float DeviceCpuLinux::getPercentUseForCurrentProcess()
         tic = getTimeInSec();
         lastCPUtime = get_cpu_time();
     }
-
-    // because the function times is not working
-    //    // ----
-    //    now = times(&timeSample);
-    //    if (now <= lastCPU || timeSample.tms_stime < lastSysCPU ||
-    //            timeSample.tms_utime < lastUserCPU){
-    //        //Overflow detection. Just skip this value.
-    //        percent = -1.0;
-    //    }
-    //    else{
-    //        percent = (timeSample.tms_stime - lastSysCPU) +
-    //                (timeSample.tms_utime - lastUserCPU);
-    //        percent /= (now - lastCPU);
-    //        percent /= numProcessors;
-    //        percent *= 100.0;
-    //    }
-    //    lastCPU = now;
-    //    lastSysCPU = timeSample.tms_stime;
-    //    lastUserCPU = timeSample.tms_utime;
-
-    // ------
-    //    lastCPU_ = clock();
-    //    lastCPUtime = getTimeInSec();
-
-    //    percent = te_cpu/te_real * 100;
-
-
-    //    // ------------------------------------------
-    //    // using top or ps
-    //    using std::string;
-
-    //    processName = getCurrentProcessName();
-
-    //    //percent = getPercentUseForCurrentProcessOverLifetime();
-
-    //    string procInfo = exec("top -b -n 1 | grep " + processName);
-
-    //    // typical response
-    //    // $ 30501 root      20   0 24416 4000 2068 S  6.8  0.8   0:41.99 agent_imu
-
-
-    //    string::iterator new_end = std::unique(procInfo.begin(), procInfo.end(),
-    //                                                [](char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); } // lambda function
-    //    );
-    //    procInfo.erase(new_end, procInfo.end());
-
-    //    // erase first space in case there is one
-    //    if (procInfo.at(0) == ' ') {
-    //        procInfo.erase(0,1);
-    //    }
-
-    //    if (procInfo.size() > 0) {
-    //        StringParser sp(procInfo,' ');
-    //        percent = sp.getFieldNumberAsDouble(9);
-    //    } else {
-    //        percent = -1.0;
-    //    }
 
     return percentCpu;
 

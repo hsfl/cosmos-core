@@ -1,7 +1,7 @@
 /*! \file convertlib.h
-	\brief convertlib include file
-	A library providing functions for conversion between the various
-	position and attitude coordinate systems used in orbital mechanics.
+    \brief convertlib include file
+    A library providing functions for conversion between the various
+    position and attitude coordinate systems used in orbital mechanics.
 */
 
 //! \ingroup support
@@ -63,184 +63,205 @@ using namespace Cosmos::Math::Matrices;
 using namespace Cosmos::Math::Vectors;
 using namespace Cosmos::Math::Quaternions;
 #include "support/convertdef.h"
-
-//#include <fcntl.h>
-//#include <cmath>
-//#include <ctime>
-//#include <cerrno>
-//#include <cstring>
-
-//! \ingroup convertlib
-//! \defgroup convertlib_functions Coordinate conversion functions
-//! @{
-
-// TODO: implement using pos_geoc2geod
-int32_t loc_clear(locstruc *loc);
-int32_t pos_extra(locstruc *loc);
-int32_t pos_icrf(locstruc *loc);
-int32_t pos_eci(locstruc *loc);
-int32_t pos_sci(locstruc *loc);
-int32_t pos_geoc(locstruc *loc);
-int32_t pos_geos(locstruc *loc);
-int32_t pos_geod(locstruc *loc);
-int32_t pos_selc(locstruc *loc);
-int32_t pos_selg(locstruc *loc);
-int32_t pos_icrf2eci(locstruc *loc);
-int32_t pos_eci2icrf(locstruc *loc);
-int32_t pos_icrf2sci(locstruc *loc);
-int32_t pos_sci2icrf(locstruc *loc);
-int32_t pos_eci2geoc(locstruc *loc);
-int32_t pos_eci2selc(locstruc *loc);
-int32_t pos_geoc2eci(locstruc *loc);
-int32_t pos_geoc2geod(locstruc *loc);
-int32_t pos_geod2geoc(locstruc *loc);
-int32_t pos_geoc2geos(locstruc *loc);
-int32_t pos_geos2geoc(locstruc *loc);
-int32_t pos_eci2sci(locstruc *loc);
-int32_t pos_sci2eci(locstruc *loc);
-int32_t pos_sci2selc(locstruc *loc);
-int32_t pos_selc2selg(locstruc *loc);
-int32_t pos_selc2sci(locstruc *loc);
-int32_t pos_selg2selc(locstruc *loc);
-int32_t pos_selc2eci(locstruc *loc);
-
-int32_t loc_clear(locstruc &loc);
-int32_t pos_extra(locstruc &loc);
-int32_t pos_clear(locstruc &loc);
-int32_t pos_icrf(locstruc &loc);
-int32_t pos_eci(locstruc &loc);
-int32_t pos_sci(locstruc &loc);
-int32_t pos_geoc(locstruc &loc);
-int32_t pos_geos(locstruc &loc);
-int32_t pos_geod(locstruc &loc);
-int32_t pos_selc(locstruc &loc);
-int32_t pos_selg(locstruc &loc);
-int32_t pos_icrf2eci(locstruc &loc);
-int32_t pos_eci2icrf(locstruc &loc);
-int32_t pos_icrf2sci(locstruc &loc);
-int32_t pos_sci2icrf(locstruc &loc);
-int32_t pos_eci2geoc(locstruc &loc);
-int32_t pos_eci2selc(locstruc &loc);
-int32_t pos_geoc2eci(locstruc &loc);
-int32_t pos_geoc2geod(locstruc &loc);
-int32_t pos_geod2geoc(locstruc &loc);
-int32_t pos_geoc2geos(locstruc &loc);
-int32_t pos_geos2geoc(locstruc &loc);
-int32_t pos_eci2sci(locstruc &loc);
-int32_t pos_sci2eci(locstruc &loc);
-int32_t pos_sci2selc(locstruc &loc);
-int32_t pos_selc2selg(locstruc &loc);
-int32_t pos_selc2sci(locstruc &loc);
-int32_t pos_selg2selc(locstruc &loc);
-int32_t pos_selc2eci(locstruc &loc);
-
-int32_t eci2kep(cartpos &eci, kepstruc &kep);
-int32_t kep2eci(kepstruc &kep,cartpos &eci);
-double rearth(double lat);
-//double mjd2year(double mjd);
-
-int32_t att_extra(locstruc *loc);
-int32_t att_icrf(locstruc *loc);
-int32_t att_lvlh(locstruc *loc);
-int32_t att_geoc(locstruc *loc);
-int32_t att_selc(locstruc *loc);
-int32_t att_topo(locstruc *loc);
-int32_t att_planec2topo(locstruc *loc);
-int32_t att_topo2planec(locstruc *loc);
-int32_t att_icrf2geoc(locstruc *loc);
-int32_t att_icrf2lvlh(locstruc *loc);
-int32_t att_icrf2selc(locstruc *loc);
-int32_t att_geoc2icrf(locstruc *loc);
-int32_t att_planec2lvlh(locstruc *loc);
-int32_t att_lvlh2planec(locstruc *loc);
-int32_t att_lvlh2icrf(locstruc *loc);
-int32_t att_selc2icrf(locstruc *loc);
-int32_t loc_update(locstruc *loc);
-
-int32_t att_extra(locstruc &loc);
-int32_t att_clear(attstruc &att);
-int32_t att_icrf(locstruc &loc);
-int32_t att_lvlh(locstruc &loc);
-int32_t att_geoc(locstruc &loc);
-int32_t att_selc(locstruc &loc);
-int32_t att_topo(locstruc &loc);
-int32_t att_planec2topo(locstruc &loc);
-int32_t att_topo2planec(locstruc &loc);
-int32_t att_icrf2geoc(locstruc &loc);
-int32_t att_icrf2geoc(locstruc &loc);
-int32_t att_icrf2lvlh(locstruc &loc);
-int32_t att_icrf2selc(locstruc &loc);
-int32_t att_geoc2icrf(locstruc &loc);
-int32_t att_planec2lvlh(locstruc &loc);
-int32_t att_lvlh2planec(locstruc &loc);
-int32_t att_lvlh2icrf(locstruc &loc);
-int32_t att_selc2icrf(locstruc &loc);
-int32_t loc_update(locstruc &loc);
-
-double mjd2gmst(double mjd);
-int32_t geoc2geod(cartpos &geoc, geoidpos &geod);
-int32_t geos2geoc(spherpos *geos, cartpos *geoc);
-int32_t geod2geoc(geoidpos &geod, cartpos &geoc);
-int32_t geoc2geos(cartpos *geoc, spherpos *geos);
-int32_t selg2selc(geoidpos *selg, cartpos *selc);
-int32_t gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm);
-int32_t itrs2gcrf(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm);
-int32_t true2pef(double utc, rmatrix *rm);
-int32_t pef2true(double utc, rmatrix *rm);
-int32_t pef2itrs(double utc, rmatrix *rm);
-int32_t itrs2pef(double utc, rmatrix *rm);
-int32_t true2mean(double ep1, rmatrix *pm);
-int32_t mean2true(double ep0, rmatrix *pm);
-int32_t j20002mean(double ep1, rmatrix *pm);
-int32_t mean2j2000(double ep0, rmatrix *pm);
-int32_t gcrf2j2000(rmatrix *rm);
-int32_t j20002gcrf(rmatrix *rm);
-int32_t teme2true(double ep0, rmatrix *rm);
-int32_t true2teme(double ep0, rmatrix *rm);
-int32_t mean2mean(double ep0, double ep1, rmatrix *pm);
-int32_t geoc2topo(gvector gs, rvector geoc, rvector &topo);
-int32_t body2topo(Vector com, Vector body, Vector &topo);
-int32_t topo2azel(rvector tpos, float &az, float &el);
-int32_t topo2azel(Vector tpos, float &az, float &el);
-int lines2eci(double mjd, vector<tlestruc> tle, cartpos &eci);
-int tle2eci(double mjd, tlestruc tle, cartpos &eci);
-int32_t eci2tle(double utc, cartpos eci, tlestruc &tle);
-int sgp4(double utc, tlestruc tle, cartpos &pos_teme);
-tlestruc get_line(uint16_t index, vector<tlestruc> tle);
-int32_t load_lines(string fname, vector<tlestruc>& tle);
-int32_t load_lines_multi(string fname, vector<tlestruc>& tle);
-int32_t loadTLE(char *fname, tlestruc &tle);
-int32_t load_stk(string filename, stkstruc &stkdata);
-int stk2eci(double utc, stkstruc &stk, cartpos &eci);
-int32_t tle2sgp4(tlestruc tle, sgp4struc &sgp4);
-int32_t sgp42tle(sgp4struc sgp4, tlestruc &tle);
-int tle_checksum(char *line);
-int32_t eci2tlestring(cartpos eci, string &tle, std::string ref_tle, double bstar=0);
-
+#include "support/timelib.h"
+#include "support/geomag.h"
+#include "support/ephemlib.h"
 namespace Cosmos {
-    namespace Coords {
+    namespace Convert {
 
-        class Position {
 
-        public:
+        //! \ingroup convertlib
+        //! \defgroup convertlib_functions Coordinate conversion functions
+        //! @{
 
-            explicit Position(Vector s0=Vector(), Vector v0=Vector(), Vector a0=Vector())
-            {
-                s = s0;
-                v = v0;
-                a = a0;
-            }
+        // TODO: implement using pos_geoc2geod
+        int32_t loc_clear(locstruc *loc);
+        int32_t pos_extra(locstruc *loc);
+        int32_t pos_icrf(locstruc *loc);
+        int32_t pos_eci(locstruc *loc);
+        int32_t pos_sci(locstruc *loc);
+        int32_t pos_geoc(locstruc *loc);
+        int32_t pos_geos(locstruc *loc);
+        int32_t pos_geod(locstruc *loc);
+        int32_t pos_selc(locstruc *loc);
+        int32_t pos_selg(locstruc *loc);
+        int32_t pos_icrf2eci(locstruc *loc);
+        int32_t pos_eci2icrf(locstruc *loc);
+        int32_t pos_icrf2sci(locstruc *loc);
+        int32_t pos_sci2icrf(locstruc *loc);
+        int32_t pos_eci2geoc(locstruc *loc);
+        int32_t pos_eci2selc(locstruc *loc);
+        int32_t pos_geoc2eci(locstruc *loc);
+        int32_t pos_geoc2geod(locstruc *loc);
+        int32_t pos_geod2geoc(locstruc *loc);
+        int32_t pos_geoc2geos(locstruc *loc);
+        int32_t pos_geos2geoc(locstruc *loc);
+        int32_t pos_eci2sci(locstruc *loc);
+        int32_t pos_sci2eci(locstruc *loc);
+        int32_t pos_sci2selc(locstruc *loc);
+        int32_t pos_selc2selg(locstruc *loc);
+        int32_t pos_selc2sci(locstruc *loc);
+        int32_t pos_selg2selc(locstruc *loc);
+        int32_t pos_selc2eci(locstruc *loc);
 
-            // 0th derivative
-            Vector s;
-            // 1st derivative
-            Vector v;
-            // 2nd derivative
-            Vector a;
-        };
+        int32_t loc_clear(locstruc &loc);
+        int32_t pos_extra(locstruc &loc);
+        int32_t pos_clear(locstruc &loc);
+        int32_t pos_icrf(locstruc &loc);
+        int32_t pos_eci(locstruc &loc);
+        int32_t pos_sci(locstruc &loc);
+        int32_t pos_geoc(locstruc &loc);
+        int32_t pos_geos(locstruc &loc);
+        int32_t pos_geod(locstruc &loc);
+        int32_t pos_selc(locstruc &loc);
+        int32_t pos_selg(locstruc &loc);
+        int32_t pos_icrf2eci(locstruc &loc);
+        int32_t pos_eci2icrf(locstruc &loc);
+        int32_t pos_icrf2sci(locstruc &loc);
+        int32_t pos_sci2icrf(locstruc &loc);
+        int32_t pos_eci2geoc(locstruc &loc);
+        int32_t pos_eci2selc(locstruc &loc);
+        int32_t pos_geoc2eci(locstruc &loc);
+        int32_t pos_geoc2geod(locstruc &loc);
+        int32_t pos_geod2geoc(locstruc &loc);
+        int32_t pos_geoc2geos(locstruc &loc);
+        int32_t pos_geos2geoc(locstruc &loc);
+        int32_t pos_eci2sci(locstruc &loc);
+        int32_t pos_sci2eci(locstruc &loc);
+        int32_t pos_sci2selc(locstruc &loc);
+        int32_t pos_selc2selg(locstruc &loc);
+        int32_t pos_selc2sci(locstruc &loc);
+        int32_t pos_selg2selc(locstruc &loc);
+        int32_t pos_selc2eci(locstruc &loc);
+
+        int32_t eci2kep(Convert::cartpos &eci, kepstruc &kep);
+        int32_t kep2eci(kepstruc &kep,cartpos &eci);
+
+        int32_t att_extra(locstruc *loc);
+        int32_t att_icrf(locstruc *loc);
+        int32_t att_lvlh(locstruc *loc);
+        int32_t att_geoc(locstruc *loc);
+        int32_t att_selc(locstruc *loc);
+        int32_t att_topo(locstruc *loc);
+        int32_t att_planec2topo(locstruc *loc);
+        int32_t att_topo2planec(locstruc *loc);
+        int32_t att_icrf2geoc(locstruc *loc);
+        int32_t att_icrf2lvlh(locstruc *loc);
+        int32_t att_icrf2selc(locstruc *loc);
+        int32_t att_geoc2icrf(locstruc *loc);
+        int32_t att_planec2lvlh(locstruc *loc);
+        int32_t att_lvlh2planec(locstruc *loc);
+        int32_t att_lvlh2icrf(locstruc *loc);
+        int32_t att_selc2icrf(locstruc *loc);
+        int32_t loc_update(locstruc *loc);
+
+        int32_t att_extra(locstruc &loc);
+        int32_t att_clear(attstruc &att);
+        int32_t att_icrf(locstruc &loc);
+        int32_t att_lvlh(locstruc &loc);
+        int32_t att_geoc(locstruc &loc);
+        int32_t att_selc(locstruc &loc);
+        int32_t att_topo(locstruc &loc);
+        int32_t att_planec2topo(locstruc &loc);
+        int32_t att_topo2planec(locstruc &loc);
+        int32_t att_icrf2geoc(locstruc &loc);
+        int32_t att_icrf2geoc(locstruc &loc);
+        int32_t att_icrf2lvlh(locstruc &loc);
+        int32_t att_icrf2selc(locstruc &loc);
+        int32_t att_geoc2icrf(locstruc &loc);
+        int32_t att_planec2lvlh(locstruc &loc);
+        int32_t att_lvlh2planec(locstruc &loc);
+        int32_t att_lvlh2icrf(locstruc &loc);
+        int32_t att_selc2icrf(locstruc &loc);
+        int32_t loc_update(locstruc &loc);
+
+        double mjd2gmst(double mjd);
+        int32_t geoc2geod(Convert::cartpos &geoc, geoidpos &geod);
+        int32_t geos2geoc(Convert::spherpos *geos, cartpos *geoc);
+        int32_t geod2geoc(geoidpos &geod, cartpos &geoc);
+        int32_t geoc2geos(Convert::cartpos *geoc, spherpos *geos);
+        int32_t selg2selc(geoidpos *selg, cartpos *selc);
+        int32_t gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm);
+        int32_t itrs2gcrf(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm);
+        int32_t true2pef(double utc, rmatrix *rm);
+        int32_t pef2true(double utc, rmatrix *rm);
+        int32_t pef2itrs(double utc, rmatrix *rm);
+        int32_t itrs2pef(double utc, rmatrix *rm);
+        int32_t true2mean(double ep1, rmatrix *pm);
+        int32_t mean2true(double ep0, rmatrix *pm);
+        int32_t j20002mean(double ep1, rmatrix *pm);
+        int32_t mean2j2000(double ep0, rmatrix *pm);
+        int32_t gcrf2j2000(rmatrix *rm);
+        int32_t j20002gcrf(rmatrix *rm);
+        int32_t teme2true(double ep0, rmatrix *rm);
+        int32_t true2teme(double ep0, rmatrix *rm);
+        int32_t mean2mean(double ep0, double ep1, rmatrix *pm);
+        int32_t geoc2topo(gvector gs, rvector geoc, rvector &topo);
+        int32_t body2topo(Vector com, Vector body, Vector &topo);
+        int32_t topo2azel(rvector tpos, float &az, float &el);
+        int32_t topo2azel(Vector tpos, float &az, float &el);
+        int lines2eci(double mjd, vector<tlestruc> tle, cartpos &eci);
+        int tle2eci(double mjd, tlestruc tle, cartpos &eci);
+        int32_t eci2tle(double utc, cartpos eci, tlestruc &tle);
+        int sgp4(double utc, tlestruc tle, cartpos &pos_teme);
+        tlestruc get_line(uint16_t index, vector<tlestruc> tle);
+        int32_t load_lines(string fname, vector<tlestruc>& tle);
+        int32_t load_lines_multi(string fname, vector<tlestruc>& tle);
+        int32_t loadTLE(char *fname, tlestruc &tle);
+        int32_t load_stk(string filename, stkstruc &stkdata);
+        int stk2eci(double utc, stkstruc &stk, cartpos &eci);
+        int32_t tle2sgp4(tlestruc tle, sgp4struc &sgp4);
+        int32_t sgp42tle(sgp4struc sgp4, tlestruc &tle);
+        int tle_checksum(char *line);
+        int32_t eci2tlestring(Convert::cartpos eci, string &tle, string ref_tle, double bstar=0);
+        rvector utc2nuts(double mjd);
+        double utc2depsilon(double mjd);
+        double utc2dpsi(double mjd);
+        double utc2gast(double mjd);
+        double utc2ut1(double mjd);
+        double utc2dut1(double mjd);
+        int32_t load_iers();
+        cvector polar_motion(double mjd);
+        int32_t leap_seconds(double mjd);
+        double utc2era(double mjd);
+        double utc2gmst1982(double mjd);
+        double utc2jcenut1(double mjd);
+        double utc2tt(double mjd);
+        double utc2jcentt(double mjd);
+        double utc2epsilon(double mjd);
+        double utc2L(double mjd);
+        double utc2Lp(double mjd);
+        double utc2F(double mjd);
+        double utc2D(double mjd);
+        double utc2omega(double mjd);
+        double utc2zeta(double mjd);
+        double utc2z(double mjd);
+        double utc2gps(double utc);
+        double utc2tdb(double mjd);
+        double utc2theta(double mjd);
+        double  tt2utc(double mjd);
+        double  gps2utc(double gps);
+
+                class Position {
+
+                public:
+
+                    explicit Position(Vector s0=Vector(), Vector v0=Vector(), Vector a0=Vector())
+                    {
+                        s = s0;
+                        v = v0;
+                        a = a0;
+                    }
+
+                    // 0th derivative
+                    Vector s;
+                    // 1st derivative
+                    Vector v;
+                    // 2nd derivative
+                    Vector a;
+                };
+        //! @}
+
     }
 }
-
-//! @}
-
 #endif

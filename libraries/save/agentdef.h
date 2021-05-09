@@ -35,7 +35,7 @@
 */
 
 #include "configCosmos.h"
-#include "jsondef.h"
+//#include "jsondef.h"
 
 //! \ingroup agentlib
 //! \defgroup agentlib_constants Agent Server and Client Library constants

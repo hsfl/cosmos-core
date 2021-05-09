@@ -192,9 +192,9 @@ void JSONValue::set(Vector val)
 {
     type = JSONValue::JsonValueType::JSON_OBJECT;
     JSONObject jobject;
-    jobject.addElement("x", to_double(val.x));
-    jobject.addElement("y", to_double(val.y));
-    jobject.addElement("z", to_double(val.z));
+    jobject.addElement("x", to_floatany(val.x));
+    jobject.addElement("y", to_floatany(val.y));
+    jobject.addElement("z", to_floatany(val.z));
     value_as_string = jobject.to_json_string();
 }
 
@@ -202,10 +202,10 @@ void JSONValue::set(Quaternion val)
 {
     type = JSONValue::JsonValueType::JSON_OBJECT;
     JSONObject jobject;
-    jobject.addElement("x", to_double(val.x));
-    jobject.addElement("y", to_double(val.y));
-    jobject.addElement("z", to_double(val.z));
-    jobject.addElement("w", to_double(val.w));
+    jobject.addElement("x", to_floatany(val.x));
+    jobject.addElement("y", to_floatany(val.y));
+    jobject.addElement("z", to_floatany(val.z));
+    jobject.addElement("w", to_floatany(val.w));
     value_as_string = jobject.to_json_string();
 }
 

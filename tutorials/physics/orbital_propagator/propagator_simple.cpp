@@ -91,8 +91,8 @@ int main(int argc, char* argv[]){
 
     PrintUtils print;
 
-    locstruc state; // Set state container
-    locstruc initState; // Set initial state
+    Convert::locstruc state; // Set state container
+    Convert::locstruc initState; // Set initial state
 
     // break down state vector
     // position
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]){
     string fname = get_nodedir((node_name.c_str()));
     fname += "/state.ini";
 
-    pos_clear(initState);
+    Convert::pos_clear(initState);
 
     if ((iretn=stat(fname.c_str(), &fstat)) == 0 && (fdes=fopen(fname.c_str(),"r")) != nullptr)
     {
@@ -200,12 +200,12 @@ int main(int argc, char* argv[]){
 
     // propagate the changes to all frames
     initState.pos.eci.pass++;
-    pos_eci(&initState);
+    Convert::pos_eci(&initState);
 
     // initialize propagator
-    //CT 2017-06-26: couldn't find a gj_handle data type for this function to use
-    gj_handle gjh;
-    gauss_jackson_init_eci(gjh,
+    //CT 2017-06-26: couldn't find a Physics::gj_handle data type for this function to use
+    Physics::gj_handle gjh;
+    Physics::gauss_jackson_init_eci(gjh,
                            order,
                            mode,
                            dt,
@@ -217,15 +217,15 @@ int main(int argc, char* argv[]){
 
     // propagate state to current time so we get an updated state vector
     // to initialize the GPS sim
-    //CT 2017-06-26: couldn't find a gj_handle data type for this function to use
-    gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, currentmjd());
+    //CT 2017-06-26: couldn't find a Physics::gj_handle data type for this function to use
+    Physics::gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, currentmjd());
 
     //get initial sim tim
     double mjd_start_sim = currentmjd();
 
 
     // set SOH
-    std::string soh = "{\"node_loc_utc\","
+    string soh = "{\"node_loc_utc\","
                       "\"node_loc_pos_eci\","
                       "\"node_loc_att_icrf\"}" ;
 
@@ -243,7 +243,7 @@ int main(int argc, char* argv[]){
         if (elapsed_seconds > triger_time){ // send the command 100 ms before the set time
 
             // propagate
-            gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc,  utc_now);
+            Physics::gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc,  utc_now);
             state = agent->cinfo->node.loc;
 
             // break down state vector for this demo
