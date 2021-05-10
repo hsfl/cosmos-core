@@ -11,7 +11,8 @@ FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 set(libraryName CosmosDeviceSerial PARENT_SCOPE)
 
 add_library(CosmosDeviceSerial STATIC ${SOURCES} ${INCLUDES})
-target_link_libraries(CosmosDeviceSerial CosmosTime)
+#target_link_libraries(CosmosDeviceSerial CosmosTime CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosDeviceSerial CosmosTime CosmosSupport ${COSMOS_LIBS})
 
 install(TARGETS CosmosDeviceSerial DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/serial)

@@ -155,11 +155,11 @@ List of available requests:
 #include "device/general/usrp_lib.h"
 
 static Agent *agent;
-static std::string nodename="";
-static std::string radioname;
+static string nodename="";
+static string radioname;
 static size_t deviceindex;
 static size_t radioindex = 9999;
-static std::string radiodevice;
+static string radiodevice;
 static uint16_t radioaddr;
 static bool radioconnected = false;
 static bool radioenabled = false;
@@ -720,10 +720,10 @@ int32_t request_disable(string &req, string &response, Agent *)
 int32_t request_get_state(string &req, string &response, Agent *)
 {
     response = '[' + to_mjd(currentmjd()) + "] Cx: " + to_bool(radioconnected) + " En: " + to_bool(radioenabled);
-    response += " Mode: " + opmode2string(agent->cinfo->devspec.tcv[radioindex].opmode) + " TFreq: " + to_double(target.freq, 9);
-    response += " AFreq: " + to_double(agent->cinfo->devspec.tcv[radioindex].freq, 9) + " Offset: " + to_double((freqoffset + morefreqoffset));
-    response += " PowerIn: " + to_double(agent->cinfo->devspec.tcv[radioindex].powerin) + " PowerOut: " + to_double(agent->cinfo->devspec.tcv[radioindex].powerout);
-    response += " MaxPower: " + to_double(agent->cinfo->devspec.tcv[radioindex].maxpower) + " Record: " + to_unsigned(target_record,1);
+    response += " Mode: " + opmode2string(agent->cinfo->devspec.tcv[radioindex].opmode) + " TFreq: " + to_floatany(target.freq, 9);
+    response += " AFreq: " + to_floatany(agent->cinfo->devspec.tcv[radioindex].freq, 9) + " Offset: " + to_floatany((freqoffset + morefreqoffset));
+    response += " PowerIn: " + to_floatany(agent->cinfo->devspec.tcv[radioindex].powerin) + " PowerOut: " + to_floatany(agent->cinfo->devspec.tcv[radioindex].powerout);
+    response += " MaxPower: " + to_floatany(agent->cinfo->devspec.tcv[radioindex].maxpower) + " Record: " + to_unsigned(target_record,1);
     return (0);
 }
 
@@ -1102,7 +1102,7 @@ int32_t disconnect_radio()
 
 string opmode2string(uint16_t opmode)
 {
-    std::string result;
+    string result;
     switch (opmode)
     {
     case DEVICE_RADIO_MODE_AM:
@@ -1153,7 +1153,7 @@ string opmode2string(uint16_t opmode)
 
 string modulation2string(uint16_t modulation)
 {
-    std::string result;
+    string result;
     switch (modulation)
     {
     case DEVICE_RADIO_MODULATION_ASK:

@@ -102,7 +102,7 @@ private:
     vector <uint8_t> slip_packet;
     int32_t error;
 
-    friend std::ostream& operator<<(std::ostream& out, KissHandle& K);
+    friend ::std::ostream& operator<<(::std::ostream& out, KissHandle& K);
 };
 
 //old load_packet (to be deleted)**********************************************

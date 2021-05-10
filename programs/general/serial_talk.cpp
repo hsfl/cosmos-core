@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
     bool rtscts = false;
     string name = "/dev/ttyUSB0";
     int32_t baud = 115200;
-    size_t parity = 0;
+    string parity = "none";
     size_t bits = 8;
     size_t stop = 1;
     uint16_t endcount = .5 * baud;
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
         name = argv[1];
     }
 
-    endcount = duration * baud / (bits + parity + stop + 1.);
+    endcount = duration * baud / (bits + (parity=="none"?0:1) + stop + 1.);
     Serial *port = new Serial(name, baud, bits, parity, stop);
     port->set_flowcontrol(rtscts, xonxoff);
 

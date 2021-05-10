@@ -152,36 +152,12 @@ namespace Cosmos {
         // utc to another format
         struct timeval utc2unix(double utc);
         double utc2unixseconds(double utc);
-        double utc2epsilon(double mjd);
-        double utc2depsilon(double mjd);
-        double utc2dpsi(double mjd);
-        double utc2L(double mjd);
-        double utc2Lp(double mjd);
-        double utc2F(double mjd);
-        double utc2D(double mjd);
-        double utc2omega(double mjd);
-        double utc2zeta(double mjd);
-        double utc2z(double mjd);
-        double utc2era(double mjd);
-        double utc2tt(double mjd);
-        double utc2gps(double utc);
-        double utc2ut1(double mjd);
-        double utc2dut1(double mjd);
-        double utc2tdb(double mjd);
-        double utc2tdb(double mjd);
-        double utc2gmst1982(double mjd);
         double utc2gmst2000(double mjd);
-        double utc2gast(double mjd);
-        rvector utc2nuts(double mjd);
-        double utc2theta(double mjd);
-        double utc2jcentt(double mjd);
-        double utc2jcenut1(double mjd);
         string utc2unixdate(double utc);
         string utc2iso8601(double mjd);
         double iso86012utc(string date);
 
         // gps to another format
-        double  gps2utc(double gps);
         void    gps2week(double gps, uint32_t& week, double& seconds);
         double  week2gps(uint32_t week, double seconds);
 
@@ -205,14 +181,10 @@ namespace Cosmos {
         // other
         double unix2utc(struct timeval unixtime);
         double unix2utc(double unixtime);
-        double  tt2utc(double mjd);
         double  tt2tdb(double mjd);
         double  julcen(double mjd);
-        cvector polar_motion(double mjd);
-        int32_t leap_seconds(double mjd);
         double  ranrm(double angle);
         int16_t isleap(int32_t year);
-        int32_t load_iers();
         string  seconds2DDHHMMSS(double elapsed_seconds);
         int32_t timed_countdown(int32_t seconds, int32_t step=10., string message="");
         double set_local_clock(double utc_to);

@@ -36,7 +36,6 @@
 
 #include "support/configCosmos.h"
 #include "device/arduino/arduino_lib.h"
-#include "device/general/cssl_lib.h"
 
 #if defined(COSMOS_WIN_OS)
 

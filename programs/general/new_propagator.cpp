@@ -37,11 +37,11 @@ int main(int argc, char *argv[])
     double dp = 60.;
     double endp = 86400.;
     int32_t iretn = 0;
-    gj_handle gjh;
-    vector<tlestruc>lines;
+    Physics::gj_handle gjh;
+    vector<Convert::tlestruc>lines;
 
     Physics::State *state;
-    locstruc loc;
+    Convert::locstruc loc;
     physicsstruc phys;
 
     state = new Physics::State();

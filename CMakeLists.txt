@@ -102,6 +102,8 @@ endif ()
 
 # Cmake macros, files to deploy, etc
 include(${CMAKE_SOURCE_DIR}/cmake/macros.cmake)
+#set(COSMOS_LIBS localzlib)
+set(COSMOS_LIBS)
 
 # -----------------------------------------------
 # Linux specific
@@ -293,7 +295,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # -----------------------------------------------
 # Extend COSMOS_LIBS with standard libraries
-#set(COSMOS_LIBS  CosmosAgent CosmosPhysics CosmosSupport CosmosMath localzlib ${COSMOS_LIBS})
 #message("COSMOS_INSTALL_FOLDER: ${COSMOS_INSTALL_FOLDER}")
 
 set(CMAKE_INSTALL_PREFIX "${COSMOS_INSTALL_FOLDER}" CACHE PATH "default install path" FORCE )

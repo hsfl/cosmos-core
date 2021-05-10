@@ -32,13 +32,13 @@
 
 #include "support/cosmos-errno.h"
 #include "support/timelib.h"
+#include "support/elapsedtime.h"
 //#include <linux/i2c-dev.h> /* for I2C_SLAVE */
 #if !defined(COSMOS_WIN_OS)
 #include "device/i2c/i2c-dev-smbus.h"
 #endif
 
 using std::cout;
-using std::string;
 
 namespace Cosmos {
     class I2C

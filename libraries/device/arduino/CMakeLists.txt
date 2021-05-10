@@ -13,7 +13,8 @@ FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 set(libraryName CosmosDeviceArduino PARENT_SCOPE)
 
 add_library(CosmosDeviceArduino STATIC ${SOURCES} ${INCLUDES})
-target_link_libraries(CosmosDeviceArduino CosmosDeviceGeneral)
+#target_link_libraries(CosmosDeviceArduino CosmosDeviceGeneral CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosDeviceArduino CosmosSupport ${COSMOS_LIBS})
 
 install(TARGETS CosmosDeviceArduino DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/arduino)

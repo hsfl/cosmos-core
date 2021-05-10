@@ -1629,7 +1629,7 @@ double m2_snorm2x2(matrix2d matrix)
 //! @}
 
 
-std::ostream& operator << (std::ostream& out, const rmatrix& a)
+::std::ostream& operator << (::std::ostream& out, const rmatrix& a)
 {
     out.precision(15);
     out << "["  << a.row[0].col[0] << "," << a.row[0].col[1] << "," << a.row[0].col[2] << ";";
@@ -1638,14 +1638,14 @@ std::ostream& operator << (std::ostream& out, const rmatrix& a)
     return out;
 }
 
-std::ostream& operator << (std::ostream& out, const vector<rmatrix>& a)
+::std::ostream& operator << (::std::ostream& out, const vector<rmatrix>& a)
 {
     for(vector<rmatrix>::const_iterator I = a.begin(); I != a.end(); ++I)
         out<<*I<<"\t";
     return out;
 }
 
-std::istream& operator >> (std::istream& in, rmatrix& a)
+::std::istream& operator >> (::std::istream& in, rmatrix& a)
 {
     char junk;
     in >> junk >> a.row[0].col[0] >> junk >> a.row[0].col[1] >> junk >> a.row[0].col[2] >> junk
@@ -1656,7 +1656,7 @@ std::istream& operator >> (std::istream& in, rmatrix& a)
 
 
 
-std::ostream& operator << (std::ostream& out, const cmatrix& a)
+::std::ostream& operator << (::std::ostream& out, const cmatrix& a)
 {
     out << "["  << a.r1.x << "," << a.r1.y << "," << a.r1.z << ";\n"
         << a.r2.x << "," << a.r2.y << "," << a.r2.z << ";\n"
@@ -1664,7 +1664,7 @@ std::ostream& operator << (std::ostream& out, const cmatrix& a)
     return out;
 }
 
-std::istream& operator >> (std::istream& in, cmatrix& a)
+::std::istream& operator >> (::std::istream& in, cmatrix& a)
 {
     char junk;
     in >> junk >> a.r1.x >> junk >> a.r1.y >> junk >> a.r1.z >> junk

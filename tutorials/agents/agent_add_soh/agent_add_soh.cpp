@@ -100,7 +100,7 @@ int myagent()
     rvector omega;
     omega = {1.,2.,3.};
 
-    cartpos pos_eci;
+    Convert::cartpos pos_eci;
     pos_eci.s = {4,5,6};
     pos_eci.v = {0.1,0,0};
 

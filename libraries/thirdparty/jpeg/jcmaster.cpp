@@ -155,7 +155,7 @@ validate_script (j_compress_ptr cinfo)
     last_bitpos_ptr = & last_bitpos[0][0];
     for (ci = 0; ci < cinfo->num_components; ci++) 
       for (coefi = 0; coefi < DCTSIZE2; coefi++)
-	*last_bitpos_ptr++ = -1;
+    *last_bitpos_ptr++ = -1;
 #else
     ERREXIT(cinfo, JERR_NOT_COMPILED);
 #endif
@@ -208,20 +208,20 @@ validate_script (j_compress_ptr cinfo)
 	  ERREXIT1(cinfo, JERR_BAD_PROG_SCRIPT, scanno);
       }
       for (ci = 0; ci < ncomps; ci++) {
-	last_bitpos_ptr = & last_bitpos[scanptr->component_index[ci]][0];
-	if (Ss != 0 && last_bitpos_ptr[0] < 0) /* AC without prior DC scan */
+    last_bitpos_ptr = & last_bitpos[scanptr->component_index[ci]][0];
+    if (Ss != 0 && last_bitpos_ptr[0] < 0) /* AC without prior DC scan */
 	  ERREXIT1(cinfo, JERR_BAD_PROG_SCRIPT, scanno);
 	for (coefi = Ss; coefi <= Se; coefi++) {
-	  if (last_bitpos_ptr[coefi] < 0) {
+      if (last_bitpos_ptr[coefi] < 0) {
 	    /* first scan of this coefficient */
 	    if (Ah != 0)
 	      ERREXIT1(cinfo, JERR_BAD_PROG_SCRIPT, scanno);
 	  } else {
 	    /* not first scan */
-	    if (Ah != last_bitpos_ptr[coefi] || Al != Ah-1)
+        if (Ah != last_bitpos_ptr[coefi] || Al != Ah-1)
 	      ERREXIT1(cinfo, JERR_BAD_PROG_SCRIPT, scanno);
 	  }
-	  last_bitpos_ptr[coefi] = Al;
+      last_bitpos_ptr[coefi] = Al;
 	}
       }
 #endif

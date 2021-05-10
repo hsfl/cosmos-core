@@ -1,25 +1,25 @@
 MESSAGE("")
 MESSAGE("Libraries:")
 #set(COSMOS_LIBS  CosmosAgent CosmosPhysics CosmosSupport CosmosMath localzlib ${COSMOS_LIBS})
-IF(${BUILD_COSMOS_CORE_ZLIB} MATCHES "ON")
-    set(COSMOS_LIBS localzlib ${COSMOS_LIBS})
-ENDIF(${BUILD_COSMOS_CORE_ZLIB} MATCHES "ON")
+#IF(${BUILD_COSMOS_CORE_ZLIB} MATCHES "ON")
+#    set(COSMOS_LIBS localzlib ${COSMOS_LIBS})
+#ENDIF(${BUILD_COSMOS_CORE_ZLIB} MATCHES "ON")
 
-IF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
-    set(COSMOS_LIBS CosmosMath ${COSMOS_LIBS})
-ENDIF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
+#IF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
+#    set(COSMOS_LIBS CosmosMath ${COSMOS_LIBS})
+#ENDIF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
 
-IF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
-    set(COSMOS_LIBS CosmosSupport ${COSMOS_LIBS})
-ENDIF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
+#IF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
+#    set(COSMOS_LIBS ${COSMOS_LIBS})
+#ENDIF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
 
-IF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
-    set(COSMOS_LIBS CosmosPhysics ${COSMOS_LIBS})
-ENDIF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
+#IF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
+#    set(COSMOS_LIBS CosmosPhysics ${COSMOS_LIBS})
+#ENDIF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
 
-IF(${BUILD_COSMOS_CORE_AGENT} MATCHES "ON")
-    set(COSMOS_LIBS CosmosAgent ${COSMOS_LIBS})
-ENDIF(${BUILD_COSMOS_CORE_AGENT} MATCHES "ON")
+#IF(${BUILD_COSMOS_CORE_AGENT} MATCHES "ON")
+#    set(COSMOS_LIBS CosmosAgent ${COSMOS_LIBS})
+#ENDIF(${BUILD_COSMOS_CORE_AGENT} MATCHES "ON")
 
 # -----------------------------------------------
 # Build Agent Library
@@ -53,7 +53,7 @@ IF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
     MESSAGE("- Support Library")
     add_subdirectory(${COSMOS_CORE_SOURCE}/libraries/support ${CMAKE_BINARY_DIR}/libraries/support)
     SET(LINK_LIBRARY_COSMOS_CORE_SUPPORT CosmosSupport)
-#    set(COSMOS_LIBS CosmosSupport ${COSMOS_LIBS})
+#    set(COSMOS_LIBS ${COSMOS_LIBS})
 ENDIF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
 
 # -----------------------------------------------
@@ -80,7 +80,7 @@ IF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
         # go into every device folder to find cmakelists
         subdirlist(DEVICEDIRS ${CMAKE_CURRENT_SOURCE_DIR}/libraries/device)
 
-        set(COSMOS_LIBS CosmosDeviceGeneral ${COSMOS_LIBS})
+#        set(COSMOS_LIBS CosmosDeviceGeneral ${COSMOS_LIBS})
 
         #cmake_policy(SET CMP0057 NEW)
         #message("libs:" "${BUILD_LIBRARIES_DEVICES}")
@@ -93,7 +93,7 @@ IF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
                 list(APPEND librarylist ${libraryName})
                 if(${subdir} MATCHES "general")
                 else()
-                    set(COSMOS_LIBS ${libraryName} ${COSMOS_LIBS})
+#                    set(COSMOS_LIBS ${libraryName} ${COSMOS_LIBS})
                     message("Setting " ${libraryName})
                 endif()
             #endif()

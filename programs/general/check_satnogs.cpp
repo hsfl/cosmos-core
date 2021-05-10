@@ -37,7 +37,7 @@
 int main(int argc, char *argv[])
 {
     int32_t iretn = 0;
-    vector<tlestruc> tles;
+    vector<Convert::tlestruc> tles;
 
     iretn = load_lines(argv[1], tles);
 
@@ -58,33 +58,33 @@ int main(int argc, char *argv[])
             Json jobject;
             jobject.extract_contents(input);
 
-            locstruc currentloc;
+            Convert::locstruc currentloc;
             lines2eci(currentmjd(), tles, currentloc.pos.eci);
             currentloc.pos.eci.pass++;
-            pos_eci(currentloc);
-            kepstruc currentkep;
-            eci2kep(currentloc.pos.eci, currentkep);
+            Convert::pos_eci(currentloc);
+            Convert::kepstruc currentkep;
+            Convert::eci2kep(currentloc.pos.eci, currentkep);
             tovernal = atan2(currentloc.pos.extra.sun2earth.s.col[1], currentloc.pos.extra.sun2earth.s.col[0]);
 
             for (const auto& member : jobject.ArrayContents)
             {
                 double start = iso86012utc(member.object.at("start").svalue);
-                locstruc startloc;
+                Convert::locstruc startloc;
                 lines2eci(start, tles, startloc.pos.eci);
                 startloc.pos.eci.pass++;
-                pos_eci(startloc);
-                kepstruc startkep;
-                eci2kep(startloc.pos.eci, startkep);
+                Convert::pos_eci(startloc);
+                Convert::kepstruc startkep;
+                Convert::eci2kep(startloc.pos.eci, startkep);
                 tovernal = atan2(startloc.pos.extra.sun2earth.s.col[1], startloc.pos.extra.sun2earth.s.col[0]);
                 double startphase = fixangle(startkep.ma + startkep.raan - tovernal);
 
                 double end = iso86012utc(member.object.at("end").svalue);
-                locstruc endloc;
+                Convert::locstruc endloc;
                 lines2eci(end, tles, endloc.pos.eci);
                 endloc.pos.eci.pass++;
-                pos_eci(endloc);
-                kepstruc endkep;
-                eci2kep(endloc.pos.eci, endkep);
+                Convert::pos_eci(endloc);
+                Convert::kepstruc endkep;
+                Convert::eci2kep(endloc.pos.eci, endkep);
                 tovernal = atan2(endloc.pos.extra.sun2earth.s.col[1], endloc.pos.extra.sun2earth.s.col[0]);
                 double endphase = fixangle(endkep.ma + endkep.raan - tovernal);
                 //        double endphase = (endloc.pos.earthsep) / cos(endkep.beta);
@@ -94,15 +94,15 @@ int main(int argc, char *argv[])
                 printf("%s\t", member.object.at("id").svalue.c_str());
                 printf("%s\t", member.object.at("start").svalue.c_str());
                 printf("%s\t", to_mjd(start).c_str());
-                printf("%s\t", to_double(DEGOF(startloc.pos.earthsep)).c_str());
-                printf("%s\t", to_double(DEGOF(startphase)).c_str());
+                printf("%s\t", to_floatany(DEGOF(startloc.pos.earthsep)).c_str());
+                printf("%s\t", to_floatany(DEGOF(startphase)).c_str());
 
                 printf("%s\t", member.object.at("end").svalue.c_str());
                 printf("%s\t", to_mjd(end).c_str());
-                printf("%s\t", to_double(DEGOF(endloc.pos.earthsep)).c_str());
-                printf("%s\t", to_double(DEGOF(endphase)).c_str());
+                printf("%s\t", to_floatany(DEGOF(endloc.pos.earthsep)).c_str());
+                printf("%s\t", to_floatany(DEGOF(endphase)).c_str());
 
-                printf("%s\t", to_double(DEGOF(dphase), 5).c_str());
+                printf("%s\t", to_floatany(DEGOF(dphase), 5).c_str());
 
                 if (member.object.at("status").svalue == "good")
                 {
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
                 {
                     lines2eci(utcnow, tles, target.loc.pos.eci);
                     target.loc.pos.eci.pass++;
-                    pos_eci(target.loc);
+                    Convert::pos_eci(target.loc);
                     update_target(agent->cinfo->node.loc, target);
                     switch (static_cast<uint8_t>(visible))
                     {
@@ -169,13 +169,13 @@ int main(int argc, char *argv[])
                             visible = false;
                             if (tca.elfrom >= minelev)
                             {
-                                kepstruc startkep;
-                                eci2kep(aos.loc.pos.eci, startkep);
+                                Convert::kepstruc startkep;
+                                Convert::eci2kep(aos.loc.pos.eci, startkep);
                                 tovernal = atan2(aos.loc.pos.extra.sun2earth.s.col[1], aos.loc.pos.extra.sun2earth.s.col[0]);
                                 double startphase = fixangle(startkep.ma + startkep.raan - tovernal);
 
-                                kepstruc endkep;
-                                eci2kep(los.loc.pos.eci, endkep);
+                                Convert::kepstruc endkep;
+                                Convert::eci2kep(los.loc.pos.eci, endkep);
                                 tovernal = atan2(los.loc.pos.extra.sun2earth.s.col[1], los.loc.pos.extra.sun2earth.s.col[0]);
                                 double endphase = fixangle(endkep.ma + endkep.raan - tovernal);
 
@@ -184,15 +184,15 @@ int main(int argc, char *argv[])
                                 printf("00000001\t");
                                 printf("%s\t", mjd2iso8601(aos.loc.pos.eci.utc).c_str());
                                 printf("%s\t", to_mjd(aos.loc.pos.eci.utc).c_str());
-                                printf("%s\t", to_double(DEGOF(aos.loc.pos.earthsep)).c_str());
-                                printf("%s\t", to_double(DEGOF(startphase)).c_str());
+                                printf("%s\t", to_floatany(DEGOF(aos.loc.pos.earthsep)).c_str());
+                                printf("%s\t", to_floatany(DEGOF(startphase)).c_str());
 
                                 printf("%s\t", mjd2iso8601(los.loc.pos.eci.utc).c_str());
                                 printf("%s\t", to_mjd(los.loc.pos.eci.utc).c_str());
-                                printf("%s\t", to_double(DEGOF(los.loc.pos.earthsep)).c_str());
-                                printf("%s\t", to_double(DEGOF(endphase)).c_str());
+                                printf("%s\t", to_floatany(DEGOF(los.loc.pos.earthsep)).c_str());
+                                printf("%s\t", to_floatany(DEGOF(endphase)).c_str());
 
-                                printf("%s\t", to_double(DEGOF(dphase), 5).c_str());
+                                printf("%s\t", to_floatany(DEGOF(dphase), 5).c_str());
 
                                 printf("2");
                                 printf("\n");
@@ -209,21 +209,21 @@ int main(int argc, char *argv[])
         vector<double> amateurs = {59174.41688, 59177.03267, 59184.09772, 59187.79667, 59188.54722, 59189.95972};
         for (double amateur : amateurs)
         {
-            locstruc startloc;
+            Convert::locstruc startloc;
             lines2eci(amateur-2./1440., tles, startloc.pos.eci);
             startloc.pos.eci.pass++;
-            pos_eci(startloc);
-            kepstruc startkep;
-            eci2kep(startloc.pos.eci, startkep);
+            Convert::pos_eci(startloc);
+            Convert::kepstruc startkep;
+            Convert::eci2kep(startloc.pos.eci, startkep);
             tovernal = atan2(startloc.pos.extra.sun2earth.s.col[1], startloc.pos.extra.sun2earth.s.col[0]);
             double startphase = fixangle(startkep.ma + startkep.raan - tovernal);
 
-            locstruc endloc;
+            Convert::locstruc endloc;
             lines2eci(amateur+2./1440., tles, endloc.pos.eci);
             endloc.pos.eci.pass++;
-            pos_eci(endloc);
-            kepstruc endkep;
-            eci2kep(endloc.pos.eci, endkep);
+            Convert::pos_eci(endloc);
+            Convert::kepstruc endkep;
+            Convert::eci2kep(endloc.pos.eci, endkep);
             tovernal = atan2(endloc.pos.extra.sun2earth.s.col[1], endloc.pos.extra.sun2earth.s.col[0]);
             double endphase = fixangle(endkep.ma + endkep.raan - tovernal);
 
@@ -232,15 +232,15 @@ int main(int argc, char *argv[])
             printf("00000000\t");
             printf("%s\t", mjd2iso8601(startloc.pos.eci.utc).c_str());
             printf("%s\t", to_mjd(startloc.pos.eci.utc).c_str());
-            printf("%s\t", to_double(DEGOF(startloc.pos.earthsep)).c_str());
-            printf("%s\t", to_double(DEGOF(startphase)).c_str());
+            printf("%s\t", to_floatany(DEGOF(startloc.pos.earthsep)).c_str());
+            printf("%s\t", to_floatany(DEGOF(startphase)).c_str());
 
             printf("%s\t", mjd2iso8601(endloc.pos.eci.utc).c_str());
             printf("%s\t", to_mjd(endloc.pos.eci.utc).c_str());
-            printf("%s\t", to_double(DEGOF(endloc.pos.earthsep)).c_str());
-            printf("%s\t", to_double(DEGOF(endphase)).c_str());
+            printf("%s\t", to_floatany(DEGOF(endloc.pos.earthsep)).c_str());
+            printf("%s\t", to_floatany(DEGOF(endphase)).c_str());
 
-            printf("%s\t", to_double(DEGOF(dphase), 5).c_str());
+            printf("%s\t", to_floatany(DEGOF(dphase), 5).c_str());
 
             printf("1");
             printf("\n");

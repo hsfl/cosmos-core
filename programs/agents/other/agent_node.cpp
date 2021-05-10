@@ -49,17 +49,17 @@ char ibuf[AGENTMAXBUFFER];
 
 NetworkType ntype = NetworkType::UDP;
 int waitsec = 5;
-std::string reqjstring;
-std::string myjstring;
+string reqjstring;
+string myjstring;
 
 typedef struct
 {
 	double mjd;
 	double utime;
 	uint32_t tindex;
-    std::vector<std::string> telem;
+    std::vector<string> telem;
 	uint32_t eindex;
-    std::vector<std::string> event;
+    std::vector<string> event;
 } cachestruc;
 
 cachestruc cache[3+MAXEPHEM+1];
@@ -77,7 +77,7 @@ std::vector<eventstruc> commanddict;
 
 Agent *agent;
 nodestruc statnode;
-gj_handle gjh;
+Physics::gj_handle gjh;
 
 // Internal variables
 int32_t myport;
@@ -188,10 +188,10 @@ int main(int argc, char *argv[])
 	{
 	case NODE_TYPE_SATELLITE:
 		// Initialize hardware
-        hardware_init_eci(agent->cinfo, agent->cinfo->node.loc);
+        Physics::hardware_init_eci(agent->cinfo, agent->cinfo->node.loc);
 		// Initialize orbit
-        gauss_jackson_init_eci(gjh, 8, 0, .1, agent->cinfo->node.loc.utc, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
-        simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
+        Physics::gauss_jackson_init_eci(gjh, 8, 0, .1, agent->cinfo->node.loc.utc, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
+        Physics::simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
         agent->cinfo->node.utcoffset = agent->cinfo->node.loc.utc - currentmjd(0.);
         agent->set_sohstring((char *)"{\"node_utc\",\"node_name\",\"node_type\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"}");
         printf("Initialized satellite starting at %.15g [%.8g %.8g %.8g]\n", agent->cinfo->node.loc.pos.eci.utc, agent->cinfo->node.loc.pos.eci.s.col[0], agent->cinfo->node.loc.pos.eci.s.col[1], agent->cinfo->node.loc.pos.eci.s.col[2]);
@@ -218,13 +218,13 @@ int main(int argc, char *argv[])
         switch (agent->cinfo->node.type)
 		{
 		case NODE_TYPE_SATELLITE:
-            gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, currentmjd(agent->cinfo->node.utcoffset));
-            simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
+            Physics::gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, currentmjd(agent->cinfo->node.utcoffset));
+            Physics::simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
             break;
 		default:
             agent->cinfo->node.loc.utc = agent->cinfo->node.loc.pos.geod.utc = currentmjd(agent->cinfo->node.utcoffset);
             ++agent->cinfo->node.loc.pos.geod.pass;
-            pos_geod(&agent->cinfo->node.loc);
+            Convert::pos_geod(&agent->cinfo->node.loc);
             update_target(agent->cinfo);
             agent->cinfo->node.loc.att.topo.s = q_eye();
             for (uint32_t i=0; i<agent->cinfo->node.target_cnt; ++i)
@@ -309,8 +309,8 @@ void loadephemeris()
     ctime = agent->cinfo->node.loc.utc;
 	stime = (int)ctime;
 	etime = stime + MAXEPHEM + 1;
-    gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
-    simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
+    Physics::gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
+    Physics::simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
     update_target(agent->cinfo);
 	do
 	{
@@ -326,8 +326,8 @@ void loadephemeris()
 		cache[3+(int)(ctime-stime)].mjd = (int)ctime;
 		cache[3+(int)(ctime-stime)].utime = ctime;
 		ctime += 20./86400.;
-        gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, ctime);
-        simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
+        Physics::gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, ctime);
+        Physics::simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
         update_target(agent->cinfo);
 	} while (ctime < etime);
 
@@ -380,14 +380,20 @@ double loadmjd(double mjd)
 		}
 	}
 
-    if (!data_load_archive(mjd, cache[cindex].telem, cache[cindex].event, agent->cinfo))
+    int32_t iretn = data_load_archive(agent->cinfo->node.name, "soh", mjd, "telemetry", cache[cindex].telem);
+    if (iretn < 0)
+    {
+        return 0.;
+    }
+    if (!data_load_archive(agent->cinfo->node.name, "soh", mjd, "event", cache[cindex].event))
+//    if (!data_load_archive(mjd, cache[cindex].telem, cache[cindex].event, agent->cinfo))
 	{
 		cache[cindex].mjd = (int)mjd;
         cache[cindex].utime = currentmjd(agent->cinfo->node.utcoffset);
 		cache[cindex].tindex = cache[cindex].eindex = 0;
 		return (mjd);
 	}
-	else
+    else
 		return (0.);
 }
 

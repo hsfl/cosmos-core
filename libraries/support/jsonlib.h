@@ -201,20 +201,20 @@ int32_t json_out_cvector(string &jstring,cvector value);
 int32_t json_out_rvector(string &jstring,rvector value);
 int32_t json_out_tvector(string &jstring,rvector value);
 int32_t json_out_quaternion(string &jstring,quaternion value);
-int32_t json_out_cartpos(string &jstring,cartpos value);
-int32_t json_out_geoidpos(string &jstring,geoidpos value);
-int32_t json_out_spherpos(string &jstring,spherpos value);
-int32_t json_out_dcmatt(string &jstring, dcmatt value);
-int32_t json_out_qatt(string &jstring,qatt value);
+int32_t json_out_cartpos(string &jstring, Convert::cartpos value);
+int32_t json_out_geoidpos(string &jstring, Convert::geoidpos value);
+int32_t json_out_spherpos(string &jstring, Convert::spherpos value);
+int32_t json_out_dcmatt(string &jstring, Convert::dcmatt value);
+int32_t json_out_qatt(string &jstring, Convert::qatt value);
 int32_t json_out_dcm(string &jstring,rmatrix value);
 int32_t json_out_rmatrix(string &jstring,rmatrix value);
 int32_t json_out_beatstruc(string &jstring,beatstruc value);
 int32_t json_out_node(string &jstring, string value);
 int32_t json_out_utcstart(string &jstring, double value);
-int32_t json_out_ecipos(string &jstring,cartpos value);
-int32_t json_out_posstruc(string &jstring,posstruc value);
-int32_t json_out_attstruc(string &jstring,attstruc value);
-int32_t json_out_locstruc(string &jstring,locstruc value);
+int32_t json_out_ecipos(string &jstring, Convert::cartpos value);
+int32_t json_out_posstruc(string &jstring, Convert::posstruc value);
+int32_t json_out_attstruc(string &jstring, Convert::attstruc value);
+int32_t json_out_locstruc(string &jstring, Convert::locstruc value);
 int32_t json_out_commandevent(string &jstring, eventstruc event);
 
 uint8_t *json_ptrto(string token, cosmosstruc *cinfo);
@@ -249,7 +249,7 @@ quaternion json_get_quaternion(const jsonentry &entry, cosmosstruc *cinfo);
 string json_get_string(string token, cosmosstruc *cinfo);
 string json_get_string(const jsonentry &entry, cosmosstruc *cinfo);
 
-posstruc json_get_posstruc(const jsonentry &entry, cosmosstruc *cinfo);
+Convert::posstruc json_get_posstruc(const jsonentry &entry, cosmosstruc *cinfo);
 
 int32_t json_set_number(double val, const jsonentry &entry, cosmosstruc *cinfo);
 int32_t json_set_number(double val, jsonentry *entry, cosmosstruc *cinfo);
@@ -342,7 +342,7 @@ void create_databases(cosmosstruc *cinfo);
 size_t load_dictionary(vector<eventstruc> &dict, cosmosstruc *cinfo, const char *file);
 int32_t load_target(cosmosstruc *cinfo);
 int32_t update_target(cosmosstruc *cinfo);
-int32_t update_target(locstruc source, targetstruc &target);
+int32_t update_target(Convert::locstruc source, targetstruc &target);
 size_t calc_events(vector<eventstruc> &dictionary, cosmosstruc *cinfo, vector<eventstruc> &events);
 uint16_t device_type_index(string name);
 string device_type_name(uint32_t type);
@@ -350,10 +350,12 @@ string port_type_name(uint32_t type);
 int32_t device_index(cosmosstruc* cinfo, string name);
 bool device_has_property(uint16_t deviceType, string prop);
 string json_memory_usage();
+int32_t json_get_nodes(vector<cosmosstruc> &data);
+int32_t kml_write(cosmosstruc* cinfo);
 
 //! @}
 
-std::ostream& operator<<(std::ostream& out, const beatstruc& b);
+::std::ostream& operator<<(::std::ostream& out, const beatstruc& b);
 
 
 

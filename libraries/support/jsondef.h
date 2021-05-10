@@ -1706,9 +1706,9 @@ class sim_param	{
                 string(cpu).swap(cpu);
             }
 
-            //to enforce a std::string name length maximum (if necessary) use this code to truncate:
+            //to enforce a string name length maximum (if necessary) use this code to truncate:
             //
-            //constexpr std::string::size_type MAX_CHARS = 20 ;
+            //constexpr string::size_type MAX_CHARS = 20 ;
             //if(whatever_string.size() > MAX_CHARS)	{
             //	whatever_string = whatever_string.substr(0, MAX_CHARS);
             //}
@@ -1861,7 +1861,7 @@ class sim_param	{
             double range = 0.;
             double close = 0.;
             float min = 0.f;
-            locstruc loc;
+            Convert::locstruc loc;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -4276,7 +4276,7 @@ union as a ::devicestruc.
             //! Mission start time
             double utcstart = 0.;
             //! Location structure
-            locstruc loc;
+            Convert::locstruc loc;
             physicsstruc phys;
 
             /// Convert class contents to JSON object
@@ -4997,7 +4997,7 @@ information.
             uint16_t subsystem = 0;
         };
 
-        //void replace(std::string& str, const std::string& from, const std::string& to);
+        //void replace(string& str, const string& from, const string& to);
         //vector<size_t> find_newlines(const string& sample);
         //void pretty_form(string& js);
 
@@ -5153,6 +5153,16 @@ information.
                 {
                     user[i].shrinkusage();
                 }
+                name_map(names).swap(names);
+                type_map(types).swap(types);
+//                for (auto &name : names)
+//                {
+//                    name_mapping(name).swap(name);
+//                }
+//                for (auto &type : types)
+//                {
+//                    type_mapping(type).swap(type);
+//                }
             }
 
             //! Timestamp for last change to data
@@ -5219,7 +5229,7 @@ information.
             vector<userstruc> user;
 
             //! Array of Two Line Elements
-            vector<tlestruc> tle;
+            vector<Convert::tlestruc> tle;
 
             //! JSON descriptive information
             jsonnode json;
@@ -7901,8 +7911,8 @@ information.
                     add_name(basename+".cpu", &user[i].cpu, "string");
                 }
 
-                // vector<tlestruc> tle
-                add_name("tle", &tle, "vector<tlestruc>");
+                // vector<Convert::tlestruc> tle
+                add_name("tle", &tle, "vector<Convert::tlestruc>");
                 for(size_t i = 0; i < tle.size(); ++i) {
                     string basename = "tle[" + std::to_string(i) + "]";
                     add_name(basename, &tle[i], "tlestruc");
@@ -8062,11 +8072,11 @@ information.
                                 } else if (type == "agentstruc") {
                                     get_pointer<agentstruc>(name)->from_json(p[name].dump());
                                 } else if (type == "attstruc") {
-                                    get_pointer<attstruc>(name)->from_json(p[name].dump());
+                                    get_pointer<Convert::attstruc>(name)->from_json(p[name].dump());
                                 } else if (type == "beatstruc") {
                                     get_pointer<beatstruc>(name)->from_json(p[name].dump());
                                 } else if (type == "cartpos") {
-                                    get_pointer<cartpos>(name)->from_json(p[name].dump());
+                                    get_pointer<Convert::cartpos>(name)->from_json(p[name].dump());
                                 } else if (type == "cosmosstruc") {
                                     get_pointer<cosmosstruc>(name)->from_json(p[name].dump());
                                 } else if (type == "cvector") {
@@ -8084,15 +8094,15 @@ information.
                                 } else if (type == "eventstruc") {
                                     get_pointer<eventstruc>(name)->from_json(p[name].dump());
                                 } else if (type == "extraatt") {
-                                    get_pointer<extraatt>(name)->from_json(p[name].dump());
+                                    get_pointer<Convert::extraatt>(name)->from_json(p[name].dump());
                                 } else if (type == "extrapos") {
-                                    get_pointer<extrapos>(name)->from_json(p[name].dump());
+                                    get_pointer<Convert::extrapos>(name)->from_json(p[name].dump());
                                 } else if (type == "face") {
                                     get_pointer<Cosmos::wavefront::face>(name)->from_json(p[name].dump());
                                 } else if (type == "facestruc") {
                                     get_pointer<facestruc>(name)->from_json(p[name].dump());
                                 } else if (type == "geoidpos") {
-                                    get_pointer<geoidpos>(name)->from_json(p[name].dump());
+                                    get_pointer<Convert::geoidpos>(name)->from_json(p[name].dump());
                                 } else if (type == "group") {
                                     get_pointer<Cosmos::wavefront::group>(name)->from_json(p[name].dump());
                                 } else if (type == "gvector") {
@@ -8104,7 +8114,7 @@ information.
                                 } else if (type == "line") {
                                     get_pointer<Cosmos::wavefront::line>(name)->from_json(p[name].dump());
                                 } else if (type == "locstruc") {
-                                    get_pointer<locstruc>(name)->from_json(p[name].dump());
+                                    get_pointer<Convert::locstruc>(name)->from_json(p[name].dump());
                                 } else if (type == "material") {
                                     get_pointer<Cosmos::wavefront::material>(name)->from_json(p[name].dump());
                                 } else if (type == "NetworkType") {
@@ -8122,9 +8132,9 @@ information.
                                 } else if (type == "PORT_TYPE") {
                                     set_value<PORT_TYPE>(name, static_cast<PORT_TYPE>(p[name].int_value()));
                                 } else if (type == "posstruc") {
-                                    get_pointer<posstruc>(name)->from_json(p[name].dump());
+                                    get_pointer<Convert::posstruc>(name)->from_json(p[name].dump());
                                 } else if (type == "qatt") {
-                                    get_pointer<qatt>(name)->from_json(p[name].dump());
+                                    get_pointer<Convert::qatt>(name)->from_json(p[name].dump());
                                 } else if (type == "quaternion") {
                                     get_pointer<quaternion>(name)->from_json(p[name].dump());
                                 } else if (type == "rmatrix") {
@@ -8134,13 +8144,13 @@ information.
                                 } else if (type == "socket_channel") {
                                     //get_pointer<socket_channel>(name)->from_json(p[name].dump());
                                 } else if (type == "spherpos") {
-                                    get_pointer<spherpos>(name)->from_json(p[name].dump());
+                                    get_pointer<Convert::spherpos>(name)->from_json(p[name].dump());
                                 } else if (type == "svector") {
                                     get_pointer<svector>(name)->from_json(p[name].dump());
                                 } else if (type == "targetstruc") {
                                     get_pointer<targetstruc>(name)->from_json(p[name].dump());
                                 } else if (type == "tlestruc") {
-                                    get_pointer<tlestruc>(name)->from_json(p[name].dump());
+                                    get_pointer<Convert::tlestruc>(name)->from_json(p[name].dump());
                                 } else if (type == "trianglestruc") {
                                     get_pointer<trianglestruc>(name)->from_json(p[name].dump());
                                 } else if (type == "unitstruc") {
@@ -8431,10 +8441,10 @@ information.
                                             get_pointer<vector<targetstruc>>(name)->at(i).from_json(p[name][i].dump());
                                         }
                                     }
-                                } else if (type == "vector<tlestruc>") {
-                                    for(size_t i = 0; i < get_pointer<vector<tlestruc>>(name)->size(); ++i) {
+                                } else if (type == "vector<Convert::tlestruc>") {
+                                    for(size_t i = 0; i < get_pointer<vector<Convert::tlestruc>>(name)->size(); ++i) {
                                         if(!p[name][i].is_null()) {
-                                            get_pointer<vector<tlestruc>>(name)->at(i).from_json(p[name][i].dump());
+                                            get_pointer<vector<Convert::tlestruc>>(name)->at(i).from_json(p[name][i].dump());
                                         }
                                     }
                                 } else if (type == "vector<trianglestruc>") {
@@ -8563,11 +8573,11 @@ information.
                     } else if (type == "agentstruc") {
                         json = json11::Json::object { { s, get_value<agentstruc>(s) } };
                     } else if (type == "attstruc") {
-                        json = json11::Json::object { { s, get_value<attstruc>(s) } };
+                        json = json11::Json::object { { s, get_value<Convert::attstruc>(s) } };
                     } else if (type == "beatstruc") {
                         json = json11::Json::object { { s, get_value<beatstruc>(s) } };
                     } else if (type == "cartpos") {
-                        json = json11::Json::object { { s, get_value<cartpos>(s) } };
+                        json = json11::Json::object { { s, get_value<Convert::cartpos>(s) } };
                     } else if (type == "cosmosstruc") {
                         json = json11::Json::object { { s, get_value<cosmosstruc>(s) } };
                     } else if (type == "cvector") {
@@ -8585,15 +8595,15 @@ information.
                     } else if (type == "eventstruc") {
                         json = json11::Json::object { { s, get_value<eventstruc>(s) } };
                     } else if (type == "extraatt") {
-                        json = json11::Json::object { { s, get_value<extraatt>(s) } };
+                        json = json11::Json::object { { s, get_value<Convert::extraatt>(s) } };
                     } else if (type == "extrapos") {
-                        json = json11::Json::object { { s, get_value<extrapos>(s) } };
+                        json = json11::Json::object { { s, get_value<Convert::extrapos>(s) } };
                     } else if (type == "face") {
                         json = json11::Json::object { { s, get_value<Cosmos::wavefront::face>(s) } };
                     } else if (type == "facestruc") {
                         json = json11::Json::object { { s, get_value<facestruc>(s) } };
                     } else if (type == "geoidpos") {
-                        json = json11::Json::object { { s, get_value<geoidpos>(s) } };
+                        json = json11::Json::object { { s, get_value<Convert::geoidpos>(s) } };
                     } else if (type == "group") {
                         json = json11::Json::object { { s, get_value<Cosmos::wavefront::group>(s) } };
                     } else if (type == "gvector") {
@@ -8605,7 +8615,7 @@ information.
                     } else if (type == "jsonnode") {
                         json = json11::Json::object { { s, get_value<jsonnode>(s) } };
                     } else if (type == "locstruc") {
-                        json = json11::Json::object { { s, get_value<locstruc>(s) } };
+                        json = json11::Json::object { { s, get_value<Convert::locstruc>(s) } };
                     } else if (type == "material") {
                         json = json11::Json::object { { s, get_value<Cosmos::wavefront::material>(s) } };
                     } else if (type == "NetworkType") {
@@ -8623,9 +8633,9 @@ information.
                     } else if (type == "PORT_TYPE") {
                         json = json11::Json::object { { s, get_value<PORT_TYPE>(s) } };
                     } else if (type == "posstruc") {
-                        json = json11::Json::object { { s, get_value<posstruc>(s) } };
+                        json = json11::Json::object { { s, get_value<Convert::posstruc>(s) } };
                     } else if (type == "qatt") {
-                        json = json11::Json::object { { s, get_value<qatt>(s) } };
+                        json = json11::Json::object { { s, get_value<Convert::qatt>(s) } };
                     } else if (type == "quaternion") {
                         json = json11::Json::object { { s, get_value<quaternion>(s) } };
                     } else if (type == "rmatrix") {
@@ -8639,13 +8649,13 @@ information.
                     } else if (type == "socket_channel[]") {
                         //	json = json11::Json::object { { s, get_value<socket_channel[]>(s) } };
                     } else if (type == "spherpos") {
-                        json = json11::Json::object { { s, get_value<spherpos>(s) } };
+                        json = json11::Json::object { { s, get_value<Convert::spherpos>(s) } };
                     } else if (type == "svector") {
                         json = json11::Json::object { { s, get_value<svector>(s) } };
                     } else if (type == "targetstruc") {
                         json = json11::Json::object { { s, get_value<targetstruc>(s) } };
                     } else if (type == "tlestruc") {
-                        json = json11::Json::object { { s, get_value<tlestruc>(s) } };
+                        json = json11::Json::object { { s, get_value<Convert::tlestruc>(s) } };
                     } else if (type == "trianglestruc") {
                         json = json11::Json::object { { s, get_value<trianglestruc>(s) } };
                     } else if (type == "unitstruc") {
@@ -8748,8 +8758,8 @@ information.
                         json = json11::Json::object { { s, get_value<vector<portstruc> >(s) } };
                     } else if (type == "vector<targetstruc>") {
                         json = json11::Json::object { { s, get_value<vector<targetstruc> >(s) } };
-                    } else if (type == "vector<tlestruc>") {
-                        json = json11::Json::object { { s, get_value<vector<tlestruc> >(s) } };
+                    } else if (type == "vector<Convert::tlestruc>") {
+                        json = json11::Json::object { { s, get_value<vector<Convert::tlestruc> >(s) } };
                     } else if (type == "vector<trianglestruc>") {
                         json = json11::Json::object { { s, get_value<vector<trianglestruc> >(s) } };
                     } else if (type == "vector<unitstruc>") {
@@ -8780,10 +8790,10 @@ information.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @param	to		substring to be replaced with
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @return	n/a
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             */
-            void replace(std::string& str, const std::string& from, const std::string& to) {
+            void replace(string& str, const string& from, const string& to) {
                 if(from.empty()) return;
                 size_t start_pos = 0;
-                while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+                while((start_pos = str.find(from, start_pos)) != string::npos) {
                     str.replace(start_pos, from.length(), to);
                     start_pos += to.length();
                 }
@@ -9099,7 +9109,7 @@ information.
 
                 // check if double quotes are balanced
                 int q_count = 0;
-                for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
+                for(string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
                     if(*it=='"')	q_count++;
                 }
                 if(q_count%2==1)	return nan("");
@@ -9127,27 +9137,27 @@ information.
                     string replace_me = "\"" + replacements[i] + "\"";
                     string type = get_type(replacements[i]);
                     if(type=="double")	{
-                        replace(eq, replace_me, to_string(get_value<double>(replacements[i])));
+                        replace(eq, replace_me, std::to_string(get_value<double>(replacements[i])));
                     } else if(type=="float")	{
-                        replace(eq, replace_me, to_string(get_value<float>(replacements[i])));
+                        replace(eq, replace_me, std::to_string(get_value<float>(replacements[i])));
                     } else if(type=="size_t")	{
-                        replace(eq, replace_me, to_string(get_value<size_t>(replacements[i])));
+                        replace(eq, replace_me, std::to_string(get_value<size_t>(replacements[i])));
                     } else if(type=="int")	{
-                        replace(eq, replace_me, to_string(get_value<int>(replacements[i])));
+                        replace(eq, replace_me, std::to_string(get_value<int>(replacements[i])));
                     } else if(type=="uint16_t")	{
-                        replace(eq, replace_me, to_string(get_value<uint16_t>(replacements[i])));
+                        replace(eq, replace_me, std::to_string(get_value<uint16_t>(replacements[i])));
                     } else if(type=="int16_t")	{
-                        replace(eq, replace_me, to_string(get_value<int16_t>(replacements[i])));
+                        replace(eq, replace_me, std::to_string(get_value<int16_t>(replacements[i])));
                     } else if(type=="uint32_t")	{
-                        replace(eq, replace_me, to_string(get_value<uint32_t>(replacements[i])));
+                        replace(eq, replace_me, std::to_string(get_value<uint32_t>(replacements[i])));
                     } else if(type=="int32_t")	{
-                        replace(eq, replace_me, to_string(get_value<int32_t>(replacements[i])));
+                        replace(eq, replace_me, std::to_string(get_value<int32_t>(replacements[i])));
                     } else if(type=="uint8_t")	{
-                        replace(eq, replace_me, to_string(get_value<uint8_t>(replacements[i])));
+                        replace(eq, replace_me, std::to_string(get_value<uint8_t>(replacements[i])));
                     } else if(type=="int8_t")	{
-                        replace(eq, replace_me, to_string(get_value<int8_t>(replacements[i])));
+                        replace(eq, replace_me, std::to_string(get_value<int8_t>(replacements[i])));
                     } else if(type=="bool")	{
-                        replace(eq, replace_me, to_string(get_value<bool>(replacements[i])));
+                        replace(eq, replace_me, std::to_string(get_value<bool>(replacements[i])));
                     } else	{
                         cout<<"type <"<<type<<"> for <"<<replacements[i]<<"> not supported"<<endl;
                         return nan("");
@@ -9166,7 +9176,7 @@ information.
 
                 // check if parenthesis are balanced
                 int p_count = 0;
-                for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
+                for(string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
                     if(*it=='(')	p_count++;
                     if(*it==')')	p_count--;
                     if(p_count<0)	return nan("");
@@ -9181,7 +9191,7 @@ information.
                 stack<char>		ops;
 
                 //int count = 0;
-                for(std::string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
+                for(string::const_iterator it = eq.begin(); it != eq.end(); ++it) {
                     // debug
                     // cout<<"char #"<<count++<<" = '"<<*it<<"' :\n\t<"<<output<<">"<<endl;
                     // cout<<"\t: operators = <";

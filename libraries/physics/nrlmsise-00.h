@@ -35,19 +35,22 @@
 
 
 #include "support/configCosmos.h"
+namespace Cosmos {
+    namespace Physics {
 
-//! \ingroup support
-//! \defgroup nrlmsise NRLMSISE-00 Library
-//! NRLMSISE-00 Atmospheric Model.
-//!
-//! The Navy Research Laboratory's MSIS Atmospheric Model that extends from the ground
-//! to space. This model is used in COSMOS to provide estimates of atmospheric density.
 
-/* -------------------------------------------------------------------- */
-/* ---------  N R L M S I S E - 0 0    M O D E L    2 0 0 1  ---------- */
-/* -------------------------------------------------------------------- */
+        //! \ingroup support
+        //! \defgroup nrlmsise NRLMSISE-00 Library
+        //! NRLMSISE-00 Atmospheric Model.
+        //!
+        //! The Navy Research Laboratory's MSIS Atmospheric Model that extends from the ground
+        //! to space. This model is used in COSMOS to provide estimates of atmospheric density.
 
-/* This file is part of the NRLMSISE-00  C source code package - release
+        /* -------------------------------------------------------------------- */
+        /* ---------  N R L M S I S E - 0 0    M O D E L    2 0 0 1  ---------- */
+        /* -------------------------------------------------------------------- */
+
+        /* This file is part of the NRLMSISE-00  C source code package - release
  * 20041227
  *
  * The NRLMSISE-00 model was developed by Mike Picone, Alan Hedin, and
@@ -62,19 +65,19 @@
  */
 
 
-//! \ingroup nrlmsise
-//! \defgroup nrlmsise_structs NRLMSISE-00 structs
+        //! \ingroup nrlmsise
+        //! \defgroup nrlmsise_structs NRLMSISE-00 structs
 
-/* ------------------------------------------------------------------- */
-/* ------------------------------- INPUT ----------------------------- */
-/* ------------------------------------------------------------------- */
+        /* ------------------------------------------------------------------- */
+        /* ------------------------------- INPUT ----------------------------- */
+        /* ------------------------------------------------------------------- */
 
-struct nrlmsise_flags {
-	int switches[24];
-	double sw[24];
-	double swc[24];
-};
-/*   
+        struct nrlmsise_flags {
+            int switches[24];
+            double sw[24];
+            double swc[24];
+        };
+        /*
  *   Switches: to turn on and off particular variations use these switches.
  *   0 is off, 1 is on, and 2 is main effects off but cross terms on.
  *
@@ -113,10 +116,10 @@ struct nrlmsise_flags {
  *   23 - turbo scale height var
  */
 
-struct ap_array {
-	double a[7];
-};
-/* Array containing the following magnetic values:
+        struct ap_array {
+            double a[7];
+        };
+        /* Array containing the following magnetic values:
  *   0 : daily AP
  *   1 : 3 hr AP index for current time
  *   2 : 3 hr AP index for 3 hrs before current time
@@ -129,20 +132,20 @@ struct ap_array {
  */
 
 
-struct nrlmsise_input {
-    int32_t year;      /* year, currently ignored */
-    int32_t doy;       /* day of year */
-	double sec;    /* seconds in day (UT) */
-	double alt;    /* altitude in kilometes */
-	double g_lat;  /* geodetic latitude */
-	double g_long; /* geodetic longitude */
-	double lst;    /* local apparent solar time (hours), see note below */
-	double f107A;  /* 81 day average of F10.7 flux (centered on doy) */
-	double f107;   /* daily F10.7 flux for previous day */
-	double ap;     /* magnetic index(daily) */
-	struct ap_array *ap_a; /* see above */
-};
-/*
+        struct nrlmsise_input {
+            int32_t year;      /* year, currently ignored */
+            int32_t doy;       /* day of year */
+            double sec;    /* seconds in day (UT) */
+            double alt;    /* altitude in kilometes */
+            double g_lat;  /* geodetic latitude */
+            double g_long; /* geodetic longitude */
+            double lst;    /* local apparent solar time (hours), see note below */
+            double f107A;  /* 81 day average of F10.7 flux (centered on doy) */
+            double f107;   /* daily F10.7 flux for previous day */
+            double ap;     /* magnetic index(daily) */
+            struct ap_array *ap_a; /* see above */
+        };
+        /*
  *   NOTES ON INPUT VARIABLES:
  *      UT, Local Time, and Longitude are used independently in the
  *      model and are not of equal importance for every situation.
@@ -165,15 +168,15 @@ struct nrlmsise_input {
 
 
 
-/* ------------------------------------------------------------------- */
-/* ------------------------------ OUTPUT ----------------------------- */
-/* ------------------------------------------------------------------- */
+        /* ------------------------------------------------------------------- */
+        /* ------------------------------ OUTPUT ----------------------------- */
+        /* ------------------------------------------------------------------- */
 
-struct nrlmsise_output {
-	double d[9];   /* densities */
-	double t[2];   /* temperatures */
-};
-/* 
+        struct nrlmsise_output {
+            double d[9];   /* densities */
+            double t[2];   /* temperatures */
+        };
+        /*
  *   OUTPUT VARIABLES:
  *      d[0] - HE NUMBER DENSITY(CM-3)
  *      d[1] - O NUMBER DENSITY(CM-3)
@@ -207,54 +210,55 @@ struct nrlmsise_output {
  *        in this model, INCLUDING anomalous oxygen.
  */
 
-//! @}
+        //! @}
 
-//! \ingroup nrlmsise
-//! \defgroup nrlmsise_functions NRLMSISE-00 function definitions
+        //! \ingroup nrlmsise
+        //! \defgroup nrlmsise_functions NRLMSISE-00 function definitions
 
-/* ------------------------------------------------------------------- */
-/* --------------------------- PROTOTYPES ---------------------------- */
-/* ------------------------------------------------------------------- */
+        /* ------------------------------------------------------------------- */
+        /* --------------------------- PROTOTYPES ---------------------------- */
+        /* ------------------------------------------------------------------- */
 
-/* GTD7 */
-/*   Neutral Atmosphere Empircial Model from the surface to lower
+        /* GTD7 */
+        /*   Neutral Atmosphere Empircial Model from the surface to lower
  *   exosphere.
  */
-void gtd7 (struct nrlmsise_input *input, \
-struct nrlmsise_flags *flags, \
-struct nrlmsise_output *output);
+        void gtd7 (struct nrlmsise_input *input, \
+                   struct nrlmsise_flags *flags, \
+                   struct nrlmsise_output *output);
 
 
-/* GTD7D */
-/*   This subroutine provides Effective Total Mass Density for output
+        /* GTD7D */
+        /*   This subroutine provides Effective Total Mass Density for output
  *   d[5] which includes contributions from "anomalous oxygen" which can
  *   affect satellite drag above 500 km. See the section "output" for
  *   additional details.
  */
-void gtd7d(struct nrlmsise_input *input, \
-struct nrlmsise_flags *flags, \
-struct nrlmsise_output *output);
+        void gtd7d(struct nrlmsise_input *input, \
+                   struct nrlmsise_flags *flags, \
+                   struct nrlmsise_output *output);
 
 
-/* GTS7 */
-/*   Thermospheric portion of NRLMSISE-00
+        /* GTS7 */
+        /*   Thermospheric portion of NRLMSISE-00
  */
-void gts7 (struct nrlmsise_input *input, \
-struct nrlmsise_flags *flags, \
-struct nrlmsise_output *output);
+        void gts7 (struct nrlmsise_input *input, \
+                   struct nrlmsise_flags *flags, \
+                   struct nrlmsise_output *output);
 
 
-/* GHP7 */
-/*   To specify outputs at a pressure level (press) rather than at
+        /* GHP7 */
+        /*   To specify outputs at a pressure level (press) rather than at
  *   an altitude.
  */
-void ghp7 (struct nrlmsise_input *input, \
-struct nrlmsise_flags *flags, \
-struct nrlmsise_output *output, \
-double press);
+        void ghp7 (struct nrlmsise_input *input, \
+                   struct nrlmsise_flags *flags, \
+                   struct nrlmsise_output *output, \
+                   double press);
 
-//! @}
-
+        //! @}
+    }
+}
 /* ------------------------------------------------------------------- */
 /* ----------------------- COMPILATION TWEAKS ------------------------ */
 /* ------------------------------------------------------------------- */

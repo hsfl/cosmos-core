@@ -797,7 +797,7 @@ rvector rv_sqrt(rvector vec)
 
 //! @}
 
-std::ostream& operator << (std::ostream& out, const rvector& a)
+::std::ostream& operator << (::std::ostream& out, const rvector& a)
 {
 
     //    // fancy formating
@@ -821,14 +821,14 @@ std::ostream& operator << (std::ostream& out, const rvector& a)
     return out;
 }
 
-std::ostream& operator << (std::ostream& out, const vector<rvector>& a)
+::std::ostream& operator << (::std::ostream& out, const vector<rvector>& a)
 {
     for(vector<rvector>::const_iterator I = a.begin(); I != a.end(); ++I)
         out<<*I<<"\t";
     return out;
 }
 
-std::istream& operator >> (std::istream& in, rvector& a)
+::std::istream& operator >> (::std::istream& in, rvector& a)
 {
     char junk;
     in >> junk >> a.col[0] >> junk >> a.col[1] >> junk >> a.col[2] >> junk;
@@ -885,52 +885,52 @@ bool operator != (rvector a, rvector b)
     }
 }
 
-std::ostream& operator << (std::ostream& out, const cvector& a)
+::std::ostream& operator << (::std::ostream& out, const cvector& a)
 {
     out << "[" << a.x << "," << a.y << "," << a.z << "]";
     return out;
 }
 
-std::istream& operator >> (std::istream& in, cvector& a)
+::std::istream& operator >> (::std::istream& in, cvector& a)
 {
     char junk;
     in >> junk >> a.x >> junk >> a.y >> junk >> a.z >> junk;
     return in;
 }
 
-std::ostream& operator << (std::ostream& out, const svector& a)
+::std::ostream& operator << (::std::ostream& out, const svector& a)
 {
     out << "[" << a.phi << "," << a.lambda << "," << a.r << "]";
     return out;
 }
 
-std::istream& operator >> (std::istream& in, svector& a)
+::std::istream& operator >> (::std::istream& in, svector& a)
 {
     char junk;
     in >> junk >> a.phi >> junk >> a.lambda >> junk >> a.r >> junk;
     return in;
 }
 
-std::ostream& operator << (std::ostream& out, const gvector& a)
+::std::ostream& operator << (::std::ostream& out, const gvector& a)
 {
     out<<"["<<a.lat<<","<<a.lon<<","<<a.h<<"]";
     return out;
 }
 
-std::istream& operator >> (std::istream& in, gvector& a)
+::std::istream& operator >> (::std::istream& in, gvector& a)
 {
     char junk;
     in >> junk >> a.lat >> junk >> a.lon >> junk >> a.h >> junk;
     return in;
 }
 
-std::ostream& operator << (std::ostream& out, const avector& a)
+::std::ostream& operator << (::std::ostream& out, const avector& a)
 {
     out << "[" << a.h << "," << a.e << "," << a.b << "]";
     return out;
 }
 
-std::istream& operator >> (std::istream& in, avector& a)
+::std::istream& operator >> (::std::istream& in, avector& a)
 {
     char junk;
     in >> junk >> a.h >> junk >> a.e >> junk >> a.b >> junk;
@@ -1504,7 +1504,7 @@ quaternion q_change_around(int axis,double angle)
 }
 
 // default operator for printing the quaternion values
-std::ostream& operator << (std::ostream& out, const quaternion& a)
+::std::ostream& operator << (::std::ostream& out, const quaternion& a)
 {
     //out << std::fixed;
     //out << std::setprecision(5);
@@ -1525,46 +1525,46 @@ std::ostream& operator << (std::ostream& out, const quaternion& a)
     return out;
 }
 
-std::istream& operator >> (std::istream& in, quaternion& a)
+::std::istream& operator >> (::std::istream& in, quaternion& a)
 {
     char junk;
     in >> junk >> a.d.x >> junk >> a.d.y >> junk >> a.d.z >> junk >> a.w >> junk;
     return in;
 }
 
-std::ostream& operator << (std::ostream& out, const qcomplex& a)
+::std::ostream& operator << (::std::ostream& out, const qcomplex& a)
 {
     out<< "[" << a.i << "," << a.j << "," << a.k << "," << a.r << "]";
     return out;
 }
 
-std::istream& operator >> (std::istream& in, qcomplex& a)
+::std::istream& operator >> (::std::istream& in, qcomplex& a)
 {
     char junk;
     in >> junk >> a.i >> junk >> a.j >> junk >> a.k >> junk >> a.r >> junk;
     return in;
 }
 
-std::ostream& operator << (std::ostream& out, const qlast& a)
+::std::ostream& operator << (::std::ostream& out, const qlast& a)
 {
     out << "[" << a.q1 << "," << a.q2 << "," << a.q3 << "," << a.q4 << "]";
     return out;
 }
 
-std::istream& operator >> (std::istream& in, qlast& a)
+::std::istream& operator >> (::std::istream& in, qlast& a)
 {
     char junk;
     in >> junk >> a.q1 >> junk >> a.q2 >> junk >> a.q3 >> junk >> a.q4 >> junk;
     return in;
 }
 
-std::ostream& operator << (std::ostream& out, const qfirst& a)
+::std::ostream& operator << (::std::ostream& out, const qfirst& a)
 {
     out << "[" << a.q0 << "," << a.q1 << "," << a.q2 << "," << a.q3 << "]";
     return out;
 }
 
-std::istream& operator >> (std::istream& in, qfirst& a)
+::std::istream& operator >> (::std::istream& in, qfirst& a)
 {
     char junk;
     in >> junk >> a.q0 >> junk >> a.q1 >> junk >> a.q2 >> junk >> a.q3 >> junk;
@@ -1997,7 +1997,7 @@ namespace Cosmos {
                 }
             }
 
-            std::ostream& operator << (std::ostream& out, const Vector& v)
+            ::std::ostream& operator << (::std::ostream& out, const Vector& v)
             {
                 out << v.x << ",";
                 out << v.y << ",";
@@ -2383,7 +2383,7 @@ namespace Cosmos {
 //            }
 
 
-            std::ostream& operator<<(std::ostream& os, const Quaternion& q)
+            ::std::ostream& operator<<(::std::ostream& os, const Quaternion& q)
             {
                 //out << "[(";
                 os << q.x << ",";

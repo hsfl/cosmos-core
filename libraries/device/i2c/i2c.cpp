@@ -28,7 +28,6 @@
                     ********************************************************************/
 
 #include "device/i2c/i2c.h"
-#include "support/elapsedtime.h"
 
 #define ARDUINO_I2C_ADDRESS 0x10
 #define ARDUINO_I2C_BUFFER_LIMIT 32

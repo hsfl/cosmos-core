@@ -71,11 +71,11 @@ static bool debug_flag = false;
 #ifdef COSMOS_CYGWIN_OS
 #include<sstream>
 template <typename T>
-std::string std::to_string(T value)
+string std::to_string(T value)
 {
     //create an output string stream
     std::ostringstream os ;
-    //throw the value into the string stream, assuming std::stringstream
+    //throw the value into the string stream, assuming stringstream
     //handles it
     os << value ;
     //convert the string stream into a string and return
@@ -87,7 +87,7 @@ std::string std::to_string(T value)
 // Some global variables
 
 /** the (global) name of the agent */
-static std::string agentname = "file_";
+static string agentname = "file_";
 /** the (global) name of the heartbeat structure */
 static beatstruc cbeat;
 /** the (global) name of the cosmos data structure */
@@ -99,7 +99,7 @@ static uint16_t use_channel = 0;
 typedef struct
 {
     socket_channel sendchan;
-    std::string destination_ip;
+    string destination_ip;
     PACKET_CHUNK_SIZE_TYPE packet_size;
     uint32_t throughput;
     double nmjd;
@@ -109,7 +109,7 @@ static sendchannelstruc send_channel[2];
 
 typedef struct
 {
-    std::string type;
+    string type;
     uint32_t channel;
     std::vector<PACKET_BYTE> packet;
 } transmit_queue_entry;
@@ -140,7 +140,7 @@ static double next_queue_time = 0.;
 
 typedef struct
 {
-    std::string node_name;
+    string node_name;
     PACKET_NODE_ID_TYPE node_id;
     std::vector<tx_progress> progress;
     PACKET_TX_ID_TYPE size;
@@ -150,7 +150,7 @@ typedef struct
 
 typedef struct
 {
-    std::string node_name;
+    string node_name;
     PACKET_NODE_ID_TYPE node_id;
     tx_entry incoming;
     tx_entry outgoing;
@@ -175,28 +175,28 @@ int32_t request_list_incoming_json(string &request, string &response, Agent *age
 int32_t request_list_outgoing(string &request, string &response, Agent *agent);
 int32_t request_list_outgoing_json(string &request, string &response, Agent *agent);
 int32_t outgoing_tx_add(tx_progress tx_out);
-int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name);
+int32_t outgoing_tx_add(string node_name, string agent_name, string file_name);
 int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id);
 int32_t incoming_tx_add(tx_progress tx_in);
-int32_t incoming_tx_add(std::string node_name, PACKET_TX_ID_TYPE tx_id);
+int32_t incoming_tx_add(string node_name, PACKET_TX_ID_TYPE tx_id);
 int32_t incoming_tx_update(packet_struct_metashort meta);
 int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id);
 std::vector<file_progress> find_chunks_missing(tx_progress& tx);
 PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);
 void transmit_loop();
-double queuesendto(std::string type, uint16_t channel, std::vector<PACKET_BYTE> packet);
-int32_t mysendto(std::string type, sendchannelstruc& channel, std::vector<PACKET_BYTE>& buf);
-int32_t myrecvfrom(std::string type, socket_channel channel, std::vector<PACKET_BYTE>& buf, uint32_t length);
-void debug_packet(std::vector<PACKET_BYTE> buf, std::string type);
+double queuesendto(string type, uint16_t channel, std::vector<PACKET_BYTE> packet);
+int32_t mysendto(string type, sendchannelstruc& channel, std::vector<PACKET_BYTE>& buf);
+int32_t myrecvfrom(string type, socket_channel channel, std::vector<PACKET_BYTE>& buf, uint32_t length);
+void debug_packet(std::vector<PACKET_BYTE> buf, string type);
 int32_t write_meta(tx_progress& tx);
 int32_t read_meta(tx_progress& tx);
 bool tx_progress_compare_by_size(const tx_progress& a, const tx_progress& b);
 bool filestruc_compare_by_size(const filestruc& a, const filestruc& b);
 PACKET_TX_ID_TYPE check_tx_id(std::vector<tx_progress> tx_entry, PACKET_TX_ID_TYPE tx_id);
-int32_t check_node_id_1(std::string node_name);
+int32_t check_node_id_1(string node_name);
 int32_t check_node_id_1(PACKET_NODE_ID_TYPE node_id);
 int32_t lookup_remote_node_id(PACKET_NODE_ID_TYPE node_id);
-int32_t set_remote_node_id(PACKET_NODE_ID_TYPE node_id, std::string node_name);
+int32_t set_remote_node_id(PACKET_NODE_ID_TYPE node_id, string node_name);
 PACKET_TX_ID_TYPE choose_incoming_tx_id(int32_t node);
 int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node);
 string json_list_incoming();
@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
     printf("\tSuccess.\n");
 
     // Restore in progress transfers from previous run
-    for (std::string node_name : data_list_nodes())
+    for (string node_name : data_list_nodes())
     {
         int32_t node = check_node_id_1(node_name);
 
@@ -452,7 +452,7 @@ int main(int argc, char *argv[])
 void recv_loop()
 {
     std::vector<PACKET_BYTE> recvbuf;
-    std::string partial_filepath;
+    string partial_filepath;
 
     while (agent->running())
     {
@@ -631,7 +631,7 @@ void recv_loop()
                                             fclose(txq[node].incoming.progress[tx_id].fp);
                                             txq[node].incoming.progress[tx_id].fp = nullptr;
                                         }
-                                        std::string final_filepath = tx_in.temppath + ".file";
+                                        string final_filepath = tx_in.temppath + ".file";
                                         int iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
                                         if (debug_flag)
                                         {
@@ -961,7 +961,7 @@ void recv_loop()
                         //											fclose(txq[node].incoming.progress[tx_id].fp);
                         //											txq[node].incoming.progress[tx_id].fp = nullptr;
                         //										}
-                        //										std::string final_filepath = tx_in.temppath + ".file";
+                        //										string final_filepath = tx_in.temppath + ".file";
                         //										rename(final_filepath.c_str(), tx_in.filepath.c_str());
                         //										txq[node].incoming.progress[tx_id].complete = true;
                         //									}
@@ -1193,7 +1193,7 @@ void transmit_loop()
     }
 }
 
-double queuesendto(std::string type, uint16_t channel, std::vector<PACKET_BYTE> packet)
+double queuesendto(string type, uint16_t channel, std::vector<PACKET_BYTE> packet)
 {
     transmit_queue_entry tentry;
 
@@ -1213,7 +1213,7 @@ double queuesendto(std::string type, uint16_t channel, std::vector<PACKET_BYTE> 
     }
 }
 
-int32_t mysendto(std::string type, sendchannelstruc& channel, std::vector<PACKET_BYTE>& buf)
+int32_t mysendto(string type, sendchannelstruc& channel, std::vector<PACKET_BYTE>& buf)
 {
     int32_t iretn;
     double cmjd;
@@ -1238,7 +1238,7 @@ int32_t mysendto(std::string type, sendchannelstruc& channel, std::vector<PACKET
     return iretn;
 }
 
-int32_t myrecvfrom(std::string type, socket_channel channel, std::vector<PACKET_BYTE>& buf, uint32_t length)
+int32_t myrecvfrom(string type, socket_channel channel, std::vector<PACKET_BYTE>& buf, uint32_t length)
 {
     int32_t nbytes;
 
@@ -1255,7 +1255,7 @@ int32_t myrecvfrom(std::string type, socket_channel channel, std::vector<PACKET_
     return nbytes;
 }
 
-void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
+void debug_packet(std::vector<PACKET_BYTE> buf, string type)
 {
     if (debug_flag)
     {
@@ -1264,7 +1264,7 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
         {
         case PACKET_METADATA:
             {
-                std::string file_name(&buf[PACKET_METASHORT_OFFSET_FILE_NAME], &buf[PACKET_METASHORT_OFFSET_FILE_NAME+TRANSFER_MAX_FILENAME]);
+                string file_name(&buf[PACKET_METASHORT_OFFSET_FILE_NAME], &buf[PACKET_METASHORT_OFFSET_FILE_NAME+TRANSFER_MAX_FILENAME]);
                 printf("[METADATA] %u %u %s ", buf[PACKET_METASHORT_OFFSET_NODE_ID], buf[PACKET_METASHORT_OFFSET_TX_ID], file_name.c_str());
                 break;
             }
@@ -1542,12 +1542,12 @@ int32_t request_ls(string &request, string &response, Agent *agent)
     //get the directory name
 //    char directoryname[COSMOS_MAX_NAME+1];
 //    memmove(directoryname, request.substr(3), COSMOS_MAX_NAME);
-    std::string directoryname = request.substr(3);
+    string directoryname = request.substr(3);
 
     DIR* dir;
     struct dirent* ent;
 
-    std::string all_file_names;
+    string all_file_names;
 
     if((dir = opendir(directoryname.c_str())) != NULL)
     {
@@ -1829,9 +1829,9 @@ int32_t request_remove_file(string &request, string &response, Agent *agent)
 
 //	sscanf(request+10, "%40s %40s %40s %hu", node_name, agent_name, file_name, &channel);
 
-//	std::string node = node_name;
-//	std::string agent = agent_name;
-//	std::string file = file_name;
+//	string node = node_name;
+//	string agent = agent_name;
+//	string file = file_name;
 //	if (outgoing_tx_add(node, node_name, agent, file) < 0)
 //	{
 //		response = ("Could not queue %s %s %s %u", node_name, agent_name, file_name, channel);
@@ -1886,7 +1886,7 @@ int32_t outgoing_tx_add(tx_progress tx_out)
     return 0;
 }
 
-int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name)
+int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
 {
     // BEGIN GATHERING THE METADATA
     tx_progress tx_out;
@@ -1936,7 +1936,7 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
         std::ifstream filename;
 
         // set the file path
-        std::string 	filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
+        string 	filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
 
         //get the file size
         tx_out.file_size = get_file_size(filepath);
@@ -1994,7 +1994,7 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
     }
 
     // Remove the META file
-    std::string meta_filepath = tx_out.temppath + ".meta";
+    string meta_filepath = tx_out.temppath + ".meta";
     remove(meta_filepath.c_str());
 
     if (debug_flag)
@@ -2021,7 +2021,7 @@ int32_t incoming_tx_add(tx_progress tx_in)
     {
         tx_in.filepath = "";
     }
-    std::string tx_name = "in_"+std::to_string(tx_in.tx_id);
+    string tx_name = "in_"+std::to_string(tx_in.tx_id);
     tx_in.temppath = data_base_path(tx_in.node_name, "temp", "file", tx_name);
     tx_in.savetime = 0.;
     tx_in.fp = nullptr;
@@ -2038,7 +2038,7 @@ int32_t incoming_tx_add(tx_progress tx_in)
     return 0;
 }
 
-int32_t incoming_tx_add(std::string node_name, PACKET_TX_ID_TYPE tx_id)
+int32_t incoming_tx_add(string node_name, PACKET_TX_ID_TYPE tx_id)
 {
     tx_progress tx_in;
 
@@ -2078,7 +2078,7 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
         txq[node].incoming.progress[meta.tx_id].file_name = meta.file_name;
         txq[node].incoming.progress[meta.tx_id].file_size = meta.file_size;
         txq[node].incoming.progress[meta.tx_id].filepath = data_base_path(txq[node].incoming.progress[meta.tx_id].node_name, "incoming", txq[node].incoming.progress[meta.tx_id].agent_name, txq[node].incoming.progress[meta.tx_id].file_name);
-        std::string tx_name = "in_"+std::to_string(txq[node].incoming.progress[meta.tx_id].tx_id);
+        string tx_name = "in_"+std::to_string(txq[node].incoming.progress[meta.tx_id].tx_id);
         txq[node].incoming.progress[meta.tx_id].temppath = data_base_path(txq[node].incoming.progress[meta.tx_id].node_name, "temp", "file", tx_name);
 
         // Derivative META information
@@ -2125,7 +2125,7 @@ int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
         tx_in.fp = nullptr;
     }
 
-    std::string filepath;
+    string filepath;
     //Remove the DATA file
     filepath = tx_in.temppath + ".file";
     remove(filepath.c_str());
@@ -2201,7 +2201,7 @@ PACKET_TX_ID_TYPE check_tx_id(std::vector<tx_progress> tx_entry, PACKET_TX_ID_TY
     }
 }
 
-int32_t check_node_id_1(std::string node_name)
+int32_t check_node_id_1(string node_name)
 {
     int32_t id = -1;
     for (uint16_t i=0; i<txq.size(); ++i)
@@ -2238,7 +2238,7 @@ int32_t lookup_remote_node_id(PACKET_NODE_ID_TYPE node_id)
     return id;
 }
 
-int32_t set_remote_node_id(PACKET_NODE_ID_TYPE node_id, std::string node_name)
+int32_t set_remote_node_id(PACKET_NODE_ID_TYPE node_id, string node_name)
 {
     int32_t id = -1;
     for (uint16_t i=0; i<txq.size(); ++i)
@@ -2280,7 +2280,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
                         fclose(txq[node].incoming.progress[tx_id].fp);
                         txq[node].incoming.progress[tx_id].fp = nullptr;
                     }
-                    std::string final_filepath = tx_in.temppath + ".file";
+                    string final_filepath = tx_in.temppath + ".file";
                     rename(final_filepath.c_str(), tx_in.filepath.c_str());
                     txq[node].incoming.progress[tx_id].complete = true;
                 }
@@ -2305,7 +2305,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
 int32_t request_debug(string &request, string &response, Agent *agent)
 {
 
-    std::string requestString = std::string(request);
+    string requestString = string(request);
     StringParser sp(requestString, ' ');
 
     debug_flag = sp.getFieldNumberAsDouble(2); // should be getFieldNumberAsBoolean

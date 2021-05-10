@@ -4,8 +4,8 @@
 
 int main(int argc, char *argv[])
 {
-    vector<tlestruc>lines;
-    locstruc loc;
+    vector<Convert::tlestruc>lines;
+    Convert::locstruc loc;
 
     loc_clear(loc);
     string fname = argv[1];
@@ -15,10 +15,10 @@ int main(int argc, char *argv[])
         lines2eci(lines[0].utc, lines, loc.pos.eci);
     }
 
-    tlestruc tle2;
-    locstruc loc2;
-    kepstruc kep;
-    eci2kep(loc.pos.eci, kep);
+    Convert::tlestruc tle2;
+    Convert::locstruc loc2;
+    Convert::kepstruc kep;
+    Convert::eci2kep(loc.pos.eci, kep);
     kep2eci(kep, loc2.pos.eci);
 
     eci2tle(loc.pos.eci.utc, loc.pos.eci, tle2);

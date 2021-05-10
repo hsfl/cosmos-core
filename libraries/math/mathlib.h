@@ -356,10 +356,10 @@ double fixangle(double angle);
 double actan(double y, double x);
 double fixprecision(double number, double precision);
 uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb=true);
-uint16_t calc_crc16ccitt_lsb(vector<uint8_t> &buf);
-uint16_t calc_crc16ccitt_lsb(uint8_t *buf, uint16_t size);
-uint16_t calc_crc16ccitt_msb(vector<uint8_t> &buf);
-uint16_t calc_crc16ccitt_msb(uint8_t *buf, uint16_t size);
+uint16_t calc_crc16ccitt_lsb(vector<uint8_t> &buf, uint16_t skip=0);
+uint16_t calc_crc16ccitt_lsb(uint8_t *buf, uint16_t size, uint16_t skip=0);
+uint16_t calc_crc16ccitt_msb(vector<uint8_t> &buf, uint16_t skip=0);
+uint16_t calc_crc16ccitt_msb(uint8_t *buf, uint16_t size, uint16_t skip=0);
 
 class LsFit
 {

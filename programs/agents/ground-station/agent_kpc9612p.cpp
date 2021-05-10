@@ -83,7 +83,7 @@ int32_t request_transmit_port(string &req, string &response, Agent *);
 int main(int argc, char *argv[])
 {
 
-    std::string tunnel_ip;
+    string tunnel_ip;
     std::vector<uint8_t> buffer;
     int32_t iretn;
 
@@ -403,7 +403,7 @@ void tcv_read_loop()
             {
                 printf("Beacon: [%d,%u,%" PRIu64 "] %f\n", iretn, rxr_handle.frame.size, buffer.size(), 86400.*(currentmjd(0.)-lastbeacon));
                 lastbeacon = currentmjd(0.);
-                //				std::string str(buffer.begin(), buffer.end());
+                //				string str(buffer.begin(), buffer.end());
                 //				std::cout << "\t" << str << std::endl;
             }
         } // End of mutex for tun FIFO

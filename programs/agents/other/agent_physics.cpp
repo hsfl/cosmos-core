@@ -40,10 +40,10 @@
 
 char *output;
 
-gj_handle gjh;
+Physics::gj_handle gjh;
 Agent *agent;
-std::string reqjstring;
-std::string mainjstring;
+string reqjstring;
+string mainjstring;
 double logperiod=30, newlogperiod=30;
 
 char logstring[AGENTMAXBUFFER-20];
@@ -52,68 +52,68 @@ char node[200]="";
 
 int main(int argc, char *argv[])
 {
-	uint32_t order;
-	double dt, mjdnow, mjdaccel, lmjd, cmjd;
-	int rflag, iretn, mode;
-	FILE *fdes;
-	char fname[200];
-	char *ibuf;
-	struct stat fstat;
-	tlestruc tline;
+    uint32_t order;
+    double dt, mjdnow, mjdaccel, lmjd, cmjd;
+    int rflag, iretn, mode;
+    FILE *fdes;
+    char fname[200];
+    char *ibuf;
+    struct stat fstat;
+    Convert::tlestruc tline;
 
-	dt = .1;
-	mjdaccel = 1.;
-	mode = 0;
-	switch (argc)
-	{
-	case 5:
-		mjdaccel = atof(argv[4]);
-	case 4:
-		dt = atof(argv[3]);
-	case 3:
-		mode = atol(argv[2]);
-	case 2:
-		strcpy(node,argv[1]);
-		break;
-	default:
-		printf("Usage: agent_physics node [attitude_mode [dt [mjdaccel]]]\n");
-		exit(-1);
-	}
+    dt = .1;
+    mjdaccel = 1.;
+    mode = 0;
+    switch (argc)
+    {
+    case 5:
+        mjdaccel = atof(argv[4]);
+    case 4:
+        dt = atof(argv[3]);
+    case 3:
+        mode = atol(argv[2]);
+    case 2:
+        strcpy(node,argv[1]);
+        break;
+    default:
+        printf("Usage: agent_physics node [attitude_mode [dt [mjdaccel]]]\n");
+        exit(-1);
+    }
 
-	rflag = 1;
+    rflag = 1;
 
-	// Initialization stuff
+    // Initialization stuff
 
     if (!(agent = new Agent(node, "physics", 2.)))
-	{
-		printf("Failed to setup server: %d\n",AGENT_ERROR_JSON_CREATE);
-		exit (AGENT_ERROR_JSON_CREATE);
-	}
+    {
+        printf("Failed to setup server: %d\n",AGENT_ERROR_JSON_CREATE);
+        exit (AGENT_ERROR_JSON_CREATE);
+    }
 
-	order = 8;
+    order = 8;
 
-	sprintf(fname,"%s/state.ini",get_nodedir(node).c_str());
+    sprintf(fname,"%s/state.ini",get_nodedir(node).c_str());
 
-	if ((iretn=stat(fname,&fstat)) == 0 && (fdes=fopen(fname,"r")) != NULL)
-	{
-		ibuf = (char *)calloc(1,fstat.st_size+1);
-		fgets(ibuf,fstat.st_size,fdes);
+    if ((iretn=stat(fname,&fstat)) == 0 && (fdes=fopen(fname,"r")) != NULL)
+    {
+        ibuf = (char *)calloc(1,fstat.st_size+1);
+        fgets(ibuf,fstat.st_size,fdes);
         json_parse(ibuf, agent->cinfo);
-		free(ibuf);
+        free(ibuf);
         mjdnow = agent->cinfo->node.loc.pos.eci.utc;
-	}
-	else
-	{
-		sprintf(fname,"%s/tle.ini",get_nodedir(node).c_str());
+    }
+    else
+    {
+        sprintf(fname,"%s/tle.ini",get_nodedir(node).c_str());
         if ((iretn=stat(fname,&fstat)) == 0 && (iretn=load_lines(fname, agent->cinfo->tle)) > 0)
-		{
+        {
             tline = get_line(0, agent->cinfo->tle);
-			mjdnow = currentmjd(0.);
+            mjdnow = currentmjd(0.);
             lines2eci(mjdnow, agent->cinfo->tle, agent->cinfo->node.loc.pos.eci);
-		}
-		else
-		{
-			mjdnow = 55593.416667827405;
+        }
+        else
+        {
+            mjdnow = 55593.416667827405;
             agent->cinfo->node.loc.pos.eci.s = agent->cinfo->node.loc.pos.eci.v = agent->cinfo->node.loc.pos.eci.a = rv_zero();
             agent->cinfo->node.loc.pos.eci.s.col[0] = -1354152.3069408732;
             agent->cinfo->node.loc.pos.eci.s.col[1] = 6794509.033329579;
@@ -124,65 +124,65 @@ int main(int argc, char *argv[])
             agent->cinfo->node.loc.pos.eci.a.col[0] = 1.625564;
             agent->cinfo->node.loc.pos.eci.a.col[1] = -8.155423;
             agent->cinfo->node.loc.pos.eci.a.col[2] = -0.000244;
-		}
-	}
+        }
+    }
 
     agent->cinfo->node.loc.utc = mjdnow;
     ++agent->cinfo->node.loc.pos.eci.pass;
-//    agent->cinfo->node.phys.moi[0] = 1.;
-//    agent->cinfo->node.phys.moi[1] = 3.;
-//    agent->cinfo->node.phys.moi[2] = 5.;
+    //    agent->cinfo->node.phys.moi[0] = 1.;
+    //    agent->cinfo->node.phys.moi[1] = 3.;
+    //    agent->cinfo->node.phys.moi[2] = 5.;
     agent->cinfo->node.phys.moi[0] = 1.;
     agent->cinfo->node.phys.moi[1] = 3.;
     agent->cinfo->node.phys.moi[2] = 5.;
     agent->cinfo->node.loc.att.icrf.v = rv_smult(.017453293,rv_unity());
     agent->cinfo->node.loc.att.icrf.s = q_eye();
     agent->cinfo->node.loc.att.icrf.a = rv_zero();
-    pos_eci(&agent->cinfo->node.loc);
+    Convert::pos_eci(&agent->cinfo->node.loc);
 
-/*
+    /*
     agent->cinfo->node.loc.att.lvlh.v = rv_zero();
     agent->cinfo->node.loc.att.lvlh.s = q_eye();
     agent->cinfo->node.loc.att.lvlh.a = rv_zero();
     ++agent->cinfo->node.loc.att.lvlh.pass;
-    att_lvlh(&agent->cinfo->node.loc);
+    Convert::att_lvlh(&agent->cinfo->node.loc);
     loc_update(&agent->cinfo->node.loc);
 */
 
-    hardware_init_eci(agent->cinfo, agent->cinfo->node.loc);
-    gauss_jackson_init_eci(gjh, order, mode, dt, mjdnow, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
-    simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
+    Physics::hardware_init_eci(agent->cinfo, agent->cinfo->node.loc);
+    Physics::gauss_jackson_init_eci(gjh, order, mode, dt, mjdnow, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
+    Physics::simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
     mjdnow = agent->cinfo->node.loc.utc;
 
     agent->cinfo->node.utcoffset = mjdnow - currentmjd(0);
-	lmjd = currentmjd(0);
-	mjdaccel -= 1.;
+    lmjd = currentmjd(0);
+    mjdaccel -= 1.;
 
-	do
-	{
-		mjdnow = currentmjd(0.);
-        gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, mjdnow + agent->cinfo->node.utcoffset);
-        simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
+    do
+    {
+        mjdnow = currentmjd(0.);
+        Physics::gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, mjdnow + agent->cinfo->node.utcoffset);
+        Physics::simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
 
-		/*
+        /*
         if (agent->cinfo->node.state == 1)
-		{
-			ipos.s.col[0] = -6605464.484;
-			ipos.s.col[1] = -2233537.982;
-			ipos.s.col[2] = 270957.434;
-			ipos.v.col[0] = -603.693;
-			ipos.v.col[1] = 877.7741;
-			ipos.v.col[2] = -7482.349;
+        {
+            ipos.s.col[0] = -6605464.484;
+            ipos.s.col[1] = -2233537.982;
+            ipos.s.col[2] = 270957.434;
+            ipos.v.col[0] = -603.693;
+            ipos.v.col[1] = 877.7741;
+            ipos.v.col[2] = -7482.349;
             orbit_init_eci(mode,mjdnow,1./dt,ipos,cinfo);
-		}
-		*/
+        }
+        */
         if (agent->cinfo->node.state == 2)
-			rflag = 0;
+            rflag = 0;
 
-		COSMOS_USLEEP(1);
-		cmjd = currentmjd(0);
+        COSMOS_USLEEP(1);
+        cmjd = currentmjd(0);
         agent->cinfo->node.utcoffset += mjdaccel * (cmjd-lmjd);
-		lmjd = cmjd;
+        lmjd = cmjd;
     } while (agent->running() && rflag);
 }
 

@@ -42,6 +42,8 @@
 
 #include "support/configCosmos.h"
 #include "support/stringlib.h"
+#include "support/timelib.h"
+#include "support/datalib.h"
 
 // for current process CPU utilization
 #if defined (COSMOS_LINUX_OS)
@@ -61,7 +63,6 @@
 #include <fstream>   // std::ifstream
 #include <algorithm> // std::unique
 
-using std::string;
 using std::ifstream;
 using std::cout;
 using std::endl;

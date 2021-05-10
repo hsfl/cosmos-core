@@ -1875,12 +1875,12 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
     case JSON_TYPE_GEOIDPOS:
     case JSON_TYPE_POS_SELG:
     case JSON_TYPE_POS_GEOD:
-        if ((iretn=json_out_geoidpos(jstring,*(geoidpos *)data)) != 0)
+        if ((iretn=json_out_geoidpos(jstring,*(Convert::geoidpos *)data)) != 0)
             return iretn;
         break;
     case JSON_TYPE_SPHERPOS:
     case JSON_TYPE_POS_GEOS:
-        if ((iretn=json_out_spherpos(jstring,*(spherpos *)data)) != 0)
+        if ((iretn=json_out_spherpos(jstring,*(Convert::spherpos *)data)) != 0)
             return iretn;
         break;
     case JSON_TYPE_CARTPOS:
@@ -1889,11 +1889,11 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
     case JSON_TYPE_POS_ECI:
     case JSON_TYPE_POS_SCI:
     case JSON_TYPE_POS_ICRF:
-        if ((iretn=json_out_cartpos(jstring,*(cartpos *)data)) != 0)
+        if ((iretn=json_out_cartpos(jstring,*(Convert::cartpos *)data)) != 0)
             return iretn;
         break;
     case JSON_TYPE_DCMATT:
-        if ((iretn=json_out_dcmatt(jstring,*(dcmatt *)data)) != 0)
+        if ((iretn=json_out_dcmatt(jstring,*(Convert::dcmatt *)data)) != 0)
             return iretn;
         break;
     case JSON_TYPE_QATT:
@@ -1902,7 +1902,7 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
     case JSON_TYPE_QATT_LVLH:
     case JSON_TYPE_QATT_ICRF:
     case JSON_TYPE_QATT_SELC:
-        if ((iretn=json_out_qatt(jstring,*(qatt *)data)) != 0)
+        if ((iretn=json_out_qatt(jstring,*(Convert::qatt *)data)) != 0)
             return iretn;
         break;
     case JSON_TYPE_HBEAT:
@@ -1910,18 +1910,18 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
             return iretn;
         break;
     case JSON_TYPE_LOC_POS:
-        if ((iretn=json_out_posstruc(jstring,*(posstruc *)data)) != 0)
+        if ((iretn=json_out_posstruc(jstring,*(Convert::posstruc *)data)) != 0)
             return iretn;
         break;
     case JSON_TYPE_LOC_ATT:
         {
-            if ((iretn=json_out_attstruc(jstring,*(attstruc *)data)) != 0)
+            if ((iretn=json_out_attstruc(jstring,*(Convert::attstruc *)data)) != 0)
                 return iretn;
             break;
         }
     case JSON_TYPE_LOCSTRUC:
         {
-            if ((iretn=json_out_locstruc(jstring,*(locstruc *)data)) != 0)
+            if ((iretn=json_out_locstruc(jstring,*(Convert::locstruc *)data)) != 0)
                 return iretn;
             break;
         }
@@ -2551,7 +2551,7 @@ int32_t json_out_cvector(string &jstring,cvector value)
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
-int32_t json_out_cartpos(string &jstring,cartpos value)
+int32_t json_out_cartpos(string &jstring, Convert::cartpos value)
 {
     int32_t iretn;
 
@@ -2600,7 +2600,7 @@ int32_t json_out_cartpos(string &jstring,cartpos value)
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
-int32_t json_out_geoidpos(string &jstring,geoidpos value)
+int32_t json_out_geoidpos(string &jstring, Convert::geoidpos value)
 {
     int32_t iretn;
 
@@ -2649,7 +2649,7 @@ int32_t json_out_geoidpos(string &jstring,geoidpos value)
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
-int32_t json_out_spherpos(string &jstring,spherpos value)
+int32_t json_out_spherpos(string &jstring, Convert::spherpos value)
 {
     int32_t iretn;
 
@@ -2749,7 +2749,7 @@ int32_t json_out_utcstart(string &jstring, double value)
  * \return  0 if successful, negative error otherwise
 */
 
-int32_t json_out_ecipos(string &jstring, cartpos value)
+int32_t json_out_ecipos(string &jstring, Convert::cartpos value)
 {
     int32_t iretn;
 
@@ -2774,7 +2774,7 @@ int32_t json_out_ecipos(string &jstring, cartpos value)
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
-int32_t json_out_posstruc(string &jstring,posstruc value)
+int32_t json_out_posstruc(string &jstring, Convert::posstruc value)
 {
     int32_t iretn;
 
@@ -2871,7 +2871,7 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
-int32_t json_out_attstruc(string &jstring,attstruc value)
+int32_t json_out_attstruc(string &jstring, Convert::attstruc value)
 {
     int32_t iretn;
 
@@ -2936,7 +2936,7 @@ int32_t json_out_attstruc(string &jstring,attstruc value)
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
-int32_t json_out_locstruc(string &jstring,locstruc value)
+int32_t json_out_locstruc(string &jstring, Convert::locstruc value)
 {
     int32_t iretn;
 
@@ -3061,7 +3061,7 @@ int32_t json_out_commandevent(string &jstring,eventstruc value)
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
-int32_t json_out_dcmatt(string &jstring,dcmatt value)
+int32_t json_out_dcmatt(string &jstring, Convert::dcmatt value)
 {
     int32_t iretn;
 
@@ -3102,7 +3102,7 @@ int32_t json_out_dcmatt(string &jstring,dcmatt value)
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
-int32_t json_out_qatt(string &jstring,qatt value)
+int32_t json_out_qatt(string &jstring, Convert::qatt value)
 {
     int32_t iretn;
 
@@ -4302,7 +4302,7 @@ rvector json_get_rvector(const jsonentry &entry, cosmosstruc *cinfo)
         case JSON_TYPE_SPHERPOS:
         case JSON_TYPE_POS_GEOS:
             {
-                spherpos tpos = (spherpos)(*(spherpos *)(dptr));
+                Convert::spherpos tpos = (Convert::spherpos)(*(Convert::spherpos *)(dptr));
                 value.col[0] = tpos.s.phi;
                 value.col[1] = tpos.s.lambda;
                 value.col[2] = tpos.s.r;
@@ -4312,7 +4312,7 @@ rvector json_get_rvector(const jsonentry &entry, cosmosstruc *cinfo)
         case JSON_TYPE_POS_GEOD:
         case JSON_TYPE_POS_SELG:
             {
-                geoidpos tpos = (geoidpos)(*(geoidpos *)(dptr));
+                Convert::geoidpos tpos = (Convert::geoidpos)(*(Convert::geoidpos *)(dptr));
                 value.col[0] = tpos.s.lat;
                 value.col[1] = tpos.s.lon;
                 value.col[2] = tpos.s.h;
@@ -4325,7 +4325,7 @@ rvector json_get_rvector(const jsonentry &entry, cosmosstruc *cinfo)
         case JSON_TYPE_POS_SCI:
         case JSON_TYPE_POS_ICRF:
             {
-                cartpos tpos = (cartpos)(*(cartpos *)(dptr));
+                Convert::cartpos tpos = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
                 value = tpos.s;
             }
             break;
@@ -4680,7 +4680,7 @@ string json_get_string(const jsonentry &entry, cosmosstruc *cinfo)
         tstring = (char *)(json_ptr_of_entry(entry, cinfo));
         break;
     case JSON_TYPE_POS_ECI:
-        cartpos tval = (*(cartpos *)(json_ptr_of_entry(entry, cinfo)));
+        Convert::cartpos tval = (*(Convert::cartpos *)(json_ptr_of_entry(entry, cinfo)));
         sprintf(tbuf, "[%.17g %.17g %.17g] [%.17g %.17g %.17g] [%.17g %.17g %.17g]",
                 tval.s.col[0], tval.s.col[1], tval.s.col[2],
                 tval.v.col[0], tval.v.col[1], tval.v.col[2],
@@ -4694,19 +4694,19 @@ string json_get_string(const jsonentry &entry, cosmosstruc *cinfo)
 
 //! Return ::posstruc from entry.
 /*! If the named value can in any way be interepreted as a ::posstruc,
- * return it as a posstruc.
+ * return it as a Convert::posstruc.
  \param entry Pointer to a valid ::jsonentry..
 
     \param cinfo Reference to ::cosmosstruc to use.
 
  \return Value cast as a ::posstruc, or 0.
 */
-posstruc json_get_posstruc(const jsonentry &entry, cosmosstruc *cinfo)
+Convert::posstruc json_get_posstruc(const jsonentry &entry, cosmosstruc *cinfo)
 {
     uint8_t *dptr=nullptr;
-    locstruc value;
+    Convert::locstruc value;
 
-    memset((void *) &value, 0, COSMOS_SIZEOF(locstruc));
+    memset((void *) &value, 0, COSMOS_SIZEOF(Convert::locstruc));
 
     dptr = json_ptr_of_entry(entry, cinfo);
     if (dptr == nullptr)
@@ -4719,7 +4719,7 @@ posstruc json_get_posstruc(const jsonentry &entry, cosmosstruc *cinfo)
         {
         case JSON_TYPE_POSSTRUC:
             {
-                value.pos = (posstruc)(*(posstruc *)(dptr));
+                value.pos = (Convert::posstruc)(*(Convert::posstruc *)(dptr));
             }
             break;
         case JSON_TYPE_RVECTOR:
@@ -4728,63 +4728,63 @@ posstruc json_get_posstruc(const jsonentry &entry, cosmosstruc *cinfo)
                 value.pos.eci.v = rv_zero();
                 value.pos.eci.a = rv_zero();
                 ++value.pos.eci.pass;
-                pos_eci(&value);
+                Convert::pos_eci(&value);
             }
             break;
         case JSON_TYPE_CARTPOS:
             {
-                value.pos.eci = (cartpos)(*(cartpos *)(dptr));
+                value.pos.eci = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
                 ++value.pos.eci.pass;
-                pos_eci(&value);
+                Convert::pos_eci(&value);
             }
             break;
         case JSON_TYPE_POS_GEOC:
             {
-                value.pos.geoc = (cartpos)(*(cartpos *)(dptr));
+                value.pos.geoc = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
                 ++value.pos.geoc.pass;
-                pos_geoc(&value);
+                Convert::pos_geoc(&value);
             }
             break;
         case JSON_TYPE_POS_GEOD:
             {
-                value.pos.geod = (geoidpos)(*(geoidpos *)(dptr));
+                value.pos.geod = (Convert::geoidpos)(*(Convert::geoidpos *)(dptr));
                 ++value.pos.geod.pass;
-                pos_geod(&value);
+                Convert::pos_geod(&value);
             }
             break;
         case JSON_TYPE_POS_SELC:
             {
-                value.pos.selc = (cartpos)(*(cartpos *)(dptr));
+                value.pos.selc = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
                 ++value.pos.selc.pass;
-                pos_selc(&value);
+                Convert::pos_selc(&value);
             }
             break;
         case JSON_TYPE_POS_SELG:
             {
-                value.pos.selg = (geoidpos)(*(geoidpos *)(dptr));
+                value.pos.selg = (Convert::geoidpos)(*(Convert::geoidpos *)(dptr));
                 ++value.pos.selg.pass;
-                pos_selg(&value);
+                Convert::pos_selg(&value);
             }
             break;
         case JSON_TYPE_POS_ECI:
             {
-                value.pos.eci = (cartpos)(*(cartpos *)(dptr));
+                value.pos.eci = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
                 ++value.pos.eci.pass;
-                pos_eci(&value);
+                Convert::pos_eci(&value);
             }
             break;
         case JSON_TYPE_POS_SCI:
             {
-                value.pos.sci = (cartpos)(*(cartpos *)(dptr));
+                value.pos.sci = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
                 ++value.pos.sci.pass;
-                pos_sci(&value);
+                Convert::pos_sci(&value);
             }
             break;
         case JSON_TYPE_POS_ICRF:
             {
-                value.pos.icrf = (cartpos)(*(cartpos *)(dptr));
+                value.pos.icrf = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
                 ++value.pos.icrf.pass;
-                pos_icrf(&value);
+                Convert::pos_icrf(&value);
             }
             break;
         }
@@ -6079,11 +6079,11 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
     int32_t iretn=0;
     string input;
     double val;
-    cartpos *rp;
-    geoidpos *gp;
-    spherpos *sp;
-    dcmatt *ra;
-    qatt *qa;
+    Convert::cartpos *rp;
+    Convert::geoidpos *gp;
+    Convert::spherpos *sp;
+    Convert::dcmatt *ra;
+    Convert::qatt *qa;
     string empty;
 
     //Skip whitespace before value
@@ -6360,11 +6360,11 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if ((iretn = json_extract_name(ptr,input)) < 0)
             return iretn;
 
-        gp = (geoidpos *)(data+(ptrdiff_t)offsetof(geoidpos,utc));
+        gp = (Convert::geoidpos *)(data+(ptrdiff_t)offsetof(Convert::geoidpos,utc));
         gp->utc = 0.;
         if (input == "utc")
         {
-            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cartpos,utc), cinfo)) < 0)
+            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Convert::cartpos,utc), cinfo)) < 0)
                 return iretn;
             if ((iretn = json_skip_character(ptr,',')) < 0)
                 return iretn;
@@ -6376,19 +6376,19 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             gp->utc = currentmjd(cinfo->node.utcoffset);
         }
 
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR, data+(ptrdiff_t)offsetof(geoidpos,s), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR, data+(ptrdiff_t)offsetof(Convert::geoidpos,s), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
         if ((iretn = json_extract_name(ptr, empty)) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR, data+(ptrdiff_t)offsetof(geoidpos,v), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR, data+(ptrdiff_t)offsetof(Convert::geoidpos,v), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
         if ((iretn = json_extract_name(ptr, empty)) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR, data+(ptrdiff_t)offsetof(geoidpos,a), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR, data+(ptrdiff_t)offsetof(Convert::geoidpos,a), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return iretn;
@@ -6396,10 +6396,10 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         switch (type)
         {
         case JSON_TYPE_POS_SELG:
-            pos_selg(&cinfo->node.loc);
+            Convert::pos_selg(&cinfo->node.loc);
             break;
         case JSON_TYPE_POS_GEOD:
-            pos_geod(&cinfo->node.loc);
+            Convert::pos_geod(&cinfo->node.loc);
             break;
         }
         break;
@@ -6410,11 +6410,11 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if ((iretn = json_extract_name(ptr,input)) < 0)
             return iretn;
 
-        sp = (spherpos *)(data+(ptrdiff_t)offsetof(spherpos,utc));
+        sp = (Convert::spherpos *)(data+(ptrdiff_t)offsetof(Convert::spherpos,utc));
         sp->utc = 0.;
         if (input == "utc")
         {
-            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cartpos,utc), cinfo)) < 0)
+            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Convert::cartpos,utc), cinfo)) < 0)
                 return iretn;
             if ((iretn = json_skip_character(ptr,',')) < 0)
                 return iretn;
@@ -6426,24 +6426,24 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             sp->utc = currentmjd(cinfo->node.utcoffset);
         }
 
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR, data+(ptrdiff_t)offsetof(spherpos,s), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR, data+(ptrdiff_t)offsetof(Convert::spherpos,s), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
         if ((iretn = json_extract_name(ptr, empty)) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR, data+(ptrdiff_t)offsetof(spherpos,v), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR, data+(ptrdiff_t)offsetof(Convert::spherpos,v), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
         if ((iretn = json_extract_name(ptr, empty)) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR, data+(ptrdiff_t)offsetof(spherpos,a), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR, data+(ptrdiff_t)offsetof(Convert::spherpos,a), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return iretn;
         sp->pass++;
-        pos_geos(&cinfo->node.loc);
+        Convert::pos_geos(&cinfo->node.loc);
         break;
     case JSON_TYPE_CARTPOS:
     case JSON_TYPE_POS_GEOC:
@@ -6456,11 +6456,11 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if ((iretn = json_extract_name(ptr,input)) < 0)
             return iretn;
 
-        rp = (cartpos *)(data+(ptrdiff_t)offsetof(cartpos,utc));
+        rp = (Convert::cartpos *)(data+(ptrdiff_t)offsetof(Convert::cartpos,utc));
         rp->utc = 0.;
         if (input == "utc")
         {
-            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cartpos,utc), cinfo)) < 0)
+            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Convert::cartpos,utc), cinfo)) < 0)
                 return iretn;
             if ((iretn = json_skip_character(ptr,',')) < 0)
                 return iretn;
@@ -6472,19 +6472,19 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             rp->utc = currentmjd(cinfo->node.utcoffset);
         }
 
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(cartpos,s), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(Convert::cartpos,s), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
         if ((iretn = json_extract_name(ptr, empty)) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(cartpos,v), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(Convert::cartpos,v), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
         if ((iretn = json_extract_name(ptr, empty)) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(cartpos,a), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(Convert::cartpos,a), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return iretn;
@@ -6492,19 +6492,19 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         switch (type)
         {
         case JSON_TYPE_POS_SELC:
-            pos_selc(&cinfo->node.loc);
+            Convert::pos_selc(&cinfo->node.loc);
             break;
         case JSON_TYPE_POS_GEOC:
-            pos_geoc(&cinfo->node.loc);
+            Convert::pos_geoc(&cinfo->node.loc);
             break;
         case JSON_TYPE_POS_ECI:
-            pos_eci(&cinfo->node.loc);
+            Convert::pos_eci(&cinfo->node.loc);
             break;
         case JSON_TYPE_POS_SCI:
-            pos_sci(&cinfo->node.loc);
+            Convert::pos_sci(&cinfo->node.loc);
             break;
         case JSON_TYPE_POS_ICRF:
-            pos_icrf(&cinfo->node.loc);
+            Convert::pos_icrf(&cinfo->node.loc);
             break;
         }
         break;
@@ -6513,23 +6513,23 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_extract_name(ptr, empty)) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RMATRIX, data+(ptrdiff_t)offsetof(dcmatt,s), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RMATRIX, data+(ptrdiff_t)offsetof(Convert::dcmatt,s), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
         if ((iretn = json_extract_name(ptr, empty)) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(dcmatt,v), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(Convert::dcmatt,v), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
         if ((iretn = json_extract_name(ptr, empty)) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(dcmatt,a), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(Convert::dcmatt,a), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return iretn;
-        ra = (dcmatt *)(data+(ptrdiff_t)offsetof(dcmatt,utc));
+        ra = (Convert::dcmatt *)(data+(ptrdiff_t)offsetof(Convert::dcmatt,utc));
         ra->utc = *(double *)json_ptrto((char *)"node_utc", cinfo);
         break;
     case JSON_TYPE_QATT:
@@ -6543,11 +6543,11 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if ((iretn = json_extract_name(ptr,input)) < 0)
             return iretn;
 
-        qa = (qatt *)(data+(ptrdiff_t)offsetof(qatt,utc));
+        qa = (Convert::qatt *)(data+(ptrdiff_t)offsetof(Convert::qatt,utc));
         qa->utc = 0.;
         if (input == "utc")
         {
-            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(qatt,utc), cinfo)) < 0)
+            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Convert::qatt,utc), cinfo)) < 0)
                 return iretn;
             if ((iretn = json_skip_character(ptr,',')) < 0)
                 return iretn;
@@ -6559,19 +6559,19 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             qa->utc = currentmjd(cinfo->node.utcoffset);
         }
 
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_QUATERNION, data+(ptrdiff_t)offsetof(qatt,s), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_QUATERNION, data+(ptrdiff_t)offsetof(Convert::qatt,s), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
         if ((iretn = json_extract_name(ptr, empty)) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(qatt,v), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(Convert::qatt,v), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
         if ((iretn = json_extract_name(ptr, empty)) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(qatt,a), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(Convert::qatt,a), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return iretn;
@@ -6582,10 +6582,10 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             att_geoc(&cinfo->node.loc);
             break;
         case JSON_TYPE_QATT_ICRF:
-            att_icrf(&cinfo->node.loc);
+            Convert::att_icrf(&cinfo->node.loc);
             break;
         case JSON_TYPE_QATT_LVLH:
-            att_lvlh(&cinfo->node.loc);
+            Convert::att_lvlh(&cinfo->node.loc);
             break;
         case JSON_TYPE_QATT_SELC:
             att_selc(&cinfo->node.loc);
@@ -6688,7 +6688,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(posstruc,utc), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Convert::posstruc,utc), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -6698,7 +6698,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,icrf), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(Convert::posstruc,icrf), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -6708,7 +6708,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,eci), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(Convert::posstruc,eci), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -6718,7 +6718,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,sci), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(Convert::posstruc,sci), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -6728,7 +6728,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,geoc), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(Convert::posstruc,geoc), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -6738,7 +6738,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,selc), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(Convert::posstruc,selc), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -6748,7 +6748,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOD, data+(ptrdiff_t)offsetof(posstruc,geod), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOD, data+(ptrdiff_t)offsetof(Convert::posstruc,geod), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -6758,7 +6758,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOD, data+(ptrdiff_t)offsetof(posstruc,selg), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOD, data+(ptrdiff_t)offsetof(Convert::posstruc,selg), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -6768,7 +6768,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOS, data+(ptrdiff_t)offsetof(posstruc,geos), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOS, data+(ptrdiff_t)offsetof(Convert::posstruc,geos), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -6778,7 +6778,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(posstruc,bearth), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(Convert::posstruc,bearth), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return iretn;
@@ -6792,7 +6792,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(locstruc,utc), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Convert::locstruc,utc), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -6802,7 +6802,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POSSTRUC, data+(ptrdiff_t)offsetof(locstruc,pos), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POSSTRUC, data+(ptrdiff_t)offsetof(Convert::locstruc,pos), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -6812,7 +6812,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_ATTSTRUC, data+(ptrdiff_t)offsetof(locstruc,att), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_ATTSTRUC, data+(ptrdiff_t)offsetof(Convert::locstruc,att), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return iretn;
@@ -6969,8 +6969,8 @@ int32_t json_load_node(string node, jsonnode &json)
         if (!stat(fname.c_str(),&fstat) && fstat.st_size)
         {
             int32_t iretn;
-            cartpos eci;
-            vector <tlestruc> tles;
+            Convert::cartpos eci;
+            vector <Convert::tlestruc> tles;
             iretn = load_lines(fname, tles);
             if (iretn > 0)
             {
@@ -8029,23 +8029,23 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 
     if (cinfo->node.type == NODE_TYPE_SUN)
     {
-        jplpos(JPL_EARTH, JPL_SUN, currentmjd(cinfo->node.utcoffset), &cinfo->node.loc.pos.eci);
+        Convert::jplpos(JPL_EARTH, JPL_SUN, currentmjd(cinfo->node.utcoffset), &cinfo->node.loc.pos.eci);
         cinfo->node.loc.pos.eci.pass++;
-        pos_eci(&cinfo->node.loc);
+        Convert::pos_eci(&cinfo->node.loc);
     }
 
     if (cinfo->node.type == NODE_TYPE_MOON)
     {
-        jplpos(JPL_EARTH, JPL_MOON, currentmjd(cinfo->node.utcoffset), &cinfo->node.loc.pos.eci);
+        Convert::jplpos(JPL_EARTH, JPL_MOON, currentmjd(cinfo->node.utcoffset), &cinfo->node.loc.pos.eci);
         cinfo->node.loc.pos.eci.pass++;
-        pos_eci(&cinfo->node.loc);
+        Convert::pos_eci(&cinfo->node.loc);
     }
 
     if (cinfo->node.type == NODE_TYPE_MARS)
     {
-        jplpos(JPL_EARTH, JPL_MARS, currentmjd(cinfo->node.utcoffset), &cinfo->node.loc.pos.eci);
+        Convert::jplpos(JPL_EARTH, JPL_MARS, currentmjd(cinfo->node.utcoffset), &cinfo->node.loc.pos.eci);
         cinfo->node.loc.pos.eci.pass++;
-        pos_eci(&cinfo->node.loc);
+        Convert::pos_eci(&cinfo->node.loc);
     }
 
     if (dump_flag && !nodepath.empty()) { json_dump_node(cinfo); }
@@ -8646,7 +8646,7 @@ int32_t json_togglecompentry(uint16_t cidx, cosmosstruc *cinfo, bool state)
  */
 uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     uint16_t didx = devicein->didx;
 
     switch (static_cast <DeviceType>(devicein->type))
@@ -12375,10 +12375,10 @@ int32_t update_target(cosmosstruc *cinfo)
     {
         iretn = update_target(cinfo->target[i].loc, cinfo->target[i]);
         //        loc_update(&cinfo->target[i].loc);
-        //        geoc2topo(cinfo->target[i].loc.pos.geod.s,cinfo->node.loc.pos.geoc.s,topo);
-        //        topo2azel(topo, cinfo->target[i].azto, cinfo->target[i].elto);
-        //        geoc2topo(cinfo->node.loc.pos.geod.s,cinfo->target[i].loc.pos.geoc.s,topo);
-        //        topo2azel(topo, cinfo->target[i].azfrom, cinfo->target[i].elfrom);
+        //        Convert::geoc2topo(cinfo->target[i].loc.pos.geod.s,cinfo->node.loc.pos.geoc.s,topo);
+        //        Convert::topo2azel(topo, cinfo->target[i].azto, cinfo->target[i].elto);
+        //        Convert::geoc2topo(cinfo->node.loc.pos.geod.s,cinfo->target[i].loc.pos.geoc.s,topo);
+        //        Convert::topo2azel(topo, cinfo->target[i].azfrom, cinfo->target[i].elfrom);
         //        ds = rv_sub(cinfo->target[i].loc.pos.geoc.s,cinfo->node.loc.pos.geoc.s);
         //        cinfo->target[i].range = length_rv(ds);
         //        dv = rv_sub(cinfo->target[i].loc.pos.geoc.v,cinfo->node.loc.pos.geoc.v);
@@ -12387,15 +12387,15 @@ int32_t update_target(cosmosstruc *cinfo)
     return iretn;
 }
 
-int32_t update_target(locstruc source, targetstruc &target)
+int32_t update_target(Convert::locstruc source, targetstruc &target)
 {
     rvector topo, dv, ds;
 
     loc_update(&target.loc);
-    geoc2topo(target.loc.pos.geod.s, source.pos.geoc.s,topo);
-    topo2azel(topo, target.azto, target.elto);
-    geoc2topo(source.pos.geod.s, target.loc.pos.geoc.s, topo);
-    topo2azel(topo, target.azfrom, target.elfrom);
+    Convert::geoc2topo(target.loc.pos.geod.s, source.pos.geoc.s,topo);
+    Convert::topo2azel(topo, target.azto, target.elto);
+    Convert::geoc2topo(source.pos.geod.s, target.loc.pos.geoc.s, topo);
+    Convert::topo2azel(topo, target.azfrom, target.elfrom);
     // Calculate direct vector from source to target
     ds = rv_sub(target.loc.pos.geoc.s, source.pos.geoc.s);
     target.range = length_rv(ds);
@@ -12535,7 +12535,7 @@ string device_type_name(uint32_t type)
     return result;
 }
 
-std::ostream& operator<<(std::ostream& out, const beatstruc& b)	{
+::std::ostream& operator<<(::std::ostream& out, const beatstruc& b)	{
     return out<<std::fixed<<std::setprecision(9)
              <<"\tutc\t\t"<<b.utc<<endl
             <<"\tnode name \t<"<<string(b.node)<<">"<<endl
@@ -12555,7 +12555,7 @@ std::ostream& operator<<(std::ostream& out, const beatstruc& b)	{
 //! @}
 
 
-int32_t device_index(cosmosstruc *cinfo, std::string name)
+int32_t device_index(cosmosstruc *cinfo, string name)
 {
     int32_t pidx = json_findpiece(cinfo, name);
     if(pidx < 0 ) {
@@ -12604,7 +12604,7 @@ int32_t json_set_number(double val, jsonentry *entry, cosmosstruc *cinfo)
     return iretn;
 }
 
-bool device_has_property(uint16_t deviceType, std::string prop)
+bool device_has_property(uint16_t deviceType, string prop)
 {
     devicestruc e;
     json11::Json json = e.to_json();
@@ -12849,4 +12849,91 @@ string json_memory_usage()
     output += to_label("uordblks", m.uordblks) + "\n";
     output += to_label("fordblks", m.fordblks);
     return output;
+}
+
+//! Get vector of Node structures.
+/*! Scan the COSMOS root directory and return a ::cosmosstruc for each
+ * Node that is found.
+ * \param node Vector of ::cosmosstruc for each Node.
+ * \return Zero or negative error.
+ */
+int32_t json_get_nodes(vector<cosmosstruc> &node)
+{
+    DIR *jdp;
+    string dtemp;
+    string rootd;
+    struct dirent *td;
+    cosmosstruc *tnode;
+
+    int32_t iretn = get_cosmosnodes(rootd);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    if ((tnode=json_init()) == nullptr)
+    {
+        return (NODE_ERROR_NODE);
+    }
+
+    dtemp = rootd;
+    if ((jdp=opendir(dtemp.c_str())) != nullptr)
+    {
+        while ((td=readdir(jdp)) != nullptr)
+        {
+            if (td->d_name[0] != '.')
+            {
+                string nodepath = td->d_name;
+                if (!json_setup_node(nodepath, tnode))
+                {
+                    node.push_back(*tnode);
+                }
+            }
+        }
+        closedir(jdp);
+    }
+    return 0;
+}
+
+//! Add to KML path
+/*! Write a KML file to keep track of the path the node is following. Create the file if it doesn't alreay exist.
+             * Append to it if it already exists.
+             \param cinfo Pointer to ::cosmosstruc to use.
+             \return 0, otherwise negative error.
+            */
+int32_t kml_write(cosmosstruc *cinfo)
+{
+    char buf[500];
+    FILE *fin, *fout;
+    double utc;
+
+    utc = floor(cinfo->node.loc.utc);
+
+    string path = data_type_path((string)cinfo->node.name, "outgoing", "google", utc, "points");
+    fin = data_open(path, (char *)"a+");
+    fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->node.loc.pos.geod.s.lon),DEGOF(cinfo->node.loc.pos.geod.s.lat),cinfo->node.loc.pos.geod.s.h);
+
+    path = data_type_path(cinfo->node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
+    fout = data_open(path, (char *)"w");
+    fprintf(fout,"<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n");
+    fprintf(fout,"<Document>\n");
+    fprintf(fout,"<name>%s JD%5.0f</name>\n",cinfo->node.name.c_str(),utc);
+    fprintf(fout,"<description>Track of node.</description>\n");
+    fprintf(fout,"<Style id=\"yellowLineGreenPoly\">\n<LineStyle>\n<color>7f00ffff</color>\n<width>4</width>\n</LineStyle>\n");
+    fprintf(fout,"<PolyStyle>\n<color>7f00ff00</color>\n</PolyStyle>\n</Style>\n");
+    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cinfo->node.name.c_str(),utc);
+    fprintf(fout,"<styleUrl>#yellowLineGreenPoly</styleUrl>\n<LineString>\n<extrude>1</extrude>\n<tessellate>1</tessellate>\n<altitudeMode>absolute</altitudeMode>\n");
+    fprintf(fout,"<coordinates>\n");
+
+    rewind (fin);
+    while (fgets(buf, 500, fin) != nullptr)
+    {
+        fputs(buf, fout);
+    }
+    fclose(fin);
+
+    fprintf(fout,"</coordinates>\n</LineString>\n</Placemark>\n</Document>\n</kml>\n");
+    fclose(fout);
+
+    return 0;
 }

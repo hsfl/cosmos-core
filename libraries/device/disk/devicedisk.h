@@ -2,7 +2,7 @@
 #define DEVICEDISK_H
 
 #include "support/configCosmos.h"
-#include "support/jsondef.h"
+//#include "support/jsonlib.h"
 #include "support/datalib.h"
 #include "support/stringlib.h"
 

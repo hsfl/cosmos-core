@@ -30,7 +30,6 @@
 // TODO: rename to serial.cpp only
 #include "support/configCosmos.h"
 #include "device/serial/serialclass.h"
-#include "support/elapsedtime.h"
 
 namespace Cosmos {
 
@@ -44,14 +43,21 @@ namespace Cosmos {
     //! \param dname Name of physical serial port.
     //! \param dbaud Baud rate. Will be rounded to nearest of 75, 110, 150, 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200.
     //! \param dbits Number of data bits.
-    //! \param dparity 0 = even, 1 = odd.
+    //! \param dparity 0 = none, 1 = odd, 2 = even.
     //! \param dstop Number of stop bits.
-    Serial::Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
+    Serial::Serial(string dname, size_t dbaud, size_t dbits, string dparity, size_t dstop)
     {
+        if (Parity.count(dparity))
+        {
+            parity = Parity[dparity];
+        }
+        else
+        {
+            parity = Parity["none"];
+        }
         name = dname;
         baud = dbaud;
         bits = dbits;
-        parity = dparity;
         stop = dstop;
 
         error = open_device();

@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
     while ((ic=fscanf(fp, "%d/%d/%d %d:%d:%d %f %f %f %f %f %f\n", &im, &id, &iy, &ihh, &imm, &iss, &x, &y, &z, &a, &b, &c)) != EOF)
     {
-        locstruc loc;
+        Convert::locstruc loc;
         loc.pos.eci.utc = cal2mjd(iy, im, id, ihh, imm, iss);
         if (initialutc == 0.)
         {
@@ -68,16 +68,16 @@ int main(int argc, char *argv[])
         loc.pos.eci.s.col[1] = y;
         loc.pos.eci.s.col[2] = z;
         loc.pos.eci.pass++;
-        pos_eci(loc);
+        Convert::pos_eci(loc);
         avector abc(RADOF(a), RADOF(b), RADOF(c));
         loc.att.icrf.utc = loc.pos.eci.utc;
         loc.att.icrf.s = q_euler2quaternion(abc);
         loc.att.icrf.pass++;
-        att_icrf(loc);
+        Convert::att_icrf(loc);
 
         loc.pos.geoc.utc += deltat;
         loc.pos.geoc.pass++;
-        pos_geoc(loc);
+        Convert::pos_geoc(loc);
         loc.att.geoc.utc += deltat;
         loc.att.geoc.pass++;
         att_geoc(loc);

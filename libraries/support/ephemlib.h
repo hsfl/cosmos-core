@@ -41,22 +41,27 @@
 #include "math/mathlib.h"
 #include "support/convertdef.h"
 
-//! \ingroup support
-//! \defgroup ephemlib Ephemeris library
-//! Functions to implement the ephemerides provided by the Jet Propulsion Laboratory. Currently uses DE405 and uses
-//! jpleph.
-//! Full information can be found at http://ssd.jpl.nasa.gov/?planet_eph_export.
+namespace Cosmos {
+    namespace Convert {
 
-//!
-//! \ingroup ephemlib
-//! \defgroup ephemlib_functions Ephemeris functions
-//! @{
+        //! \ingroup support
+        //! \defgroup ephemlib Ephemeris library
+        //! Functions to implement the ephemerides provided by the Jet Propulsion Laboratory. Currently uses DE405 and uses
+        //! jpleph.
+        //! Full information can be found at http://ssd.jpl.nasa.gov/?planet_eph_export.
 
-int32_t jplnut(double mjd, double nuts[]);
-int32_t jplpos(long from, long to, double mjd, cartpos *pos);
-int32_t jplpos(long from, long to, double mjd, cartpos &pos);
-int32_t jpllib(double utc,rmatrix *rm, rmatrix *drm);
-int32_t jpllib(double utc,rmatrix &rm, rmatrix &drm);
-int32_t jplopen();
+        //!
+        //! \ingroup ephemlib
+        //! \defgroup ephemlib_functions Ephemeris functions
+        //! @{
 
-//! @}
+        int32_t jplnut(double mjd, double nuts[]);
+        int32_t jplpos(long from, long to, double mjd, Convert::cartpos *pos);
+        int32_t jplpos(long from, long to, double mjd, Convert::cartpos &pos);
+        int32_t jpllib(double utc,rmatrix *rm, rmatrix *drm);
+        int32_t jpllib(double utc,rmatrix &rm, rmatrix &drm);
+        int32_t jplopen();
+
+        //! @}
+    }
+}

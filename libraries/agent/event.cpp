@@ -79,7 +79,7 @@ string Event::generator(eventstruc event) {
 
 
 // Copies the current event object to the output stream using JSON format
-std::ostream& operator<<(std::ostream& out, const Event& cmd)
+::std::ostream& operator<<(::std::ostream& out, const Event& cmd)
 {
     JSONObject jobj;
     jobj.addElement("event_utc", JSONValue(cmd.mjd));

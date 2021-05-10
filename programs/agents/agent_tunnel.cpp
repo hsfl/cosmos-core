@@ -301,7 +301,8 @@ void tcv_read_loop()
 			}
 			printf("\n");
 		} // End of mutex for tun FIFO
-        else {
+        else
+        {
             printf("In: Error: %s\n", cosmos_error_string(nbytes).c_str());
         }
 	}

@@ -171,7 +171,7 @@ struct trackstruc
     targetstruc target;
     physicsstruc physics;
     string name;
-    gj_handle gjh;
+    Physics::gj_handle gjh;
     vector <LsFit> position;
     vector <radiostruc> radios;
 };
@@ -362,18 +362,18 @@ int main(int argc, char *argv[])
                     if (type == NODE_TYPE_SATELLITE)
                     {
                         printf("Propagating Node %s forward %.0f\r", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
-                        gauss_jackson_init_eci(ttrack.gjh, 12, 0, 5., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
+                        Physics::gauss_jackson_init_eci(ttrack.gjh, 12, 0, 5., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
                         double tutc = ttrack.target.loc.pos.eci.utc + 60./86400.;
                         while (tutc < currentmjd())
                         {
                             printf("Propagating Node %s forward %.0f\r", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
-                            gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, tutc);
+                            Physics::gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, tutc);
                             fflush(stdout);
                             tutc += 600./86400.;
                         }
                         printf("Propagating Node %s forward %.0f\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
-                        gauss_jackson_init_eci(ttrack.gjh, 12, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
-                        gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
+                        Physics::gauss_jackson_init_eci(ttrack.gjh, 12, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
+                        Physics::gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
                         fflush(stdout);
                     }
                     track.push_back(ttrack);
@@ -386,7 +386,7 @@ int main(int argc, char *argv[])
     // Look for TLE file
     char fname[200];
     sprintf(fname,"%s/tle.ini",get_nodedir(nodename).c_str());
-    vector <tlestruc> tle;
+    vector <Convert::tlestruc> tle;
     if ((iretn=load_lines_multi(fname, tle)) > 0)
     {
         for (size_t i=0; i<tle.size(); ++i)
@@ -408,8 +408,8 @@ int main(int argc, char *argv[])
             ttrack.radios[0].name = "radio";
             ttrack.radios[0].otherradioindex = 9999;
 
-            gauss_jackson_init_eci(ttrack.gjh, 6, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
-            gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
+            Physics::gauss_jackson_init_eci(ttrack.gjh, 6, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
+            Physics::gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
             track.push_back(ttrack);
         }
     }
@@ -531,17 +531,17 @@ int main(int argc, char *argv[])
             switch (track[i].target.type)
             {
             case NODE_TYPE_SATELLITE:
-                gauss_jackson_propagate(track[i].gjh, track[i].physics, track[i].target.loc, mjdnow);
+                Physics::gauss_jackson_propagate(track[i].gjh, track[i].physics, track[i].target.loc, mjdnow);
                 break;
             case NODE_TYPE_SUN:
-                jplpos(JPL_EARTH, JPL_SUN, mjdnow, &track[i].target.loc.pos.eci);
+                Convert::jplpos(JPL_EARTH, JPL_SUN, mjdnow, &track[i].target.loc.pos.eci);
                 track[i].target.loc.pos.eci.pass++;
-                pos_eci(&track[i].target.loc);
+                Convert::pos_eci(&track[i].target.loc);
                 break;
             case NODE_TYPE_MOON:
-                jplpos(JPL_EARTH, JPL_MOON, mjdnow, &track[i].target.loc.pos.eci);
+                Convert::jplpos(JPL_EARTH, JPL_MOON, mjdnow, &track[i].target.loc.pos.eci);
                 track[i].target.loc.pos.eci.pass++;
-                pos_eci(&track[i].target.loc);
+                Convert::pos_eci(&track[i].target.loc);
                 break;
             }
 
@@ -621,7 +621,7 @@ int main(int argc, char *argv[])
                         myradios[i].otherradioindex = 9999;
                         myradios[i].info.freq = myradios[i].basefreq;
                         myradios[i].info.opmode = myradios[i].baseopmode;
-                        request = "set_frequency " + to_double(myradios[i].info.freq);
+                        request = "set_frequency " + to_floatany(myradios[i].info.freq);
                         iretn = agent->send_request(myradios[i].beat, request, output, 5.);
                         request = "set_opmode " + to_unsigned(myradios[i].info.opmode);
                         iretn = agent->send_request(myradios[i].beat, request, output, 5.);
@@ -755,7 +755,7 @@ int32_t request_get_track(string &request, string &response, Agent *)
 {
     if (trackindex != 9999)
     {
-        response = to_unsigned(trackindex) + ' ' +  track[trackindex].name + ' ' + to_double(track[trackindex].target.range) + ' ' + to_double(track[trackindex].target.range/track[trackindex].target.close);
+        response = to_unsigned(trackindex) + ' ' +  track[trackindex].name + ' ' + to_floatany(track[trackindex].target.range) + ' ' + to_floatany(track[trackindex].target.range/track[trackindex].target.close);
     }
 
     return 0;
@@ -909,12 +909,12 @@ int32_t request_get_state(string &req, string &response, Agent *)
             response += "{ ";
             response += to_label("GS", myradios[i].name) + ' ';
             response += to_label("Sat", track[trackindex].radios[idx].name) + ' ';
-            response += to_label("Freq", myradios[i].info.freq, 9) + " (" + to_double(myradios[i].dfreq, 5) + ") } ";
+            response += to_label("Freq", myradios[i].info.freq, 9) + " (" + to_floatany(myradios[i].dfreq, 5) + ") } ";
         }
         else {
             response += "{ ";
             response += to_label("GS", myradios[i].name) + ' ';
-            response += to_label("Freq", myradios[i].info.freq, 9) + " (" + to_double(myradios[i].dfreq, 5) + ") } ";
+            response += to_label("Freq", myradios[i].info.freq, 9) + " (" + to_floatany(myradios[i].dfreq, 5) + ") } ";
         }
     }
     for (size_t i=0; i<myantennas.size(); ++i)

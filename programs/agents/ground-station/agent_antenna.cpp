@@ -154,9 +154,9 @@ void rotctl_loop();
 static float gsmin = RADOF(10.);
 //char tlename[20];
 static string antbase = "";
-static std::string nodename = "";
-static std::string agentname;
-static std::string antdevice;
+static string nodename = "";
+static string agentname;
+static string antdevice;
 static uint16_t devindex = -1;
 static uint16_t antindex = -1;
 static antstruc target;
@@ -176,7 +176,7 @@ static thread rthread;
 int load_tle_info(char *file);
 
 // Here are variables for internal use
-static std::vector<tlestruc> tle;
+static std::vector<Convert::tlestruc> tle;
 static Agent *agent;
 
 struct azelstruc
@@ -746,15 +746,15 @@ void rotctl_loop()
                     // get_pos
                     if (current.azim > D2PI)
                     {
-                    socket_sendto(clientchannel, to_double(DEGOF(current.azim-D2PI), 6)+'\n');
-                    printf("Out: %s ", to_double(DEGOF(current.azim-D2PI), 6).c_str());
+                    socket_sendto(clientchannel, to_floatany(DEGOF(current.azim-D2PI), 6)+'\n');
+                    printf("Out: %s ", to_floatany(DEGOF(current.azim-D2PI), 6).c_str());
                     }
                     else {
-                        socket_sendto(clientchannel, to_double(DEGOF(current.azim), 6)+'\n');
-                        printf("Out: %s ", to_double(DEGOF(current.azim), 6).c_str());
+                        socket_sendto(clientchannel, to_floatany(DEGOF(current.azim), 6)+'\n');
+                        printf("Out: %s ", to_floatany(DEGOF(current.azim), 6).c_str());
                     }
-                    socket_sendto(clientchannel, to_double(DEGOF(current.elev), 6)+'\n');
-                    printf("%s\n", to_double(DEGOF(current.elev), 6).c_str());
+                    socket_sendto(clientchannel, to_floatany(DEGOF(current.elev), 6)+'\n');
+                    printf("%s\n", to_floatany(DEGOF(current.elev), 6).c_str());
                     break;
                 case 'M':
                     // move
@@ -821,8 +821,8 @@ void rotctl_loop()
                             {
                                 dec *= -1;
                             }
-                            socket_sendto(clientchannel, to_double(dec, 9)+'\n');
-                            printf("Out: %s\n", to_double(dec, 9).c_str());
+                            socket_sendto(clientchannel, to_floatany(dec, 9)+'\n');
+                            printf("Out: %s\n", to_floatany(dec, 9).c_str());
                         }
                         else {
                             socket_sendto(clientchannel, "RPRT -1\n");
@@ -851,8 +851,8 @@ void rotctl_loop()
                             printf("Out: %s ", to_unsigned(deg).c_str());
                             socket_sendto(clientchannel, to_unsigned(min)+'\n');
                             printf("%s ", to_unsigned(min).c_str());
-                            socket_sendto(clientchannel, to_double(fdec)+'\n');
-                            printf("%s ", to_double(fdec).c_str());
+                            socket_sendto(clientchannel, to_floatany(fdec)+'\n');
+                            printf("%s ", to_floatany(fdec).c_str());
                             socket_sendto(clientchannel, to_unsigned(sign)+'\n');
                             printf("%s\n", to_unsigned(sign).c_str());
                         }
@@ -872,8 +872,8 @@ void rotctl_loop()
                             {
                                 dec *= -1;
                             }
-                            socket_sendto(clientchannel, to_double(dec, 9)+'\n');
-                            printf("Out: %s\n", to_double(dec, 9).c_str());
+                            socket_sendto(clientchannel, to_floatany(dec, 9)+'\n');
+                            printf("Out: %s\n", to_floatany(dec, 9).c_str());
                         }
                         else {
                             socket_sendto(clientchannel, "RPRT -1\n");
@@ -898,8 +898,8 @@ void rotctl_loop()
 
                             socket_sendto(clientchannel, to_unsigned(deg)+'\n');
                             printf("Out: %s ", to_unsigned(deg).c_str());
-                            socket_sendto(clientchannel, to_double(fdec)+'\n');
-                            printf("%s ", to_double(fdec).c_str());
+                            socket_sendto(clientchannel, to_floatany(fdec)+'\n');
+                            printf("%s ", to_floatany(fdec).c_str());
                             socket_sendto(clientchannel, to_unsigned(sign)+'\n');
                             printf("%s\n", to_unsigned(sign).c_str());
                         }

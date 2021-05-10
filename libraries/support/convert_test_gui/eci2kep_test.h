@@ -35,15 +35,15 @@
 #include "ui_eci2kep_test.h"
 
 namespace Ui {
-class eci2kep_test;
+class Convert::eci2kep_test;
 }
 
-class eci2kep_test : public QWidget
+class Convert::eci2kep_test : public QWidget
 {
     Q_OBJECT
     
 public:
-    explicit eci2kep_test(TestContainer *parent = 0);
+    explicit Convert::eci2kep_test(TestContainer *parent = 0);
     ~eci2kep_test();
     
 private slots:

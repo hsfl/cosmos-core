@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     map<string, float> temps;
 
 //	cout<<"size of devicestruc = "<<sizeof(devicestruc)<<endl;
-    printf("Mmeory: %s\n", json_memory_usage().c_str());
+    printf("Memory: %s\n", json_memory_usage().c_str());
 
     if (argc == 2) {
 		agent = new Agent(argv[1], "cpu", 15.);
@@ -402,7 +402,7 @@ int32_t request_diskFree(string &, string &response, Agent *)
 
 }
 
-int32_t request_diskFreePercent (std::string &, std::string &response, Agent *)
+int32_t request_diskFreePercent (string &, string &response, Agent *)
 {
     return ((response = std::to_string(deviceDisk.FreePercent)).length());
 }

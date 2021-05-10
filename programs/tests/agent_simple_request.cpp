@@ -24,7 +24,7 @@ string request_add(vector<string> &args, int32_t &status){
     // use the argument to do something
     int sum = num1+ num2;
     // return the response string
-    return to_string(sum);
+    return to_signed(sum);
 }
 
 string request_hello(int32_t &status){

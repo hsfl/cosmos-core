@@ -11,7 +11,7 @@ FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 set(libraryName CosmosDeviceCcsds PARENT_SCOPE)
 
 add_library(CosmosDeviceCcsds STATIC ${SOURCES} ${INCLUDES})
-target_link_libraries(CosmosDeviceCcsds)
+target_link_libraries(CosmosDeviceCcsds CosmosSupport ${COSMOS_LIBS})
 
 install(TARGETS CosmosDeviceCcsds DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/ccsds)
