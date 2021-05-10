@@ -295,7 +295,7 @@ namespace Cosmos
             int32_t add_request(string token, external_request_function function, string synopsis="", string description="");
             int32_t add_request(string token, simple_request_function function, string synopsis="", string description="");
             int32_t add_request(string token, no_arg_request_function function, string synopsis="", string description="");
-            int32_t send_request(beatstruc cbeat, string request, string &output, float waitsec=5.);
+            int32_t send_request(beatstruc cbeat, string request, string &output, float waitsec=5., double delay_send = 0.0, double delay_receive = 0.0);
             int32_t send_request_jsonnode(beatstruc cbeat, jsonnode &jnode, float waitsec=5.);
             int32_t get_agent(string node, string agent, double waitsec, beatstruc &cbeat);
             int32_t check_agent(string node, string agent, double waitsec);

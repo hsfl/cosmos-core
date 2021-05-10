@@ -491,7 +491,10 @@ namespace Support
     \param waitsec Maximum number of seconds to wait
     \return Either the number of bytes returned, or an error number.
 */
-    int32_t Agent::send_request(beatstruc hbeat, string request, string &output, float waitsec) {
+    int32_t Agent::send_request(beatstruc hbeat, string request, string &output, float waitsec, double delay_send, double delay_receive) {
+
+		// JIMTODO: put a send delay here
+
         socket_channel sendchan;
         int32_t iretn;
         int32_t nbytes;
@@ -537,6 +540,8 @@ namespace Support
             toutput.resize(nbytes);
             string reply(toutput.begin(), toutput.end());
             output = reply;
+
+		// JIMTODO: put a receive delay here
             return (nbytes);
         }
     }
