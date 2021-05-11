@@ -2876,6 +2876,32 @@ match.
             return 0;
         }
 
+        int32_t cart2peri(cartpos cart, Quaternion &qperi)
+        {
+            Vector S = Vector(cart.s);
+            Vector V = Vector(cart.v);
+            Vector H = S.cross(V);
+//            Vector nbar = Vector(0, 0, 1).cross(H);
+            double c1 = V.norm2() - GM / S.norm();
+            double rdotv = S.dot(V);
+            Vector ebar = (c1 * S - rdotv * V) / GM;
+            qperi = irotate_for(Vector(1.,0.,0.), Vector(0.,0.,1.), ebar, H);
+
+            return 0;
+
+        }
+
+        int32_t peri2cart(cartpos cart, Quaternion &qcart)
+        {
+            int32_t iretn = cart2peri(cart, qcart);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            qcart = qcart.conjugate();
+            return 0;
+        }
+
         int32_t kep2eci(kepstruc &kep, cartpos &eci)
         {
             rvector qpos, qvel;
