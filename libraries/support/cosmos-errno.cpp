@@ -249,6 +249,15 @@ namespace Cosmos {
             ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_NAME] = "Bad File or Device Name";
             ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_BAD_FD] = "Bad or No File Descriptor";
             ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_BAD_ACK] = "Bad Acknowledgement";
+
+            ErrorStrings[ErrorNumbers::COSMOS_ISIS_CMD_REJECTED] = "COSMOS_ISIS_CMD_REJECTED";
+            ErrorStrings[ErrorNumbers::COSMOS_ISIS_INVALID_COMMAND_CODE] = "COSMOS_ISIS_INVALID_COMMAND_CODE";
+            ErrorStrings[ErrorNumbers::COSMOS_ISIS_PARAM_MISSING] = "COSMOS_ISIS_PARAM_MISSING";
+            ErrorStrings[ErrorNumbers::COSMOS_ISIS_PARAM_INVALID] = "COSMOS_ISIS_PARAM_INVALID";
+            ErrorStrings[ErrorNumbers::COSMOS_ISIS_UNAVAILABLE_IN_CURRENT_MODE] = "COSMOS_ISIS_UNAVAILABLE_IN_CURRENT_MODE";
+            ErrorStrings[ErrorNumbers::COSMOS_ISIS_INVALID_SYSTYPE_OR_IVID_OR_BID] = "COSMOS_ISIS_INVALID_SYSTYPE_OR_IVID_OR_BID";
+            ErrorStrings[ErrorNumbers::COSMOS_ISIS_INTERNAL_ERROR] = "COSMOS_ISIS_INTERNAL_ERROR";
+
         }
 
         string Error::ErrorString(int16_t number)
