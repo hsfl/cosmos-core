@@ -516,14 +516,17 @@ cosmosstruc* json_init(cosmosstruc *cinfo)
     cinfo->timestamp = currentmjd();
 
     // NS1 check
-    int32_t iretn = json_mapbaseentries(cinfo);
+//    int32_t iretn = json_mapbaseentries(cinfo);
+    int32_t iretn = json_updatecosmosstruc(cinfo);
     if (iretn < 0) {
         delete cinfo;
         cinfo = nullptr;
     }
 
     // NS2
-    cinfo->add_default_names();
+//    cinfo->add_default_names();
+
+
 
     return cinfo;
 }
@@ -7262,223 +7265,224 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
 int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
 {
     int32_t iretn = 0;
+    size_t count = 0;
 
     for (auto &dev : cinfo->devspec.ant)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.batt)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.bcreg)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.bus)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.cam)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.cpu)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.disk)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.gps)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.htr)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.imu)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.mcc)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.motr)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.mtr)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.pload)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.prop)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.psen)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.pvstrg)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.rot)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.rw)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.rxr)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.ssen)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.stt)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.suchi)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.swch)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.tcu)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.tcv)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.telem)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.thst)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.tnc)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.tsen)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
     for (auto &dev : cinfo->devspec.txr)
     {
         cinfo->device[dev.cidx] = &dev;
 //        json_mapcompentry(dev.cidx, cinfo);
 //        json_mapdeviceentry(&dev, cinfo);
-        ++iretn;
+        ++count;
     }
 
     cinfo->node.vertex_cnt = cinfo->vertexs.size();
@@ -7493,9 +7497,11 @@ int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
     cinfo->node.user_cnt = cinfo->user.size();
     cinfo->node.tle_cnt = cinfo->tle.size();
 
-    json_mapentries(cinfo);
-
-    cinfo->add_default_names();
+    iretn = json_mapentries(cinfo);
+    if (iretn >= 0)
+    {
+        cinfo->add_default_names();
+    }
 
     return iretn;
 }
