@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
     sohstring += "}";
     agent->set_sohstring(sohstring);
     json_updatecosmosstruc(agent->cinfo);
-    printf("Mmeory: %s\n", json_memory_usage().c_str());
+    printf("Memory: %s\n", json_memory_usage().c_str());
 
     printf("SOH String: %s\n", sohstring.c_str());
 
