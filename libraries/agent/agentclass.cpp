@@ -493,7 +493,7 @@ namespace Support
 */
     int32_t Agent::send_request(beatstruc hbeat, string request, string &output, float waitsec, double delay_send, double delay_receive) {
 
-		// JIMTODO: put a send delay here
+        COSMOS_SLEEP(delay_send);
 
         socket_channel sendchan;
         int32_t iretn;
@@ -541,7 +541,7 @@ namespace Support
             string reply(toutput.begin(), toutput.end());
             output = reply;
 
-		// JIMTODO: put a receive delay here
+			COSMOS_SLEEP(delay_receive);
             return (nbytes);
         }
     }
