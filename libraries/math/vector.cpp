@@ -1741,6 +1741,19 @@ namespace Cosmos {
                     return (norm);
             }
 
+            //! Norm squared.
+            /*! Calculate the Norm squared.
+         * \return Norm squared of ::Vector.
+        */
+            double Vector::norm2()
+            {
+                double norm2 = (x*x + y*y + z*z + w*w);
+                if (norm2 < D_SMALL)
+                    return (0.);
+                else
+                    return (norm2);
+            }
+
 
             //! Scalar product.
             /*! Calculate the scalar product with the provided scale.

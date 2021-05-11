@@ -717,8 +717,9 @@ namespace Cosmos {
 			double dot(Vector b);
 			Vector &normalize(double size=1.);
 			Vector &clear(double x0=0., double y0=0., double z0=0., double w0=0.);
-			double norm();
-			double separation(Vector b);
+            double norm();
+            double norm2();
+            double separation(Vector b);
 			double area(Vector b);
 			Vector vector();
 			Vector flattenx();
