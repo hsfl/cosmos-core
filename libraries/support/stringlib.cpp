@@ -251,7 +251,12 @@ string to_astring(char *value, size_t length, bool hex)
     return output;
 }
 
-string to_hex(size_t value, uint16_t digits, bool zerofill) {
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+string to_hex(uint64_t value, uint16_t digits, bool zerofill)
+#else
+string to_hex(size_t value, uint16_t digits, bool zerofill)
+#endif
+{
     string output="";
     output.resize(digits>17?digits:17);
     if (zerofill) {
