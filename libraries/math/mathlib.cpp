@@ -3016,6 +3016,12 @@ double LsFit::getbasex()
 
 //! @}
 
+uint16_t calc_crc16ccitt_lsb(string &buf, uint16_t crc, uint16_t skip)
+{
+    vector<uint8_t> vbuf(buf.begin(), buf.end()-skip);
+    return calc_crc16ccitt_lsb(vbuf, crc);
+}
+
 uint16_t calc_crc16ccitt_lsb(uint8_t* buf, uint16_t size, uint16_t crc, uint16_t skip)
 {
     vector<uint8_t> vbuf(buf, buf+(size-skip));
@@ -3040,6 +3046,12 @@ uint16_t calc_crc16ccitt_lsb(vector<uint8_t> &buf, uint16_t crc, uint16_t skip)
         }
     }
     return (crc);
+}
+
+uint16_t calc_crc16ccitt_msb(string &buf, uint16_t crc, uint16_t skip)
+{
+    vector<uint8_t> vbuf(buf.begin(), buf.end()-skip);
+    return calc_crc16ccitt_msb(vbuf, crc);
 }
 
 uint16_t calc_crc16ccitt_msb(uint8_t* buf, uint16_t size, uint16_t crc, uint16_t skip)
