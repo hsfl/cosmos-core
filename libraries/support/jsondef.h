@@ -5219,6 +5219,9 @@ information.
             //! Vector of State information for all nodes
             vector<sim_state> sim_states;
 
+			sim_state	prev_sim_state;
+			sim_state	prev_prev_sim_state;
+
             //! Single entry vector for event information.
             vector<eventstruc> event;
 
