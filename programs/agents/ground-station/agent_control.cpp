@@ -186,6 +186,8 @@ struct antennastruc
 static vector <antennastruc> myantennas;
 
 static bool debug;
+static float lastaz = 0.;
+static float lastel = 0.;
 
 int32_t request_debug(string &request, string &response, Agent *);
 int32_t request_get_state(string &request, string &response, Agent *);
@@ -570,18 +572,41 @@ int main(int argc, char *argv[])
                 char request[100];
                 if (trackindex)
                 {
-                    sprintf(request, "track_azel %f %f %f", mjdnow, DEGOF(fixangle(track[i].target.azfrom)), DEGOF((track[i].target.elfrom)));
-                    if (debug)
+                    if (lastaz != fixangle(track[i].target.azfrom) || lastel != track[i].target.elfrom)
                     {
-                        printf("%f: Request: %s\n", et.lap(), request);
-                    }
-
-                    // Command antennas to track
-                    for (size_t j=0; j<myantennas.size(); ++j)
-                    {
-                        if (mjdnow - myantennas[j].beat.utc < 10.)
+                        float nextaz =fixangle(track[i].target.azfrom);
+                        float nextel = fixangle(track[i].target.elfrom);
+                        float directdiff = sqrt((lastaz-nextaz)*(lastaz-nextaz) + (lastel-nextel)*(lastel-nextel));
+                        if (nextaz > M_PI)
                         {
-                            iretn = agent->send_request(myantennas[j].beat, request, output, 5.);
+                            nextaz -= M_PI;
+                        }
+                        else
+                        {
+                            nextaz +=M_PI;
+                        }
+                        nextel = M_PI - nextel;
+                        float indirectdiff = sqrt((lastaz-nextaz)*(lastaz-nextaz) + (lastel-nextel)*(lastel-nextel));
+                        if (indirectdiff > directdiff)
+                        {
+                            nextaz =fixangle(track[i].target.azfrom);
+                            nextel = fixangle(track[i].target.elfrom);
+                        }
+                        sprintf(request, "track_azel %f %f %f", mjdnow, DEGOF(nextaz), DEGOF(nextel));
+                        if (debug)
+                        {
+                            printf("%f: Request: %s\n", et.lap(), request);
+                        }
+                        lastaz = nextaz;
+                        lastel = nextel;
+
+                        // Command antennas to track
+                        for (size_t j=0; j<myantennas.size(); ++j)
+                        {
+                            if (mjdnow - myantennas[j].beat.utc < 10.)
+                            {
+                                iretn = agent->send_request(myantennas[j].beat, request, output, 5.);
+                            }
                         }
                     }
 
