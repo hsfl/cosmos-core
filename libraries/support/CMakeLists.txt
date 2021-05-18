@@ -9,7 +9,7 @@ FILE(GLOB INCLUDESPP ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 add_library(CosmosSupport STATIC
     estimation_lib.cpp
     cosmos-defs.h estimation_lib.h
-    configCosmos.h)
+    configCosmos.h enumlib.h enumlib.cpp)
 install(TARGETS CosmosSupport DESTINATION lib)
 #target_link_libraries(CosmosSupport CosmosMath)
 target_link_libraries(CosmosSupport ${COSMOS_LIBS})
