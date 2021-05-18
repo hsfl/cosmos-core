@@ -410,7 +410,7 @@ void json_init_device_type_string()	{
 
 void json_init_node(cosmosstruc* cinfo)	{
     // JIMNOTE: how hard to change to string?
-    cinfo->node.name.clear();0;
+    cinfo->node.name.clear();
 }
 
 void json_init_reserve(cosmosstruc* cinfo) {
