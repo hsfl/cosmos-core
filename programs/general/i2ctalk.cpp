@@ -18,6 +18,7 @@ static string device = "/dev/i2c-2"; // default device
 static float delay = .05;
 static I2C *i2cport;
 static uint16_t rcount = 0;
+static uint8_t probe = 1;
 
 int main(int argc, char *argv[])
 {
@@ -53,6 +54,8 @@ int main(int argc, char *argv[])
     string outstring = "";
     switch (argc)
     {
+    case 7:
+        probe = atoi(argv[6]);
     case 6:
         device = argv[5];
     case 5:
@@ -62,8 +65,14 @@ int main(int argc, char *argv[])
     case 3:
         outstring = argv[2];
     case 2:
-        //        address = strtol(argv[1], nullptr, 16);
-        address = strtol(argv[1], nullptr, 10);
+        if (string(argv[1]).find("x") != string::npos || string(argv[1]).find("X") != string::npos)
+        {
+            address = strtol(argv[1], nullptr, 16);
+        }
+        else
+        {
+            address = strtol(argv[1], nullptr, 10);
+        }
         break;
     default:
         printf("Usage: i2ctalk addressx dd[:dd:dd:dd] rcount [ delaysec [ device ]]\n");
@@ -86,11 +95,18 @@ int main(int argc, char *argv[])
     dataout.clear();
     for (string tout : outs)
     {
-        dataout.push_back(strtol(tout.c_str(), nullptr, 10));
+        if (string(tout).find("x") != string::npos || string(tout).find("X") != string::npos)
+        {
+            dataout.push_back(strtol(tout.c_str(), nullptr, 16));
+        }
+        else
+        {
+            dataout.push_back(strtol(tout.c_str(), nullptr, 10));
+        }
     }
 
     ElapsedTime i2ct;
-    i2cport = new I2C(device, address, delay);
+    i2cport = new I2C(device, address, delay, (probe?true:false));
     if (i2cport->get_error() < 0)
     {
         printf("%s\n", cosmos_error_string(i2cport->get_error()).c_str());
