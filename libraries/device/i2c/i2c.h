@@ -44,7 +44,7 @@ namespace Cosmos {
     class I2C
     {
     public:
-        I2C(string bus, uint8_t address, double delay=2e-4);
+        I2C(string bus, uint8_t address, double delay=2e-4, bool probe=true);
         ~I2C();
         //        int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
 
@@ -55,29 +55,32 @@ namespace Cosmos {
         //        int32_t get_data(vector <uint8_t> &data, size_t size);
 
         //        string name;
-//        int32_t connect();
+        //        int32_t connect();
         int32_t get_funcs();
         int32_t set_address(uint64_t address);
+        int32_t set_delay(double seconds);
+        int32_t connect();
         int32_t send(string data);
         int32_t send(uint8_t *data, size_t len);
         int32_t send(vector <uint8_t> data);
-        int32_t receive(string &data);
-        int32_t receive(uint8_t *data, size_t len);
-        int32_t receive(vector <uint8_t> &data);
+        int32_t receive(string &data, size_t bytes);
+        int32_t receive(uint8_t *data, size_t bytes);
+        int32_t receive(vector <uint8_t> &data, size_t bytes);
         int32_t poll(uint8_t *data, size_t len, uint8_t markchar=0xff, double timeout=0.);
         int32_t get_error();
-	int32_t get_fh();
-
+        int32_t get_fh();
+        bool get_connected();
 
 
     private:
         struct
         {
+            bool connected = false;
+            bool probe = true;
             string bus;
             uint8_t address;
             int fh = -1;
             uint64_t funcs;
-            bool connected = false;
             double delay = 1e-4;
         } handle;
 
