@@ -136,8 +136,6 @@ namespace Cosmos {
             {
                 error = - errno;
                 handle.connected = false;
-                close(handle.fh);
-                handle.fh = -1;
                 return error;
             }
 #endif
