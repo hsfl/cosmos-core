@@ -451,10 +451,10 @@ string to_angle(double value, char units, uint8_t precision) {
 }
 
 string to_bool(bool value) {
-    string output="";
-    output.resize(2);
-    output[0] =  value?'1':'0';
-    output.resize(strlen(&output[0]));
+    string output = value?"Yes":"No";
+//    output.resize(2);
+//    output[0] =  value?'1':'0';
+//    output.resize(strlen(&output[0]));
     return output;
 }
 
@@ -551,6 +551,11 @@ string to_label(string label, double value, uint16_t precision, bool mjd)
             return label + ": " + to_floating(value, precision);
         }
     }
+}
+
+string to_label(string label, float value, uint16_t precision, bool mjd)
+{
+    return to_label(label, (double)value, precision, mjd);
 }
 
 #if ((SIZE_WIDTH) == (UINT64_WIDTH))

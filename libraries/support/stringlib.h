@@ -104,6 +104,7 @@ string to_json(string key, uint8_t value);
 
 string to_label(string label, string value);
 string to_label(string label, double value, uint16_t precision=0, bool mjd=false);
+string to_label(string label, float value, uint16_t precision=0, bool mjd=false);
 #if ((PTRDIFF_WIDTH) == (INT64_WIDTH))
 string to_label(string label, int64_t value, uint16_t digits=0, bool hex=false);
 #endif
