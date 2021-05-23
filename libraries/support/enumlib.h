@@ -14,6 +14,8 @@ namespace Cosmos {
             Enum();
             void Init(const vector<string> names, const vector<ptrdiff_t> values={});
             void Extend(const vector<string> names, const vector<ptrdiff_t> values={});
+            bool Exists(string key);
+            bool Exists(ptrdiff_t value);
             typedef map<string, ptrdiff_t> ForwardEnum;
             typedef map<ptrdiff_t, string> BackwardEnum;
             ptrdiff_t operator [](const string name);

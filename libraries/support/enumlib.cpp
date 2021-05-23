@@ -127,6 +127,30 @@ namespace Cosmos {
             }
         }
 
+        bool Enum::Exists(string key)
+        {
+            if (forward.find(key) != forward.end())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        bool Enum::Exists(ptrdiff_t value)
+        {
+            if (backward.find(value) != backward.end())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         ptrdiff_t Enum::operator [] (const string name)
         {
             ForwardEnum::iterator eit;
