@@ -776,11 +776,14 @@ class sim_param	{
 	double	attractor_w = 1.0;
 	/** obstacle force weighing */
 	double obstacle_w = 1.0;
-	/** attractor point for MAC (ECI) */
-	double	x_attractor = 0.0;
-	double	y_attractor = 0.0;
-	double	z_attractor = 0.0;
-	/** objective */
+    /** attractor point for MAC (ECI) - both position and velocity */
+    double	x_attractor = 0.0;
+    double	y_attractor = 0.0;
+    double	z_attractor = 0.0;
+    double	vx_attractor = 0.0;
+    double	vy_attractor = 0.0;
+    double	vz_attractor = 0.0;
+    /** objective */
 	double	internode_distance = 5000.0;
 
 	/// Convert class contents to JSON object
@@ -799,10 +802,13 @@ class sim_param	{
 			{ "inter_agent_w"	, inter_agent_w },
 			{ "attractor_w"		, attractor_w },
 			{ "obstacle_w"		, obstacle_w },
-			{ "x_attractor"		, x_attractor },
-			{ "y_attractor"		, y_attractor },
-			{ "z_attractor"		, z_attractor },
-			{ "internode_distance"	, internode_distance }
+            { "x_attractor"		, x_attractor },
+            { "y_attractor"		, y_attractor },
+            { "z_attractor"		, z_attractor },
+            { "vx_attractor"		, vx_attractor },
+            { "vy_attractor"		, vy_attractor },
+            { "vz_attractor"		, vz_attractor },
+            { "internode_distance"	, internode_distance }
 		};
 	}
 
@@ -826,10 +832,13 @@ class sim_param	{
 			if(!p["inter_agent_w"].is_null()) { inter_agent_w = p["inter_agent_w"].number_value(); }
 			if(!p["attractor_w"].is_null()) { attractor_w = p["attractor_w"].number_value(); }
 			if(!p["obstacle_w"].is_null()) { obstacle_w = p["obstacle_w"].number_value(); }
-			if(!p["x_attractor"].is_null()) { x_attractor = p["x_attractor"].number_value(); }
-			if(!p["y_attractor"].is_null()) { y_attractor = p["y_attractor"].number_value(); }
-			if(!p["z_attractor"].is_null()) { z_attractor = p["z_attractor"].number_value(); }
-			if(!p["internode_distance"].is_null()) { internode_distance = p["internode_distance"].number_value(); }
+            if(!p["x_attractor"].is_null()) { x_attractor = p["x_attractor"].number_value(); }
+            if(!p["y_attractor"].is_null()) { y_attractor = p["y_attractor"].number_value(); }
+            if(!p["z_attractor"].is_null()) { z_attractor = p["z_attractor"].number_value(); }
+            if(!p["vx_attractor"].is_null()) { vx_attractor = p["vx_attractor"].number_value(); }
+            if(!p["vy_attractor"].is_null()) { vy_attractor = p["vy_attractor"].number_value(); }
+            if(!p["vz_attractor"].is_null()) { vz_attractor = p["vz_attractor"].number_value(); }
+            if(!p["internode_distance"].is_null()) { internode_distance = p["internode_distance"].number_value(); }
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
