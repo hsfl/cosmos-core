@@ -295,6 +295,36 @@ namespace  Cosmos {
 					r2[2] = m.r3.z;
 				}
 
+                explicit Matrix(Quaternions::Quaternion q)
+                {
+                    double yy, xx, zz, xy, xz, xw, yz, yw, zw;
+
+                    q.normalize();
+
+                    xx = 2. * q.x;
+                    xy = xx * q.y;
+                    xz = xx * q.z;
+                    xw = xx * q.w;
+                    xx *= q.x;
+                    yy = 2. * q.y;
+                    yz = yy * q.z;
+                    yw = yy * q.w;
+                    yy *= q.y;
+                    zz = 2. * q.z;
+                    zw = zz * q.w;
+                    zz *= q.z;
+
+                    r0[0] = 1. - yy - zz;
+                    r0[1] = xy - zw;
+                    r0[2] = xz + yw;
+                    r1[0] = xy + zw;
+                    r1[1] = 1. - xx - zz;
+                    r1[2] = yz - xw;
+                    r2[0] = xz - yw;
+                    r2[1] = yz + xw;
+                    r2[2] = 1. - xx - yy;
+                }
+
 				//! ::Vector to ::Matrix.
 				/*! Convert a row vector to a row order ::Matrix
 						\param vector Row vector to be converted
