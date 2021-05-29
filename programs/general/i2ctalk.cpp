@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
         }
         break;
     default:
-        printf("Usage: i2ctalk addressx dd[:dd:dd:dd] rcount [ delaysec [ device ]]\n");
+        printf("Usage: i2ctalk addressx dd[:dd:dd:dd] rcount [ delaysec [ device [0|1(probe)]]]\n");
         exit(0);
     }
 
