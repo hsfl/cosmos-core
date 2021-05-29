@@ -783,6 +783,7 @@ class sim_param	{
     double	vx_attractor = 0.0;
     double	vy_attractor = 0.0;
     double	vz_attractor = 0.0;
+    double	h_attractor = 10000.0;
     /** objective */
 	double	internode_distance = 5000.0;
 
@@ -808,6 +809,7 @@ class sim_param	{
             { "vx_attractor"		, vx_attractor },
             { "vy_attractor"		, vy_attractor },
             { "vz_attractor"		, vz_attractor },
+            { "h_attractor"		, h_attractor },
             { "internode_distance"	, internode_distance }
 		};
 	}
@@ -838,6 +840,7 @@ class sim_param	{
             if(!p["vx_attractor"].is_null()) { vx_attractor = p["vx_attractor"].number_value(); }
             if(!p["vy_attractor"].is_null()) { vy_attractor = p["vy_attractor"].number_value(); }
             if(!p["vz_attractor"].is_null()) { vz_attractor = p["vz_attractor"].number_value(); }
+            if(!p["h_attractor"].is_null()) { h_attractor = p["h_attractor"].number_value(); }
             if(!p["internode_distance"].is_null()) { internode_distance = p["internode_distance"].number_value(); }
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
