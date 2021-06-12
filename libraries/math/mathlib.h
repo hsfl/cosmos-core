@@ -327,6 +327,8 @@ estimatorstruc get_estimate(estimatorhandle *estimate, double independent);
 
 ByteOrder local_byte_order();
 
+uint8_t uint8from(uint8_t *pointer, ByteOrder order);
+uint8_t uint8to(uint8_t *pointer, ByteOrder order);
 uint16_t uint16from(uint8_t *pointer, ByteOrder order);
 int16_t int16from(uint8_t *pointer, ByteOrder order);
 uint32_t uint32from(uint8_t *pointer, ByteOrder order);

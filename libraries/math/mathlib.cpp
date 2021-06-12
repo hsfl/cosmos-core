@@ -385,6 +385,59 @@ ByteOrder local_byte_order()
         return (ByteOrder::LITTLEENDIAN);
 }
 
+//! Memory to 8 bit unsigned integer
+/*! Return the 8 bit unsigned integer equivalent of a location in memory, reversed based on the local byte order.
+    \param pointer location in memory to be cast
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
+    \return 8 bit unsigned integer
+*/
+
+uint8_t uint8from(uint8_t *pointer, ByteOrder order)
+{
+    uint8_t rb = *pointer;
+    uint8_t rev = 0;
+    if (local_byte_order() == order)
+    {
+        return rb;
+    }
+    else
+    {
+        for (uint8_t ic=0; ic<8; ++ic)
+        {
+            rev <<= 1;
+            if ((rb & 1) == 1)
+            {
+                rev ^= 1;
+            }
+            rb >>= 1;
+        }
+        return rev;
+    }
+}
+
+uint8_t uint8to(uint8_t *pointer, ByteOrder order)
+{
+    uint8_t rb = *pointer;
+    uint8_t rev = 0;
+    if (local_byte_order() == order)
+    {
+        return rb;
+    }
+    else
+    {
+        for (uint8_t ic=0; ic<8; ++ic)
+        {
+            rev <<= 1;
+            if ((rb & 1) == 1)
+            {
+                rev ^= 1;
+            }
+            rb >>= 1;
+        }
+        return rev;
+    }
+}
+
 //! Memory to 16 bit unsigned integer
 /*! Return the 16 bit unsigned integer equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
