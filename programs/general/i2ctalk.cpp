@@ -65,15 +65,18 @@ int main(int argc, char *argv[])
     case 3:
         outstring = argv[2];
     case 2:
-        if (string(argv[1]).find("x") != string::npos || string(argv[1]).find("X") != string::npos)
         {
-            address = strtol(argv[1], nullptr, 16);
+            string addr = string(argv[1]);
+            if (addr.find_first_of("xX") != string::npos)
+            {
+                address = strtol(addr.substr(addr.find_first_of("xX")+1).c_str(), nullptr, 16);
+            }
+            else
+            {
+                address = strtol(argv[1], nullptr, 10);
+            }
+            break;
         }
-        else
-        {
-            address = strtol(argv[1], nullptr, 10);
-        }
-        break;
     default:
         printf("Usage: i2ctalk addressx dd[:dd:dd:dd] rcount [ delaysec [ device [0|1(probe)]]]\n");
         exit(0);
@@ -95,9 +98,9 @@ int main(int argc, char *argv[])
     dataout.clear();
     for (string tout : outs)
     {
-        if (string(tout).find("x") != string::npos || string(tout).find("X") != string::npos)
+        if (string(tout).find_first_of("xX") != string::npos)
         {
-            dataout.push_back(strtol(tout.c_str(), nullptr, 16));
+            dataout.push_back(strtol(tout.substr(tout.find_first_of("xX")+1).c_str(), nullptr, 16));
         }
         else
         {
