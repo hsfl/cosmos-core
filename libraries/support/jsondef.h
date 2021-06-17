@@ -829,9 +829,9 @@ class sim_param	{
             { "vy_attractor"		, vy_attractor },
             { "vz_attractor"		, vz_attractor },
             { "h_attractor"		, h_attractor },
-            { "internode_distance"	, internode_distance },
-            { "m"	, m },
-            { "mu"	, mu }
+            { "internode_distance"	, internode_distance }
+            //{ "m"	, m },
+            //{ "mu"	, mu },
             //{ "c_squared"	, c_squared },
             //{ "c_a"	, c_a },
             //{ "P"	, P },
