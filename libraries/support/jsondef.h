@@ -756,7 +756,7 @@ namespace Cosmos
 class sim_param	{
 	public:
 
-	sim_param() : r_ijs(MAX_NUMBER_OF_SATELLITES, 0.0), v_ijs(MAX_NUMBER_OF_SATELLITES, 0.0) {};
+	sim_param() : r_ijs(MAX_NUMBER_OF_SATELLITES, 0.0) {};
 
 	/** half-kernel radius for inter-agent control (interaction radius), m */
 	double	h = 1000.0;
@@ -803,7 +803,6 @@ class sim_param	{
 	double P = 0.0;
 	/** Pairwise inter-node distances */
 	vector<double> r_ijs; //(MAX_NUMBER_OF_SATELLITES, 0.0);
-	vector<double> v_ijs; //(MAX_NUMBER_OF_SATELLITES, 0.0);
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
@@ -836,7 +835,6 @@ class sim_param	{
             //{ "c_a"	, c_a },
             //{ "P"	, P },
             //{ "r_ijs"	, r_ijs },
-            //{ "v_ijs"	, v_ijs }
 		};
 	}
 
@@ -874,7 +872,7 @@ class sim_param	{
             if(!p["c_squared"].is_null()) { c_squared = p["c_squared"].number_value(); }
             if(!p["c_a"].is_null()) { c_a = p["c_a"].number_value(); }
             if(!p["P"].is_null()) { P = p["P"].number_value(); }
-			// JIMNOTE: add a spot for vector<double> r_ijs, v_ijs
+			// JIMNOTE: add a spot for vector<double> r_ijs
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
