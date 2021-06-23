@@ -759,7 +759,9 @@ class sim_param	{
 	sim_param() : r_ijs(MAX_NUMBER_OF_SATELLITES, 0.0) {};
 
 	/** half-kernel radius for inter-agent control (interaction radius), m */
-	double	h = 1000.0;
+	double	h = 2100.0;
+	/** half-kernel radius for inter-agent control (interaction radius) for attractor, m */
+	double	h_attractor = 10000.0;
 	/** Reynolds number, controls viscosity, dimensionless */
 	double	Re = 20.0;
 	/** Maximum inter-agent relative velocity, m/s */
@@ -777,7 +779,7 @@ class sim_param	{
 	double	inter_agent_w = 1.0;
 	/** attractor force weighing */
 	double	attractor_w = 1.0;
-	/** obstacle force weighing */
+	/** obstacle force weighing  (phase 2)*/
 	double obstacle_w = 1.0;
     /** attractor point for MAC (ECI) - both position and velocity */
     double	x_attractor = 0.0;
@@ -786,21 +788,18 @@ class sim_param	{
     double	vx_attractor = 0.0;
     double	vy_attractor = 0.0;
     double	vz_attractor = 0.0;
-    double	h_attractor = 10000.0;
-    /** objective */
-	double	internode_distance = 5000.0;
 
 	// Computed (i.e. dependent) parameters
 	/** mass (fictional) */
-	double m = 0.0;
+	double m = 1.0;
 	/** viscousity coefficient */
-	double mu = 0.0;
+	double mu = 1.0;
 	/** square of information speed*/
-	double c_squared = 0.0;
+	double c_squared = 1.0;
 	/** speed of sound associated with attraction point */
-	double c_a = 0.0;
+	double c_a = 1.0;
 	/** pressure (fictional)*/
-	double P = 0.0;
+	double P = 1.0;
 	/** Pairwise inter-node distances */
 	vector<double> r_ijs; //(MAX_NUMBER_OF_SATELLITES, 0.0);
 
@@ -828,7 +827,6 @@ class sim_param	{
             { "vy_attractor"		, vy_attractor },
             { "vz_attractor"		, vz_attractor },
             { "h_attractor"		, h_attractor },
-            { "internode_distance"	, internode_distance }
             //{ "m"	, m },
             //{ "mu"	, mu },
             //{ "c_squared"	, c_squared },
@@ -866,7 +864,6 @@ class sim_param	{
             if(!p["vy_attractor"].is_null()) { vy_attractor = p["vy_attractor"].number_value(); }
             if(!p["vz_attractor"].is_null()) { vz_attractor = p["vz_attractor"].number_value(); }
             if(!p["h_attractor"].is_null()) { h_attractor = p["h_attractor"].number_value(); }
-            if(!p["internode_distance"].is_null()) { internode_distance = p["internode_distance"].number_value(); }
             if(!p["m"].is_null()) { m = p["m"].number_value(); }
             if(!p["mu"].is_null()) { mu = p["mu"].number_value(); }
             if(!p["c_squared"].is_null()) { c_squared = p["c_squared"].number_value(); }
