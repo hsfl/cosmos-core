@@ -759,7 +759,7 @@ class sim_param	{
 	sim_param() : r_ijs(MAX_NUMBER_OF_SATELLITES, 0.0) {};
 
 	/** half-kernel radius for inter-agent control (interaction radius), m */
-	double	h = 2100.0;
+	double	h = 1000.0;
 	/** half-kernel radius for inter-agent control (interaction radius) for attractor, m */
 	double	h_attractor = 10000.0;
 	/** Reynolds number, controls viscosity, dimensionless */
