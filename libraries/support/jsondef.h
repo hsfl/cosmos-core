@@ -761,7 +761,7 @@ class sim_param	{
 	/** half-kernel radius for inter-agent control (interaction radius), m */
 	double	h = 1000.0;
 	/** half-kernel radius for inter-agent control (interaction radius) for attractor, m */
-	double	h_attractor = 10000.0;
+	double	h_attractor = 5000.0;
 	/** Reynolds number, controls viscosity, dimensionless */
 	double	Re = 20.0;
 	/** Maximum inter-agent relative velocity, m/s */
