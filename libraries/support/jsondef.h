@@ -756,8 +756,12 @@ namespace Cosmos
 class sim_param	{
 	public:
 
+	sim_param() : r_ijs(MAX_NUMBER_OF_SATELLITES, 0.0) {};
+
 	/** half-kernel radius for inter-agent control (interaction radius), m */
 	double	h = 1000.0;
+	/** half-kernel radius for inter-agent control (interaction radius) for attractor, m */
+	double	h_attractor = 5000.0;
 	/** Reynolds number, controls viscosity, dimensionless */
 	double	Re = 20.0;
 	/** Maximum inter-agent relative velocity, m/s */
@@ -770,11 +774,12 @@ class sim_param	{
 	double	gamma = 1.0;
 	/** reference density, kg/m^3 */
 	double	rho_0 = 1.0;
+	double	rho = 0.0;
 	/** hydrodynamics force weighting, repulsion force */
 	double	inter_agent_w = 1.0;
 	/** attractor force weighing */
 	double	attractor_w = 1.0;
-	/** obstacle force weighing */
+	/** obstacle force weighing  (phase 2)*/
 	double obstacle_w = 1.0;
     /** attractor point for MAC (ECI) - both position and velocity */
     double	x_attractor = 0.0;
@@ -783,9 +788,20 @@ class sim_param	{
     double	vx_attractor = 0.0;
     double	vy_attractor = 0.0;
     double	vz_attractor = 0.0;
-    double	h_attractor = 10000.0;
-    /** objective */
-	double	internode_distance = 5000.0;
+
+	// Computed (i.e. dependent) parameters
+	/** mass (fictional) */
+	double m = 1.0;
+	/** viscousity coefficient */
+	double mu = 1.0;
+	/** square of information speed*/
+	double c_squared = 1.0;
+	/** speed of sound associated with attraction point */
+	double c_a = 1.0;
+	/** pressure (fictional)*/
+	double P = 1.0;
+	/** Pairwise inter-node distances */
+	vector<double> r_ijs; //(MAX_NUMBER_OF_SATELLITES, 0.0);
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
@@ -800,6 +816,7 @@ class sim_param	{
 			{ "M"  	, M },
 			{ "gamma"   , gamma },
 			{ "rho_0" 	, rho_0 },
+			//{ "rho" 	, rho },
 			{ "inter_agent_w"	, inter_agent_w },
 			{ "attractor_w"		, attractor_w },
 			{ "obstacle_w"		, obstacle_w },
@@ -810,7 +827,12 @@ class sim_param	{
             { "vy_attractor"		, vy_attractor },
             { "vz_attractor"		, vz_attractor },
             { "h_attractor"		, h_attractor },
-            { "internode_distance"	, internode_distance }
+            //{ "m"	, m },
+            //{ "mu"	, mu },
+            //{ "c_squared"	, c_squared },
+            //{ "c_a"	, c_a },
+            //{ "P"	, P },
+            //{ "r_ijs"	, r_ijs },
 		};
 	}
 
@@ -831,6 +853,7 @@ class sim_param	{
 			if(!p["M"].is_null()) { M = p["M"].number_value(); }
 			if(!p["gamma"].is_null()) { gamma = p["gamma"].number_value(); }
 			if(!p["rho_0"].is_null()) { rho_0 = p["rho_0"].number_value(); }
+			if(!p["rho"].is_null()) { rho = p["rho"].number_value(); }
 			if(!p["inter_agent_w"].is_null()) { inter_agent_w = p["inter_agent_w"].number_value(); }
 			if(!p["attractor_w"].is_null()) { attractor_w = p["attractor_w"].number_value(); }
 			if(!p["obstacle_w"].is_null()) { obstacle_w = p["obstacle_w"].number_value(); }
@@ -841,7 +864,12 @@ class sim_param	{
             if(!p["vy_attractor"].is_null()) { vy_attractor = p["vy_attractor"].number_value(); }
             if(!p["vz_attractor"].is_null()) { vz_attractor = p["vz_attractor"].number_value(); }
             if(!p["h_attractor"].is_null()) { h_attractor = p["h_attractor"].number_value(); }
-            if(!p["internode_distance"].is_null()) { internode_distance = p["internode_distance"].number_value(); }
+            if(!p["m"].is_null()) { m = p["m"].number_value(); }
+            if(!p["mu"].is_null()) { mu = p["mu"].number_value(); }
+            if(!p["c_squared"].is_null()) { c_squared = p["c_squared"].number_value(); }
+            if(!p["c_a"].is_null()) { c_a = p["c_a"].number_value(); }
+            if(!p["P"].is_null()) { P = p["P"].number_value(); }
+			// JIMNOTE: add a spot for vector<double> r_ijs
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
