@@ -17,7 +17,7 @@ target_link_libraries(CosmosSupport ${COSMOS_LIBS})
 add_library(CosmosSlip STATIC sliplib.cpp sliplib.h)
 install(TARGETS CosmosSlip DESTINATION lib)
 
-add_library(CosmosTransfer STATIC transferlib.cpp transferlib.h)
+add_library(CosmosTransfer STATIC transferlib.cpp transferlib.h transferclass.h)
 install(TARGETS CosmosTransfer DESTINATION lib)
 target_link_libraries(CosmosTransfer  CosmosSupport ${COSMOS_LIBS})
 
