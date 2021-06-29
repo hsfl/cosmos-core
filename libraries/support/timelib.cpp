@@ -1001,6 +1001,10 @@ namespace Cosmos {
 
         int32_t secondsleep(double seconds)
         {
+            if (seconds < 0.)
+            {
+                seconds = 0.;
+            }
             return microsleep(seconds * 1000000);
         }
 
