@@ -8,7 +8,7 @@ namespace Cosmos {
 
         }
 
-        PacketComm::CalcCRC()
+        void PacketComm::CalcCRC()
         {
             crc = calc_crc16ccitt_lsb(data);
         }
