@@ -126,9 +126,11 @@
 //! CRC-16-CCITT Normal
 #define CRC16CCITT 0x1021
 #define CRC16CCITTMSB 0x1021
+#define CRC16CCITTMSBINIT 0xffff
 //! CRC-16-CCITT Reversed
 #define CRC16CCITTR 0x8408
 #define CRC16CCITTLSB 0x8408
+#define CRC16CCITTLSBINIT 0x0000
 //! CRC-16-CCITT Reversed Reciprocal
 #define CRC16CCITTRR 0x8810
 
@@ -358,12 +360,27 @@ double fixangle(double angle);
 double actan(double y, double x);
 double fixprecision(double number, double precision);
 uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb=true);
-uint16_t calc_crc16ccitt_lsb(string &buf, uint16_t initialcrc=0xffff, uint16_t skip=0);
-uint16_t calc_crc16ccitt_lsb(vector<uint8_t> &buf, uint16_t initialcrc=0xffff, uint16_t skip=0);
-uint16_t calc_crc16ccitt_lsb(uint8_t *buf, uint16_t size, uint16_t initialcrc=0xffff, uint16_t skip=0);
-uint16_t calc_crc16ccitt_msb(string &buf, uint16_t initialcrc=0, uint16_t skip=0);
-uint16_t calc_crc16ccitt_msb(vector<uint8_t> &buf, uint16_t initialcrc=0, uint16_t skip=0);
-uint16_t calc_crc16ccitt_msb(uint8_t *buf, uint16_t size, uint16_t initialcrc=0, uint16_t skip=0);
+uint16_t calc_crc16ccitt_lsb(string &buf, uint16_t initialcrc=CRC16CCITTLSBINIT, uint16_t skip=0);
+uint16_t calc_crc16ccitt_lsb(vector<uint8_t> &buf, uint16_t initialcrc=CRC16CCITTLSBINIT, uint16_t skip=0);
+uint16_t calc_crc16ccitt_lsb(uint8_t *buf, uint16_t size, uint16_t initialcrc=CRC16CCITTLSBINIT);
+uint16_t calc_crc16ccitt_msb(string &buf, uint16_t initialcrc=CRC16CCITTMSBINIT, uint16_t skip=0);
+uint16_t calc_crc16ccitt_msb(vector<uint8_t> &buf, uint16_t initialcrc=CRC16CCITTMSBINIT, uint16_t skip=0);
+uint16_t calc_crc16ccitt_msb(uint8_t *buf, uint16_t size, uint16_t initialcrc=CRC16CCITTMSBINIT);
+
+class CRC16
+{
+public:
+    uint16_t lookup[256];
+
+    CRC16(bool reversed=false);
+    uint16_t calc(vector<uint8_t> message);
+    uint16_t calc(uint8_t *buf, uint16_t size);
+
+private:
+    uint16_t initial = 0xffff;
+    uint16_t polynomial = 0x1021;
+    bool lsbfirst = true;
+};
 
 class LsFit
 {

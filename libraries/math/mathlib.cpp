@@ -2263,11 +2263,11 @@ uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb)
 
     if (lsb)
     {
-        crc = 0xffff;
+        crc = CRC16CCITTLSBINIT;
     }
     else
     {
-        crc = 0;
+        crc = CRC16CCITTMSBINIT;
     }
     for (uint16_t i=0; i<size; i++)
     {
@@ -2289,16 +2289,86 @@ uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb)
     return (crc);
 }
 
+CRC16::CRC16(bool reversed)
+{
+    if (reversed)
+    {
+        initial ^= initial;
+        uint8_t lowbyte = polynomial&0xff;
+        lowbyte = uint8to(&lowbyte, ByteOrder::BIGENDIAN);
+        uint8_t highbyte = polynomial>>8;
+        highbyte = uint8to(&highbyte, ByteOrder::BIGENDIAN);
+        polynomial = 256L * highbyte + lowbyte;
+        lsbfirst = true;
+    }
+
+    for (uint16_t i=0; i<256; ++i)
+    {
+        uint16_t  remainder;
 
 
+        /*
+         * Compute the remainder of each possible dividend.
+         */
+        for (int32_t dividend = 0; dividend < 256; ++dividend)
+        {
+            /*
+             * Start with the dividend followed by zeros.
+             */
+            remainder = dividend << (8);
+
+            /*
+             * Perform modulo-2 division, a bit at a time.
+             */
+            for (uint8_t bit = 8; bit > 0; --bit)
+            {
+                /*
+                 * Try to divide the current data bit.
+                 */
+                if (remainder & 0x8000)
+                {
+                    remainder = (remainder << 1) ^ polynomial;
+                }
+                else
+                {
+                    remainder = (remainder << 1);
+                }
+            }
+
+            /*
+             * Store the result into the table.
+             */
+            lookup[dividend] = remainder;
+        }
+    }
+}
+
+uint16_t CRC16::calc(uint8_t *buf, uint16_t size)
+{
+    vector<uint8_t> vbuf(buf, buf+(size));
+    return calc(vbuf);
+}
+
+uint16_t CRC16::calc(vector<uint8_t> message)
+{
+    uint8_t data;
+    uint16_t remainder = initial;
 
 
+    /*
+     * Divide the message by the polynomial, a byte at a time.
+     */
+    for (int byte = 0; byte < message.size(); ++byte)
+    {
+        data = message[byte] ^ (remainder >> (8));
+        remainder = lookup[data] ^ (remainder << 8);
+    }
 
-
-
-
-
-
+    /*
+     * The final remainder is the CRC.
+     */
+    return (remainder);
+}
 
 // -------------------------------------------------
 // TODO: redo the following quaternion related functions so that they can move
@@ -3075,9 +3145,9 @@ uint16_t calc_crc16ccitt_lsb(string &buf, uint16_t crc, uint16_t skip)
     return calc_crc16ccitt_lsb(vbuf, crc);
 }
 
-uint16_t calc_crc16ccitt_lsb(uint8_t* buf, uint16_t size, uint16_t crc, uint16_t skip)
+uint16_t calc_crc16ccitt_lsb(uint8_t* buf, uint16_t size, uint16_t crc)
 {
-    vector<uint8_t> vbuf(buf, buf+(size-skip));
+    vector<uint8_t> vbuf(buf, buf+(size));
     return calc_crc16ccitt_lsb(vbuf, crc);
 }
 
@@ -3107,9 +3177,9 @@ uint16_t calc_crc16ccitt_msb(string &buf, uint16_t crc, uint16_t skip)
     return calc_crc16ccitt_msb(vbuf, crc);
 }
 
-uint16_t calc_crc16ccitt_msb(uint8_t* buf, uint16_t size, uint16_t crc, uint16_t skip)
+uint16_t calc_crc16ccitt_msb(uint8_t* buf, uint16_t size, uint16_t crc)
 {
-    vector<uint8_t> vbuf(buf, buf+(size-skip));
+    vector<uint8_t> vbuf(buf, buf+(size));
     return calc_crc16ccitt_msb(vbuf, crc);
 }
 
