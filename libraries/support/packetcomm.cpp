@@ -1,5 +1,6 @@
 #include "packetcomm.h"
 #include "math/mathlib.h"
+#include "support/sliplib.h"
 
 namespace Cosmos {
     namespace Support {
@@ -20,6 +21,7 @@ namespace Cosmos {
 
         bool PacketComm::PacketIn()
         {
+            slip_unpack(slipdata, rawdata);
             type = rawdata[0];
             uint16_t size = rawdata[1] + 256 * rawdata[2];
             if (rawdata.size() < size + 5)
@@ -50,6 +52,7 @@ namespace Cosmos {
             memcpy(&rawdata[3], data.data(), size);
             rawdata[size+3] = crc & 0xff;
             rawdata[size+4] = crc >> 8;
+            slip_pack(rawdata, slipdata);
             return true;
         }
     }
