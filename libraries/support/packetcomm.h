@@ -11,12 +11,16 @@ namespace Cosmos {
             PacketComm();
             void CalcCRC();
             bool CheckCRC();
-            bool PacketIn();
-            bool PacketOut();
+            int32_t PacketIn();
+            int32_t PacketOut();
 
+			/// Slip encoded packet
             vector<uint8_t> slipdata;
+			/// COSMOS protocol packet
             vector<uint8_t> rawdata;
+			/// Packet type ID, refer to relevant documentation
             uint8_t type;
+			/// Data of interest
             vector<uint8_t> data;
             uint16_t crc;
 

@@ -19,30 +19,27 @@ namespace Cosmos {
 
         }
 
-        bool PacketComm::PacketIn()
+        int32_t PacketComm::PacketIn()
         {
             slip_unpack(slipdata, rawdata);
             type = rawdata[0];
             uint16_t size = rawdata[1] + 256 * rawdata[2];
             if (rawdata.size() < size + 5)
             {
-                return false;
+                return COSMOS_GENERAL_ERROR_UNDERSIZE;
             }
             uint16_t crcin = rawdata[size+3] + 256 * rawdata[size+4];
             data.resize(size);
             memcpy(data.data(), &rawdata[3], size);
-            crc = calc_crc16ccitt_lsb(data);
+            CalcCRC();
             if (crc != crcin)
             {
-                return false;
+                return COSMOS_GENERAL_ERROR_CRC;
             }
-            else
-            {
-                return true;
-            }
+			return 0;
         }
 
-        bool PacketComm::PacketOut()
+        int32_t PacketComm::PacketOut()
         {
             uint16_t size = data.size();
             rawdata.resize(size+5);
@@ -50,10 +47,12 @@ namespace Cosmos {
             rawdata[1] = size & 0xff;
             rawdata[2] = size >> 8;
             memcpy(&rawdata[3], data.data(), size);
+			CalcCRC();
             rawdata[size+3] = crc & 0xff;
             rawdata[size+4] = crc >> 8;
             slip_pack(rawdata, slipdata);
-            return true;
+			
+            return 0;
         }
     }
 }
