@@ -774,7 +774,6 @@ class sim_param	{
 	double	gamma = 1.0;
 	/** reference density, kg/m^3 */
 	double	rho_0 = 1.0;
-	double	rho = 0.0;
 	/** hydrodynamics force weighting, repulsion force */
 	double	inter_agent_w = 1.0;
 	/** attractor force weighing */
@@ -800,6 +799,8 @@ class sim_param	{
 	double c_a = 1.0;
 	/** pressure (fictional)*/
 	double P = 1.0;
+	/** density */
+	double	rho = 0.0;
 	/** Pairwise inter-node distances */
 	vector<double> r_ijs; //(MAX_NUMBER_OF_SATELLITES, 0.0);
 
@@ -816,7 +817,7 @@ class sim_param	{
 			{ "M"  	, M },
 			{ "gamma"   , gamma },
 			{ "rho_0" 	, rho_0 },
-			{ "rho" 	, rho },
+			//{ "rho" 	, rho },
 			{ "inter_agent_w"	, inter_agent_w },
 			{ "attractor_w"		, attractor_w },
 			{ "obstacle_w"		, obstacle_w },
@@ -853,7 +854,7 @@ class sim_param	{
 			if(!p["M"].is_null()) { M = p["M"].number_value(); }
 			if(!p["gamma"].is_null()) { gamma = p["gamma"].number_value(); }
 			if(!p["rho_0"].is_null()) { rho_0 = p["rho_0"].number_value(); }
-			if(!p["rho"].is_null()) { rho = p["rho"].number_value(); }
+			//if(!p["rho"].is_null()) { rho = p["rho"].number_value(); }
 			if(!p["inter_agent_w"].is_null()) { inter_agent_w = p["inter_agent_w"].number_value(); }
 			if(!p["attractor_w"].is_null()) { attractor_w = p["attractor_w"].number_value(); }
 			if(!p["obstacle_w"].is_null()) { obstacle_w = p["obstacle_w"].number_value(); }
