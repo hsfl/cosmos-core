@@ -816,7 +816,7 @@ class sim_param	{
 			{ "M"  	, M },
 			{ "gamma"   , gamma },
 			{ "rho_0" 	, rho_0 },
-			//{ "rho" 	, rho },
+			{ "rho" 	, rho },
 			{ "inter_agent_w"	, inter_agent_w },
 			{ "attractor_w"		, attractor_w },
 			{ "obstacle_w"		, obstacle_w },
