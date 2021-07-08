@@ -458,18 +458,23 @@ void json_init_reserve(cosmosstruc* cinfo) {
     // init sim_states
     sim_state s;
     s.node_name = "daughter_01";
-    s.agent_name = "allison";
+    //s.agent_name = "allison";
+    s.agent_name = "daughter";
     cinfo->sim_states.push_back(s);
     s.node_name = "daughter_02";
-    s.agent_name = "becky";
+    //s.agent_name = "becky";
+    s.agent_name = "daughter";
     cinfo->sim_states.push_back(s);
     s.node_name = "daughter_03";
-    s.agent_name = "cecilia";
+    //s.agent_name = "cecilia";
+    s.agent_name = "daughter";
     cinfo->sim_states.push_back(s);
     s.node_name = "daughter_04";
-    s.agent_name = "delilah";
+    //s.agent_name = "delilah";
+    s.agent_name = "daughter";
     cinfo->sim_states.push_back(s);
     s.node_name = "mothership";
+    //s.agent_name = "mother";
     s.agent_name = "mother";
     cinfo->sim_states.push_back(s);
 
