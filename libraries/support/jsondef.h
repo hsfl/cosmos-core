@@ -758,6 +758,8 @@ class sim_param	{
 
 	sim_param() : r_ijs(MAX_NUMBER_OF_SATELLITES, 0.0) {};
 
+	// MAC Parameters
+
 	/** half-kernel radius for inter-agent control (interaction radius), m */
 	double	h = 1000.0;
 	/** half-kernel radius for inter-agent control (interaction radius) for attractor, m */
@@ -786,7 +788,7 @@ class sim_param	{
     double	vy_attractor = 0.0;
     double	vz_attractor = 0.0;
 
-	// Computed (i.e. dependent) parameters
+	// Computed MAC (i.e. dependent) parameters
 	/** mass (fictional) */
 	double m = 1.0;
 	/** viscousity coefficient */
@@ -801,6 +803,12 @@ class sim_param	{
 	double	rho = 0.0;
 	/** Pairwise inter-node distances */
 	vector<double> r_ijs; //(MAX_NUMBER_OF_SATELLITES, 0.0);
+
+	// HCL Parameters
+	/** my first parameter (units) */
+	double	param_1 = 1234.45;
+
+
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
@@ -825,6 +833,7 @@ class sim_param	{
             { "vy_attractor"		, vy_attractor },
             { "vz_attractor"		, vz_attractor },
             { "h_attractor"		, h_attractor },
+            { "param_1"	 	, param_1 },
             //{ "m"	, m },
             //{ "mu"	, mu },
             //{ "c_squared"	, c_squared },
@@ -866,6 +875,7 @@ class sim_param	{
             if(!p["c_squared"].is_null()) { c_squared = p["c_squared"].number_value(); }
             if(!p["c_a"].is_null()) { c_a = p["c_a"].number_value(); }
             if(!p["P"].is_null()) { P = p["P"].number_value(); }
+            if(!p["param_1"].is_null()) { param_1 = p["param_1"].number_value(); }
 			// JIMNOTE: add a spot for vector<double> r_ijs
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -1417,6 +1427,8 @@ class sim_param	{
             double	b_att_target = 0.0;
             double	c_att_target = 0.0;
             double	d_att_target = 0.0;
+
+// SCOTTNOTE:  these need timestamps!
 
             /** angular velocity */
             double x_omega = 0.0;
