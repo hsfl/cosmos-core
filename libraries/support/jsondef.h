@@ -805,8 +805,13 @@ class sim_param	{
 	vector<double> r_ijs; //(MAX_NUMBER_OF_SATELLITES, 0.0);
 
 	// HCL Parameters
-	/** my first parameter (units) */
-	double	param_1 = 1234.45;
+	/** Diagonal values of covariance matrix of gps pos and vel */
+	double covar_gps_diag0 = 1.;
+	double covar_gps_diag1 = 1.;
+	double covar_gps_diag2 = 1.;
+	double covar_gps_diag3 = 1.;
+	double covar_gps_diag4 = 1.;
+	double covar_gps_diag5 = 1.;
 
 
 
@@ -833,13 +838,18 @@ class sim_param	{
             { "vy_attractor"		, vy_attractor },
             { "vz_attractor"		, vz_attractor },
             { "h_attractor"		, h_attractor },
-            { "param_1"	 	, param_1 },
+            { "covar_gps_diag0"	, covar_gps_diag0 },
+            { "covar_gps_diag1"	, covar_gps_diag1 },
+            { "covar_gps_diag2"	, covar_gps_diag2 },
+            { "covar_gps_diag3"	, covar_gps_diag3 },
+            { "covar_gps_diag4"	, covar_gps_diag4 },
+            { "covar_gps_diag5"	, covar_gps_diag5 },
             //{ "m"	, m },
             //{ "mu"	, mu },
             //{ "c_squared"	, c_squared },
             //{ "c_a"	, c_a },
             //{ "P"	, P },
-            //{ "r_ijs"	, r_ijs },
+            { "r_ijs"	, r_ijs },
 		};
 	}
 
@@ -875,8 +885,15 @@ class sim_param	{
             if(!p["c_squared"].is_null()) { c_squared = p["c_squared"].number_value(); }
             if(!p["c_a"].is_null()) { c_a = p["c_a"].number_value(); }
             if(!p["P"].is_null()) { P = p["P"].number_value(); }
-            if(!p["param_1"].is_null()) { param_1 = p["param_1"].number_value(); }
-			// JIMNOTE: add a spot for vector<double> r_ijs
+            if(!p["covar_gps_diag0"].is_null()) { covar_gps_diag0 = p["covar_gps_diag0"].number_value(); }
+            if(!p["covar_gps_diag1"].is_null()) { covar_gps_diag1 = p["covar_gps_diag1"].number_value(); }
+            if(!p["covar_gps_diag2"].is_null()) { covar_gps_diag2 = p["covar_gps_diag2"].number_value(); }
+            if(!p["covar_gps_diag3"].is_null()) { covar_gps_diag3 = p["covar_gps_diag3"].number_value(); }
+            if(!p["covar_gps_diag4"].is_null()) { covar_gps_diag4 = p["covar_gps_diag4"].number_value(); }
+            if(!p["covar_gps_diag5"].is_null()) { covar_gps_diag5 = p["covar_gps_diag5"].number_value(); }
+			for(size_t i = 0; i < r_ijs.size(); ++i) {
+                if(!p["r_ijs"][i].is_null()) { r_ijs[i] = p["r_ijs"][i].number_value(); }
+            }
 		} else {
 			cerr<<"ERROR: <"<<error<<">"<<endl;
 		}
@@ -4822,7 +4839,7 @@ information.
                     { "txr_cnt", txr_cnt },
                     //                    { "all", all },
                     { "ant", ant },
-                    { "ant", batt },
+                    { "batt", batt },
                     { "bcreg", bcreg },
                     { "bus", bus },
                     { "cam", cam },
