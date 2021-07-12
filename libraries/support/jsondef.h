@@ -1428,29 +1428,32 @@ class sim_param	{
             double	c_att_target = 0.0;
             double	d_att_target = 0.0;
 
-// SCOTTNOTE:  these need timestamps!
-
             /** angular velocity */
+			double t_omega = 0.0;
             double x_omega = 0.0;
             double y_omega = 0.0;
             double z_omega = 0.0;
 
             /** angular acceleration **/
+			double t_alpha = 0.0;
             double x_alpha = 0.0;
             double y_alpha = 0.0;
             double z_alpha = 0.0;
 
             /** thrust */
+			double t_thrust = 0.0;
             double x_thrust = 0.0;
             double y_thrust = 0.0;
             double z_thrust = 0.0;
 
             /** torque */
+			double t_torque = 0.0;
             double x_torque = 0.0;
             double y_torque = 0.0;
             double z_torque = 0.0;
 
             /** acceleration differentials */
+			double t_acc_diff = 0.0;
             double x_acc_diff = 0.0;
             double y_acc_diff = 0.0;
             double z_acc_diff = 0.0;
@@ -1498,22 +1501,27 @@ class sim_param	{
                     { "c_att_target"   , c_att_target },
                     { "d_att_target"   , d_att_target },
 
+                    { "t_omega" , t_omega },
                     { "x_omega" , x_omega },
                     { "y_omega" , y_omega },
                     { "z_omega" , z_omega },
 
+                    { "t_alpha" , t_alpha },
                     { "x_alpha" , x_alpha },
                     { "y_alpha" , y_alpha },
                     { "z_alpha" , z_alpha },
 
+                    { "t_thrust", t_thrust },
                     { "x_thrust", x_thrust },
                     { "y_thrust", y_thrust },
                     { "z_thrust", z_thrust },
 
+                    { "t_torque", t_torque },
                     { "x_torque", x_torque },
                     { "y_torque", y_torque },
                     { "z_torque", z_torque },
 
+                    { "t_acc_diff"   , t_acc_diff },
                     { "x_acc_diff"   , x_acc_diff },
                     { "y_acc_diff"   , y_acc_diff },
                     { "z_acc_diff"   , z_acc_diff },
@@ -1564,22 +1572,27 @@ class sim_param	{
                     if(!p["c_att_target"].is_null()) { c_att_target = p["c_att_target"].number_value(); }
                     if(!p["d_att_target"].is_null()) { d_att_target = p["d_att_target"].number_value(); }
 
+                    if(!p["t_omega"].is_null()) { t_omega = p["t_omega"].number_value(); }
                     if(!p["x_omega"].is_null()) { x_omega = p["x_omega"].number_value(); }
                     if(!p["y_omega"].is_null()) { y_omega = p["y_omega"].number_value(); }
                     if(!p["z_omega"].is_null()) { z_omega = p["z_omega"].number_value(); }
 
+                    if(!p["t_alpha"].is_null()) { t_alpha = p["t_alpha"].number_value(); }
                     if(!p["x_alpha"].is_null()) { x_alpha = p["x_alpha"].number_value(); }
                     if(!p["y_alpha"].is_null()) { y_alpha = p["y_alpha"].number_value(); }
                     if(!p["z_alpha"].is_null()) { z_alpha = p["z_alpha"].number_value(); }
 
+                    if(!p["t_thrust"].is_null()) { t_thrust = p["t_thrust"].number_value(); }
                     if(!p["x_thrust"].is_null()) { x_thrust = p["x_thrust"].number_value(); }
                     if(!p["y_thrust"].is_null()) { y_thrust = p["y_thrust"].number_value(); }
                     if(!p["z_thrust"].is_null()) { z_thrust = p["z_thrust"].number_value(); }
 
+                    if(!p["t_torque"].is_null()) { t_torque = p["t_torque"].number_value(); }
                     if(!p["x_torque"].is_null()) { x_torque = p["x_torque"].number_value(); }
                     if(!p["y_torque"].is_null()) { y_torque = p["y_torque"].number_value(); }
                     if(!p["z_torque"].is_null()) { z_torque = p["z_torque"].number_value(); }
 
+                    if(!p["t_acc_diff"].is_null()) { t_acc_diff = p["t_acc_diff"].number_value(); }
                     if(!p["x_acc_diff"].is_null()) { x_acc_diff = p["x_acc_diff"].number_value(); }
                     if(!p["y_acc_diff"].is_null()) { y_acc_diff = p["y_acc_diff"].number_value(); }
                     if(!p["z_acc_diff"].is_null()) { z_acc_diff = p["z_acc_diff"].number_value(); }
@@ -7884,22 +7897,27 @@ information.
                     add_name(basename+".c_att_target", &sim_states[i].c_att_target, "double");
                     add_name(basename+".d_att_target", &sim_states[i].d_att_target, "double");
 
+                    add_name(basename+".t_omega", &sim_states[i].t_omega, "double");
                     add_name(basename+".x_omega", &sim_states[i].x_omega, "double");
                     add_name(basename+".y_omega", &sim_states[i].y_omega, "double");
                     add_name(basename+".z_omega", &sim_states[i].z_omega, "double");
 
+                    add_name(basename+".t_alpha", &sim_states[i].t_alpha, "double");
                     add_name(basename+".x_alpha", &sim_states[i].x_alpha, "double");
                     add_name(basename+".y_alpha", &sim_states[i].y_alpha, "double");
                     add_name(basename+".z_alpha", &sim_states[i].z_alpha, "double");
 
+                    add_name(basename+".t_thrust", &sim_states[i].t_thrust, "double");
                     add_name(basename+".x_thrust", &sim_states[i].x_thrust, "double");
                     add_name(basename+".y_thrust", &sim_states[i].y_thrust, "double");
                     add_name(basename+".z_thrust", &sim_states[i].z_thrust, "double");
 
+                    add_name(basename+".t_torque", &sim_states[i].t_torque, "double");
                     add_name(basename+".x_torque", &sim_states[i].x_torque, "double");
                     add_name(basename+".y_torque", &sim_states[i].y_torque, "double");
                     add_name(basename+".z_torque", &sim_states[i].z_torque, "double");
 
+                    add_name(basename+".t_acc_diff", &sim_states[i].t_acc_diff, "double");
                     add_name(basename+".x_acc_diff", &sim_states[i].x_acc_diff, "double");
                     add_name(basename+".y_acc_diff", &sim_states[i].y_acc_diff, "double");
                     add_name(basename+".z_acc_diff", &sim_states[i].z_acc_diff, "double");
