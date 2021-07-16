@@ -19,7 +19,7 @@ namespace Cosmos {
 
         }
 
-        int32_t PacketComm::PacketIn()
+        bool PacketComm::PacketIn()
         {
             type = datain[0];
             uint16_t size = datain[1] + 256 * datain[2];
