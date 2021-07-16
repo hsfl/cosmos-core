@@ -30,32 +30,6 @@
 #ifndef TRANSFERCLASS_H
 #define TRANSFERCLASS_H
 
-/*! \file transferclass.h
-*	\brief File Transfer Class Support header file
-*/
-
-//! \ingroup support
-//! \defgroup transferclass File Transfer Class Library
-//! File Transfer Protocol.
-//!
-//! COSMOS provides a basic File Transfer Protocol for direct transfer of
-//! files between Nodes and Agents. Each file transferred is targeted at
-//! a specific Node and Agent, and always flows from the outgoing folder
-//! at the sending location to the incoming folder of the receiving location.
-//!
-//! The protocol is designed to be robust in the face of intermittent connections,
-//! and to work within a network MTU of 250 bytes. Transfers are supported through
-//! the exchange of 8 packet types. Each packet starts with 1 byte indicating the
-//! type and 1 byte representing a Transaction Id. The packets differ from each
-//! other in the following way:
-//! - PACKET_METADATA: file_name, file_size, node_name, agent_name
-//! - PACKET_DATA: byte_count, chunk_start, chunk_data
-//! - PACKET_REQDATA: hole_start, hole_end
-//! - PACKET_REQMETA:
-//! - PACKET_COMPLETE:
-//! - PACKET_CANCEL:
-//! - PACKET_QUEUE: node_name,tx_ids[]
-
 // cosmos includes
 #include "support/configCosmos.h"
 #include "support/datalib.h"
@@ -64,7 +38,16 @@ namespace Cosmos {
     namespace Support {
         class Transfer {
         public:
-            Transfer(const string node, const string agent, size_t chunk_size=200, size_t throughput=1000);
+            struct chunk
+            {
+                uint32_t start;
+                uint32_t end;
+            };
+
+            Transfer();
+            int32_t Init(string node, string agent, uint16_t chunk_size);
+            int32_t Load(string filename, vector<chunk> &chunks);
+            int32_t Add(size_t chunkidx, vector<uint8_t> chunk);
 
             static const uint8_t PACKET_METADATA = 0xf;
             static const uint8_t PACKET_DATA = 0xe;
@@ -108,10 +91,17 @@ namespace Cosmos {
                 vector<uint8_t> chunk;
             };
 
-        private:
+            vector<uint8_t> meta;
+            vector<vector<uint8_t>> data;
+            uint32_t txid;
+            string name;
+            size_t size;
             string node;
             string agent;
-        }
+            string json;
+            size_t throughput;
+            size_t chunk_size;
+        };
     }
 }
 //! \ingroup transferclass
