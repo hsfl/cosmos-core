@@ -24,6 +24,7 @@ namespace Cosmos {
             vector<uint8_t> dataout;
             vector<uint8_t> datain;
             uint8_t type;
+			/// Data of interest
             vector<uint8_t> data;
             uint16_t crc;
 

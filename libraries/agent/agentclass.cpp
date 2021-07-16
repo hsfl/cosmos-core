@@ -267,6 +267,7 @@ namespace Support
         add_request("soh",req_soh,"","Get Limited SOH string");
         add_request("fullsoh",req_fullsoh,"","Get Full SOH string");
         add_request("jsondump",req_jsondump,"","Dump JSON ini files to node folder");
+		add_request("all_names_types",req_all_names_types,"","return text with all names and types in Namespace 2.0");
 
         // Set up Full SOH string
 //            set_fullsohstring(json_list_of_fullsoh(cinfo));
@@ -1753,6 +1754,28 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
         json_dump_node(agent->cinfo);
         return 0;
     }
+
+	// Return raw text of all names and associated types in agent's namespace
+	// Format is:
+	// name,\ttype\nname,\ttype ...etc
+	int32_t Agent::req_all_names_types(string &, string &response, Agent *agent) {
+		response = "";
+		map<string,void*>::const_iterator n = agent->cinfo->names.begin();
+		while(n != agent->cinfo->names.end())	{
+			map<string,string>::const_iterator t = agent->cinfo->types.find(n->first);
+			if(t == agent->cinfo->types.end())	{
+				response += (n++)->first + "\n";
+			} else {
+				response += (n++)->first + ",\t" + t->second + "\n";
+			}
+		}
+		// Remove last \n character
+		if(response.size() > 1) {
+			response.pop_back();
+		}
+
+		return 0;
+	}
 
     //! Open COSMOS output channel
     /*! Establish a multicast socket for publishing COSMOS messages using the specified address and

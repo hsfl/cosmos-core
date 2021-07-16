@@ -19,13 +19,13 @@ namespace Cosmos {
 
         }
 
-        bool PacketComm::PacketIn()
+        int32_t PacketComm::PacketIn()
         {
             type = datain[0];
             uint16_t size = datain[1] + 256 * datain[2];
             if (datain.size() < size + 5)
             {
-                return false;
+                return COSMOS_GENERAL_ERROR_UNDERSIZE;
             }
             data.clear();
             data.insert(data.begin(), &datain[3], &datain[size+3]);
