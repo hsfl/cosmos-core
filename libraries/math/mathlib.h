@@ -331,6 +331,8 @@ ByteOrder local_byte_order();
 
 uint8_t uint8from(uint8_t *pointer, ByteOrder order);
 uint8_t uint8to(uint8_t *pointer, ByteOrder order);
+void uint8from(vector<uint8_t> src, vector<uint8_t> &dst, ByteOrder order);
+void uint8to(vector<uint8_t> src, vector<uint8_t> dst, ByteOrder order);
 uint16_t uint16from(uint8_t *pointer, ByteOrder order);
 int16_t int16from(uint8_t *pointer, ByteOrder order);
 uint32_t uint32from(uint8_t *pointer, ByteOrder order);
@@ -360,10 +362,10 @@ double fixangle(double angle);
 double actan(double y, double x);
 double fixprecision(double number, double precision);
 uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb=true);
-uint16_t calc_crc16ccitt_lsb(string &buf, uint16_t initialcrc=CRC16CCITTLSBINIT, uint16_t skip=0);
+uint16_t calc_crc16ccitt_lsb(string buf, uint16_t initialcrc=CRC16CCITTLSBINIT, uint16_t skip=0);
 uint16_t calc_crc16ccitt_lsb(vector<uint8_t> &buf, uint16_t initialcrc=CRC16CCITTLSBINIT, uint16_t skip=0);
 uint16_t calc_crc16ccitt_lsb(uint8_t *buf, uint16_t size, uint16_t initialcrc=CRC16CCITTLSBINIT);
-uint16_t calc_crc16ccitt_msb(string &buf, uint16_t initialcrc=CRC16CCITTMSBINIT, uint16_t skip=0);
+uint16_t calc_crc16ccitt_msb(string buf, uint16_t initialcrc=CRC16CCITTMSBINIT, uint16_t skip=0);
 uint16_t calc_crc16ccitt_msb(vector<uint8_t> &buf, uint16_t initialcrc=CRC16CCITTMSBINIT, uint16_t skip=0);
 uint16_t calc_crc16ccitt_msb(uint8_t *buf, uint16_t size, uint16_t initialcrc=CRC16CCITTMSBINIT);
 
@@ -372,13 +374,17 @@ class CRC16
 public:
     uint16_t lookup[256];
 
-    CRC16(bool reversed=false);
+    CRC16(uint16_t polynomial=0x1021, uint16_t initial=0xffff, bool reversed=false);
+    uint16_t set(uint16_t polynomial=0x1021, uint16_t initial=0xffff, bool reversed=false);
     uint16_t calc(vector<uint8_t> message);
+    uint16_t calc(vector<uint8_t> message, uint16_t size);
+    uint16_t calc(string message, uint16_t size);
+    uint16_t calc(string message);
     uint16_t calc(uint8_t *buf, uint16_t size);
 
 private:
-    uint16_t initial = 0xffff;
-    uint16_t polynomial = 0x1021;
+    uint16_t initial;
+    uint16_t polynomial;
     bool lsbfirst = true;
 };
 
