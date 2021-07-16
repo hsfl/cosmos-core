@@ -624,6 +624,7 @@ namespace Cosmos {
 #define GENERAL_ERROR_NAME               -2032   //  No or unusable name
 #define GENERAL_ERROR_BAD_FD            -2033   // No or unusable file descriptor
 #define GENERAL_ERROR_BAD_ACK            -2034   // Bad acknowledgement
+#define GENERAL_ERROR_EOF               -2035
 
 #define GPHOTO2_ERROR -3000
 

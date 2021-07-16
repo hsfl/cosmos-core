@@ -405,4 +405,62 @@ uint16_t slip_set_crc(vector<uint8_t> &buf)
     return (crc);
 }
 
+int32_t slip_extract(FILE *fp, vector<uint8_t> &rbuf)
+{
+    size_t j, ch;
+    rbuf.clear();
+
+    j = 0;
+    do
+    {
+//        if (j > sbuf.size()-3)
+//        {
+//            return (SLIP_ERROR_PACKING);
+//        }
+        ch = fgetc(fp);
+        if (ch == EOF)
+        {
+            return GENERAL_ERROR_BAD_FD;
+        }
+    } while (ch != SLIP_FEND);
+
+    do
+    {
+//        if (j > sbuf.size()-3)
+//        {
+//            return (SLIP_ERROR_PACKING);
+//        }
+        ch = fgetc(fp);
+        if (ch == EOF)
+        {
+            return GENERAL_ERROR_BAD_FD;
+        }
+        switch (ch)
+        {
+        case SLIP_FESC:
+//            if (j > sbuf.size()-3)
+//                return (SLIP_ERROR_PACKING);
+            ch = fgetc(fp);
+            switch (ch)
+            {
+            case SLIP_TFEND:
+                rbuf.push_back(SLIP_FEND);
+                break;
+            case SLIP_TFESC:
+                rbuf.push_back(SLIP_FESC);
+                break;
+            }
+            break;
+        case SLIP_FEND:
+            break;
+        default:
+            rbuf.push_back(ch);
+            break;
+        }
+    } while (ch != SLIP_FEND);
+
+    return (rbuf.size());
+}
+
+
 //! @}
