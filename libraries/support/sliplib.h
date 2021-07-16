@@ -90,6 +90,7 @@ int32_t slip_encode(vector<uint8_t> &rbuf, vector<uint8_t> &sbuf);
 uint16_t slip_calc_crc(vector<uint8_t> &buf);
 uint16_t slip_get_crc(vector<uint8_t> &buf);
 uint16_t slip_set_crc(vector<uint8_t> &buf);
+int32_t slip_extract(FILE *fp, vector<uint8_t> &buf);
 
 //! @}
 

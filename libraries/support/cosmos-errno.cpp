@@ -1092,6 +1092,9 @@ namespace Cosmos {
                 case GENERAL_ERROR_BAD_ACK:
                     error_string = "Bad Acknowledgement";
                     break;
+                case GENERAL_ERROR_EOF:
+                    error_string = "End of File";
+                    break;
                 default:
                     char tval[30];
                     sprintf(tval,"Undefined Value %d", cosmos_errno);
