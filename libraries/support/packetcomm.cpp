@@ -1,12 +1,19 @@
 #include "packetcomm.h"
 #include "math/mathlib.h"
 #include "support/sliplib.h"
+#include "support/datalib.h"
+#include "support/stringlib.h"
 
 namespace Cosmos {
     namespace Support {
         PacketComm::PacketComm()
         {
+            TypeId.Init({"ShortReset", "ShortReboot","ShortSendBeacon"}, {0});
+            TypeId.Extend({"LongReset","LongReboot","LongSendBeacon"}, {10});
+            TypeId.Extend({"FileMeta","FileChunk"}, {20});
 
+            TypeId.Extend({"ShortCPUBeacon","ShortTempBeacon"}, {30});
+            TypeId.Extend({"LongCPUBeacon","LongTempBeacon"}, {40});
         }
 
         void PacketComm::CalcCRC()
@@ -19,7 +26,7 @@ namespace Cosmos {
 
         }
 
-        bool PacketComm::PacketIn()
+        bool PacketComm::Unpack()
         {
             type = datain[0];
             uint16_t size = datain[1] + 256 * datain[2];
@@ -38,7 +45,7 @@ namespace Cosmos {
             return true;
         }
 
-        bool PacketComm::PacketInRaw(bool invert)
+        bool PacketComm::RawIn(bool invert)
         {
             if (invert)
             {
@@ -48,16 +55,16 @@ namespace Cosmos {
             {
                 datain = dataout;
             }
-            return PacketIn();
+            return Unpack();
         }
 
-        bool PacketComm::PacketInSLIP()
+        bool PacketComm::SLIPIn()
         {
             slip_unpack(dataout, datain);
-            return PacketIn();
+            return Unpack();
         }
 
-        bool PacketComm::PacketInASM()
+        bool PacketComm::ASMIn()
         {
             datain.clear();
             if (atsm[0] == dataout[0] && atsm[1] == dataout[1] && atsm[2] == dataout[2] && atsm[3] == dataout[3])
@@ -70,10 +77,10 @@ namespace Cosmos {
                 input.insert(datain.begin(), &dataout[4], &dataout[dataout.size()]);
                 uint8from(input, datain, ByteOrder::BIGENDIAN);
             }
-            return PacketIn();
+            return Unpack();
         }
 
-        bool PacketComm::PacketOut()
+        bool PacketComm::Pack()
         {
             datain.resize(3);
             datain[0] = type;
@@ -87,9 +94,9 @@ namespace Cosmos {
             return true;
         }
 
-        bool PacketComm::PacketOutRaw()
+        bool PacketComm::RawOut()
         {
-            if (!PacketOut())
+            if (!Pack())
             {
                 return false;
             }
@@ -98,9 +105,9 @@ namespace Cosmos {
             return true;
         }
 
-        bool PacketComm::PacketOutSLIP()
+        bool PacketComm::SLIPOut()
         {
-            if (!PacketOut())
+            if (!Pack())
             {
                 return false;
             }
@@ -111,9 +118,9 @@ namespace Cosmos {
             return true;
         }
 
-        bool PacketComm::PacketOutASM()
+        bool PacketComm::ASMOut()
         {
-            if (!PacketOut())
+            if (!Pack())
             {
                 return false;
             }
@@ -122,5 +129,144 @@ namespace Cosmos {
             dataout.insert(dataout.end(), datain.begin(), datain.end());
             return true;
         }
+
+        int32_t PacketComm::Process()
+        {
+            int32_t iretn;
+            string args;
+            if (Funcs[type] != nullptr)
+            {
+                iretn = (*(Funcs[type]))(this, args);
+            }
+        }
+
+        int32_t PacketComm::Generate(string args)
+        {
+            int32_t iretn;
+            if (Funcs[type] != nullptr)
+            {
+                iretn = (*(Funcs[type]))(this, args);
+            }
+        }
+
+        int32_t PacketComm::ShortReset(PacketComm *packet, string args)
+        {
+            // Code to tell EPS to reset
+            return 0;
+        }
+
+        int32_t PacketComm::ShortReboot(PacketComm *packet, string args)
+        {
+            int32_t iretn;
+            string result;
+            iretn = data_execute("/sbin/reboot -f", result);
+            return iretn;
+        }
+
+        int32_t PacketComm::ShortSendBeacon(PacketComm *packet, string args)
+        {
+            vector<string>sargs = string_split(args, " ");
+            packet->data[0] = stoi(sargs[0]);
+            packet->data[1] = stoi(sargs[1]);
+//            float value;
+//            value = stof(sargs[0]);
+//            memcpy(&packet->data[0], &value, 4);
+            return 0;
+        }
+
+        int32_t PacketComm::LongReset(PacketComm *packet, string args)
+        {
+            return ShortReset(packet, args);
+        }
+
+        int32_t PacketComm::LongReboot(PacketComm *packet, string args)
+        {
+            return ShortReboot(packet, args);
+        }
+
+        int32_t PacketComm::LongSendBeacon(PacketComm *packet, string args)
+        {
+            return ShortSendBeacon(packet, args);
+        }
+
+        int32_t PacketComm::FileMeta(PacketComm *packet, string args)
+        {
+            uint32_t txid = uint32from(&packet->data[0], ByteOrder::LITTLEENDIAN);
+            if (txid != packet->ttransfer.txid)
+            {
+                packet->close_transfer();
+                packet->ttransfer.txid = txid;
+                packet->ttransfer.chunk_size = packet->data.size() - 10;
+            }
+            uint32_t chunkidx = uint32from(&packet->data[4], ByteOrder::LITTLEENDIAN);
+            if (chunkidx >= packet->ttransfer.data.size())
+            {
+                packet->ttransfer.data.resize(chunkidx+1);
+            }
+            packet->ttransfer.data[chunkidx].clear();
+            packet->ttransfer.data[chunkidx].insert(packet->ttransfer.data[chunkidx].begin(), &packet->data[8], &packet->data[packet->data.size()-2]);
+            return packet->ttransfer.txid;
+        }
+
+        int32_t PacketComm::FileChunk(PacketComm *packet, string args)
+        {
+            if (packet->ttransfer.data.size())
+            {
+                packet->close_transfer();
+            }
+            packet->ttransfer.json.assign(packet->data.begin(), packet->data.end());
+            string estring;
+            json11::Json jmeta = json11::Json::parse(packet->ttransfer.json.c_str(), estring);
+            packet->ttransfer.name = jmeta["name"].string_value();
+            packet->ttransfer.size = jmeta["size"].number_value();
+            packet->ttransfer.node = jmeta["node"].string_value();
+            packet->ttransfer.agent = jmeta["agent"].string_value();
+            packet->ttransfer.txid = jmeta["txid"].number_value();
+            packet->ttransfer.chunk_size = jmeta["chunksize"].number_value();
+            packet->ttransfer.data.resize(1+((packet->ttransfer.size-1)/packet->ttransfer.chunk_size));
+            return packet->ttransfer.txid;
+        }
+
+        int32_t PacketComm::close_transfer()
+        {
+
+            FILE *ofp;
+            if (ttransfer.name.size())
+            {
+                ofp = fopen(ttransfer.name.c_str(), "w");
+                printf("CLosing File: %u %s %u bytes\n", ttransfer.txid, ttransfer.name.c_str(), ttransfer.size);
+            }
+            else
+            {
+                ofp = fopen(("txid_"+to_unsigned(ttransfer.txid)).c_str(), "w");
+                printf("Missing Meta: %u\n", ttransfer.txid);
+            }
+            for (uint16_t idx=0; idx<ttransfer.data.size(); ++idx)
+            {
+                if (ttransfer.data[idx].size())
+                {
+                    fseek(ofp,idx*ttransfer.chunk_size, SEEK_SET);
+                    if (ttransfer.size - idx*ttransfer.chunk_size < ttransfer.chunk_size)
+                    {
+                        fwrite(ttransfer.data[idx].data(), ttransfer.size - idx*ttransfer.chunk_size, 1, ofp);
+                    }
+                    else
+                    {
+                        fwrite(ttransfer.data[idx].data(), ttransfer.data[idx].size(), 1, ofp);
+                    }
+                }
+                else
+                {
+                    printf("Missing Chunk: %u %u\n", ttransfer.txid, idx);
+                }
+            }
+            fclose(ofp);
+            ttransfer.txid = 0;
+            ttransfer.name.clear();
+            ttransfer.meta.clear();
+            ttransfer.data.clear();
+            ttransfer.json.clear();
+        }
+
     }
 }
