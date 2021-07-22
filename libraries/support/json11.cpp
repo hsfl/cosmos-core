@@ -775,8 +775,9 @@ Json Json::parse(const string &in, string &err, JsonParse strategy) {
     parser.consume_garbage();
     if (parser.failed)
         return Json();
-    if (parser.i != in.size())
-        return parser.fail("unexpected trailing " + esc(in[parser.i]));
+    // EP: 7/21/2021 Disabled this feature because it did not make sense to me and it was causing a failure
+//    if (parser.i != in.size())
+//        return parser.fail("unexpected trailing " + esc(in[parser.i]));
 
     return result;
 }
