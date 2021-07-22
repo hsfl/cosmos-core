@@ -780,6 +780,8 @@ class sim_param	{
 	double	inter_agent_w = 1.0;
 	/** attractor force weighing */
 	double	attractor_w = 1.0;
+	/** damping coefficient */
+	double	damping_coeff = 0.01;
     /** attractor point for MAC (ECI) - both position and velocity */
     double	x_attractor = 0.0;
     double	y_attractor = 0.0;
@@ -838,6 +840,7 @@ class sim_param	{
 			//{ "rho" 	, rho },
 			{ "inter_agent_w"	, inter_agent_w },
 			{ "attractor_w"		, attractor_w },
+			{ "damping_coeff"		, damping_coeff },
             { "x_attractor"		, x_attractor },
             { "y_attractor"		, y_attractor },
             { "z_attractor"		, z_attractor },
@@ -886,6 +889,7 @@ class sim_param	{
 			//if(!p["rho"].is_null()) { rho = p["rho"].number_value(); }
 			if(!p["inter_agent_w"].is_null()) { inter_agent_w = p["inter_agent_w"].number_value(); }
 			if(!p["attractor_w"].is_null()) { attractor_w = p["attractor_w"].number_value(); }
+			if(!p["damping_coeff"].is_null()) { damping_coeff = p["damping_coeff"].number_value(); }
             if(!p["x_attractor"].is_null()) { x_attractor = p["x_attractor"].number_value(); }
             if(!p["y_attractor"].is_null()) { y_attractor = p["y_attractor"].number_value(); }
             if(!p["z_attractor"].is_null()) { z_attractor = p["z_attractor"].number_value(); }
