@@ -4,6 +4,7 @@
 progress. If you find problems or no documentation for something
 you're looking for please let us know.**
 
+[Get started with the COSMOS Documentation page](https://hsfl.github.io/cosmos-docs/)
 [COSMOS Core Doxygen](https://hsfl.github.io/cosmos-core)
 
 The COSMOS/core is the basic element of the COSMOS project with the
