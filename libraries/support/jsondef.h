@@ -862,7 +862,7 @@ class sim_param	{
             //{ "c_squared"	, c_squared },
             //{ "c_a"	, c_a },
             //{ "P"	, P },
-            { "r_ijs"	, r_ijs },
+            //{ "r_ijs"	, r_ijs },
 		};
 	}
 
@@ -907,9 +907,9 @@ class sim_param	{
             if(!p["covar_gps_diag3"].is_null()) { covar_gps_diag3 = p["covar_gps_diag3"].number_value(); }
             if(!p["covar_gps_diag4"].is_null()) { covar_gps_diag4 = p["covar_gps_diag4"].number_value(); }
             if(!p["covar_gps_diag5"].is_null()) { covar_gps_diag5 = p["covar_gps_diag5"].number_value(); }
-            if(!p["covar_rel_pos_diag0"].is_null()) { covar_acc_diag0 = p["covar_rel_pos_diag0"].number_value(); }
-            if(!p["covar_rel_pos_diag1"].is_null()) { covar_acc_diag1 = p["covar_rel_pos_diag1"].number_value(); }
-            if(!p["covar_rel_pos_diag2"].is_null()) { covar_acc_diag2 = p["covar_rel_pos_diag2"].number_value(); }
+            if(!p["covar_rel_pos_diag0"].is_null()) { covar_rel_pos_diag0 = p["covar_rel_pos_diag0"].number_value(); }
+            if(!p["covar_rel_pos_diag1"].is_null()) { covar_rel_pos_acc_diag1 = p["covar_rel_pos_diag1"].number_value(); }
+            if(!p["covar_rel_pos_diag2"].is_null()) { covar_rel_pos_acc_diag2 = p["covar_rel_pos_diag2"].number_value(); }
 			for(size_t i = 0; i < r_ijs.size(); ++i) {
                 if(!p["r_ijs"][i].is_null()) { r_ijs[i] = p["r_ijs"][i].number_value(); }
             }
