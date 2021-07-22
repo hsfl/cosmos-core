@@ -38,10 +38,10 @@ namespace Cosmos {
             data.insert(data.begin(), &datain[3], &datain[size+3]);
             uint16_t crcin = datain[size+3] + 256 * datain[size+4];
             crc = calc_crc.calc(datain.data(), datain.size()-2);
-//            if (crc != crcin)
-//            {
-//                return false;
-//            }
+            if (crc != crcin)
+            {
+                return false;
+            }
             return true;
         }
 
