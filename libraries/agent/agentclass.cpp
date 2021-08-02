@@ -2351,9 +2351,9 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                         (struct sockaddr *)&cinfo->agent[0].pub[i].caddr, // socket address
                         sizeof(struct sockaddr_in)                  // size of address to socket pointer
                         );
-                    if (debug_level) {
-                        debug_error.Printf("Post PTP Local: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
-                    }
+//                    if (debug_level) {
+//                        debug_error.Printf("Post PTP Local: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
+//                    }
                 }
                 iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
                         (const char *)post,                         // buffer to send
@@ -2362,9 +2362,9 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                         (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
                         sizeof(struct sockaddr_in)                  // size of address to socket pointer
                         );
-                if (debug_level) {
-                    debug_error.Printf("Post PTP Remote: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
-                }
+//                if (debug_level) {
+//                    debug_error.Printf("Post PTP Remote: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
+//                }
             }
             else
             {
@@ -2375,9 +2375,9 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                         (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
                         sizeof(struct sockaddr_in)                  // size of address to socket pointer
                         );
-                if (debug_level) {
-                    debug_error.Printf("Post Broadcast: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
-                }
+//                if (debug_level) {
+//                    debug_error.Printf("Post Broadcast: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
+//                }
             }
             if (iretn < 0)
             {
