@@ -1059,7 +1059,7 @@ namespace Cosmos
             currentloc->pos.geod = initialloc.pos.geod;
             currentutc = nextutc;
             currentloc->pos.geod.utc = nextutc;
-            currentloc->pos.geod.pass++;
+            currentloc->pos.geod.pass = currentloc->pos.eci.pass + 1;
             Convert::pos_geod(currentloc);
 //            PosAccel(currentloc, currentphys);
 
