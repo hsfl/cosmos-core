@@ -1267,6 +1267,8 @@ class sim_param	{
             float memory = 0.;
             //! Agent heartbeat jitter [sec]
             double jitter = 0.;
+            //! Agent Duty Cycle
+            float dcycle = 1.;
             //! Existence Flag (if beat exists then flag is set to true, false otherwise)
             bool exists = true;
 
@@ -1288,6 +1290,7 @@ class sim_param	{
                     { "cpu"   , cpu },
                     { "memory", memory },
                     { "jitter", jitter },
+                    { "dcycle", dcycle },
                     { "exists", exists }
                 };
             }
@@ -1313,6 +1316,7 @@ class sim_param	{
                     if(!p["cpu"].is_null()) { cpu = p["cpu"].number_value(); }
                     if(!p["memory"].is_null()) { memory = p["memory"].number_value(); }
                     if(!p["jitter"].is_null()) { jitter = p["jitter"].number_value(); }
+                    if(!p["dcycle"].is_null()) { dcycle = p["dcycle"].number_value(); }
                     if(!p["exists"].is_null()) { exists = p["exists"].bool_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -8401,6 +8405,7 @@ information.
                     add_name(basename+".beat.cpu", &agent[i].beat.cpu, "float");
                     add_name(basename+".beat.memory", &agent[i].beat.memory, "float");
                     add_name(basename+".beat.jitter", &agent[i].beat.jitter, "double");
+                    add_name(basename+".beat.dcycle", &agent[i].beat.dcycle, "double");
                     add_name(basename+".beat.exists", &agent[i].beat.exists, "bool");
                 }
 

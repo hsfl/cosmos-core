@@ -8273,6 +8273,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("agent_cpu", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,cpu), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_AGENT, cinfo);
     json_addentry("agent_memory", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,memory), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_AGENT, cinfo, JSON_UNIT_BYTES);
     json_addentry("agent_jitter", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,jitter), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_AGENT, cinfo);
+    json_addentry("agent_dcycle", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,dcycle), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_AGENT, cinfo);
 
     // Event structure
     json_addentry("event_cbytes", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,cbytes), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_BYTES);
@@ -9970,6 +9971,11 @@ const char *json_of_agent(string &jstring, cosmosstruc *cinfo)
         return nullptr;
     }
     iretn = json_out(jstring, "agent_jitter", cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
+    iretn = json_out(jstring, "agent_dcycle", cinfo);
     if (iretn < 0)
     {
         return nullptr;
@@ -12560,6 +12566,7 @@ string device_type_name(uint32_t type)
     <<"\tcpu %\t\t"<<b.cpu<<endl
     <<"\tmem %\t\t"<<b.memory<<endl
     <<"\tjitter\t\t"<<b.jitter<<endl
+    <<"\tdcycle\t\t"<<b.dcycle<<endl
     <<"\texits\t\t"<<b.exists<<endl;
 }
 

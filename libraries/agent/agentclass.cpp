@@ -426,8 +426,9 @@ namespace Support
     int32_t Agent::finish_active_loop() {
         double sleepsec = 86400.*(activeTimeout - currentmjd());
         activeTimeout += cinfo->agent[0].aprd / 86400.;
+        cinfo->agent[0].beat.dcycle = (cinfo->agent[0].aprd - sleepsec) / cinfo->agent[0].aprd;
         COSMOS_SLEEP(sleepsec);
-        return 0;
+        return sleepsec*1000000;
     }
 
         //! Shutdown agent gracefully
@@ -964,8 +965,8 @@ namespace Support
         uint16_t count;
         int32_t iretn=-1;
 
-//            sscanf(request.c_str(),"%*s %hu",&count);
-        sscanf(request.c_str(),"%*s %hu",&count);
+//            sscanf(&request[0],"%*s %hu",&count);
+        sscanf(&request[0],"%*s %hu",&count);
         for (uint16_t i=0; i<agent->cinfo->agent[0].ifcnt; ++i)
         {
 //                iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.length()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
@@ -991,10 +992,10 @@ namespace Support
         double mjd;
         uint16_t crc, count;
 
-//            sscanf(request.c_str(),"%*s %lf %hx %hu",&mjd,&crc,&count);
+//            sscanf(&request[0],"%*s %lf %hx %hu",&mjd,&crc,&count);
 //            sprintf(output,"%.17g %x %u ",currentmjd(0),slip_calc_crc((uint8_t *)&request[request.length()-count],count),count);
 //            strncpy(&output[strlen(output)],&request[request.length()-count],count+1);
-        sscanf(request.c_str(),"%*s %lf %hx %hu",&mjd,&crc,&count);
+        sscanf(&request[0],"%*s %lf %hx %hu",&mjd,&crc,&count);
         output = to_mjd(currentmjd()) + ' ' + to_hex(crc) + ' ' + std::to_string(count) + ' ' + request;
         return 0;
     }
@@ -1184,7 +1185,7 @@ namespace Support
     int32_t Agent::req_debug_level(string &request, string &output, Agent* agent) {
         if (request != "debug_level") {
             uint16_t level;
-            sscanf(request.c_str(), "debug_level %hu", &level);
+            sscanf(&request[0], "debug_level %hu", &level);
             agent->set_debug_level(level);
         }
         output = std::to_string(agent->get_debug_level());
@@ -2317,7 +2318,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
         // this will broadcast messages to all external interfaces (ifcnt = interface count)
         for (size_t i=0; i<cinfo->agent[0].ifcnt; i++)
         {
-            sprintf((char *)&post[3],"{\"agent_utc\":%.15g,\"agent_node\":\"%s\",\"agent_proc\":\"%s\",\"agent_addr\":\"%s\",\"agent_port\":%u,\"agent_bprd\":%f,\"agent_bsz\":%u,\"agent_cpu\":%f,\"agent_memory\":%f,\"agent_jitter\":%f,\"node_utcoffset\":%.15g}",
+            sprintf((char *)&post[3],"{\"agent_utc\":%.15g,\"agent_node\":\"%s\",\"agent_proc\":\"%s\",\"agent_addr\":\"%s\",\"agent_port\":%u,\"agent_bprd\":%f,\"agent_bsz\":%u,\"agent_cpu\":%f,\"agent_memory\":%f,\"agent_jitter\":%f,\"agent_dcycle\":%f,\"node_utcoffset\":%.15g}",
                     cinfo->agent[0].beat.utc,
                     cinfo->agent[0].beat.node.c_str(),
                     cinfo->agent[0].beat.proc.c_str(),
@@ -2328,6 +2329,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     cinfo->agent[0].beat.cpu,
                     cinfo->agent[0].beat.memory,
                     cinfo->agent[0].beat.jitter,
+                    cinfo->agent[0].beat.dcycle,
                     cinfo->node.utcoffset);
             size_t hlength = strlen((char *)&post[3]);
             post[1] = hlength%256;
@@ -2517,6 +2519,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
         mess.meta.beat.cpu = 0;
         mess.meta.beat.exists = false;
         mess.meta.beat.jitter = 0;
+        mess.meta.beat.dcycle = 0;
         mess.meta.beat.memory = 0;
         mess.meta.beat.ntype = NetworkType::BROADCAST;
         mess.meta.beat.port = 0;
