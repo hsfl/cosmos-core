@@ -2448,7 +2448,7 @@ uint16_t CRC16::calc(vector<uint8_t> message)
     /*
      * Divide the message by the polynomial, a byte at a time.
      */
-    for (int byte = 0; byte < message.size(); ++byte)
+    for (size_t byte = 0; byte < message.size(); ++byte)
     {
         data = message[byte] ^ (remainder >> (8));
         remainder = lookup[data] ^ (remainder << 8);

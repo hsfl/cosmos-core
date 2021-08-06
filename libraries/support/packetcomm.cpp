@@ -23,16 +23,16 @@ namespace Cosmos {
 
         bool PacketComm::CheckCRC()
         {
-
+            return true;
         }
 
         bool PacketComm::Unpack()
         {
             type = datain[0];
-            uint16_t size = datain[1] + 256 * datain[2];
+            size_t size = datain[1] + 256 * datain[2];
             if (datain.size() < size + 5)
             {
-                return COSMOS_GENERAL_ERROR_UNDERSIZE;
+                return false;
             }
             data.clear();
             data.insert(data.begin(), &datain[3], &datain[size+3]);
@@ -138,6 +138,7 @@ namespace Cosmos {
             {
                 iretn = (*(Funcs[type]))(this, args);
             }
+            return iretn;
         }
 
         int32_t PacketComm::Generate(string args)
@@ -147,6 +148,7 @@ namespace Cosmos {
             {
                 iretn = (*(Funcs[type]))(this, args);
             }
+            return iretn;
         }
 
         int32_t PacketComm::ShortReset(PacketComm *packet, string args)
@@ -229,43 +231,71 @@ namespace Cosmos {
 
         int32_t PacketComm::close_transfer()
         {
-
+            int32_t missing = 0;
             FILE *ofp;
             if (ttransfer.name.size())
             {
                 ofp = fopen(ttransfer.name.c_str(), "w");
-                printf("CLosing File: %u %s %u bytes\n", ttransfer.txid, ttransfer.name.c_str(), ttransfer.size);
+                if (ofp == nullptr)
+                {
+                    return -errno;
+                }
+//                printf("CLosing File: %u %s %lu bytes\n", ttransfer.txid, ttransfer.name.c_str(), ttransfer.size);
             }
             else
             {
                 ofp = fopen(("txid_"+to_unsigned(ttransfer.txid)).c_str(), "w");
-                printf("Missing Meta: %u\n", ttransfer.txid);
+                if (ofp == nullptr)
+                {
+                    return -errno;
+                }
+//                printf("Missing Meta: %u\n", ttransfer.txid);
             }
             for (uint16_t idx=0; idx<ttransfer.data.size(); ++idx)
             {
                 if (ttransfer.data[idx].size())
                 {
-                    fseek(ofp,idx*ttransfer.chunk_size, SEEK_SET);
+                    if (fseek(ofp,idx*ttransfer.chunk_size, SEEK_SET) < 0)
+                    {
+                        missing = -errno;
+                        fclose(ofp);
+                        return missing;
+                    }
                     if (ttransfer.size - idx*ttransfer.chunk_size < ttransfer.chunk_size)
                     {
-                        fwrite(ttransfer.data[idx].data(), ttransfer.size - idx*ttransfer.chunk_size, 1, ofp);
+                        if (fwrite(ttransfer.data[idx].data(), ttransfer.size - idx*ttransfer.chunk_size, 1, ofp) < 1)
+                        {
+                            missing = -errno;
+                            fclose(ofp);
+                            return missing;
+                        }
                     }
                     else
                     {
-                        fwrite(ttransfer.data[idx].data(), ttransfer.data[idx].size(), 1, ofp);
+                        if (fwrite(ttransfer.data[idx].data(), ttransfer.data[idx].size(), 1, ofp) < 1)
+                        {
+                            missing = -errno;
+                            fclose(ofp);
+                            return missing;
+                        }
                     }
                 }
                 else
                 {
-                    printf("Missing Chunk: %u %u\n", ttransfer.txid, idx);
+//                    printf("Missing Chunk: %u %u\n", ttransfer.txid, idx);
+                    ++missing;
                 }
             }
-            fclose(ofp);
+            if (fclose(ofp) != 0)
+            {
+                return -errno;
+            }
             ttransfer.txid = 0;
             ttransfer.name.clear();
             ttransfer.meta.clear();
             ttransfer.data.clear();
             ttransfer.json.clear();
+            return missing;
         }
 
     }

@@ -407,10 +407,10 @@ uint16_t slip_set_crc(vector<uint8_t> &buf)
 
 int32_t slip_extract(FILE *fp, vector<uint8_t> &rbuf)
 {
-    size_t j, ch;
+    int32_t ch;
+//    int32_t j = 0;
     rbuf.clear();
 
-    j = 0;
     do
     {
 //        if (j > sbuf.size()-3)
