@@ -113,7 +113,17 @@ namespace Support
         }
 
         // Set up node: shorten if too long, use hostname if it's empty.
-        nodeName = node_name;
+        if (node_name.length())
+        {
+            nodeName = node_name;
+        }
+        else {
+            {
+                char hostname[60];
+                gethostname(hostname, sizeof (hostname));
+                nodeName = hostname;
+            }
+        }
         if ((iretn=json_setup_node(nodeName, cinfo)) != 0) {
             error_value = iretn;
             shutdown();
