@@ -15,6 +15,7 @@ namespace Cosmos {
             void CalcCRC();
             bool CheckCRC();
             bool Unpack();
+            bool UnpackForward();
             bool RawIn(bool invert=false);
             bool ASMIn();
             bool SLIPIn();
@@ -39,6 +40,8 @@ namespace Cosmos {
 			/// Data of interest
             vector<uint8_t> data;
             uint16_t crc;
+            // Destination for forward type packets
+            string fdest;
 
             struct __attribute__ ((packed)) FileData
             {
@@ -58,6 +61,8 @@ namespace Cosmos {
 
             Transfer ttransfer;
             int32_t close_transfer();
+
+            bool PackForward();
 
 
             static int32_t ShortReset(PacketComm *packet, string args="");

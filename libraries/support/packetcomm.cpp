@@ -14,6 +14,7 @@ namespace Cosmos {
 
             TypeId.Extend({"ShortCPUBeacon","ShortTempBeacon"}, {30});
             TypeId.Extend({"LongCPUBeacon","LongTempBeacon"}, {40});
+            TypeId.Extend({"Forward", "Response"}, {60});
         }
 
         void PacketComm::CalcCRC()
@@ -29,6 +30,16 @@ namespace Cosmos {
         bool PacketComm::Unpack()
         {
             type = datain[0];
+
+            // Unpack as forwarding-type packet instead
+            if (type == TypeId["Forward"]) {
+                if (UnpackForward()) {
+                    return true;
+                }
+                return false;
+            }
+
+            // Unpack as a regular packet
             size_t size = datain[1] + 256 * datain[2];
             if (datain.size() < size + 5)
             {
@@ -42,6 +53,31 @@ namespace Cosmos {
             {
                 return false;
             }
+
+            return true;
+        }
+
+        bool PacketComm::UnpackForward() {
+            fdest.clear();
+            type = datain[0];
+            size_t size = datain[1] + 256 * datain[2];
+            if (datain.size() < size + 5)
+            {
+                return false;
+            }
+            // Extract node:agent address string
+            uint8_t addr_len = datain[3];
+            fdest.assign(&datain[4], &datain[4+addr_len]);
+            // Extract inner data
+            data.clear();
+            data.insert(data.begin(), &datain[4+addr_len], &datain[size+3]);
+            uint16_t crcin = datain[size+3] + 256 * datain[size+4];
+            crc = calc_crc.calc(datain.data(), datain.size()-2);
+            if (crc != crcin)
+            {
+                return false;
+            }
+            datain = data;
             return true;
         }
 
@@ -86,6 +122,31 @@ namespace Cosmos {
             datain[0] = type;
             datain[1] = data.size() & 0xff;
             datain[2] = data.size() >> 8;
+            datain.insert(datain.end(), data.begin(), data.end());
+            crc = calc_crc.calc(datain);
+            datain.resize(datain.size()+2);
+            datain[datain.size()-2] = crc & 0xff;
+            datain[datain.size()-1] = crc >> 8;
+
+            // Repack into Forwarding-type packet if necessary
+            if (!fdest.empty() && !PackForward()) {
+                return false;
+            }
+            return true;
+        }
+
+        bool PacketComm::PackForward()
+        {
+            data = datain;
+            datain.resize(4);
+            datain[0] = TypeId["Forward"];
+            // Data size = data size + addr length + 1 byte to specify addr length
+            datain[1] = (data.size() + fdest.size() + 1) & 0xff;
+            datain[2] = (data.size() + fdest.size() + 1) >> 8;
+            // Insert addr length and string
+            datain[3] = fdest.size();
+            datain.insert(datain.end(), fdest.begin(), fdest.end());
+            // Insert data
             datain.insert(datain.end(), data.begin(), data.end());
             crc = calc_crc.calc(datain);
             datain.resize(datain.size()+2);
