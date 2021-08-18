@@ -27,8 +27,8 @@ namespace Cosmos {
             int32_t Generate(string args="");
 
             static constexpr uint16_t INTERNAL_BEACON = 0;
-            static constexpr uint16_t INTERNAL_COMMAND = 60;
-            static constexpr uint16_t EXTERNAL_COMMAND = 128;
+            static constexpr uint16_t INTERNAL_COMMAND = 0;
+            static constexpr uint16_t EXTERNAL_COMMAND = 14;
 
             Enum TypeId;
             typedef int32_t (*Func)(PacketComm *packet, string args);
