@@ -29,6 +29,9 @@ namespace Cosmos {
 
         bool PacketComm::Unpack()
         {
+            if (datain.size() <= 0) {
+                return false;
+            }
             type = datain[0];
 
             // Unpack as forwarding-type packet instead
