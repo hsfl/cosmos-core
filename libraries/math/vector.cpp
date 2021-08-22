@@ -2688,6 +2688,20 @@ namespace Cosmos {
                 return (a);
             }
 
+            Quaternion drotate_around(Vector around, double angle)
+            {
+                double sa;
+
+                angle /= 2.;
+                sa = sin(angle);
+                around.normalize(sa);
+
+                Quaternion qa(around);
+                qa.w = cos(angle);
+                qa.normalize();
+                return (qa);
+            }
+
             Quaternion eye(double scale)
             {
                 Quaternion val = Quaternion(0., 0., 0., scale);
