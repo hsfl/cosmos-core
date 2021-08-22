@@ -131,7 +131,7 @@ namespace Support
         }
 
 //        strcpy(cinfo->node.name, nodeName.c_str());
-        cinfo->node.name = node_name;
+        cinfo->node.name = nodeName;
 
         cinfo->agent[0].client = 1;
         cinfo->node.utc = 0.;
@@ -203,7 +203,7 @@ namespace Support
         if (debug_level>2) {
         	double timeStart = currentmjd();
             debug_error.Printf("------------------------------------------------------\n");
-            debug_error.Printf("COSMOS AGENT '%s' on node '%s'\n", agent_name.c_str(), node_name.c_str());
+            debug_error.Printf("COSMOS AGENT '%s' on node '%s'\n", agent_name.c_str(), nodeName.c_str());
             debug_error.Printf("Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
             debug_error.Printf("Agent started at %s\n", mjdToGregorian(timeStart).c_str());
             debug_error.Printf("Debug level %u\n", debug_level);
