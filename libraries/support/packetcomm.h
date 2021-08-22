@@ -15,6 +15,7 @@ namespace Cosmos {
             void CalcCRC();
             bool CheckCRC();
             bool Unpack();
+            bool UnpackForward();
             bool RawIn(bool invert=false);
             bool ASMIn();
             bool SLIPIn();
@@ -26,8 +27,8 @@ namespace Cosmos {
             int32_t Generate(string args="");
 
             static constexpr uint16_t INTERNAL_BEACON = 0;
-            static constexpr uint16_t INTERNAL_COMMAND = 60;
-            static constexpr uint16_t EXTERNAL_COMMAND = 128;
+            static constexpr uint16_t INTERNAL_COMMAND = 0;
+            static constexpr uint16_t EXTERNAL_COMMAND = 14;
 
             Enum TypeId;
             typedef int32_t (*Func)(PacketComm *packet, string args);
@@ -39,6 +40,8 @@ namespace Cosmos {
 			/// Data of interest
             vector<uint8_t> data;
             uint16_t crc;
+            // Destination for forward type packets
+            string fdest;
 
             struct __attribute__ ((packed)) FileData
             {
@@ -58,6 +61,8 @@ namespace Cosmos {
 
             Transfer ttransfer;
             int32_t close_transfer();
+
+            bool PackForward();
 
 
             static int32_t ShortReset(PacketComm *packet, string args="");
