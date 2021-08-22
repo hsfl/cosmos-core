@@ -2289,6 +2289,8 @@ union as a ::devicestruc.
         class devicestruc
         {
         public:
+            //! Device name
+            string name;
             //! Enabled?
             bool enabled = true;
             //! Component Type
@@ -2328,7 +2330,8 @@ union as a ::devicestruc.
             //! Device information time stamp
             double utc = 0.;
             //! Pointer to Specific Device
-            void *ptr;
+            void *ptr = nullptr;
+
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -2355,6 +2358,7 @@ union as a ::devicestruc.
                     { "drate"   , drate },
                     { "temp"	, temp },
                     { "utc"	 , utc },
+                    { "name"	 , name },
                 };
             }
 
@@ -2386,6 +2390,7 @@ union as a ::devicestruc.
                     if(!parsed["drate"].is_null()) { drate = parsed["drate"].number_value(); }
                     if(!parsed["temp"].is_null()) { temp = parsed["temp"].number_value(); }
                     if(!parsed["utc"].is_null()) { utc = parsed["utc"].number_value(); }
+                    if(!parsed["name"].is_null()) { name = parsed["name"].string_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -2888,7 +2893,7 @@ union as a ::devicestruc.
                 if(error.empty()) {
                     if(!parsed["maxgib"].is_null()) { maxgib = parsed["maxgib"].number_value(); }
                     if(!parsed["gib"].is_null()) { gib = parsed["gib"].number_value(); }
-                    if(!parsed["path"].is_null()) { path = parsed["gib"].string_value(); }
+                    if(!parsed["path"].is_null()) { path = parsed["path"].string_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
