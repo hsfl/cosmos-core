@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 //    PrintUtils print;
 //    print.scalar("Number of Disks: ",agent->cinfo->devspec.disk_cnt);
 //    print.endline();
-//    print.scalar("Number of Cores: ",agent->cinfo->devspec.cpu[didx].maxload);
+//    print.scalar("Number of Cores: ",agent->cinfo->devspec.cpu[cpu_didx].maxload);
 //    print.endline();
 
     agent->debug_error.Printf("CPU Agent initialized\n");
@@ -242,17 +242,17 @@ int main(int argc, char *argv[])
         // get cpu info
         if (agent->cinfo->devspec.cpu_cnt)
         {
-            agent->cinfo->devspec.cpu[didx].uptime = deviceCpu.getUptime();
-            agent->cinfo->devspec.cpu[didx].boot_count = deviceCpu.getBootCount();
-            agent->cinfo->devspec.cpu[didx].load = deviceCpu.getLoad();
-            agent->cinfo->devspec.cpu[didx].gib = deviceCpu.getVirtualMemoryUsed()/1073741824.;
-            agent->cinfo->devspec.cpu[didx].maxgib = deviceCpu.getVirtualMemoryTotal()/1073741824.;
+            agent->cinfo->devspec.cpu[cpu_didx].uptime = deviceCpu.getUptime();
+            agent->cinfo->devspec.cpu[cpu_didx].boot_count = deviceCpu.getBootCount();
+            agent->cinfo->devspec.cpu[cpu_didx].load = deviceCpu.getLoad();
+            agent->cinfo->devspec.cpu[cpu_didx].gib = deviceCpu.getVirtualMemoryUsed()/1073741824.;
+            agent->cinfo->devspec.cpu[cpu_didx].maxgib = deviceCpu.getVirtualMemoryTotal()/1073741824.;
             deviceCpu.getPercentUseForCurrentProcess();
         }
         if (agent->get_debug_level())
         {
-            agent->debug_error.Printf("Load %6.2f %6.2f ", agent->cinfo->devspec.cpu[didx].load, agent->cinfo->devspec.cpu[didx].maxload);
-            agent->debug_error.Printf("Memory %6.2f %6.2f ", agent->cinfo->devspec.cpu[didx].gib, agent->cinfo->devspec.cpu[didx].maxgib);
+            agent->debug_error.Printf("Load %6.2f %6.2f ", agent->cinfo->devspec.cpu[cpu_didx].load, agent->cinfo->devspec.cpu[cpu_didx].maxload);
+            agent->debug_error.Printf("Memory %6.2f %6.2f ", agent->cinfo->devspec.cpu[cpu_didx].gib, agent->cinfo->devspec.cpu[cpu_didx].maxgib);
         }
 
         // get disk info
@@ -331,23 +331,32 @@ int32_t get_sensors(map<string, float> &temps)
             {
                 continue;
             }
-            else if (line.find("_input") != string::npos)
+            else
             {
                 char name[30];
                 float value;
                 sscanf(line.c_str(), "%s %f", name, &value);
                 string longname = name;
                 longname = longname.substr(0, longname.find('_'));
-                temps[device+":"+longname] = value;
-            }
-            else if (line.find("power") != string::npos && line.find("_average") != string::npos)
-            {
-                char name[30];
-                float value;
-                sscanf(line.c_str(), "%s %f", name, &value);
-                string longname = name;
-                longname = longname.substr(0, longname.find('_'));
-                temps[device+":"+longname] = value;
+                if (line.find("temp1_input") != string::npos)
+                {
+                    temps[device+":"+longname] = 273.15 + value;
+                }
+                else if (line.find("_input") != string::npos)
+                {
+                    if (device == "ltc2308-spi-1-2")
+                    {
+                        temps[device+":"+longname] = value;
+                    }
+                    else
+                    {
+                        temps["temp:"+longname] = 273.15 + (value - 2.4843) / .0091;
+                    }
+                }
+                else if (line.find("power") != string::npos && line.find("_average") != string::npos)
+                {
+                    temps[device+":"+longname] = value;
+                }
             }
         }
         return temps.size();
@@ -395,7 +404,7 @@ int32_t request_diskUsed(string &, string &response, Agent *)
 int32_t request_diskFree(string &, string &response, Agent *)
 {
     // TODO: implement diskFree
-    //return (response =  "%.1f", agent->cinfo->devspec.cpu[didx]gib));
+    //return (response =  "%.1f", agent->cinfo->devspec.cpu[cpu_didx]gib));
 
     // in the mean time use this
     return ((response = std::to_string(deviceDisk.FreeGiB)).length());
