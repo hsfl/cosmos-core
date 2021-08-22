@@ -242,7 +242,7 @@ namespace Cosmos {
             ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_DUPLICATE] = "Duplicate";
             ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_MISMATCH] = "Mismatch";
             ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_ERROR] = "General Error";
-            ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_ARGS] = "Wrong Rguments";
+            ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_ARGS] = "Wrong Arguments";
             ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_TOO_LOW] = "Value Too Low";
             ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_POSITION] = "Improper Position";
             ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_ATTITUDE] = "Improper Attitude";
@@ -1072,7 +1072,7 @@ namespace Cosmos {
                     error_string = "General Error";
                     break;
                 case GENERAL_ERROR_ARGS:
-                    error_string = "Wrong Rguments";
+                    error_string = "Wrong Arguments";
                     break;
                 case GENERAL_ERROR_TOO_LOW:
                     error_string = "Value Too Low";
