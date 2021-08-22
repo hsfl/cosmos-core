@@ -2263,14 +2263,12 @@ namespace Cosmos
             loc.pos.geod.s.lon = longitude;
             double radius = rearth(0.) + altitude;
             loc.pos.geod.v.lat =  sin(angle) * sqrt(GM/radius) / radius;
+            loc.pos.geod.v.lat *= 1.005;
             loc.pos.geod.v.h = -2. * FLATTENING * REARTHKM * sin(latitude) * cos(latitude) * loc.pos.geod.v.lat;
+            loc.pos.geod.v.h *= 1.005;
             loc.pos.geod.v.lon = cos(angle) * sqrt(GM/radius) / radius;
-//            if (hour < 0)
-//            {
-//                loc.pos.geod.v.lat = -loc.pos.geod.v.lat;
-//                loc.pos.geod.v.lon = -loc.pos.geod.v.lon;
-//            }
             loc.pos.geod.v.lon -= DPI / 43200.;
+            loc.pos.geod.v.lon *= 1.005;
             loc.pos.geod.pass++;
             Convert::pos_geod(loc);
 
