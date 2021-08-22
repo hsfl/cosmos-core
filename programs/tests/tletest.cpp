@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
         lines2eci(lines[0].utc+dt, lines, loc.pos.eci);
         tle2eci(tle2.utc+dt, tle2, loc2.pos.eci);
 
-        printf("tle1/2: %f %f %f %f %f %f %f %f\n", dt, loc.pos.eci.s.col[0], loc2.pos.eci.s.col[0], loc.pos.eci.s.col[1], loc2.pos.eci.s.col[1], loc.pos.eci.s.col[2], loc2.pos.eci.s.col[2], norm_rv(rv_sub(loc2.pos.eci.s,loc.pos.eci.s)));
+        printf("tle1/2: %f %f %f %f %f %f %f %f\n", dt, loc.pos.eci.s.col[0], loc2.pos.eci.s.col[0], loc.pos.eci.s.col[1], loc2.pos.eci.s.col[1], loc.pos.eci.s.col[2], loc2.pos.eci.s.col[2], length_rv(rv_sub(loc2.pos.eci.s,loc.pos.eci.s)));
     }
 
 }
