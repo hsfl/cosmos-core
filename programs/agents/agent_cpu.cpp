@@ -90,16 +90,16 @@ int main(int argc, char *argv[])
     int32_t iretn;
     map<string, float> temps;
 
-//	cout<<"size of devicestruc = "<<sizeof(devicestruc)<<endl;
+    //	cout<<"size of devicestruc = "<<sizeof(devicestruc)<<endl;
     printf("Memory: %s\n", json_memory_usage().c_str());
 
     if (argc == 2) {
-		agent = new Agent(argv[1], "cpu", 15.);
-	} else {
+        agent = new Agent(argv[1], "cpu", 15.);
+    } else {
         char hostname[60];
         gethostname(hostname, sizeof (hostname));
         agent = new Agent(hostname, "cpu", 15.);
-	}
+    }
     printf("Mmeory: %s\n", json_memory_usage().c_str());
     agent->set_debug_level(1);
 
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     sohstring += ",\"device_cpu_uptime_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_boot_count_00" + std::to_string(cpu_didx) + "\"";
 
-//    static const double GiB = 1024. * 1024. * 1024.;
+    //    static const double GiB = 1024. * 1024. * 1024.;
 
     agent->cinfo->devspec.cpu[cpu_didx].load = static_cast <float>(deviceCpu.getLoad());
     agent->cinfo->devspec.cpu[cpu_didx].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/1073741824.);
@@ -194,19 +194,19 @@ int main(int argc, char *argv[])
 
     printf("SOH String: %s\n", sohstring.c_str());
 
-//    json_dump_node(agent->cinfo);
+    //    json_dump_node(agent->cinfo);
 
     // TODO: determine number of disks automatically
     agent->debug_error.Printf("Disks: %u Cores: %f\n", agent->cinfo->devspec.disk_cnt, agent->cinfo->devspec.cpu[cpu_didx].maxload);
-//    PrintUtils print;
-//    print.scalar("Number of Disks: ",agent->cinfo->devspec.disk_cnt);
-//    print.endline();
-//    print.scalar("Number of Cores: ",agent->cinfo->devspec.cpu[cpu_didx].maxload);
-//    print.endline();
+    //    PrintUtils print;
+    //    print.scalar("Number of Disks: ",agent->cinfo->devspec.disk_cnt);
+    //    print.endline();
+    //    print.scalar("Number of Cores: ",agent->cinfo->devspec.cpu[cpu_didx].maxload);
+    //    print.endline();
 
     agent->debug_error.Printf("CPU Agent initialized\n");
 
-//    agent->add_request("soh",request_soh,"","current state of health message");
+    //    agent->add_request("soh",request_soh,"","current state of health message");
     agent->add_request("diskSize",request_diskSize,"","disk size in GB");
     agent->add_request("diskUsed",request_diskUsed,"","disk used in GB");
     agent->add_request("diskFree",request_diskFree,"","disk free in GB");
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
     agent->shutdown();
 
     // Start our own thread
-//    agent_cpu();
+    //    agent_cpu();
 
     return 0;
 
@@ -487,9 +487,9 @@ int32_t request_bootCount(string &, string &response, Agent *)
 // debug info
 int32_t request_printStatus(string &request, string &, Agent *)
 {
-	int tempint;
+    int tempint;
     sscanf(request.c_str(),"%*s %d",&tempint);
-	printStatus = tempint;
+    printStatus = tempint;
     cout << "printStatus is " << printStatus <<  endl;
 
     return 0;
