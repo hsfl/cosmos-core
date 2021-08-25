@@ -32,6 +32,7 @@
 #include "support/socketlib.h"
 #include "math/mathlib.h"
 #include "support/elapsedtime.h"
+#include "support/timelib.h"
 
 //! Open UDP socket
 /*! Open a UDP socket and configure it for the specified use. Various
@@ -151,6 +152,7 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
         iretn = setsockopt(channel.cudp,SOL_SOCKET,SO_RCVTIMEO,(char*)&tv,sizeof(tv));
 #endif
     }
+    channel.timeout = usectimeo / 1e6;
 
     memset(&channel.caddr,0,sizeof(struct sockaddr_in));
     channel.caddr.sin_family = AF_INET;
@@ -843,6 +845,7 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     {
     int32_t nbytes;
     buffer.resize(maxlen);
+    ElapsedTime et;
     if ((nbytes = recvfrom(channel.cudp, (char *)buffer.data(), maxlen, flags, (struct sockaddr *)&channel.caddr, (socklen_t *)&channel.addrlen)) > 0)
     {
         buffer.resize(nbytes);
@@ -852,6 +855,7 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     {
         buffer.clear();
         nbytes = -errno;
+        secondsleep(channel.timeout-et.split());
     }
     return nbytes;
 }

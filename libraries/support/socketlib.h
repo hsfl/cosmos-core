@@ -138,6 +138,8 @@ struct socket_channel
     char name[COSMOS_MAX_NAME+1] = {0};
     // Interface flags
     int16_t flags;
+    // Time out
+    double timeout;
 };
 
 typedef vector<socket_channel> socket_bus;
