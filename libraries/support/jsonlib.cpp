@@ -11216,6 +11216,7 @@ const char *json_devices_general(string &jstring, cosmosstruc *cinfo)
         for (uint16_t i=0; i<*device_cnt; i++)
         {
             json_out_1d(jstring, "device_all_type",i, cinfo);
+            json_out_1d(jstring, "device_all_name",i, cinfo);
             // json_out_character(jstring, '\n');
             json_out_1d(jstring, "device_all_model",i, cinfo);
             // json_out_character(jstring, '\n');
