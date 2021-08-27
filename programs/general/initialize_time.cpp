@@ -50,14 +50,15 @@ int main(int argc, char *argv[])
     }
     if (iretn >= 0)
     {
-        if (offset > 3.5e-4)
+//        offset *= 86400.;
+        if (offset < -1.574e-4 || offset > 1.574e-4)
         {
             double delta = set_local_clock(currentmjd() + offset);
             printf("Initialized time from server: Delta %f Offset %f\n", delta, offset*86400.);
         }
         else
         {
-            printf("No change from server: Offset %f\n", offset*86400.);
+            printf("No change from server: Offset %f\n", offset);
         }
     }
     else
