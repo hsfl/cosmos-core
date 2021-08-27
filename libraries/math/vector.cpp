@@ -2513,7 +2513,7 @@ namespace Cosmos {
             {
 
                 const Quaternion qc = this->conjugate();
-                Quaternion tq (v * qc);
+                Quaternion tq = v * qc;
                 Vector result =  (*this) * tq;
 
                 return result;
@@ -2609,7 +2609,7 @@ namespace Cosmos {
             // TODO: change function name to q_rotate_object_around_z vs q_rotate_coord_around_z
             Quaternion drotate_around_x(double angle)
             {
-                Quaternion a(0.,1.,0.,0.);
+                Quaternion a(1.,0.,0.,0.);
 
                 double sa = sin(angle/2.);
 
@@ -2629,7 +2629,7 @@ namespace Cosmos {
             */
             Quaternion drotate_around_y(double angle)
             {
-                Quaternion a(0.,0.,1.,0.);
+                Quaternion a(0.,1.,0.,0.);
 
                 double sa = sin(angle/2.);
 
@@ -2650,7 +2650,7 @@ namespace Cosmos {
             */
             Quaternion drotate_around_z(double angle)
             {
-                Quaternion a(0.,0.,0.,1.);
+                Quaternion a(0.,0.,1.,0.);
 
                 double sa = sin(angle/2.);
 
@@ -2670,7 +2670,7 @@ namespace Cosmos {
             */
             Quaternion drotate_around(int axis, double angle)
             {
-                Quaternion a(1.,0.,0.,0.);
+                Quaternion a(0.,0.,0.,1.);
 
                 switch (axis)
                 {
