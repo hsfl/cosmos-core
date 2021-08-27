@@ -2256,22 +2256,47 @@ namespace Cosmos
 
             Convert::pos_clear(loc);
 
-            // Initial position
-            loc.pos.geod.utc = loc.att.geoc.utc = utc;
-            loc.pos.geod.s.h = altitude;
-            loc.pos.geod.s.lat = latitude;
-            loc.pos.geod.s.lon = longitude;
-            double radius = rearth(0.) + altitude;
-            loc.pos.geod.v.lat =  sin(angle) * sqrt(GM/radius) / radius;
-            loc.pos.geod.v.lat *= 1.005;
-            loc.pos.geod.v.h = -2. * FLATTENING * REARTHKM * sin(latitude) * cos(latitude) * loc.pos.geod.v.lat;
-            loc.pos.geod.v.h *= 1.005;
-            loc.pos.geod.v.lon = cos(angle) * sqrt(GM/radius) / radius;
-            loc.pos.geod.v.lon -= DPI / 43200.;
-            loc.pos.geod.v.lon *= 1.005;
-            loc.pos.geod.pass++;
-            Convert::pos_geod(loc);
+            // Adjust for problems
+            if (latitude > angle)
+            {
+                latitude = angle;
+            }
 
+            // Initial position
+            double radius = rearth(0.) + altitude;
+            Vector s0(radius, 0., 0.);
+            double velocity = sqrt(GM/radius) - cos(angle) * radius * D2PI / 86400.;
+            Vector v0(0., velocity, 0.);
+
+            // First, rotate around X vector by angle
+            Quaternion q1 = drotate_around_x(angle);
+            Vector s1 = q1.drotate(s0);
+            Vector v1 = q1.drotate(v0);
+
+            // Second, rotate around L vector by latitude / cos(angle)
+            Vector L = s1.cross(v1);
+            double angle2 = latitude * sin(angle);
+            Quaternion q2 = drotate_around(L, angle2);
+            Vector s2 = q2.drotate(s1);
+            Vector v2 = q2.drotate(v1);
+
+            // First, rotate around Z vector by remaining distance (longitude - angle)
+            Quaternion q3 = drotate_around_z(longitude - angle2);
+            Vector s3 = q3.drotate(s2);
+            Vector v3 = q3.drotate(v2);
+
+            loc.pos.geoc.utc = loc.att.geoc.utc = utc;
+            loc.pos.geoc.s.col[0] = s3.x;
+            loc.pos.geoc.v.col[0] = v3.x;
+            loc.pos.geoc.s.col[1] = s3.y;
+            loc.pos.geoc.v.col[1] = v3.y;
+            loc.pos.geoc.s.col[2] = s3.z;
+            loc.pos.geoc.v.col[2] = v3.z;
+            loc.pos.geoc.pass++;
+            Convert::pos_geoc(loc);
+
+            Convert::kepstruc kep;
+            Convert::eci2kep(loc.pos.eci, kep);
             if (timeshift != 0.)
             {
                 Convert::kepstruc kep;
