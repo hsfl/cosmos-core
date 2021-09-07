@@ -1104,7 +1104,7 @@ namespace Cosmos
             return 0;
         }
 
-        int32_t GaussJacksonPositionPropagator::Setup(uint16_t iorder)
+        int32_t GaussJacksonPositionPropagator::Setup()
         {
             step.resize(order+2);
             binom.resize(order+2);
@@ -1124,8 +1124,8 @@ namespace Cosmos
 
             dtsq = dt * dt;
 
-            order2 = iorder/2;
-            order = order2 * 2;
+            order2 = order/2;
+//            order = order2 * 2;
 
             for (uint16_t m=0; m<order+2; m++)
             {
@@ -1305,13 +1305,16 @@ namespace Cosmos
             // Make sure ::locstruc is internally self consistent
             ++currentloc->pos.eci.pass;
             Convert::pos_eci(currentloc);
+            // Update accelerations
+            PosAccel(currentloc, currentphys);
+
+            initialloc = *currentloc;
+            initialphys = *currentphys;
+            currentphys->utc = currentloc->utc;
 
             // Zero out original N+1 bin
             loc_clear(step[order+1].loc);
 
-            // Calculate initial accelerations
-            PosAccel(currentloc, currentphys);
-//            AttAccel(currentloc, currentphys);
 
             // Set central bin to initial state vector
             step[order2].loc = *currentloc;
@@ -1346,10 +1349,11 @@ namespace Cosmos
                 Convert::pos_eci(step[i].loc);
 
                 PosAccel(&step[i].loc, currentphys);
-//                AttAccel(&step[i].loc, currentphys);
             }
 
             Convert::eci2kep(currentloc->pos.eci, kep);
+
+            // Initialize future bins
             for (i=order2+1; i<=order; i++)
             {
                 step[i] = step[i-1];
@@ -1376,12 +1380,12 @@ namespace Cosmos
                 Convert::pos_eci(step[i].loc);
 
                 PosAccel(&step[i].loc, currentphys);
-//                AttAccel(&step[i].loc, currentphys);
             }
+            currentutc = step[order].loc.utc;
+
+            // Converge on rational set of values
             iretn = Converge();
 
-            currentphys->utc = currentloc->utc;
-            currentutc = currentloc->utc;
             return iretn;
         }
 
@@ -1454,7 +1458,7 @@ namespace Cosmos
             iretn = Converge();
 
             currentphys->utc = currentloc->utc;
-            currentutc = currentloc->utc;
+            currentutc = step[order].loc.utc;
             return iretn;
         }
 
@@ -1519,10 +1523,10 @@ namespace Cosmos
                 step[order+1].loc.pos.eci.pass++;
                 Convert::pos_eci(step[order+1].loc);
 
-//                AttAccel(&step[order+1].loc, currentphys);
+                // Update inherent accelerations for this location
                 PosAccel(&step[order+1].loc, currentphys);
 
-                // Calculate s(order/2+1)
+                                // Calculate s(order/2+1)
                 step[order+1].s.col[0] = step[order].s.col[0] + (step[order].loc.pos.eci.a.col[0]+step[order+1].loc.pos.eci.a.col[0])/2.;
                 step[order+1].s.col[1] = step[order].s.col[1] + (step[order].loc.pos.eci.a.col[1]+step[order+1].loc.pos.eci.a.col[1])/2.;
                 step[order+1].s.col[2] = step[order].s.col[2] + (step[order].loc.pos.eci.a.col[2]+step[order+1].loc.pos.eci.a.col[2])/2.;
@@ -1533,7 +1537,29 @@ namespace Cosmos
                     step[j] = step[j+1];
                 }
 
-                currentloc->pos = step[order].loc.pos;
+                // Adjust for any thrust
+                if (currentphys->fpush.norm() && currentphys->mass)
+                {
+                    rvector dacc = (currentphys->fpush / currentphys->mass).to_rv();
+                    for (gjstruc &cstep : step)
+                    {
+                        cstep.loc.pos.eci.s = rv_add(cstep.loc.pos.eci.s, rv_smult(.5 * this->dt2, dacc));
+                        cstep.loc.pos.eci.v = rv_add(cstep.loc.pos.eci.v, rv_smult(this->dt, dacc));
+                    }
+                    Setup();
+                    Converge();
+                }
+            }
+
+            currentloc->pos = step[order].loc.pos;
+            for (uint16_t i=order; i<=order; --i)
+            {
+                if (nextutc >= currentloc->pos.utc - dtj / 2.)
+                {
+                    break;
+                }
+                currentloc->pos = step[i].loc.pos;
+                currentloc->utc = currentloc->pos.utc;
             }
 
             return 0;
@@ -1544,8 +1570,9 @@ namespace Cosmos
             uint32_t c_cnt, cflag=0, k;
             rvector oldsa;
 
-            initialloc = *currentloc;
-            initialphys = *currentphys;
+            PosAccel(currentloc, currentphys);
+//            initialloc = *currentloc;
+//            initialphys = *currentphys;
 
             c_cnt = 0;
             do
@@ -1639,8 +1666,9 @@ namespace Cosmos
                 c_cnt++;
             } while (c_cnt<10 && cflag);
 
-            *currentloc = step[order].loc;
+            *currentloc = step[order2].loc;
             ++currentloc->pos.eci.pass;
+            currentphys->fpush = rv_zero();
             PosAccel(currentloc, currentphys);
             Convert::pos_eci(currentloc);
             return 0;
@@ -1884,7 +1912,7 @@ namespace Cosmos
             loc->pos.eci.a = rv_sub(loc->pos.eci.a, da.to_rv());
 
             // Add thrust
-            loc->pos.eci.a = rv_add(loc->pos.eci.a, rv_smult(1./phys->mass, phys->fpush.to_rv()));
+//            loc->pos.eci.a = rv_add(loc->pos.eci.a, rv_smult(1./phys->mass, phys->fpush.to_rv()));
 
             /*
         // Jupiter gravity
@@ -2256,14 +2284,23 @@ namespace Cosmos
 
             Convert::pos_clear(loc);
 
+            // Determine effects of oblate spheroid
+            double ct = cos(latitude);
+            double st = sin(latitude);
+            double c = 1./sqrt(ct * ct + FRATIO2 * st * st);
+            double s = FRATIO2 * c;
+            double r = (rearth(0.) * c + altitude) * ct;
+            double z = ((rearth(0.) * s + altitude) * st);
+            double radius = sqrt(r * r + z * z);
+            double phi = asin(z / radius);
+
             // Adjust for problems
-            if (latitude > angle)
+            if (phi > angle)
             {
-                latitude = angle;
+                phi = angle;
             }
 
             // Initial position
-            double radius = rearth(0.) + altitude;
             Vector s0(radius, 0., 0.);
             double velocity = sqrt(GM/radius) - cos(angle) * radius * D2PI / 86400.;
             Vector v0(0., velocity, 0.);
@@ -2273,15 +2310,29 @@ namespace Cosmos
             Vector s1 = q1.drotate(s0);
             Vector v1 = q1.drotate(v0);
 
-            // Second, rotate around L vector by latitude / cos(angle)
-            Vector L = s1.cross(v1);
-            double angle2 = latitude * sin(angle);
+            double angle2;
+            if (angle)
+            {
+                angle2 = asin(sin(phi) / sin(angle));
+            }
+            else
+            {
+                angle2 = 0.;
+            }
+
+            // Second, rotate around L vector by angle2, determine change imposed on longitude, then adjust for timeshift
+            Vector L = (s1).cross(v1);
             Quaternion q2 = drotate_around(L, angle2);
             Vector s2 = q2.drotate(s1);
+            double deltal = atan2(s2.y, s2.x);
+
+            q2 = drotate_around(L, angle2 + 0.9655 * timeshift * sqrt(GM/pow(radius,3.)));
+            s2 = q2.drotate(s1);
             Vector v2 = q2.drotate(v1);
 
-            // First, rotate around Z vector by remaining distance (longitude - angle)
-            Quaternion q3 = drotate_around_z(longitude - angle2);
+
+            // Third, rotate around Z vector by remaining distance, related to timeshift, longitude, and  change incurred from angle2)
+            Quaternion q3 = drotate_around_z(-0.00 * timeshift*(D2PI/86400.) + longitude - deltal);
             Vector s3 = q3.drotate(s2);
             Vector v3 = q3.drotate(v2);
 
@@ -2295,24 +2346,24 @@ namespace Cosmos
             loc.pos.geoc.pass++;
             Convert::pos_geoc(loc);
 
-            Convert::kepstruc kep;
-            Convert::eci2kep(loc.pos.eci, kep);
-            if (timeshift != 0.)
-            {
-                Convert::kepstruc kep;
-                double dea;
-                Convert::eci2kep(loc.pos.eci, kep);
-                kep.ma += timeshift * kep.mm;
-                uint16_t count = 0;
-                do
-                {
-                    dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
-                    kep.ea -= dea;
-                } while (++count < 100 && fabs(dea) > .000001);
-                kep2eci(kep, loc.pos.eci);
-                loc.pos.eci.pass++;
-                Convert::pos_eci(loc);
-            }
+//            Convert::kepstruc kep;
+//            Convert::eci2kep(loc.pos.eci, kep);
+//            if (timeshift != 0.)
+//            {
+//                Convert::kepstruc kep;
+//                double dea;
+//                Convert::eci2kep(loc.pos.eci, kep);
+//                kep.ma += timeshift * kep.mm;
+//                uint16_t count = 0;
+//                do
+//                {
+//                    dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+//                    kep.ea -= dea;
+//                } while (++count < 100 && fabs(dea) > .000001);
+//                kep2eci(kep, loc.pos.eci);
+//                loc.pos.eci.pass++;
+//                Convert::pos_eci(loc);
+//            }
 
 
             return loc;

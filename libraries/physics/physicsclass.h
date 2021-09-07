@@ -109,6 +109,7 @@ namespace Cosmos
             Propagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt) : currentloc{newloc}, currentphys{newphys}
             {
                 dt = 86400.*((currentloc->utc + (idt / 86400.))-currentloc->utc);
+                dt2 = dt * dt;
                 dtj = dt / 86400.;
                 initialloc = *currentloc;
                 currentutc = currentloc->utc;
@@ -116,6 +117,7 @@ namespace Cosmos
             }
 
             double dt;
+            double dt2;
             double dtj;
             double currentutc=0.;
             Convert::locstruc initialloc;
@@ -201,9 +203,9 @@ namespace Cosmos
                 : Propagator{ newloc, newphys, idt }, order { iorder }
             {
                 type = PositionGaussJackson;
-                Setup(iorder);
+                Setup();
             }
-            int32_t Setup(uint16_t order);
+            int32_t Setup();
             int32_t Init(vector<Convert::tlestruc> lines);
             int32_t Init(vector<Convert::locstruc> locs);
             int32_t Init();
