@@ -359,9 +359,11 @@ string to_floating(float value, uint16_t precision) {
     return output;
 }
 
-string to_floating(double value, uint16_t precision) {
+string to_floating(double value, uint16_t precision)
+{
+    uint16_t digits = abs(log10(value));
     string output="";
-    output.resize(17+precision);
+    output.resize(digits+17+precision);
     if (precision) {
         sprintf(&output[0], "%.*f", precision, value);
     } else {
