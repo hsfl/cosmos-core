@@ -715,8 +715,10 @@ namespace Cosmos {
 			quaternion to_q();
 			Vector cross(Vector b);
 			double dot(Vector b);
-			Vector &normalize(double size=1.);
-			Vector &clear(double x0=0., double y0=0., double z0=0., double w0=0.);
+            Vector &normalize(double size=1.);
+            Vector &maxmag(double size);
+            Vector &minmag(double size);
+            Vector &clear(double x0=0., double y0=0., double z0=0., double w0=0.);
             double norm();
             double norm2();
             double separation(Vector b);

@@ -1699,6 +1699,71 @@ namespace Cosmos {
                 return *this;
             }
 
+            //! Maximum Magnitude.
+            /*! Set maximum magnitude of the vector in place.
+             * \return Reference to maximized ::Vector.
+            */
+            Vector &Vector::maxmag(double size)
+            {
+                if (size <= 0.)
+                {
+                    return *this;
+                }
+
+                if (this->x > size)
+                {
+                    this->x = size;
+                }
+                else if (this->x < -size)
+                {
+                    this->x = -size;
+                }
+
+                if (this->y > size)
+                {
+                    this->y = size;
+                }
+                else if (this->y < -size)
+                {
+                    this->y = -size;
+                }
+
+                if (this->z > size)
+                {
+                    this->z = size;
+                }
+                else if (this->z < -size)
+                {
+                    this->z = -size;
+                }
+
+                return *this;
+            }
+
+            //! Minimum Magnitude.
+            /*! Set vector to 0 if smaller than the minimum magnitude in place.
+             * \return Reference to minimized ::Vector.
+            */
+            Vector &Vector::minmag(double size)
+            {
+                if (this->x < size && this->x > -size)
+                {
+                    this->x = 0.;
+                }
+
+                if (this->y < size && this->y > -size)
+                {
+                    this->y = 0.;
+                }
+
+                if (this->z < size && this->z > -size)
+                {
+                    this->z = 0.;
+                }
+
+                return *this;
+            }
+
             //! Normalize.
             /*! Normalize the vector in place.
              * \return Reference to normalized ::Vector.
