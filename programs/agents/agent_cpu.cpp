@@ -81,7 +81,7 @@ static DeviceCpu deviceCpu;
 //static DeviceCpu cpu;
 static uint16_t cpu_cidx;
 static uint16_t cpu_didx;
-static uint16_t didx;
+//static uint16_t didx;
 
 static Agent *agent;
 
