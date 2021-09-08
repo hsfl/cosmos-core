@@ -12482,7 +12482,7 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
 {
     rvector topo, dv, ds;
 
-    loc_update(&target.loc);
+    Convert::loc_update(&target.loc);
     Convert::geoc2topo(target.loc.pos.geod.s, source.pos.geoc.s,topo);
     Convert::topo2azel(topo, target.azto, target.elto);
     Convert::geoc2topo(source.pos.geod.s, target.loc.pos.geoc.s, topo);
