@@ -360,6 +360,9 @@ namespace Cosmos
 //            physicsstruc currentphys;
             double dt;
             double dtj;
+
+            vector<targetstruc> targets;
+
             Propagator::Type ptype;
             InertialPositionPropagator *inposition;
             GeoPositionPropagator *geoposition;
@@ -389,6 +392,8 @@ namespace Cosmos
             int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype);
             int32_t Propagate(double nextutc=0.);
             int32_t Reset(double nextutc=0.);
+            int32_t AddTarget(string name, Convert::locstruc loc, uint16_t type=NODE_TYPE_GROUNDSTATION);
+            int32_t AddTarget(string name, double lat, double lon, double alt);
         };
 
 

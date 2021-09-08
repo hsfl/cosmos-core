@@ -93,6 +93,9 @@ namespace Cosmos
 
         int32_t Structure::add_u(double x, double y, double z, ExternalPanelType type)
         {
+            x *= .1;
+            y *= .1;
+            z *= .1;
             switch (type)
             {
             case NoType:
@@ -100,20 +103,20 @@ namespace Cosmos
                 add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
                 add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
                 add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
-                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
-                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., y/2., -z/2.), .004);
                 break;
             case X:
                 add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004, 2, 0.);
                 add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .004, false);
-                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .004, false);
+                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .004);
+                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .004);
 
                 add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
                 add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
 
-                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
-                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., y/2., -z/2.), .004);
                 break;
             case Y:
                 add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004);
@@ -121,25 +124,25 @@ namespace Cosmos
 
                 add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004, 2, 0.);
                 add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .004, false);
-                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .004, false);
+                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .004);
+                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .004);
 
-                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
-                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., y/2., -z/2.), .004);
                 break;
             case XY:
                 add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004, 2, 0.);
                 add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .004, false);
-                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .004, false);
+                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .004);
+                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .004);
 
                 add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004, 2, 0.);
                 add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .004, false);
-                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .004, false);
+                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .004);
+                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .004);
 
-                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
-                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., y/2., -z/2.), .004);
                 break;
             }
 
@@ -217,10 +220,10 @@ namespace Cosmos
             triangle.external = external;
             triangle.depth = depth;
             triangle.pcell = pcell;
-            triangle.normal = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).cross(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]);
             triangle.com = (currentphys->vertices[triangle.tidx[0]] + currentphys->vertices[triangle.tidx[1]] + currentphys->vertices[triangle.tidx[2]]) / 3.;
             triangle.area = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).area(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]);
-            triangle.mass = triangle.area * triangle.depth;
+            triangle.normal = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).cross(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]).normalize(triangle.area);
+            triangle.mass = triangle.area * triangle.depth * triangle.density;
             triangle.perimeter = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).norm() + (currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[1]]).norm() + (currentphys->vertices[triangle.tidx[0]] - currentphys->vertices[triangle.tidx[2]]).norm();
             currentphys->triangles.push_back(triangle);
 
@@ -258,7 +261,7 @@ namespace Cosmos
             dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
             dtj = dt / 86400.;
 
-//            strncpy(currentinfo.node.name, name.c_str(), COSMOS_MAX_NAME);
+            //            strncpy(currentinfo.node.name, name.c_str(), COSMOS_MAX_NAME);
             currentinfo.node.name = name;
             currentinfo.node.agent = "sim";
             currentinfo.node.loc.utc = utc;
@@ -403,8 +406,8 @@ namespace Cosmos
             dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
             dtj = dt / 86400.;
 
-//            strncpy(currentinfo.node.name, name.c_str(), COSMOS_MAX_NAME);
-//            strncpy(currentinfo.node.agent, "sim", COSMOS_MAX_NAME);
+            //            strncpy(currentinfo.node.name, name.c_str(), COSMOS_MAX_NAME);
+            //            strncpy(currentinfo.node.agent, "sim", COSMOS_MAX_NAME);
             currentinfo.node.name = name;
             currentinfo.node.agent = "sim";
 
@@ -523,7 +526,7 @@ namespace Cosmos
 
             while ((nextutc - currentinfo.node.utc) > dtj / 2.)
             {
-                currentinfo.node.utc += dtj;
+                PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
                 switch (ptype)
                 {
                 case Propagator::Type::PositionIterative:
@@ -578,8 +581,34 @@ namespace Cosmos
                     Convert::att_icrf(currentinfo.node.loc);
                     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
                 }
+
+                // Update time
+                currentinfo.node.utc += dtj;
                 ++count;
             } ;
+
+            // Update Targets
+            rvector topo;
+            rvector ds;
+            rvector dv;
+            for (targetstruc &target : targets)
+            {
+                target.loc.utc = currentinfo.node.utc;
+                Convert::loc_update(target.loc);
+                Convert::geoc2topo(target.loc.pos.geod.s, currentinfo.node.loc.pos.geoc.s,topo);
+                Convert::topo2azel(topo, target.azto, target.elto);
+                Convert::geoc2topo(currentinfo.node.loc.pos.geod.s, target.loc.pos.geoc.s, topo);
+                Convert::topo2azel(topo, target.azfrom, target.elfrom);
+                // Calculate direct vector from source to target
+                ds = rv_sub(target.loc.pos.geoc.s, currentinfo.node.loc.pos.geoc.s);
+                target.range = length_rv(ds);
+                // Calculate velocity of target WRT source
+                dv = rv_sub(target.loc.pos.geoc.v, currentinfo.node.loc.pos.geoc.v);
+                // Closing speed is length of ds in 1 second minus length of ds now.
+                target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
+                target.utc = target.loc.utc;
+            }
+
             return count;
         }
 
@@ -591,6 +620,30 @@ namespace Cosmos
             iretn = Propagate(nextutc);
 
             return iretn;
+        }
+
+        int32_t State::AddTarget(std::string name, Convert::locstruc loc, uint16_t type)
+        {
+            targetstruc ttarget;
+            ttarget.type = type;
+            ttarget.name = name;
+            ttarget.loc = loc;
+
+            targets.push_back(ttarget);
+            return targets.size();
+        }
+
+        int32_t State::AddTarget(string name, double lat, double lon, double alt)
+        {
+            Convert::locstruc loc;
+            loc.pos.geod.pass = 1;
+            loc.pos.geod.utc = currentinfo.node.utc;
+            loc.pos.geod.s.lat = lat;
+            loc.pos.geod.s.lon = lon;
+            loc.pos.geod.s.h = alt;
+            loc.pos.geod.v = gv_zero();
+            loc.pos.geod.a = gv_zero();
+            return AddTarget(name, loc);
         }
 
         int32_t InertialAttitudePropagator::Init()
@@ -754,6 +807,11 @@ namespace Cosmos
             {
                 currentphys->temp = temp;
             }
+            for (trianglestruc& triangle : currentphys->triangles)
+            {
+                triangle.temp = currentphys->temp;
+                triangle.heat = triangle.temp * (triangle.mass * triangle.hcap);
+            }
             return 0;
         }
 
@@ -766,16 +824,11 @@ namespace Cosmos
             while ((nextutc - currentutc) > dtj / 2.)
             {
                 currentutc += dtj;
-                Vector units = Quaternion(currentloc->att.icrf.s).irotate(Vector(currentloc->pos.icrf.s).normalize());
-                Vector unite = Vector(currentloc->pos.eci.s).normalize(-1.);
-                unite = Vector(currentloc->pos.eci.s).normalize(-1.);
-                unite = Quaternion(currentloc->att.icrf.s).irotate(Vector(currentloc->pos.eci.s).normalize(-1.));
-                double energyd;
-                double sdot;
-                double edot;
+                double energyd = 0.;
                 currentphys->temp = currentphys->heat / (currentphys->mass * currentphys->hcap);
                 currentphys->heat = 0.;
-                double ienergyd = currentphys->radiation / currentphys->area;
+                double ienergyd = currentphys->radiation / currentphys->mass;
+                currentphys->radiation = 0.;
                 for (trianglestruc& triangle : currentphys->triangles)
                 {
                     triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
@@ -784,131 +837,55 @@ namespace Cosmos
 
                     if (triangle.external)
                     {
-                        // External Normal face
-                        // Solar effects
-                        sdot = units.dot(triangle.normal);
-
-                        // Earth effects
-                        edot = acos(unite.dot(triangle.normal) / triangle.normal.norm()) - RADOF(5.);
-                        if (edot < 0.)
-                        {
-                            edot = 1.;
-                        }
-                        else
-                        {
-                            edot = cos(edot);
-                        }
-
-                        energyd = 0.;
-                        if (currentloc->pos.sunradiance && sdot > 0)
-                        {
-                            energyd +=  sdot * triangle.irradiation * dt;
-                        }
-
-                        if (edot > 0)
-                        {
-                            energyd += edot * dt * SIGMA * pow(290.,4);
-                        }
-
+                        energyd = triangle.irradiation * dt;
                         // Area not covered with cells
-                        triangle.heat += (1. - triangle.pcell) * triangle.area * triangle.abs * energyd;
                         if (triangle.pcell > 0.)
                         {
+                            triangle.heat += (1. - triangle.pcell) * triangle.abs * energyd;
                             // Area covered with cells
                             if (triangle.ecellbase > 0.)
                             {
                                 double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
-                                triangle.heat += (triangle.pcell) * triangle.area * (triangle.abs - efficiency) * energyd;
-                            }
-                            else {
-                                triangle.heat += (triangle.pcell) * triangle.area * triangle.abs * energyd;
-                            }
-                        }
-
-                        if (triangle.external == 2)
-                        {
-                            // External Anti-Normal face
-                            // Solar effects
-                            sdot = units.dot(-triangle.normal);
-
-                            // Earth effects
-                            edot = acos(unite.dot(-triangle.normal) / -triangle.normal.norm()) - RADOF(5.);
-                            if (edot < 0.)
-                            {
-                                edot = 1.;
+                                triangle.heat += (triangle.pcell) * triangle.abs * (1. - efficiency) * energyd;
                             }
                             else
                             {
-                                edot = cos(edot);
+                                triangle.heat += triangle.pcell * triangle.abs * energyd;
                             }
-
-                            energyd = 0.;
-                            if (currentloc->pos.sunradiance && sdot > 0)
-                            {
-                                energyd +=  sdot * triangle.irradiation * dt;
-                            }
-
-                            if (edot > 0)
-                            {
-                                energyd += edot * dt * SIGMA * pow(290.,4);
-                            }
-
-                            triangle.heat += triangle.area * triangle.abs * energyd;
                         }
-                        else {
-                            // Internal Anti-Normal face
-                            triangle.heat += triangle.iabs * triangle.area * ienergyd;
-                            currentphys->radiation -= triangle.iabs * triangle.area * ienergyd;
+                        else
+                        {
+                            triangle.heat = triangle.abs * energyd;
                         }
-                    }
-                    else {
-                        // Internal Normal face
-                        triangle.heat += triangle.iabs * triangle.area * ienergyd;
-                        currentphys->radiation -= triangle.iabs * triangle.area * ienergyd;
 
-                        // Internal Anti-Normal face
-                        triangle.heat += triangle.iabs * triangle.area * ienergyd;
-                        currentphys->radiation -= triangle.iabs * triangle.area * ienergyd;
+                        // Add back in previous radiation
+                        triangle.heat += triangle.mass * ienergyd / 2.;
                     }
-
-                    // Self emission
-                    //                energyd = dt * SIGMA * pow(triangle.temp ,4);
-                    //                triangle.heat -= triangle.iemi * triangle.area * energyd;
-                    //                currentphys->radiation += triangle.iemi * triangle.area * energyd;
+                    else
+                    {
+                        // Internal Normal faces
+                        triangle.heat += triangle.mass * ienergyd;
+                    }
 
                     // Then do outputs
-                    energyd = dt * SIGMA * pow(triangle.temp ,4);
-                    if (triangle.external)
+                    energyd = 2. * triangle.area * dt * SIGMA * pow(triangle.temp ,4);
+                    if (triangle.external == 0)
                     {
-                        // External Normal face
-                        triangle.heat -= triangle.emi * triangle.area * energyd;
-                        if (triangle.external == 2)
-                        {
-                            // External Anti-Normal face
-                            triangle.heat -= triangle.emi * triangle.area * energyd;
-                        }
-                        else {
-                            // Internal Anti-Normal face
-                            triangle.heat -= triangle.iemi * triangle.area * energyd;
-                            currentphys->radiation += triangle.iemi * triangle.area * energyd;
-                        }
+                        // Purely internal
+                        triangle.heat -= triangle.iemi * energyd;
+                        currentphys->radiation += triangle.iemi * energyd;
                     }
-                    else {
-                        {
-                            // Internal Normal face
-                            triangle.heat -= triangle.iemi * triangle.area * energyd;
-                            currentphys->radiation += triangle.iemi * triangle.area * energyd;
-
-                            // Internal Anti-Normal face
-                            triangle.heat -= triangle.iemi * triangle.area * energyd;
-                            currentphys->radiation += triangle.iemi * triangle.area * energyd;
-
-                        }
+                    else
+                    {
+                        // External
+                        triangle.heat -= 1.05 * triangle.emi * energyd;
+                        currentphys->radiation += 1.95 * triangle.iemi * energyd;
                     }
 
-                    currentphys->heat += triangle.heat;
                     triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
+                    currentphys->heat += triangle.heat;
                 }
+
                 currentphys->temp = currentphys->heat / (currentphys->mass * currentphys->hcap);
                 temperature = currentphys->temp;
             }
@@ -945,45 +922,41 @@ namespace Cosmos
             while ((nextutc - currentutc) > dtj / 2.)
             {
                 currentutc += dtj;
-                Vector units = Quaternion(currentloc->att.icrf.s).irotate(Vector(currentloc->pos.icrf.s).normalize());
-                Vector unite = Vector(currentloc->pos.eci.s).normalize(-1.);
-                unite = Vector(currentloc->pos.eci.s).normalize(-1.);
-                unite = Quaternion(currentloc->att.icrf.s).irotate(Vector(currentloc->pos.eci.s).normalize(-1.));
-                double energyd;
+                currentphys->powgen = 0.;
                 for (trianglestruc& triangle : currentphys->triangles)
                 {
                     if (triangle.external)
                     {
                         // Solar effects
-                        double sdot = units.dot(triangle.normal);
+                        //                        double sdot = units.dot(triangle.normal);
 
                         // Earth effects
-                        double edot = acos(unite.dot(triangle.normal) / triangle.normal.norm()) - RADOF(5.);
-                        if (edot < 0.)
-                        {
-                            edot = 1.;
-                        }
-                        else
-                        {
-                            edot = cos(edot);
-                        }
+                        //                        double edot = acos(unite.dot(triangle.normal) / triangle.normal.norm()) - RADOF(5.);
+                        //                        if (edot < 0.)
+                        //                        {
+                        //                            edot = 1.;
+                        //                        }
+                        //                        else
+                        //                        {
+                        //                            edot = cos(edot);
+                        //                        }
 
-                        energyd = 0.;
-                        if (currentloc->pos.sunradiance && sdot > 0)
-                        {
-                            energyd +=  sdot * triangle.irradiation * dt;
-                        }
+                        //                        energyd = 0.;
+                        //                        if (currentloc->pos.sunradiance && sdot > 0)
+                        //                        {
+                        //                            energyd +=  sdot * triangle.irradiation * dt;
+                        //                        }
 
-                        if (edot > 0)
-                        {
-                            energyd += edot * dt * SIGMA * pow(290.,4);
-                        }
+                        //                        if (edot > 0)
+                        //                        {
+                        //                            energyd += edot * dt * SIGMA * pow(290.,4);
+                        //                        }
                         if (triangle.pcell > 0.)
                         {
                             if (triangle.ecellbase > 0.)
                             {
                                 double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
-                                triangle.power = triangle.area * efficiency * energyd / dt;
+                                triangle.power = efficiency * triangle.irradiation;
                                 triangle.volt = triangle.vcell;
                                 triangle.amp = -triangle.power / triangle.volt;
                                 currentphys->powgen += triangle.power;
@@ -1036,7 +1009,7 @@ namespace Cosmos
 
         int32_t GeoPositionPropagator::Init()
         {
-//            PosAccel(currentloc, currentphys);
+            //            PosAccel(currentloc, currentphys);
 
             return 0;
         }
@@ -1061,7 +1034,7 @@ namespace Cosmos
             currentloc->pos.geod.utc = nextutc;
             currentloc->pos.geod.pass = currentloc->pos.eci.pass + 1;
             Convert::pos_geod(currentloc);
-//            PosAccel(currentloc, currentphys);
+            //            PosAccel(currentloc, currentphys);
 
             return 0;
         }
@@ -1125,7 +1098,7 @@ namespace Cosmos
             dtsq = dt * dt;
 
             order2 = order/2;
-//            order = order2 * 2;
+            //            order = order2 * 2;
 
             for (uint16_t m=0; m<order+2; m++)
             {
@@ -1239,7 +1212,7 @@ namespace Cosmos
             ++currentloc->pos.eci.pass;
             Convert::pos_eci(currentloc);
             PosAccel(currentloc, currentphys);
-//            AttAccel(currentloc, currentphys);
+            //            AttAccel(currentloc, currentphys);
             step[order2].loc = *currentloc;
 
             // Position at t0-dt
@@ -1402,7 +1375,7 @@ namespace Cosmos
 
             // Calculate initial accelerations
             PosAccel(currentloc, currentphys);
-//            AttAccel(currentloc, currentphys);
+            //            AttAccel(currentloc, currentphys);
 
             // Set central bin to initial state vector
             step[order2].loc = *currentloc;
@@ -1429,7 +1402,7 @@ namespace Cosmos
                 }
 
                 PosAccel(&step[i].loc, currentphys);
-//                AttAccel(&step[i].loc, currentphys);
+                //                AttAccel(&step[i].loc, currentphys);
             }
 
             for (uint32_t i=order2+1; i<=order; i++)
@@ -1453,7 +1426,7 @@ namespace Cosmos
                 }
 
                 PosAccel(&step[i].loc, currentphys);
-//                AttAccel(&step[i].loc, currentphys);
+                //                AttAccel(&step[i].loc, currentphys);
             }
             iretn = Converge();
 
@@ -1526,7 +1499,7 @@ namespace Cosmos
                 // Update inherent accelerations for this location
                 PosAccel(&step[order+1].loc, currentphys);
 
-                                // Calculate s(order/2+1)
+                // Calculate s(order/2+1)
                 step[order+1].s.col[0] = step[order].s.col[0] + (step[order].loc.pos.eci.a.col[0]+step[order+1].loc.pos.eci.a.col[0])/2.;
                 step[order+1].s.col[1] = step[order].s.col[1] + (step[order].loc.pos.eci.a.col[1]+step[order+1].loc.pos.eci.a.col[1])/2.;
                 step[order+1].s.col[2] = step[order].s.col[2] + (step[order].loc.pos.eci.a.col[2]+step[order+1].loc.pos.eci.a.col[2])/2.;
@@ -1571,8 +1544,6 @@ namespace Cosmos
             rvector oldsa;
 
             PosAccel(currentloc, currentphys);
-//            initialloc = *currentloc;
-//            initialphys = *currentphys;
 
             c_cnt = 0;
             do
@@ -1683,6 +1654,7 @@ namespace Cosmos
         {
             Vector unitv = Quaternion(loc->att.geoc.s).irotate(Vector(loc->pos.geoc.v).normalize());
             Vector units = Quaternion(loc->att.icrf.s).irotate(Vector(loc->pos.icrf.s).normalize());
+            Vector unite = Quaternion(loc->att.icrf.s).irotate(Vector(loc->pos.eci.s).normalize(-1.));
             Vector geov(loc->pos.geoc.v);
             double speed = geov.norm();
             double density;
@@ -1693,13 +1665,14 @@ namespace Cosmos
             double adrag = density * 1.1 * speed * speed;
 
             // External panel effects
-            phys->powgen = 0.F;
             phys->adrag.clear();
             phys->atorque.clear();
             phys->rdrag.clear();
             phys->rtorque.clear();
+            double surftemp = 310. - 80. * sin(loc->pos.geod.s.lat);
             for (trianglestruc& triangle : phys->triangles)
             {
+                triangle.irradiation = 0.;
                 if (triangle.external)
                 {
                     // Atmospheric effects
@@ -1715,15 +1688,50 @@ namespace Cosmos
                     phys->adrag += da;
 
                     // Solar effects
-                    double sdot = units.dot(triangle.normal);
-                    if (loc->pos.sunradiance && sdot > 0)
+                    double sirradiation;
+                    if (triangle.external == 1)
                     {
-                        ddrag = loc->pos.sunradiance * sdot / (3e8*phys->mass);
+                        sirradiation = loc->pos.sunradiance * units.dot(triangle.normal);
+                    }
+                    else
+                    {
+                        sirradiation = loc->pos.sunradiance * units.dot(-triangle.normal);
+                    }
+                    if (sirradiation > 0)
+                    {
+                        triangle.irradiation = triangle.pcell * sirradiation;
+                        ddrag = sirradiation / (3e8*phys->mass);
                         dtorque = ddrag * triangle.twist;
                         phys->rtorque += dtorque;
                         da = ddrag * triangle.shove;
                         phys->rdrag += da;
                     }
+
+                    // Earth effects
+                    double edot;
+                    if (triangle.external == 1)
+                    {
+                        edot = acos(unite.dot(triangle.normal) / triangle.normal.norm()) - RADOF(5.);
+                    }
+                    else
+                    {
+                        edot = acos(unite.dot(-triangle.normal) / triangle.normal.norm()) - RADOF(5.);
+                    }
+                    if (edot < 0.)
+                    {
+                        edot = 1.;
+                    }
+                    else
+                    {
+                        edot = cos(edot);
+                    }
+
+                    double eirradiation = edot * SIGMA * pow(surftemp,4);
+                    if (eirradiation > 0)
+                    {
+                        triangle.irradiation += triangle.area * triangle.pcell * eirradiation;
+                    }
+
                 }
             }
             return 0;
@@ -1912,7 +1920,7 @@ namespace Cosmos
             loc->pos.eci.a = rv_sub(loc->pos.eci.a, da.to_rv());
 
             // Add thrust
-//            loc->pos.eci.a = rv_add(loc->pos.eci.a, rv_smult(1./phys->mass, phys->fpush.to_rv()));
+            //            loc->pos.eci.a = rv_add(loc->pos.eci.a, rv_smult(1./phys->mass, phys->fpush.to_rv()));
 
             /*
         // Jupiter gravity
@@ -2280,7 +2288,7 @@ namespace Cosmos
         {
             Convert::locstruc loc;
 
-//            longitude += 2. * DPI * (fabs(hour)/24. - (utc - (int)utc));
+            //            longitude += 2. * DPI * (fabs(hour)/24. - (utc - (int)utc));
 
             Convert::pos_clear(loc);
 
@@ -2326,13 +2334,15 @@ namespace Cosmos
             Vector s2 = q2.drotate(s1);
             double deltal = atan2(s2.y, s2.x);
 
-            q2 = drotate_around(L, angle2 + 0.9655 * timeshift * sqrt(GM/pow(radius,3.)));
+//            q2 = drotate_around(L, angle2 + 0.960 * timeshift * sqrt(GM/pow(radius,3.)));
+            q2 = drotate_around(L, angle2 + timeshift * sqrt(GM/pow(radius,3.)));
             s2 = q2.drotate(s1);
             Vector v2 = q2.drotate(v1);
 
 
             // Third, rotate around Z vector by remaining distance, related to timeshift, longitude, and  change incurred from angle2)
-            Quaternion q3 = drotate_around_z(-0.00 * timeshift*(D2PI/86400.) + longitude - deltal);
+//            Quaternion q3 = drotate_around_z(-0.00 * timeshift*(D2PI/86400.) + longitude - deltal);
+            Quaternion q3 = drotate_around_z(longitude - deltal);
             Vector s3 = q3.drotate(s2);
             Vector v3 = q3.drotate(v2);
 
@@ -2346,24 +2356,24 @@ namespace Cosmos
             loc.pos.geoc.pass++;
             Convert::pos_geoc(loc);
 
-//            Convert::kepstruc kep;
-//            Convert::eci2kep(loc.pos.eci, kep);
-//            if (timeshift != 0.)
-//            {
-//                Convert::kepstruc kep;
-//                double dea;
-//                Convert::eci2kep(loc.pos.eci, kep);
-//                kep.ma += timeshift * kep.mm;
-//                uint16_t count = 0;
-//                do
-//                {
-//                    dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
-//                    kep.ea -= dea;
-//                } while (++count < 100 && fabs(dea) > .000001);
-//                kep2eci(kep, loc.pos.eci);
-//                loc.pos.eci.pass++;
-//                Convert::pos_eci(loc);
-//            }
+            //            Convert::kepstruc kep;
+            //            Convert::eci2kep(loc.pos.eci, kep);
+            //            if (timeshift != 0.)
+            //            {
+            //                Convert::kepstruc kep;
+            //                double dea;
+            //                Convert::eci2kep(loc.pos.eci, kep);
+            //                kep.ma += timeshift * kep.mm;
+            //                uint16_t count = 0;
+            //                do
+            //                {
+            //                    dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+            //                    kep.ea -= dea;
+            //                } while (++count < 100 && fabs(dea) > .000001);
+            //                kep2eci(kep, loc.pos.eci);
+            //                loc.pos.eci.pass++;
+            //                Convert::pos_eci(loc);
+            //            }
 
 
             return loc;
