@@ -4055,6 +4055,8 @@ union as a ::devicestruc.
             float iabs = .88f;
             //! mass in Kg
             float mass = 1.f;
+            //! density in kg/m3
+            float density =  2710.;
             //! Temperature in Kelvin
             float temp = 0.f;
             //! Area
@@ -4065,6 +4067,8 @@ union as a ::devicestruc.
             float perimeter = 0.f;
             //! Insolation in Watts/sq m
             float irradiation = 0.f;
+            //! Insolation in Watts/sq m
+            float exradiation = 0.f;
             //! Solar cell coverage
             float pcell = 0.f;
             //! Solar cell base efficiency
@@ -4102,11 +4106,13 @@ union as a ::devicestruc.
                     { "iemi"   , iemi },
                     { "iabs"   , iabs },
                     { "mass"  , mass },
+                    { "density"  , density },
                     { "temp"  , temp },
                     { "area"  , area },
                     { "depth" , depth },
                     { "perimeter"   , perimeter },
                     { "irradiation" , irradiation },
+                    { "exradiation" , exradiation },
                     { "pcell" , pcell },
                     { "ecellbase"   , ecellbase },
                     { "ecellslope"  , ecellslope },
@@ -4138,10 +4144,12 @@ union as a ::devicestruc.
                     if(!parsed["iemi"].is_null())	{ emi = parsed["iemi"].number_value(); }
                     if(!parsed["iabs"].is_null())	{ abs = parsed["iabs"].number_value(); }
                     if(!parsed["mass"].is_null())	{ mass = parsed["mass"].number_value(); }
+                    if(!parsed["density"].is_null())	{ density = parsed["density"].number_value(); }
                     if(!parsed["temp"].is_null())	{ temp = parsed["temp"].number_value(); }
                     if(!parsed["area"].is_null())	{ area = parsed["area"].number_value(); }
                     if(!parsed["perimeter"].is_null())	{ perimeter = parsed["perimeter"].number_value(); }
                     if(!parsed["irradiation"].is_null())	{ irradiation = parsed["irradiation"].number_value(); }
+                    if(!parsed["exradiation"].is_null())	{ exradiation = parsed["exradiation"].number_value(); }
                     if(!parsed["pcell"].is_null())	{ pcell = parsed["pcell"].number_value(); }
                     if(!parsed["ecellbase"].is_null())	{ ecellbase = parsed["ecellbase"].number_value(); }
                     if(!parsed["ecellslope"].is_null())	{ ecellslope = parsed["ecellslope"].number_value(); }
@@ -7552,6 +7560,7 @@ information.
                     add_name(basename+".area", &node.phys.triangles[i].area, "float");
                     add_name(basename+".perimeter", &node.phys.triangles[i].perimeter, "float");
                     add_name(basename+".irradiation", &node.phys.triangles[i].irradiation, "float");
+                    add_name(basename+".exradiation", &node.phys.triangles[i].exradiation, "float");
                     add_name(basename+".pcell", &node.phys.triangles[i].pcell, "float");
                     add_name(basename+".ecellbase", &node.phys.triangles[i].ecellbase, "float");
                     add_name(basename+".ecellslope", &node.phys.triangles[i].ecellslope, "float");
