@@ -12416,6 +12416,7 @@ int32_t load_target(cosmosstruc *cinfo)
     if ((op=fopen(fname.c_str(),"r")) != nullptr)
     {
         //JIMNOTE:  take away this resize
+        //EJPNOTE: keep the resize, it is cleaned up later
         cinfo->target.resize(MAX_NUMBER_OF_TARGETS);
         while (count < cinfo->target.size() && fgets(inb,JSON_MAX_DATA,op) != nullptr)
         {
@@ -12429,6 +12430,7 @@ int32_t load_target(cosmosstruc *cinfo)
             json_addentry("target_elfrom",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,elfrom)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_elto",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,elto)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_min",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,min)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
+            json_addentry("target_size",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,size)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_LOCSTRUC, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_loc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_LOCSTRUC, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_loc_pos_geod",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.geod)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_POS_GEOD, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_loc_pos_eci",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.eci)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_POS_ECI, (uint16_t)JSON_STRUCT_TARGET, cinfo);

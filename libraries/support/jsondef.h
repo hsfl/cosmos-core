@@ -1957,7 +1957,6 @@ class sim_param	{
             }
 
             double utc = 0.;
-            //            char name[COSMOS_MAX_NAME+1] = "";
             string name;
             uint16_t type = 0;
             float azfrom = 0.f;
@@ -1968,6 +1967,7 @@ class sim_param	{
             double close = 0.;
             float min = 0.f;
             Convert::locstruc loc;
+            gvector size = {0., 0., 0.};
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -1985,7 +1985,8 @@ class sim_param	{
                     { "range"  , range },
                     { "close"  , close },
                     { "min"	, min },
-                    { "loc"	, loc }
+                    { "loc"	, loc },
+                    { "size", size}
                 };
             }
 
@@ -2009,6 +2010,7 @@ class sim_param	{
                     if(!p["close"].is_null()) { close = p["close"].number_value(); }
                     if(!p["min"].is_null()) { min = p["min"].number_value(); }
                     if(!p["loc"].is_null()) { loc.from_json(p["loc"].dump()); }
+                    if(!p["size"].is_null()) { size.from_json(p["size"].dump()); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }

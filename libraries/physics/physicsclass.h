@@ -392,8 +392,9 @@ namespace Cosmos
             int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype);
             int32_t Propagate(double nextutc=0.);
             int32_t Reset(double nextutc=0.);
-            int32_t AddTarget(string name, Convert::locstruc loc, uint16_t type=NODE_TYPE_GROUNDSTATION);
-            int32_t AddTarget(string name, double lat, double lon, double alt);
+            int32_t AddTarget(string name, Convert::locstruc loc, uint16_t type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
+            int32_t AddTarget(string name, double lat, double lon, double alt, uint16_t type=NODE_TYPE_GROUNDSTATION);
+            int32_t AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, uint16_t type=NODE_TYPE_LOCATION);
         };
 
 
