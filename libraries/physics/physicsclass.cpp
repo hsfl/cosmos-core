@@ -593,9 +593,26 @@ namespace Cosmos
             rvector dv;
             for (targetstruc &target : targets)
             {
-                target.loc.utc = currentinfo.node.utc;
+                target.loc.pos.geod.utc = currentinfo.node.utc;
+                target.loc.pos.geod.pass++;
                 Convert::loc_update(target.loc);
-                Convert::geoc2topo(target.loc.pos.geod.s, currentinfo.node.loc.pos.geoc.s,topo);
+                gvector tgeo = target.loc.pos.geod.s;
+                target.min = 0.;
+                if (target.size.lat)
+                {
+                    tgeo.lon = currentinfo.node.loc.pos.geod.s.lon;
+                    if (currentinfo.node.loc.pos.geod.s.lat >= target.loc.pos.geod.s.lat + target.size.lat / 2.)
+                    {
+                        target.min = 1.;
+                        tgeo.lat = target.loc.pos.geod.s.lat + target.size.lat;
+                    }
+                    else if (currentinfo.node.loc.pos.geod.s.lat <= target.loc.pos.geod.s.lat - target.size.lat / 2)
+                    {
+                        target.min = -1.;
+                        tgeo.lat = target.loc.pos.geod.s.lat - target.size.lat;
+                    }
+                }
+                Convert::geoc2topo(tgeo, currentinfo.node.loc.pos.geoc.s,topo);
                 Convert::topo2azel(topo, target.azto, target.elto);
                 Convert::geoc2topo(currentinfo.node.loc.pos.geod.s, target.loc.pos.geoc.s, topo);
                 Convert::topo2azel(topo, target.azfrom, target.elfrom);
@@ -622,7 +639,7 @@ namespace Cosmos
             return iretn;
         }
 
-        int32_t State::AddTarget(std::string name, Convert::locstruc loc, uint16_t type)
+        int32_t State::AddTarget(std::string name, Convert::locstruc loc, uint16_t type, gvector size)
         {
             targetstruc ttarget;
             ttarget.type = type;
@@ -633,7 +650,7 @@ namespace Cosmos
             return targets.size();
         }
 
-        int32_t State::AddTarget(string name, double lat, double lon, double alt)
+        int32_t State::AddTarget(string name, double lat, double lon, double alt, uint16_t type)
         {
             Convert::locstruc loc;
             loc.pos.geod.pass = 1;
@@ -643,7 +660,25 @@ namespace Cosmos
             loc.pos.geod.s.h = alt;
             loc.pos.geod.v = gv_zero();
             loc.pos.geod.a = gv_zero();
-            return AddTarget(name, loc);
+            loc.pos.geod.pass++;
+            Convert::pos_geod(loc);
+            return AddTarget(name, loc, type);
+        }
+
+        int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, uint16_t type)
+        {
+            Convert::locstruc loc;
+            loc.pos.geod.pass = 1;
+            loc.pos.geod.utc = currentinfo.node.utc;
+            loc.pos.geod.s.lat = (ullat + lrlat) / 2.;
+            loc.pos.geod.s.lon = (ullon + lrlon) / 2.;
+            loc.pos.geod.s.h = 0.;
+            loc.pos.geod.v = gv_zero();
+            loc.pos.geod.a = gv_zero();
+            gvector size(ullat-lrlat, ullon-lrlon, 0.);
+            loc.pos.geod.pass++;
+            Convert::pos_geod(loc);
+            return AddTarget(name, loc, type, size);
         }
 
         int32_t InertialAttitudePropagator::Init()
