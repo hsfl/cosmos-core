@@ -27,7 +27,7 @@ namespace Cosmos {
             return true;
         }
 
-        bool PacketComm::Unpack()
+        bool PacketComm::Unpack(bool checkcrc)
         {
             if (datain.size() <= 0) {
                 return false;
@@ -52,7 +52,7 @@ namespace Cosmos {
             data.insert(data.begin(), &datain[3], &datain[size+3]);
             uint16_t crcin = datain[size+3] + 256 * datain[size+4];
             crc = calc_crc.calc(datain.data(), datain.size()-2);
-            if (crc != crcin)
+            if (checkcrc && crc != crcin)
             {
                 return false;
             }
@@ -84,7 +84,7 @@ namespace Cosmos {
             return true;
         }
 
-        bool PacketComm::RawIn(bool invert)
+        bool PacketComm::RawIn(bool invert, bool checkcrc)
         {
             if (invert)
             {
@@ -94,7 +94,7 @@ namespace Cosmos {
             {
                 datain = dataout;
             }
-            return Unpack();
+            return Unpack(checkcrc);
         }
 
         bool PacketComm::SLIPIn()

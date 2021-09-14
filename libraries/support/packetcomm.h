@@ -14,9 +14,9 @@ namespace Cosmos {
             PacketComm();
             void CalcCRC();
             bool CheckCRC();
-            bool Unpack();
+            bool Unpack(bool checkcrc=true);
             bool UnpackForward();
-            bool RawIn(bool invert=false);
+            bool RawIn(bool invert=false, bool checkcrc=true);
             bool ASMIn();
             bool SLIPIn();
             bool Pack();
