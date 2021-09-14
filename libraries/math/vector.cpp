@@ -1710,7 +1710,11 @@ namespace Cosmos {
                     return *this;
                 }
 
-                if (this->x > size)
+                if (std::isnan(this->x))
+                {
+                    this->x == 0.;
+                }
+                else if (this->x > size)
                 {
                     this->x = size;
                 }
@@ -1719,6 +1723,10 @@ namespace Cosmos {
                     this->x = -size;
                 }
 
+                if (std::isnan(this->y))
+                {
+                    this->y == 0.;
+                }
                 if (this->y > size)
                 {
                     this->y = size;
@@ -1728,6 +1736,10 @@ namespace Cosmos {
                     this->y = -size;
                 }
 
+                if (std::isnan(this->z))
+                {
+                    this->z == 0.;
+                }
                 if (this->z > size)
                 {
                     this->z = size;
