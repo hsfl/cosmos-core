@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
     iretn = sim->AddNode("mother", Physics::Structure::U12, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     sit = sim->GetNode("mother");
-    sit->second->AddTarget("Punta Arenas", RADOF(-53.1638), RADOF(-70.9171), 0.);
+    sit->second->AddTarget("Punta_Arenas", RADOF(-53.1638), RADOF(-70.9171), 0.);
     sit->second->AddTarget("Awarua", RADOF(-46.4923), RADOF(168.2808), 0.);
     sit->second->AddTarget("Puertollano", RADOF(38.6884), RADOF(4.1079), 0.);
     sit->second->AddTarget("Svalbard", RADOF(77.8750), RADOF(20.9752), 0.);
@@ -97,9 +97,9 @@ int main(int argc, char *argv[])
     header += "omega_x\tomega_y\tomega_z\t";
     header += "alpha_x\talpha_y\talpha_z\t";
 
-//    header += "thrust_x\tthrust_y\tthrust_z\t";
-//    header += "impulse_x\timpulse_y\timpulse_z\t";
-//    header += "torque_x\ttorque_y\ttorque_z\t";
+    //    header += "thrust_x\tthrust_y\tthrust_z\t";
+    //    header += "impulse_x\timpulse_y\timpulse_z\t";
+    //    header += "torque_x\ttorque_y\ttorque_z\t";
 
     header += "temperature\tpowgen\t";
 
@@ -119,15 +119,32 @@ int main(int argc, char *argv[])
     }
 
     double mjd = currentmjd();
-    string path = data_name("", mjd, "orbit", "txt");
+    string path = data_name("", mjd, "txt", "orbit");
     FILE *ofp = fopen(path.c_str(), "w");
-    path = data_name("", mjd, "event", "txt");
-    FILE *efp = fopen(path.c_str(), "w");
-
     fprintf(ofp, "%s\n", header.c_str());
 
+
+    // Targets
+    header = "Seconds\t";
+    header += "UTC\t";
+    header += "Name\t";
+    header += "Type\t";
+
+    header += "Latitude\t";
+    header += "Longitude\t";
+
+    header += "Range\t";
+    header += "Close\t";
+    header += "AzTo\t";
+    header += "ElTo\t";
+    header += "AzFrom\t";
+    header += "ElFrom\t";
+
+    path = data_name("", mjd, "txt", "event");
+    FILE *efp = fopen(path.c_str(), "w");
+    fprintf(efp, "%s\n", header.c_str());
+
     double elapsed = 0;
-    Vector impulse;
     minaccel = maxaccel / minaccelratio;
     locstruc lastloc;
     vector<targetstruc> lasttargets;
@@ -172,10 +189,9 @@ int main(int argc, char *argv[])
 
         string output;
 
-        output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc));
-        output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
-
         output += sit->second->currentinfo.node.name + "\t";
+        output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+        output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
 
         output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lat) + "\t";
         output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lon) + "\t";
@@ -211,16 +227,16 @@ int main(int argc, char *argv[])
         output += to_floatany(sit->second->currentinfo.node.phys.temp) + "\t";
         output += to_floatany(sit->second->currentinfo.node.phys.powgen) + "\t";
 
-        for (uint16_t id=0; id<sit->second->targets.size(); ++id)
+        for (targetstruc &target : sit->second->targets)
         {
-            output += (sit->second->targets[id].name) + "\t";
-            output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
-            output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
-            output += to_floatany(sit->second->targets[id].loc.pos.geod.s.h) + "\t";
-            output += to_floatany(sit->second->targets[id].range) + "\t";
-            output += to_floatany(sit->second->targets[id].close) + "\t";
-            output += to_floatany(sit->second->targets[id].azto) + "\t";
-            output += to_floatany(sit->second->targets[id].elto) + "\t";
+            output += (target.name) + "\t";
+            output += to_floatany(target.loc.pos.geod.s.lat) + "\t";
+            output += to_floatany(target.loc.pos.geod.s.lon) + "\t";
+            output += to_floatany(target.loc.pos.geod.s.h) + "\t";
+            output += to_floatany(target.range) + "\t";
+            output += to_floatany(target.close) + "\t";
+            output += to_floatany(target.azto) + "\t";
+            output += to_floatany(target.elto) + "\t";
         }
 
         fprintf(ofp, "%s\n", output.c_str());
@@ -229,10 +245,10 @@ int main(int argc, char *argv[])
         // Eclipse
         if (lastloc.pos.sunradiance && !sit->second->currentinfo.node.loc.pos.sunradiance)
         {
-            output = to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc));
+            output = to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
             output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
 
-            output += "ECLIPSEA\t";
+            output += "Sun\tECLIPSE_IN\t";
 
             output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lat) + "\t";
             output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lon) + "\t";
@@ -243,10 +259,10 @@ int main(int argc, char *argv[])
 
         if (!lastloc.pos.sunradiance && sit->second->currentinfo.node.loc.pos.sunradiance)
         {
-            output = to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc));
+            output = to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
             output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
 
-            output += "ECLIPSEL\t";
+            output += "Sun\tECLIPSE_OUT\t";
 
             output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lat) + "\t";
             output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lon) + "\t";
@@ -255,59 +271,181 @@ int main(int argc, char *argv[])
             fprintf(efp, "%s\n", output.c_str());
         }
 
-        // Targets
+        // Heading and Angular Velocity
+        double cphi = cos(sit->second->currentinfo.node.loc.pos.geos.v.phi);
+        double cphi2 = cphi * cphi;
+        double phi2 = sit->second->currentinfo.node.loc.pos.geos.v.phi * sit->second->currentinfo.node.loc.pos.geos.v.phi;
+        double lambda2 = sit->second->currentinfo.node.loc.pos.geos.v.lambda * sit->second->currentinfo.node.loc.pos.geos.v.lambda;
+        double anglev;
+        double heading;
+        if (cphi2 != 0.)
+        {
+            anglev = sqrt(phi2 + lambda2 / cphi2);
+            heading = atan2(sit->second->currentinfo.node.loc.pos.geos.v.phi, sit->second->currentinfo.node.loc.pos.geos.v.lambda / cphi);
+        }
+        else
+        {
+            anglev = sqrt(phi2);
+            heading = DPI;
+        }
+
         for (uint16_t id=0; id<sit->second->targets.size(); ++id)
         {
-            if (sit->second->targets[id].close <= 0 && lasttargets[id].close > 0)
+            // Check ahead for target
+            double cd = cos(heading - sit->second->targets[id].bearing);
+            if (cd > .8)
             {
-                output = to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc));
+                double atime = sit->second->targets[id].distance / (anglev * cd);
+                double latime = lasttargets[id].distance / (anglev * cd);
+                if ((latime >= 600.8 && atime < 600.9) || (latime >= 300.8 && atime <= 300.9))
+                {
+                    output.clear();
+                    output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+                    output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
+                    output += sit->second->targets[id].name + "\t";
+
+                    if (sit->second->targets[id].type == NODE_TYPE_GROUNDSTATION)
+                    {
+                        output += "GS_PREP_SECONDS-" + to_unsigned(atime, 3, true) + "\t";
+                    }
+                    else
+                    {
+                        output += "IMAGE_PREP_SECONDS-" + to_unsigned(atime, 3, true) + "\t";
+                    }
+
+                    output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
+                    output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
+                    output += to_floatany(sit->second->targets[id].range) + "\t";
+                    output += to_floatany(sit->second->targets[id].close) + "\t";
+                    output += to_floatany(sit->second->targets[id].azto) + "\t";
+                    output += to_floatany(sit->second->targets[id].elto) + "\t";
+                    output += to_floatany(sit->second->targets[id].azfrom) + "\t";
+                    output += to_floatany(sit->second->targets[id].elfrom) + "\t";
+
+                    fprintf(efp, "%s\n", output.c_str());
+                }
+            }
+
+            //Check start of image
+            if (lasttargets[id].min != 2. && sit->second->targets[id].min == 2.)
+            {
+                output.clear();
+                output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
                 output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
-
                 output += sit->second->targets[id].name + "\t";
-                if (sit->second->targets[id].min < 0.)
-                {
-                    output += "TARGETAPPROACHLOW_" + to_unsigned(id, 0) + "\t";
-                }
-                else if (sit->second->targets[id].min > 0.)
-                {
-                    output += "TARGETAPPROACHHIGH_" + to_unsigned(id, 0) + "\t";
-                }
-                else
-                {
-                    output += "TARGETMID_" + to_unsigned(id, 0) + "\t";
-                }
 
-                output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lat) + "\t";
-                output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lon) + "\t";
-                output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.h) + "\t";
+                output += "IMAGE_START\t";
+
+                output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
+                output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
+                output += to_floatany(sit->second->targets[id].range) + "\t";
+                output += to_floatany(sit->second->targets[id].close) + "\t";
+                output += to_floatany(sit->second->targets[id].azto) + "\t";
+                output += to_floatany(sit->second->targets[id].elto) + "\t";
+                output += to_floatany(sit->second->targets[id].azfrom) + "\t";
+                output += to_floatany(sit->second->targets[id].elfrom) + "\t";
 
                 fprintf(efp, "%s\n", output.c_str());
             }
 
-            if (sit->second->targets[id].close >= 0 && lasttargets[id].close < 0)
+            //Check stop of image
+            if (lasttargets[id].min == 2. && sit->second->targets[id].min != 2.)
             {
-                output = to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc));
+                output.clear();
+                output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
                 output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
-
                 output += sit->second->targets[id].name + "\t";
-                if (sit->second->targets[id].min < 0.)
-                {
-                    output += "TARGETLEAVELOW_" + to_unsigned(id, 0) + "\t";
-                }
-                else if (sit->second->targets[id].min > 0.)
-                {
-                    output += "TARGETLEAVEHIGH_" + to_unsigned(id, 0) + "\t";
-                }
-                else
-                {
-                    output += "TARGETMID_" + to_unsigned(id, 0) + "\t";
-                }
 
-                output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lat) + "\t";
-                output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lon) + "\t";
-                output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.h) + "\t";
+                output += "IMAGE_STOP+" + to_unsigned(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc-lasttargets[id].utc), 3, true) + "\t";
+
+                output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
+                output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
+                output += to_floatany(sit->second->targets[id].range) + "\t";
+                output += to_floatany(sit->second->targets[id].close) + "\t";
+                output += to_floatany(sit->second->targets[id].azto) + "\t";
+                output += to_floatany(sit->second->targets[id].elto) + "\t";
+                output += to_floatany(sit->second->targets[id].azfrom) + "\t";
+                output += to_floatany(sit->second->targets[id].elfrom) + "\t";
 
                 fprintf(efp, "%s\n", output.c_str());
+            }
+
+            // If Ground Station, Check current elevation
+            if (sit->second->targets[id].type == NODE_TYPE_GROUNDSTATION)
+            {
+                for (float el = RADOF(0.); el < RADOF(90.); el += RADOF(15.))
+                {
+                    if (sit->second->targets[id].elto >= el &&  lasttargets[id].elto <= el)
+                    {
+                            output.clear();
+                            output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+                            output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
+                            output += sit->second->targets[id].name + "\t";
+
+                            output += "GS_ELEVATION_" + to_unsigned(DEGOF(el), 2, true) + "\t";
+
+                            output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
+                            output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
+                            output += to_floatany(sit->second->targets[id].range) + "\t";
+                            output += to_floatany(sit->second->targets[id].close) + "\t";
+                            output += to_floatany(sit->second->targets[id].azto) + "\t";
+                            output += to_floatany(sit->second->targets[id].elto) + "\t";
+                            output += to_floatany(sit->second->targets[id].azfrom) + "\t";
+                            output += to_floatany(sit->second->targets[id].elfrom) + "\t";
+
+                            fprintf(efp, "%s\n", output.c_str());
+                    }
+                }
+
+                // If Groundstation, check max elevation
+                if (sit->second->targets[id].maxelto > 0. && sit->second->targets[id].maxelto > sit->second->targets[id].elto && lasttargets[id].maxelto == lasttargets[id].elto)
+                {
+                    output.clear();
+                    output += to_floatany(86400.*(lasttargets[id].utc - initialutc)) + "\t";
+                    output += to_mjd(lasttargets[id].utc) + "\t";
+                    output += lasttargets[id].name + "\t";
+
+                    output += "GS_MAX_" + to_unsigned(DEGOF(lasttargets[id].maxelto), 2, true) + "\t";
+
+                    output += to_floatany(lasttargets[id].loc.pos.geod.s.lat) + "\t";
+                    output += to_floatany(lasttargets[id].loc.pos.geod.s.lon) + "\t";
+                    output += to_floatany(lasttargets[id].range) + "\t";
+                    output += to_floatany(lasttargets[id].close) + "\t";
+                    output += to_floatany(lasttargets[id].azto) + "\t";
+                    output += to_floatany(lasttargets[id].elto) + "\t";
+                    output += to_floatany(lasttargets[id].azfrom) + "\t";
+                    output += to_floatany(lasttargets[id].elfrom) + "\t";
+
+                    fprintf(efp, "%s\n", output.c_str());
+                }
+            }
+
+            // Check image progress
+            else if (sit->second->targets[id].min == 2.)
+            {
+                for (int32_t dtime=100; dtime<900; dtime+=100)
+                {
+                    if (int(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc-lasttargets[id].utc)) == dtime)
+                    {
+                        output.clear();
+                        output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+                        output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
+                        output += sit->second->targets[id].name + "\t";
+
+                        output += "IMAGE_ELAPSED_SECONDS+" + to_unsigned(dtime, 3, true) + "\t";
+
+                        output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
+                        output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
+                        output += to_floatany(sit->second->targets[id].range) + "\t";
+                        output += to_floatany(sit->second->targets[id].close) + "\t";
+                        output += to_floatany(sit->second->targets[id].azto) + "\t";
+                        output += to_floatany(sit->second->targets[id].elto) + "\t";
+                        output += to_floatany(sit->second->targets[id].azfrom) + "\t";
+                        output += to_floatany(sit->second->targets[id].elfrom) + "\t";
+
+                        fprintf(efp, "%s\n", output.c_str());
+                    }
+                }
             }
         }
 

@@ -761,9 +761,9 @@ class sim_param	{
 	// MAC Parameters
 
 	/** half-kernel radius for inter-agent control (interaction radius), m */
-	double	h = 1000.0;
+    double	h = 1.0;
 	/** half-kernel radius for inter-agent control (interaction radius) for attractor, m */
-	double	h_attractor = 5000.0;
+    double	h_attractor = 10.0;
 	/** Reynolds number, controls viscosity, dimensionless */
 	double	Re = 20.0;
 	/** Maximum inter-agent relative velocity, m/s */
@@ -1963,10 +1963,14 @@ class sim_param	{
             float elfrom = 0.f;
             float azto = 0.f;
             float elto = 0.f;
+            float maxelto = 0.f;
             double range = 0.;
             double close = 0.;
             float min = 0.f;
+            float bearing;
+            float distance;
             Convert::locstruc loc;
+            Convert::locstruc cloc;
             gvector size = {0., 0., 0.};
 
             /// Convert class contents to JSON object
@@ -1982,10 +1986,14 @@ class sim_param	{
                     { "elfrom" , elfrom },
                     { "azto"   , azto },
                     { "elto"   , elto },
+                    { "maxelto"   , maxelto },
                     { "range"  , range },
                     { "close"  , close },
                     { "min"	, min },
+                    { "bearing"	, bearing },
+                    { "distance"	, distance },
                     { "loc"	, loc },
+                    { "cloc"	, cloc },
                     { "size", size}
                 };
             }
@@ -2006,10 +2014,14 @@ class sim_param	{
                     if(!p["elfrom"].is_null()) { elfrom = p["elfrom"].number_value(); }
                     if(!p["azto"].is_null()) { azto = p["azto"].number_value(); }
                     if(!p["elto"].is_null()) { elto = p["elto"].number_value(); }
+                    if(!p["maxelto"].is_null()) { maxelto = p["maxelto"].number_value(); }
                     if(!p["range"].is_null()) { range = p["range"].number_value(); }
                     if(!p["close"].is_null()) { close = p["close"].number_value(); }
                     if(!p["min"].is_null()) { min = p["min"].number_value(); }
+                    if(!p["bearing"].is_null()) { bearing = p["bearing"].number_value(); }
+                    if(!p["distance"].is_null()) { distance = p["distance"].number_value(); }
                     if(!p["loc"].is_null()) { loc.from_json(p["loc"].dump()); }
+                    if(!p["cloc"].is_null()) { cloc.from_json(p["cloc"].dump()); }
                     if(!p["size"].is_null()) { size.from_json(p["size"].dump()); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;

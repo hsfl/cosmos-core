@@ -593,27 +593,87 @@ namespace Cosmos
             rvector dv;
             for (targetstruc &target : targets)
             {
-                target.loc.pos.geod.utc = currentinfo.node.utc;
-                target.loc.pos.geod.pass++;
-                Convert::loc_update(target.loc);
-                gvector tgeo = target.loc.pos.geod.s;
-                target.min = 0.;
+                target.cloc.pos.geod.utc = currentinfo.node.utc;
+                target.cloc.pos.geod.pass++;
+                Convert::loc_update(target.cloc);
+                target.loc = target.cloc;
                 if (target.size.lat)
                 {
-                    tgeo.lon = currentinfo.node.loc.pos.geod.s.lon;
-                    if (currentinfo.node.loc.pos.geod.s.lat >= target.loc.pos.geod.s.lat + target.size.lat / 2.)
+                    if (currentinfo.node.loc.pos.geod.s.lon >= fixangle(target.cloc.pos.geod.s.lon - target.size.lon / 2., false) && currentinfo.node.loc.pos.geod.s.lon <= fixangle(target.cloc.pos.geod.s.lon + target.size.lon / 2., false))
                     {
-                        target.min = 1.;
-                        tgeo.lat = target.loc.pos.geod.s.lat + target.size.lat;
+                        target.loc.pos.geod.s.lon = currentinfo.node.loc.pos.geod.s.lon;
+                        if (currentinfo.node.loc.pos.geod.s.lat >= target.cloc.pos.geod.s.lat + target.size.lat / 2.)
+                        {
+                            target.loc.pos.geod.s.lat = target.cloc.pos.geod.s.lat + target.size.lat / 2.;
+                            target.loc.pos.geod.pass++;
+                            Convert::pos_geod(target.loc);
+                            if (currentinfo.node.loc.pos.geod.v.lat < 0)
+                            {
+                                target.min = 1.;
+                                target.utc = target.loc.utc;
+                            }
+                            else
+                            {
+                                target.min = 3.;
+                                target.utc = target.loc.utc;
+                            }
+                        }
+                        else if (currentinfo.node.loc.pos.geod.s.lat <= target.cloc.pos.geod.s.lat - target.size.lat / 2)
+                        {
+                            target.loc.pos.geod.s.lat = target.cloc.pos.geod.s.lat - target.size.lat / 2.;
+                            target.loc.pos.geod.pass++;
+                            Convert::pos_geod(target.loc);
+                            if (currentinfo.node.loc.pos.geod.v.lat > 0)
+                            {
+                                target.min = 1.;
+                                target.utc = target.loc.utc;
+                            }
+                            else
+                            {
+                                target.min = 3.;
+                                target.utc = target.loc.utc;
+                            }
+                        }
+                        else
+                        {
+                            if (target.min != 2.)
+                            {
+                                target.utc = target.loc.utc;
+                            }
+                            target.loc.pos.geod.pass++;
+                            Convert::pos_geod(target.loc);
+                            target.min = 2.;
+                        }
                     }
-                    else if (currentinfo.node.loc.pos.geod.s.lat <= target.loc.pos.geod.s.lat - target.size.lat / 2)
+                    else
                     {
-                        target.min = -1.;
-                        tgeo.lat = target.loc.pos.geod.s.lat - target.size.lat;
+                        target.min = 0.;
+                        target.utc = target.loc.utc;
                     }
                 }
-                Convert::geoc2topo(tgeo, currentinfo.node.loc.pos.geoc.s,topo);
+                else
+                {
+                    target.min = 0.;
+                    target.utc = target.loc.utc;
+                }
+                // Calculate bearing and distance
+                double dx = cos(target.loc.pos.geod.s.lat) * sin(target.loc.pos.geod.s.lon - currentinfo.node.loc.pos.geod.s.lon);
+                double dy = cos(currentinfo.node.loc.pos.geod.s.lat) * sin(target.loc.pos.geod.s.lat) - sin(currentinfo.node.loc.pos.geod.s.lat) * cos(target.loc.pos.geod.s.lat) * cos(target.loc.pos.geod.s.lon - currentinfo.node.loc.pos.geod.s.lon);
+                target.bearing = atan2(dy, dx);
+                target.distance = sep_rv(currentinfo.node.loc.pos.geoc.s, target.loc.pos.geoc.s);
+
+                // Calculate Alt, Az, Range, Close
+                Convert::geoc2topo(target.loc.pos.geod.s, currentinfo.node.loc.pos.geoc.s,topo);
                 Convert::topo2azel(topo, target.azto, target.elto);
+                if (target.elto <= 0.)
+                {
+                    target.maxelto = target.elto;
+                }
+                else if (target.elto > target.maxelto)
+                {
+                    target.maxelto = target.elto;
+                }
+
                 Convert::geoc2topo(currentinfo.node.loc.pos.geod.s, target.loc.pos.geoc.s, topo);
                 Convert::topo2azel(topo, target.azfrom, target.elfrom);
                 // Calculate direct vector from source to target
@@ -623,7 +683,6 @@ namespace Cosmos
                 dv = rv_sub(target.loc.pos.geoc.v, currentinfo.node.loc.pos.geoc.v);
                 // Closing speed is length of ds in 1 second minus length of ds now.
                 target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
-                target.utc = target.loc.utc;
             }
 
             return count;
@@ -644,6 +703,8 @@ namespace Cosmos
             targetstruc ttarget;
             ttarget.type = type;
             ttarget.name = name;
+            ttarget.cloc = loc;
+            ttarget.size = size;
             ttarget.loc = loc;
 
             targets.push_back(ttarget);
@@ -675,7 +736,7 @@ namespace Cosmos
             loc.pos.geod.s.h = 0.;
             loc.pos.geod.v = gv_zero();
             loc.pos.geod.a = gv_zero();
-            gvector size(ullat-lrlat, ullon-lrlon, 0.);
+            gvector size(ullat-lrlat, lrlon-ullon, 0.);
             loc.pos.geod.pass++;
             Convert::pos_geod(loc);
             return AddTarget(name, loc, type, size);
