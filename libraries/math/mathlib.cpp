@@ -2228,13 +2228,20 @@ void gauss_jackson_extrapolate(gj_instance *gji, double target)
  * \param angle Input angle in radians.
  * \return Output angle adjusted to range 0 to 2*PI.
 */
-double fixangle(double angle)
+double fixangle(double angle, bool d2pi)
 {
     double result;
 
     result = fmod(angle,D2PI);
 
-    return (result >= 0.)?result:result+D2PI;
+    if (!d2pi)
+    {
+        return (result >= DPI)?result-D2PI:result;
+    }
+    else
+    {
+        return (result);
+    }
 }
 
 //! ArcTan, limited to range 0-2PI.
