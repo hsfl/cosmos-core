@@ -387,12 +387,12 @@ string to_floatexp(float value, uint16_t precision) {
 
 string to_floatexp(double value, uint16_t precision) {
     string output="";
-    output.resize(17+precision);
-    if (precision) {
-        sprintf(&output[0], "%.*e", precision, value);
-    } else {
-        sprintf(&output[0], "%e", value);
+    if (!precision)
+    {
+        precision = 8;
     }
+    output.resize(17+precision);
+    sprintf(&output[0], "%.*e", precision, value);
     output.resize(strlen(&output[0]));
     return output;
 }
@@ -403,7 +403,7 @@ string to_floatany(float value, uint16_t precision) {
     if (precision) {
         sprintf(&output[0], "%.*g", precision, static_cast<double>(value));
     } else {
-        sprintf(&output[0], "%g", static_cast<double>(value));
+        sprintf(&output[0], "%.*g", 13, static_cast<double>(value));
     }
     output.resize(strlen(&output[0]));
     return output;
@@ -411,12 +411,12 @@ string to_floatany(float value, uint16_t precision) {
 
 string to_floatany(double value, uint16_t precision) {
     string output="";
-    output.resize(17+precision);
-    if (precision) {
-        sprintf(&output[0], "%.*g", precision, value);
-    } else {
-        sprintf(&output[0], "%g", value);
+    if (!precision)
+    {
+        precision = 17;
     }
+    output.resize(17+precision);
+    sprintf(&output[0], "%.*g", precision, value);
     output.resize(strlen(&output[0]));
     return output;
 }
