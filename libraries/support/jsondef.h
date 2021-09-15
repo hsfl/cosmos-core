@@ -4079,10 +4079,10 @@ union as a ::devicestruc.
             float depth = 0.f;
             //! perimeter
             float perimeter = 0.f;
-            //! Insolation in Watts/sq m
-            float irradiation = 0.f;
-            //! Insolation in Watts/sq m
-            float exradiation = 0.f;
+            //! Irradiation from Sun in Watts/sq m
+            float sirradiation = 0.f;
+            //! Irradiation from Earth in Watts/sq m
+            float eirradiation = 0.f;
             //! Solar cell coverage
             float pcell = 0.f;
             //! Solar cell base efficiency
@@ -4125,8 +4125,8 @@ union as a ::devicestruc.
                     { "area"  , area },
                     { "depth" , depth },
                     { "perimeter"   , perimeter },
-                    { "irradiation" , irradiation },
-                    { "exradiation" , exradiation },
+                    { "sirradiation" , sirradiation },
+                    { "eirradiation" , eirradiation },
                     { "pcell" , pcell },
                     { "ecellbase"   , ecellbase },
                     { "ecellslope"  , ecellslope },
@@ -4162,8 +4162,8 @@ union as a ::devicestruc.
                     if(!parsed["temp"].is_null())	{ temp = parsed["temp"].number_value(); }
                     if(!parsed["area"].is_null())	{ area = parsed["area"].number_value(); }
                     if(!parsed["perimeter"].is_null())	{ perimeter = parsed["perimeter"].number_value(); }
-                    if(!parsed["irradiation"].is_null())	{ irradiation = parsed["irradiation"].number_value(); }
-                    if(!parsed["exradiation"].is_null())	{ exradiation = parsed["exradiation"].number_value(); }
+                    if(!parsed["sirradiation"].is_null())	{ sirradiation = parsed["sirradiation"].number_value(); }
+                    if(!parsed["eirradiation"].is_null())	{ eirradiation = parsed["eirradiation"].number_value(); }
                     if(!parsed["pcell"].is_null())	{ pcell = parsed["pcell"].number_value(); }
                     if(!parsed["ecellbase"].is_null())	{ ecellbase = parsed["ecellbase"].number_value(); }
                     if(!parsed["ecellslope"].is_null())	{ ecellslope = parsed["ecellslope"].number_value(); }
@@ -7573,8 +7573,8 @@ information.
                     add_name(basename+".temp", &node.phys.triangles[i].temp, "float");
                     add_name(basename+".area", &node.phys.triangles[i].area, "float");
                     add_name(basename+".perimeter", &node.phys.triangles[i].perimeter, "float");
-                    add_name(basename+".irradiation", &node.phys.triangles[i].irradiation, "float");
-                    add_name(basename+".exradiation", &node.phys.triangles[i].exradiation, "float");
+                    add_name(basename+".sirradiation", &node.phys.triangles[i].sirradiation, "float");
+                    add_name(basename+".eirradiation", &node.phys.triangles[i].eirradiation, "float");
                     add_name(basename+".pcell", &node.phys.triangles[i].pcell, "float");
                     add_name(basename+".ecellbase", &node.phys.triangles[i].ecellbase, "float");
                     add_name(basename+".ecellslope", &node.phys.triangles[i].ecellslope, "float");

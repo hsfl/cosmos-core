@@ -731,8 +731,9 @@ TEST(cosmosstruc, add_default_names) {
 		EXPECT_EQ(c->get_pointer<float>("node.phys.triangles[" + std::to_string(i) + "].temp"), &c->node.phys.triangles[i].temp);
 		EXPECT_EQ(c->get_pointer<float>("node.phys.triangles[" + std::to_string(i) + "].area"), &c->node.phys.triangles[i].area);
 		EXPECT_EQ(c->get_pointer<float>("node.phys.triangles[" + std::to_string(i) + "].perimeter"), &c->node.phys.triangles[i].perimeter);
-		EXPECT_EQ(c->get_pointer<float>("node.phys.triangles[" + std::to_string(i) + "].irradiation"), &c->node.phys.triangles[i].irradiation);
-		EXPECT_EQ(c->get_pointer<float>("node.phys.triangles[" + std::to_string(i) + "].pcell"), &c->node.phys.triangles[i].pcell);
+        EXPECT_EQ(c->get_pointer<float>("node.phys.triangles[" + std::to_string(i) + "].sirradiation"), &c->node.phys.triangles[i].sirradiation);
+        EXPECT_EQ(c->get_pointer<float>("node.phys.triangles[" + std::to_string(i) + "].eirradiation"), &c->node.phys.triangles[i].eirradiation);
+        EXPECT_EQ(c->get_pointer<float>("node.phys.triangles[" + std::to_string(i) + "].pcell"), &c->node.phys.triangles[i].pcell);
 		EXPECT_EQ(c->get_pointer<float>("node.phys.triangles[" + std::to_string(i) + "].ecellbase"), &c->node.phys.triangles[i].ecellbase);
 		EXPECT_EQ(c->get_pointer<float>("node.phys.triangles[" + std::to_string(i) + "].ecellslope"), &c->node.phys.triangles[i].ecellslope);
 		EXPECT_EQ(c->get_pointer<vector<vector<uint16_t>>>("node.phys.triangles[" + std::to_string(i) + "].triangleindex"), &c->node.phys.triangles[i].triangleindex);

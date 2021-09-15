@@ -933,7 +933,7 @@ namespace Cosmos
 
                     if (triangle.external)
                     {
-                        energyd = triangle.irradiation * dt;
+                        energyd = (triangle.sirradiation + triangle.eirradiation) * dt;
                         // Area not covered with cells
                         if (triangle.pcell > 0.)
                         {
@@ -1023,36 +1023,12 @@ namespace Cosmos
                 {
                     if (triangle.external)
                     {
-                        // Solar effects
-                        //                        double sdot = units.dot(triangle.normal);
-
-                        // Earth effects
-                        //                        double edot = acos(unite.dot(triangle.normal) / triangle.normal.norm()) - RADOF(5.);
-                        //                        if (edot < 0.)
-                        //                        {
-                        //                            edot = 1.;
-                        //                        }
-                        //                        else
-                        //                        {
-                        //                            edot = cos(edot);
-                        //                        }
-
-                        //                        energyd = 0.;
-                        //                        if (currentloc->pos.sunradiance && sdot > 0)
-                        //                        {
-                        //                            energyd +=  sdot * triangle.irradiation * dt;
-                        //                        }
-
-                        //                        if (edot > 0)
-                        //                        {
-                        //                            energyd += edot * dt * SIGMA * pow(290.,4);
-                        //                        }
                         if (triangle.pcell > 0.)
                         {
                             if (triangle.ecellbase > 0.)
                             {
                                 double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
-                                triangle.power = efficiency * triangle.irradiation;
+                                triangle.power = efficiency * triangle.sirradiation;
                                 triangle.volt = triangle.vcell;
                                 triangle.amp = -triangle.power / triangle.volt;
                                 currentphys->powgen += triangle.power;
@@ -1768,7 +1744,8 @@ namespace Cosmos
             double surftemp = 310. - 80. * sin(loc->pos.geod.s.lat);
             for (trianglestruc& triangle : phys->triangles)
             {
-                triangle.irradiation = 0.;
+                triangle.sirradiation = 0.;
+                triangle.eirradiation = 0.;
                 if (triangle.external)
                 {
                     // Atmospheric effects
@@ -1795,7 +1772,7 @@ namespace Cosmos
                     }
                     if (sirradiation > 0)
                     {
-                        triangle.irradiation = triangle.pcell * sirradiation;
+                        triangle.sirradiation = triangle.pcell * sirradiation;
                         ddrag = sirradiation / (3e8*phys->mass);
                         dtorque = ddrag * triangle.twist;
                         phys->rtorque += dtorque;
@@ -1825,7 +1802,7 @@ namespace Cosmos
                     double eirradiation = edot * SIGMA * pow(surftemp,4);
                     if (eirradiation > 0)
                     {
-                        triangle.irradiation += triangle.area * triangle.pcell * eirradiation;
+                        triangle.eirradiation += triangle.area * triangle.pcell * eirradiation;
                     }
 
                 }
