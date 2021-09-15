@@ -23,6 +23,7 @@ foreach(file ${files})
 
 endforeach()
 
+target_link_libraries(geod2eci2geod CosmosTime CosmosMath CosmosConvert)
 target_link_libraries(crctest CosmosMath)
 target_link_libraries(lsfittest CosmosMath)
 target_link_libraries(mathspeed CosmosTime)
