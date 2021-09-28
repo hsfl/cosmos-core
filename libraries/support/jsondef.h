@@ -769,7 +769,7 @@ class sim_param	{
 	/** Maximum inter-agent relative velocity, m/s */
 	double	v_max = 15.0;
 	/** Maximum acceleration, m/s^2 */
-	double	a_max = 1.0;
+    double	a_max = 0.1;
 	/** Mach number, dimensionless */
 	double	M = 1.0;
 	/** exponent on a term in the pressure function */
