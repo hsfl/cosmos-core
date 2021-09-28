@@ -1712,7 +1712,7 @@ namespace Cosmos {
 
                 if (std::isnan(this->x))
                 {
-                    this->x == 0.;
+                    this->x = 0.;
                 }
                 else if (this->x > size)
                 {
@@ -1725,7 +1725,7 @@ namespace Cosmos {
 
                 if (std::isnan(this->y))
                 {
-                    this->y == 0.;
+                    this->y = 0.;
                 }
                 if (this->y > size)
                 {
@@ -1738,7 +1738,7 @@ namespace Cosmos {
 
                 if (std::isnan(this->z))
                 {
-                    this->z == 0.;
+                    this->z = 0.;
                 }
                 if (this->z > size)
                 {
