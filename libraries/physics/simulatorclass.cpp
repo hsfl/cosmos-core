@@ -21,9 +21,16 @@ namespace Cosmos
             return error;
         }
 
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
+        {
+            Physics::State* newstate = new Physics::State;
+            cnodes.insert(pair<string, Physics::State*>(nodename, newstate));
+            return cnodes.count(nodename);
+        }
+
         int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, vector<Convert::tlestruc> tles)
         {
-            if (cnodes[nodename]->initialloc.utc == 0.)
+            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
             {
                 error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, tles, currentutc);
                 if (error < 0)
@@ -37,50 +44,47 @@ namespace Cosmos
 
         int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::posstruc pos)
         {
-            if (cnodes[nodename]->initialloc.utc == 0.)
+            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
             {
                 error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, pos);
                 if (error < 0)
                 {
                     return error;
                 }
-            }
-            error = cnodes[nodename]->Propagate(currentutc);
-            if (error < 0)
-            {
-                return error;
+                error = cnodes[nodename]->Propagate(currentutc);
+                if (error < 0)
+                {
+                    return error;
+                }
             }
             return cnodes.count(nodename);
         }
 
         int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::locstruc loc)
         {
-            if (cnodes[nodename]->initialloc.utc == 0.)
+            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
             {
                 error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, loc);
                 if (error < 0)
                 {
                     return error;
                 }
-            }
-            error = cnodes[nodename]->Propagate(currentutc);
-            if (error < 0)
-            {
-                return error;
+                error = cnodes[nodename]->Propagate(currentutc);
+                if (error < 0)
+                {
+                    return error;
+                }
             }
             return cnodes.count(nodename);
         }
 
         int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, double utc, double latitude, double longitude, double altitude, double angle, double timeshift)
         {
-            Physics::State* newstate = new Physics::State;
-            auto testit = cnodes.insert(pair<string, Physics::State*>(nodename, newstate));
-            if (testit.second)
-//            auto cit = cnodes.find(nodename);
-//            if (cit == cnodes.end())
-//            if (cnodes[nodename]->initialloc.utc == 0. || !strlen(cnodes[nodename]->currentinfo.node.name))
+//            Physics::State* newstate = new Physics::State;
+//            auto testit = cnodes.insert(pair<string, Physics::State*>(nodename, newstate));
+//            if (testit.second)
+            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
             {
-//                cnodes.insert(nodename, newstate);
                 Convert::locstruc loc;
                 if (ptype == Propagator::PositionGeo)
                 {
@@ -110,16 +114,15 @@ namespace Cosmos
                     Convert::att_lvlh(loc);
                 }
                 error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, loc);
-//                error = testit.first.second.Init(nodename, dt, stype, ptype, atype, ttype, etype, loc);
                 if (error < 0)
                 {
                     return error;
                 }
-            }
-            error = cnodes[nodename]->Propagate(currentutc);
-            if (error < 0)
-            {
-                return error;
+                error = cnodes[nodename]->Propagate(currentutc);
+                if (error < 0)
+                {
+                    return error;
+                }
             }
             return cnodes.count(nodename);
         }
