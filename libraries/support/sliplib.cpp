@@ -55,7 +55,7 @@ int32_t slip_check_crc(uint8_t *sbuf, uint16_t ssize)
 	return 0;
 	}
 
-int32_t slip_check_crc(slip_t &sbuf)
+int32_t slip_check_crc(vector<uint8_t> &sbuf)
     {
     uint16_t crc, crc2;
 
@@ -86,7 +86,7 @@ int32_t slip_unpack(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize
 	return (slip_decode(sbuf, ssize-2, rbuf, rsize));
 }
 
-int32_t slip_unpack(slip_t &sbuf, slip_t &rbuf)
+int32_t slip_unpack(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf)
 {
     if (slip_check_crc(sbuf))
     {
@@ -150,7 +150,7 @@ int32_t slip_decode(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize
 	return (i);
 }
 
-int32_t slip_decode(slip_t &sbuf, slip_t &rbuf)
+int32_t slip_decode(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf)
 {
     size_t j, ch;
     rbuf.clear();
@@ -247,7 +247,7 @@ int32_t slip_encode(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize
 	return (i);
 }
 
-int32_t slip_encode(slip_t &rbuf, slip_t &sbuf)
+int32_t slip_encode(vector<uint8_t> &rbuf, vector<uint8_t> &sbuf)
 {
     sbuf.clear();
     sbuf.push_back(SLIP_FEND);
@@ -297,7 +297,7 @@ int32_t slip_pack(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize)
 	return (i);
 }
 
-int32_t slip_pack(slip_t &rbuf, slip_t &sbuf)
+int32_t slip_pack(vector<uint8_t> &rbuf, vector<uint8_t> &sbuf)
 {
     int32_t iretn;
 
@@ -337,7 +337,7 @@ uint16_t slip_calc_crc(uint8_t *buf, uint16_t size)
 	return (crc);
 }
 
-uint16_t slip_calc_crc(slip_t &buf)
+uint16_t slip_calc_crc(vector<uint8_t> &buf)
 {
     uint16_t crc = 0xffff;
     uint8_t ch;
@@ -370,7 +370,7 @@ uint16_t slip_get_crc(uint8_t *buf, uint16_t index)
 	return (crc);
 }
 
-uint16_t slip_get_crc(slip_t &buf)
+uint16_t slip_get_crc(vector<uint8_t> &buf)
 {
     uint16_t crc;
 
@@ -395,7 +395,7 @@ uint16_t slip_set_crc(uint8_t *buf, uint16_t index)
 	return (crc);
 }
 
-uint16_t slip_set_crc(slip_t &buf)
+uint16_t slip_set_crc(vector<uint8_t> &buf)
 {
     uint16_t crc;
 
@@ -404,5 +404,63 @@ uint16_t slip_set_crc(slip_t &buf)
 
     return (crc);
 }
+
+int32_t slip_extract(FILE *fp, vector<uint8_t> &rbuf)
+{
+    int32_t ch;
+//    int32_t j = 0;
+    rbuf.clear();
+
+    do
+    {
+//        if (j > sbuf.size()-3)
+//        {
+//            return (SLIP_ERROR_PACKING);
+//        }
+        ch = fgetc(fp);
+        if (ch == EOF)
+        {
+            return GENERAL_ERROR_BAD_FD;
+        }
+    } while (ch != SLIP_FEND);
+
+    do
+    {
+//        if (j > sbuf.size()-3)
+//        {
+//            return (SLIP_ERROR_PACKING);
+//        }
+        ch = fgetc(fp);
+        if (ch == EOF)
+        {
+            return GENERAL_ERROR_BAD_FD;
+        }
+        switch (ch)
+        {
+        case SLIP_FESC:
+//            if (j > sbuf.size()-3)
+//                return (SLIP_ERROR_PACKING);
+            ch = fgetc(fp);
+            switch (ch)
+            {
+            case SLIP_TFEND:
+                rbuf.push_back(SLIP_FEND);
+                break;
+            case SLIP_TFESC:
+                rbuf.push_back(SLIP_FESC);
+                break;
+            }
+            break;
+        case SLIP_FEND:
+            break;
+        default:
+            rbuf.push_back(ch);
+            break;
+        }
+    } while (ch != SLIP_FEND);
+
+    return (rbuf.size());
+}
+
 
 //! @}

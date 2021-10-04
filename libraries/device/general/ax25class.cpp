@@ -94,7 +94,7 @@ void Ax25Handle::set_source_callsign(string source)
     return;
 }
 
-std::string Ax25Handle::get_source_callsign()
+string Ax25Handle::get_source_callsign()
 {
     string callsign;
     for (uint8_t byte : header.source_callsign)
@@ -177,7 +177,7 @@ int32_t Ax25Handle::unload_packet()
     return 0;
 }
 
-std::ostream& operator<< (std::ostream& out, Ax25Handle& K)	{
+::std::ostream& operator<< (::std::ostream& out, Ax25Handle& K)	{
     out<<"destination callsign=<"<< K.header.destination_callsign<<">"<<std::endl;
     out<<"destination station ID="<< K.header.destination_stationID<<std::endl;
     out<<"source callsign=<"<< K.header.source_callsign<<">"<<std::endl;

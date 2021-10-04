@@ -48,7 +48,7 @@
 #define PRKX2SU_ID 1
 #define PRKX2SU_BAUD 9600
 #define PRKX2SU_BITS 8
-#define PRKX2SU_PARITY 0
+#define PRKX2SU_PARITY "none"
 #define PRKX2SU_STOPBITS 1
 
 #define PRKX2SU_AXIS_AZ 0
@@ -100,7 +100,7 @@ int32_t prkx2su_stop(uint8_t axis);
 int32_t prkx2su_ramp(uint8_t axis, uint8_t speed);
 int32_t prkx2su_minimum_speed(uint8_t axis, uint8_t speed);
 int32_t prkx2su_maximum_speed(uint8_t axis, uint8_t speed);
-int32_t prkx2su_getdata(uint8_t axis, string buf, uint16_t buflen);
+int32_t prkx2su_getdata(uint8_t axis, string &buf, uint16_t buflen);
 int32_t prkx2su_send(uint8_t axis, string buf, bool force);
 int32_t prkx2su_test(uint8_t axis);
 int32_t prkx2su_set_sensitivity(float sensitivity);

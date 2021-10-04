@@ -73,8 +73,8 @@ int main(int argc, char *argv[])
 {
     // **** Declare Variables
 
-    std::string input;
-    std::string token;
+    string input;
+    string token;
 
 	/*
     char gps_time[50];
@@ -100,8 +100,8 @@ int main(int argc, char *argv[])
     int received; // Num bytes received per UDP packet
     uint8_t buf1[BUFSIZE]; // RX Buffer
 
-    std::string myjstring;
-    std::string jjstring;
+    string myjstring;
+    string jjstring;
 
 
 	uint32_t i, j, tlen;
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
             // 11- acc_y,
             // 12- acc_z (g)
 
-            //std::string string_input;
+            //string string_input;
             //string_input = buf1;
             //char string_input[100];
             //strcpy(input,string_input);
@@ -219,31 +219,31 @@ int main(int argc, char *argv[])
 				   */
 
 			// IMU
-            agent->cinfo->device[agent->cinfo->devspec.imu[0]].imu.accel.col[0] = accx;
+            agent->cinfo->devspec.imu[0].accel.col[0] = accx;
             agent->cinfo->node.loc.pos.geod.a.lon = (accx/REARTHM)/cos(agent->cinfo->node.loc.pos.geod.s.lat);
-            agent->cinfo->device[agent->cinfo->devspec.imu[0]].imu.accel.col[1] = accy;
+            agent->cinfo->devspec.imu[0].accel.col[1] = accy;
             agent->cinfo->node.loc.pos.geod.a.lat = (accy/REARTHM);
-            agent->cinfo->device[agent->cinfo->devspec.imu[0]].imu.accel.col[2] = accz;
+            agent->cinfo->devspec.imu[0].accel.col[2] = accz;
             agent->cinfo->node.loc.pos.geod.a.h = accz;
 
 			// Pressure sensor
-            agent->cinfo->device[agent->cinfo->devspec.psen[0]].psen.press = press / 1000.;
+            agent->cinfo->devspec.psen[0].press = press / 1000.;
 
 			// Temperatures
-            agent->cinfo->device[agent->cinfo->devspec.tsen[0]].temp = etemp;
-            agent->cinfo->device[agent->cinfo->devspec.tsen[1]].temp = btemp;
-            agent->cinfo->device[agent->cinfo->devspec.tsen[2]].temp = atemp + 273.15;
+            agent->cinfo->devspec.tsen[0].temp = etemp;
+            agent->cinfo->devspec.tsen[1].temp = btemp;
+            agent->cinfo->devspec.tsen[2].temp = atemp + 273.15;
 
 			// GPS
 			if (fix == 1)
 			{
 			mjd = (int)currentmjd(0.) + hour / 24. + min / 1400. + sec / 86400. + hsec / 8640000.;;
-            agent->cinfo->device[agent->cinfo->devspec.gps[0]].utc = agent->cinfo->node.loc.utc = agent->cinfo->node.loc.pos.geod.utc = mjd;
-            agent->cinfo->device[agent->cinfo->devspec.gps[0]].gps.geocs = agent->cinfo->node.loc.pos.geoc.s;
+            agent->cinfo->devspec.gps[0].utc = agent->cinfo->node.loc.utc = agent->cinfo->node.loc.pos.geod.utc = mjd;
+            agent->cinfo->devspec.gps[0].geocs = agent->cinfo->node.loc.pos.geoc.s;
             agent->cinfo->node.loc.pos.geod.s.lat = RADOF(lat / 1.e5);
             agent->cinfo->node.loc.pos.geod.s.lon = RADOF(lon / 1.e5);
             agent->cinfo->node.loc.pos.geod.s.h = alt;
-            agent->cinfo->device[agent->cinfo->devspec.gps[0]].gps.geocv = rv_zero();
+            agent->cinfo->devspec.gps[0].geocv = rv_zero();
 
             agent->cinfo->node.loc.pos.geod.v.lat = 0.;
             agent->cinfo->node.loc.pos.geod.v.lon = 0.;
@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
             agent->cinfo->node.loc.att.geoc.a = rv_zero();
 
             ++agent->cinfo->node.loc.pos.geod.pass;
-            pos_geod(&agent->cinfo->node.loc);
+            Convert::pos_geod(&agent->cinfo->node.loc);
 			}
 
 			// Broadcast it

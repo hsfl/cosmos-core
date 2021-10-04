@@ -30,7 +30,6 @@
 // TODO: rename to serial.cpp only
 #include "support/configCosmos.h"
 #include "device/serial/serialclass.h"
-#include "support/elapsedtime.h"
 
 namespace Cosmos {
 
@@ -44,14 +43,21 @@ namespace Cosmos {
     //! \param dname Name of physical serial port.
     //! \param dbaud Baud rate. Will be rounded to nearest of 75, 110, 150, 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200.
     //! \param dbits Number of data bits.
-    //! \param dparity 0 = even, 1 = odd.
+    //! \param dparity 0 = none, 1 = odd, 2 = even.
     //! \param dstop Number of stop bits.
-    Serial::Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
+    Serial::Serial(string dname, size_t dbaud, size_t dbits, string dparity, size_t dstop)
     {
+        if (Parity.count(dparity))
+        {
+            parity = Parity[dparity];
+        }
+        else
+        {
+            parity = Parity["none"];
+        }
         name = dname;
         baud = dbaud;
         bits = dbits;
-        parity = dparity;
         stop = dstop;
 
         error = open_device();
@@ -155,7 +161,7 @@ namespace Cosmos {
         close_device();
     }
 
-    bool Serial::get_open()
+    bool Serial::get_open() const
     {
         if (fd >= 0)
         {
@@ -518,7 +524,7 @@ namespace Cosmos {
         return set_timeout(timeout);
     }
 
-    int32_t Serial::set_timeout(double timeout)
+    int32_t Serial::set_wtimeout(double timeout)
     {
         if (fd < 0)
         {
@@ -526,11 +532,26 @@ namespace Cosmos {
         }
 
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-        //    tio.c_cc[VMIN]=minchar;
-        //    tio.c_cc[VTIME]=(int)(timeout*10.+.4);
+        wictimeout = timeout;
+#else // windows
+        _COMMTIMEOUTS timeouts;
+        timeouts.WriteTotalTimeoutMultiplier = timeout * 1000.;
+        SetCommTimeouts(handle, &timeouts);
+#endif
 
-        //    tcsetattr(fd,TCSANOW,&(tio));
-        ictimeout = timeout;
+        error=0;
+        return 0;
+    }
+
+    int32_t Serial::set_rtimeout(double timeout)
+    {
+        if (fd < 0)
+        {
+            return SERIAL_ERROR_OPEN;
+        }
+
+#if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
+        rictimeout = timeout;
 #else // windows
         _COMMTIMEOUTS timeouts;
         timeouts.ReadIntervalTimeout = timeout * 1000.;
@@ -538,6 +559,32 @@ namespace Cosmos {
 #endif
 
         error=0;
+        return 0;
+    }
+
+    int32_t Serial::set_timeout(double timeout)
+    {
+        if (fd < 0)
+        {
+            return SERIAL_ERROR_OPEN;
+        }
+
+//#if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
+//        ictimeout = timeout;
+//#else // windows
+//        _COMMTIMEOUTS timeouts;
+//        timeouts.ReadIntervalTimeout = timeout * 1000.;
+//        SetCommTimeouts(handle, &timeouts);
+//#endif
+
+        if ((error = set_rtimeout(timeout)) < 0)
+        {
+            return error;
+        }
+        if ((error = set_wtimeout(timeout)) < 0)
+        {
+            return error;
+        }
         return 0;
     }
 
@@ -632,7 +679,7 @@ namespace Cosmos {
             FD_ZERO(&set);
             FD_SET(fd, &set);
             timeval timeout;
-            double rtimeout = ictimeout - et.split();
+            double rtimeout = wictimeout - et.split();
             if (rtimeout >= 0.)
             {
                 timeout.tv_sec = static_cast<int32_t>(rtimeout);
@@ -667,7 +714,7 @@ namespace Cosmos {
                     }
                 }
             }
-        } while (et.split() < ictimeout);
+        } while (et.split() < wictimeout);
 #endif
 
         // These sleeps are necessary to keep from overrunning the serial output buffer
@@ -822,6 +869,68 @@ namespace Cosmos {
         return (i);
     }
 
+    int32_t Serial::put_slip(const uint8_t *data, size_t size)
+    {
+        if (fd < 0)
+        {
+            error = SERIAL_ERROR_OPEN;
+            return (error);
+        }
+
+        size_t i = 0;
+        error = put_char(SLIP_FEND);
+        if (error < 0)
+        {
+            return error;
+        }
+        for (size_t j=0; j<size; j++)
+        {
+            switch (data[j])
+            {
+            case SLIP_FEND:
+                error = put_char(SLIP_FESC);
+                if (error < 0)
+                {
+                    return error;
+                }
+                error = put_char(SLIP_TFEND);
+                if (error < 0)
+                {
+                    return error;
+                }
+                i+=2;
+                break;
+            case SLIP_FESC:
+                error = put_char(SLIP_FESC);
+                if (error < 0)
+                {
+                    return error;
+                }
+                error = put_char(SLIP_TFESC);
+                if (error < 0)
+                {
+                    return error;
+                }
+                i+=2;
+                break;
+            default:
+                error = put_char(data[j]);
+                if (error < 0)
+                {
+                    return error;
+                }
+                i++;
+                break;
+            }
+        }
+        error = put_char(SLIP_FEND);
+        if (error < 0)
+        {
+            return error;
+        }
+        return (i);
+    }
+
     int32_t Serial::put_nmea(vector<uint8_t> data)
     {
         if (fd < 0)
@@ -852,7 +961,7 @@ namespace Cosmos {
             error = put_char(data[j]);
             message_sent += data[j];
             // check sum (xor?)
-            cs_in ^= (uint8_t)data[j];
+            cs_in ^= static_cast<uint8_t>(data[j]);
         }
         // end of command '*'
         error = put_char('*');
@@ -1019,8 +1128,8 @@ namespace Cosmos {
             {
                 error = result;
             }
-            COSMOS_SLEEP(ictimeout < 1. ? ictimeout/10. : .1);
-        } while (error == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
+            COSMOS_SLEEP(rictimeout < 1. ? rictimeout/10. : .1);
+        } while (error == SERIAL_ERROR_TIMEOUT && et.split() < rictimeout);
 #else
         ElapsedTime et;
         do
@@ -1029,8 +1138,8 @@ namespace Cosmos {
             FD_ZERO(&set);
             FD_SET(fd, &set);
             timeval timeout;
-            timeout.tv_sec = static_cast<int32_t>(ictimeout);
-            timeout.tv_usec = static_cast<int32_t>(1000000. * (ictimeout - timeout.tv_sec));
+            timeout.tv_sec = static_cast<int32_t>(rictimeout);
+            timeout.tv_usec = static_cast<int32_t>(1000000. * (rictimeout - timeout.tv_sec));
             int rv = select(fd+1, &set, nullptr, nullptr, &timeout);
             if (rv == -1)
             {
@@ -1063,7 +1172,7 @@ namespace Cosmos {
                     }
                 }
             }
-        } while (et.split() < ictimeout);
+        } while (et.split() < rictimeout);
 #endif
 
         return error;
@@ -1104,8 +1213,8 @@ namespace Cosmos {
             {
                 error = result;
             }
-            COSMOS_SLEEP(ictimeout < 1. ? ictimeout/10. : .1);
-        } while (error == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
+            COSMOS_SLEEP(rictimeout < 1. ? rictimeout/10. : .1);
+        } while (error == SERIAL_ERROR_TIMEOUT && et.split() < rictimeout);
 #else
         ElapsedTime et;
         do
@@ -1123,12 +1232,12 @@ namespace Cosmos {
                     error = -errno;
                 }
             }
-        } while (et.split() < ictimeout);
+        } while (et.split() < rictimeout);
 #endif
 
 //        printf("{%.5f}", et.split());
 
-        if (et.split() > ictimeout)
+        if (et.split() > rictimeout)
         {
             return SERIAL_ERROR_TIMEOUT;
         }
@@ -1322,7 +1431,6 @@ namespace Cosmos {
     int32_t Serial::get_slip(vector <uint8_t> &data, size_t size)
     {
         int32_t ch;
-//        uint16_t i;
 
         data.clear();
         do
@@ -1341,7 +1449,6 @@ namespace Cosmos {
             }
         } while (ch != SLIP_FEND);
 
-//        i = 0;
         do
         {
             ch = get_char();
@@ -1356,7 +1463,6 @@ namespace Cosmos {
                     return (ch);
                 }
             }
-//            if (i < size)
             if (data.size() < size)
             {
                 switch (ch)
@@ -1372,20 +1478,83 @@ namespace Cosmos {
                         data.push_back(SLIP_FESC);
                         break;
                     }
-//                    ++i;
                     break;
                 case SLIP_FEND:
                     break;
                 default:
                     data.push_back(static_cast<uint8_t>(ch));
-//                    ++i;
                     break;
                 }
             }
         } while (ch != SLIP_FEND);
 
-//        return (i);
         return data.size();
+    }
+
+    int32_t Serial::get_slip(uint8_t *data, size_t size)
+    {
+        int32_t ch;
+        uint16_t i;
+
+        do
+        {
+            ch = get_char();
+            if (ch < 0)
+            {
+                if (ch == SERIAL_ERROR_TIMEOUT)
+                {
+                    return (SERIAL_ERROR_SLIPIN);
+                }
+                else
+                {
+                    return (ch);
+                }
+            }
+        } while (ch != SLIP_FEND);
+
+        i = 0;
+        do
+        {
+            ch = get_char();
+            if (ch < 0)
+            {
+                if (ch == SERIAL_ERROR_TIMEOUT)
+                {
+                    return (SERIAL_ERROR_SLIPOUT);
+                }
+                else
+                {
+                    return (ch);
+                }
+            }
+            if (i < size)
+            {
+                switch (ch)
+                {
+                case SLIP_FESC:
+                    ch = get_char();
+                    switch (ch)
+                    {
+                    case SLIP_TFEND:
+                        data[i] = SLIP_FEND;
+                        break;
+                    case SLIP_TFESC:
+                        data[i] = SLIP_FESC;
+                        break;
+                    }
+                    ++i;
+                    break;
+                case SLIP_FEND:
+                    break;
+                default:
+                    data[i] = static_cast<uint8_t>(ch);
+                    ++i;
+                    break;
+                }
+            }
+        } while (ch != SLIP_FEND);
+
+        return (i);
     }
 
     //! Read NMEA response.

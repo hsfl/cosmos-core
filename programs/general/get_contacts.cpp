@@ -34,8 +34,8 @@
 #include "math/mathlib.h"
 
 static Agent *agent;
-static std::string nodename;
-static std::string tracknames;
+static string nodename;
+static string tracknames;
 struct trackstruc
 {
     targetstruc target;
@@ -43,8 +43,8 @@ struct trackstruc
     targetstruc tca;
     targetstruc los;
     physicsstruc physics;
-    gj_handle gjh;
-    std::string name;
+    Physics::gj_handle gjh;
+    string name;
     bool visible;
     bool peaked;
     float highest;
@@ -111,14 +111,14 @@ int main(int argc, char *argv[])
 
     // Load Nodes
 
-    std::vector <std::string> nodes;
+    std::vector <string> nodes;
     int32_t iretn;
     iretn = data_list_nodes(nodes);
     for (size_t i=0; i<nodes.size(); ++i)
     {
-        if (tracknames.size() == 0 || tracknames.find(nodes[i], 0) != std::string::npos)
+        if (tracknames.size() == 0 || tracknames.find(nodes[i], 0) != string::npos)
         {
-            std::string path = data_base_path(nodes[i]) + "/node.ini";
+            string path = data_base_path(nodes[i]) + "/node.ini";
             FILE *fp = fopen(path.c_str(), "r");
             if (fp != nullptr)
             {
@@ -174,8 +174,8 @@ void propinit(size_t index, double dt)
     printf("Propagating Node %s forward %f seconds\n", track[index].name.c_str(), 86400.*(currentmjd()-track[index].target.loc.pos.eci.utc));
     track[index].physics.mass = 1.;
     track[index].physics.area = .01f;
-    gauss_jackson_init_eci(track[index].gjh, 12, 0, dt, track[index].target.loc.pos.eci.utc, track[index].target.loc.pos.eci, track[index].target.loc.att.icrf, track[index].physics, track[index].target.loc);
-    gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, currentmjd());
+    Physics::gauss_jackson_init_eci(track[index].gjh, 12, 0, dt, track[index].target.loc.pos.eci.utc, track[index].target.loc.pos.eci, track[index].target.loc.att.icrf, track[index].physics, track[index].target.loc);
+    Physics::gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, currentmjd());
     track[index].running = true;
     track[index].tca.elfrom = 0.;
     track[index].visible = false;
@@ -185,7 +185,7 @@ void propinit(size_t index, double dt)
 void proptrack(size_t index, double utcnow)
 {
 
-    gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, utcnow);
+    Physics::gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, utcnow);
     update_target(agent->cinfo->node.loc, track[index].target);
     if (track[index].target.elfrom > highest)
     {
@@ -219,8 +219,8 @@ void proptrack(size_t index, double utcnow)
             track[index].visible = false;
             if (track[index].tca.elfrom >= minelev)
             {
-                kepstruc kep;
-                eci2kep(track[index].tca.loc.pos.eci, kep);
+                Convert::kepstruc kep;
+                Convert::eci2kep(track[index].tca.loc.pos.eci, kep);
                 printf("%s %f %f ", track[index].name.c_str(), DEGOF(track[index].tca.loc.pos.earthsep), DEGOF(kep.beta));
                 printf("AOS0: %s %13.5f [ %6.1f %6.1f ] ", mjdToGregorian(track[index].aos.utc).c_str(), track[index].aos.utc, DEGOF(track[index].aos.azfrom), DEGOF(track[index].aos.elfrom));
                 printf("TCA[ %3.0f ]: %s %13.5f [ %6.1f %6.1f ] ", 86400.*(track[index].tca.utc-track[index].startutc), mjdToGregorian(track[index].tca.utc).c_str(), track[index].tca.utc, DEGOF(track[index].tca.azfrom), DEGOF(track[index].tca.elfrom));
@@ -237,14 +237,14 @@ void propthread(size_t index)
     printf("Propagating Node %s forward %f seconds\n", track[index].name.c_str(), 86400.*(currentmjd()-track[index].target.loc.pos.eci.utc));
     track[index].physics.mass = 1.;
     track[index].physics.area = .01;
-    gauss_jackson_init_eci(track[index].gjh, 12, 0, 1., track[index].target.loc.pos.eci.utc, track[index].target.loc.pos.eci, track[index].target.loc.att.icrf, track[index].physics, track[index].target.loc);
-    gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, currentmjd());
+    Physics::gauss_jackson_init_eci(track[index].gjh, 12, 0, 1., track[index].target.loc.pos.eci.utc, track[index].target.loc.pos.eci, track[index].target.loc.att.icrf, track[index].physics, track[index].target.loc);
+    Physics::gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, currentmjd());
     track[index].running = true;
 
     while (track[index].running)
     {
         track[index].control_mutex->lock();
-        gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, utcnow);
+        Physics::gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, utcnow);
         update_target(agent->cinfo->node.loc, track[index].target);
         if (track[index].target.elfrom > highest)
         {

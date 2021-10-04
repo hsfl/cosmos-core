@@ -69,7 +69,7 @@ int main(int, char **)
     beatstruc beat_agent_004 = agent->find_agent(nodename, agent004, 2.);
 
     string requestString = "request_hello"; // The name of agent_002's request
-    std::string response; // Variable to store agent_002's response
+    string response; // Variable to store agent_002's response
 
     // Start executing the agent
     while(agent->running())

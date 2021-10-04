@@ -2,7 +2,7 @@
 #define _MATH_CONSTANTS_H
 
 #include "support/configCosmos.h"
-#include <cstdint>
+//#include <cstdint>
 
 //! \ingroup mathlib
 //! \defgroup mathlib_constants Math library constants

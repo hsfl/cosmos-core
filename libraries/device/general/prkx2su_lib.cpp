@@ -46,9 +46,9 @@ int32_t prkx2su_init(string dev)
     string device;
 
     device = dev + "_az";
-    prkx2su_serial[PRKX2SU_AXIS_AZ] = new Serial(device, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
+    prkx2su_serial[PRKX2SU_AXIS_AZ] = new Serial(device);
     device = dev + "_el";
-    prkx2su_serial[PRKX2SU_AXIS_EL] = new Serial(device, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
+    prkx2su_serial[PRKX2SU_AXIS_EL] = new Serial(device);
 
     return 0;
 }
@@ -152,7 +152,7 @@ int32_t prkx2su_disconnect()
 * @param buflen 32 bit signed integer indicating the maximum size of the buffer
 * @return 32 bit signed integer containing the number of bytes read.
 */
-int32_t prkx2su_getdata(uint8_t axis, string buf, uint16_t buflen)
+int32_t prkx2su_getdata(uint8_t axis, std::string &buf, uint16_t buflen)
 {
     int32_t j;
 

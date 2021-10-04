@@ -31,8 +31,9 @@
 #define SERIALCLASS_H
 
 #include "support/configCosmos.h"
-#include "support/sliplib.h"
 #include "support/cosmos-errno.h"
+#include "support/sliplib.h"
+#include "support/elapsedtime.h"
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 #include <termios.h>
 #include <sys/select.h>
@@ -43,7 +44,7 @@ namespace Cosmos {
     class Serial
     {
     public:
-        Serial(string dname, size_t dbaud=9600, size_t dbits=8, size_t dparity=0, size_t dstop=1);
+        Serial(string dname, size_t dbaud=9600, size_t dbits=8, std::string dparity="none", size_t dstop=1);
         ~Serial();
         int32_t open_device();
         int32_t close_device();
@@ -56,6 +57,8 @@ namespace Cosmos {
         int32_t set_timeout(int, double timeout);
 #endif
         int32_t set_timeout(double timeout);
+        int32_t set_wtimeout(double timeout);
+        int32_t set_rtimeout(double timeout);
         int32_t set_dtr(bool state);
         int32_t set_rts(bool state);
         bool get_cts();
@@ -64,6 +67,7 @@ namespace Cosmos {
         int32_t put_data(vector <uint8_t> data);
         int32_t put_data(const uint8_t *data, size_t size);
         int32_t put_slip(vector <uint8_t> data);
+        int32_t put_slip(const uint8_t *data, size_t size);
         int32_t put_nmea(vector <uint8_t> data);
         int32_t drain();
         int32_t poll_char();
@@ -74,16 +78,20 @@ namespace Cosmos {
         int32_t get_string(string &data, char endc=0);
         int32_t get_data(uint8_t *data, size_t size);
         int32_t get_slip(vector <uint8_t> &data, size_t size=SIZE_MAX);
+        int32_t get_slip(uint8_t *data, size_t size=0);
         int32_t get_nmea(vector <uint8_t> &data, size_t size);
         int32_t get_xmodem(vector <uint8_t> &data, size_t size);
         int32_t get_error();
-		bool get_open();
+        bool get_open() const;
 
 
         int32_t SendByte(uint8_t byte);
         int32_t ReceiveBuffer(uint8_t *buf, int size);
         int32_t ReceiveByte(uint8_t &buf);
         int32_t SendBuffer(uint8_t *buffer, int size);
+
+        map<string, size_t> Parity = {{"none", 0}, {"odd", 1}, {"even", 2}};
+
     private:
         int fd = -1;                   /* tty file descriptor */
         int32_t error;
@@ -92,12 +100,13 @@ namespace Cosmos {
             {57600, 115200, 230400, 460800, 500000, 576000, 921600, 1000000, 1152000, 1500000, 2000000, 2500000, 3000000, 3500000, 4000000}
         };
         // timeout in sec 2 ms
-        double ictimeout = .002;
+        double wictimeout = .002;
+        double rictimeout = .05;
         bool restoreonclose = true;
 
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-        struct termios tio;       /* termios structure for the port */
-        struct termios oldtio;    /* old termios structure */
+        struct termios tio = {0};       /* termios structure for the port */
+        struct termios oldtio = {0};    /* old termios structure */
 #else // windows
         DCB dcb; // port settings
         HANDLE handle;

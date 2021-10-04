@@ -27,9 +27,7 @@
                     * condititons and terms to use this software.
                     ********************************************************************/
 
-#include "support/configCosmos.h"
 #include "device/i2c/i2c.h"
-#include "support/elapsedtime.h"
 
 #define ARDUINO_I2C_ADDRESS 0x10
 #define ARDUINO_I2C_BUFFER_LIMIT 32
@@ -48,7 +46,7 @@ namespace Cosmos {
     //! \param delay Time in seconds to wait for reading after writing.
 
 
-    I2C::I2C(string bus, uint8_t address, double delay)
+    I2C::I2C(string bus, uint8_t address, double delay, bool probe)
     {
         handle.bus = bus;
 #if !defined(COSMOS_WIN_OS)
@@ -61,6 +59,7 @@ namespace Cosmos {
             handle.fh = -1;
             return;
         }
+
         // only works for linux for now
         // TODO: expand to mac and windows
 #if defined(COSMOS_LINUX_OS)
@@ -72,26 +71,12 @@ namespace Cosmos {
             return;
         }
 
+        handle.probe = probe;
         handle.address = address;
         handle.delay = delay;
 
-        if (ioctl(handle.fh, I2C_SLAVE, handle.address) < 0)
-        {
-            error = - errno;
-            handle.connected = false;
-            close(handle.fh);
-            handle.fh = -1;
-            return;
-        }
+        error = connect();
 
-        if ((error = i2c_smbus_read_byte(handle.fh)) < 0)
-        {
-            error = - errno;
-            handle.connected = false;
-            close(handle.fh);
-            handle.fh = -1;
-            return;
-        }
 #endif
         handle.connected = true;
         return;
@@ -105,34 +90,88 @@ namespace Cosmos {
         }
     }
 
-    //int32_t I2C::connect()
-    //{
-    //    error = 0;
-
-    //    if (ioctl(handle.fh, I2C_SLAVE, handle.address) < 0)
-    //    {
-    //        handle.connected = false;
-    //        error = - errno;
-    //        return error;
-    //    }
-
-    //    handle.connected = true;
-    //    return error;
-    //}
-
-    int32_t I2C::send(string data)
+    int32_t I2C::set_address(uint64_t address)
     {
-        //uint8_t * c = data.c_str();
-        uint8_t * buff = new uint8_t[data.size() + 1];
-        memset(buff, 0, sizeof(data.size())); // reset buffer
-        std::copy(data.begin(), data.end(), buff);
-        error = this->send(buff, data.size());
-
+        if (handle.fh >= 0)
+        {
+            handle.address = address;
+            error = connect();
+        }
+        else
+        {
+            error = COSMOS_GENERAL_ERROR_BAD_FD;
+        }
         return error;
     }
 
+    int32_t I2C::set_delay(double seconds)
+    {
+        if (handle.fh >= 0)
+        {
+            handle.delay = seconds;
+            error = 0;
+        }
+        else
+        {
+            error = COSMOS_GENERAL_ERROR_BAD_FD;
+        }
+        return error;
+    }
+
+    int32_t I2C::connect()
+    {
+        if (handle.fh >= 0)
+        {
+            error = 0;
+
+#if defined(COSMOS_LINUX_OS)
+            if (ioctl(handle.fh, I2C_SLAVE, handle.address) < 0)
+            {
+                error = - errno;
+                handle.connected = false;
+                return error;
+            }
+
+            if (handle.probe && (error = i2c_smbus_read_byte(handle.fh)) < 0)
+            {
+                error = - errno;
+                handle.connected = false;
+                return error;
+            }
+#endif
+            handle.connected = true;
+        }
+        else
+        {
+            error = COSMOS_GENERAL_ERROR_BAD_FD;
+            handle.connected = false;
+        }
+        return error;
+    }
+
+    int32_t I2C::send(string data)
+    {
+        return send((uint8_t *)data.data(), data.length());
+    }
+
+    int32_t I2C::send(vector <uint8_t> data)
+    {
+        return send(data.data(), data.size());
+    }
+
+
     int32_t I2C::send(uint8_t *data, size_t len)
     {
+        if (handle.fh < 0)
+        {
+            error = COSMOS_GENERAL_ERROR_BAD_FD;
+            return error;
+        }
+
+        if (!handle.connected && (error=connect()) < 0)
+        {
+            return error;
+        }
 
         error = ::write(handle.fh, data, len);
 
@@ -144,43 +183,36 @@ namespace Cosmos {
         return error;
     }
 
-    int32_t I2C::send(vector <uint8_t> data)
+    int32_t I2C::receive(string &data, size_t bytes)
     {
+        data.resize(bytes);
+        return receive((uint8_t *)data.data(), bytes);
+    }
 
-        error = ::write(handle.fh, data.data(), data.size());
+    int32_t I2C::receive(vector <uint8_t> &data, size_t bytes)
+    {
+        data.resize(bytes);
+        return receive(data.data(), bytes);
+    }
 
-        if (error < 0)
+    int32_t I2C::receive(uint8_t *data, size_t bytes)
+    {
+        if (handle.fh < 0)
         {
-            error = -errno;
+            error = COSMOS_GENERAL_ERROR_BAD_FD;
+            return error;
         }
 
-        return error;
-    }
+        if (!handle.connected && (error=connect()) < 0)
+        {
+            return error;
+        }
 
-
-    int32_t I2C::receive(string &data)
-    {
-        // work in progress
-        //    uint8_t buff[0];
-        //    int32_t count = 0;
-        //    int32_t rcvd = 0;
-
-        //    do {
-        //        rcvd = this->receive(buff,1);
-        //        printf("%02x - %c\n", buff[0], buff[0]);
-        //        count ++;
-        //    }while (buff[0] != 0x00); //end tranmission with null byte
-
-        return 0;
-    }
-
-    int32_t I2C::receive(uint8_t *data, size_t len)
-    {
         size_t count = 0;
 
         COSMOS_SLEEP(handle.delay);
 
-        if (len)
+        if (bytes)
         {
             ElapsedTime et;
             do
@@ -189,12 +221,12 @@ namespace Cosmos {
                 if (data == nullptr)
                 {
                     vector <uint8_t> tbuf;
-                    tbuf.resize(len - count);
-                    rcvd = ::read(handle.fh, tbuf.data(), len - count);
+                    tbuf.resize(bytes - count);
+                    rcvd = ::read(handle.fh, tbuf.data(), bytes - count);
                 }
                 else
                 {
-                    rcvd = ::read(handle.fh, data, len - count);
+                    rcvd = ::read(handle.fh, data, bytes - count);
                 }
 
                 if (rcvd < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
@@ -204,7 +236,7 @@ namespace Cosmos {
                 }
                 else if (rcvd <= 0)
                 {
-                    if (et.split() > len * .0001)
+                    if (et.split() > bytes * .0001)
                     {
                         error = count;
                         return error;
@@ -212,43 +244,71 @@ namespace Cosmos {
                 }
                 else
                 {
-                    //                    et.reset();
                     count += rcvd;
                 }
-            } while(count < len);
+            } while(count < bytes);
         }
         return count;
     }
 
-    int32_t I2C::receive(vector <uint8_t> &data)
+    int32_t I2C::poll(uint8_t *data, size_t len, uint8_t markchar, double timeout)
     {
-        uint8_t tbuf[256];
-        data.clear();
-
-        COSMOS_SLEEP(handle.delay);
-
-        ElapsedTime et;
-        do
+        if (handle.fh < 0)
         {
-            int32_t rcvd = 0;
-            rcvd = ::read(handle.fh, tbuf, 256);
+            error = COSMOS_GENERAL_ERROR_BAD_FD;
+            return error;
+        }
 
-            if (rcvd < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+        if (data == nullptr)
+        {
+            return COSMOS_GENERAL_ERROR_MEMORY;
+        }
+
+        size_t count = 0;
+        if (timeout >10.)
+        {
+            timeout = 10.;
+        }
+
+        if (len)
+        {
+            ElapsedTime et;
+            do
             {
-                error = -errno;
+                int32_t rcvd = ::read(handle.fh, &data[0], 1);
+                if (rcvd < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+                {
+                    error = -errno;
+                    return error;
+                }
+                if (rcvd == 1 && data[0] != markchar)
+                {
+                    break;
+                }
+                microsleep(5000);
+            } while(et.split() < timeout);
+            if (et.split() >= timeout)
+            {
+                error = COSMOS_GENERAL_ERROR_TIMEOUT;
                 return error;
             }
-            else if (rcvd > 0)
+            count = 1;
+            do
             {
-                for (int32_t i=0; i<rcvd; ++i)
-                {
-                    data.push_back(tbuf[i]);
-                }
-                et.reset();
-            }
-        } while(et.split() <= .0001 * (data.size()+1));
+                int32_t rcvd = ::read(handle.fh, &data[count], 1);
 
-        return data.size();
+                if (rcvd < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+                {
+                    error = -errno;
+                    return error;
+                }
+                if (rcvd == 1)
+                {
+                    ++count;
+                }
+            } while(count < len && et.split() < timeout);
+        }
+        return count;
     }
 
     int32_t I2C::get_error()
@@ -259,6 +319,11 @@ namespace Cosmos {
     int32_t I2C::get_fh()
     {
         return handle.fh;
+    }
+
+    bool I2C::get_connected()
+    {
+        return handle.connected;
     }
 
 

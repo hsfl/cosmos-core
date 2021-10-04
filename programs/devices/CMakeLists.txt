@@ -3,7 +3,6 @@
 file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
 message(STATUS "${CMAKE_CURRENT_SOURCE_DIR} : ")
-message(${files})
 
 foreach(file ${files})
     get_filename_component(bfile ${file} NAME_WE)
@@ -11,13 +10,16 @@ foreach(file ${files})
     target_link_libraries(${bfile} CosmosTime CosmosDeviceI2C CosmosError)
     install(TARGETS ${bfile} DESTINATION bin)
 
-    if(${DEPLOY_FILES_TO_REMOTE} MATCHES "yes")
+    if(${DEPLOY_BIN_FILES_TO_REMOTE} MATCHES "YES")
         add_deployment_binary(${bfile} "bin")
+    endif()
+
+    if(${DEPLOY_SRC_FILES_TO_REMOTE} MATCHES "YES")
         add_deployment_source(${bfile}.cpp "src")
     endif()
 endforeach()
 
-target_link_libraries(i2ctalk CosmosTime CosmosDeviceI2C CosmosError)
+#target_link_libraries(i2ctalk CosmosTime CosmosDeviceI2C CosmosError)
 
-add_deployment_binary(i2ctalk "bin")
+#add_deployment_binary(i2ctalk "bin")
 

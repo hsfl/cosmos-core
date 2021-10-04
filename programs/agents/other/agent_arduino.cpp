@@ -39,9 +39,9 @@
 
 //int agent_arduino();
 
-std::string agentname = "arduino";
-std::string node = "null";
-std::string comport = "//./";
+string agentname = "arduino";
+string node = "null";
+string comport = "//./";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int32_t request_run_program(string &request, string &response, Agent *); // extra request
 
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
         iretn = cssl_getdata(serial, buffer, 400);
         if (iretn > 0)
         {
-            std::string message = (char *)buffer;
+            string message = (char *)buffer;
             json_parse(message, agent->cinfo);
             printf("%u: %s\n", ++counter, buffer);
         }

@@ -289,7 +289,8 @@ namespace Cosmos
 //                                    if(!ii->already_ran)
                                     if (!ii->is_alreadyrun())
                                     {
-                                        strncpy(agent->cinfo->node.lastevent, ii->name.c_str(), COSMOS_MAX_NAME);
+//                                        strncpy(agent->cinfo->node.lastevent, ii->name.c_str(), COSMOS_MAX_NAME);
+                                        agent->cinfo->node.lastevent = ii->name;
                                         agent->cinfo->node.lasteventutc = currentmjd();
                                         run_command(*ii, node_name, logdate_exec);
                                         ii->set_alreadyrun(true);
@@ -382,7 +383,7 @@ namespace Cosmos
             \param	temp_dir	Directory where the .queue file will be read from
             \param	name	File where the .queue will be read from
         */
-        int32_t CommandQueue::restore_commands(string temp_dir, std::string name)
+        int32_t CommandQueue::restore_commands(string temp_dir, string name)
         {
             queue_changed = false;
 
@@ -544,7 +545,7 @@ namespace Cosmos
             Writes the given CommandQueue to the given output stream (in JSON format) and returns a reference to the modified ostream.
 
         */
-        std::ostream& operator<<(std::ostream& out, CommandQueue& cmdq)
+        ::std::ostream& operator<<(::std::ostream& out, CommandQueue& cmdq)
         {
             for(std::list<Event>::iterator ii = cmdq.commands.begin(); ii != cmdq.commands.end(); ++ii)
                 out << *ii << std::endl;

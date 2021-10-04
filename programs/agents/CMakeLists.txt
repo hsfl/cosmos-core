@@ -13,14 +13,18 @@ foreach(file ${files})
 
     add_executable(${bfile} ${bfile}.cpp)
 
-#    target_link_libraries(${bfile} ${COSMOS_LIBS})
+#    target_link_libraries(${bfile} CosmosSupport ${COSMOS_LIBS})
 
     install(TARGETS ${bfile} DESTINATION bin)
 
-    if(${DEPLOY_FILES_TO_REMOTE} MATCHES "yes")
+    if(${DEPLOY_BIN_FILES_TO_REMOTE} MATCHES "YES")
         add_deployment_binary(${bfile} "bin")
+    endif()
+
+    if(${DEPLOY_SRC_FILES_TO_REMOTE} MATCHES "YES")
         add_deployment_source(${bfile}.cpp "src")
     endif()
+
 
 endforeach()
 
@@ -39,8 +43,8 @@ target_link_libraries(agent_forward CosmosAgent)
 target_link_libraries(agent_route CosmosAgent)
 target_link_libraries(agent_tunnel2 CosmosAgent CosmosDeviceSerial)
 target_link_libraries(cosmos CosmosAgent)
-target_link_libraries(agent_cpu CosmosAgent CosmosDeviceDisk CosmosPrint)
-target_link_libraries(agent_cpu-2-0 CosmosAgent CosmosDeviceDisk CosmosPrint)
+target_link_libraries(agent_cpu CosmosAgent)
+target_link_libraries(agent_cpu-2-0 CosmosAgent CosmosPrint)
 target_link_libraries(agent_exec CosmosAgent)
 target_link_libraries(agent_exec-2-0 CosmosAgent)
 

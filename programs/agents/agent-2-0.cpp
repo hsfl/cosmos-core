@@ -65,12 +65,12 @@ int main(int argc, char *argv[])
     Agent *agent;
 
     // dont' print debug messages
-    //agent->debug_level = 0;
+    //agent->set_debug_level(0;
 
     agent = new Agent();
     if (agent->cinfo == nullptr)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(NODE_ERROR_NODE).c_str());
+        agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(NODE_ERROR_NODE).c_str());
         exit(NODE_ERROR_NODE);
     }
 
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
             Agent::AgentMessage message_type;
             Agent::messstruc message;
             int i;
-            locstruc loc;
+            Convert::locstruc loc;
 
 // JIMNOTE: this block will never be entered
 
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
                                 dmjd = 0.;
                             loc.pos.icrf.s = agent->cinfo->node.loc.pos.icrf.s;
                             loc.pos.utc = agent->cinfo->node.loc.utc;
-                            pos_eci(&loc);
+                            Convert::pos_eci(&loc);
                             printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",agent->cinfo->node.loc.utc,dmjd,agent->cinfo->node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,agent->cinfo->node.phys.powgen,agent->cinfo->node.phys.powuse,agent->cinfo->node.phys.battlev);
                             lmjd = agent->cinfo->node.loc.utc;
                         }
@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
                         size_t status_pos;
                         if((status_pos= output.find("[OK]")  )!= string::npos){
                             if(output.at(0) == '{'){
-                                if(status_pos - 1 >= 0 && output.at(status_pos - 1) == '}'){
+                                if(status_pos > 0 && output.at(status_pos - 1) == '}'){
                                     printf("\"output\": %s,", output.substr(0, status_pos).c_str());
                                 } else {
                                     printf("\"output\": %s,", output.c_str());
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
             Agent::messstruc message;
             string header;
             int i;
-            locstruc loc;
+            Convert::locstruc loc;
 
             if(argc == 3) {
                 channel = argv[2];
@@ -375,7 +375,7 @@ int main(int argc, char *argv[])
                                 dmjd = 0.;
                             loc.pos.icrf.s = agent->cinfo->node.loc.pos.icrf.s;
                             loc.pos.utc = agent->cinfo->node.loc.utc;
-                            pos_eci(&loc);
+                            Convert::pos_eci(&loc);
                             printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",agent->cinfo->node.loc.utc,dmjd,agent->cinfo->node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,agent->cinfo->node.phys.powgen,agent->cinfo->node.phys.powuse,agent->cinfo->node.phys.battlev);
                             lmjd = agent->cinfo->node.loc.utc;
                         }
@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
                 	size_t status_pos;
                 	if((status_pos= output.find("[OK]")  )!= string::npos){
                     	if(output.at(0) == '{'){
-                        	if(status_pos - 1 >= 0 && output.at(status_pos - 1) == '}'){
+                            if(status_pos > 0 && output.at(status_pos - 1) == '}'){
                             	printf("\"output\": %s,", output.substr(0, status_pos).c_str());
                         	} else {
                             	printf("\"output\": %s,", output.c_str());

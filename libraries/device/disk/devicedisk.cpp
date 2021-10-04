@@ -72,12 +72,18 @@ double DeviceDisk::getAll(string path)
 #endif
 
     Used = Size - Free;
-    FreePercent = (double)Free / Used;
+    if (Size != 0.)
+    {
+        FreePercent = (double)Free / Size;
+    }
+    else {
+        FreePercent = 0.;
+    }
 
     // convert to GiB
-    SizeGiB = Size/GiB;
-    FreeGiB = Free/GiB;
-    UsedGiB = Used/GiB;
+    SizeGiB = Size/1073741824.;
+    FreeGiB = Free/1073741824.;
+    UsedGiB = Used/1073741824.;
 
     return FreePercent;
 }
@@ -94,23 +100,25 @@ uint64_t DeviceDisk::getSize()
 }
 
 // get all disk information in bytes
-uint64_t DeviceDisk::getSize(string path)
+uint64_t DeviceDisk::getSize(const string path)
 {
     getAll(path);
     return Size;
 }
 
 
-double DeviceDisk::getSizeGiB(string path)
+double DeviceDisk::getSizeGiB(const string path)
 {
     // convert from Byte to GiB
-    return (double)getSize(path)/GiB;
+    double size = getSize(path)/1073741824.;
+    return size;
 }
 
 double DeviceDisk::getSizeGiB()
 {
     // convert from Byte to GiB
-    return (double)getSize()/GiB;
+    double size = getSize()/1073741824.;
+    return size;
 }
 
 uint64_t DeviceDisk::getUsed()
@@ -124,23 +132,23 @@ uint64_t DeviceDisk::getUsed()
 #endif
 }
 
-uint64_t DeviceDisk::getUsed(string path)
+uint64_t DeviceDisk::getUsed(const string path)
 {
     getAll(path);
     return (Used);
 }
 
 
-double DeviceDisk::getUsedGiB(string path)
+double DeviceDisk::getUsedGiB(const string path)
 {
     // convert from Byte to GiB
-    return (double)getUsed(path)/GiB;
+    return (double)getUsed(path)/1073741824.;
 }
 
 double DeviceDisk::getUsedGiB()
 {
     // convert from Byte to GiB
-    return (double)getUsed()/GiB;
+    return (double)getUsed()/1073741824.;
 }
 
 // get the free disk in bytes
@@ -167,13 +175,13 @@ uint64_t DeviceDisk::getFree(string path)
 double DeviceDisk::getFreeGiB(string path)
 {
     // convert from Byte to GiB
-    return (double)getFree(path)/GiB;
+    return (double)getFree(path)/1073741824.;
 }
 
 double DeviceDisk::getFreeGiB()
 {
     // convert from Byte to GiB
-    return (double)getFree()/GiB;
+    return (double)getFree()/1073741824.;
 }
 
 vector <DeviceDisk::info> DeviceDisk::getInfo()
@@ -185,39 +193,46 @@ vector <DeviceDisk::info> DeviceDisk::getInfo()
     uint64_t tsize;
 
     int32_t iretn = data_execute("lsblk -fbl -o SIZE,MOUNTPOINT", tdata);
-	vector<string> lines;
+    vector<string> lines;
     if(iretn<0)	{
-		return result;
-	} else	{
-		lines = string_split(tdata, "\n");
-	}
-    for (string line : lines)
-    {
-        char tmount[50];
-        if (sscanf(line.c_str(), "%lu %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
+        iretn = data_execute("df", tdata);
+        if(iretn<0)	{
+            return result;
+        }
+        lines = string_split(tdata, "\n");
+        for (string line : lines)
         {
-            tinfo.mount = tmount;
-            tinfo.size = tsize;
-            tinfo.used = getUsed(tinfo.mount);
-            tinfo.free = tinfo.size - tinfo.used;
-            result.push_back(tinfo);
+            if (line.find("/") != string::npos)
+            {
+                char tmount[50];
+                if (sscanf(line.c_str(), "%*s %lu %*s %*s %*s %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
+                {
+                    tinfo.mount = tmount;
+                    tinfo.size = tsize * 1024;
+                    tinfo.used = getUsed(tinfo.mount);
+                    tinfo.free = tinfo.size - tinfo.used;
+                    result.push_back(tinfo);
+                }
+            }
+        }
+    } else	{
+        lines = string_split(tdata, "\n");
+        for (string line : lines)
+        {
+            if (line.find("/") != string::npos)
+            {
+                char tmount[50];
+                if (sscanf(line.c_str(), "%lu %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
+                {
+                    tinfo.mount = tmount;
+                    tinfo.size = tsize;
+                    tinfo.used = getUsed(tinfo.mount);
+                    tinfo.free = tinfo.size - tinfo.used;
+                    result.push_back(tinfo);
+                }
+            }
         }
     }
-//    FILE *fp = popen("/bin/lsblk -fbl -o SIZE,MOUNTPOINT", "r");
-//    char tdata[100];
-//    uint64_t tsize;
-//    while ((fgets(tdata, 100, fp)) == tdata)
-//    {
-//        char tmount[50];
-//        if (sscanf(tdata, "%lu %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
-//        {
-//            tinfo.mount = tmount;
-//            tinfo.size = tsize;
-//            tinfo.used = getUsed(tinfo.mount);
-//            tinfo.free = tinfo.size - tinfo.used;
-//            result.push_back(tinfo);
-//        }
-//    }
 #endif
 #ifdef COSMOS_WIN_OS
     getAll();

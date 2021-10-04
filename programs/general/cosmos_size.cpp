@@ -34,197 +34,214 @@ int main(int argc, char* argv[])
 {
     Agent *myagent;
 
-    myagent = new Agent();
-    string node ="";
-    if (argc == 2)
-    {
-        node = argv[1];
+    if (argc == 2) {
+        myagent = new Agent(argv[1]);
+    } else {
+        char hostname[60];
+        gethostname(hostname, sizeof (hostname));
+        myagent = new Agent(hostname);
     }
-    json_setup_node(node, myagent->cinfo);
 
     size_t total = 0;
     size_t count = 0;
+    cosmosstruc* c = myagent->cinfo;
+    c->shrinkusage();
 
-    total += COSMOS_SIZEOF(nodestruc);
-    printf("Node: %lu : %lu\n", COSMOS_SIZEOF(nodestruc), total);
+    total += sizeof(c->timestamp);
+    total += sizeof(c->jmapped);
 
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->pieces.size(); ++i)
+    count = sizeof(c->jmap);
+    total += sizeof(c->jmap);
+    for (size_t i=0; i<c->jmap.size(); ++i)
     {
-        ++count;
-        total += COSMOS_SIZEOF(piecestruc);
-    }
-    printf("Pieces: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(piecestruc), count*COSMOS_SIZEOF(piecestruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->device.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(devicestruc);
-    }
-    printf("Devices: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(devicestruc), count*COSMOS_SIZEOF(devicestruc), total);
-
-    total += COSMOS_SIZEOF(devspecstruc);
-    printf("Device Special: %ld : %lu\n", COSMOS_SIZEOF(devspecstruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->port.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(portstruc);
-    }
-    printf("Ports: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(portstruc), count*COSMOS_SIZEOF(portstruc), total);
-
-    total += COSMOS_SIZEOF(physicsstruc);
-    printf("Physics: %ld : %lu\n", COSMOS_SIZEOF(physicsstruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->agent.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(agentstruc);
-    }
-    printf("Agents: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(agentstruc), count*COSMOS_SIZEOF(agentstruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->target.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(targetstruc);
-    }
-    printf("Targets: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(targetstruc), count*COSMOS_SIZEOF(targetstruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->user.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(userstruc);
-    }
-    printf("Users: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(userstruc), count*COSMOS_SIZEOF(userstruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->tle.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(tlestruc);
-    }
-    printf("TLEs: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(tlestruc), count*COSMOS_SIZEOF(tlestruc), total);
-
-    printf("Total for pdata: %lu\n\n", total);
-
-    total = 0;
-    count = 0;
-
-    total += COSMOS_SIZEOF(nodestruc);
-    printf("Node: %ld : %lu\n", COSMOS_SIZEOF(nodestruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->pieces.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(piecestruc);
-    }
-    printf("Pieces: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(piecestruc), count*COSMOS_SIZEOF(piecestruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->device.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(devicestruc);
-    }
-    printf("Devices: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(devicestruc), count*COSMOS_SIZEOF(devicestruc), total);
-
-    total += COSMOS_SIZEOF(devspecstruc);
-    printf("Device Special: %ld : %lu\n", COSMOS_SIZEOF(devspecstruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->port.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(portstruc);
-    }
-    printf("Ports: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(portstruc), count*COSMOS_SIZEOF(portstruc), total);
-
-    total += COSMOS_SIZEOF(physicsstruc);
-    printf("Physics: %ld : %lu\n", COSMOS_SIZEOF(physicsstruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->agent.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(agentstruc);
-    }
-    printf("Agents: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(agentstruc), count*COSMOS_SIZEOF(agentstruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->target.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(targetstruc);
-    }
-    printf("Targets: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(targetstruc), count*COSMOS_SIZEOF(targetstruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->user.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(userstruc);
-    }
-    printf("Users: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(userstruc), count*COSMOS_SIZEOF(userstruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->tle.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(tlestruc);
-    }
-    printf("TLEs: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(tlestruc), count*COSMOS_SIZEOF(tlestruc), total);
-
-    printf("Total for sdata: %lu\n\n", total);
-
-    total = 0;
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->jmap.size(); ++i)
-    {
-        for (size_t j=0; j<myagent->cinfo->jmap[j].size(); ++j)
+        for (size_t j=0; j<c->jmap[i].size(); ++j)
         {
-            ++count;
-            total += COSMOS_SIZEOF(jsonentry);
+            count += c->jmap[i][j].memoryusage();
+            total += c->jmap[i][j].memoryusage();
         }
     }
-    printf("Jmap: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(jsonentry), count*COSMOS_SIZEOF(jsonentry), total);
+    printf("Jmap:\t\t%lu\t%lu\n", count, total);
 
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->emap.size(); ++i)
+    count = sizeof(c->emap);
+    total += sizeof(c->emap);
+    for (size_t i=0; i<c->emap.size(); ++i)
     {
-        for (size_t j=0; j<myagent->cinfo->emap[j].size(); ++j)
+        for (size_t j=0; j<c->emap[i].size(); ++j)
         {
-            ++count;
-            total += COSMOS_SIZEOF(jsonequation);
+            count += c->emap[i][j].memoryusage();
+            total += c->emap[i][j].memoryusage();
         }
     }
-    printf("Emap: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(jsonequation), count*COSMOS_SIZEOF(jsonequation), total);
+    printf("Emap:\t\t%lu\t%lu\n", count, total);
 
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->unit.size(); ++i)
+    count = sizeof(c->unit);
+    total += sizeof(c->unit);
+    for (size_t i=0; i<c->unit.size(); ++i)
     {
-        for (size_t j=0; j<myagent->cinfo->unit[j].size(); ++j)
+        for (size_t j=0; j<c->unit[i].size(); ++j)
         {
-            ++count;
-            total += COSMOS_SIZEOF(jsonequation);
+            count += c->unit[i][j].memoryusage();
+            total += c->unit[i][j].memoryusage();
         }
     }
-    printf("Units: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(unitstruc), count*COSMOS_SIZEOF(unitstruc), total);
+    printf("Units:\t\t%lu\t%lu\n", count, total);
 
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->equation.size(); ++i)
+    count = sizeof(c->equation);
+    total += sizeof(c->equation);
+    for (size_t i=0; i<c->equation.size(); ++i)
     {
-        ++count;
-        total += COSMOS_SIZEOF(equationstruc);
+        count += c->equation[i].memoryusage();
+        total += c->equation[i].memoryusage();
     }
-    printf("Equations: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(equationstruc), count*COSMOS_SIZEOF(equationstruc), total);
+    printf("Equations:\t%lu\t%lu\n", count, total);
 
-    printf("Total for meta: %lu\n\n", total);
+    count = sizeof(c->alias);
+    total += sizeof(c->alias);
+    for (size_t i=0; i<c->alias.size(); ++i)
+    {
+        count += c->alias[i].memoryusage();
+        total += c->alias[i].memoryusage();
+    }
+    printf("Aliases:\t%lu\t%lu\n", count, total);
+
+    count = c->node.memoryusage();
+    total += c->node.memoryusage();
+    printf("Node:\t\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->vertexs);
+    total += sizeof(c->vertexs);
+    for (size_t i=0; i<c->vertexs.size(); ++i)
+    {
+        count += sizeof(c->vertexs[i]);
+        total += sizeof(c->vertexs[i]);
+    }
+    printf("Vertexs:\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->normals);
+    total += sizeof(c->normals);
+    for (size_t i=0; i<c->normals.size(); ++i)
+    {
+        count += sizeof(c->normals[i]);
+        total += sizeof(c->normals[i]);
+    }
+    printf("Normals:\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->faces);
+    total += sizeof(c->faces);
+    for (size_t i=0; i<c->faces.size(); ++i)
+    {
+        count += c->faces[i].memoryusage();
+        total += c->faces[i].memoryusage();
+    }
+    printf("Faces:\t\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->pieces);
+    total += sizeof(c->pieces);
+    for (size_t i=0; i<c->pieces.size(); ++i)
+    {
+        count += c->pieces[i].memoryusage();
+        total += c->pieces[i].memoryusage();
+    }
+    printf("Pieces:\t\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->obj);
+    total += sizeof(c->obj);
+    printf("Obj:\t\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->device);
+    total += sizeof(c->device);
+    for (size_t i=0; i<c->device.size(); ++i)
+    {
+        count += sizeof(c->device[i]);
+        total += sizeof(c->device[i]);
+    }
+    printf("Devices:\t%lu\t%lu\n", count, total);
+
+    count = c->devspec.memoryusage();
+    total += c->devspec.memoryusage();
+    printf("Device Special:\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->port);
+    total += sizeof(c->port);
+    for (size_t i=0; i<c->port.size(); ++i)
+    {
+        count += c->port[i].memoryusage();
+        total += c->port[i].memoryusage();
+    }
+    printf("Ports:\t\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->agent);
+    total += sizeof(c->agent);
+    for (size_t i=0; i<c->agent.size(); ++i)
+    {
+        count += c->agent[i].memoryusage();
+        total += c->agent[i].memoryusage();
+    }
+    printf("Agents:\t\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->sim_states);
+    total += sizeof(c->sim_states);
+    for (size_t i=0; i<c->sim_states.size(); ++i)
+    {
+        count += sizeof(c->sim_states[i]);
+        total += sizeof(c->sim_states[i]);
+    }
+    printf("Sim States:\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->event);
+    total += sizeof(c->event);
+    for (size_t i=0; i<c->event.size(); ++i)
+    {
+        count += c->event[i].memoryusage();
+        total += c->event[i].memoryusage();
+    }
+    printf("Events:\t\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->target);
+    total += sizeof(c->target);
+    for (size_t i=0; i<c->target.size(); ++i)
+    {
+        count += c->target[i].memoryusage();
+        total += c->target[i].memoryusage();
+    }
+    printf("Targets:\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->user);
+    total += sizeof(c->user);
+    for (size_t i=0; i<c->user.size(); ++i)
+    {
+        count += c->user[i].memoryusage();
+        total += c->user[i].memoryusage();
+    }
+    printf("Users:\t\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->tle);
+    total += sizeof(c->tle);
+    for (size_t i=0; i<c->tle.size(); ++i)
+    {
+        count += sizeof(c->tle[i]);
+        total += sizeof(c->tle[i]);
+    }
+    printf("TLEs:\t\t%lu\t%lu\n", count, total);
+
+
+    count = sizeof(c->json);
+    total += sizeof(c->json);
+    printf("JSON:\t\t%lu\t%lu\n", count, total);
+
+    count = sizeof(c->names) + sizeof(c->types);
+    total += sizeof(c->names) + sizeof(c->types);
+    for (auto &name : c->names)
+    {
+        count += sizeof(name) + name.first.capacity() + sizeof(name.second);
+        total += sizeof(name) + name.first.capacity() + sizeof(name.second);
+    }
+    for (auto &type : c->types)
+    {
+        count += sizeof(type) + type.first.capacity() + type.second.capacity();
+        total += sizeof(type) + type.first.capacity() + type.second.capacity();
+    }
+    printf("Names 2.0:\t%lu\t%lu\n", count, total);
 
     fflush(stdout);
 }

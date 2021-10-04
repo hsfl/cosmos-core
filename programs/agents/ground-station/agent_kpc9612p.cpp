@@ -83,7 +83,7 @@ int32_t request_transmit_port(string &req, string &response, Agent *);
 int main(int argc, char *argv[])
 {
 
-    std::string tunnel_ip;
+    string tunnel_ip;
     std::vector<uint8_t> buffer;
     int32_t iretn;
 
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 
         memset(&ifr1, 0, sizeof(ifr1));
         ifr1.ifr_flags = IFF_TUN | IFF_NO_PI;
-        strncpy(ifr1.ifr_name, agent->cinfo->agent[0].beat.proc, IFNAMSIZ);
+        strncpy(ifr1.ifr_name, agent->cinfo->agent[0].beat.proc.c_str(), IFNAMSIZ);
         if (ioctl(tun_fd, TUNSETIFF, (void *)&ifr1) < 0)
         {
             perror("Error setting tunnel interface");
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
         }
 
         // Get ready to set things
-        strncpy(ifr2.ifr_name, agent->cinfo->agent[0].beat.proc, IFNAMSIZ);
+        strncpy(ifr2.ifr_name, agent->cinfo->agent[0].beat.proc.c_str(), IFNAMSIZ);
         ifr2.ifr_addr.sa_family = AF_INET;
 
         // Set interface address
@@ -403,7 +403,7 @@ void tcv_read_loop()
             {
                 printf("Beacon: [%d,%u,%" PRIu64 "] %f\n", iretn, rxr_handle.frame.size, buffer.size(), 86400.*(currentmjd(0.)-lastbeacon));
                 lastbeacon = currentmjd(0.);
-                //				std::string str(buffer.begin(), buffer.end());
+                //				string str(buffer.begin(), buffer.end());
                 //				std::cout << "\t" << str << std::endl;
             }
         } // End of mutex for tun FIFO

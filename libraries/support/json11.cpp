@@ -30,9 +30,6 @@ namespace json11 {
 
 static const int max_depth = 200;
 
-using std::string;
-using std::vector;
-using std::map;
 using std::make_shared;
 using std::initializer_list;
 using std::move;
@@ -167,7 +164,10 @@ protected:
     }
 
     const T m_value;
-    void dump(string &out) const override { json11::dump(m_value, out); }
+    void dump(string &out) const override
+    {
+        json11::dump(m_value, out);
+    }
 };
 
 class JsonDouble final : public Value<Json::NUMBER, double> {
@@ -550,7 +550,7 @@ struct JsonParser final {
                 // Extract 4-byte escape sequence
                 string esc = str.substr(i, 4);
                 // Explicitly check length of the substring. The following loop
-                // relies on std::string returning the terminating NUL when
+                // relies on string returning the terminating NUL when
                 // accessing str[length]. Checking here reduces brittleness.
                 if (esc.length() < 4) {
                     return fail("bad \\u escape: " + esc, "");
@@ -775,15 +775,16 @@ Json Json::parse(const string &in, string &err, JsonParse strategy) {
     parser.consume_garbage();
     if (parser.failed)
         return Json();
-    if (parser.i != in.size())
-        return parser.fail("unexpected trailing " + esc(in[parser.i]));
+    // EP: 7/21/2021 Disabled this feature because it did not make sense to me and it was causing a failure
+//    if (parser.i != in.size())
+//        return parser.fail("unexpected trailing " + esc(in[parser.i]));
 
     return result;
 }
 
 // Documented in json11.hpp
 vector<Json> Json::parse_multi(const string &in,
-                               std::string::size_type &parser_stop_pos,
+                               string::size_type &parser_stop_pos,
                                string &err,
                                JsonParse strategy) {
     JsonParser parser { in, 0, err, false, strategy };

@@ -57,7 +57,7 @@ agentstruc tempagent;
 std::vector<cosmosstruc> nodes;
 char tempname[100];
 char agentname[COSMOS_MAX_NAME+1] = "data";
-std::string dataDir;
+string dataDir;
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int32_t request_login(string &request, string &response, Agent *);
 int32_t request_getnodelist(string &request, string &response, Agent *);
@@ -114,7 +114,7 @@ if ((fd = fopen(input,"r")) != NULL)
 	}
 
 // Load Node list
-data_get_nodes(nodes);
+json_get_nodes(nodes);
 
 for (i=0; i<nodes.size(); ++i)
 	{
@@ -146,7 +146,7 @@ for (i=0; i<nodes.size(); ++i)
 	switch(pid)
 	{
 	case -1:
-        strcpy(tempagent.beat.node, nodes[i].node.name);
+        tempagent.beat.node = nodes[i].node.name;
 		tempagent.pid=pid;
         agents.push_back(tempagent);
 		break;
@@ -157,7 +157,7 @@ for (i=0; i<nodes.size(); ++i)
 		dup2(STDOUT_FILENO, devn);
 		dup2(STDERR_FILENO,	devn);
 		close(devn);
-        execl("agent_node", (const char*)nodes[i].node.name,(char*)nullptr);
+        execl("agent_node", (const char*)nodes[i].node.name.c_str(),(char*)nullptr);
 
 		fflush(stdout);
 		exit(0);

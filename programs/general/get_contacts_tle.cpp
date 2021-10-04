@@ -34,16 +34,16 @@
 #include "math/mathlib.h"
 
 static Agent *agent;
-static std::string nodename;
-static std::string tracknames;
+static string nodename;
+static string tracknames;
 struct trackstruc
 {
     targetstruc target;
     targetstruc aos;
     targetstruc tca;
     targetstruc los;
-    vector<tlestruc> tles;
-    std::string name;
+    vector<Convert::tlestruc> tles;
+    string name;
     bool visible;
     bool peaked;
     float highest;
@@ -114,14 +114,14 @@ int main(int argc, char *argv[])
 
     // Load Nodes
 
-    std::vector <std::string> nodes;
+    std::vector <string> nodes;
     int32_t iretn;
     iretn = data_list_nodes(nodes);
     for (size_t i=0; i<nodes.size(); ++i)
     {
-        if (tracknames.size() == 0 || tracknames.find(nodes[i], 0) != std::string::npos)
+        if (tracknames.size() == 0 || tracknames.find(nodes[i], 0) != string::npos)
         {
-            std::string path = data_base_path(nodes[i]) + "/node.ini";
+            string path = data_base_path(nodes[i]) + "/node.ini";
             FILE *fp = fopen(path.c_str(), "r");
             if (fp != nullptr)
             {
@@ -167,7 +167,7 @@ void proptrack(size_t index, double utcnow)
 {
     lines2eci(utcnow, track[index].tles, track[index].target.loc.pos.eci);
     track[index].target.loc.pos.eci.pass++;
-    pos_eci(track[index].target.loc);
+    Convert::pos_eci(track[index].target.loc);
     update_target(agent->cinfo->node.loc, track[index].target);
     if (track[index].target.elfrom > highest)
     {
@@ -201,8 +201,8 @@ void proptrack(size_t index, double utcnow)
             track[index].visible = false;
             if (track[index].tca.elfrom >= minelev)
             {
-                kepstruc kep;
-                eci2kep(track[index].tca.loc.pos.eci, kep);
+                Convert::kepstruc kep;
+                Convert::eci2kep(track[index].tca.loc.pos.eci, kep);
                 printf("%s\t%f\t%f\t", track[index].name.c_str(), DEGOF(track[index].tca.loc.pos.earthsep), DEGOF(kep.beta));
                 printf("AOS0:\t%s\t%13.5f\t[\t%6.1f\t%6.1f\t]\t", mjdToGregorian(track[index].aos.utc).c_str(), track[index].aos.utc, DEGOF(track[index].aos.azfrom), DEGOF(track[index].aos.elfrom));
                 printf("TCA[ %3.0f ]:\t%s\t%13.5f\t[ %6.1f\t%6.1f ]\t", 86400.*(track[index].tca.utc-track[index].startutc), mjdToGregorian(track[index].tca.utc).c_str(), track[index].tca.utc, DEGOF(track[index].tca.azfrom), DEGOF(track[index].tca.elfrom));

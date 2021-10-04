@@ -32,6 +32,7 @@
 #include "support/socketlib.h"
 #include "math/mathlib.h"
 #include "support/elapsedtime.h"
+#include "support/timelib.h"
 
 //! Open UDP socket
 /*! Open a UDP socket and configure it for the specified use. Various
@@ -151,6 +152,7 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
         iretn = setsockopt(channel.cudp,SOL_SOCKET,SO_RCVTIMEO,(char*)&tv,sizeof(tv));
 #endif
     }
+    channel.timeout = usectimeo / 1e6;
 
     memset(&channel.caddr,0,sizeof(struct sockaddr_in));
     channel.caddr.sin_family = AF_INET;
@@ -225,16 +227,36 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
         }
         break;
     case SOCKET_JABBER:
+#ifdef COSMOS_MAC_OS
+        if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
+#else
+        if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on)) < 0)
+#endif
+        {
+            CLOSE_SOCKET(channel.cudp);
+            channel.cudp = -errno;
+            return (-errno);
+        }
+
         switch (ntype)
         {
         case NetworkType::BROADCAST:
+        case NetworkType::UDP:
+            // Set up output
             if ((iretn=setsockopt(channel.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
             {
                 CLOSE_SOCKET(channel.cudp);
                 channel.cudp = -errno;
                 return (-errno);
             }
-            channel.caddr.sin_addr.s_addr = 0xffffffff;
+            // Set up input
+            channel.caddr.sin_addr.s_addr = htonl(INADDR_ANY);
+            if (::bind(channel.cudp,(struct sockaddr *)&channel.caddr, sizeof(struct sockaddr_in)) < 0)
+            {
+                CLOSE_SOCKET(channel.cudp);
+                channel.cudp = -errno;
+                return (-errno);
+            }
             break;
         case NetworkType::MULTICAST:
             inet_pton(AF_INET,address,&channel.caddr.sin_addr);
@@ -299,6 +321,31 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
     channel.type = ntype;
     channel.addrlen = sizeof(struct sockaddr_in);
 
+    return 0;
+}
+
+//! Establish Bus for sending out broadcasts
+//! \param bus vector of ::socket_channel, one for each interface on system
+//! \param port Port number to broadcast on
+//! \param usectimeout Micro seconds before timeout
+int32_t socket_open(socket_bus& bus, uint16_t port, uint32_t usectimeout)
+{
+    bus = socket_find_addresses(NetworkType::UDP, port);
+    if (!bus.size())
+    {
+        return COSMOS_AGENT_ERROR_DISCOVERY;
+    }
+//    for (size_t i=0; i<bus.size(); ++i)
+//    {
+//        socket_channel tchan;
+//        if ((socket_open(&tchan, NetworkType::UDP, ifaces[i].baddress, 3956, SOCKET_TALK, true, 100000)) < 0) return (gige_list);
+
+//        if ((setsockopt(tchan.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+//        {
+//            close(tchan.cudp);
+//            continue;
+//        }
+//    }
     return 0;
 }
 
@@ -544,10 +591,9 @@ int32_t socket_close(socket_channel& channel)
     \param ntype Type of network (Multicast, Broadcast UDP, CSP)
     \return Vector of interfaces
     */
-vector<socket_channel> socket_find_addresses(NetworkType ntype)
+vector<socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port)
 {
     vector<socket_channel> iface;
-    socket_channel tiface;
 
 #ifdef COSMOS_WIN_OS
     INTERFACE_INFO ilist[20];
@@ -567,6 +613,7 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype)
     {
     case NetworkType::MULTICAST:
     case NetworkType::UDP:
+    case NetworkType::BROADCAST:
         {
             if ((cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
             {
@@ -596,6 +643,8 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype)
 
             for (uint32_t i=0; i<nif; i++)
             {
+                socket_channel tiface;
+                tiface.cudp = cudp;
                 inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,tiface.address,sizeof(tiface.address));
                 //			strncpy(tiface.address, inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr), 17);
                 if (!strcmp(tiface.address,"127.0.0.1"))
@@ -630,7 +679,7 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype)
                 }
                 else
                 {
-                    if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                    if ((iretn = setsockopt(tiface.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
                     {
                         continue;
                     }
@@ -666,33 +715,95 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype)
             ifra = confa.ifc_req;
             for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
             {
-                if (ifra->ifr_addr.sa_family != AF_INET) continue;
+                if (ifra->ifr_addr.sa_family != AF_INET)
+                {
+                    continue;
+                }
+
+                socket_channel tiface;
+                // Open socket again if we had to close it
+                if ((tiface.cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                {
+                    continue;
+                }
+
+                if (fcntl(tiface.cudp, F_SETFL,O_NONBLOCK) < 0)
+                {
+                    iretn = -errno;
+                    CLOSE_SOCKET(tiface.cudp);
+                    tiface.cudp = iretn;
+                    continue;
+                }
+
                 inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,tiface.address,sizeof(tiface.address));
+                memcpy((char *)&tiface.caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
 
-                if (ioctl(cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
+                if (ioctl(tiface.cudp,SIOCGIFFLAGS, (char *)ifra) < 0)
+                {
+                    continue;
+                }
+                tiface.flags = ifra->ifr_flags;
 
-                if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0) continue;
+                if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || ((ifra->ifr_flags & (IFF_BROADCAST)) == 0 && (ifra->ifr_flags & (IFF_POINTOPOINT)) == 0))
+                {
+                    continue;
+                }
 
                 if (ntype == NetworkType::MULTICAST)
                 {
-                    inet_pton(AF_INET,COSMOSMCAST,&tiface.caddr.sin_addr);\
+                    inet_pton(AF_INET,COSMOSMCAST,&tiface.caddr.sin_addr);
                     strncpy(tiface.baddress, COSMOSMCAST, 17);
-                    inet_pton(AF_INET,COSMOSMCAST,&tiface.baddr.sin_addr);\
+                    inet_pton(AF_INET,COSMOSMCAST,&tiface.baddr.sin_addr);
                 }
                 else
                 {
-                    if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                    if ((tiface.flags & IFF_POINTOPOINT))
+                    {
+                        if (ioctl(tiface.cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
+                        {
+                            continue;
+                        }
+                        tiface.baddr = tiface.caddr;
+                        inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,tiface.baddress,sizeof(tiface.baddress));
+                        inet_pton(AF_INET,tiface.baddress,&tiface.baddr.sin_addr);
+
+                    }
+                    else
+                    {
+                        if ((iretn = setsockopt(tiface.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                        {
+                            CLOSE_SOCKET(tiface.cudp);
+                            continue;
+                        }
+
+                        strncpy(tiface.name, ifra->ifr_name, COSMOS_MAX_NAME);
+
+                        if (ioctl(tiface.cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+                        {
+                            continue;
+                        }
+                        memcpy((char *)&tiface.baddr, (char *)&ifra->ifr_broadaddr, sizeof(ifra->ifr_broadaddr));
+                    }
+
+                    if (ioctl(tiface.cudp,SIOCGIFADDR,(char *)ifra) < 0)
                     {
                         continue;
                     }
-
-                    strncpy(tiface.name, ifra->ifr_name, COSMOS_MAX_NAME);
-                    if (ioctl(cudp,SIOCGIFBRDADDR,(char *)ifra) < 0) continue;
-                    memcpy((char *)&tiface.baddr, (char *)&ifra->ifr_broadaddr, sizeof(ifra->ifr_broadaddr));
-                    if (ioctl(cudp,SIOCGIFADDR,(char *)ifra) < 0) continue;
                     memcpy((char *)&tiface.caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
                     inet_ntop(tiface.baddr.sin_family,&tiface.baddr.sin_addr,tiface.baddress,sizeof(tiface.baddress));
                 }
+
+                // Find assigned port, place in cport, and set caddr to requested port
+                socklen_t namelen = sizeof(struct sockaddr_in);
+                if ((iretn = getsockname(tiface.cudp, (sockaddr*)&tiface.caddr, &namelen)) == -1)
+                {
+                    CLOSE_SOCKET(tiface.cudp);
+                    continue;
+                }
+                tiface.cport = ntohs(tiface.caddr.sin_port);
+                tiface.caddr.sin_port = htons(port);
+                inet_pton(AF_INET,tiface.address,&tiface.caddr.sin_addr);
+                tiface.baddr.sin_port = htons(port);
                 tiface.type = ntype;
                 iface.push_back(tiface);
             }
@@ -705,6 +816,19 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype)
     }
 
     return (iface);
+}
+
+int32_t socket_poll(socket_bus &bus, vector<uint8_t> &buffer, size_t maxlen, int flags)
+{
+    for (socket_channel channel : bus)
+    {
+        int count=0;
+        if (ioctl(channel.cudp, FIONREAD, count) == 0 && count)
+        {
+            return socket_recvfrom(channel, buffer, maxlen, flags);
+        }
+    }
+    return 0;
 }
 
 int32_t socket_recvfrom(socket_channel &channel, string &buffer, size_t maxlen, int flags)
@@ -721,6 +845,7 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     {
     int32_t nbytes;
     buffer.resize(maxlen);
+    ElapsedTime et;
     if ((nbytes = recvfrom(channel.cudp, (char *)buffer.data(), maxlen, flags, (struct sockaddr *)&channel.caddr, (socklen_t *)&channel.addrlen)) > 0)
     {
         buffer.resize(nbytes);
@@ -730,8 +855,79 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     {
         buffer.clear();
         nbytes = -errno;
+        secondsleep(channel.timeout-et.split());
     }
     return nbytes;
+}
+
+int32_t socket_recv(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags)
+    {
+    int32_t nbytes;
+    buffer.resize(maxlen);
+    if ((nbytes = recv(channel.cudp, (char *)buffer.data(), maxlen, flags)) > 0)
+    {
+        buffer.resize(nbytes);
+    }
+    else
+    {
+        buffer.clear();
+        nbytes = -errno;
+    }
+    return nbytes;
+}
+
+int32_t socket_post(socket_bus &channel, const string buffer, int flags)
+{
+    vector<uint8_t> data(buffer.begin(), buffer.end());
+    return socket_post(channel, data, flags);
+}
+
+int32_t socket_post(socket_bus &bus, const vector<uint8_t> buffer, int flags)
+{
+    vector<uint8_t> data(buffer.begin(), buffer.end());
+    for (socket_channel channel : bus)
+    {
+        int32_t iretn = socket_post(channel, data, flags);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+    return 0;
+}
+
+int32_t socket_post(socket_channel &channel, const string buffer, int flags)
+{
+    vector<uint8_t> data(buffer.begin(), buffer.end());
+    return socket_post(channel, data, flags);
+}
+
+int32_t socket_post(socket_channel &channel, const vector<uint8_t> buffer, int flags)
+{
+    int32_t nbytes;
+#if defined(COSMOS_WIN_OS)
+    nbytes = sendto(channel.cudp, (const char *)(buffer.data()), buffer.size(), flags, (struct sockaddr *)&channel.baddr, channel.addrlen);
+#else
+    if ((nbytes = sendto(channel.cudp, (buffer.data()), buffer.size(), flags, reinterpret_cast<struct sockaddr *>(&channel.baddr), static_cast<socklen_t>(sizeof(struct sockaddr_in)))) < 0)
+    {
+        nbytes = -errno;
+    }
+#endif
+    return nbytes;
+}
+
+int32_t socket_sendto(socket_bus &bus, const string buffer, int flags)
+{
+    vector<uint8_t> data(buffer.begin(), buffer.end());
+    for (socket_channel channel : bus)
+    {
+        int32_t iretn = socket_sendto(channel, data, flags);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+    return 0;
 }
 
 int32_t socket_sendto(socket_channel &channel, const string buffer, int flags)
@@ -744,9 +940,23 @@ int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int
 {
     int32_t nbytes;
 #if defined(COSMOS_WIN_OS)
-    nbytes = sendto(channel.cudp, (const char *)(buffer.data()), buffer.size(), flags, (struct sockaddr *)&channel.caddr, channel.addrlen);
+    nbytes = sendto(channel.cudp, (const char *)(buffer.data()), buffer.size(), flags, (struct sockaddr *)&channel.caddr, sizeof(struct sockaddr_in));
 #else
-    if ((nbytes = sendto(channel.cudp, const_cast<uint8_t*>(buffer.data()), buffer.size(), flags, reinterpret_cast<struct sockaddr *>(&channel.caddr), static_cast<socklen_t>(channel.addrlen))) < 0)
+    if ((nbytes = sendto(channel.cudp, const_cast<uint8_t*>(buffer.data()), buffer.size(), flags, reinterpret_cast<struct sockaddr *>(&channel.caddr), static_cast<socklen_t>(sizeof(struct sockaddr_in)))) < 0)
+    {
+        nbytes = -errno;
+    }
+#endif
+    return nbytes;
+}
+
+int32_t socket_send(socket_channel &channel, const vector<uint8_t> buffer, int flags)
+{
+    int32_t nbytes;
+#if defined(COSMOS_WIN_OS)
+    nbytes = send(channel.cudp, (const char *)(buffer.data()), buffer.size(), flags);
+#else
+    if ((nbytes = send(channel.cudp, const_cast<uint8_t*>(buffer.data()), buffer.size(), flags)) < 0)
     {
         nbytes = -errno;
     }
@@ -937,6 +1147,7 @@ int32_t Udp::socketOpen()
         switch (sok.type)
         {
         case NetworkType::UDP:
+        case NetworkType::BROADCAST:
             if ((iretn=setsockopt(sok.handle,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
             {
                 CLOSE_SOCKET(sok.handle);

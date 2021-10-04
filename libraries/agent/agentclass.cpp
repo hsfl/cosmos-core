@@ -32,8 +32,12 @@
 */
 
 #include "agent/agentclass.h"
-#include "support/socketlib.h"
 #include "support/cosmos-errno.h"
+#include "support/stringlib.h"
+#include "support/timelib.h"
+//#include "support/jsondef.h"
+#include "support/socketlib.h"
+#include "support/elapsedtime.h"
 #if defined (COSMOS_MAC_OS)
 #include <net/if.h>
 #include <net/if_dl.h>
@@ -87,6 +91,7 @@ namespace Support
 	{
         int32_t iretn;
         debug_level = dlevel;
+        debug_error.Set(dlevel,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
 
         // Initialize COSMOS data space
         cinfo = json_init();
@@ -108,18 +113,29 @@ namespace Support
         }
 
         // Set up node: shorten if too long, use hostname if it's empty.
-        nodeName = node_name;
+        if (node_name.length())
+        {
+            nodeName = node_name;
+        }
+        else {
+            {
+                char hostname[60];
+                gethostname(hostname, sizeof (hostname));
+                nodeName = hostname;
+            }
+        }
         if ((iretn=json_setup_node(nodeName, cinfo)) != 0) {
             error_value = iretn;
             shutdown();
             return;
         }
 
-        strcpy(cinfo->node.name, nodeName.c_str());
+//        strcpy(cinfo->node.name, nodeName.c_str());
+        cinfo->node.name = nodeName;
 
         cinfo->agent[0].client = 1;
         cinfo->node.utc = 0.;
-        strncpy(cinfo->agent[0].beat.node, cinfo->node.name ,COSMOS_MAX_NAME);
+        cinfo->agent[0].beat.node = cinfo->node.name;
 
         // Establish publish channel
         cinfo->agent[0].beat.ntype = ntype;
@@ -136,12 +152,13 @@ namespace Support
 
         // Return if all we are doing is setting up client.
         if (agent_name.empty()) {
-            strcpy(cinfo->agent[0].beat.proc, "");
+            cinfo->agent[0].beat.proc = "";
             cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
             return;
         }
 
-        if (strlen(cinfo->node.name)>COSMOS_MAX_NAME || agent_name.length()>COSMOS_MAX_NAME) {
+//        if (strlen(cinfo->node.name)>COSMOS_MAX_NAME || agent_name.length()>COSMOS_MAX_NAME) {
+        if (cinfo->node.name.size() > COSMOS_MAX_NAME || agent_name.length()>COSMOS_MAX_NAME) {
             error_value = JSON_ERROR_NAME_LENGTH;
             shutdown();
             return;
@@ -159,7 +176,8 @@ namespace Support
             strcpy(tname,agent_name.c_str());
         } else {
         	// then there is an agent running with the given name, so let's make the name unique
-            if (strlen(cinfo->node.name)>COSMOS_MAX_NAME-4 || agent_name.size()>COSMOS_MAX_NAME-4) {
+//            if (strlen(cinfo->node.name)>COSMOS_MAX_NAME-4 || agent_name.size()>COSMOS_MAX_NAME-4) {
+            if (cinfo->node.name.size()>COSMOS_MAX_NAME-4 || agent_name.size()>COSMOS_MAX_NAME-4) {
                 error_value = JSON_ERROR_NAME_LENGTH;
                 shutdown();
                 return;
@@ -178,18 +196,18 @@ namespace Support
 
         // Initialize important server variables
 
-        strncpy(cinfo->agent[0].beat.node, cinfo->node.name, COSMOS_MAX_NAME);
-        strncpy(cinfo->agent[0].beat.proc, tname, COSMOS_MAX_NAME);
+        cinfo->agent[0].beat.node = cinfo->node.name;
+        cinfo->agent[0].beat.proc = tname;
         agentName = cinfo->agent[0].beat.proc;
 
         if (debug_level>2) {
         	double timeStart = currentmjd();
-            fprintf(get_debug_fd(), "------------------------------------------------------\n");
-            fprintf(get_debug_fd(), "COSMOS AGENT '%s' on node '%s'\n", agent_name.c_str(), node_name.c_str());
-            fprintf(get_debug_fd(), "Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
-            fprintf(get_debug_fd(), "Agent started at %s\n", mjdToGregorian(timeStart).c_str());
-            fprintf(get_debug_fd(), "Debug level %u\n", debug_level);
-            fprintf(get_debug_fd(), "------------------------------------------------------\n");
+            debug_error.Printf("------------------------------------------------------\n");
+            debug_error.Printf("COSMOS AGENT '%s' on node '%s'\n", agent_name.c_str(), nodeName.c_str());
+            debug_error.Printf("Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
+            debug_error.Printf("Agent started at %s\n", mjdToGregorian(timeStart).c_str());
+            debug_error.Printf("Debug level %u\n", debug_level);
+            debug_error.Printf("------------------------------------------------------\n");
         }
 
         if (bprd >= AGENT_HEARTBEAT_PERIOD_MIN) {
@@ -207,7 +225,7 @@ namespace Support
         cinfo->agent[0].pid = getpid();
 #endif
         cinfo->agent[0].aprd = 1.;
-        strncpy(cinfo->agent[0].beat.user, "cosmos", COSMOS_MAX_NAME);
+        cinfo->agent[0].beat.user = "cosmos";
 
         // Start the heartbeat and request threads running
         //    iretn = start();
@@ -232,12 +250,13 @@ namespace Support
         add_request("status",req_status,"","request the status of this agent");
         add_request("debug_level",req_debug_level,"{\"name1\",\"name2\",...}","get/set debug_level of agent");
         add_request("getvalue",req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
-        add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent");
+        add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent (Namespace 2.0)");
+        add_request("get_state",req_get_state,"[{] \"name1\",\"name2\",... [}]","get current state value(s) from agent");
         add_request("get_time",req_get_time,"","return the current time of the agent");
         add_request("get_position",req_get_position,"","return the current perifocal position of the agent");
         add_request("get_position_data",req_get_position_data,"","return the current perifocal position of the agent");
         add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
-        add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent");
+        add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent (Namespace 2.0)");
         add_request("listnames",req_listnames,"","list the Namespace of the agent");
         add_request("forward",req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
         add_request("echo",req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
@@ -251,12 +270,14 @@ namespace Support
         add_request("devspecjson",req_devspecjson,"","return description JSON for Specific Devices");
         add_request("portsjson",req_portsjson,"","return description JSON for Ports");
         add_request("targetsjson",req_targetsjson,"","return description JSON for Targets");
+        add_request("aliasesjson",req_aliasesjson,"","return description JSON for Aliases");
         add_request("heartbeat",req_heartbeat,"","Post a hearbeat");
         add_request("postsoh",req_postsoh,"","Post a SOH");
         add_request("utc",req_utc,"","Get UTC as both Modified Julian Day and Unix Time");
         add_request("soh",req_soh,"","Get Limited SOH string");
         add_request("fullsoh",req_fullsoh,"","Get Full SOH string");
         add_request("jsondump",req_jsondump,"","Dump JSON ini files to node folder");
+		add_request("all_names_types",req_all_names_types,"","return text with all names and types in Namespace 2.0");
 
         // Set up Full SOH string
 //            set_fullsohstring(json_list_of_fullsoh(cinfo));
@@ -320,11 +341,71 @@ namespace Support
         request_entry tentry;
         if (token.size() > COSMOS_MAX_NAME) { token.resize(COSMOS_MAX_NAME); }
         tentry.token = token;
-//            tentry.ifunction = nullptr;
         tentry.efunction = function;
         tentry.synopsis = synopsis;
         tentry.description = description;
-        reqs.push_back(tentry);
+        reqs[token] = tentry;
+        return 0;
+    }
+
+    int32_t Agent::add_request(string token, Agent::simple_request_function function, string synopsis, string description)
+    {
+
+        external_request_function external_request_wrapper = [] (string& request_string, string& output_string, Agent* agent){
+            vector<string> args;
+            istringstream iss(request_string);
+            string arg;
+
+            while ( getline(iss, arg, ' ') ){
+                args.push_back(arg);
+            }
+            string request = args[0];
+            args.erase(args.begin());
+
+            int32_t error = 0;
+            output_string = agent->reqs[request].sfunction(args, error);
+            return error;
+
+        };
+
+        request_entry tentry;
+        if (token.size() > COSMOS_MAX_NAME) { token.resize(COSMOS_MAX_NAME); }
+        tentry.token = token;
+        tentry.efunction = external_request_wrapper;
+        tentry.sfunction = function;
+        tentry.synopsis = synopsis;
+        tentry.description = description;
+        reqs[token] = tentry;
+        return 0;
+    }
+
+    int32_t Agent::add_request(string token, Agent::no_arg_request_function function, string synopsis, string description)
+    {
+        external_request_function external_request_wrapper = [] (string& request_string, string& output_string, Agent* agent){
+            vector<string> args;
+            istringstream iss(request_string);
+            string arg;
+
+            while ( getline(iss, arg, ' ') ){
+                args.push_back(arg);
+            }
+            string request = args[0];
+            args.erase(args.begin());
+
+            int32_t error = 0;
+            output_string = agent->reqs[request].nafunction(error);
+            return error;
+
+        };
+
+        request_entry tentry;
+        if (token.size() > COSMOS_MAX_NAME) { token.resize(COSMOS_MAX_NAME); }
+        tentry.token = token;
+        tentry.efunction = external_request_wrapper;
+        tentry.nafunction = function;
+        tentry.synopsis = synopsis;
+        tentry.description = description;
+        reqs[token] = tentry;
         return 0;
     }
 
@@ -355,8 +436,9 @@ namespace Support
     int32_t Agent::finish_active_loop() {
         double sleepsec = 86400.*(activeTimeout - currentmjd());
         activeTimeout += cinfo->agent[0].aprd / 86400.;
+        cinfo->agent[0].beat.dcycle = (cinfo->agent[0].aprd - sleepsec) / cinfo->agent[0].aprd;
         COSMOS_SLEEP(sleepsec);
-        return 0;
+        return sleepsec*1000000;
     }
 
         //! Shutdown agent gracefully
@@ -366,7 +448,7 @@ namespace Support
     int32_t Agent::shutdown()
     {
         if (debug_level) {
-            fprintf(get_debug_fd(), "Shutting down Agent. Last error: %s\n", cosmos_error_string(error_value).c_str());
+            debug_error.Printf("Shutting down Agent. Last error: %s\n", cosmos_error_string(error_value).c_str());
             fflush(stdout);
         }
 
@@ -421,7 +503,10 @@ namespace Support
     \param waitsec Maximum number of seconds to wait
     \return Either the number of bytes returned, or an error number.
 */
-    int32_t Agent::send_request(beatstruc hbeat, string request, string &output, float waitsec) {
+    int32_t Agent::send_request(beatstruc hbeat, string request, string &output, float waitsec, double delay_send, double delay_receive) {
+
+        COSMOS_SLEEP(delay_send);
+
         socket_channel sendchan;
         int32_t iretn;
         int32_t nbytes;
@@ -436,8 +521,12 @@ namespace Support
         if ((iretn=socket_open(&sendchan, NetworkType::UDP, hbeat.addr, hbeat.port, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0) { return (-errno); }
         //nbytes = strnlen(request.c_str(), hbeat.bsz);
         nbytes = std::min(request.size(), (size_t)hbeat.bsz);
+        nbytes=sendto(sendchan.cudp, request.c_str(), nbytes, 0, (struct sockaddr *)&sendchan.caddr, sizeof(struct sockaddr_in));
+        if (debug_level) {
+            debug_error.Printf("Send Request: [%s:%u:%d] %s\n", sendchan.address, sendchan.cport, iretn, &request[0]);
+        }
 
-        if ((nbytes=sendto(sendchan.cudp, request.c_str(), nbytes, 0, (struct sockaddr *)&sendchan.caddr, sizeof(struct sockaddr_in))) < 0) {
+        if ((nbytes) < 0) {
             CLOSE_SOCKET(sendchan.cudp);
 #ifdef COSMOS_WIN_OS
             return(-WSAGetLastError());
@@ -463,6 +552,8 @@ namespace Support
             toutput.resize(nbytes);
             string reply(toutput.begin(), toutput.end());
             output = reply;
+
+			COSMOS_SLEEP(delay_receive);
             return (nbytes);
         }
     }
@@ -495,6 +586,8 @@ namespace Support
         iretn = send_request(hbeat, "devspecjson", jnode.devspec, waitsec);
         if (iretn < 0) { return iretn; }
         iretn = send_request(hbeat, "portsjson", jnode.ports, waitsec);
+        if (iretn < 0) { return iretn; }
+        iretn = send_request(hbeat, "aliasesjson", jnode.aliases, waitsec);
         if (iretn < 0) { return iretn; }
         iretn = send_request(hbeat, "targetsjson", jnode.targets, waitsec);
         return iretn;
@@ -614,7 +707,7 @@ namespace Support
             for (size_t k=0; k<agent_list.size(); ++k) {
                 size_t i;
                 for (i=0; i<slist.size(); i++) {
-                    if (!strcmp(agent_list[k].node, slist[i].node) && !strcmp(agent_list[k].proc, slist[i].proc))
+                    if (!agent_list[k].node.compare(slist[i].node) && !agent_list[k].proc.compare(slist[i].proc))
                         break;
                 }
                 if (i == slist.size()) {
@@ -643,6 +736,29 @@ namespace Support
         json_table_of_list(sohtable, list, cinfo);
         return 0;
     }
+
+    int32_t Agent::set_sohstring(vector<string> list)
+    {
+        if(list.size() == 0) return ErrorNumbers::COSMOS_GENERAL_ERROR_EMPTY;
+        string jsonlist = "{";
+        for(string name: list){
+            jsonlist += "\"" + name + "\",";
+        }
+        jsonlist.pop_back(); // remove last ","
+        jsonlist += "}";
+        return set_sohstring(jsonlist);
+    }
+
+	//! Set SOH string
+	/*! Set the SOH string to a json list of \ref namespace 2.0 names.
+		\param list Vector of strings of namespace 2.0 names.
+		\return 0, otherwise a negative error.
+	*/
+	int32_t Agent::set_sohstring2(vector<string> list) {
+		sohstring = list;
+		
+		return 0;
+	}
 
     //! Set Full SOH string
     /*! Set the Full SOH string to a JSON list of \ref jsonlib_namespace names. A
@@ -682,7 +798,9 @@ namespace Support
             timer_beat.start();
 
             // post comes first
-            if (cinfo->agent[0].beat.bprd != 0.) { post_beat(); }
+            if (cinfo->agent[0].beat.bprd != 0.) {
+                post_beat();
+            }
 
             // TODO: move the monitoring calculations to another thread with its own loop time that can be controlled
             // Compute other monitored quantities if monitoring
@@ -746,8 +864,8 @@ namespace Support
 
         process_mutex.lock();
 
-        if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG)) {
-            printf("Request: [%lu] %s ",bufferin.size(), &bufferin[0]);
+        if (debug_level) {
+            debug_error.Printf("Request: [%lu] %s\n",bufferin.size(), &bufferin[0]);
             fflush(stdout);
         }
 
@@ -763,23 +881,15 @@ namespace Support
         //request[i] = 0;
 		request.resize(i);
 
-        for (i=0; i<reqs.size(); i++) { if (!strcmp(request.c_str(),reqs[i].token.c_str())) break; }
-
-        if (i < reqs.size()) {
+        //for (i=0; i<reqs.size(); i++) { if (!strcmp(request.c_str(),reqs[i].token.c_str())) break; }
+        if(reqs.find(request) == reqs.end()) {
+            iretn = AGENT_ERROR_NULL;
+            bufferout = "[NOK] " + std::to_string(iretn);
+        } else {
+            request_entry &rentry = reqs[request];
             iretn = -1;
-//                if (reqs[i].ifunction)
-//                {
-//                    iretn = (this->*reqs[i].ifunction)(&bufferin[0], &request[0]);
-//                }
-//                else
-//                {
-//                    if (reqs[i].efunction != nullptr)
-//                    {
-//                        iretn = reqs[i].efunction(&bufferin[0], &request[0], this);
-//                    }
-//                }
-            if (reqs[i].efunction != nullptr) {
-                iretn = reqs[i].efunction(bufferin, request, this);
+            if (rentry.efunction != nullptr) {
+                iretn = rentry.efunction(bufferin, request, this);
             }
             if (iretn >= 0) {
                 request.resize(strlen(&request[0]));
@@ -787,14 +897,11 @@ namespace Support
             } else {
                 bufferout = "[NOK] " + std::to_string(iretn);
             }
-        } else {
-            iretn = AGENT_ERROR_NULL;
-            bufferout = "[NOK] " + std::to_string(iretn);
         }
 
         iretn = sendto(cinfo->agent[0].req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, sizeof(struct sockaddr_in));
-        if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG)) {
-            printf("[%d] %s\n", iretn, bufferout.data());
+        if (debug_level) {
+            debug_error.Printf("Response: [%s:%u:%d] %s\n", cinfo->agent[0].req.address, cinfo->agent[0].req.cport, iretn, &bufferout[0]);
         }
 
         process_mutex.unlock();
@@ -802,7 +909,10 @@ namespace Support
         return iretn;
     }
 
-    // TODO: describe function, what does it do?
+    //! Start listening for incoming messages over COSMOS Agent channel.
+    //! Keep track of any new Agents.
+    //! Add messages to message ring.
+    //! Perform and broadcast requests.
     void Agent::message_loop() {
         messstruc mess;
         int32_t iretn;
@@ -811,21 +921,29 @@ namespace Support
         while (Agent::running()) {
             iretn = Agent::poll(mess, AgentMessage::ALL, 0.);
             if (iretn > 0) {
-                if (!strcmp(mess.meta.beat.proc, "") && mess.adata.empty()) { continue; }
-                bool agent_found = false;
+                if (!mess.meta.beat.proc.compare("") && mess.adata.empty()) {
+                    continue;
+                }
 
-                for (beatstruc &i : agent_list) {
-                    if (!strcmp(i.node, mess.meta.beat.node) && !strcmp(i.proc, mess.meta.beat.proc)) {
-                        agent_found = true;
-						// update all information for the last contact with given (node, agent)...
-						i = mess.meta.beat;
-                        break;
+                if (mess.meta.beat.port)
+                {
+                    bool agent_found = false;
+
+                    for (beatstruc &i : agent_list) {
+                        if (!i.node.compare(mess.meta.beat.node) && !i.proc.compare(mess.meta.beat.proc)) {
+                            agent_found = true;
+                            // update all information for the last contact with given (node, agent)...
+                            i = mess.meta.beat;
+                            break;
+                        }
+                    }
+
+                    if (!agent_found) {
+                        agent_list.push_back(mess.meta.beat);
                     }
                 }
 
-                if (!agent_found) { agent_list.push_back(mess.meta.beat); }
-
-                if (mess.meta.type == AgentMessage::REQUEST && strcmp(cinfo->agent[0].beat.proc, "")) {
+                if (mess.meta.type == AgentMessage::REQUEST && cinfo->agent[0].beat.proc.compare("")) {
                     string response;
                     process_request(mess.adata, response);
                     Agent::post(AgentMessage::RESPONSE, response);
@@ -857,12 +975,15 @@ namespace Support
         uint16_t count;
         int32_t iretn=-1;
 
-//            sscanf(request.c_str(),"%*s %hu",&count);
-        sscanf(request.c_str(),"%*s %hu",&count);
+//            sscanf(&request[0],"%*s %hu",&count);
+        sscanf(&request[0],"%*s %hu",&count);
         for (uint16_t i=0; i<agent->cinfo->agent[0].ifcnt; ++i)
         {
 //                iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.length()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
             iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.size()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
+            if (agent->get_debug_level()) {
+                agent->debug_error.Printf("Forward: [%s:%u:%d] %s\n", agent->cinfo->agent[0].pub[i].address, agent->cinfo->agent[0].pub[i].cport, iretn, (const char *)&request[request.size()-count]);
+            }
         }
 //            sprintf(output,"%.17g %d ",currentmjd(0),iretn);
         output = std::to_string(currentmjd()) + ' ' + std::to_string(iretn);
@@ -881,10 +1002,10 @@ namespace Support
         double mjd;
         uint16_t crc, count;
 
-//            sscanf(request.c_str(),"%*s %lf %hx %hu",&mjd,&crc,&count);
+//            sscanf(&request[0],"%*s %lf %hx %hu",&mjd,&crc,&count);
 //            sprintf(output,"%.17g %x %u ",currentmjd(0),slip_calc_crc((uint8_t *)&request[request.length()-count],count),count);
 //            strncpy(&output[strlen(output)],&request[request.length()-count],count+1);
-        sscanf(request.c_str(),"%*s %lf %hx %hu",&mjd,&crc,&count);
+        sscanf(&request[0],"%*s %lf %hx %hu",&mjd,&crc,&count);
         output = to_mjd(currentmjd()) + ' ' + to_hex(crc) + ' ' + std::to_string(count) + ' ' + request;
         return 0;
     }
@@ -896,50 +1017,38 @@ namespace Support
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-//        int32_t Agent::req_help_json(char*, char* output, Agent* agent)
     int32_t Agent::req_help_json(string &, string &output, Agent* agent) {
         string help_string, s;
         size_t qpos, prev_qpos = 0;
-        //        help_string += "\n";
         help_string += "{\"requests\": [";
-        for(uint32_t i = 0; i < agent->reqs.size(); ++i) {
+        for(map<string, request_entry>::iterator it = agent->reqs.begin(); it != agent->reqs.end(); ++it) {
             //            help_string += "        ";
-            if(i>0) help_string+=",";
+            if(it != agent->reqs.begin()) help_string+=",";
             help_string += "{\"token\": \"";
-            help_string += agent->reqs[i].token;
-            //            help_string += " ";
+            help_string += it->second.token;
             help_string += "\", \"synopsis\": \"";
-            //            help_string += agent->reqs[i].synopsis;
             qpos = 0;
             prev_qpos = 0;
-            s = agent->reqs[i].synopsis;
+            s = it->second.synopsis;
             while((qpos=s.substr(prev_qpos).find("\""))!= string::npos)
             {
                 s.replace(qpos+prev_qpos, 1, "\\\"");
                 prev_qpos +=qpos+2;
             }
             help_string+= s;
-            //            help_string += "\n";
-            //size_t blanks = (20 - (signed int)strlen(agent->reqs[i].token)) > 0 ? 20 - strlen(agent->reqs[i].token) : 4;
-            //string blank(blanks,' ');
-            //help_string += blank;
-            //            help_string += "                ";
             help_string += "\", \"description\": \"";
             qpos = 0;
             prev_qpos = 0;
-            s = agent->reqs[i].description;
+            s = it->second.description;
             while((qpos=s.substr(prev_qpos).find("\""))!= string::npos){
                 s.replace(qpos+prev_qpos, 1, "\\\"");
                 prev_qpos +=qpos+2;
             }
             help_string+= s;
-            //            help_string += agent->reqs[i].description;
-            //            help_string += "\n\n";
+
             help_string +="\"}";
         }
-        //        help_string += "\n";
         help_string += "]}";
-//            strcpy(output, (char*)help_string.c_str());
         output = help_string;
         return 0;
     }
@@ -947,18 +1056,14 @@ namespace Support
     int32_t Agent::req_help(string &, string &output, Agent* agent) {
         string help_string;
         help_string += "\n";
-        for(uint32_t i = 0; i < agent->reqs.size(); ++i)
-        {
+        for(map<string, request_entry>::iterator it = agent->reqs.begin(); it != agent->reqs.end(); ++it) {
             help_string += "        ";
-            help_string += agent->reqs[i].token;
+            help_string += it->second.token;
             help_string += " ";
-            help_string += agent->reqs[i].synopsis;
+            help_string += it->second.synopsis;
             help_string += "\n";
-            //size_t blanks = (20 - (signed int)strlen(agent->reqs[i].token)) > 0 ? 20 - strlen(agent->reqs[i].token) : 4;
-            //string blank(blanks,' ');
-            //help_string += blank;
             help_string += "                ";
-            help_string += agent->reqs[i].description;
+            help_string += it->second.description;
             help_string += "\n\n";
         }
         help_string += "\n";
@@ -1089,9 +1194,11 @@ namespace Support
 //        int32_t Agent::req_debug_level(string &request, char* output, Agent* agent)
     int32_t Agent::req_debug_level(string &request, string &output, Agent* agent) {
         if (request != "debug_level") {
-            sscanf(request.c_str(), "debug_level %hu", &agent->debug_level);
+            uint16_t level;
+            sscanf(&request[0], "debug_level %hu", &level);
+            agent->set_debug_level(level);
         }
-        output = std::to_string(agent->debug_level);
+        output = std::to_string(agent->get_debug_level());
         return 0;
     }
 
@@ -1104,16 +1211,16 @@ namespace Support
  */
     int32_t Agent::req_getvalue(string &request, string &output, Agent* agent)
     {
-	cout<<"req_getvalue(): incoming request          = <"<<request<<">"<<endl;
-	cout<<"req_getvalue(): incoming request.size()   = "<<request.size()<<endl;
-	cout<<"req_getvalue(): incoming request.length() = "<<request.length()<<endl;
+//	cout<<"req_getvalue(): incoming request          = <"<<request<<">"<<endl;
+//	cout<<"req_getvalue(): incoming request.size()   = "<<request.size()<<endl;
+//	cout<<"req_getvalue(): incoming request.length() = "<<request.length()<<endl;
         string jstring;
         if (json_of_list(jstring, request, agent->cinfo) != NULL) {
             output = jstring;
             if (output.length() > agent->cinfo->agent[0].beat.bsz) {
                 output[agent->cinfo->agent[0].beat.bsz-1] = 0;
             }
-	cout<<"req_getvalue(): outgoing response         = <"<<output<<">"<<endl;
+//	cout<<"req_getvalue(): outgoing response         = <"<<output<<">"<<endl;
             return 0;
         } else {
             return (JSON_ERROR_EOS);
@@ -1122,12 +1229,12 @@ namespace Support
 
 int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
 	string req = request;
-	cout<<"req_get_value():incoming request          = <"<<request<<">"<<endl;
-	cout<<"req_get_value():incoming request.size()   = "<<request.size()<<endl;
-	cout<<"req_get_value():incoming request.length() = "<<request.length()<<endl;
+//	cout<<"req_get_value():incoming request          = <"<<request<<">"<<endl;
+//	cout<<"req_get_value():incoming request.size()   = "<<request.size()<<endl;
+//	cout<<"req_get_value():incoming request.length() = "<<request.length()<<endl;
 	// remove function call and space
 	req.erase(0,10);
-	// strip out all names from request
+	// strip out requested names
     vector<string> names;
     for(size_t i = 0; i < req.size(); ++i)   {
         if(req[i]=='"')  {
@@ -1136,14 +1243,47 @@ int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
             names.push_back(name);
         }
     }
-	// response comes to here with the request function name inside it? it that a bug or a feature?
+
+
+	// ERIC: response string comes to here with the request function name inside it? it that a bug or a feature?
 	response.clear();
     for(size_t i = 0; i < names.size(); ++i)   {
 		response += agent->cinfo->get_json(names[i]);
 	}
-	cout<<"req_get_value():outgoing response         = <"<<response<<">"<<endl;
+//	cout<<"req_get_value():outgoing response         = <"<<response<<">"<<endl;
 	return 0;
 }
+
+
+// returns state of agent recieving request as JSON
+int32_t Agent::req_get_state(string &request, string &response, Agent* agent)	{
+	string req = request;
+	// remove function call and space
+	req.erase(0,10);
+	
+	response.clear();
+    // find index of calling agent in sim_states[]
+    for(size_t i = 0; i < agent->cinfo->sim_states.size(); ++i)   {
+//        string node_name(agent->cinfo->agent[0].beat.node);
+//        string agent_name(agent->cinfo->agent[0].beat.proc);
+//        if(agent->cinfo->sim_states[i].node_name == node_name && agent->cinfo->sim_states[i].agent_name == agent_name)  {
+        if(agent->cinfo->sim_states[i].node_name == agent->cinfo->agent[0].beat.node)
+        {
+			// this wraps as a json object
+			//string j = "sim_states[" + to_string(i) + "]";
+			//response = agent->cinfo->get_json(j);
+
+			// this does not wrap
+			response = agent->cinfo->sim_states[i].to_json().dump();
+			break;
+		}
+	}
+
+	//cout<<"req_get_state():outgoing response         = <"<<response<<">"<<endl;
+	return 0;
+}
+
+
 
 int32_t Agent::req_get_time(string &request, string &response, Agent* agent)	{
 	stringstream ss;
@@ -1174,9 +1314,10 @@ int32_t Agent::req_get_position_data(string &request, string &response, Agent* a
        // orbital equations
 
 c->set_PQW(timemjd);
-//cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->P_pos_t<<", "<<c->Q_pos_t<<", "<<c->W_pos_t<<", "<<c->P_vel_t<<", "<<c->Q_vel_t<<", "<<c->W_vel_t<<endl;
+//cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->P_pos_t<<", "<<c->Q_pos_t<<", "<<c->W_pos_t<<", "<<c->P_vel_t<<", "<<c->Q_vel_t<<", "<<c->W_vel_t<<", "<<c->P_acc_t<<", "<<c->Q_acc_t<<", "<<c->W_acc_t<<endl;
+
 c->set_IJK_from_PQW();
-cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->I_pos_t<<", "<<c->J_pos_t<<", "<<c->K_pos_t<<", "<<c->I_vel_t<<", "<<c->J_vel_t<<", "<<c->K_vel_t<<endl;
+//cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->I_pos_t<<", "<<c->J_pos_t<<", "<<c->K_pos_t<<", "<<c->I_vel_t<<", "<<c->J_vel_t<<", "<<c->K_vel_t<<", "<<c->I_acc_t<<", "<<c->J_acc_t<<", "<<c->K_acc_t<<endl;
 
 /*
         // to find position and velocity at time t
@@ -1252,7 +1393,7 @@ cout<<setprecision(numeric_limits<double>::digits10)<<timemjd<<", "<<c->I_pos_t<
 // request = "get_position mjdtime"
 int32_t Agent::req_get_position(string &request, string &response, Agent* agent)	{
 
-	cout<<"\tincoming request          = <"<<request<<">"<<endl;
+	//cout<<"\tincoming request          = <"<<request<<">"<<endl;
 	//cout<<"req_get_position():incoming request.size()   = "<<request.size()<<endl;
 	//cout<<"req_get_position():incoming request.length() = "<<request.length()<<endl;
 
@@ -1272,6 +1413,8 @@ int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
 
         // to find position and velocity at time t
             // 0    Make sure all necessary orbital elements are set
+
+			//JIMFIX:  this should actually be seconds into orbit for Kepler calcluation
 			c->t = timemjd;
 			c->l = c->a*(1.0-pow(c->e,2.0));
             // 1    Calculate mean anamoly (M)
@@ -1349,6 +1492,13 @@ int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
         return(iretn);
     }
 
+/**
+ * @brief Agent::req_set_value (Namespace 2.0)
+ * @param request
+ * @param response
+ * @param agent
+ * @return
+ */
 int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 	// remove function call and space ('set_value ')
 	request.erase(0,10);
@@ -1359,9 +1509,8 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 
 	// set the value from json string
 	agent->cinfo->set_json(request);
-
-	cout<<"req_set_value():outgoing response         = <"<<response<<">"<<endl;
-	return 0;
+    cout<<"req_set_value():outgoing response         = <"<<response<<">"<<endl;
+    return 0;
 }
 
     //! Built-in List Name Space Names request
@@ -1528,6 +1677,23 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
         return 0;
     }
 
+    //! Built-in Return Alias JSON request
+    /*! Returns a JSON string representing the alias information.
+ * \param request Text of request.
+ * \param output Text of response to request.
+ * \param agent Pointer to Cosmos::Agent to use.
+ * \return 0, or negative error.
+ */
+//        int32_t Agent::req_aliasesjson(char *, char* output, Agent* agent)
+    int32_t Agent::req_aliasesjson(string &, string & output, Agent* agent) {
+//            strncpy(output, agent->cinfo->json.aliases.c_str(), agent->cinfo->json.aliases.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.aliases.size():agent->cinfo->agent[0].beat.bsz-1);
+        output = agent->cinfo->json.aliases;
+        if (output.size() > agent->cinfo->agent[0].beat.bsz) {
+            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+        }
+        return 0;
+    }
+
     //! Built-in Send Heartbeat request
     /*! Send a Heartbeat out of the regular time for heartbeats.
  * \param request Text of request.
@@ -1560,9 +1726,31 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
     }
 
     int32_t Agent::req_soh(string &, string &response, Agent *agent) {
-        string rjstring;
-        response = json_of_table(rjstring, agent->sohtable, agent->cinfo);
-
+		// Return Namespace 1.0 soh
+		if(!agent->sohtable.empty()) {
+			string rjstring;
+			response = json_of_table(rjstring, agent->sohtable, agent->cinfo);
+		}
+		// Return Namespace 2.0 soh
+		else {
+			string jsonlist = "{";
+			// Iterate through list of names, get json for each name if it's in Namespace 2.0
+			for(string name: agent->sohstring) {
+				string jsonname = agent->cinfo->get_json(name);
+				if(jsonname.size() > 1) {
+					// Trim beginning and ending curly braces
+					jsonname = jsonname.substr(1, jsonname.size()-2);
+					jsonlist += jsonname + ",";
+				}
+			}
+			if(jsonlist.size() > 1) {
+				jsonlist.pop_back(); // remove last ","
+				jsonlist += "}";
+			} else {
+				jsonlist = "";
+			}
+			response = jsonlist;
+		}
         return 0;
     }
 
@@ -1577,6 +1765,28 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
         json_dump_node(agent->cinfo);
         return 0;
     }
+
+	// Return raw text of all names and associated types in agent's namespace
+	// Format is:
+	// name,\ttype\nname,\ttype ...etc
+	int32_t Agent::req_all_names_types(string &, string &response, Agent *agent) {
+		response = "";
+		map<string,void*>::const_iterator n = agent->cinfo->names.begin();
+		while(n != agent->cinfo->names.end())	{
+			map<string,string>::const_iterator t = agent->cinfo->types.find(n->first);
+			if(t == agent->cinfo->types.end())	{
+				response += (n++)->first + "\n";
+			} else {
+				response += (n++)->first + ",\t" + t->second + "\n";
+			}
+		}
+		// Remove last \n character
+		if(response.size() > 1) {
+			response.pop_back();
+		}
+
+		return 0;
+	}
 
     //! Open COSMOS output channel
     /*! Establish a multicast socket for publishing COSMOS messages using the specified address and
@@ -1758,8 +1968,8 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                 }
                 // Use result to discover interfaces.
                 ifra = confa.ifc_req;
-                bool found_bcast = false;
-                int16_t lo_index = -1;
+                //bool found_bcast = false;
+                //int16_t lo_index = -1;
                 for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++) {
 
                     if (ifra->ifr_addr.sa_family != AF_INET)
@@ -1770,39 +1980,43 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address));
                     memcpy((char *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
 
-                    if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
-
-//                            if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
-                    if ((ifra->ifr_flags & IFF_UP) == 0)
+                    if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0)
                     {
                         continue;
                     }
-                    else if (ifra->ifr_flags & IFF_LOOPBACK)
+                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags = ifra->ifr_flags;
+
+//                            if ((cinfo->agent[0].pub[0].flags & IFF_POINTOPOINT) || (cinfo->agent[0].pub[0].flags & IFF_UP) == 0 || (cinfo->agent[0].pub[0].flags & IFF_LOOPBACK) || (cinfo->agent[0].pub[0].flags & (IFF_BROADCAST)) == 0)
+                    if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_UP) == 0)
+                    {
+                        continue;
+                    }
+                    else if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_LOOPBACK)
                     {
                         // Don't enable loopback if we found broadcast interface
-                        if (found_bcast)
+//                        if (found_bcast)
                         {
                             continue;
                         }
-                        lo_index = cinfo->agent[0].ifcnt;
+//                        lo_index = cinfo->agent[0].ifcnt;
                     }
-                    else if (ifra->ifr_flags & IFF_BROADCAST)
+                    else if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_BROADCAST)
                     {
-                        found_bcast = true;
-                        if (lo_index >= 0)
-                        {
-                            // Remove loopback if we found broadcast interface
-                            if (cinfo->agent[0].pub[lo_index].cudp >= 0)
-                            {
-                                CLOSE_SOCKET(cinfo->agent[0].pub[lo_index].cudp);
-                            }
-                            for (uint16_t i=lo_index+1; i<cinfo->agent[0].ifcnt+1; ++i)
-                            {
-                                cinfo->agent[0].pub[i-1] = cinfo->agent[0].pub[i];
-                            }
-                            lo_index = -1;
-                            --cinfo->agent[0].ifcnt;
-                        }
+                        //found_bcast = true;
+//                        if (lo_index >= 0)
+//                        {
+//                            // Remove loopback if we found broadcast interface
+//                            if (cinfo->agent[0].pub[lo_index].cudp >= 0)
+//                            {
+//                                CLOSE_SOCKET(cinfo->agent[0].pub[lo_index].cudp);
+//                            }
+//                            for (uint16_t i=lo_index+1; i<cinfo->agent[0].ifcnt+1; ++i)
+//                            {
+//                                cinfo->agent[0].pub[i-1] = cinfo->agent[0].pub[i];
+//                            }
+//                            lo_index = -1;
+//                            --cinfo->agent[0].ifcnt;
+//                        }
                     }
 
 
@@ -1837,7 +2051,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 //                                continue;
 //                            }
 
-                        if ((ifra->ifr_flags & IFF_POINTOPOINT))
+                        if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_POINTOPOINT))
                         {
                             if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
                             {
@@ -2025,8 +2239,9 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,tiface.address,sizeof(tiface.address));
 
                     if (ioctl(cudp,SIOCGIFFLAGS, (char *)ifra) < 0) { continue; }
+                    tiface.flags = ifra->ifr_flags;
 
-                    if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
+                    if ((tiface.flags & IFF_UP) == 0 || (tiface.flags & IFF_LOOPBACK) || (tiface.flags & (IFF_BROADCAST)) == 0)
                     {
                         continue;
                     }
@@ -2113,10 +2328,10 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
         // this will broadcast messages to all external interfaces (ifcnt = interface count)
         for (size_t i=0; i<cinfo->agent[0].ifcnt; i++)
         {
-            sprintf((char *)&post[3],"{\"agent_utc\":%.15g,\"agent_node\":\"%s\",\"agent_proc\":\"%s\",\"agent_addr\":\"%s\",\"agent_port\":%u,\"agent_bprd\":%f,\"agent_bsz\":%u,\"agent_cpu\":%f,\"agent_memory\":%f,\"agent_jitter\":%f,\"node_utcoffset\":%.15g}",
+            sprintf((char *)&post[3],"{\"agent_utc\":%.15g,\"agent_node\":\"%s\",\"agent_proc\":\"%s\",\"agent_addr\":\"%s\",\"agent_port\":%u,\"agent_bprd\":%f,\"agent_bsz\":%u,\"agent_cpu\":%f,\"agent_memory\":%f,\"agent_jitter\":%f,\"agent_dcycle\":%f,\"node_utcoffset\":%.15g}",
                     cinfo->agent[0].beat.utc,
-                    cinfo->agent[0].beat.node,
-                    cinfo->agent[0].beat.proc,
+                    cinfo->agent[0].beat.node.c_str(),
+                    cinfo->agent[0].beat.proc.c_str(),
                     cinfo->agent[0].pub[i].address,
                     cinfo->agent[0].beat.port,
                     cinfo->agent[0].beat.bprd,
@@ -2124,6 +2339,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     cinfo->agent[0].beat.cpu,
                     cinfo->agent[0].beat.memory,
                     cinfo->agent[0].beat.jitter,
+                    cinfo->agent[0].beat.dcycle,
                     cinfo->node.utcoffset);
             size_t hlength = strlen((char *)&post[3]);
             post[1] = hlength%256;
@@ -2136,13 +2352,45 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     return (AGENT_ERROR_BUFLEN);
                 memcpy(&post[nbytes], &message[0], message.size());
             }
-            iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
-                    (const char *)post,                         // buffer to send
-                    nbytes+message.size(),                      // size of buffer
-                    0,                                          // flags
-                    (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
-                    sizeof(struct sockaddr_in)                  // size of address to socket pointer
-                    );
+            if (cinfo->agent[0].pub[i].flags & IFF_POINTOPOINT)
+            {
+                if (cinfo->agent[0].ifcnt == 1)
+                {
+                    iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+                        (const char *)post,                         // buffer to send
+                        nbytes+message.size(),                      // size of buffer
+                        0,                                          // flags
+                        (struct sockaddr *)&cinfo->agent[0].pub[i].caddr, // socket address
+                        sizeof(struct sockaddr_in)                  // size of address to socket pointer
+                        );
+//                    if (debug_level) {
+//                        debug_error.Printf("Post PTP Local: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
+//                    }
+                }
+                iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+                        (const char *)post,                         // buffer to send
+                        nbytes+message.size(),                      // size of buffer
+                        0,                                          // flags
+                        (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
+                        sizeof(struct sockaddr_in)                  // size of address to socket pointer
+                        );
+//                if (debug_level) {
+//                    debug_error.Printf("Post PTP Remote: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
+//                }
+            }
+            else
+            {
+                iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+                        (const char *)post,                         // buffer to send
+                        nbytes+message.size(),                      // size of buffer
+                        0,                                          // flags
+                        (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
+                        sizeof(struct sockaddr_in)                  // size of address to socket pointer
+                        );
+//                if (debug_level) {
+//                    debug_error.Printf("Post Broadcast: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
+//                }
+            }
             if (iretn < 0)
             {
 #ifdef COSMOS_WIN_OS
@@ -2266,9 +2514,31 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
         int nbytes;
         uint8_t input[AGENTMAXBUFFER+1];
 
-        if (cinfo == nullptr) { return AGENT_ERROR_NULL; }
+        if (cinfo == nullptr) {
+            return AGENT_ERROR_NULL;
+        }
 
-        if (!cinfo->agent[0].sub.cport) { return (AGENT_ERROR_CHANNEL); }
+        if (!cinfo->agent[0].sub.cport) {
+            return (AGENT_ERROR_CHANNEL);
+        }
+
+        // Clear out message
+        mess.meta.beat.addr[0] = 0;
+        mess.meta.beat.bprd = 0;
+        mess.meta.beat.bsz = 0;
+        mess.meta.beat.cpu = 0;
+        mess.meta.beat.exists = false;
+        mess.meta.beat.jitter = 0;
+        mess.meta.beat.dcycle = 0;
+        mess.meta.beat.memory = 0;
+        mess.meta.beat.ntype = NetworkType::BROADCAST;
+        mess.meta.beat.port = 0;
+        mess.meta.beat.user[0] = 0;
+        mess.meta.beat.utc = 0;
+        mess.meta.beat.node.clear();
+        mess.meta.beat.proc.clear();
+
+//        memset(&mess.meta.beat, 0, COSMOS_SIZEOF(beatstruc));
 
         ElapsedTime ep;
         ep.start();
@@ -2333,10 +2603,12 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     // Extract meta data
                     if (mess.jdata.find("}{") == string::npos)
                     {
+						char node[COSMOS_MAX_NAME+1] = {};
+						char proc[COSMOS_MAX_NAME+1] = {};
                         sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg,\"agent_node\":\"%40[^\"]\",\"agent_proc\":\"%40[^\"]\",\"agent_addr\":\"%17[^\"]\",\"agent_port\":%hu,\"agent_bprd\":%lf,\"agent_bsz\":%u,\"agent_cpu\":%f,\"agent_memory\":%f,\"agent_jitter\":%lf}",
                                &mess.meta.beat.utc,
-                               mess.meta.beat.node,
-                               mess.meta.beat.proc,
+                               node,
+                               proc,
                                mess.meta.beat.addr,
                                &mess.meta.beat.port,
                                &mess.meta.beat.bprd,
@@ -2344,24 +2616,40 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                                &mess.meta.beat.cpu,
                                &mess.meta.beat.memory,
                                &mess.meta.beat.jitter);
+						if(node[0] != '\0') {
+							mess.meta.beat.node = node;
+						}
+						if(proc[0] != '\0') {
+							mess.meta.beat.proc = proc;
+						}
                     }
                     else if (mess.jdata.find("agent_bprd") == string::npos)
                     {
+						char node[COSMOS_MAX_NAME+1] = {};
+						char proc[COSMOS_MAX_NAME+1] = {};
                         sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
                                &mess.meta.beat.utc,
-                               mess.meta.beat.node,
-                               mess.meta.beat.proc,
+                               node,
+                               proc,
                                mess.meta.beat.addr,
                                &mess.meta.beat.port,
                                &mess.meta.beat.bsz,
                                &mess.meta.beat.cpu,
                                &mess.meta.beat.memory,
                                &mess.meta.beat.jitter);
+						if(node[0] != '\0') {
+							mess.meta.beat.node = node;
+						}
+						if(proc[0] != '\0') {
+							mess.meta.beat.proc = proc;
+						}
                     } else {
+						char node[COSMOS_MAX_NAME+1] = {};
+						char proc[COSMOS_MAX_NAME+1] = {};
                         sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bprd\":%lf}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
                                &mess.meta.beat.utc,
-                               mess.meta.beat.node,
-                               mess.meta.beat.proc,
+                               node,
+                               proc,
                                mess.meta.beat.addr,
                                &mess.meta.beat.port,
                                &mess.meta.beat.bprd,
@@ -2369,8 +2657,17 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                                &mess.meta.beat.cpu,
                                &mess.meta.beat.memory,
                                &mess.meta.beat.jitter);
+						if(node[0] != '\0') {
+							mess.meta.beat.node = node;
+						}
+						if(proc[0] != '\0') {
+							mess.meta.beat.proc = proc;
+						}
                     }
-                    return ((int)mess.meta.type);
+                    if (mess.meta.beat.node.compare(cinfo->agent[0].beat.node) || mess.meta.beat.proc.compare(cinfo->agent[0].beat.proc))
+                    {
+                        return ((int)mess.meta.type);
+                    }
                 }
             }
             if (ep.split() >= waitsec) {
@@ -2404,8 +2701,8 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                 message = message_queue.front();
                 message_queue.pop_front();
                 if (type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type)) {
-                    if (proc.empty() || !strcmp(proc.c_str(), message.meta.beat.proc)) {
-                        if (node.empty() || !strcmp(node.c_str(), message.meta.beat.node)) {
+                    if (proc.empty() || !proc.compare(message.meta.beat.proc)) {
+                        if (node.empty() || !node.compare(message.meta.beat.node)) {
                             return (static_cast<int32_t>(message.meta.type));
                         }
                     }
@@ -2524,10 +2821,10 @@ acquired.
 \return ::locstruc with acquired location. The UTC will be set to 0 if no heartbeat was
 acquired.
 */
-    //    locstruc Agent::poll_location(float waitsec)
+    //    Convert::locstruc Agent::poll_location(float waitsec)
     //    {
     //        int32_t iretn;
-    //        locstruc loc;
+    //        Convert::locstruc loc;
     //        messstruc mess;
 
     //		iretn = Agent::poll(mess, Agent::AgentMessage::LOCATION, waitsec);
@@ -2642,63 +2939,83 @@ acquired.
         return iretn;
     }
 
-    FILE *Agent::get_debug_fd(double mjd) {
-        static double oldmjd=0.;
-        if (debug_level == 0) {
-            debug_fd = nullptr;
-            debug_pathName.clear();
-        }
-        else if (debug_level == 1) {
-            if (debug_fd != stdout) {
-                if (debug_fd != nullptr) {
-                    fclose(debug_fd);
-                }
-                debug_fd = stdout;
-                debug_pathName.clear();
-            }
-        } else {
-            if (mjd == 0.) {
-                mjd = currentmjd();
-                oldmjd = mjd;
-            }
-            mjd = mjd - fmod(mjd, 1./24.);
-            string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
-
-            if (debug_fd != nullptr) {
-                if (pathName != debug_pathName) {
-                    FILE *fd = fopen(pathName.c_str(), "a");
-                    if (fd != nullptr) {
-                        if (debug_fd != stdout) {
-                            fclose(debug_fd);
-                            string final_filepath = data_type_path(nodeName, "outgoing", agentName, oldmjd, agentName, "debug");
-                            rename(debug_pathName.c_str(), final_filepath.c_str());
-                        }
-                        debug_fd = fd;
-                        debug_pathName = pathName;
-                    }
-                    oldmjd = mjd;
-                }
-            } else {
-                FILE *fd = fopen(pathName.c_str(), "a");
-                if (fd != nullptr) {
-                    debug_fd = fd;
-                    debug_pathName = pathName;
-                }
-            }
-        }
-        return debug_fd;
+    int32_t Agent::set_debug_level(uint16_t level)
+    {
+        debug_level = level;
+        debug_error.Set(level,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
+        return debug_error.Type(level);
     }
 
-    int32_t Agent::close_debug_fd() {
-        int32_t iretn;
-        if (debug_fd != nullptr && debug_fd != stdout)
-        {
-            iretn = fclose(debug_fd);
-            if (iretn != 0) { return -errno; }
-            debug_fd = nullptr;
-        }
-        return 0;
+    int32_t Agent::get_debug_level()
+    {
+        return debug_error.Type();
     }
+
+    FILE *Agent::get_debug_fd(double mjd)
+    {
+        return debug_error.Open();
+    }
+//    {
+//        static double oldmjd=0.;
+//        if (debug_level == 0) {
+//            debug_fd = nullptr;
+//            debug_pathName.clear();
+//        }
+//        else if (debug_level == 1) {
+//            if (debug_fd != stdout) {
+//                if (debug_fd != nullptr) {
+//                    fclose(debug_fd);
+//                }
+//                debug_fd = stdout;
+//                debug_pathName.clear();
+//            }
+//        } else {
+//            if (mjd == 0.) {
+//                mjd = currentmjd();
+//                oldmjd = mjd;
+//            }
+//            mjd = mjd - fmod(mjd, 1./24.);
+//            string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
+
+//            if (debug_fd != nullptr) {
+//                if (pathName != debug_pathName) {
+//                    FILE *fd = fopen(pathName.c_str(), "a");
+//                    if (fd != nullptr) {
+//                        if (debug_fd != stdout) {
+//                            fclose(debug_fd);
+//                            string final_filepath = data_type_path(nodeName, "outgoing", agentName, oldmjd, agentName, "debug");
+//                            rename(debug_pathName.c_str(), final_filepath.c_str());
+//                        }
+//                        debug_fd = fd;
+//                        debug_pathName = pathName;
+//                    }
+//                    oldmjd = mjd;
+//                }
+//            } else {
+//                FILE *fd = fopen(pathName.c_str(), "a");
+//                if (fd != nullptr) {
+//                    debug_fd = fd;
+//                    debug_pathName = pathName;
+//                }
+//            }
+//        }
+//        return debug_fd;
+//    }
+
+    int32_t Agent::close_debug_fd()
+    {
+        return debug_error.Close();
+    }
+//    {
+//        int32_t iretn;
+//        if (debug_fd != nullptr && debug_fd != stdout)
+//        {
+//            iretn = fclose(debug_fd);
+//            if (iretn != 0) { return -errno; }
+//            debug_fd = nullptr;
+//        }
+//        return 0;
+//    }
 
     // Set our producer for all functions associated with time authority (i.e. the mjd request).
     int32_t Agent::set_agent_time_producer(double (*source)()) {
@@ -2717,7 +3034,7 @@ acquired.
         if (!agent_beat.exists) {
             agent_beat = find_agent(node, agent, wait_sec);
         } else {
-            if (strcmp(node.c_str(), agent_beat.node) || (strcmp(agent.c_str(), agent_beat.proc))) {
+            if (node.compare(agent_beat.node) || (agent.compare(agent_beat.proc))) {
                 agent_beat = find_agent(node, agent, wait_sec);
             }
         }
@@ -2741,6 +3058,207 @@ acquired.
             return GENERAL_ERROR_TIMEOUT;
         }
     }
+
+    int32_t Agent::set_activity_period(double period)
+    {
+        this->cinfo->agent[0].aprd = period;
+        return 0;
+    }
+
+    /**
+     * @brief Agent::add_device
+     * @param name piecename
+     * @param type of device
+     * @param device pointer to devicestruc
+     * @return status (negative on error)
+     */
+    int32_t Agent::add_device(string name, DeviceType type, devicestruc **device)
+    {
+        int32_t pindex = json_createpiece(cinfo, name, type);
+        if(pindex < 0) {
+            device = nullptr;
+            return pindex;
+        }
+        int32_t cindex = cinfo->pieces[pindex].cidx;
+        *device = cinfo->device[cindex];
+        return cindex;
+    }
+
+    /**
+     * @brief Agent::device_property_name
+     * @param device (piecename) - for looking up the device index
+     * @param property
+     * @param name reference to output (ex: device_imu_alpha_000)
+     * @return status (negative on error)
+     */
+    int32_t Agent::device_property_name(string device, string property, string &name)
+    {
+        //! get the device index
+        int32_t pidx = json_findpiece(cinfo, device);
+        if(pidx < 0 ) {
+            return pidx;
+        }
+
+        int32_t cindex = cinfo->pieces[pidx].cidx;
+        int32_t didx = cinfo->device[cindex]->didx;
+        if(didx < 0) {
+            return didx;
+        }
+
+        //! get the device type
+        uint16_t device_type = cinfo->device[cindex]->type;
+        string devtype = device_type_name(device_type);
+
+        //! check if property exists in device
+        if(!device_has_property(device_type, property)){
+            return ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
+
+        }
+
+        char dindex[4];
+        sprintf(dindex, "%03u", didx); //! int to string conversion
+
+        name = "device_" + devtype + "_" + property + "_" + string(dindex);
+        return 0;
+    }
+
+    /**
+     * @brief creating and storing an alias for a device property
+     *   ex: creating alias from device_imu_alpha_000 to imu_acceleration
+     * @param devicename piecename - for looking up the device index
+     * @param propertyname
+     * @param alias name that will replace property name in alias
+     * @param error reference for returning an error
+     * @return status (negative on error)
+     */
+    int32_t Agent::create_device_value_alias(string devicename, string propertyname, string alias)
+    {
+        int32_t status = 0;
+        string cosmos_soh_name;
+        status = device_property_name(devicename, propertyname, cosmos_soh_name);
+        if(status < 0) return status;
+
+        status = create_alias(cosmos_soh_name, alias);
+        return status;
+    }
+
+    /**
+     * @brief creating a direct alias (Namespace 1.0 method)
+     *   ex: creating alias from device_imu_alpha_000 to imu_acceleration
+     * @param cosmosname the default SOH name
+     * @param alias name that will replace cosmosname
+     * @return error
+     */
+    int32_t Agent::create_alias(string cosmosname, string alias)
+    {
+        //! Namespace 1.0 method of adding aliases
+        string equation = "(\""+cosmosname+"\"*1.0)";
+        jsonhandle eqhandle;
+        int32_t status = json_equation_map(equation, cinfo, &eqhandle);
+        if(status < 0) return status;
+
+        status = json_addentry(alias, equation, cinfo);
+        return status;
+    }
+
+    int32_t Agent::send_request_getvalue(beatstruc agent, vector<string> names, Json::Object &jobj)
+    {
+        int32_t status = 0;
+        if(names.size() == 0){
+            return ErrorNumbers::COSMOS_GENERAL_ERROR_EMPTY;
+        }
+        string request_args = "{";
+        for(string name : names){
+            request_args += "\"" + name + "\",";
+        }
+        request_args.pop_back(); // remove last ,
+        request_args += "}";
+
+        if(!agent.exists) {
+            return ErrorNumbers::COSMOS_AGENT_ERROR_NULL;
+        }
+        string response;
+        status = send_request(agent, "getvalue " + request_args, response);
+        if(status < 0) {
+            return status;
+        }
+        Json jresult;
+        status = jresult.extract_contents(response);
+        jobj = jresult.ObjectContents;
+
+        return status;
+    }
+
+
+    int32_t Agent::set_value(string jsonname, double value)
+    {
+        if(jsonname.length() == 0) {
+            return ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
+        }
+        jsonentry* jentry = json_entry_of(jsonname, cinfo);
+        return json_set_number(value, jentry, cinfo);
+
+    }
+
+    double Agent::get_value(string jsonname)
+    {
+        return json_get_double(jsonname, cinfo);
+    }
+
+    /**
+     * @brief Agent::get_device_values
+     * @param device device name or piece name
+     * @param props property names
+     * @param json json string of device values {"name1": value ,"name2": value2}
+     * @return status (negative on error)
+     */
+    int32_t Agent::get_device_values(string device, vector<string> props, string &json)
+    {
+        if(props.size() == 0) return 0;
+        int32_t pidx = json_findpiece(cinfo, device);
+        if(pidx < 0 ) {
+            return pidx;
+        }
+        int32_t cindex = cinfo->pieces[pidx].cidx;
+        int32_t didx = cinfo->device[cindex]->didx;
+        if(didx < 0) {
+            return didx;
+        }
+
+        uint16_t type = cinfo->device[cindex]->type;
+        string devtype = device_type_name(type);
+        // check if property exists in device
+
+        char dindex[4];
+        sprintf(dindex, "%03u", didx);
+        string name;
+        vector<string> names;
+        for(string p: props){
+            name = "device_" + devtype+"_"+p + "_" + string(dindex);
+            if(!device_has_property(type, p) && json_entry_of(name, cinfo) == nullptr){
+                return ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
+            }
+            names.push_back(name);
+        }
+        return get_values(names, json);
+    }
+
+
+    int32_t Agent::get_values(vector<string> names, string &json)
+    {
+        if(names.size() == 0) return 0;
+        string jsonlist = "{";
+        for(string p: names) {
+            jsonlist += "\"" + p + "\",";
+        }
+        jsonlist.pop_back();
+        jsonlist+= "}";
+
+        int32_t status = req_getvalue(jsonlist, json, this);
+        return status;
+    }
+
+
 } // end of namespace Support
 } // end namespace Cosmos
 

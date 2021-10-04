@@ -38,9 +38,9 @@ Agent *agent;
 
 int main(int argc, char* argv[])
 {
-    std::string node = "hiakasat";
-    std::string agentname = "soh";
-    std::string source = "incoming";
+    string node = "hiakasat";
+    string agentname = "soh";
+    string source = "incoming";
 
     switch (argc)
     {
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
                     srcfile.name = srcfile.name.substr(0, namelen-3);
                 }
 
-                std::string newpath = data_name_path(node, "data", agentname, utc, srcfile.name);
+                string newpath = data_name_path(node, "data", agentname, utc, srcfile.name);
                 if (!newpath.empty() && !data_exists(newpath))
                 {
                     FILE* fout;

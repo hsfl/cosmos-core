@@ -67,7 +67,7 @@ endif()
 
 
 #Note: Actual flags are COSMOS_CXX_FLAGS + COSMOS_CXX_FLAGS_RELEASE/DEBUG?
-set(COSMOS_CXX_FLAGS "-Wall -pedantic -std=c++11 -U__STRICT_ANSI__ -Wno-invalid-offsetof -Wno-format")
+set(COSMOS_CXX_FLAGS "-Wmaybe-uninitialized -Wtype-limits -Wall -pedantic -std=c++11 -U__STRICT_ANSI__ -Wno-invalid-offsetof -Wno-format")
 
 # Force strict ANSI
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -U__STRICT_ANSI__")
@@ -81,6 +81,8 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
     else()
         if (${CROSS_TYPE} MATCHES "arm")
             set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-2")
+        else()
+            set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
         endif()
     endif()
     message("Build Settings: Debug ON")
@@ -102,6 +104,8 @@ endif ()
 
 # Cmake macros, files to deploy, etc
 include(${CMAKE_SOURCE_DIR}/cmake/macros.cmake)
+#set(COSMOS_LIBS localzlib)
+set(COSMOS_LIBS)
 
 # -----------------------------------------------
 # Linux specific
@@ -293,7 +297,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # -----------------------------------------------
 # Extend COSMOS_LIBS with standard libraries
-#set(COSMOS_LIBS  CosmosAgent CosmosPhysics CosmosSupport CosmosMath localzlib ${COSMOS_LIBS})
 #message("COSMOS_INSTALL_FOLDER: ${COSMOS_INSTALL_FOLDER}")
 
 set(CMAKE_INSTALL_PREFIX "${COSMOS_INSTALL_FOLDER}" CACHE PATH "default install path" FORCE )

@@ -79,7 +79,7 @@ string Event::generator(eventstruc event) {
 
 
 // Copies the current event object to the output stream using JSON format
-std::ostream& operator<<(std::ostream& out, const Event& cmd)
+::std::ostream& operator<<(::std::ostream& out, const Event& cmd)
 {
     JSONObject jobj;
     jobj.addElement("event_utc", JSONValue(cmd.mjd));
@@ -117,22 +117,18 @@ bool operator==(const Event& cmd1, const Event& cmd2)
 //void Event::set_command(string jstring, Agent *agent)
 void Event::set_command(string jstring)
 {
-	// clear Event information in agent
-	cosmosstruc * dummy = json_init();
-//    json_mapbaseentries(dummy);
+    eventstruc dummy;
 
-    json_clear_cosmosstruc(JSON_STRUCT_EVENT, dummy);
+    // load Event information (from jstring)
+    dummy.from_json(jstring);
 
-	// load Event information (from jstring) into agent
-    json_parse(jstring, dummy);
-
-    mjd = dummy->event[0].utc;
-    utcexec = dummy->event[0].utcexec;
-    name = dummy->event[0].name;
-    type = dummy->event[0].type;
-    flag = dummy->event[0].flag;
-    data = dummy->event[0].data;
-    condition = dummy->event[0].condition;
+    mjd = dummy.utc;
+    utcexec = dummy.utcexec;
+    name = dummy.name;
+    type = dummy.type;
+    flag = dummy.flag;
+    data = dummy.data;
+    condition = dummy.condition;
 }
 
 string Event::get_event_string()

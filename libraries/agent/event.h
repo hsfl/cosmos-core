@@ -43,8 +43,7 @@
 #include "support/configCosmos.h"
 #include "support/jsonlib.h"
 #include "support/jsonobject.h"
-
-using std::string;
+#include "support/timelib.h"
 
 #define MAXCOMMANDWORD 20
 
@@ -201,7 +200,7 @@ public:
 
 		Writes the given Event to the given output stream (in JSON format) and returns a reference to the modified ostream.
 	*/
-    friend std::ostream& operator<<(std::ostream& out, const Event& cmd);
+    friend ::std::ostream& operator<<(::std::ostream& out, const Event& cmd);
 
 	///	Equality operator
 	/**

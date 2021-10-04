@@ -32,8 +32,12 @@
 
 #include "support/configCosmos.h"
 #include "support/socketlib.h"
+#include "math/vector.h"
+using namespace Cosmos::Math::Vectors;
 
-/*! \file gige_lib.cpp
+namespace Cosmos {
+    namespace Devices {
+        /*! \file gige_lib.cpp
 *	\brief gige_lib include file.
 *
 *	\defgroup gige GigE Vision support.
@@ -44,9 +48,9 @@
 * @}
 */
 
-//! \ingroup gige
-//!	\defgroup gige_cmd_constants GigE Vision Command constants
-//!	@{
+        //! \ingroup gige
+        //!	\defgroup gige_cmd_constants GigE Vision Command constants
+        //!	@{
 
 #define GIGE_CMD_DISCOVERY		0x0002
 #define GIGE_CMD_FORCEIP		0x0004
@@ -57,11 +61,11 @@
 #define GIGE_CMD_WRITEMEM		0x0086
 #define GIGE_CMD_EVENT			0x00c0
 
-//! @}
+        //! @}
 
-//! \ingroup gige
-//!	\defgroup gige_ack_constants GigE Vision Acknowledge constants
-//!	@{
+        //! \ingroup gige
+        //!	\defgroup gige_ack_constants GigE Vision Acknowledge constants
+        //!	@{
 
 #define GIGE_ACK_DISCOVERY		0x0003
 #define GIGE_ACK_FORCEIP		0x0005
@@ -71,11 +75,11 @@
 #define GIGE_ACK_WRITEMEM		0x0087
 #define GIGE_ACK_PENDING		0x0089
 
-//! @}
+        //! @}
 
-//! \ingroup gige
-//!	\defgroup gige_reg_constants GigE Vision Register constants
-//!	@{
+        //! \ingroup gige
+        //!	\defgroup gige_reg_constants GigE Vision Register constants
+        //!	@{
 
 #define GIGE_REG_VERSION 0x0000
 #define GIGE_REG_DEVICE_MODE 0x0004
@@ -162,13 +166,13 @@
 #define GIGE_MAX_PACKET 16384
 #define GIGE_MIN_PACKET 576
 
-//! @}
+        //! @}
 
-//! \ingroup gige
-//!	\defgroup gige_prosilica_constants GigE Vision Prosilica constants
-//!	@{
+        //! \ingroup gige
+        //!	\defgroup gige_prosilica_constants GigE Vision Prosilica constants
+        //!	@{
 
-//! Prosilica specific registers
+        //! Prosilica specific registers
 #define PROSILICA_DeviceID						0x00d8
 #define PROSILICA_SensorWidth					0x11024
 #define PROSILICA_SensorHeight					0x11028
@@ -209,11 +213,11 @@
 #define PROSILICA_TriggerEvent					0x13418
 #define PROSILICA_TriggerDelay					0x1341C
 #define PROSILICA_ExposureMode					0x14104
-//! Do not automatically adjust exposure
+        //! Do not automatically adjust exposure
 #define PROSILICA_ExposureMode_AutoOff	1
-//! Use one frame to calculate exposure
+        //! Use one frame to calculate exposure
 #define PROSILICA_ExposureMode_AutoOnce	3
-//! Adjust exposure on each frame
+        //! Adjust exposure on each frame
 #define PROSILICA_ExposureMode_Auto	2
 #define PROSILICA_ExposureValueMin				0x14108
 #define PROSILICA_ExposureValueMax				0x1410C
@@ -233,179 +237,205 @@
 #define PROSILICA_IrisVideoLevelMax				0x14210
 #define PROSILICA_IrisVideoLevel				0x14214
 
-//!	@}
+        //!	@}
 
-//! \ingroup gige
-//! \defgroup gige_typedefs GigE Vision type definitions
-//! @{
-typedef union
-{
-	uint32_t address;
-	uint32_t data;
-	typedef struct
-	{
-		uint16_t major;
-		uint16_t minor;
-	} version;
-} gige_register;
+        //! \ingroup gige
+        //! \defgroup gige_typedefs GigE Vision type definitions
+        //! @{
+        typedef union
+        {
+            uint32_t address;
+            uint32_t data;
+            typedef struct
+            {
+                uint16_t major;
+                uint16_t minor;
+            } version;
+        } gige_register;
 
-typedef struct
-{
-	uint16_t flag;
-	uint16_t command;
-	uint16_t length;
-	uint16_t req_id;
-	uint32_t address;
-	uint32_t data;
-} gige_command;
+        typedef struct
+        {
+            uint16_t flag;
+            uint16_t command;
+            uint16_t length;
+            uint16_t req_id;
+            uint32_t address;
+            uint32_t data;
+        } gige_command;
 
-typedef struct
-{
-	uint16_t status;
-	uint16_t acknowledge;
-	uint16_t length;
-	uint16_t ack_id;
-	uint32_t data;
-} gige_acknowledge;
+        typedef struct
+        {
+            uint16_t status;
+            uint16_t acknowledge;
+            uint16_t length;
+            uint16_t ack_id;
+            uint32_t data;
+        } gige_acknowledge;
 
-typedef struct
-{
-	uint16_t status;
-	uint16_t acknowledge;
-	uint16_t length;
-	uint16_t ack_id;
-	uint32_t address;
-	uint8_t data[600-12];
-} gige_acknowledge_mem;
+        typedef struct
+        {
+            uint16_t status;
+            uint16_t acknowledge;
+            uint16_t length;
+            uint16_t ack_id;
+            uint32_t address;
+            uint8_t data[600-12];
+        } gige_acknowledge_mem;
 
-typedef struct
-{
-	uint16_t status;
-	uint16_t acknowledge;
-	uint16_t length;
-	uint16_t ack_id;
-	uint16_t spec_major;
-	uint16_t spec_minor;
-	uint32_t device_mode;
-	uint16_t res1;
-	uint16_t mac_high;
-	uint32_t mac_low;
-	uint32_t ip_config_options;
-	uint32_t ip_config_current;
-	uint32_t res2[3];
-	uint32_t address;
-	uint32_t res3[3];
-	uint32_t subnet;
-	uint32_t res4[3];
-	uint32_t gateway;
-	char manufacturer[32];
-	char model[32];
-	char device[32];
-	char manufacturer_info[48];
-	char serial_number[16];
-	char user_defined_name[16];
-} gige_acknowledge_ack;
+        typedef struct
+        {
+            uint16_t status;
+            uint16_t acknowledge;
+            uint16_t length;
+            uint16_t ack_id;
+            uint16_t spec_major;
+            uint16_t spec_minor;
+            uint32_t device_mode;
+            uint16_t res1;
+            uint16_t mac_high;
+            uint32_t mac_low;
+            uint32_t ip_config_options;
+            uint32_t ip_config_current;
+            uint32_t res2[3];
+            uint32_t address;
+            uint32_t res3[3];
+            uint32_t subnet;
+            uint32_t res4[3];
+            uint32_t gateway;
+            char manufacturer[32];
+            char model[32];
+            char device[32];
+            char manufacturer_info[48];
+            char serial_number[16];
+            char user_defined_name[16];
+        } gige_acknowledge_ack;
 
-typedef struct
-{
-	uint16_t status;
-	uint16_t block_id;
-	union
-	{
-		uint8_t format;
-		uint32_t packet_id;
-	};
-	uint64_t block_id64;
-	uint32_t packet_id32;
-	uint16_t payload_specific;
-	uint16_t payload_type;
-} gige_data_leader_packet;
-
-
-typedef uint32_t gige_device_mode;
-
-typedef struct
-{
-	uint8_t byte[4];
-} gige_address;
-
-typedef uint32_t gige_link_speed;
-
-typedef uint32_t gige_count;
-
-typedef struct
-{
-	//! Command channel
-	socket_channel command;
-	//! Stream channel
-	socket_channel stream;
-	//! Camera Control Channel input buffer
-	union
-	{
-		uint8_t cbyte[600];
-		uint32_t cword[150];
-		gige_command creg;
-		gige_acknowledge cack;
-		gige_acknowledge_mem cack_mem;
-		gige_acknowledge_ack cack_ack;
-	};
-	//! Camera Stream Channel input buffer
-	uint8_t sbuf[600];
-	//! Request ID
-	uint16_t req_id;
-	//! Flow rate
-	uint32_t streambps;
-	//! Best packet size
-	uint16_t bestsize;
-	//! Detector Width
-	uint16_t maxwidth;
-	//! Detector Height
-	uint16_t maxheight;
-	//! Requested Width
-	uint16_t width;
-	//! Requested Height
-	uint16_t height;
-} gige_handle;
-
-//! @}
-
-//! \ingroup gige
-//! \defgroup gige_functions GigE Vision functions
-//! @{
-
-vector<gige_acknowledge_ack> gige_discover();
-gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps);
-int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data);
-uint32_t gige_readreg(gige_handle *handle, uint32_t address);
-uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t nbytes);
-void gige_close(gige_handle *handle);
-uint32_t gige_address_to_value(char *address);
-char *gige_value_to_address(uint32_t value);
-int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32_t ybin, uint32_t xsize, uint32_t ysize, uint32_t xoffset, uint32_t yoffset);
-int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint32_t gain, uint8_t *buffer, uint16_t bsize);
-int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
-int a35_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t video_rate);
-int pt1000_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
-int pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize);
-//! @}
+        typedef struct
+        {
+            uint16_t status;
+            uint16_t block_id;
+            union
+            {
+                uint8_t format;
+                uint32_t packet_id;
+            };
+            uint64_t block_id64;
+            uint32_t packet_id32;
+            uint16_t payload_specific;
+            uint16_t payload_type;
+        } gige_data_leader_packet;
 
 
+        typedef uint32_t gige_device_mode;
 
-// ***************************************************
-// *********************  A35  ***********************
-// ***************************************************
+        typedef struct
+        {
+            uint8_t byte[4]={0};
+        } gige_address;
 
-uint32_t gige_readreg2(gige_handle *handle, uint32_t address);
-uint32_t gige_request(gige_handle *handle, uint32_t address);
+        typedef uint32_t gige_link_speed;
 
-//! @}
+        typedef uint32_t gige_count;
+
+        struct gige_handle
+        {
+            //! Command channel
+            socket_channel command;
+            //! Stream channel
+            socket_channel stream;
+            //! Camera Control Channel input buffer
+            union
+            {
+                uint8_t cbyte[600]={0};
+                uint32_t cword[150];
+                gige_command creg;
+                gige_acknowledge cack;
+                gige_acknowledge_mem cack_mem;
+                gige_acknowledge_ack cack_ack;
+            };
+            //! Camera Stream Channel input buffer
+            uint8_t sbuf[600]={0};
+            //! Request ID
+            uint16_t req_id;
+            //! Flow rate
+            uint32_t streambps;
+            //! Best packet size
+            uint16_t bestsize;
+            //! Detector Width
+            size_t maxwidth;
+            //! Detector Height
+            size_t maxheight;
+            //! Requested Width
+            size_t width;
+            //! Requested Height
+            size_t height;
+            //! Bin Width
+            size_t binwidth;
+            //! Bin Height
+            size_t binheight;
+            vector<uint8_t> bufferin;
+            vector<uint16_t> bufferout;
+            thread ptthread;
+            deque<vector<uint8_t>> ptqueue;
+            bool ptrun;
+            mutex ptmutex;
+            uint8_t privilege;
+            uint32_t heartbeat_msec;
+        };
+
+        struct gige_data
+        {
+            Vector max;
+            Vector min;
+            vector<vector<double>> mean;
+            vector<vector<double>> std;
+        };
+
+        //! @}
+
+        //! \ingroup gige
+        //! \defgroup gige_functions GigE Vision functions
+        //! @{
+
+        vector<gige_acknowledge_ack> gige_discover();
+        gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps);
+        int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data);
+        uint32_t gige_readreg(gige_handle *handle, uint32_t address);
+        uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t nbytes);
+        void gige_close(gige_handle *handle);
+        uint32_t gige_address_to_value(char *address);
+        char *gige_value_to_address(uint32_t value);
+        int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32_t ybin, uint32_t xsize, uint32_t ysize, uint32_t xoffset, uint32_t yoffset);
+        int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint32_t gain, uint8_t *buffer, uint16_t bsize);
+        int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
+        int a35_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t video_rate);
+        void pt1000_loop();
+        int32_t pt1000_start_image(gige_handle *handle);
+        int32_t pt1000_stop_image(gige_handle *handle);
+        int32_t pt1000_drain(gige_handle *handle, double timeout=1.);
+        int32_t pt1000_image(gige_handle *handle, uint32_t frames, gige_data &data);
+        int32_t pt1000_image(gige_handle *handle, uint32_t frames, gige_data &data, gige_data &dark);
+        int32_t pt1000_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
+        int32_t pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin=1, uint32_t ybin=1);
+        //! @}
 
 
-//! \ingroup gige
-//!	\defgroup gige_a35_constants GigE Vision A35 constants
-//!	@{
 
-//! A35 specific registers
+        // ***************************************************
+        // *********************  A35  ***********************
+        // ***************************************************
+
+        uint32_t gige_readreg2(gige_handle *handle, uint32_t address);
+        uint32_t gige_request(gige_handle *handle, uint32_t address);
+
+        //! @}
+
+
+        //! \ingroup gige
+        //!	\defgroup gige_a35_constants GigE Vision A35 constants
+        //!	@{
+
+        //! A35 specific registers
 
 
 #define A35_NETWORK                 0x0014
@@ -436,7 +466,7 @@ uint32_t gige_request(gige_handle *handle, uint32_t address);
 #define A35_IMAGEADJUST				0xE9EC
 #define A35_IPENGINETESTPATTERN     0x80000000
 
-//! A35 Defined Values
+        //! A35 Defined Values
 #define A35_NETWORK_OFF             4
 #define A35_NETWORK_MANUAL          5
 #define A35_NETWORK_DHCP            6
@@ -461,80 +491,84 @@ uint32_t gige_request(gige_handle *handle, uint32_t address);
 #define A35_IMAGEADJUST_MANUAL				3
 #define A35_IMAGEADJUST_LINEAR				4
 
-//#define NETWORKMASK                 0xFFFFFF00  //255.255.255.0
-//!	@}
+        //#define NETWORKMASK                 0xFFFFFF00  //255.255.255.0
+        //!	@}
 
-//! \ingroup gige
-//!	\defgroup gige_pt1000_constants GigE Vision PT1000-CL4 constants
-//!	@{
-enum PT1000
-    {
-    DeviceScanTypeReg = 0xD32C,
-    DeviceResetReg = 0xD340,
-    SensorWidthReg = 0xA020,
-    SensorHeightReg = 0xA024,
-    WidthReg = 0xD300,
-    HeightReg = 0xD304,
-    OffsetXReg = 0xD31C,
-    OffsetYReg = 0xD320,
-    PixelFormatReg = 0xD308,
-    TestImageSelectorReg = 0xD33C,
-    AcquisitionModeReg = 0xD310,
-    AcquisitionStartReg = 0xD314,
-    AcquisitionStopReg = 0xD318,
-    AcquisitionFrameCount = 0xD334
-    };
+        //! \ingroup gige
+        //!	\defgroup gige_pt1000_constants GigE Vision PT1000-CL4 constants
+        //!	@{
+        enum PT1000
+            {
+            DeviceScanTypeReg = 0xD32C,
+            DeviceResetReg = 0xD340,
+            SensorWidthReg = 0xA020,
+            SensorHeightReg = 0xA024,
+            WidthReg = 0xD300,
+            HeightReg = 0xD304,
+            OffsetXReg = 0xD31C,
+            OffsetYReg = 0xD320,
+            PixelFormatReg = 0xD308,
+            TestImageSelectorReg = 0xD33C,
+            AcquisitionModeReg = 0xD310,
+            AcquisitionStartReg = 0xD314,
+            AcquisitionStopReg = 0xD318,
+            AcquisitionFrameCount = 0xD334
+            };
 
-enum PT1000AcquisitionMode
-    {
-    Continuous = 0,
-    SingleFrame,
-    MultiFrame,
-    ContinuousRecording,
-    ContinuousReadout,
-    SingleFrameRecording,
-    SingleFrameReadout
-    };
+        enum PT1000AcquisitionMode
+            {
+            Continuous = 0,
+            SingleFrame,
+            MultiFrame,
+            ContinuousRecording,
+            ContinuousReadout,
+            SingleFrameRecording,
+            SingleFrameReadout
+            };
 
-enum PT1000Format
-    {
-    Mono8 = 17301505,
-    Mono8Signed = 17301506,
-    Mono10 = 17825795,
-    Mono10Packed = 17563652,
-    Mono12 = 17825797,
-    Mono12Packed = 17563654,
-    Mono14 = 17825829,
-    Mono16 = 17825799,
-    BayerGR8 = 17301512,
-    BayerRG8 = 17301513,
-    BayerGB8 = 17301514,
-    BayerBG8 = 17301515,
-    BayerGR10 = 17825804,
-    BayerRG10 = 17825805,
-    BayerGB10 = 17825806,
-    BayerBG10 = 17825807,
-    BayerGR12 = 17825808,
-    BayerRG12 = 17825809,
-    BayerGB12 = 17825810,
-    BayerBG12 = 17825811,
-    BayerGR10Packed = 17563686,
-    BayerRG10Packed = 17563687,
-    BayerGB10Packed = 17563688,
-    BayerGR12Packed = 17563690,
-    BayerRG12Packed = 17563691,
-    BayerGB12Packed = 17563692,
-    BayerBG12Packed = 17563693,
-    BayerGR16 = 17825838,
-    BayerRG16 = 17825839,
-    BayerGB16 = 17825840,
-    BayerBG16 = 17825841,
-    RGB8Packed = 35127316,
-    BGR8Packed = 35127317,
-    YUV411Packed = 34340894,
-    YUV422Packed = 34603039,
-    YUV444Packed = 35127328
-    };
+        enum PT1000Format
+            {
+            Mono8 = 17301505,
+            Mono8Signed = 17301506,
+            Mono10 = 17825795,
+            Mono10Packed = 17563652,
+            Mono12 = 17825797,
+            Mono12Packed = 17563654,
+            Mono14 = 17825829,
+            Mono16 = 17825799,
+            BayerGR8 = 17301512,
+            BayerRG8 = 17301513,
+            BayerGB8 = 17301514,
+            BayerBG8 = 17301515,
+            BayerGR10 = 17825804,
+            BayerRG10 = 17825805,
+            BayerGB10 = 17825806,
+            BayerBG10 = 17825807,
+            BayerGR12 = 17825808,
+            BayerRG12 = 17825809,
+            BayerGB12 = 17825810,
+            BayerBG12 = 17825811,
+            BayerGR10Packed = 17563686,
+            BayerRG10Packed = 17563687,
+            BayerGB10Packed = 17563688,
+            BayerGR12Packed = 17563690,
+            BayerRG12Packed = 17563691,
+            BayerGB12Packed = 17563692,
+            BayerBG12Packed = 17563693,
+            BayerGR16 = 17825838,
+            BayerRG16 = 17825839,
+            BayerGB16 = 17825840,
+            BayerBG16 = 17825841,
+            RGB8Packed = 35127316,
+            BGR8Packed = 35127317,
+            YUV411Packed = 34340894,
+            YUV422Packed = 34603039,
+            YUV444Packed = 35127328
+            };
+    }
+}
+
+using namespace Cosmos::Devices;
 
 //!	@}
 

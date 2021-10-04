@@ -32,6 +32,10 @@
 */
 
 #include "support/datalib.h"
+//#include "support/jsonlib.h"
+//#include "support/jsondef.h"
+#include "support/stringlib.h"
+#include "support/timelib.h"
 #include <algorithm>
 
 //! \ingroup datalib
@@ -72,13 +76,13 @@ static string nodedir;
  * \param type Type part of name.
  * \param record String to be appended to file.
  */
-void log_write(string node, string agent, double utc, string extra, string type, string record, string location)
+string log_write(string node, string agent, double utc, string extra, string type, string record, string location)
 {
     FILE *fout;
     string path;
 
     if (utc == 0.)
-        return;
+        return "";
 
     if (extra.empty())
     {
@@ -102,22 +106,8 @@ void log_write(string node, string agent, double utc, string extra, string type,
         fprintf(fout,"%s\n",record.c_str());
         fclose(fout);
     }
+    return path;
 }
-
-//! Write log entry - fixed location
-/*! Append the provided string to a file in the {node}/temp/{agent} directory. The file name
- * is created as {node}_yyyyjjjsssss_{extra}.{type}
- * \param node Node name.
- * \param agent Agent name.
- * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
- * \param extra Extra part  of name.
- * \param type Type part of name.
- * \param record String to be appended to file.
- */
-//void log_write(string node, string agent, double utc, string extra, string type, string record)
-//{
-//    log_write(node, "temp", agent, utc, extra, type, record);
-//}
 
 //! Write log entry - fixed location, no extra
 /*! Append the provided string to a file in the {node}/temp/{agent} directory. The file name
@@ -128,22 +118,9 @@ void log_write(string node, string agent, double utc, string extra, string type,
  * \param type Type part of name.
  * \param record String to be appended to file.
  */
-void log_write(string node, string agent, double utc, string type, const char *record)
+string log_write(string node, string agent, double utc, string type, const char *record)
 {
-    log_write(node, agent, utc, "", type, record);
-    //    FILE *fout;
-    //    string path;
-
-    //    if (utc == 0.)
-    //        return;
-
-    //    path = data_type_path(node, "temp", agent, utc, type);
-
-    //    if ((fout = data_open(path, (char *)"a+")) != nullptr)
-    //    {
-    //        fprintf(fout,"%s\n",record);
-    //        fclose(fout);
-    //    }
+    return log_write(node, agent, utc, "", type, record);
 }
 
 //! Write log entry - fixed location, no extra, integer type and agent
@@ -154,39 +131,21 @@ void log_write(string node, string agent, double utc, string type, const char *r
  * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
  * \param record String to be appended to file.
  */
-void log_write(string node, int type, double utc, const char *record, string directory)
+string log_write(string node, int type, double utc, const char *record, string directory)
 {
-    //    FILE *fout;
-    //    string path;
-
-    //    if (utc == 0.)
-    //        return;
 
     switch (type)
     {
     case DATA_LOG_TYPE_SOH:
-        log_write(node, "soh", utc, "", "telemetry", record);
-        //        path = data_type_path(node, "temp", "soh", utc, "telemetry");
-        break;
+        return log_write(node, "soh", utc, "", "telemetry", record);
     case DATA_LOG_TYPE_EVENT:
-        log_write(node, "soh", utc, "", "event", record);
-        //        path = data_type_path(node, "temp", "soh", utc, "event");
-        break;
+        return log_write(node, "soh", utc, "", "event", record);
     case DATA_LOG_TYPE_BEACON:
-        log_write(node, "beacon", utc, "", "beacon", record);
-        //        path = data_type_path(node, "temp", "beacon", utc, "beacon");
-        break;
+        return log_write(node, "beacon", utc, "", "beacon", record);
     default:
-        log_write(node, "soh", utc, "", "log", record);
-        //        path = data_type_path(node, "temp", "soh", utc, "log");
-        break;
+        return log_write(node, "soh", utc, "", "log", record);
     }
 
-    //    if ((fout = data_open(path, (char *)"a+")) != nullptr)
-    //    {
-    //        fprintf(fout,"%s\n",record);
-    //        fclose(fout);
-    //    }
 }
 
 //! Move log file - path version.
@@ -627,50 +586,6 @@ int32_t data_list_nodes(vector<string>& nodes)
     return 0;
 }
 
-//! Get vector of Node structures.
-/*! Scan the COSMOS root directory and return a ::cosmosstruc for each
- * Node that is found.
- * \param node Vector of ::cosmosstruc for each Node.
- * \return Zero or negative error.
- */
-int32_t data_get_nodes(vector<cosmosstruc> &node)
-{
-    DIR *jdp;
-    string dtemp;
-    string rootd;
-    struct dirent *td;
-    cosmosstruc *tnode;
-
-    int32_t iretn = get_cosmosnodes(rootd);
-    if (iretn < 0)
-    {
-        return iretn;
-    }
-
-    if ((tnode=json_init()) == nullptr)
-    {
-        return (NODE_ERROR_NODE);
-    }
-
-    dtemp = rootd;
-    if ((jdp=opendir(dtemp.c_str())) != nullptr)
-    {
-        while ((td=readdir(jdp)) != nullptr)
-        {
-            if (td->d_name[0] != '.')
-            {
-                string nodepath = td->d_name;
-                if (!json_setup_node(nodepath, tnode))
-                {
-                    node.push_back(*tnode);
-                }
-            }
-        }
-        closedir(jdp);
-    }
-    return 0;
-}
-
 //! Create data file name
 /*! Builds a filename up from the date of creation and its type. Format is:
 *    yyyyjjjsssss_extra.type, where yyyy is the Year, jjj is the Julian Day, sssss is
@@ -682,32 +597,40 @@ int32_t data_get_nodes(vector<cosmosstruc> &node)
 *    \param type Any valid extension type
 *    \return Filename string, otherwise nullptr
 */
-string data_name(string node, double mjd, string extra, string type)
+string data_name(string node, double mjd, string type, string extra)
 {
     string name;
     char ntemp[100];
 
-    int year, month, seconds;
+    int32_t year, month, seconds;
     double jday, day;
 
     mjd2ymd(mjd,year,month,day,jday);
-    seconds = (int)(86400.*(jday-(int)jday));
-    sprintf(ntemp,"_%04d%03d%05d",year,(int32_t)jday,seconds);
-    if (extra.empty())
+    seconds = static_cast<int32_t>(86400.*(jday-static_cast<int32_t>(jday)));
+    if (node.empty())
     {
-        name = node + ntemp + "." + type;
+        sprintf(ntemp,"%04d%03d%05d", year, static_cast<int32_t>(jday), seconds);
     }
     else
     {
-        name = node + ntemp + "_" + extra + "." + type;
+        sprintf(ntemp,"%s_%04d%03d%05d", node.c_str(), year, static_cast<int32_t>(jday), seconds);
+    }
+    name = ntemp;
+    if (!extra.empty())
+    {
+        name += ("_" + extra);
+    }
+    if (!type.empty())
+    {
+        name += ("." + type);
     }
     return (name);
 }
 
-string data_name(string node, double mjd, string type)
-{
-    return data_name(node, mjd, "", type);
-}
+//string data_name(string node, double mjd, string type)
+//{
+//    return data_name(node, mjd, type, "");
+//}
 
 //! Get date from file name.
 /*! Assuming the COSMOS standard filename format from ::data_name, extract
@@ -1657,19 +1580,19 @@ int32_t data_load_archive(string node, string agent, double mjd, string type, ve
     return iretn;
 }
 
-int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc *cinfo)
-{
-    int32_t iretn;
+//int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc *cinfo)
+//{
+//    int32_t iretn;
 
-    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "telemetry", telem);
-    if (iretn < 0)
-    {
-        return iretn;
-    }
-    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "event", event);
+//    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "telemetry", telem);
+//    if (iretn < 0)
+//    {
+//        return iretn;
+//    }
+//    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "event", event);
 
-    return iretn;
-}
+//    return iretn;
+//}
 
 //! Find last day in archive
 /*! Searches through data archives for this Node to find most recent
@@ -1817,49 +1740,6 @@ double findfirstday(string name)
     {
         return 0.;
     }
-}
-
-//! Add to KML path
-/*! Write a KML file to keep track of the path the node is following. Create the file if it doesn't alreay exist.
-             * Append to it if it already exists.
-             \param cinfo Pointer to ::cosmosstruc to use.
-             \return 0, otherwise negative error.
-            */
-int32_t kml_write(cosmosstruc *cinfo)
-{
-    char buf[500];
-    FILE *fin, *fout;
-    double utc;
-
-    utc = floor(cinfo->node.loc.utc);
-
-    string path = data_type_path((string)cinfo->node.name, "outgoing", "google", utc, "points");
-    fin = data_open(path, (char *)"a+");
-    fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->node.loc.pos.geod.s.lon),DEGOF(cinfo->node.loc.pos.geod.s.lat),cinfo->node.loc.pos.geod.s.h);
-
-    path = data_type_path(cinfo->node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
-    fout = data_open(path, (char *)"w");
-    fprintf(fout,"<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n");
-    fprintf(fout,"<Document>\n");
-    fprintf(fout,"<name>%s JD%5.0f</name>\n",cinfo->node.name,utc);
-    fprintf(fout,"<description>Track of node.</description>\n");
-    fprintf(fout,"<Style id=\"yellowLineGreenPoly\">\n<LineStyle>\n<color>7f00ffff</color>\n<width>4</width>\n</LineStyle>\n");
-    fprintf(fout,"<PolyStyle>\n<color>7f00ff00</color>\n</PolyStyle>\n</Style>\n");
-    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cinfo->node.name,utc);
-    fprintf(fout,"<styleUrl>#yellowLineGreenPoly</styleUrl>\n<LineString>\n<extrude>1</extrude>\n<tessellate>1</tessellate>\n<altitudeMode>absolute</altitudeMode>\n");
-    fprintf(fout,"<coordinates>\n");
-
-    rewind (fin);
-    while (fgets(buf, 500, fin) != nullptr)
-    {
-        fputs(buf, fout);
-    }
-    fclose(fin);
-
-    fprintf(fout,"</coordinates>\n</LineString>\n</Placemark>\n</Document>\n</kml>\n");
-    fclose(fout);
-
-    return 0;
 }
 
 bool data_isdir(string path)

@@ -10,8 +10,10 @@ namespace Cosmos
 
             switch (type)
             {
+            case NoType:
+                iretn = add_u();
             case U1:
-                iretn = add_u(1, 1, 1, None);
+                iretn = add_u(1, 1, 1, NoPanel);
                 break;
             case U1X:
                 iretn = add_u(1, 1, 1, X);
@@ -23,7 +25,7 @@ namespace Cosmos
                 iretn = add_u(1, 1, 1, XY);
                 break;
             case U1_5:
-                iretn = add_u(1, 1, 1.5, None);
+                iretn = add_u(1, 1, 1.5, NoPanel);
                 break;
             case U1_5X:
                 iretn = add_u(1, 1, 1.5, X);
@@ -35,7 +37,7 @@ namespace Cosmos
                 iretn = add_u(1, 1, 1.5, XY);
                 break;
             case U3:
-                iretn = add_u(1, 1, 3, None);
+                iretn = add_u(1, 1, 3, NoPanel);
                 break;
             case U3X:
                 iretn = add_u(1, 1, 3, X);
@@ -47,7 +49,7 @@ namespace Cosmos
                 iretn = add_u(1, 1, 3, XY);
                 break;
             case U6:
-                iretn = add_u(1, 2, 3, None);
+                iretn = add_u(1, 2, 3, NoPanel);
                 break;
             case U6X:
                 iretn = add_u(1, 2, 3, X);
@@ -59,7 +61,7 @@ namespace Cosmos
                 iretn = add_u(1, 2, 3, XY);
                 break;
             case U12:
-                iretn = add_u(2, 2, 3, None);
+                iretn = add_u(2, 2, 3, NoPanel);
                 break;
             case U12X:
                 iretn = add_u(2, 2, 3, X);
@@ -80,7 +82,7 @@ namespace Cosmos
             }
 
             // Calculate physical quantities
-            iretn = PhysSetup(newphys);
+            iretn = PhysSetup(currentphys);
             if (iretn < 0)
             {
                 return iretn;
@@ -91,27 +93,30 @@ namespace Cosmos
 
         int32_t Structure::add_u(double x, double y, double z, ExternalPanelType type)
         {
+            x *= .1;
+            y *= .1;
+            z *= .1;
             switch (type)
             {
-            case None:
+            case NoType:
                 add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004);
                 add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
                 add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
                 add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
-                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
-                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., y/2., -z/2.), .004);
                 break;
             case X:
                 add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004, 2, 0.);
                 add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .004, false);
-                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .004, false);
+                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .004);
+                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .004);
 
                 add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
                 add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
 
-                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
-                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., y/2., -z/2.), .004);
                 break;
             case Y:
                 add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004);
@@ -119,25 +124,25 @@ namespace Cosmos
 
                 add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004, 2, 0.);
                 add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .004, false);
-                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .004, false);
+                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .004);
+                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .004);
 
-                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
-                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., y/2., -z/2.), .004);
                 break;
             case XY:
                 add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004, 2, 0.);
                 add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .004, false);
-                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .004, false);
+                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .004);
+                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .004);
 
                 add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004, 2, 0.);
                 add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .004, false);
-                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .004, false);
+                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .004);
+                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .004);
 
-                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
-                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., -y/2., -z/2.), .004);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., y/2., -z/2.), .004);
                 break;
             }
 
@@ -215,11 +220,12 @@ namespace Cosmos
             triangle.external = external;
             triangle.depth = depth;
             triangle.pcell = pcell;
-            triangle.normal = (newphys->vertices[triangle.tidx[1]] - newphys->vertices[triangle.tidx[0]]).cross(newphys->vertices[triangle.tidx[2]] - newphys->vertices[triangle.tidx[0]]);
-            triangle.com = (newphys->vertices[triangle.tidx[0]] + newphys->vertices[triangle.tidx[1]] + newphys->vertices[triangle.tidx[2]]) / 3.;
-            triangle.area = (newphys->vertices[triangle.tidx[1]] - newphys->vertices[triangle.tidx[0]]).area(newphys->vertices[triangle.tidx[2]] - newphys->vertices[triangle.tidx[0]]);
-            triangle.perimeter = (newphys->vertices[triangle.tidx[1]] - newphys->vertices[triangle.tidx[0]]).norm() + (newphys->vertices[triangle.tidx[2]] - newphys->vertices[triangle.tidx[1]]).norm() + (newphys->vertices[triangle.tidx[0]] - newphys->vertices[triangle.tidx[2]]).norm();
-            newphys->triangles.push_back(triangle);
+            triangle.com = (currentphys->vertices[triangle.tidx[0]] + currentphys->vertices[triangle.tidx[1]] + currentphys->vertices[triangle.tidx[2]]) / 3.;
+            triangle.area = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).area(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]);
+            triangle.normal = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).cross(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]).normalize(triangle.area);
+            triangle.mass = triangle.area * triangle.depth * triangle.density;
+            triangle.perimeter = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).norm() + (currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[1]]).norm() + (currentphys->vertices[triangle.tidx[0]] - currentphys->vertices[triangle.tidx[2]]).norm();
+            currentphys->triangles.push_back(triangle);
 
             return 1;
         }
@@ -229,9 +235,9 @@ namespace Cosmos
             bool found = false;
 
             int32_t index = -1;
-            for (uint16_t i=0; i<newphys->vertices.size(); ++ i)
+            for (uint16_t i=0; i<currentphys->vertices.size(); ++ i)
             {
-                if ((point - newphys->vertices[i]).norm() < .001)
+                if ((point - currentphys->vertices[i]).norm() < .001)
                 {
                     found = true;
                     index = i;
@@ -244,119 +250,48 @@ namespace Cosmos
                 return index;
             }
             else {
-                newphys->vertices.push_back(point);
-                return newphys->vertices.size() - 1;
+                currentphys->vertices.push_back(point);
+                return currentphys->vertices.size() - 1;
             }
         }
 
-        State::State()
+
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, vector<Convert::tlestruc> lines, double utc)
         {
-        }
-
-        int32_t State::Init(Propagator *posprop, Propagator *attprop, Propagator *thermprop, Propagator *elecprop)
-        {
-            int32_t iretn = 0;
-
-            oldloc = *posprop->newloc;
-            oldphys = *posprop->newphys;
-
-            switch (posprop->type)
-            {
-            case Propagator::Type::PositionInertial:
-                inposition = static_cast<InertialPositionPropagator *>(posprop);
-                break;
-            case Propagator::Type::PositionIterative:
-                itposition = static_cast<IterativePositionPropagator *>(posprop);
-                break;
-            case Propagator::Type::PositionGaussJackson:
-                gjposition = static_cast<GaussJacksonPositionPropagator *>(posprop);
-                if (tle.size())
-                {
-                    gjposition->Init(tle);
-                }
-                else {
-                    gjposition->Init();
-                }
-                break;
-            default:
-                inposition = static_cast<InertialPositionPropagator *>(posprop);
-                break;
-            }
-            this->ptype = posprop->type;
-
-            switch (posprop->type)
-            {
-            case Propagator::Type::AttitudeInertial:
-                inattitude = static_cast<InertialAttitudePropagator *>(posprop);
-                break;
-            case Propagator::Type::AttitudeIterative:
-                itattitude = static_cast<IterativeAttitudePropagator *>(posprop);
-                break;
-            case Propagator::Type::AttitudeLVLH:
-                lvattitude = static_cast<LVLHAttitudePropagator *>(posprop);
-                break;
-            default:
-                inattitude = static_cast<InertialAttitudePropagator *>(posprop);
-                break;
-            }
-            this->atype = posprop->type;
-
-            switch (posprop->type)
-            {
-            case Propagator::Type::Thermal:
-                thermal = static_cast<ThermalPropagator *>(posprop);
-                break;
-            default:
-                thermal = static_cast<ThermalPropagator *>(posprop);
-                break;
-            }
-            this->ttype = posprop->type;
-
-            switch (posprop->type)
-            {
-            case Propagator::Type::Electrical:
-                electrical = static_cast<ElectricalPropagator *>(posprop);
-                break;
-            default:
-                electrical = static_cast<ElectricalPropagator *>(posprop);
-                break;
-            }
-            this->etype = posprop->type;
-
-            newphys = posprop->newphys;
-            newloc = posprop->newloc;
-            dt = posprop->dt;
-            dtj = posprop->dtj;
-
-            return iretn;
-        }
-
-        int32_t State::Init(Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, locstruc *loc, physicsstruc *phys, double idt, vector<tlestruc> lines)
-        {
-            oldloc = *loc;
-            oldphys = *phys;
-            tle = lines;
-            dt = 86400.*((loc->utc + (idt / 86400.))-loc->utc);
+            dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
             dtj = dt / 86400.;
 
-            structure = new Structure(phys);
+            //            strncpy(currentinfo.node.name, name.c_str(), COSMOS_MAX_NAME);
+            currentinfo.node.name = name;
+            currentinfo.node.agent = "sim";
+            currentinfo.node.loc.utc = utc;
+            if (lines.size())
+            {
+                lines2eci(currentinfo.node.loc.utc, lines, currentinfo.node.loc.pos.eci);
+                tle = lines;
+            }
+            else {
+                return GENERAL_ERROR_POSITION;
+            }
+
+            structure = new Structure(&currentinfo.node.phys);
             structure->Setup(stype);
             this->stype = stype;
 
             switch (ptype)
             {
             case Propagator::Type::PositionInertial:
-                inposition = new InertialPositionPropagator(loc, phys, dt);
+                inposition = new InertialPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 dt = inposition->dt;
                 dtj = inposition->dtj;
                 break;
             case Propagator::Type::PositionIterative:
-                itposition = new IterativePositionPropagator(loc, phys, dt);
+                itposition = new IterativePositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 dt = itposition->dt;
                 dtj = itposition->dtj;
                 break;
             case Propagator::Type::PositionGaussJackson:
-                gjposition = new GaussJacksonPositionPropagator(loc, phys, dt, 6);
+                gjposition = new GaussJacksonPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 6);
                 dt = gjposition->dt;
                 dtj = gjposition->dtj;
                 if (tle.size())
@@ -367,8 +302,13 @@ namespace Cosmos
                     gjposition->Init();
                 }
                 break;
+            case Propagator::Type::PositionGeo:
+                geoposition = new GeoPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                dt = geoposition->dt;
+                dtj = geoposition->dtj;
+                break;
             default:
-                inposition = new InertialPositionPropagator(loc, phys, dt);
+                inposition = new InertialPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 dt = inposition->dt;
                 dtj = inposition->dtj;
                 break;
@@ -378,16 +318,19 @@ namespace Cosmos
             switch (atype)
             {
             case Propagator::Type::AttitudeInertial:
-                inattitude = new InertialAttitudePropagator(loc, phys, dt);
+                inattitude = new InertialAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 break;
             case Propagator::Type::AttitudeIterative:
-                itattitude = new IterativeAttitudePropagator(loc, phys, dt);
+                itattitude = new IterativeAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 break;
             case Propagator::Type::AttitudeLVLH:
-                lvattitude = new LVLHAttitudePropagator(loc, phys, dt);
+                lvattitude = new LVLHAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                break;
+            case Propagator::Type::AttitudeGeo:
+                geoattitude = new GeoAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 break;
             default:
-                inattitude = new InertialAttitudePropagator(loc, phys, dt);
+                inattitude = new InertialAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 break;
             }
             this->atype = atype;
@@ -395,10 +338,10 @@ namespace Cosmos
             switch (ttype)
             {
             case Propagator::Type::Thermal:
-                thermal = new ThermalPropagator(loc, phys, dt, 300.);
+                thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
                 break;
             default:
-                thermal = new ThermalPropagator(loc, phys, dt, 300.);
+                thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
                 break;
             }
             this->ttype = ttype;
@@ -406,36 +349,197 @@ namespace Cosmos
             switch (etype)
             {
             case Propagator::Type::Electrical:
-                electrical = new ElectricalPropagator(loc, phys, dt, .5);
+                electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
                 break;
             default:
-                electrical = new ElectricalPropagator(loc, phys, dt, .5);
+                electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
                 break;
             }
             this->etype = etype;
 
-            newphys = phys;
-            newloc = loc;
+            if (ptype == Propagator::PositionGeo)
+            {
+                Convert::pos_geod(currentinfo.node.loc);
+            }
+            else
+            {
+                Convert::pos_eci(currentinfo.node.loc);
+                PosAccel(currentinfo.node.loc, currentinfo.node.phys);
+            }
+            if (atype == Propagator::AttitudeGeo)
+            {
+                att_geoc(currentinfo.node.loc);
+            }
+            else
+            {
+                Convert::att_icrf(currentinfo.node.loc);
+                AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+            }
 
+            initialloc = currentinfo.node.loc;
+            initialphys = currentinfo.node.phys;
+            currentinfo.node.utc = currentinfo.node.loc.utc;
             return 0;
         }
 
-        int32_t State::Increment(double nextutc)
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::posstruc pos)
+        {
+            currentinfo.node.loc.pos = pos;
+            currentinfo.node.loc.att.lvlh.pass++;
+            currentinfo.node.loc.att.lvlh.s = q_eye();
+            currentinfo.node.loc.att.lvlh.v = rv_zero();
+            currentinfo.node.loc.att.lvlh.a = rv_zero();
+            Convert::att_lvlh(currentinfo.node.loc);
+
+            return Init(name, idt, stype, ptype, atype, ttype, etype);
+        }
+
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::locstruc loc)
+        {
+            currentinfo.node.loc = loc;
+
+            return Init(name, idt, stype, ptype, atype, ttype, etype);
+        }
+
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
+        {
+            dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
+            dtj = dt / 86400.;
+
+            //            strncpy(currentinfo.node.name, name.c_str(), COSMOS_MAX_NAME);
+            //            strncpy(currentinfo.node.agent, "sim", COSMOS_MAX_NAME);
+            currentinfo.node.name = name;
+            currentinfo.node.agent = "sim";
+
+            structure = new Structure(&currentinfo.node.phys);
+            structure->Setup(stype);
+            this->stype = stype;
+
+            switch (ptype)
+            {
+            case Propagator::Type::PositionInertial:
+                inposition = new InertialPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                inposition->Init();
+                break;
+            case Propagator::Type::PositionIterative:
+                itposition = new IterativePositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                itposition->Init();
+                break;
+            case Propagator::Type::PositionGaussJackson:
+                gjposition = new GaussJacksonPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 6);
+                gjposition->Init();
+                break;
+            case Propagator::Type::PositionGeo:
+                geoposition = new GeoPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                geoposition->Init();
+                break;
+            default:
+                inposition = new InertialPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                inposition->Init();
+                break;
+            }
+            this->ptype = ptype;
+
+            switch (atype)
+            {
+            case Propagator::Type::AttitudeInertial:
+                inattitude = new InertialAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                inattitude->Init();
+                break;
+            case Propagator::Type::AttitudeGeo:
+                geoattitude = new GeoAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                geoattitude->Init();
+                break;
+            case Propagator::Type::AttitudeIterative:
+                itattitude = new IterativeAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                itattitude->Init();
+                break;
+            case Propagator::Type::AttitudeLVLH:
+                lvattitude = new LVLHAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                lvattitude->Init();
+                break;
+            default:
+                inattitude = new InertialAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                inattitude->Init();
+                break;
+            }
+            this->atype = atype;
+
+            switch (ttype)
+            {
+            case Propagator::Type::Thermal:
+                thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
+                thermal->Init();
+                break;
+            default:
+                thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
+                thermal->Init();
+                break;
+            }
+            this->ttype = ttype;
+
+            switch (etype)
+            {
+            case Propagator::Type::Electrical:
+                electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
+                electrical->Init();
+                break;
+            default:
+                electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
+                electrical->Init();
+                break;
+            }
+            this->etype = etype;
+
+            if (ptype == Propagator::PositionGeo)
+            {
+                Convert::pos_geod(currentinfo.node.loc);
+            }
+            else
+            {
+                Convert::pos_eci(currentinfo.node.loc);
+                PosAccel(currentinfo.node.loc, currentinfo.node.phys);
+            }
+            if (atype == Propagator::AttitudeGeo)
+            {
+                att_geoc(currentinfo.node.loc);
+            }
+            else
+            {
+                Convert::att_icrf(currentinfo.node.loc);
+                AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+            }
+
+            initialloc = currentinfo.node.loc;
+            initialphys = currentinfo.node.phys;
+            currentinfo.node.utc = currentinfo.node.loc.utc;
+            return 0;
+        }
+
+        int32_t State::Propagate(double nextutc)
         {
             int32_t count = 0;
-            do
+            if (nextutc == 0.)
             {
-                newloc->utc += dtj;
+                nextutc = currentinfo.node.utc + dtj;
+            }
+
+            while ((nextutc - currentinfo.node.utc) > dtj / 2.)
+            {
+                PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
                 switch (ptype)
                 {
                 case Propagator::Type::PositionIterative:
-                    static_cast<IterativePositionPropagator *>(itposition)->Propagate();
+                    static_cast<IterativePositionPropagator *>(itposition)->Propagate(nextutc);
                     break;
                 case Propagator::Type::PositionInertial:
-                    static_cast<InertialPositionPropagator *>(inposition)->Propagate();
+                    static_cast<InertialPositionPropagator *>(inposition)->Propagate(nextutc);
                     break;
                 case Propagator::Type::PositionGaussJackson:
-                    static_cast<GaussJacksonPositionPropagator *>(gjposition)->Propagate();
+                    static_cast<GaussJacksonPositionPropagator *>(gjposition)->Propagate(nextutc);
+                    break;
+                case Propagator::Type::PositionGeo:
+                    static_cast<GeoPositionPropagator *>(geoposition)->Propagate(nextutc);
                     break;
                 default:
                     break;
@@ -443,24 +547,200 @@ namespace Cosmos
                 switch (atype)
                 {
                 case Propagator::Type::AttitudeIterative:
-                    static_cast<IterativeAttitudePropagator *>(itattitude)->Propagate();
+                    static_cast<IterativeAttitudePropagator *>(itattitude)->Propagate(nextutc);
                     break;
                 case Propagator::Type::AttitudeInertial:
-                    static_cast<InertialAttitudePropagator *>(inattitude)->Propagate();
+                    static_cast<InertialAttitudePropagator *>(inattitude)->Propagate(nextutc);
                     break;
                 case Propagator::Type::AttitudeLVLH:
-                    static_cast<LVLHAttitudePropagator *>(lvattitude)->Propagate();
+                    static_cast<LVLHAttitudePropagator *>(lvattitude)->Propagate(nextutc);
+                    break;
+                case Propagator::Type::AttitudeGeo:
+                    static_cast<GeoAttitudePropagator *>(geoattitude)->Propagate(nextutc);
                     break;
                 default:
                     break;
                 }
-                static_cast<ThermalPropagator *>(thermal)->Propagate();
-                static_cast<ElectricalPropagator *>(electrical)->Propagate();
+                static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
+                static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
+                if (ptype == Propagator::PositionGeo)
+                {
+                    Convert::pos_geod(currentinfo.node.loc);
+                }
+                else
+                {
+                    Convert::pos_eci(currentinfo.node.loc);
+                    PosAccel(currentinfo.node.loc, currentinfo.node.phys);
+                }
+                if (atype == Propagator::AttitudeGeo)
+                {
+                    att_geoc(currentinfo.node.loc);
+                }
+                else
+                {
+                    Convert::att_icrf(currentinfo.node.loc);
+                    AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+                }
+
+                // Update time
+                currentinfo.node.utc += dtj;
                 ++count;
-            } while (newloc->utc < nextutc);
+            } ;
+
+            // Update Targets
+            rvector topo;
+            rvector ds;
+            rvector dv;
+            for (targetstruc &target : targets)
+            {
+                target.cloc.pos.geod.utc = currentinfo.node.utc;
+                target.cloc.pos.geod.pass++;
+                Convert::loc_update(target.cloc);
+                target.loc = target.cloc;
+                if (target.size.lat)
+                {
+                    if (currentinfo.node.loc.pos.geod.s.lon >= fixangle(target.cloc.pos.geod.s.lon - target.size.lon / 2., false) && currentinfo.node.loc.pos.geod.s.lon <= fixangle(target.cloc.pos.geod.s.lon + target.size.lon / 2., false))
+                    {
+                        target.loc.pos.geod.s.lon = currentinfo.node.loc.pos.geod.s.lon;
+                        if (currentinfo.node.loc.pos.geod.s.lat >= target.cloc.pos.geod.s.lat + target.size.lat / 2.)
+                        {
+                            target.loc.pos.geod.s.lat = target.cloc.pos.geod.s.lat + target.size.lat / 2.;
+                            target.loc.pos.geod.pass++;
+                            Convert::pos_geod(target.loc);
+                            if (currentinfo.node.loc.pos.geod.v.lat < 0)
+                            {
+                                target.min = 1.;
+                                target.utc = target.loc.utc;
+                            }
+                            else
+                            {
+                                target.min = 3.;
+                                target.utc = target.loc.utc;
+                            }
+                        }
+                        else if (currentinfo.node.loc.pos.geod.s.lat <= target.cloc.pos.geod.s.lat - target.size.lat / 2)
+                        {
+                            target.loc.pos.geod.s.lat = target.cloc.pos.geod.s.lat - target.size.lat / 2.;
+                            target.loc.pos.geod.pass++;
+                            Convert::pos_geod(target.loc);
+                            if (currentinfo.node.loc.pos.geod.v.lat > 0)
+                            {
+                                target.min = 1.;
+                                target.utc = target.loc.utc;
+                            }
+                            else
+                            {
+                                target.min = 3.;
+                                target.utc = target.loc.utc;
+                            }
+                        }
+                        else
+                        {
+                            if (target.min != 2.)
+                            {
+                                target.utc = target.loc.utc;
+                            }
+                            target.loc.pos.geod.pass++;
+                            Convert::pos_geod(target.loc);
+                            target.min = 2.;
+                        }
+                    }
+                    else
+                    {
+                        target.min = 0.;
+                        target.utc = target.loc.utc;
+                    }
+                }
+                else
+                {
+                    target.min = 0.;
+                    target.utc = target.loc.utc;
+                }
+                // Calculate bearing and distance
+                double dx = cos(target.loc.pos.geod.s.lat) * sin(target.loc.pos.geod.s.lon - currentinfo.node.loc.pos.geod.s.lon);
+                double dy = cos(currentinfo.node.loc.pos.geod.s.lat) * sin(target.loc.pos.geod.s.lat) - sin(currentinfo.node.loc.pos.geod.s.lat) * cos(target.loc.pos.geod.s.lat) * cos(target.loc.pos.geod.s.lon - currentinfo.node.loc.pos.geod.s.lon);
+                target.bearing = atan2(dy, dx);
+                target.distance = sep_rv(currentinfo.node.loc.pos.geoc.s, target.loc.pos.geoc.s);
+
+                // Calculate Alt, Az, Range, Close
+                Convert::geoc2topo(target.loc.pos.geod.s, currentinfo.node.loc.pos.geoc.s,topo);
+                Convert::topo2azel(topo, target.azto, target.elto);
+                if (target.elto <= 0.)
+                {
+                    target.maxelto = target.elto;
+                }
+                else if (target.elto > target.maxelto)
+                {
+                    target.maxelto = target.elto;
+                }
+
+                Convert::geoc2topo(currentinfo.node.loc.pos.geod.s, target.loc.pos.geoc.s, topo);
+                Convert::topo2azel(topo, target.azfrom, target.elfrom);
+                // Calculate direct vector from source to target
+                ds = rv_sub(target.loc.pos.geoc.s, currentinfo.node.loc.pos.geoc.s);
+                target.range = length_rv(ds);
+                // Calculate velocity of target WRT source
+                dv = rv_sub(target.loc.pos.geoc.v, currentinfo.node.loc.pos.geoc.v);
+                // Closing speed is length of ds in 1 second minus length of ds now.
+                target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
+            }
+
             return count;
         }
 
+        int32_t State::Reset(double nextutc)
+        {
+            int32_t iretn;
+            currentinfo.node.loc = initialloc;
+            currentinfo.node.utc = currentinfo.node.loc.utc;
+            iretn = Propagate(nextutc);
+
+            return iretn;
+        }
+
+        int32_t State::AddTarget(std::string name, Convert::locstruc loc, uint16_t type, gvector size)
+        {
+            targetstruc ttarget;
+            ttarget.type = type;
+            ttarget.name = name;
+            ttarget.cloc = loc;
+            ttarget.size = size;
+            ttarget.loc = loc;
+
+            targets.push_back(ttarget);
+            return targets.size();
+        }
+
+        int32_t State::AddTarget(string name, double lat, double lon, double alt, uint16_t type)
+        {
+            Convert::locstruc loc;
+            loc.pos.geod.pass = 1;
+            loc.pos.geod.utc = currentinfo.node.utc;
+            loc.pos.geod.s.lat = lat;
+            loc.pos.geod.s.lon = lon;
+            loc.pos.geod.s.h = alt;
+            loc.pos.geod.v = gv_zero();
+            loc.pos.geod.a = gv_zero();
+            loc.pos.geod.pass++;
+            Convert::pos_geod(loc);
+            return AddTarget(name, loc, type);
+        }
+
+        int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, uint16_t type)
+        {
+            Convert::locstruc loc;
+            loc.pos.geod.pass = 1;
+            loc.pos.geod.utc = currentinfo.node.utc;
+            loc.pos.geod.s.lat = (ullat + lrlat) / 2.;
+            loc.pos.geod.s.lon = (ullon + lrlon) / 2.;
+            loc.pos.geod.s.h = 0.;
+            loc.pos.geod.v = gv_zero();
+            loc.pos.geod.a = gv_zero();
+            gvector size(ullat-lrlat, lrlon-ullon, 0.);
+            loc.pos.geod.pass++;
+            Convert::pos_geod(loc);
+            return AddTarget(name, loc, type, size);
+        }
 
         int32_t InertialAttitudePropagator::Init()
         {
@@ -468,219 +748,243 @@ namespace Cosmos
             return  0;
         }
 
-        int32_t InertialAttitudePropagator::Propagate()
+        int32_t InertialAttitudePropagator::Reset(double nextutc)
         {
-            oldloc.att = newloc->att;
-            AttAccel(newloc, newphys);
+            currentloc->att = initialloc.att;
+            currentutc = currentloc->att.utc;
+            Propagate(nextutc);
+
+            return  0;
+        }
+
+        int32_t InertialAttitudePropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            currentloc->att.icrf = initialloc.att.icrf;
+            currentutc = nextutc;
+            currentloc->att.icrf.utc = nextutc;
+            currentloc->att.icrf.pass++;
+            Convert::att_icrf(currentloc);
+
+            return 0;
+        }
+
+        int32_t GeoAttitudePropagator::Init()
+        {
+
+            return  0;
+        }
+
+        int32_t GeoAttitudePropagator::Reset(double nextutc)
+        {
+            currentloc->att = initialloc.att;
+            currentutc = currentloc->att.utc;
+            Propagate(nextutc);
+
+            return  0;
+        }
+
+        int32_t GeoAttitudePropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            currentloc->att.geoc = initialloc.att.geoc;
+            currentutc = nextutc;
+            currentloc->att.geoc.utc = nextutc;
+            currentloc->att.geoc.pass++;
+            att_geoc(currentloc);
 
             return 0;
         }
 
         int32_t IterativeAttitudePropagator::Init()
         {
+            AttAccel(currentloc, currentphys);
 
             return  0;
         }
 
-        int32_t IterativeAttitudePropagator::Propagate()
+        int32_t IterativeAttitudePropagator::Reset(double nextutc)
+        {
+            currentloc->att = initialloc.att;
+            currentutc = currentloc->att.utc;
+            Propagate(nextutc);
+
+            return 0;
+        }
+
+        int32_t IterativeAttitudePropagator::Propagate(double nextutc)
         {
             quaternion q1;
 
-            oldloc.att = newloc->att;
-
-            q1 = q_axis2quaternion_rv(rv_smult(dt, newloc->att.icrf.v));
-            newloc->att.icrf.s = q_fmult(q1, newloc->att.icrf.s);
-            normalize_q(&newloc->att.icrf.s);
-            // Calculate new v from da
-            newloc->att.icrf.v = rv_add(newloc->att.icrf.v, rv_smult(dt, newloc->att.icrf.a));
-            newloc->att.icrf.utc = newloc->utc;
-            att_icrf(newloc);
-            AttAccel(newloc, newphys);
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            while ((nextutc - currentutc) > dtj / 2.)
+            {
+                currentutc += dtj;
+                q1 = q_axis2quaternion_rv(rv_smult(dt, currentloc->att.icrf.v));
+                currentloc->att.icrf.s = q_fmult(q1, currentloc->att.icrf.s);
+                normalize_q(&currentloc->att.icrf.s);
+                // Calculate new v from da
+                currentloc->att.icrf.v = rv_add(currentloc->att.icrf.v, rv_smult(dt, currentloc->att.icrf.a));
+                currentloc->att.icrf.utc = currentutc;
+                currentloc->att.icrf.pass++;
+                AttAccel(currentloc, currentphys);
+                Convert::att_icrf(currentloc);
+            }
 
             return 0;
         }
 
         int32_t LVLHAttitudePropagator::Init()
         {
-            newloc->att.lvlh.utc = newloc->utc;
-            newloc->att.lvlh.s = q_eye();
-            newloc->att.lvlh.v = rv_zero();
-            newloc->att.lvlh.a = rv_zero();
-            ++newloc->att.lvlh.pass;
-            att_lvlh(newloc);
-            AttAccel(newloc, newphys);
+            currentloc->att.lvlh.utc = currentutc;
+            currentloc->att.lvlh.s = q_eye();
+            currentloc->att.lvlh.v = rv_zero();
+            currentloc->att.lvlh.a = rv_zero();
+            ++currentloc->att.lvlh.pass;
+            Convert::att_lvlh2icrf(currentloc);
+            AttAccel(currentloc, currentphys);
+            Convert::att_icrf(currentloc);
 
             return  0;
         }
 
-        int32_t LVLHAttitudePropagator::Propagate()
+        int32_t LVLHAttitudePropagator::Reset(double nextutc)
         {
-            oldloc.att = newloc->att;
+            currentloc->att = initialloc.att;
+            currentutc = currentloc->att.utc;
+            Propagate(nextutc);
 
-            newloc->att.lvlh.utc = newloc->utc;
-            newloc->att.lvlh.s = q_eye();
-            newloc->att.lvlh.v = rv_zero();
-            newloc->att.lvlh.a = rv_zero();
-            ++newloc->att.lvlh.pass;
-            att_lvlh(newloc);
-            AttAccel(newloc, newphys);
+            return  0;
+        }
+
+        int32_t LVLHAttitudePropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+
+            currentutc = nextutc;
+            currentloc->att.lvlh.utc = nextutc;
+            currentloc->att.lvlh.s = q_eye();
+            currentloc->att.lvlh.v = rv_zero();
+            currentloc->att.lvlh.a = rv_zero();
+            ++currentloc->att.lvlh.pass;
+            Convert::att_lvlh2icrf(currentloc);
+            AttAccel(currentloc, currentphys);
+            Convert::att_icrf(currentloc);
 
             return 0;
         }
 
-        //        int32_t ThermalPropagator::Init(float temp)
-        //        {
-        //            newphys->temp = temp;
-        //            return 0;
-        //        }
-
-        int32_t ThermalPropagator::Propagate()
+        int32_t ThermalPropagator::Init(float temp)
         {
-            Vector units = Quaternion(newloc->att.icrf.s).irotate(Vector(newloc->pos.icrf.s).normalize());
-            Vector unite = Vector(newloc->pos.eci.s).normalize(-1.);
-            unite = Vector(newloc->pos.eci.s).normalize(-1.);
-            unite = Quaternion(newloc->att.icrf.s).irotate(Vector(newloc->pos.eci.s).normalize(-1.));
-            double energyd;
-            double sdot;
-            double edot;
-            newphys->temp = newphys->heat / (newphys->mass * newphys->hcap);
-            newphys->heat = 0.;
-            double ienergyd = newphys->radiation / newphys->area;
-            for (trianglestruc& triangle : newphys->triangles)
+            currentphys->temp = temp;
+            return 0;
+        }
+
+        int32_t ThermalPropagator::Reset(float temp)
+        {
+            currentutc = currentloc->utc;
+            if (temp == 0.f)
             {
-                triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
+                currentphys->temp = initialphys.temp;
+            }
+            else
+            {
+                currentphys->temp = temp;
+            }
+            for (trianglestruc& triangle : currentphys->triangles)
+            {
+                triangle.temp = currentphys->temp;
+                triangle.heat = triangle.temp * (triangle.mass * triangle.hcap);
+            }
+            return 0;
+        }
 
-                // First do all inputs
-
-                if (triangle.external)
+        int32_t ThermalPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            while ((nextutc - currentutc) > dtj / 2.)
+            {
+                currentutc += dtj;
+                double energyd = 0.;
+                currentphys->temp = currentphys->heat / (currentphys->mass * currentphys->hcap);
+                currentphys->heat = 0.;
+                double ienergyd = currentphys->radiation / currentphys->mass;
+                currentphys->radiation = 0.;
+                for (trianglestruc& triangle : currentphys->triangles)
                 {
-                    // External Normal face
-                    // Solar effects
-                    sdot = units.dot(triangle.normal);
+                    triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
 
-                    // Earth effects
-                    edot = acos(unite.dot(triangle.normal) / triangle.normal.norm()) - RADOF(5.);
-                    if (edot < 0.)
-                    {
-                        edot = 1.;
-                    }
-                    else
-                    {
-                        edot = cos(edot);
-                    }
+                    // First do all inputs
 
-                    energyd = 0.;
-                    if (newloc->pos.sunradiance && sdot > 0)
+                    if (triangle.external)
                     {
-                        energyd +=  sdot * triangle.irradiation * dt;
-                    }
-
-                    if (edot > 0)
-                    {
-                        energyd += edot * dt * SIGMA * pow(290.,4);
-                    }
-
-                    // Area not covered with cells
-                    triangle.heat += (1. - triangle.pcell) * triangle.area * triangle.abs * energyd;
-                    if (triangle.pcell > 0.)
-                    {
-                        // Area covered with cells
-                        if (triangle.ecellbase > 0.)
+                        energyd = (triangle.sirradiation + triangle.eirradiation) * dt;
+                        // Area not covered with cells
+                        if (triangle.pcell > 0.)
                         {
-                            double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
-                            triangle.heat += (triangle.pcell) * triangle.area * (triangle.abs - efficiency) * energyd;
-                        }
-                        else {
-                            triangle.heat += (triangle.pcell) * triangle.area * triangle.abs * energyd;
-                        }
-                    }
-
-                    if (triangle.external == 2)
-                    {
-                        // External Anti-Normal face
-                        // Solar effects
-                        sdot = units.dot(-triangle.normal);
-
-                        // Earth effects
-                        edot = acos(unite.dot(-triangle.normal) / -triangle.normal.norm()) - RADOF(5.);
-                        if (edot < 0.)
-                        {
-                            edot = 1.;
+                            triangle.heat += (1. - triangle.pcell) * triangle.abs * energyd;
+                            // Area covered with cells
+                            if (triangle.ecellbase > 0.)
+                            {
+                                double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
+                                triangle.heat += (triangle.pcell) * triangle.abs * (1. - efficiency) * energyd;
+                            }
+                            else
+                            {
+                                triangle.heat += triangle.pcell * triangle.abs * energyd;
+                            }
                         }
                         else
                         {
-                            edot = cos(edot);
+                            triangle.heat = triangle.abs * energyd;
                         }
 
-                        energyd = 0.;
-                        if (newloc->pos.sunradiance && sdot > 0)
-                        {
-                            energyd +=  sdot * triangle.irradiation * dt;
-                        }
-
-                        if (edot > 0)
-                        {
-                            energyd += edot * dt * SIGMA * pow(290.,4);
-                        }
-
-                        triangle.heat += triangle.area * triangle.abs * energyd;
+                        // Add back in previous radiation
+                        triangle.heat += triangle.mass * ienergyd / 2.;
                     }
-                    else {
-                        // Internal Anti-Normal face
-                        triangle.heat += triangle.iabs * triangle.area * ienergyd;
-                        newphys->radiation -= triangle.iabs * triangle.area * ienergyd;
-                    }
-                }
-                else {
-                    // Internal Normal face
-                    triangle.heat += triangle.iabs * triangle.area * ienergyd;
-                    newphys->radiation -= triangle.iabs * triangle.area * ienergyd;
-
-                    // Internal Anti-Normal face
-                    triangle.heat += triangle.iabs * triangle.area * ienergyd;
-                    newphys->radiation -= triangle.iabs * triangle.area * ienergyd;
-                }
-
-                // Self emission
-                //                energyd = dt * SIGMA * pow(triangle.temp ,4);
-                //                triangle.heat -= triangle.iemi * triangle.area * energyd;
-                //                newphys->radiation += triangle.iemi * triangle.area * energyd;
-
-                // Then do outputs
-                energyd = dt * SIGMA * pow(triangle.temp ,4);
-                if (triangle.external)
-                {
-                    // External Normal face
-                    triangle.heat -= triangle.emi * triangle.area * energyd;
-                    if (triangle.external == 2)
+                    else
                     {
-                        // External Anti-Normal face
-                        triangle.heat -= triangle.emi * triangle.area * energyd;
+                        // Internal Normal faces
+                        triangle.heat += triangle.mass * ienergyd;
                     }
-                    else {
-                        // Internal Anti-Normal face
-                        triangle.heat -= triangle.iemi * triangle.area * energyd;
-                        newphys->radiation += triangle.iemi * triangle.area * energyd;
-                    }
-                }
-                else {
+
+                    // Then do outputs
+                    energyd = 2. * triangle.area * dt * SIGMA * pow(triangle.temp ,4);
+                    if (triangle.external == 0)
                     {
-                        // Internal Normal face
-                        triangle.heat -= triangle.iemi * triangle.area * energyd;
-                        newphys->radiation += triangle.iemi * triangle.area * energyd;
-
-                        // Internal Anti-Normal face
-                        triangle.heat -= triangle.iemi * triangle.area * energyd;
-                        newphys->radiation += triangle.iemi * triangle.area * energyd;
-
+                        // Purely internal
+                        triangle.heat -= triangle.iemi * energyd;
+                        currentphys->radiation += triangle.iemi * energyd;
                     }
+                    else
+                    {
+                        // External
+                        triangle.heat -= 1.05 * triangle.emi * energyd;
+                        currentphys->radiation += 1.95 * triangle.iemi * energyd;
+                    }
+
+                    triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
+                    currentphys->heat += triangle.heat;
                 }
 
-                newphys->heat += triangle.heat;
-                triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
+                currentphys->temp = currentphys->heat / (currentphys->mass * currentphys->hcap);
+                temperature = currentphys->temp;
             }
-            newphys->temp = newphys->heat / (newphys->mass * newphys->hcap);
-            temperature = newphys->temp;
 
             return 0;
         }
@@ -691,101 +995,161 @@ namespace Cosmos
             return 0;
         }
 
-        int32_t ElectricalPropagator::Propagate()
+        int32_t ElectricalPropagator::Reset(float bp)
         {
-            Vector units = Quaternion(newloc->att.icrf.s).irotate(Vector(newloc->pos.icrf.s).normalize());
-            Vector unite = Vector(newloc->pos.eci.s).normalize(-1.);
-            unite = Vector(newloc->pos.eci.s).normalize(-1.);
-            unite = Quaternion(newloc->att.icrf.s).irotate(Vector(newloc->pos.eci.s).normalize(-1.));
-            double energyd;
-            for (trianglestruc& triangle : newphys->triangles)
+            currentutc = currentloc->utc;
+            if (bp == 0.f)
             {
-                if (triangle.external)
-                {
-                    // Solar effects
-                    double sdot = units.dot(triangle.normal);
+                currentphys->battlev = initialphys.battlev;
+            }
+            else
+            {
+                currentphys->battlev = bp;
+            }
+            return  0;
+        }
 
-                    // Earth effects
-                    double edot = acos(unite.dot(triangle.normal) / triangle.normal.norm()) - RADOF(5.);
-                    if (edot < 0.)
+        int32_t ElectricalPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            while ((nextutc - currentutc) > dtj / 2.)
+            {
+                currentutc += dtj;
+                currentphys->powgen = 0.;
+                for (trianglestruc& triangle : currentphys->triangles)
+                {
+                    if (triangle.external)
                     {
-                        edot = 1.;
+                        if (triangle.pcell > 0.)
+                        {
+                            if (triangle.ecellbase > 0.)
+                            {
+                                double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
+                                triangle.power = efficiency * triangle.sirradiation;
+                                triangle.volt = triangle.vcell;
+                                triangle.amp = -triangle.power / triangle.volt;
+                                currentphys->powgen += triangle.power;
+                            }
+                        }
                     }
                     else
                     {
-                        edot = cos(edot);
+                        triangle.power = 0.;
+                        triangle.volt = 0.;
+                        triangle.amp = 0.;
                     }
 
-                    energyd = 0.;
-                    if (newloc->pos.sunradiance && sdot > 0)
-                    {
-                        energyd +=  sdot * triangle.irradiation * dt;
-                    }
-
-                    if (edot > 0)
-                    {
-                        energyd += edot * dt * SIGMA * pow(290.,4);
-                    }
-                    if (triangle.pcell > 0.)
-                    {
-                        if (triangle.ecellbase > 0.)
-                        {
-                            double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
-                            triangle.power = triangle.area * efficiency * energyd / dt;
-                            triangle.volt = triangle.vcell;
-                            triangle.amp = -triangle.power / triangle.volt;
-                            newphys->powgen += triangle.power;
-                        }
-                    }
                 }
-                else
-                {
-                    triangle.power = 0.;
-                    triangle.volt = 0.;
-                    triangle.amp = 0.;
-                }
-
             }
             return 0;
         }
 
         int32_t InertialPositionPropagator::Init()
         {
+            PosAccel(currentloc, currentphys);
+
             return 0;
         }
 
-        int32_t InertialPositionPropagator::Propagate()
+        int32_t InertialPositionPropagator::Reset(double nextutc)
         {
-            oldloc = *newloc;
-            oldphys = *newphys;
-            newloc->pos.eci.pass++;
-            pos_eci(newloc);
-            PosAccel(newloc, newphys);
+            currentloc->pos = initialloc.pos;
+            currentutc = currentloc->pos.utc;
+            Propagate(nextutc);
+
+            return 0;
+        }
+
+        int32_t InertialPositionPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            currentloc->pos.icrf = initialloc.pos.icrf;
+            currentutc = nextutc;
+            currentloc->pos.icrf.utc = nextutc;
+            currentloc->pos.icrf.pass++;
+            Convert::pos_icrf(currentloc);
+            PosAccel(currentloc, currentphys);
+
+            return 0;
+        }
+
+        int32_t GeoPositionPropagator::Init()
+        {
+            //            PosAccel(currentloc, currentphys);
+
+            return 0;
+        }
+
+        int32_t GeoPositionPropagator::Reset(double nextutc)
+        {
+            currentloc->pos = initialloc.pos;
+            currentutc = currentloc->pos.utc;
+            Propagate(nextutc);
+
+            return 0;
+        }
+
+        int32_t GeoPositionPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            currentloc->pos.geod = initialloc.pos.geod;
+            currentutc = nextutc;
+            currentloc->pos.geod.utc = nextutc;
+            currentloc->pos.geod.pass = currentloc->pos.eci.pass + 1;
+            Convert::pos_geod(currentloc);
+            //            PosAccel(currentloc, currentphys);
 
             return 0;
         }
 
         int32_t IterativePositionPropagator::Init()
         {
+            PosAccel(currentloc, currentphys);
+
             return 0;
         }
 
-        int32_t IterativePositionPropagator::Propagate()
+        int32_t IterativePositionPropagator::Reset(double nextutc)
         {
-            oldloc = *newloc;
-            oldphys = *newphys;
-            rvector ds = rv_smult(.5 * dt * dt, newloc->pos.eci.a);
-            ds = rv_add(ds, rv_smult(dt, newloc->pos.eci.v));
-            newloc->pos.eci.s = rv_add(newloc->pos.eci.s, ds);
-            newloc->pos.eci.v = rv_add(newloc->pos.eci.v, rv_smult(dt, newloc->pos.eci.a));
-            newloc->pos.eci.pass++;
-            pos_eci(newloc);
-            PosAccel(newloc, newphys);
+            currentloc->pos = initialloc.pos;
+            currentutc = currentloc->pos.utc;
+            Propagate(nextutc);
 
             return 0;
         }
 
-        int32_t GaussJacksonPositionPropagator::Setup(uint16_t iorder)
+        int32_t IterativePositionPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            while ((nextutc - currentutc) > dtj / 2.)
+            {
+                currentutc += dtj;
+                rvector ds = rv_smult(.5 * dt * dt, currentloc->pos.eci.a);
+                ds = rv_add(ds, rv_smult(dt, currentloc->pos.eci.v));
+                currentloc->pos.eci.s = rv_add(currentloc->pos.eci.s, ds);
+                currentloc->pos.eci.v = rv_add(currentloc->pos.eci.v, rv_smult(dt, currentloc->pos.eci.a));
+                currentloc->pos.eci.utc = currentutc;
+                currentloc->pos.eci.pass++;
+                PosAccel(currentloc, currentphys);
+                Convert::pos_eci(currentloc);
+            }
+
+            return 0;
+        }
+
+        int32_t GaussJacksonPositionPropagator::Setup()
         {
             step.resize(order+2);
             binom.resize(order+2);
@@ -805,8 +1169,8 @@ namespace Cosmos
 
             dtsq = dt * dt;
 
-            order2 = iorder/2;
-            order = order2 * 2;
+            order2 = order/2;
+            //            order = order2 * 2;
 
             for (uint16_t m=0; m<order+2; m++)
             {
@@ -911,19 +1275,17 @@ namespace Cosmos
             return 0;
         }
 
-        int32_t GaussJacksonPositionPropagator::Init(vector<tlestruc>lines)
+        int32_t GaussJacksonPositionPropagator::Init(vector<Convert::tlestruc>lines)
         {
             int32_t iretn = 0;
 
-            oldloc = *newloc;
-            oldphys = *newphys;
             loc_clear(step[order+1].loc);
-            lines2eci(newloc->utc, lines, newloc->pos.eci);
-            ++newloc->pos.eci.pass;
-            pos_eci(newloc);
-            PosAccel(newloc, newphys);
-            AttAccel(newloc, newphys);
-            step[order2].loc = *newloc;
+            lines2eci(currentloc->utc, lines, currentloc->pos.eci);
+            ++currentloc->pos.eci.pass;
+            Convert::pos_eci(currentloc);
+            PosAccel(currentloc, currentphys);
+            //            AttAccel(currentloc, currentphys);
+            step[order2].loc = *currentloc;
 
             // Position at t0-dt
             for (uint32_t i=order2-1; i<order2; --i)
@@ -932,13 +1294,13 @@ namespace Cosmos
                 step[i].loc.utc -= dtj;
                 lines2eci(step[i].loc.utc, lines, step[i].loc.pos.eci);
                 step[i].loc.pos.eci.pass++;
-                pos_eci(step[i].loc);
+                Convert::pos_eci(step[i].loc);
 
                 step[i].loc.att.lvlh = step[i+1].loc.att.lvlh;
-                att_lvlh2icrf(step[i].loc);
+                Convert::att_lvlh2icrf(step[i].loc);
 
-                PosAccel(&step[i].loc, newphys);
-                AttAccel(&step[i].loc, newphys);
+                PosAccel(&step[i].loc, currentphys);
+                AttAccel(&step[i].loc, currentphys);
             }
 
             for (uint32_t i=order2+1; i<=order; i++)
@@ -948,17 +1310,18 @@ namespace Cosmos
                 step[i].loc.utc += dtj;
                 lines2eci(step[i].loc.utc, lines, step[i].loc.pos.eci);
                 step[i].loc.pos.eci.pass++;
-                pos_eci(step[i].loc);
+                Convert::pos_eci(step[i].loc);
 
                 step[i].loc.att.lvlh = step[i-1].loc.att.lvlh;
-                att_lvlh2icrf(step[i].loc);
+                Convert::att_lvlh2icrf(step[i].loc);
 
-                PosAccel(&step[i].loc, newphys);
-                AttAccel(&step[i].loc, newphys);
+                PosAccel(&step[i].loc, currentphys);
+                AttAccel(&step[i].loc, currentphys);
             }
 
             iretn = Converge();
-            newphys->utc = newloc->utc;
+            currentphys->utc = currentloc->utc;
+            currentutc = currentloc->utc;
 
             return iretn;
         }
@@ -978,28 +1341,31 @@ namespace Cosmos
         // TODO: split the orbit from the attitude propagation sections of the code
         int32_t GaussJacksonPositionPropagator::Init()
         {
-            kepstruc kep;
+            Convert::kepstruc kep;
             double dea;
             uint32_t i;
             quaternion q1;
             int32_t iretn = 0;
 
             // Make sure ::locstruc is internally self consistent
-            ++newloc->pos.eci.pass;
-            pos_eci(newloc);
+            ++currentloc->pos.eci.pass;
+            Convert::pos_eci(currentloc);
+            // Update accelerations
+            PosAccel(currentloc, currentphys);
+
+            initialloc = *currentloc;
+            initialphys = *currentphys;
+            currentphys->utc = currentloc->utc;
 
             // Zero out original N+1 bin
             loc_clear(step[order+1].loc);
 
-            // Calculate initial accelerations
-            PosAccel(newloc, newphys);
-            AttAccel(newloc, newphys);
 
             // Set central bin to initial state vector
-            step[order2].loc = *newloc;
+            step[order2].loc = *currentloc;
 
             // Position at t0-dt
-            eci2kep(newloc->pos.eci, kep);
+            Convert::eci2kep(currentloc->pos.eci, kep);
 
             // Initialize past bins
             for (i=order2-1; i<order2; --i)
@@ -1025,13 +1391,14 @@ namespace Cosmos
                 // Calculate new v from da
                 step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(-dt,step[i].loc.att.icrf.a));
                 step[i].loc.att.icrf.utc = kep.utc;
-                pos_eci(step[i].loc);
+                Convert::pos_eci(step[i].loc);
 
-                PosAccel(&step[i].loc, newphys);
-                AttAccel(&step[i].loc, newphys);
+                PosAccel(&step[i].loc, currentphys);
             }
 
-            eci2kep(newloc->pos.eci, kep);
+            Convert::eci2kep(currentloc->pos.eci, kep);
+
+            // Initialize future bins
             for (i=order2+1; i<=order; i++)
             {
                 step[i] = step[i-1];
@@ -1055,33 +1422,35 @@ namespace Cosmos
                 // Calculate new v from da
                 step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(dt,step[i].loc.att.icrf.a));
                 step[i].loc.att.icrf.utc = kep.utc;
-                pos_eci(step[i].loc);
+                Convert::pos_eci(step[i].loc);
 
-                PosAccel(&step[i].loc, newphys);
-                AttAccel(&step[i].loc, newphys);
+                PosAccel(&step[i].loc, currentphys);
             }
+            currentutc = step[order].loc.utc;
+
+            // Converge on rational set of values
             iretn = Converge();
-            newphys->utc = newloc->utc;
+
             return iretn;
         }
 
-        int32_t GaussJacksonPositionPropagator::Init(vector<locstruc> locs)
+        int32_t GaussJacksonPositionPropagator::Init(vector<Convert::locstruc> locs)
         {
             int32_t iretn = 0;
 
             // Make sure ::locstruc is internally self consistent
-            ++newloc->pos.eci.pass;
-            pos_eci(newloc);
+            ++currentloc->pos.eci.pass;
+            Convert::pos_eci(currentloc);
 
             // Zero out original N+1 bin
             loc_clear(step[order+1].loc);
 
             // Calculate initial accelerations
-            PosAccel(newloc, newphys);
-            AttAccel(newloc, newphys);
+            PosAccel(currentloc, currentphys);
+            //            AttAccel(currentloc, currentphys);
 
             // Set central bin to initial state vector
-            step[order2].loc = *newloc;
+            step[order2].loc = *currentloc;
 
             // Initialize past bins
             for (uint32_t i=order2-1; i<order2; --i)
@@ -1104,8 +1473,8 @@ namespace Cosmos
                     step[i].loc = locs[index];
                 }
 
-                PosAccel(&step[i].loc, newphys);
-                AttAccel(&step[i].loc, newphys);
+                PosAccel(&step[i].loc, currentphys);
+                //                AttAccel(&step[i].loc, currentphys);
             }
 
             for (uint32_t i=order2+1; i<=order; i++)
@@ -1128,75 +1497,115 @@ namespace Cosmos
                     step[i].loc = locs[index];
                 }
 
-                PosAccel(&step[i].loc, newphys);
-                AttAccel(&step[i].loc, newphys);
+                PosAccel(&step[i].loc, currentphys);
+                //                AttAccel(&step[i].loc, currentphys);
             }
             iretn = Converge();
-            newphys->utc = newloc->utc;
+
+            currentphys->utc = currentloc->utc;
+            currentutc = step[order].loc.utc;
             return iretn;
         }
 
-        int32_t GaussJacksonPositionPropagator::Propagate()
+        int32_t GaussJacksonPositionPropagator::Reset(double nextutc)
         {
-            Vector normal, unitv, unitx, unitp, unitp1, unitp2;
-            Vector lunitp1(.1,.1,0.);
-            Vector tvector;
+            int32_t iretn;
+            currentloc->pos = initialloc.pos;
+            currentutc = currentloc->pos.utc;
+            iretn = Init();
+            Propagate(nextutc);
+            return iretn;
+        }
 
-            oldloc = *newloc;
-            oldphys = *newphys;
-
-            // Don't bother if too low
-            if (Vector(newloc->pos.eci.s).norm() < REARTHM)
+        int32_t GaussJacksonPositionPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
             {
-                return GENERAL_ERROR_TOO_LOW;
+                nextutc = currentutc + dtj;
             }
 
-            step[order+1].loc.utc = step[order+1].loc.pos.utc = step[order+1].loc.pos.eci.utc = step[order].loc.pos.eci.utc + dtj;
-
-            // Calculate S(order/2+1)
-            step[order+1].ss.col[0] = step[order].ss.col[0] + step[order].s.col[0] + step[order].loc.pos.eci.a.col[0]/2.;
-            step[order+1].ss.col[1] = step[order].ss.col[1] + step[order].s.col[1] + step[order].loc.pos.eci.a.col[1]/2.;
-            step[order+1].ss.col[2] = step[order].ss.col[2] + step[order].s.col[2] + step[order].loc.pos.eci.a.col[2]/2.;
-
-            // Calculate Sum(order/2+1) for a and b
-            step[order+1].sb = step[order+1].sa = rv_zero();
-            for (uint16_t k=0; k<=order; k++)
+            while ((nextutc - currentutc) > dtj / 2.)
             {
-                step[order+1].sb.col[0] += step[order+1].b[k] * step[k].loc.pos.eci.a.col[0];
-                step[order+1].sa.col[0] += step[order+1].a[k] * step[k].loc.pos.eci.a.col[0];
-                step[order+1].sb.col[1] += step[order+1].b[k] * step[k].loc.pos.eci.a.col[1];
-                step[order+1].sa.col[1] += step[order+1].a[k] * step[k].loc.pos.eci.a.col[1];
-                step[order+1].sb.col[2] += step[order+1].b[k] * step[k].loc.pos.eci.a.col[2];
-                step[order+1].sa.col[2] += step[order+1].a[k] * step[k].loc.pos.eci.a.col[2];
+                currentutc += dtj;
+                Vector normal, unitv, unitx, unitp, unitp1, unitp2;
+                Vector lunitp1(.1,.1,0.);
+                Vector tvector;
+
+                // Don't bother if too low
+                if (Vector(currentloc->pos.eci.s).norm() < REARTHM)
+                {
+                    return GENERAL_ERROR_TOO_LOW;
+                }
+
+                step[order+1].loc.utc = step[order+1].loc.pos.utc = step[order+1].loc.pos.eci.utc = step[order].loc.pos.eci.utc + dtj;
+
+                // Calculate S(order/2+1)
+                step[order+1].ss.col[0] = step[order].ss.col[0] + step[order].s.col[0] + step[order].loc.pos.eci.a.col[0]/2.;
+                step[order+1].ss.col[1] = step[order].ss.col[1] + step[order].s.col[1] + step[order].loc.pos.eci.a.col[1]/2.;
+                step[order+1].ss.col[2] = step[order].ss.col[2] + step[order].s.col[2] + step[order].loc.pos.eci.a.col[2]/2.;
+
+                // Calculate Sum(order/2+1) for a and b
+                step[order+1].sb = step[order+1].sa = rv_zero();
+                for (uint16_t k=0; k<=order; k++)
+                {
+                    step[order+1].sb.col[0] += step[order+1].b[k] * step[k].loc.pos.eci.a.col[0];
+                    step[order+1].sa.col[0] += step[order+1].a[k] * step[k].loc.pos.eci.a.col[0];
+                    step[order+1].sb.col[1] += step[order+1].b[k] * step[k].loc.pos.eci.a.col[1];
+                    step[order+1].sa.col[1] += step[order+1].a[k] * step[k].loc.pos.eci.a.col[1];
+                    step[order+1].sb.col[2] += step[order+1].b[k] * step[k].loc.pos.eci.a.col[2];
+                    step[order+1].sa.col[2] += step[order+1].a[k] * step[k].loc.pos.eci.a.col[2];
+                }
+
+                // Calculate pos.v(order/2+1)
+                step[order+1].loc.pos.eci.v.col[0] = this->dt * (step[order].s.col[0] + step[order].loc.pos.eci.a.col[0]/2. + step[order+1].sb.col[0]);
+                step[order+1].loc.pos.eci.v.col[1] = this->dt * (step[order].s.col[1] + step[order].loc.pos.eci.a.col[1]/2. + step[order+1].sb.col[1]);
+                step[order+1].loc.pos.eci.v.col[2] = this->dt * (step[order].s.col[2] + step[order].loc.pos.eci.a.col[2]/2. + step[order+1].sb.col[2]);
+
+                // Calculate pos.s(order/2+1)
+                step[order+1].loc.pos.eci.s.col[0] = this->dtsq * (step[order+1].ss.col[0] + step[order+1].sa.col[0]);
+                step[order+1].loc.pos.eci.s.col[1] = this->dtsq * (step[order+1].ss.col[1] + step[order+1].sa.col[1]);
+                step[order+1].loc.pos.eci.s.col[2] = this->dtsq * (step[order+1].ss.col[2] + step[order+1].sa.col[2]);
+                step[order+1].loc.pos.eci.pass++;
+                Convert::pos_eci(step[order+1].loc);
+
+                // Update inherent accelerations for this location
+                PosAccel(&step[order+1].loc, currentphys);
+
+                // Calculate s(order/2+1)
+                step[order+1].s.col[0] = step[order].s.col[0] + (step[order].loc.pos.eci.a.col[0]+step[order+1].loc.pos.eci.a.col[0])/2.;
+                step[order+1].s.col[1] = step[order].s.col[1] + (step[order].loc.pos.eci.a.col[1]+step[order+1].loc.pos.eci.a.col[1])/2.;
+                step[order+1].s.col[2] = step[order].s.col[2] + (step[order].loc.pos.eci.a.col[2]+step[order+1].loc.pos.eci.a.col[2])/2.;
+
+                // Shift everything over 1
+                for (uint16_t j=0; j<=order; j++)
+                {
+                    step[j] = step[j+1];
+                }
+
+                // Adjust for any thrust
+                if (currentphys->fpush.norm() && currentphys->mass)
+                {
+                    rvector dacc = (currentphys->fpush / currentphys->mass).to_rv();
+                    for (gjstruc &cstep : step)
+                    {
+                        cstep.loc.pos.eci.s = rv_add(cstep.loc.pos.eci.s, rv_smult(.5 * this->dt2, dacc));
+                        cstep.loc.pos.eci.v = rv_add(cstep.loc.pos.eci.v, rv_smult(this->dt, dacc));
+                    }
+                    Setup();
+                    Converge();
+                }
             }
 
-            // Calculate pos.v(order/2+1)
-            step[order+1].loc.pos.eci.v.col[0] = this->dt * (step[order].s.col[0] + step[order].loc.pos.eci.a.col[0]/2. + step[order+1].sb.col[0]);
-            step[order+1].loc.pos.eci.v.col[1] = this->dt * (step[order].s.col[1] + step[order].loc.pos.eci.a.col[1]/2. + step[order+1].sb.col[1]);
-            step[order+1].loc.pos.eci.v.col[2] = this->dt * (step[order].s.col[2] + step[order].loc.pos.eci.a.col[2]/2. + step[order+1].sb.col[2]);
-
-            // Calculate pos.s(order/2+1)
-            step[order+1].loc.pos.eci.s.col[0] = this->dtsq * (step[order+1].ss.col[0] + step[order+1].sa.col[0]);
-            step[order+1].loc.pos.eci.s.col[1] = this->dtsq * (step[order+1].ss.col[1] + step[order+1].sa.col[1]);
-            step[order+1].loc.pos.eci.s.col[2] = this->dtsq * (step[order+1].ss.col[2] + step[order+1].sa.col[2]);
-            step[order+1].loc.pos.eci.pass++;
-            pos_eci(step[order+1].loc);
-
-            AttAccel(&step[order+1].loc, newphys);
-            PosAccel(&step[order+1].loc, newphys);
-
-            // Calculate s(order/2+1)
-            step[order+1].s.col[0] = step[order].s.col[0] + (step[order].loc.pos.eci.a.col[0]+step[order+1].loc.pos.eci.a.col[0])/2.;
-            step[order+1].s.col[1] = step[order].s.col[1] + (step[order].loc.pos.eci.a.col[1]+step[order+1].loc.pos.eci.a.col[1])/2.;
-            step[order+1].s.col[2] = step[order].s.col[2] + (step[order].loc.pos.eci.a.col[2]+step[order+1].loc.pos.eci.a.col[2])/2.;
-
-            // Shift everything over 1
-            for (uint16_t j=0; j<=order; j++)
+            currentloc->pos = step[order].loc.pos;
+            for (uint16_t i=order; i<=order; --i)
             {
-                step[j] = step[j+1];
+                if (nextutc >= currentloc->pos.utc - dtj / 2.)
+                {
+                    break;
+                }
+                currentloc->pos = step[i].loc.pos;
+                currentloc->utc = currentloc->pos.utc;
             }
-
-            *newloc = step[order].loc;
 
             return 0;
         }
@@ -1206,8 +1615,7 @@ namespace Cosmos
             uint32_t c_cnt, cflag=0, k;
             rvector oldsa;
 
-            oldloc = *newloc;
-            oldphys = *newphys;
+            PosAccel(currentloc, currentphys);
 
             c_cnt = 0;
             do
@@ -1286,12 +1694,12 @@ namespace Cosmos
 
                         // Perform conversions between different systems
                         step[order2+i*n].loc.pos.eci.pass++;
-                        pos_eci(&step[order2+i*n].loc);
-                        att_icrf2lvlh(&step[order2+i*n].loc);
+                        Convert::pos_eci(&step[order2+i*n].loc);
+                        Convert::att_icrf2lvlh(&step[order2+i*n].loc);
                         //		eci2earth(&step[order2+i*n].loc.pos,&step[order2+i*n].att);
 
                         // Calculate acceleration at new position
-                        PosAccel(&step[order2+i*n].loc, newphys);
+                        PosAccel(&step[order2+i*n].loc, currentphys);
 
                         // Compare acceleration at new position to previous iteration
                         if (fabs(oldsa.col[0]-step[order2+i*n].loc.pos.eci.a.col[0])>1e-14 || fabs(oldsa.col[1]-step[order2+i*n].loc.pos.eci.a.col[1])>1e-14 || fabs(oldsa.col[2]-step[order2+i*n].loc.pos.eci.a.col[2])>1e-14)
@@ -1301,9 +1709,11 @@ namespace Cosmos
                 c_cnt++;
             } while (c_cnt<10 && cflag);
 
-            *newloc = step[order].loc;
-            ++newloc->pos.eci.pass;
-            pos_eci(newloc);
+            *currentloc = step[order2].loc;
+            ++currentloc->pos.eci.pass;
+            currentphys->fpush = rv_zero();
+            PosAccel(currentloc, currentphys);
+            Convert::pos_eci(currentloc);
             return 0;
         }
 
@@ -1312,10 +1722,11 @@ namespace Cosmos
         //! \param loc Pointer to ::locstruc
         //! \param phys Pointer to ::physstruc
         //! \return Zero, or negative error.
-        int32_t PhysCalc(locstruc* loc, physicsstruc* phys)
+        int32_t PhysCalc(Convert::locstruc* loc, physicsstruc* phys)
         {
             Vector unitv = Quaternion(loc->att.geoc.s).irotate(Vector(loc->pos.geoc.v).normalize());
             Vector units = Quaternion(loc->att.icrf.s).irotate(Vector(loc->pos.icrf.s).normalize());
+            Vector unite = Quaternion(loc->att.icrf.s).irotate(Vector(loc->pos.eci.s).normalize(-1.));
             Vector geov(loc->pos.geoc.v);
             double speed = geov.norm();
             double density;
@@ -1326,13 +1737,15 @@ namespace Cosmos
             double adrag = density * 1.1 * speed * speed;
 
             // External panel effects
-            phys->powgen = 0.F;
             phys->adrag.clear();
             phys->atorque.clear();
             phys->rdrag.clear();
             phys->rtorque.clear();
+            double surftemp = 310. - 80. * sin(loc->pos.geod.s.lat);
             for (trianglestruc& triangle : phys->triangles)
             {
+                triangle.sirradiation = 0.;
+                triangle.eirradiation = 0.;
                 if (triangle.external)
                 {
                     // Atmospheric effects
@@ -1348,17 +1761,53 @@ namespace Cosmos
                     phys->adrag += da;
 
                     // Solar effects
-                    double sdot = units.dot(triangle.normal);
-                    if (loc->pos.sunradiance && sdot > 0)
+                    double sirradiation;
+                    if (triangle.external == 1)
                     {
-                        ddrag = loc->pos.sunradiance * sdot / (3e8*phys->mass);
+                        sirradiation = loc->pos.sunradiance * units.dot(triangle.normal);
+                    }
+                    else
+                    {
+                        sirradiation = loc->pos.sunradiance * units.dot(-triangle.normal);
+                    }
+                    if (sirradiation > 0)
+                    {
+                        triangle.sirradiation = triangle.pcell * sirradiation;
+                        ddrag = sirradiation / (3e8*phys->mass);
                         dtorque = ddrag * triangle.twist;
                         phys->rtorque += dtorque;
                         da = ddrag * triangle.shove;
                         phys->rdrag += da;
                     }
+
+                    // Earth effects
+                    double edot;
+                    if (triangle.external == 1)
+                    {
+                        edot = acos(unite.dot(triangle.normal) / triangle.normal.norm()) - RADOF(5.);
+                    }
+                    else
+                    {
+                        edot = acos(unite.dot(-triangle.normal) / triangle.normal.norm()) - RADOF(5.);
+                    }
+                    if (edot < 0.)
+                    {
+                        edot = 1.;
+                    }
+                    else
+                    {
+                        edot = cos(edot);
+                    }
+
+                    double eirradiation = edot * SIGMA * pow(surftemp,4);
+                    if (eirradiation > 0)
+                    {
+                        triangle.eirradiation += triangle.area * triangle.pcell * eirradiation;
+                    }
+
                 }
             }
+            return 0;
         }
 
         //! Calculate static physical attributes
@@ -1408,7 +1857,12 @@ namespace Cosmos
             \param physics Pointer to structure specifying satellite.
             \param loc Structure specifying location.
         */
-        int32_t AttAccel(locstruc *loc, physicsstruc *phys)
+        int32_t AttAccel(Convert::locstruc &loc, physicsstruc &phys)
+        {
+            return AttAccel(&loc, &phys);
+        }
+
+        int32_t AttAccel(Convert::locstruc *loc, physicsstruc *phys)
         {
             //    rvector ue, ta, tv;
             //    rvector ttorque;
@@ -1474,16 +1928,22 @@ namespace Cosmos
             \param phys Pointer to structure specifying satellite.
             \param loc Structure specifying location.
         */
-        int32_t PosAccel(locstruc* loc, physicsstruc* phys)
+        int32_t PosAccel(Convert::locstruc &loc, physicsstruc &phys)
+        {
+            return PosAccel(&loc, &phys);
+        }
+
+        int32_t PosAccel(Convert::locstruc* loc, physicsstruc* phys)
         {
             int32_t iretn;
             double radius;
             Vector ctpos, da, tda;
-            cartpos bodypos;
+            Convert::cartpos bodypos;
 
             radius = length_rv(loc->pos.eci.s);
 
             loc->pos.eci.a = rv_zero();
+            Convert::pos_eci2geoc(*loc);
 
             // Earth gravity
             // Calculate Geocentric acceleration vector
@@ -1532,10 +1992,13 @@ namespace Cosmos
             tda -= da;
             loc->pos.eci.a = rv_sub(loc->pos.eci.a, da.to_rv());
 
+            // Add thrust
+            //            loc->pos.eci.a = rv_add(loc->pos.eci.a, rv_smult(1./phys->mass, phys->fpush.to_rv()));
+
             /*
         // Jupiter gravity
         // Calculate Satellite to Jupiter vector
-        jplpos(JPL_EARTH,JPL_JUPITER, loc->pos.extra.tt,(cartpos *)&bodypos);
+        Convert::jplpos(JPL_EARTH,JPL_JUPITER, loc->pos.extra.tt,(Convert::cartpos *)&bodypos);
         ctpos = rv_sub(bodypos.s, loc->pos.eci.s);
         radius = length_rv(ctpos);
 
@@ -1563,9 +2026,15 @@ namespace Cosmos
                 da = iratt.irotate(phys->fdrag);
                 loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
             }
+            // Thrust
+            if (phys->thrust.norm() > 0.)
+            {
+                da = iratt.irotate(phys->thrust);
+                loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
+            }
 
             loc->pos.eci.pass++;
-            iretn = pos_eci(loc);
+            iretn = Convert::pos_eci(loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -1586,7 +2055,7 @@ namespace Cosmos
             \param magidx Ap daily geomagnetic index
             \return Density in kg/m3
         */
-        double Msis00Density(posstruc pos, float f107avg, float f107, float magidx)
+        double Msis00Density(Convert::posstruc pos, float f107avg, float f107, float magidx)
         {
             struct nrlmsise_output output;
             struct nrlmsise_input input;
@@ -1647,7 +2116,7 @@ namespace Cosmos
             \return A ::Vector pointing toward the earth
             \see pgm2000a_coef.txt
         */
-        Vector GravityAccel(posstruc pos, uint16_t model, uint32_t degree)
+        Vector GravityAccel(Convert::posstruc pos, uint16_t model, uint32_t degree)
         {
             uint32_t il, im;
             double tmult;
@@ -1872,6 +2341,116 @@ namespace Cosmos
             }
         }
 
+        double rearth(double lat)
+        {
+            double st,ct;
+            double c;
+
+            st = sin(lat);
+            ct = cos(lat);
+            c = sqrt(((FRATIO2 * FRATIO2 * st * st) + (ct * ct))/((ct * ct) + (FRATIO2 * st * st)));
+            return (REARTHM * c);
+        }
+
+        Convert::locstruc shape2eci(double utc, double altitude, double angle, double timeshift)
+        {
+            return shape2eci(utc, 0., 0., altitude, angle, timeshift);
+        }
+
+        Convert::locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift)
+        {
+            Convert::locstruc loc;
+
+            //            longitude += 2. * DPI * (fabs(hour)/24. - (utc - (int)utc));
+
+            Convert::pos_clear(loc);
+
+            // Determine effects of oblate spheroid
+            double ct = cos(latitude);
+            double st = sin(latitude);
+            double c = 1./sqrt(ct * ct + FRATIO2 * st * st);
+            double s = FRATIO2 * c;
+            double r = (rearth(0.) * c + altitude) * ct;
+            double z = ((rearth(0.) * s + altitude) * st);
+            double radius = sqrt(r * r + z * z);
+            double phi = asin(z / radius);
+
+            // Adjust for problems
+            if (phi > angle)
+            {
+                phi = angle;
+            }
+
+            // Initial position
+            Vector s0(radius, 0., 0.);
+            double velocity = sqrt(GM/radius) - cos(angle) * radius * D2PI / 86400.;
+            Vector v0(0., velocity, 0.);
+
+            // First, rotate around X vector by angle
+            Quaternion q1 = drotate_around_x(angle);
+            Vector s1 = q1.drotate(s0);
+            Vector v1 = q1.drotate(v0);
+
+            double angle2;
+            if (angle)
+            {
+                angle2 = asin(sin(phi) / sin(angle));
+            }
+            else
+            {
+                angle2 = 0.;
+            }
+
+            // Second, rotate around L vector by angle2, determine change imposed on longitude, then adjust for timeshift
+            Vector L = (s1).cross(v1);
+            Quaternion q2 = drotate_around(L, angle2);
+            Vector s2 = q2.drotate(s1);
+            double deltal = atan2(s2.y, s2.x);
+
+//            q2 = drotate_around(L, angle2 + 0.960 * timeshift * sqrt(GM/pow(radius,3.)));
+            q2 = drotate_around(L, angle2 + timeshift * sqrt(GM/pow(radius,3.)));
+            s2 = q2.drotate(s1);
+            Vector v2 = q2.drotate(v1);
+
+
+            // Third, rotate around Z vector by remaining distance, related to timeshift, longitude, and  change incurred from angle2)
+//            Quaternion q3 = drotate_around_z(-0.00 * timeshift*(D2PI/86400.) + longitude - deltal);
+            Quaternion q3 = drotate_around_z(longitude - deltal);
+            Vector s3 = q3.drotate(s2);
+            Vector v3 = q3.drotate(v2);
+
+            loc.pos.geoc.utc = loc.att.geoc.utc = utc;
+            loc.pos.geoc.s.col[0] = s3.x;
+            loc.pos.geoc.v.col[0] = v3.x;
+            loc.pos.geoc.s.col[1] = s3.y;
+            loc.pos.geoc.v.col[1] = v3.y;
+            loc.pos.geoc.s.col[2] = s3.z;
+            loc.pos.geoc.v.col[2] = v3.z;
+            loc.pos.geoc.pass++;
+            Convert::pos_geoc(loc);
+
+            //            Convert::kepstruc kep;
+            //            Convert::eci2kep(loc.pos.eci, kep);
+            //            if (timeshift != 0.)
+            //            {
+            //                Convert::kepstruc kep;
+            //                double dea;
+            //                Convert::eci2kep(loc.pos.eci, kep);
+            //                kep.ma += timeshift * kep.mm;
+            //                uint16_t count = 0;
+            //                do
+            //                {
+            //                    dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+            //                    kep.ea -= dea;
+            //                } while (++count < 100 && fabs(dea) > .000001);
+            //                kep2eci(kep, loc.pos.eci);
+            //                loc.pos.eci.pass++;
+            //                Convert::pos_eci(loc);
+            //            }
+
+
+            return loc;
+        }
     }
 
 }

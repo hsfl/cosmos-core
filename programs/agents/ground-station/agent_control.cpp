@@ -98,6 +98,9 @@ List of available requests:
         targetsjson
                 return description JSON for Targets
 
+        aliasesjson
+                return description JSON for Aliases
+
         get_state
                 returns current state
 
@@ -168,7 +171,7 @@ struct trackstruc
     targetstruc target;
     physicsstruc physics;
     string name;
-    gj_handle gjh;
+    Physics::gj_handle gjh;
     vector <LsFit> position;
     vector <radiostruc> radios;
 };
@@ -183,6 +186,8 @@ struct antennastruc
 static vector <antennastruc> myantennas;
 
 static bool debug;
+static float lastaz = 0.;
+static float lastel = 0.;
 
 int32_t request_debug(string &request, string &response, Agent *);
 int32_t request_get_state(string &request, string &response, Agent *);
@@ -228,12 +233,12 @@ int main(int argc, char *argv[])
 
     if ((iretn = agent->wait()) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
     else
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+        agent->debug_error.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
     // Build up table of our radios
@@ -248,9 +253,9 @@ int main(int argc, char *argv[])
     myradios.push_back(tradio);
     for (size_t i=0; i<agent->cinfo->devspec.tcv_cnt; ++i)
     {
-        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].pidx].name;
+        tradio.name = agent->cinfo->pieces[agent->cinfo->devspec.tcv[i].pidx].name;
 		tradio.type = DeviceType::TCV;
-        tradio.info = agent->cinfo->device[agent->cinfo->devspec.tcv[i]].tcv;
+        tradio.info = agent->cinfo->devspec.tcv[i];
         tradio.basefreq = tradio.info.freq;
         tradio.baseopmode = tradio.info.opmode;
         tradio.otherradioindex = 9999;
@@ -259,9 +264,9 @@ int main(int argc, char *argv[])
     }
     for (size_t i=0; i<agent->cinfo->devspec.rxr_cnt; ++i)
     {
-        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.rxr[i]].pidx].name;
+        tradio.name = agent->cinfo->pieces[agent->cinfo->devspec.rxr[i].pidx].name;
 		tradio.type = DeviceType::RXR;
-        tradio.info = agent->cinfo->device[agent->cinfo->devspec.rxr[i]].tcv;
+        tradio.info = *reinterpret_cast<tcvstruc *>(agent->cinfo->device[agent->cinfo->devspec.rxr[i].cidx]);
         tradio.basefreq = tradio.info.freq;
         tradio.baseopmode = tradio.info.opmode;
         tradio.otherradioindex = 9999;
@@ -270,9 +275,9 @@ int main(int argc, char *argv[])
     }
     for (size_t i=0; i<agent->cinfo->devspec.txr_cnt; ++i)
     {
-        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.txr[i]].pidx].name;
+        tradio.name = agent->cinfo->pieces[agent->cinfo->devspec.txr[i].pidx].name;
 		tradio.type = DeviceType::TXR;
-        tradio.info = agent->cinfo->device[agent->cinfo->devspec.txr[i]].tcv;
+        tradio.info = *reinterpret_cast<tcvstruc *>(agent->cinfo->device[agent->cinfo->devspec.txr[i].cidx]);
         tradio.basefreq = tradio.info.freq;
         tradio.baseopmode = tradio.info.opmode;
         tradio.otherradioindex = 9999;
@@ -284,8 +289,8 @@ int main(int argc, char *argv[])
     myantennas.resize(agent->cinfo->devspec.ant_cnt);
     for (size_t i=0; i<myantennas.size(); ++i)
     {
-        myantennas[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.ant[i]].pidx].name;
-        myantennas[i].info = agent->cinfo->device[agent->cinfo->devspec.ant[i]].ant;
+        myantennas[i].name = agent->cinfo->pieces[agent->cinfo->devspec.ant[i].pidx].name;
+        myantennas[i].info = agent->cinfo->devspec.ant[i];
         myantennas[i].beat = agent->find_agent(nodename, myantennas[i].name, 3.);
     }
 
@@ -325,33 +330,33 @@ int main(int argc, char *argv[])
                     // Build up table of radios
                     for (size_t i=0; i<cinfo->devspec.tcv_cnt; ++i)
                     {
-                        tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.tcv[i]].pidx].name;
+                        tradio.name = cinfo->pieces[cinfo->devspec.tcv[i].pidx].name;
 						tradio.type = DeviceType::TCV;
-                        tradio.info = cinfo->device[cinfo->devspec.tcv[i]].tcv;
+                        tradio.info = cinfo->devspec.tcv[i];
                         tradio.otherradioindex = 9999;
                         ttrack.radios.push_back(tradio);
                     }
 
                     for (size_t i=0; i<cinfo->devspec.txr_cnt; ++i)
                     {
-                        tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.txr[i]].pidx].name;
+                        tradio.name = cinfo->pieces[cinfo->devspec.txr[i].pidx].name;
 						tradio.type = DeviceType::TXR;
-                        tradio.info.band = cinfo->device[cinfo->devspec.txr[i]].txr.band;
-                        tradio.info.freq = cinfo->device[cinfo->devspec.txr[i]].txr.freq;
-                        tradio.info.opmode = cinfo->device[cinfo->devspec.txr[i]].txr.opmode;
-                        tradio.info.modulation = cinfo->device[cinfo->devspec.txr[i]].txr.modulation;
+                        tradio.info.band = cinfo->devspec.txr[i].band;
+                        tradio.info.freq = cinfo->devspec.txr[i].freq;
+                        tradio.info.opmode = cinfo->devspec.txr[i].opmode;
+                        tradio.info.modulation = cinfo->devspec.txr[i].modulation;
                         tradio.otherradioindex = 9999;
                         ttrack.radios.push_back(tradio);
                     }
 
                     for (size_t i=0; i<cinfo->devspec.rxr_cnt; ++i)
                     {
-                        tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.rxr[i]].pidx].name;
+                        tradio.name = cinfo->pieces[cinfo->devspec.rxr[i].pidx].name;
 						tradio.type = DeviceType::RXR;
-                        tradio.info.band = cinfo->device[cinfo->devspec.rxr[i]].rxr.band;
-                        tradio.info.freq = cinfo->device[cinfo->devspec.rxr[i]].rxr.freq;
-                        tradio.info.opmode = cinfo->device[cinfo->devspec.rxr[i]].rxr.opmode;
-                        tradio.info.modulation = cinfo->device[cinfo->devspec.rxr[i]].rxr.modulation;
+                        tradio.info.band = cinfo->devspec.rxr[i].band;
+                        tradio.info.freq = cinfo->devspec.rxr[i].freq;
+                        tradio.info.opmode = cinfo->devspec.rxr[i].opmode;
+                        tradio.info.modulation = cinfo->devspec.rxr[i].modulation;
                         tradio.otherradioindex = 9999;
                         ttrack.radios.push_back(tradio);
                     }
@@ -359,18 +364,18 @@ int main(int argc, char *argv[])
                     if (type == NODE_TYPE_SATELLITE)
                     {
                         printf("Propagating Node %s forward %.0f\r", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
-                        gauss_jackson_init_eci(ttrack.gjh, 12, 0, 5., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
+                        Physics::gauss_jackson_init_eci(ttrack.gjh, 12, 0, 5., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
                         double tutc = ttrack.target.loc.pos.eci.utc + 60./86400.;
                         while (tutc < currentmjd())
                         {
                             printf("Propagating Node %s forward %.0f\r", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
-                            gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, tutc);
+                            Physics::gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, tutc);
                             fflush(stdout);
                             tutc += 600./86400.;
                         }
                         printf("Propagating Node %s forward %.0f\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
-                        gauss_jackson_init_eci(ttrack.gjh, 12, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
-                        gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
+                        Physics::gauss_jackson_init_eci(ttrack.gjh, 12, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
+                        Physics::gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
                         fflush(stdout);
                     }
                     track.push_back(ttrack);
@@ -383,7 +388,7 @@ int main(int argc, char *argv[])
     // Look for TLE file
     char fname[200];
     sprintf(fname,"%s/tle.ini",get_nodedir(nodename).c_str());
-    vector <tlestruc> tle;
+    vector <Convert::tlestruc> tle;
     if ((iretn=load_lines_multi(fname, tle)) > 0)
     {
         for (size_t i=0; i<tle.size(); ++i)
@@ -405,8 +410,8 @@ int main(int argc, char *argv[])
             ttrack.radios[0].name = "radio";
             ttrack.radios[0].otherradioindex = 9999;
 
-            gauss_jackson_init_eci(ttrack.gjh, 6, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
-            gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
+            Physics::gauss_jackson_init_eci(ttrack.gjh, 6, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
+            Physics::gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
             track.push_back(ttrack);
         }
     }
@@ -528,17 +533,17 @@ int main(int argc, char *argv[])
             switch (track[i].target.type)
             {
             case NODE_TYPE_SATELLITE:
-                gauss_jackson_propagate(track[i].gjh, track[i].physics, track[i].target.loc, mjdnow);
+                Physics::gauss_jackson_propagate(track[i].gjh, track[i].physics, track[i].target.loc, mjdnow);
                 break;
             case NODE_TYPE_SUN:
-                jplpos(JPL_EARTH, JPL_SUN, mjdnow, &track[i].target.loc.pos.eci);
+                Convert::jplpos(JPL_EARTH, JPL_SUN, mjdnow, &track[i].target.loc.pos.eci);
                 track[i].target.loc.pos.eci.pass++;
-                pos_eci(&track[i].target.loc);
+                Convert::pos_eci(&track[i].target.loc);
                 break;
             case NODE_TYPE_MOON:
-                jplpos(JPL_EARTH, JPL_MOON, mjdnow, &track[i].target.loc.pos.eci);
+                Convert::jplpos(JPL_EARTH, JPL_MOON, mjdnow, &track[i].target.loc.pos.eci);
                 track[i].target.loc.pos.eci.pass++;
-                pos_eci(&track[i].target.loc);
+                Convert::pos_eci(&track[i].target.loc);
                 break;
             }
 
@@ -567,18 +572,41 @@ int main(int argc, char *argv[])
                 char request[100];
                 if (trackindex)
                 {
-                    sprintf(request, "track_azel %f %f %f", mjdnow, DEGOF(fixangle(track[i].target.azfrom)), DEGOF((track[i].target.elfrom)));
-                    if (debug)
+                    if (lastaz != fixangle(track[i].target.azfrom) || lastel != track[i].target.elfrom)
                     {
-                        printf("%f: Request: %s\n", et.lap(), request);
-                    }
-
-                    // Command antennas to track
-                    for (size_t j=0; j<myantennas.size(); ++j)
-                    {
-                        if (mjdnow - myantennas[j].beat.utc < 10.)
+                        float nextaz =fixangle(track[i].target.azfrom);
+                        float nextel = fixangle(track[i].target.elfrom);
+                        float directdiff = sqrt((lastaz-nextaz)*(lastaz-nextaz) + (lastel-nextel)*(lastel-nextel));
+                        if (nextaz > M_PI)
                         {
-                            iretn = agent->send_request(myantennas[j].beat, request, output, 5.);
+                            nextaz -= M_PI;
+                        }
+                        else
+                        {
+                            nextaz +=M_PI;
+                        }
+                        nextel = M_PI - nextel;
+                        float indirectdiff = sqrt((lastaz-nextaz)*(lastaz-nextaz) + (lastel-nextel)*(lastel-nextel));
+                        if (indirectdiff > directdiff)
+                        {
+                            nextaz =fixangle(track[i].target.azfrom);
+                            nextel = fixangle(track[i].target.elfrom);
+                        }
+                        sprintf(request, "track_azel %f %f %f", mjdnow, DEGOF(nextaz), DEGOF(nextel));
+                        if (debug)
+                        {
+                            printf("%f: Request: %s\n", et.lap(), request);
+                        }
+                        lastaz = nextaz;
+                        lastel = nextel;
+
+                        // Command antennas to track
+                        for (size_t j=0; j<myantennas.size(); ++j)
+                        {
+                            if (mjdnow - myantennas[j].beat.utc < 10.)
+                            {
+                                iretn = agent->send_request(myantennas[j].beat, request, output, 5.);
+                            }
                         }
                     }
 
@@ -618,7 +646,7 @@ int main(int argc, char *argv[])
                         myradios[i].otherradioindex = 9999;
                         myradios[i].info.freq = myradios[i].basefreq;
                         myradios[i].info.opmode = myradios[i].baseopmode;
-                        request = "set_frequency " + to_double(myradios[i].info.freq);
+                        request = "set_frequency " + to_floatany(myradios[i].info.freq);
                         iretn = agent->send_request(myradios[i].beat, request, output, 5.);
                         request = "set_opmode " + to_unsigned(myradios[i].info.opmode);
                         iretn = agent->send_request(myradios[i].beat, request, output, 5.);
@@ -657,7 +685,7 @@ void monitor()
         iretn = (Agent::AgentMessage)agent->readring(mess, Agent::AgentMessage::BEAT, 5.0);
 
         // Only process if this is a heartbeat message for our node
-        if (iretn == Agent::AgentMessage::BEAT && !strcmp(mess.meta.beat.node, agent->cinfo->node.name))
+        if (iretn == Agent::AgentMessage::BEAT && !mess.meta.beat.node.compare(agent->cinfo->node.name))
         {
             cdata_mutex.lock();
             // Extract telemetry
@@ -666,14 +694,14 @@ void monitor()
             // Extract agent information
             for (size_t i=0; i<myantennas.size(); ++i)
             {
-                if (!strcmp(mess.meta.beat.proc, myantennas[i].name.c_str()))
+                if (!mess.meta.beat.proc.compare(myantennas[i].name.c_str()))
                 {
                     myantennas[i].beat = mess.meta.beat;
                 }
             }
             for (size_t i=0; i<myradios.size(); ++i)
             {
-                if (!strcmp(mess.meta.beat.proc, myradios[i].name.c_str()))
+                if (!mess.meta.beat.proc.compare(myradios[i].name.c_str()))
                 {
                     myradios[i].beat = mess.meta.beat;
                 }
@@ -752,7 +780,7 @@ int32_t request_get_track(string &request, string &response, Agent *)
 {
     if (trackindex != 9999)
     {
-        response = to_unsigned(trackindex) + ' ' +  track[trackindex].name + ' ' + to_double(track[trackindex].target.range) + ' ' + to_double(track[trackindex].target.range/track[trackindex].target.close);
+        response = to_unsigned(trackindex) + ' ' +  track[trackindex].name + ' ' + to_floatany(track[trackindex].target.range) + ' ' + to_floatany(track[trackindex].target.range/track[trackindex].target.close);
     }
 
     return 0;
@@ -906,12 +934,12 @@ int32_t request_get_state(string &req, string &response, Agent *)
             response += "{ ";
             response += to_label("GS", myradios[i].name) + ' ';
             response += to_label("Sat", track[trackindex].radios[idx].name) + ' ';
-            response += to_label("Freq", myradios[i].info.freq, 9) + " (" + to_double(myradios[i].dfreq, 5) + ") } ";
+            response += to_label("Freq", myradios[i].info.freq, 9) + " (" + to_floatany(myradios[i].dfreq, 5) + ") } ";
         }
         else {
             response += "{ ";
             response += to_label("GS", myradios[i].name) + ' ';
-            response += to_label("Freq", myradios[i].info.freq, 9) + " (" + to_double(myradios[i].dfreq, 5) + ") } ";
+            response += to_label("Freq", myradios[i].info.freq, 9) + " (" + to_floatany(myradios[i].dfreq, 5) + ") } ";
         }
     }
     for (size_t i=0; i<myantennas.size(); ++i)

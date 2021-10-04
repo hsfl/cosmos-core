@@ -37,11 +37,11 @@ Agent *agent;
 double minimum_elevation = RADOF(10.);
 string nodename;
 string tlename;
-vector <tlestruc> tlelist;
+vector <Convert::tlestruc> tlelist;
 struct trackstruc
 {
-    tlestruc tle;
-    locstruc loc;
+    Convert::tlestruc tle;
+    Convert::locstruc loc;
     rvector topo;
     float elfrom;
     float azfrom;
@@ -98,12 +98,12 @@ int main(int argc, char *argv[])
     agent = new Agent();
 //    if ((iretn = agent->wait()) < 0)
 //    {
-//        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+//        agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
 //        exit(iretn);
 //    }
 //    else
 //    {
-//        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+//        agent->debug_error.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
 //    }
 
 
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     agent->cinfo->node.loc.pos.geod.s.h = 348.;
     agent->cinfo->node.loc.pos.geod.v = gv_zero();
     agent->cinfo->node.loc.pos.geod.pass++;
-    pos_geod(&agent->cinfo->node.loc);
+    Convert::pos_geod(&agent->cinfo->node.loc);
 
 
     // Load Nodes
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
         ttrack.highest = 0.;
         //        ttrack.type = NODE_TYPE_SATELLITE;
         ttrack.tle = tlelist[i];
-        pos_clear(ttrack.loc);
+        Convert::pos_clear(ttrack.loc);
         track.push_back(ttrack);
     }
 
@@ -149,9 +149,9 @@ void propcalc(size_t index)
 {
     tle2eci(utcnow, track[index].tle, track[index].loc.pos.eci);
     track[index].loc.pos.eci.pass++;
-    pos_eci(&track[index].loc);
-    geoc2topo(agent->cinfo->node.loc.pos.geod.s, track[index].loc.pos.geoc.s, track[index].topo);
-    topo2azel(track[index].topo, track[index].azfrom, track[index].elfrom);
+    Convert::pos_eci(&track[index].loc);
+    Convert::geoc2topo(agent->cinfo->node.loc.pos.geod.s, track[index].loc.pos.geoc.s, track[index].topo);
+    Convert::topo2azel(track[index].topo, track[index].azfrom, track[index].elfrom);
     switch ((uint8_t)track[index].visible)
     {
     case 0:

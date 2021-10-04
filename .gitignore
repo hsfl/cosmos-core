@@ -55,6 +55,10 @@ build/minix/
 build/arm_Release/
 
 build/iobc_hyti_release/
+build/arm_release/
+
+tags
+QtCreatorDeployment.txt
 
 *.20
 

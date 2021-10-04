@@ -71,13 +71,6 @@
 //! @}
 
 //! \ingroup sliplib
-//! \defgroup sliplib_definitions COSMOS SLIP support definitions
-//! @{
-typedef vector <uint8_t> slip_t;
-//! @}
-
-
-//! \ingroup sliplib
 //! \defgroup sliplib_functions COSMOS SLIP support functions
 //! @{
 
@@ -89,14 +82,15 @@ int32_t slip_encode(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize
 uint16_t slip_calc_crc(uint8_t *buf, uint16_t size);
 uint16_t slip_get_crc(uint8_t *buf, uint16_t size);
 uint16_t slip_set_crc(uint8_t *buf, uint16_t size);
-int32_t slip_check_crc(slip_t &sbuf);
-int32_t slip_unpack(slip_t &sbuf, slip_t &rbuf);
-int32_t slip_decode(slip_t &sbuf, slip_t &rbuf);
-int32_t slip_pack(slip_t &rbuf, slip_t &sbuf);
-int32_t slip_encode(slip_t &rbuf, slip_t &sbuf);
-uint16_t slip_calc_crc(slip_t &buf);
-uint16_t slip_get_crc(slip_t &buf);
-uint16_t slip_set_crc(slip_t &buf);
+int32_t slip_check_crc(vector<uint8_t> &sbuf);
+int32_t slip_unpack(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf);
+int32_t slip_decode(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf);
+int32_t slip_pack(vector<uint8_t> &rbuf, vector<uint8_t> &sbuf);
+int32_t slip_encode(vector<uint8_t> &rbuf, vector<uint8_t> &sbuf);
+uint16_t slip_calc_crc(vector<uint8_t> &buf);
+uint16_t slip_get_crc(vector<uint8_t> &buf);
+uint16_t slip_set_crc(vector<uint8_t> &buf);
+int32_t slip_extract(FILE *fp, vector<uint8_t> &buf);
 
 //! @}
 

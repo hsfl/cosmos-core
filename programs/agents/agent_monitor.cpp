@@ -41,8 +41,6 @@
 #include <fstream>
 #include <sstream>
 
-using std::string;
-using std::vector;
 using std::cout;
 using std::endl;
 
@@ -141,12 +139,12 @@ int main(int argc, char *argv[])
     agent = new Agent(nodename, "monitor");
     if ((iretn = agent->wait()) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
     else
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+        agent->debug_error.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
     agent->cinfo->node.utc = 0.;
@@ -275,7 +273,8 @@ int main(int argc, char *argv[])
             for (uint32_t k=0; k<events.size(); ++k)
             {
                 memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
-                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+//                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+                agent->cinfo->event[0].condition = agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text;
                 log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo));
             }
         }
@@ -537,11 +536,11 @@ void collect_data_loop()
         {
             agent->cinfo->node.utc = currentmjd(0.);
 
-            for (devicestruc device: agent->cinfo->device)
+            for (devicestruc* device: agent->cinfo->device)
             {
-                if (device.utc > agent->cinfo->node.utc)
+                if (device->utc > agent->cinfo->node.utc)
                 {
-                    agent->cinfo->node.utc = device.utc;
+                    agent->cinfo->node.utc = device->utc;
                 }
             }
         }

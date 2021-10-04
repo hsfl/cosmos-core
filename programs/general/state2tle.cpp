@@ -20,10 +20,10 @@ int main(int argc, char *argv[])
 
     // Load our TLE.
     std::ifstream tle_file(argv[8]);
-    std::stringstream ref_tle;
+    stringstream ref_tle;
     ref_tle << tle_file.rdbuf();
 
-    cartpos eci_pos;
+    Convert::cartpos eci_pos;
     eci_pos.s.col[0] = std::stod(argv[1]);
     eci_pos.s.col[1] = std::stod(argv[2]);
     eci_pos.s.col[2] = std::stod(argv[3]);

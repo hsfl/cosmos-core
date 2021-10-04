@@ -162,17 +162,19 @@ int main(int argc, char *argv[])
     }
     else
     {
-        agent = new Agent("", "exec", 0.);
+        char hostname[60];
+        gethostname(hostname, sizeof (hostname));
+        agent = new Agent(hostname, "exec", 0.);
     }
 
     if ((iretn = agent->wait()) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
     else
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+        agent->debug_error.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
     // Fix time
@@ -290,15 +292,19 @@ int main(int argc, char *argv[])
 
     // Start thread to collect SOH data
     bool log_data_flag = true;
-    vector <beatstruc> servers = agent->find_agents(1.);
-    for (beatstruc &i : servers)
+    if (argc == 3 && !strcmp(argv[2], "secondary"))
     {
-        if (strcmp(i.node, agent->nodeName.c_str()) && !strcmp(i.proc, "exec"))
-        {
-            log_data_flag = false;
-            break;
-        }
+        log_data_flag = false;
     }
+//    vector <beatstruc> servers = agent->find_agents(1.);
+//    for (beatstruc &i : servers)
+//    {
+//        if (i.node.compare(agent->nodeName.c_str()) && !i.proc.compare("exec"))
+//        {
+//            log_data_flag = false;
+//            break;
+//        }
+//    }
 
     if (log_data_flag)
     {
@@ -326,7 +332,7 @@ int main(int argc, char *argv[])
     logdate_exec = 0.;
     logstride_exec = 0.;
     agent->start_active_loop();
-    agent->debug_level = 0;
+    agent->set_debug_level(0);
     ElapsedTime postet;
     ElapsedTime savet;
     while(agent->running())
@@ -430,14 +436,15 @@ int main(int argc, char *argv[])
             postet.reset();
             agent->post(Agent::AgentMessage::REQUEST, "postsoh");
 
-            loc_update(&agent->cinfo->node.loc);
+            Convert::loc_update(&agent->cinfo->node.loc);
             update_target(agent->cinfo);
             //            agent->post(Agent::AgentMessage::SOH, json_of_table(myjstring, logtable, agent->cinfo));
             calc_events(eventdict, agent->cinfo, events);
             for (uint32_t k=0; k<events.size(); ++k)
             {
                 memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
-                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+                //                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+                agent->cinfo->event[0].condition = agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text;
                 log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo));
             }
         }
@@ -821,11 +828,11 @@ void collect_data_loop() noexcept
                 json_parse(mess.adata, agent->cinfo);
                 agent->cinfo->node.utc = currentmjd(0.);
 
-                for (devicestruc device: agent->cinfo->device)
+                for (devicestruc* device: agent->cinfo->device)
                 {
-                    if (device.utc > agent->cinfo->node.utc)
+                    if (device->utc > agent->cinfo->node.utc)
                     {
-                        agent->cinfo->node.utc = device.utc;
+                        agent->cinfo->node.utc = device->utc;
                     }
                 }
             }
@@ -865,7 +872,7 @@ int32_t get_power_mode()
 	if(iretn<0)	{
 		return powermode;
 	} else	{
-    	if (sscanf(tdata.c_str(), "%u\n", &tindex) == 1)
+    	if (sscanf(tdata.c_str(), "%hu\n", &tindex) == 1)
     	{
         	if (tindex > 0)
         	{
@@ -901,7 +908,7 @@ int32_t get_power_mode()
 //    iretn = json_createpiece(agent->cinfo, "main_cpu", DeviceType::CPU);
 //    if (iretn < 0)
 //    {
-//        fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
+//        agent->debug_error.Printf("Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
 //        agent->shutdown();
 //        exit(1);
 //    }

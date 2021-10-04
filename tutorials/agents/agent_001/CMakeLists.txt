@@ -12,4 +12,7 @@ foreach(file ${files})
     add_executable(${bfile} ${bfile}.cpp)
     target_link_libraries(${bfile} CosmosAgent)
     install(TARGETS ${bfile} DESTINATION bin)
+    add_deployment_binary(${bfile} "bin")
 endforeach()
+
+

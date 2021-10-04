@@ -33,7 +33,7 @@
 int main(int argc, char *argv[])
 {
     printf("devicestruc: %lu\n", sizeof(devicestruc));
-    printf("allstruc: %lu\n", sizeof(allstruc));
+//    printf("allstruc: %lu\n", sizeof(allstruc));
     printf("antstruc : %lu\n", sizeof(antstruc));
     printf("battstruc : %lu\n", sizeof(battstruc));
     printf("busstruc : %lu\n", sizeof(busstruc));

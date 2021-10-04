@@ -119,7 +119,7 @@ void KissHandle::set_source_callsign(string source)
     return;
 }
 
-std::string KissHandle::get_source_callsign()
+string KissHandle::get_source_callsign()
 {
     string callsign;
     for (uint8_t byte : header.source_callsign)
@@ -162,7 +162,7 @@ uint8_t KissHandle::get_protocolID()
     return header.protocolID;
 }
 
-std::ostream& operator<< (std::ostream& out, KissHandle& K)	{
+::std::ostream& operator<< (::std::ostream& out, KissHandle& K)	{
     out<<"port_number= "<< K.header.port_number<<std::endl;
     out<<"command="<< K.header.command<<std::endl;
     out<<"destination callsign=<"<< K.header.destination_callsign<<">"<<std::endl;

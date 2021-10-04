@@ -149,7 +149,7 @@ StringParser::StringParser(string str, char delimiter) { splitString(str,delimit
 //  splits the string into a vector field of strings
 void StringParser::splitString(string str, char delimiter)
 {
-    std::stringstream ss(str);
+    stringstream ss(str);
     string token;
 
     while(std::getline(ss, token, delimiter)) {
@@ -217,14 +217,48 @@ string to_hex_string(vector <uint8_t> buffer, bool ascii) {
     return output;
 }
 
-string to_string(char *value) {
-    string output = value;
+string to_astring(vector<uint8_t> buf, bool hex)
+{
+    return to_astring((char *)buf.data(), buf.size(), hex);
+}
+
+string to_astring(string buf, bool hex)
+{
+    return to_astring((char *)buf.c_str(), buf.length(), hex);
+}
+
+string to_astring(char *value, size_t length, bool hex)
+{
+    string output;
+    if (hex)
+    {
+        for (size_t i=0; i<length; ++i)
+        {
+            if (value[i] < 32 || value[i] > 126)
+            {
+                output += '(' + to_hex(value[i], 2, true) + ')';
+            }
+            else
+            {
+                output.push_back(value[i]);
+            }
+        }
+    }
+    else
+    {
+        output = value;
+    }
     return output;
 }
 
-string to_hex(int64_t value, uint16_t digits, bool zerofill) {
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+string to_hex(uint64_t value, uint16_t digits, bool zerofill)
+#else
+string to_hex(size_t value, uint16_t digits, bool zerofill)
+#endif
+{
     string output="";
-    output.resize(digits?digits+2:20);
+    output.resize(digits>17?digits:17);
     if (zerofill) {
         if (digits) {
             sprintf(&output[0], "%0*lx", digits, value);
@@ -238,13 +272,25 @@ string to_hex(int64_t value, uint16_t digits, bool zerofill) {
             sprintf(&output[0], "%lx", value);
         }
     }
-    output.resize(strlen(&output[0]));
+    if (digits)
+    {
+        output.resize(digits);
+    }
+    else
+    {
+        output.resize(strlen(output.c_str()));
+    }
     return output;
 }
 
-string to_signed(int64_t value, uint16_t digits, bool zerofill) {
+#if ((PTRDIFF_WIDTH) == (INT64_WIDTH))
+string to_signed(int64_t value, uint16_t digits, bool zerofill)
+#else
+string to_signed(int32_t value, uint16_t digits, bool zerofill)
+#endif
+{
     string output="";
-    output.resize((value==0?0:size_t(log10(std::abs(value))))+digits+5);
+    output.resize(digits>20?digits:20);
     if (zerofill) {
         if (digits) {
             sprintf(&output[0], "%0*ld", digits, value);
@@ -258,13 +304,25 @@ string to_signed(int64_t value, uint16_t digits, bool zerofill) {
             sprintf(&output[0], "%ld", value);
         }
     }
-    output.resize(strlen(&output[0]));
+    if (digits)
+    {
+        output.resize(digits);
+    }
+    else
+    {
+        output.resize(strlen(output.c_str()));
+    }
     return output;
 }
 
-string to_unsigned(uint64_t value, uint16_t digits, bool zerofill) {
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+string to_unsigned(uint64_t value, uint16_t digits, bool zerofill)
+#else
+string to_unsigned(uint32_t value, uint16_t digits, bool zerofill)
+#endif
+{
     string output="";
-    output.resize((value==0?0:size_t(log10((value))))+digits+5);
+    output.resize(digits>20?digits:20);
     if (zerofill) {
         if (digits) {
             sprintf(&output[0], "%0*lu", digits, value);
@@ -278,34 +336,105 @@ string to_unsigned(uint64_t value, uint16_t digits, bool zerofill) {
             sprintf(&output[0], "%lu", value);
         }
     }
-    output.resize(strlen(&output[0]));
+    if (digits)
+    {
+        output.resize(digits);
+    }
+    else
+    {
+        output.resize(strlen(output.c_str()));
+    }
     return output;
 }
 
-string to_double(double value, uint16_t precision) {
+string to_floating(float value, uint16_t precision) {
     string output="";
-//    output.resize((value==0.?0:size_t(log10(std::abs(value))))+precision+5);
     output.resize(17+precision);
     if (precision) {
-        sprintf(&output[0], "%.*g", precision, value);
+        sprintf(&output[0], "%.*f", precision, static_cast<double>(value));
     } else {
-        sprintf(&output[0], "%g", value);
+        sprintf(&output[0], "%f", static_cast<double>(value));
     }
     output.resize(strlen(&output[0]));
     return output;
 }
 
-string to_mjd(double value) { return to_double(value, 13); }
+string to_floating(double value, uint16_t precision)
+{
+    uint16_t digits = abs(log10(value));
+    string output="";
+    output.resize(digits+17+precision);
+    if (precision) {
+        sprintf(&output[0], "%.*f", precision, value);
+    } else {
+        sprintf(&output[0], "%f", value);
+    }
+    output.resize(strlen(&output[0]));
+    return output;
+}
+
+string to_floatexp(float value, uint16_t precision) {
+    string output="";
+    output.resize(17+precision);
+    if (precision) {
+        sprintf(&output[0], "%.*e", precision, static_cast<double>(value));
+    } else {
+        sprintf(&output[0], "%e", static_cast<double>(value));
+    }
+    output.resize(strlen(&output[0]));
+    return output;
+}
+
+string to_floatexp(double value, uint16_t precision) {
+    string output="";
+    if (!precision)
+    {
+        precision = 8;
+    }
+    output.resize(17+precision);
+    sprintf(&output[0], "%.*e", precision, value);
+    output.resize(strlen(&output[0]));
+    return output;
+}
+
+string to_floatany(float value, uint16_t precision) {
+    string output="";
+    output.resize(17+precision);
+    if (precision) {
+        sprintf(&output[0], "%.*g", precision, static_cast<double>(value));
+    } else {
+        sprintf(&output[0], "%.*g", 13, static_cast<double>(value));
+    }
+    output.resize(strlen(&output[0]));
+    return output;
+}
+
+string to_floatany(double value, uint16_t precision) {
+    string output="";
+    if (!precision)
+    {
+        precision = 17;
+    }
+    output.resize(17+precision);
+    sprintf(&output[0], "%.*g", precision, value);
+    output.resize(strlen(&output[0]));
+    return output;
+}
+
+string to_mjd(double value)
+{
+    return to_floatany(value, 13);
+}
 
 string to_temperature(double value, char units, uint8_t precision)
 {
     switch (units) {
     case 'K':
-        return to_double(value, precision) + " K";
+        return to_floatany(value, precision) + " K";
     case 'C':
-        return to_double(value - 273.15, precision) + " C";
+        return to_floatany(value - 273.15, precision) + " C";
     case 'F':
-        return to_double((value - 273.15) / 1.8 + 32., precision) + " F";
+        return to_floatany((value - 273.15) / 1.8 + 32., precision) + " F";
     }
     return "";
 }
@@ -314,21 +443,26 @@ string to_angle(double value, char units, uint8_t precision) {
     switch (units)
     {
     case 'R':
-        return to_double(value, precision);
+        return to_floatany(value, precision);
     case 'D':
-        return to_double(DEGOF(value), precision) + 'D';
+        return to_floatany(DEGOF(value), precision) + 'D';
     case 'A':
-        return to_double(value / DAS2R, precision) + '\'';
+        return to_floatany(value / DAS2R, precision) + '\'';
     }
     return "";
 }
 
 string to_bool(bool value) {
-    string output="";
-    output.resize(2);
-    output[0] =  value?'1':'0';
-    output.resize(strlen(&output[0]));
+    string output = value?"Yes":"No";
+//    output.resize(2);
+//    output[0] =  value?'1':'0';
+//    output.resize(strlen(&output[0]));
     return output;
+}
+
+string to_unixtime(double value, uint8_t precision)
+{
+    return to_floating(86400. * (value - 40587.), precision);
 }
 
 string to_json(string key, string value) {
@@ -343,6 +477,7 @@ string to_json(string key, double value) {
     return jobject.to_json_object();
 }
 
+#if ((PTRDIFF_WIDTH) == (INT64_WIDTH))
 string to_json(string key, int64_t value) {
     JSONObject jobject;
     jobject.addElement(key, value);
@@ -360,7 +495,23 @@ string to_json(string key, int16_t value) {
 string to_json(string key, int8_t value) {
     return to_json(key, static_cast<int64_t>(value));
 }
+#else
+string to_json(string key, int32_t value) {
+    JSONObject jobject;
+    jobject.addElement(key, value);
+    return jobject.to_json_object();
+}
 
+string to_json(string key, int16_t value) {
+    return to_json(key, static_cast<int32_t>(value));
+}
+
+string to_json(string key, int8_t value) {
+    return to_json(key, static_cast<int32_t>(value));
+}
+#endif
+
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
 string to_json(string key, uint64_t value) {
     JSONObject jobject;
     jobject.addElement(key, value);
@@ -372,15 +523,44 @@ string to_json(string key, uint32_t value) { return to_json(key, static_cast<uin
 string to_json(string key, uint16_t value) { return to_json(key, static_cast<uint64_t>(value)); }
 
 string to_json(string key, uint8_t value) { return to_json(key, static_cast<uint64_t>(value)); }
+#else
+string to_json(string key, uint32_t value) {
+    JSONObject jobject;
+    jobject.addElement(key, value);
+    return jobject.to_json_object();
+}
 
-string to_label(string label, double value, uint16_t precision, bool mjd) {
-    if (mjd) {
+string to_json(string key, uint16_t value) { return to_json(key, static_cast<uint32_t>(value)); }
+
+string to_json(string key, uint8_t value) { return to_json(key, static_cast<uint32_t>(value)); }
+
+#endif
+
+string to_label(string label, double value, uint16_t precision, bool mjd)
+{
+    if (mjd)
+    {
         return label + ": " + to_mjd(value);
-    } else {
-        return label + ": " + to_double(value, precision);
+    }
+    else
+    {
+        if (fabs(value) >= 1e7 || fabs(value) < 1e-6)
+        {
+            return label + ": " + to_floatexp(value, precision);
+        }
+        else
+        {
+            return label + ": " + to_floating(value, precision);
+        }
     }
 }
 
+string to_label(string label, float value, uint16_t precision, bool mjd)
+{
+    return to_label(label, (double)value, precision, mjd);
+}
+
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
 string to_label(string label, uint64_t value, uint16_t digits, bool hex) {
     if (hex) {
         return label + ": " + to_hex(value, digits);
@@ -400,7 +580,25 @@ string to_label(string label, uint16_t value, uint16_t digits, bool hex) {
 string to_label(string label, uint8_t value, uint16_t digits, bool hex) {
     return to_label(label, static_cast<uint64_t>(value), digits, hex);
 }
+#else
+string to_label(string label, uint32_t value, uint16_t digits, bool hex) {
+    if (hex) {
+        return label + ": " + to_hex(value, digits);
+    } else {
+        return label + ": " + to_unsigned(value, digits);
+    }
+}
 
+string to_label(string label, uint16_t value, uint16_t digits, bool hex) {
+    return to_label(label, static_cast<uint32_t>(value), digits, hex);
+}
+
+string to_label(string label, uint8_t value, uint16_t digits, bool hex) {
+    return to_label(label, static_cast<uint32_t>(value), digits, hex);
+}
+#endif
+
+#if ((PTRDIFF_WIDTH) == (INT64_WIDTH))
 string to_label(string label, int64_t value, uint16_t digits, bool hex) {
     if (hex) {
         return label + ": " + to_hex(value, digits);
@@ -420,6 +618,23 @@ string to_label(string label, int16_t value, uint16_t digits, bool hex) {
 string to_label(string label, int8_t value, uint16_t digits, bool hex) {
     return to_label(label, static_cast<int64_t>(value), digits, hex);
 }
+#else
+string to_label(string label, int32_t value, uint16_t digits, bool hex) {
+    if (hex) {
+        return label + ": " + to_hex(value, digits);
+    } else {
+        return label + ": " + to_signed(value, digits);
+    }
+}
+
+string to_label(string label, int16_t value, uint16_t digits, bool hex) {
+    return to_label(label, static_cast<int32_t>(value), digits, hex);
+}
+
+string to_label(string label, int8_t value, uint16_t digits, bool hex) {
+    return to_label(label, static_cast<int32_t>(value), digits, hex);
+}
+#endif
 
 string to_label(string label, bool value) {
     return label + ": " + to_bool(value);
@@ -442,6 +657,242 @@ string clean_string(string value) {
     printf("\n");
     output.push_back(0);
     return output;
+}
+
+uint64_t to_uint64(string svalue)
+{
+    return to_uint64(svalue.data(), svalue.length());
+}
+
+uint64_t to_uint64(const char* svalue, uint16_t digits)
+{
+    uint64_t nvalue = 0;
+    bool negative = false;
+    for (size_t i=0; i<digits; ++i)
+    {
+        if (svalue[i] == '-')
+        {
+            negative = true;
+        }
+        else if (svalue[i] >= '0' && svalue[i] <= '9')
+        {
+            nvalue = 10 * nvalue + svalue[i];
+        }
+    }
+    if (negative)
+    {
+        nvalue = -nvalue;
+    }
+    return nvalue;
+}
+
+uint32_t to_uint32(string svalue)
+{
+    return to_uint32(svalue.data(), svalue.length());
+}
+
+uint32_t to_uint32(const char* svalue, uint16_t digits)
+{
+    uint32_t nvalue = 0;
+    bool negative = false;
+    for (size_t i=0; i<digits; ++i)
+    {
+        if (svalue[i] == '-')
+        {
+            negative = true;
+        }
+        else if (svalue[i] >= '0' && svalue[i] <= '9')
+        {
+            nvalue = 10 * nvalue + svalue[i];
+        }
+    }
+    if (negative)
+    {
+        nvalue = -nvalue;
+    }
+    return nvalue;
+}
+
+uint16_t to_uint16(string svalue)
+{
+    return to_uint16(svalue.data(), svalue.length());
+}
+
+uint16_t to_uint16(const char* svalue, uint16_t digits)
+{
+    uint16_t nvalue = 0;
+    bool negative = false;
+    for (size_t i=0; i<digits; ++i)
+    {
+        if (svalue[i] == '-')
+        {
+            negative = true;
+        }
+        else if (svalue[i] >= '0' && svalue[i] <= '9')
+        {
+            nvalue = 10 * nvalue + svalue[i];
+        }
+    }
+    if (negative)
+    {
+        nvalue = -nvalue;
+    }
+    return nvalue;
+}
+
+uint8_t to_uint8(string svalue)
+{
+    return to_uint8(svalue.data(), svalue.length());
+}
+
+uint8_t to_uint8(const char* svalue, uint16_t digits)
+{
+    uint8_t nvalue = 0;
+    bool negative = false;
+    for (size_t i=0; i<digits; ++i)
+    {
+        if (svalue[i] == '-')
+        {
+            negative = true;
+        }
+        else if (svalue[i] >= '0' && svalue[i] <= '9')
+        {
+            nvalue = 10 * nvalue + svalue[i];
+        }
+    }
+    if (negative)
+    {
+        nvalue = -nvalue;
+    }
+    return nvalue;
+}
+
+int64_t to_int64(string svalue)
+{
+    return to_int64(svalue.data(), svalue.length());
+}
+
+int64_t to_int64(const char* svalue, uint16_t digits)
+{
+    int64_t nvalue = 0;
+    bool negative = false;
+    for (size_t i=0; i<digits; ++i)
+    {
+        if (svalue[i] == '-')
+        {
+            negative = true;
+        }
+        else if (svalue[i] >= '0' && svalue[i] <= '9')
+        {
+            nvalue = 10 * nvalue + svalue[i];
+        }
+    }
+    if (negative)
+    {
+        nvalue = -nvalue;
+    }
+    return nvalue;
+}
+
+int32_t to_int32(string svalue)
+{
+    return to_int32(svalue.data(), svalue.length());
+}
+
+int32_t to_int32(const char* svalue, uint16_t digits)
+{
+    int32_t nvalue = 0;
+    bool negative = false;
+    for (size_t i=0; i<digits; ++i)
+    {
+        if (svalue[i] == '-')
+        {
+            negative = true;
+        }
+        else if (svalue[i] >= '0' && svalue[i] <= '9')
+        {
+            nvalue = 10 * nvalue + svalue[i];
+        }
+    }
+    if (negative)
+    {
+        nvalue = -nvalue;
+    }
+    return nvalue;
+}
+
+int16_t to_int16(string svalue)
+{
+    return to_int16(svalue.data(), svalue.length());
+}
+
+int16_t to_int16(const char* svalue, uint16_t digits)
+{
+    int16_t nvalue = 0;
+    bool negative = false;
+    for (size_t i=0; i<digits; ++i)
+    {
+        if (svalue[i] == '-')
+        {
+            negative = true;
+        }
+        else if (svalue[i] >= '0' && svalue[i] <= '9')
+        {
+            nvalue = 10 * nvalue + svalue[i];
+        }
+    }
+    if (negative)
+    {
+        nvalue = -nvalue;
+    }
+    return nvalue;
+}
+
+int8_t to_int8(string svalue)
+{
+    return to_int8(svalue.data(), svalue.length());
+}
+
+int8_t to_int8(const char* svalue, uint16_t digits)
+{
+    int8_t nvalue = 0;
+    bool negative = false;
+    for (size_t i=0; i<digits; ++i)
+    {
+        if (svalue[i] == '-')
+        {
+            negative = true;
+        }
+        else if (svalue[i] >= '0' && svalue[i] <= '9')
+        {
+            nvalue = 10 * nvalue + svalue[i];
+        }
+    }
+    if (negative)
+    {
+        nvalue = -nvalue;
+    }
+    return nvalue;
+}
+
+double_t to_double(string svalue)
+{
+    return stod(svalue);
+}
+
+double_t to_double(const char *svalue, uint16_t digits)
+{
+    return to_double(string(svalue, digits));
+}
+
+float_t to_float(string svalue)
+{
+    return stof(svalue);
+}
+
+float_t to_float(const char *svalue, uint16_t digits)
+{
+    return to_float(string(svalue, digits));
 }
 
 //! @}

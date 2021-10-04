@@ -77,7 +77,7 @@ string std::to_string(T value)
 {
     //create an output string stream
     std::ostringstream os ;
-    //throw the value into the string stream, assuming std::stringstream
+    //throw the value into the string stream, assuming stringstream
     //handles it
     os << value ;
     //convert the string stream into a string and return
@@ -251,21 +251,21 @@ int main(int argc, char *argv[])
     agent = new Agent("", "file", 0.);
     if ((iretn = agent->wait()) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%.4f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("%.4f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
     else
     {
-        fprintf(agent->get_debug_fd(), "%.4f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+        agent->debug_error.Printf("%.4f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
-    fprintf(agent->get_debug_fd(), "%.4f Node: %s Agent: %s - Established\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
-    fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
+    agent->debug_error.Printf("%.4f Node: %s Agent: %s - Established\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
+    // fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
     out_comm_channel.resize(1);
     if((iretn = socket_open(&out_comm_channel[0].chansock, NetworkType::UDP, "", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%.4f Main: Node: %s Agent: %s - Listening socket failure\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
+        agent->debug_error.Printf("%.4f Main: Node: %s Agent: %s - Listening socket failure\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
         agent->shutdown();
         exit (-errno);
     }
@@ -279,8 +279,8 @@ int main(int argc, char *argv[])
     out_comm_channel[0].node = "";
     out_comm_channel[0].throughput = default_throughput;
     out_comm_channel[0].packet_size = default_packet_size;
-    fprintf(agent->get_debug_fd(), "%.4f Node: %s Agent: %s - Listening socket open\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
-    fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
+    agent->debug_error.Printf("%.4f Node: %s Agent: %s - Listening socket open\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
+    // fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
     if (argc > 1 && ((argv[1][0] < '0' || argv[1][0] > '9') || argc == 3))
     {
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
 //        }
         if((iretn = socket_open(&out_comm_channel[1].chansock, NetworkType::UDP, out_comm_channel[1].chanip.c_str(), AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
         {
-            fprintf(agent->get_debug_fd(), "%.4f Node: %s IP: %s - Sending socket failure\n", tet.split(), out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str());
+            agent->debug_error.Printf("%.4f Node: %s IP: %s - Sending socket failure\n", tet.split(), out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str());
             agent->shutdown();
             exit (-errno);
         }
@@ -314,8 +314,8 @@ int main(int argc, char *argv[])
         out_comm_channel[1].lomjd = out_comm_channel[1].nmjd;
         out_comm_channel[1].fmjd = out_comm_channel[1].nmjd;
         out_comm_channel[1].packet_size = default_packet_size;
-        fprintf(agent->get_debug_fd(), "%.4f Network: Old: %u %s %s %u\n", tet.split(), 1, out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str(), ntohs(out_comm_channel[1].chansock.caddr.sin_port));
-        fflush(agent->get_debug_fd());
+        agent->debug_error.Printf("%.4f Network: Old: %u %s %s %u\n", tet.split(), 1, out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str(), ntohs(out_comm_channel[1].chansock.caddr.sin_port));
+        // fflush(agent->get_debug_fd());
 
         log_directory = "temp"; // put log files in node/outgoing/file
         logstride_sec = 600.; // longer logstride
@@ -324,7 +324,7 @@ int main(int argc, char *argv[])
     // Initialize Transfer Queue
     if ((iretn = load_nodeids()) < 2)
     {
-        fprintf(agent->get_debug_fd(), "%.4f Couldn't load node lookup table\n", tet.split());
+        agent->debug_error.Printf("%.4f Couldn't load node lookup table\n", tet.split());
         agent->shutdown();
         exit (iretn);
     }
@@ -340,11 +340,11 @@ int main(int argc, char *argv[])
 
     if (argc > 1 && (argv[1][0] >= '0' && argv[1][0] <= '9'))
     {
-        agent->debug_level = argv[1][0] - '0';
+        agent->set_debug_level(argv[1][0] - '0');
     }
     else
     {
-        agent->debug_level = 0;
+        agent->set_debug_level(0);
     }
 
     // Restore in progress transfers from previous run
@@ -476,10 +476,10 @@ int main(int argc, char *argv[])
         }
     } // End WHILE Loop
 
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
-        fprintf(agent->get_debug_fd(), "%.4f %.4f Main: Node: %s Agent: %s - Exiting\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
-        fflush(agent->get_debug_fd());
+        agent->debug_error.Printf("%.4f %.4f Main: Node: %s Agent: %s - Exiting\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
+        // fflush(agent->get_debug_fd());
     }
 
     send_loop_thread.join();
@@ -488,10 +488,10 @@ int main(int argc, char *argv[])
     transmit_loop_thread.join();
     txq.clear();
 
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
-        fprintf(agent->get_debug_fd(), "%.4f %.4f Main: Node: %s Agent: %s - Shutting down\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
-        fflush(agent->get_debug_fd());
+        agent->debug_error.Printf("%.4f %.4f Main: Node: %s Agent: %s - Shutting down\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
+        // fflush(agent->get_debug_fd());
     }
 
     agent->shutdown();
@@ -959,11 +959,11 @@ void recv_loop() noexcept
 
                             if (txq[node_id].incoming.progress[tx_id].fp == nullptr)
                             {
-                                if (agent->debug_level)
+                                if (agent->get_debug_level())
                                 {
                                     debug_fd_lock.lock();
-                                    fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: File Error: %s %s on ID: %u Chunk: %u\n", tet.split(), dt.lap(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
-                                    fflush(agent->get_debug_fd());
+                                    agent->debug_error.Printf("%.4f %.4f Incoming: File Error: %s %s on ID: %u Chunk: %u\n", tet.split(), dt.lap(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
+                                    // fflush(agent->get_debug_fd());
                                     debug_fd_lock.unlock();
                                 }
                             }
@@ -974,7 +974,7 @@ void recv_loop() noexcept
                                 fflush(txq[node_id].incoming.progress[tx_id].fp);
                                 // Write latest meta data to disk
                                 write_meta(txq[node_id].incoming.progress[tx_id]);
-                                if (agent->debug_level)
+                                if (agent->get_debug_level())
                                 {
                                     uint32_t total = 0;
                                     for (uint16_t i=0; i<data.byte_count; ++i)
@@ -993,11 +993,11 @@ void recv_loop() noexcept
 //                            if (txq[node_id].node_id > 0)
 //                            {
 //                                tx_progress tx_in = txq[node_id].incoming.progress[tx_id];
-//                                if (agent->debug_level)
+//                                if (agent->get_debug_level())
 //                                {
 //                                    debug_fd_lock.lock();
-//                                    fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Complete: %u %s %u %u\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.file_size, tx_in.total_bytes);
-//                                    fflush(agent->get_debug_fd());
+//                                    agent->debug_error.Printf("%.4f %.4f Incoming: Complete: %u %s %u %u\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.file_size, tx_in.total_bytes);
+//                                    // fflush(agent->get_debug_fd());
 //                                    debug_fd_lock.unlock();
 //                                }
 
@@ -1013,11 +1013,11 @@ void recv_loop() noexcept
 //                                    int iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
 //                                    // Make sure metadata is recorded
 //                                    write_meta(txq[node_id].incoming.progress[tx_id], 0.);
-//                                    if (agent->debug_level)
+//                                    if (agent->get_debug_level())
 //                                    {
 //                                        debug_fd_lock.lock();
-//                                        fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, tx_in.filepath.c_str());
-//                                        fflush(agent->get_debug_fd());
+//                                        agent->debug_error.Printf("%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, tx_in.filepath.c_str());
+//                                        // fflush(agent->get_debug_fd());
 //                                        debug_fd_lock.unlock();
 //                                    }
 
@@ -1536,7 +1536,7 @@ int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf)
         ++packet_out_count;
         out_comm_channel[use_channel].lomjd = currentmjd();
         out_comm_channel[use_channel].nmjd = out_comm_channel[use_channel].lomjd + ((28+iretn) / (float)out_comm_channel[use_channel].throughput)/86400.;
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_packet(buf, PACKET_OUT, type, use_channel);
         }
@@ -1626,7 +1626,7 @@ int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& bu
                             {
                                 ++packet_in_count;
                                 buf.resize(nbytes);
-                                if (agent->debug_level)
+                                if (agent->get_debug_level())
                                 {
                                     debug_packet(buf, PACKET_IN, type, i);
                                 }
@@ -1704,7 +1704,7 @@ void debug_packet(vector<PACKET_BYTE> buf, uint8_t direction, string type, int32
 {
     static ElapsedTime dt;
 
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
 
@@ -1732,16 +1732,16 @@ void debug_packet(vector<PACKET_BYTE> buf, uint8_t direction, string type, int32
             {
                 if (!node_name.empty())
                 {
-                    fprintf(agent->get_debug_fd(), "%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                    agent->debug_error.Printf("%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
                 }
                 else
                 {
-                    fprintf(agent->get_debug_fd(), "%.4f %.4f RECV L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                    agent->debug_error.Printf("%.4f %.4f RECV L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
                 }
             }
             else
             {
-                fprintf(agent->get_debug_fd(), "%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                agent->debug_error.Printf("%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
             }
         }
         else if (direction == PACKET_OUT)
@@ -1750,16 +1750,16 @@ void debug_packet(vector<PACKET_BYTE> buf, uint8_t direction, string type, int32
             {
                 if (!node_name.empty())
                 {
-                    fprintf(agent->get_debug_fd(), "%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                    agent->debug_error.Printf("%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
                 }
                 else
                 {
-                    fprintf(agent->get_debug_fd(), "%.4f %.4f SEND L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                    agent->debug_error.Printf("%.4f %.4f SEND L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
                 }
             }
             else
             {
-                fprintf(agent->get_debug_fd(), "%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                agent->debug_error.Printf("%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
             }
         }
 
@@ -1768,74 +1768,74 @@ void debug_packet(vector<PACKET_BYTE> buf, uint8_t direction, string type, int32
         case PACKET_METADATA:
             {
                 string file_name(&buf[PACKET_METASHORT_OFFSET_FILE_NAME], &buf[PACKET_METASHORT_OFFSET_FILE_NAME+TRANSFER_MAX_FILENAME]);
-                fprintf(agent->get_debug_fd(), "[METADATA] %u %u %s ", node_id, buf[PACKET_METASHORT_OFFSET_TX_ID], file_name.c_str());
+                agent->debug_error.Printf("[METADATA] %u %u %s ", node_id, buf[PACKET_METASHORT_OFFSET_TX_ID], file_name.c_str());
                 break;
             }
         case PACKET_DATA:
             {
-                fprintf(agent->get_debug_fd(), "[DATA] %u %u %u %u ", node_id, buf[PACKET_DATA_OFFSET_TX_ID], buf[PACKET_DATA_OFFSET_CHUNK_START]+256U*(buf[PACKET_DATA_OFFSET_CHUNK_START+1]+256U*(buf[PACKET_DATA_OFFSET_CHUNK_START+2]+256U*buf[PACKET_DATA_OFFSET_CHUNK_START+3])), buf[PACKET_DATA_OFFSET_BYTE_COUNT]+256U*buf[PACKET_DATA_OFFSET_BYTE_COUNT+1]);
+                agent->debug_error.Printf("[DATA] %u %u %u %u ", node_id, buf[PACKET_DATA_OFFSET_TX_ID], buf[PACKET_DATA_OFFSET_CHUNK_START]+256U*(buf[PACKET_DATA_OFFSET_CHUNK_START+1]+256U*(buf[PACKET_DATA_OFFSET_CHUNK_START+2]+256U*buf[PACKET_DATA_OFFSET_CHUNK_START+3])), buf[PACKET_DATA_OFFSET_BYTE_COUNT]+256U*buf[PACKET_DATA_OFFSET_BYTE_COUNT+1]);
                 break;
             }
         case PACKET_REQDATA:
             {
-                fprintf(agent->get_debug_fd(), "[REQDATA] %u %u %u %u ", node_id, buf[PACKET_REQDATA_OFFSET_TX_ID], buf[PACKET_REQDATA_OFFSET_HOLE_START]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_START+1]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_START+2]+256U*buf[PACKET_REQDATA_OFFSET_HOLE_START+3])), buf[PACKET_REQDATA_OFFSET_HOLE_END]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_END+1]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_END+2]+256U*buf[PACKET_REQDATA_OFFSET_HOLE_END+3])));
+                agent->debug_error.Printf("[REQDATA] %u %u %u %u ", node_id, buf[PACKET_REQDATA_OFFSET_TX_ID], buf[PACKET_REQDATA_OFFSET_HOLE_START]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_START+1]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_START+2]+256U*buf[PACKET_REQDATA_OFFSET_HOLE_START+3])), buf[PACKET_REQDATA_OFFSET_HOLE_END]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_END+1]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_END+2]+256U*buf[PACKET_REQDATA_OFFSET_HOLE_END+3])));
                 break;
             }
         case PACKET_COMPLETE:
             {
-                fprintf(agent->get_debug_fd(), "[COMPLETE] %u %u ", node_id, buf[PACKET_COMPLETE_OFFSET_TX_ID]);
+                agent->debug_error.Printf("[COMPLETE] %u %u ", node_id, buf[PACKET_COMPLETE_OFFSET_TX_ID]);
                 break;
             }
         case PACKET_CANCEL:
             {
-                fprintf(agent->get_debug_fd(), "[CANCEL] %u %u ", node_id, buf[PACKET_CANCEL_OFFSET_TX_ID]);
+                agent->debug_error.Printf("[CANCEL] %u %u ", node_id, buf[PACKET_CANCEL_OFFSET_TX_ID]);
                 break;
             }
         case PACKET_REQMETA:
             {
-                fprintf(agent->get_debug_fd(), "[REQMETA] %u %s ", node_id, &buf[PACKET_HEADER_OFFSET_NODE_NAME]);
+                agent->debug_error.Printf("[REQMETA] %u %s ", node_id, &buf[PACKET_HEADER_OFFSET_NODE_NAME]);
                 for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
                     if (buf[PACKET_REQMETA_OFFSET_TX_ID+i])
                     {
-                        fprintf(agent->get_debug_fd(), "%u ", buf[PACKET_REQMETA_OFFSET_TX_ID+i]);
+                        agent->debug_error.Printf("%u ", buf[PACKET_REQMETA_OFFSET_TX_ID+i]);
                     }
                 break;
             }
         case PACKET_REQQUEUE:
             {
-                fprintf(agent->get_debug_fd(), "[REQQUEUE] %u %s ", node_id, &buf[PACKET_HEADER_OFFSET_NODE_NAME]);
+                agent->debug_error.Printf("[REQQUEUE] %u %s ", node_id, &buf[PACKET_HEADER_OFFSET_NODE_NAME]);
             }
             break;
         case PACKET_QUEUE:
             {
-                fprintf(agent->get_debug_fd(), "[QUEUE] %u %s ", node_id, &buf[PACKET_HEADER_OFFSET_NODE_NAME]);
+                agent->debug_error.Printf("[QUEUE] %u %s ", node_id, &buf[PACKET_HEADER_OFFSET_NODE_NAME]);
                 for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
                     if (buf[PACKET_QUEUE_OFFSET_TX_ID+i])
                     {
-                        fprintf(agent->get_debug_fd(), "%u ", buf[PACKET_QUEUE_OFFSET_TX_ID+i]);
+                        agent->debug_error.Printf("%u ", buf[PACKET_QUEUE_OFFSET_TX_ID+i]);
                     }
             }
             break;
         case PACKET_HEARTBEAT:
             {
-                fprintf(agent->get_debug_fd(), "[HEARTBEAT] %u %s %hu %u %u", node_id, &buf[PACKET_HEADER_OFFSET_NODE_NAME], buf[PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD]
+                agent->debug_error.Printf("[HEARTBEAT] %u %s %hu %u %u", node_id, &buf[PACKET_HEADER_OFFSET_NODE_NAME], buf[PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD]
                         , buf[PACKET_HEARTBEAT_OFFSET_THROUGHPUT]+256U*(buf[PACKET_HEARTBEAT_OFFSET_THROUGHPUT+1]+256U*(buf[PACKET_HEARTBEAT_OFFSET_THROUGHPUT+2]+256U*buf[PACKET_HEARTBEAT_OFFSET_THROUGHPUT+3]))
                         , buf[PACKET_HEARTBEAT_OFFSET_FUNIXTIME]+256U*(buf[PACKET_HEARTBEAT_OFFSET_FUNIXTIME+1]+256U*(buf[PACKET_HEARTBEAT_OFFSET_FUNIXTIME+2]+256U*buf[PACKET_HEARTBEAT_OFFSET_FUNIXTIME+3])));
                 break;
             }
         case PACKET_MESSAGE:
             {
-                fprintf(agent->get_debug_fd(), "[MESSAGE] %u %hu %s", node_id, buf[PACKET_MESSAGE_OFFSET_LENGTH], &buf[PACKET_MESSAGE_OFFSET_BYTES]);
+                agent->debug_error.Printf("[MESSAGE] %u %hu %s", node_id, buf[PACKET_MESSAGE_OFFSET_LENGTH], &buf[PACKET_MESSAGE_OFFSET_BYTES]);
                 break;
             }
         case PACKET_COMMAND:
             {
-                fprintf(agent->get_debug_fd(), "[COMMAND] %u %hu %s", node_id, buf[PACKET_COMMAND_OFFSET_LENGTH], &buf[PACKET_COMMAND_OFFSET_BYTES]);
+                agent->debug_error.Printf("[COMMAND] %u %hu %s", node_id, buf[PACKET_COMMAND_OFFSET_LENGTH], &buf[PACKET_COMMAND_OFFSET_BYTES]);
                 break;
             }
         }
-        fprintf(agent->get_debug_fd(), "\n");
-        fflush(agent->get_debug_fd());
+        agent->debug_error.Printf("\n");
+        // fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
 }
@@ -1948,11 +1948,11 @@ int32_t read_meta(tx_progress& tx)
         tx.file_info.push_back(progress_info);
     } while(!file_name.eof());
     file_name.close();
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%.4f %.4f Main: read_meta: %s tx_id: %u chunks: %" PRIu32 "\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
-        fflush(agent->get_debug_fd());
+        agent->debug_error.Printf("%.4f %.4f Main: read_meta: %s tx_id: %d chunks: %lu\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
+        // fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
 
@@ -2273,22 +2273,22 @@ int32_t request_remove_file(string &request, string &response, Agent *agent)
 
 int32_t outgoing_tx_add(tx_progress &tx_out)
 {
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%.4f %.4f Main: outgoing_tx_add: ", tet.split(), dt.lap());
-        fflush(agent->get_debug_fd());
+        agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: ", tet.split(), dt.lap());
+        // fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
 
     int32_t node_id = lookup_node_id(tx_out.node_name);
     if (node_id <= 0)
     {
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "TRANSFER_ERROR_NODE\n");
-            fflush(agent->get_debug_fd());
+            agent->debug_error.Printf("TRANSFER_ERROR_NODE\n");
+            // fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
         if (node_id == 0)
@@ -2309,11 +2309,11 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
     // Only add if we have room
 //    if (txq[(node_id)].outgoing.size == PROGRESS_QUEUE_SIZE)
 //    {
-//        if (agent->debug_level)
+//        if (agent->get_debug_level())
 //        {
 //            debug_fd_lock.lock();
-//            fprintf(agent->get_debug_fd(), "TRANSFER_ERROR_QUEUEFULL\n");
-//            fflush(agent->get_debug_fd());
+//            agent->debug_error.Printf("TRANSFER_ERROR_QUEUEFULL\n");
+//            // fflush(agent->get_debug_fd());
 //            debug_fd_lock.unlock();
 //        }
 //        return TRANSFER_ERROR_QUEUEFULL;
@@ -2326,11 +2326,11 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
     }
     else
     {
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "TRANSFER_ERROR_FILENAME\n");
-            fflush(agent->get_debug_fd());
+            agent->debug_error.Printf("TRANSFER_ERROR_FILENAME\n");
+            // fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
         tx_out.filepath = "";
@@ -2346,11 +2346,11 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
         if (!txq[(node_id)].outgoing.progress[i].filepath.empty() && tx_out.filepath == txq[(node_id)].outgoing.progress[i].filepath)
         {
             // Remove the META file
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
                 debug_fd_lock.lock();
-                fprintf(agent->get_debug_fd(), "%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str());
-                fflush(agent->get_debug_fd());
+                agent->debug_error.Printf("%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str());
+                // fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
             }
             string filepath = tx_out.temppath + ".meta";
@@ -2372,11 +2372,11 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
     tx_out.sentdata = false;
     tx_out.complete = false;
 
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%u %s %s %s %lu ", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str(), PROGRESS_QUEUE_SIZE);
-        fflush(agent->get_debug_fd());
+        agent->debug_error.Printf("%u %s %s %s %d ", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str(), PROGRESS_QUEUE_SIZE);
+        // fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
 
@@ -2409,11 +2409,11 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
     ++txq[(node_id)].outgoing.size;
     outgoing_tx_lock.unlock();
 
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), " %u\n", txq[(node_id)].outgoing.size);
-        fflush(agent->get_debug_fd());
+        agent->debug_error.Printf(" %u\n", txq[(node_id)].outgoing.size);
+        // fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
 
@@ -2424,11 +2424,11 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
 {
     if (node_name.empty() || agent_name.empty() || file_name.empty())
     {
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
-            fflush(agent->get_debug_fd());
+            agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
+            // fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
         return TRANSFER_ERROR_FILENAME;
@@ -2444,7 +2444,7 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
     }
 
     // Only add if we have room
-    if (txq[(node_id)].outgoing.size == PROGRESS_QUEUE_SIZE)
+    if (txq[(node_id)].outgoing.size == PROGRESS_QUEUE_SIZE-1)
     {
         return TRANSFER_ERROR_QUEUEFULL;
     }
@@ -2466,11 +2466,11 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
             if (txq[(node_id)].outgoing.progress[i].file_size == file_size)
             {
                 txq[(node_id)].outgoing.progress[i].enabled = true;
-                if (agent->debug_level)
+                if (agent->get_debug_level())
                 {
                     debug_fd_lock.lock();
-                    fprintf(agent->get_debug_fd(), ".4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %lu ", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
-                    fflush(agent->get_debug_fd());
+                    agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d ", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                    // fflush(agent->get_debug_fd());
                     debug_fd_lock.unlock();
                 }
                 return node_id;
@@ -2520,11 +2520,11 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
 
         if(tx_out.file_size < 0)
         {
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
                 debug_fd_lock.lock();
-                fprintf(agent->get_debug_fd(), "%.4f %.4f Main: outgoing_tx_add: DATA_ERROR_SIZE_MISMATCH\n", tet.split(), dt.lap());
-                fflush(agent->get_debug_fd());
+                agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: DATA_ERROR_SIZE_MISMATCH\n", tet.split(), dt.lap());
+                // fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
             }
             return DATA_ERROR_SIZE_MISMATCH;
@@ -2534,11 +2534,11 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
         filename.open(tx_out.filepath, std::ios::in|std::ios::binary);
         if(!filename.is_open())
         {
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
                 debug_fd_lock.lock();
-                fprintf(agent->get_debug_fd(), "%.4f %.4f Main: outgoing_tx_add: %s\n", tet.split(), dt.lap(), cosmos_error_string(-errno).c_str());
-                fflush(agent->get_debug_fd());
+                agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: %s\n", tet.split(), dt.lap(), cosmos_error_string(-errno).c_str());
+                // fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
             }
             return -errno;
@@ -2609,11 +2609,11 @@ int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id, bool remove_file)
         // Remove the file
         if(remove_file && remove(tx_out.filepath.c_str()))
         {
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
                 debug_fd_lock.lock();
-                fprintf(agent->get_debug_fd(), "%.4f %.4f Main/Outgoing: Del outgoing: %u %s %s %s - Unable to remove file\n", tet.split(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
-                fflush(agent->get_debug_fd());
+                agent->debug_error.Printf("%.4f %.4f Main/Outgoing: Del outgoing: %u %s %s %s - Unable to remove file\n", tet.split(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+                // fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
             }
         }
@@ -2622,11 +2622,11 @@ int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id, bool remove_file)
         string meta_filepath = tx_out.temppath + ".meta";
         remove(meta_filepath.c_str());
 
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "%.4f %.4f Main/Outgoing: Del outgoing: %u %s %s %s\n", tet.split(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
-            fflush(agent->get_debug_fd());
+            agent->debug_error.Printf("%.4f %.4f Main/Outgoing: Del outgoing: %u %s %s %s\n", tet.split(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+            // fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
     }
@@ -2714,7 +2714,7 @@ int32_t outgoing_tx_load(uint8_t node_id)
     }
 
     // Go through outgoing directories, adding files not already in queue
-    if (txq[(node_id)].outgoing.size < PROGRESS_QUEUE_SIZE)
+    if (txq[(node_id)].outgoing.size < PROGRESS_QUEUE_SIZE-1)
     {
         vector<filestruc> file_names;
         for (filestruc file : data_list_files(txq[(node_id)].node_name, "outgoing", ""))
@@ -2730,7 +2730,7 @@ int32_t outgoing_tx_load(uint8_t node_id)
         for(uint16_t i=0; i<file_names.size(); ++i)
         {
             filestruc file = file_names[i];
-            if (txq[(node_id)].outgoing.size >= PROGRESS_QUEUE_SIZE)
+            if (txq[(node_id)].outgoing.size == PROGRESS_QUEUE_SIZE - 1)
             {
                 break;
             }
@@ -2763,11 +2763,11 @@ int32_t outgoing_tx_load(uint8_t node_id)
                         if (!txq[(node_id)].outgoing.progress[i].enabled)
                         {
                             txq[(node_id)].outgoing.progress[i].enabled = true;
-                            if (agent->debug_level)
+                            if (agent->get_debug_level())
                             {
                                 debug_fd_lock.lock();
-                                fprintf(agent->get_debug_fd(), "%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %lu\n", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
-                                fflush(agent->get_debug_fd());
+                                agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d\n", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                                // fflush(agent->get_debug_fd());
                                 debug_fd_lock.unlock();
 
                             }
@@ -2794,11 +2794,11 @@ int32_t outgoing_tx_load(uint8_t node_id)
             if (addtoqueue)
             {
                 iretn = outgoing_tx_add(file.node, file.agent, file.name);
-                if (agent->debug_level && iretn != -471)
+                if (agent->get_debug_level() && iretn != -471)
                 {
                     debug_fd_lock.lock();
-                    fprintf(agent->get_debug_fd(), "%.4f %.4f Main/Load: outgoing_tx_add: %s [%d]\n", tet.split(), dt.lap(), file.path.c_str(), iretn);
-                    fflush(agent->get_debug_fd());
+                    agent->debug_error.Printf("%.4f %.4f Main/Load: outgoing_tx_add: %s [%d]\n", tet.split(), dt.lap(), file.path.c_str(), iretn);
+                    // fflush(agent->get_debug_fd());
                     debug_fd_lock.unlock();
                 }
             }
@@ -2813,11 +2813,11 @@ int32_t incoming_tx_add(tx_progress &tx_in)
     uint8_t node_id = lookup_node_id(tx_in.node_name);
     if (node_id == 0)
     {
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "%.4f %.4f Main: incoming_tx_add: TRANSFER_ERROR_NODE\n", tet.split(), dt.lap());
-            fflush(agent->get_debug_fd());
+            agent->debug_error.Printf("%.4f %.4f Main: incoming_tx_add: TRANSFER_ERROR_NODE\n", tet.split(), dt.lap());
+            // fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
         return TRANSFER_ERROR_NODE;
@@ -2841,11 +2841,11 @@ int32_t incoming_tx_add(tx_progress &tx_in)
     {
         if (!txq[(node_id)].incoming.progress[i].filepath.empty() && tx_in.filepath == txq[(node_id)].incoming.progress[i].filepath)
         {
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
                 debug_fd_lock.lock();
-                fprintf(agent->get_debug_fd(), "%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str());
-                fflush(agent->get_debug_fd());
+                agent->debug_error.Printf("%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str());
+                // fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
             }
             // Remove the META file
@@ -2892,11 +2892,11 @@ int32_t incoming_tx_add(tx_progress &tx_in)
     txq[(node_id)].incoming.progress[tx_in.tx_id].fp = tx_in.fp;
     ++txq[(node_id)].incoming.size;
 
-    if (agent->debug_level)
+    if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%.4f %.4f Main/Incoming: Add incoming: %u %s %s %s %lu\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str(), PROGRESS_QUEUE_SIZE);
-        fflush(agent->get_debug_fd());
+        agent->debug_error.Printf("%.4f %.4f Main/Incoming: Add incoming: %u %s %s %s %d\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str(), PROGRESS_QUEUE_SIZE);
+        // fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
 
@@ -2981,11 +2981,11 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
             write_meta(txq[(node_id)].incoming.progress[meta.tx_id]);
         }
 
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Update incoming: %u %s %s %s\n", tet.split(), dt.lap(), txq[(node_id)].incoming.progress[meta.tx_id].tx_id, txq[(node_id)].incoming.progress[meta.tx_id].node_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].agent_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].file_name.c_str());
-            fflush(agent->get_debug_fd());
+            agent->debug_error.Printf("%.4f %.4f Incoming: Update incoming: %u %s %s %s\n", tet.split(), dt.lap(), txq[(node_id)].incoming.progress[meta.tx_id].tx_id, txq[(node_id)].incoming.progress[meta.tx_id].node_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].agent_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].file_name.c_str());
+            // fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
 
@@ -3043,11 +3043,11 @@ int32_t incoming_tx_del(uint8_t node_id, uint16_t tx_id)
             int iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
             // Make sure metadata is recorded
             write_meta(tx_in, 0.);
-            if (agent->debug_level)
+            if (agent->get_debug_level())
             {
                 debug_fd_lock.lock();
-                fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, tx_in.filepath.c_str());
-                fflush(agent->get_debug_fd());
+                agent->debug_error.Printf("%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, tx_in.filepath.c_str());
+                // fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
             }
 
@@ -3066,11 +3066,11 @@ int32_t incoming_tx_del(uint8_t node_id, uint16_t tx_id)
         filepath = tx_in.temppath + ".meta";
         remove(filepath.c_str());
 
-        if (agent->debug_level)
+        if (agent->get_debug_level())
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Del incoming: %u %s\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str());
-            fflush(agent->get_debug_fd());
+            agent->debug_error.Printf("%.4f %.4f Incoming: Del incoming: %u %s\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str());
+            // fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
     }
@@ -3295,7 +3295,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
 {
     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[(node)].incoming, choose_incoming_tx_id(node));
 
-    if (tx_id < PROGRESS_QUEUE_SIZE && tx_id > 0)
+    if (tx_id > 0)
     {
         // See if we know what the remote node_id is for this
         if (txq[node].node_id > 0)
@@ -3304,11 +3304,11 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
             if(txq[(node)].incoming.progress[tx_id].file_size == txq[(node)].incoming.progress[tx_id].total_bytes && txq[(node)].incoming.progress[tx_id].havemeta)
             {
                 //                tx_progress tx_in = txq[(node)].incoming.progress[tx_id];
-                if (agent->debug_level)
+                if (agent->get_debug_level())
                 {
                     debug_fd_lock.lock();
-                    fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming(next_incoming_tx): Complete: %u %s %u %u\n", tet.split(), dt.lap(), txq[(node)].incoming.progress[tx_id].tx_id, txq[(node)].incoming.progress[tx_id].node_name.c_str(), txq[(node)].incoming.progress[tx_id].file_size, txq[(node)].incoming.progress[tx_id].total_bytes);
-                    fflush(agent->get_debug_fd());
+                    agent->debug_error.Printf("%.4f %.4f Incoming(next_incoming_tx): Complete: %u %s %u %u\n", tet.split(), dt.lap(), txq[(node)].incoming.progress[tx_id].tx_id, txq[(node)].incoming.progress[tx_id].node_name.c_str(), txq[(node)].incoming.progress[tx_id].file_size, txq[(node)].incoming.progress[tx_id].total_bytes);
+                    // fflush(agent->get_debug_fd());
                     debug_fd_lock.unlock();
                 }
 
@@ -3324,11 +3324,11 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
                     int32_t iret = rename(final_filepath.c_str(), txq[(node)].incoming.progress[tx_id].filepath.c_str());
                     // Make sure metadata is recorded
                     write_meta(txq[(node)].incoming.progress[tx_id], 0.);
-                    if (agent->debug_level)
+                    if (agent->get_debug_level())
                     {
                         debug_fd_lock.lock();
-                        fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming(next_incoming_tx): Renamed: %d %s\n", tet.split(), dt.lap(), iret, txq[(node)].incoming.progress[tx_id].filepath.c_str());
-                        fflush(agent->get_debug_fd());
+                        agent->debug_error.Printf("%.4f %.4f Incoming(next_incoming_tx): Renamed: %d %s\n", tet.split(), dt.lap(), iret, txq[(node)].incoming.progress[tx_id].filepath.c_str());
+                        // fflush(agent->get_debug_fd());
                         debug_fd_lock.unlock();
                     }
                     txq[(node)].incoming.progress[tx_id].complete = true;
@@ -3336,11 +3336,11 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
             }
             else
             {
-                if (agent->debug_level)
+                if (agent->get_debug_level())
                 {
                     debug_fd_lock.lock();
-                    fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming(next_incoming_tx): More: %u %s %u %u\n", tet.split(), dt.lap(), txq[(node)].incoming.progress[tx_id].tx_id, txq[(node)].incoming.progress[tx_id].node_name.c_str(), txq[(node)].incoming.progress[tx_id].file_size, txq[(node)].incoming.progress[tx_id].total_bytes);
-                    fflush(agent->get_debug_fd());
+                    agent->debug_error.Printf("%.4f %.4f Incoming(next_incoming_tx): More: %u %s %u %u\n", tet.split(), dt.lap(), txq[(node)].incoming.progress[tx_id].tx_id, txq[(node)].incoming.progress[tx_id].node_name.c_str(), txq[(node)].incoming.progress[tx_id].file_size, txq[(node)].incoming.progress[tx_id].total_bytes);
+                    // fflush(agent->get_debug_fd());
                     debug_fd_lock.unlock();
                 }
             }
@@ -3449,9 +3449,9 @@ int32_t request_debug(string &request, string &, Agent *)
     string requestString = string(request);
     StringParser sp(requestString, ' ');
 
-    agent->debug_level = sp.getFieldNumberAsDouble(2); // should be getFieldNumberAsBoolean
+    agent->set_debug_level(sp.getFieldNumberAsDouble(2)); // should be getFieldNumberAsBoolean
 
-    std::cout << "agent->debug_level: " << agent->debug_level << std::endl;
+    std::cout << "agent->get_debug_level(): " << agent->get_debug_level() << std::endl;
     return 0;
 }
 

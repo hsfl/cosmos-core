@@ -385,6 +385,78 @@ ByteOrder local_byte_order()
         return (ByteOrder::LITTLEENDIAN);
 }
 
+//! Memory to 8 bit unsigned integer
+/*! Return the 8 bit unsigned integer equivalent of a location in memory, reversed based on the local byte order.
+    \param pointer location in memory to be cast
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
+    \return 8 bit unsigned integer
+*/
+
+uint8_t uint8from(uint8_t *pointer, ByteOrder order)
+{
+    uint8_t rb = *pointer;
+    uint8_t rev = 0;
+    if (local_byte_order() == order)
+    {
+        return rb;
+    }
+    else
+    {
+        for (uint8_t ic=0; ic<8; ++ic)
+        {
+            rev <<= 1;
+            if ((rb & 1) == 1)
+            {
+                rev ^= 1;
+            }
+            rb >>= 1;
+        }
+        return rev;
+    }
+}
+
+uint8_t uint8to(uint8_t *pointer, ByteOrder order)
+{
+    uint8_t rb = *pointer;
+    uint8_t rev = 0;
+    if (local_byte_order() == order)
+    {
+        return rb;
+    }
+    else
+    {
+        for (uint8_t ic=0; ic<8; ++ic)
+        {
+            rev <<= 1;
+            if ((rb & 1) == 1)
+            {
+                rev ^= 1;
+            }
+            rb >>= 1;
+        }
+        return rev;
+    }
+}
+
+void uint8from(vector<uint8_t> src, vector<uint8_t> &dst, ByteOrder order)
+{
+    dst.resize(src.size());
+    for (size_t i=0; i<src.size(); ++i)
+    {
+        dst[i] = uint8from(&src[i], order);
+    }
+}
+
+void uint8to(vector<uint8_t> src, vector<uint8_t> &dst, ByteOrder order)
+{
+    dst.resize(src.size());
+    for (size_t i=0; i<src.size(); ++i)
+    {
+        dst[i] = uint8from(&src[i], order);
+    }
+}
+
+
 //! Memory to 16 bit unsigned integer
 /*! Return the 16 bit unsigned integer equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
@@ -2156,13 +2228,20 @@ void gauss_jackson_extrapolate(gj_instance *gji, double target)
  * \param angle Input angle in radians.
  * \return Output angle adjusted to range 0 to 2*PI.
 */
-double fixangle(double angle)
+double fixangle(double angle, bool d2pi)
 {
     double result;
 
     result = fmod(angle,D2PI);
 
-    return (result >= 0.)?result:result+D2PI;
+    if (!d2pi)
+    {
+        return (result >= DPI)?result-D2PI:result;
+    }
+    else
+    {
+        return (result);
+    }
 }
 
 //! ArcTan, limited to range 0-2PI.
@@ -2210,11 +2289,11 @@ uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb)
 
     if (lsb)
     {
-        crc = 0xffff;
+        crc = CRC16CCITTLSBINIT;
     }
     else
     {
-        crc = 0;
+        crc = CRC16CCITTMSBINIT;
     }
     for (uint16_t i=0; i<size; i++)
     {
@@ -2236,16 +2315,157 @@ uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb)
     return (crc);
 }
 
+CRC16::CRC16(uint16_t polynomial, uint16_t initial, bool reversed)
+{
+    this->polynomial = polynomial;
+    this->initial = initial;
+    if (reversed)
+    {
+        initial ^= initial;
+        uint8_t lowbyte = polynomial&0xff;
+        lowbyte = uint8to(&lowbyte, ByteOrder::BIGENDIAN);
+        uint8_t highbyte = polynomial>>8;
+        highbyte = uint8to(&highbyte, ByteOrder::BIGENDIAN);
+        polynomial = 256L * highbyte + lowbyte;
+        lsbfirst = true;
+    }
+
+    uint16_t  remainder;
 
 
+    /*
+         * Compute the remainder of each possible dividend.
+         */
+    for (int32_t dividend = 0; dividend < 256; ++dividend)
+    {
+        /*
+             * Start with the dividend followed by zeros.
+             */
+        remainder = dividend << (8);
+
+        /*
+             * Perform modulo-2 division, a bit at a time.
+             */
+        for (uint8_t bit = 8; bit > 0; --bit)
+        {
+            /*
+                 * Try to divide the current data bit.
+                 */
+            if (remainder & 0x8000)
+            {
+                remainder = (remainder << 1) ^ polynomial;
+            }
+            else
+            {
+                remainder = (remainder << 1);
+            }
+        }
+
+        /*
+             * Store the result into the table.
+             */
+        lookup[dividend] = remainder;
+    }
+}
+
+uint16_t CRC16::set(uint16_t polynomial, uint16_t initial, bool reversed)
+{
+    this->polynomial = polynomial;
+    this->initial = initial;
+    if (reversed)
+    {
+        initial ^= initial;
+        uint8_t lowbyte = polynomial&0xff;
+        lowbyte = uint8to(&lowbyte, ByteOrder::BIGENDIAN);
+        uint8_t highbyte = polynomial>>8;
+        highbyte = uint8to(&highbyte, ByteOrder::BIGENDIAN);
+        polynomial = 256L * highbyte + lowbyte;
+        lsbfirst = true;
+    }
+
+    uint16_t  remainder;
 
 
+    /*
+         * Compute the remainder of each possible dividend.
+         */
+    for (int32_t dividend = 0; dividend < 256; ++dividend)
+    {
+        /*
+             * Start with the dividend followed by zeros.
+             */
+        remainder = dividend << (8);
+
+        /*
+             * Perform modulo-2 division, a bit at a time.
+             */
+        for (uint8_t bit = 8; bit > 0; --bit)
+        {
+            /*
+                 * Try to divide the current data bit.
+                 */
+            if (remainder & 0x8000)
+            {
+                remainder = (remainder << 1) ^ polynomial;
+            }
+            else
+            {
+                remainder = (remainder << 1);
+            }
+        }
+
+        /*
+             * Store the result into the table.
+             */
+        lookup[dividend] = remainder;
+    }
+    return 0;
+}
+
+uint16_t CRC16::calc(uint8_t *buf, uint16_t size)
+{
+    vector<uint8_t> vbuf(buf, buf+(size));
+    return calc(vbuf);
+}
+
+uint16_t CRC16::calc(string message, uint16_t size)
+{
+    vector<uint8_t> vmessage(&message[0], &message[size]);
+    return calc(vmessage);
+}
+
+uint16_t CRC16::calc(string message)
+{
+    vector<uint8_t> vmessage(&message[0], &message[message.size()]);
+    return calc(vmessage);
+}
+
+uint16_t CRC16::calc(vector<uint8_t> message, uint16_t size)
+{
+    vector<uint8_t> vmessage(&message[0], &message[size]);
+    return calc(vmessage);
+}
+
+uint16_t CRC16::calc(vector<uint8_t> message)
+{
+    uint8_t data;
+    uint16_t remainder = initial;
 
 
+    /*
+     * Divide the message by the polynomial, a byte at a time.
+     */
+    for (size_t byte = 0; byte < message.size(); ++byte)
+    {
+        data = message[byte] ^ (remainder >> (8));
+        remainder = lookup[data] ^ (remainder << 8);
+    }
 
-
-
-
+    /*
+     * The final remainder is the CRC.
+     */
+    return (remainder);
+}
 
 // -------------------------------------------------
 // TODO: redo the following quaternion related functions so that they can move
@@ -2422,24 +2642,24 @@ cmatrix cm_change_between_cv(cvector from, cvector to)
 LsFit::LsFit(uint16_t cnt, uint16_t ord)
 {
     initialize(cnt, ord);
-//    if (ord)
-//    {
-//        order = ord;
-//    }
-//    else
-//    {
-//        order = 1;
-//    }
-//    if (cnt)
-//    {
-//        element_cnt = cnt;
-//    }
-//    else
-//    {
-//        element_cnt = order + 1;
-//    }
-//    var.resize(0);
-//    depth = 0;
+    //    if (ord)
+    //    {
+    //        order = ord;
+    //    }
+    //    else
+    //    {
+    //        order = 1;
+    //    }
+    //    if (cnt)
+    //    {
+    //        element_cnt = cnt;
+    //    }
+    //    else
+    //    {
+    //        element_cnt = order + 1;
+    //    }
+    //    var.resize(0);
+    //    depth = 0;
 }
 
 //! Initialize Least Squares Fit
@@ -3016,14 +3236,26 @@ double LsFit::getbasex()
 
 //! @}
 
-uint16_t calc_crc16ccitt_lsb(vector<uint8_t> buf)
+uint16_t calc_crc16ccitt_lsb(string buf, uint16_t crc, uint16_t skip)
 {
-    uint16_t crc;
+    vector<uint8_t> vbuf(buf.begin(), buf.end()-skip);
+    return calc_crc16ccitt_lsb(vbuf, crc);
+}
+
+uint16_t calc_crc16ccitt_lsb(uint8_t* buf, uint16_t size, uint16_t crc)
+{
+    vector<uint8_t> vbuf(buf, buf+(size));
+    return calc_crc16ccitt_lsb(vbuf, crc);
+}
+
+uint16_t calc_crc16ccitt_lsb(vector<uint8_t> &buf, uint16_t crc, uint16_t skip)
+{
+    //    uint16_t crc;
     uint8_t ch;
 
-    crc = 0xffff;
+    //    crc = 0xffff;
 
-    for (uint16_t i=0; i<buf.size(); i++)
+    for (uint16_t i=0; i<buf.size()-skip; i++)
     {
         ch = buf[i];
         for (uint16_t j=0; j<8; j++)
@@ -3036,21 +3268,33 @@ uint16_t calc_crc16ccitt_lsb(vector<uint8_t> buf)
     return (crc);
 }
 
-uint16_t calc_crc16ccitt_msb(vector<uint8_t> buf)
+uint16_t calc_crc16ccitt_msb(string buf, uint16_t crc, uint16_t skip)
 {
-    uint16_t crc;
+    vector<uint8_t> vbuf(buf.begin(), buf.end()-skip);
+    return calc_crc16ccitt_msb(vbuf, crc);
+}
+
+uint16_t calc_crc16ccitt_msb(uint8_t* buf, uint16_t size, uint16_t crc)
+{
+    vector<uint8_t> vbuf(buf, buf+(size));
+    return calc_crc16ccitt_msb(vbuf, crc);
+}
+
+uint16_t calc_crc16ccitt_msb(vector<uint8_t> &buf, uint16_t crc, uint16_t skip)
+{
+    //    uint16_t crc;
     uint8_t ch;
 
-        crc = 0;
+    //        crc = 0;
 
-    for (uint16_t i=0; i<buf.size(); i++)
+    for (uint16_t i=0; i<buf.size()-skip; i++)
     {
         ch = buf[i];
         for (uint16_t j=0; j<8; j++)
         {
 
-                crc = (crc << 1) ^ (((ch&0x80)^((crc&0x8000)>>8))?CRC16CCITTMSB:0);
-                ch <<= 1;
+            crc = (crc << 1) ^ (((ch&0x80)^((crc&0x8000)>>8))?CRC16CCITTMSB:0);
+            ch <<= 1;
 
         }
     }

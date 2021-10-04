@@ -126,9 +126,11 @@
 //! CRC-16-CCITT Normal
 #define CRC16CCITT 0x1021
 #define CRC16CCITTMSB 0x1021
+#define CRC16CCITTMSBINIT 0xffff
 //! CRC-16-CCITT Reversed
 #define CRC16CCITTR 0x8408
 #define CRC16CCITTLSB 0x8408
+#define CRC16CCITTLSBINIT 0x0000
 //! CRC-16-CCITT Reversed Reciprocal
 #define CRC16CCITTRR 0x8810
 
@@ -327,6 +329,10 @@ estimatorstruc get_estimate(estimatorhandle *estimate, double independent);
 
 ByteOrder local_byte_order();
 
+uint8_t uint8from(uint8_t *pointer, ByteOrder order);
+uint8_t uint8to(uint8_t *pointer, ByteOrder order);
+void uint8from(vector<uint8_t> src, vector<uint8_t> &dst, ByteOrder order);
+void uint8to(vector<uint8_t> src, vector<uint8_t> dst, ByteOrder order);
 uint16_t uint16from(uint8_t *pointer, ByteOrder order);
 int16_t int16from(uint8_t *pointer, ByteOrder order);
 uint32_t uint32from(uint8_t *pointer, ByteOrder order);
@@ -352,12 +358,36 @@ void gauss_jackson_destep(gj_kernel *kern, gj_step *step);
 void gauss_jackson_preset(gj_instance *gji);
 void gauss_jackson_extrapolate(gj_instance *gji, double target);
 
-double fixangle(double angle);
+double fixangle(double angle, bool d2pi=true);
 double actan(double y, double x);
 double fixprecision(double number, double precision);
 uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb=true);
-uint16_t calc_crc16ccitt_lsb(vector<uint8_t>buf);
-uint16_t calc_crc16ccitt_msb(vector<uint8_t>buf);
+uint16_t calc_crc16ccitt_lsb(string buf, uint16_t initialcrc=CRC16CCITTLSBINIT, uint16_t skip=0);
+uint16_t calc_crc16ccitt_lsb(vector<uint8_t> &buf, uint16_t initialcrc=CRC16CCITTLSBINIT, uint16_t skip=0);
+uint16_t calc_crc16ccitt_lsb(uint8_t *buf, uint16_t size, uint16_t initialcrc=CRC16CCITTLSBINIT);
+uint16_t calc_crc16ccitt_msb(string buf, uint16_t initialcrc=CRC16CCITTMSBINIT, uint16_t skip=0);
+uint16_t calc_crc16ccitt_msb(vector<uint8_t> &buf, uint16_t initialcrc=CRC16CCITTMSBINIT, uint16_t skip=0);
+uint16_t calc_crc16ccitt_msb(uint8_t *buf, uint16_t size, uint16_t initialcrc=CRC16CCITTMSBINIT);
+
+class CRC16
+{
+public:
+    uint16_t lookup[256];
+
+    CRC16(uint16_t polynomial=0x1021, uint16_t initial=0xffff, bool reversed=false);
+    uint16_t set(uint16_t polynomial=0x1021, uint16_t initial=0xffff, bool reversed=false);
+    uint16_t calc(vector<uint8_t> message);
+    uint16_t calc(vector<uint8_t> message, uint16_t size);
+    uint16_t calc(string message, uint16_t size);
+    uint16_t calc(string message);
+    uint16_t calc(uint8_t *buf, uint16_t size);
+
+private:
+    uint16_t initial;
+    uint16_t polynomial;
+    bool lsbfirst = true;
+};
+
 class LsFit
 {
 private:

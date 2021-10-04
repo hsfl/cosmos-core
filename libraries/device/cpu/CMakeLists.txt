@@ -11,12 +11,13 @@ FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 set(libraryName CosmosDeviceCpu PARENT_SCOPE)
 
 add_library(CosmosDeviceCpu STATIC ${SOURCES} ${INCLUDES})
-target_link_libraries(CosmosDeviceCpu CosmosData CosmosTime)
+#target_link_libraries(CosmosDeviceCpu CosmosData CosmosTime CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosDeviceCpu CosmosSupport ${COSMOS_LIBS})
 
 install(TARGETS CosmosDeviceCpu DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/cpu)
 
-if(${DEPLOY_SOURCE_FILES_TO_REMOTE} MATCHES "yes")
+if(${DEPLOY_SRC_FILES_TO_REMOTE} MATCHES "YES")
     add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
 endif()
 

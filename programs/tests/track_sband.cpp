@@ -97,7 +97,7 @@ static bool antconnected = false;
 int load_tle_info(char *file);
 
 // Here are variables for internal use
-static tlestruc tle;
+static Convert::tlestruc tle;
 static string tlename;
 static Agent *agent;
 
@@ -130,7 +130,7 @@ struct trackstruc
     targetstruc target;
     physicsstruc physics;
     string name;
-    gj_handle gjh;
+    Physics::gj_handle gjh;
     vector <LsFit> position;
 };
 static trackstruc track;
@@ -171,50 +171,50 @@ int main(int argc, char *argv[])
     iretn = json_createpiece(agent->cinfo, antbase.c_str(), DeviceType::ANT);
     if (iretn < 0)
     {
-        fprintf(agent->get_debug_fd(), "Failed to add %s ANT %s\n", antbase.c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("Failed to add %s ANT %s\n", antbase.c_str(), cosmos_error_string(iretn).c_str());
         agent->shutdown();
         exit(iretn);
     }
     devindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-    antindex = agent->cinfo->device[devindex].didx;
-    agent->cinfo->device[devindex].ant.threshelev = RADOF(5.);
+    antindex = agent->cinfo->device[devindex]->didx;
+    agent->cinfo->devspec.ant[antindex].threshelev = RADOF(5.);
     if (antbase == "sband")
     {
-        agent->cinfo->device[devindex].model = DEVICE_MODEL_PRKX2SU;
+        agent->cinfo->devspec.ant[antindex].model = DEVICE_MODEL_PRKX2SU;
     }
     else if (antbase == "yagi")
     {
-        agent->cinfo->device[devindex].model = DEVICE_MODEL_GS232B;
+        agent->cinfo->devspec.ant[antindex].model = DEVICE_MODEL_GS232B;
     }
     else
     {
-        agent->cinfo->device[devindex].model = DEVICE_MODEL_LOOPBACK;
+        agent->cinfo->devspec.ant[antindex].model = DEVICE_MODEL_LOOPBACK;
     }
 
     iretn = json_dump_node(agent->cinfo);
     if (iretn < 0)
     {
-        fprintf(agent->get_debug_fd(), "Failed to save node %s\n", cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("Failed to save node %s\n", cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
 
     antdevice = "/dev/tty_" + antbase;
 
     // Connect to antenna and set sensitivity;
-    if (agent->cinfo->device[devindex].model == DEVICE_MODEL_PRKX2SU)
+    if (agent->cinfo->devspec.ant[antindex].model == DEVICE_MODEL_PRKX2SU)
     {
-//        iretn = prkx2su_init(antdevice);
+        //        iretn = prkx2su_init(antdevice);
         sband = new Prkx2su(antdevice);
     }
 
     iretn = connect_antenna();
-    switch (agent->cinfo->device[devindex].model)
+    switch (agent->cinfo->devspec.ant[antindex].model)
     {
     case DEVICE_MODEL_GS232B:
         gs232b_set_sensitivity(RADOF(1.));
         break;
     case DEVICE_MODEL_PRKX2SU:
-//        prkx2su_set_sensitivity(RADOF(.5));
+        //        prkx2su_set_sensitivity(RADOF(.5));
         sband->set_sensitivity(RADOF(.5));
         break;
     }
@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
     agent->cinfo->node.loc.pos.geod.s.h = 348.;
     agent->cinfo->node.loc.pos.geod.v = gv_zero();
     agent->cinfo->node.loc.pos.geod.pass++;
-    pos_geod(&agent->cinfo->node.loc);
+    Convert::pos_geod(&agent->cinfo->node.loc);
 
     if (mode == "tra")
     {
@@ -287,12 +287,12 @@ int main(int argc, char *argv[])
                     for (timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=1.)
                     {
                         uint16_t timeidx = static_cast<uint16_t>(timestep);
-                        geoidpos tg;
+                        Convert::geoidpos tg;
                         tg.utc = currentmjd();
                         tg.s = track.position[timeidx].evalgvector(timestep);
                         tg.v = track.position[timeidx].slopegvector(timestep);
-                        cartpos tc;
-                        geod2geoc(tg, tc);
+                        Convert::cartpos tc;
+                        Convert::geod2geoc(tg, tc);
                         printf("%f %f %f %f %f %f %f %f %f %f\n", timestep, DEGOF(tg.s.lat), DEGOF(tg.s.lon), tg.s.h, DEGOF(tg.v.lat), DEGOF(tg.v.lon), tg.v.h, tc.s.col[0], tc.s.col[1], tc.s.col[2]);
                     }
                 }
@@ -327,8 +327,8 @@ int main(int argc, char *argv[])
             startdate = currentmjd();
         }
         tle2eci(startdate-10./86400., tle, track.target.loc.pos.eci);
-        gauss_jackson_init_eci(track.gjh, 6, 0, 1., track.target.loc.pos.eci.utc, track.target.loc.pos.eci, track.target.loc.att.icrf, track.physics, track.target.loc);
-        gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, startdate);
+        Physics::gauss_jackson_init_eci(track.gjh, 6, 0, 1., track.target.loc.pos.eci.utc, track.target.loc.pos.eci, track.target.loc.att.icrf, track.physics, track.target.loc);
+        Physics::gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, startdate);
         if (argc == 6 || argc == 8)
         {
             offset_az = atof(argv[argc-2]);
@@ -376,7 +376,7 @@ int main(int argc, char *argv[])
     }
 
     ElapsedTime et;
-    if (agent->cinfo->device[devindex].model == DEVICE_MODEL_PRKX2SU)
+    if (agent->cinfo->devspec.ant[antindex].model == DEVICE_MODEL_PRKX2SU)
     {
         sband->stop(PRKX2SU_AXIS_AZ);
         sband->stop(PRKX2SU_AXIS_EL);
@@ -387,11 +387,11 @@ int main(int argc, char *argv[])
         sband->maximum_speed(PRKX2SU_AXIS_AZ, 9);
         sband->maximum_speed(PRKX2SU_AXIS_EL, 9);
         sband->get_limits(PRKX2SU_AXIS_AZ);
-        agent->cinfo->device[devindex].ant.minazim = sband->minaz;
-        agent->cinfo->device[devindex].ant.maxazim = sband->maxaz;
+        agent->cinfo->devspec.ant[antindex].minazim = sband->minaz;
+        agent->cinfo->devspec.ant[antindex].maxazim = sband->maxaz;
         sband->get_limits(PRKX2SU_AXIS_EL);
-        agent->cinfo->device[devindex].ant.minelev = sband->minel;
-        agent->cinfo->device[devindex].ant.maxelev = sband->maxel;
+        agent->cinfo->devspec.ant[antindex].minelev = sband->minel;
+        agent->cinfo->devspec.ant[antindex].maxelev = sband->maxel;
     }
 
     // Start performing the body of the agent
@@ -403,7 +403,7 @@ int main(int argc, char *argv[])
         if (antconnected)
         {
             // Find most recent position
-            switch (agent->cinfo->device[devindex].model)
+            switch (agent->cinfo->devspec.ant[antindex].model)
             {
             case DEVICE_MODEL_LOOPBACK:
                 iretn = 0;
@@ -421,8 +421,8 @@ int main(int argc, char *argv[])
             }
             else
             {
-                agent->cinfo->device[devindex].ant.azim = current.azim -  antennaoffset.az;
-                agent->cinfo->device[devindex].ant.elev = current.elev -  antennaoffset.el;
+                agent->cinfo->devspec.ant[antindex].azim = current.azim -  antennaoffset.az;
+                agent->cinfo->devspec.ant[antindex].elev = current.elev -  antennaoffset.el;
                 if (mode == "tra")
                 {
                     if (ctime >= startdate)
@@ -433,7 +433,7 @@ int main(int argc, char *argv[])
                         track.target.loc.pos.geod.s = track.position[timeidx].evalgvector(timestep);
                         track.target.loc.pos.geod.v = track.position[timeidx].slopegvector(timestep);
                         track.target.loc.pos.geod.pass++;
-                        pos_geod(&track.target.loc);
+                        Convert::pos_geod(&track.target.loc);
                         update_target(agent->cinfo->node.loc, track.target);
                         target.azim = track.target.azfrom;
                         target.elev = track.target.elfrom;
@@ -446,16 +446,16 @@ int main(int argc, char *argv[])
                 }
                 else if (mode == "sun")
                 {
-                    jplpos(JPL_EARTH, JPL_SUN, ctime, &track.target.loc.pos.eci);
+                    Convert::jplpos(JPL_EARTH, JPL_SUN, ctime, &track.target.loc.pos.eci);
                     track.target.loc.pos.eci.pass++;
-                    pos_eci(track.target.loc);
+                    Convert::pos_eci(track.target.loc);
                     update_target(agent->cinfo->node.loc, track.target);
                     target.azim = track.target.azfrom;
                     target.elev = track.target.elfrom;
                 }
                 else if (mode == "tle")
                 {
-                    gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, ctime);
+                    Physics::gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, ctime);
                     update_target(agent->cinfo->node.loc, track.target);
                     target.azim = track.target.azfrom;
                     target.elev = track.target.elfrom;
@@ -468,8 +468,8 @@ int main(int argc, char *argv[])
                     {
                         tle2eci(newtime, tle, ttrack.target.loc.pos.eci);
                         ttrack.target.loc.pos.eci.pass++;
-                        pos_eci(ttrack.target.loc);
-//                        gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, newtime);
+                        Convert::pos_eci(ttrack.target.loc);
+                        //                        Physics::gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, newtime);
                         update_target(agent->cinfo->node.loc, ttrack.target);
                         if (ttrack.target.elfrom > RADOF(15.))
                         {
@@ -488,7 +488,7 @@ int main(int argc, char *argv[])
 
                 }
 
-                switch (agent->cinfo->device[devindex].model)
+                switch (agent->cinfo->devspec.ant[antindex].model)
                 {
                 case DEVICE_MODEL_GS232B:
                     iretn = gs232b_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
@@ -520,7 +520,7 @@ int main(int argc, char *argv[])
                     antconnected = false;
                 }
             }
-//            COSMOS_SLEEP(.5);
+            //            COSMOS_SLEEP(.5);
         }
         else
         {
@@ -529,7 +529,7 @@ int main(int argc, char *argv[])
                    ctime,
                    86400.*(ctime - startdate));
             connect_antenna();
-//            COSMOS_SLEEP(.1);
+            //            COSMOS_SLEEP(.1);
         }
         agent->finish_active_loop();
     }
@@ -542,7 +542,7 @@ int32_t connect_antenna()
     int32_t iretn;
     antconnected = false;
 
-    switch (agent->cinfo->device[devindex].model)
+    switch (agent->cinfo->devspec.ant[antindex].model)
     {
     case DEVICE_MODEL_LOOPBACK:
         antconnected = true;
@@ -553,11 +553,11 @@ int32_t connect_antenna()
         // Initialize values if we are connected
         if (iretn == 0)
         {
-            iretn = gs232b_get_az_el(agent->cinfo->device[devindex].ant.azim, agent->cinfo->device[devindex].ant.elev);
+            iretn = gs232b_get_az_el(agent->cinfo->devspec.ant[antindex].azim, agent->cinfo->devspec.ant[antindex].elev);
             if (iretn >= 0)
             {
-                current.azim = agent->cinfo->device[devindex].ant.azim - antennaoffset.az;
-                current.elev = agent->cinfo->device[devindex].ant.elev - antennaoffset.el;
+                current.azim = agent->cinfo->devspec.ant[antindex].azim - antennaoffset.az;
+                current.elev = agent->cinfo->devspec.ant[antindex].elev - antennaoffset.el;
                 antconnected = true;
             }
         }
@@ -568,11 +568,11 @@ int32_t connect_antenna()
         // Initialize values if we are connected
         if (iretn == 0)
         {
-            iretn = sband->get_az_el(agent->cinfo->device[devindex].ant.azim, agent->cinfo->device[devindex].ant.elev);
+            iretn = sband->get_az_el(agent->cinfo->devspec.ant[antindex].azim, agent->cinfo->devspec.ant[antindex].elev);
             if (iretn >= 0)
             {
-                current.azim = agent->cinfo->device[devindex].ant.azim - antennaoffset.az;
-                current.elev = agent->cinfo->device[devindex].ant.elev - antennaoffset.el;
+                current.azim = agent->cinfo->devspec.ant[antindex].azim - antennaoffset.az;
+                current.elev = agent->cinfo->devspec.ant[antindex].elev - antennaoffset.el;
                 antconnected = true;
             }
         }

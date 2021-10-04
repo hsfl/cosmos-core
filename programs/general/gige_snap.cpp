@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 	FILE *fp;
 	std::vector<gige_acknowledge_ack> gige_list;
 
-	std::string extra = "";
+	string extra = "";
     uint32_t exposure=1;
 	uint32_t gain=1;
 	uint32_t binning=1;
@@ -87,9 +87,9 @@ int main(int argc, char *argv[])
 	uint32_t used_imagewidth=0;
 	uint32_t used_imageheight=0;
 
-	std::string imagename = "testimage.imgdata";
-	std::string metafilename = "testimage.imgmeta";
-	std::string fringename = "testimage.imgfringe";
+	string imagename = "testimage.imgdata";
+	string metafilename = "testimage.imgmeta";
+	string fringename = "testimage.imgfringe";
 
 
 
@@ -455,7 +455,7 @@ int main(int argc, char *argv[])
 
 		// write image:
 
-        imagename = data_type_path("hiakasat", "temp", "gige", currentmjd(0.), extra, "imgdata");
+        imagename = data_type_path("lab", "temp", "gige", currentmjd(0.), extra, "imgdata");
 		fp = fopen(imagename.c_str(),"wb");
 		fwrite((void *)image,tbytes,1,fp);
 		fclose(fp);

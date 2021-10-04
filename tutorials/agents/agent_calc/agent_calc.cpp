@@ -76,10 +76,10 @@ static Agent *agent; // to access the cosmos data, will change later
 
 
 /*
-void replace(std::string& str, const std::string& from, const std::string& to) {
+void replace(string& str, const string& from, const string& to) {
     if(from.empty()) return;
     size_t start_pos = 0;
-    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+    while((start_pos = str.find(from, start_pos)) != string::npos) {
         str.replace(start_pos, from.length(), to);
         start_pos += to.length();
     }
@@ -123,10 +123,10 @@ void pretty_form(string& js)	{
 	return;
 }
 */
-void replace(std::string& str, const std::string& from, const std::string& to) {
+void replace(string& str, const string& from, const string& to) {
 	if(from.empty()) return;
 	size_t start_pos = 0;
-	while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+	while((start_pos = str.find(from, start_pos)) != string::npos) {
         str.replace(start_pos, from.length(), to);
         start_pos += to.length();
 	}
@@ -157,12 +157,12 @@ int main(int argc, char *argv[])
         // Check if agent was successfully constructed.
         if ((iretn = agent->wait()) < 0)
         {
-            fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+            agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
             exit(iretn);
         }
         else
         {
-            fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+            agent->debug_error.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
         }
 
 
@@ -176,12 +176,12 @@ int main(int argc, char *argv[])
         // Check if agent was successfully constructed.
         if ((iretn = agent->wait()) < 0)
         {
-            fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+            agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
             exit(iretn);
         }
         else
         {
-            fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+            agent->debug_error.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
         }
 
 
@@ -334,7 +334,7 @@ while(answer != -1)	{
 
 	agent->cinfo->add_default_names();
 	agent->cinfo->print_all_names();
-	//cout<<agent->cinfo->get_json_pretty<locstruc>("node.loc")<<endl;
+	//cout<<agent->cinfo->get_json_pretty<Convert::locstruc>("node.loc")<<endl;
 
 	// try to set some shit out of bounds
 	agent->cinfo->set_value<string>("user[9].tool", "OUT OF BOUNDS!!!!");
@@ -434,7 +434,8 @@ int32_t request_change_node_name(string &request, string &response, Agent *agent
 	char new_name[41];
 	sscanf(request.c_str(),"%*s %40s", new_name);
 
-    strcpy(agent->cinfo->node.name, new_name);
+//    strcpy(agent->cinfo->node.name.c_str(), new_name);
+    agent->cinfo->node.name = new_name;
     cout << "The new node name is <" << agent->cinfo->node.name << ">" << endl;
 
 	return 0;

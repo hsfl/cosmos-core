@@ -11,12 +11,13 @@ FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 set(libraryName CosmosDeviceSerial PARENT_SCOPE)
 
 add_library(CosmosDeviceSerial STATIC ${SOURCES} ${INCLUDES})
-target_link_libraries(CosmosDeviceSerial CosmosTime)
+#target_link_libraries(CosmosDeviceSerial CosmosTime CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosDeviceSerial CosmosTime CosmosSupport ${COSMOS_LIBS})
 
 install(TARGETS CosmosDeviceSerial DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/serial)
 
-if(${DEPLOY_SOURCE_FILES_TO_REMOTE} MATCHES "yes")
+if(${DEPLOY_SRC_FILES_TO_REMOTE} MATCHES "YES")
     add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
 endif()
 

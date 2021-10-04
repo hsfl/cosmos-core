@@ -4,8 +4,8 @@
 
 static ic9100_handle ic9100;
 static Agent *agent;
-static std::string nodename="";
-static std::string radioname;
+static string nodename="";
+static string radioname;
 static size_t deviceindex;
 static size_t radioindex = 9999;
 static string radiodevice="";
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 
     if ((iretn = agent->wait()) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
 
@@ -157,40 +157,40 @@ int main(int argc, char *argv[])
         case static_cast<uint16_t>(DeviceType::TXR):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::TXR);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            radioindex = agent->cinfo->device[deviceindex].didx;
-            agent->cinfo->device[deviceindex].txr.freq = freq;
-            agent->cinfo->device[deviceindex].txr.band = band;
-            agent->cinfo->device[deviceindex].txr.opmode = opmode;
+            radioindex = agent->cinfo->device[deviceindex]->didx;
+            agent->cinfo->devspec.txr[radioindex].freq = freq;
+            agent->cinfo->devspec.txr[radioindex].band = band;
+            agent->cinfo->devspec.txr[radioindex].opmode = opmode;
             break;
         case static_cast<uint16_t>(DeviceType::RXR):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::RXR);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            radioindex = agent->cinfo->device[deviceindex].didx;
-            agent->cinfo->device[deviceindex].rxr.freq = freq;
-            agent->cinfo->device[deviceindex].rxr.band = band;
-            agent->cinfo->device[deviceindex].rxr.opmode = opmode;
+            radioindex = agent->cinfo->device[deviceindex]->didx;
+            agent->cinfo->devspec.rxr[radioindex].freq = freq;
+            agent->cinfo->devspec.rxr[radioindex].band = band;
+            agent->cinfo->devspec.rxr[radioindex].opmode = opmode;
             break;
         case static_cast<uint16_t>(DeviceType::TCV):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::TCV);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            radioindex = agent->cinfo->device[deviceindex].didx;
-            agent->cinfo->device[deviceindex].tcv.freq = freq;
-            agent->cinfo->device[deviceindex].tcv.band = band;
-            agent->cinfo->device[deviceindex].tcv.opmode = opmode;
+            radioindex = agent->cinfo->device[deviceindex]->didx;
+            agent->cinfo->devspec.tcv[radioindex].freq = freq;
+            agent->cinfo->devspec.tcv[radioindex].band = band;
+            agent->cinfo->devspec.tcv[radioindex].opmode = opmode;
             break;
         }
-        agent->cinfo->device[deviceindex].model = model;
-        agent->cinfo->device[deviceindex].type = radiotype;
-        agent->cinfo->device[deviceindex].tcv.freq = freq;
-        agent->cinfo->device[deviceindex].tcv.band = band;
-        agent->cinfo->device[deviceindex].tcv.opmode = opmode;
+        agent->cinfo->device[deviceindex]->model = model;
+        agent->cinfo->device[deviceindex]->type = radiotype;
+        agent->cinfo->devspec.tcv[radioindex].freq = freq;
+        agent->cinfo->devspec.tcv[radioindex].band = band;
+        agent->cinfo->devspec.tcv[radioindex].opmode = opmode;
         if (model == static_cast<uint16_t>(DEVICE_MODEL_IC9100))
         {
-            agent->cinfo->device[deviceindex].addr = radioaddr;
+            agent->cinfo->device[deviceindex]->addr = radioaddr;
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].portidx = iretn;
+                agent->cinfo->device[deviceindex]->portidx = iretn;
             }
         }
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_TS2000))
@@ -198,16 +198,16 @@ int main(int argc, char *argv[])
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].portidx = iretn;
+                agent->cinfo->device[deviceindex]->portidx = iretn;
             }
         }
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_USRP))
         {
-            agent->cinfo->device[deviceindex].addr = radioaddr;
+            agent->cinfo->device[deviceindex]->addr = radioaddr;
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_UDP);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].portidx = iretn;
+                agent->cinfo->device[deviceindex]->portidx = iretn;
             }
         }
         iretn = json_dump_node(agent->cinfo);

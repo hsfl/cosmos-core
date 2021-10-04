@@ -113,6 +113,7 @@
 //!     - "devgenjson" - return the JSON representing the contents of devgen.ini.
 //!     - "devspecjson" - return the JSON representing the contents of devspec.ini.
 //!     - "portsjson" - return the JSON representing the contents of ports.ini.
+//!     - "aliasesjson" - return the JSON representing the contents of aliases.ini.
 //!     - "targetsjson" - return the JSON representing the contents of targets.ini.
 //!     - "heartbeat" - Sends a Heartbeat immediatelly.
 //!
@@ -122,14 +123,8 @@
 //! with Cosmos::COSMOS_SLEEP. Upon exiting from this loop, you should call Cosmos::Agent::shutdown.
 
 #include "support/configCosmos.h"
-#include "support/cosmos-errno.h"
-#include "support/stringlib.h"
-#include "support/timelib.h"
-#include "support/jsondef.h"
-#include "support/sliplib.h"
-#include "support/socketlib.h"
 #include "support/jsonlib.h"
-#include "support/elapsedtime.h"
+#include "support/jsonclass.h"
 #include "device/cpu/devicecpu.h"
 
 namespace Cosmos
@@ -147,7 +142,7 @@ namespace Cosmos
 				bool mflag = false,
 				int32_t portnum = 0,
 				NetworkType ntype = NetworkType::UDP,
-				uint16_t dlevel = 1
+                uint16_t dlevel = 0
 			);
 
             ~Agent();
@@ -155,6 +150,7 @@ namespace Cosmos
             //! State of Health element vector
             vector<jsonentry*> sohtable;
             vector<jsonentry*> fullsohtable;
+			vector<string> sohstring;
 
             enum class State : uint16_t {
                 //! Shut down Agent
@@ -281,14 +277,25 @@ namespace Cosmos
             //! Format of a user supplied function to handle a given request
             typedef int32_t (*external_request_function)(string& request_string, string& output_string, Agent* agent);
 
+            //! Simplified Agent Request Function
+            //! Format of a user supplied function to handle a given request
+            //! returns response string
+            typedef string (*simple_request_function)(vector<string>& request_args, int32_t &error);
+            //! Simplified Agent Request Function
+            //! Format of a user supplied function to handle a given request
+            //! returns response string
+            typedef string (*no_arg_request_function)(int32_t &error);
+
             //! @}
-            //!
+            //!s
             // agent functions
             int32_t start();
             int32_t start_active_loop();
             int32_t finish_active_loop();
             int32_t add_request(string token, external_request_function function, string synopsis="", string description="");
-            int32_t send_request(beatstruc cbeat, string request, string &output, float waitsec=5.);
+            int32_t add_request(string token, simple_request_function function, string synopsis="", string description="");
+            int32_t add_request(string token, no_arg_request_function function, string synopsis="", string description="");
+            int32_t send_request(beatstruc cbeat, string request, string &output, float waitsec=5., double delay_send = 0.0, double delay_receive = 0.0);
             int32_t send_request_jsonnode(beatstruc cbeat, jsonnode &jnode, float waitsec=5.);
             int32_t get_agent(string node, string agent, double waitsec, beatstruc &cbeat);
             int32_t check_agent(string node, string agent, double waitsec);
@@ -298,6 +305,8 @@ namespace Cosmos
             int32_t wait(State state=State::RUN, double waitsec=10.);
             int32_t last_error();
             int32_t set_sohstring(string list);
+            int32_t set_sohstring(vector<string> list);
+            int32_t set_sohstring2(vector<string> list);
             int32_t set_fullsohstring(string list);
             cosmosstruc *get_cosmosstruc();
             void get_ip(char* buffer, size_t buflen);
@@ -321,7 +330,7 @@ namespace Cosmos
             int32_t clearring();
             //    timestruc poll_time(float waitsec);
             //    beatstruc poll_beat(float waitsec);
-            //    locstruc poll_location(float waitsec);
+            //    Convert::locstruc poll_location(float waitsec);
             //    nodestruc poll_info(float waitsec);
             //    imustruc poll_imu(float waitsec);
             int json_map_agentstruc(agentstruc **agent);
@@ -336,6 +345,23 @@ namespace Cosmos
 
             int32_t set_agent_time_producer(double (*source)());
             int32_t get_agent_time(double &agent_time, double &epsilon, double &delta, string agent, string node="any", double wait_sec=2.);
+            // general functionality for artemis
+            int32_t set_activity_period(double period);
+
+            int32_t add_device(string name, DeviceType type, devicestruc **device);
+            int32_t device_property_name(string device, string property, string& name);
+
+            int32_t send_request_getvalue(beatstruc agent, std::vector<string> names, Json::Object &jobj);
+            int32_t create_device_value_alias(string devicename, string propertyname, string alias);
+            int32_t create_alias(string cosmosname, string alias);
+
+            int32_t set_value(string jsonname, double value);
+            double get_value(string jsonname);
+            int32_t get_device_values(string device, std::vector<string>props, string& json);
+            int32_t get_values(std::vector<string> names, string& json);
+
+
+
 
             // poll
             pollstruc metaRx;
@@ -359,9 +385,15 @@ namespace Cosmos
             size_t message_tail = MESSAGE_RING_SIZE;
 
             //! Flag for level of debugging, keep it public so that it can be controlled from the outside
-            uint16_t debug_level = 0;
+            int32_t set_debug_level(uint16_t level);
+            int32_t get_debug_level();
             FILE *get_debug_fd(double mjd=0.);
             int32_t close_debug_fd();
+
+            // Add implementation of new COSMOS Error
+            Error debug_error;
+//            int32_t Printf(string output);
+//            int32_t Printf(const char *fmt, ...);
 
             // agent variables
             string nodeName;
@@ -371,6 +403,7 @@ namespace Cosmos
         protected:
         private:
 
+            uint16_t debug_level = 0;
             NetworkType networkType = NetworkType::UDP;
             double activeTimeout = 0.0; // in MJD
             uint32_t bufferSize = AGENTMAXBUFFER;
@@ -405,11 +438,13 @@ namespace Cosmos
                 string token;
                 //! Pointer to function to call with request string as argument and returning any error
                 external_request_function efunction;
+                simple_request_function sfunction;
+                no_arg_request_function nafunction;
                 string synopsis;
                 string description;
             };
 
-            vector <request_entry> reqs;
+            map<string, request_entry> reqs;
 
             void heartbeat_loop();
             void request_loop() noexcept;
@@ -433,6 +468,7 @@ namespace Cosmos
             static int32_t req_debug_level(string &request, string &response, Agent *agent);
             static int32_t req_getvalue(string &request, string &response, Agent *agent);
             static int32_t req_get_value(string &request, string &response, Agent *agent);
+            static int32_t req_get_state(string &request, string &response, Agent *agent);
             static int32_t req_get_time(string &request, string &response, Agent *agent);
             static int32_t req_get_position(string &request, string &response, Agent *agent);
             static int32_t req_get_position_data(string &request, string &response, Agent *agent);
@@ -449,12 +485,14 @@ namespace Cosmos
             static int32_t req_devspecjson(string &request, string &response, Agent *agent);
             static int32_t req_portsjson(string &request, string &response, Agent *agent);
             static int32_t req_targetsjson(string &request, string &response, Agent *agent);
+            static int32_t req_aliasesjson(string &request, string &response, Agent *agent);
             static int32_t req_heartbeat(string &request, string &response, Agent *agent);
             static int32_t req_postsoh(string &request, string &response, Agent *agent);
             static int32_t req_utc(string &request, string &response, Agent *agent);
             static int32_t req_soh(string &, string &response, Agent *agent);
             static int32_t req_fullsoh(string &, string &response, Agent *agent);
             static int32_t req_jsondump(string &, string &response, Agent *agent);
+			static int32_t req_all_names_types(string &, string &response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos
