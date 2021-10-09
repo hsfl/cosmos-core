@@ -18,6 +18,7 @@ static double initiallat = RADOF(21.3069);
 static double initiallon = RADOF(-157.8583);
 static double initialalt = 400000.;
 static double initialangle = RADOF(54.);
+static Convert::locstruc initialloc;
 static double initialsep = 0.;
 static double deltat = .0655;
 static double runcount = 1500;
@@ -51,10 +52,43 @@ int main(int argc, char *argv[])
     if (!jargs["speed"].is_null()) speed = jargs["speed"].number_value();
     if (!jargs["maxaccel"].is_null()) maxaccel = jargs["maxaccel"].number_value();
     if (!jargs["initialutc"].is_null()) initialutc = jargs["initialutc"].number_value();
-    if (!jargs["initiallat"].is_null()) initiallat = RADOF(jargs["initiallat"].number_value());
-    if (!jargs["initiallon"].is_null()) initiallon = RADOF(jargs["initiallon"].number_value());
-    if (!jargs["initialalt"].is_null()) initialalt = jargs["initialalt"].number_value();
-    if (!jargs["initialangle"].is_null()) initialangle = RADOF(jargs["initialangle"].number_value());
+    initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+    if (!jargs["phys"].is_null())
+    {
+        json11::Json::object values = jargs["phys"].object_items();
+        initiallat = RADOF(values["lat"].number_value());
+        initiallon = RADOF(values["lon"].number_value());
+        initialalt = values["alt"].number_value();
+        initialangle = RADOF(values["angle"].number_value());
+        initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+    }
+    if (!jargs["eci"].is_null())
+    {
+        json11::Json::object values = jargs["eci"].object_items();
+        initialloc.pos.eci.s.col[0] = (values["x"].number_value());
+        initialloc.pos.eci.s.col[1] = (values["y"].number_value());
+        initialloc.pos.eci.s.col[2] = (values["z"].number_value());
+        initialloc.pos.eci.v.col[0] = (values["vx"].number_value());
+        initialloc.pos.eci.v.col[1] = (values["vy"].number_value());
+        initialloc.pos.eci.v.col[2] = (values["vz"].number_value());
+        initialloc.pos.eci.pass++;
+        pos_eci(initialloc);
+    }
+    if (!jargs["kep"].is_null())
+    {
+        json11::Json::object values = jargs["kep"].object_items();
+        kepstruc kep;
+        kep.utc = initialutc;
+        kep.ea = values["ea"].number_value();
+        kep.i = values["i"].number_value();
+        kep.ap = values["ap"].number_value();
+        kep.raan = values["raan"].number_value();
+        kep.e = values["e"].number_value();
+        kep.a = values["a"].number_value();
+        kep2eci(kep, initialloc.pos.eci);
+        initialloc.pos.eci.pass++;
+        pos_eci(initialloc);
+    }
     if (!jargs["initialsep"].is_null()) initialsep = jargs["initialsep"].number_value();
     if (!jargs["deltat"].is_null()) deltat = jargs["deltat"].number_value();
     if (!jargs["simdt"].is_null()) simdt = jargs["simdt"].number_value();
@@ -75,7 +109,8 @@ int main(int argc, char *argv[])
     currentutc = initialutc;
     sim->Init(currentutc, simdt);
 
-    iretn = sim->AddNode("mother", Physics::Structure::U12, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+//    iretn = sim->AddNode("mother", Physics::Structure::U12, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+    iretn = sim->AddNode("mother", Physics::Structure::U12, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc);
     sit = sim->GetNode("mother");
     sit->second->AddTarget("Punta_Arenas", RADOF(-53.1638), RADOF(-70.9171), 0.);
     sit->second->AddTarget("Awarua", RADOF(-46.4923), RADOF(168.2808), 0.);
@@ -87,6 +122,8 @@ int main(int argc, char *argv[])
 
     string header;
     header += "Name\tSeconds\tUTC\t";
+
+    header += "Alt\tEcc\tInc\tRAAN\tPeriod\tBeta\t";
 
     header += "pos_lon\tpos_lat\tpos_h\t";
     header += "pos_x\tpos_y\tpos_z\t";
@@ -145,6 +182,7 @@ int main(int argc, char *argv[])
     fprintf(efp, "%s\n", header.c_str());
 
     double elapsed = 0;
+    double pcount = 0.;
     minaccel = maxaccel / minaccelratio;
     locstruc lastloc;
     vector<targetstruc> lasttargets;
@@ -160,6 +198,7 @@ int main(int argc, char *argv[])
         lastloc = sit->second->currentinfo.node.loc;
         lasttargets = sit->second->targets;
         sim->Propagate();
+        pcount += simdt;
 
         stloc.pos.eci.s = rv_sub(sit->second->targets[0].loc.pos.eci.s, sit->second->currentinfo.node.loc.pos.eci.s);
 
@@ -189,57 +228,74 @@ int main(int argc, char *argv[])
 
         string output;
 
-        output += sit->second->currentinfo.node.name + "\t";
-        output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
-        output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
-
-        output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lat) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lon) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.h) + "\t";
-
-        output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.s.col[0]) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.s.col[1]) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.s.col[2]) + "\t";
-
-        output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.v.col[0]) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.v.col[1]) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.v.col[2]) + "\t";
-
-        output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.a.col[0]) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.a.col[1]) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.a.col[2]) + "\t";
-
-        // attitudes
-
-        output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.s.w) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.s.d.x) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.s.d.y) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.s.d.z) + "\t";
-
-        output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.v.col[0]) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.v.col[1]) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.v.col[2]) + "\t";
-
-        output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.a.col[0]) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.a.col[1]) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.a.col[2]) + "\t";
-
-        output += to_floatany(sit->second->currentinfo.node.phys.temp) + "\t";
-        output += to_floatany(sit->second->currentinfo.node.phys.powgen) + "\t";
-
-        for (targetstruc &target : sit->second->targets)
+        if (pcount > runcount / 100000.)
         {
-            output += (target.name) + "\t";
-            output += to_floatany(target.loc.pos.geod.s.lat) + "\t";
-            output += to_floatany(target.loc.pos.geod.s.lon) + "\t";
-            output += to_floatany(target.loc.pos.geod.s.h) + "\t";
-            output += to_floatany(target.range) + "\t";
-            output += to_floatany(target.close) + "\t";
-            output += to_floatany(target.azto) + "\t";
-            output += to_floatany(target.elto) + "\t";
-        }
+            output += sit->second->currentinfo.node.name + "\t";
+            output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+            output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
 
-        fprintf(ofp, "%s\n", output.c_str());
+            // Keplerian
+            kepstruc kep;
+            Convert::eci2kep(sit->second->currentinfo.node.loc.pos.eci, kep);
+            output += to_floatany(kep.a-REARTHM) + "\t";
+            output += to_floatany(kep.e) + "\t";
+            output += to_floatany(kep.i) + "\t";
+
+            output += to_floatany(kep.raan) + "\t";
+            output += to_floatany(kep.period) + "\t";
+            output += to_floatany(kep.beta) + "\t";
+
+            // ECI
+
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lat) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lon) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.h) + "\t";
+
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.s.col[0]) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.s.col[1]) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.s.col[2]) + "\t";
+
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.v.col[0]) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.v.col[1]) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.v.col[2]) + "\t";
+
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.a.col[0]) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.a.col[1]) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.a.col[2]) + "\t";
+
+            // attitudes
+
+            output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.s.w) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.s.d.x) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.s.d.y) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.s.d.z) + "\t";
+
+            output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.v.col[0]) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.v.col[1]) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.v.col[2]) + "\t";
+
+            output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.a.col[0]) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.a.col[1]) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.att.icrf.a.col[2]) + "\t";
+
+            output += to_floatany(sit->second->currentinfo.node.phys.temp) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.phys.powgen) + "\t";
+
+            for (targetstruc &target : sit->second->targets)
+            {
+                output += (target.name) + "\t";
+                output += to_floatany(target.loc.pos.geod.s.lat) + "\t";
+                output += to_floatany(target.loc.pos.geod.s.lon) + "\t";
+                output += to_floatany(target.loc.pos.geod.s.h) + "\t";
+                output += to_floatany(target.range) + "\t";
+                output += to_floatany(target.close) + "\t";
+                output += to_floatany(target.azto) + "\t";
+                output += to_floatany(target.elto) + "\t";
+            }
+
+            fprintf(ofp, "%s\n", output.c_str());
+            pcount = 0.;
+        }
 
         // Check events
         // Eclipse
@@ -377,23 +433,23 @@ int main(int argc, char *argv[])
                 {
                     if (sit->second->targets[id].elto >= el &&  lasttargets[id].elto <= el)
                     {
-                            output.clear();
-                            output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
-                            output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
-                            output += sit->second->targets[id].name + "\t";
+                        output.clear();
+                        output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+                        output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
+                        output += sit->second->targets[id].name + "\t";
 
-                            output += "GS_ELEVATION_" + to_unsigned(DEGOF(el), 2, true) + "\t";
+                        output += "GS_ELEVATION_" + to_unsigned(DEGOF(el), 2, true) + "\t";
 
-                            output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
-                            output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
-                            output += to_floatany(sit->second->targets[id].range) + "\t";
-                            output += to_floatany(sit->second->targets[id].close) + "\t";
-                            output += to_floatany(sit->second->targets[id].azto) + "\t";
-                            output += to_floatany(sit->second->targets[id].elto) + "\t";
-                            output += to_floatany(sit->second->targets[id].azfrom) + "\t";
-                            output += to_floatany(sit->second->targets[id].elfrom) + "\t";
+                        output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
+                        output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
+                        output += to_floatany(sit->second->targets[id].range) + "\t";
+                        output += to_floatany(sit->second->targets[id].close) + "\t";
+                        output += to_floatany(sit->second->targets[id].azto) + "\t";
+                        output += to_floatany(sit->second->targets[id].elto) + "\t";
+                        output += to_floatany(sit->second->targets[id].azfrom) + "\t";
+                        output += to_floatany(sit->second->targets[id].elfrom) + "\t";
 
-                            fprintf(efp, "%s\n", output.c_str());
+                        fprintf(efp, "%s\n", output.c_str());
                     }
                 }
 

@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     Convert::locstruc loc2;
     Convert::kepstruc kep;
     Convert::eci2kep(loc.pos.eci, kep);
-    kep2eci(kep, loc2.pos.eci);
+    Convert::kep2eci(kep, loc2.pos.eci);
 
     eci2tle(loc.pos.eci.utc, loc.pos.eci, tle2);
     sgp4(tle2.utc, tle2, loc2.pos.eci);
