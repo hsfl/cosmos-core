@@ -318,7 +318,9 @@ void loadephemeris()
         calc_events(eventdict,  agent->cinfo, events);
 		for (k=0; k<events.size(); ++k)
 		{
-            memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
+			// try to fix warnings (!)
+            //memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
+            agent->cinfo->event[0] = events[k];
             //                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
             agent->cinfo->event[0].condition = agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text;
             cache[3+(int)(ctime-stime)].event.push_back(json_of_event(myjstring, agent->cinfo));

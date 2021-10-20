@@ -100,7 +100,7 @@ namespace Cosmos {
                     data[chunkidx].resize(chunk_size);
                     if (fseek(fp, chunkidx*chunk_size, SEEK_SET) == 0 && (iretn=fread(data[chunkidx].data(), 1, chunk_size, fp)) > 0)
                     {
-                        if (iretn < chunk_size)
+                        if ((size_t)iretn < chunk_size)
                         {
 //                            data[chunkidx].resize(iretn);
                             break;
