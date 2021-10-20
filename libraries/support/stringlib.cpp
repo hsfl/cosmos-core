@@ -49,15 +49,19 @@ vector < string > string_split(string in, string delimeters) {
     const char *str = in.data();
     do {
         const char *begin = str;
-        while(*str) {
+        while(*str)
+        {
             bool match = false;
-            for (size_t i=0; i<delimeters.size(); ++i) {
-                if (*str == delimeters[i]) {
+            for (size_t i=0; i<delimeters.size(); ++i)
+            {
+                if (*str == delimeters[i])
+                {
                     match = true;
                     break;
                 }
             }
-            if (match) {
+            if (match)
+            {
                 break;
             }
             str++;
