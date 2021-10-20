@@ -192,47 +192,71 @@ vector <DeviceDisk::info> DeviceDisk::getInfo()
     string tdata;
     uint64_t tsize;
 
-    int32_t iretn = data_execute("lsblk -fbl -o SIZE,MOUNTPOINT", tdata);
-    vector<string> lines;
-    if(iretn<0)	{
-        iretn = data_execute("df", tdata);
-        if(iretn<0)	{
-            return result;
-        }
-        lines = string_split(tdata, "\n");
-        for (string line : lines)
+    FILE *mfd = fopen("/proc/mounts", "r");
+    char nextline[100];
+    if (mfd != nullptr)
+    {
+        while (fgets(nextline, 100, mfd) != nullptr)
         {
-            if (line.find("/") != string::npos)
+            vector<string> fields = string_split(nextline);
+            if (fields.size() == 6 && (fields[2] == "ext4" || fields[2] == "btrfs" || fields[2] == "vfat"))
             {
-                char tmount[50];
-                if (sscanf(line.c_str(), "%*s %lu %*s %*s %*s %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
+                struct statvfs tstat;
+                if (statvfs(fields[0].c_str(), &tstat) == 0)
                 {
-                    tinfo.mount = tmount;
-                    tinfo.size = tsize * 1024;
-                    tinfo.used = getUsed(tinfo.mount);
-                    tinfo.free = tinfo.size - tinfo.used;
-                    result.push_back(tinfo);
-                }
-            }
-        }
-    } else	{
-        lines = string_split(tdata, "\n");
-        for (string line : lines)
-        {
-            if (line.find("/") != string::npos)
-            {
-                char tmount[50];
-                if (sscanf(line.c_str(), "%lu %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
-                {
-                    tinfo.mount = tmount;
-                    tinfo.size = tsize;
-                    tinfo.used = getUsed(tinfo.mount);
-                    tinfo.free = tinfo.size - tinfo.used;
+                    tinfo.mount = fields[0];
+                    tinfo.size = tstat.f_bsize * tstat.f_blocks;
+                    tinfo.free = tstat.f_bsize * tstat.f_bfree;
+                    tinfo.used = tstat.f_bsize * (tstat.f_blocks - tstat.f_bfree);
                     result.push_back(tinfo);
                 }
             }
         }
     }
+//    int32_t iretn = data_execute("lsblk -fbl -o SIZE,MOUNTPOINT", tdata);
+//    vector<string> lines;
+//    if(iretn<0)
+//    {
+//        iretn = data_execute("df", tdata);
+//        if(iretn<0)	{
+//            return result;
+//        }
+//        lines = string_split(tdata, "\n");
+//        for (string line : lines)
+//        {
+//            if (line.find("/") != string::npos)
+//            {
+//                char tmount[50];
+//                if (sscanf(line.c_str(), "%*s %lu %*s %*s %*s %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
+//                {
+//                    tinfo.mount = tmount;
+//                    tinfo.size = tsize * 1024;
+//                    tinfo.used = getUsed(tinfo.mount);
+//                    tinfo.free = tinfo.size - tinfo.used;
+//                    result.push_back(tinfo);
+//                }
+//            }
+//        }
+//    }
+//    else
+//    {
+//        lines = string_split(tdata, "\n");
+//        for (string line : lines)
+//        {
+//            if (line.find("/") != string::npos)
+//            {
+//                char tmount[50];
+//                if (sscanf(line.c_str(), "%lu %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
+//                {
+//                    tinfo.mount = tmount;
+//                    tinfo.size = tsize;
+//                    tinfo.used = getUsed(tinfo.mount);
+//                    tinfo.free = tinfo.size - tinfo.used;
+//                    result.push_back(tinfo);
+//                }
+//            }
+//        }
+//    }
 #endif
 #ifdef COSMOS_WIN_OS
     getAll();
