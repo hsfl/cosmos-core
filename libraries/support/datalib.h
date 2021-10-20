@@ -157,6 +157,8 @@ string data_resource_path(string name);
 bool data_exists(string& path);
 bool data_isdir(string path);
 bool data_ischardev(string path);
+bool data_isblkdev(string path);
+bool data_issymlink(string path);
 bool data_isfile(string path, off_t size=0);
 double data_ctime(string path);
 int32_t data_execute(string cmd, string& result, string shell="");

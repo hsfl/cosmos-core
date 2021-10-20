@@ -1772,6 +1772,36 @@ bool data_ischardev(string path)
 
 }
 
+bool data_isblkdev(string path)
+{
+    struct stat st;
+
+    if (!stat(path.c_str(), &st) && S_ISBLK(st.st_mode))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+}
+
+bool data_issymlink(string path)
+{
+    struct stat st;
+
+    if (!stat(path.c_str(), &st) && S_ISLNK(st.st_mode))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+}
+
 bool data_isfile(string path, off_t size)
 {
     struct stat st;
