@@ -110,7 +110,8 @@ int main(int argc, char *argv[])
     sim->Init(currentutc, simdt);
 
 //    iretn = sim->AddNode("mother", Physics::Structure::U12, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
-    iretn = sim->AddNode("mother", Physics::Structure::U12, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc);
+    initialloc.att.icrf.s = q_eye();
+    iretn = sim->AddNode("mother", Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc);
     sit = sim->GetNode("mother");
     sit->second->AddTarget("Punta_Arenas", RADOF(-53.1638), RADOF(-70.9171), 0.);
     sit->second->AddTarget("Awarua", RADOF(-46.4923), RADOF(168.2808), 0.);
@@ -126,6 +127,7 @@ int main(int argc, char *argv[])
     header += "Alt\tEcc\tInc\tRAAN\tPeriod\tBeta\t";
 
     header += "pos_lon\tpos_lat\tpos_h\t";
+    header += "sun_lat\tsun_lon\t";
     header += "pos_x\tpos_y\tpos_z\t";
     header += "vel_x\tvel_y\tvel_z\t";
     header += "acc_x\tacc_y\tacc_z\t";
@@ -245,11 +247,25 @@ int main(int argc, char *argv[])
             output += to_floatany(kep.period) + "\t";
             output += to_floatany(kep.beta) + "\t";
 
-            // ECI
+            // Geod
 
             output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lat) + "\t";
             output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.lon) + "\t";
             output += to_floatany(sit->second->currentinfo.node.loc.pos.geod.s.h) + "\t";
+
+//            cartpos geocg;
+//            geoidpos geodg = sit->second->currentinfo.node.loc.pos.geod;
+//            geodg.s.h = 0.;
+//            geod2geoc(geodg, geocg);
+//            rvector topog;
+//            geoc2topo(geodg.s, sit->second->currentinfo.node.loc.pos.geoc.s, topog);
+//            float azg;
+//            float elg;
+//            topo2azel(topog, azg, elg);
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.extra.sungeo.lat) + "\t";
+            output += to_floatany(sit->second->currentinfo.node.loc.pos.extra.sungeo.lon) + "\t";
+
+            // ECI
 
             output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.s.col[0]) + "\t";
             output += to_floatany(sit->second->currentinfo.node.loc.pos.eci.s.col[1]) + "\t";
