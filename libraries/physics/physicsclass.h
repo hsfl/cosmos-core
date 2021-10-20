@@ -74,7 +74,8 @@ namespace Cosmos
                 U12,
                 U12X,
                 U12Y,
-                U12XY
+                U12XY,
+                HEX65W80H
                 };
 
             enum ExternalPanelType
@@ -91,6 +92,8 @@ namespace Cosmos
             }
 
             int32_t Setup(Type type);
+            int32_t add_hex(double width=30, double height=30, ExternalPanelType type=NoPanel);
+            int32_t add_oct(double width=30, double height=30, ExternalPanelType type=NoPanel);
             int32_t add_u(double x=1, double y=1, double z=1, ExternalPanelType type=NoPanel);
             int32_t add_cuboid(string name, Vector size, double depth, Quaternion orientation, Vector offset);
             int32_t add_face(string name, Vector point0, Vector point1, Vector point2, Vector point3, double depth, uint8_t external=1, float pcell=.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector());
@@ -136,6 +139,7 @@ namespace Cosmos
                 AttitudeIterative = 21,
                 AttitudeLVLH = 22,
                 AttitudeGeo = 23,
+                AttitudeSolar = 24,
                 Thermal = 30,
                 Electrical = 40
                 };
@@ -210,7 +214,7 @@ namespace Cosmos
             int32_t Init(vector<Convert::locstruc> locs);
             int32_t Init();
             int32_t Converge();
-            int32_t Propagate(double nextutc=0.);
+            int32_t Propagate(double nextutc=0., quaternion icrf={{0.,0.,0.},1.});
             int32_t Reset(double nextutc=0.);
 
         private:
@@ -303,6 +307,23 @@ namespace Cosmos
         private:
         };
 
+        class SolarAttitudePropagator : public Propagator
+        {
+        public:
+            SolarAttitudePropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
+                : Propagator{ newloc, newphys, idt }
+            {
+                type = AttitudeSolar;
+            }
+
+            int32_t Init();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
+
+        private:
+            Vector optimum{0.,0.,1.};
+        };
+
         class ThermalPropagator : public Propagator
         {
         public:
@@ -374,6 +395,7 @@ namespace Cosmos
             IterativeAttitudePropagator *itattitude;
             LVLHAttitudePropagator *lvattitude;
             GeoAttitudePropagator *geoattitude;
+            SolarAttitudePropagator *solarattitude;
 
             Propagator::Type ttype;
             ThermalPropagator *thermal;

@@ -72,6 +72,9 @@ namespace Cosmos
             case U12XY:
                 iretn = add_u(2, 2, 3, XY);
                 break;
+            case HEX65W80H:
+                iretn = add_hex(.65, .80, NoPanel);
+                break;
             default:
                 iretn =  GENERAL_ERROR_OUTOFRANGE;
             }
@@ -99,50 +102,136 @@ namespace Cosmos
             switch (type)
             {
             case NoType:
-                add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004);
-                add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
-                add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
-                add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
-                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
-                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., y/2., -z/2.), .004);
+                add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01);
+                add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01);
+                add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01);
+                add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
                 break;
             case X:
-                add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .004);
-                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .004);
+                add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01, 2, 0.);
+                add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01, 2, 0.);
+                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .01);
+                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .01);
 
-                add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
-                add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
+                add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01);
+                add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01);
 
-                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
-                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., y/2., -z/2.), .004);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
                 break;
             case Y:
-                add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004);
-                add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004);
+                add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01);
+                add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01);
 
-                add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004, 2, 0.);
-                add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .004);
-                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .004);
+                add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01, 2, 0.);
+                add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01, 2, 0.);
+                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .01);
+                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .01);
 
-                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
-                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., y/2., -z/2.), .004);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
                 break;
             case XY:
-                add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .004);
-                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .004);
+                add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01, 2, 0.);
+                add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01, 2, 0.);
+                add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .01);
+                add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .01);
 
-                add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004, 2, 0.);
-                add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., -y/2., z/2.), .004, 2, 0.);
-                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .004);
-                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .004);
+                add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01, 2, 0.);
+                add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01, 2, 0.);
+                add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .01);
+                add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .01);
 
-                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .004);
-                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(-x/2., y/2., -z/2.), .004);
+                add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+                add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
+                break;
+            }
+
+            return 0;
+        }
+
+        int32_t Structure::add_hex(double width, double height, ExternalPanelType type)
+        {
+            switch (type)
+            {
+            case NoType:
+                for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
+                {
+                    add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
+                    add_triangle(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), .01, true, .4);
+                    add_triangle(Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, true, .4);
+                }
+                break;
+            case X:
+                for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
+                {
+                    add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
+                    add_triangle(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), .01, true, .4);
+                    add_triangle(Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, true, .4);
+                }
+                break;
+            case Y:
+                for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
+                {
+                    add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
+                    add_triangle(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), .01, true, .4);
+                    add_triangle(Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, true, .4);
+                }
+                break;
+            case XY:
+                for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
+                {
+                    add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
+                    add_triangle(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), .01, true, .4);
+                    add_triangle(Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, true, .4);
+                }
+                break;
+            }
+
+            return 0;
+        }
+
+        int32_t Structure::add_oct(double width, double height, ExternalPanelType type)
+        {
+            switch (type)
+            {
+            case NoType:
+                for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
+                {
+                    add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
+                    add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+                    add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+                }
+
+                break;
+            case X:
+                for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
+                {
+                    add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
+                    add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+                    add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+                }
+
+                break;
+            case Y:
+                for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
+                {
+                    add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
+                    add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+                    add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+                }
+
+                break;
+            case XY:
+                for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
+                {
+                    add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
+                    add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+                    add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+                }
+
                 break;
             }
 
@@ -152,11 +241,11 @@ namespace Cosmos
         int32_t Structure::add_cuboid(string name, Vector size, double depth, Quaternion orientation, Vector offset)
         {
             add_face(name+"+x", Vector(size.x/2., -size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(size.x/2., -size.y/2., size.z/2.), depth, 1, 0., orientation, offset);
-            add_face(name+"-x", Vector(-size.x/2., -size.y/2., -size.z/2.), Vector(-size.x/2., size.y/2., -size.z/2.), Vector(-size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., -size.y/2., size.z/2.), depth, 1, 0., orientation, offset);
+            add_face(name+"-x", Vector(-size.x/2., -size.y/2., -size.z/2.), Vector(-size.x/2., -size.y/2., size.z/2.), Vector(-size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., size.y/2., -size.z/2.), depth, 1, 0., orientation, offset);
             add_face(name+"+y", Vector(-size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., size.y/2., size.z/2.), depth, 1, 0., orientation, offset);
-            add_face(name+"-y", Vector(-size.x/2., -size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., -size.y/2., size.z/2.), depth, 1, 0., orientation, offset);
-            add_face(name+"+z", Vector(-size.x/2., -size.y/2., size.z/2.), Vector(size.x/2., -size.y/2., size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., -size.y/2., size.z/2.), depth, 1, 0., orientation, offset);
-            add_face(name+"-z", Vector(-size.x/2., -size.y/2., -size.z/2.), Vector(size.x/2., -size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., -size.z/2.), Vector(-size.x/2., -size.y/2., -size.z/2.), depth, 1, 0., orientation, offset);
+            add_face(name+"-y", Vector(-size.x/2., -size.y/2., -size.z/2.), Vector(-size.x/2., size.y/2., size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(size.x/2., -size.y/2., -size.z/2.), depth, 1, 0., orientation, offset);
+            add_face(name+"+z", Vector(-size.x/2., -size.y/2., size.z/2.), Vector(size.x/2., -size.y/2., size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., size.y/2., size.z/2.), depth, 1, 0., orientation, offset);
+            add_face(name+"-z", Vector(-size.x/2., -size.y/2., -size.z/2.), Vector(-size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., -size.y/2., -size.z/2.), depth, 1, 0., orientation, offset);
 
             return 0;
         }
@@ -225,6 +314,31 @@ namespace Cosmos
             triangle.normal = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).cross(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]).normalize(triangle.area);
             triangle.mass = triangle.area * triangle.depth * triangle.density;
             triangle.perimeter = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).norm() + (currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[1]]).norm() + (currentphys->vertices[triangle.tidx[0]] - currentphys->vertices[triangle.tidx[2]]).norm();
+
+            triangle.twist = (triangle.com - triangle.normal).cross(triangle.normal);
+            triangle.twist = (-triangle.area/(triangle.normal.norm2()) * triangle.twist);
+            triangle.shove = Vector();
+            for (uint16_t i=0; i<2; i++)
+            {
+                Vector tv0 = (currentphys->vertices[triangle.tidx[i]] - triangle.com);
+                Vector tv1 = (currentphys->vertices[triangle.tidx[i+1]] - triangle.com);
+                double ta = (tv0.norm());
+                for (uint16_t j=0; j<=ta*100; j++)
+                {
+                    Vector tv2 = (tv0 * .01*j/ta);
+                    Vector tv3 = (tv1 * .01*j/ta);
+                    Vector dv = (tv3 - tv2);
+                    double tb = (dv.norm());
+                    for (size_t k=0; k<tb*100; k++)
+                    {
+                        Vector sv = (triangle.com + (tv2 + (dv * .01*k/tb)));
+                        double tc = 1./(sv.norm2());
+                        triangle.shove = (triangle.shove + (sv * tc));
+                    }
+                }
+            }
+            triangle.shove = (triangle.shove / -10000.);
+
             currentphys->triangles.push_back(triangle);
 
             return 1;
@@ -328,6 +442,9 @@ namespace Cosmos
                 break;
             case Propagator::Type::AttitudeGeo:
                 geoattitude = new GeoAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                break;
+            case Propagator::Type::AttitudeSolar:
+                solarattitude = new SolarAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 break;
             default:
                 inattitude = new InertialAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
@@ -450,6 +567,10 @@ namespace Cosmos
                 geoattitude = new GeoAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 geoattitude->Init();
                 break;
+            case Propagator::Type::AttitudeSolar:
+                solarattitude = new SolarAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                solarattitude->Init();
+                break;
             case Propagator::Type::AttitudeIterative:
                 itattitude = new IterativeAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 itattitude->Init();
@@ -527,23 +648,14 @@ namespace Cosmos
             while ((nextutc - currentinfo.node.utc) > dtj / 2.)
             {
                 PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
-                switch (ptype)
-                {
-                case Propagator::Type::PositionIterative:
-                    static_cast<IterativePositionPropagator *>(itposition)->Propagate(nextutc);
-                    break;
-                case Propagator::Type::PositionInertial:
-                    static_cast<InertialPositionPropagator *>(inposition)->Propagate(nextutc);
-                    break;
-                case Propagator::Type::PositionGaussJackson:
-                    static_cast<GaussJacksonPositionPropagator *>(gjposition)->Propagate(nextutc);
-                    break;
-                case Propagator::Type::PositionGeo:
-                    static_cast<GeoPositionPropagator *>(geoposition)->Propagate(nextutc);
-                    break;
-                default:
-                    break;
-                }
+
+                // Thermal
+                static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
+
+                // Electrical
+                static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
+
+                // Attitude
                 switch (atype)
                 {
                 case Propagator::Type::AttitudeIterative:
@@ -558,11 +670,32 @@ namespace Cosmos
                 case Propagator::Type::AttitudeGeo:
                     static_cast<GeoAttitudePropagator *>(geoattitude)->Propagate(nextutc);
                     break;
+                case Propagator::Type::AttitudeSolar:
+                    static_cast<SolarAttitudePropagator *>(solarattitude)->Propagate(nextutc);
+                    break;
                 default:
                     break;
                 }
-                static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
-                static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
+
+                // Position
+                switch (ptype)
+                {
+                case Propagator::Type::PositionIterative:
+                    static_cast<IterativePositionPropagator *>(itposition)->Propagate(nextutc);
+                    break;
+                case Propagator::Type::PositionInertial:
+                    static_cast<InertialPositionPropagator *>(inposition)->Propagate(nextutc);
+                    break;
+                case Propagator::Type::PositionGaussJackson:
+                    static_cast<GaussJacksonPositionPropagator *>(gjposition)->Propagate(nextutc, currentinfo.node.loc.att.icrf.s);
+                    break;
+                case Propagator::Type::PositionGeo:
+                    static_cast<GeoPositionPropagator *>(geoposition)->Propagate(nextutc);
+                    break;
+                default:
+                    break;
+                }
+
                 if (ptype == Propagator::PositionGeo)
                 {
                     Convert::pos_geod(currentinfo.node.loc);
@@ -880,6 +1013,49 @@ namespace Cosmos
             currentloc->att.lvlh.a = rv_zero();
             ++currentloc->att.lvlh.pass;
             Convert::att_lvlh2icrf(currentloc);
+            AttAccel(currentloc, currentphys);
+            Convert::att_icrf(currentloc);
+
+            return 0;
+        }
+
+        int32_t SolarAttitudePropagator::Init()
+        {
+            optimum = Quaternion(currentloc->att.icrf.s).drotate(Vector(0.,0.,1.));
+            currentloc->att.icrf.utc = currentutc;
+            currentloc->att.icrf.s = drotate_between(-Vector(currentloc->pos.extra.sun2earth.s), optimum).conjugate().to_q();
+            currentloc->att.icrf.v = rv_zero();
+            currentloc->att.icrf.a = rv_zero();
+            ++currentloc->att.icrf.pass;
+            AttAccel(currentloc, currentphys);
+            Convert::att_icrf(currentloc);
+            initialloc.att = currentloc->att;
+
+            return  0;
+        }
+
+        int32_t SolarAttitudePropagator::Reset(double nextutc)
+        {
+            currentloc->att = initialloc.att;
+            currentutc = currentloc->att.utc;
+            Propagate(nextutc);
+
+            return  0;
+        }
+
+        int32_t SolarAttitudePropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+
+            currentutc = nextutc;
+            currentloc->att.icrf.utc = nextutc;
+            currentloc->att.icrf.s = drotate_between(-Vector(currentloc->pos.extra.sun2earth.s), optimum).conjugate().to_q();
+            currentloc->att.icrf.v = rv_zero();
+            currentloc->att.icrf.a = rv_zero();
+            ++currentloc->att.icrf.pass;
             AttAccel(currentloc, currentphys);
             Convert::att_icrf(currentloc);
 
@@ -1517,7 +1693,7 @@ namespace Cosmos
             return iretn;
         }
 
-        int32_t GaussJacksonPositionPropagator::Propagate(double nextutc)
+        int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icrf)
         {
             if (nextutc == 0.)
             {
@@ -1527,9 +1703,9 @@ namespace Cosmos
             while ((nextutc - currentutc) > dtj / 2.)
             {
                 currentutc += dtj;
-                Vector normal, unitv, unitx, unitp, unitp1, unitp2;
-                Vector lunitp1(.1,.1,0.);
-                Vector tvector;
+//                Vector normal, unitv, unitx, unitp, unitp1, unitp2;
+//                Vector lunitp1(.1,.1,0.);
+//                Vector tvector;
 
                 // Don't bother if too low
                 if (Vector(currentloc->pos.eci.s).norm() < REARTHM)
@@ -1538,6 +1714,7 @@ namespace Cosmos
                 }
 
                 step[order+1].loc.utc = step[order+1].loc.pos.utc = step[order+1].loc.pos.eci.utc = step[order].loc.pos.eci.utc + dtj;
+                step[order+1].loc.att.icrf.s = icrf;
 
                 // Calculate S(order/2+1)
                 step[order+1].ss.col[0] = step[order].ss.col[0] + step[order].s.col[0] + step[order].loc.pos.eci.a.col[0]/2.;
@@ -1750,33 +1927,26 @@ namespace Cosmos
                 {
                     // Atmospheric effects
                     double vdot = unitv.dot(triangle.normal);
-                    double ddrag = 0.;
+                    double sdot = units.dot((triangle.external==1?1.:-1.)*triangle.normal);
                     if (vdot > 0. && phys->mass > 0.F)
                     {
-                        ddrag = adrag * vdot / phys->mass;
+                        double ddrag = adrag * vdot / phys->mass;
+                        Vector dtorque = ddrag * triangle.twist;
+                        phys->atorque += dtorque;
+                        Vector da = ddrag * triangle.shove;
+                        phys->adrag += da;
                     }
-                    Vector dtorque = ddrag * triangle.twist;
-                    phys->atorque += dtorque;
-                    Vector da = ddrag * triangle.shove;
-                    phys->adrag += da;
 
                     // Solar effects
                     double sirradiation;
-                    if (triangle.external == 1)
+                    if (sdot > 0. && phys->mass > 0.F)
                     {
-                        sirradiation = loc->pos.sunradiance * units.dot(triangle.normal);
-                    }
-                    else
-                    {
-                        sirradiation = loc->pos.sunradiance * units.dot(-triangle.normal);
-                    }
-                    if (sirradiation > 0)
-                    {
+                        sirradiation = loc->pos.sunradiance * sdot;
                         triangle.sirradiation = triangle.pcell * sirradiation;
-                        ddrag = sirradiation / (3e8*phys->mass);
-                        dtorque = ddrag * triangle.twist;
+                        double ddrag = sirradiation / (3e8*phys->mass);
+                        Vector dtorque = ddrag * triangle.twist;
                         phys->rtorque += dtorque;
-                        da = ddrag * triangle.shove;
+                        Vector da = ddrag * triangle.shove;
                         phys->rdrag += da;
                     }
 
