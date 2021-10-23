@@ -9129,6 +9129,17 @@ information.
                 return (T*)(it->second);
             }
 
+            /// Gets the pointer to the memory address associated with the provided name in Namespace 2.0.
+            /** Searches through Namespace 2.0 and returns a void pointer to the associated memory address.
+            @param	s	string representing name to search for
+            @return	void pointer to associated memory address. Returns `nullptr` if name is not found.
+            */
+            void* get_pointer(const string& s) const	{
+                name_map::const_iterator it = names.find(s);
+                if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return nullptr;	}
+                return it->second;
+            }
+
             /// Gets the value of the data associated with the provided name in Namespace 2.0.
             /** Searches through Namespace 2.0 and returns the value of the dereferenced pointer to the associated memory address.
         @param	s	string representing name to search for
