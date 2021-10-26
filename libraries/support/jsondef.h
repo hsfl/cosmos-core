@@ -1064,7 +1064,7 @@ class sim_param	{
         hash table.
 */
         //Namespace 1.0
-        truct jsonhandle
+        ruct jsonhandle
         {
             // Hash of equation or name
             uint16_t hash;  // NOTE: Initializing this
