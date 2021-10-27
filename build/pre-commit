@@ -2,8 +2,7 @@
 
 # script to make sure that only code that compiles is committed to the repo!
 
-REPO_ROOT=`git rev-parse --show-toplevel`
-cd "${REPO_ROOT}/build"
+cd build
 
 ./build_all_linux
 
