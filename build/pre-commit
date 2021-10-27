@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# script to make sure that only code that compiles is committed to the repo!
+
+REPO_ROOT=`git rev-parse --show-toplevel`
+cd "${REPO_ROOT}/build"
+
+./build_all_linux
+
+NOT_SUCCESS=$?
+
+if [ $NOT_SUCCESS -ne 0 ]; then
+	echo -e "\033[0;37mSorry, code that does not compile may not be committed. Please fix the errors and try again.\033[0m"
+else
+	echo -e "\033[0;37mNo compilation errors detected. Committing...\033[0m"
+fi
+
+#GTEST RUNS
+
+
+exit $NOT_SUCCESS
