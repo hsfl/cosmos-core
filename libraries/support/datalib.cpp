@@ -2074,7 +2074,8 @@ int32_t data_execute(string cmd, string& result, string shell)
 
 }
 
-void test_git_hook()	{
+void GITTEST::f()	{
 	return;
 }
+
 //! @}
