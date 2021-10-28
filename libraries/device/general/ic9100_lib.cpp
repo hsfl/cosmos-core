@@ -32,7 +32,7 @@
 
 int32_t ic9100_connect(string device, uint8_t address, ic9100_handle &handle)
 {
-    int3_t iretn;
+    int32_t iretn;
 
     handle.serial = new Serial(device.c_str(), IC9100_BAUD, IC9100_BITS, IC9100_PARITY, IC9100_STOPBITS);
 
