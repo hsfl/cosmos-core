@@ -185,7 +185,10 @@ int32_t data_load_archive(string node, string agent, double mjd, string type, ve
 //int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc* root);
 double findlastday(string node);
 double findfirstday(string node);
-
+class GITTEST	{
+	public:
+		void f();
+};
 //! @}
 
 #endif // DATALIB_H
