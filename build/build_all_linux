@@ -2,14 +2,11 @@
 
 ## script to build all targets and record all output, recording number of warnings and errors
 
-# go to build directory
-#REPO_ROOT=`git rev-parse --show-toplevel`
-#cd "${REPO_ROOT}/build"
-
-# re-cmake the linux directory
-rm -r linux
-mkdir linux
-./do_cmake linux
+# make the linux directory if doesn't exists
+if [ ! -d linux ]; then
+	mkdir linux
+	./do_cmake linux
+fi
 
 # build all targets (-B) using 4 cores (-j4)
 cd linux
