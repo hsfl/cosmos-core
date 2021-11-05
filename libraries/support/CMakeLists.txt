@@ -69,7 +69,7 @@ target_link_libraries(CosmosData CosmosTime CosmosString localzlib CosmosError C
 
 add_library(CosmosPacket STATIC packetcomm.cpp packetcomm.h)
 install(TARGETS CosmosPacket DESTINATION lib)
-target_link_libraries(CosmosPacket CosmosNamespace CosmosTransfer CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosPacket CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosTransfer CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
 
 add_library(Envi STATIC envi.cpp envi.h)
 install(TARGETS Envi DESTINATION lib)
