@@ -32,6 +32,7 @@
 
 #include "support/configCosmos.h"
 #include "support/cosmos-errno.h"
+#include "math/mathlib.h"
 
 #include <cstring>
 #include <iostream>
@@ -73,18 +74,29 @@ public:
     uint8_t get_control();
     void set_protocolID(uint8_t protocol);
     uint8_t get_protocolID();
-    packet_header get_packetHeader();
-    vector <uint8_t> get_packetData();
-    int32_t set_packetData(vector <uint8_t> input);
-    int32_t set_raw_packet(vector <uint8_t> packet);
-    int32_t unload_packet();
-    int32_t load_packet();
+    packet_header get_header();
+    vector <uint8_t> get_data();
+    vector <uint8_t> get_ax25_packet();
+    vector <uint8_t> get_hdlc_packet();
+    int32_t set_data(vector <uint8_t> input);
+    int32_t set_ax25_packet(vector <uint8_t> packet);
+    int32_t set_hdlc_packet(vector <uint8_t> packet);
+    int32_t unload();
+    int32_t load(vector<uint8_t> newdata={});
+    int32_t stuff(vector<uint8_t> ax25data={});
+    int32_t unstuff(vector<uint8_t> hdlcdata={});
 
 private:
     packet_header header;
+    uint16_t crc;
+    uint16_t crccalc;
     vector <uint8_t> data;
-    vector <uint8_t> raw_packet;
+    vector<uint8_t> hdlc_packet;
+    vector<uint8_t> ax25_packet;
     int32_t error;
+    vector<uint8_t> flags = {0x7e, 0x7e, 0x7e, 0x7e, 0x7e, 0x7e, 0x7e, 0x7e, 0x7e, 0x7e};
+    CRC16 calc_crc;
+
 
     friend ::std::ostream& operator<<(::std::ostream& out, Ax25Handle& K);
 };
