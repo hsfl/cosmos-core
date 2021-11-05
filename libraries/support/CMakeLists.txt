@@ -49,7 +49,7 @@ target_link_libraries(CosmosNamespace CosmosConvert CosmosCad CosmosJson CosmosD
 
 add_library(CosmosString STATIC stringlib.cpp stringlib.h jsonobject.cpp jsonobject.h jsonvalue.cpp jsonvalue.h)
 install(TARGETS CosmosString DESTINATION lib)
-target_link_libraries(CosmosString CosmosMath CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosString CosmosConvert CosmosMath CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosJson STATIC jsonclass.cpp jsonclass.h )
 install(TARGETS CosmosJson DESTINATION lib)
