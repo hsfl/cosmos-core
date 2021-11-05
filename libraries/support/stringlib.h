@@ -82,6 +82,7 @@ string to_temperature(double value, char units='K', uint8_t precision=4);
 string to_angle(double value, char units='R', uint8_t precision=4);
 string to_bool(bool value);
 string to_unixtime(double mjd, uint8_t precision=0);
+string to_datename(double mjd);
 
 string to_json(string key, string value);
 string to_json(string key, double value);
