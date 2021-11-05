@@ -3,6 +3,7 @@
 #include "support/sliplib.h"
 #include "support/datalib.h"
 #include "support/stringlib.h"
+#include "device/general/ax25class.h"
 
 namespace Cosmos {
     namespace Support {
@@ -95,6 +96,14 @@ namespace Cosmos {
                 datain = dataout;
             }
             return Unpack(checkcrc);
+        }
+
+        bool PacketComm::CCSDSIn()
+        {
+            memcpy(&ccsds_header, dataout.data(), 6);
+            datain.clear();
+            datain.insert(datain.begin(), &dataout[6], &dataout[dataout.size()-(dataout.size()<189?6:194-dataout.size())]);
+            return Unpack();
         }
 
         bool PacketComm::SLIPIn()
@@ -191,6 +200,22 @@ namespace Cosmos {
             dataout.clear();
             dataout.insert(dataout.begin(), atsm.begin(), atsm.end());
             dataout.insert(dataout.end(), datain.begin(), datain.end());
+            return true;
+        }
+
+        bool PacketComm::AX25Out(string dest_call, string sour_call, uint8_t dest_stat, uint8_t sour_stat, uint8_t cont, uint8_t prot)
+        {
+            if (!Pack())
+            {
+                return false;
+            }
+            Ax25Handle axhandle(dest_call, sour_call, dest_stat, sour_stat, cont, prot);
+            datain.resize(datain.size()+6);
+            axhandle.load(datain);
+            axhandle.stuff();
+            vector<uint8_t> ax25packet = axhandle.get_hdlc_packet();
+            dataout.clear();
+            dataout.insert(dataout.begin(), ax25packet.begin(), ax25packet.end());
             return true;
         }
 

@@ -11,17 +11,29 @@ namespace Cosmos {
         class PacketComm
         {
         public:
+            struct __attribute__ ((packed)) CCSDS_Header {
+                uint8_t tf_version:2;
+                uint16_t spacecraft_id:10;
+                uint8_t virtual_channel_id:3;
+                uint8_t ocf_flag:1;
+                uint8_t master_frame_cnt;
+                uint8_t virtual_frame_cnt; // Start frame, will increment
+                uint16_t tf_data_field_status;
+            };
+
             PacketComm();
             void CalcCRC();
             bool CheckCRC();
             bool Unpack(bool checkcrc=true);
             bool UnpackForward();
             bool RawIn(bool invert=false, bool checkcrc=true);
+            bool CCSDSIn();
             bool ASMIn();
             bool SLIPIn();
             bool Pack();
             bool RawOut();
             bool ASMOut();
+            bool AX25Out(string dest_call="", string sour_call="", uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
             bool SLIPOut();
             int32_t Process();
             int32_t Generate(string args="");
@@ -34,6 +46,7 @@ namespace Cosmos {
             typedef int32_t (*Func)(PacketComm *packet, string args);
             Func Funcs[256];
 
+            CCSDS_Header ccsds_header;
             vector<uint8_t> dataout;
             vector<uint8_t> datain;
             uint8_t type;
