@@ -95,8 +95,8 @@ int main(int argc, char *argv[])
         }
         if (iretn > 0)
         {
-            handle.set_raw_packet(packet);
-            handle.unload_packet();
+            handle.set_ax25_packet(packet);
+            handle.unload();
             printf("Packet: [%s %u %s %u %u %u] ", handle.get_destination_callsign().c_str(), handle.get_destination_stationID(), handle.get_source_callsign().c_str(), handle.get_source_stationID(), handle.get_control(), handle.get_protocolID());
             printf("%s\n", to_hex_string(handle.get_data(), true).c_str());
         }
