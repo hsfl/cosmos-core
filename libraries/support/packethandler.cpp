@@ -4,11 +4,11 @@ namespace Cosmos {
     namespace Support {
         PacketHandler::PacketHandler() { }
 
-        uint16_t PacketHandler::register_response(RespCallback f)
+        int32_t PacketHandler::register_response(RespCallback f)
         {
             if (get_next_packet_id()) {
                 response_packets[packet_idx].set_callback(f);
-                return packet_idx;
+                return static_cast<int32_t>(packet_idx);
             }
             // TODO: return proper error code
             cout << "Error in PacketHandler::register_response(), no available packet_id" << endl;
@@ -66,7 +66,6 @@ namespace Cosmos {
             std::copy(data.begin(), data.end(), &resp_data[5]);
             packets[chunk_id].type = packets[chunk_id].TypeId["Response"];
             packets[chunk_id].data = resp_data;
-            packets[chunk_id].SLIPOut();
             return packets;
         }
 
