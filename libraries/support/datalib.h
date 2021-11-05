@@ -161,6 +161,7 @@ bool data_isblkdev(string path);
 bool data_issymlink(string path);
 bool data_isfile(string path, off_t size=0);
 double data_ctime(string path);
+int32_t data_execute(vector<uint8_t> cmd, string& result, string shell="");
 int32_t data_execute(string cmd, string& result, string shell="");
 off_t data_size(string path);
 int32_t set_cosmosroot(string name, bool create_flag=false);
