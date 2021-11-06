@@ -64,7 +64,7 @@ namespace Cosmos {
             resp_data[3] = chunk_id;
             resp_data[4] = total_chunks;
             std::copy(data.begin(), data.end(), &resp_data[5]);
-            packets[chunk_id].type = packets[chunk_id].TypeId["Response"];
+            packets[chunk_id].type = (uint8_t)PacketComm::TypeId::Response; //packets[chunk_id].TypeId["Response"];
             packets[chunk_id].data = resp_data;
             packets[chunk_id].SLIPOut();
             return packets;

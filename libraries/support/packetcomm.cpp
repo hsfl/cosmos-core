@@ -9,13 +9,13 @@ namespace Cosmos {
     namespace Support {
         PacketComm::PacketComm()
         {
-            TypeId.Init({"ShortReset", "ShortReboot","ShortSendBeacon"}, {0});
-            TypeId.Extend({"LongReset","LongReboot","LongSendBeacon"}, {10});
-            TypeId.Extend({"FileMeta","FileChunk"}, {20});
+//            TypeId.Init({"ShortReset", "ShortReboot","ShortSendBeacon"}, {0});
+//            TypeId.Extend({"LongReset","LongReboot","LongSendBeacon"}, {10});
+//            TypeId.Extend({"FileMeta","FileChunk"}, {20});
 
-            TypeId.Extend({"ShortCPUBeacon","ShortTempBeacon"}, {30});
-            TypeId.Extend({"LongCPUBeacon","LongTempBeacon"}, {40});
-            TypeId.Extend({"Forward", "Response"}, {60});
+//            TypeId.Extend({"ShortCPUBeacon","ShortTempBeacon"}, {30});
+//            TypeId.Extend({"LongCPUBeacon","LongTempBeacon"}, {40});
+//            TypeId.Extend({"Forward", "Response"}, {60});
         }
 
         void PacketComm::CalcCRC()
@@ -36,7 +36,9 @@ namespace Cosmos {
             type = datain[0];
 
             // Unpack as forwarding-type packet instead
-            if (type == TypeId["Forward"]) {
+//            if (type == TypeId["Forward"]) {
+            if (type == (uint8_t)PacketComm::TypeId::Forward)
+            {
                 if (UnpackForward()) {
                     return true;
                 }
@@ -151,7 +153,7 @@ namespace Cosmos {
         {
             data = datain;
             datain.resize(4);
-            datain[0] = TypeId["Forward"];
+            datain[0] = (uint8_t)PacketComm::TypeId::Forward; //TypeId["Forward"];
             // Data size = data size + addr length + 1 byte to specify addr length
             datain[1] = (data.size() + fdest.size() + 1) & 0xff;
             datain[2] = (data.size() + fdest.size() + 1) >> 8;

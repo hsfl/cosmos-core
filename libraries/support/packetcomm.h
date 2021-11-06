@@ -42,7 +42,48 @@ namespace Cosmos {
             static constexpr uint16_t INTERNAL_COMMAND = 0;
             static constexpr uint16_t EXTERNAL_COMMAND = 14;
 
-            Enum TypeId;
+            enum class TypeId
+                {
+                ShortReset = 0,
+                ShortReboot = 1,
+                ShortSendBeacon = 2,
+                LongReset = 10,
+                LongReboot = 11,
+                LongSendBeacon = 12,
+                ExternalCommand = 13,
+                FileMeta = 20,
+                FileChunk = 21,
+                ShortCPUBeacon1 = 30,
+                ShortCPUBeacon2 = 31,
+                ShortDuplexBeacon1 = 32,
+                ShortDuplexBeacon2 = 33,
+                ShortDuplexBeacon3 = 34,
+                ShortDuplexBeacon4 = 35,
+                ShortTempBeacon = 36,
+                LongCPUBeacon = 50,
+                LongTempBeacon = 51,
+                LongEPSBeacon = 52,
+                LongADCSBeacon = 53,
+                LongSolarPanelsBeacon = 54,
+                LongOBCBeacon = 55,
+                LongRadioBeacon = 56,
+                LongBinaryBeacon = 59,
+                Forward = 60,
+                Response = 61,
+                IP = 62,
+                Test = 63,
+                FileNodeInfo = 70
+                };
+
+            struct __attribute__ ((packed))  ResponseHeader
+            {
+                uint8_t chunks;
+                uint8_t chunk_id;
+                uint16_t chunk_size;
+                uint16_t response_id;
+                uint32_t met;
+            };
+
             typedef int32_t (*Func)(PacketComm *packet, string args);
             Func Funcs[256];
 
