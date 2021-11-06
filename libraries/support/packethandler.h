@@ -43,7 +43,7 @@ namespace Cosmos {
             PacketHandler();
 
             typedef int32_t (*RespCallback)(const vector<uint8_t>&);
-            uint16_t register_response(const RespCallback f);
+            int32_t register_response(const RespCallback f);
             int32_t clear_response(const uint16_t packet_id);
             int32_t receive_response_packet(const PacketComm &packet);
             vector<PacketComm> create_response_packets(const PacketComm &addressee, const vector<uint8_t> &data);
