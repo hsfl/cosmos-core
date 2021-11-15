@@ -189,8 +189,6 @@ vector <DeviceDisk::info> DeviceDisk::getInfo()
     vector <info> result;
     info tinfo;
 #ifdef COSMOS_LINUX_OS
-    string tdata;
-    uint64_t tsize;
 
     FILE *mfd = fopen("/proc/mounts", "r");
     char nextline[100];
