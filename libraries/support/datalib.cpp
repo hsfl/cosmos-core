@@ -1853,6 +1853,19 @@ off_t data_size(string path)
     }
 
 }
+
+int32_t data_execute(vector<uint8_t> cmd)
+{
+    string result;
+    return data_execute(cmd, result);
+}
+
+int32_t data_execute(string cmd)
+{
+    string result;
+    return data_execute(cmd, result);
+}
+
 int32_t data_execute(vector<uint8_t> cmd, std::string &result, std::string shell)
 {
     return data_execute(string(cmd.begin(), cmd.end()), result, shell);
