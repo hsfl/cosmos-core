@@ -4,6 +4,19 @@ namespace Cosmos {
     namespace Support {
         PacketHandler::PacketHandler() { }
 
+        int32_t PacketHandler::init(cosmosstruc *cinfo, uint16_t secret)
+        {
+            this->cinfo = cinfo;
+            this->secret = secret;
+            add_func((uint8_t)PacketComm::TypeId::Reset, Reset);
+            add_func((uint8_t)PacketComm::TypeId::Reboot, Reboot);
+            add_func((uint8_t)PacketComm::TypeId::ExternalCommand, ExternalCommand);
+            add_func((uint8_t)PacketComm::TypeId::SendBeacon, SendBeacon);
+            add_func((uint8_t)PacketComm::TypeId::ClearRadioQueue, ClearRadioQueue);
+            add_func((uint8_t)PacketComm::TypeId::TestRadio, TestRadio);
+            return 0;
+        }
+
         int32_t PacketHandler::register_response(RespCallback f)
         {
             if (get_next_packet_id()) {
@@ -29,6 +42,7 @@ namespace Cosmos {
             }
             response_packets[response_id].insert(packet.data);
             response_packets[response_id].attempt_resolution(60.);
+            return 0;
         }
 
         bool PacketHandler::get_next_packet_id()
@@ -132,12 +146,82 @@ namespace Cosmos {
             callback(full_response);
             // Reset to initial, make this available for reuse
             reset();
+            return 0;
         }
 
         void ResponseHandler::reset() {
             callback = nullptr;
             last_receieved_time = 0;
             vector<vector<uint8_t>>().swap(data);
+        }
+
+        int32_t PacketHandler::process(PacketComm& packet)
+        {
+            vector<uint8_t> response;
+            return process(packet, response);
+        }
+
+        int32_t PacketHandler::process(PacketComm& packet, vector<uint8_t>& response)
+        {
+            int32_t iretn;
+            FuncEntry &fentry = Funcs[packet.type];
+            if (fentry.efunction != nullptr)
+            {
+                iretn = fentry.efunction(packet.data, response, this->cinfo);
+            }
+            return iretn;
+        }
+
+        int32_t PacketHandler::add_func(uint8_t index, PacketHandler::ExternalFunc function)
+        {
+            FuncEntry tentry;
+            tentry.type = index;
+            tentry.efunction = function;
+            Funcs[index] = tentry;
+            return 0;
+        }
+
+        // Incoming Packets
+
+        // Incoming Commands
+        int32_t PacketHandler::Reset(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo)
+        {
+            int32_t iretn=0;
+            return iretn;
+        }
+
+        int32_t PacketHandler::Reboot(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo)
+        {
+            int32_t iretn=0;
+            return iretn;
+        }
+
+        int32_t PacketHandler::SendBeacon(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo)
+        {
+            int32_t iretn=0;
+            return iretn;
+        }
+
+        int32_t PacketHandler::ClearRadioQueue(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo)
+        {
+            int32_t iretn=0;
+            return iretn;
+        }
+
+        int32_t PacketHandler::ExternalCommand(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc *cinfo)
+        {
+            // Run command, return response
+            string eresponse;
+            int32_t iretn = data_execute(string(data.begin(), data.end()), eresponse);
+            response.clear();
+            response.insert(response.begin(),eresponse.begin(), eresponse.end());
+            return iretn;
+        }
+
+        int32_t PacketHandler::TestRadio(vector<uint8_t> &data, vector<uint8_t>& response, cosmosstruc* cinfo)
+        {
+            int32_t iretn=0;
+            return iretn;
         }
     }
 }

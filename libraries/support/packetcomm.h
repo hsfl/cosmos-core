@@ -35,8 +35,7 @@ namespace Cosmos {
             bool ASMOut();
             bool AX25Out(string dest_call="", string sour_call="", uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
             bool SLIPOut();
-            int32_t Process();
-            int32_t Generate(string args="");
+//            int32_t Generate(string args="");
 
             static constexpr uint16_t INTERNAL_BEACON = 0;
             static constexpr uint16_t INTERNAL_COMMAND = 0;
@@ -44,15 +43,9 @@ namespace Cosmos {
 
             enum class TypeId
                 {
-                ShortReset = 0,
-                ShortReboot = 1,
-                ShortSendBeacon = 2,
-                LongReset = 10,
-                LongReboot = 11,
-                LongSendBeacon = 12,
-                ExternalCommand = 13,
-                FileMeta = 20,
-                FileChunk = 21,
+                Transfer = 20,
+                FileMeta = 21,
+                FileChunk = 22,
                 ShortCPUBeacon1 = 30,
                 ShortCPUBeacon2 = 31,
                 ShortDuplexBeacon1 = 32,
@@ -72,7 +65,13 @@ namespace Cosmos {
                 Response = 61,
                 IP = 62,
                 Test = 63,
-                FileNodeInfo = 70
+                FileNodeInfo = 70,
+                Reset = 128,
+                Reboot = 129,
+                SendBeacon = 130,
+                ClearRadioQueue = 131,
+                ExternalCommand = 132,
+                TestRadio = 133,
                 };
 
             struct __attribute__ ((packed))  ResponseHeader
@@ -83,9 +82,6 @@ namespace Cosmos {
                 uint16_t response_id;
                 uint32_t met;
             };
-
-            typedef int32_t (*Func)(PacketComm *packet, string args);
-            Func Funcs[256];
 
             CCSDS_Header ccsds_header;
             vector<uint8_t> dataout;
@@ -118,20 +114,6 @@ namespace Cosmos {
 
             bool PackForward();
 
-
-            static int32_t ShortReset(PacketComm *packet, string args="");
-            static int32_t ShortReboot(PacketComm *packet, string args="");
-            static int32_t ShortSendBeacon(PacketComm *packet, string args="");
-            static int32_t LongReset(PacketComm *packet, string args="");
-            static int32_t LongReboot(PacketComm *packet, string args="");
-            static int32_t LongSendBeacon(PacketComm *packet, string args="");
-            static int32_t FileMeta(PacketComm *packet, string args="");
-            static int32_t FileChunk(PacketComm *packet, string args="");
-
-            static int32_t ShortCPUBeacon(PacketComm *packet, string args="");
-            static int32_t ShortTempBeacon(PacketComm *packet, string args="");
-            static int32_t LongCPUBeacon(PacketComm *packet, string args="");
-            static int32_t LongTempBeacon(PacketComm *packet, string args="");
         };
     }
 }

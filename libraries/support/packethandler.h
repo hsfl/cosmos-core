@@ -5,6 +5,7 @@
 #include "support/configCosmos.h"
 #include "support/packetcomm.h"
 #include "support/timelib.h"
+#include "agent/agentclass.h"
 
 // Class to create PacketComm packets and maintain response callbacks
 
@@ -42,13 +43,39 @@ namespace Cosmos {
         public:
             PacketHandler();
 
+            int32_t init(cosmosstruc* cinfo, uint16_t secret);
+
             typedef int32_t (*RespCallback)(const vector<uint8_t>&);
             int32_t register_response(const RespCallback f);
             int32_t clear_response(const uint16_t packet_id);
             int32_t receive_response_packet(const PacketComm &packet);
             vector<PacketComm> create_response_packets(const PacketComm &addressee, const vector<uint8_t> &data);
 
+            typedef int32_t (*ExternalFunc)(vector<uint8_t>& data, vector<uint8_t> &response, cosmosstruc* cinfo);
+            struct FuncEntry
+            {
+                uint8_t type;
+                //! Pointer to function to call with request vector as argument and returning any error
+                ExternalFunc efunction;
+            };
+            FuncEntry Funcs[256];
+            int32_t add_func(uint8_t index, ExternalFunc function);
+            int32_t process(PacketComm &packet, vector<uint8_t> &response);
+            int32_t process(PacketComm &packet);
+
+            static int32_t Test(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
+            static int32_t FileMeta(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
+            static int32_t FileChunk(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
+
+            static int32_t Reset(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
+            static int32_t Reboot(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
+            static int32_t SendBeacon(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
+            static int32_t ClearRadioQueue(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
+            static int32_t ExternalCommand(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
+            static int32_t TestRadio(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
+            static int32_t Transfer(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
         private:
+            cosmosstruc* cinfo;
             /// Register response callbacks in this array
             ResponseHandler response_packets[256];
             /// Current packet id index, to index response_packets
@@ -56,6 +83,7 @@ namespace Cosmos {
 
             /// Set packet_idx to index of next available slot
             bool get_next_packet_id();
+            uint32_t secret;
         };
     }
 }
