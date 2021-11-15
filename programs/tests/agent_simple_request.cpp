@@ -9,29 +9,28 @@
 
 Cosmos::Support::Error e;
 static Agent *agent;
-string request_add(vector<string> &args, int32_t &status){
+int32_t request_add(string &request, string &response, Agent* agent){
 
-    if(args.size() < 2) { // incorrect arg count
-        status = AGENT_ERROR_REQUEST;    // update error
-        return "";
+    vector<string> args = string_split(request);
+    if(args.size() < 3) { // incorrect arg count
+        return AGENT_ERROR_REQUEST;
     }
 
-    string response = "";
-
     // reading argument in as int
-    int num1 = stoi(args[0]);
-    int num2 = stoi(args[1]);
+    int num1 = stoi(args[1]);
+    int num2 = stoi(args[2]);
     // use the argument to do something
     int sum = num1+ num2;
     // return the response string
-    return to_signed(sum);
+    response = to_signed(sum);
+    return 0;
 }
 
-string request_hello(int32_t &status){
+int32_t request_hello(string &request, string &response, Agent* agent){
 
-    string response ="HelloWorld";
+   response ="HelloWorld";
 
-    return response;
+    return 0;
 }
 
 int main(int argc, char **argv)
