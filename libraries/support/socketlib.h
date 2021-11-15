@@ -171,6 +171,7 @@ int32_t socket_post(socket_bus &channel, const vector<uint8_t> buffer, int flags
 int32_t socket_post(socket_channel &channel, const string buffer, int flags=0);
 int32_t socket_post(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
 int32_t socket_sendto(socket_bus &channel, const string buffer, int flags=0);
+int32_t socket_sendto(socket_bus &channel, const vector<uint8_t> buffer, int flags=0);
 int32_t socket_sendto(socket_channel &channel, const string buffer, int flags=0);
 int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
 int32_t socket_send(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
