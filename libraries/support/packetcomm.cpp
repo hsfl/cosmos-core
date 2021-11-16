@@ -221,7 +221,7 @@ namespace Cosmos {
             return true;
         }
 
-        int32_t PacketComm::close_transfer()
+        /*int32_t PacketComm::close_transfer()
         {
             int32_t missing = 0;
             FILE *ofp;
@@ -288,7 +288,7 @@ namespace Cosmos {
             ttransfer.data.clear();
             ttransfer.json.clear();
             return missing;
-        }
+        }*/
 
     }
 }

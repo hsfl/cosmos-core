@@ -42,6 +42,7 @@ namespace Cosmos {
             }
             response_packets[response_id].insert(packet.data);
             response_packets[response_id].attempt_resolution(60.);
+
             return 0;
         }
 
@@ -146,6 +147,7 @@ namespace Cosmos {
             callback(full_response);
             // Reset to initial, make this available for reuse
             reset();
+
             return 0;
         }
 
@@ -225,3 +227,10 @@ namespace Cosmos {
         }
     }
 }
+
+// TODO:
+// - add mutexes in critical sections
+// - reconsider the vector return types?
+// - janitor thread or function to clean up old responses
+// - response_packet size could stand to be variable. Satellite should be fine with 256,
+//    ground-side programs will need the full 2 bytes

@@ -84,6 +84,8 @@ namespace Cosmos {
             /// Set packet_idx to index of next available slot
             bool get_next_packet_id();
             uint32_t secret;
+
+            mutex mtx;
         };
     }
 }

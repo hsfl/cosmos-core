@@ -109,7 +109,7 @@ namespace Cosmos {
             vector<uint8_t> atsmr = {0x58, 0xf3, 0x3f, 0xb8};
             CRC16 calc_crc;
 
-            Transfer ttransfer;
+            //Transfer ttransfer;
             int32_t close_transfer();
 
             bool PackForward();
