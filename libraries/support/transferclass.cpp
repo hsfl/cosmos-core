@@ -122,7 +122,7 @@ namespace Cosmos {
         }
 
 
-        /*int32_t Transfer::Load(string filename, vector<chunk> &chunks)
+        int32_t Transfer::Load(string filename, vector<chunk> &chunks)
         {
             int32_t iretn;
             FILE *fp = fopen(filename.c_str(), "r");
@@ -183,7 +183,7 @@ namespace Cosmos {
             }
             fclose(fp);
             return size;
-        }*/
+        }
 
         //! Scan the outgoing directory of every node in txq.
         //! Enqueues new file in outgoing_tx_queue.
@@ -243,7 +243,7 @@ namespace Cosmos {
                         // - if it is already there, and the size is the same, enable it
                         // - if it is enabled and the size is zero, remove it from queue and remove file
                         bool addtoqueue = true;
-                        outgoing_tx_lock.lock();
+//                        outgoing_tx_lock.lock();
                         for (uint16_t i=1; i<PROGRESS_QUEUE_SIZE; ++i)
                         {
                             if (txq[(node_id)].outgoing.progress[i].filepath == file.path)
@@ -282,7 +282,7 @@ namespace Cosmos {
                             }
                         }
 
-                        outgoing_tx_lock.unlock();
+//                        outgoing_tx_lock.unlock();
 
                         if (addtoqueue)
                         {
@@ -333,7 +333,7 @@ namespace Cosmos {
 
             // Locate next empty space
             //get the file size
-            outgoing_tx_lock.lock();
+//            outgoing_tx_lock.lock();
             string filepath = data_base_path(node_name, "outgoing", agent_name, file_name);
             int32_t file_size = get_file_size(filepath);
 
@@ -376,7 +376,7 @@ namespace Cosmos {
                     break;
                 }
             }
-            outgoing_tx_lock.unlock();
+//            outgoing_tx_lock.unlock();
 
             if (tx_out.tx_id > 0)
             {
