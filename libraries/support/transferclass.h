@@ -141,7 +141,7 @@ namespace Cosmos {
             // Mutexes to avoid thread collisions
             // std::mutex txqueue_lock;
             // std::mutex incoming_tx_lock;
-            //mutex outgoing_tx_lock;
+            mutex outgoing_tx_lock;
         };
     }
 }
