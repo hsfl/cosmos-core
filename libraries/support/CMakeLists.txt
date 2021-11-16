@@ -18,7 +18,7 @@ add_library(CosmosSlip STATIC sliplib.cpp sliplib.h)
 install(TARGETS CosmosSlip DESTINATION lib)
 
 add_library(CosmosTransfer STATIC transferlib.cpp transferlib.h transferclass.h transferclass.cpp)
-install(TARGETS CosmosTransfer DESTINATION lib)
+install(TARGETS DESTINATION lib)
 target_link_libraries(CosmosTransfer CosmosNamespace CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosPrint STATIC print_utils.cpp print_utils.h)
@@ -69,7 +69,7 @@ target_link_libraries(CosmosData CosmosTime CosmosString localzlib CosmosError C
 
 add_library(CosmosPacket STATIC packetcomm.cpp packetcomm.h packethandler.cpp packethandler.h)
 install(TARGETS CosmosPacket DESTINATION lib)
-target_link_libraries(CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosTransfer CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
 
 add_library(Envi STATIC envi.cpp envi.h)
 install(TARGETS Envi DESTINATION lib)
