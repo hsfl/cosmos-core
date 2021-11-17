@@ -42,21 +42,27 @@ namespace Cosmos {
     namespace Support {
         Transfer::Transfer()
         {
-            calstruc cal = mjd2cal(currentmjd());
-            txid = 100 * (utc2unixseconds(currentmjd()) - utc2unixseconds(cal2mjd(cal.year, 1.))) - 1;
+            // calstruc cal = mjd2cal(currentmjd());
+            // txid = 100 * (utc2unixseconds(currentmjd()) - utc2unixseconds(cal2mjd(cal.year, 1.))) - 1;
         }
 
-        int32_t Transfer::Init(string node, string agent, uint16_t chunk_size)
-        {
-            this->node = node;
-            this->agent = agent;
-            this->chunk_size = chunk_size;
-            return 0;
-        }
+        // int32_t Transfer::Init(string node, string agent, uint16_t chunk_size)
+        // {
+        //     this->node = node;
+        //     this->agent = agent;
+        //     this->chunk_size = chunk_size;
+        //     return 0;
+        // }
 
-        int32_t Transfer::Init()
+        /** 
+         * Initialize the transfer class
+         * \param calling_agent Pointer to the agent creating this class
+         * \return 0 if success
+         */
+        int32_t Transfer::Init(Agent *calling_agent)
         {
             int32_t iretn;
+            agent = calling_agent;
 
             // if (static_cast<string>(argv[0]).find("slow") != string::npos)
             // {
@@ -67,8 +73,8 @@ namespace Cosmos {
             // Initialize Transfer Queue
             if ((iretn = load_nodeids()) < 2)
             {
-                // agent->debug_error.Printf("%.4f Couldn't load node lookup table\n", tet.split());
-                // agent->shutdown();
+                agent->debug_error.Printf("%.4f Couldn't load node lookup table\n", tet.split());
+                agent->shutdown();
                 exit (iretn);
             }
             txq.resize(iretn);
@@ -122,7 +128,7 @@ namespace Cosmos {
         }
 
 
-        int32_t Transfer::Load(string filename, vector<chunk> &chunks)
+        /*int32_t Transfer::Load(string filename, vector<chunk> &chunks)
         {
             int32_t iretn;
             FILE *fp = fopen(filename.c_str(), "r");
@@ -183,10 +189,11 @@ namespace Cosmos {
             }
             fclose(fp);
             return size;
-        }
+        }*/
 
         //! Scan the outgoing directory of every node in txq.
-        //! Enqueues new file in outgoing_tx_queue.
+        //! Enqueues new files in txq's outgoing queue.
+        //! Not thread safe.
         //! \return 0 if success
         int32_t Transfer::outgoing_tx_load()
         {
@@ -243,7 +250,6 @@ namespace Cosmos {
                         // - if it is already there, and the size is the same, enable it
                         // - if it is enabled and the size is zero, remove it from queue and remove file
                         bool addtoqueue = true;
-//                        outgoing_tx_lock.lock();
                         for (uint16_t i=1; i<PROGRESS_QUEUE_SIZE; ++i)
                         {
                             if (txq[(node_id)].outgoing.progress[i].filepath == file.path)
@@ -254,14 +260,10 @@ namespace Cosmos {
                                     if (!txq[(node_id)].outgoing.progress[i].enabled)
                                     {
                                         txq[(node_id)].outgoing.progress[i].enabled = true;
-                                        // if (agent->get_debug_level())
-                                        // {
-                                        //     debug_fd_lock.lock();
-                                        //     agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d\n", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
-                                        //     // fflush(agent->get_debug_fd());
-                                        //     debug_fd_lock.unlock();
-
-                                        // }
+                                        if (agent->get_debug_level())
+                                        {
+                                            agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d\n", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                                        }
                                     }
                                     iretn = 0;
                                 }
@@ -282,18 +284,13 @@ namespace Cosmos {
                             }
                         }
 
-//                        outgoing_tx_lock.unlock();
-
                         if (addtoqueue)
                         {
                             iretn = outgoing_tx_add(file.node, file.agent, file.name);
-                            // if (agent->get_debug_level() && iretn != -471)
-                            // {
-                            //     debug_fd_lock.lock();
-                            //     agent->debug_error.Printf("%.4f %.4f Main/Load: outgoing_tx_add: %s [%d]\n", tet.split(), dt.lap(), file.path.c_str(), iretn);
-                            //     // fflush(agent->get_debug_fd());
-                            //     debug_fd_lock.unlock();
-                            // }
+                            if (agent->get_debug_level() && iretn != -471)
+                            {
+                                agent->debug_error.Printf("%.4f %.4f Main/Load: outgoing_tx_add: %s [%d]\n", tet.split(), dt.lap(), file.path.c_str(), iretn);
+                            }
                         }
                     }
                 }
@@ -302,17 +299,21 @@ namespace Cosmos {
             return iretn;
         }
 
+        //! Creates the metadata for a new file to queue.
+        //! After performing basic checks regarding file creation and ensuring uniqueness in the
+        //! outgoing queue, writes the meta data to disk and then calls outgoing_tx_add(tx_progress &tx_out).
+        //! \param node_name String name of node
+        //! \param agent_name String name of agent
+        //! \param file_name String name of file to add to outgoing queue
+        //! \return Number of files in node's outgoing queue if non-error
         int32_t Transfer::outgoing_tx_add(string node_name, string agent_name, string file_name)
         {
             if (node_name.empty() || agent_name.empty() || file_name.empty())
             {
-                // if (agent->get_debug_level())
-                // {
-                //     debug_fd_lock.lock();
-                //     agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
-                //     // fflush(agent->get_debug_fd());
-                //     debug_fd_lock.unlock();
-                // }
+                if (agent->get_debug_level())
+                {
+                    agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
+                }
                 return TRANSFER_ERROR_FILENAME;
             }
 
@@ -333,14 +334,13 @@ namespace Cosmos {
 
             // Locate next empty space
             //get the file size
-//            outgoing_tx_lock.lock();
             string filepath = data_base_path(node_name, "outgoing", agent_name, file_name);
             int32_t file_size = get_file_size(filepath);
 
             // Go through existing queue
             // - if it is already there and the size is different, remove it
             // - if it is already there, and the size is the same, set enable it
-            // - if it is not already there and there is room to add is, go on to next step
+            // - if it is not already there and there is room to add it, go on to next step
             for (uint16_t i=1; i<PROGRESS_QUEUE_SIZE; ++i)
             {
                 if (txq[(node_id)].outgoing.progress[i].filepath == filepath)
@@ -348,13 +348,10 @@ namespace Cosmos {
                     if (txq[(node_id)].outgoing.progress[i].file_size == file_size)
                     {
                         txq[(node_id)].outgoing.progress[i].enabled = true;
-                        // if (agent->get_debug_level())
-                        // {
-                        //     debug_fd_lock.lock();
-                        //     agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d ", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
-                        //     // fflush(agent->get_debug_fd());
-                        //     debug_fd_lock.unlock();
-                        // }
+                        if (agent->get_debug_level())
+                        {
+                            agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d ", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                        }
                         return node_id;
                     }
                     else
@@ -376,7 +373,6 @@ namespace Cosmos {
                     break;
                 }
             }
-//            outgoing_tx_lock.unlock();
 
             if (tx_out.tx_id > 0)
             {
@@ -403,13 +399,10 @@ namespace Cosmos {
 
                 if(tx_out.file_size < 0)
                 {
-                    // if (agent->get_debug_level())
-                    // {
-                    //     debug_fd_lock.lock();
-                    //     agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: DATA_ERROR_SIZE_MISMATCH\n", tet.split(), dt.lap());
-                    //     // fflush(agent->get_debug_fd());
-                    //     debug_fd_lock.unlock();
-                    // }
+                    if (agent->get_debug_level())
+                    {
+                        agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: DATA_ERROR_SIZE_MISMATCH\n", tet.split(), dt.lap());
+                    }
                     return DATA_ERROR_SIZE_MISMATCH;
                 }
 
@@ -417,13 +410,10 @@ namespace Cosmos {
                 filename.open(tx_out.filepath, std::ios::in|std::ios::binary);
                 if(!filename.is_open())
                 {
-                    // if (agent->get_debug_level())
-                    // {
-                    //     debug_fd_lock.lock();
-                    //     agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: %s\n", tet.split(), dt.lap(), cosmos_error_string(-errno).c_str());
-                    //     // fflush(agent->get_debug_fd());
-                    //     debug_fd_lock.unlock();
-                    // }
+                    if (agent->get_debug_level())
+                    {
+                        agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: %s\n", tet.split(), dt.lap(), cosmos_error_string(-errno).c_str());
+                    }
                     return -errno;
                 }
                 filename.close();
@@ -435,15 +425,164 @@ namespace Cosmos {
 
                 //write_meta(tx_out);
 
-                //int32_t iretn = outgoing_tx_add(tx_out);
-                cout << "outgoing_tx_add(tx_out); filepath: "<<tx_out.filepath<<endl;
+                int32_t iretn = outgoing_tx_add(tx_out);
                 return 0;//iretn;
             }
             else
             {
                 return TRANSFER_ERROR_MATCH;
             }
-            return 0;
+        }
+
+        //! Adds new file to outgoing queue.
+        //! Called from other functions that create a tx_progress to pass into this.
+        //! \param tx_out A tx_progress containing meta information about file to add to outgoing queue.
+        //! \return Number of files in node's outgoing queue if non-error
+        int32_t Transfer::outgoing_tx_add(tx_progress &tx_out)
+        {
+            if (agent->get_debug_level())
+            {
+                agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: ", tet.split(), dt.lap());
+            }
+
+            int32_t node_id = lookup_node_id(tx_out.node_name);
+            if (node_id <= 0)
+            {
+                if (agent->get_debug_level())
+                {
+                    agent->debug_error.Printf("TRANSFER_ERROR_NODE\n");
+                }
+                if (node_id == 0)
+                {
+                    return TRANSFER_ERROR_NODE;
+                }
+                else
+                {
+                    return node_id;
+                }
+            }
+
+            // Check for duplicate tx_id
+            if (txq[(node_id)].outgoing.progress[tx_out.tx_id].tx_id)
+            {
+                return TRANSFER_ERROR_DUPLICATE;
+            }
+            // Only add if we have room
+        //    if (txq[(node_id)].outgoing.size == PROGRESS_QUEUE_SIZE)
+        //    {
+        //        if (agent->get_debug_level())
+        //        {
+        //            agent->debug_error.Printf("TRANSFER_ERROR_QUEUEFULL\n");
+        //        }
+        //        return TRANSFER_ERROR_QUEUEFULL;
+        //    }
+
+            //    tx_out.state = STATE_QUEUE;
+            if (tx_out.file_name.size())
+            {
+                tx_out.filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
+            }
+            else
+            {
+                if (agent->get_debug_level())
+                {
+                    agent->debug_error.Printf("TRANSFER_ERROR_FILENAME\n");
+                }
+                tx_out.filepath = "";
+                return TRANSFER_ERROR_FILENAME;
+            }
+
+            tx_out.temppath = data_base_path(tx_out.node_name, "temp", "file", "out_"+std::to_string(tx_out.tx_id));
+
+            // Check for a duplicate file name of something already in queue
+            uint16_t minindex = 255 - static_cast<uint16_t>(pow(pow(TRANSFER_QUEUE_LIMIT,1.f/3.f), (3.f - log10f(tx_out.file_size) / 2.f)));
+            for (uint16_t i=minindex; i<256; ++i)
+            {
+                if (!txq[(node_id)].outgoing.progress[i].filepath.empty() && tx_out.filepath == txq[(node_id)].outgoing.progress[i].filepath)
+                {
+                    // Remove the META file
+                    if (agent->get_debug_level())
+                    {
+                        agent->debug_error.Printf("%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str());
+                    }
+                    string filepath = tx_out.temppath + ".meta";
+                    remove(filepath.c_str());
+                    return TRANSFER_ERROR_DUPLICATE;
+                }
+            }
+
+            tx_out.fp = nullptr;
+            //get the file size
+            tx_out.file_size = get_file_size(tx_out.filepath);
+            tx_out.savetime = 0.;
+
+            // save and queue metadata packet
+            tx_out.havemeta = true;
+            tx_out.sendmeta = true;
+            tx_out.sentmeta = false;
+            tx_out.senddata = false;
+            tx_out.sentdata = false;
+            tx_out.complete = false;
+
+            if (agent->get_debug_level())
+            {
+                agent->debug_error.Printf("%u %s %s %s %d ", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str(), PROGRESS_QUEUE_SIZE);
+            }
+
+            // Good to go. Add it to queue.
+            //    txq[(node_id)].outgoing.progress[tx_out.tx_id] = tx_out;
+
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].tx_id = tx_out.tx_id;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].havemeta = tx_out.havemeta;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].sendmeta = tx_out.sendmeta;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].sentmeta = tx_out.sentmeta;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].senddata = tx_out.senddata;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].sentdata = tx_out.sentdata;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].complete = tx_out.complete;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].node_name = tx_out.node_name;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].agent_name = tx_out.agent_name;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].file_name = tx_out.file_name;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].filepath = tx_out.filepath;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].temppath = tx_out.temppath;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].savetime = tx_out.savetime;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].datatime = tx_out.datatime;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].file_size = tx_out.file_size;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].total_bytes = tx_out.total_bytes;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].file_info.clear();
+            for (file_progress filep : tx_out.file_info)
+            {
+                txq[(node_id)].outgoing.progress[tx_out.tx_id].file_info.push_back(filep);
+            }
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].fp = tx_out.fp;
+            ++txq[(node_id)].outgoing.size;
+
+            if (agent->get_debug_level())
+            {
+                agent->debug_error.Printf(" %u\n", txq[(node_id)].outgoing.size);
+            }
+
+            return outgoing_tx_recount(node_id);
+        }
+
+        //! Recount number of files in outgoing queue
+        //! \param node_id ID of node to check
+        //! \return Number of files in node's outgoing queue
+        int32_t Transfer::outgoing_tx_recount(uint8_t node_id)
+        {
+            if (node_id == 0 || node_id >= txq.size())
+            {
+                return TRANSFER_ERROR_INDEX;
+            }
+
+            txq[(node_id)].outgoing.size = 0;
+            for (uint16_t i=1; i<PROGRESS_QUEUE_SIZE; ++i)
+            {
+                if (txq[(node_id)].outgoing.progress[i].tx_id)
+                {
+                    ++txq[(node_id)].outgoing.size;
+                }
+            }
+            return txq[(node_id)].outgoing.size;
         }
     }
 }
