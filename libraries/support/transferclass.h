@@ -49,12 +49,11 @@ namespace Cosmos {
             };
 
             Transfer();
-            int32_t Init(string node, string agent, uint16_t chunk_size);
-            int32_t Init();
-            int32_t Load(string filename, vector<chunk> &chunks);
+            // int32_t Init(string node, string agent, uint16_t chunk_size);
+            int32_t Init(Agent *calling_agent);
+            //int32_t Load(string filename, vector<chunk> &chunks);
             int32_t Add(size_t chunkidx, vector<uint8_t> chunk);
             int32_t outgoing_tx_load();
-            int32_t outgoing_tx_add(string node_name, string agent_name, string file_name);
 
             static const uint8_t PACKET_METADATA = 0xf;
             static const uint8_t PACKET_DATA = 0xe;
@@ -98,16 +97,16 @@ namespace Cosmos {
                 vector<uint8_t> chunk;
             };
 
-            vector<uint8_t> meta;
-            vector<vector<uint8_t>> data;
-            uint32_t txid;
-            string name;
-            size_t size;
-            string node;
-            string agent;
-            string json;
-            size_t throughput;
-            size_t chunk_size;
+            // vector<uint8_t> meta;
+            // vector<vector<uint8_t>> data;
+            // uint32_t txid;
+            // string name;
+            // size_t size;
+            // string node;
+            // string agent;
+            // string json;
+            // size_t throughput;
+            // size_t chunk_size;
         private:
             struct tx_entry
             {
@@ -126,6 +125,7 @@ namespace Cosmos {
                 double reqdataclock = 0.;
             };
 
+            //! Holds the incoming and outgoing queues for a single node
             struct tx_queue
             {
                 string node_name="";
@@ -134,14 +134,19 @@ namespace Cosmos {
                 tx_entry outgoing;
             };
 
+            //! The calling agent of this class
+            Agent *agent;
+
             //! The heart of the file transfer manager
             vector<tx_queue> txq;
 
+            // Timers for debug messages
+            ElapsedTime dt, tet;
 
-            // Mutexes to avoid thread collisions
-            // std::mutex txqueue_lock;
-            // std::mutex incoming_tx_lock;
-//            mutex outgoing_tx_lock;
+            // Private queue manipulation functions
+            int32_t outgoing_tx_add(tx_progress &tx_out);
+            int32_t outgoing_tx_add(string node_name, string agent_name, string file_name);
+            int32_t outgoing_tx_recount(uint8_t node_id);
         };
     }
 }
