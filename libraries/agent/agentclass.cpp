@@ -262,7 +262,7 @@ namespace Support
         add_request("echo",req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
         add_request("nodejson",req_nodejson,"","return description JSON for Node");
         add_request("statejson",req_statejson,"","return description JSON for State vector");
-        add_request("utcstartjson",req_utcstartjson,"","return description JSON for UTC Start time");
+//        add_request("utcstartjson",req_utcstartjson,"","return description JSON for UTC Start time");
         add_request("piecesjson",req_piecesjson,"","return description JSON for Pieces");
         add_request("vertexsjson",req_vertexsjson,"","return description JSON for Pieces");
         add_request("facesjson",req_facesjson,"","return description JSON for Pieces");
@@ -568,8 +568,6 @@ namespace Support
         iretn = send_request(hbeat, "nodejson", jnode.node, waitsec);
         if (iretn < 0) { return iretn; }
         iretn = send_request(hbeat, "statejson", jnode.state, waitsec);
-        if (iretn < 0) { return iretn; }
-        iretn = send_request(hbeat, "utcstartjson", jnode.utcstart, waitsec);
         if (iretn < 0) { return iretn; }
         iretn = send_request(hbeat, "piecesjson", jnode.pieces, waitsec);
         if (iretn < 0) { return iretn; }
@@ -1558,12 +1556,11 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-//        int32_t Agent::req_utcstartjson(char *, char* output, Agent* agent)
-    int32_t Agent::req_utcstartjson(string &, string &output, Agent* agent) {
-        output = agent->cinfo->json.utcstart.c_str();
-        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
-        return 0;
-    }
+//    int32_t Agent::req_utcstartjson(string &, string &output, Agent* agent) {
+//        output = agent->cinfo->json.utcstart.c_str();
+//        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
+//        return 0;
+//    }
 
     //! Built-in Return Pieces JSON request
     /*! Returns a JSON string representing the Piece information.

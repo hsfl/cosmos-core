@@ -477,7 +477,7 @@ namespace Cosmos
             static int32_t req_listnames(string &request, string &response, Agent *agent);
             static int32_t req_nodejson(string &request, string &response, Agent *agent);
             static int32_t req_statejson(string &request, string &response, Agent *agent);
-            static int32_t req_utcstartjson(string &request, string &response, Agent *agent);
+//            static int32_t req_utcstartjson(string &request, string &response, Agent *agent);
             static int32_t req_piecesjson(string &request, string &response, Agent *agent);
             static int32_t req_vertexsjson(string &request, string &response, Agent *agent);
             static int32_t req_facesjson(string &request, string &response, Agent *agent);
