@@ -43,7 +43,7 @@ namespace Cosmos {
         public:
             PacketHandler();
 
-            int32_t init(cosmosstruc* cinfo, uint16_t secret);
+            int32_t init(cosmosstruc* cinfo, uint16_t secret=0x1111);
 
             typedef int32_t (*RespCallback)(const vector<uint8_t>&);
             int32_t register_response(const RespCallback f);
@@ -84,6 +84,7 @@ namespace Cosmos {
             /// Set packet_idx to index of next available slot
             bool get_next_packet_id();
             uint32_t secret;
+            Error *errorlog;
 
             mutex mtx;
         };

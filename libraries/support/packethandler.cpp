@@ -14,6 +14,7 @@ namespace Cosmos {
             add_func((uint8_t)PacketComm::TypeId::SendBeacon, SendBeacon);
             add_func((uint8_t)PacketComm::TypeId::ClearRadioQueue, ClearRadioQueue);
             add_func((uint8_t)PacketComm::TypeId::TestRadio, TestRadio);
+            add_func((uint8_t)PacketComm::TypeId::Test, Test);
             return 0;
         }
 
@@ -184,6 +185,67 @@ namespace Cosmos {
         }
 
         // Incoming Packets
+        int32_t PacketHandler::Test(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo)
+        {
+            int32_t iretn=0;
+            struct test_control
+            {
+                uint32_t total_bytes;
+                uint32_t total_count;
+                uint32_t good_count = 0;
+                uint32_t crc_count = 0;
+                uint32_t size_count = 0;
+                uint32_t skip_total = 0;
+                uint32_t skip_count = 0;
+                uint32_t last_packet_id = 0;
+                ElapsedTime et;
+            };
+            static map<uint32_t, test_control> tests;
+
+            uint32_t test_id = uint32from(&data[0], ByteOrder::LITTLEENDIAN);
+            uint32_t packet_id = uint32from(&data[4], ByteOrder::LITTLEENDIAN);
+            string sresponse = to_label("MET:", cinfo->node.met) + to_label(" Test_Id", test_id) + to_label(" Packet_Id", packet_id);
+            tests[test_id].total_count = tests[test_id].good_count + tests[test_id].crc_count + tests[test_id].size_count;
+            if (tests[test_id].et.lap() > 10.)
+            {
+                    sresponse += " Finish: " + to_unsigned(tests[test_id].good_count);
+                    tests.erase(test_id);
+            }
+            if (packet_id - tests[test_id].last_packet_id > 1)
+            {
+                tests[test_id].skip_count;
+                tests[test_id].skip_total += (packet_id - tests[test_id].last_packet_id) - 1;
+            }
+            tests[test_id].last_packet_id = packet_id;
+            uint32_t data_size = uint32from(&data[8], ByteOrder::LITTLEENDIAN);
+            if (data_size != data.size() - 14)
+            {
+                ++tests[test_id].size_count;
+                sresponse += " Size_Error: " + to_unsigned(tests[test_id].size_count) + " " + to_unsigned(data_size) + " " + to_unsigned(data.size()-14);
+            }
+            else
+            {
+                CRC16 calc_crc;
+                uint16_t crccalc = calc_crc.calc(&data[0], data.size()-2);
+                uint16_t crcdata = 256 * data[data.size()-1] + data[data.size()-2];
+                if (crccalc != crcdata)
+                {
+                    ++tests[test_id].crc_count;
+                    sresponse += " Crc_Error: " + to_unsigned(tests[test_id].crc_count) + " " + to_unsigned(crccalc) + " " + to_unsigned(crcdata);
+                }
+                else
+                {
+                    tests[test_id].total_bytes += data_size;
+                    ++tests[test_id].good_count;
+                    sresponse += " Good: " + to_unsigned(tests[test_id].good_count);
+                }
+            }
+            tests[test_id].total_count = tests[test_id].good_count + tests[test_id].crc_count + tests[test_id].size_count;
+            sresponse += to_label(" Bytes", tests[test_id].total_bytes) + to_label(" Count", tests[test_id].total_count);
+            response.clear();
+            response.insert(response.end(), sresponse.begin(), sresponse.end());
+            return iretn;
+        }
 
         // Incoming Commands
         int32_t PacketHandler::Reset(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo)
