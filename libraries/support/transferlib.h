@@ -1,3 +1,6 @@
+//
+// DEPRECATED! USE TRANSFERLIB2
+//
 /********************************************************************
 * Copyright (C) 2015 by Interstel Technologies, Inc.
 *   and Hawaii Space Flight Laboratory.
@@ -329,12 +332,14 @@ typedef union
     packet_struct_raw raw;
 } packet_struct_all;
 
+/// Chunk start and end.
 typedef struct
 {
     PACKET_FILE_SIZE_TYPE	chunk_start;
     PACKET_FILE_SIZE_TYPE	chunk_end;
 } file_progress;
 
+/// Holds info about the transfer progress of a single file.
 typedef struct
 {
     PACKET_TX_ID_TYPE tx_id=0;
