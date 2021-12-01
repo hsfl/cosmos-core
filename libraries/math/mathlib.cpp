@@ -1134,14 +1134,14 @@ rvector rv_evaluate_poly(double x, vector< vector<double> > parms)
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
-        if (parms[ic].size() < 2)
+        if (parms[ic].size() < 1)
         {
             result.a4[ic] = 0.;
         }
         else
         {
             result.a4[ic] = parms[ic][parms[ic].size()-1];
-            for (uint16_t i=parms[ic].size()-2; i<parms[ic].size(); --i)
+            for (int16_t i=parms[ic].size()-2; i>=0; --i)
             {
                 result.a4[ic] *= x;
                 result.a4[ic] += parms[ic][i];
@@ -1172,7 +1172,7 @@ rvector rv_evaluate_poly_slope(double x, vector< vector<double> > parms)
         else
         {
             result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1);
-            for (uint16_t i=parms[ic].size()-2; i>0; --i)
+            for (int16_t i=parms[ic].size()-2; i>0; --i)
             {
                 result.a4[ic] *= x;
                 result.a4[ic] += i * parms[ic][i];
@@ -1196,14 +1196,14 @@ rvector rv_evaluate_poly_accel(double x, vector< vector<double> > parms)
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
-        if (parms[ic].size() < 2)
+        if (parms[ic].size() < 3)
         {
             result.a4[ic] = 0.;
         }
         else
         {
             result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1) * (parms[ic].size()-2);
-            for (uint16_t i=parms[ic].size()-2; i>1; --i)
+            for (int16_t i=parms[ic].size()-2; i>1; --i)
             {
                 result.a4[ic] *= x;
                 result.a4[ic] += i * (i-1) * parms[ic][i];
@@ -1227,17 +1227,51 @@ rvector rv_evaluate_poly_jerk(double x, vector< vector<double> > parms)
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
-        if (parms[ic].size() < 2)
+        if (parms[ic].size() < 4)
         {
             result.a4[ic] = 0.;
         }
         else
         {
             result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1) * (parms[ic].size()-2) * (parms[ic].size()-3);
-            for (uint16_t i=parms[ic].size()-2; i>2; --i)
+            for (int16_t i=parms[ic].size()-2; i>2; --i)
             {
                 result.a4[ic] *= x;
                 result.a4[ic] += i * (i-1) * (i-2) * parms[ic][i];
+            }
+        }
+    }
+
+    return result.r;
+}
+
+rvector rv_evaluate_poly_deriv(double x, vector< vector<double> > parms, uint16_t order)
+{
+    uvector result{};
+
+    for (uint16_t ic=0; ic<parms.size(); ++ic)
+    {
+        if (parms[ic].size() <= order)
+        {
+            result.a4[ic] = 0.;
+        }
+        else
+        {
+            uint32_t factorial = 1;
+            for (uint16_t j=1; j<=order; ++j)
+            {
+                factorial *= parms[ic].size() - j;
+            }
+            result.a4[ic] = parms[ic][parms[ic].size()-1] * factorial;
+            for (int16_t i=parms[ic].size()-2; i+1>order; --i)
+            {
+                result.a4[ic] *= x;
+                factorial = 1;
+                for (uint16_t j=0; j<order; ++j)
+                {
+                    factorial *= i - j;
+                }
+                result.a4[ic] += factorial * parms[ic][i];
             }
         }
     }

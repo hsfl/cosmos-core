@@ -304,6 +304,7 @@ rvector rv_evaluate_poly(double x, vector< vector<double> > parms);
 rvector rv_evaluate_poly_slope(double x, vector< vector<double> > parms);
 rvector rv_evaluate_poly_accel(double x, vector< vector<double> > parms);
 rvector rv_evaluate_poly_jerk(double x, vector< vector<double> > parms);
+rvector rv_evaluate_poly_deriv(double x, vector< vector<double> > parms, uint16_t order);
 
 // TODO: move these functions to quaternion ???
 rvector rotate_q(quaternion q,rvector v);
