@@ -94,6 +94,7 @@ void send_loop() noexcept;
 void recv_loop() noexcept;
 void transmit_loop() noexcept;
 static ElapsedTime tet;
+static ElapsedTime dt;
 double logstride_sec = 10.;
 
 static Transfer transfer;
@@ -108,13 +109,13 @@ static std::mutex debug_fd_lock;
 static uint32_t packet_in_count = 0;
 static uint32_t packet_out_count;
 static uint32_t crc_error_count = 0;
-static uint32_t timeout_error_count = 0;
+//static uint32_t timeout_error_count = 0;
 static uint32_t type_error_count = 0;
 static uint32_t send_error_count = 0;
 static uint32_t recv_error_count = 0;
 
 // Function forward declarations
-int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf);
+int32_t mysendto(string type, int32_t use_channel, PacketComm& packet);
 int32_t myrecvfrom(string type, socket_channel &channel, PacketComm& buf, uint32_t length, double dtimeout=1.);
 void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use_channel);
 
@@ -217,7 +218,7 @@ int main(int argc, char *argv[])
     // Perform initial load
     double nextdiskcheck = currentmjd(0.);
     iretn = transfer.outgoing_tx_load();
-    cout << "initial load" << endl;
+
     if (iretn >= 0)
     {
         nextdiskcheck = currentmjd();
@@ -268,20 +269,25 @@ int main(int argc, char *argv[])
         if (currentmjd() > nextdiskcheck)
         {
             nextdiskcheck = currentmjd(0.) + 10./86400.;
+            txqueue_lock.lock();
             transfer.outgoing_tx_load();
             transfer.get_outgoing_packets(packets);
-            cout << "packets.size(): " << packets.size() << endl;
+            txqueue_lock.unlock();
+            agent->debug_error.Printf("packets.size(): %u\n", packets.size());
+
             for(auto& packet : packets) {
                 packet.SLIPOut();
-                mysendto("outgoing", 1, packet.dataout);
+                // TODO: reimplement dynamic sendy thingy
+                mysendto("outgoing", 1, packet);
             }
+            packets.clear();
         }
 
     } // End WHILE Loop
 
     if (agent->get_debug_level())
     {
-        //agent->debug_error.Printf("%.4f %.4f Main: Node: %s Agent: %s - Exiting\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
+        agent->debug_error.Printf("%.4f %.4f Main: Node: %s Agent: %s - Exiting\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
     }
 
     send_loop_thread.join();
@@ -291,7 +297,7 @@ int main(int argc, char *argv[])
 
     if (agent->get_debug_level())
     {
-        //agent->debug_error.Printf("%.4f %.4f Main: Node: %s Agent: %s - Shutting down\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
+        agent->debug_error.Printf("%.4f %.4f Main: Node: %s Agent: %s - Shutting down\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
     }
 
     agent->shutdown();
@@ -304,6 +310,7 @@ void recv_loop() noexcept
     PacketComm p;
     int32_t nbytes = 0;
     socket_channel rchannel;
+    int32_t iretn;
 
     while (agent->running())
     {
@@ -319,7 +326,17 @@ void recv_loop() noexcept
 
         while (( nbytes = myrecvfrom("Incoming", rchannel, p, PACKET_MAX_LENGTH)) > 0)
         {
-            cout << "received?" << endl;
+            iretn = p.SLIPIn();
+            if (iretn <= 0) {
+                continue;
+            }
+            txqueue_lock.lock();
+            iretn = transfer.receive_packet(p);
+            txqueue_lock.unlock();
+            // TODO: fix error number
+            if (iretn == -2) {
+                ++type_error_count;
+            }
         }
     }
 }
@@ -348,8 +365,8 @@ void transmit_loop() noexcept
     }
 }
 
-
-int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf)
+// Make sure to use SLIPOut or equivalent on packet first
+int32_t mysendto(string type, int32_t use_channel, PacketComm& packet)
 {
     int32_t iretn;
     double cmjd;
@@ -359,7 +376,7 @@ int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf)
         COSMOS_SLEEP((86400. * (out_comm_channel[use_channel].nmjd - cmjd)));
     }
 
-    iretn = sendto(out_comm_channel[use_channel].chansock.cudp, reinterpret_cast<const char*>(&buf[0]), buf.size(), 0, reinterpret_cast<sockaddr*>(&out_comm_channel[use_channel].chansock.caddr), sizeof(struct sockaddr_in));
+    iretn = sendto(out_comm_channel[use_channel].chansock.cudp, reinterpret_cast<const char*>(&packet.dataout[0]), packet.dataout.size(), 0, reinterpret_cast<sockaddr*>(&out_comm_channel[use_channel].chansock.caddr), sizeof(struct sockaddr_in));
 
     if (iretn >= 0)
     {
@@ -368,7 +385,7 @@ int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf)
         out_comm_channel[use_channel].nmjd = out_comm_channel[use_channel].lomjd + ((28+iretn) / (float)out_comm_channel[use_channel].throughput)/86400.;
         if (agent->get_debug_level())
         {
-            ///debug_packet(buf, PACKET_OUT, type, use_channel);
+            debug_packet(packet, PACKET_OUT, type, use_channel);
         }
     }
     else
@@ -380,6 +397,13 @@ int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf)
     return iretn;
 }
 
+//! Listen for incoming packets on all defined channels.
+//! Iterates over out_comm_channel and attempts to listen on each.
+//! \param type Accepts either "incoming" or "outgoing". Only used for debugging purposes
+//! \param channel Reference to a socket_channel to copy over information of the channel that the packet was obtained over
+//! \param length Maximum length of packet
+//! \param dtimeout Time to listen over channel, in seconds
+//! \return Number of bytes received if success
 int32_t myrecvfrom(string type, socket_channel &channel, PacketComm& packet, uint32_t length, double dtimeout)
 {
     int32_t nbytes = 0;
@@ -426,30 +450,13 @@ int32_t myrecvfrom(string type, socket_channel &channel, PacketComm& packet, uin
 
 void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use_channel)
 {
-    static ElapsedTime dt;
-
     if (agent->get_debug_level())
     {
         debug_fd_lock.lock();
 
-        string packet_node_name;
         string node_name = transfer.lookup_node_id_name(packet.data[0]);
         uint8_t node_id = transfer.check_node_id(packet.data[0]);
-        switch (packet.type)
-        {
-        case PACKET_HEARTBEAT:
-        case PACKET_REQQUEUE:
-        case PACKET_QUEUE:
-        case PACKET_REQMETA:
-            packet_node_name = reinterpret_cast<char *>(&packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
-            break;
-        case PACKET_METADATA:
-        case PACKET_REQDATA:
-        case PACKET_DATA:
-        case PACKET_COMPLETE:
-        case PACKET_CANCEL:
-            break;
-        }
+        
         if (direction == PACKET_IN)
         {
             if (out_comm_channel[use_channel].node.empty())
@@ -556,6 +563,10 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
             {
                 agent->debug_error.Printf("[COMMAND] %u %hu %s", node_id, packet.data[PACKET_COMMAND_OFFSET_LENGTH], &packet.data[PACKET_COMMAND_OFFSET_BYTES]);
                 break;
+            }
+        default:
+            {
+                agent->debug_error.Printf("[ERROR] %u %s", node_id, "Error in debug_packet switch on packet.type");
             }
         }
         agent->debug_error.Printf("\n");

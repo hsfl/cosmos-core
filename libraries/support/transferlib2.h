@@ -20,18 +20,19 @@
 
 namespace Cosmos {
     namespace Support {
-        static const uint8_t PACKET_METADATA = 0xf;
-        static const uint8_t PACKET_DATA = 0xe;
-        static const uint8_t PACKET_REQDATA =	0xd;
-        static const uint8_t PACKET_REQMETA =	0xc;
-        static const uint8_t PACKET_COMPLETE = 0xb;
-        static const uint8_t PACKET_CANCEL = 0xa;
-        static const uint8_t PACKET_QUEUE = 0x9;
-        static const uint8_t PACKET_REQQUEUE = 0x8;
-        static const uint8_t PACKET_HEARTBEAT = 0x7;
-        static const uint8_t PACKET_MESSAGE = 0x6;
-        static const uint8_t PACKET_COMMAND = 0x5;
-        static const uint8_t PACKET_INFO = 0x4;
+        //TODO: define these elsewhere
+        static const uint8_t PACKET_METADATA = 84;//0xf;
+        static const uint8_t PACKET_DATA = 85;//0xe;
+        static const uint8_t PACKET_REQDATA = 83;//0xd;
+        static const uint8_t PACKET_REQMETA = 82;//0xc;
+        static const uint8_t PACKET_COMPLETE = 81;//0xb;
+        static const uint8_t PACKET_CANCEL = 80;//0xa;
+        static const uint8_t PACKET_QUEUE = 79;//0x9;
+        static const uint8_t PACKET_REQQUEUE = 78;//0x8;
+        static const uint8_t PACKET_HEARTBEAT = 77;//0x7;
+        static const uint8_t PACKET_MESSAGE = 76;//0x6;
+        static const uint8_t PACKET_COMMAND = 71;//0x5;
+        static const uint8_t PACKET_INFO = 70;//0x4;
 
         typedef uint8_t PACKET_BYTE;
         typedef uint8_t PACKET_TYPE;
@@ -268,15 +269,25 @@ namespace Cosmos {
         int32_t get_file_size(const char* filename);
 
         // Converts packet types to and from byte arrays
+        void deserialize_command(const vector<PACKET_BYTE>& pdata, packet_struct_command& command);
+        void deserialize_message(const vector<PACKET_BYTE>& pdata, packet_struct_message& message);
+        void deserialize_heartbeat(const vector<PACKET_BYTE>& pdata, packet_struct_heartbeat& heartbeat);
+        void deserialize_reqqueue(const vector<PACKET_BYTE>& pdata, packet_struct_reqqueue& reqqueue);
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue);
-        void deserialize_queue(const PacketComm& packet, packet_struct_queue& queue);
+        void deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue);
         void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
+        void deserialize_cancel(const vector<PACKET_BYTE>& pdata, packet_struct_cancel& cancel);
         void serialize_complete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
+        void deserialize_complete(const vector<PACKET_BYTE>& pdata, packet_struct_complete& complete);
         void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta);
+        void deserialize_reqmeta(const vector<PACKET_BYTE>& pdata, packet_struct_reqmeta& reqmeta);
         void serialize_reqdata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end);
+        void deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata& reqdata);
         void serialize_metadata(PacketComm& packet, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name);
         void serialize_metadata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name);
+        void deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metashort& meta);
         void serialize_data(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk);
+        void deserialize_data(const vector<PACKET_BYTE>& pdata, packet_struct_data& data);
 
         // Accumulate and manage chunks
         PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);

@@ -315,10 +315,12 @@ namespace Cosmos {
 
         //! Look through the outgoing and incoming queues of specified node and generate any necessary packets.
         //! Not thread safe.
+        //! \param node_id ID of node in txq
         //! \param packets Outgoing packets will be pushed onto this vector of PacketComm packets.
         //! \return
         int32_t Transfer::get_outgoing_packets(uint8_t node_id, vector<PacketComm> &packets) {
             // Send Queue packet, if anything needs to be queued
+            // TODO: reminder check this out
             if (/*txq[(node_id)].outgoing.sendqueue &&*/ !txq[(node_id)].outgoing.sentqueue)
             {
                 vector<PACKET_TX_ID_TYPE> tqueue(TRANSFER_QUEUE_LIMIT, 0);
@@ -365,7 +367,7 @@ namespace Cosmos {
                 }
             }
 
-            // Send Data packets if we have data to send and we didn't do anything above
+            // Send Data packets if we have data to send
             if (txq[(node_id)].outgoing.sentqueue)
             {
                 uint16_t tx_id = choose_outgoing_tx_id((node_id));
@@ -523,7 +525,7 @@ namespace Cosmos {
             }
 
             // Send Complete packets if required
-            if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta && !txq[(node_id)].incoming.rcvddata)
+            if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta /*&& !txq[(node_id)].incoming.rcvddata*/)
             {
                 for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                 {
@@ -632,13 +634,11 @@ namespace Cosmos {
                 tx_out.file_name = file_name;
                 tx_out.temppath = data_base_path(tx_out.node_name, "temp", "file", "out_"+std::to_string(tx_out.tx_id));
                 tx_out.filepath = filepath;
-        //        tx_out.filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
                 tx_out.savetime = 0.;
 
                 std::ifstream filename;
 
                 // get the file size
-        //        tx_out.file_size = get_file_size(tx_out.filepath);
                 tx_out.file_size = file_size;
 
                 if(tx_out.file_size < 0)
@@ -711,17 +711,7 @@ namespace Cosmos {
             {
                 return TRANSFER_ERROR_DUPLICATE;
             }
-            // Only add if we have room
-        //    if (txq[(node_id)].outgoing.size == PROGRESS_QUEUE_SIZE)
-        //    {
-        //        if (agent->get_debug_level())
-        //        {
-        //            agent->debug_error.Printf("TRANSFER_ERROR_QUEUEFULL\n");
-        //        }
-        //        return TRANSFER_ERROR_QUEUEFULL;
-        //    }
 
-            //    tx_out.state = STATE_QUEUE;
             if (tx_out.file_name.size())
             {
                 tx_out.filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
@@ -947,6 +937,184 @@ namespace Cosmos {
             return tx_id;
         }
 
+        PACKET_TX_ID_TYPE Transfer::check_tx_id(tx_entry &txentry, PACKET_TX_ID_TYPE tx_id)
+        {
+            if (tx_id != 0 && txentry.progress[tx_id].tx_id == tx_id)
+            {
+                return tx_id;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        int32_t Transfer::incoming_tx_add(string node_name, PACKET_TX_ID_TYPE tx_id)
+        {
+            tx_progress tx_in;
+
+            tx_in.tx_id = tx_id;
+            tx_in.sendmeta = true;
+            tx_in.havemeta = false;
+            tx_in.sentmeta = false;
+            tx_in.senddata = false;
+            tx_in.sentdata = false;
+            tx_in.complete = false;
+            tx_in.node_name = node_name;
+            tx_in.agent_name = "";
+            tx_in.file_name = "";
+            tx_in.savetime = 0.;
+            tx_in.file_size = 0;
+            tx_in.total_bytes = 0;
+            tx_in.file_info.clear();
+
+            int32_t iretn = incoming_tx_add(tx_in);
+
+            return iretn;
+        }
+
+        int32_t Transfer::incoming_tx_add(tx_progress &tx_in)
+        {
+            uint8_t node_id = lookup_node_id(tx_in.node_name);
+            if (node_id == 0)
+            {
+                if (agent->get_debug_level())
+                {
+                    agent->debug_error.Printf("%.4f %.4f Main: incoming_tx_add: TRANSFER_ERROR_NODE\n", tet.split(), dt.lap());
+                }
+                return TRANSFER_ERROR_NODE;
+            }
+
+            // Check for an actual file name
+            if (tx_in.file_name.size())
+            {
+                tx_in.filepath = data_base_path(tx_in.node_name, "incoming", tx_in.agent_name, tx_in.file_name);
+            }
+            else
+            {
+                tx_in.filepath = "";
+            }
+
+            string tx_name = "in_"+std::to_string(tx_in.tx_id);
+            tx_in.temppath = data_base_path(tx_in.node_name, "temp", "file", tx_name);
+
+            // Check for a duplicate file name of something already in queue
+            for (uint16_t i=1; i<PROGRESS_QUEUE_SIZE; ++i)
+            {
+                if (!txq[(node_id)].incoming.progress[i].filepath.empty() && tx_in.filepath == txq[(node_id)].incoming.progress[i].filepath)
+                {
+                    if (agent->get_debug_level())
+                    {
+                        agent->debug_error.Printf("%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str());
+                    }
+                    // Remove the META file
+                    string filepath = tx_in.temppath + ".meta";
+                    remove(filepath.c_str());
+                    return TRANSFER_ERROR_DUPLICATE;
+                }
+            }
+
+            tx_in.savetime = 0.;
+            tx_in.fp = nullptr;
+
+            // Put it in list
+            txq[(node_id)].incoming.progress[tx_in.tx_id].tx_id = tx_in.tx_id;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].havemeta = tx_in.havemeta;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].sendmeta = tx_in.sendmeta;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].sentmeta = tx_in.sentmeta;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].senddata = tx_in.senddata;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].sentdata = tx_in.sentdata;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].complete = tx_in.complete;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].node_name = tx_in.node_name;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].agent_name = tx_in.agent_name;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].file_name = tx_in.file_name;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].filepath = tx_in.filepath;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].temppath = tx_in.temppath;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].savetime = tx_in.savetime;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].file_size = tx_in.file_size;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].total_bytes = tx_in.total_bytes;
+            txq[(node_id)].incoming.progress[tx_in.tx_id].file_info.clear();
+            for (file_progress filep : tx_in.file_info)
+            {
+                txq[(node_id)].incoming.progress[tx_in.tx_id].file_info.push_back(filep);
+            }
+            txq[(node_id)].incoming.progress[tx_in.tx_id].fp = tx_in.fp;
+            ++txq[(node_id)].incoming.size;
+
+            if (agent->get_debug_level())
+            {
+                agent->debug_error.Printf("%.4f %.4f Main/Incoming: Add incoming: %u %s %s %s %d\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str(), PROGRESS_QUEUE_SIZE);
+            }
+
+            return incoming_tx_recount(node_id);
+        }
+
+        int32_t Transfer::incoming_tx_update(packet_struct_metashort meta)
+        {
+            int32_t node_id = check_node_id(meta.node_id);
+            if (node_id <= 0)
+            {
+                if (node_id < 0)
+                {
+                    return node_id;
+                }
+                else
+                {
+                    return TRANSFER_ERROR_NODE;
+                }
+            }
+
+            if (meta.tx_id)
+            {
+                txq[node_id].incoming.rcvdmeta = true;
+                if (txq[(node_id)].incoming.progress[meta.tx_id].tx_id != meta.tx_id)
+                {
+                    txq[(node_id)].incoming.progress[meta.tx_id].tx_id = meta.tx_id;
+                    txq[(node_id)].incoming.progress[meta.tx_id].havemeta = false;
+                }
+
+                txq[(node_id)].incoming.progress[meta.tx_id].sendmeta = false;
+                txq[(node_id)].incoming.progress[meta.tx_id].sentmeta = true;
+                txq[(node_id)].incoming.progress[meta.tx_id].senddata = false;
+                txq[(node_id)].incoming.progress[meta.tx_id].sentdata = false;
+                txq[(node_id)].incoming.progress[meta.tx_id].datatime = currentmjd();
+
+                if (!txq[(node_id)].incoming.progress[meta.tx_id].havemeta)
+                {
+                    // Core META information
+                    txq[(node_id)].incoming.progress[meta.tx_id].node_name = txq[(node_id)].node_name;
+                    txq[(node_id)].incoming.progress[meta.tx_id].agent_name = meta.agent_name;
+                    txq[(node_id)].incoming.progress[meta.tx_id].file_name = meta.file_name;
+                    txq[(node_id)].incoming.progress[meta.tx_id].file_size = meta.file_size;
+                    txq[(node_id)].incoming.progress[meta.tx_id].filepath = data_base_path(txq[(node_id)].incoming.progress[meta.tx_id].node_name, "incoming", txq[(node_id)].incoming.progress[meta.tx_id].agent_name, txq[(node_id)].incoming.progress[meta.tx_id].file_name);
+                    string tx_name = "in_"+std::to_string(txq[(node_id)].incoming.progress[meta.tx_id].tx_id);
+                    txq[(node_id)].incoming.progress[meta.tx_id].temppath = data_base_path(txq[(node_id)].incoming.progress[meta.tx_id].node_name, "temp", "file", tx_name);
+
+                    // Derivative META information
+                    txq[(node_id)].incoming.progress[meta.tx_id].savetime = 0.;
+                    txq[(node_id)].incoming.progress[meta.tx_id].havemeta = true;
+                    txq[(node_id)].incoming.progress[meta.tx_id].complete = false;
+                    txq[(node_id)].incoming.progress[meta.tx_id].total_bytes = 0;
+                    txq[(node_id)].incoming.progress[meta.tx_id].fp = nullptr;
+                    txq[(node_id)].incoming.progress[meta.tx_id].file_info.clear();
+
+                    // Save it to disk
+                    //write_meta(txq[(node_id)].incoming.progress[meta.tx_id]);
+                }
+
+                if (agent->get_debug_level())
+                {
+                    agent->debug_error.Printf("%.4f %.4f Incoming: Update incoming: %u %s %s %s\n", tet.split(), dt.lap(), txq[(node_id)].incoming.progress[meta.tx_id].tx_id, txq[(node_id)].incoming.progress[meta.tx_id].node_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].agent_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].file_name.c_str());
+                }
+
+                return meta.tx_id;
+            }
+            else
+            {
+                return TRANSFER_ERROR_INDEX;
+            }
+        }
+
         int32_t Transfer::incoming_tx_del(uint8_t node_id, uint16_t tx_id)
         {
             node_id = check_node_id(node_id);
@@ -1022,6 +1190,455 @@ namespace Cosmos {
             return incoming_tx_recount(node_id);
         }
 
+        //! Handles receiving of incoming file transfer-type packet.
+        //! Make sure to process the PacketComm packet before calling this (with SLIPIn() or equivalent).
+        //! \param packet PacketComm packet containing file transfer-type data
+        //! \return 0 on success
+        int32_t Transfer::receive_packet(const PacketComm& packet)
+        {
+            string node_name = lookup_node_id_name(packet.data[0]);
+            int32_t node_id = check_node_id(packet.data[0]);
+
+            if (node_id <= 0 || node_name.empty())
+            {
+                // TODO: return proper error
+                return -1;
+            }
+
+            txq[node_id].incoming.rcvdqueue = false;
+            txq[node_id].incoming.rcvdmeta = false;
+            txq[node_id].incoming.rcvddata = false;
+
+            // Respond appropriately according to type of packet
+            switch (packet.type)
+            {
+            case PACKET_COMMAND:
+                {
+                    packet_struct_command command;
+
+                    deserialize_command(packet.data, command);
+
+                    FILE *fp = data_open(("/cosmos/nodes/" + agent->nodeName + "/incoming/exec/file.command").c_str(), "w");
+                    if (fp)
+                    {
+                        fwrite(&command.bytes[0], 1, command.length, fp);
+                        fclose(fp);
+                    }
+                }
+                break;
+            case PACKET_MESSAGE:
+                {
+                    packet_struct_message message;
+
+                    deserialize_message(packet.data, message);
+
+                    string imessage;
+                    imessage.resize(message.length);
+                    memcpy(&imessage[0], message.bytes, message.length);
+                    log_write(lookup_node_id_name(message.node_id), "file", tet.split(), "", "message", imessage, "incoming");
+                }
+                break;
+            case PACKET_HEARTBEAT:
+                {
+                    packet_struct_heartbeat heartbeat;
+
+                    deserialize_heartbeat(packet.data, heartbeat);
+
+                    //out_comm_channel[use_channel].heartbeat = heartbeat;
+                    txq[node_id].outgoing.sendqueue = true;
+                    txq[node_id].outgoing.sentqueue = false;
+                }
+                break;
+            case PACKET_REQQUEUE:
+                {
+                    packet_struct_reqqueue reqqueue;
+
+                    deserialize_reqqueue(packet.data, reqqueue);
+
+                    txq[node_id].outgoing.sendqueue = true;
+                    txq[node_id].outgoing.sentqueue = false;
+                }
+                break;
+            case PACKET_QUEUE:
+                {
+                    packet_struct_queue queue;
+
+                    deserialize_queue(packet.data, queue);
+
+                    txq[node_id].incoming.sentqueue = true;
+                    txq[node_id].incoming.sendqueue = false;
+                    txq[(node_id)].incoming.rcvdqueue = true;
+
+                    // Sort through incoming queue and remove anything not in sent queue
+                    for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
+                    {
+                        bool valid = false;
+                        for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
+                        {
+                            if (queue.tx_id[i] && txq[node_id].incoming.progress[tx_id].tx_id == queue.tx_id[i])
+                            {
+                                // This is an incoming file we should handle
+                                valid = true;
+                                break;
+                            }
+                        }
+
+                        if (txq[node_id].incoming.progress[tx_id].tx_id && !valid)
+                        {
+                            // This is not an incoming file we should handle
+                            incoming_tx_del(node_id, tx_id);
+                        }
+                    }
+
+                    // Sort through remotely sent queue and add anything not in our local incoming queue
+                    for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
+                    {
+                        if (queue.tx_id[i])
+                        {
+                            PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node_id].incoming, queue.tx_id[i]);
+
+                            if (tx_id == 0)
+                            {
+                                incoming_tx_add(queue.node_name, queue.tx_id[i]);
+                            }
+                        }
+                    }
+                }
+                break;
+            // Request missing metadata
+            case PACKET_REQMETA:
+                {
+                    packet_struct_reqmeta reqmeta;
+
+                    deserialize_reqmeta(packet.data, reqmeta);
+
+                    txq[node_id].outgoing.sentqueue = false;
+
+                    // Send requested META packets
+                    if (txq[node_id].node_id > 0)
+                    {
+                        for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
+                        {
+                            PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node_id].outgoing, reqmeta.tx_id[i]);
+                            if (tx_id > 0)
+                            {
+                                txq[node_id].outgoing.progress[tx_id].sendmeta = true;
+                                txq[node_id].outgoing.progress[tx_id].sentmeta = false;
+                            }
+                        }
+                    }
+                    break;
+                }
+            case PACKET_METADATA:
+                {
+                    packet_struct_metashort meta;
+
+                    deserialize_metadata(packet.data, meta);
+
+                    incoming_tx_update(meta);
+
+                    break;
+                }
+            case PACKET_REQDATA:
+                {
+                    packet_struct_reqdata reqdata;
+
+                    deserialize_reqdata(packet.data, reqdata);
+
+                    // Simple validity check
+                    if (reqdata.hole_end < reqdata.hole_start)
+                    {
+                        break;
+                    }
+
+                    PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node_id].outgoing, reqdata.tx_id);
+                    
+                    // tx_id now points to the valid entry to which we should add the data
+                    if (tx_id > 0)
+                    {
+                        txq[node_id].outgoing.progress[tx_id].sendmeta = false;
+                        txq[node_id].outgoing.progress[tx_id].sentmeta = true;
+
+                        // Add this chunk to the queue
+                        file_progress tp;
+                        tp.chunk_start = reqdata.hole_start;
+                        tp.chunk_end = reqdata.hole_end;
+                        PACKET_FILE_SIZE_TYPE byte_count = (reqdata.hole_end - reqdata.hole_start) + 1;
+
+                        uint32_t check=0;
+                        // Anything in the queue yet?
+                        if (!txq[node_id].outgoing.progress[tx_id].file_info.size())
+                        {
+                            // Add first entry
+                            txq[node_id].outgoing.progress[tx_id].file_info.push_back(tp);
+                            txq[node_id].outgoing.progress[tx_id].total_bytes += byte_count;
+                        }
+                        else
+                        {
+                            // Check against existing data
+                            for (uint32_t j=0; j<txq[node_id].outgoing.progress[tx_id].file_info.size(); ++j)
+                            {
+                                // If we match this entry
+                                if (tp.chunk_start == txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_start && tp.chunk_end == txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end)
+                                {
+                                    break;
+                                }
+                                // If we start before this entry
+                                if (tp.chunk_start < txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_start)
+                                {
+                                    // If we end before this entry (at least one byte between), insert
+                                    if (tp.chunk_end + 1 < txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_start)
+                                    {
+                                        txq[node_id].outgoing.progress[tx_id].file_info.insert(txq[node_id].outgoing.progress[tx_id].file_info.begin()+j, tp);
+                                        txq[node_id].outgoing.progress[tx_id].total_bytes += byte_count;
+                                        break;
+                                    }
+                                    // Otherwise, extend the near end
+                                    else
+                                    {
+                                        tp.chunk_end = txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_start - 1;
+                                        txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_start = tp.chunk_start;
+                                        byte_count = (tp.chunk_end - tp.chunk_start) + 1;
+                                        txq[node_id].outgoing.progress[tx_id].total_bytes += byte_count;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    // If we overlap on the end, extend the far end
+                                    if (tp.chunk_start <= txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end + 1)
+                                    {
+                                        if (tp.chunk_end > txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end)
+                                        {
+                                            byte_count = tp.chunk_end - txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end;
+                                            tp.chunk_start = txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end + 1;
+                                            txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end = tp.chunk_end;
+                                            txq[node_id].outgoing.progress[tx_id].total_bytes += byte_count;
+                                            break;
+                                        }
+                                    }
+                                }
+                                check = j + 1;
+                            }
+
+                            // If we are higher than everything currently in the list, then append
+                            if (check == txq[node_id].outgoing.progress[tx_id].file_info.size())
+                            {
+                                txq[node_id].outgoing.progress[tx_id].file_info.push_back(tp);
+                                txq[node_id].outgoing.progress[tx_id].total_bytes += byte_count;
+                            }
+
+                        }
+
+                        // Save meta to disk
+                        //write_meta(txq[node_id].outgoing.progress[tx_id]);
+                        txq[node_id].outgoing.sendqueue = false;
+                        txq[node_id].outgoing.sentqueue = true;
+                        txq[node_id].outgoing.progress[tx_id].senddata = true;
+                        txq[node_id].outgoing.progress[tx_id].sentdata = false;
+                        txq[node_id].outgoing.progress[tx_id].sendmeta = false;
+                        txq[node_id].outgoing.progress[tx_id].sentmeta = true;
+                    }
+                    break;
+                }
+            case PACKET_DATA:
+                {
+                    packet_struct_data data;
+
+                    deserialize_data(packet.data, data);
+
+                    // create transaction entry if new, and then add data
+
+                    PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node_id].incoming, data.tx_id);
+
+                    // Update corresponding incoming queue entry if it exists
+                    if (tx_id > 0)
+                    {
+                        txq[node_id].incoming.rcvddata = true;
+                        txq[node_id].incoming.progress[tx_id].datatime = currentmjd();
+
+                        // tx_id now points to the valid entry to which we should add the data
+                        file_progress tp;
+                        tp.chunk_start = data.chunk_start;
+                        tp.chunk_end = data.chunk_start + data.byte_count - 1;
+
+                        packet_struct_data odata;
+                        odata = data;
+
+                        uint32_t check=0;
+                        bool duplicate = false;
+                        bool updated = false;
+
+                        // Do we have any data yet?
+                        if (!txq[node_id].incoming.progress[tx_id].file_info.size())
+                        {
+                            // Add first entry, then write data
+                            txq[node_id].incoming.progress[tx_id].file_info.push_back(tp);
+                            txq[node_id].incoming.progress[tx_id].total_bytes += data.byte_count;
+                            updated = true;
+                        }
+                        else
+                        {
+                            // Check against existing data
+                            for (uint32_t j=0; j<txq[node_id].incoming.progress[tx_id].file_info.size(); ++j)
+                            {
+                                // Check for duplicate
+                                if (tp.chunk_start >= txq[node_id].incoming.progress[tx_id].file_info[j].chunk_start && tp.chunk_end <= txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end)
+                                {
+                                    duplicate = true;
+                                    break;
+                                }
+                                // If we start before this entry
+                                if (tp.chunk_start < txq[node_id].incoming.progress[tx_id].file_info[j].chunk_start)
+                                {
+                                    // If we end before this entry (at least one byte between), insert
+                                    if (tp.chunk_end + 1 < txq[node_id].incoming.progress[tx_id].file_info[j].chunk_start)
+                                    {
+                                        txq[node_id].incoming.progress[tx_id].file_info.insert(txq[node_id].incoming.progress[tx_id].file_info.begin()+j, tp);
+                                        txq[node_id].incoming.progress[tx_id].total_bytes += data.byte_count;
+                                        updated = true;
+                                        break;
+                                    }
+                                    // Otherwise, extend the near end
+                                    else
+                                    {
+                                        tp.chunk_end = txq[node_id].incoming.progress[tx_id].file_info[j].chunk_start - 1;
+                                        txq[node_id].incoming.progress[tx_id].file_info[j].chunk_start = tp.chunk_start;
+                                        data.byte_count = (tp.chunk_end - tp.chunk_start) + 1;
+                                        txq[node_id].incoming.progress[tx_id].total_bytes += data.byte_count;
+                                        updated = true;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    // If we overlap on the end, extend the far end
+                                    if (tp.chunk_start <= txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end + 1)
+                                    {
+                                        if (tp.chunk_end > txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end)
+                                        {
+                                            data.byte_count = tp.chunk_end - txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end;
+                                            tp.chunk_start = txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end + 1;
+                                            txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end = tp.chunk_end;
+                                            txq[node_id].incoming.progress[tx_id].total_bytes += data.byte_count;
+                                            updated = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                check = j + 1;
+                            }
+
+
+                            // If we are higher than everything currently in the list, then append
+                            if (!duplicate && check == txq[node_id].incoming.progress[tx_id].file_info.size())
+                            {
+                                txq[node_id].incoming.progress[tx_id].file_info.push_back(tp);
+                                txq[node_id].incoming.progress[tx_id].total_bytes += data.byte_count;
+                                updated = true;
+                            }
+
+                        }
+
+                        // Write to disk if this is new data
+                        if (updated)
+                        {
+                            string partial_filepath;
+                            // Write incoming data to disk
+                            if (txq[node_id].incoming.progress[tx_id].fp == nullptr)
+                            {
+                                partial_filepath = txq[node_id].incoming.progress[tx_id].temppath + ".file";
+                                if (data_exists(partial_filepath))
+                                {
+                                    txq[node_id].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "r+");
+                                }
+                                else
+                                {
+                                    txq[node_id].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "w");
+                                }
+                            }
+
+                            if (txq[node_id].incoming.progress[tx_id].fp == nullptr)
+                            {
+                                if (agent->get_debug_level())
+                                {
+                                    agent->debug_error.Printf("%.4f %.4f Incoming: File Error: %s %s on ID: %u Chunk: %u\n", tet.split(), dt.lap(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
+                                    // fflush(agent->get_debug_fd());
+                                }
+                            }
+                            else
+                            {
+                                fseek(txq[node_id].incoming.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
+                                fwrite(data.chunk, data.byte_count, 1, txq[node_id].incoming.progress[tx_id].fp);
+                                fflush(txq[node_id].incoming.progress[tx_id].fp);
+                                // Write latest meta data to disk
+                                //write_meta(txq[node_id].incoming.progress[tx_id]);
+                                if (agent->get_debug_level())
+                                {
+                                    uint32_t total = 0;
+                                    for (uint16_t i=0; i<data.byte_count; ++i)
+                                    {
+                                        total += data.chunk[i];
+                                    }
+                                    agent->debug_error.Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), total, tx_id);
+                                }
+                            }
+
+                        }
+                    }
+                    else
+                    {
+                        txq[node_id].incoming.progress[data.tx_id].sendmeta = true;
+                    }
+
+                    break;
+                }
+            case PACKET_COMPLETE:
+                {
+                    packet_struct_complete complete;
+
+                    deserialize_complete(packet.data, complete);
+
+                    PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node_id].outgoing, complete.tx_id);
+
+                    if (tx_id > 0)
+                    {
+                        txq[node_id].outgoing.progress[tx_id].complete = true;
+                        txq[node_id].outgoing.progress[tx_id].senddata = false;
+                        txq[node_id].outgoing.progress[tx_id].sendmeta = false;
+                        txq[node_id].outgoing.sendqueue = true;
+                        txq[node_id].outgoing.sentqueue = false;
+                    }
+
+                    break;
+                }
+            case PACKET_CANCEL:
+                {
+                    packet_struct_cancel cancel;
+                    //TODO: take a look at this part of the code, compare with agent_file4
+                    // agent_file4 used packet_struct_complete and extract_complete here
+                    deserialize_cancel(packet.data, cancel);
+
+                    PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node_id].incoming, cancel.tx_id);
+
+                    if (tx_id > 0)
+                    {
+                        // Remove the transaction
+                        incoming_tx_del(node_id, tx_id);
+                    }
+
+                    break;
+                }
+            default:
+                // TODO: return proper error
+                //++type_error_count;
+                return -2;
+                break;
+            }
+
+            return 0;
+        }
+
         int32_t Transfer::incoming_tx_recount(uint8_t node_id)
         {
             if (node_id == 0 || node_id >= txq.size())
@@ -1095,6 +1712,8 @@ namespace Cosmos {
             }
         }
 
+        //! Loads node table from nodeids.ini configuration file
+        //! nodeids is a vector of node name strings indexed by a node_id
         int32_t Transfer::load_nodeids()
         {
             char buf[103];
