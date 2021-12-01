@@ -81,7 +81,7 @@ TEST(cosmosstruc, json_init_json)	{
 	EXPECT_EQ(c->json.name, "");
 	EXPECT_EQ(c->json.node, "");
 	EXPECT_EQ(c->json.state, "");
-	EXPECT_EQ(c->json.utcstart, "");
+//	EXPECT_EQ(c->json.utcstart, "");
 	EXPECT_EQ(c->json.vertexs, "");
 	EXPECT_EQ(c->json.faces, "");
 	EXPECT_EQ(c->json.pieces, "");
@@ -1930,7 +1930,7 @@ TEST(cosmosstruc, add_default_names) {
 	EXPECT_EQ(c->get_pointer<string>("json.name"), &c->json.name);
 	EXPECT_EQ(c->get_pointer<string>("json.node"), &c->json.node);
 	EXPECT_EQ(c->get_pointer<string>("json.state"), &c->json.state);
-	EXPECT_EQ(c->get_pointer<string>("json.utcstart"), &c->json.utcstart);
+//	EXPECT_EQ(c->get_pointer<string>("json.utcstart"), &c->json.utcstart);
 	EXPECT_EQ(c->get_pointer<string>("json.vertexs"), &c->json.vertexs);
 	EXPECT_EQ(c->get_pointer<string>("json.faces"), &c->json.faces);
 	EXPECT_EQ(c->get_pointer<string>("json.pieces"), &c->json.pieces);

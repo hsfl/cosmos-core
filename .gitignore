@@ -59,7 +59,7 @@ build/arm_release/
 tags
 QtCreatorDeployment.txt
 
-CMakeLists\.txt\.user\.20
+CMakeLists\.txt\.user*
 
 CMakeLists\.txt\.user\.3b6bfd8\.20
 

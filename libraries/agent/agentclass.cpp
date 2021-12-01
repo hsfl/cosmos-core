@@ -2887,7 +2887,7 @@ acquired.
     //            iretn = json_parse(mess.adata, cinfo->sdata);
     //            if (iretn >= 0)
     //            {
-    //                imu = *cinfo->sdata.device[agent->cinfo->devspec.imu[0]].imu.;
+    //                imu = *cinfo->sdata.devspec.imu[0].;
     //            }
     //        }
 

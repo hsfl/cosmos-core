@@ -4406,7 +4406,7 @@ union as a ::devicestruc.
             //! Mission start time
             double utcstart = 0.;
             //! Mission Elapsed Time
-            double met = 0.;
+            float met = 0.;
             //! Location structure
             Convert::locstruc loc;
 			//! Estimated location structure
