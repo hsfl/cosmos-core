@@ -43,39 +43,80 @@ namespace Cosmos {
         public:
             PacketHandler();
 
-            int32_t init(cosmosstruc* cinfo, uint16_t secret=0x1111);
+            int32_t init(Agent* calling_agent, uint16_t secret=0x1111);
 
             typedef int32_t (*RespCallback)(const vector<uint8_t>&);
             int32_t register_response(const RespCallback f);
             int32_t clear_response(const uint16_t packet_id);
             int32_t receive_response_packet(const PacketComm &packet);
-            vector<PacketComm> create_response_packets(const PacketComm &addressee, const vector<uint8_t> &data);
+            vector<PacketComm> create_response_packets(uint32_t response_id, uint16_t data_size, const vector<uint8_t> &response);
 
-            typedef int32_t (*ExternalFunc)(vector<uint8_t>& data, vector<uint8_t> &response, cosmosstruc* cinfo);
+            typedef int32_t (*ExternalFunc)(PacketComm &packet, vector<uint8_t> &response, Agent* agent);
             struct FuncEntry
             {
-                uint8_t type;
+                PacketComm::TypeId type;
                 //! Pointer to function to call with request vector as argument and returning any error
                 ExternalFunc efunction;
             };
             FuncEntry Funcs[256];
-            int32_t add_func(uint8_t index, ExternalFunc function);
+            int32_t add_func(PacketComm::TypeId type, ExternalFunc function);
             int32_t process(PacketComm &packet, vector<uint8_t> &response);
             int32_t process(PacketComm &packet);
+            int32_t generate(PacketComm &packet);
 
-            static int32_t Test(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
-            static int32_t FileMeta(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
-            static int32_t FileChunk(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
+            int32_t GenerateBeacon(PacketComm &packet);
 
-            static int32_t Reset(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
-            static int32_t Reboot(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
-            static int32_t SendBeacon(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
-            static int32_t ClearRadioQueue(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
-            static int32_t ExternalCommand(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
-            static int32_t TestRadio(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
-            static int32_t Transfer(vector<uint8_t>& data, vector<uint8_t>& response, cosmosstruc* cinfo);
+            // Telemetry
+            static int32_t Test(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t Response(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t DecodeBeacon(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t FileMeta(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t FileChunk(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+
+            // Commands
+            uint32_t secret;
+            static int32_t Reset(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t Reboot(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            struct sendbeacon_packet
+            {
+                uint8_t radio = 0;
+                uint8_t type = (uint8_t)PacketComm::TypeId::CPU1BeaconS;
+                uint8_t count = 1;
+            };
+            static int32_t SendBeacon(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            struct clearradioqueue_packet
+            {
+                uint8_t radio = 0;
+            };
+            static int32_t ClearRadioQueue(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            struct externalcommand_packet
+            {
+                uint8_t radio = 0;
+                uint32_t response_id = 0;
+                string command;
+            };
+            static int32_t ExternalCommand(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            struct testradio_packet
+            {
+                uint8_t radio = 0;
+                uint8_t start = 0;
+                uint8_t step = 1;
+                uint8_t count = 255;
+                uint32_t total = 10000;
+            };
+
+//            static int32_t TestRadio(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            struct listdirectory_packet
+            {
+                uint8_t radio = 0;
+                string node;
+                string agent;
+            };
+            static int32_t ListDirectory(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t TransferFile(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+
         private:
-            cosmosstruc* cinfo;
+            Agent* agent;
             /// Register response callbacks in this array
             ResponseHandler response_packets[256];
             /// Current packet id index, to index response_packets
@@ -83,7 +124,6 @@ namespace Cosmos {
 
             /// Set packet_idx to index of next available slot
             bool get_next_packet_id();
-            uint32_t secret;
             Error *errorlog;
 
             mutex mtx;
