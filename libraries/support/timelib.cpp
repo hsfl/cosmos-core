@@ -1008,5 +1008,23 @@ namespace Cosmos {
             return microsleep(seconds * 1000000);
         }
 
+        double newyear(int32_t years)
+        {
+            calstruc newyear =  mjd2cal(trunc(currentmjd()));
+            newyear.year += years;
+            return cal2mjd(newyear);
+        }
+
+        uint32_t centisec(double mjd)
+        {
+            if (mjd == 0.)
+            {
+                return 8640000. * (currentmjd() - newyear());
+            }
+            else
+            {
+                return 8640000. * (mjd - newyear());
+            }
+        }
     }
 }
