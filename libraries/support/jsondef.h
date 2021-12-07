@@ -2826,6 +2826,9 @@ union as a ::devicestruc.
             //! Number of reboots
             uint32_t boot_count = 0;
 
+            //! Root storage
+            float storage = 0.f;
+
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
         @return	A json11 JSON object containing every member variable within the class
@@ -2837,6 +2840,7 @@ union as a ::devicestruc.
                     { "maxload", maxload },
                     { "maxgib" , maxgib },
                     { "gib"	, gib },
+                    { "storage"	, storage },
                     { "boot_count", static_cast<int>(boot_count) },
                 };
             }
@@ -2855,6 +2859,7 @@ union as a ::devicestruc.
                     if(!parsed["maxload"].is_null()) { maxload = parsed["maxload"].number_value(); }
                     if(!parsed["maxgib"].is_null()) { maxgib = parsed["maxgib"].number_value(); }
                     if(!parsed["gib"].is_null()) { gib = parsed["gib"].number_value(); }
+                    if(!parsed["storage"].is_null()) { storage = parsed["storage"].number_value(); }
                     if(!parsed["boot_count"].is_null()) { boot_count = parsed["boot_count"].int_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;

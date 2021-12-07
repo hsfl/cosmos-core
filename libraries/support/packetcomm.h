@@ -37,43 +37,14 @@ namespace Cosmos {
             bool SLIPPacketize();
 //            int32_t Generate(string args="");
 
-            static constexpr uint16_t INTERNAL_BEACON = 0;
-            static constexpr uint16_t INTERNAL_COMMAND = 0;
-            static constexpr uint16_t EXTERNAL_COMMAND = 14;
+//            static constexpr uint16_t INTERNAL_BEACON = 0;
+//            static constexpr uint16_t INTERNAL_COMMAND = 0;
+//            static constexpr uint16_t EXTERNAL_COMMAND = 14;
 
             enum class TypeId : uint8_t
                 {
                 None = 0,
-                BeaconStart = 10,
-                CPU1BeaconS = 10,
-                CPU2BeaconS = 11,
-                TempBeaconS = 12,
-                EPSCPUBeaconS = 13,
-                EPSPVBeaconS = 14,
-                EPSSWCHBeaconS = 14,
-                EPSBATTBeaconS = 15,
-                ADCSCPUBeaconS = 16,
-                ADCSMTRBeaconS = 17,
-                ADCSRWBeaconS = 18,
-                ADCSIMUBeaconS = 19,
-                ADCSGPSBeaconS = 20,
-                ADCSSTTBeaconS = 21,
-                ADCSSSENBeaconS = 22,
-                ADCSSunBeaconS = 23,
-                ADCSNadirBeaconS = 24,
-                CPUBeaconL = 30,
-                TempBeaconL = 33,
-                EPSPVBeaconL = 35,
-                EPSSWCHBeaconL = 36,
-                EPSBATTBeaconL = 37,
-                ADCSMTRBeaconL = 38,
-                ADCSRWBeaconL = 39,
-                ADCSGPSBeaconL = 40,
-                ADCSIMUBeaconL = 41,
-                ADCSSTTBeaconL = 42,
-                ADCSSSENBeaconL = 43,
-                ADCSATTBeaconL = 44,
-                BeaconEnd = 44,
+                Beacon = 10,
                 Forward = 60,
                 Response = 61,
                 IP = 62,
@@ -96,34 +67,7 @@ namespace Cosmos {
                 };
 
             map<TypeId, string> TypeString = {
-                {TypeId::CPU1BeaconS, "CPU1BeaconS"},
-                {TypeId::CPU2BeaconS, "CPU2BeaconS"},
-                {TypeId::TempBeaconS, "TempBeaconS"},
-                {TypeId::EPSCPUBeaconS, "EPSCPUBeaconS"},
-                {TypeId::EPSPVBeaconS, "EPSPVBeaconS"},
-                {TypeId::EPSSWCHBeaconS, "EPSSWCHBeaconS"},
-                {TypeId::EPSBATTBeaconS, "EPSBATTBeaconS"},
-                {TypeId::ADCSCPUBeaconS, "ADCSCPUBeaconS"},
-                {TypeId::ADCSMTRBeaconS, "ADCSMTRBeaconS"},
-                {TypeId::ADCSRWBeaconS, "ADCSRWBeaconS"},
-                {TypeId::ADCSIMUBeaconS, "ADCSIMUBeaconS"},
-                {TypeId::ADCSGPSBeaconS, "ADCSGPSBeaconS"},
-                {TypeId::ADCSSTTBeaconS, "ADCSSTTBeaconS"},
-                {TypeId::ADCSSSENBeaconS, "ADCSSSENBeaconS"},
-                {TypeId::ADCSSunBeaconS, "ADCSSunBeaconS"},
-                {TypeId::ADCSNadirBeaconS, "ADCSNadirBeaconS"},
-                {TypeId::CPUBeaconL, "CPUBeaconL"},
-                {TypeId::TempBeaconL, "TempBeaconL"},
-                {TypeId::EPSPVBeaconL, "EPSPVBeaconL"},
-                {TypeId::EPSSWCHBeaconL, "EPSSWCHBeaconL"},
-                {TypeId::EPSBATTBeaconL, "EPSBATTBeaconL"},
-                {TypeId::ADCSMTRBeaconL, "ADCSMTRBeaconL"},
-                {TypeId::ADCSRWBeaconL, "ADCSRWBeaconL"},
-                {TypeId::ADCSGPSBeaconL, "ADCSGPSBeaconL"},
-                {TypeId::ADCSIMUBeaconL, "ADCSIMUBeaconL"},
-                {TypeId::ADCSSTTBeaconL, "ADCSSTTBeaconL"},
-                {TypeId::ADCSSSENBeaconL, "ADCSSSENBeaconL"},
-                {TypeId::ADCSATTBeaconL, "ADCSATTBeaconL"},
+                {TypeId::Beacon, "Beacon"},
                 {TypeId::Forward, "Forward"},
                 {TypeId::Response, "Response"},
                 {TypeId::IP, "IP"},

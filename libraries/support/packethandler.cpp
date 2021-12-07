@@ -21,10 +21,7 @@ namespace Cosmos {
             // Telemetry
             add_func(PacketComm::TypeId::Test, Test);
             add_func(PacketComm::TypeId::Response, Response);
-            for (uint8_t ti=(uint8_t)PacketComm::TypeId::BeaconStart; ti<=(uint8_t)PacketComm::TypeId::BeaconEnd; ++ti)
-            {
-                add_func((PacketComm::TypeId)ti, DecodeBeacon);
-            }
+            add_func(PacketComm::TypeId::Beacon, DecodeBeacon);
             return 0;
         }
 
@@ -214,6 +211,7 @@ namespace Cosmos {
             int32_t iretn=0;
             struct test_control
             {
+                string path;
                 uint32_t total_bytes;
                 uint32_t total_count;
                 uint32_t good_count = 0;
@@ -229,6 +227,11 @@ namespace Cosmos {
             uint32_t test_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             uint32_t packet_id = uint32from(&packet.data[4], ByteOrder::LITTLEENDIAN);
             string sresponse = to_label("MET", agent->cinfo->node.met) + to_label(" Test_Id", test_id) + to_label(" Packet_Id", packet_id);
+            if (tests.find(test_id) == tests.end())
+            {
+                tests[test_id].path = data_name_path(agent->nodeName, "incoming", agent->agentName, 0., "test_"+to_unsigned(test_id));
+                tests[test_id].et.reset();
+            }
             tests[test_id].total_count = tests[test_id].good_count + tests[test_id].crc_count + tests[test_id].size_count;
             if (packet_id == ((uint32_t)-1))
             {
@@ -238,6 +241,7 @@ namespace Cosmos {
             }
             else
             {
+                tests[test_id].et.reset();
                 if (packet_id - tests[test_id].last_packet_id > 1)
                 {
                     tests[test_id].skip_count;
@@ -262,6 +266,9 @@ namespace Cosmos {
                     }
                     else
                     {
+                        FILE *tf = fopen(tests[test_id].path.c_str(), "a");
+                        fwrite(packet.data.data(), packet.data.size(), 1, tf);
+                        fclose(tf);
                         tests[test_id].total_bytes += data_size;
                         ++tests[test_id].good_count;
                         sresponse += " Good: " + to_unsigned(tests[test_id].good_count);
@@ -280,6 +287,7 @@ namespace Cosmos {
             int32_t iretn=0;
             struct response_control
             {
+                string path;
                 uint32_t response_id;
                 uint32_t met;
                 string response;
@@ -288,6 +296,14 @@ namespace Cosmos {
             static map<uint32_t, response_control> responses;
 
             uint32_t response_id = uint32from(&packet.data[2], ByteOrder::LITTLEENDIAN);
+            if (responses.find(response_id) == responses.end())
+            {
+                responses[response_id].path = data_name_path(agent->nodeName, "incoming", agent->agentName, 0., "response_"+to_unsigned(response_id));
+                responses[response_id].et.reset();
+            }
+            FILE *tf = fopen(responses[response_id].path.c_str(), "a");
+            fwrite(packet.data.data(), packet.data.size(), 1, tf);
+            fclose(tf);
             responses[response_id].met = uint32from(&packet.data[6], ByteOrder::LITTLEENDIAN);
             string sresponse = to_label("MET", responses[response_id].met) + to_label(" Response_Id", responses[response_id].response_id) + to_label(" Chunk_Id", packet.data[1]) + to_label(" Chunks", packet.data[0]);
             responses[response_id].response.insert(responses[response_id].response.end(), packet.data.begin()+8, packet.data.end());
@@ -301,7 +317,7 @@ namespace Cosmos {
         {
             Beacon beacon;
             string decoded_beacon;
-            beacon.Decode(packet, decoded_beacon);
+            beacon.Decode(packet.data, decoded_beacon);
             response.insert(response.begin(), decoded_beacon.begin(), decoded_beacon.end());
             return response.size();
         }
@@ -336,49 +352,18 @@ namespace Cosmos {
         int32_t PacketHandler::SendBeacon(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
         {
             int32_t iretn=0;
-            packet.type = (PacketComm::TypeId)packet.data[0];
-            uint8_t count = packet.data[1];
-            uint8_t radio = packet.data[2];
+//            uint8_t radio = packet.data[0];
+//            uint8_t count = packet.data[2];
             Beacon beacon;
             beacon.Init(agent);
-            beacon.Generate(packet);
-            packet.RawPacketize();
-//            for (uint16_t i=0; i<count; ++i)
-//            {
-//                switch (radio)
-//                {
-//                case 0:
-//                    push_packet(txs_queue, txs_mtx, packet);
-//                    push_packet(net_queue, net_mtx, packet);
-//                    break;
-//                case 1:
-//                    push_packet(txs_queue, txs_mtx, packet);
-//                    break;
-//                case 2:
-//                    push_packet(net_queue, net_mtx, packet);
-//                    break;
-//                }
-//                secondsleep(.01);
-//            }
+            beacon.Encode((Beacon::TypeId)packet.data[1]);
+            response = beacon.data;
             return iretn;
         }
 
         int32_t PacketHandler::ClearRadioQueue(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
         {
             int32_t iretn=0;
-//            switch (packet.data[2])
-//            {
-//            case 0:
-//                clear_queue(txs_queue, txs_mtx);
-//                clear_queue(net_queue, net_mtx);
-//                break;
-//            case 1:
-//                clear_queue(txs_queue, txs_mtx);
-//                break;
-//            case 2:
-//                clear_queue(net_queue, net_mtx);
-//                break;
-//            }
             return iretn;
         }
 
@@ -423,15 +408,6 @@ namespace Cosmos {
             return iretn;
         }
 
-        // Support
-        int32_t PacketHandler::GenerateBeacon(PacketComm &packet)
-        {
-            int32_t iretn;
-            Beacon beacon;
-            beacon.Init(agent);
-            iretn = beacon.Generate(packet);
-            return iretn;
-        }
     }
 }
 

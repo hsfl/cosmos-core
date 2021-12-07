@@ -4,6 +4,7 @@
 #include "math/mathlib.h"
 #include "support/configCosmos.h"
 #include "support/packetcomm.h"
+#include "support/beacon.h"
 #include "support/timelib.h"
 #include "agent/agentclass.h"
 
@@ -64,7 +65,7 @@ namespace Cosmos {
             int32_t process(PacketComm &packet);
             int32_t generate(PacketComm &packet);
 
-            int32_t GenerateBeacon(PacketComm &packet);
+//            int32_t GenerateBeacon(PacketComm &packet);
 
             // Telemetry
             static int32_t Test(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
@@ -80,7 +81,7 @@ namespace Cosmos {
             struct sendbeacon_packet
             {
                 uint8_t radio = 0;
-                uint8_t type = (uint8_t)PacketComm::TypeId::CPU1BeaconS;
+                uint8_t type = (uint8_t)Beacon::TypeId::CPU1BeaconS;
                 uint8_t count = 1;
             };
             static int32_t SendBeacon(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
