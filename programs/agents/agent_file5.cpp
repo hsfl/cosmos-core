@@ -336,6 +336,10 @@ void recv_loop() noexcept
             // TODO: fix error number
             if (iretn == -2) {
                 ++type_error_count;
+            } else if (iretn == 111) {
+                // in a more manual configuration, signal send loop to send back response-type packets with mode set to:
+                // transfer.get_outgoing_packets(packets, Transfer::GET_OUTGOING_RESPONSES);
+                // But since the main thread calls get_outgoing_packets() at regular intervals in this program, it's not necessary
             }
         }
     }

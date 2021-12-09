@@ -43,6 +43,12 @@ namespace Cosmos {
     namespace Support {
         class Transfer {
         public:
+            // For specifying what types of packets to get from get_outgoing_packets()
+            typedef uint8_t GET_OUTGOING_MODE;
+            enum {
+                GET_OUTGOING_ALL       = 0,
+                GET_OUTGOING_RESPONSES = 1,
+            };
             
             Transfer();
             // int32_t Init(string node, string agent, uint16_t chunk_size);
@@ -50,8 +56,8 @@ namespace Cosmos {
             //int32_t Load(string filename, vector<chunk> &chunks);
             int32_t outgoing_tx_load();
             int32_t outgoing_tx_load(uint8_t node_id);
-            int32_t get_outgoing_packets(vector<PacketComm> &packets);
-            int32_t get_outgoing_packets(uint8_t node_id, vector<PacketComm> &packets);
+            int32_t get_outgoing_packets(vector<PacketComm> &packets, GET_OUTGOING_MODE mode = GET_OUTGOING_ALL);
+            int32_t get_outgoing_packets(uint8_t node_id, vector<PacketComm> &packets, GET_OUTGOING_MODE mode = GET_OUTGOING_ALL);
             int32_t receive_packet(const PacketComm& packet);
 
             // Various checks

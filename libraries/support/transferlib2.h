@@ -272,6 +272,7 @@ namespace Cosmos {
         void deserialize_command(const vector<PACKET_BYTE>& pdata, packet_struct_command& command);
         void deserialize_message(const vector<PACKET_BYTE>& pdata, packet_struct_message& message);
         void deserialize_heartbeat(const vector<PACKET_BYTE>& pdata, packet_struct_heartbeat& heartbeat);
+        void serialize_reqqueue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name);
         void deserialize_reqqueue(const vector<PACKET_BYTE>& pdata, packet_struct_reqqueue& reqqueue);
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue);
         void deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue);
