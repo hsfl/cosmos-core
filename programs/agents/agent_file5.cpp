@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
         // Check for new files to transmit if queue is not full and check is not delayed
         if (currentmjd() > nextdiskcheck)
         {
-            nextdiskcheck = currentmjd(0.) + 10./86400.;
+            nextdiskcheck = currentmjd(0.) + 4./86400.;
             txqueue_lock.lock();
             transfer.outgoing_tx_load();
             transfer.get_outgoing_packets(packets);

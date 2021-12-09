@@ -95,6 +95,9 @@ namespace Cosmos {
             int32_t incoming_tx_del(uint8_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
             int32_t incoming_tx_recount(uint8_t node_id);
 
+            int32_t write_meta(tx_progress& tx, double interval=5.);
+            int32_t read_meta(tx_progress& tx);
+
             int32_t load_nodeids();
         };
     }

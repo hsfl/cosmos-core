@@ -80,42 +80,40 @@ namespace Cosmos {
                 }
             }
 
-        //     // Restore in progress transfers from previous run
-        //     for (string node_name : data_list_nodes())
-        //     {
-        // //        int32_t node_id = add_node_name(node_name);
+            // Restore in progress transfers from previous run
+            // for (string node_name : data_list_nodes())
+            // {
+            //     for(filestruc file : data_list_files(node_name, "temp", "file"))
+            //     {
+            //         // Add entry for each meta file
+            //         if (file.type == "meta")
+            //         {
+            //             // Incoming
+            //             if (!file.name.compare(0,3,"in_"))
+            //             {
+            //                 tx_progress tx_in;
+            //                 tx_in.temppath = file.path.substr(0,file.path.find(".meta"));
+            //                 if (read_meta(tx_in) >= 0)
+            //                 {
+            //                     merge_chunks_overlap(tx_in);
+            //                     iretn = incoming_tx_add(tx_in);
+            //                 }
+            //             }
 
-        //         for(filestruc file : data_list_files(node_name, "temp", "file"))
-        //         {
-        //             // Add entry for each meta file
-        //             if (file.type == "meta")
-        //             {
-        //                 // Incoming
-        //                 if (!file.name.compare(0,3,"in_"))
-        //                 {
-        //                     tx_progress tx_in;
-        //                     tx_in.temppath = file.path.substr(0,file.path.find(".meta"));
-        //                     if (read_meta(tx_in) >= 0)
-        //                     {
-        //                         merge_chunks_overlap(tx_in);
-        //                         iretn = incoming_tx_add(tx_in);
-        //                     }
-        //                 }
-
-        //                 // Outgoing
-        //                 if (!file.name.compare(0,4,"out_"))
-        //                 {
-        //                     tx_progress tx_out;
-        //                     tx_out.temppath = file.path.substr(0,file.path.find(".meta"));
-        //                     if (read_meta(tx_out) >= 0)
-        //                     {
-        //                         find_chunks_togo(tx_out);
-        //                         iretn = outgoing_tx_add(tx_out);
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
+            //             // Outgoing
+            //             if (!file.name.compare(0,4,"out_"))
+            //             {
+            //                 tx_progress tx_out;
+            //                 tx_out.temppath = file.path.substr(0,file.path.find(".meta"));
+            //                 if (read_meta(tx_out) >= 0)
+            //                 {
+            //                     find_chunks_togo(tx_out);
+            //                     iretn = outgoing_tx_add(tx_out);
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
 
             return 0;
         }
@@ -325,7 +323,6 @@ namespace Cosmos {
             switch (mode) {
             case GET_OUTGOING_ALL:
                 // Send Queue packet, if anything needs to be queued
-                // TODO: reminder check this out
                 if (!txq[(node_id)].outgoing.sentqueue)
                 {
                     vector<PACKET_TX_ID_TYPE> tqueue(TRANSFER_QUEUE_LIMIT, 0);
@@ -494,11 +491,9 @@ namespace Cosmos {
                         if (txq[(node_id)].incoming.progress[tx_id].tx_id && !txq[(node_id)].incoming.progress[tx_id].sentmeta)
                         {
                             tqueue[iq++] = tx_id;
-                            //txq[(node_id)].incoming.progress[tx_id].sendmeta = true; // TODO: consider this
                         }
                         else if (!txq[(node_id)].incoming.progress[tx_id].tx_id && txq[node_id].incoming.progress[tx_id].sendmeta) {
                             tqueue[iq++] = tx_id;
-                            //txq[node_id].incoming.progress[tx_id].sendmeta = false; // TODO: consider this
                         }
                         if (iq == TRANSFER_QUEUE_LIMIT)
                         {
@@ -773,7 +768,6 @@ namespace Cosmos {
             }
 
             // Good to go. Add it to queue.
-
             txq[(node_id)].outgoing.progress[tx_out.tx_id].tx_id = tx_out.tx_id;
             txq[(node_id)].outgoing.progress[tx_out.tx_id].havemeta = tx_out.havemeta;
             txq[(node_id)].outgoing.progress[tx_out.tx_id].sendmeta = tx_out.sendmeta;
@@ -797,6 +791,9 @@ namespace Cosmos {
             }
             txq[(node_id)].outgoing.progress[tx_out.tx_id].fp = tx_out.fp;
             ++txq[(node_id)].outgoing.size;
+
+            // Set QUEUE to be sent out again
+            txq[(node_id)].outgoing.sentqueue = false;
 
             if (agent->get_debug_level())
             {
@@ -835,7 +832,6 @@ namespace Cosmos {
                 tx_progress tx_out = txq[(node_id)].outgoing.progress[tx_id];
 
                 // erase the transaction
-
                 txq[(node_id)].outgoing.progress[tx_id].fp = nullptr;
                 txq[(node_id)].outgoing.progress[tx_id].enabled = false;
                 txq[(node_id)].outgoing.progress[tx_id].tx_id = 0;
@@ -855,6 +851,9 @@ namespace Cosmos {
                 {
                     --txq[(node_id)].outgoing.size;
                 }
+
+                // Set QUEUE to be sent out again
+                txq[node_id].outgoing.sentqueue = false;
 
                 // Remove the file
                 if(remove_file && remove(tx_out.filepath.c_str()))
@@ -1243,16 +1242,6 @@ namespace Cosmos {
                     log_write(lookup_node_id_name(message.node_id), "file", tet.split(), "", "message", imessage, "incoming");
                 }
                 break;
-            case PACKET_HEARTBEAT:
-                {
-                    packet_struct_heartbeat heartbeat;
-
-                    deserialize_heartbeat(packet.data, heartbeat);
-
-                    //out_comm_channel[use_channel].heartbeat = heartbeat;
-                    txq[node_id].outgoing.sentqueue = false;
-                }
-                break;
             case PACKET_QUEUE:
                 {
                     packet_struct_queue queue;
@@ -1304,7 +1293,7 @@ namespace Cosmos {
 
                     deserialize_reqmeta(packet.data, reqmeta);
 
-                    txq[node_id].outgoing.sentqueue = false;
+                    txq[node_id].outgoing.sentqueue = false; // TODO: consider this
 
                     // Send requested META packets
                     if (txq[node_id].node_id > 0)
@@ -1424,7 +1413,7 @@ namespace Cosmos {
 
                         // Save meta to disk
                         //write_meta(txq[node_id].outgoing.progress[tx_id]);
-                        txq[node_id].outgoing.sentqueue = true;
+                        txq[node_id].outgoing.sentqueue = true; // TODO: consider this
                         txq[node_id].outgoing.progress[tx_id].senddata = true;
                         txq[node_id].outgoing.progress[tx_id].sentdata = false;
                         txq[node_id].outgoing.progress[tx_id].sendmeta = false;
@@ -1600,7 +1589,6 @@ namespace Cosmos {
                         txq[node_id].outgoing.progress[tx_id].complete = true;
                         txq[node_id].outgoing.progress[tx_id].senddata = false;
                         txq[node_id].outgoing.progress[tx_id].sendmeta = false;
-                        txq[node_id].outgoing.sentqueue = false;
                     }
 
                     break;
@@ -1608,8 +1596,6 @@ namespace Cosmos {
             case PACKET_CANCEL:
                 {
                     packet_struct_cancel cancel;
-                    //TODO: take a look at this part of the code, compare with agent_file4
-                    // agent_file4 used packet_struct_complete and extract_complete here
                     deserialize_cancel(packet.data, cancel);
 
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node_id].incoming, cancel.tx_id);
@@ -1668,6 +1654,123 @@ namespace Cosmos {
             {
                 return 0;
             }
+        }
+
+        int32_t Transfer::write_meta(tx_progress& tx, double interval)
+        {
+            PacketComm packet;
+            std::ofstream file_name;
+
+            if (currentmjd(0.) - tx.savetime > interval/86400.)
+            {
+                tx.savetime = currentmjd(0.);
+                serialize_metadata(packet, tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.node_name.c_str(), (char *)tx.agent_name.c_str());
+                file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary);
+                if(!file_name.is_open())
+                {
+                    return (-errno);
+                }
+
+                uint16_t crc;
+                CRC16 calc_crc;
+                file_name.write((char *)&packet.data[0], PACKET_METALONG_OFFSET_TOTAL);
+                crc = calc_crc.calc(packet.data);
+                file_name.write((char *)&crc, 2);
+                for (file_progress progress_info : tx.file_info)
+                {
+                    file_name.write((const char *)&progress_info, sizeof(progress_info));
+                    crc = calc_crc.calc((uint8_t *)&progress_info, sizeof(progress_info));
+                    file_name.write((char *)&crc, 2);
+                }
+                file_name.close();
+            }
+
+            return 0;
+        }
+
+        int32_t Transfer::read_meta(tx_progress& tx)
+        {
+            vector<PACKET_BYTE> packet(PACKET_METALONG_OFFSET_TOTAL,0);
+            std::ifstream file_name;
+            packet_struct_metalong meta;
+
+            struct stat statbuf;
+            if (!stat((tx.temppath + ".meta").c_str(), &statbuf) && statbuf.st_size >= COSMOS_SIZEOF(file_progress))
+            {
+                file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary);
+                if(!file_name.is_open())
+                {
+                    return (-errno);
+                }
+            }
+            else
+            {
+                return DATA_ERROR_SIZE_MISMATCH;
+            }
+
+            tx.fp = nullptr;
+            tx.savetime = 0.;
+            tx.complete = false;
+
+
+            // load metadata
+
+            file_name.read((char *)&packet[0], PACKET_METALONG_OFFSET_TOTAL);
+            if (file_name.eof())
+            {
+                return DATA_ERROR_SIZE_MISMATCH;
+            }
+            uint16_t crc;
+            CRC16 calc_crc;
+            file_name.read((char *)&crc, 2);
+            if (file_name.eof())
+            {
+                return DATA_ERROR_SIZE_MISMATCH;
+            }
+            if (crc != calc_crc.calc((uint8_t *)&packet[0], PACKET_METALONG_OFFSET_TOTAL))
+            {
+                file_name.close();
+                return DATA_ERROR_CRC;
+            }
+            deserialize_metadata(packet, meta);
+            tx.havemeta = true;
+            tx.tx_id = meta.tx_id;
+            tx.node_name = meta.node_name;
+            tx.agent_name = meta.agent_name;
+            tx.file_name = meta.file_name;
+            tx.filepath = data_base_path(tx.node_name, "outgoing", tx.agent_name, tx.file_name);
+            tx.file_size = meta.file_size;
+
+            // load file progress
+            file_progress progress_info;
+            do
+            {
+                file_name.read((char *)&progress_info, sizeof(progress_info));
+                if (file_name.eof())
+                {
+                    break;
+                }
+                uint16_t crc;
+                file_name.read((char *)&crc, 2);
+                if (file_name.eof())
+                {
+                    return DATA_ERROR_SIZE_MISMATCH;
+                }
+                if (crc != calc_crc.calc((uint8_t *)&progress_info, sizeof(progress_info)))
+                {
+                    file_name.close();
+                    return DATA_ERROR_CRC;
+                }
+
+                tx.file_info.push_back(progress_info);
+            } while(!file_name.eof());
+            file_name.close();
+            if (agent->get_debug_level())
+            {
+                agent->debug_error.Printf("%.4f %.4f Main: read_meta: %s tx_id: %d chunks: %lu\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
+            }
+
+            return 0;
         }
 
         int32_t Transfer::lookup_node_id(string node_name)

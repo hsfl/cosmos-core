@@ -223,6 +223,19 @@ namespace Cosmos {
             memmove(&packet.data[0]+PACKET_METALONG_OFFSET_AGENT_NAME, agent_name, COSMOS_MAX_NAME);
         }
 
+        //! Extracts the necessary fields from a received long META packet.
+        //! \param pdata An incoming long META-type packet
+        //! \param meta Reference to a packet_struct_long to fill
+        //! \return n/a
+        void deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metalong &meta)
+        {
+            memmove(&meta.tx_id,     &pdata[0]+PACKET_METALONG_OFFSET_TX_ID,      sizeof(PACKET_TX_ID_TYPE));
+            memmove(meta.node_name,  &pdata[0]+PACKET_METALONG_OFFSET_NODE_NAME,  COSMOS_MAX_NAME);
+            memmove(meta.file_name,  &pdata[0]+PACKET_METALONG_OFFSET_FILE_NAME,  TRANSFER_MAX_FILENAME);
+            memmove(&meta.file_size, &pdata[0]+PACKET_METALONG_OFFSET_FILE_SIZE,  sizeof(meta.file_size));
+            memmove(meta.agent_name, &pdata[0]+PACKET_METALONG_OFFSET_AGENT_NAME, COSMOS_MAX_NAME);
+        }
+
         //! Create a short METADATA-type PacketComm packet.
         //! Includes node_id, omits node_name information.
         //! \param packet Reference to a PacketComm packet to fill in
@@ -287,8 +300,12 @@ namespace Cosmos {
             memmove(data.chunk,        &pdata[0]+PACKET_DATA_OFFSET_CHUNK,       data.byte_count);
         }
 
+        //! Merges any overlapping chunks in the tx.file_info deque.
+        //! \param tx A tx_progress to merge chunks for
+        //! \return Sum of bytes of the chunks in tx
         PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx)
         {
+            // Remove any chunks that go beyond the file size
             for (uint16_t i=tx.file_info.size()-1; i<tx.file_info.size(); --i)
             {
                 if (tx.file_info[i].chunk_end >= tx.file_size)
@@ -312,6 +329,7 @@ namespace Cosmos {
                 {
                     tx.total_bytes = 0;
                     sort(tx.file_info.begin(), tx.file_info.end(), lower_chunk);
+                    // Merge chunks
                     for (uint32_t i=0; i<tx.file_info.size(); ++i)
                     {
                         for (uint32_t j=i+1; j<tx.file_info.size(); ++j)
@@ -333,64 +351,68 @@ namespace Cosmos {
             return tx.total_bytes;
         }
 
-        vector<file_progress> find_chunks_missing(tx_progress& tx)
+        //! Determines which chunks are missing for an incoming file.
+        //! Used by the receiving side to request missing data with REQDATA packets.
+        //! \param tx_in The tx_progress of a file in the incoming queue
+        //! \return A vector of missing chunks
+        vector<file_progress> find_chunks_missing(tx_progress& tx_in)
         {
             vector<file_progress> missing;
             file_progress tp;
 
-            if (!tx.havemeta)
+            if (!tx_in.havemeta)
             {
                 return missing;
             }
 
-            if (tx.file_info.size() == 0)
+            if (tx_in.file_info.size() == 0)
             {
                 tp.chunk_start = 0;
-                tp.chunk_end = tx.file_size - 1;
+                tp.chunk_end = tx_in.file_size - 1;
                 missing.push_back(tp);
             }
             else
             {
-                merge_chunks_overlap(tx);
-                sort(tx.file_info.begin(), tx.file_info.end(), lower_chunk);
+                merge_chunks_overlap(tx_in);
+                sort(tx_in.file_info.begin(), tx_in.file_info.end(), lower_chunk);
 
                 // Check missing before first chunk
-                if (tx.file_info[0].chunk_start)
+                if (tx_in.file_info[0].chunk_start)
                 {
                     tp.chunk_start = 0;
-                    tp.chunk_end = tx.file_info[0].chunk_start - 1;
+                    tp.chunk_end = tx_in.file_info[0].chunk_start - 1;
                     missing.push_back(tp);
                 }
 
                 // Check missing between chunks
-                for (uint32_t i=1; i<tx.file_info.size(); ++i)
+                for (uint32_t i=1; i<tx_in.file_info.size(); ++i)
                 {
-                    if (tx.file_info[i-1].chunk_end+1 != tx.file_info[i].chunk_start)
+                    if (tx_in.file_info[i-1].chunk_end+1 != tx_in.file_info[i].chunk_start)
                     {
-                        tp.chunk_start = tx.file_info[i-1].chunk_end + 1;
-                        tp.chunk_end = tx.file_info[i].chunk_start - 1;
+                        tp.chunk_start = tx_in.file_info[i-1].chunk_end + 1;
+                        tp.chunk_end = tx_in.file_info[i].chunk_start - 1;
                         missing.push_back(tp);
                     }
                 }
 
                 // Check missing after last chunk
-                if (tx.file_info[tx.file_info.size()-1].chunk_end + 1 != tx.file_size)
+                if (tx_in.file_info[tx_in.file_info.size()-1].chunk_end + 1 != tx_in.file_size)
                 {
-                    tp.chunk_start = tx.file_info[tx.file_info.size()-1].chunk_end + 1;
-                    tp.chunk_end = tx.file_size - 1;
+                    tp.chunk_start = tx_in.file_info[tx_in.file_info.size()-1].chunk_end + 1;
+                    tp.chunk_end = tx_in.file_size - 1;
                     missing.push_back(tp);
                 }
             }
 
             // calculate bytes so far
-            tx.total_bytes = 0;
-            for (file_progress prog : tx.file_info)
+            tx_in.total_bytes = 0;
+            for (file_progress prog : tx_in.file_info)
             {
-                tx.total_bytes += (prog.chunk_end - prog.chunk_start) + 1;
+                tx_in.total_bytes += (prog.chunk_end - prog.chunk_start) + 1;
             }
-            if (tx.total_bytes == tx.file_size)
+            if (tx_in.total_bytes == tx_in.file_size)
             {
-                tx.complete = true;
+                tx_in.complete = true;
             }
 
             return (missing);
