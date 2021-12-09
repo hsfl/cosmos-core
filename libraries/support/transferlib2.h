@@ -241,18 +241,11 @@ namespace Cosmos {
         struct tx_entry
         {
             bool activity = false;
-            bool sendqueue = false;
             bool sentqueue = false;
-            bool rcvdqueue = false;
-            bool rcvdmeta = false;
-            bool rcvddata = false;
             PACKET_TX_ID_TYPE size;
             PACKET_TX_ID_TYPE next_id;
             string node_name="";
             tx_progress progress[PROGRESS_QUEUE_SIZE];
-            double heartbeatclock = 0.;
-            double reqmetaclock = 0.;
-            double reqdataclock = 0.;
         };
 
         /// Holds the incoming and outgoing queues for a single node.

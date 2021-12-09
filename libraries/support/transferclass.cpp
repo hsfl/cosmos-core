@@ -326,7 +326,7 @@ namespace Cosmos {
             case GET_OUTGOING_ALL:
                 // Send Queue packet, if anything needs to be queued
                 // TODO: reminder check this out
-                if (/*txq[(node_id)].outgoing.sendqueue &&*/ !txq[(node_id)].outgoing.sentqueue)
+                if (!txq[(node_id)].outgoing.sentqueue)
                 {
                     vector<PACKET_TX_ID_TYPE> tqueue(TRANSFER_QUEUE_LIMIT, 0);
                     PACKET_TX_ID_TYPE iq = 0;
@@ -346,7 +346,6 @@ namespace Cosmos {
                         PacketComm packet;
                         serialize_queue(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].node_name, tqueue);
                         packets.push_back(packet);
-                        txq[(node_id)].outgoing.sendqueue = false;
                         txq[(node_id)].outgoing.sentqueue = true;
                         txq[(node_id)].outgoing.activity = true;
                     }
@@ -485,19 +484,8 @@ namespace Cosmos {
                 // Below are response-type file transfer packets, to signal to the sender
                 // that something is wrong, or going right.
                 // Send only these if mode is set to GET_OUTGOING_RESPONSES
-                
-                // Send Reqqueue packet if needed
-                if (!txq[(node_id)].incoming.rcvdqueue && txq[(node_id)].incoming.sendqueue)
-                {
-                    // Send a REQQUEUE packet
-                    PacketComm packet;
-                    serialize_reqqueue(packet, static_cast<PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].node_name);
-                    packets.push_back(packet);
-                    //txq[(node_id)].incoming.sendqueue = false; // TODO: consider this
-                }
 
-                // Send Reqmeta packet if needed and it has been otherwise quiet
-                if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta && txq[(node_id)].incoming.reqmetaclock < currentmjd())
+                // Send Reqmeta packet if needed
                 {
                     vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
                     PACKET_TX_ID_TYPE iq = 0;
@@ -523,47 +511,39 @@ namespace Cosmos {
                         serialize_reqmeta(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].node_name, tqueue);
                         packets.push_back(packet);
                     }
-                    txq[(node_id)].incoming.reqmetaclock = currentmjd() + 5. / 86400.;
                 }
 
-                // Send Reqdata packet if there is still data to be gotten and it has been otherwise quiet
-                if (!txq[(node_id)].incoming.rcvdqueue /*&& !txq[(node_id)].incoming.rcvdmeta*/ /*&& !txq[(node_id)].incoming.rcvddata*/ && txq[(node_id)].incoming.reqdataclock < currentmjd())
+                // Send Reqdata packet if there is still data to be gotten
+                for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                 {
-                    for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
+                    if (txq[(node_id)].incoming.progress[tx_id].tx_id && txq[(node_id)].incoming.progress[tx_id].senddata)
                     {
-                        if (txq[(node_id)].incoming.progress[tx_id].tx_id)
+                        // Ask for missing data
+                        vector<file_progress> missing;
+                        missing = find_chunks_missing(txq[(node_id)].incoming.progress[tx_id]);
+                        for (uint32_t j=0; j<missing.size(); ++j)
                         {
-                            // Ask for missing data
-                            vector<file_progress> missing;
-                            missing = find_chunks_missing(txq[(node_id)].incoming.progress[tx_id]);
-                            for (uint32_t j=0; j<missing.size(); ++j)
-                            {
-                                PacketComm packet;
-                                serialize_reqdata(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
-                                packets.push_back(packet);
-                            }
+                            PacketComm packet;
+                            serialize_reqdata(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
+                            packets.push_back(packet);
                         }
                     }
-                    txq[(node_id)].incoming.reqdataclock = currentmjd() + 5. / 86400.;
                 }
 
                 // Send Complete packets if required
-                if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta /*&& !txq[(node_id)].incoming.rcvddata*/)
+                for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                 {
-                    for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
+                    if (txq[(node_id)].incoming.progress[tx_id].tx_id == tx_id && txq[node_id].incoming.progress[tx_id].file_size == txq[node_id].incoming.progress[tx_id].total_bytes)
                     {
-                        if (txq[(node_id)].incoming.progress[tx_id].tx_id == tx_id && txq[node_id].incoming.progress[tx_id].file_size == txq[node_id].incoming.progress[tx_id].total_bytes)
-                        {
-                            // Remove from queue
-                            txq[(node_id)].incoming.progress[tx_id].complete = true;
-                            incoming_tx_del(node_id, tx_id);
+                        // Remove from queue
+                        txq[(node_id)].incoming.progress[tx_id].complete = true;
+                        incoming_tx_del(node_id, tx_id);
 
-                            // Send a COMPLETE packet
-                            PacketComm packet;
-                            serialize_complete(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), tx_id);
-                            packets.push_back(packet);
-                            txq[(node_id)].incoming.activity = true;
-                        }
+                        // Send a COMPLETE packet
+                        PacketComm packet;
+                        serialize_complete(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), tx_id);
+                        packets.push_back(packet);
+                        txq[(node_id)].incoming.activity = true;
                     }
                 }
                 break;
@@ -1095,7 +1075,6 @@ namespace Cosmos {
 
             if (meta.tx_id)
             {
-                txq[node_id].incoming.rcvdmeta = true;
                 if (txq[(node_id)].incoming.progress[meta.tx_id].tx_id != meta.tx_id)
                 {
                     txq[(node_id)].incoming.progress[meta.tx_id].tx_id = meta.tx_id;
@@ -1235,10 +1214,6 @@ namespace Cosmos {
                 return TRANSFER_ERROR_INDEX;
             }
 
-            txq[node_id].incoming.rcvdqueue = false;
-            txq[node_id].incoming.rcvdmeta = false;
-            txq[node_id].incoming.rcvddata = false;
-
             // Respond appropriately according to type of packet
             switch (packet.type)
             {
@@ -1275,17 +1250,6 @@ namespace Cosmos {
                     deserialize_heartbeat(packet.data, heartbeat);
 
                     //out_comm_channel[use_channel].heartbeat = heartbeat;
-                    txq[node_id].outgoing.sendqueue = true;
-                    txq[node_id].outgoing.sentqueue = false;
-                }
-                break;
-            case PACKET_REQQUEUE:
-                {
-                    packet_struct_reqqueue reqqueue;
-
-                    deserialize_reqqueue(packet.data, reqqueue);
-
-                    txq[node_id].outgoing.sendqueue = true;
                     txq[node_id].outgoing.sentqueue = false;
                 }
                 break;
@@ -1296,8 +1260,6 @@ namespace Cosmos {
                     deserialize_queue(packet.data, queue);
 
                     txq[node_id].incoming.sentqueue = true;
-                    txq[node_id].incoming.sendqueue = false;
-                    txq[(node_id)].incoming.rcvdqueue = true;
 
                     // Go through local incoming queue and remove anything not in the received QUEUE packet
                     for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
@@ -1374,12 +1336,10 @@ namespace Cosmos {
                     packet_struct_reqdata reqdata;
 
                     deserialize_reqdata(packet.data, reqdata);
-cout << "LINE: " << __LINE__ << endl;//////////////////////
 
                     // Simple validity check
                     if (reqdata.hole_end < reqdata.hole_start)
                     {
-                    cout << "LINE: " << __LINE__ << endl;
                         break;
                     }
 
@@ -1388,7 +1348,6 @@ cout << "LINE: " << __LINE__ << endl;//////////////////////
                     // tx_id now points to the valid entry to which we should add the data
                     if (tx_id > 0)
                     {
-cout << "LINE: " << __LINE__ << endl;//////////////////////
                         txq[node_id].outgoing.progress[tx_id].sendmeta = false;
                         txq[node_id].outgoing.progress[tx_id].sentmeta = true;
 
@@ -1402,33 +1361,26 @@ cout << "LINE: " << __LINE__ << endl;//////////////////////
                         // Anything in the queue yet?
                         if (!txq[node_id].outgoing.progress[tx_id].file_info.size())
                         {
- cout << "LINE: " << __LINE__ << endl;
                             // Add first entry
                             txq[node_id].outgoing.progress[tx_id].file_info.push_back(tp);
                             txq[node_id].outgoing.progress[tx_id].total_bytes += byte_count;
                         }
                         else
                         {
-cout << "LINE: " << __LINE__ << endl;//////////////////////
-cout << "hole start/end: " << tp.chunk_start << "/" << tp.chunk_end << endl;
                             // Check against existing data
                             for (uint32_t j=0; j<txq[node_id].outgoing.progress[tx_id].file_info.size(); ++j)
                             {
-cout << "LINE: " << __LINE__ << ", chunk_start: " << txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_start << ", chunk_end: " << txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end << endl;//////////////////////
                                 // If we match this entry
                                 if (tp.chunk_start == txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_start && tp.chunk_end == txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end)
                                 {
-cout << "LINE: " << __LINE__ << endl;//////////////////////
                                     break;
                                 }
                                 // If we start before this entry
                                 if (tp.chunk_start < txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_start)
                                 {
-cout << "LINE: " << __LINE__ << endl;
                                     // If we end before this entry (at least one byte between), insert
                                     if (tp.chunk_end + 1 < txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_start)
                                     {
-cout << "LINE: " << __LINE__ << endl;
                                         txq[node_id].outgoing.progress[tx_id].file_info.insert(txq[node_id].outgoing.progress[tx_id].file_info.begin()+j, tp);
                                         txq[node_id].outgoing.progress[tx_id].total_bytes += byte_count;
                                         break;
@@ -1436,7 +1388,6 @@ cout << "LINE: " << __LINE__ << endl;
                                     // Otherwise, extend the near end
                                     else
                                     {
-cout << "LINE: " << __LINE__ << endl;
                                         tp.chunk_end = txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_start - 1;
                                         txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_start = tp.chunk_start;
                                         byte_count = (tp.chunk_end - tp.chunk_start) + 1;
@@ -1446,14 +1397,11 @@ cout << "LINE: " << __LINE__ << endl;
                                 }
                                 else
                                 {
-cout << "LINE: " << __LINE__ << endl;
                                     // If we overlap on the end, extend the far end
                                     if (tp.chunk_start <= txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end + 1)
                                     {
-cout << "LINE: " << __LINE__ << endl;;//////////////////////
                                         if (tp.chunk_end > txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end)
                                         {
-cout << "LINE: " << __LINE__ << endl;
                                             byte_count = tp.chunk_end - txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end;
                                             tp.chunk_start = txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end + 1;
                                             txq[node_id].outgoing.progress[tx_id].file_info[j].chunk_end = tp.chunk_end;
@@ -1464,22 +1412,18 @@ cout << "LINE: " << __LINE__ << endl;
                                 }
                                 check = j + 1;
                             }
-cout << "LINE: " << __LINE__ << endl;//////////////////////
 
                             // If we are higher than everything currently in the list, then append
                             if (check == txq[node_id].outgoing.progress[tx_id].file_info.size())
                             {
-cout << "LINE: " << __LINE__ << endl;//11111111111111111111
                                 txq[node_id].outgoing.progress[tx_id].file_info.push_back(tp);
                                 txq[node_id].outgoing.progress[tx_id].total_bytes += byte_count;
                             }
 
                         }
-cout << "LINE: " << __LINE__ << endl;//////////////////////
 
                         // Save meta to disk
                         //write_meta(txq[node_id].outgoing.progress[tx_id]);
-                        txq[node_id].outgoing.sendqueue = false;
                         txq[node_id].outgoing.sentqueue = true;
                         txq[node_id].outgoing.progress[tx_id].senddata = true;
                         txq[node_id].outgoing.progress[tx_id].sentdata = false;
@@ -1501,7 +1445,6 @@ cout << "LINE: " << __LINE__ << endl;//////////////////////
                     // Update corresponding incoming queue entry if it exists
                     if (tx_id > 0)
                     {
-                        txq[node_id].incoming.rcvddata = true;
                         txq[node_id].incoming.progress[tx_id].datatime = currentmjd();
                         txq[node_id].incoming.progress[tx_id].senddata = false;
 
@@ -1657,7 +1600,6 @@ cout << "LINE: " << __LINE__ << endl;//////////////////////
                         txq[node_id].outgoing.progress[tx_id].complete = true;
                         txq[node_id].outgoing.progress[tx_id].senddata = false;
                         txq[node_id].outgoing.progress[tx_id].sendmeta = false;
-                        txq[node_id].outgoing.sendqueue = true;
                         txq[node_id].outgoing.sentqueue = false;
                     }
 
