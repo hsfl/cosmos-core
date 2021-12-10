@@ -247,51 +247,7 @@ namespace Cosmos {
                     //     continue;
                     // }
 
-                    // Go through existing queue
-                    // - if it is already there and the size is different, remove it from queue
-                    // - if it is already there, and the size is the same, enable it
-                    // - if it is enabled and the size is zero, remove it from queue and remove file
-                    bool addtoqueue = true;
-                    for (uint16_t i=1; i<PROGRESS_QUEUE_SIZE; ++i)
-                    {
-                        if (txq[(node_id)].outgoing.progress[i].filepath == file.path)
-                        {
-                            if (txq[(node_id)].outgoing.progress[i].file_size == file.size)
-                            {
-                                addtoqueue = false;
-                                if (!txq[(node_id)].outgoing.progress[i].enabled)
-                                {
-                                    txq[(node_id)].outgoing.progress[i].enabled = true;
-                                    if (agent->get_debug_level())
-                                    {
-                                        agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d\n", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
-                                    }
-                                }
-                                iretn = 0;
-                            }
-                            else
-                            {
-                                outgoing_tx_del(node_id, i, false);
-                                addtoqueue = false;
-                                iretn = TRANSFER_ERROR_FILESIZE;
-                            }
-                            if (txq[(node_id)].outgoing.progress[i].enabled && txq[(node_id)].outgoing.progress[i].file_size == 0)
-                            {
-                                outgoing_tx_del(node_id, i, true);
-                                addtoqueue = false;
-                                iretn = TRANSFER_ERROR_FILEZERO;
-                            }
-                        }
-                    }
-
-                    if (addtoqueue)
-                    {
-                        iretn = outgoing_tx_add(file.node, file.agent, file.name);
-                        if (agent->get_debug_level() && iretn != -471)
-                        {
-                            agent->debug_error.Printf("%.4f %.4f Main/Load: outgoing_tx_add: %s [%d]\n", tet.split(), dt.lap(), file.path.c_str(), iretn);
-                        }
-                    }
+                    iretn = outgoing_tx_add(file.node, file.agent, file.name);
                 }
             }
 
@@ -582,14 +538,13 @@ namespace Cosmos {
                 return TRANSFER_ERROR_QUEUEFULL;
             }
 
-            // Locate next empty space
-            //get the file size
+            // Get the file path and size
             string filepath = data_base_path(node_name, "outgoing", agent_name, file_name);
             int32_t file_size = get_file_size(filepath);
 
             // Go through existing queue
             // - if it is already there and the size is different, remove it
-            // - if it is already there, and the size is the same, set enable it
+            // - if it is already there, and the size is the same, enable it
             // - if it is not already there and there is room to add it, go on to next step
             for (uint16_t i=1; i<PROGRESS_QUEUE_SIZE; ++i)
             {
@@ -597,21 +552,37 @@ namespace Cosmos {
                 {
                     if (txq[(node_id)].outgoing.progress[i].file_size == file_size)
                     {
-                        txq[(node_id)].outgoing.progress[i].enabled = true;
+                        // This file transaction already exists and doesn't need to be added
+                        if (!txq[(node_id)].outgoing.progress[i].enabled)
+                        {
+                            txq[(node_id)].outgoing.progress[i].enabled = true;
+                            if (agent->get_debug_level())
+                            {
+                                agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d\n", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                            }
+                        }
                         if (agent->get_debug_level())
                         {
                             agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d ", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
                         }
-                        return node_id;
+                        return outgoing_tx_recount(node_id);
                     }
                     else
                     {
                         outgoing_tx_del(node_id, i, false);
                         return TRANSFER_ERROR_FILESIZE;
                     }
+                    if (txq[(node_id)].outgoing.progress[i].enabled && txq[(node_id)].outgoing.progress[i].file_size == 0)
+                    {
+                        outgoing_tx_del(node_id, i, true);
+                        return TRANSFER_ERROR_FILEZERO;
+                    }
                 }
             }
 
+            // That we made it this far, the file is ok to add to the queue
+
+            // Generate a new tx_id using the file size as a hash key
             uint16_t minindex = TRANSFER_QUEUE_LIMIT - static_cast<uint16_t>(pow(pow(TRANSFER_QUEUE_LIMIT,1.f/3.f), (3.f - log10f(file_size) / 2.f)));
             tx_out.tx_id = 0;
             for (uint16_t id=minindex; id<PROGRESS_QUEUE_SIZE; ++id)
@@ -623,15 +594,16 @@ namespace Cosmos {
                 }
             }
 
-            // TODO: commentate this
             if (tx_out.tx_id > 0)
             {
+                // Initialize file transfer settings
                 tx_out.havemeta = true;
                 tx_out.sendmeta = true;
                 tx_out.sentmeta = false;
                 tx_out.senddata = false;
                 tx_out.sentdata = false;
                 tx_out.complete = false;
+                tx_out.enabled = true;
                 tx_out.total_bytes = 0;
                 tx_out.node_name = node_name;
                 tx_out.agent_name = agent_name;
@@ -775,6 +747,7 @@ namespace Cosmos {
             txq[(node_id)].outgoing.progress[tx_out.tx_id].senddata = tx_out.senddata;
             txq[(node_id)].outgoing.progress[tx_out.tx_id].sentdata = tx_out.sentdata;
             txq[(node_id)].outgoing.progress[tx_out.tx_id].complete = tx_out.complete;
+            txq[(node_id)].outgoing.progress[tx_out.tx_id].enabled  = tx_out.enabled;
             txq[(node_id)].outgoing.progress[tx_out.tx_id].node_name = tx_out.node_name;
             txq[(node_id)].outgoing.progress[tx_out.tx_id].agent_name = tx_out.agent_name;
             txq[(node_id)].outgoing.progress[tx_out.tx_id].file_name = tx_out.file_name;
