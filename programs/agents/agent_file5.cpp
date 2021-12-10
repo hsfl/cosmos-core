@@ -271,16 +271,27 @@ int main(int argc, char *argv[])
             nextdiskcheck = currentmjd(0.) + 4./86400.;
             txqueue_lock.lock();
             transfer.outgoing_tx_load();
-            transfer.get_outgoing_packets(packets);
             txqueue_lock.unlock();
-            agent->debug_error.Printf("packets.size(): %u\n", packets.size());
+            // Iterate over every outgoing channel we serve
+            for (size_t i = 0; i < out_comm_channel.size(); ++i) {
+                // Get all the outgoing packets for this node
+                if (out_comm_channel[i].node.empty()) {
+                    continue;
+                }
+                txqueue_lock.lock();
+                iretn = transfer.get_outgoing_packets(out_comm_channel[i].node, packets);
+                txqueue_lock.unlock();
 
-            for(auto& packet : packets) {
-                packet.SLIPOut();
-                // TODO: reimplement dynamic sendy thingy
-                mysendto("outgoing", 1, packet);
+                agent->debug_error.Printf("packets.size(): %u\n", packets.size());
+
+                // Send out packets to the node
+                for(auto& packet : packets) {
+                    packet.SLIPOut();
+                    // TODO: reimplement dynamic sendy thingy
+                    mysendto("outgoing", i, packet);
+                }
+                packets.clear();
             }
-            packets.clear();
         }
 
     } // End WHILE Loop

@@ -255,6 +255,7 @@ namespace Cosmos {
         }
 
         //! Look through the outgoing and incoming queues of all nodes and generate any necessary packets.
+        //! Note that this gets outgoing packets for every node, no distinction is made.
         //! Not thread safe.
         //! \param packets Outgoing packets will be pushed onto this vector of PacketComm packets.
         //! \param mode By default gets all outgoing packets, but can be set to RESPONSE to get only response packets (REQMETA, REQDATA, COMPLETE, etc.)
@@ -268,13 +269,44 @@ namespace Cosmos {
             return 0;
         }
 
-        //! Look through the outgoing and incoming queues of specified node and generate any necessary packets.
+        //! Look through the outgoing and incoming queues of the specified node and generate any necessary packets.
+        //! Not thread safe.
+        //! \param node_name Name of the node
+        //! \param packets Outgoing packets will be pushed onto this vector of PacketComm packets.
+        //! \param mode By default gets all outgoing packets, but can be set to RESPONSE to get only response packets (REQMETA, REQDATA, COMPLETE, etc.)
+        //! \return
+        int32_t Transfer::get_outgoing_packets(string node_name, vector<PacketComm> &packets, GET_OUTGOING_MODE mode)
+        {
+            if (node_name.empty())
+            {
+                if (agent->get_debug_level())
+                {
+                    agent->debug_error.Printf("%.4f %.4f Main: get_outgoing_packets: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
+                }
+                return TRANSFER_ERROR_FILENAME;
+            }
+
+            // Find corresponding node_id in the node table
+            uint8_t node_id = lookup_node_id(node_name);
+            if (node_id == 0)
+            {
+                return TRANSFER_ERROR_NODE;
+            }
+
+            int32_t iretn;
+            iretn = get_outgoing_packets(node_id, packets, mode);
+
+            return iretn;
+        }
+
+        //! Look through the outgoing and incoming queues of the specified node and generate any necessary packets.
         //! Not thread safe.
         //! \param node_id ID of node in txq
         //! \param packets Outgoing packets will be pushed onto this vector of PacketComm packets.
         //! \param mode By default gets all outgoing packets, but can be set to RESPONSE to get only response packets (REQMETA, REQDATA, COMPLETE, etc.)
         //! \return
-        int32_t Transfer::get_outgoing_packets(uint8_t node_id, vector<PacketComm> &packets, GET_OUTGOING_MODE mode) {
+        int32_t Transfer::get_outgoing_packets(uint8_t node_id, vector<PacketComm> &packets, GET_OUTGOING_MODE mode)
+        {
             // Sender-type file transfer packets. Ignore if we only need response-types
             switch (mode) {
             case GET_OUTGOING_ALL:
@@ -560,10 +592,6 @@ namespace Cosmos {
                             {
                                 agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d\n", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
                             }
-                        }
-                        if (agent->get_debug_level())
-                        {
-                            agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d ", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
                         }
                         return outgoing_tx_recount(node_id);
                     }

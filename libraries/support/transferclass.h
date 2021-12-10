@@ -57,6 +57,7 @@ namespace Cosmos {
             int32_t outgoing_tx_load();
             int32_t outgoing_tx_load(uint8_t node_id);
             int32_t get_outgoing_packets(vector<PacketComm> &packets, GET_OUTGOING_MODE mode = GET_OUTGOING_ALL);
+            int32_t get_outgoing_packets(string node_name, vector<PacketComm> &packets, GET_OUTGOING_MODE mode = GET_OUTGOING_ALL);
             int32_t get_outgoing_packets(uint8_t node_id, vector<PacketComm> &packets, GET_OUTGOING_MODE mode = GET_OUTGOING_ALL);
             int32_t receive_packet(const PacketComm& packet);
 
