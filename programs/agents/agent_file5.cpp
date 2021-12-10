@@ -282,8 +282,11 @@ int main(int argc, char *argv[])
                 iretn = transfer.get_outgoing_packets(out_comm_channel[i].node, packets);
                 txqueue_lock.unlock();
 
-                agent->debug_error.Printf("packets.size(): %u\n", packets.size());
-
+                if (agent->get_debug_level())
+                {
+                    agent->debug_error.Printf("packets.size(): %u\n", packets.size());
+                }
+                
                 // Send out packets to the node
                 for(auto& packet : packets) {
                     packet.SLIPOut();
@@ -352,30 +355,6 @@ void recv_loop() noexcept
                 // transfer.get_outgoing_packets(packets, Transfer::GET_OUTGOING_RESPONSES);
                 // But since the main thread calls get_outgoing_packets() at regular intervals in this program, it's not necessary
             }
-        }
-    }
-}
-
-void send_loop() noexcept
-{
-    while (agent->running())
-    {
-        if (agent->running() == (uint16_t)Agent::State::IDLE)
-        {
-            COSMOS_SLEEP(1);
-            continue;
-        }
-    }
-}
-
-void transmit_loop() noexcept
-{
-    while (agent->running())
-    {
-        if (agent->running() == (uint16_t)Agent::State::IDLE)
-        {
-            COSMOS_SLEEP(1);
-            continue;
         }
     }
 }
