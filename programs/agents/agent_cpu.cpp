@@ -68,6 +68,7 @@ int32_t request_mem_total(string &request, string &response, Agent *);
 int32_t request_mem_total_kib(string &request, string &response, Agent *);
 
 int32_t request_printStatus(string &request, string &response, Agent *);
+int32_t request_get_operation(string &request, string &response, Agent *);
 
 int32_t get_sensors(map<string, float> &temps);
 
@@ -220,6 +221,7 @@ int main(int argc, char *argv[])
     agent->add_request("cpuProc",request_cpuProcess,"","the %CPU usage for this process");
     agent->add_request("printStatus",request_printStatus,"","print the status data");
     agent->add_request("bootCount",request_bootCount,"","reboot count");
+    agent->add_request("get_operation",request_get_operation,"","report operation");
 
     et.start();
 
@@ -494,3 +496,27 @@ int32_t request_printStatus(string &request, string &, Agent *)
 
     return 0;
 }
+
+int32_t request_get_operation(string &request, string &response, Agent *agent)
+{
+    int32_t iretn = 0;
+    response.clear();
+    response += to_label("MJD", agent->cinfo->devspec.cpu[cpu_didx].utc, 0, true);
+    response += " " + to_label("Uptime", agent->cinfo->devspec.cpu[cpu_didx].uptime);
+    response += " " + to_label("Bootcount", agent->cinfo->devspec.cpu[cpu_didx].boot_count);
+    response += " " + to_label("Load", agent->cinfo->devspec.cpu[cpu_didx].load, 2);
+    response += " " + to_label("MemoryGiB", agent->cinfo->devspec.cpu[cpu_didx].gib, 3);
+    response += " " + to_label("MemPercent", agent->cinfo->devspec.cpu[cpu_didx].gib/agent->cinfo->devspec.cpu[cpu_didx].maxgib, 1);
+    for (size_t i=0; i<agent->cinfo->devspec.disk_cnt; ++i)
+    {
+        response += " " + to_label("DiskGiB"+to_unsigned(i,1), agent->cinfo->devspec.disk[i].gib, 3);
+        response += " " + to_label("DiskPercent", agent->cinfo->devspec.disk[i].gib/agent->cinfo->devspec.disk[i].maxgib, 1);
+    }
+    response += " " + to_label("CPUTemp", agent->cinfo->devspec.cpu[cpu_didx].temp, 2);
+    for (size_t i=0; i<agent->cinfo->devspec.telem_cnt; ++i)
+    {
+        response += " " + to_label(agent->cinfo->devspec.telem[i].name, agent->cinfo->devspec.telem[i].vfloat, 3);
+    }
+    return iretn;
+}
+

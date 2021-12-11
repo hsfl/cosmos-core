@@ -33,6 +33,7 @@
 
 #include "support/stringlib.h"
 #include "math/mathlib.h"
+#include "support/timelib.h"
 
 //! \addtogroup stringlib_functions
 //! @{
@@ -49,20 +50,27 @@ vector < string > string_split(string in, string delimeters) {
     const char *str = in.data();
     do {
         const char *begin = str;
-        while(*str) {
+        while(*str)
+        {
             bool match = false;
-            for (size_t i=0; i<delimeters.size(); ++i) {
-                if (*str == delimeters[i]) {
+            for (size_t i=0; i<delimeters.size(); ++i)
+            {
+                if (*str == delimeters[i])
+                {
                     match = true;
                     break;
                 }
             }
-            if (match) {
+            if (match)
+            {
                 break;
             }
             str++;
         }
-        result.push_back(string(begin, str));
+        if (begin != str)
+        {
+            result.push_back(string(begin, str));
+        }
     } while (0 != *str++);
     return result;
 }
@@ -203,7 +211,7 @@ int StringParser::getFieldNumberAsInteger(uint32_t index) { return getFieldNumbe
 
 string to_hex_string(vector <uint8_t> buffer, bool ascii) {
     string output;
-    output.resize(buffer.size() * 4);
+    output.resize(buffer.size() * 8 + 1);
     for (uint16_t i=0; i<buffer.size(); ++i) {
         if (ascii && buffer[i] > 31 && buffer[i] < 127)
         {
@@ -463,6 +471,18 @@ string to_bool(bool value) {
 string to_unixtime(double value, uint8_t precision)
 {
     return to_floating(86400. * (value - 40587.), precision);
+}
+
+string to_datename(double mjd)
+{
+    calstruc cal = mjd2cal(mjd);
+    string output = to_unsigned(cal.year, 4);
+    output += to_unsigned(cal.month, 2, true);
+    output += to_unsigned(cal.dom, 2, true);
+    output += "_" + to_unsigned(cal.hour, 2, true);
+    output += to_unsigned(cal.minute, 2, true);
+    output += to_unsigned(cal.second, 2, true);
+    return output;
 }
 
 string to_json(string key, string value) {

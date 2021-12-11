@@ -18,8 +18,8 @@ add_library(CosmosSlip STATIC sliplib.cpp sliplib.h)
 install(TARGETS CosmosSlip DESTINATION lib)
 
 add_library(CosmosTransfer STATIC transferlib.cpp transferlib.h transferclass.h transferclass.cpp)
-install(TARGETS CosmosTransfer DESTINATION lib)
-target_link_libraries(CosmosTransfer  CosmosSupport ${COSMOS_LIBS})
+install(TARGETS DESTINATION lib)
+target_link_libraries(CosmosTransfer CosmosNamespace CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosPrint STATIC print_utils.cpp print_utils.h)
 install(TARGETS CosmosPrint DESTINATION lib)
@@ -49,7 +49,7 @@ target_link_libraries(CosmosNamespace CosmosConvert CosmosCad CosmosJson CosmosD
 
 add_library(CosmosString STATIC stringlib.cpp stringlib.h jsonobject.cpp jsonobject.h jsonvalue.cpp jsonvalue.h)
 install(TARGETS CosmosString DESTINATION lib)
-target_link_libraries(CosmosString CosmosMath CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosString CosmosConvert CosmosMath CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosJson STATIC jsonclass.cpp jsonclass.h )
 install(TARGETS CosmosJson DESTINATION lib)
@@ -67,9 +67,17 @@ add_library(CosmosData STATIC datalib.cpp datalib.h)
 install(TARGETS CosmosData DESTINATION lib)
 target_link_libraries(CosmosData CosmosTime CosmosString localzlib CosmosError CosmosSupport ${COSMOS_LIBS})
 
+add_library(CosmosPacketHandler STATIC packethandler.cpp packethandler.h)
+install(TARGETS CosmosPacketHandler DESTINATION lib)
+target_link_libraries(CosmosPacketHandler CosmosBeacon CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
+
+add_library(CosmosBeacon STATIC beacon.cpp beacon.h)
+install(TARGETS CosmosBeacon DESTINATION lib)
+target_link_libraries(CosmosBeacon CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
+
 add_library(CosmosPacket STATIC packetcomm.cpp packetcomm.h)
 install(TARGETS CosmosPacket DESTINATION lib)
-target_link_libraries(CosmosPacket CosmosNamespace CosmosTransfer CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
 
 add_library(Envi STATIC envi.cpp envi.h)
 install(TARGETS Envi DESTINATION lib)

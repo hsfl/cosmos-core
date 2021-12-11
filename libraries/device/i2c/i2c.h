@@ -60,6 +60,9 @@ namespace Cosmos {
         int32_t set_address(uint64_t address);
         int32_t set_delay(double seconds);
         int32_t connect();
+        int32_t communicate(string data, string &response, size_t bytes=0);
+        int32_t communicate(vector <uint8_t> data, vector <uint8_t> &response, size_t bytes=0);
+        int32_t communicate(uint8_t *data, size_t len, uint8_t *response, size_t bytes=0);
         int32_t send(string data);
         int32_t send(uint8_t *data, size_t len);
         int32_t send(vector <uint8_t> data);
@@ -84,6 +87,7 @@ namespace Cosmos {
             double delay = 1e-4;
         } handle;
 
+        mutex mtx;
         int32_t error;
 
     };

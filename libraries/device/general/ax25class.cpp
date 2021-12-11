@@ -38,6 +38,7 @@ Ax25Handle::Ax25Handle(string dest_call, string sour_call, uint8_t dest_stat, ui
     set_source_stationID(sour_stat);
     set_control(cont);
     set_protocolID(prot);
+    calc_crc.set("hdlc");
 }
 
 //Set and get functions for all members of the Ax25Handle class
@@ -137,44 +138,195 @@ uint8_t Ax25Handle::get_protocolID()
     return header.protocolID;
 }
 
-Ax25Handle::packet_header Ax25Handle::get_packetHeader()
+Ax25Handle::packet_header Ax25Handle::get_header()
 {
     return header;
 }
 
-vector <uint8_t> Ax25Handle::get_packetData()
+vector <uint8_t> Ax25Handle::get_data()
 {
     return data;
 }
 
-int32_t Ax25Handle::set_packetData(vector<uint8_t> input)
+vector <uint8_t> Ax25Handle::get_ax25_packet()
+{
+    return ax25_packet;
+}
+
+vector <uint8_t> Ax25Handle::get_hdlc_packet()
+{
+    return hdlc_packet;
+}
+
+int32_t Ax25Handle::set_data(vector<uint8_t> input)
 {
     data = input;
     return 0;
 }
 
-int32_t Ax25Handle::set_raw_packet(vector <uint8_t> packet)
+int32_t Ax25Handle::set_ax25_packet(vector <uint8_t> packet)
 {
-    raw_packet = packet;
+    ax25_packet = packet;
     return 0;
 }
 
-int32_t Ax25Handle::load_packet()
+int32_t Ax25Handle::set_hdlc_packet(vector <uint8_t> packet)
 {
-    int32_t tsize = 16 + data.size();
-    raw_packet.resize(tsize);
-    memcpy(&raw_packet[0], &header, 16);
-    memcpy(&raw_packet[16], &data[0], data.size());
+    hdlc_packet = packet;
+    return 0;
+}
+
+int32_t Ax25Handle::load(vector<uint8_t> newdata)
+{
+    if (newdata.size())
+    {
+        data = newdata;
+    }
+    int32_t tsize = 18 + data.size();
+    ax25_packet.resize(tsize);
+    memcpy(&ax25_packet[0], &header, 16);
+    memcpy(&ax25_packet[16], &data[0], data.size());
+    crccalc = calc_crc.calc(&ax25_packet[0], ax25_packet.size()-2);
+    ax25_packet[ax25_packet.size()-1] = (crccalc>>8);
+    ax25_packet[ax25_packet.size()-2] = (crccalc&0xff);
 
     return tsize;
 }
 
-int32_t Ax25Handle::unload_packet()
+int32_t Ax25Handle::unload()
 {
-    memcpy(&header, &raw_packet[0], 16);
-    data.resize(raw_packet.size() - 16);
-    memcpy(&data[0], &raw_packet[16], data.size());
+    memcpy(&header, &ax25_packet[0], 16);
+    data.resize(ax25_packet.size() - 18);
+    memcpy(&data[0], &ax25_packet[16], data.size());
+    crc = ax25_packet[ax25_packet.size()-1];
+    crc = crc << 8;
+    crc = crc + ax25_packet[ax25_packet.size()-2];
+    crccalc = calc_crc.calc(&ax25_packet[0], ax25_packet.size()-2);
     return 0;
+}
+
+int32_t Ax25Handle::stuff(vector<uint8_t> ax25data)
+{
+    if (ax25data.size())
+    {
+        ax25_packet = ax25data;
+    }
+
+    hdlc_packet = flags;
+    uint8_t bit_count = 7;
+    uint8_t hdlcbyte = 0;
+    uint8_t run_count = 0;
+    for (uint8_t ax25byte : ax25_packet)
+    {
+        for (uint8_t bit_num=0; bit_num<8; ++bit_num)
+        {
+            uint8_t bit = (ax25byte >> bit_num) & 1U;
+            if (bit)
+            {
+                hdlcbyte |= 1UL << bit_count;
+                ++run_count;
+                if (run_count == 5)
+                {
+//                    hdlcbyte &= ~(1UL << bit_count);
+                    if (--bit_count > 7)
+                    {
+                        hdlc_packet.push_back(hdlcbyte);
+                        hdlcbyte = 0;
+                        bit_count = 7;
+                    }
+                    run_count = 0;
+                }
+            }
+            else
+            {
+                run_count = 0;
+            }
+            if (--bit_count > 7)
+            {
+                hdlc_packet.push_back(hdlcbyte);
+                hdlcbyte = 0;
+                bit_count = 7;
+            }
+        }
+    }
+    for (uint8_t ax25byte : flags)
+    {
+        for (uint8_t bit_num=0; bit_num<8; ++bit_num)
+        {
+            uint8_t bit = (ax25byte >> bit_num) & 1U;
+            if (bit)
+            {
+                hdlcbyte |= 1UL << bit_count;
+            }
+            if (--bit_count > 7)
+            {
+                hdlc_packet.push_back(hdlcbyte);
+                hdlcbyte = 0;
+                bit_count = 7;
+            }
+        }
+    }
+//    if (bit_count != 7)
+//    {
+//        hdlc_packet.push_back(hdlcbyte);
+//        hdlcbyte = 0;
+//        bit_count = 7;
+//    }
+//    hdlc_packet.insert(hdlc_packet.end(), flags.begin(), flags.end());
+    return hdlc_packet.size();
+}
+
+int32_t Ax25Handle::unstuff(vector<uint8_t> hdlcdata)
+{
+    if (hdlcdata.size())
+    {
+        hdlc_packet = hdlcdata;
+    }
+
+    ax25_packet.clear();
+    uint8_t bit_count = 0;
+    uint8_t ax25byte = 0;
+    uint8_t run_count = 0;
+    for (uint8_t hdlcbyte : hdlc_packet)
+    {
+        if (hdlcbyte == 0x7e)
+        {
+            continue;
+        }
+        for (uint8_t bit_num=7; bit_num<8; --bit_num)
+        {
+            uint8_t bit = (hdlcbyte >> bit_num) & 1U;
+            if (bit)
+            {
+                ++run_count;
+                ax25byte |= 1UL << bit_count;
+            }
+            else
+            {
+                if (run_count == 5)
+                {
+                    --bit_count;
+                }
+                run_count = 0;
+            }
+
+            if (++bit_count > 7)
+            {
+                if (ax25byte == 0x7e)
+                {
+                    break;
+                }
+                ax25_packet.push_back(ax25byte);
+                ax25byte = 0;
+                bit_count = 0;
+            }
+        }
+        if (ax25byte == 0x7e)
+        {
+            break;
+        }
+    }
+    return ax25_packet.size();
 }
 
 ::std::ostream& operator<< (::std::ostream& out, Ax25Handle& K)	{

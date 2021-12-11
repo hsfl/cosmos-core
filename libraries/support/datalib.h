@@ -157,8 +157,13 @@ string data_resource_path(string name);
 bool data_exists(string& path);
 bool data_isdir(string path);
 bool data_ischardev(string path);
+bool data_isblkdev(string path);
+bool data_issymlink(string path);
 bool data_isfile(string path, off_t size=0);
 double data_ctime(string path);
+int32_t data_execute(vector<uint8_t> cmd);
+int32_t data_execute(string cmd);
+int32_t data_execute(vector<uint8_t> cmd, string& result, string shell="");
 int32_t data_execute(string cmd, string& result, string shell="");
 off_t data_size(string path);
 int32_t set_cosmosroot(string name, bool create_flag=false);
@@ -183,7 +188,10 @@ int32_t data_load_archive(string node, string agent, double mjd, string type, ve
 //int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc* root);
 double findlastday(string node);
 double findfirstday(string node);
-
+class GITTEST	{
+	public:
+		void f();
+};
 //! @}
 
 #endif // DATALIB_H

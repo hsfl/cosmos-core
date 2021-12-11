@@ -149,6 +149,60 @@ namespace Cosmos {
         return error;
     }
 
+    int32_t I2C::communicate(string data, string &response, size_t bytes)
+    {
+        int32_t iretn=0;
+
+        std::lock_guard<mutex> lock(mtx);
+        iretn = send(data);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+
+        if (bytes)
+        {
+            iretn = receive(response, bytes);
+        }
+        return iretn;
+    }
+
+    int32_t I2C::communicate(vector <uint8_t> data, vector <uint8_t> &response, size_t bytes)
+    {
+        int32_t iretn=0;
+
+        std::lock_guard<mutex> lock(mtx);
+        iretn = send(data);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+
+        if (bytes)
+        {
+            iretn = receive(response, bytes);
+        }
+        return iretn;
+    }
+
+    int32_t I2C::communicate(uint8_t *data, size_t len, uint8_t *response, size_t bytes)
+    {
+        int32_t iretn=0;
+
+        std::lock_guard<mutex> lock(mtx);
+        iretn = send(data, len);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+
+        if (bytes)
+        {
+            iretn = receive(response, bytes);
+        }
+        return iretn;
+    }
+
     int32_t I2C::send(string data)
     {
         return send((uint8_t *)data.data(), data.length());

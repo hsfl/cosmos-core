@@ -3,18 +3,12 @@
 #include "support/sliplib.h"
 #include "support/datalib.h"
 #include "support/stringlib.h"
+#include "device/general/ax25class.h"
 
 namespace Cosmos {
     namespace Support {
         PacketComm::PacketComm()
         {
-            TypeId.Init({"ShortReset", "ShortReboot","ShortSendBeacon"}, {0});
-            TypeId.Extend({"LongReset","LongReboot","LongSendBeacon"}, {10});
-            TypeId.Extend({"FileMeta","FileChunk"}, {20});
-
-            TypeId.Extend({"ShortCPUBeacon","ShortTempBeacon"}, {30});
-            TypeId.Extend({"LongCPUBeacon","LongTempBeacon"}, {40});
-            TypeId.Extend({"Forward", "Response"}, {60});
         }
 
         void PacketComm::CalcCRC()
@@ -29,13 +23,15 @@ namespace Cosmos {
 
         bool PacketComm::Unpack(bool checkcrc)
         {
-            if (datain.size() <= 0) {
+            if (packed.size() <= 0) {
                 return false;
             }
-            type = datain[0];
+            type = (TypeId)packed[0];
 
             // Unpack as forwarding-type packet instead
-            if (type == TypeId["Forward"]) {
+//            if (type == TypeId["Forward"]) {
+            if (type == PacketComm::TypeId::Forward)
+            {
                 if (UnpackForward()) {
                     return true;
                 }
@@ -43,15 +39,15 @@ namespace Cosmos {
             }
 
             // Unpack as a regular packet
-            size_t size = datain[1] + 256 * datain[2];
-            if (datain.size() < size + 5)
+            size_t size = packed[1] + 256 * packed[2];
+            if (packed.size() < size + 5)
             {
                 return false;
             }
             data.clear();
-            data.insert(data.begin(), &datain[3], &datain[size+3]);
-            uint16_t crcin = datain[size+3] + 256 * datain[size+4];
-            crc = calc_crc.calc(datain.data(), datain.size()-2);
+            data.insert(data.begin(), &packed[3], &packed[size+3]);
+            uint16_t crcin = packed[size+3] + 256 * packed[size+4];
+            crc = calc_crc.calc(packed.data(), packed.size()-2);
             if (checkcrc && crc != crcin)
             {
                 return false;
@@ -62,74 +58,82 @@ namespace Cosmos {
 
         bool PacketComm::UnpackForward() {
             fdest.clear();
-            type = datain[0];
-            size_t size = datain[1] + 256 * datain[2];
-            if (datain.size() < size + 5)
+            type = (TypeId)packed[0];
+            size_t size = packed[1] + 256 * packed[2];
+            if (packed.size() < size + 5)
             {
                 return false;
             }
             // Extract node:agent address string
-            uint8_t addr_len = datain[3];
-            fdest.assign(&datain[4], &datain[4+addr_len]);
+            uint8_t addr_len = packed[3];
+            fdest.assign(&packed[4], &packed[4+addr_len]);
             // Extract inner data
             data.clear();
-            data.insert(data.begin(), &datain[4+addr_len], &datain[size+3]);
-            uint16_t crcin = datain[size+3] + 256 * datain[size+4];
-            crc = calc_crc.calc(datain.data(), datain.size()-2);
+            data.insert(data.begin(), &packed[4+addr_len], &packed[size+3]);
+            uint16_t crcin = packed[size+3] + 256 * packed[size+4];
+            crc = calc_crc.calc(packed.data(), packed.size()-2);
             if (crc != crcin)
             {
                 return false;
             }
-            datain = data;
+            packed = data;
             return true;
         }
 
-        bool PacketComm::RawIn(bool invert, bool checkcrc)
+        bool PacketComm::RawUnPacketize(bool invert, bool checkcrc)
         {
             if (invert)
             {
-                uint8from(dataout, datain, ByteOrder::BIGENDIAN);
+                uint8from(packetized, packed, ByteOrder::BIGENDIAN);
             }
             else
             {
-                datain = dataout;
+                packed = packetized;
             }
             return Unpack(checkcrc);
         }
 
-        bool PacketComm::SLIPIn()
+        bool PacketComm::RXSUnPacketize()
         {
-            slip_unpack(dataout, datain);
+            memcpy(&ccsds_header, packetized.data(), 6);
+            packed.clear();
+            packed.insert(packed.begin(), &packetized[6], &packetized[packetized.size()-(packetized.size()<189?6:194-packetized.size())]);
             return Unpack();
         }
 
-        bool PacketComm::ASMIn()
+        bool PacketComm::SLIPUnPacketize()
         {
-            datain.clear();
-            if (atsm[0] == dataout[0] && atsm[1] == dataout[1] && atsm[2] == dataout[2] && atsm[3] == dataout[3])
+            slip_unpack(packetized, packed);
+            return Unpack();
+        }
+
+        bool PacketComm::ASMUnPacketize()
+        {
+            packed.clear();
+            if (atsm[0] == packetized[0] && atsm[1] == packetized[1] && atsm[2] == packetized[2] && atsm[3] == packetized[3])
             {
-                datain.insert(datain.begin(), &dataout[4], &dataout[dataout.size()]);
+                packed.insert(packed.begin(), &packetized[4], &packetized[packetized.size()]);
             }
-            else if (atsmr[0] == dataout[0] && atsmr[1] == dataout[1] && atsmr[2] == dataout[2] && atsmr[3] == dataout[3])
+            else if (atsmr[0] == packetized[0] && atsmr[1] == packetized[1] && atsmr[2] == packetized[2] && atsmr[3] == packetized[3])
             {
                 vector<uint8_t> input;
-                input.insert(datain.begin(), &dataout[4], &dataout[dataout.size()]);
-                uint8from(input, datain, ByteOrder::BIGENDIAN);
+                input.insert(packed.begin(), &packetized[4], &packetized[packetized.size()]);
+                uint8from(input, packed, ByteOrder::BIGENDIAN);
             }
             return Unpack();
         }
 
         bool PacketComm::Pack()
         {
-            datain.resize(3);
-            datain[0] = type;
-            datain[1] = data.size() & 0xff;
-            datain[2] = data.size() >> 8;
-            datain.insert(datain.end(), data.begin(), data.end());
-            crc = calc_crc.calc(datain);
-            datain.resize(datain.size()+2);
-            datain[datain.size()-2] = crc & 0xff;
-            datain[datain.size()-1] = crc >> 8;
+            packed.resize(3);
+            packed[0] = (uint8_t)type;
+            packed[1] = data.size() & 0xff;
+            packed[2] = data.size() >> 8;
+            packed.insert(packed.end(), data.begin(), data.end());
+            crc = calc_crc.calc(packed);
+            packed.resize(packed.size()+2);
+            packed[packed.size()-2] = crc & 0xff;
+            packed[packed.size()-1] = crc >> 8;
 
             // Repack into Forwarding-type packet if necessary
             if (!fdest.empty() && !PackForward()) {
@@ -140,227 +144,74 @@ namespace Cosmos {
 
         bool PacketComm::PackForward()
         {
-            data = datain;
-            datain.resize(4);
-            datain[0] = TypeId["Forward"];
+            data = packed;
+            packed.resize(4);
+            packed[0] = (uint8_t)PacketComm::TypeId::Forward; //TypeId["Forward"];
             // Data size = data size + addr length + 1 byte to specify addr length
-            datain[1] = (data.size() + fdest.size() + 1) & 0xff;
-            datain[2] = (data.size() + fdest.size() + 1) >> 8;
+            packed[1] = (data.size() + fdest.size() + 1) & 0xff;
+            packed[2] = (data.size() + fdest.size() + 1) >> 8;
             // Insert addr length and string
-            datain[3] = fdest.size();
-            datain.insert(datain.end(), fdest.begin(), fdest.end());
+            packed[3] = fdest.size();
+            packed.insert(packed.end(), fdest.begin(), fdest.end());
             // Insert data
-            datain.insert(datain.end(), data.begin(), data.end());
-            crc = calc_crc.calc(datain);
-            datain.resize(datain.size()+2);
-            datain[datain.size()-2] = crc & 0xff;
-            datain[datain.size()-1] = crc >> 8;
+            packed.insert(packed.end(), data.begin(), data.end());
+            crc = calc_crc.calc(packed);
+            packed.resize(packed.size()+2);
+            packed[packed.size()-2] = crc & 0xff;
+            packed[packed.size()-1] = crc >> 8;
             return true;
         }
 
-        bool PacketComm::RawOut()
+        bool PacketComm::RawPacketize()
         {
             if (!Pack())
             {
                 return false;
             }
-            dataout.clear();
-            dataout.insert(dataout.begin(), datain.begin(), datain.end());
+            packetized.clear();
+            packetized.insert(packetized.begin(), packed.begin(), packed.end());
             return true;
         }
 
-        bool PacketComm::SLIPOut()
+        bool PacketComm::SLIPPacketize()
         {
             if (!Pack())
             {
                 return false;
             }
-            if (slip_pack(datain, dataout) < 0)
+            if (slip_pack(packed, packetized) < 0)
             {
                 return false;
             }
             return true;
         }
 
-        bool PacketComm::ASMOut()
+        bool PacketComm::ASMPacketize()
         {
             if (!Pack())
             {
                 return false;
             }
-            dataout.clear();
-            dataout.insert(dataout.begin(), atsm.begin(), atsm.end());
-            dataout.insert(dataout.end(), datain.begin(), datain.end());
+            packetized.clear();
+            packetized.insert(packetized.begin(), atsm.begin(), atsm.end());
+            packetized.insert(packetized.end(), packed.begin(), packed.end());
             return true;
         }
 
-        int32_t PacketComm::Process()
+        bool PacketComm::AX25Packetize(string dest_call, string sour_call, uint8_t dest_stat, uint8_t sour_stat, uint8_t cont, uint8_t prot)
         {
-            int32_t iretn;
-            string args;
-            if (Funcs[type] != nullptr)
+            if (!Pack())
             {
-                iretn = (*(Funcs[type]))(this, args);
+                return false;
             }
-            return iretn;
+            Ax25Handle axhandle(dest_call, sour_call, dest_stat, sour_stat, cont, prot);
+            packed.resize(packed.size()+6);
+            axhandle.load(packed);
+            axhandle.stuff();
+            vector<uint8_t> ax25packet = axhandle.get_hdlc_packet();
+            packetized.clear();
+            packetized.insert(packetized.begin(), ax25packet.begin(), ax25packet.end());
+            return true;
         }
-
-        int32_t PacketComm::Generate(string args)
-        {
-            int32_t iretn;
-            if (Funcs[type] != nullptr)
-            {
-                iretn = (*(Funcs[type]))(this, args);
-            }
-            return iretn;
-        }
-
-        int32_t PacketComm::ShortReset(PacketComm *packet, string args)
-        {
-            // Code to tell EPS to reset
-            return 0;
-        }
-
-        int32_t PacketComm::ShortReboot(PacketComm *packet, string args)
-        {
-            int32_t iretn;
-            string result;
-            iretn = data_execute("/sbin/reboot -f", result);
-            return iretn;
-        }
-
-        int32_t PacketComm::ShortSendBeacon(PacketComm *packet, string args)
-        {
-            vector<string>sargs = string_split(args, " ");
-            packet->data[0] = stoi(sargs[0]);
-            packet->data[1] = stoi(sargs[1]);
-//            float value;
-//            value = stof(sargs[0]);
-//            memcpy(&packet->data[0], &value, 4);
-            return 0;
-        }
-
-        int32_t PacketComm::LongReset(PacketComm *packet, string args)
-        {
-            return ShortReset(packet, args);
-        }
-
-        int32_t PacketComm::LongReboot(PacketComm *packet, string args)
-        {
-            return ShortReboot(packet, args);
-        }
-
-        int32_t PacketComm::LongSendBeacon(PacketComm *packet, string args)
-        {
-            return ShortSendBeacon(packet, args);
-        }
-
-        int32_t PacketComm::FileMeta(PacketComm *packet, string args)
-        {
-            uint32_t txid = uint32from(&packet->data[0], ByteOrder::LITTLEENDIAN);
-            if (txid != packet->ttransfer.txid)
-            {
-                packet->close_transfer();
-                packet->ttransfer.txid = txid;
-                packet->ttransfer.chunk_size = packet->data.size() - 10;
-            }
-            uint32_t chunkidx = uint32from(&packet->data[4], ByteOrder::LITTLEENDIAN);
-            if (chunkidx >= packet->ttransfer.data.size())
-            {
-                packet->ttransfer.data.resize(chunkidx+1);
-            }
-            packet->ttransfer.data[chunkidx].clear();
-            packet->ttransfer.data[chunkidx].insert(packet->ttransfer.data[chunkidx].begin(), &packet->data[8], &packet->data[packet->data.size()-2]);
-            return packet->ttransfer.txid;
-        }
-
-        int32_t PacketComm::FileChunk(PacketComm *packet, string args)
-        {
-            if (packet->ttransfer.data.size())
-            {
-                packet->close_transfer();
-            }
-            packet->ttransfer.json.assign(packet->data.begin(), packet->data.end());
-            string estring;
-            json11::Json jmeta = json11::Json::parse(packet->ttransfer.json.c_str(), estring);
-            packet->ttransfer.name = jmeta["name"].string_value();
-            packet->ttransfer.size = jmeta["size"].number_value();
-            packet->ttransfer.node = jmeta["node"].string_value();
-            packet->ttransfer.agent = jmeta["agent"].string_value();
-            packet->ttransfer.txid = jmeta["txid"].number_value();
-            packet->ttransfer.chunk_size = jmeta["chunksize"].number_value();
-            packet->ttransfer.data.resize(1+((packet->ttransfer.size-1)/packet->ttransfer.chunk_size));
-            return packet->ttransfer.txid;
-        }
-
-        int32_t PacketComm::close_transfer()
-        {
-            int32_t missing = 0;
-            FILE *ofp;
-            if (ttransfer.name.size())
-            {
-                ofp = fopen(ttransfer.name.c_str(), "w");
-                if (ofp == nullptr)
-                {
-                    return -errno;
-                }
-//                printf("CLosing File: %u %s %lu bytes\n", ttransfer.txid, ttransfer.name.c_str(), ttransfer.size);
-            }
-            else
-            {
-                ofp = fopen(("txid_"+to_unsigned(ttransfer.txid)).c_str(), "w");
-                if (ofp == nullptr)
-                {
-                    return -errno;
-                }
-//                printf("Missing Meta: %u\n", ttransfer.txid);
-            }
-            for (uint16_t idx=0; idx<ttransfer.data.size(); ++idx)
-            {
-                if (ttransfer.data[idx].size())
-                {
-                    if (fseek(ofp,idx*ttransfer.chunk_size, SEEK_SET) < 0)
-                    {
-                        missing = -errno;
-                        fclose(ofp);
-                        return missing;
-                    }
-                    if (ttransfer.size - idx*ttransfer.chunk_size < ttransfer.chunk_size)
-                    {
-                        if (fwrite(ttransfer.data[idx].data(), ttransfer.size - idx*ttransfer.chunk_size, 1, ofp) < 1)
-                        {
-                            missing = -errno;
-                            fclose(ofp);
-                            return missing;
-                        }
-                    }
-                    else
-                    {
-                        if (fwrite(ttransfer.data[idx].data(), ttransfer.data[idx].size(), 1, ofp) < 1)
-                        {
-                            missing = -errno;
-                            fclose(ofp);
-                            return missing;
-                        }
-                    }
-                }
-                else
-                {
-//                    printf("Missing Chunk: %u %u\n", ttransfer.txid, idx);
-                    ++missing;
-                }
-            }
-            if (fclose(ofp) != 0)
-            {
-                return -errno;
-            }
-            ttransfer.txid = 0;
-            ttransfer.name.clear();
-            ttransfer.meta.clear();
-            ttransfer.data.clear();
-            ttransfer.json.clear();
-            return missing;
-        }
-
     }
 }

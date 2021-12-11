@@ -744,7 +744,8 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port)
                 }
                 tiface.flags = ifra->ifr_flags;
 
-                if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || ((ifra->ifr_flags & (IFF_BROADCAST)) == 0 && (ifra->ifr_flags & (IFF_POINTOPOINT)) == 0))
+//                if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || ((ifra->ifr_flags & (IFF_BROADCAST)) == 0 && (ifra->ifr_flags & (IFF_POINTOPOINT)) == 0))
+                if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0)
                 {
                     continue;
                 }
@@ -757,18 +758,17 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port)
                 }
                 else
                 {
-                    if ((tiface.flags & IFF_POINTOPOINT))
-                    {
-                        if (ioctl(tiface.cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
-                        {
-                            continue;
-                        }
-                        tiface.baddr = tiface.caddr;
-                        inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,tiface.baddress,sizeof(tiface.baddress));
-                        inet_pton(AF_INET,tiface.baddress,&tiface.baddr.sin_addr);
-
-                    }
-                    else
+//                    if ((tiface.flags & IFF_POINTOPOINT))
+//                    {
+//                        if (ioctl(tiface.cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
+//                        {
+//                            continue;
+//                        }
+//                        tiface.baddr = tiface.caddr;
+//                        inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,tiface.baddress,sizeof(tiface.baddress));
+//                        inet_pton(AF_INET,tiface.baddress,&tiface.baddr.sin_addr);
+//                    }
+//                    else
                     {
                         if ((iretn = setsockopt(tiface.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
                         {
@@ -806,6 +806,20 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port)
                 tiface.baddr.sin_port = htons(port);
                 tiface.type = ntype;
                 iface.push_back(tiface);
+            }
+            if (iface.size() > 1)
+            {
+                for (uint16_t i=0; i<iface.size(); ++i)
+                {
+                    if (iface[i].flags & IFF_LOOPBACK)
+                    {
+                        for (uint16_t j=i; j<iface.size()-1; ++j)
+                        {
+                            iface[j] = iface[j+1];
+                        }
+                        iface.resize(iface.size()-1);
+                    }
+                }
             }
 
 #endif // COSMOS_WIN_OS
@@ -918,10 +932,22 @@ int32_t socket_post(socket_channel &channel, const vector<uint8_t> buffer, int f
 
 int32_t socket_sendto(socket_bus &bus, const string buffer, int flags)
 {
-    vector<uint8_t> data(buffer.begin(), buffer.end());
     for (socket_channel channel : bus)
     {
-        int32_t iretn = socket_sendto(channel, data, flags);
+        int32_t iretn = socket_sendto(channel, buffer, flags);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+    return 0;
+}
+
+int32_t socket_sendto(socket_bus &bus, const vector<uint8_t> buffer, int flags)
+{
+    for (socket_channel channel : bus)
+    {
+        int32_t iretn = socket_sendto(channel, buffer, flags);
         if (iretn < 0)
         {
             return iretn;

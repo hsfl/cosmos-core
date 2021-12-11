@@ -60,10 +60,18 @@ build/arm_release/
 tags
 QtCreatorDeployment.txt
 
-*.20
+CMakeLists\.txt\.user*
 
 *.8-pre1
 
 QtCreatorDeployment\.txt
+
+build/gitcheck/
+
+CMakeLists\.txt\.user\.ece56c6\.4\.8-pre1
+
+octave-workspace
+
+build/iobc_hyti_release/
 
 build/gitcheck/

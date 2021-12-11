@@ -304,6 +304,7 @@ rvector rv_evaluate_poly(double x, vector< vector<double> > parms);
 rvector rv_evaluate_poly_slope(double x, vector< vector<double> > parms);
 rvector rv_evaluate_poly_accel(double x, vector< vector<double> > parms);
 rvector rv_evaluate_poly_jerk(double x, vector< vector<double> > parms);
+rvector rv_evaluate_poly_deriv(double x, vector< vector<double> > parms, uint16_t order);
 
 // TODO: move these functions to quaternion ???
 rvector rotate_q(quaternion q,rvector v);
@@ -362,20 +363,37 @@ double fixangle(double angle, bool d2pi=true);
 double actan(double y, double x);
 double fixprecision(double number, double precision);
 uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb=true);
+uint16_t calc_crc16(uint8_t *buf, uint16_t size, uint16_t poly=CRC16CCITTMSB, uint16_t crc=CRC16CCITTMSBINIT, uint16_t xorout=0x0, bool lsbfirst=false);
+uint16_t calc_crc16(vector<uint8_t> buf, uint16_t poly=CRC16CCITTMSB, uint16_t crc=CRC16CCITTMSBINIT, uint16_t xorout=0x0, bool lsbfirst=false);
 uint16_t calc_crc16ccitt_lsb(string buf, uint16_t initialcrc=CRC16CCITTLSBINIT, uint16_t skip=0);
 uint16_t calc_crc16ccitt_lsb(vector<uint8_t> &buf, uint16_t initialcrc=CRC16CCITTLSBINIT, uint16_t skip=0);
 uint16_t calc_crc16ccitt_lsb(uint8_t *buf, uint16_t size, uint16_t initialcrc=CRC16CCITTLSBINIT);
+uint16_t calc_crc16_lsb(uint8_t *buf, uint16_t size, uint16_t poly=CRC16CCITTLSB, uint16_t crc=CRC16CCITTLSBINIT, uint16_t xorout=0x0);
+uint16_t calc_crc16_lsb(vector<uint8_t> &buf, uint16_t poly=CRC16CCITTLSB, uint16_t crc=CRC16CCITTLSBINIT, uint16_t xorout=0x0, uint16_t skip=0);
 uint16_t calc_crc16ccitt_msb(string buf, uint16_t initialcrc=CRC16CCITTMSBINIT, uint16_t skip=0);
 uint16_t calc_crc16ccitt_msb(vector<uint8_t> &buf, uint16_t initialcrc=CRC16CCITTMSBINIT, uint16_t skip=0);
 uint16_t calc_crc16ccitt_msb(uint8_t *buf, uint16_t size, uint16_t initialcrc=CRC16CCITTMSBINIT);
+uint16_t calc_crc16_msb(uint8_t *buf, uint16_t size, uint16_t poly=CRC16CCITTMSB, uint16_t crc=CRC16CCITTMSBINIT, uint16_t xorout=0x0);
+uint16_t calc_crc16_msb(vector<uint8_t> &buf, uint16_t poly=CRC16CCITTMSB, uint16_t crc=CRC16CCITTMSBINIT, uint16_t xorout=0x0, uint16_t skip=0);
 
 class CRC16
 {
 public:
     uint16_t lookup[256];
+    struct crcset
+    {
+        bool lsbfirst;
+        uint16_t polynomial;
+        uint16_t initialcrc;
+        uint16_t xorout;
+        uint16_t test;
+    };
 
-    CRC16(uint16_t polynomial=0x1021, uint16_t initial=0xffff, bool reversed=false);
-    uint16_t set(uint16_t polynomial=0x1021, uint16_t initial=0xffff, bool reversed=false);
+    map<string, crcset> types;
+//    CRC16(uint16_t polynomial=0x1021, uint16_t initial=0xffff, uint16_t xorout=0x0, bool lsbfirst=false);
+    CRC16();
+    uint16_t set(string type);
+    uint16_t set(uint16_t polynomial=0x1021, uint16_t initialcrc=0xffff, uint16_t xorout=0x0, bool lsbfirst=false);
     uint16_t calc(vector<uint8_t> message);
     uint16_t calc(vector<uint8_t> message, uint16_t size);
     uint16_t calc(string message, uint16_t size);
@@ -383,8 +401,11 @@ public:
     uint16_t calc(uint8_t *buf, uint16_t size);
 
 private:
+    string type = "ccitt-false";
+    uint16_t test;
     uint16_t initial;
     uint16_t polynomial;
+    uint16_t xorout;
     bool lsbfirst = true;
 };
 

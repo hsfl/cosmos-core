@@ -615,7 +615,9 @@ namespace Cosmos {
             rmatrix t2s;
             rmatrix dt2s;
             cartpos sun2earth;
+            gvector sungeo;
             cartpos sun2moon;
+            gvector moongeo;
             uint16_t closest = 0;
 
             /// Convert class contents to JSON object

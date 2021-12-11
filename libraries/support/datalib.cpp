@@ -1772,6 +1772,36 @@ bool data_ischardev(string path)
 
 }
 
+bool data_isblkdev(string path)
+{
+    struct stat st;
+
+    if (!stat(path.c_str(), &st) && S_ISBLK(st.st_mode))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+}
+
+bool data_issymlink(string path)
+{
+    struct stat st;
+
+    if (!stat(path.c_str(), &st) && S_ISLNK(st.st_mode))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+}
+
 bool data_isfile(string path, off_t size)
 {
     struct stat st;
@@ -1822,6 +1852,23 @@ off_t data_size(string path)
         return 0;
     }
 
+}
+
+int32_t data_execute(vector<uint8_t> cmd)
+{
+    string result;
+    return data_execute(cmd, result);
+}
+
+int32_t data_execute(string cmd)
+{
+    string result;
+    return data_execute(cmd, result);
+}
+
+int32_t data_execute(vector<uint8_t> cmd, std::string &result, std::string shell)
+{
+    return data_execute(string(cmd.begin(), cmd.end()), result, shell);
 }
 
 int32_t data_execute(string cmd, string& result, string shell)
@@ -2042,6 +2089,10 @@ int32_t data_execute(string cmd, string& result, string shell)
 
     return result.size();
 
+}
+
+void GITTEST::f()	{
+	return;
 }
 
 //! @}

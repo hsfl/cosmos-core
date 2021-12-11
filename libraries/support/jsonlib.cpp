@@ -7022,7 +7022,6 @@ int32_t json_load_node(string node, jsonnode &json)
             fclose(ifp);
         }
     }
-    json_out_utcstart(json.utcstart, utcstart);
 
     // Second: enter information for pieces
     fname = nodepath + "/vertices.ini";
@@ -7766,18 +7765,6 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         //        loc_update(&cinfo->node.loc);
     }
 
-    // Set node_utcstart
-    if (!json.utcstart.empty())
-    {
-        // NS1
-        // if ((iretn = json_parse(json.utcstart, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
-        // NS2 maybe use set_json?  do we even need this?  what is the purpose of jsonnode?
-        if ((iretn = json_parse(json.utcstart, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
-        {
-            return iretn;
-        }
-    }
-
     // Second: enter information for pieces
     // Vertices
     cinfo->vertexs.clear();
@@ -8345,6 +8332,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_downtime", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.downtime, (uint16_t)JSON_TYPE_UINT32, cinfo, JSON_UNIT_CHARGE);
     json_addentry("node_utc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("node_utcstart", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utcstart, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
+    json_addentry("node_met", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.met, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("node_loc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc, (uint16_t)JSON_TYPE_LOCSTRUC, cinfo);
     json_addentry("node_loc_utc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     json_addentry("node_loc_pos", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos, (uint16_t)JSON_TYPE_POSSTRUC, cinfo);
@@ -9881,6 +9869,11 @@ const char *json_of_node(string &jstring, cosmosstruc *cinfo)
     int32_t iretn;
 
     jstring.clear();
+    iretn = json_out(jstring, "node_met", cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
     iretn = json_out(jstring, "node_utcstart", cinfo);
     if (iretn < 0)
     {
@@ -10072,6 +10065,11 @@ const char *json_of_time(string &jstring, cosmosstruc *cinfo)
     int32_t iretn;
 
     jstring.clear();
+    iretn = json_out(jstring, "node_met", cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
     iretn = json_out(jstring, "node_utcstart", cinfo);
     if (iretn < 0)
         return nullptr;
@@ -10256,6 +10254,7 @@ const char *json_of_ephemeris(string &jstring, cosmosstruc *cinfo)
 {
     // Location
     jstring.clear();
+    json_out(jstring, "node_met", cinfo);
     json_out(jstring, "node_utcstart", cinfo);
     json_out(jstring, "node_utc", cinfo);
     json_out(jstring, "node_utcoffset", cinfo);
@@ -10270,6 +10269,7 @@ const char *json_of_utc(string &jstring, cosmosstruc *cinfo)
 {
     // Time
     jstring.clear();
+    json_out(jstring, "node_met", cinfo);
     json_out(jstring, "node_utcstart", cinfo);
     json_out(jstring, "node_utc", cinfo);
     json_out(jstring, "node_utcoffset", cinfo);
@@ -10976,6 +10976,7 @@ const char *json_of_groundcontact(string &jstring, cosmosstruc *cinfo)
     int16_t i;
 
     jstring.clear();
+    json_out(jstring, "node_met", cinfo);
     json_out(jstring, "node_utcstart", cinfo);
     json_out(jstring, "node_utc", cinfo);
     json_out(jstring, "node_utcoffset", cinfo);

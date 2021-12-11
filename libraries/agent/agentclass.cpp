@@ -262,7 +262,7 @@ namespace Support
         add_request("echo",req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
         add_request("nodejson",req_nodejson,"","return description JSON for Node");
         add_request("statejson",req_statejson,"","return description JSON for State vector");
-        add_request("utcstartjson",req_utcstartjson,"","return description JSON for UTC Start time");
+//        add_request("utcstartjson",req_utcstartjson,"","return description JSON for UTC Start time");
         add_request("piecesjson",req_piecesjson,"","return description JSON for Pieces");
         add_request("vertexsjson",req_vertexsjson,"","return description JSON for Pieces");
         add_request("facesjson",req_facesjson,"","return description JSON for Pieces");
@@ -330,12 +330,8 @@ namespace Support
     \param synopsis A usage synopsis for the request.
     \return Error, if any, otherwise zero.
 */
-    int32_t Agent::add_request(
-		string token,
-		Agent::external_request_function function,
-		string synopsis,
-		string description
-	) {
+    int32_t Agent::add_request(string token, Agent::external_request_function function, string synopsis, string description)
+    {
         if (reqs.size() > AGENTMAXREQUESTCOUNT) return (AGENT_ERROR_REQ_COUNT);
 
         request_entry tentry;
@@ -348,66 +344,66 @@ namespace Support
         return 0;
     }
 
-    int32_t Agent::add_request(string token, Agent::simple_request_function function, string synopsis, string description)
-    {
+//    int32_t Agent::add_request(string token, Agent::simple_request_function function, string synopsis, string description)
+//    {
 
-        external_request_function external_request_wrapper = [] (string& request_string, string& output_string, Agent* agent){
-            vector<string> args;
-            istringstream iss(request_string);
-            string arg;
+//        external_request_function external_request_wrapper = [] (string& request_string, string& output_string, Agent* agent){
+//            vector<string> args;
+//            istringstream iss(request_string);
+//            string arg;
 
-            while ( getline(iss, arg, ' ') ){
-                args.push_back(arg);
-            }
-            string request = args[0];
-            args.erase(args.begin());
+//            while ( getline(iss, arg, ' ') ){
+//                args.push_back(arg);
+//            }
+//            string request = args[0];
+//            args.erase(args.begin());
 
-            int32_t error = 0;
-            output_string = agent->reqs[request].sfunction(args, error);
-            return error;
+//            int32_t error = 0;
+//            output_string = agent->reqs[request].sfunction(args, error);
+//            return error;
 
-        };
+//        };
 
-        request_entry tentry;
-        if (token.size() > COSMOS_MAX_NAME) { token.resize(COSMOS_MAX_NAME); }
-        tentry.token = token;
-        tentry.efunction = external_request_wrapper;
-        tentry.sfunction = function;
-        tentry.synopsis = synopsis;
-        tentry.description = description;
-        reqs[token] = tentry;
-        return 0;
-    }
+//        request_entry tentry;
+//        if (token.size() > COSMOS_MAX_NAME) { token.resize(COSMOS_MAX_NAME); }
+//        tentry.token = token;
+//        tentry.efunction = external_request_wrapper;
+//        tentry.sfunction = function;
+//        tentry.synopsis = synopsis;
+//        tentry.description = description;
+//        reqs[token] = tentry;
+//        return 0;
+//    }
 
-    int32_t Agent::add_request(string token, Agent::no_arg_request_function function, string synopsis, string description)
-    {
-        external_request_function external_request_wrapper = [] (string& request_string, string& output_string, Agent* agent){
-            vector<string> args;
-            istringstream iss(request_string);
-            string arg;
+//    int32_t Agent::add_request(string token, Agent::no_arg_request_function function, string synopsis, string description)
+//    {
+//        external_request_function external_request_wrapper = [] (string& request_string, string& output_string, Agent* agent){
+//            vector<string> args;
+//            istringstream iss(request_string);
+//            string arg;
 
-            while ( getline(iss, arg, ' ') ){
-                args.push_back(arg);
-            }
-            string request = args[0];
-            args.erase(args.begin());
+//            while ( getline(iss, arg, ' ') ){
+//                args.push_back(arg);
+//            }
+//            string request = args[0];
+//            args.erase(args.begin());
 
-            int32_t error = 0;
-            output_string = agent->reqs[request].nafunction(error);
-            return error;
+//            int32_t error = 0;
+//            output_string = agent->reqs[request].nafunction(error);
+//            return error;
 
-        };
+//        };
 
-        request_entry tentry;
-        if (token.size() > COSMOS_MAX_NAME) { token.resize(COSMOS_MAX_NAME); }
-        tentry.token = token;
-        tentry.efunction = external_request_wrapper;
-        tentry.nafunction = function;
-        tentry.synopsis = synopsis;
-        tentry.description = description;
-        reqs[token] = tentry;
-        return 0;
-    }
+//        request_entry tentry;
+//        if (token.size() > COSMOS_MAX_NAME) { token.resize(COSMOS_MAX_NAME); }
+//        tentry.token = token;
+//        tentry.efunction = external_request_wrapper;
+//        tentry.nafunction = function;
+//        tentry.synopsis = synopsis;
+//        tentry.description = description;
+//        reqs[token] = tentry;
+//        return 0;
+//    }
 
         //! Start Agent Request and Heartbeat loops
         /*!	Starts the request and heartbeat threads for an Agent server initialized with
@@ -572,8 +568,6 @@ namespace Support
         iretn = send_request(hbeat, "nodejson", jnode.node, waitsec);
         if (iretn < 0) { return iretn; }
         iretn = send_request(hbeat, "statejson", jnode.state, waitsec);
-        if (iretn < 0) { return iretn; }
-        iretn = send_request(hbeat, "utcstartjson", jnode.utcstart, waitsec);
         if (iretn < 0) { return iretn; }
         iretn = send_request(hbeat, "piecesjson", jnode.pieces, waitsec);
         if (iretn < 0) { return iretn; }
@@ -1562,12 +1556,11 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-//        int32_t Agent::req_utcstartjson(char *, char* output, Agent* agent)
-    int32_t Agent::req_utcstartjson(string &, string &output, Agent* agent) {
-        output = agent->cinfo->json.utcstart.c_str();
-        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
-        return 0;
-    }
+//    int32_t Agent::req_utcstartjson(string &, string &output, Agent* agent) {
+//        output = agent->cinfo->json.utcstart.c_str();
+//        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
+//        return 0;
+//    }
 
     //! Built-in Return Pieces JSON request
     /*! Returns a JSON string representing the Piece information.
@@ -2894,7 +2887,7 @@ acquired.
     //            iretn = json_parse(mess.adata, cinfo->sdata);
     //            if (iretn >= 0)
     //            {
-    //                imu = *cinfo->sdata.device[agent->cinfo->devspec.imu[0]].imu.;
+    //                imu = *cinfo->sdata.devspec.imu[0].;
     //            }
     //        }
 

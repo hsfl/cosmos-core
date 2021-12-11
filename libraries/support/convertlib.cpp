@@ -161,7 +161,15 @@ namespace Cosmos {
 
 
             jplpos(JPL_SUN_BARY,JPL_EARTH,loc.pos.extra.tt,&loc.pos.extra.sun2earth);
+            locstruc tloc;
+            tloc.pos.eci = loc.pos.extra.sun2earth;
+            tloc.pos.eci.s = rv_smult(-1., tloc.pos.eci.s);
+            pos_eci2geoc(tloc);
+            loc.pos.extra.sungeo = tloc.pos.geod.s;
             jplpos(JPL_SUN_BARY,JPL_MOON,loc.pos.extra.tt,&loc.pos.extra.sun2moon);
+            tloc.pos.eci.s = rv_sub(loc.pos.extra.sun2moon.s, loc.pos.extra.sun2earth.s);
+            pos_eci2geoc(tloc);
+            loc.pos.extra.moongeo = tloc.pos.geod.s;
 
             return 0;
         }

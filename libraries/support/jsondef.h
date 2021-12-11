@@ -1007,7 +1007,6 @@ class sim_param	{
             string name = "";
             string node = "";
             string state = "";
-            string utcstart = "";
             string vertexs = "";
             string faces = "";
             string pieces = "";
@@ -1023,7 +1022,6 @@ class sim_param	{
                     { "name" , name },
                     { "node" , node },
                     { "state" , state },
-                    { "utcstart" , utcstart },
                     { "vertexs" , vertexs },
                     { "faces" , faces },
                     { "pieces" , pieces },
@@ -1043,7 +1041,6 @@ class sim_param	{
                     if(!parsed["name"].is_null())		name = parsed["name"].string_value();
                     if(!parsed["node"].is_null())		node = parsed["node"].string_value();
                     if(!parsed["state"].is_null())		state = parsed["state"].string_value();
-                    if(!parsed["utcstart"].is_null())	utcstart = parsed["utcstart"].string_value();
                     if(!parsed["vertexs"].is_null())	vertexs = parsed["vertexs"].string_value();
                     if(!parsed["faces"].is_null())		faces = parsed["faces"].string_value();
                     if(!parsed["pieces"].is_null())		pieces = parsed["pieces"].string_value();
@@ -2829,6 +2826,9 @@ union as a ::devicestruc.
             //! Number of reboots
             uint32_t boot_count = 0;
 
+            //! Root storage
+            float storage = 0.f;
+
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
         @return	A json11 JSON object containing every member variable within the class
@@ -2840,6 +2840,7 @@ union as a ::devicestruc.
                     { "maxload", maxload },
                     { "maxgib" , maxgib },
                     { "gib"	, gib },
+                    { "storage"	, storage },
                     { "boot_count", static_cast<int>(boot_count) },
                 };
             }
@@ -2858,6 +2859,7 @@ union as a ::devicestruc.
                     if(!parsed["maxload"].is_null()) { maxload = parsed["maxload"].number_value(); }
                     if(!parsed["maxgib"].is_null()) { maxgib = parsed["maxgib"].number_value(); }
                     if(!parsed["gib"].is_null()) { gib = parsed["gib"].number_value(); }
+                    if(!parsed["storage"].is_null()) { storage = parsed["storage"].number_value(); }
                     if(!parsed["boot_count"].is_null()) { boot_count = parsed["boot_count"].int_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -4408,6 +4410,8 @@ union as a ::devicestruc.
             double utc = 0.;
             //! Mission start time
             double utcstart = 0.;
+            //! Mission Elapsed Time
+            float met = 0.;
             //! Location structure
             Convert::locstruc loc;
 			//! Estimated location structure
@@ -4452,6 +4456,7 @@ union as a ::devicestruc.
                     { "utcoffset" , utcoffset },
                     { "utc" , utc },
                     { "utcstart" , utcstart },
+                    { "met" , met },
                     { "loc" , loc },
 					{ "loc_est", loc_est },
 					{ "loc_std", loc_std },
@@ -4501,6 +4506,7 @@ union as a ::devicestruc.
                     if(!parsed["utcoffset"].is_null())	{ utc = parsed["utcoffset"].number_value(); }
                     if(!parsed["utc"].is_null())	{ utc = parsed["utc"].number_value(); }
                     if(!parsed["utcstart"].is_null())	{ utc = parsed["utcstart"].number_value(); }
+                    if(!parsed["met"].is_null())	{ utc = parsed["met"].number_value(); }
                     if(!parsed["loc"].is_null())	{ loc.from_json(parsed["loc"].dump()); }
 					if(!parsed["loc_est"].is_null()){ loc_est.from_json(parsed["loc_est"].dump()); }
 					if(!parsed["loc_std"].is_null()){ loc_std.from_json(parsed["loc_std"].dump()); }
@@ -5950,6 +5956,7 @@ information.
                 add_name("node.utcoffset", &node.utcoffset, "double");
                 add_name("node.utc", &node.utc, "double");
                 add_name("node.utcstart", &node.utcstart, "double");
+                add_name("node.met", &node.met, "double");
                 add_name("node.loc", &node.loc, "locstruc");
                 add_name("node.loc.utc", &node.loc.utc, "double");
                 add_name("node.loc.pos", &node.loc.pos, "posstruc");
@@ -9082,7 +9089,6 @@ information.
                 add_name("json.name", &json.name, "string");
                 add_name("json.node", &json.node, "string");
                 add_name("json.state", &json.state, "string");
-                add_name("json.utcstart", &json.utcstart, "string");
                 add_name("json.vertexs", &json.vertexs, "string");
                 add_name("json.faces", &json.faces, "string");
                 add_name("json.pieces", &json.pieces, "string");
@@ -9127,6 +9133,17 @@ information.
                 name_map::const_iterator it = names.find(s);
                 if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return nullptr;	}
                 return (T*)(it->second);
+            }
+
+            /// Gets the pointer to the memory address associated with the provided name in Namespace 2.0.
+            /** Searches through Namespace 2.0 and returns a void pointer to the associated memory address.
+            @param	s	string representing name to search for
+            @return	void pointer to associated memory address. Returns `nullptr` if name is not found.
+            */
+            void* get_pointer(const string& s) const	{
+                name_map::const_iterator it = names.find(s);
+                if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return nullptr;	}
+                return it->second;
             }
 
             /// Gets the value of the data associated with the provided name in Namespace 2.0.

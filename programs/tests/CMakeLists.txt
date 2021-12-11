@@ -40,7 +40,7 @@ target_link_libraries(serialPutData CosmosDeviceSerial)
 target_link_libraries(serialSendChar CosmosDeviceSerial)
 target_link_libraries(agent_simple_request CosmosAgent CosmosError)
 target_link_libraries(errortest CosmosTime CosmosError)
-target_link_libraries(string_test CosmosString)
+target_link_libraries(string_test CosmosString CosmosConvert)
 
 #include(CTest)
 #enable_testing()
