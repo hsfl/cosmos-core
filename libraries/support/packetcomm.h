@@ -4,7 +4,6 @@
 #include "support/configCosmos.h"
 #include "math/mathlib.h"
 #include "support/enumlib.h"
-#include "support/transferclass.h"
 
 namespace Cosmos {
     namespace Support {
