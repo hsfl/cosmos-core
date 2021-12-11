@@ -426,7 +426,7 @@ namespace Cosmos {
                 //write_meta(tx_out);
 
                 int32_t iretn = outgoing_tx_add(tx_out);
-                return 0;//iretn;
+                return iretn;//iretn;
             }
             else
             {

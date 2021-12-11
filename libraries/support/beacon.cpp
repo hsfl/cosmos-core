@@ -266,7 +266,9 @@ namespace Cosmos {
             else
             {
                 Contents = "[Unknown Beacon]";
+                return GENERAL_ERROR_OUTOFRANGE;
             }
+            return 0;
         }
 
         double Beacon::get_interval() {

@@ -267,7 +267,7 @@ namespace Cosmos {
                     else
                     {
                         FILE *tf = fopen(tests[test_id].path.c_str(), "a");
-                        fwrite(packet.data.data(), packet.data.size(), 1, tf);
+                        iretn = fwrite(packet.data.data(), packet.data.size(), 1, tf);
                         fclose(tf);
                         tests[test_id].total_bytes += data_size;
                         ++tests[test_id].good_count;
