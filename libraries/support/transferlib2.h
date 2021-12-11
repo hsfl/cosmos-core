@@ -20,20 +20,6 @@
 
 namespace Cosmos {
     namespace Support {
-        //TODO: define these elsewhere
-        static const uint8_t PACKET_METADATA = 84;//0xf;
-        static const uint8_t PACKET_DATA = 85;//0xe;
-        static const uint8_t PACKET_REQDATA = 83;//0xd;
-        static const uint8_t PACKET_REQMETA = 82;//0xc;
-        static const uint8_t PACKET_COMPLETE = 81;//0xb;
-        static const uint8_t PACKET_CANCEL = 80;//0xa;
-        static const uint8_t PACKET_QUEUE = 79;//0x9;
-        static const uint8_t PACKET_REQQUEUE = 78;//0x8;
-        static const uint8_t PACKET_HEARTBEAT = 77;//0x7;
-        static const uint8_t PACKET_MESSAGE = 76;//0x6;
-        static const uint8_t PACKET_COMMAND = 71;//0x5;
-        static const uint8_t PACKET_INFO = 70;//0x4;
-
         typedef uint8_t PACKET_BYTE;
         typedef uint8_t PACKET_TYPE;
         typedef uint16_t PACKET_CRC;

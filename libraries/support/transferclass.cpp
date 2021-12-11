@@ -1217,7 +1217,7 @@ namespace Cosmos {
             // Respond appropriately according to type of packet
             switch (packet.type)
             {
-            case PACKET_COMMAND:
+            case PacketComm::TypeId::FileCommand:
                 {
                     packet_struct_command command;
 
@@ -1231,7 +1231,7 @@ namespace Cosmos {
                     }
                 }
                 break;
-            case PACKET_MESSAGE:
+            case PacketComm::TypeId::FileMessage:
                 {
                     packet_struct_message message;
 
@@ -1243,7 +1243,7 @@ namespace Cosmos {
                     log_write(lookup_node_id_name(message.node_id), "file", tet.split(), "", "message", imessage, "incoming");
                 }
                 break;
-            case PACKET_QUEUE:
+            case PacketComm::TypeId::FileQueue:
                 {
                     packet_struct_queue queue;
 
@@ -1288,7 +1288,7 @@ namespace Cosmos {
                 }
                 break;
             // Request missing metadata
-            case PACKET_REQMETA:
+            case PacketComm::TypeId::FileReqMeta:
                 {
                     packet_struct_reqmeta reqmeta;
 
@@ -1311,7 +1311,7 @@ namespace Cosmos {
                     }
                     break;
                 }
-            case PACKET_METADATA:
+            case PacketComm::TypeId::FileMetaData:
                 {
                     packet_struct_metashort meta;
 
@@ -1321,7 +1321,7 @@ namespace Cosmos {
 
                     break;
                 }
-            case PACKET_REQDATA:
+            case PacketComm::TypeId::FileReqData:
                 {
                     packet_struct_reqdata reqdata;
 
@@ -1422,7 +1422,7 @@ namespace Cosmos {
                     }
                     break;
                 }
-            case PACKET_DATA:
+            case PacketComm::TypeId::FileChunkData:
                 {
                     packet_struct_data data;
 
@@ -1577,7 +1577,7 @@ namespace Cosmos {
 
                     break;
                 }
-            case PACKET_COMPLETE:
+            case PacketComm::TypeId::FileComplete:
                 {
                     packet_struct_complete complete;
 
@@ -1594,7 +1594,7 @@ namespace Cosmos {
 
                     break;
                 }
-            case PACKET_CANCEL:
+            case PacketComm::TypeId::FileCancel:
                 {
                     packet_struct_cancel cancel;
                     deserialize_cancel(packet.data, cancel);
