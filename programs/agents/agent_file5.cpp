@@ -90,9 +90,7 @@ static uint32_t default_throughput=THROUGHPUT_HI;
 static vector <channelstruc> out_comm_channel;
 
 //Send and receive thread info
-void send_loop() noexcept;
 void recv_loop() noexcept;
-void transmit_loop() noexcept;
 static ElapsedTime tet;
 static ElapsedTime dt;
 double logstride_sec = 10.;
@@ -124,9 +122,7 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
 int main(int argc, char *argv[])
 {
     int32_t iretn;
-    thread send_loop_thread;
     thread recv_loop_thread;
-    thread transmit_loop_thread;
 
     if (static_cast<string>(argv[0]).find("slow") != string::npos)
     {
@@ -224,9 +220,7 @@ int main(int argc, char *argv[])
         nextdiskcheck = currentmjd();
     }
 
-    send_loop_thread = thread([=] { send_loop(); });
     recv_loop_thread = thread([=] { recv_loop(); });
-    transmit_loop_thread = thread([=] { transmit_loop(); });
 
     double nextlog = currentmjd();
     double sleepsec;
@@ -304,9 +298,7 @@ int main(int argc, char *argv[])
         agent->debug_error.Printf("%.4f %.4f Main: Node: %s Agent: %s - Exiting\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
     }
 
-    send_loop_thread.join();
     recv_loop_thread.join();
-    transmit_loop_thread.join();
     //txq.clear();
 
     if (agent->get_debug_level())
