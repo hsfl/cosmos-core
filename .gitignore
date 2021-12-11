@@ -1,4 +1,4 @@
-*.user
+*.user*
 *.autosave
 build/qtarm/*
 build/arm/*
@@ -65,3 +65,5 @@ QtCreatorDeployment.txt
 *.8-pre1
 
 QtCreatorDeployment\.txt
+
+build/gitcheck/
