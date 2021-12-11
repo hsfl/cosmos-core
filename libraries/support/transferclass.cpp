@@ -1202,7 +1202,7 @@ namespace Cosmos {
         //! Handles receiving of incoming file transfer-type packet.
         //! Make sure to process the PacketComm packet before calling this (with SLIPIn() or equivalent).
         //! \param packet PacketComm packet containing file transfer-type data
-        //! \return 0 on success, 111 if get_outgoing_packets() needs to be called
+        //! \return 0 on success, RESPONSE_REQUIRED if get_outgoing_packets() needs to be called
         int32_t Transfer::receive_packet(const PacketComm& packet)
         {
             string node_name = lookup_node_id_name(packet.data[0]);
@@ -1570,9 +1570,8 @@ namespace Cosmos {
                     else
                     {
                         txq[node_id].incoming.progress[data.tx_id].sendmeta = true;
-                        // TODO: add proper return, also handle this return properly
                         // get_outgoing_packets() must be called
-                        iretn = 111;
+                        iretn = RESPONSE_REQUIRED;
                     }
 
                     break;

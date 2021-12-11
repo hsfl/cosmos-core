@@ -270,6 +270,8 @@ namespace Cosmos {
             COSMOS_ISIS_INVALID_SYSTYPE_OR_IVID_OR_BID = -645,
             COSMOS_ISIS_INTERNAL_ERROR = -646,
 
+            COSMOS_PACKET_TYPE_MISMATCH = -651, // If the type id of a packet is not handled
+
             COSMOS_GENERAL_OK = -0,      /* everything is all right */
             COSMOS_GENERAL_ERROR_NO_SIGNAL         = -2001,     /* there's no free signal */
             COSMOS_GENERAL_ERROR_NOTSTARTED       = -2002,     /* uninitialized error */

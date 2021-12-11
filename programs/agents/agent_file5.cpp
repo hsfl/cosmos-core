@@ -339,10 +339,9 @@ void recv_loop() noexcept
             txqueue_lock.lock();
             iretn = transfer.receive_packet(p);
             txqueue_lock.unlock();
-            // TODO: fix error number
-            if (iretn == -2) {
+            if (iretn == COSMOS_PACKET_TYPE_MISMATCH) {
                 ++type_error_count;
-            } else if (iretn == 111) {
+            } else if (iretn == Transfer::RESPONSE_REQUIRED) {
                 // in a more manual configuration, signal send loop to send back response-type packets with mode set to:
                 // transfer.get_outgoing_packets(packets, Transfer::GET_OUTGOING_RESPONSES);
                 // But since the main thread calls get_outgoing_packets() at regular intervals in this program, it's not necessary
