@@ -89,7 +89,7 @@ static uint32_t default_throughput=THROUGHPUT_HI;
 
 static vector <channelstruc> out_comm_channel;
 
-//Send and receive thread info
+// Send and receive thread info
 void recv_loop() noexcept;
 static ElapsedTime tet;
 static ElapsedTime dt;
@@ -112,12 +112,12 @@ static uint32_t send_error_count = 0;
 static uint32_t recv_error_count = 0;
 
 // Function forward declarations
-int32_t mysendto(string type, int32_t use_channel, PacketComm& packet);
+int32_t mysendto(int32_t use_channel, PacketComm& packet);
 int32_t myrecvfrom(string type, socket_channel &channel, PacketComm& buf, uint32_t length, double dtimeout=1.);
 void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use_channel);
 
 
-//main
+// main loop
 int main(int argc, char *argv[])
 {
     int32_t iretn;
@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
                 for(auto& packet : packets) {
                     packet.SLIPPacketize();
                     // TODO: reimplement dynamic sendy thingy
-                    mysendto("outgoing", i, packet);
+                    mysendto(i, packet);
                 }
                 packets.clear();
             }
@@ -304,7 +304,6 @@ int main(int argc, char *argv[])
     }
 
     recv_loop_thread.join();
-    //txq.clear();
 
     if (agent->get_debug_level())
     {
@@ -316,6 +315,7 @@ int main(int argc, char *argv[])
     exit (0);
 }
 
+// Receive loop
 void recv_loop() noexcept
 {
     PacketComm p;
@@ -337,10 +337,6 @@ void recv_loop() noexcept
 
         while (( nbytes = myrecvfrom("Incoming", rchannel, p, PACKET_MAX_LENGTH)) > 0)
         {
-            // iretn = p.SLIPUnPacketize();
-            // if (iretn <= 0) {
-            //     continue;
-            // }
             txqueue_lock.lock();
             iretn = transfer.receive_packet(p);
             txqueue_lock.unlock();
@@ -398,8 +394,12 @@ void recv_loop() noexcept
     }
 }
 
-// Make sure to use SLIPOut or equivalent on packet first
-int32_t mysendto(string type, int32_t use_channel, PacketComm& packet)
+//! Send a packet out on a network socket.
+//! Make sure to use SLIPOut or equivalent on packet first.
+//! \param use_channel Index into out_comm_channel, which contains socket channel information necessary
+//! \param packet A PacketComm packet containing data to send out. Make sure to use SLIPOut() or equivalent first
+//! \return Non-negative on success
+int32_t mysendto(int32_t use_channel, PacketComm& packet)
 {
     int32_t iretn;
     double cmjd;
@@ -418,7 +418,7 @@ int32_t mysendto(string type, int32_t use_channel, PacketComm& packet)
         out_comm_channel[use_channel].nmjd = out_comm_channel[use_channel].lomjd + ((28+iretn) / (float)out_comm_channel[use_channel].throughput)/86400.;
         if (agent->get_debug_level())
         {
-            debug_packet(packet, PACKET_OUT, type, use_channel);
+            debug_packet(packet, PACKET_OUT, "Outgoing", use_channel);
         }
     }
     else
@@ -481,6 +481,12 @@ int32_t myrecvfrom(string type, socket_channel &channel, PacketComm& packet, uin
     return nbytes;
 }
 
+//! For printing out debug statements about incoming and outgoing packets.
+//! \param packet An incoming or outgoing packet
+//! \param direction PACKET_IN or PACKET_OUT
+//! \param type Incoming or outgoing, used only in the print statement
+//! \param use_channel Index into out_comm_channel
+//! \return n/a
 void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use_channel)
 {
     if (agent->get_debug_level())
