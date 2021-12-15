@@ -99,8 +99,7 @@ static Transfer transfer;
 
 // Mutexes to avoid thread collisions
 static std::mutex txqueue_lock;
-static std::mutex incoming_tx_lock;
-static std::mutex outgoing_tx_lock;
+static std::mutex out_comm_lock;
 static std::mutex debug_fd_lock;
 
 // Counters to keep track of things
@@ -267,14 +266,20 @@ int main(int argc, char *argv[])
             transfer.outgoing_tx_load();
             txqueue_lock.unlock();
             // Iterate over every outgoing channel we serve
-            for (size_t i = 0; i < out_comm_channel.size(); ++i) {
+            out_comm_lock.lock();
+            size_t occ_size = out_comm_channel.size();
+            out_comm_lock.unlock();
+            for (size_t i = 1; i < occ_size; ++i) {
                 // Get all the outgoing packets for this node
-                if (out_comm_channel[i].node.empty()) {
-                    continue;
-                }
+                // if (out_comm_channel[i].node.empty()) {
+                //     continue;
+                // }
                 txqueue_lock.lock();
-                iretn = transfer.get_outgoing_packets(out_comm_channel[i].node, packets);
+                iretn = transfer.get_outgoing_packets(packets);
                 txqueue_lock.unlock();
+                if (iretn < 0) {
+                    agent->debug_error.Printf("Error in get_outgoing_packets: %d\n", iretn);
+                }
 
                 if (agent->get_debug_level())
                 {
@@ -332,16 +337,59 @@ void recv_loop() noexcept
 
         while (( nbytes = myrecvfrom("Incoming", rchannel, p, PACKET_MAX_LENGTH)) > 0)
         {
-            iretn = p.SLIPUnPacketize();
-            if (iretn <= 0) {
-                continue;
-            }
+            // iretn = p.SLIPUnPacketize();
+            // if (iretn <= 0) {
+            //     continue;
+            // }
             txqueue_lock.lock();
             iretn = transfer.receive_packet(p);
             txqueue_lock.unlock();
-            if (iretn == COSMOS_PACKET_TYPE_MISMATCH) {
+
+            if (iretn == COSMOS_PACKET_TYPE_MISMATCH)
+            {
+                // For debug logging
                 ++type_error_count;
-            } else if (iretn == Transfer::RESPONSE_REQUIRED) {
+            }
+            
+            // If packet is successfully received, check channels and update
+            // information if we are already handling it, otherwise add the new channel.
+            if (iretn >= 0)
+            {
+                string node_name = transfer.lookup_node_id_name(p.data[0]);
+                int32_t node_id = transfer.check_node_id(p.data[0]);
+                if (node_id <= 0 || node_name.empty())
+                {
+                    continue;
+                }
+                out_comm_lock.lock();
+                bool new_channel = false;
+                for (std::vector<channelstruc>::size_type i=0; i<out_comm_channel.size(); ++i)
+                {
+                    // Are we handling this Node?
+                    if (out_comm_channel[i].node == node_name)
+                    {
+                        out_comm_channel[i].chansock = rchannel;
+                        out_comm_channel[i].chanip = out_comm_channel[i].chansock.address;
+                        out_comm_channel[i].limjd = currentmjd();
+                        new_channel = true;
+                        break;
+                    }
+                }
+                if (new_channel)
+                {
+                    channelstruc tchannel;
+                    tchannel.node = node_name;
+                    tchannel.nmjd = currentmjd();
+                    tchannel.limjd = tchannel.nmjd;
+                    tchannel.lomjd = tchannel.nmjd;
+                    tchannel.fmjd = tchannel.nmjd;
+                    tchannel.chansock = rchannel;
+                    tchannel.chanip = tchannel.chansock.address;
+                    out_comm_channel.push_back(tchannel);
+                }
+                out_comm_lock.unlock();
+            }
+            if (iretn == Transfer::RESPONSE_REQUIRED) {
                 // in a more manual configuration, signal send loop to send back response-type packets with mode set to:
                 // transfer.get_outgoing_packets(packets, Transfer::GET_OUTGOING_RESPONSES);
                 // But since the main thread calls get_outgoing_packets() at regular intervals in this program, it's not necessary

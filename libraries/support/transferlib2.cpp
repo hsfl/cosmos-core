@@ -51,8 +51,8 @@ namespace Cosmos {
 
         //! Create a REQQUEUE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the sending node in the node table
-        //! \param node_name Name of the sending node
+        //! \param node_id ID of the receiving node in the node table
+        //! \param node_name Name of the receiving node
         //! \return n/a
         void serialize_reqqueue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name)
         {
@@ -75,8 +75,8 @@ namespace Cosmos {
 
         //! Create a QUEUE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the sending node in the node table
-        //! \param node_name Name of the sending node
+        //! \param node_id ID of the receiving node in the node table
+        //! \param node_name Name of the receiving node
         //! \param queue A vector with QUEUE data
         //! \return n/a
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue)
@@ -103,7 +103,7 @@ namespace Cosmos {
 
         //! Create a CANCEL-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the sending node in the node table
+        //! \param node_id ID of the receiving node in the node table
         //! \param tx_id ID of the transaction
         //! \return n/a
         void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
@@ -124,9 +124,9 @@ namespace Cosmos {
             memmove(&cancel.tx_id,   &pdata[0]+PACKET_CANCEL_OFFSET_TX_ID,   sizeof(PACKET_TX_ID_TYPE));
         }
 
-        //! Create a CCOMPLETE-type PacketComm packet.
+        //! Create a COMPLETE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the sending node in the node table
+        //! \param node_id ID of the receiving node in the node table
         //! \param tx_id ID of the transaction
         //! \return n/a
         void serialize_complete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
@@ -149,8 +149,8 @@ namespace Cosmos {
 
         //! Create a REQMETA-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the sending node in the node table
-        //! \param node_name Name of the sending node
+        //! \param node_id ID of the receiving node in the node table
+        //! \param node_name Name of the receiving node
         //! \param reqmeta A vector with REQMETA data
         //! \return n/a
         void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta)
@@ -176,7 +176,7 @@ namespace Cosmos {
 
         //! Create a REQDATA-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the sending node in the node table
+        //! \param node_id ID of the receiving node in the node table
         //! \param tx_id ID of the transaction
         //! \param hole_start Index of byte start of data chunk
         //! \param hole_end Index of byte end of data chunk
@@ -209,8 +209,8 @@ namespace Cosmos {
         //! \param tx_id Transaction ID of file transfer
         //! \param file_name Name of the file
         //! \param file_size Size of the file
-        //! \param node_name Name of the sending node
-        //! \param agent_name Name of the sending agent
+        //! \param node_name Name of the receiving node
+        //! \param agent_name Name of the receiving agent
         //! \return n/a
         void serialize_metadata(PacketComm& packet, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name)
         {
