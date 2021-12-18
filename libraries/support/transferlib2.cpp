@@ -124,6 +124,30 @@ namespace Cosmos {
             memmove(&cancel.tx_id,   &pdata[0]+PACKET_CANCEL_OFFSET_TX_ID,   sizeof(PACKET_TX_ID_TYPE));
         }
 
+        //! Create a REQCOMPLETE-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param node_id ID of the receiving node in the node table
+        //! \param tx_id ID of the transaction
+        //! \return n/a
+        void serialize_reqcomplete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
+        {
+            packet.type = PacketComm::TypeId::FileReqComplete;
+            packet.data.resize(PACKET_REQCOMPLETE_OFFSET_TOTAL);
+            memmove(&packet.data[0]+PACKET_REQCOMPLETE_OFFSET_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
+            memmove(&packet.data[0]+PACKET_REQCOMPLETE_OFFSET_TX_ID,   &tx_id,   sizeof(PACKET_TX_ID_TYPE));
+        }
+
+        //! Extracts the necessary fields from a received REQCOMPLETE packet.
+        //! \param pdata An incoming COMPLETE-type packet
+        //! \param reqcomplete Reference to a packet_struct_reqcomplete to fill
+        //! \return n/a
+        void deserialize_reqcomplete(const vector<PACKET_BYTE>& pdata, packet_struct_reqcomplete &reqcomplete)
+        {
+            memmove(&reqcomplete.node_id, &pdata[0]+PACKET_REQCOMPLETE_OFFSET_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
+            memmove(&reqcomplete.tx_id,   &pdata[0]+PACKET_REQCOMPLETE_OFFSET_TX_ID,   sizeof(PACKET_TX_ID_TYPE));
+
+        }
+
         //! Create a COMPLETE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
         //! \param node_id ID of the receiving node in the node table
@@ -360,21 +384,26 @@ namespace Cosmos {
             vector<file_progress> missing;
             file_progress tp;
 
-            if (!tx_in.havemeta)
+            if (!tx_in.sentmeta)
             {
                 return missing;
             }
+            cout << "debug tl2 " << __LINE__ << endl;
 
             if (tx_in.file_info.size() == 0)
             {
+            cout << "debug tl2 " << __LINE__ << endl;
                 tp.chunk_start = 0;
                 tp.chunk_end = tx_in.file_size - 1;
                 missing.push_back(tp);
             }
             else
             {
+            cout << "debug tl2 " << __LINE__ << endl;
                 merge_chunks_overlap(tx_in);
+            cout << "debug tl2 " << __LINE__ << endl;
                 sort(tx_in.file_info.begin(), tx_in.file_info.end(), lower_chunk);
+            cout << "debug tl2 " << __LINE__ << endl;
 
                 // Check missing before first chunk
                 if (tx_in.file_info[0].chunk_start)
@@ -384,6 +413,7 @@ namespace Cosmos {
                     missing.push_back(tp);
                 }
 
+            cout << "debug tl2 " << __LINE__ << endl;
                 // Check missing between chunks
                 for (uint32_t i=1; i<tx_in.file_info.size(); ++i)
                 {
@@ -394,6 +424,8 @@ namespace Cosmos {
                         missing.push_back(tp);
                     }
                 }
+            cout << "debug tl2 " << __LINE__ << endl;
+            cout << "tx_in.file_info.size(): " << tx_in.file_info.size() << endl;
 
                 // Check missing after last chunk
                 if (tx_in.file_info[tx_in.file_info.size()-1].chunk_end + 1 != tx_in.file_size)
@@ -403,6 +435,7 @@ namespace Cosmos {
                     missing.push_back(tp);
                 }
             }
+            cout << "debug tl2 " << __LINE__ << endl;
 
             // calculate bytes so far
             tx_in.total_bytes = 0;
@@ -414,6 +447,7 @@ namespace Cosmos {
             {
                 tx_in.complete = true;
             }
+            cout << "debug tl2 " << __LINE__ << endl;
 
             return (missing);
         }

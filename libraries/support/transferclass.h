@@ -58,9 +58,10 @@ namespace Cosmos {
             //int32_t Load(string filename, vector<chunk> &chunks);
             int32_t outgoing_tx_load();
             int32_t outgoing_tx_load(uint8_t node_id);
-            int32_t get_outgoing_packets(vector<PacketComm> &packets, GET_OUTGOING_MODE mode = GET_OUTGOING_ALL);
-            int32_t get_outgoing_packets(string node_name, vector<PacketComm> &packets, GET_OUTGOING_MODE mode = GET_OUTGOING_ALL);
-            int32_t get_outgoing_packets(uint8_t node_id, vector<PacketComm> &packets, GET_OUTGOING_MODE mode = GET_OUTGOING_ALL);
+            int32_t get_outgoing_lpackets(vector<PacketComm> &packets);
+            int32_t get_outgoing_lpackets(string node_name, vector<PacketComm> &packets);
+            int32_t get_outgoing_rpackets(vector<PacketComm> &packets);
+            int32_t get_outgoing_rpackets(string node_name, vector<PacketComm> &packets);
             int32_t receive_packet(const PacketComm& packet);
 
             // Various checks
@@ -84,6 +85,10 @@ namespace Cosmos {
 
             // Byte size limit of a packet
             PACKET_CHUNK_SIZE_TYPE packet_size;
+
+            // Internal use
+            int32_t get_outgoing_lpackets(uint8_t node_id, vector<PacketComm> &packets);
+            int32_t get_outgoing_rpackets(uint8_t node_id, vector<PacketComm> &packets);
 
             // Private queue manipulation functions
             int32_t outgoing_tx_add(tx_progress &tx_out);

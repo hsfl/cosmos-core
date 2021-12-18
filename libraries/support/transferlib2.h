@@ -165,6 +165,17 @@ namespace Cosmos {
         #define PACKET_DATA_OFFSET_CHUNK (PACKET_DATA_OFFSET_CHUNK_START + COSMOS_SIZEOF(PACKET_FILE_SIZE_TYPE))
         #define PACKET_DATA_OFFSET_HEADER_TOTAL (PACKET_DATA_OFFSET_CHUNK)
 
+        struct packet_struct_reqcomplete
+        {
+            PACKET_NODE_ID_TYPE node_id;
+            PACKET_TX_ID_TYPE tx_id;
+        };
+
+        #define PACKET_REQCOMPLETE_OFFSET_NODE_ID 0
+        #define PACKET_REQCOMPLETE_OFFSET_TX_ID (PACKET_REQCOMPLETE_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
+        #define PACKET_REQCOMPLETE_OFFSET_TOTAL (PACKET_REQCOMPLETE_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
+
+
         struct packet_struct_complete
         {
             PACKET_NODE_ID_TYPE node_id;
@@ -203,16 +214,12 @@ namespace Cosmos {
         {
             PACKET_TX_ID_TYPE tx_id=0;
             bool enabled=false;
-            bool havemeta=false;
-            bool havedata=false;
-            bool sendmeta=false;
             bool sentmeta=false;
-            bool senddata=false;
             bool sentdata=false;
             bool complete=false;
             string node_name="";
             string agent_name="";
-            string	file_name="";
+            string file_name="";
             string filepath="";
             string temppath="";
             double savetime;
@@ -226,7 +233,6 @@ namespace Cosmos {
         /// Holds info about the queue of file transfers in progress.
         struct tx_entry
         {
-            bool activity = false;
             bool sentqueue = false;
             PACKET_TX_ID_TYPE size;
             PACKET_TX_ID_TYPE next_id;
@@ -257,6 +263,8 @@ namespace Cosmos {
         void deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue);
         void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
         void deserialize_cancel(const vector<PACKET_BYTE>& pdata, packet_struct_cancel& cancel);
+        void serialize_reqcomplete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
+        void deserialize_reqcomplete(const vector<PACKET_BYTE>& pdata, packet_struct_reqcomplete &reqcomplete);
         void serialize_complete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
         void deserialize_complete(const vector<PACKET_BYTE>& pdata, packet_struct_complete& complete);
         void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta);
