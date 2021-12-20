@@ -1043,6 +1043,7 @@ namespace Cosmos {
 
             if (meta.tx_id)
             {
+                // This if will run if META has been received before QUEUE
                 if (txq[(node_id)].incoming.progress[meta.tx_id].tx_id != meta.tx_id)
                 {
                     txq[(node_id)].incoming.progress[meta.tx_id].tx_id = meta.tx_id;
@@ -1387,151 +1388,76 @@ namespace Cosmos {
 
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node_id].incoming, data.tx_id);
 
-                    // Update corresponding incoming queue entry if it exists
-                    if (tx_id > 0)
+                    // If transaction does not exist in incoming queue, then request META
+                    if (tx_id <= 0)
                     {
-                        txq[node_id].incoming.progress[tx_id].datatime = currentmjd();
+                        tx_id = data.tx_id;
+                        txq[node_id].incoming.progress[data.tx_id].tx_id = data.tx_id;
+                        txq[node_id].incoming.progress[data.tx_id].sentmeta = false;
+                        iretn = RESPONSE_REQUIRED;
+                    }
 
-                        // tx_id now points to the valid entry to which we should add the data
-                        file_progress tp;
-                        tp.chunk_start = data.chunk_start;
-                        tp.chunk_end = data.chunk_start + data.byte_count - 1;
+                    // Regardless, receive the DATA anyway
+                    txq[node_id].incoming.progress[tx_id].datatime = currentmjd();
 
-                        packet_struct_data odata;
-                        odata = data;
+                    // tx_id now points to the valid entry to which we should add the data
+                    file_progress tp;
+                    tp.chunk_start = data.chunk_start;
+                    tp.chunk_end = data.chunk_start + data.byte_count - 1;
 
-                        uint32_t check=0;
-                        bool duplicate = false;
-                        bool updated = false;
+                    // Attempt to add chunk to incoming queue
+                    bool updated = add_chunk(txq[node_id].incoming.progress[tx_id], tp);
 
-                        // Do we have any data yet?
-                        if (!txq[node_id].incoming.progress[tx_id].file_info.size())
+                    // Write to disk if this is new data
+                    if (updated)
+                    {
+                        string partial_filepath;
+                        // Write incoming data to disk
+                        if (txq[node_id].incoming.progress[tx_id].fp == nullptr)
                         {
-                            // Add first entry, then write data
-                            txq[node_id].incoming.progress[tx_id].file_info.push_back(tp);
-                            txq[node_id].incoming.progress[tx_id].total_bytes += data.byte_count;
-                            updated = true;
-                        }
-                        else
-                        {
-                            // Check against existing data
-                            for (uint32_t j=0; j<txq[node_id].incoming.progress[tx_id].file_info.size(); ++j)
+                            partial_filepath = txq[node_id].incoming.progress[tx_id].temppath + ".file";
+                            if (data_exists(partial_filepath))
                             {
-                                // Check for duplicate
-                                if (tp.chunk_start >= txq[node_id].incoming.progress[tx_id].file_info[j].chunk_start && tp.chunk_end <= txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end)
-                                {
-                                    duplicate = true;
-                                    break;
-                                }
-                                // If we start before this entry
-                                if (tp.chunk_start < txq[node_id].incoming.progress[tx_id].file_info[j].chunk_start)
-                                {
-                                    // If we end before this entry (at least one byte between), insert
-                                    if (tp.chunk_end + 1 < txq[node_id].incoming.progress[tx_id].file_info[j].chunk_start)
-                                    {
-                                        txq[node_id].incoming.progress[tx_id].file_info.insert(txq[node_id].incoming.progress[tx_id].file_info.begin()+j, tp);
-                                        txq[node_id].incoming.progress[tx_id].total_bytes += data.byte_count;
-                                        updated = true;
-                                        break;
-                                    }
-                                    // Otherwise, extend the near end
-                                    else
-                                    {
-                                        tp.chunk_end = txq[node_id].incoming.progress[tx_id].file_info[j].chunk_start - 1;
-                                        txq[node_id].incoming.progress[tx_id].file_info[j].chunk_start = tp.chunk_start;
-                                        data.byte_count = (tp.chunk_end - tp.chunk_start) + 1;
-                                        txq[node_id].incoming.progress[tx_id].total_bytes += data.byte_count;
-                                        updated = true;
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    // If we overlap on the end, extend the far end
-                                    if (tp.chunk_start <= txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end + 1)
-                                    {
-                                        if (tp.chunk_end > txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end)
-                                        {
-                                            data.byte_count = tp.chunk_end - txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end;
-                                            tp.chunk_start = txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end + 1;
-                                            txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end = tp.chunk_end;
-                                            txq[node_id].incoming.progress[tx_id].total_bytes += data.byte_count;
-                                            updated = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                check = j + 1;
-                            }
-
-
-                            // If we are higher than everything currently in the list, then append
-                            if (!duplicate && check == txq[node_id].incoming.progress[tx_id].file_info.size())
-                            {
-                                txq[node_id].incoming.progress[tx_id].file_info.push_back(tp);
-                                txq[node_id].incoming.progress[tx_id].total_bytes += data.byte_count;
-                                updated = true;
-                            }
-
-                        }
-
-                        // Write to disk if this is new data
-                        if (updated)
-                        {
-                            string partial_filepath;
-                            // Write incoming data to disk
-                            if (txq[node_id].incoming.progress[tx_id].fp == nullptr)
-                            {
-                                partial_filepath = txq[node_id].incoming.progress[tx_id].temppath + ".file";
-                                if (data_exists(partial_filepath))
-                                {
-                                    txq[node_id].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "r+");
-                                }
-                                else
-                                {
-                                    txq[node_id].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "w");
-                                }
-                            }
-
-                            if (txq[node_id].incoming.progress[tx_id].fp == nullptr)
-                            {
-                                if (agent->get_debug_level())
-                                {
-                                    agent->debug_error.Printf("%.4f %.4f Incoming: File Error: %s %s on ID: %u Chunk: %u\n", tet.split(), dt.lap(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
-                                    // fflush(agent->get_debug_fd());
-                                }
+                                txq[node_id].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "r+");
                             }
                             else
                             {
-                                fseek(txq[node_id].incoming.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
-                                fwrite(data.chunk, data.byte_count, 1, txq[node_id].incoming.progress[tx_id].fp);
-                                fflush(txq[node_id].incoming.progress[tx_id].fp);
-                                // Write latest meta data to disk
-                                write_meta(txq[node_id].incoming.progress[tx_id]);
-                                if (agent->get_debug_level())
-                                {
-                                    uint32_t total = 0;
-                                    for (uint16_t i=0; i<data.byte_count; ++i)
-                                    {
-                                        total += data.chunk[i];
-                                    }
-                                    agent->debug_error.Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), data.byte_count, tx_id);
-                                }
-
-                                // If all bytes have been received, mark as complete
-                                if (txq[node_id].incoming.progress[tx_id].file_size == txq[node_id].incoming.progress[tx_id].total_bytes)
-                                {
-                                    txq[(node_id)].incoming.progress[tx_id].sentdata = true;
-                                    txq[(node_id)].incoming.progress[tx_id].complete = true;
-                                    iretn = RESPONSE_REQUIRED;
-                                }
+                                txq[node_id].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "w");
                             }
                         }
-                    }
-                    else
-                    {
-                        txq[node_id].incoming.progress[data.tx_id].sentmeta = false;
-                        iretn = RESPONSE_REQUIRED;
+
+                        if (txq[node_id].incoming.progress[tx_id].fp == nullptr)
+                        {
+                            if (agent->get_debug_level())
+                            {
+                                agent->debug_error.Printf("%.4f %.4f Incoming: File Error: %s %s on ID: %u Chunk: %u\n", tet.split(), dt.lap(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
+                            }
+                        }
+                        else
+                        {
+                            fseek(txq[node_id].incoming.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
+                            fwrite(data.chunk, data.byte_count, 1, txq[node_id].incoming.progress[tx_id].fp);
+                            fflush(txq[node_id].incoming.progress[tx_id].fp);
+                            // Write latest meta data to disk
+                            write_meta(txq[node_id].incoming.progress[tx_id]);
+                            if (agent->get_debug_level())
+                            {
+                                uint32_t total = 0;
+                                for (uint16_t i=0; i<data.byte_count; ++i)
+                                {
+                                    total += data.chunk[i];
+                                }
+                                agent->debug_error.Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), data.byte_count, tx_id);
+                            }
+
+                            // If all bytes have been received, mark as complete
+                            if (txq[node_id].incoming.progress[tx_id].file_size == txq[node_id].incoming.progress[tx_id].total_bytes)
+                            {
+                                txq[(node_id)].incoming.progress[tx_id].sentdata = true;
+                                txq[(node_id)].incoming.progress[tx_id].complete = true;
+                                iretn = RESPONSE_REQUIRED;
+                            }
+                        }
                     }
 
                     break;

@@ -442,6 +442,91 @@ namespace Cosmos {
             return (missing);
         }
 
+        //! Adds a chunk to the tx_progress vector.
+        //! Used when on an incoming DATA packet.
+        //! \param tx_in The tx_progress of a file in the incoming queue
+        //! \param tp Data chunk to add
+        //! \return true if tx_in was updated
+        bool add_chunk(tx_progress& tx_in, file_progress& tp)
+        {
+            uint32_t check=0;
+            bool duplicate = false;
+            bool updated = false;
+            PACKET_CHUNK_SIZE_TYPE byte_count = tp.chunk_end - tp.chunk_start + 1;
+
+            // Do we have any data yet?
+            if (!tx_in.file_info.size())
+            {
+                // Add first entry, then write data
+                tx_in.file_info.push_back(tp);
+                tx_in.total_bytes += byte_count;
+                updated = true;
+            }
+            else
+            {
+                // Check against existing data
+                for (uint32_t j=0; j<tx_in.file_info.size(); ++j)
+                {
+                    // Check for duplicate
+                    if (tp.chunk_start >= tx_in.file_info[j].chunk_start && tp.chunk_end <= tx_in.file_info[j].chunk_end)
+                    {
+                        duplicate = true;
+                        break;
+                    }
+                    // If we start before this entry
+                    if (tp.chunk_start < tx_in.file_info[j].chunk_start)
+                    {
+                        // If we end before this entry (at least one byte between), insert
+                        if (tp.chunk_end + 1 < tx_in.file_info[j].chunk_start)
+                        {
+                            tx_in.file_info.insert(tx_in.file_info.begin()+j, tp);
+                            tx_in.total_bytes += byte_count;
+                            updated = true;
+                            break;
+                        }
+                        // Otherwise, extend the near end
+                        else
+                        {
+                            tp.chunk_end = tx_in.file_info[j].chunk_start - 1;
+                            tx_in.file_info[j].chunk_start = tp.chunk_start;
+                            byte_count = (tp.chunk_end - tp.chunk_start) + 1;
+                            tx_in.total_bytes += byte_count;
+                            updated = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        // If we overlap on the end, extend the far end
+                        if (tp.chunk_start <= tx_in.file_info[j].chunk_end + 1)
+                        {
+                            if (tp.chunk_end > tx_in.file_info[j].chunk_end)
+                            {
+                                byte_count = tp.chunk_end - tx_in.file_info[j].chunk_end;
+                                tp.chunk_start = tx_in.file_info[j].chunk_end + 1;
+                                tx_in.file_info[j].chunk_end = tp.chunk_end;
+                                tx_in.total_bytes += byte_count;
+                                updated = true;
+                                break;
+                            }
+                        }
+                    }
+                    check = j + 1;
+                }
+
+
+                // If we are higher than everything currently in the list, then append
+                if (!duplicate && check == tx_in.file_info.size())
+                {
+                    tx_in.file_info.push_back(tp);
+                    tx_in.total_bytes += byte_count;
+                    updated = true;
+                }
+            }
+            
+            return updated;
+        }
+
         //! Gets the size of a file.
         /*! Looks up the size of the file on the filesystem. This returns a 32 bit signed
         * integer so that it works for most files we want to transfer. If the file is larger
