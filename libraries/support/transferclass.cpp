@@ -1051,6 +1051,7 @@ namespace Cosmos {
                 //txq[(node_id)].incoming.progress[meta.tx_id].sentdata = false; // TODO: consider this
                 txq[(node_id)].incoming.progress[meta.tx_id].datatime = currentmjd();
 
+                // This will run if either META is received for the first time or if requested by REQMETA
                 if (!txq[(node_id)].incoming.progress[meta.tx_id].sentmeta)
                 {
                     // Core META information
@@ -1059,16 +1060,19 @@ namespace Cosmos {
                     txq[(node_id)].incoming.progress[meta.tx_id].file_name = meta.file_name;
                     txq[(node_id)].incoming.progress[meta.tx_id].file_size = meta.file_size;
                     txq[(node_id)].incoming.progress[meta.tx_id].filepath = data_base_path(txq[(node_id)].incoming.progress[meta.tx_id].node_name, "incoming", txq[(node_id)].incoming.progress[meta.tx_id].agent_name, txq[(node_id)].incoming.progress[meta.tx_id].file_name);
-                    string tx_name = "in_"+std::to_string(txq[(node_id)].incoming.progress[meta.tx_id].tx_id);
-                    txq[(node_id)].incoming.progress[meta.tx_id].temppath = data_base_path(txq[(node_id)].incoming.progress[meta.tx_id].node_name, "temp", "file", tx_name);
 
-                    // Derivative META information
-                    txq[(node_id)].incoming.progress[meta.tx_id].savetime = 0.;
-                    txq[(node_id)].incoming.progress[meta.tx_id].complete = false;
-                    txq[(node_id)].incoming.progress[meta.tx_id].total_bytes = 0;
-                    txq[(node_id)].incoming.progress[meta.tx_id].fp = nullptr;
-                    txq[(node_id)].incoming.progress[meta.tx_id].file_info.clear();
-
+                    // This section will be skipped if DATA is written before META was received
+                    if (!txq[(node_id)].incoming.progress[meta.tx_id].file_info.size()) {
+                        string tx_name = "in_"+std::to_string(txq[(node_id)].incoming.progress[meta.tx_id].tx_id);
+                        txq[(node_id)].incoming.progress[meta.tx_id].temppath = data_base_path(txq[(node_id)].incoming.progress[meta.tx_id].node_name, "temp", "file", tx_name);
+                        
+                        // Derivative META information
+                        txq[(node_id)].incoming.progress[meta.tx_id].savetime = 0.;
+                        txq[(node_id)].incoming.progress[meta.tx_id].complete = false;
+                        txq[(node_id)].incoming.progress[meta.tx_id].total_bytes = 0;
+                        txq[(node_id)].incoming.progress[meta.tx_id].fp = nullptr;
+                    }
+                    
                     // Save it to disk
                     write_meta(txq[(node_id)].incoming.progress[meta.tx_id]);
                 }
@@ -1393,7 +1397,10 @@ namespace Cosmos {
                     {
                         tx_id = data.tx_id;
                         txq[node_id].incoming.progress[data.tx_id].tx_id = data.tx_id;
-                        txq[node_id].incoming.progress[data.tx_id].sentmeta = false;
+                        iretn = incoming_tx_add(lookup_node_id_name(node_id), data.tx_id); //TODO: add iretn check to lookup_node_id_name
+                        if (iretn <= 0) {
+                            return iretn;
+                        }
                         iretn = RESPONSE_REQUIRED;
                     }
 
@@ -1698,10 +1705,13 @@ namespace Cosmos {
             return node_id;
         }
 
+        //! Find the node name associated with the given node id in the node table.
+        //! \param node_id Node ID
+        //! \return Node name
         string Transfer::lookup_node_id_name(PACKET_NODE_ID_TYPE node_id)
         {
             string name;
-            if (load_nodeids() > 0 && node_id > 0 && nodeids[node_id].size())
+            if (load_nodeids() > 0 && node_id > 0 && node_id < nodeids.size() && nodeids[node_id].size())
             {
                 return nodeids[node_id];
             }
