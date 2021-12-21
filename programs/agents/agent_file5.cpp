@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
     out_comm_channel[0].limjd = out_comm_channel[0].nmjd;
     out_comm_channel[0].lomjd = out_comm_channel[0].nmjd;
     out_comm_channel[0].fmjd = out_comm_channel[0].nmjd;
-    out_comm_channel[0].node = "";
+    out_comm_channel[0].node = agent->nodeName; // TODO: consider this
     out_comm_channel[0].throughput = default_throughput;
     out_comm_channel[0].packet_size = default_packet_size;
     agent->debug_error.Printf("%.4f Node: %s Agent: %s - Listening socket open\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
@@ -272,9 +272,8 @@ int main(int argc, char *argv[])
             out_comm_lock.lock();
             size_t occ_size = out_comm_channel.size();
             out_comm_lock.unlock();
-            for (size_t i = 1; i < occ_size; ++i) {
+            for (size_t i = 0; i < occ_size; ++i) {
                 txqueue_lock.lock();
-                //TODO: fix this
                 iretn = transfer.get_outgoing_lpackets(out_comm_channel[i].node, packets);
                 txqueue_lock.unlock();
 
@@ -343,22 +342,25 @@ void recv_loop() noexcept
                 ++type_error_count;
             }
             
-            // If packet is successfully received, check channels and update
-            // information if we are already handling it, otherwise add the new channel.
             if (node_id <= 0 || node_name.empty())
             {
                 continue;
             }
             if (iretn >= 0)
             {
-                out_comm_lock.lock();
+                // TODO: consider this section. If the incoming node id is the receiver's,
+                // and that is us, the one receiving, and no info about the sender is given,
+                // how should we determine what to add or who/where it's coming from?
+                /*out_comm_lock.lock();
+                // If packet is successfully received, check channels and update
+                // information if we are already handling it, otherwise add the new channel.
                 bool new_channel = true;
                 for (std::vector<channelstruc>::size_type i=0; i<out_comm_channel.size(); ++i)
                 {
                     // Are we handling this Node?
                     if (out_comm_channel[i].node == node_name)
                     {
-                        out_comm_channel[i].chansock = rchannel;
+                        //out_comm_channel[i].chansock = rchannel; // this causes some minor issues
                         out_comm_channel[i].chanip = out_comm_channel[i].chansock.address;
                         out_comm_channel[i].limjd = currentmjd();
                         new_channel = false;
@@ -381,24 +383,23 @@ void recv_loop() noexcept
                         agent->debug_error.Printf("%.4f %.4f agent_file5: main loop: Adding new node:IP %s:%.17s\n", tet.split(), dt.lap(), node_name.c_str(), tchannel.chansock.address);
                     }
                 }
-                out_comm_lock.unlock();
-            }
-            if (iretn == Transfer::RESPONSE_REQUIRED) {
-                // in a more manual configuration, signal send loop to send back response-type packets with mode set to:
-                // transfer.get_outgoing_packets(packets, Transfer::GET_OUTGOING_RESPONSES);
-                // But since the main thread calls get_outgoing_packets() at regular intervals in this program, it's not necessary
-                //TODO: fix locks
-                txqueue_lock.lock();
-                iretn = transfer.get_outgoing_rpackets(node_name, packets);
-                txqueue_lock.unlock();
+                out_comm_lock.unlock();*/
 
-                if (iretn < 0) {
-                    agent->debug_error.Printf("Error in get_outgoing_rpackets: %d\n", iretn);
-                }
+                // Send out appropriate response-type file packets if required
+                if (iretn == Transfer::RESPONSE_REQUIRED) {
+                    // in a more manual configuration, signal send loop to send back response-type packets with mode set to:
+                    // transfer.get_outgoing_packets(packets, Transfer::GET_OUTGOING_RESPONSES);
+                    // But since the main thread calls get_outgoing_packets() at regular intervals in this program, it's not necessary
+                    iretn = transfer.get_outgoing_rpackets(node_name, packets);
 
-                if (agent->get_debug_level())
-                {
-                    agent->debug_error.Printf("packets.size(): %u\n", packets.size());
+                    if (iretn < 0) {
+                        agent->debug_error.Printf("Error in get_outgoing_rpackets: %d\n", iretn);
+                    }
+
+                    if (agent->get_debug_level())
+                    {
+                        agent->debug_error.Printf("packets.size(): %u\n", packets.size());
+                    }
                 }
             }
         }
