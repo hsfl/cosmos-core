@@ -1048,7 +1048,6 @@ namespace Cosmos {
                 {
                     txq[(node_id)].incoming.progress[meta.tx_id].tx_id = meta.tx_id;
                 }
-                //txq[(node_id)].incoming.progress[meta.tx_id].sentdata = false; // TODO: consider this
                 txq[(node_id)].incoming.progress[meta.tx_id].datatime = currentmjd();
 
                 // This will run if either META is received for the first time or if requested by REQMETA
@@ -1072,7 +1071,7 @@ namespace Cosmos {
                         txq[(node_id)].incoming.progress[meta.tx_id].total_bytes = 0;
                         txq[(node_id)].incoming.progress[meta.tx_id].fp = nullptr;
                     }
-                    
+
                     // Save it to disk
                     write_meta(txq[(node_id)].incoming.progress[meta.tx_id]);
                 }
@@ -1114,47 +1113,46 @@ namespace Cosmos {
                     return TRANSFER_ERROR_MATCH;
                 }
 
-                tx_progress tx_in = txq[(node_id)].incoming.progress[tx_id];
-
-                txq[(node_id)].incoming.progress[tx_id].tx_id = 0;
-                txq[(node_id)].incoming.progress[tx_id].complete = false; // TODO: consider this
                 if (txq[(node_id)].incoming.size)
                 {
                     --txq[(node_id)].incoming.size;
                 }
 
                 // Move file to its final location
-                if (tx_in.complete)
+                if (txq[(node_id)].incoming.progress[tx_id].complete)
                 {
                     // Close the DATA file
-                    if (tx_in.fp != nullptr)
+                    if (txq[(node_id)].incoming.progress[tx_id].fp != nullptr)
                     {
-                        fclose(tx_in.fp);
-                        tx_in.fp = nullptr;
+                        fclose(txq[(node_id)].incoming.progress[tx_id].fp);
+                        txq[(node_id)].incoming.progress[tx_id].fp = nullptr;
                     }
-                    string final_filepath = tx_in.temppath + ".file";
-                    int iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
+                    string final_filepath = txq[(node_id)].incoming.progress[tx_id].temppath + ".file";
+                    int iret = rename(final_filepath.c_str(), txq[(node_id)].incoming.progress[tx_id].filepath.c_str());
                     // Make sure metadata is recorded
-                    write_meta(tx_in, 0.);
+                    write_meta(txq[(node_id)].incoming.progress[tx_id], 0.);
                     if (agent->get_debug_level())
                     {
-                        agent->debug_error.Printf("%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, tx_in.filepath.c_str());
+                        agent->debug_error.Printf("%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, txq[(node_id)].incoming.progress[tx_id].filepath.c_str());
                     }
                 }
-
-                string filepath;
-                // Remove the DATA file
-                filepath = tx_in.temppath + ".file";
-                remove(filepath.c_str());
-
-                // Remove the META file
-                filepath = tx_in.temppath + ".meta";
-                remove(filepath.c_str());
 
                 if (agent->get_debug_level())
                 {
-                    agent->debug_error.Printf("%.4f %.4f Incoming: Del incoming: %u %s\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str());
+                    agent->debug_error.Printf("%.4f %.4f Incoming: Del incoming: %u %s\n", tet.split(), dt.lap(), txq[(node_id)].incoming.progress[tx_id].tx_id, txq[(node_id)].incoming.progress[tx_id].node_name.c_str());
                 }
+
+                txq[(node_id)].incoming.progress[tx_id].tx_id = 0;
+                txq[(node_id)].incoming.progress[tx_id].complete = false;
+
+                string filepath;
+                // Remove the DATA file
+                filepath = txq[(node_id)].incoming.progress[tx_id].temppath + ".file";
+                remove(filepath.c_str());
+
+                // Remove the META file
+                filepath = txq[(node_id)].incoming.progress[tx_id].temppath + ".meta";
+                remove(filepath.c_str());
             }
 
             return incoming_tx_recount(node_id);
@@ -1300,9 +1298,6 @@ namespace Cosmos {
                     // tx_id now points to the valid entry to which we should add the data
                     if (tx_id > 0)
                     {
-                        // TODO: consider this
-                        txq[node_id].outgoing.progress[tx_id].sentmeta = true;
-
                         // Add this chunk to the queue
                         file_progress tp;
                         tp.chunk_start = reqdata.hole_start;
@@ -1376,9 +1371,7 @@ namespace Cosmos {
 
                         // Save meta to disk
                         write_meta(txq[node_id].outgoing.progress[tx_id]);
-                        txq[node_id].outgoing.sentqueue = true; // TODO: consider this
                         txq[node_id].outgoing.progress[tx_id].sentdata = false;
-                        txq[node_id].outgoing.progress[tx_id].sentmeta = true;
                     }
                     break;
                 }
@@ -1397,9 +1390,14 @@ namespace Cosmos {
                     {
                         tx_id = data.tx_id;
                         txq[node_id].incoming.progress[data.tx_id].tx_id = data.tx_id;
-                        iretn = incoming_tx_add(lookup_node_id_name(node_id), data.tx_id); //TODO: add iretn check to lookup_node_id_name
+                        string node_name = lookup_node_id_name(node_id);
+                        if (node_name.empty()) {
+                            iretn = TRANSFER_ERROR_INDEX;
+                            break;
+                        }
+                        iretn = incoming_tx_add(node_name, data.tx_id);
                         if (iretn <= 0) {
-                            return iretn;
+                            break;
                         }
                         iretn = RESPONSE_REQUIRED;
                     }
@@ -1520,9 +1518,7 @@ namespace Cosmos {
                     break;
                 }
             default:
-                // TODO: return proper error
-                //++type_error_count;
-                return -2;
+                return COSMOS_PACKET_TYPE_MISMATCH;
                 break;
             }
 

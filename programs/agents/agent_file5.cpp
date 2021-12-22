@@ -278,7 +278,10 @@ int main(int argc, char *argv[])
                 txqueue_lock.unlock();
 
                 if (iretn < 0) {
-                    agent->debug_error.Printf("Error in get_outgoing_lpackets: %d\n", iretn);
+                    if (agent->get_debug_level())
+                    {
+                        agent->debug_error.Printf("%.4f %.4f Error in get_outgoing_lpackets: %d\n", tet.split(), dt.lap(), iretn);
+                    }
                 }
 
                 if (agent->get_debug_level())
@@ -336,10 +339,16 @@ void recv_loop() noexcept
             int32_t node_id = transfer.check_node_id(p.data[0]);
             txqueue_lock.unlock();
 
-            if (iretn == COSMOS_PACKET_TYPE_MISMATCH)
-            {
-                // For debug logging
-                ++type_error_count;
+            if (iretn < 0) {
+                if (agent->get_debug_level())
+                {
+                    agent->debug_error.Printf("%.4f %.4f Main: Node: %s Agent: %s - Error in receive_packet(): %d\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str(), iretn);
+                }
+                if (iretn == COSMOS_PACKET_TYPE_MISMATCH)
+                {
+                    // For debug logging
+                    ++type_error_count;
+                }
             }
             
             if (node_id <= 0 || node_name.empty())
@@ -393,12 +402,10 @@ void recv_loop() noexcept
                     iretn = transfer.get_outgoing_rpackets(node_name, packets);
 
                     if (iretn < 0) {
-                        agent->debug_error.Printf("Error in get_outgoing_rpackets: %d\n", iretn);
-                    }
-
-                    if (agent->get_debug_level())
-                    {
-                        agent->debug_error.Printf("packets.size(): %u\n", packets.size());
+                        if (agent->get_debug_level())
+                        {
+                            agent->debug_error.Printf("%.4f %.4f Error in get_outgoing_rpackets: %d\n", tet.split(), dt.lap(), iretn);
+                        }
                     }
                 }
             }
