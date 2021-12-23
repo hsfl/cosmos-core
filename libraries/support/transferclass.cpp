@@ -276,7 +276,9 @@ namespace Cosmos {
             {
                 for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                 {
-                    if (txq[(node_id)].outgoing.progress[tx_id].tx_id == tx_id && !txq[(node_id)].outgoing.progress[tx_id].sentmeta)
+                    if (txq[(node_id)].outgoing.progress[tx_id].tx_id == tx_id
+                    && !txq[(node_id)].outgoing.progress[tx_id].sentmeta
+                    && txq[(node_id)].outgoing.progress[tx_id].enabled)
                     {
                         tx_progress tx = txq[(node_id)].outgoing.progress[tx_id];
                         PacketComm packet;
@@ -292,7 +294,9 @@ namespace Cosmos {
             if (txq[(node_id)].outgoing.sentqueue)
             {
                 uint16_t tx_id = choose_outgoing_tx_id((node_id));
-                if (txq[(node_id)].outgoing.progress[tx_id].tx_id == tx_id && txq[(node_id)].outgoing.progress[tx_id].sentmeta && !txq[(node_id)].outgoing.progress[tx_id].sentdata)
+                if (txq[(node_id)].outgoing.progress[tx_id].tx_id == tx_id
+                && txq[(node_id)].outgoing.progress[tx_id].sentmeta
+                && !txq[(node_id)].outgoing.progress[tx_id].sentdata)
                 {
                     if (txq[(node_id)].outgoing.progress[tx_id].file_size)
                     {
@@ -378,7 +382,8 @@ namespace Cosmos {
             {
                 for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                 {
-                    if (txq[(node_id)].outgoing.progress[tx_id].tx_id == tx_id && txq[(node_id)].outgoing.progress[tx_id].complete)
+                    if (txq[(node_id)].outgoing.progress[tx_id].tx_id == tx_id
+                    && txq[(node_id)].outgoing.progress[tx_id].complete)
                     {
                         // Remove from queue
                         outgoing_tx_del(node_id, tx_id);
@@ -395,7 +400,9 @@ namespace Cosmos {
             if (txq[(node_id)].outgoing.sentqueue)
             {
                 for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id) {
-                    if (txq[(node_id)].outgoing.progress[tx_id].tx_id == tx_id && txq[(node_id)].outgoing.progress[tx_id].sentdata && !txq[(node_id)].outgoing.progress[tx_id].complete) {
+                    if (txq[(node_id)].outgoing.progress[tx_id].tx_id == tx_id
+                    && txq[(node_id)].outgoing.progress[tx_id].sentdata
+                    && !txq[(node_id)].outgoing.progress[tx_id].complete) {
                         PacketComm packet;
                         serialize_reqcomplete(packet,  static_cast <PACKET_NODE_ID_TYPE>(node_id), tx_id);
                         packets.push_back(packet);
@@ -490,7 +497,8 @@ namespace Cosmos {
             // Send REQDATA packet if there is still data to be gotten
             for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
             {
-                if (txq[(node_id)].incoming.progress[tx_id].tx_id && !txq[(node_id)].incoming.progress[tx_id].sentdata)
+                if (txq[(node_id)].incoming.progress[tx_id].tx_id
+                && !txq[(node_id)].incoming.progress[tx_id].sentdata)
                 {
                     // Ask for missing data
                     vector<file_progress> missing;
@@ -507,7 +515,8 @@ namespace Cosmos {
             // Send Complete packets if required
             for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
             {
-                if (txq[(node_id)].incoming.progress[tx_id].tx_id == tx_id && txq[node_id].incoming.progress[tx_id].sentdata)
+                if (txq[(node_id)].incoming.progress[tx_id].tx_id == tx_id
+                && txq[node_id].incoming.progress[tx_id].sentdata)
                 {
                     // Move file over to final destination and delete any temp files
                     incoming_tx_del(node_id, tx_id);
@@ -569,14 +578,14 @@ namespace Cosmos {
                     if (txq[(node_id)].outgoing.progress[i].file_size == file_size)
                     {
                         // This file transaction already exists and doesn't need to be added
-                        if (!txq[(node_id)].outgoing.progress[i].enabled)
+                        /*if (!txq[(node_id)].outgoing.progress[i].enabled)
                         {
                             txq[(node_id)].outgoing.progress[i].enabled = true;
                             if (agent->get_debug_level())
                             {
                                 agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d\n", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
                             }
-                        }
+                        }*/
                         return outgoing_tx_recount(node_id);
                     }
                     else
@@ -612,7 +621,7 @@ namespace Cosmos {
                 tx_out.sentmeta = false;
                 tx_out.sentdata = false;
                 tx_out.complete = false;
-                tx_out.enabled = true;
+                tx_out.enabled = false;
                 tx_out.total_bytes = 0;
                 tx_out.node_name = node_name;
                 tx_out.agent_name = agent_name;
@@ -874,6 +883,10 @@ namespace Cosmos {
             return txq[(node_id)].outgoing.size;
         }
 
+        //! Choose a file to send out.
+        //! File is chosen on various metrics, such as the smallest remaining size.
+        //! \param node_id ID of the node to send to
+        //! \return tx_id of a valid file or 0 if nothing is chosen
         PACKET_TX_ID_TYPE Transfer::choose_outgoing_tx_id(uint8_t node_id)
         {
             PACKET_TX_ID_TYPE tx_id = 0;
@@ -1144,6 +1157,7 @@ namespace Cosmos {
 
                 txq[(node_id)].incoming.progress[tx_id].tx_id = 0;
                 txq[(node_id)].incoming.progress[tx_id].complete = false;
+                txq[(node_id)].incoming.progress[tx_id].file_info.clear();
 
                 string filepath;
                 // Remove the DATA file
@@ -1787,4 +1801,78 @@ namespace Cosmos {
         }
 
     }
+}
+
+//! Get a list of all files in the outgoing queue.
+//! Returns a json string list of outgoing files, with the following keys:
+//! - tx_id: The transaction ID
+//! - file_name: Name of the file
+//! - file_size: Size of the file (in bytes)
+//! - node_name: The name of the node to send to
+//! - enabled: Whether the file is marked for transfer
+//! \param s Reference to string to fill
+//! \return 0 on success
+int32_t Transfer::list_outgoing(string& s)
+{
+    int32_t iretn = 0;
+    vector<json11::Json> jlist;
+    for (uint16_t node_id=0; node_id<txq.size(); ++node_id)
+    {
+        if ((check_node_id(node_id)) > 0)
+        {
+            for(tx_progress tx : txq[(node_id)].outgoing.progress)
+            {
+                if (tx.tx_id)
+                {
+                    jlist.push_back(json11::Json::object {
+                        { "tx_id", tx.tx_id },
+                        { "file_name", tx.file_name },
+                        { "file_size", tx.file_size },
+                        { "node_name", tx.node_name },
+                        { "enabled", tx.enabled }
+                    });
+                }
+            }
+        }
+    }
+    s = json11::Json(jlist).dump();
+
+    return iretn;
+}
+
+//! Get a list of all files in the incoimng queue.
+//! Returns a json string list of incoming files, with the following keys:
+//! - tx_id: The transaction ID
+//! - file_name: Name of the file
+//! - file_size: Size of the full file (in bytes)
+//! - total_bytes: Total bytes received so far
+//! - sent_meta: Whether the meta has been received for this file
+//! \param s Reference to string to fill
+//! \return 0 on success
+int32_t Transfer::list_incoming(string& s)
+{
+    int32_t iretn = 0;
+    vector<json11::Json> jlist;
+    for (uint16_t node_id=0; node_id<txq.size(); ++node_id)
+    {
+        if ((check_node_id(node_id)) > 0)
+        {
+            for(tx_progress tx : txq[(node_id)].incoming.progress)
+            {
+                if (tx.tx_id)
+                {
+                    jlist.push_back(json11::Json::object {
+                        { "tx_id", tx.tx_id },
+                        { "file_name", tx.file_name },
+                        { "file_size", tx.file_size },
+                        { "total_bytes", tx.total_bytes },
+                        { "sent_meta", tx.sentmeta }
+                    });
+                }
+            }
+        }
+    }
+    s = json11::Json(jlist).dump();
+
+    return iretn;
 }

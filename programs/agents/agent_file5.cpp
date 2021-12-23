@@ -119,6 +119,12 @@ int32_t mysendto(int32_t use_channel, PacketComm& packet);
 int32_t myrecvfrom(string type, socket_channel &channel, PacketComm& buf, uint32_t length, double dtimeout=1.);
 void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use_channel);
 
+// Agent request functions
+int32_t request_ls(string &request, string &response, Agent *agent);
+int32_t request_list_incoming(string &request, string &response, Agent *agent);
+int32_t request_list_outgoing(string &request, string &response, Agent *agent);
+int32_t request_remove_file(string &request, string &response, Agent *agent);
+//int32_t request_send_file(string &request, string &response, Agent *agent);
 
 // main loop
 int main(int argc, char *argv[])
@@ -143,6 +149,7 @@ int main(int argc, char *argv[])
     {
         agent->set_debug_level(0);
     }
+
     if ((iretn = agent->wait()) < 0)
     {
         agent->debug_error.Printf("%.4f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
@@ -205,6 +212,18 @@ int main(int argc, char *argv[])
         logstride_sec = 600.; // longer logstride
     }
 
+    // Add agent requests
+    if ((iretn=agent->add_request("remove_file",request_remove_file,"in|out tx_id", "removes file from indicated queue")))
+        exit (iretn);
+    //	if ((iretn=agent->add_request("send_file",request_send_file,"", "creates and sends metadata/data packets")))
+    //		exit (iretn);
+    if ((iretn=agent->add_request("ls",request_ls,"", "lists contents of directory")))
+        exit (iretn);
+    if ((iretn=agent->add_request("list_incoming",request_list_incoming,"", "lists contents incoming queue")))
+        exit (iretn);
+    if ((iretn=agent->add_request("list_outgoing",request_list_outgoing,"", "lists contents outgoing queue")))
+        exit (iretn);
+
     // Initialize Transfer class
     iretn = transfer.Init(agent);
     if (iretn < 0)
@@ -223,6 +242,7 @@ int main(int argc, char *argv[])
         nextdiskcheck = currentmjd();
     }
 
+    // Start send and recv threads
     recv_loop_thread = thread([=] { recv_loop(); });
     send_loop_thread = thread([=] { send_loop(); });
 
@@ -667,4 +687,89 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
         // fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
+}
+
+// Agent request functions
+
+int32_t request_ls(string &request, string &response, Agent *agent)
+{
+
+    //the request string == "ls directoryname"
+    //get the directory name
+    //    char directoryname[COSMOS_MAX_NAME+1];
+    //    memmove(directoryname, request.substr(3), COSMOS_MAX_NAME);
+    /*string directoryname = request.substr(3);
+
+    DIR* dir;
+    struct dirent* ent;
+
+    string all_file_names;
+
+    if((dir = opendir(directoryname.c_str())) != nullptr)
+    {
+        while (( ent = readdir(dir)) != nullptr)
+        {
+            all_file_names += ent->d_name;
+            all_file_names += "\n";
+        }
+        closedir(dir);
+
+        (response = all_file_names.c_str());
+    }
+    else
+        response =  "unable to open directory " + directoryname;*/
+    return 0;
+}
+
+//! Request a list of all files in the incoming queue.
+//! Returns a json string list of incoming files, with the following keys:
+//! - tx_id: The transaction ID
+//! - file_name: Name of the file
+//! - file_size: Size of the full file (in bytes)
+//! - total_bytes: Total bytes received so far
+//! - sent_meta: Whether the meta has been received for this file
+int32_t request_list_incoming(string &request, string &response, Agent *agent)
+{
+    int32_t iretn;
+    response.clear();
+    transfer.list_incoming(response);
+
+    return 0;
+}
+
+//! Request a list of all files in the outgoing queue.
+//! Returns a json string list of outgoing files, with the following keys:
+//! - tx_id: The transaction ID
+//! - file_name: Name of the file
+//! - file_size: Size of the file (in bytes)
+//! - node_name: The name of the node to send to
+//! - enabled: Whether the file is marked for transfer
+int32_t request_list_outgoing(string &request, string &response, Agent *agent)
+{
+    int32_t iretn;
+    response.clear();
+    transfer.list_outgoing(response);
+
+    return 0;
+}
+
+int32_t request_remove_file(string &request, string &response, Agent *agent)
+{
+    char type;
+    uint32_t tx_id;
+
+    /*sscanf(request.c_str(), "%*s %c %u\n", &type, &tx_id);
+    switch (type)
+    {
+    case 'i':
+        {
+            break;
+        }
+    case 'o':
+        {
+            break;
+        }
+    }*/
+
+    return 0;
 }
