@@ -277,15 +277,14 @@ namespace Cosmos {
                 for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                 {
                     if (txq[(node_id)].outgoing.progress[tx_id].tx_id == tx_id
-                    && !txq[(node_id)].outgoing.progress[tx_id].sentmeta
-                    && txq[(node_id)].outgoing.progress[tx_id].enabled)
+                    && !txq[(node_id)].outgoing.progress[tx_id].sentmeta)
                     {
                         tx_progress tx = txq[(node_id)].outgoing.progress[tx_id];
                         PacketComm packet;
                         serialize_metadata(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.agent_name.c_str());
                         packets.push_back(packet);
                         txq[(node_id)].outgoing.progress[tx_id].sentmeta = true;
-                        break;
+                        //break; // TODO: consider this
                     }
                 }
             }
@@ -293,6 +292,7 @@ namespace Cosmos {
             // Send DATA packets if we have data to send
             if (txq[(node_id)].outgoing.sentqueue)
             {
+                // note: total_bytes is updated here when merge_chunks_overlap() is called inside choose_outgoing_tx_id()
                 uint16_t tx_id = choose_outgoing_tx_id((node_id));
                 if (txq[(node_id)].outgoing.progress[tx_id].tx_id == tx_id
                 && txq[(node_id)].outgoing.progress[tx_id].sentmeta
@@ -476,8 +476,9 @@ namespace Cosmos {
                 PACKET_TX_ID_TYPE iq = 0;
                 for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                 {
-                    // META is requested if it hasn't been sent yet but data may be temporarily stored until clarification
-                    if (!txq[(node_id)].incoming.progress[tx_id].sentmeta && txq[(node_id)].incoming.progress[tx_id].total_bytes > 0)
+                    // META is requested if it hasn't been sent yet but DATA was being received
+                    if (!txq[(node_id)].incoming.progress[tx_id].sentmeta
+                    && txq[(node_id)].incoming.progress[tx_id].total_bytes > 0)
                     {
                         tqueue[iq++] = tx_id;
                     }
@@ -578,14 +579,14 @@ namespace Cosmos {
                     if (txq[(node_id)].outgoing.progress[i].file_size == file_size)
                     {
                         // This file transaction already exists and doesn't need to be added
-                        /*if (!txq[(node_id)].outgoing.progress[i].enabled)
+                        if (!txq[(node_id)].outgoing.progress[i].enabled)
                         {
                             txq[(node_id)].outgoing.progress[i].enabled = true;
                             if (agent->get_debug_level())
                             {
                                 agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d\n", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
                             }
-                        }*/
+                        }
                         return outgoing_tx_recount(node_id);
                     }
                     else
@@ -1803,6 +1804,27 @@ namespace Cosmos {
     }
 }
 
+//! Set the enabled status of an outgoing tx_id
+//! \param node_id ID of receiving node in the node table
+//! \param tx_id Transfer ID of file
+//! \param enabled Set to mark file for transfer
+//! \return 0 on success
+int32_t Transfer::set_enabled(uint8_t node_id, PACKET_TX_ID_TYPE tx_id, bool enabled)
+{
+    if (check_node_id(node_id) <= 0)
+    {
+        return TRANSFER_ERROR_NODE;
+    }
+    if (check_tx_id(txq[(node_id)].outgoing, tx_id) <= 0)
+    {
+        return TRANSFER_ERROR_MATCH;
+    }
+
+    txq[(node_id)].outgoing.progress[tx_id].enabled = enabled;
+
+    return 0;
+}
+
 //! Get a list of all files in the outgoing queue.
 //! Returns a json string list of outgoing files, with the following keys:
 //! - tx_id: The transaction ID
@@ -1810,11 +1832,9 @@ namespace Cosmos {
 //! - file_size: Size of the file (in bytes)
 //! - node_name: The name of the node to send to
 //! - enabled: Whether the file is marked for transfer
-//! \param s Reference to string to fill
-//! \return 0 on success
-int32_t Transfer::list_outgoing(string& s)
+//! \return json string list of outgoing files
+string Transfer::list_outgoing()
 {
-    int32_t iretn = 0;
     vector<json11::Json> jlist;
     for (uint16_t node_id=0; node_id<txq.size(); ++node_id)
     {
@@ -1835,23 +1855,21 @@ int32_t Transfer::list_outgoing(string& s)
             }
         }
     }
-    s = json11::Json(jlist).dump();
+    string s = json11::Json(jlist).dump();
 
-    return iretn;
+    return s;
 }
 
-//! Get a list of all files in the incoimng queue.
+//! Get a list of all files in the incoming queue.
 //! Returns a json string list of incoming files, with the following keys:
 //! - tx_id: The transaction ID
 //! - file_name: Name of the file
 //! - file_size: Size of the full file (in bytes)
 //! - total_bytes: Total bytes received so far
 //! - sent_meta: Whether the meta has been received for this file
-//! \param s Reference to string to fill
-//! \return 0 on success
-int32_t Transfer::list_incoming(string& s)
+//! \return json string list of incoming files
+string Transfer::list_incoming()
 {
-    int32_t iretn = 0;
     vector<json11::Json> jlist;
     for (uint16_t node_id=0; node_id<txq.size(); ++node_id)
     {
@@ -1872,7 +1890,7 @@ int32_t Transfer::list_incoming(string& s)
             }
         }
     }
-    s = json11::Json(jlist).dump();
+    string s = json11::Json(jlist).dump();
 
-    return iretn;
+    return s;
 }

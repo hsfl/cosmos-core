@@ -229,6 +229,7 @@ namespace Cosmos {
 
         //! Create a long METADATA-type PacketComm packet.
         //! Includes node_name, omits node_id information.
+        //! Used by write_meta()
         //! \param packet Reference to a PacketComm packet to fill in
         //! \param tx_id Transaction ID of file transfer
         //! \param file_name Name of the file
@@ -523,7 +524,7 @@ namespace Cosmos {
                     updated = true;
                 }
             }
-            
+
             return updated;
         }
 

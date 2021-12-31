@@ -125,6 +125,7 @@ int32_t request_list_incoming(string &request, string &response, Agent *agent);
 int32_t request_list_outgoing(string &request, string &response, Agent *agent);
 int32_t request_remove_file(string &request, string &response, Agent *agent);
 //int32_t request_send_file(string &request, string &response, Agent *agent);
+int32_t request_set_enabled(string &request, string &response, Agent *agent);
 
 // main loop
 int main(int argc, char *argv[])
@@ -222,6 +223,8 @@ int main(int argc, char *argv[])
     if ((iretn=agent->add_request("list_incoming",request_list_incoming,"", "lists contents incoming queue")))
         exit (iretn);
     if ((iretn=agent->add_request("list_outgoing",request_list_outgoing,"", "lists contents outgoing queue")))
+        exit (iretn);
+    if ((iretn=agent->add_request("set_enabled",request_set_enabled,"node_id tx_id 0|1", "sets the enabled status of a tx_id")))
         exit (iretn);
 
     // Initialize Transfer class
@@ -416,9 +419,6 @@ void recv_loop() noexcept
 
                 // Send out appropriate response-type file packets if required
                 if (iretn == Transfer::RESPONSE_REQUIRED) {
-                    // in a more manual configuration, signal send loop to send back response-type packets with mode set to:
-                    // transfer.get_outgoing_packets(packets, Transfer::GET_OUTGOING_RESPONSES);
-                    // But since the main thread calls get_outgoing_packets() at regular intervals in this program, it's not necessary
                     iretn = transfer.get_outgoing_rpackets(node_name, packets);
 
                     if (iretn < 0) {
@@ -730,9 +730,8 @@ int32_t request_ls(string &request, string &response, Agent *agent)
 //! - sent_meta: Whether the meta has been received for this file
 int32_t request_list_incoming(string &request, string &response, Agent *agent)
 {
-    int32_t iretn;
     response.clear();
-    transfer.list_incoming(response);
+    response = transfer.list_incoming();
 
     return 0;
 }
@@ -746,19 +745,18 @@ int32_t request_list_incoming(string &request, string &response, Agent *agent)
 //! - enabled: Whether the file is marked for transfer
 int32_t request_list_outgoing(string &request, string &response, Agent *agent)
 {
-    int32_t iretn;
     response.clear();
-    transfer.list_outgoing(response);
+    response = transfer.list_outgoing();
 
     return 0;
 }
 
 int32_t request_remove_file(string &request, string &response, Agent *agent)
 {
-    char type;
+    /*char type;
     uint32_t tx_id;
 
-    /*sscanf(request.c_str(), "%*s %c %u\n", &type, &tx_id);
+    sscanf(request.c_str(), "%*s %c %u\n", &type, &tx_id);
     switch (type)
     {
     case 'i':
@@ -772,4 +770,20 @@ int32_t request_remove_file(string &request, string &response, Agent *agent)
     }*/
 
     return 0;
+}
+
+//! Set the enabled status of an outgoing file transfer
+int32_t request_set_enabled(string &request, string &response, Agent *agent)
+{
+    int32_t iretn = 0;
+    uint8_t node_id;
+    PACKET_TX_ID_TYPE tx_id;
+    int enabled;
+
+    if (sscanf(request.c_str(), "%*s %d %d %d", &node_id, &tx_id, &enabled) == 3)
+    {
+        iretn = transfer.set_enabled(node_id, tx_id, enabled);
+    }
+
+    return iretn;
 }

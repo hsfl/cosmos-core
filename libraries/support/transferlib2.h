@@ -213,19 +213,29 @@ namespace Cosmos {
         struct tx_progress
         {
             PACKET_TX_ID_TYPE tx_id=0;
+            // Whether the file is marked for transfer
             bool enabled=false;
+            // If initial METADATA has been sent/received
             bool sentmeta=false;
+            // If all DATA has been sent/received
             bool sentdata=false;
+            // For sender, set if COMPLETE packed has been received
             bool complete=false;
             string node_name="";
             string agent_name="";
             string file_name="";
+            // Path to final file location
             string filepath="";
+            // Path to temporary meta and incomplete data files
             string temppath="";
+            // Time of last write_meta()
             double savetime;
             double datatime=0.;
+            // Size of the full file
             PACKET_FILE_SIZE_TYPE file_size=0;
+            // Total bytes sent/received so far
             PACKET_FILE_SIZE_TYPE total_bytes=0;
+            // Chunks to be sent, or chunks that have been received
             deque<file_progress> file_info;
             FILE * fp;
         };
