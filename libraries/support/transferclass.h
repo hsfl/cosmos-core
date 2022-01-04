@@ -106,6 +106,7 @@ namespace Cosmos {
             int32_t incoming_tx_add(tx_progress &tx_in);
             int32_t incoming_tx_update(packet_struct_metashort meta);
             int32_t incoming_tx_del(uint8_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
+            int32_t incoming_tx_complete(uint8_t node_id, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
             int32_t incoming_tx_recount(uint8_t node_id);
 
             int32_t write_meta(tx_progress& tx, double interval=5.);
