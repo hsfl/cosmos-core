@@ -81,7 +81,6 @@ namespace Cosmos {
         //! \return n/a
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue)
         {
-            // TODO: remove magic numbers for packet type for all of these
             packet.type = PacketComm::TypeId::FileQueue;
             packet.data.resize(PACKET_QUEUE_OFFSET_TOTAL);
             memset(&packet.data[0], 0, PACKET_QUEUE_OFFSET_TOTAL);
@@ -229,6 +228,7 @@ namespace Cosmos {
 
         //! Create a long METADATA-type PacketComm packet.
         //! Includes node_name, omits node_id information.
+        //! Used by write_meta()
         //! \param packet Reference to a PacketComm packet to fill in
         //! \param tx_id Transaction ID of file transfer
         //! \param file_name Name of the file
@@ -443,11 +443,11 @@ namespace Cosmos {
         }
 
         //! Adds a chunk to the tx_progress vector.
-        //! Used when on an incoming DATA packet.
-        //! \param tx_in The tx_progress of a file in the incoming queue
+        //! Used when a DATA or REQDATA packet is received.
+        //! \param tx The tx_progress of a file in the incoming queue
         //! \param tp Data chunk to add
         //! \return true if tx_in was updated
-        bool add_chunk(tx_progress& tx_in, file_progress& tp)
+        bool add_chunk(tx_progress& tx, file_progress& tp)
         {
             uint32_t check=0;
             bool duplicate = false;
@@ -455,42 +455,42 @@ namespace Cosmos {
             PACKET_CHUNK_SIZE_TYPE byte_count = tp.chunk_end - tp.chunk_start + 1;
 
             // Do we have any data yet?
-            if (!tx_in.file_info.size())
+            if (!tx.file_info.size())
             {
                 // Add first entry, then write data
-                tx_in.file_info.push_back(tp);
-                tx_in.total_bytes += byte_count;
+                tx.file_info.push_back(tp);
+                tx.total_bytes += byte_count;
                 updated = true;
             }
             else
             {
                 // Check against existing data
-                for (uint32_t j=0; j<tx_in.file_info.size(); ++j)
+                for (uint32_t j=0; j<tx.file_info.size(); ++j)
                 {
                     // Check for duplicate
-                    if (tp.chunk_start >= tx_in.file_info[j].chunk_start && tp.chunk_end <= tx_in.file_info[j].chunk_end)
+                    if (tp.chunk_start >= tx.file_info[j].chunk_start && tp.chunk_end <= tx.file_info[j].chunk_end)
                     {
                         duplicate = true;
                         break;
                     }
                     // If we start before this entry
-                    if (tp.chunk_start < tx_in.file_info[j].chunk_start)
+                    if (tp.chunk_start < tx.file_info[j].chunk_start)
                     {
                         // If we end before this entry (at least one byte between), insert
-                        if (tp.chunk_end + 1 < tx_in.file_info[j].chunk_start)
+                        if (tp.chunk_end + 1 < tx.file_info[j].chunk_start)
                         {
-                            tx_in.file_info.insert(tx_in.file_info.begin()+j, tp);
-                            tx_in.total_bytes += byte_count;
+                            tx.file_info.insert(tx.file_info.begin()+j, tp);
+                            tx.total_bytes += byte_count;
                             updated = true;
                             break;
                         }
                         // Otherwise, extend the near end
                         else
                         {
-                            tp.chunk_end = tx_in.file_info[j].chunk_start - 1;
-                            tx_in.file_info[j].chunk_start = tp.chunk_start;
+                            tp.chunk_end = tx.file_info[j].chunk_start - 1;
+                            tx.file_info[j].chunk_start = tp.chunk_start;
                             byte_count = (tp.chunk_end - tp.chunk_start) + 1;
-                            tx_in.total_bytes += byte_count;
+                            tx.total_bytes += byte_count;
                             updated = true;
                             break;
                         }
@@ -498,14 +498,14 @@ namespace Cosmos {
                     else
                     {
                         // If we overlap on the end, extend the far end
-                        if (tp.chunk_start <= tx_in.file_info[j].chunk_end + 1)
+                        if (tp.chunk_start <= tx.file_info[j].chunk_end + 1)
                         {
-                            if (tp.chunk_end > tx_in.file_info[j].chunk_end)
+                            if (tp.chunk_end > tx.file_info[j].chunk_end)
                             {
-                                byte_count = tp.chunk_end - tx_in.file_info[j].chunk_end;
-                                tp.chunk_start = tx_in.file_info[j].chunk_end + 1;
-                                tx_in.file_info[j].chunk_end = tp.chunk_end;
-                                tx_in.total_bytes += byte_count;
+                                byte_count = tp.chunk_end - tx.file_info[j].chunk_end;
+                                tp.chunk_start = tx.file_info[j].chunk_end + 1;
+                                tx.file_info[j].chunk_end = tp.chunk_end;
+                                tx.total_bytes += byte_count;
                                 updated = true;
                                 break;
                             }
@@ -516,14 +516,14 @@ namespace Cosmos {
 
 
                 // If we are higher than everything currently in the list, then append
-                if (!duplicate && check == tx_in.file_info.size())
+                if (!duplicate && check == tx.file_info.size())
                 {
-                    tx_in.file_info.push_back(tp);
-                    tx_in.total_bytes += byte_count;
+                    tx.file_info.push_back(tp);
+                    tx.total_bytes += byte_count;
                     updated = true;
                 }
             }
-            
+
             return updated;
         }
 

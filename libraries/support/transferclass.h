@@ -64,9 +64,10 @@ namespace Cosmos {
             int32_t get_outgoing_rpackets(string node_name, vector<PacketComm> &packets);
             int32_t receive_packet(const PacketComm& packet);
 
-            // Various info grabbing
-            int32_t list_outgoing(string& s);
-            int32_t list_incoming(string &s);
+            // Various publicly available requests
+            int32_t set_enabled(uint8_t node_id, PACKET_TX_ID_TYPE tx_id, bool enabled);
+            string list_outgoing();
+            string list_incoming();
 
             // Various checks
             int32_t check_node_id(PACKET_NODE_ID_TYPE node_id);
@@ -105,6 +106,7 @@ namespace Cosmos {
             int32_t incoming_tx_add(tx_progress &tx_in);
             int32_t incoming_tx_update(packet_struct_metashort meta);
             int32_t incoming_tx_del(uint8_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
+            int32_t incoming_tx_complete(uint8_t node_id, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
             int32_t incoming_tx_recount(uint8_t node_id);
 
             int32_t write_meta(tx_progress& tx, double interval=5.);

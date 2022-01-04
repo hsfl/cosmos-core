@@ -209,34 +209,50 @@ namespace Cosmos {
             PACKET_FILE_SIZE_TYPE	chunk_end;
         };
 
-        /// Holds info about the transfer progress of a single file.
+        /// Holds data about the transfer progress of a single file.
         struct tx_progress
         {
             PACKET_TX_ID_TYPE tx_id=0;
+            // Whether the file is marked for transfer
             bool enabled=false;
+            // If initial METADATA has been sent/received
             bool sentmeta=false;
+            // If all DATA has been sent/received
             bool sentdata=false;
+            // For sender, set if COMPLETE packed has been received
             bool complete=false;
             string node_name="";
             string agent_name="";
             string file_name="";
+            // Path to final file location
             string filepath="";
+            // Path to temporary meta and incomplete data files
             string temppath="";
+            // Time of last write_meta()
             double savetime;
             double datatime=0.;
+            // Time the last response request or respond packet was sent
+            double next_response = 0.;
+            // Size of the full file
             PACKET_FILE_SIZE_TYPE file_size=0;
+            // Total bytes sent/received so far
             PACKET_FILE_SIZE_TYPE total_bytes=0;
+            // Chunks to be sent, or chunks that have been received
             deque<file_progress> file_info;
             FILE * fp;
         };
 
-        /// Holds info about the queue of file transfers in progress.
+        /// Holds data about the queue of file transfers in progress.
         struct tx_entry
         {
             bool sentqueue = false;
             PACKET_TX_ID_TYPE size;
             PACKET_TX_ID_TYPE next_id;
             string node_name="";
+            // Time to wait before sending out another response request or respond packet
+            double waittime = 60./86400.;
+            // Vector of tx_id's needing responses. Used by the incoming queue.
+            vector<PACKET_TX_ID_TYPE> respond;
             tx_progress progress[PROGRESS_QUEUE_SIZE];
         };
 
