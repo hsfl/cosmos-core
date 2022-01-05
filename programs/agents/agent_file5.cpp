@@ -654,11 +654,11 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
         case PacketComm::TypeId::FileQueue:
             {
                 agent->debug_error.Printf("[QUEUE] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
-                for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
-                    if (packet.data[PACKET_QUEUE_OFFSET_TX_ID+i])
-                    {
-                        agent->debug_error.Printf("%u ", packet.data[PACKET_QUEUE_OFFSET_TX_ID+i]);
-                    }
+                for (uint16_t i=0; i<16; ++i) // TODO: fix magic number
+                {
+                    uint16_t flags = uint16from(&packet.data[PACKET_QUEUE_OFFSET_TX_ID+(2*i)], ByteOrder::LITTLEENDIAN);
+                    agent->debug_error.Printf("%u ", flags);
+                }
             }
             break;
         case PacketComm::TypeId::FileHeartbeat:

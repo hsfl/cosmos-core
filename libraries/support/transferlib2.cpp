@@ -86,7 +86,17 @@ namespace Cosmos {
             memset(&packet.data[0], 0, PACKET_QUEUE_OFFSET_TOTAL);
             memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_NODE_ID,   &node_id,          COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
             memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_NODE_NAME, node_name.c_str(), node_name.size());
-            memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_TX_ID,     &queue[0],         COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
+            
+            vector<PACKET_QUEUE_FLAGS_TYPE> row(PACKET_QUEUE_FLAGS_LIMIT, 0);
+            for (PACKET_TX_ID_TYPE tx_id : queue)
+            {
+                // Note: this logic assumes that PACKET_QUEUE_FLAGS_TYPE is a uint16_t
+                uint8_t flags = tx_id >> 4;
+                uint8_t lshift = tx_id & 31;
+                PACKET_QUEUE_FLAGS_TYPE mask = 1 << lshift;
+                row[flags] |= mask;
+            }
+            memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_TX_ID,     &row[0],         COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE) * PACKET_QUEUE_FLAGS_LIMIT);
         }
 
         //! Extracts the necessary fields from a received QUEUE packet.
@@ -97,7 +107,7 @@ namespace Cosmos {
         {
             memmove(&queue.node_id,   &pdata[0]+PACKET_QUEUE_OFFSET_NODE_ID,   COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
             memmove(&queue.node_name, &pdata[0]+PACKET_QUEUE_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
-            memmove(&queue.tx_id,     &pdata[0]+PACKET_QUEUE_OFFSET_TX_ID,     COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
+            memmove(&queue.tx_ids,    &pdata[0]+PACKET_QUEUE_OFFSET_TX_ID,     COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE) * PACKET_QUEUE_FLAGS_LIMIT);
         }
 
         //! Create a CANCEL-type PacketComm packet.
