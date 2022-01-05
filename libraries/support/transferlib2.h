@@ -81,10 +81,13 @@ namespace Cosmos {
 
         typedef uint16_t PACKET_QUEUE_FLAGS_TYPE;
         #define PACKET_QUEUE_FLAGS_LIMIT (PROGRESS_QUEUE_SIZE/(COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE)*8))
+        
         struct packet_struct_queue
         {
             PACKET_NODE_ID_TYPE node_id;
             char node_name[COSMOS_MAX_NAME+1];
+            //! An array of 16 uint16_t's, equaling 256 bits total, each corresponding to
+            //! a tx_id in the outgoing/incoming queues.
             PACKET_QUEUE_FLAGS_TYPE tx_ids[PACKET_QUEUE_FLAGS_LIMIT];
         };
 

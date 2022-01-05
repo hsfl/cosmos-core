@@ -654,9 +654,10 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
         case PacketComm::TypeId::FileQueue:
             {
                 agent->debug_error.Printf("[QUEUE] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
-                for (uint16_t i=0; i<16; ++i) // TODO: fix magic number
+                // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint16_t type
+                for (PACKET_QUEUE_FLAGS_TYPE i=0; i<PACKET_QUEUE_FLAGS_LIMIT; ++i)
                 {
-                    uint16_t flags = uint16from(&packet.data[PACKET_QUEUE_OFFSET_TX_ID+(2*i)], ByteOrder::LITTLEENDIAN);
+                    PACKET_QUEUE_FLAGS_TYPE flags = uint16from(&packet.data[PACKET_QUEUE_OFFSET_TX_ID+(2*i)], ByteOrder::LITTLEENDIAN);
                     agent->debug_error.Printf("%u ", flags);
                 }
             }
