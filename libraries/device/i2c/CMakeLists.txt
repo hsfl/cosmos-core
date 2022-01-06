@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 #if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
     FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)

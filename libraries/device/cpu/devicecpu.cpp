@@ -668,7 +668,7 @@ float DeviceCpuLinux::getPercentCpuOf(string processName)
         return 0;
     }
 
-    COSMOS_SLEEP(1.0);
+    secondsleep(1.0);
 
     procStat pStat2;
     procPidStat p2(processName);

@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
         }
         if (sleepsec > 0.)
         {
-            COSMOS_SLEEP((sleepsec));
+            secondsleep((sleepsec));
         }
 
         if(currentmjd() > nextlog) {
@@ -322,12 +322,12 @@ void recv_loop() noexcept
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
         else
         {
-            COSMOS_SLEEP(.001);
+            secondsleep(.001);
         }
 
         while (( nbytes = myrecvfrom("Incoming", rchannel, p, PACKET_MAX_LENGTH)) > 0)
@@ -358,7 +358,7 @@ int32_t mysendto(string type, int32_t use_channel, PacketComm& packet)
 
     if ((cmjd = currentmjd(0.)) < out_comm_channel[use_channel].nmjd)
     {
-        COSMOS_SLEEP((86400. * (out_comm_channel[use_channel].nmjd - cmjd)));
+        secondsleep((86400. * (out_comm_channel[use_channel].nmjd - cmjd)));
     }
 
     iretn = sendto(out_comm_channel[use_channel].chansock.cudp, reinterpret_cast<const char*>(&packet.packetized[0]), packet.packetized.size(), 0, reinterpret_cast<sockaddr*>(&out_comm_channel[use_channel].chansock.caddr), sizeof(struct sockaddr_in));
@@ -479,7 +479,7 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
             }
         }
 
-        switch (packet.type)
+        switch (packet.header.type)
         {
         case PacketComm::TypeId::FileMetaData:
             {
@@ -551,7 +551,7 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
             }
         default:
             {
-                agent->debug_error.Printf("[ERROR] %u %s", node_id, "Error in debug_packet switch on packet.type");
+                agent->debug_error.Printf("[ERROR] %u %s", node_id, "Error in debug_packet switch on packet.header.type");
             }
         }
         agent->debug_error.Printf("\n");

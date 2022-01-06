@@ -34,7 +34,7 @@ namespace Cosmos {
                 if (agent->cinfo->devspec.cpu.size() && agent->cinfo->devspec.disk.size())
                 {
                     cpu1_beacons beacon;
-                    beacon.met = agent->cinfo->node.met;
+                    beacon.met = (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart);
                     beacon.load = agent->cinfo->devspec.cpu[0].load;
                     beacon.memory = agent->cinfo->devspec.cpu[0].gib;
                     beacon.disk = agent->cinfo->devspec.disk[0].gib;
@@ -45,7 +45,7 @@ namespace Cosmos {
                 if (agent->cinfo->devspec.cpu.size() && agent->cinfo->devspec.disk.size())
                 {
                     cpu2_beacons beacon;
-                    beacon.met = agent->cinfo->node.met;
+                    beacon.met = (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart);
                     beacon.uptime = agent->cinfo->devspec.cpu[0].uptime;
                     beacon.bootcount = agent->cinfo->devspec.cpu[0].boot_count;
                     beacon.initialdate = agent->cinfo->node.utcstart;
@@ -56,7 +56,7 @@ namespace Cosmos {
                 if (agent->cinfo->devspec.tsen.size() >= 3)
                 {
                     temp_beacons beacon;
-                    beacon.met = agent->cinfo->node.met;
+                    beacon.met = (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart);
                     for (uint16_t i=0; i<3; ++i)
                     {
                         beacon.temp[i] = agent->cinfo->devspec.tsen[i].temp;
@@ -70,7 +70,7 @@ namespace Cosmos {
                     if (agent->cinfo->devspec.cpu[i].name.find("eps") != string::npos)
                     {
                         epscpu_beacons beacon;
-                        beacon.met = agent->cinfo->node.met;
+                        beacon.met = (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart);
                         beacon.volt = agent->cinfo->devspec.cpu[i].volt;
                         beacon.amp = agent->cinfo->devspec.cpu[i].amp;
                         beacon.temp = agent->cinfo->devspec.cpu[i].temp;
@@ -82,7 +82,7 @@ namespace Cosmos {
             case TypeId::EPSPVBeaconS:
                 {
                     epspv_beacons beacon;
-                    beacon.met = agent->cinfo->node.met;
+                    beacon.met = (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart);
                     for (uint16_t i=0; i<agent->cinfo->devspec.pvstrg.size(); ++i)
                     {
                         beacon.volt += agent->cinfo->devspec.pvstrg[i].volt;
@@ -100,7 +100,7 @@ namespace Cosmos {
             case TypeId::EPSSWCHBeaconS:
                 {
                     epsswch_beacons beacon;
-                    beacon.met = agent->cinfo->node.met;
+                    beacon.met = (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart);
                     for (uint16_t i=0; i<agent->cinfo->devspec.swch.size(); ++i)
                     {
                         beacon.volt += agent->cinfo->devspec.swch[i].volt;
@@ -118,7 +118,7 @@ namespace Cosmos {
             case TypeId::EPSBATTBeaconS:
                 {
                     epsbatt_beacons beacon;
-                    beacon.met = agent->cinfo->node.met;
+                    beacon.met = (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart);
                     for (uint16_t i=0; i<agent->cinfo->devspec.batt.size(); ++i)
                     {
                         beacon.volt += agent->cinfo->devspec.batt[i].volt;
@@ -137,7 +137,7 @@ namespace Cosmos {
                 if (agent->cinfo->devspec.cpu.size() && agent->cinfo->devspec.disk.size())
                 {
                     cpu1_beaconl beacon;
-                    beacon.met = agent->cinfo->node.met;
+                    beacon.met = (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart);
                     beacon.initialdate = agent->cinfo->node.utcstart;
                     for (uint16_t i=0; i<agent->cinfo->devspec.cpu.size(); ++i)
                     {

@@ -148,7 +148,7 @@ namespace Support
 
         // Start message listening thread
         mthread = thread([=] { message_loop(); });
-        COSMOS_SLEEP(.1);
+        secondsleep(.1);
 
         // Return if all we are doing is setting up client.
         if (agent_name.empty()) {
@@ -433,7 +433,7 @@ namespace Support
         double sleepsec = 86400.*(activeTimeout - currentmjd());
         activeTimeout += cinfo->agent[0].aprd / 86400.;
         cinfo->agent[0].beat.dcycle = (cinfo->agent[0].aprd - sleepsec) / cinfo->agent[0].aprd;
-        COSMOS_SLEEP(sleepsec);
+        secondsleep(sleepsec);
         return sleepsec*1000000;
     }
 
@@ -478,7 +478,7 @@ namespace Support
 
         ElapsedTime et;
         while (cinfo->agent[0].stateflag != static_cast <uint16_t>(state) && et.split() < waitsec) {
-            COSMOS_SLEEP(.1);
+            secondsleep(.1);
         }
         if (cinfo->agent[0].stateflag == static_cast <uint16_t>(state)) {
             return 0;
@@ -501,7 +501,7 @@ namespace Support
 */
     int32_t Agent::send_request(beatstruc hbeat, string request, string &output, float waitsec, double delay_send, double delay_receive) {
 
-        COSMOS_SLEEP(delay_send);
+        secondsleep(delay_send);
 
         socket_channel sendchan;
         int32_t iretn;
@@ -549,7 +549,7 @@ namespace Support
             string reply(toutput.begin(), toutput.end());
             output = reply;
 
-			COSMOS_SLEEP(delay_receive);
+            secondsleep(delay_receive);
             return (nbytes);
         }
     }
@@ -601,7 +601,7 @@ namespace Support
     {
 
         post(AgentMessage::REQUEST, "heartbeat");
-        COSMOS_SLEEP(.1);
+        secondsleep(.1);
 
         ElapsedTime ep;
         ep.start();
@@ -615,7 +615,7 @@ namespace Support
                     return 1;
                 }
             }
-            COSMOS_SLEEP(.1);
+            secondsleep(.1);
         } while (ep.split() < waitsec);
 
         rbeat.exists = false;
@@ -651,7 +651,7 @@ namespace Support
 
 		// ask all existing agents to send out a heartbeat
 //        post(AgentMessage::REQUEST, "heartbeat");
-//        COSMOS_SLEEP(.1);
+//        secondsleep(.1);
 
 //        ElapsedTime ep;
 //        ep.start();
@@ -664,7 +664,7 @@ namespace Support
 //                    return it;
 //                }
 //            }
-//            COSMOS_SLEEP(.1);
+//            secondsleep(.1);
 //        } while (ep.split() < waitsec);
 
 //        beatstruc nobeat;
@@ -816,10 +816,10 @@ namespace Support
             }
 
             if (cinfo->agent[0].beat.bprd == 0.) {
-                COSMOS_SLEEP(1.);
+                secondsleep(1.);
             } else {
                 if (timer_beat.split() <= cinfo->agent[0].beat.bprd) {
-                    COSMOS_SLEEP(cinfo->agent[0].beat.bprd - timer_beat.split());
+                    secondsleep(cinfo->agent[0].beat.bprd - timer_beat.split());
                 }
             }
         }
@@ -2666,7 +2666,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
             if (ep.split() >= waitsec) {
                 nbytes = 0;
             } else {
-                COSMOS_SLEEP(.1);
+                secondsleep(.1);
             }
         } while (nbytes != 0);
 
@@ -2704,9 +2704,9 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 
             if (ep.split() < waitsec) {
                 if (waitsec - ep.split() > .1) {
-                    COSMOS_SLEEP(.1);
+                    secondsleep(.1);
                 } else {
-                    COSMOS_SLEEP(.05);
+                    secondsleep(.05);
                 }
             }
         } while (ep.split() < waitsec);

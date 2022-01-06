@@ -68,9 +68,9 @@ namespace Cosmos {
 //            int32_t GenerateBeacon(PacketComm &packet);
 
             // Telemetry
-            static int32_t Test(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t Response(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t DecodeBeacon(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t Test(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t FileMeta(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t FileChunk(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
 

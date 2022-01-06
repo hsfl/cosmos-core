@@ -1215,7 +1215,7 @@ namespace Cosmos {
             }
 
             // Respond appropriately according to type of packet
-            switch (packet.type)
+            switch (packet.header.type)
             {
             case PacketComm::TypeId::FileCommand:
                 {

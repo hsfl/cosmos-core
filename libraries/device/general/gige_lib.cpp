@@ -382,7 +382,7 @@ the CCP register and closing all sockets.
                 {
                     continue;
                 }
-                COSMOS_SLEEP(.1);
+                secondsleep(.1);
 
                 tchan.addrlen = sizeof(tchan.caddr);
 

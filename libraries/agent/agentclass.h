@@ -120,7 +120,7 @@
 //!
 //! Both Clients and Agents are formed using Cosmos::Agent. Once you have performed any initializations necessary, you should
 //! enter a continuous loop, protected by Cosmos::Agent::running, and preferably surrendering control periodically
-//! with Cosmos::COSMOS_SLEEP. Upon exiting from this loop, you should call Cosmos::Agent::shutdown.
+//! with Cosmos::secondsleep. Upon exiting from this loop, you should call Cosmos::Agent::shutdown.
 
 #include "support/configCosmos.h"
 #include "support/jsonlib.h"

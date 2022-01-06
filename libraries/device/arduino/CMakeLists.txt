@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.1)
 
 message("Build device/arduino")
 
@@ -14,7 +14,7 @@ set(libraryName CosmosDeviceArduino PARENT_SCOPE)
 
 add_library(CosmosDeviceArduino STATIC ${SOURCES} ${INCLUDES})
 #target_link_libraries(CosmosDeviceArduino CosmosDeviceGeneral CosmosSupport ${COSMOS_LIBS})
-target_link_libraries(CosmosDeviceArduino CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosDeviceArduino CosmosTime CosmosSupport ${COSMOS_LIBS})
 
 install(TARGETS CosmosDeviceArduino DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/arduino)

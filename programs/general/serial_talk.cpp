@@ -1,6 +1,7 @@
 #include "support/configCosmos.h"
 #include "device/serial/serialclass.h"
 #include "support/elapsedtime.h"
+#include "support/timelib.h"
 
 int main(int argc, char *argv[])
 {
@@ -76,7 +77,7 @@ int main(int argc, char *argv[])
                 {
                     ++errorcount;
                 }
-                COSMOS_SLEEP(.001);
+                secondsleep(.001);
             }
         } while (result < 0 || writecount < data.size());
         printf("%lf %hhu: %lu/%lu Writes @ %.0lf BPS Errors: %lu Timeouts: %lu\n", tet.split(), i, writecount, twritecount, writecount/tet.lap(), errorcount, timeoutcount);

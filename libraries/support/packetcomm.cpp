@@ -23,14 +23,25 @@ namespace Cosmos {
 
         bool PacketComm::Unpack(bool checkcrc)
         {
-            if (packed.size() <= 0) {
+            if (packed.size() <= 0)
+            {
                 return false;
             }
-            type = (TypeId)packed[0];
+            memcpy(&header, &packed[0], COSMOS_SIZEOF(Header));
+            if (packed.size() < uint32_t(header.data_size + COSMOS_SIZEOF(Header) + 2))
+            {
+                return false;
+            }
+            uint16_t crcin = uint16from(&packed[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
+            crc = calc_crc.calc(packed.data(), packed.size()-2);
+            if (checkcrc && crc != crcin)
+            {
+                return false;
+            }
 
-            // Unpack as forwarding-type packet instead
-//            if (type == TypeId["Forward"]) {
-            if (type == PacketComm::TypeId::Forward)
+            // Unpack as forwarding-type packet if required
+            fdest.clear();
+            if (header.type == PacketComm::TypeId::Forward)
             {
                 if (UnpackForward()) {
                     return true;
@@ -38,46 +49,40 @@ namespace Cosmos {
                 return false;
             }
 
-            // Unpack as a regular packet
-            size_t size = packed[1] + 256 * packed[2];
-            if (packed.size() < size + 5)
-            {
-                return false;
-            }
+            // Otherwise Unpack as a regular packet
             data.clear();
-            data.insert(data.begin(), &packed[3], &packed[size+3]);
-            uint16_t crcin = packed[size+3] + 256 * packed[size+4];
-            crc = calc_crc.calc(packed.data(), packed.size()-2);
-            if (checkcrc && crc != crcin)
-            {
-                return false;
-            }
+            data.insert(data.begin(), &packed[COSMOS_SIZEOF(Header)], &packed[header.data_size+COSMOS_SIZEOF(Header)]);
 
             return true;
         }
 
-        bool PacketComm::UnpackForward() {
-            fdest.clear();
-            type = (TypeId)packed[0];
-            size_t size = packed[1] + 256 * packed[2];
-            if (packed.size() < size + 5)
-            {
-                return false;
-            }
+        bool PacketComm::UnpackForward()
+        {
             // Extract node:agent address string
-            uint8_t addr_len = packed[3];
-            fdest.assign(&packed[4], &packed[4+addr_len]);
+            fdest.clear();
+            uint8_t addr_len = packed[COSMOS_SIZEOF(Header)];
+            fdest.assign(&packed[COSMOS_SIZEOF(Header)+1], &packed[COSMOS_SIZEOF(Header)+1+addr_len]);
             // Extract inner data
-            data.clear();
-            data.insert(data.begin(), &packed[4+addr_len], &packed[size+3]);
-            uint16_t crcin = packed[size+3] + 256 * packed[size+4];
-            crc = calc_crc.calc(packed.data(), packed.size()-2);
-            if (crc != crcin)
-            {
-                return false;
-            }
-            packed = data;
-            return true;
+            vector<uint8_t> oldpacked = packed;
+            packed.clear();
+            packed.insert(packed.begin(), &oldpacked[COSMOS_SIZEOF(Header)+1+addr_len], &oldpacked[packed.size()-2]);
+            return Unpack();
+
+//            memcpy(&header, &packed[COSMOS_SIZEOF(Header)+1+addr_len], COSMOS_SIZEOF(Header));
+//            if (packed.size() < header.data_size + 5)
+//            {
+//                return false;
+//            }
+//            data.clear();
+//            data.insert(data.begin(), &packed[8+addr_len], &packed[header.data_size+8+addr_len]);
+//            uint16_t crcin = uint16from(&packed[header.data_size+COSMOS_SIZEOF(Header)+1+addr_len], ByteOrder::LITTLEENDIAN);
+//            crc = calc_crc.calc(packed.data(), packed.size()-2);
+//            if (crc != crcin)
+//            {
+//                return false;
+//            }
+//            packed = data;
+//            return true;
         }
 
         bool PacketComm::RawUnPacketize(bool invert, bool checkcrc)
@@ -93,13 +98,13 @@ namespace Cosmos {
             return Unpack(checkcrc);
         }
 
-        bool PacketComm::RXSUnPacketize()
-        {
-            memcpy(&ccsds_header, packetized.data(), 6);
-            packed.clear();
-            packed.insert(packed.begin(), &packetized[6], &packetized[packetized.size()-(packetized.size()<189?6:194-packetized.size())]);
-            return Unpack();
-        }
+//        bool PacketComm::RXSUnPacketize()
+//        {
+//            memcpy(&ccsds_header, packetized.data(), 6);
+//            packed.clear();
+//            packed.insert(packed.begin(), &packetized[6], &packetized[packetized.size()-(packetized.size()<189?6:194-packetized.size())]);
+//            return Unpack();
+//        }
 
         bool PacketComm::SLIPUnPacketize()
         {
@@ -123,12 +128,65 @@ namespace Cosmos {
             return Unpack();
         }
 
+//        bool PacketComm::TXSUnPacketize()
+//        {
+//            static uint16_t byte_slip = 0;
+//            static vector<uint8_t> cpacketized;
+//            static vector<uint8_t> ppacketized;
+//            vector<uint8_t> npacketized;
+//            if (atsm[0] == packetized[0] && atsm[1] == packetized[1] && atsm[2] == packetized[2] && atsm[3] == packetized[3])
+//            {
+//                if (packetized[5])
+//                {
+//                    //                    if ((packetized[5] & 0xf) == 14 || (packetized[5] & 0xf) == 2)
+//                    {
+//                        packed.clear();
+//                        packed.insert(packed.begin(), &packetized[10], &packetized[packetized.size()]);
+//                        cpacketized = packed;
+//                        if (!byte_slip)
+//                        {
+//                            if (satsm[0] == cpacketized[4] && satsm[1] == cpacketized[5] && satsm[2] == cpacketized[6] && satsm[3] == cpacketized[7])
+//                            {
+//                                npacketized = cpacketized;
+//                            }
+//                            else if (satsm[0] == cpacketized[packed.size()-(byte_slip+8)] && satsm[1] == cpacketized[packed.size()-(byte_slip+7)] && satsm[2] == cpacketized[packed.size()-(byte_slip+6)] && satsm[3] == cpacketized[packed.size()-(byte_slip+5)])
+//                                //                                if ((cpacketized[packed.size()-(byte_slip+8)] == 0 || cpacketized[packed.size()-(byte_slip+8)] == 0x3f) && cpacketized[(packed.size()-(byte_slip+8))+1] == 0xd4 && cpacketized[(packed.size()-(byte_slip+8))+2] == 0)
+//                            {
+//                                byte_slip += 8;
+//                            }
+//                        }
+//                        else
+//                        {
+//                            if (satsm[0] == cpacketized[4] && satsm[1] == cpacketized[5] && satsm[2] == cpacketized[6] && satsm[3] == cpacketized[7])
+//                            {
+//                                byte_slip = 0;
+//                                npacketized = cpacketized;
+//                            }
+//                            else if (satsm[0] == cpacketized[packed.size()-(byte_slip)] && satsm[1] == cpacketized[packed.size()-(byte_slip-1)] && satsm[2] == cpacketized[packed.size()-(byte_slip-2)] && satsm[3] == cpacketized[packed.size()-(byte_slip-3)])
+//                            {
+//                                npacketized.insert(npacketized.begin(), &ppacketized[packed.size()-byte_slip], &ppacketized[packed.size()]);
+//                                npacketized.insert(npacketized.end(), &cpacketized[0], &cpacketized[packed.size()-byte_slip]);
+//                            }
+//                            else if (satsm[0] == cpacketized[packed.size()-(byte_slip+8)] && satsm[1] == cpacketized[packed.size()-(byte_slip+7)] && satsm[2] == cpacketized[packed.size()-(byte_slip+6)] && satsm[3] == cpacketized[packed.size()-(byte_slip+5)])
+//                            {
+//                                byte_slip += 8;
+//                            }
+//                        }
+//                        packed = npacketized;
+//                        ppacketized = cpacketized;
+//                        return Unpack();
+//                        //                        return Unpack(byte_slip==0);
+//                    }
+//                }
+//            }
+//            return false;
+//        }
+
         bool PacketComm::Pack()
         {
-            packed.resize(3);
-            packed[0] = (uint8_t)type;
-            packed[1] = data.size() & 0xff;
-            packed[2] = data.size() >> 8;
+            header.data_size = data.size();
+            packed.resize(COSMOS_SIZEOF(Header));
+            memcpy(&packed[0], &header, COSMOS_SIZEOF(Header));
             packed.insert(packed.end(), data.begin(), data.end());
             crc = calc_crc.calc(packed);
             packed.resize(packed.size()+2);
@@ -145,7 +203,9 @@ namespace Cosmos {
         bool PacketComm::PackForward()
         {
             data = packed;
-            packed.resize(4);
+            header.data_size = data.size() + fdest.size() + 1;
+            header.type = TypeId::Forward;
+            packed.resize(COSMOS_SIZEOF(Header));
             packed[0] = (uint8_t)PacketComm::TypeId::Forward; //TypeId["Forward"];
             // Data size = data size + addr length + 1 byte to specify addr length
             packed[1] = (data.size() + fdest.size() + 1) & 0xff;
@@ -172,6 +232,18 @@ namespace Cosmos {
             packetized.insert(packetized.begin(), packed.begin(), packed.end());
             return true;
         }
+
+//        bool PacketComm::TXSPacketize()
+//        {
+//            if (!Pack())
+//            {
+//                return false;
+//            }
+//            packetized.clear();
+//            packetized.insert(packetized.begin(), satsm.begin(), satsm.end());
+//            packetized.insert(packetized.begin(), packed.begin(), packed.end());
+//            return true;
+//        }
 
         bool PacketComm::SLIPPacketize()
         {

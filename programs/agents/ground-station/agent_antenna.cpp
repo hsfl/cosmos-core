@@ -406,7 +406,7 @@ int main(int argc, char *argv[])
                     }
                 }
             }
-            //            COSMOS_SLEEP(.1);
+            //            secondsleep(.1);
         }
         else
         {
@@ -415,7 +415,7 @@ int main(int argc, char *argv[])
                 printf("%f: Connect Antenna\n", et.lap());
             }
             connect_antenna();
-            //            COSMOS_SLEEP(.1);
+            //            secondsleep(.1);
         }
         agent->finish_active_loop();
     }
@@ -912,7 +912,7 @@ void rotctl_loop()
             }
         }
         else {
-            COSMOS_SLEEP(1.);
+            secondsleep(1.);
         }
     }
 

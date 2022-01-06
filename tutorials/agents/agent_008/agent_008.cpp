@@ -97,7 +97,7 @@ int main(int, char **)
         }
 
         // Sleep for 1 sec
-        COSMOS_SLEEP(1.);
+        secondsleep(1.);
     }
 
     return 0;

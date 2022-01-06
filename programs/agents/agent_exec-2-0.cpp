@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
 
     // Start performing the body of the agent
     agent->post(Agent::AgentMessage::REQUEST, "postsoh");
-    COSMOS_SLEEP(10.);
+    secondsleep(10.);
     llogmjd = currentmjd();
     clogmjd =  currentmjd();
     logdate_exec = 0.;

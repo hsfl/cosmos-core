@@ -36,6 +36,7 @@
 
 #include "support/configCosmos.h"
 #include "device/arduino/arduino_lib.h"
+#include "support/timelib.h"
 
 #if defined(COSMOS_WIN_OS)
 
@@ -96,7 +97,7 @@ int arduino_setbaud(int baud) {
 char* arduino_read(char* str) {
     serialport_read_until(fd, str, '\n');
     //printf("read: %s\n",str);
-	COSMOS_SLEEP(1) ;
+	secondsleep(1) ;
 	return str;
 }
 
