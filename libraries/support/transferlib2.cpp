@@ -51,8 +51,8 @@ namespace Cosmos {
 
         //! Create a REQQUEUE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the sending node in the node table
-        //! \param node_name Name of the sending node
+        //! \param node_id ID of the receiving node in the node table
+        //! \param node_name Name of the receiving node
         //! \return n/a
         void serialize_reqqueue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name)
         {
@@ -75,8 +75,8 @@ namespace Cosmos {
 
         //! Create a QUEUE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the sending node in the node table
-        //! \param node_name Name of the sending node
+        //! \param node_id ID of the receiving node in the node table
+        //! \param node_name Name of the receiving node
         //! \param queue A vector with QUEUE data
         //! \return n/a
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue)
@@ -87,7 +87,17 @@ namespace Cosmos {
             memset(&packet.data[0], 0, PACKET_QUEUE_OFFSET_TOTAL);
             memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_NODE_ID,   &node_id,          COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
             memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_NODE_NAME, node_name.c_str(), node_name.size());
-            memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_TX_ID,     &queue[0],         COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
+            
+            vector<PACKET_QUEUE_FLAGS_TYPE> row(PACKET_QUEUE_FLAGS_LIMIT, 0);
+            for (PACKET_TX_ID_TYPE tx_id : queue)
+            {
+                // Note: this logic assumes that PACKET_QUEUE_FLAGS_TYPE is a uint16_t
+                uint8_t flags = tx_id >> 4;
+                uint8_t lshift = tx_id & 31;
+                PACKET_QUEUE_FLAGS_TYPE mask = 1 << lshift;
+                row[flags] |= mask;
+            }
+            memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_TX_ID,     &row[0],         COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE) * PACKET_QUEUE_FLAGS_LIMIT);
         }
 
         //! Extracts the necessary fields from a received QUEUE packet.
@@ -98,12 +108,12 @@ namespace Cosmos {
         {
             memmove(&queue.node_id,   &pdata[0]+PACKET_QUEUE_OFFSET_NODE_ID,   COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
             memmove(&queue.node_name, &pdata[0]+PACKET_QUEUE_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
-            memmove(&queue.tx_id,     &pdata[0]+PACKET_QUEUE_OFFSET_TX_ID,     COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
+            memmove(&queue.tx_ids,    &pdata[0]+PACKET_QUEUE_OFFSET_TX_ID,     COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE) * PACKET_QUEUE_FLAGS_LIMIT);
         }
 
         //! Create a CANCEL-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the sending node in the node table
+        //! \param node_id ID of the receiving node in the node table
         //! \param tx_id ID of the transaction
         //! \return n/a
         void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
@@ -124,9 +134,33 @@ namespace Cosmos {
             memmove(&cancel.tx_id,   &pdata[0]+PACKET_CANCEL_OFFSET_TX_ID,   sizeof(PACKET_TX_ID_TYPE));
         }
 
-        //! Create a CCOMPLETE-type PacketComm packet.
+        //! Create a REQCOMPLETE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the sending node in the node table
+        //! \param node_id ID of the receiving node in the node table
+        //! \param tx_id ID of the transaction
+        //! \return n/a
+        void serialize_reqcomplete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
+        {
+            packet.header.type = PacketComm::TypeId::FileReqComplete;
+            packet.data.resize(PACKET_REQCOMPLETE_OFFSET_TOTAL);
+            memmove(&packet.data[0]+PACKET_REQCOMPLETE_OFFSET_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
+            memmove(&packet.data[0]+PACKET_REQCOMPLETE_OFFSET_TX_ID,   &tx_id,   sizeof(PACKET_TX_ID_TYPE));
+        }
+
+        //! Extracts the necessary fields from a received REQCOMPLETE packet.
+        //! \param pdata An incoming COMPLETE-type packet
+        //! \param reqcomplete Reference to a packet_struct_reqcomplete to fill
+        //! \return n/a
+        void deserialize_reqcomplete(const vector<PACKET_BYTE>& pdata, packet_struct_reqcomplete &reqcomplete)
+        {
+            memmove(&reqcomplete.node_id, &pdata[0]+PACKET_REQCOMPLETE_OFFSET_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
+            memmove(&reqcomplete.tx_id,   &pdata[0]+PACKET_REQCOMPLETE_OFFSET_TX_ID,   sizeof(PACKET_TX_ID_TYPE));
+
+        }
+
+        //! Create a COMPLETE-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param node_id ID of the receiving node in the node table
         //! \param tx_id ID of the transaction
         //! \return n/a
         void serialize_complete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
@@ -149,8 +183,8 @@ namespace Cosmos {
 
         //! Create a REQMETA-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the sending node in the node table
-        //! \param node_name Name of the sending node
+        //! \param node_id ID of the receiving node in the node table
+        //! \param node_name Name of the receiving node
         //! \param reqmeta A vector with REQMETA data
         //! \return n/a
         void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta)
@@ -176,7 +210,7 @@ namespace Cosmos {
 
         //! Create a REQDATA-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the sending node in the node table
+        //! \param node_id ID of the receiving node in the node table
         //! \param tx_id ID of the transaction
         //! \param hole_start Index of byte start of data chunk
         //! \param hole_end Index of byte end of data chunk
@@ -205,12 +239,13 @@ namespace Cosmos {
 
         //! Create a long METADATA-type PacketComm packet.
         //! Includes node_name, omits node_id information.
+        //! Used by write_meta()
         //! \param packet Reference to a PacketComm packet to fill in
         //! \param tx_id Transaction ID of file transfer
         //! \param file_name Name of the file
         //! \param file_size Size of the file
-        //! \param node_name Name of the sending node
-        //! \param agent_name Name of the sending agent
+        //! \param node_name Name of the receiving node
+        //! \param agent_name Name of the receiving agent
         //! \return n/a
         void serialize_metadata(PacketComm& packet, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name)
         {
@@ -360,7 +395,7 @@ namespace Cosmos {
             vector<file_progress> missing;
             file_progress tp;
 
-            if (!tx_in.havemeta)
+            if (!tx_in.sentmeta)
             {
                 return missing;
             }
@@ -416,6 +451,91 @@ namespace Cosmos {
             }
 
             return (missing);
+        }
+
+        //! Adds a chunk to the tx_progress vector.
+        //! Used when a DATA or REQDATA packet is received.
+        //! \param tx The tx_progress of a file in the incoming queue
+        //! \param tp Data chunk to add
+        //! \return true if tx_in was updated
+        bool add_chunk(tx_progress& tx, file_progress& tp)
+        {
+            uint32_t check=0;
+            bool duplicate = false;
+            bool updated = false;
+            PACKET_CHUNK_SIZE_TYPE byte_count = tp.chunk_end - tp.chunk_start + 1;
+
+            // Do we have any data yet?
+            if (!tx.file_info.size())
+            {
+                // Add first entry, then write data
+                tx.file_info.push_back(tp);
+                tx.total_bytes += byte_count;
+                updated = true;
+            }
+            else
+            {
+                // Check against existing data
+                for (uint32_t j=0; j<tx.file_info.size(); ++j)
+                {
+                    // Check for duplicate
+                    if (tp.chunk_start >= tx.file_info[j].chunk_start && tp.chunk_end <= tx.file_info[j].chunk_end)
+                    {
+                        duplicate = true;
+                        break;
+                    }
+                    // If we start before this entry
+                    if (tp.chunk_start < tx.file_info[j].chunk_start)
+                    {
+                        // If we end before this entry (at least one byte between), insert
+                        if (tp.chunk_end + 1 < tx.file_info[j].chunk_start)
+                        {
+                            tx.file_info.insert(tx.file_info.begin()+j, tp);
+                            tx.total_bytes += byte_count;
+                            updated = true;
+                            break;
+                        }
+                        // Otherwise, extend the near end
+                        else
+                        {
+                            tp.chunk_end = tx.file_info[j].chunk_start - 1;
+                            tx.file_info[j].chunk_start = tp.chunk_start;
+                            byte_count = (tp.chunk_end - tp.chunk_start) + 1;
+                            tx.total_bytes += byte_count;
+                            updated = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        // If we overlap on the end, extend the far end
+                        if (tp.chunk_start <= tx.file_info[j].chunk_end + 1)
+                        {
+                            if (tp.chunk_end > tx.file_info[j].chunk_end)
+                            {
+                                byte_count = tp.chunk_end - tx.file_info[j].chunk_end;
+                                tp.chunk_start = tx.file_info[j].chunk_end + 1;
+                                tx.file_info[j].chunk_end = tp.chunk_end;
+                                tx.total_bytes += byte_count;
+                                updated = true;
+                                break;
+                            }
+                        }
+                    }
+                    check = j + 1;
+                }
+
+
+                // If we are higher than everything currently in the list, then append
+                if (!duplicate && check == tx.file_info.size())
+                {
+                    tx.file_info.push_back(tp);
+                    tx.total_bytes += byte_count;
+                    updated = true;
+                }
+            }
+
+            return updated;
         }
 
         //! Gets the size of a file.

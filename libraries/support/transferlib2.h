@@ -79,17 +79,22 @@ namespace Cosmos {
         #define PACKET_REQQUEUE_OFFSET_NODE_NAME (COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
         #define PACKET_REQQUEUE_OFFSET_TOTAL (PACKET_REQQUEUE_OFFSET_NODE_ID + COSMOS_MAX_NAME)
 
+        typedef uint16_t PACKET_QUEUE_FLAGS_TYPE;
+        #define PACKET_QUEUE_FLAGS_LIMIT (PROGRESS_QUEUE_SIZE/(COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE)*8))
+        
         struct packet_struct_queue
         {
             PACKET_NODE_ID_TYPE node_id;
             char node_name[COSMOS_MAX_NAME+1];
-            PACKET_TX_ID_TYPE tx_id[TRANSFER_QUEUE_LIMIT];
+            //! An array of 16 uint16_t's, equaling 256 bits total, each corresponding to
+            //! a tx_id in the outgoing/incoming queues.
+            PACKET_QUEUE_FLAGS_TYPE tx_ids[PACKET_QUEUE_FLAGS_LIMIT];
         };
 
         #define PACKET_QUEUE_OFFSET_NODE_ID 0
         #define PACKET_QUEUE_OFFSET_NODE_NAME (COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
         #define PACKET_QUEUE_OFFSET_TX_ID (PACKET_QUEUE_OFFSET_NODE_NAME + COSMOS_MAX_NAME)
-        #define PACKET_QUEUE_OFFSET_TOTAL (PACKET_QUEUE_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE) * TRANSFER_QUEUE_LIMIT)
+        #define PACKET_QUEUE_OFFSET_TOTAL (PACKET_QUEUE_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE) * PACKET_QUEUE_FLAGS_LIMIT)
 
         struct packet_struct_reqmeta
         {
@@ -165,6 +170,17 @@ namespace Cosmos {
         #define PACKET_DATA_OFFSET_CHUNK (PACKET_DATA_OFFSET_CHUNK_START + COSMOS_SIZEOF(PACKET_FILE_SIZE_TYPE))
         #define PACKET_DATA_OFFSET_HEADER_TOTAL (PACKET_DATA_OFFSET_CHUNK)
 
+        struct packet_struct_reqcomplete
+        {
+            PACKET_NODE_ID_TYPE node_id;
+            PACKET_TX_ID_TYPE tx_id;
+        };
+
+        #define PACKET_REQCOMPLETE_OFFSET_NODE_ID 0
+        #define PACKET_REQCOMPLETE_OFFSET_TX_ID (PACKET_REQCOMPLETE_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
+        #define PACKET_REQCOMPLETE_OFFSET_TOTAL (PACKET_REQCOMPLETE_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
+
+
         struct packet_struct_complete
         {
             PACKET_NODE_ID_TYPE node_id;
@@ -198,39 +214,50 @@ namespace Cosmos {
             PACKET_FILE_SIZE_TYPE	chunk_end;
         };
 
-        /// Holds info about the transfer progress of a single file.
+        /// Holds data about the transfer progress of a single file.
         struct tx_progress
         {
             PACKET_TX_ID_TYPE tx_id=0;
+            // Whether the file is marked for transfer
             bool enabled=false;
-            bool havemeta=false;
-            bool havedata=false;
-            bool sendmeta=false;
+            // If initial METADATA has been sent/received
             bool sentmeta=false;
-            bool senddata=false;
+            // If all DATA has been sent/received
             bool sentdata=false;
+            // For sender, set if COMPLETE packed has been received
             bool complete=false;
             string node_name="";
             string agent_name="";
-            string	file_name="";
+            string file_name="";
+            // Path to final file location
             string filepath="";
+            // Path to temporary meta and incomplete data files
             string temppath="";
+            // Time of last write_meta()
             double savetime;
             double datatime=0.;
+            // Time the last response request or respond packet was sent
+            double next_response = 0.;
+            // Size of the full file
             PACKET_FILE_SIZE_TYPE file_size=0;
+            // Total bytes sent/received so far
             PACKET_FILE_SIZE_TYPE total_bytes=0;
+            // Chunks to be sent, or chunks that have been received
             deque<file_progress> file_info;
             FILE * fp;
         };
 
-        /// Holds info about the queue of file transfers in progress.
+        /// Holds data about the queue of file transfers in progress.
         struct tx_entry
         {
-            bool activity = false;
             bool sentqueue = false;
             PACKET_TX_ID_TYPE size;
             PACKET_TX_ID_TYPE next_id;
             string node_name="";
+            // Time to wait before sending out another response request or respond packet
+            double waittime = 60./86400.;
+            // Vector of tx_id's needing responses. Used by the incoming queue.
+            vector<PACKET_TX_ID_TYPE> respond;
             tx_progress progress[PROGRESS_QUEUE_SIZE];
         };
 
@@ -257,6 +284,8 @@ namespace Cosmos {
         void deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue);
         void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
         void deserialize_cancel(const vector<PACKET_BYTE>& pdata, packet_struct_cancel& cancel);
+        void serialize_reqcomplete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
+        void deserialize_reqcomplete(const vector<PACKET_BYTE>& pdata, packet_struct_reqcomplete &reqcomplete);
         void serialize_complete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
         void deserialize_complete(const vector<PACKET_BYTE>& pdata, packet_struct_complete& complete);
         void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta);
@@ -273,6 +302,7 @@ namespace Cosmos {
         // Accumulate and manage chunks
         PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);
         vector<file_progress> find_chunks_missing(tx_progress& tx);
+        bool add_chunk(tx_progress& tx, file_progress& tp);
 
         // Random utility functions
         bool filestruc_smaller_by_size(const filestruc& a, const filestruc& b);

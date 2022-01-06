@@ -58,10 +58,16 @@ namespace Cosmos {
             //int32_t Load(string filename, vector<chunk> &chunks);
             int32_t outgoing_tx_load();
             int32_t outgoing_tx_load(uint8_t node_id);
-            int32_t get_outgoing_packets(vector<PacketComm> &packets, GET_OUTGOING_MODE mode = GET_OUTGOING_ALL);
-            int32_t get_outgoing_packets(string node_name, vector<PacketComm> &packets, GET_OUTGOING_MODE mode = GET_OUTGOING_ALL);
-            int32_t get_outgoing_packets(uint8_t node_id, vector<PacketComm> &packets, GET_OUTGOING_MODE mode = GET_OUTGOING_ALL);
+            int32_t get_outgoing_lpackets(vector<PacketComm> &packets);
+            int32_t get_outgoing_lpackets(string node_name, vector<PacketComm> &packets);
+            int32_t get_outgoing_rpackets(vector<PacketComm> &packets);
+            int32_t get_outgoing_rpackets(string node_name, vector<PacketComm> &packets);
             int32_t receive_packet(const PacketComm& packet);
+
+            // Various publicly available requests
+            int32_t set_enabled(uint8_t node_id, PACKET_TX_ID_TYPE tx_id, bool enabled);
+            string list_outgoing();
+            string list_incoming();
 
             // Various checks
             int32_t check_node_id(PACKET_NODE_ID_TYPE node_id);
@@ -85,6 +91,10 @@ namespace Cosmos {
             // Byte size limit of a packet
             PACKET_CHUNK_SIZE_TYPE packet_size;
 
+            // Internal use
+            int32_t get_outgoing_lpackets(uint8_t node_id, vector<PacketComm> &packets);
+            int32_t get_outgoing_rpackets(uint8_t node_id, vector<PacketComm> &packets);
+
             // Private queue manipulation functions
             int32_t outgoing_tx_add(tx_progress &tx_out);
             int32_t outgoing_tx_add(string node_name, string agent_name, string file_name);
@@ -96,6 +106,7 @@ namespace Cosmos {
             int32_t incoming_tx_add(tx_progress &tx_in);
             int32_t incoming_tx_update(packet_struct_metashort meta);
             int32_t incoming_tx_del(uint8_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
+            int32_t incoming_tx_complete(uint8_t node_id, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
             int32_t incoming_tx_recount(uint8_t node_id);
 
             int32_t write_meta(tx_progress& tx, double interval=5.);

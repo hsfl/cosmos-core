@@ -89,18 +89,20 @@ static uint32_t default_throughput=THROUGHPUT_HI;
 
 static vector <channelstruc> out_comm_channel;
 
-//Send and receive thread info
+// Send and receive thread info
 void recv_loop() noexcept;
+void send_loop() noexcept;
 static ElapsedTime tet;
 static ElapsedTime dt;
 double logstride_sec = 10.;
 
 static Transfer transfer;
 
+static vector<PacketComm> packets;
+
 // Mutexes to avoid thread collisions
 static std::mutex txqueue_lock;
-static std::mutex incoming_tx_lock;
-static std::mutex outgoing_tx_lock;
+static std::mutex out_comm_lock;
 static std::mutex debug_fd_lock;
 
 // Counters to keep track of things
@@ -113,16 +115,24 @@ static uint32_t send_error_count = 0;
 static uint32_t recv_error_count = 0;
 
 // Function forward declarations
-int32_t mysendto(string type, int32_t use_channel, PacketComm& packet);
+int32_t mysendto(int32_t use_channel, PacketComm& packet);
 int32_t myrecvfrom(string type, socket_channel &channel, PacketComm& buf, uint32_t length, double dtimeout=1.);
 void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use_channel);
 
+// Agent request functions
+int32_t request_ls(string &request, string &response, Agent *agent);
+int32_t request_list_incoming(string &request, string &response, Agent *agent);
+int32_t request_list_outgoing(string &request, string &response, Agent *agent);
+int32_t request_remove_file(string &request, string &response, Agent *agent);
+//int32_t request_send_file(string &request, string &response, Agent *agent);
+int32_t request_set_enabled(string &request, string &response, Agent *agent);
 
-//main
+// main loop
 int main(int argc, char *argv[])
 {
     int32_t iretn;
     thread recv_loop_thread;
+    thread send_loop_thread;
 
     if (static_cast<string>(argv[0]).find("slow") != string::npos)
     {
@@ -140,6 +150,7 @@ int main(int argc, char *argv[])
     {
         agent->set_debug_level(0);
     }
+
     if ((iretn = agent->wait()) < 0)
     {
         agent->debug_error.Printf("%.4f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
@@ -166,7 +177,7 @@ int main(int argc, char *argv[])
     out_comm_channel[0].limjd = out_comm_channel[0].nmjd;
     out_comm_channel[0].lomjd = out_comm_channel[0].nmjd;
     out_comm_channel[0].fmjd = out_comm_channel[0].nmjd;
-    out_comm_channel[0].node = "";
+    out_comm_channel[0].node = agent->nodeName; // TODO: consider this
     out_comm_channel[0].throughput = default_throughput;
     out_comm_channel[0].packet_size = default_packet_size;
     agent->debug_error.Printf("%.4f Node: %s Agent: %s - Listening socket open\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
@@ -202,6 +213,20 @@ int main(int argc, char *argv[])
         logstride_sec = 600.; // longer logstride
     }
 
+    // Add agent requests
+    if ((iretn=agent->add_request("remove_file",request_remove_file,"in|out tx_id", "removes file from indicated queue")))
+        exit (iretn);
+    //	if ((iretn=agent->add_request("send_file",request_send_file,"", "creates and sends metadata/data packets")))
+    //		exit (iretn);
+    if ((iretn=agent->add_request("ls",request_ls,"", "lists contents of directory")))
+        exit (iretn);
+    if ((iretn=agent->add_request("list_incoming",request_list_incoming,"", "lists contents incoming queue")))
+        exit (iretn);
+    if ((iretn=agent->add_request("list_outgoing",request_list_outgoing,"", "lists contents outgoing queue")))
+        exit (iretn);
+    if ((iretn=agent->add_request("set_enabled",request_set_enabled,"node_id tx_id 0|1", "sets the enabled status of a tx_id")))
+        exit (iretn);
+
     // Initialize Transfer class
     iretn = transfer.Init(agent);
     if (iretn < 0)
@@ -220,15 +245,14 @@ int main(int argc, char *argv[])
         nextdiskcheck = currentmjd();
     }
 
+    // Start send and recv threads
     recv_loop_thread = thread([=] { recv_loop(); });
+    send_loop_thread = thread([=] { send_loop(); });
 
     double nextlog = currentmjd();
     double sleepsec;
     ElapsedTime etloop;
     etloop.start();
-
-
-    vector<PacketComm> packets;
 
     // start the agent
     while(agent->running())
@@ -266,28 +290,27 @@ int main(int argc, char *argv[])
             txqueue_lock.lock();
             transfer.outgoing_tx_load();
             txqueue_lock.unlock();
+
             // Iterate over every outgoing channel we serve
-            for (size_t i = 0; i < out_comm_channel.size(); ++i) {
-                // Get all the outgoing packets for this node
-                if (out_comm_channel[i].node.empty()) {
-                    continue;
-                }
+            out_comm_lock.lock();
+            size_t occ_size = out_comm_channel.size();
+            out_comm_lock.unlock();
+            for (size_t i = 0; i < occ_size; ++i) {
                 txqueue_lock.lock();
-                iretn = transfer.get_outgoing_packets(out_comm_channel[i].node, packets);
+                iretn = transfer.get_outgoing_lpackets(out_comm_channel[i].node, packets);
                 txqueue_lock.unlock();
+
+                if (iretn < 0) {
+                    if (agent->get_debug_level())
+                    {
+                        agent->debug_error.Printf("%.4f %.4f Error in get_outgoing_lpackets: %d\n", tet.split(), dt.lap(), iretn);
+                    }
+                }
 
                 if (agent->get_debug_level())
                 {
                     agent->debug_error.Printf("packets.size(): %u\n", packets.size());
                 }
-                
-                // Send out packets to the node
-                for(auto& packet : packets) {
-                    packet.SLIPPacketize();
-                    // TODO: reimplement dynamic sendy thingy
-                    mysendto("outgoing", i, packet);
-                }
-                packets.clear();
             }
         }
 
@@ -299,7 +322,7 @@ int main(int argc, char *argv[])
     }
 
     recv_loop_thread.join();
-    //txq.clear();
+    send_loop_thread.join();
 
     if (agent->get_debug_level())
     {
@@ -311,6 +334,7 @@ int main(int argc, char *argv[])
     exit (0);
 }
 
+// Receive loop
 void recv_loop() noexcept
 {
     PacketComm p;
@@ -332,26 +356,120 @@ void recv_loop() noexcept
 
         while (( nbytes = myrecvfrom("Incoming", rchannel, p, PACKET_MAX_LENGTH)) > 0)
         {
-            iretn = p.SLIPUnPacketize();
-            if (iretn <= 0) {
-                continue;
-            }
             txqueue_lock.lock();
             iretn = transfer.receive_packet(p);
+            string node_name = transfer.lookup_node_id_name(p.data[0]);
+            int32_t node_id = transfer.check_node_id(p.data[0]);
             txqueue_lock.unlock();
-            if (iretn == COSMOS_PACKET_TYPE_MISMATCH) {
-                ++type_error_count;
-            } else if (iretn == Transfer::RESPONSE_REQUIRED) {
-                // in a more manual configuration, signal send loop to send back response-type packets with mode set to:
-                // transfer.get_outgoing_packets(packets, Transfer::GET_OUTGOING_RESPONSES);
-                // But since the main thread calls get_outgoing_packets() at regular intervals in this program, it's not necessary
+
+            if (iretn < 0) {
+                if (agent->get_debug_level())
+                {
+                    agent->debug_error.Printf("%.4f %.4f Main: Node: %s Agent: %s - Error in receive_packet(): %d\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str(), iretn);
+                }
+                if (iretn == COSMOS_PACKET_TYPE_MISMATCH)
+                {
+                    // For debug logging
+                    ++type_error_count;
+                }
+            }
+            
+            if (node_id <= 0 || node_name.empty())
+            {
+                continue;
+            }
+            if (iretn >= 0)
+            {
+                // TODO: consider this section. If the incoming node id is the receiver's,
+                // and that is us, the one receiving, and no info about the sender is given,
+                // how should we determine what to add or who/where it's coming from?
+                /*out_comm_lock.lock();
+                // If packet is successfully received, check channels and update
+                // information if we are already handling it, otherwise add the new channel.
+                bool new_channel = true;
+                for (std::vector<channelstruc>::size_type i=0; i<out_comm_channel.size(); ++i)
+                {
+                    // Are we handling this Node?
+                    if (out_comm_channel[i].node == node_name)
+                    {
+                        //out_comm_channel[i].chansock = rchannel; // this causes some minor issues
+                        out_comm_channel[i].chanip = out_comm_channel[i].chansock.address;
+                        out_comm_channel[i].limjd = currentmjd();
+                        new_channel = false;
+                        break;
+                    }
+                }
+                if (new_channel)
+                {
+                    channelstruc tchannel;
+                    tchannel.node = node_name;
+                    tchannel.nmjd = currentmjd();
+                    tchannel.limjd = tchannel.nmjd;
+                    tchannel.lomjd = tchannel.nmjd;
+                    tchannel.fmjd = tchannel.nmjd;
+                    tchannel.chansock = rchannel;
+                    tchannel.chanip = tchannel.chansock.address;
+                    out_comm_channel.push_back(tchannel);
+                    if (agent->get_debug_level())
+                    {
+                        agent->debug_error.Printf("%.4f %.4f agent_file5: main loop: Adding new node:IP %s:%.17s\n", tet.split(), dt.lap(), node_name.c_str(), tchannel.chansock.address);
+                    }
+                }
+                out_comm_lock.unlock();*/
+
+                // Send out appropriate response-type file packets if required
+                if (iretn == Transfer::RESPONSE_REQUIRED) {
+                    iretn = transfer.get_outgoing_rpackets(node_name, packets);
+
+                    if (iretn < 0) {
+                        if (agent->get_debug_level())
+                        {
+                            agent->debug_error.Printf("%.4f %.4f Error in get_outgoing_rpackets: %d\n", tet.split(), dt.lap(), iretn);
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-// Make sure to use SLIPOut or equivalent on packet first
-int32_t mysendto(string type, int32_t use_channel, PacketComm& packet)
+// Transmit loop
+void send_loop() noexcept
+{
+    PacketComm p;
+    socket_channel rchannel;
+
+    while (agent->running())
+    {
+        if (agent->running() == (uint16_t)Agent::State::IDLE)
+        {
+            COSMOS_SLEEP(1);
+            continue;
+        }
+        else
+        {
+            COSMOS_SLEEP(1);
+        }
+
+        // Send out packets to the node
+        txqueue_lock.lock();
+        for(auto& packet : packets) {
+            packet.SLIPPacketize();
+            // TODO: reimplement dynamic sendy thingy
+            mysendto(1, packet);
+        }
+        packets.clear();
+        txqueue_lock.unlock();
+
+    }
+}
+
+//! Send a packet out on a network socket.
+//! Make sure to use SLIPOut or equivalent on packet first.
+//! \param use_channel Index into out_comm_channel, which contains socket channel information necessary
+//! \param packet A PacketComm packet containing data to send out. Make sure to use SLIPOut() or equivalent first
+//! \return Non-negative on success
+int32_t mysendto(int32_t use_channel, PacketComm& packet)
 {
     int32_t iretn;
     double cmjd;
@@ -370,7 +488,7 @@ int32_t mysendto(string type, int32_t use_channel, PacketComm& packet)
         out_comm_channel[use_channel].nmjd = out_comm_channel[use_channel].lomjd + ((28+iretn) / (float)out_comm_channel[use_channel].throughput)/86400.;
         if (agent->get_debug_level())
         {
-            debug_packet(packet, PACKET_OUT, type, use_channel);
+            debug_packet(packet, PACKET_OUT, "Outgoing", use_channel);
         }
     }
     else
@@ -433,6 +551,12 @@ int32_t myrecvfrom(string type, socket_channel &channel, PacketComm& packet, uin
     return nbytes;
 }
 
+//! For printing out debug statements about incoming and outgoing packets.
+//! \param packet An incoming or outgoing packet
+//! \param direction PACKET_IN or PACKET_OUT
+//! \param type Incoming or outgoing, used only in the print statement
+//! \param use_channel Index into out_comm_channel
+//! \return n/a
 void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use_channel)
 {
     if (agent->get_debug_level())
@@ -497,6 +621,11 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
                 agent->debug_error.Printf("[REQDATA] %u %u %u %u ", node_id, packet.data[PACKET_REQDATA_OFFSET_TX_ID], packet.data[PACKET_REQDATA_OFFSET_HOLE_START]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_START+1]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_START+2]+256U*packet.data[PACKET_REQDATA_OFFSET_HOLE_START+3])), packet.data[PACKET_REQDATA_OFFSET_HOLE_END]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_END+1]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_END+2]+256U*packet.data[PACKET_REQDATA_OFFSET_HOLE_END+3])));
                 break;
             }
+        case PacketComm::TypeId::FileReqComplete:
+            {
+                agent->debug_error.Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[PACKET_REQCOMPLETE_OFFSET_TX_ID]);
+                break;
+            }
         case PacketComm::TypeId::FileComplete:
             {
                 agent->debug_error.Printf("[COMPLETE] %u %u ", node_id, packet.data[PACKET_COMPLETE_OFFSET_TX_ID]);
@@ -525,11 +654,12 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
         case PacketComm::TypeId::FileQueue:
             {
                 agent->debug_error.Printf("[QUEUE] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
-                for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
-                    if (packet.data[PACKET_QUEUE_OFFSET_TX_ID+i])
-                    {
-                        agent->debug_error.Printf("%u ", packet.data[PACKET_QUEUE_OFFSET_TX_ID+i]);
-                    }
+                // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint16_t type
+                for (PACKET_QUEUE_FLAGS_TYPE i=0; i<PACKET_QUEUE_FLAGS_LIMIT; ++i)
+                {
+                    PACKET_QUEUE_FLAGS_TYPE flags = uint16from(&packet.data[PACKET_QUEUE_OFFSET_TX_ID+(2*i)], ByteOrder::LITTLEENDIAN);
+                    agent->debug_error.Printf("%u ", flags);
+                }
             }
             break;
         case PacketComm::TypeId::FileHeartbeat:
@@ -558,4 +688,103 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
         // fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
+}
+
+// Agent request functions
+
+int32_t request_ls(string &request, string &response, Agent *agent)
+{
+
+    //the request string == "ls directoryname"
+    //get the directory name
+    //    char directoryname[COSMOS_MAX_NAME+1];
+    //    memmove(directoryname, request.substr(3), COSMOS_MAX_NAME);
+    /*string directoryname = request.substr(3);
+
+    DIR* dir;
+    struct dirent* ent;
+
+    string all_file_names;
+
+    if((dir = opendir(directoryname.c_str())) != nullptr)
+    {
+        while (( ent = readdir(dir)) != nullptr)
+        {
+            all_file_names += ent->d_name;
+            all_file_names += "\n";
+        }
+        closedir(dir);
+
+        (response = all_file_names.c_str());
+    }
+    else
+        response =  "unable to open directory " + directoryname;*/
+    return 0;
+}
+
+//! Request a list of all files in the incoming queue.
+//! Returns a json string list of incoming files, with the following keys:
+//! - tx_id: The transaction ID
+//! - file_name: Name of the file
+//! - file_size: Size of the full file (in bytes)
+//! - total_bytes: Total bytes received so far
+//! - sent_meta: Whether the meta has been received for this file
+int32_t request_list_incoming(string &request, string &response, Agent *agent)
+{
+    response.clear();
+    response = transfer.list_incoming();
+
+    return 0;
+}
+
+//! Request a list of all files in the outgoing queue.
+//! Returns a json string list of outgoing files, with the following keys:
+//! - tx_id: The transaction ID
+//! - file_name: Name of the file
+//! - file_size: Size of the file (in bytes)
+//! - node_name: The name of the node to send to
+//! - enabled: Whether the file is marked for transfer
+int32_t request_list_outgoing(string &request, string &response, Agent *agent)
+{
+    response.clear();
+    response = transfer.list_outgoing();
+
+    return 0;
+}
+
+int32_t request_remove_file(string &request, string &response, Agent *agent)
+{
+    /*char type;
+    uint32_t tx_id;
+
+    sscanf(request.c_str(), "%*s %c %u\n", &type, &tx_id);
+    switch (type)
+    {
+    case 'i':
+        {
+            break;
+        }
+    case 'o':
+        {
+            break;
+        }
+    }*/
+
+    return 0;
+}
+
+//! Set the enabled status of an outgoing file transfer
+int32_t request_set_enabled(string &request, string &response, Agent *agent)
+{
+    int32_t iretn = 0;
+    uint8_t node_id;
+    PACKET_TX_ID_TYPE tx_id;
+    int enabled;
+
+    if (sscanf(request.c_str(), "%*s %d %d %d", &node_id, &tx_id, &enabled) == 3)
+    {
+        iretn = transfer.set_enabled(node_id, tx_id, enabled);
+    }
+
+    return iretn;
 }

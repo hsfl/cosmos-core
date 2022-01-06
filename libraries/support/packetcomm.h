@@ -62,6 +62,7 @@ namespace Cosmos {
 				FileReqData = 83,
                 FileMetaData = 84,
                 FileChunkData = 85,
+                FileReqComplete = 86,
                 Reset = 128,
                 Reboot = 129,
                 SendBeacon = 130,
