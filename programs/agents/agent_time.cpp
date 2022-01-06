@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
     while (agent->running())
     {
-        COSMOS_SLEEP(5.);
+        secondsleep(5.);
     }
 
     agent->shutdown();

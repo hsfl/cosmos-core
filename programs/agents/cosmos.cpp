@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
                     }
                     agent_count = agent->agent_list.size();
                 }
-                COSMOS_SLEEP(.1);
+                secondsleep(.1);
             } while (et.split() < SERVER_WAIT_TIME);
             exit(0);
             break;

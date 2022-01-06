@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.1)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -46,7 +46,7 @@ target_link_libraries(new_propagator CosmosPhysics)
 target_link_libraries(propagator CosmosPhysics CosmosAgent)
 target_link_libraries(propagatorv2 CosmosPhysics CosmosAgent)
 target_link_libraries(serial_listen CosmosDeviceSerial CosmosError)
-target_link_libraries(serial_talk CosmosDeviceSerial CosmosError)
+target_link_libraries(serial_talk CosmosDeviceSerial CosmosError CosmosTime)
 target_link_libraries(state2tle CosmosConvert)
 target_link_libraries(tab2json CosmosString CosmosConvert CosmosJson)
 target_link_libraries(tle2state CosmosNamespace CosmosConvert)

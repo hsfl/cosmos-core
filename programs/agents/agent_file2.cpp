@@ -383,7 +383,7 @@ int main(int argc, char *argv[])
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
         }
         if (sleepsec > 0.)
         {
-            COSMOS_SLEEP((sleepsec));
+            secondsleep((sleepsec));
         }
 
         if(currentmjd() > nextlog) {
@@ -515,12 +515,12 @@ void recv_loop()
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
         else
         {
-            COSMOS_SLEEP(.001);
+            secondsleep(.001);
         }
 
         int32_t nbytes = 0;
@@ -1139,7 +1139,7 @@ void send_loop()
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
@@ -1158,7 +1158,7 @@ void send_loop()
         if (next_time > current_time)
         {
             sleep_time = 86400. * (next_time - current_time);
-            COSMOS_SLEEP(sleep_time);
+            secondsleep(sleep_time);
         }
 
         // Bring us up to the present
@@ -1367,7 +1367,7 @@ void transmit_loop()
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
@@ -1433,7 +1433,7 @@ int32_t mysendto(string type, channelstruc& channel, vector<PACKET_BYTE>& buf)
             // fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
-        COSMOS_SLEEP((86400. * (channel.nmjd - cmjd)));
+        secondsleep((86400. * (channel.nmjd - cmjd)));
     }
 
     iretn = sendto(channel.chansock.cudp, reinterpret_cast<const char*>(&buf[0]), buf.size(), 0, reinterpret_cast<sockaddr*>(&channel.chansock.caddr), sizeof(struct sockaddr_in));
@@ -1560,7 +1560,7 @@ int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& bu
                     {
                         if (errno == EAGAIN || errno == EWOULDBLOCK)
                         {
-                            COSMOS_SLEEP(.1);
+                            secondsleep(.1);
                             break;
                         }
                         nbytes = -errno;

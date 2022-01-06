@@ -520,7 +520,7 @@ int main(int argc, char *argv[])
                     antconnected = false;
                 }
             }
-            //            COSMOS_SLEEP(.5);
+            //            secondsleep(.5);
         }
         else
         {
@@ -529,7 +529,7 @@ int main(int argc, char *argv[])
                    ctime,
                    86400.*(ctime - startdate));
             connect_antenna();
-            //            COSMOS_SLEEP(.1);
+            //            secondsleep(.1);
         }
         agent->finish_active_loop();
     }

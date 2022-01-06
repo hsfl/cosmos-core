@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
             COSMOS_USLEEP(dsleep);
         }
 
-        COSMOS_SLEEP(0.01);
+        secondsleep(0.01);
     }
     agent->shutdown();
 }

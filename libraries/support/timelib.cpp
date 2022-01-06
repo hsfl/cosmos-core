@@ -893,7 +893,7 @@ namespace Cosmos {
             while (et.split() < seconds)
             {
                 int32_t nextstep = static_cast <int32_t>((seconds - et.split()) / step);
-                COSMOS_SLEEP((seconds - et.split()) - nextstep * step);
+                secondsleep((seconds - et.split()) - nextstep * step);
                 printf("...%d", nextstep * step);
                 fflush(stdout);
             }

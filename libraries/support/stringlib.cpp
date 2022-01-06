@@ -564,7 +564,7 @@ string to_label(string label, double value, uint16_t precision, bool mjd)
     }
     else
     {
-        if (fabs(value) >= 1e7 || fabs(value) < 1e-6)
+        if (fabs(value) >= pow(10., 13-precision) || fabs(value) < pow(10., -precision))
         {
             return label + ": " + to_floatexp(value, precision);
         }
@@ -577,7 +577,21 @@ string to_label(string label, double value, uint16_t precision, bool mjd)
 
 string to_label(string label, float value, uint16_t precision, bool mjd)
 {
-    return to_label(label, (double)value, precision, mjd);
+    if (mjd)
+    {
+        return label + ": " + to_mjd(value);
+    }
+    else
+    {
+        if (fabs(value) >= pow(10., 7-precision) || fabs(value) < pow(10., -precision))
+        {
+            return label + ": " + to_floatexp(value, precision);
+        }
+        else
+        {
+            return label + ": " + to_floating(value, precision);
+        }
+    }
 }
 
 #if ((SIZE_WIDTH) == (UINT64_WIDTH))

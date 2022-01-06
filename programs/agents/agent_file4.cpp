@@ -438,7 +438,7 @@ int main(int argc, char *argv[])
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
@@ -450,7 +450,7 @@ int main(int argc, char *argv[])
         }
         if (sleepsec > 0.)
         {
-            COSMOS_SLEEP((sleepsec));
+            secondsleep((sleepsec));
         }
 
         if(currentmjd() > nextlog) {
@@ -511,12 +511,12 @@ void recv_loop() noexcept
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
         else
         {
-            COSMOS_SLEEP(.001);
+            secondsleep(.001);
         }
 
         while (( nbytes = myrecvfrom("Incoming", rchannel, recvbuf, PACKET_MAX_LENGTH)) > 0)
@@ -1114,7 +1114,7 @@ void send_loop() noexcept
 
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
@@ -1129,8 +1129,8 @@ void send_loop() noexcept
 //            printf("use_channel: %d/%d\n", use_channel, out_comm_channel.size());
 
             // Sleep just a bit to let other threads act
-//            COSMOS_SLEEP(out_comm_channel[use_channel].packet_size / out_comm_channel[use_channel].throughput);
-            COSMOS_SLEEP(.1);
+//            secondsleep(out_comm_channel[use_channel].packet_size / out_comm_channel[use_channel].throughput);
+            secondsleep(.1);
 
             // Set up to do the most important things first
             txq[(node_id)].outgoing.activity = false;
@@ -1139,7 +1139,7 @@ void send_loop() noexcept
             // Let queue drain if necessary
             if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) >= 2.)
             {
-//                COSMOS_SLEEP(queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) - 5.);
+//                secondsleep(queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) - 5.);
                 continue;
             }
 
@@ -1422,7 +1422,7 @@ void transmit_loop() noexcept
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
@@ -1442,7 +1442,7 @@ void transmit_loop() noexcept
             }
             txqueue_lock.unlock();
         }
-        COSMOS_SLEEP(.001);
+        secondsleep(.001);
     }
 }
 
@@ -1509,7 +1509,7 @@ int32_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE
     txqueue_lock.unlock();
     //    transmit_queue_check.notify_one();
     // Sleep just a bit to give other threads a chance
-    COSMOS_SLEEP(.001);
+    secondsleep(.001);
     return use_channel;
 }
 
@@ -1522,7 +1522,7 @@ int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf)
 
     if ((cmjd = currentmjd(0.)) < out_comm_channel[use_channel].nmjd)
     {
-        COSMOS_SLEEP((86400. * (out_comm_channel[use_channel].nmjd - cmjd)));
+        secondsleep((86400. * (out_comm_channel[use_channel].nmjd - cmjd)));
     }
 
     profile_check(__LINE__, 3);
@@ -1680,7 +1680,7 @@ int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& bu
                     {
                         if (errno == EAGAIN || errno == EWOULDBLOCK)
                         {
-                            COSMOS_SLEEP(.1);
+                            secondsleep(.1);
                             break;
                         }
                         nbytes = -errno;

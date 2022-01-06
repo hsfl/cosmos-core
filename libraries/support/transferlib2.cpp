@@ -56,7 +56,7 @@ namespace Cosmos {
         //! \return n/a
         void serialize_reqqueue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name)
         {
-            packet.type = PacketComm::TypeId::FileReqQueue;
+            packet.header.type = PacketComm::TypeId::FileReqQueue;
             packet.data.resize(PACKET_REQQUEUE_OFFSET_TOTAL);
             memset(&packet.data[0], 0, PACKET_REQQUEUE_OFFSET_TOTAL);
             memmove(&packet.data[0]+PACKET_REQQUEUE_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
@@ -81,12 +81,23 @@ namespace Cosmos {
         //! \return n/a
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue)
         {
-            packet.type = PacketComm::TypeId::FileQueue;
+            // TODO: remove magic numbers for packet type for all of these
+            packet.header.type = PacketComm::TypeId::FileQueue;
             packet.data.resize(PACKET_QUEUE_OFFSET_TOTAL);
             memset(&packet.data[0], 0, PACKET_QUEUE_OFFSET_TOTAL);
             memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_NODE_ID,   &node_id,          COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
             memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_NODE_NAME, node_name.c_str(), node_name.size());
-            memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_TX_ID,     &queue[0],         COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
+            
+            vector<PACKET_QUEUE_FLAGS_TYPE> row(PACKET_QUEUE_FLAGS_LIMIT, 0);
+            for (PACKET_TX_ID_TYPE tx_id : queue)
+            {
+                // Note: this logic assumes that PACKET_QUEUE_FLAGS_TYPE is a uint16_t
+                uint8_t flags = tx_id >> 4;
+                uint8_t lshift = tx_id & 31;
+                PACKET_QUEUE_FLAGS_TYPE mask = 1 << lshift;
+                row[flags] |= mask;
+            }
+            memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_TX_ID,     &row[0],         COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE) * PACKET_QUEUE_FLAGS_LIMIT);
         }
 
         //! Extracts the necessary fields from a received QUEUE packet.
@@ -97,7 +108,7 @@ namespace Cosmos {
         {
             memmove(&queue.node_id,   &pdata[0]+PACKET_QUEUE_OFFSET_NODE_ID,   COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
             memmove(&queue.node_name, &pdata[0]+PACKET_QUEUE_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
-            memmove(&queue.tx_id,     &pdata[0]+PACKET_QUEUE_OFFSET_TX_ID,     COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
+            memmove(&queue.tx_ids,    &pdata[0]+PACKET_QUEUE_OFFSET_TX_ID,     COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE) * PACKET_QUEUE_FLAGS_LIMIT);
         }
 
         //! Create a CANCEL-type PacketComm packet.
@@ -107,7 +118,7 @@ namespace Cosmos {
         //! \return n/a
         void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
         {
-            packet.type = PacketComm::TypeId::FileCancel;
+            packet.header.type = PacketComm::TypeId::FileCancel;
             packet.data.resize(PACKET_CANCEL_OFFSET_TOTAL);
             memmove(&packet.data[0]+PACKET_CANCEL_OFFSET_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
             memmove(&packet.data[0]+PACKET_CANCEL_OFFSET_TX_ID,   &tx_id,   sizeof(PACKET_TX_ID_TYPE));
@@ -130,7 +141,7 @@ namespace Cosmos {
         //! \return n/a
         void serialize_reqcomplete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
         {
-            packet.type = PacketComm::TypeId::FileReqComplete;
+            packet.header.type = PacketComm::TypeId::FileReqComplete;
             packet.data.resize(PACKET_REQCOMPLETE_OFFSET_TOTAL);
             memmove(&packet.data[0]+PACKET_REQCOMPLETE_OFFSET_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
             memmove(&packet.data[0]+PACKET_REQCOMPLETE_OFFSET_TX_ID,   &tx_id,   sizeof(PACKET_TX_ID_TYPE));
@@ -154,7 +165,7 @@ namespace Cosmos {
         //! \return n/a
         void serialize_complete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
         {
-            packet.type = PacketComm::TypeId::FileComplete;
+            packet.header.type = PacketComm::TypeId::FileComplete;
             packet.data.resize(PACKET_COMPLETE_OFFSET_TOTAL);
             memmove(&packet.data[0]+PACKET_COMPLETE_OFFSET_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
             memmove(&packet.data[0]+PACKET_COMPLETE_OFFSET_TX_ID,   &tx_id,   sizeof(PACKET_TX_ID_TYPE));
@@ -178,7 +189,7 @@ namespace Cosmos {
         //! \return n/a
         void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta)
         {
-            packet.type = PacketComm::TypeId::FileReqMeta;
+            packet.header.type = PacketComm::TypeId::FileReqMeta;
             packet.data.resize(PACKET_REQMETA_OFFSET_TOTAL);
             memset(&packet.data[0], 0, PACKET_REQMETA_OFFSET_TOTAL);
             memmove(&packet.data[0]+PACKET_REQMETA_OFFSET_NODE_ID,   &node_id,          COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
@@ -206,7 +217,7 @@ namespace Cosmos {
         //! \return n/a
         void serialize_reqdata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end)
         {
-            packet.type = PacketComm::TypeId::FileReqData;
+            packet.header.type = PacketComm::TypeId::FileReqData;
             packet.data.resize(PACKET_REQDATA_OFFSET_TOTAL);
             memmove(&packet.data[0]+PACKET_REQDATA_OFFSET_NODE_ID,    &node_id,    sizeof(PACKET_NODE_ID_TYPE));
             memmove(&packet.data[0]+PACKET_REQDATA_OFFSET_TX_ID,      &tx_id,      sizeof(PACKET_TX_ID_TYPE));
@@ -238,7 +249,7 @@ namespace Cosmos {
         //! \return n/a
         void serialize_metadata(PacketComm& packet, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name)
         {
-            packet.type = PacketComm::TypeId::FileMetaData;
+            packet.header.type = PacketComm::TypeId::FileMetaData;
             packet.data.resize(PACKET_METALONG_OFFSET_TOTAL);
             memmove(&packet.data[0]+PACKET_METALONG_OFFSET_TX_ID,      &tx_id,     sizeof(PACKET_TX_ID_TYPE));
             memmove(&packet.data[0]+PACKET_METALONG_OFFSET_FILE_NAME,  file_name,  TRANSFER_MAX_FILENAME);
@@ -271,7 +282,7 @@ namespace Cosmos {
         //! \return n/a
         void serialize_metadata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name)
         {
-            packet.type = PacketComm::TypeId::FileMetaData;
+            packet.header.type = PacketComm::TypeId::FileMetaData;
             packet.data.resize(PACKET_METASHORT_OFFSET_TOTAL);
             memmove(&packet.data[0]+PACKET_METASHORT_OFFSET_NODE_ID,    &node_id,   sizeof(PACKET_NODE_ID_TYPE));
             memmove(&packet.data[0]+PACKET_METASHORT_OFFSET_TX_ID,      &tx_id,     sizeof(PACKET_TX_ID_TYPE));
@@ -302,7 +313,7 @@ namespace Cosmos {
         //! \return n/a
         void serialize_data(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk)
         {
-            packet.type = PacketComm::TypeId::FileChunkData;
+            packet.header.type = PacketComm::TypeId::FileChunkData;
             packet.data.resize(PACKET_DATA_OFFSET_HEADER_TOTAL+byte_count);
             memmove(&packet.data[0]+PACKET_DATA_OFFSET_NODE_ID,     &node_id,     sizeof(PACKET_NODE_ID_TYPE));
             memmove(&packet.data[0]+PACKET_DATA_OFFSET_TX_ID,       &tx_id,       sizeof(PACKET_TX_ID_TYPE));

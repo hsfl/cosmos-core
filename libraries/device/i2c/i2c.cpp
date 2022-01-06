@@ -264,7 +264,7 @@ namespace Cosmos {
 
         size_t count = 0;
 
-        COSMOS_SLEEP(handle.delay);
+        secondsleep(handle.delay);
 
         if (bytes)
         {

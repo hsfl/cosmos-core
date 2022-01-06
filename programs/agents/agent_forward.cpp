@@ -181,7 +181,7 @@ void opening_loop()
                 }
             }
         }
-        COSMOS_SLEEP(.1);
+        secondsleep(.1);
     }
 }
 

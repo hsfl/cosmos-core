@@ -13,15 +13,17 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::Reset, Reset);
             add_func(PacketComm::TypeId::Reboot, Reboot);
             add_func(PacketComm::TypeId::SendBeacon, SendBeacon);
+            add_func(PacketComm::TypeId::Forward, SendBeacon);
             add_func(PacketComm::TypeId::ClearRadioQueue, ClearRadioQueue);
             add_func(PacketComm::TypeId::ExternalCommand, ExternalCommand);
             add_func(PacketComm::TypeId::ListDirectory, ListDirectory);
 //            add_func(PacketComm::TypeId::TestRadio, TestRadio);
 
             // Telemetry
-            add_func(PacketComm::TypeId::Test, Test);
-            add_func(PacketComm::TypeId::Response, Response);
             add_func(PacketComm::TypeId::Beacon, DecodeBeacon);
+            add_func(PacketComm::TypeId::Forward, SendBeacon);
+            add_func(PacketComm::TypeId::Response, Response);
+            add_func(PacketComm::TypeId::Test, Test);
             return 0;
         }
 
@@ -78,9 +80,9 @@ namespace Cosmos {
             vector<PacketComm> packets;
             PacketComm::ResponseHeader header;
             header.response_id = response_id;
-            header.met = 86400 * agent->cinfo->node.met;
+            header.met = 86400 * (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart);
             PacketComm packet;
-            packet.type = PacketComm::TypeId::Response;
+            packet.header.type = PacketComm::TypeId::Response;
             uint8_t chunk_size = (data_size-COSMOS_SIZEOF(PacketComm::ResponseHeader));
             if (response.size() / chunk_size > 254)
             {
@@ -188,7 +190,7 @@ namespace Cosmos {
         int32_t PacketHandler::process(PacketComm& packet, vector<uint8_t>& response)
         {
             int32_t iretn;
-            FuncEntry &fentry = Funcs[(uint8_t)packet.type];
+            FuncEntry &fentry = Funcs[(uint8_t)packet.header.type];
             if (fentry.efunction != nullptr)
             {
                 iretn = fentry.efunction(packet, response, this->agent);
@@ -223,36 +225,35 @@ namespace Cosmos {
                 ElapsedTime et;
             };
             static map<uint32_t, test_control> tests;
+            string sresponse;
 
             uint32_t test_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            uint32_t packet_id = uint32from(&packet.data[4], ByteOrder::LITTLEENDIAN);
-            string sresponse = to_label("MET", agent->cinfo->node.met) + to_label(" Test_Id", test_id) + to_label(" Packet_Id", packet_id);
+            uint32_t packet_id = uint32from(&packet.data[8], ByteOrder::LITTLEENDIAN);
             if (tests.find(test_id) == tests.end())
             {
                 tests[test_id].path = data_name_path(agent->nodeName, "incoming", agent->agentName, 0., "test_"+to_unsigned(test_id));
                 tests[test_id].et.reset();
             }
             tests[test_id].total_count = tests[test_id].good_count + tests[test_id].crc_count + tests[test_id].size_count;
-            if (packet_id == ((uint32_t)-1))
-            {
-                sresponse += " Finish: " + to_unsigned(tests[test_id].good_count);
-                sresponse += to_label(" Bytes", tests[test_id].total_bytes) + to_label(" Count", tests[test_id].total_count);
-                tests.erase(test_id);
-            }
-            else
+//            if (packet_id == ((uint32_t)-1))
+//            {
+//                sresponse += " Finish: " + to_unsigned(tests[test_id].good_count) + " " + to_unsigned(tests[test_id].crc_count) + " " + to_unsigned(tests[test_id].size_count) + " " + to_unsigned(tests[test_id].skip_count) + " " + to_unsigned(tests[test_id].skip_total);
+//                sresponse += to_label(" Bytes", tests[test_id].total_bytes) + to_label(" Count", tests[test_id].total_count);
+//                tests.erase(test_id);
+//            }
+//            else
             {
                 tests[test_id].et.reset();
-                if (packet_id - tests[test_id].last_packet_id > 1)
+                if (packet_id - tests[test_id].last_packet_id > 1 && packet_id != ((uint32_t)-1))
                 {
-                    tests[test_id].skip_count;
+                    tests[test_id].skip_count++;
                     tests[test_id].skip_total += (packet_id - tests[test_id].last_packet_id) - 1;
                 }
                 tests[test_id].last_packet_id = packet_id;
-                uint32_t data_size = uint32from(&packet.data[8], ByteOrder::LITTLEENDIAN);
+                uint32_t data_size = uint32from(&packet.data[4], ByteOrder::LITTLEENDIAN);
                 if (data_size != packet.data.size() - 14)
                 {
                     ++tests[test_id].size_count;
-                    sresponse += " Size_Error: " + to_unsigned(tests[test_id].size_count) + " " + to_unsigned(data_size) + " " + to_unsigned(packet.data.size()-14);
                 }
                 else
                 {
@@ -262,7 +263,6 @@ namespace Cosmos {
                     if (crccalc != crcdata)
                     {
                         ++tests[test_id].crc_count;
-                        sresponse += " Crc_Error: " + to_unsigned(tests[test_id].crc_count) + " " + to_unsigned(crccalc) + " " + to_unsigned(crcdata);
                     }
                     else
                     {
@@ -271,11 +271,20 @@ namespace Cosmos {
                         fclose(tf);
                         tests[test_id].total_bytes += data_size;
                         ++tests[test_id].good_count;
-                        sresponse += " Good: " + to_unsigned(tests[test_id].good_count);
                     }
                 }
                 tests[test_id].total_count = tests[test_id].good_count + tests[test_id].crc_count + tests[test_id].size_count;
+                sresponse = to_label("MET", (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart)) + to_label(" Test_Id", test_id) + to_label(" Packet_Id", packet_id);
+                sresponse += " Good: " + to_unsigned(tests[test_id].good_count);
+                sresponse += " Skip: " + to_unsigned(tests[test_id].skip_count);
+                sresponse += " Size: " + to_unsigned(tests[test_id].size_count);
+                sresponse += " Crc: " + to_unsigned(tests[test_id].crc_count);
                 sresponse += to_label(" Bytes", tests[test_id].total_bytes) + to_label(" Count", tests[test_id].total_count);
+                if (packet_id == ((uint32_t)-1))
+                {
+                    sresponse += "\n" + to_label("MET", (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart)) + to_label(" Test_Id", test_id) + " Complete: ";
+                    tests.erase(test_id);
+                }
             }
             response.clear();
             response.insert(response.end(), sresponse.begin(), sresponse.end());
@@ -287,9 +296,8 @@ namespace Cosmos {
             int32_t iretn=0;
             struct response_control
             {
+                PacketComm::ResponseHeader header;
                 string path;
-                uint32_t response_id;
-                uint32_t met;
                 string response;
                 ElapsedTime et;
             };
@@ -304,9 +312,10 @@ namespace Cosmos {
             FILE *tf = fopen(responses[response_id].path.c_str(), "a");
             fwrite(packet.data.data(), packet.data.size(), 1, tf);
             fclose(tf);
-            responses[response_id].met = uint32from(&packet.data[6], ByteOrder::LITTLEENDIAN);
-            string sresponse = to_label("MET", responses[response_id].met) + to_label(" Response_Id", responses[response_id].response_id) + to_label(" Chunk_Id", packet.data[1]) + to_label(" Chunks", packet.data[0]);
-            responses[response_id].response.insert(responses[response_id].response.end(), packet.data.begin()+8, packet.data.end());
+            memcpy(&responses[response_id].header, &packet.data[0], COSMOS_SIZEOF(PacketComm::ResponseHeader));
+//            responses[response_id].met = uint32from(&packet.data[6], ByteOrder::LITTLEENDIAN);
+            string sresponse = to_label("MET", responses[response_id].header.met) + to_label(" Response_Id", responses[response_id].header.response_id) + to_label(" Chunk_Id", responses[response_id].header.chunk_id) + to_label(" Chunks", responses[response_id].header.chunks);
+            responses[response_id].response.insert(responses[response_id].response.end(), packet.data.begin()+COSMOS_SIZEOF(PacketComm::ResponseHeader), packet.data.end());
             sresponse += to_label(" Response", string(responses[response_id].response));
             response.clear();
             response.insert(response.end(), sresponse.begin(), sresponse.end());

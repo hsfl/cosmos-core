@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.1)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -35,12 +35,13 @@ target_link_libraries(tletest CosmosConvert)
 target_link_libraries(testdata)
 target_link_libraries(testmath1 CosmosMath)
 target_link_libraries(track_sband CosmosDeviceGeneral CosmosDeviceSerial CosmosAgent CosmosPhysics)
-target_link_libraries(serial_setdtr CosmosDeviceSerial)
+target_link_libraries(serial_setdtr CosmosDeviceSerial CosmosTime)
 target_link_libraries(serialPutData CosmosDeviceSerial)
 target_link_libraries(serialSendChar CosmosDeviceSerial)
 target_link_libraries(agent_simple_request CosmosAgent CosmosError)
 target_link_libraries(errortest CosmosTime CosmosError)
 target_link_libraries(string_test CosmosString CosmosConvert)
+target_link_libraries(string_float_test CosmosString)
 
 #include(CTest)
 #enable_testing()

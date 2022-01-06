@@ -246,10 +246,8 @@ namespace Cosmos {
                 return TRANSFER_ERROR_NODE;
             }
 
-            // Hold QUEUE packet bits in here
-            vector<PACKET_TX_ID_TYPE> tqueue(TRANSFER_QUEUE_LIMIT, 0);
-            // Number of outgoing files
-            PACKET_TX_ID_TYPE iq = 0;
+            // Hold QUEUE packet tx_id's in here
+            vector<PACKET_TX_ID_TYPE> tqueue;
 
             // Iterate over all files in outgoing queue, push necessary packets
             for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
@@ -264,11 +262,7 @@ namespace Cosmos {
                 // **************************************************************
                 if (!txq[(node_id)].outgoing.sentqueue)
                 {
-                    tqueue[iq++] = txq[(node_id)].outgoing.progress[tx_id].tx_id;
-                }
-                if (iq == TRANSFER_QUEUE_LIMIT)
-                {
-                    //break; // TODO: fix this QUEUE structure
+                    tqueue.push_back(tx_id);
                 }
 
                 // **************************************************************
@@ -421,7 +415,7 @@ namespace Cosmos {
             }
 
             // Push QUEUE packet if it needs to be sent
-            if (iq)
+            if (tqueue.size())
             {
                 PacketComm packet;
                 serialize_queue(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].node_name, tqueue);
@@ -1243,7 +1237,7 @@ namespace Cosmos {
 
                 txq[(node_id)].incoming.progress[tx_id].complete = true;
             }
-            
+
             return 0;
         }
 
@@ -1263,7 +1257,7 @@ namespace Cosmos {
             }
 
             // Respond appropriately according to type of packet
-            switch (packet.type)
+            switch (packet.header.type)
             {
             case PacketComm::TypeId::FileCommand:
                 {
@@ -1299,43 +1293,35 @@ namespace Cosmos {
 
                     txq[node_id].incoming.sentqueue = true;
 
-                    // Go through local incoming queue and remove anything not in the received QUEUE packet
-                    for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
+                    size_t tx_id = 0;
+
+                    // Iterate over every group of flags
+                    for (auto flags : queue.tx_ids)
                     {
-                        bool valid = false;
-                        for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
+                        for (size_t i = 0; i < sizeof(flags) * 8; ++i)
                         {
-                            if (queue.tx_id[i] && txq[node_id].incoming.progress[tx_id].tx_id == queue.tx_id[i])
+                            bool flag = flags & 1;
+                            // If a file is in the QUEUE packet but not in our local queue, add it
+                            if (flag && !(txq[node_id].incoming.progress[tx_id].tx_id))
                             {
-                                // This is an incoming file we should handle
-                                valid = true;
-                                break;
+                                incoming_tx_add(queue.node_name, tx_id);
                             }
-                        }
-
-                        if (txq[node_id].incoming.progress[tx_id].tx_id && !valid)
-                        {
-                            // This is not an incoming file we should handle
-                            incoming_tx_del(node_id, tx_id);
-                        }
-                    }
-
-                    // Sort through remotely sent queue and add anything not in our local incoming queue
-                    for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
-                    {
-                        if (queue.tx_id[i])
-                        {
-                            PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node_id].incoming, queue.tx_id[i]);
-
-                            if (tx_id == 0)
+                            // If a file is in our local queue but not in the QUEUE packet, delete it
+                            // TODO: I think this logic fails for multiple senders
+                            else if (!flag && txq[node_id].incoming.progress[tx_id].tx_id)
                             {
-                                incoming_tx_add(queue.node_name, queue.tx_id[i]);
+                                incoming_tx_del(node_id, tx_id);
+                            }
+
+                            flags = flags >> 1;
+                            if (++tx_id >= PROGRESS_QUEUE_SIZE)
+                            {
+                                break;
                             }
                         }
                     }
                 }
                 break;
-            // Request missing metadata
             case PacketComm::TypeId::FileReqMeta:
                 {
                     packet_struct_reqmeta reqmeta;
@@ -1362,8 +1348,6 @@ namespace Cosmos {
             case PacketComm::TypeId::FileMetaData:
                 {
                     packet_struct_metashort meta;
-
-                    //TODO: add reqqueue?
 
                     deserialize_metadata(packet.data, meta);
 
@@ -1518,7 +1502,7 @@ namespace Cosmos {
                     if (tx_id <= 0)
                     {
                         // Trigger REQMETA sending check
-                        // Technically this should be redundant
+                        // Technically this line is redundant and pointless
                         txq[node_id].incoming.progress[reqcomplete.tx_id].sentmeta = false;
                     }
                     txq[node_id].incoming.respond.push_back(reqcomplete.tx_id);

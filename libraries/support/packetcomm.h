@@ -26,12 +26,14 @@ namespace Cosmos {
             bool Unpack(bool checkcrc=true);
             bool UnpackForward();
             bool RawUnPacketize(bool invert=false, bool checkcrc=true);
-            bool RXSUnPacketize();
+//            bool RXSUnPacketize();
             bool ASMUnPacketize();
+//            bool TXSUnPacketize();
             bool SLIPUnPacketize();
             bool Pack();
             bool RawPacketize();
             bool ASMPacketize();
+//            bool TXSPacketize();
             bool AX25Packetize(string dest_call="", string sour_call="", uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
             bool SLIPPacketize();
 //            int32_t Generate(string args="");
@@ -98,15 +100,26 @@ namespace Cosmos {
             {
                 uint8_t chunks;
                 uint8_t chunk_id;
-//                uint16_t chunk_size;
                 uint32_t response_id;
                 uint32_t met;
             };
 
+            struct __attribute__ ((packed))  TestHeader
+            {
+                uint32_t test_id;
+                uint32_t size;
+                uint32_t packet_id;
+            };
+
+            struct __attribute__ ((packed))  Header
+            {
+                uint16_t data_size;
+                TypeId type;
+            } header;
+
             CCSDS_Header ccsds_header;
             vector<uint8_t> packetized;
             vector<uint8_t> packed;
-            TypeId type;
 			/// Data of interest
             vector<uint8_t> data;
             uint16_t crc;
@@ -124,9 +137,10 @@ namespace Cosmos {
 
             };
 
-        private:
             vector<uint8_t> atsm = {0x1a, 0xcf, 0xfc, 0x1d};
             vector<uint8_t> atsmr = {0x58, 0xf3, 0x3f, 0xb8};
+
+        private:
             CRC16 calc_crc;
 
 //            Transfer ttransfer;
