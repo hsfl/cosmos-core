@@ -70,7 +70,9 @@ namespace Cosmos {
                 ExternalCommand = 132,
                 TestRadio = 133,
                 ListDirectory = 134,
-                TransferFile = 135
+                TransferSingleFile = 135,
+                TransferAllFiles = 136,
+                StopTransfer = 137,
                 };
 
             map<TypeId, string> TypeString = {
@@ -92,7 +94,9 @@ namespace Cosmos {
                 {TypeId::ExternalCommand, "ExternalCommand"},
                 {TypeId::TestRadio, "TestRadio"},
                 {TypeId::ListDirectory, "ListDirectory"},
-                {TypeId::TransferFile, "TransferFile"},
+                {TypeId::TransferSingleFile, "TransferSingleFile"},
+                {TypeId::TransferAllFiles, "TransferAllFiles"},
+                {TypeId::StopTransfer, "StopTransfer"},
             };
             
 
