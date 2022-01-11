@@ -66,7 +66,10 @@ namespace Cosmos {
 
             // Various publicly available requests
             int32_t set_enabled(uint8_t node_id, PACKET_TX_ID_TYPE tx_id, bool enabled);
+            int32_t enable_single(string node_name, string file_name);
             int32_t enable_single(uint8_t node_id, string file_name);
+            int32_t enable_all(string node_name);
+            int32_t enable_all(uint8_t node_id);
             string list_outgoing();
             string list_incoming();
 
