@@ -1700,6 +1700,8 @@ namespace Cosmos {
             return 0;
         }
 
+        //! Gets the node_id associated with a node name
+        //! \return node_id on success
         int32_t Transfer::lookup_node_id(string node_name)
         {
             int32_t iretn;
@@ -1836,9 +1838,27 @@ int32_t Transfer::set_enabled(uint8_t node_id, PACKET_TX_ID_TYPE tx_id, bool ena
 //! and sets the enabled status of all other outgoing files of the
 //! node_id to false.
 //! If the file is not found, no changes are made.
+//! \param node_name Name of receiving node
+//! \param file_name Name of file
+//! \return Number of files enabled
+int32_t Transfer::enable_single(string node_name, string file_name)
+{
+    if (node_name.empty())
+    {
+        return TRANSFER_ERROR_NODE;
+    }
+    uint8_t node_id = lookup_node_id(node_name);
+    return enable_single(node_id, file_name);
+}
+
+//! Enable a single outgoing file
+//! Sets the enabled status of a single outgoing file to true,
+//! and sets the enabled status of all other outgoing files of the
+//! node_id to false.
+//! If the file is not found, no changes are made.
 //! \param node_id ID of receiving node
 //! \param file_name Name of file
-//! \return 0 on success
+//! \return Number of files enabled
 int32_t Transfer::enable_single(uint8_t node_id, string file_name)
 {
     if (check_node_id(node_id) <= 0)
@@ -1891,7 +1911,49 @@ int32_t Transfer::enable_single(uint8_t node_id, string file_name)
         }
     }
 
-    return 0;
+    return 1;
+}
+
+//! Enable all outgoing files
+//! Sets the enabled status of all outgoing files to true.
+//! \param node_name Name of the receiving node
+//! \return Number of files enabled
+int32_t Transfer::enable_all(string node_name)
+{
+    if (node_name.empty())
+    {
+        return TRANSFER_ERROR_NODE;
+    }
+    uint8_t node_id = lookup_node_id(node_name);
+    return enable_all(node_id);
+}
+
+//! Enable all outgoing files
+//! Sets the enabled status of all outgoing files to true.
+//! \param node_id ID of receiving node
+//! \return Number of files enabled
+int32_t Transfer::enable_all(uint8_t node_id)
+{
+    if (check_node_id(node_id) <= 0)
+    {
+        return TRANSFER_ERROR_NODE;
+    }
+
+    int32_t iretn = 0;
+
+    for (auto &tx_out : txq[(node_id)].outgoing.progress)
+    {
+        // Check if this file is valid
+        if (!tx_out.tx_id)
+        {
+            continue;
+        }
+
+        tx_out.enabled = true;
+        ++iretn;
+    }
+
+    return iretn;
 }
 
 //! Get a list of all files in the outgoing queue.
