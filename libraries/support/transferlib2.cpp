@@ -81,7 +81,6 @@ namespace Cosmos {
         //! \return n/a
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue)
         {
-            // TODO: remove magic numbers for packet type for all of these
             packet.header.type = PacketComm::TypeId::FileQueue;
             packet.data.resize(PACKET_QUEUE_OFFSET_TOTAL);
             memset(&packet.data[0], 0, PACKET_QUEUE_OFFSET_TOTAL);
@@ -93,7 +92,7 @@ namespace Cosmos {
             {
                 // Note: this logic assumes that PACKET_QUEUE_FLAGS_TYPE is a uint16_t
                 uint8_t flags = tx_id >> 4;
-                uint8_t lshift = tx_id & 31;
+                uint8_t lshift = tx_id & 15; // 0b1111
                 PACKET_QUEUE_FLAGS_TYPE mask = 1 << lshift;
                 row[flags] |= mask;
             }

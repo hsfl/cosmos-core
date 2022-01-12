@@ -121,14 +121,14 @@ namespace Cosmos {
         //! Scan the outgoing directory of every node in txq.
         //! Enqueues new files in txq's outgoing queue.
         //! Not thread safe.
-        //! \return 0 if success
+        //! \return Number of files in the outgoing queue
         int32_t Transfer::outgoing_tx_load()
         {
             int32_t iretn=0;
 
             // Go through outgoing queues for all nodes
             for (uint8_t node_id = 0; node_id < txq.size(); ++node_id) {
-                iretn = outgoing_tx_load(node_id);
+                iretn += outgoing_tx_load(node_id);
             }
             return iretn;
         }
@@ -136,11 +136,9 @@ namespace Cosmos {
         //! Scan the outgoing directory of specified node in txq.
         //! Enqueues new files in its outgoing queue.
         //! Not thread safe.
-        //! \return 0 if success
+        //! \return Number of files in this node's outgoing queue
         int32_t Transfer::outgoing_tx_load(uint8_t node_id)
         {
-            int32_t iretn=0;
-
             // Go through outgoing queues, removing files that no longer exist
             for (uint16_t i=1; i<PROGRESS_QUEUE_SIZE; ++i)
             {
@@ -157,7 +155,7 @@ namespace Cosmos {
                 {
                     if (file.type == "directory")
                     {
-                        iretn = data_list_files(txq[(node_id)].node_name, "outgoing", file.name, file_names);
+                        data_list_files(txq[(node_id)].node_name, "outgoing", file.name, file_names);
                     }
                 }
 
@@ -183,11 +181,11 @@ namespace Cosmos {
                     //     continue;
                     // }
 
-                    iretn = outgoing_tx_add(file.node, file.agent, file.name);
+                    outgoing_tx_add(file.node, file.agent, file.name);
                 }
             }
 
-            return iretn;
+            return outgoing_tx_recount(node_id);
         }
 
         //! Look through the outgoing and incoming queues of all nodes and generate any necessary packets.
@@ -1702,6 +1700,8 @@ namespace Cosmos {
             return 0;
         }
 
+        //! Gets the node_id associated with a node name
+        //! \return node_id on success
         int32_t Transfer::lookup_node_id(string node_name)
         {
             int32_t iretn;
@@ -1831,6 +1831,129 @@ int32_t Transfer::set_enabled(uint8_t node_id, PACKET_TX_ID_TYPE tx_id, bool ena
     txq[(node_id)].outgoing.progress[tx_id].enabled = enabled;
 
     return 0;
+}
+
+//! Enable a single outgoing file
+//! Sets the enabled status of a single outgoing file to true,
+//! and sets the enabled status of all other outgoing files of the
+//! node_id to false.
+//! If the file is not found, no changes are made.
+//! \param node_name Name of receiving node
+//! \param file_name Name of file
+//! \return Number of files enabled
+int32_t Transfer::enable_single(string node_name, string file_name)
+{
+    if (node_name.empty())
+    {
+        return TRANSFER_ERROR_NODE;
+    }
+    uint8_t node_id = lookup_node_id(node_name);
+    return enable_single(node_id, file_name);
+}
+
+//! Enable a single outgoing file
+//! Sets the enabled status of a single outgoing file to true,
+//! and sets the enabled status of all other outgoing files of the
+//! node_id to false.
+//! If the file is not found, no changes are made.
+//! \param node_id ID of receiving node
+//! \param file_name Name of file
+//! \return Number of files enabled
+int32_t Transfer::enable_single(uint8_t node_id, string file_name)
+{
+    if (check_node_id(node_id) <= 0)
+    {
+        return TRANSFER_ERROR_NODE;
+    }
+    if (file_name.empty())
+    {
+        return TRANSFER_ERROR_FILENAME;
+    }
+
+    bool file_found = false;
+
+    // Attempt to find the file first
+    for (auto &tx_out : txq[(node_id)].outgoing.progress)
+    {
+        if (!tx_out.tx_id)
+        {
+            continue;
+        }
+
+        if (tx_out.file_name.size() && tx_out.file_name == file_name)
+        {
+            file_found = true;
+            break;
+        }
+    }
+    // Return error if not found
+    if (!file_found)
+    {
+        return TRANSFER_ERROR_FILENAME;
+    }
+
+    // If the file was found, go through the outgoing queue again,
+    // this time actually making changes.
+    for (auto &tx_out : txq[(node_id)].outgoing.progress)
+    {
+        if (!tx_out.tx_id)
+        {
+            continue;
+        }
+
+        if (tx_out.file_name.size() && tx_out.file_name == file_name)
+        {
+            tx_out.enabled = true;
+        }
+        else
+        {
+            tx_out.enabled = false;
+        }
+    }
+
+    return 1;
+}
+
+//! Enable all outgoing files
+//! Sets the enabled status of all outgoing files to true.
+//! \param node_name Name of the receiving node
+//! \return Number of files enabled
+int32_t Transfer::enable_all(string node_name)
+{
+    if (node_name.empty())
+    {
+        return TRANSFER_ERROR_NODE;
+    }
+    uint8_t node_id = lookup_node_id(node_name);
+    return enable_all(node_id);
+}
+
+//! Enable all outgoing files
+//! Sets the enabled status of all outgoing files to true.
+//! \param node_id ID of receiving node
+//! \return Number of files enabled
+int32_t Transfer::enable_all(uint8_t node_id)
+{
+    if (check_node_id(node_id) <= 0)
+    {
+        return TRANSFER_ERROR_NODE;
+    }
+
+    int32_t iretn = 0;
+
+    for (auto &tx_out : txq[(node_id)].outgoing.progress)
+    {
+        // Check if this file is valid
+        if (!tx_out.tx_id)
+        {
+            continue;
+        }
+
+        tx_out.enabled = true;
+        ++iretn;
+    }
+
+    return iretn;
 }
 
 //! Get a list of all files in the outgoing queue.
