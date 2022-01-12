@@ -8027,24 +8027,28 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     }
 
     cinfo->json = json;
+    double mjd = currentmjd(cinfo->node.utcoffset);
 
     if (cinfo->node.type == NODE_TYPE_SUN)
     {
-        Convert::jplpos(JPL_EARTH, JPL_SUN, currentmjd(cinfo->node.utcoffset), &cinfo->node.loc.pos.eci);
+        Convert::jplpos(JPL_EARTH, JPL_SUN, Convert::utc2tt(mjd), &cinfo->node.loc.pos.eci);
+        cinfo->node.loc.pos.eci.utc = mjd;
         cinfo->node.loc.pos.eci.pass++;
         Convert::pos_eci(&cinfo->node.loc);
     }
 
     if (cinfo->node.type == NODE_TYPE_MOON)
     {
-        Convert::jplpos(JPL_EARTH, JPL_MOON, currentmjd(cinfo->node.utcoffset), &cinfo->node.loc.pos.eci);
+        Convert::jplpos(JPL_EARTH, JPL_MOON, Convert::utc2tt(mjd), &cinfo->node.loc.pos.eci);
+        cinfo->node.loc.pos.eci.utc = mjd;
         cinfo->node.loc.pos.eci.pass++;
         Convert::pos_eci(&cinfo->node.loc);
     }
 
     if (cinfo->node.type == NODE_TYPE_MARS)
     {
-        Convert::jplpos(JPL_EARTH, JPL_MARS, currentmjd(cinfo->node.utcoffset), &cinfo->node.loc.pos.eci);
+        Convert::jplpos(JPL_EARTH, JPL_MARS, Convert::utc2tt(mjd), &cinfo->node.loc.pos.eci);
+        cinfo->node.loc.pos.eci.utc = mjd;
         cinfo->node.loc.pos.eci.pass++;
         Convert::pos_eci(&cinfo->node.loc);
     }

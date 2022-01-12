@@ -161,12 +161,16 @@ namespace Cosmos {
 
 
             jplpos(JPL_SUN_BARY,JPL_EARTH,loc.pos.extra.tt,&loc.pos.extra.sun2earth);
+            loc.pos.extra.sun2earth.utc = loc.utc;
             locstruc tloc;
+            tloc.utc = loc.utc;
+            tloc.pos.extra = loc.pos.extra;
             tloc.pos.eci = loc.pos.extra.sun2earth;
             tloc.pos.eci.s = rv_smult(-1., tloc.pos.eci.s);
             pos_eci2geoc(tloc);
             loc.pos.extra.sungeo = tloc.pos.geod.s;
             jplpos(JPL_SUN_BARY,JPL_MOON,loc.pos.extra.tt,&loc.pos.extra.sun2moon);
+            loc.pos.extra.sun2moon.utc = loc.utc;
             tloc.pos.eci.s = rv_sub(loc.pos.extra.sun2moon.s, loc.pos.extra.sun2earth.s);
             pos_eci2geoc(tloc);
             loc.pos.extra.moongeo = tloc.pos.geod.s;
@@ -2989,6 +2993,7 @@ match.
             kep.eta = magv*magv/2. - GM/magr;
             magh = length_rv(kep.h);
             jplpos(JPL_EARTH,JPL_SUN_BARY,utc2tt(eci.utc),&earthpos);
+            earthpos.utc = eci.utc;
             rsun = earthpos.s;
             normalize_rv(rsun);
             hsat = kep.h;
