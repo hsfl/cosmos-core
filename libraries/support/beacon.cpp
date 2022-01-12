@@ -251,11 +251,11 @@ namespace Cosmos {
                         {
                             Contents += to_label(" CPU", i);
                             Contents += to_label(" Uptime", beacon.cpu[i].uptime);
-                            Contents += to_label(" BootCount", beacon.cpu[i].uptime);
-                            Contents += to_label(" Load", beacon.cpu[i].uptime);
-                            Contents += to_label(" Memory", beacon.cpu[i].uptime);
-                            Contents += to_label(" Disk", beacon.cpu[i].uptime);
-                            Contents += to_label(" Temp", beacon.cpu[i].uptime);
+                            Contents += to_label(" BootCount", beacon.cpu[i].bootcount);
+                            Contents += to_label(" Load", beacon.cpu[i].load);
+                            Contents += to_label(" Memory", beacon.cpu[i].memory);
+                            Contents += to_label(" Disk", beacon.cpu[i].disk);
+                            Contents += to_label(" Temp", beacon.cpu[i].temp);
                         }
                     }
                     break;
