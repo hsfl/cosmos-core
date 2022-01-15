@@ -447,7 +447,7 @@ int main(int argc, char *argv[])
                 else if (mode == "sun")
                 {
                     Convert::jplpos(JPL_EARTH, JPL_SUN, Convert::utc2tt(ctime), &track.target.loc.pos.eci);
-                    track.target.loc.pos.eci = ctime;
+                    track.target.loc.pos.eci.utc = ctime;
                     track.target.loc.pos.eci.pass++;
                     Convert::pos_eci(track.target.loc);
                     update_target(agent->cinfo->node.loc, track.target);
