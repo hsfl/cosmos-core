@@ -2714,6 +2714,46 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
         return 0;
     }
 
+    //! Check Ring for message
+    /*! Check the message ring for the requested amount of time. Return as soon as a message of the right type
+     * is available, or the timer runs out.
+    \param message Vector for storing incoming message.
+    \param realm Vector of node names that are within the realm to read
+    \param type Type of message to look for, taken from Cosmos::Agent::AgentMessage.
+    \param waitsec Number of seconds in timer. If 0, return last message in ring immediatelly.
+    \param where One of Where::HEAD or Where::TAIL, indicating whether to start at the head or tail of the ring.
+    \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
+    */
+    int32_t Agent::readring(messstruc &message, vector<string> realm, AgentMessage type, float waitsec, Where where)
+    {
+        if (waitsec < 0.f) { waitsec = 0.; }
+        if (cinfo == nullptr) { return AGENT_ERROR_NULL; }
+        if (where == Where::HEAD) { message_queue.clear(); }
+        ElapsedTime ep;
+        ep.start();
+        do {
+            while (message_queue.size()) {
+                message = message_queue.front();
+                message_queue.pop_front();
+                if (type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type)) {
+                    if (realm.empty() || std::find(realm.begin(), realm.end(), message.meta.beat.node) != realm.end()) {
+                        return (static_cast<int32_t>(message.meta.type));
+                    }
+                }
+            }
+
+            if (ep.split() < waitsec) {
+                if (waitsec - ep.split() > .1) {
+                    secondsleep(.1);
+                } else {
+                    secondsleep(.05);
+                }
+            }
+        } while (ep.split() < waitsec);
+
+        return 0;
+    }
+
     //! Parse next message from ring
     int32_t Agent::parsering(AgentMessage type, float waitsec, Where where, string proc, string node)
     {

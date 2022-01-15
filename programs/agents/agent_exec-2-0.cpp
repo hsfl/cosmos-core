@@ -71,6 +71,8 @@ using std::endl;
 
 static Agent *agent;
 
+static vector<string> realm;
+
 static CommandQueue cmd_queue;
 
 void move_and_compress_exec ();
@@ -102,6 +104,8 @@ int32_t request_get_logstride_soh(string &request, string &response, Agent *agen
 int32_t request_set_logstring(string &request, string &response, Agent *agent);
 int32_t request_get_logstring(string &request, string &response, Agent *agent);
 int32_t request_save_command(string &request, string &response, Agent *);
+int32_t request_get_realm(string &, string &response, Agent *);
+int32_t request_set_realm(string &request, string &response, Agent *);
 
 static string jjstring;
 static string myjstring;
@@ -208,6 +212,9 @@ int main(int argc, char *argv[])
     agent->cinfo->agent[0].aprd = 1.;
     cout<<"  started."<<endl;
 
+    // Add initial nodes to realm
+    realm.push_back(agent->nodeName);
+
     // Establish Executive functions
 
     // Set the immediate, incoming, outgoing, and temp directories
@@ -281,6 +288,11 @@ int main(int argc, char *argv[])
     if ((iretn=agent->add_request("setlogstride_soh", request_set_logstride_soh, "logstride", "modify how frequently we flush our soh log files out of temp directory")))
         exit (iretn);
     if ((iretn=agent->add_request("getlogstride_soh", request_get_logstride_soh, "", "return how frequently we flush our soh log files out of temp directory")))
+        exit (iretn);
+    
+    if ((iretn=agent->add_request("get_realm", request_get_realm, "", "get the realm, the nodes, this agent is concerned with requesting and logging SOHs of.")))
+        exit (iretn);
+    if ((iretn=agent->add_request("set_realm", request_set_realm, "json_string_vector_of_node_names", "set the realm, the nodes, this agent is concerned with requesting and logging SOHs of.")))
         exit (iretn);
 
     load_dictionary(eventdict, agent->cinfo, "events.dict");
@@ -359,8 +371,8 @@ int main(int argc, char *argv[])
 //            }
 //        }
 
-        dlogmjd = (clogmjd-llogmjd)*86400.;
         agent->cinfo->node.utc = clogmjd = currentmjd();
+        dlogmjd = (clogmjd-llogmjd)*86400.;
         agent->cinfo->node.downtime = get_last_offset();
 
         // Check if exec logstride has changed
@@ -414,7 +426,7 @@ int main(int argc, char *argv[])
         }
 
         // Check if SOH logperiod has expired
-        if (dlogmjd-logperiod > -logperiod/20.)
+        if (dlogmjd > logperiod*86400)
         {
             llogmjd = clogmjd;
             if (log_data_flag && agent->cinfo->node.utc != 0. && logstring.size())
@@ -806,6 +818,54 @@ int32_t request_set_logstride_soh(string &request, string &, Agent *)
 int32_t request_get_logstride_soh(string &, string &response, Agent *)
 {
     response =  std::to_string(86400. * logstride_soh);
+    return 0;
+}
+
+int32_t request_get_realm(string &, string &response, Agent *)
+{
+    response = json11::Json(realm).dump();
+    return 0;
+}
+
+//! Request to set the realm
+//! Current realm will be unchanged on an error.
+int32_t request_set_realm(string &request, string &response, Agent *)
+{
+    request.erase(0,10);
+    string error;
+    json11::Json parsed_req = json11::Json::parse(request,error);
+    if (error.empty())
+    {
+        if (parsed_req.is_string())
+        {
+            realm.clear();
+            realm.push_back(parsed_req.string_value());
+        }
+        else if (parsed_req.is_array())
+        {
+            auto trealm = parsed_req.array_items();
+            vector<string> new_realm;
+            for (auto node : trealm)
+            {
+                if (!node.is_string())
+                {
+                    response = "Invalid args";
+                    break;
+                }
+                new_realm.push_back(node.string_value());
+            }
+            realm = new_realm;
+            response = parsed_req.dump();
+        }
+        else
+        {
+            response = "Invalid args";
+        }
+    }
+    else
+    {
+        response = "Error in arg json syntax";
+    }
     return 0;
 }
 
