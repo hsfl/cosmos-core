@@ -882,7 +882,7 @@ void collect_data_loop() noexcept
     {
         // Collect new data
         Agent::messstruc mess;
-        iretn = agent->readring(mess, Agent::AgentMessage::ALL, 5., Agent::Where::TAIL, "", agent->cinfo->node.name);
+        iretn = agent->readring(mess, realm, Agent::AgentMessage::ALL, 5., Agent::Where::TAIL);
         if (iretn >= 0)
         {
             if (mess.meta.type < Agent::AgentMessage::BINARY)
