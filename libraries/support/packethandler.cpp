@@ -210,6 +210,7 @@ namespace Cosmos {
         // Incoming Packets
         int32_t PacketHandler::Test(PacketComm& packet, vector<uint8_t>& response, Agent *agent)
         {
+            static CRC16 calc_crc;
             int32_t iretn=0;
             struct test_control
             {
@@ -235,13 +236,6 @@ namespace Cosmos {
                 tests[test_id].et.reset();
             }
             tests[test_id].total_count = tests[test_id].good_count + tests[test_id].crc_count + tests[test_id].size_count;
-//            if (packet_id == ((uint32_t)-1))
-//            {
-//                sresponse += " Finish: " + to_unsigned(tests[test_id].good_count) + " " + to_unsigned(tests[test_id].crc_count) + " " + to_unsigned(tests[test_id].size_count) + " " + to_unsigned(tests[test_id].skip_count) + " " + to_unsigned(tests[test_id].skip_total);
-//                sresponse += to_label(" Bytes", tests[test_id].total_bytes) + to_label(" Count", tests[test_id].total_count);
-//                tests.erase(test_id);
-//            }
-//            else
             {
                 tests[test_id].et.reset();
                 if (packet_id - tests[test_id].last_packet_id > 1 && packet_id != ((uint32_t)-1))
@@ -257,7 +251,6 @@ namespace Cosmos {
                 }
                 else
                 {
-                    CRC16 calc_crc;
                     uint16_t crccalc = calc_crc.calc(&packet.data[0], packet.data.size()-2);
                     uint16_t crcdata = 256 * packet.data[packet.data.size()-1] + packet.data[packet.data.size()-2];
                     if (crccalc != crcdata)
