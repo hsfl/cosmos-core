@@ -76,6 +76,12 @@ namespace Cosmos {
         handle.delay = delay;
 
         error = connect();
+        if ((error = connect()) < 0)
+        {
+            close(handle.fh);
+            handle.fh = -1;
+            return;
+        }
 
 #endif
         handle.connected = true;

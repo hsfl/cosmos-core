@@ -44,7 +44,7 @@ namespace Cosmos {
     class I2C
     {
     public:
-        I2C(string bus, uint8_t address, double delay=2e-4, bool probe=true);
+        I2C(string bus, uint8_t address, double delay=2e-4, bool probe=false);
         ~I2C();
         //        int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
 
