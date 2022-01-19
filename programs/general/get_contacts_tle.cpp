@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
                     trackstruc ttrack;
                     ttrack.name = nodes[i];
                     iretn = load_lines(path, ttrack.tles);
-                    if (iretn >= 0)
+                    if (iretn >= 0 && ttrack.tles.size())
                     {
                         iretn = lines2eci(utcstart, ttrack.tles, ttrack.target.loc.pos.eci);
                         if (iretn >= 0)
