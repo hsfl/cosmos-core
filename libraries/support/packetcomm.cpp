@@ -32,11 +32,14 @@ namespace Cosmos {
             {
                 return false;
             }
-            uint16_t crcin = uint16from(&packed[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
-            crc = calc_crc.calc(packed.data(), packed.size()-2);
-            if (checkcrc && crc != crcin)
+            if (checkcrc)
             {
-                return false;
+                uint16_t crcin = uint16from(&packed[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
+                crc = calc_crc.calc(packed.data(), packed.size()-2);
+                if (crc != crcin)
+                {
+                    return false;
+                }
             }
 
             // Unpack as forwarding-type packet if required
