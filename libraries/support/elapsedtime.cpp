@@ -213,6 +213,7 @@ void ElapsedTime::start()
 #endif
     timeCheck = timeStart;
     elapsedTime = 0;
+    set(0);
 }
 
 /*!
@@ -246,6 +247,36 @@ double ElapsedTime::split()
 #endif
 
     return elapsedTime;
+}
+
+double ElapsedTime::set(double seconds)
+{
+#ifdef CROSS_TYPE_arm
+    gettimeofday(&timeAlarm, nullptr);
+    timeAlarm.tv_sec += int64_t(seconds);
+    timeAlarm.tv_usec += int64_t(1000000. * (seconds - timeAlarm.tv_sec));
+#else
+    // On windows using MinGw32 it does not get better than 1ms
+    // new c++11
+    timeAlarm = std::chrono::steady_clock::now() + std::chrono::microseconds(int64_t(seconds) * 1000000);
+#endif
+    remainingTime = seconds;
+    return remainingTime;
+}
+
+double ElapsedTime::timer()
+{
+    //Get the remaining time on timer
+
+#ifdef CROSS_TYPE_arm
+    gettimeofday(&timeNow, nullptr);
+    elapsedTime = (timeAlarm.tv_sec - timeNow.tv_sec) + (timeAlarm.tv_usec - timeNow.tv_usec) / 1e6;
+#else
+    timeNow = std::chrono::steady_clock::now();
+    remainingTime =  std::chrono::duration<double>(timeAlarm - timeNow).count();
+#endif
+
+    return remainingTime;
 }
 
 double ElapsedTime::getElapsedTime(){

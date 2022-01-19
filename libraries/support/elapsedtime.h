@@ -65,7 +65,7 @@ class ElapsedTime {
     //	struct timespec timeStart, timeNow, timeCheck;
     timeval timeStart, timeStop, timeNow, timeCheck;
 #else
-    std::chrono::steady_clock::time_point timeStart, timeStop, timeNow, timeCheck; //
+    std::chrono::steady_clock::time_point timeStart, timeStop, timeNow, timeCheck, timeAlarm; //
 #endif
 
 public:
@@ -93,9 +93,14 @@ public:
     //double toc(bool print_flag);
     double toc(string text);
 
+    // Timer functions
+    double set(double seconds);
+    double timer();
+
     // turn on/off printing
     bool print = true; //
     double elapsedTime = 0.; // equivalent to reset chrono
+    double remainingTime = 0.; // For timer
     void info();
 
 
