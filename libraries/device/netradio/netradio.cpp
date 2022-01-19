@@ -9,7 +9,7 @@ namespace Cosmos {
 
 //        }
 
-        int32_t NetRadio::Init(uint16_t inp, uint16_t outp)
+        int32_t NetRadio::Init(uint32_t speed, uint16_t inp, uint16_t outp)
         {
             int32_t iretn;
             iretn = socket_open(net_channel_out, outp, 200000);
@@ -25,6 +25,9 @@ namespace Cosmos {
                 return iretn;
             }
             in_port = inp;
+
+            // Set speed
+            this->speed = speed;
 
             // Start queueing thread
             qthread = thread([=] { queue_loop(); });
@@ -102,6 +105,11 @@ namespace Cosmos {
             }
         }
 
+        int32_t NetRadio::PacketInSize()
+        {
+            return packet_queue_in.size();
+        }
+
         int32_t NetRadio::PacketOut(PacketComm &p)
         {
             int32_t iretn;
@@ -117,11 +125,17 @@ namespace Cosmos {
             }
         }
 
+        int32_t NetRadio::PacketOutSize()
+        {
+            return packet_queue_out.size();
+        }
+
         void NetRadio::queue_loop()
         {
             int32_t iretn;
             PacketComm packet;
 
+            ElapsedTime et;
             while (running)
             {
                 // Wait for incoming packets
@@ -135,7 +149,7 @@ namespace Cosmos {
                     }
                 }
 
-                // Send any outgoing packets
+                // Send next outgoing packet
                 if (packet_queue_out.size())
                 {
                     iretn = DeQueue(packet_queue_out, qmutex_out, packet);
@@ -144,12 +158,11 @@ namespace Cosmos {
                         iretn = Packetize(packet);
                         if (iretn > 0)
                         {
+                            secondsleep(packet.packetized.size()/speed);
                             iretn = socket_post(net_channel_out, packet.packetized);
                         }
                     }
                 }
-
-                secondsleep(.00001);
             }
         }
     }
