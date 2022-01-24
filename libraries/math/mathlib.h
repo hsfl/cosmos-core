@@ -465,6 +465,10 @@ public:
     void update(fitelement cfit, uint16_t dep);
     double lastx();
     double firstx();
+    double lasty();
+    rvector lastrvector();
+    gvector lastgvector();
+    quaternion lastquaternion();
     size_t size();
     double eval(double x);
     rvector evalrvector(double x);

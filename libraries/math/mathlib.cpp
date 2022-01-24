@@ -2822,6 +2822,58 @@ void LsFit::fit()
     }
 }
 
+//! Least squares last dependent value.
+/*! Return the value of the dependent value added at the most recent ::LsFit::update.
+ * \return Most recently updated dependent value.
+*/
+double LsFit::lasty()
+{
+    if (var.size())
+    {
+        return var[var.size()-1].y.a4[0];
+    }
+    else
+    {
+        return 0.;
+    }
+}
+
+rvector LsFit::lastrvector()
+{
+    if (var.size())
+    {
+        return var[var.size()-1].y.r;
+    }
+    else
+    {
+        rv_zero();
+    }
+}
+
+gvector LsFit::lastgvector()
+{
+    if (var.size())
+    {
+        return var[var.size()-1].y.g;
+    }
+    else
+    {
+        gv_zero();
+    }
+}
+
+quaternion LsFit::lastquaternion()
+{
+    if (var.size())
+    {
+        return var[var.size()-1].y.q;
+    }
+    else
+    {
+        q_zero();
+    }
+}
+
 //! Least squares last independent value.
 /*! Return the value of the independent value added at the most recent ::LsFit::update.
  * \return Most recently updated independent value.
