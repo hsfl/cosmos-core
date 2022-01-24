@@ -63,7 +63,7 @@ class ElapsedTime {
     //new for c++11
 #ifdef CROSS_TYPE_arm
     //	struct timespec timeStart, timeNow, timeCheck;
-    timeval timeStart, timeStop, timeNow, timeCheck;
+    timeval timeStart, timeStop, timeNow, timeCheck, timeAlarm;
 #else
     std::chrono::steady_clock::time_point timeStart, timeStop, timeNow, timeCheck, timeAlarm; //
 #endif
