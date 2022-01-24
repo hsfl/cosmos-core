@@ -52,6 +52,7 @@
 #include "support/sliplib.h"
 #include "support/jsonobject.h"
 #include "support/socketlib.h"
+#include <atomic>
 
 #define PROGRESS_QUEUE_SIZE 256
 // Corrected for 28 byte UDP header. Will have to get more clever if we start using CSP
@@ -99,9 +100,13 @@ double logstride_sec = 10.;
 static Transfer transfer;
 
 static vector<PacketComm> packets;
+static std::atomic<bool> file_transfer_enabled(true);
+static std::atomic<bool> file_transfer_respond(false);
+static vector<PacketComm> send_queue;
 
 // Mutexes to avoid thread collisions
-static std::mutex txqueue_lock;
+static std::mutex transfer_mtx;
+static std::mutex send_queue_lock;
 static std::mutex out_comm_lock;
 static std::mutex debug_fd_lock;
 
@@ -238,7 +243,9 @@ int main(int argc, char *argv[])
 
     // Perform initial load
     double nextdiskcheck = currentmjd(0.);
+    transfer_mtx.lock();
     iretn = transfer.outgoing_tx_load();
+    transfer_mtx.unlock();
 
     if (iretn >= 0)
     {
@@ -249,12 +256,13 @@ int main(int argc, char *argv[])
     recv_loop_thread = thread([=] { recv_loop(); });
     send_loop_thread = thread([=] { send_loop(); });
 
-    double nextlog = currentmjd();
-    double sleepsec;
     ElapsedTime etloop;
     etloop.start();
 
-    // start the agent
+    // Accumulate here before transfering to proper queues
+    vector<PacketComm> file_packets;
+    double diskcheckwait = 10./86400.;
+
     while(agent->running())
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
@@ -262,59 +270,64 @@ int main(int argc, char *argv[])
             secondsleep(1);
             continue;
         }
-
-        if(nextdiskcheck < nextlog ) {
-            sleepsec = 86400. * (nextdiskcheck - currentmjd());
-        } else {
-            sleepsec = 86400. * (nextlog - currentmjd());
-        }
-        if (sleepsec > 0.)
-        {
-            secondsleep((sleepsec));
-        }
-
-        if(currentmjd() > nextlog) {
-            // write_queue_log(currentmjd(0.));
-            nextlog = currentmjd(0.) + logstride_sec/86400.;
-        }
-
         
-        // for (beatstruc &i : agent->agent_list) {
-
-        // }
-
-        // Check for new files to transmit if queue is not full and check is not delayed
+        // Check outgoing directories for new files
         if (currentmjd() > nextdiskcheck)
         {
-            nextdiskcheck = currentmjd(0.) + 4./86400.;
-            txqueue_lock.lock();
-            transfer.outgoing_tx_load();
-            txqueue_lock.unlock();
+            transfer_mtx.lock();
+            iretn = transfer.outgoing_tx_load();
+            transfer_mtx.unlock();
+            nextdiskcheck = currentmjd(0.) + diskcheckwait;
+        }
 
-            // Iterate over every outgoing channel we serve
-            out_comm_lock.lock();
-            size_t occ_size = out_comm_channel.size();
-            out_comm_lock.unlock();
-            for (size_t i = 0; i < occ_size; ++i) {
-                txqueue_lock.lock();
-                iretn = transfer.get_outgoing_lpackets(out_comm_channel[i].node, packets);
-                txqueue_lock.unlock();
+        // Check if any response-type packets need to be pushed
+        if (file_transfer_respond.load())
+        {
+            transfer_mtx.lock();
+            iretn = transfer.get_outgoing_rpackets(out_comm_channel[0].node, file_packets);
+            transfer_mtx.unlock();
+            if (iretn < 0 && agent->get_debug_level())
+            {
+                agent->debug_error.Printf("%16.10f Error in get_outgoing_rpackets: %d\n", currentmjd(), iretn);
+            }
+            file_transfer_respond.store(false);
+        }
 
-                if (iretn < 0) {
-                    if (agent->get_debug_level())
-                    {
-                        agent->debug_error.Printf("%.4f %.4f Error in get_outgoing_lpackets: %d\n", tet.split(), dt.lap(), iretn);
-                    }
-                }
-
-                if (agent->get_debug_level())
+        // Get our own files' transfer packets if transfer is enabled
+        if (file_transfer_enabled.load())
+        {
+            // Perform runs of file packet grabbing
+            for (size_t i = 1; i < out_comm_channel.size(); ++i)
+            {
+                transfer_mtx.lock();
+                iretn = transfer.get_outgoing_lpackets(out_comm_channel[i].node, file_packets);
+                transfer_mtx.unlock();
+                if (iretn < 0 && agent->get_debug_level())
                 {
-                    agent->debug_error.Printf("packets.size(): %u\n", packets.size());
+                    agent->debug_error.Printf("%16.10f Error in get_outgoing_lpackets: %d\n", currentmjd(), iretn);
                 }
             }
         }
+        
+        if (!file_packets.size())
+        {
+            secondsleep(1.);
+            continue;
+        }
 
-    } // End WHILE Loop
+        // Transfer to net radio queue, for now
+        send_queue_lock.lock();
+        for (auto &packet : file_packets)
+        {
+            send_queue.push_back(packet);
+        }
+        send_queue_lock.unlock();
+
+        // Don't forget to clear the vector before next use!
+        file_packets.clear();
+
+        secondsleep(.0001);
+    }
 
     if (agent->get_debug_level())
     {
@@ -356,11 +369,13 @@ void recv_loop() noexcept
 
         while (( nbytes = myrecvfrom("Incoming", rchannel, p, PACKET_MAX_LENGTH)) > 0)
         {
-            txqueue_lock.lock();
+            transfer_mtx.lock();
             iretn = transfer.receive_packet(p);
-            string node_name = transfer.lookup_node_id_name(p.data[0]);
-            int32_t node_id = transfer.check_node_id(p.data[0]);
-            txqueue_lock.unlock();
+            transfer_mtx.unlock();
+            if (iretn == transfer.RESPONSE_REQUIRED)
+            {
+                file_transfer_respond.store(true);
+            }
 
             if (iretn < 0) {
                 if (agent->get_debug_level())
@@ -374,10 +389,6 @@ void recv_loop() noexcept
                 }
             }
             
-            if (node_id <= 0 || node_name.empty())
-            {
-                continue;
-            }
             if (iretn >= 0)
             {
                 // TODO: consider this section. If the incoming node id is the receiver's,
@@ -416,18 +427,6 @@ void recv_loop() noexcept
                     }
                 }
                 out_comm_lock.unlock();*/
-
-                // Send out appropriate response-type file packets if required
-                if (iretn == Transfer::RESPONSE_REQUIRED) {
-                    iretn = transfer.get_outgoing_rpackets(node_name, packets);
-
-                    if (iretn < 0) {
-                        if (agent->get_debug_level())
-                        {
-                            agent->debug_error.Printf("%.4f %.4f Error in get_outgoing_rpackets: %d\n", tet.split(), dt.lap(), iretn);
-                        }
-                    }
-                }
             }
         }
     }
@@ -452,14 +451,14 @@ void send_loop() noexcept
         }
 
         // Send out packets to the node
-        txqueue_lock.lock();
-        for(auto& packet : packets) {
+        send_queue_lock.lock();
+        for(auto& packet : send_queue) {
             packet.SLIPPacketize();
             // TODO: reimplement dynamic sendy thingy
             mysendto(1, packet);
         }
-        packets.clear();
-        txqueue_lock.unlock();
+        send_queue.clear();
+        send_queue_lock.unlock();
 
     }
 }
