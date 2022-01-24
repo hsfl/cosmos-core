@@ -84,14 +84,15 @@ string log_write(string node, string agent, double utc, string extra, string typ
     if (utc == 0.)
         return "";
 
-    if (extra.empty())
-    {
-        path = data_type_path(node, location, agent, utc, type);
-    }
-    else
-    {
-        path = data_type_path(node, location, agent, utc, extra, type);
-    }
+//    if (extra.empty())
+//    {
+//        path = data_type_path(node, location, agent, utc, type);
+//    }
+//    else
+//    {
+//        path = data_type_path(node, location, agent, utc, extra, type);
+//    }
+    path = data_type_path(node, location, agent, utc, type, extra);
 
     if (location == "immediate")
     {
@@ -830,14 +831,14 @@ string data_archive_path(string node, string agent, double mjd)
 *    \param type Any valid extension type
 *    \return File path string, otherwise nullptr
 */
-string data_type_path(string node, string location, string agent, double mjd, string type)
-{
-    string path;
+//string data_type_path(string node, string location, string agent, double mjd, string type)
+//{
+//    string path;
 
-    path = data_type_path(node, location, agent, mjd, "", type);
+//    path = data_type_path(node, location, agent, mjd, type);
 
-    return (path);
-}
+//    return (path);
+//}
 
 //! Create data file path
 /*! Build a path to a data file using its filename and the current Node
@@ -850,12 +851,12 @@ string data_type_path(string node, string location, string agent, double mjd, st
  * \param type Any valid extension type
  * \return File path string, otherwise nullptr
 */
-string data_type_path(string node, string location, string agent, double mjd, string extra, string type)
+string data_type_path(string node, string location, string agent, double mjd, string type, string extra)
 {
     string path;
     string tpath;
 
-    tpath = data_name_path(node, location, agent, mjd, data_name(node, mjd, extra, type));
+    tpath = data_name_path(node, location, agent, mjd, data_name(node, mjd, type, extra));
 
     if (!tpath.empty())
     {

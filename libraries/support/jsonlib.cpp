@@ -13008,11 +13008,11 @@ int32_t kml_write(cosmosstruc *cinfo)
 
     utc = floor(cinfo->node.loc.utc);
 
-    string path = data_type_path((string)cinfo->node.name, "outgoing", "google", utc, "points");
+    string path = data_type_path(cinfo->node.name, "outgoing", "google", utc, "points");
     fin = data_open(path, (char *)"a+");
     fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->node.loc.pos.geod.s.lon),DEGOF(cinfo->node.loc.pos.geod.s.lat),cinfo->node.loc.pos.geod.s.h);
 
-    path = data_type_path(cinfo->node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
+    path = data_type_path(cinfo->node.name, "outgoing", "google",  utc, "kml");
     fout = data_open(path, (char *)"w");
     fprintf(fout,"<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n");
     fprintf(fout,"<Document>\n");
