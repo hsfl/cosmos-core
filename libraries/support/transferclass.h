@@ -83,6 +83,9 @@ namespace Cosmos {
             /// The calling agent of this class.
             Agent *agent;
 
+            /// The node_id of the calling node
+            PACKET_NODE_ID_TYPE self_node_id;
+
             /// The heart of the file transfer manager.
             vector<tx_queue> txq;
 

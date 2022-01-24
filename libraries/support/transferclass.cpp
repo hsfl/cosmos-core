@@ -80,6 +80,14 @@ namespace Cosmos {
                 }
             }
 
+            // Identify and store calling node's node_id
+            iretn = lookup_node_id(agent->nodeName);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            self_node_id = iretn;
+
             // Restore in progress transfers from previous run
             for (string node_name : data_list_nodes())
             {
@@ -128,6 +136,10 @@ namespace Cosmos {
 
             // Go through outgoing queues for all nodes
             for (uint8_t node_id = 0; node_id < txq.size(); ++node_id) {
+                if (node_id == self_node_id)
+                {
+                    continue;
+                }
                 iretn += outgoing_tx_load(node_id);
             }
             return iretn;
@@ -1468,7 +1480,7 @@ namespace Cosmos {
                                 {
                                     total += data.chunk[i];
                                 }
-                                agent->debug_error.Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), data.byte_count, tx_id);
+                                //agent->debug_error.Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), data.byte_count, tx_id);
                             }
 
                             // If all bytes have been received, mark as all data sent over
@@ -1701,7 +1713,7 @@ namespace Cosmos {
         }
 
         //! Gets the node_id associated with a node name
-        //! \return node_id on success
+        //! \return node_id on success, negative on error
         int32_t Transfer::lookup_node_id(string node_name)
         {
             int32_t iretn;
@@ -1711,7 +1723,7 @@ namespace Cosmos {
                 return iretn;
             }
 
-            uint8_t node_id = 0;
+            uint8_t node_id = TRANSFER_ERROR_NODE;
             for (uint8_t i=1; i<nodeids.size(); ++i)
             {
                 if (nodeids[i] == node_name)
