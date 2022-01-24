@@ -441,7 +441,8 @@ namespace Cosmos {
             // Function pointer to a function that will update the beacon(s)
             update_beacon_func update;
             // Time interval (in seconds) between beacon sends
-            std::atomic<double> interval;
+//            std::atomic<double> interval;
+            double interval;
             // Message size limtis
             uint8_t short_beacon_size;
             uint8_t long_beacon_size;

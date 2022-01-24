@@ -6,7 +6,8 @@ namespace Cosmos {
             // Beacon and SMS message byte size limits
             short_beacon_size = short_beacon;
             long_beacon_size = long_beacon;
-            interval.store(1.);
+//            interval.store(1.);
+            interval = 1.;
             pattern_idx = 0;
             agent = calling_agent;
             return 0;
@@ -272,7 +273,8 @@ namespace Cosmos {
         }
 
         double Beacon::get_interval() {
-            return interval.load();
+//            return interval.load();
+            return interval;
         }
 
         int32_t Beacon::set_pattern(const vector<string>& pattern) {
