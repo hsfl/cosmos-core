@@ -1723,7 +1723,7 @@ namespace Cosmos {
                 return iretn;
             }
 
-            uint8_t node_id = TRANSFER_ERROR_NODE;
+            uint8_t node_id = 0;
             for (uint8_t i=1; i<nodeids.size(); ++i)
             {
                 if (nodeids[i] == node_name)
@@ -1732,6 +1732,11 @@ namespace Cosmos {
                     break;
                 }
             }
+
+			if (node_id == 0)
+			{
+				return TRANSFER_ERROR_NODE;
+			}
 
             return node_id;
         }
