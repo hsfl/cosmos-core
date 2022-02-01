@@ -268,14 +268,6 @@ namespace Cosmos {
                 }
 
                 // **************************************************************
-                // ** QUEUE *****************************************************
-                // **************************************************************
-                if (!txq[(node_id)].outgoing.sentqueue)
-                {
-                    tqueue.push_back(tx_id);
-                }
-
-                // **************************************************************
                 // ** METADATA **************************************************
                 // **************************************************************
                 if (!txq[(node_id)].outgoing.progress[tx_id].sentmeta)
@@ -287,19 +279,14 @@ namespace Cosmos {
                     txq[(node_id)].outgoing.progress[tx_id].sentmeta = true;
                 }
 
-                // **********************************
                 // ** enabled check *****************
-                // **********************************
                 // Check if this file is enabled
-                // Note that the file's METADATA is always sent,
+                // Note that the file's QUEUE status and METADATA is always sent,
                 // regardless of whether it's enabled or not.
-                if (!txq[(node_id)].outgoing.progress[tx_id].enabled)
-                {
-                    continue;
-                }
 
                 // Check if all data for this file has been sent
-                if (!txq[(node_id)].outgoing.progress[tx_id].sentdata)
+                if (txq[(node_id)].outgoing.progress[tx_id].enabled
+                && !txq[(node_id)].outgoing.progress[tx_id].sentdata)
                 {
                 // **************************************************************
                 // ** DATA ******************************************************
@@ -421,6 +408,16 @@ namespace Cosmos {
                         // This is to prevent sending redundant requests, the receiver
                         // only needs to respond once.
                     }
+                }
+
+                // **************************************************************
+                // ** QUEUE *****************************************************
+                // **************************************************************
+                if (!txq[(node_id)].outgoing.sentqueue
+                // Check that this transaction is still happening
+                && txq[(node_id)].outgoing.progress[tx_id].tx_id == tx_id)
+                {
+                    tqueue.push_back(tx_id);
                 }
             }
 
