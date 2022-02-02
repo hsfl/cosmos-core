@@ -54,10 +54,16 @@ namespace Cosmos {
             
             Transfer();
             // int32_t Init(string node, string agent, uint16_t chunk_size);
-            int32_t Init(Agent *calling_agent);
+            int32_t Init(string calling_node_name);
+            int32_t Init(string calling_node_name, Error* debug_error);
             //int32_t Load(string filename, vector<chunk> &chunks);
             int32_t outgoing_tx_load();
+            int32_t outgoing_tx_load(string node_name);
             int32_t outgoing_tx_load(uint8_t node_id);
+            int32_t outgoing_tx_recount(string node_name);
+            int32_t outgoing_tx_recount(uint8_t node_id);
+            int32_t incoming_tx_recount(string node_name);
+            int32_t incoming_tx_recount(uint8_t node_id);
             int32_t get_outgoing_lpackets(vector<PacketComm> &packets);
             int32_t get_outgoing_lpackets(string node_name, vector<PacketComm> &packets);
             int32_t get_outgoing_rpackets(vector<PacketComm> &packets);
@@ -80,9 +86,6 @@ namespace Cosmos {
 
 
         private:
-            /// The calling agent of this class.
-            Agent *agent;
-
             /// The node_id of the calling node
             PACKET_NODE_ID_TYPE self_node_id;
 
@@ -98,6 +101,9 @@ namespace Cosmos {
             // Byte size limit of a packet
             PACKET_CHUNK_SIZE_TYPE packet_size;
 
+			// Pointer to calling agent's debug_error
+			Error* debug_error = nullptr;
+
             // Internal use
             int32_t get_outgoing_lpackets(uint8_t node_id, vector<PacketComm> &packets);
             int32_t get_outgoing_rpackets(uint8_t node_id, vector<PacketComm> &packets);
@@ -106,7 +112,6 @@ namespace Cosmos {
             int32_t outgoing_tx_add(tx_progress &tx_out);
             int32_t outgoing_tx_add(string node_name, string agent_name, string file_name);
             int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id=PROGRESS_QUEUE_SIZE, bool remove_file=true);
-            int32_t outgoing_tx_recount(uint8_t node_id);
             PACKET_TX_ID_TYPE choose_outgoing_tx_id(uint8_t node_id);
             PACKET_TX_ID_TYPE check_tx_id(tx_entry &txentry, PACKET_TX_ID_TYPE tx_id);
             int32_t incoming_tx_add(string node_name, PACKET_TX_ID_TYPE tx_id);
@@ -114,7 +119,6 @@ namespace Cosmos {
             int32_t incoming_tx_update(packet_struct_metashort meta);
             int32_t incoming_tx_del(uint8_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
             int32_t incoming_tx_complete(uint8_t node_id, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
-            int32_t incoming_tx_recount(uint8_t node_id);
 
             int32_t write_meta(tx_progress& tx, double interval=5.);
             int32_t read_meta(tx_progress& tx);
