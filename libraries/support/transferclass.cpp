@@ -47,28 +47,36 @@ namespace Cosmos {
 
         /** 
          * Initialize the transfer class
-         * \param calling_agent Pointer to the agent creating this class
+         * \param calling_node_name Name of node using this instance of transferclass
          * \return 0 if success
          */
-        int32_t Transfer::Init(Agent *calling_agent)
+        int32_t Transfer::Init(string calling_node_name)
+        {
+            int32_t iretn = Init(calling_node_name, nullptr);
+            return iretn;
+        }
+
+        /** 
+         * Initialize the transfer class
+         * \param calling_node_name Name of node using this instance of transferclass
+         * \param debug_error Pointer to an agent's debug_error to use to print error messages.
+         * \return 0 if success
+         */
+        int32_t Transfer::Init(string calling_node_name, Error* debug_error)
         {
             int32_t iretn;
-            agent = calling_agent;
+            this->debug_error = debug_error;
 
             packet_size = 217;
-
-            // if (static_cast<string>(argv[0]).find("slow") != string::npos)
-            // {
-            //     default_throughput = THROUGHPUT_LO;
-            //     default_packet_size = PACKET_SIZE_LO;
-            // }
 
             // Initialize Transfer Queue
             if ((iretn = load_nodeids()) < 2)
             {
-                agent->debug_error.Printf("%.4f Couldn't load node lookup table\n", tet.split());
-                agent->shutdown();
-                exit (iretn);
+                if (this->debug_error != nullptr)
+                {
+                    this->debug_error->Printf("%.4f Couldn't load node lookup table\n", tet.split());
+                }
+                return iretn;
             }
             txq.resize(iretn);
             for (uint16_t i=1; i<iretn; ++i)
@@ -81,9 +89,13 @@ namespace Cosmos {
             }
 
             // Identify and store calling node's node_id
-            iretn = lookup_node_id(agent->nodeName);
+            iretn = lookup_node_id(calling_node_name);
             if (iretn < 0)
             {
+                if (this->debug_error != nullptr)
+                {
+                    this->debug_error->Printf("%.4f Could not find node in node table!\n", tet.split());
+                }
                 return iretn;
             }
             self_node_id = iretn;
@@ -132,7 +144,7 @@ namespace Cosmos {
         //! \return Number of files in the outgoing queue
         int32_t Transfer::outgoing_tx_load()
         {
-            int32_t iretn=0;
+            int32_t iretn = 0;
 
             // Go through outgoing queues for all nodes
             for (uint8_t node_id = 0; node_id < txq.size(); ++node_id) {
@@ -145,7 +157,21 @@ namespace Cosmos {
             return iretn;
         }
 
-        //! Scan the outgoing directory of specified node in txq.
+        //! Scan the outgoing directory of the specified node in txq.
+        //! Enqueues new files in its outgoing queue.
+        //! Not thread safe.
+        //! \return Number of files in the outgoing queue
+        int32_t Transfer::outgoing_tx_load(string node_name)
+        {
+            int32_t iretn = lookup_node_id(node_name);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            return outgoing_tx_load(iretn);
+        }
+
+        //! Scan the outgoing directory of the specified node in txq.
         //! Enqueues new files in its outgoing queue.
         //! Not thread safe.
         //! \return Number of files in this node's outgoing queue
@@ -187,11 +213,12 @@ namespace Cosmos {
                         continue;
                     }
 
+					// TODO: consider how to handle zero-size file
                     // Ignore zero length files (may still be being formed)
-                    // if (file.size == 0)
-                    // {
-                    //     continue;
-                    // }
+                    if (file.size == 0)
+                    {
+                    	continue;
+                    }
 
                     outgoing_tx_add(file.node, file.agent, file.name);
                 }
@@ -223,9 +250,9 @@ namespace Cosmos {
         {
             if (node_name.empty())
             {
-                if (agent->get_debug_level())
+                if (debug_error != nullptr)
                 {
-                    agent->debug_error.Printf("%.4f %.4f Main: get_outgoing_packets: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
+                    debug_error->Printf("%.4f %.4f Main: get_outgoing_packets: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
                 }
                 return TRANSFER_ERROR_FILENAME;
             }
@@ -456,9 +483,9 @@ namespace Cosmos {
         {
             if (node_name.empty())
             {
-                if (agent->get_debug_level())
+                if (debug_error != nullptr)
                 {
-                    agent->debug_error.Printf("%.4f %.4f Main: get_outgoing_packets: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
+                    debug_error->Printf("%.4f %.4f Main: get_outgoing_packets: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
                 }
                 return TRANSFER_ERROR_FILENAME;
             }
@@ -561,9 +588,9 @@ namespace Cosmos {
         {
             if (node_name.empty() || agent_name.empty() || file_name.empty())
             {
-                if (agent->get_debug_level())
+                if (debug_error != nullptr)
                 {
-                    agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
+                    debug_error->Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
                 }
                 return TRANSFER_ERROR_FILENAME;
             }
@@ -601,9 +628,9 @@ namespace Cosmos {
                         if (!txq[(node_id)].outgoing.progress[i].enabled)
                         {
                             txq[(node_id)].outgoing.progress[i].enabled = true;
-                            if (agent->get_debug_level())
+                            if (debug_error != nullptr)
                             {
-                                agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d\n", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                                debug_error->Printf("%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %d\n", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
                             }
                         }
                         return outgoing_tx_recount(node_id);
@@ -657,9 +684,9 @@ namespace Cosmos {
 
                 if(tx_out.file_size < 0)
                 {
-                    if (agent->get_debug_level())
+                    if (debug_error != nullptr)
                     {
-                        agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: DATA_ERROR_SIZE_MISMATCH\n", tet.split(), dt.lap());
+                        debug_error->Printf("%.4f %.4f Main: outgoing_tx_add: DATA_ERROR_SIZE_MISMATCH\n", tet.split(), dt.lap());
                     }
                     return DATA_ERROR_SIZE_MISMATCH;
                 }
@@ -668,9 +695,9 @@ namespace Cosmos {
                 filename.open(tx_out.filepath, std::ios::in|std::ios::binary);
                 if(!filename.is_open())
                 {
-                    if (agent->get_debug_level())
+                    if (debug_error != nullptr)
                     {
-                        agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: %s\n", tet.split(), dt.lap(), cosmos_error_string(-errno).c_str());
+                        debug_error->Printf("%.4f %.4f Main: outgoing_tx_add: %s\n", tet.split(), dt.lap(), cosmos_error_string(-errno).c_str());
                     }
                     return -errno;
                 }
@@ -698,17 +725,17 @@ namespace Cosmos {
         //! \return Number of files in node's outgoing queue if non-error
         int32_t Transfer::outgoing_tx_add(tx_progress &tx_out)
         {
-            if (agent->get_debug_level())
+            if (debug_error != nullptr)
             {
-                agent->debug_error.Printf("%.4f %.4f Main: outgoing_tx_add: ", tet.split(), dt.lap());
+                debug_error->Printf("%.4f %.4f Main: outgoing_tx_add: ", tet.split(), dt.lap());
             }
 
             int32_t node_id = lookup_node_id(tx_out.node_name);
             if (node_id <= 0)
             {
-                if (agent->get_debug_level())
+                if (debug_error != nullptr)
                 {
-                    agent->debug_error.Printf("TRANSFER_ERROR_NODE\n");
+                    debug_error->Printf("TRANSFER_ERROR_NODE\n");
                 }
                 if (node_id == 0)
                 {
@@ -732,9 +759,9 @@ namespace Cosmos {
             }
             else
             {
-                if (agent->get_debug_level())
+                if (debug_error != nullptr)
                 {
-                    agent->debug_error.Printf("TRANSFER_ERROR_FILENAME\n");
+                    debug_error->Printf("TRANSFER_ERROR_FILENAME\n");
                 }
                 tx_out.filepath = "";
                 return TRANSFER_ERROR_FILENAME;
@@ -749,9 +776,9 @@ namespace Cosmos {
                 if (!txq[(node_id)].outgoing.progress[i].filepath.empty() && tx_out.filepath == txq[(node_id)].outgoing.progress[i].filepath)
                 {
                     // Remove the META file
-                    if (agent->get_debug_level())
+                    if (debug_error != nullptr)
                     {
-                        agent->debug_error.Printf("%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str());
+                        debug_error->Printf("%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str());
                     }
                     string filepath = tx_out.temppath + ".meta";
                     remove(filepath.c_str());
@@ -769,9 +796,9 @@ namespace Cosmos {
             tx_out.sentdata = false;
             tx_out.complete = false;
 
-            if (agent->get_debug_level())
+            if (debug_error != nullptr)
             {
-                agent->debug_error.Printf("%u %s %s %s %d ", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                debug_error->Printf("%u %s %s %s %d ", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str(), PROGRESS_QUEUE_SIZE);
             }
 
             // Good to go. Add it to queue.
@@ -803,9 +830,9 @@ namespace Cosmos {
             // Set QUEUE to be sent out again
             txq[(node_id)].outgoing.sentqueue = false;
 
-            if (agent->get_debug_level())
+            if (debug_error != nullptr)
             {
-                agent->debug_error.Printf(" %u\n", txq[(node_id)].outgoing.size);
+                debug_error->Printf(" %u\n", txq[(node_id)].outgoing.size);
             }
 
             return outgoing_tx_recount(node_id);
@@ -865,9 +892,9 @@ namespace Cosmos {
                 // Remove the file
                 if(remove_file && remove(tx_out.filepath.c_str()))
                 {
-                    if (agent->get_debug_level())
+                    if (debug_error != nullptr)
                     {
-                        agent->debug_error.Printf("%.4f %.4f Main/Outgoing: Del outgoing: %u %s %s %s - Unable to remove file\n", tet.split(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+                        debug_error->Printf("%.4f %.4f Main/Outgoing: Del outgoing: %u %s %s %s - Unable to remove file\n", tet.split(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
                     }
                 }
 
@@ -875,13 +902,21 @@ namespace Cosmos {
                 string meta_filepath = tx_out.temppath + ".meta";
                 remove(meta_filepath.c_str());
 
-                if (agent->get_debug_level())
+                if (debug_error != nullptr)
                 {
-                    agent->debug_error.Printf("%.4f %.4f Main/Outgoing: Del outgoing: %u %s %s %s\n", tet.split(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+                    debug_error->Printf("%.4f %.4f Main/Outgoing: Del outgoing: %u %s %s %s\n", tet.split(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
                 }
             }
 
             return outgoing_tx_recount(node_id);
+        }
+
+        //! Recount number of files in outgoing queue
+        //! \param node_name Name of node to check
+        //! \return Number of files in node's outgoing queue
+        int32_t Transfer::outgoing_tx_recount(string node_name)
+        {
+            return outgoing_tx_load(lookup_node_id(node_name));
         }
 
         //! Recount number of files in outgoing queue
@@ -996,9 +1031,9 @@ namespace Cosmos {
             uint8_t node_id = lookup_node_id(tx_in.node_name);
             if (node_id == 0)
             {
-                if (agent->get_debug_level())
+                if (debug_error != nullptr)
                 {
-                    agent->debug_error.Printf("%.4f %.4f Main: incoming_tx_add: TRANSFER_ERROR_NODE\n", tet.split(), dt.lap());
+                    debug_error->Printf("%.4f %.4f Main: incoming_tx_add: TRANSFER_ERROR_NODE\n", tet.split(), dt.lap());
                 }
                 return TRANSFER_ERROR_NODE;
             }
@@ -1021,9 +1056,9 @@ namespace Cosmos {
             {
                 if (!txq[(node_id)].incoming.progress[i].filepath.empty() && tx_in.filepath == txq[(node_id)].incoming.progress[i].filepath)
                 {
-                    if (agent->get_debug_level())
+                    if (debug_error != nullptr)
                     {
-                        agent->debug_error.Printf("%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str());
+                        debug_error->Printf("%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str());
                     }
                     // Remove the META file
                     string filepath = tx_in.temppath + ".meta";
@@ -1056,9 +1091,9 @@ namespace Cosmos {
             txq[(node_id)].incoming.progress[tx_in.tx_id].fp = tx_in.fp;
             ++txq[(node_id)].incoming.size;
 
-            if (agent->get_debug_level())
+            if (debug_error != nullptr)
             {
-                agent->debug_error.Printf("%.4f %.4f Main/Incoming: Add incoming: %u %s %s %s %d\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                debug_error->Printf("%.4f %.4f Main/Incoming: Add incoming: %u %s %s %s %d\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str(), PROGRESS_QUEUE_SIZE);
             }
 
             return incoming_tx_recount(node_id);
@@ -1126,9 +1161,9 @@ namespace Cosmos {
 
                 txq[(node_id)].incoming.progress[meta.tx_id].sentmeta = true;
 
-                if (agent->get_debug_level())
+                if (debug_error != nullptr)
                 {
-                    agent->debug_error.Printf("%.4f %.4f Incoming: Update incoming: %u %s %s %s\n", tet.split(), dt.lap(), txq[(node_id)].incoming.progress[meta.tx_id].tx_id, txq[(node_id)].incoming.progress[meta.tx_id].node_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].agent_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].file_name.c_str());
+                    debug_error->Printf("%.4f %.4f Incoming: Update incoming: %u %s %s %s\n", tet.split(), dt.lap(), txq[(node_id)].incoming.progress[meta.tx_id].tx_id, txq[(node_id)].incoming.progress[meta.tx_id].node_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].agent_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].file_name.c_str());
                 }
 
                 return meta.tx_id;
@@ -1175,9 +1210,9 @@ namespace Cosmos {
                     incoming_tx_complete(node_id, tx_id);
                 }
 
-                if (agent->get_debug_level())
+                if (debug_error != nullptr)
                 {
-                    agent->debug_error.Printf("%.4f %.4f Incoming: Del incoming: %u %s\n", tet.split(), dt.lap(), txq[(node_id)].incoming.progress[tx_id].tx_id, txq[(node_id)].incoming.progress[tx_id].node_name.c_str());
+                    debug_error->Printf("%.4f %.4f Incoming: Del incoming: %u %s\n", tet.split(), dt.lap(), txq[(node_id)].incoming.progress[tx_id].tx_id, txq[(node_id)].incoming.progress[tx_id].node_name.c_str());
                 }
 
                 txq[(node_id)].incoming.progress[tx_id].tx_id = 0;
@@ -1223,14 +1258,14 @@ namespace Cosmos {
                 int iret = rename(final_filepath.c_str(), txq[(node_id)].incoming.progress[tx_id].filepath.c_str());
                 // Make sure metadata is recorded
                 write_meta(txq[(node_id)].incoming.progress[tx_id], 0.);
-                if (!iret && agent->get_debug_level())
+                if (!iret && debug_error != nullptr)
                 {
-                    agent->debug_error.Printf("%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, txq[(node_id)].incoming.progress[tx_id].filepath.c_str());
+                    debug_error->Printf("%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, txq[(node_id)].incoming.progress[tx_id].filepath.c_str());
                 }
 
-                if (agent->get_debug_level())
+                if (debug_error != nullptr)
                 {
-                    agent->debug_error.Printf("%.4f %.4f Incoming: Complete incoming: %u %s\n", tet.split(), dt.lap(), txq[(node_id)].incoming.progress[tx_id].tx_id, txq[(node_id)].incoming.progress[tx_id].node_name.c_str());
+                    debug_error->Printf("%.4f %.4f Incoming: Complete incoming: %u %s\n", tet.split(), dt.lap(), txq[(node_id)].incoming.progress[tx_id].tx_id, txq[(node_id)].incoming.progress[tx_id].node_name.c_str());
                 }
 
                 string filepath;
@@ -1272,7 +1307,9 @@ namespace Cosmos {
 
                     deserialize_command(packet.data, command);
 
-                    FILE *fp = data_open(("/cosmos/nodes/" + agent->nodeName + "/incoming/exec/file.command").c_str(), "w");
+                    string node_name = lookup_node_id_name(self_node_id);
+
+                    FILE *fp = data_open(("/cosmos/nodes/" + node_name + "/incoming/exec/file.command").c_str(), "w");
                     if (fp)
                     {
                         fwrite(&command.bytes[0], 1, command.length, fp);
@@ -1458,9 +1495,9 @@ namespace Cosmos {
 
                         if (txq[node_id].incoming.progress[tx_id].fp == nullptr)
                         {
-                            if (agent->get_debug_level())
+                            if (debug_error != nullptr)
                             {
-                                agent->debug_error.Printf("%.4f %.4f Incoming: File Error: %s %s on ID: %u Chunk: %u\n", tet.split(), dt.lap(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
+                                debug_error->Printf("%.4f %.4f Incoming: File Error: %s %s on ID: %u Chunk: %u\n", tet.split(), dt.lap(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
                             }
                         }
                         else
@@ -1470,14 +1507,14 @@ namespace Cosmos {
                             fflush(txq[node_id].incoming.progress[tx_id].fp);
                             // Write latest meta data to disk
                             write_meta(txq[node_id].incoming.progress[tx_id]);
-                            if (agent->get_debug_level())
+                            if (debug_error != nullptr)
                             {
                                 uint32_t total = 0;
                                 for (uint16_t i=0; i<data.byte_count; ++i)
                                 {
                                     total += data.chunk[i];
                                 }
-                                //agent->debug_error.Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), data.byte_count, tx_id);
+                                //debug_error->Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), data.byte_count, tx_id);
                             }
 
                             // If all bytes have been received, mark as all data sent over
@@ -1553,6 +1590,11 @@ namespace Cosmos {
             }
 
             return iretn;
+        }
+
+        int32_t Transfer::incoming_tx_recount(string node_name)
+        {
+            return incoming_tx_recount(lookup_node_id(node_name));
         }
 
         int32_t Transfer::incoming_tx_recount(uint8_t node_id)
@@ -1701,9 +1743,9 @@ namespace Cosmos {
                 tx.file_info.push_back(progress_info);
             } while(!file_name.eof());
             file_name.close();
-            if (agent->get_debug_level())
+            if (debug_error != nullptr)
             {
-                agent->debug_error.Printf("%.4f %.4f Main: read_meta: %s tx_id: %d chunks: %lu\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
+                debug_error->Printf("%.4f %.4f Main: read_meta: %s tx_id: %d chunks: %lu\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
             }
 
             return 0;
@@ -1730,10 +1772,10 @@ namespace Cosmos {
                 }
             }
 
-			if (node_id == 0)
-			{
-				return TRANSFER_ERROR_NODE;
-			}
+            if (node_id == 0)
+            {
+                return TRANSFER_ERROR_NODE;
+            }
 
             return node_id;
         }
