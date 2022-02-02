@@ -243,14 +243,6 @@ int main(int argc, char *argv[])
 
     // Perform initial load
     double nextdiskcheck = currentmjd(0.);
-    transfer_mtx.lock();
-    iretn = transfer.outgoing_tx_load();
-    transfer_mtx.unlock();
-
-    if (iretn >= 0)
-    {
-        nextdiskcheck = currentmjd();
-    }
 
     // Start send and recv threads
     recv_loop_thread = thread([=] { recv_loop(); });
@@ -275,7 +267,10 @@ int main(int argc, char *argv[])
         if (currentmjd() > nextdiskcheck)
         {
             transfer_mtx.lock();
-            iretn = transfer.outgoing_tx_load();
+			for (size_t i = 1; i < out_comm_channel.size(); ++i)
+			{
+            	iretn = transfer.outgoing_tx_load(out_comm_channel[i].node);
+			}
             transfer_mtx.unlock();
             nextdiskcheck = currentmjd(0.) + diskcheckwait;
         }
