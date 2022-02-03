@@ -2405,6 +2405,44 @@ uint16_t CRC16::calc(vector<uint8_t> message)
     return (remainder ^ xorout);
 }
 
+// Modified for calculating the crc of a file
+// Returns 0 if file cannot be opened
+uint16_t CRC16::calc_file(string file_path)
+{
+    uint8_t data;
+    uint16_t remainder = initial;
+
+    // Check file validity
+    ifstream file(file_path, std::ios::in | std::ios::binary);
+    if (!file.is_open())
+    {
+        return 0;
+    }
+
+    // Divide message by the polynomial a byte at a time until EOF
+    char byte;
+    while (file.get(byte))
+    {
+        if (lsbfirst)
+        {
+            data = byte ^ (remainder & 0xff);
+            remainder = lookup[data] ^ (remainder >> 8);
+        }
+        else
+        {
+            data = byte ^ (remainder >> (8));
+            remainder = lookup[data] ^ (remainder << 8);
+        }
+    }
+
+    file.close();
+
+    /*
+     * The final remainder is the CRC.
+     */
+    return (remainder ^ xorout);
+}
+
 // -------------------------------------------------
 // TODO: redo the following quaternion related functions so that they can move
 // to the quaternion library

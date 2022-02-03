@@ -13,12 +13,15 @@ const string tname1 = "transfer_test_node_1";
 const string tname2 = "transfer_test_node_2";
 const string tname3 = "transfer_test_node_3";
 
+// CRC class for calculating crcs
+CRC16 calc_crc;
+
 // Non-debug logging
 Error test_log;
 int32_t test_count = 0;
 int32_t err_count = 0;
 
-// For debug logging
+// Debug logging to a file for more precise info
 Error debug_log;
 ElapsedTime tet;
 
@@ -27,7 +30,7 @@ string nodeids_ini_path, nodeids_ini_backup_path;
 
 // Helper functions
 void cleanup();
-int32_t create_file(int mib, string file_path);
+int32_t create_file(int kib, string file_path);
 void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use_channel);
 
 // Tests
@@ -125,10 +128,14 @@ int32_t test_zero_size_files()
 {
     int32_t iretn;
     Transfer node1, node2;
-    double file_size_mib = 0;
-    int32_t files_size_bytes = file_size_mib * 1024 * 1024;
+    double file_size_kib = 0;
+    int32_t files_size_bytes = file_size_kib * 1024;
     
     size_t num_files = 3;
+    string agent_subfolder_name = "test_zero_size_files";
+
+    // Check crcs before and after sending
+    map<string, uint16_t> file_crcs;
 
     // arbitrary node_id's are chosen
     ofstream temp_nodeids_ini(nodeids_ini_path, std::ios::trunc);
@@ -139,27 +146,29 @@ int32_t test_zero_size_files()
     iretn = node1.Init(tname1);
     if (iretn < 0)
     {
-        debug_log.Printf("Error initializing %s\n", tname1);
+        debug_log.Printf("Error initializing %s\n", tname1.c_str());
         return -1;
     }
     iretn = node2.Init(tname2);
     if (iretn < 0)
     {
-        debug_log.Printf("Error initializing %s\n", tname2);
+        debug_log.Printf("Error initializing %s\n", tname2.c_str());
         return -1;
     }
 
     // Create files for node 1 to send to node 2
-    string temp_path = data_base_path(tname2, "outgoing", "test_zero_size_files");
-    if (temp_path.empty())
+    string dest_out_dir = data_base_path(tname2, "outgoing", agent_subfolder_name);
+    string dest_in_dir = data_base_path(tname2, "incoming", agent_subfolder_name);
+    if (dest_out_dir.empty())
     {
-        debug_log.Printf("Error creating temp_path\n");
+        debug_log.Printf("Error creating dest_out_dir\n");
         return -1;
     }
     for (size_t i = 0; i < num_files; ++i)
     {
-        string tfilename = "/zero_" + std::to_string(i);
-        iretn = create_file(file_size_mib, temp_path + tfilename);
+        string tfilename = "zero_" + std::to_string(i);
+        iretn = create_file(file_size_kib, dest_out_dir + "/" + tfilename);
+        file_crcs[tfilename] = calc_crc.calc_file(tfilename);
         if (iretn < 0)
         {
             return -1;
@@ -231,8 +240,8 @@ int32_t test_zero_size_files()
     }
 
     // Zero-size files were ignored
-    vector<filestruc> outgoing_dir= data_list_files(tname2, "outgoing", "test_zero_size_files");
-    vector<filestruc> incoming_dir = data_list_files(tname2, "incoming", "test_zero_size_files");
+    vector<filestruc> outgoing_dir= data_list_files(tname2, "outgoing", agent_subfolder_name);
+    vector<filestruc> incoming_dir = data_list_files(tname2, "incoming", agent_subfolder_name);
     if (outgoing_dir.size() != num_files || incoming_dir.size() != 0)
     {
         debug_log.Printf("Verification fail: File count incorrect. node1 outgoing_dir: %d, node2 incoming_dir: %d\n", outgoing_dir.size(), incoming_dir.size());
@@ -242,15 +251,29 @@ int32_t test_zero_size_files()
     {
         if (file.size != files_size_bytes)
         {
-            debug_log.Printf("Verification fail: File size error. %s %d:%d\n", file.name, file.size, files_size_bytes);
+            debug_log.Printf("Verification fail: File size error. %s %d:%d\n", file.name.c_str(), file.size, files_size_bytes);
             --iretn;
+        }
+        if (file_crcs.find(file.name) == file_crcs.end())
+        {
+            debug_log.Printf("Verification fail: File name error. %s %d:%d\n", file.name.c_str(), file.size, files_size_bytes);
+            --iretn;
+        }
+        else 
+        {
+            uint16_t crc_recv = calc_crc.calc_file(dest_in_dir + "/" + file.name);
+            if (file_crcs[file.name] != crc_recv)
+            {
+                debug_log.Printf("Verification fail: CRC mismatch. %s %d:%d\n", file.name.c_str(), file_crcs[file.name], crc_recv);
+                --iretn;
+            }
         }
     }
 
     // Outgoing/incoming queues are empty
     if (node1.outgoing_tx_recount(tname2) || node2.incoming_tx_recount(tname1))
     {
-        debug_log.Printf("Verification fail: queue not empty. node1 outgoing: %d, node2 incoming: %d", node1.outgoing_tx_recount(tname2), node2.incoming_tx_recount(tname1));
+        debug_log.Printf("Verification fail: queue not empty. node1 outgoing: %d, node2 incoming: %d\n", node1.outgoing_tx_recount(tname2), node2.incoming_tx_recount(tname1));
         --iretn;
     }
 
@@ -262,10 +285,14 @@ int32_t test_large_files()
 {
     int32_t iretn;
     Transfer node1, node2;
-    double file_size_mib = 1;
-    int32_t files_size_bytes = file_size_mib * 1024 * 1024;
+    double file_size_kib = 1;
+    int32_t files_size_bytes = file_size_kib * 1024;
     
     size_t num_files = 3;
+    string agent_subfolder_name = "test_large_files";
+
+    // Check crcs before and after sending
+    map<string, uint16_t> file_crcs;
 
     // arbitrary node_id's are chosen
     ofstream temp_nodeids_ini(nodeids_ini_path, std::ios::trunc);
@@ -276,27 +303,29 @@ int32_t test_large_files()
     iretn = node1.Init(tname1);
     if (iretn < 0)
     {
-        debug_log.Printf("Error initializing %s\n", tname1);
+        debug_log.Printf("Error initializing %s\n", tname1.c_str());
         return -1;
     }
     iretn = node2.Init(tname2);
     if (iretn < 0)
     {
-        debug_log.Printf("Error initializing %s\n", tname2);
+        debug_log.Printf("Error initializing %s\n", tname2.c_str());
         return -1;
     }
 
     // Create files for node 1 to send to node 2
-    string temp_path = data_base_path(tname2, "outgoing", "test_large_files");
-    if (temp_path.empty())
+    string dest_out_dir = data_base_path(tname2, "outgoing", agent_subfolder_name);
+    string dest_in_dir = data_base_path(tname2, "incoming", agent_subfolder_name);
+    if (dest_out_dir.empty())
     {
-        debug_log.Printf("Error creating temp_path\n");
+        debug_log.Printf("Error creating dest_out_dir\n");
         return -1;
     }
     for (size_t i = 0; i < num_files; ++i)
     {
-        string tfilename = "/large_" + std::to_string(i);
-        iretn = create_file(file_size_mib, temp_path + tfilename);
+        string tfilename = "large_" + std::to_string(i);
+        iretn = create_file(file_size_kib, dest_out_dir + "/" + tfilename);
+        file_crcs[tfilename] = calc_crc.calc_file(dest_out_dir + "/" + tfilename);
         if (iretn < 0)
         {
             return -1;
@@ -324,7 +353,6 @@ int32_t test_large_files()
             if (iretn == node2.RESPONSE_REQUIRED)
             {
                 respond = true;
-                
             }
         }
 
@@ -370,8 +398,8 @@ int32_t test_large_files()
     }
 
     // File was successfully transferred
-    vector<filestruc> outgoing_dir= data_list_files(tname2, "outgoing", "test_large_files");
-    vector<filestruc> incoming_dir = data_list_files(tname2, "incoming", "test_large_files");
+    vector<filestruc> outgoing_dir= data_list_files(tname2, "outgoing", agent_subfolder_name);
+    vector<filestruc> incoming_dir = data_list_files(tname2, "incoming", agent_subfolder_name);
     if (outgoing_dir.size() > 0 || incoming_dir.size() != num_files)
     {
         debug_log.Printf("Verification fail: File count incorrect. node1 outgoing_dir: %d, node2 incoming_dir: %d\n", outgoing_dir.size(), incoming_dir.size());
@@ -381,15 +409,29 @@ int32_t test_large_files()
     {
         if (file.size != files_size_bytes)
         {
-            debug_log.Printf("Verification fail: File size error. %s %d:%d\n", file.name, file.size, files_size_bytes);
+            debug_log.Printf("Verification fail: File size error. %s %d:%d\n", file.name.c_str(), file.size, files_size_bytes);
             --iretn;
+        }
+        if (file_crcs.find(file.name) == file_crcs.end())
+        {
+            debug_log.Printf("Verification fail: File name error. %s %d:%d\n", file.name.c_str(), file.size, files_size_bytes);
+            --iretn;
+        }
+        else 
+        {
+            uint16_t crc_recv = calc_crc.calc_file(dest_in_dir + "/" + file.name);
+            if (file_crcs[file.name] != crc_recv || !crc_recv)
+            {
+                debug_log.Printf("Verification fail: CRC mismatch. %s %d:%d\n", file.name.c_str(), file_crcs[file.name], crc_recv);
+                --iretn;
+            }
         }
     }
 
     // Outgoing/incoming queues are empty
     if (node1.outgoing_tx_recount(tname2) || node2.incoming_tx_recount(tname1))
     {
-        debug_log.Printf("Verification fail: queue not empty. node1 outgoing: %d, node2 incoming: %d", node1.outgoing_tx_recount(tname2), node2.incoming_tx_recount(tname1));
+        debug_log.Printf("Verification fail: queue not empty. node1 outgoing: %d, node2 incoming: %d\n", node1.outgoing_tx_recount(tname2), node2.incoming_tx_recount(tname1));
         --iretn;
     }
 
@@ -428,13 +470,14 @@ void cleanup()
     debug_log.Printf("OK.\n");
 }
 
-// Create an all-zero-char file of mib mibibytes at the file_path
+// Create an all-zero-char file of kib kibibytes at the file_path
+// kb: kibibytes
 // Returns 0 on success, negative on error
-int32_t create_file(int mib, string file_path)
+int32_t create_file(int kib, string file_path)
 {
     vector<char> zeros(1024, 0);
     ofstream of(file_path, std::ios::binary | std::ios::out);
-    for(int i = 0; i < 1024*mib; ++i)
+    for(int i = 0; i < kib; ++i)
     {
         if (!of.write(&zeros[0], zeros.size()))
         {
@@ -454,4 +497,5 @@ tx queue filling
 files being deleted mid-transfer
 didn't a directory get deleted in an outgoing subfolder?
 new node_ids being added, node id mismatch between nodes
+test heartbeat and command stuff
 */
