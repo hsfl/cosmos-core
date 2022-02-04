@@ -498,4 +498,5 @@ files being deleted mid-transfer
 didn't a directory get deleted in an outgoing subfolder?
 new node_ids being added, node id mismatch between nodes
 test heartbeat and command stuff
+resuming, skipping with missing chunks
 */
