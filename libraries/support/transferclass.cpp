@@ -94,7 +94,7 @@ namespace Cosmos {
             {
                 if (this->debug_error != nullptr)
                 {
-                    this->debug_error->Printf("%.4f Could not find node in node table!\n", tet.split());
+                    this->debug_error->Printf("%.4f Could not find node %s in node table!\n", calling_node_name.c_str(), tet.split());
                 }
                 return iretn;
             }
