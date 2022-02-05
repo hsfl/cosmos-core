@@ -3,6 +3,7 @@
 
 #include "support/configCosmos.h"
 #include "math/mathlib.h"
+#include "support/datalib.h"
 #include "support/enumlib.h"
 
 namespace Cosmos {
@@ -119,6 +120,8 @@ namespace Cosmos {
             {
                 uint16_t data_size;
                 TypeId type;
+                NodeData::NODE_ID_TYPE orig;
+                NodeData::NODE_ID_TYPE dest;
             } header;
 
             CCSDS_Header ccsds_header;
