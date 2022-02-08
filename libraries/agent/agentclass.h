@@ -400,6 +400,7 @@ namespace Cosmos
             string nodeName;
             string agentName;
             vector<beatstruc> slist;
+            NodeData::NODE_ID_TYPE nodeId;
 
         protected:
         private:

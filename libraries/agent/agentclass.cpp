@@ -146,6 +146,15 @@ namespace Support
             return;
         }
 
+        // Load node id table
+        iretn = NodeData::lookup_node_id(nodeName);
+        if (iretn < 0) {
+            error_value = iretn;
+            shutdown();
+            return;
+        }
+        nodeId = iretn;
+
         // Start message listening thread
         mthread = thread([=] { message_loop(); });
         secondsleep(.1);
