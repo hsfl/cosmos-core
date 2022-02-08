@@ -13,7 +13,6 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::Reset, Reset);
             add_func(PacketComm::TypeId::Reboot, Reboot);
             add_func(PacketComm::TypeId::SendBeacon, SendBeacon);
-            add_func(PacketComm::TypeId::Forward, SendBeacon);
             add_func(PacketComm::TypeId::ClearRadioQueue, ClearRadioQueue);
             add_func(PacketComm::TypeId::ExternalCommand, ExternalCommand);
             add_func(PacketComm::TypeId::ListDirectory, ListDirectory);
@@ -21,7 +20,6 @@ namespace Cosmos {
 
             // Telemetry
             add_func(PacketComm::TypeId::Beacon, DecodeBeacon);
-            add_func(PacketComm::TypeId::Forward, SendBeacon);
             add_func(PacketComm::TypeId::Response, Response);
             add_func(PacketComm::TypeId::Test, Test);
             return 0;
