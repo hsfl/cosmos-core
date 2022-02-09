@@ -146,6 +146,15 @@ namespace Support
             return;
         }
 
+        // Load node id table
+        iretn = NodeData::lookup_node_id(nodeName);
+        if (iretn < 0) {
+            error_value = iretn;
+            shutdown();
+            return;
+        }
+        nodeId = iretn;
+
         // Start message listening thread
         mthread = thread([=] { message_loop(); });
         secondsleep(.1);
@@ -3242,7 +3251,6 @@ acquired.
         int32_t status = req_getvalue(jsonlist, json, this);
         return status;
     }
-
 
 } // end of namespace Support
 } // end namespace Cosmos

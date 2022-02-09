@@ -42,6 +42,7 @@ target_link_libraries(agent_simple_request CosmosAgent CosmosError)
 target_link_libraries(errortest CosmosTime CosmosError)
 target_link_libraries(string_test CosmosString CosmosConvert)
 target_link_libraries(string_float_test CosmosString)
+target_link_libraries(file_transfer_test CosmosAgent CosmosTransferClass CosmosSlip)
 
 #include(CTest)
 #enable_testing()

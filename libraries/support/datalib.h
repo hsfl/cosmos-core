@@ -188,6 +188,19 @@ int32_t data_load_archive(string node, string agent, double mjd, string type, ve
 //int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc* root);
 double findlastday(string node);
 double findfirstday(string node);
+
+class NodeData
+{
+public:
+    //! A table of node_id:node_names, used in node-to-node communications
+    static vector<string> node_ids;
+    typedef uint8_t NODE_ID_TYPE;
+    static int32_t load_node_ids();
+    static int32_t check_node_id(NODE_ID_TYPE node_id);
+    static int32_t lookup_node_id(string node_name);
+    static string lookup_node_id_name(NODE_ID_TYPE node_id);
+};
+
 class GITTEST	{
 	public:
 		void f();
