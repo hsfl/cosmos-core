@@ -16,6 +16,7 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::Forward, SendBeacon);
             add_func(PacketComm::TypeId::ClearRadioQueue, ClearRadioQueue);
             add_func(PacketComm::TypeId::ExternalCommand, ExternalCommand);
+            add_func(PacketComm::TypeId::Request, InternalRequest);
             add_func(PacketComm::TypeId::ListDirectory, ListDirectory);
 //            add_func(PacketComm::TypeId::TestRadio, TestRadio);
 
@@ -374,6 +375,17 @@ namespace Cosmos {
             // Run command, return response
             string eresponse;
             int32_t iretn = data_execute(string(packet.data.begin()+5, packet.data.end()), eresponse);
+            response.clear();
+            response.insert(response.begin(),eresponse.begin(), eresponse.end());
+            return iretn;
+        }
+
+        int32_t PacketHandler::InternalRequest(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
+        {
+            // Run command, return response
+            string eresponse;
+            string erequest = string(packet.data.begin()+5, packet.data.end());
+            int32_t iretn = agent->process_request(erequest, eresponse);
             response.clear();
             response.insert(response.begin(),eresponse.begin(), eresponse.end());
             return iretn;

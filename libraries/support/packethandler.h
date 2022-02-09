@@ -97,6 +97,14 @@ namespace Cosmos {
                 string command;
             };
             static int32_t ExternalCommand(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            struct request_packet
+            {
+                uint8_t radio = 0;
+                uint32_t response_id = 0;
+                string request;
+            };
+            static int32_t InternalRequest(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+
             struct testradio_packet
             {
                 uint8_t radio = 0;

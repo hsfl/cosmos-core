@@ -73,6 +73,7 @@ namespace Cosmos {
                 TransferSingleFile = 135,
                 TransferAllFiles = 136,
                 StopTransfer = 137,
+                Request = 140,
                 };
 
             map<TypeId, string> TypeString = {
