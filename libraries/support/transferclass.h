@@ -79,12 +79,6 @@ namespace Cosmos {
             string list_outgoing();
             string list_incoming();
 
-            // Various checks
-            int32_t check_node_id(PACKET_NODE_ID_TYPE node_id);
-            int32_t lookup_node_id(string node_name);
-            string lookup_node_id_name(PACKET_NODE_ID_TYPE node_id);
-
-
         private:
             /// The node_id of the calling node
             PACKET_NODE_ID_TYPE self_node_id;
@@ -101,8 +95,8 @@ namespace Cosmos {
             // Byte size limit of a packet
             PACKET_CHUNK_SIZE_TYPE packet_size;
 
-			// Pointer to calling agent's debug_error
-			Error* debug_error = nullptr;
+            // Pointer to calling agent's debug_error
+            Error* debug_error = nullptr;
 
             // Internal use
             int32_t get_outgoing_lpackets(uint8_t node_id, vector<PacketComm> &packets);
@@ -122,8 +116,6 @@ namespace Cosmos {
 
             int32_t write_meta(tx_progress& tx, double interval=5.);
             int32_t read_meta(tx_progress& tx);
-
-            int32_t load_nodeids();
         };
     }
 }

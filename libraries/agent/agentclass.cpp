@@ -146,6 +146,15 @@ namespace Support
             return;
         }
 
+        // Load node id table
+        iretn = NodeData::lookup_node_id(nodeName);
+        if (iretn < 0) {
+            error_value = iretn;
+            shutdown();
+            return;
+        }
+        nodeId = iretn;
+
         // Start message listening thread
         mthread = thread([=] { message_loop(); });
         secondsleep(.1);
@@ -1979,22 +1988,16 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     }
                     cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags = ifra->ifr_flags;
 
-//                            if ((cinfo->agent[0].pub[0].flags & IFF_POINTOPOINT) || (cinfo->agent[0].pub[0].flags & IFF_UP) == 0 || (cinfo->agent[0].pub[0].flags & IFF_LOOPBACK) || (cinfo->agent[0].pub[0].flags & (IFF_BROADCAST)) == 0)
-                    if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_UP) == 0)
+                    if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_POINTOPOINT) || (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_UP) == 0)
                     {
                         continue;
                     }
-                    else if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_LOOPBACK)
-                    {
-                        // Don't enable loopback if we found broadcast interface
-//                        if (found_bcast)
-                        {
-                            continue;
-                        }
-//                        lo_index = cinfo->agent[0].ifcnt;
-                    }
-                    else if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_BROADCAST)
-                    {
+//                    else if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_LOOPBACK)
+//                    {
+//                            continue;
+//                    }
+//                    else if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_BROADCAST)
+//                    {
                         //found_bcast = true;
 //                        if (lo_index >= 0)
 //                        {
@@ -2010,7 +2013,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 //                            lo_index = -1;
 //                            --cinfo->agent[0].ifcnt;
 //                        }
-                    }
+//                    }
 
 
                     // Open socket again if we had to close it
@@ -2359,6 +2362,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 //                    if (debug_level) {
 //                        debug_error.Printf("Post PTP Local: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
 //                    }
+                    printf("P2P Local: %d\n", iretn);
                 }
                 iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
                         (const char *)post,                         // buffer to send
@@ -2370,6 +2374,18 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 //                if (debug_level) {
 //                    debug_error.Printf("Post PTP Remote: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
 //                }
+                printf("P2P Remote: %d\n", iretn);
+            }
+            else if (cinfo->agent[0].ifcnt == 1 && cinfo->agent[0].pub[i].flags & IFF_LOOPBACK)
+            {
+                iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+                        (const char *)post,                         // buffer to send
+                        nbytes+message.size(),                      // size of buffer
+                        0,                                          // flags
+                        (struct sockaddr *)&cinfo->agent[0].pub[i].caddr, // socket address
+                        sizeof(struct sockaddr_in)                  // size of address to socket pointer
+                        );
+                printf("Loopback: %d\n", iretn);
             }
             else
             {
@@ -2383,6 +2399,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 //                if (debug_level) {
 //                    debug_error.Printf("Post Broadcast: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
 //                }
+                printf("Generic: %d\n", iretn);
             }
             if (iretn < 0)
             {
@@ -3234,7 +3251,6 @@ acquired.
         int32_t status = req_getvalue(jsonlist, json, this);
         return status;
     }
-
 
 } // end of namespace Support
 } // end namespace Cosmos

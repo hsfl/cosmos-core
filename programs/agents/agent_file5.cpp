@@ -557,8 +557,8 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
     {
         debug_fd_lock.lock();
 
-        string node_name = transfer.lookup_node_id_name(packet.data[0]);
-        uint8_t node_id = transfer.check_node_id(packet.data[0]);
+        string node_name = NodeData::lookup_node_id_name(packet.data[0]);
+        uint8_t node_id = NodeData::check_node_id(packet.data[0]);
         
         if (direction == PACKET_IN)
         {

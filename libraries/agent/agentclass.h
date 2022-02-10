@@ -400,6 +400,9 @@ namespace Cosmos
             string nodeName;
             string agentName;
             vector<beatstruc> slist;
+            NodeData::NODE_ID_TYPE nodeId;
+
+            int32_t process_request(string &bufferin, string &bufferout);
 
         protected:
         private:
@@ -449,7 +452,6 @@ namespace Cosmos
 
             void heartbeat_loop();
             void request_loop() noexcept;
-            int32_t process_request(string &bufferin, string &bufferout);
             void message_loop();
 
             char* parse_request(char *input);

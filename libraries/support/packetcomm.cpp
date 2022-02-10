@@ -42,50 +42,10 @@ namespace Cosmos {
                 }
             }
 
-            // Unpack as forwarding-type packet if required
-            fdest.clear();
-            if (header.type == PacketComm::TypeId::Forward)
-            {
-                if (UnpackForward()) {
-                    return true;
-                }
-                return false;
-            }
-
-            // Otherwise Unpack as a regular packet
             data.clear();
             data.insert(data.begin(), &packed[COSMOS_SIZEOF(Header)], &packed[header.data_size+COSMOS_SIZEOF(Header)]);
 
             return true;
-        }
-
-        bool PacketComm::UnpackForward()
-        {
-            // Extract node:agent address string
-            fdest.clear();
-            uint8_t addr_len = packed[COSMOS_SIZEOF(Header)];
-            fdest.assign(&packed[COSMOS_SIZEOF(Header)+1], &packed[COSMOS_SIZEOF(Header)+1+addr_len]);
-            // Extract inner data
-            vector<uint8_t> oldpacked = packed;
-            packed.clear();
-            packed.insert(packed.begin(), &oldpacked[COSMOS_SIZEOF(Header)+1+addr_len], &oldpacked[packed.size()-2]);
-            return Unpack();
-
-//            memcpy(&header, &packed[COSMOS_SIZEOF(Header)+1+addr_len], COSMOS_SIZEOF(Header));
-//            if (packed.size() < header.data_size + 5)
-//            {
-//                return false;
-//            }
-//            data.clear();
-//            data.insert(data.begin(), &packed[8+addr_len], &packed[header.data_size+8+addr_len]);
-//            uint16_t crcin = uint16from(&packed[header.data_size+COSMOS_SIZEOF(Header)+1+addr_len], ByteOrder::LITTLEENDIAN);
-//            crc = calc_crc.calc(packed.data(), packed.size()-2);
-//            if (crc != crcin)
-//            {
-//                return false;
-//            }
-//            packed = data;
-//            return true;
         }
 
         bool PacketComm::RawUnPacketize(bool invert, bool checkcrc)
@@ -196,32 +156,6 @@ namespace Cosmos {
             packed[packed.size()-2] = crc & 0xff;
             packed[packed.size()-1] = crc >> 8;
 
-            // Repack into Forwarding-type packet if necessary
-            if (!fdest.empty() && !PackForward()) {
-                return false;
-            }
-            return true;
-        }
-
-        bool PacketComm::PackForward()
-        {
-            data = packed;
-            header.data_size = data.size() + fdest.size() + 1;
-            header.type = TypeId::Forward;
-            packed.resize(COSMOS_SIZEOF(Header));
-            packed[0] = (uint8_t)PacketComm::TypeId::Forward; //TypeId["Forward"];
-            // Data size = data size + addr length + 1 byte to specify addr length
-            packed[1] = (data.size() + fdest.size() + 1) & 0xff;
-            packed[2] = (data.size() + fdest.size() + 1) >> 8;
-            // Insert addr length and string
-            packed[3] = fdest.size();
-            packed.insert(packed.end(), fdest.begin(), fdest.end());
-            // Insert data
-            packed.insert(packed.end(), data.begin(), data.end());
-            crc = calc_crc.calc(packed);
-            packed.resize(packed.size()+2);
-            packed[packed.size()-2] = crc & 0xff;
-            packed[packed.size()-1] = crc >> 8;
             return true;
         }
 

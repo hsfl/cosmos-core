@@ -3,6 +3,7 @@
 
 #include "support/configCosmos.h"
 #include "math/mathlib.h"
+#include "support/datalib.h"
 #include "support/enumlib.h"
 
 namespace Cosmos {
@@ -24,7 +25,6 @@ namespace Cosmos {
             void CalcCRC();
             bool CheckCRC();
             bool Unpack(bool checkcrc=true);
-            bool UnpackForward();
             bool RawUnPacketize(bool invert=false, bool checkcrc=true);
 //            bool RXSUnPacketize();
             bool ASMUnPacketize();
@@ -46,7 +46,6 @@ namespace Cosmos {
                 {
                 None = 0,
                 Beacon = 10,
-                Forward = 60,
                 Response = 61,
                 IP = 62,
                 Test = 63,
@@ -73,11 +72,11 @@ namespace Cosmos {
                 TransferSingleFile = 135,
                 TransferAllFiles = 136,
                 StopTransfer = 137,
+                Request = 140,
                 };
 
             map<TypeId, string> TypeString = {
                 {TypeId::Beacon, "Beacon"},
-                {TypeId::Forward, "Forward"},
                 {TypeId::Response, "Response"},
                 {TypeId::IP, "IP"},
                 {TypeId::Test, "Test"},
@@ -119,6 +118,8 @@ namespace Cosmos {
             {
                 uint16_t data_size;
                 TypeId type;
+                NodeData::NODE_ID_TYPE orig;
+                NodeData::NODE_ID_TYPE dest;
             } header;
 
             CCSDS_Header ccsds_header;
@@ -127,8 +128,6 @@ namespace Cosmos {
 			/// Data of interest
             vector<uint8_t> data;
             uint16_t crc;
-            // Destination for forward type packets
-            string fdest;
 
             struct __attribute__ ((packed)) FileChunkData
             {
@@ -149,8 +148,6 @@ namespace Cosmos {
 
 //            Transfer ttransfer;
 //            int32_t close_transfer();
-
-            bool PackForward();
 
         };
     }
