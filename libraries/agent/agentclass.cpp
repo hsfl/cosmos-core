@@ -2399,7 +2399,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 //                if (debug_level) {
 //                    debug_error.Printf("Post Broadcast: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
 //                }
-                printf("Generic: %d\n", iretn);
+                //printf("Generic: %d\n", iretn);
             }
             if (iretn < 0)
             {
