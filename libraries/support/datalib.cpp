@@ -432,6 +432,7 @@ vector<filestruc> data_list_files(string directory)
  * The result is returned as a vector of ::filestruc, one entry for each file found.
  * Repeated calls to this function will append entries.
  * \param directory Directory to search.
+ * \param files Reference to filestruc vector to fill.
  * \return Number of files found, otherwise negative error.
  */
 size_t data_list_files(string directory, vector<filestruc>& files)
