@@ -219,7 +219,7 @@ namespace Cosmos {
         {
             PACKET_TX_ID_TYPE tx_id=0;
             // Whether the file is marked for transfer
-            bool enabled=false;
+            bool enabled=true;
             // If initial METADATA has been sent/received
             bool sentmeta=false;
             // If all DATA has been sent/received
@@ -252,7 +252,6 @@ namespace Cosmos {
         {
             bool sentqueue = false;
             PACKET_TX_ID_TYPE size;
-            PACKET_TX_ID_TYPE next_id;
             string node_name="";
             // Time to wait before sending out another response request or respond packet
             double waittime = 60./86400.;

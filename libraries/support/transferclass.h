@@ -80,10 +80,12 @@ namespace Cosmos {
             string list_incoming();
 
         private:
+            /// The node_name of the calling node
+            string self_node_name;
             /// The node_id of the calling node
             PACKET_NODE_ID_TYPE self_node_id;
 
-            /// The heart of the file transfer manager.
+            /// Vector of nodes to transfer files in/out. Heart of the file transfer manager.
             vector<tx_queue> txq;
 
             /// The Node ID lookup table
@@ -103,10 +105,9 @@ namespace Cosmos {
             int32_t get_outgoing_rpackets(uint8_t node_id, vector<PacketComm> &packets);
 
             // Private queue manipulation functions
-            int32_t outgoing_tx_add(tx_progress &tx_out);
-            int32_t outgoing_tx_add(string node_name, string agent_name, string file_name);
+            int32_t outgoing_tx_add(tx_progress &tx_out, string dest_node_name);
+            int32_t outgoing_tx_add(string dest_node, string dest_agent, string file_name);
             int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id=PROGRESS_QUEUE_SIZE, bool remove_file=true);
-            PACKET_TX_ID_TYPE choose_outgoing_tx_id(uint8_t node_id);
             PACKET_TX_ID_TYPE check_tx_id(tx_entry &txentry, PACKET_TX_ID_TYPE tx_id);
             int32_t incoming_tx_add(string node_name, PACKET_TX_ID_TYPE tx_id);
             int32_t incoming_tx_add(tx_progress &tx_in);
