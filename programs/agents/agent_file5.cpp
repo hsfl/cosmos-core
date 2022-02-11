@@ -278,12 +278,15 @@ int main(int argc, char *argv[])
         // Check if any response-type packets need to be pushed
         if (file_transfer_respond.load())
         {
-            transfer_mtx.lock();
-            iretn = transfer.get_outgoing_rpackets(out_comm_channel[0].node, file_packets);
-            transfer_mtx.unlock();
-            if (iretn < 0 && agent->get_debug_level())
+            for (size_t i = 1; i < out_comm_channel.size(); ++i)
             {
-                agent->debug_error.Printf("%16.10f Error in get_outgoing_rpackets: %d\n", currentmjd(), iretn);
+                transfer_mtx.lock();
+                iretn = transfer.get_outgoing_rpackets(out_comm_channel[i].node, file_packets);
+                transfer_mtx.unlock();
+                if (iretn < 0 && agent->get_debug_level())
+                {
+                    agent->debug_error.Printf("%16.10f Error in get_outgoing_rpackets: %d\n", currentmjd(), iretn);
+                }
             }
             file_transfer_respond.store(false);
         }
