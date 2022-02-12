@@ -2165,6 +2165,9 @@ int32_t NodeData::load_node_ids()
     return NodeData::node_ids.size();
 }
 
+//! Check if a node_id is in the node table
+//! \param node_id
+//! \return node_id on success, non-positive on error
 int32_t NodeData::check_node_id(NODE_ID_TYPE node_id)
 {
     int32_t iretn;

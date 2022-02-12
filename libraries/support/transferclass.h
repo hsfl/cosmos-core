@@ -78,6 +78,8 @@ namespace Cosmos {
             int32_t enable_all(uint8_t node_id);
             string list_outgoing();
             string list_incoming();
+            int32_t set_waittime(uint8_t node_id, uint8_t direction, double waittime);
+            int32_t set_waittime(string node_name, uint8_t direction, double waittime);
 
         private:
             /// The node_name of the calling node

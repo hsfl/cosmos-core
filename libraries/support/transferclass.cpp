@@ -549,12 +549,6 @@ namespace Cosmos {
             // Iterate over tx_id's requiring a response
             for (PACKET_TX_ID_TYPE tx_id : txq[(orig_node_id)].incoming.respond)
             {
-                // Sanity check if this tx_id is valid
-                if (txq[(orig_node_id)].incoming.progress[tx_id].tx_id != tx_id)
-                {
-                    continue;
-                }
-
                 // **************************************************************
                 // ** REQMETA ***************************************************
                 // **************************************************************
@@ -1371,6 +1365,8 @@ namespace Cosmos {
                             if (tx_id > 0)
                             {
                                 txq[node_id].outgoing.progress[tx_id].sentmeta = false;
+                                // TODO: check that this doesn't cause problems
+                                txq[node_id].outgoing.progress[tx_id].next_response = currentmjd();
                             }
                         }
                     }
@@ -1943,4 +1939,38 @@ string Transfer::list_incoming()
     string s = json11::Json(jlist).dump();
 
     return s;
+}
+
+//! Set the waittime for a transfer
+//! \param node_id ID in the node table
+//! \param direction 0 for incoming, 1 for outgoing
+//! \param waittime Time interval to wait before sending another response or request-type packet, in seconds
+//! \return 0 on success, negative on error
+int32_t Transfer::set_waittime(uint8_t node_id, uint8_t direction, double waittime)
+{
+    if (NodeData::check_node_id(node_id) <= 0)
+    {
+        return TRANSFER_ERROR_NODE;
+    }
+
+    switch(direction)
+    {
+    case 0:
+        txq[(node_id)].incoming.waittime = waittime/86400.;
+        break;
+    case 1:
+        txq[(node_id)].outgoing.waittime = waittime/86400.;
+        break;
+    default:
+        txq[(node_id)].incoming.waittime = waittime/86400.;
+        txq[(node_id)].outgoing.waittime = waittime/86400.;
+        break;
+    }
+    
+    return 0;
+}
+
+int32_t Transfer::set_waittime(string node_name, uint8_t direction, double waittime)
+{
+    return set_waittime(NodeData::lookup_node_id(node_name), direction, waittime);
 }
