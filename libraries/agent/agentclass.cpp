@@ -105,7 +105,7 @@ namespace Support
         cinfo->agent[0].stateflag = static_cast<uint16_t>(State::INIT);
 
         // Establish subscribe channel
-        iretn = subscribe(ntype, AGENTMCAST, AGENTSENDPORT, 1000);
+        iretn = subscribe(NetworkType::MULTICAST, AGENTMCAST, AGENTSENDPORT, 1000);
         if (iretn) {
             error_value = iretn;
             shutdown();
@@ -1992,29 +1992,6 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     {
                         continue;
                     }
-//                    else if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_LOOPBACK)
-//                    {
-//                            continue;
-//                    }
-//                    else if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_BROADCAST)
-//                    {
-                        //found_bcast = true;
-//                        if (lo_index >= 0)
-//                        {
-//                            // Remove loopback if we found broadcast interface
-//                            if (cinfo->agent[0].pub[lo_index].cudp >= 0)
-//                            {
-//                                CLOSE_SOCKET(cinfo->agent[0].pub[lo_index].cudp);
-//                            }
-//                            for (uint16_t i=lo_index+1; i<cinfo->agent[0].ifcnt+1; ++i)
-//                            {
-//                                cinfo->agent[0].pub[i-1] = cinfo->agent[0].pub[i];
-//                            }
-//                            lo_index = -1;
-//                            --cinfo->agent[0].ifcnt;
-//                        }
-//                    }
-
 
                     // Open socket again if we had to close it
                     if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp < 0)
@@ -2056,7 +2033,16 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                             cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr;
                             inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress));
                             inet_pton(AF_INET,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
-
+                        }
+                        else if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_LOOPBACK))
+                        {
+//                            if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFADDR,(char *)ifra) < 0)
+//                            {
+//                                continue;
+//                            }
+//                            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress));
+                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr;
+                            inet_pton(AF_INET,AGENTMCAST,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
                         }
                         else
                         {
@@ -2105,6 +2091,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     cinfo->agent[0].pub[cinfo->agent[0].ifcnt].type = type;
 
 
+//                    printf("Interface #%lu: %u %s %u %s %u\n", cinfo->agent[0].ifcnt, cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cport, cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address, ntohs(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_port), cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress, ntohs(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_port));
                     cinfo->agent[0].ifcnt++;
                 }
 #endif // COSMOS_WIN_OS
@@ -2362,7 +2349,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 //                    if (debug_level) {
 //                        debug_error.Printf("Post PTP Local: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
 //                    }
-                    printf("P2P Local: %d\n", iretn);
+//                    printf("Send P2P Local: %u %d\n", (uint8_t)type, iretn);
                 }
                 iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
                         (const char *)post,                         // buffer to send
@@ -2374,18 +2361,21 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 //                if (debug_level) {
 //                    debug_error.Printf("Post PTP Remote: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
 //                }
-                printf("P2P Remote: %d\n", iretn);
+//                printf("Send P2P Remote: %u %d\n", (uint8_t)type, iretn);
             }
-            else if (cinfo->agent[0].ifcnt == 1 && cinfo->agent[0].pub[i].flags & IFF_LOOPBACK)
+            else if (cinfo->agent[0].pub[i].flags & IFF_LOOPBACK)
             {
-                iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+                if (cinfo->agent[0].ifcnt == 1)
+                {
+                    iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
                         (const char *)post,                         // buffer to send
                         nbytes+message.size(),                      // size of buffer
                         0,                                          // flags
-                        (struct sockaddr *)&cinfo->agent[0].pub[i].caddr, // socket address
+                        (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
                         sizeof(struct sockaddr_in)                  // size of address to socket pointer
                         );
-                printf("Loopback: %d\n", iretn);
+//                printf("Send Loopback: %s %u %u %d\n", cinfo->agent[0].pub[i].baddress, ntohs(cinfo->agent[0].pub[i].baddr.sin_port), (uint8_t)type, iretn);
+                }
             }
             else
             {
@@ -2399,7 +2389,7 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 //                if (debug_level) {
 //                    debug_error.Printf("Post Broadcast: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
 //                }
-                printf("Generic: %d\n", iretn);
+//                printf("Send Generic: %s %u %u %d\n", cinfo->agent[0].pub[i].address, ntohs(cinfo->agent[0].pub[i].baddr.sin_port), (uint8_t)type, iretn);
             }
             if (iretn < 0)
             {
@@ -2559,19 +2549,34 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
             {
             case NetworkType::MULTICAST:
             case NetworkType::UDP:
+                {
+                    cinfo->agent[0].sub.addrlen = sizeof(cinfo->agent[0].sub.caddr);
+                    nbytes = recvfrom(cinfo->agent[0].sub.cudp, (char *)input,AGENTMAXBUFFER, 0, (struct sockaddr *)&cinfo->agent[0].sub.caddr, (socklen_t *)&cinfo->agent[0].sub.addrlen);
 
-                nbytes = recvfrom(cinfo->agent[0].sub.cudp, (char *)input,AGENTMAXBUFFER, 0, (struct sockaddr *)&cinfo->agent[0].sub.caddr, (socklen_t *)&cinfo->agent[0].sub.addrlen);
+                    // Return if error
+                    if (nbytes < 0)
+                    {
+                        return nbytes;
+                    }
+                    if (cinfo->agent[0].sub.addrlen == sizeof(cinfo->agent[0].sub.caddr))
+                    {
+                        inet_ntop(cinfo->agent[0].sub.caddr.sin_family,&(cinfo->agent[0].sub.caddr.sin_addr),cinfo->agent[0].sub.address,sizeof(cinfo->agent[0].sub.address));
+//                        printf("Receive: [%s %u] %u %d - ", cinfo->agent[0].sub.address, htons(cinfo->agent[0].sub.caddr.sin_port), input[0], nbytes);
+                    }
+//                    else
+//                    {
+//                        printf("Receive: [Unknown 0] %u %d - ", input[0], nbytes);
+//                    }
 
-                // Return if error
-                if (nbytes < 0) { return nbytes; }
-
-                //                printf("Poll: %f %f Type: %d Port %d %d\n", 86400.*(currentmjd()-58496), ep.split(), input[0], cinfo->agent[0].sub.cport, htons(cinfo->agent[0].sub.caddr.sin_port));
-
-                // Return if port and address are our own
-                for (uint16_t i=0; i<cinfo->agent[0].ifcnt; ++i) {
-                    if (cinfo->agent[0].sub.caddr.sin_port == ntohs(cinfo->agent[0].pub[i].cport) &&
-                        cinfo->agent[0].sub.caddr.sin_addr.s_addr == cinfo->agent[0].pub[i].caddr.sin_addr.s_addr) {
-                        return 0;
+                    // Return if port and address are our own
+                    for (uint16_t i=0; i<cinfo->agent[0].ifcnt; ++i)
+                    {
+                        if (cinfo->agent[0].sub.caddr.sin_port == ntohs(cinfo->agent[0].pub[i].cport) &&
+                            cinfo->agent[0].sub.caddr.sin_addr.s_addr == cinfo->agent[0].pub[i].caddr.sin_addr.s_addr)
+                        {
+//                            printf("Echo\n");
+                            return 0;
+                        }
                     }
                 }
                 break;
@@ -2579,20 +2584,28 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                 break;
             }
 
-            if (nbytes > 0) {
-                if (type == Agent::AgentMessage::ALL || type == (AgentMessage)input[0]) {
+            if (nbytes > 0)
+            {
+                if (type == Agent::AgentMessage::ALL || type == (AgentMessage)input[0])
+                {
                     // Determine if old or new message
                     uint8_t start_byte;
-                    if (input[1] == '{') {
+                    if (input[1] == '{')
+                    {
                         start_byte = 1;
-                    } else {
+                    }
+                    else
+                    {
                         start_byte = 3;
                     }
                     // Provide support for older messages that did not include jlength
-                    if (start_byte > 1) {
+                    if (start_byte > 1)
+                    {
                         mess.meta.type = (AgentMessage)input[0];
                         mess.meta.jlength = input[1] + 256 * input[2];
-                    } else {
+                    }
+                    else
+                    {
                         mess.meta.type = (AgentMessage)(input[0] + 1);
                         mess.meta.jlength = nbytes;
                     }
@@ -2602,10 +2615,13 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                     mess.jdata.assign((const char *)&input[start_byte], mess.meta.jlength);
 
                     // Next: ASCII or BINARY message, depending on message type.
-                    if (mess.meta.type < Agent::AgentMessage::BINARY) {
+                    if (mess.meta.type < Agent::AgentMessage::BINARY)
+                    {
                         mess.adata.clear();
                         mess.adata.assign((const char *)&input[start_byte+mess.meta.jlength], nbytes - (start_byte + mess.meta.jlength));
-                    } else {
+                    }
+                    else
+                    {
                         mess.bdata.resize(nbytes - (start_byte + mess.meta.jlength));
                         memcpy(mess.bdata.data(), &input[start_byte + mess.meta.jlength], nbytes - (start_byte + mess.meta.jlength));
                     }
@@ -2626,10 +2642,12 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                                &mess.meta.beat.cpu,
                                &mess.meta.beat.memory,
                                &mess.meta.beat.jitter);
-						if(node[0] != '\0') {
+                        if(node[0] != '\0')
+                        {
 							mess.meta.beat.node = node;
 						}
-						if(proc[0] != '\0') {
+                        if(proc[0] != '\0')
+                        {
 							mess.meta.beat.proc = proc;
 						}
                     }
@@ -2647,13 +2665,17 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                                &mess.meta.beat.cpu,
                                &mess.meta.beat.memory,
                                &mess.meta.beat.jitter);
-						if(node[0] != '\0') {
+                        if(node[0] != '\0')
+                        {
 							mess.meta.beat.node = node;
 						}
-						if(proc[0] != '\0') {
+                        if(proc[0] != '\0')
+                        {
 							mess.meta.beat.proc = proc;
 						}
-                    } else {
+                    }
+                    else
+                    {
 						char node[COSMOS_MAX_NAME+1] = {};
 						char proc[COSMOS_MAX_NAME+1] = {};
                         sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bprd\":%lf}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
@@ -2667,19 +2689,34 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
                                &mess.meta.beat.cpu,
                                &mess.meta.beat.memory,
                                &mess.meta.beat.jitter);
-						if(node[0] != '\0') {
+                        if(node[0] != '\0')
+                        {
 							mess.meta.beat.node = node;
 						}
-						if(proc[0] != '\0') {
+                        if(proc[0] != '\0')
+                        {
 							mess.meta.beat.proc = proc;
 						}
                     }
                     if (mess.meta.beat.node.compare(cinfo->agent[0].beat.node) || mess.meta.beat.proc.compare(cinfo->agent[0].beat.proc))
                     {
+//                        printf("Valid: %s\n", mess.jdata.c_str());
                         return ((int)mess.meta.type);
                     }
+                    else
+                    {
+                        printf("Duplicate: %s %s\n",cinfo->agent[0].beat.node.c_str(), cinfo->agent[0].beat.proc.c_str() );
+                    }
                 }
+//                else
+//                {
+//                    printf("NoMatch\n");
+//                }
             }
+//            else
+//            {
+//                printf("Empty\n");
+//            }
             if (ep.split() >= waitsec) {
                 nbytes = 0;
             } else {
