@@ -432,6 +432,7 @@ vector<filestruc> data_list_files(string directory)
  * The result is returned as a vector of ::filestruc, one entry for each file found.
  * Repeated calls to this function will append entries.
  * \param directory Directory to search.
+ * \param files Reference to filestruc vector to fill.
  * \return Number of files found, otherwise negative error.
  */
 size_t data_list_files(string directory, vector<filestruc>& files)
@@ -2164,6 +2165,9 @@ int32_t NodeData::load_node_ids()
     return NodeData::node_ids.size();
 }
 
+//! Check if a node_id is in the node table
+//! \param node_id
+//! \return node_id on success, non-positive on error
 int32_t NodeData::check_node_id(NODE_ID_TYPE node_id)
 {
     int32_t iretn;

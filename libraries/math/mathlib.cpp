@@ -2884,7 +2884,7 @@ rvector LsFit::lastrvector()
     }
     else
     {
-        rv_zero();
+        return rv_zero();
     }
 }
 
@@ -2896,7 +2896,7 @@ gvector LsFit::lastgvector()
     }
     else
     {
-        gv_zero();
+        return gv_zero();
     }
 }
 
@@ -2908,7 +2908,7 @@ quaternion LsFit::lastquaternion()
     }
     else
     {
-        q_zero();
+        return q_zero();
     }
 }
 

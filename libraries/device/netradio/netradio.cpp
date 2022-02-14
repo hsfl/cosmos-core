@@ -86,7 +86,10 @@ namespace Cosmos {
         int32_t NetRadio::Clear(queue<PacketComm> &queue, mutex &mtx)
         {
             std::lock_guard<mutex> lock(mtx);
-            queue = {};
+			// need version 7 of arm-linux-gnueabihf-g++
+            //queue = {};
+			std::queue<Cosmos::Support::PacketComm> temp;
+			swap(queue, temp);
             return queue.size();
         }
 
