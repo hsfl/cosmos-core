@@ -53,7 +53,6 @@ namespace Cosmos {
                 FileCommand = 71,
                 FileMessage = 72,
                 FileHeartbeat = 73,
-				FileReqQueue = 78,
 				FileQueue = 79,
                 FileCancel = 80,
 				FileComplete = 81,

@@ -49,30 +49,6 @@ namespace Cosmos {
             memmove(&heartbeat.funixtime,   &pdata[0]+PACKET_HEARTBEAT_OFFSET_FUNIXTIME,   4);
         }
 
-        //! Create a REQQUEUE-type PacketComm packet.
-        //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the receiving node in the node table
-        //! \param node_name Name of the receiving node
-        //! \return n/a
-        void serialize_reqqueue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name)
-        {
-            packet.header.type = PacketComm::TypeId::FileReqQueue;
-            packet.data.resize(PACKET_REQQUEUE_OFFSET_TOTAL);
-            memset(&packet.data[0], 0, PACKET_REQQUEUE_OFFSET_TOTAL);
-            memmove(&packet.data[0]+PACKET_REQQUEUE_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-            memmove(&packet.data[0]+PACKET_REQQUEUE_OFFSET_NODE_NAME, node_name.c_str(), node_name.size());
-        }
-
-        //! Extracts the necessary fields from a received REQQUEUE packet.
-        //! \param pdata An incoming REQQUEUE-type packet
-        //! \param reqqueue Reference to a packet_struct_reqqueue to fill
-        //! \return n/a
-        void deserialize_reqqueue(const vector<PACKET_BYTE>& pdata, packet_struct_reqqueue& reqqueue)
-        {
-            memmove(&reqqueue.node_id,   &pdata[0]+PACKET_REQQUEUE_OFFSET_NODE_ID,   COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-            memmove(&reqqueue.node_name, &pdata[0]+PACKET_REQQUEUE_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
-        }
-
         //! Create a QUEUE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
         //! \param node_id ID of the destination node in the node table

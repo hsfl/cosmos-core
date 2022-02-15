@@ -1137,11 +1137,6 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_
                     }
                 break;
             }
-        case PacketComm::TypeId::FileReqQueue:
-            {
-                err_log->Printf("[REQQUEUE] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
-            }
-            break;
         case PacketComm::TypeId::FileQueue:
             {
                 err_log->Printf("[QUEUE] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
