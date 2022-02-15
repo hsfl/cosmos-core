@@ -144,7 +144,6 @@ static double correcttime;
 static double epsilon;
 static double delta;
 
-static string incoming_dir;
 static string outgoing_dir;
 static string immediate_dir;
 static string temp_dir;
@@ -222,13 +221,6 @@ int main(int argc, char *argv[])
     if (immediate_dir.empty())
     {
         cout<<"unable to create directory: <"<<(agent->getNode()+"/immediate")+"/exec"<<"> ... exiting."<<endl;
-        exit(1);
-    }
-
-    incoming_dir = data_base_path(agent->getNode(), "incoming", "exec") + "/";
-    if (incoming_dir.empty())
-    {
-        cout<<"unable to create directory: <"<<(agent->getNode()+"/incoming")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
@@ -459,7 +451,15 @@ int main(int argc, char *argv[])
 
         // Perform Executive specific functions
         cmd_queue.load_commands(immediate_dir);
-        cmd_queue.load_commands(incoming_dir);
+        vector<string> nodes = data_list_nodes();
+        for (string& node : nodes)
+        {
+            string incoming_dir = get_cosmosnodes() + "/" + node + "/incoming/exec/";
+            if (data_isdir(incoming_dir) && node != agent->nodeName)
+            {
+                cmd_queue.load_commands(incoming_dir);
+            }
+        }
         cmd_queue.join_event_threads();
         cmd_queue.run_commands(agent, agent->getNode(), logdate_exec);
 

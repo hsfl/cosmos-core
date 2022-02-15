@@ -82,7 +82,7 @@ struct test_params
         return 0;
     }
 
-    // Verify that any files that were transferred are identical to the original that was being sent
+    // Verify that any files that were transferred are identical to the originals that were being sent
     // orig_node_name: Name of the origin node
     // expected_file_num: Number of files you expect to see in the incoming folder
     int32_t verify_incoming_dir(string orig_node_name, size_t expected_file_num)
@@ -121,7 +121,7 @@ struct test_params
 
     // Verify that there are the number of files in the outgoing directory that you expect
     // dest_node_name: Name of the destination node
-    // expected_file_num: Number of files you expect to see in the incoming folder
+    // expected_file_num: Number of files you expect to see in the outgoing folder
     int32_t verify_outgoing_dir(string dest_node_name, size_t expected_file_num)
     {
         int32_t iretn = 0;
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
 //////////////////////////////////////////////////////////////////////////////
 
 //! Run a test function
-//! \param \test A function pointer to an int32_t with no params
+//! \param test A function pointer to an int32_t with no params
 //! \param test_name What to log as the name of this test
 //! \return n/a
 void run_test(test_func test, string test_name)
@@ -227,6 +227,7 @@ void run_test(test_func test, string test_name)
 }
 
 // Node 1 attempts to transfer zero-size files to node 2
+// Expect: Nothing to transfer, but zero-size files remain in outgoing (reconsider?)
 int32_t test_zero_size_files()
 {
     int32_t iretn;
@@ -350,6 +351,7 @@ int32_t test_zero_size_files()
 }
 
 // Node 1 transfers multiple large files to Node 2, no other tricks
+// Expect: Stuff to transfer
 int32_t test_large_files()
 {
     int32_t iretn;
@@ -474,6 +476,7 @@ int32_t test_large_files()
 }
 
 // Node 1 starts transferring stuff to Node 2, node 1 stops, then resumes again
+// Expect: File transfer picks up where it left off
 int32_t test_stop_resume()
 {
     int32_t iretn;
@@ -873,6 +876,7 @@ int32_t test_stop_resume2()
 }
 
 // Node 2's first received packet of a transfer is REQCOMPLETE
+// Expect: Node 2 to receive the REQCOMPLETE packet, then communicate for missing data
 int32_t test_packet_reqcomplete()
 {
     int32_t iretn;
@@ -939,7 +943,7 @@ int32_t test_packet_reqcomplete()
         for (auto& lpacket : lpackets)
         {
             debug_packet(lpacket, 1, "Outgoing", &node1_log);
-            // Have node 2 start receiving only after runlimit_init
+            // Have node 2 start receiving only after runlimit_init (i.e., start from the REQCOMPLETE packet)
             if (runs >= runlimit_init)
             {
                 debug_packet(lpacket, 0, "Incoming", &node2_log);
