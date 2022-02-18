@@ -264,9 +264,10 @@ namespace Cosmos {
         int32_t get_file_size(const char* filename);
 
         // Converts packet types to and from byte arrays
+		void serialize_command(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string command);
         void deserialize_command(const vector<PACKET_BYTE>& pdata, packet_struct_command& command);
+		void serialize_message(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string message);
         void deserialize_message(const vector<PACKET_BYTE>& pdata, packet_struct_message& message);
-        void deserialize_heartbeat(const vector<PACKET_BYTE>& pdata, packet_struct_heartbeat& heartbeat);
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue);
         void deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue);
         void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);

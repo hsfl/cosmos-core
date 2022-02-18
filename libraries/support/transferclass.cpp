@@ -1291,9 +1291,15 @@ namespace Cosmos {
 
                     deserialize_command(packet.data, command);
 
-                    string node_name = NodeData::lookup_node_id_name(self_node_id);
+                    string node_name = NodeData::lookup_node_id_name(command.node_id);
 
-                    FILE *fp = data_open(("/cosmos/nodes/" + node_name + "/incoming/exec/file.command").c_str(), "w");
+                    if (node_name.empty())
+                    {
+                        iretn = TRANSFER_ERROR_NODE;
+                        break;
+                    }
+
+                    FILE *fp = data_open((get_cosmosnodes() + "/" + node_name + "/incoming/exec/file.command").c_str(), "w");
                     if (fp)
                     {
                         fwrite(&command.bytes[0], 1, command.length, fp);
@@ -1310,7 +1316,13 @@ namespace Cosmos {
                     string imessage;
                     imessage.resize(message.length);
                     memcpy(&imessage[0], message.bytes, message.length);
-                    log_write(NodeData::lookup_node_id_name(message.node_id), "file", tet.split(), "", "message", imessage, "incoming");
+                    string node_name = NodeData::lookup_node_id_name(message.node_id);
+                    if (node_name.empty())
+                    {
+                        iretn = TRANSFER_ERROR_NODE;
+                        break;
+                    }
+                    log_write(node_name, "file", tet.split(), "", "message", imessage, "incoming");
                 }
                 break;
             case PacketComm::TypeId::FileQueue:

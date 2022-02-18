@@ -50,6 +50,7 @@ int32_t test_stop_resume();
 int32_t test_stop_resume2();
 int32_t test_packet_reqcomplete();
 int32_t test_many_files();
+int32_t test_command_and_message_packet();
 
 // Hold common test parameters to reuse for testing and verification steps
 struct test_params
@@ -201,7 +202,8 @@ int main(int argc, char *argv[])
     run_test(test_stop_resume, "test_stop_resume");
     //run_test(test_stop_resume2, "test_stop_resume2"); // Read the comments above the test_stop_resume2 function
     run_test(test_packet_reqcomplete, "test_packet_reqcomplete");
-    run_test(test_many_files, "test_many_files");
+    //run_test(test_many_files, "test_many_files"); // This one takes about 12 seconds, comment out to save some time to test other tests
+    run_test(test_command_and_message_packet, "test_command_and_message_packet");
 
 
     //////////////////////////////////////////////////////////////////////////
@@ -1200,6 +1202,168 @@ int32_t test_many_files()
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+
+    // Outgoing/incoming queues are empty
+    if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
+    {
+        debug_log.Printf("Verification fail: queue not empty. node1 outgoing: %d, node2 incoming: %d\n", node1.outgoing_tx_recount(node2_name), node2.incoming_tx_recount(node1_name));
+        --iretn;
+    }
+
+    return iretn;
+}
+
+// Node 1 sends a command and message packet
+// Expect: Command and message files to be created in appropriate locations in node 2's receive folders
+int32_t test_command_and_message_packet()
+{
+    int32_t iretn;
+    Transfer node1, node2;
+
+    // Load nodeid table
+    load_temp_nodeids();
+
+    iretn = node1.Init(node1_name, &node1_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node1_name.c_str());
+        return iretn;
+    }
+    iretn = node2.Init(node2_name, &node2_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node2_name.c_str());
+        return iretn;
+    }
+
+    // Restore old nodeids.ini file here in case test crashes
+    restore_original_nodeids();
+
+    vector<PacketComm> lpackets, rpackets;
+    // Start transfer process
+    iretn = node1.outgoing_tx_load(node2_name);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in outgoing_tx_load\n");
+        return iretn;
+    }
+
+    // Create COMMAND packet and MESSAGE packet, and send to node2
+    const string test_command = "ls";
+    const string test_message = "this is a test message";
+    PacketComm p;
+    serialize_command(p, node1_id, test_command);
+    lpackets.push_back(p);
+    serialize_message(p, node1_id, test_message);
+    lpackets.push_back(p);
+    for (auto& lpacket : lpackets)
+    {
+        debug_packet(lpacket, 1, "Outgoing", &node1_log);
+        debug_packet(lpacket, 0, "Incoming", &node2_log);
+        iretn = node2.receive_packet(lpacket);
+    }
+    lpackets.clear();
+
+    // Verify expected results
+    iretn = 0;
+
+    // Should not be fetching anything
+    node1.get_outgoing_lpackets(node2_name, lpackets);
+    if (lpackets.size())
+    {
+        debug_log.Printf("Verification fail: lpackets not empty. lpackets.size(): %d\n", lpackets.size());
+        --iretn;
+    }
+
+    // Command file successfully created
+    vector<filestruc> commands = data_list_files(node1_name, "incoming", "exec");
+    if (commands.empty())
+    {
+        debug_log.Printf("Verification fail: Command file not found.\n");
+        --iretn;
+    }
+    else if (commands.size() > 1)
+    {
+        debug_log.Printf("Verification fail: Incorrect number of command files found. Expected 1, found %d files.\n", commands.size());
+        --iretn;
+    }
+    else if (commands[0].name != "file.command")
+    {
+        debug_log.Printf("Verification fail: Command file has incorrect name. %s\n", commands[0].name);
+        --iretn;
+    }
+    else
+    {
+        std::ifstream f(commands[0].path, std::ios::in);
+        if (f.is_open())
+        {
+            char fcommand[2 + 1]; // "ls" 2 chars + null-terminator
+            f.read(fcommand, test_command.size());
+            fcommand[2] = '\0';
+            if (!f.eof())
+            {
+                int compare = strcmp(fcommand, test_command.c_str());
+                if (compare)
+                {
+                    debug_log.Printf("Verification fail: Command file not correct. %d %s -> %s\n", compare, test_command.c_str(), fcommand);
+                    --iretn;
+                }
+            }
+            else
+            {
+                debug_log.Printf("Verification fail: Command file EOF.\n");
+                --iretn;
+            }
+        }
+        else
+        {
+            debug_log.Printf("Verification fail: Could not open Command file.\n");
+            --iretn;
+        }
+    }
+
+    // Message file successfully created
+    vector<filestruc> messages = data_list_files(node1_name, "incoming", "file");
+    if (messages.empty())
+    {
+        debug_log.Printf("Verification fail: Message file not found.\n");
+        --iretn;
+    }
+    else if (messages.size() > 1)
+    {
+        debug_log.Printf("Verification fail: Incorrect number of message files found. Expected 1, found %d files.\n", messages.size());
+        --iretn;
+    }
+    else
+    {
+        std::ifstream f(messages[0].path, std::ios::in);
+        if (f.is_open())
+        {
+            char fmessage[22 + 1]; // "this is a test message" 22 chars + null-terminator
+            f.read(fmessage, test_message.size());
+            // doesn't need null-terminator??
+            // fmessage[22] = '\0';
+            if (!f.eof())
+            {
+                int compare = strcmp(fmessage, test_message.c_str());
+                if (compare)
+                {
+                    debug_log.Printf("Verification fail: Message file not correct. %d\n", compare);
+                    --iretn;
+                }
+            }
+            else
+            {
+                debug_log.Printf("Verification fail: Message file EOF.\n");
+                --iretn;
+            }
+        }
+        else
+        {
+            debug_log.Printf("Verification fail: Could not open message file.\n");
+            --iretn;
+        }
+    }
 
     // Outgoing/incoming queues are empty
     if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))

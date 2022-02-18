@@ -14,6 +14,22 @@ namespace Cosmos {
             return (i.chunk_start<j.chunk_start);
         }
 
+        //! Create a COMMAND-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param node_id ID of the origin node in the node table
+        //! \param message A string with COMMAND to send
+        //! \return n/a
+        void serialize_command(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string command)
+        {
+            packet.header.type = PacketComm::TypeId::FileCommand;
+            packet.data.resize(PACKET_COMMAND_OFFSET_TOTAL);
+            memset(&packet.data[0], 0, PACKET_COMMAND_OFFSET_TOTAL);
+            memmove(&packet.data[0]+PACKET_COMMAND_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+            PACKET_BYTE length = command.size();
+            memmove(&packet.data[0]+PACKET_COMMAND_OFFSET_LENGTH, &length, COSMOS_SIZEOF(PACKET_BYTE));
+            memmove(&packet.data[0]+PACKET_COMMAND_OFFSET_BYTES, &command[0], TRANSFER_MAX_PROTOCOL_PACKET - 2);
+        }
+
         //! Extracts the necessary fields from a received COMMAND packet.
         //! \param pdata An incoming COMMAND-type packet
         //! \param command Reference to a packet_struct_command to fill
@@ -21,8 +37,24 @@ namespace Cosmos {
         void deserialize_command(const vector<PACKET_BYTE>& pdata, packet_struct_command& command)
         {
             memmove(&command.node_id,  &pdata[0]+PACKET_COMMAND_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-            memmove(&command.length,   &pdata[0]+PACKET_COMMAND_OFFSET_LENGTH,  1);
+            memmove(&command.length,   &pdata[0]+PACKET_COMMAND_OFFSET_LENGTH,  COSMOS_SIZEOF(PACKET_BYTE));
             memmove(&command.bytes[0], &pdata[0]+PACKET_COMMAND_OFFSET_BYTES,   command.length);
+        }
+
+        //! Create a MESSAGE-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param node_id ID of the origin node in the node table
+        //! \param message A string with MESSAGE to send
+        //! \return n/a
+        void serialize_message(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string message)
+        {
+            packet.header.type = PacketComm::TypeId::FileMessage;
+            packet.data.resize(PACKET_MESSAGE_OFFSET_TOTAL);
+            memset(&packet.data[0], 0, PACKET_MESSAGE_OFFSET_TOTAL);
+            memmove(&packet.data[0]+PACKET_MESSAGE_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+            PACKET_BYTE length = message.size();
+            memmove(&packet.data[0]+PACKET_MESSAGE_OFFSET_LENGTH, &length, COSMOS_SIZEOF(PACKET_BYTE));
+            memmove(&packet.data[0]+PACKET_MESSAGE_OFFSET_BYTES, &message[0], TRANSFER_MAX_PROTOCOL_PACKET - 2);
         }
 
         //! Extracts the necessary fields from a received MESSAGE packet.
@@ -32,27 +64,14 @@ namespace Cosmos {
         void deserialize_message(const vector<PACKET_BYTE>& pdata, packet_struct_message& message)
         {
             memmove(&message.node_id,  &pdata[0]+PACKET_MESSAGE_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-            memmove(&message.length,   &pdata[0]+PACKET_MESSAGE_OFFSET_LENGTH,  1);
+            memmove(&message.length,   &pdata[0]+PACKET_MESSAGE_OFFSET_LENGTH,  COSMOS_SIZEOF(PACKET_BYTE));
             memmove(&message.bytes[0], &pdata[0]+PACKET_MESSAGE_OFFSET_BYTES,   message.length);
-        }
-
-        //! Extracts the necessary fields from a received HEARTBEAT packet.
-        //! \param pdata An incoming HEARTBEAT-type packet
-        //! \param heartbeat Reference to a packet_struct_heartbeat to fill
-        //! \return n/a
-        void deserialize_heartbeat(const vector<PACKET_BYTE>& pdata, packet_struct_heartbeat& heartbeat)
-        {
-            memmove(&heartbeat.node_id,     &pdata[0]+PACKET_HEARTBEAT_OFFSET_NODE_ID,     COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-            memmove(&heartbeat.node_name,   &pdata[0]+PACKET_HEARTBEAT_OFFSET_NODE_NAME,   COSMOS_MAX_NAME);
-            memmove(&heartbeat.beat_period, &pdata[0]+PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD, 1);
-            memmove(&heartbeat.throughput,  &pdata[0]+PACKET_HEARTBEAT_OFFSET_THROUGHPUT,  4);
-            memmove(&heartbeat.funixtime,   &pdata[0]+PACKET_HEARTBEAT_OFFSET_FUNIXTIME,   4);
         }
 
         //! Create a QUEUE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the destination node in the node table
-        //! \param node_name Name of the destination node
+        //! \param node_id ID of the origin node in the node table
+        //! \param node_name Name of the origin node
         //! \param queue A vector with QUEUE data
         //! \return n/a
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue)
@@ -88,7 +107,7 @@ namespace Cosmos {
 
         //! Create a CANCEL-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the destination node in the node table
+        //! \param node_id ID of the origin node in the node table
         //! \param tx_id ID of the transaction
         //! \return n/a
         void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
@@ -111,7 +130,7 @@ namespace Cosmos {
 
         //! Create a REQCOMPLETE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the destination node in the node table
+        //! \param node_id ID of the origin node in the node table
         //! \param tx_id ID of the transaction
         //! \return n/a
         void serialize_reqcomplete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
