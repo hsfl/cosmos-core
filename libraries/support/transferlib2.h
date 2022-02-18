@@ -200,8 +200,8 @@ namespace Cosmos {
         /// Chunk start and end.
         struct file_progress
         {
-            PACKET_FILE_SIZE_TYPE	chunk_start;
-            PACKET_FILE_SIZE_TYPE	chunk_end;
+            PACKET_FILE_SIZE_TYPE chunk_start;
+            PACKET_FILE_SIZE_TYPE chunk_end;
         };
 
         /// Holds data about the transfer progress of a single file.
@@ -264,9 +264,9 @@ namespace Cosmos {
         int32_t get_file_size(const char* filename);
 
         // Converts packet types to and from byte arrays
-		void serialize_command(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string command);
+        void serialize_command(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string command);
         void deserialize_command(const vector<PACKET_BYTE>& pdata, packet_struct_command& command);
-		void serialize_message(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string message);
+        void serialize_message(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string message);
         void deserialize_message(const vector<PACKET_BYTE>& pdata, packet_struct_message& message);
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue);
         void deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue);
