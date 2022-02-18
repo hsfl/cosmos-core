@@ -299,6 +299,9 @@ namespace Cosmos {
             // Hold QUEUE packet tx_id's in here
             vector<PACKET_TX_ID_TYPE> tqueue;
 
+            // Store separately to not be affected by sentqueue being toggled mid-run, which would be bad.
+            bool sendqueue = !txq[(dest_node_id)].outgoing.sentqueue;
+
             // Iterate over all files in outgoing queue, push necessary packets
             for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
             {
@@ -465,7 +468,7 @@ namespace Cosmos {
                 // **************************************************************
                 // ** QUEUE *****************************************************
                 // **************************************************************
-                if (!txq[(dest_node_id)].outgoing.sentqueue
+                if (sendqueue
                 // Check that this transaction is still happening
                 && txq[(dest_node_id)].outgoing.progress[tx_id].tx_id == tx_id)
                 {
@@ -1365,8 +1368,6 @@ namespace Cosmos {
                             if (tx_id > 0)
                             {
                                 txq[node_id].outgoing.progress[tx_id].sentmeta = false;
-                                // TODO: check that this doesn't cause problems
-                                txq[node_id].outgoing.progress[tx_id].next_response = currentmjd();
                             }
                         }
                     }
