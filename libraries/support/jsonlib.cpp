@@ -1847,8 +1847,18 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
             return iretn;
         break;
     case JSON_TYPE_STRING:
-        if ((iretn=json_out_string(jstring,*(string *)data,COSMOS_MAX_DATA)) != 0)
+        if (!(*data))
+        {
+            iretn = json_out_string(jstring,"",COSMOS_MAX_DATA);
+        }
+        else
+        {
+            iretn = json_out_string(jstring,*(string *)data,COSMOS_MAX_DATA);
+        }
+        if (iretn != 0)
+        {
             return iretn;
+        }
         break;
     case JSON_TYPE_NAME:
         if ((iretn=json_out_string(jstring,(char *)data,COSMOS_MAX_NAME)) != 0)
