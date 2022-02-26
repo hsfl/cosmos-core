@@ -710,7 +710,7 @@ uint64_t to_uint64(const char* svalue, uint16_t digits)
         }
         else if (svalue[i] >= '0' && svalue[i] <= '9')
         {
-            nvalue = 10 * nvalue + svalue[i];
+            nvalue = 10 * nvalue + (svalue[i] - '0');
         }
     }
     if (negative)
@@ -737,7 +737,7 @@ uint32_t to_uint32(const char* svalue, uint16_t digits)
         }
         else if (svalue[i] >= '0' && svalue[i] <= '9')
         {
-            nvalue = 10 * nvalue + svalue[i];
+            nvalue = 10 * nvalue + (svalue[i] - '0');
         }
     }
     if (negative)
@@ -764,7 +764,7 @@ uint16_t to_uint16(const char* svalue, uint16_t digits)
         }
         else if (svalue[i] >= '0' && svalue[i] <= '9')
         {
-            nvalue = 10 * nvalue + svalue[i];
+            nvalue = 10 * nvalue + (svalue[i] - '0');
         }
     }
     if (negative)
@@ -791,7 +791,7 @@ uint8_t to_uint8(const char* svalue, uint16_t digits)
         }
         else if (svalue[i] >= '0' && svalue[i] <= '9')
         {
-            nvalue = 10 * nvalue + svalue[i];
+            nvalue = 10 * nvalue + (svalue[i] - '0');
         }
     }
     if (negative)
@@ -818,7 +818,7 @@ int64_t to_int64(const char* svalue, uint16_t digits)
         }
         else if (svalue[i] >= '0' && svalue[i] <= '9')
         {
-            nvalue = 10 * nvalue + svalue[i];
+            nvalue = 10 * nvalue + (svalue[i] - '0');
         }
     }
     if (negative)
@@ -845,7 +845,7 @@ int32_t to_int32(const char* svalue, uint16_t digits)
         }
         else if (svalue[i] >= '0' && svalue[i] <= '9')
         {
-            nvalue = 10 * nvalue + svalue[i];
+            nvalue = 10 * nvalue + (svalue[i] - '0');
         }
     }
     if (negative)
@@ -872,7 +872,7 @@ int16_t to_int16(const char* svalue, uint16_t digits)
         }
         else if (svalue[i] >= '0' && svalue[i] <= '9')
         {
-            nvalue = 10 * nvalue + svalue[i];
+            nvalue = 10 * nvalue + (svalue[i] - '0');
         }
     }
     if (negative)
@@ -899,7 +899,7 @@ int8_t to_int8(const char* svalue, uint16_t digits)
         }
         else if (svalue[i] >= '0' && svalue[i] <= '9')
         {
-            nvalue = 10 * nvalue + svalue[i];
+            nvalue = 10 * nvalue + (svalue[i] - '0');
         }
     }
     if (negative)
