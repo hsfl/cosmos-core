@@ -146,7 +146,7 @@ typedef struct
 #ifdef COSMOS_WIN_BUILD_MSVC
 } picstruc;
 #else
-} __attribute__((__may_alias__)) picstruc;
+} __attribute__((packed)) picstruc;
 #endif
 
 struct pic_handle
@@ -156,7 +156,7 @@ struct pic_handle
 #ifdef COSMOS_WIN_BUILD_MSVC
 };
 #else
-} __attribute__((__may_alias__));
+} __attribute__((packed));
 #endif
 
 int32_t pic_connect(char *dev, pic_handle *handle);
