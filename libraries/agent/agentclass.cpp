@@ -98,6 +98,7 @@ namespace Support
 
         if (cinfo == nullptr) {
 			error_value = AGENT_ERROR_JSON_CREATE;
+            debug_error.Printf("Failed to initialize Namespace\n");
 			shutdown();
 			return;
 		}
@@ -108,6 +109,7 @@ namespace Support
         iretn = subscribe(NetworkType::MULTICAST, AGENTMCAST, AGENTSENDPORT, 1000);
         if (iretn) {
             error_value = iretn;
+            debug_error.Printf("Failed to open Subscribe channel\n");
             shutdown();
             return;
         }
@@ -126,6 +128,7 @@ namespace Support
         }
         if ((iretn=json_setup_node(nodeName, cinfo)) != 0) {
             error_value = iretn;
+            debug_error.Printf("Failed to set up Namespace\n");
             shutdown();
             return;
         }
@@ -142,6 +145,7 @@ namespace Support
         iretn = publish(cinfo->agent[0].beat.ntype, AGENTSENDPORT);
         if (iretn) {
             error_value = iretn;
+            debug_error.Printf("Failed to open publish channel\n");
             shutdown();
             return;
         }
@@ -150,6 +154,7 @@ namespace Support
         iretn = NodeData::lookup_node_id(nodeName);
         if (iretn < 0) {
             error_value = iretn;
+            debug_error.Printf("Failed to find Node Id table\n");
             shutdown();
             return;
         }
@@ -169,6 +174,7 @@ namespace Support
 //        if (strlen(cinfo->node.name)>COSMOS_MAX_NAME || agent_name.length()>COSMOS_MAX_NAME) {
         if (cinfo->node.name.size() > COSMOS_MAX_NAME || agent_name.length()>COSMOS_MAX_NAME) {
             error_value = JSON_ERROR_NAME_LENGTH;
+            debug_error.Printf("Node or Agent name too large\n");
             shutdown();
             return;
         }
@@ -179,6 +185,7 @@ namespace Support
         if (!mflag) {
             if (check_agent(cinfo->node.name, agent_name, timeoutSec)) {
                 error_value = AGENT_ERROR_SERVER_RUNNING;
+                debug_error.Printf("Agent is already running\n");
                 shutdown();
                 return;
             }
@@ -188,6 +195,7 @@ namespace Support
 //            if (strlen(cinfo->node.name)>COSMOS_MAX_NAME-4 || agent_name.size()>COSMOS_MAX_NAME-4) {
             if (cinfo->node.name.size()>COSMOS_MAX_NAME-4 || agent_name.size()>COSMOS_MAX_NAME-4) {
                 error_value = JSON_ERROR_NAME_LENGTH;
+                debug_error.Printf("Node or Agent name too large\n");
                 shutdown();
                 return;
             }
@@ -243,6 +251,7 @@ namespace Support
         if (!hthread.joinable() || !cthread.joinable()) {
             // TODO: create error value
             //error_value = iretn;
+            debug_error.Printf("Failed to start Heartbeat and/or Request Loops\n");
             shutdown();
             return;
         }
