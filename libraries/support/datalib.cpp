@@ -69,12 +69,12 @@ static string nodedir;
 /*! Append the provided string to a file in the {node}/{location}/{agent} directory. The file name
  * is created as {node}_yyyyjjjsssss_{extra}.{type}
  * \param node Node name.
- * \param location Location name.
  * \param agent Agent name.
  * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
  * \param extra Extra part  of name.
  * \param type Type part of name.
  * \param record String to be appended to file.
+ * \param location Location name.
  */
 string log_write(string node, string agent, double utc, string extra, string type, string record, string location)
 {
@@ -2219,7 +2219,7 @@ int32_t NodeData::lookup_node_id(string node_name)
 
 //! Find the node name associated with the given node id in the node table.
 //! \param node_id Node ID
-//! \return Node name
+//! \return Node name on success, or empty string on failure
 string NodeData::lookup_node_id_name(NODE_ID_TYPE node_id)
 {
     string name;

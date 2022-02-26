@@ -144,7 +144,6 @@ static double correcttime;
 static double epsilon;
 static double delta;
 
-static string incoming_dir;
 static string outgoing_dir;
 static string immediate_dir;
 static string temp_dir;
@@ -224,13 +223,6 @@ int main(int argc, char *argv[])
     if (immediate_dir.empty())
     {
         cout<<"unable to create directory: <"<<(agent->getNode()+"/immediate")+"/exec"<<"> ... exiting."<<endl;
-        exit(1);
-    }
-
-    incoming_dir = data_base_path(agent->getNode(), "incoming", "exec") + "/";
-    if (incoming_dir.empty())
-    {
-        cout<<"unable to create directory: <"<<(agent->getNode()+"/incoming")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
@@ -455,7 +447,7 @@ int main(int argc, char *argv[])
             for (uint32_t k=0; k<events.size(); ++k)
             {
                 // try to fix warnings
-				// memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
+                // memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
                 agent->cinfo->event[0] = events[k];
                 //                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
                 agent->cinfo->event[0].condition = agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text;
@@ -465,7 +457,15 @@ int main(int argc, char *argv[])
 
         // Perform Executive specific functions
         cmd_queue.load_commands(immediate_dir);
-        cmd_queue.load_commands(incoming_dir);
+        vector<string> nodes = data_list_nodes();
+        for (string& node : nodes)
+        {
+            string incoming_dir = get_cosmosnodes() + "/" + node + "/incoming/exec/";
+            if (data_isdir(incoming_dir) && node != agent->nodeName)
+            {
+                cmd_queue.load_commands(incoming_dir);
+            }
+        }
         cmd_queue.join_event_threads();
         cmd_queue.run_commands(agent, agent->getNode(), logdate_exec);
 
@@ -581,7 +581,7 @@ int32_t request_get_event(string &request, string &response, Agent *)
 {
     std::ostringstream ss;
 
-    if(cmd_queue.get_event_size()==0)	{
+    if(cmd_queue.get_event_size()==0)    {
         ss << "[Empty]";
     }
     else {
@@ -630,7 +630,7 @@ int32_t request_get_command(string &request, string &response, Agent *)
 {
     std::ostringstream ss;
 
-    if(cmd_queue.get_command_size()==0)	{
+    if(cmd_queue.get_command_size()==0)    {
         ss << "[Empty]";
     }
     else {
@@ -667,7 +667,7 @@ int32_t request_del_command_id(string &request, string &response, Agent *)
     Event cmd;
     std::ostringstream ss;
 
-    if(cmd_queue.get_command_size()==0)	{
+    if(cmd_queue.get_command_size()==0)    {
         ss << "the command queue is empty";
     }
     else {
@@ -683,7 +683,7 @@ int32_t request_del_command_id(string &request, string &response, Agent *)
             }
         }
         // if the user supplied something that couldn't be turned into an integer
-        else if (iretn == 0)	{
+        else if (iretn == 0)    {
             ss << "Usage:\tdel_command_id [ index ]\t";
         }
     }
@@ -931,16 +931,16 @@ int32_t get_power_mode()
     uint16_t tindex;
     string tdata;
     int32_t iretn = data_execute("power_mode_get", tdata);
-	if(iretn<0)	{
-		return powermode;
-	} else	{
-    	if (sscanf(tdata.c_str(), "%hu\n", &tindex) == 1)
-    	{
-        	if (tindex > 0)
-        	{
-            	powermode = tindex;
-        	}
-    	}
+    if(iretn<0)    {
+        return powermode;
+    } else    {
+        if (sscanf(tdata.c_str(), "%hu\n", &tindex) == 1)
+        {
+            if (tindex > 0)
+            {
+                powermode = tindex;
+            }
+        }
     //    FILE *fp = popen("/cosmos/scripts/power_mode_get", "r");
 //    if (fp == nullptr)
 //    {
@@ -959,8 +959,8 @@ int32_t get_power_mode()
 //        }
 //    }
 //    pclose(fp);
-    	return powermode;
-	}
+        return powermode;
+    }
 }
 
 //void get_beacon_cpu() {

@@ -299,6 +299,9 @@ namespace Cosmos {
             // Hold QUEUE packet tx_id's in here
             vector<PACKET_TX_ID_TYPE> tqueue;
 
+            // Store separately to not be affected by sentqueue being toggled mid-run, which would be bad.
+            bool sendqueue = !txq[(dest_node_id)].outgoing.sentqueue;
+
             // Iterate over all files in outgoing queue, push necessary packets
             for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
             {
@@ -465,7 +468,7 @@ namespace Cosmos {
                 // **************************************************************
                 // ** QUEUE *****************************************************
                 // **************************************************************
-                if (!txq[(dest_node_id)].outgoing.sentqueue
+                if (sendqueue
                 // Check that this transaction is still happening
                 && txq[(dest_node_id)].outgoing.progress[tx_id].tx_id == tx_id)
                 {
@@ -1288,9 +1291,15 @@ namespace Cosmos {
 
                     deserialize_command(packet.data, command);
 
-                    string node_name = NodeData::lookup_node_id_name(self_node_id);
+                    string node_name = NodeData::lookup_node_id_name(command.node_id);
 
-                    FILE *fp = data_open(("/cosmos/nodes/" + node_name + "/incoming/exec/file.command").c_str(), "w");
+                    if (node_name.empty())
+                    {
+                        iretn = TRANSFER_ERROR_NODE;
+                        break;
+                    }
+
+                    FILE *fp = data_open((get_cosmosnodes() + "/" + node_name + "/incoming/exec/file.command").c_str(), "w");
                     if (fp)
                     {
                         fwrite(&command.bytes[0], 1, command.length, fp);
@@ -1307,7 +1316,13 @@ namespace Cosmos {
                     string imessage;
                     imessage.resize(message.length);
                     memcpy(&imessage[0], message.bytes, message.length);
-                    log_write(NodeData::lookup_node_id_name(message.node_id), "file", tet.split(), "", "message", imessage, "incoming");
+                    string node_name = NodeData::lookup_node_id_name(message.node_id);
+                    if (node_name.empty())
+                    {
+                        iretn = TRANSFER_ERROR_NODE;
+                        break;
+                    }
+                    log_write(node_name, "file", tet.split(), "", "message", imessage, "incoming");
                 }
                 break;
             case PacketComm::TypeId::FileQueue:
@@ -1365,8 +1380,6 @@ namespace Cosmos {
                             if (tx_id > 0)
                             {
                                 txq[node_id].outgoing.progress[tx_id].sentmeta = false;
-                                // TODO: check that this doesn't cause problems
-                                txq[node_id].outgoing.progress[tx_id].next_response = currentmjd();
                             }
                         }
                     }

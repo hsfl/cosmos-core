@@ -643,11 +643,6 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
                     }
                 break;
             }
-        case PacketComm::TypeId::FileReqQueue:
-            {
-                agent->debug_error.Printf("[REQQUEUE] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
-            }
-            break;
         case PacketComm::TypeId::FileQueue:
             {
                 agent->debug_error.Printf("[QUEUE] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);

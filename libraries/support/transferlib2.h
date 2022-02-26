@@ -69,16 +69,6 @@ namespace Cosmos {
         #define PACKET_COMMAND_OFFSET_BYTES (PACKET_COMMAND_OFFSET_LENGTH + 1)
         #define PACKET_COMMAND_OFFSET_TOTAL (PACKET_COMMAND_OFFSET_BYTES + TRANSFER_MAX_PROTOCOL_PACKET - 2)
 
-        struct packet_struct_reqqueue
-        {
-            PACKET_NODE_ID_TYPE node_id;
-            char node_name[COSMOS_MAX_NAME+1];
-        };
-
-        #define PACKET_REQQUEUE_OFFSET_NODE_ID 0
-        #define PACKET_REQQUEUE_OFFSET_NODE_NAME (COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-        #define PACKET_REQQUEUE_OFFSET_TOTAL (PACKET_REQQUEUE_OFFSET_NODE_ID + COSMOS_MAX_NAME)
-
         typedef uint16_t PACKET_QUEUE_FLAGS_TYPE;
         #define PACKET_QUEUE_FLAGS_LIMIT (PROGRESS_QUEUE_SIZE/(COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE)*8))
         
@@ -210,8 +200,8 @@ namespace Cosmos {
         /// Chunk start and end.
         struct file_progress
         {
-            PACKET_FILE_SIZE_TYPE	chunk_start;
-            PACKET_FILE_SIZE_TYPE	chunk_end;
+            PACKET_FILE_SIZE_TYPE chunk_start;
+            PACKET_FILE_SIZE_TYPE chunk_end;
         };
 
         /// Holds data about the transfer progress of a single file.
@@ -274,11 +264,10 @@ namespace Cosmos {
         int32_t get_file_size(const char* filename);
 
         // Converts packet types to and from byte arrays
+        void serialize_command(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string command);
         void deserialize_command(const vector<PACKET_BYTE>& pdata, packet_struct_command& command);
+        void serialize_message(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string message);
         void deserialize_message(const vector<PACKET_BYTE>& pdata, packet_struct_message& message);
-        void deserialize_heartbeat(const vector<PACKET_BYTE>& pdata, packet_struct_heartbeat& heartbeat);
-        void serialize_reqqueue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name);
-        void deserialize_reqqueue(const vector<PACKET_BYTE>& pdata, packet_struct_reqqueue& reqqueue);
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue);
         void deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue);
         void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
