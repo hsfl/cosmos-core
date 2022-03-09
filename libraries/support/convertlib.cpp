@@ -2893,7 +2893,7 @@ match.
             Vector S = Vector(cart.s);
             Vector V = Vector(cart.v);
             Vector H = S.cross(V);
-//            Vector nbar = Vector(0, 0, 1).cross(H);
+            //            Vector nbar = Vector(0, 0, 1).cross(H);
             double c1 = V.norm2() - GM / S.norm();
             double rdotv = S.dot(V);
             Vector ebar = (c1 * S - rdotv * V) / GM;
@@ -3228,7 +3228,7 @@ match.
             //	rmatrix pm = {{{{0.}}}};
             //	static int lsnumber=-99;
             static double c1=0.;
-            static double cosio=0. ,x3thm1=0. , xnodp=0. ,aodp=0.,isimp=0.,eta=0.,sinio=0. ,ximth2=0.,c4=0.,c5=0.;
+            static double cosio=0. ,x3thm1=0. , xnodp=0. ,aodp=0.,isimp=0.,eta=0.,sinio=0. ,x1mth2=0.,c4=0.,c5=0.;
             static double xmdot=0.,omgdot=0., xnodot=0.,omgcof=0.,xmcof=0., xnodcf=0.,t2cof=0.,xlcof=0.,aycof=0.;
             int i;
             double temp, temp1, temp2, temp3, temp4, temp5, temp6;
@@ -3304,8 +3304,8 @@ match.
                 sinio =sin( tle.i );
                 g =-SGP4_XJ3/SGP4_CK2*pow(SGP4_AE,3.);
                 c3 =coef*tsi*g* xnodp *SGP4_AE*sinio / tle.e;
-                ximth2 =1.-theta2;
-                c4 =2.* xnodp *coef1*aodp*betao2*(eta* (2.+.5*etasq)+ tle.e *(.5+2.*etasq)-2.*SGP4_CK2*tsi/ (aodp*psisq)*(-3.*x3thm1 *(1.-2.*eeta+etasq* (1.5-.5*eeta))+.75*ximth2*(2.*etasq-eeta* (1.+etasq))*cos(2.* tle.ap )));
+                x1mth2 =1.-theta2;
+                c4 =2.* xnodp *coef1*aodp*betao2*(eta* (2.+.5*etasq)+ tle.e *(.5+2.*etasq)-2.*SGP4_CK2*tsi/ (aodp*psisq)*(-3.*x3thm1 *(1.-2.*eeta+etasq* (1.5-.5*eeta))+.75*x1mth2*(2.*etasq-eeta* (1.+etasq))*cos(2.* tle.ap )));
                 c5 =2.*coef1*aodp*betao2*(1.+2.75*(etasq+eeta)+eeta*etasq);
                 theta4 =theta2*theta2;
                 temp1 =3.*SGP4_CK2*pinvsq* xnodp;
@@ -3415,12 +3415,12 @@ match.
             temp1=SGP4_CK2* temp;
             temp2= temp1* temp;
             // UPDATE FOR SHORT PERIODICS;
-            rk =r*(1.-1.5* temp2*betal*x3thm1 )+.5* temp1*ximth2* cos2u;
+            rk =r*(1.-1.5* temp2*betal*x3thm1 )+.5* temp1*x1mth2* cos2u;
             uk=u-.25* temp2*x7thm1*sin2u;
             xnodek= xnode+1.5* temp2*cosio *sin2u;
             xinck= tle.i +1.5* temp2*cosio *sinio * cos2u;
-            rdotk=rdot-xn* temp1*ximth2*sin2u;
-            rfdotk=rfdot+xn* temp1*(ximth2* cos2u +1.5*x3thm1 );
+            rdotk=rdot-xn* temp1*x1mth2*sin2u;
+            rfdotk=rfdot+xn* temp1*(x1mth2* cos2u +1.5*x3thm1 );
             // ORIENTATION VECTORS;
             sinuk =sin(uk);
             cosuk=cos(uk);
@@ -3445,6 +3445,289 @@ match.
             pos_teme.v.col[0] = 1000. * SGP4_XKMPER * (rdotk*ux+rfdotk*vx) / 60.;
             pos_teme.v.col[1] = 1000. * SGP4_XKMPER * (rdotk*uy+rfdotk*vy) / 60.;
             pos_teme.v.col[2] = 1000. * SGP4_XKMPER * (rdotk*uz+rfdotk*vz) / 60.;
+
+            return 0;
+        }
+
+
+        double atan3(double sa, double cb)
+        {
+            // sa = sine of angle, cb = cos of angle
+            double y = 0.;
+            double epsilon = 0.0000000001;
+            if (fabs(sa) < epsilon)
+            {
+                y = cb>=0?DPI:0.;
+                //        y = (1 - sign(cb)) * DPI2;
+            }
+            else
+            {
+                //        c = (2 - sign(sa)) * DPI2;
+                if (fabs(cb) < epsilon)
+                {
+                    y = cb;
+                }
+                else
+                {
+                    y = (sa<=0?D3PI2:DPI2) + (sa<0?-1.:1.) * (cb<0?-1.:1.) * (fabs(atan(sa / cb)) - DPI2);
+                }
+            }
+            return y;
+        }
+
+        int32_t rv2tle(double utc, cartpos eci, tlestruc &tle)
+        {
+            // ICRF to Mean of Data (undo Precession)
+            rmatrix bm;
+            gcrf2j2000(&bm);
+            eci.s = rv_mmult(bm,eci.s);
+            eci.v = rv_mmult(bm,eci.v);
+
+            rmatrix pm;
+            j20002mean(utc,&pm);
+            eci.s = rv_mmult(pm,eci.s);
+            eci.v = rv_mmult(pm,eci.v);
+
+            // Mean of Date to True of Date (undo Nutation)
+            rmatrix nm;
+            mean2true(utc,&nm);
+            eci.s = rv_mmult(nm,eci.s);
+            eci.v = rv_mmult(nm,eci.v);
+
+            // True of Date to Uniform of Date (undo Equation of Equinoxes)
+            rmatrix sm;
+            true2teme(utc, &sm);
+            eci.s = rv_mmult(sm,eci.s);
+            eci.v = rv_mmult(sm,eci.v);
+
+            //            function [e, mm, ma, i, ap, raan] = rv2tle(reci, veci)
+            //            % convert osculating position and velocity vectors
+            //            % to components of two line element set (TLE)
+            //            % input
+            //            %  reci = eci position vector (kilometers)
+            //            %  veci = eci velocity vector (kiometers/second)
+            //            % output
+            //            %  e     = orbital eccentricity (non-dimensional)
+            //            %  mm    = mean motion (orbits per day)
+            //            %  ma    = mean anomaly (radians)
+            //            %  i  = orbital inclination (radians)
+            //            %  ap = argument of perigee (radians)
+            //            %  raan = right ascension of ascending node (radians)
+            //            % reference: Scott Campbell's Satellite Orbit Determination
+            //            %            web site www.satelliteorbitdetermination.com
+            //            % Orbital Mechanics with MATLAB
+            //            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            tle.utc = utc;
+            double pi2 = D2PI;
+            double xke = 0.0743669161331734132;
+            double xj3 = -2.53881e-6;
+            double req = 6378135.;
+            double ck2 = 5.413079e-4;
+            double a3ovk2 = -xj3 / ck2;
+            //            % convert position vector to earth radii
+            //            % and velocity vector to earth radii per minute
+            //            for i = 1:1:3
+            Vector rr2 = Vector(eci.s) / req;
+            Vector vv2 = 60.0 * Vector(eci.v) / req;
+            Vector vk = vv2 / xke;
+            //            for (uint16_t i=0; i<3; ++i)
+            //            {
+            //                rr2[i] = reci[i] / req;
+            //                vv2[i] = 60.0 * veci[i] / req;
+            //                vk[i] = vv2[i] / xke;
+            //            }
+
+            //            end
+            Vector hv = rr2.cross(vk);
+            double pl = hv.dot(hv);
+            Vector vz = Vector(0., 0., 1.);
+            Vector vxh = vz.cross(hv);
+            if (vxh[0] == 0.0 && vxh[1] == 0.0)
+            {
+                vxh[0] = 1.0;
+            }
+
+            //            end
+            Vector vxhhat = vxh / vxh.norm();
+            double rk = rr2.norm();
+            double rdotv = rr2.dot(vv2);
+            double rdotk = rdotv / rk;
+            double hmag = hv.norm();
+            double rfdotk = hmag * xke / rk;
+            double vwrk = rr2.dot(vxhhat);
+            double temp = vwrk / rk;
+            double uk = acos(temp);
+            if (rr2[1] < 0.0)
+            {
+                uk = pi2 - uk;
+            }
+            //            end
+            vz = vk.cross(hv);
+            Vector vy = -rr2 / rk;
+            //            for i = 1:1:3
+            //            for (uint16_t i=0; i<3; ++i)
+            //            {
+            //                vy[i] = -1.0 * rr2[i] / rk;
+            //            }
+
+            //            end
+            //            for i = 1:1:3
+            //            for (uint16_t i=0; i<3; ++i)
+            //            {
+            //                vec[i] = vz[i] + vy[i];
+            //            }
+            Vector vec = vz + vy;
+
+            //            end
+            double ek = vec.norm();
+            if (ek >= 1.0)
+            {
+                return -1;
+            }
+
+            //            end
+            double xnodek = atan3(vxhhat[1], vxhhat[0]);
+            temp = sqrt(hv[0] * hv[0] + hv[1] * hv[1]);
+            double xinck = atan2(temp, hv[2]);
+            vwrk = vec.dot(vxhhat);
+            temp = vwrk / ek;
+            double wk = acos(temp);
+            if (vec[2] < 0.0)
+            {
+                wk = fmod(pi2 - wk, pi2);
+            }
+            double aodp = pl / (1.0 - ek * ek);
+            double xn = xke * pow(aodp, (-1.5));
+            //            % in the first loop the osculating elements rk, uk, xnodek, xinck, rdotk,
+            //            % and rfdotk are used as anchors to find the corresponding final sgp4
+            //            % mean elements r, u, raan, i, rdot, and rfdot. several other final
+            //            % mean values based on these are also found: betal, cosio, sinio, theta2,
+            //            % cos2u, sin2u, x3thm1, x7thm1, x1mth2. in addition, the osculating values
+            //            % initially held by aodp, pl, and xn are replaced by intermediate
+            //            % (not osculating and not mean) values used by sgp4. the loop converges
+            //            % on the value of pl in about four iterations.
+            //            % seed value for first loop
+            tle.i = xinck;
+            double u = uk;
+            double r;
+            double rdot;
+            double sinio;
+            double cosio;
+            double x3thm1;
+            for (uint16_t i=0; i<20; ++i)
+            {
+                double a2 = pl;
+                double betal = sqrt(pl / aodp);
+                double temp1 = ck2 / pl;
+                double temp2 = temp1 / pl;
+                cosio = cos(tle.i);
+                sinio = sin(tle.i);
+                double sin2u = sin(2.0 * u);
+                double cos2u = cos(2.0 * u);
+                double theta2 = cosio * cosio;
+                x3thm1 = 3.0 * theta2 - 1.0;
+                double x1mth2 = 1.0 - theta2;
+                double x7thm1 = 7.0 * theta2 - 1.0;
+                r = (rk - 0.5 * temp1 * x1mth2 * cos2u) / (1.0 - 1.5 * temp2 * betal * x3thm1);
+                u = uk + 0.25 * temp2 * x7thm1 * sin2u;
+                tle.raan = xnodek - 1.5 * temp2 * cosio * sin2u;
+                tle.i = xinck - 1.5 * temp2 * cosio * sinio * cos2u;
+                rdot = rdotk + xn * temp1 * x1mth2 * sin2u;
+                double rfdot = rfdotk - xn * temp1 * (x1mth2 * cos2u + 1.5 * x3thm1);
+                temp = r * rfdot / xke;
+                pl = temp * temp;
+                temp = 2.0 / r - (rdot * rdot + rfdot * rfdot) / (xke * xke);
+                aodp = 1.0 / temp;
+                xn = xke * pow(aodp, (-1.5));
+                if (fabs(a2 - pl) < 1.0e-13)
+                {
+                    break;
+                }
+            }
+            //            % the next values are calculated from constants and a combination of mean
+            //            % and intermediate quantities from the first loop. these values all remain
+            //            % fixed and are used in the second loop.
+            //            % preliminary values for the second loop
+            double ecose = 1.0 - r / aodp;
+            double esine = r * rdot / (xke * sqrt(aodp));
+            double elsq = 1.0 - pl / aodp;
+            double xlcof = 0.125 * a3ovk2 * sinio * (3.0 + 5.0 * cosio) / (1.0 + cosio);
+            double aycof = 0.25 * a3ovk2 * sinio;
+            double temp1 = esine / (1.0 + sqrt(1.0 - elsq));
+            double cosu = cos(u);
+            double sinu = sin(u);
+            //            % the second loop normally converges in about six iterations to the final
+            //            % mean value for the eccentricity, e. the mean perigee, ap, is also
+            //            % determined. cosepw and sinepw are found to twelve decimal places and
+            //            % are used to calculate an intermediate value for the eccentric anomaly,
+            //            % temp2. temp2 is then used in kepler's equation to find an intermediate
+            //            % value for the true longitude, capu.
+            //            % seed values for loop
+            tle.e = sqrt(elsq);
+            tle.ap = wk;
+            double axn = tle.e * cos(tle.ap);
+            double sinepw;
+            double cosepw;
+            double beta;
+            for (uint16_t i=0; i<20; ++i)
+            {
+                double a2 = tle.e;
+                beta = 1.0 - tle.e * tle.e;
+                temp = 1.0 / (aodp * beta);
+                double aynl = temp * aycof;
+                double ayn = tle.e * sin(tle.ap) + aynl;
+                cosepw = r * cosu / aodp + axn - ayn * temp1;
+                sinepw = r * sinu / aodp + ayn + axn * temp1;
+                axn = cosepw * ecose + sinepw * esine;
+                ayn = sinepw * ecose - cosepw * esine;
+                tle.ap = fmod(atan2(ayn - aynl, axn), pi2);
+
+                if (tle.e > 0.5)
+                {
+                    tle.e = 0.9 * tle.e + 0.1 * (axn / cos(tle.ap));
+                }
+                else
+                {
+                    tle.e = axn / cos(tle.ap);
+                }
+
+                if (tle.e > 0.999)
+                {
+                    tle.e = 0.999;
+                }
+
+                if (fabs(a2 - tle.e) < 1.0e-9)
+                {
+                    break;
+                }
+            }
+            double temp2 = atan2(sinepw, cosepw);
+            double capu = temp2 - esine;
+            double xll = temp * xlcof * axn;
+            //            % xll adjusts the intermediate true longitude
+            //                    % capu, to the mean true longitude, xl
+            double xl = capu - xll;
+            tle.ma = fmod(xl - tle.ap, pi2);
+            //            % the third loop usually converges after three iterations to the
+            //                    % mean semi-major axis, a1, which is then used to find the mean motion, mm
+            double a0 = aodp;
+            double a1 = a0;
+            double beta2 = sqrt(beta);
+            temp = 1.5 * ck2 * x3thm1 / (beta * beta2);
+            for (uint16_t i=0; i<20; ++i)
+            {
+                double a2 = a1;
+                double d0 = temp / (a0 * a0);
+                a0 = aodp * (1.0 - d0);
+                double d1 = temp / (a1 * a1);
+                a1 = a0 / (1.0 - d1 / 3.0 - d1 * d1 - 134.0 * d1 * d1 * d1 / 81.0);
+                if (fabs(a2 - a1) < 1.0e-13)
+                {
+                    break;
+                }
+            }
+            tle.mm = xke * pow(a1, -1.5);
+            //            mm = mm / (pi2 / 1440.0);
 
             return 0;
         }
@@ -5023,4 +5306,3 @@ matrix, for the provided UTC date.
 
     }
 }
-
