@@ -752,7 +752,7 @@ the CCP register and closing all sockets.
                 }
                 else
                 {
-                    secondsleep(.001);
+                    std::this_thread::yield();
                 }
             }
             if (et.split() > tframes)

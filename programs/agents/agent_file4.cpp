@@ -516,7 +516,7 @@ void recv_loop() noexcept
         }
         else
         {
-            secondsleep(.001);
+            std::this_thread::yield();
         }
 
         while (( nbytes = myrecvfrom("Incoming", rchannel, recvbuf, PACKET_MAX_LENGTH)) > 0)
@@ -1442,7 +1442,7 @@ void transmit_loop() noexcept
             }
             txqueue_lock.unlock();
         }
-        secondsleep(.001);
+        std::this_thread::yield();
     }
 }
 
@@ -1509,7 +1509,7 @@ int32_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE
     txqueue_lock.unlock();
     //    transmit_queue_check.notify_one();
     // Sleep just a bit to give other threads a chance
-    secondsleep(.001);
+    std::this_thread::yield();
     return use_channel;
 }
 
