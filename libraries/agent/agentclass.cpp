@@ -549,19 +549,23 @@ namespace Support
 #endif
         }
 
-        do { 
+        do
+        {
             nbytes = recvfrom(sendchan.cudp, toutput.data(), AGENTMAXBUFFER, 0, static_cast<struct sockaddr *>(nullptr), static_cast<socklen_t *>(nullptr));
         } while ( (nbytes <= 0) && (ep.split() <= waitsec) );
 
         CLOSE_SOCKET(sendchan.cudp);
 
-        if (nbytes < 0) {
+        if (nbytes < 0)
+        {
 #ifdef COSMOS_WIN_OS
             return(-WSAGetLastError());
 #else
             return (-errno);
 #endif
-        } else {
+        }
+        else
+        {
             //toutput[nbytes] = 0;
             toutput.resize(nbytes);
             string reply(toutput.begin(), toutput.end());
