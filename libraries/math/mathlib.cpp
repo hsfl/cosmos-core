@@ -2313,6 +2313,7 @@ double fixprecision(double number, double prec)
 //CRC16::CRC16(uint16_t polynomial, uint16_t initial, uint16_t xorout, bool lsbfirst)
 CRC16::CRC16()
 {
+    mtx = new mutex();
     types[string("ccitt-false")] = {false, 0x1021, 0xffff, 0x0000, 0x29b1};
     types[string("xmodem")] = {false, 0x1021, 0x0000, 0x0000, 0x31c3};
     types[string("hdlc")] = {true, 0x1021, 0xffff, 0xffff, 0x906e};
@@ -2352,32 +2353,55 @@ uint16_t CRC16::set(uint16_t polynomial, uint16_t initialcrc, uint16_t xorout, b
     return 0;
 }
 
-uint16_t CRC16::calc(uint8_t *buf, uint16_t size)
-{
-    vector<uint8_t> vbuf(buf, buf+(size));
-    return calc(vbuf);
-}
+//uint16_t CRC16::calc(uint8_t *buf, uint16_t size)
+//{
+//    vector<uint8_t> vbuf(buf, buf+(size));
+//    return calc(vbuf);
+//}
 
 uint16_t CRC16::calc(string message, uint16_t size)
 {
-    vector<uint8_t> vmessage(&message[0], &message[size]);
-    return calc(vmessage);
+//    vector<uint8_t> vmessage(&message[0], &message[size]);
+//    return calc(vmessage);
+    if (size <= message.length())
+    {
+        return calc((uint8_t *)message.c_str(), size);
+    }
+    else
+    {
+        return calc((uint8_t *)message.c_str(), message.length());
+    }
 }
 
 uint16_t CRC16::calc(string message)
 {
-    vector<uint8_t> vmessage(&message[0], &message[message.size()]);
-    return calc(vmessage);
+//    vector<uint8_t> vmessage(&message[0], &message[message.size()]);
+//    return calc(vmessage);
+    return calc((uint8_t *)message.c_str(), message.length());
 }
 
 uint16_t CRC16::calc(vector<uint8_t> message, uint16_t size)
 {
-    vector<uint8_t> vmessage(&message[0], &message[size]);
-    return calc(vmessage);
+//    vector<uint8_t> vmessage(&message[0], &message[size]);
+//    return calc(vmessage);
+    if (size <= message.size())
+    {
+        return calc(message.data(), size);
+    }
+    else
+    {
+        return calc(message.data(), message.size());
+    }
 }
 
 uint16_t CRC16::calc(vector<uint8_t> message)
 {
+    return calc(message.data(), message.size());
+}
+
+uint16_t CRC16::calc(uint8_t *message, uint16_t size)
+{
+    std::lock_guard<mutex> lock(*mtx);
     uint8_t data;
     uint16_t remainder = initial;
 
@@ -2385,7 +2409,7 @@ uint16_t CRC16::calc(vector<uint8_t> message)
     /*
      * Divide the message by the polynomial, a byte at a time.
      */
-    for (size_t byte = 0; byte < message.size(); ++byte)
+    for (size_t byte = 0; byte < size; ++byte)
     {
         if (lsbfirst)
         {
