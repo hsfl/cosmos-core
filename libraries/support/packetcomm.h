@@ -36,11 +36,9 @@ namespace Cosmos {
 //            bool TXSPacketize();
             bool AX25Packetize(string dest_call="", string sour_call="", uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
             bool SLIPPacketize();
-//            int32_t Generate(string args="");
 
-//            static constexpr uint16_t INTERNAL_BEACON = 0;
-//            static constexpr uint16_t INTERNAL_COMMAND = 0;
-//            static constexpr uint16_t EXTERNAL_COMMAND = 14;
+            int32_t PushQueue(queue<PacketComm> &queue, mutex &mtx);
+            int32_t PullQueue(queue<PacketComm> &queue, mutex &mtx);
 
             enum class TypeId : uint8_t
                 {
@@ -117,8 +115,8 @@ namespace Cosmos {
             {
                 uint16_t data_size;
                 TypeId type;
-                NodeData::NODE_ID_TYPE orig;
-                NodeData::NODE_ID_TYPE dest;
+                NodeData::NODE_ID_TYPE orig = 0;
+                NodeData::NODE_ID_TYPE dest = 255;
             } header;
 
             CCSDS_Header ccsds_header;

@@ -32,6 +32,7 @@ namespace Cosmos {
             {
                 return false;
             }
+            packed.resize(header.data_size + COSMOS_SIZEOF(Header) + 2);
             if (checkcrc)
             {
                 uint16_t crcin = uint16from(&packed[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
@@ -90,60 +91,6 @@ namespace Cosmos {
             }
             return Unpack();
         }
-
-//        bool PacketComm::TXSUnPacketize()
-//        {
-//            static uint16_t byte_slip = 0;
-//            static vector<uint8_t> cpacketized;
-//            static vector<uint8_t> ppacketized;
-//            vector<uint8_t> npacketized;
-//            if (atsm[0] == packetized[0] && atsm[1] == packetized[1] && atsm[2] == packetized[2] && atsm[3] == packetized[3])
-//            {
-//                if (packetized[5])
-//                {
-//                    //                    if ((packetized[5] & 0xf) == 14 || (packetized[5] & 0xf) == 2)
-//                    {
-//                        packed.clear();
-//                        packed.insert(packed.begin(), &packetized[10], &packetized[packetized.size()]);
-//                        cpacketized = packed;
-//                        if (!byte_slip)
-//                        {
-//                            if (satsm[0] == cpacketized[4] && satsm[1] == cpacketized[5] && satsm[2] == cpacketized[6] && satsm[3] == cpacketized[7])
-//                            {
-//                                npacketized = cpacketized;
-//                            }
-//                            else if (satsm[0] == cpacketized[packed.size()-(byte_slip+8)] && satsm[1] == cpacketized[packed.size()-(byte_slip+7)] && satsm[2] == cpacketized[packed.size()-(byte_slip+6)] && satsm[3] == cpacketized[packed.size()-(byte_slip+5)])
-//                                //                                if ((cpacketized[packed.size()-(byte_slip+8)] == 0 || cpacketized[packed.size()-(byte_slip+8)] == 0x3f) && cpacketized[(packed.size()-(byte_slip+8))+1] == 0xd4 && cpacketized[(packed.size()-(byte_slip+8))+2] == 0)
-//                            {
-//                                byte_slip += 8;
-//                            }
-//                        }
-//                        else
-//                        {
-//                            if (satsm[0] == cpacketized[4] && satsm[1] == cpacketized[5] && satsm[2] == cpacketized[6] && satsm[3] == cpacketized[7])
-//                            {
-//                                byte_slip = 0;
-//                                npacketized = cpacketized;
-//                            }
-//                            else if (satsm[0] == cpacketized[packed.size()-(byte_slip)] && satsm[1] == cpacketized[packed.size()-(byte_slip-1)] && satsm[2] == cpacketized[packed.size()-(byte_slip-2)] && satsm[3] == cpacketized[packed.size()-(byte_slip-3)])
-//                            {
-//                                npacketized.insert(npacketized.begin(), &ppacketized[packed.size()-byte_slip], &ppacketized[packed.size()]);
-//                                npacketized.insert(npacketized.end(), &cpacketized[0], &cpacketized[packed.size()-byte_slip]);
-//                            }
-//                            else if (satsm[0] == cpacketized[packed.size()-(byte_slip+8)] && satsm[1] == cpacketized[packed.size()-(byte_slip+7)] && satsm[2] == cpacketized[packed.size()-(byte_slip+6)] && satsm[3] == cpacketized[packed.size()-(byte_slip+5)])
-//                            {
-//                                byte_slip += 8;
-//                            }
-//                        }
-//                        packed = npacketized;
-//                        ppacketized = cpacketized;
-//                        return Unpack();
-//                        //                        return Unpack(byte_slip==0);
-//                    }
-//                }
-//            }
-//            return false;
-//        }
 
         bool PacketComm::Pack()
         {
@@ -222,5 +169,29 @@ namespace Cosmos {
             packetized.insert(packetized.begin(), ax25packet.begin(), ax25packet.end());
             return true;
         }
+
+        // Thread-safe way of pushing onto the packet queue
+        int32_t PacketComm::PushQueue(queue<PacketComm> &queue, mutex &mtx)
+        {
+            std::lock_guard<mutex> lock(mtx);
+            queue.push(*this);
+            return 1;
+        }
+        // Thread-safe way of pulling from the packet queue
+        int32_t PacketComm::PullQueue(queue<PacketComm> &queue, mutex &mtx)
+        {
+            std::lock_guard<mutex> lock(mtx);
+            if (queue.size())
+            {
+//                *this = queue.front();
+                queue.pop();
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
     }
 }
