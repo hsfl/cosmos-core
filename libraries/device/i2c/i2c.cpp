@@ -48,6 +48,17 @@ namespace Cosmos {
 
     I2C::I2C(string bus, uint8_t address, double delay, bool probe)
     {
+        if (i2csem == nullptr)
+        {
+            i2csem = sem_open("/i2csem", O_CREAT, 00777);
+            if (i2csem == SEM_FAILED)
+            {
+                i2csem = nullptr;
+                error = -errno;
+                return;
+            }
+        }
+
         handle.bus = bus;
 #if !defined(COSMOS_WIN_OS)
         handle.fh = open(handle.bus.c_str(), O_RDWR|O_NONBLOCK);
@@ -157,12 +168,25 @@ namespace Cosmos {
 
     int32_t I2C::communicate(string data, string &response, size_t bytes)
     {
+        if (i2csem == nullptr)
+        {
+            error = ErrorNumbers::COSMOS_GENERAL_ERROR_NULLPOINTER;
+            return error;
+        }
+
+        if (sem_timedwait(i2csem, &i2cwait) < 0)
+        {
+            error = -errno;
+            return error;
+        }
+
         int32_t iretn=0;
 
-        std::lock_guard<mutex> lock(mtx);
+//        std::lock_guard<mutex> lock(mtx);
         iretn = send(data);
         if (iretn < 0)
         {
+            sem_post(i2csem);
             return iretn;
         }
 
@@ -170,17 +194,31 @@ namespace Cosmos {
         {
             iretn = receive(response, bytes);
         }
+        sem_post(i2csem);
         return iretn;
     }
 
     int32_t I2C::communicate(vector <uint8_t> data, vector <uint8_t> &response, size_t bytes)
     {
+        if (i2csem == nullptr)
+        {
+            error = ErrorNumbers::COSMOS_GENERAL_ERROR_NULLPOINTER;
+            return error;
+        }
+
+        if (sem_timedwait(i2csem, &i2cwait) < 0)
+        {
+            error = -errno;
+            return error;
+        }
+
         int32_t iretn=0;
 
-        std::lock_guard<mutex> lock(mtx);
+//        std::lock_guard<mutex> lock(mtx);
         iretn = send(data);
         if (iretn < 0)
         {
+            sem_post(i2csem);
             return iretn;
         }
 
@@ -188,17 +226,31 @@ namespace Cosmos {
         {
             iretn = receive(response, bytes);
         }
+        sem_post(i2csem);
         return iretn;
     }
 
     int32_t I2C::communicate(uint8_t *data, size_t len, uint8_t *response, size_t bytes)
     {
+        if (i2csem == nullptr)
+        {
+            error = ErrorNumbers::COSMOS_GENERAL_ERROR_NULLPOINTER;
+            return error;
+        }
+
+        if (sem_timedwait(i2csem, &i2cwait) < 0)
+        {
+            error = -errno;
+            return error;
+        }
+
         int32_t iretn=0;
 
-        std::lock_guard<mutex> lock(mtx);
+//        std::lock_guard<mutex> lock(mtx);
         iretn = send(data, len);
         if (iretn < 0)
         {
+            sem_post(i2csem);
             return iretn;
         }
 
@@ -206,6 +258,7 @@ namespace Cosmos {
         {
             iretn = receive(response, bytes);
         }
+        sem_post(i2csem);
         return iretn;
     }
 
