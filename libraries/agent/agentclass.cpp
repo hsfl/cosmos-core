@@ -152,7 +152,8 @@ namespace Support
 
         // Load node id table
         iretn = NodeData::lookup_node_id(nodeName);
-        if (iretn < 0) {
+        if (iretn < 0)
+        {
             error_value = iretn;
             debug_error.Printf("Failed to find Node Id table\n");
             shutdown();
@@ -2716,10 +2717,10 @@ int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
 //                        printf("Valid: %s\n", mess.jdata.c_str());
                         return ((int)mess.meta.type);
                     }
-                    else
-                    {
-                        printf("Duplicate: %s %s\n",cinfo->agent[0].beat.node.c_str(), cinfo->agent[0].beat.proc.c_str() );
-                    }
+//                    else
+//                    {
+//                        printf("Duplicate: %s %s\n",cinfo->agent[0].beat.node.c_str(), cinfo->agent[0].beat.proc.c_str() );
+//                    }
                 }
 //                else
 //                {

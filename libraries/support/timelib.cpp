@@ -886,7 +886,7 @@ namespace Cosmos {
 
             if (message.length())
             {
-                printf("%s", message.c_str());
+                printf("%s - ", message.c_str());
                 fflush(stdout);
             }
 
