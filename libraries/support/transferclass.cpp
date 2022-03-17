@@ -90,7 +90,7 @@ namespace Cosmos {
 
             // Identify and store calling node's node_id
             iretn = NodeData::lookup_node_id(calling_node_name);
-            if (iretn < 0)
+            if (iretn == NodeData::NODEIDUNKNOWN)
             {
                 if (this->debug_error != nullptr)
                 {
@@ -169,9 +169,9 @@ namespace Cosmos {
         int32_t Transfer::outgoing_tx_load(string node_name)
         {
             int32_t iretn = NodeData::lookup_node_id(node_name);
-            if (iretn < 0)
+            if (iretn == NodeData::NODEIDUNKNOWN)
             {
-                return iretn;
+                return TRANSFER_ERROR_NODE;
             }
             return outgoing_tx_load(iretn);
         }
@@ -272,7 +272,7 @@ namespace Cosmos {
 
             // Find corresponding node_id in the node table
             uint8_t node_id = NodeData::lookup_node_id(node_name);
-            if (node_id == 0)
+            if (node_id == NodeData::NODEIDUNKNOWN)
             {
                 return TRANSFER_ERROR_NODE;
             }
@@ -520,7 +520,7 @@ namespace Cosmos {
 
             // Find corresponding node_id in the node table
             uint8_t orig_node_id = NodeData::lookup_node_id(orig_node_name);
-            if (orig_node_id == 0)
+            if (orig_node_id == NodeData::NODEIDUNKNOWN)
             {
                 return TRANSFER_ERROR_NODE;
             }
@@ -621,7 +621,7 @@ namespace Cosmos {
             tx_progress tx_out;
 
             uint8_t dest_node_id = NodeData::lookup_node_id(dest_node);
-            if (dest_node_id == 0)
+            if (dest_node_id == NodeData::NODEIDUNKNOWN)
             {
                 return TRANSFER_ERROR_NODE;
             }
@@ -1008,7 +1008,7 @@ namespace Cosmos {
         int32_t Transfer::incoming_tx_add(tx_progress &tx_in)
         {
             uint8_t orig_node_id = NodeData::lookup_node_id(tx_in.node_name);
-            if (orig_node_id == 0)
+            if (orig_node_id == NodeData::NODEIDUNKNOWN)
             {
                 if (debug_error != nullptr)
                 {
@@ -1106,7 +1106,8 @@ namespace Cosmos {
                 {
                     txq[(orig_node_id)].incoming.progress[meta.tx_id].tx_id = meta.tx_id;
                     string node_name = NodeData::lookup_node_id_name(orig_node_id);
-                    if (node_name.empty()) {
+                    if (node_name.empty())
+                    {
                         return TRANSFER_ERROR_INDEX;
                     }
                     int32_t iretn = incoming_tx_add(node_name, meta.tx_id);
@@ -1442,7 +1443,8 @@ namespace Cosmos {
                     {
                         tx_id = data.tx_id;
                         string node_name = NodeData::lookup_node_id_name(node_id);
-                        if (node_name.empty()) {
+                        if (node_name.empty())
+                        {
                             iretn = TRANSFER_ERROR_INDEX;
                             break;
                         }

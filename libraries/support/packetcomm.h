@@ -115,8 +115,8 @@ namespace Cosmos {
             {
                 uint16_t data_size;
                 TypeId type;
-                NodeData::NODE_ID_TYPE orig = 0;
-                NodeData::NODE_ID_TYPE dest = 255;
+                NodeData::NODE_ID_TYPE orig = NodeData::NODEIDORIG;
+                NodeData::NODE_ID_TYPE dest = NodeData::NODEIDDEST;
             } header;
 
             CCSDS_Header ccsds_header;

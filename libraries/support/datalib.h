@@ -199,6 +199,10 @@ public:
     static int32_t check_node_id(NODE_ID_TYPE node_id);
     static int32_t lookup_node_id(string node_name);
     static string lookup_node_id_name(NODE_ID_TYPE node_id);
+
+    static constexpr uint8_t NODEIDUNKNOWN = 0;
+    static constexpr uint8_t NODEIDORIG = 254;
+    static constexpr uint8_t NODEIDDEST = 255;
 };
 
 class GITTEST	{

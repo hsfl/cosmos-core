@@ -2174,7 +2174,7 @@ int32_t NodeData::check_node_id(NODE_ID_TYPE node_id)
 
     if ((iretn=NodeData::load_node_ids()) <= 0)
     {
-        return iretn;
+        return NODEIDUNKNOWN;
     }
 
 
@@ -2184,7 +2184,7 @@ int32_t NodeData::check_node_id(NODE_ID_TYPE node_id)
     }
     else
     {
-        return 0;
+        return NODEIDUNKNOWN;
     }
 }
 
@@ -2196,10 +2196,10 @@ int32_t NodeData::lookup_node_id(string node_name)
 
     if ((iretn=NodeData::load_node_ids()) <= 0)
     {
-        return iretn;
+        return NODEIDUNKNOWN;
     }
 
-    uint8_t node_id = 0;
+    uint8_t node_id = NODEIDUNKNOWN;
     for (uint8_t i=1; i<NodeData::node_ids.size(); ++i)
     {
         if (NodeData::node_ids[i] == node_name)
@@ -2209,10 +2209,10 @@ int32_t NodeData::lookup_node_id(string node_name)
         }
     }
 
-    if (node_id == 0)
-    {
-        return TRANSFER_ERROR_NODE;
-    }
+//    if (node_id == NODEIDUNKNOWN)
+//    {
+//        return TRANSFER_ERROR_NODE;
+//    }
 
     return node_id;
 }
@@ -2222,8 +2222,20 @@ int32_t NodeData::lookup_node_id(string node_name)
 //! \return Node name on success, or empty string on failure
 string NodeData::lookup_node_id_name(NODE_ID_TYPE node_id)
 {
-    string name;
-    if (NodeData::load_node_ids() > 0 && node_id > 0 && node_id < NodeData::node_ids.size() && NodeData::node_ids[node_id].size())
+//    string name;
+    if (node_id == NodeData::NODEIDORIG)
+    {
+        return "Origin";
+    }
+    else if (node_id == NodeData::NODEIDUNKNOWN)
+    {
+        return "";
+    }
+    else if (node_id == NodeData::NODEIDDEST)
+    {
+        return "Destination";
+    }
+    else if (NodeData::load_node_ids() > 0 && node_id > 0 && node_id < NodeData::node_ids.size() && NodeData::node_ids[node_id].size())
     {
         return NodeData::node_ids[node_id];
     }
