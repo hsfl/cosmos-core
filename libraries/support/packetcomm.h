@@ -44,6 +44,7 @@ namespace Cosmos {
                 {
                 None = 0,
                 Beacon = 10,
+                Pong = 41,
                 Response = 61,
                 IP = 62,
                 Test = 63,
@@ -70,6 +71,7 @@ namespace Cosmos {
                 TransferAllFiles = 136,
                 StopTransfer = 137,
                 Request = 140,
+                Ping = 141,
                 };
 
             map<TypeId, string> TypeString = {
@@ -94,7 +96,30 @@ namespace Cosmos {
                 {TypeId::TransferAllFiles, "TransferAllFiles"},
                 {TypeId::StopTransfer, "StopTransfer"},
             };
-            
+
+            map<string, TypeId> StringType = {
+                {"Beacon", TypeId::Beacon},
+                {"Response", TypeId::Response},
+                {"IP", TypeId::IP},
+                {"Test", TypeId::Test},
+                {"FileInfo", TypeId::FileInfo},
+                {"FileCommand", TypeId::FileCommand},
+                {"FileMessage", TypeId::FileMessage},
+                {"FileHeartbeat", TypeId::FileHeartbeat},
+                {"FileChunkData", TypeId::FileChunkData},
+                {"FileMetaData", TypeId::FileMetaData},
+                {"Reset", TypeId::Reset},
+                {"Reboot", TypeId::Reboot},
+                {"SendBeacon", TypeId::SendBeacon},
+                {"ClearRadioQueue", TypeId::ClearRadioQueue},
+                {"ExternalCommand", TypeId::ExternalCommand},
+                {"TestRadio", TypeId::TestRadio},
+                {"ListDirectory", TypeId::ListDirectory},
+                {"TransferSingleFile", TypeId::TransferSingleFile},
+                {"TransferAllFiles", TypeId::TransferAllFiles},
+                {"StopTransfer", TypeId::StopTransfer},
+            };
+
 
             struct __attribute__ ((packed))  ResponseHeader
             {

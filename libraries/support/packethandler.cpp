@@ -16,6 +16,7 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::ClearRadioQueue, ClearRadioQueue);
             add_func(PacketComm::TypeId::ExternalCommand, ExternalCommand);
             add_func(PacketComm::TypeId::Request, InternalRequest);
+            add_func(PacketComm::TypeId::Ping, Ping);
             add_func(PacketComm::TypeId::ListDirectory, ListDirectory);
             //            add_func(PacketComm::TypeId::TestRadio, TestRadio);
 
@@ -410,12 +411,6 @@ namespace Cosmos {
             return iretn;
         }
 
-        //        int32_t PacketHandler::TestRadio(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
-        //        {
-        //            int32_t iretn=0;
-        //            return iretn;
-        //        }
-
         int32_t PacketHandler::ListDirectory(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         {
             int32_t iretn=0;
@@ -438,6 +433,14 @@ namespace Cosmos {
         int32_t PacketHandler::TransferFile(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         {
             int32_t iretn=0;
+            return iretn;
+        }
+
+        int32_t PacketHandler::Ping(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        {
+            int32_t iretn=0;
+            response.clear();
+            response.insert(response.begin(), packet.data.begin()+5, packet.data.end());
             return iretn;
         }
 

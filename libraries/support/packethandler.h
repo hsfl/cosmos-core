@@ -123,6 +123,7 @@ namespace Cosmos {
             };
             static int32_t ListDirectory(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t TransferFile(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t Ping(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
 
         private:
             Agent* agent;

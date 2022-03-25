@@ -183,7 +183,7 @@ namespace Cosmos {
             std::lock_guard<mutex> lock(mtx);
             if (queue.size())
             {
-//                *this = queue.front();
+                *this = queue.front();
                 queue.pop();
                 return 1;
             }
