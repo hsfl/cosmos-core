@@ -91,7 +91,8 @@ namespace Cosmos {
         } handle;
 
         sem_t* i2csem=nullptr;
-        timespec i2cwait = {5, 0};
+        double i2cwait = 5.;
+        timespec absi2cwait = {0, 0};
         mutex mtx;
         int32_t error;
 

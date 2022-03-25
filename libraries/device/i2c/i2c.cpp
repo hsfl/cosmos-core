@@ -57,6 +57,7 @@ namespace Cosmos {
                 error = -errno;
                 return;
             }
+            sem_post(i2csem);
         }
 
         handle.bus = bus;
@@ -174,7 +175,11 @@ namespace Cosmos {
             return error;
         }
 
-        if (sem_timedwait(i2csem, &i2cwait) < 0)
+        struct timeval mytime;
+        gettimeofday(&mytime, NULL);
+        absi2cwait.tv_sec = mytime.tv_sec + i2cwait;
+        absi2cwait.tv_nsec = 1000L * mytime.tv_usec + 1000000000 * fmod(i2cwait, 1);
+        if (sem_timedwait(i2csem, &absi2cwait) < 0)
         {
             error = -errno;
             return error;
@@ -206,7 +211,11 @@ namespace Cosmos {
             return error;
         }
 
-        if (sem_timedwait(i2csem, &i2cwait) < 0)
+        struct timeval mytime;
+        gettimeofday(&mytime, NULL);
+        absi2cwait.tv_sec = mytime.tv_sec + i2cwait;
+        absi2cwait.tv_nsec = 1000L * mytime.tv_usec + 1000000000 * fmod(i2cwait, 1);
+        if (sem_timedwait(i2csem, &absi2cwait) < 0)
         {
             error = -errno;
             return error;
@@ -238,7 +247,11 @@ namespace Cosmos {
             return error;
         }
 
-        if (sem_timedwait(i2csem, &i2cwait) < 0)
+        struct timeval mytime;
+        gettimeofday(&mytime, NULL);
+        absi2cwait.tv_sec = mytime.tv_sec + i2cwait;
+        absi2cwait.tv_nsec = 1000L * mytime.tv_usec + 1000000000 * fmod(i2cwait, 1);
+        if (sem_timedwait(i2csem, &absi2cwait) < 0)
         {
             error = -errno;
             return error;
