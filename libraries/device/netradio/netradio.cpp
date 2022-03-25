@@ -98,11 +98,11 @@ namespace Cosmos {
             int32_t iretn;
 
             iretn = DeQueue(packet_queue_in, qmutex_in, p);
-            if (iretn > 0)
-            {
-                return UnPacketize(p);
-            }
-            else
+//            if (iretn > 0)
+//            {
+//                return UnPacketize(p);
+//            }
+//            else
             {
                 return iretn;
             }
@@ -117,15 +117,15 @@ namespace Cosmos {
         {
             int32_t iretn;
 
-            iretn = Packetize(p);
-            if (iretn > 0)
+//            iretn = Packetize(p);
+//            if (iretn > 0)
             {
                 return Queue(packet_queue_out, qmutex_out, p);
             }
-            else
-            {
-                return iretn;
-            }
+//            else
+//            {
+//                return iretn;
+//            }
         }
 
         int32_t NetRadio::PacketOutSize()
