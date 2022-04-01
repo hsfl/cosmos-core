@@ -8,6 +8,12 @@ int main(int argc, char *argv[])
    if (argc > 1)
    {
        date.year = atoi(argv[1]);
+       date.dom = 0;
+       date.doy = 1;
+       date.hour = 0;
+       date.minute = 0;
+       date.second = 0;
+       date.nsecond = 0;
        if (argc > 2)
        {
            date.doy = atoi(argv[2]);
