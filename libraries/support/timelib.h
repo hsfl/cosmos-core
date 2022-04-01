@@ -109,13 +109,13 @@ namespace Cosmos {
         struct calstruc
         {
             int32_t year;
-            int32_t month;
-            int32_t dom;
-            int32_t doy;
-            int32_t hour;
-            int32_t minute;
-            int32_t second;
-            int32_t nsecond;
+            int32_t month = 1;
+            int32_t dom = 1;
+            int32_t doy = 1;
+            int32_t hour = 0;
+            int32_t minute = 0;
+            int32_t second = 0;
+            int32_t nsecond = 0;
         };
 
         class DateTime {
