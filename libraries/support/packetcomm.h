@@ -95,6 +95,8 @@ namespace Cosmos {
                 {TypeId::TransferSingleFile, "TransferSingleFile"},
                 {TypeId::TransferAllFiles, "TransferAllFiles"},
                 {TypeId::StopTransfer, "StopTransfer"},
+                {TypeId::Request, "Request"},
+                {TypeId::Ping, "Ping"},
             };
 
             map<string, TypeId> StringType = {
@@ -118,6 +120,8 @@ namespace Cosmos {
                 {"TransferSingleFile", TypeId::TransferSingleFile},
                 {"TransferAllFiles", TypeId::TransferAllFiles},
                 {"StopTransfer", TypeId::StopTransfer},
+                {"Request", TypeId::Request},
+                {"Ping", TypeId::Ping},
             };
 
 
