@@ -808,7 +808,7 @@ namespace Cosmos {
 
 		public:
 
-			explicit Quaternion(double qx=0., double qy=0., double qz=0., double qw=0.) : Vector(qx, qy, qz, qw)
+            explicit Quaternion(double qx=0., double qy=0., double qz=0., double qw=1.) : Vector(qx, qy, qz, qw)
 			{
 				x = qx;
 				y = qy;
