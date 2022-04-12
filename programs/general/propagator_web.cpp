@@ -20,10 +20,11 @@ static double simdt = 60.;
 // Number of times to increment simulation state (i.e., total simulated time = simdt*runcount)
 static double runcount = 45.;
 static map<string, string> czmls;
+const int precision = 8;
 
-int32_t czml_head();
+int32_t czml_head(string& output);
 int32_t czml_body();
-int32_t czml_foot();
+int32_t czml_foot(string& output);
 
 int main(int argc, char *argv[])
 {
@@ -53,8 +54,11 @@ int main(int argc, char *argv[])
         || el["vy"].is_null()
         || el["vz"].is_null())
         {
-            cout << "Argument format error" << endl;
+            //cout << "Argument format error" << endl;
             Convert::locstruc initialloc = Physics::shape2eci(currentmjd(), RADOF(21.3069), RADOF(-157.8583), 400000., RADOF(54.), 0.);
+            initiallocs.push_back(initialloc);
+            nodes.push_back("node" + std::to_string(nnn++));
+            initialloc = Physics::shape2eci(currentmjd(), RADOF(21.3069), RADOF(-156.8583), 400000., RADOF(54.), 0.);
             initiallocs.push_back(initialloc);
             nodes.push_back("node" + std::to_string(nnn++));
             startutc = currentmjd();
@@ -116,16 +120,15 @@ int main(int argc, char *argv[])
             exit(iretn);
         }
     }
+    // string path = data_name("", mjd, "txt", "orbit");
+    // FILE *ofp = fopen(path.c_str(), "w");
 
-    double mjd = currentmjd();
-    string path = data_name("", mjd, "txt", "orbit");
-    FILE *ofp = fopen(path.c_str(), "w");
-
-    path = data_name("", mjd, "txt", "event");
-    FILE *efp = fopen(path.c_str(), "w");
+    // path = data_name("", mjd, "txt", "event");
+    // FILE *efp = fopen(path.c_str(), "w");
 
     // Add initial header
-    czml_head();
+    string output;
+    czml_head(output);
 
     double elapsed = 0;
     while (elapsed < runcount)
@@ -140,43 +143,56 @@ int main(int argc, char *argv[])
     }
 
     // Add footer
-    czml_foot();
+    czml_foot(output);
 
     // Output to file
-    for (auto cit = czmls.begin(); cit != czmls.end(); ++cit)
-    {
-        fprintf(ofp, "%s\n", cit->second.c_str());
-    }
+    // for (auto cit = czmls.begin(); cit != czmls.end(); ++cit)
+    // {
+    //     output += cit->second;
+    //     //fprintf(ofp, "%s\n", cit->second.c_str());
+    // }
+    cout << output << endl;
 
-    fclose(ofp);
-    fclose(efp);
+    // fclose(ofp);
+    // fclose(efp);
+
+    return 0;
 }
 
 ////////////////////////////////
 // UTILITY FUNCTIONS
 ////////////////////////////////
-int32_t czml_head()
+int32_t czml_head(string& output)
 {
+    output.clear();
+    output +=
+    "["
+        "{"
+            "\"id\": \"document\","
+            "\"name\": \"Cesium Orbit Display for Cosmos Web\","
+            "\"version\": \"1.0\""
+        "},\n";
     for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); ++sit)
     {
-        string& czml = czmls[sit->first];
+        string& czml_pos = czmls[sit->first];
         //double utc = sit->second->currentinfo.node.loc.pos.eci.utc;
         string epoch = utc2iso8601(startutc);
         string interval = epoch + "/" + utc2iso8601(endutc);
-        czml +=
-        "["
+        czml_pos +=
             "{"
-                "id: \"document\","
-                "name: \"Cesium Orbit Display for Cosmos Web\","
-                "version: \"1.0\","
-            "},"
-            "{"
-                "id: \"" + sit->first + "\","
-                "availability: \"" + interval + "\","
-                "position: {"
-                    "epoch: \"" + epoch + "\","
-                    "referenceFrame: \"INERTIAL\","
-                    "cartesian: [";
+                "\"id\": \"" + sit->first + "\","
+                "\"availability\": \"" + interval + "\","
+                "\"position\": {"
+                    "\"epoch\": \"" + epoch + "\","
+                    "\"referenceFrame\": \"INERTIAL\","
+                    "\"cartesian\": [";
+        string& czml_att = czmls[sit->first + "att"];
+        czml_att +=
+                "\"orientation\": {"
+                    "\"epoch\": \"" + epoch + "\","
+                    "\"interpolationAlgorithm\": \"LINEAR\","
+                    "\"interpolationDegree\": 1,"
+                    "\"unitQuaternion\": [";
     }
 
     return 0;
@@ -186,64 +202,96 @@ int32_t czml_head()
 // To be consumed by Cosmos Web's Cesium panel
 int32_t czml_body()
 {
-    string output;
     for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); ++sit)
     {
         double utc;
         double px, py, pz;
-        // double qw, qx, qy, qz;
+        double qw, qx, qy, qz;
         utc = sit->second->currentinfo.node.loc.pos.eci.utc;
         px = sit->second->currentinfo.node.loc.pos.eci.s.col[0];
         py = sit->second->currentinfo.node.loc.pos.eci.s.col[1];
         pz = sit->second->currentinfo.node.loc.pos.eci.s.col[2];
-        // qw = sit->second->currentinfo.node.loc.att.icrf.s.w;
-        // qx = sit->second->currentinfo.node.loc.att.icrf.s.d.x;
-        // qy = sit->second->currentinfo.node.loc.att.icrf.s.d.y;
-        // qz = sit->second->currentinfo.node.loc.att.icrf.s.d.z;
+        qx = sit->second->currentinfo.node.loc.att.geoc.s.d.x;
+        qy = sit->second->currentinfo.node.loc.att.geoc.s.d.y;
+        qz = sit->second->currentinfo.node.loc.att.geoc.s.d.z;
+        qw = sit->second->currentinfo.node.loc.att.geoc.s.w;
 
         // Get appropriate czml string of node_name
         string& czml = czmls[sit->first];
         // Time offset from specified epoch (in seconds)
-        czml += to_floatany(86400.*(utc-startutc)) + ",";
+        czml += "\n";
+        czml += to_floatany(86400.*(utc-startutc), precision) + ",";
 
         // ECI
-        czml += to_floatany(px) + ",";
-        czml += to_floatany(py) + ",";
-        czml += to_floatany(pz) + ",\n";
+        czml += to_floatany(px, precision) + ",";
+        czml += to_floatany(py, precision) + ",";
+        czml += to_floatany(pz, precision) + ",";
+
+        string& czml_att = czmls[sit->first + "att"];
+        czml_att += "\n";
+        czml_att += to_floatany(86400.*(utc-startutc), precision) + ",";
 
         // attitudes
-        /*czml += to_floatany(qw) + "\t";
-        czml += to_floatany(qx) + "\t";
-        czml += to_floatany(qy) + "\t";
-        czml += to_floatany(qz) + "\t";*/
+        czml_att += to_floatany(qx, precision) + ",";
+        czml_att += to_floatany(qy, precision) + ",";
+        czml_att += to_floatany(qz, precision) + ",";
+        czml_att += to_floatany(qw, precision) + ",";
     }
 
     return 0;
 }
 
-int32_t czml_foot()
+int32_t czml_foot(string& output)
 {
     for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); ++sit)
     {
         string& czml = czmls[sit->first];
-        czml +=     "],"    
+        // Remove trailing comma
+        if (!czml.empty())
+        {
+            czml.pop_back();
+        }
+        // Complete cartesian property, add model property
+        czml +=     "]"    
                 "},"
-                "point: {"
-                "color: {"
-                    "rgba: [255, 255, 255, 128],"
+                "\"model\": {"
+                    "\"gltf\":\"./public/plugins/testorg-testplugin/img/cubesat.glb\","
+                    "\"scale\":2.0,"
+                    "\"minimumPixelSize\": 50"
                 "},"
-                "outlineColor: {"
-                    "rgba: [255, 0, 0, 128],"
-                "},"
-                "outlineWidth: 3,"
-                "pixelSize: 15,"
-                "},"
-            "},"
-        "]";
+                // "\"point\": {"
+                //     "\"color\": {"
+                //         "\"rgba\": [255, 255, 255, 128]"
+                //     "},"
+                //     "\"outlineColor\": {"
+                //         "\"rgba\": [255, 0, 0, 128]"
+                //     "},"
+                //     "\"outlineWidth\": 3,"
+                //     "\"pixelSize\": 15"
+                // "}"
+            ;
+        
+        output += czml;
+
+        string& czml_att = czmls[sit->first + "att"];
+        // Remove trailing comma
+        if (!czml_att.empty())
+        {
+            czml_att.pop_back();
+        }
+        // Complete orientation property
+        czml_att += "]"    
+                "}"
+            "},";
+        output += czml_att;
     }
+    // Remove trailing comma
+    if (!output.empty())
+    {
+        output.pop_back();
+    }
+    // Close array
+    output += "]";
 
     return 0;
 }
-
-// TODO:
-// need to fix json array to support multiple sats
