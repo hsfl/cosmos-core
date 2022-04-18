@@ -21,6 +21,7 @@ namespace Cosmos
             Simulator(string inodename="") : nodename{inodename} {
                 cnodes.clear();
                 server = nodename.empty() ? true : false ;
+                error = 0;
             }
 
             enum State {
