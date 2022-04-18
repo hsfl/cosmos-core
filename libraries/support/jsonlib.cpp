@@ -8613,6 +8613,7 @@ int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo)
     json_addentry("device_all_drate",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]->drate, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_VOLTAGE);
     json_addentry("device_all_temp",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]->temp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_TEMPERATURE);
     json_addentry("device_all_utc",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]->utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
+    json_addentry("device_all_expiration",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]->expiration, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("device_all_name",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]->name, (uint16_t)JSON_TYPE_STRING, cinfo);
 
     if (iretn >= 0)
@@ -8650,6 +8651,7 @@ int32_t json_togglecompentry(uint16_t cidx, cosmosstruc *cinfo, bool state)
     json_toggleentry("device_all_drate",cidx, UINT16_MAX, cinfo, state);
     json_toggleentry("device_all_temp",cidx, UINT16_MAX, cinfo, state);
     json_toggleentry("device_all_utc",cidx, UINT16_MAX, cinfo, state);
+    json_toggleentry("device_all_expiration",cidx, UINT16_MAX, cinfo, state);
     json_toggleentry("device_all_name",cidx, UINT16_MAX, cinfo, state);
 
     return iretn;

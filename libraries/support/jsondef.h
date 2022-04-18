@@ -2340,6 +2340,8 @@ union as a ::devicestruc.
             float temp = 0.f; // TODO: rename to temperature
             //! Device information time stamp
             double utc = 0.;
+            //! Device turn off time stamp
+            double expiration = 0.;
             //! Pointer to Specific Device
             void *ptr = nullptr;
 
@@ -2369,6 +2371,7 @@ union as a ::devicestruc.
                     { "drate"   , drate },
                     { "temp"	, temp },
                     { "utc"	 , utc },
+                    { "expiration"	 , expiration },
                     { "name"	 , name },
                 };
             }
@@ -2401,6 +2404,7 @@ union as a ::devicestruc.
                     if(!parsed["drate"].is_null()) { drate = parsed["drate"].number_value(); }
                     if(!parsed["temp"].is_null()) { temp = parsed["temp"].number_value(); }
                     if(!parsed["utc"].is_null()) { utc = parsed["utc"].number_value(); }
+                    if(!parsed["expiration"].is_null()) { expiration = parsed["expiration"].number_value(); }
                     if(!parsed["name"].is_null()) { name = parsed["name"].string_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -7880,6 +7884,7 @@ information.
                     add_name(basename+".drate", &device[i]->drate, "float");
                     add_name(basename+".temp", &device[i]->temp, "float");
                     add_name(basename+".utc", &device[i]->utc, "double");
+                    add_name(basename+".expiration", &device[i]->expiration, "double");
 
                     size_t didx = device[i]->didx;
                     switch (device[i]->type)
