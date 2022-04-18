@@ -45,6 +45,7 @@ namespace Cosmos {
                 None = 0,
                 Beacon = 10,
                 Pong = 41,
+                EPSResponse = 42,
                 Response = 61,
                 IP = 62,
                 Test = 63,
@@ -72,6 +73,8 @@ namespace Cosmos {
                 StopTransfer = 137,
                 Request = 140,
                 Ping = 141,
+                EPSCommand = 142,
+                EPSSwitch = 143,
                 };
 
             map<TypeId, string> TypeString = {
