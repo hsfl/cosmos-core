@@ -1,6 +1,7 @@
 #include "physics/simulatorclass.h"
 #include "support/jsonclass.h"
 #include "support/datalib.h"
+#include "support/packetcomm.h"
 
 using namespace Convert;
 
@@ -22,6 +23,13 @@ static double runcount = 45.;
 static map<string, string> czmls;
 const int precision = 8;
 
+// Network socket stuff
+const int SOCKET_IN_PORT = 10090;
+const char OUT_ADDRESS[] = "grafana";
+static socket_channel data_channel;
+
+// Utility functions
+int32_t to_czml(string& output, string arg);
 int32_t czml_head(string& output);
 int32_t czml_body();
 int32_t czml_foot(string& output);
@@ -29,19 +37,75 @@ int32_t czml_foot(string& output);
 int main(int argc, char *argv[])
 {
     int32_t iretn;
+    PacketComm packet;
+    // open up a socket for getting data to/from grafana backend
+    iretn = socket_open(
+                &data_channel,
+                NetworkType::UDP,
+                "",
+                SOCKET_IN_PORT,
+                SOCKET_LISTEN,
+                SOCKET_BLOCKING,
+                2000000
+                );
+    if ((iretn) < 0)
+    {
+        printf("Failed to open socket for listening: %s\n", cosmos_error_string(iretn));
+        exit (iretn);
+    }
+
+    while(true)
+    {
+        // Wait for incoming packets
+        iretn = socket_recvfrom(data_channel, packet.packetized, 10000);
+        if (iretn <= 0) {
+            continue;
+        }
+        string response;
+        string arg(packet.packetized.begin(), packet.packetized.end());
+
+        // Requesting propagator
+        if (arg == "[1]")
+        {
+            iretn = to_czml(response, arg);
+        }
+        // cout << response.length() << endl;
+
+        iretn = socket_sendto(data_channel, response);
+    }
+
+
+    return 0;
+}
+
+////////////////////////////////////////////
+// UTILITY FUNCTIONS
+////////////////////////////////////////////
+// output is the czml-formatted response string
+// arg is the json string arguments for the initial propagator settings
+int32_t to_czml(string& output, string arg)
+{
+    int32_t iretn;
+
+    output.clear();
+    czmls.clear();
+    initiallocs.clear();
+    nodes.clear();
 
     double now = currentmjd();
     endutc = now + 45./1440.;
 
     string estring;
-    json11::Json jargs = json11::Json::parse(argv[1], estring);
+    json11::Json jargs = json11::Json::parse(arg, estring);
     // Argument format is:
     // [{node_name, utc, px, py, pz, vx, vy, vz}, ...]
     if (!jargs.is_array())
     {
-        cout << "Argument format error" << endl;
-        exit(COSMOS_GENERAL_ERROR_ARGS);
+        output = "Argument format error";
+        delete sim;
+        return COSMOS_GENERAL_ERROR_ARGS;
     }
+    // TODO: temp var to create some sats, remove this and fix to accept actual args
     int nnn = 0;
     for (auto& el : jargs.array_items())
     {
@@ -62,7 +126,7 @@ int main(int argc, char *argv[])
             initiallocs.push_back(initialloc);
             nodes.push_back("node" + std::to_string(nnn++));
             startutc = currentmjd();
-            continue;
+            continue; // TODO: remove this line
             exit(COSMOS_GENERAL_ERROR_ARGS);
         }
         // Since propagating to startutc can take a long time, specify arbitrary
@@ -100,7 +164,9 @@ int main(int argc, char *argv[])
     iretn = sim->GetError();
     if (iretn < 0) {
         printf("Error Creating Simulator: %s\n", cosmos_error_string(iretn).c_str());
-        exit(iretn);
+        output = cosmos_error_string(iretn).c_str();
+        delete sim;
+        return iretn;
     }
     
     // The goal is to predict a full orbit's worth of data centered at current time
@@ -117,17 +183,12 @@ int main(int argc, char *argv[])
         if (iretn < 0)
         {
             printf("Error adding node %s: %s\n", nodes[i].c_str(), cosmos_error_string(iretn).c_str());
-            exit(iretn);
+            output = cosmos_error_string(iretn).c_str();
+            delete sim;
+            return iretn;
         }
     }
-    // string path = data_name("", mjd, "txt", "orbit");
-    // FILE *ofp = fopen(path.c_str(), "w");
-
-    // path = data_name("", mjd, "txt", "event");
-    // FILE *efp = fopen(path.c_str(), "w");
-
     // Add initial header
-    string output;
     czml_head(output);
 
     double elapsed = 0;
@@ -145,23 +206,15 @@ int main(int argc, char *argv[])
     // Add footer
     czml_foot(output);
 
-    // Output to file
-    // for (auto cit = czmls.begin(); cit != czmls.end(); ++cit)
-    // {
-    //     output += cit->second;
-    //     //fprintf(ofp, "%s\n", cit->second.c_str());
-    // }
-    cout << output << endl;
+    // cout << output << endl;
 
-    // fclose(ofp);
-    // fclose(efp);
+    delete sim;
 
     return 0;
 }
 
-////////////////////////////////
-// UTILITY FUNCTIONS
-////////////////////////////////
+// Header of czmls
+// Pass this same output arg into czml_foot at end of program
 int32_t czml_head(string& output)
 {
     output.clear();
@@ -241,6 +294,7 @@ int32_t czml_body()
     return 0;
 }
 
+// Complete the czml formatting
 int32_t czml_foot(string& output)
 {
     for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); ++sit)
@@ -251,24 +305,27 @@ int32_t czml_foot(string& output)
         {
             czml.pop_back();
         }
-        // Complete cartesian property, add model property
+        // Complete cartesian property, add some other properties
         czml +=     "]"    
                 "},"
                 "\"model\": {"
-                    "\"gltf\":\"./public/plugins/testorg-testplugin/img/cubesat.glb\","
-                    "\"scale\":2.0,"
+                    "\"gltf\":\"./public/plugins/testorg-testplugin/img/HyTI.glb\","
+                    "\"scale\":4.0,"
                     "\"minimumPixelSize\": 50"
                 "},"
-                // "\"point\": {"
-                //     "\"color\": {"
-                //         "\"rgba\": [255, 255, 255, 128]"
-                //     "},"
-                //     "\"outlineColor\": {"
-                //         "\"rgba\": [255, 0, 0, 128]"
-                //     "},"
-                //     "\"outlineWidth\": 3,"
-                //     "\"pixelSize\": 15"
-                // "}"
+                "\"path\": {"
+                    "\"material\": {"
+                        "\"polylineOutline\": {"
+                            "\"color\": {"
+                                "\"rgba\": [255, 0, 255, 255]"
+                            "}"
+                        "}"
+                    "},"
+                    "\"width\": 5,"
+                    "\"leadTime\": 5400,"
+                    "\"trailTime\": 5400,"
+                    "\"resolution\": 1"
+                "},"
             ;
         
         output += czml;
