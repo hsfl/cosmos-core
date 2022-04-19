@@ -868,7 +868,14 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     else
     {
         buffer.clear();
-        nbytes = -errno;
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        {
+            nbytes = 0;
+        }
+        else
+        {
+            nbytes = -errno;
+        }
         secondsleep(channel.timeout-et.split());
     }
     return nbytes;
@@ -878,6 +885,7 @@ int32_t socket_recv(socket_channel &channel, vector<uint8_t> &buffer, size_t max
     {
     int32_t nbytes;
     buffer.resize(maxlen);
+    ElapsedTime et;
     if ((nbytes = recv(channel.cudp, (char *)buffer.data(), maxlen, flags)) > 0)
     {
         buffer.resize(nbytes);
@@ -885,7 +893,15 @@ int32_t socket_recv(socket_channel &channel, vector<uint8_t> &buffer, size_t max
     else
     {
         buffer.clear();
-        nbytes = -errno;
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        {
+            nbytes = 0;
+        }
+        else
+        {
+            nbytes = -errno;
+        }
+        secondsleep(channel.timeout-et.split());
     }
     return nbytes;
 }
