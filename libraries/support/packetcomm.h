@@ -40,8 +40,7 @@ namespace Cosmos {
             int32_t PushQueue(queue<PacketComm> &queue, mutex &mtx);
             int32_t PullQueue(queue<PacketComm> &queue, mutex &mtx);
 
-            enum class TypeId : uint8_t
-                {
+            enum class TypeId : uint8_t {
                 None = 0,
                 Beacon = 10,
                 Pong = 41,
@@ -75,7 +74,8 @@ namespace Cosmos {
                 Ping = 141,
                 EPSCommand = 142,
                 EPSSwitch = 143,
-                };
+				ADCS_set_run_mode = 151
+            };
 
             map<TypeId, string> TypeString = {
                 {TypeId::Beacon, "Beacon"},
@@ -100,6 +100,7 @@ namespace Cosmos {
                 {TypeId::StopTransfer, "StopTransfer"},
                 {TypeId::Request, "Request"},
                 {TypeId::Ping, "Ping"},
+				{TypeId::ADCS_set_run_mode, "ADCS_set_run_mode"}
             };
 
             map<string, TypeId> StringType = {
@@ -125,6 +126,7 @@ namespace Cosmos {
                 {"StopTransfer", TypeId::StopTransfer},
                 {"Request", TypeId::Request},
                 {"Ping", TypeId::Ping},
+				{"ADCS_set_run_mode", TypeId::ADCS_set_run_mode}
             };
 
 
