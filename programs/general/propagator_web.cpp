@@ -11,16 +11,13 @@ using namespace Convert;
  * formatted orbital data.
  */
 
-static Physics::Simulator *sim;
 static double startutc = 0;
 static double endutc;
-static vector<Convert::locstruc> initiallocs;
-static vector<string> nodes;
+
 // Simulation time step
 static double simdt = 60.;
 // Number of times to increment simulation state (i.e., total simulated time = simdt*runcount)
 static double runcount = 45.;
-static map<string, string> czmls;
 const int precision = 8;
 
 // Network socket stuff
@@ -28,11 +25,20 @@ const int SOCKET_IN_PORT = 10090;
 const char OUT_ADDRESS[] = "grafana";
 static socket_channel data_channel;
 
+// Self-contained propagator unit
+struct prop_unit
+{
+    Physics::Simulator sim;
+    vector<Convert::locstruc> initiallocs;
+    vector<string> nodes;
+    map<string, string> czmls;
+};
+
 // Utility functions
 int32_t to_czml(string& output, string arg);
-int32_t czml_head(string& output);
-int32_t czml_body();
-int32_t czml_foot(string& output);
+int32_t czml_head(prop_unit& prop, string& output);
+int32_t czml_body(prop_unit& prop);
+int32_t czml_foot(prop_unit& prop, string& output);
 
 int main(int argc, char *argv[])
 {
@@ -65,10 +71,10 @@ int main(int argc, char *argv[])
         string arg(packet.packetized.begin(), packet.packetized.end());
 
         // Requesting propagator
-        if (arg == "[1]")
-        {
+        // if (arg == "[1]")
+        // {
             iretn = to_czml(response, arg);
-        }
+        // }
         // cout << response.length() << endl;
 
         iretn = socket_sendto(data_channel, response);
@@ -86,11 +92,18 @@ int main(int argc, char *argv[])
 int32_t to_czml(string& output, string arg)
 {
     int32_t iretn;
+    
+    // initialize simulator object
+    prop_unit prop;
+    iretn = prop.sim.GetError();
+    if (iretn < 0) {
+        printf("Error Creating Simulator: %s\n", cosmos_error_string(iretn).c_str());
+        output = cosmos_error_string(iretn).c_str();
+        return iretn;
+    }
 
+    
     output.clear();
-    czmls.clear();
-    initiallocs.clear();
-    nodes.clear();
 
     double now = currentmjd();
     endutc = now + 45./1440.;
@@ -102,7 +115,6 @@ int32_t to_czml(string& output, string arg)
     if (!jargs.is_array())
     {
         output = "Argument format error";
-        delete sim;
         return COSMOS_GENERAL_ERROR_ARGS;
     }
     // TODO: temp var to create some sats, remove this and fix to accept actual args
@@ -120,11 +132,11 @@ int32_t to_czml(string& output, string arg)
         {
             //cout << "Argument format error" << endl;
             Convert::locstruc initialloc = Physics::shape2eci(currentmjd(), RADOF(21.3069), RADOF(-157.8583), 400000., RADOF(54.), 0.);
-            initiallocs.push_back(initialloc);
-            nodes.push_back("node" + std::to_string(nnn++));
+            prop.initiallocs.push_back(initialloc);
+            prop.nodes.push_back("node" + std::to_string(nnn++));
             initialloc = Physics::shape2eci(currentmjd(), RADOF(21.3069), RADOF(-156.8583), 400000., RADOF(54.), 0.);
-            initiallocs.push_back(initialloc);
-            nodes.push_back("node" + std::to_string(nnn++));
+            prop.initiallocs.push_back(initialloc);
+            prop.nodes.push_back("node" + std::to_string(nnn++));
             startutc = currentmjd();
             continue; // TODO: remove this line
             exit(COSMOS_GENERAL_ERROR_ARGS);
@@ -152,70 +164,57 @@ int32_t to_czml(string& output, string arg)
         initialloc.pos.eci.v.col[2] = el["vz"].number_value();
         initialloc.pos.eci.pass++;
         pos_eci(initialloc);
-        initiallocs.push_back(initialloc);
-        nodes.push_back(el["node_name"].string_value());
+        prop.initiallocs.push_back(initialloc);
+        prop.nodes.push_back(el["node_name"].string_value());
         startutc = std::max(startutc, el["utc"].number_value());
     }
 
     if (!jargs["simdt"].is_null()) simdt = jargs["simdt"].number_value();
-
-    // initialize simulator object
-    sim = new Physics::Simulator();
-    iretn = sim->GetError();
-    if (iretn < 0) {
-        printf("Error Creating Simulator: %s\n", cosmos_error_string(iretn).c_str());
-        output = cosmos_error_string(iretn).c_str();
-        delete sim;
-        return iretn;
-    }
     
     // The goal is to predict a full orbit's worth of data centered at current time
     // (i.e., -45min to +45min of current time)
     startutc = std::max(startutc, now-45./1440.);
     runcount = (now-startutc)*1440. + 45.;
-    sim->Init(startutc, simdt);
+    prop.sim.Init(startutc, simdt);
 
     // Add all nodes
     // Note, adding node automatically advances it to startutc
-    for (size_t i = 0; i < nodes.size(); ++i)
+    for (size_t i = 0; i < prop.nodes.size(); ++i)
     {
-        iretn = sim->AddNode(nodes[i], Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::None, Physics::Propagator::None, initiallocs[i]);
+        iretn = prop.sim.AddNode(prop.nodes[i], Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::None, Physics::Propagator::None, prop.initiallocs[i]);
         if (iretn < 0)
         {
-            printf("Error adding node %s: %s\n", nodes[i].c_str(), cosmos_error_string(iretn).c_str());
+            printf("Error adding node %s: %s\n", prop.nodes[i].c_str(), cosmos_error_string(iretn).c_str());
             output = cosmos_error_string(iretn).c_str();
-            delete sim;
             return iretn;
         }
     }
     // Add initial header
-    czml_head(output);
+    czml_head(prop, output);
 
     double elapsed = 0;
     while (elapsed < runcount)
     {
         // Step forward in simulation
-        sim->Propagate();
+        prop.sim.Propagate();
 
         // Construct body of czml
-        czml_body();
+        czml_body(prop);
 
         ++elapsed;
     }
 
     // Add footer
-    czml_foot(output);
+    czml_foot(prop, output);
 
     // cout << output << endl;
-
-    delete sim;
 
     return 0;
 }
 
 // Header of czmls
 // Pass this same output arg into czml_foot at end of program
-int32_t czml_head(string& output)
+int32_t czml_head(prop_unit& prop, string& output)
 {
     output.clear();
     output +=
@@ -225,9 +224,9 @@ int32_t czml_head(string& output)
             "\"name\": \"Cesium Orbit Display for Cosmos Web\","
             "\"version\": \"1.0\""
         "},\n";
-    for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); ++sit)
+    for (auto sit = prop.sim.cnodes.begin(); sit != prop.sim.cnodes.end(); ++sit)
     {
-        string& czml_pos = czmls[sit->first];
+        string& czml_pos = prop.czmls[sit->first];
         //double utc = sit->second->currentinfo.node.loc.pos.eci.utc;
         string epoch = utc2iso8601(startutc);
         string interval = epoch + "/" + utc2iso8601(endutc);
@@ -239,7 +238,7 @@ int32_t czml_head(string& output)
                     "\"epoch\": \"" + epoch + "\","
                     "\"referenceFrame\": \"INERTIAL\","
                     "\"cartesian\": [";
-        string& czml_att = czmls[sit->first + "att"];
+        string& czml_att = prop.czmls[sit->first + "att"];
         czml_att +=
                 "\"orientation\": {"
                     "\"epoch\": \"" + epoch + "\","
@@ -253,9 +252,9 @@ int32_t czml_head(string& output)
 
 // Create a CZML-format JSON string out of provided values
 // To be consumed by Cosmos Web's Cesium panel
-int32_t czml_body()
+int32_t czml_body(prop_unit& prop)
 {
-    for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); ++sit)
+    for (auto sit = prop.sim.cnodes.begin(); sit != prop.sim.cnodes.end(); ++sit)
     {
         double utc;
         double px, py, pz;
@@ -270,7 +269,7 @@ int32_t czml_body()
         qw = sit->second->currentinfo.node.loc.att.geoc.s.w;
 
         // Get appropriate czml string of node_name
-        string& czml = czmls[sit->first];
+        string& czml = prop.czmls[sit->first];
         // Time offset from specified epoch (in seconds)
         czml += "\n";
         czml += to_floatany(86400.*(utc-startutc), precision) + ",";
@@ -280,7 +279,7 @@ int32_t czml_body()
         czml += to_floatany(py, precision) + ",";
         czml += to_floatany(pz, precision) + ",";
 
-        string& czml_att = czmls[sit->first + "att"];
+        string& czml_att = prop.czmls[sit->first + "att"];
         czml_att += "\n";
         czml_att += to_floatany(86400.*(utc-startutc), precision) + ",";
 
@@ -295,11 +294,11 @@ int32_t czml_body()
 }
 
 // Complete the czml formatting
-int32_t czml_foot(string& output)
+int32_t czml_foot(prop_unit& prop, string& output)
 {
-    for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); ++sit)
+    for (auto sit = prop.sim.cnodes.begin(); sit != prop.sim.cnodes.end(); ++sit)
     {
-        string& czml = czmls[sit->first];
+        string& czml = prop.czmls[sit->first];
         // Remove trailing comma
         if (!czml.empty())
         {
@@ -330,7 +329,7 @@ int32_t czml_foot(string& output)
         
         output += czml;
 
-        string& czml_att = czmls[sit->first + "att"];
+        string& czml_att = prop.czmls[sit->first + "att"];
         // Remove trailing comma
         if (!czml_att.empty())
         {
