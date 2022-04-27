@@ -17,7 +17,7 @@ const int precision = 8;
 const int half_orbit_t = 50;
 
 // Network socket stuff
-const int SOCKET_IN_PORT = 10090;
+const int PROPAGATOR_WEB_PORT = 10092;
 const char OUT_ADDRESS[] = "grafana";
 static socket_channel data_channel;
 
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
                 &data_channel,
                 NetworkType::UDP,
                 "",
-                SOCKET_IN_PORT,
+                PROPAGATOR_WEB_PORT,
                 SOCKET_LISTEN,
                 SOCKET_BLOCKING,
                 2000000
