@@ -100,6 +100,7 @@ namespace Cosmos {
                 {TypeId::StopTransfer, "StopTransfer"},
                 {TypeId::Request, "Request"},
                 {TypeId::Ping, "Ping"},
+                {TypeId::EPSSwitch, "EPSSwitch"},
             };
 
             map<string, TypeId> StringType = {
@@ -125,6 +126,7 @@ namespace Cosmos {
                 {"StopTransfer", TypeId::StopTransfer},
                 {"Request", TypeId::Request},
                 {"Ping", TypeId::Ping},
+                {"EPSSwitch", TypeId::EPSSwitch},
             };
 
 
