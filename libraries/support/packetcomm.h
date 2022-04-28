@@ -100,7 +100,8 @@ namespace Cosmos {
                 {TypeId::StopTransfer, "StopTransfer"},
                 {TypeId::Request, "Request"},
                 {TypeId::Ping, "Ping"},
-				{TypeId::ADCS_set_run_mode, "ADCS_set_run_mode"}
+                {TypeId::EPSSwitch, "EPSSwitch"},
+				{TypeId::ADCS_set_run_mode, "ADCS_set_run_mode"},
             };
 
             map<string, TypeId> StringType = {
@@ -126,7 +127,8 @@ namespace Cosmos {
                 {"StopTransfer", TypeId::StopTransfer},
                 {"Request", TypeId::Request},
                 {"Ping", TypeId::Ping},
-				{"ADCS_set_run_mode", TypeId::ADCS_set_run_mode}
+                {"EPSSwitch", TypeId::EPSSwitch},
+				{"ADCS_set_run_mode", TypeId::ADCS_set_run_mode},
             };
 
 
