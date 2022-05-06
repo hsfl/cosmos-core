@@ -2,6 +2,8 @@
 #include "support/jsonclass.h"
 #include "support/datalib.h"
 #include "support/packetcomm.h"
+#include <iomanip>
+#include <sstream>
 
 using namespace Convert;
 
@@ -11,7 +13,7 @@ using namespace Convert;
  * formatted orbital data.
  */
 
-const int precision = 8;
+const int precision = 3;
 
 // Number of minutes for half and orbit
 const int half_orbit_t = 50;
@@ -33,7 +35,7 @@ struct prop_unit
     // Simulation time step
     double simdt = 60.;
     // Number of times to increment simulation state (i.e., total simulated time = simdt*runcount)
-    double runcount = half_orbit_t;
+    double runcount = half_orbit_t*2;
 };
 
 // Utility functions
@@ -104,68 +106,74 @@ int32_t to_czml(string& output, string arg)
 
     output.clear();
 
-    double now = currentmjd();
-    prop.endutc = now + half_orbit_t/1440.;
-
     string estring;
     json11::Json jargs = json11::Json::parse(arg, estring);
     // Argument format is:
     // [{node_name, utc, px, py, pz, vx, vy, vz}, ...]
     if (!jargs.is_array())
     {
-        output = "Argument format error";
+        output = "Argument format error, must be array";
         return COSMOS_GENERAL_ERROR_ARGS;
     }
     // Each array element is a node in the simulator
     for (auto& el : jargs.array_items())
     {
-        if (el["Node_name"].is_null()   // Name of the node
-        || el["Utc"].is_null()  // Timestamp of this position/velocity
-        || el["Px"].is_null()   // ECI frame position
-        || el["Py"].is_null()
-        || el["Pz"].is_null()
-        || el["Vx"].is_null()   // ECI frame velocity
-        || el["Vy"].is_null()
-        || el["Vz"].is_null())
+        if (el["node_name"].is_null()   // Name of the node
+        || el["utc"].is_null()  // Timestamp of this position/velocity
+        || el["px"].is_null()   // ECI frame position
+        || el["py"].is_null()
+        || el["pz"].is_null()
+        || el["vx"].is_null()   // ECI frame velocity
+        || el["vy"].is_null()
+        || el["vz"].is_null()
+        || el["startUtc"].is_null())
         {
-            cout << "Argument format error" << endl;
+            cout << "Argument format error, required keys not all detected" << endl;
             return COSMOS_GENERAL_ERROR_ARGS;
         }
-        // Since propagating to startutc can take a long time, specify arbitrary
-        // time range limit, say, at most a week old data. (Which still can take a few seconds)
-        if (now - el["Utc"].number_value() > 7.)
-        {
-            // Time range error
-            cout << "Error in node <" << el["Node_name"].string_value() << ">, must be at most a week old" << endl;
-            return 0;
-        }
-        if (el["Utc"].number_value() > now)
-        {
-            // Time range error
-            cout << "Error in node <" << el["Node_name"].string_value() << ">, initialutc error, is in the future?" << endl;
-            return 0;
-        }
+        // Grab all values from the query
         Convert::locstruc initialloc;
-        initialloc.pos.eci.utc = el["Utc"].number_value();
-        initialloc.pos.eci.s.col[0] = el["Px"].number_value();
-        initialloc.pos.eci.s.col[1] = el["Py"].number_value();
-        initialloc.pos.eci.s.col[2] = el["Pz"].number_value();
-        initialloc.pos.eci.v.col[0] = el["Vx"].number_value();
-        initialloc.pos.eci.v.col[1] = el["Vy"].number_value();
-        initialloc.pos.eci.v.col[2] = el["Vz"].number_value();
+        initialloc.pos.eci.utc = el["utc"].number_value();
+        initialloc.pos.eci.s.col[0] = el["px"].number_value();
+        initialloc.pos.eci.s.col[1] = el["py"].number_value();
+        initialloc.pos.eci.s.col[2] = el["pz"].number_value();
+        initialloc.pos.eci.v.col[0] = el["vx"].number_value();
+        initialloc.pos.eci.v.col[1] = el["vy"].number_value();
+        initialloc.pos.eci.v.col[2] = el["vz"].number_value();
         initialloc.pos.eci.pass++;
         pos_eci(initialloc);
         prop.initiallocs.push_back(initialloc);
-        prop.nodes.push_back(el["Node_name"].string_value());
-        prop.startutc = std::max(prop.startutc, el["Utc"].number_value());
+        prop.nodes.push_back(el["node_name"].string_value());
+        prop.startutc = std::max(prop.startutc, el["startUtc"].number_value());
+        if (!el["runCount"].is_null())
+        {
+            prop.runcount = el["runCount"].int_value();
+        }
+        // Optional argument for simdt
+        if (!jargs["simdt"].is_null())
+        {
+            prop.simdt = jargs["simdt"].number_value();
+        }
+
+        // Since propagating to startutc can take a long time, specify arbitrary
+        // time range limit, say, at most a week old data. (Which still can take a few seconds)
+        if (prop.startutc - el["utc"].number_value() > 7.)
+        {
+            // Time range error
+            cout << "Error in node <" << el["node_name"].string_value() << ">, must be at most a week old" << endl;
+            return 0;
+        }
+        if (el["utc"].number_value() > prop.startutc)
+        {
+            // Time range error
+            cout << "Error in node <" << el["node_name"].string_value() << ">, initialutc error, is in the future?" << endl;
+            return 0;
+        }
     }
-    // Optional argument for simdt
-    if (!jargs["Simdt"].is_null()) prop.simdt = jargs["Simdt"].number_value();
     
-    // The goal is to predict a full orbit's worth of data centered at current time
-    // (i.e., -45min to +45min of current time)
-    prop.startutc = std::max(prop.startutc, now-half_orbit_t/1440.);
-    prop.runcount = (now-prop.startutc)*1440. + half_orbit_t;
+    // The goal is to predict a full orbit's worth of data starting at current time
+    // (i.e., +90min of current time)
+    prop.endutc = prop.startutc + prop.runcount/60/24.;
 
     prop.sim.Init(prop.startutc, prop.simdt);
 
@@ -213,7 +221,7 @@ int32_t czml_head(prop_unit& prop, string& output)
     "["
         "{"
             "\"id\": \"document\","
-            "\"name\": \"Cesium Orbit Display for Cosmos Web\","
+            "\"name\": \"CosmosOrbitDisplay\","
             "\"version\": \"1.0\""
         "},\n";
     for (auto sit = prop.sim.cnodes.begin(); sit != prop.sim.cnodes.end(); ++sit)
@@ -263,23 +271,29 @@ int32_t czml_body(prop_unit& prop)
         // Get appropriate czml string of node_name
         string& czml = prop.czmls[sit->first];
         // Time offset from specified epoch (in seconds)
-        czml += "\n";
-        czml += to_floatany(86400.*(utc-prop.startutc), precision) + ",";
+        std::stringstream ss, ss_att;
+        ss << "\n";
+        ss << std::setprecision(precision) << std::fixed;
+        ss << (86400.*(utc-prop.startutc)) << ",";
 
         // ECI
-        czml += to_floatany(px, precision) + ",";
-        czml += to_floatany(py, precision) + ",";
-        czml += to_floatany(pz, precision) + ",";
+        ss << px << ",";
+        ss << py << ",";
+        ss << pz << ",";
+
+        czml += ss.str();
 
         string& czml_att = prop.czmls[sit->first + "att"];
-        czml_att += "\n";
-        czml_att += to_floatany(86400.*(utc-prop.startutc), precision) + ",";
+        ss_att << std::setprecision(precision) << std::fixed;
+        ss_att << "\n";
+        ss_att << (86400.*(utc-prop.startutc)) << ",";
 
         // attitudes
-        czml_att += to_floatany(qx, precision) + ",";
-        czml_att += to_floatany(qy, precision) + ",";
-        czml_att += to_floatany(qz, precision) + ",";
-        czml_att += to_floatany(qw, precision) + ",";
+        ss_att << qx << ",";
+        ss_att << qy << ",";
+        ss_att << qz << ",";
+        ss_att << qw << ",";
+        czml_att += ss_att.str();
     }
 
     return 0;
@@ -313,8 +327,8 @@ int32_t czml_foot(prop_unit& prop, string& output)
                         "}"
                     "},"
                     "\"width\": 5,"
-                    "\"leadTime\": 5400,"
-                    "\"trailTime\": 5400,"
+                    "\"leadTime\": 6000,"
+                    "\"trailTime\": 6000,"
                     "\"resolution\": 1"
                 "},"
             ;
