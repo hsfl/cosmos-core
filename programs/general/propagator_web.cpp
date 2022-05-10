@@ -208,7 +208,7 @@ int32_t to_czml(string& output, string arg)
     czml_foot(prop, output);
 
     // cout << output << endl;
-
+    cout << "Query successful" << endl;
     return 0;
 }
 
