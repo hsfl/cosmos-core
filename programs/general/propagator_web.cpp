@@ -195,11 +195,11 @@ int32_t to_czml(string& output, string arg)
     double elapsed = 0;
     while (elapsed < prop.runcount)
     {
-        // Step forward in simulation
-        prop.sim.Propagate();
-
         // Construct body of czml
         czml_body(prop);
+
+        // Step forward in simulation
+        prop.sim.Propagate();
 
         ++elapsed;
     }
