@@ -314,7 +314,7 @@ int32_t czml_foot(prop_unit& prop, string& output)
         czml +=     "]"    
                 "},"
                 "\"model\": {"
-                    "\"gltf\":\"./public/plugins/hsfl-orbitdisplay/img/HyTI.glb\","
+                    "\"gltf\":\"./public/plugins/hsfl-orbit-display/img/HyTI.glb\","
                     "\"scale\":4.0,"
                     "\"minimumPixelSize\": 50"
                 "},"
