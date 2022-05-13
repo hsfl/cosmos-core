@@ -74,7 +74,9 @@ namespace Cosmos {
                 Ping = 141,
                 EPSCommand = 142,
                 EPSSwitch = 143,
-				ADCS_set_run_mode = 151
+				ADCS_communicate_bytes = 151,
+				ADCS_communicate_strings= 152,
+				ADCS_set_run_mode = 153
             };
 
             map<TypeId, string> TypeString = {
@@ -101,7 +103,9 @@ namespace Cosmos {
                 {TypeId::Request, "Request"},
                 {TypeId::Ping, "Ping"},
                 {TypeId::EPSSwitch, "EPSSwitch"},
-				{TypeId::ADCS_set_run_mode, "ADCS_set_run_mode"},
+				{TypeId::ADCS_communicate_bytes, "ADCS_communicate_bytes"},
+				{TypeId::ADCS_communicate_strings, "ADCS_communicate_strings"},
+				{TypeId::ADCS_set_run_mode, "ADCS_set_run_mode"}
             };
 
             map<string, TypeId> StringType = {
@@ -128,7 +132,9 @@ namespace Cosmos {
                 {"Request", TypeId::Request},
                 {"Ping", TypeId::Ping},
                 {"EPSSwitch", TypeId::EPSSwitch},
-				{"ADCS_set_run_mode", TypeId::ADCS_set_run_mode},
+				{"ADCS_communicate_bytes", TypeId::ADCS_communicate_bytes},
+				{"ADCS_communicate_strings", TypeId::ADCS_communicate_strings},
+				{"ADCS_set_run_mode", TypeId::ADCS_set_run_mode}
             };
 
 
