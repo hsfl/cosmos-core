@@ -399,8 +399,9 @@ int32_t calculate_distances(prop_unit& prop)
             d = sqrt(dx*dx + dy*dy + dz*dz);
 
             // Worry about what to do with this later
-            cout << std::setprecision(precision) << std::fixed;
-            cout << utc << " " << node_1 << ":" << node_2 << " " << d << endl;
+            cout << std::fixed;
+            cout << std::setprecision(8) << utc << " ";
+            cout << std::setprecision(precision) << node_1 << ":" << node_2 << " " << d << endl;
         }
     }
 
