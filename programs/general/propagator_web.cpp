@@ -38,11 +38,14 @@ struct prop_unit
     double runcount = half_orbit_t*2;
 };
 
-// Utility functions
+// Czml functions
 int32_t to_czml(string& output, string arg);
 int32_t czml_head(prop_unit& prop, string& output);
 int32_t czml_body(prop_unit& prop);
 int32_t czml_foot(prop_unit& prop, string& output);
+
+// Other functions
+int32_t calculate_distances(prop_unit& prop);
 
 int main(int argc, char *argv[])
 {
@@ -198,6 +201,9 @@ int32_t to_czml(string& output, string arg)
         // Construct body of czml
         czml_body(prop);
 
+        // Calculate other stuff
+        calculate_distances(prop);
+
         // Step forward in simulation
         prop.sim.Propagate();
 
@@ -311,7 +317,7 @@ int32_t czml_foot(prop_unit& prop, string& output)
             czml.pop_back();
         }
         // Complete cartesian property, add some other properties
-        czml +=     "]"    
+        czml +=     "]"
                 "},"
                 "\"model\": {"
                     "\"gltf\":\"./public/plugins/hsfl-orbit-display/img/HyTI.glb\","
@@ -357,3 +363,47 @@ int32_t czml_foot(prop_unit& prop, string& output)
 
     return 0;
 }
+
+// Calculate inter-nodal distances
+int32_t calculate_distances(prop_unit& prop)
+{
+    for (string node_1 : prop.nodes)
+    {
+        for (string node_2 : prop.nodes)
+        {
+            // Don't calculate distance to itself
+            if (node_1 == node_2)
+            {
+                continue;
+            }
+            
+            double utc;
+            double px1, py1, pz1;
+            double px2, py2, pz2;
+            utc = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.utc;
+            // node 1 pos
+            px1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.s.col[0];
+            py1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.s.col[1];
+            pz1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.s.col[2];
+            // node 2 pos
+            px2 = prop.sim.cnodes[node_2]->currentinfo.node.loc.pos.eci.s.col[0];
+            py2 = prop.sim.cnodes[node_2]->currentinfo.node.loc.pos.eci.s.col[1];
+            pz2 = prop.sim.cnodes[node_2]->currentinfo.node.loc.pos.eci.s.col[2];
+
+            // d = sqrt( dx^2 + dy^2 + dz^2 )
+            double d;
+            double dx, dy, dz;
+            dx = px2 - px1;
+            dy = py2 - py1;
+            dz = pz2 - pz1;
+            d = sqrt(dx*dx + dy*dy + dz*dz);
+
+            // Worry about what to do with this later
+            cout << std::setprecision(precision) << std::fixed;
+            cout << utc << " " << node_1 << ":" << node_2 << " " << d << endl;
+        }
+    }
+
+    return 0;
+}
+
