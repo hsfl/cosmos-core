@@ -409,7 +409,7 @@ int32_t calculate_distances(prop_unit& prop)
             // Worry about what to do with this later
             cout << std::fixed;
             cout << std::setprecision(8) << utc << " ";
-            cout << std::setprecision(precision) << node_1 << ":" << node_2 << " " << d << snr << endl;
+            cout << std::setprecision(precision) << node_1 << ":" << node_2 << " d:" << d << " snr:" << snr << endl;
         }
     }
 
