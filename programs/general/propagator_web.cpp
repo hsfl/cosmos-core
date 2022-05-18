@@ -21,8 +21,14 @@ const int half_orbit_t = 50;
 
 // Network socket stuff
 const int PROPAGATOR_WEB_PORT = 10092;
-const char OUT_ADDRESS[] = "grafana";
+// const char OUT_ADDRESS[] = "grafana";
 static socket_channel data_channel;
+
+// Cosmos Web Telegraf port
+const int TELEGRAF_SIMDATA_PORT = 10097;
+// Where telegraf is listening for simdata
+const char TELEGRAF_SIMDATA_ADDR[] = "172.19.0.5"; // is this the static?
+static socket_channel cosmos_web_telegraf_channel;
 
 // Self-contained propagator unit
 struct prop_unit
@@ -40,7 +46,7 @@ struct prop_unit
 };
 
 // Czml functions
-int32_t to_czml(string& output, string arg);
+int32_t run_propagator(string& output, string arg);
 int32_t czml_head(prop_unit& prop, string& output);
 int32_t czml_body(prop_unit& prop);
 int32_t czml_foot(prop_unit& prop, string& output);
@@ -51,6 +57,7 @@ double degreesToRadians(double degrees);
 double integral(double(*f)(double x), double a, double b, int n);
 double IntBck(double x);
 double vlc_snr(double distance);
+int32_t create_simdata(prop_unit& prop);
 
 int main(int argc, char *argv[])
 {
@@ -71,6 +78,21 @@ int main(int argc, char *argv[])
         printf("Failed to open socket for listening: %s\n", cosmos_error_string(iretn));
         exit (iretn);
     }
+    // open up a socket for getting beacon data to Telegraf
+    iretn = socket_open(
+                &cosmos_web_telegraf_channel,
+                NetworkType::UDP,
+                TELEGRAF_SIMDATA_ADDR,
+                TELEGRAF_SIMDATA_PORT,
+                SOCKET_TALK,
+                SOCKET_BLOCKING,
+                2000000
+                );
+    if ((iretn) < 0)
+    {
+        printf("Failed to open socket cosmos_web_telegraf_channel: %s\n", cosmos_error_string(iretn));
+        exit (iretn);
+    }
 
     while(true)
     {
@@ -85,7 +107,7 @@ int main(int argc, char *argv[])
         // Requesting propagator
         // if (arg == "[1]")
         // {
-            iretn = to_czml(response, arg);
+            iretn = run_propagator(response, arg);
         // }
 
         iretn = socket_sendto(data_channel, response);
@@ -99,7 +121,7 @@ int main(int argc, char *argv[])
 ////////////////////////////////////////////
 // output is the czml-formatted response string
 // arg is the json string arguments for the initial propagator settings
-int32_t to_czml(string& output, string arg)
+int32_t run_propagator(string& output, string arg)
 {
     int32_t iretn;
     
@@ -207,7 +229,7 @@ int32_t to_czml(string& output, string arg)
         czml_body(prop);
 
         // Calculate other stuff
-        calculate_distances(prop);
+        create_simdata(prop);
 
         // Step forward in simulation
         prop.sim.Propagate();
@@ -369,49 +391,81 @@ int32_t czml_foot(prop_unit& prop, string& output)
     return 0;
 }
 
-// Calculate inter-nodal distances
-int32_t calculate_distances(prop_unit& prop)
+// Calculate inter-nodal distances and other data, and send to telegraf
+int32_t create_simdata(prop_unit& prop)
 {
-    for (string node_1 : prop.nodes)
+    const string node_1 = prop.nodes[0];
+    double utc;
+    utc = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.utc;
+    // node 1 pos
+    double px1, py1, pz1;
+    px1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.s.col[0];
+    py1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.s.col[1];
+    pz1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.s.col[2];
+
+    // node 1 attitude
+    double qw1, qx1, qy1, qz1;
+    qx1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.att.geoc.s.d.x;
+    qy1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.att.geoc.s.d.y;
+    qz1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.att.geoc.s.d.z;
+    qw1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.att.geoc.s.w;
+
+
+    // Hold json of sim data to send to telegraf
+    json11::Json::object simdata = json11::Json::object {
+        { "node_name", node_1 },
+        { "utc", utc },
+        { "node.loc.pos.eci.s.col[0]", px1 },
+        { "node.loc.pos.eci.s.col[1]", py1 },
+        { "node.loc.pos.eci.s.col[2]", pz1 },
+    };
+    for (string node_2 : prop.nodes)
     {
-        for (string node_2 : prop.nodes)
+        // Don't calculate distance to itself
+        if (node_1 == node_2)
         {
-            // Don't calculate distance to itself
-            if (node_1 == node_2)
-            {
-                continue;
-            }
-            
-            double utc;
-            double px1, py1, pz1;
-            double px2, py2, pz2;
-            utc = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.utc;
-            // node 1 pos
-            px1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.s.col[0];
-            py1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.s.col[1];
-            pz1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.s.col[2];
-            // node 2 pos
-            px2 = prop.sim.cnodes[node_2]->currentinfo.node.loc.pos.eci.s.col[0];
-            py2 = prop.sim.cnodes[node_2]->currentinfo.node.loc.pos.eci.s.col[1];
-            pz2 = prop.sim.cnodes[node_2]->currentinfo.node.loc.pos.eci.s.col[2];
-
-            // d = sqrt( dx^2 + dy^2 + dz^2 )
-            double d;
-            double dx, dy, dz;
-            dx = px2 - px1;
-            dy = py2 - py1;
-            dz = pz2 - pz1;
-            d = sqrt(dx*dx + dy*dy + dz*dz);
-            
-            // vlc model using calculated distance as input
-            double snr = vlc_snr(d);
-
-            // Worry about what to do with this later
-            cout << std::fixed;
-            cout << std::setprecision(8) << utc << " ";
-            cout << std::setprecision(precision) << node_1 << ":" << node_2 << " d:" << d << " snr:" << snr << endl;
+            continue;
         }
+        
+        // node 2 pos
+        double px2, py2, pz2;
+        px2 = prop.sim.cnodes[node_2]->currentinfo.node.loc.pos.eci.s.col[0];
+        py2 = prop.sim.cnodes[node_2]->currentinfo.node.loc.pos.eci.s.col[1];
+        pz2 = prop.sim.cnodes[node_2]->currentinfo.node.loc.pos.eci.s.col[2];
+
+        // d = sqrt( dx^2 + dy^2 + dz^2 )
+        double d;
+        double dx, dy, dz;
+        dx = px2 - px1;
+        dy = py2 - py1;
+        dz = pz2 - pz1;
+        d = sqrt(dx*dx + dy*dy + dz*dz);
+        
+        // vlc model using calculated distance as input
+        double snr = vlc_snr(d);
+
+        // Attitude difference
+        // todo
+        double angle = 0;
+
+        // VLC link budget
+        double vlc_link_budget = vlc_snr(d);
+
+
+
+        // Add additional json keys
+        simdata["distanceto_" + node_2] = d;
+        simdata["snr_" + node_2] = vlc_link_budget;
+        
+
+        // Worry about what to do with this later
+        // cout << std::fixed;
+        // cout << std::setprecision(8) << utc << " ";
+        // cout << std::setprecision(precision) << node_1 << ":" << node_2 << " d:" << d << " snr:" << snr << endl;
     }
+    json11::Json resp = simdata;
+    // cout << resp.dump() << endl;
+    int32_t iretn = socket_sendto(cosmos_web_telegraf_channel, resp.dump());
 
     return 0;
 }
@@ -594,10 +648,3 @@ double vlc_snr(double distance) {
 
     return Snr;
 }
-
-
-
-
-
-
-
