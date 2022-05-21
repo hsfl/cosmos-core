@@ -2,6 +2,11 @@
 *.autosave
 
 # ignore everything in build folder except for the scripts
+build/linux
+build/minix
+build/iobc*
+build/gitcheck
+build/arm*
 build/
 !build/build_all_linux
 !build/do_*
