@@ -115,7 +115,7 @@ namespace Cosmos {
 
         int32_t NetRadio::PacketOut(PacketComm &p)
         {
-            int32_t iretn;
+            //int32_t iretn;
 
 //            iretn = Packetize(p);
 //            if (iretn > 0)

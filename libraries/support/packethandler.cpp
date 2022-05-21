@@ -340,7 +340,13 @@ namespace Cosmos {
         {
             Beacon beacon;
             string decoded_beacon;
-            beacon.Decode(packet.data, decoded_beacon);
+            beacon.Init(agent);
+            int32_t iretn = beacon.Decode(packet, decoded_beacon);
+            if (iretn < 0)
+            {
+                response.clear();
+                return iretn;
+            }
             response.insert(response.begin(), decoded_beacon.begin(), decoded_beacon.end());
             return response.size();
         }

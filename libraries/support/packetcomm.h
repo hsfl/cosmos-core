@@ -40,8 +40,7 @@ namespace Cosmos {
             int32_t PushQueue(queue<PacketComm> &queue, mutex &mtx);
             int32_t PullQueue(queue<PacketComm> &queue, mutex &mtx);
 
-            enum class TypeId : uint8_t
-                {
+            enum class TypeId : uint8_t {
                 None = 0,
                 Beacon = 10,
                 Pong = 41,
@@ -75,7 +74,25 @@ namespace Cosmos {
                 Ping = 141,
                 EPSCommand = 142,
                 EPSSwitch = 143,
-                };
+				ADCS_communicate_bytes = 151,
+				ADCS_communicate_strings= 152,
+				ADCS_set_run_mode = 153,
+
+
+				ADCS_run_commissioning_3 = 160,
+				ADCS_run_commissioning_4 = 161,
+				ADCS_run_commissioning_5 = 162,
+				ADCS_run_commissioning_6 = 163,
+				ADCS_run_commissioning_7 = 164,
+				ADCS_run_commissioning_8 = 165,
+				ADCS_run_commissioning_9 = 166,
+				ADCS_run_commissioning_10 = 167,
+				ADCS_run_commissioning_11 = 168,
+				ADCS_run_commissioning_12 = 169,
+				ADCS_run_commissioning_13 = 170,
+				ADCS_run_commissioning_14 = 171,
+				ADCS_run_commissioning_15 = 172
+            };
 
             map<TypeId, string> TypeString = {
                 {TypeId::Beacon, "Beacon"},
@@ -100,6 +117,24 @@ namespace Cosmos {
                 {TypeId::StopTransfer, "StopTransfer"},
                 {TypeId::Request, "Request"},
                 {TypeId::Ping, "Ping"},
+                {TypeId::EPSSwitch, "EPSSwitch"},
+				{TypeId::ADCS_communicate_bytes, "ADCS_communicate_bytes"},
+				{TypeId::ADCS_communicate_strings, "ADCS_communicate_strings"},
+				{TypeId::ADCS_set_run_mode, "ADCS_set_run_mode"},
+
+				{TypeId::ADCS_run_commissioning_3, "ADCS_run_commissioning_3"},
+				{TypeId::ADCS_run_commissioning_4, "ADCS_run_commissioning_4"},
+				{TypeId::ADCS_run_commissioning_5, "ADCS_run_commissioning_5"},
+				{TypeId::ADCS_run_commissioning_6, "ADCS_run_commissioning_6"},
+				{TypeId::ADCS_run_commissioning_7, "ADCS_run_commissioning_7"},
+				{TypeId::ADCS_run_commissioning_8, "ADCS_run_commissioning_8"},
+				{TypeId::ADCS_run_commissioning_9, "ADCS_run_commissioning_9"},
+				{TypeId::ADCS_run_commissioning_10, "ADCS_run_commissioning_10"},
+				{TypeId::ADCS_run_commissioning_11, "ADCS_run_commissioning_11"},
+				{TypeId::ADCS_run_commissioning_12, "ADCS_run_commissioning_12"},
+				{TypeId::ADCS_run_commissioning_13, "ADCS_run_commissioning_13"},
+				{TypeId::ADCS_run_commissioning_14, "ADCS_run_commissioning_14"},
+				{TypeId::ADCS_run_commissioning_15, "ADCS_run_commissioning_15"}
             };
 
             map<string, TypeId> StringType = {
@@ -125,6 +160,24 @@ namespace Cosmos {
                 {"StopTransfer", TypeId::StopTransfer},
                 {"Request", TypeId::Request},
                 {"Ping", TypeId::Ping},
+                {"EPSSwitch", TypeId::EPSSwitch},
+				{"ADCS_communicate_bytes", TypeId::ADCS_communicate_bytes},
+				{"ADCS_communicate_strings", TypeId::ADCS_communicate_strings},
+				{"ADCS_set_run_mode", TypeId::ADCS_set_run_mode},
+
+				{"ADCS_run_commissioning_3", TypeId::ADCS_run_commissioning_3},
+				{"ADCS_run_commissioning_4", TypeId::ADCS_run_commissioning_4},
+				{"ADCS_run_commissioning_5", TypeId::ADCS_run_commissioning_5},
+				{"ADCS_run_commissioning_6", TypeId::ADCS_run_commissioning_6},
+				{"ADCS_run_commissioning_7", TypeId::ADCS_run_commissioning_7},
+				{"ADCS_run_commissioning_8", TypeId::ADCS_run_commissioning_8},
+				{"ADCS_run_commissioning_9", TypeId::ADCS_run_commissioning_9},
+				{"ADCS_run_commissioning_10", TypeId::ADCS_run_commissioning_10},
+				{"ADCS_run_commissioning_11", TypeId::ADCS_run_commissioning_11},
+				{"ADCS_run_commissioning_12", TypeId::ADCS_run_commissioning_12},
+				{"ADCS_run_commissioning_13", TypeId::ADCS_run_commissioning_13},
+				{"ADCS_run_commissioning_14", TypeId::ADCS_run_commissioning_14},
+				{"ADCS_run_commissioning_15", TypeId::ADCS_run_commissioning_15}
             };
 
 
