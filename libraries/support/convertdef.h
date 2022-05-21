@@ -85,7 +85,7 @@ namespace Cosmos {
         //! Altitude of HIGP, in meters
 #define ALT_HIGP 33.
         //! Geocentric location of Honolulu
-#define GEOC_HONOLULU {{-5588871.,-2278876.,2353191.}}
+#define GEOC_HONOLULU {-5588871.,-2278876.,2353191.}
 
         // TODO: create SGP4 module
         // SGP4 constants
