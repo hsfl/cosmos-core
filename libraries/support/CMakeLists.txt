@@ -76,6 +76,10 @@ add_library(CosmosPacketHandler STATIC packethandler.cpp packethandler.h)
 install(TARGETS CosmosPacketHandler DESTINATION lib)
 target_link_libraries(CosmosPacketHandler CosmosBeacon CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
 
+add_library(CosmosChannel STATIC channellib.cpp channellib.h)
+install(TARGETS CosmosChannel DESTINATION lib)
+target_link_libraries(CosmosChannel CosmosBeacon CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
+
 add_library(CosmosBeacon STATIC beacon.cpp beacon.h)
 install(TARGETS CosmosBeacon DESTINATION lib)
 target_link_libraries(CosmosBeacon CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})

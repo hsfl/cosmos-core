@@ -10,8 +10,8 @@ namespace Cosmos {
         class NetRadio
         {
         public:
-            static constexpr uint16_t NET_BUFFER_SIZE = 1000;
-            static constexpr uint16_t PACKETCOMM_DATA_SIZE = NET_BUFFER_SIZE - (COSMOS_SIZEOF(PacketComm::Header)+2);
+            static constexpr uint16_t PACKETCOMM_PACKET_SIZE = 1400;
+            static constexpr uint16_t PACKETCOMM_DATA_SIZE = PACKETCOMM_PACKET_SIZE - (COSMOS_SIZEOF(PacketComm::Header)+2);
             static const int NET_IN_PORT = 10070;
             static const int NET_OUT_PORT = 10071;
 

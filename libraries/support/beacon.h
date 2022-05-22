@@ -7,7 +7,7 @@
 #include "agent/agentclass.h"
 #include "math/mathlib.h"
 #include "support/enumlib.h"
-#include "support/transferclass.h"
+//#include "support/transferclass.h"
 #include "support/packetcomm.h"
 
 // Alias of a function that updates a beacon struct
@@ -94,7 +94,12 @@ namespace Cosmos {
                 {TypeId::ADCSATTBeaconL, "ADCSATTBeaconL"},
             };
 
-            int32_t Init(Agent*, uint16_t short_beacon = 18, uint16_t long_beacon = 200);
+            int32_t Init(uint16_t short_beacon = 18, uint16_t long_beacon = 200);
+            int32_t Encode(TypeId type, cosmosstruc *cinfo);
+            int32_t Decode(vector<uint8_t> data, cosmosstruc *cinfo, string& Contents);
+//            int32_t Decode(vector<uint8_t> data, string& Contents);
+//            int32_t Decode(string& Contents);
+//            int32_t Init(Agent*, uint16_t short_beacon = 18, uint16_t long_beacon = 200);
             int32_t Encode(TypeId type);
             int32_t Decode(const PacketComm& packet, string& Contents);
             int32_t JSONDecode(string& Contents);
@@ -103,7 +108,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) cpu1_beacons
             {
                 uint8_t type = 10;
-                float utc = 0.;
+                float met = 0.;
                 float load = 0.;
                 float memory = 0.;
                 float disk = 0.;
@@ -112,7 +117,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) cpu2_beacons
             {
                 uint8_t type = 11;
-                float utc = 0.;
+                float met = 0.;
                 uint32_t uptime = 0;
                 uint32_t bootcount = 0;
                 uint32_t initialdate = 0;
@@ -121,14 +126,14 @@ namespace Cosmos {
             struct __attribute__ ((packed)) temp_beacons
             {
                 uint8_t type = 20;
-                float utc = 0.;
+                float met = 0.;
                 float temp[3] = {0.};
             } ;
 
             struct __attribute__ ((packed)) epscpu_beacons
             {
                 uint8_t type = 30;
-                float utc = 0.;
+                float met = 0.;
                 float volt = 0.;
                 float amp = 0.;
                 float temp = 0.;
@@ -137,7 +142,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) epspv_beacons
             {
                 uint8_t type = 31;
-                float utc = 0.;
+                float met = 0.;
                 float volt = 0.;
                 float amp = 0.;
                 float temp = 0.;
@@ -146,7 +151,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) epsswch_beacons
             {
                 uint8_t type = 32;
-                float utc = 0.;
+                float met = 0.;
                 float volt = 0.;
                 float amp = 0.;
                 float temp = 0.;
@@ -155,7 +160,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) epsbatt_beacons
             {
                 uint8_t type = 33;
-                float utc = 0.;
+                float met = 0.;
                 float volt = 0.;
                 float amp = 0.;
                 float temp = 0.;
@@ -164,7 +169,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcscpu_beacons
             {
                 uint8_t type = 40;
-                float utc = 0.;
+                float met = 0.;
                 float volt = 0.;
                 float amp = 0.;
                 float temp = 0.;
@@ -173,7 +178,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsmtr_beacons
             {
                 uint8_t type = 41;
-                float utc = 0.;
+                float met = 0.;
                 float volt = 0.;
                 float amp = 0.;
                 float temp = 0.;
@@ -182,7 +187,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsrw_beacons
             {
                 uint8_t type = 42;
-                float utc = 0.;
+                float met = 0.;
                 float omega1 = 0.;
                 float omega2 = 0.;
                 float omega3 = 0.;
@@ -191,7 +196,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsimu_beacons
             {
                 uint8_t type = 43;
-                float utc = 0.;
+                float met = 0.;
                 float magx = 0.;
                 float magy = 0.;
                 float magz = 0.;
@@ -200,7 +205,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsgps_beacons
             {
                 uint8_t type = 44;
-                float utc = 0.;
+                float met = 0.;
                 float geocx = 0.;
                 float geocy = 0.;
                 float geocz = 0.;
@@ -209,7 +214,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsstt_beacons
             {
                 uint8_t type = 45;
-                float utc = 0.;
+                float met = 0.;
                 float heading = 0.;
                 float elevation = 0.;
                 float bearing = 0.;
@@ -218,7 +223,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsssen_beacons
             {
                 uint8_t type = 46;
-                float utc = 0.;
+                float met = 0.;
                 float volt = 0.;
                 float amp = 0.;
                 float temp = 0.;
@@ -227,7 +232,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcssun_beacons
             {
                 uint8_t type = 47;
-                float utc = 0.;
+                float met = 0.;
                 float azimuth = 0.;
                 float elevation = 0.;
                 float temp = 0.;
@@ -236,7 +241,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsnadir_beacons
             {
                 uint8_t type = 48;
-                float utc = 0.;
+                float met = 0.;
                 float azimuth = 0.;
                 float elevation = 0.;
                 float temp = 0.;
@@ -256,7 +261,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) cpu1_beaconl
             {
                 uint8_t type = 110;
-                float utc = 0.;
+                float met = 0.;
                 uint32_t initialdate = 0;
                 cpu_beaconl cpu[6];
                 double last_updated;
@@ -266,7 +271,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) temp_beacon
             {
                 uint8_t type = 120;
-                float utc = 0.;
+                float met = 0.;
                 float temp[20] = {0.};
             } ;
 
@@ -279,7 +284,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) epspv1_beacon
             {
                 uint8_t type = 130;
-                float utc = 0.;
+                float met = 0.;
                 epspv_beacon pv[6];
             };
 
@@ -292,14 +297,14 @@ namespace Cosmos {
             struct __attribute__ ((packed)) epsswch1_beaconl
             {
                 uint8_t type = 131;
-                float utc = 0.;
+                float met = 0.;
                 epsswch_beaconl swch[16];
             };
 
             struct __attribute__ ((packed)) epsswch2_beaconl
             {
                 uint8_t type = 132;
-                float utc = 0.;
+                float met = 0.;
                 epsswch_beaconl swch[16];
             };
 
@@ -314,7 +319,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) epsbatt1_beaconl
             {
                 uint8_t type = 133;
-                float utc = 0.;
+                float met = 0.;
                 epsbatt_beaconl batt[4];
             };
 
@@ -327,7 +332,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsmtr1_beaconl
             {
                 uint8_t type = 140;
-                float utc = 0.;
+                float met = 0.;
                 adcsmtr_beaconl mtr[3];
             };
 
@@ -342,7 +347,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsrw1_beaconl
             {
                 uint8_t type = 141;
-                float utc = 0.;
+                float met = 0.;
                 adcsrw_beaconl rw[4];
             };
 
@@ -360,7 +365,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsimu1_beaconl
             {
                 uint8_t type = 142;
-                float utc = 0.;
+                float met = 0.;
                 adcsimu_beaconl imu[3];
             };
 
@@ -374,7 +379,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsgps1_beaconl
             {
                 uint8_t type = 143;
-                float utc = 0.;
+                float met = 0.;
                 adcsgps_beaconl gps[3];
             };
 
@@ -389,7 +394,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsstt1_beaconl
             {
                 uint8_t type = 144;
-                float utc = 0.;
+                float met = 0.;
                 adcsstt_beaconl stt[3];
             };
 
@@ -402,7 +407,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsssen1_beaconl
             {
                 uint8_t type = 145;
-                float utc = 0.;
+                float met = 0.;
                 adcsssen_beaconl ssen[10];
             };
 
@@ -415,7 +420,7 @@ namespace Cosmos {
             struct __attribute__ ((packed)) adcsatt1_beaconl
             {
                 uint8_t type = 146;
-                float utc = 0.;
+                float met = 0.;
                 adcsatt_beaconl sun;
                 adcsatt_beaconl earth;
                 adcsssen_beaconl coarse[10];
@@ -439,7 +444,7 @@ namespace Cosmos {
 
         private:
             // Reference to calling agent for accessing namespace
-            Agent *agent;
+//            Agent *agent;
             // Function pointer to a function that will update the beacon(s)
             update_beacon_func update;
             // Time interval (in seconds) between beacon sends

@@ -126,6 +126,9 @@
 #include "support/jsonlib.h"
 #include "support/jsonclass.h"
 #include "device/cpu/devicecpu.h"
+#include "support/packetcomm.h"
+#include "support/channellib.h"
+#include "support/beacon.h"
 
 namespace Cosmos
 {
@@ -135,9 +138,9 @@ namespace Cosmos
         {
         public:
             Agent(
-				const string &node_name = "",
-				const string &agent_name = "",
-				double bprd = 0.,
+                const string &node_name = "",
+                const string &agent_name = "",
+                double bprd = 0.,
 				uint32_t bsize = AGENTMAXBUFFER,
 				bool mflag = false,
 				int32_t portnum = 0,
@@ -404,6 +407,25 @@ namespace Cosmos
 
             int32_t process_request(string &bufferin, string &bufferout);
 
+            Channel channels;
+            int32_t set_verification(uint32_t verification);
+            int32_t add_channel(string name, uint16_t datasize=200);
+            int32_t find_channel(string name);
+            int32_t push_unwrapped(string name, PacketComm &packet);
+            int32_t push_unwrapped(uint8_t number, PacketComm& packet);
+            int32_t push_unwrapped(string name, vector<PacketComm>& packets);
+            int32_t push_unwrapped(uint8_t number, vector<PacketComm>& packets);
+            int32_t push_response(string name, uint32_t id, string response="");
+            int32_t push_response(uint8_t number, uint32_t id, string response="");
+            int32_t push_response(string name, uint32_t id, vector<uint8_t> response);
+            int32_t push_response(uint8_t number, uint32_t id, vector<uint8_t> response);
+            int32_t pull_unwrapped(string name, PacketComm& packet);
+            int32_t pull_unwrapped(uint8_t number, PacketComm& packet);
+            int32_t channel_size(string name);
+            int32_t channel_size(uint8_t number);
+            int32_t clear_channel(string name);
+            int32_t clear_channel(uint8_t number);
+
         protected:
         private:
 
@@ -495,7 +517,8 @@ namespace Cosmos
             static int32_t req_soh(string &, string &response, Agent *agent);
             static int32_t req_fullsoh(string &, string &response, Agent *agent);
             static int32_t req_jsondump(string &, string &response, Agent *agent);
-			static int32_t req_all_names_types(string &, string &response, Agent *agent);
+            static int32_t req_all_names_types(string &, string &response, Agent *agent);
+            static int32_t req_command(string &, string &response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos

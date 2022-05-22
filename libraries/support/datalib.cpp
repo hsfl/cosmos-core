@@ -157,8 +157,9 @@ string log_write(string node, int type, double utc, const char *record, string d
  * \param newpath Path to move to.
  * \param compress Wether or not to compress with gzip.
  */
-void log_move(string oldpath, string newpath, bool compress)
+int32_t log_move(string oldpath, string newpath, bool compress)
 {
+    int32_t iretn;
     if (compress)
     {
         char buffer[8192];
@@ -180,14 +181,30 @@ void log_move(string oldpath, string newpath, bool compress)
 
         fclose(fin);
         gzclose_w(gzfout);
-        rename(temppath.c_str(), newpath.c_str());
-        remove(temppath.c_str());
+        iretn = rename(temppath.c_str(), newpath.c_str());
+        if (iretn < 0)
+        {
+            iretn = -errno;
+            return iretn;
+        }
+        iretn = remove(temppath.c_str());
+        if (iretn < 0)
+        {
+            iretn = -errno;
+            return iretn;
+        }
     }
     else
     {
-        rename(oldpath.c_str(), newpath.c_str());
+        iretn = rename(oldpath.c_str(), newpath.c_str());
+        if (iretn < 0)
+        {
+            iretn = -errno;
+            return iretn;
+        }
     }
-    remove(oldpath.c_str());
+    iretn = remove(oldpath.c_str());
+    return iretn;
 }
 
 //! Move log file - full version.
@@ -201,46 +218,20 @@ void log_move(string oldpath, string newpath, bool compress)
  * \param dstlocation Destination location name.
  * \param compress Wether or not to compress with gzip.
  */
-void log_move(string node, string agent, string srclocation, string dstlocation, bool compress)
+int32_t log_move(string node, string agent, string srclocation, string dstlocation, bool compress)
 {
-//    char buffer[8192];
+    int32_t iretn = 0;
     vector<filestruc> oldfiles;
     data_list_files(node, srclocation, agent, oldfiles);
     for (auto oldfile: oldfiles)
     {
-        log_move(oldfile.path, data_base_path(node, dstlocation, agent, oldfile.name), compress);
-//        string oldpath = oldfile.path;
-
-//        if (compress)
-//        {
-//            string temppath = oldfile.path + ".gz";
-//            string newpath = data_base_path(node, dstlocation, agent, oldfile.name + ".gz");
-//            FILE *fin = data_open(oldpath, "rb");
-//            FILE *fout = data_open(temppath, "wb");
-//            gzFile gzfout;
-//            gzfout = gzdopen(fileno(fout), "a");
-
-//            do
-//            {
-//                unsigned nbytes = (unsigned)fread(buffer, 1, 8192, fin);
-//                if (nbytes)
-//                {
-//                    gzwrite(gzfout, buffer, nbytes);
-//                }
-//            } while (!feof(fin));
-
-//            fclose(fin);
-//            gzclose_w(gzfout);
-//            rename(temppath.c_str(), newpath.c_str());
-//            remove(temppath.c_str());
-//        }
-//        else
-//        {
-//            string newpath = data_base_path(node, dstlocation, agent, oldfile.name);
-//            rename(oldpath.c_str(), newpath.c_str());
-//        }
-//        remove(oldpath.c_str());
+        iretn = log_move(oldfile.path, data_base_path(node, dstlocation, agent, oldfile.name), compress);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
     }
+    return iretn;
 }
 
 //! Move log file - short version.
@@ -251,9 +242,9 @@ void log_move(string node, string agent, string srclocation, string dstlocation,
  * \param node Node name.
  * \param agent Agent name.
  */
-void log_move(string node, string agent)
+int32_t log_move(string node, string agent)
 {
-    log_move(node, agent, "temp", "outgoing", true);
+    return log_move(node, agent, "temp", "outgoing", true);
 }
 
 //! Get a list of days in a Node archive.
@@ -899,6 +890,17 @@ string data_name_path(string node, string location, string agent, double mjd, st
 
 }
 
+filestruc data_name_struc(string node, string location, string agent, double mjd, string name)
+{
+    filestruc file;
+    file.node = node;
+    file.agent = agent;
+    file.utc = mjd;
+    file.name = name;
+    file.path = data_name_path(node, location, agent, mjd, name);
+    return file;
+}
+
 //! Create resource file path
 /*! Build a path to a resource file using its filename and the current resource
  * directory.
@@ -1526,6 +1528,19 @@ string get_nodedir(string node, bool create_flag)
     return (nodedir);
 }
 
+//! Move data file - filestruc version.
+/*! Move files previously created using ::file_struc to their final location, optionally
+ * compressing with gzip. The routine will move the file specified in filestruc to {node}/{dstlocation}/{agent}.
+ * \param filestruc File information.
+ * \param location Destination location name.
+ * \param compress Wether or not to compress with gzip.
+ */
+int32_t data_move(filestruc file, string location, bool compress)
+{
+        int32_t iretn = log_move(file.path, data_base_path(file.node, location, file.agent, file.name), compress);
+        return iretn;
+}
+
 //! Load data from archive
 /*! Load JSON entries of specified type from data archive for specified Node and Agent.
              * Will return all data that is available within specified date range, in files
@@ -1868,7 +1883,7 @@ int32_t data_execute(string cmd)
     return data_execute(cmd, result);
 }
 
-int32_t data_execute(vector<uint8_t> cmd, std::string &result, std::string shell)
+int32_t data_execute(vector<uint8_t> cmd, string& result, string shell)
 {
     return data_execute(string(cmd.begin(), cmd.end()), result, shell);
 }

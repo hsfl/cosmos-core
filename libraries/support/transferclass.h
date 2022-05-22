@@ -57,6 +57,8 @@ namespace Cosmos {
             int32_t Init(string calling_node_name);
             int32_t Init(string calling_node_name, Error* debug_error);
             //int32_t Load(string filename, vector<chunk> &chunks);
+            int32_t outgoing_tx_add(tx_progress &tx_out, string dest_node_name);
+            int32_t outgoing_tx_add(string dest_node, string dest_agent, string file_name);
             int32_t outgoing_tx_load();
             int32_t outgoing_tx_load(string node_name);
             int32_t outgoing_tx_load(uint8_t node_id);
@@ -107,8 +109,6 @@ namespace Cosmos {
             int32_t get_outgoing_rpackets(uint8_t node_id, vector<PacketComm> &packets);
 
             // Private queue manipulation functions
-            int32_t outgoing_tx_add(tx_progress &tx_out, string dest_node_name);
-            int32_t outgoing_tx_add(string dest_node, string dest_agent, string file_name);
             int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id=PROGRESS_QUEUE_SIZE, bool remove_file=true);
             PACKET_TX_ID_TYPE check_tx_id(tx_entry &txentry, PACKET_TX_ID_TYPE tx_id);
             int32_t incoming_tx_add(string node_name, PACKET_TX_ID_TYPE tx_id);

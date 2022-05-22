@@ -37,19 +37,19 @@ namespace Cosmos {
 
         int32_t NetRadio::Packetize(PacketComm &packet)
         {
-            if (!packet.Pack())
+            if (!packet.Wrap())
             {
                 return 0;
             }
             packet.packetized.clear();
-            packet.packetized.insert(packet.packetized.end(), packet.packed.begin(), packet.packed.end());
+            packet.packetized.insert(packet.packetized.end(), packet.wrapped.begin(), packet.wrapped.end());
             return 1;
         }
 
         int32_t NetRadio::UnPacketize(PacketComm& packet)
         {
-            packet.packed = packet.packetized;
-            if (packet.Unpack())
+            packet.wrapped = packet.packetized;
+            if (packet.Unwrap())
             {
                 return 1;
             }
