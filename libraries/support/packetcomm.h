@@ -76,6 +76,8 @@ namespace Cosmos {
                 CommandPing = 141,
                 CommandSetTime = 142,
                 CommandAdcsCommunicate = 150,
+                CommandAdcsCommission = 151,
+                CommandAdcsSetRunMode = 152,
                 CommandEpsCommunicate = 160,
                 CommandEpsSwitchName = 161,
                 CommandEpsSwitchNumber = 162,
@@ -83,19 +85,6 @@ namespace Cosmos {
                 CommandEpsState = 164,
                 CommandExecLoadCommand = 170,
                 CommandExecAddCommand = 171,
-                CommandADCSCommission3 = 160,
-                CommandADCSCommission4 = 161,
-                CommandADCSCommission5 = 162,
-                CommandADCSCommission6 = 163,
-                CommandADCSCommission7 = 164,
-                CommandADCSCommission8 = 165,
-                CommandADCSCommission9 = 166,
-                CommandADCSCommission10 = 167,
-                CommandADCSCommission11 = 168,
-                CommandADCSCommission12 = 169,
-                CommandADCSCommission13 = 170,
-                CommandADCSCommission14 = 171,
-                CommandADCSCommission15 = 172
                 };
 
             map<TypeId, string> TypeString = {
@@ -129,6 +118,8 @@ namespace Cosmos {
                 {TypeId::CommandPing, "Ping"},
                 {TypeId::CommandSetTime, "SetTime"},
                 {TypeId::CommandAdcsCommunicate, "AdcsCommunicate"},
+                {TypeId::CommandAdcsCommission, "AdcsCommision"},
+                {TypeId::CommandAdcsSetRunMode, "AdcsSetRunMode"},
                 {TypeId::CommandEpsCommunicate, "EpsCommunicate"},
                 {TypeId::CommandEpsSwitchName, "EpsSwitchName"},
                 {TypeId::CommandEpsSwitchNumber, "EpsSwitchNumber"},
@@ -174,6 +165,8 @@ namespace Cosmos {
                 {"EpsReset", TypeId::CommandEpsReset},
                 {"EpsState", TypeId::CommandEpsState},
                 {"AdcsCommunicate", TypeId::CommandAdcsCommunicate},
+                {"AdcsCommision", TypeId::CommandAdcsCommission},
+                {"AdcsSetRunMode", TypeId::CommandAdcsSetRunMode},
                 {"ExecLoadCommand", TypeId::CommandExecLoadCommand},
                 {"ExecAddCommand", TypeId::CommandExecAddCommand},
             };
