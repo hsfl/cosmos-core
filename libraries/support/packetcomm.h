@@ -83,6 +83,7 @@ namespace Cosmos {
                 CommandEpsSwitchNumber = 162,
                 CommandEpsReset = 163,
                 CommandEpsState = 164,
+                CommandEpsWatchdog = 165,
                 CommandExecLoadCommand = 170,
                 CommandExecAddCommand = 171,
                 };
@@ -125,6 +126,7 @@ namespace Cosmos {
                 {TypeId::CommandEpsSwitchNumber, "EpsSwitchNumber"},
                 {TypeId::CommandEpsReset, "EpsReset"},
                 {TypeId::CommandEpsState, "EpsState"},
+                {TypeId::CommandEpsWatchdog, "EpsWatchdog"},
                 {TypeId::CommandExecLoadCommand, "ExecLoadCommand"},
                 {TypeId::CommandExecAddCommand, "ExecAddCommand"},
             };
@@ -164,6 +166,7 @@ namespace Cosmos {
                 {"EpsSwitchNumber", TypeId::CommandEpsSwitchNumber},
                 {"EpsReset", TypeId::CommandEpsReset},
                 {"EpsState", TypeId::CommandEpsState},
+                {"EpsWatchdog", TypeId::CommandEpsWatchdog},
                 {"AdcsCommunicate", TypeId::CommandAdcsCommunicate},
                 {"AdcsCommision", TypeId::CommandAdcsCommission},
                 {"AdcsSetRunMode", TypeId::CommandAdcsSetRunMode},
