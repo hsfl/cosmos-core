@@ -12,9 +12,10 @@ namespace Cosmos {
         public:
             static constexpr uint16_t PACKETCOMM_PACKET_SIZE = 1400;
             static constexpr uint16_t PACKETCOMM_DATA_SIZE = PACKETCOMM_PACKET_SIZE - (COSMOS_SIZEOF(PacketComm::Header)+2);
-            static const int NET_IN_PORT = 10070;
-            static const int NET_OUT_PORT = 10071;
+            static const int NET_UP_PORT = 10070;
+            static const int NET_DOWN_PORT = 10071;
 
+            NetRadio(bool ground=true, uint32_t speed=1000000);
             int32_t Queue(queue<PacketComm> &queue, mutex &mtx, const PacketComm &p);
             int32_t DeQueue(queue<PacketComm> &queue, mutex &mtx, PacketComm &p);
             int32_t PacketIn(PacketComm &p);
@@ -22,7 +23,7 @@ namespace Cosmos {
             int32_t PacketOut(PacketComm &p);
             int32_t PacketOutSize();
             int32_t Clear(queue<PacketComm> &queue, mutex &mtx);
-            int32_t Init(uint32_t speed=1000000, uint16_t inp = 10070, uint16_t outp = 10071);
+            int32_t Init();
             void Join();
             int32_t Packetize(PacketComm& packet);
             int32_t UnPacketize(PacketComm& packet);
@@ -37,8 +38,8 @@ namespace Cosmos {
             mutex qmutex_out;
             socket_bus net_channel_out;
             socket_channel net_channel_in;
-            uint16_t in_port = NET_IN_PORT;
-            uint16_t out_port = NET_OUT_PORT;
+            uint16_t in_port = 0;
+            uint16_t out_port = 0;
             double speed;
         };
     }
