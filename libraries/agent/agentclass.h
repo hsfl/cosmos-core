@@ -403,14 +403,16 @@ namespace Cosmos
             string nodeName;
             string agentName;
             vector<beatstruc> slist;
+            NodeData nodeData;
             NodeData::NODE_ID_TYPE nodeId;
 
             int32_t process_request(string &bufferin, string &bufferout);
 
-            Channel channels;
             int32_t set_verification(uint32_t verification);
+            int32_t get_verification();
+            int32_t check_verification(uint32_t verification);
+            int32_t init_channels(uint32_t verification=0x352e);
             int32_t add_channel(string name, uint16_t datasize=200);
-            int32_t find_channel(string name);
             int32_t push_unwrapped(string name, PacketComm &packet);
             int32_t push_unwrapped(uint8_t number, PacketComm& packet);
             int32_t push_unwrapped(string name, vector<PacketComm>& packets);
@@ -425,10 +427,15 @@ namespace Cosmos
             int32_t channel_size(uint8_t number);
             int32_t clear_channel(string name);
             int32_t clear_channel(uint8_t number);
+            int32_t channel_number(string name);
+            string channel_name(uint8_t number);
+            int32_t channel_datasize(string name);
+            int32_t channel_datasize(uint8_t number);
 
         protected:
         private:
 
+            Channel channels;
             uint16_t debug_level = 0;
             NetworkType networkType = NetworkType::UDP;
             double activeTimeout = 0.0; // in MJD

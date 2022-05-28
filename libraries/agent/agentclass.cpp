@@ -151,7 +151,7 @@ namespace Cosmos
             }
 
             // Load node id table
-            iretn = NodeData::lookup_node_id(nodeName);
+            iretn = nodeData.lookup_node_id(nodeName);
             if (iretn < 0)
             {
                 error_value = iretn;
@@ -314,9 +314,6 @@ namespace Cosmos
                         "    Ping string\n"
                         "    EPSCommand sbid:command:hexstring\n"
                         "");
-
-            // Initialize channels
-            channels.Init();
 
             // Set up Full SOH string
             //            set_fullsohstring(json_list_of_fullsoh(cinfo));
@@ -1788,25 +1785,23 @@ namespace Cosmos
             vector<string> args = string_split(request);
             if (args.size() > 1)
             {
-                dest = args[1];
-                if (packet.StringType.find(type) == packet.StringType.end())
+                if (agent->nodeData.lookup_node_id(args[1]) != agent->nodeData.NODEIDUNKNOWN)
                 {
-                    response = "Invalid Command Type";
-                    return GENERAL_ERROR_ARGS;
+                    dest = args[1];
                 }
                 if (args.size() > 2)
                 {
                     vector<string> radios = string_split(args[2], ":");
                     if (radios.size() > 0)
                     {
-                        channelout = agent->find_channel(radios[0]);
+                        channelout = agent->channel_number(radios[0]);
                         if (channelout < 0)
                         {
                             channelout = 0;
                         }
                         if (radios.size() > 1)
                         {
-                            channelin = agent->find_channel(radios[1]);
+                            channelin = agent->channel_number(radios[1]);
                             if (channelin < 0)
                             {
                                 channelin = 0;
@@ -1819,7 +1814,10 @@ namespace Cosmos
                     }
                     if (args.size() > 3)
                     {
-                        type = args[3];
+                        if (packet.StringType.find(args[3]) != packet.StringType.end())
+                        {
+                            type = args[3];
+                        }
                         if (args.size() > 4)
                         {
                             for (uint16_t i=4; i<args.size(); ++i)
@@ -1833,14 +1831,14 @@ namespace Cosmos
 
             packet.header.type = packet.StringType[type];
             packet.header.orig = agent->nodeId;
-            packet.header.dest = NodeData::lookup_node_id(dest);
+            packet.header.dest = agent->nodeData.lookup_node_id(dest);
             packet.header.radio = channelin;
             response = type + " " + dest + " " + agent->channels.channel[channelout].name + " " + agent->channels.channel[channelin].name;
             switch (packet.header.type)
             {
             case PacketComm::TypeId::CommandReset:
                 packet.data.resize(8, 0);
-                uint32to(agent->channels.verification, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
                 if (parms.size() > 0)
                 {
                     uint32_t seconds = stoi(parms[0]);
@@ -1849,7 +1847,7 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandReboot:
                 packet.data.resize(8, 0);
-                uint32to(agent->channels.verification, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
                 if (parms.size() > 0)
                 {
                     uint32_t seconds = stoi(parms[0]);
@@ -1884,7 +1882,7 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandClearQueue:
                 packet.data.resize(4, 0);
-                uint32to(agent->channels.verification, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
                 packet.data[4] = 0;
                 if (parms.size() > 0)
                 {
@@ -2019,15 +2017,10 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandPing:
                 {
-                    repeat = 10;
                     string ping = "abcdefghijklmnopqrstuvwxyz0123456789";
                     if (parms.size() > 0)
                     {
-                        repeat = stoi(parms[0]);
-                        if (parms.size() > 1)
-                        {
-                            ping = parms[1];
-                        }
+                        ping = parms[0];
                     }
                     packet.data.resize(4);
                     uint32to(centisec(), &packet.data[0], ByteOrder::LITTLEENDIAN);
@@ -3550,25 +3543,44 @@ acquired.
             return status;
         }
 
+        int32_t Agent::init_channels(uint32_t verification)
+        {
+            return channels.Init(verification);
+        }
+
         int32_t Agent::set_verification(uint32_t verification)
         {
             channels.verification = verification;
             return 0;
         }
 
-        int32_t Agent::add_channel(string name, uint16_t datasize)
+        int32_t Agent::get_verification()
         {
-            return channels.Add(name, datasize);
+            return channels.verification;
         }
 
-        int32_t Agent::find_channel(string name)
+        int32_t Agent::check_verification(uint32_t verification)
         {
-            return channels.Find(name);
+            return channels.Check(verification);
+        }
+
+        int32_t Agent::add_channel(string name, uint16_t datasize)
+        {
+            int32_t iretn;
+            if (channels.channel.size() == 0)
+            {
+                iretn = channels.Init();
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+            }
+            return channels.Add(name, datasize);
         }
 
         int32_t Agent::push_unwrapped(string name, PacketComm& packet)
         {
-            int32_t number = find_channel(name);
+            int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
@@ -3588,7 +3600,7 @@ acquired.
 
         int32_t Agent::push_unwrapped(string name, vector<PacketComm>& packets)
         {
-            int32_t number = find_channel(name);
+            int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
@@ -3615,7 +3627,7 @@ acquired.
 
         int32_t Agent::push_response(string name, uint32_t id, vector<uint8_t> response)
         {
-            int32_t number = find_channel(name);
+            int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
@@ -3674,7 +3686,7 @@ acquired.
 
         int32_t Agent::push_response(string name, uint32_t id, string response)
         {
-            int32_t number = find_channel(name);
+            int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
@@ -3695,7 +3707,7 @@ acquired.
 
         int32_t Agent::pull_unwrapped(string name, PacketComm &packet)
         {
-            int32_t number = find_channel(name);
+            int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
@@ -3725,7 +3737,7 @@ acquired.
 
         int32_t Agent::clear_channel(string name)
         {
-            int32_t number = find_channel(name);
+            int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
@@ -3742,6 +3754,44 @@ acquired.
             }
 
             return channels.Clear(number);
+        }
+
+        int32_t Agent::channel_number(string name)
+        {
+            int32_t iretn;
+            if (channels.channel.size() == 0)
+            {
+                iretn = channels.Init();
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+            }
+            return channels.Find(name);
+        }
+
+        string Agent::channel_name(uint8_t number)
+        {
+            return channels.Find(number);
+        }
+
+        int32_t Agent::channel_datasize(string name)
+        {
+            int32_t iretn = channel_number(name);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            return channels.channel[iretn].datasize;
+        }
+
+        int32_t Agent::channel_datasize(uint8_t number)
+        {
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            return channels.channel[number].datasize;
         }
     } // end of namespace Support
 } // end namespace Cosmos
