@@ -428,9 +428,10 @@ namespace Cosmos {
             int32_t iretn=0;
             uint32_t verification_check;
             memcpy(&verification_check, &packet.data[0], 4);
-            if (verification_check != agent->channels.verification)
+            iretn = agent->check_verification(verification_check);
+            if (iretn < 0)
             {
-                return GENERAL_ERROR_ARGS;
+                return iretn;
             }
             uint16_t seconds;
             seconds = uint16from(&packet.data[4], ByteOrder::LITTLEENDIAN);
@@ -442,7 +443,7 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandEpsReset;
             packet.data.resize(2);
             uint16to(seconds, &packet.data[0], ByteOrder::LITTLEENDIAN);
-            agent->push_unwrapped(agent->find_channel("EPS"), packet);
+            agent->push_unwrapped(agent->channel_number("EPS"), packet);
             return iretn;
         }
 
@@ -451,9 +452,10 @@ namespace Cosmos {
             int32_t iretn=0;
             uint32_t verification_check;
             memcpy(&verification_check, &packet.data[0], 4);
-            if (verification_check != agent->channels.verification)
+            iretn = agent->check_verification(verification_check);
+            if (iretn < 0)
             {
-                return GENERAL_ERROR_ARGS;
+                return iretn;
             }
             data_execute("shutdown -r");
             return iretn;
@@ -484,9 +486,10 @@ namespace Cosmos {
             int32_t iretn=0;
             uint32_t verification_check;
             memcpy(&verification_check, &packet.data[0], 4);
-            if (verification_check != agent->channels.verification)
+            iretn = agent->check_verification(verification_check);
+            if (iretn < 0)
             {
-                return GENERAL_ERROR_ARGS;
+                return iretn;
             }
             iretn = agent->clear_channel(packet.data[0]);
             return iretn;
@@ -531,7 +534,7 @@ namespace Cosmos {
 
         int32_t PacketHandler::TransferForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         {
-            int32_t iretn = agent->push_unwrapped(agent->find_channel("FILE"), packet);
+            int32_t iretn = agent->push_unwrapped(agent->channel_number("FILE"), packet);
             return iretn;
         }
 
@@ -583,49 +586,49 @@ namespace Cosmos {
         int32_t PacketHandler::AdcsForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         {
             int32_t iretn=0;
-            iretn = agent->push_unwrapped(agent->find_channel("ADCS"), packet);
+            iretn = agent->push_unwrapped(agent->channel_number("ADCS"), packet);
             return iretn;
         }
 
         int32_t PacketHandler::EpsForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         {
             int32_t iretn=0;
-            iretn = agent->push_unwrapped(agent->find_channel("EPS"), packet);
+            iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
             return iretn;
         }
 
         int32_t PacketHandler::ExecForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         {
             int32_t iretn=0;
-            iretn = agent->push_unwrapped(agent->find_channel("EXEC"), packet);
+            iretn = agent->push_unwrapped(agent->channel_number("EXEC"), packet);
             return iretn;
         }
 
         //        int32_t PacketHandler::EpsSwitchName(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         //        {
         //            int32_t iretn=0;
-        //            iretn = agent->push_unwrapped(agent->find_channel("EPS"), packet);
+        //            iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
         //            return iretn;
         //        }
 
         //        int32_t PacketHandler::EpsSwitchNumber(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         //        {
         //            int32_t iretn=0;
-        //            iretn = agent->push_unwrapped(agent->find_channel("EPS"), packet);
+        //            iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
         //            return iretn;
         //        }
 
         //        int32_t PacketHandler::EpsReset(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         //        {
         //            int32_t iretn=0;
-        //            iretn = agent->push_unwrapped(agent->find_channel("EPS"), packet);
+        //            iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
         //            return iretn;
         //        }
 
         //        int32_t PacketHandler::EpsState(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         //        {
         //            int32_t iretn=0;
-        //            iretn = agent->push_unwrapped(agent->find_channel("EPS"), packet);
+        //            iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
         //            return iretn;
         //        }
 

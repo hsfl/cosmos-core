@@ -2115,9 +2115,9 @@ vector<string> NodeData::node_ids;
 //! nodeids is a vector of node name strings indexed by a node_id
 int32_t NodeData::load_node_ids()
 {
-    char buf[103];
     if (NodeData::node_ids.size() == 0)
     {
+        char buf[103];
         FILE *fp = data_open(get_cosmosnodes()+"/nodeids.ini", "rb");
         if (fp)
         {
