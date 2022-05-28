@@ -9,7 +9,8 @@ namespace Cosmos {
         class Channel
         {
         public:
-            Channel();
+            Channel(uint32_t verification=0x352e);
+            ~Channel();
 
             //! Storage for channels
             static constexpr uint16_t PACKETCOMM_PACKET_SIZE = 1400;
@@ -24,8 +25,10 @@ namespace Cosmos {
             };
             vector<channelstruc> channel;
             int32_t Init(uint32_t verification=0x352e);
+            int32_t Check(uint32_t verification);
             int32_t Add(string name, uint16_t size=PACKETCOMM_PACKET_SIZE);
             int32_t Find(string name);
+            string Find(uint8_t number);
             int32_t Push(string name, PacketComm &packet);
             int32_t Push(uint8_t number, PacketComm &packet);
             int32_t Pull(string name, PacketComm &packet);

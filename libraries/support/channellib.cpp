@@ -2,14 +2,10 @@
 
 namespace Cosmos {
     namespace Support {
-        Channel::Channel()
-        {
-        }
-
-        int32_t Channel::Init(uint32_t verification)
+        Channel::Channel(uint32_t verification)
         {
             // Set up default channels for internal activity
-            channel.resize(5);
+            channel.resize(6);
             channel[0].name = "Self";
             channel[0].mtx = new mutex;
             channel[0].datasize = 1400;
@@ -31,6 +27,50 @@ namespace Cosmos {
             this->verification = verification;
         }
 
+        Channel::~Channel()
+        {
+            for (channelstruc& chan : channel)
+            {
+                delete chan.mtx;
+                chan.mtx = nullptr;
+            }
+        }
+
+        int32_t Channel::Init(uint32_t verification)
+        {
+            // Set up default channels for internal activity
+            channel.resize(6);
+            channel[0].name = "Self";
+            channel[0].mtx = new mutex;
+            channel[0].datasize = 1400;
+            channel[1].name = "Net";
+            channel[1].mtx = new mutex;
+            channel[1].datasize = 1400;
+            channel[2].name = "EPS";
+            channel[2].mtx = new mutex;
+            channel[2].datasize = 1400;
+            channel[3].name = "ADCS";
+            channel[3].mtx = new mutex;
+            channel[3].datasize = 1400;
+            channel[4].name = "FILE";
+            channel[4].mtx = new mutex;
+            channel[4].datasize = 1400;
+            channel[5].name = "EXEC";
+            channel[5].mtx = new mutex;
+            channel[5].datasize = 1400;
+            this->verification = verification;
+            return verification;
+        }
+
+        int32_t Channel::Check(uint32_t verification)
+        {
+            if (verification != this->verification)
+            {
+                return GENERAL_ERROR_ARGS;
+            }
+            return verification;
+        }
+
         int32_t Channel::Add(string name, uint16_t size)
         {
             for (uint8_t i=0; i<channel.size(); ++i)
@@ -41,9 +81,9 @@ namespace Cosmos {
                 }
             }
             channel.resize(channel.size()+1);
-            channel.end()->name = name;
-            channel.end()->datasize = size;
-            channel.end()->mtx = new mutex;
+            channel.back().name = name;
+            channel.back().datasize = size;
+            channel.back().mtx = new mutex;
             return channel.size() - 1;
         }
 
@@ -57,6 +97,19 @@ namespace Cosmos {
                 }
             }
             return GENERAL_ERROR_NAME;
+        }
+
+        string Channel::Find(uint8_t number)
+        {
+            string result = "";
+            if (number > channel.size())
+            {
+                return result;
+            }
+            else
+            {
+                return channel[number].name;
+            }
         }
 
         int32_t Channel::Push(string name, PacketComm &packet)
