@@ -1453,7 +1453,7 @@ int32_t create_file(int32_t kib, string file_path)
 //! \return n/a
 void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_log)
 {
-    if (packet.header.type == PacketComm::TypeId::FileChunkData)
+    if (packet.header.type == PacketComm::TypeId::DataFileChunkData)
     {
         return;
     }
@@ -1474,38 +1474,38 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_
 
         switch (packet.header.type)
         {
-        case PacketComm::TypeId::FileMetaData:
+        case PacketComm::TypeId::DataFileMetaData:
             {
                 string file_name(&packet.data[PACKET_METASHORT_OFFSET_FILE_NAME], &packet.data[PACKET_METASHORT_OFFSET_FILE_NAME+TRANSFER_MAX_FILENAME]);
                 err_log->Printf("[METADATA] %u %u %s ", node_id, packet.data[PACKET_METASHORT_OFFSET_TX_ID], file_name.c_str());
                 break;
             }
-        case PacketComm::TypeId::FileChunkData:
+        case PacketComm::TypeId::DataFileChunkData:
             {
                 err_log->Printf("[DATA] %u %u %u %u ", node_id, packet.data[PACKET_DATA_OFFSET_TX_ID], packet.data[PACKET_DATA_OFFSET_CHUNK_START]+256U*(packet.data[PACKET_DATA_OFFSET_CHUNK_START+1]+256U*(packet.data[PACKET_DATA_OFFSET_CHUNK_START+2]+256U*packet.data[PACKET_DATA_OFFSET_CHUNK_START+3])), packet.data[PACKET_DATA_OFFSET_BYTE_COUNT]+256U*packet.data[PACKET_DATA_OFFSET_BYTE_COUNT+1]);
                 break;
             }
-        case PacketComm::TypeId::FileReqData:
+        case PacketComm::TypeId::DataFileReqData:
             {
                 err_log->Printf("[REQDATA] %u %u %u %u ", node_id, packet.data[PACKET_REQDATA_OFFSET_TX_ID], packet.data[PACKET_REQDATA_OFFSET_HOLE_START]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_START+1]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_START+2]+256U*packet.data[PACKET_REQDATA_OFFSET_HOLE_START+3])), packet.data[PACKET_REQDATA_OFFSET_HOLE_END]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_END+1]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_END+2]+256U*packet.data[PACKET_REQDATA_OFFSET_HOLE_END+3])));
                 break;
             }
-        case PacketComm::TypeId::FileReqComplete:
+        case PacketComm::TypeId::DataFileReqComplete:
             {
                 err_log->Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[PACKET_REQCOMPLETE_OFFSET_TX_ID]);
                 break;
             }
-        case PacketComm::TypeId::FileComplete:
+        case PacketComm::TypeId::DataFileComplete:
             {
                 err_log->Printf("[COMPLETE] %u %u ", node_id, packet.data[PACKET_COMPLETE_OFFSET_TX_ID]);
                 break;
             }
-        case PacketComm::TypeId::FileCancel:
+        case PacketComm::TypeId::DataFileCancel:
             {
                 err_log->Printf("[CANCEL] %u %u ", node_id, packet.data[PACKET_CANCEL_OFFSET_TX_ID]);
                 break;
             }
-        case PacketComm::TypeId::FileReqMeta:
+        case PacketComm::TypeId::DataFileReqMeta:
             {
                 err_log->Printf("[REQMETA] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
                 for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
@@ -1515,7 +1515,7 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_
                     }
                 break;
             }
-        case PacketComm::TypeId::FileQueue:
+        case PacketComm::TypeId::DataFileQueue:
             {
                 err_log->Printf("[QUEUE] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
                 // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint16_t type
@@ -1537,19 +1537,19 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_
                 }
             }
             break;
-        case PacketComm::TypeId::FileHeartbeat:
+        case PacketComm::TypeId::DataFileHeartbeat:
             {
                 err_log->Printf("[HEARTBEAT] %u %s %hu %u %u", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)], packet.data[PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD]
                         , packet.data[PACKET_HEARTBEAT_OFFSET_THROUGHPUT]+256U*(packet.data[PACKET_HEARTBEAT_OFFSET_THROUGHPUT+1]+256U*(packet.data[PACKET_HEARTBEAT_OFFSET_THROUGHPUT+2]+256U*packet.data[PACKET_HEARTBEAT_OFFSET_THROUGHPUT+3]))
                         , packet.data[PACKET_HEARTBEAT_OFFSET_FUNIXTIME]+256U*(packet.data[PACKET_HEARTBEAT_OFFSET_FUNIXTIME+1]+256U*(packet.data[PACKET_HEARTBEAT_OFFSET_FUNIXTIME+2]+256U*packet.data[PACKET_HEARTBEAT_OFFSET_FUNIXTIME+3])));
                 break;
             }
-        case PacketComm::TypeId::FileMessage:
+        case PacketComm::TypeId::DataFileMessage:
             {
                 err_log->Printf("[MESSAGE] %u %hu %s", node_id, packet.data[PACKET_MESSAGE_OFFSET_LENGTH], &packet.data[PACKET_MESSAGE_OFFSET_BYTES]);
                 break;
             }
-        case PacketComm::TypeId::FileCommand:
+        case PacketComm::TypeId::DataFileCommand:
             {
                 err_log->Printf("[COMMAND] %u %hu %s", node_id, packet.data[PACKET_COMMAND_OFFSET_LENGTH], &packet.data[PACKET_COMMAND_OFFSET_BYTES]);
                 break;

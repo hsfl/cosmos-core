@@ -4,30 +4,40 @@
 namespace Cosmos {
     namespace Devices {
 
-//        NetRadio::NetRadio()
-//        {
-
-//        }
-
-        int32_t NetRadio::Init(uint32_t speed, uint16_t inp, uint16_t outp)
+        NetRadio::NetRadio(bool ground, uint32_t speed)
         {
-            int32_t iretn;
-            iretn = socket_open(net_channel_out, outp, 200000);
-            if (iretn<0)
+            // Set direction
+            if (ground)
             {
-                return iretn;
+                out_port = NET_UP_PORT;
+                in_port = NET_DOWN_PORT;
             }
-            out_port = outp;
-
-            iretn = socket_open(net_channel_in, NetworkType::UDP, "", inp, SOCKET_LISTEN, SOCKET_NONBLOCKING);
-            if (iretn<0)
+            else
             {
-                return iretn;
+                out_port = NET_DOWN_PORT;
+                in_port = NET_UP_PORT;
             }
-            in_port = inp;
 
             // Set speed
             this->speed = speed;
+
+        }
+
+        int32_t NetRadio::Init()
+        {
+            int32_t iretn;
+
+            iretn = socket_open(net_channel_out, out_port, 200000);
+            if (iretn<0)
+            {
+                return iretn;
+            }
+
+            iretn = socket_open(net_channel_in, NetworkType::UDP, "", in_port, SOCKET_LISTEN, SOCKET_NONBLOCKING);
+            if (iretn<0)
+            {
+                return iretn;
+            }
 
             // Start queueing thread
             qthread = thread([=] { queue_loop(); });
@@ -37,19 +47,19 @@ namespace Cosmos {
 
         int32_t NetRadio::Packetize(PacketComm &packet)
         {
-            if (!packet.Pack())
+            if (!packet.Wrap())
             {
                 return 0;
             }
             packet.packetized.clear();
-            packet.packetized.insert(packet.packetized.end(), packet.packed.begin(), packet.packed.end());
+            packet.packetized.insert(packet.packetized.end(), packet.wrapped.begin(), packet.wrapped.end());
             return 1;
         }
 
         int32_t NetRadio::UnPacketize(PacketComm& packet)
         {
-            packet.packed = packet.packetized;
-            if (packet.Unpack())
+            packet.wrapped = packet.packetized;
+            if (packet.Unwrap())
             {
                 return 1;
             }

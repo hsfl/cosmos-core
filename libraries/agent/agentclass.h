@@ -126,6 +126,9 @@
 #include "support/jsonlib.h"
 #include "support/jsonclass.h"
 #include "device/cpu/devicecpu.h"
+#include "support/packetcomm.h"
+#include "support/channellib.h"
+#include "support/beacon.h"
 
 namespace Cosmos
 {
@@ -135,9 +138,9 @@ namespace Cosmos
         {
         public:
             Agent(
-				const string &node_name = "",
-				const string &agent_name = "",
-				double bprd = 0.,
+                const string &node_name = "",
+                const string &agent_name = "",
+                double bprd = 0.,
 				uint32_t bsize = AGENTMAXBUFFER,
 				bool mflag = false,
 				int32_t portnum = 0,
@@ -400,13 +403,39 @@ namespace Cosmos
             string nodeName;
             string agentName;
             vector<beatstruc> slist;
+            NodeData nodeData;
             NodeData::NODE_ID_TYPE nodeId;
 
             int32_t process_request(string &bufferin, string &bufferout);
 
+            int32_t set_verification(uint32_t verification);
+            int32_t get_verification();
+            int32_t check_verification(uint32_t verification);
+            int32_t init_channels(uint32_t verification=0x352e);
+            int32_t add_channel(string name, uint16_t datasize=200);
+            int32_t push_unwrapped(string name, PacketComm &packet);
+            int32_t push_unwrapped(uint8_t number, PacketComm& packet);
+            int32_t push_unwrapped(string name, vector<PacketComm>& packets);
+            int32_t push_unwrapped(uint8_t number, vector<PacketComm>& packets);
+            int32_t push_response(string name, uint8_t dest, uint32_t id, string response="");
+            int32_t push_response(uint8_t number, uint8_t dest, uint32_t id, string response="");
+            int32_t push_response(string name, uint8_t dest, uint32_t id, vector<uint8_t> response);
+            int32_t push_response(uint8_t number, uint8_t dest, uint32_t id, vector<uint8_t> response);
+            int32_t pull_unwrapped(string name, PacketComm& packet);
+            int32_t pull_unwrapped(uint8_t number, PacketComm& packet);
+            int32_t channel_size(string name);
+            int32_t channel_size(uint8_t number);
+            int32_t clear_channel(string name);
+            int32_t clear_channel(uint8_t number);
+            int32_t channel_number(string name);
+            string channel_name(uint8_t number);
+            int32_t channel_datasize(string name);
+            int32_t channel_datasize(uint8_t number);
+
         protected:
         private:
 
+            Channel channels;
             uint16_t debug_level = 0;
             NetworkType networkType = NetworkType::UDP;
             double activeTimeout = 0.0; // in MJD
@@ -495,7 +524,8 @@ namespace Cosmos
             static int32_t req_soh(string &, string &response, Agent *agent);
             static int32_t req_fullsoh(string &, string &response, Agent *agent);
             static int32_t req_jsondump(string &, string &response, Agent *agent);
-			static int32_t req_all_names_types(string &, string &response, Agent *agent);
+            static int32_t req_all_names_types(string &, string &response, Agent *agent);
+            static int32_t req_command(string &, string &response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos

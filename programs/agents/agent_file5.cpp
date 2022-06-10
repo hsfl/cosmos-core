@@ -602,38 +602,38 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
 
         switch (packet.header.type)
         {
-        case PacketComm::TypeId::FileMetaData:
+        case PacketComm::TypeId::DataFileMetaData:
             {
                 string file_name(&packet.data[PACKET_METASHORT_OFFSET_FILE_NAME], &packet.data[PACKET_METASHORT_OFFSET_FILE_NAME+TRANSFER_MAX_FILENAME]);
                 agent->debug_error.Printf("[METADATA] %u %u %s ", node_id, packet.data[PACKET_METASHORT_OFFSET_TX_ID], file_name.c_str());
                 break;
             }
-        case PacketComm::TypeId::FileChunkData:
+        case PacketComm::TypeId::DataFileChunkData:
             {
                 agent->debug_error.Printf("[DATA] %u %u %u %u ", node_id, packet.data[PACKET_DATA_OFFSET_TX_ID], packet.data[PACKET_DATA_OFFSET_CHUNK_START]+256U*(packet.data[PACKET_DATA_OFFSET_CHUNK_START+1]+256U*(packet.data[PACKET_DATA_OFFSET_CHUNK_START+2]+256U*packet.data[PACKET_DATA_OFFSET_CHUNK_START+3])), packet.data[PACKET_DATA_OFFSET_BYTE_COUNT]+256U*packet.data[PACKET_DATA_OFFSET_BYTE_COUNT+1]);
                 break;
             }
-        case PacketComm::TypeId::FileReqData:
+        case PacketComm::TypeId::DataFileReqData:
             {
                 agent->debug_error.Printf("[REQDATA] %u %u %u %u ", node_id, packet.data[PACKET_REQDATA_OFFSET_TX_ID], packet.data[PACKET_REQDATA_OFFSET_HOLE_START]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_START+1]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_START+2]+256U*packet.data[PACKET_REQDATA_OFFSET_HOLE_START+3])), packet.data[PACKET_REQDATA_OFFSET_HOLE_END]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_END+1]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_END+2]+256U*packet.data[PACKET_REQDATA_OFFSET_HOLE_END+3])));
                 break;
             }
-        case PacketComm::TypeId::FileReqComplete:
+        case PacketComm::TypeId::DataFileReqComplete:
             {
                 agent->debug_error.Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[PACKET_REQCOMPLETE_OFFSET_TX_ID]);
                 break;
             }
-        case PacketComm::TypeId::FileComplete:
+        case PacketComm::TypeId::DataFileComplete:
             {
                 agent->debug_error.Printf("[COMPLETE] %u %u ", node_id, packet.data[PACKET_COMPLETE_OFFSET_TX_ID]);
                 break;
             }
-        case PacketComm::TypeId::FileCancel:
+        case PacketComm::TypeId::DataFileCancel:
             {
                 agent->debug_error.Printf("[CANCEL] %u %u ", node_id, packet.data[PACKET_CANCEL_OFFSET_TX_ID]);
                 break;
             }
-        case PacketComm::TypeId::FileReqMeta:
+        case PacketComm::TypeId::DataFileReqMeta:
             {
                 agent->debug_error.Printf("[REQMETA] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
                 for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
@@ -643,7 +643,7 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
                     }
                 break;
             }
-        case PacketComm::TypeId::FileQueue:
+        case PacketComm::TypeId::DataFileQueue:
             {
                 agent->debug_error.Printf("[QUEUE] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
                 // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint16_t type
@@ -654,19 +654,19 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
                 }
             }
             break;
-        case PacketComm::TypeId::FileHeartbeat:
+        case PacketComm::TypeId::DataFileHeartbeat:
             {
                 agent->debug_error.Printf("[HEARTBEAT] %u %s %hu %u %u", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)], packet.data[PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD]
                         , packet.data[PACKET_HEARTBEAT_OFFSET_THROUGHPUT]+256U*(packet.data[PACKET_HEARTBEAT_OFFSET_THROUGHPUT+1]+256U*(packet.data[PACKET_HEARTBEAT_OFFSET_THROUGHPUT+2]+256U*packet.data[PACKET_HEARTBEAT_OFFSET_THROUGHPUT+3]))
                         , packet.data[PACKET_HEARTBEAT_OFFSET_FUNIXTIME]+256U*(packet.data[PACKET_HEARTBEAT_OFFSET_FUNIXTIME+1]+256U*(packet.data[PACKET_HEARTBEAT_OFFSET_FUNIXTIME+2]+256U*packet.data[PACKET_HEARTBEAT_OFFSET_FUNIXTIME+3])));
                 break;
             }
-        case PacketComm::TypeId::FileMessage:
+        case PacketComm::TypeId::DataFileMessage:
             {
                 agent->debug_error.Printf("[MESSAGE] %u %hu %s", node_id, packet.data[PACKET_MESSAGE_OFFSET_LENGTH], &packet.data[PACKET_MESSAGE_OFFSET_BYTES]);
                 break;
             }
-        case PacketComm::TypeId::FileCommand:
+        case PacketComm::TypeId::DataFileCommand:
             {
                 agent->debug_error.Printf("[COMMAND] %u %hu %s", node_id, packet.data[PACKET_COMMAND_OFFSET_LENGTH], &packet.data[PACKET_COMMAND_OFFSET_BYTES]);
                 break;

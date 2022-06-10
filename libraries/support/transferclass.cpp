@@ -168,6 +168,10 @@ namespace Cosmos {
         //! \return Number of files in the outgoing queue, negative on error
         int32_t Transfer::outgoing_tx_load(string node_name)
         {
+            if (node_name.empty())
+            {
+                return outgoing_tx_load();
+            }
             int32_t iretn = NodeData::lookup_node_id(node_name);
             if (iretn == NodeData::NODEIDUNKNOWN)
             {
@@ -1286,7 +1290,7 @@ namespace Cosmos {
             // Respond appropriately according to type of packet
             switch (packet.header.type)
             {
-            case PacketComm::TypeId::FileCommand:
+            case PacketComm::TypeId::DataFileCommand:
                 {
                     packet_struct_command command;
 
@@ -1308,7 +1312,7 @@ namespace Cosmos {
                     }
                 }
                 break;
-            case PacketComm::TypeId::FileMessage:
+            case PacketComm::TypeId::DataFileMessage:
                 {
                     packet_struct_message message;
 
@@ -1326,7 +1330,7 @@ namespace Cosmos {
                     log_write(node_name, "file", tet.split(), "", "message", imessage, "incoming");
                 }
                 break;
-            case PacketComm::TypeId::FileQueue:
+            case PacketComm::TypeId::DataFileQueue:
                 {
                     packet_struct_queue queue;
 
@@ -1363,7 +1367,7 @@ namespace Cosmos {
                     }
                 }
                 break;
-            case PacketComm::TypeId::FileReqMeta:
+            case PacketComm::TypeId::DataFileReqMeta:
                 {
                     packet_struct_reqmeta reqmeta;
 
@@ -1386,7 +1390,7 @@ namespace Cosmos {
                     }
                     break;
                 }
-            case PacketComm::TypeId::FileMetaData:
+            case PacketComm::TypeId::DataFileMetaData:
                 {
                     packet_struct_metashort meta;
 
@@ -1396,7 +1400,7 @@ namespace Cosmos {
 
                     break;
                 }
-            case PacketComm::TypeId::FileReqData:
+            case PacketComm::TypeId::DataFileReqData:
                 {
                     packet_struct_reqdata reqdata;
 
@@ -1428,7 +1432,7 @@ namespace Cosmos {
                     }
                     break;
                 }
-            case PacketComm::TypeId::FileChunkData:
+            case PacketComm::TypeId::DataFileChunkData:
                 {
                     packet_struct_data data;
 
@@ -1532,7 +1536,7 @@ namespace Cosmos {
 
                     break;
                 }
-            case PacketComm::TypeId::FileReqComplete:
+            case PacketComm::TypeId::DataFileReqComplete:
                 {
                     packet_struct_reqcomplete reqcomplete;
 
@@ -1552,7 +1556,7 @@ namespace Cosmos {
 
                     break;
                 }
-            case PacketComm::TypeId::FileComplete:
+            case PacketComm::TypeId::DataFileComplete:
                 {
                     packet_struct_complete complete;
 
@@ -1568,7 +1572,7 @@ namespace Cosmos {
 
                     break;
                 }
-            case PacketComm::TypeId::FileCancel:
+            case PacketComm::TypeId::DataFileCancel:
                 {
                     packet_struct_cancel cancel;
                     deserialize_cancel(packet.data, cancel);
