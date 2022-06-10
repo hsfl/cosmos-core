@@ -23,6 +23,7 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandInternalRequest, InternalRequest);
             add_func(PacketComm::TypeId::CommandPing, Ping);
             add_func(PacketComm::TypeId::CommandSetTime, SetTime);
+            add_func(PacketComm::TypeId::CommandGetTimeHuman, GetTimeHuman);
             add_func(PacketComm::TypeId::CommandAdcsCommunicate, AdcsForward);
             add_func(PacketComm::TypeId::CommandEpsCommunicate, EpsForward);
             add_func(PacketComm::TypeId::CommandEpsSwitchName, EpsForward);
@@ -203,12 +204,21 @@ namespace Cosmos {
         int32_t PacketHandler::process(PacketComm& packet, vector<uint8_t>& response)
         {
             int32_t iretn;
+            response.clear();
             FuncEntry &fentry = Funcs[(uint8_t)packet.header.type];
             if (fentry.efunction != nullptr)
             {
                 iretn = fentry.efunction(packet, response, this->agent);
             }
-            agent->debug_error.Printf("[Type=%hu, Return=%d]%s\n", packet.header.type, iretn, string(response.begin(), response.end()).c_str());
+            if (response.size())
+            {
+                agent->debug_error.Printf("[PacketHandler Type=%hu, Size=%u, Return=%d] %s\n", packet.header.type, packet.data.size(), iretn, string(response.begin(), response.end()).c_str());
+                agent->push_response(packet.header.radio, packet.header.orig, centisec(), string(response.begin(), response.end()));
+            }
+            else
+            {
+                agent->debug_error.Printf("[PacketHandler Type=%hu, Size=%u, Return=%d]\n", packet.header.type, packet.data.size(), iretn);
+            }
             return iretn;
         }
 
@@ -349,7 +359,7 @@ namespace Cosmos {
             {
                 sresponse += " Start: ";
             }
-            response.clear();
+
             response.insert(response.end(), sresponse.begin(), sresponse.end());
             tests[test_id].last_packet_id = packet_id;
             last_test_id = test_id;
@@ -379,7 +389,9 @@ namespace Cosmos {
                     iretn = fseek(tf, header.chunk_id*chunk_size, SEEK_SET);
                     if (iretn >= 0)
                     {
-                        iretn = fwrite(packet.data.data()+chunk_size, chunk_size, 1, tf);
+                        response.clear();
+                        response.insert(response.begin(), packet.data.begin()+10, packet.data.end());
+                        iretn = fwrite(packet.data.data()+10, chunk_size, 1, tf);
                         if (iretn < 0)
                         {
                             iretn = -errno;
@@ -413,9 +425,9 @@ namespace Cosmos {
             string decoded_beacon;
             beacon.Init();
             int32_t iretn = beacon.Decode(packet, decoded_beacon);
+
             if (iretn < 0)
             {
-                response.clear();
                 return iretn;
             }
             response.insert(response.begin(), decoded_beacon.begin(), decoded_beacon.end());
@@ -437,7 +449,9 @@ namespace Cosmos {
             seconds = uint16from(&packet.data[4], ByteOrder::LITTLEENDIAN);
 
             // Send a response
-            agent->push_response(packet.header.radio, centisec(), string("Resetting Power"));
+            string answer = "Resetting Power in " + to_unsigned(seconds) + " seconds";
+
+            response.insert(response.begin(), answer.begin(), answer.end());
 
             // Command the EPS
             packet.header.type = PacketComm::TypeId::CommandEpsReset;
@@ -457,7 +471,7 @@ namespace Cosmos {
             {
                 return iretn;
             }
-            data_execute("shutdown -r");
+            data_execute("reboot");
             return iretn;
         }
 
@@ -500,10 +514,11 @@ namespace Cosmos {
             // Run command, return response
             string eresponse;
             int32_t iretn = data_execute(string(packet.data.begin()+4, packet.data.end()), eresponse);
-            response.clear();
+
             response.insert(response.begin(),eresponse.begin(), eresponse.end());
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->push_response(packet.header.radio, response_id, string(response.begin(), response.end()));
+            iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, string(response.begin(), response.end()));
+            response.clear();
             return iretn;
         }
 
@@ -521,14 +536,15 @@ namespace Cosmos {
             string agentname;
             agentname.insert(agentname.begin(), packet.data.begin()+node.size()+7, packet.data.begin()+node.size()+7+packet.data[5+node.size()]);
 
-            response.clear();
+
             for (filestruc file : data_list_files(node, "outgoing", agentname))
             {
                 response.insert(response.end(), file.name.begin(), file.name.end());
                 response.push_back(' ');
             }
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->push_response(packet.header.radio, response_id, string(response.begin(), response.end()));
+            iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, string(response.begin(), response.end()));
+            response.clear();
             return iretn;
         }
 
@@ -562,7 +578,7 @@ namespace Cosmos {
             string eresponse;
             string erequest = string(packet.data.begin()+5, packet.data.end());
             int32_t iretn = agent->process_request(erequest, eresponse);
-            response.clear();
+
             response.insert(response.begin(),eresponse.begin(), eresponse.end());
             return iretn;
         }
@@ -570,16 +586,49 @@ namespace Cosmos {
         int32_t PacketHandler::Ping(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         {
             int32_t iretn=0;
-            response.clear();
-            response.insert(response.begin(), packet.data.begin()+5, packet.data.end());
+
+            response.insert(response.begin(), packet.data.begin()+4, packet.data.end());
+            packet.header.type = PacketComm::TypeId::DataPong;
+            NodeData::NODE_ID_TYPE temp = packet.header.dest;
+            packet.header.dest = packet.header.orig;
+            packet.header.orig = temp;
+            iretn = agent->push_unwrapped(packet.header.radio, packet);
             return iretn;
         }
 
         int32_t PacketHandler::SetTime(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         {
             int32_t iretn=0;
-            response.clear();
-            response.insert(response.begin(), packet.data.begin()+5, packet.data.end());
+            double mjd = doublefrom(packet.data.data(), ByteOrder::LITTLEENDIAN);
+            double delta = set_local_clock(mjd);
+            string answer = to_label("Delta Seconds", delta*86400.);
+
+            response.insert(response.begin(), answer.begin(), answer.end());
+            return iretn;
+        }
+
+        int32_t PacketHandler::GetTimeHuman(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        {
+            int32_t iretn=0;
+            string answer = mjd2iso8601(currentmjd());
+            answer += " " + to_label("MET", 86400 * (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart));
+
+            response.insert(response.begin(), answer.begin(), answer.end());
+            return iretn;
+        }
+
+        int32_t PacketHandler::GetTimeBinary(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        {
+            int32_t iretn=0;
+            packet.header.type = PacketComm::TypeId::DataTime;
+            packet.header.dest = packet.header.orig;
+            packet.header.orig = agent->nodeId;
+            packet.data.resize(16);
+            double mjd = currentmjd();
+            memcpy(&packet.data[0], &mjd, 8);
+            double met = 86400 * (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart);
+            memcpy(&packet.data[8], &met, 8);
+            iretn = agent->push_unwrapped(packet.header.radio, packet);
             return iretn;
         }
 

@@ -311,7 +311,10 @@ namespace Cosmos
                         "    TransferNode node\n"
                         "    TransferRadio\n"
                         "    Request request parameters\n"
-                        "    Ping string\n"
+                        "    Ping {string}\n"
+                        "    SetTime {MJD}\n"
+                        "    GetTimeHuman\n"
+                        "    GetTimeBinary\n"
                         "    EPSCommand sbid:command:hexstring\n"
                         "");
 
@@ -2027,11 +2030,61 @@ namespace Cosmos
                     packet.data.insert(packet.data.end(), ping.begin(), ping.end());
                 }
                 break;
+            case PacketComm::TypeId::CommandSetTime:
+                {
+                    double mjd = currentmjd();
+                    if (parms.size() > 0)
+                    {
+                        mjd = stof(parms[0]);
+                    }
+                    packet.data.resize(8);
+                    doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                }
+                break;
+            case PacketComm::TypeId::CommandGetTimeHuman:
+            case PacketComm::TypeId::CommandGetTimeBinary:
+                {
+                }
+                break;
             case PacketComm::TypeId::CommandEpsCommunicate:
                 {
                     packet.data.resize(2+parms[2].size()/2);
                     packet.data[0] = stoi(parms[0]);
                     packet.data[1] = stoi(parms[1]);
+                    vector<uint8_t> bytes = from_hex_string(parms[0]);
+                    packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
+                }
+            case PacketComm::TypeId::CommandEpsSwitchName:
+                {
+                    packet.data.resize(2);
+                    uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
+                }
+                break;
+            case PacketComm::TypeId::CommandEpsSwitchNumber:
+                {
+                    packet.data.resize(4);
+                    uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    packet.data[2] = stoi(parms[1]);
+                    packet.data[3] = stoi(parms[2]);
+                }
+                break;
+            case PacketComm::TypeId::CommandEpsReset:
+                {
+                    packet.data.resize(2);
+                    uint16to(stoi(parms[0]), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                }
+                break;
+            case PacketComm::TypeId::CommandEpsState:
+                {
+                    packet.data.resize(1);
+                    packet.data[0] = stoi(parms[0]);
+                }
+                break;
+            case PacketComm::TypeId::CommandEpsWatchdog:
+                {
+                    packet.data.resize(2);
+                    uint16to(stoi(parms[0]), &packet.data[0], ByteOrder::LITTLEENDIAN);
                 }
                 break;
             }
@@ -3625,17 +3678,17 @@ acquired.
             return packets.size();
         }
 
-        int32_t Agent::push_response(string name, uint32_t id, vector<uint8_t> response)
+        int32_t Agent::push_response(string name, uint8_t dest, uint32_t id, vector<uint8_t> response)
         {
             int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
             }
-            return push_response(number, id, response);
+            return push_response(number, dest, id, response);
         }
 
-        int32_t Agent::push_response(uint8_t number, uint32_t id, vector<uint8_t> response)
+        int32_t Agent::push_response(uint8_t number, uint8_t dest, uint32_t id, vector<uint8_t> response)
         {
             if (number >= channels.channel.size())
             {
@@ -3667,6 +3720,7 @@ acquired.
                 }
                 packet.header.type = PacketComm::TypeId::DataResponse;
                 packet.header.orig = nodeId;
+                packet.header.dest = dest;
                 for (header.chunk_id=0; header.chunk_id<header.chunks; ++header.chunk_id)
                 {
                     uint16_t chunk_begin = header.chunk_id * chunk_size;
@@ -3684,17 +3738,17 @@ acquired.
             return response.size();
         }
 
-        int32_t Agent::push_response(string name, uint32_t id, string response)
+        int32_t Agent::push_response(string name, uint8_t dest, uint32_t id, string response)
         {
             int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
             }
-            return push_response(number, id, response);
+            return push_response(number, dest, id, response);
         }
 
-        int32_t Agent::push_response(uint8_t number, uint32_t id, string response)
+        int32_t Agent::push_response(uint8_t number, uint8_t dest, uint32_t id, string response)
         {
             if (number >= channels.channel.size())
             {
@@ -3702,7 +3756,7 @@ acquired.
             }
             vector<uint8_t> bresponse;
             bresponse.insert(bresponse.end(), response.begin(), response.end());
-            return push_response(number, id, bresponse);
+            return push_response(number, dest, id, bresponse);
         }
 
         int32_t Agent::pull_unwrapped(string name, PacketComm &packet)

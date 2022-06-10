@@ -417,10 +417,10 @@ namespace Cosmos
             int32_t push_unwrapped(uint8_t number, PacketComm& packet);
             int32_t push_unwrapped(string name, vector<PacketComm>& packets);
             int32_t push_unwrapped(uint8_t number, vector<PacketComm>& packets);
-            int32_t push_response(string name, uint32_t id, string response="");
-            int32_t push_response(uint8_t number, uint32_t id, string response="");
-            int32_t push_response(string name, uint32_t id, vector<uint8_t> response);
-            int32_t push_response(uint8_t number, uint32_t id, vector<uint8_t> response);
+            int32_t push_response(string name, uint8_t dest, uint32_t id, string response="");
+            int32_t push_response(uint8_t number, uint8_t dest, uint32_t id, string response="");
+            int32_t push_response(string name, uint8_t dest, uint32_t id, vector<uint8_t> response);
+            int32_t push_response(uint8_t number, uint8_t dest, uint32_t id, vector<uint8_t> response);
             int32_t pull_unwrapped(string name, PacketComm& packet);
             int32_t pull_unwrapped(uint8_t number, PacketComm& packet);
             int32_t channel_size(string name);
