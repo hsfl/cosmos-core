@@ -135,9 +135,9 @@ namespace Cosmos {
         //! \defgroup timelib_functions Time handling functions
         //! @{
 
-        double currentmjd(double offset);
         double currentmjd();
-        unsigned long get_unix_time();
+        double currentmjd(double offset);
+        uint64_t get_unix_time(uint64_t offset=0);
         string get_local_time();
 
         // gregorian calendar (year, month, day) to another format

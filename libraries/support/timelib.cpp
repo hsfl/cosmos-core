@@ -74,10 +74,27 @@ namespace Cosmos {
             return currentmjd(0.);
         }
 
-        unsigned long int get_unix_time()
+        uint64_t get_unix_time(uint64_t offset)
         {
-            unsigned long int unix_time = time(NULL);
-            return unix_time;
+            uint64_t unix_time;
+
+            // unfortunatelly MSVC does not support gettimeofday
+#ifdef COSMOS_WIN_BUILD_MSVC
+            TimeUtils tu;
+            unix_time = tu.secondsSinceEpoch() + _timezone;
+#else
+            struct timeval mytime;
+            gettimeofday(&mytime, NULL);
+            if (mytime.tv_usec > 500000)
+            {
+                unix_time = mytime.tv_sec + 1;
+            }
+            else
+            {
+                unix_time = mytime.tv_sec;
+            }
+#endif
+            return unix_time + offset;
         }
 
         string get_local_time()
