@@ -2087,6 +2087,17 @@ namespace Cosmos
                     uint16to(stoi(parms[0]), &packet.data[0], ByteOrder::LITTLEENDIAN);
                 }
                 break;
+            case PacketComm::TypeId::CommandEpsSetTime:
+                {
+                    double mjd = currentmjd();
+                    if (parms.size() > 0)
+                    {
+                        mjd = stof(parms[0]);
+                    }
+                    packet.data.resize(8);
+                    doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                }
+                break;
             }
             packet.Wrap();
 

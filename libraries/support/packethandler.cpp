@@ -24,12 +24,15 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandPing, Ping);
             add_func(PacketComm::TypeId::CommandSetTime, SetTime);
             add_func(PacketComm::TypeId::CommandGetTimeHuman, GetTimeHuman);
+            add_func(PacketComm::TypeId::CommandGetTimeBinary, GetTimeBinary);
             add_func(PacketComm::TypeId::CommandAdcsCommunicate, AdcsForward);
             add_func(PacketComm::TypeId::CommandEpsCommunicate, EpsForward);
             add_func(PacketComm::TypeId::CommandEpsSwitchName, EpsForward);
             add_func(PacketComm::TypeId::CommandEpsSwitchNumber, EpsForward);
             add_func(PacketComm::TypeId::CommandEpsReset, EpsForward);
             add_func(PacketComm::TypeId::CommandEpsState, EpsForward);
+            add_func(PacketComm::TypeId::CommandEpsWatchdog, EpsForward);
+            add_func(PacketComm::TypeId::CommandEpsSetTime, EpsForward);
             add_func(PacketComm::TypeId::CommandExecLoadCommand, ExecForward);
             add_func(PacketComm::TypeId::CommandExecAddCommand, ExecForward);
 
@@ -209,6 +212,10 @@ namespace Cosmos {
             if (fentry.efunction != nullptr)
             {
                 iretn = fentry.efunction(packet, response, this->agent);
+            }
+            else
+            {
+                iretn = GENERAL_ERROR_OUTOFRANGE;
             }
             if (response.size())
             {
@@ -601,9 +608,13 @@ namespace Cosmos {
             int32_t iretn=0;
             double mjd = doublefrom(packet.data.data(), ByteOrder::LITTLEENDIAN);
             double delta = set_local_clock(mjd);
-            string answer = to_label("Delta Seconds", delta*86400.);
-
+            string answer = to_label("Delta Seconds", delta);
             response.insert(response.begin(), answer.begin(), answer.end());
+
+            packet.header.type = PacketComm::TypeId::CommandEpsSetTime;
+            packet.data.resize(8);
+            doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
+            iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
             return iretn;
         }
 
