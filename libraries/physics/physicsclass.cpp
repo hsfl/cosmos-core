@@ -499,21 +499,49 @@ namespace Cosmos
             return 0;
         }
 
-        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::posstruc pos)
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci)
         {
-            currentinfo.node.loc.pos = pos;
+            int32_t iretn;
+            Convert::pos_clear(currentinfo.node.loc);
+            currentinfo.node.loc.pos.eci = eci;
+            currentinfo.node.loc.pos.eci.pass++;
+            iretn = Convert::pos_eci(currentinfo.node.loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
             currentinfo.node.loc.att.lvlh.pass++;
             currentinfo.node.loc.att.lvlh.s = q_eye();
             currentinfo.node.loc.att.lvlh.v = rv_zero();
             currentinfo.node.loc.att.lvlh.a = rv_zero();
-            Convert::att_lvlh(currentinfo.node.loc);
+            currentinfo.node.loc.att.lvlh.utc = eci.utc;
+            iretn = Convert::att_lvlh(currentinfo.node.loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
 
             return Init(name, idt, stype, ptype, atype, ttype, etype);
         }
 
-        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::locstruc loc)
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf)
         {
-            currentinfo.node.loc = loc;
+            int32_t iretn;
+            Convert::pos_clear(currentinfo.node.loc);
+            currentinfo.node.loc.pos.eci = eci;
+            currentinfo.node.loc.pos.eci.pass++;
+            iretn = Convert::pos_eci(currentinfo.node.loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            currentinfo.node.loc.att.icrf = icrf;
+            currentinfo.node.loc.att.icrf.pass++;
+            iretn = Convert::att_icrf(currentinfo.node.loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
 
             return Init(name, idt, stype, ptype, atype, ttype, etype);
         }
@@ -523,8 +551,6 @@ namespace Cosmos
             dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
             dtj = dt / 86400.;
 
-            //            strncpy(currentinfo.node.name, name.c_str(), COSMOS_MAX_NAME);
-            //            strncpy(currentinfo.node.agent, "sim", COSMOS_MAX_NAME);
             currentinfo.node.name = name;
             currentinfo.node.agent = "sim";
 
@@ -2212,6 +2238,14 @@ namespace Cosmos
             if (std::isnan( loc->pos.eci.a.col[0]))
             {
                 loc->pos.eci.a.col[0] = 0.;
+            }
+            if (std::isnan( loc->pos.eci.a.col[1]))
+            {
+                loc->pos.eci.a.col[1] = 0.;
+            }
+            if (std::isnan( loc->pos.eci.a.col[2]))
+            {
+                loc->pos.eci.a.col[2] = 0.;
             }
             return 0;
         }

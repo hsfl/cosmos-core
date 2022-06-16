@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
         loc.pos.eci.v.col[2] = atof(argv[7]);
         loc.pos.eci.utc = loc.utc;
         ++loc.pos.eci.pass;
-        state->Init("test", dp/10., Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, loc);
+        state->Init("test", dp/10., Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, loc.pos.eci);
     }
 
     initialutc = loc.utc;

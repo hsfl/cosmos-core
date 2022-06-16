@@ -42,11 +42,11 @@ namespace Cosmos
             return cnodes.count(nodename);
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::posstruc pos)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci)
         {
             if (AddNode(nodename, stype, ptype, atype, ttype, etype))
             {
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, pos);
+                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, eci);
                 if (error < 0)
                 {
                     return error;
@@ -60,11 +60,11 @@ namespace Cosmos
             return cnodes.count(nodename);
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::locstruc loc)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf)
         {
             if (AddNode(nodename, stype, ptype, atype, ttype, etype))
             {
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, loc);
+                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, eci, icrf);
                 if (error < 0)
                 {
                     return error;
@@ -113,7 +113,7 @@ namespace Cosmos
                     loc.att.lvlh.pass++;
                     Convert::att_lvlh(loc);
                 }
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, loc);
+                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, loc.pos.eci, loc.att.icrf);
                 if (error < 0)
                 {
                     return error;

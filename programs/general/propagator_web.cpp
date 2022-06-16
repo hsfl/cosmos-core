@@ -211,7 +211,7 @@ int32_t run_propagator(string& output, string arg)
     // Note, adding node automatically advances it to startutc
     for (size_t i = 0; i < prop.nodes.size(); ++i)
     {
-        iretn = prop.sim.AddNode(prop.nodes[i], Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::None, Physics::Propagator::None, prop.initiallocs[i]);
+        iretn = prop.sim.AddNode(prop.nodes[i], Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::None, Physics::Propagator::None, prop.initiallocs[i].pos.eci, prop.initiallocs[i].att.icrf);
         if (iretn < 0)
         {
             printf("Error adding node %s: %s\n", prop.nodes[i].c_str(), cosmos_error_string(iretn).c_str());
