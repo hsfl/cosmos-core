@@ -188,11 +188,11 @@ int32_t log_move(string oldpath, string newpath, bool compress)
             return iretn;
         }
         iretn = remove(temppath.c_str());
-        if (iretn < 0)
-        {
-            iretn = -errno;
-            return iretn;
-        }
+//        if (iretn < 0)
+//        {
+//            iretn = -errno;
+//            return iretn;
+//        }
     }
     else
     {
@@ -222,7 +222,7 @@ int32_t log_move(string node, string agent, string srclocation, string dstlocati
 {
     int32_t iretn = 0;
     vector<filestruc> oldfiles;
-    data_list_files(node, srclocation, agent, oldfiles);
+    iretn = data_list_files(node, srclocation, agent, oldfiles);
     for (auto oldfile: oldfiles)
     {
         iretn = log_move(oldfile.path, data_base_path(node, dstlocation, agent, oldfile.name), compress);
