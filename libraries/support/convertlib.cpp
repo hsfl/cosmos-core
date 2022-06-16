@@ -116,43 +116,43 @@ namespace Cosmos {
  * conversion, like libration and J2000 rotation matrices.
     \param loc ::locstruc with the current position and those to be updated.
 */
-        int32_t pos_extra(locstruc *loc)
+        int32_t pos_extra(double utc, locstruc *loc)
         {
-            return pos_extra(*loc);
+            return pos_extra(utc, *loc);
         }
 
-        int32_t pos_extra(locstruc &loc)
+        int32_t pos_extra(double utc, locstruc &loc)
         {
-            // Don't perform if time is invalid
-            if (!isfinite(loc.utc))
+            // Check time
+            if (!isfinite(utc) || utc == 0.)
             {
                 return CONVERT_ERROR_UTC;
             }
 
             // These are all based on time, so they don't need to be repeated if time hasn't changed.
-            if (loc.pos.extra.utc == loc.utc)
+            if (loc.pos.extra.utc == utc)
             {
                 return 0;
             }
 
-            double tt = utc2tt(loc.utc);
+            double tt = utc2tt(utc);
             if (tt <= 0.)
             {
                 return static_cast <int32_t>(tt);
             }
             loc.pos.extra.tt = tt;
 
-            loc.pos.extra.utc = loc.utc;
-            loc.pos.extra.tdb = utc2tdb(loc.utc);
-            loc.pos.extra.ut = utc2ut1(loc.utc);
+            loc.pos.extra.utc = utc;
+            loc.pos.extra.tdb = utc2tdb(utc);
+            loc.pos.extra.ut = utc2ut1(utc);
 
-            gcrf2itrs(loc.utc,&loc.pos.extra.j2t,&loc.pos.extra.j2e,&loc.pos.extra.dj2e,&loc.pos.extra.ddj2e);
+            gcrf2itrs(utc,&loc.pos.extra.j2t,&loc.pos.extra.j2e,&loc.pos.extra.dj2e,&loc.pos.extra.ddj2e);
             loc.pos.extra.t2j = rm_transpose(loc.pos.extra.j2t);
             loc.pos.extra.e2j = rm_transpose(loc.pos.extra.j2e);
             loc.pos.extra.de2j = rm_transpose(loc.pos.extra.dj2e);
             loc.pos.extra.dde2j = rm_transpose(loc.pos.extra.ddj2e);
 
-            jpllib(loc.utc,&loc.pos.extra.s2t,&loc.pos.extra.ds2t);
+            jpllib(utc,&loc.pos.extra.s2t,&loc.pos.extra.ds2t);
             loc.pos.extra.t2s = rm_transpose(loc.pos.extra.s2t);
             loc.pos.extra.dt2s = rm_transpose(loc.pos.extra.ds2t);
 
@@ -161,16 +161,16 @@ namespace Cosmos {
 
 
             jplpos(JPL_SUN_BARY,JPL_EARTH,loc.pos.extra.tt,&loc.pos.extra.sun2earth);
-            loc.pos.extra.sun2earth.utc = loc.utc;
+            loc.pos.extra.sun2earth.utc = utc;
             locstruc tloc;
-            tloc.utc = loc.utc;
+            tloc.utc = utc;
             tloc.pos.extra = loc.pos.extra;
             tloc.pos.eci = loc.pos.extra.sun2earth;
             tloc.pos.eci.s = rv_smult(-1., tloc.pos.eci.s);
             pos_eci2geoc(tloc);
             loc.pos.extra.sungeo = tloc.pos.geod.s;
             jplpos(JPL_SUN_BARY,JPL_MOON,loc.pos.extra.tt,&loc.pos.extra.sun2moon);
-            loc.pos.extra.sun2moon.utc = loc.utc;
+            loc.pos.extra.sun2moon.utc = utc;
             tloc.pos.eci.s = rv_sub(loc.pos.extra.sun2moon.s, loc.pos.extra.sun2earth.s);
             pos_eci2geoc(tloc);
             loc.pos.extra.moongeo = tloc.pos.geod.s;
@@ -195,24 +195,13 @@ namespace Cosmos {
             rvector sat2body;
 
             // Synchronize time
-            if (loc.pos.icrf.utc == 0.)
+            if (loc.pos.icrf.utc == 0. || !isfinite(loc.pos.icrf.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.icrf.utc = loc.pos.utc = loc.utc;
+                return CONVERT_ERROR_UTC;
             }
-            else
-            {
-                if (!isfinite(loc.pos.icrf.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.icrf.utc;
-            }
+            loc.utc = loc.pos.utc = loc.pos.icrf.utc;
 
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.icrf.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -288,24 +277,13 @@ namespace Cosmos {
         {
             int32_t iretn;
             // Synchronize time
-            if (0. == loc.pos.eci.utc)
+            if (0. == loc.pos.eci.utc || !isfinite(loc.pos.eci.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.eci.utc = loc.pos.utc = loc.utc;
+                return CONVERT_ERROR_UTC;
             }
-            else
-            {
-                if (!isfinite(loc.pos.eci.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.eci.utc;
-            }
+            loc.utc = loc.pos.utc = loc.pos.eci.utc;
 
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.eci.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -342,24 +320,13 @@ namespace Cosmos {
         {
             int32_t iretn;
             // Synchronize time
-            if (0. == loc.pos.sci.utc)
+            if (0. == loc.pos.sci.utc || !isfinite(loc.pos.sci.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.sci.utc = loc.pos.utc = loc.utc;
+                return CONVERT_ERROR_UTC;
             }
-            else
-            {
-                if (!isfinite(loc.pos.sci.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.sci.utc;
-            }
+            loc.utc = loc.pos.utc = loc.pos.sci.utc;
 
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.sci.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -396,24 +363,13 @@ namespace Cosmos {
         {
             int32_t iretn;
             // Synchronize time
-            if (0. == loc.pos.geoc.utc)
+            if (0. == loc.pos.geoc.utc || !isfinite(loc.pos.geoc.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.geoc.utc = loc.pos.utc = loc.utc;
+                return CONVERT_ERROR_UTC;
             }
-            else
-            {
-                if (!isfinite(loc.pos.geoc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.geoc.utc;
-            }
+            loc.utc = loc.pos.utc = loc.pos.geoc.utc;
 
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.geoc.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -458,24 +414,13 @@ namespace Cosmos {
         {
             int32_t iretn;
             // Synchronize time
-            if (0. == loc.pos.selc.utc)
+            if (0. == loc.pos.selc.utc || !isfinite(loc.pos.selc.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.selc.utc = loc.pos.utc = loc.utc;
+                return CONVERT_ERROR_UTC;
             }
-            else
-            {
-                if (!isfinite(loc.pos.selc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.selc.utc;
-            }
+            loc.utc = loc.pos.utc = loc.pos.selc.utc;
 
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.selc.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -514,24 +459,13 @@ namespace Cosmos {
         {
             int32_t iretn;
             // Synchroniz time
-            if (0. == loc.pos.selg.utc)
+            if (0. == loc.pos.selg.utc || !isfinite(loc.pos.selg.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.selg.utc = loc.pos.utc = loc.utc;
+                return CONVERT_ERROR_UTC;
             }
-            else
-            {
-                if (!isfinite(loc.pos.selg.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.selg.utc;
-            }
+            loc.utc = loc.pos.utc = loc.pos.selg.utc;
 
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.selg.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -560,24 +494,13 @@ namespace Cosmos {
         {
             int32_t iretn;
             // Synchronize time
-            if (0. == loc.pos.geos.utc)
+            if (0. == loc.pos.geos.utc || !isfinite(loc.pos.geos.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.geos.utc = loc.pos.utc = loc.utc;
+                return CONVERT_ERROR_UTC;
             }
-            else
-            {
-                if (!isfinite(loc.pos.geos.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.geos.utc;
-            }
+            loc.utc = loc.pos.utc = loc.pos.geos.utc;
 
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.geos.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -606,24 +529,13 @@ namespace Cosmos {
         {
             int32_t iretn;
             // Synchronize time
-            if (0. == loc.pos.geod.utc)
+            if (0. == loc.pos.geod.utc || !isfinite(loc.pos.geod.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.geod.utc = loc.pos.utc = loc.utc;
+                return CONVERT_ERROR_UTC;
             }
-            else
-            {
-                if (!isfinite(loc.pos.geod.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.geod.utc;
-            }
+            loc.utc = loc.pos.utc = loc.pos.geod.utc;
 
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.geod.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -656,32 +568,20 @@ namespace Cosmos {
         {
             int32_t iretn;
             // Synchronize time
-            if (loc.pos.icrf.utc == 0.)
+            if (loc.pos.icrf.utc == 0. || !isfinite(loc.pos.icrf.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.icrf.utc = loc.pos.utc = loc.utc;
-            }
-            else
-            {
-                if (!isfinite(loc.pos.icrf.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.icrf.utc;
+                return CONVERT_ERROR_UTC;
             }
 
             // Update extra information
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.icrf.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
             }
 
             // Update time
-            loc.pos.eci.utc = loc.utc;
+            loc.pos.eci.utc = loc.pos.icrf.utc;
 
             // Update pass
             loc.pos.eci.pass = loc.pos.icrf.pass;
@@ -709,25 +609,13 @@ namespace Cosmos {
         {
             int32_t iretn;
             // Synchronize time
-            if (0. == loc.pos.eci.utc)
+            if (0. == loc.pos.eci.utc || !isfinite(loc.pos.eci.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.eci.utc = loc.pos.utc = loc.utc;
-            }
-            else
-            {
-                if (!isfinite(loc.pos.eci.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.eci.utc;
+                return CONVERT_ERROR_UTC;
             }
 
             // Update extra information
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.eci.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -737,7 +625,7 @@ namespace Cosmos {
             loc.pos.icrf.pass = loc.pos.eci.pass;
 
             // Update time
-            loc.pos.icrf.utc = loc.utc;
+            loc.pos.icrf.utc = loc.pos.eci.utc;
 
             // Geocentric Equatorial to Heliocentric
             loc.pos.icrf.s = rv_add(loc.pos.eci.s,loc.pos.extra.sun2earth.s);
@@ -760,32 +648,20 @@ namespace Cosmos {
         {
             int32_t iretn;
             // Synchronize time
-            if (loc.pos.icrf.utc == 0.)
+            if (loc.pos.icrf.utc == 0. || !isfinite(loc.pos.icrf.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.icrf.utc = loc.pos.utc = loc.utc;
-            }
-            else
-            {
-                if (!isfinite(loc.pos.icrf.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.icrf.utc;
+                return CONVERT_ERROR_UTC;
             }
 
             // Update extra information
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.icrf.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
             }
 
             // Update time
-            loc.pos.sci.utc = loc.utc;
+            loc.pos.sci.utc = loc.pos.icrf.utc;
 
             // Update pass
             loc.pos.sci.pass = loc.pos.icrf.pass;
@@ -814,32 +690,20 @@ namespace Cosmos {
         {
             int32_t iretn;
             // Synchronize time
-            if (0. == loc.pos.sci.utc)
+            if (0. == loc.pos.sci.utc || !isfinite(loc.pos.sci.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.sci.utc = loc.pos.utc = loc.utc;
-            }
-            else
-            {
-                if (!isfinite(loc.pos.sci.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.sci.utc;
+                return CONVERT_ERROR_UTC;
             }
 
             // Update extra information
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.sci.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
             }
 
             // Update time
-            loc.pos.icrf.utc = loc.utc;
+            loc.pos.icrf.utc = loc.pos.sci.utc;
 
             // Update pass
             loc.pos.icrf.pass = loc.pos.sci.pass;
@@ -868,32 +732,20 @@ namespace Cosmos {
             rvector v2;
 
             // Synchronize time
-            if (0. == loc.pos.eci.utc)
+            if (0. == loc.pos.eci.utc || !isfinite(loc.pos.eci.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.eci.utc = loc.pos.utc = loc.utc;
-            }
-            else
-            {
-                if (!isfinite(loc.pos.eci.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.eci.utc;
+                return CONVERT_ERROR_UTC;
             }
 
             // Update extra information
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.eci.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
             }
 
             // Update time
-            loc.pos.geoc.utc = loc.utc;
+            loc.pos.geoc.utc = loc.pos.eci.utc;
 
             // Update pass
             loc.pos.geoc.pass = loc.att.icrf.pass = loc.pos.eci.pass;
@@ -919,13 +771,28 @@ namespace Cosmos {
             pos_geoc2geos(loc);
 
             // Convert ICRF attitude to ITRF
-            att_icrf2geoc(loc);
+            iretn = att_icrf2geoc(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
 
             // Convert ITRF Attitude to Topo
-            att_planec2topo(loc);
+            iretn = att_planec2topo(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
 
             // Convert ITRF Attitude to LVLH
-            att_planec2lvlh(loc);
+            iretn = att_planec2lvlh(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
             return 0;
         }
 
@@ -945,32 +812,20 @@ namespace Cosmos {
             rvector ds;
 
             // Synchronize time
-            if (0. == loc.pos.geoc.utc)
+            if (0. == loc.pos.geoc.utc || !isfinite(loc.pos.geoc.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.geoc.utc = loc.pos.utc = loc.utc;
-            }
-            else
-            {
-                if (!isfinite(loc.pos.geoc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.geoc.utc;
+                return CONVERT_ERROR_UTC;
             }
 
             // Update extra information
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.geoc.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
             }
 
             // Update time
-            loc.pos.eci.utc = loc.utc;
+            loc.pos.eci.utc = loc.pos.geoc.utc;
 
             // Update pass
             loc.pos.eci.pass = loc.att.geoc.pass = loc.pos.geoc.pass;
@@ -990,13 +845,28 @@ namespace Cosmos {
             loc.pos.eci.a = rv_add(loc.pos.eci.a,ds);
 
             // Convert ITRF Attitude to ICRF
-            att_geoc2icrf(loc);
+            iretn = att_geoc2icrf(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
 
             // Convert ITRF Attitude to LVLH
-            att_planec2lvlh(loc);
+            iretn = att_planec2lvlh(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
 
             // Convert ITRF Attitude to TOPO
-            att_planec2topo(loc);
+            iretn = att_planec2topo(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
             return 0;
         }
 
@@ -1013,27 +883,23 @@ namespace Cosmos {
         {
             double xvx, yvy, r2, r, minir, minir2;
             double cp, cl, sl, sp;
+            int32_t iretn;
 
             // Synchronize time
-            if (0. == loc.pos.geoc.utc)
+            if (0. == loc.pos.geoc.utc || !isfinite(loc.pos.geoc.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.geoc.utc = loc.pos.utc = loc.utc;
+                return CONVERT_ERROR_UTC;
             }
-            else
+
+            // Update extra information
+            iretn = pos_extra(loc.pos.geoc.utc, loc);
+            if (iretn < 0)
             {
-                if (!isfinite(loc.pos.geoc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.geoc.utc;
+                return iretn;
             }
 
             // Update time
-            loc.pos.geos.utc = loc.utc;
+            loc.pos.geos.utc = loc.pos.geoc.utc;
 
             // Update pass
             loc.pos.geos.pass = loc.pos.geoc.pass;
@@ -1076,27 +942,22 @@ namespace Cosmos {
         int32_t pos_geos2geoc(locstruc &loc)
         {
             double sp, cp, sl, cl, cpr;
+            int32_t iretn;
 
             // Synchronize time
-            if (0. == loc.pos.geos.utc)
+            if (0. == loc.pos.geos.utc || !isfinite(loc.pos.geos.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.geos.utc = loc.pos.utc = loc.utc;
-            }
-            else
-            {
-                if (!isfinite(loc.pos.geoc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.geos.utc;
+                return CONVERT_ERROR_UTC;
             }
 
+            // Update extra information
+            iretn = pos_extra(loc.pos.geos.utc, loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
             // Update time
-            loc.pos.geoc.utc = loc.utc;
+            loc.pos.geoc.utc = loc.pos.geos.utc;
 
             // Update pass
             loc.pos.geoc.pass = loc.pos.geos.pass;
@@ -1195,26 +1056,21 @@ namespace Cosmos {
 
         int32_t pos_geoc2geod(locstruc &loc)
         {
+            int32_t iretn;
             // Synchronize time
-            if (0. == loc.pos.geoc.utc)
+            if (0. == loc.pos.geoc.utc || !isfinite(loc.pos.geoc.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return 0;
-                }
-                loc.pos.geoc.utc = loc.pos.utc = loc.utc;
-            }
-            else
-            {
-                if (!isfinite(loc.pos.geoc.utc))
-                {
-                    return 0;
-                }
-                loc.utc = loc.pos.utc = loc.pos.geoc.utc;
+                return 0;
             }
 
+            // Update extra information
+            iretn = pos_extra(loc.pos.geoc.utc, loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
             // Update time
-            loc.pos.geod.utc = loc.utc;
+            loc.pos.geod.utc = loc.pos.geoc.utc;
 
             // Update pass
             loc.pos.geod.pass = loc.pos.geoc.pass;
@@ -1278,26 +1134,22 @@ namespace Cosmos {
 
         int32_t pos_geod2geoc(locstruc &loc)
         {
+            int32_t iretn;
             // Synchronize time
-            if (0. == loc.pos.geod.utc)
+            if (0. == loc.pos.geod.utc || !isfinite(loc.pos.geod.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.geod.utc = loc.pos.utc = loc.utc;
+                return CONVERT_ERROR_UTC;
             }
-            else
+
+            // Update extra information
+            iretn = pos_extra(loc.pos.geod.utc, loc);
+            if (iretn < 0)
             {
-                if (!isfinite(loc.pos.geod.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.geod.utc;
+                return iretn;
             }
 
             // Update time
-            loc.pos.geoc.utc = loc.pos.geod.utc = loc.pos.utc = loc.utc;
+            loc.pos.geoc.utc = loc.pos.geod.utc;
 
             // Update pass
             loc.pos.geoc.pass = loc.pos.geod.pass;
@@ -1324,32 +1176,20 @@ namespace Cosmos {
             rmatrix m1;
 
             // Synchronize time
-            if (0. == loc.pos.sci.utc)
+            if (0. == loc.pos.sci.utc || !isfinite(loc.pos.sci.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.sci.utc = loc.pos.utc = loc.utc;
-            }
-            else
-            {
-                if (!isfinite(loc.pos.sci.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.sci.utc;
+                return CONVERT_ERROR_UTC;
             }
 
             // Update extra information
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.sci.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
             }
 
             // Update time
-            loc.pos.selc.utc = loc.utc;
+            loc.pos.selc.utc = loc.pos.sci.utc;
 
             // Update pass
             loc.pos.selc.pass = loc.att.icrf.pass = loc.pos.sci.pass;
@@ -1371,13 +1211,28 @@ namespace Cosmos {
             pos_selc2selg(loc);
 
             // Convert ICRF Attitude to SELC
-            att_icrf2selc(loc);
+            iretn = att_icrf2selc(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
 
             // Convert ITRF Attitude to Topo
-            att_planec2topo(loc);
+            iretn = att_planec2topo(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
 
             // Convert ITRF Attitude to LVLH
-            att_planec2lvlh(loc);
+            iretn = att_planec2lvlh(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
 
             return iretn;
         }
@@ -1399,32 +1254,20 @@ namespace Cosmos {
             rmatrix m1;
 
             // Synchroniz time
-            if (0. == loc.pos.selc.utc)
+            if (0. == loc.pos.selc.utc || !isfinite(loc.pos.selc.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.selc.utc = loc.pos.utc = loc.utc;
-            }
-            else
-            {
-                if (!isfinite(loc.pos.selc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.selc.utc;
+                return CONVERT_ERROR_UTC;
             }
 
             // Update extra information
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.selc.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
             }
 
             // Update time
-            loc.pos.sci.utc = loc.utc;
+            loc.pos.sci.utc = loc.pos.selc.utc;
 
             // Update pass
             loc.pos.sci.pass = loc.att.selc.pass = loc.pos.selc.pass;
@@ -1444,7 +1287,12 @@ namespace Cosmos {
             loc.pos.sci.a = rv_add(loc.pos.selc.a,v2);
 
             // Convert SCI Attitude to ICRF
-            att_selc2icrf(loc);
+            iretn = att_selc2icrf(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
             return 0;
         }
 
@@ -1464,32 +1312,20 @@ namespace Cosmos {
             double xvx, yvy, r2, r, minir, minir2;
 
             // Synchroniz time
-            if (0. == loc.pos.selc.utc)
+            if (0. == loc.pos.selc.utc || !isfinite(loc.pos.selc.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.selc.utc = loc.pos.utc = loc.utc;
-            }
-            else
-            {
-                if (!isfinite(loc.pos.selc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.selc.utc;
+                return CONVERT_ERROR_UTC;
             }
 
             // Update extra information
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.selc.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
             }
 
             // Update time
-            loc.pos.selg.utc = loc.utc;
+            loc.pos.selg.utc = loc.pos.selc.utc;
 
             // Update pass
             loc.pos.selg.pass = loc.pos.selc.pass;
@@ -1526,32 +1362,20 @@ namespace Cosmos {
             double sp, cp, sl, cl, cpr, r;
 
             // Synchroniz time
-            if (0. == loc.pos.selg.utc)
+            if (0. == loc.pos.selg.utc || !isfinite(loc.pos.selg.utc))
             {
-                if (!isfinite(loc.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.pos.selg.utc = loc.pos.utc = loc.utc;
-            }
-            else
-            {
-                if (!isfinite(loc.pos.selg.utc))
-                {
-                    return CONVERT_ERROR_UTC;
-                }
-                loc.utc = loc.pos.utc = loc.pos.selg.utc;
+                return CONVERT_ERROR_UTC;
             }
 
             // Update extra information
-            iretn = pos_extra(loc);
+            iretn = pos_extra(loc.pos.selg.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
             }
 
             // Update time
-            loc.pos.selc.utc = loc.utc;
+            loc.pos.selc.utc = loc.pos.selg.utc;
 
             // Update pass
             loc.pos.selc.pass = loc.pos.selg.pass;
@@ -1591,6 +1415,12 @@ namespace Cosmos {
 
         int32_t att_extra(locstruc &loc)
         {
+            // Check time
+            if (!isfinite(loc.att.icrf.utc) || loc.att.icrf.utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
+
             if (loc.att.extra.utc == loc.att.icrf.utc)
                 return 0;
 
@@ -1612,19 +1442,24 @@ namespace Cosmos {
             rvector alpha;
             double radius;
 
-            // Update extra
-            iretn = pos_extra(loc);
+            // Check time
+            if (!isfinite(loc.att.icrf.utc) || loc.att.icrf.utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
+
+            // Update time
+            loc.att.geoc.utc = loc.att.icrf.utc;
+
+            // Update pass
+            loc.att.geoc.pass = loc.att.icrf.pass;
+
+            // Calculate rotation matrix to J2000
+            iretn = pos_extra(loc.att.icrf.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
             }
-            att_extra(loc);
-
-            // Update time
-            loc.att.geoc.utc = loc.att.icrf.utc = loc.utc;
-
-            // Update pass
-            loc.att.geoc.pass = loc.att.icrf.pass;
 
             // Use to rotate ECI into ITRS
             loc.att.geoc.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.j2e),loc.att.icrf.s);
@@ -1642,10 +1477,20 @@ namespace Cosmos {
             loc.att.geoc.a = rv_add(loc.att.geoc.a,alpha);
 
             // Convert ITRF attitude to Topocentric
-            att_planec2topo(loc);
+            iretn = att_planec2topo(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
 
             // Convert ITRF attitude to LVLH
-            att_planec2lvlh(loc);
+            iretn = att_planec2lvlh(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
             return 0;
         }
 
@@ -1661,15 +1506,26 @@ namespace Cosmos {
             //	rmatrix fpm = {{{{0.}}}}, dpm = {{{{0.}}}};
             rvector alpha;
             double radius;
+            int32_t iretn;
+
+            // Check time
+            if (!isfinite(loc.att.geoc.utc) || loc.att.geoc.utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
 
             // Propagate time
-            loc.att.icrf.utc = loc.att.geoc.utc = loc.utc;
+            loc.att.icrf.utc = loc.att.geoc.utc;
 
             // Update pass
             loc.att.icrf.pass = loc.att.geoc.pass;
 
-            // Update extra
-            att_extra(loc);
+            // Calculate rotation matrix to J2000
+            iretn = pos_extra(loc.att.geoc.utc, loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
 
             // Perform first order rotation of ITRS frame into ECI frame
             loc.att.icrf.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.e2j),loc.att.geoc.s);
@@ -1687,34 +1543,64 @@ namespace Cosmos {
             loc.att.icrf.a = rv_add(loc.att.icrf.a,alpha);
 
             // Extra attitude information
-            att_extra(loc);
+            iretn = att_extra(loc);
 
-            return 0;
+            return iretn;
         }
 
         int32_t att_geoc(locstruc *loc)
         {
-            att_geoc(*loc);
-
-            return 0;
+            return att_geoc(*loc);
         }
 
         int32_t att_geoc(locstruc &loc)
         {
+            int32_t iretn;
+            // Synchronize time
+            if (0. == loc.att.geoc.utc || !isfinite(loc.att.geoc.utc))
+            {
+                return CONVERT_ERROR_UTC;
+            }
+            loc.att.utc = loc.att.geoc.utc;
+
             if (loc.att.geoc.pass > loc.att.topo.pass)
             {
-                att_planec2topo(loc);
-                att_topo(loc);
+                iretn = att_planec2topo(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+                iretn = att_topo(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
             }
             if (loc.att.geoc.pass > loc.att.lvlh.pass)
             {
-                att_planec2lvlh(loc);
-                att_lvlh(loc);
+                iretn = att_planec2lvlh(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+                iretn = att_lvlh(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
             }
             if (loc.att.geoc.pass > loc.att.icrf.pass)
             {
-                att_geoc2icrf(loc);
-                att_icrf(loc);
+                iretn = att_geoc2icrf(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+                iretn = att_icrf(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
             }
 
             return 0;
@@ -1732,14 +1618,20 @@ namespace Cosmos {
             rvector alpha;
             double radius;
 
+            // Check time
+            if (!isfinite(loc.att.icrf.utc) || loc.att.icrf.utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
+
             // Propagate time
-            loc.att.icrf.utc = loc.att.selc.utc = loc.utc;
+            loc.att.selc.utc = loc.att.icrf.utc;
 
             // Update pass
             loc.att.selc.pass = loc.att.icrf.pass;
 
-            att_extra(loc);
-            iretn = pos_extra(loc);
+            // Calculate rotation matrix to J2000
+            iretn = pos_extra(loc.att.selc.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -1763,10 +1655,19 @@ namespace Cosmos {
             loc.att.selc.a = rv_add(loc.att.selc.a,alpha);
 
             // Synchronize LVLH
-            att_planec2lvlh(loc);
+            iretn = att_planec2lvlh(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
 
             // Synchronize Topo
-            att_planec2topo(loc);
+            iretn = att_planec2topo(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
             return 0;
         }
 
@@ -1779,7 +1680,13 @@ namespace Cosmos {
 
         int32_t att_selc2icrf(locstruc &loc)
         {
+            int32_t iretn;
             //	rmatrix fpm = {{{{0.}}}};
+            // Check time
+            if (!isfinite(loc.att.selc.utc) || loc.att.selc.utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
 
             // Propagate time
             loc.att.icrf.utc = loc.att.selc.utc = loc.utc;
@@ -1787,10 +1694,12 @@ namespace Cosmos {
             // Update pass
             loc.att.icrf.pass = loc.att.selc.pass;
 
-            att_extra(loc);
-
             // Calculate rotation matrix to J2000
-            //	fpm = loc.pos.extra.s2j;
+            iretn = pos_extra(loc.att.selc.utc, loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
 
             // Perform first order rotation of SELC frame into ICRF frame
             loc.att.icrf.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.s2j),loc.att.selc.s);
@@ -1799,7 +1708,11 @@ namespace Cosmos {
             loc.att.icrf.a = rv_mmult(loc.pos.extra.s2j,loc.att.selc.a);
 
             // Extra attitude information
-            att_extra(loc);
+            iretn = att_extra(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
 
             return 0;
         }
@@ -1813,20 +1726,53 @@ namespace Cosmos {
 
         int32_t att_selc(locstruc &loc)
         {
+            int32_t iretn;
+            // Check time
+            if (!isfinite(loc.att.selc.utc) || loc.att.selc.utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
+
             if (loc.att.selc.pass > loc.att.topo.pass)
             {
-                att_planec2topo(loc);
-                att_topo(loc);
+                iretn = att_planec2topo(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+
+                iretn = att_topo(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
             }
             if (loc.att.selc.pass > loc.att.lvlh.pass)
             {
-                att_planec2lvlh(loc);
-                att_lvlh(loc);
+                iretn = att_planec2lvlh(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+
+                iretn = att_lvlh(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
             }
             if (loc.att.selc.pass > loc.att.icrf.pass)
             {
-                att_selc2icrf(loc);
-                att_icrf(loc);
+                iretn = att_selc2icrf(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+                iretn = att_icrf(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
             }
 
             return 0;
@@ -1840,30 +1786,77 @@ namespace Cosmos {
 
         int32_t att_icrf2lvlh(locstruc &loc)
         {
-            att_icrf2geoc(loc);
-            att_icrf2selc(loc);
-            att_planec2lvlh(loc);
+            int32_t iretn;
+            // Check time
+            if (!isfinite(loc.att.icrf.utc) || loc.att.icrf.utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
+
+            iretn = att_icrf2geoc(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            iretn = att_icrf2selc(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            iretn = att_planec2lvlh(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
             return 0;
         }
 
         int32_t att_icrf(locstruc *loc)
         {
-            att_icrf(*loc);
+            return att_icrf(*loc);
             return 0;
         }
 
         int32_t att_icrf(locstruc &loc)
         {
+            int32_t iretn;
+            // Check time
+            if (!isfinite(loc.att.icrf.utc) || loc.att.icrf.utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
+
             if (loc.att.icrf.pass > loc.att.geoc.pass)
             {
-                att_icrf2geoc(loc);
-                att_geoc(loc);
+                iretn = att_icrf2geoc(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+
+                iretn = att_geoc(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+
             }
 
             if (loc.att.icrf.pass > loc.att.selc.pass)
             {
-                att_icrf2selc(loc);
-                att_selc(loc);
+                iretn = att_icrf2selc(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+
+                iretn = att_selc(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+
             }
             return 0;
         }
@@ -1891,10 +1884,22 @@ namespace Cosmos {
             {
             case COSMOS_EARTH:
             default:
+                // Check time
+                if (!isfinite(loc.att.geoc.utc) || loc.att.geoc.utc == 0.)
+                {
+                    return CONVERT_ERROR_UTC;
+                }
+
                 patt = &loc.att.geoc;
                 ppos = &loc.pos.geoc;
                 break;
             case COSMOS_MOON:
+                // Check time
+                if (!isfinite(loc.att.selc.utc) || loc.att.selc.utc == 0.)
+                {
+                    return CONVERT_ERROR_UTC;
+                }
+
                 patt = &loc.att.selc;
                 ppos = &loc.pos.selc;
                 break;
@@ -1903,12 +1908,10 @@ namespace Cosmos {
             radius = length_rv(ppos->s);
 
             // Update time
-            loc.att.lvlh.utc = patt->utc = loc.utc;
+            loc.att.lvlh.utc = patt->utc;
 
             // Update pass
             loc.att.lvlh.pass = patt->pass;
-
-            att_extra(loc);
 
             // LVLH Z is opposite of direction to satellite
             geoc_z = rv_smult(-1.,ppos->s);
@@ -1966,6 +1969,13 @@ namespace Cosmos {
             qatt *patt;
             cartpos *ppos;
             double radius;
+            int32_t iretn;
+
+            // Check time
+            if (!isfinite(loc.att.lvlh.utc) || loc.att.lvlh.utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
 
             switch (loc.pos.extra.closest)
             {
@@ -1983,12 +1993,10 @@ namespace Cosmos {
 
 
             // Update time
-            loc.att.lvlh.utc = patt->utc = loc.utc;
+            patt->utc = loc.att.lvlh.utc;
 
             // Update pass
             ppos->pass = patt->pass = loc.att.lvlh.pass;
-
-            att_extra(loc);
 
             // LVLH Z is opposite of earth to satellite vector
             geoc_z = rv_smult(-1.,ppos->s);
@@ -2035,7 +2043,12 @@ namespace Cosmos {
             patt->v = rv_add(patt->v,alpha);
 
             // Synchronize Topo
-            att_planec2topo(loc);
+            iretn = att_planec2topo(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
 
             return 0;
         }
@@ -2053,25 +2066,46 @@ namespace Cosmos {
         int32_t att_lvlh2icrf(locstruc &loc)
         {
             int32_t iretn;
-            iretn = pos_extra(loc);
+
+            // Check time
+            if (!isfinite(loc.att.lvlh.utc) || loc.att.lvlh.utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
+
+            iretn = att_lvlh2planec(loc);
             if (iretn < 0)
             {
                 return iretn;
             }
-            att_extra(loc);
 
-            att_lvlh2planec(loc);
+            iretn = pos_extra(loc.att.lvlh.utc, loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
             switch (loc.pos.extra.closest)
             {
             case COSMOS_EARTH:
             default:
-                att_geoc2icrf(loc);
+                iretn = att_geoc2icrf(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+
                 break;
             case COSMOS_MOON:
-                att_selc2icrf(loc);
+                iretn = att_selc2icrf(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+
                 break;
             }
-            return 0;
+            return att_extra(loc);
         }
 
         int32_t att_lvlh(locstruc *loc)
@@ -2082,12 +2116,18 @@ namespace Cosmos {
         int32_t att_lvlh(locstruc &loc)
         {
             int32_t iretn;
-            iretn = pos_extra(loc);
+
+            // Check time
+            if (!isfinite(loc.att.lvlh.utc) || loc.att.lvlh.utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
+
+            iretn = pos_extra(loc.att.lvlh.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
             }
-            att_extra(loc);
 
             switch (loc.pos.extra.closest)
             {
@@ -2095,15 +2135,32 @@ namespace Cosmos {
             default:
                 if (loc.att.lvlh.pass > loc.att.geoc.pass)
                 {
-                    att_lvlh2planec(loc);
-                    att_geoc(loc);
+                    iretn = att_lvlh2planec(loc);
+                    if (iretn < 0)
+                    {
+                        return iretn;
+                    }
+                    iretn = att_geoc(loc);
+                    if (iretn < 0)
+                    {
+                        return iretn;
+                    }
                 }
                 break;
             case COSMOS_MOON:
                 if (loc.att.lvlh.pass > loc.att.selc.pass)
                 {
-                    att_lvlh2planec(loc);
-                    att_selc(loc);
+                    iretn = att_lvlh2planec(loc);
+                    if (iretn < 0)
+                    {
+                        return iretn;
+                    }
+
+                    iretn = att_selc(loc);
+                    if (iretn < 0)
+                    {
+                        return iretn;
+                    }
                 }
                 break;
             }
@@ -2141,13 +2198,17 @@ namespace Cosmos {
                 break;
             }
 
+            // Check time
+            if (!isfinite(patt->utc) || patt->utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
+
             // Update time
-            loc.att.topo.utc = patt->utc = loc.utc;
+            loc.att.topo.utc = patt->utc;
 
             // Update pass
             loc.att.topo.pass = patt->pass;
-
-            att_extra(loc);
 
             // Determine rotation of Topo unit Z  into ITRS Z
             t2g_z = q_conjugate(q_drotate_between_rv(rv_unitz(),ppos->s));
@@ -2196,6 +2257,7 @@ namespace Cosmos {
             rvector geoc_x, topo_x, alpha;
             qatt *patt;
             cartpos *ppos;
+            int32_t iretn;
 
             switch (loc.pos.extra.closest)
             {
@@ -2211,12 +2273,10 @@ namespace Cosmos {
             }
 
             // Update time
-            patt->utc = loc.att.topo.utc = loc.utc;
+            patt->utc = loc.att.topo.utc;
 
             // Update pass
             ppos->pass = patt->pass = loc.att.topo.pass;
-
-            att_extra(loc);
 
             // Determine rotation of Topo unit Z  into ITRS Z
             t2g_z = q_conjugate(q_drotate_between_rv(rv_unitz(),ppos->s));
@@ -2251,13 +2311,28 @@ namespace Cosmos {
             {
             case COSMOS_EARTH:
             default:
-                att_geoc2icrf(loc);
+                iretn = att_geoc2icrf(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+
                 break;
             case COSMOS_MOON:
-                att_selc2icrf(loc);
+                iretn = att_selc2icrf(loc);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+
                 break;
             }
-            att_planec2lvlh(loc);
+            iretn = att_planec2lvlh(loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
 
             return 0;
         }
@@ -2270,12 +2345,18 @@ namespace Cosmos {
         int32_t att_topo(locstruc &loc)
         {
             int32_t iretn;
-            iretn = pos_extra(loc);
+
+            // Check time
+            if (!isfinite(loc.att.topo.utc) || loc.att.topo.utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
+
+            iretn = pos_extra(loc.att.topo.utc, loc);
             if (iretn < 0)
             {
                 return iretn;
             }
-            att_extra(loc);
 
             switch (loc.pos.extra.closest)
             {
@@ -2284,14 +2365,24 @@ namespace Cosmos {
                 if (loc.att.topo.pass > loc.att.geoc.pass)
                 {
                     att_topo2planec(loc);
-                    att_geoc(loc);
+                    iretn = att_geoc(loc);
+                    if (iretn < 0)
+                    {
+                        return iretn;
+                    }
+
                 }
                 break;
             case COSMOS_MOON:
                 if (loc.att.topo.pass > loc.att.selc.pass)
                 {
                     att_topo2planec(loc);
-                    att_selc(loc);
+                    iretn = att_selc(loc);
+                    if (iretn < 0)
+                    {
+                        return iretn;
+                    }
+
                 }
                 break;
             }
@@ -2314,6 +2405,7 @@ match.
         {
             uint32_t ppass=0, apass = 0;
             int32_t ptype=-1, atype = -1;
+            int32_t iretn;
 
             if (loc.att.icrf.pass > apass)
             {
@@ -2384,48 +2476,57 @@ match.
             switch (ptype)
             {
             case JSON_TYPE_POS_ICRF:
-                pos_icrf(loc);
+                iretn = pos_icrf(loc);
                 break;
             case JSON_TYPE_POS_ECI:
-                pos_eci(loc);
+                iretn = pos_eci(loc);
                 break;
             case JSON_TYPE_POS_SCI:
-                pos_sci(loc);
+                iretn = pos_sci(loc);
                 break;
             case JSON_TYPE_POS_GEOC:
-                pos_geoc(loc);
+                iretn = pos_geoc(loc);
                 break;
             case JSON_TYPE_POS_SELC:
-                pos_selc(loc);
+                iretn = pos_selc(loc);
                 break;
             case JSON_TYPE_POS_GEOD:
-                pos_geod(loc);
+                iretn = pos_geod(loc);
                 break;
             case JSON_TYPE_POS_GEOS:
-                pos_geos(loc);
+                iretn = pos_geos(loc);
                 break;
             case JSON_TYPE_POS_SELG:
-                pos_selg(loc);
+                iretn = pos_selg(loc);
                 break;
+            }
+            if (iretn < 0)
+            {
+                return iretn;
             }
 
             switch (atype)
             {
             case JSON_TYPE_QATT_ICRF:
-                att_icrf(loc);
+                iretn = att_icrf(loc);
                 break;
             case JSON_TYPE_QATT_GEOC:
-                att_geoc(loc);
+                iretn = att_geoc(loc);
                 break;
             case JSON_TYPE_QATT_SELC:
-                att_selc(loc);
+                iretn = att_selc(loc);
                 break;
             case JSON_TYPE_QATT_LVLH:
-                att_lvlh(loc);
+                iretn = att_lvlh(loc);
                 break;
             case JSON_TYPE_QATT_TOPO:
-                att_topo(loc);
+                iretn = att_topo(loc);
                 break;
+            }
+
+            if (iretn < 0)
+            {
+                return iretn;
             }
 
             return 0;
