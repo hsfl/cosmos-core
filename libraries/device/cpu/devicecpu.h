@@ -48,7 +48,6 @@
 // for current process CPU utilization
 #if defined (COSMOS_LINUX_OS)
 #include <sys/times.h>
-//#include <sys/vtimes.h>
 #include <sys/sysinfo.h>
 
 #include <sys/time.h>
