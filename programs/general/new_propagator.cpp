@@ -30,24 +30,32 @@
 #include "support/configCosmos.h"
 #include "physics/physicsclass.h"
 #include "physics/physicslib.h"
+#include "physics/simulatorclass.h"
 
 int main(int argc, char *argv[])
 {
-    double initialutc;
-    double dp = 60.;
+    double initialutc = 0.;
+    double currentutc;
+    double finalutc;
+    double dp = 10.;
     double endp = 86400.;
     int32_t iretn = 0;
     Physics::gj_handle gjh;
     vector<Convert::tlestruc>lines;
 
-    Physics::State *state;
+    Physics::Simulator *sim;
+    Physics::Simulator::StateList::iterator sit;
     Convert::locstruc loc;
     physicsstruc phys;
 
-    state = new Physics::State();
+    sim = new Physics::Simulator();
 
-    loc_clear(loc);
-    loc.utc = currentmjd();
+    Convert::loc_clear(loc);
+    loc.att.lvlh.s = q_eye();
+    loc.att.lvlh.v = rv_zero();
+    loc.att.lvlh.a = rv_zero();
+    loc.att.lvlh.pass++;
+
     switch (argc)
     {
     case 5:
@@ -55,45 +63,52 @@ int main(int argc, char *argv[])
     case 4:
         dp = atof(argv[3]);
     case 3:
-        loc.utc = atof(argv[2]);
+        initialutc = atof(argv[2]);
     case 2:
         {
             string fname = argv[1];
             if (fname.find(".tle") != string::npos)
             {
                 iretn = load_lines(fname, lines);
-                state->Init("test", dp/10., Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, lines, loc.utc);
+                if (initialutc == 0.)
+                {
+                    initialutc = lines[0].utc;
+                }
+                sim->Init(initialutc, dp/10.);
+                sim->AddNode("test", Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, lines);
             }
         }
         break;
     case 8:
-        loc.utc = atof(argv[1]);
+        initialutc = atof(argv[1]);
         loc.pos.eci.s.col[0] = atof(argv[2]);
         loc.pos.eci.s.col[1] = atof(argv[3]);
         loc.pos.eci.s.col[2] = atof(argv[4]);
         loc.pos.eci.v.col[0] = atof(argv[5]);
         loc.pos.eci.v.col[1] = atof(argv[6]);
         loc.pos.eci.v.col[2] = atof(argv[7]);
-        loc.pos.eci.utc = loc.utc;
+        loc.pos.eci.utc = initialutc;
         ++loc.pos.eci.pass;
-        state->Init("test", dp/10., Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, loc.pos.eci);
+        sim->Init(initialutc, dp/10.);
+        sim->AddNode("test", Physics::Structure::Type::U6, Physics::Propagator::Type::PositionGaussJackson, Physics::Propagator::Type::AttitudeLVLH, Physics::Propagator::Type::Thermal, Physics::Propagator::Type::Electrical, loc.pos.eci);
     }
 
-    initialutc = loc.utc;
-    for (double second=0.; second<endp; ++second)
+    sit = sim->GetNode("test");
+//    iretn = sim->Reset();
+    currentutc = initialutc;
+    finalutc = initialutc + endp / 86400.;
+    while  (sit->second->currentinfo.node.loc.pos.eci.utc < finalutc)
     {
-        state->Propagate(initialutc + second / 86400.);
-        if (second == dp*static_cast<int32_t>(second/(dp)))
-        {
-            printf("%s %10f %10f %10f %7f %7f %7f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n"
-                   , mjd2iso8601(loc.utc).c_str(),DEGOF(loc.pos.geod.s.lat), DEGOF(loc.pos.geod.s.lon)
-                   , loc.pos.geod.s.h, DEGOF(loc.pos.geod.v.lat), DEGOF(loc.pos.geod.v.lon), loc.pos.geod.v.h
-                   , loc.pos.eci.s.col[0], loc.pos.eci.s.col[1], loc.pos.eci.s.col[2]
-                    , loc.pos.eci.v.col[0], loc.pos.eci.v.col[1], loc.pos.eci.v.col[2]
-                    , loc.pos.eci.a.col[0], loc.pos.eci.a.col[1], loc.pos.eci.a.col[2]
-                    , phys.temp, phys.radiation);
-            fflush(stdout);
-        }
+        printf("%s %10f %10f %10f %7f %7f %7f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n"
+               , mjd2iso8601(sit->second->currentinfo.node.loc.pos.eci.utc).c_str(),DEGOF(sit->second->currentinfo.node.loc.pos.geod.s.lat), DEGOF(sit->second->currentinfo.node.loc.pos.geod.s.lon)
+               , sit->second->currentinfo.node.loc.pos.geod.s.h, DEGOF(sit->second->currentinfo.node.loc.pos.geod.v.lat), DEGOF(sit->second->currentinfo.node.loc.pos.geod.v.lon), sit->second->currentinfo.node.loc.pos.geod.v.h
+               , sit->second->currentinfo.node.loc.pos.eci.s.col[0], sit->second->currentinfo.node.loc.pos.eci.s.col[1], sit->second->currentinfo.node.loc.pos.eci.s.col[2]
+                , sit->second->currentinfo.node.loc.pos.eci.v.col[0], sit->second->currentinfo.node.loc.pos.eci.v.col[1], sit->second->currentinfo.node.loc.pos.eci.v.col[2]
+                , sit->second->currentinfo.node.loc.pos.eci.a.col[0], sit->second->currentinfo.node.loc.pos.eci.a.col[1], sit->second->currentinfo.node.loc.pos.eci.a.col[2]
+                , phys.temp, phys.radiation);
+        fflush(stdout);
+        currentutc += dp / 86400.;
+        sim->Propagate(currentutc);
     }
 	return iretn;
 }
