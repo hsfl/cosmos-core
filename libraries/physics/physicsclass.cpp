@@ -485,10 +485,21 @@ namespace Cosmos
             }
             if (atype == Propagator::AttitudeGeo)
             {
-                att_geoc(currentinfo.node.loc);
+                currentinfo.node.loc.att.geoc.pass++;
+                Convert::att_geoc(currentinfo.node.loc);
+            }
+            else if (atype == Propagator::AttitudeLVLH)
+            {
+                currentinfo.node.loc.att.lvlh.s = q_eye();
+                currentinfo.node.loc.att.lvlh.v = rv_zero();
+                currentinfo.node.loc.att.lvlh.a = rv_zero();
+                currentinfo.node.loc.att.lvlh.utc = utc;
+                currentinfo.node.loc.att.lvlh.pass++;
+                Convert::att_lvlh(currentinfo.node.loc);
             }
             else
             {
+                currentinfo.node.loc.att.icrf.pass++;
                 Convert::att_icrf(currentinfo.node.loc);
                 AttAccel(currentinfo.node.loc, currentinfo.node.phys);
             }
@@ -2066,7 +2077,7 @@ namespace Cosmos
             Vector ttorque;
             rmatrix mom;
 
-            att_extra(loc);
+            Convert::att_extra(loc);
 
             ttorque = phys->ctorque;
 
