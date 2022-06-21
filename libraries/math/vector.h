@@ -399,7 +399,7 @@ struct quaternion
 	//! Orientation
 	cvector d;
 	//! Rotation
-	double w = 0.;
+    double w = 1.;
 
 	quaternion() {}
 	quaternion(cvector td, double tw) {
