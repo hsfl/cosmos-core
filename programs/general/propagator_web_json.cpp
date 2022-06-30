@@ -10,6 +10,9 @@ using namespace Convert;
  * For use with Cosmos Web's orbital display panel.
  * This will be run by the orbital backend Grafana plugin and return CZML
  * formatted orbital data.
+ * 
+ * example usage:
+ * ./propagator_web_json '{"start":59270,"runcount":5,"simdt":60,"telem":"ecipos,eciatt","nodes":[{"name":"node0","frame":"phys", "lat":0.371876,"lon":-2.755147,"alt":400000,"angle":0.942478}]}'
  */
 
 const int precision = 3;
@@ -44,6 +47,20 @@ const string JRAAN = "raan";
 const string JECC = "ecc";
 const string JSMA = "sma";
 const string JUTC = "utc";
+// Telem keys
+const string JMJD = "mjd";          // MJD timestamp
+const string JECIPOS = "ecipos";    // ECI Positions
+const string JECIVEL = "ecivel";    // ECI Velocities
+const string JECIACC = "eciacc";    // ECI Accelerations
+const string JAX = "ax";
+const string JAY = "ay";
+const string JAZ = "az";
+const string JECIATT = "eciatt";    // ECI Attitude
+const string JATTX = "qx";
+const string JATTY = "qy";
+const string JATTZ = "qz";
+const string JATTW = "qw";
+
 
 // Self-contained propagator unit
 struct prop_unit
@@ -64,14 +81,15 @@ struct prop_unit
 
 int32_t run_propagator(prop_unit& prop, string& response);
 int32_t init_propagator(prop_unit& prop, const string& args, string& response);
-int32_t prop_add_nodes(prop_unit& prop, const json11::Json& nodes, string& response);
+int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& response);
+int32_t create_sim_snapshot(const prop_unit& prop, json11::Json::array& output);
 int32_t validate_json_args(const json11::Json& jargs, string& response);
 int32_t validate_json_node(const json11::Json& jargs, string& response);
 
 int main(int argc, char *argv[])
 {
     int32_t iretn;
-    // Pass to functions to return as JSON string or as an error message
+    // Pass this to functions to return as JSON string or as an error message
     string response;
 
     if (argc != 2)
@@ -90,16 +108,21 @@ int main(int argc, char *argv[])
         return iretn;
     }
 
-    while(true)
+    iretn = run_propagator(prop, response);
+    if (iretn < 0)
     {
-        iretn = run_propagator(prop, response);
+        cerr << response << endl;
+        return iretn;
     }
+
+    // Propagator run was a success
+    cout << response << endl;
 
     return 0;
 }
 
 ////////////////////////////////////////////
-// UTILITY FUNCTIONS
+// PROPAGATOR FUNCTIONS
 ////////////////////////////////////////////
 
 /**
@@ -146,44 +169,103 @@ int32_t init_propagator(prop_unit& prop, const string& args, string& response)
         prop.endutc = prop.startutc + (prop.simdt/86400. * prop.runcount);
     }
 
-    // Add nodes to propagator
-    iretn = prop_add_nodes(prop, jargs[JNODES], response);
+    // Determine initial node conditions
+    iretn = prop_parse_nodes(prop, jargs[JNODES], response);
     if (iretn < 0) {
         return iretn;
     }
 
+    // Initialize the simulator
+    prop.sim.Init(prop.startutc, prop.simdt);
 
-    return 0;
-}
-
-/// Run one iteration of the propagator
-/// \param output JSON-encoded string data for one iteration of the propagator
-/// \param arg The json string arguments for the initial propagator settings
-int32_t run_propagator(prop_unit& prop, string& response)
-{
-    //int32_t iretn;
-    response.clear();
-
-
-    double elapsed = 0;
-    while (elapsed < prop.runcount)
+    // Add all nodes
+    // Note, adding node automatically advances it to startutc
+    for (size_t i = 0; i < prop.nodes.size(); ++i)
     {
-        // Step forward in simulation
-        prop.sim.Propagate();
-
-        ++elapsed;
+        iretn = prop.sim.AddNode(prop.nodes[i], Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::None, Physics::Propagator::None, prop.initiallocs[i].pos.eci, prop.initiallocs[i].att.icrf);
+        if (iretn < 0)
+        {
+            response = "Error adding node " + prop.nodes[i] + ": " + cosmos_error_string(iretn);
+            return iretn;
+        }
     }
+
+    // Clear all unused vectors
+    prop.initiallocs.clear();
+    prop.nodes.clear();
 
     return 0;
 }
 
 /**
+ * @brief Run the propagator
+ * 
+ * The propagator object is initialized with the initial conditions specified in 
+ * the JSON string \a args.
+ * 
+ * @param prop prop_unit object to run simulation for
+ * @param response JSON-encoded string data for one iteration of the propagator
+ * @return int32_t 0 on success, negative on error
+ */
+int32_t run_propagator(prop_unit& prop, string& response)
+{
+    int32_t iretn;
+    response.clear();
+    // Array of all telem snapshots
+    json11::Json::array output;
+
+    // Push initial state to output
+    iretn = create_sim_snapshot(prop, output);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    double elapsed = 0;
+    while (elapsed < prop.runcount)
+    {
+        // Pre propagation step
+        // ...
+
+        // Step forward in simulation
+        prop.sim.Propagate();
+        iretn = prop.sim.GetError();
+        if (iretn < 0) {
+            response = "Error in Propagate(): " + cosmos_error_string(iretn);
+            return iretn;
+        }
+
+        // Post-propagation step
+        // ...
+        // Save results of new timestep to output
+        iretn = create_sim_snapshot(prop, output);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+
+        ++elapsed;
+    }
+
+    // Convert final JSON array to string and return
+    json11::Json final_output = json11::Json { output };
+    response = final_output.dump();
+
+    return 0;
+}
+
+////////////////////////////////////////////
+// VALIDATION FUNCTIONS
+////////////////////////////////////////////
+
+/**
  * @brief Validate args provided to propagator
  * 
- * @param prop 
- * @param jargs 
- * @param response 
- * @return int32_t 0 on success, negative on error
+ * Checks that all required fields are provided and are of the correct type.
+ * 
+ * @param jargs JSON-parsed object of JSON-string provided through command line.
+ * @param response Error message, if any.
+ * @return int32_t 0 on success, negative on error.
  */
 int32_t validate_json_args(const json11::Json& jargs, string& response)
 {
@@ -240,6 +322,15 @@ int32_t validate_json_args(const json11::Json& jargs, string& response)
     return 0;
 }
 
+/**
+ * @brief Validate initial node parameters
+ * 
+ * Checks that all required fields for initializing the node are provided and are of the correct type.
+ * 
+ * @param node JSON-parsed object in the array of nodes, from the nodes field of the JSON args.
+ * @param response Error messages, if any.
+ * @return int32_t 0 on success, negative on error.
+ */
 int32_t validate_json_node(const json11::Json& node, string& response)
 {
     if (node[JNAME].is_null()   // Name of the node
@@ -269,25 +360,86 @@ int32_t validate_json_node(const json11::Json& node, string& response)
             response = "Argument format error, all required elements for " + JECI + " must be provided.";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
+        if (!node[JPX].is_number()
+         || !node[JPY].is_number()
+         || !node[JPZ].is_number()
+         || !node[JVX].is_number()
+         || !node[JVY].is_number()
+         || !node[JVZ].is_number())
+        {
+            response = "Argument format error, all required elements for " + JECI + " must be numbers.";
+            return COSMOS_GENERAL_ERROR_ARGS;
+        }
     }
     else if (frame == JPHYS)
     {
-
+        if (node[JLAT].is_null()
+         || node[JLON].is_null()
+         || node[JALT].is_null()
+         || node[JANGLE].is_null())
+        {
+            response = "Argument format error, all required elements for " + JPHYS + " must be provided.";
+            return COSMOS_GENERAL_ERROR_ARGS;
+        }
+        if (!node[JLAT].is_number()
+         || !node[JLON].is_number()
+         || !node[JALT].is_number()
+         || !node[JANGLE].is_number())
+        {
+            response = "Argument format error, all required elements for " + JPHYS + " must be numbers.";
+            return COSMOS_GENERAL_ERROR_ARGS;
+        }
     }
     else if (frame == JKEP)
     {
-
+        if (node[JEA].is_null()
+         || node[JINC].is_null()
+         || node[JAP].is_null()
+         || node[JRAAN].is_null()
+         || node[JECC].is_null()
+         || node[JSMA].is_null())
+        {
+            response = "Argument format error, all required elements for " + JKEP + " must be provided.";
+            return COSMOS_GENERAL_ERROR_ARGS;
+        }
+        if (!node[JEA].is_number()
+         || !node[JINC].is_number()
+         || !node[JAP].is_number()
+         || !node[JRAAN].is_number()
+         || !node[JECC].is_number()
+         || !node[JSMA].is_number())
+        {
+            response = "Argument format error, all required elements for " + JKEP + " must be numbers.";
+            return COSMOS_GENERAL_ERROR_ARGS;
+        }
     }
     else
     {
         response = "Argument format error, " + JFRAME + " must be one of: " + JECI + ", " + JPHYS + ", or " + JKEP + ".";
         return COSMOS_GENERAL_ERROR_ARGS;
     }
+    if (!node[JUTC].is_null() && !node[JUTC].is_number())
+    {
+        response = "Argument format error, " + JUTC + " must be a number.";
+        return COSMOS_GENERAL_ERROR_ARGS;
+    }
 
     return 0;
 }
 
-int32_t prop_add_nodes(prop_unit& prop, const json11::Json& nodes, string& response)
+////////////////////////////////////////////
+// OTHER FUNCTIONS
+////////////////////////////////////////////
+
+/**
+ * @brief Parse initial node conditions from JSON
+ * 
+ * @param prop Propagator object
+ * @param nodes JSON-parsed array of nodes with initial conditions.
+ * @param response Error messages, if any.
+ * @return int32_t 0 on success, negative on error.
+ */
+int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& response)
 {
     int32_t iretn;
     response.clear();
@@ -295,70 +447,119 @@ int32_t prop_add_nodes(prop_unit& prop, const json11::Json& nodes, string& respo
     // Each array element is a node in the simulator
     for (const auto& node : nodes.array_items())
     {
+        // Check that all required fields are provided and are of the correct type
         iretn = validate_json_node(node, response);
         if (iretn < 0)
         {
             return iretn;
         }
+        double nodeutc = prop.startutc;
+        if (!node[JUTC].is_null())
+        {
+            nodeutc = node[JUTC].number_value();
+        }
 
-        /*
-        // Grab all values from the query
         Convert::locstruc initialloc;
-        initialloc.pos.eci.utc = el["utc"].number_value();
-        initialloc.pos.eci.s.col[0] = el["px"].number_value();
-        initialloc.pos.eci.s.col[1] = el["py"].number_value();
-        initialloc.pos.eci.s.col[2] = el["pz"].number_value();
-        initialloc.pos.eci.v.col[0] = el["vx"].number_value();
-        initialloc.pos.eci.v.col[1] = el["vy"].number_value();
-        initialloc.pos.eci.v.col[2] = el["vz"].number_value();
-        initialloc.pos.eci.pass++;
-        pos_eci(initialloc);
+        string frame = node[JFRAME].string_value();
+        if (frame == JECI)
+        {
+            initialloc.pos.eci.utc = nodeutc;
+            initialloc.pos.eci.s.col[0] = node[JPX].number_value();
+            initialloc.pos.eci.s.col[1] = node[JPY].number_value();
+            initialloc.pos.eci.s.col[2] = node[JPZ].number_value();
+            initialloc.pos.eci.v.col[0] = node[JVX].number_value();
+            initialloc.pos.eci.v.col[1] = node[JVY].number_value();
+            initialloc.pos.eci.v.col[2] = node[JVZ].number_value();
+            initialloc.pos.eci.pass++;
+            iretn = pos_eci(initialloc);
+            if (iretn < 0)
+            {
+                response = "Error in pos_eci() for node " + node[JNAME].string_value() + ", " + cosmos_error_string(iretn);
+                return iretn;
+            }
+        }
+        else if (frame == JPHYS)
+        {
+            initialloc = Physics::shape2eci(
+                nodeutc,
+                node[JLAT].number_value(),
+                node[JLON].number_value(),
+                node[JALT].number_value(),
+                node[JANGLE].number_value(),
+                0.
+            );
+        }
+        else if (frame == JKEP)
+        {
+            kepstruc kep;
+            kep.utc  = nodeutc;
+            kep.ea   = node[JEA].number_value();
+            kep.i    = node[JINC].number_value();
+            kep.ap   = node[JAP].number_value();
+            kep.raan = node[JRAAN].number_value();
+            kep.e    = node[JECC].number_value();
+            kep.a    = node[JSMA].number_value();
+            iretn = kep2eci(kep, initialloc.pos.eci);
+            if (iretn < 0)
+            {
+                response = "Error in kep2eci() for node " + node[JNAME].string_value() + ", " + cosmos_error_string(iretn);
+                return iretn;
+            }
+            initialloc.pos.eci.pass++;
+            iretn = pos_eci(initialloc);
+            if (iretn < 0)
+            {
+                response = "Error in pos_eci() for node " + node[JNAME].string_value() + ", " + cosmos_error_string(iretn);
+                return iretn;
+            }
+        }
+
         prop.initiallocs.push_back(initialloc);
-        prop.nodes.push_back(el["node_name"].string_value());
-        prop.startutc = std::max(prop.startutc, el["startUtc"].number_value());
-        if (!el[JRUNCOUNT].is_null())
-        {
-            prop.runcount = el[JRUNCOUNT].int_value();
-        }
-        // Optional argument for simdt
-        if (!jargs[JSIMDT].is_null())
-        {
-            prop.simdt = jargs[JSIMDT].number_value();
-        }
-
-        // Since propagating to startutc can take a long time, specify arbitrary
-        // time range limit, say, at most a week old data. (Which still can take a few seconds)
-        if (prop.startutc - el["utc"].number_value() > 7.)
-        {
-            // Time range error
-            cout << "Error in node <" << el["node_name"].string_value() << ">, must be at most a week old" << endl;
-            return 0;
-        }
-        if (el["utc"].number_value() > prop.startutc)
-        {
-            // Time range error
-            cout << "Error in node <" << el["node_name"].string_value() << ">, initialutc error, is in the future?" << endl;
-            return 0;
-        }*/
+        prop.nodes.push_back(node[JNAME].string_value());
+        prop.startutc = std::max(prop.startutc, nodeutc); // TODO: if initial backpropagating is possible, we don't need this line
     }
-    
-    // The goal is to predict a full orbit's worth of data starting at current time
-    // (i.e., +90min of current time)
-    prop.endutc = prop.startutc + prop.runcount/60/24.;
 
-    prop.sim.Init(prop.startutc, prop.simdt);
+    return 0;
+}
 
-    // Add all nodes
-    // Note, adding node automatically advances it to startutc
-    for (size_t i = 0; i < prop.nodes.size(); ++i)
+/**
+ * @brief Append a node telem JSON object containing desired telem fields to output
+ * 
+ * @param prop prop_unit object with current simulator state
+ * @param output Array to push nodes state to
+ * @return int32_t 
+ */
+int32_t create_sim_snapshot(const prop_unit& prop, json11::Json::array& output)
+{
+    for (auto sit = prop.sim.cnodes.begin(); sit != prop.sim.cnodes.end(); ++sit)
     {
-        iretn = prop.sim.AddNode(prop.nodes[i], Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::None, Physics::Propagator::None, prop.initiallocs[i].pos.eci, prop.initiallocs[i].att.icrf);
-        if (iretn < 0)
+        json11::Json::object node_telem;
+        node_telem[JNAME] = sit->first;
+        node_telem[JUTC] = sit->second->currentinfo.node.loc.pos.eci.utc;
+        // Iterate over user's desired telems, adding it to the output
+        for (auto t : prop.telem)
         {
-            printf("Error adding node %s: %s\n", prop.nodes[i].c_str(), cosmos_error_string(iretn).c_str());
-            response = cosmos_error_string(iretn).c_str();
-            return iretn;
-        }
-    }
+            if (t == JECIPOS) {
+                node_telem[JPX] = sit->second->currentinfo.node.loc.pos.eci.s.col[0];
+                node_telem[JPY] = sit->second->currentinfo.node.loc.pos.eci.s.col[1];
+                node_telem[JPZ] = sit->second->currentinfo.node.loc.pos.eci.s.col[2];
+            } else if (t == JECIVEL) {
+                node_telem[JVX] = sit->second->currentinfo.node.loc.pos.eci.v.col[0];
+                node_telem[JVY] = sit->second->currentinfo.node.loc.pos.eci.v.col[1];
+                node_telem[JVZ] = sit->second->currentinfo.node.loc.pos.eci.v.col[2];
+            } else if (t == JECIACC) {
+                node_telem[JAX] = sit->second->currentinfo.node.loc.pos.eci.a.col[0];
+                node_telem[JAY] = sit->second->currentinfo.node.loc.pos.eci.a.col[1];
+                node_telem[JAZ] = sit->second->currentinfo.node.loc.pos.eci.a.col[2];
+            } else if (t == JECIATT) {
+                node_telem[JATTX] = sit->second->currentinfo.node.loc.att.geoc.s.d.x;
+                node_telem[JATTY] = sit->second->currentinfo.node.loc.att.geoc.s.d.y;
+                node_telem[JATTZ] = sit->second->currentinfo.node.loc.att.geoc.s.d.z;
+                node_telem[JATTW] = sit->second->currentinfo.node.loc.att.geoc.s.w;
+            }
+        } // end telem for-loop
+        output.push_back(node_telem);
+    } // end sim node for-loop
+
     return 0;
 }
