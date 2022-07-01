@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 
     if (argc != 2)
     {
-        cerr << "Incorrect number of arguments" << endl;
+        cerr << "Incorrect number of arguments";
         return -1;
     }
     string args = string(argv[argc-1]);
@@ -104,19 +104,19 @@ int main(int argc, char *argv[])
     iretn = init_propagator(prop, args, response);
     if (iretn < 0)
     {
-        cerr << response << endl;
+        cerr << response;
         return iretn;
     }
 
     iretn = run_propagator(prop, response);
     if (iretn < 0)
     {
-        cerr << response << endl;
+        cerr << response;
         return iretn;
     }
 
     // Propagator run was a success
-    cout << response << endl;
+    cout << response;
 
     return 0;
 }
