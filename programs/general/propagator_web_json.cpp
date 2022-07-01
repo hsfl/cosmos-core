@@ -304,7 +304,7 @@ int32_t validate_json_args(const json11::Json& jargs, string& response)
             response = "Argument format error, " + JEND + " must be a number.";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
-        if (jargs[JSTART].number_value() <= jargs[JEND].number_value()) {
+        if (jargs[JSTART].number_value() >= jargs[JEND].number_value()) {
             response = "Argument error, " + JEND + " must be greater than " + JSTART + ".";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
