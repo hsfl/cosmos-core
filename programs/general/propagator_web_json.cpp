@@ -49,9 +49,11 @@ const string JSMA = "sma";
 const string JUTC = "utc";
 // Telem keys
 const string JMJD = "mjd";          // MJD timestamp
-const string JECIPOS = "ecipos";    // ECI Positions
-const string JECIVEL = "ecivel";    // ECI Velocities
-const string JECIACC = "eciacc";    // ECI Accelerations
+const string JPOSECI = "poseci";    // ECI Positions
+const string JVELECI = "veleci";    // ECI Velocities
+const string JACCECI = "acceci";    // ECI Accelerations
+const string JPOSKEP = "poskep";    // KEP Positions
+const string JPOSPHYS = "posphys";  // PHYS Positions
 const string JAX = "ax";
 const string JAY = "ay";
 const string JAZ = "az";
@@ -61,14 +63,30 @@ const string JATTY = "qy";
 const string JATTZ = "qz";
 const string JATTW = "qw";
 
+// Struct of all propagator types to use in simulation
+// Specify these with json args
+struct prop_types
+{
+    Physics::Structure::Type structure = Physics::Structure::NoType;
+    Physics::Propagator::Type position_prop = Physics::Propagator::None;
+    Physics::Propagator::Type attitude_prop = Physics::Propagator::None;
+    Physics::Propagator::Type thermal_prop = Physics::Propagator::None;
+    Physics::Propagator::Type electrical_prop = Physics::Propagator::None;
+};
+
+
+struct prop_node
+{
+    string name;
+    prop_types pt;
+    Convert::locstruc initialloc;
+};
 
 // Self-contained propagator unit
 struct prop_unit
 {
     Physics::Simulator sim;
-    vector<Convert::locstruc> initiallocs;
-    vector<string> nodes;
-    map<string, string> czmls;
+    vector<prop_node> nodes;
     double startutc = 0;
     double endutc;
     // Simulation time step
@@ -180,19 +198,18 @@ int32_t init_propagator(prop_unit& prop, const string& args, string& response)
 
     // Add all nodes
     // Note, adding node automatically advances it to startutc
-    for (size_t i = 0; i < prop.nodes.size(); ++i)
+    for (auto& node : prop.nodes)
     {
-        iretn = prop.sim.AddNode(prop.nodes[i], Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::None, Physics::Propagator::None, prop.initiallocs[i].pos.eci, prop.initiallocs[i].att.icrf);
+        node.pt.structure = Physics::Structure::U3;
+        node.pt.position_prop = Physics::Propagator::PositionGaussJackson;
+        node.pt.attitude_prop = Physics::Propagator::AttitudeLVLH;
+        iretn = prop.sim.AddNode(node.name, node.pt.structure, node.pt.position_prop, node.pt.attitude_prop, node.pt.thermal_prop, node.pt.electrical_prop, node.initialloc.pos.eci, node.initialloc.att.icrf);
         if (iretn < 0)
         {
-            response = "Error adding node " + prop.nodes[i] + ": " + cosmos_error_string(iretn);
+            response = "Error adding node " + node.name + ": " + cosmos_error_string(iretn);
             return iretn;
         }
     }
-
-    // Clear all unused vectors
-    prop.initiallocs.clear();
-    prop.nodes.clear();
 
     return 0;
 }
@@ -513,9 +530,10 @@ int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& res
                 return iretn;
             }
         }
-
-        prop.initiallocs.push_back(initialloc);
-        prop.nodes.push_back(node[JNAME].string_value());
+        prop_node new_node;
+        new_node.name = node[JNAME].string_value();
+        new_node.initialloc = initialloc;
+        prop.nodes.push_back(new_node);
         prop.startutc = std::max(prop.startutc, nodeutc); // TODO: if initial backpropagating is possible, we don't need this line
     }
 
@@ -539,15 +557,15 @@ int32_t create_sim_snapshot(const prop_unit& prop, json11::Json::array& output)
         // Iterate over user's desired telems, adding it to the output
         for (auto t : prop.telem)
         {
-            if (t == JECIPOS) {
+            if (t == JPOSECI) {
                 node_telem[JPX] = sit->second->currentinfo.node.loc.pos.eci.s.col[0];
                 node_telem[JPY] = sit->second->currentinfo.node.loc.pos.eci.s.col[1];
                 node_telem[JPZ] = sit->second->currentinfo.node.loc.pos.eci.s.col[2];
-            } else if (t == JECIVEL) {
+            } else if (t == JVELECI) {
                 node_telem[JVX] = sit->second->currentinfo.node.loc.pos.eci.v.col[0];
                 node_telem[JVY] = sit->second->currentinfo.node.loc.pos.eci.v.col[1];
                 node_telem[JVZ] = sit->second->currentinfo.node.loc.pos.eci.v.col[2];
-            } else if (t == JECIACC) {
+            } else if (t == JACCECI) {
                 node_telem[JAX] = sit->second->currentinfo.node.loc.pos.eci.a.col[0];
                 node_telem[JAY] = sit->second->currentinfo.node.loc.pos.eci.a.col[1];
                 node_telem[JAZ] = sit->second->currentinfo.node.loc.pos.eci.a.col[2];
