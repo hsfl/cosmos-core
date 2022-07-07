@@ -46,6 +46,8 @@ const string JRAAN = "raan";
 const string JECC = "ecc";
 const string JSMA = "sma";
 const string JUTC = "utc";
+const string JSHAPE = "shape";
+const string JPUSH = "push";
 // Telem keys
 const string JMJD = "mjd";          // MJD timestamp
 const string JPOSECI = "poseci";    // ECI Positions
@@ -79,6 +81,8 @@ struct prop_node
     string name;
     prop_types pt;
     Convert::locstruc initialloc;
+    vector<double> push;
+    string shape;
 };
 
 // Self-contained propagator unit
@@ -199,7 +203,6 @@ int32_t init_propagator(prop_unit& prop, const string& args, string& response)
     // Note, adding node automatically advances it to startutc
     for (auto& node : prop.nodes)
     {
-        node.pt.structure = Physics::Structure::U3;
         node.pt.position_prop = Physics::Propagator::PositionGaussJackson;
         node.pt.attitude_prop = Physics::Propagator::AttitudeLVLH;
         iretn = prop.sim.AddNode(node.name, node.pt.structure, node.pt.position_prop, node.pt.attitude_prop, node.pt.thermal_prop, node.pt.electrical_prop, node.initialloc.pos.eci, node.initialloc.att.icrf);
@@ -208,6 +211,17 @@ int32_t init_propagator(prop_unit& prop, const string& args, string& response)
             response = "Error adding node " + node.name + ": " + cosmos_error_string(iretn);
             return iretn;
         }
+
+        // Apply push
+        auto sit = prop.sim.cnodes.find(node.name);
+        if (sit == prop.sim.cnodes.end())
+        {
+            response = "Error at cnodes.find(" + node.name + "): " + cosmos_error_string(iretn);
+            return COSMOS_GENERAL_ERROR_OUTOFRANGE;
+        }
+        sit->second->currentinfo.node.phys.fpush.x = sit->second->currentinfo.node.phys.mass * node.push[0];
+        sit->second->currentinfo.node.phys.fpush.y = sit->second->currentinfo.node.phys.mass * node.push[1];
+        sit->second->currentinfo.node.phys.fpush.z = sit->second->currentinfo.node.phys.mass * node.push[2];
     }
 
     return 0;
@@ -402,7 +416,7 @@ int32_t validate_json_node(const json11::Json& node, string& response)
          || !node[frames.front()][JVY].is_number()
          || !node[frames.front()][JVZ].is_number())
         {
-            response = "Argument format error, all required elements for " + JECI + " must be numbers.";
+            response = "Argument format error, all keys for " + JECI + " must be numbers.";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
     }
@@ -421,7 +435,7 @@ int32_t validate_json_node(const json11::Json& node, string& response)
          || !node[frames.front()][JALT].is_number()
          || !node[frames.front()][JANGLE].is_number())
         {
-            response = "Argument format error, all required elements for " + JPHYS + " must be numbers.";
+            response = "Argument format error, all keys for " + JPHYS + " must be numbers.";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
     }
@@ -434,7 +448,7 @@ int32_t validate_json_node(const json11::Json& node, string& response)
          || node[frames.front()][JECC].is_null()
          || node[frames.front()][JSMA].is_null())
         {
-            response = "Argument format error, not all keys forr " + JKEP + " were provided.";
+            response = "Argument format error, not all keys for " + JKEP + " were provided.";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
         if (!node[frames.front()][JEA].is_number()
@@ -444,7 +458,7 @@ int32_t validate_json_node(const json11::Json& node, string& response)
          || !node[frames.front()][JECC].is_number()
          || !node[frames.front()][JSMA].is_number())
         {
-            response = "Argument format error, all required elements for " + JKEP + " must be numbers.";
+            response = "Argument format error, all keys for " + JKEP + " must be numbers.";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
     }
@@ -460,6 +474,35 @@ int32_t validate_json_node(const json11::Json& node, string& response)
         return COSMOS_GENERAL_ERROR_ARGS;
     }
 
+    if (!node[JSHAPE].is_null() && !node[JSHAPE].is_string())
+    {
+        response = "Argument format error, " + JSHAPE + " must be a string.";
+        return COSMOS_GENERAL_ERROR_ARGS;
+    }
+
+    if (!node[JPUSH].is_null())
+    {
+        if (!node[JPUSH].is_object())
+        {
+            response = "Argument format error, " + JPUSH + " must be a dict.";
+            return COSMOS_GENERAL_ERROR_ARGS;
+        }
+        if (node[JPUSH][JAX].is_null()
+         || node[JPUSH][JAY].is_null()
+         || node[JPUSH][JAZ].is_null())
+        {
+            response = "Argument format error, not all keys for " + JPUSH + " were provided.";
+            return COSMOS_GENERAL_ERROR_ARGS;
+        }
+        if (!node[JPUSH][JAX].is_number()
+         || !node[JPUSH][JAY].is_number()
+         || !node[JPUSH][JAZ].is_number())
+        {
+            response = "Argument format error, keys for " + JPUSH + " must be numbers.";
+            return COSMOS_GENERAL_ERROR_ARGS;
+        }
+    }
+
     return 0;
 }
 
@@ -469,6 +512,8 @@ int32_t validate_json_node(const json11::Json& node, string& response)
 
 /**
  * @brief Parse initial node conditions from JSON
+ * 
+ * Call validate_json_node() first.
  * 
  * @param prop Propagator object
  * @param nodes JSON-parsed array of nodes with initial conditions.
@@ -483,6 +528,9 @@ int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& res
     // Each array element is a node in the simulator
     for (const auto& node : nodes.array_items())
     {
+        prop_node new_node;
+        new_node.name = node[JNAME].string_value();
+
         // Check that all required fields are provided and are of the correct type
         iretn = validate_json_node(node, response);
         if (iretn < 0)
@@ -552,9 +600,34 @@ int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& res
             response = "Argument format error, frame is not provided.";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
-        prop_node new_node;
-        new_node.name = node[JNAME].string_value();
+        
         new_node.initialloc = initialloc;
+
+        new_node.push.push_back(node[JPUSH][JAX].number_value());
+        new_node.push.push_back(node[JPUSH][JAY].number_value());
+        new_node.push.push_back(node[JPUSH][JAZ].number_value());
+
+        // TODO: add more rigorous constraints to shape
+        if (!node[JSHAPE].is_null()) {
+            if (node[JSHAPE].string_value() == "U1") {
+                new_node.pt.structure = Physics::Structure::U1;
+            } else if (node[JSHAPE].string_value() == "U2") {
+                new_node.pt.structure = Physics::Structure::U2;
+            } else if (node[JSHAPE].string_value() == "U3") {
+                new_node.pt.structure = Physics::Structure::U3;
+            } else if (node[JSHAPE].string_value() == "U6") {
+                new_node.pt.structure = Physics::Structure::U6;
+            } else if (node[JSHAPE].string_value() == "U12") {
+                new_node.pt.structure = Physics::Structure::U12;
+            } else {
+                response = "Argument format error, " + JSHAPE + " " + node[JSHAPE].string_value() + " is not supported.";
+                return COSMOS_GENERAL_ERROR_ARGS;
+            }
+        } else {
+            new_node.pt.structure = Physics::Structure::U3;
+        }
+        
+
         prop.nodes.push_back(new_node);
         prop.startutc = std::max(prop.startutc, nodeutc); // TODO: if initial backpropagating is possible, we don't need this line
     }
