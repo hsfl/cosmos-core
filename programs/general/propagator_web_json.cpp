@@ -26,7 +26,6 @@ const string JTELEM = "telem";
 const string JNODES = "nodes";
 // For JSON keys in node
 const string JNAME = "name";
-const string JFRAME = "frame";
 const string JECI = "eci";
 const string JKEP = "kep";
 const string JPHYS = "phys";
@@ -350,81 +349,100 @@ int32_t validate_json_args(const json11::Json& jargs, string& response)
  */
 int32_t validate_json_node(const json11::Json& node, string& response)
 {
-    if (node[JNAME].is_null()   // Name of the node
-    || node[JFRAME].is_null())  // The frame of reference to be used to initialize node position and orbit
+    if (node[JNAME].is_null())   // Name of the node
     {
-        response = "Argument format error, all required node fields must be provided.";
+        response = "Argument format error, " + JNAME + " must be provided.";
         return COSMOS_GENERAL_ERROR_ARGS;
     }
     if (!node[JNAME].is_string()) {
         response = "Argument format error, " + JNAME + " name must be a string.";
         return COSMOS_GENERAL_ERROR_ARGS;
     }
-    if (!node[JFRAME].is_string()) {
-        response = "Argument format error, " + JFRAME + " must be a string.";
+    vector<string> frames;
+    if (!node[JECI].is_null()) {
+        frames.push_back(JECI);
+    }
+    if (!node[JPHYS].is_null()) {
+        frames.push_back(JPHYS);
+    }
+    if (!node[JKEP].is_null()) {
+        frames.push_back(JKEP);
+    }
+    if (frames.size() < 1) {
+        response = "Argument format error, frame was not provided.";
+        return COSMOS_GENERAL_ERROR_ARGS;
+    } else if (frames.size() > 1) {
+        response = "Argument format error, more than one frame detected: ";
+        for (string frame : frames) {
+            response += frame + ", ";
+        }
+        response.erase(response.size()-2);
         return COSMOS_GENERAL_ERROR_ARGS;
     }
-    string frame = node[JFRAME].string_value();
-    if (frame == JECI)
+    if (!node[frames.front()].is_object()) {
+        response = "Argument format error, frame must be a dict.";
+        return COSMOS_GENERAL_ERROR_ARGS;
+    }
+    if (frames.front() == JECI)
     {
-        if (node[JPX].is_null()
-         || node[JPY].is_null()
-         || node[JPZ].is_null()
-         || node[JVX].is_null()
-         || node[JVY].is_null()
-         || node[JVZ].is_null())
+        if (node[frames.front()][JPX].is_null()
+         || node[frames.front()][JPY].is_null()
+         || node[frames.front()][JPZ].is_null()
+         || node[frames.front()][JVX].is_null()
+         || node[frames.front()][JVY].is_null()
+         || node[frames.front()][JVZ].is_null())
         {
-            response = "Argument format error, all required elements for " + JECI + " must be provided.";
+            response = "Argument format error, not all keys for " + JECI + " were provided.";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
-        if (!node[JPX].is_number()
-         || !node[JPY].is_number()
-         || !node[JPZ].is_number()
-         || !node[JVX].is_number()
-         || !node[JVY].is_number()
-         || !node[JVZ].is_number())
+        if (!node[frames.front()][JPX].is_number()
+         || !node[frames.front()][JPY].is_number()
+         || !node[frames.front()][JPZ].is_number()
+         || !node[frames.front()][JVX].is_number()
+         || !node[frames.front()][JVY].is_number()
+         || !node[frames.front()][JVZ].is_number())
         {
             response = "Argument format error, all required elements for " + JECI + " must be numbers.";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
     }
-    else if (frame == JPHYS)
+    else if (frames.front() == JPHYS)
     {
-        if (node[JLAT].is_null()
-         || node[JLON].is_null()
-         || node[JALT].is_null()
-         || node[JANGLE].is_null())
+        if (node[frames.front()][JLAT].is_null()
+         || node[frames.front()][JLON].is_null()
+         || node[frames.front()][JALT].is_null()
+         || node[frames.front()][JANGLE].is_null())
         {
-            response = "Argument format error, all required elements for " + JPHYS + " must be provided.";
+            response = "Argument format error, not all keys for " + JPHYS + " were provided.";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
-        if (!node[JLAT].is_number()
-         || !node[JLON].is_number()
-         || !node[JALT].is_number()
-         || !node[JANGLE].is_number())
+        if (!node[frames.front()][JLAT].is_number()
+         || !node[frames.front()][JLON].is_number()
+         || !node[frames.front()][JALT].is_number()
+         || !node[frames.front()][JANGLE].is_number())
         {
             response = "Argument format error, all required elements for " + JPHYS + " must be numbers.";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
     }
-    else if (frame == JKEP)
+    else if (frames.front() == JKEP)
     {
-        if (node[JEA].is_null()
-         || node[JINC].is_null()
-         || node[JAP].is_null()
-         || node[JRAAN].is_null()
-         || node[JECC].is_null()
-         || node[JSMA].is_null())
+        if (node[frames.front()][JEA].is_null()
+         || node[frames.front()][JINC].is_null()
+         || node[frames.front()][JAP].is_null()
+         || node[frames.front()][JRAAN].is_null()
+         || node[frames.front()][JECC].is_null()
+         || node[frames.front()][JSMA].is_null())
         {
-            response = "Argument format error, all required elements for " + JKEP + " must be provided.";
+            response = "Argument format error, not all keys forr " + JKEP + " were provided.";
             return COSMOS_GENERAL_ERROR_ARGS;
         }
-        if (!node[JEA].is_number()
-         || !node[JINC].is_number()
-         || !node[JAP].is_number()
-         || !node[JRAAN].is_number()
-         || !node[JECC].is_number()
-         || !node[JSMA].is_number())
+        if (!node[frames.front()][JEA].is_number()
+         || !node[frames.front()][JINC].is_number()
+         || !node[frames.front()][JAP].is_number()
+         || !node[frames.front()][JRAAN].is_number()
+         || !node[frames.front()][JECC].is_number()
+         || !node[frames.front()][JSMA].is_number())
         {
             response = "Argument format error, all required elements for " + JKEP + " must be numbers.";
             return COSMOS_GENERAL_ERROR_ARGS;
@@ -432,9 +450,10 @@ int32_t validate_json_node(const json11::Json& node, string& response)
     }
     else
     {
-        response = "Argument format error, " + JFRAME + " must be one of: " + JECI + ", " + JPHYS + ", or " + JKEP + ".";
+        response = "Strange error at frames.front()";
         return COSMOS_GENERAL_ERROR_ARGS;
     }
+
     if (!node[JUTC].is_null() && !node[JUTC].is_number())
     {
         response = "Argument format error, " + JUTC + " must be a number.";
@@ -477,16 +496,15 @@ int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& res
         }
 
         Convert::locstruc initialloc;
-        string frame = node[JFRAME].string_value();
-        if (frame == JECI)
+        if (!node[JECI].is_null())
         {
             initialloc.pos.eci.utc = nodeutc;
-            initialloc.pos.eci.s.col[0] = node[JPX].number_value();
-            initialloc.pos.eci.s.col[1] = node[JPY].number_value();
-            initialloc.pos.eci.s.col[2] = node[JPZ].number_value();
-            initialloc.pos.eci.v.col[0] = node[JVX].number_value();
-            initialloc.pos.eci.v.col[1] = node[JVY].number_value();
-            initialloc.pos.eci.v.col[2] = node[JVZ].number_value();
+            initialloc.pos.eci.s.col[0] = node[JECI][JPX].number_value();
+            initialloc.pos.eci.s.col[1] = node[JECI][JPY].number_value();
+            initialloc.pos.eci.s.col[2] = node[JECI][JPZ].number_value();
+            initialloc.pos.eci.v.col[0] = node[JECI][JVX].number_value();
+            initialloc.pos.eci.v.col[1] = node[JECI][JVY].number_value();
+            initialloc.pos.eci.v.col[2] = node[JECI][JVZ].number_value();
             initialloc.pos.eci.pass++;
             iretn = pos_eci(initialloc);
             if (iretn < 0)
@@ -495,27 +513,27 @@ int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& res
                 return iretn;
             }
         }
-        else if (frame == JPHYS)
+        else if (!node[JPHYS].is_null())
         {
             initialloc = Physics::shape2eci(
                 nodeutc,
-                node[JLAT].number_value(),
-                node[JLON].number_value(),
-                node[JALT].number_value(),
-                node[JANGLE].number_value(),
+                node[JPHYS][JLAT].number_value(),
+                node[JPHYS][JLON].number_value(),
+                node[JPHYS][JALT].number_value(),
+                node[JPHYS][JANGLE].number_value(),
                 0.
             );
         }
-        else if (frame == JKEP)
+        else if (!node[JKEP].is_null())
         {
             kepstruc kep;
             kep.utc  = nodeutc;
-            kep.ea   = node[JEA].number_value();
-            kep.i    = node[JINC].number_value();
-            kep.ap   = node[JAP].number_value();
-            kep.raan = node[JRAAN].number_value();
-            kep.e    = node[JECC].number_value();
-            kep.a    = node[JSMA].number_value();
+            kep.ea   = node[JKEP][JEA].number_value();
+            kep.i    = node[JKEP][JINC].number_value();
+            kep.ap   = node[JKEP][JAP].number_value();
+            kep.raan = node[JKEP][JRAAN].number_value();
+            kep.e    = node[JKEP][JECC].number_value();
+            kep.a    = node[JKEP][JSMA].number_value();
             iretn = kep2eci(kep, initialloc.pos.eci);
             if (iretn < 0)
             {
@@ -529,6 +547,10 @@ int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& res
                 response = "Error in pos_eci() for node " + node[JNAME].string_value() + ", " + cosmos_error_string(iretn);
                 return iretn;
             }
+        }
+        else {
+            response = "Argument format error, frame is not provided.";
+            return COSMOS_GENERAL_ERROR_ARGS;
         }
         prop_node new_node;
         new_node.name = node[JNAME].string_value();
@@ -555,39 +577,51 @@ int32_t create_sim_snapshot(const prop_unit& prop, json11::Json::array& output)
         node_telem[JNAME] = sit->first;
         node_telem[JUTC] = sit->second->currentinfo.node.loc.pos.eci.utc;
         // Iterate over user's desired telems, adding it to the output
-        for (auto t : prop.telem)
+        for (string t : prop.telem)
         {
             if (t == JPOSECI) {
-                node_telem[JPX] = sit->second->currentinfo.node.loc.pos.eci.s.col[0];
-                node_telem[JPY] = sit->second->currentinfo.node.loc.pos.eci.s.col[1];
-                node_telem[JPZ] = sit->second->currentinfo.node.loc.pos.eci.s.col[2];
+                json11::Json::object eci_telem = node_telem[JECI].object_items();
+                eci_telem[JPX] = sit->second->currentinfo.node.loc.pos.eci.s.col[0];
+                eci_telem[JPY] = sit->second->currentinfo.node.loc.pos.eci.s.col[1];
+                eci_telem[JPZ] = sit->second->currentinfo.node.loc.pos.eci.s.col[2];
+                node_telem[JECI] = eci_telem;
             } else if (t == JVELECI) {
-                node_telem[JVX] = sit->second->currentinfo.node.loc.pos.eci.v.col[0];
-                node_telem[JVY] = sit->second->currentinfo.node.loc.pos.eci.v.col[1];
-                node_telem[JVZ] = sit->second->currentinfo.node.loc.pos.eci.v.col[2];
+                json11::Json::object eci_telem(node_telem[JECI].object_items());
+                eci_telem[JVX] = sit->second->currentinfo.node.loc.pos.eci.v.col[0];
+                eci_telem[JVY] = sit->second->currentinfo.node.loc.pos.eci.v.col[1];
+                eci_telem[JVZ] = sit->second->currentinfo.node.loc.pos.eci.v.col[2];
+                node_telem[JECI] = eci_telem;
             } else if (t == JACCECI) {
-                node_telem[JAX] = sit->second->currentinfo.node.loc.pos.eci.a.col[0];
-                node_telem[JAY] = sit->second->currentinfo.node.loc.pos.eci.a.col[1];
-                node_telem[JAZ] = sit->second->currentinfo.node.loc.pos.eci.a.col[2];
+                json11::Json::object eci_telem = node_telem[JECI].object_items();
+                eci_telem[JAX] = sit->second->currentinfo.node.loc.pos.eci.a.col[0];
+                eci_telem[JAY] = sit->second->currentinfo.node.loc.pos.eci.a.col[1];
+                eci_telem[JAZ] = sit->second->currentinfo.node.loc.pos.eci.a.col[2];
+                node_telem[JECI] = eci_telem;
             } else if (t == JATTECI) {
+                json11::Json::object eci_telem = node_telem[JECI].object_items();
                 // TODO: double check that att.geoc is correct for eci attitude
-                node_telem[JATTX] = sit->second->currentinfo.node.loc.att.geoc.s.d.x;
-                node_telem[JATTY] = sit->second->currentinfo.node.loc.att.geoc.s.d.y;
-                node_telem[JATTZ] = sit->second->currentinfo.node.loc.att.geoc.s.d.z;
-                node_telem[JATTW] = sit->second->currentinfo.node.loc.att.geoc.s.w;
+                eci_telem[JATTX] = sit->second->currentinfo.node.loc.att.geoc.s.d.x;
+                eci_telem[JATTY] = sit->second->currentinfo.node.loc.att.geoc.s.d.y;
+                eci_telem[JATTZ] = sit->second->currentinfo.node.loc.att.geoc.s.d.z;
+                eci_telem[JATTW] = sit->second->currentinfo.node.loc.att.geoc.s.w;
+                node_telem[JECI] = eci_telem;
             } else if (t == JPOSPHYS) {
-                node_telem[JLAT] = sit->second->currentinfo.node.loc.pos.geod.s.lat;
-                node_telem[JLON] = sit->second->currentinfo.node.loc.pos.geod.s.lon;
-                node_telem[JALT] = sit->second->currentinfo.node.loc.pos.geod.s.h;
+                json11::Json::object phys_telem = node_telem[JPHYS].object_items();
+                phys_telem[JLAT] = sit->second->currentinfo.node.loc.pos.geod.s.lat;
+                phys_telem[JLON] = sit->second->currentinfo.node.loc.pos.geod.s.lon;
+                phys_telem[JALT] = sit->second->currentinfo.node.loc.pos.geod.s.h;
+                node_telem[JPHYS] = phys_telem;
             } else if (t == JPOSKEP) {
+                json11::Json::object kep_telem = node_telem[JKEP].object_items();
                 Convert::kepstruc kep;
                 Convert::eci2kep(sit->second->currentinfo.node.loc.pos.eci, kep);
-                node_telem[JEA] = kep.ea;
-                node_telem[JINC] = kep.i;
-                node_telem[JAP] = kep.ap;
-                node_telem[JRAAN] = kep.raan;
-                node_telem[JECC] = kep.e;
-                node_telem[JSMA] = kep.a;
+                kep_telem[JEA] = kep.ea;
+                kep_telem[JINC] = kep.i;
+                kep_telem[JAP] = kep.ap;
+                kep_telem[JRAAN] = kep.raan;
+                kep_telem[JECC] = kep.e;
+                kep_telem[JSMA] = kep.a;
+                node_telem[JKEP] = kep_telem;
             }
         } // end telem for-loop
         output.push_back(node_telem);
