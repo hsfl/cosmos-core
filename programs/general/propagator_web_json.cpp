@@ -12,7 +12,7 @@ using namespace Convert;
  * formatted orbital data.
  * 
  * example usage:
- * ./propagator_web_json '{"start":59270,"runcount":5,"simdt":60,"telem":"ecipos,eciatt","nodes":[{"name":"node0","frame":"phys", "lat":0.371876,"lon":-2.755147,"alt":400000,"angle":0.942478}]}'
+ * ./propagator_web_json '{"start":59270,"runcount":5,"simdt":60,"telem":"poseci","nodes":[{"name":"node0","phys":{"lat":0.371876,"lon":-2.755147,"alt":400000,"angle":0.942478}}]}'
  */
 
 const int precision = 3;
