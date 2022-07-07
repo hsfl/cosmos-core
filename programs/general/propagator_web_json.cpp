@@ -57,7 +57,7 @@ const string JPOSPHYS = "posphys";  // PHYS Positions
 const string JAX = "ax";
 const string JAY = "ay";
 const string JAZ = "az";
-const string JECIATT = "eciatt";    // ECI Attitude
+const string JATTECI = "atteci";    // ECI Attitude
 const string JATTX = "qx";
 const string JATTY = "qy";
 const string JATTZ = "qz";
@@ -569,11 +569,25 @@ int32_t create_sim_snapshot(const prop_unit& prop, json11::Json::array& output)
                 node_telem[JAX] = sit->second->currentinfo.node.loc.pos.eci.a.col[0];
                 node_telem[JAY] = sit->second->currentinfo.node.loc.pos.eci.a.col[1];
                 node_telem[JAZ] = sit->second->currentinfo.node.loc.pos.eci.a.col[2];
-            } else if (t == JECIATT) {
+            } else if (t == JATTECI) {
+                // TODO: double check that att.geoc is correct for eci attitude
                 node_telem[JATTX] = sit->second->currentinfo.node.loc.att.geoc.s.d.x;
                 node_telem[JATTY] = sit->second->currentinfo.node.loc.att.geoc.s.d.y;
                 node_telem[JATTZ] = sit->second->currentinfo.node.loc.att.geoc.s.d.z;
                 node_telem[JATTW] = sit->second->currentinfo.node.loc.att.geoc.s.w;
+            } else if (t == JPOSPHYS) {
+                node_telem[JLAT] = sit->second->currentinfo.node.loc.pos.geod.s.lat;
+                node_telem[JLON] = sit->second->currentinfo.node.loc.pos.geod.s.lon;
+                node_telem[JALT] = sit->second->currentinfo.node.loc.pos.geod.s.h;
+            } else if (t == JPOSKEP) {
+                Convert::kepstruc kep;
+                Convert::eci2kep(sit->second->currentinfo.node.loc.pos.eci, kep);
+                node_telem[JEA] = kep.ea;
+                node_telem[JINC] = kep.i;
+                node_telem[JAP] = kep.ap;
+                node_telem[JRAAN] = kep.raan;
+                node_telem[JECC] = kep.e;
+                node_telem[JSMA] = kep.a;
             }
         } // end telem for-loop
         output.push_back(node_telem);
