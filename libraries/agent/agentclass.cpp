@@ -1878,9 +1878,8 @@ namespace Cosmos
                         }
                     }
                     packet.data.resize(3);
-                    packet.data[0] = channelin;
-                    packet.data[1] = btype;
-                    packet.data[2] = bcount;
+                    packet.data[0] = btype;
+                    packet.data[1] = bcount;
                 }
                 break;
             case PacketComm::TypeId::CommandClearQueue:
