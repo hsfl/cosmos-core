@@ -1877,11 +1877,9 @@ namespace Cosmos
                             bcount = stoi(parms[1]);
                         }
                     }
-                    packet.data.resize(2);
+                    packet.data.resize(3);
                     packet.data[0] = btype;
                     packet.data[1] = bcount;
-                    printf("Agent: SendBeacon %u %u %u\n", channelin, btype, bcount);
-                    fflush(stdout);
                 }
                 break;
             case PacketComm::TypeId::CommandClearQueue:
