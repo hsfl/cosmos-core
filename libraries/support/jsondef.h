@@ -2331,7 +2331,7 @@ union as a ::devicestruc.
             //! Current Voltage
             float volt = 0.f; // TODO: rename to voltage
             //! Current Power
-            float power = 0.f; // TODO: rename to voltage
+            float power = 0.f;
             //! Total energy usage
             float energy = 0.f;
             //! Current data rate
@@ -5166,6 +5166,10 @@ information.
                         total += jmap[i][j].memoryusage();
                     }
                 }
+                for (auto &entry : ujmap)
+                {
+                    total += entry.second.memoryusage();
+                }
                 for (size_t i=0; i<emap.size(); ++i)
                 {
                     for (size_t j=0; j<emap[i].size(); ++j)
@@ -5252,6 +5256,10 @@ information.
                         jmap[i][j].shrinkusage();
                     }
                 }
+                for (auto &entry : ujmap)
+                {
+                    entry.second.shrinkusage();
+                }
                 for (size_t i=0; i<emap.size(); ++i)
                 {
                     for (size_t j=0; j<emap[i].size(); ++j)
@@ -5321,9 +5329,11 @@ information.
 
             //! Whether JSON map has been created.
             uint16_t jmapped = 0;
+            uint16_t ujmapped = 0;
 
             //! JSON Namespace Map matrix. first entry hash, second is items with that hash
             vector<vector<jsonentry> > jmap; // depricate me!
+            unordered_map<string, jsonentry> ujmap;
 
             //! JSON Equation Map matrix.
             vector<vector<jsonequation> > emap; // depricate me?
@@ -5903,6 +5913,7 @@ information.
 
                 // uint16_t jmapped
                 add_name("jmapped", &jmapped, "uint16_t");
+                add_name("ujmapped", &ujmapped, "uint16_t");
 
                 // vector<vector<unitstruc>> unit
                 add_name("unit", &unit, "vector<vector<unitstruc>>");
@@ -10057,6 +10068,7 @@ information.
                 return json11::Json::object {
                     { "timestamp" , timestamp },
                     { "jmapped" , jmapped },
+                    { "ujmapped" , ujmapped },
                     { "unit" , unit },
                     { "equation" , equation },
                     { "node" , node },
@@ -10088,6 +10100,7 @@ information.
                 if(error.empty()) {
                     if (!p["timestamp"].is_null()) { timestamp = p["timestamp"].number_value(); }
                     if (!p["jmapped"].is_null()) { jmapped = p["jmapped"].number_value(); }
+                    if (!p["ujmapped"].is_null()) { ujmapped = p["ujmapped"].number_value(); }
                     for (size_t i = 0; i < unit.size(); ++i) {
                         for (size_t j = 0; j < unit[i].size(); ++j) {
                             if (!p["unit"][i][j].is_null()) { unit[i][j].from_json(p["unit"][i][j].dump()); }

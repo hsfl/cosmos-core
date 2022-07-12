@@ -124,6 +124,8 @@ using std::istringstream;
 #include <map>
 using std::map;
 using std::pair;
+#include <unordered_map>
+using std::unordered_map;
 #include <list>
 using std::list;
 #include <limits>
