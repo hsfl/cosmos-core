@@ -237,7 +237,7 @@ vector<uint8_t> from_hex_string(string hex)
     return bytes;
 }
 
-vector<uint8_t> from_hex_string(vector<uint8_t> hex)
+vector<uint8_t> from_hex_vector(vector<uint8_t> hex)
 {
     vector<uint8_t> bytes;
     for (uint16_t ib=0; ib<hex.size()/2; ++ib)
