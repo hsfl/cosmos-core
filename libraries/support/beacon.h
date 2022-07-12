@@ -254,21 +254,23 @@ namespace Cosmos {
                 uint16_t ctemp = 0.;
             } ;
 
+            static constexpr uint8_t cpu_count = 180 / sizeof(cpu_beacon);
             struct __attribute__ ((packed)) cpus_beacon
             {
                 uint8_t type = 110;
                 float met = 0.;
                 uint32_t initialdate = 0;
-                cpu_beacon cpu[10];
+                cpu_beacon cpu[cpu_count];
 //                double last_updated;
 //                double last_sent;
             };
 
+            static constexpr uint8_t tsen_count = 180 / sizeof(uint16_t);
             struct __attribute__ ((packed)) tsen_beacon
             {
                 uint8_t type = 120;
                 float met = 0.;
-                uint16_t ctemp[20] = {0};
+                uint16_t ctemp[tsen_count] = {0};
             } ;
 
             struct __attribute__ ((packed)) epsbcreg_beacon
@@ -277,11 +279,12 @@ namespace Cosmos {
                 int16_t mamp = 0.;
             } ;
 
+            static constexpr uint8_t epsbcreg_count = 180 / sizeof(epsbcreg_beacon);
             struct __attribute__ ((packed)) epsbcregs_beacon
             {
                 uint8_t type = 130;
                 float met = 0.;
-                epsbcreg_beacon bcreg[20];
+                epsbcreg_beacon bcreg[epsbcreg_count];
             };
 
             struct __attribute__ ((packed)) epsswch_beacon
@@ -290,11 +293,12 @@ namespace Cosmos {
                 int16_t mamp = 0.;
             } ;
 
+            static constexpr uint8_t epsswch_count = 180 / sizeof(epsswch_beacon);
             struct __attribute__ ((packed)) epsswchs_beacon
             {
                 uint8_t type = 131;
                 float met = 0.;
-                epsswch_beacon swch[60];
+                epsswch_beacon swch[epsswch_count];
             };
 
 //            struct __attribute__ ((packed)) epsswch2_beacon
@@ -312,11 +316,12 @@ namespace Cosmos {
                 uint16_t ctemp = 0.;
             } ;
 
+            static constexpr uint8_t epsbatt_count = 180 / sizeof(epsbatt_beacon);
             struct __attribute__ ((packed)) epsbatts_beacon
             {
                 uint8_t type = 133;
                 float met = 0.;
-                epsbatt_beacon batt[10];
+                epsbatt_beacon batt[epsbatt_count];
             };
 
             struct __attribute__ ((packed)) adcsmtr_beacon
@@ -325,26 +330,28 @@ namespace Cosmos {
                 float align[4] = {0.};
             };
 
-            struct __attribute__ ((packed)) adcsmtr1_beacon
+            static constexpr uint8_t adcsmtr_count = 180 / sizeof(adcsmtr_beacon);
+            struct __attribute__ ((packed)) adcsmtrs_beacon
             {
                 uint8_t type = 140;
                 float met = 0.;
-                adcsmtr_beacon mtr[3];
+                adcsmtr_beacon mtr[adcsmtr_count];
             };
 
             struct __attribute__ ((packed)) adcsrw_beacon
             {
                 float omega = 0.;
                 float alpha = 0.;
-                float moi[3] = {0.};
-                float align[4] = {0.};
+//                float moi[3] = {0.};
+//                float align[4] = {0.};
             };
 
-            struct __attribute__ ((packed)) adcsrw1_beacon
+            static constexpr uint8_t adcsrw_count = 180 / sizeof(adcsrw_beacon);
+            struct __attribute__ ((packed)) adcsrws_beacon
             {
                 uint8_t type = 141;
                 float met = 0.;
-                adcsrw_beacon rw[4];
+                adcsrw_beacon rw[adcsrw_count];
             };
 
             struct __attribute__ ((packed)) adcsimu_beacon
@@ -358,11 +365,12 @@ namespace Cosmos {
                 float align[4] = {0.};
             };
 
+            static constexpr uint8_t adcsimu_count = 180 / sizeof(adcsimu_beacon);
             struct __attribute__ ((packed)) adcsimu1_beacon
             {
                 uint8_t type = 142;
                 float met = 0.;
-                adcsimu_beacon imu[3];
+                adcsimu_beacon imu[adcsimu_count];
             };
 
             struct __attribute__ ((packed)) adcsgps_beacon

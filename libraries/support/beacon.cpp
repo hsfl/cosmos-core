@@ -135,12 +135,12 @@ namespace Cosmos {
                 }
                 break;
             case TypeId::CPUBeaconL:
-                if (cinfo->devspec.cpu.size() && cinfo->devspec.disk.size())
+                if (cinfo->devspec.cpu.size())
                 {
                     cpus_beacon beacon;
                     beacon.met = cinfo->node.met;
                     beacon.initialdate = cinfo->node.utcstart;
-                    uint16_t cpucount = cinfo->devspec.cpu.size() < 10?cinfo->devspec.cpu.size():10;
+                    uint16_t cpucount = cinfo->devspec.cpu.size() < cpu_count?cinfo->devspec.cpu.size():cpu_count;
                     for (uint16_t i=0; i<cpucount; ++i)
                     {
                         beacon.cpu[i].uptime = cinfo->devspec.cpu[i].uptime;
@@ -156,10 +156,10 @@ namespace Cosmos {
                         beacon.cpu[i].mmemory = 1000. * (cinfo->devspec.cpu[i].gib / cinfo->devspec.cpu[i].maxgib) + .5;
                         beacon.cpu[i].mdisk = cinfo->devspec.cpu[i].storage * 1000. + .5;
                         beacon.cpu[i].ctemp = cinfo->devspec.cpu[i].temp * 100. + .5;
-                        printf("EB CPU %u %s: pidx=%u uptime=%u name=%s\n", i, cinfo->devspec.cpu[i].name.c_str(), cinfo->devspec.cpu[i].pidx, cinfo->devspec.cpu[i].uptime, cinfo->pieces[cinfo->devspec.cpu[i].pidx].name.c_str());
+//                        printf("EB CPU %u %s: pidx=%u uptime=%u name=%s\n", i, cinfo->devspec.cpu[i].name.c_str(), cinfo->devspec.cpu[i].pidx, cinfo->devspec.cpu[i].uptime, cinfo->pieces[cinfo->devspec.cpu[i].pidx].name.c_str());
                         fflush(stdout);
                     }
-                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+9+cpucount*sizeof(cpu_beacon));
                 }
                 break;
             case TypeId::TempBeaconL:
@@ -167,13 +167,13 @@ namespace Cosmos {
                 {
                     tsen_beacon beacon;
                     beacon.met = cinfo->node.met;
-                    uint16_t tsencount = cinfo->devspec.tsen.size() < 40?cinfo->devspec.tsen.size():40;
+                    uint16_t tsencount = cinfo->devspec.tsen.size() < tsen_count?cinfo->devspec.tsen.size():tsen_count;
                     for (uint16_t i=0; i<tsencount; ++i)
                     {
                         beacon.ctemp[i] = cinfo->devspec.tsen[i].temp * 100. + .5;
-                        printf("EB TSEN %u %s: pidx=%u temp=%f amp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
+//                        printf("EB TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
                     }
-                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+tsencount*2);
                 }
                 break;
             case TypeId::EPSSWCHBeaconL:
@@ -181,14 +181,14 @@ namespace Cosmos {
                 {
                     epsswchs_beacon beacon;
                     beacon.met = cinfo->node.met;
-                    uint16_t swchcount = cinfo->devspec.swch.size() < 60?cinfo->devspec.swch.size():60;
+                    uint16_t swchcount = cinfo->devspec.swch.size() < epsswch_count?cinfo->devspec.swch.size():epsswch_count;
                     for (uint16_t i=0; i<swchcount; ++i)
                     {
                         beacon.swch[i].mamp = cinfo->devspec.swch[i].amp * 1000. + .5;
                         beacon.swch[i].mvolt = cinfo->devspec.swch[i].volt * 1000. + .5;
-                        printf("EB SWCH %u %s: pidx=%u volt=%f amp=%f\n", i, cinfo->devspec.swch[i].name.c_str(), cinfo->devspec.swch[i].pidx, cinfo->devspec.swch[i].volt, cinfo->devspec.swch[i].amp);
+//                        printf("EB SWCH %u %s: pidx=%u volt=%f amp=%f\n", i, cinfo->devspec.swch[i].name.c_str(), cinfo->devspec.swch[i].pidx, cinfo->devspec.swch[i].volt, cinfo->devspec.swch[i].amp);
                     }
-                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+swchcount*sizeof(epsswch_beacon));
                 }
                 break;
             case TypeId::EPSBCREGBeaconL:
@@ -196,13 +196,13 @@ namespace Cosmos {
                 {
                     epsbcregs_beacon beacon;
                     beacon.met = cinfo->node.met;
-                    uint16_t pvcount = cinfo->devspec.bcreg.size() < 20?cinfo->devspec.bcreg.size():20;
+                    uint16_t pvcount = cinfo->devspec.bcreg.size() < epsbcreg_count?cinfo->devspec.bcreg.size():epsbcreg_count;
                     for (uint16_t i=0; i<pvcount; ++i)
                     {
                         beacon.bcreg[i].mamp = cinfo->devspec.bcreg[i].amp * 1000. + .5;
                         beacon.bcreg[i].mvolt = cinfo->devspec.bcreg[i].volt * 1000. + .5;
                     }
-                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+pvcount*sizeof(epsbcreg_beacon));
                 }
                 break;
             case TypeId::EPSBATTBeaconL:
@@ -210,18 +210,38 @@ namespace Cosmos {
                 {
                     epsbatts_beacon beacon;
                     beacon.met = cinfo->node.met;
-                    uint16_t battcount = cinfo->devspec.batt.size() < 10?cinfo->devspec.batt.size():10;
+                    uint16_t battcount = cinfo->devspec.batt.size() < epsbatt_count?cinfo->devspec.batt.size():epsbatt_count;
                     for (uint16_t i=0; i<battcount; ++i)
                     {
                         beacon.batt[i].mamp = cinfo->devspec.batt[i].amp * 1000. + .5;
                         beacon.batt[i].mvolt = cinfo->devspec.batt[i].volt * 1000. + .5;
+                        beacon.batt[i].cpercent = cinfo->devspec.batt[i].percentage * 100. + .5;
+                        beacon.batt[i].ctemp = cinfo->devspec.batt[i].temp * 100. + .5;
                     }
-                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+battcount*sizeof(epsbatt_beacon));
+                }
+                break;
+            case TypeId::ADCSMTRBeaconL:
+                if (cinfo->devspec.mtr.size())
+                {
+                    adcsmtrs_beacon beacon;
+                    beacon.met = cinfo->node.met;
+                    uint16_t mtrcount = cinfo->devspec.mtr.size() < adcsmtr_count?cinfo->devspec.mtr.size():adcsmtr_count;
+                    for (uint16_t i=0; i<mtrcount; ++i)
+                    {
+                        beacon.mtr[i].mom = cinfo->devspec.mtr[i].mom * 1000. + .5;
+                        beacon.mtr[i].align[0] = cinfo->devspec.mtr[i].align.w * 1000. + .5;
+                        beacon.mtr[i].align[1] = cinfo->devspec.mtr[i].align.d.x * 100. + .5;
+                        beacon.mtr[i].align[2] = cinfo->devspec.mtr[i].align.d.y * 100. + .5;
+                        beacon.mtr[i].align[3] = cinfo->devspec.mtr[i].align.d.z * 100. + .5;
+                    }
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+mtrcount*sizeof(adcsmtr_beacon));
                 }
                 break;
             default:
                 return GENERAL_ERROR_OUTOFRANGE;
             }
+//            printf("Beacon: Type=%u Size=%lu\n", (uint16_t)type, data.size());
             return data.size();
         }
 
@@ -235,9 +255,9 @@ namespace Cosmos {
                 case TypeId::CPUBeaconL:
                     {
                         cpus_beacon beacon;
-                        if (data.size() >= sizeof(beacon))
+                        if (data.size() <= sizeof(beacon))
                         {
-                            memcpy(&beacon, data.data(), sizeof(beacon));
+                            memcpy(&beacon, data.data(), data.size());
                         }
                         else
                         {
@@ -262,9 +282,9 @@ namespace Cosmos {
                 case TypeId::TempBeaconL:
                     {
                         tsen_beacon beacon;
-                        if (data.size() >= sizeof(beacon))
+                        if (data.size() <= sizeof(beacon))
                         {
-                            memcpy(&beacon, data.data(), sizeof(beacon));
+                            memcpy(&beacon, data.data(), data.size());
                         }
                         else
                         {
@@ -275,16 +295,16 @@ namespace Cosmos {
                         {
                             cinfo->devspec.tsen[i].utc = mjd;
                             cinfo->devspec.tsen[i].temp = beacon.ctemp[i] / 100.;
-                            printf("D TSEN %u %s: pidx=%u temp=%f amp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
+                            printf("D TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
                         }
                     }
                     break;
                 case TypeId::EPSSWCHBeaconL:
                     {
                         epsswchs_beacon beacon;
-                        if (data.size() >= sizeof(beacon))
+                        if (data.size() <= sizeof(beacon))
                         {
-                            memcpy(&beacon, data.data(), sizeof(beacon));
+                            memcpy(&beacon, data.data(), data.size());
                         }
                         else
                         {
@@ -303,9 +323,9 @@ namespace Cosmos {
                 case TypeId::EPSBCREGBeaconL:
                     {
                         epsbcregs_beacon beacon;
-                        if (data.size() >= sizeof(beacon))
+                        if (data.size() <= sizeof(beacon))
                         {
-                            memcpy(&beacon, data.data(), sizeof(beacon));
+                            memcpy(&beacon, data.data(), data.size());
                         }
                         else
                         {
@@ -323,9 +343,9 @@ namespace Cosmos {
                 case TypeId::EPSBATTBeaconL:
                     {
                         epsbatts_beacon beacon;
-                        if (data.size() >= sizeof(beacon))
+                        if (data.size() <= sizeof(beacon))
                         {
-                            memcpy(&beacon, data.data(), sizeof(beacon));
+                            memcpy(&beacon, data.data(), data.size());
                         }
                         else
                         {
@@ -442,6 +462,7 @@ namespace Cosmos {
                             json_out_1d(Contents, "device_swch_volt", i, cinfo);
                         }
                     }
+                    break;
                 case TypeId::EPSBCREGBeaconL:
                     {
                         for (uint16_t i=0; i<cinfo->devspec.bcreg.size(); ++i)
@@ -450,6 +471,7 @@ namespace Cosmos {
                             json_out_1d(Contents, "device_bcreg_volt", i, cinfo);
                         }
                     }
+                    break;
                 case TypeId::EPSBATTBeaconL:
                     {
                         for (uint16_t i=0; i<cinfo->devspec.batt.size(); ++i)
