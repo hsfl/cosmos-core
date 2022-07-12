@@ -364,6 +364,7 @@ namespace Cosmos
             int32_t get_device_values(string device, std::vector<string>props, string& json);
             int32_t get_values(std::vector<string> names, string& json);
 
+            double get_timeStart();
 
 
 
