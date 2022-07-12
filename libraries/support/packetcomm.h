@@ -209,6 +209,7 @@ namespace Cosmos {
                 uint8_t radio;
                 NodeData::NODE_ID_TYPE orig = NodeData::NODEIDORIG;
                 NodeData::NODE_ID_TYPE dest = NodeData::NODEIDDEST;
+                // Maybe response_id here
             } header;
 
             CCSDS_Header ccsds_header;

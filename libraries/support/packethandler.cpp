@@ -219,13 +219,13 @@ namespace Cosmos {
             }
             if (response.size())
             {
-                agent->debug_error.Printf("[PacketHandler Type=%hu, Size=%u, Return=%d] %s\n", packet.header.type, packet.data.size(), iretn, string(response.begin(), response.end()).c_str());
+//                agent->debug_error.Printf("[PacketHandler Type=%hu, Size=%u, Return=%d] %s\n", packet.header.type, packet.data.size(), iretn, string(response.begin(), response.end()).c_str());
                 agent->push_response(packet.header.radio, packet.header.orig, centisec(), string(response.begin(), response.end()));
             }
-            else
-            {
-                agent->debug_error.Printf("[PacketHandler Type=%hu, Size=%u, Return=%d]\n", packet.header.type, packet.data.size(), iretn);
-            }
+//            else
+//            {
+//                agent->debug_error.Printf("[PacketHandler Type=%hu, Size=%u, Return=%d]\n", packet.header.type, packet.data.size(), iretn);
+//            }
             return iretn;
         }
 
@@ -367,6 +367,7 @@ namespace Cosmos {
                 sresponse += " Start: ";
             }
 
+            response.clear();
             response.insert(response.end(), sresponse.begin(), sresponse.end());
             tests[test_id].last_packet_id = packet_id;
             last_test_id = test_id;
@@ -429,15 +430,14 @@ namespace Cosmos {
         int32_t PacketHandler::DecodeBeacon(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
         {
             Beacon beacon;
-            string decoded_beacon;
             beacon.Init();
-            int32_t iretn = beacon.Decode(packet, decoded_beacon);
-
+            int32_t iretn = beacon.Decode(packet.data, agent->cinfo);
             if (iretn < 0)
             {
                 return iretn;
             }
-            response.insert(response.begin(), decoded_beacon.begin(), decoded_beacon.end());
+
+            beacon.EncodeJson(beacon.type, agent->cinfo, response);
             return response.size();
         }
 
@@ -457,7 +457,7 @@ namespace Cosmos {
 
             // Send a response
             string answer = "Resetting Power in " + to_unsigned(seconds) + " seconds";
-
+            response.clear();
             response.insert(response.begin(), answer.begin(), answer.end());
 
             // Command the EPS
@@ -488,13 +488,14 @@ namespace Cosmos {
             uint8_t count = packet.data[1];
             Beacon beacon;
             beacon.Init();
-            beacon.Encode((Beacon::TypeId)packet.data[0], agent->cinfo);
-            response = beacon.data;
+            beacon.EncodeBinary((Beacon::TypeId)packet.data[0], agent->cinfo, response);
             packet.header.type = PacketComm::TypeId::DataBeacon;
             packet.header.dest = packet.header.orig;
             packet.header.orig = agent->nodeId;
+            printf("SendBeacon: Type=%u Length=%u\n", packet.data[0], response.size());
+            fflush(stdout);
             packet.data.clear();
-            packet.data.insert(packet.data.end(), beacon.data.begin(), beacon.data.end());
+            packet.data.insert(packet.data.end(), response.begin(), response.end());
             for (uint16_t i=0; i<count; ++i)
             {
                 iretn = agent->push_unwrapped(packet.header.radio, packet);
@@ -521,7 +522,7 @@ namespace Cosmos {
             // Run command, return response
             string eresponse;
             int32_t iretn = data_execute(string(packet.data.begin()+4, packet.data.end()), eresponse);
-
+            response.clear();
             response.insert(response.begin(),eresponse.begin(), eresponse.end());
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, string(response.begin(), response.end()));
@@ -543,7 +544,7 @@ namespace Cosmos {
             string agentname;
             agentname.insert(agentname.begin(), packet.data.begin()+node.size()+7, packet.data.begin()+node.size()+7+packet.data[5+node.size()]);
 
-
+            response.clear();
             for (filestruc file : data_list_files(node, "outgoing", agentname))
             {
                 response.insert(response.end(), file.name.begin(), file.name.end());
@@ -585,7 +586,7 @@ namespace Cosmos {
             string eresponse;
             string erequest = string(packet.data.begin()+5, packet.data.end());
             int32_t iretn = agent->process_request(erequest, eresponse);
-
+            response.clear();
             response.insert(response.begin(),eresponse.begin(), eresponse.end());
             return iretn;
         }
@@ -594,6 +595,7 @@ namespace Cosmos {
         {
             int32_t iretn=0;
 
+            response.clear();
             response.insert(response.begin(), packet.data.begin()+4, packet.data.end());
             packet.header.type = PacketComm::TypeId::DataPong;
             NodeData::NODE_ID_TYPE temp = packet.header.dest;
@@ -609,6 +611,7 @@ namespace Cosmos {
             double mjd = doublefrom(packet.data.data(), ByteOrder::LITTLEENDIAN);
             double delta = set_local_clock(mjd);
             string answer = to_label("Delta Seconds", delta);
+            response.clear();
             response.insert(response.begin(), answer.begin(), answer.end());
 
             packet.header.type = PacketComm::TypeId::CommandEpsSetTime;
@@ -623,7 +626,7 @@ namespace Cosmos {
             int32_t iretn=0;
             string answer = mjd2iso8601(currentmjd());
             answer += " " + to_label("MET", 86400 * (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart));
-
+            response.clear();
             response.insert(response.begin(), answer.begin(), answer.end());
             return iretn;
         }
