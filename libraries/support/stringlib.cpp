@@ -215,7 +215,7 @@ string to_hex_string(vector <uint8_t> buffer, bool ascii) {
     for (uint16_t i=0; i<buffer.size(); ++i) {
         if (ascii && buffer[i] > 31 && buffer[i] < 127)
         {
-            sprintf(&output[strlen(output.c_str())], "%c", buffer[i]);
+            sprintf(&output[strlen(output.c_str())], " %c", buffer[i]);
         }
         else
         {
@@ -229,6 +229,18 @@ vector<uint8_t> from_hex_string(string hex)
 {
     vector<uint8_t> bytes;
     for (uint16_t ib=0; ib<hex.length()/2; ++ib)
+    {
+        bytes.push_back(hex[ib*2]-'0');
+        bytes[ib] *= 16;
+        bytes[ib] += hex[ib*2]-'0';
+    }
+    return bytes;
+}
+
+vector<uint8_t> from_hex_string(vector<uint8_t> hex)
+{
+    vector<uint8_t> bytes;
+    for (uint16_t ib=0; ib<hex.size()/2; ++ib)
     {
         bytes.push_back(hex[ib*2]-'0');
         bytes[ib] *= 16;
