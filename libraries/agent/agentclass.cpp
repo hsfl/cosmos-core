@@ -218,9 +218,9 @@ namespace Cosmos
             cinfo->agent[0].beat.node = cinfo->node.name;
             cinfo->agent[0].beat.proc = tname;
             agentName = cinfo->agent[0].beat.proc;
+            timeStart = currentmjd();
 
             if (debug_level>2) {
-                double timeStart = currentmjd();
                 debug_error.Printf("------------------------------------------------------\n");
                 debug_error.Printf("COSMOS AGENT '%s' on node '%s'\n", agent_name.c_str(), nodeName.c_str());
                 debug_error.Printf("Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
@@ -3857,6 +3857,11 @@ acquired.
                 return GENERAL_ERROR_OUTOFRANGE;
             }
             return channels.channel[number].datasize;
+        }
+
+        double Agent::get_timeStart()
+        {
+            return timeStart;
         }
     } // end of namespace Support
 } // end namespace Cosmos

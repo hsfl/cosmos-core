@@ -437,7 +437,17 @@ namespace Cosmos {
                 return iretn;
             }
 
-            beacon.EncodeJson(beacon.type, agent->cinfo, response);
+            // Log beacon
+            string orig_node = agent->nodeData.lookup_node_id_name(packet.header.orig);
+            if (!orig_node.empty())
+            {
+                string jstr;
+                beacon.EncodeJson(beacon.type, agent->cinfo, jstr);
+                log_write(orig_node, "beacon", agent->get_timeStart(), "", "beacon", jstr, "incoming");
+            }
+
+            // Don't need to send a response back on telem beacons
+            response.clear();
             return response.size();
         }
 
