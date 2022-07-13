@@ -400,6 +400,7 @@ namespace Cosmos
 //            int32_t Printf(const char *fmt, ...);
 
             // agent variables
+            ElapsedTime uptime;
             string nodeName;
             string agentName;
             vector<beatstruc> slist;

@@ -90,6 +90,7 @@ namespace Cosmos
                 uint16_t dlevel)
         {
             int32_t iretn;
+            uptime.reset();
             debug_level = dlevel;
             debug_error.Set(dlevel,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
 
