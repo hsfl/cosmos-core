@@ -211,6 +211,7 @@ void ElapsedTime::start()
     // new c++11
     timeStart = std::chrono::steady_clock::now();
 #endif
+    timeAlarm = timeStart;
     timeCheck = timeStart;
     elapsedTime = 0;
     set(0);
@@ -254,7 +255,7 @@ double ElapsedTime::set(double seconds)
 #ifdef CROSS_TYPE_arm
     gettimeofday(&timeAlarm, nullptr);
     timeAlarm.tv_sec += int64_t(seconds);
-    timeAlarm.tv_usec += int64_t(1000000. * (seconds - timeAlarm.tv_sec));
+    timeAlarm.tv_usec += int64_t(1000000. * (seconds - int64_t(seconds)));
 #else
     // On windows using MinGw32 it does not get better than 1ms
     // new c++11
@@ -270,7 +271,7 @@ double ElapsedTime::timer()
 
 #ifdef CROSS_TYPE_arm
     gettimeofday(&timeNow, nullptr);
-    elapsedTime = (timeAlarm.tv_sec - timeNow.tv_sec) + (timeAlarm.tv_usec - timeNow.tv_usec) / 1e6;
+    remainingTime = (timeAlarm.tv_sec - timeNow.tv_sec) + (timeAlarm.tv_usec - timeNow.tv_usec) / 1e6;
 #else
     timeNow = std::chrono::steady_clock::now();
     remainingTime =  std::chrono::duration<double>(timeAlarm - timeNow).count();

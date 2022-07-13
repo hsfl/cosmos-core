@@ -94,7 +94,7 @@ public:
     double toc(string text);
 
     // Timer functions
-    double set(double seconds);
+    double set(double seconds=0.);
     double timer();
 
     // turn on/off printing
