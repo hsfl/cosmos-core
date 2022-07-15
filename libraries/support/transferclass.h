@@ -92,9 +92,6 @@ namespace Cosmos {
             /// Vector of nodes to transfer files in/out. Heart of the file transfer manager.
             vector<tx_queue> txq;
 
-            /// The Node ID lookup table
-            vector<string> nodeids;
-
             // Timers for debug messages
             ElapsedTime dt, tet;
 

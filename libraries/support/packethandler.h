@@ -83,7 +83,6 @@ namespace Cosmos {
             static int32_t ExternalCommand(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t TestRadio(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t ListDirectory(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t TransferForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
 //            static int32_t TransferNode(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
 //            static int32_t TransferRadio(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
 //            static int32_t TransferList(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
@@ -95,6 +94,7 @@ namespace Cosmos {
             static int32_t AdcsForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t EpsForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t ExecForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t FileForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
 //            static int32_t EpsSwitchName(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
 //            static int32_t EpsSwitchNumber(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
 //            static int32_t EpsReset(PacketComm &packet, vector<uint8_t>& response, Agent* agent);

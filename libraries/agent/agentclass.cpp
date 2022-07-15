@@ -1997,6 +1997,17 @@ namespace Cosmos
                 }
                 break;
             case PacketComm::TypeId::CommandTransferRadio:
+                if (parms.size() > 0)
+                {
+                    int32_t ch = agent->channel_number(parms[0]);
+                    if (ch < 0)
+                    {
+                        response = "Invalid channel";
+                        return response.size();
+                    }
+                    packet.data.resize(1);
+                    packet.data[0] = ch;
+                }
                 break;
             case PacketComm::TypeId::CommandInternalRequest:
                 {

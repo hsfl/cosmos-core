@@ -8,6 +8,19 @@ namespace Cosmos {
         int32_t PacketHandler::init(Agent *calling_agent)
         {
             this->agent = calling_agent;
+
+            // File Transfer
+            add_func(PacketComm::TypeId::DataFileCommand, FileForward);
+            add_func(PacketComm::TypeId::DataFileMessage, FileForward);
+            add_func(PacketComm::TypeId::DataFileQueue, FileForward);
+            add_func(PacketComm::TypeId::DataFileCancel, FileForward);
+            add_func(PacketComm::TypeId::DataFileComplete, FileForward);
+            add_func(PacketComm::TypeId::DataFileReqMeta, FileForward);
+            add_func(PacketComm::TypeId::DataFileReqData, FileForward);
+            add_func(PacketComm::TypeId::DataFileMetaData, FileForward);
+            add_func(PacketComm::TypeId::DataFileChunkData, FileForward);
+            add_func(PacketComm::TypeId::DataFileReqComplete, FileForward);
+
             // Commands
             add_func(PacketComm::TypeId::CommandReset, Reset);
             add_func(PacketComm::TypeId::CommandReboot, Reboot);
@@ -16,10 +29,10 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandExternalCommand, ExternalCommand);
             add_func(PacketComm::TypeId::CommandTestRadio, TestRadio);
             add_func(PacketComm::TypeId::CommandListDirectory, ListDirectory);
-            add_func(PacketComm::TypeId::CommandTransferFile, TransferForward);
-            add_func(PacketComm::TypeId::CommandTransferNode, TransferForward);
-            add_func(PacketComm::TypeId::CommandTransferRadio, TransferForward);
-            add_func(PacketComm::TypeId::CommandTransferList, TransferForward);
+            add_func(PacketComm::TypeId::CommandTransferFile, FileForward);
+            add_func(PacketComm::TypeId::CommandTransferNode, FileForward);
+            add_func(PacketComm::TypeId::CommandTransferRadio, FileForward);
+            add_func(PacketComm::TypeId::CommandTransferList, FileForward);
             add_func(PacketComm::TypeId::CommandInternalRequest, InternalRequest);
             add_func(PacketComm::TypeId::CommandPing, Ping);
             add_func(PacketComm::TypeId::CommandSetTime, SetTime);
@@ -566,12 +579,6 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::TransferForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
-        {
-            int32_t iretn = agent->push_unwrapped(agent->channel_number("FILE"), packet);
-            return iretn;
-        }
-
         //        int32_t PacketHandler::TransferNode(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         //        {
         //            int32_t iretn = agent->push_unwrapped(packet.header.radio, packet);
@@ -674,6 +681,13 @@ namespace Cosmos {
         {
             int32_t iretn=0;
             iretn = agent->push_unwrapped(agent->channel_number("EXEC"), packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::FileForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        {
+            int32_t iretn=0;
+            iretn = agent->push_unwrapped(agent->channel_number("FILE"), packet);
             return iretn;
         }
 
