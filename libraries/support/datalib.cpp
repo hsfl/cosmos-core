@@ -181,6 +181,7 @@ int32_t log_move(string oldpath, string newpath, bool compress)
 
         fclose(fin);
         gzclose_w(gzfout);
+        fclose(fout);
         iretn = rename(temppath.c_str(), newpath.c_str());
         if (iretn < 0)
         {
