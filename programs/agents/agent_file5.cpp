@@ -654,13 +654,6 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
                 }
             }
             break;
-        case PacketComm::TypeId::DataFileHeartbeat:
-            {
-                agent->debug_error.Printf("[HEARTBEAT] %u %s %hu %u %u", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)], packet.data[PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD]
-                        , packet.data[PACKET_HEARTBEAT_OFFSET_THROUGHPUT]+256U*(packet.data[PACKET_HEARTBEAT_OFFSET_THROUGHPUT+1]+256U*(packet.data[PACKET_HEARTBEAT_OFFSET_THROUGHPUT+2]+256U*packet.data[PACKET_HEARTBEAT_OFFSET_THROUGHPUT+3]))
-                        , packet.data[PACKET_HEARTBEAT_OFFSET_FUNIXTIME]+256U*(packet.data[PACKET_HEARTBEAT_OFFSET_FUNIXTIME+1]+256U*(packet.data[PACKET_HEARTBEAT_OFFSET_FUNIXTIME+2]+256U*packet.data[PACKET_HEARTBEAT_OFFSET_FUNIXTIME+3])));
-                break;
-            }
         case PacketComm::TypeId::DataFileMessage:
             {
                 agent->debug_error.Printf("[MESSAGE] %u %hu %s", node_id, packet.data[PACKET_MESSAGE_OFFSET_LENGTH], &packet.data[PACKET_MESSAGE_OFFSET_BYTES]);
