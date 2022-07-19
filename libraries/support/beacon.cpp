@@ -53,7 +53,7 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
                 }
                 break;
-            case TypeId::TempBeaconS:
+            case TypeId::TsenBeaconS:
                 if (cinfo->devspec.tsen.size() >= 3)
                 {
                     tsen_beacons beacon;
@@ -162,7 +162,7 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+9+cpucount*sizeof(cpu_beacon));
                 }
                 break;
-            case TypeId::TempBeaconL:
+            case TypeId::TsenBeaconL:
                 if (cinfo->devspec.tsen.size())
                 {
                     tsen_beacon beacon;
@@ -279,7 +279,7 @@ namespace Cosmos {
                         }
                     }
                     break;
-                case TypeId::TempBeaconL:
+                case TypeId::TsenBeaconL:
                     {
                         tsen_beacon beacon;
                         if (data.size() <= sizeof(beacon))
@@ -397,7 +397,7 @@ namespace Cosmos {
                         json_out(Contents, "node_utcstart", cinfo);
                     }
                     break;
-                case TypeId::TempBeaconS:
+                case TypeId::TsenBeaconS:
                     {
                         cinfo->node.met = cinfo->devspec.tsen[0].utc - cinfo->node.utcstart;
                         json_out(Contents, "node_met", cinfo);
@@ -446,7 +446,7 @@ namespace Cosmos {
                         }
                     }
                     break;
-                case TypeId::TempBeaconL:
+                case TypeId::TsenBeaconL:
                     {
                         for (uint16_t i=0; i<cinfo->devspec.tsen.size(); ++i)
                         {
