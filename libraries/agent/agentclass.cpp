@@ -1777,12 +1777,11 @@ namespace Cosmos
      */
         int32_t Agent::req_command(string &request, string &response, Agent *agent)
         {
-            int32_t iretn;
             PacketComm packet;
             string type = "Ping";
             string dest = "iobc";
-            uint8_t channelout = 0;
-            uint8_t channelin = 0;
+            int32_t channelout = 0;
+            int32_t channelin = 0;
             vector<string> parms;
             uint16_t repeat = 1;
 
@@ -2108,6 +2107,9 @@ namespace Cosmos
                     packet.data.resize(8);
                     doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
                 }
+                break;
+            default:
+                return 0;
                 break;
             }
             packet.Wrap();
