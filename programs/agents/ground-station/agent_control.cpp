@@ -536,12 +536,14 @@ int main(int argc, char *argv[])
                 Physics::gauss_jackson_propagate(track[i].gjh, track[i].physics, track[i].target.loc, mjdnow);
                 break;
             case NODE_TYPE_SUN:
-                Convert::jplpos(JPL_EARTH, JPL_SUN, mjdnow, &track[i].target.loc.pos.eci);
+                Convert::jplpos(JPL_EARTH, JPL_SUN, Convert::utc2tt(mjdnow), &track[i].target.loc.pos.eci);
+                track[i].target.loc.pos.eci.utc = mjdnow;
                 track[i].target.loc.pos.eci.pass++;
                 Convert::pos_eci(&track[i].target.loc);
                 break;
             case NODE_TYPE_MOON:
-                Convert::jplpos(JPL_EARTH, JPL_MOON, mjdnow, &track[i].target.loc.pos.eci);
+                Convert::jplpos(JPL_EARTH, JPL_MOON, Convert::utc2tt(mjdnow), &track[i].target.loc.pos.eci);
+                track[i].target.loc.pos.eci.utc = mjdnow;
                 track[i].target.loc.pos.eci.pass++;
                 Convert::pos_eci(&track[i].target.loc);
                 break;

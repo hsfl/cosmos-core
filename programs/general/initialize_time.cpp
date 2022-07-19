@@ -55,6 +55,13 @@ int main(int argc, char *argv[])
         {
             double delta = set_local_clock(currentmjd() + offset);
             printf("Initialized time from server: Delta %f Offset %f\n", delta, offset*86400.);
+            FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_date").c_str(), "w");
+            if (fp)
+            {
+                calstruc date = mjd2cal(currentmjd());
+                fprintf(fp, "%02d%02d%02d%02d%04d.59\n", date.month, date.dom, date.hour, date.minute, date.year);
+                fclose(fp);
+            }
         }
         else
         {

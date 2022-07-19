@@ -380,7 +380,7 @@ int myagent()
 	// Start performing the body of the agent
     while(agent->running())
 	{
-		COSMOS_SLEEP(0.1); // no support in win
+		secondsleep(0.1); // no support in win
 	}
 
 	return 0;

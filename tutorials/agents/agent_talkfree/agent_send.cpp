@@ -50,7 +50,7 @@ int main()
 
             cout << "tx: " <<  message << endl;
 
-            COSMOS_SLEEP(1);
+            secondsleep(1);
         }
     }
 

@@ -52,7 +52,7 @@ int main()
 
             cout << "rx: " << mess.adata << endl;
 
-            //COSMOS_SLEEP(0.1);
+            //secondsleep(0.1);
         }
     }
 

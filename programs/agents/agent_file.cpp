@@ -366,7 +366,7 @@ int main(int argc, char *argv[])
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
@@ -458,7 +458,7 @@ void recv_loop()
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
@@ -1002,7 +1002,7 @@ void send_loop()
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
@@ -1176,7 +1176,7 @@ void transmit_loop()
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 

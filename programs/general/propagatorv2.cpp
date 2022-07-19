@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 
 //    iretn = sim->AddNode("mother", Physics::Structure::U12, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     initialloc.att.icrf.s = q_eye();
-    iretn = sim->AddNode("mother", Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc);
+    iretn = sim->AddNode("mother", Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
     sit = sim->GetNode("mother");
     sit->second->AddTarget("Punta_Arenas", RADOF(-53.1638), RADOF(-70.9171), 0.);
     sit->second->AddTarget("Awarua", RADOF(-46.4923), RADOF(168.2808), 0.);

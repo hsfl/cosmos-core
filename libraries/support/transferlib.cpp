@@ -288,7 +288,7 @@ void make_queue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id,
     memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
 }
 
-//Function to extract necessary fileds from a received queue packet
+//Function to extract necessary fields from a received queue packet
 void extract_queue(vector<PACKET_BYTE>& packet, packet_struct_queue& queue)
 {
     memmove(&queue.node_id, &packet[0]+PACKET_QUEUE_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));

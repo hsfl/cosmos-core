@@ -791,6 +791,8 @@ INPUT += ../../libraries/
 INPUT += ../../programs/agents/
 INPUT += ../../programs/general/
 
+# new ones for ADCS documentation
+INPUT += ../../../modules/devices/cubespace/libraries/adcs2/
 # these are not needed
 #INPUT += ../../programs/device_tests
 #INPUT += ../../programs/testbed
@@ -2053,7 +2055,7 @@ MACRO_EXPANSION        = YES
 # The default value is: NO.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-EXPAND_ONLY_PREDEF     = NO
+EXPAND_ONLY_PREDEF     = YES
 
 # If the SEARCH_INCLUDES tag is set to YES, the include files in the
 # INCLUDE_PATH will be searched if a #include is found.
@@ -2085,7 +2087,8 @@ INCLUDE_FILE_PATTERNS  =
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED             = 
+#PREDEFINED             = 
+PREDEFINED             = __attribute__((x))=
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The
@@ -2279,7 +2282,9 @@ UML_LOOK               = YES
 # Minimum value: 0, maximum value: 100, default value: 10.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-UML_LIMIT_NUM_FIELDS   = 10
+#UML_LIMIT_NUM_FIELDS   = 10
+#UML_LIMIT_NUM_FIELDS   = 0
+UML_LIMIT_NUM_FIELDS   = 50
 
 # If the TEMPLATE_RELATIONS tag is set to YES then the inheritance and
 # collaboration graphs will show the relations between templates and their
@@ -2317,7 +2322,8 @@ INCLUDED_BY_GRAPH      = YES
 # The default value is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-CALL_GRAPH             = NO
+#CALL_GRAPH             = NO
+CALL_GRAPH             = YES
 
 # If the CALLER_GRAPH tag is set to YES then doxygen will generate a caller
 # dependency graph for every global function or class method.

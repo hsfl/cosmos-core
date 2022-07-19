@@ -378,6 +378,7 @@ uint16_t calc_crc16_msb(vector<uint8_t> &buf, uint16_t poly=CRC16CCITTMSB, uint1
 
 class CRC16
 {
+
 public:
     uint16_t lookup[256];
     struct crcset
@@ -398,7 +399,8 @@ public:
     uint16_t calc(vector<uint8_t> message, uint16_t size);
     uint16_t calc(string message, uint16_t size);
     uint16_t calc(string message);
-    uint16_t calc(uint8_t *buf, uint16_t size);
+    uint16_t calc(uint8_t *message, uint16_t size);
+    uint16_t calc_file(string file_path);
 
 private:
     string type = "ccitt-false";
@@ -407,6 +409,7 @@ private:
     uint16_t polynomial;
     uint16_t xorout;
     bool lsbfirst = true;
+    mutex *mtx;
 };
 
 class LsFit
@@ -465,6 +468,10 @@ public:
     void update(fitelement cfit, uint16_t dep);
     double lastx();
     double firstx();
+    double lasty();
+    rvector lastrvector();
+    gvector lastgvector();
+    quaternion lastquaternion();
     size_t size();
     double eval(double x);
     rvector evalrvector(double x);

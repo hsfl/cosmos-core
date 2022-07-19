@@ -33,6 +33,7 @@
 #include "support/cosmos-errno.h"
 #include "support/timelib.h"
 #include "support/elapsedtime.h"
+#include <semaphore.h>
 //#include <linux/i2c-dev.h> /* for I2C_SLAVE */
 #if !defined(COSMOS_WIN_OS)
 #include "device/i2c/i2c-dev-smbus.h"
@@ -44,7 +45,7 @@ namespace Cosmos {
     class I2C
     {
     public:
-        I2C(string bus, uint8_t address, double delay=2e-4, bool probe=true);
+        I2C(string bus, uint8_t address, double delay=2e-4, bool probe=false);
         ~I2C();
         //        int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
 
@@ -60,6 +61,8 @@ namespace Cosmos {
         int32_t set_address(uint64_t address);
         int32_t set_delay(double seconds);
         int32_t connect();
+        int32_t lock(float seconds);
+        int32_t unlock();
         int32_t communicate(string data, string &response, size_t bytes=0);
         int32_t communicate(vector <uint8_t> data, vector <uint8_t> &response, size_t bytes=0);
         int32_t communicate(uint8_t *data, size_t len, uint8_t *response, size_t bytes=0);
@@ -87,6 +90,9 @@ namespace Cosmos {
             double delay = 1e-4;
         } handle;
 
+        sem_t* i2csem=nullptr;
+        double i2cwait = 5.;
+        timespec absi2cwait = {0, 0};
         mutex mtx;
         int32_t error;
 

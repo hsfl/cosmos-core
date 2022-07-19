@@ -3,8 +3,8 @@
 
 #include "support/configCosmos.h"
 #include "math/mathlib.h"
+#include "support/datalib.h"
 #include "support/enumlib.h"
-#include "support/transferclass.h"
 
 namespace Cosmos {
     namespace Support {
@@ -24,89 +24,208 @@ namespace Cosmos {
             PacketComm();
             void CalcCRC();
             bool CheckCRC();
-            bool Unpack(bool checkcrc=true);
-            bool UnpackForward();
+            bool Unwrap(bool checkcrc=true);
             bool RawUnPacketize(bool invert=false, bool checkcrc=true);
-            bool RXSUnPacketize();
             bool ASMUnPacketize();
             bool SLIPUnPacketize();
-            bool Pack();
+            bool Wrap();
             bool RawPacketize();
             bool ASMPacketize();
             bool AX25Packetize(string dest_call="", string sour_call="", uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
             bool SLIPPacketize();
-//            int32_t Generate(string args="");
+//            void SetSecret(uint32_t secretnumber);
 
-//            static constexpr uint16_t INTERNAL_BEACON = 0;
-//            static constexpr uint16_t INTERNAL_COMMAND = 0;
-//            static constexpr uint16_t EXTERNAL_COMMAND = 14;
+            int32_t PushQueue(queue<PacketComm> &queue, mutex &mtx);
+            int32_t PullQueue(queue<PacketComm> &queue, mutex &mtx);
 
-            enum class TypeId : uint8_t
-                {
+            enum class TypeId : uint8_t {
                 None = 0,
-                Beacon = 10,
-                Forward = 60,
-                Response = 61,
-                IP = 62,
-                Test = 63,
-                FileInfo = 70,
-                FileCommand = 71,
-                FileMessage = 72,
-                FileHeartbeat = 73,
-                FileCancel = 80,
-                FileMetaData = 84,
-                FileChunkData = 85,
-                Reset = 128,
-                Reboot = 129,
-                SendBeacon = 130,
-                ClearRadioQueue = 131,
-                ExternalCommand = 132,
-                TestRadio = 133,
-                ListDirectory = 134,
-                TransferFile = 135
+                DataBeacon = 10,
+                DataPong = 41,
+                DataEPSSingleResponse = 42,
+                DataEPSMultiResponse = 43,
+                DataADCSSingleResponse = 44,
+                DataADCSMultiResponse = 45,
+                DataResponse = 61,
+                DataIP = 62,
+                DataTest = 63,
+                DataTime = 64,
+                DataFileCommand = 71,
+                DataFileMessage = 72,
+                DataFileQueue = 79,
+                DataFileCancel = 80,
+                DataFileComplete = 81,
+                DataFileReqMeta = 82,
+                DataFileReqData = 83,
+                DataFileMetaData = 84,
+                DataFileChunkData = 85,
+                DataFileReqComplete = 86,
+                CommandReset = 128,
+                CommandReboot = 129,
+                CommandSendBeacon = 130,
+                CommandClearQueue = 131,
+                CommandExternalCommand = 132,
+                CommandTestRadio = 133,
+                CommandListDirectory = 134,
+                CommandTransferFile = 135,
+                CommandTransferNode = 136,
+                CommandTransferRadio = 137,
+                CommandTransferList = 138,
+                CommandInternalRequest = 140,
+                CommandPing = 141,
+                CommandSetTime = 142,
+                CommandGetTimeHuman = 143,
+                CommandGetTimeBinary = 144,
+                CommandAdcsCommunicate = 150,
+                CommandAdcsCommission = 151,
+                CommandAdcsSetRunMode = 152,
+                CommandEpsCommunicate = 160,
+                CommandEpsSwitchName = 161,
+                CommandEpsSwitchNumber = 162,
+                CommandEpsReset = 163,
+                CommandEpsState = 164,
+                CommandEpsWatchdog = 165,
+                CommandEpsSetTime = 166,
+                CommandExecLoadCommand = 170,
+                CommandExecAddCommand = 171,
                 };
 
             map<TypeId, string> TypeString = {
-                {TypeId::Beacon, "Beacon"},
-                {TypeId::Forward, "Forward"},
-                {TypeId::Response, "Response"},
-                {TypeId::IP, "IP"},
-                {TypeId::Test, "Test"},
-                {TypeId::FileInfo, "FileInfo"},
-                {TypeId::FileCommand, "FileCommand"},
-                {TypeId::FileMessage, "FileMessage"},
-                {TypeId::FileHeartbeat, "FileHeartbeat"},
-                {TypeId::FileChunkData, "FileChunkData"},
-                {TypeId::FileMetaData, "FileMetaData"},
-                {TypeId::Reset, "Reset"},
-                {TypeId::Reboot, "Reboot"},
-                {TypeId::SendBeacon, "SendBeacon"},
-                {TypeId::ClearRadioQueue, "ClearRadioQueue"},
-                {TypeId::ExternalCommand, "ExternalCommand"},
-                {TypeId::TestRadio, "TestRadio"},
-                {TypeId::ListDirectory, "ListDirectory"},
-                {TypeId::TransferFile, "TransferFile"},
+                {TypeId::DataBeacon, "Beacon"},
+                {TypeId::DataPong, "Pong"},
+                {TypeId::DataEPSSingleResponse, "EPSSingleResponse"},
+                {TypeId::DataEPSMultiResponse, "EPSMultiResponse"},
+                {TypeId::DataADCSSingleResponse, "ADCSSingleResponse"},
+                {TypeId::DataADCSMultiResponse, "ADCSMultiResponse"},
+                {TypeId::DataResponse, "Response"},
+                {TypeId::DataIP, "IP"},
+                {TypeId::DataTest, "Test"},
+                {TypeId::DataTime, "Time"},
+                {TypeId::DataFileCommand, "FileCommand"},
+                {TypeId::DataFileMessage, "FileMessage"},
+                {TypeId::DataFileQueue, "FileQueue"},
+                {TypeId::DataFileCancel, "FileCancel"},
+                {TypeId::DataFileComplete, "FileComplete"},
+                {TypeId::DataFileReqMeta, "FileReqMeta"},
+                {TypeId::DataFileReqData, "FileReqData"},
+                {TypeId::DataFileMetaData, "FileMetaData"},
+                {TypeId::DataFileChunkData, "FileChunkData"},
+                {TypeId::DataFileReqComplete, "FileReqComplete"},
+                {TypeId::CommandReset, "Reset"},
+                {TypeId::CommandReboot, "Reboot"},
+                {TypeId::CommandSendBeacon, "SendBeacon"},
+                {TypeId::CommandClearQueue, "ClearQueue"},
+                {TypeId::CommandExternalCommand, "ExternalCommand"},
+                {TypeId::CommandTestRadio, "TestRadio"},
+                {TypeId::CommandListDirectory, "ListDirectory"},
+                {TypeId::CommandTransferFile, "TransferFile"},
+                {TypeId::CommandTransferNode, "TransferNode"},
+                {TypeId::CommandTransferRadio, "TransferRadio"},
+                {TypeId::CommandTransferList, "TransferList"},
+                {TypeId::CommandInternalRequest, "InternalRequest"},
+                {TypeId::CommandPing, "Ping"},
+                {TypeId::CommandSetTime, "SetTime"},
+                {TypeId::CommandGetTimeHuman, "GetTimeHuman"},
+                {TypeId::CommandGetTimeBinary, "GetTimeBinary"},
+                {TypeId::CommandAdcsCommunicate, "AdcsCommunicate"},
+                {TypeId::CommandAdcsCommission, "AdcsCommission"},
+                {TypeId::CommandAdcsSetRunMode, "AdcsSetRunMode"},
+                {TypeId::CommandEpsCommunicate, "EpsCommunicate"},
+                {TypeId::CommandEpsSwitchName, "EpsSwitchName"},
+                {TypeId::CommandEpsSwitchNumber, "EpsSwitchNumber"},
+                {TypeId::CommandEpsReset, "EpsReset"},
+                {TypeId::CommandEpsState, "EpsState"},
+                {TypeId::CommandEpsWatchdog, "EpsWatchdog"},
+                {TypeId::CommandEpsSetTime, "EpsSetTime"},
+                {TypeId::CommandExecLoadCommand, "ExecLoadCommand"},
+                {TypeId::CommandExecAddCommand, "ExecAddCommand"},
             };
-            
+
+            map<string, TypeId> StringType = {
+                {"Beacon", TypeId::DataBeacon},
+                {"Pong", TypeId::DataPong},
+                {"EPSSingleResponse", TypeId::DataEPSSingleResponse},
+                {"EPSMultiResponse", TypeId::DataEPSMultiResponse},
+                {"ADCSSingleResponse", TypeId::DataADCSSingleResponse},
+                {"ADCSMultiResponse", TypeId::DataADCSMultiResponse},
+                {"Response", TypeId::DataResponse},
+                {"IP", TypeId::DataIP},
+                {"Test", TypeId::DataTest},
+                {"Time", TypeId::DataTime},
+
+                {"FileCommand", TypeId::DataFileCommand},
+                {"FileMessage", TypeId::DataFileMessage},
+                {"FileQueue", TypeId::DataFileQueue},
+                {"FileCancel", TypeId::DataFileCancel},
+                {"FileComplete", TypeId::DataFileComplete},
+                {"FileReqMeta", TypeId::DataFileReqMeta},
+                {"FileReqData", TypeId::DataFileReqData},
+                {"FileMetaData", TypeId::DataFileMetaData},
+                {"FileChunkData", TypeId::DataFileChunkData},
+                {"FileReqComplete", TypeId::DataFileReqComplete},
+
+                {"Reset", TypeId::CommandReset},
+                {"Reboot", TypeId::CommandReboot},
+                {"SendBeacon", TypeId::CommandSendBeacon},
+                {"ClearQueue", TypeId::CommandClearQueue},
+                {"ExternalCommand", TypeId::CommandExternalCommand},
+                {"TestRadio", TypeId::CommandTestRadio},
+                {"ListDirectory", TypeId::CommandListDirectory},
+                {"TransferFile", TypeId::CommandTransferFile},
+                {"TransferNode", TypeId::CommandTransferNode},
+                {"TransferRadio", TypeId::CommandTransferRadio},
+                {"TransferList", TypeId::CommandTransferList},
+                {"InternalRequest", TypeId::CommandInternalRequest},
+                {"Ping", TypeId::CommandPing},
+                {"SetTime", TypeId::CommandSetTime},
+                {"GetTimeHuman", TypeId::CommandGetTimeHuman},
+                {"GetTimeBinary", TypeId::CommandGetTimeBinary},
+                {"EpsCommunicate", TypeId::CommandEpsCommunicate},
+                {"EpsSwitchName", TypeId::CommandEpsSwitchName},
+                {"EpsSwitchNumber", TypeId::CommandEpsSwitchNumber},
+                {"EpsReset", TypeId::CommandEpsReset},
+                {"EpsState", TypeId::CommandEpsState},
+                {"EpsWatchdog", TypeId::CommandEpsWatchdog},
+                {"EpsSetTime", TypeId::CommandEpsSetTime},
+                {"AdcsCommunicate", TypeId::CommandAdcsCommunicate},
+                {"AdcsCommission", TypeId::CommandAdcsCommission},
+                {"AdcsSetRunMode", TypeId::CommandAdcsSetRunMode},
+                {"ExecLoadCommand", TypeId::CommandExecLoadCommand},
+                {"ExecAddCommand", TypeId::CommandExecAddCommand},
+            };
+
 
             struct __attribute__ ((packed))  ResponseHeader
             {
                 uint8_t chunks;
                 uint8_t chunk_id;
-//                uint16_t chunk_size;
                 uint32_t response_id;
                 uint32_t met;
             };
 
+            struct __attribute__ ((packed))  TestHeader
+            {
+                uint32_t test_id;
+                uint32_t size;
+                uint32_t packet_id;
+            };
+
+            struct __attribute__ ((packed))  Header
+            {
+                uint16_t data_size;
+                TypeId type;
+                uint8_t radio;
+                NodeData::NODE_ID_TYPE orig = NodeData::NODEIDORIG;
+                NodeData::NODE_ID_TYPE dest = NodeData::NODEIDDEST;
+                // Maybe response_id here
+            } header;
+
             CCSDS_Header ccsds_header;
             vector<uint8_t> packetized;
-            vector<uint8_t> packed;
-            TypeId type;
+            vector<uint8_t> wrapped;
 			/// Data of interest
             vector<uint8_t> data;
             uint16_t crc;
-            // Destination for forward type packets
-            string fdest;
 
             struct __attribute__ ((packed)) FileChunkData
             {
@@ -119,15 +238,15 @@ namespace Cosmos {
 
             };
 
-        private:
             vector<uint8_t> atsm = {0x1a, 0xcf, 0xfc, 0x1d};
             vector<uint8_t> atsmr = {0x58, 0xf3, 0x3f, 0xb8};
+//            uint32_t secret;
+
+        private:
             CRC16 calc_crc;
 
 //            Transfer ttransfer;
 //            int32_t close_transfer();
-
-            bool PackForward();
 
         };
     }

@@ -721,9 +721,9 @@ namespace Cosmos {
         // Windows seem to have trouble with anything shorter than 1/100 second (we should explore this)
         // Unix is set to sleep just a little longer than it would take to send a character (could be shorter?)
 #ifdef COSMOS_WIN_OS
-        COSMOS_SLEEP(0.010);
+        secondsleep(0.010);
 #else
-//        COSMOS_SLEEP(10. / baud - et.split());
+//        secondsleep(10. / baud - et.split());
 #endif
         //
 
@@ -1128,7 +1128,7 @@ namespace Cosmos {
             {
                 error = result;
             }
-            COSMOS_SLEEP(rictimeout < 1. ? rictimeout/10. : .1);
+            secondsleep(rictimeout < 1. ? rictimeout/10. : .1);
         } while (error == SERIAL_ERROR_TIMEOUT && et.split() < rictimeout);
 #else
         ElapsedTime et;
@@ -1213,7 +1213,7 @@ namespace Cosmos {
             {
                 error = result;
             }
-            COSMOS_SLEEP(rictimeout < 1. ? rictimeout/10. : .1);
+            secondsleep(rictimeout < 1. ? rictimeout/10. : .1);
         } while (error == SERIAL_ERROR_TIMEOUT && et.split() < rictimeout);
 #else
         ElapsedTime et;

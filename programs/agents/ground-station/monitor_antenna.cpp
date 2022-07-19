@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
             printf("%s\r", ant_state.c_str());
 	    fflush(stdout);
         }
-        COSMOS_SLEEP(2.);
+        secondsleep(2.);
     }
 }
 

@@ -293,7 +293,7 @@ int main(int argc, char* argv[]){
             agent->post(Agent::AgentMessage::SOH, json_of_table(mainjstring, agent->sohtable, agent->cinfo));
 
 
-            COSMOS_SLEEP(sleep_time); // sleep for 70% of the iteration time
+            secondsleep(sleep_time); // sleep for 70% of the iteration time
 
         }
 

@@ -1,6 +1,7 @@
 #include "support/configCosmos.h"
 #include "device/serial/serialclass.h"
 #include "support/elapsedtime.h"
+#include "support/timelib.h"
 
 int main(int argc, char *argv[])
 {
@@ -34,5 +35,5 @@ int main(int argc, char *argv[])
     Serial *port = new Serial(name, baud, bits, parity, stop);
     port->set_dtr(dtr_state);
 
-    COSMOS_SLEEP(wait_time);
+    secondsleep(wait_time);
 }

@@ -76,7 +76,7 @@ namespace Cosmos {
 
         // TODO: implement using pos_geoc2geod
         int32_t loc_clear(locstruc *loc);
-        int32_t pos_extra(locstruc *loc);
+        int32_t pos_extra(double utc, locstruc *loc);
         int32_t pos_icrf(locstruc *loc);
         int32_t pos_eci(locstruc *loc);
         int32_t pos_sci(locstruc *loc);
@@ -105,7 +105,7 @@ namespace Cosmos {
         int32_t pos_selc2eci(locstruc *loc);
 
         int32_t loc_clear(locstruc &loc);
-        int32_t pos_extra(locstruc &loc);
+        int32_t pos_extra(double utc, locstruc &loc);
         int32_t pos_clear(locstruc &loc);
         int32_t pos_icrf(locstruc &loc);
         int32_t pos_eci(locstruc &loc);
@@ -204,7 +204,9 @@ namespace Cosmos {
         int32_t topo2azel(Vector tpos, float &az, float &el);
         int lines2eci(double mjd, vector<tlestruc> tle, cartpos &eci);
         int tle2eci(double mjd, tlestruc tle, cartpos &eci);
+        double atan3(double sa, double cb);
         int32_t eci2tle(double utc, cartpos eci, tlestruc &tle);
+        int32_t rv2tle(double utc, cartpos eci, tlestruc &tle);
         int sgp4(double utc, tlestruc tle, cartpos &pos_teme);
         tlestruc get_line(uint16_t index, vector<tlestruc> tle);
         int32_t load_lines(string fname, vector<tlestruc>& tle);

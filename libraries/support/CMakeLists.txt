@@ -1,4 +1,4 @@
-#cmake_minimum_required(VERSION 2.8.12)
+#cmake_minimum_required(VERSION 3.5)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -17,9 +17,14 @@ target_link_libraries(CosmosSupport ${COSMOS_LIBS})
 add_library(CosmosSlip STATIC sliplib.cpp sliplib.h)
 install(TARGETS CosmosSlip DESTINATION lib)
 
-add_library(CosmosTransfer STATIC transferlib.cpp transferlib.h transferclass.h transferclass.cpp)
+# NOTE: CosmosTransfer is old, use CosmosTransferClass
+add_library(CosmosTransfer STATIC transferlib.cpp transferlib.h)
 install(TARGETS DESTINATION lib)
 target_link_libraries(CosmosTransfer CosmosNamespace CosmosSupport ${COSMOS_LIBS})
+
+add_library(CosmosTransferClass STATIC transferclass.h transferclass.cpp transferlib2.h transferlib2.cpp)
+install(TARGETS DESTINATION lib)
+target_link_libraries(CosmosTransferClass CosmosPacket CosmosNamespace CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosPrint STATIC print_utils.cpp print_utils.h)
 install(TARGETS CosmosPrint DESTINATION lib)
@@ -70,6 +75,10 @@ target_link_libraries(CosmosData CosmosTime CosmosString localzlib CosmosError C
 add_library(CosmosPacketHandler STATIC packethandler.cpp packethandler.h)
 install(TARGETS CosmosPacketHandler DESTINATION lib)
 target_link_libraries(CosmosPacketHandler CosmosBeacon CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
+
+add_library(CosmosChannel STATIC channellib.cpp channellib.h)
+install(TARGETS CosmosChannel DESTINATION lib)
+target_link_libraries(CosmosChannel CosmosBeacon CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosBeacon STATIC beacon.cpp beacon.h)
 install(TARGETS CosmosBeacon DESTINATION lib)

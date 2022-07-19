@@ -310,6 +310,7 @@ const char *json_of_state_geoc(string &jstring, cosmosstruc *cinfo);
 const char *json_of_imu(string &jstring,uint16_t num, cosmosstruc *cinfo);
 const char *json_of_rw(string &jstring,uint16_t index, cosmosstruc *cinfo);
 const char *json_of_mtr(string &jstring,uint16_t index, cosmosstruc *cinfo);
+const char *json_of_device(string &jstring,uint16_t index, cosmosstruc *cinfo, double utc=0.);
 const char *json_of_ephemeris(string &jstring, cosmosstruc *cinfo);
 const char *json_of_groundstation(string &jstring, cosmosstruc *cinfo);
 const char *json_of_event(string &jstring, cosmosstruc *cinfo);

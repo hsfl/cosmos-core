@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -12,7 +12,7 @@ set(libraryName CosmosDeviceGeneral PARENT_SCOPE)
 
 add_library(CosmosDeviceGeneral STATIC ${SOURCES} ${INCLUDES})
 #target_link_libraries(CosmosDeviceGeneral CosmosDeviceSerial CosmosNetwork CosmosMath CosmosSlip CosmosSupport ${COSMOS_LIBS})
-target_link_libraries(CosmosDeviceGeneral CosmosData CosmosDeviceSerial CosmosMath CosmosSlip CosmosNetwork CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosDeviceGeneral CosmosTime CosmosData CosmosDeviceSerial CosmosMath CosmosSlip CosmosNetwork CosmosSupport ${COSMOS_LIBS})
 
 install(TARGETS CosmosDeviceGeneral DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/general)

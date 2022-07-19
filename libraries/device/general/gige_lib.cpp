@@ -382,7 +382,7 @@ the CCP register and closing all sockets.
                 {
                     continue;
                 }
-                COSMOS_SLEEP(.1);
+                secondsleep(.1);
 
                 tchan.addrlen = sizeof(tchan.caddr);
 
@@ -752,7 +752,7 @@ the CCP register and closing all sockets.
                 }
                 else
                 {
-                    secondsleep(.001);
+                    std::this_thread::yield();
                 }
             }
             if (et.split() > tframes)

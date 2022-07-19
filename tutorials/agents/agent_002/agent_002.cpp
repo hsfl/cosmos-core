@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 		cout<<node_agent_name<<" running..."<<endl;
 
         // Sleep for 4 sec
-        COSMOS_SLEEP(4.);
+        secondsleep(4.);
         // Initiate request to agent_001
 		// name of agent target for request
 		string agent_target = "agent_001";
@@ -94,14 +94,14 @@ int main(int argc, char **argv)
 			cout<<"    RX: \""<< response <<"\" ("<<response.size()<<" bytes)"<< endl;
         }
 
-        COSMOS_SLEEP(2.);
+        secondsleep(2.);
 		string response2;
 		string request2 = "setvalue {\"node_loc_orbit\":"+std::to_string((jah++))+"}";
 		// orphan request for testing
 		cout<<"attempting setting orbit value..."<<endl;
 	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), request2, response2, 2.);
 
-        COSMOS_SLEEP(2.);
+        secondsleep(2.);
 		// orphan request for testing
 		string response1;
 		string request1 = "setvalue {\"node_loc_utc\":"+std::to_string((jah2--))+"}";

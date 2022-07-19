@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
             size_t agent_count = 0;
             ElapsedTime et;
             agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
-            COSMOS_SLEEP(.5);
+            secondsleep(.5);
             do
             {
                 if (agent->agent_list.size() > agent_count)
@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
                     }
                     agent_count = agent->agent_list.size();
                 }
-                COSMOS_SLEEP(.1);
+                secondsleep(.1);
             } while (et.split() < SERVER_WAIT_TIME);
             exit(0);
             break;
@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
             size_t agent_count = 0;
             ElapsedTime et;
             agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
-            COSMOS_SLEEP(.1);
+            secondsleep(.1);
             printf("{\"agent_list\":[");
             do
             {
@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
                     fflush(stdout);
                     agent_count = agent->agent_list.size();
                 }
-                COSMOS_SLEEP(.1);
+                secondsleep(.1);
             } while (et.split() < SERVER_WAIT_TIME);
             printf("]}\n");
             exit(0);
