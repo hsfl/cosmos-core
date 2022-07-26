@@ -69,6 +69,9 @@ namespace Cosmos {
 
             packet_size = 217;
 
+            printf("Initialize Transfer step 1\n");
+            fflush(stdout);
+            secondsleep(3.);
             // Initialize Transfer Queue
             if ((iretn = NodeData::load_node_ids()) < 2)
             {
@@ -78,9 +81,15 @@ namespace Cosmos {
                 }
                 return iretn;
             }
+            printf("Initialize Transfer step 2\n");
+            fflush(stdout);
+            secondsleep(3.);
             txq.resize(iretn);
             for (uint16_t i=1; i<iretn; ++i)
             {
+                printf("Initialize Transfer step 2.%u\n", i);
+                fflush(stdout);
+                secondsleep(3.);
                 if (NodeData::check_node_id(i) > 0)
                 {
                     txq[i].node_id = i;
@@ -88,6 +97,9 @@ namespace Cosmos {
                 }
             }
 
+            printf("Initialize Transfer step 3\n");
+            fflush(stdout);
+            secondsleep(3.);
             // Identify and store calling node's node_id
             iretn = NodeData::lookup_node_id(calling_node_name);
             if (iretn == NodeData::NODEIDUNKNOWN)
@@ -101,6 +113,9 @@ namespace Cosmos {
             self_node_id = iretn;
             self_node_name = calling_node_name;
 
+            printf("Initialize Transfer step 4\n");
+            fflush(stdout);
+            secondsleep(3.);
             // Restore in progress transfers from previous run
             for (string node_name : data_list_nodes())
             {
