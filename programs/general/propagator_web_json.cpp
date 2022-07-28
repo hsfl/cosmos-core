@@ -181,7 +181,12 @@ int32_t init_propagator(prop_unit& prop, const string& args, string& response)
     // Global propagator settings
     prop.startutc = jargs[JSTART].number_value();
     prop.simdt = jargs[JSIMDT].number_value();
-    prop.telem = string_split(jargs[JTELEM].string_value());
+    for (auto& item : jargs[JTELEM].array_items()) {
+        if (item.string_value().empty()) {
+            continue;
+        }
+        prop.telem.push_back(item.string_value());
+    }
     if (!jargs[JEND].is_null()) {
         prop.endutc = jargs[JEND].number_value();
         prop.runcount = (prop.endutc - prop.startutc)/(prop.simdt/86400.);
@@ -304,7 +309,7 @@ int32_t validate_json_args(const json11::Json& jargs, string& response)
     // All required fields must be provided
     if (jargs[JSTART].is_null()    // MJD start time of simulation
      || jargs[JSIMDT].is_null()    // MJD end time of simulation
-     || jargs[JTELEM].is_null()    // Comma-separated list of telem tags to return
+     || jargs[JTELEM].is_null()    // Array of string values specifies which telems to return
      || jargs[JNODES].is_null())   // Array of initial nodes
     {
         response = "Argument format error, all required fields must be provided.";
@@ -319,8 +324,8 @@ int32_t validate_json_args(const json11::Json& jargs, string& response)
         response = "Argument format error, " + JSIMDT + " must be a number.";
         return COSMOS_GENERAL_ERROR_ARGS;
     }
-    if (!jargs[JTELEM].is_string()) {
-        response = "Argument format error, " + JTELEM + " must be a string.";
+    if (!jargs[JTELEM].is_array()) {
+        response = "Argument format error, " + JTELEM + " must be an array of strings.";
         return COSMOS_GENERAL_ERROR_ARGS;
     }
     if (!jargs[JNODES].is_array()) {
@@ -695,6 +700,8 @@ int32_t create_sim_snapshot(const prop_unit& prop, json11::Json::array& output)
                 kep_telem[JECC] = kep.e;
                 kep_telem[JSMA] = kep.a;
                 node_telem[JKEP] = kep_telem;
+            } else {
+                continue;
             }
         } // end telem for-loop
         output.push_back(node_telem);
