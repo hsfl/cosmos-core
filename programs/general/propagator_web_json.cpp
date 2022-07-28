@@ -12,7 +12,7 @@ using namespace Convert;
  * formatted orbital data.
  * 
  * example usage:
- * ./propagator_web_json '{"start":59270,"runcount":5,"simdt":60,"telem":"poseci","nodes":[{"name":"node0","phys":{"lat":0.371876,"lon":-2.755147,"alt":400000,"angle":0.942478}}]}'
+ * ./propagator_web_json '{"start":59270,"runcount":5,"simdt":60,"telem":["poseci"],"nodes":[{"name":"node0","phys":{"lat":0.371876,"lon":-2.755147,"alt":400000,"angle":0.942478}}]}'
  */
 
 const int precision = 3;
@@ -64,6 +64,9 @@ const string JATTY = "qy";
 const string JATTZ = "qz";
 const string JATTW = "qw";
 
+// Special keys in args, will be treated a bit specially
+const string JSENDTODB = "db";
+
 // Struct of all propagator types to use in simulation
 // Specify these with json args
 struct prop_types
@@ -98,6 +101,8 @@ struct prop_unit
     double runcount = 1;
     // List of telem to return
     vector<string> telem;
+    // To send to database or not (through telegraf)
+    bool to_db = false;
 };
 
 int32_t run_propagator(prop_unit& prop, string& response);
@@ -106,6 +111,8 @@ int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& res
 int32_t create_sim_snapshot(const prop_unit& prop, json11::Json::array& output);
 int32_t validate_json_args(const json11::Json& jargs, string& response);
 int32_t validate_json_node(const json11::Json& jargs, string& response);
+int32_t sendToTelegraf(string& response);
+int32_t hostnameToIP(const string hostname, string& ipaddr, string& response);
 
 int main(int argc, char *argv[])
 {
@@ -137,7 +144,20 @@ int main(int argc, char *argv[])
     }
 
     // Propagator run was a success
-    cout << response;
+    // Send to database
+    if (prop.to_db)
+    {
+        iretn = sendToTelegraf(response);
+        if (iretn < 0)
+        {
+            cerr << response;
+            return iretn;
+        }
+        cout << "Propagator ran successfully and was sent to Telegraf";
+    }
+    else {
+        cout << response;
+    }
 
     return 0;
 }
@@ -193,6 +213,9 @@ int32_t init_propagator(prop_unit& prop, const string& args, string& response)
     } else {
         prop.runcount = jargs[JRUNCOUNT].number_value();
         prop.endutc = prop.startutc + (prop.simdt/86400. * prop.runcount);
+    }
+    if (!jargs[JSENDTODB].is_null()) {
+        prop.to_db = jargs[JSENDTODB].bool_value();
     }
 
     // Determine initial node conditions
@@ -706,6 +729,84 @@ int32_t create_sim_snapshot(const prop_unit& prop, json11::Json::array& output)
         } // end telem for-loop
         output.push_back(node_telem);
     } // end sim node for-loop
+
+    return 0;
+}
+
+/**
+ * @brief Converts a hostname to an ip address
+ * 
+ * Used here to convert docker-compose services' network aliases into usable ip addresses
+ * 
+ * @param hostname Host name to convert.
+ * @param ipaddr Successful conversion stored here.
+ * @param response Error messages, if any.
+ * @return 0 on success, negative on error
+ */
+int32_t hostnameToIP(const string hostname, string& ipaddr, string& response)
+{
+    int32_t iretn;
+    addrinfo hints;
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET; // Docker binds to both ipv4 and ipv6
+    hints.ai_socktype = 0;
+    hints.ai_protocol = 0;
+    addrinfo* addrs;
+    iretn = getaddrinfo(hostname.c_str(), NULL, &hints, &addrs);
+    if (iretn != 0)
+    {
+        response = "Failed to resolve hostname " + hostname + ": " + std::to_string(iretn) + " " + gai_strerror(iretn);
+        return iretn;
+    }
+    char addr_string[100];
+    // Only checking first in addrinfo list, they should all be similar
+    switch (addrs->ai_family)
+    {
+    case AF_INET:
+        inet_ntop(addrs->ai_family, &((struct sockaddr_in const *)addrs->ai_addr)->sin_addr, addr_string, 100);
+        break;
+    case AF_INET6:
+        inet_ntop(addrs->ai_family, &((struct sockaddr_in6 const *)addrs->ai_addr)->sin6_addr, addr_string, 100);
+        break;
+    default:
+        response = "addrs->ai_family was an unexpected value " + std::to_string(addrs->ai_family);
+        return GENERAL_ERROR_ARGS;
+        break;
+    }
+    ipaddr = addr_string;
+    freeaddrinfo(addrs);
+    return 0;
+}
+
+int32_t sendToTelegraf(string& response)
+{
+    int32_t iretn;
+    const string TELEGRAF_ADDR = "telegraf";
+    const int TELEGRAF_PORT = 10097;
+    socket_channel cosmos_web_telegraf_channel;
+    string addr_string;
+    iretn = hostnameToIP(TELEGRAF_ADDR, addr_string, response);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    iretn = socket_open(
+                &cosmos_web_telegraf_channel,
+                NetworkType::UDP,
+                addr_string.c_str(),
+                TELEGRAF_PORT,
+                SOCKET_TALK,
+                SOCKET_BLOCKING,
+                2000000
+                );
+    if ((iretn) < 0)
+    {
+        response = "Failed to open socket cosmos_web_telegraf_channel: " + cosmos_error_string(iretn);
+        return iretn;
+    }
+
+    socket_sendto(cosmos_web_telegraf_channel, response);
 
     return 0;
 }
