@@ -17,8 +17,8 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::DataADCSMultiResponse, AdcsForward);
 
             // EPS
-            add_func(PacketComm::TypeId::DataEPSSingleResponse, EpsForward);
-            add_func(PacketComm::TypeId::DataEPSMultiResponse, EpsForward);
+            add_func(PacketComm::TypeId::DataEPSSingleResponse, EpsLog);
+            add_func(PacketComm::TypeId::DataEPSMultiResponse, EpsLog);
 
             // File Transfer
             add_func(PacketComm::TypeId::DataFileCommand, FileForward);
@@ -678,6 +678,14 @@ namespace Cosmos {
         {
             int32_t iretn=0;
             iretn = agent->push_unwrapped(agent->channel_number("ADCS"), packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::EpsLog(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        {
+//            log_write(agent->cinfo->node.name, "eps", )
+            int32_t iretn=0;
+            iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
             return iretn;
         }
 
