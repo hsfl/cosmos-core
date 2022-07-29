@@ -28,6 +28,7 @@
 ********************************************************************/
 
 #include "device/general/kpc9612p_lib.h"
+#include "support/timelib.h"
 
 uint16_t kpc9612p_fcstab[256] = {
     0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
@@ -222,7 +223,7 @@ int32_t kpc9612p_exitkiss(kpc9612p_handle *handle)
     cssl_putchar(handle->serial, 0xc0);
     cssl_putchar(handle->serial, 0xff);
     cssl_putchar(handle->serial, 0xc0);
-    COSMOS_SLEEP(1.);
+    secondsleep(1.);
     cssl_putchar(handle->serial, '\r');
     return 0;
 }
@@ -271,7 +272,7 @@ int32_t kpc9612p_entercmd(kpc9612p_handle *handle)
         return 0;
     }
     // If still not, check if we are in TRANSPARENT mode
-    COSMOS_SLEEP(1.);
+    secondsleep(1.);
     iretn = cssl_putchar(handle->serial, 0x03);
     if (iretn < 0)
     {
@@ -287,7 +288,7 @@ int32_t kpc9612p_entercmd(kpc9612p_handle *handle)
     {
         return iretn;
     }
-    COSMOS_SLEEP(1.);
+    secondsleep(1.);
     iretn = cssl_getdata(handle->serial, buffer, 255);
     if (iretn < 0)
     {

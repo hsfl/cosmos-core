@@ -69,12 +69,12 @@ static string nodedir;
 /*! Append the provided string to a file in the {node}/{location}/{agent} directory. The file name
  * is created as {node}_yyyyjjjsssss_{extra}.{type}
  * \param node Node name.
- * \param location Location name.
  * \param agent Agent name.
  * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
  * \param extra Extra part  of name.
  * \param type Type part of name.
  * \param record String to be appended to file.
+ * \param location Location name.
  */
 string log_write(string node, string agent, double utc, string extra, string type, string record, string location)
 {
@@ -84,14 +84,15 @@ string log_write(string node, string agent, double utc, string extra, string typ
     if (utc == 0.)
         return "";
 
-    if (extra.empty())
-    {
-        path = data_type_path(node, location, agent, utc, type);
-    }
-    else
-    {
-        path = data_type_path(node, location, agent, utc, extra, type);
-    }
+//    if (extra.empty())
+//    {
+//        path = data_type_path(node, location, agent, utc, type);
+//    }
+//    else
+//    {
+//        path = data_type_path(node, location, agent, utc, extra, type);
+//    }
+    path = data_type_path(node, location, agent, utc, type, extra);
 
     if (location == "immediate")
     {
@@ -156,8 +157,9 @@ string log_write(string node, int type, double utc, const char *record, string d
  * \param newpath Path to move to.
  * \param compress Wether or not to compress with gzip.
  */
-void log_move(string oldpath, string newpath, bool compress)
+int32_t log_move(string oldpath, string newpath, bool compress)
 {
+    int32_t iretn;
     if (compress)
     {
         char buffer[8192];
@@ -179,14 +181,31 @@ void log_move(string oldpath, string newpath, bool compress)
 
         fclose(fin);
         gzclose_w(gzfout);
-        rename(temppath.c_str(), newpath.c_str());
-        remove(temppath.c_str());
+        fclose(fout);
+        iretn = rename(temppath.c_str(), newpath.c_str());
+        if (iretn < 0)
+        {
+            iretn = -errno;
+            return iretn;
+        }
+        iretn = remove(temppath.c_str());
+//        if (iretn < 0)
+//        {
+//            iretn = -errno;
+//            return iretn;
+//        }
     }
     else
     {
-        rename(oldpath.c_str(), newpath.c_str());
+        iretn = rename(oldpath.c_str(), newpath.c_str());
+        if (iretn < 0)
+        {
+            iretn = -errno;
+            return iretn;
+        }
     }
-    remove(oldpath.c_str());
+    iretn = remove(oldpath.c_str());
+    return iretn;
 }
 
 //! Move log file - full version.
@@ -200,46 +219,20 @@ void log_move(string oldpath, string newpath, bool compress)
  * \param dstlocation Destination location name.
  * \param compress Wether or not to compress with gzip.
  */
-void log_move(string node, string agent, string srclocation, string dstlocation, bool compress)
+int32_t log_move(string node, string agent, string srclocation, string dstlocation, bool compress)
 {
-//    char buffer[8192];
+    int32_t iretn = 0;
     vector<filestruc> oldfiles;
-    data_list_files(node, srclocation, agent, oldfiles);
+    iretn = data_list_files(node, srclocation, agent, oldfiles);
     for (auto oldfile: oldfiles)
     {
-        log_move(oldfile.path, data_base_path(node, dstlocation, agent, oldfile.name), compress);
-//        string oldpath = oldfile.path;
-
-//        if (compress)
-//        {
-//            string temppath = oldfile.path + ".gz";
-//            string newpath = data_base_path(node, dstlocation, agent, oldfile.name + ".gz");
-//            FILE *fin = data_open(oldpath, "rb");
-//            FILE *fout = data_open(temppath, "wb");
-//            gzFile gzfout;
-//            gzfout = gzdopen(fileno(fout), "a");
-
-//            do
-//            {
-//                unsigned nbytes = (unsigned)fread(buffer, 1, 8192, fin);
-//                if (nbytes)
-//                {
-//                    gzwrite(gzfout, buffer, nbytes);
-//                }
-//            } while (!feof(fin));
-
-//            fclose(fin);
-//            gzclose_w(gzfout);
-//            rename(temppath.c_str(), newpath.c_str());
-//            remove(temppath.c_str());
-//        }
-//        else
-//        {
-//            string newpath = data_base_path(node, dstlocation, agent, oldfile.name);
-//            rename(oldpath.c_str(), newpath.c_str());
-//        }
-//        remove(oldpath.c_str());
+        iretn = log_move(oldfile.path, data_base_path(node, dstlocation, agent, oldfile.name), compress);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
     }
+    return iretn;
 }
 
 //! Move log file - short version.
@@ -250,9 +243,9 @@ void log_move(string node, string agent, string srclocation, string dstlocation,
  * \param node Node name.
  * \param agent Agent name.
  */
-void log_move(string node, string agent)
+int32_t log_move(string node, string agent)
 {
-    log_move(node, agent, "temp", "outgoing", true);
+    return log_move(node, agent, "temp", "outgoing", true);
 }
 
 //! Get a list of days in a Node archive.
@@ -431,6 +424,7 @@ vector<filestruc> data_list_files(string directory)
  * The result is returned as a vector of ::filestruc, one entry for each file found.
  * Repeated calls to this function will append entries.
  * \param directory Directory to search.
+ * \param files Reference to filestruc vector to fill.
  * \return Number of files found, otherwise negative error.
  */
 size_t data_list_files(string directory, vector<filestruc>& files)
@@ -830,14 +824,14 @@ string data_archive_path(string node, string agent, double mjd)
 *    \param type Any valid extension type
 *    \return File path string, otherwise nullptr
 */
-string data_type_path(string node, string location, string agent, double mjd, string type)
-{
-    string path;
+//string data_type_path(string node, string location, string agent, double mjd, string type)
+//{
+//    string path;
 
-    path = data_type_path(node, location, agent, mjd, "", type);
+//    path = data_type_path(node, location, agent, mjd, type);
 
-    return (path);
-}
+//    return (path);
+//}
 
 //! Create data file path
 /*! Build a path to a data file using its filename and the current Node
@@ -850,12 +844,12 @@ string data_type_path(string node, string location, string agent, double mjd, st
  * \param type Any valid extension type
  * \return File path string, otherwise nullptr
 */
-string data_type_path(string node, string location, string agent, double mjd, string extra, string type)
+string data_type_path(string node, string location, string agent, double mjd, string type, string extra)
 {
     string path;
     string tpath;
 
-    tpath = data_name_path(node, location, agent, mjd, data_name(node, mjd, extra, type));
+    tpath = data_name_path(node, location, agent, mjd, data_name(node, mjd, type, extra));
 
     if (!tpath.empty())
     {
@@ -895,6 +889,17 @@ string data_name_path(string node, string location, string agent, double mjd, st
     }
     return path;
 
+}
+
+filestruc data_name_struc(string node, string location, string agent, double mjd, string name)
+{
+    filestruc file;
+    file.node = node;
+    file.agent = agent;
+    file.utc = mjd;
+    file.name = name;
+    file.path = data_name_path(node, location, agent, mjd, name);
+    return file;
 }
 
 //! Create resource file path
@@ -1524,6 +1529,19 @@ string get_nodedir(string node, bool create_flag)
     return (nodedir);
 }
 
+//! Move data file - filestruc version.
+/*! Move files previously created using ::file_struc to their final location, optionally
+ * compressing with gzip. The routine will move the file specified in filestruc to {node}/{dstlocation}/{agent}.
+ * \param filestruc File information.
+ * \param location Destination location name.
+ * \param compress Wether or not to compress with gzip.
+ */
+int32_t data_move(filestruc file, string location, bool compress)
+{
+        int32_t iretn = log_move(file.path, data_base_path(file.node, location, file.agent, file.name), compress);
+        return iretn;
+}
+
 //! Load data from archive
 /*! Load JSON entries of specified type from data archive for specified Node and Agent.
              * Will return all data that is available within specified date range, in files
@@ -1866,7 +1884,7 @@ int32_t data_execute(string cmd)
     return data_execute(cmd, result);
 }
 
-int32_t data_execute(vector<uint8_t> cmd, std::string &result, std::string shell)
+int32_t data_execute(vector<uint8_t> cmd, string& result, string shell)
 {
     return data_execute(string(cmd.begin(), cmd.end()), result, shell);
 }
@@ -2089,6 +2107,158 @@ int32_t data_execute(string cmd, string& result, string shell)
 
     return result.size();
 
+}
+
+// Define the static member variable here
+vector<string> NodeData::node_ids;
+
+//! Loads node table from nodeids.ini configuration file
+//! nodeids is a vector of node name strings indexed by a node_id
+int32_t NodeData::load_node_ids()
+{
+    if (NodeData::node_ids.size() == 0)
+    {
+        char buf[103];
+        FILE *fp = data_open(get_cosmosnodes()+"/nodeids.ini", "rb");
+        if (fp)
+        {
+            uint16_t max_index = 0;
+            vector<uint16_t> tindex;
+            vector<string> tnodeid;
+            while (fgets(buf, 102, fp) != nullptr)
+            {
+                uint16_t index = 0;
+                string nodeid;
+                if (buf[strlen(buf)-1] == '\n')
+                {
+                    buf[strlen(buf)-1] = 0;
+                }
+                if (buf[1] == ' ')
+                {
+                    buf[1] = 0;
+                    index = atoi(buf);
+                    nodeid = &buf[2];
+                }
+                else if (buf[2] == ' ')
+                {
+                    buf[2] = 0;
+                    index = atoi(buf);
+                    nodeid = &buf[3];
+                }
+                else if (buf[3] == ' ')
+                {
+                    buf[3] = 0;
+                    index = atoi(buf);
+                    nodeid = &buf[4];
+                }
+                else
+                {
+                    index = 0;
+                }
+                if (index)
+                {
+                    if (index > max_index)
+                    {
+                        max_index = index;
+                    }
+                    tindex.push_back(index);
+                    tnodeid.push_back(nodeid);
+                }
+            }
+            fclose(fp);
+            NodeData::node_ids.resize(max_index+1);
+            for (uint16_t i=0; i<tindex.size(); ++i)
+            {
+                NodeData::node_ids[tindex[i]] = tnodeid[i];
+            }
+        }
+        else
+        {
+            return -errno;
+        }
+    }
+
+    return NodeData::node_ids.size();
+}
+
+//! Check if a node_id is in the node table
+//! \param node_id
+//! \return node_id on success, non-positive on error
+int32_t NodeData::check_node_id(NODE_ID_TYPE node_id)
+{
+    int32_t iretn;
+
+    if ((iretn=NodeData::load_node_ids()) <= 0)
+    {
+        return NODEIDUNKNOWN;
+    }
+
+
+    if (node_id > 0 && NodeData::node_ids[node_id].size())
+    {
+        return node_id;
+    }
+    else
+    {
+        return NODEIDUNKNOWN;
+    }
+}
+
+//! Gets the node_id associated with a node name
+//! \return node_id on success, negative on error
+int32_t NodeData::lookup_node_id(string node_name)
+{
+    int32_t iretn;
+
+    if ((iretn=NodeData::load_node_ids()) <= 0)
+    {
+        return NODEIDUNKNOWN;
+    }
+
+    uint8_t node_id = NODEIDUNKNOWN;
+    for (uint8_t i=1; i<NodeData::node_ids.size(); ++i)
+    {
+        if (NodeData::node_ids[i] == node_name)
+        {
+            node_id = i;
+            break;
+        }
+    }
+
+//    if (node_id == NODEIDUNKNOWN)
+//    {
+//        return TRANSFER_ERROR_NODE;
+//    }
+
+    return node_id;
+}
+
+//! Find the node name associated with the given node id in the node table.
+//! \param node_id Node ID
+//! \return Node name on success, or empty string on failure
+string NodeData::lookup_node_id_name(NODE_ID_TYPE node_id)
+{
+//    string name;
+    if (node_id == NodeData::NODEIDORIG)
+    {
+        return "Origin";
+    }
+    else if (node_id == NodeData::NODEIDUNKNOWN)
+    {
+        return "";
+    }
+    else if (node_id == NodeData::NODEIDDEST)
+    {
+        return "Destination";
+    }
+    else if (NodeData::load_node_ids() > 0 && node_id > 0 && node_id < NodeData::node_ids.size() && NodeData::node_ids[node_id].size())
+    {
+        return NodeData::node_ids[node_id];
+    }
+    else
+    {
+        return "";
+    }
 }
 
 void GITTEST::f()	{

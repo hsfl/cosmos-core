@@ -330,15 +330,20 @@ DeviceCpuLinux::DeviceCpuLinux()
 
 double DeviceCpuLinux::getLoad1minAverage()
 {
-    FILE *f;
+    static FILE *f =  nullptr;
     float load = 0.0;
     int	n;
 
-    if ((f = fopen("/proc/loadavg", "r")) == NULL)
-        return -1;
-
+    if (f == nullptr)
+    {
+        f = fopen("/proc/loadavg", "r");
+        if (f == nullptr)
+        {
+            return -1;
+        }
+    }
     n = fscanf(f, "%f", &load);
-    fclose(f);
+//    fclose(f);
 
     if (n != 1)
         return -1;
@@ -354,9 +359,10 @@ double DeviceCpuLinux::getLoad1minAverage()
 
 // this function is to be called before getPercentUseForCurrentProcess
 // not really working properly, using 'ps' for now
-void DeviceCpuLinux::initCpuUtilization(){
+void DeviceCpuLinux::initCpuUtilization()
+{
 
-    FILE* file;
+    static FILE* file = nullptr;
     //    struct tms timeSample;
     char line[128];
 
@@ -372,7 +378,14 @@ void DeviceCpuLinux::initCpuUtilization(){
     //lastCPUtime = getTimeInSec();
 
 
-    file = fopen("/proc/cpuinfo", "r");
+    if (file == nullptr)
+    {
+        file = fopen("/proc/cpuinfo", "r");
+        if (file == nullptr)
+        {
+            return;
+        }
+    }
     numProcessors = 0;
 
     bool foundProcessorTag = false;
@@ -382,7 +395,7 @@ void DeviceCpuLinux::initCpuUtilization(){
             foundProcessorTag = true;
         }
     }
-    fclose(file);
+//    fclose(file);
 
     // if it didn't find the processor tag inside /proc/cpuinfo
     // then assume that there is at least one cpu
@@ -668,7 +681,7 @@ float DeviceCpuLinux::getPercentCpuOf(string processName)
         return 0;
     }
 
-    COSMOS_SLEEP(1.0);
+    secondsleep(1.0);
 
     procStat pStat2;
     procPidStat p2(processName);

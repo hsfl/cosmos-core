@@ -206,6 +206,7 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
     {
 
         Convert::jplpos(JPL_EARTH,JPL_MOON, Convert::utc2tt(cosmos_data->node.utc),&ipos);
+        ipos.utc = cosmos_data->node.utc;
         localtime = atan2(cosmos_data->node.loc.pos.icrf.s.col[1], cosmos_data->node.loc.pos.icrf.s.col[0]);
         if (localtime < 0.)
             localtime += D2PI;

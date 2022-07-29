@@ -110,7 +110,7 @@ int myagent()
 		cout << "Load data in %: \t\t" << response << endl;
 
 		count++;
-		COSMOS_SLEEP(2.00);
+		secondsleep(2.00);
 
 	}
 	return (0);

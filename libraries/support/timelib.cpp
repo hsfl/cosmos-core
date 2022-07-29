@@ -74,10 +74,27 @@ namespace Cosmos {
             return currentmjd(0.);
         }
 
-        unsigned long int get_unix_time()
+        uint64_t get_unix_time(uint64_t offset)
         {
-            unsigned long int unix_time = time(NULL);
-            return unix_time;
+            uint64_t unix_time;
+
+            // unfortunatelly MSVC does not support gettimeofday
+#ifdef COSMOS_WIN_BUILD_MSVC
+            TimeUtils tu;
+            unix_time = tu.secondsSinceEpoch() + _timezone;
+#else
+            struct timeval mytime;
+            gettimeofday(&mytime, NULL);
+            if (mytime.tv_usec > 500000)
+            {
+                unix_time = mytime.tv_sec + 1;
+            }
+            else
+            {
+                unix_time = mytime.tv_sec;
+            }
+#endif
+            return unix_time + offset;
         }
 
         string get_local_time()
@@ -603,7 +620,7 @@ namespace Cosmos {
             imm = (int32_t)(1440 * fd);
             fd -= imm / 1440.;
             iss = (int32_t)(86400 * fd);
-            sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d", iy, im, id, ihh, imm, iss);
+            sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02dZ", iy, im, id, ihh, imm, iss);
 
             return string(buffer);
         }
@@ -886,14 +903,14 @@ namespace Cosmos {
 
             if (message.length())
             {
-                printf("%s", message.c_str());
+                printf("%s - ", message.c_str());
                 fflush(stdout);
             }
 
             while (et.split() < seconds)
             {
                 int32_t nextstep = static_cast <int32_t>((seconds - et.split()) / step);
-                COSMOS_SLEEP((seconds - et.split()) - nextstep * step);
+                secondsleep((seconds - et.split()) - nextstep * step);
                 printf("...%d", nextstep * step);
                 fflush(stdout);
             }

@@ -415,7 +415,7 @@ int main(int argc, char *argv[])
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
@@ -427,7 +427,7 @@ int main(int argc, char *argv[])
         }
         if (sleepsec > 0.)
         {
-            COSMOS_SLEEP((sleepsec));
+            secondsleep((sleepsec));
         }
 
         if(currentmjd() > nextlog) {
@@ -488,12 +488,12 @@ void recv_loop()
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
         else
         {
-            COSMOS_SLEEP(.001);
+            secondsleep(.001);
         }
 
         while (( nbytes = myrecvfrom("Incoming", rchannel, recvbuf, PACKET_MAX_LENGTH)) > 0)
@@ -1063,12 +1063,12 @@ void send_loop()
 
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
         // Sleep just a bit to let other threads act
-        COSMOS_SLEEP(.001);
+        secondsleep(.001);
 
         for (uint8_t local_node=1; local_node<txq.size(); ++local_node)
         {
@@ -1086,7 +1086,7 @@ void send_loop()
             // Initialize timer to check minimum wait time
             if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) >= 5.)
             {
-                COSMOS_SLEEP(queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) - 5.);
+                secondsleep(queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) - 5.);
             }
 
             // Send Cancel, Complete, Data, Reqdata, Metadata only if we have learned what the remote node mapping is
@@ -1404,7 +1404,7 @@ void transmit_loop()
     {
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
-            COSMOS_SLEEP(1);
+            secondsleep(1);
             continue;
         }
 
@@ -1422,7 +1422,7 @@ void transmit_loop()
                 transmit_queue.pop();
             }
         }
-        COSMOS_SLEEP(.001);
+        secondsleep(.001);
     }
 }
 
@@ -1483,7 +1483,7 @@ int32_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE
     transmit_queue.push(tentry);
     //    transmit_queue_check.notify_one();
     // Sleep just a bit to give other threads a chance
-    COSMOS_SLEEP(.001);
+    secondsleep(.001);
     return use_channel;
 }
 
@@ -1494,7 +1494,7 @@ int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf)
 
     if ((cmjd = currentmjd(0.)) < out_comm_channel[use_channel].nmjd)
     {
-        COSMOS_SLEEP((86400. * (out_comm_channel[use_channel].nmjd - cmjd)));
+        secondsleep((86400. * (out_comm_channel[use_channel].nmjd - cmjd)));
     }
 
     iretn = sendto(out_comm_channel[use_channel].chansock.cudp, reinterpret_cast<const char*>(&buf[0]), buf.size(), 0, reinterpret_cast<sockaddr*>(&out_comm_channel[use_channel].chansock.caddr), sizeof(struct sockaddr_in));
@@ -1628,7 +1628,7 @@ int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& bu
                     {
                         if (errno == EAGAIN || errno == EWOULDBLOCK)
                         {
-                            COSMOS_SLEEP(.1);
+                            secondsleep(.1);
                             break;
                         }
                         nbytes = -errno;

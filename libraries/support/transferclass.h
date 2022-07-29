@@ -34,119 +34,88 @@
 #include "agent/agentclass.h"
 #include "support/configCosmos.h"
 #include "support/datalib.h"
-#include "support/transferlib.h"
-
-#define PROGRESS_QUEUE_SIZE 256
+#include "support/packetcomm.h"
+#include "support/stringlib.h"
+#include "support/timelib.h"
+#include "support/transferlib2.h"
 
 namespace Cosmos {
     namespace Support {
         class Transfer {
         public:
-            struct chunk
-            {
-                uint32_t start;
-                uint32_t end;
+            // For specifying what types of packets to get from get_outgoing_packets()
+            typedef uint8_t GET_OUTGOING_MODE;
+            enum {
+                GET_OUTGOING_ALL       = 0,
+                GET_OUTGOING_RESPONSES = 1,
             };
-
+            //! Returned by receive_packet() if there was something of concern requring the receive to send out a response-type packet of some sort (e.g., REQMETA, REQDATA, etc.)
+            static const int32_t RESPONSE_REQUIRED = 1;
+            
             Transfer();
             // int32_t Init(string node, string agent, uint16_t chunk_size);
-            int32_t Init(Agent *calling_agent);
+            int32_t Init(string calling_node_name);
+            int32_t Init(string calling_node_name, Error* debug_error);
             //int32_t Load(string filename, vector<chunk> &chunks);
-            int32_t Add(size_t chunkidx, vector<uint8_t> chunk);
+            int32_t outgoing_tx_add(tx_progress &tx_out, string dest_node_name);
+            int32_t outgoing_tx_add(string dest_node, string dest_agent, string file_name);
             int32_t outgoing_tx_load();
+            int32_t outgoing_tx_load(string node_name);
+            int32_t outgoing_tx_load(uint8_t node_id);
+            int32_t outgoing_tx_recount(string node_name);
+            int32_t outgoing_tx_recount(uint8_t node_id);
+            int32_t incoming_tx_recount(string node_name);
+            int32_t incoming_tx_recount(uint8_t node_id);
+            int32_t get_outgoing_lpackets(vector<PacketComm> &packets);
+            int32_t get_outgoing_lpackets(string node_name, vector<PacketComm> &packets);
+            int32_t get_outgoing_rpackets(vector<PacketComm> &packets);
+            int32_t get_outgoing_rpackets(string node_name, vector<PacketComm> &packets);
+            int32_t receive_packet(const PacketComm& packet);
 
-            static const uint8_t PACKET_METADATA = 0xf;
-            static const uint8_t PACKET_DATA = 0xe;
-            static const uint8_t PACKET_REQDATA =	0xd;
-            static const uint8_t PACKET_REQMETA =	0xc;
-            static const uint8_t PACKET_COMPLETE = 0xb;
-            static const uint8_t PACKET_CANCEL = 0xa;
-            static const uint8_t PACKET_QUEUE = 0x9;
-            static const uint8_t PACKET_REQQUEUE = 0x8;
-            static const uint8_t PACKET_HEARTBEAT = 0x7;
-            static const uint8_t PACKET_MESSAGE = 0x6;
-            static const uint8_t PACKET_COMMAND = 0x5;
-            static const uint8_t PACKET_INFO = 0x4;
+            // Various publicly available requests
+            int32_t set_enabled(uint8_t node_id, PACKET_TX_ID_TYPE tx_id, bool enabled);
+            int32_t enable_single(string node_name, string file_name);
+            int32_t enable_single(uint8_t node_id, string file_name);
+            int32_t enable_all(string node_name);
+            int32_t enable_all(uint8_t node_id);
+            string list_outgoing();
+            string list_incoming();
+            int32_t set_waittime(uint8_t node_id, uint8_t direction, double waittime);
+            int32_t set_waittime(string node_name, uint8_t direction, double waittime);
 
-            struct PacketInfo
-            {
-                uint8_t type = PACKET_INFO;
-                uint32_t date = 0;
-                uint32_t node_hash = 0;
-                uint32_t agent_hash = 0;
-                uint16_t node_size = 0;
-                string node = "";
-            };
-
-            struct PacketMetaData
-            {
-                uint8_t type = PACKET_METADATA;
-                uint32_t date = 0;
-                uint32_t node_hash = 0;
-                uint32_t agent_hash = 0;
-                uint16_t tx_id = UINT16_MAX;
-            };
-
-            struct PacketData
-            {
-                uint8_t type = PACKET_DATA;
-                uint32_t date = 0;
-                uint32_t node_hash = 0;
-                uint32_t agent_hash = 0;
-                uint16_t tx_id = UINT16_MAX;
-                vector<uint8_t> chunk;
-            };
-
-            // vector<uint8_t> meta;
-            // vector<vector<uint8_t>> data;
-            // uint32_t txid;
-            // string name;
-            // size_t size;
-            // string node;
-            // string agent;
-            // string json;
-            // size_t throughput;
-            // size_t chunk_size;
         private:
-            struct tx_entry
-            {
-                bool activity = false;
-                bool sendqueue = false;
-                bool sentqueue = false;
-                bool rcvdqueue = false;
-                bool rcvdmeta = false;
-                bool rcvddata = false;
-                PACKET_TX_ID_TYPE size;
-                PACKET_TX_ID_TYPE next_id;
-                string node_name="";
-                tx_progress progress[PROGRESS_QUEUE_SIZE];
-                double heartbeatclock = 0.;
-                double reqmetaclock = 0.;
-                double reqdataclock = 0.;
-            };
+            /// The node_name of the calling node
+            string self_node_name;
+            /// The node_id of the calling node
+            PACKET_NODE_ID_TYPE self_node_id;
 
-            //! Holds the incoming and outgoing queues for a single node
-            struct tx_queue
-            {
-                string node_name="";
-                PACKET_NODE_ID_TYPE node_id;
-                tx_entry incoming;
-                tx_entry outgoing;
-            };
-
-            //! The calling agent of this class
-            Agent *agent;
-
-            //! The heart of the file transfer manager
+            /// Vector of nodes to transfer files in/out. Heart of the file transfer manager.
             vector<tx_queue> txq;
 
             // Timers for debug messages
             ElapsedTime dt, tet;
 
+            // Byte size limit of a packet
+            PACKET_CHUNK_SIZE_TYPE packet_size;
+
+            // Pointer to calling agent's debug_error
+            Error* debug_error = nullptr;
+
+            // Internal use
+            int32_t get_outgoing_lpackets(uint8_t node_id, vector<PacketComm> &packets);
+            int32_t get_outgoing_rpackets(uint8_t node_id, vector<PacketComm> &packets);
+
             // Private queue manipulation functions
-            int32_t outgoing_tx_add(tx_progress &tx_out);
-            int32_t outgoing_tx_add(string node_name, string agent_name, string file_name);
-            int32_t outgoing_tx_recount(uint8_t node_id);
+            int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id=PROGRESS_QUEUE_SIZE, bool remove_file=true);
+            PACKET_TX_ID_TYPE check_tx_id(tx_entry &txentry, PACKET_TX_ID_TYPE tx_id);
+            int32_t incoming_tx_add(string node_name, PACKET_TX_ID_TYPE tx_id);
+            int32_t incoming_tx_add(tx_progress &tx_in);
+            int32_t incoming_tx_update(packet_struct_metashort meta);
+            int32_t incoming_tx_del(uint8_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
+            int32_t incoming_tx_complete(uint8_t node_id, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
+
+            int32_t write_meta(tx_progress& tx, double interval=5.);
+            int32_t read_meta(tx_progress& tx);
         };
     }
 }

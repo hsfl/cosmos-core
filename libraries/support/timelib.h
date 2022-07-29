@@ -109,13 +109,13 @@ namespace Cosmos {
         struct calstruc
         {
             int32_t year;
-            int32_t month;
-            int32_t dom;
-            int32_t doy;
-            int32_t hour;
-            int32_t minute;
-            int32_t second;
-            int32_t nsecond;
+            int32_t month = 1;
+            int32_t dom = 1;
+            int32_t doy = 1;
+            int32_t hour = 0;
+            int32_t minute = 0;
+            int32_t second = 0;
+            int32_t nsecond = 0;
         };
 
         class DateTime {
@@ -135,9 +135,9 @@ namespace Cosmos {
         //! \defgroup timelib_functions Time handling functions
         //! @{
 
-        double currentmjd(double offset);
         double currentmjd();
-        unsigned long get_unix_time();
+        double currentmjd(double offset);
+        uint64_t get_unix_time(uint64_t offset=0);
         string get_local_time();
 
         // gregorian calendar (year, month, day) to another format

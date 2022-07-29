@@ -2313,6 +2313,7 @@ double fixprecision(double number, double prec)
 //CRC16::CRC16(uint16_t polynomial, uint16_t initial, uint16_t xorout, bool lsbfirst)
 CRC16::CRC16()
 {
+    mtx = new mutex();
     types[string("ccitt-false")] = {false, 0x1021, 0xffff, 0x0000, 0x29b1};
     types[string("xmodem")] = {false, 0x1021, 0x0000, 0x0000, 0x31c3};
     types[string("hdlc")] = {true, 0x1021, 0xffff, 0xffff, 0x906e};
@@ -2352,32 +2353,55 @@ uint16_t CRC16::set(uint16_t polynomial, uint16_t initialcrc, uint16_t xorout, b
     return 0;
 }
 
-uint16_t CRC16::calc(uint8_t *buf, uint16_t size)
-{
-    vector<uint8_t> vbuf(buf, buf+(size));
-    return calc(vbuf);
-}
+//uint16_t CRC16::calc(uint8_t *buf, uint16_t size)
+//{
+//    vector<uint8_t> vbuf(buf, buf+(size));
+//    return calc(vbuf);
+//}
 
 uint16_t CRC16::calc(string message, uint16_t size)
 {
-    vector<uint8_t> vmessage(&message[0], &message[size]);
-    return calc(vmessage);
+//    vector<uint8_t> vmessage(&message[0], &message[size]);
+//    return calc(vmessage);
+    if (size <= message.length())
+    {
+        return calc((uint8_t *)message.c_str(), size);
+    }
+    else
+    {
+        return calc((uint8_t *)message.c_str(), message.length());
+    }
 }
 
 uint16_t CRC16::calc(string message)
 {
-    vector<uint8_t> vmessage(&message[0], &message[message.size()]);
-    return calc(vmessage);
+//    vector<uint8_t> vmessage(&message[0], &message[message.size()]);
+//    return calc(vmessage);
+    return calc((uint8_t *)message.c_str(), message.length());
 }
 
 uint16_t CRC16::calc(vector<uint8_t> message, uint16_t size)
 {
-    vector<uint8_t> vmessage(&message[0], &message[size]);
-    return calc(vmessage);
+//    vector<uint8_t> vmessage(&message[0], &message[size]);
+//    return calc(vmessage);
+    if (size <= message.size())
+    {
+        return calc(message.data(), size);
+    }
+    else
+    {
+        return calc(message.data(), message.size());
+    }
 }
 
 uint16_t CRC16::calc(vector<uint8_t> message)
 {
+    return calc(message.data(), message.size());
+}
+
+uint16_t CRC16::calc(uint8_t *message, uint16_t size)
+{
+    std::lock_guard<mutex> lock(*mtx);
     uint8_t data;
     uint16_t remainder = initial;
 
@@ -2385,7 +2409,7 @@ uint16_t CRC16::calc(vector<uint8_t> message)
     /*
      * Divide the message by the polynomial, a byte at a time.
      */
-    for (size_t byte = 0; byte < message.size(); ++byte)
+    for (size_t byte = 0; byte < size; ++byte)
     {
         if (lsbfirst)
         {
@@ -2398,6 +2422,44 @@ uint16_t CRC16::calc(vector<uint8_t> message)
             remainder = lookup[data] ^ (remainder << 8);
         }
     }
+
+    /*
+     * The final remainder is the CRC.
+     */
+    return (remainder ^ xorout);
+}
+
+// Modified for calculating the crc of a file
+// Returns 0 if file cannot be opened
+uint16_t CRC16::calc_file(string file_path)
+{
+    uint8_t data;
+    uint16_t remainder = initial;
+
+    // Check file validity
+    ifstream file(file_path, std::ios::in | std::ios::binary);
+    if (!file.is_open())
+    {
+        return 0;
+    }
+
+    // Divide message by the polynomial a byte at a time until EOF
+    char byte;
+    while (file.get(byte))
+    {
+        if (lsbfirst)
+        {
+            data = byte ^ (remainder & 0xff);
+            remainder = lookup[data] ^ (remainder >> 8);
+        }
+        else
+        {
+            data = byte ^ (remainder >> (8));
+            remainder = lookup[data] ^ (remainder << 8);
+        }
+    }
+
+    file.close();
 
     /*
      * The final remainder is the CRC.
@@ -2819,6 +2881,58 @@ void LsFit::fit()
         parms[i].resize(ys.size());
         multisolve(xs, ys, parms[i]);
         //		printf("%u %u %f %f %f\n", i, parms[i].size(), parms[i][0], parms[i][1], parms[i][2]);
+    }
+}
+
+//! Least squares last dependent value.
+/*! Return the value of the dependent value added at the most recent ::LsFit::update.
+ * \return Most recently updated dependent value.
+*/
+double LsFit::lasty()
+{
+    if (var.size())
+    {
+        return var[var.size()-1].y.a4[0];
+    }
+    else
+    {
+        return 0.;
+    }
+}
+
+rvector LsFit::lastrvector()
+{
+    if (var.size())
+    {
+        return var[var.size()-1].y.r;
+    }
+    else
+    {
+        return rv_zero();
+    }
+}
+
+gvector LsFit::lastgvector()
+{
+    if (var.size())
+    {
+        return var[var.size()-1].y.g;
+    }
+    else
+    {
+        return gv_zero();
+    }
+}
+
+quaternion LsFit::lastquaternion()
+{
+    if (var.size())
+    {
+        return var[var.size()-1].y.q;
+    }
+    else
+    {
+        return q_zero();
     }
 }
 

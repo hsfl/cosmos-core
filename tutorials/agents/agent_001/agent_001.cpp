@@ -258,7 +258,7 @@ int main(int argc, char **argv)
         for(size_t i = 0; i < agent->agent_list.size(); ++i)	{
             cout<<"Agent_"<<to_unsigned(i)<<" "<<agent->agent_list[i].node<<":"<<agent->agent_list[i].proc<<endl;
         }
-        COSMOS_SLEEP(5.);
+        secondsleep(5.);
     }
     return 0;
 }

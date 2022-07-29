@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
         //        cout << event.getTime() << endl;
 
         scheduler.addEvent(event);
-        COSMOS_SLEEP(0.1);
+        secondsleep(0.1);
         //        scheduler.deleteEvent(event);
         //        scheduler.getEventQueueSize();
         scheduler.getEventQueue();

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.1)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -39,6 +39,7 @@ target_link_libraries(agent_file CosmosAgent CosmosTransfer CosmosSlip)
 target_link_libraries(agent_file2 CosmosAgent CosmosTransfer CosmosSlip)
 target_link_libraries(agent_file3 CosmosAgent CosmosTransfer CosmosSlip)
 target_link_libraries(agent_file4 CosmosAgent CosmosTransfer CosmosSlip)
+target_link_libraries(agent_file5 CosmosAgent CosmosTransferClass CosmosSlip)
 target_link_libraries(agent_forward CosmosAgent)
 target_link_libraries(agent_route CosmosAgent)
 target_link_libraries(agent_tunnel2 CosmosAgent CosmosDeviceSerial)

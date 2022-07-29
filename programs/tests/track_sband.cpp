@@ -446,7 +446,8 @@ int main(int argc, char *argv[])
                 }
                 else if (mode == "sun")
                 {
-                    Convert::jplpos(JPL_EARTH, JPL_SUN, ctime, &track.target.loc.pos.eci);
+                    Convert::jplpos(JPL_EARTH, JPL_SUN, Convert::utc2tt(ctime), &track.target.loc.pos.eci);
+                    track.target.loc.pos.eci.utc = ctime;
                     track.target.loc.pos.eci.pass++;
                     Convert::pos_eci(track.target.loc);
                     update_target(agent->cinfo->node.loc, track.target);
@@ -520,7 +521,7 @@ int main(int argc, char *argv[])
                     antconnected = false;
                 }
             }
-            //            COSMOS_SLEEP(.5);
+            //            secondsleep(.5);
         }
         else
         {
@@ -529,7 +530,7 @@ int main(int argc, char *argv[])
                    ctime,
                    86400.*(ctime - startdate));
             connect_antenna();
-            //            COSMOS_SLEEP(.1);
+            //            secondsleep(.1);
         }
         agent->finish_active_loop();
     }

@@ -302,7 +302,7 @@ void tcv_read_loop()
                     break;
                 }
             }
-            COSMOS_SLEEP(.1);
+            secondsleep(.1);
         }
 
         // Read data from receiver port
@@ -347,7 +347,7 @@ void tcv_write_loop()
                 {
                     break;
                 }
-                COSMOS_SLEEP(.1);
+                secondsleep(.1);
             }
 
             // Get next packet from transceiver FIFO, shedding any overflow

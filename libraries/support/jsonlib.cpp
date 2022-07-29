@@ -420,6 +420,7 @@ void json_init_reserve(cosmosstruc* cinfo) {
 //    cinfo->unit.reserve(JSON_UNIT_COUNT);
 
     cinfo->jmap.resize(JSON_MAX_HASH);
+    cinfo->ujmap.clear();
     cinfo->emap.resize(JSON_MAX_HASH);
 
 //    cinfo->node.name.reserve(COSMOS_MAX_NAME+1);
@@ -1543,9 +1544,14 @@ int32_t json_addentry(jsonentry entry, cosmosstruc *cinfo)
     }
 
     cinfo->jmap[hash].push_back(entry);
-    if (cinfo->jmap[hash].size() != csize+1) { return JSON_ERROR_NOENTRY; }
+    if (cinfo->jmap[hash].size() != csize+1)
+    {
+        return JSON_ERROR_NOENTRY;
+    }
+    cinfo->ujmap[entry.name] = entry;
 
     ++cinfo->jmapped;
+    cinfo->ujmapped = cinfo->ujmap.size();
     return (cinfo->jmapped);
 }
 
@@ -1806,6 +1812,10 @@ int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t typ
 int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc *cinfo)
 {
     int32_t iretn = 0;
+    if (data == 0)
+    {
+        return GENERAL_ERROR_EMPTY;
+    }
 
     switch (type)
     {
@@ -1847,8 +1857,18 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
             return iretn;
         break;
     case JSON_TYPE_STRING:
-        if ((iretn=json_out_string(jstring,*(string *)data,COSMOS_MAX_DATA)) != 0)
+        if (!(*(string *)data)[0])
+        {
+            iretn = json_out_string(jstring,"",COSMOS_MAX_DATA);
+        }
+        else
+        {
+            iretn = json_out_string(jstring,*(string *)data,COSMOS_MAX_DATA);
+        }
+        if (iretn != 0)
+        {
             return iretn;
+        }
         break;
     case JSON_TYPE_NAME:
         if ((iretn=json_out_string(jstring,(char *)data,COSMOS_MAX_NAME)) != 0)
@@ -6994,7 +7014,7 @@ int32_t json_load_node(string node, jsonnode &json)
     }
 
     // Set node_utcstart
-    fname = nodepath + "/node_utcstart.ini";
+    fname = nodepath + "/node_utcstart.dat";
     double utcstart;
     if ((iretn=stat(fname.c_str(),&fstat)) == -1) {
         // First time, so write it
@@ -8027,24 +8047,28 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     }
 
     cinfo->json = json;
+    double mjd = currentmjd(cinfo->node.utcoffset);
 
     if (cinfo->node.type == NODE_TYPE_SUN)
     {
-        Convert::jplpos(JPL_EARTH, JPL_SUN, currentmjd(cinfo->node.utcoffset), &cinfo->node.loc.pos.eci);
+        Convert::jplpos(JPL_EARTH, JPL_SUN, Convert::utc2tt(mjd), &cinfo->node.loc.pos.eci);
+        cinfo->node.loc.pos.eci.utc = mjd;
         cinfo->node.loc.pos.eci.pass++;
         Convert::pos_eci(&cinfo->node.loc);
     }
 
     if (cinfo->node.type == NODE_TYPE_MOON)
     {
-        Convert::jplpos(JPL_EARTH, JPL_MOON, currentmjd(cinfo->node.utcoffset), &cinfo->node.loc.pos.eci);
+        Convert::jplpos(JPL_EARTH, JPL_MOON, Convert::utc2tt(mjd), &cinfo->node.loc.pos.eci);
+        cinfo->node.loc.pos.eci.utc = mjd;
         cinfo->node.loc.pos.eci.pass++;
         Convert::pos_eci(&cinfo->node.loc);
     }
 
     if (cinfo->node.type == NODE_TYPE_MARS)
     {
-        Convert::jplpos(JPL_EARTH, JPL_MARS, currentmjd(cinfo->node.utcoffset), &cinfo->node.loc.pos.eci);
+        Convert::jplpos(JPL_EARTH, JPL_MARS, Convert::utc2tt(mjd), &cinfo->node.loc.pos.eci);
+        cinfo->node.loc.pos.eci.utc = mjd;
         cinfo->node.loc.pos.eci.pass++;
         Convert::pos_eci(&cinfo->node.loc);
     }
@@ -8599,6 +8623,7 @@ int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo)
     json_addentry("device_all_drate",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]->drate, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_VOLTAGE);
     json_addentry("device_all_temp",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]->temp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_TEMPERATURE);
     json_addentry("device_all_utc",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]->utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
+    json_addentry("device_all_expiration",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]->expiration, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("device_all_name",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]->name, (uint16_t)JSON_TYPE_STRING, cinfo);
 
     if (iretn >= 0)
@@ -8636,6 +8661,7 @@ int32_t json_togglecompentry(uint16_t cidx, cosmosstruc *cinfo, bool state)
     json_toggleentry("device_all_drate",cidx, UINT16_MAX, cinfo, state);
     json_toggleentry("device_all_temp",cidx, UINT16_MAX, cinfo, state);
     json_toggleentry("device_all_utc",cidx, UINT16_MAX, cinfo, state);
+    json_toggleentry("device_all_expiration",cidx, UINT16_MAX, cinfo, state);
     json_toggleentry("device_all_name",cidx, UINT16_MAX, cinfo, state);
 
     return iretn;
@@ -8755,6 +8781,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             json_addentry("device_cpu_maxload",didx, UINT16_MAX, (uint8_t *)&device->maxload, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cpu_load",didx, UINT16_MAX, (uint8_t *)&device->load, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cpu_gib",didx, UINT16_MAX, (uint8_t *)&device->gib, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+            json_addentry("device_cpu_storage",didx, UINT16_MAX, (uint8_t *)&device->storage, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cpu_boot_count",didx, UINT16_MAX, (uint8_t *)&device->boot_count, (uint16_t)JSON_TYPE_UINT32, cinfo);
             char tempbuf1[100];
             char tempbuf2[100];
@@ -9374,6 +9401,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_cpu_maxload",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_load",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_gib",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cpu_storage",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_boot_count",didx, UINT16_MAX, cinfo, state);
         break;
     case DeviceType::DISK:
@@ -10985,6 +11013,21 @@ const char *json_of_groundcontact(string &jstring, cosmosstruc *cinfo)
     {
         json_out_1d(jstring, "gs_az",i, cinfo);
         json_out_1d(jstring, "gs_el",i, cinfo);
+    }
+
+    return jstring.data();
+}
+
+const char *json_of_device(string &jstring,uint16_t index, cosmosstruc *cinfo, double utc)
+{
+    jstring.clear();
+    if (index < cinfo->device.size() && cinfo->device[index]->utc > utc)
+    {
+        json_out_1d(jstring, "device_all_utc",index, cinfo);
+        json_out_1d(jstring, "device_all_pidx",index, cinfo);
+        json_out_1d(jstring, "device_all_cidx",index, cinfo);
+        json_out_1d(jstring, "device_all_type",index, cinfo);
+        json_out_1d(jstring, "device_all_didx",index, cinfo);
     }
 
     return jstring.data();
@@ -13004,11 +13047,11 @@ int32_t kml_write(cosmosstruc *cinfo)
 
     utc = floor(cinfo->node.loc.utc);
 
-    string path = data_type_path((string)cinfo->node.name, "outgoing", "google", utc, "points");
+    string path = data_type_path(cinfo->node.name, "outgoing", "google", utc, "points");
     fin = data_open(path, (char *)"a+");
     fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->node.loc.pos.geod.s.lon),DEGOF(cinfo->node.loc.pos.geod.s.lat),cinfo->node.loc.pos.geod.s.h);
 
-    path = data_type_path(cinfo->node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
+    path = data_type_path(cinfo->node.name, "outgoing", "google",  utc, "kml");
     fout = data_open(path, (char *)"w");
     fprintf(fout,"<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n");
     fprintf(fout,"<Document>\n");

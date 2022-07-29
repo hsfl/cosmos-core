@@ -120,12 +120,15 @@
 //!
 //! Both Clients and Agents are formed using Cosmos::Agent. Once you have performed any initializations necessary, you should
 //! enter a continuous loop, protected by Cosmos::Agent::running, and preferably surrendering control periodically
-//! with Cosmos::COSMOS_SLEEP. Upon exiting from this loop, you should call Cosmos::Agent::shutdown.
+//! with Cosmos::secondsleep. Upon exiting from this loop, you should call Cosmos::Agent::shutdown.
 
 #include "support/configCosmos.h"
 #include "support/jsonlib.h"
 #include "support/jsonclass.h"
 #include "device/cpu/devicecpu.h"
+#include "support/packetcomm.h"
+#include "support/channellib.h"
+#include "support/beacon.h"
 
 namespace Cosmos
 {
@@ -135,13 +138,13 @@ namespace Cosmos
         {
         public:
             Agent(
-				const string &node_name = "",
-				const string &agent_name = "",
-				double bprd = 0.,
+                const string &node_name = "",
+                const string &agent_name = "",
+                double bprd = 0.,
 				uint32_t bsize = AGENTMAXBUFFER,
 				bool mflag = false,
 				int32_t portnum = 0,
-				NetworkType ntype = NetworkType::UDP,
+                NetworkType ntype = NetworkType::UDP,
                 uint16_t dlevel = 0
 			);
 
@@ -325,6 +328,7 @@ namespace Cosmos
             //    int32_t poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, float waitsec = 1.);
             int32_t poll(messstruc &mess, AgentMessage type, float waitsec = 1.);
             int32_t readring(messstruc &message, AgentMessage type = Agent::AgentMessage::ALL, float waitsec = 1., Where where=Where::TAIL, string proc="", string node="");
+            int32_t readring(messstruc &message, vector<string> realm, AgentMessage type = Agent::AgentMessage::ALL, float waitsec = 1., Where where=Where::TAIL);
             int32_t parsering(AgentMessage type = Agent::AgentMessage::ALL, float waitsec=1., Where where=Where::HEAD, string proc="", string node="");
             int32_t resizering(size_t newsize);
             int32_t clearring();
@@ -360,6 +364,7 @@ namespace Cosmos
             int32_t get_device_values(string device, std::vector<string>props, string& json);
             int32_t get_values(std::vector<string> names, string& json);
 
+            double get_timeStart();
 
 
 
@@ -396,13 +401,43 @@ namespace Cosmos
 //            int32_t Printf(const char *fmt, ...);
 
             // agent variables
+            ElapsedTime uptime;
             string nodeName;
             string agentName;
             vector<beatstruc> slist;
+            NodeData nodeData;
+            NodeData::NODE_ID_TYPE nodeId;
+
+            int32_t process_request(string &bufferin, string &bufferout);
+
+            int32_t set_verification(uint32_t verification);
+            int32_t get_verification();
+            int32_t check_verification(uint32_t verification);
+            int32_t init_channels(uint32_t verification=0x352e);
+            int32_t add_channel(string name, uint16_t datasize=200);
+            int32_t push_unwrapped(string name, PacketComm &packet);
+            int32_t push_unwrapped(uint8_t number, PacketComm& packet);
+            int32_t push_unwrapped(string name, vector<PacketComm>& packets);
+            int32_t push_unwrapped(uint8_t number, vector<PacketComm>& packets);
+            int32_t push_response(string name, uint8_t dest, uint32_t id, string response="");
+            int32_t push_response(uint8_t number, uint8_t dest, uint32_t id, string response="");
+            int32_t push_response(string name, uint8_t dest, uint32_t id, vector<uint8_t> response);
+            int32_t push_response(uint8_t number, uint8_t dest, uint32_t id, vector<uint8_t> response);
+            int32_t pull_unwrapped(string name, PacketComm& packet);
+            int32_t pull_unwrapped(uint8_t number, PacketComm& packet);
+            int32_t channel_size(string name);
+            int32_t channel_size(uint8_t number);
+            int32_t clear_channel(string name);
+            int32_t clear_channel(uint8_t number);
+            int32_t channel_number(string name);
+            string channel_name(uint8_t number);
+            int32_t channel_datasize(string name);
+            int32_t channel_datasize(uint8_t number);
 
         protected:
         private:
 
+            Channel channels;
             uint16_t debug_level = 0;
             NetworkType networkType = NetworkType::UDP;
             double activeTimeout = 0.0; // in MJD
@@ -448,7 +483,6 @@ namespace Cosmos
 
             void heartbeat_loop();
             void request_loop() noexcept;
-            int32_t process_request(string &bufferin, string &bufferout);
             void message_loop();
 
             char* parse_request(char *input);
@@ -492,7 +526,8 @@ namespace Cosmos
             static int32_t req_soh(string &, string &response, Agent *agent);
             static int32_t req_fullsoh(string &, string &response, Agent *agent);
             static int32_t req_jsondump(string &, string &response, Agent *agent);
-			static int32_t req_all_names_types(string &, string &response, Agent *agent);
+            static int32_t req_all_names_types(string &, string &response, Agent *agent);
+            static int32_t req_command(string &, string &response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos

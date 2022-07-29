@@ -190,7 +190,16 @@ vector <DeviceDisk::info> DeviceDisk::getInfo()
     info tinfo;
 #ifdef COSMOS_LINUX_OS
 
-    FILE *mfd = fopen("/proc/mounts", "r");
+    static FILE *mfd = nullptr;
+    if (mfd == nullptr)
+    {
+        mfd = fopen("/proc/mounts", "r");
+        if (mfd == nullptr)
+        {
+            return result;
+        }
+    }
+
     char nextline[100];
     if (mfd != nullptr)
     {
@@ -211,50 +220,6 @@ vector <DeviceDisk::info> DeviceDisk::getInfo()
             }
         }
     }
-//    int32_t iretn = data_execute("lsblk -fbl -o SIZE,MOUNTPOINT", tdata);
-//    vector<string> lines;
-//    if(iretn<0)
-//    {
-//        iretn = data_execute("df", tdata);
-//        if(iretn<0)	{
-//            return result;
-//        }
-//        lines = string_split(tdata, "\n");
-//        for (string line : lines)
-//        {
-//            if (line.find("/") != string::npos)
-//            {
-//                char tmount[50];
-//                if (sscanf(line.c_str(), "%*s %lu %*s %*s %*s %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
-//                {
-//                    tinfo.mount = tmount;
-//                    tinfo.size = tsize * 1024;
-//                    tinfo.used = getUsed(tinfo.mount);
-//                    tinfo.free = tinfo.size - tinfo.used;
-//                    result.push_back(tinfo);
-//                }
-//            }
-//        }
-//    }
-//    else
-//    {
-//        lines = string_split(tdata, "\n");
-//        for (string line : lines)
-//        {
-//            if (line.find("/") != string::npos)
-//            {
-//                char tmount[50];
-//                if (sscanf(line.c_str(), "%lu %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
-//                {
-//                    tinfo.mount = tmount;
-//                    tinfo.size = tsize;
-//                    tinfo.used = getUsed(tinfo.mount);
-//                    tinfo.free = tinfo.size - tinfo.used;
-//                    result.push_back(tinfo);
-//                }
-//            }
-//        }
-//    }
 #endif
 #ifdef COSMOS_WIN_OS
     getAll();

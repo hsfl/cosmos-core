@@ -1,13 +1,19 @@
 *.user*
 *.autosave
-build/qtarm/*
-build/arm/*
-build/armtest/*
-build/linux/*
-build/macos/*
-build/windows*
-build/cygwin/*
-build/centos*
+
+# ignore everything in build folder except for the scripts
+build/linux
+build/minix
+build/iobc*
+build/gitcheck
+build/arm*
+build/
+!build/build_all_linux
+!build/do_*
+!build/pre-commit
+!build/rebuild_all_linux
+
+.vscode
 documentation/doxygen/latex/
 documentation/doxygen/html/
 documentation/doxygen/man/
@@ -40,16 +46,11 @@ node_modules/gitbook-plugin-expandable-chapters
 
 libraries/math/save/
 
-build/qt_debug/
-
-build/pi/
-
-build/gnu7/
-
 libraries/device/astrodev/
 
 libraries/save/astrodev/
 
+<<<<<<< HEAD
 build/minix/
 
 build/arm_Release/
@@ -57,6 +58,8 @@ build/arm_Release/
 build/iobc_hyti_release/
 build/arm_release/
 
+=======
+>>>>>>> dev
 tags
 QtCreatorDeployment.txt
 
@@ -71,7 +74,3 @@ build/gitcheck/
 CMakeLists\.txt\.user\.ece56c6\.4\.8-pre1
 
 octave-workspace
-
-build/iobc_hyti_release/
-
-build/gitcheck/

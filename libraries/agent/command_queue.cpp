@@ -195,53 +195,6 @@ namespace Cosmos
                 close(prev_stderr);
             }));
 
-            //#if defined(COSMOS_WIN_OS)
-            //	char command_line[100];
-            //    strcpy(command_line, cmd.get_data().c_str());
-            //
-            //	STARTUPINFOA si;
-            //	PROCESS_INFORMATION pi;
-            //
-            //	ZeroMemory( &si, sizeof(si) );
-            //	si.cb = sizeof(si);
-            //	ZeroMemory( &pi, sizeof(pi) );
-            //
-            //	if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-            //	{
-            //		//		int32_t pid = pi.dwProcessId;
-            //		CloseHandle( pi.hProcess );
-            //		CloseHandle( pi.hThread );
-            //	}
-            //#else
-            //    int32_t pid = fork(); // Fork paradigm copies ENTIRE process space, leads to errors when exiting child. Now using threads.
-            //
-            //    char *words[MAXCOMMANDWORD];
-            //    string_parse((char *)cmd.get_data().c_str(), words, MAXCOMMANDWORD);
-            //    string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
-            //    if (pid != 0) {
-            //        signal(SIGCHLD, SIG_IGN); // Ensure no zombies.
-            //    }
-            //    else {
-            //        int devn;
-            //        if (outpath.empty()) {
-            //            devn = open("/dev/null",O_RDWR);
-            //        }
-            //        else {
-            //            devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
-            //        }
-            //      dup2(devn, STDIN_FILENO);
-            //		dup2(devn, STDOUT_FILENO);
-            //		dup2(devn, STDERR_FILENO);
-            //      close(devn);
-            //
-            //        // Execute the command.
-            //        execvp(words[0], &(words[1]));
-            //        fflush(stdout);
-            //        exit (0);
-            //    }
-            //
-            //#endif
-
             // log to event file
             log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
             return 0;

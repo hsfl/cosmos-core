@@ -44,7 +44,7 @@ namespace Cosmos {
         public:
             PacketHandler();
 
-            int32_t init(Agent* calling_agent, uint16_t secret=0x1111);
+            int32_t init(Agent* calling_agent);
 
             typedef int32_t (*RespCallback)(const vector<uint8_t>&);
             int32_t register_response(const RespCallback f);
@@ -68,53 +68,40 @@ namespace Cosmos {
 //            int32_t GenerateBeacon(PacketComm &packet);
 
             // Telemetry
-            static int32_t Test(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t Response(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t DecodeBeacon(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t Pong(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t Test(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t FileMeta(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t FileChunk(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
 
             // Commands
-            uint32_t secret;
             static int32_t Reset(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t Reboot(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            struct sendbeacon_packet
-            {
-                uint8_t radio = 0;
-                uint8_t type = (uint8_t)Beacon::TypeId::CPU1BeaconS;
-                uint8_t count = 1;
-            };
             static int32_t SendBeacon(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            struct clearradioqueue_packet
-            {
-                uint8_t radio = 0;
-            };
-            static int32_t ClearRadioQueue(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            struct externalcommand_packet
-            {
-                uint8_t radio = 0;
-                uint32_t response_id = 0;
-                string command;
-            };
+            static int32_t ClearQueue(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t ExternalCommand(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            struct testradio_packet
-            {
-                uint8_t radio = 0;
-                uint8_t start = 0;
-                uint8_t step = 1;
-                uint8_t count = 255;
-                uint32_t total = 10000;
-            };
-
-//            static int32_t TestRadio(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            struct listdirectory_packet
-            {
-                uint8_t radio = 0;
-                string node;
-                string agent;
-            };
+            static int32_t TestRadio(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t ListDirectory(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t TransferFile(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+//            static int32_t TransferNode(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+//            static int32_t TransferRadio(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+//            static int32_t TransferList(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t InternalRequest(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t Ping(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t SetTime(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t GetTimeHuman(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t GetTimeBinary(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t AdcsForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t EpsForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t ExecForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t FileForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+//            static int32_t EpsSwitchName(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+//            static int32_t EpsSwitchNumber(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+//            static int32_t EpsReset(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+//            static int32_t EpsState(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t request_command(string &, string &response, Agent *agent);
+
+
 
         private:
             Agent* agent;

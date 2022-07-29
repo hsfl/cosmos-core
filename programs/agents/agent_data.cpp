@@ -259,7 +259,7 @@ json_parse(&request[i], agent->cinfo); //cinfo->stat.agent.user
 													// .utc ->date
 													// .node
 utc = (int)(agent->cinfo->event[0].utc);
-log = data_open(data_type_path(agent->cinfo->event[0].node, (char *)"data", (char *)"outgoing", utc, (char*)"request_log"), (char*)"a");
+log = data_open(data_type_path(agent->cinfo->event[0].node, "data", "outgoing", utc, "a", "request_log"), "w");
 fprintf(log,"%s\n",&request[i]);
 fclose(log);
 return 0;

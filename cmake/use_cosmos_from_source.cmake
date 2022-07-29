@@ -58,6 +58,13 @@ if(${USE_COSMOS_FROM} MATCHES "SOURCE")
     # import device ccsds
     include_directories(${COSMOS_SOURCE}/core/libraries/device/ccsds)
     add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/ccsds      ${CMAKE_BINARY_DIR}/libraries/device/ccsds)
+    message("Added Ccsds")
+
+    # -----------------------------------------------
+    # import device netradio
+    include_directories(${COSMOS_SOURCE}/core/libraries/device/netradio)
+    add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/netradio      ${CMAKE_BINARY_DIR}/libraries/device/netradio)
+    message("Added NetRadio")
 
 #    # -----------------------------------------------
 #    # import device vn100
