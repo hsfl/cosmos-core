@@ -781,7 +781,7 @@ int32_t hostnameToIP(const string hostname, string& ipaddr, string& response)
 int32_t sendToTelegraf(string& response)
 {
     int32_t iretn;
-    const string TELEGRAF_ADDR = "telegraf";
+    const string TELEGRAF_ADDR = "cosmos_telegraf";
     const int TELEGRAF_PORT = 10097;
     socket_channel cosmos_web_telegraf_channel;
     string addr_string;
