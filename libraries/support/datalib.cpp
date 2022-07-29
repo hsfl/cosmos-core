@@ -35,7 +35,6 @@
 //#include "support/jsonlib.h"
 //#include "support/jsondef.h"
 #include "support/stringlib.h"
-#include "support/timelib.h"
 #include <algorithm>
 
 //! \ingroup datalib
@@ -64,6 +63,29 @@ static string nodedir;
 //! \defgroup datalib_functions Data Management function declarations
 //! @{
 
+//! Construct DataLog
+//! Class for logging regular entries
+DataLog::DataLog(double stride, bool fastmode)
+{
+    this->fastmode = fastmode;
+    this->stride = stride;
+    enddate = currentmjd() + stride / 86400.;
+}
+
+//! Write log entry - full
+/*! Append the provided string to a file in the {node}/{location}/{agent} directory. The file name
+ * is created as {node}_yyyyjjjsssss_{extra}.{type}
+ * \param node Node name.
+ * \param agent Agent name.
+ * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
+ * \param extra Extra part  of name.
+ * \param type Type part of name.
+ * \param record String to be appended to file.
+ * \param location Location name.
+ */
+int32_t DataLog::Write(string node, string agent, double utc, string extra, string type, string record, string location)
+{
+}
 
 //! Write log entry - full
 /*! Append the provided string to a file in the {node}/{location}/{agent} directory. The file name

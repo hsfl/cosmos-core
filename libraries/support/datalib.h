@@ -34,6 +34,7 @@
 #include "support/configCosmos.h"
 #include "support/cosmos-errno.h"
 #include "thirdparty/zlib/zlib.h"
+#include "support/timelib.h"
 //#include "support/jsondef.h"
 
 // C libs
@@ -190,6 +191,20 @@ int32_t data_move(filestruc file, string location, bool compress=true);
 //int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc* root);
 double findlastday(string node);
 double findfirstday(string node);
+
+class DataLog
+{
+public:
+    DataLog(double stride=3600., bool fastmode=false);
+    int32_t Write(string node, int type, double utc, const char* data, string directory="temp");
+    int32_t Write(string node, string agent, double utc, string type, const char *data);
+    int32_t Write(string node, string agent, double utc, string extra, string type, string record, string location="temp");
+
+    bool fastmode;
+    double stride;
+    double enddate;
+    string path;
+};
 
 class NodeData
 {
