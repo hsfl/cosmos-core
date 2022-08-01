@@ -69,6 +69,8 @@ namespace Cosmos {
 
             // Telemetry
             static int32_t Response(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t AdcsResponse(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t EpsResponse(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t DecodeBeacon(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t Pong(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
             static int32_t Test(PacketComm &packet, vector<uint8_t>& response, Agent* agent);

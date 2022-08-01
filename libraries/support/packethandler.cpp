@@ -674,6 +674,13 @@ namespace Cosmos {
             return iretn;
         }
 
+        int32_t PacketHandler::AdcsResponse(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        {
+            int32_t iretn=0;
+            iretn = agent->push_unwrapped(agent->channel_number("ADCS"), packet);
+            return iretn;
+        }
+
         int32_t PacketHandler::AdcsForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         {
             int32_t iretn=0;
@@ -684,6 +691,13 @@ namespace Cosmos {
         int32_t PacketHandler::EpsLog(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         {
 //            log_write(agent->cinfo->node.name, "eps", )
+            int32_t iretn=0;
+            iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::EpsResponse(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        {
             int32_t iretn=0;
             iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
             return iretn;
