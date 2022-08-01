@@ -69,22 +69,101 @@ DataLog::DataLog(double stride, bool fastmode)
 {
     this->fastmode = fastmode;
     this->stride = stride;
-    enddate = currentmjd() + stride / 86400.;
+    startdate = currentmjd();
+    enddate = startdate + stride / 86400.;
+    fout = nullptr;
+}
+
+//! Change DataLog stride
+//! Change how many seconds between moving from temp to outgoing and compressing
+//! \param seconds Number of seconds in stride.
+int32_t DataLog::SetStride(double seconds)
+{
+    if (seconds < 0.)
+    {
+        seconds = 0.;
+    }
+    stride = seconds;
+    startdate = currentmjd();
+    enddate = startdate + stride / 86400.;
+}
+
+//! Change DataLog fastmode
+//! Change whether file is kept open (fast), or closed each time
+//! \param state fastmode true or false.
+int32_t DataLog::SetFastmode(bool state)
+{
+    fastmode = state;
+    if (!fastmode)
+    {
+        if (fout != nullptr)
+        {
+            fclose(fout);
+            fout == nullptr;
+        }
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
 }
 
 //! Write log entry - full
-/*! Append the provided string to a file in the {node}/{location}/{agent} directory. The file name
- * is created as {node}_yyyyjjjsssss_{extra}.{type}
- * \param node Node name.
- * \param agent Agent name.
- * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
- * \param extra Extra part  of name.
- * \param type Type part of name.
- * \param record String to be appended to file.
- * \param location Location name.
- */
-int32_t DataLog::Write(string node, string agent, double utc, string extra, string type, string record, string location)
+//! Append the provided string to a file in the {node}/{location}/{agent} directory. The file name
+//! is created as {node}_yyyyjjjsssss_{extra}.{type}
+//! \param data Data to be written.
+//! \param node Node name.
+//! \param agent Agent name.
+//! \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
+//! \param extra Extra part  of name.
+//! \param type Type part of name.
+//! \param record String to be appended to file.
+//! \param location Location name.
+
+int32_t DataLog::Write(vector<uint8_t> data, string node, string agent, string type, string extra)
 {
+    int32_t iretn;
+    if (currentmjd() >= enddate)
+    {
+        startdate = enddate;
+        enddate += stride / 86400.;
+        if (fout != nullptr)
+        {
+            fclose(fout);
+            fout = nullptr;
+        }
+        if (!path.empty() && path.find("/temp/") != string::npos)
+        {
+            string movepath = path;
+            movepath.replace(movepath.find("/temp/"), 10, "/outgoing/");
+            iretn = log_move(path, movepath, true);
+        }
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+    if (fout == nullptr)
+    {
+        path = data_type_path(node, "temp", agent, startdate, type, extra);
+        if (path.empty())
+        {
+            return GENERAL_ERROR_EMPTY;
+        }
+        fout = data_open(path, const_cast<char *>("a+"));
+        if (fout == nullptr)
+        {
+            return GENERAL_ERROR_BAD_FD;
+        }
+    }
+    iretn = fwrite(data.data(), data.size(), 1, fout);
+    if (!fastmode)
+    {
+        fclose(fout);
+        fout = nullptr;
+    }
+    return iretn;
 }
 
 //! Write log entry - full
@@ -868,16 +947,9 @@ string data_archive_path(string node, string agent, double mjd)
 */
 string data_type_path(string node, string location, string agent, double mjd, string type, string extra)
 {
-    string path;
-    string tpath;
+    string tpath = data_name_path(node, location, agent, mjd, data_name(node, mjd, type, extra));
 
-    tpath = data_name_path(node, location, agent, mjd, data_name(node, mjd, type, extra));
-
-    if (!tpath.empty())
-    {
-        path = tpath;
-    }
-    return path;
+    return tpath;
 }
 
 //! Create data file path
@@ -2055,7 +2127,7 @@ int32_t data_execute(string cmd, string& result, string shell)
 
 #else
     FILE * stream;
-    char *buffer = new char[198];
+    char buffer[198];
     result.clear();
 
     vector<string> cmds = string_split(cmd, " ");

@@ -195,15 +195,21 @@ double findfirstday(string node);
 class DataLog
 {
 public:
-    DataLog(double stride=3600., bool fastmode=false);
-    int32_t Write(string node, int type, double utc, const char* data, string directory="temp");
-    int32_t Write(string node, string agent, double utc, string type, const char *data);
-    int32_t Write(string node, string agent, double utc, string extra, string type, string record, string location="temp");
+    DataLog(double stride=0., bool fastmode=false);
+    int32_t Write(vector<uint8_t> data, string node, string agent="generic", string type="log", string extra="");
+    int32_t Write(string data, string node, string agent="generic", string type="log", string extra="");
+    int32_t SetStride(double seconds=0.);
+    int32_t SetFastmode(bool state=false);
 
     bool fastmode;
     double stride;
     double enddate;
+    double startdate;
     string path;
+    string node;
+private:
+
+    FILE* fout;
 };
 
 class NodeData
