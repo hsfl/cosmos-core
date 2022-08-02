@@ -68,9 +68,11 @@ static string nodedir;
 DataLog::DataLog(double stride, bool fastmode)
 {
     this->fastmode = fastmode;
+    if (stride < 0.)
+    {
+        stride = 0.;
+    }
     this->stride = stride;
-    startdate = currentmjd();
-    enddate = startdate + stride / 86400.;
     fout = nullptr;
 }
 
@@ -86,6 +88,7 @@ int32_t DataLog::SetStride(double seconds)
     stride = seconds;
     startdate = currentmjd();
     enddate = startdate + stride / 86400.;
+    return seconds;
 }
 
 //! Change DataLog fastmode
@@ -99,7 +102,7 @@ int32_t DataLog::SetFastmode(bool state)
         if (fout != nullptr)
         {
             fclose(fout);
-            fout == nullptr;
+            fout = nullptr;
         }
         return 0;
     }
@@ -107,6 +110,20 @@ int32_t DataLog::SetFastmode(bool state)
     {
         return 1;
     }
+}
+
+//! Change Starting Date
+//! Resets internal paramaters to start logging from new starting date.
+//! \param mjd UTC in Modified Julian Day
+int32_t DataLog::SetStartdate(double mjd)
+{
+    if (mjd < 0.)
+    {
+        mjd = 0.;
+    }
+    startdate = mjd;
+    enddate = mjd - 1.;
+    return startdate;
 }
 
 //! Write log entry - full
