@@ -13,12 +13,10 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::DataResponse, Response);
 
             // ADCS
-            add_func(PacketComm::TypeId::DataADCSSingleResponse, AdcsForward);
-            add_func(PacketComm::TypeId::DataADCSMultiResponse, AdcsForward);
+            add_func(PacketComm::TypeId::DataADCSResponse, Response);
 
             // EPS
-            add_func(PacketComm::TypeId::DataEPSSingleResponse, EpsLog);
-            add_func(PacketComm::TypeId::DataEPSMultiResponse, EpsLog);
+            add_func(PacketComm::TypeId::DataEPSResponse, Response);
 
             // File Transfer
             add_func(PacketComm::TypeId::DataFileCommand, FileForward);
@@ -401,10 +399,50 @@ namespace Cosmos {
         int32_t PacketHandler::Response(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
         {
             int32_t iretn=0;
-            PacketComm::ResponseHeader header;
-            uint16_t chunk_size = packet.data.size() - COSMOS_SIZEOF(PacketComm::ResponseHeader);
-            memcpy(&header, packet.data.data(), COSMOS_SIZEOF(PacketComm::ResponseHeader));
-            filestruc file = data_name_struc(agent->nodeName, "incoming", agent->agentName, 0., "response_"+to_unsigned(header.response_id)+"_"+to_unsigned(header.met));
+            uint16_t header_size;
+            uint16_t chunk_size;
+            uint16_t chunk_id;
+            uint16_t chunks;
+            filestruc file;
+            switch (static_cast<PacketComm::TypeId>(packet.data[0]))
+            {
+            case PacketComm::TypeId::DataResponse:
+                {
+                    PacketComm::ResponseHeader header;
+                    header_size = COSMOS_SIZEOF(PacketComm::ResponseHeader);
+                    chunk_size = packet.data.size() - header_size;
+                    memcpy(&header, packet.data.data(), header_size);
+                    chunk_id = header.chunk_id;
+                    chunks = header.chunks;
+//                    file = data_name_struc(agent->nodeName, "incoming", agent->agentName, 0., "response_"+to_unsigned(header.response_id)+"_"+to_unsigned(header.met));
+                    file = data_type_path(agent->nodeName, "temp", agent->agentName, header.met, "res", to_unsigned(header.response_id));
+                }
+                break;
+            case PacketComm::TypeId::DataADCSResponse:
+                {
+                    PacketComm::AdcsResponseHeader header;
+                    header_size = COSMOS_SIZEOF(PacketComm::AdcsResponseHeader);
+                    chunk_size = packet.data.size() - header_size;
+                    memcpy(&aheader, packet.data.data(), header_size);
+                    chunk_id = header.chunk_id;
+                    chunks = header.chunks;
+//                    file = data_name_struc(agent->nodeName, "incoming", "adcs", 0., "response_"+to_unsigned(header.response_id)+"_"+to_unsigned(header.met));
+                    file = data_type_path(agent->nodeName, "temp", "adcs", header.met, "res", to_unsigned(header.command));
+                }
+                break;
+            case PacketComm::TypeId::DataEPSResponse:
+                {
+                    PacketComm::EpsResponseHeader header;
+                    header_size = COSMOS_SIZEOF(PacketComm::EpsResponseHeader);
+                    chunk_size = packet.data.size() - header_size;
+                    memcpy(&eheader, packet.data.data(), header_size);
+                    chunk_id = header.chunk_id;
+                    chunks = header.chunks;
+//                    file = data_name_struc(agent->nodeName, "incoming", "eps", 0., "response_"+to_unsigned(header.response_id)+"_"+to_unsigned(header.met));
+                    file = data_type_path(agent->nodeName, "temp", "eps", header.met, "res", to_unsigned(header.sbid)+"_"+to_unsigned(header.command));
+                }
+                break;
+            }
             if (file.path.size())
             {
                 FILE *tf;
@@ -418,12 +456,12 @@ namespace Cosmos {
                 }
                 if (tf != nullptr)
                 {
-                    iretn = fseek(tf, header.chunk_id*chunk_size, SEEK_SET);
+                    iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
                     if (iretn >= 0)
                     {
                         response.clear();
-                        response.insert(response.begin(), packet.data.begin()+10, packet.data.end());
-                        iretn = fwrite(packet.data.data()+10, chunk_size, 1, tf);
+                        response.insert(response.begin(), packet.data.begin()+header_size, packet.data.end());
+                        iretn = fwrite(packet.data.data()+header_size, chunk_size, 1, tf);
                         if (iretn < 0)
                         {
                             iretn = -errno;
@@ -434,7 +472,7 @@ namespace Cosmos {
                         iretn = -errno;
                     }
                     fclose(tf);
-                    if (data_isfile(file.path, header.chunks*chunk_size))
+                    if (data_isfile(file.path, chunks*chunk_size))
                     {
                         iretn = data_move(file, "incoming", false);
                     }
@@ -690,6 +728,8 @@ namespace Cosmos {
 
         int32_t PacketHandler::EpsLog(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
         {
+            DataLog Log;
+            Log.Write(packet, agent->nodeName, "eps",
 //            log_write(agent->cinfo->node.name, "eps", )
             int32_t iretn=0;
             iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);

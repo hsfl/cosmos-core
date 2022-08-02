@@ -42,10 +42,8 @@ namespace Cosmos {
                 None = 0,
                 DataBeacon = 10,
                 DataPong = 41,
-                DataEPSSingleResponse = 42,
-                DataEPSMultiResponse = 43,
-                DataADCSSingleResponse = 44,
-                DataADCSMultiResponse = 45,
+                DataEPSResponse = 43,
+                DataADCSResponse = 45,
                 DataResponse = 61,
                 DataIP = 62,
                 DataTest = 63,
@@ -93,10 +91,10 @@ namespace Cosmos {
             map<TypeId, string> TypeString = {
                 {TypeId::DataBeacon, "Beacon"},
                 {TypeId::DataPong, "Pong"},
-                {TypeId::DataEPSSingleResponse, "EPSSingleResponse"},
-                {TypeId::DataEPSMultiResponse, "EPSMultiResponse"},
-                {TypeId::DataADCSSingleResponse, "ADCSSingleResponse"},
-                {TypeId::DataADCSMultiResponse, "ADCSMultiResponse"},
+                {TypeId::DataEPSResponse, "EPSResponse"},
+//                {TypeId::DataEPSMultiResponse, "EPSMultiResponse"},
+                {TypeId::DataADCSResponse, "ADCSResponse"},
+//                {TypeId::DataADCSMultiResponse, "ADCSMultiResponse"},
                 {TypeId::DataResponse, "Response"},
                 {TypeId::DataIP, "IP"},
                 {TypeId::DataTest, "Test"},
@@ -144,10 +142,10 @@ namespace Cosmos {
             map<string, TypeId> StringType = {
                 {"Beacon", TypeId::DataBeacon},
                 {"Pong", TypeId::DataPong},
-                {"EPSSingleResponse", TypeId::DataEPSSingleResponse},
-                {"EPSMultiResponse", TypeId::DataEPSMultiResponse},
-                {"ADCSSingleResponse", TypeId::DataADCSSingleResponse},
-                {"ADCSMultiResponse", TypeId::DataADCSMultiResponse},
+                {"EPSResponse", TypeId::DataEPSResponse},
+//                {"EPSMultiResponse", TypeId::DataEPSMultiResponse},
+                {"ADCSResponse", TypeId::DataADCSResponse},
+//                {"ADCSMultiResponse", TypeId::DataADCSMultiResponse},
                 {"Response", TypeId::DataResponse},
                 {"IP", TypeId::DataIP},
                 {"Test", TypeId::DataTest},
@@ -197,10 +195,27 @@ namespace Cosmos {
 
             struct __attribute__ ((packed))  ResponseHeader
             {
+                uint32_t met;
                 uint8_t chunks;
                 uint8_t chunk_id;
                 uint32_t response_id;
+            };
+
+            struct __attribute__ ((packed))  AdcsResponseHeader
+            {
                 uint32_t met;
+                uint8_t chunks;
+                uint8_t chunk_id;
+                uint8_t command;
+            };
+
+            struct __attribute__ ((packed))  EpsResponseHeader
+            {
+                uint32_t met;
+                uint8_t chunks;
+                uint8_t chunk_id;
+                uint32_t sbid;
+                uint8_t command;
             };
 
             struct __attribute__ ((packed))  TestHeader
