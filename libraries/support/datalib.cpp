@@ -307,11 +307,10 @@ int32_t log_move(string oldpath, string newpath, bool compress)
             return iretn;
         }
         iretn = remove(temppath.c_str());
-//        if (iretn < 0)
-//        {
-//            iretn = -errno;
-//            return iretn;
-//        }
+        if (iretn < 0)
+        {
+            iretn = -errno;
+        }
     }
     else
     {
@@ -319,10 +318,8 @@ int32_t log_move(string oldpath, string newpath, bool compress)
         if (iretn < 0)
         {
             iretn = -errno;
-            return iretn;
         }
     }
-    iretn = remove(oldpath.c_str());
     return iretn;
 }
 
