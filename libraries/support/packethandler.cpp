@@ -404,7 +404,7 @@ namespace Cosmos {
             uint16_t chunk_id;
             uint16_t chunks;
             filestruc file;
-            switch (static_cast<PacketComm::TypeId>(packet.data[0]))
+            switch (static_cast<PacketComm::TypeId>(packet.header.type))
             {
             case PacketComm::TypeId::DataResponse:
                 {
