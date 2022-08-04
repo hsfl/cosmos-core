@@ -414,7 +414,7 @@ namespace Cosmos {
                     memcpy(&header, packet.data.data(), header_size);
                     chunk_id = header.chunk_id;
                     chunks = header.chunks;
-                    file = data_name_struc(agent->nodeName, "temp", agent->agentName, header.met, data_name(agent->nodeName, header.met, "gresp", to_unsigned(header.response_id)));
+                    file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "main", header.met, data_name(NodeData::lookup_node_id_name(packet.header.orig), header.met, "gresp", to_unsigned(header.response_id)));
                 }
                 break;
             case PacketComm::TypeId::DataADCSResponse:
@@ -425,7 +425,7 @@ namespace Cosmos {
                     memcpy(&header, packet.data.data(), header_size);
                     chunk_id = header.chunk_id;
                     chunks = header.chunks;
-                    file = data_name_struc(agent->nodeName, "temp", "adcs", header.met, data_name(agent->nodeName, header.met, "aresp", to_unsigned(header.command)));
+                    file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "adcs", header.met, data_name(NodeData::lookup_node_id_name(packet.header.orig), header.met, "aresp", to_unsigned(header.command)));
                 }
                 break;
             case PacketComm::TypeId::DataEPSResponse:
@@ -436,8 +436,10 @@ namespace Cosmos {
                     memcpy(&header, packet.data.data(), header_size);
                     chunk_id = header.chunk_id;
                     chunks = header.chunks;
-                    file = data_name_struc(agent->nodeName, "temp", "eps", header.met, data_name(agent->nodeName, header.met, "eresp", to_unsigned(header.sbid)));
+                    file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "eps", header.met, data_name(NodeData::lookup_node_id_name(packet.header.orig), header.met, "eresp", to_unsigned(header.sbid)));
                 }
+                break;
+            default:
                 break;
             }
             if (file.path.size())
@@ -561,7 +563,7 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::DataBeacon;
             packet.header.dest = packet.header.orig;
             packet.header.orig = agent->nodeId;
-            printf("SendBeacon: Type=%u Length=%u\n", packet.data[0], response.size());
+            printf("SendBeacon: Type=%u Length=%lu\n", packet.data[0], response.size());
             fflush(stdout);
             packet.data.clear();
             packet.data.insert(packet.data.end(), response.begin(), response.end());
