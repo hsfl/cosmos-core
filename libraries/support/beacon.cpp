@@ -360,6 +360,8 @@ namespace Cosmos {
                         }
                     }
                     break;
+
+					default: break;
                 }
             }
             return 0;

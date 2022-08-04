@@ -404,11 +404,11 @@ int32_t create_simdata(prop_unit& prop)
     pz1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.pos.eci.s.col[2];
 
     // node 1 attitude
-    double qw1, qx1, qy1, qz1;
-    qx1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.att.geoc.s.d.x;
-    qy1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.att.geoc.s.d.y;
-    qz1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.att.geoc.s.d.z;
-    qw1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.att.geoc.s.w;
+    //double qw1, qx1, qy1, qz1;
+    //qx1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.att.geoc.s.d.x;
+    //qy1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.att.geoc.s.d.y;
+    //qz1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.att.geoc.s.d.z;
+    //qw1 = prop.sim.cnodes[node_1]->currentinfo.node.loc.att.geoc.s.w;
 
 
     // Hold json of sim data to send to telegraf
@@ -442,11 +442,11 @@ int32_t create_simdata(prop_unit& prop)
         d = sqrt(dx*dx + dy*dy + dz*dz);
         
         // vlc model using calculated distance as input
-        double snr = vlc_snr(d);
+        //double snr = vlc_snr(d);
 
         // Attitude difference
         // todo
-        double angle = 0;
+        //double angle = 0;
 
         // VLC link budget
         double vlc_link_budget = vlc_snr(d);
@@ -465,7 +465,8 @@ int32_t create_simdata(prop_unit& prop)
     }
     json11::Json resp = simdata;
     // cout << resp.dump() << endl;
-    int32_t iretn = socket_sendto(cosmos_web_telegraf_channel, resp.dump());
+    //int32_t iretn = socket_sendto(cosmos_web_telegraf_channel, resp.dump());
+    socket_sendto(cosmos_web_telegraf_channel, resp.dump());
 
     return 0;
 }
@@ -510,7 +511,7 @@ double vlc_snr(double distance) {
     double Ts = 1;
 
     // Irradiance Angle, ψ
-    double irradiance_angle = 15; //deg //TODO: not being used
+    //double irradiance_angle = 15; //deg //TODO: not being used
     // Detector Responsivity, gamma
     double detector_responsivity = 0.51;
     //double gamma = detector_responsivity;
@@ -518,7 +519,7 @@ double vlc_snr(double distance) {
     double n = 1.5;
 
     //Radius of Concentrator, R
-    double R = 2; //cm
+    //double R = 2; //cm
     // Detector Active Area, Apd
     double Apd = 7.84; //cm^2
     Apd = Apd*1e-4; // convert to m^2
@@ -526,8 +527,8 @@ double vlc_snr(double distance) {
     double B = 0.5; //MHz
     B = B*1e6; // convert to Hz
     // Optical Filter Bandwidth, ∆λ
-    double d_lambda = 0.4020; //nm
-    d_lambda = 0.4020*1e-9; // convert to meters
+    //double d_lambda = 0.4020; //nm
+    //d_lambda = 0.4020*1e-9; // convert to meters
     // Optical Filter Lower Limit, lambda_1
     double lambda_1 = 656.0798; //nm
     lambda_1 = lambda_1*1e-9; // convert to meters
@@ -535,23 +536,23 @@ double vlc_snr(double distance) {
     double lambda_2 = 656.4818; //nm
     lambda_2 = lambda_2*1e-9; // convert to meters
     // Open Loop Voltage Gain,
-    double G = 10;
+    //double G = 10;
     // FET Transconductance, gm
-    double gm = 30; // ms
-    gm = 30*1e-3; // convert to sec
+    //double gm = 30; // ms
+    //gm = 30*1e-3; // convert to sec
     // FET Channel Noise Factor, gamma
-    double gamma_large = 0.82; // or 1.5
+    //double gamma_large = 0.82; // or 1.5
     // Capacitance of Photodetector, etta
     double etta = 38; //pF /cm^2
     etta = etta*1e-8; // convert to Farad / m^2
     // Noise Bandwidth Factor for White Noise, I2
     double I2 = 0.562;
     //Noise Bandwidth Factor for f^2 noise, I3
-    double I3 = 0.0868;
+    //double I3 = 0.0868;
     // Boltzmann Constant, k
     double k = 1.380649e-23; //J/K
     // Absolute Temperature, TA
-    double Ta = 300; //K
+    //double Ta = 300; //K
 
     // c is the speed of light,
     double c = 299792458.0; // m/sec
@@ -619,7 +620,7 @@ double vlc_snr(double distance) {
     double q = 1.60217662e-19; //coulombs
     double Rse = 150e9;                   // Distance between Sun and Earth
     double SAsun = 4*M_PI*pow(Rse,2);  // Surface area of Sun
-    double day = 15;                     // Day of year
+    //double day = 15;                     // Day of year
 
     double xmin = (hp * c)/(lambda_1*k*Tsun);
     double xmax = (hp * c)/(lambda_2*k*Tsun);
