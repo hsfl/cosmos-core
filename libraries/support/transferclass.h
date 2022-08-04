@@ -54,40 +54,45 @@ namespace Cosmos {
             
             Transfer();
             // int32_t Init(string node, string agent, uint16_t chunk_size);
-            int32_t Init(string calling_node_name);
-            int32_t Init(string calling_node_name, Error* debug_error);
+            int32_t Init(const string calling_node_name);
+            int32_t Init(const string calling_node_name, Error* debug_error);
             //int32_t Load(string filename, vector<chunk> &chunks);
-            int32_t outgoing_tx_add(tx_progress &tx_out, string dest_node_name);
-            int32_t outgoing_tx_add(string dest_node, string dest_agent, string file_name);
+            int32_t outgoing_tx_add(tx_progress &tx_out, const string dest_node_name);
+            int32_t outgoing_tx_add(const string dest_node, const string dest_agent, const string file_name);
             int32_t outgoing_tx_load();
-            int32_t outgoing_tx_load(string node_name);
-            int32_t outgoing_tx_load(uint8_t node_id);
-            int32_t outgoing_tx_recount(string node_name);
-            int32_t outgoing_tx_recount(uint8_t node_id);
-            int32_t incoming_tx_recount(string node_name);
-            int32_t incoming_tx_recount(uint8_t node_id);
+            int32_t outgoing_tx_load(const string node_name);
+            int32_t outgoing_tx_load(const uint8_t node_id);
+            int32_t outgoing_tx_recount(const string node_name);
+            int32_t outgoing_tx_recount(const uint8_t node_id);
+            int32_t incoming_tx_recount(const string node_name);
+            int32_t incoming_tx_recount(const uint8_t node_id);
             int32_t get_outgoing_lpackets(vector<PacketComm> &packets);
-            int32_t get_outgoing_lpackets(string node_name, vector<PacketComm> &packets);
+            int32_t get_outgoing_lpackets(const string node_name, vector<PacketComm> &packets);
             int32_t get_outgoing_rpackets(vector<PacketComm> &packets);
-            int32_t get_outgoing_rpackets(string node_name, vector<PacketComm> &packets);
+            int32_t get_outgoing_rpackets(const string node_name, vector<PacketComm> &packets);
             int32_t receive_packet(const PacketComm& packet);
 
             // Various publicly available requests
-            int32_t set_enabled(uint8_t node_id, PACKET_TX_ID_TYPE tx_id, bool enabled);
-            int32_t enable_single(string node_name, string file_name);
-            int32_t enable_single(uint8_t node_id, string file_name);
-            int32_t enable_all(string node_name);
-            int32_t enable_all(uint8_t node_id);
+            int32_t set_enabled(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id, bool enabled);
+            int32_t enable_single(const string node_name, const string file_name);
+            int32_t enable_single(const uint8_t node_id, const string file_name);
+            int32_t enable_all(const string node_name);
+            int32_t enable_all(const uint8_t node_id);
             string list_outgoing();
             string list_incoming();
-            int32_t set_waittime(uint8_t node_id, uint8_t direction, double waittime);
-            int32_t set_waittime(string node_name, uint8_t direction, double waittime);
+            int32_t set_waittime(const uint8_t node_id, const uint8_t direction, const double waittime);
+            int32_t set_waittime(const string node_name, const uint8_t direction, const double waittime);
+
+            // Getters/setters
+            int32_t set_packet_size(const PACKET_CHUNK_SIZE_TYPE size);
 
         private:
             /// The node_name of the calling node
             string self_node_name;
             /// The node_id of the calling node
             PACKET_NODE_ID_TYPE self_node_id;
+            /// Maps a node_id to an index into txq. <node_id, txq_index>. Use node_id_to_txq_idx instead of trying to access the map directly with []operator.
+            map<PACKET_NODE_ID_TYPE, size_t> node_id_to_txq_map;
 
             /// Vector of nodes to transfer files in/out. Heart of the file transfer manager.
             vector<tx_queue> txq;
@@ -102,20 +107,23 @@ namespace Cosmos {
             Error* debug_error = nullptr;
 
             // Internal use
-            int32_t get_outgoing_lpackets(uint8_t node_id, vector<PacketComm> &packets);
-            int32_t get_outgoing_rpackets(uint8_t node_id, vector<PacketComm> &packets);
+            int32_t get_outgoing_lpackets(const uint8_t node_id, vector<PacketComm> &packets);
+            int32_t get_outgoing_rpackets(const uint8_t node_id, vector<PacketComm> &packets);
 
             // Private queue manipulation functions
-            int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id=PROGRESS_QUEUE_SIZE, bool remove_file=true);
-            PACKET_TX_ID_TYPE check_tx_id(tx_entry &txentry, PACKET_TX_ID_TYPE tx_id);
-            int32_t incoming_tx_add(string node_name, PACKET_TX_ID_TYPE tx_id);
+            int32_t outgoing_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1, const bool remove_file=true);
+            PACKET_TX_ID_TYPE check_tx_id(tx_entry &txentry, const PACKET_TX_ID_TYPE tx_id);
+            int32_t incoming_tx_add(const string node_name, const PACKET_TX_ID_TYPE tx_id);
             int32_t incoming_tx_add(tx_progress &tx_in);
             int32_t incoming_tx_update(packet_struct_metashort meta);
-            int32_t incoming_tx_del(uint8_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
-            int32_t incoming_tx_complete(uint8_t node_id, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
+            int32_t incoming_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
+            int32_t incoming_tx_complete(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
 
             int32_t write_meta(tx_progress& tx, double interval=5.);
             int32_t read_meta(tx_progress& tx);
+
+            static const size_t INVALID_TXQ_IDX = (size_t)-1;
+            size_t node_id_to_txq_idx(const uint8_t node_id);
         };
     }
 }

@@ -2217,8 +2217,8 @@ int32_t data_execute(string cmd, string& result, string shell)
 
 }
 
-// Define the static member variable here
-vector<string> NodeData::node_ids;
+// Define the static member variables here
+map<string, uint8_t> NodeData::node_ids;
 
 //! Loads node table from nodeids.ini configuration file
 //! nodeids is a vector of node name strings indexed by a node_id
@@ -2230,13 +2230,12 @@ int32_t NodeData::load_node_ids()
         FILE *fp = data_open(get_cosmosnodes()+"/nodeids.ini", "rb");
         if (fp)
         {
-            uint16_t max_index = 0;
-            vector<uint16_t> tindex;
-            vector<string> tnodeid;
+            // Loop until eof
             while (fgets(buf, 102, fp) != nullptr)
             {
-                uint16_t index = 0;
-                string nodeid;
+                uint16_t nodeid = 0;
+                string node_name;
+                // Turn whitespace into null terminators, then grab node names and idxs
                 if (buf[strlen(buf)-1] == '\n')
                 {
                     buf[strlen(buf)-1] = 0;
@@ -2244,41 +2243,28 @@ int32_t NodeData::load_node_ids()
                 if (buf[1] == ' ')
                 {
                     buf[1] = 0;
-                    index = atoi(buf);
-                    nodeid = &buf[2];
+                    nodeid = atoi(buf);
+                    node_name = &buf[2];
                 }
                 else if (buf[2] == ' ')
                 {
                     buf[2] = 0;
-                    index = atoi(buf);
-                    nodeid = &buf[3];
+                    nodeid = atoi(buf);
+                    node_name = &buf[3];
                 }
                 else if (buf[3] == ' ')
                 {
                     buf[3] = 0;
-                    index = atoi(buf);
-                    nodeid = &buf[4];
+                    nodeid = atoi(buf);
+                    node_name = &buf[4];
                 }
                 else
                 {
-                    index = 0;
+                    continue;
                 }
-                if (index)
-                {
-                    if (index > max_index)
-                    {
-                        max_index = index;
-                    }
-                    tindex.push_back(index);
-                    tnodeid.push_back(nodeid);
-                }
+                node_ids[node_name] = nodeid;
             }
             fclose(fp);
-            NodeData::node_ids.resize(max_index+1);
-            for (uint16_t i=0; i<tindex.size(); ++i)
-            {
-                NodeData::node_ids[tindex[i]] = tnodeid[i];
-            }
         }
         else
         {
@@ -2291,29 +2277,27 @@ int32_t NodeData::load_node_ids()
 
 //! Check if a node_id is in the node table
 //! \param node_id
-//! \return node_id on success, non-positive on error
+//! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
 int32_t NodeData::check_node_id(NODE_ID_TYPE node_id)
 {
-    int32_t iretn;
 
-    if ((iretn=NodeData::load_node_ids()) <= 0)
+    if (NodeData::load_node_ids() <= 0)
     {
         return NODEIDUNKNOWN;
     }
 
-
-    if (node_id > 0 && NodeData::node_ids[node_id].size())
+    for (auto it = node_ids.begin(); it != node_ids.end(); ++it)
     {
-        return node_id;
+        if (it->second == node_id)
+        {
+            return node_id;
+        }
     }
-    else
-    {
-        return NODEIDUNKNOWN;
-    }
+    return NODEIDUNKNOWN;
 }
 
 //! Gets the node_id associated with a node name
-//! \return node_id on success, negative on error
+//! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
 int32_t NodeData::lookup_node_id(string node_name)
 {
     int32_t iretn;
@@ -2323,22 +2307,12 @@ int32_t NodeData::lookup_node_id(string node_name)
         return NODEIDUNKNOWN;
     }
 
-    uint8_t node_id = NODEIDUNKNOWN;
-    for (uint8_t i=1; i<NodeData::node_ids.size(); ++i)
+    auto it = node_ids.find(node_name);
+    if (it == node_ids.end())
     {
-        if (NodeData::node_ids[i] == node_name)
-        {
-            node_id = i;
-            break;
-        }
+        return NODEIDUNKNOWN;
     }
-
-//    if (node_id == NODEIDUNKNOWN)
-//    {
-//        return TRANSFER_ERROR_NODE;
-//    }
-
-    return node_id;
+    return it->second;
 }
 
 //! Find the node name associated with the given node id in the node table.
@@ -2346,27 +2320,28 @@ int32_t NodeData::lookup_node_id(string node_name)
 //! \return Node name on success, or empty string on failure
 string NodeData::lookup_node_id_name(NODE_ID_TYPE node_id)
 {
-//    string name;
     if (node_id == NodeData::NODEIDORIG)
     {
         return "Origin";
-    }
-    else if (node_id == NodeData::NODEIDUNKNOWN)
-    {
-        return "";
     }
     else if (node_id == NodeData::NODEIDDEST)
     {
         return "Destination";
     }
-    else if (NodeData::load_node_ids() > 0 && node_id > 0 && node_id < NodeData::node_ids.size() && NodeData::node_ids[node_id].size())
-    {
-        return NodeData::node_ids[node_id];
-    }
-    else
+    else if (node_id == NodeData::NODEIDUNKNOWN || NodeData::load_node_ids() <= 0)
     {
         return "";
     }
+
+    for (auto it = node_ids.begin(); it != node_ids.end(); ++it)
+    {
+        if (it->second == node_id)
+        {
+            return it->first;
+        }
+    }
+
+    return "";
 }
 
 void GITTEST::f()	{
