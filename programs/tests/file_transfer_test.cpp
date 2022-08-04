@@ -13,7 +13,7 @@ const string node1_name = "transfer_test_node_1";
 const string node2_name = "transfer_test_node_2";
 const string tname3 = "transfer_test_node_3";
 const int node1_id = 1;
-const int node2_id = 2;
+const int node2_id = 8;
 
 // CRC class for calculating crcs
 CRC16 calc_crc;
@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
     run_test(test_stop_resume, "test_stop_resume");
     //run_test(test_stop_resume2, "test_stop_resume2"); // Read the comments above the test_stop_resume2 function
     run_test(test_packet_reqcomplete, "test_packet_reqcomplete");
-    //run_test(test_many_files, "test_many_files"); // This one takes about 12 seconds, comment out to save some time to test other tests
+    run_test(test_many_files, "test_many_files"); // This one takes about 12 seconds, comment out to save some time to test other tests
     run_test(test_command_and_message_packet, "test_command_and_message_packet");
 
 
