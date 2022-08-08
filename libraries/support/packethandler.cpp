@@ -9,6 +9,17 @@ namespace Cosmos {
         {
             this->agent = calling_agent;
 
+            // Generic
+            add_func(PacketComm::TypeId::DataResponse, Response);
+
+            // ADCS
+            add_func(PacketComm::TypeId::DataADCSSingleResponse, AdcsForward);
+            add_func(PacketComm::TypeId::DataADCSMultiResponse, AdcsForward);
+
+            // EPS
+            add_func(PacketComm::TypeId::DataEPSSingleResponse, EpsForward);
+            add_func(PacketComm::TypeId::DataEPSMultiResponse, EpsForward);
+
             // File Transfer
             add_func(PacketComm::TypeId::DataFileCommand, FileForward);
             add_func(PacketComm::TypeId::DataFileMessage, FileForward);

@@ -3672,7 +3672,7 @@ acquired.
                 return GENERAL_ERROR_OUTOFRANGE;
             }
 
-            channels.Push(number, packet);
+            return channels.Push(number, packet);
         }
 
         int32_t Agent::push_unwrapped(string name, vector<PacketComm>& packets)
