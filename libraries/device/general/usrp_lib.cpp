@@ -32,7 +32,7 @@
 
 int32_t usrp_connect(string device, uint16_t port, usrp_handle &handle)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = socket_open(&handle.socket, NetworkType::UDP, device.c_str(), 10003, SOCKET_TALK, true, 2000000);
 
@@ -56,7 +56,7 @@ int32_t usrp_disconnect(usrp_handle &handle)
 
 int32_t usrp_send(usrp_handle &handle, string &data)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = socket_sendto(handle.socket, data);
     if (iretn >= 0)
@@ -147,7 +147,7 @@ uint8_t usrp_freq2band(double frequency)
 
 int32_t usrp_get_frequency(usrp_handle &handle)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     string data = "downlink_freq 0";
 

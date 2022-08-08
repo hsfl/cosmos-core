@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
     double dt = 1.;
     double logperiod = 1.;
     double logstride = 3600./86400.;
-    int32_t iretn;
+    int32_t iretn = 0;
     vector <Convert::tlestruc> lines;
     bool tleinit = false;
     //	bool master_timer = false;

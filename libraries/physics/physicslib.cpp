@@ -700,7 +700,7 @@ for (il=0; il<5; il++)
 
         int32_t gravity_params(int model)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             uint32_t il, im;
             double norm;
             uint32_t dil, dim;
@@ -1556,7 +1556,7 @@ for (il=0; il<5; il++)
 */
         int32_t pos_accel(physicsstruc &physics, Convert::locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             double radius;
             rvector ctpos, da, tda;
             Convert::cartpos bodypos;
@@ -3153,7 +3153,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
 
         int orbit_init(int32_t mode, double dt, double utc, string ofile, cosmosstruc *cinfo)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             Convert::tlestruc tline;
 
             // Munge time step to fit local granularity

@@ -557,7 +557,7 @@ int32_t request_get_rotctl(string &req, string &response, Agent *)
 
 int32_t connect_antenna()
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     antconnected = false;
 
     switch (agent->cinfo->devspec.ant[antindex].model)
@@ -646,7 +646,7 @@ int32_t request_track_azel(string &req, string &response, Agent *)
 
 void rotctl_loop()
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     string command;
     uint16_t direction;
     uint16_t speed;

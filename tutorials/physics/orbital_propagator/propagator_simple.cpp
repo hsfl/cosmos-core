@@ -83,7 +83,7 @@ int main(int argc, char* argv[]){
     double set_time = 0;
     double elapsed_seconds = 0;
     double utc_now;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     // for time profiling
     ElapsedTime ep;

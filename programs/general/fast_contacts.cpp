@@ -70,7 +70,7 @@ void propcalc(size_t index);
 
 int main(int argc, char *argv[])
 {
-    //int32_t iretn;
+    //int32_t iretn = 0;
     double period = 1.;
 
     printf("Iniitial\n");

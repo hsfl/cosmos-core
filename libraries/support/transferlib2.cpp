@@ -541,7 +541,7 @@ namespace Cosmos {
         */
         int32_t get_file_size(string filename)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             struct stat stat_buf;
 
             if ((stat(filename.c_str(), &stat_buf)) == 0)

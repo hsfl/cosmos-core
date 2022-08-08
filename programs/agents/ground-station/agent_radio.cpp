@@ -216,7 +216,7 @@ uint16_t string2modulation(string name);
 
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     switch (argc)
     {
@@ -735,7 +735,7 @@ int32_t request_get_frequency(string &request, string &response, Agent *)
 
 int32_t request_set_frequency(string &request, string &response, Agent *)
 {
-    //	int32_t iretn;
+    //	int32_t iretn = 0;
 
     sscanf(request.c_str(), "%*s %lf", &target.freq);
     return 0;
@@ -749,7 +749,7 @@ int32_t request_get_repeater_squelch(string &request, string &response, Agent *)
 
 int32_t request_set_repeater_squelch(string &request, string &response, Agent *)
 {
-    //	int32_t iretn;
+    //	int32_t iretn = 0;
 
     sscanf(request.c_str(), "%*s %f", &target.squelch_tone);
     return 0;
@@ -925,7 +925,7 @@ int32_t request_set_record(string &request, string &response, Agent *)
 
 int32_t connect_radio()
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     radioconnected = false;
 
     switch (agent->cinfo->device[deviceindex]->model)

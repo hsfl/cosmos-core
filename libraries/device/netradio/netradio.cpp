@@ -25,7 +25,7 @@ namespace Cosmos {
 
         int32_t NetRadio::Init()
         {
-            int32_t iretn;
+            int32_t iretn = 0;
 
             iretn = socket_open(net_channel_out, out_port, 200000);
             if (iretn<0)
@@ -105,7 +105,7 @@ namespace Cosmos {
 
         int32_t NetRadio::PacketIn(PacketComm &p)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
 
             iretn = DeQueue(packet_queue_in, qmutex_in, p);
 //            if (iretn > 0)
@@ -125,7 +125,7 @@ namespace Cosmos {
 
         int32_t NetRadio::PacketOut(PacketComm &p)
         {
-            //int32_t iretn;
+            //int32_t iretn = 0;
 
 //            iretn = Packetize(p);
 //            if (iretn > 0)
@@ -145,7 +145,7 @@ namespace Cosmos {
 
         void NetRadio::queue_loop()
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             PacketComm packet;
 
             ElapsedTime et;

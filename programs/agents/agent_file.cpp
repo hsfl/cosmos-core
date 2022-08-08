@@ -205,7 +205,7 @@ string json_list_outgoing();
 //main
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     // store command line arguments
     switch (argc)
     {
@@ -1215,7 +1215,7 @@ double queuesendto(string type, uint16_t channel, std::vector<PACKET_BYTE> packe
 
 int32_t mysendto(string type, sendchannelstruc& channel, std::vector<PACKET_BYTE>& buf)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     double cmjd;
 
     if ((cmjd = currentmjd(0.)) < channel.nmjd)

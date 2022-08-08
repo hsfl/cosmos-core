@@ -61,7 +61,7 @@ namespace Cosmos {
         int32_t jpllib(double utc,rmatrix &rm, rmatrix &drm)
         {
             double pvec[6];
-            int32_t iretn;
+            int32_t iretn = 0;
 
             iretn = jplopen();
             if (iretn < 0)

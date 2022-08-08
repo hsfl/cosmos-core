@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	double lmjd, mean;
 	bool waited;
 	
-    int32_t iretn;
+    int32_t iretn = 0;
     size_t tcount = 2000;
 
     switch (argc)

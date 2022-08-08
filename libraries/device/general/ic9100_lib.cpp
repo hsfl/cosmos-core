@@ -32,7 +32,7 @@
 
 int32_t ic9100_connect(string device, uint8_t address, ic9100_handle &handle)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     handle.serial = new Serial(device.c_str(), IC9100_BAUD, IC9100_BITS, IC9100_PARITY, IC9100_STOPBITS);
 
@@ -509,7 +509,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 
 int32_t ic9100_get_bandpass(ic9100_handle &handle)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = ic9100_get_mode(handle);
     if (iretn < 0)
@@ -973,7 +973,7 @@ int32_t ic9100_set_frequency(ic9100_handle &handle, double frequency)
 
 int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = ic9100_set_mode(handle, opmode, handle.filtband);
     if (iretn < 0)

@@ -41,7 +41,7 @@ static bool altprint = false;
 
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     string estring;
     json11::Json jargs = json11::Json::parse(argv[1], estring);

@@ -606,7 +606,7 @@ int32_t json_create_cpu(string &node_name)
 {
     cosmosstruc *cinfo = nullptr;
     DeviceCpu deviceCpu;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (node_name.empty())
     {
@@ -770,7 +770,7 @@ int32_t json_create_mcc(string &node_name)
  */
 int32_t json_createpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi, double abs, double hcap, double hcon, double density)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     if (name.size() > COSMOS_MAX_NAME)
     {
         name.resize(COSMOS_MAX_NAME);
@@ -812,7 +812,7 @@ int32_t json_finddev(cosmosstruc *cinfo, string name)
         name.resize(COSMOS_MAX_NAME);
     }
 
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = json_findpiece(cinfo, name);
     if (iretn >= 0)
@@ -834,7 +834,7 @@ int32_t json_findcomp(cosmosstruc *cinfo, string name)
         name.resize(COSMOS_MAX_NAME);
     }
 
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = json_findpiece(cinfo, name);
     if (iretn >= 0)
@@ -875,7 +875,7 @@ int32_t json_findpiece(cosmosstruc *cinfo, string name)
      */
 int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi, double abs, double hcap, double hcon, double density)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     if (name.size() > COSMOS_MAX_NAME)
     {
         name.resize(COSMOS_MAX_NAME);
@@ -1444,7 +1444,7 @@ int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
 */
 int32_t json_addentry(string alias, string value, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     jsonhandle handle;
     //    uint16_t count = 0;
     // Add this alias only if it is not already in the map
@@ -1745,7 +1745,7 @@ int32_t json_out_handle(string &jstring, jsonhandle handle, cosmosstruc *cinfo)
 */
 int32_t json_out_entry(string &jstring, const jsonentry &entry, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     uint8_t *data;
 
     jstring.erase(jstring.find_last_not_of(" \n\r\t")+1);
@@ -1779,7 +1779,7 @@ int32_t json_out_entry(string &jstring, const jsonentry &entry, cosmosstruc *cin
 */
 int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t type, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (!cinfo->jmapped)
     {
@@ -2017,7 +2017,7 @@ int32_t json_append(string &jstring, const char *tstring)
 int32_t json_out_character(string &jstring,char character)
 {
     char tstring[2] = {0,0};
-    int32_t iretn;
+    int32_t iretn = 0;
 
     tstring[0] = character;
     if ((iretn=json_append(jstring,tstring)) < 0)
@@ -2035,7 +2035,7 @@ int32_t json_out_character(string &jstring,char character)
 */
 int32_t json_out_name(string &jstring, string name)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_string(jstring, name, COSMOS_MAX_NAME)) < 0)
         return iretn;
@@ -2052,7 +2052,7 @@ int32_t json_out_name(string &jstring, string name)
 */
 int32_t json_out_bool(string &jstring,bool value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     char tstring[15];
 
     if (value)
@@ -2076,7 +2076,7 @@ int32_t json_out_bool(string &jstring,bool value)
 */
 int32_t json_out_int8(string &jstring,int8_t value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     char tstring[15];
 
     sprintf(tstring,"%" PRIi8,value);
@@ -2093,7 +2093,7 @@ int32_t json_out_int8(string &jstring,int8_t value)
 */
 int32_t json_out_int16(string &jstring,int16_t value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     char tstring[15];
 
     sprintf(tstring,"%d",value);
@@ -2110,7 +2110,7 @@ int32_t json_out_int16(string &jstring,int16_t value)
 */
 int32_t json_out_int32(string &jstring,int32_t value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     char tstring[15];
 
     sprintf(tstring,"%d",value);
@@ -2127,7 +2127,7 @@ int32_t json_out_int32(string &jstring,int32_t value)
 */
 int32_t json_out_uint8(string &jstring, uint8_t value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     char tstring[15];
 
     sprintf(tstring, "%u",value);
@@ -2144,7 +2144,7 @@ int32_t json_out_uint8(string &jstring, uint8_t value)
 */
 int32_t json_out_uint16(string &jstring,uint16_t value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     char tstring[15];
 
     sprintf(tstring,"%u",value);
@@ -2161,7 +2161,7 @@ int32_t json_out_uint16(string &jstring,uint16_t value)
 */
 int32_t json_out_uint32(string &jstring,uint32_t value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     char tstring[15];
 
     sprintf(tstring,"%u",value);
@@ -2222,7 +2222,7 @@ int32_t json_out_double(string &jstring,double value)
 */
 int32_t json_out_string(string &jstring, string ostring, uint16_t len)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     uint16_t i;
     char tstring[5];
 
@@ -2312,7 +2312,7 @@ int32_t json_out_string(string &jstring, string ostring, uint16_t len)
 */
 int32_t json_out_gvector(string &jstring,gvector value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -2352,7 +2352,7 @@ int32_t json_out_gvector(string &jstring,gvector value)
 */
 int32_t json_out_svector(string &jstring,svector value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -2392,7 +2392,7 @@ int32_t json_out_svector(string &jstring,svector value)
 */
 int32_t json_out_avector(string &jstring, avector value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -2432,7 +2432,7 @@ int32_t json_out_avector(string &jstring, avector value)
 */
 int32_t json_out_vector(string &jstring,Vector value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'[')) < 0)
         return iretn;
@@ -2476,7 +2476,7 @@ int32_t json_out_vector(string &jstring,Vector value)
 */
 int32_t json_out_rvector(string &jstring,rvector value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'[')) < 0)
         return iretn;
@@ -2512,7 +2512,7 @@ int32_t json_out_rvector(string &jstring,rvector value)
 */
 int32_t json_out_quaternion(string &jstring,quaternion value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -2544,7 +2544,7 @@ int32_t json_out_quaternion(string &jstring,quaternion value)
 */
 int32_t json_out_cvector(string &jstring,cvector value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -2584,7 +2584,7 @@ int32_t json_out_cvector(string &jstring,cvector value)
 */
 int32_t json_out_cartpos(string &jstring, Convert::cartpos value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -2633,7 +2633,7 @@ int32_t json_out_cartpos(string &jstring, Convert::cartpos value)
 */
 int32_t json_out_geoidpos(string &jstring, Convert::geoidpos value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -2682,7 +2682,7 @@ int32_t json_out_geoidpos(string &jstring, Convert::geoidpos value)
 */
 int32_t json_out_spherpos(string &jstring, Convert::spherpos value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -2732,7 +2732,7 @@ int32_t json_out_spherpos(string &jstring, Convert::spherpos value)
 
 int32_t json_out_node(string &jstring, string value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring, '{')) < 0)
         return iretn;
@@ -2757,7 +2757,7 @@ int32_t json_out_node(string &jstring, string value)
 
 int32_t json_out_utcstart(string &jstring, double value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -2782,7 +2782,7 @@ int32_t json_out_utcstart(string &jstring, double value)
 
 int32_t json_out_ecipos(string &jstring, Convert::cartpos value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -2807,7 +2807,7 @@ int32_t json_out_ecipos(string &jstring, Convert::cartpos value)
 */
 int32_t json_out_posstruc(string &jstring, Convert::posstruc value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -2904,7 +2904,7 @@ int32_t json_out_posstruc(string &jstring, Convert::posstruc value)
 */
 int32_t json_out_attstruc(string &jstring, Convert::attstruc value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -2969,7 +2969,7 @@ int32_t json_out_attstruc(string &jstring, Convert::attstruc value)
 */
 int32_t json_out_locstruc(string &jstring, Convert::locstruc value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -3012,7 +3012,7 @@ int32_t json_out_locstruc(string &jstring, Convert::locstruc value)
 */
 int32_t json_out_commandevent(string &jstring,eventstruc value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     //CT-JSON: keep as a separate object? or have it combine?
     if ((iretn=json_out_character(jstring, '{')) < 0)
@@ -3094,7 +3094,7 @@ int32_t json_out_commandevent(string &jstring,eventstruc value)
 */
 int32_t json_out_dcmatt(string &jstring, Convert::dcmatt value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -3135,7 +3135,7 @@ int32_t json_out_dcmatt(string &jstring, Convert::dcmatt value)
 */
 int32_t json_out_qatt(string &jstring, Convert::qatt value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -3183,7 +3183,7 @@ int32_t json_out_qatt(string &jstring, Convert::qatt value)
 */
 int32_t json_out_dcm(string &jstring,rmatrix value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'[')) < 0)
         return iretn;
@@ -3218,7 +3218,7 @@ int32_t json_out_dcm(string &jstring,rmatrix value)
 */
 int32_t json_out_rmatrix(string &jstring,rmatrix value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'[')) < 0)
         return iretn;
@@ -3254,7 +3254,7 @@ int32_t json_out_rmatrix(string &jstring,rmatrix value)
 */
 int32_t json_out_beatstruc(string &jstring,beatstruc value)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
@@ -3314,7 +3314,7 @@ int32_t json_out_beatstruc(string &jstring,beatstruc value)
 int32_t json_out_1d(string &jstring, const char *token, uint16_t index, cosmosstruc *cinfo)
 {
     char name[COSMOS_MAX_NAME+1];
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (strlen(token) > COSMOS_MAX_NAME+4)
         return (JSON_ERROR_NAME_LENGTH);
@@ -3340,7 +3340,7 @@ int32_t json_out_1d(string &jstring, const char *token, uint16_t index, cosmosst
 int32_t json_out_2d(string &jstring, const char *token, uint16_t row, uint16_t col, cosmosstruc *cinfo)
 {
     char name[COSMOS_MAX_NAME+1];
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (strlen(token) > COSMOS_MAX_NAME+8)
         return (JSON_ERROR_NAME_LENGTH);
@@ -3396,7 +3396,7 @@ int32_t json_out_list(string &jstring,string tokens, cosmosstruc *cinfo)
 {
     string tstring;
     const char* ptr;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     ptr = &tokens[0];
     while (ptr[0] != 0 && ptr[0] != '{')
@@ -3549,7 +3549,7 @@ int32_t json_table_of_list(vector<jsonentry*> &table, string tokens, cosmosstruc
 {
     string tstring;
     const char *ptr;
-    int32_t iretn;
+    int32_t iretn = 0;
     jsonentry* tentry;
 
     ptr = &tokens[0];
@@ -4897,7 +4897,7 @@ int32_t json_set_double_name(double value, char *token, cosmosstruc *cinfo)
 double json_equation(const char* &ptr, cosmosstruc *cinfo)
 {
     string equation;
-    int32_t iretn;
+    int32_t iretn = 0;
     jsonhandle handle;
 
     if ((iretn=json_parse_equation(ptr, equation)) < 0) {
@@ -5021,7 +5021,7 @@ string json_extract_namedmember(string json, string token)
 {
     string tstring;
     const char *ptr;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     // Look for namespace name in string
     if ((ptr=(char*)strstr(json.c_str(), token.c_str())) == nullptr)
@@ -5204,7 +5204,7 @@ int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector<jsontoken> &tok
 {
     const char *cpoint;
     size_t length;
-    int32_t iretn;
+    int32_t iretn = 0;
     jsontoken ttoken;
 
     string val = json_extract_namedmember(jstring, "node_utc");
@@ -5403,7 +5403,7 @@ int32_t json_parse(string jstring, cosmosstruc *cinfo)
 {
     const char *cpoint;
     size_t length;
-    int32_t iretn;
+    int32_t iretn = 0;
     uint32_t count = 0;
 
     length = jstring.size();
@@ -5574,7 +5574,7 @@ int32_t json_parse_namedmember(const char* &ptr, cosmosstruc *cinfo)
 */
 int32_t json_skip_character(const char* &ptr, const char character)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = json_skip_white(ptr);
     if (iretn < 0)
@@ -5723,7 +5723,7 @@ int32_t json_parse_equation(const char* &ptr, string& equation)
 int32_t json_parse_operand(const char* &ptr, jsonoperand *operand, cosmosstruc *cinfo)
 {
     string tstring;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     json_skip_white(ptr);
     switch(ptr[0])
@@ -5956,7 +5956,7 @@ int32_t json_skip_white(const char* &ptr)
 */
 int32_t json_skip_to_next_member(const char* &ptr)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (ptr[0] == 0)
     {
@@ -6932,7 +6932,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo)
 */
 int32_t json_load_node(string node, jsonnode &json)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     struct stat fstat;
     ifstream ifs;
     char *ibuf;
@@ -6999,7 +6999,7 @@ int32_t json_load_node(string node, jsonnode &json)
 
         if (!stat(fname.c_str(),&fstat) && fstat.st_size)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             Convert::cartpos eci;
             vector <Convert::tlestruc> tles;
             iretn = load_lines(fname, tles);
@@ -7733,7 +7733,7 @@ int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
 */
 int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     struct stat fstat;
     ifstream ifs;
     string fname;
@@ -8261,7 +8261,7 @@ int32_t json_mapentries(cosmosstruc *cinfo)
 // similar to cosmosstruc::add_default_names() for Namespace 2.0
 int32_t json_mapbaseentries(cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     // User structure
     iretn = json_addentry("user_node", UINT16_MAX, UINT16_MAX,offsetof(userstruc,node), (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_USER, cinfo);
@@ -8531,7 +8531,7 @@ int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo)
 // with Namespace 2.0 default names should already be added from MAX_NUMBER_OF_PIECES
 int32_t json_mappieceentry(uint16_t pidx, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = json_addentry("piece_name", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].name, (uint16_t)JSON_TYPE_STRING, cinfo);
     //    json_addentry("piece_type", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].type, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -8570,7 +8570,7 @@ int32_t json_mappieceentry(uint16_t pidx, cosmosstruc *cinfo)
  */
 int32_t json_togglepieceentry(uint16_t pidx, cosmosstruc *cinfo, bool state)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = json_toggleentry("piece_name", pidx, UINT16_MAX, cinfo, state);
     //    json_toggleentry("piece_type", pidx, UINT16_MAX, cinfo, state);
@@ -8604,7 +8604,7 @@ int32_t json_togglepieceentry(uint16_t pidx, cosmosstruc *cinfo, bool state)
 // with Namespace 2.0 default names should already be added from MAX_NUMBER_OF_DEVICES
 int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = json_addentry("device_all_type",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]->type, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_all_model",cidx, UINT16_MAX, (uint8_t *)&cinfo->device[cidx]->model, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -8642,7 +8642,7 @@ int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo)
  */
 int32_t json_togglecompentry(uint16_t cidx, cosmosstruc *cinfo, bool state)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = json_toggleentry("device_all_type",cidx, UINT16_MAX, cinfo, state);
     json_toggleentry("device_all_model",cidx, UINT16_MAX, cinfo, state);
@@ -9720,7 +9720,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
  */
 uint16_t json_mapportentry(uint16_t portidx, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     json_addentry("port_name", portidx, UINT16_MAX, (ptrdiff_t)offsetof(portstruc,name)+portidx*sizeof(portstruc), (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_PORT, cinfo);
     iretn = json_addentry("port_type", portidx, UINT16_MAX, (ptrdiff_t)offsetof(portstruc,type)+portidx*sizeof(portstruc), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_PORT, cinfo);
@@ -9741,7 +9741,7 @@ uint16_t json_mapportentry(uint16_t portidx, cosmosstruc *cinfo)
  */
 int32_t json_toggleportentry(uint16_t portidx, cosmosstruc *cinfo, bool state)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     json_toggleentry("port_name", portidx, UINT16_MAX, cinfo, state);
     iretn = json_toggleentry("port_type", portidx, UINT16_MAX, cinfo,state);
@@ -9760,7 +9760,7 @@ int32_t json_toggleportentry(uint16_t portidx, cosmosstruc *cinfo, bool state)
 */
 const char *json_of_wildcard(string &jstring, string wildcard, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     jstring.clear();
     iretn = json_out_wildcard(jstring, wildcard, cinfo);
@@ -9782,7 +9782,7 @@ const char *json_of_wildcard(string &jstring, string wildcard, cosmosstruc *cinf
 */
 const char *json_of_list(string &jstring, string list, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     jstring.clear();
     iretn = json_out_list(jstring, list, cinfo);
     if (iretn < 0 && iretn != JSON_ERROR_EOS)
@@ -9823,7 +9823,7 @@ const char *json_of_table(string &jstring, vector<jsonentry*> table, cosmosstruc
 */
 const char *json_of_target(string &jstring, cosmosstruc *cinfo, uint16_t num)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     jstring.clear();
     iretn = json_out_1d(jstring, "target_utc",num, cinfo);
@@ -9894,7 +9894,7 @@ const char *json_of_target(string &jstring, cosmosstruc *cinfo, uint16_t num)
 */
 const char *json_of_node(string &jstring, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     jstring.clear();
     iretn = json_out(jstring, "node_met", cinfo);
@@ -9996,7 +9996,7 @@ const char *json_of_node(string &jstring, cosmosstruc *cinfo)
 */
 const char *json_of_agent(string &jstring, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     jstring.clear();
     iretn = json_out(jstring, "agent_utc", cinfo);
@@ -10090,7 +10090,7 @@ const char *json_of_agent(string &jstring, cosmosstruc *cinfo)
 */
 const char *json_of_time(string &jstring, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     jstring.clear();
     iretn = json_out(jstring, "node_met", cinfo);
@@ -10122,7 +10122,7 @@ const char *json_of_time(string &jstring, cosmosstruc *cinfo)
 */
 const char *json_of_beat(string &jstring, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     jstring.clear();
     iretn = json_out(jstring, "beat", cinfo);
@@ -10142,7 +10142,7 @@ const char *json_of_beat(string &jstring, cosmosstruc *cinfo)
 */
 const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
 {
-    //    int32_t iretn;
+    //    int32_t iretn = 0;
     //    iretn = json_out(jstring, "node_name", cinfo);
     //    if (iretn < 0)
     //    {
@@ -10237,7 +10237,7 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
 */
 const char *json_of_imu(string &jstring, uint16_t num, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     jstring.clear();
     iretn = json_out_1d(jstring, "device_imu_att",num, cinfo);
@@ -10951,7 +10951,7 @@ string json_list_of_fullsoh(cosmosstruc *cinfo)
 
 const char *json_of_soh(string &jstring, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     jstring.clear();
     // Time
@@ -11752,7 +11752,7 @@ int32_t json_equation_map(string equation, cosmosstruc *cinfo, jsonhandle *handl
     const char *pointer;
     jsonequation tequation;
     char ops[] = "+-*/%&|><=!~^@#";
-    int32_t iretn;
+    int32_t iretn = 0;
     //    size_t textlen;
 
     if (!cinfo->jmapped)
@@ -11939,7 +11939,7 @@ int32_t json_shrink(cosmosstruc *cinfo)
 
 //int32_t json_clone(cosmosstruc *cinfo1, cosmosstruc *cinfo2)
 //{
-//    //    int32_t iretn;
+//    //    int32_t iretn = 0;
 //    *cinfo2 = *cinfo1;
 //    //    iretn = json_repoint(cinfo2);
 //    for (uint16_t i=0; i<cinfo2->node.device_cnt; ++i)
@@ -12073,7 +12073,7 @@ uint32_t json_get_name_list_count(cosmosstruc *cinfo)
 */
 int32_t node_init(string node, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (cinfo == nullptr)
         return (JSON_ERROR_NOJMAP);
@@ -12254,7 +12254,7 @@ void create_databases(cosmosstruc *cinfo)
     devicestruc* cs;
     imustruc ims;
     sttstruc sts;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     /*
  *	op = fopen("target.txt","w");
@@ -12561,7 +12561,7 @@ size_t load_dictionary(vector<eventstruc> &dict, cosmosstruc *cinfo, const char 
     char inb[JSON_MAX_DATA];
     eventstruc event;
     jsonhandle handle;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     string fname = (get_nodedir(cinfo->node.name) + "/") + file;
     if ((op=fopen(fname.c_str(),"r")) != nullptr)

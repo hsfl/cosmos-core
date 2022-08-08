@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 	uint32_t i, j, tlen;
 
     // Variables: Scratchpad
-    int32_t iretn; // Scratch Return value
+    int32_t iretn = 0; // Scratch Return value
 
     // **** Initialize Variables
 

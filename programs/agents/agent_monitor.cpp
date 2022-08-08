@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
     double nextmjd;
 
     cout<<"Starting the monitor agent->..";
-    int32_t iretn;
+    int32_t iretn = 0;
 
     // Set node name to first argument
     nodename = "null";
@@ -529,7 +529,7 @@ int32_t request_set_logstride_soh(string &request, string &response, Agent *agen
 
 void collect_data_loop()
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     while (agent->running())
     {
         // Collect new data

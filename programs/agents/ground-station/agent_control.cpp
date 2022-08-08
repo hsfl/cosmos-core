@@ -205,7 +205,7 @@ string opmode2string(uint8_t opmode);
 
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     switch (argc)
     {

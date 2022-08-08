@@ -42,10 +42,8 @@ namespace Cosmos {
                 None = 0,
                 DataBeacon = 10,
                 DataPong = 41,
-                DataEPSSingleResponse = 42,
-                DataEPSMultiResponse = 43,
-                DataADCSSingleResponse = 44,
-                DataADCSMultiResponse = 45,
+                DataEPSResponse = 43,
+                DataADCSResponse = 45,
                 DataResponse = 61,
                 DataIP = 62,
                 DataTest = 63,
@@ -77,7 +75,7 @@ namespace Cosmos {
                 CommandGetTimeHuman = 143,
                 CommandGetTimeBinary = 144,
                 CommandAdcsCommunicate = 150,
-                CommandAdcsCommission = 151,
+                CommandAdcsState = 151,
                 CommandAdcsSetRunMode = 152,
                 CommandEpsCommunicate = 160,
                 CommandEpsSwitchName = 161,
@@ -93,10 +91,10 @@ namespace Cosmos {
             map<TypeId, string> TypeString = {
                 {TypeId::DataBeacon, "Beacon"},
                 {TypeId::DataPong, "Pong"},
-                {TypeId::DataEPSSingleResponse, "EPSSingleResponse"},
-                {TypeId::DataEPSMultiResponse, "EPSMultiResponse"},
-                {TypeId::DataADCSSingleResponse, "ADCSSingleResponse"},
-                {TypeId::DataADCSMultiResponse, "ADCSMultiResponse"},
+                {TypeId::DataEPSResponse, "EPSResponse"},
+//                {TypeId::DataEPSResponse, "EPSResponse"},
+                {TypeId::DataADCSResponse, "ADCSResponse"},
+//                {TypeId::DataADCSResponse, "ADCSResponse"},
                 {TypeId::DataResponse, "Response"},
                 {TypeId::DataIP, "IP"},
                 {TypeId::DataTest, "Test"},
@@ -128,7 +126,7 @@ namespace Cosmos {
                 {TypeId::CommandGetTimeHuman, "GetTimeHuman"},
                 {TypeId::CommandGetTimeBinary, "GetTimeBinary"},
                 {TypeId::CommandAdcsCommunicate, "AdcsCommunicate"},
-                {TypeId::CommandAdcsCommission, "AdcsCommission"},
+                {TypeId::CommandAdcsState, "AdcsCommission"},
                 {TypeId::CommandAdcsSetRunMode, "AdcsSetRunMode"},
                 {TypeId::CommandEpsCommunicate, "EpsCommunicate"},
                 {TypeId::CommandEpsSwitchName, "EpsSwitchName"},
@@ -144,10 +142,10 @@ namespace Cosmos {
             map<string, TypeId> StringType = {
                 {"Beacon", TypeId::DataBeacon},
                 {"Pong", TypeId::DataPong},
-                {"EPSSingleResponse", TypeId::DataEPSSingleResponse},
-                {"EPSMultiResponse", TypeId::DataEPSMultiResponse},
-                {"ADCSSingleResponse", TypeId::DataADCSSingleResponse},
-                {"ADCSMultiResponse", TypeId::DataADCSMultiResponse},
+                {"EPSResponse", TypeId::DataEPSResponse},
+//                {"EPSResponse", TypeId::DataEPSResponse},
+                {"ADCSResponse", TypeId::DataADCSResponse},
+//                {"ADCSResponse", TypeId::DataADCSResponse},
                 {"Response", TypeId::DataResponse},
                 {"IP", TypeId::DataIP},
                 {"Test", TypeId::DataTest},
@@ -188,7 +186,7 @@ namespace Cosmos {
                 {"EpsWatchdog", TypeId::CommandEpsWatchdog},
                 {"EpsSetTime", TypeId::CommandEpsSetTime},
                 {"AdcsCommunicate", TypeId::CommandAdcsCommunicate},
-                {"AdcsCommission", TypeId::CommandAdcsCommission},
+                {"AdcsCommission", TypeId::CommandAdcsState},
                 {"AdcsSetRunMode", TypeId::CommandAdcsSetRunMode},
                 {"ExecLoadCommand", TypeId::CommandExecLoadCommand},
                 {"ExecAddCommand", TypeId::CommandExecAddCommand},
@@ -197,10 +195,27 @@ namespace Cosmos {
 
             struct __attribute__ ((packed))  ResponseHeader
             {
+                uint32_t met;
                 uint8_t chunks;
                 uint8_t chunk_id;
                 uint32_t response_id;
+            };
+
+            struct __attribute__ ((packed))  AdcsResponseHeader
+            {
                 uint32_t met;
+                uint8_t chunks;
+                uint8_t chunk_id;
+                uint8_t command;
+            };
+
+            struct __attribute__ ((packed))  EpsResponseHeader
+            {
+                uint32_t met;
+                uint8_t chunks;
+                uint8_t chunk_id;
+                uint32_t sbid;
+                uint8_t command;
             };
 
             struct __attribute__ ((packed))  TestHeader

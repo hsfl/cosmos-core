@@ -135,7 +135,7 @@ int32_t request_set_enabled(string &request, string &response, Agent *agent);
 // main loop
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     thread recv_loop_thread;
     thread send_loop_thread;
 
@@ -351,7 +351,7 @@ void recv_loop() noexcept
     PacketComm p;
     int32_t nbytes = 0;
     socket_channel rchannel;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     while (agent->running())
     {
@@ -468,7 +468,7 @@ void send_loop() noexcept
 //! \return Non-negative on success
 int32_t mysendto(int32_t use_channel, PacketComm& packet)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     double cmjd;
 
     if ((cmjd = currentmjd(0.)) < out_comm_channel[use_channel].nmjd)
@@ -507,7 +507,7 @@ int32_t mysendto(int32_t use_channel, PacketComm& packet)
 int32_t myrecvfrom(string type, socket_channel &channel, PacketComm& packet, uint32_t length, double dtimeout)
 {
     int32_t nbytes = 0;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     for (uint16_t i=0; i<out_comm_channel.size(); ++i)
     {

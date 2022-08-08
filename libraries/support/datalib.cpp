@@ -35,7 +35,6 @@
 //#include "support/jsonlib.h"
 //#include "support/jsondef.h"
 #include "support/stringlib.h"
-#include "support/timelib.h"
 #include <algorithm>
 
 //! \ingroup datalib
@@ -64,6 +63,125 @@ static string nodedir;
 //! \defgroup datalib_functions Data Management function declarations
 //! @{
 
+//! Construct DataLog
+//! Class for logging regular entries
+DataLog::DataLog(double stride, bool fastmode)
+{
+    this->fastmode = fastmode;
+    if (stride < 0.)
+    {
+        stride = 0.;
+    }
+    this->stride = stride;
+    fout = nullptr;
+}
+
+//! Change DataLog stride
+//! Change how many seconds between moving from temp to outgoing and compressing
+//! \param seconds Number of seconds in stride.
+int32_t DataLog::SetStride(double seconds)
+{
+    if (seconds < 0.)
+    {
+        seconds = 0.;
+    }
+    stride = seconds;
+    startdate = currentmjd();
+    enddate = startdate + stride / 86400.;
+    return seconds;
+}
+
+//! Change DataLog fastmode
+//! Change whether file is kept open (fast), or closed each time
+//! \param state fastmode true or false.
+int32_t DataLog::SetFastmode(bool state)
+{
+    fastmode = state;
+    if (!fastmode)
+    {
+        if (fout != nullptr)
+        {
+            fclose(fout);
+            fout = nullptr;
+        }
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
+//! Change Starting Date
+//! Resets internal paramaters to start logging from new starting date.
+//! \param mjd UTC in Modified Julian Day
+int32_t DataLog::SetStartdate(double mjd)
+{
+    if (mjd < 0.)
+    {
+        mjd = 0.;
+    }
+    startdate = mjd;
+    enddate = mjd - 1.;
+    return startdate;
+}
+
+//! Write log entry - full
+//! Append the provided string to a file in the {node}/{location}/{agent} directory. The file name
+//! is created as {node}_yyyyjjjsssss_{extra}.{type}
+//! \param data Data to be written.
+//! \param node Node name.
+//! \param agent Agent name.
+//! \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
+//! \param extra Extra part  of name.
+//! \param type Type part of name.
+//! \param record String to be appended to file.
+//! \param location Location name.
+
+int32_t DataLog::Write(vector<uint8_t> data, string node, string agent, string type, string extra)
+{
+    int32_t iretn = 0;
+    if (currentmjd() >= enddate)
+    {
+        startdate = enddate;
+        enddate += stride / 86400.;
+        if (fout != nullptr)
+        {
+            fclose(fout);
+            fout = nullptr;
+        }
+        if (!path.empty() && path.find("/temp/") != string::npos)
+        {
+            string movepath = path;
+            movepath.replace(movepath.find("/temp/"), 10, "/outgoing/");
+            iretn = log_move(path, movepath, true);
+        }
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+    if (fout == nullptr)
+    {
+        path = data_type_path(node, "temp", agent, startdate, type, extra);
+        if (path.empty())
+        {
+            return GENERAL_ERROR_EMPTY;
+        }
+        fout = data_open(path, const_cast<char *>("a+"));
+        if (fout == nullptr)
+        {
+            return GENERAL_ERROR_BAD_FD;
+        }
+    }
+    iretn = fwrite(data.data(), data.size(), 1, fout);
+    if (!fastmode)
+    {
+        fclose(fout);
+        fout = nullptr;
+    }
+    return iretn;
+}
 
 //! Write log entry - full
 /*! Append the provided string to a file in the {node}/{location}/{agent} directory. The file name
@@ -159,7 +277,7 @@ string log_write(string node, int type, double utc, const char *record, string d
  */
 int32_t log_move(string oldpath, string newpath, bool compress)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     if (compress)
     {
         char buffer[8192];
@@ -189,11 +307,10 @@ int32_t log_move(string oldpath, string newpath, bool compress)
             return iretn;
         }
         iretn = remove(temppath.c_str());
-//        if (iretn < 0)
-//        {
-//            iretn = -errno;
-//            return iretn;
-//        }
+        if (iretn < 0)
+        {
+            iretn = -errno;
+        }
     }
     else
     {
@@ -201,10 +318,8 @@ int32_t log_move(string oldpath, string newpath, bool compress)
         if (iretn < 0)
         {
             iretn = -errno;
-            return iretn;
         }
     }
-    iretn = remove(oldpath.c_str());
     return iretn;
 }
 
@@ -846,16 +961,9 @@ string data_archive_path(string node, string agent, double mjd)
 */
 string data_type_path(string node, string location, string agent, double mjd, string type, string extra)
 {
-    string path;
-    string tpath;
+    string tpath = data_name_path(node, location, agent, mjd, data_name(node, mjd, type, extra));
 
-    tpath = data_name_path(node, location, agent, mjd, data_name(node, mjd, type, extra));
-
-    if (!tpath.empty())
-    {
-        path = tpath;
-    }
-    return path;
+    return tpath;
 }
 
 //! Create data file path
@@ -1038,7 +1146,7 @@ int32_t set_cosmosroot(bool create_flag)
 {
     string croot;
     char *troot;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (cosmosroot.empty())
     {
@@ -1150,7 +1258,7 @@ string get_cosmosroot(bool create_flag)
             */
 int32_t get_cosmosroot(string &result, bool create_flag)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     result.clear();
     if (cosmosroot.empty())
@@ -1222,7 +1330,7 @@ int32_t set_cosmosresources(bool create_flag)
 {
     string croot;
     char *troot;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (cosmosresources.empty())
     {
@@ -1278,7 +1386,7 @@ string get_cosmosresources(bool create_flag)
             */
 int32_t get_cosmosresources(string &result, bool create_flag)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     result.clear();
     if (cosmosresources.empty())
@@ -1320,7 +1428,7 @@ int32_t setEnvCosmosNodes(string path){
             */
 int32_t setEnv(string var, string path){
 
-    uint32_t iretn;
+    uint32_t iretn = 0;
 
 #ifdef COSMOS_WIN_OS
     // windows
@@ -1354,7 +1462,7 @@ int32_t setEnv(string var, string path){
             */
 int32_t setEnvCosmos(string path){
 
-    uint32_t iretn;
+    uint32_t iretn = 0;
 
     iretn = setEnv("COSMOSRESOURCES", path + "resources");
     iretn = setEnv("COSMOSNODES", path + "nodes");
@@ -1416,7 +1524,7 @@ int32_t set_cosmosnodes(bool create_flag)
 {
     string croot;
     char *troot;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (cosmosnodes.empty())
     {
@@ -1473,7 +1581,7 @@ string get_cosmosnodes(bool create_flag)
             */
 int32_t get_cosmosnodes(string &result, bool create_flag)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     result.clear();
     if (cosmosnodes.empty())
@@ -1593,14 +1701,14 @@ int32_t data_load_archive(string node, string agent, double utcbegin, double utc
 
 int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     iretn = data_load_archive(node, agent, floor(mjd), floor(mjd)+.999999, type, result);
     return iretn;
 }
 
 //int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc *cinfo)
 //{
-//    int32_t iretn;
+//    int32_t iretn = 0;
 
 //    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "telemetry", telem);
 //    if (iretn < 0)
@@ -2033,7 +2141,7 @@ int32_t data_execute(string cmd, string& result, string shell)
 
 #else
     FILE * stream;
-    char *buffer = new char[198];
+    char buffer[198];
     result.clear();
 
     vector<string> cmds = string_split(cmd, " ");
@@ -2109,8 +2217,8 @@ int32_t data_execute(string cmd, string& result, string shell)
 
 }
 
-// Define the static member variable here
-vector<string> NodeData::node_ids;
+// Define the static member variables here
+map<string, uint8_t> NodeData::node_ids;
 
 //! Loads node table from nodeids.ini configuration file
 //! nodeids is a vector of node name strings indexed by a node_id
@@ -2122,13 +2230,12 @@ int32_t NodeData::load_node_ids()
         FILE *fp = data_open(get_cosmosnodes()+"/nodeids.ini", "rb");
         if (fp)
         {
-            uint16_t max_index = 0;
-            vector<uint16_t> tindex;
-            vector<string> tnodeid;
+            // Loop until eof
             while (fgets(buf, 102, fp) != nullptr)
             {
-                uint16_t index = 0;
-                string nodeid;
+                uint16_t nodeid = 0;
+                string node_name;
+                // Turn whitespace into null terminators, then grab node names and idxs
                 if (buf[strlen(buf)-1] == '\n')
                 {
                     buf[strlen(buf)-1] = 0;
@@ -2136,41 +2243,28 @@ int32_t NodeData::load_node_ids()
                 if (buf[1] == ' ')
                 {
                     buf[1] = 0;
-                    index = atoi(buf);
-                    nodeid = &buf[2];
+                    nodeid = atoi(buf);
+                    node_name = &buf[2];
                 }
                 else if (buf[2] == ' ')
                 {
                     buf[2] = 0;
-                    index = atoi(buf);
-                    nodeid = &buf[3];
+                    nodeid = atoi(buf);
+                    node_name = &buf[3];
                 }
                 else if (buf[3] == ' ')
                 {
                     buf[3] = 0;
-                    index = atoi(buf);
-                    nodeid = &buf[4];
+                    nodeid = atoi(buf);
+                    node_name = &buf[4];
                 }
                 else
                 {
-                    index = 0;
+                    continue;
                 }
-                if (index)
-                {
-                    if (index > max_index)
-                    {
-                        max_index = index;
-                    }
-                    tindex.push_back(index);
-                    tnodeid.push_back(nodeid);
-                }
+                node_ids[node_name] = nodeid;
             }
             fclose(fp);
-            NodeData::node_ids.resize(max_index+1);
-            for (uint16_t i=0; i<tindex.size(); ++i)
-            {
-                NodeData::node_ids[tindex[i]] = tnodeid[i];
-            }
         }
         else
         {
@@ -2183,54 +2277,42 @@ int32_t NodeData::load_node_ids()
 
 //! Check if a node_id is in the node table
 //! \param node_id
-//! \return node_id on success, non-positive on error
+//! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
 int32_t NodeData::check_node_id(NODE_ID_TYPE node_id)
 {
-    int32_t iretn;
 
-    if ((iretn=NodeData::load_node_ids()) <= 0)
+    if (NodeData::load_node_ids() <= 0)
     {
         return NODEIDUNKNOWN;
     }
 
-
-    if (node_id > 0 && NodeData::node_ids[node_id].size())
+    for (auto it = node_ids.begin(); it != node_ids.end(); ++it)
     {
-        return node_id;
+        if (it->second == node_id)
+        {
+            return node_id;
+        }
     }
-    else
-    {
-        return NODEIDUNKNOWN;
-    }
+    return NODEIDUNKNOWN;
 }
 
 //! Gets the node_id associated with a node name
-//! \return node_id on success, negative on error
+//! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
 int32_t NodeData::lookup_node_id(string node_name)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=NodeData::load_node_ids()) <= 0)
     {
         return NODEIDUNKNOWN;
     }
 
-    uint8_t node_id = NODEIDUNKNOWN;
-    for (uint8_t i=1; i<NodeData::node_ids.size(); ++i)
+    auto it = node_ids.find(node_name);
+    if (it == node_ids.end())
     {
-        if (NodeData::node_ids[i] == node_name)
-        {
-            node_id = i;
-            break;
-        }
+        return NODEIDUNKNOWN;
     }
-
-//    if (node_id == NODEIDUNKNOWN)
-//    {
-//        return TRANSFER_ERROR_NODE;
-//    }
-
-    return node_id;
+    return it->second;
 }
 
 //! Find the node name associated with the given node id in the node table.
@@ -2238,27 +2320,28 @@ int32_t NodeData::lookup_node_id(string node_name)
 //! \return Node name on success, or empty string on failure
 string NodeData::lookup_node_id_name(NODE_ID_TYPE node_id)
 {
-//    string name;
     if (node_id == NodeData::NODEIDORIG)
     {
         return "Origin";
-    }
-    else if (node_id == NodeData::NODEIDUNKNOWN)
-    {
-        return "";
     }
     else if (node_id == NodeData::NODEIDDEST)
     {
         return "Destination";
     }
-    else if (NodeData::load_node_ids() > 0 && node_id > 0 && node_id < NodeData::node_ids.size() && NodeData::node_ids[node_id].size())
-    {
-        return NodeData::node_ids[node_id];
-    }
-    else
+    else if (node_id == NodeData::NODEIDUNKNOWN || NodeData::load_node_ids() <= 0)
     {
         return "";
     }
+
+    for (auto it = node_ids.begin(); it != node_ids.end(); ++it)
+    {
+        if (it->second == node_id)
+        {
+            return it->first;
+        }
+    }
+
+    return "";
 }
 
 void GITTEST::f()	{

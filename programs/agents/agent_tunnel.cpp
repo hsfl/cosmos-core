@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 {
 #if defined(COSMOS_LINUX_OS)
 
-    int32_t iretn;
+    int32_t iretn = 0;
 	char tunnel_ip[20];
 	vector<uint8_t> buffer;
 
@@ -313,7 +313,7 @@ void tcv_write_loop()
 	std::mutex tcv_fifo_lock;
 	std::unique_lock<std::mutex> locker(tcv_fifo_lock);
 	vector<uint8_t> buffer;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     while (agent->running())
 	{

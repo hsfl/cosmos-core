@@ -25,7 +25,7 @@ namespace Cosmos {
         */
         int32_t Prkx2su::connect()
         {
-                int32_t iretn;
+                int32_t iretn = 0;
 
             if (serial[PRKX2SU_AXIS_AZ]->get_open())
                 {
@@ -143,7 +143,7 @@ namespace Cosmos {
         */
         int32_t Prkx2su::get_status(uint8_t axis)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             iretn = Prkx2su::send(axis, "BIn;", true);
             if (iretn < 0)
             {
@@ -172,7 +172,7 @@ namespace Cosmos {
         int32_t Prkx2su::get_limits(uint8_t axis)
         {
             string buf;
-            int32_t iretn;
+            int32_t iretn = 0;
             iretn = Prkx2su::send(axis, "RH0;", true);
             if (iretn < 0)
             {
@@ -233,14 +233,14 @@ namespace Cosmos {
         */
         int32_t Prkx2su::stop(uint8_t axis)
         {
-                int32_t iretn;
+                int32_t iretn = 0;
             iretn = Prkx2su::send(axis, ";", true);
                 return iretn;
         }
 
         int32_t Prkx2su::ramp(uint8_t axis, uint8_t speed)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             char out[50];
 
             if (speed < 1 || speed > 10)
@@ -259,7 +259,7 @@ namespace Cosmos {
 
         int32_t Prkx2su::minimum_speed(uint8_t axis, uint8_t speed)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             char out[50];
 
             if (speed < 1 || speed > 10)
@@ -278,7 +278,7 @@ namespace Cosmos {
 
         int32_t Prkx2su::maximum_speed(uint8_t axis, uint8_t speed)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             char out[50];
 
             if (speed < 1 || speed > 10)
@@ -297,7 +297,7 @@ namespace Cosmos {
 
         int32_t Prkx2su::gotoazel(float az, float el)
         {
-                int32_t iretn;
+                int32_t iretn = 0;
                 char out[50];
 
                 az = fmodf(az, D2PI);
@@ -379,7 +379,7 @@ namespace Cosmos {
 
         int32_t Prkx2su::write_calibration(uint8_t axis, float value)
         {
-                int32_t iretn;
+                int32_t iretn = 0;
                 char out[50];
 
                 if (value < 0.)
@@ -419,7 +419,7 @@ namespace Cosmos {
 
         int32_t Prkx2su::test(uint8_t axis)
         {
-                int32_t iretn;
+                int32_t iretn = 0;
 
             iretn = serial[axis]->put_string("R10;");
                 if (iretn < 0)

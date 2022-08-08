@@ -34,6 +34,7 @@
 #include "support/configCosmos.h"
 #include "support/cosmos-errno.h"
 #include "thirdparty/zlib/zlib.h"
+#include "support/timelib.h"
 //#include "support/jsondef.h"
 
 // C libs
@@ -191,11 +192,34 @@ int32_t data_move(filestruc file, string location, bool compress=true);
 double findlastday(string node);
 double findfirstday(string node);
 
+class DataLog
+{
+public:
+    DataLog(double stride=0., bool fastmode=false);
+    int32_t Write(vector<uint8_t> data, string node, string agent="generic", string type="log", string extra="");
+    int32_t Write(double utc, vector<uint8_t> data, string node, string agent="generic", string type="log", string extra="");
+    int32_t Write(string data, string node, string agent="generic", string type="log", string extra="");
+    int32_t Write(double utc, string data, string node, string agent="generic", string type="log", string extra="");
+    int32_t SetStride(double seconds=0.);
+    int32_t SetFastmode(bool state=false);
+    int32_t SetStartdate(double mjd=0.);
+
+    bool fastmode;
+    double stride;
+    double enddate = 0.;
+    double startdate = 0.;
+    string path;
+    string node;
+private:
+
+    FILE* fout;
+};
+
 class NodeData
 {
 public:
     //! A table of node_id:node_names, used in node-to-node communications
-    static vector<string> node_ids;
+    static map<string, uint8_t> node_ids;
     typedef uint8_t NODE_ID_TYPE;
     static int32_t load_node_ids();
     static int32_t check_node_id(NODE_ID_TYPE node_id);

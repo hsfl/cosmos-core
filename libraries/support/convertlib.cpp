@@ -69,7 +69,7 @@ namespace Cosmos {
 */
         int32_t loc_clear(locstruc *loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             iretn = loc_clear(*loc);
             return iretn;
         }
@@ -88,7 +88,7 @@ namespace Cosmos {
 */
         int32_t pos_clear(locstruc *loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             iretn = pos_clear(*loc);
             return iretn;
         }
@@ -190,7 +190,7 @@ namespace Cosmos {
 
         int32_t pos_icrf(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             double distance, theta;
             rvector sat2body;
 
@@ -275,7 +275,7 @@ namespace Cosmos {
 
         int32_t pos_eci(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (0. == loc.pos.eci.utc || !isfinite(loc.pos.eci.utc))
             {
@@ -318,7 +318,7 @@ namespace Cosmos {
 
         int32_t pos_sci(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (0. == loc.pos.sci.utc || !isfinite(loc.pos.sci.utc))
             {
@@ -361,7 +361,7 @@ namespace Cosmos {
 
         int32_t pos_geoc(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (0. == loc.pos.geoc.utc || !isfinite(loc.pos.geoc.utc))
             {
@@ -412,7 +412,7 @@ namespace Cosmos {
 
         int32_t pos_selc(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (0. == loc.pos.selc.utc || !isfinite(loc.pos.selc.utc))
             {
@@ -457,7 +457,7 @@ namespace Cosmos {
 
         int32_t pos_selg(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchroniz time
             if (0. == loc.pos.selg.utc || !isfinite(loc.pos.selg.utc))
             {
@@ -492,7 +492,7 @@ namespace Cosmos {
 
         int32_t pos_geos(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (0. == loc.pos.geos.utc || !isfinite(loc.pos.geos.utc))
             {
@@ -527,7 +527,7 @@ namespace Cosmos {
 
         int32_t pos_geod(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (0. == loc.pos.geod.utc || !isfinite(loc.pos.geod.utc))
             {
@@ -566,7 +566,7 @@ namespace Cosmos {
 
         int32_t pos_icrf2eci(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (loc.pos.icrf.utc == 0. || !isfinite(loc.pos.icrf.utc))
             {
@@ -607,7 +607,7 @@ namespace Cosmos {
 
         int32_t pos_eci2icrf(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (0. == loc.pos.eci.utc || !isfinite(loc.pos.eci.utc))
             {
@@ -646,7 +646,7 @@ namespace Cosmos {
 
         int32_t pos_icrf2sci(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (loc.pos.icrf.utc == 0. || !isfinite(loc.pos.icrf.utc))
             {
@@ -688,7 +688,7 @@ namespace Cosmos {
 
         int32_t pos_sci2icrf(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (0. == loc.pos.sci.utc || !isfinite(loc.pos.sci.utc))
             {
@@ -728,7 +728,7 @@ namespace Cosmos {
 
         int32_t pos_eci2geoc(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             rvector v2;
 
             // Synchronize time
@@ -808,7 +808,7 @@ namespace Cosmos {
 
         int32_t pos_geoc2eci(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             rvector ds;
 
             // Synchronize time
@@ -883,7 +883,7 @@ namespace Cosmos {
         {
             double xvx, yvy, r2, r, minir, minir2;
             double cp, cl, sl, sp;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             // Synchronize time
             if (0. == loc.pos.geoc.utc || !isfinite(loc.pos.geoc.utc))
@@ -942,7 +942,7 @@ namespace Cosmos {
         int32_t pos_geos2geoc(locstruc &loc)
         {
             double sp, cp, sl, cl, cpr;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             // Synchronize time
             if (0. == loc.pos.geos.utc || !isfinite(loc.pos.geos.utc))
@@ -1056,7 +1056,7 @@ namespace Cosmos {
 
         int32_t pos_geoc2geod(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (0. == loc.pos.geoc.utc || !isfinite(loc.pos.geoc.utc))
             {
@@ -1134,7 +1134,7 @@ namespace Cosmos {
 
         int32_t pos_geod2geoc(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (0. == loc.pos.geod.utc || !isfinite(loc.pos.geod.utc))
             {
@@ -1171,7 +1171,7 @@ namespace Cosmos {
 
         int32_t pos_sci2selc(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             rvector v2;
             rmatrix m1;
 
@@ -1249,7 +1249,7 @@ namespace Cosmos {
 
         int32_t pos_selc2sci(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             rvector v2;
             rmatrix m1;
 
@@ -1308,7 +1308,7 @@ namespace Cosmos {
 
         int32_t pos_selc2selg(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             double xvx, yvy, r2, r, minir, minir2;
 
             // Synchroniz time
@@ -1358,7 +1358,7 @@ namespace Cosmos {
 
         int32_t pos_selg2selc(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             double sp, cp, sl, cl, cpr, r;
 
             // Synchroniz time
@@ -1438,7 +1438,7 @@ namespace Cosmos {
 
         int32_t att_icrf2geoc(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             rvector alpha;
             double radius;
 
@@ -1506,7 +1506,7 @@ namespace Cosmos {
             //	rmatrix fpm = {{{{0.}}}}, dpm = {{{{0.}}}};
             rvector alpha;
             double radius;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             // Check time
             if (!isfinite(loc.att.geoc.utc) || loc.att.geoc.utc == 0.)
@@ -1555,7 +1555,7 @@ namespace Cosmos {
 
         int32_t att_geoc(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Synchronize time
             if (0. == loc.att.geoc.utc || !isfinite(loc.att.geoc.utc))
             {
@@ -1613,7 +1613,7 @@ namespace Cosmos {
 
         int32_t att_icrf2selc(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             rmatrix dpm;
             rvector alpha;
             double radius;
@@ -1680,7 +1680,7 @@ namespace Cosmos {
 
         int32_t att_selc2icrf(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             //	rmatrix fpm = {{{{0.}}}};
             // Check time
             if (!isfinite(loc.att.selc.utc) || loc.att.selc.utc == 0.)
@@ -1726,7 +1726,7 @@ namespace Cosmos {
 
         int32_t att_selc(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Check time
             if (!isfinite(loc.att.selc.utc) || loc.att.selc.utc == 0.)
             {
@@ -1786,7 +1786,7 @@ namespace Cosmos {
 
         int32_t att_icrf2lvlh(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Check time
             if (!isfinite(loc.att.icrf.utc) || loc.att.icrf.utc == 0.)
             {
@@ -1820,7 +1820,7 @@ namespace Cosmos {
 
         int32_t att_icrf(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             // Check time
             if (!isfinite(loc.att.icrf.utc) || loc.att.icrf.utc == 0.)
             {
@@ -1969,7 +1969,7 @@ namespace Cosmos {
             qatt *patt;
             cartpos *ppos;
             double radius;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             // Check time
             if (!isfinite(loc.att.lvlh.utc) || loc.att.lvlh.utc == 0.)
@@ -2065,7 +2065,7 @@ namespace Cosmos {
 
         int32_t att_lvlh2icrf(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
 
             // Check time
             if (!isfinite(loc.att.lvlh.utc) || loc.att.lvlh.utc == 0.)
@@ -2115,7 +2115,7 @@ namespace Cosmos {
 
         int32_t att_lvlh(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
 
             // Check time
             if (!isfinite(loc.att.lvlh.utc) || loc.att.lvlh.utc == 0.)
@@ -2257,7 +2257,7 @@ namespace Cosmos {
             rvector geoc_x, topo_x, alpha;
             qatt *patt;
             cartpos *ppos;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             switch (loc.pos.extra.closest)
             {
@@ -2344,7 +2344,7 @@ namespace Cosmos {
 
         int32_t att_topo(locstruc &loc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
 
             // Check time
             if (!isfinite(loc.att.topo.utc) || loc.att.topo.utc == 0.)
@@ -2405,7 +2405,7 @@ match.
         {
             uint32_t ppass=0, apass = 0;
             int32_t ptype=-1, atype = -1;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             if (loc.att.icrf.pass > apass)
             {
@@ -3296,7 +3296,7 @@ match.
         int lines2eci(double utc, vector<tlestruc>lines, cartpos &eci)
         {
             uint16_t lindex=0;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             if (utc >= lines[lindex].utc)
             {
@@ -4216,7 +4216,7 @@ match.
         {
             FILE *fdes;
             int32_t maxcount;
-            int32_t iretn;
+            int32_t iretn = 0;
             cposstruc *tpos;
             char ibuf[250];
 
@@ -4887,7 +4887,7 @@ matrix, for the provided UTC date.
         double tt2utc(double mjd)
         {
             uint32_t iersidx;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             if ((iretn=load_iers()) && iers.size() > 1)
             {
@@ -4921,7 +4921,7 @@ matrix, for the provided UTC date.
             static double lmjd=0.;
             static double ltt=0.;
             uint32_t iersidx=0;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             if (mjd != lmjd)
             {

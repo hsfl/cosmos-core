@@ -268,7 +268,7 @@ int32_t write_envi_hdr(envi_hdr &hdr)
 
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<double>> &data)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     vector<vector<vector<double>>> stack;
     stack.push_back(data);
     iretn = write_envi_data(name, interleave, stack);
@@ -278,7 +278,7 @@ int32_t write_envi_data(string name, uint8_t interleave, vector<vector<double>> 
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<double>>> &data)
     {
     envi_hdr ehdr;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     ehdr.basename = name;
     ehdr.datatype = DT_DOUBLE;
@@ -411,7 +411,7 @@ int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<do
 int32_t write_envi_data(string name, size_t columns, size_t rows, size_t planes, uint8_t datatype, uint8_t interleave, uint8_t *data)
 {
     envi_hdr ehdr;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     ehdr.basename = name;
     ehdr.columns = columns;
@@ -435,7 +435,7 @@ int32_t write_envi_data(string name, size_t columns, size_t rows, size_t planes,
 
 int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = write_envi_hdr(ehdr);
     if (iretn < 0)
