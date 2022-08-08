@@ -44,7 +44,7 @@ double cmjd, mjd;
 int main(int argc, char *argv[])
 {
 
-	int32_t iretn;
+	int32_t iretn = 0;
 	uint32_t count=0;
 	socket_channel chan;
 	char buf3[10000];

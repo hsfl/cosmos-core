@@ -140,7 +140,7 @@ int32_t DataLog::SetStartdate(double mjd)
 
 int32_t DataLog::Write(vector<uint8_t> data, string node, string agent, string type, string extra)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     if (currentmjd() >= enddate)
     {
         startdate = enddate;
@@ -277,7 +277,7 @@ string log_write(string node, int type, double utc, const char *record, string d
  */
 int32_t log_move(string oldpath, string newpath, bool compress)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     if (compress)
     {
         char buffer[8192];
@@ -1146,7 +1146,7 @@ int32_t set_cosmosroot(bool create_flag)
 {
     string croot;
     char *troot;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (cosmosroot.empty())
     {
@@ -1258,7 +1258,7 @@ string get_cosmosroot(bool create_flag)
             */
 int32_t get_cosmosroot(string &result, bool create_flag)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     result.clear();
     if (cosmosroot.empty())
@@ -1330,7 +1330,7 @@ int32_t set_cosmosresources(bool create_flag)
 {
     string croot;
     char *troot;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (cosmosresources.empty())
     {
@@ -1386,7 +1386,7 @@ string get_cosmosresources(bool create_flag)
             */
 int32_t get_cosmosresources(string &result, bool create_flag)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     result.clear();
     if (cosmosresources.empty())
@@ -1428,7 +1428,7 @@ int32_t setEnvCosmosNodes(string path){
             */
 int32_t setEnv(string var, string path){
 
-    uint32_t iretn;
+    uint32_t iretn = 0;
 
 #ifdef COSMOS_WIN_OS
     // windows
@@ -1462,7 +1462,7 @@ int32_t setEnv(string var, string path){
             */
 int32_t setEnvCosmos(string path){
 
-    uint32_t iretn;
+    uint32_t iretn = 0;
 
     iretn = setEnv("COSMOSRESOURCES", path + "resources");
     iretn = setEnv("COSMOSNODES", path + "nodes");
@@ -1524,7 +1524,7 @@ int32_t set_cosmosnodes(bool create_flag)
 {
     string croot;
     char *troot;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (cosmosnodes.empty())
     {
@@ -1581,7 +1581,7 @@ string get_cosmosnodes(bool create_flag)
             */
 int32_t get_cosmosnodes(string &result, bool create_flag)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     result.clear();
     if (cosmosnodes.empty())
@@ -1701,14 +1701,14 @@ int32_t data_load_archive(string node, string agent, double utcbegin, double utc
 
 int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     iretn = data_load_archive(node, agent, floor(mjd), floor(mjd)+.999999, type, result);
     return iretn;
 }
 
 //int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc *cinfo)
 //{
-//    int32_t iretn;
+//    int32_t iretn = 0;
 
 //    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "telemetry", telem);
 //    if (iretn < 0)
@@ -2300,7 +2300,7 @@ int32_t NodeData::check_node_id(NODE_ID_TYPE node_id)
 //! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
 int32_t NodeData::lookup_node_id(string node_name)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=NodeData::load_node_ids()) <= 0)
     {

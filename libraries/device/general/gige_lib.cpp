@@ -66,7 +66,7 @@ namespace Cosmos {
 */
         gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             int32_t nbytes;
             uint32_t myip, theirip, bcastip;
             struct sockaddr_in raddr;
@@ -463,7 +463,7 @@ the CCP register and closing all sockets.
         int a35_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t video_rate)
         {
             uint32_t maxx, maxy;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             if((iretn=gige_readreg(handle,A35_WIDTH)) < 0) return iretn;
             maxx = iretn;
@@ -562,7 +562,7 @@ the CCP register and closing all sockets.
  */
         int32_t pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin, uint32_t ybin)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
 
             if((iretn=gige_readreg(handle,PT1000::SensorWidthReg)) < 0)
             {
@@ -639,7 +639,7 @@ the CCP register and closing all sockets.
 
         int32_t pt1000_start_image(gige_handle *handle)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
 
             handle->bufferin.resize(handle->bestsize);
             handle->width = gige_readreg(handle,PT1000::WidthReg);
@@ -697,7 +697,7 @@ the CCP register and closing all sockets.
 
         int32_t pt1000_stop_image(gige_handle *handle)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
 
             iretn = gige_writereg(handle,PT1000::AcquisitionStopReg,1);
             iretn = gige_writereg(handle,GIGE_REG_SCP,0);
@@ -717,7 +717,7 @@ the CCP register and closing all sockets.
  */
         int32_t pt1000_image(gige_handle *handle, uint32_t frames, gige_data &data)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             uint32_t tbytes=0;
 
             iretn = pt1000_drain(handle, 10.);
@@ -897,7 +897,7 @@ the CCP register and closing all sockets.
 
         int32_t pt1000_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             uint32_t tbytes;
             uint32_t pbytes;
             uint8_t *bufferin;
@@ -965,7 +965,7 @@ the CCP register and closing all sockets.
         int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32_t ybin, uint32_t xsize, uint32_t ysize, uint32_t xoffset, uint32_t yoffset)
         {
             uint32_t maxx, maxy, maxbx, maxby;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             if((iretn=gige_readreg(handle,PROSILICA_SensorWidth)) < 0) return iretn;
             maxx = iretn;

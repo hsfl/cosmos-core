@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 {
 #if defined(COSMOS_LINUX_OS)
 
-    int32_t iretn;
+    int32_t iretn = 0;
 	char tunnel_ip[20];
 	vector<uint8_t> buffer;
 

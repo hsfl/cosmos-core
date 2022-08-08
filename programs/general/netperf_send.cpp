@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	bool error_injector_drop_enable = false; // Choose to enable error in data section
 	int error_injector_drop_counter = 175; // Inject error starting at packet 175
 
-	int32_t iretn;
+	int32_t iretn = 0;
 	uint16_t count=0;
 	socket_channel chan;
 	uint8_t buf1[10000];

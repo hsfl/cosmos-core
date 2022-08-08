@@ -64,7 +64,7 @@ namespace Cosmos {
          */
         int32_t Transfer::Init(const string calling_node_name, Error* debug_error)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             this->debug_error = debug_error;
 
             packet_size = 217;
@@ -317,7 +317,7 @@ namespace Cosmos {
                 return TRANSFER_ERROR_NODE;
             }
 
-            int32_t iretn;
+            int32_t iretn = 0;
             iretn = get_outgoing_lpackets(node_id, packets);
 
             return iretn;
@@ -585,7 +585,7 @@ namespace Cosmos {
                 return TRANSFER_ERROR_NODE;
             }
 
-            int32_t iretn;
+            int32_t iretn = 0;
             iretn = get_outgoing_rpackets(orig_node_id, packets);
 
             return iretn;
@@ -1341,7 +1341,7 @@ namespace Cosmos {
         //! \return 0 on success, RESPONSE_REQUIRED if get_outgoing_packets() needs to be called
         int32_t Transfer::receive_packet(const PacketComm& packet)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             const uint8_t node_id = packet.data[0];
             string node_name = NodeData::lookup_node_id_name(node_id);
             const size_t node_idx = node_id_to_txq_idx(node_id);

@@ -61,7 +61,7 @@ int32_t create_simdata(prop_unit& prop);
 
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     PacketComm packet;
     // open up a socket for getting data to/from grafana backend
     iretn = socket_open(
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 // arg is the json string arguments for the initial propagator settings
 int32_t run_propagator(string& output, string arg)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     
     // initialize simulator object
     prop_unit prop;

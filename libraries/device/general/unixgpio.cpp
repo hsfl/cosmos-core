@@ -12,7 +12,7 @@ namespace Cosmos {
             //! \param name Alternate name to use instead of gpioppp (where ppp is pin number)
             UnixGpio::UnixGpio(UnixGpio::Direction dir, string pin, string name)
             {
-                int32_t iretn;
+                int32_t iretn = 0;
                 if (name.empty())
                 {
                     name = "gpio"+pin;

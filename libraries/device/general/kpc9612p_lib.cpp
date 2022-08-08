@@ -78,7 +78,7 @@ uint16_t kpc9612p_calc_fcs(uint8_t *data, uint16_t length)
 
 int32_t kpc9612p_connect(char *dev, kpc9612p_handle *handle, uint8_t flag)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     cssl_start();
     handle->serial = cssl_open(dev,KPC9612P_BAUD, KPC9612P_BITS,KPC9612P_PARITY,KPC9612P_STOPBITS);
     if (handle->serial == NULL) return (CSSL_ERROR_OPEN);
@@ -111,7 +111,7 @@ int32_t kpc9612p_disconnect(kpc9612p_handle *handle)
 
 int32_t kpc9612p_recvframe(kpc9612p_handle *handle)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = cssl_getslip(handle->serial, handle->frame.full, KPC9612P_FULL_SIZE);
     if (iretn >= 0)
@@ -130,7 +130,7 @@ int32_t kpc9612p_recvframe(kpc9612p_handle *handle)
 
 int32_t kpc9612p_sendframe(kpc9612p_handle *handle)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     handle->frame.part.header.flag = handle->flag;
     iretn = cssl_putslip(handle->serial, handle->frame.full, handle->frame.size);
@@ -237,7 +237,7 @@ int32_t kpc9612p_enterkiss(kpc9612p_handle *handle)
 
 int32_t kpc9612p_entercmd(kpc9612p_handle *handle)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     uint8_t buffer[256];
 
     // Check if we are in COMMAND mode already

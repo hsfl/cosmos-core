@@ -59,7 +59,7 @@ uint8_t buffer[400];
 
 int main(int argc, char *argv[])
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 
     if (argc == 3)
     {

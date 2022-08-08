@@ -228,7 +228,7 @@ namespace Cosmos {
 
         int32_t PacketHandler::process(PacketComm& packet, vector<uint8_t>& response)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             response.clear();
             FuncEntry &fentry = Funcs[(uint8_t)packet.header.type];
             if (fentry.efunction != nullptr)
@@ -241,12 +241,12 @@ namespace Cosmos {
             }
             if (response.size())
             {
-//                agent->debug_error.Printf("[PacketHandler Type=%hu, Size=%u, Return=%d] %s\n", packet.header.type, packet.data.size(), iretn, string(response.begin(), response.end()).c_str());
+//                agent->debug_error.Printf("[PacketHandler Type=%hu, Size=%lu, Return=%d] %s\n", static_cast<uint8_t>(packet.header.type), packet.data.size(), iretn, string(response.begin(), response.end()).c_str());
                 agent->push_response(packet.header.radio, packet.header.orig, centisec(), string(response.begin(), response.end()));
             }
 //            else
 //            {
-//                agent->debug_error.Printf("[PacketHandler Type=%hu, Size=%u, Return=%d]\n", packet.header.type, packet.data.size(), iretn);
+//                agent->debug_error.Printf("[PacketHandler Type=%hu, Size=%lu, Return=%d]\n", static_cast<uint8_t>(packet.header.type), packet.data.size(), iretn);
 //            }
             return iretn;
         }

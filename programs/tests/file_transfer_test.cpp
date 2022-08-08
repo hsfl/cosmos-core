@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
 //! \return n/a
 void run_test(test_func test, string test_name)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     ++test_count;
     test_log.Printf("%-38s", ("Running " + test_name + "...").c_str());
     debug_log.Printf("%s\n", ("===== Running " + test_name + " =====").c_str());
@@ -279,7 +279,7 @@ void run_test(test_func test, string test_name)
 // Expect: Nothing to transfer, but zero-size files remain in outgoing (reconsider?)
 int32_t test_zero_size_files()
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     Transfer node1, node2;
     const size_t num_files = 3;
 
@@ -403,7 +403,7 @@ int32_t test_zero_size_files()
 // Expect: Stuff to transfer
 int32_t test_large_files()
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     Transfer node1, node2;
     size_t num_files = 3;
     double file_size_kib = 2.;
@@ -530,7 +530,7 @@ int32_t test_large_files()
 // Expect: File transfer picks up where it left off
 int32_t test_stop_resume()
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     // First load, then stop
     Transfer node1a, node2a;
     // Second load after stop
@@ -734,7 +734,7 @@ int32_t test_stop_resume()
 // write_meta only happens every 5 seconds so it won't work by default.
 int32_t test_stop_resume2()
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     // First load, then stop
     Transfer node1a, node2a;
     // Second load after stop
@@ -934,7 +934,7 @@ int32_t test_stop_resume2()
 // Expect: Node 2 to receive the REQCOMPLETE packet, then communicate for missing data
 int32_t test_packet_reqcomplete()
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     Transfer node1, node2;
     size_t num_files = 1;
     double waittime_sec = 1.;
@@ -1084,7 +1084,7 @@ int32_t test_packet_reqcomplete()
 //          Upon sending files completely over, spaces will open up for more to send over.
 int32_t test_many_files()
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     Transfer node1, node2;
     size_t num_files = 300;
     double waittime_sec = 1.;
@@ -1217,7 +1217,7 @@ int32_t test_many_files()
 // Expect: Command and message files to be created in appropriate locations in node 2's receive folders
 int32_t test_command_and_message_packet()
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     Transfer node1, node2;
 
     // Load nodeid table

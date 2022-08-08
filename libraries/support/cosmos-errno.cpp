@@ -389,7 +389,7 @@ namespace Cosmos {
 
         int32_t Error::Close()
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             if (log_fd != nullptr && log_fd != stdout)
             {
                 iretn = fclose(log_fd);
@@ -1176,7 +1176,7 @@ namespace Cosmos {
         }
 
         int32_t close_cosmos_error_fd() {
-            int32_t iretn;
+            int32_t iretn = 0;
             if (debug_fd != nullptr && debug_fd != stdout)
             {
                 iretn = fclose(debug_fd);

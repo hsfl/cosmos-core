@@ -6,7 +6,7 @@ namespace Cosmos
     {
         int32_t Structure::Setup(Type type)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
 
             switch (type)
             {
@@ -512,7 +512,7 @@ namespace Cosmos
 
         int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             Convert::pos_clear(currentinfo.node.loc);
             currentinfo.node.loc.pos.eci = eci;
             currentinfo.node.loc.pos.eci.pass++;
@@ -537,7 +537,7 @@ namespace Cosmos
 
         int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             Convert::pos_clear(currentinfo.node.loc);
             currentinfo.node.loc.pos.eci = eci;
             currentinfo.node.loc.pos.eci.pass++;
@@ -860,7 +860,7 @@ namespace Cosmos
 
         int32_t State::Reset(double nextutc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             currentinfo.node.loc = initialloc;
             currentinfo.node.utc = currentinfo.node.loc.utc;
             iretn = Propagate(nextutc);
@@ -1722,7 +1722,7 @@ namespace Cosmos
 
         int32_t GaussJacksonPositionPropagator::Reset(double nextutc)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             currentloc->pos = initialloc.pos;
             currentutc = currentloc->pos.utc;
             iretn = Init();
@@ -2142,7 +2142,7 @@ namespace Cosmos
 
         int32_t PosAccel(Convert::locstruc* loc, physicsstruc* phys)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             double radius;
             Vector ctpos, da, tda;
             Convert::cartpos bodypos;

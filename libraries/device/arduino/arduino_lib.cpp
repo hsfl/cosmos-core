@@ -70,14 +70,14 @@ int arduino_init(char* port, int baud) {
 	return fd;
 }
 int arduino_printstring(char* str) {
-	int32_t iretn;
+	int32_t iretn = 0;
 	strcpy(buf,str);
 	if((iretn = serialport_write(fd, buf)) == -1)
 		return -1;
 	return iretn;
 }
 int arduino_printnum(int num) {
-	int32_t iretn;
+	int32_t iretn = 0;
 	if((iretn = serialport_writebyte(fd, (uint8_t)num)) == -1)
 		return -1;
 	return iretn;

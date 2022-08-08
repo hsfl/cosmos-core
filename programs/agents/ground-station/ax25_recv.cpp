@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     Serial *shandle = nullptr;
     socket_channel schannel;
 
-    int32_t iretn;
+    int32_t iretn = 0;
     size_t tcount = 2000;
 
     switch (argc)

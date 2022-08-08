@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                int32_t iretn;
+                int32_t iretn = 0;
                 if ((iretn=agent->readring(message, message_type, 1., Agent::Where::TAIL)) > 0)
                 {
                     Agent::AgentMessage message_type_read = (Agent::AgentMessage)iretn;
@@ -324,7 +324,7 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                int32_t iretn;
+                int32_t iretn = 0;
                 if ((iretn=agent->readring(message, Agent::AgentMessage::ALL, 1., Agent::Where::TAIL)) > 0) {
                     Agent::AgentMessage message_type_read = (Agent::AgentMessage)iretn;
                     // Skip if either not Agent::AgentMessage::ALL, or not desired AGENT_MESSAGE

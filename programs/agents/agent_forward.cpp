@@ -45,7 +45,7 @@ int32_t request_del_forward(string &req, string &, Agent *);
 
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (argc < 1)
     {

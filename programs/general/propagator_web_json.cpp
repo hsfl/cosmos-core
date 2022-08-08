@@ -116,7 +116,7 @@ int32_t hostnameToIP(const string hostname, string& ipaddr, string& response);
 
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     // Pass this to functions to return as JSON string or as an error message
     string response;
 
@@ -267,7 +267,7 @@ int32_t init_propagator(prop_unit& prop, const string& args, string& response)
  */
 int32_t run_propagator(prop_unit& prop, string& response)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     response.clear();
     // Array of all telem snapshots
     json11::Json::array output;
@@ -550,7 +550,7 @@ int32_t validate_json_node(const json11::Json& node, string& response)
  */
 int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& response)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     response.clear();
     
     // Each array element is a node in the simulator
@@ -745,7 +745,7 @@ int32_t create_sim_snapshot(const prop_unit& prop, json11::Json::array& output)
  */
 int32_t hostnameToIP(const string hostname, string& ipaddr, string& response)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     addrinfo hints;
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET; // Docker binds to both ipv4 and ipv6
@@ -780,7 +780,7 @@ int32_t hostnameToIP(const string hostname, string& ipaddr, string& response)
 
 int32_t sendToTelegraf(string& response)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     const string TELEGRAF_ADDR = "cosmos_telegraf";
     const int TELEGRAF_PORT = 10097;
     socket_channel cosmos_web_telegraf_channel;

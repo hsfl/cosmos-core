@@ -299,7 +299,7 @@ int32_t slip_pack(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize)
 
 int32_t slip_pack(vector<uint8_t> &rbuf, vector<uint8_t> &sbuf)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = slip_encode(rbuf, sbuf);
     if (iretn < 0)

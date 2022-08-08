@@ -401,7 +401,7 @@ time_t get_file_age(string filename)
  */
 int32_t get_file_size(string filename)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     struct stat stat_buf;
 
     if ((stat(filename.c_str(), &stat_buf)) == 0)
@@ -493,7 +493,7 @@ PACKET_TYPE salt_type(PACKET_TYPE type)
 
 int32_t check_node_id(PACKET_NODE_ID_TYPE node_id)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=load_nodeids()) <= 0)
     {
@@ -513,7 +513,7 @@ int32_t check_node_id(PACKET_NODE_ID_TYPE node_id)
 
 int32_t lookup_node_id(string node_name)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=load_nodeids()) <= 0)
     {

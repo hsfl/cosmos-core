@@ -948,7 +948,7 @@ namespace Cosmos {
 
         double set_local_clock(double utc_to)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             double utc_from = currentmjd();
             double deltat = 86400.*(utc_to - utc_from);
             //    printf("Set Local Clock %f\n", deltat);

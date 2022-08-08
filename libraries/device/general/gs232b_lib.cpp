@@ -53,7 +53,7 @@ static gs232b_state ant_state;
 */
 int32_t gs232b_connect(string dev)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 	cssl_start();
 	if (gs232b_serial != nullptr)
 	{
@@ -168,7 +168,7 @@ int32_t gs232b_getdata(char *buf, int32_t buflen)
 */
 int32_t gs232b_offset_wait(int32_t axis)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 	switch (axis)
 	{
 	case 0:
@@ -189,7 +189,7 @@ int32_t gs232b_offset_wait(int32_t axis)
 */
 int32_t gs232b_offset_accept()
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 	iretn = cssl_putchar(gs232b_serial,'y');
 	return iretn;
 }
@@ -204,7 +204,7 @@ int32_t gs232b_offset_accept()
 
 int32_t gs232b_az_speed(int32_t speed)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 	char out[50];
 
 	if (speed < 1 || speed > 4)
@@ -223,7 +223,7 @@ int32_t gs232b_az_speed(int32_t speed)
 
 int32_t gs232b_goto(float az, float el)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 	char out[50];
 	static int32_t taz = 500;
 	static int32_t tel = 500;
@@ -308,7 +308,7 @@ int32_t gs232b_goto(float az, float el)
 */
 int32_t gs232b_stop()
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 
 	iretn = gs232b_send((char *)"S\r", true);
 
@@ -372,7 +372,7 @@ void gs232b_get_state(gs232b_state &state)
 
 int32_t gs232b_test()
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 
 	iretn = cssl_putchar(gs232b_serial, '\r');
 	if (iretn < 0)

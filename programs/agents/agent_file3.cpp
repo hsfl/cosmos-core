@@ -240,7 +240,7 @@ void write_queue_log(double logdate);
 //main
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     thread send_loop_thread;
     thread recv_loop_thread;
     thread transmit_loop_thread;
@@ -1396,7 +1396,7 @@ void send_loop()
 
 void transmit_loop()
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     //    std::mutex transmit_queue_lock;
     //    std::unique_lock<std::mutex> locker(transmit_queue_lock);
 
@@ -1489,7 +1489,7 @@ int32_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE
 
 int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     double cmjd;
 
     if ((cmjd = currentmjd(0.)) < out_comm_channel[use_channel].nmjd)

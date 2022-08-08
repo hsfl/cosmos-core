@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                int32_t iretn;
+                int32_t iretn = 0;
                 if ((iretn=agent->readring(message, cnum, 1., Agent::Where::TAIL)) > 0)
                 {
                     Agent::AgentMessage pretn = (Agent::AgentMessage)iretn;
@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                int32_t iretn;
+                int32_t iretn = 0;
                 if ((iretn=agent->readring(message, Agent::AgentMessage::ALL, 1., Agent::Where::TAIL)) > 0)
                 {
                     Agent::AgentMessage pretn = (Agent::AgentMessage)iretn;
