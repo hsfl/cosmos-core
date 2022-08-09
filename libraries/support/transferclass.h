@@ -112,10 +112,10 @@ namespace Cosmos {
 
             // Private queue manipulation functions
             int32_t outgoing_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1, const bool remove_file=true);
-            PACKET_TX_ID_TYPE check_tx_id(tx_entry &txentry, const PACKET_TX_ID_TYPE tx_id);
+            PACKET_TX_ID_TYPE check_tx_id(const tx_entry &txentry, const PACKET_TX_ID_TYPE tx_id);
             int32_t incoming_tx_add(const string node_name, const PACKET_TX_ID_TYPE tx_id);
             int32_t incoming_tx_add(tx_progress &tx_in);
-            int32_t incoming_tx_update(packet_struct_metashort meta);
+            int32_t incoming_tx_update(const packet_struct_metashort &meta);
             int32_t incoming_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
             int32_t incoming_tx_complete(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
 
