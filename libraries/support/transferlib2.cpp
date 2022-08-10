@@ -70,16 +70,16 @@ namespace Cosmos {
 
         //! Create a QUEUE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the origin node in the node table
+        //! \param orig_node_id ID of the origin node in the node table
         //! \param node_name Name of the origin node
         //! \param queue A vector with QUEUE data
         //! \return n/a
-        void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue)
+        void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue)
         {
             packet.header.type = PacketComm::TypeId::DataFileQueue;
             packet.data.resize(PACKET_QUEUE_OFFSET_TOTAL);
             memset(&packet.data[0], 0, PACKET_QUEUE_OFFSET_TOTAL);
-            memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_NODE_ID,   &node_id,          COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+            memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_NODE_ID,   &orig_node_id,     COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
             memmove(&packet.data[0]+PACKET_QUEUE_OFFSET_NODE_NAME, node_name.c_str(), node_name.size());
             
             vector<PACKET_QUEUE_FLAGS_TYPE> row(PACKET_QUEUE_FLAGS_LIMIT, 0);
@@ -107,14 +107,14 @@ namespace Cosmos {
 
         //! Create a CANCEL-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the origin node in the node table
+        //! \param orig_node_id ID of the origin node in the node table
         //! \param tx_id ID of the transaction
         //! \return n/a
-        void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
+        void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id)
         {
             packet.header.type = PacketComm::TypeId::DataFileCancel;
             packet.data.resize(PACKET_CANCEL_OFFSET_TOTAL);
-            memmove(&packet.data[0]+PACKET_CANCEL_OFFSET_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
+            memmove(&packet.data[0]+PACKET_CANCEL_OFFSET_NODE_ID, &orig_node_id, sizeof(PACKET_NODE_ID_TYPE));
             memmove(&packet.data[0]+PACKET_CANCEL_OFFSET_TX_ID,   &tx_id,   sizeof(PACKET_TX_ID_TYPE));
         }
 
@@ -130,15 +130,15 @@ namespace Cosmos {
 
         //! Create a REQCOMPLETE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the origin node in the node table
+        //! \param orig_node_id ID of the origin node in the node table
         //! \param tx_id ID of the transaction
         //! \return n/a
-        void serialize_reqcomplete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
+        void serialize_reqcomplete(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id)
         {
             packet.header.type = PacketComm::TypeId::DataFileReqComplete;
             packet.data.resize(PACKET_REQCOMPLETE_OFFSET_TOTAL);
-            memmove(&packet.data[0]+PACKET_REQCOMPLETE_OFFSET_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
-            memmove(&packet.data[0]+PACKET_REQCOMPLETE_OFFSET_TX_ID,   &tx_id,   sizeof(PACKET_TX_ID_TYPE));
+            memmove(&packet.data[0]+PACKET_REQCOMPLETE_OFFSET_NODE_ID, &orig_node_id,   sizeof(PACKET_NODE_ID_TYPE));
+            memmove(&packet.data[0]+PACKET_REQCOMPLETE_OFFSET_TX_ID,   &tx_id,          sizeof(PACKET_TX_ID_TYPE));
         }
 
         //! Extracts the necessary fields from a received REQCOMPLETE packet.
@@ -154,7 +154,7 @@ namespace Cosmos {
 
         //! Create a COMPLETE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the dest node in the node table
+        //! \param node_id ID of the receiver node in the node table
         //! \param tx_id ID of the transaction
         //! \return n/a
         void serialize_complete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
@@ -177,7 +177,7 @@ namespace Cosmos {
 
         //! Create a REQMETA-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the dest node in the node table
+        //! \param node_id ID of the requester node in the node table
         //! \param node_name Name of the origin node
         //! \param reqmeta A vector with REQMETA data
         //! \return n/a
@@ -204,7 +204,7 @@ namespace Cosmos {
 
         //! Create a REQDATA-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the dest node in the node table
+        //! \param node_id ID of the requester node in the node table
         //! \param tx_id ID of the transaction
         //! \param hole_start Index of byte start of data chunk
         //! \param hole_end Index of byte end of data chunk
@@ -268,17 +268,17 @@ namespace Cosmos {
         //! Create a short METADATA-type PacketComm packet.
         //! Includes node_id, omits node_name information.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param dest_node_id Node's ID in the node table
+        //! \param orig_node_id Node's ID in the node table
         //! \param tx_id Transaction ID of file transfer
         //! \param file_name Name of the file
         //! \param file_size Size of the file
         //! \param agent_name Name of the sending agent
         //! \return n/a
-        void serialize_metadata(PacketComm& packet, PACKET_NODE_ID_TYPE dest_node_id , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name)
+        void serialize_metadata(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name)
         {
             packet.header.type = PacketComm::TypeId::DataFileMetaData;
             packet.data.resize(PACKET_METASHORT_OFFSET_TOTAL);
-            memmove(&packet.data[0]+PACKET_METASHORT_OFFSET_NODE_ID,    &dest_node_id,   sizeof(PACKET_NODE_ID_TYPE));
+            memmove(&packet.data[0]+PACKET_METASHORT_OFFSET_NODE_ID,    &orig_node_id,   sizeof(PACKET_NODE_ID_TYPE));
             memmove(&packet.data[0]+PACKET_METASHORT_OFFSET_TX_ID,      &tx_id,         sizeof(PACKET_TX_ID_TYPE));
             memmove(&packet.data[0]+PACKET_METASHORT_OFFSET_FILE_NAME,  file_name,      TRANSFER_MAX_FILENAME);
             memmove(&packet.data[0]+PACKET_METASHORT_OFFSET_FILE_SIZE,  &file_size,     sizeof(file_size));
@@ -300,20 +300,20 @@ namespace Cosmos {
 
         //! Create a DATA-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id Node's ID in the node table
+        //! \param orig_node_id Node's ID in the node table
         //! \param byte_count Number of bytes of data data
         //! \param chunk_start Byte of index of start of this chunk in the file
         //! \param chunk Array of bytes defining this chunk
         //! \return n/a
-        void serialize_data(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk)
+        void serialize_data(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk)
         {
             packet.header.type = PacketComm::TypeId::DataFileChunkData;
             packet.data.resize(PACKET_DATA_OFFSET_HEADER_TOTAL+byte_count);
-            memmove(&packet.data[0]+PACKET_DATA_OFFSET_NODE_ID,     &node_id,     sizeof(PACKET_NODE_ID_TYPE));
-            memmove(&packet.data[0]+PACKET_DATA_OFFSET_TX_ID,       &tx_id,       sizeof(PACKET_TX_ID_TYPE));
-            memmove(&packet.data[0]+PACKET_DATA_OFFSET_BYTE_COUNT,  &byte_count,  sizeof(PACKET_CHUNK_SIZE_TYPE));
-            memmove(&packet.data[0]+PACKET_DATA_OFFSET_CHUNK_START, &chunk_start, sizeof(chunk_start));
-            memmove(&packet.data[0]+PACKET_DATA_OFFSET_CHUNK,       chunk,        byte_count);
+            memmove(&packet.data[0]+PACKET_DATA_OFFSET_NODE_ID,     &orig_node_id,  sizeof(PACKET_NODE_ID_TYPE));
+            memmove(&packet.data[0]+PACKET_DATA_OFFSET_TX_ID,       &tx_id,         sizeof(PACKET_TX_ID_TYPE));
+            memmove(&packet.data[0]+PACKET_DATA_OFFSET_BYTE_COUNT,  &byte_count,    sizeof(PACKET_CHUNK_SIZE_TYPE));
+            memmove(&packet.data[0]+PACKET_DATA_OFFSET_CHUNK_START, &chunk_start,   sizeof(chunk_start));
+            memmove(&packet.data[0]+PACKET_DATA_OFFSET_CHUNK,       chunk,          byte_count);
         }
 
         //! Extracts the necessary fields from a received DATA packet.

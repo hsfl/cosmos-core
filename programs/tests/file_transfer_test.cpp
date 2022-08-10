@@ -200,9 +200,9 @@ int main(int argc, char *argv[])
     run_test(test_zero_size_files, "test_zero_size_files");
     run_test(test_large_files, "test_large_files");
     run_test(test_stop_resume, "test_stop_resume");
-    //run_test(test_stop_resume2, "test_stop_resume2"); // Read the comments above the test_stop_resume2 function
+    // run_test(test_stop_resume2, "test_stop_resume2"); // Read the comments above the test_stop_resume2 function
     run_test(test_packet_reqcomplete, "test_packet_reqcomplete");
-    run_test(test_many_files, "test_many_files"); // This one takes about 12 seconds, comment out to save some time to test other tests
+    // run_test(test_many_files, "test_many_files"); // This one takes about 12 seconds, comment out to save some time to test other tests
     run_test(test_command_and_message_packet, "test_command_and_message_packet");
 
 
@@ -1455,7 +1455,13 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_
 {
     if (packet.header.type == PacketComm::TypeId::DataFileChunkData)
     {
-        return;
+        // For DATA-type packets, print only the first time it comes in. Comment out these lines to skip all DATA-packet logging
+        // PACKET_FILE_SIZE_TYPE chunk_start;
+        // memmove(&chunk_start, &packet.data[0]+PACKET_DATA_OFFSET_CHUNK_START, sizeof(chunk_start));
+        // if (chunk_start != 0)
+        {
+            return;
+        }
     }
 
     if (err_log->Type())
