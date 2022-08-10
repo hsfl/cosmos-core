@@ -202,14 +202,14 @@ string log_write(string node, string agent, double utc, string extra, string typ
     if (utc == 0.)
         return "";
 
-//    if (extra.empty())
-//    {
-//        path = data_type_path(node, location, agent, utc, type);
-//    }
-//    else
-//    {
-//        path = data_type_path(node, location, agent, utc, extra, type);
-//    }
+    //    if (extra.empty())
+    //    {
+    //        path = data_type_path(node, location, agent, utc, type);
+    //    }
+    //    else
+    //    {
+    //        path = data_type_path(node, location, agent, utc, extra, type);
+    //    }
     path = data_type_path(node, location, agent, utc, type, extra);
 
     if (location == "immediate")
@@ -632,13 +632,13 @@ size_t data_list_files(string node, string location, string agent, vector<filest
 {
     string dtemp;
     dtemp = data_base_path(node, location, agent);
-//    size_t fcnt = files.size();
+    //    size_t fcnt = files.size();
     data_list_files(dtemp, files);
-//    for (size_t i=fcnt; i<files.size(); ++i)
-//    {
-//        files[i].agent = agent;
-//        files[i].node = node;
-//    }
+    //    for (size_t i=fcnt; i<files.size(); ++i)
+    //    {
+    //        files[i].agent = agent;
+    //        files[i].node = node;
+    //    }
 
     return (files.size());
 }
@@ -841,15 +841,15 @@ string data_base_path(string node, string location, string agent)
     {
         if (agent.empty())
         {
-            path = tpath;
+            tpath += "/none";
         }
         else
         {
             tpath += "/" + agent;
-            if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
-            {
-                path = tpath;
-            }
+        }
+        if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
+        {
+            path = tpath;
         }
     }
     return path;
@@ -864,7 +864,14 @@ string data_base_path(string node, string location)
     tpath = data_base_path(node);
     if (!tpath.empty())
     {
-        tpath += "/" + location;
+        if (location.empty())
+        {
+            tpath += "/none";
+        }
+        else
+        {
+            tpath += "/" + location;
+        }
         if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
         {
             path = tpath;
@@ -882,7 +889,14 @@ string data_base_path(string node)
     int32_t iretn = get_cosmosnodes(tpath);
     if (iretn >= 0)
     {
-        tpath += "/" + node;
+        if (node.empty())
+        {
+            tpath += "/none";
+        }
+        else
+        {
+            tpath += "/" + node;
+        }
 
         if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
         {
@@ -941,6 +955,45 @@ string data_archive_path(string node, string agent, double mjd)
 
 //    return (path);
 //}
+
+//! Create data file path
+/*! Build a path to a data file based on time, type, node, agent, and extra information.
+ * \param location Subfolder in Node directory (outgoing, incoming, data, temp).
+ * \param mjd UTC of creation date in Modified Julian Day
+ * \param type Any valid extension type
+ * \param node Node directory in ::cosmosroot.
+ * \param agent Task specific subfolder of location, if relevant
+ * \param extra Extra text to add to the full name.
+ * \return File path string, otherwise empty
+*/
+string data_path(string location, double mjd, string type, string node, string agent, string extra)
+{
+    string path;
+    string tpath = "";
+    if (!(fabs(mjd) > 0.))
+    {
+        mjd = currentmjd();
+    }
+
+    if (location == "data")
+    {
+        tpath = data_archive_path(node, agent, mjd);
+    }
+    else
+    {
+        tpath = data_base_path(node, location, agent);
+    }
+
+    if (!tpath.empty())
+    {
+        tpath += "/" + data_name(mjd, type, node, agent, extra);
+        path = tpath;
+    }
+    return path;
+
+
+    return tpath;
+}
 
 //! Create data file path
 /*! Build a path to a data file using its filename and the current Node
@@ -1640,8 +1693,30 @@ string get_nodedir(string node, bool create_flag)
  */
 int32_t data_move(filestruc file, string location, bool compress)
 {
-        int32_t iretn = log_move(file.path, data_base_path(file.node, location, file.agent, file.name), compress);
+    int32_t iretn = log_move(file.path, data_base_path(file.node, location, file.agent, file.name), compress);
+    return iretn;
+}
+
+//! Move data file - filepath version.
+/*! Move filerepresented by path previously created with ::data_path, optionally
+ * compressing with gzip. The routine will move the file specified in filepath to {node}/{dstlocation}/{agent}.
+ * The path is assumed to be of the form {cosmosnodes}/{node}/{location}/{agent}/{filename}
+ * \param filepath File information.
+ * \param location Destination location name.
+ * \param compress Wether or not to compress with gzip.
+ */
+int32_t data_move_path(string path, string location, bool compress)
+{
+    vector<string> parts = string_split(path, "/");
+    if (parts.size() >= 5)
+    {
+        int32_t iretn = log_move(path, data_base_path(parts[parts.size()-4], location, parts[parts.size()-2], parts[parts.size()-1]), compress);
         return iretn;
+    }
+    else
+    {
+        return GENERAL_ERROR_ARGS;
+    }
 }
 
 //! Load data from archive
@@ -1945,8 +2020,8 @@ double data_ctime(string path)
     {
         struct timeval unixtime;
 #ifdef COSMOS_WIN_OS
-		unixtime.tv_sec = st.st_ctime;
-		unixtime.tv_usec = 0;
+        unixtime.tv_sec = st.st_ctime;
+        unixtime.tv_usec = 0;
 #elif defined(COSMOS_LINUX_OS)
         unixtime.tv_sec = st.st_ctim.tv_sec;
         unixtime.tv_usec = st.st_ctim.tv_nsec / 1000;
@@ -2064,15 +2139,15 @@ int32_t data_execute(string cmd, string& result, string shell)
     // Create the child process.
 
     bSuccess = CreateProcess(NULL,
-        (LPSTR)cmd.c_str(),                // command line
-        NULL,               // process security attributes
-        NULL,               // primary thread security attributes
-        TRUE,               // handles are inherited
-        CREATE_NO_WINDOW,   // creation flags
-        NULL,               // use parent's environment
-        NULL,               // use parent's current directory
-        &siStartInfo,       // STARTUPINFO pointer
-        &piProcInfo);       // receives PROCESS_INFORMATION
+                             (LPSTR)cmd.c_str(),                // command line
+                             NULL,               // process security attributes
+                             NULL,               // primary thread security attributes
+                             TRUE,               // handles are inherited
+                             CREATE_NO_WINDOW,   // creation flags
+                             NULL,               // use parent's environment
+                             NULL,               // use parent's current directory
+                             &siStartInfo,       // STARTUPINFO pointer
+                             &piProcInfo);       // receives PROCESS_INFORMATION
 
     // If an error occurs, exit the application.
     if (bSuccess)
@@ -2339,7 +2414,7 @@ string NodeData::lookup_node_id_name(NODE_ID_TYPE node_id)
 }
 
 void GITTEST::f()	{
-	return;
+    return;
 }
 
 //! @}
