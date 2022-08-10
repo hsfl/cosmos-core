@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
     }
 
     double mjd = currentmjd();
-    string path = data_name("", mjd, "txt", "orbit");
+    string path = data_name(mjd, "txt", "", "", "orbit");
     FILE *ofp = fopen(path.c_str(), "w");
     fprintf(ofp, "%s\n", header.c_str());
 
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
     header += "AzFrom\t";
     header += "ElFrom\t";
 
-    path = data_name("", mjd, "txt", "event");
+    path = data_name(mjd, "txt", "", "", "event");
     FILE *efp = fopen(path.c_str(), "w");
     fprintf(efp, "%s\n", header.c_str());
 

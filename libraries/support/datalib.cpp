@@ -706,25 +706,24 @@ int32_t data_list_nodes(vector<string>& nodes)
 *    \param type Any valid extension type
 *    \return Filename string, otherwise nullptr
 */
-string data_name(string node, double mjd, string type, string extra)
+string data_name(double mjd, string type, string node, string agent, string extra)
 {
     string name;
-    char ntemp[100];
 
     int32_t year, month, seconds;
     double jday, day;
 
     mjd2ymd(mjd,year,month,day,jday);
     seconds = static_cast<int32_t>(86400.*(jday-static_cast<int32_t>(jday)));
-    if (node.empty())
+    name = to_unsigned(year, 4, true) + to_unsigned(jday, 3, true) + to_unsigned(seconds, 5, true);
+    if (!node.empty())
     {
-        sprintf(ntemp,"%04d%03d%05d", year, static_cast<int32_t>(jday), seconds);
+        name += ("_" + node);
     }
-    else
+    if (!agent.empty())
     {
-        sprintf(ntemp,"%s_%04d%03d%05d", node.c_str(), year, static_cast<int32_t>(jday), seconds);
+        name += ("_" + agent);
     }
-    name = ntemp;
     if (!extra.empty())
     {
         name += ("_" + extra);
@@ -735,11 +734,6 @@ string data_name(string node, double mjd, string type, string extra)
     }
     return (name);
 }
-
-//string data_name(string node, double mjd, string type)
-//{
-//    return data_name(node, mjd, type, "");
-//}
 
 //! Get date from file name.
 /*! Assuming the COSMOS standard filename format from ::data_name, extract
@@ -961,7 +955,7 @@ string data_archive_path(string node, string agent, double mjd)
 */
 string data_type_path(string node, string location, string agent, double mjd, string type, string extra)
 {
-    string tpath = data_name_path(node, location, agent, mjd, data_name(node, mjd, type, extra));
+    string tpath = data_name_path(node, location, agent, mjd, data_name(mjd, node, agent, extra, type));
 
     return tpath;
 }

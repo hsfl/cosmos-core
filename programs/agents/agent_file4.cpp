@@ -3371,7 +3371,7 @@ int32_t request_send_command(string &request, string &response, Agent *)
     }
     else
     {
-        JSONObject jobject("event_name", data_name(nodename, currentmjd(), "file_command", ""));
+        JSONObject jobject("event_name", data_name(currentmjd(), "file_command", nodename, ""));
         jobject.addElement("event_utc", 0.);
         jobject.addElement("event_type", EVENT_TYPE_COMMAND);
         jobject.addElement("event_flag", 0);

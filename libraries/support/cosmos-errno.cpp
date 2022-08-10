@@ -355,10 +355,10 @@ namespace Cosmos {
                     string npathName;
                     if (Extension == "log")
                     {
-                        npathName = pathName + data_name("", mjd, Extension + to_unsigned(type));
+                        npathName = pathName + data_name(mjd, Extension + to_unsigned(type));
                     }
                     else {
-                        npathName = pathName + data_name("", mjd, Extension);
+                        npathName = pathName + data_name(mjd, Extension);
                     }
 
                     if (log_fd != nullptr) {
@@ -1150,7 +1150,7 @@ namespace Cosmos {
 //                    oldmjd = mjd;
                 }
                 mjd = mjd - fmod(mjd, 1./24.);
-                string pathName = debug_pathName + data_name("", mjd, "log"+to_unsigned(debug_level));
+                string pathName = debug_pathName + data_name(mjd, "log"+to_unsigned(debug_level));
 
                 if (debug_fd != nullptr) {
                     if (pathName != debug_pathName) {

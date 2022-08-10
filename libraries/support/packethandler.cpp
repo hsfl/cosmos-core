@@ -414,7 +414,7 @@ namespace Cosmos {
                     memcpy(&header, packet.data.data(), header_size);
                     chunk_id = header.chunk_id;
                     chunks = header.chunks;
-                    file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "main", header.met, data_name(NodeData::lookup_node_id_name(packet.header.orig), header.met, "gresp", to_unsigned(header.response_id)));
+                    file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "main", header.met, data_name(agent->cinfo->node.utcstart + header.met/86400., "gresp", NodeData::lookup_node_id_name(packet.header.orig), "main", to_unsigned(header.response_id)));
                 }
                 break;
             case PacketComm::TypeId::DataADCSResponse:
@@ -425,7 +425,7 @@ namespace Cosmos {
                     memcpy(&header, packet.data.data(), header_size);
                     chunk_id = header.chunk_id;
                     chunks = header.chunks;
-                    file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "adcs", header.met, data_name(NodeData::lookup_node_id_name(packet.header.orig), header.met, "aresp", to_unsigned(header.command)));
+                    file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "adcs", header.met, data_name(agent->cinfo->node.utcstart + header.met/86400., "aresp", NodeData::lookup_node_id_name(packet.header.orig), "adcs", to_unsigned(header.command)));
                 }
                 break;
             case PacketComm::TypeId::DataEPSResponse:
@@ -436,7 +436,7 @@ namespace Cosmos {
                     memcpy(&header, packet.data.data(), header_size);
                     chunk_id = header.chunk_id;
                     chunks = header.chunks;
-                    file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "eps", header.met, data_name(NodeData::lookup_node_id_name(packet.header.orig), header.met, "eresp", to_unsigned(header.sbid)));
+                    file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "eps", header.met, data_name(agent->cinfo->node.utcstart + header.met/86400., "eresp", NodeData::lookup_node_id_name(packet.header.orig), "eps", to_unsigned(header.sbid)));
                 }
                 break;
             default:
