@@ -1,9 +1,4 @@
 #include "packetcomm.h"
-#include "math/mathlib.h"
-#include "support/sliplib.h"
-#include "support/datalib.h"
-#include "support/stringlib.h"
-#include "device/general/ax25class.h"
 
 namespace Cosmos {
     namespace Support {
