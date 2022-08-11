@@ -88,7 +88,7 @@ static Agent *agent;
 
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     map<string, float> temps;
 
     //	cout<<"size of devicestruc = "<<sizeof(devicestruc)<<endl;
@@ -316,7 +316,7 @@ int32_t get_sensors(map<string, float> &temps)
 {
     // get sensors
     string response;
-    int32_t iretn;
+    int32_t iretn = 0;
     iretn = data_execute("sensors -u", response);
     if (iretn > 0)
     {

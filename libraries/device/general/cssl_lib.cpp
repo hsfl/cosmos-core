@@ -552,7 +552,7 @@ int32_t cssl_putstring(cssl_t *serial,
 /* sending a data of known size */
 int32_t cssl_putdata(cssl_t *serial, uint8_t *data, uint32_t datalen)
 {
-//	int32_t iretn;
+//	int32_t iretn = 0;
 
 	if (!cssl_started)
 	{
@@ -737,7 +737,7 @@ int32_t cssl_getchar(cssl_t *serial)
 /* blocking mode: reading a data buffer */
 int32_t cssl_getdata(cssl_t *serial, uint8_t *buffer, int size)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 
 	for (uint16_t i=0; i<size; ++i)
 	{

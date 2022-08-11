@@ -218,7 +218,7 @@ void write_queue_log(double logdate);
 //main
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     agent = new Agent("", "file", 5.);
     agent->set_debug_level(2);
@@ -1421,7 +1421,7 @@ double queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE>
 
 int32_t mysendto(string type, channelstruc& channel, vector<PACKET_BYTE>& buf)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     double cmjd;
 
     if ((cmjd = currentmjd(0.)) < channel.nmjd)

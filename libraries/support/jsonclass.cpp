@@ -226,7 +226,7 @@ namespace Cosmos
         //! \return A pointer the the discovered value, or a nullptr.
         int32_t Json::extract_value(string::iterator &begin, string::iterator &end, Value &value)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
 
             iretn = skip_white(begin, end);
             if (iretn < 0)
@@ -517,7 +517,7 @@ namespace Cosmos
 
         int32_t Json::skip_character(string::iterator &begin, string::iterator &end, const char character)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
 
             iretn = skip_white(begin, end);
             if (iretn < 0)

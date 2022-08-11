@@ -72,7 +72,7 @@ return 0;
 
 int32_t pic_getframe(pic_handle *handle)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 	uint16_t size;
 
 	iretn=cssl_getslip(handle->serial, handle->buffer.raw, sizeof(handle->buffer.raw));
@@ -96,7 +96,7 @@ int32_t pic_getframe(pic_handle *handle)
 
 int32_t pic_putframe(pic_handle *handle)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 	uint16_t size;
 
 	size = (uint16_t)(handle->buffer.packet.header.size+PIC_HEADER_SIZE);

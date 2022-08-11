@@ -41,7 +41,7 @@ static bool altprint = false;
 
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     string estring;
     json11::Json jargs = json11::Json::parse(argv[1], estring);
@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
     }
 
     double mjd = currentmjd();
-    string path = data_name("", mjd, "txt", "orbit");
+    string path = data_name(mjd, "txt", "", "", "orbit");
     FILE *ofp = fopen(path.c_str(), "w");
     fprintf(ofp, "%s\n", header.c_str());
 
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
     header += "AzFrom\t";
     header += "ElFrom\t";
 
-    path = data_name("", mjd, "txt", "event");
+    path = data_name(mjd, "txt", "", "", "event");
     FILE *efp = fopen(path.c_str(), "w");
     fprintf(efp, "%s\n", header.c_str());
 

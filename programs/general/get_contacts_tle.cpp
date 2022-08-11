@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     // Load Nodes
 
     std::vector <string> nodes;
-    int32_t iretn;
+    int32_t iretn = 0;
     iretn = data_list_nodes(nodes);
     for (size_t i=0; i<nodes.size(); ++i)
     {

@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	gige_handle *handle;
 	int32_t tbytes;
 	int32_t expbytes;
-	int32_t iretn;
+	int32_t iretn = 0;
 	uint32_t width, height;
 	//uint32_t faddress, fsize;
 	uint32_t bsize;

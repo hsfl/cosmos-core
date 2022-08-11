@@ -89,7 +89,7 @@ namespace Cosmos
                 NetworkType ntype,
                 uint16_t dlevel)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             uptime.reset();
             debug_level = dlevel;
             debug_error.Set(dlevel,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
@@ -484,7 +484,7 @@ namespace Cosmos
             secondsleep(delay_send);
 
             socket_channel sendchan;
-            int32_t iretn;
+            int32_t iretn = 0;
             int32_t nbytes;
             vector <char> toutput;
             toutput.resize(AGENTMAXBUFFER+1);
@@ -546,7 +546,7 @@ namespace Cosmos
     \return Either the number of bytes returned, or an error number.
 */
         int32_t Agent::send_request_jsonnode(beatstruc hbeat, jsonnode &jnode, float waitsec) {
-            int32_t iretn;
+            int32_t iretn = 0;
 
             jnode.name = hbeat.node;
             iretn = send_request(hbeat, "nodejson", jnode.node, waitsec);
@@ -816,7 +816,7 @@ namespace Cosmos
  * and then either performs the matched function, or returns [NOK].
  */
         void Agent::request_loop() noexcept {
-            int32_t iretn;
+            int32_t iretn = 0;
             string bufferin;
 
             if ((iretn = socket_open(&cinfo->agent[0].req, NetworkType::UDP, (char *)"", cinfo->agent[0].beat.port, SOCKET_LISTEN, SOCKET_BLOCKING, 2000000)) < 0) { return; }
@@ -838,7 +838,7 @@ namespace Cosmos
 
         int32_t Agent::process_request(string &bufferin, string &bufferout) {
             size_t i;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             process_mutex.lock();
 
@@ -893,7 +893,7 @@ namespace Cosmos
         //! Perform and broadcast requests.
         void Agent::message_loop() {
             messstruc mess;
-            int32_t iretn;
+            int32_t iretn = 0;
             // Initialize things
             //            message_ring.resize(MESSAGE_RING_SIZE);
             while (Agent::running()) {
@@ -1464,7 +1464,7 @@ namespace Cosmos
  * \return 0, or negative error.
  */
         int32_t Agent::req_setvalue(string &request, string &output, Agent* agent) {
-            int32_t iretn;
+            int32_t iretn = 0;
             iretn = json_parse(request, agent->cinfo);
             output = std::to_string(iretn);
             return(iretn);
@@ -2459,7 +2459,7 @@ namespace Cosmos
             struct ifreq *ifra;
             char data[512];
 #endif // COSMOS_WIN_OS
-            int32_t iretn;
+            int32_t iretn = 0;
             int on = 1;
             int32_t cudp;
 
@@ -2601,7 +2601,7 @@ namespace Cosmos
 \return 0, otherwise negative error.
 */
         int32_t Agent::post(messstruc mess) {
-            int32_t iretn;
+            int32_t iretn = 0;
             if (mess.meta.type < Agent::AgentMessage::BINARY) {
                 iretn = post(mess.meta.type, mess.adata);
             } else {
@@ -2618,7 +2618,7 @@ namespace Cosmos
 */
         int32_t Agent::post(AgentMessage type, string message)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             vector<uint8_t> bytes(message.begin(), message.end());
             //        bytes.push_back(0);
             iretn = post(type, bytes);
@@ -3142,7 +3142,7 @@ namespace Cosmos
         //! Parse next message from ring
         int32_t Agent::parsering(AgentMessage type, float waitsec, Where where, string proc, string node)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             messstruc message;
 
             if (where == Where::HEAD) { message_queue.clear(); }
@@ -3192,7 +3192,7 @@ acquired.
 */
         //    beatstruc Agent::poll_beat(float waitsec)
         //    {
-        //        int32_t iretn;
+        //        int32_t iretn = 0;
         //        beatstruc beat;
         //        messstruc mess;
 
@@ -3215,7 +3215,7 @@ acquired.
 */
         //    timestruc Agent::poll_time(float waitsec)
         //    {
-        //        int32_t iretn;
+        //        int32_t iretn = 0;
         //        timestruc time;
         //        messstruc mess;
 
@@ -3241,7 +3241,7 @@ acquired.
 */
         //    Convert::locstruc Agent::poll_location(float waitsec)
         //    {
-        //        int32_t iretn;
+        //        int32_t iretn = 0;
         //        Convert::locstruc loc;
         //        messstruc mess;
 
@@ -3267,7 +3267,7 @@ acquired.
 */
         //    nodestruc Agent::poll_info(float waitsec)
         //    {
-        //        int32_t iretn;
+        //        int32_t iretn = 0;
         //        //summarystruc info;
         //        nodestruc info;
         //        messstruc mess;
@@ -3301,7 +3301,7 @@ acquired.
 */
         //    imustruc Agent::poll_imu(float waitsec)
         //    {
-        //        int32_t iretn;
+        //        int32_t iretn = 0;
         //        imustruc imu;
         //        messstruc mess;
 
@@ -3391,7 +3391,7 @@ acquired.
             static beatstruc agent_beat;
             string agent_response;
             double mjd_0, mjd_1;
-            int32_t iretn;
+            int32_t iretn = 0;
 
             if (!agent_beat.exists) {
                 agent_beat = find_agent(node, agent, wait_sec);
@@ -3643,7 +3643,7 @@ acquired.
 
         int32_t Agent::add_channel(string name, uint16_t datasize)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             if (channels.channel.size() == 0)
             {
                 iretn = channels.Init();
@@ -3836,7 +3836,7 @@ acquired.
 
         int32_t Agent::channel_number(string name)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             if (channels.channel.size() == 0)
             {
                 iretn = channels.Init();

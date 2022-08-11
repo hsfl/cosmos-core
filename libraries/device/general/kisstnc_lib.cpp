@@ -97,7 +97,7 @@ int32_t kisstnc_disconnect(kisstnc_handle *handle)
 
 int32_t kisstnc_recvframe(kisstnc_handle *handle)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 
     iretn = cssl_getslip(handle->serial, handle->frame.full, KISSTNC_FULL_SIZE);
 	if (iretn >= 0)
@@ -116,7 +116,7 @@ int32_t kisstnc_recvframe(kisstnc_handle *handle)
 
 int32_t kisstnc_sendframe(kisstnc_handle *handle)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 
 	handle->frame.part.header.flag = handle->flag;
 	iretn = cssl_putslip(handle->serial, handle->frame.full, handle->frame.size);

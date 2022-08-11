@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     double mjdnow;
     double mjdstart = -1.;
     double dt = .1;
-    int32_t iretn;
+    int32_t iretn = 0;
     //	bool master_timer = false;
 
     switch (argc)

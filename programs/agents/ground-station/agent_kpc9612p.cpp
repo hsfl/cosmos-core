@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     string tunnel_ip;
     std::vector<uint8_t> buffer;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     //	cssl_start();
 
@@ -323,7 +323,7 @@ void tun_write_loop()
 void port_read_loop()
 {
     std::vector<uint8_t> buffer;
-    int32_t iretn;
+    int32_t iretn = 0;
     int32_t nbytes;
     double lastin = currentmjd(0.);
 
@@ -358,7 +358,7 @@ void port_read_loop()
 void tcv_read_loop()
 {
     std::vector<uint8_t> buffer;
-    int32_t iretn;
+    int32_t iretn = 0;
     double lastin = currentmjd(0.);
     double lastbeacon = currentmjd(0.);
 
@@ -416,7 +416,7 @@ void tcv_read_loop()
 void tcv_write_loop()
 {
     std::vector<uint8_t> buffer;
-    //	int32_t iretn;
+    //	int32_t iretn = 0;
     //	double lastout = currentmjd(0.);
 
     while (agent->running())

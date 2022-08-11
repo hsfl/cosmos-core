@@ -590,7 +590,7 @@ pid_t DeviceCpuLinux::getPidOf(string processName)
 {
     string tmp = "pidof " + processName;
     string tdata;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = data_execute(tmp, tdata);
     if (iretn < 0)
@@ -894,7 +894,7 @@ int32_t DeviceCpuLinux::getCpuCount()
     uint16_t tcount = 0;
 //    uint16_t tindex;
 //    string tdata;
-//    int32_t iretn;
+//    int32_t iretn = 0;
 
 //    iretn = data_execute("lscpu -p=cpu", tdata);
 //    if (iretn > 0)
@@ -925,7 +925,7 @@ int32_t DeviceCpuLinux::getBootCount()
 {
     uint16_t bootcount = 0;
     string tdata;
-    int32_t iretn;
+    int32_t iretn = 0;
     uint16_t tindex;
 
     iretn = data_execute("boot_count_get", tdata);
@@ -944,7 +944,7 @@ int32_t DeviceCpuLinux::getUptime()
 {
     uint32_t uptime = 0.;
 //    string tdata;
-//    int32_t iretn;
+//    int32_t iretn = 0;
 
 //    iretn = data_execute("uptime -s", tdata);
 //    if (iretn > 0)

@@ -52,7 +52,7 @@ provided for the extra steps necessary for MS Windows.
 int32_t socket_open(socket_channel* channel, NetworkType ntype, const char *address, uint16_t port, uint16_t role,
                     bool blocking, uint32_t usectimeo, uint32_t rcvbuf, uint32_t sndbuf)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = socket_open(*channel, ntype, address, port, role, blocking, usectimeo, rcvbuf, sndbuf);
 
@@ -63,7 +63,7 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
                     bool blocking, uint32_t usectimeo, uint32_t rcvbuf, uint32_t sndbuf)
 {
 //    socklen_t namelen;
-    int32_t iretn;
+    int32_t iretn = 0;
     struct ip_mreq mreq;
     int on = 1;
 
@@ -494,7 +494,7 @@ int32_t socket_set_udp_checksum(vector<uint8_t>& packet)
 
 int32_t socket_blocking(socket_channel* channel, bool blocking)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = socket_blocking(*channel, blocking);
 
@@ -503,7 +503,7 @@ int32_t socket_blocking(socket_channel* channel, bool blocking)
 
 int32_t socket_blocking(socket_channel& channel, bool blocking)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if (blocking == SOCKET_NONBLOCKING)
     {
@@ -555,7 +555,7 @@ int32_t socket_blocking(socket_channel& channel, bool blocking)
  */
 int32_t socket_close(socket_channel* channel)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     iretn = socket_close(*channel);
 
@@ -605,7 +605,7 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port)
     struct ifreq *ifra;
     char data[512];
 #endif // COSMOS_WIN_OS
-    int32_t iretn;
+    int32_t iretn = 0;
     int on = 1;
     int32_t cudp;
 
@@ -847,7 +847,7 @@ int32_t socket_poll(socket_bus &bus, vector<uint8_t> &buffer, size_t maxlen, int
 
 int32_t socket_recvfrom(socket_channel &channel, string &buffer, size_t maxlen, int flags)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     vector<uint8_t> data;
     iretn = socket_recvfrom(channel, data, maxlen, flags);
     string str(data.begin(), data.end());
@@ -1017,7 +1017,7 @@ provided for the extra steps necessary for MS Windows.
 int32_t Udp::socketOpen()
 {
     socklen_t namelen;
-    int32_t iretn;
+    int32_t iretn = 0;
     struct ip_mreq mreq;
     int on = 1;
     int debug = false; //turn on or off debug statements
@@ -1297,7 +1297,7 @@ int32_t Udp::setupClientAcstb(string a, uint16_t p){
 
 //int32_t Udp::openClient(){
 
-//    int32_t iretn;
+//    int32_t iretn = 0;
 //    //SocketOptions options;
 //    //if ((iretn=socket_open(&socket, NetworkType::UDP, address.c_str(), port, SOCKET_TALK, SOCKET_BLOCKING, SOCKET_RCVTIMEO)) < 0)
 
@@ -1340,7 +1340,7 @@ int32_t Udp::setupServer(uint16_t port, float timeout_sec){
 /*
 int32_t Udp::openServer(){
 
-    int32_t iretn;
+    int32_t iretn = 0;
 
     if ((iretn=socketOpen()) < 0)
     {

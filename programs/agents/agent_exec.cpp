@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
     vector<eventstruc> events, eventdict;
     string jjstring, myjstring;
     double llogmjd, dlogmjd, clogmjd;
-    int32_t iretn;
+    int32_t iretn = 0;
 
     // Set node name to first argument
     if (argc == 2)
@@ -877,7 +877,7 @@ int32_t request_set_realm(string &request, string &response, Agent *)
 
 void collect_data_loop() noexcept
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     while (agent->running())
     {
         // Collect new data
@@ -966,7 +966,7 @@ int32_t get_power_mode()
 //void get_beacon_cpu() {
 //    static DeviceCpu deviceCpu;
 //    static const double GiB = 1024. * 1024. * 1024.;
-//    int32_t iretn;
+//    int32_t iretn = 0;
 //    iretn = json_createpiece(agent->cinfo, "main_cpu", DeviceType::CPU);
 //    if (iretn < 0)
 //    {

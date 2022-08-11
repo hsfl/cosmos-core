@@ -80,7 +80,7 @@ int32_t myport;
 
 int main(int, char **)
 {
-int32_t iretn;
+int32_t iretn = 0;
 uint32_t i;
 char input[100];
 FILE *fd;

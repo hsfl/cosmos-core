@@ -64,7 +64,7 @@ int32_t prkx2su_init(string dev)
 */
 int32_t prkx2su_connect()
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 //	cssl_start();
 
     if (prkx2su_serial[PRKX2SU_AXIS_AZ]->get_open())
@@ -183,7 +183,7 @@ int32_t prkx2su_getdata(uint8_t axis, std::string &buf, uint16_t buflen)
 */
 int32_t prkx2su_status(uint8_t axis)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     iretn = prkx2su_send(axis, "BIn;", true);
     if (iretn < 0)
     {
@@ -212,7 +212,7 @@ int32_t prkx2su_status(uint8_t axis)
 int32_t prkx2su_get_limits(uint8_t axis)
 {
     string buf;
-    int32_t iretn;
+    int32_t iretn = 0;
     iretn = prkx2su_send(axis, "RH0;", true);
     if (iretn < 0)
     {
@@ -265,14 +265,14 @@ int32_t prkx2su_get_limits(uint8_t axis)
 */
 int32_t prkx2su_stop(uint8_t axis)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
     iretn = prkx2su_send(axis, ";", true);
 	return iretn;
 }
 
 int32_t prkx2su_ramp(uint8_t axis, uint8_t speed)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     char out[50];
 
     if (speed < 1 || speed > 10)
@@ -291,7 +291,7 @@ int32_t prkx2su_ramp(uint8_t axis, uint8_t speed)
 
 int32_t prkx2su_minimum_speed(uint8_t axis, uint8_t speed)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     char out[50];
 
     if (speed < 1 || speed > 10)
@@ -310,7 +310,7 @@ int32_t prkx2su_minimum_speed(uint8_t axis, uint8_t speed)
 
 int32_t prkx2su_maximum_speed(uint8_t axis, uint8_t speed)
 {
-    int32_t iretn;
+    int32_t iretn = 0;
     char out[50];
 
     if (speed < 1 || speed > 10)
@@ -329,7 +329,7 @@ int32_t prkx2su_maximum_speed(uint8_t axis, uint8_t speed)
 
 int32_t prkx2su_goto(float az, float el)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 	char out[50];
 
 	if (az < 0 || az > RADOF(360))
@@ -401,7 +401,7 @@ int32_t prkx2su_get_az_el(float &az, float &el)
 
 int32_t prkx2su_write_calibration(uint8_t axis, float value)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 	char out[50];
 
 	if (value < 0.)
@@ -446,7 +446,7 @@ void prkx2su_get_state(prkx2su_state &state)
 
 int32_t prkx2su_test(uint8_t axis)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 
     iretn = prkx2su_serial[axis]->put_string("R10;");
 	if (iretn < 0)

@@ -224,7 +224,7 @@ namespace Cosmos {
             // Path to temporary meta and incomplete data files
             string temppath="";
             // Time of last write_meta()
-            double savetime;
+            double savetime=0.;
             double datatime=0.;
             // Time the last response request or respond packet was sent
             double next_response = 0.;

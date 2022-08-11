@@ -30,7 +30,7 @@ string command = "";
 
 int main(int argc, char *argv[])
 {
-    int32_t iretn;
+    int32_t iretn = 0;
 
     switch (argc)
     {
