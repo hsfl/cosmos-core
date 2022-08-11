@@ -601,6 +601,25 @@ size_t data_list_files(string directory, vector<filestruc>& files)
     return files.size();
 }
 
+/**
+ * @brief Get list of files and folders in a Node's <location> folder.
+ * 
+ * location is generally incoming or outgoing.
+ * Meaning, the intended purpose of this function is to return the agents in, for example, a node's outgoing folder.
+ * 
+ * @param node Node to search
+ * @param location Subdirectory of node to search
+ * @return A C++ vector of ::filestruc. Zero size if no files are found.
+ */
+vector<filestruc> data_list_files(string node, string location)
+{
+    vector<filestruc> files;
+    string dtemp = data_base_path(node, location);
+    data_list_files(dtemp, files);
+
+    return files;
+}
+
 //! Get list of files in a Node, directly.
 /*! Generate a list of files for the indicated Node, location (eg. incoming, outgoing, ...),
  * and Agent. The result is returned as a vector of ::filestruc, one entry for each file found.

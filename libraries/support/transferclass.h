@@ -84,6 +84,7 @@ namespace Cosmos {
             int32_t set_waittime(const string node_name, const uint8_t direction, const double waittime);
 
             // Getters/setters
+            PACKET_CHUNK_SIZE_TYPE get_packet_size();
             int32_t set_packet_size(const PACKET_CHUNK_SIZE_TYPE size);
 
         private:

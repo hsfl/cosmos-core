@@ -232,7 +232,7 @@ namespace Cosmos {
                 }
                 vector<filestruc> file_names;
                 // dest_node/outgoing/
-                for (filestruc file : data_list_files(txq[dest_node_idx].node_name, "outgoing", ""))
+                for (filestruc file : data_list_files(txq[dest_node_idx].node_name, "outgoing"))
                 {
                     // dest_node/outgoing/dest_agents
                     if (file.type == "directory")
@@ -2061,6 +2061,12 @@ int32_t Transfer::set_waittime(const uint8_t node_id, const uint8_t direction, c
 int32_t Transfer::set_waittime(const string node_name, const uint8_t direction, const double waittime)
 {
     return set_waittime(NodeData::lookup_node_id(node_name), direction, waittime);
+}
+
+//! Get the currently configured size of the packet that transferclass is using
+PACKET_CHUNK_SIZE_TYPE Transfer::get_packet_size()
+{
+    return packet_size;
 }
 
 //! Sets the size of the packet to stuff. Should be set to the size of packet the channel supports that file packets will be sent out on.
