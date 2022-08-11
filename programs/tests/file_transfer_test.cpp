@@ -1,15 +1,18 @@
 //! For testing the file transfer protocol implemented by transferclass and transferlib2
 //!
-//! Usage: file_transfer_test
+//! Usage: file_transfer_test [packet_size]
+//! packet_size is the size of the transfer file packet. Simulate packet size restrictions of various radios.
+//! Note: doesn't quite work with packet_size's exceeding 1500. This is a limitation of transferclass
 
 #include "support/transferclass.h"
 #include <fstream>
 #include <numeric> // for std::accumulate
 
-
-#define PACKET_SIZE 217
 #define NODE1 0
 #define NODE2 1
+
+// Change size of transfer packet, defaults to 217, size of S-Band radio
+PACKET_CHUNK_SIZE_TYPE PACKET_SIZE = 217;
 
 // Node names for the test transferclass's
 const string node1_name = "transfer_test_node_1";
@@ -202,6 +205,20 @@ struct test_params
 // main loop
 int main(int argc, char *argv[])
 {
+    // Optional argument packet_size
+    if (argc > 1)
+    {
+        try
+        {
+            PACKET_SIZE = std::stoi(argv[1]);
+        }
+        catch (std::exception const &e)
+        {
+            std::cout << "Error: <packet_size> argument was invalid: " << e.what() << std::endl;
+            return COSMOS_GENERAL_ERROR_ARGS;
+        }
+    }
+
     // Setup log paths and settings
     test_log.Set(Error::LOG_STDOUT_FFLUSH);
     debug_log.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "/file_transfer_tests");
@@ -212,7 +229,7 @@ int main(int argc, char *argv[])
     //////////////////////////////////////////////////////////////////////////
     // Run tests
     //////////////////////////////////////////////////////////////////////////
-    //run_test(test_zero_size_files, "test_zero_size_files");
+    run_test(test_zero_size_files, "test_zero_size_files");
     run_test(test_large_files, "test_large_files");
     run_test(test_stop_resume, "test_stop_resume");
     run_test(test_stop_resume2, "test_stop_resume2");
@@ -322,6 +339,8 @@ int32_t test_zero_size_files()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return iretn;
     }
+    node1.set_packet_size(PACKET_SIZE);
+    node2.set_packet_size(PACKET_SIZE);
 
     // Restore old nodeids.ini file here in case test crashes
     restore_original_nodeids();
@@ -448,6 +467,8 @@ int32_t test_large_files()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return iretn;
     }
+    node1.set_packet_size(PACKET_SIZE);
+    node2.set_packet_size(PACKET_SIZE);
 
     // Restore old nodeids.ini file here in case test crashes
     restore_original_nodeids();
@@ -555,7 +576,7 @@ int32_t test_stop_resume()
     // Second load after stop
     Transfer node1b;
     size_t num_files = 3;
-    double file_size_kib = 2.;
+    double file_size_kib = 6.;
     double file_size_bytes = file_size_kib * 1024;
     
     // Initialize test parameters
@@ -582,6 +603,8 @@ int32_t test_stop_resume()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return iretn;
     }
+    node1a.set_packet_size(PACKET_SIZE);
+    node2a.set_packet_size(PACKET_SIZE);
 
     // Restore old nodeids.ini file here in case test crashes
     restore_original_nodeids();
@@ -668,6 +691,7 @@ int32_t test_stop_resume()
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return -1;
     }
+    node1b.set_packet_size(PACKET_SIZE);
     // Note: with enabled-by-default, this is unnecessary
     // iretn = node1b.outgoing_tx_load(node2_name);
     // if (iretn < 0)
@@ -761,7 +785,7 @@ int32_t test_stop_resume2()
     // Second load after stop
     Transfer node2b;
     size_t num_files = 3;
-    double file_size_kib = 2.;
+    double file_size_kib = 12.;
     double file_size_bytes = file_size_kib * 1024;
 
     // Initialize test parameters
@@ -788,6 +812,8 @@ int32_t test_stop_resume2()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return -1;
     }
+    node1a.set_packet_size(PACKET_SIZE);
+    node2a.set_packet_size(PACKET_SIZE);
 
     // Restore old nodeids.ini file here in case test crashes
     restore_original_nodeids();
@@ -811,6 +837,11 @@ int32_t test_stop_resume2()
     vector<int32_t> packets_sent = {0,0};
     // Restart at halfway point
     int32_t restart_run = ceil(file_size_bytes / node1a.get_packet_size())/2;
+    if (restart_run-miss-1 <= 0)
+    {
+        debug_log.Printf("Error, restart_run must be greater than 0 or the results will not be accurate. Adjust packet_size, file_size_kb, or miss\n");
+        return GENERAL_ERROR_ERROR;
+    }
     int32_t packet_expected_total
         = num_files*ceil(file_size_bytes / node1a.get_packet_size())   // number of DATA packets assuming no drops
         + (num_files * miss)    // additional number of DATA packets that are requested because they were missed
@@ -883,6 +914,7 @@ int32_t test_stop_resume2()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return -1;
     }
+    node2b.set_packet_size(PACKET_SIZE);
 
     while (true)
     {
@@ -994,6 +1026,8 @@ int32_t test_packet_reqcomplete()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return iretn;
     }
+    node1.set_packet_size(PACKET_SIZE);
+    node2.set_packet_size(PACKET_SIZE);
 
     // Restore old nodeids.ini file here in case test crashes
     restore_original_nodeids();
@@ -1012,6 +1046,11 @@ int32_t test_packet_reqcomplete()
     // Up to last DATA packet, node2 starts listening after this many runs have passed
     int32_t runs = 0;
     int32_t restart_run = ceil(file_size_bytes / node1.get_packet_size());
+    if (restart_run <= 0)
+    {
+        debug_log.Printf("Error, restart_run must be greater than 0 or the results will not be accurate. Adjust packet_size or file_size_kb\n");
+        return GENERAL_ERROR_ERROR;
+    }
     // +2 for the two REQCOMPLETE packets, then +1 run for the waittime wait, then the +1 at the end for the CANCEL packet
     int32_t packet_expected_total
         = num_files*ceil(file_size_bytes / node1.get_packet_size())*2   // number of DATA packets, everything gets sent twice
@@ -1156,6 +1195,8 @@ int32_t test_many_files()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return iretn;
     }
+    node1.set_packet_size(PACKET_SIZE);
+    node2.set_packet_size(PACKET_SIZE);
 
     // Restore old nodeids.ini file here in case test crashes
     restore_original_nodeids();
@@ -1310,6 +1351,8 @@ int32_t test_command_and_message_packet()
         debug_log.Printf("Error in outgoing_tx_load\n");
         return iretn;
     }
+    node1.set_packet_size(PACKET_SIZE);
+    node2.set_packet_size(PACKET_SIZE);
 
     // Create COMMAND packet and MESSAGE packet, and send to node2
     const string test_command = "ls";
