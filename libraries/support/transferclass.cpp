@@ -73,13 +73,14 @@ namespace Cosmos {
             // fflush(stdout);
             // secondsleep(3.);
             // Initialize Transfer Queue
-            if ((iretn = NodeData::load_node_ids()) < 2)
+            const int32_t node_ids_size = NodeData::load_node_ids();
+            if (node_ids_size < 2)
             {
                 if (this->debug_error != nullptr)
                 {
                     this->debug_error->Printf("%.4f Couldn't load node lookup table\n", tet.split());
                 }
-                return iretn;
+                return node_ids_size;
             }
             // printf("Initialize Transfer step 2\n");
             // fflush(stdout);
@@ -102,7 +103,7 @@ namespace Cosmos {
             // secondsleep(3.);
             // Create map of node_ids to indexes into txq
             txq.clear();
-            txq.resize(iretn);
+            txq.resize(node_ids_size);
             node_id_to_txq_map.clear();
             size_t tidx = 0;
             for (auto it = NodeData::node_ids.begin(); it != NodeData::node_ids.end(); ++it)
