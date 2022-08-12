@@ -1511,9 +1511,9 @@ void cleanup()
     
     // Delete created folders, don't touch this
     const string temp_del_path = get_cosmosnodes() + "/safe_to_delete";
-    //rename((get_cosmosnodes() + "/" + node1_name).c_str(), temp_del_path.c_str());
-    //rename((get_cosmosnodes() + "/" + node2_name).c_str(), temp_del_path.c_str());
-    //rename((get_cosmosnodes() + "/" + tname3).c_str(), temp_del_path.c_str());
+    rename((get_cosmosnodes() + "/" + node1_name).c_str(), temp_del_path.c_str());
+    rename((get_cosmosnodes() + "/" + node2_name).c_str(), temp_del_path.c_str());
+    rename((get_cosmosnodes() + "/" + tname3).c_str(), temp_del_path.c_str());
     // (In)sanity checks before running rm -r
     if (data_isdir(temp_del_path)
     && std::count(temp_del_path.begin(), temp_del_path.end(), '/') > 3
@@ -1527,7 +1527,7 @@ void cleanup()
     && !std::count(temp_del_path.begin(), temp_del_path.end(), '-')
     && !std::count(temp_del_path.begin(), temp_del_path.end(), '.'))
     {
-        //data_execute("rm -r " + temp_del_path);
+        data_execute("rm -r " + temp_del_path);
         debug_log.Printf("... ");
     }
     debug_log.Printf("OK.\n");

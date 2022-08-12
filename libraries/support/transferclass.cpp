@@ -1582,11 +1582,6 @@ namespace Cosmos {
                             write_meta(txq[orig_node_idx].incoming.progress[tx_id]);
                             if (debug_error != nullptr)
                             {
-                                uint32_t total = 0;
-                                for (uint16_t i=0; i<data.byte_count; ++i)
-                                {
-                                    total += data.chunk[i];
-                                }
                                 //debug_error->Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), data.byte_count, tx_id);
                             }
 
