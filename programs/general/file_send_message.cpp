@@ -40,7 +40,7 @@
 #include "support/configCosmos.h"
 #include "agent/agentclass.h"
 #include "support/jsonlib.h"
-#include "support/transferlib2.h"
+#include "support/transferlib.h"
 
 typedef struct
 {

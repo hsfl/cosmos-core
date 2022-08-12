@@ -1,4 +1,4 @@
-//! For testing the file transfer protocol implemented by transferclass and transferlib2
+//! For testing the file transfer protocol implemented by transferclass and transferlib
 //!
 //! Usage: file_transfer_test [packet_size]
 //! packet_size is the size of the transfer file packet. Simulate packet size restrictions of various radios.
