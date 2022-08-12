@@ -339,7 +339,12 @@ int32_t test_zero_size_files()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return iretn;
     }
-    node1.set_packet_size(PACKET_SIZE);
+    iretn = node1.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
     node2.set_packet_size(PACKET_SIZE);
 
     // Restore old nodeids.ini file here in case test crashes
@@ -467,7 +472,12 @@ int32_t test_large_files()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return iretn;
     }
-    node1.set_packet_size(PACKET_SIZE);
+    iretn = node1.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
     node2.set_packet_size(PACKET_SIZE);
 
     // Restore old nodeids.ini file here in case test crashes
@@ -603,7 +613,12 @@ int32_t test_stop_resume()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return iretn;
     }
-    node1a.set_packet_size(PACKET_SIZE);
+    iretn = node1a.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
     node2a.set_packet_size(PACKET_SIZE);
 
     // Restore old nodeids.ini file here in case test crashes
@@ -812,7 +827,12 @@ int32_t test_stop_resume2()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return -1;
     }
-    node1a.set_packet_size(PACKET_SIZE);
+    iretn = node1a.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
     node2a.set_packet_size(PACKET_SIZE);
 
     // Restore old nodeids.ini file here in case test crashes
@@ -1026,7 +1046,12 @@ int32_t test_packet_reqcomplete()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return iretn;
     }
-    node1.set_packet_size(PACKET_SIZE);
+    iretn = node1.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
     node2.set_packet_size(PACKET_SIZE);
 
     // Restore old nodeids.ini file here in case test crashes
@@ -1195,7 +1220,12 @@ int32_t test_many_files()
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
         return iretn;
     }
-    node1.set_packet_size(PACKET_SIZE);
+    iretn = node1.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
     node2.set_packet_size(PACKET_SIZE);
 
     // Restore old nodeids.ini file here in case test crashes
@@ -1351,7 +1381,12 @@ int32_t test_command_and_message_packet()
         debug_log.Printf("Error in outgoing_tx_load\n");
         return iretn;
     }
-    node1.set_packet_size(PACKET_SIZE);
+    iretn = node1.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
     node2.set_packet_size(PACKET_SIZE);
 
     // Create COMMAND packet and MESSAGE packet, and send to node2
