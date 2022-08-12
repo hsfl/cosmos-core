@@ -102,7 +102,7 @@ namespace Cosmos {
             ElapsedTime dt, tet;
 
             // Byte size limit of a packet
-            PACKET_CHUNK_SIZE_TYPE packet_size;
+            PACKET_CHUNK_SIZE_TYPE packet_size = 217;
 
             // Pointer to calling agent's debug_error
             Error* debug_error = nullptr;
