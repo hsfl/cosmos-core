@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! \file agent_file5.cpp
+/*! \file agent_file.cpp
 * \brief File Transfer Agent source file
 */
 
@@ -42,7 +42,7 @@
 //!
 //! The transferclass version of agent_file4
 //!
-//! Usage: agent_file5 debug_mode target_node_name:chanip_address[:throughput]
+//! Usage: agent_file debug_mode target_node_name:chanip_address[:throughput]
 
 
 #include "support/configCosmos.h"
@@ -421,7 +421,7 @@ void recv_loop() noexcept
                     out_comm_channel.push_back(tchannel);
                     if (agent->get_debug_level())
                     {
-                        agent->debug_error.Printf("%.4f %.4f agent_file5: main loop: Adding new node:IP %s:%.17s\n", tet.split(), dt.lap(), node_name.c_str(), tchannel.chansock.address);
+                        agent->debug_error.Printf("%.4f %.4f agent_file: main loop: Adding new node:IP %s:%.17s\n", tet.split(), dt.lap(), node_name.c_str(), tchannel.chansock.address);
                     }
                 }
                 out_comm_lock.unlock();*/
