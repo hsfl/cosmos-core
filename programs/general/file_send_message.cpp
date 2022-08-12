@@ -40,7 +40,7 @@
 #include "support/configCosmos.h"
 #include "agent/agentclass.h"
 #include "support/jsonlib.h"
-#include "support/transferlib.h"
+#include "support/transferlib2.h"
 
 typedef struct
 {
@@ -100,8 +100,8 @@ int main(int argc, char*argv[])
         out_comm_channel[1].chanip = out_comm_channel[1].node.substr(tloc+1, out_comm_channel[1].node.size()-tloc+1);
         out_comm_channel[1].node = out_comm_channel[1].node.substr(0, tloc);
     }
-    vector<PACKET_BYTE> packet;
-    make_message_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(lookup_node_id(out_comm_channel[1].node)), message);
+    PacketComm packet;
+    serialize_message(packet, static_cast <PACKET_NODE_ID_TYPE>(NodeData::lookup_node_id(out_comm_channel[1].node)), message);
 
     if((iretn = socket_open(&out_comm_channel[1].chansock, NetworkType::UDP, out_comm_channel[1].chanip.c_str(), AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
     {
@@ -118,6 +118,6 @@ int main(int argc, char*argv[])
     agent->debug_error.Printf("%16.10f Network: Old: %u %s %s %u\n", currentmjd(), 1, out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str(), ntohs(out_comm_channel[1].chansock.caddr.sin_port));
     // fflush(agent->get_debug_fd());
 
-    iretn = sendto(out_comm_channel[1].chansock.cudp, reinterpret_cast<const char*>(&packet[0]), packet.size(), 0, reinterpret_cast<sockaddr*>(&out_comm_channel[1].chansock.caddr), sizeof(struct sockaddr_in));
+    iretn = sendto(out_comm_channel[1].chansock.cudp, reinterpret_cast<const char*>(packet.data.data()), packet.data.size(), 0, reinterpret_cast<sockaddr*>(&out_comm_channel[1].chansock.caddr), sizeof(struct sockaddr_in));
 
 }
