@@ -284,6 +284,59 @@ string to_astring(char *value, size_t length, bool hex)
 }
 
 #if ((SIZE_WIDTH) == (UINT64_WIDTH))
+string to_binary(uint64_t value, uint16_t digits, bool zerofill)
+#else
+string to_binary(size_t value, uint16_t digits, bool zerofill)
+#endif
+{
+    string output="0b";
+    if (digits > 66)
+    {
+        digits = 66;
+    }
+    output.resize(digits);
+    uint8_t bits = 0;
+    if (value > 0)
+    {
+        bits = log2(value) + 1;
+    }
+
+    if (zerofill)
+    {
+        if (digits > bits)
+        {
+            for (uint8_t i=0; i<digits-bits; ++i)
+            {
+                output += "0";
+            }
+        }
+    }
+    else
+    {
+        for (uint8_t i=bits-1; i<bits; --i)
+        {
+            if (value & 1<<i)
+            {
+                output += "1";
+            }
+            else
+            {
+                output += "0";
+            }
+        }
+    }
+    if (digits)
+    {
+        output.resize(digits);
+    }
+    else
+    {
+        output.resize(strlen(output.c_str()));
+    }
+    return output;
+}
+
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
 string to_hex(uint64_t value, uint16_t digits, bool zerofill)
 #else
 string to_hex(size_t value, uint16_t digits, bool zerofill)

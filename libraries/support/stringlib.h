@@ -61,9 +61,11 @@ string to_astring(char *value, size_t length, bool hex=false);
 // These next three are intentionally NOT (u)int64_t, as that does not always carry cleanly to 32 bit systems.
 // size_t and ptrdiff_t will map to the largest integer the system actually knows how to deal with.
 #if ((SIZE_WIDTH) == (UINT64_WIDTH))
+string to_binary(uint64_t value, uint16_t digits=0, bool zerofill=false);
 string to_hex(uint64_t value, uint16_t digits=0, bool zerofill=false);
 string to_unsigned(uint64_t value, uint16_t digits=0, bool zerofill=false);
 #else
+string to_binary(size_t value, uint16_t digits=0, bool zerofill=false);
 string to_hex(size_t value, uint16_t digits=0, bool zerofill=false);
 string to_unsigned(size_t value, uint16_t digits=0, bool zerofill=false);
 #endif
