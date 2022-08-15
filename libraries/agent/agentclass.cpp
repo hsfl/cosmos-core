@@ -316,7 +316,11 @@ namespace Cosmos
                         "    SetTime {MJD}\n"
                         "    GetTimeHuman\n"
                         "    GetTimeBinary\n"
-                        "    EPSCommand sbid:command:hexstring\n"
+                        "    EpsCommand sbid:command:hexstring\n"
+//                        "    EpsSwitchStatus [0-1|vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200]"
+                        "    EpsState {0|1|2|3}"
+                        "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [seconds] "
+                        "    EpsSwitchNumber {0-1} [seconds] "
                         "");
 
             // Set up Full SOH string
