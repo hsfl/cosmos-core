@@ -4,7 +4,8 @@
 #include "support/configCosmos.h"
 #include "math/mathlib.h"
 #include "support/datalib.h"
-#include "support/enumlib.h"
+#include "support/sliplib.h"
+#include "device/general/ax25class.h"
 
 namespace Cosmos {
     namespace Support {

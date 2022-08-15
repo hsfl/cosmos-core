@@ -67,19 +67,18 @@ namespace Cosmos {
             int32_t iretn = 0;
             this->debug_error = debug_error;
 
-            packet_size = 217;
-
             // printf("Initialize Transfer step 1\n");
             // fflush(stdout);
             // secondsleep(3.);
             // Initialize Transfer Queue
-            if ((iretn = NodeData::load_node_ids()) < 2)
+            const int32_t node_ids_size = NodeData::load_node_ids();
+            if (node_ids_size < 2)
             {
                 if (this->debug_error != nullptr)
                 {
                     this->debug_error->Printf("%.4f Couldn't load node lookup table\n", tet.split());
                 }
-                return iretn;
+                return node_ids_size;
             }
             // printf("Initialize Transfer step 2\n");
             // fflush(stdout);
@@ -102,7 +101,7 @@ namespace Cosmos {
             // secondsleep(3.);
             // Create map of node_ids to indexes into txq
             txq.clear();
-            txq.resize(iretn);
+            txq.resize(node_ids_size);
             node_id_to_txq_map.clear();
             size_t tidx = 0;
             for (auto it = NodeData::node_ids.begin(); it != NodeData::node_ids.end(); ++it)
@@ -232,7 +231,7 @@ namespace Cosmos {
                 }
                 vector<filestruc> file_names;
                 // dest_node/outgoing/
-                for (filestruc file : data_list_files(txq[dest_node_idx].node_name, "outgoing", ""))
+                for (filestruc file : data_list_files(txq[dest_node_idx].node_name, "outgoing"))
                 {
                     // dest_node/outgoing/dest_agents
                     if (file.type == "directory")
@@ -1581,11 +1580,6 @@ namespace Cosmos {
                             write_meta(txq[orig_node_idx].incoming.progress[tx_id]);
                             if (debug_error != nullptr)
                             {
-                                uint32_t total = 0;
-                                for (uint16_t i=0; i<data.byte_count; ++i)
-                                {
-                                    total += data.chunk[i];
-                                }
                                 //debug_error->Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), data.byte_count, tx_id);
                             }
 
@@ -2063,9 +2057,19 @@ int32_t Transfer::set_waittime(const string node_name, const uint8_t direction, 
     return set_waittime(NodeData::lookup_node_id(node_name), direction, waittime);
 }
 
+//! Get the currently configured size of the packet that transferclass is using
+PACKET_CHUNK_SIZE_TYPE Transfer::get_packet_size()
+{
+    return packet_size;
+}
+
 //! Sets the size of the packet to stuff. Should be set to the size of packet the channel supports that file packets will be sent out on.
 int32_t Transfer::set_packet_size(const PACKET_CHUNK_SIZE_TYPE size)
 {
+    if (size > PACKET_MAX_LENGTH)
+    {
+        return COSMOS_GENERAL_ERROR_OVERSIZE;
+    }
     packet_size = size;
     return 0;
 }

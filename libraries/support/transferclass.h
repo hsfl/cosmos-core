@@ -37,7 +37,7 @@
 #include "support/packetcomm.h"
 #include "support/stringlib.h"
 #include "support/timelib.h"
-#include "support/transferlib2.h"
+#include "support/transferlib.h"
 
 namespace Cosmos {
     namespace Support {
@@ -84,6 +84,7 @@ namespace Cosmos {
             int32_t set_waittime(const string node_name, const uint8_t direction, const double waittime);
 
             // Getters/setters
+            PACKET_CHUNK_SIZE_TYPE get_packet_size();
             int32_t set_packet_size(const PACKET_CHUNK_SIZE_TYPE size);
 
         private:
@@ -101,7 +102,7 @@ namespace Cosmos {
             ElapsedTime dt, tet;
 
             // Byte size limit of a packet
-            PACKET_CHUNK_SIZE_TYPE packet_size;
+            PACKET_CHUNK_SIZE_TYPE packet_size = 217;
 
             // Pointer to calling agent's debug_error
             Error* debug_error = nullptr;
