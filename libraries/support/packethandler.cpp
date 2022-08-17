@@ -467,7 +467,7 @@ namespace Cosmos {
             Beacon beacon;
             beacon.Init();
             int32_t iretn = beacon.Decode(packet.data, agent->cinfo);
-            printf("Beacon Type=%u Size=%u %d ", packet.data[0], packet.data.size(), iretn);
+            printf("Beacon Type=%u Size=%lu %d ", packet.data[0], packet.data.size(), iretn);
             if (iretn < 0)
             {
                 return iretn;
