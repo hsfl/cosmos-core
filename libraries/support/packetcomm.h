@@ -22,7 +22,7 @@ namespace Cosmos {
                 uint16_t tf_data_field_status;
             };
 
-            PacketComm();
+            //PacketComm();
             void CalcCRC();
             bool CheckCRC();
             bool Unwrap(bool checkcrc=true);

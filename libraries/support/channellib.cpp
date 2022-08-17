@@ -212,7 +212,7 @@ namespace Cosmos {
             if (name.empty())
             {
                 std::lock_guard<mutex> lock(*channel[0].mtx);
-                channel[0].quu = {};
+                std::queue<PacketComm>().swap(channel[0].quu);
                 return 0;
             }
 
@@ -221,7 +221,7 @@ namespace Cosmos {
                 if (channel[i].name == name)
                 {
                     std::lock_guard<mutex> lock(*channel[i].mtx);
-                    channel[i].quu = {};
+                	std::queue<PacketComm>().swap(channel[i].quu);
                     return i;
                 }
             }
@@ -235,7 +235,7 @@ namespace Cosmos {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
             std::lock_guard<mutex> lock(*channel[number].mtx);
-            channel[number].quu = {};
+            std::queue<PacketComm>().swap(channel[number].quu);
             return number;
         }
     }
