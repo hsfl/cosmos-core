@@ -16,16 +16,16 @@ namespace Cosmos {
             return true;
         }
 
-        bool PacketComm::Unwrap(bool checkcrc)
+        int32_t PacketComm::Unwrap(bool checkcrc)
         {
             if (wrapped.size() <= 0)
             {
-                return false;
+                return GENERAL_ERROR_BAD_SIZE;
             }
             memcpy(&header, &wrapped[0], COSMOS_SIZEOF(Header));
             if (wrapped.size() < uint32_t(header.data_size + COSMOS_SIZEOF(Header) + 2))
             {
-                return false;
+                return GENERAL_ERROR_BAD_SIZE;
             }
             wrapped.resize(header.data_size + COSMOS_SIZEOF(Header) + 2);
             if (checkcrc)
@@ -34,17 +34,17 @@ namespace Cosmos {
                 crc = calc_crc.calc(wrapped.data(), wrapped.size()-2);
                 if (crc != crcin)
                 {
-                    return false;
+                    return GENERAL_ERROR_CRC;
                 }
             }
 
             data.clear();
             data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(Header)], &wrapped[header.data_size+COSMOS_SIZEOF(Header)]);
 
-            return true;
+            return 1;
         }
 
-        bool PacketComm::RawUnPacketize(bool invert, bool checkcrc)
+        int32_t PacketComm::RawUnPacketize(bool invert, bool checkcrc)
         {
             if (invert)
             {
