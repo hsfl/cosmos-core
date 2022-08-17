@@ -25,8 +25,8 @@ namespace Cosmos {
             //PacketComm();
             void CalcCRC();
             bool CheckCRC();
-            bool Unwrap(bool checkcrc=true);
-            bool RawUnPacketize(bool invert=false, bool checkcrc=true);
+            int32_t Unwrap(bool checkcrc=true);
+            int32_t RawUnPacketize(bool invert=false, bool checkcrc=true);
             bool ASMUnPacketize();
             bool SLIPUnPacketize();
             bool Wrap();
@@ -43,8 +43,8 @@ namespace Cosmos {
                 None = 0,
                 DataBeacon = 10,
                 DataPong = 41,
-                DataEPSResponse = 43,
-                DataADCSResponse = 45,
+                DataEpsResponse = 43,
+                DataAdcsResponse = 45,
                 DataResponse = 61,
                 DataIP = 62,
                 DataTest = 63,
@@ -92,10 +92,10 @@ namespace Cosmos {
             map<TypeId, string> TypeString = {
                 {TypeId::DataBeacon, "Beacon"},
                 {TypeId::DataPong, "Pong"},
-                {TypeId::DataEPSResponse, "EPSResponse"},
-//                {TypeId::DataEPSResponse, "EPSResponse"},
-                {TypeId::DataADCSResponse, "ADCSResponse"},
-//                {TypeId::DataADCSResponse, "ADCSResponse"},
+                {TypeId::DataEpsResponse, "EPSResponse"},
+//                {TypeId::DataEpsResponse, "EPSResponse"},
+                {TypeId::DataAdcsResponse, "ADCSResponse"},
+//                {TypeId::DataAdcsResponse, "ADCSResponse"},
                 {TypeId::DataResponse, "Response"},
                 {TypeId::DataIP, "IP"},
                 {TypeId::DataTest, "Test"},
@@ -143,10 +143,10 @@ namespace Cosmos {
             map<string, TypeId> StringType = {
                 {"Beacon", TypeId::DataBeacon},
                 {"Pong", TypeId::DataPong},
-                {"EPSResponse", TypeId::DataEPSResponse},
-//                {"EPSResponse", TypeId::DataEPSResponse},
-                {"ADCSResponse", TypeId::DataADCSResponse},
-//                {"ADCSResponse", TypeId::DataADCSResponse},
+                {"EPSResponse", TypeId::DataEpsResponse},
+//                {"EPSResponse", TypeId::DataEpsResponse},
+                {"ADCSResponse", TypeId::DataAdcsResponse},
+//                {"ADCSResponse", TypeId::DataAdcsResponse},
                 {"Response", TypeId::DataResponse},
                 {"IP", TypeId::DataIP},
                 {"Test", TypeId::DataTest},
