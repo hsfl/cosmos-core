@@ -13,10 +13,10 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::DataResponse, Response);
 
             // ADCS
-            add_func(PacketComm::TypeId::DataADCSResponse, AdcsResponse);
+            add_func(PacketComm::TypeId::DataAdcsResponse, AdcsResponse);
 
             // EPS
-            add_func(PacketComm::TypeId::DataEPSResponse, EpsResponse);
+            add_func(PacketComm::TypeId::DataEpsResponse, EpsResponse);
 
             // File Transfer
             add_func(PacketComm::TypeId::DataFileCommand, FileForward);
@@ -60,6 +60,8 @@ namespace Cosmos {
 
             // Telemetry
             add_func(PacketComm::TypeId::DataBeacon, DecodeBeacon);
+            add_func(PacketComm::TypeId::DataAdcsResponse, AdcsResponse);
+            add_func(PacketComm::TypeId::DataEpsResponse, EpsResponse);
             add_func(PacketComm::TypeId::DataResponse, Response);
             add_func(PacketComm::TypeId::DataTest, Test);
 
@@ -465,6 +467,7 @@ namespace Cosmos {
             Beacon beacon;
             beacon.Init();
             int32_t iretn = beacon.Decode(packet.data, agent->cinfo);
+            printf("Beacon Type=%u Size=%u %d ", packet.data[0], packet.data.size(), iretn);
             if (iretn < 0)
             {
                 return iretn;
@@ -700,6 +703,7 @@ namespace Cosmos {
             memcpy(&header, packet.data.data(), header_size);
             chunk_id = header.chunk_id;
             chunks = header.chunks;
+            printf("ADCSResp [%u/%u] %u ", chunk_id, chunks, packet.data[header_size]);
             file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "adcs", header.met, data_name(agent->cinfo->node.utcstart + header.met/86400., "aresp", NodeData::lookup_node_id_name(packet.header.orig), "adcs", to_unsigned(header.command)));
             if (file.path.size())
             {
@@ -772,6 +776,7 @@ namespace Cosmos {
             memcpy(&header, packet.data.data(), header_size);
             chunk_id = header.chunk_id;
             chunks = header.chunks;
+            printf("EPSResp [%u/%u] %u ", chunk_id, chunks, packet.data[header_size]);
             file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "eps", header.met, data_name(agent->cinfo->node.utcstart + header.met/86400., "eresp", NodeData::lookup_node_id_name(packet.header.orig), "eps", to_unsigned(header.sbid)));
             if (file.path.size())
             {
