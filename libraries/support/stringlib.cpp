@@ -537,11 +537,27 @@ string to_angle(double value, char units, uint8_t precision) {
     return "";
 }
 
-string to_bool(bool value) {
-    string output = value?"Yes":"No";
-//    output.resize(2);
-//    output[0] =  value?'1':'0';
-//    output.resize(strlen(&output[0]));
+string to_bool(bool value, char type)
+{
+    string output;
+    switch (type)
+    {
+    case 'y':
+        output = value?"y":"n";
+        break;
+    case 'Y':
+        output = value?"Y":"N";
+        break;
+    case 't':
+        output = value?"t":"f";
+        break;
+    case 'T':
+        output = value?"T":"F";
+        break;
+    case '1':
+        output = value?"1":"0";
+        break;
+    }
     return output;
 }
 

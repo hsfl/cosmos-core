@@ -84,7 +84,7 @@ string to_floatany(double value, uint16_t precision=0);
 string to_mjd(double value);
 string to_temperature(double value, char units='K', uint8_t precision=4);
 string to_angle(double value, char units='R', uint8_t precision=4);
-string to_bool(bool value);
+string to_bool(bool value, char type='y');
 string to_unixtime(double mjd, uint8_t precision=0);
 string to_datename(double mjd);
 
