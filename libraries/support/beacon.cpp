@@ -316,6 +316,7 @@ namespace Cosmos {
                             cinfo->devspec.swch[i].utc = mjd;
                             cinfo->devspec.swch[i].volt = beacon.swch[i].mvolt / 1000.;
                             cinfo->devspec.swch[i].amp = beacon.swch[i].mamp / 1000.;
+                            cinfo->devspec.swch[i].power = cinfo->devspec.swch[i].volt * cinfo->devspec.swch[i].amp;
                             printf("D SWCH %u %s: pidx=%u volt=%f amp=%f\n", i, cinfo->devspec.swch[i].name.c_str(), cinfo->devspec.swch[i].pidx, cinfo->devspec.swch[i].volt, cinfo->devspec.swch[i].amp);
                         }
                     }
@@ -357,6 +358,9 @@ namespace Cosmos {
                             cinfo->devspec.batt[i].utc = mjd;
                             cinfo->devspec.batt[i].volt = beacon.batt[i].mvolt / 1000.;
                             cinfo->devspec.batt[i].amp = beacon.batt[i].mamp / 1000.;
+                            cinfo->devspec.batt[i].power = cinfo->devspec.batt[i].volt * cinfo->devspec.batt[i].amp;
+                            cinfo->devspec.batt[i].temp = beacon.batt[i].ctemp / 100.;
+                            cinfo->devspec.batt[i].percentage = beacon.batt[i].cpercent / 100.;
                         }
                     }
                     break;
@@ -462,6 +466,7 @@ namespace Cosmos {
                         {
                             json_out_1d(Contents, "device_swch_amp", i, cinfo);
                             json_out_1d(Contents, "device_swch_volt", i, cinfo);
+                            json_out_1d(Contents, "device_swch_power", i, cinfo);
                         }
                     }
                     break;
@@ -471,6 +476,7 @@ namespace Cosmos {
                         {
                             json_out_1d(Contents, "device_bcreg_amp", i, cinfo);
                             json_out_1d(Contents, "device_bcreg_volt", i, cinfo);
+                            json_out_1d(Contents, "device_bcreg_power", i, cinfo);
                         }
                     }
                     break;
@@ -480,6 +486,9 @@ namespace Cosmos {
                         {
                             json_out_1d(Contents, "device_batt_amp", i, cinfo);
                             json_out_1d(Contents, "device_batt_volt", i, cinfo);
+                            json_out_1d(Contents, "device_batt_power", i, cinfo);
+                            json_out_1d(Contents, "device_batt_temp", i, cinfo);
+                            json_out_1d(Contents, "device_batt_percentage", i, cinfo);
                         }
                     }
                     break;
