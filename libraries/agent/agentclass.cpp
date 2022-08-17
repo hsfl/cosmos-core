@@ -2110,6 +2110,163 @@ namespace Cosmos
                     }
                     packet.data.resize(8);
                     doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    break;
+                }
+            case PacketComm::TypeId::CommandAdcsState:
+                {
+                    uint8_t commis_step = 0;
+                    if(parms.size() >= 1)
+                    {
+                        commis_step = atoi(parms[1].c_str());
+                    }
+                    switch(commis_step)
+                    {
+                        case 1:
+                        {
+                            agent->debug_error.Printf("%u", parms.size());
+                            for (int var = 0; var < parms.size(); ++var)
+                            {
+                                agent->debug_error.Printf("%s ", parms[var]);
+                                if(var == 6)
+                                {
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    uint16to(atoi(parms[var].c_str()), &packet.data[var + 1], ByteOrder::LITTLEENDIAN);
+                                }
+                                else if(var == 8)
+                                {
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    floatto(atof(parms[var].c_str()), &packet.data[var + 1], ByteOrder::LITTLEENDIAN);
+                                }
+                                else
+                                {
+                                    packet.data.push_back(atoi(parms[var].c_str()));
+                                }
+                            }
+                            break;
+                        }
+                        case 2:
+                        {
+                            for (int var = 0; var < parms.size(); ++var)
+                            {
+                                if(var == 6)
+                                {
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    uint16to(atoi(parms[var].c_str()), &packet.data[var], ByteOrder::LITTLEENDIAN);
+                                }
+                                else if(var == 7 || var == 8)
+                                {
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    floatto(atof(parms[var].c_str()), &packet.data[var], ByteOrder::LITTLEENDIAN);
+                                }
+                                else
+                                {
+                                    packet.data.push_back(atoi(parms[var].c_str()));
+                                }
+                            }
+                            break;
+                        }
+                        case 3 :
+                        {
+                            for (int var = 0; var < parms.size(); ++var)
+                            {
+                                if(var == 6)
+                                {
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    uint16to(atoi(parms[var].c_str()), &packet.data[var], ByteOrder::LITTLEENDIAN);
+                                }
+                                else if(var == 7 || var == 8)
+                                {
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    floatto(atof(parms[var].c_str()), &packet.data[var], ByteOrder::LITTLEENDIAN);
+                                }
+                                else
+                                {
+                                    packet.data.push_back(atoi(parms[var].c_str()));
+                                }
+                            }
+                            break;
+                        }
+                    case 4:
+                        {
+                            for (int var = 0; var < parms.size(); ++var)
+                            {
+                                if(var == 6)
+                                {
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    uint16to(atoi(parms[var].c_str()), &packet.data[var], ByteOrder::LITTLEENDIAN);
+                                }
+                                else
+                                {
+                                    packet.data.push_back(atoi(parms[var].c_str()));
+                                }
+                            }
+                            break;
+                        }
+                    case 5:
+                        {
+                            for (int var = 0; var < parms.size(); ++var)
+                            {
+                                if(var == 6  || var == 8)
+                                {
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    uint16to(atoi(parms[var].c_str()), &packet.data[var], ByteOrder::LITTLEENDIAN);
+                                }
+                                else if(var == 7 || var == 9)
+                                {
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    floatto(atof(parms[var].c_str()), &packet.data[var], ByteOrder::LITTLEENDIAN);
+                                }
+                                else
+                                {
+                                    packet.data.push_back(atoi(parms[var].c_str()));
+                                }
+                            }
+                            break;
+                        }
+                    case 6:
+                        {
+                            for (int var = 0; var < parms.size(); ++var)
+                            {
+                                if(var == 6)
+                                {
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    uint16to(atoi(parms[var].c_str()), &packet.data[var], ByteOrder::LITTLEENDIAN);
+                                }
+                                else if(var == 7 || var ==  8 || var == 10)
+                                {
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    packet.data.push_back(0);
+                                    floatto(atof(parms[var].c_str()), &packet.data[var], ByteOrder::LITTLEENDIAN);
+                                }
+                                else
+                                {
+                                    packet.data.push_back(atoi(parms[var].c_str()));
+                                }
+                                break;
+                            }
+                        }
+                    }
+
                 }
                 break;
             default:
