@@ -2131,7 +2131,7 @@ namespace Cosmos
                                 {
                                     packet.data.push_back(0);
                                     packet.data.push_back(0);
-                                    uint16to(atoi(parms[var].c_str()), &packet.data[var + 1], ByteOrder::LITTLEENDIAN);
+                                    uint16to(atoi(parms[var].c_str()), &packet.data[var], ByteOrder::LITTLEENDIAN);
                                 }
                                 else if(var == 8)
                                 {
@@ -2139,7 +2139,7 @@ namespace Cosmos
                                     packet.data.push_back(0);
                                     packet.data.push_back(0);
                                     packet.data.push_back(0);
-                                    floatto(atof(parms[var].c_str()), &packet.data[var + 1], ByteOrder::LITTLEENDIAN);
+                                    floatto(atof(parms[var].c_str()), &packet.data[var], ByteOrder::LITTLEENDIAN);
                                 }
                                 else
                                 {
