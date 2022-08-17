@@ -2,9 +2,9 @@
 
 namespace Cosmos {
     namespace Support {
-        PacketComm::PacketComm()
-        {
-        }
+        //PacketComm::PacketComm()
+        //{
+        //}
 
         void PacketComm::CalcCRC()
         {
