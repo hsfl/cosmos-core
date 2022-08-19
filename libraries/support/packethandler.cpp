@@ -48,6 +48,7 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandGetTimeHuman, GetTimeHuman);
             add_func(PacketComm::TypeId::CommandGetTimeBinary, GetTimeBinary);
             add_func(PacketComm::TypeId::CommandAdcsCommunicate, AdcsForward);
+            add_func(PacketComm::TypeId::CommandAdcsState, AdcsForward);
             add_func(PacketComm::TypeId::CommandEpsCommunicate, EpsForward);
             add_func(PacketComm::TypeId::CommandEpsSwitchName, EpsForward);
             add_func(PacketComm::TypeId::CommandEpsSwitchNumber, EpsForward);
