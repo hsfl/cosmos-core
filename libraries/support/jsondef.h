@@ -644,6 +644,12 @@ namespace Cosmos
             TNC=29,
             //! BCREG
             BCREG=30,
+            //! Gyroscope
+            GYRO=31,
+            //! Magnetometer
+            MAG=32,
+            //! Earth Sensor
+            XYZSEN=33,
             //! List count
             COUNT,
             //! Not a Component
@@ -2615,6 +2621,38 @@ union as a ::devicestruc.
             }
         };
 
+        //! XYZ Directional Sensor (XYZSEN) Sructure
+        struct xyzsenstruc : public devicestruc
+        {
+            rvector direction;
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "direction" , direction },
+                };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param	s	JSON-formatted string to set class contents to
+        @return n/a
+    */
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["direction"].is_null()) { direction.from_json(parsed["direction"].dump()); }
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        };
+
         //! Inertial Measurement Unit (IMU) structure
         struct imustruc : public devicestruc
         {
@@ -2669,6 +2707,96 @@ union as a ::devicestruc.
                     if(!parsed["alpha"].is_null()) { alpha.from_json(parsed["alpha"].dump()); }
                     if(!parsed["mag"].is_null()) { mag.from_json(parsed["mag"].dump()); }
                     if(!parsed["bdot"].is_null()) { bdot.from_json(parsed["bdot"].dump()); }
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        };
+
+        //! Inertial Measurement Unit (IMU) structure
+        struct magstruc : public devicestruc
+        {
+            //! alignment quaternion
+            quaternion align;
+            //! Attitude rate vector
+            rvector omega;
+            //! Attitude acceleration vector
+            rvector alpha;
+            //! Magnetic field in sensor frame
+            rvector mag;
+            //! Magnetic field rate change in sensor frame
+            rvector bdot;
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "align" , align },
+                    { "omega" , omega },
+                    { "alpha" , alpha },
+                    { "mag"   , mag },
+                    { "bdot"  , bdot }
+                };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param	s	JSON-formatted string to set class contents to
+        @return n/a
+    */
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["align"].is_null()) { align.from_json(parsed["align"].dump()); }
+                    if(!parsed["omega"].is_null()) { omega.from_json(parsed["omega"].dump()); }
+                    if(!parsed["alpha"].is_null()) { alpha.from_json(parsed["alpha"].dump()); }
+                    if(!parsed["mag"].is_null()) { mag.from_json(parsed["mag"].dump()); }
+                    if(!parsed["bdot"].is_null()) { bdot.from_json(parsed["bdot"].dump()); }
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        };
+
+        //! Inertial Measurement Unit (IMU) structure
+        struct gyrostruc : public devicestruc
+        {
+            //! alignment quaternion
+            quaternion align;
+            //! Attitude rate vector
+            float omega;
+            //! Attitude acceleration vector
+            float alpha;
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "align" , align },
+                    { "omega" , omega },
+                    { "alpha" , alpha },
+                };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param	s	JSON-formatted string to set class contents to
+        @return n/a
+    */
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["align"].is_null()) { align.from_json(parsed["align"].dump()); }
+                    if(!parsed["omega"].is_null()) { omega = parsed["omega"].number_value(); }
+                    if(!parsed["alpha"].is_null()) { alpha = parsed["alpha"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -4522,175 +4650,6 @@ union as a ::devicestruc.
             }
         };
 
-        //! Device structure
-        /*! Complete details of each Device. It is a union of all the
-possible device types, with a generic type for looking up basic
-information.
-*/
-        //        struct devicestruc : public allstruc
-        //        {
-        //            allstruc all;
-        //            antstruc ant;
-        //            battstruc batt;
-        //            bcregstruc bcreg;
-        //            busstruc bus;
-        //            camstruc cam;
-        //            cpustruc cpu;
-        //            diskstruc disk;
-        //            gpsstruc gps;
-        //            htrstruc htr;
-        //            imustruc imu;
-        //            mccstruc mcc;
-        //            motrstruc motr;
-        //            mtrstruc mtr;
-        //            ploadstruc pload;
-        //            propstruc prop;
-        //            psenstruc psen;
-        //            pvstrgstruc pvstrg;
-        //            rotstruc rot;
-        //            rwstruc rw;
-        //            rxrstruc rxr;
-        //            ssenstruc ssen;
-        //            sttstruc stt;
-        //            suchistruc suchi;
-        //            swchstruc swch;
-        //            tcustruc tcu;
-        //            tcvstruc tcv;
-        //            telemstruc telem;
-        //            thststruc thst;
-        //            tncstruc tnc;
-        //            tsenstruc tsen;
-        //            txrstruc txr;
-
-        /// Convert class contents to JSON object
-        /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
-    */
-        //            json11::Json to_json() const {
-        //                return json11::Json::object {
-        //                    { "enabled" , enabled },
-        //                    { "type"	, type },
-        //                    { "model"   , model },
-        //                    { "flag"	, static_cast<int>(flag) },
-        //                    { "addr"	, addr },
-        //                    { "cidx"	, cidx },
-        //                    { "didx"	, didx },
-        //                    { "pidx"	, pidx },
-        //                    { "bidx"	, bidx },
-        //                    { "portidx" , portidx },
-        //                    { "namp"	, namp},
-        //                    { "nvolt"   , nvolt },
-        //                    { "amp"	 , amp },
-        //                    { "volt"	, volt },
-        //                    { "power"   , power },
-        //                    { "energy"  , energy },
-        //                    { "drate"   , drate },
-        //                    { "temp"	, temp },
-        //                    { "utc"	 , utc },
-
-        //                    { "all" , all },
-        //                    { "ant" , ant },
-        //                    { "batt" , batt },
-        //                    { "bcreg" , bcreg },
-        //                    { "bus" , bus },
-        //                    { "cam" , cam },
-        //                    { "cpu" , cpu },
-        //                    { "disk" , disk },
-        //                    { "gps" , gps },
-        //                    { "htr" , htr },
-        //                    { "imu" , imu },
-        //                    { "mcc" , mcc },
-        //                    { "motr" , motr },
-        //                    { "mtr" , mtr },
-        //                    { "pload" , pload },
-        //                    { "prop" , prop },
-        //                    { "psen" , psen },
-        //                    { "pvstrg" , pvstrg },
-        //                    { "rot" , rot },
-        //                    { "rw" , rw },
-        //                    { "rxr" , rxr },
-        //                    { "ssen" , ssen },
-        //                    { "stt" , stt },
-        //                    { "suchi" , suchi },
-        //                    { "swch" , swch },
-        //                    { "tcu" , tcu },
-        //                    { "tcv" , tcv },
-        //                    { "telem" , telem },
-        //                    { "thst" , thst },
-        //                    { "tnc" , tnc },
-        //                    { "tsen" , tsen },
-        //                    { "txr" , txr }
-        //                };
-        //            }
-
-        /// Set class contents from JSON string
-        /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
-    */
-        //            void from_json(const string& js) {
-        //                string error;
-        //                json11::Json p = json11::Json::parse(js,error);
-        //                if(error.empty()) {
-        //                    if(!p["enabled"].is_null()) { enabled = p["enabled"].bool_value(); }
-        //                    if(!p["type"].is_null()) { type = p["type"].int_value(); }
-        //                    if(!p["model"].is_null()) { model = p["model"].int_value(); }
-        //                    if(!p["flag"].is_null()) { flag = p["flag"].int_value(); }
-        //                    if(!p["addr"].is_null()) { addr = p["addr"].int_value(); }
-        //                    if(!p["cidx"].is_null()) { cidx = p["cidx"].int_value(); }
-        //                    if(!p["didx"].is_null()) { didx = p["didx"].int_value(); }
-        //                    if(!p["pidx"].is_null()) { pidx = p["pidx"].int_value(); }
-        //                    if(!p["bidx"].is_null()) { bidx = p["bidx"].int_value(); }
-        //                    if(!p["portidx"].is_null()) { portidx = p["portidx"].int_value(); }
-        //                    if(!p["namp"].is_null()) { namp = p["namp"].number_value(); }
-        //                    if(!p["nvolt"].is_null()) { nvolt = p["nvolt"].number_value(); }
-        //                    if(!p["amp"].is_null()) { amp = p["amp"].number_value(); }
-        //                    if(!p["volt"].is_null()) { volt = p["volt"].number_value(); }
-        //                    if(!p["power"].is_null()) { power = p["power"].number_value(); }
-        //                    if(!p["energy"].is_null()) { energy = p["energy"].number_value(); }
-        //                    if(!p["drate"].is_null()) { drate = p["drate"].number_value(); }
-        //                    if(!p["temp"].is_null()) { temp = p["temp"].number_value(); }
-        //                    if(!p["utc"].is_null()) { utc = p["utc"].number_value(); }
-
-        //                    if(!p["all"].is_null())		{ all.from_json(p["all"].dump()); }
-        //                    if(!p["ant"].is_null())		{ ant.from_json(p["ant"].dump()); }
-        //                    if(!p["batt"].is_null())	{ batt.from_json(p["batt"].dump()); }
-        //                    if(!p["bcreg"].is_null())	{ bcreg.from_json(p["bcreg"].dump()); }
-        //                    if(!p["bus"].is_null())		{ bus.from_json(p["bus"].dump()); }
-        //                    if(!p["cam"].is_null())		{ cam.from_json(p["cam"].dump()); }
-        //                    if(!p["cpu"].is_null())		{ cpu.from_json(p["cpu"].dump()); }
-        //                    if(!p["disk"].is_null())	{ disk.from_json(p["disk"].dump()); }
-        //                    if(!p["gps"].is_null())		{ gps.from_json(p["gps"].dump()); }
-        //                    if(!p["htr"].is_null())		{ htr.from_json(p["htr"].dump()); }
-        //                    if(!p["imu"].is_null())		{ imu.from_json(p["imu"].dump()); }
-        //                    if(!p["mcc"].is_null())		{ mcc.from_json(p["mcc"].dump()); }
-        //                    if(!p["motr"].is_null())	{ motr.from_json(p["motr"].dump()); }
-        //                    if(!p["mtr"].is_null())		{ mtr.from_json(p["mtr"].dump()); }
-        //                    if(!p["pload"].is_null())	{ pload.from_json(p["pload"].dump()); }
-        //                    if(!p["prop"].is_null())	{ prop.from_json(p["prop"].dump()); }
-        //                    if(!p["psen"].is_null())	{ psen.from_json(p["psen"].dump()); }
-        //                    if(!p["pvstrg"].is_null())	{ pvstrg.from_json(p["pvstrg"].dump()); }
-        //                    if(!p["rot"].is_null())		{ rot.from_json(p["rot"].dump()); }
-        //                    if(!p["rw"].is_null())		{ rw.from_json(p["rw"].dump()); }
-        //                    if(!p["rxr"].is_null())		{ rxr.from_json(p["rxr"].dump()); }
-        //                    if(!p["ssen"].is_null())	{ ssen.from_json(p["ssen"].dump()); }
-        //                    if(!p["stt"].is_null())		{ stt.from_json(p["stt"].dump()); }
-        //                    if(!p["suchi"].is_null())	{ suchi.from_json(p["suchi"].dump()); }
-        //                    if(!p["swch"].is_null())	{ swch.from_json(p["swch"].dump()); }
-        //                    if(!p["tcu"].is_null())		{ tcu.from_json(p["tcu"].dump()); }
-        //                    if(!p["tcv"].is_null())		{ tcv.from_json(p["tcv"].dump()); }
-        //                    if(!p["telem"].is_null())	{ telem.from_json(p["telem"].dump()); }
-        //                    if(!p["thst"].is_null())	{ thst.from_json(p["thst"].dump()); }
-        //                    if(!p["tnc"].is_null())		{ tnc.from_json(p["tnc"].dump()); }
-        //                    if(!p["tsen"].is_null())	{ tsen.from_json(p["tsen"].dump()); }
-        //                    if(!p["txr"].is_null())		{ txr.from_json(p["txr"].dump()); }
-        //                } else {
-        //                    cerr<<"ERROR: <"<<error<<">"<<endl;
-        //                }
-        //                return;
-        //            }
-        //        };
-
         //! Specific Device structure
         /*! Counts and arrays of pointers to each type of device, ordered by type.
 */
@@ -4708,8 +4667,10 @@ information.
                 total += cpu.capacity() * sizeof(cpustruc);
                 total += disk.capacity() * sizeof(diskstruc);
                 total += gps.capacity() * sizeof(gpsstruc);
+                total += gyro.capacity() * sizeof(gyrostruc);
                 total += htr.capacity() * sizeof(htrstruc);
                 total += imu.capacity() * sizeof(imustruc);
+                total += mag.capacity() * sizeof(magstruc);
                 total += mcc.capacity() * sizeof(mccstruc);
                 total += motr.capacity() * sizeof(motrstruc);
                 total += mtr.capacity() * sizeof(mtrstruc);
@@ -4731,6 +4692,7 @@ information.
                 total += tnc.capacity() * sizeof(tncstruc);
                 total += tsen.capacity() * sizeof(tsenstruc);
                 total += txr.capacity() * sizeof(tcvstruc);
+                total += xyzsen.capacity() * sizeof(xyzsenstruc);
                 return total;
             }
 
@@ -4744,8 +4706,10 @@ information.
                 vector<cpustruc>(cpu).swap(cpu);
                 vector<diskstruc>(disk).swap(disk);
                 vector<gpsstruc>(gps).swap(gps);
+                vector<gyrostruc>(gyro).swap(gyro);
                 vector<htrstruc>(htr).swap(htr);
                 vector<imustruc>(imu).swap(imu);
+                vector<magstruc>(mag).swap(mag);
                 vector<mccstruc>(mcc).swap(mcc);
                 vector<motrstruc>(motr).swap(motr);
                 vector<mtrstruc>(mtr).swap(mtr);
@@ -4767,6 +4731,7 @@ information.
                 vector<tncstruc>(tnc).swap(tnc);
                 vector<tsenstruc>(tsen).swap(tsen);
                 vector<txrstruc>(txr).swap(txr);
+                vector<xyzsenstruc>(xyzsen).swap(xyzsen);
             }
 
             //            uint16_t all_cnt = 0;
@@ -4777,8 +4742,10 @@ information.
             uint16_t cpu_cnt = 0;
             uint16_t disk_cnt = 0;
             uint16_t gps_cnt = 0;
+            uint16_t gyro_cnt = 0;
             uint16_t htr_cnt = 0;
             uint16_t imu_cnt = 0;
+            uint16_t mag_cnt = 0;
             uint16_t mcc_cnt = 0;
             uint16_t motr_cnt = 0;
             uint16_t mtr_cnt = 0;
@@ -4801,40 +4768,8 @@ information.
             uint16_t tsen_cnt = 0;
             uint16_t tnc_cnt = 0;
             uint16_t txr_cnt = 0;
-            //            vector<uint16_t>all;
-            //            vector<uint16_t>ant;
-            //            vector<uint16_t>batt;
-            //            vector<uint16_t>bcreg;
-            //            vector<uint16_t>bus;
-            //            vector<uint16_t>cam;
-            //            vector<uint16_t>cpu;
-            //            vector<uint16_t>disk;
-            //            vector<uint16_t>gps;
-            //            vector<uint16_t>htr;
-            //            vector<uint16_t>imu;
-            //            vector<uint16_t>mcc;
-            //            vector<uint16_t>motr;
-            //            vector<uint16_t>mtr;
-            //            vector<uint16_t>pload;
-            //            vector<uint16_t>prop;
-            //            vector<uint16_t>psen;
-            //            vector<uint16_t>pvstrg;
-            //            vector<uint16_t>rot;
-            //            vector<uint16_t>rw;
-            //            vector<uint16_t>rxr;
-            //            vector<uint16_t>ssen;
-            //            vector<uint16_t>stt;
-            //            vector<uint16_t>suchi;
-            //            vector<uint16_t>swch;
-            //            vector<uint16_t>tcu;
-            //            vector<uint16_t>tcv;
-            //            vector<uint16_t>telem;
-            //            vector<uint16_t>thst;
-            //            vector<uint16_t>tnc;
-            //            vector<uint16_t>tsen;
-            //            vector<uint16_t>txr;
+            uint16_t xyzsen_cnt = 0;
 
-            //            vector<allstruc>all;
             vector<antstruc>ant;
             vector<battstruc>batt;
             vector<bcregstruc>bcreg;
@@ -4843,8 +4778,10 @@ information.
             vector<cpustruc>cpu;
             vector<diskstruc>disk;
             vector<gpsstruc>gps;
+            vector<gyrostruc>gyro;
             vector<htrstruc>htr;
             vector<imustruc>imu;
+            vector<magstruc>mag;
             vector<mccstruc>mcc;
             vector<motrstruc>motr;
             vector<mtrstruc>mtr;
@@ -4866,6 +4803,7 @@ information.
             vector<tncstruc>tnc;
             vector<tsenstruc>tsen;
             vector<txrstruc>txr;
+            vector<xyzsenstruc>xyzsen;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -4881,8 +4819,10 @@ information.
                     { "cpu_cnt", cpu_cnt },
                     { "disk_cnt", disk_cnt },
                     { "gps_cnt", gps_cnt },
+                    { "gyro_cnt", gyro_cnt },
                     { "htr_cnt", htr_cnt },
                     { "imu_cnt", imu_cnt },
+                    { "mag_cnt", mag_cnt },
                     { "mcc_cnt", mcc_cnt },
                     { "motr_cnt", motr_cnt },
                     { "mtr_cnt", mtr_cnt },
@@ -4905,6 +4845,7 @@ information.
                     { "tsen_cnt", tsen_cnt },
                     { "tnc_cnt", tnc_cnt },
                     { "txr_cnt", txr_cnt },
+                    { "xyzsen_cnt", xyzsen_cnt },
                     //                    { "all", all },
                     { "ant", ant },
                     { "batt", batt },
@@ -4914,8 +4855,10 @@ information.
                     { "cpu", cpu },
                     { "disk", disk },
                     { "gps", gps },
+                    { "gyro", gyro },
                     { "htr", htr },
                     { "imu", imu },
+                    { "mag", mag },
                     { "mcc", mcc },
                     { "motr", motr },
                     { "mtr", mtr },
@@ -4936,7 +4879,8 @@ information.
                     { "thst", thst },
                     { "tnc", tnc },
                     { "tsen", tsen },
-                    { "txr", txr }
+                    { "txr", txr },
+                    { "xyzsen", xyzsen },
                 };
             }
 
@@ -4958,8 +4902,10 @@ information.
                     if(!p["cpu_cnt"].is_null()) { cpu_cnt = p["cpu_cnt"].int_value(); }
                     if(!p["disk_cnt"].is_null()) { disk_cnt = p["disk_cnt"].int_value(); }
                     if(!p["gps_cnt"].is_null()) { gps_cnt = p["gps_cnt"].int_value(); }
+                    if(!p["gyro_cnt"].is_null()) { gyro_cnt = p["gyro_cnt"].int_value(); }
                     if(!p["htr_cnt"].is_null()) { htr_cnt = p["htr_cnt"].int_value(); }
                     if(!p["imu_cnt"].is_null()) { imu_cnt = p["imu_cnt"].int_value(); }
+                    if(!p["mag_cnt"].is_null()) { mag_cnt = p["mag_cnt"].int_value(); }
 
                     if(!p["mcc_cnt"].is_null()) { mcc_cnt = p["mcc_cnt"].int_value(); }
                     if(!p["motr_cnt"].is_null()) { motr_cnt = p["motr_cnt"].int_value(); }
@@ -4987,6 +4933,7 @@ information.
 
                     if(!p["tnc_cnt"].is_null()) { tnc_cnt = p["tnc_cnt"].int_value(); }
                     if(!p["txr_cnt"].is_null()) { txr_cnt = p["txr_cnt"].int_value(); }
+                    if(!p["xyzsen_cnt"].is_null()) { xyzsen_cnt = p["xyzsen_cnt"].int_value(); }
 
                     //                    for(size_t i = 0; i < all.size(); ++i) {
                     //                        if(!p["all"][i].is_null()) { all[i] = p["all"][i].int_value(); }
@@ -5017,12 +4964,18 @@ information.
                     for(size_t i = 0; i < gps.size(); ++i) {
                         if(!p["gps"][i].is_null()) { gps[i].from_json(p["gps"][i].dump()); }
                     }
+                    for(size_t i = 0; i < gyro.size(); ++i) {
+                        if(!p["gyro"][i].is_null()) { gyro[i].from_json(p["gyro"][i].dump()); }
+                    }
                     for(size_t i = 0; i < htr.size(); ++i) {
                         if(!p["htr"][i].is_null()) { htr[i].from_json(p["htr"][i].dump()); }
                     }
 
                     for(size_t i = 0; i < imu.size(); ++i) {
                         if(!p["imu"][i].is_null()) { imu[i].from_json(p["imu"][i].dump()); }
+                    }
+                    for(size_t i = 0; i < mag.size(); ++i) {
+                        if(!p["mag"][i].is_null()) { mag[i].from_json(p["mag"][i].dump()); }
                     }
                     for(size_t i = 0; i < mcc.size(); ++i) {
                         if(!p["mcc"][i].is_null()) { mcc[i].from_json(p["mcc"][i].dump()); }
@@ -5090,6 +5043,9 @@ information.
                     }
                     for(size_t i = 0; i < txr.size(); ++i) {
                         if(!p["txr"][i].is_null()) { txr[i].from_json(p["txr"][i].dump()); }
+                    }
+                    for(size_t i = 0; i < xyzsen.size(); ++i) {
+                        if(!p["xyzsen"][i].is_null()) { xyzsen[i].from_json(p["xyzsen"][i].dump()); }
                     }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -8014,6 +7970,18 @@ information.
                         add_name(basename+".position_type", &devspec.gps[didx].position_type, "uint16_t");
                         add_name(basename+".solution_status", &devspec.gps[didx].solution_status, "uint16_t");
                         break;
+                    case DeviceType::GYRO:
+                        basename = "devspec.gyro[" + std::to_string(didx) + "]";
+                        add_name(basename+"", &devspec.gyro[didx], "gyrostruc");
+                        add_name(basename+".align", &devspec.gyro[didx].align, "quaternion");
+                        add_name(basename+".align.d", &devspec.gyro[didx].align.d, "cvector");
+                        add_name(basename+".align.d.x", &devspec.gyro[didx].align.d.x, "double");
+                        add_name(basename+".align.d.y", &devspec.gyro[didx].align.d.y, "double");
+                        add_name(basename+".align.d.z", &devspec.gyro[didx].align.d.z, "double");
+                        add_name(basename+".align.w", &devspec.gyro[didx].align.w, "double");
+                        add_name(basename+".omega", &devspec.gyro[didx].omega, "float");
+                        add_name(basename+".alpha", &devspec.gyro[didx].alpha, "float");
+                        break;
                     case DeviceType::HTR:
                         basename = "devspec.htr[" + std::to_string(didx) + "]";
                         add_name(basename+"", &devspec.htr[didx], "htrstruc");
@@ -8068,6 +8036,40 @@ information.
                         for(size_t j = 0; j < sizeof(devspec.imu[didx].bdot.col)/sizeof(devspec.imu[didx].bdot.col[0]); ++j) {
                             string rebasename = basename + "imu.bdot.col[" + std::to_string(j) + "]";
                             add_name(rebasename, &devspec.imu[didx].bdot.col[j], "double");
+                        }
+                        break;
+                    case DeviceType::MAG:
+                        basename = "devspec.mag[" + std::to_string(didx) + "]";
+                        add_name(basename+"", &devspec.mag[didx], "magstruc");
+                        add_name(basename+".align", &devspec.mag[didx].align, "quaternion");
+                        add_name(basename+".align.d", &devspec.mag[didx].align.d, "cvector");
+                        add_name(basename+".align.d.x", &devspec.mag[didx].align.d.x, "double");
+                        add_name(basename+".align.d.y", &devspec.mag[didx].align.d.y, "double");
+                        add_name(basename+".align.d.z", &devspec.mag[didx].align.d.z, "double");
+                        add_name(basename+".align.w", &devspec.mag[didx].align.w, "double");
+                        add_name(basename+".omega", &devspec.mag[didx].omega, "rvector");
+                        add_name(basename+".omega.col", &devspec.mag[didx].omega.col, "double[]");
+                        for(size_t j = 0; j < sizeof(devspec.mag[didx].omega.col)/sizeof(devspec.mag[didx].omega.col[0]); ++j) {
+                            string rebasename = basename + "mag.omega.col[" + std::to_string(j) + "]";
+                            add_name(rebasename, &devspec.mag[didx].omega.col[j], "double");
+                        }
+                        add_name(basename+".alpha", &devspec.mag[didx].alpha, "rvector");
+                        add_name(basename+".alpha.col", &devspec.mag[didx].alpha.col, "double[]");
+                        for(size_t j = 0; j < sizeof(devspec.mag[didx].alpha.col)/sizeof(devspec.mag[didx].alpha.col[0]); ++j) {
+                            string rebasename = basename + "mag.alpha.col[" + std::to_string(j) + "]";
+                            add_name(rebasename, &devspec.mag[didx].alpha.col[j], "double");
+                        }
+                        add_name(basename+".mag", &devspec.mag[didx].mag, "rvector");
+                        add_name(basename+".mag.col", &devspec.mag[didx].mag.col, "double[]");
+                        for(size_t j = 0; j < sizeof(devspec.mag[didx].mag.col)/sizeof(devspec.mag[didx].mag.col[0]); ++j) {
+                            string rebasename = basename + "mag.mag.col[" + std::to_string(j) + "]";
+                            add_name(rebasename, &devspec.mag[didx].mag.col[j], "double");
+                        }
+                        add_name(basename+".bdot", &devspec.mag[didx].bdot, "rvector");
+                        add_name(basename+".bdot.col", &devspec.mag[didx].bdot.col, "double[]");
+                        for(size_t j = 0; j < sizeof(devspec.mag[didx].bdot.col)/sizeof(devspec.mag[didx].bdot.col[0]); ++j) {
+                            string rebasename = basename + "mag.bdot.col[" + std::to_string(j) + "]";
+                            add_name(rebasename, &devspec.mag[didx].bdot.col[j], "double");
                         }
                         break;
                     case DeviceType::MCC:
@@ -8361,6 +8363,11 @@ information.
                         add_name(basename+".txutc", &devspec.txr[didx].txutc, "double");
                         add_name(basename+".uptime", &devspec.txr[didx].uptime, "double");
                         break;
+                    case DeviceType::XYZSEN:
+                        basename = "devspec.xyzsen[" + std::to_string(didx) + "]";
+                        add_name(basename+"", &devspec.xyzsen[didx], "xyzsenstruc");
+                        add_name(basename+".direction", &devspec.xyzsen[didx].direction, "rvector");
+                        break;
                     }
                 }
 
@@ -8375,8 +8382,10 @@ information.
                 add_name("devspec.cpu_cnt", &devspec.cpu_cnt, "uint16_t");
                 add_name("devspec.disk_cnt", &devspec.disk_cnt, "uint16_t");
                 add_name("devspec.gps_cnt", &devspec.gps_cnt, "uint16_t");
+                add_name("devspec.gyro_cnt", &devspec.gyro_cnt, "uint16_t");
                 add_name("devspec.htr_cnt", &devspec.htr_cnt, "uint16_t");
                 add_name("devspec.imu_cnt", &devspec.imu_cnt, "uint16_t");
+                add_name("devspec.mag_cnt", &devspec.mag_cnt, "uint16_t");
                 add_name("devspec.mcc_cnt", &devspec.mcc_cnt, "uint16_t");
                 add_name("devspec.motr_cnt", &devspec.motr_cnt, "uint16_t");
                 add_name("devspec.mtr_cnt", &devspec.mtr_cnt, "uint16_t");
@@ -8399,6 +8408,7 @@ information.
                 add_name("devspec.tsen_cnt", &devspec.tsen_cnt, "uint16_t");
                 add_name("devspec.tnc_cnt", &devspec.tnc_cnt, "uint16_t");
                 add_name("devspec.txr_cnt", &devspec.txr_cnt, "uint16_t");
+                add_name("devspec.xyzsen_cnt", &devspec.xyzsen_cnt, "uint16_t");
 
 
                 // vector<portstruc> port
