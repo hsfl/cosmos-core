@@ -85,6 +85,7 @@ namespace Cosmos {
                 CommandEpsState = 164,
                 CommandEpsWatchdog = 165,
                 CommandEpsSetTime = 166,
+                CommandEpsMinimumPower = 167,
                 CommandExecLoadCommand = 170,
                 CommandExecAddCommand = 171,
                 };
@@ -136,6 +137,7 @@ namespace Cosmos {
                 {TypeId::CommandEpsState, "EpsState"},
                 {TypeId::CommandEpsWatchdog, "EpsWatchdog"},
                 {TypeId::CommandEpsSetTime, "EpsSetTime"},
+                {TypeId::CommandEpsMinimumPower, "EpsMinimumPower"},
                 {TypeId::CommandExecLoadCommand, "ExecLoadCommand"},
                 {TypeId::CommandExecAddCommand, "ExecAddCommand"},
             };
@@ -186,6 +188,7 @@ namespace Cosmos {
                 {"EpsState", TypeId::CommandEpsState},
                 {"EpsWatchdog", TypeId::CommandEpsWatchdog},
                 {"EpsSetTime", TypeId::CommandEpsSetTime},
+                {"EpsMinimumPower", TypeId::CommandEpsMinimumPower},
                 {"AdcsCommunicate", TypeId::CommandAdcsCommunicate},
                 {"AdcsState", TypeId::CommandAdcsState},
                 {"AdcsSetRunMode", TypeId::CommandAdcsSetRunMode},
@@ -193,6 +196,12 @@ namespace Cosmos {
                 {"ExecAddCommand", TypeId::CommandExecAddCommand},
             };
 
+            struct __attribute__ ((packed)) CommunicateHeader
+            {
+                uint8_t unit;
+                uint8_t command;
+                uint16_t responsecount;
+            };
 
             struct __attribute__ ((packed))  ResponseHeader
             {
