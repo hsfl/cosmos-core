@@ -171,7 +171,7 @@ namespace Cosmos {
                     for (uint16_t i=0; i<tsencount; ++i)
                     {
                         beacon.ctemp[i] = cinfo->devspec.tsen[i].temp * 100. + .5;
-                        printf("EB TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
+//                        printf("EB TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+tsencount*2);
                 }
@@ -267,15 +267,16 @@ namespace Cosmos {
                         double mjd = beacon.met + cinfo->node.utcstart;
                         for (uint16_t i=0; i<(data.size()-9)/COSMOS_SIZEOF(cpu_beacon); ++i)
                         {
-                            cinfo->devspec.cpu[i].utc = mjd;
-                            cinfo->devspec.cpu[i].uptime = beacon.cpu[i].uptime;
-                            cinfo->devspec.cpu[i].boot_count = beacon.cpu[i].bootcount;
-                            cinfo->devspec.cpu[i].load = beacon.cpu[i].mload / 1000.;
-                            cinfo->devspec.cpu[i].gib = cinfo->devspec.cpu[i].maxgib * (beacon.cpu[i].mmemory / 1000.);
-                            cinfo->devspec.cpu[i].storage = beacon.cpu[i].mdisk / 1000.;
-                            cinfo->devspec.cpu[i].temp = beacon.cpu[i].ctemp / 100.;
-//                            printf("D CPU %u %s: pidx=%u uptime=%u name=%s\n", i, cinfo->devspec.cpu[i].name.c_str(), cinfo->devspec.cpu[i].pidx, cinfo->devspec.cpu[i].uptime, cinfo->pieces[cinfo->devspec.cpu[i].pidx].name.c_str());
-//                            fflush(stdout);
+                            if (beacon.cpu[i].uptime > 0.)
+                            {
+                                cinfo->devspec.cpu[i].utc = mjd;
+                                cinfo->devspec.cpu[i].uptime = beacon.cpu[i].uptime;
+                                cinfo->devspec.cpu[i].boot_count = beacon.cpu[i].bootcount;
+                                cinfo->devspec.cpu[i].load = beacon.cpu[i].mload / 1000.;
+                                cinfo->devspec.cpu[i].gib = cinfo->devspec.cpu[i].maxgib * (beacon.cpu[i].mmemory / 1000.);
+                                cinfo->devspec.cpu[i].storage = beacon.cpu[i].mdisk / 1000.;
+                                cinfo->devspec.cpu[i].temp = beacon.cpu[i].ctemp / 100.;
+                            }
                         }
                     }
                     break;
@@ -291,11 +292,14 @@ namespace Cosmos {
                             return GENERAL_ERROR_BAD_SIZE;
                         }
                         double mjd = beacon.met + cinfo->node.utcstart;
-                        for (uint16_t i=0; i<(data.size()-5)/COSMOS_SIZEOF(tsen_beacon); ++i)
+                        for (uint16_t i=0; i<(data.size()-5)/2; ++i)
                         {
-                            cinfo->devspec.tsen[i].utc = mjd;
-                            cinfo->devspec.tsen[i].temp = beacon.ctemp[i] / 100.;
-                            printf("D TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
+                            if (beacon.ctemp[i])
+                            {
+                                cinfo->devspec.tsen[i].utc = mjd;
+                                cinfo->devspec.tsen[i].temp = beacon.ctemp[i] / 100.;
+                                printf("D TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
+                            }
                         }
                     }
                     break;
