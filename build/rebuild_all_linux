@@ -3,7 +3,7 @@
 ## script to rebuild all targets and capture all output, recording number of warnings and errors
 
 # re-cmake the linux directory
-rm -r linux 2>/dev/null
+rm -fr linux 2>/dev/null
 mkdir linux
 ./do_cmake linux
 
