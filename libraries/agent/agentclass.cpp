@@ -1881,7 +1881,7 @@ namespace Cosmos
                             bcount = stoi(parms[1]);
                         }
                     }
-                    packet.data.resize(3);
+                    packet.data.resize(2);
                     packet.data[0] = btype;
                     packet.data[1] = bcount;
                 }
