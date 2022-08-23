@@ -2124,7 +2124,7 @@ namespace Cosmos
                         case 1:
                         {
                             agent->debug_error.Printf("%u", parms.size());
-                            for (int var = 0; var < parms.size(); ++var)
+                            for (size_t var = 0; var < parms.size(); ++var)
                             {
                                 agent->debug_error.Printf("%s ", parms[var]);
                                 if(var == 6)
@@ -2150,7 +2150,7 @@ namespace Cosmos
                         }
                         case 2:
                         {
-                            for (int var = 0; var < parms.size(); ++var)
+                            for (size_t var = 0; var < parms.size(); ++var)
                             {
                                 if(var == 6)
                                 {
@@ -2175,7 +2175,7 @@ namespace Cosmos
                         }
                         case 3 :
                         {
-                            for (int var = 0; var < parms.size(); ++var)
+                            for (size_t var = 0; var < parms.size(); ++var)
                             {
                                 if(var == 6)
                                 {
@@ -2200,7 +2200,7 @@ namespace Cosmos
                         }
                     case 4:
                         {
-                            for (int var = 0; var < parms.size(); ++var)
+                            for (size_t var = 0; var < parms.size(); ++var)
                             {
                                 if(var == 6)
                                 {
@@ -2217,7 +2217,7 @@ namespace Cosmos
                         }
                     case 5:
                         {
-                            for (int var = 0; var < parms.size(); ++var)
+                            for (size_t var = 0; var < parms.size(); ++var)
                             {
                                 if(var == 6  || var == 8)
                                 {
@@ -2242,7 +2242,7 @@ namespace Cosmos
                         }
                     case 6:
                         {
-                            for (int var = 0; var < parms.size(); ++var)
+                            for (size_t var = 0; var < parms.size(); ++var)
                             {
                                 if(var == 6)
                                 {
