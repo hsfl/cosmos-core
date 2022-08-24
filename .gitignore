@@ -1,4 +1,4 @@
-*.user
+*.user*
 *.autosave
 
 # ignore everything in build folder except for the scripts
@@ -50,16 +50,23 @@ libraries/device/astrodev/
 
 libraries/save/astrodev/
 
+build/minix/
+
+build/arm_Release/
+
+build/iobc_hyti_release/
+build/arm_release/
+
 tags
 QtCreatorDeployment.txt
 
 CMakeLists\.txt\.user*
 
-CMakeLists\.txt\.user\.3b6bfd8\.20
+*.8-pre1
 
-CMakeLists\.txt\.user\.4\.8-pre1
+QtCreatorDeployment\.txt
 
-CMakeLists\.txt\.user\.84947fe\.4\.8-pre1
+build/gitcheck/
 
 CMakeLists\.txt\.user\.ece56c6\.4\.8-pre1
 

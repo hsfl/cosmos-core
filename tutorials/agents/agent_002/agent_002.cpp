@@ -218,9 +218,7 @@ int main(int argc, char **argv)
 int32_t hello_agent_002_request_function(string & request, string &response, Agent *a)
 {
     // Send response back to agent_001
-    cout << "[" << node_name << ":" << agent_name <<"] received <"<<request<<"> request!"<<endl;
-    response = "You have found me " + to_unsigned(++request_counter) + " times.";
-	cout<<"["<<node_name<<":"<<agent_name<<"] transmit <"<<request<<"> response:\n    TX: \""<<response<<"\" ("<<response.size()<<" bytes)"<<endl;
+    response = "hello " + std::to_string(request_counter);
 
 	// agent is set to this pointer?
     //cout << "[" << node_name << ":" << agent_name <<"] received a request from ["<<a->nodeName<<":"<<a->agentName<<"]! Its response is: " << response << endl;
