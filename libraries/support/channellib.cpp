@@ -93,7 +93,6 @@ namespace Cosmos {
             {
                 if (channel[i].name == name)
                 {
-                    printf("Channel: Found %s %u\n", channel[i].name.c_str(), i);
                     return i;
                 }
             }
