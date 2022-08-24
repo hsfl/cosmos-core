@@ -1881,7 +1881,7 @@ namespace Cosmos
                             bcount = stoi(parms[1]);
                         }
                     }
-                    packet.data.resize(3);
+                    packet.data.resize(2);
                     packet.data[0] = btype;
                     packet.data[1] = bcount;
                 }
@@ -2124,7 +2124,7 @@ namespace Cosmos
                         case 1:
                         {
                             agent->debug_error.Printf("%u", parms.size());
-                            for (uint16_t var = 0; var < parms.size(); ++var)
+                            for (size_t var = 0; var < parms.size(); ++var)
                             {
                                 agent->debug_error.Printf("%s ", parms[var]);
                                 if(var == 6)
@@ -2150,7 +2150,7 @@ namespace Cosmos
                         }
                         case 2:
                         {
-                            for (uint16_t var = 0; var < parms.size(); ++var)
+                            for (size_t var = 0; var < parms.size(); ++var)
                             {
                                 if(var == 6)
                                 {
@@ -2175,7 +2175,7 @@ namespace Cosmos
                         }
                         case 3 :
                         {
-                            for (uint16_t var = 0; var < parms.size(); ++var)
+                            for (size_t var = 0; var < parms.size(); ++var)
                             {
                                 if(var == 6)
                                 {
@@ -2200,7 +2200,7 @@ namespace Cosmos
                         }
                     case 4:
                         {
-                            for (uint16_t var = 0; var < parms.size(); ++var)
+                            for (size_t var = 0; var < parms.size(); ++var)
                             {
                                 if(var == 6)
                                 {
@@ -2217,7 +2217,7 @@ namespace Cosmos
                         }
                     case 5:
                         {
-                            for (uint16_t var = 0; var < parms.size(); ++var)
+                            for (size_t var = 0; var < parms.size(); ++var)
                             {
                                 if(var == 6  || var == 8)
                                 {
@@ -2242,7 +2242,7 @@ namespace Cosmos
                         }
                     case 6:
                         {
-                            for (uint16_t var = 0; var < parms.size(); ++var)
+                            for (size_t var = 0; var < parms.size(); ++var)
                             {
                                 if(var == 6)
                                 {
