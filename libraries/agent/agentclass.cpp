@@ -3892,7 +3892,7 @@ acquired.
                 {
                     header.response_id = centisec();
                 }
-                header.met = 86400 * (utc2unixseconds(currentmjd()) - cinfo->node.utcstart);
+                header.met = (currentmjd() - cinfo->node.utcstart);
                 uint16_t chunk_size = channels.channel[number].datasize - COSMOS_SIZEOF(PacketComm::ResponseHeader);
 
                 if (response.size() / chunk_size > 254)

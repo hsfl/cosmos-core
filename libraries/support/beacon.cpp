@@ -26,7 +26,7 @@ namespace Cosmos {
                 return GENERAL_ERROR_NULLPOINTER;
             }
 
-            cinfo->node.met = (utc2unixseconds(currentmjd()) - cinfo->node.utcstart);
+            cinfo->node.met = (currentmjd() - cinfo->node.utcstart);
             data.clear();
             this->type = type;
             switch (type)
@@ -49,7 +49,7 @@ namespace Cosmos {
                     beacon.met = cinfo->node.met;
                     beacon.uptime = cinfo->devspec.cpu[0].uptime;
                     beacon.bootcount = cinfo->devspec.cpu[0].boot_count;
-                    beacon.initialdate = cinfo->node.utcstart;
+                    beacon.initialdate = utc2unixseconds(cinfo->node.utcstart) + .5;
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
                 }
                 break;
@@ -139,7 +139,7 @@ namespace Cosmos {
                 {
                     cpus_beacon beacon;
                     beacon.met = cinfo->node.met;
-                    beacon.initialdate = cinfo->node.utcstart;
+                    beacon.initialdate = utc2unixseconds(cinfo->node.utcstart) + .5;
                     uint16_t cpucount = cinfo->devspec.cpu.size() < cpu_count?cinfo->devspec.cpu.size():cpu_count;
                     for (uint16_t i=0; i<cpucount; ++i)
                     {
@@ -263,7 +263,7 @@ namespace Cosmos {
                         {
                             return GENERAL_ERROR_BAD_SIZE;
                         }
-                        cinfo->node.utcstart = beacon.initialdate;
+                        cinfo->node.utcstart = unix2utc(beacon.initialdate);
                         double mjd = beacon.met + cinfo->node.utcstart;
                         for (uint16_t i=0; i<(data.size()-9)/COSMOS_SIZEOF(cpu_beacon); ++i)
                         {

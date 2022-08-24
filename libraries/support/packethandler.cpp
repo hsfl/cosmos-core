@@ -123,7 +123,7 @@ namespace Cosmos {
             vector<PacketComm> packets;
             PacketComm::ResponseHeader header;
             header.response_id = response_id;
-            header.met = 86400 * (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart);
+            header.met = (currentmjd() - agent->cinfo->node.utcstart);
             PacketComm packet;
             packet.header.type = PacketComm::TypeId::DataResponse;
             uint8_t chunk_size = (data_size-COSMOS_SIZEOF(PacketComm::ResponseHeader));
@@ -328,7 +328,7 @@ namespace Cosmos {
             {
                 if (tests.find(last_test_id) != tests.end())
                 {
-                    sresponse = to_label("TestMET", (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart)) + to_label(" Test_Id", last_test_id);
+                    sresponse = to_label("TestMET", (currentmjd() - agent->cinfo->node.utcstart)) + to_label(" Test_Id", last_test_id);
                     sresponse +=  to_label(" Packet_Id", tests[last_test_id].last_packet_id);
                     sresponse += " Good: " + to_unsigned(tests[last_test_id].good_count);
                     sresponse += " Skip: " + to_unsigned(tests[last_test_id].skip_count);
@@ -369,7 +369,7 @@ namespace Cosmos {
                 }
             }
             tests[test_id].total_count = tests[test_id].good_count + tests[test_id].crc_count + tests[test_id].size_count + tests[test_id].skip_count;
-            sresponse += to_label("TestMET", (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart)) + to_label(" Test_Id", test_id);
+            sresponse += to_label("TestMET", (currentmjd() - agent->cinfo->node.utcstart)) + to_label(" Test_Id", test_id);
             if (packet_id == ((uint32_t)-1))
             {
                 sresponse +=  to_label(" Packet_Id", tests[test_id].last_packet_id+1);
@@ -416,7 +416,7 @@ namespace Cosmos {
             memcpy(&header, packet.data.data(), header_size);
             chunk_id = header.chunk_id;
             chunks = header.chunks;
-            file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "main", header.met, data_name(agent->cinfo->node.utcstart + header.met/86400., "gresp", NodeData::lookup_node_id_name(packet.header.orig), "main", to_unsigned(header.response_id)));
+            file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "main", header.met, data_name(agent->cinfo->node.utcstart + header.met, "gresp", NodeData::lookup_node_id_name(packet.header.orig), "main", to_unsigned(header.response_id)));
 
             if (file.path.size())
             {
@@ -543,7 +543,6 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::DataBeacon;
             packet.header.dest = packet.header.orig;
             packet.header.orig = agent->nodeId;
-            printf("SendBeacon: Type=%u Size=%lu Orig=%u Dest=%u Radio=%u\n", packet.data[0], response.size(), packet.header.orig, packet.header.dest, packet.header.radio);
             fflush(stdout);
             packet.data.clear();
             packet.data.insert(packet.data.end(), response.begin(), response.end());
@@ -671,7 +670,7 @@ namespace Cosmos {
         {
             int32_t iretn=0;
             string answer = mjd2iso8601(currentmjd());
-            answer += " " + to_label("MET", 86400 * (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart));
+            answer += " " + to_label("MET", currentmjd() - agent->cinfo->node.utcstart);
             response.clear();
             response.insert(response.begin(), answer.begin(), answer.end());
             return iretn;
@@ -686,7 +685,7 @@ namespace Cosmos {
             packet.data.resize(16);
             double mjd = currentmjd();
             memcpy(&packet.data[0], &mjd, 8);
-            double met = 86400 * (utc2unixseconds(currentmjd()) - agent->cinfo->node.utcstart);
+            double met = currentmjd() - agent->cinfo->node.utcstart;
             memcpy(&packet.data[8], &met, 8);
             iretn = agent->push_unwrapped(packet.header.radio, packet);
             return iretn;
@@ -710,7 +709,7 @@ namespace Cosmos {
             chunk_id = header.chunk_id;
             chunks = header.chunks;
             printf("ADCSResp [%u/%u] %u ", chunk_id, chunks, packet.data[header_size]);
-            file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "adcs", header.met, data_name(agent->cinfo->node.utcstart + header.met/86400., "aresp", NodeData::lookup_node_id_name(packet.header.orig), "adcs", to_unsigned(header.command)));
+            file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "adcs", header.met, data_name(agent->cinfo->node.utcstart + header.met, "aresp", NodeData::lookup_node_id_name(packet.header.orig), "adcs", to_unsigned(header.command)));
             if (file.path.size())
             {
                 FILE *tf;
@@ -783,7 +782,7 @@ namespace Cosmos {
             chunk_id = header.chunk_id;
             chunks = header.chunks;
             printf("EPSResp [%u/%u] %u ", chunk_id, chunks, packet.data[header_size]);
-            file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "eps", header.met, data_name(agent->cinfo->node.utcstart + header.met/86400., "eresp", NodeData::lookup_node_id_name(packet.header.orig), "eps", to_unsigned(header.sbid)));
+            file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "eps", header.met, data_name(agent->cinfo->node.utcstart + header.met, "eresp", NodeData::lookup_node_id_name(packet.header.orig), "eps", to_unsigned(header.sbid)));
             if (file.path.size())
             {
                 FILE *tf;
