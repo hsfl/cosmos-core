@@ -79,10 +79,10 @@ using std::endl;
 /*!
  * \brief ElapsedTime::ElapsedTime
  */
-ElapsedTime::ElapsedTime()
+ElapsedTime::ElapsedTime(double initialseconds)
 {
     // by default start the timer
-    start();
+    start(initialseconds);
 }
 
 //
@@ -200,20 +200,21 @@ double ElapsedTime::toc(string text)
 /*!
  * \brief ElapsedTime::start
  */
-void ElapsedTime::start()
+void ElapsedTime::start(double initialseconds)
 {
     //Get the start time
 #ifdef CROSS_TYPE_arm
     //	clock_gettime(CLOCK_MONOTONIC, &timeStart);
     gettimeofday(&timeStart, nullptr);
+    timeStart.tv_sec -= initialseconds;
 #else
     // On windows using MinGw32 it does not get better than 1ms
     // new c++11
-    timeStart = std::chrono::steady_clock::now();
+    timeStart = std::chrono::steady_clock::now() - std::chrono::milliseconds(static_cast<uint64_t>(1000.*initialseconds));
 #endif
     timeAlarm = timeStart;
     timeCheck = timeStart;
-    elapsedTime = 0;
+    elapsedTime = initialseconds;
     set(0);
 }
 
