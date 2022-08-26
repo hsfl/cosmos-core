@@ -9,15 +9,6 @@ namespace Cosmos {
         {
             this->agent = calling_agent;
 
-            // Generic
-            add_func(PacketComm::TypeId::DataResponse, Response);
-
-            // ADCS
-            add_func(PacketComm::TypeId::DataAdcsResponse, AdcsResponse);
-
-            // EPS
-            add_func(PacketComm::TypeId::DataEpsResponse, EpsResponse);
-
             // File Transfer
             add_func(PacketComm::TypeId::DataFileCommand, FileForward);
             add_func(PacketComm::TypeId::DataFileMessage, FileForward);
@@ -710,6 +701,7 @@ namespace Cosmos {
             chunks = header.chunks;
             printf("ADCSResp [%u/%u] %u ", chunk_id, chunks, packet.data[header_size]);
             file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "adcs", header.met, data_name(agent->cinfo->node.utcstart + header.met, "aresp", NodeData::lookup_node_id_name(packet.header.orig), "adcs", to_unsigned(header.command)));
+            // Rebuild response with chunks
             if (file.path.size())
             {
                 FILE *tf;
@@ -739,6 +731,7 @@ namespace Cosmos {
                         iretn = -errno;
                     }
                     fclose(tf);
+                    // Check if all chunks received
                     if (data_isfile(file.path, chunks*chunk_size))
                     {
                         iretn = data_move(file, "incoming", false);
