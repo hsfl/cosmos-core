@@ -2016,6 +2016,11 @@ bool data_issymlink(string path)
 
 }
 
+//! Check if file exists at given path.
+//! Optionally checks if the file is the specified size.
+//! \param path File path
+//! \param size Check if file is this size. Optional.
+//! \return true if file exists and, if size was specified, is equal to the specified size.
 bool data_isfile(string path, off_t size)
 {
     struct stat st;
