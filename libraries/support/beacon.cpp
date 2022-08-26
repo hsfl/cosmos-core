@@ -298,8 +298,8 @@ namespace Cosmos {
                             {
                                 cinfo->devspec.tsen[i].utc = mjd;
                                 cinfo->devspec.tsen[i].temp = beacon.ctemp[i] / 100.;
-                                printf("D TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
                             }
+                            printf("D TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
                         }
                     }
                     break;
