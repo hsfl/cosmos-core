@@ -299,7 +299,7 @@ namespace Cosmos {
                                 cinfo->devspec.tsen[i].utc = mjd;
                                 cinfo->devspec.tsen[i].temp = beacon.ctemp[i] / 100.;
                             }
-                            printf("D TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
+//                            printf("D TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
                         }
                     }
                     break;
@@ -445,9 +445,11 @@ namespace Cosmos {
                     break;
                 case TypeId::CPUBeaconL:
                     {
+                        json_out(Contents, "node_utc", cinfo);
                         json_out(Contents, "node_utcstart", cinfo);
                         for (uint16_t i=0; i<cinfo->devspec.cpu.size(); ++i)
                         {
+                            json_out_1d(Contents, "device_cpu_utc", i, cinfo);
                             json_out_1d(Contents, "device_cpu_uptime", i, cinfo);
                             json_out_1d(Contents, "device_cpu_boot_count", i, cinfo);
                             json_out_1d(Contents, "device_cpu_load", i, cinfo);
@@ -460,6 +462,7 @@ namespace Cosmos {
                     {
                         for (uint16_t i=0; i<cinfo->devspec.tsen.size(); ++i)
                         {
+                            json_out_1d(Contents, "device_tsen_cpu", i, cinfo);
                             json_out_1d(Contents, "device_tsen_temp", i, cinfo);
                         }
                     }
@@ -468,6 +471,7 @@ namespace Cosmos {
                     {
                         for (uint16_t i=0; i<cinfo->devspec.swch.size(); ++i)
                         {
+                            json_out_1d(Contents, "device_swch_cpu", i, cinfo);
                             json_out_1d(Contents, "device_swch_amp", i, cinfo);
                             json_out_1d(Contents, "device_swch_volt", i, cinfo);
                             json_out_1d(Contents, "device_swch_power", i, cinfo);
@@ -478,6 +482,7 @@ namespace Cosmos {
                     {
                         for (uint16_t i=0; i<cinfo->devspec.bcreg.size(); ++i)
                         {
+                            json_out_1d(Contents, "device_bcreg_cpu", i, cinfo);
                             json_out_1d(Contents, "device_bcreg_amp", i, cinfo);
                             json_out_1d(Contents, "device_bcreg_volt", i, cinfo);
                             json_out_1d(Contents, "device_bcreg_power", i, cinfo);
@@ -488,6 +493,7 @@ namespace Cosmos {
                     {
                         for (uint16_t i=0; i<cinfo->devspec.batt.size(); ++i)
                         {
+                            json_out_1d(Contents, "device_batt_cpu", i, cinfo);
                             json_out_1d(Contents, "device_batt_amp", i, cinfo);
                             json_out_1d(Contents, "device_batt_volt", i, cinfo);
                             json_out_1d(Contents, "device_batt_power", i, cinfo);
