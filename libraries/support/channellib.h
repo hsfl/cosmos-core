@@ -18,6 +18,7 @@ namespace Cosmos {
 
             struct channelstruc
             {
+                double timestamp = 0.;
                 string name = "";
                 queue<PacketComm> quu;
                 mutex* mtx = nullptr;
@@ -37,6 +38,10 @@ namespace Cosmos {
             int32_t Size(uint8_t number=0);
             int32_t Clear(string name);
             int32_t Clear(uint8_t number);
+            double Age(string name);
+            double Age(uint8_t number);
+            double Touch(string name);
+            double Touch(uint8_t number);
 
             uint32_t verification;
         };

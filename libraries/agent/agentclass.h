@@ -425,8 +425,13 @@ namespace Cosmos
             int32_t push_response(uint8_t number, uint8_t dest, uint32_t id, vector<uint8_t> response);
             int32_t pull_unwrapped(string name, PacketComm& packet);
             int32_t pull_unwrapped(uint8_t number, PacketComm& packet);
+            int32_t monitor_unwrapped(uint8_t number, PacketComm& packet, string extra="");
             int32_t channel_size(string name);
             int32_t channel_size(uint8_t number);
+            double channel_age(string name);
+            double channel_age(uint8_t number);
+            double channel_touch(string name);
+            double channel_touch(uint8_t number);
             int32_t clear_channel(string name);
             int32_t clear_channel(uint8_t number);
             int32_t channel_number(string name);
@@ -528,6 +533,7 @@ namespace Cosmos
             static int32_t req_jsondump(string &, string &response, Agent *agent);
             static int32_t req_all_names_types(string &, string &response, Agent *agent);
             static int32_t req_command(string &, string &response, Agent *agent);
+            static int32_t req_list_channels(string &, string &response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos

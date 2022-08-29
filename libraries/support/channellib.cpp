@@ -112,15 +112,59 @@ namespace Cosmos {
             }
         }
 
+        double Channel::Age(string name)
+        {
+            for (uint8_t i=0; i<channel.size(); ++i)
+            {
+                if (channel[i].name == name)
+                {
+                    return Age(i);
+                }
+            }
+            return -999999.;
+        }
+
+        double Channel::Age(uint8_t number)
+        {
+            if (number >= channel.size())
+            {
+                return -999999.;
+            }
+            std::lock_guard<mutex> lock(*channel[number].mtx);
+            return 86400. * (currentmjd() - channel[number].timestamp);
+        }
+
+        double Channel::Touch(string name)
+        {
+            for (uint8_t i=0; i<channel.size(); ++i)
+            {
+                if (channel[i].name == name)
+                {
+                    return Touch(i);
+                }
+            }
+            return -999999;
+        }
+
+        double Channel::Touch(uint8_t number)
+        {
+            if (number >= channel.size())
+            {
+                return -999999.;
+            }
+            std::lock_guard<mutex> lock(*channel[number].mtx);
+            double age = 86400. * (currentmjd() - channel[number].timestamp);
+            channel[number].timestamp = currentmjd();
+            return age;
+        }
+
         int32_t Channel::Push(string name, PacketComm &packet)
         {
             for (uint8_t i=0; i<channel.size(); ++i)
             {
                 if (channel[i].name == name)
                 {
-                    std::lock_guard<mutex> lock(*channel[i].mtx);
-                    channel[i].quu.push(packet);
-                    return i;
+                    return Push(i, packet);
                 }
             }
             return GENERAL_ERROR_OUTOFRANGE;
@@ -134,6 +178,7 @@ namespace Cosmos {
             }
             std::lock_guard<mutex> lock(*channel[number].mtx);
             channel[number].quu.push(packet);
+            channel[number].timestamp = currentmjd();
             return number;
         }
 

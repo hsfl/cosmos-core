@@ -306,7 +306,7 @@ namespace Cosmos
                         "    SendBeacon [type:count]\n"
                         "    ClearQueue [channel]\n"
                         "    ExternalCommand command parameters\n"
-                        "    TestRadio start:step:count:byte_count\n"
+                        "    TestRadio start step count seconds\n"
                         "    ListDirectory node:agent\n"
                         "    TransferFile node:agent:file\n"
                         "    TransferNode node\n"
@@ -322,6 +322,7 @@ namespace Cosmos
                         "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [seconds] "
                         "    EpsSwitchNumber {0-1} [seconds] "
                         "");
+            add_request("list_channels", req_list_channels, "", "List current channels");
 
             // Set up Full SOH string
             //            set_fullsohstring(json_list_of_fullsoh(cinfo));
@@ -2282,6 +2283,24 @@ namespace Cosmos
             return response.length();
         }
 
+        //! List current channels
+        /*! Provide a detailed list of all the Channels currently defined
+     * \return 0, or negative error.
+     */
+        int32_t Agent::req_list_channels(string &request, string &response, Agent *agent)
+        {
+            response.clear();
+            for (uint16_t i=0; i<agent->channels.channel.size(); ++i)
+            {
+                response += to_label("Name", agent->channel_name(i));
+                response += " " + to_label("Number", i);
+                response += " " + to_label("Age", agent->channel_age(i));
+                response += " " + to_label("Size", agent->channel_size(i));
+                response += "\n";
+            }
+            return response.size();
+        }
+
         //! Open COSMOS output channel
         /*! Establish a multicast socket for publishing COSMOS messages using the specified address and
  * port.
@@ -3828,12 +3847,18 @@ acquired.
 
         int32_t Agent::push_unwrapped(uint8_t number, PacketComm& packet)
         {
+            int32_t iretn=0;
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
 
-            return channels.Push(number, packet);
+            iretn = channels.Push(number, packet);
+            if (iretn >0)
+            {
+                monitor_unwrapped(number, packet, "Push");
+            }
+            return iretn;
         }
 
         int32_t Agent::push_unwrapped(string name, vector<PacketComm>& packets)
@@ -3843,22 +3868,29 @@ acquired.
             {
                 return number;
             }
-            for (auto &p : packets)
-            {
-                channels.Push(number, p);
-            }
-            return packets.size();
+//            for (auto &p : packets)
+//            {
+//                channels.Push(number, p);
+//            }
+//            return packets.size();
+            return push_unwrapped(number, packets);
         }
 
         int32_t Agent::push_unwrapped(uint8_t number, vector<PacketComm>& packets)
         {
+            int32_t iretn;
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
             for (auto &p : packets)
             {
-                channels.Push(number, p);
+                iretn = push_unwrapped(number, p);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+//                channels.Push(number, p);
             }
             return packets.size();
         }
@@ -3956,12 +3988,42 @@ acquired.
 
         int32_t Agent::pull_unwrapped(uint8_t number, PacketComm &packet)
         {
+            int32_t iretn=0;
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
 
-            return channels.Pull(number, packet);
+            iretn = channels.Pull(number, packet);
+            if (iretn >0)
+            {
+                monitor_unwrapped(number, packet, "Pull");
+            }
+            return iretn;
+        }
+
+        int32_t Agent::monitor_unwrapped(uint8_t number, PacketComm &packet, string extra)
+        {
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            if (extra.empty())
+            {
+                printf("%.1f [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Count=%u]", uptime.split(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number));
+            }
+            else
+            {
+                printf("%.1f %s [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Count=%u]", uptime.split(), extra.c_str(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number));
+            }
+            for (uint16_t i=0; i<std::min(static_cast<size_t>(6), packet.data.size()); ++i)
+            {
+                printf(" %02x", packet.data[i]);
+            }
+            printf("\n");
+            fflush(stdout);
+            return 0;
         }
 
         int32_t Agent::channel_size(string name)
@@ -3972,6 +4034,26 @@ acquired.
         int32_t Agent::channel_size(uint8_t number)
         {
             return channels.Size(number);
+        }
+
+        double Agent::channel_age(string name)
+        {
+            return channels.Age(name);
+        }
+
+        double Agent::channel_age(uint8_t number)
+        {
+            return channels.Age(number);
+        }
+
+        double Agent::channel_touch(string name)
+        {
+            return channels.Touch(name);
+        }
+
+        double Agent::channel_touch(uint8_t number)
+        {
+            return channels.Touch(number);
         }
 
         int32_t Agent::clear_channel(string name)
