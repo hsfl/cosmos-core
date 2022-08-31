@@ -25,7 +25,7 @@ namespace Cosmos {
             int32_t receive_response_packet(const PacketComm &packet);
             vector<PacketComm> create_response_packets(uint32_t response_id, uint16_t data_size, const vector<uint8_t> &response);
 
-            typedef int32_t (*ExternalFunc)(PacketComm &packet, vector<uint8_t> &response, Agent* agent);
+            typedef int32_t (*ExternalFunc)(PacketComm &packet, string &response, Agent* agent);
             struct FuncEntry
             {
                 PacketComm::TypeId type;
@@ -34,47 +34,47 @@ namespace Cosmos {
             };
             FuncEntry Funcs[256];
             int32_t add_func(PacketComm::TypeId type, ExternalFunc function);
-            int32_t process(PacketComm &packet, vector<uint8_t> &response);
+            int32_t process(PacketComm &packet, string &response);
             int32_t process(PacketComm &packet);
             int32_t generate(PacketComm &packet);
 
 //            int32_t GenerateBeacon(PacketComm &packet);
 
             // Telemetry
-            static int32_t Response(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t AdcsResponse(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t EpsResponse(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t DecodeBeacon(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t Pong(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t Test(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t FileMeta(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t FileChunk(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t Response(PacketComm &packet, string &response, Agent* agent);
+            static int32_t AdcsResponse(PacketComm &packet, string &response, Agent* agent);
+            static int32_t EpsResponse(PacketComm &packet, string &response, Agent* agent);
+            static int32_t DecodeBeacon(PacketComm &packet, string &response, Agent* agent);
+            static int32_t Pong(PacketComm &packet, string &response, Agent* agent);
+            static int32_t Test(PacketComm &packet, string &response, Agent* agent);
+            static int32_t FileMeta(PacketComm &packet, string &response, Agent* agent);
+            static int32_t FileChunk(PacketComm &packet, string &response, Agent* agent);
 
             // Commands
-            static int32_t Reset(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t Reboot(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t SendBeacon(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t ClearQueue(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t ExternalCommand(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t TestRadio(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t ListDirectory(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-//            static int32_t TransferNode(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-//            static int32_t TransferRadio(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-//            static int32_t TransferList(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t InternalRequest(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t Ping(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t SetTime(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t GetTimeHuman(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t GetTimeBinary(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t AdcsForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t EpsLog(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t EpsForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t ExecForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-            static int32_t FileForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-//            static int32_t EpsSwitchName(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-//            static int32_t EpsSwitchNumber(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-//            static int32_t EpsReset(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
-//            static int32_t EpsState(PacketComm &packet, vector<uint8_t>& response, Agent* agent);
+            static int32_t Reset(PacketComm &packet, string &response, Agent* agent);
+            static int32_t Reboot(PacketComm &packet, string &response, Agent* agent);
+            static int32_t SendBeacon(PacketComm &packet, string &response, Agent* agent);
+            static int32_t ClearQueue(PacketComm &packet, string &response, Agent* agent);
+            static int32_t ExternalCommand(PacketComm &packet, string &response, Agent* agent);
+            static int32_t TestRadio(PacketComm &packet, string &response, Agent* agent);
+            static int32_t ListDirectory(PacketComm &packet, string &response, Agent* agent);
+//            static int32_t TransferNode(PacketComm &packet, string &response, Agent* agent);
+//            static int32_t TransferRadio(PacketComm &packet, string &response, Agent* agent);
+//            static int32_t TransferList(PacketComm &packet, string &response, Agent* agent);
+            static int32_t InternalRequest(PacketComm &packet, string &response, Agent* agent);
+            static int32_t Ping(PacketComm &packet, string &response, Agent* agent);
+            static int32_t SetTime(PacketComm &packet, string &response, Agent* agent);
+            static int32_t GetTimeHuman(PacketComm &packet, string &response, Agent* agent);
+            static int32_t GetTimeBinary(PacketComm &packet, string &response, Agent* agent);
+            static int32_t AdcsForward(PacketComm &packet, string &response, Agent* agent);
+            static int32_t EpsLog(PacketComm &packet, string &response, Agent* agent);
+            static int32_t EpsForward(PacketComm &packet, string &response, Agent* agent);
+            static int32_t ExecForward(PacketComm &packet, string &response, Agent* agent);
+            static int32_t FileForward(PacketComm &packet, string &response, Agent* agent);
+//            static int32_t EpsSwitchName(PacketComm &packet, string &response, Agent* agent);
+//            static int32_t EpsSwitchNumber(PacketComm &packet, string &response, Agent* agent);
+//            static int32_t EpsReset(PacketComm &packet, string &response, Agent* agent);
+//            static int32_t EpsState(PacketComm &packet, string &response, Agent* agent);
             static int32_t request_command(string &, string &response, Agent *agent);
 
             static int32_t QueueReset(uint16_t seconds, uint32_t verification_check, Agent* agent, string channel="EXEC", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
