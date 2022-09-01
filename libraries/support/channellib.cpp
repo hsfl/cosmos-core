@@ -206,21 +206,28 @@ namespace Cosmos {
 
         int32_t Channel::Pull(uint8_t number, PacketComm &packet)
         {
+            int32_t iretn = 0;
             if (number >= channel.size())
             {
-                return GENERAL_ERROR_OUTOFRANGE;
-            }
-            std::lock_guard<mutex> lock(*channel[number].mtx);
-            if (channel[number].quu.size())
-            {
-                packet = channel[number].quu.front();
-                channel[number].quu.pop();
-                return 1;
+                iretn = GENERAL_ERROR_OUTOFRANGE;
             }
             else
             {
-                return 0;
+                //            std::lock_guard<mutex> lock(*channel[number].mtx);
+                channel[number].mtx->lock();
+                if (channel[number].quu.size())
+                {
+                    packet = channel[number].quu.front();
+                    channel[number].quu.pop();
+                    iretn = 1;
+                }
+                else
+                {
+                    iretn = 0;
+                }
+                channel[number].mtx->unlock();
             }
+            return iretn;
         }
 
         int32_t Channel::Size(string name)
