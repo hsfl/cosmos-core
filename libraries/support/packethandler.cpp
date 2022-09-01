@@ -61,50 +61,6 @@ namespace Cosmos {
             return 0;
         }
 
-        int32_t PacketHandler::register_response(RespCallback f)
-        {
-            if (get_next_packet_id()) {
-                response_packets[packet_idx].set_callback(f);
-                return static_cast<int32_t>(packet_idx);
-            }
-            // TODO: return proper error code
-            cout << "Error in PacketHandler::register_response(), no available packet_id" << endl;
-            return -1;
-        }
-
-        /** Insert data of PacketComm packet of type Response into appropriate
-         *  response_packets slot. Assumes packet is valid, and a proper response
-         *  packet type.
-         */
-        int32_t PacketHandler::receive_response_packet(const PacketComm &packet)
-        {
-            uint32_t response_id = uint32from((uint8_t*)&packet.data[0], ByteOrder::LITTLEENDIAN);
-            if(response_packets[response_id].is_available()) {
-                cout << "Error in PacketHandler, no response registered for response_id: " << response_id << endl;
-                // TODO: return proper error code
-                return -1;
-            }
-            response_packets[response_id].insert(packet.data);
-            response_packets[response_id].attempt_resolution(60.);
-
-            return 0;
-        }
-
-        bool PacketHandler::get_next_packet_id()
-        {
-            for (int i = 0; i < 256; ++i) {
-                packet_idx += i;
-                if (packet_idx >= 256) {
-                    packet_idx %= 256;
-                }
-                if (response_packets[packet_idx].is_available()) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         /**
          * Create a response type packet to be addressed to the
          * packet id contained within the addressee packet
@@ -142,86 +98,13 @@ namespace Cosmos {
             return packets;
         }
 
-        //////////////////////////////////////////////////////////////
-        //                     Response Handler                     //
-        //////////////////////////////////////////////////////////////
-
-        ResponseHandler::ResponseHandler()
-        {
-            callback = nullptr;
-        }
-
-        bool ResponseHandler::is_available()
-        {
-            return callback == nullptr;
-        }
-
-        void ResponseHandler::set_callback(const RespCallback f) {
-            callback = f;
-        }
-
-        int32_t ResponseHandler::insert(const vector<uint8_t> &bytes)
-        {
-            uint8_t chunk_id = bytes[3];
-            uint8_t total_chunks = bytes[4];
-            // Resize vector to expected response size
-            if (data.size() != total_chunks) {
-                data.resize(total_chunks);
-            }
-            // Check if packet index has already been receieved
-            if (data[chunk_id].size() > 0) {
-                return 0;
-            }
-            // starting index of response data
-            int data_start = 5;
-            data[chunk_id] = vector<uint8_t>(bytes.begin() + data_start, bytes.end());
-            last_receieved_time = currentmjd();
-
-            return 0;
-        }
-
-        int32_t ResponseHandler::attempt_resolution(const double lapse) {
-            double lapse_mjd = lapse / 86400;
-            bool all_packets_received = true;
-            // Check if all expected packets have been receieved
-            for (auto p : data) {
-                if (p.size() == 0) {
-                    all_packets_received = false;
-                    break;
-                }
-            }
-            // Only continue if lapse time has passed or all expected packets received
-            if (currentmjd() < last_receieved_time + lapse_mjd && !all_packets_received) {
-                return 0;
-            }
-
-            // Proceed with response resolution since conditions are cleared
-            vector<uint8_t> full_response;
-            for (auto p : data) {
-                full_response.insert(full_response.end(), p.begin(), p.end());
-            }
-
-            // Resolve resposne
-            callback(full_response);
-            // Reset to initial, make this available for reuse
-            reset();
-
-            return 0;
-        }
-
-        void ResponseHandler::reset() {
-            callback = nullptr;
-            last_receieved_time = 0;
-            vector<vector<uint8_t>>().swap(data);
-        }
-
         int32_t PacketHandler::process(PacketComm& packet)
         {
-            vector<uint8_t> response;
+            string response;
             return process(packet, response);
         }
 
-        int32_t PacketHandler::process(PacketComm& packet, vector<uint8_t>& response)
+        int32_t PacketHandler::process(PacketComm& packet, string &response)
         {
             int32_t iretn = 0;
             response.clear();
@@ -234,15 +117,8 @@ namespace Cosmos {
             {
                 iretn = GENERAL_ERROR_OUTOFRANGE;
             }
-            if (response.size())
-            {
-                //                agent->debug_error.Printf("[PacketHandler Type=%hu, Size=%lu, Return=%d] %s\n", static_cast<uint8_t>(packet.header.type), packet.data.size(), iretn, string(response.begin(), response.end()).c_str());
-                agent->push_response(packet.header.radio, packet.header.orig, centisec(), string(response.begin(), response.end()));
-            }
-            //            else
-            //            {
-            //                agent->debug_error.Printf("[PacketHandler Type=%hu, Size=%lu, Return=%d]\n", static_cast<uint8_t>(packet.header.type), packet.data.size(), iretn);
-            //            }
+            // Let the handler do something with the string response
+
             return iretn;
         }
 
@@ -256,7 +132,7 @@ namespace Cosmos {
         }
 
         // Incoming Packets
-        int32_t PacketHandler::Pong(PacketComm& packet, vector<uint8_t>& response, Agent *agent)
+        int32_t PacketHandler::Pong(PacketComm& packet, string &response, Agent *agent)
         {
             int32_t iretn = 0;
             static uint32_t last_response_id = 0;
@@ -293,7 +169,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::Test(PacketComm& packet, vector<uint8_t>& response, Agent *agent)
+        int32_t PacketHandler::Test(PacketComm& packet, string &response, Agent *agent)
         {
             static CRC16 calc_crc;
             static uint32_t last_test_id = 0;
@@ -384,14 +260,13 @@ namespace Cosmos {
                 sresponse += " Start: ";
             }
 
-            response.clear();
-            response.insert(response.end(), sresponse.begin(), sresponse.end());
+            response = sresponse;
             tests[test_id].last_packet_id = packet_id;
             last_test_id = test_id;
             return iretn;
         }
 
-        int32_t PacketHandler::Response(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::Response(PacketComm& packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             uint16_t header_size;
@@ -425,8 +300,6 @@ namespace Cosmos {
                     iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
                     if (iretn >= 0)
                     {
-                        response.clear();
-                        response.insert(response.begin(), packet.data.begin()+header_size, packet.data.end());
                         iretn = fwrite(packet.data.data()+header_size, chunk_size, 1, tf);
                         if (iretn < 0)
                         {
@@ -438,9 +311,12 @@ namespace Cosmos {
                         iretn = -errno;
                     }
                     fclose(tf);
+                    response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + " chunk_size=" + std::to_string(chunk_size);
+
                     if (data_isfile(file.path, chunks*chunk_size))
                     {
                         iretn = data_move(file, "incoming", false);
+                        response += " | Response fully received";
                     }
                 }
                 else
@@ -455,7 +331,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::DecodeBeacon(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::DecodeBeacon(PacketComm& packet, string &response, Agent* agent)
         {
             Beacon beacon;
             beacon.Init();
@@ -475,13 +351,11 @@ namespace Cosmos {
                 log_write(orig_node, "beacon", agent->get_timeStart(), "", "beacon", jstr, "incoming");
             }
 
-            // Don't need to send a response back on telem beacons
-            response.clear();
-            return response.size();
+            return 0;
         }
 
         // Incoming Commands
-        int32_t PacketHandler::Reset(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::Reset(PacketComm& packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             uint32_t verification_check;
@@ -495,10 +369,7 @@ namespace Cosmos {
             uint16_t seconds;
             seconds = uint16from(&packet.data[4], ByteOrder::LITTLEENDIAN);
 
-            // Send a response
-            string answer = "Resetting Power in " + to_unsigned(seconds) + " seconds";
-            response.clear();
-            response.insert(response.begin(), answer.begin(), answer.end());
+            response = "Resetting Power in " + to_unsigned(seconds) + " seconds";
 
             // Command the EPS
 //            packet.header.type = PacketComm::TypeId::CommandEpsReset;
@@ -509,7 +380,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::Reboot(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::Reboot(PacketComm& packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             uint32_t verification_check;
@@ -524,19 +395,19 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::SendBeacon(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::SendBeacon(PacketComm& packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             uint8_t count = packet.data[1];
             Beacon beacon;
+            vector<uint8_t> bytes;
             beacon.Init();
-            beacon.EncodeBinary((Beacon::TypeId)packet.data[0], agent->cinfo, response);
+            beacon.EncodeBinary((Beacon::TypeId)packet.data[0], agent->cinfo, bytes);
             packet.header.type = PacketComm::TypeId::DataBeacon;
             packet.header.dest = packet.header.orig;
             packet.header.orig = agent->nodeId;
-            fflush(stdout);
             packet.data.clear();
-            packet.data.insert(packet.data.end(), response.begin(), response.end());
+            packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
             for (uint16_t i=0; i<count; ++i)
             {
                 iretn = agent->push_unwrapped(packet.header.radio, packet);
@@ -544,7 +415,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::ClearQueue(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::ClearQueue(PacketComm& packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             uint32_t verification_check;
@@ -558,26 +429,24 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::ExternalCommand(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::ExternalCommand(PacketComm& packet, string &response, Agent* agent)
         {
             // Run command, return response
             string eresponse;
-            int32_t iretn = data_execute(string(packet.data.begin()+4, packet.data.end()), eresponse);
-            response.clear();
-            response.insert(response.begin(),eresponse.begin(), eresponse.end());
+            int32_t iretn = data_execute(string(packet.data.begin()+4, packet.data.end()), response);
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, string(response.begin(), response.end()));
             response.clear();
             return iretn;
         }
 
-        int32_t PacketHandler::TestRadio(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::TestRadio(PacketComm& packet, string &response, Agent* agent)
         {
             int32_t iretn = agent->push_unwrapped(packet.header.radio, packet);
             return iretn;
         }
 
-        int32_t PacketHandler::ListDirectory(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::ListDirectory(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             string node;
@@ -588,50 +457,49 @@ namespace Cosmos {
             response.clear();
             for (filestruc file : data_list_files(node, "outgoing", agentname))
             {
-                response.insert(response.end(), file.name.begin(), file.name.end());
-                response.push_back(' ');
+                response += file.name + " ";
             }
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, string(response.begin(), response.end()));
+            iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, response);
             response.clear();
             return iretn;
         }
 
-        //        int32_t PacketHandler::TransferNode(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        //        int32_t PacketHandler::TransferNode(PacketComm &packet, string &response, Agent* agent)
         //        {
         //            int32_t iretn = agent->push_unwrapped(packet.header.radio, packet);
         //            return iretn;
         //        }
 
-        //        int32_t PacketHandler::TransferRadio(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        //        int32_t PacketHandler::TransferRadio(PacketComm &packet, string &response, Agent* agent)
         //        {
         //            int32_t iretn = agent->push_unwrapped(packet.header.radio, packet);
         //            return iretn;
         //        }
 
-        //        int32_t PacketHandler::TransferList(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        //        int32_t PacketHandler::TransferList(PacketComm &packet, string &response, Agent* agent)
         //        {
         //            int32_t iretn = agent->push_unwrapped(packet.header.radio, packet);
         //            return iretn;
         //        }
 
-        int32_t PacketHandler::InternalRequest(PacketComm& packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::InternalRequest(PacketComm& packet, string &response, Agent* agent)
         {
             // Run request, return response
             string eresponse;
             string erequest = string(packet.data.begin()+5, packet.data.end());
-            int32_t iretn = agent->process_request(erequest, eresponse);
-            response.clear();
-            response.insert(response.begin(),eresponse.begin(), eresponse.end());
+            int32_t iretn = agent->process_request(erequest, response);
+            uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
+            iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, response);
             return iretn;
         }
 
-        int32_t PacketHandler::Ping(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::Ping(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
 
-            response.clear();
-            response.insert(response.begin(), packet.data.begin()+4, packet.data.end());
+            // response.clear();
+            // response.insert(response.begin(), packet.data.begin()+4, packet.data.end());
             packet.header.type = PacketComm::TypeId::DataPong;
             NodeData::NODE_ID_TYPE temp = packet.header.dest;
             packet.header.dest = packet.header.orig;
@@ -640,14 +508,12 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::SetTime(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::SetTime(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             double mjd = doublefrom(packet.data.data(), ByteOrder::LITTLEENDIAN);
             double delta = set_local_clock(mjd);
-            string answer = to_label("Delta Seconds", delta);
-            response.clear();
-            response.insert(response.begin(), answer.begin(), answer.end());
+            response = to_label("Delta Seconds", delta);
 
 //            packet.header.type = PacketComm::TypeId::CommandEpsSetTime;
 //            packet.data.resize(8);
@@ -657,17 +523,16 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::GetTimeHuman(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::GetTimeHuman(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
-            string answer = mjd2iso8601(currentmjd());
-            answer += " " + to_label("MET", currentmjd() - agent->cinfo->node.utcstart);
-            response.clear();
-            response.insert(response.begin(), answer.begin(), answer.end());
+            response = mjd2iso8601(currentmjd());
+            response += " " + to_label("MET", currentmjd() - agent->cinfo->node.utcstart);
+            iretn = agent->push_response(packet.header.radio, packet.header.orig, centisec(), response);
             return iretn;
         }
 
-        int32_t PacketHandler::GetTimeBinary(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::GetTimeBinary(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             packet.header.type = PacketComm::TypeId::DataTime;
@@ -682,7 +547,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::AdcsResponse(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::AdcsResponse(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             uint16_t header_size;
@@ -718,8 +583,6 @@ namespace Cosmos {
                     iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
                     if (iretn >= 0)
                     {
-                        response.clear();
-                        response.insert(response.begin(), packet.data.begin()+header_size, packet.data.end());
                         iretn = fwrite(packet.data.data()+header_size, chunk_size, 1, tf);
                         if (iretn < 0)
                         {
@@ -731,10 +594,13 @@ namespace Cosmos {
                         iretn = -errno;
                     }
                     fclose(tf);
+                    response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(chunk_size);
+
                     // Check if all chunks received
                     if (data_isfile(file.path, chunks*chunk_size))
                     {
                         iretn = data_move(file, "incoming", false);
+                        response += " | AdcsResponse fully received";
                     }
                 }
                 else
@@ -750,14 +616,14 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::AdcsForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::AdcsForward(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             iretn = agent->push_unwrapped(agent->channel_number("ADCS"), packet);
             return iretn;
         }
 
-        int32_t PacketHandler::EpsResponse(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::EpsResponse(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             uint16_t header_size;
@@ -792,8 +658,6 @@ namespace Cosmos {
                     iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
                     if (iretn >= 0)
                     {
-                        response.clear();
-                        response.insert(response.begin(), packet.data.begin()+header_size, packet.data.end());
                         iretn = fwrite(packet.data.data()+header_size, chunk_size, 1, tf);
                         if (iretn < 0)
                         {
@@ -805,9 +669,13 @@ namespace Cosmos {
                         iretn = -errno;
                     }
                     fclose(tf);
+                    response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(chunk_size);
+
+                    // Check if all chunks received
                     if (data_isfile(file.path, chunks*chunk_size))
                     {
                         iretn = data_move(file, "incoming", false);
+                        response += " | EpsResponse fully received";
                     }
                 }
                 else
@@ -823,21 +691,21 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::EpsForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::EpsForward(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
             return iretn;
         }
 
-        int32_t PacketHandler::ExecForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::ExecForward(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             iretn = agent->push_unwrapped(agent->channel_number("EXEC"), packet);
             return iretn;
         }
 
-        int32_t PacketHandler::FileForward(PacketComm &packet, vector<uint8_t>& response, Agent* agent)
+        int32_t PacketHandler::FileForward(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             iretn = agent->push_unwrapped(agent->channel_number("FILE"), packet);
