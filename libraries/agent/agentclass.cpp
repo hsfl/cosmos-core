@@ -4017,7 +4017,7 @@ acquired.
             {
                 printf("%.1f %s [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Count=%u]", uptime.split(), extra.c_str(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number));
             }
-            for (uint16_t i=0; i<std::min(static_cast<size_t>(6), packet.data.size()); ++i)
+            for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
             {
                 printf(" %02x", packet.data[i]);
             }
