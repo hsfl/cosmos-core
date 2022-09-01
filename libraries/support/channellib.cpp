@@ -6,10 +6,10 @@ namespace Cosmos {
         {
             // Set up default channels for internal activity
             channel.resize(6);
-            channel[0].name = "Self";
+            channel[0].name = "SELF";
             channel[0].mtx = new mutex;
             channel[0].datasize = 1400;
-            channel[1].name = "Net";
+            channel[1].name = "NET";
             channel[1].mtx = new mutex;
             channel[1].datasize = 1400;
             channel[2].name = "EPS";
@@ -40,10 +40,10 @@ namespace Cosmos {
         {
             // Set up default channels for internal activity
             channel.resize(6);
-            channel[0].name = "Self";
+            channel[0].name = "SELF";
             channel[0].mtx = new mutex;
             channel[0].datasize = 1400;
-            channel[1].name = "Net";
+            channel[1].name = "NET";
             channel[1].mtx = new mutex;
             channel[1].datasize = 1400;
             channel[2].name = "EPS";
