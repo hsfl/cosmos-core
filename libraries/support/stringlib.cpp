@@ -210,19 +210,18 @@ double StringParser::getFieldNumberAsDouble(uint32_t index)
 int StringParser::getFieldNumberAsInteger(uint32_t index) { return getFieldNumberAsDouble(index); }
 
 string to_hex_string(vector <uint8_t> buffer, bool ascii) {
-    string output;
-    output.resize(buffer.size() * 8 + 1);
+    std::stringstream ss;
     for (uint16_t i=0; i<buffer.size(); ++i) {
         if (ascii && buffer[i] > 31 && buffer[i] < 127)
         {
-            sprintf(&output[strlen(output.c_str())], " %c", buffer[i]);
+            ss << " " << buffer[i];
         }
         else
         {
-            sprintf(&output[strlen(output.c_str())], " %02x", buffer[i]);
+            ss << " " << std::hex << (uint32_t)buffer[i];
         }
     }
-    return output;
+    return ss.str();
 }
 
 vector<uint8_t> from_hex_string(string hex)
