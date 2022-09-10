@@ -321,6 +321,7 @@ namespace Cosmos
                         "    EpsState {0|1|2|3}"
                         "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [seconds] "
                         "    EpsSwitchNumber {0-1} [seconds] "
+                        "    AdcsState {0-7] {0-18]"
                         "");
             add_request("list_channels", req_list_channels, "", "List current channels");
 
@@ -3907,6 +3908,7 @@ acquired.
 
         int32_t Agent::push_response(uint8_t number, uint8_t dest, uint32_t id, vector<uint8_t> response)
         {
+            int32_t iretn = 0;
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
@@ -3949,7 +3951,11 @@ acquired.
                     packet.data.resize(COSMOS_SIZEOF(PacketComm::ResponseHeader));
                     memcpy(packet.data.data(), &header, COSMOS_SIZEOF(PacketComm::ResponseHeader));
                     packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
-                    channels.Push(number, packet);
+                    iretn = channels.Push(number, packet);
+                    if (iretn > 0)
+                    {
+                        monitor_unwrapped(number, packet, "Response");
+                    }
                 }
             }
             return response.size();
