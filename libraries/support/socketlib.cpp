@@ -34,6 +34,324 @@
 #include "support/elapsedtime.h"
 #include "support/timelib.h"
 
+//! Open publication channel
+//! Open UDP sockets on each interface that is not local or PTP. This channel is then available for broadcast messages.
+//! \param channel Pointer to ::socket_channel holding final configuration.
+//! \param port Dedicated port number.
+//! \return Zero, or negative error.
+int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
+{
+    int32_t iretn = 0;
+    int on = 1;
+
+    // Return immediately if we've already done this
+    if (bus.size() && bus[0].cport)
+    {
+        return 0;
+    }
+
+    bus.resize(1);
+    bus[(bus.size() - 1)].cudp = -1;
+
+    if ((bus[(bus.size() - 1)].cudp = socket(AF_INET,SOCK_DGRAM,0)) < 0)
+    {
+        return (-errno);
+    }
+
+#ifdef COSMOS_WIN_OS
+    u_long nonblocking = 1;;
+    if (ioctlsocket(bus[(bus.size() - 1)].cudp, FIONBIO, &nonblocking) != 0) { iretn = -WSAGetLastError(); }
+#else
+    if (fcntl(bus[(bus.size() - 1)].cudp, F_SETFL,O_NONBLOCK) < 0)
+    {
+        iretn = -errno;
+    }
+#endif
+    if (iretn < 0)
+    {
+        CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+        bus[(bus.size() - 1)].cudp = iretn;
+        return iretn;
+    }
+
+    // Use above socket to find available interfaces and establish
+    // publication on each.
+
+#if defined(COSMOS_WIN_OS)
+    struct sockaddr_storage ss;
+    int sslen;
+    INTERFACE_INFO ilist[20];
+    unsigned long nbytes;
+    uint32_t nif;
+    if (WSAIoctl(bus[(bus.size() - 1)].cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR) {
+        CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+        return (AGENT_ERROR_DISCOVERY);
+    }
+
+    nif = nbytes / sizeof(INTERFACE_INFO);
+    for (uint32_t i=0; i<nif; i++) {
+        inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,bus[(bus.size() - 1)].address,sizeof(bus[(bus.size() - 1)].address));
+        //            strcpy(bus[(bus.size() - 1)].address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+        if (!strcmp(bus[(bus.size() - 1)].address,"127.0.0.1")) {
+            if (bus[(bus.size() - 1)].cudp >= 0) {
+                CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+                bus[(bus.size() - 1)].cudp = -1;
+            }
+            continue;
+        }
+
+        // No need to open first socket again
+        if (bus[(bus.size() - 1)].cudp < 0) {
+            if ((bus[(bus.size() - 1)].cudp = socket(AF_INET,SOCK_DGRAM,0)) < 0) {
+                continue;
+            }
+            u_long nonblocking = 1;
+            if (ioctlsocket(bus[(bus.size() - 1)].cudp, FIONBIO, &nonblocking) != 0) {
+                continue;
+            }
+        }
+
+        memset(&bus[(bus.size() - 1)].caddr,0,sizeof(struct sockaddr_in));
+        bus[i].caddr.sin_family = AF_INET;
+        bus[i].baddr.sin_family = AF_INET;
+        if (type == NetworkType::MULTICAST) {
+            sslen = sizeof(ss);
+            WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+            bus[(bus.size() - 1)].caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+            bus[(bus.size() - 1)].baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+        } else {
+            if ((iretn = setsockopt(bus[(bus.size() - 1)].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+            {
+                CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+                continue;
+            }
+
+            bus[(bus.size() - 1)].caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+            bus[(bus.size() - 1)].baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+
+            uint32_t ip, net, bcast;
+            ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
+            net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
+            bcast = ip | (~net);
+            bus[(bus.size() - 1)].baddr.sin_addr.S_un.S_addr = bcast;
+        }
+        bus[(bus.size() - 1)].caddr.sin_port = htons(port);
+        bus[(bus.size() - 1)].baddr.sin_port = htons(port);
+        bus[(bus.size() - 1)].type = type;
+        bus[(bus.size() - 1)].cport = port;
+        (bus.size() - 1)++;
+    }
+#elif defined(COSMOS_MAC_OS)
+    struct ifaddrs *if_addrs = NULL;
+    struct ifaddrs *if_addr = NULL;
+    if (0 == getifaddrs(&if_addrs)) {
+        for (if_addr = if_addrs; if_addr != NULL; if_addr = if_addr->ifa_next) {
+            if (if_addr->ifa_addr->sa_family != AF_INET) { continue; }
+            inet_ntop(if_addr->ifa_addr->sa_family,&((struct sockaddr_in*)if_addr->ifa_addr)->sin_addr,bus[(bus.size() - 1)].address,sizeof(bus[(bus.size() - 1)].address));
+            memcpy((char *)&bus[(bus.size() - 1)].caddr, (char *)if_addr->ifa_addr, sizeof(if_addr->ifa_addr));
+
+            if ((if_addr->ifa_flags & IFF_POINTOPOINT) || (if_addr->ifa_flags & IFF_UP) == 0 || (if_addr->ifa_flags & IFF_LOOPBACK) || (if_addr->ifa_flags & (IFF_BROADCAST)) == 0)
+            {
+                continue;
+            }
+
+            // No need to open first socket again
+            if (bus[(bus.size() - 1)].cudp < 0)
+            {
+                if ((bus[(bus.size() - 1)].cudp = socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                {
+                    continue;
+                }
+            }
+
+            if (fcntl(bus[(bus.size() - 1)].cudp, F_SETFL,O_NONBLOCK) < 0)
+            {
+                iretn = -errno;
+                CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+                bus[(bus.size() - 1)].cudp = iretn;
+                continue;
+            }
+
+            if (type == NetworkType::MULTICAST)
+            {
+                inet_pton(AF_INET,AGENTMCAST,&bus[(bus.size() - 1)].caddr.sin_addr);
+                inet_pton(AF_INET,AGENTMCAST,&bus[(bus.size() - 1)].baddr.sin_addr);
+            } else {
+                if ((iretn = setsockopt(bus[(bus.size() - 1)].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0) {
+                    CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+                    continue;
+                }
+
+                //                    if (ioctl(bus[(bus.size() - 1)].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+                //                    {
+                //                        continue;
+                //                    }
+                //                    bus[(bus.size() - 1)].baddr = bus[(bus.size() - 1)].caddr;
+                memcpy((char *)&bus[(bus.size() - 1)].baddr, (char *)if_addr->ifa_netmask, sizeof(if_addr->ifa_netmask));
+
+                uint32_t ip, net, bcast;
+                ip = bus[(bus.size() - 1)].caddr.sin_addr.s_addr;
+                net = bus[(bus.size() - 1)].baddr.sin_addr.s_addr;
+                bcast = ip | (~net);
+                bus[(bus.size() - 1)].baddr.sin_addr.s_addr = bcast;
+                inet_ntop(if_addr->ifa_netmask->sa_family,&bus[(bus.size() - 1)].baddr.sin_addr,bus[(bus.size() - 1)].baddress,sizeof(bus[(bus.size() - 1)].baddress));
+            }
+            bus[(bus.size() - 1)].caddr.sin_port = htons(port);
+            bus[(bus.size() - 1)].baddr.sin_port = htons(port);
+            bus[(bus.size() - 1)].type = type;
+            bus[(bus.size() - 1)].cport = port;
+            (bus.size() - 1)++;
+        }
+        freeifaddrs(if_addrs);
+        if_addrs = NULL;
+    }
+#else
+    struct ifconf confa;
+    struct ifreq *ifra;
+    char data[512];
+
+    confa.ifc_len = sizeof(data);
+    confa.ifc_buf = (caddr_t)data;
+    if (ioctl(bus[(bus.size() - 1)].cudp,SIOCGIFCONF,&confa) < 0)
+    {
+        iretn = -errno;
+        CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+        return (iretn);
+    }
+    // Use result to discover interfaces.
+    ifra = confa.ifc_req;
+    //bool found_bcast = false;
+    //int16_t lo_index = -1;
+    for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
+    {
+
+        if (ifra->ifr_addr.sa_family != AF_INET)
+        {
+            continue;
+        }
+
+        inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,bus[(bus.size() - 1)].address,sizeof(bus[(bus.size() - 1)].address));
+        memcpy((char *)&bus[(bus.size() - 1)].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+
+        // Open socket again if we had to close it
+        if (bus[(bus.size() - 1)].cudp < 0)
+        {
+            if ((bus[(bus.size() - 1)].cudp = socket(AF_INET,SOCK_DGRAM,0)) < 0)
+            {
+                continue;
+            }
+        }
+
+        if (ioctl(bus[(bus.size() - 1)].cudp,SIOCGIFFLAGS, (char *)ifra) < 0)
+        {
+            continue;
+        }
+
+        bus[(bus.size() - 1)].flags = ifra->ifr_flags;
+
+        if ((bus[(bus.size() - 1)].flags & IFF_POINTOPOINT) || (bus[(bus.size() - 1)].flags & IFF_UP) == 0)
+        {
+            continue;
+        }
+
+        if (fcntl(bus[(bus.size() - 1)].cudp, F_SETFL,O_NONBLOCK) < 0)
+        {
+            iretn = -errno;
+            CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+            bus[(bus.size() - 1)].cudp = iretn;
+            continue;
+        }
+
+        if (!mcast.empty())
+        {
+            inet_pton(AF_INET, mcast.c_str(), &bus[(bus.size() - 1)].caddr.sin_addr);
+            inet_pton(AF_INET, mcast.c_str(), &bus[(bus.size() - 1)].baddr.sin_addr);
+        }
+        else
+        {
+            //                            int val = IP_PMTUDISC_DO;
+            //                            if ((iretn = setsockopt(bus[(bus.size() - 1)].cudp, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val))) < 0)
+            //                            {
+            //                                CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+            //                                continue;
+            //                            }
+
+            if ((bus[(bus.size() - 1)].flags & IFF_POINTOPOINT))
+            {
+                if (ioctl(bus[(bus.size() - 1)].cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
+                {
+                    continue;
+                }
+                bus[(bus.size() - 1)].baddr = bus[(bus.size() - 1)].caddr;
+                inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,bus[(bus.size() - 1)].baddress,sizeof(bus[(bus.size() - 1)].baddress));
+                inet_pton(AF_INET,bus[(bus.size() - 1)].baddress,&bus[(bus.size() - 1)].baddr.sin_addr);
+            }
+            else if ((bus[(bus.size() - 1)].flags & IFF_LOOPBACK))
+            {
+                bus[(bus.size() - 1)].baddr = bus[(bus.size() - 1)].caddr;
+                inet_pton(AF_INET, "225.1.1.1", &bus[(bus.size() - 1)].baddr.sin_addr);
+            }
+            else
+            {
+                if ((iretn = setsockopt(bus[(bus.size() - 1)].cudp, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on))) < 0)
+                {
+                    CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+                    continue;
+                }
+
+                if (ioctl(bus[(bus.size() - 1)].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+                {
+                    continue;
+                }
+                bus[(bus.size() - 1)].baddr = bus[(bus.size() - 1)].caddr;
+                inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,bus[(bus.size() - 1)].baddress,sizeof(bus[(bus.size() - 1)].baddress));
+                inet_pton(AF_INET,bus[(bus.size() - 1)].baddress,&bus[(bus.size() - 1)].baddr.sin_addr);
+            }
+
+            if (ioctl(bus[(bus.size() - 1)].cudp,SIOCGIFADDR,(char *)ifra) < 0)
+            {
+                continue;
+            }
+            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,bus[(bus.size() - 1)].address,sizeof(bus[(bus.size() - 1)].address));
+            inet_pton(AF_INET,bus[(bus.size() - 1)].address,&bus[(bus.size() - 1)].caddr.sin_addr);
+        }
+
+        iretn = sendto(bus[(bus.size() - 1)].cudp,       // socket
+                (const char *)nullptr,                         // buffer to send
+                0,                      // size of buffer
+                0,                                          // flags
+                (struct sockaddr *)&bus[(bus.size() - 1)].baddr, // socket address
+                sizeof(struct sockaddr_in)                  // size of address to socket pointer
+                );
+        // Find assigned port, place in cport, and set caddr to requested port
+        socklen_t namelen = sizeof(struct sockaddr_in);
+        if ((iretn = getsockname(bus[(bus.size() - 1)].cudp, (sockaddr*)&bus[(bus.size() - 1)].caddr, &namelen)) == -1)
+        {
+            CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+            bus[(bus.size() - 1)].cudp = -errno;
+            return (-errno);
+        }
+        bus[(bus.size() - 1)].cport = ntohs(bus[(bus.size() - 1)].caddr.sin_port);
+        bus[(bus.size() - 1)].caddr.sin_port = htons(port);
+        inet_pton(AF_INET,bus[(bus.size() - 1)].address,&bus[(bus.size() - 1)].caddr.sin_addr);
+        bus[(bus.size() - 1)].baddr.sin_port = htons(port);
+        if (mcast.empty())
+        {
+            bus[(bus.size() - 1)].type = NetworkType::BROADCAST;
+        }
+        else
+        {
+            bus[(bus.size() - 1)].type = NetworkType::MULTICAST;
+        }
+
+
+        //                    printf("Interface #%lu: %u %s %u %s %u\n", (bus.size() - 1), bus[(bus.size() - 1)].cport, bus[(bus.size() - 1)].address, ntohs(bus[(bus.size() - 1)].caddr.sin_port), bus[(bus.size() - 1)].baddress, ntohs(bus[(bus.size() - 1)].baddr.sin_port));
+        bus.resize(bus.size()+1);
+    }
+#endif // COSMOS_WIN_OS
+    return 0;
+}
+
 //! Open UDP socket
 /*! Open a UDP socket and configure it for the specified use. Various
 flags are set, and the socket is bound, if necessary. Support is
@@ -722,7 +1040,7 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port)
 
                 socket_channel tiface;
                 // Open socket again if we had to close it
-                if ((tiface.cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                if ((tiface.cudp = socket(AF_INET,SOCK_DGRAM,0)) < 0)
                 {
                     continue;
                 }
@@ -758,17 +1076,6 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port)
                 }
                 else
                 {
-//                    if ((tiface.flags & IFF_POINTOPOINT))
-//                    {
-//                        if (ioctl(tiface.cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
-//                        {
-//                            continue;
-//                        }
-//                        tiface.baddr = tiface.caddr;
-//                        inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,tiface.baddress,sizeof(tiface.baddress));
-//                        inet_pton(AF_INET,tiface.baddress,&tiface.baddr.sin_addr);
-//                    }
-//                    else
                     {
                         if ((iretn = setsockopt(tiface.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
                         {
