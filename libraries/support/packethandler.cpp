@@ -311,7 +311,7 @@ namespace Cosmos {
                         iretn = -errno;
                     }
                     fclose(tf);
-                    response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + " chunk_size=" + std::to_string(chunk_size);
+                    response = "chunks=" + to_unsigned(chunks) + " chunk_id=" + to_unsigned(chunk_id) + " chunk_size=" + to_unsigned(chunk_size) + " data=" + to_hex_string(packet.data, true);
 
                     if (data_isfile(file.path, chunks*chunk_size))
                     {
@@ -486,9 +486,10 @@ namespace Cosmos {
         int32_t PacketHandler::InternalRequest(PacketComm& packet, string &response, Agent* agent)
         {
             // Run request, return response
-            string eresponse;
             string erequest = string(packet.data.begin()+5, packet.data.end());
             int32_t iretn = agent->process_request(erequest, response);
+            printf("InternalRequest: %s Response: %s\n", erequest.c_str(), response.c_str());
+            fflush(stdout);
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, response);
             return iretn;
