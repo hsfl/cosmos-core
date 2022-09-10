@@ -214,7 +214,7 @@ string to_hex_string(vector <uint8_t> buffer, bool ascii) {
     for (uint16_t i=0; i<buffer.size(); ++i) {
         if (ascii && buffer[i] > 31 && buffer[i] < 127)
         {
-            ss << " " << buffer[i];
+            ss << buffer[i];
         }
         else
         {
