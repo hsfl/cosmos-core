@@ -238,6 +238,12 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+mtrcount*sizeof(adcsmtr_beacon));
                 }
                 break;
+            //case TypeId::ADCSMagFieldVector:
+			//{
+
+
+				//break;
+			//}
             default:
                 return GENERAL_ERROR_OUTOFRANGE;
             }
