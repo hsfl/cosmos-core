@@ -486,7 +486,7 @@ namespace Cosmos {
         int32_t PacketHandler::InternalRequest(PacketComm& packet, string &response, Agent* agent)
         {
             // Run request, return response
-            string erequest = string(packet.data.begin()+5, packet.data.end());
+            string erequest = string(packet.data.begin()+4, packet.data.end());
             int32_t iretn = agent->process_request(erequest, response);
             printf("InternalRequest: %s Response: %s\n", erequest.c_str(), response.c_str());
             fflush(stdout);
