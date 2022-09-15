@@ -316,7 +316,7 @@ namespace Cosmos {
                     if (data_isfile(file.path, chunks*chunk_size))
                     {
                         iretn = data_move(file, "incoming", false);
-                        response += " | Response fully received";
+                        response += "\nResponse fully received";
                     }
                 }
                 else
