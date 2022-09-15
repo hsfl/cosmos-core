@@ -202,6 +202,7 @@ namespace Cosmos {
         int32_t body2topo(Vector com, Vector body, Vector &topo);
         int32_t topo2azel(rvector tpos, float &az, float &el);
         int32_t topo2azel(Vector tpos, float &az, float &el);
+        int32_t geod2sep(gvector src, gvector dst, double &sep);
         int lines2eci(double mjd, vector<tlestruc> tle, cartpos &eci);
         int tle2eci(double mjd, tlestruc tle, cartpos &eci);
         double atan3(double sa, double cb);
