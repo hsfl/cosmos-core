@@ -74,7 +74,7 @@ namespace Cosmos {
 
         // only works for linux for now
         // TODO: expand to mac and windows
-#if defined(COSMOS_LINUX_OS)
+#if !defined(COSMOS_WIN_OS)
         if (ioctl(handle.fh, I2C_FUNCS, &handle.funcs) < 0)
         {
             error = - errno;
@@ -142,7 +142,7 @@ namespace Cosmos {
         {
             error = 0;
 
-#if defined(COSMOS_LINUX_OS)
+#if !defined(COSMOS_WIN_OS)
             if (ioctl(handle.fh, I2C_SLAVE, handle.address) < 0)
             {
                 error = - errno;
