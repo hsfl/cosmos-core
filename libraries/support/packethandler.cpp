@@ -271,6 +271,7 @@ namespace Cosmos {
             int32_t iretn=0;
             uint16_t header_size;
             uint16_t chunk_size;
+            uint16_t this_chunk_size;
             uint16_t chunk_id;
             uint16_t chunks;
             filestruc file;
@@ -278,7 +279,8 @@ namespace Cosmos {
 
             PacketComm::ResponseHeader header;
             header_size = COSMOS_SIZEOF(PacketComm::ResponseHeader);
-            chunk_size = packet.data.size() - header_size;
+            this_chunk_size = packet.data.size() - header_size;
+            chunk_size = agent->channel_datasize(packet.header.radio);
             memcpy(&header, packet.data.data(), header_size);
             chunk_id = header.chunk_id;
             chunks = header.chunks;
@@ -300,7 +302,7 @@ namespace Cosmos {
                     iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
                     if (iretn >= 0)
                     {
-                        iretn = fwrite(packet.data.data()+header_size, chunk_size, 1, tf);
+                        iretn = fwrite(packet.data.data()+header_size, this_chunk_size, 1, tf);
                         if (iretn < 0)
                         {
                             iretn = -errno;
@@ -311,9 +313,9 @@ namespace Cosmos {
                         iretn = -errno;
                     }
                     fclose(tf);
-                    response = "chunks=" + to_unsigned(chunks) + " chunk_id=" + to_unsigned(chunk_id) + " chunk_size=" + to_unsigned(chunk_size) + " data=" + to_hex_string(packet.data, true);
+                    response = "chunks=" + to_unsigned(chunks) + " chunk_id=" + to_unsigned(chunk_id) + " chunk_size=" + to_unsigned(this_chunk_size) + " data=" + to_hex_string(packet.data, true);
 
-                    if (data_isfile(file.path, chunks*chunk_size))
+                    if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
                     {
                         iretn = data_move(file, "incoming", false);
                         response += "\nResponse fully received";
@@ -553,6 +555,7 @@ namespace Cosmos {
             int32_t iretn=0;
             uint16_t header_size;
             uint16_t chunk_size;
+            uint16_t this_chunk_size;
             uint16_t chunk_id;
             uint16_t chunks;
             filestruc file;
@@ -561,7 +564,8 @@ namespace Cosmos {
 
             PacketComm::AdcsResponseHeader header;
             header_size = COSMOS_SIZEOF(PacketComm::AdcsResponseHeader);
-            chunk_size = packet.data.size() - header_size;
+            this_chunk_size = packet.data.size() - header_size;
+            chunk_size = agent->channel_datasize(packet.header.radio);
             memcpy(&header, packet.data.data(), header_size);
             chunk_id = header.chunk_id;
             chunks = header.chunks;
@@ -584,7 +588,7 @@ namespace Cosmos {
                     iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
                     if (iretn >= 0)
                     {
-                        iretn = fwrite(packet.data.data()+header_size, chunk_size, 1, tf);
+                        iretn = fwrite(packet.data.data()+header_size, this_chunk_size, 1, tf);
                         if (iretn < 0)
                         {
                             iretn = -errno;
@@ -595,10 +599,10 @@ namespace Cosmos {
                         iretn = -errno;
                     }
                     fclose(tf);
-                    response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(chunk_size);
+                    response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
 
                     // Check if all chunks received
-                    if (data_isfile(file.path, chunks*chunk_size))
+                    if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
                     {
                         iretn = data_move(file, "incoming", false);
                         response += " | AdcsResponse fully received";
@@ -629,6 +633,7 @@ namespace Cosmos {
             int32_t iretn=0;
             uint16_t header_size;
             uint16_t chunk_size;
+            uint16_t this_chunk_size;
             uint16_t chunk_id;
             uint16_t chunks;
             filestruc file;
@@ -637,7 +642,8 @@ namespace Cosmos {
 
             PacketComm::EpsResponseHeader header;
             header_size = COSMOS_SIZEOF(PacketComm::EpsResponseHeader);
-            chunk_size = packet.data.size() - header_size;
+            this_chunk_size = packet.data.size() - header_size;
+            chunk_size = agent->channel_datasize(packet.header.radio);
             memcpy(&header, packet.data.data(), header_size);
             chunk_id = header.chunk_id;
             chunks = header.chunks;
@@ -659,7 +665,7 @@ namespace Cosmos {
                     iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
                     if (iretn >= 0)
                     {
-                        iretn = fwrite(packet.data.data()+header_size, chunk_size, 1, tf);
+                        iretn = fwrite(packet.data.data()+header_size, this_chunk_size, 1, tf);
                         if (iretn < 0)
                         {
                             iretn = -errno;
@@ -670,10 +676,10 @@ namespace Cosmos {
                         iretn = -errno;
                     }
                     fclose(tf);
-                    response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(chunk_size);
+                    response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
 
                     // Check if all chunks received
-                    if (data_isfile(file.path, chunks*chunk_size))
+                    if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
                     {
                         iretn = data_move(file, "incoming", false);
                         response += " | EpsResponse fully received";
