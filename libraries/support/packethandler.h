@@ -83,6 +83,7 @@ namespace Cosmos {
 
             static int32_t QueueEpsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueEpsSwitchName(string name, uint16_t seconds, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueEpsSwitchName(vector<string> names, vector<uint16_t> seconds, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueEpsSwitchNumber(uint16_t number, uint16_t seconds, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueEpsReset(uint16_t seconds, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueEpsState(uint8_t state, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");

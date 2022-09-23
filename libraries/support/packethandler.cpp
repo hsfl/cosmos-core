@@ -800,11 +800,41 @@ namespace Cosmos {
             packet.header.orig = orig;
             packet.header.dest = dest;
             packet.header.radio = agent->channel_number(radio);
-            packet.data.resize(2);
-            uint16to(seconds, &packet.data[0], ByteOrder::LITTLEENDIAN);
+            packet.data.resize(4);
+            packet.data[0] = 0;
+            uint16to(seconds, &packet.data[1], ByteOrder::LITTLEENDIAN);
+            packet.data[3] = name.size();
             packet.data.insert(packet.data.end(), name.begin(), name.end());
             iretn = agent->push_unwrapped(agent->channel_number(channel), packet);
             printf("QueueEpsSwitchName: %s %d %u\n", name.c_str(), iretn, agent->channel_size(channel));
+            return iretn;
+        }
+
+        int32_t PacketHandler::QueueEpsSwitchName(vector<string> names, vector<uint16_t> seconds, Agent* agent, string channel, NodeData::NODE_ID_TYPE orig, NodeData::NODE_ID_TYPE dest, string radio)
+        {
+            if (names.size() != seconds.size())
+            {
+                return GENERAL_ERROR_MISMATCH;
+            }
+
+            int32_t iretn = 0;
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandEpsSwitchName;
+            packet.header.orig = orig;
+            packet.header.dest = dest;
+            packet.header.radio = agent->channel_number(radio);
+            packet.data.resize(1);
+            packet.data[0] = 0;
+            for (uint16_t i=0; i<names.size(); ++i)
+            {
+                packet.data.resize(packet.data.size() + 3);
+                uint16to(seconds[i], &packet.data[packet.data.size() - 3], ByteOrder::LITTLEENDIAN);
+                packet.data[packet.data.size()-1] = names[i].size();
+                packet.data.insert(packet.data.end(), names[i].begin(), names[i].end());
+                printf("QueueEpsSwitchName: %s %u %lu\n", names[i].c_str(), seconds[i], packet.data.size());
+            }
+            iretn = agent->push_unwrapped(agent->channel_number(channel), packet);
             return iretn;
         }
 
