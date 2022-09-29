@@ -2,10 +2,8 @@
 
 namespace Cosmos {
     namespace Support {
-        int32_t Beacon::Init(uint16_t short_beacon, uint16_t long_beacon) {
+        int32_t Beacon::Init() {
             // Beacon and SMS message byte size limits
-            short_beacon_size = short_beacon;
-            long_beacon_size = long_beacon;
             interval = 1.;
             pattern_idx = 0;
 //            agent = calling_agent;
@@ -31,6 +29,17 @@ namespace Cosmos {
             this->type = type;
             switch (type)
             {
+            case TypeId::ADCSmag_beacon:
+                if (cinfo->devspec.mag.size())
+                {
+                    adcsmag_beacon beacon;
+                    beacon.met = cinfo->node.met;
+                    beacon.magx = cinfo->devspec.mag[0].mag.col[0];
+                    beacon.magy = cinfo->devspec.mag[0].mag.col[1];
+                    beacon.magz = cinfo->devspec.mag[0].mag.col[2];
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+                }
+				break;
             case TypeId::CPU1BeaconS:
                 if (cinfo->devspec.cpu.size())
                 {
@@ -254,10 +263,26 @@ namespace Cosmos {
         int32_t Beacon::Decode(vector<uint8_t> &data, cosmosstruc *cinfo)
         {
             type = (TypeId) data[0];
-            if (TypeString.find(type) != TypeString.end())
-            {
+            //if (TypeString.find(type) != TypeString.end())
+            //{
                 switch (type)
                 {
+                case TypeId::ADCSmag_beacon:
+					{
+                        adcsmag_beacon beacon;
+                        if (data.size() <= sizeof(beacon)) {
+                            memcpy(&beacon, data.data(), data.size());
+                        } else {
+                            return GENERAL_ERROR_BAD_SIZE;
+                        }
+						double mjd = beacon.met + cinfo->node.utcstart;
+						cinfo->devspec.mag[0].utc = mjd;
+						cinfo->devspec.mag[0].mag.col[0] = beacon.magx;
+						cinfo->devspec.mag[0].mag.col[1] = beacon.magy;
+						cinfo->devspec.mag[0].mag.col[2] = beacon.magz;
+					}
+					break;
+
                 case TypeId::CPUBeaconL:
                     {
                         cpus_beacon beacon;
@@ -377,7 +402,7 @@ namespace Cosmos {
 
 					default: break;
                 }
-            }
+            //}
             return 0;
         }
 
@@ -395,6 +420,14 @@ namespace Cosmos {
             Contents.clear();
                 switch (type)
                 {
+                case TypeId::ADCSmag_beacon:
+					{
+							// does this need mag utc?
+							// JIMNOTE double check the JSON output (vector or not?)
+                        json_out_1d(Contents, "device_mag_utc", 0, cinfo);
+                        json_out_1d(Contents, "device_mag_mag", 0, cinfo);
+					}
+					break;
                 case TypeId::CPU1BeaconS:
                     {
                         cinfo->node.met = cinfo->devspec.cpu[0].utc - cinfo->node.utcstart;
