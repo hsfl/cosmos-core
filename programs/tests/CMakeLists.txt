@@ -53,3 +53,7 @@ target_link_libraries(file_transfer_test CosmosAgent CosmosTransfer CosmosSlip)
 #add_executable(serialTestExecutable serialSendChar.cpp)
 #target_link_libraries(serialTestExecutable CosmosSupport ${COSMOS_LIBS})
 #add_test (serialSendChar ${EXECUTABLE_OUTPUT_PATH}/serialTestExecutable)
+
+if(${BUILD_PROGRAMS_TESTS} MATCHES "YES")
+    add_subdirectory(unit_tests)
+endif()
