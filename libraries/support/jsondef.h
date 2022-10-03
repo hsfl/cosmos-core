@@ -4542,8 +4542,8 @@ union as a ::devicestruc.
             double utc = 0.;
             //! Mission start time
             double utcstart = 0.;
-            //! Mission Elapsed Time
-            float met = 0.;
+            //! Mission Deci Seconds
+            uint32_t deci = 0;
             //! Location structure
             Convert::locstruc loc;
 			//! Estimated location structure
@@ -4588,7 +4588,7 @@ union as a ::devicestruc.
                     { "utcoffset" , utcoffset },
                     { "utc" , utc },
                     { "utcstart" , utcstart },
-                    { "met" , met },
+                    { "deci" , static_cast<int>(deci) },
                     { "loc" , loc },
 					{ "loc_est", loc_est },
 					{ "loc_std", loc_std },
@@ -4635,10 +4635,10 @@ union as a ::devicestruc.
                     if(!parsed["azto"].is_null())	{ azto = parsed["azto"].number_value(); }
                     if(!parsed["elto"].is_null())	{ elto = parsed["elto"].number_value(); }
                     if(!parsed["range"].is_null())	{ range = parsed["range"].number_value(); }
-                    if(!parsed["utcoffset"].is_null())	{ utc = parsed["utcoffset"].number_value(); }
+                    if(!parsed["utcoffset"].is_null())	{ utcoffset = parsed["utcoffset"].number_value(); }
                     if(!parsed["utc"].is_null())	{ utc = parsed["utc"].number_value(); }
-                    if(!parsed["utcstart"].is_null())	{ utc = parsed["utcstart"].number_value(); }
-                    if(!parsed["met"].is_null())	{ utc = parsed["met"].number_value(); }
+                    if(!parsed["utcstart"].is_null())	{ utcstart = parsed["utcstart"].number_value(); }
+                    if(!parsed["deci"].is_null())	{ deci = parsed["deci"].int_value(); }
                     if(!parsed["loc"].is_null())	{ loc.from_json(parsed["loc"].dump()); }
 					if(!parsed["loc_est"].is_null()){ loc_est.from_json(parsed["loc_est"].dump()); }
 					if(!parsed["loc_std"].is_null()){ loc_std.from_json(parsed["loc_std"].dump()); }
@@ -5927,7 +5927,7 @@ union as a ::devicestruc.
                 add_name("node.utcoffset", &node.utcoffset, "double");
                 add_name("node.utc", &node.utc, "double");
                 add_name("node.utcstart", &node.utcstart, "double");
-                add_name("node.met", &node.met, "double");
+                add_name("node.deci", &node.deci, "uint32_t");
                 add_name("node.loc", &node.loc, "locstruc");
                 add_name("node.loc.utc", &node.loc.utc, "double");
                 add_name("node.loc.pos", &node.loc.pos, "posstruc");

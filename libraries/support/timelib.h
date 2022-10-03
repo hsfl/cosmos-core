@@ -190,8 +190,12 @@ namespace Cosmos {
         double set_local_clock(double utc_to);
         int32_t microsleep(uint64_t usec);
         int32_t secondsleep(double seconds);
-        double newyear(int32_t years=0);
+        double newyear(double mjd=0);
+        double newdecade(double mjd=0);
         uint32_t centisec(double mjd=0.);
+        double centisec2mjd(uint32_t centi);
+        uint32_t decisec(double mjd=0.);
+        double decisec2mjd(uint32_t deci);
 
     }
 }

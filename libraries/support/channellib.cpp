@@ -130,8 +130,52 @@ namespace Cosmos {
             {
                 return -999999.;
             }
-            std::lock_guard<mutex> lock(*channel[number].mtx);
-            return 86400. * (currentmjd() - channel[number].timestamp);
+            channel[number].mtx->lock();
+            double age = 86400. * (currentmjd() - channel[number].timestamp);
+            channel[number].mtx->unlock();
+            return age;
+        }
+
+        size_t Channel::Bytes(string name)
+        {
+            for (uint8_t i=0; i<channel.size(); ++i)
+            {
+                if (channel[i].name == name)
+                {
+                    return Bytes(i);
+                }
+            }
+            return 0;
+        }
+
+        size_t Channel::Bytes(uint8_t number)
+        {
+            if (number >= channel.size())
+            {
+                return 0;
+            }
+            return channel[number].bytes;
+        }
+
+        uint32_t Channel::Packets(string name)
+        {
+            for (uint8_t i=0; i<channel.size(); ++i)
+            {
+                if (channel[i].name == name)
+                {
+                    return Packets(i);
+                }
+            }
+            return 0;
+        }
+
+        uint32_t Channel::Packets(uint8_t number)
+        {
+            if (number >= channel.size())
+            {
+                return 0;
+            }
+            return channel[number].packets;
         }
 
         double Channel::Touch(string name)
@@ -152,10 +196,25 @@ namespace Cosmos {
             {
                 return -999999.;
             }
-            std::lock_guard<mutex> lock(*channel[number].mtx);
+            channel[number].mtx->lock();
             double age = 86400. * (currentmjd() - channel[number].timestamp);
             channel[number].timestamp = currentmjd();
+            channel[number].mtx->unlock();
             return age;
+        }
+
+        size_t Channel::Increment(uint8_t number, size_t byte_count, uint32_t packet_count)
+        {
+            if (number >= channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            channel[number].mtx->lock();
+            channel[number].bytes += byte_count;
+            channel[number].packets += packet_count;
+            size_t total_count = channel[number].bytes * channel[number].packets;
+            channel[number].mtx->unlock();
+            return total_count;
         }
 
         int32_t Channel::Push(string name, PacketComm &packet)
@@ -176,9 +235,10 @@ namespace Cosmos {
             {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
-            std::lock_guard<mutex> lock(*channel[number].mtx);
+            channel[number].mtx->lock();
             channel[number].quu.push(packet);
             channel[number].timestamp = currentmjd();
+            channel[number].mtx->unlock();
             return number;
         }
 
@@ -213,7 +273,6 @@ namespace Cosmos {
             }
             else
             {
-                //            std::lock_guard<mutex> lock(*channel[number].mtx);
                 channel[number].mtx->lock();
                 if (channel[number].quu.size())
                 {
@@ -255,8 +314,10 @@ namespace Cosmos {
             {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
-            std::lock_guard<mutex> lock(*channel[number].mtx);
-            return channel[number].quu.size();
+            channel[number].mtx->lock();
+            int32_t size = channel[number].quu.size();
+            channel[number].mtx->unlock();
+            return size;
         }
 
         int32_t Channel::Clear(string name)
@@ -286,8 +347,9 @@ namespace Cosmos {
             {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
-            std::lock_guard<mutex> lock(*channel[number].mtx);
+            channel[number].mtx->lock();
             std::queue<PacketComm>().swap(channel[number].quu);
+            channel[number].mtx->unlock();
             return number;
         }
     }
