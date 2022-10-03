@@ -6,7 +6,7 @@ namespace Cosmos {
             // Beacon and SMS message byte size limits
             interval = 1.;
             pattern_idx = 0;
-//            agent = calling_agent;
+            //            agent = calling_agent;
             return 0;
         }
 
@@ -24,27 +24,27 @@ namespace Cosmos {
                 return GENERAL_ERROR_NULLPOINTER;
             }
 
-            cinfo->node.met = (currentmjd() - cinfo->node.utcstart);
+            cinfo->node.deci = decisec();
             data.clear();
             this->type = type;
             switch (type)
             {
-            case TypeId::ADCSmag_beacon:
+            case TypeId::ADCSMAGBeaconS:
                 if (cinfo->devspec.mag.size())
                 {
                     adcsmag_beacon beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     beacon.magx = cinfo->devspec.mag[0].mag.col[0];
                     beacon.magy = cinfo->devspec.mag[0].mag.col[1];
                     beacon.magz = cinfo->devspec.mag[0].mag.col[2];
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
                 }
-				break;
+                break;
             case TypeId::CPU1BeaconS:
                 if (cinfo->devspec.cpu.size())
                 {
                     cpu1_beacons beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     beacon.load = cinfo->devspec.cpu[0].load;
                     beacon.memory = cinfo->devspec.cpu[0].gib;
                     beacon.disk = cinfo->devspec.cpu[0].storage * 100. + .5;
@@ -55,7 +55,7 @@ namespace Cosmos {
                 if (cinfo->devspec.cpu.size())
                 {
                     cpu2_beacons beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     beacon.uptime = cinfo->devspec.cpu[0].uptime;
                     beacon.bootcount = cinfo->devspec.cpu[0].boot_count;
                     beacon.initialdate = utc2unixseconds(cinfo->node.utcstart) + .5;
@@ -66,7 +66,7 @@ namespace Cosmos {
                 if (cinfo->devspec.tsen.size() >= 3)
                 {
                     tsen_beacons beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     for (uint16_t i=0; i<3; ++i)
                     {
                         beacon.temp[i] = cinfo->devspec.tsen[i].temp;
@@ -80,7 +80,7 @@ namespace Cosmos {
                     if (cinfo->devspec.cpu[i].name.find("eps") != string::npos)
                     {
                         epscpu_beacons beacon;
-                        beacon.met = cinfo->node.met;
+                        beacon.deci = cinfo->node.deci;
                         beacon.volt = cinfo->devspec.cpu[i].volt;
                         beacon.amp = cinfo->devspec.cpu[i].amp;
                         beacon.temp = cinfo->devspec.cpu[i].temp;
@@ -92,7 +92,7 @@ namespace Cosmos {
             case TypeId::EPSPVBeaconS:
                 {
                     epsbcreg_beacons beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     for (uint16_t i=0; i<cinfo->devspec.pvstrg.size(); ++i)
                     {
                         beacon.volt += cinfo->devspec.pvstrg[i].volt;
@@ -110,7 +110,7 @@ namespace Cosmos {
             case TypeId::EPSSWCHBeaconS:
                 {
                     epsswch_beacons beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     for (uint16_t i=0; i<cinfo->devspec.swch.size(); ++i)
                     {
                         beacon.volt += cinfo->devspec.swch[i].volt;
@@ -128,7 +128,7 @@ namespace Cosmos {
             case TypeId::EPSBATTBeaconS:
                 {
                     epsbatt_beacons beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     for (uint16_t i=0; i<cinfo->devspec.batt.size(); ++i)
                     {
                         beacon.volt += cinfo->devspec.batt[i].volt;
@@ -147,7 +147,7 @@ namespace Cosmos {
                 if (cinfo->devspec.cpu.size())
                 {
                     cpus_beacon beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     beacon.initialdate = utc2unixseconds(cinfo->node.utcstart) + .5;
                     uint16_t cpucount = cinfo->devspec.cpu.size() < cpu_count?cinfo->devspec.cpu.size():cpu_count;
                     for (uint16_t i=0; i<cpucount; ++i)
@@ -165,7 +165,7 @@ namespace Cosmos {
                         beacon.cpu[i].mmemory = 1000. * (cinfo->devspec.cpu[i].gib / cinfo->devspec.cpu[i].maxgib) + .5;
                         beacon.cpu[i].mdisk = cinfo->devspec.cpu[i].storage * 1000. + .5;
                         beacon.cpu[i].ctemp = cinfo->devspec.cpu[i].temp * 100. + .5;
-//                        printf("EB CPU %u %s: pidx=%u uptime=%u name=%s\n", i, cinfo->devspec.cpu[i].name.c_str(), cinfo->devspec.cpu[i].pidx, cinfo->devspec.cpu[i].uptime, cinfo->pieces[cinfo->devspec.cpu[i].pidx].name.c_str());
+                        //                        printf("EB CPU %u %s: pidx=%u uptime=%u name=%s\n", i, cinfo->devspec.cpu[i].name.c_str(), cinfo->devspec.cpu[i].pidx, cinfo->devspec.cpu[i].uptime, cinfo->pieces[cinfo->devspec.cpu[i].pidx].name.c_str());
                         fflush(stdout);
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+9+cpucount*sizeof(cpu_beacon));
@@ -175,12 +175,12 @@ namespace Cosmos {
                 if (cinfo->devspec.tsen.size())
                 {
                     tsen_beacon beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     uint16_t tsencount = cinfo->devspec.tsen.size() < tsen_count?cinfo->devspec.tsen.size():tsen_count;
                     for (uint16_t i=0; i<tsencount; ++i)
                     {
                         beacon.ctemp[i] = cinfo->devspec.tsen[i].temp * 100. + .5;
-//                        printf("EB TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
+                        //                        printf("EB TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+tsencount*2);
                 }
@@ -189,13 +189,13 @@ namespace Cosmos {
                 if (cinfo->devspec.swch.size())
                 {
                     epsswchs_beacon beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     uint16_t swchcount = cinfo->devspec.swch.size() < epsswch_count?cinfo->devspec.swch.size():epsswch_count;
                     for (uint16_t i=0; i<swchcount; ++i)
                     {
                         beacon.swch[i].mamp = cinfo->devspec.swch[i].amp * 1000. + .5;
                         beacon.swch[i].mvolt = cinfo->devspec.swch[i].volt * 1000. + .5;
-//                        printf("EB SWCH %u %s: pidx=%u volt=%f amp=%f\n", i, cinfo->devspec.swch[i].name.c_str(), cinfo->devspec.swch[i].pidx, cinfo->devspec.swch[i].volt, cinfo->devspec.swch[i].amp);
+                        //                        printf("EB SWCH %u %s: pidx=%u volt=%f amp=%f\n", i, cinfo->devspec.swch[i].name.c_str(), cinfo->devspec.swch[i].pidx, cinfo->devspec.swch[i].volt, cinfo->devspec.swch[i].amp);
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+swchcount*sizeof(epsswch_beacon));
                 }
@@ -204,7 +204,7 @@ namespace Cosmos {
                 if (cinfo->devspec.swch.size())
                 {
                     epsbcregs_beacon beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     uint16_t pvcount = cinfo->devspec.bcreg.size() < epsbcreg_count?cinfo->devspec.bcreg.size():epsbcreg_count;
                     for (uint16_t i=0; i<pvcount; ++i)
                     {
@@ -218,7 +218,7 @@ namespace Cosmos {
                 if (cinfo->devspec.swch.size())
                 {
                     epsbatts_beacon beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     uint16_t battcount = cinfo->devspec.batt.size() < epsbatt_count?cinfo->devspec.batt.size():epsbatt_count;
                     for (uint16_t i=0; i<battcount; ++i)
                     {
@@ -234,7 +234,7 @@ namespace Cosmos {
                 if (cinfo->devspec.mtr.size())
                 {
                     adcsmtrs_beacon beacon;
-                    beacon.met = cinfo->node.met;
+                    beacon.deci = cinfo->node.deci;
                     uint16_t mtrcount = cinfo->devspec.mtr.size() < adcsmtr_count?cinfo->devspec.mtr.size():adcsmtr_count;
                     for (uint16_t i=0; i<mtrcount; ++i)
                     {
@@ -247,163 +247,169 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+mtrcount*sizeof(adcsmtr_beacon));
                 }
                 break;
-            //case TypeId::ADCSMagFieldVector:
-			//{
+                //case TypeId::ADCSMagFieldVector:
+                //{
 
 
-				//break;
-			//}
+                //break;
+                //}
             default:
                 return GENERAL_ERROR_OUTOFRANGE;
             }
-//            printf("Beacon: Type=%u Size=%lu\n", (uint16_t)type, data.size());
+            //            printf("Beacon: Type=%u Size=%lu\n", (uint16_t)type, data.size());
             return data.size();
         }
 
         int32_t Beacon::Decode(vector<uint8_t> &data, cosmosstruc *cinfo)
         {
-            type = (TypeId) data[0];
-            //if (TypeString.find(type) != TypeString.end())
-            //{
-                switch (type)
+            if (data.size() > 5)
+            {
+                type = (TypeId) data[0];
+                if (TypeString.find(type) != TypeString.end())
                 {
-                case TypeId::ADCSmag_beacon:
-					{
-                        adcsmag_beacon beacon;
-                        if (data.size() <= sizeof(beacon)) {
-                            memcpy(&beacon, data.data(), data.size());
-                        } else {
-                            return GENERAL_ERROR_BAD_SIZE;
-                        }
-						double mjd = beacon.met + cinfo->node.utcstart;
-						cinfo->devspec.mag[0].utc = mjd;
-						cinfo->devspec.mag[0].mag.col[0] = beacon.magx;
-						cinfo->devspec.mag[0].mag.col[1] = beacon.magy;
-						cinfo->devspec.mag[0].mag.col[2] = beacon.magz;
-					}
-					break;
-
-                case TypeId::CPUBeaconL:
+                    switch (type)
                     {
-                        cpus_beacon beacon;
-                        if (data.size() <= sizeof(beacon))
+                    case TypeId::ADCSMAGBeaconS:
                         {
-                            memcpy(&beacon, data.data(), data.size());
+                            adcsmag_beacon beacon;
+                            if (data.size() <= sizeof(beacon)) {
+                                memcpy(&beacon, data.data(), data.size());
+                            } else {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            cinfo->devspec.mag[0].utc = mjd;
+                            cinfo->devspec.mag[0].mag.col[0] = beacon.magx;
+                            cinfo->devspec.mag[0].mag.col[1] = beacon.magy;
+                            cinfo->devspec.mag[0].mag.col[2] = beacon.magz;
                         }
-                        else
+                        break;
+                    case TypeId::CPUBeaconL:
                         {
-                            return GENERAL_ERROR_BAD_SIZE;
-                        }
-                        cinfo->node.utcstart = unix2utc(beacon.initialdate);
-                        double mjd = beacon.met + cinfo->node.utcstart;
-                        for (uint16_t i=0; i<(data.size()-9)/COSMOS_SIZEOF(cpu_beacon); ++i)
-                        {
-                            if (beacon.cpu[i].uptime > 0.)
+                            cpus_beacon beacon;
+                            if (data.size() <= sizeof(beacon))
                             {
-                                cinfo->devspec.cpu[i].utc = mjd;
-                                cinfo->devspec.cpu[i].uptime = beacon.cpu[i].uptime;
-                                cinfo->devspec.cpu[i].boot_count = beacon.cpu[i].bootcount;
-                                cinfo->devspec.cpu[i].load = beacon.cpu[i].mload / 1000.;
-                                cinfo->devspec.cpu[i].gib = cinfo->devspec.cpu[i].maxgib * (beacon.cpu[i].mmemory / 1000.);
-                                cinfo->devspec.cpu[i].storage = beacon.cpu[i].mdisk / 1000.;
-                                cinfo->devspec.cpu[i].temp = beacon.cpu[i].ctemp / 100.;
+                                memcpy(&beacon, data.data(), data.size());
+                            }
+                            else
+                            {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            cinfo->node.utcstart = unix2utc(beacon.initialdate);
+                            double mjd = decisec2mjd(beacon.deci);
+                            for (uint16_t i=0; i<(data.size()-9)/COSMOS_SIZEOF(cpu_beacon); ++i)
+                            {
+                                if (beacon.cpu[i].uptime > 0.)
+                                {
+                                    cinfo->devspec.cpu[i].utc = mjd;
+                                    cinfo->devspec.cpu[i].uptime = beacon.cpu[i].uptime;
+                                    cinfo->devspec.cpu[i].boot_count = beacon.cpu[i].bootcount;
+                                    cinfo->devspec.cpu[i].load = beacon.cpu[i].mload / 1000.;
+                                    cinfo->devspec.cpu[i].gib = cinfo->devspec.cpu[i].maxgib * (beacon.cpu[i].mmemory / 1000.);
+                                    cinfo->devspec.cpu[i].storage = beacon.cpu[i].mdisk / 1000.;
+                                    cinfo->devspec.cpu[i].temp = beacon.cpu[i].ctemp / 100.;
+                                }
                             }
                         }
-                    }
-                    break;
-                case TypeId::TsenBeaconL:
-                    {
-                        tsen_beacon beacon;
-                        if (data.size() <= sizeof(beacon))
+                        break;
+                    case TypeId::TsenBeaconL:
                         {
-                            memcpy(&beacon, data.data(), data.size());
-                        }
-                        else
-                        {
-                            return GENERAL_ERROR_BAD_SIZE;
-                        }
-                        double mjd = beacon.met + cinfo->node.utcstart;
-                        for (uint16_t i=0; i<(data.size()-5)/2; ++i)
-                        {
-                            if (beacon.ctemp[i])
+                            tsen_beacon beacon;
+                            if (data.size() <= sizeof(beacon))
                             {
-                                cinfo->devspec.tsen[i].utc = mjd;
-                                cinfo->devspec.tsen[i].temp = beacon.ctemp[i] / 100.;
+                                memcpy(&beacon, data.data(), data.size());
                             }
-//                            printf("D TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
+                            else
+                            {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            for (uint16_t i=0; i<(data.size()-5)/2; ++i)
+                            {
+                                if (beacon.ctemp[i])
+                                {
+                                    cinfo->devspec.tsen[i].utc = mjd;
+                                    cinfo->devspec.tsen[i].temp = beacon.ctemp[i] / 100.;
+                                }
+                                //                            printf("D TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
+                            }
                         }
+                        break;
+                    case TypeId::EPSSWCHBeaconL:
+                        {
+                            epsswchs_beacon beacon;
+                            if (data.size() <= sizeof(beacon))
+                            {
+                                memcpy(&beacon, data.data(), data.size());
+                            }
+                            else
+                            {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            for (uint16_t i=0; i<(data.size()-5)/COSMOS_SIZEOF(epsswch_beacon); ++i)
+                            {
+                                cinfo->devspec.swch[i].utc = mjd;
+                                cinfo->devspec.swch[i].volt = beacon.swch[i].mvolt / 1000.;
+                                cinfo->devspec.swch[i].amp = beacon.swch[i].mamp / 1000.;
+                                cinfo->devspec.swch[i].power = cinfo->devspec.swch[i].volt * cinfo->devspec.swch[i].amp;
+                                //                            printf("D SWCH %u %s: pidx=%u volt=%f amp=%f\n", i, cinfo->devspec.swch[i].name.c_str(), cinfo->devspec.swch[i].pidx, cinfo->devspec.swch[i].volt, cinfo->devspec.swch[i].amp);
+                            }
+                        }
+                        break;
+                    case TypeId::EPSBCREGBeaconL:
+                        {
+                            epsbcregs_beacon beacon;
+                            if (data.size() <= sizeof(beacon))
+                            {
+                                memcpy(&beacon, data.data(), data.size());
+                            }
+                            else
+                            {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            for (uint16_t i=0; i<(data.size()-5)/COSMOS_SIZEOF(epsbcreg_beacon); ++i)
+                            {
+                                cinfo->devspec.bcreg[i].utc = mjd;
+                                cinfo->devspec.bcreg[i].volt = beacon.bcreg[i].mvolt / 1000.;
+                                cinfo->devspec.bcreg[i].amp = beacon.bcreg[i].mamp / 1000.;
+                            }
+                        }
+                        break;
+                    case TypeId::EPSBATTBeaconL:
+                        {
+                            epsbatts_beacon beacon;
+                            if (data.size() <= sizeof(beacon))
+                            {
+                                memcpy(&beacon, data.data(), data.size());
+                            }
+                            else
+                            {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            for (uint16_t i=0; i<(data.size()-5)/COSMOS_SIZEOF(epsbatt_beacon); ++i)
+                            {
+                                cinfo->devspec.batt[i].utc = mjd;
+                                cinfo->devspec.batt[i].volt = beacon.batt[i].mvolt / 1000.;
+                                cinfo->devspec.batt[i].amp = beacon.batt[i].mamp / 1000.;
+                                cinfo->devspec.batt[i].power = cinfo->devspec.batt[i].volt * cinfo->devspec.batt[i].amp;
+                                cinfo->devspec.batt[i].temp = beacon.batt[i].ctemp / 100.;
+                                cinfo->devspec.batt[i].percentage = beacon.batt[i].cpercent / 100.;
+                            }
+                        }
+                        break;
+                    default:
+                        break;
                     }
-                    break;
-                case TypeId::EPSSWCHBeaconL:
-                    {
-                        epsswchs_beacon beacon;
-                        if (data.size() <= sizeof(beacon))
-                        {
-                            memcpy(&beacon, data.data(), data.size());
-                        }
-                        else
-                        {
-                            return GENERAL_ERROR_BAD_SIZE;
-                        }
-                        double mjd = beacon.met + cinfo->node.utcstart;
-                        for (uint16_t i=0; i<(data.size()-5)/COSMOS_SIZEOF(epsswch_beacon); ++i)
-                        {
-                            cinfo->devspec.swch[i].utc = mjd;
-                            cinfo->devspec.swch[i].volt = beacon.swch[i].mvolt / 1000.;
-                            cinfo->devspec.swch[i].amp = beacon.swch[i].mamp / 1000.;
-                            cinfo->devspec.swch[i].power = cinfo->devspec.swch[i].volt * cinfo->devspec.swch[i].amp;
-//                            printf("D SWCH %u %s: pidx=%u volt=%f amp=%f\n", i, cinfo->devspec.swch[i].name.c_str(), cinfo->devspec.swch[i].pidx, cinfo->devspec.swch[i].volt, cinfo->devspec.swch[i].amp);
-                        }
-                    }
-                    break;
-                case TypeId::EPSBCREGBeaconL:
-                    {
-                        epsbcregs_beacon beacon;
-                        if (data.size() <= sizeof(beacon))
-                        {
-                            memcpy(&beacon, data.data(), data.size());
-                        }
-                        else
-                        {
-                            return GENERAL_ERROR_BAD_SIZE;
-                        }
-                        double mjd = beacon.met + cinfo->node.utcstart;
-                        for (uint16_t i=0; i<(data.size()-5)/COSMOS_SIZEOF(epsbcreg_beacon); ++i)
-                        {
-                            cinfo->devspec.bcreg[i].utc = mjd;
-                            cinfo->devspec.bcreg[i].volt = beacon.bcreg[i].mvolt / 1000.;
-                            cinfo->devspec.bcreg[i].amp = beacon.bcreg[i].mamp / 1000.;
-                        }
-                    }
-                    break;
-                case TypeId::EPSBATTBeaconL:
-                    {
-                        epsbatts_beacon beacon;
-                        if (data.size() <= sizeof(beacon))
-                        {
-                            memcpy(&beacon, data.data(), data.size());
-                        }
-                        else
-                        {
-                            return GENERAL_ERROR_BAD_SIZE;
-                        }
-                        double mjd = beacon.met + cinfo->node.utcstart;
-                        for (uint16_t i=0; i<(data.size()-5)/COSMOS_SIZEOF(epsbatt_beacon); ++i)
-                        {
-                            cinfo->devspec.batt[i].utc = mjd;
-                            cinfo->devspec.batt[i].volt = beacon.batt[i].mvolt / 1000.;
-                            cinfo->devspec.batt[i].amp = beacon.batt[i].mamp / 1000.;
-                            cinfo->devspec.batt[i].power = cinfo->devspec.batt[i].volt * cinfo->devspec.batt[i].amp;
-                            cinfo->devspec.batt[i].temp = beacon.batt[i].ctemp / 100.;
-                            cinfo->devspec.batt[i].percentage = beacon.batt[i].cpercent / 100.;
-                        }
-                    }
-                    break;
-
-					default: break;
                 }
-            //}
-            return 0;
+                return 0;
+            }
+            else
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
         }
 
         int32_t Beacon::EncodeJson(TypeId type, cosmosstruc *cinfo, vector<uint8_t>& Contents)
@@ -418,132 +424,132 @@ namespace Cosmos {
         int32_t Beacon::EncodeJson(TypeId type, cosmosstruc *cinfo, string& Contents)
         {
             Contents.clear();
-                switch (type)
+            switch (type)
+            {
+            case TypeId::ADCSMAGBeaconS:
                 {
-                case TypeId::ADCSmag_beacon:
-					{
-							// does this need mag utc?
-							// JIMNOTE double check the JSON output (vector or not?)
-                        json_out_1d(Contents, "device_mag_utc", 0, cinfo);
-                        json_out_1d(Contents, "device_mag_mag", 0, cinfo);
-					}
-					break;
-                case TypeId::CPU1BeaconS:
-                    {
-                        cinfo->node.met = cinfo->devspec.cpu[0].utc - cinfo->node.utcstart;
-                        json_out(Contents, "node_met", cinfo);
-                        json_out_1d(Contents, "device_cpu_load", 0, cinfo);
-                        json_out_1d(Contents, "device_cpu_gib", 0, cinfo);
-                        json_out_1d(Contents, "device_disk_gib", 0, cinfo);
-                    }
-                    break;
-                case TypeId::CPU2BeaconS:
-                    {
-                        cinfo->node.met = cinfo->devspec.cpu[0].utc - cinfo->node.utcstart;
-                        json_out(Contents, "node_met", cinfo);
-                        json_out_1d(Contents, "device_cpu_uptime", 0, cinfo);
-                        json_out_1d(Contents, "device_cpu_boot_count", 0, cinfo);
-                        json_out(Contents, "node_utcstart", cinfo);
-                    }
-                    break;
-                case TypeId::TsenBeaconS:
-                    {
-                        cinfo->node.met = cinfo->devspec.tsen[0].utc - cinfo->node.utcstart;
-                        json_out(Contents, "node_met", cinfo);
-                        for (uint16_t i=0; i<std::min(static_cast<size_t>(3), cinfo->devspec.tsen.size()); ++i)
-                        {
-                            json_out_1d(Contents, "device_tsen_temp", i, cinfo);
-                        }
-                    }
-                    break;
-                case TypeId::EPSCPUBeaconS:
-                    {
-                        for (uint16_t i=0; i<cinfo->devspec.cpu.size(); ++i)
-                        {
-                            if (cinfo->devspec.cpu[i].name.find("eps") != string::npos)
-                            {
-                                json_out_1d(Contents, "device_cpu_volt", i, cinfo);
-                                json_out_1d(Contents, "device_cpu_amp", i, cinfo);
-                                json_out_1d(Contents, "device_cpu_temp", i, cinfo);
-                                break;
-                            }
-                        }
-                    }
-                    break;
-                case TypeId::EPSPVBeaconS:
-                    {
-                    }
-                    break;
-                case TypeId::EPSSWCHBeaconS:
-                    {
-                    }
-                    break;
-                case TypeId::EPSBATTBeaconS:
-                    {
-                    }
-                    break;
-                case TypeId::CPUBeaconL:
-                    {
-                        json_out(Contents, "node_utc", cinfo);
-                        json_out(Contents, "node_utcstart", cinfo);
-                        for (uint16_t i=0; i<cinfo->devspec.cpu.size(); ++i)
-                        {
-                            json_out_1d(Contents, "device_cpu_utc", i, cinfo);
-                            json_out_1d(Contents, "device_cpu_uptime", i, cinfo);
-                            json_out_1d(Contents, "device_cpu_boot_count", i, cinfo);
-                            json_out_1d(Contents, "device_cpu_load", i, cinfo);
-                            json_out_1d(Contents, "device_cpu_gib", i, cinfo);
-                            json_out_1d(Contents, "device_cpu_storage", i, cinfo);
-                        }
-                    }
-                    break;
-                case TypeId::TsenBeaconL:
-                    {
-                        for (uint16_t i=0; i<cinfo->devspec.tsen.size(); ++i)
-                        {
-                            json_out_1d(Contents, "device_tsen_cpu", i, cinfo);
-                            json_out_1d(Contents, "device_tsen_temp", i, cinfo);
-                        }
-                    }
-                    break;
-                case TypeId::EPSSWCHBeaconL:
-                    {
-                        for (uint16_t i=0; i<cinfo->devspec.swch.size(); ++i)
-                        {
-                            json_out_1d(Contents, "device_swch_cpu", i, cinfo);
-                            json_out_1d(Contents, "device_swch_amp", i, cinfo);
-                            json_out_1d(Contents, "device_swch_volt", i, cinfo);
-                            json_out_1d(Contents, "device_swch_power", i, cinfo);
-                        }
-                    }
-                    break;
-                case TypeId::EPSBCREGBeaconL:
-                    {
-                        for (uint16_t i=0; i<cinfo->devspec.bcreg.size(); ++i)
-                        {
-                            json_out_1d(Contents, "device_bcreg_cpu", i, cinfo);
-                            json_out_1d(Contents, "device_bcreg_amp", i, cinfo);
-                            json_out_1d(Contents, "device_bcreg_volt", i, cinfo);
-                            json_out_1d(Contents, "device_bcreg_power", i, cinfo);
-                        }
-                    }
-                    break;
-                case TypeId::EPSBATTBeaconL:
-                    {
-                        for (uint16_t i=0; i<cinfo->devspec.batt.size(); ++i)
-                        {
-                            json_out_1d(Contents, "device_batt_cpu", i, cinfo);
-                            json_out_1d(Contents, "device_batt_amp", i, cinfo);
-                            json_out_1d(Contents, "device_batt_volt", i, cinfo);
-                            json_out_1d(Contents, "device_batt_power", i, cinfo);
-                            json_out_1d(Contents, "device_batt_temp", i, cinfo);
-                            json_out_1d(Contents, "device_batt_percentage", i, cinfo);
-                        }
-                    }
-                    break;
-                default:
-                    return GENERAL_ERROR_OUTOFRANGE;
+                    // does this need mag utc?
+                    // JIMNOTE double check the JSON output (vector or not?)
+                    json_out_1d(Contents, "device_mag_utc", 0, cinfo);
+                    json_out_1d(Contents, "device_mag_mag", 0, cinfo);
                 }
+                break;
+            case TypeId::CPU1BeaconS:
+                {
+                    cinfo->node.deci = decisec2mjd(cinfo->devspec.cpu[0].utc);
+                    json_out(Contents, "node_met", cinfo);
+                    json_out_1d(Contents, "device_cpu_load", 0, cinfo);
+                    json_out_1d(Contents, "device_cpu_gib", 0, cinfo);
+                    json_out_1d(Contents, "device_disk_gib", 0, cinfo);
+                }
+                break;
+            case TypeId::CPU2BeaconS:
+                {
+                    cinfo->node.deci = decisec2mjd(cinfo->devspec.cpu[0].utc);
+                    json_out(Contents, "node_met", cinfo);
+                    json_out_1d(Contents, "device_cpu_uptime", 0, cinfo);
+                    json_out_1d(Contents, "device_cpu_boot_count", 0, cinfo);
+                    json_out(Contents, "node_utcstart", cinfo);
+                }
+                break;
+            case TypeId::TsenBeaconS:
+                {
+                    cinfo->node.deci = decisec2mjd(cinfo->devspec.tsen[0].utc);
+                    json_out(Contents, "node_met", cinfo);
+                    for (uint16_t i=0; i<std::min(static_cast<size_t>(3), cinfo->devspec.tsen.size()); ++i)
+                    {
+                        json_out_1d(Contents, "device_tsen_temp", i, cinfo);
+                    }
+                }
+                break;
+            case TypeId::EPSCPUBeaconS:
+                {
+                    for (uint16_t i=0; i<cinfo->devspec.cpu.size(); ++i)
+                    {
+                        if (cinfo->devspec.cpu[i].name.find("eps") != string::npos)
+                        {
+                            json_out_1d(Contents, "device_cpu_volt", i, cinfo);
+                            json_out_1d(Contents, "device_cpu_amp", i, cinfo);
+                            json_out_1d(Contents, "device_cpu_temp", i, cinfo);
+                            break;
+                        }
+                    }
+                }
+                break;
+            case TypeId::EPSPVBeaconS:
+                {
+                }
+                break;
+            case TypeId::EPSSWCHBeaconS:
+                {
+                }
+                break;
+            case TypeId::EPSBATTBeaconS:
+                {
+                }
+                break;
+            case TypeId::CPUBeaconL:
+                {
+                    json_out(Contents, "node_utc", cinfo);
+                    json_out(Contents, "node_utcstart", cinfo);
+                    for (uint16_t i=0; i<cinfo->devspec.cpu.size(); ++i)
+                    {
+                        json_out_1d(Contents, "device_cpu_utc", i, cinfo);
+                        json_out_1d(Contents, "device_cpu_uptime", i, cinfo);
+                        json_out_1d(Contents, "device_cpu_boot_count", i, cinfo);
+                        json_out_1d(Contents, "device_cpu_load", i, cinfo);
+                        json_out_1d(Contents, "device_cpu_gib", i, cinfo);
+                        json_out_1d(Contents, "device_cpu_storage", i, cinfo);
+                    }
+                }
+                break;
+            case TypeId::TsenBeaconL:
+                {
+                    for (uint16_t i=0; i<cinfo->devspec.tsen.size(); ++i)
+                    {
+                        json_out_1d(Contents, "device_tsen_cpu", i, cinfo);
+                        json_out_1d(Contents, "device_tsen_temp", i, cinfo);
+                    }
+                }
+                break;
+            case TypeId::EPSSWCHBeaconL:
+                {
+                    for (uint16_t i=0; i<cinfo->devspec.swch.size(); ++i)
+                    {
+                        json_out_1d(Contents, "device_swch_cpu", i, cinfo);
+                        json_out_1d(Contents, "device_swch_amp", i, cinfo);
+                        json_out_1d(Contents, "device_swch_volt", i, cinfo);
+                        json_out_1d(Contents, "device_swch_power", i, cinfo);
+                    }
+                }
+                break;
+            case TypeId::EPSBCREGBeaconL:
+                {
+                    for (uint16_t i=0; i<cinfo->devspec.bcreg.size(); ++i)
+                    {
+                        json_out_1d(Contents, "device_bcreg_cpu", i, cinfo);
+                        json_out_1d(Contents, "device_bcreg_amp", i, cinfo);
+                        json_out_1d(Contents, "device_bcreg_volt", i, cinfo);
+                        json_out_1d(Contents, "device_bcreg_power", i, cinfo);
+                    }
+                }
+                break;
+            case TypeId::EPSBATTBeaconL:
+                {
+                    for (uint16_t i=0; i<cinfo->devspec.batt.size(); ++i)
+                    {
+                        json_out_1d(Contents, "device_batt_cpu", i, cinfo);
+                        json_out_1d(Contents, "device_batt_amp", i, cinfo);
+                        json_out_1d(Contents, "device_batt_volt", i, cinfo);
+                        json_out_1d(Contents, "device_batt_power", i, cinfo);
+                        json_out_1d(Contents, "device_batt_temp", i, cinfo);
+                        json_out_1d(Contents, "device_batt_percentage", i, cinfo);
+                    }
+                }
+                break;
+            default:
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
             return 0;
         }
 

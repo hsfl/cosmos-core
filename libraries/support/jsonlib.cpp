@@ -7939,7 +7939,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_downtime", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.downtime, (uint16_t)JSON_TYPE_UINT32, cinfo, JSON_UNIT_CHARGE);
     json_addentry("node_utc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("node_utcstart", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utcstart, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
-    json_addentry("node_met", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.met, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
+    json_addentry("node_deci", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.deci, (uint16_t)JSON_TYPE_UINT32, cinfo, JSON_UNIT_DATE);
     json_addentry("node_loc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc, (uint16_t)JSON_TYPE_LOCSTRUC, cinfo);
     json_addentry("node_loc_utc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     json_addentry("node_loc_pos", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos, (uint16_t)JSON_TYPE_POSSTRUC, cinfo);

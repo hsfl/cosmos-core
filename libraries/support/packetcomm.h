@@ -86,6 +86,7 @@ namespace Cosmos {
                 CommandEpsWatchdog = 165,
                 CommandEpsSetTime = 166,
                 CommandEpsMinimumPower = 167,
+                CommandEpsSwitchNames = 168,
                 CommandExecLoadCommand = 170,
                 CommandExecAddCommand = 171,
                 };
@@ -138,6 +139,7 @@ namespace Cosmos {
                 {TypeId::CommandEpsWatchdog, "EpsWatchdog"},
                 {TypeId::CommandEpsSetTime, "EpsSetTime"},
                 {TypeId::CommandEpsMinimumPower, "EpsMinimumPower"},
+                {TypeId::CommandEpsSwitchNames, "EpsSwitchNames"},
                 {TypeId::CommandExecLoadCommand, "ExecLoadCommand"},
                 {TypeId::CommandExecAddCommand, "ExecAddCommand"},
             };
@@ -189,6 +191,7 @@ namespace Cosmos {
                 {"EpsWatchdog", TypeId::CommandEpsWatchdog},
                 {"EpsSetTime", TypeId::CommandEpsSetTime},
                 {"EpsMinimumPower", TypeId::CommandEpsMinimumPower},
+                {"EpsSwitchNames", TypeId::CommandEpsSwitchNames},
                 {"AdcsCommunicate", TypeId::CommandAdcsCommunicate},
                 {"AdcsState", TypeId::CommandAdcsState},
                 {"AdcsSetRunMode", TypeId::CommandAdcsSetRunMode},
@@ -205,7 +208,7 @@ namespace Cosmos {
 
             struct __attribute__ ((packed))  ResponseHeader
             {
-                uint32_t met;
+                uint32_t deci;
                 uint8_t chunks;
                 uint8_t chunk_id;
                 uint32_t response_id;
@@ -213,7 +216,7 @@ namespace Cosmos {
 
             struct __attribute__ ((packed))  AdcsResponseHeader
             {
-                uint32_t met;
+                uint32_t deci;
                 uint8_t chunks;
                 uint8_t chunk_id;
                 uint8_t command;
@@ -221,7 +224,7 @@ namespace Cosmos {
 
             struct __attribute__ ((packed))  EpsResponseHeader
             {
-                uint32_t met;
+                uint32_t deci;
                 uint8_t chunks;
                 uint8_t chunk_id;
                 uint32_t sbid;

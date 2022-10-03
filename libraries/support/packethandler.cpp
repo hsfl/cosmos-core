@@ -48,15 +48,18 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandEpsWatchdog, EpsForward);
             add_func(PacketComm::TypeId::CommandEpsSetTime, EpsForward);
             add_func(PacketComm::TypeId::CommandEpsMinimumPower, EpsForward);
+            add_func(PacketComm::TypeId::CommandEpsSwitchNames, EpsForward);
             add_func(PacketComm::TypeId::CommandExecLoadCommand, ExecForward);
             add_func(PacketComm::TypeId::CommandExecAddCommand, ExecForward);
 
             // Telemetry
             add_func(PacketComm::TypeId::DataBeacon, DecodeBeacon);
-            add_func(PacketComm::TypeId::DataAdcsResponse, AdcsResponse);
-            add_func(PacketComm::TypeId::DataEpsResponse, EpsResponse);
-            add_func(PacketComm::TypeId::DataResponse, Response);
-            add_func(PacketComm::TypeId::DataTest, Test);
+            add_func(PacketComm::TypeId::DataPong, DecodePong);
+            add_func(PacketComm::TypeId::DataAdcsResponse, DecodeAdcsResponse);
+            add_func(PacketComm::TypeId::DataEpsResponse, DecodeEpsResponse);
+            add_func(PacketComm::TypeId::DataResponse, DecodeResponse);
+            add_func(PacketComm::TypeId::DataTest, DecodeTest);
+            add_func(PacketComm::TypeId::DataTime, DecodeTime);
 
             return 0;
         }
@@ -70,7 +73,7 @@ namespace Cosmos {
             vector<PacketComm> packets;
             PacketComm::ResponseHeader header;
             header.response_id = response_id;
-            header.met = (currentmjd() - agent->cinfo->node.utcstart);
+            header.deci = decisec();
             PacketComm packet;
             packet.header.type = PacketComm::TypeId::DataResponse;
             uint8_t chunk_size = (data_size-COSMOS_SIZEOF(PacketComm::ResponseHeader));
@@ -132,44 +135,321 @@ namespace Cosmos {
         }
 
         // Incoming Packets
-        int32_t PacketHandler::Pong(PacketComm& packet, string &response, Agent *agent)
+
+        int32_t PacketHandler::DecodeBeacon(PacketComm& packet, string &response, Agent* agent)
+        {
+            Beacon beacon;
+            beacon.Init();
+            int32_t iretn = beacon.Decode(packet.data, agent->cinfo);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
+            // Create Response
+            beacon.EncodeJson(beacon.type, agent->cinfo, response);
+
+            // Log beacon
+            string orig_node = agent->nodeData.lookup_node_id_name(packet.header.orig);
+            if (!orig_node.empty())
+            {
+                log_write(orig_node, "beacon", agent->get_timeStart(), "", "beacon", response, "incoming");
+            }
+
+            return 0;
+        }
+
+        int32_t PacketHandler::DecodePong(PacketComm& packet, string &response, Agent *agent)
         {
             int32_t iretn = 0;
             static uint32_t last_response_id = 0;
-            uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            uint16_t pong_size = packet.data.size() - 4;
-            filestruc file = data_name_struc(agent->nodeName, "temp", agent->agentName, 0., "pong_"+to_unsigned(response_id));
-            if (file.path.size())
+            if (packet.data.size() > 4)
             {
-                FILE *tf;
-                tf = fopen(file.path.c_str(), "a");
-                if (tf != nullptr)
+                uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
+                uint16_t pong_size = packet.data.size() - 4;
+                response = to_unsigned(response_id) + " ";
+                response.insert(response.end(), packet.data.begin()+4, packet.data.end());
+                filestruc file = data_name_struc(agent->nodeName, "temp", agent->agentName, 0., "pong_"+to_unsigned(response_id));
+                if (file.path.size())
                 {
-                    iretn = fwrite(packet.data.data()+pong_size, pong_size, 1, tf);
-                    if (iretn < 0)
+                    FILE *tf;
+                    tf = fopen(file.path.c_str(), "a");
+                    if (tf != nullptr)
                     {
-                        iretn = -errno;
+                        iretn = fwrite(packet.data.data()+4, pong_size, 1, tf);
+                        if (iretn < 0)
+                        {
+                            iretn = -errno;
+                        }
+                        fclose(tf);
+                        if (data_isfile(file.path) && last_response_id != response_id)
+                        {
+                            iretn = data_move(file, "incoming", false);
+                            last_response_id = response_id;
+                        }
                     }
-                    fclose(tf);
-                    if (data_isfile(file.path) && last_response_id != response_id)
+                    else
                     {
-                        iretn = data_move(file, "incoming", false);
-                        last_response_id = response_id;
+                        iretn = GENERAL_ERROR_BAD_FD;
+                        response = "Error: " + cosmos_error_string(iretn);
                     }
                 }
                 else
                 {
-                    iretn = GENERAL_ERROR_BAD_FD;
+                    iretn = GENERAL_ERROR_NAME;
+                    response = "Error: " + cosmos_error_string(iretn);
                 }
             }
             else
             {
-                iretn = GENERAL_ERROR_NAME;
+                iretn = GENERAL_ERROR_BAD_SIZE;
+                response = "Error: " + cosmos_error_string(iretn);
             }
             return iretn;
         }
 
-        int32_t PacketHandler::Test(PacketComm& packet, string &response, Agent *agent)
+        int32_t PacketHandler::DecodeEpsResponse(PacketComm &packet, string &response, Agent* agent)
+        {
+            int32_t iretn=0;
+
+            if (packet.data.size() > COSMOS_SIZEOF(PacketComm::EpsResponseHeader))
+            {
+                uint16_t header_size;
+                uint16_t chunk_size;
+                uint16_t this_chunk_size;
+                uint16_t chunk_id;
+                uint16_t chunks;
+                filestruc file;
+
+                iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
+
+                PacketComm::EpsResponseHeader header;
+                header_size = COSMOS_SIZEOF(PacketComm::EpsResponseHeader);
+                memcpy(&header, packet.data.data(), header_size);
+                this_chunk_size = packet.data.size() - header_size;
+                chunk_size = agent->channel_datasize(packet.header.radio);
+                chunk_id = header.chunk_id;
+                chunks = header.chunks;
+                file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "eps", header.deci, data_name(agent->cinfo->node.utcstart + header.deci, "eresp", NodeData::lookup_node_id_name(packet.header.orig), "eps", to_unsigned(header.sbid)));
+
+                if (file.path.size())
+                {
+                    FILE *tf;
+                    if (data_exists(file.path))
+                    {
+                        tf = fopen(file.path.c_str(), "r+");
+                    }
+                    else
+                    {
+                        tf = fopen(file.path.c_str(), "w");
+                    }
+                    if (tf != nullptr)
+                    {
+                        iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
+                        if (iretn >= 0)
+                        {
+                            iretn = fwrite(packet.data.data()+header_size, this_chunk_size, 1, tf);
+                            if (iretn < 0)
+                            {
+                                iretn = -errno;
+                            }
+                        }
+                        else
+                        {
+                            iretn = -errno;
+                        }
+                        fclose(tf);
+                        response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
+
+                        // Check if all chunks received
+                        if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
+                        {
+                            iretn = data_move(file, "incoming", false);
+                            response += "\nEpsResponse fully received";
+                        }
+                    }
+                    else
+                    {
+                        iretn = GENERAL_ERROR_BAD_FD;
+                        response = "Error: " + cosmos_error_string(iretn);
+                    }
+                }
+                else
+                {
+                    iretn = GENERAL_ERROR_NAME;
+                    response = "Error: " + cosmos_error_string(iretn);
+                }
+            }
+            else
+            {
+                iretn = GENERAL_ERROR_BAD_SIZE;
+                response = "Error: " + cosmos_error_string(iretn);
+            }
+
+            return iretn;
+        }
+
+        int32_t PacketHandler::DecodeAdcsResponse(PacketComm &packet, string &response, Agent* agent)
+        {
+            int32_t iretn=0;
+
+            if (packet.data.size() > COSMOS_SIZEOF(PacketComm::AdcsResponseHeader))
+            {
+                uint16_t header_size;
+                uint16_t chunk_size;
+                uint16_t this_chunk_size;
+                uint16_t chunk_id;
+                uint16_t chunks;
+                filestruc file;
+
+                iretn = agent->push_unwrapped(agent->channel_number("ADCS"), packet);
+
+                PacketComm::AdcsResponseHeader header;
+                header_size = COSMOS_SIZEOF(PacketComm::AdcsResponseHeader);
+                memcpy(&header, packet.data.data(), header_size);
+                this_chunk_size = packet.data.size() - header_size;
+                chunk_size = agent->channel_datasize(packet.header.radio);
+                chunk_id = header.chunk_id;
+                chunks = header.chunks;
+                file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "adcs", header.deci, data_name(agent->cinfo->node.utcstart + header.deci, "aresp", NodeData::lookup_node_id_name(packet.header.orig), "adcs", to_unsigned(header.command)));
+
+                // Rebuild response with chunks
+                if (file.path.size())
+                {
+                    FILE *tf;
+                    if (data_exists(file.path))
+                    {
+                        tf = fopen(file.path.c_str(), "r+");
+                    }
+                    else
+                    {
+                        tf = fopen(file.path.c_str(), "w");
+                    }
+                    if (tf != nullptr)
+                    {
+                        iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
+                        if (iretn >= 0)
+                        {
+                            iretn = fwrite(packet.data.data()+header_size, this_chunk_size, 1, tf);
+                            if (iretn < 0)
+                            {
+                                iretn = -errno;
+                            }
+                        }
+                        else
+                        {
+                            iretn = -errno;
+                        }
+                        fclose(tf);
+                        response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
+
+                        // Check if all chunks received
+                        if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
+                        {
+                            iretn = data_move(file, "incoming", false);
+                            response += " | AdcsResponse fully received";
+                        }
+                    }
+                    else
+                    {
+                        iretn = GENERAL_ERROR_BAD_FD;
+                        response = "Error: " + cosmos_error_string(iretn);
+                    }
+                }
+                else
+                {
+                    iretn = GENERAL_ERROR_NAME;
+                    response = "Error: " + cosmos_error_string(iretn);
+                }
+            }
+            else
+            {
+                iretn = GENERAL_ERROR_BAD_SIZE;
+                response = "Error: " + cosmos_error_string(iretn);
+            }
+
+            return iretn;
+        }
+
+        int32_t PacketHandler::DecodeResponse(PacketComm& packet, string &response, Agent* agent)
+        {
+            int32_t iretn=0;
+
+            if (packet.data.size() > COSMOS_SIZEOF(PacketComm::ResponseHeader))
+            {
+                uint16_t header_size;
+                uint16_t chunk_size;
+                uint16_t this_chunk_size;
+                uint16_t chunk_id;
+                uint16_t chunks;
+                filestruc file;
+
+
+                PacketComm::ResponseHeader header;
+                header_size = COSMOS_SIZEOF(PacketComm::ResponseHeader);
+                memcpy(&header, packet.data.data(), header_size);
+                this_chunk_size = packet.data.size() - header_size;
+                chunk_size = agent->channel_datasize(packet.header.radio);
+                chunk_id = header.chunk_id;
+                chunks = header.chunks;
+                file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "main", header.deci, data_name(agent->cinfo->node.utcstart + header.deci, "gresp", NodeData::lookup_node_id_name(packet.header.orig), "main", to_unsigned(header.response_id)));
+
+                if (file.path.size())
+                {
+                    FILE *tf;
+                    if (data_exists(file.path))
+                    {
+                        tf = fopen(file.path.c_str(), "r+");
+                    }
+                    else
+                    {
+                        tf = fopen(file.path.c_str(), "w");
+                    }
+                    if (tf != nullptr)
+                    {
+                        iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
+                        if (iretn >= 0)
+                        {
+                            iretn = fwrite(packet.data.data()+header_size, this_chunk_size, 1, tf);
+                            if (iretn < 0)
+                            {
+                                iretn = -errno;
+                            }
+                        }
+                        else
+                        {
+                            iretn = -errno;
+                        }
+                        fclose(tf);
+                        response = "chunks=" + to_unsigned(chunks) + " chunk_id=" + to_unsigned(chunk_id) + " chunk_size=" + to_unsigned(this_chunk_size) + " data=" + to_hex_string(packet.data, true);
+
+                        if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
+                        {
+                            iretn = data_move(file, "incoming", false);
+                            response += "\nResponse fully received";
+                        }
+                    }
+                    else
+                    {
+                        iretn = GENERAL_ERROR_BAD_FD;
+                        response = "Error: " + cosmos_error_string(iretn);
+                    }
+                }
+                else
+                {
+                    iretn = GENERAL_ERROR_NAME;
+                    response = "Error: " + cosmos_error_string(iretn);
+                }
+            }
+            else
+            {
+                iretn = GENERAL_ERROR_BAD_SIZE;
+                response = "Error: " + cosmos_error_string(iretn);
+            }
+            return iretn;
+        }
+
+        int32_t PacketHandler::DecodeTest(PacketComm& packet, string &response, Agent *agent)
         {
             static CRC16 calc_crc;
             static uint32_t last_test_id = 0;
@@ -187,173 +467,114 @@ namespace Cosmos {
                 ElapsedTime et;
             };
             static map<uint32_t, test_control> tests;
-            string sresponse;
+            response.clear();
 
-            uint32_t test_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            uint32_t packet_id = uint32from(&packet.data[8], ByteOrder::LITTLEENDIAN);
-            if (tests.find(test_id) == tests.end())
+            if (packet.data.size() > COSMOS_SIZEOF(PacketComm::TestHeader))
             {
-                if (tests.find(last_test_id) != tests.end())
-                {
-                    sresponse = to_label("TestMET", (currentmjd() - agent->cinfo->node.utcstart)) + to_label(" Test_Id", last_test_id);
-                    sresponse +=  to_label(" Packet_Id", tests[last_test_id].last_packet_id);
-                    sresponse += " Good: " + to_unsigned(tests[last_test_id].good_count);
-                    sresponse += " Skip: " + to_unsigned(tests[last_test_id].skip_count);
-                    sresponse += " Size: " + to_unsigned(tests[last_test_id].size_count);
-                    sresponse += " Crc: " + to_unsigned(tests[last_test_id].crc_count);
-                    sresponse += to_label(" Bytes", tests[last_test_id].total_bytes) + to_label(" Count", tests[last_test_id].total_count);
-                    sresponse += " Complete: \n";
-                }
-                tests[test_id].path = data_name_path(agent->nodeName, "incoming", agent->agentName, 0., "test_"+to_unsigned(test_id));
-                tests[test_id].et.reset();
-            }
-            tests[test_id].total_count = tests[test_id].good_count + tests[test_id].crc_count + tests[test_id].size_count;
-            tests[test_id].et.reset();
-            if (packet_id - tests[test_id].last_packet_id > 1 && packet_id != ((uint32_t)-1))
-            {
-                tests[test_id].skip_count += (packet_id - tests[test_id].last_packet_id) - 1;
-            }
-            uint32_t data_size = uint32from(&packet.data[4], ByteOrder::LITTLEENDIAN);
-            if (data_size != packet.data.size() - 14)
-            {
-                ++tests[test_id].size_count;
-            }
-            else
-            {
-                uint16_t crccalc = calc_crc.calc(&packet.data[0], packet.data.size()-2);
-                uint16_t crcdata = 256 * packet.data[packet.data.size()-1] + packet.data[packet.data.size()-2];
-                if (crccalc != crcdata)
-                {
-                    ++tests[test_id].crc_count;
-                }
-                else
-                {
-                    FILE *tf = fopen(tests[test_id].path.c_str(), "a");
-                    iretn = fwrite(packet.data.data(), packet.data.size(), 1, tf);
-                    fclose(tf);
-                    tests[test_id].total_bytes += data_size;
-                    ++tests[test_id].good_count;
-                }
-            }
-            tests[test_id].total_count = tests[test_id].good_count + tests[test_id].crc_count + tests[test_id].size_count + tests[test_id].skip_count;
-            sresponse += to_label("TestMET", (currentmjd() - agent->cinfo->node.utcstart)) + to_label(" Test_Id", test_id);
-            if (packet_id == ((uint32_t)-1))
-            {
-                sresponse +=  to_label(" Packet_Id", tests[test_id].last_packet_id+1);
-            }
-            else
-            {
-                sresponse +=  to_label(" Packet_Id", packet_id);
-            }
-            sresponse += " Good: " + to_unsigned(tests[test_id].good_count);
-            sresponse += " Skip: " + to_unsigned(tests[test_id].skip_count);
-            sresponse += " Size: " + to_unsigned(tests[test_id].size_count);
-            sresponse += " Crc: " + to_unsigned(tests[test_id].crc_count);
-            sresponse += to_label(" Bytes", tests[test_id].total_bytes) + to_label(" Count", tests[test_id].total_count);
-            if (packet_id == ((uint32_t)-1))
-            {
-                sresponse += " Complete: ";
-                tests.erase(test_id);
-            }
-            else if (last_test_id < test_id)
-            {
-                sresponse += " Start: ";
-            }
+                PacketComm::TestHeader header;
+                uint16_t header_size = COSMOS_SIZEOF(PacketComm::TestHeader);
+                memcpy(&header, packet.data.data(), header_size);
+                uint16_t data_size = packet.data.size() - header_size;
 
-            response = sresponse;
-            tests[test_id].last_packet_id = packet_id;
-            last_test_id = test_id;
-            return iretn;
-        }
-
-        int32_t PacketHandler::Response(PacketComm& packet, string &response, Agent* agent)
-        {
-            int32_t iretn=0;
-            uint16_t header_size;
-            uint16_t chunk_size;
-            uint16_t this_chunk_size;
-            uint16_t chunk_id;
-            uint16_t chunks;
-            filestruc file;
-
-
-            PacketComm::ResponseHeader header;
-            header_size = COSMOS_SIZEOF(PacketComm::ResponseHeader);
-            this_chunk_size = packet.data.size() - header_size;
-            chunk_size = agent->channel_datasize(packet.header.radio);
-            memcpy(&header, packet.data.data(), header_size);
-            chunk_id = header.chunk_id;
-            chunks = header.chunks;
-            file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "main", header.met, data_name(agent->cinfo->node.utcstart + header.met, "gresp", NodeData::lookup_node_id_name(packet.header.orig), "main", to_unsigned(header.response_id)));
-
-            if (file.path.size())
-            {
-                FILE *tf;
-                if (data_exists(file.path))
+                if (tests.find(header.test_id) == tests.end())
                 {
-                    tf = fopen(file.path.c_str(), "r+");
-                }
-                else
-                {
-                    tf = fopen(file.path.c_str(), "w");
-                }
-                if (tf != nullptr)
-                {
-                    iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
-                    if (iretn >= 0)
+                    // New Test
+                    if (tests.find(last_test_id) != tests.end())
                     {
-                        iretn = fwrite(packet.data.data()+header_size, this_chunk_size, 1, tf);
-                        if (iretn < 0)
-                        {
-                            iretn = -errno;
-                        }
+                        // Finish off existing test
+                        response += to_label("MET", (currentmjd() - agent->cinfo->node.utcstart)) + to_label(" Test_Id", last_test_id);
+                        response +=  to_label(" Packet_Id", tests[last_test_id].last_packet_id);
+                        response += " Good: " + to_unsigned(tests[last_test_id].good_count);
+                        response += " Skip: " + to_unsigned(tests[last_test_id].skip_count);
+                        response += " Size: " + to_unsigned(tests[last_test_id].size_count);
+                        response += " Crc: " + to_unsigned(tests[last_test_id].crc_count);
+                        response += to_label(" Bytes", tests[last_test_id].total_bytes) + to_label(" Count", tests[last_test_id].total_count);
+                        response += " Complete: \n";
+                    }
+                    tests[header.test_id].path = data_name_path(agent->nodeName, "incoming", agent->agentName, 0., "test_"+to_unsigned(header.test_id));
+                    tests[header.test_id].et.reset();
+                }
+
+                tests[header.test_id].total_count = tests[header.test_id].good_count + tests[header.test_id].crc_count + tests[header.test_id].size_count;
+                tests[header.test_id].et.reset();
+                if (header.packet_id - tests[header.test_id].last_packet_id > 1 && header.packet_id != ((uint32_t)-1))
+                {
+                    tests[header.test_id].skip_count += (header.packet_id - tests[header.test_id].last_packet_id) - 1;
+                }
+                if (data_size != packet.data.size() - 14)
+                {
+                    ++tests[header.test_id].size_count;
+                }
+                else
+                {
+                    uint16_t crccalc = calc_crc.calc(&packet.data[0], packet.data.size()-2);
+                    uint16_t crcdata = 256 * packet.data[packet.data.size()-1] + packet.data[packet.data.size()-2];
+                    if (crccalc != crcdata)
+                    {
+                        ++tests[header.test_id].crc_count;
                     }
                     else
                     {
-                        iretn = -errno;
+                        FILE *tf = fopen(tests[header.test_id].path.c_str(), "a");
+                        iretn = fwrite(packet.data.data(), packet.data.size(), 1, tf);
+                        fclose(tf);
+                        tests[header.test_id].total_bytes += data_size;
+                        ++tests[header.test_id].good_count;
                     }
-                    fclose(tf);
-                    response = "chunks=" + to_unsigned(chunks) + " chunk_id=" + to_unsigned(chunk_id) + " chunk_size=" + to_unsigned(this_chunk_size) + " data=" + to_hex_string(packet.data, true);
-
-                    if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
-                    {
-                        iretn = data_move(file, "incoming", false);
-                        response += "\nResponse fully received";
-                    }
+                }
+                tests[header.test_id].total_count = tests[header.test_id].good_count + tests[header.test_id].crc_count + tests[header.test_id].size_count + tests[header.test_id].skip_count;
+                response += to_label("MET", (currentmjd() - agent->cinfo->node.utcstart)) + to_label(" Test_Id", header.test_id);
+                if (header.packet_id == ((uint32_t)-1))
+                {
+                    response +=  to_label(" Packet_Id", tests[header.test_id].last_packet_id+1);
                 }
                 else
                 {
-                    iretn = GENERAL_ERROR_BAD_FD;
+                    response +=  to_label(" Packet_Id", header.packet_id);
                 }
+                response += " Good: " + to_unsigned(tests[header.test_id].good_count);
+                response += " Skip: " + to_unsigned(tests[header.test_id].skip_count);
+                response += " Size: " + to_unsigned(tests[header.test_id].size_count);
+                response += " Crc: " + to_unsigned(tests[header.test_id].crc_count);
+                response += to_label(" Bytes", tests[header.test_id].total_bytes) + to_label(" Count", tests[header.test_id].total_count);
+                if (header.packet_id == ((uint32_t)-1))
+                {
+                    response += " Complete: ";
+                    tests.erase(header.test_id);
+                }
+                else if (last_test_id < header.test_id)
+                {
+                    response += " Start: ";
+                }
+
+                tests[header.test_id].last_packet_id = header.packet_id;
+                last_test_id = header.test_id;
             }
             else
             {
-                iretn = GENERAL_ERROR_NAME;
+                iretn = GENERAL_ERROR_BAD_SIZE;
+                response = "Error: " + cosmos_error_string(iretn);
             }
+
             return iretn;
         }
 
-        int32_t PacketHandler::DecodeBeacon(PacketComm& packet, string &response, Agent* agent)
+        int32_t PacketHandler::DecodeTime(PacketComm& packet, string &response, Agent *agent)
         {
-            Beacon beacon;
-            beacon.Init();
-            int32_t iretn = beacon.Decode(packet.data, agent->cinfo);
-//            printf("Beacon Type=%u Size=%lu %d ", packet.data[0], packet.data.size(), iretn);
-            if (iretn < 0)
+            int32_t iretn = 0;
+            if (packet.data.size() == 12)
             {
-                return iretn;
+                double mjd = doublefrom(&packet.data[0], ByteOrder::LITTLEENDIAN);
+                double met = doublefrom(&packet.data[8], ByteOrder::LITTLEENDIAN);
+                response = to_mjd(mjd) + " " + utc2iso8601(mjd) + " " + to_floating(met);
+            }
+            else
+            {
+                iretn = GENERAL_ERROR_BAD_SIZE;
+                response = "Error: " + cosmos_error_string(iretn);
             }
 
-            // Log beacon
-            string orig_node = agent->nodeData.lookup_node_id_name(packet.header.orig);
-            if (!orig_node.empty())
-            {
-                string jstr;
-                beacon.EncodeJson(beacon.type, agent->cinfo, jstr);
-                log_write(orig_node, "beacon", agent->get_timeStart(), "", "beacon", jstr, "incoming");
-            }
-
-            return 0;
+            return iretn;
         }
 
         // Incoming Commands
@@ -361,7 +582,7 @@ namespace Cosmos {
         {
             int32_t iretn=0;
             uint32_t verification_check;
-//            memcpy(&verification_check, &packet.data[0], 4);
+            //            memcpy(&verification_check, &packet.data[0], 4);
             verification_check = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             iretn = agent->check_verification(verification_check);
             if (iretn < 0)
@@ -374,10 +595,10 @@ namespace Cosmos {
             response = "Resetting Power in " + to_unsigned(seconds) + " seconds";
 
             // Command the EPS
-//            packet.header.type = PacketComm::TypeId::CommandEpsReset;
-//            packet.data.resize(2);
-//            uint16to(seconds, &packet.data[0], ByteOrder::LITTLEENDIAN);
-//            agent->push_unwrapped(agent->channel_number("EPS"), packet);
+            //            packet.header.type = PacketComm::TypeId::CommandEpsReset;
+            //            packet.data.resize(2);
+            //            uint16to(seconds, &packet.data[0], ByteOrder::LITTLEENDIAN);
+            //            agent->push_unwrapped(agent->channel_number("EPS"), packet);
             iretn = QueueEpsReset(seconds, agent);
             return iretn;
         }
@@ -386,7 +607,7 @@ namespace Cosmos {
         {
             int32_t iretn=0;
             uint32_t verification_check;
-//            memcpy(&verification_check, &packet.data[0], 4);
+            //            memcpy(&verification_check, &packet.data[0], 4);
             verification_check = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             iretn = agent->check_verification(verification_check);
             if (iretn < 0)
@@ -467,31 +688,11 @@ namespace Cosmos {
             return iretn;
         }
 
-        //        int32_t PacketHandler::TransferNode(PacketComm &packet, string &response, Agent* agent)
-        //        {
-        //            int32_t iretn = agent->push_unwrapped(packet.header.radio, packet);
-        //            return iretn;
-        //        }
-
-        //        int32_t PacketHandler::TransferRadio(PacketComm &packet, string &response, Agent* agent)
-        //        {
-        //            int32_t iretn = agent->push_unwrapped(packet.header.radio, packet);
-        //            return iretn;
-        //        }
-
-        //        int32_t PacketHandler::TransferList(PacketComm &packet, string &response, Agent* agent)
-        //        {
-        //            int32_t iretn = agent->push_unwrapped(packet.header.radio, packet);
-        //            return iretn;
-        //        }
-
         int32_t PacketHandler::InternalRequest(PacketComm& packet, string &response, Agent* agent)
         {
             // Run request, return response
             string erequest = string(packet.data.begin()+4, packet.data.end());
             int32_t iretn = agent->process_request(erequest, response);
-            printf("InternalRequest: %s Response: %s\n", erequest.c_str(), response.c_str());
-            fflush(stdout);
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, response);
             return iretn;
@@ -501,8 +702,6 @@ namespace Cosmos {
         {
             int32_t iretn=0;
 
-            // response.clear();
-            // response.insert(response.begin(), packet.data.begin()+4, packet.data.end());
             packet.header.type = PacketComm::TypeId::DataPong;
             NodeData::NODE_ID_TYPE temp = packet.header.dest;
             packet.header.dest = packet.header.orig;
@@ -518,10 +717,6 @@ namespace Cosmos {
             double delta = set_local_clock(mjd);
             response = to_label("Delta Seconds", delta);
 
-//            packet.header.type = PacketComm::TypeId::CommandEpsSetTime;
-//            packet.data.resize(8);
-//            doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
-//            iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
             iretn = QueueEpsSetTime(mjd, agent);
             return iretn;
         }
@@ -550,151 +745,10 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::AdcsResponse(PacketComm &packet, string &response, Agent* agent)
-        {
-            int32_t iretn=0;
-            uint16_t header_size;
-            uint16_t chunk_size;
-            uint16_t this_chunk_size;
-            uint16_t chunk_id;
-            uint16_t chunks;
-            filestruc file;
-
-            iretn = agent->push_unwrapped(agent->channel_number("ADCS"), packet);
-
-            PacketComm::AdcsResponseHeader header;
-            header_size = COSMOS_SIZEOF(PacketComm::AdcsResponseHeader);
-            this_chunk_size = packet.data.size() - header_size;
-            chunk_size = agent->channel_datasize(packet.header.radio);
-            memcpy(&header, packet.data.data(), header_size);
-            chunk_id = header.chunk_id;
-            chunks = header.chunks;
-            printf("ADCSResp [%u/%u] %u ", chunk_id, chunks, packet.data[header_size]);
-            file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "adcs", header.met, data_name(agent->cinfo->node.utcstart + header.met, "aresp", NodeData::lookup_node_id_name(packet.header.orig), "adcs", to_unsigned(header.command)));
-            // Rebuild response with chunks
-            if (file.path.size())
-            {
-                FILE *tf;
-                if (data_exists(file.path))
-                {
-                    tf = fopen(file.path.c_str(), "r+");
-                }
-                else
-                {
-                    tf = fopen(file.path.c_str(), "w");
-                }
-                if (tf != nullptr)
-                {
-                    iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
-                    if (iretn >= 0)
-                    {
-                        iretn = fwrite(packet.data.data()+header_size, this_chunk_size, 1, tf);
-                        if (iretn < 0)
-                        {
-                            iretn = -errno;
-                        }
-                    }
-                    else
-                    {
-                        iretn = -errno;
-                    }
-                    fclose(tf);
-                    response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
-
-                    // Check if all chunks received
-                    if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
-                    {
-                        iretn = data_move(file, "incoming", false);
-                        response += " | AdcsResponse fully received";
-                    }
-                }
-                else
-                {
-                    iretn = GENERAL_ERROR_BAD_FD;
-                }
-            }
-            else
-            {
-                iretn = GENERAL_ERROR_NAME;
-            }
-
-            return iretn;
-        }
-
         int32_t PacketHandler::AdcsForward(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
             iretn = agent->push_unwrapped(agent->channel_number("ADCS"), packet);
-            return iretn;
-        }
-
-        int32_t PacketHandler::EpsResponse(PacketComm &packet, string &response, Agent* agent)
-        {
-            int32_t iretn=0;
-            uint16_t header_size;
-            uint16_t chunk_size;
-            uint16_t this_chunk_size;
-            uint16_t chunk_id;
-            uint16_t chunks;
-            filestruc file;
-
-            iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
-
-            PacketComm::EpsResponseHeader header;
-            header_size = COSMOS_SIZEOF(PacketComm::EpsResponseHeader);
-            this_chunk_size = packet.data.size() - header_size;
-            chunk_size = agent->channel_datasize(packet.header.radio);
-            memcpy(&header, packet.data.data(), header_size);
-            chunk_id = header.chunk_id;
-            chunks = header.chunks;
-            printf("EPSResp [%u/%u] %u ", chunk_id, chunks, packet.data[header_size]);
-            file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "eps", header.met, data_name(agent->cinfo->node.utcstart + header.met, "eresp", NodeData::lookup_node_id_name(packet.header.orig), "eps", to_unsigned(header.sbid)));
-            if (file.path.size())
-            {
-                FILE *tf;
-                if (data_exists(file.path))
-                {
-                    tf = fopen(file.path.c_str(), "r+");
-                }
-                else
-                {
-                    tf = fopen(file.path.c_str(), "w");
-                }
-                if (tf != nullptr)
-                {
-                    iretn = fseek(tf, chunk_id*chunk_size, SEEK_SET);
-                    if (iretn >= 0)
-                    {
-                        iretn = fwrite(packet.data.data()+header_size, this_chunk_size, 1, tf);
-                        if (iretn < 0)
-                        {
-                            iretn = -errno;
-                        }
-                    }
-                    else
-                    {
-                        iretn = -errno;
-                    }
-                    fclose(tf);
-                    response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
-
-                    // Check if all chunks received
-                    if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
-                    {
-                        iretn = data_move(file, "incoming", false);
-                        response += " | EpsResponse fully received";
-                    }
-                }
-                else
-                {
-                    iretn = GENERAL_ERROR_BAD_FD;
-                }
-            }
-            else
-            {
-                iretn = GENERAL_ERROR_NAME;
-            }
-
             return iretn;
         }
 
@@ -800,17 +854,16 @@ namespace Cosmos {
             packet.header.orig = orig;
             packet.header.dest = dest;
             packet.header.radio = agent->channel_number(radio);
-            packet.data.resize(4);
-            packet.data[0] = 0;
-            uint16to(seconds, &packet.data[1], ByteOrder::LITTLEENDIAN);
-            packet.data[3] = name.size();
+            packet.data.resize(3);
+            uint16to(seconds, &packet.data[0], ByteOrder::LITTLEENDIAN);
+            packet.data[2] = name.size();
             packet.data.insert(packet.data.end(), name.begin(), name.end());
             iretn = agent->push_unwrapped(agent->channel_number(channel), packet);
             printf("QueueEpsSwitchName: %s %d %u\n", name.c_str(), iretn, agent->channel_size(channel));
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsSwitchName(vector<string> names, vector<uint16_t> seconds, Agent* agent, string channel, NodeData::NODE_ID_TYPE orig, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEpsSwitchNames(vector<string> names, vector<uint16_t> seconds, Agent* agent, string channel, NodeData::NODE_ID_TYPE orig, NodeData::NODE_ID_TYPE dest, string radio)
         {
             if (names.size() != seconds.size())
             {
@@ -820,12 +873,12 @@ namespace Cosmos {
             int32_t iretn = 0;
             PacketComm packet;
 
-            packet.header.type = PacketComm::TypeId::CommandEpsSwitchName;
+            packet.header.type = PacketComm::TypeId::CommandEpsSwitchNames;
             packet.header.orig = orig;
             packet.header.dest = dest;
             packet.header.radio = agent->channel_number(radio);
             packet.data.resize(1);
-            packet.data[0] = 0;
+            packet.data[0] = static_cast<uint8_t>(names.size());
             for (uint16_t i=0; i<names.size(); ++i)
             {
                 packet.data.resize(packet.data.size() + 3);
