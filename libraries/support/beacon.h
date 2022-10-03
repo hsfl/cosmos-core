@@ -41,7 +41,7 @@ namespace Cosmos {
                 ADCSCPUBeaconS = 40,
                 ADCSMTRBeaconS = 41,
                 ADCSRWBeaconS = 42,
-                ADCSIMUBeaconS = 43,
+                ADCSMAGBeaconS = 43,
                 ADCSGPSBeaconS = 44,
                 ADCSSTTBeaconS = 45,
                 ADCSSSENBeaconS = 46,
@@ -72,7 +72,7 @@ namespace Cosmos {
                 {TypeId::ADCSCPUBeaconS, "ADCSCPUBeaconS"},
                 {TypeId::ADCSMTRBeaconS, "ADCSMTRBeaconS"},
                 {TypeId::ADCSRWBeaconS, "ADCSRWBeaconS"},
-                {TypeId::ADCSIMUBeaconS, "ADCSIMUBeaconS"},
+                {TypeId::ADCSMAGBeaconS, "ADCSMAGBeaconS"},
                 {TypeId::ADCSGPSBeaconS, "ADCSGPSBeaconS"},
                 {TypeId::ADCSSTTBeaconS, "ADCSSTTBeaconS"},
                 {TypeId::ADCSSSENBeaconS, "ADCSSSENBeaconS"},
@@ -92,7 +92,7 @@ namespace Cosmos {
                 {TypeId::ADCSATTBeaconL, "ADCSATTBeaconL"},
             };
 
-            int32_t Init(uint16_t short_beacon = 18, uint16_t long_beacon = 200);
+            int32_t Init();
             int32_t EncodeBinary(TypeId type, cosmosstruc *cinfo, vector<uint8_t> &data);
             int32_t EncodeJson(TypeId type, cosmosstruc *cinfo, string& Contents);
             int32_t EncodeJson(TypeId type, cosmosstruc *cinfo, vector<uint8_t>& Contents);
@@ -189,7 +189,7 @@ namespace Cosmos {
                 float omega3 = 0.;
             } ;
 
-            struct __attribute__ ((packed)) adcsimu_beacons
+            struct __attribute__ ((packed)) adcsmag_beacon
             {
                 uint8_t type = 43;
                 uint32_t deci = 0;
@@ -197,6 +197,14 @@ namespace Cosmos {
                 float magy = 0.;
                 float magz = 0.;
             } ;
+            //struct __attribute__ ((packed)) adcsimu_beacons
+            //{
+                //uint8_t type = 43;
+                //float met = 0.;
+                //float magx = 0.;
+                //float magy = 0.;
+                //float magz = 0.;
+            //} ;
 
             struct __attribute__ ((packed)) adcsgps_beacons
             {
@@ -454,9 +462,6 @@ namespace Cosmos {
             // Time interval (in seconds) between beacon sends
 //            std::atomic<double> interval;
             double interval;
-            // Message size limtis
-            uint8_t short_beacon_size;
-            uint8_t long_beacon_size;
             // Map beacon name to size of the beacon struct in bytes
             map<string, size_t> beacon_size;
             // Map beacon name to it type ID
