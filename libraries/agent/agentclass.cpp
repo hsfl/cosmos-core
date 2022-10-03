@@ -321,6 +321,7 @@ namespace Cosmos
                         "    EpsState {0|1|2|3}"
                         "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [seconds] "
                         "    EpsSwitchNumber {0-1} [seconds] "
+                        "    EpsSwitchNames {vbatt_bus:...} [seconds:...] "
                         "    AdcsState {0-7] {0-18]"
                         "");
             add_request("list_channels", req_list_channels, "", "List current channels");
@@ -2064,16 +2065,17 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandEpsCommunicate:
                 {
-                    packet.data.resize(2+parms[2].size()/2);
+                    packet.data.resize(2);
                     packet.data[0] = stoi(parms[0]);
                     packet.data[1] = stoi(parms[1]);
-                    vector<uint8_t> bytes = from_hex_string(parms[0]);
+                    vector<uint8_t> bytes = from_hex_string(parms[2]);
                     packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
                 }
             case PacketComm::TypeId::CommandEpsSwitchName:
                 {
-                    packet.data.resize(2);
+                    packet.data.resize(3);
                     uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    packet.data[2] = stoi(parms[0]);
                     packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
                 }
                 break;
@@ -2114,6 +2116,24 @@ namespace Cosmos
                     doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
                     break;
                 }
+            case PacketComm::TypeId::CommandEpsSwitchNames:
+                {
+                    vector<string> names = string_split(parms[0], ":");
+                    vector<string> times = string_split(parms[1], ":");
+                    if (names.size() == times.size())
+                    {
+                        packet.data.resize(1);
+                        packet.data[0] = static_cast<uint8_t>(names.size());
+                        for (uint16_t i=0; i<names.size(); ++i)
+                        {
+                            packet.data.resize(packet.data.size()+3);
+                            uint16to(stoi(times[i]), &packet.data[packet.data.size()-2], ByteOrder::LITTLEENDIAN);
+                            packet.data[packet.data.size()-1] = names[i].size();
+                            packet.data.insert(packet.data.end(), names[i].begin(), names[i].end());
+                        }
+                    }
+                }
+                break;
             case PacketComm::TypeId::CommandAdcsState:
                 {
                     uint8_t commis_step = 0;
@@ -2275,11 +2295,15 @@ namespace Cosmos
                 return 0;
                 break;
             }
-            packet.Wrap();
 
-            for (uint16_t i=0; i<repeat; ++i)
+            if (packet.data.size())
             {
-                agent->push_unwrapped(channelout, packet);
+                packet.Wrap();
+
+                for (uint16_t i=0; i<repeat; ++i)
+                {
+                    agent->push_unwrapped(channelout, packet);
+                }
             }
             return response.length();
         }
@@ -3926,7 +3950,7 @@ acquired.
                 {
                     header.response_id = centisec();
                 }
-                header.met = (currentmjd() - cinfo->node.utcstart);
+                header.deci = decisec();
                 uint16_t chunk_size = channels.channel[number].datasize - COSMOS_SIZEOF(PacketComm::ResponseHeader);
 
                 if (response.size() / chunk_size > 254)
@@ -4008,6 +4032,16 @@ acquired.
             return iretn;
         }
 
+        int32_t Agent::monitor_unwrapped(string name, PacketComm &packet, string extra)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+            return monitor_unwrapped(number, packet, extra);
+        }
+
         int32_t Agent::monitor_unwrapped(uint8_t number, PacketComm &packet, string extra)
         {
             if (number >= channels.channel.size())
@@ -4017,11 +4051,11 @@ acquired.
 
             if (extra.empty())
             {
-                printf("%.1f [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Count=%u]", uptime.split(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number));
+                printf("%.1f [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Size=%u Packets=%u Bytes=%lu]", uptime.split(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             else
             {
-                printf("%.1f %s [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Count=%u]", uptime.split(), extra.c_str(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number));
+                printf("%.1f %s [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Size=%u Packets=%u Bytes=%lu]", uptime.split(), extra.c_str(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
             {
@@ -4052,6 +4086,26 @@ acquired.
             return channels.Age(number);
         }
 
+        size_t Agent::channel_bytes(string name)
+        {
+            return channels.Bytes(name);
+        }
+
+        size_t Agent::channel_bytes(uint8_t number)
+        {
+            return channels.Bytes(number);
+        }
+
+        uint32_t Agent::channel_packets(string name)
+        {
+            return channels.Packets(name);
+        }
+
+        uint32_t Agent::channel_packets(uint8_t number)
+        {
+            return channels.Packets(number);
+        }
+
         double Agent::channel_touch(string name)
         {
             return channels.Touch(name);
@@ -4060,6 +4114,28 @@ acquired.
         double Agent::channel_touch(uint8_t number)
         {
             return channels.Touch(number);
+        }
+
+        size_t Agent::channel_increment(string name, size_t bytes, uint32_t packets)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+
+            return channels.Increment(number, bytes, packets);
+        }
+
+        size_t Agent::channel_increment(uint8_t number, size_t bytes, uint32_t packets)
+        {
+            int32_t iretn = 0;
+            iretn = channels.Increment(number, bytes, packets);
+            if (iretn >= 0)
+            {
+                iretn = channels.Touch(number);
+            }
+            return iretn;
         }
 
         int32_t Agent::clear_channel(string name)
