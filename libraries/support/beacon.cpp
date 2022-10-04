@@ -29,6 +29,18 @@ namespace Cosmos {
             this->type = type;
             switch (type)
             {
+            case TypeId::ADCSEXTRABeaconS:
+                if (cinfo->devspec.mag.size())
+                {
+					// this is junk for now
+                    adcsextra_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+                    beacon.x = cinfo->devspec.mag[0].mag.col[0];
+                    beacon.y = cinfo->devspec.mag[0].mag.col[1];
+                    beacon.z = cinfo->devspec.mag[0].mag.col[2];
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+                }
+                break;
             case TypeId::ADCSMAGBeaconS:
                 if (cinfo->devspec.mag.size())
                 {
@@ -269,6 +281,21 @@ namespace Cosmos {
                 {
                     switch (type)
                     {
+                    case TypeId::ADCSEXTRABeaconS:
+                        {
+                            adcsextra_beacon beacon;
+                            if (data.size() <= sizeof(beacon)) {
+                                memcpy(&beacon, data.data(), data.size());
+                            } else {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            //double mjd = decisec2mjd(beacon.deci);
+                            //cinfo->devspec.mag[0].utc = mjd;
+                            //cinfo->devspec.mag[0].mag.col[0] = beacon.x;
+                            //cinfo->devspec.mag[0].mag.col[1] = beacon.y;
+                            //cinfo->devspec.mag[0].mag.col[2] = beacon.z;
+                        }
+                        break;
                     case TypeId::ADCSMAGBeaconS:
                         {
                             adcsmag_beacon beacon;
@@ -426,6 +453,12 @@ namespace Cosmos {
             Contents.clear();
             switch (type)
             {
+            case TypeId::ADCSEXTRABeaconS:
+                {
+                    //json_out_1d(Contents, "device_mag_utc", 0, cinfo);
+                    //json_out_1d(Contents, "device_mag_mag", 0, cinfo);
+                }
+                break;
             case TypeId::ADCSMAGBeaconS:
                 {
                     // does this need mag utc?
