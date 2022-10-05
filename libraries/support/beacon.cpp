@@ -464,7 +464,9 @@ namespace Cosmos {
                     // does this need mag utc?
                     // JIMNOTE double check the JSON output (vector or not?)
                     json_out_1d(Contents, "device_mag_utc", 0, cinfo);
-                    json_out_1d(Contents, "device_mag_mag", 0, cinfo);
+                    json_out_1d(Contents, "device_mag_mag_x", 0, cinfo);
+                    json_out_1d(Contents, "device_mag_mag_y", 0, cinfo);
+                    json_out_1d(Contents, "device_mag_mag_z", 0, cinfo);
                 }
                 break;
             case TypeId::CPU1BeaconS:
