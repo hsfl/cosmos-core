@@ -1058,6 +1058,21 @@ namespace Cosmos {
             // Epoch (year.day)
             double ep;
         };
+
+		//  JIMNOTE: compiler doesn't like this defined here (multiple defined error), maybe the header guard is messed up somewhere?
+		//bool operator==(const sgp4struc& s1, const sgp4struc& s2)	{
+			//return	(
+				//s1.i == s2.i &&
+				//s1.e == s2.e &&
+				//s1.raan == s2.raan &&
+				//s1.ap == s2.ap &&
+				//s1.bstar == s2.bstar &&
+				//s1.mm == s2.mm &&
+				//s1.ma == s2.ma &&
+				//s1.ep == s2.ep
+			//);
+		//}
     }
 }
+
 #endif

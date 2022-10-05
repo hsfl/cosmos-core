@@ -47,6 +47,7 @@ namespace Cosmos {
                 ADCSSSENBeaconS = 46,
                 ADCSSunBeaconS = 47,
                 ADCSNadirBeaconS = 48,
+                ADCSEXTRABeaconS = 49,
                 CPUBeaconL = 110,
                 TsenBeaconL = 120,
                 EPSBCREGBeaconL = 130,
@@ -78,6 +79,7 @@ namespace Cosmos {
                 {TypeId::ADCSSSENBeaconS, "ADCSSSENBeaconS"},
                 {TypeId::ADCSSunBeaconS, "ADCSSunBeaconS"},
                 {TypeId::ADCSNadirBeaconS, "ADCSNadirBeaconS"},
+                {TypeId::ADCSEXTRABeaconS, "ADCSEXTRABeaconS"},
                 {TypeId::CPUBeaconL, "CPUBeaconL"},
                 {TypeId::TsenBeaconL, "TsenBeaconL"},
                 {TypeId::EPSBCREGBeaconL, "EPSBCREGBeaconL"},
@@ -249,6 +251,15 @@ namespace Cosmos {
                 float azimuth = 0.;
                 float elevation = 0.;
                 float temp = 0.;
+            } ;
+
+            struct __attribute__ ((packed)) adcsextra_beacon
+            {
+                uint8_t type = 49;
+                uint32_t deci = 0;
+                float x = 0.;
+                float y = 0.;
+                float z = 0.;
             } ;
 
             // Long Beacons
