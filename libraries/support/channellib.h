@@ -9,7 +9,7 @@ namespace Cosmos {
         class Channel
         {
         public:
-            Channel(uint32_t verification=0x352e);
+            Channel();
             ~Channel();
 
             //! Storage for channels
@@ -25,11 +25,12 @@ namespace Cosmos {
                 queue<PacketComm> quu;
                 mutex* mtx = nullptr;
                 uint16_t datasize = PACKETCOMM_DATA_SIZE;
+                uint16_t maximum;
             };
             vector<channelstruc> channel;
             int32_t Init(uint32_t verification=0x352e);
             int32_t Check(uint32_t verification);
-            int32_t Add(string name, uint16_t size=PACKETCOMM_PACKET_SIZE);
+            int32_t Add(string name, uint16_t datasize=PACKETCOMM_PACKET_SIZE, uint16_t maximum=100);
             int32_t Find(string name);
             string Find(uint8_t number);
             int32_t Push(string name, PacketComm &packet);

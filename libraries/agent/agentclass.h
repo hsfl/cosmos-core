@@ -413,8 +413,6 @@ namespace Cosmos
             int32_t set_verification(uint32_t verification);
             int32_t get_verification();
             int32_t check_verification(uint32_t verification);
-            int32_t init_channels(uint32_t verification=0x352e);
-            int32_t add_channel(string name, uint16_t datasize=200);
             int32_t push_unwrapped(string name, PacketComm &packet);
             int32_t push_unwrapped(uint8_t number, PacketComm& packet);
             int32_t push_unwrapped(string name, vector<PacketComm>& packets);
@@ -427,6 +425,8 @@ namespace Cosmos
             int32_t pull_unwrapped(uint8_t number, PacketComm& packet);
             int32_t monitor_unwrapped(string name, PacketComm& packet, string extra="");
             int32_t monitor_unwrapped(uint8_t number, PacketComm& packet, string extra="");
+            int32_t init_channels(uint32_t verification=0x352e);
+            int32_t channel_add(string name, uint16_t datasize=200, uint16_t maximum=100);
             int32_t channel_size(string name);
             int32_t channel_size(uint8_t number);
             double channel_age(string name);
@@ -439,12 +439,14 @@ namespace Cosmos
             double channel_touch(uint8_t number);
             size_t channel_increment(string name, size_t bytes, uint32_t packets=1);
             size_t channel_increment(uint8_t number, size_t bytes, uint32_t packets=1);
-            int32_t clear_channel(string name);
-            int32_t clear_channel(uint8_t number);
+            int32_t channel_clear(string name);
+            int32_t channel_clear(uint8_t number);
             int32_t channel_number(string name);
             string channel_name(uint8_t number);
             int32_t channel_datasize(string name);
             int32_t channel_datasize(uint8_t number);
+            int32_t channel_maximum(string name, uint16_t maximum);
+            int32_t channel_maximum(uint8_t number, uint16_t maximum);
 
         protected:
         private:

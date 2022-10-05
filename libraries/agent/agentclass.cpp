@@ -3846,20 +3846,6 @@ acquired.
             return channels.Check(verification);
         }
 
-        int32_t Agent::add_channel(string name, uint16_t datasize)
-        {
-            int32_t iretn = 0;
-            if (channels.channel.size() == 0)
-            {
-                iretn = channels.Init();
-                if (iretn < 0)
-                {
-                    return iretn;
-                }
-            }
-            return channels.Add(name, datasize);
-        }
-
         int32_t Agent::push_unwrapped(string name, PacketComm& packet)
         {
             int32_t number = channel_number(name);
@@ -4066,6 +4052,20 @@ acquired.
             return 0;
         }
 
+        int32_t Agent::channel_add(string name, uint16_t datasize, uint16_t maximum)
+        {
+            int32_t iretn = 0;
+            if (channels.channel.size() == 0)
+            {
+                iretn = channels.Init();
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+            }
+            return channels.Add(name, datasize, maximum);
+        }
+
         int32_t Agent::channel_size(string name)
         {
             return channels.Size(name);
@@ -4138,7 +4138,7 @@ acquired.
             return iretn;
         }
 
-        int32_t Agent::clear_channel(string name)
+        int32_t Agent::channel_clear(string name)
         {
             int32_t number = channel_number(name);
             if (number < 0)
@@ -4149,7 +4149,7 @@ acquired.
             return channels.Clear(number);
         }
 
-        int32_t Agent::clear_channel(uint8_t number)
+        int32_t Agent::channel_clear(uint8_t number)
         {
             if (number >= channels.channel.size())
             {
@@ -4195,6 +4195,26 @@ acquired.
                 return GENERAL_ERROR_OUTOFRANGE;
             }
             return channels.channel[number].datasize;
+        }
+
+        int32_t Agent::channel_maximum(string name, uint16_t maximum)
+        {
+            int32_t iretn = channel_number(name);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            return channel_maximum(iretn, maximum);
+        }
+
+        int32_t Agent::channel_maximum(uint8_t number, uint16_t maximum)
+        {
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            channels.channel[number].maximum = maximum;
+            return channels.channel[number].maximum;
         }
 
         double Agent::get_timeStart()

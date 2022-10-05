@@ -2,29 +2,9 @@
 
 namespace Cosmos {
     namespace Support {
-        Channel::Channel(uint32_t verification)
+        Channel::Channel()
         {
-            // Set up default channels for internal activity
-            channel.resize(6);
-            channel[0].name = "SELF";
-            channel[0].mtx = new mutex;
-            channel[0].datasize = 1400;
-            channel[1].name = "NET";
-            channel[1].mtx = new mutex;
-            channel[1].datasize = 1400;
-            channel[2].name = "EPS";
-            channel[2].mtx = new mutex;
-            channel[2].datasize = 1400;
-            channel[3].name = "ADCS";
-            channel[3].mtx = new mutex;
-            channel[3].datasize = 1400;
-            channel[4].name = "FILE";
-            channel[4].mtx = new mutex;
-            channel[4].datasize = 1400;
-            channel[5].name = "EXEC";
-            channel[5].mtx = new mutex;
-            channel[5].datasize = 1400;
-            this->verification = verification;
+//            this->verification = verification;
         }
 
         Channel::~Channel()
@@ -40,26 +20,37 @@ namespace Cosmos {
         {
             // Set up default channels for internal activity
             channel.resize(6);
+
             channel[0].name = "SELF";
             channel[0].mtx = new mutex;
             channel[0].datasize = 1400;
+            channel[0].maximum = 1000;
+
             channel[1].name = "NET";
             channel[1].mtx = new mutex;
             channel[1].datasize = 1400;
+            channel[1].maximum = 1000;
+
             channel[2].name = "EPS";
             channel[2].mtx = new mutex;
             channel[2].datasize = 1400;
+
             channel[3].name = "ADCS";
             channel[3].mtx = new mutex;
             channel[3].datasize = 1400;
+
             channel[4].name = "FILE";
             channel[4].mtx = new mutex;
             channel[4].datasize = 1400;
+            channel[4].maximum = 1000;
+
             channel[5].name = "EXEC";
             channel[5].mtx = new mutex;
             channel[5].datasize = 1400;
+            channel[5].maximum = 1000;
+
             this->verification = verification;
-            return verification;
+            return channel.size();
         }
 
         int32_t Channel::Check(uint32_t verification)
@@ -71,7 +62,7 @@ namespace Cosmos {
             return verification;
         }
 
-        int32_t Channel::Add(string name, uint16_t size)
+        int32_t Channel::Add(string name, uint16_t datasize, uint16_t maximum)
         {
             for (uint8_t i=0; i<channel.size(); ++i)
             {
@@ -82,7 +73,8 @@ namespace Cosmos {
             }
             channel.resize(channel.size()+1);
             channel.back().name = name;
-            channel.back().datasize = size;
+            channel.back().datasize = datasize;
+            channel.back().maximum = maximum;
             channel.back().mtx = new mutex;
             return channel.size() - 1;
         }
@@ -231,15 +223,24 @@ namespace Cosmos {
 
         int32_t Channel::Push(uint8_t number, PacketComm &packet)
         {
+            int32_t iretn = 0;
             if (number >= channel.size())
             {
-                return GENERAL_ERROR_OUTOFRANGE;
+                iretn = GENERAL_ERROR_OUTOFRANGE;
             }
-            channel[number].mtx->lock();
-            channel[number].quu.push(packet);
-            channel[number].timestamp = currentmjd();
-            channel[number].mtx->unlock();
-            return number;
+            else
+            {
+                channel[number].mtx->lock();
+                channel[number].quu.push(packet);
+                channel[number].timestamp = currentmjd();
+                if (channel[number].quu.size() > channel[number].maximum)
+                {
+                    channel[number].quu.pop();
+                }
+                channel[number].mtx->unlock();
+                iretn = number;
+            }
+            return iretn;
         }
 
         int32_t Channel::Pull(string name, PacketComm &packet)

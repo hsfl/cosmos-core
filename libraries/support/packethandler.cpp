@@ -501,11 +501,11 @@ namespace Cosmos {
                 {
                     tests[header.test_id].skip_count += (header.packet_id - tests[header.test_id].last_packet_id) - 1;
                 }
-                if (data_size != packet.data.size() - 14)
-                {
-                    ++tests[header.test_id].size_count;
-                }
-                else
+//                if (data_size != packet.data.size() - 14)
+//                {
+//                    ++tests[header.test_id].size_count;
+//                }
+//                else
                 {
                     uint16_t crccalc = calc_crc.calc(&packet.data[0], packet.data.size()-2);
                     uint16_t crcdata = 256 * packet.data[packet.data.size()-1] + packet.data[packet.data.size()-2];
@@ -648,7 +648,7 @@ namespace Cosmos {
             {
                 return iretn;
             }
-            iretn = agent->clear_channel(packet.data[0]);
+            iretn = agent->channel_clear(packet.data[0]);
             return iretn;
         }
 

@@ -233,9 +233,9 @@ namespace Cosmos {
 
             struct __attribute__ ((packed))  TestHeader
             {
-                uint32_t test_id;
-                uint32_t size;
-                uint32_t packet_id;
+                uint32_t test_id = 0;
+                uint32_t size = 0;
+                uint32_t packet_id = 0;
             };
 
             struct __attribute__ ((packed))  Header
