@@ -228,7 +228,7 @@ string to_hex_string(vector <uint8_t> buffer, bool ascii, uint16_t start)
         }
         else
         {
-            ss << " " << std::hex << buffer[i];
+            ss << " " << std::hex << static_cast<uint16_t>(buffer[i]);
         }
     }
     return ss.str();
