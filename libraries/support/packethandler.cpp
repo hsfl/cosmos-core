@@ -259,13 +259,14 @@ namespace Cosmos {
                             iretn = -errno;
                         }
                         fclose(tf);
-                        response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
+//                        response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
+                        response = "[" + to_unsigned(chunk_id) + ":" + to_unsigned(chunks) + "]" + to_hex_string(packet.data, false, header_size);
 
                         // Check if all chunks received
                         if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
                         {
                             iretn = data_move(file, "incoming", false);
-                            response += "\nEpsResponse fully received";
+                            response += " Complete";
                         }
                     }
                     else
