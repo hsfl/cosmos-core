@@ -4073,7 +4073,7 @@ acquired.
                 header.deci = decisec();
                 header.unit = unit;
                 header.command = command;
-                uint16_t chunk_size = channels.channel[number].datasize - COSMOS_SIZEOF(PacketComm::ResponseHeader);
+                uint16_t chunk_size = channels.channel[number].datasize - sizeof(header);
 
                 if (response.size() / chunk_size > 254)
                 {
