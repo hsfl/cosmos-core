@@ -45,7 +45,7 @@
     \param delimeter string of delimeters.
     \return vector of sub strings.
 */
-vector < string > string_split(string in, string delimeters) {
+vector < string > string_split(string in, string delimeters, bool multi) {
     vector<string> result;
     const char *str = in.data();
     do {
@@ -70,6 +70,10 @@ vector < string > string_split(string in, string delimeters) {
         if (begin != str)
         {
             result.push_back(string(begin, str));
+        }
+        else if (!multi)
+        {
+            result.push_back("");
         }
     } while (0 != *str++);
     return result;

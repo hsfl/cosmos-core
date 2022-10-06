@@ -2068,7 +2068,7 @@ namespace Cosmos
                 {
                     if (parms.size())
                     {
-                        parms = string_split(parms[0], ":");
+                        parms = string_split(parms[0], ":", false);
                         if (parms.size() > 2)
                         {
                             PacketComm::CommunicateHeader header;
@@ -2090,7 +2090,7 @@ namespace Cosmos
                 {
                     if (parms.size())
                     {
-                        parms = string_split(parms[0], ":");
+                        parms = string_split(parms[0], ":", false);
                         if (parms.size())
                         {
                             packet.data.resize(2);
@@ -2111,7 +2111,7 @@ namespace Cosmos
                 {
                     if (parms.size())
                     {
-                        parms = string_split(parms[0], ":");
+                        parms = string_split(parms[0], ":", false);
                         if (parms.size())
                         {
                             packet.data.resize(4);
@@ -2329,7 +2329,7 @@ namespace Cosmos
                 {
                     if (parms.size())
                     {
-                        parms = string_split(parms[0], ":");
+                        parms = string_split(parms[0], ":", false);
                         if (parms.size() > 1)
                         {
                             PacketComm::CommunicateHeader header;
@@ -4046,6 +4046,65 @@ acquired.
             vector<uint8_t> bresponse;
             bresponse.insert(bresponse.end(), response.begin(), response.end());
             return push_response(number, dest, id, bresponse);
+        }
+
+        int32_t Agent::push_hardware_response(PacketComm::TypeId type, string name, uint8_t dest, uint8_t unit, uint8_t command, vector<uint8_t> response)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+            return push_hardware_response(type, number, dest, unit, command, response);
+        }
+
+        int32_t Agent::push_hardware_response(PacketComm::TypeId type, uint8_t number, uint8_t dest, uint8_t unit, uint8_t command, vector<uint8_t> response)
+        {
+            int32_t iretn = 0;
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            if (response.size())
+            {
+                PacketComm packet;
+                PacketComm::CommunicateResponseHeader header;
+                header.deci = decisec();
+                header.unit = unit;
+                header.command = command;
+                uint16_t chunk_size = channels.channel[number].datasize - COSMOS_SIZEOF(PacketComm::ResponseHeader);
+
+                if (response.size() / chunk_size > 254)
+                {
+                    header.chunks = 255;
+                }
+                else
+                {
+                    header.chunks = (response.size() - 1) / chunk_size + 1;
+                }
+                packet.header.type = type;
+                packet.header.orig = nodeId;
+                packet.header.dest = dest;
+                for (header.chunk_id=0; header.chunk_id<header.chunks; ++header.chunk_id)
+                {
+                    uint16_t chunk_begin = header.chunk_id * chunk_size;
+                    uint16_t chunk_end = chunk_begin + chunk_size;
+                    if (chunk_end > response.size())
+                    {
+                        chunk_end = response.size();
+                    }
+                    packet.data.resize(sizeof(header));
+                    memcpy(packet.data.data(), &header, sizeof(header));
+                    packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
+                    iretn = channels.Push(number, packet);
+                    if (iretn > 0)
+                    {
+                        monitor_unwrapped(number, packet, to_label("Response", static_cast<uint8_t>(type)));
+                    }
+                }
+            }
+            return response.size();
         }
 
         int32_t Agent::pull_unwrapped(string name, PacketComm &packet)

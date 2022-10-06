@@ -224,13 +224,13 @@ namespace Cosmos {
                 iretn = agent->push_unwrapped(agent->channel_number("EPS"), packet);
 
                 PacketComm::EpsResponseHeader header;
-                header_size = COSMOS_SIZEOF(PacketComm::EpsResponseHeader);
+                header_size = sizeof(header);
                 memcpy(&header, packet.data.data(), header_size);
                 this_chunk_size = packet.data.size() - header_size;
                 chunk_size = agent->channel_datasize(packet.header.radio);
                 chunk_id = header.chunk_id;
                 chunks = header.chunks;
-                file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "eps", header.deci, data_name(agent->cinfo->node.utcstart + header.deci, "eresp", NodeData::lookup_node_id_name(packet.header.orig), "eps", to_unsigned(header.sbid)));
+                file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "eps", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "eresp", NodeData::lookup_node_id_name(packet.header.orig), "eps", to_unsigned(header.unit)+"_"+to_unsigned(header.command)));
 
                 if (file.path.size())
                 {
@@ -306,13 +306,13 @@ namespace Cosmos {
                 iretn = agent->push_unwrapped(agent->channel_number("ADCS"), packet);
 
                 PacketComm::AdcsResponseHeader header;
-                header_size = COSMOS_SIZEOF(PacketComm::AdcsResponseHeader);
+                header_size = sizeof(header);
                 memcpy(&header, packet.data.data(), header_size);
                 this_chunk_size = packet.data.size() - header_size;
                 chunk_size = agent->channel_datasize(packet.header.radio);
                 chunk_id = header.chunk_id;
                 chunks = header.chunks;
-                file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "adcs", header.deci, data_name(agent->cinfo->node.utcstart + header.deci, "aresp", NodeData::lookup_node_id_name(packet.header.orig), "adcs", to_unsigned(header.command)));
+                file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "adcs", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "aresp", NodeData::lookup_node_id_name(packet.header.orig), "adcs", to_unsigned(header.command)));
 
                 // Rebuild response with chunks
                 if (file.path.size())
@@ -342,13 +342,14 @@ namespace Cosmos {
                             iretn = -errno;
                         }
                         fclose(tf);
-                        response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
+//                        response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
+                        response = "[" + to_unsigned(chunk_id) + ":" + to_unsigned(chunks) + "]" + to_hex_string(packet.data, false, header_size);
 
                         // Check if all chunks received
                         if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
                         {
                             iretn = data_move(file, "incoming", false);
-                            response += " | AdcsResponse fully received";
+                            response += " Complete";
                         }
                     }
                     else
@@ -393,7 +394,7 @@ namespace Cosmos {
                 chunk_size = agent->channel_datasize(packet.header.radio);
                 chunk_id = header.chunk_id;
                 chunks = header.chunks;
-                file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "main", header.deci, data_name(agent->cinfo->node.utcstart + header.deci, "gresp", NodeData::lookup_node_id_name(packet.header.orig), "main", to_unsigned(header.response_id)));
+                file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "main", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "gresp", NodeData::lookup_node_id_name(packet.header.orig), "main", to_unsigned(header.response_id)));
 
                 if (file.path.size())
                 {
@@ -422,12 +423,12 @@ namespace Cosmos {
                             iretn = -errno;
                         }
                         fclose(tf);
-                        response = "chunks=" + to_unsigned(chunks) + " chunk_id=" + to_unsigned(chunk_id) + " chunk_size=" + to_unsigned(this_chunk_size) + " data=" + to_hex_string(packet.data, true);
+                        response = "chunks=" + to_unsigned(chunks) + " chunk_id=" + to_unsigned(chunk_id) + " chunk_size=" + to_unsigned(this_chunk_size) + " data=" + to_hex_string(packet.data, true, header_size);
 
                         if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
                         {
                             iretn = data_move(file, "incoming", false);
-                            response += "\nResponse fully received";
+                            response += " Complete";
                         }
                     }
                     else

@@ -44,6 +44,7 @@ namespace Cosmos {
                 DataBeacon = 10,
                 DataPong = 41,
                 DataEpsResponse = 43,
+                DataRadioResponse = 44,
                 DataAdcsResponse = 45,
                 DataResponse = 61,
                 DataIP = 62,
@@ -94,10 +95,9 @@ namespace Cosmos {
             map<TypeId, string> TypeString = {
                 {TypeId::DataBeacon, "Beacon"},
                 {TypeId::DataPong, "Pong"},
-                {TypeId::DataEpsResponse, "EPSResponse"},
-//                {TypeId::DataEpsResponse, "EPSResponse"},
-                {TypeId::DataAdcsResponse, "ADCSResponse"},
-//                {TypeId::DataAdcsResponse, "ADCSResponse"},
+                {TypeId::DataEpsResponse, "EpsResponse"},
+                {TypeId::DataRadioResponse, "RadioResponse"},
+                {TypeId::DataAdcsResponse, "AdcsResponse"},
                 {TypeId::DataResponse, "Response"},
                 {TypeId::DataIP, "IP"},
                 {TypeId::DataTest, "Test"},
@@ -147,10 +147,9 @@ namespace Cosmos {
             map<string, TypeId> StringType = {
                 {"Beacon", TypeId::DataBeacon},
                 {"Pong", TypeId::DataPong},
-                {"EPSResponse", TypeId::DataEpsResponse},
-//                {"EPSResponse", TypeId::DataEpsResponse},
-                {"ADCSResponse", TypeId::DataAdcsResponse},
-//                {"ADCSResponse", TypeId::DataAdcsResponse},
+                {"EpsResponse", TypeId::DataEpsResponse},
+                {"RadioResponse", TypeId::DataRadioResponse},
+                {"AdcsResponse", TypeId::DataAdcsResponse},
                 {"Response", TypeId::DataResponse},
                 {"IP", TypeId::DataIP},
                 {"Test", TypeId::DataTest},
@@ -206,12 +205,13 @@ namespace Cosmos {
                 uint16_t responsecount;
             };
 
-            struct __attribute__ ((packed))  ResponseHeader
+            struct __attribute__ ((packed))  CommunicateResponseHeader
             {
                 uint32_t deci;
                 uint8_t chunks;
                 uint8_t chunk_id;
-                uint32_t response_id;
+                uint8_t unit;
+                uint8_t command;
             };
 
             struct __attribute__ ((packed))  AdcsResponseHeader
@@ -219,6 +219,7 @@ namespace Cosmos {
                 uint32_t deci;
                 uint8_t chunks;
                 uint8_t chunk_id;
+                uint8_t unit;
                 uint8_t command;
             };
 
@@ -227,8 +228,25 @@ namespace Cosmos {
                 uint32_t deci;
                 uint8_t chunks;
                 uint8_t chunk_id;
-                uint32_t sbid;
+                uint8_t unit;
                 uint8_t command;
+            };
+
+            struct __attribute__ ((packed))  RadioResponseHeader
+            {
+                uint32_t deci;
+                uint8_t chunks;
+                uint8_t chunk_id;
+                uint8_t unit;
+                uint8_t command;
+            };
+
+            struct __attribute__ ((packed))  ResponseHeader
+            {
+                uint32_t deci;
+                uint8_t chunks;
+                uint8_t chunk_id;
+                uint32_t response_id;
             };
 
             struct __attribute__ ((packed))  TestHeader

@@ -49,7 +49,7 @@
 //! \defgroup stringlib_functions String handling functions
 //! @{
 
-vector < string > string_split(string in, string delimeters=" \t,");
+vector < string > string_split(string in, string delimeters=" \t,", bool multi=true);
 uint16_t string_parse(char *string, char *word[], uint16_t size);
 int string_cmp(const char *wild, const char *string);
 string to_hex_string(vector <uint8_t> buffer, bool ascii=false, uint16_t start=0);
