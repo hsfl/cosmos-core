@@ -306,23 +306,24 @@ namespace Cosmos
                         "    SendBeacon [type:count]\n"
                         "    ClearQueue [channel]\n"
                         "    ExternalCommand command parameters\n"
-                        "    TestRadio start step count seconds\n"
+                        "    TestRadio start:step:count:seconds\n"
                         "    ListDirectory node:agent\n"
                         "    TransferFile node:agent:file\n"
                         "    TransferNode node\n"
                         "    TransferRadio\n"
-                        "    Request request parameters\n"
+                        "    InternalRequest request parameters\n"
                         "    Ping {string}\n"
                         "    SetTime {MJD}\n"
                         "    GetTimeHuman\n"
                         "    GetTimeBinary\n"
-                        "    EpsCommand sbid:command:hexstring\n"
-//                        "    EpsSwitchStatus [0-1|vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200]"
-                        "    EpsState {0|1|2|3}"
-                        "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [seconds] "
-                        "    EpsSwitchNumber {0-1} [seconds] "
-                        "    EpsSwitchNames {vbatt_bus:...} [seconds:...] "
-                        "    AdcsState {0-7] {0-18]"
+                        "    EpsCommunicate sbid:command:hexstring:response_size\n"
+                        "    EpsSwitchStatus [0-1|vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200]\n"
+                        "    EpsState {0|1|2|3}\n"
+                        "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200}:[seconds]\n"
+                        "    EpsSwitchNumber {0-1}:[seconds]\n"
+                        "    EpsSwitchNames {vbatt_bus:...} [seconds:...]\n"
+                        "    AdcsState {0-7] {0-18]\n"
+                        "    AdcsCommunicate command:hexstring:response_size\n"
                         "");
             add_request("list_channels", req_list_channels, "", "List current channels");
 
@@ -2065,26 +2066,59 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandEpsCommunicate:
                 {
-                    packet.data.resize(2);
-                    packet.data[0] = stoi(parms[0]);
-                    packet.data[1] = stoi(parms[1]);
-                    vector<uint8_t> bytes = from_hex_string(parms[2]);
-                    packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
+                    if (parms.size())
+                    {
+                        parms = string_split(parms[0], ":");
+                        if (parms.size() > 2)
+                        {
+                            PacketComm::CommunicateHeader header;
+                            header.unit = stoi(parms[0]);
+                            header.command = stoi(parms[1]);
+                            header.responsecount = stoi(parms[2]);
+                            packet.data.resize(4);
+                            memcpy(packet.data.data(), &header, sizeof(header));
+                            if (parms.size() > 3)
+                            {
+                                vector<uint8_t> bytes = from_hex_string(parms[3]);
+                                packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
+                            }
+                        }
+                    }
                 }
+                break;
             case PacketComm::TypeId::CommandEpsSwitchName:
                 {
-                    packet.data.resize(3);
-                    uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
-                    packet.data[2] = stoi(parms[0]);
-                    packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
+                    if (parms.size())
+                    {
+                        parms = string_split(parms[0], ":");
+                        if (parms.size())
+                        {
+                            packet.data.resize(2);
+                            if (parms.size() > 1)
+                            {
+                                uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                            }
+                            else
+                            {
+                                uint16to(300, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                            }
+                            packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
+                        }
+                    }
                 }
                 break;
             case PacketComm::TypeId::CommandEpsSwitchNumber:
                 {
-                    packet.data.resize(4);
-                    uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
-                    packet.data[2] = stoi(parms[1]);
-                    packet.data[3] = stoi(parms[2]);
+                    if (parms.size())
+                    {
+                        parms = string_split(parms[0], ":");
+                        if (parms.size())
+                        {
+                            packet.data.resize(4);
+                            uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                            uint16to(stoi(parms[0]), &packet.data[2], ByteOrder::LITTLEENDIAN);
+                        }
+                    }
                 }
                 break;
             case PacketComm::TypeId::CommandEpsReset:
@@ -2289,6 +2323,28 @@ namespace Cosmos
                         }
                     }
 
+                }
+                break;
+            case PacketComm::TypeId::CommandAdcsCommunicate:
+                {
+                    if (parms.size())
+                    {
+                        parms = string_split(parms[0], ":");
+                        if (parms.size() > 1)
+                        {
+                            PacketComm::CommunicateHeader header;
+                            header.unit = 0;
+                            header.command = stoi(parms[0]);
+                            header.responsecount = stoi(parms[1]);
+                            packet.data.resize(4);
+                            memcpy(packet.data.data(), &header, sizeof(header));
+                            if (parms.size() > 2)
+                            {
+                                vector<uint8_t> bytes = from_hex_string(parms[2]);
+                                packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
+                            }
+                        }
+                    }
                 }
                 break;
             default:
