@@ -25,7 +25,7 @@ namespace Cosmos {
                 queue<PacketComm> quu;
                 mutex* mtx = nullptr;
                 uint16_t datasize = PACKETCOMM_DATA_SIZE;
-                uint16_t maximum;
+                uint16_t maximum = 100;
             };
             vector<channelstruc> channel;
             int32_t Init(uint32_t verification=0x352e);
