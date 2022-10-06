@@ -9565,7 +9565,7 @@ const char *json_of_node(string &jstring, cosmosstruc *cinfo)
     int32_t iretn = 0;
 
     jstring.clear();
-    iretn = json_out(jstring, "node_met", cinfo);
+    iretn = json_out(jstring, "node_deci", cinfo);
     if (iretn < 0)
     {
         return nullptr;
@@ -9761,7 +9761,7 @@ const char *json_of_time(string &jstring, cosmosstruc *cinfo)
     int32_t iretn = 0;
 
     jstring.clear();
-    iretn = json_out(jstring, "node_met", cinfo);
+    iretn = json_out(jstring, "node_deci", cinfo);
     if (iretn < 0)
     {
         return nullptr;
@@ -9950,7 +9950,7 @@ const char *json_of_ephemeris(string &jstring, cosmosstruc *cinfo)
 {
     // Location
     jstring.clear();
-    json_out(jstring, "node_met", cinfo);
+    json_out(jstring, "node_deci", cinfo);
     json_out(jstring, "node_utcstart", cinfo);
     json_out(jstring, "node_utc", cinfo);
     json_out(jstring, "node_utcoffset", cinfo);
@@ -9965,7 +9965,7 @@ const char *json_of_utc(string &jstring, cosmosstruc *cinfo)
 {
     // Time
     jstring.clear();
-    json_out(jstring, "node_met", cinfo);
+    json_out(jstring, "node_deci", cinfo);
     json_out(jstring, "node_utcstart", cinfo);
     json_out(jstring, "node_utc", cinfo);
     json_out(jstring, "node_utcoffset", cinfo);
@@ -10724,7 +10724,7 @@ const char *json_of_groundcontact(string &jstring, cosmosstruc *cinfo)
     int16_t i;
 
     jstring.clear();
-    json_out(jstring, "node_met", cinfo);
+    json_out(jstring, "node_deci", cinfo);
     json_out(jstring, "node_utcstart", cinfo);
     json_out(jstring, "node_utc", cinfo);
     json_out(jstring, "node_utcoffset", cinfo);

@@ -463,6 +463,8 @@ namespace Cosmos {
                 {
                     // does this need mag utc?
                     // JIMNOTE double check the JSON output (vector or not?)
+                    cinfo->node.deci = decisec2mjd(cinfo->devspec.mag[0].utc);
+                    json_out(Contents, "node_deci", cinfo);
                     json_out_1d(Contents, "device_mag_utc", 0, cinfo);
                     json_out_1d(Contents, "device_mag_mag", 0, cinfo);
                 }
@@ -470,7 +472,7 @@ namespace Cosmos {
             case TypeId::CPU1BeaconS:
                 {
                     cinfo->node.deci = decisec2mjd(cinfo->devspec.cpu[0].utc);
-                    json_out(Contents, "node_met", cinfo);
+                    json_out(Contents, "node_deci", cinfo);
                     json_out_1d(Contents, "device_cpu_load", 0, cinfo);
                     json_out_1d(Contents, "device_cpu_gib", 0, cinfo);
                     json_out_1d(Contents, "device_disk_gib", 0, cinfo);
@@ -479,7 +481,7 @@ namespace Cosmos {
             case TypeId::CPU2BeaconS:
                 {
                     cinfo->node.deci = decisec2mjd(cinfo->devspec.cpu[0].utc);
-                    json_out(Contents, "node_met", cinfo);
+                    json_out(Contents, "node_deci", cinfo);
                     json_out_1d(Contents, "device_cpu_uptime", 0, cinfo);
                     json_out_1d(Contents, "device_cpu_boot_count", 0, cinfo);
                     json_out(Contents, "node_utcstart", cinfo);
@@ -488,7 +490,7 @@ namespace Cosmos {
             case TypeId::TsenBeaconS:
                 {
                     cinfo->node.deci = decisec2mjd(cinfo->devspec.tsen[0].utc);
-                    json_out(Contents, "node_met", cinfo);
+                    json_out(Contents, "node_deci", cinfo);
                     for (uint16_t i=0; i<std::min(static_cast<size_t>(3), cinfo->devspec.tsen.size()); ++i)
                     {
                         json_out_1d(Contents, "device_tsen_temp", i, cinfo);
