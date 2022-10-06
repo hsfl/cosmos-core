@@ -52,7 +52,7 @@
 vector < string > string_split(string in, string delimeters=" \t,");
 uint16_t string_parse(char *string, char *word[], uint16_t size);
 int string_cmp(const char *wild, const char *string);
-string to_hex_string(vector <uint8_t> buffer, bool ascii=false);
+string to_hex_string(vector <uint8_t> buffer, bool ascii=false, uint16_t start=0);
 vector<uint8_t> from_hex_string(string hex);
 vector<uint8_t> from_hex_vector(vector<uint8_t> hex);
 string to_astring(vector<uint8_t> buf, bool hex=true);

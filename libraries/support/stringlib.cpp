@@ -209,16 +209,22 @@ double StringParser::getFieldNumberAsDouble(uint32_t index)
 
 int StringParser::getFieldNumberAsInteger(uint32_t index) { return getFieldNumberAsDouble(index); }
 
-string to_hex_string(vector <uint8_t> buffer, bool ascii) {
+string to_hex_string(vector <uint8_t> buffer, bool ascii, uint16_t start)
+{
     std::stringstream ss;
-    for (uint16_t i=0; i<buffer.size(); ++i) {
-        if (ascii && buffer[i] > 31 && buffer[i] < 127)
+    if (start >= buffer.size())
+    {
+        start = buffer.size() - 1;
+    }
+    for (uint16_t i=start; i<buffer.size(); ++i)
+    {
+        if (ascii && (isalnum(buffer[i]) || isspace(buffer[i])))
         {
             ss << buffer[i];
         }
         else
         {
-            ss << " " << std::hex << (uint16_t)buffer[i];
+            ss << " " << std::hex << buffer[i];
         }
     }
     return ss.str();
