@@ -213,6 +213,14 @@ double StringParser::getFieldNumberAsDouble(uint32_t index)
 
 int StringParser::getFieldNumberAsInteger(uint32_t index) { return getFieldNumberAsDouble(index); }
 
+/**
+ * @brief Convert byte vector to human-readable string
+ * 
+ * @param buffer Byte vector
+ * @param ascii If true, converts alphanumeric and whitespace ascii values to equivalent ascii character
+ * @param start Offset to start in buffer
+ * @return Human-readable string
+ */
 string to_hex_string(vector <uint8_t> buffer, bool ascii, uint16_t start)
 {
     std::stringstream ss;
@@ -228,7 +236,7 @@ string to_hex_string(vector <uint8_t> buffer, bool ascii, uint16_t start)
         }
         else
         {
-            ss << " " << std::hex << static_cast<uint16_t>(buffer[i]);
+            ss << " " << std::hex << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(buffer[i]);
         }
     }
     return ss.str();
