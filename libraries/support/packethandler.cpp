@@ -71,32 +71,35 @@ namespace Cosmos {
         vector<PacketComm> PacketHandler::create_response_packets(uint32_t response_id, uint16_t data_size, const vector<uint8_t> &response)
         {
             vector<PacketComm> packets;
-            PacketComm::ResponseHeader header;
-            header.response_id = response_id;
-            header.deci = decisec();
-            PacketComm packet;
-            packet.header.type = PacketComm::TypeId::DataResponse;
-            uint8_t chunk_size = (data_size-COSMOS_SIZEOF(PacketComm::ResponseHeader));
-            if (response.size() / chunk_size > 254)
+            if (response.size())
             {
-                header.chunks = 255;
-            }
-            else
-            {
-                header.chunks = response.size() / chunk_size + 1;
-            }
-            for (header.chunk_id=0; header.chunk_id<header.chunks; ++header.chunk_id)
-            {
-                uint16_t chunk_begin = header.chunk_id * chunk_size;
-                uint16_t chunk_end = chunk_begin + chunk_size;
-                if (chunk_end > response.size())
+                PacketComm::ResponseHeader header;
+                header.response_id = response_id;
+                header.deci = decisec();
+                PacketComm packet;
+                packet.header.type = PacketComm::TypeId::DataResponse;
+                uint8_t chunk_size = (data_size-COSMOS_SIZEOF(PacketComm::ResponseHeader));
+                if (response.size() / chunk_size > 254)
                 {
-                    chunk_end = response.size();
+                    header.chunks = 255;
                 }
-                packet.data.resize(sizeof(header));
-                memcpy(packet.data.data(), &header, sizeof(header));
-                packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
-                packets.push_back(packet);
+                else
+                {
+                    header.chunks = (response.size() - 1) / chunk_size + 1;
+                }
+                for (header.chunk_id=0; header.chunk_id<header.chunks; ++header.chunk_id)
+                {
+                    uint16_t chunk_begin = header.chunk_id * chunk_size;
+                    uint16_t chunk_end = chunk_begin + chunk_size;
+                    if (chunk_end > response.size())
+                    {
+                        chunk_end = response.size();
+                    }
+                    packet.data.resize(sizeof(header));
+                    memcpy(packet.data.data(), &header, sizeof(header));
+                    packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
+                    packets.push_back(packet);
+                }
             }
             return packets;
         }

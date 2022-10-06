@@ -4001,7 +4001,7 @@ acquired.
                 }
                 else
                 {
-                    header.chunks = response.size() / chunk_size + 1;
+                    header.chunks = (response.size() - 1) / chunk_size + 1;
                 }
                 packet.header.type = PacketComm::TypeId::DataResponse;
                 packet.header.orig = nodeId;
