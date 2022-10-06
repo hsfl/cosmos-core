@@ -34,10 +34,12 @@ namespace Cosmos {
             channel[2].name = "EPS";
             channel[2].mtx = new mutex;
             channel[2].datasize = 1400;
+            channel[2].maximum = 1000;
 
             channel[3].name = "ADCS";
             channel[3].mtx = new mutex;
             channel[3].datasize = 1400;
+            channel[3].maximum = 1000;
 
             channel[4].name = "FILE";
             channel[4].mtx = new mutex;

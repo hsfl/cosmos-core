@@ -466,7 +466,9 @@ namespace Cosmos {
                     cinfo->node.deci = decisec2mjd(cinfo->devspec.mag[0].utc);
                     json_out(Contents, "node_deci", cinfo);
                     json_out_1d(Contents, "device_mag_utc", 0, cinfo);
-                    json_out_1d(Contents, "device_mag_mag", 0, cinfo);
+                    json_out_1d(Contents, "device_mag_mag_x", 0, cinfo);
+                    json_out_1d(Contents, "device_mag_mag_y", 0, cinfo);
+                    json_out_1d(Contents, "device_mag_mag_z", 0, cinfo);
                 }
                 break;
             case TypeId::CPU1BeaconS:
