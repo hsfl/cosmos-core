@@ -4084,6 +4084,7 @@ acquired.
                     header.chunks = (response.size() - 1) / chunk_size + 1;
                 }
                 packet.header.type = type;
+                packet.header.radio = number;
                 packet.header.orig = nodeId;
                 packet.header.dest = dest;
                 for (header.chunk_id=0; header.chunk_id<header.chunks; ++header.chunk_id)
