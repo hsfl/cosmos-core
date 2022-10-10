@@ -2,7 +2,7 @@
 //!
 //! Usage: file_transfer_test [packet_size]
 //! packet_size is the size of the transfer file packet. Simulate packet size restrictions of various radios.
-//! Note: doesn't quite work with packet_size's exceeding 1500. This is a limitation of transferclass
+//! Test as of this commit successful for up to packet_size=65535, didn't test above that
 
 #include "support/transferclass.h"
 #include <fstream>
@@ -44,6 +44,7 @@ string nodeids_ini_path, nodeids_ini_backup_path;
 void load_temp_nodeids();
 void restore_original_nodeids();
 void cleanup();
+void rmdir(const string dirpath);
 int32_t create_file(int32_t kib, string file_path);
 void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_log);
 template <typename T> T sumv(vector<T> vec);
@@ -87,7 +88,7 @@ struct test_params
         orig_out_dir = data_base_path(dest_node, "outgoing", agent_subfolder_name);
         dest_in_dir = data_base_path(orig_node, "incoming", agent_subfolder_name);
         int32_t iretn = 0;
-        for (size_t i = 0; i < num_files; ++i)
+        for (size_t i = 0; i < this->num_files; ++i)
         {
             string tfilename = "file_" + std::to_string(i);
             iretn = create_file(file_size_kib, orig_out_dir + "/" + tfilename);
@@ -243,7 +244,7 @@ int main(int argc, char *argv[])
     //////////////////////////////////////////////////////////////////////////
 
     debug_log.Printf("%s\n", "Cleaning up.");
-    cleanup();
+    //cleanup();
 
 
     //////////////////////////////////////////////////////////////////////////
@@ -800,7 +801,7 @@ int32_t test_stop_resume2()
     // Second load after stop
     Transfer node2b;
     size_t num_files = 3;
-    double file_size_kib = 12.;
+    double file_size_kib = ((PACKET_SIZE/1024)+1)*10;
     double file_size_bytes = file_size_kib * 1024;
 
     // Initialize test parameters
@@ -1070,12 +1071,6 @@ int32_t test_packet_reqcomplete()
     vector<int32_t> packets_sent = {0,0};
     // Up to last DATA packet, node2 starts listening after this many runs have passed
     int32_t runs = 0;
-    int32_t restart_run = ceil(file_size_bytes / node1.get_packet_size());
-    if (restart_run <= 0)
-    {
-        debug_log.Printf("Error, restart_run must be greater than 0 or the results will not be accurate. Adjust packet_size or file_size_kb\n");
-        return GENERAL_ERROR_ERROR;
-    }
     // +2 for the two REQCOMPLETE packets, then +1 run for the waittime wait, then the +1 at the end for the CANCEL packet
     int32_t packet_expected_total
         = num_files*ceil(file_size_bytes / node1.get_packet_size())*2   // number of DATA packets, everything gets sent twice
@@ -1095,6 +1090,8 @@ int32_t test_packet_reqcomplete()
     {
         debug_log.Printf("Error in set_waittime %d\n", iretn);
     }
+    // Start receiving after REQCOMPLETE is received
+    bool start_receiving = false;
     while (true)
     {
         lpackets.clear();
@@ -1104,8 +1101,12 @@ int32_t test_packet_reqcomplete()
         {
             ++packets_sent[NODE1];
             debug_packet(lpacket, 1, "Outgoing", &node1_log);
-            // Have node 2 start receiving only after runlimit_init (i.e., start from the REQCOMPLETE packet)
-            if (runs >= restart_run)
+            if (lpacket.header.type == PacketComm::TypeId::DataFileReqComplete)
+            {
+                start_receiving = true;
+            }
+            // Have node 2 start receiving only from and after the REQCOMPLETE packet
+            if (start_receiving)
             {
                 debug_packet(lpacket, 0, "Incoming", &node2_log);
                 iretn = node2.receive_packet(lpacket);
@@ -1133,7 +1134,7 @@ int32_t test_packet_reqcomplete()
                 break;
             }
         }
-        if (sumv(packets_sent) > packet_expected_total)
+        if (sumv(packets_sent) > packet_expected_total*2)
         {
             string rs = respond ? "true" : "false";
             debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
@@ -1153,8 +1154,8 @@ int32_t test_packet_reqcomplete()
             respond = false;
         }
 
-        // break if runlimit is reached
-        if (sumv(packets_sent) > packet_expected_total)
+        // break if expected total exceeded by a large amount
+        if (sumv(packets_sent) > packet_expected_total*2)
         {
             break;
         }
@@ -1545,27 +1546,31 @@ void cleanup()
     debug_log.Printf("Removing created test directories... ");
     
     // Delete created folders, don't touch this
-    const string temp_del_path = get_cosmosnodes() + "/safe_to_delete";
-    rename((get_cosmosnodes() + "/" + node1_name).c_str(), temp_del_path.c_str());
-    rename((get_cosmosnodes() + "/" + node2_name).c_str(), temp_del_path.c_str());
-    rename((get_cosmosnodes() + "/" + tname3).c_str(), temp_del_path.c_str());
+    rmdir(get_cosmosnodes() + "/" + node1_name);
+    rmdir(get_cosmosnodes() + "/" + node2_name);
+    rmdir(get_cosmosnodes() + "/" + tname3);
+
+    debug_log.Printf("OK.\n");
+}
+
+void rmdir(const string dirpath)
+{
     // (In)sanity checks before running rm -r
-    if (data_isdir(temp_del_path)
-    && std::count(temp_del_path.begin(), temp_del_path.end(), '/') > 3
-    && !std::count(temp_del_path.begin(), temp_del_path.end(), ' ')
-    && !std::count(temp_del_path.begin(), temp_del_path.end(), '\t')
-    && !std::count(temp_del_path.begin(), temp_del_path.end(), '\v')
-    && !std::count(temp_del_path.begin(), temp_del_path.end(), '\n')
-    && !std::count(temp_del_path.begin(), temp_del_path.end(), '\r')
-    && !std::count(temp_del_path.begin(), temp_del_path.end(), '\\')
-    && !std::count(temp_del_path.begin(), temp_del_path.end(), '|')
-    && !std::count(temp_del_path.begin(), temp_del_path.end(), '-')
-    && !std::count(temp_del_path.begin(), temp_del_path.end(), '.'))
+    if (data_isdir(dirpath)
+    && std::count(dirpath.begin(), dirpath.end(), '/') > 3
+    && !std::count(dirpath.begin(), dirpath.end(), ' ')
+    && !std::count(dirpath.begin(), dirpath.end(), '\t')
+    && !std::count(dirpath.begin(), dirpath.end(), '\v')
+    && !std::count(dirpath.begin(), dirpath.end(), '\n')
+    && !std::count(dirpath.begin(), dirpath.end(), '\r')
+    && !std::count(dirpath.begin(), dirpath.end(), '\\')
+    && !std::count(dirpath.begin(), dirpath.end(), '|')
+    && !std::count(dirpath.begin(), dirpath.end(), '-')
+    && !std::count(dirpath.begin(), dirpath.end(), '.'))
     {
-        data_execute("rm -r " + temp_del_path);
+        data_execute("rm -r " + dirpath);
         debug_log.Printf("... ");
     }
-    debug_log.Printf("OK.\n");
 }
 
 // Create an all-zero-char file of kib kibibytes at the file_path

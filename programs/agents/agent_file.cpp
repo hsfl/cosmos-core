@@ -365,7 +365,7 @@ void recv_loop() noexcept
             secondsleep(.001);
         }
 
-        while (( nbytes = myrecvfrom("Incoming", rchannel, p, PACKET_MAX_LENGTH)) > 0)
+        while (( nbytes = myrecvfrom("Incoming", rchannel, p, PACKET_SIZE_HI)) > 0)
         {
             transfer_mtx.lock();
             iretn = transfer.receive_packet(p);

@@ -8,7 +8,6 @@
 
 #define PROGRESS_QUEUE_SIZE 256
 
-#define PACKET_MAX_LENGTH 1500
 // Radios are only allowing 253 byte packet. IP/UDP header is 28 bytes.
 #define TRANSFER_MAX_PROTOCOL_PACKET 225
 #define TRANSFER_MAX_FILENAME 128
@@ -150,7 +149,7 @@ namespace Cosmos {
             PACKET_TX_ID_TYPE tx_id;
             PACKET_CHUNK_SIZE_TYPE byte_count;
             PACKET_FILE_SIZE_TYPE chunk_start;
-            PACKET_BYTE chunk[PACKET_MAX_LENGTH];
+            vector<PACKET_BYTE> chunk;
         };
 
         #define PACKET_DATA_OFFSET_NODE_ID 0

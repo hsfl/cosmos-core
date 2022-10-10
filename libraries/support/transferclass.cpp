@@ -1574,7 +1574,7 @@ namespace Cosmos {
                         else
                         {
                             fseek(txq[orig_node_idx].incoming.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
-                            fwrite(data.chunk, data.byte_count, 1, txq[orig_node_idx].incoming.progress[tx_id].fp);
+                            fwrite(data.chunk.data(), data.byte_count, 1, txq[orig_node_idx].incoming.progress[tx_id].fp);
                             fflush(txq[orig_node_idx].incoming.progress[tx_id].fp);
                             // Write latest meta data to disk
                             write_meta(txq[orig_node_idx].incoming.progress[tx_id]);
@@ -2066,10 +2066,6 @@ PACKET_CHUNK_SIZE_TYPE Transfer::get_packet_size()
 //! Sets the size of the packet to stuff. Should be set to the size of packet the channel supports that file packets will be sent out on.
 int32_t Transfer::set_packet_size(const PACKET_CHUNK_SIZE_TYPE size)
 {
-    if (size > PACKET_MAX_LENGTH)
-    {
-        return COSMOS_GENERAL_ERROR_OVERSIZE;
-    }
     packet_size = size;
     return 0;
 }

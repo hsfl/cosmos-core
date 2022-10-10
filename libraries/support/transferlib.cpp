@@ -326,7 +326,8 @@ namespace Cosmos {
             memmove(&data.tx_id,       &pdata[0]+PACKET_DATA_OFFSET_TX_ID,       sizeof(PACKET_TX_ID_TYPE));
             memmove(&data.byte_count,  &pdata[0]+PACKET_DATA_OFFSET_BYTE_COUNT,  sizeof(data.byte_count));
             memmove(&data.chunk_start, &pdata[0]+PACKET_DATA_OFFSET_CHUNK_START, sizeof(data.chunk_start));
-            memmove(data.chunk,        &pdata[0]+PACKET_DATA_OFFSET_CHUNK,       data.byte_count);
+            data.chunk.resize(data.byte_count);
+            memmove(data.chunk.data(),        &pdata[0]+PACKET_DATA_OFFSET_CHUNK,       data.byte_count);
         }
 
         //! Merges any overlapping chunks in the tx.file_info deque.
