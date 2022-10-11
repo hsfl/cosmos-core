@@ -56,10 +56,10 @@
 
 #define PROGRESS_QUEUE_SIZE 256
 // Corrected for 28 byte UDP header. Will have to get more clever if we start using CSP
-#define PACKET_SIZE_LO (200-(PACKET_DATA_OFFSET_HEADER_TOTAL+28))
-#define PACKET_SIZE_PAYLOAD (PACKET_SIZE_LO-PACKET_DATA_OFFSET_HEADER_TOTAL)
+#define PACKET_SIZE_LO (200-(offsetof(struct packet_struct_data, chunk)+28))
+#define PACKET_SIZE_PAYLOAD (PACKET_SIZE_LO-offsetof(struct packet_struct_data, chunk))
 #define THROUGHPUT_LO 130
-#define PACKET_SIZE_HI (1472-(PACKET_DATA_OFFSET_HEADER_TOTAL+28))
+#define PACKET_SIZE_HI (1472-(offsetof(struct packet_struct_data, chunk)+28))
 #define THROUGHPUT_HI 1000
 //#define TRANSFER_QUEUE_LIMIT 10
 #define PACKET_IN 1
@@ -604,42 +604,42 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
         {
         case PacketComm::TypeId::DataFileMetaData:
             {
-                string file_name(&packet.data[PACKET_METASHORT_OFFSET_FILE_NAME], &packet.data[PACKET_METASHORT_OFFSET_FILE_NAME+TRANSFER_MAX_FILENAME]);
-                agent->debug_error.Printf("[METADATA] %u %u %s ", node_id, packet.data[PACKET_METASHORT_OFFSET_TX_ID], file_name.c_str());
+                string file_name(&packet.data[offsetof(struct packet_struct_metashort, file_name)], &packet.data[offsetof(struct packet_struct_metashort, file_name)+TRANSFER_MAX_FILENAME]);
+                agent->debug_error.Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(struct packet_struct_metashort, tx_id)], file_name.c_str());
                 break;
             }
         case PacketComm::TypeId::DataFileChunkData:
             {
-                agent->debug_error.Printf("[DATA] %u %u %u %u ", node_id, packet.data[PACKET_DATA_OFFSET_TX_ID], packet.data[PACKET_DATA_OFFSET_CHUNK_START]+256U*(packet.data[PACKET_DATA_OFFSET_CHUNK_START+1]+256U*(packet.data[PACKET_DATA_OFFSET_CHUNK_START+2]+256U*packet.data[PACKET_DATA_OFFSET_CHUNK_START+3])), packet.data[PACKET_DATA_OFFSET_BYTE_COUNT]+256U*packet.data[PACKET_DATA_OFFSET_BYTE_COUNT+1]);
+                agent->debug_error.Printf("[DATA] %u %u %u %u ", node_id, packet.data[offsetof(struct packet_struct_data, tx_id)], packet.data[offsetof(struct packet_struct_data, chunk_start)]+256U*(packet.data[offsetof(struct packet_struct_data, chunk_start)+1]+256U*(packet.data[offsetof(struct packet_struct_data, chunk_start)+2]+256U*packet.data[offsetof(struct packet_struct_data, chunk_start)+3])), packet.data[offsetof(struct packet_struct_data, byte_count)]+256U*packet.data[offsetof(struct packet_struct_data, byte_count)+1]);
                 break;
             }
         case PacketComm::TypeId::DataFileReqData:
             {
-                agent->debug_error.Printf("[REQDATA] %u %u %u %u ", node_id, packet.data[PACKET_REQDATA_OFFSET_TX_ID], packet.data[PACKET_REQDATA_OFFSET_HOLE_START]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_START+1]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_START+2]+256U*packet.data[PACKET_REQDATA_OFFSET_HOLE_START+3])), packet.data[PACKET_REQDATA_OFFSET_HOLE_END]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_END+1]+256U*(packet.data[PACKET_REQDATA_OFFSET_HOLE_END+2]+256U*packet.data[PACKET_REQDATA_OFFSET_HOLE_END+3])));
+                agent->debug_error.Printf("[REQDATA] %u %u %u %u ", node_id, packet.data[offsetof(struct packet_struct_reqdata, tx_id)], packet.data[offsetof(struct packet_struct_reqdata, hole_start)]+256U*(packet.data[offsetof(struct packet_struct_reqdata, hole_start)+1]+256U*(packet.data[offsetof(struct packet_struct_reqdata, hole_start)+2]+256U*packet.data[offsetof(struct packet_struct_reqdata, hole_start)+3])), packet.data[offsetof(struct packet_struct_reqdata, hole_end)]+256U*(packet.data[offsetof(struct packet_struct_reqdata, hole_end)+1]+256U*(packet.data[offsetof(struct packet_struct_reqdata, hole_end)+2]+256U*packet.data[offsetof(struct packet_struct_reqdata, hole_end)+3])));
                 break;
             }
         case PacketComm::TypeId::DataFileReqComplete:
             {
-                agent->debug_error.Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[PACKET_REQCOMPLETE_OFFSET_TX_ID]);
+                agent->debug_error.Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[offsetof(struct packet_struct_reqcomplete, tx_id)]);
                 break;
             }
         case PacketComm::TypeId::DataFileComplete:
             {
-                agent->debug_error.Printf("[COMPLETE] %u %u ", node_id, packet.data[PACKET_COMPLETE_OFFSET_TX_ID]);
+                agent->debug_error.Printf("[COMPLETE] %u %u ", node_id, packet.data[offsetof(struct packet_struct_complete, tx_id)]);
                 break;
             }
         case PacketComm::TypeId::DataFileCancel:
             {
-                agent->debug_error.Printf("[CANCEL] %u %u ", node_id, packet.data[PACKET_CANCEL_OFFSET_TX_ID]);
+                agent->debug_error.Printf("[CANCEL] %u %u ", node_id, packet.data[offsetof(struct packet_struct_cancel, tx_id)]);
                 break;
             }
         case PacketComm::TypeId::DataFileReqMeta:
             {
                 agent->debug_error.Printf("[REQMETA] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
                 for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
-                    if (packet.data[PACKET_REQMETA_OFFSET_TX_ID+i])
+                    if (packet.data[offsetof(struct packet_struct_reqmeta, tx_id)+i])
                     {
-                        agent->debug_error.Printf("%u ", packet.data[PACKET_REQMETA_OFFSET_TX_ID+i]);
+                        agent->debug_error.Printf("%u ", packet.data[offsetof(struct packet_struct_reqmeta, tx_id)+i]);
                     }
                 break;
             }
@@ -649,21 +649,11 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
                 // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint16_t type
                 for (PACKET_QUEUE_FLAGS_TYPE i=0; i<PACKET_QUEUE_FLAGS_LIMIT; ++i)
                 {
-                    PACKET_QUEUE_FLAGS_TYPE flags = uint16from(&packet.data[PACKET_QUEUE_OFFSET_TX_ID+(2*i)], ByteOrder::LITTLEENDIAN);
+                    PACKET_QUEUE_FLAGS_TYPE flags = uint16from(&packet.data[offsetof(struct packet_struct_queue, tx_ids)+(2*i)], ByteOrder::LITTLEENDIAN);
                     agent->debug_error.Printf("%u ", flags);
                 }
             }
             break;
-        case PacketComm::TypeId::DataFileMessage:
-            {
-                agent->debug_error.Printf("[MESSAGE] %u %hu %s", node_id, packet.data[PACKET_MESSAGE_OFFSET_LENGTH], &packet.data[PACKET_MESSAGE_OFFSET_BYTES]);
-                break;
-            }
-        case PacketComm::TypeId::DataFileCommand:
-            {
-                agent->debug_error.Printf("[COMMAND] %u %hu %s", node_id, packet.data[PACKET_COMMAND_OFFSET_LENGTH], &packet.data[PACKET_COMMAND_OFFSET_BYTES]);
-                break;
-            }
         default:
             {
                 agent->debug_error.Printf("[ERROR] %u %s", node_id, "Error in debug_packet switch on packet.header.type");

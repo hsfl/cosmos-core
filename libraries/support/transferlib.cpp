@@ -247,7 +247,10 @@ namespace Cosmos {
         //! \return n/a
         void deserialize_data(const vector<PACKET_BYTE>& pdata, packet_struct_data &data)
         {
-            memcpy(&data, pdata.data(), offsetof(struct packet_struct_data, chunk));
+            memcpy(&data.node_id,     &pdata[0]+offsetof(struct packet_struct_data, node_id),     sizeof(PACKET_NODE_ID_TYPE));
+            memcpy(&data.tx_id,       &pdata[0]+offsetof(struct packet_struct_data, tx_id),       sizeof(PACKET_TX_ID_TYPE));
+            memcpy(&data.byte_count,  &pdata[0]+offsetof(struct packet_struct_data, byte_count),  sizeof(data.byte_count));
+            memcpy(&data.chunk_start, &pdata[0]+offsetof(struct packet_struct_data, chunk_start), sizeof(data.chunk_start));
             data.chunk.resize(data.byte_count);
             memcpy(data.chunk.data(), pdata.data()+offsetof(struct packet_struct_data, chunk), data.byte_count);
         }
