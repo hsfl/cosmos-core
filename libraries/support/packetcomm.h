@@ -217,32 +217,10 @@ namespace Cosmos {
                 uint8_t command;
             };
 
-            struct __attribute__ ((packed))  AdcsResponseHeader
-            {
-                uint32_t deci;
-                uint8_t chunks;
-                uint8_t chunk_id;
-                uint8_t unit;
-                uint8_t command;
-            };
-
-            struct __attribute__ ((packed))  EpsResponseHeader
-            {
-                uint32_t deci;
-                uint8_t chunks;
-                uint8_t chunk_id;
-                uint8_t unit;
-                uint8_t command;
-            };
-
-            struct __attribute__ ((packed))  RadioResponseHeader
-            {
-                uint32_t deci;
-                uint8_t chunks;
-                uint8_t chunk_id;
-                uint8_t unit;
-                uint8_t command;
-            };
+            // Structure is the same, but type aliases are provided for user convenience
+            using AdcsResponseHeader = CommunicateResponseHeader;
+            using EpsResponseHeader = CommunicateResponseHeader;
+            using RadioResponseHeader = CommunicateResponseHeader;
 
             struct __attribute__ ((packed))  ResponseHeader
             {

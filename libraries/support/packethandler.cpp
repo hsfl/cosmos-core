@@ -230,7 +230,7 @@ namespace Cosmos {
                 header_size = sizeof(header);
                 memcpy(&header, packet.data.data(), header_size);
                 this_chunk_size = packet.data.size() - header_size;
-                chunk_size = agent->channel_datasize(packet.header.radio);
+                chunk_size = agent->channel_datasize(packet.header.radio) - header_size;
                 chunk_id = header.chunk_id;
                 chunks = header.chunks;
                 file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "eps", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "eresp", NodeData::lookup_node_id_name(packet.header.orig), "eps", to_unsigned(header.unit)+"_"+to_unsigned(header.command)));
@@ -312,7 +312,7 @@ namespace Cosmos {
                 header_size = sizeof(header);
                 memcpy(&header, packet.data.data(), header_size);
                 this_chunk_size = packet.data.size() - header_size;
-                chunk_size = agent->channel_datasize(packet.header.radio);
+                chunk_size = agent->channel_datasize(packet.header.radio) - header_size;
                 chunk_id = header.chunk_id;
                 chunks = header.chunks;
                 file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "adcs", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "aresp", NodeData::lookup_node_id_name(packet.header.orig), "adcs", to_unsigned(header.command)));
@@ -346,7 +346,7 @@ namespace Cosmos {
                         }
                         fclose(tf);
 //                        response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
-                        response = "[" + to_unsigned(chunk_id) + ":" + to_unsigned(chunks) + "]" + to_hex_string(packet.data, false, header_size);
+                        response = "[" + to_unsigned(chunk_id) + ":" + to_unsigned(chunks) + ":" + to_unsigned(this_chunk_size) + "]" + to_hex_string(packet.data, false, header_size);
 
                         // Check if all chunks received
                         if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
@@ -394,7 +394,7 @@ namespace Cosmos {
                 header_size = COSMOS_SIZEOF(PacketComm::ResponseHeader);
                 memcpy(&header, packet.data.data(), header_size);
                 this_chunk_size = packet.data.size() - header_size;
-                chunk_size = agent->channel_datasize(packet.header.radio);
+                chunk_size = agent->channel_datasize(packet.header.radio) - header_size;
                 chunk_id = header.chunk_id;
                 chunks = header.chunks;
                 file = data_name_struc(NodeData::lookup_node_id_name(packet.header.orig), "temp", "main", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "gresp", NodeData::lookup_node_id_name(packet.header.orig), "main", to_unsigned(header.response_id)));

@@ -8,7 +8,6 @@
 
 #define PROGRESS_QUEUE_SIZE 256
 
-#define PACKET_MAX_LENGTH 1500
 // Radios are only allowing 253 byte packet. IP/UDP header is 28 bytes.
 #define TRANSFER_MAX_PROTOCOL_PACKET 225
 #define TRANSFER_MAX_FILENAME 128
@@ -38,37 +37,6 @@ namespace Cosmos {
             PACKET_UNIXTIME_TYPE funixtime;
         };
 
-        #define PACKET_HEARTBEAT_OFFSET_NODE_ID 0
-        #define PACKET_HEARTBEAT_OFFSET_NODE_NAME (COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-        #define PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD (PACKET_HEARTBEAT_OFFSET_NODE_NAME + COSMOS_MAX_NAME)
-        #define PACKET_HEARTBEAT_OFFSET_THROUGHPUT (PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD + 1)
-        #define PACKET_HEARTBEAT_OFFSET_FUNIXTIME (PACKET_HEARTBEAT_OFFSET_THROUGHPUT + 4)
-        #define PACKET_HEARTBEAT_OFFSET_TOTAL (PACKET_HEARTBEAT_OFFSET_FUNIXTIME + 8)
-
-        struct packet_struct_message
-        {
-            PACKET_NODE_ID_TYPE node_id;
-            PACKET_BYTE length;
-            PACKET_BYTE bytes[TRANSFER_MAX_PROTOCOL_PACKET-2];
-        };
-
-        #define PACKET_MESSAGE_OFFSET_NODE_ID 0
-        #define PACKET_MESSAGE_OFFSET_LENGTH (PACKET_MESSAGE_OFFSET_NODE_ID + 1)
-        #define PACKET_MESSAGE_OFFSET_BYTES (PACKET_MESSAGE_OFFSET_LENGTH + 1)
-        #define PACKET_MESSAGE_OFFSET_TOTAL (PACKET_MESSAGE_OFFSET_BYTES + TRANSFER_MAX_PROTOCOL_PACKET - 2)
-
-        struct packet_struct_command
-        {
-            PACKET_NODE_ID_TYPE node_id;
-            PACKET_BYTE length;
-            PACKET_BYTE bytes[TRANSFER_MAX_PROTOCOL_PACKET-2];
-        };
-
-        #define PACKET_COMMAND_OFFSET_NODE_ID 0
-        #define PACKET_COMMAND_OFFSET_LENGTH (PACKET_COMMAND_OFFSET_NODE_ID + 1)
-        #define PACKET_COMMAND_OFFSET_BYTES (PACKET_COMMAND_OFFSET_LENGTH + 1)
-        #define PACKET_COMMAND_OFFSET_TOTAL (PACKET_COMMAND_OFFSET_BYTES + TRANSFER_MAX_PROTOCOL_PACKET - 2)
-
         typedef uint16_t PACKET_QUEUE_FLAGS_TYPE;
         #define PACKET_QUEUE_FLAGS_LIMIT (PROGRESS_QUEUE_SIZE/(COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE)*8))
         
@@ -81,22 +49,12 @@ namespace Cosmos {
             PACKET_QUEUE_FLAGS_TYPE tx_ids[PACKET_QUEUE_FLAGS_LIMIT];
         };
 
-        #define PACKET_QUEUE_OFFSET_NODE_ID 0
-        #define PACKET_QUEUE_OFFSET_NODE_NAME (COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-        #define PACKET_QUEUE_OFFSET_TX_ID (PACKET_QUEUE_OFFSET_NODE_NAME + COSMOS_MAX_NAME)
-        #define PACKET_QUEUE_OFFSET_TOTAL (PACKET_QUEUE_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE) * PACKET_QUEUE_FLAGS_LIMIT)
-
         struct packet_struct_reqmeta
         {
             PACKET_NODE_ID_TYPE node_id;
             char node_name[COSMOS_MAX_NAME+1];
             PACKET_TX_ID_TYPE tx_id[TRANSFER_QUEUE_LIMIT];
         };
-
-        #define PACKET_REQMETA_OFFSET_NODE_ID 0
-        #define PACKET_REQMETA_OFFSET_NODE_NAME (COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-        #define PACKET_REQMETA_OFFSET_TX_ID (PACKET_REQMETA_OFFSET_NODE_NAME + COSMOS_MAX_NAME)
-        #define PACKET_REQMETA_OFFSET_TOTAL (PACKET_REQMETA_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE) * TRANSFER_QUEUE_LIMIT)
 
         struct packet_struct_metalong
         {
@@ -107,13 +65,6 @@ namespace Cosmos {
             PACKET_FILE_SIZE_TYPE file_size;
         };
 
-        #define PACKET_METALONG_OFFSET_NODE_NAME 0
-        #define PACKET_METALONG_OFFSET_TX_ID (PACKET_METALONG_OFFSET_NODE_NAME + COSMOS_MAX_NAME)
-        #define PACKET_METALONG_OFFSET_AGENT_NAME (PACKET_METALONG_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
-        #define PACKET_METALONG_OFFSET_FILE_NAME (PACKET_METALONG_OFFSET_AGENT_NAME + COSMOS_MAX_NAME)
-        #define PACKET_METALONG_OFFSET_FILE_SIZE (PACKET_METALONG_OFFSET_FILE_NAME + TRANSFER_MAX_FILENAME)
-        #define PACKET_METALONG_OFFSET_TOTAL (PACKET_METALONG_OFFSET_FILE_SIZE + COSMOS_SIZEOF(PACKET_FILE_SIZE_TYPE))
-
         struct packet_struct_metashort
         {
             PACKET_NODE_ID_TYPE node_id;
@@ -123,13 +74,6 @@ namespace Cosmos {
             PACKET_FILE_SIZE_TYPE file_size;
         };
 
-        #define PACKET_METASHORT_OFFSET_NODE_ID 0
-        #define PACKET_METASHORT_OFFSET_TX_ID (PACKET_METASHORT_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-        #define PACKET_METASHORT_OFFSET_AGENT_NAME (PACKET_METASHORT_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
-        #define PACKET_METASHORT_OFFSET_FILE_NAME (PACKET_METASHORT_OFFSET_AGENT_NAME + COSMOS_MAX_NAME)
-        #define PACKET_METASHORT_OFFSET_FILE_SIZE (PACKET_METASHORT_OFFSET_FILE_NAME + TRANSFER_MAX_FILENAME)
-        #define PACKET_METASHORT_OFFSET_TOTAL (PACKET_METASHORT_OFFSET_FILE_SIZE + COSMOS_SIZEOF(PACKET_FILE_SIZE_TYPE))
-
         struct packet_struct_reqdata
         {
             PACKET_NODE_ID_TYPE node_id;
@@ -138,27 +82,14 @@ namespace Cosmos {
             PACKET_FILE_SIZE_TYPE hole_end;
         };
 
-        #define PACKET_REQDATA_OFFSET_NODE_ID 0
-        #define PACKET_REQDATA_OFFSET_TX_ID (PACKET_REQDATA_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-        #define PACKET_REQDATA_OFFSET_HOLE_START (PACKET_REQDATA_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
-        #define PACKET_REQDATA_OFFSET_HOLE_END (PACKET_REQDATA_OFFSET_HOLE_START + COSMOS_SIZEOF(PACKET_FILE_SIZE_TYPE))
-        #define PACKET_REQDATA_OFFSET_TOTAL (PACKET_REQDATA_OFFSET_HOLE_END + COSMOS_SIZEOF(PACKET_FILE_SIZE_TYPE))
-
         struct packet_struct_data
         {
             PACKET_NODE_ID_TYPE node_id;
             PACKET_TX_ID_TYPE tx_id;
             PACKET_CHUNK_SIZE_TYPE byte_count;
             PACKET_FILE_SIZE_TYPE chunk_start;
-            PACKET_BYTE chunk[PACKET_MAX_LENGTH];
+            vector<PACKET_BYTE> chunk;
         };
-
-        #define PACKET_DATA_OFFSET_NODE_ID 0
-        #define PACKET_DATA_OFFSET_TX_ID (PACKET_DATA_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-        #define PACKET_DATA_OFFSET_BYTE_COUNT (PACKET_DATA_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
-        #define PACKET_DATA_OFFSET_CHUNK_START (PACKET_DATA_OFFSET_BYTE_COUNT + COSMOS_SIZEOF(PACKET_CHUNK_SIZE_TYPE))
-        #define PACKET_DATA_OFFSET_CHUNK (PACKET_DATA_OFFSET_CHUNK_START + COSMOS_SIZEOF(PACKET_FILE_SIZE_TYPE))
-        #define PACKET_DATA_OFFSET_HEADER_TOTAL (PACKET_DATA_OFFSET_CHUNK)
 
         struct packet_struct_reqcomplete
         {
@@ -166,30 +97,17 @@ namespace Cosmos {
             PACKET_TX_ID_TYPE tx_id;
         };
 
-        #define PACKET_REQCOMPLETE_OFFSET_NODE_ID 0
-        #define PACKET_REQCOMPLETE_OFFSET_TX_ID (PACKET_REQCOMPLETE_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-        #define PACKET_REQCOMPLETE_OFFSET_TOTAL (PACKET_REQCOMPLETE_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
-
-
         struct packet_struct_complete
         {
             PACKET_NODE_ID_TYPE node_id;
             PACKET_TX_ID_TYPE tx_id;
         };
 
-        #define PACKET_COMPLETE_OFFSET_NODE_ID 0
-        #define PACKET_COMPLETE_OFFSET_TX_ID (PACKET_COMPLETE_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-        #define PACKET_COMPLETE_OFFSET_TOTAL (PACKET_COMPLETE_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
-
         struct packet_struct_cancel
         {
             PACKET_NODE_ID_TYPE node_id;
             PACKET_TX_ID_TYPE tx_id;
         };
-
-        #define PACKET_CANCEL_OFFSET_NODE_ID 0
-        #define PACKET_CANCEL_OFFSET_TX_ID (PACKET_CANCEL_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-        #define PACKET_CANCEL_OFFSET_TOTAL (PACKET_CANCEL_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
 
         struct packet_struct_raw
         {
@@ -264,10 +182,6 @@ namespace Cosmos {
         int32_t get_file_size(const char* filename);
 
         // Converts packet types to and from byte arrays
-        void serialize_command(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string command);
-        void deserialize_command(const vector<PACKET_BYTE>& pdata, packet_struct_command& command);
-        void serialize_message(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string message);
-        void deserialize_message(const vector<PACKET_BYTE>& pdata, packet_struct_message& message);
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue);
         void deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue);
         void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);

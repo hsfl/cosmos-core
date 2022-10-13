@@ -1358,46 +1358,6 @@ namespace Cosmos {
             // Respond appropriately according to type of packet
             switch (packet.header.type)
             {
-            case PacketComm::TypeId::DataFileCommand:
-                {
-                    packet_struct_command command;
-
-                    deserialize_command(packet.data, command);
-
-                    string node_name = NodeData::lookup_node_id_name(command.node_id);
-
-                    if (node_name.empty())
-                    {
-                        iretn = TRANSFER_ERROR_NODE;
-                        break;
-                    }
-
-                    FILE *fp = data_open((get_cosmosnodes() + "/" + node_name + "/incoming/exec/file.command").c_str(), "w");
-                    if (fp)
-                    {
-                        fwrite(&command.bytes[0], 1, command.length, fp);
-                        fclose(fp);
-                    }
-                }
-                break;
-            case PacketComm::TypeId::DataFileMessage:
-                {
-                    packet_struct_message message;
-
-                    deserialize_message(packet.data, message);
-
-                    string imessage;
-                    imessage.resize(message.length);
-                    memcpy(&imessage[0], message.bytes, message.length);
-                    string node_name = NodeData::lookup_node_id_name(message.node_id);
-                    if (node_name.empty())
-                    {
-                        iretn = TRANSFER_ERROR_NODE;
-                        break;
-                    }
-                    log_write(node_name, "file", tet.split(), "", "message", imessage, "incoming");
-                }
-                break;
             case PacketComm::TypeId::DataFileQueue:
                 {
                     packet_struct_queue queue;
@@ -1574,7 +1534,7 @@ namespace Cosmos {
                         else
                         {
                             fseek(txq[orig_node_idx].incoming.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
-                            fwrite(data.chunk, data.byte_count, 1, txq[orig_node_idx].incoming.progress[tx_id].fp);
+                            fwrite(data.chunk.data(), data.byte_count, 1, txq[orig_node_idx].incoming.progress[tx_id].fp);
                             fflush(txq[orig_node_idx].incoming.progress[tx_id].fp);
                             // Write latest meta data to disk
                             write_meta(txq[orig_node_idx].incoming.progress[tx_id]);
@@ -1705,7 +1665,7 @@ namespace Cosmos {
 
                 uint16_t crc;
                 CRC16 calc_crc;
-                file_name.write((char *)&packet.data[0], PACKET_METALONG_OFFSET_TOTAL);
+                file_name.write((char *)&packet.data[0], sizeof(packet_struct_metalong));
                 crc = calc_crc.calc(packet.data);
                 file_name.write((char *)&crc, 2);
                 for (file_progress progress_info : tx.file_info)
@@ -1724,7 +1684,7 @@ namespace Cosmos {
         //! \return 0 on success, negative on error
         int32_t Transfer::read_meta(tx_progress& tx)
         {
-            vector<PACKET_BYTE> packet(PACKET_METALONG_OFFSET_TOTAL,0);
+            vector<PACKET_BYTE> packet(sizeof(packet_struct_metalong),0);
             std::ifstream file_name;
             packet_struct_metalong meta;
 
@@ -1749,7 +1709,7 @@ namespace Cosmos {
 
             // load metadata
 
-            file_name.read((char *)&packet[0], PACKET_METALONG_OFFSET_TOTAL);
+            file_name.read((char *)&packet[0], sizeof(packet_struct_metalong));
             if (file_name.eof())
             {
                 return DATA_ERROR_SIZE_MISMATCH;
@@ -1761,7 +1721,7 @@ namespace Cosmos {
             {
                 return DATA_ERROR_SIZE_MISMATCH;
             }
-            if (crc != calc_crc.calc((uint8_t *)&packet[0], PACKET_METALONG_OFFSET_TOTAL))
+            if (crc != calc_crc.calc((uint8_t *)&packet[0], sizeof(packet_struct_metalong)))
             {
                 file_name.close();
                 return DATA_ERROR_CRC;
@@ -2066,10 +2026,6 @@ PACKET_CHUNK_SIZE_TYPE Transfer::get_packet_size()
 //! Sets the size of the packet to stuff. Should be set to the size of packet the channel supports that file packets will be sent out on.
 int32_t Transfer::set_packet_size(const PACKET_CHUNK_SIZE_TYPE size)
 {
-    if (size > PACKET_MAX_LENGTH)
-    {
-        return COSMOS_GENERAL_ERROR_OVERSIZE;
-    }
     packet_size = size;
     return 0;
 }
