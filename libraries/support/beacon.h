@@ -53,6 +53,7 @@ namespace Cosmos {
                 EPSBCREGBeaconL = 130,
                 EPSSWCHBeaconL = 131,
                 EPSBATTBeaconL = 133,
+                EPSSUMBeaconL = 134,
                 ADCSMTRBeaconL = 140,
                 ADCSRWBeaconL = 141,
                 ADCSIMUBeaconL = 142,
@@ -85,6 +86,7 @@ namespace Cosmos {
                 {TypeId::EPSBCREGBeaconL, "EPSBCREGBeaconL"},
                 {TypeId::EPSSWCHBeaconL, "EPSSWCHBeaconL"},
                 {TypeId::EPSBATTBeaconL, "EPSBATTBeaconL"},
+                {TypeId::EPSSUMBeaconL, "EPSSUMBeaconL"},
                 {TypeId::ADCSMTRBeaconL, "ADCSMTRBeaconL"},
                 {TypeId::ADCSRWBeaconL, "ADCSRWBeaconL"},
                 {TypeId::ADCSGPSBeaconL, "ADCSGPSBeaconL"},
@@ -296,6 +298,10 @@ namespace Cosmos {
             {
                 int16_t mvolt = 0.;
                 int16_t mamp = 0.;
+                int16_t mpptin_mvolt = 0.;
+                int16_t mpptin_mamp = 0.;
+                int16_t mpptout_mvolt = 0.;
+                int16_t mpptout_mamp = 0.;
             } ;
 
             static constexpr uint8_t epsbcreg_count = 180 / sizeof(epsbcreg_beacon);

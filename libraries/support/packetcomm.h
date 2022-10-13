@@ -88,6 +88,7 @@ namespace Cosmos {
                 CommandEpsSetTime = 166,
                 CommandEpsMinimumPower = 167,
                 CommandEpsSwitchNames = 168,
+                CommandEpsSwitchStatus = 169,
                 CommandExecLoadCommand = 170,
                 CommandExecAddCommand = 171,
                 };
@@ -140,6 +141,7 @@ namespace Cosmos {
                 {TypeId::CommandEpsSetTime, "EpsSetTime"},
                 {TypeId::CommandEpsMinimumPower, "EpsMinimumPower"},
                 {TypeId::CommandEpsSwitchNames, "EpsSwitchNames"},
+                {TypeId::CommandEpsSwitchStatus, "EpsSwitchStatus"},
                 {TypeId::CommandExecLoadCommand, "ExecLoadCommand"},
                 {TypeId::CommandExecAddCommand, "ExecAddCommand"},
             };
@@ -191,6 +193,7 @@ namespace Cosmos {
                 {"EpsSetTime", TypeId::CommandEpsSetTime},
                 {"EpsMinimumPower", TypeId::CommandEpsMinimumPower},
                 {"EpsSwitchNames", TypeId::CommandEpsSwitchNames},
+                {"EpsSwitchStatus", TypeId::CommandEpsSwitchStatus},
                 {"AdcsCommunicate", TypeId::CommandAdcsCommunicate},
                 {"AdcsState", TypeId::CommandAdcsState},
                 {"AdcsSetRunMode", TypeId::CommandAdcsSetRunMode},

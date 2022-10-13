@@ -2714,15 +2714,11 @@ union as a ::devicestruc.
             }
         };
 
-        //! Inertial Measurement Unit (IMU) structure
+        //! Magnetometer structure
         struct magstruc : public devicestruc
         {
             //! alignment quaternion
             quaternion align;
-            //! Attitude rate vector
-            rvector omega;
-            //! Attitude acceleration vector
-            rvector alpha;
             //! Magnetic field in sensor frame
             rvector mag;
             //! Magnetic field rate change in sensor frame
@@ -2735,8 +2731,6 @@ union as a ::devicestruc.
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "align" , align },
-                    { "omega" , omega },
-                    { "alpha" , alpha },
                     { "mag"   , mag },
                     { "bdot"  , bdot }
                 };
@@ -2752,8 +2746,6 @@ union as a ::devicestruc.
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
                     if(!parsed["align"].is_null()) { align.from_json(parsed["align"].dump()); }
-                    if(!parsed["omega"].is_null()) { omega.from_json(parsed["omega"].dump()); }
-                    if(!parsed["alpha"].is_null()) { alpha.from_json(parsed["alpha"].dump()); }
                     if(!parsed["mag"].is_null()) { mag.from_json(parsed["mag"].dump()); }
                     if(!parsed["bdot"].is_null()) { bdot.from_json(parsed["bdot"].dump()); }
                 } else {
@@ -4134,19 +4126,49 @@ union as a ::devicestruc.
 */
         struct bcregstruc : public devicestruc
         {
+            //! MPPT Input Voltage
+            float mpptin_volt;
+            //! MPPT Input Current
+            float mpptin_amp;
+            //! MPPT Output Voltage
+            float mpptout_volt;
+            //! MPPT Output Current
+            float mpptout_amp;
+
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
         @return	A json11 JSON object containing every member variable within the class
     */
 
-            json11::Json to_json() const { return json11::Json::object {}; }
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "mpptin_volt", mpptin_volt },
+                    { "mpptin_amp", mpptin_amp },
+                    { "mpptout_volt", mpptout_volt },
+                    { "mpptout_amp", mpptout_amp }
+                };
+            }
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
         @param	s	JSON-formatted string to set class contents to
         @return n/a
     */
-            void from_json(const string& s) {};
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["mpptin_volt"].is_null()) { mpptin_volt = parsed["mpptin_volt"].number_value(); }
+                    if(!parsed["mpptin_amp"].is_null()) { mpptin_amp = parsed["mpptin_amp"].number_value(); }
+                    if(!parsed["mpptout_volt"].is_null()) { mpptout_volt = parsed["mpptout_volt"].number_value(); }
+                    if(!parsed["mpptout_amp"].is_null()) { mpptout_amp = parsed["mpptout_amp"].number_value(); }
+                }
+                else
+                {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
         };
 
         // End of Device Specific structures
@@ -7887,6 +7909,10 @@ union as a ::devicestruc.
                     case DeviceType::BCREG:
                         basename = "devspec.bcreg[" + std::to_string(didx) + "]";
                         add_name(basename+"", &devspec.bcreg[didx], "bcregstruc");
+                        add_name(basename+".mpptin_volt", &devspec.bcreg[didx].mpptin_volt, "float");
+                        add_name(basename+".mpptin_amp", &devspec.bcreg[didx].mpptin_amp, "float");
+                        add_name(basename+".mpptout_volt", &devspec.bcreg[didx].mpptout_volt, "float");
+                        add_name(basename+".mpptout_amp", &devspec.bcreg[didx].mpptout_amp, "float");
                         break;
                     case DeviceType::BUS:
                         basename = "devspec.bus[" + std::to_string(didx) + "]";
@@ -8047,18 +8073,18 @@ union as a ::devicestruc.
                         add_name(basename+".align.d.y", &devspec.mag[didx].align.d.y, "double");
                         add_name(basename+".align.d.z", &devspec.mag[didx].align.d.z, "double");
                         add_name(basename+".align.w", &devspec.mag[didx].align.w, "double");
-                        add_name(basename+".omega", &devspec.mag[didx].omega, "rvector");
-                        add_name(basename+".omega.col", &devspec.mag[didx].omega.col, "double[]");
-                        for(size_t j = 0; j < sizeof(devspec.mag[didx].omega.col)/sizeof(devspec.mag[didx].omega.col[0]); ++j) {
-                            string rebasename = basename + "mag.omega.col[" + std::to_string(j) + "]";
-                            add_name(rebasename, &devspec.mag[didx].omega.col[j], "double");
-                        }
-                        add_name(basename+".alpha", &devspec.mag[didx].alpha, "rvector");
-                        add_name(basename+".alpha.col", &devspec.mag[didx].alpha.col, "double[]");
-                        for(size_t j = 0; j < sizeof(devspec.mag[didx].alpha.col)/sizeof(devspec.mag[didx].alpha.col[0]); ++j) {
-                            string rebasename = basename + "mag.alpha.col[" + std::to_string(j) + "]";
-                            add_name(rebasename, &devspec.mag[didx].alpha.col[j], "double");
-                        }
+//                        add_name(basename+".omega", &devspec.mag[didx].omega, "rvector");
+//                        add_name(basename+".omega.col", &devspec.mag[didx].omega.col, "double[]");
+//                        for(size_t j = 0; j < sizeof(devspec.mag[didx].omega.col)/sizeof(devspec.mag[didx].omega.col[0]); ++j) {
+//                            string rebasename = basename + "mag.omega.col[" + std::to_string(j) + "]";
+//                            add_name(rebasename, &devspec.mag[didx].omega.col[j], "double");
+//                        }
+//                        add_name(basename+".alpha", &devspec.mag[didx].alpha, "rvector");
+//                        add_name(basename+".alpha.col", &devspec.mag[didx].alpha.col, "double[]");
+//                        for(size_t j = 0; j < sizeof(devspec.mag[didx].alpha.col)/sizeof(devspec.mag[didx].alpha.col[0]); ++j) {
+//                            string rebasename = basename + "mag.alpha.col[" + std::to_string(j) + "]";
+//                            add_name(rebasename, &devspec.mag[didx].alpha.col[j], "double");
+//                        }
                         add_name(basename+".mag", &devspec.mag[didx].mag, "rvector");
                         add_name(basename+".mag.col", &devspec.mag[didx].mag.col, "double[]");
                         for(size_t j = 0; j < sizeof(devspec.mag[didx].mag.col)/sizeof(devspec.mag[didx].mag.col[0]); ++j) {

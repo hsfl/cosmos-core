@@ -2168,6 +2168,11 @@ namespace Cosmos
                     }
                 }
                 break;
+            case PacketComm::TypeId::CommandEpsSwitchStatus:
+                {
+                    packet.data.clear();
+                }
+                break;
             case PacketComm::TypeId::CommandAdcsState:
                 {
                     uint8_t commis_step = 0;
@@ -2352,7 +2357,7 @@ namespace Cosmos
                 break;
             }
 
-            if (packet.data.size())
+//            if (packet.data.size())
             {
                 packet.Wrap();
 

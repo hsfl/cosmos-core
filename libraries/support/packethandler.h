@@ -30,7 +30,7 @@ namespace Cosmos {
             {
                 PacketComm::TypeId type;
                 //! Pointer to function to call with request vector as argument and returning any error
-                ExternalFunc efunction;
+                ExternalFunc efunction=nullptr;
             };
             FuncEntry Funcs[256];
             int32_t add_func(PacketComm::TypeId type, ExternalFunc function);

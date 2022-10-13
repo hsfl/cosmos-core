@@ -222,11 +222,31 @@ namespace Cosmos {
                     {
                         beacon.bcreg[i].mamp = cinfo->devspec.bcreg[i].amp * 1000. + .5;
                         beacon.bcreg[i].mvolt = cinfo->devspec.bcreg[i].volt * 1000. + .5;
+                        beacon.bcreg[i].mpptin_mamp = cinfo->devspec.bcreg[i].mpptin_amp * 1000. + .5;
+                        beacon.bcreg[i].mpptin_mvolt = cinfo->devspec.bcreg[i].mpptin_volt * 1000. + .5;
+                        beacon.bcreg[i].mpptout_mamp = cinfo->devspec.bcreg[i].mpptout_amp * 1000. + .5;
+                        beacon.bcreg[i].mpptout_mvolt = cinfo->devspec.bcreg[i].mpptout_volt * 1000. + .5;
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+pvcount*sizeof(epsbcreg_beacon));
                 }
                 break;
             case TypeId::EPSBATTBeaconL:
+                if (cinfo->devspec.swch.size())
+                {
+                    epsbatts_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+                    uint16_t battcount = cinfo->devspec.batt.size() < epsbatt_count?cinfo->devspec.batt.size():epsbatt_count;
+                    for (uint16_t i=0; i<battcount; ++i)
+                    {
+                        beacon.batt[i].mamp = cinfo->devspec.batt[i].amp * 1000. + .5;
+                        beacon.batt[i].mvolt = cinfo->devspec.batt[i].volt * 1000. + .5;
+                        beacon.batt[i].cpercent = cinfo->devspec.batt[i].percentage * 100. + .5;
+                        beacon.batt[i].ctemp = cinfo->devspec.batt[i].temp * 100. + .5;
+                    }
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+battcount*sizeof(epsbatt_beacon));
+                }
+                break;
+            case TypeId::EPSSUMBeaconL:
                 if (cinfo->devspec.swch.size())
                 {
                     epsbatts_beacon beacon;
@@ -401,6 +421,10 @@ namespace Cosmos {
                                 cinfo->devspec.bcreg[i].utc = mjd;
                                 cinfo->devspec.bcreg[i].volt = beacon.bcreg[i].mvolt / 1000.;
                                 cinfo->devspec.bcreg[i].amp = beacon.bcreg[i].mamp / 1000.;
+                                cinfo->devspec.bcreg[i].mpptin_volt = beacon.bcreg[i].mpptin_mvolt / 1000.;
+                                cinfo->devspec.bcreg[i].mpptin_amp = beacon.bcreg[i].mpptin_mamp / 1000.;
+                                cinfo->devspec.bcreg[i].mpptout_volt = beacon.bcreg[i].mpptout_mvolt / 1000.;
+                                cinfo->devspec.bcreg[i].mpptout_amp = beacon.bcreg[i].mpptout_mamp / 1000.;
                             }
                         }
                         break;
@@ -568,6 +592,10 @@ namespace Cosmos {
                         json_out_1d(Contents, "device_bcreg_amp", i, cinfo);
                         json_out_1d(Contents, "device_bcreg_volt", i, cinfo);
                         json_out_1d(Contents, "device_bcreg_power", i, cinfo);
+                        json_out_1d(Contents, "device_bcreg_mpptin_amp", i, cinfo);
+                        json_out_1d(Contents, "device_bcreg_mpptin_volt", i, cinfo);
+                        json_out_1d(Contents, "device_bcreg_mpptout_amp", i, cinfo);
+                        json_out_1d(Contents, "device_bcreg_mpptout_volt", i, cinfo);
                     }
                 }
                 break;
