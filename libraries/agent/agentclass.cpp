@@ -2004,7 +2004,7 @@ namespace Cosmos
                 }
                 break;
             case PacketComm::TypeId::CommandTransferRadio:
-                if (parms.size() > 0)
+                if (parms.size() > 2)
                 {
                     int32_t ch = agent->channel_number(parms[0]);
                     if (ch < 0)
@@ -2014,6 +2014,7 @@ namespace Cosmos
                     }
                     packet.data.resize(1);
                     packet.data[0] = ch;
+                    packet.data[1] = stoi(parms[1]);
                 }
                 break;
             case PacketComm::TypeId::CommandInternalRequest:

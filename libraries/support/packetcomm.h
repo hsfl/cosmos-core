@@ -239,9 +239,9 @@ namespace Cosmos {
 
             struct __attribute__ ((packed))  Header
             {
-                uint16_t data_size;
-                TypeId type;
-                uint8_t radio;
+                uint16_t data_size = 0;
+                TypeId type = TypeId::CommandPing;
+                uint8_t radio = 0;
                 NodeData::NODE_ID_TYPE orig = NodeData::NODEIDORIG;
                 NodeData::NODE_ID_TYPE dest = NodeData::NODEIDDEST;
                 // Maybe response_id here

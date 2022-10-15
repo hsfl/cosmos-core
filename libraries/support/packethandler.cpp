@@ -984,6 +984,22 @@ namespace Cosmos {
             iretn = agent->push_unwrapped(agent->channel_number(channel), packet);
             return iretn;
         }
+
+        int32_t PacketHandler::QueueCommandTransferRadio(uint8_t use_radio, bool availability, Agent* agent, NodeData::NODE_ID_TYPE orig, NodeData::NODE_ID_TYPE dest)
+        {
+            int32_t iretn = 0;
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandTransferRadio;
+            packet.header.orig = orig;
+            packet.header.dest = dest;
+            packet.header.radio = 0;
+            packet.data.resize(2);
+            packet.data[0] = use_radio;
+            packet.data[1] = availability;
+            iretn = agent->push_unwrapped(agent->channel_number("FILE"), packet);
+            return iretn;
+        }
     }
 }
 

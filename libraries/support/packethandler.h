@@ -91,7 +91,7 @@ namespace Cosmos {
             static int32_t QueueEpsWatchdog(uint16_t seconds, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueEpsSetTime(double mjd, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueEpsMinimumPower(Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
-
+            static int32_t QueueCommandTransferRadio(uint8_t use_radio, bool availability, Agent* agent, NodeData::NODE_ID_TYPE orig, NodeData::NODE_ID_TYPE dest);
         private:
             Agent* agent;
             /// Current packet id index, to index response_packets

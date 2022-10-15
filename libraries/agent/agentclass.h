@@ -429,7 +429,9 @@ namespace Cosmos
             int32_t monitor_unwrapped(uint8_t number, PacketComm& packet, string extra="");
             int32_t init_channels(uint32_t verification=0x352e);
             int32_t channel_add(string name, uint16_t datasize=200, uint16_t maximum=100);
+            //! Number of packets currently in the channel
             int32_t channel_size(string name);
+            //! Number of packets currently in the channel
             int32_t channel_size(uint8_t number);
             double channel_age(string name);
             double channel_age(uint8_t number);
@@ -445,7 +447,9 @@ namespace Cosmos
             int32_t channel_clear(uint8_t number);
             int32_t channel_number(string name);
             string channel_name(uint8_t number);
+            //! Max packet size of channel
             int32_t channel_datasize(string name);
+            //! Max packet size of channel
             int32_t channel_datasize(uint8_t number);
             int32_t channel_maximum(string name, uint16_t maximum);
             int32_t channel_maximum(uint8_t number, uint16_t maximum);
