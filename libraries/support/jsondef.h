@@ -3230,6 +3230,8 @@ union as a ::devicestruc.
             double rxutc = 0.;
             //! Connection Uptime
             double uptime = 0.;
+            //! Total bytes in
+            int32_t bytesin = 0;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -3251,7 +3253,8 @@ union as a ::devicestruc.
                     { "squelch_tone", squelch_tone },
                     { "goodratio", goodratio },
                     { "rxutc"  , rxutc },
-                    { "uptime" , uptime }
+                    { "uptime" , uptime },
+                    { "bytesin", bytesin}
                 };
             }
 
@@ -3279,6 +3282,7 @@ union as a ::devicestruc.
                     if(!parsed["goodratio"].is_null()) { goodratio = parsed["goodratio"].number_value(); }
                     if(!parsed["rxutc"].is_null()) { rxutc = parsed["rxutc"].number_value(); }
                     if(!parsed["uptime"].is_null()) { uptime = parsed["uptime"].number_value(); }
+                    if(!parsed["bytesin"].is_null()) { bytesin = parsed["bytesin"].int_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -3320,7 +3324,9 @@ union as a ::devicestruc.
             //! Last TX time
             double txutc = 0.;
             //! Connection Uptime
-            double uptime = 10.;
+            double uptime = 0.;
+            //! Total bytes out
+            int32_t bytesout = 0;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -3342,7 +3348,8 @@ union as a ::devicestruc.
                     { "squelch_tone", squelch_tone },
                     { "goodratio", goodratio },
                     { "txutc"  , txutc },
-                    { "uptime" , uptime }
+                    { "uptime" , uptime },
+                    { "bytesout", bytesout}
                 };
             }
 
@@ -3370,6 +3377,7 @@ union as a ::devicestruc.
                     if(!parsed["goodratio"].is_null()) { goodratio = parsed["goodratio"].number_value(); }
                     if(!parsed["txutc"].is_null()) { txutc = parsed["txutc"].number_value(); }
                     if(!parsed["uptime"].is_null()) { uptime = parsed["uptime"].number_value(); }
+                    if(!parsed["bytesout"].is_null()) { bytesout = parsed["bytesout"].int_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -3414,6 +3422,10 @@ union as a ::devicestruc.
             double rxutc = 0.;
             //! Connection Uptime
             double uptime = 0.;
+            //! Total bytes out
+            int32_t bytesout = 0;
+            //! Total bytes in
+            int32_t bytesin = 0;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -3436,7 +3448,9 @@ union as a ::devicestruc.
                     { "goodratio", goodratio },
                     { "txutc"  , txutc },
                     { "rxutc"  , rxutc },
-                    { "uptime" , uptime }
+                    { "uptime" , uptime },
+                    { "bytesout", bytesout},
+                    { "bytesin", bytesin}
                 };
             }
 
@@ -3465,6 +3479,8 @@ union as a ::devicestruc.
                     if(!parsed["txutc"].is_null()) { txutc = parsed["txutc"].number_value(); }
                     if(!parsed["rxutc"].is_null()) { rxutc = parsed["rxutc"].number_value(); }
                     if(!parsed["uptime"].is_null()) { uptime = parsed["uptime"].number_value(); }
+                    if(!parsed["bytesin"].is_null()) { bytesin = parsed["bytesin"].int_value(); }
+                    if(!parsed["bytesout"].is_null()) { bytesout = parsed["bytesout"].int_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -8238,6 +8254,7 @@ union as a ::devicestruc.
                         add_name(basename+".goodratio", &devspec.rxr[didx].goodratio, "double");
                         add_name(basename+".rxutc", &devspec.rxr[didx].rxutc, "double");
                         add_name(basename+".uptime", &devspec.rxr[didx].uptime, "double");
+                        add_name(basename+".bytesin", &devspec.rxr[didx].bytesin, "int32_t");
                         break;
                     case DeviceType::SSEN:
                         basename = "devspec.ssen[" + std::to_string(didx) + "]";
@@ -8334,6 +8351,7 @@ union as a ::devicestruc.
                         add_name(basename+".txutc", &devspec.tcv[didx].txutc, "double");
                         add_name(basename+".rxutc", &devspec.tcv[didx].rxutc, "double");
                         add_name(basename+".uptime", &devspec.tcv[didx].uptime, "double");
+                        add_name(basename+".bytesout", &devspec.tcv[didx].bytesout, "int32_t");
                         break;
                     case DeviceType::TELEM:
                         basename = "devspec.telem[" + std::to_string(didx) + "]";
@@ -8388,6 +8406,8 @@ union as a ::devicestruc.
                         add_name(basename+".goodratio", &devspec.txr[didx].goodratio, "double");
                         add_name(basename+".txutc", &devspec.txr[didx].txutc, "double");
                         add_name(basename+".uptime", &devspec.txr[didx].uptime, "double");
+                        add_name(basename+".bytesout", &devspec.tcv[didx].bytesout, "int32_t");
+                        add_name(basename+".bytesin", &devspec.rxr[didx].bytesin, "int32_t");
                         break;
                     case DeviceType::XYZSEN:
                         basename = "devspec.xyzsen[" + std::to_string(didx) + "]";

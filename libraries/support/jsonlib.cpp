@@ -9159,6 +9159,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_rxr_goodratio",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_rxutc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_uptime",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rxr_bytesin",didx, UINT16_MAX, cinfo, state);
         break;
         //! Radio Transmitter
     case DeviceType::TXR:
@@ -9181,6 +9182,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_txr_goodratio",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_txutc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_uptime",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_txr_bytesout",didx, UINT16_MAX, cinfo, state);
         break;
         //! Radio Transceiver
     case DeviceType::TCV:
@@ -9204,6 +9206,8 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_tcv_txutc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_rxutc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_uptime",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_tcv_bytesin",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_tcv_bytesout",didx, UINT16_MAX, cinfo, state);
         break;
         //! Photo Voltaic String
     case DeviceType::PVSTRG:
@@ -11151,6 +11155,8 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                     json_out_1d(jstring, "device_rxr_band",j, cinfo);
                     json_out_1d(jstring, "device_rxr_goodratio",j, cinfo);
                     json_out_1d(jstring, "device_rxr_rxutc",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_uptime",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_bytesin",j, cinfo);
                     continue;
                 }
 
@@ -11170,6 +11176,8 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                     json_out_1d(jstring, "device_txr_band",j, cinfo);
                     json_out_1d(jstring, "device_txr_goodratio",j, cinfo);
                     json_out_1d(jstring, "device_txr_badcnt",j, cinfo);
+                    json_out_1d(jstring, "device_txr_uptime",j, cinfo);
+                    json_out_1d(jstring, "device_txr_bytesout",j, cinfo);
                     continue;
                 }
 
@@ -11189,6 +11197,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                     json_out_1d(jstring, "device_tcv_band",j, cinfo);
                     json_out_1d(jstring, "device_tcv_goodratio",j, cinfo);
                     json_out_1d(jstring, "device_tcv_badcnt",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_uptime",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_bytesin",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_bytesout",j, cinfo);
                     continue;
                 }
 
