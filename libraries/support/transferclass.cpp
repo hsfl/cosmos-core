@@ -91,7 +91,7 @@ namespace Cosmos {
                 {
                     this->debug_error->Printf("%.4f Could not find node %s in node table!\n", calling_node_name.c_str(), tet.split());
                 }
-                return iretn;
+                return COSMOS_TRANSFER_ERROR_NODE;
             }
             self_node_id = iretn;
             self_node_name = calling_node_name;
@@ -121,9 +121,9 @@ namespace Cosmos {
             // fflush(stdout);
             // secondsleep(3.);
             // Restore in progress transfers from previous run
-            for (string node_name : data_list_nodes())
+            for (auto& transfer_node : txq)
             {
-                for(filestruc file : data_list_files(node_name, "temp", "file"))
+                for(filestruc file : data_list_files(transfer_node.node_name, "temp", "file"))
                 {
                     // Add entry for each meta file
                     if (file.type == "meta")
@@ -148,7 +148,7 @@ namespace Cosmos {
                             if (read_meta(tx_out) >= 0)
                             {
                                 merge_chunks_overlap(tx_out);
-                                iretn = outgoing_tx_add(tx_out, node_name);
+                                iretn = outgoing_tx_add(tx_out, transfer_node.node_name);
                             }
                         }
                     }
@@ -304,7 +304,7 @@ namespace Cosmos {
             {
                 if (debug_error != nullptr)
                 {
-                    debug_error->Printf("%.4f %.4f Main: get_outgoing_packets: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
+                    debug_error->Printf("%.4f %.4f Main: get_outgoing_lpackets: node_name is empty\n", tet.split(), dt.lap());
                 }
                 return TRANSFER_ERROR_FILENAME;
             }
@@ -313,6 +313,10 @@ namespace Cosmos {
             uint8_t node_id = NodeData::lookup_node_id(node_name);
             if (node_id == NodeData::NODEIDUNKNOWN)
             {
+                if (debug_error != nullptr)
+                {
+                    debug_error->Printf("%.4f %.4f Main: get_outgoing_lpackets: node_id is unknown\n", tet.split(), dt.lap());
+                }
                 return TRANSFER_ERROR_NODE;
             }
 
@@ -333,6 +337,10 @@ namespace Cosmos {
             const size_t dest_node_idx = node_id_to_txq_idx(dest_node_id);
             if (dest_node_idx == INVALID_TXQ_IDX)
             {
+                if (debug_error != nullptr)
+                {
+                    debug_error->Printf("%.4f %.4f Main: get_outgoing_lpackets: invalid dest_node_idx %u\n", tet.split(), dt.lap(), dest_node_id);
+                }
                 return TRANSFER_ERROR_NODE;
             }
 
