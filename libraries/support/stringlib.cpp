@@ -230,7 +230,7 @@ string to_hex_string(vector <uint8_t> buffer, bool ascii, uint16_t start)
     }
     for (uint16_t i=start; i<buffer.size(); ++i)
     {
-        if (ascii && (isalnum(buffer[i]) || isspace(buffer[i])))
+        if (ascii && (ispunct(buffer[i]) || isalnum(buffer[i]) || isspace(buffer[i])))
         {
             ss << buffer[i];
         }
