@@ -3898,7 +3898,7 @@ acquired.
             return 0;
         }
 
-        int32_t Agent::get_verification()
+        uint32_t Agent::get_verification()
         {
             return channels.verification;
         }
@@ -4179,7 +4179,7 @@ acquired.
             int32_t iretn = 0;
             if (channels.channel.size() == 0)
             {
-                iretn = channels.Init();
+                iretn = channels.Init(channels.verification);
                 if (iretn < 0)
                 {
                     return iretn;

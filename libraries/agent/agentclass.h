@@ -411,7 +411,7 @@ namespace Cosmos
             int32_t process_request(string &bufferin, string &bufferout);
 
             int32_t set_verification(uint32_t verification);
-            int32_t get_verification();
+            uint32_t get_verification();
             int32_t check_verification(uint32_t verification);
             int32_t push_unwrapped(string name, PacketComm &packet);
             int32_t push_unwrapped(uint8_t number, PacketComm& packet);
