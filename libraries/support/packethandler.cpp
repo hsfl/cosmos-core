@@ -592,6 +592,7 @@ namespace Cosmos {
             iretn = agent->check_verification(verification_check);
             if (iretn < 0)
             {
+                response = "Verification Failed: [" + to_hex(verification_check) + ":" + to_hex(agent->get_verification()) + "] " + cosmos_error_string(iretn);
                 return iretn;
             }
             uint16_t seconds;
@@ -859,9 +860,8 @@ namespace Cosmos {
             packet.header.orig = orig;
             packet.header.dest = dest;
             packet.header.radio = agent->channel_number(radio);
-            packet.data.resize(3);
+            packet.data.resize(2);
             uint16to(seconds, &packet.data[0], ByteOrder::LITTLEENDIAN);
-            packet.data[2] = name.size();
             packet.data.insert(packet.data.end(), name.begin(), name.end());
             iretn = agent->push_unwrapped(agent->channel_number(channel), packet);
             printf("QueueEpsSwitchName: %s %d %u\n", name.c_str(), iretn, agent->channel_size(channel));
