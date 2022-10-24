@@ -618,8 +618,10 @@ namespace Cosmos {
             iretn = agent->check_verification(verification_check);
             if (iretn < 0)
             {
+                response = "Verification Failed: [" + to_hex(verification_check) + ":" + to_hex(agent->get_verification()) + "] " + cosmos_error_string(iretn);
                 return iretn;
             }
+            response = "Rebooting";
             data_execute("reboot");
             return iretn;
         }
