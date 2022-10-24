@@ -55,4 +55,5 @@ target_link_libraries(initialize_time CosmosAgent)
 target_link_libraries(check_satnogs CosmosAgent CosmosJson CosmosTime CosmosMath)
 target_link_libraries(shift_solid_thermal CosmosTime CosmosConvert)
 target_link_libraries(i2ctalk CosmosTime CosmosDeviceI2C CosmosError)
+target_link_libraries(make_path CosmosData)
 
