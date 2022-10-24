@@ -64,7 +64,7 @@ namespace Cosmos {
             return verification;
         }
 
-        int32_t Channel::Add(string name, uint16_t datasize, uint16_t maximum)
+        int32_t Channel::Add(string name, uint16_t datasize, uint16_t rawsize, uint16_t maximum)
         {
             for (uint8_t i=0; i<channel.size(); ++i)
             {
@@ -76,6 +76,14 @@ namespace Cosmos {
             channel.resize(channel.size()+1);
             channel.back().name = name;
             channel.back().datasize = datasize;
+            if (rawsize)
+            {
+                channel.back().rawsize = rawsize;
+            }
+            else
+            {
+                channel.back().rawsize = datasize;
+            }
             channel.back().maximum = maximum;
             channel.back().mtx = new mutex;
             return channel.size() - 1;

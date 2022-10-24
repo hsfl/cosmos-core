@@ -4174,7 +4174,7 @@ acquired.
             return 0;
         }
 
-        int32_t Agent::channel_add(string name, uint16_t datasize, uint16_t maximum)
+        int32_t Agent::channel_add(string name, uint16_t datasize, uint16_t rawsize, uint16_t maximum)
         {
             int32_t iretn = 0;
             if (channels.channel.size() == 0)
@@ -4185,7 +4185,7 @@ acquired.
                     return iretn;
                 }
             }
-            return channels.Add(name, datasize, maximum);
+            return channels.Add(name, datasize, rawsize, maximum);
         }
 
         int32_t Agent::channel_size(string name)
@@ -4317,6 +4317,25 @@ acquired.
                 return GENERAL_ERROR_OUTOFRANGE;
             }
             return channels.channel[number].datasize;
+        }
+
+        int32_t Agent::channel_rawsize(string name)
+        {
+            int32_t iretn = channel_number(name);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            return channels.channel[iretn].rawsize;
+        }
+
+        int32_t Agent::channel_rawsize(uint8_t number)
+        {
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            return channels.channel[number].rawsize;
         }
 
         int32_t Agent::channel_maximum(string name, uint16_t maximum)
