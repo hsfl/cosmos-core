@@ -3227,7 +3227,7 @@ union as a ::devicestruc.
             //! Good Packet Percentage
             double goodratio = 0.;
             //! Last RX time
-            double rxutc = 0.;
+            double utcin = 0.;
             //! Connection Uptime
             double uptime = 0.;
             //! Total bytes in
@@ -3252,7 +3252,7 @@ union as a ::devicestruc.
                     { "band"	 , band },
                     { "squelch_tone", squelch_tone },
                     { "goodratio", goodratio },
-                    { "rxutc"  , rxutc },
+                    { "utcin"  , utcin },
                     { "uptime" , uptime },
                     { "bytesin", bytesin}
                 };
@@ -3280,7 +3280,7 @@ union as a ::devicestruc.
                     if(!parsed["band"].is_null()) { band = parsed["band"].number_value(); }
                     if(!parsed["squelch_tone"].is_null()) { squelch_tone = parsed["squelch_tone"].number_value(); }
                     if(!parsed["goodratio"].is_null()) { goodratio = parsed["goodratio"].number_value(); }
-                    if(!parsed["rxutc"].is_null()) { rxutc = parsed["rxutc"].number_value(); }
+                    if(!parsed["utcin"].is_null()) { utcin = parsed["utcin"].number_value(); }
                     if(!parsed["uptime"].is_null()) { uptime = parsed["uptime"].number_value(); }
                     if(!parsed["bytesin"].is_null()) { bytesin = parsed["bytesin"].int_value(); }
                 } else {
@@ -3322,7 +3322,7 @@ union as a ::devicestruc.
             //! Good Packet Percentage
             double  goodratio = 0.;
             //! Last TX time
-            double txutc = 0.;
+            double utcout = 0.;
             //! Connection Uptime
             double uptime = 0.;
             //! Total bytes out
@@ -3347,7 +3347,7 @@ union as a ::devicestruc.
                     { "band"	 , band },
                     { "squelch_tone", squelch_tone },
                     { "goodratio", goodratio },
-                    { "txutc"  , txutc },
+                    { "utcout"  , utcout },
                     { "uptime" , uptime },
                     { "bytesout", bytesout}
                 };
@@ -3375,7 +3375,7 @@ union as a ::devicestruc.
                     if(!parsed["band"].is_null()) { band = parsed["band"].number_value(); }
                     if(!parsed["squelch_tone"].is_null()) { squelch_tone = parsed["squelch_tone"].number_value(); }
                     if(!parsed["goodratio"].is_null()) { goodratio = parsed["goodratio"].number_value(); }
-                    if(!parsed["txutc"].is_null()) { txutc = parsed["txutc"].number_value(); }
+                    if(!parsed["utcout"].is_null()) { utcout = parsed["utcout"].number_value(); }
                     if(!parsed["uptime"].is_null()) { uptime = parsed["uptime"].number_value(); }
                     if(!parsed["bytesout"].is_null()) { bytesout = parsed["bytesout"].int_value(); }
                 } else {
@@ -3417,9 +3417,9 @@ union as a ::devicestruc.
             //! Good Packet Percentage
             double  goodratio = 0.;
             //! Last TX time
-            double txutc = 0.;
+            double utcout = 0.;
             //! Last RX time
-            double rxutc = 0.;
+            double utcin = 0.;
             //! Connection Uptime
             double uptime = 0.;
             //! Total bytes out
@@ -3446,8 +3446,8 @@ union as a ::devicestruc.
                     { "band"	 , band },
                     { "squelch_tone", squelch_tone },
                     { "goodratio", goodratio },
-                    { "txutc"  , txutc },
-                    { "rxutc"  , rxutc },
+                    { "utcout"  , utcout },
+                    { "utcin"  , utcin },
                     { "uptime" , uptime },
                     { "bytesout", bytesout},
                     { "bytesin", bytesin}
@@ -3476,8 +3476,8 @@ union as a ::devicestruc.
                     if(!parsed["band"].is_null()) { band = parsed["band"].number_value(); }
                     if(!parsed["squelch_tone"].is_null()) { squelch_tone = parsed["squelch_tone"].number_value(); }
                     if(!parsed["goodratio"].is_null()) { goodratio = parsed["goodratio"].number_value(); }
-                    if(!parsed["txutc"].is_null()) { txutc = parsed["txutc"].number_value(); }
-                    if(!parsed["rxutc"].is_null()) { rxutc = parsed["rxutc"].number_value(); }
+                    if(!parsed["utcout"].is_null()) { utcout = parsed["utcout"].number_value(); }
+                    if(!parsed["utcin"].is_null()) { utcin = parsed["utcin"].number_value(); }
                     if(!parsed["uptime"].is_null()) { uptime = parsed["uptime"].number_value(); }
                     if(!parsed["bytesin"].is_null()) { bytesin = parsed["bytesin"].int_value(); }
                     if(!parsed["bytesout"].is_null()) { bytesout = parsed["bytesout"].int_value(); }
@@ -8252,7 +8252,7 @@ union as a ::devicestruc.
                         add_name(basename+".band", &devspec.rxr[didx].band, "float");
                         add_name(basename+".squelch_tone", &devspec.rxr[didx].squelch_tone, "float");
                         add_name(basename+".goodratio", &devspec.rxr[didx].goodratio, "double");
-                        add_name(basename+".rxutc", &devspec.rxr[didx].rxutc, "double");
+                        add_name(basename+".utcin", &devspec.rxr[didx].utcin, "double");
                         add_name(basename+".uptime", &devspec.rxr[didx].uptime, "double");
                         add_name(basename+".bytesin", &devspec.rxr[didx].bytesin, "int32_t");
                         break;
@@ -8348,8 +8348,8 @@ union as a ::devicestruc.
                         add_name(basename+".band", &devspec.tcv[didx].band, "float");
                         add_name(basename+".squelch_tone", &devspec.tcv[didx].squelch_tone, "float");
                         add_name(basename+".goodratio", &devspec.tcv[didx].goodratio, "double");
-                        add_name(basename+".txutc", &devspec.tcv[didx].txutc, "double");
-                        add_name(basename+".rxutc", &devspec.tcv[didx].rxutc, "double");
+                        add_name(basename+".utcout", &devspec.tcv[didx].utcout, "double");
+                        add_name(basename+".utcin", &devspec.tcv[didx].utcin, "double");
                         add_name(basename+".uptime", &devspec.tcv[didx].uptime, "double");
                         add_name(basename+".bytesout", &devspec.tcv[didx].bytesout, "int32_t");
                         break;
@@ -8404,7 +8404,7 @@ union as a ::devicestruc.
                         add_name(basename+".band", &devspec.txr[didx].band, "float");
                         add_name(basename+".squelch_tone", &devspec.txr[didx].squelch_tone, "float");
                         add_name(basename+".goodratio", &devspec.txr[didx].goodratio, "double");
-                        add_name(basename+".txutc", &devspec.txr[didx].txutc, "double");
+                        add_name(basename+".utcout", &devspec.txr[didx].utcout, "double");
                         add_name(basename+".uptime", &devspec.txr[didx].uptime, "double");
                         add_name(basename+".bytesout", &devspec.tcv[didx].bytesout, "int32_t");
                         add_name(basename+".bytesin", &devspec.rxr[didx].bytesin, "int32_t");

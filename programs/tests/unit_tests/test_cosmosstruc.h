@@ -1195,7 +1195,7 @@ TEST(cosmosstruc, add_default_names) {
         EXPECT_EQ(c->get_pointer<float>("devspec.rxr[" + std::to_string(i) + "].band"), &c->devspec.rxr[i].band);
         EXPECT_EQ(c->get_pointer<float>("devspec.rxr[" + std::to_string(i) + "].squelch_tone"), &c->devspec.rxr[i].squelch_tone);
         EXPECT_EQ(c->get_pointer<double>("devspec.rxr[" + std::to_string(i) + "].goodratio"), &c->devspec.rxr[i].goodratio);
-        EXPECT_EQ(c->get_pointer<double>("devspec.rxr[" + std::to_string(i) + "].rxutc"), &c->devspec.rxr[i].rxutc);
+        EXPECT_EQ(c->get_pointer<double>("devspec.rxr[" + std::to_string(i) + "].utcin"), &c->devspec.rxr[i].utcin);
         EXPECT_EQ(c->get_pointer<double>("devspec.rxr[" + std::to_string(i) + "].uptime"), &c->devspec.rxr[i].uptime);
     }
     for(size_t i = 0; i < c->devspec.ssen.capacity(); ++i) {
@@ -1280,8 +1280,8 @@ TEST(cosmosstruc, add_default_names) {
         EXPECT_EQ(c->get_pointer<float>("devspec.tcv[" + std::to_string(i) + "].band"), &c->devspec.tcv[i].band);
         EXPECT_EQ(c->get_pointer<float>("devspec.tcv[" + std::to_string(i) + "].squelch_tone"), &c->devspec.tcv[i].squelch_tone);
         EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].goodratio"), &c->devspec.tcv[i].goodratio);
-        EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].txutc"), &c->devspec.tcv[i].txutc);
-        EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].rxutc"), &c->devspec.tcv[i].rxutc);
+        EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].utcout"), &c->devspec.tcv[i].utcout);
+        EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].utcin"), &c->devspec.tcv[i].utcin);
         EXPECT_EQ(c->get_pointer<double>("devspec.tcv[" + std::to_string(i) + "].uptime"), &c->devspec.tcv[i].uptime);
     }
     for(size_t i = 0; i < c->devspec.telem.capacity(); ++i) {
@@ -1328,7 +1328,7 @@ TEST(cosmosstruc, add_default_names) {
         EXPECT_EQ(c->get_pointer<float>("devspec.txr[" + std::to_string(i) + "].band"), &c->devspec.txr[i].band);
         EXPECT_EQ(c->get_pointer<float>("devspec.txr[" + std::to_string(i) + "].squelch_tone"), &c->devspec.txr[i].squelch_tone);
         EXPECT_EQ(c->get_pointer<double>("devspec.txr[" + std::to_string(i) + "].goodratio"), &c->devspec.txr[i].goodratio);
-        EXPECT_EQ(c->get_pointer<double>("devspec.txr[" + std::to_string(i) + "].txutc"), &c->devspec.txr[i].txutc);
+        EXPECT_EQ(c->get_pointer<double>("devspec.txr[" + std::to_string(i) + "].utcout"), &c->devspec.txr[i].utcout);
         EXPECT_EQ(c->get_pointer<double>("devspec.txr[" + std::to_string(i) + "].uptime"), &c->devspec.txr[i].uptime);
 	}
 

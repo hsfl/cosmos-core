@@ -8690,7 +8690,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             json_addentry("device_rxr_powerout",didx, UINT16_MAX, (uint8_t *)&device->powerout, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_rxr_band",didx, UINT16_MAX, (uint8_t *)&device->band, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_rxr_goodratio",didx, UINT16_MAX, (uint8_t *)&device->goodratio, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
-            json_addentry("device_rxr_rxutc",didx, UINT16_MAX, (uint8_t *)&device->rxutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+            json_addentry("device_rxr_utcin",didx, UINT16_MAX, (uint8_t *)&device->utcin, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
             json_addentry("device_rxr_uptime",didx, UINT16_MAX, (uint8_t *)&device->uptime, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
             break;
         }
@@ -8791,8 +8791,8 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             json_addentry("device_tcv_maxpower",didx, UINT16_MAX, (uint8_t *)&device->maxpower, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_tcv_band",didx, UINT16_MAX, (uint8_t *)&device->band, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_tcv_goodratio",didx, UINT16_MAX, (uint8_t *)&device->goodratio, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
-            json_addentry("device_tcv_txutc",didx, UINT16_MAX, (uint8_t *)&device->txutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
-            json_addentry("device_tcv_rxutc",didx, UINT16_MAX, (uint8_t *)&device->rxutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+            json_addentry("device_tcv_utcout",didx, UINT16_MAX, (uint8_t *)&device->utcout, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+            json_addentry("device_tcv_utcin",didx, UINT16_MAX, (uint8_t *)&device->utcin, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
             json_addentry("device_tcv_uptime",didx, UINT16_MAX, (uint8_t *)&device->uptime, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
             break;
         }
@@ -8867,7 +8867,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             json_addentry("device_txr_powerout",didx, UINT16_MAX, (uint8_t *)&device->powerout, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_txr_maxpower",didx, UINT16_MAX, (uint8_t *)&device->maxpower, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_txr_goodratio",didx, UINT16_MAX, (uint8_t *)&device->goodratio, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
-            json_addentry("device_txr_txutc",didx, UINT16_MAX, (uint8_t *)&device->txutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+            json_addentry("device_txr_utcout",didx, UINT16_MAX, (uint8_t *)&device->utcout, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
             json_addentry("device_txr_uptime",didx, UINT16_MAX, (uint8_t *)&device->uptime, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
             break;
         }
@@ -9157,7 +9157,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_rxr_maxpower",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_band",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_goodratio",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_rxr_rxutc",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rxr_utcin",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_uptime",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_bytesin",didx, UINT16_MAX, cinfo, state);
         break;
@@ -9180,7 +9180,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_txr_maxpower",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_band",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_goodratio",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_txr_txutc",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_txr_utcout",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_uptime",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_bytesout",didx, UINT16_MAX, cinfo, state);
         break;
@@ -9203,8 +9203,8 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_tcv_maxpower",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_band",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_goodratio",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_tcv_txutc",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_tcv_rxutc",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_tcv_utcout",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_tcv_utcin",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_uptime",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_bytesin",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_bytesout",didx, UINT16_MAX, cinfo, state);
@@ -11154,7 +11154,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                     json_out_1d(jstring, "device_rxr_maxpower",j, cinfo);
                     json_out_1d(jstring, "device_rxr_band",j, cinfo);
                     json_out_1d(jstring, "device_rxr_goodratio",j, cinfo);
-                    json_out_1d(jstring, "device_rxr_rxutc",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_utcin",j, cinfo);
                     json_out_1d(jstring, "device_rxr_uptime",j, cinfo);
                     json_out_1d(jstring, "device_rxr_bytesin",j, cinfo);
                     continue;
