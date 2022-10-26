@@ -29,6 +29,24 @@ namespace Cosmos {
             this->type = type;
             switch (type)
             {
+            case TypeId::ADCSORBITBeaconS:
+                if (cinfo->tle.size())
+                {
+                    adcsorbit_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+
+                    beacon.i = cinfo->tle[0].i;
+                    beacon.e = cinfo->tle[0].e;
+                    beacon.raan = cinfo->tle[0].raan;
+                    beacon.ap = cinfo->tle[0].ap;
+                    beacon.bstar = cinfo->tle[0].bstar;
+                    beacon.mm = cinfo->tle[0].mm;
+                    beacon.ma = cinfo->tle[0].ma;
+                    //beacon.epoch = cinfo->tle[0].epoch;
+
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+                }
+                break;
             case TypeId::ADCSEXTRABeaconS:
                 if (cinfo->devspec.mag.size())
                 {
@@ -301,6 +319,27 @@ namespace Cosmos {
                 {
                     switch (type)
                     {
+                    case TypeId::ADCSORBITBeaconS:
+                        {
+                            adcsorbit_beacon beacon;
+                            if (data.size() <= sizeof(beacon)) {
+                                memcpy(&beacon, data.data(), data.size());
+                            } else {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            cinfo->tle[0].utc = mjd;
+
+                            cinfo->tle[0].i = beacon.i;
+                            cinfo->tle[0].e = beacon.e;
+                            cinfo->tle[0].raan = beacon.raan;
+                            cinfo->tle[0].ap = beacon.ap;
+                            cinfo->tle[0].bstar = beacon.bstar;
+                            cinfo->tle[0].mm = beacon.mm;
+                            cinfo->tle[0].ma = beacon.ma;
+                            //cinfo->tle[0].epoch = beacon.epoch;
+                        }
+                        break;
                     case TypeId::ADCSEXTRABeaconS:
                         {
                             adcsextra_beacon beacon;
@@ -477,6 +516,22 @@ namespace Cosmos {
             Contents.clear();
             switch (type)
             {
+            case TypeId::ADCSORBITBeaconS:
+                {
+                    cinfo->node.deci = decisec2mjd(cinfo->tle[0].utc);
+                    json_out(Contents, "tle_deci", cinfo);
+
+                    json_out_1d(Contents, "tle_utc", 0, cinfo);
+                    json_out_1d(Contents, "tle_i", 0, cinfo);
+                    json_out_1d(Contents, "tle_e", 0, cinfo);
+                    json_out_1d(Contents, "tle_raan", 0, cinfo);
+                    json_out_1d(Contents, "tle_ap", 0, cinfo);
+                    json_out_1d(Contents, "tle_bstar", 0, cinfo);
+                    json_out_1d(Contents, "tle_mm", 0, cinfo);
+                    json_out_1d(Contents, "tle_ma", 0, cinfo);
+                    //json_out_1d(Contents, "tle_epoch", 0, cinfo);
+                }
+                break;
             case TypeId::ADCSEXTRABeaconS:
                 {
                     //json_out_1d(Contents, "device_mag_utc", 0, cinfo);
