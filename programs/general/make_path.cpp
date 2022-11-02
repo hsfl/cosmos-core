@@ -12,24 +12,24 @@ int main(int argc, char *argv[])
 
     if (argc == 2 && argv[1][0] == '-')
     {
-        printf("Usage: make_path [ agent [ mjd [ type [ extra [ location [ node ] ] ] ] ] ]\n");
+        printf("Usage: make_path [ location [ agent [ type [ extra [ node [ mjd ] ] ] ] ] ]\n");
         exit (1);
     }
 
     switch (argc)
     {
     case 7:
-        node = argv[6];
+        mjd = atof(argv[6]);
     case 6:
-        location = argv[5];
+        node = argv[5];
     case 5:
         extra = argv[4];
     case 4:
         type = argv[3];
     case 3:
-        mjd = atof(argv[2]);
+        agent = argv[2];
     case 2:
-        agent = argv[1];
+        location = argv[1];
     default:
         break;
     }
