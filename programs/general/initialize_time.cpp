@@ -75,12 +75,12 @@ int main(int argc, char *argv[])
         {
             calstruc date;
             int32_t offset = 0;
-            fscanf(fp, "%02d%02d%02d%02d%04d%*c%02d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year, &date.second);
+            iretn = fscanf(fp, "%02d%02d%02d%02d%04d%*c%02d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year, &date.second);
             fclose(fp);
             fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_offset").c_str(), "r");
             if (fp != nullptr)
             {
-                fscanf(fp, "%d", &offset);
+                iretn = fscanf(fp, "%d", &offset);
             }
             date.second += offset;
             double delta = cal2mjd(date) -  currentmjd();
