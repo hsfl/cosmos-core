@@ -116,7 +116,7 @@ int main(int argc, char **argv)
         {
             for (size_t j=0; j<1000; ++j)
             {
-                buffer3a[i][j] = buffer1[i] * buffer2[j];
+                buffer3b[i][j] = buffer1[i] * buffer2[j];
             }
         }
         ++loopcnt;
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
         {
             for (size_t j=0; j<10000; ++j)
             {
-                buffer3a[i][j] = buffer1[i] * buffer2[j];
+                buffer3c[i][j] = buffer1[i] * buffer2[j];
             }
         }
         ++loopcnt;
