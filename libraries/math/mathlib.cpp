@@ -3449,7 +3449,7 @@ uint16_t calc_crc16(vector<uint8_t> buf, uint16_t poly, uint16_t crc, uint16_t x
 
     for (uint16_t i=0; i<buf.size(); i++)
     {
-        uint ch = buf[i];
+        uint8_t ch = buf[i];
         for (uint16_t j=0; j<8; j++)
         {
             if (lsbfirst)

@@ -83,7 +83,7 @@ namespace Cosmos {
             TimeUtils tu;
             unix_time = tu.secondsSinceEpoch() + _timezone;
 #else
-            struct timeval mytime;
+            timeval mytime;
             gettimeofday(&mytime, NULL);
             if (mytime.tv_usec > 500000)
             {
@@ -157,9 +157,9 @@ namespace Cosmos {
  * \param utc as Modified Julian Day.
  * \return Timeval structure with Unix time.
  */
-        struct timeval utc2unix(double utc)
+        timeval utc2unix(double utc)
         {
-            struct timeval unixtime;
+            timeval unixtime;
             double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
             unixtime.tv_sec = (int)unixseconds;
             unixtime.tv_usec = 1000000. * (unixseconds - unixtime.tv_sec);

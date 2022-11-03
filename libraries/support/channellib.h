@@ -14,7 +14,7 @@ namespace Cosmos {
 
             //! Storage for channels
             static constexpr uint16_t PACKETCOMM_PACKET_SIZE = 1400;
-            static constexpr uint16_t PACKETCOMM_DATA_SIZE = PACKETCOMM_PACKET_SIZE - (COSMOS_SIZEOF(PacketComm::Header)+2);
+            static constexpr uint16_t PACKETCOMM_DATA_SIZE = PACKETCOMM_PACKET_SIZE - (sizeof(PacketComm::Header)+2);
 
             struct channelstruc
             {
