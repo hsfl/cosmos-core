@@ -10,8 +10,8 @@ fi
 
 # build all targets (-B) using 4 cores (-j4)
 cd linux
-#make -j4 install 2>&1 | tee output.make
-make -B -j4 install 2>&1 | tee output.make
+make -j4 install 2>&1 | tee output.make
+#make -B -j4 install 2>&1 | tee output.make
 
 # count the errors and warnings
 NUMBER_OF_ERRORS=`grep -i error: output.make | wc -l`
