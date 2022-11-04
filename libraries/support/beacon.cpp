@@ -29,6 +29,31 @@ namespace Cosmos {
             this->type = type;
             switch (type)
             {
+            case TypeId::ADCSStateBeaconS:
+				{
+                    adcsstate_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+
+                    beacon.x_eci = cinfo->node.loc.pos.eci.s.col[0];
+                    beacon.y_eci = cinfo->node.loc.pos.eci.s.col[1];
+                    beacon.z_eci = cinfo->node.loc.pos.eci.s.col[2];
+
+                    beacon.vx_eci = cinfo->node.loc.pos.eci.v.col[0];
+                    beacon.vy_eci = cinfo->node.loc.pos.eci.v.col[1];
+                    beacon.vz_eci = cinfo->node.loc.pos.eci.v.col[2];
+
+                    beacon.att_lvlh_x = cinfo->node.loc.att.lvlh.s.d.x;
+                    beacon.att_lvlh_y = cinfo->node.loc.att.lvlh.s.d.y;
+                    beacon.att_lvlh_z = cinfo->node.loc.att.lvlh.s.d.z;
+                    beacon.att_lvlh_w = cinfo->node.loc.att.lvlh.s.w;
+
+                    beacon.att_lvlh_omega_x = cinfo->node.loc.att.lvlh.v.col[0];
+                    beacon.att_lvlh_omega_y = cinfo->node.loc.att.lvlh.v.col[1];
+                    beacon.att_lvlh_omega_z = cinfo->node.loc.att.lvlh.v.col[2];
+
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+				}
+				break;
             case TypeId::ADCSORBITBeaconS:
                 if (cinfo->tle.size())
                 {
@@ -319,6 +344,38 @@ namespace Cosmos {
                 {
                     switch (type)
                     {
+                    case TypeId::ADCSStateBeaconS:
+                        {
+                            adcsstate_beacon beacon;
+                            if (data.size() <= sizeof(beacon)) {
+                                memcpy(&beacon, data.data(), data.size());
+                            } else {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+
+                            cinfo->node.loc.pos.eci.utc = mjd;
+							// JIMNOTE: need to update pass here?
+							cinfo->node.loc.pos.eci.s.col[0] = beacon.x_eci;
+							cinfo->node.loc.pos.eci.s.col[1] = beacon.y_eci;
+							cinfo->node.loc.pos.eci.s.col[2] = beacon.z_eci;
+
+							cinfo->node.loc.pos.eci.v.col[0] = beacon.vx_eci;
+							cinfo->node.loc.pos.eci.v.col[1] = beacon.vy_eci;
+							cinfo->node.loc.pos.eci.v.col[2] = beacon.vz_eci;
+
+                            cinfo->node.loc.att.lvlh.utc = mjd;
+							// JIMNOTE: need to update pass here?
+							cinfo->node.loc.att.lvlh.s.d.x = beacon.att_lvlh_x;
+							cinfo->node.loc.att.lvlh.s.d.y = beacon.att_lvlh_y;
+							cinfo->node.loc.att.lvlh.s.d.z = beacon.att_lvlh_z;
+							cinfo->node.loc.att.lvlh.s.w =   beacon.att_lvlh_w;
+
+							cinfo->node.loc.att.lvlh.v.col[0] = beacon.att_lvlh_omega_x;
+							cinfo->node.loc.att.lvlh.v.col[1] = beacon.att_lvlh_omega_y;
+							cinfo->node.loc.att.lvlh.v.col[2] = beacon.att_lvlh_omega_z;
+                        }
+                        break;
                     case TypeId::ADCSORBITBeaconS:
                         {
                             adcsorbit_beacon beacon;
@@ -516,10 +573,32 @@ namespace Cosmos {
             Contents.clear();
             switch (type)
             {
+            case TypeId::ADCSStateBeaconS:
+				{
+					// JIMNOTE: should not this be mjd to deci?
+                    cinfo->node.deci = decisec2mjd(cinfo->node.loc.pos.eci.utc);
+
+                    json_out(Contents, "node_deci", cinfo);
+                    json_out_1d(Contents, "node_loc_pos_eci_s", 0, cinfo);
+                    json_out_1d(Contents, "node_loc_pos_eci_s", 1, cinfo);
+                    json_out_1d(Contents, "node_loc_pos_eci_s", 2, cinfo);
+
+                    json_out_1d(Contents, "node_loc_pos_eci_v", 0, cinfo);
+                    json_out_1d(Contents, "node_loc_pos_eci_v", 1, cinfo);
+                    json_out_1d(Contents, "node_loc_pos_eci_v", 2, cinfo);
+
+                    json_out(Contents, "node_loc_att_lvlh_v", cinfo);
+
+                    json_out_1d(Contents, "node_loc_att_lvlh_s", 0, cinfo);
+                    json_out_1d(Contents, "node_loc_att_lvlh_s", 1, cinfo);
+                    json_out_1d(Contents, "node_loc_att_lvlh_s", 2, cinfo);
+
+				}
+				break;
             case TypeId::ADCSORBITBeaconS:
                 {
                     cinfo->node.deci = decisec2mjd(cinfo->tle[0].utc);
-                    json_out(Contents, "tle_deci", cinfo);
+                    json_out(Contents, "node_deci", cinfo);
 
                     json_out_1d(Contents, "tle_utc", 0, cinfo);
                     json_out_1d(Contents, "tle_i", 0, cinfo);
