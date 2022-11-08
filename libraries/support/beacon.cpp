@@ -576,23 +576,13 @@ namespace Cosmos {
             case TypeId::ADCSStateBeaconS:
 				{
 					// JIMNOTE: should not this be mjd to deci?
-                    cinfo->node.deci = decisec2mjd(cinfo->node.loc.pos.eci.utc);
+                    json_out(Contents, "node_loc_pos_eci_utc", cinfo);
 
-                    json_out(Contents, "node_deci", cinfo);
-                    json_out_1d(Contents, "node_loc_pos_eci_s", 0, cinfo);
-                    json_out_1d(Contents, "node_loc_pos_eci_s", 1, cinfo);
-                    json_out_1d(Contents, "node_loc_pos_eci_s", 2, cinfo);
+                    json_out(Contents, "node_loc_pos_eci_s", cinfo);
+                    json_out(Contents, "node_loc_pos_eci_v", cinfo);
 
-                    json_out_1d(Contents, "node_loc_pos_eci_v", 0, cinfo);
-                    json_out_1d(Contents, "node_loc_pos_eci_v", 1, cinfo);
-                    json_out_1d(Contents, "node_loc_pos_eci_v", 2, cinfo);
-
+                    json_out(Contents, "node_loc_att_lvlh_s", cinfo);
                     json_out(Contents, "node_loc_att_lvlh_v", cinfo);
-
-                    json_out_1d(Contents, "node_loc_att_lvlh_s", 0, cinfo);
-                    json_out_1d(Contents, "node_loc_att_lvlh_s", 1, cinfo);
-                    json_out_1d(Contents, "node_loc_att_lvlh_s", 2, cinfo);
-
 				}
 				break;
             case TypeId::ADCSORBITBeaconS:
