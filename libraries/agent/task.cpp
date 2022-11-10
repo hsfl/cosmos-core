@@ -42,7 +42,7 @@ namespace Cosmos {
                 {
                     if ((*iter).state == 0)
                     {
-                        (*iter).result = std::async(std::launch::async, [=] { return data_task((*iter).command, (*iter).path+".out"); });
+                        (*iter).result = std::async(std::launch::async, [=] { return data_task((*iter).command, (*iter).path); });
                         (*iter).state = 1;
                     }
                     else if ((*iter).state == 1)
@@ -52,8 +52,8 @@ namespace Cosmos {
                         {
                             (*iter).iretn = (*iter).result.get();
                             (*iter).state = 2;
-                            log_move((*iter).path, data_base_path(NodeName, "outgoing", AgentName, data_name(currentmjd(), "", NodeName, AgentName)), true);
-                            (*iter).path = data_base_path(NodeName, "temp", AgentName, data_name(currentmjd(), "", NodeName, AgentName));
+                            log_move((*iter).path, data_base_path(NodeName, "outgoing", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName)), true);
+                            (*iter).path = data_base_path(NodeName, "temp", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName));
                         }
                     }
                     ++iter;
@@ -72,7 +72,7 @@ namespace Cosmos {
             tasks.back().startmjd = currentmjd();
             tasks.back().state = 0;
             tasks.back().command = command;
-            tasks.back().path = data_base_path(NodeName, "temp", AgentName, data_name(currentmjd(), "", NodeName, AgentName));
+            tasks.back().path = data_base_path(NodeName, "temp", AgentName, data_name(tasks.back().startmjd, "out", NodeName, AgentName));
             mtx.unlock();
             return tasks.size();
         }
