@@ -293,4 +293,4 @@ namespace Cosmos {
 
         }
     }
-} // end of namepsace Cosmos
+} // end of namespace Cosmos

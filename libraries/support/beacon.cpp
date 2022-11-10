@@ -382,6 +382,7 @@ namespace Cosmos {
                                 return GENERAL_ERROR_BAD_SIZE;
                             }
                             cinfo->node.utcstart = unix2utc(beacon.initialdate);
+                            printf("Beacon: utcstart %f\n", cinfo->node.utcstart);
                             double mjd = decisec2mjd(beacon.deci);
                             for (uint16_t i=0; i<(data.size()-9)/COSMOS_SIZEOF(cpu_beacon); ++i)
                             {

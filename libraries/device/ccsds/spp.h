@@ -130,5 +130,5 @@ namespace Cosmos {
         }
     }
 
-} // end of namepsace Cosmos
+} // end of namespace Cosmos
 #endif // SPP_H
