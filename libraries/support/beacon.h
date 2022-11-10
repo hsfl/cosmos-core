@@ -49,6 +49,7 @@ namespace Cosmos {
                 ADCSNadirBeaconS = 48,
                 ADCSEXTRABeaconS = 49,
                 ADCSORBITBeaconS = 50,
+				ADCSStateBeaconS = 51,
                 CPUBeaconL = 110,
                 TsenBeaconL = 120,
                 EPSBCREGBeaconL = 130,
@@ -83,6 +84,7 @@ namespace Cosmos {
                 {TypeId::ADCSNadirBeaconS, "ADCSNadirBeaconS"},
                 {TypeId::ADCSEXTRABeaconS, "ADCSEXTRABeaconS"},
                 {TypeId::ADCSORBITBeaconS, "ADCSORBITBeaconS"},
+                {TypeId::ADCSStateBeaconS, "ADCSStateBeaconS"},
                 {TypeId::CPUBeaconL, "CPUBeaconL"},
                 {TypeId::TsenBeaconL, "TsenBeaconL"},
                 {TypeId::EPSBCREGBeaconL, "EPSBCREGBeaconL"},
@@ -281,6 +283,30 @@ namespace Cosmos {
 				// where does this get stored?
                 //double epoch = 0.;
             } ;
+
+            struct __attribute__ ((packed)) adcsstate_beacon
+            {
+                uint8_t		type = 51;
+                uint32_t	deci = 0;
+
+				double x_eci;
+				double y_eci;
+				double z_eci;
+
+				double vx_eci;
+				double vy_eci;
+				double vz_eci;
+
+				double att_lvlh_x;
+				double att_lvlh_y;
+				double att_lvlh_z;
+				double att_lvlh_w;
+
+				double att_lvlh_omega_x;
+				double att_lvlh_omega_y;
+				double att_lvlh_omega_z;
+
+            };
 
             // Long Beacons
             struct __attribute__ ((packed)) cpu_beacon

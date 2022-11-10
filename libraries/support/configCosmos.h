@@ -153,7 +153,7 @@ using namespace Cosmos::Support;
 // --------------------- LINUX ------------------------------------
 // linux definition can be UNIX or __unix__ or LINUX or __linux__.
 // For GCC on Linux: __GNUC__
-#ifdef __linux__
+#if defined(__linux__) || defined(USE_LINUX_LIBRARIES)
 //! \addtogroup defs_macros More Special COSMOS macros
 //! @{
 #define COSMOS_LINUX_OS

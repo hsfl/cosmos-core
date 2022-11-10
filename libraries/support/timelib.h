@@ -150,7 +150,7 @@ namespace Cosmos {
                                         int32_t hour, int32_t minute, double second);
 
         // utc to another format
-        struct timeval utc2unix(double utc);
+        timeval utc2unix(double utc);
         double utc2unixseconds(double utc);
         double utc2gmst2000(double mjd);
         string utc2unixdate(double utc);

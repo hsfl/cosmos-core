@@ -39,6 +39,9 @@
 #include "support/timelib.h"
 #include "support/transferlib.h"
 
+// This class handles the file transfer protocol
+// A flowchart can be found at https://app.diagrams.net/#G19nJZLP2bCVitW9KCbkADq6HpnASu0Ddl
+
 namespace Cosmos {
     namespace Support {
         class Transfer {

@@ -1580,7 +1580,7 @@ namespace Cosmos {
                     if (tx_id <= 0)
                     {
                         // Trigger REQMETA sending check
-                        // Technically this line is redundant and pointless
+                        // Technically this line is redundant and pointless (update: what did I mean by this?)
                         txq[orig_node_idx].incoming.progress[reqcomplete.tx_id].sentmeta = false;
                     }
                     txq[orig_node_idx].incoming.respond.push_back(reqcomplete.tx_id);
