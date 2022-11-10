@@ -168,6 +168,8 @@ int32_t data_execute(vector<uint8_t> cmd);
 int32_t data_execute(string cmd);
 int32_t data_execute(vector<uint8_t> cmd, string& result, string shell="");
 int32_t data_execute(string cmd, string& result, string shell="");
+int32_t data_task(string cmd, string outpath, string shell="");
+int32_t data_shell(string command_line, string outpath="", string inpath="", string errpath="");
 off_t data_size(string path);
 int32_t set_cosmosroot(string name, bool create_flag=false);
 int32_t set_cosmosroot(bool create_flag=false);

@@ -2233,6 +2233,7 @@ int32_t data_execute(string cmd, string& result, string shell)
 
 
 #else
+    int32_t iretn = 0;
     FILE * stream;
     char buffer[198];
     result.clear();
@@ -2266,7 +2267,8 @@ int32_t data_execute(string cmd, string& result, string shell)
     {
         cmd.insert(0, get_cosmosroot() + "/bin/");
     }
-    else {
+    else
+    {
         return GENERAL_ERROR_UNDEFINED;
     }
 
@@ -2302,12 +2304,111 @@ int32_t data_execute(string cmd, string& result, string shell)
                 result.append(buffer);
             }
         }
-        pclose(stream);
+        if ((iretn=pclose(stream)) < 0)
+        {
+            iretn = -errno;
+        }
+    }
+    else
+    {
+        iretn = -errno;
     }
 #endif
 
-    return result.size();
+    return iretn;
+}
 
+int32_t data_task(string command, string outpath, string shell)
+{
+    string result;
+    int32_t iretn = data_execute(command, result, shell);
+    FILE* fp = fopen(outpath.c_str(), "w");
+    if (fp != nullptr)
+    {
+        fwrite(result.data(), result.size(), 1, fp);
+        fclose(fp);
+        return iretn;
+    }
+    else
+    {
+        return -errno;
+    }
+}
+
+int32_t data_shell(string command_line, string outpath, string inpath, string errpath)
+{
+    printf("Data: Shell Command=%s Out=%s Err=%s\n", command_line.c_str(), outpath.c_str(), errpath.c_str());
+    fflush(stdout);
+    int32_t iretn=0;
+    int devin, devout, deverr;
+    int prev_stdin, prev_stdout, prev_stderr;
+
+    if (command_line.empty())
+    {
+        return GENERAL_ERROR_EMPTY;
+    }
+
+    if (outpath.empty())
+    {
+        devout = dup(STDOUT_FILENO);
+    }
+    else
+    {
+        devout = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+        if (devout == -1)
+        {
+            devout = dup(STDOUT_FILENO);
+        }
+    }
+    // Redirect.
+    prev_stdout = dup(STDOUT_FILENO);
+    dup2(devout, STDOUT_FILENO);
+    close(devout);
+
+    if (inpath.empty())
+    {
+        devin = open("/dev/null", O_RDWR);
+    }
+    else
+    {
+        devin = open(inpath.c_str(), O_RDONLY, 00666);
+        if (devin == -1)
+        {
+            devin = open("/dev/null", O_RDWR);
+        }
+    }
+    prev_stdin = dup(STDIN_FILENO);
+    dup2(devin, STDIN_FILENO);
+    close(devin);
+
+    prev_stderr = dup(STDERR_FILENO);
+    if (errpath.empty())
+    {
+        deverr = devout;
+    }
+    else
+    {
+        deverr = open(errpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+        if (deverr == -1)
+        {
+            deverr = devout;
+        }
+    }
+    dup2(deverr, STDERR_FILENO);
+    close(deverr);
+
+    // Execute the command.
+    iretn = system(command_line.c_str());
+
+    // Reset standard file handles
+    dup2(prev_stdin, STDIN_FILENO);
+    dup2(prev_stdout, STDOUT_FILENO);
+    dup2(prev_stderr, STDERR_FILENO);
+    close(prev_stdin);
+    close(prev_stdout);
+    close(prev_stderr);
+
+    return iretn;
 }
 
 // Define the static member variables here
