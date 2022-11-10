@@ -6,18 +6,23 @@
 #include <string.h>
 #include <stdlib.h>
 #include "support/elapsedtime.h"
+#include "device/cpu/devicecpu.h"
 
-#define BUFSIZE 10000000
+DeviceCpu deviceCpu;
 
-double buffer1[10001];
-double buffer2[10001];
-double buffer3a[100][100];
-double buffer3b[1000][1000];
-double buffer3c[10000][10000];
+//#define BUFSIZE 10000000
+
+//double buffer1[10001];
+//double buffer2[10001];
+//double buffer3a[100][100];
+//double buffer3b[1000][1000];
+//double buffer3c[10000][10000];
+
 char *srcbuf;
 ElapsedTime et;
 unsigned long size, count;
-long start_s, start_u, diff_u, time1, time2, time3, time4, time5;
+long start_s, start_u, diff_u;
+//, time1, time2, time3, time4, time5;
 double start_t;
 long i, j, k, ii;
 int inb;
@@ -27,10 +32,20 @@ size_t loopcnt;
 
 int main(int argc, char **argv)
 {
-    speed1 = speed2 = speed3 = 0.;
-    time1 = time2 = time3 =time4 = time5 = 1000000000L;
+    double free = deviceCpu.getVirtualMemoryTotal() - deviceCpu.getVirtualMemoryUsed();
+    size_t sizec = sqrt(free) / 12;
+    size_t sizeb = sizec / 3;
+    size_t sizea = sizeb / 3;
+    size_t sized = sizec * sizec;
+    double* buffer1 = new double[sizec + 1];
+    double* buffer2 = new double[sizec + 1];
+    double* buffer3 = new double[sizec * sizec];
+    printf("Performing calculations on %lu %lu %lu %lu\n", sizea, sizeb, sizec, sized);
 
-    for (size_t i=0; i<10000; ++i)
+    speed1 = speed2 = speed3 = 0.;
+//    time1 = time2 = time3 =time4 = time5 = sized;
+
+    for (size_t i=0; i<sizec; ++i)
     {
         buffer1[i] = et.split();
         buffer2[i] = et.split();
@@ -41,15 +56,15 @@ int main(int argc, char **argv)
     et.reset();
     do
     {
-        for (size_t i=0; i<10000; ++i)
+        for (size_t i=0; i<sizec; ++i)
         {
             buffer1[i] = buffer2[i];
         }
         ++loopcnt;
     } while (et.split() < 5.);
     double dtime = et.split();
-    double dassign = dtime / (loopcnt*10000.);
-    printf("%6.3lf Massignps (%.1lf) : ",1e-6/dassign, dassign/dassign);
+    double dassign = dtime / (loopcnt*sizec);
+    printf("Assign %6.3lf Massignps (%.3lf)\n",1e-6/dassign, dassign/dassign);
     fflush(stdout);
 
     // Check speed of multiply by constant
@@ -57,15 +72,15 @@ int main(int argc, char **argv)
     et.reset();
     do
     {
-        for (size_t i=0; i<10000; ++i)
+        for (size_t i=0; i<sizec; ++i)
         {
             buffer1[i] = 1.234 * buffer2[i];
         }
         ++loopcnt;
     } while (et.split() < 5.);
     dtime = et.split();
-    double dscalar = (dtime / (loopcnt*10000.));
-    printf("%6.3lf Msflops (%.1lf) : ",1e-6/dscalar, dscalar/dassign);
+    double dscalar = (dtime / (loopcnt*sizec));
+    printf("Scalar Multiply %6.3lf Msflops (%.3lf)\n",1e-6/dscalar, dassign/dscalar);
     fflush(stdout);
 
     // Check speed of multiply by variable
@@ -73,14 +88,14 @@ int main(int argc, char **argv)
     et.reset();
     do
     {
-        for (size_t i=0; i<10000; ++i)
+        for (size_t i=0; i<sizec; ++i)
         {
             buffer1[i] = buffer1[i] * buffer2[i];
         }
         ++loopcnt;
     } while (et.split() < 5.);
-    double dvariable = (et.split() / (loopcnt*10000.));
-    printf("%6.3lf Mvflops (%.1lf) : ",1e-6/dvariable, dvariable/dassign);
+    double dvariable = (et.split() / (loopcnt*sizec));
+    printf("Variable Multiply %6.3lf Mvflops (%.3lf)\n",1e-6/dvariable, dassign/dvariable);
     fflush(stdout);
 
     // Check speed of multiply by variable, 100x100
@@ -88,23 +103,24 @@ int main(int argc, char **argv)
     et.reset();
     do
     {
-        for (size_t i=0; i<100; ++i)
+        size_t k = 0;
+        for (size_t i=0; i<sizea; ++i)
         {
-            for (size_t j=0; j<100; ++j)
+            for (size_t j=0; j<sizea; ++j)
             {
-                buffer3a[i][j] = buffer1[i] * buffer2[j];
+                buffer3[k++] = buffer1[i] * buffer2[j];
             }
         }
         ++loopcnt;
     } while (et.split() < 5.);
-    double dvariable100 = (et.split() / (loopcnt*10000.));
-    printf("%6.3lf Mv100flops (%.1lf) : ",1e-6/dvariable100, dvariable100/dassign);
+    double dvariablesizea = (et.split() / (loopcnt*sizea*sizea));
+    printf("Small Array Multiply %6.3lf Mvsizeaflops (%.3lf)\n",1e-6/dvariablesizea, dassign/dvariablesizea);
     fflush(stdout);
 
 
-    // Check speed of multiply by variable, 1000x1000
+    // Check speed of multiply by variable, sizebxsizeb
     loopcnt = 0;
-    for (size_t i=0; i<10000; ++i)
+    for (size_t i=0; i<sizec; ++i)
     {
         buffer1[i] = et.split();
         buffer2[i] = et.split();
@@ -112,22 +128,23 @@ int main(int argc, char **argv)
     et.reset();
     do
     {
-        for (size_t i=0; i<1000; ++i)
+        size_t k = 0;
+        for (size_t i=0; i<sizeb; ++i)
         {
-            for (size_t j=0; j<1000; ++j)
+            for (size_t j=0; j<sizeb; ++j)
             {
-                buffer3b[i][j] = buffer1[i] * buffer2[j];
+                buffer3[k++] = buffer1[i] * buffer2[j];
             }
         }
         ++loopcnt;
     } while (et.split() < 5.);
-    double dvariable1000 = (et.split() / (loopcnt*1000000.));
-    printf("%6.3lf Mv1000flops (%.1lf) : ",1e-6/dvariable1000, dvariable1000/dassign);
+    double dvariablesizeb = (et.split() / (loopcnt*sizeb*sizeb));
+    printf("Medium Array Multiply %6.3lf Mvsizebflops (%.3lf)\n",1e-6/dvariablesizeb, dassign/dvariablesizeb);
     fflush(stdout);
 
-    // Check speed of multiply by variable, 10000x10000
+    // Check speed of multiply by variable, sizecxsizec
     loopcnt = 0;
-    for (size_t i=0; i<10000; ++i)
+    for (size_t i=0; i<sizec; ++i)
     {
         buffer1[i] = et.split();
         buffer2[i] = et.split();
@@ -135,17 +152,18 @@ int main(int argc, char **argv)
     et.reset();
     do
     {
-        for (size_t i=0; i<10000; ++i)
+        size_t k = 0;
+        for (size_t i=0; i<sizec; ++i)
         {
-            for (size_t j=0; j<10000; ++j)
+            for (size_t j=0; j<sizec; ++j)
             {
-                buffer3c[i][j] = buffer1[i] * buffer2[j];
+                buffer3[k++] = buffer1[i] * buffer2[j];
             }
         }
         ++loopcnt;
     } while (et.split() < 5.);
-    double dvariable10000 = (et.split() / (loopcnt*100000000.));
-    printf("%6.3lf Mv10000flops (%.1lf)",1e-6/dvariable10000, dvariable10000/dassign);
+    double dvariablesizec = (et.split() / (loopcnt*sized));
+    printf("Large Array Multiply %6.3lf Mvsizecflops (%.3lf)",1e-6/dvariablesizec, dassign/dvariablesizec);
     printf("\n");
 
 }
