@@ -306,7 +306,7 @@ int32_t log_move(string oldpath, string newpath, bool compress)
             iretn = -errno;
             return iretn;
         }
-        iretn = remove(temppath.c_str());
+        iretn = remove(oldpath.c_str());
         if (iretn < 0)
         {
             iretn = -errno;
@@ -2280,14 +2280,18 @@ int32_t data_execute(string cmd, string& result, string shell)
             shell = eshell;
         }
     }
-    else if (data_isfile(shell))
-    {
-        cmd.insert(0, shell + " -c ");
-    }
 
-    if (shell.find("csh") != string::npos)
+    if (shell != "/bin/sh" && data_isfile(shell))
     {
-        cmd.append(" |& cat");
+        cmd.insert(0, shell + " -c \"");
+        if (shell.find("csh") != string::npos)
+        {
+            cmd.append(" |& cat\"");
+        }
+        else
+        {
+            cmd.append(" 2>&1\"");
+        }
     }
     else
     {
