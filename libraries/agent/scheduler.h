@@ -40,8 +40,8 @@
 //!
 
 #include "support/configCosmos.h"
-#include "agent/agentclass.h"
-#include "agent/event.h"
+#include "agentclass.h"
+#include "event.h"
 
 using std::cout;
 using std::endl;
@@ -70,6 +70,6 @@ namespace Cosmos
             void getEventQueue();
         }; // end of Scheduler Class
     } // end of namespace Support
-} // end of namepsace Cosmos
+} // end of namespace Cosmos
 
 #endif // COSMOS_SCHEDULER_QUEUE_H
