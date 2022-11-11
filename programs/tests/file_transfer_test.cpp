@@ -221,9 +221,9 @@ int main(int argc, char *argv[])
 
     // Setup log paths and settings
     test_log.Set(Error::LOG_STDOUT_FFLUSH);
-    debug_log.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "/file_transfer_tests");
-    node1_log.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "/node1_transfer_test_log");
-    node2_log.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "/node2_transfer_test_log");
+    debug_log.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "file_transfer_tests");
+    node1_log.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "node1_transfer_test_log");
+    node2_log.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "node2_transfer_test_log");
 
 
     //////////////////////////////////////////////////////////////////////////
@@ -1353,8 +1353,8 @@ int32_t test_many_files()
 void load_temp_nodeids()
 {
     // Backup existing nodeids.ini file
-    nodeids_ini_path = get_cosmosnodes() + "/nodeids.ini";
-    nodeids_ini_backup_path = get_cosmosnodes() + "/nodeids.ini.back";
+    nodeids_ini_path = get_cosmosnodes() + "nodeids.ini";
+    nodeids_ini_backup_path = get_cosmosnodes() + "nodeids.ini.back";
     rename(nodeids_ini_path.c_str(), nodeids_ini_backup_path.c_str());
 
     // Load in some arbitrary node ids
@@ -1375,9 +1375,9 @@ void cleanup()
     debug_log.Printf("Removing created test directories... ");
     
     // Delete created folders, don't touch this
-    rmdir(get_cosmosnodes() + "/" + node1_name);
-    rmdir(get_cosmosnodes() + "/" + node2_name);
-    rmdir(get_cosmosnodes() + "/" + tname3);
+    rmdir(get_cosmosnodes() + "" + node1_name);
+    rmdir(get_cosmosnodes() + "" + node2_name);
+    rmdir(get_cosmosnodes() + "" + tname3);
 
     debug_log.Printf("OK.\n");
 }
