@@ -42,7 +42,9 @@
 /*! Divide a string into substrings based on a delimeter and return a vector of the
  * results.
     \param in Zero terminated character string.
-    \param delimeter string of delimeters.
+    \param delimeter String of delimeters.
+    \param multi Flag indicating whether or not to count repeated separators as a
+    single separator.
     \return vector of sub strings.
 */
 vector < string > string_split(string in, string delimeters, bool multi) {
