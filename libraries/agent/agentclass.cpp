@@ -306,6 +306,7 @@ namespace Cosmos
                         "    SendBeacon [type:count]\n"
                         "    ClearQueue [channel]\n"
                         "    ExternalCommand command parameters\n"
+                        "    ExternalTask command parameters\n"
                         "    TestRadio start:step:count:seconds\n"
                         "    ListDirectory node:agent\n"
                         "    TransferFile node:agent:file\n"
@@ -326,6 +327,8 @@ namespace Cosmos
                         "    AdcsCommunicate command:hexstring:response_size\n"
                         "");
             add_request("list_channels", req_list_channels, "", "List current channels");
+            add_request("run_command", req_run_command, "command parameters", "Run external command for immediate response");
+            add_request("add_task", req_add_task, "command parameters", "Start external command as Task for output to file");
 
             // Set up Full SOH string
             //            set_fullsohstring(json_list_of_fullsoh(cinfo));
@@ -1900,6 +1903,7 @@ namespace Cosmos
                 }
                 break;
             case PacketComm::TypeId::CommandExternalCommand:
+            case PacketComm::TypeId::CommandExternalTask:
                 {
                     string command = "uptime";
                     if (parms.size() > 0)
@@ -2189,6 +2193,45 @@ namespace Cosmos
                 }
             }
             return response.length();
+        }
+
+        //! Run immediate command
+        /*! Run the specified command with specified parameters and return the response.
+     * \param request Text of request.
+     * \param output Text of response to request.
+     * \param agent Pointer to Cosmos::Agent to use.
+     * \return 0, or negative error.
+     */
+        int32_t Agent::req_run_command(string &request, string &response, Agent *agent)
+        {
+            if (request.find(" ") == string::npos)
+            {
+                return GENERAL_ERROR_ARGS;
+            }
+
+            request.erase(0, request.find(" ")+1);
+            return data_execute(request, response);
+        }
+
+        //! Launch background Task
+        /*! Run the specified command with specified parameters in an external shell and save the response
+         * to a file.
+     * \param request Text of request.
+     * \param output Text of response to request.
+     * \param agent Pointer to Cosmos::Agent to use.
+     * \return 0, or negative error.
+     */
+        int32_t Agent::req_add_task(string &request, string &response, Agent *agent)
+        {
+            if (request.find(" ") == string::npos)
+            {
+                return GENERAL_ERROR_ARGS;
+            }
+
+            request.erase(0, request.find(" ")+1);
+            int32_t iretn = agent->task_add(request);
+            response = "Task: " + agent->task_command(iretn) + " in " + agent->task_path(iretn) + " #" + to_unsigned(agent->task_size());
+            return iretn;
         }
 
         //! List current channels
@@ -4177,6 +4220,51 @@ acquired.
             }
             channels.channel[number].maximum = maximum;
             return channels.channel[number].maximum;
+        }
+
+        int32_t Agent::task_add(string command)
+        {
+            return tasks.Add(command);
+        }
+
+        int32_t Agent::task_del(uint32_t deci)
+        {
+            return tasks.Del(deci);
+        }
+
+        int32_t Agent::task_iretn(uint16_t number)
+        {
+            return tasks.Iretn(number);
+        }
+
+        uint32_t Agent::task_deci(uint16_t number)
+        {
+            return tasks.Deci(number);
+        }
+
+        double Agent::task_startmjd(uint16_t number)
+        {
+            return tasks.Startmjd(number);
+        }
+
+        uint8_t Agent::task_state(uint16_t number)
+        {
+            return tasks.State(number);
+        }
+
+        string Agent::task_command(uint16_t number)
+        {
+            return tasks.Command(number);
+        }
+
+        string Agent::task_path(uint16_t number)
+        {
+            return tasks.Path(number);
+        }
+
+        int32_t Agent::task_size()
+        {
+            return tasks.Size();
         }
 
         double Agent::get_timeStart()

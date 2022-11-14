@@ -57,6 +57,7 @@ namespace Cosmos {
             static int32_t SendBeacon(PacketComm &packet, string &response, Agent* agent);
             static int32_t ClearQueue(PacketComm &packet, string &response, Agent* agent);
             static int32_t ExternalCommand(PacketComm &packet, string &response, Agent* agent);
+            static int32_t ExternalTask(PacketComm &packet, string &response, Agent* agent);
             static int32_t TestRadio(PacketComm &packet, string &response, Agent* agent);
             static int32_t ListDirectory(PacketComm &packet, string &response, Agent* agent);
 //            static int32_t TransferNode(PacketComm &packet, string &response, Agent* agent);
@@ -102,6 +103,7 @@ namespace Cosmos {
             Error *errorlog;
 
             mutex mtx;
+
         };
     }
 }

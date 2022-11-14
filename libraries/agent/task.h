@@ -27,11 +27,11 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#ifndef COSMOS_SCHEDULER_QUEUE_H
-#define COSMOS_SCHEDULER_QUEUE_H
+#ifndef TASK_H
+#define TASK_H
 
-/*! \file scheduler.h
-*	\brief Scheduler Class
+/*! \file task.h
+*	\brief Task Class
 */
 
 //! \ingroup support
@@ -40,36 +40,54 @@
 //!
 
 #include "support/configCosmos.h"
-#include "agentclass.h"
-#include "event.h"
-
-using std::cout;
-using std::endl;
+#include "support/datalib.h"
+#include "support/timelib.h"
+#include <future>
 
 namespace Cosmos
 {
     namespace Support
     {
 
-        // Class
-        class Scheduler
+        class Task
         {
-        private:
-            Agent *agent;
-            beatstruc agent_exec_soh;
         public:
+            Task(string node="", string agent="");
+            ~Task();
+            void Runner();
+            int32_t Add(string command);
+            int32_t Del(uint32_t deci);
+            int32_t Iretn(uint16_t number);
+            uint32_t Deci(uint16_t number);
+            double Startmjd(uint16_t number);
+            uint8_t State(uint16_t number);
+            string Command(uint16_t number);
+            string Path(uint16_t number);
+            uint16_t Size();
 
-            Scheduler(string node_name);
-            ~Scheduler();
+            struct Running
+            {
+                std::future<int32_t> result;
+                double startmjd = 0.;
+                uint8_t state = 0;
+                string command = "";
+//                thread mythread;
+                int32_t iretn = 0;
+                string path = "";
+//                string input;
+                double runtime = 0.;
+                uint32_t outsize = 0;
+            };
 
-            void addEvent(string name, string data, double utc, string condition, uint32_t flag);
-            void addEvent(Event event);
-            void deleteEvent(string name, string data, double utc, string condition, uint32_t flag);
-            void deleteEvent(Event event);
-            int getEventQueueSize();
-            void getEventQueue();
-        }; // end of Scheduler Class
-    } // end of namespace Support
-} // end of namespace Cosmos
+        private:
+            string NodeName;
+            string AgentName;
+            vector<Running> tasks;
+            mutex mtx;
+            uint8_t state = 0;
+            thread mythread;
+        };
+    }
+}
 
-#endif // COSMOS_SCHEDULER_QUEUE_H
+#endif // TASK_H

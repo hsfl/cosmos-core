@@ -40,9 +40,10 @@
 //!
 
 #include "support/configCosmos.h"
+#include "support/stringlib.h"
 #include "support/jsonlib.h"
-#include "agent/agentclass.h"
-#include "agent/event.h"
+#include "agentclass.h"
+#include "event.h"
 
 namespace Cosmos
 {
@@ -222,6 +223,6 @@ namespace Cosmos
 
         }; // end of Command Queue Class
     } // end of namespace Support
-} // end of namepsace Cosmos
+} // end of namespace Cosmos
 
 #endif // COSMOS_CommandQueue_H

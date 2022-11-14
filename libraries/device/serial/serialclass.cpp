@@ -1645,4 +1645,4 @@ namespace Cosmos {
         return (i);
     }
 
-} // end of namepsace Cosmos
+} // end of namespace Cosmos

@@ -99,5 +99,5 @@ namespace Cosmos {
     };
 
 
-} // end of namepsace Cosmos
+} // end of namespace Cosmos
 #endif // COSMOS_DEVICE_I2C_CLASS_H

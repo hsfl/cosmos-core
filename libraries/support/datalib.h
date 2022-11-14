@@ -115,6 +115,7 @@ typedef struct
     string agent;
     string name;
     string type;
+    string directory;
     string path;
     off_t size;
     uint16_t year;
@@ -130,6 +131,7 @@ string log_write(string node, string agent, double utc, string extra, string typ
 int32_t log_move(string node, string agent, string srclocation, string dstlocation, bool compress=true);
 int32_t log_move(string node, string agent);
 int32_t log_move(string oldpath, string newpath, bool compress);
+int32_t log_relocate(string srcdir, string dstdir, bool compress="true");
 string log_read(gzFile &file, int num);
 //int check_events(eventstruc* events, int max, cosmosstruc* data);
 vector<string> data_list_nodes();
@@ -158,7 +160,7 @@ string data_name_path(string node, string location="", string agent="", double m
 filestruc data_name_struc(string node, string location="", string agent="", double mjd=0., string name="");
 string data_resource_path(string name);
 bool data_exists(string& path);
-bool data_isdir(string path);
+bool data_isdir(string path, bool create_flag=false);
 bool data_ischardev(string path);
 bool data_isblkdev(string path);
 bool data_issymlink(string path);
@@ -168,6 +170,8 @@ int32_t data_execute(vector<uint8_t> cmd);
 int32_t data_execute(string cmd);
 int32_t data_execute(vector<uint8_t> cmd, string& result, string shell="");
 int32_t data_execute(string cmd, string& result, string shell="");
+int32_t data_task(string cmd, string outpath, string shell="");
+int32_t data_shell(string command_line, string outpath="", string inpath="", string errpath="");
 off_t data_size(string path);
 int32_t set_cosmosroot(string name, bool create_flag=false);
 int32_t set_cosmosroot(bool create_flag=false);
@@ -193,6 +197,7 @@ int32_t data_move_path(string path, string location="outgoing", bool compress="t
 //int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc* root);
 double findlastday(string node);
 double findfirstday(string node);
+const string data_getcwd();
 
 class DataLog
 {

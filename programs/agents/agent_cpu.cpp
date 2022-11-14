@@ -371,7 +371,7 @@ int32_t get_sensors(map<string, float> &temps)
 int32_t get_last_offset()
 {
     int32_t offset = 0;
-    FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_offset").c_str(), "r");
+    FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/last_offset").c_str(), "r");
     if (fp != nullptr)
     {
         fscanf(fp, "%d", &offset);

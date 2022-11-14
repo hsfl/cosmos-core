@@ -278,7 +278,7 @@ string log_write(string node, int type, double utc, const char *record, string d
 int32_t log_move(string oldpath, string newpath, bool compress)
 {
     int32_t iretn = 0;
-    if (compress)
+    if (compress && oldpath.find(".gz") == string::npos)
     {
         char buffer[8192];
         string temppath = oldpath + ".gz";
@@ -306,7 +306,7 @@ int32_t log_move(string oldpath, string newpath, bool compress)
             iretn = -errno;
             return iretn;
         }
-        iretn = remove(temppath.c_str());
+        iretn = remove(oldpath.c_str());
         if (iretn < 0)
         {
             iretn = -errno;
@@ -361,6 +361,32 @@ int32_t log_move(string node, string agent, string srclocation, string dstlocati
 int32_t log_move(string node, string agent)
 {
     return log_move(node, agent, "temp", "outgoing", true);
+}
+
+//! Relocate files.
+/*! Move files previously created with ::log_write to their final location.
+ * The short version assumes a source location of "temp" and a destination
+ * locations of "outgoing". The routine will find all files currently in
+ * {node}/temp/{agent} and move them to {node}/outgoing/{agent}.
+ * \param node Node name.
+ * \param agent Agent name.
+ */
+int32_t log_relocate(string srcdir, string dstdir, bool compress)
+{
+    int32_t iretn = 0;
+    vector<filestruc> files = data_list_files(srcdir);
+    if (data_isdir(dstdir, true))
+    {
+        for (filestruc file : files)
+        {
+            iretn = log_move(file.path, dstdir + file.name, compress);
+        }
+        return iretn;
+    }
+    else
+    {
+        return GENERAL_ERROR_BAD_DIR;
+    }
 }
 
 //! Get a list of days in a Node archive.
@@ -557,7 +583,8 @@ size_t data_list_files(string directory, vector<filestruc>& files)
             if (td->d_name[0] != '.')
             {
                 tf.name = td->d_name;
-                tf.path = directory + "/" + tf.name;
+                tf.directory = directory + "/";
+                tf.path =  tf.directory + tf.name;
                 vector <string> parts = string_split(directory, "/");
                 if (parts.size() > 2)
                 {
@@ -1212,7 +1239,6 @@ int32_t set_cosmosroot(bool create_flag)
 {
     string croot;
     char *troot;
-    int32_t iretn = 0;
 
     if (cosmosroot.empty())
     {
@@ -1227,77 +1253,43 @@ int32_t set_cosmosroot(bool create_flag)
         }
 
         // No environment variables set. Look in standard location.
-#if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
-        // default path on macOS and linux is home folder for running user
-
-        if ((troot = getenv("HOME")) != nullptr)
-        {
-            croot = troot + (string)"/cosmos";
-        }
-        else
-        {
-            croot = "";
-            return (DATA_ERROR_ROOT_FOLDER);
-        }
-#endif
-
-#ifdef COSMOS_WIN_OS
+#if defined(COSMOS_WIN_OS)
         croot = "c:/cosmos";
+#elseif defined(COSMOS_MAC_OS)
+        croot = "/Applications/cosmos";
+#else
+        croot = "/cosmos";
 #endif
-        if (!set_cosmosroot(croot, false))
+        if (!set_cosmosroot(croot, create_flag))
         {
             return 0;
         }
 
+        // , or home folder for running user
+        if ((troot = getenv("HOME")) != nullptr)
+        {
+            croot = troot + string("cosmos");
+            if (!set_cosmosroot(croot, create_flag))
+            {
+                return 0;
+            }
+        }
+
         // No standard location. Search upward for "cosmosroot"
-        croot = "cosmos";
-        for (size_t i=0; i<6; i++)
+        croot.resize(501);
+        croot = data_getcwd();
+        size_t cindex = croot.find("cosmos");
+        if (cindex != string::npos)
         {
-            if (!set_cosmosroot(croot, false))
+            croot.erase(cindex+6, string::npos);
+            if (!set_cosmosroot(croot, create_flag))
             {
                 return 0;
             }
-            croot = "../" + croot;
         }
-    }
 
-    // if cosmosroot is still empty then try to create standard location, otherwise fail
-    if (cosmosroot.empty())
-    {
-        if (create_flag)
-        {
-#ifdef COSMOS_LINUX_OS
-            if ((troot = getenv("HOME")) != nullptr)
-            {
-                croot = troot + (string)"/cosmos";
-            }
-            else
-            {
-                croot = "";
-                return (DATA_ERROR_ROOT_FOLDER);
-            }
-#endif
-
-#ifdef COSMOS_MAC_OS
-            croot = "/Applications/cosmos";
-#endif
-
-#ifdef COSMOS_WIN_OS
-            croot = "c:/cosmos";
-#endif
-            if ((iretn=set_cosmosroot(croot, create_flag)) == 0)
-            {
-                return 0;
-            }
-            else
-            {
-                return iretn;
-            }
-        }
-        else
-        {
-            return (DATA_ERROR_ROOT_FOLDER);
-        }
+        cosmosroot.clear();
+        return (DATA_ERROR_ROOT_FOLDER);
     }
     return 0;
 }
@@ -1660,7 +1652,14 @@ int32_t get_cosmosnodes(string &result, bool create_flag)
         }
     }
 
-    result = cosmosnodes;
+    if (cosmosnodes.back() == '/')
+    {
+        result = cosmosnodes;
+    }
+    else
+    {
+        result = cosmosnodes + '/';
+    }
     return 0;
 }
 
@@ -1956,9 +1955,33 @@ double findfirstday(string name)
     }
 }
 
-bool data_isdir(string path)
+bool data_isdir(string path, bool create_flag)
 {
     struct stat st;
+
+    if (path.empty())
+    {
+        return false;
+    }
+
+    if (create_flag)
+    {
+        vector<string> dirs = string_split(path, "/");
+        string tpath;
+        if (path[0] == '/')
+        {
+            tpath = "/";
+        }
+        for (string subdir : dirs)
+        {
+            tpath += subdir;
+            if (COSMOS_MKDIR(tpath.c_str(), 00777) < 0 && errno != EEXIST)
+            {
+                return false;
+            }
+            tpath += "/";
+        }
+    }
 
     if (!stat(path.c_str(), &st) && S_ISDIR(st.st_mode))
     {
@@ -2233,6 +2256,7 @@ int32_t data_execute(string cmd, string& result, string shell)
 
 
 #else
+    int32_t iretn = 0;
     FILE * stream;
     char buffer[198];
     result.clear();
@@ -2266,7 +2290,8 @@ int32_t data_execute(string cmd, string& result, string shell)
     {
         cmd.insert(0, get_cosmosroot() + "/bin/");
     }
-    else {
+    else
+    {
         return GENERAL_ERROR_UNDEFINED;
     }
 
@@ -2278,14 +2303,18 @@ int32_t data_execute(string cmd, string& result, string shell)
             shell = eshell;
         }
     }
-    else if (data_isfile(shell))
-    {
-        cmd.insert(0, shell + " -c ");
-    }
 
-    if (shell.find("csh") != string::npos)
+    if (shell != "/bin/sh" && data_isfile(shell))
     {
-        cmd.append(" |& cat");
+        cmd.insert(0, shell + " -c \"");
+        if (shell.find("csh") != string::npos)
+        {
+            cmd.append(" |& cat\"");
+        }
+        else
+        {
+            cmd.append(" 2>&1\"");
+        }
     }
     else
     {
@@ -2302,12 +2331,111 @@ int32_t data_execute(string cmd, string& result, string shell)
                 result.append(buffer);
             }
         }
-        pclose(stream);
+        if ((iretn=pclose(stream)) < 0)
+        {
+            iretn = -errno;
+        }
+    }
+    else
+    {
+        iretn = -errno;
     }
 #endif
 
-    return result.size();
+    return iretn;
+}
 
+int32_t data_task(string command, string outpath, string shell)
+{
+    string result;
+    int32_t iretn = data_execute(command, result, shell);
+    FILE* fp = fopen(outpath.c_str(), "w");
+    if (fp != nullptr)
+    {
+        fwrite(result.data(), result.size(), 1, fp);
+        fclose(fp);
+        return iretn;
+    }
+    else
+    {
+        return -errno;
+    }
+}
+
+int32_t data_shell(string command_line, string outpath, string inpath, string errpath)
+{
+    printf("Data: Shell Command=%s Out=%s Err=%s\n", command_line.c_str(), outpath.c_str(), errpath.c_str());
+    fflush(stdout);
+    int32_t iretn=0;
+    int devin, devout, deverr;
+    int prev_stdin, prev_stdout, prev_stderr;
+
+    if (command_line.empty())
+    {
+        return GENERAL_ERROR_EMPTY;
+    }
+
+    if (outpath.empty())
+    {
+        devout = dup(STDOUT_FILENO);
+    }
+    else
+    {
+        devout = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+        if (devout == -1)
+        {
+            devout = dup(STDOUT_FILENO);
+        }
+    }
+    // Redirect.
+    prev_stdout = dup(STDOUT_FILENO);
+    dup2(devout, STDOUT_FILENO);
+    close(devout);
+
+    if (inpath.empty())
+    {
+        devin = open("/dev/null", O_RDWR);
+    }
+    else
+    {
+        devin = open(inpath.c_str(), O_RDONLY, 00666);
+        if (devin == -1)
+        {
+            devin = open("/dev/null", O_RDWR);
+        }
+    }
+    prev_stdin = dup(STDIN_FILENO);
+    dup2(devin, STDIN_FILENO);
+    close(devin);
+
+    prev_stderr = dup(STDERR_FILENO);
+    if (errpath.empty())
+    {
+        deverr = devout;
+    }
+    else
+    {
+        deverr = open(errpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+        if (deverr == -1)
+        {
+            deverr = devout;
+        }
+    }
+    dup2(deverr, STDERR_FILENO);
+    close(deverr);
+
+    // Execute the command.
+    iretn = system(command_line.c_str());
+
+    // Reset standard file handles
+    dup2(prev_stdin, STDIN_FILENO);
+    dup2(prev_stdout, STDOUT_FILENO);
+    dup2(prev_stderr, STDERR_FILENO);
+    close(prev_stdin);
+    close(prev_stdout);
+    close(prev_stderr);
+
+    return iretn;
 }
 
 // Define the static member variables here
@@ -2435,6 +2563,36 @@ string NodeData::lookup_node_id_name(NODE_ID_TYPE node_id)
     }
 
     return "";
+}
+
+const string data_getcwd()
+{
+    size_t buf_size = 1024;
+    char* buf = NULL;
+    char* r_buf;
+
+    do
+    {
+        buf = static_cast<char*>(realloc(buf, buf_size));
+        r_buf = getcwd(buf, buf_size);
+        if (!r_buf)
+        {
+            if (errno == ERANGE)
+            {
+                buf_size *= 2;
+            }
+            else
+            {
+                free(buf);
+                return "";
+                // Or some other error handling code
+            }
+        }
+    } while (!r_buf);
+
+    string str(buf);
+    free(buf);
+    return str;
 }
 
 void GITTEST::f()	{

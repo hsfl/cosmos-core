@@ -27,6 +27,7 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandSendBeacon, SendBeacon);
             add_func(PacketComm::TypeId::CommandClearQueue, ClearQueue);
             add_func(PacketComm::TypeId::CommandExternalCommand, ExternalCommand);
+            add_func(PacketComm::TypeId::CommandExternalTask, ExternalTask);
             add_func(PacketComm::TypeId::CommandTestRadio, TestRadio);
             add_func(PacketComm::TypeId::CommandListDirectory, ListDirectory);
             add_func(PacketComm::TypeId::CommandTransferFile, FileForward);
@@ -664,8 +665,18 @@ namespace Cosmos {
         int32_t PacketHandler::ExternalCommand(PacketComm& packet, string &response, Agent* agent)
         {
             // Run command, return response
-            string eresponse;
             int32_t iretn = data_execute(string(packet.data.begin()+4, packet.data.end()), response);
+            uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
+            iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, string(response.begin(), response.end()));
+            response.clear();
+            return iretn;
+        }
+
+        int32_t PacketHandler::ExternalTask(PacketComm& packet, string &response, Agent* agent)
+        {
+            // Run command, return response
+            int32_t iretn = agent->task_add(string(packet.data.begin()+4, packet.data.end()));
+            response = "Running: " + agent->task_command(iretn) + " in " + agent->task_path(iretn) + " #" + to_unsigned(agent->task_size());
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, string(response.begin(), response.end()));
             response.clear();

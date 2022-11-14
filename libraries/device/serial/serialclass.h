@@ -127,5 +127,5 @@ namespace Cosmos {
     };
 
 
-} // end of namepsace Cosmos
+} // end of namespace Cosmos
 #endif // SERIALCLASS_H

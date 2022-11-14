@@ -129,6 +129,7 @@
 #include "support/packetcomm.h"
 #include "support/channellib.h"
 #include "support/beacon.h"
+#include "task.h"
 
 namespace Cosmos
 {
@@ -458,9 +459,20 @@ namespace Cosmos
             int32_t channel_maximum(string name, uint16_t maximum);
             int32_t channel_maximum(uint8_t number, uint16_t maximum);
 
+            int32_t task_add(string command);
+            int32_t task_del(uint32_t deci);
+            int32_t task_iretn(uint16_t number);
+            uint32_t task_deci(uint16_t number);
+            double task_startmjd(uint16_t number);
+            uint8_t task_state(uint16_t number);
+            string task_command(uint16_t number);
+            string task_path(uint16_t number);
+            int32_t task_size();
+
         protected:
         private:
 
+            Task tasks;
             Channel channels;
             uint16_t debug_level = 0;
             NetworkType networkType = NetworkType::UDP;
@@ -552,6 +564,8 @@ namespace Cosmos
             static int32_t req_jsondump(string &, string &response, Agent *agent);
             static int32_t req_all_names_types(string &, string &response, Agent *agent);
             static int32_t req_command(string &, string &response, Agent *agent);
+            static int32_t req_run_command(string &, string &response, Agent *agent);
+            static int32_t req_add_task(string &, string &response, Agent *agent);
             static int32_t req_list_channels(string &, string &response, Agent *agent);
         };
     } // end of namespace Support
