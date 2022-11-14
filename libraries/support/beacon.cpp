@@ -42,14 +42,14 @@ namespace Cosmos {
                     beacon.vy_eci = cinfo->node.loc.pos.eci.v.col[1];
                     beacon.vz_eci = cinfo->node.loc.pos.eci.v.col[2];
 
-                    beacon.att_lvlh_x = cinfo->node.loc.att.lvlh.s.d.x;
-                    beacon.att_lvlh_y = cinfo->node.loc.att.lvlh.s.d.y;
-                    beacon.att_lvlh_z = cinfo->node.loc.att.lvlh.s.d.z;
-                    beacon.att_lvlh_w = cinfo->node.loc.att.lvlh.s.w;
+                    beacon.att_icrf_x = cinfo->node.loc.att.icrf.s.d.x;
+                    beacon.att_icrf_y = cinfo->node.loc.att.icrf.s.d.y;
+                    beacon.att_icrf_z = cinfo->node.loc.att.icrf.s.d.z;
+                    beacon.att_icrf_w = cinfo->node.loc.att.icrf.s.w;
 
-                    beacon.att_lvlh_omega_x = cinfo->node.loc.att.lvlh.v.col[0];
-                    beacon.att_lvlh_omega_y = cinfo->node.loc.att.lvlh.v.col[1];
-                    beacon.att_lvlh_omega_z = cinfo->node.loc.att.lvlh.v.col[2];
+                    beacon.att_icrf_omega_x = cinfo->node.loc.att.icrf.v.col[0];
+                    beacon.att_icrf_omega_y = cinfo->node.loc.att.icrf.v.col[1];
+                    beacon.att_icrf_omega_z = cinfo->node.loc.att.icrf.v.col[2];
 
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
 				}
@@ -364,16 +364,16 @@ namespace Cosmos {
 							cinfo->node.loc.pos.eci.v.col[1] = beacon.vy_eci;
 							cinfo->node.loc.pos.eci.v.col[2] = beacon.vz_eci;
 
-                            cinfo->node.loc.att.lvlh.utc = mjd;
+                            cinfo->node.loc.att.icrf.utc = mjd;
 							// JIMNOTE: need to update pass here?
-							cinfo->node.loc.att.lvlh.s.d.x = beacon.att_lvlh_x;
-							cinfo->node.loc.att.lvlh.s.d.y = beacon.att_lvlh_y;
-							cinfo->node.loc.att.lvlh.s.d.z = beacon.att_lvlh_z;
-							cinfo->node.loc.att.lvlh.s.w =   beacon.att_lvlh_w;
+							cinfo->node.loc.att.icrf.s.d.x = beacon.att_icrf_x;
+							cinfo->node.loc.att.icrf.s.d.y = beacon.att_icrf_y;
+							cinfo->node.loc.att.icrf.s.d.z = beacon.att_icrf_z;
+							cinfo->node.loc.att.icrf.s.w =   beacon.att_icrf_w;
 
-							cinfo->node.loc.att.lvlh.v.col[0] = beacon.att_lvlh_omega_x;
-							cinfo->node.loc.att.lvlh.v.col[1] = beacon.att_lvlh_omega_y;
-							cinfo->node.loc.att.lvlh.v.col[2] = beacon.att_lvlh_omega_z;
+							cinfo->node.loc.att.icrf.v.col[0] = beacon.att_icrf_omega_x;
+							cinfo->node.loc.att.icrf.v.col[1] = beacon.att_icrf_omega_y;
+							cinfo->node.loc.att.icrf.v.col[2] = beacon.att_icrf_omega_z;
                         }
                         break;
                     case TypeId::ADCSORBITBeaconS:
@@ -581,8 +581,8 @@ namespace Cosmos {
                     json_out(Contents, "node_loc_pos_eci_s", cinfo);
                     json_out(Contents, "node_loc_pos_eci_v", cinfo);
 
-                    json_out(Contents, "node_loc_att_lvlh_s", cinfo);
-                    json_out(Contents, "node_loc_att_lvlh_v", cinfo);
+                    json_out(Contents, "node_loc_att_icrf_s", cinfo);
+                    json_out(Contents, "node_loc_att_icrf_v", cinfo);
 				}
 				break;
             case TypeId::ADCSORBITBeaconS:
