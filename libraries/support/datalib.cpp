@@ -380,7 +380,7 @@ int32_t log_relocate(string srcdir, string dstdir, bool compress)
     {
         for (filestruc file : files)
         {
-            printf("move: %s %s\n", file.path.c_str(), (dstdir+file.name).c_str());
+            printf("move: %s %s\n", file.path.c_str(), (dstdir+"/"+file.name).c_str());
             iretn = log_move(file.path, dstdir + file.name, compress);
         }
         return iretn;
