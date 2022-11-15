@@ -33,7 +33,7 @@ namespace Cosmos
             int32_t iretn = 0;
 
             PacketComm packet;
-            int32_t mychannel = agent->channel_number("FILE");
+            mychannel = agent->channel_number("FILE");
             // Accumulate here before transfering to proper queues
             vector<PacketComm> file_packets;
 

@@ -307,7 +307,7 @@ namespace Cosmos
                         "    ClearQueue [channel]\n"
                         "    ExternalCommand command parameters\n"
                         "    ExternalTask command parameters\n"
-                        "    TestRadio start:step:count:seconds\n"
+                        "    TestRadio start step count bytes\n"
                         "    ListDirectory node:agent\n"
                         "    TransferFile node:agent:file\n"
                         "    TransferNode node\n"
@@ -1928,13 +1928,13 @@ namespace Cosmos
                     uint8_t start = 0;
                     uint8_t step = 1;
                     uint8_t count = 255;
-                    uint32_t seconds = 10;
+                    uint32_t bytes = 4000;
                     if (parms.size() == 4)
                     {
                         start = stoi(parms[0]);
                         step = stoi(parms[1]);
                         count = stoi(parms[2]);
-                        seconds = stoi(parms[3]);
+                        bytes = stoi(parms[3]);
                     }
                     packet.data.resize(11);
                     packet.data[0] = start;
@@ -1942,7 +1942,7 @@ namespace Cosmos
                     packet.data[2] = count;
                     uint32_t test_id = centisec();
                     uint32to(test_id, &packet.data[3], ByteOrder::LITTLEENDIAN);
-                    uint32to(seconds, &packet.data[7], ByteOrder::LITTLEENDIAN);
+                    uint32to(bytes, &packet.data[7], ByteOrder::LITTLEENDIAN);
                 }
                 break;
             case PacketComm::TypeId::CommandListDirectory:
@@ -3791,10 +3791,11 @@ acquired.
             }
 
             iretn = channels.Push(number, packet);
-            if (iretn >= 0)
-            {
-                monitor_unwrapped(number, packet, "Push");
-            }
+
+//            if (iretn >= 0)
+//            {
+//                monitor_unwrapped(number, packet, "Push");
+//            }
             return iretn;
         }
 
@@ -3888,10 +3889,10 @@ acquired.
                     memcpy(packet.data.data(), &header, COSMOS_SIZEOF(PacketComm::ResponseHeader));
                     packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
                     iretn = channels.Push(number, packet);
-                    if (iretn > 0)
-                    {
-                        monitor_unwrapped(number, packet, "Response");
-                    }
+//                    if (iretn > 0)
+//                    {
+//                        monitor_unwrapped(number, packet, "Response");
+//                    }
                 }
             }
             return response.size();
@@ -3969,10 +3970,10 @@ acquired.
                     memcpy(packet.data.data(), &header, sizeof(header));
                     packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
                     iretn = channels.Push(number, packet);
-                    if (iretn > 0)
-                    {
-                        monitor_unwrapped(number, packet, to_label("Response", static_cast<uint8_t>(type)));
-                    }
+//                    if (iretn > 0)
+//                    {
+//                        monitor_unwrapped(number, packet, to_label("Response", static_cast<uint8_t>(type)));
+//                    }
                 }
             }
             return response.size();
@@ -3997,10 +3998,11 @@ acquired.
             }
 
             iretn = channels.Pull(number, packet);
-            if (iretn > 0)
-            {
-                monitor_unwrapped(number, packet, "Pull");
-            }
+
+//            if (iretn > 0)
+//            {
+//                monitor_unwrapped(number, packet, "Pull");
+//            }
             return iretn;
         }
 
@@ -4023,11 +4025,11 @@ acquired.
 
             if (extra.empty())
             {
-                printf("%.1f [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Size=%u Packets=%u Bytes=%lu]", uptime.split(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                printf("%u [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Size=%u Packets=%u Bytes=%lu]", decisec(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             else
             {
-                printf("%.1f %s [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Size=%u Packets=%u Bytes=%lu]", uptime.split(), extra.c_str(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                printf("%u %s [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Size=%u Packets=%u Bytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
             {

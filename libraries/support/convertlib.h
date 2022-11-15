@@ -207,7 +207,7 @@ namespace Cosmos {
         int tle2eci(double mjd, tlestruc tle, cartpos &eci);
         double atan3(double sa, double cb);
         int32_t eci2tle(double utc, cartpos eci, tlestruc &tle);
-        int32_t rv2tle(double utc, cartpos eci, tlestruc &tle);
+//        int32_t rv2tle(double utc, cartpos eci, tlestruc &tle);
         int sgp4(double utc, tlestruc tle, cartpos &pos_teme);
         tlestruc get_line(uint16_t index, vector<tlestruc> tle);
         int32_t load_lines(string fname, vector<tlestruc>& tle);

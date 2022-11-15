@@ -3208,12 +3208,8 @@ union as a ::devicestruc.
             uint16_t rssi = 0;
             //! Packet Size
             uint16_t pktsize = 0;
-            //! Input Frequency
-            double freq = 0.;
-            //! Maximum frequency allowed
-            double maxfreq = 0.;
-            //! Minimum frequency allowed
-            double minfreq = 0.;
+            //! Rate in Bytes/Second
+            float byte_rate = 0.f;
             //! Current RX Power
             float powerin = 0.f;
             //! Current TX Power
@@ -3224,6 +3220,12 @@ union as a ::devicestruc.
             float band = 0.f;
             //! repeater squelch tone frequency
             float squelch_tone = 0.f;
+            //! Input Frequency
+            double freq = 0.;
+            //! Maximum frequency allowed
+            double maxfreq = 0.;
+            //! Minimum frequency allowed
+            double minfreq = 0.;
             //! Good Packet Percentage
             double goodratio = 0.;
             //! Last RX time
@@ -3246,6 +3248,7 @@ union as a ::devicestruc.
                     { "freq"   , freq },
                     { "maxfreq", maxfreq },
                     { "minfreq", minfreq },
+                    { "byte_rate", byte_rate },
                     { "powerin", powerin },
                     { "powerout" , powerout },
                     { "maxpower" , maxpower },
@@ -3274,6 +3277,7 @@ union as a ::devicestruc.
                     if(!parsed["freq"].is_null()) { freq = parsed["freq"].number_value(); }
                     if(!parsed["maxfreq"].is_null()) { maxfreq = parsed["maxfreq"].number_value(); }
                     if(!parsed["minfreq"].is_null()) { minfreq = parsed["minfreq"].number_value(); }
+                    if(!parsed["byte_rate"].is_null()) { byte_rate = parsed["byte_rate"].number_value(); }
                     if(!parsed["powerin"].is_null()) { powerin = parsed["powerin"].number_value(); }
                     if(!parsed["powerout"].is_null()) { powerout = parsed["powerout"].number_value(); }
                     if(!parsed["maxpower"].is_null()) { maxpower = parsed["maxpower"].number_value(); }
@@ -3303,12 +3307,8 @@ union as a ::devicestruc.
             uint16_t rssi = 0;
             //! Packet Size
             uint16_t pktsize = 0;
-            //! Input Frequency
-            double freq = 0.;
-            //! Maximum frequency allowed
-            double maxfreq = 0.;
-            //! Minimum frequency allowed
-            double minfreq = 0.;
+            //! Rate in Bytes/Second
+            float byte_rate = 0.f;
             //! Current RX Power
             float powerin = 0.f;
             //! Current TX Power
@@ -3319,6 +3319,12 @@ union as a ::devicestruc.
             float band = 0.f;
             //! repeater squelch tone frequency
             float squelch_tone = 0.f;
+            //! Input Frequency
+            double freq = 0.;
+            //! Maximum frequency allowed
+            double maxfreq = 0.;
+            //! Minimum frequency allowed
+            double minfreq = 0.;
             //! Good Packet Percentage
             double  goodratio = 0.;
             //! Last TX time
@@ -3341,6 +3347,7 @@ union as a ::devicestruc.
                     { "freq"   , freq },
                     { "maxfreq", maxfreq },
                     { "minfreq", minfreq },
+                    { "byte_rate", byte_rate },
                     { "powerin", powerin },
                     { "powerout" , powerout },
                     { "maxpower" , maxpower },
@@ -3369,6 +3376,7 @@ union as a ::devicestruc.
                     if(!parsed["freq"].is_null()) { freq = parsed["freq"].number_value(); }
                     if(!parsed["maxfreq"].is_null()) { maxfreq = parsed["maxfreq"].number_value(); }
                     if(!parsed["minfreq"].is_null()) { minfreq = parsed["minfreq"].number_value(); }
+                    if(!parsed["byte_rate"].is_null()) { byte_rate = parsed["byte_rate"].number_value(); }
                     if(!parsed["powerin"].is_null()) { powerin = parsed["powerin"].number_value(); }
                     if(!parsed["powerout"].is_null()) { powerout = parsed["powerout"].number_value(); }
                     if(!parsed["maxpower"].is_null()) { maxpower = parsed["maxpower"].number_value(); }
@@ -3398,12 +3406,8 @@ union as a ::devicestruc.
             uint16_t rssi = 0;
             //! Packet Size
             uint16_t pktsize = 0;
-            //! Input Frequency
-            double freq = 0.;
-            //! Maximum frequency allowed
-            double maxfreq = 0.;
-            //! Minimum frequency allowed
-            double minfreq = 0.;
+            //! Rate in Bytes/Second
+            float byte_rate = 0.f;
             //! Current RX Power
             float powerin = 0.f;
             //! Current TX Power
@@ -3414,6 +3418,12 @@ union as a ::devicestruc.
             float band = 0.f;
             //! repeater squelch tone frequency
             float squelch_tone = 0.f;
+            //! Input Frequency
+            double freq = 0.;
+            //! Maximum frequency allowed
+            double maxfreq = 0.;
+            //! Minimum frequency allowed
+            double minfreq = 0.;
             //! Good Packet Percentage
             double  goodratio = 0.;
             //! Last TX time
@@ -3440,6 +3450,7 @@ union as a ::devicestruc.
                     { "freq"   , freq },
                     { "maxfreq", maxfreq },
                     { "minfreq", minfreq },
+                    { "byte_rate", byte_rate },
                     { "powerin", powerin },
                     { "powerout" , powerout },
                     { "maxpower" , maxpower },
@@ -3470,6 +3481,7 @@ union as a ::devicestruc.
                     if(!parsed["freq"].is_null()) { freq = parsed["freq"].number_value(); }
                     if(!parsed["maxfreq"].is_null()) { maxfreq = parsed["maxfreq"].number_value(); }
                     if(!parsed["minfreq"].is_null()) { minfreq = parsed["minfreq"].number_value(); }
+                    if(!parsed["byte_rate"].is_null()) { byte_rate = parsed["byte_rate"].number_value(); }
                     if(!parsed["powerin"].is_null()) { powerin = parsed["powerin"].number_value(); }
                     if(!parsed["powerout"].is_null()) { powerout = parsed["powerout"].number_value(); }
                     if(!parsed["maxpower"].is_null()) { maxpower = parsed["maxpower"].number_value(); }
@@ -8246,6 +8258,7 @@ union as a ::devicestruc.
                         add_name(basename+".freq", &devspec.rxr[didx].freq, "double");
                         add_name(basename+".maxfreq", &devspec.rxr[didx].maxfreq, "double");
                         add_name(basename+".minfreq", &devspec.rxr[didx].minfreq, "double");
+                        add_name(basename+".byte_rate", &devspec.rxr[didx].byte_rate, "float");
                         add_name(basename+".powerin", &devspec.rxr[didx].powerin, "float");
                         add_name(basename+".powerout", &devspec.rxr[didx].powerout, "float");
                         add_name(basename+".maxpower", &devspec.rxr[didx].maxpower, "float");
@@ -8342,6 +8355,7 @@ union as a ::devicestruc.
                         add_name(basename+".freq", &devspec.tcv[didx].freq, "double");
                         add_name(basename+".maxfreq", &devspec.tcv[didx].maxfreq, "double");
                         add_name(basename+".minfreq", &devspec.tcv[didx].minfreq, "double");
+                        add_name(basename+".byte_rate", &devspec.tcv[didx].byte_rate, "float");
                         add_name(basename+".powerin", &devspec.tcv[didx].powerin, "float");
                         add_name(basename+".powerout", &devspec.tcv[didx].powerout, "float");
                         add_name(basename+".maxpower", &devspec.tcv[didx].maxpower, "float");
@@ -8398,6 +8412,7 @@ union as a ::devicestruc.
                         add_name(basename+".freq", &devspec.txr[didx].freq, "double");
                         add_name(basename+".maxfreq", &devspec.txr[didx].maxfreq, "double");
                         add_name(basename+".minfreq", &devspec.txr[didx].minfreq, "double");
+                        add_name(basename+".byte_rate", &devspec.txr[didx].byte_rate, "float");
                         add_name(basename+".powerin", &devspec.txr[didx].powerin, "float");
                         add_name(basename+".powerout", &devspec.txr[didx].powerout, "float");
                         add_name(basename+".maxpower", &devspec.txr[didx].maxpower, "float");

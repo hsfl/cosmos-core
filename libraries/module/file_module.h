@@ -30,7 +30,7 @@ namespace Cosmos
              */
             int32_t Init(Agent *agent, const vector<string> file_transfer_contact_nodes);
             void Loop();
-            uint16_t mychannel;
+            int32_t mychannel;
             bool running;
             Agent *agent;
 
