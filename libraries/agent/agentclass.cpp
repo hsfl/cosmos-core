@@ -3791,7 +3791,7 @@ acquired.
             }
 
             iretn = channels.Push(number, packet);
-            if (iretn >0)
+            if (iretn >= 0)
             {
                 monitor_unwrapped(number, packet, "Push");
             }
@@ -3997,7 +3997,7 @@ acquired.
             }
 
             iretn = channels.Pull(number, packet);
-            if (iretn >0)
+            if (iretn > 0)
             {
                 monitor_unwrapped(number, packet, "Pull");
             }
