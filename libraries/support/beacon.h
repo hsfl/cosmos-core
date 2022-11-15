@@ -297,14 +297,14 @@ namespace Cosmos {
 				double vy_eci;
 				double vz_eci;
 
-				double att_lvlh_x;
-				double att_lvlh_y;
-				double att_lvlh_z;
-				double att_lvlh_w;
+				double att_icrf_x;
+				double att_icrf_y;
+				double att_icrf_z;
+				double att_icrf_w;
 
-				double att_lvlh_omega_x;
-				double att_lvlh_omega_y;
-				double att_lvlh_omega_z;
+				double att_icrf_omega_x;
+				double att_icrf_omega_y;
+				double att_icrf_omega_z;
 
             };
 
