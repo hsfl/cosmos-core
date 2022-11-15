@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
     Convert::tlestruc tle3;
     Convert::tle2eci(lines[0].utc, lines[0], loc.pos.eci);
-    Convert::rv2tle(loc.pos.eci.utc, loc.pos.eci, tle3);
+    Convert::eci2tle(loc.pos.eci.utc, loc.pos.eci, tle3);
     Convert::tle2eci(tle3.utc, tle3, loc2.pos.eci);
 //    tle3.bstar = 4.7*lines[0].bstar;
     for (double dt=0.; dt<1.; dt+=.1)

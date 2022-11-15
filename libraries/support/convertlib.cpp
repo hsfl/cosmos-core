@@ -3592,7 +3592,7 @@ match.
             return y;
         }
 
-        int32_t rv2tle(double utc, cartpos eci, tlestruc &tle)
+        int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
         {
             // ICRF to Mean of Data (undo Precession)
             rmatrix bm;
@@ -3617,7 +3617,7 @@ match.
             eci.s = rv_mmult(sm,eci.s);
             eci.v = rv_mmult(sm,eci.v);
 
-            //            function [e, mm, ma, i, ap, raan] = rv2tle(reci, veci)
+            //            function [e, mm, ma, i, ap, raan] = eci2tle(reci, veci)
             //            % convert osculating position and velocity vectors
             //            % to components of two line element set (TLE)
             //            % input
@@ -3855,47 +3855,47 @@ match.
  * \param eci State Vector to convert, stored as ::cartpos
  * \param tle Two Line Element, stored as ::tlestruc
  */
-        int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
-        {
-            // ICRF to Mean of Data (undo Precession)
-            rmatrix bm;
-            gcrf2j2000(&bm);
-            eci.s = rv_mmult(bm,eci.s);
-            eci.v = rv_mmult(bm,eci.v);
+//        int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
+//        {
+//            // ICRF to Mean of Data (undo Precession)
+//            rmatrix bm;
+//            gcrf2j2000(&bm);
+//            eci.s = rv_mmult(bm,eci.s);
+//            eci.v = rv_mmult(bm,eci.v);
 
-            rmatrix pm;
-            j20002mean(utc,&pm);
-            eci.s = rv_mmult(pm,eci.s);
-            eci.v = rv_mmult(pm,eci.v);
+//            rmatrix pm;
+//            j20002mean(utc,&pm);
+//            eci.s = rv_mmult(pm,eci.s);
+//            eci.v = rv_mmult(pm,eci.v);
 
-            // Mean of Date to True of Date (undo Nutation)
-            rmatrix nm;
-            mean2true(utc,&nm);
-            eci.s = rv_mmult(nm,eci.s);
-            eci.v = rv_mmult(nm,eci.v);
+//            // Mean of Date to True of Date (undo Nutation)
+//            rmatrix nm;
+//            mean2true(utc,&nm);
+//            eci.s = rv_mmult(nm,eci.s);
+//            eci.v = rv_mmult(nm,eci.v);
 
-            // True of Date to Uniform of Date (undo Equation of Equinoxes)
-            rmatrix sm;
-            true2teme(utc, &sm);
-            eci.s = rv_mmult(sm,eci.s);
-            eci.v = rv_mmult(sm,eci.v);
+//            // True of Date to Uniform of Date (undo Equation of Equinoxes)
+//            rmatrix sm;
+//            true2teme(utc, &sm);
+//            eci.s = rv_mmult(sm,eci.s);
+//            eci.v = rv_mmult(sm,eci.v);
 
-            // Convert to Keplerian Elements
-            kepstruc kep;
-            eci2kep(eci, kep);
+//            // Convert to Keplerian Elements
+//            kepstruc kep;
+//            eci2kep(eci, kep);
 
-            // Store in relevant parts of TLE
-            tle.orbit = 0;
-            tle.ap = kep.ap;
-            tle.e = kep.e;
-            tle.i = kep.i;
-            tle.ma = kep.ma;
-            tle.mm = kep.mm * 60.; // Keplerian in SI units (radians / seconds), convert to radians / minute.
-            tle.raan = kep.raan;
-            tle.utc = utc;
+//            // Store in relevant parts of TLE
+//            tle.orbit = 0;
+//            tle.ap = kep.ap;
+//            tle.e = kep.e;
+//            tle.i = kep.i;
+//            tle.ma = kep.ma;
+//            tle.mm = kep.mm * 60.; // Keplerian in SI units (radians / seconds), convert to radians / minute.
+//            tle.raan = kep.raan;
+//            tle.utc = utc;
 
-            return 0;
-        }
+//            return 0;
+//        }
 
         /**
 * Convert a Two Line Element into a location at the specified time.
