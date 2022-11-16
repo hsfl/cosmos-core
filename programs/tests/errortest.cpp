@@ -1,5 +1,5 @@
 #include "support/configCosmos.h"
-#include "support/cosmos-errno.h"
+#include "support/cosmos-errclass.h"
 #include "support/timelib.h"
 
 int main()

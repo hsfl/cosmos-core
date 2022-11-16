@@ -104,7 +104,7 @@ static string jjstring;
 static string myjstring;
 
 void collect_data_loop();
-static thread cdthread;
+static std::thread cdthread;
 
 static string logstring;
 static vector<jsonentry*> logtable;
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
     load_dictionary(eventdict, agent->cinfo, (const char *)"events.dict");
 
     // Start thread to collect SOH data
-    cdthread = thread(collect_data_loop);
+    cdthread = std::thread(collect_data_loop);
 
     // Start performing the body of the agent
     nextmjd = currentmjd();

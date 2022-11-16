@@ -167,7 +167,7 @@ static bool debug;
 static uint16_t targetrotctlport = 0;
 static uint16_t rotctlport = 0;
 static socket_channel rotctlchannel;
-static thread rthread;
+static std::thread rthread;
 
 // Here are internally provided functions
 //int json_init();
@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
         antennaoffset.el = RADOF(antennaoffset.el);
     }
 
-    rthread = thread([=] { rotctl_loop(); });
+    rthread = std::thread([=] { rotctl_loop(); });
 
     ElapsedTime et;
 

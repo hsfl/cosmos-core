@@ -139,8 +139,8 @@ int main(int argc, char *argv[])
 
 
 	// Start serial threads
-	thread tcv_read_thread(tcv_read_loop);
-	thread tcv_write_thread(tcv_write_loop);
+	std::thread tcv_read_thread(tcv_read_loop);
+	std::thread tcv_write_thread(tcv_write_loop);
 
 	// Open tunnel device
 	int tunnel_sock;
@@ -215,8 +215,8 @@ int main(int argc, char *argv[])
 	close(tunnel_sock);
 
 	// Start tunnel threads
-	thread tun_read_thread(tun_read_loop);
-	thread tun_write_thread(tun_write_loop);
+	std::thread tun_read_thread(tun_read_loop);
+	std::thread tun_write_thread(tun_write_loop);
 
 	double nmjd = currentmjd(0.);
 	int32_t sleept;

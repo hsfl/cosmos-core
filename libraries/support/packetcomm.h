@@ -2,13 +2,13 @@
 #define PACKETCOMM_H
 
 #include "support/configCosmos.h"
-#include "math/mathlib.h"
-#include "support/datalib.h"
+#include "math/crclib.h"
 #include "support/sliplib.h"
 #include "device/general/ax25class.h"
 
 namespace Cosmos {
     namespace Support {
+        using std::map;
         class PacketComm
         {
         public:
@@ -34,10 +34,6 @@ namespace Cosmos {
             bool ASMPacketize();
             bool AX25Packetize(string dest_call="", string sour_call="", uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
             bool SLIPPacketize();
-//            void SetSecret(uint32_t secretnumber);
-
-            int32_t PushQueue(queue<PacketComm> &queue, mutex &mtx);
-            int32_t PullQueue(queue<PacketComm> &queue, mutex &mtx);
 
             enum class TypeId : uint8_t {
                 None = 0,
@@ -93,6 +89,7 @@ namespace Cosmos {
                 CommandEpsSwitchStatus = 169,
                 CommandExecLoadCommand = 170,
                 CommandExecAddCommand = 171,
+                CommandRadioCommunicate = 180,
                 };
 
             map<TypeId, string> TypeString = {
@@ -148,6 +145,7 @@ namespace Cosmos {
                 {TypeId::CommandEpsSwitchStatus, "EpsSwitchStatus"},
                 {TypeId::CommandExecLoadCommand, "ExecLoadCommand"},
                 {TypeId::CommandExecAddCommand, "ExecAddCommand"},
+                {TypeId::CommandRadioCommunicate, "RadioCommunicate"},
             };
 
             map<string, TypeId> StringType = {
@@ -205,6 +203,8 @@ namespace Cosmos {
                 {"AdcsGetAdcsState", TypeId::CommandAdcsGetAdcsState},
                 {"ExecLoadCommand", TypeId::CommandExecLoadCommand},
                 {"ExecAddCommand", TypeId::CommandExecAddCommand},
+
+                {"RadioCommunicate", TypeId::CommandRadioCommunicate},
             };
 
             struct __attribute__ ((packed)) CommunicateHeader
@@ -248,8 +248,8 @@ namespace Cosmos {
                 uint16_t data_size = 0;
                 TypeId type = TypeId::CommandPing;
                 uint8_t radio = 0;
-                NodeData::NODE_ID_TYPE orig = NodeData::NODEIDORIG;
-                NodeData::NODE_ID_TYPE dest = NodeData::NODEIDDEST;
+                uint8_t orig = 254; // refer to NodeData::NODEIDORIG;
+                uint8_t dest = 255; // refer to NodeData::NODEIDDEST;
                 // Maybe response_id here
             } header;
 

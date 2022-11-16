@@ -31,6 +31,7 @@
         \brief Ephemeris library source file
 */
 
+#include <mutex>
 #include "support/ephemlib.h"
 #include "support/jpleph.h"
 #include "support/datalib.h"

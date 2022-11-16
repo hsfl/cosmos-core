@@ -25,7 +25,7 @@ add_library(CosmosPrint STATIC print_utils.cpp print_utils.h)
 install(TARGETS CosmosPrint DESTINATION lib)
 target_link_libraries(CosmosPrint  CosmosSupport ${COSMOS_LIBS})
 
-add_library(CosmosError STATIC cosmos-errno.cpp cosmos-errno.h )
+add_library(CosmosError STATIC cosmos-errno.h cosmos-errclass.h cosmos-errclass.cpp)
 install(TARGETS CosmosError DESTINATION lib)
 target_link_libraries(CosmosError CosmosString CosmosData CosmosSupport ${COSMOS_LIBS})
 

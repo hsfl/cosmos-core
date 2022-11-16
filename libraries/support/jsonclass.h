@@ -37,14 +37,14 @@ namespace Cosmos
                 string svalue;
                 double nvalue;
                 bool bvalue;
-                map<string, Value> object;
+                std::map<string, Value> object;
                 vector<Value> array;
                 string::iterator begin;
                 string::iterator end;
             };
 
             typedef pair<string, Value> Member;
-            typedef map<string, Value> Object;
+            typedef std::map<string, Value> Object;
             typedef vector<Value> Array;
 
             //! JSON Member elements

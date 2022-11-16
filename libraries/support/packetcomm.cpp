@@ -1,5 +1,4 @@
 #include "packetcomm.h"
-
 namespace Cosmos {
     namespace Support {
         //PacketComm::PacketComm()
@@ -23,11 +22,10 @@ namespace Cosmos {
                 return GENERAL_ERROR_BAD_SIZE;
             }
             memcpy(&header, &wrapped[0], COSMOS_SIZEOF(Header));
-            if (wrapped.size() < uint32_t(header.data_size + COSMOS_SIZEOF(Header) + 2))
+            if (wrapped.size() != uint32_t(header.data_size + COSMOS_SIZEOF(Header) + 2))
             {
                 return GENERAL_ERROR_BAD_SIZE;
             }
-            wrapped.resize(header.data_size + COSMOS_SIZEOF(Header) + 2);
             if (checkcrc)
             {
                 uint16_t crcin = uint16from(&wrapped[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
@@ -67,7 +65,11 @@ namespace Cosmos {
 
         bool PacketComm::SLIPUnPacketize()
         {
-            slip_unpack(packetized, wrapped);
+            int32_t iretn = slip_unpack(packetized, wrapped);
+            if (iretn <= 0)
+            {
+                return false;
+            }
             return Unwrap();
         }
 
@@ -170,29 +172,5 @@ namespace Cosmos {
 //            secret = secretnumber;
 //            return;
 //        }
-
-        // Thread-safe way of pushing onto the packet queue
-        int32_t PacketComm::PushQueue(queue<PacketComm> &queue, mutex &mtx)
-        {
-            std::lock_guard<mutex> lock(mtx);
-            queue.push(*this);
-            return 1;
-        }
-        // Thread-safe way of pulling from the packet queue
-        int32_t PacketComm::PullQueue(queue<PacketComm> &queue, mutex &mtx)
-        {
-            std::lock_guard<mutex> lock(mtx);
-            if (queue.size())
-            {
-                *this = queue.front();
-                queue.pop();
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
     }
 }

@@ -136,8 +136,8 @@ int32_t request_set_enabled(string &request, string &response, Agent *agent);
 int main(int argc, char *argv[])
 {
     int32_t iretn = 0;
-    thread recv_loop_thread;
-    thread send_loop_thread;
+    std::thread recv_loop_thread;
+    std::thread send_loop_thread;
 
     if (static_cast<string>(argv[0]).find("slow") != string::npos)
     {
@@ -245,8 +245,8 @@ int main(int argc, char *argv[])
     double nextdiskcheck = currentmjd(0.);
 
     // Start send and recv threads
-    recv_loop_thread = thread([=] { recv_loop(); });
-    send_loop_thread = thread([=] { send_loop(); });
+    recv_loop_thread = std::thread([=] { recv_loop(); });
+    send_loop_thread = std::thread([=] { send_loop(); });
 
     ElapsedTime etloop;
     etloop.start();

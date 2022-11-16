@@ -30,6 +30,7 @@
 #include "support/configCosmos.h"
 
 #include "support/demlib.h"
+#include <mutex>
 #include <sys/stat.h>
 
 namespace Cosmos {

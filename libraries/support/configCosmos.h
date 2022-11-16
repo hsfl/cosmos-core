@@ -110,19 +110,12 @@ using std::vector;
 using std::stack;
 #include <deque>
 using std::deque;
-#include <mutex>
-using std::mutex;
-using std::unique_lock;
-#include <thread>
-using std::thread;
-#include <condition_variable>
-using std::condition_variable;
+// #include <thread>
+// using std::thread;
 #include <queue>
 using std::queue;
 #include <sstream>
 using std::istringstream;
-#include <map>
-using std::map;
 using std::pair;
 #include <unordered_map>
 using std::unordered_map;
@@ -157,6 +150,7 @@ using namespace Cosmos::Support;
 //! \addtogroup defs_macros More Special COSMOS macros
 //! @{
 #define COSMOS_LINUX_OS
+#ifndef COSMOS_MICRO_COSMOS // reduce includes for Micro-COSMOS 
 #define COSMOS_USLEEP(usec) usleep(static_cast<uint32_t>(usec))
 #define COSMOS_SLEEP(sec) usleep(static_cast<uint32_t>((sec>=0.?sec:0)*1e6)) // this allows decimal seconds
 #define CLOSE_SOCKET(socket) ::close(socket)
@@ -172,6 +166,8 @@ using namespace Cosmos::Support;
 #include <sys/vfs.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
+#include "json11.hpp"
+#endif
 #endif
 
 // --------------------- WINDOWS ------------------------------------
@@ -212,6 +208,7 @@ using namespace Cosmos::Support;
 #include <thread>
 #include <io.h>
 #include <process.h>
+#include "json11.hpp"
 
 #endif
 
@@ -233,10 +230,10 @@ using namespace Cosmos::Support;
 #include <arpa/inet.h>
 #include <sys/select.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/param.h>
 #include <sys/mount.h>
+#include "json11.hpp"
 #endif
 
 // --------------------- CYGWIN ------------------------------------
@@ -257,9 +254,7 @@ using namespace Cosmos::Support;
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/vfs.h>
-#endif // COSMOS_CYGWIN_OS
-
 #include "json11.hpp"
-
+#endif // COSMOS_CYGWIN_OS
 
 #endif // CONFIGCOSMOS_H

@@ -41,9 +41,6 @@
 #include <vector>
 #include <list>
 #include <queue>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 
 //! \ingroup defs
 //! \defgroup defs_storage Constants defining limits on storage.

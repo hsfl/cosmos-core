@@ -8,8 +8,6 @@
 //! \defgroup mathlib_constants Math library constants
 //! @{
 
-//! PI
-const double PI=3.1415926535897932384626433832795028841971693993751;
 //! Double precision PI
 const double DPI=3.1415926535897932384626433832795028841971693993751;
 //! Double precision 2*PI

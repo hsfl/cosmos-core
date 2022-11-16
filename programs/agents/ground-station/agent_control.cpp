@@ -143,7 +143,7 @@ static string nodename = "";
 static string agentname = "control";
 static string trajectoryname = "";
 static Agent *agent;
-static mutex cdata_mutex;
+static std::mutex cdata_mutex;
 
 static vector <double> lastantutc;
 static vector <double> lasttcvutc;
@@ -515,7 +515,7 @@ int main(int argc, char *argv[])
         exit (iretn);
 
     // Start monitoring thread
-    thread monitor_thread(monitor);
+    std::thread monitor_thread(monitor);
     ElapsedTime et;
 
     // Start main thread

@@ -529,7 +529,7 @@ namespace Cosmos {
             map<string, uint8_t> beacon_typeID;
             // Vector of predefined beacons
             vector<string> send_pattern;
-            mutex send_pattern_mtx;
+            std::mutex send_pattern_mtx;
             int pattern_idx;
             int current_beacon;
 //            cosmosstruc* cinfo;
