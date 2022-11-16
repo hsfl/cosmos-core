@@ -3845,7 +3845,7 @@ acquired.
 
         int32_t Agent::push_response(uint8_t number, uint8_t dest, uint32_t id, vector<uint8_t> response)
         {
-            int32_t iretn = 0;
+            // int32_t iretn = 0;
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
@@ -3888,7 +3888,7 @@ acquired.
                     packet.data.resize(COSMOS_SIZEOF(PacketComm::ResponseHeader));
                     memcpy(packet.data.data(), &header, COSMOS_SIZEOF(PacketComm::ResponseHeader));
                     packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
-                    iretn = channels.Push(number, packet);
+                    /*iretn =*/ channels.Push(number, packet);
 //                    if (iretn > 0)
 //                    {
 //                        monitor_unwrapped(number, packet, "Response");
@@ -3931,7 +3931,7 @@ acquired.
 
         int32_t Agent::push_hardware_response(PacketComm::TypeId type, uint8_t number, uint8_t dest, uint8_t unit, uint8_t command, vector<uint8_t> response)
         {
-            int32_t iretn = 0;
+            // int32_t iretn = 0;
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
@@ -3969,7 +3969,7 @@ acquired.
                     packet.data.resize(sizeof(header));
                     memcpy(packet.data.data(), &header, sizeof(header));
                     packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
-                    iretn = channels.Push(number, packet);
+                    /*iretn =*/ channels.Push(number, packet);
 //                    if (iretn > 0)
 //                    {
 //                        monitor_unwrapped(number, packet, to_label("Response", static_cast<uint8_t>(type)));
