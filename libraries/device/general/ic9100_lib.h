@@ -69,7 +69,7 @@ struct ic9100_handle
     uint8_t address;
     uint8_t channelnum;
     Serial *serial;
-    std::mutex mut;
+    mutex mut;
     vector <uint8_t> response;
     uint8_t freqband;
     uint8_t filtband;

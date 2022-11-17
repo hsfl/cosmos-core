@@ -748,7 +748,7 @@ namespace Cosmos {
         }
 
         int32_t Beacon::set_pattern(const vector<string>& pattern) {
-            std::lock_guard<std::mutex> lock(send_pattern_mtx);
+            std::lock_guard<mutex> lock(send_pattern_mtx);
             // TODO: add pattern verifier
             send_pattern = pattern;
 

@@ -141,7 +141,7 @@ namespace Cosmos
             JSON_UNIT_COUNT
             };
         // Namespace 2.0
-        static std::map<string, uint16_t> JsonUnitValue = {
+        static map<string, uint16_t> JsonUnitValue = {
             {"none", 0},
             {"length", 1},
             {"mass", 2},
@@ -179,7 +179,7 @@ namespace Cosmos
             {"fraction", 34}
         };
 
-        static std::map<uint16_t, string> JsonUnitName = {
+        static map<uint16_t, string> JsonUnitName = {
             {0, "none"},
             {1, "length"},
             {2, "mass"},
@@ -2431,7 +2431,7 @@ union as a ::devicestruc.
  */
 
         //JIMNOTE:  this one needs some JSON work... hmm....  what to do about that union....
-        static std::map<string, uint16_t> TelemTypeValue = {
+        static map<string, uint16_t> TelemTypeValue = {
             {"vuint8", 0},
             {"vint8", 1},
             {"vuint16", 2},
@@ -2443,7 +2443,7 @@ union as a ::devicestruc.
             {"vstring", 8}
         };
 
-        static std::map<uint16_t, string> TelemTypeName = {
+        static map<uint16_t, string> TelemTypeName = {
             {0, "vuint8"},
             {1, "vint8"},
             {2, "vuint16"},
@@ -5339,7 +5339,7 @@ union as a ::devicestruc.
 
             //! JSON Namespace Map matrix. first entry hash, second is items with that hash
             vector<vector<jsonentry> > jmap; // depricate me!
-            unordered_std::map<string, jsonentry> ujmap;
+            unordered_map<string, jsonentry> ujmap;
 
             //! JSON Equation Map matrix.
             vector<vector<jsonequation> > emap; // depricate me?
@@ -5703,10 +5703,10 @@ union as a ::devicestruc.
 
             /// Support for Namespace 2.0
 
-            using name_map = std::map<string,void*>;
+            using name_map = map<string,void*>;
             using name_mapping = pair<string,void*>;
 
-            using type_map = std::map<string,string>;
+            using type_map = map<string,string>;
             using type_mapping = pair<string,string>;
 
             name_map names;

@@ -381,7 +381,7 @@ namespace Cosmos {
             std::thread ptthread;
             deque<vector<uint8_t>> ptqueue;
             bool ptrun;
-            std::mutex ptmutex;
+            mutex ptmutex;
             uint8_t privilege;
             uint32_t heartbeat_msec;
         };

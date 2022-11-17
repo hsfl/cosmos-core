@@ -71,7 +71,7 @@ struct usrp_handle
     uint8_t channelnum;
     socket_channel socket;
     uint16_t port;
-    std::mutex mut;
+    mutex mut;
     vector <uint8_t> response;
     uint8_t freqband;
     uint8_t filtband;

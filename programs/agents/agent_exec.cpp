@@ -79,7 +79,7 @@ void move_and_compress_exec ();
 static double logdate_exec=0.;
 static double newlogstride_exec = 300. / 86400.;
 static double logstride_exec = 0.;
-static std::mutex exec_mutex;
+static mutex exec_mutex;
 
 int32_t get_last_offset();
 int32_t get_flags();
@@ -121,9 +121,9 @@ static double newlogperiod = 30. / 86400.;
 static double logperiod = 0;
 static double newlogstride_soh = 600. / 86400.;
 static double logstride_soh = 0.;
-static std::mutex soh_mutex;
+static mutex soh_mutex;
 
-static std::mutex beacon_mutex;
+static mutex beacon_mutex;
 void move_and_compress_beacon();
 //void get_beacon_cpu();
 int32_t get_power_mode();

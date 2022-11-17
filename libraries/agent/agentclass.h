@@ -497,7 +497,7 @@ namespace Cosmos
             //! Last error
             int32_t error_value;
             //! mutex to protect process_request
-            std::mutex process_mutex;
+            mutex process_mutex;
 
             //! Function in which we generate our time, for the mjd request.
             double (*agent_time_producer)() = currentmjd;
@@ -516,7 +516,7 @@ namespace Cosmos
                 string description;
             };
 
-            std::map<string, request_entry> reqs;
+            map<string, request_entry> reqs;
 
             void heartbeat_loop();
             void request_loop() noexcept;

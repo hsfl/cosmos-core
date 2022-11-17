@@ -473,7 +473,7 @@ namespace Cosmos {
                 uint32_t last_packet_id = 0;
                 ElapsedTime et;
             };
-            static std::map<uint32_t, test_control> tests;
+            static map<uint32_t, test_control> tests;
             response.clear();
 
             if (packet.data.size() > COSMOS_SIZEOF(PacketComm::TestHeader))

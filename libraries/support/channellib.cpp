@@ -23,32 +23,32 @@ namespace Cosmos {
             channel.resize(6);
 
             channel[0].name = "SELF";
-            channel[0].mtx = new std::mutex;
+            channel[0].mtx = new mutex;
             channel[0].datasize = 1400;
             channel[0].maximum = 1000;
 
             channel[1].name = "NET";
-            channel[1].mtx = new std::mutex;
+            channel[1].mtx = new mutex;
             channel[1].datasize = 1400;
             channel[1].maximum = 1000;
 
             channel[2].name = "EPS";
-            channel[2].mtx = new std::mutex;
+            channel[2].mtx = new mutex;
             channel[2].datasize = 1400;
             channel[2].maximum = 1000;
 
             channel[3].name = "ADCS";
-            channel[3].mtx = new std::mutex;
+            channel[3].mtx = new mutex;
             channel[3].datasize = 1400;
             channel[3].maximum = 1000;
 
             channel[4].name = "FILE";
-            channel[4].mtx = new std::mutex;
+            channel[4].mtx = new mutex;
             channel[4].datasize = 1400;
             channel[4].maximum = 1000;
 
             channel[5].name = "EXEC";
-            channel[5].mtx = new std::mutex;
+            channel[5].mtx = new mutex;
             channel[5].datasize = 1400;
             channel[5].maximum = 1000;
 
@@ -86,7 +86,7 @@ namespace Cosmos {
                 channel.back().rawsize = datasize;
             }
             channel.back().maximum = maximum;
-            channel.back().mtx = new std::mutex;
+            channel.back().mtx = new mutex;
             return channel.size() - 1;
         }
 
@@ -260,7 +260,7 @@ namespace Cosmos {
             {
                 if (channel[i].name == name)
                 {
-                    std::lock_guard<std::mutex> lock(*channel[i].mtx);
+                    std::lock_guard<mutex> lock(*channel[i].mtx);
                     if (channel[i].quu.size())
                     {
                         packet = channel[i].quu.front();
@@ -305,7 +305,7 @@ namespace Cosmos {
         {
             if (name.empty())
             {
-                std::lock_guard<std::mutex> lock(*channel[0].mtx);
+                std::lock_guard<mutex> lock(*channel[0].mtx);
                 return channel[0].quu.size();
             }
 
@@ -313,7 +313,7 @@ namespace Cosmos {
             {
                 if (channel[i].name == name)
                 {
-                    std::lock_guard<std::mutex> lock(*channel[i].mtx);
+                    std::lock_guard<mutex> lock(*channel[i].mtx);
                     return channel[i].quu.size();
                 }
             }
@@ -336,7 +336,7 @@ namespace Cosmos {
         {
             if (name.empty())
             {
-                std::lock_guard<std::mutex> lock(*channel[0].mtx);
+                std::lock_guard<mutex> lock(*channel[0].mtx);
                 std::queue<PacketComm>().swap(channel[0].quu);
                 return 0;
             }
@@ -345,7 +345,7 @@ namespace Cosmos {
             {
                 if (channel[i].name == name)
                 {
-                    std::lock_guard<std::mutex> lock(*channel[i].mtx);
+                    std::lock_guard<mutex> lock(*channel[i].mtx);
                 	std::queue<PacketComm>().swap(channel[i].quu);
                     return i;
                 }

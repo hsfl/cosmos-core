@@ -8,7 +8,6 @@
 
 namespace Cosmos {
     namespace Support {
-        using std::map;
         class PacketComm
         {
         public:
@@ -93,7 +92,7 @@ namespace Cosmos {
                 CommandRadioCommunicate = 180,
                 };
 
-            std::map<TypeId, string> TypeString = {
+            map<TypeId, string> TypeString = {
                 {TypeId::DataBeacon, "Beacon"},
                 {TypeId::DataNop, "Nop"},
                 {TypeId::DataPong, "Pong"},
@@ -150,7 +149,7 @@ namespace Cosmos {
                 {TypeId::CommandRadioCommunicate, "RadioCommunicate"},
             };
 
-            std::map<string, TypeId> StringType = {
+            map<string, TypeId> StringType = {
                 {"Beacon", TypeId::DataBeacon},
                 {"Nop", TypeId::DataNop},
                 {"Pong", TypeId::DataPong},

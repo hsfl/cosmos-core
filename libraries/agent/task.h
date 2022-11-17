@@ -85,7 +85,7 @@ namespace Cosmos
             string NodeName;
             string AgentName;
             vector<Running> tasks;
-            std::mutex mtx;
+            mutex mtx;
             uint8_t state = 0;
             std::thread mythread;
         };

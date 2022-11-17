@@ -42,7 +42,7 @@ namespace Cosmos {
 
         static void *jplephem = nullptr;
 
-        static std::mutex eph_mutex;
+        static mutex eph_mutex;
 
         //! \addtogroup ephemlib_functions
         //! @{

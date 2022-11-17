@@ -70,17 +70,17 @@ namespace Cosmos {
         }
 
         // Thread-safe way of pushing onto the packet queue
-        int32_t NetRadio::Queue(queue<PacketComm> &queue, std::mutex &mtx, const PacketComm &p)
+        int32_t NetRadio::Queue(queue<PacketComm> &queue, mutex &mtx, const PacketComm &p)
         {
-            std::lock_guard<std::mutex> lock(mtx);
+            std::lock_guard<mutex> lock(mtx);
             queue.push(p);
             return queue.size();
         }
 
         // Thread-safe way of pulling from the packet queue
-        int32_t NetRadio::DeQueue(queue<PacketComm> &queue, std::mutex &mtx, PacketComm &p)
+        int32_t NetRadio::DeQueue(queue<PacketComm> &queue, mutex &mtx, PacketComm &p)
         {
-            std::lock_guard<std::mutex> lock(mtx);
+            std::lock_guard<mutex> lock(mtx);
             if (queue.size())
             {
                 p = queue.front();
@@ -93,9 +93,9 @@ namespace Cosmos {
             }
         }
 
-        int32_t NetRadio::Clear(queue<PacketComm> &queue, std::mutex &mtx)
+        int32_t NetRadio::Clear(queue<PacketComm> &queue, mutex &mtx)
         {
-            std::lock_guard<std::mutex> lock(mtx);
+            std::lock_guard<mutex> lock(mtx);
 			// need version 7 of arm-linux-gnueabihf-g++
             //queue = {};
 			std::queue<Cosmos::Support::PacketComm> temp;

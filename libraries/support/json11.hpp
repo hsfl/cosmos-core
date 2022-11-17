@@ -4,7 +4,7 @@
  *
  * The core object provided by the library is json11::Json. A Json object represents any JSON
  * value: null, bool, number (int or double), string (string), array (std::vector), or
- * object (std::map).
+ * object (map).
  *
  * Json objects act like values: they can be assigned, copied, moved, compared for equality or
  * order, etc. There are also helper methods Json::dump, to serialize a Json to a string, and
@@ -86,7 +86,7 @@ public:
 
     // Array and object typedefs
     typedef std::vector<Json> array;
-    typedef std::std::map<string, Json> object;
+    typedef map<string, Json> object;
 
     // Constructors for the various types of JSON value.
     Json() noexcept;                // NUL
@@ -106,7 +106,7 @@ public:
     template <class T, class = decltype(&T::to_json)>
     Json(const T & t) : Json(t.to_json()) {}
 
-    // Implicit constructor: map-like objects (std::map, std::unordered_map, etc)
+    // Implicit constructor: map-like objects (map, std::unordered_map, etc)
     template <class M, typename std::enable_if<
         std::is_constructible<string, decltype(std::declval<M>().begin()->first)>::value
         && std::is_constructible<Json, decltype(std::declval<M>().begin()->second)>::value,
@@ -146,7 +146,7 @@ public:
     const string &string_value() const;
     // Return the enclosed std::vector if this is an array, or an empty vector otherwise.
     const array &array_items() const;
-    // Return the enclosed std::map if this is an object, or an empty map otherwise.
+    // Return the enclosed map if this is an object, or an empty map otherwise.
     const object &object_items() const;
 
     // Return a reference to arr[i] if this is an array, Json() otherwise.

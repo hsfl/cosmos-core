@@ -90,7 +90,7 @@ namespace Cosmos {
         int32_t ReceiveByte(uint8_t &buf);
         int32_t SendBuffer(uint8_t *buffer, int size);
 
-        std::map<string, size_t> Parity = {{"none", 0}, {"odd", 1}, {"even", 2}};
+        map<string, size_t> Parity = {{"none", 0}, {"odd", 1}, {"even", 2}};
 
     private:
         int fd = -1;                   /* tty file descriptor */

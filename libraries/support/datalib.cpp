@@ -2441,7 +2441,7 @@ int32_t data_shell(string command_line, string outpath, string inpath, string er
 }
 
 // Define the static member variables here
-std::map<string, uint8_t> NodeData::node_ids;
+map<string, uint8_t> NodeData::node_ids;
 
 //! Loads node table from nodeids.ini configuration file
 //! nodeids is a vector of node name strings indexed by a node_id

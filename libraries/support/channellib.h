@@ -25,7 +25,7 @@ namespace Cosmos {
                 size_t bytes = 0;
                 string name = "";
                 queue<PacketComm> quu;
-                std::mutex* mtx = nullptr;
+                mutex* mtx = nullptr;
                 uint16_t datasize = PACKETCOMM_DATA_SIZE;
                 uint16_t rawsize = PACKETCOMM_DATA_SIZE;
                 uint16_t maximum = 100;

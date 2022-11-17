@@ -40,7 +40,7 @@ namespace Cosmos {
         public:
             Error();
 
-            typedef  std::map<int16_t, string> ErrorMap;
+            typedef  map<int16_t, string> ErrorMap;
             ErrorMap ErrorStrings;
 
             enum LogType

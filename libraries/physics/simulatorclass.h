@@ -30,7 +30,7 @@ namespace Cosmos
                 Running
                 };
 
-            typedef std::map<string, Physics::State*> StateList;
+            typedef map<string, Physics::State*> StateList;
 
             int32_t Init(double iutc, double idt=1.);
             int32_t Connect();

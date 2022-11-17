@@ -96,7 +96,7 @@ namespace Cosmos {
             /// The node_id of the calling node
             PACKET_NODE_ID_TYPE self_node_id;
             /// Maps a node_id to an index into txq. <node_id, txq_index>. Use node_id_to_txq_idx instead of trying to access the map directly with []operator.
-            std::map<PACKET_NODE_ID_TYPE, size_t> node_id_to_txq_map;
+            map<PACKET_NODE_ID_TYPE, size_t> node_id_to_txq_map;
 
             /// Vector of nodes to transfer files in/out. Heart of the file transfer manager.
             vector<tx_queue> txq;
