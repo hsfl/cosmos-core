@@ -42,6 +42,7 @@ namespace Cosmos {
             enum class TypeId : uint8_t {
                 None = 0,
                 DataBeacon = 10,
+                DataNop = 15,
                 DataPong = 41,
                 DataEpsResponse = 43,
                 DataRadioResponse = 44,
@@ -97,6 +98,7 @@ namespace Cosmos {
 
             map<TypeId, string> TypeString = {
                 {TypeId::DataBeacon, "Beacon"},
+                {TypeId::DataNop, "Nop"},
                 {TypeId::DataPong, "Pong"},
                 {TypeId::DataEpsResponse, "EpsResponse"},
                 {TypeId::DataRadioResponse, "RadioResponse"},
@@ -152,6 +154,7 @@ namespace Cosmos {
 
             map<string, TypeId> StringType = {
                 {"Beacon", TypeId::DataBeacon},
+                {"Nop", TypeId::DataNop},
                 {"Pong", TypeId::DataPong},
                 {"EpsResponse", TypeId::DataEpsResponse},
                 {"RadioResponse", TypeId::DataRadioResponse},
