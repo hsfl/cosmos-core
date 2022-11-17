@@ -32,7 +32,8 @@
 
 #include "support/configCosmos.h"
 #include "support/cosmos-errno.h"
-#include "math/mathlib.h"
+#include "math/bytelib.h"
+#include "math/crclib.h"
 
 #include <cstring>
 #include <iostream>

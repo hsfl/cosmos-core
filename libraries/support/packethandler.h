@@ -102,8 +102,6 @@ namespace Cosmos {
             bool get_next_packet_id();
             Error *errorlog;
 
-            mutex mtx;
-
         };
     }
 }

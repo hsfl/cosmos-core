@@ -1,4 +1,5 @@
 #include "physics/simulatorclass.h"
+#include "support/cosmos-errclass.h"
 #include "support/datalib.h"
 #include <iomanip>
 #include <sstream>

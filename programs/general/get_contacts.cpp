@@ -50,7 +50,7 @@ struct trackstruc
     float highest;
     double startutc;
     std::mutex *control_mutex;
-    thread *control_thread;
+    std::thread *control_thread;
     bool running;
 };
 static std::vector <trackstruc> track;

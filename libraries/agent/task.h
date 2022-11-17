@@ -43,6 +43,8 @@
 #include "support/datalib.h"
 #include "support/timelib.h"
 #include <future>
+#include <mutex>
+#include <thread>
 
 namespace Cosmos
 {
@@ -83,9 +85,9 @@ namespace Cosmos
             string NodeName;
             string AgentName;
             vector<Running> tasks;
-            mutex mtx;
+            std::mutex mtx;
             uint8_t state = 0;
-            thread mythread;
+            std::thread mythread;
         };
     }
 }

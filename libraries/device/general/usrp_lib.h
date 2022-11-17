@@ -31,6 +31,7 @@
 #ifndef USRP_LIB_H
 #define USRP_LIB_H
 
+#include <mutex>
 #include "support/configCosmos.h"
 #include "support/socketlib.h"
 #include "support/stringlib.h"

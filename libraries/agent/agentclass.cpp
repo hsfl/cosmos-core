@@ -163,7 +163,7 @@ namespace Cosmos
             nodeId = iretn;
 
             // Start message listening thread
-            mthread = thread([=] { message_loop(); });
+            mthread = std::thread([=] { message_loop(); });
             secondsleep(.1);
 
             // Return if all we are doing is setting up client.
@@ -248,8 +248,8 @@ namespace Cosmos
 
             // Start the heartbeat and request threads running
             //    iretn = start();
-            hthread = thread([=] { heartbeat_loop(); });
-            cthread = thread([=] { request_loop(); });
+            hthread = std::thread([=] { heartbeat_loop(); });
+            cthread = std::thread([=] { request_loop(); });
             if (!hthread.joinable() || !cthread.joinable()) {
                 // TODO: create error value
                 //error_value = iretn;
@@ -404,8 +404,8 @@ namespace Cosmos
 */
         int32_t Agent::start() {
             // start heartbeat thread
-            hthread = thread([=] { heartbeat_loop(); });
-            cthread = thread([=] { request_loop(); });
+            hthread = std::thread([=] { heartbeat_loop(); });
+            cthread = std::thread([=] { request_loop(); });
             return 0;
         }
 
@@ -3791,7 +3791,8 @@ acquired.
             }
 
             iretn = channels.Push(number, packet);
-//            if (iretn >0)
+
+//            if (iretn >= 0)
 //            {
 //                monitor_unwrapped(number, packet, "Push");
 //            }
@@ -3844,7 +3845,7 @@ acquired.
 
         int32_t Agent::push_response(uint8_t number, uint8_t dest, uint32_t id, vector<uint8_t> response)
         {
-            int32_t iretn = 0;
+            // int32_t iretn = 0;
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
@@ -3887,7 +3888,7 @@ acquired.
                     packet.data.resize(COSMOS_SIZEOF(PacketComm::ResponseHeader));
                     memcpy(packet.data.data(), &header, COSMOS_SIZEOF(PacketComm::ResponseHeader));
                     packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
-                    iretn = channels.Push(number, packet);
+                    /*iretn =*/ channels.Push(number, packet);
 //                    if (iretn > 0)
 //                    {
 //                        monitor_unwrapped(number, packet, "Response");
@@ -3930,7 +3931,7 @@ acquired.
 
         int32_t Agent::push_hardware_response(PacketComm::TypeId type, uint8_t number, uint8_t dest, uint8_t unit, uint8_t command, vector<uint8_t> response)
         {
-            int32_t iretn = 0;
+            // int32_t iretn = 0;
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
@@ -3968,7 +3969,7 @@ acquired.
                     packet.data.resize(sizeof(header));
                     memcpy(packet.data.data(), &header, sizeof(header));
                     packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
-                    iretn = channels.Push(number, packet);
+                    /*iretn =*/ channels.Push(number, packet);
 //                    if (iretn > 0)
 //                    {
 //                        monitor_unwrapped(number, packet, to_label("Response", static_cast<uint8_t>(type)));
@@ -3997,7 +3998,8 @@ acquired.
             }
 
             iretn = channels.Pull(number, packet);
-//            if (iretn >0)
+
+//            if (iretn > 0)
 //            {
 //                monitor_unwrapped(number, packet, "Pull");
 //            }

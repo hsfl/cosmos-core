@@ -1,6 +1,8 @@
 #ifndef CHANNELLIB_H
 #define CHANNELLIB_H
 
+#include <mutex>
+#include <thread>
 #include "support/configCosmos.h"
 #include "support/packetcomm.h"
 
@@ -23,7 +25,7 @@ namespace Cosmos {
                 size_t bytes = 0;
                 string name = "";
                 queue<PacketComm> quu;
-                mutex* mtx = nullptr;
+                std::mutex* mtx = nullptr;
                 uint16_t datasize = PACKETCOMM_DATA_SIZE;
                 uint16_t rawsize = PACKETCOMM_DATA_SIZE;
                 uint16_t maximum = 100;

@@ -123,6 +123,7 @@
 //! with Cosmos::secondsleep. Upon exiting from this loop, you should call Cosmos::Agent::shutdown.
 
 #include "support/configCosmos.h"
+#include "support/cosmos-errclass.h"
 #include "support/jsonlib.h"
 #include "support/jsonclass.h"
 #include "device/cpu/devicecpu.h"
@@ -488,15 +489,15 @@ namespace Cosmos
             double timeStart; // UTC starting time for this agent in MJD
             string hbjstring;
             //! Handle for request thread
-            thread cthread;
+            std::thread cthread;
             //! Handle for heartbeat thread
-            thread hthread;
+            std::thread hthread;
             //! Handle for message thread
-            thread mthread;
+            std::thread mthread;
             //! Last error
             int32_t error_value;
             //! mutex to protect process_request
-            mutex process_mutex;
+            std::mutex process_mutex;
 
             //! Function in which we generate our time, for the mjd request.
             double (*agent_time_producer)() = currentmjd;

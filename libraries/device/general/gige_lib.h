@@ -30,8 +30,11 @@
 #ifndef _GIGE_H
 #define _GIGE_H 1
 
+#include <mutex>
+#include <thread>
 #include "support/configCosmos.h"
 #include "support/socketlib.h"
+#include "math/bytelib.h"
 #include "math/vector.h"
 using namespace Cosmos::Math::Vectors;
 
@@ -375,10 +378,10 @@ namespace Cosmos {
             size_t binheight;
             vector<uint8_t> bufferin;
             vector<uint16_t> bufferout;
-            thread ptthread;
+            std::thread ptthread;
             deque<vector<uint8_t>> ptqueue;
             bool ptrun;
-            mutex ptmutex;
+            std::mutex ptmutex;
             uint8_t privilege;
             uint32_t heartbeat_msec;
         };

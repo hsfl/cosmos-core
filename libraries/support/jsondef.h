@@ -141,7 +141,7 @@ namespace Cosmos
             JSON_UNIT_COUNT
             };
         // Namespace 2.0
-        static map<string, uint16_t> JsonUnitValue = {
+        static std::map<string, uint16_t> JsonUnitValue = {
             {"none", 0},
             {"length", 1},
             {"mass", 2},
@@ -179,7 +179,7 @@ namespace Cosmos
             {"fraction", 34}
         };
 
-        static map<uint16_t, string> JsonUnitName = {
+        static std::map<uint16_t, string> JsonUnitName = {
             {0, "none"},
             {1, "length"},
             {2, "mass"},
@@ -2431,7 +2431,7 @@ union as a ::devicestruc.
  */
 
         //JIMNOTE:  this one needs some JSON work... hmm....  what to do about that union....
-        static map<string, uint16_t> TelemTypeValue = {
+        static std::map<string, uint16_t> TelemTypeValue = {
             {"vuint8", 0},
             {"vint8", 1},
             {"vuint16", 2},
@@ -2443,7 +2443,7 @@ union as a ::devicestruc.
             {"vstring", 8}
         };
 
-        static map<uint16_t, string> TelemTypeName = {
+        static std::map<uint16_t, string> TelemTypeName = {
             {0, "vuint8"},
             {1, "vint8"},
             {2, "vuint16"},
@@ -5703,10 +5703,10 @@ union as a ::devicestruc.
 
             /// Support for Namespace 2.0
 
-            using name_map = map<string,void*>;
+            using name_map = std::map<string,void*>;
             using name_mapping = pair<string,void*>;
 
-            using type_map = map<string,string>;
+            using type_map = std::map<string,string>;
             using type_mapping = pair<string,string>;
 
             name_map names;

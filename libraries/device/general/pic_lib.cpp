@@ -28,6 +28,7 @@
 ********************************************************************/
 
 #include "device/general/pic_lib.h"
+#include "math/crclib.h"
 
 //! Connect to PIC.
 /*! Connect to a PIC speaking NMEA protocol, connected to the

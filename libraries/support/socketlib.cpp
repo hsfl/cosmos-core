@@ -30,7 +30,7 @@
 // TODO: add TCP class
 
 #include "support/socketlib.h"
-#include "math/mathlib.h"
+#include "math/bytelib.h"
 #include "support/elapsedtime.h"
 #include "support/timelib.h"
 

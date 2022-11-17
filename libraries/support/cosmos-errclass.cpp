@@ -31,7 +31,7 @@
         \brief COSMOS Errno support library source file
 */
 
-#include "support/cosmos-errno.h"
+#include "support/cosmos-errclass.h"
 #include "support/timelib.h"
 #include "support/stringlib.h"
 #include "support/datalib.h"

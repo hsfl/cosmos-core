@@ -31,6 +31,7 @@
 #ifndef IC9100_LIB_H
 #define IC9100_LIB_H
 
+#include <mutex>
 #include "support/configCosmos.h"
 #include "device/serial/serialclass.h"
 
