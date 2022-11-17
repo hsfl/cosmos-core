@@ -1010,7 +1010,7 @@ namespace Cosmos
             string help_string, s;
             size_t qpos, prev_qpos = 0;
             help_string += "{\"requests\": [";
-            for(map<string, request_entry>::iterator it = agent->reqs.begin(); it != agent->reqs.end(); ++it) {
+            for(std::map<string, request_entry>::iterator it = agent->reqs.begin(); it != agent->reqs.end(); ++it) {
                 //            help_string += "        ";
                 if(it != agent->reqs.begin()) help_string+=",";
                 help_string += "{\"token\": \"";
@@ -1045,7 +1045,7 @@ namespace Cosmos
         int32_t Agent::req_help(string &, string &output, Agent* agent) {
             string help_string;
             help_string += "\n";
-            for(map<string, request_entry>::iterator it = agent->reqs.begin(); it != agent->reqs.end(); ++it) {
+            for(std::map<string, request_entry>::iterator it = agent->reqs.begin(); it != agent->reqs.end(); ++it) {
                 help_string += "        ";
                 help_string += it->second.token;
                 help_string += " ";
@@ -1760,9 +1760,9 @@ namespace Cosmos
         int32_t Agent::req_all_names_types(string &, string &response, Agent *agent)
         {
             response = "";
-            map<string,void*>::const_iterator n = agent->cinfo->names.begin();
+            std::map<string,void*>::const_iterator n = agent->cinfo->names.begin();
             while(n != agent->cinfo->names.end())	{
-                map<string,string>::const_iterator t = agent->cinfo->types.find(n->first);
+                std::map<string,string>::const_iterator t = agent->cinfo->types.find(n->first);
                 if(t == agent->cinfo->types.end())	{
                     response += (n++)->first + "\n";
                 } else {

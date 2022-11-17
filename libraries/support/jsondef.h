@@ -5339,7 +5339,7 @@ union as a ::devicestruc.
 
             //! JSON Namespace Map matrix. first entry hash, second is items with that hash
             vector<vector<jsonentry> > jmap; // depricate me!
-            unordered_map<string, jsonentry> ujmap;
+            unordered_std::map<string, jsonentry> ujmap;
 
             //! JSON Equation Map matrix.
             vector<vector<jsonequation> > emap; // depricate me?

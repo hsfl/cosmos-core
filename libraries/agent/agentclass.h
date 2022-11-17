@@ -516,7 +516,7 @@ namespace Cosmos
                 string description;
             };
 
-            map<string, request_entry> reqs;
+            std::map<string, request_entry> reqs;
 
             void heartbeat_loop();
             void request_loop() noexcept;

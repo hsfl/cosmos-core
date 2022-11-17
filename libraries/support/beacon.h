@@ -65,7 +65,7 @@ namespace Cosmos {
                 ADCSATTBeaconL = 146,
                 };
 
-            map<TypeId, string> TypeString = {
+            std::map<TypeId, string> TypeString = {
                 {TypeId::CPU1BeaconS, "CPU1BeaconS"},
                 {TypeId::CPU2BeaconS, "CPU2BeaconS"},
                 {TypeId::TsenBeaconS, "TsenBeaconS"},
@@ -524,9 +524,9 @@ namespace Cosmos {
 //            std::atomic<double> interval;
             double interval;
             // Map beacon name to size of the beacon struct in bytes
-            map<string, size_t> beacon_size;
+            std::map<string, size_t> beacon_size;
             // Map beacon name to it type ID
-            map<string, uint8_t> beacon_typeID;
+            std::map<string, uint8_t> beacon_typeID;
             // Vector of predefined beacons
             vector<string> send_pattern;
             std::mutex send_pattern_mtx;

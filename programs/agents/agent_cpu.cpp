@@ -70,7 +70,7 @@ int32_t request_mem_total_kib(string &request, string &response, Agent *);
 int32_t request_printStatus(string &request, string &response, Agent *);
 int32_t request_get_operation(string &request, string &response, Agent *);
 
-int32_t get_sensors(map<string, float> &temps);
+int32_t get_sensors(std::map<string, float> &temps);
 
 static string sohstring;
 
@@ -89,7 +89,7 @@ static Agent *agent;
 int main(int argc, char *argv[])
 {
     int32_t iretn = 0;
-    map<string, float> temps;
+    std::map<string, float> temps;
 
     //	cout<<"size of devicestruc = "<<sizeof(devicestruc)<<endl;
     printf("Memory: %s\n", json_memory_usage().c_str());
@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
 
 }
 
-int32_t get_sensors(map<string, float> &temps)
+int32_t get_sensors(std::map<string, float> &temps)
 {
     // get sensors
     string response;

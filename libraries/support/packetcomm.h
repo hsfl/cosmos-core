@@ -93,7 +93,7 @@ namespace Cosmos {
                 CommandRadioCommunicate = 180,
                 };
 
-            map<TypeId, string> TypeString = {
+            std::map<TypeId, string> TypeString = {
                 {TypeId::DataBeacon, "Beacon"},
                 {TypeId::DataNop, "Nop"},
                 {TypeId::DataPong, "Pong"},
@@ -150,7 +150,7 @@ namespace Cosmos {
                 {TypeId::CommandRadioCommunicate, "RadioCommunicate"},
             };
 
-            map<string, TypeId> StringType = {
+            std::map<string, TypeId> StringType = {
                 {"Beacon", TypeId::DataBeacon},
                 {"Nop", TypeId::DataNop},
                 {"Pong", TypeId::DataPong},
