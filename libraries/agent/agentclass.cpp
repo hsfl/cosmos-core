@@ -163,7 +163,7 @@ namespace Cosmos
             nodeId = iretn;
 
             // Start message listening thread
-            mthread = std::thread([=] { message_loop(); });
+            mthread = thread([=] { message_loop(); });
             secondsleep(.1);
 
             // Return if all we are doing is setting up client.
@@ -248,8 +248,8 @@ namespace Cosmos
 
             // Start the heartbeat and request threads running
             //    iretn = start();
-            hthread = std::thread([=] { heartbeat_loop(); });
-            cthread = std::thread([=] { request_loop(); });
+            hthread = thread([=] { heartbeat_loop(); });
+            cthread = thread([=] { request_loop(); });
             if (!hthread.joinable() || !cthread.joinable()) {
                 // TODO: create error value
                 //error_value = iretn;
@@ -404,8 +404,8 @@ namespace Cosmos
 */
         int32_t Agent::start() {
             // start heartbeat thread
-            hthread = std::thread([=] { heartbeat_loop(); });
-            cthread = std::thread([=] { request_loop(); });
+            hthread = thread([=] { heartbeat_loop(); });
+            cthread = thread([=] { request_loop(); });
             return 0;
         }
 

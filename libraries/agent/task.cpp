@@ -15,7 +15,7 @@ namespace Cosmos {
                 NodeName = hostname;
             }
             state = 1;
-            mythread = std::thread([=] { Runner(); });
+            mythread = thread([=] { Runner(); });
         }
 
         Task::~Task()

@@ -357,14 +357,14 @@ namespace Cosmos
             int32_t add_device(string name, DeviceType type, devicestruc **device);
             int32_t device_property_name(string device, string property, string& name);
 
-            int32_t send_request_getvalue(beatstruc agent, std::vector<string> names, Json::Object &jobj);
+            int32_t send_request_getvalue(beatstruc agent, vector<string> names, Json::Object &jobj);
             int32_t create_device_value_alias(string devicename, string propertyname, string alias);
             int32_t create_alias(string cosmosname, string alias);
 
             int32_t set_value(string jsonname, double value);
             double get_value(string jsonname);
-            int32_t get_device_values(string device, std::vector<string>props, string& json);
-            int32_t get_values(std::vector<string> names, string& json);
+            int32_t get_device_values(string device, vector<string>props, string& json);
+            int32_t get_values(vector<string> names, string& json);
 
             double get_timeStart();
 
@@ -489,11 +489,11 @@ namespace Cosmos
             double timeStart; // UTC starting time for this agent in MJD
             string hbjstring;
             //! Handle for request thread
-            std::thread cthread;
+            thread cthread;
             //! Handle for heartbeat thread
-            std::thread hthread;
+            thread hthread;
             //! Handle for message thread
-            std::thread mthread;
+            thread mthread;
             //! Last error
             int32_t error_value;
             //! mutex to protect process_request

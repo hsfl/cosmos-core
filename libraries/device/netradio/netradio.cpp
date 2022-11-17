@@ -40,7 +40,7 @@ namespace Cosmos {
             }
 
             // Start queueing thread
-            qthread = std::thread([=] { queue_loop(); });
+            qthread = thread([=] { queue_loop(); });
 
             return 0;
         }

@@ -113,7 +113,7 @@ namespace Cosmos
         // event spawned is not currently active.
         size_t CommandQueue::join_event_threads()
         {
-//            static auto join_event = [] (std::thread &t) {
+//            static auto join_event = [] (thread &t) {
 //                t.join();
 //            };
 
@@ -164,7 +164,7 @@ namespace Cosmos
             strcpy(command_line, cmd.get_data().c_str());
 
             // We keep track of all threads spawned to join before moving log files.
-            event_threads.push_back(std::thread([=] () {
+            event_threads.push_back(thread([=] () {
                 int devn, prev_stdin, prev_stdout, prev_stderr;
                 if (outpath.empty()) {
                     devn = open("/dev/null", O_RDWR);

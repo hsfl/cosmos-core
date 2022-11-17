@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 	//uint32_t faddress, fsize;
 	uint32_t bsize;
 	FILE *fp;
-	std::vector<gige_acknowledge_ack> gige_list;
+	vector<gige_acknowledge_ack> gige_list;
 
 	string extra = "";
     uint32_t exposure=1;

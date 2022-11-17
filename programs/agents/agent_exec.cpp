@@ -111,7 +111,7 @@ static string jjstring;
 static string myjstring;
 
 void collect_data_loop() noexcept;
-static std::thread cdthread;
+static thread cdthread;
 
 void move_and_compress_soh();
 static string logstring;
@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
         printf("Secondary: Not logging SOH\n");
     }
 
-    cdthread = std::thread([=] { collect_data_loop(); });
+    cdthread = thread([=] { collect_data_loop(); });
 
     // Create default logstring
     logstring = json_list_of_soh(agent->cinfo);

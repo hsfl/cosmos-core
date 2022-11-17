@@ -378,7 +378,7 @@ namespace Cosmos {
             size_t binheight;
             vector<uint8_t> bufferin;
             vector<uint16_t> bufferout;
-            std::thread ptthread;
+            thread ptthread;
             deque<vector<uint8_t>> ptqueue;
             bool ptrun;
             mutex ptmutex;

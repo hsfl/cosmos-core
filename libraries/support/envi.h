@@ -29,11 +29,11 @@ typedef struct envi_hdr
 	float ympp;
     string map_info;
     string projection_info;
-    std::vector <string> band_name;
-    std::vector <float> wavelength;
+    vector <string> band_name;
+    vector <float> wavelength;
     string description;
-    std::vector <string> keys;
-    std::vector <string> values;
+    vector <string> keys;
+    vector <string> values;
     string basename;
     } envi_hdr;
 

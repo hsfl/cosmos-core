@@ -646,7 +646,7 @@ the CCP register and closing all sockets.
             handle->height = gige_readreg(handle,PT1000::HeightReg);
             handle->bufferout.resize(handle->width * handle->height);
 
-            handle->ptthread = std::thread([=] { pt1000_loop(handle);});
+            handle->ptthread = thread([=] { pt1000_loop(handle);});
 
             // Flush network buffer
 //            int32_t nbytes;

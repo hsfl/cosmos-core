@@ -53,7 +53,7 @@ struct trackstruc
     bool peaked;
     double startutc;
 };
-std::vector <trackstruc> track;
+vector <trackstruc> track;
 
 //mutex mut1;
 //mutex mut2;

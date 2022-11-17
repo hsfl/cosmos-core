@@ -3,7 +3,7 @@
  * json11 is a tiny JSON library for C++11, providing JSON parsing and serialization.
  *
  * The core object provided by the library is json11::Json. A Json object represents any JSON
- * value: null, bool, number (int or double), string (string), array (std::vector), or
+ * value: null, bool, number (int or double), string (string), array (vector), or
  * object (map).
  *
  * Json objects act like values: they can be assigned, copied, moved, compared for equality or
@@ -85,7 +85,7 @@ public:
     };
 
     // Array and object typedefs
-    typedef std::vector<Json> array;
+    typedef vector<Json> array;
     typedef map<string, Json> object;
 
     // Constructors for the various types of JSON value.
@@ -113,7 +113,7 @@ public:
             int>::type = 0>
     Json(const M & m) : Json(object(m.begin(), m.end())) {}
 
-    // Implicit constructor: vector-like objects (std::list, std::vector, std::set, etc)
+    // Implicit constructor: vector-like objects (std::list, vector, std::set, etc)
     template <class V, typename std::enable_if<
         std::is_constructible<Json, decltype(*std::declval<V>().begin())>::value,
             int>::type = 0>
@@ -144,7 +144,7 @@ public:
     bool bool_value() const;
     // Return the enclosed string if this is a string, "" otherwise.
     const string &string_value() const;
-    // Return the enclosed std::vector if this is an array, or an empty vector otherwise.
+    // Return the enclosed vector if this is an array, or an empty vector otherwise.
     const array &array_items() const;
     // Return the enclosed map if this is an object, or an empty map otherwise.
     const object &object_items() const;
@@ -177,13 +177,13 @@ public:
         }
     }
     // Parse multiple objects, concatenated or separated by whitespace
-    static std::vector<Json> parse_multi(
+    static vector<Json> parse_multi(
         const string & in,
         string::size_type & parser_stop_pos,
         string & err,
         JsonParse strategy = JsonParse::STANDARD);
 
-    static inline std::vector<Json> parse_multi(
+    static inline vector<Json> parse_multi(
         const string & in,
         string & err,
         JsonParse strategy = JsonParse::STANDARD) {

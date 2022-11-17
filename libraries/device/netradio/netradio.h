@@ -35,7 +35,7 @@ namespace Cosmos {
             queue<PacketComm> packet_queue_in;
             queue<PacketComm> packet_queue_out;
             void queue_loop();
-            std::thread qthread;
+            thread qthread;
             mutex qmutex_in;
             mutex qmutex_out;
             socket_bus net_channel_out;

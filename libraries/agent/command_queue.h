@@ -63,7 +63,7 @@ namespace Cosmos
             /**	An std::queue of members of the Event class that have run	*/
             std::deque<Event> events;
             /** A vector of all threads spawned to run events  */
-            vector<std::thread> event_threads;
+            vector<thread> event_threads;
             /** A boolean indicator that the queue has changed	*/
             bool queue_changed = false;
 

@@ -87,7 +87,7 @@ namespace Cosmos
             vector<Running> tasks;
             mutex mtx;
             uint8_t state = 0;
-            std::thread mythread;
+            thread mythread;
         };
     }
 }
