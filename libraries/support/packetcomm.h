@@ -1,7 +1,7 @@
 #ifndef PACKETCOMM_H
 #define PACKETCOMM_H
 
-#include "support/configCosmos.h"
+#include "support/configCosmosKernel.h"
 #include "math/crclib.h"
 #include "support/sliplib.h"
 #include "device/general/ax25class.h"
@@ -92,7 +92,7 @@ namespace Cosmos {
                 CommandRadioCommunicate = 180,
                 };
 
-            map<TypeId, string> TypeString = {
+            std::map<TypeId, string> TypeString = {
                 {TypeId::DataBeacon, "Beacon"},
                 {TypeId::DataNop, "Nop"},
                 {TypeId::DataPong, "Pong"},
@@ -149,7 +149,7 @@ namespace Cosmos {
                 {TypeId::CommandRadioCommunicate, "RadioCommunicate"},
             };
 
-            map<string, TypeId> StringType = {
+            std::map<string, TypeId> StringType = {
                 {"Beacon", TypeId::DataBeacon},
                 {"Nop", TypeId::DataNop},
                 {"Pong", TypeId::DataPong},

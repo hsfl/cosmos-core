@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "support/configCosmos.h"
+#include "support/configCosmosKernel.h"
 #include "device/general/ax25class.h"
 
 Ax25Handle::Ax25Handle(string dest_call, string sour_call, uint8_t dest_stat, uint8_t sour_stat, uint8_t cont, uint8_t prot)

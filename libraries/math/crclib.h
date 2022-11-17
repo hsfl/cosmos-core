@@ -53,7 +53,7 @@ public:
         uint16_t test;
     };
 
-    map<string, crcset> types;
+    std::map<string, crcset> types;
 //    CRC16(uint16_t polynomial=0x1021, uint16_t initial=0xffff, uint16_t xorout=0x0, bool lsbfirst=false);
     CRC16();
     uint16_t set(string type);

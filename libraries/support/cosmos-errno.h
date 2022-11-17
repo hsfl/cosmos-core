@@ -49,7 +49,7 @@
 #ifndef _COSMOS_ERROR_H
 #define _COSMOS_ERROR_H 1
 
-#include "support/configCosmos.h"
+#include "support/configCosmosKernel.h"
 #include <errno.h>
 
 namespace Cosmos {

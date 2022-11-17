@@ -30,7 +30,7 @@
 #ifndef AX25LIB
 #define AX25LIB
 
-#include "support/configCosmos.h"
+#include "support/configCosmosKernel.h"
 #include "support/cosmos-errno.h"
 #include "math/bytelib.h"
 #include "math/crclib.h"
