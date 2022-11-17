@@ -3287,19 +3287,24 @@ match.
         }
 
         //! Geodetic to Separation
-        //! Calculate the separion distance between two geodetic positions.
+        //! Calculate the separation distance between two geodetic positions.
         //! \param src Starting position
         //! \param dst Target position
         //! \param sep Reference to distance between the two
         int32_t geod2sep(gvector src, gvector dst, double &sep)
         {
+//            sep = acos( sin(src.lat) * sin(dst.lat) + cos(src.lat) * cos(dst.lat) * cos(dst.lat - src.lat) ) * REARTHM;
+            sep = geod2sep(src, dst);
+            return 0;
+        }
+
+        double geod2sep(gvector src, gvector dst)
+        {
             double dphi = dst.lon - src.lon;
             double dlambda = dst.lat - src.lat;
             double a = sin(dphi / 2.) * sin(dphi / 2.) + cos(src.lat) * cos(dst.lat) * sin(dlambda / 2.);
             double c = 2 * atan2(sqrt(a), sqrt(1-a));
-            sep = REARTHM * c;
-//            sep = acos( sin(src.lat) * sin(dst.lat) + cos(src.lat) * cos(dst.lat) * cos(dst.lat - src.lat) ) * REARTHM;
-            return 0;
+            return REARTHM * c;
         }
 
         //! Return position from TLE set
