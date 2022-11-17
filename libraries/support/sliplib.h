@@ -39,7 +39,7 @@
 //! A library providing support functions for the COSMOS specific SLIP protocol.
 
 
-#include "support/configCosmos.h"
+#include "support/configCosmosKernel.h"
 
 #include "support/cosmos-errno.h"
 #include <cstring>

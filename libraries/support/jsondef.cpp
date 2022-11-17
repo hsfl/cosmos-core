@@ -31,7 +31,7 @@
     \brief JSON support source file
 */
 
-#include "support/cosmos-errno.h".h"
+#include "support/cosmos-errno.h"
 #include "support/jsondef.h"
 
 namespace Cosmos
