@@ -77,6 +77,7 @@ namespace Cosmos {
                 CommandAdcsState = 151,
                 CommandAdcsSetRunMode = 152,
 				CommandAdcsGetAdcsState = 155,
+				CommandAdcsOrbitParameters = 156,
                 CommandEpsCommunicate = 160,
                 CommandEpsSwitchName = 161,
                 CommandEpsSwitchNumber = 162,
@@ -135,6 +136,7 @@ namespace Cosmos {
                 {TypeId::CommandAdcsState, "AdcsState"},
                 {TypeId::CommandAdcsSetRunMode, "AdcsSetRunMode"},
                 {TypeId::CommandAdcsGetAdcsState, "AdcsGetAdcsState"},
+                {TypeId::CommandAdcsOrbitParameters, "AdcsOrbitParameters"},
                 {TypeId::CommandEpsCommunicate, "EpsCommunicate"},
                 {TypeId::CommandEpsSwitchName, "EpsSwitchName"},
                 {TypeId::CommandEpsSwitchNumber, "EpsSwitchNumber"},
@@ -204,6 +206,7 @@ namespace Cosmos {
                 {"AdcsState", TypeId::CommandAdcsState},
                 {"AdcsSetRunMode", TypeId::CommandAdcsSetRunMode},
                 {"AdcsGetAdcsState", TypeId::CommandAdcsGetAdcsState},
+                {"AdcsOrbitParameters", TypeId::CommandAdcsOrbitParameters},
                 {"ExecLoadCommand", TypeId::CommandExecLoadCommand},
                 {"ExecAddCommand", TypeId::CommandExecAddCommand},
 

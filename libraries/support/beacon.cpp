@@ -713,6 +713,7 @@ namespace Cosmos {
                                 cinfo->devspec.bcreg[i].utc = mjd;
                                 cinfo->devspec.bcreg[i].volt = beacon.bcreg[i].mvolt / 1000.;
                                 cinfo->devspec.bcreg[i].amp = beacon.bcreg[i].mamp / 1000.;
+                                cinfo->devspec.bcreg[i].power = (beacon.bcreg[i].mvolt / 1000.) * (beacon.bcreg[i].mamp / 1000.);
                                 cinfo->devspec.bcreg[i].mpptin_volt = beacon.bcreg[i].mpptin_mvolt / 1000.;
                                 cinfo->devspec.bcreg[i].mpptin_amp = beacon.bcreg[i].mpptin_mamp / 1000.;
                                 cinfo->devspec.bcreg[i].mpptout_volt = beacon.bcreg[i].mpptout_mvolt / 1000.;
