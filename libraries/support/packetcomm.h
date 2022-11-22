@@ -37,7 +37,6 @@ namespace Cosmos {
             enum class TypeId : uint8_t {
                 None = 0,
                 DataBeacon = 10,
-                DataNop = 15,
                 DataPong = 41,
                 DataEpsResponse = 43,
                 DataRadioResponse = 44,
@@ -56,6 +55,7 @@ namespace Cosmos {
                 DataFileMetaData = 84,
                 DataFileChunkData = 85,
                 DataFileReqComplete = 86,
+                DataNop = 127,
                 CommandReset = 128,
                 CommandReboot = 129,
                 CommandSendBeacon = 130,
@@ -90,6 +90,7 @@ namespace Cosmos {
                 CommandExecLoadCommand = 170,
                 CommandExecAddCommand = 171,
                 CommandRadioCommunicate = 180,
+                CommandNop = 255,
                 };
 
             std::map<TypeId, string> TypeString = {

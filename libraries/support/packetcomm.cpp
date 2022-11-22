@@ -22,10 +22,12 @@ namespace Cosmos {
                 return GENERAL_ERROR_BAD_SIZE;
             }
             memcpy(&header, &wrapped[0], COSMOS_SIZEOF(Header));
-            if (wrapped.size() != uint32_t(header.data_size + COSMOS_SIZEOF(Header) + 2))
+            uint32_t wrapsize = header.data_size + COSMOS_SIZEOF(Header) + 2;
+            if (wrapped.size() < wrapsize)
             {
                 return GENERAL_ERROR_BAD_SIZE;
             }
+            wrapped.resize(wrapsize);
             if (checkcrc)
             {
                 uint16_t crcin = uint16from(&wrapped[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
@@ -158,7 +160,7 @@ namespace Cosmos {
                 return false;
             }
             Ax25Handle axhandle(dest_call, sour_call, dest_stat, sour_stat, cont, prot);
-            wrapped.resize(wrapped.size()+6);
+//            wrapped.resize(wrapped.size()+6);
             axhandle.load(wrapped);
             axhandle.stuff();
             vector<uint8_t> ax25packet = axhandle.get_hdlc_packet();

@@ -3,14 +3,8 @@
 
 #include "support/configCosmos.h"
 #include "agent/agentclass.h"
-// #include "rxs.h"
-// #include "txs.h"
-// #include "device/netradio/netradio.h"
-// #include "device/serial/serialclass.h"
 #include "support/packetcomm.h"
 #include "support/transferclass.h"
-// #include "astrodev.h"
-// #include "logging/logger.h"
 
 namespace Cosmos
 {

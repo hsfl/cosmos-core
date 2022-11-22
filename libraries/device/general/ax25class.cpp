@@ -176,12 +176,12 @@ int32_t Ax25Handle::set_hdlc_packet(vector <uint8_t> packet)
     return 0;
 }
 
-int32_t Ax25Handle::load(vector<uint8_t> newdata)
+int32_t Ax25Handle::load(vector<uint8_t> data)
 {
-    if (newdata.size())
-    {
-        data = newdata;
-    }
+//    if (newdata.size())
+//    {
+//        data = newdata;
+//    }
     int32_t tsize = 18 + data.size();
     ax25_packet.resize(tsize);
     memcpy(&ax25_packet[0], &header, 16);

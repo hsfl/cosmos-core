@@ -727,6 +727,7 @@ namespace Cosmos {
             packet.header.dest = packet.header.orig;
             packet.header.orig = temp;
             iretn = agent->push_unwrapped(packet.header.radio, packet);
+            agent->monitor_unwrapped(0, packet, "Ping");
             return iretn;
         }
 

@@ -83,7 +83,7 @@ public:
     int32_t set_ax25_packet(vector <uint8_t> packet);
     int32_t set_hdlc_packet(vector <uint8_t> packet);
     int32_t unload();
-    int32_t load(vector<uint8_t> newdata={});
+    int32_t load(vector<uint8_t> data={});
     int32_t stuff(vector<uint8_t> ax25data={});
     int32_t unstuff(vector<uint8_t> hdlcdata={});
 
