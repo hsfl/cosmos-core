@@ -314,7 +314,7 @@ namespace Cosmos
                         "    TransferRadio\n"
                         "    InternalRequest request parameters\n"
                         "    Ping {string}\n"
-                        "    SetTime {MJD}\n"
+                        "    SetTime {MJD {direction}}\n"
                         "    GetTimeHuman\n"
                         "    GetTimeBinary\n"
                         "    EpsCommunicate sbid:command:hexstring:response_size\n"
@@ -329,6 +329,7 @@ namespace Cosmos
             add_request("list_channels", req_list_channels, "", "List current channels");
             add_request("run_command", req_run_command, "command parameters", "Run external command for immediate response");
             add_request("add_task", req_add_task, "command parameters", "Start external command as Task for output to file");
+            add_request("test_channel", req_test_channel, "channel dest start step count bytes", "Run channel performance test");
 
             // Set up Full SOH string
             //            set_fullsohstring(json_list_of_fullsoh(cinfo));
@@ -764,7 +765,7 @@ namespace Cosmos
 
         //! Return Agent ::cosmosstruc
         /*! Return a pointer to the Agent's internal copy of the ::cosmosstruc.
-    \return A pointer to the ::cosmosstruc, otherwise NULL.
+    \return A pointer to the Cosmos::Support::cosmosstruc, otherwise NULL.
 */
         cosmosstruc *Agent::get_cosmosstruc() { return (cinfo); }
 
@@ -2056,12 +2057,18 @@ namespace Cosmos
             case PacketComm::TypeId::CommandSetTime:
                 {
                     double mjd = currentmjd();
+                    int8_t direction = 0;
                     if (parms.size() > 0)
                     {
                         mjd = stof(parms[0]);
+                        if (parms.size() > 1)
+                        {
+                            direction = stoi(parms[1]);
+                        }
                     }
-                    packet.data.resize(8);
+                    packet.data.resize(9);
                     doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    packet.data[8] = direction;
                 }
                 break;
             case PacketComm::TypeId::CommandGetTimeHuman:
@@ -2189,7 +2196,7 @@ namespace Cosmos
 
                 for (uint16_t i=0; i<repeat; ++i)
                 {
-                    agent->push_unwrapped(channelout, packet);
+                    agent->channel_push(channelout, packet);
                 }
             }
             return response.length();
@@ -2250,6 +2257,53 @@ namespace Cosmos
                 response += "\n";
             }
             return response.size();
+        }
+
+        //! \brief Run a performance test on requested channel.
+        //! \param request Request.
+        //! \param response Any response.
+        //! \param agent Pointer to Agent.
+        //! \return Zero or negative error.
+        int32_t Agent::req_test_channel(string &request, string &response, Agent *agent)
+        {
+            vector<string> args = string_split(request);
+            if (args.size() > 2)
+            {
+                uint8_t start = 0;
+                uint8_t step = 1;
+                uint8_t stop = 255;
+                uint32_t total = 0;
+
+                uint8_t channel = agent->channel_number(args[1]);
+                total = agent->channel_speed(channel) * 10.;
+                uint8_t dest = agent->nodeData.lookup_node_id(args[2]);
+                uint8_t orig = agent->nodeId;
+                if (args.size() > 5)
+                {
+                    start =  stoi(args[3]);
+                    step =  stoi(args[4]);
+                    stop =  stoi(args[5]);
+                    if (args.size() > 6)
+                    {
+                        total = stoi(args[6]);
+                    }
+                }
+                uint32_t id = centisec();
+                agent->channel_teststart(channel, id, orig, dest, start, step, stop, total);
+                response = "Test:";
+                response += to_label(" Channel", channel);
+                response += to_label(" Orig", orig);
+                response += to_label(" Dest", dest);
+                response += to_label(" Start", start);
+                response += to_label(" Step", step);
+                response += to_label(" Stop", stop);
+                response += to_label(" Total", total);
+                return 0;
+            }
+            else
+            {
+                return GENERAL_ERROR_ARGS;
+            }
         }
 
         //! Open COSMOS output channel
@@ -3772,17 +3826,17 @@ acquired.
             return channels.Check(verification);
         }
 
-        int32_t Agent::push_unwrapped(string name, PacketComm& packet)
+        int32_t Agent::channel_push(string name, PacketComm& packet)
         {
             int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
             }
-            return push_unwrapped(number, packet);
+            return channel_push(number, packet);
         }
 
-        int32_t Agent::push_unwrapped(uint8_t number, PacketComm& packet)
+        int32_t Agent::channel_push(uint8_t number, PacketComm& packet)
         {
             int32_t iretn=0;
             if (number >= channels.channel.size())
@@ -3792,43 +3846,33 @@ acquired.
 
             iretn = channels.Push(number, packet);
 
-//            if (iretn >= 0)
-//            {
-//                monitor_unwrapped(number, packet, "Push");
-//            }
             return iretn;
         }
 
-        int32_t Agent::push_unwrapped(string name, vector<PacketComm>& packets)
+        int32_t Agent::channel_push(string name, vector<PacketComm>& packets)
         {
             int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
             }
-//            for (auto &p : packets)
-//            {
-//                channels.Push(number, p);
-//            }
-//            return packets.size();
-            return push_unwrapped(number, packets);
+            return channel_push(number, packets);
         }
 
-        int32_t Agent::push_unwrapped(uint8_t number, vector<PacketComm>& packets)
+        int32_t Agent::channel_push(uint8_t number, vector<PacketComm>& packets)
         {
             int32_t iretn;
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
-            for (auto &p : packets)
+            for (PacketComm &p : packets)
             {
-                iretn = push_unwrapped(number, p);
+                iretn = channel_push(number, p);
                 if (iretn < 0)
                 {
                     return iretn;
                 }
-//                channels.Push(number, p);
             }
             return packets.size();
         }
@@ -3979,17 +4023,17 @@ acquired.
             return response.size();
         }
 
-        int32_t Agent::pull_unwrapped(string name, PacketComm &packet)
+        int32_t Agent::channel_pull(string name, PacketComm &packet)
         {
             int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
             }
-            return pull_unwrapped(number, packet);
+            return channel_pull(number, packet);
         }
 
-        int32_t Agent::pull_unwrapped(uint8_t number, PacketComm &packet)
+        int32_t Agent::channel_pull(uint8_t number, PacketComm &packet)
         {
             int32_t iretn=0;
             if (number >= channels.channel.size())
@@ -3999,10 +4043,6 @@ acquired.
 
             iretn = channels.Pull(number, packet);
 
-//            if (iretn > 0)
-//            {
-//                monitor_unwrapped(number, packet, "Pull");
-//            }
             return iretn;
         }
 
@@ -4040,7 +4080,7 @@ acquired.
             return 0;
         }
 
-        int32_t Agent::channel_add(string name, uint16_t datasize, uint16_t rawsize, uint16_t maximum)
+        int32_t Agent::channel_add(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
         {
             int32_t iretn = 0;
             if (channels.channel.size() == 0)
@@ -4051,7 +4091,35 @@ acquired.
                     return iretn;
                 }
             }
-            return channels.Add(name, datasize, rawsize, maximum);
+            if (maximum == 0)
+            {
+                if (byte_rate <= 0.)
+                {
+                    if (rawsize == 0)
+                    {
+                        if (datasize == 0)
+                        {
+                            return channels.Add(name);
+                        }
+                        else
+                        {
+                            return channels.Add(name, datasize);
+                        }
+                    }
+                    else
+                    {
+                        return channels.Add(name, datasize, rawsize);
+                    }
+                }
+                else
+                {
+                    return channels.Add(name, datasize, rawsize, byte_rate);
+                }
+            }
+            else
+            {
+                return channels.Add(name, datasize, rawsize, byte_rate, maximum);
+            }
         }
 
         int32_t Agent::channel_size(string name)
@@ -4062,6 +4130,16 @@ acquired.
         int32_t Agent::channel_size(uint8_t number)
         {
             return channels.Size(number);
+        }
+
+        float Agent::channel_speed(string name)
+        {
+            return channels.ByteRate(name);
+        }
+
+        float Agent::channel_speed(uint8_t number)
+        {
+            return channels.ByteRate(number);
         }
 
         double Agent::channel_age(string name)
@@ -4104,7 +4182,7 @@ acquired.
             return channels.Touch(number);
         }
 
-        size_t Agent::channel_increment(string name, size_t bytes, uint32_t packets)
+        ssize_t Agent::channel_increment(string name, size_t bytes, uint32_t packets)
         {
             int32_t number = channel_number(name);
             if (number < 0)
@@ -4112,17 +4190,67 @@ acquired.
                 return number;
             }
 
-            return channels.Increment(number, bytes, packets);
+            return channel_increment(number, bytes, packets);
         }
 
-        size_t Agent::channel_increment(uint8_t number, size_t bytes, uint32_t packets)
+        ssize_t Agent::channel_increment(uint8_t number, size_t bytes, uint32_t packets)
         {
             int32_t iretn = 0;
             iretn = channels.Increment(number, bytes, packets);
-            if (iretn >= 0)
+            return iretn;
+        }
+
+        ssize_t Agent::channel_decrement(string name, size_t bytes, uint32_t packets)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
             {
-                iretn = channels.Touch(number);
+                return number;
             }
+
+            return channel_decrement(number, bytes, packets);
+        }
+
+        ssize_t Agent::channel_decrement(uint8_t number, size_t bytes, uint32_t packets)
+        {
+            int32_t iretn = 0;
+            iretn = channels.Decrement(number, bytes, packets);
+            return iretn;
+        }
+
+        int32_t Agent::channel_teststart(string name, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+
+            return channel_teststart(number, id, orig, dest, start, step, stop, total);
+        }
+
+        int32_t Agent::channel_teststart(uint8_t number,uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
+        {
+            int32_t iretn = 0;
+            iretn = channels.TestStart(number, id, orig, dest, start, step, stop, total);
+            return iretn;
+        }
+
+        int32_t Agent::channel_teststop(string name, float seconds)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+
+            return channel_teststop(number, seconds);
+        }
+
+        int32_t Agent::channel_teststop(uint8_t number, float seconds)
+        {
+            int32_t iretn = 0;
+            iretn = channels.TestStop(number, seconds);
             return iretn;
         }
 

@@ -415,26 +415,28 @@ namespace Cosmos
             int32_t set_verification(uint32_t verification);
             uint32_t get_verification();
             int32_t check_verification(uint32_t verification);
-            int32_t push_unwrapped(string name, PacketComm &packet);
-            int32_t push_unwrapped(uint8_t number, PacketComm& packet);
-            int32_t push_unwrapped(string name, vector<PacketComm>& packets);
-            int32_t push_unwrapped(uint8_t number, vector<PacketComm>& packets);
+            int32_t channel_push(string name, PacketComm &packet);
+            int32_t channel_push(uint8_t number, PacketComm& packet);
+            int32_t channel_push(string name, vector<PacketComm>& packets);
+            int32_t channel_push(uint8_t number, vector<PacketComm>& packets);
             int32_t push_response(string name, uint8_t dest, uint32_t id, string response="");
             int32_t push_response(uint8_t number, uint8_t dest, uint32_t id, string response="");
             int32_t push_response(string name, uint8_t dest, uint32_t id, vector<uint8_t> response);
             int32_t push_response(uint8_t number, uint8_t dest, uint32_t id, vector<uint8_t> response);
             int32_t push_hardware_response(PacketComm::TypeId type, string name, uint8_t dest, uint8_t unit, uint8_t command, vector<uint8_t> response);
             int32_t push_hardware_response(PacketComm::TypeId type, uint8_t number, uint8_t dest, uint8_t unit, uint8_t command, vector<uint8_t> response);
-            int32_t pull_unwrapped(string name, PacketComm& packet);
-            int32_t pull_unwrapped(uint8_t number, PacketComm& packet);
+            int32_t channel_pull(string name, PacketComm& packet);
+            int32_t channel_pull(uint8_t number, PacketComm& packet);
             int32_t monitor_unwrapped(string name, PacketComm& packet, string extra="");
             int32_t monitor_unwrapped(uint8_t number, PacketComm& packet, string extra="");
             int32_t init_channels(uint32_t verification=0x352e);
-            int32_t channel_add(string name, uint16_t datasize=200, uint16_t rawsize=0, uint16_t maximum=100);
+            int32_t channel_add(string name, uint16_t datasize=0, uint16_t rawsize=0, float byte_rate=0., uint16_t maximum=0);
             //! Number of packets currently in the channel
             int32_t channel_size(string name);
             //! Number of packets currently in the channel
             int32_t channel_size(uint8_t number);
+            float channel_speed(string name);
+            float channel_speed(uint8_t number);
             double channel_age(string name);
             double channel_age(uint8_t number);
             size_t channel_bytes(string name);
@@ -443,8 +445,10 @@ namespace Cosmos
             uint32_t channel_packets(uint8_t number);
             double channel_touch(string name);
             double channel_touch(uint8_t number);
-            size_t channel_increment(string name, size_t bytes, uint32_t packets=1);
-            size_t channel_increment(uint8_t number, size_t bytes, uint32_t packets=1);
+            ssize_t channel_increment(string name, size_t bytes, uint32_t packets=1);
+            ssize_t channel_increment(uint8_t number, size_t bytes, uint32_t packets=1);
+            ssize_t channel_decrement(string name, size_t bytes, uint32_t packets=1);
+            ssize_t channel_decrement(uint8_t number, size_t bytes, uint32_t packets=1);
             int32_t channel_clear(string name);
             int32_t channel_clear(uint8_t number);
             int32_t channel_number(string name);
@@ -459,6 +463,10 @@ namespace Cosmos
             int32_t channel_rawsize(uint8_t number);
             int32_t channel_maximum(string name, uint16_t maximum);
             int32_t channel_maximum(uint8_t number, uint16_t maximum);
+            int32_t channel_teststart(string name, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
+            int32_t channel_teststart(uint8_t number, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
+            int32_t channel_teststop(string name, float seconds=5.);
+            int32_t channel_teststop(uint8_t number, float seconds=5.);
 
             int32_t task_add(string command);
             int32_t task_del(uint32_t deci);
@@ -568,6 +576,7 @@ namespace Cosmos
             static int32_t req_run_command(string &, string &response, Agent *agent);
             static int32_t req_add_task(string &, string &response, Agent *agent);
             static int32_t req_list_channels(string &, string &response, Agent *agent);
+            static int32_t req_test_channel(string &, string &response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos
