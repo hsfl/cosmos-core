@@ -52,7 +52,7 @@ namespace Cosmos
                     ElapsedTime cet;
                     while (cet.split() < 1.)
                     {
-                        if ((iretn = agent->pull_unwrapped(mychannel, packet)) <= 0)
+                        if ((iretn = agent->channel_pull(mychannel, packet)) <= 0)
                         {
                             break;
                         }
@@ -213,7 +213,7 @@ namespace Cosmos
                     for (auto &p : file_packets)
                     {
                         // TODO: note that p does not set header.radio
-                        iretn = agent->push_unwrapped(out_radio, p);
+                        iretn = agent->channel_push(out_radio, p);
 
                         // Stop using this channel on error
                         if (iretn < 0)

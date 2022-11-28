@@ -57,14 +57,6 @@ namespace Cosmos {
             return Unwrap(checkcrc);
         }
 
-//        bool PacketComm::RXSUnPacketize()
-//        {
-//            memcpy(&ccsds_header, packetized.data(), 6);
-//            wrapped.clear();
-//            wrapped.insert(wrapped.begin(), &packetized[6], &packetized[packetized.size()-(packetized.size()<189?6:194-packetized.size())]);
-//            return Unwrap();
-//        }
-
         bool PacketComm::SLIPUnPacketize()
         {
             int32_t iretn = slip_unpack(packetized, wrapped);

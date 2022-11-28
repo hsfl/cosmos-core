@@ -3,11 +3,13 @@
 
 namespace Cosmos {
     namespace Support {
+        //! \brief Constructor
         Channel::Channel()
         {
-//            this->verification = verification;
+            //            this->verification = verification;
         }
 
+        //! \brief Cleans up after the channel construction process.
         Channel::~Channel()
         {
             for (channelstruc& chan : channel)
@@ -17,38 +19,42 @@ namespace Cosmos {
             }
         }
 
+        //! \brief Establishes default channels. Allows you to change verification code for protected
+        //! acitivities from default value of 0x352e.
+        //! \param verification Code for verification. Defaults to 0x352e.
+        //! \return Number of default channels created.
         int32_t Channel::Init(uint32_t verification)
         {
             // Set up default channels for internal activity
             channel.resize(6);
 
             channel[0].name = "SELF";
-            channel[0].mtx = new mutex;
+            channel[0].mtx = new std::recursive_mutex;
             channel[0].datasize = 1400;
             channel[0].maximum = 1000;
 
             channel[1].name = "NET";
-            channel[1].mtx = new mutex;
+            channel[1].mtx = new std::recursive_mutex;
             channel[1].datasize = 1400;
             channel[1].maximum = 1000;
 
             channel[2].name = "EPS";
-            channel[2].mtx = new mutex;
+            channel[2].mtx = new std::recursive_mutex;
             channel[2].datasize = 1400;
             channel[2].maximum = 1000;
 
             channel[3].name = "ADCS";
-            channel[3].mtx = new mutex;
+            channel[3].mtx = new std::recursive_mutex;
             channel[3].datasize = 1400;
             channel[3].maximum = 1000;
 
             channel[4].name = "FILE";
-            channel[4].mtx = new mutex;
+            channel[4].mtx = new std::recursive_mutex;
             channel[4].datasize = 1400;
             channel[4].maximum = 1000;
 
             channel[5].name = "EXEC";
-            channel[5].mtx = new mutex;
+            channel[5].mtx = new std::recursive_mutex;
             channel[5].datasize = 1400;
             channel[5].maximum = 1000;
 
@@ -56,16 +62,25 @@ namespace Cosmos {
             return channel.size();
         }
 
+        //! \brief Checks against internal verification code.
+        //! \param verification Code for testing.
+        //! \return Zero or negative error from ::ErrorNumbers.
         int32_t Channel::Check(uint32_t verification)
         {
             if (verification != this->verification)
             {
                 return GENERAL_ERROR_ARGS;
             }
-            return verification;
+            return 0;
         }
 
-        int32_t Channel::Add(string name, uint16_t datasize, uint16_t rawsize, uint16_t maximum)
+        //! \brief Add additional channel.
+        //! \param name Name of channel.
+        //! \param Maximum size of Cosmos::PacketComm::data.
+        //! \param Maximum size of associated hardware packet.
+        //! \param byte_rate Speed of associated hardware.
+        //! \param maximum Maximum size of ::channelstruc::quu.
+        int32_t Channel::Add(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
         {
             for (uint8_t i=0; i<channel.size(); ++i)
             {
@@ -85,13 +100,21 @@ namespace Cosmos {
             {
                 channel.back().rawsize = datasize;
             }
+            channel.back().byte_rate = byte_rate;
             channel.back().maximum = maximum;
-            channel.back().mtx = new mutex;
+            channel.back().mtx = new std::recursive_mutex;
             return channel.size() - 1;
         }
 
+        //! \brief Find channel number from name.
+        //! \param name Name of channel.
+        //! \return Number found. Blank name will return 0 (SELF).
         int32_t Channel::Find(string name)
         {
+            if (name.empty())
+            {
+                return 0;
+            }
             for (uint8_t i=0; i<channel.size(); ++i)
             {
                 if (channel[i].name == name)
@@ -102,6 +125,9 @@ namespace Cosmos {
             return GENERAL_ERROR_NAME;
         }
 
+        //! \brief Find channel name from number.
+        //! \param number Number of channel.
+        //! \return Name of channel.
         string Channel::Find(uint8_t number)
         {
             string result = "";
@@ -115,18 +141,24 @@ namespace Cosmos {
             }
         }
 
+        //! \brief Age from channel name.
+        //! Time since ::channelstruc::quu was last modified by ::Push or ::Touch.
+        //! \param name Name of channel.
+        //! \return Time in seconds.
         double Channel::Age(string name)
         {
-            for (uint8_t i=0; i<channel.size(); ++i)
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
             {
-                if (channel[i].name == name)
-                {
-                    return Age(i);
-                }
+                return Age(iretn);
             }
             return -999999.;
         }
 
+        //! \brief Age from channel number.
+        //! Time since ::channelstruc::quu was last modified by ::Push or ::Touch.
+        //! \param number Number of channel.
+        //! \return Time in seconds.
         double Channel::Age(uint8_t number)
         {
             if (number >= channel.size())
@@ -139,18 +171,24 @@ namespace Cosmos {
             return age;
         }
 
+        //! \brief Byte total from channel name.
+        //! Number of bytes passed through channel from ::Push.
+        //! \param name Name of channel.
+        //! \return Total bytes.
         size_t Channel::Bytes(string name)
         {
-            for (uint8_t i=0; i<channel.size(); ++i)
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
             {
-                if (channel[i].name == name)
-                {
-                    return Bytes(i);
-                }
+                return Bytes(iretn);
             }
             return 0;
         }
 
+        //! \brief Byte total from channel number.
+        //! Number of bytes passed through channel from ::Push.
+        //! \param number Number of channel.
+        //! \return Total bytes.
         size_t Channel::Bytes(uint8_t number)
         {
             if (number >= channel.size())
@@ -160,18 +198,51 @@ namespace Cosmos {
             return channel[number].bytes;
         }
 
-        uint32_t Channel::Packets(string name)
+        //! \brief Byte rate from channel name.
+        //! Speed to use when pulling from channel and sending to associated device.
+        //! \param name Name of channel.
+        //! \return Bytes per second.
+        float Channel::ByteRate(string name)
         {
-            for (uint8_t i=0; i<channel.size(); ++i)
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
             {
-                if (channel[i].name == name)
-                {
-                    return Packets(i);
-                }
+                return ByteRate(iretn);
             }
             return 0;
         }
 
+        //! \brief Byte rate from channel number.
+        //! Speed to use when pulling from channel and sending to associated device.
+        //! \param number Number of channel.
+        //! \return Bytes per second.
+        float Channel::ByteRate(uint8_t number)
+        {
+            if (number >= channel.size())
+            {
+                return 0;
+            }
+            return channel[number].byte_rate;
+        }
+
+        //! \brief Packet total from channel name.
+        //! Number of packets passed through channel from ::Push.
+        //! \param name Name of channel.
+        //! \return Total packets.
+        uint32_t Channel::Packets(string name)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return Packets(iretn);
+            }
+            return 0;
+        }
+
+        //! \brief Packet total from channel number.
+        //! Number of packets passed through channel from ::Push.
+        //! \param number Number of channel.
+        //! \return Total packets.
         uint32_t Channel::Packets(uint8_t number)
         {
             if (number >= channel.size())
@@ -181,18 +252,24 @@ namespace Cosmos {
             return channel[number].packets;
         }
 
+        //! \brief Touch channel by name.
+        //! Update channel Age.
+        //! \param name Name of channel.
+        //! \return Previous age in seconds or -999999.
         double Channel::Touch(string name)
         {
-            for (uint8_t i=0; i<channel.size(); ++i)
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
             {
-                if (channel[i].name == name)
-                {
-                    return Touch(i);
-                }
+                return Touch(iretn);
             }
             return -999999;
         }
 
+        //! \brief Touch channel by number.
+        //! Update channel Age.
+        //! \param number Number of channel.
+        //! \return Previous age in seconds or -999999.
         double Channel::Touch(uint8_t number)
         {
             if (number >= channel.size())
@@ -206,7 +283,29 @@ namespace Cosmos {
             return age;
         }
 
-        size_t Channel::Increment(uint8_t number, size_t byte_count, uint32_t packet_count)
+        //! \brief Increment count totals by name.
+        //! Add provided values to counters for ::Bytes and ::Packets.
+        //! \param name Name of channel.
+        //! \param byte_count Number of bytes to increment.
+        //! \param packet_count Number of packets to increment.
+        //! \return New byte total or negative error.
+        ssize_t Channel::Increment(string name, size_t byte_count, uint32_t packet_count)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return Increment(iretn, byte_count, packet_count);
+            }
+            return GENERAL_ERROR_OUTOFRANGE;
+        }
+
+        //! \brief Increment count totals by number.
+        //! Add provided values to counters for ::Bytes and ::Packets.
+        //! \param number Number of channel.
+        //! \param byte_count Number of bytes to increment.
+        //! \param packet_count Number of packets to increment.
+        //! \return New byte total or negative error.
+        ssize_t Channel::Increment(uint8_t number, size_t byte_count, uint32_t packet_count)
         {
             if (number >= channel.size())
             {
@@ -215,11 +314,66 @@ namespace Cosmos {
             channel[number].mtx->lock();
             channel[number].bytes += byte_count;
             channel[number].packets += packet_count;
-            size_t total_count = channel[number].bytes * channel[number].packets;
             channel[number].mtx->unlock();
-            return total_count;
+            return channel[number].bytes;
         }
 
+        //! \brief Decrement count totals by name.
+        //! Subtract provided values from counters for ::Cosmos::Support::Channel::Bytes and ::Cosmos::Support::Channel::Packets.
+        //! \param name Name of channel.
+        //! \param byte_count Number of bytes to decrement.
+        //! \param packet_count Number of packets to decrement.
+        //! \return New byte total or negative error.
+        ssize_t Channel::Decrement(string name, size_t byte_count, uint32_t packet_count)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return Decrement(iretn, byte_count, packet_count);
+            }
+            return GENERAL_ERROR_OUTOFRANGE;
+        }
+
+        //! \brief Decrement count totals by number.
+        //! Subtract provided values from counters for ::Cosmos::Support::Channel::Bytes and ::Cosmos::Support::Channel::Packets.
+        //! \param number Number of channel.
+        //! \param byte_count Number of bytes to decrement.
+        //! \param packet_count Number of packets to decrement.
+        //! \return New byte total or negative error.
+        ssize_t Channel::Decrement(uint8_t number, size_t byte_count, uint32_t packet_count)
+        {
+            if (number >= channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            channel[number].mtx->lock();
+            if (channel[number].bytes >= byte_count)
+            {
+                channel[number].bytes -= byte_count;
+            }
+            else
+            {
+                channel[number].bytes = 0;
+            }
+            if (channel[number].packets >= packet_count)
+            {
+                channel[number].packets -= packet_count;
+            }
+            else
+            {
+                channel[number].packets = 0;
+            }
+            channel[number].mtx->unlock();
+            return channel[number].bytes;
+        }
+
+        //! \brief Push packet to ::Cosmos::Support::Channel::channelstruc::quu by name.
+        //! Packet is assumed to be unpacketized, with information in ::Cosmos::Support::PacketComm:data
+        //! and ::Cosmos::Support::PacketComm::header. Packet is submitted to ::Cosmos::Support::PacketComm::Wrap
+        //! before it is added to ::Cosmos::Support::Channel::channelstruc::quu. Age and counter totals will be updated.
+        //! \param name Name of channel.
+        //! \param packet ::Cosmos::Support::PacketComm packet.
+        //! \return New ::Cosmos::Support::Channel::channelstruc::quu size or negative error.
         int32_t Channel::Push(string name, PacketComm &packet)
         {
             for (uint8_t i=0; i<channel.size(); ++i)
@@ -232,6 +386,13 @@ namespace Cosmos {
             return GENERAL_ERROR_OUTOFRANGE;
         }
 
+        //! \brief Push packet to ::Cosmos::Support::Channel::channelstruc::quu by number.
+        //! Packet is assumed to be unpacketized, with information in ::Cosmos::Support::PacketComm:data
+        //! and ::Cosmos::Support::PacketComm::header. Packet is submitted to ::Cosmos::Support::PacketComm::Wrap
+        //! before it is added to ::Cosmos::Support::Channel::channelstruc::quu. Age and counter totals will be updated.
+        //! \param number Number of channel.
+        //! \param packet ::Cosmos::Support::PacketComm packet.
+        //! \return New ::Cosmos::Support::Channel::channelstruc::quu size or negative error.
         int32_t Channel::Push(uint8_t number, PacketComm &packet)
         {
             int32_t iretn = 0;
@@ -241,41 +402,46 @@ namespace Cosmos {
             }
             else
             {
+                packet.Wrap();
                 channel[number].mtx->lock();
                 channel[number].quu.push(packet);
+                Increment(number, packet.wrapped.size());
                 channel[number].timestamp = currentmjd();
                 if (channel[number].quu.size() > channel[number].maximum)
                 {
+                    Decrement(number, channel[number].quu.front().wrapped.size());
                     channel[number].quu.pop();
                 }
+                iretn = channel[number].quu.size();
                 channel[number].mtx->unlock();
-                iretn = number;
             }
             return iretn;
         }
 
+        //! \brief Pull packet from ::Cosmos::Support::Channel::channelstruc::quu by name.
+        //! Packet is assumed to be unpacketized, with information in ::Cosmos::Support::PacketComm:data
+        //! and ::Cosmos::Support::PacketComm::header. Packet is submitted to ::Cosmos::Support::PacketComm::Unwrap
+        //! after it is pulled from ::Cosmos::Support::Channel::channelstruc::quu.
+        //! \param name Name of channel.
+        //! \param packet ::Cosmos::Support::PacketComm packet.
+        //! \return New ::Cosmos::Support::Channel::channelstruc::quu size or negative error.
         int32_t Channel::Pull(string name, PacketComm &packet)
         {
-            for (uint8_t i=0; i<channel.size(); ++i)
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
             {
-                if (channel[i].name == name)
-                {
-                    std::lock_guard<mutex> lock(*channel[i].mtx);
-                    if (channel[i].quu.size())
-                    {
-                        packet = channel[i].quu.front();
-                        channel[i].quu.pop();
-                        return 1;
-                    }
-                    else
-                    {
-                        return 0;
-                    }
-                }
+                return Pull(iretn, packet);
             }
             return GENERAL_ERROR_OUTOFRANGE;
         }
 
+        //! \brief Pull packet from ::Cosmos::Support::Channel::channelstruc::quu by number.
+        //! Packet is assumed to be unpacketized, with information in ::Cosmos::Support::PacketComm:data
+        //! and ::Cosmos::Support::PacketComm::header. Packet is submitted to ::Cosmos::Support::PacketComm::Unwrap
+        //! after it is pulled from ::Cosmos::Support::Channel::channelstruc::quu.
+        //! \param number Number of channel.
+        //! \param packet ::Cosmos::Support::PacketComm packet.
+        //! \return New ::Cosmos::Support::Channel::channelstruc::quu size or negative error.
         int32_t Channel::Pull(uint8_t number, PacketComm &packet)
         {
             int32_t iretn = 0;
@@ -289,6 +455,7 @@ namespace Cosmos {
                 if (channel[number].quu.size())
                 {
                     packet = channel[number].quu.front();
+                    packet.Unwrap();
                     channel[number].quu.pop();
                     iretn = 1;
                 }
@@ -301,25 +468,22 @@ namespace Cosmos {
             return iretn;
         }
 
+        //! \brief ::Cosmos::Support::Channel::channelstruc::quu size from channel name.
+        //! \param name Name of channel.
+        //! \return Size of ::Cosmos::Support::Channel::channelstruc::quu.
         int32_t Channel::Size(string name)
         {
-            if (name.empty())
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
             {
-                std::lock_guard<mutex> lock(*channel[0].mtx);
-                return channel[0].quu.size();
-            }
-
-            for (uint8_t i=0; i<channel.size(); ++i)
-            {
-                if (channel[i].name == name)
-                {
-                    std::lock_guard<mutex> lock(*channel[i].mtx);
-                    return channel[i].quu.size();
-                }
+                return Size(iretn);
             }
             return GENERAL_ERROR_OUTOFRANGE;
         }
 
+        //! \brief ::Cosmos::Support::Channel::channelstruc::quu size from channel name.
+        //! \param number Number of channel.
+        //! \return Size of ::Cosmos::Support::Channel::channelstruc::quu.
         int32_t Channel::Size(uint8_t number)
         {
             if (number >= channel.size())
@@ -332,27 +496,22 @@ namespace Cosmos {
             return size;
         }
 
+        //! \brief Clear ::Cosmos::Support::Channel::channelstruc::quu size by channel name.
+        //! \param name Name of channel.
+        //! \return Number of ::Cosmos::Support::Channel::channelstruc::quu or negative error.
         int32_t Channel::Clear(string name)
         {
-            if (name.empty())
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
             {
-                std::lock_guard<mutex> lock(*channel[0].mtx);
-                std::queue<PacketComm>().swap(channel[0].quu);
-                return 0;
-            }
-
-            for (uint8_t i=0; i<channel.size(); ++i)
-            {
-                if (channel[i].name == name)
-                {
-                    std::lock_guard<mutex> lock(*channel[i].mtx);
-                	std::queue<PacketComm>().swap(channel[i].quu);
-                    return i;
-                }
+                return Clear(iretn);
             }
             return GENERAL_ERROR_OUTOFRANGE;
         }
 
+        //! \brief Clear ::Cosmos::Support::Channel::channelstruc::quu size by channel number.
+        //! \param name Name of channel.
+        //! \return Number of ::Cosmos::Support::Channel::channelstruc::quu or negative error.
         int32_t Channel::Clear(uint8_t number)
         {
             if (number >= channel.size())
@@ -364,5 +523,252 @@ namespace Cosmos {
             channel[number].mtx->unlock();
             return number;
         }
+
+        //! \brief Start channel performance test by channel name.
+        //! \param name Name of channel.
+        //! \param id Test ID.
+        //! \param orig Node ID of origin.
+        //! \param dest Node ID of destination.
+        //! \param start First value of byte in sequence.
+        //! \param step Amount to increment each byte in sequence.
+        //! \param stop Value to reach before starting sequence again.
+        //! \param total Total number of bytes to send in test.
+        //! \return Number of ::Cosmos::Support::Channel::channelstruc::quu or negative error.
+        int32_t Channel::TestStart(string name, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return TestStart(iretn, id, orig, dest, start, step, stop, total);
+            }
+            return GENERAL_ERROR_OUTOFRANGE;
+        }
+
+        //! \brief Start channel performance test by channel number.
+        //! \param number Number of channel.
+        //! \param id Test ID.
+        //! \param orig Node ID of origin.
+        //! \param dest Node ID of destination.
+        //! \param start First value of byte in sequence.
+        //! \param step Amount to increment each byte in sequence.
+        //! \param stop Value to reach before starting sequence again.
+        //! \param total Total number of bytes to send in test.
+        //! \return Number of ::Cosmos::Support::Channel::channelstruc::quu or negative error.
+        int32_t Channel::TestStart(uint8_t number, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
+        {
+            if (number >= channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            if (channel[number].testrunning)
+            {
+                return GENERAL_ERROR_BUSY;
+            }
+
+            channel[number].testthread = thread([=] { TestLoop(number, id, orig, dest, start, step, stop, total); });
+            return 0;
+        }
+
+        //! \brief Stop test by channel name.
+        //! \param name Name of channel.
+        //! \param seconds Seconds to wait for test thread to stop
+        //! \return Zero or negative error.
+        int32_t Channel::TestStop(string name, float seconds)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return TestStop(iretn, seconds);
+            }
+            return GENERAL_ERROR_OUTOFRANGE;
+        }
+
+        //! \brief Check progress of test by channel number.
+        //! \param number Number of channel.
+        //! \param seconds Seconds to wait for test thread to stop. Constrained to 0 - 60, otherwise set to 10.
+        //! \return Zero or negative error.
+        int32_t Channel::TestStop(uint8_t number, float seconds)
+        {
+            if (number >= channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            if (!channel[number].testrunning)
+            {
+                return 0;
+            }
+
+            if (seconds < 1. || seconds > 10.)
+            {
+                seconds = 10.;
+            }
+            channel[number].testrunning = false;
+            ElapsedTime et;
+            while (et.split() < seconds && !channel[number].testthread.joinable())
+            {
+                std::this_thread::yield();
+            }
+            if (channel[number].testthread.joinable())
+            {
+                channel[number].testthread.join();
+            }
+
+            return channel[number].remaining;
+        }
+
+        //! \brief Check progress of test by channel name.
+        //! \param name Name of channel.
+        //! \return Estimated seconds to completion or negative error.
+        float Channel::TestRemaining(string name)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return TestRemaining(iretn);
+            }
+            return GENERAL_ERROR_OUTOFRANGE;
+        }
+
+        //! \brief Check progress of test by channel number.
+        //! \param number Number of channel.
+        //! \return Estimated seconds to completion or negative error.
+        float Channel::TestRemaining(uint8_t number)
+        {
+            if (number >= channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            if (!channel[number].testrunning)
+            {
+                return 0.;
+            }
+
+            return channel[number].remaining;
+        }
+
+
+        //! \brief Check speed of test by channel name.
+        //! \param name Name of channel.
+        //! \return Estimated seconds to completion or negative error.
+        float Channel::TestSpeed(string name)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return TestSpeed(iretn);
+            }
+            return GENERAL_ERROR_OUTOFRANGE;
+        }
+
+        //! \brief Check speed of test by channel number.
+        //! \param number Number of channel.
+        //! \return Speed of test or negative error.
+        float Channel::TestSpeed(uint8_t number)
+        {
+            if (number >= channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            if (!channel[number].testrunning)
+            {
+                return 0.;
+            }
+
+            return channel[number].speed;
+        }
+
+        //! \brief Loop for performing test.
+        //! \param number Number of channel.
+        //! \param id Test ID.
+        //! \param orig Node ID of origin.
+        //! \param dest Node ID of destination.
+        //! \param start First value of byte in sequence.
+        //! \param step Amount to increment each byte in sequence.
+        //! \param stop Value to reach before starting sequence again.
+        //! \param total Total number of bytes to send in test.
+        //! \return Number of ::Cosmos::Support::Channel::channelstruc::quu or negative error.
+        uint32_t Channel::TestLoop(uint8_t number, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
+        {
+            if (number >= channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+//            int32_t iretn = 0;
+            channel[number].testrunning = true;
+            channel[number].test_bytes = total;
+            channel[number].test_id = id;
+            channel[number].test_start = start;
+            channel[number].test_step = step;
+            channel[number].test_stop = stop;
+
+            // Packet defaults
+            PacketComm test_packet;
+            test_packet.data.resize(channel[number].datasize);
+            test_packet.header.type = PacketComm::TypeId::DataTest;
+            test_packet.header.orig = orig;
+            test_packet.header.dest = dest;
+
+            PacketComm::TestHeader theader;
+            theader.size = channel[number].datasize-(sizeof(theader)+2);
+            theader.test_id = id;
+            theader.packet_id = 0;
+
+            uint8_t byte_value = start;
+            size_t step_count = 0;
+            for (size_t ib=0; ib<theader.size; ++ib)
+            {
+                test_packet.data[sizeof(PacketComm::TestHeader) + ib] = byte_value;
+                if (step_count++ < stop)
+                {
+                    byte_value += step;
+                }
+                else
+                {
+                    step_count = 0;
+                    byte_value = start;
+                }
+            }
+
+            channel[number].testet.reset();
+            channel[number].testcount = 0;
+            channel[number].testseconds = 0.;
+            while (channel[number].testrunning && channel[number].testcount < total && (channel[number].testseconds=channel[number].testet.split()) <= 60.)
+            {
+                memcpy(&test_packet.data[0], &theader, sizeof(theader));
+                uint16_t crccalc = test_packet.calc_crc.calc(&test_packet.data[0], channel[number].datasize-2);
+                test_packet.data[channel[number].datasize-1] = (crccalc>>8);
+                test_packet.data[channel[number].datasize-2] = (crccalc&0xff);
+                Push(number, test_packet);
+                secondsleep(test_packet.packetized.size() / channel[number].byte_rate);
+                theader.packet_id++;
+                channel[number].testcount += theader.size;
+                if (channel[number].testseconds > 0. && channel[number].testcount > 0)
+                {
+                    channel[number].speed = channel[number].testcount / channel[number].testseconds;
+                    channel[number].remaining = (total - channel[number].testcount) / channel[number].speed;
+                }
+            }
+            theader.packet_id = ((uint32_t)-1);
+            memcpy(&test_packet.data[0], &theader, sizeof(theader));
+            uint16_t crccalc = test_packet.calc_crc.calc(&test_packet.data[0], channel[number].datasize-2);
+            test_packet.data[channel[number].datasize-1] = (crccalc>>8);
+            test_packet.data[channel[number].datasize-2] = (crccalc&0xff);
+            Push(number, test_packet);
+            channel[number].testseconds = channel[number].testet.split();
+            if (channel[number].testseconds > 0. && channel[number].testcount > 0)
+            {
+                channel[number].speed = channel[number].testcount / channel[number].testseconds;
+                channel[number].remaining = (total - channel[number].testcount) / channel[number].speed;
+            }
+//            string response = "TXSI2C Test Complete: " + to_label("Id", test_id) + to_label(" Bytes", testcount) + to_label(" Seconds", testseconds, 2) + to_label(" Speed", testcount / testseconds, 1);
+//            iretn = agent->push_response("TXSI2C", dest, id, response);
+            return channel[number].testcount;
+        }
+
     }
 }

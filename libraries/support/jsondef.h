@@ -222,35 +222,35 @@ namespace Cosmos
         enum {
             //! Absolute pointer
             JSON_STRUCT_ABSOLUTE,
-            //! ::nodestruc
+            //! Cosmos::Support::nodestruc
             JSON_STRUCT_NODE,
-            //! ::agentstruc
+            //! Cosmos::Support::agentstruc
             JSON_STRUCT_AGENT,
-            //! ::devicestruc
+            //! Cosmos::Support::devicestruc
             JSON_STRUCT_DEVICE,
-            //! ::devspecstruc
+            //! Cosmos::Support::devspecstruc
             JSON_STRUCT_DEVSPEC,
-            //! ::physicsstruc
+            //! Cosmos::Support::physicsstruc
             JSON_STRUCT_PHYSICS,
-            //! ::eventstruc
+            //! Cosmos::Support::eventstruc
             JSON_STRUCT_EVENT,
-            //! ::piecestruc
+            //! Cosmos::Support::piecestruc
             JSON_STRUCT_PIECE,
-            //! ::targetstruc
+            //! Cosmos::Support::targetstruc
             JSON_STRUCT_TARGET,
-            //! ::userstruc
+            //! Cosmos::Support::userstruc
             JSON_STRUCT_USER,
-            //! ::portstruc
+            //! Cosmos::Support::portstruc
             JSON_STRUCT_PORT,
-            //! ::tlestruc
+            //! Cosmos::Support::tlestruc
             JSON_STRUCT_TLE,
-            //! ::aliasstruc
+            //! Cosmos::Support::aliasstruc
             JSON_STRUCT_ALIAS,
-            //! ::equationstruc
+            //! Cosmos::Support::equationstruc
             JSON_STRUCT_EQUATION,
-            //! ::vertexstruc
+            //! Cosmos::Support::vertexstruc
             JSON_STRUCT_POINT,
-            //! ::facestruc
+            //! Cosmos::Support::facestruc
             JSON_STRUCT_FACE,
             JSON_STRUCT_PTR,
             //! entirety
@@ -5876,8 +5876,8 @@ union as a ::devicestruc.
 
             }
 
-            /// Add default names for every accessible memory location within the COSMOS Data Structure (::cosmosstruc) to Namespace 2.0.
-            /** Provide a default name for every accessible memory location within the COSMOS Data Structure (::cosmosstruc) for Namespace 2.0. Naming convention follows the exact representation of the object in code. E.g., default name for `equation[0].name` is `"equation[0].name"`.
+            /// Add default names for every accessible memory location within the COSMOS Data Structure (Cosmos::Support::cosmosstruc) to Namespace 2.0.
+            /** Provide a default name for every accessible memory location within the COSMOS Data Structure (Cosmos::Support::cosmosstruc) for Namespace 2.0. Naming convention follows the exact representation of the object in code. E.g., default name for `equation[0].name` is `"equation[0].name"`.
         @param none
         @return n/a
     */

@@ -79,20 +79,22 @@ namespace Cosmos {
 //            static int32_t EpsState(PacketComm &packet, string &response, Agent* agent);
             static int32_t request_command(string &, string &response, Agent *agent);
 
-            static int32_t QueueReset(uint16_t seconds, uint32_t verification_check, Agent* agent, string channel="EXEC", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
-            static int32_t QueueReboot(uint32_t verification_check, Agent* agent, string channel="EXEC", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueReset(uint16_t seconds, uint32_t verification_check, Agent* agent, string channel="EXEC", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueReboot(uint32_t verification_check, Agent* agent, string channel="EXEC", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueSendBeacon(uint8_t btype, uint8_t bcount, Agent* agent, string channel="EXEC", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
 
-            static int32_t QueueEpsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
-            static int32_t QueueEpsSwitchName(string name, uint16_t seconds, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
-            static int32_t QueueEpsSwitchNames(vector<string> names, vector<uint16_t> seconds, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
-            static int32_t QueueEpsSwitchNumber(uint16_t number, uint16_t seconds, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
-            static int32_t QueueEpsReset(uint16_t seconds, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
-            static int32_t QueueEpsState(uint8_t state, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
-            static int32_t QueueEpsWatchdog(uint16_t seconds, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
-            static int32_t QueueEpsSetTime(double mjd, Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
-            static int32_t QueueEpsMinimumPower(Agent* agent, string channel="EPS", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
-            static int32_t QueueCommandTransferRadio(uint8_t use_radio, bool availability, Agent* agent, NodeData::NODE_ID_TYPE orig, NodeData::NODE_ID_TYPE dest);
+            static int32_t QueueEpsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueEpsSwitchName(string name, uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueEpsSwitchNames(vector<string> names, vector<uint16_t> seconds, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueEpsSwitchNumber(uint16_t number, uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueEpsReset(uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueEpsState(uint8_t state, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueEpsWatchdog(uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueEpsSetTime(double mjd, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueEpsMinimumPower(Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueTransferRadio(uint8_t use_radio, bool availability, Agent* agent, NodeData::NODE_ID_TYPE dest);
+            static int32_t QueueTestRadio(uint8_t start, uint8_t step, uint8_t stop, uint32_t count, Agent* agent, string testradio="", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueSetTime(double mjd, int8_t direction, Agent* agent, string channel="", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
         private:
             Agent* agent;
             /// Current packet id index, to index response_packets

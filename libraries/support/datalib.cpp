@@ -373,14 +373,12 @@ int32_t log_move(string node, string agent)
  */
 int32_t log_relocate(string srcdir, string dstdir, bool compress)
 {
-    printf("relocate: %s %s\n", srcdir.c_str(), dstdir.c_str());
     int32_t iretn = 0;
     vector<filestruc> files = data_list_files(srcdir);
     if (data_isdir(dstdir, true))
     {
         for (filestruc file : files)
         {
-            printf("move: %s %s\n", file.path.c_str(), (dstdir+"/"+file.name).c_str());
             iretn = log_move(file.path, dstdir+"/"+file.name, compress);
         }
         return iretn;

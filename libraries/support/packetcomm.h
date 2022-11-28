@@ -279,10 +279,10 @@ namespace Cosmos {
 
             vector<uint8_t> atsm = {0x1a, 0xcf, 0xfc, 0x1d};
             vector<uint8_t> atsmr = {0x58, 0xf3, 0x3f, 0xb8};
-//            uint32_t secret;
+            vector<uint8_t> satsm = {0x35, 0x2e, 0xf8, 0x53};
+            CRC16 calc_crc;
 
         private:
-            CRC16 calc_crc;
 
 //            Transfer ttransfer;
 //            int32_t close_transfer();

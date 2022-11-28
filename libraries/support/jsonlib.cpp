@@ -8807,7 +8807,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             json_addentry("device_rxr_volt",didx, UINT16_MAX, (uint8_t *)&device->volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_rxr_amp",didx, UINT16_MAX, (uint8_t *)&device->amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_rxr_power",didx, UINT16_MAX, (uint8_t *)&device->power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-            json_addentry("device_rxr_powerout",didx, UINT16_MAX, (uint8_t *)&device->powerout, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+            json_addentry("device_rxr_powerin",didx, UINT16_MAX, (uint8_t *)&device->powerin, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_rxr_band",didx, UINT16_MAX, (uint8_t *)&device->band, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_rxr_goodratio",didx, UINT16_MAX, (uint8_t *)&device->goodratio, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
             json_addentry("device_rxr_utcin",didx, UINT16_MAX, (uint8_t *)&device->utcin, (uint16_t)JSON_TYPE_DOUBLE, cinfo);

@@ -909,9 +909,9 @@ namespace Cosmos {
         {
             //! Master time for location, in Modified Julian Day
             double utc = 0.;
-            //! ::posstruc for this time.
+            //! Cosmos::Support::posstruc for this time.
             posstruc pos;
-            //! ::attstruc for this time.
+            //! Cosmos::Support::attstruc for this time.
             attstruc att;
 
             /// Convert class contents to JSON object

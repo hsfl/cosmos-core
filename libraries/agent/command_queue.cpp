@@ -184,7 +184,11 @@ namespace Cosmos
                 close(devn);
 
                 // Execute the command.
-                system(command_line);
+                size_t ret = system(command_line);
+                if (ret == 0)
+                {
+                    queue_changed = true;
+                }
 
                 dup2(prev_stdin, STDIN_FILENO);
                 dup2(prev_stdout, STDOUT_FILENO);

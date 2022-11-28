@@ -29,31 +29,6 @@ namespace Cosmos {
             this->type = type;
             switch (type)
             {
-            case TypeId::ADCSStateBeaconS:
-                {
-                    adcsstate_beacon beacon;
-                    beacon.deci = cinfo->node.deci;
-
-                    beacon.x_eci = cinfo->node.loc.pos.eci.s.col[0];
-                    beacon.y_eci = cinfo->node.loc.pos.eci.s.col[1];
-                    beacon.z_eci = cinfo->node.loc.pos.eci.s.col[2];
-
-                    beacon.vx_eci = cinfo->node.loc.pos.eci.v.col[0];
-                    beacon.vy_eci = cinfo->node.loc.pos.eci.v.col[1];
-                    beacon.vz_eci = cinfo->node.loc.pos.eci.v.col[2];
-
-                    beacon.att_icrf_x = cinfo->node.loc.att.icrf.s.d.x;
-                    beacon.att_icrf_y = cinfo->node.loc.att.icrf.s.d.y;
-                    beacon.att_icrf_z = cinfo->node.loc.att.icrf.s.d.z;
-                    beacon.att_icrf_w = cinfo->node.loc.att.icrf.s.w;
-
-                    beacon.att_icrf_omega_x = cinfo->node.loc.att.icrf.v.col[0];
-                    beacon.att_icrf_omega_y = cinfo->node.loc.att.icrf.v.col[1];
-                    beacon.att_icrf_omega_z = cinfo->node.loc.att.icrf.v.col[2];
-
-                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
-                }
-                break;
             case TypeId::ADCSORBITBeaconS:
                 if (cinfo->tle.size())
                 {
@@ -353,47 +328,76 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+mtrcount*sizeof(adcsmtr_beacon));
                 }
                 break;
-                //case TypeId::ADCSMagFieldVector:
-                //{
+            case TypeId::ADCSStateBeaconL:
+                {
+                    adcsstate_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
 
+                    beacon.x_eci = cinfo->node.loc.pos.eci.s.col[0];
+                    beacon.y_eci = cinfo->node.loc.pos.eci.s.col[1];
+                    beacon.z_eci = cinfo->node.loc.pos.eci.s.col[2];
 
-                //break;
-                //}
+                    beacon.vx_eci = cinfo->node.loc.pos.eci.v.col[0];
+                    beacon.vy_eci = cinfo->node.loc.pos.eci.v.col[1];
+                    beacon.vz_eci = cinfo->node.loc.pos.eci.v.col[2];
+
+                    beacon.att_icrf_x = cinfo->node.loc.att.icrf.s.d.x;
+                    beacon.att_icrf_y = cinfo->node.loc.att.icrf.s.d.y;
+                    beacon.att_icrf_z = cinfo->node.loc.att.icrf.s.d.z;
+                    beacon.att_icrf_w = cinfo->node.loc.att.icrf.s.w;
+
+                    beacon.att_icrf_omega_x = cinfo->node.loc.att.icrf.v.col[0];
+                    beacon.att_icrf_omega_y = cinfo->node.loc.att.icrf.v.col[1];
+                    beacon.att_icrf_omega_z = cinfo->node.loc.att.icrf.v.col[2];
+
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+                }
+                break;
             case TypeId::RadioBeaconL:
                 {
+                    radios_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+                    uint16_t radiocount = 0;
                     if (cinfo->devspec.rxr.size() || cinfo->devspec.txr.size())
                     {
-                        radios_beacon beacon;
-                        beacon.deci = cinfo->node.deci;
-                        uint16_t radiocount = 0;
-                        uint16_t rxrcount = cinfo->devspec.rxr.size() < radio_count?cinfo->devspec.rxr.size():radio_count;
-                        for (uint16_t i=0; i<rxrcount; ++i)
+//                        uint16_t rxrcount = cinfo->devspec.rxr.size() < rxrtxr_count?cinfo->devspec.rxr.size():rxrtxr_count;
+                        for (uint16_t i=0; i<cinfo->devspec.rxr.size(); ++i)
                         {
+                            if (radiocount >= rxrtxr_count)
+                            {
+                                break;
+                            }
                             beacon.radio[radiocount].packet_size = cinfo->devspec.rxr[i].pktsize;
-                            beacon.radio[radiocount].mbyte_rate = cinfo->devspec.rxr[i].byte_rate / 1000.;
+                            beacon.radio[radiocount].kbyte_rate = cinfo->devspec.rxr[i].byte_rate / 1000.;
                             beacon.radio[radiocount].uptime = cinfo->devspec.rxr[i].uptime;
                             beacon.radio[radiocount].ctemp = cinfo->devspec.rxr[i].temp / 100.;
-                            beacon.radio[radiocount].mpower = cinfo->devspec.rxr[i].powerin / 1000.;
+                            beacon.radio[radiocount].kpower = cinfo->devspec.rxr[i].powerin / 1000.;
                             beacon.radio[radiocount].bytes = cinfo->devspec.rxr[i].bytesin;
                             beacon.radio[radiocount].lastdeci = decisec(cinfo->devspec.rxr[i].utcin);
                             ++radiocount;
                         }
-                        if (radio_count > radiocount)
-                        {
-                            uint16_t txrcount = cinfo->devspec.txr.size() < (radio_count - radiocount)?cinfo->devspec.txr.size():(radio_count - radiocount);
-                            for (uint16_t i=0; i<txrcount; ++i)
+//                        if (radiocount < rxrtxr_count)
+//                        {
+//                            uint16_t txr_count = rxrtxr_count - radiocount;
+//                            uint16_t txrcount = cinfo->devspec.txr.size() < txr_count?cinfo->devspec.txr.size():txr_count;
+                            for (uint16_t i=0; i<cinfo->devspec.txr.size(); ++i)
                             {
+                                if (radiocount >= rxrtxr_count)
+                                {
+                                    break;
+                                }
                                 beacon.radio[radiocount].packet_size = cinfo->devspec.txr[i].pktsize;
-                                beacon.radio[radiocount].mbyte_rate = cinfo->devspec.txr[i].byte_rate / 1000.;
+                                beacon.radio[radiocount].kbyte_rate = cinfo->devspec.txr[i].byte_rate / 1000.;
                                 beacon.radio[radiocount].uptime = cinfo->devspec.txr[i].pktsize;
                                 beacon.radio[radiocount].ctemp = cinfo->devspec.txr[i].temp / 100.;
-                                beacon.radio[radiocount].mpower = cinfo->devspec.txr[i].powerout / 1000.;
+                                beacon.radio[radiocount].kpower = cinfo->devspec.txr[i].powerout / 1000.;
                                 beacon.radio[radiocount].bytes = cinfo->devspec.txr[i].bytesout;
                                 beacon.radio[radiocount].lastdeci = decisec(cinfo->devspec.txr[i].utcout);
                                 ++radiocount;
                             }
-                        }
+//                        }
                     }
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+radiocount*sizeof(radio_beacon));
                 }
                 break;
             default:
@@ -412,7 +416,7 @@ namespace Cosmos {
                 {
                     switch (type)
                     {
-                    case TypeId::ADCSStateBeaconS:
+                    case TypeId::ADCSStateBeaconL:
                         {
                             adcsstate_beacon beacon;
                             if (data.size() <= sizeof(beacon)) {
@@ -424,6 +428,7 @@ namespace Cosmos {
 
                             cinfo->node.loc.pos.eci.utc = mjd;
                             // JIMNOTE: need to update pass here?
+                            // EP: 20221126 No, updating should be done elsewhere, depending on source of position
                             cinfo->node.loc.pos.eci.s.col[0] = beacon.x_eci;
                             cinfo->node.loc.pos.eci.s.col[1] = beacon.y_eci;
                             cinfo->node.loc.pos.eci.s.col[2] = beacon.z_eci;
@@ -498,7 +503,13 @@ namespace Cosmos {
                     case TypeId::CPU1BeaconS:
                         {
                             cpu1_beacons beacon;
-                            cinfo->node.deci =  beacon.deci;
+                            if (data.size() <= sizeof(beacon)) {
+                                memcpy(&beacon, data.data(), data.size());
+                            } else {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            cinfo->devspec.cpu[0].utc = mjd;
                             cinfo->devspec.cpu[0].load = beacon.load;
                             cinfo->devspec.cpu[0].gib = beacon.memory;
                             cinfo->devspec.cpu[0].storage = beacon.cdisk / 100.;
@@ -507,7 +518,13 @@ namespace Cosmos {
                     case TypeId::CPU2BeaconS:
                         {
                             cpu2_beacons beacon;
-                            cinfo->node.deci =  beacon.deci;
+                            if (data.size() <= sizeof(beacon)) {
+                                memcpy(&beacon, data.data(), data.size());
+                            } else {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            cinfo->devspec.cpu[0].utc = mjd;
                             cinfo->devspec.cpu[0].uptime = beacon.uptime;
                             cinfo->devspec.cpu[0].boot_count = beacon.bootcount;
                             cinfo->node.utcstart = unix2utc(beacon.initialdate);
@@ -516,34 +533,54 @@ namespace Cosmos {
                     case TypeId::TsenBeaconS:
                         {
                             tsen_beacons beacon;
-                            cinfo->node.deci = beacon.deci;
+                            if (data.size() <= sizeof(beacon)) {
+                                memcpy(&beacon, data.data(), data.size());
+                            } else {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
                             for (uint16_t i=0; i<(cinfo->devspec.tsen.size()>=6?6:cinfo->devspec.tsen.size()); ++i)
                             {
+                                cinfo->devspec.tsen[i].utc = mjd;
                                 cinfo->devspec.tsen[i].temp = beacon.ctemp[i] / 100.;
                             }
                         }
                         break;
                     case TypeId::EPSCPUBeaconS:
-                        for (uint16_t i=0; i<cinfo->devspec.cpu.size(); ++i)
                         {
-                            if (cinfo->devspec.cpu[i].name.find("eps") != string::npos)
+                            epscpu_beacons beacon;
+                            if (data.size() <= sizeof(beacon)) {
+                                memcpy(&beacon, data.data(), data.size());
+                            } else {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            for (uint16_t i=0; i<cinfo->devspec.cpu.size(); ++i)
                             {
-                                epscpu_beacons beacon;
-                                cinfo->node.deci = beacon.deci;
-                                cinfo->devspec.cpu[i].volt = beacon.volt;
-                                cinfo->devspec.cpu[i].amp = beacon.amp;
-                                cinfo->devspec.cpu[i].temp = beacon.temp;
-                                break;
+                                if (cinfo->devspec.cpu[i].name.find("eps") != string::npos)
+                                {
+                                    cinfo->devspec.cpu[i].utc = mjd;
+                                    cinfo->devspec.cpu[i].volt = beacon.volt;
+                                    cinfo->devspec.cpu[i].amp = beacon.amp;
+                                    cinfo->devspec.cpu[i].temp = beacon.temp;
+                                    break;
+                                }
                             }
                         }
                         break;
                     case TypeId::EPSBCREGBeaconS:
                         {
                             epsbcreg_beacons beacon;
-                            cinfo->node.deci = beacon.deci;
+                            if (data.size() <= sizeof(beacon)) {
+                                memcpy(&beacon, data.data(), data.size());
+                            } else {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
                             beacon.deci = cinfo->node.deci;
                             for (uint16_t i=0; i<cinfo->devspec.bcreg.size(); ++i)
                             {
+                                cinfo->devspec.bcreg[i].utc = mjd;
                                 cinfo->devspec.bcreg[i].volt = beacon.volt;
                                 cinfo->devspec.bcreg[i].amp = beacon.amp;
                                 cinfo->devspec.bcreg[i].temp = beacon.temp;
@@ -553,9 +590,15 @@ namespace Cosmos {
                     case TypeId::EPSSWCHBeaconS:
                         {
                             epsswch_beacons beacon;
-                            beacon.deci = cinfo->node.deci;
+                            if (data.size() <= sizeof(beacon)) {
+                                memcpy(&beacon, data.data(), data.size());
+                            } else {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
                             for (uint16_t i=0; i<cinfo->devspec.swch.size(); ++i)
                             {
+                                cinfo->devspec.swch[i].utc = mjd;
                                 cinfo->devspec.swch[i].volt = beacon.volt;
                                 cinfo->devspec.swch[i].amp = beacon.amp;
                                 cinfo->devspec.swch[i].temp = beacon.temp;
@@ -565,9 +608,15 @@ namespace Cosmos {
                     case TypeId::EPSBATTBeaconS:
                         {
                             epsbatt_beacons beacon;
-                            beacon.deci = cinfo->node.deci;
+                            if (data.size() <= sizeof(beacon)) {
+                                memcpy(&beacon, data.data(), data.size());
+                            } else {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
                             for (uint16_t i=0; i<cinfo->devspec.batt.size(); ++i)
                             {
+                                cinfo->devspec.batt[i].utc = mjd;
                                 cinfo->devspec.batt[i].volt = beacon.volt;
                                 cinfo->devspec.batt[i].amp = beacon.amp;
                                 cinfo->devspec.batt[i].temp = beacon.temp;
@@ -584,10 +633,9 @@ namespace Cosmos {
                             }
                             double mjd = decisec2mjd(beacon.deci);
                             uint16_t radiocount = 0;
-                            uint16_t rxrcount = cinfo->devspec.rxr.size();
-                            for (uint16_t i=0; i<rxrcount; ++i)
+                            for (uint16_t i=0; i<cinfo->devspec.rxr.size(); ++i)
                             {
-                                if (radiocount == radio_count)
+                                if (radiocount == rxrtxr_count)
                                 {
                                     break;
                                 }
@@ -602,10 +650,9 @@ namespace Cosmos {
                                 }
                                 cinfo->devspec.rxr[i].utcin = decisec2mjd(beacon.lastdeciup);
                             }
-                            uint16_t txrcount = cinfo->devspec.txr.size();
-                            for (uint16_t i=0; i<txrcount; ++i)
+                            for (uint16_t i=0; i<cinfo->devspec.txr.size(); ++i)
                             {
-                                if (radiocount == radio_count)
+                                if (radiocount == rxrtxr_count)
                                 {
                                     break;
                                 }
@@ -634,7 +681,6 @@ namespace Cosmos {
                                 return GENERAL_ERROR_BAD_SIZE;
                             }
                             cinfo->node.utcstart = unix2utc(beacon.initialdate);
-                            printf("Beacon: utcstart %f\n", cinfo->node.utcstart);
                             double mjd = decisec2mjd(beacon.deci);
                             for (uint16_t i=0; i<(data.size()-9)/COSMOS_SIZEOF(cpu_beacon); ++i)
                             {
@@ -670,7 +716,6 @@ namespace Cosmos {
                                     cinfo->devspec.tsen[i].utc = mjd;
                                     cinfo->devspec.tsen[i].temp = beacon.ctemp[i] / 100.;
                                 }
-                                //                            printf("D TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
                             }
                         }
                         break;
@@ -692,7 +737,6 @@ namespace Cosmos {
                                 cinfo->devspec.swch[i].volt = beacon.swch[i].mvolt / 1000.;
                                 cinfo->devspec.swch[i].amp = beacon.swch[i].mamp / 1000.;
                                 cinfo->devspec.swch[i].power = cinfo->devspec.swch[i].volt * cinfo->devspec.swch[i].amp;
-                                //                            printf("D SWCH %u %s: pidx=%u volt=%f amp=%f\n", i, cinfo->devspec.swch[i].name.c_str(), cinfo->devspec.swch[i].pidx, cinfo->devspec.swch[i].volt, cinfo->devspec.swch[i].amp);
                             }
                         }
                         break;
@@ -755,18 +799,37 @@ namespace Cosmos {
                             {
                                 return GENERAL_ERROR_BAD_SIZE;
                             }
-                            double mjd = decisec2mjd(beacon.deci);
+//                            double mjd = decisec2mjd(beacon.deci);
                             uint16_t radiocount = 0;
-                            uint16_t rxrcount = cinfo->devspec.rxr.size() < radio_count?cinfo->devspec.rxr.size():radio_count;
-                            for (uint16_t i=0; i<rxrcount; ++i)
+//                            uint16_t rxrcount = cinfo->devspec.rxr.size() < rxrtxr_count?cinfo->devspec.rxr.size():rxrtxr_count;
+                            for (uint16_t i=0; i<cinfo->devspec.rxr.size(); ++i)
                             {
+                                if (radiocount >= rxrtxr_count)
+                                {
+                                    break;
+                                }
                                 cinfo->devspec.rxr[i].pktsize = beacon.radio[radiocount].packet_size;
-                                cinfo->devspec.rxr[i].byte_rate = beacon.radio[radiocount].mbyte_rate * 1000.;
+                                cinfo->devspec.rxr[i].byte_rate = beacon.radio[radiocount].kbyte_rate * 1000.;
                                 cinfo->devspec.rxr[i].uptime = beacon.radio[radiocount].uptime;
                                 cinfo->devspec.rxr[i].temp = beacon.radio[radiocount].ctemp * 100.;
-                                cinfo->devspec.rxr[i].powerout = beacon.radio[radiocount].mpower * 1000.;
+                                cinfo->devspec.rxr[i].powerin = beacon.radio[radiocount].kpower * 1000.;
                                 cinfo->devspec.rxr[i].bytesin = beacon.radio[radiocount].bytes;
                                 cinfo->devspec.rxr[i].utcin = decisec2mjd(beacon.radio[radiocount].lastdeci);
+                                ++radiocount;
+                            }
+                            for (uint16_t i=0; i<cinfo->devspec.txr.size(); ++i)
+                            {
+                                if (radiocount >= rxrtxr_count)
+                                {
+                                    break;
+                                }
+                                cinfo->devspec.txr[i].pktsize = beacon.radio[radiocount].packet_size;
+                                cinfo->devspec.txr[i].byte_rate = beacon.radio[radiocount].kbyte_rate * 1000.;
+                                cinfo->devspec.txr[i].uptime = beacon.radio[radiocount].uptime;
+                                cinfo->devspec.txr[i].temp = beacon.radio[radiocount].ctemp * 100.;
+                                cinfo->devspec.txr[i].powerout = beacon.radio[radiocount].kpower * 1000.;
+                                cinfo->devspec.txr[i].bytesout = beacon.radio[radiocount].bytes;
+                                cinfo->devspec.txr[i].utcout = decisec2mjd(beacon.radio[radiocount].lastdeci);
                                 ++radiocount;
                             }
                         }
@@ -797,7 +860,7 @@ namespace Cosmos {
             Contents.clear();
             switch (type)
             {
-            case TypeId::ADCSStateBeaconS:
+            case TypeId::ADCSStateBeaconL:
                 {
                     // JIMNOTE: should not this be mjd to deci?
                     json_out(Contents, "node_loc_pos_eci_utc", cinfo);
@@ -811,9 +874,6 @@ namespace Cosmos {
                 break;
             case TypeId::ADCSORBITBeaconS:
                 {
-                    cinfo->node.deci = decisec2mjd(cinfo->tle[0].utc);
-                    json_out(Contents, "node_deci", cinfo);
-
                     json_out_1d(Contents, "tle_utc", 0, cinfo);
                     json_out_1d(Contents, "tle_i", 0, cinfo);
                     json_out_1d(Contents, "tle_e", 0, cinfo);
@@ -835,8 +895,6 @@ namespace Cosmos {
                 {
                     // does this need mag utc?
                     // JIMNOTE double check the JSON output (vector or not?)
-                    cinfo->node.deci = decisec2mjd(cinfo->devspec.mag[0].utc);
-                    json_out(Contents, "node_deci", cinfo);
                     json_out_1d(Contents, "device_mag_utc", 0, cinfo);
                     json_out_1d(Contents, "device_mag_mag_x", 0, cinfo);
                     json_out_1d(Contents, "device_mag_mag_y", 0, cinfo);
@@ -845,8 +903,7 @@ namespace Cosmos {
                 break;
             case TypeId::CPU1BeaconS:
                 {
-                    cinfo->node.deci = decisec2mjd(cinfo->devspec.cpu[0].utc);
-                    json_out(Contents, "node_deci", cinfo);
+                    json_out_1d(Contents, "device_cpu_utc", 0, cinfo);
                     json_out_1d(Contents, "device_cpu_load", 0, cinfo);
                     json_out_1d(Contents, "device_cpu_gib", 0, cinfo);
                     json_out_1d(Contents, "device_disk_gib", 0, cinfo);
@@ -854,8 +911,7 @@ namespace Cosmos {
                 break;
             case TypeId::CPU2BeaconS:
                 {
-                    cinfo->node.deci = decisec2mjd(cinfo->devspec.cpu[0].utc);
-                    json_out(Contents, "node_deci", cinfo);
+                    json_out_1d(Contents, "device_cpu_utc", 0, cinfo);
                     json_out_1d(Contents, "device_cpu_uptime", 0, cinfo);
                     json_out_1d(Contents, "device_cpu_boot_count", 0, cinfo);
                     json_out(Contents, "node_utcstart", cinfo);
@@ -863,10 +919,9 @@ namespace Cosmos {
                 break;
             case TypeId::TsenBeaconS:
                 {
-                    cinfo->node.deci = decisec2mjd(cinfo->devspec.tsen[0].utc);
-                    json_out(Contents, "node_deci", cinfo);
-                    for (uint16_t i=0; i<std::min(static_cast<size_t>(3), cinfo->devspec.tsen.size()); ++i)
+                    for (uint16_t i=0; i<std::min(static_cast<size_t>(6), cinfo->devspec.tsen.size()); ++i)
                     {
+                        json_out_1d(Contents, "device_tsen_utc", i, cinfo);
                         json_out_1d(Contents, "device_tsen_temp", i, cinfo);
                     }
                 }
@@ -877,6 +932,7 @@ namespace Cosmos {
                     {
                         if (cinfo->devspec.cpu[i].name.find("eps") != string::npos)
                         {
+                            json_out_1d(Contents, "device_cpu_utc", i, cinfo);
                             json_out_1d(Contents, "device_cpu_volt", i, cinfo);
                             json_out_1d(Contents, "device_cpu_amp", i, cinfo);
                             json_out_1d(Contents, "device_cpu_temp", i, cinfo);
@@ -889,6 +945,7 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.bcreg.size(); ++i)
                     {
+                        json_out_1d(Contents, "device_bcreg_utc", i, cinfo);
                         json_out_1d(Contents, "device_bcreg_volt", i, cinfo);
                         json_out_1d(Contents, "device_bcreg_amp", i, cinfo);
                         json_out_1d(Contents, "device_bcreg_temp", i, cinfo);
@@ -899,6 +956,7 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.swch.size(); ++i)
                     {
+                        json_out_1d(Contents, "device_swch_utc", i, cinfo);
                         json_out_1d(Contents, "device_swch_volt", i, cinfo);
                         json_out_1d(Contents, "device_swch_amp", i, cinfo);
                         json_out_1d(Contents, "device_swch_temp", i, cinfo);
@@ -909,6 +967,7 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.batt.size(); ++i)
                     {
+                        json_out_1d(Contents, "device_batt_utc", i, cinfo);
                         json_out_1d(Contents, "device_batt_volt", i, cinfo);
                         json_out_1d(Contents, "device_batt_amp", i, cinfo);
                         json_out_1d(Contents, "device_batt_temp", i, cinfo);
@@ -927,6 +986,7 @@ namespace Cosmos {
                         json_out_1d(Contents, "device_cpu_load", i, cinfo);
                         json_out_1d(Contents, "device_cpu_gib", i, cinfo);
                         json_out_1d(Contents, "device_cpu_storage", i, cinfo);
+                        json_out_1d(Contents, "device_cpu_temp", i, cinfo);
                     }
                 }
                 break;
@@ -934,7 +994,7 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.tsen.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_tsen_cpu", i, cinfo);
+                        json_out_1d(Contents, "device_tsen_utc", i, cinfo);
                         json_out_1d(Contents, "device_tsen_temp", i, cinfo);
                     }
                 }
@@ -943,7 +1003,7 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.swch.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_swch_cpu", i, cinfo);
+                        json_out_1d(Contents, "device_swch_utc", i, cinfo);
                         json_out_1d(Contents, "device_swch_amp", i, cinfo);
                         json_out_1d(Contents, "device_swch_volt", i, cinfo);
                         json_out_1d(Contents, "device_swch_power", i, cinfo);
@@ -954,7 +1014,7 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.bcreg.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_bcreg_cpu", i, cinfo);
+                        json_out_1d(Contents, "device_bcreg_utc", i, cinfo);
                         json_out_1d(Contents, "device_bcreg_amp", i, cinfo);
                         json_out_1d(Contents, "device_bcreg_volt", i, cinfo);
                         json_out_1d(Contents, "device_bcreg_power", i, cinfo);
@@ -969,7 +1029,7 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.batt.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_batt_cpu", i, cinfo);
+                        json_out_1d(Contents, "device_batt_utc", i, cinfo);
                         json_out_1d(Contents, "device_batt_amp", i, cinfo);
                         json_out_1d(Contents, "device_batt_volt", i, cinfo);
                         json_out_1d(Contents, "device_batt_power", i, cinfo);
@@ -982,6 +1042,7 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.rxr.size(); ++i)
                     {
+                        json_out_1d(Contents, "device_rxr_utc", i, cinfo);
                         json_out_1d(Contents, "device_rxr_amp", i, cinfo);
                         json_out_1d(Contents, "device_rxr_volt", i, cinfo);
                         json_out_1d(Contents, "device_rxr_power", i, cinfo);
@@ -991,6 +1052,7 @@ namespace Cosmos {
                         json_out_1d(Contents, "device_rxr_uptime", i, cinfo);
                         json_out_1d(Contents, "device_rxr_bytesin", i, cinfo);
                         json_out_1d(Contents, "device_rxr_powerin", i, cinfo);
+                        json_out_1d(Contents, "device_rxr_utcin", i, cinfo);
                     }
                     for (uint16_t i=0; i<cinfo->devspec.txr.size(); ++i)
                     {
@@ -1003,6 +1065,7 @@ namespace Cosmos {
                         json_out_1d(Contents, "device_txr_uptime", i, cinfo);
                         json_out_1d(Contents, "device_txr_bytesout", i, cinfo);
                         json_out_1d(Contents, "device_txr_powerout", i, cinfo);
+                        json_out_1d(Contents, "device_txr_utcout", i, cinfo);
                     }
                 }
                 break;

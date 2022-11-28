@@ -624,7 +624,11 @@ double DeviceCpuLinux::getMemoryUsedOf(string processName)
     if ((fd = open(status_child.c_str(), O_RDONLY)) < 0)
         return -1;
 
-    read(fd, buf, 4095);
+    size_t ret = read(fd, buf, 4095);
+    if (ret == 0)
+    {
+        return 0;
+    }
     buf[4095] = '\0';
     close(fd);
 

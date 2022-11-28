@@ -374,7 +374,11 @@ int32_t get_last_offset()
     FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/last_offset").c_str(), "r");
     if (fp != nullptr)
     {
-        fscanf(fp, "%d", &offset);
+        size_t ret = fscanf(fp, "%d", &offset);
+        if (ret == 0)
+        {
+            offset = 0;
+        }
         fclose(fp);
     }
     return offset;

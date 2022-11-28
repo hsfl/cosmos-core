@@ -13,8 +13,10 @@ namespace Cosmos {
         {
         public:
             static constexpr uint16_t NATIVE_BUFFER_SIZE = 1400;
-            static constexpr uint16_t PACKETCOMM_PACKET_SIZE = NATIVE_BUFFER_SIZE;
-            static constexpr uint16_t PACKETCOMM_DATA_SIZE = PACKETCOMM_PACKET_SIZE - (COSMOS_SIZEOF(PacketComm::Header)+2);
+            static constexpr uint16_t PACKETCOMM_PACKETIZED_SIZE = NATIVE_BUFFER_SIZE;
+            static constexpr uint16_t PACKETCOMM_WRAPPED_SIZE = PACKETCOMM_PACKETIZED_SIZE;
+            static constexpr uint16_t PACKETCOMM_DATA_SIZE = PACKETCOMM_WRAPPED_SIZE - (COSMOS_SIZEOF(PacketComm::Header)+2);
+
             static const int NET_UP_PORT = 10070;
             static const int NET_DOWN_PORT = 10071;
 

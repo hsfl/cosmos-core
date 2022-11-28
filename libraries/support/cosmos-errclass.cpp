@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! \file cosmos-errno.cpp
+/*! \file cosmos-errclass.cpp
         \brief COSMOS Errno support library source file
 */
 
