@@ -39,6 +39,7 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandSetTime, SetTime);
             add_func(PacketComm::TypeId::CommandGetTimeHuman, GetTimeHuman);
             add_func(PacketComm::TypeId::CommandGetTimeBinary, GetTimeBinary);
+            add_func(PacketComm::TypeId::CommandSetOpsMode, ExecForward);
             add_func(PacketComm::TypeId::CommandAdcsCommunicate, AdcsForward);
             add_func(PacketComm::TypeId::CommandAdcsState, AdcsForward);
             add_func(PacketComm::TypeId::CommandAdcsGetAdcsState, AdcsForward);
@@ -490,48 +491,46 @@ namespace Cosmos {
                     if (tests.find(last_test_id) != tests.end())
                     {
                         // Finish off existing test
-                        response += to_label("MET", (currentmjd() - agent->cinfo->node.utcstart)) + to_label(" Test_Id", last_test_id);
+                        response += to_label("MET", (currentmjd() - agent->cinfo->node.utcstart));
+                        response += to_label(" Test_Id", last_test_id);
                         response +=  to_label(" Packet_Id", tests[last_test_id].last_packet_id);
                         response += " Good: " + to_unsigned(tests[last_test_id].good_count);
                         response += " Skip: " + to_unsigned(tests[last_test_id].skip_count);
                         response += " Size: " + to_unsigned(tests[last_test_id].size_count);
                         response += " Crc: " + to_unsigned(tests[last_test_id].crc_count);
-                        response += to_label(" Bytes", tests[last_test_id].total_bytes) + to_label(" Count", tests[last_test_id].total_count);
-                        response += " Complete: \n";
+                        response += to_label(" Bytes", tests[last_test_id].total_bytes);
+                        response += to_label(" Count", tests[last_test_id].total_count);
+                        response += to_label(" Seconds", tests[last_test_id].et.split());
+                        response += to_label(" Speed", tests[last_test_id].total_bytes / tests[last_test_id].et.split());
+                        response += " Abort: \n";
                     }
                     tests[header.test_id].path = data_name_path(agent->nodeName, "incoming", agent->agentName, 0., "test_"+to_unsigned(header.test_id));
                     tests[header.test_id].et.reset();
                 }
 
                 tests[header.test_id].total_count = tests[header.test_id].good_count + tests[header.test_id].crc_count + tests[header.test_id].size_count;
-                tests[header.test_id].et.reset();
                 if (header.packet_id - tests[header.test_id].last_packet_id > 1 && header.packet_id != ((uint32_t)-1))
                 {
                     tests[header.test_id].skip_count += (header.packet_id - tests[header.test_id].last_packet_id) - 1;
                 }
-//                if (data_size != packet.data.size() - 14)
-//                {
-//                    ++tests[header.test_id].size_count;
-//                }
-//                else
+
+                uint16_t crccalc = calc_crc.calc(&packet.data[0], packet.data.size()-2);
+                uint16_t crcdata = 256 * packet.data[packet.data.size()-1] + packet.data[packet.data.size()-2];
+                if (crccalc != crcdata)
                 {
-                    uint16_t crccalc = calc_crc.calc(&packet.data[0], packet.data.size()-2);
-                    uint16_t crcdata = 256 * packet.data[packet.data.size()-1] + packet.data[packet.data.size()-2];
-                    if (crccalc != crcdata)
-                    {
-                        ++tests[header.test_id].crc_count;
-                    }
-                    else
-                    {
-                        FILE *tf = fopen(tests[header.test_id].path.c_str(), "a");
-                        iretn = fwrite(packet.data.data(), packet.data.size(), 1, tf);
-                        fclose(tf);
-                        tests[header.test_id].total_bytes += data_size;
-                        ++tests[header.test_id].good_count;
-                    }
+                    ++tests[header.test_id].crc_count;
+                }
+                else
+                {
+                    FILE *tf = fopen(tests[header.test_id].path.c_str(), "a");
+                    iretn = fwrite(packet.data.data(), packet.data.size(), 1, tf);
+                    fclose(tf);
+                    tests[header.test_id].total_bytes += data_size;
+                    ++tests[header.test_id].good_count;
                 }
                 tests[header.test_id].total_count = tests[header.test_id].good_count + tests[header.test_id].crc_count + tests[header.test_id].size_count + tests[header.test_id].skip_count;
-                response += to_label("MET", (currentmjd() - agent->cinfo->node.utcstart)) + to_label(" Test_Id", header.test_id);
+                response += to_label("MET", (currentmjd() - agent->cinfo->node.utcstart));
+                response += to_label(" Test_Id", header.test_id);
                 if (header.packet_id == ((uint32_t)-1))
                 {
                     response +=  to_label(" Packet_Id", tests[header.test_id].last_packet_id+1);
@@ -544,7 +543,10 @@ namespace Cosmos {
                 response += " Skip: " + to_unsigned(tests[header.test_id].skip_count);
                 response += " Size: " + to_unsigned(tests[header.test_id].size_count);
                 response += " Crc: " + to_unsigned(tests[header.test_id].crc_count);
-                response += to_label(" Bytes", tests[header.test_id].total_bytes) + to_label(" Count", tests[header.test_id].total_count);
+                response += to_label(" Bytes", tests[header.test_id].total_bytes);
+                response += to_label(" Count", tests[header.test_id].total_count);
+                response += to_label(" Seconds", tests[header.test_id].et.split());
+                response += to_label(" Speed", tests[header.test_id].total_bytes / tests[header.test_id].et.split());
                 if (header.packet_id == ((uint32_t)-1))
                 {
                     response += " Complete: ";
@@ -720,18 +722,6 @@ namespace Cosmos {
             NodeData::NODE_ID_TYPE temp = packet.header.dest;
             packet.header.dest = packet.header.orig;
             packet.header.orig = temp;
-            printf("Process: %lu \n\t", packet.packetized.size());
-            for (uint16_t i=0; i<std::min(static_cast<size_t>(25), packet.packetized.size()); ++i)
-            {
-                printf(" %02x", packet.packetized[i]);
-            }
-            printf("\n\t");
-            if (packet.packetized.size())
-            for (uint16_t i=packet.packetized.size()>=25?packet.packetized.size()-25:0; i<packet.packetized.size(); ++i)
-            {
-                printf(" %02x", packet.packetized[i]);
-            }
-            printf("\n");
             iretn = agent->channel_push(packet.header.radio, packet);
             agent->monitor_unwrapped(0, packet, "Ping");
             return iretn;
@@ -847,6 +837,52 @@ namespace Cosmos {
             packet.data[0] = btype;
             packet.data[1] = bcount;
             iretn = agent->channel_push(agent->channel_number(channel), packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::QueueAdcsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        {
+            int32_t iretn = 0;
+            PacketComm::CommunicateHeader header;
+
+            header.unit = unit;
+            header.command = command;
+            header.responsecount = rcount;
+
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandAdcsCommunicate;
+            packet.header.orig = agent->nodeId;
+            packet.header.dest = dest;
+            packet.header.radio = agent->channel_number(radio);
+            packet.data.resize(sizeof(header));
+            memcpy(packet.data.data(), &header, sizeof(header));
+            packet.data.insert(packet.data.end(), data.begin(), data.end());
+            iretn = agent->channel_push(agent->channel_number("ADCS"), packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::QueueAdcsState(uint8_t state, vector<uint8_t>  data, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        {
+            int32_t iretn = 0;
+//            PacketComm::StateHeader header;
+
+//            header.unit = unit;
+//            header.command = command;
+//            header.responsecount = rcount;
+
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandAdcsState;
+            packet.header.orig = agent->nodeId;
+            packet.header.dest = dest;
+            packet.header.radio = agent->channel_number(radio);
+            packet.data.resize(1);
+            packet.data[0] = state;
+//            packet.data.resize(sizeof(header));
+//            memcpy(packet.data.data(), &header, sizeof(header));
+            packet.data.insert(packet.data.end(), data.begin(), data.end());
+            iretn = agent->channel_push(agent->channel_number("ADCS"), packet);
             return iretn;
         }
 

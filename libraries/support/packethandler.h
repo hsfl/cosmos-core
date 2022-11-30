@@ -83,6 +83,9 @@ namespace Cosmos {
             static int32_t QueueReboot(uint32_t verification_check, Agent* agent, string channel="EXEC", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueSendBeacon(uint8_t btype, uint8_t bcount, Agent* agent, string channel="EXEC", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
 
+            static int32_t QueueAdcsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueAdcsState(uint8_t state, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+
             static int32_t QueueEpsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueEpsSwitchName(string name, uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueEpsSwitchNames(vector<string> names, vector<uint16_t> seconds, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");

@@ -47,7 +47,7 @@ namespace Cosmos {
                 float byte_rate = 0.;
                 // Radio test variables
                 thread testthread;
-                bool testrunning = false;
+                uint8_t testrunning = 0;
                 ElapsedTime testet;
                 uint32_t testcount = 0;
                 float testseconds = 0.;
@@ -89,15 +89,15 @@ namespace Cosmos {
             ssize_t Increment(uint8_t number, size_t byte_count, uint32_t packet_count=1);
             ssize_t Decrement(string name, size_t byte_count, uint32_t packet_count=1);
             ssize_t Decrement(uint8_t number, size_t byte_count, uint32_t packet_count=1);
-            int32_t TestStart(string name, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
-            int32_t TestStart(uint8_t number, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
+            int32_t TestStart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
+            int32_t TestStart(uint8_t number, uint8_t radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
             int32_t TestStop(string name, float seconds=5.);
             int32_t TestStop(uint8_t number, float seconds=5.);
             float TestRemaining(string name);
             float TestRemaining(uint8_t number);
             float TestSpeed(string name);
             float TestSpeed(uint8_t number);
-            uint32_t TestLoop(uint8_t number, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
+            uint32_t TestLoop(uint8_t number, uint8_t radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
 
             uint32_t verification = 0x352e;
 

@@ -463,8 +463,8 @@ namespace Cosmos
             int32_t channel_rawsize(uint8_t number);
             int32_t channel_maximum(string name, uint16_t maximum);
             int32_t channel_maximum(uint8_t number, uint16_t maximum);
-            int32_t channel_teststart(string name, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
-            int32_t channel_teststart(uint8_t number, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
+            int32_t channel_teststart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
+            int32_t channel_teststart(uint8_t number, uint8_t nradio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
             int32_t channel_teststop(string name, float seconds=5.);
             int32_t channel_teststop(uint8_t number, float seconds=5.);
 

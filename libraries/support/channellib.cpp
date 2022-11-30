@@ -526,6 +526,7 @@ namespace Cosmos {
 
         //! \brief Start channel performance test by channel name.
         //! \param name Name of channel.
+        //! \param radio Name of radio.
         //! \param id Test ID.
         //! \param orig Node ID of origin.
         //! \param dest Node ID of destination.
@@ -534,18 +535,20 @@ namespace Cosmos {
         //! \param stop Value to reach before starting sequence again.
         //! \param total Total number of bytes to send in test.
         //! \return Number of ::Cosmos::Support::Channel::channelstruc::quu or negative error.
-        int32_t Channel::TestStart(string name, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
+        int32_t Channel::TestStart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
         {
-            int32_t iretn = Find(name);
-            if (iretn >= 0)
+            int32_t number = Find(name);
+            int32_t nradio = Find(radio);
+            if (nradio >= 0 && number >= 0)
             {
-                return TestStart(iretn, id, orig, dest, start, step, stop, total);
+                return TestStart(number, nradio, id, orig, dest, start, step, stop, total);
             }
             return GENERAL_ERROR_OUTOFRANGE;
         }
 
         //! \brief Start channel performance test by channel number.
         //! \param number Number of channel.
+        //! \param radio Number of radio.
         //! \param id Test ID.
         //! \param orig Node ID of origin.
         //! \param dest Node ID of destination.
@@ -554,19 +557,29 @@ namespace Cosmos {
         //! \param stop Value to reach before starting sequence again.
         //! \param total Total number of bytes to send in test.
         //! \return Number of ::Cosmos::Support::Channel::channelstruc::quu or negative error.
-        int32_t Channel::TestStart(uint8_t number, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
+        int32_t Channel::TestStart(uint8_t number, uint8_t radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
         {
+            int32_t iretn = 0;
             if (number >= channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
 
-            if (channel[number].testrunning)
+            if (channel[number].testrunning == 1)
             {
                 return GENERAL_ERROR_BUSY;
             }
 
-            channel[number].testthread = thread([=] { TestLoop(number, id, orig, dest, start, step, stop, total); });
+            if (channel[number].testrunning == 2)
+            {
+                iretn = TestStop(number);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+            }
+
+            channel[number].testthread = thread([=] { TestLoop(number, radio, id, orig, dest, start, step, stop, total); });
             return 0;
         }
 
@@ -604,7 +617,7 @@ namespace Cosmos {
             {
                 seconds = 10.;
             }
-            channel[number].testrunning = false;
+            channel[number].testrunning = 2;
             ElapsedTime et;
             while (et.split() < seconds && !channel[number].testthread.joinable())
             {
@@ -641,7 +654,7 @@ namespace Cosmos {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
 
-            if (!channel[number].testrunning)
+            if (channel[number].testrunning == 0 || channel[number].testrunning == 2)
             {
                 return 0.;
             }
@@ -673,7 +686,7 @@ namespace Cosmos {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
 
-            if (!channel[number].testrunning)
+            if (channel[number].testrunning == 0 || channel[number].testrunning == 2)
             {
                 return 0.;
             }
@@ -682,7 +695,8 @@ namespace Cosmos {
         }
 
         //! \brief Loop for performing test.
-        //! \param number Number of channel.
+        //! \param channel Number of channel.
+        //! \param radio Number of radio.
         //! \param id Test ID.
         //! \param orig Node ID of origin.
         //! \param dest Node ID of destination.
@@ -691,7 +705,7 @@ namespace Cosmos {
         //! \param stop Value to reach before starting sequence again.
         //! \param total Total number of bytes to send in test.
         //! \return Number of ::Cosmos::Support::Channel::channelstruc::quu or negative error.
-        uint32_t Channel::TestLoop(uint8_t number, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
+        uint32_t Channel::TestLoop(uint8_t number, uint8_t radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
         {
             if (number >= channel.size())
             {
@@ -699,7 +713,7 @@ namespace Cosmos {
             }
 
 //            int32_t iretn = 0;
-            channel[number].testrunning = true;
+            channel[number].testrunning = 1;
             channel[number].test_bytes = total;
             channel[number].test_id = id;
             channel[number].test_start = start;
@@ -712,6 +726,7 @@ namespace Cosmos {
             test_packet.header.type = PacketComm::TypeId::DataTest;
             test_packet.header.orig = orig;
             test_packet.header.dest = dest;
+            test_packet.header.radio = radio;
 
             PacketComm::TestHeader theader;
             theader.size = channel[number].datasize-(sizeof(theader)+2);
@@ -737,7 +752,7 @@ namespace Cosmos {
             channel[number].testet.reset();
             channel[number].testcount = 0;
             channel[number].testseconds = 0.;
-            while (channel[number].testrunning && channel[number].testcount < total && (channel[number].testseconds=channel[number].testet.split()) <= 60.)
+            while (channel[number].testrunning == 1 && channel[number].testcount < total && (channel[number].testseconds=channel[number].testet.split()) <= 60.)
             {
                 memcpy(&test_packet.data[0], &theader, sizeof(theader));
                 uint16_t crccalc = test_packet.calc_crc.calc(&test_packet.data[0], channel[number].datasize-2);
@@ -767,6 +782,7 @@ namespace Cosmos {
             }
 //            string response = "TXSI2C Test Complete: " + to_label("Id", test_id) + to_label(" Bytes", testcount) + to_label(" Seconds", testseconds, 2) + to_label(" Speed", testcount / testseconds, 1);
 //            iretn = agent->push_response("TXSI2C", dest, id, response);
+            channel[number].testrunning = 2;
             return channel[number].testcount;
         }
 

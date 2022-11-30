@@ -325,11 +325,12 @@ namespace Cosmos
                         "    EpsSwitchNames {vbatt_bus:...} [seconds:...]\n"
                         "    AdcsState {0-7] {0-18]\n"
                         "    AdcsCommunicate command:hexstring:response_size\n"
+                        "    SetOpsMode mode_string\n"
                         "");
             add_request("list_channels", req_list_channels, "", "List current channels");
             add_request("run_command", req_run_command, "command parameters", "Run external command for immediate response");
             add_request("add_task", req_add_task, "command parameters", "Start external command as Task for output to file");
-            add_request("test_channel", req_test_channel, "channel dest start step count bytes", "Run channel performance test");
+            add_request("test_channel", req_test_channel, "channel radio dest start step count bytes", "Run channel performance test");
 
             // Set up Full SOH string
             //            set_fullsohstring(json_list_of_fullsoh(cinfo));
@@ -2076,6 +2077,15 @@ namespace Cosmos
                 {
                 }
                 break;
+            case PacketComm::TypeId::CommandSetOpsMode:
+                {
+                    packet.data.clear();
+                    if (parms.size())
+                    {
+                        packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
+                    }
+                }
+                break;
             case PacketComm::TypeId::CommandEpsCommunicate:
                 {
                     if (parms.size())
@@ -2267,7 +2277,7 @@ namespace Cosmos
         int32_t Agent::req_test_channel(string &request, string &response, Agent *agent)
         {
             vector<string> args = string_split(request);
-            if (args.size() > 2)
+            if (args.size() > 3)
             {
                 uint8_t start = 0;
                 uint8_t step = 1;
@@ -2276,22 +2286,24 @@ namespace Cosmos
 
                 uint8_t channel = agent->channel_number(args[1]);
                 total = agent->channel_speed(channel) * 10.;
-                uint8_t dest = agent->nodeData.lookup_node_id(args[2]);
+                uint8_t radio = agent->channel_number(args[2]);
+                uint8_t dest = agent->nodeData.lookup_node_id(args[3]);
                 uint8_t orig = agent->nodeId;
-                if (args.size() > 5)
+                if (args.size() > 6)
                 {
-                    start =  stoi(args[3]);
-                    step =  stoi(args[4]);
-                    stop =  stoi(args[5]);
-                    if (args.size() > 6)
+                    start =  stoi(args[4]);
+                    step =  stoi(args[5]);
+                    stop =  stoi(args[6]);
+                    if (args.size() > 7)
                     {
-                        total = stoi(args[6]);
+                        total = stoi(args[7]);
                     }
                 }
                 uint32_t id = centisec();
-                agent->channel_teststart(channel, id, orig, dest, start, step, stop, total);
+                agent->channel_teststart(channel, radio, id, orig, dest, start, step, stop, total);
                 response = "Test:";
                 response += to_label(" Channel", channel);
+                response += to_label(" Radio", radio);
                 response += to_label(" Orig", orig);
                 response += to_label(" Dest", dest);
                 response += to_label(" Start", start);
@@ -4218,21 +4230,26 @@ acquired.
             return iretn;
         }
 
-        int32_t Agent::channel_teststart(string name, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
+        int32_t Agent::channel_teststart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
         {
             int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
             }
+            int32_t nradio = channel_number(radio);
+            if (nradio < 0)
+            {
+                return nradio;
+            }
 
-            return channel_teststart(number, id, orig, dest, start, step, stop, total);
+            return channel_teststart(number, nradio, id, orig, dest, start, step, stop, total);
         }
 
-        int32_t Agent::channel_teststart(uint8_t number,uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
+        int32_t Agent::channel_teststart(uint8_t number, uint8_t radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
         {
             int32_t iretn = 0;
-            iretn = channels.TestStart(number, id, orig, dest, start, step, stop, total);
+            iretn = channels.TestStart(number, radio, id, orig, dest, start, step, stop, total);
             return iretn;
         }
 
