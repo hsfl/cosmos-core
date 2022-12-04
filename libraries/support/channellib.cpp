@@ -406,7 +406,8 @@ namespace Cosmos {
                 channel[number].mtx->lock();
                 channel[number].quu.push(packet);
                 Increment(number, packet.wrapped.size());
-                channel[number].timestamp = currentmjd();
+                Touch(number);
+//                channel[number].timestamp = currentmjd();
                 if (channel[number].quu.size() > channel[number].maximum)
                 {
                     Decrement(number, channel[number].quu.front().wrapped.size());
