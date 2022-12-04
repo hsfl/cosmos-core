@@ -121,6 +121,24 @@ uint16_t string_parse(char *string, char *words[], uint16_t wmax) {
     return (wcount);
 }
 
+/// Replace every occurance of a substring within a string with another subtring.
+/** Search through a string for every instance of a specified substring, then replace. For internal use.
+    @param	str		string to search through
+    @param	from	substring to replace
+    @param	to		substring to be replaced with
+    @return	n/a
+*/
+string string_replace(string str, const string from, const string to)
+{
+    if(from.empty()) return str;
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length();
+    }
+    return str;
+}
+
 int string_cmp(const char *wild, const char *string) {
     // Written by Jack Handy - <A href="mailto:jakkhandy@hotmail.com">jakkhandy@hotmail.com</A>
     const char *cp = NULL, *mp = NULL;
