@@ -896,14 +896,14 @@ namespace Cosmos
             return AddTarget(name, loc, type);
         }
 
-        int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, uint16_t type)
+        int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, uint16_t type)
         {
             Convert::locstruc loc;
             loc.pos.geod.pass = 1;
             loc.pos.geod.utc = currentinfo.node.utc;
             loc.pos.geod.s.lat = (ullat + lrlat) / 2.;
             loc.pos.geod.s.lon = (ullon + lrlon) / 2.;
-            loc.pos.geod.s.h = 0.;
+            loc.pos.geod.s.h = alt;
             loc.pos.geod.v = gv_zero();
             loc.pos.geod.a = gv_zero();
             gvector size(ullat-lrlat, lrlon-ullon, 0.);
@@ -1354,6 +1354,44 @@ namespace Cosmos
                 currentloc->pos.eci.s = rv_add(currentloc->pos.eci.s, ds);
                 currentloc->pos.eci.v = rv_add(currentloc->pos.eci.v, rv_smult(dt, currentloc->pos.eci.a));
                 currentloc->pos.eci.utc = currentutc;
+                currentloc->pos.eci.pass++;
+                PosAccel(currentloc, currentphys);
+                Convert::pos_eci(currentloc);
+            }
+
+            return 0;
+        }
+
+        int32_t TlePositionPropagator::Init(vector<Convert::tlestruc> tles)
+        {
+            this->tles = tles;
+            Convert::lines2eci(currentutc, tles, currentloc->pos.eci);
+            currentloc->pos.eci.pass++;
+            PosAccel(currentloc, currentphys);
+            Convert::pos_eci(currentloc);
+
+            return 0;
+        }
+
+        int32_t TlePositionPropagator::Reset(double nextutc)
+        {
+            currentloc->pos = initialloc.pos;
+            currentutc = currentloc->pos.utc;
+            Propagate(nextutc);
+
+            return 0;
+        }
+
+        int32_t TlePositionPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            while ((nextutc - currentutc) > dtj / 2.)
+            {
+                currentutc += dtj;
+                Convert::lines2eci(currentutc, tles, currentloc->pos.eci);
                 currentloc->pos.eci.pass++;
                 PosAccel(currentloc, currentphys);
                 Convert::pos_eci(currentloc);
