@@ -284,7 +284,15 @@ int32_t log_move(string oldpath, string newpath, bool compress)
         string temppath = oldpath + ".gz";
         newpath += ".gz";
         FILE *fin = data_open(oldpath, "rb");
+        if(fin == nullptr)
+        {
+            return GENERAL_ERROR_OPEN;
+        }
         FILE *fout = data_open(temppath, "wb");
+        if(fout == nullptr)
+        {
+            return GENERAL_ERROR_OPEN;
+        }
         gzFile gzfout;
         gzfout = gzdopen(fileno(fout), "a");
 
