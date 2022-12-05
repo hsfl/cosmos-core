@@ -723,7 +723,6 @@ namespace Cosmos {
             packet.header.dest = packet.header.orig;
             packet.header.orig = temp;
             iretn = agent->channel_push(packet.header.radio, packet);
-            agent->monitor_unwrapped(0, packet, "Ping");
             return iretn;
         }
 
@@ -921,7 +920,6 @@ namespace Cosmos {
             uint16to(seconds, &packet.data[0], ByteOrder::LITTLEENDIAN);
             packet.data.insert(packet.data.end(), name.begin(), name.end());
             iretn = agent->channel_push(agent->channel_number("EPS"), packet);
-            printf("QueueEpsSwitchName: %s %d %u\n", name.c_str(), iretn, agent->channel_size("EPS"));
             return iretn;
         }
 
@@ -947,7 +945,6 @@ namespace Cosmos {
                 uint16to(seconds[i], &packet.data[packet.data.size() - 3], ByteOrder::LITTLEENDIAN);
                 packet.data[packet.data.size()-1] = names[i].size();
                 packet.data.insert(packet.data.end(), names[i].begin(), names[i].end());
-                printf("QueueEpsSwitchName: %s %u %lu\n", names[i].c_str(), seconds[i], packet.data.size());
             }
             iretn = agent->channel_push(agent->channel_number("EPS"), packet);
             return iretn;

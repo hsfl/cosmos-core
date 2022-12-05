@@ -323,7 +323,7 @@ namespace Cosmos
                         "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200}:[seconds]\n"
                         "    EpsSwitchNumber {0-1}:[seconds]\n"
                         "    EpsSwitchNames {vbatt_bus:...} [seconds:...]\n"
-                        "    AdcsState {0-7] {0-18]\n"
+                        "    AdcsState {0-7} {0-18} \n"
                         "    AdcsCommunicate command:hexstring:response_size\n"
                         "    SetOpsMode mode_string\n"
                         "");
@@ -1793,8 +1793,8 @@ namespace Cosmos
             PacketComm packet;
             string type = "Ping";
             string dest = "iobc";
-            int32_t channelout = 0;
-            int32_t channelin = 0;
+            int32_t outchannel = 0;
+            int32_t inchannel = 0;
             vector<string> parms;
             uint16_t repeat = 1;
 
@@ -1810,17 +1810,17 @@ namespace Cosmos
                     vector<string> radios = string_split(args[2], ":");
                     if (radios.size() > 0)
                     {
-                        channelout = agent->channel_number(radios[0]);
-                        if (channelout < 0)
+                        outchannel = agent->channel_number(radios[0]);
+                        if (outchannel < 0)
                         {
-                            channelout = 0;
+                            outchannel = 0;
                         }
                         if (radios.size() > 1)
                         {
-                            channelin = agent->channel_number(radios[1]);
-                            if (channelin < 0)
+                            inchannel = agent->channel_number(radios[1]);
+                            if (inchannel < 0)
                             {
-                                channelin = 0;
+                                inchannel = 0;
                             }
                             if (radios.size() > 2)
                             {
@@ -1848,8 +1848,8 @@ namespace Cosmos
             packet.header.type = packet.StringType[type];
             packet.header.orig = agent->nodeId;
             packet.header.dest = agent->nodeData.lookup_node_id(dest);
-            packet.header.radio = channelin;
-            response = type + " " + dest + " " + agent->channels.channel[channelout].name + " " + agent->channels.channel[channelin].name;
+            packet.header.radio = inchannel;
+            response = type + " " + dest + " " + agent->channels.channel[outchannel].name + " " + agent->channels.channel[inchannel].name;
             switch (packet.header.type)
             {
             case PacketComm::TypeId::CommandReset:
@@ -2202,11 +2202,12 @@ namespace Cosmos
 
 //            if (packet.data.size())
             {
-                packet.Wrap();
+//                packet.Wrap();
 
                 for (uint16_t i=0; i<repeat; ++i)
                 {
-                    agent->channel_push(channelout, packet);
+                    agent->channel_push(outchannel, packet);
+                    secondsleep(.1);
                 }
             }
             return response.length();
@@ -3944,11 +3945,8 @@ acquired.
                     packet.data.resize(COSMOS_SIZEOF(PacketComm::ResponseHeader));
                     memcpy(packet.data.data(), &header, COSMOS_SIZEOF(PacketComm::ResponseHeader));
                     packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
-                    /*iretn =*/ channels.Push(number, packet);
-//                    if (iretn > 0)
-//                    {
-//                        monitor_unwrapped(number, packet, "Response");
-//                    }
+                    channel_push(number, packet); // channels.Push(number, packet);
+                    monitor_unwrapped(number, packet, "Response");
                 }
             }
             return response.size();
@@ -4077,11 +4075,11 @@ acquired.
 
             if (extra.empty())
             {
-                printf("%u [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Size=%u Packets=%u Bytes=%lu]", decisec(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                printf("%u [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             else
             {
-                printf("%u %s [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u Age=%f Size=%u Packets=%u Bytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                printf("%u %s [%s Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
             {
