@@ -525,7 +525,7 @@ string to_floatany(float value, uint16_t precision) {
     if (precision) {
         sprintf(&output[0], "%.*g", precision, static_cast<double>(value));
     } else {
-        sprintf(&output[0], "%.*g", 13, static_cast<double>(value));
+        sprintf(&output[0], "%.*g", std::numeric_limits<float>::digits10, static_cast<double>(value));
     }
     output.resize(strlen(&output[0]));
     return output;
@@ -535,7 +535,7 @@ string to_floatany(double value, uint16_t precision) {
     string output="";
     if (!precision)
     {
-        precision = 17;
+        precision = std::numeric_limits<double>::digits10;
     }
     output.resize(17+precision);
     sprintf(&output[0], "%.*g", precision, value);
