@@ -807,7 +807,7 @@ namespace Cosmos {
 //        return tbytes;
     }
 
-    int32_t Serial::put_slip(vector<uint8_t> data)
+    int32_t Serial::put_slip(const vector<uint8_t>& data)
     {
         if (fd < 0)
         {
@@ -1432,6 +1432,7 @@ namespace Cosmos {
     {
         int32_t ch;
 
+        // Read from serial read buffer, discarding everything until a FEND is read
         data.clear();
         do
         {
@@ -1449,7 +1450,8 @@ namespace Cosmos {
             }
         } while (ch != SLIP_FEND);
 
-        do
+        // Start of packet
+        while(data.size() < size)
         {
             ch = get_char();
             if (ch < 0)
@@ -1463,30 +1465,38 @@ namespace Cosmos {
                     return (ch);
                 }
             }
-            if (data.size() < size)
+            switch (ch)
             {
+            case SLIP_FESC:
+                ch = get_char();
                 switch (ch)
                 {
-                case SLIP_FESC:
-                    ch = get_char();
-                    switch (ch)
-                    {
-                    case SLIP_TFEND:
-                        data.push_back(SLIP_FEND);
-                        break;
-                    case SLIP_TFESC:
-                        data.push_back(SLIP_FESC);
-                        break;
-                    }
+                case SLIP_TFEND:
+                    data.push_back(SLIP_FEND);
                     break;
-                case SLIP_FEND:
+                case SLIP_TFESC:
+                    data.push_back(SLIP_FESC);
                     break;
                 default:
-                    data.push_back(static_cast<uint8_t>(ch));
+                    return (COSMOS_SERIAL_ERROR_BAD_ESCAPE);
                     break;
                 }
+                break;
+            case SLIP_FEND:
+                // If a second SLIP_FEND is encountered despite having read nothing, then
+                // go around again, since one side of the SLIP_FEND edges may have been dropped
+                // in transmission.
+                if (!data.size())
+                {
+                    continue;
+                }
+                // Otherwise, it's the second, terminating SLIP_FEND, so exit.
+                return data.size();
+            default:
+                data.push_back(static_cast<uint8_t>(ch));
+                break;
             }
-        } while (ch != SLIP_FEND);
+        }
 
         return data.size();
     }
@@ -1496,6 +1506,7 @@ namespace Cosmos {
         int32_t ch;
         uint16_t i;
 
+        // Read from serial read buffer, discarding everything until a FEND is read
         do
         {
             ch = get_char();
@@ -1512,8 +1523,9 @@ namespace Cosmos {
             }
         } while (ch != SLIP_FEND);
 
+        // Start of packet
         i = 0;
-        do
+        while (i < size)
         {
             ch = get_char();
             if (ch < 0)
@@ -1527,32 +1539,40 @@ namespace Cosmos {
                     return (ch);
                 }
             }
-            if (i < size)
+            switch (ch)
             {
+            case SLIP_FESC:
+                ch = get_char();
                 switch (ch)
                 {
-                case SLIP_FESC:
-                    ch = get_char();
-                    switch (ch)
-                    {
-                    case SLIP_TFEND:
-                        data[i] = SLIP_FEND;
-                        break;
-                    case SLIP_TFESC:
-                        data[i] = SLIP_FESC;
-                        break;
-                    }
-                    ++i;
+                case SLIP_TFEND:
+                    data[i] = SLIP_FEND;
                     break;
-                case SLIP_FEND:
+                case SLIP_TFESC:
+                    data[i] = SLIP_FESC;
                     break;
                 default:
-                    data[i] = static_cast<uint8_t>(ch);
-                    ++i;
+                    return (COSMOS_SERIAL_ERROR_BAD_ESCAPE);
                     break;
                 }
+                ++i;
+                break;
+            case SLIP_FEND:
+                // If a second SLIP_FEND is encountered despite having read nothing, then
+                // go around again, since one side of the SLIP_FEND edges may have been dropped
+                // in transmission.
+                if (!i)
+                {
+                    continue;
+                }
+                // Otherwise, it's the second, terminating SLIP_FEND, so exit.
+                return (i);
+            default:
+                data[i] = static_cast<uint8_t>(ch);
+                ++i;
+                break;
             }
-        } while (ch != SLIP_FEND);
+        }
 
         return (i);
     }
