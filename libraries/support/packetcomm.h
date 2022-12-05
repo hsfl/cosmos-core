@@ -240,9 +240,10 @@ namespace Cosmos {
             struct __attribute__ ((packed))  ResponseHeader
             {
                 uint32_t deci;
+                uint32_t response_id;
+                uint8_t source_id;
                 uint8_t chunks;
                 uint8_t chunk_id;
-                uint32_t response_id;
             };
 
             struct __attribute__ ((packed))  TestHeader

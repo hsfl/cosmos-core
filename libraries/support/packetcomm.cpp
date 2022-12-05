@@ -41,7 +41,7 @@ namespace Cosmos {
             data.clear();
             data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(Header)], &wrapped[header.data_size+COSMOS_SIZEOF(Header)]);
 
-            return 1;
+            return data.size();
         }
 
         int32_t PacketComm::RawUnPacketize(bool invert, bool checkcrc)

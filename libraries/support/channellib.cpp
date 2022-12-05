@@ -781,8 +781,6 @@ namespace Cosmos {
                 channel[number].speed = channel[number].testcount / channel[number].testseconds;
                 channel[number].remaining = (total - channel[number].testcount) / channel[number].speed;
             }
-//            string response = "TXSI2C Test Complete: " + to_label("Id", test_id) + to_label(" Bytes", testcount) + to_label(" Seconds", testseconds, 2) + to_label(" Speed", testcount / testseconds, 1);
-//            iretn = agent->push_response("TXSI2C", dest, id, response);
             channel[number].testrunning = 2;
             return channel[number].testcount;
         }
