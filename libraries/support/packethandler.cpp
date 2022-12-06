@@ -430,7 +430,12 @@ namespace Cosmos {
                             iretn = -errno;
                         }
                         fclose(tf);
-                        response = "chunks=" + to_unsigned(chunks) + " chunk_id=" + to_unsigned(chunk_id) + " chunk_size=" + to_unsigned(this_chunk_size) + " data=" + to_hex_string(packet.data, true, header_size);
+                        response = "{\"Channel\":" + to_unsigned(header.source_id);
+                        response += ",\"Chunks\":" + to_unsigned(chunks);
+                        response += ",\"Chunk_id\":";
+                        response += to_unsigned(chunk_id);
+                        response += ",\"Chunk_size\":" + to_unsigned(this_chunk_size);
+                        response += ",\"Data\":\"" + to_hex_string(packet.data, true, header_size) + "\"}";
 
                         if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
                         {
