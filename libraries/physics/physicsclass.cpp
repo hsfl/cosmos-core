@@ -868,7 +868,7 @@ namespace Cosmos
             return iretn;
         }
 
-        int32_t State::AddTarget(std::string name, Convert::locstruc loc, uint16_t type, gvector size)
+        int32_t State::AddTarget(std::string name, Convert::locstruc loc, NODE_TYPE type, gvector size)
         {
             targetstruc ttarget;
             ttarget.type = type;
@@ -881,7 +881,7 @@ namespace Cosmos
             return targets.size();
         }
 
-        int32_t State::AddTarget(string name, double lat, double lon, double radius, double alt, uint16_t type)
+        int32_t State::AddTarget(string name, double lat, double lon, double radius, double alt, NODE_TYPE type)
         {
             Convert::locstruc loc;
             loc.pos.geod.pass = 1;
@@ -897,7 +897,7 @@ namespace Cosmos
             return AddTarget(name, loc, type);
         }
 
-        int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, uint16_t type)
+        int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type)
         {
             Convert::locstruc loc;
             loc.pos.geod.pass = 1;

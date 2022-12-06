@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     sit = sim->GetNode("mother");
     for (targetentry target : targets)
     {
-        sit->second->AddTarget(target.name, target.clat, target.clon, target.size, target.alt);
+        sit->second->AddTarget(target.name, target.clat, target.clon, target.size, target.alt, NODE_TYPE_CIRCLE);
     }
 
     double elapsed = 0;
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
         for (uint16_t id=0; id<sit->second->targets.size(); ++id)
         {
             // Check ahead for target
-            double cd = cos(heading - sit->second->targets[id].bearing);
+//            double cd = cos(heading - sit->second->targets[id].bearing);
         }
 
         ++elapsed;

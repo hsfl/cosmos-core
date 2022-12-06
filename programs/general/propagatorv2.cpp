@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
         vector<string> args = string_split(line);
         if (args.size() == 4)
         {
-            sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), stod(args[3]));
+            sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
         }
         else if (args.size() == 5)
         {
