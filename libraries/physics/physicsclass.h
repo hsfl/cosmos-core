@@ -433,9 +433,9 @@ namespace Cosmos
             int32_t Propagate(double nextutc=0.);
             int32_t Reset(double nextutc=0.);
             int32_t AddTarget(string name, Convert::locstruc loc, uint16_t type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
-            int32_t AddTarget(string name, double lat, double lon, double alt, uint16_t type=NODE_TYPE_GROUNDSTATION);
+            int32_t AddTarget(string name, double lat, double lon, double radius, double alt, uint16_t type=NODE_TYPE_GROUNDSTATION);
             int32_t AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt=0., uint16_t type=NODE_TYPE_SQUARE);
-            int32_t AddTarget(string name, double clat, double clon, double radius, double alt=0.);
+//            int32_t AddTarget(string name, double clat, double clon, double radius, double alt=0.);
         };
 
 

@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 //    avglon /=  targets.size();
 //    avgalt /= targets.size();
     double sizelat = (maxlat - minlat) / 2.;
-    double sizelon = (maclon - minlon) / 2.;
+    double sizelon = (maxlon - minlon) / 2.;
 
     initialangle = RADOF(atof(argv[2]));
     initialalt = atof(argv[3]);

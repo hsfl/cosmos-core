@@ -881,7 +881,7 @@ namespace Cosmos
             return targets.size();
         }
 
-        int32_t State::AddTarget(string name, double lat, double lon, double alt, uint16_t type)
+        int32_t State::AddTarget(string name, double lat, double lon, double radius, double alt, uint16_t type)
         {
             Convert::locstruc loc;
             loc.pos.geod.pass = 1;
@@ -891,6 +891,7 @@ namespace Cosmos
             loc.pos.geod.s.h = alt;
             loc.pos.geod.v = gv_zero();
             loc.pos.geod.a = gv_zero();
+            gvector size(2. * radius, 2. * radius / cos(lat), 0.);
             loc.pos.geod.pass++;
             Convert::pos_geod(loc);
             return AddTarget(name, loc, type);
@@ -912,21 +913,21 @@ namespace Cosmos
             return AddTarget(name, loc, type, size);
         }
 
-        int32_t State::AddTarget(string name, double clat, double clon, double radius, double alt)
-        {
-            Convert::locstruc loc;
-            loc.pos.geod.pass = 1;
-            loc.pos.geod.utc = currentinfo.node.utc;
-            loc.pos.geod.s.lat = clat;
-            loc.pos.geod.s.lon = clon;
-            loc.pos.geod.s.h = alt;
-            loc.pos.geod.v = gv_zero();
-            loc.pos.geod.a = gv_zero();
-            gvector size(2. * radius, 2. * radius / cos(lat), 0.);
-            loc.pos.geod.pass++;
-            Convert::pos_geod(loc);
-            return AddTarget(name, loc, type, size);
-        }
+//        int32_t State::AddTarget(string name, double clat, double clon, double radius, double alt)
+//        {
+//            Convert::locstruc loc;
+//            loc.pos.geod.pass = 1;
+//            loc.pos.geod.utc = currentinfo.node.utc;
+//            loc.pos.geod.s.lat = clat;
+//            loc.pos.geod.s.lon = clon;
+//            loc.pos.geod.s.h = alt;
+//            loc.pos.geod.v = gv_zero();
+//            loc.pos.geod.a = gv_zero();
+//            gvector size(2. * radius, 2. * radius / cos(lat), 0.);
+//            loc.pos.geod.pass++;
+//            Convert::pos_geod(loc);
+//            return AddTarget(name, loc, type, size);
+//        }
 
         int32_t InertialAttitudePropagator::Init()
         {
