@@ -5158,7 +5158,7 @@ union as a ::devicestruc.
         //vector<size_t> find_newlines(const string& sample);
         //void pretty_form(string& js);
 
-        // TODO: add struct description
+        // TODO: add struct description in Doxygen
         class cosmosstruc
         {
         public:
