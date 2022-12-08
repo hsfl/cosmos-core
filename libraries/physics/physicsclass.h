@@ -127,6 +127,7 @@ namespace Cosmos
             Convert::locstruc *currentloc;
             physicsstruc initialphys;
             physicsstruc *currentphys;
+            vector<Convert::tlestruc> tles;
 
             enum Type
                 {
@@ -135,6 +136,7 @@ namespace Cosmos
                 PositionIterative = 11,
                 PositionGaussJackson = 12,
                 PositionGeo = 13,
+                PositionTle = 14,
                 AttitudeInertial = 20,
                 AttitudeIterative = 21,
                 AttitudeLVLH = 22,
@@ -192,6 +194,22 @@ namespace Cosmos
             }
 
             int32_t Init();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
+
+        private:
+        };
+
+        class TlePositionPropagator : public Propagator
+        {
+        public:
+            TlePositionPropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
+                : Propagator{ newloc, newphys, idt }
+            {
+                type = PositionTle;
+            }
+
+            int32_t Init(vector<Convert::tlestruc> tles);
             int32_t Propagate(double nextutc=0.);
             int32_t Reset(double nextutc=0.);
 
@@ -414,9 +432,10 @@ namespace Cosmos
             int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype);
             int32_t Propagate(double nextutc=0.);
             int32_t Reset(double nextutc=0.);
-            int32_t AddTarget(string name, Convert::locstruc loc, uint16_t type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
-            int32_t AddTarget(string name, double lat, double lon, double alt, uint16_t type=NODE_TYPE_GROUNDSTATION);
-            int32_t AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, uint16_t type=NODE_TYPE_LOCATION);
+            int32_t AddTarget(string name, Convert::locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
+            int32_t AddTarget(string name, double lat, double lon, double radius, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
+            int32_t AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type=NODE_TYPE_SQUARE);
+//            int32_t AddTarget(string name, double clat, double clon, double radius, double alt=0.);
         };
 
 

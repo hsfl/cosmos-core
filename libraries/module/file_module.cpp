@@ -148,7 +148,7 @@ namespace Cosmos
                                 if (out_radio)
                                 {
                                     string s = transfer.list_outgoing();
-                                    agent->push_response(out_radio, packet.header.orig, centisec(), s);
+                                    agent->push_response(out_radio, packet.header.orig, mychannel, centisec(), s);
                                 }
                             }
                             break;

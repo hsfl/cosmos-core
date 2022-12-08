@@ -430,7 +430,12 @@ namespace Cosmos {
                             iretn = -errno;
                         }
                         fclose(tf);
-                        response = "chunks=" + to_unsigned(chunks) + " chunk_id=" + to_unsigned(chunk_id) + " chunk_size=" + to_unsigned(this_chunk_size) + " data=" + to_hex_string(packet.data, true, header_size);
+                        response = "{\"Channel\":" + to_unsigned(header.source_id);
+                        response += ",\"Chunks\":" + to_unsigned(chunks);
+                        response += ",\"Chunk_id\":";
+                        response += to_unsigned(chunk_id);
+                        response += ",\"Chunk_size\":" + to_unsigned(this_chunk_size);
+                        response += ",\"Data\":\"" + to_hex_string(packet.data, true, header_size) + "\"}";
 
                         if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
                         {
@@ -663,7 +668,7 @@ namespace Cosmos {
             // Run command, return response
             int32_t iretn = data_execute(string(packet.data.begin()+4, packet.data.end()), response);
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, string(response.begin(), response.end()));
+            iretn = agent->push_response(packet.header.radio, 0, packet.header.orig, response_id, string(response.begin(), response.end()));
             response.clear();
             return iretn;
         }
@@ -674,7 +679,7 @@ namespace Cosmos {
             int32_t iretn = agent->task_add(string(packet.data.begin()+4, packet.data.end()));
             response = "Running: " + agent->task_command(iretn) + " in " + agent->task_path(iretn) + " #" + to_unsigned(agent->task_size());
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, string(response.begin(), response.end()));
+            iretn = agent->push_response(packet.header.radio, 0, packet.header.orig, response_id, string(response.begin(), response.end()));
             response.clear();
             return iretn;
         }
@@ -699,7 +704,7 @@ namespace Cosmos {
                 response += file.name + " ";
             }
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, response);
+            iretn = agent->push_response(packet.header.radio, 0, packet.header.orig, response_id, response);
             response.clear();
             return iretn;
         }
@@ -710,7 +715,7 @@ namespace Cosmos {
             string erequest = string(packet.data.begin()+4, packet.data.end());
             int32_t iretn = agent->process_request(erequest, response);
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->push_response(packet.header.radio, packet.header.orig, response_id, response);
+            iretn = agent->push_response(packet.header.radio, 0, packet.header.orig, response_id, response);
             return iretn;
         }
 
@@ -742,7 +747,7 @@ namespace Cosmos {
             int32_t iretn=0;
             response = mjd2iso8601(currentmjd());
             response += " " + to_label("MET", currentmjd() - agent->cinfo->node.utcstart);
-            iretn = agent->push_response(packet.header.radio, packet.header.orig, centisec(), response);
+            iretn = agent->push_response(packet.header.radio, 0, packet.header.orig, centisec(), response);
             return iretn;
         }
 
