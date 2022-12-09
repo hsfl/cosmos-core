@@ -8,10 +8,14 @@
 # node_id: Node id within realm
 # node_name: Node name
 # node_utcstart: Node utcstart time
+drop database cosmos;
+create database cosmos;
+use cosmos;
+
 CREATE TABLE IF NOT EXISTS node (
     # node_id TINYINT UNSIGNED NOT NULL UNIQUE,
     node_name VARCHAR(40) NOT NULL UNIQUE, #nodestruc
-    agent_name VARCHAR(40) NOT NULL UNIQUE, #nodestruc
+    agent_name VARCHAR(40) NOT NULL, #nodestruc
     utc DATETIME(1), #nodestruc
     utcstart DATETIME(1), #nodestruc
     PRIMARY KEY (node_name)
