@@ -7965,6 +7965,7 @@ union as a ::devicestruc.
                         add_name(basename+".maxgib", &devspec.cpu[didx].maxgib, "float");
                         add_name(basename+".gib", &devspec.cpu[didx].gib, "float");
                         add_name(basename+".boot_count", &devspec.cpu[didx].boot_count, "uint32_t");
+                        add_name(basename+".storage", &devspec.cpu[didx].boot_count, "float");
                         break;
                     case DeviceType::DISK:
                         basename = "devspec.disk[" + std::to_string(didx) + "]";
@@ -10533,6 +10534,253 @@ union as a ::devicestruc.
             // maybe set_json for use with namespace names (calls from_json...)
         };
 
+
+
+//  mysql Database support
+
+
+/// Class to represent cosmosstruc data using mysql database tables
+/**
+	This class defines which sub-sections of the cosmosstruc go into which tables.
+	A sub-section of the cosmosstruc is defined as a set of namespace names.
+
+	Multiple sub-sections may be stored in the same table, provided they each have appropriate types (e.g. multiple batteries are stored in one battstruc table)
+	The same sub-setion may be stored in multiple tables (if that should ever prove useful)
+
+	A single mapping is provided by each instance of this class
+
+*/
+class cosmos2table	{
+public:
+
+	string	table_name;
+	vector<string> column_names;
+	vector<string> namespace_names;
+
+	cosmos2table(const string& t_name, const vector<string>& c_names, const vector<string>& n_names) :
+		table_name(t_name),
+		column_names(c_names),
+		namespace_names(n_names)
+	{};
+
+	string insert_value(cosmosstruc& C, const string& name)	{
+		string insert;
+		if(C.get_type(name) == "string")	{
+			insert+="\'" + C.get_value<string>(name) + "\'";
+		} else if (C.get_type(name) == "double")	{
+			insert += std::to_string(C.get_value<double>(name));
+		} else if (C.get_type(name) == "float")	{
+			insert += std::to_string(C.get_value<float>(name));
+		} else if (C.get_type(name) == "uint32_t")	{
+			insert += std::to_string(C.get_value<uint32_t>(name));
+		} else if (C.get_type(name) == "uint16_t")	{
+			insert += std::to_string(C.get_value<uint16_t>(name));
+		} else if (C.get_type(name) == "uint8_t")	{
+			insert += std::to_string(C.get_value<uint8_t>(name));
+		} else if (C.get_type(name) == "int32_t")	{
+			insert += std::to_string(C.get_value<int32_t>(name));
+		} else if (C.get_type(name) == "int16_t")	{
+			insert += std::to_string(C.get_value<int16_t>(name));
+		} else if (C.get_type(name) == "int8_t")	{
+			insert += std::to_string(C.get_value<int8_t>(name));
+		} else if (C.get_type(name) == "bool")	{
+			insert += std::to_string(C.get_value<bool>(name));
+		}
+		return insert;
+	};
+
+	string insert_statement(cosmosstruc& C)	{
+		if(column_names.size() != namespace_names.size() || column_names.size() == 0)	return "";
+		string insert = "insert into " + table_name + " (" + column_names[0];
+		for(size_t i = 1; i < column_names.size(); ++i)	{ insert += ", " + column_names[i]; }
+		insert += ") values (" + insert_value(C, namespace_names[0]);
+		for(size_t i = 1; i < namespace_names.size(); ++i)	{ insert += ", " + insert_value(C, namespace_names[i]); }
+		insert += ");";
+		return insert;
+	};
+};
+
+/// Class to represent indivdual mysql databases
+/**
+	Each database (i.e. schema) is a collection of table definitions.
+	Each table supports a mapping of columns to cosmosstruc entries.
+*/
+class example_schema	{
+public:
+
+	string					schema_name;
+	vector<cosmos2table>	tables;
+
+	// this creates the instance of the schema
+	example_schema(const string& schema_name) : schema_name(schema_name)	{
+		// populate the table information
+		vector<string> column_names;		
+		vector<string> namespace_names;		
+
+		// node table
+		string table_name = "node";
+		column_names.push_back("node_name");
+		column_names.push_back("agent_name");
+		column_names.push_back("utc");
+		column_names.push_back("utcstart");
+		namespace_names.push_back("node.name");
+		namespace_names.push_back("node.agent");
+		namespace_names.push_back("node.utc");
+		namespace_names.push_back("node.utcstart");
+		tables.push_back(cosmos2table(table_name, column_names, namespace_names));
+		column_names.clear();
+		namespace_names.clear();
+
+		// battstruc table
+		table_name = "battstruc";
+		uint16_t didx = 0; // this needs to be set according to node.ini
+		column_names.push_back("node_name");
+		column_names.push_back("didx");
+		column_names.push_back("utc");
+		column_names.push_back("volt");
+		column_names.push_back("amp");
+		column_names.push_back("power");
+		column_names.push_back("temp");
+		column_names.push_back("percentage");
+		namespace_names.push_back("node.name");
+		namespace_names.push_back("device["+std::to_string(didx)+"].didx"); /// ??
+		namespace_names.push_back("device["+std::to_string(didx)+"].utc");
+		namespace_names.push_back("device["+std::to_string(didx)+"].volt");
+		namespace_names.push_back("device["+std::to_string(didx)+"].amp");
+		namespace_names.push_back("device["+std::to_string(didx)+"].power");
+		namespace_names.push_back("device["+std::to_string(didx)+"].temp");
+		namespace_names.push_back("devspec.batt["+std::to_string(didx)+"].percentage"); // ith instance  , fix with didx value above
+		tables.push_back(cosmos2table(table_name, column_names, namespace_names));
+		column_names.clear();
+		namespace_names.clear();
+
+		// bcregstruc table
+		table_name = "bcregstruc";
+		didx = 0; // this needs to be set according to node.ini
+		column_names.push_back("node_name");
+		column_names.push_back("didx");
+		column_names.push_back("utc");
+		column_names.push_back("volt");
+		column_names.push_back("amp");
+		column_names.push_back("power");
+		column_names.push_back("temp");
+		column_names.push_back("mpptin_amp");
+		column_names.push_back("mpptin_volt");
+		column_names.push_back("mpptout_amp");
+		column_names.push_back("mpptout_volt");
+		namespace_names.push_back("node.name");
+		namespace_names.push_back("device["+std::to_string(didx)+"].didx"); /// ??
+		namespace_names.push_back("device["+std::to_string(didx)+"].utc");
+		namespace_names.push_back("device["+std::to_string(didx)+"].volt");
+		namespace_names.push_back("device["+std::to_string(didx)+"].amp");
+		namespace_names.push_back("device["+std::to_string(didx)+"].power");
+		namespace_names.push_back("device["+std::to_string(didx)+"].temp");
+		namespace_names.push_back("devspec.bcreg["+std::to_string(didx)+"].mpptin_amp");
+		namespace_names.push_back("devspec.bcreg["+std::to_string(didx)+"].mpptin_volt");
+		namespace_names.push_back("devspec.bcreg["+std::to_string(didx)+"].mpptout_amp");
+		namespace_names.push_back("devspec.bcreg["+std::to_string(didx)+"].mpptout_volt");
+		tables.push_back(cosmos2table(table_name, column_names, namespace_names));
+		column_names.clear();
+		namespace_names.clear();
+
+		// bcregstruc table
+		table_name = "cpustruc";
+		didx = 0; // this needs to be set according to node.ini
+		column_names.push_back("node_name");
+		column_names.push_back("didx");
+		column_names.push_back("utc");
+		column_names.push_back("temp");
+		column_names.push_back("uptime");
+		column_names.push_back("load");
+		column_names.push_back("gib");
+		column_names.push_back("boot_count");
+		column_names.push_back("storage");
+		namespace_names.push_back("node.name");
+		namespace_names.push_back("device["+std::to_string(didx)+"].didx"); /// ??
+		namespace_names.push_back("device["+std::to_string(didx)+"].utc");
+		namespace_names.push_back("device["+std::to_string(didx)+"].temp");
+		namespace_names.push_back("devspec.cpu["+std::to_string(didx)+"].uptime");
+		namespace_names.push_back("devspec.cpu["+std::to_string(didx)+"].load");
+		namespace_names.push_back("devspec.cpu["+std::to_string(didx)+"].gib");
+		namespace_names.push_back("devspec.cpu["+std::to_string(didx)+"].boot_count");
+		namespace_names.push_back("devspec.cpu["+std::to_string(didx)+"].storage");
+		tables.push_back(cosmos2table(table_name, column_names, namespace_names));
+		column_names.clear();
+		namespace_names.clear();
+
+		// locstruc_eci table
+		table_name = "locstruc_eci";
+		column_names.push_back("node_name");
+		column_names.push_back("utc");
+		column_names.push_back("s_x");
+		column_names.push_back("s_y");
+		column_names.push_back("s_z");
+		column_names.push_back("v_x");
+		column_names.push_back("v_y");
+		column_names.push_back("v_z");
+		column_names.push_back("a_x");
+		column_names.push_back("a_y");
+		column_names.push_back("a_z");
+		namespace_names.push_back("node.name");
+		namespace_names.push_back("node.loc.pos.eci.utc");
+		namespace_names.push_back("node.loc.pos.eci.s.col[0]");
+		namespace_names.push_back("node.loc.pos.eci.s.col[1]");
+		namespace_names.push_back("node.loc.pos.eci.s.col[2]");
+		namespace_names.push_back("node.loc.pos.eci.v.col[0]");
+		namespace_names.push_back("node.loc.pos.eci.v.col[1]");
+		namespace_names.push_back("node.loc.pos.eci.v.col[2]");
+		namespace_names.push_back("node.loc.pos.eci.a.col[0]");
+		namespace_names.push_back("node.loc.pos.eci.a.col[1]");
+		namespace_names.push_back("node.loc.pos.eci.a.col[2]");
+		tables.push_back(cosmos2table(table_name, column_names, namespace_names));
+		column_names.clear();
+		namespace_names.clear();
+
+		// attstruc_icrf table
+		table_name = "attstruc_icrf";
+		column_names.push_back("node_name");
+		column_names.push_back("utc");
+		column_names.push_back("s_x");
+		column_names.push_back("s_y");
+		column_names.push_back("s_z");
+		column_names.push_back("s_w");
+		column_names.push_back("omega_x");
+		column_names.push_back("omega_y");
+		column_names.push_back("omega_z");
+		column_names.push_back("alpha_x");
+		column_names.push_back("alpha_y");
+		column_names.push_back("alpha_z");
+		namespace_names.push_back("node.name");
+		namespace_names.push_back("node.loc.att.icrf.utc");
+		namespace_names.push_back("node.loc.att.icrf.s.d.x");
+		namespace_names.push_back("node.loc.att.icrf.s.d.y");
+		namespace_names.push_back("node.loc.att.icrf.s.d.z");
+		namespace_names.push_back("node.loc.att.icrf.s.w");
+		namespace_names.push_back("node.loc.att.icrf.v.col[0]");
+		namespace_names.push_back("node.loc.att.icrf.v.col[1]");
+		namespace_names.push_back("node.loc.att.icrf.v.col[2]");
+		namespace_names.push_back("node.loc.att.icrf.a.col[0]");
+		namespace_names.push_back("node.loc.att.icrf.a.col[1]");
+		namespace_names.push_back("node.loc.att.icrf.a.col[2]");
+		tables.push_back(cosmos2table(table_name, column_names, namespace_names));
+		column_names.clear();
+		namespace_names.clear();
+
+	};
+
+
+	// set up database tables (i.e. feed column name to namespace name mapping)
+	string init_database()	{
+		string init;
+
+		//
+		init += "drop database cosmos;\n";
+		init += "create database cosmos;\n";
+		init += "use cosmos;\n";
+
+		return init;
+	};
+};
         //! @}
     }
 }
