@@ -10602,7 +10602,7 @@ public:
 	};
 };
 
-/// Class to represent indivdual mysql databases
+/// Class to represent individual instances of mysql databases (i.e. schemas)
 /**
 	Each database (i.e. schema) is a collection of table definitions.
 	Each table supports a mapping of columns to cosmosstruc entries.
@@ -10615,6 +10615,7 @@ public:
 
 	// this creates the instance of the schema
 	example_schema(const string& schema_name) : schema_name(schema_name)	{
+
 		// populate the table information
 		vector<string> column_names;		
 		vector<string> namespace_names;		
@@ -10770,15 +10771,93 @@ public:
 
 	};
 
-
 	// set up database tables (i.e. feed column name to namespace name mapping)
 	string init_database()	{
 		string init;
 
-		//
 		init += "drop database cosmos;\n";
 		init += "create database cosmos;\n";
 		init += "use cosmos;\n";
+
+		init += "CREATE TABLE IF NOT EXISTS node (\n";
+		init += "# node_id TINYINT UNSIGNED NOT NULL UNIQUE,\n";
+		init += "node_name VARCHAR(40) NOT NULL UNIQUE, #nodestruc\n";
+		init += "agent_name VARCHAR(40) NOT NULL, #nodestruc\n";
+		init += "utc DOUBLE, #nodestruc\n";
+		init += "utcstart DOUBLE, #nodestruc\n";
+		init += "PRIMARY KEY (node_name)\n";
+		init += ");\n";
+
+		init += "CREATE TABLE IF NOT EXISTS battstruc (\n";
+		init += "node_name VARCHAR(40) NOT NULL,\n";
+		init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
+		init += "utc DOUBLE NOT NULL, #devicestruc\n";
+		init += "volt DECIMAL(5,2), #devicestruc\n";
+		init += "amp DECIMAL(5,2), #devicestruc\n";
+		init += "power DECIMAL(5,2), #devicestruc\n";
+		init += "temp DECIMAL(5,2), #devicestruc\n";
+		init += "percentage DECIMAL(5,2), #battstruc\n";
+		init += "PRIMARY KEY (node_name, didx, utc)\n";
+		init += ");\n";
+
+		init += "CREATE TABLE IF NOT EXISTS bcregstruc (\n";
+		init += "node_name VARCHAR(40) NOT NULL,\n";
+		init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
+		init += "utc DOUBLE NOT NULL, #devicestruc\n";
+		init += "volt DECIMAL(5,2), #devicestruc\n";
+		init += "amp DECIMAL(5,2), #devicestruc\n";
+		init += "power DECIMAL(5,2), #devicestruc\n";
+		init += "temp DECIMAL(5,2), #devicestruc\n";
+		init += "mpptin_amp DECIMAL(5,2),    #bcregstruc\n";
+		init += "mpptin_volt DECIMAL(5,2),   #bcregstruc\n";
+		init += "mpptout_amp DECIMAL(5,2),   #bcregstruc\n";
+		init += "mpptout_volt DECIMAL(5,2),  #bcregstruc\n";
+		init += "PRIMARY KEY (node_name, didx, utc)\n";
+		init += ");\n";
+
+		init += "CREATE TABLE IF NOT EXISTS cpustruc (\n";
+		init += "node_name VARCHAR(40) NOT NULL,\n";
+		init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
+		init += "utc DOUBLE NOT NULL, #devicestruc\n";
+		init += "temp DECIMAL(5,2), #devicestruc\n";
+		init += "uptime INT UNSIGNED,    #cpustruc\n";
+		init += "load DECIMAL(5,2),  #cpustruc\n";
+		init += "gib DECIMAL(5,2),   #cpustruc\n";
+		init += "boot_count INT UNSIGNED,    #cpustruc\n";
+		init += "storage DECIMAL(5,2),   #cpustruc\n";
+		init += "PRIMARY KEY (node_name, didx, utc)\n";
+		init += ");\n";
+
+		init += "CREATE TABLE IF NOT EXISTS locstruc_eci (\n";
+		init += "node_name VARCHAR(40) NOT NULL,\n";
+		init += "utc DOUBLE NOT NULL,\n";
+		init += "s_x DOUBLE,\n";
+		init += "s_y DOUBLE,\n";
+		init += "s_z DOUBLE,\n";
+		init += "v_x DOUBLE,\n";
+		init += "v_y DOUBLE,\n";
+		init += "v_z DOUBLE,\n";
+		init += "a_x DOUBLE,\n";
+		init += "a_y DOUBLE,\n";
+		init += "a_z DOUBLE,\n";
+		init += "PRIMARY KEY (node_name, utc)\n";
+		init += ");\n";
+
+		init += "CREATE TABLE IF NOT EXISTS attstruc_icrf (\n";
+		init += "node_name VARCHAR(40) NOT NULL,\n";
+		init += "utc DOUBLE NOT NULL,\n";
+		init += "s_x DOUBLE,\n";
+		init += "s_y DOUBLE,\n";
+		init += "s_z DOUBLE,\n";
+		init += "s_w DOUBLE,\n";
+		init += "omega_x DOUBLE,\n";
+		init += "omega_y DOUBLE,\n";
+		init += "omega_z DOUBLE,\n";
+		init += "alpha_x DOUBLE,\n";
+		init += "alpha_y DOUBLE,\n";
+		init += "alpha_z DOUBLE,\n";
+		init += "PRIMARY KEY (node_name, utc)\n";
+		init += ");\n";
 
 		return init;
 	};
