@@ -10828,6 +10828,35 @@ public:
 		init += "PRIMARY KEY (node_name, didx, utc)\n";
 		init += ");\n";
 
+		init += "CREATE TABLE IF NOT EXISTS magstruc (\n";
+		init += "node_name VARCHAR(40) NOT NULL,\n";
+		init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
+		init += "utc DOUBLE NOT NULL, #devicestruc\n";
+		init += "mag_x DECIMAL(5,2),\n";
+		init += "mag_y DECIMAL(5,2),\n";
+		init += "mag_z DECIMAL(5,2),\n";
+		init += "PRIMARY KEY (node_id, didx, utc)\n";
+		init += ");\n";
+
+		init += "CREATE TABLE IF NOT EXISTS swchstruc (\n";
+		init += "node_name VARCHAR(40) NOT NULL,\n";
+		init += "didx TINYINT UNSIGNED NOT NULL,\n";
+		init += "utc DOUBLE NOT NULL, #devicestruc\n";
+		init += "volt DECIMAL(5,2), #devicestruc\n";
+		init += "amp DECIMAL(5,2), #devicestruc\n";
+		init += "power DECIMAL(5,2), #devicestruc\n";
+		init += "temp DECIMAL(5,2), #devicestruc\n";
+		init += "PRIMARY KEY (node_name, didx, utc)\n";
+		init += ");\n";
+
+		init += "CREATE TABLE IF NOT EXISTS tsenstruc (\n";
+		init += "node_name VARCHAR(40) NOT NULL,\n";
+		init += "didx TINYINT UNSIGNED NOT NULL,\n";
+		init += "utc DOUBLE NOT NULL, #devicestruc\n";
+		init += "temp DECIMAL(5,2), #devicestruc\n";
+		init += "PRIMARY KEY (node_name, didx, utc)\n";
+		init += ");\n";
+
 		init += "CREATE TABLE IF NOT EXISTS locstruc_eci (\n";
 		init += "node_name VARCHAR(40) NOT NULL,\n";
 		init += "utc DOUBLE NOT NULL,\n";
