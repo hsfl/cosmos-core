@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS node (
     # node_id TINYINT UNSIGNED NOT NULL UNIQUE,
     node_name VARCHAR(40) NOT NULL UNIQUE, #nodestruc
     agent_name VARCHAR(40) NOT NULL, #nodestruc
-    utc DATETIME(1), #nodestruc
-    utcstart DATETIME(1), #nodestruc
+    utc DOUBLE, #nodestruc
+    utcstart DOUBLE, #nodestruc
     PRIMARY KEY (node_name)
 );
 
@@ -33,8 +33,7 @@ CREATE TABLE IF NOT EXISTS node (
 CREATE TABLE IF NOT EXISTS battstruc (
     node_name VARCHAR(40) NOT NULL,
     didx TINYINT UNSIGNED NOT NULL, #devicestruc
-    name VARCHAR(40),
-    utc DATETIME(1) NOT NULL, #devicestruc
+    utc DOUBLE NOT NULL, #devicestruc
     volt DECIMAL(5,2), #devicestruc
     amp DECIMAL(5,2), #devicestruc
     power DECIMAL(5,2), #devicestruc
@@ -59,16 +58,15 @@ CREATE TABLE IF NOT EXISTS battstruc (
 CREATE TABLE IF NOT EXISTS bcregstruc (
     node_name VARCHAR(40) NOT NULL,
     didx TINYINT UNSIGNED NOT NULL, #devicestruc
-    name VARCHAR(40),
-    utc DATETIME(1) NOT NULL, #devicestruc
+    utc DOUBLE NOT NULL, #devicestruc
     volt DECIMAL(5,2), #devicestruc
     amp DECIMAL(5,2), #devicestruc
     power DECIMAL(5,2), #devicestruc
     temp DECIMAL(5,2), #devicestruc
-    mpptin_amp DECIMAL(5,2),
-    mpptin_volt DECIMAL(5,2),
-    mpptout_amp DECIMAL(5,2),
-    mpptout_volt DECIMAL(5,2),
+    mpptin_amp DECIMAL(5,2),	#bcregstruc
+    mpptin_volt DECIMAL(5,2),	#bcregstruc
+    mpptout_amp DECIMAL(5,2),	#bcregstruc
+    mpptout_volt DECIMAL(5,2),	#bcregstruc
     PRIMARY KEY (node_name, didx, utc)
 );
 
@@ -85,14 +83,13 @@ CREATE TABLE IF NOT EXISTS bcregstruc (
 CREATE TABLE IF NOT EXISTS cpustruc (
     node_name VARCHAR(40) NOT NULL,
     didx TINYINT UNSIGNED NOT NULL, #devicestruc
-    name VARCHAR(40),
-    utc DATETIME(1) NOT NULL, #devicestruc
+    utc DOUBLE NOT NULL, #devicestruc
     temp DECIMAL(5,2), #devicestruc
-    uptime INT UNSIGNED,
-    load DECIMAL(5,2),
-    gib DECIMAL(5,2),
-    bootcount INT UNSIGNED,
-    storage DECIMAL(5,2),
+    uptime INT UNSIGNED,	#cpustruc
+    load DECIMAL(5,2),	#cpustruc
+    gib DECIMAL(5,2),	#cpustruc
+    boot_count INT UNSIGNED,	#cpustruc
+    storage DECIMAL(5,2),	#cpustruc
     PRIMARY KEY (node_name, didx, utc)
 );
 
@@ -107,8 +104,7 @@ CREATE TABLE IF NOT EXISTS cpustruc (
 CREATE TABLE IF NOT EXISTS magstruc (
     node_name VARCHAR(40) NOT NULL,
     didx TINYINT UNSIGNED NOT NULL, #devicestruc
-    name VARCHAR(40),
-    utc DATETIME(1) NOT NULL, #devicestruc
+    utc DOUBLE NOT NULL, #devicestruc
     mag_x DECIMAL(5,2),
     mag_y DECIMAL(5,2),
     mag_z DECIMAL(5,2),
@@ -125,8 +121,7 @@ CREATE TABLE IF NOT EXISTS magstruc (
 CREATE TABLE IF NOT EXISTS swchstruc (
     node_name VARCHAR(40) NOT NULL,
     didx TINYINT UNSIGNED NOT NULL,
-    name VARCHAR(40),
-    utc DATETIME(1) NOT NULL, #devicestruc
+    utc DOUBLE NOT NULL, #devicestruc
     volt DECIMAL(5,2), #devicestruc
     amp DECIMAL(5,2), #devicestruc
     power DECIMAL(5,2), #devicestruc
@@ -143,8 +138,7 @@ CREATE TABLE IF NOT EXISTS swchstruc (
 CREATE TABLE IF NOT EXISTS tsenstruc (
     node_name VARCHAR(40) NOT NULL,
     didx TINYINT UNSIGNED NOT NULL,
-    name VARCHAR(40),
-    utc DATETIME(1) NOT NULL, #devicestruc
+    utc DOUBLE NOT NULL, #devicestruc
     temp DECIMAL(5,2), #devicestruc
     PRIMARY KEY (node_name, didx, utc)
 );
@@ -163,16 +157,16 @@ CREATE TABLE IF NOT EXISTS tsenstruc (
 # node_loc_pos_eci_a_z: Z Acceleration in ECI (in meters)
 CREATE TABLE IF NOT EXISTS locstruc_eci (
     node_name VARCHAR(40) NOT NULL,
-    utc DATETIME(1) NOT NULL,
-    s_x DECIMAL(15,8),
-    s_y DECIMAL(15,8),
-    s_z DECIMAL(15,8),
-    v_x DECIMAL(15,8),
-    v_y DECIMAL(15,8),
-    v_z DECIMAL(15,8),
-    a_x DECIMAL(15,8),
-    a_y DECIMAL(15,8),
-    a_z DECIMAL(15,8),
+    utc DOUBLE NOT NULL,
+    s_x DOUBLE,
+    s_y DOUBLE,
+    s_z DOUBLE,
+    v_x DOUBLE,
+    v_y DOUBLE,
+    v_z DOUBLE,
+    a_x DOUBLE,
+    a_y DOUBLE,
+    a_z DOUBLE,
     PRIMARY KEY (node_name, utc)
 );
 
@@ -191,17 +185,17 @@ CREATE TABLE IF NOT EXISTS locstruc_eci (
 # node_loc_att_icrf_a_col_2: Z quaternion in ICRF
 CREATE TABLE IF NOT EXISTS attstruc_icrf (
     node_name VARCHAR(40) NOT NULL,
-    utc DATETIME(1) NOT NULL,
-    s_x DECIMAL(15,8),
-    s_y DECIMAL(15,8),
-    s_z DECIMAL(15,8),
-    s_w DECIMAL(15,8),
-    omega_x DECIMAL(15,8),
-    omega_y DECIMAL(15,8),
-    omega_z DECIMAL(15,8),
-    alpha_x DECIMAL(15,8),
-    alpha_y DECIMAL(15,8),
-    alpha_z DECIMAL(15,8),
+    utc DOUBLE NOT NULL,
+    s_x DOUBLE,
+    s_y DOUBLE,
+    s_z DOUBLE,
+    s_w DOUBLE,
+    omega_x DOUBLE,
+    omega_y DOUBLE,
+    omega_z DOUBLE,
+    alpha_x DOUBLE,
+    alpha_y DOUBLE,
+    alpha_z DOUBLE,
     PRIMARY KEY (node_name, utc)
 );
 
