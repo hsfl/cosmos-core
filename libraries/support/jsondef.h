@@ -10553,11 +10553,13 @@ union as a ::devicestruc.
 class cosmos2table	{
 public:
 
-	string	table_name;
-	vector<string> column_names;
-	vector<string> namespace_names;
+	string			schema_name;
+	string			table_name;
+	vector<string>	column_names;
+	vector<string>	namespace_names;
 
-	cosmos2table(const string& t_name, const vector<string>& c_names, const vector<string>& n_names) :
+	cosmos2table(const string& s_name, const string& t_name, const vector<string>& c_names, const vector<string>& n_names) :
+		schema_name(s_name),
 		table_name(t_name),
 		column_names(c_names),
 		namespace_names(n_names)
@@ -10591,7 +10593,7 @@ public:
 
 	string insert_statement(cosmosstruc& C)	{
 		if(column_names.size() != namespace_names.size() || column_names.size() == 0)	return "";
-		string insert = "insert into " + table_name + " (" + column_names[0];
+		string insert = "insert into " + schema_name + "." + table_name + " (" + column_names[0];
 		for(size_t i = 1; i < column_names.size(); ++i)	{ insert += ", " + column_names[i]; }
 		insert += ") values (" + insert_value(C, namespace_names[0]);
 		for(size_t i = 1; i < namespace_names.size(); ++i)	{ insert += ", " + insert_value(C, namespace_names[i]); }
@@ -10627,7 +10629,7 @@ public:
 		namespace_names.push_back("node.agent");
 		namespace_names.push_back("node.utc");
 		namespace_names.push_back("node.utcstart");
-		tables.push_back(cosmos2table(table_name, column_names, namespace_names));
+		tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names));
 		column_names.clear();
 		namespace_names.clear();
 
@@ -10650,7 +10652,7 @@ public:
 		namespace_names.push_back("device["+std::to_string(didx)+"].power");
 		namespace_names.push_back("device["+std::to_string(didx)+"].temp");
 		namespace_names.push_back("devspec.batt["+std::to_string(didx)+"].percentage"); // ith instance  , fix with didx value above
-		tables.push_back(cosmos2table(table_name, column_names, namespace_names));
+		tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names));
 		column_names.clear();
 		namespace_names.clear();
 
@@ -10679,7 +10681,7 @@ public:
 		namespace_names.push_back("devspec.bcreg["+std::to_string(didx)+"].mpptin_volt");
 		namespace_names.push_back("devspec.bcreg["+std::to_string(didx)+"].mpptout_amp");
 		namespace_names.push_back("devspec.bcreg["+std::to_string(didx)+"].mpptout_volt");
-		tables.push_back(cosmos2table(table_name, column_names, namespace_names));
+		tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names));
 		column_names.clear();
 		namespace_names.clear();
 
@@ -10704,7 +10706,7 @@ public:
 		namespace_names.push_back("devspec.cpu["+std::to_string(didx)+"].gib");
 		namespace_names.push_back("devspec.cpu["+std::to_string(didx)+"].boot_count");
 		namespace_names.push_back("devspec.cpu["+std::to_string(didx)+"].storage");
-		tables.push_back(cosmos2table(table_name, column_names, namespace_names));
+		tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names));
 		column_names.clear();
 		namespace_names.clear();
 
@@ -10732,7 +10734,7 @@ public:
 		namespace_names.push_back("node.loc.pos.eci.a.col[0]");
 		namespace_names.push_back("node.loc.pos.eci.a.col[1]");
 		namespace_names.push_back("node.loc.pos.eci.a.col[2]");
-		tables.push_back(cosmos2table(table_name, column_names, namespace_names));
+		tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names));
 		column_names.clear();
 		namespace_names.clear();
 
@@ -10762,7 +10764,7 @@ public:
 		namespace_names.push_back("node.loc.att.icrf.a.col[0]");
 		namespace_names.push_back("node.loc.att.icrf.a.col[1]");
 		namespace_names.push_back("node.loc.att.icrf.a.col[2]");
-		tables.push_back(cosmos2table(table_name, column_names, namespace_names));
+		tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names));
 		column_names.clear();
 		namespace_names.clear();
 
