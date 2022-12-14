@@ -1,4 +1,4 @@
-drop database cosmos;
+drop database if exists cosmos;
 create database cosmos;
 use cosmos;
 
@@ -58,7 +58,7 @@ utc DOUBLE NOT NULL, #devicestruc
 mag_x DECIMAL(5,2),
 mag_y DECIMAL(5,2),
 mag_z DECIMAL(5,2),
-PRIMARY KEY (node_id, didx, utc)
+PRIMARY KEY (node_name, didx, utc)
 );
 
 CREATE TABLE IF NOT EXISTS swchstruc (

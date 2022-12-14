@@ -10775,7 +10775,7 @@ public:
 	string init_database()	{
 		string init;
 
-		init += "drop database cosmos;\n";
+		init += "drop database if exists cosmos;\n";
 		init += "create database cosmos;\n";
 		init += "use cosmos;\n";
 
