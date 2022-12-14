@@ -10775,12 +10775,11 @@ public:
 	string init_database()	{
 		string init;
 
-		init += "drop database if exists cosmos;\n";
-		init += "create database cosmos;\n";
-		init += "use cosmos;\n";
+		init += "drop database if exists " + schema_name + ";\n";
+		init += "create database " + schema_name + ";\n";
+		init += "use " + schema_name + ";\n";
 
-		init += "CREATE TABLE IF NOT EXISTS node (\n";
-		init += "# node_id TINYINT UNSIGNED NOT NULL UNIQUE,\n";
+		init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".node (\n";
 		init += "node_name VARCHAR(40) NOT NULL UNIQUE, #nodestruc\n";
 		init += "agent_name VARCHAR(40) NOT NULL, #nodestruc\n";
 		init += "utc DOUBLE, #nodestruc\n";
@@ -10788,7 +10787,7 @@ public:
 		init += "PRIMARY KEY (node_name)\n";
 		init += ");\n";
 
-		init += "CREATE TABLE IF NOT EXISTS battstruc (\n";
+		init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".battstruc (\n";
 		init += "node_name VARCHAR(40) NOT NULL,\n";
 		init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
 		init += "utc DOUBLE NOT NULL, #devicestruc\n";
@@ -10800,7 +10799,7 @@ public:
 		init += "PRIMARY KEY (node_name, didx, utc)\n";
 		init += ");\n";
 
-		init += "CREATE TABLE IF NOT EXISTS bcregstruc (\n";
+		init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".bcregstruc (\n";
 		init += "node_name VARCHAR(40) NOT NULL,\n";
 		init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
 		init += "utc DOUBLE NOT NULL, #devicestruc\n";
@@ -10815,7 +10814,7 @@ public:
 		init += "PRIMARY KEY (node_name, didx, utc)\n";
 		init += ");\n";
 
-		init += "CREATE TABLE IF NOT EXISTS cpustruc (\n";
+		init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".cpustruc (\n";
 		init += "node_name VARCHAR(40) NOT NULL,\n";
 		init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
 		init += "utc DOUBLE NOT NULL, #devicestruc\n";
@@ -10828,17 +10827,17 @@ public:
 		init += "PRIMARY KEY (node_name, didx, utc)\n";
 		init += ");\n";
 
-		init += "CREATE TABLE IF NOT EXISTS magstruc (\n";
+		init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".magstruc (\n";
 		init += "node_name VARCHAR(40) NOT NULL,\n";
 		init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
 		init += "utc DOUBLE NOT NULL, #devicestruc\n";
 		init += "mag_x DECIMAL(5,2),\n";
 		init += "mag_y DECIMAL(5,2),\n";
 		init += "mag_z DECIMAL(5,2),\n";
-		init += "PRIMARY KEY (node_id, didx, utc)\n";
+		init += "PRIMARY KEY (node_name, didx, utc)\n";
 		init += ");\n";
 
-		init += "CREATE TABLE IF NOT EXISTS swchstruc (\n";
+		init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".swchstruc (\n";
 		init += "node_name VARCHAR(40) NOT NULL,\n";
 		init += "didx TINYINT UNSIGNED NOT NULL,\n";
 		init += "utc DOUBLE NOT NULL, #devicestruc\n";
@@ -10849,7 +10848,7 @@ public:
 		init += "PRIMARY KEY (node_name, didx, utc)\n";
 		init += ");\n";
 
-		init += "CREATE TABLE IF NOT EXISTS tsenstruc (\n";
+		init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".tsenstruc (\n";
 		init += "node_name VARCHAR(40) NOT NULL,\n";
 		init += "didx TINYINT UNSIGNED NOT NULL,\n";
 		init += "utc DOUBLE NOT NULL, #devicestruc\n";
@@ -10857,7 +10856,7 @@ public:
 		init += "PRIMARY KEY (node_name, didx, utc)\n";
 		init += ");\n";
 
-		init += "CREATE TABLE IF NOT EXISTS locstruc_eci (\n";
+		init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".locstruc_eci (\n";
 		init += "node_name VARCHAR(40) NOT NULL,\n";
 		init += "utc DOUBLE NOT NULL,\n";
 		init += "s_x DOUBLE,\n";
@@ -10872,7 +10871,7 @@ public:
 		init += "PRIMARY KEY (node_name, utc)\n";
 		init += ");\n";
 
-		init += "CREATE TABLE IF NOT EXISTS attstruc_icrf (\n";
+		init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".attstruc_icrf (\n";
 		init += "node_name VARCHAR(40) NOT NULL,\n";
 		init += "utc DOUBLE NOT NULL,\n";
 		init += "s_x DOUBLE,\n";
