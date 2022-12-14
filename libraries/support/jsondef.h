@@ -10694,7 +10694,7 @@ public:
 		column_names.push_back("utc");
 		column_names.push_back("temp");
 		column_names.push_back("uptime");
-		column_names.push_back("load");
+		column_names.push_back("cpu_load");
 		column_names.push_back("gib");
 		column_names.push_back("boot_count");
 		column_names.push_back("storage");
@@ -10821,7 +10821,7 @@ public:
 		init += "utc DOUBLE NOT NULL, #devicestruc\n";
 		init += "temp DECIMAL(5,2), #devicestruc\n";
 		init += "uptime INT UNSIGNED,    #cpustruc\n";
-		init += "load DECIMAL(5,2),  #cpustruc\n";
+		init += "cpu_load DECIMAL(5,2),  #cpustruc\n";
 		init += "gib DECIMAL(5,2),   #cpustruc\n";
 		init += "boot_count INT UNSIGNED,    #cpustruc\n";
 		init += "storage DECIMAL(5,2),   #cpustruc\n";
