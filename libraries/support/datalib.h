@@ -166,11 +166,11 @@ bool data_isblkdev(string path);
 bool data_issymlink(string path);
 bool data_isfile(string path, off_t size=0);
 double data_ctime(string path);
-int32_t data_execute(vector<uint8_t> cmd);
-int32_t data_execute(string cmd);
-int32_t data_execute(vector<uint8_t> cmd, string& result, string shell="");
-int32_t data_execute(string cmd, string& result, string shell="");
-int32_t data_task(string cmd, string outpath, string shell="");
+int32_t data_execute(vector<uint8_t> cmd, float timeout=10.);
+int32_t data_execute(string cmd, float timeout=10.);
+int32_t data_execute(vector<uint8_t> cmd, string& result, float timeout=10., string shell="");
+int32_t data_execute(string cmd, string& result, float timeout=10., string shell="");
+int32_t data_task(string cmd, string outpath, float timeout=10., string shell="");
 int32_t data_shell(string command_line, string outpath="", string inpath="", string errpath="");
 off_t data_size(string path);
 int32_t set_cosmosroot(string name, bool create_flag=false);
@@ -202,7 +202,10 @@ const string data_getcwd();
 class DataLog
 {
 public:
-    DataLog(double stride=0., bool fastmode=false);
+    DataLog();
+    int32_t Init(string node, string agent="self", string type="log", string extra="", double stride=0., bool fastmode=false);
+    int32_t Write(string& data);
+    int32_t Write(vector<uint8_t>& data);
     int32_t Write(vector<uint8_t> data, string node, string agent="generic", string type="log", string extra="");
     int32_t Write(double utc, vector<uint8_t> data, string node, string agent="generic", string type="log", string extra="");
     int32_t Write(string data, string node, string agent="generic", string type="log", string extra="");
@@ -211,12 +214,15 @@ public:
     int32_t SetFastmode(bool state=false);
     int32_t SetStartdate(double mjd=0.);
 
+    string node;
+    string agent;
+    string type;
+    string extra;
     bool fastmode;
     double stride;
     double enddate = 0.;
     double startdate = 0.;
     string path;
-    string node;
 private:
 
     FILE* fout;

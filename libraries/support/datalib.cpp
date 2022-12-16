@@ -65,15 +65,26 @@ static string nodedir;
 
 //! Construct DataLog
 //! Class for logging regular entries
-DataLog::DataLog(double stride, bool fastmode)
+DataLog::DataLog()
 {
+}
+
+//! \brief Initialize ::DataLog
+//! Preset DataLog to be used for provided conditions
+int32_t DataLog::Init(std::string node, std::string agent, std::string type, std::string extra, double stride, bool fastmode)
+{
+    fout = nullptr;
+    this->node = node;
+    this->agent = agent;
+    this->type = type;
+    this->extra = extra;
     this->fastmode = fastmode;
     if (stride < 0.)
     {
         stride = 0.;
     }
-    this->stride = stride;
-    fout = nullptr;
+    this->stride = stride / 86400.;
+    return 0;
 }
 
 //! Change DataLog stride
@@ -117,13 +128,71 @@ int32_t DataLog::SetFastmode(bool state)
 //! \param mjd UTC in Modified Julian Day
 int32_t DataLog::SetStartdate(double mjd)
 {
-    if (mjd < 0.)
+    if (mjd <= 0.)
     {
-        mjd = 0.;
+        mjd = currentmjd();
     }
     startdate = mjd;
-    enddate = mjd - 1.;
+    enddate = mjd;
     return startdate;
+}
+
+//! \brief Write DataLog
+//! Append binary data to file described by ::DataLog.
+//! \return Zero or negative error.
+int32_t DataLog::Write(string& data)
+{
+    vector<uint8_t> bdata;
+    bdata.insert(bdata.begin(), data.begin(), data.end());
+    return Write(bdata);
+}
+
+//! \brief Write DataLog
+//! Append binary data to file described by ::DataLog.
+//! \return Zero or negative error.
+int32_t DataLog::Write(vector<uint8_t>& data)
+{
+    int32_t iretn = 0;
+    if (currentmjd() >= enddate)
+    {
+        printf("Move %f %f %f\n", startdate, enddate, stride);
+        startdate = enddate;
+        enddate += stride;
+        if (fout != nullptr)
+        {
+            fclose(fout);
+            fout = nullptr;
+        }
+        if (!path.empty() && path.find("/temp/") != string::npos)
+        {
+            string movepath = string_replace(path, "/temp", "/outgoing");
+            iretn = log_move(path, movepath, true);
+        }
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+    if (fout == nullptr)
+    {
+        path = data_type_path(node, "temp", agent, startdate, type, extra);
+        if (path.empty())
+        {
+            return GENERAL_ERROR_EMPTY;
+        }
+        fout = data_open(path, const_cast<char *>("a+"));
+        if (fout == nullptr)
+        {
+            return GENERAL_ERROR_BAD_FD;
+        }
+    }
+    iretn = fwrite(data.data(), data.size(), 1, fout);
+    if (!fastmode)
+    {
+        fclose(fout);
+        fout = nullptr;
+    }
+    return iretn;
 }
 
 //! Write log entry - full
@@ -144,7 +213,7 @@ int32_t DataLog::Write(vector<uint8_t> data, string node, string agent, string t
     if (currentmjd() >= enddate)
     {
         startdate = enddate;
-        enddate += stride / 86400.;
+        enddate += stride;
         if (fout != nullptr)
         {
             fclose(fout);
@@ -2104,24 +2173,24 @@ off_t data_size(string path)
 
 }
 
-int32_t data_execute(vector<uint8_t> cmd)
+int32_t data_execute(vector<uint8_t> cmd, float timer)
 {
     string result;
-    return data_execute(cmd, result);
+    return data_execute(cmd, result, timer);
 }
 
-int32_t data_execute(string cmd)
+int32_t data_execute(string cmd, float timer)
 {
     string result;
-    return data_execute(cmd, result);
+    return data_execute(cmd, result, timer);
 }
 
-int32_t data_execute(vector<uint8_t> cmd, string& result, string shell)
+int32_t data_execute(vector<uint8_t> cmd, string& result, float timer, string shell)
 {
-    return data_execute(string(cmd.begin(), cmd.end()), result, shell);
+    return data_execute(string(cmd.begin(), cmd.end()), result, timer, shell);
 }
 
-int32_t data_execute(string cmd, string& result, string shell)
+int32_t data_execute(string cmd, string& result, float timer, string shell)
 {
 #if defined(COSMOS_WIN_OS)
     if (!data_isfile(cmd))
@@ -2266,7 +2335,7 @@ int32_t data_execute(string cmd, string& result, string shell)
 #else
     int32_t iretn = 0;
     FILE * stream;
-    char buffer[198];
+//    char buffer[198];
     result.clear();
 
     vector<string> cmds = string_split(cmd, " ");
@@ -2330,15 +2399,63 @@ int32_t data_execute(string cmd, string& result, string shell)
     }
 
     stream = popen(cmd.c_str(), "r");
+    fcntl(fileno(stream), F_SETFL, O_NONBLOCK);
     if (stream)
     {
-        while (!feof(stream))
+        ElapsedTime et;
+        do
         {
-            if (fgets(buffer, 198, stream) != nullptr)
+            fd_set set;
+            FD_ZERO(&set);
+            FD_SET(fileno(stream), &set);
+            timeval timeout;
+            timeout.tv_sec = static_cast<int32_t>(timer);
+            timeout.tv_usec = static_cast<int32_t>(1000000. * (timer - timeout.tv_sec));
+            int rv = select(fileno(stream)+1, &set, nullptr, nullptr, &timeout);
+            if (rv == -1)
             {
-                result.append(buffer);
+                iretn = -errno;
+                break;
             }
-        }
+            else if (rv == 0)
+            {
+                iretn = GENERAL_ERROR_TIMEOUT;
+                break;
+            }
+            else
+            {
+                if (FD_ISSET(fileno(stream), &set))
+                {
+                    uint8_t c;
+                    int response = read(fileno(stream), &c, 1);
+                    if (response > 0)
+                    {
+                        result.push_back(c);
+                    }
+                    else
+                    {
+                        if (response < 0)
+                        {
+                            iretn = -errno;
+                            break;
+                        }
+                        else
+                        {
+                            iretn = GENERAL_ERROR_TIMEOUT;
+                            break;
+                        }
+                    }
+                }
+            }
+        } while (et.split() < timer);
+
+//        while (!feof(stream))
+//        {
+//            if (fgets(buffer, 198, stream) != nullptr)
+//            {
+//                result.append(buffer);
+//            }
+//        }
         if ((iretn=pclose(stream)) < 0)
         {
             iretn = -errno;
@@ -2353,10 +2470,10 @@ int32_t data_execute(string cmd, string& result, string shell)
     return iretn;
 }
 
-int32_t data_task(string command, string outpath, string shell)
+int32_t data_task(string command, string outpath, float timeout, string shell)
 {
     string result;
-    int32_t iretn = data_execute(command, result, shell);
+    int32_t iretn = data_execute(command, result, timeout, shell);
     FILE* fp = fopen(outpath.c_str(), "w");
     if (fp != nullptr)
     {

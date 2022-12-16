@@ -1975,6 +1975,7 @@ class sim_param	{
             Convert::locstruc loc;
             Convert::locstruc cloc;
             gvector size = {0., 0., 0.};
+            double area;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -1997,7 +1998,8 @@ class sim_param	{
                     { "distance"	, distance },
                     { "loc"	, loc },
                     { "cloc"	, cloc },
-                    { "size", size}
+                    { "size", size},
+                    { "area", area},
                 };
             }
 
@@ -2026,6 +2028,7 @@ class sim_param	{
                     if(!p["loc"].is_null()) { loc.from_json(p["loc"].dump()); }
                     if(!p["cloc"].is_null()) { cloc.from_json(p["cloc"].dump()); }
                     if(!p["size"].is_null()) { size.from_json(p["size"].dump()); }
+                    if(!p["area"].is_null()) { area = p["area"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
