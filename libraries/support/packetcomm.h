@@ -5,6 +5,7 @@
 #include "math/crclib.h"
 #include "support/sliplib.h"
 #include "device/general/ax25class.h"
+#include "support/timelib.h"
 
 namespace Cosmos {
     namespace Support {
@@ -21,7 +22,7 @@ namespace Cosmos {
                 uint16_t tf_data_field_status;
             };
 
-            //PacketComm();
+            PacketComm(uint16_t size=4);
             void CalcCRC();
             bool CheckCRC();
             int32_t Unwrap(bool checkcrc=true);
@@ -35,7 +36,7 @@ namespace Cosmos {
             bool SLIPPacketize();
 
             enum class TypeId : uint8_t {
-                None = 0,
+                Blank = 0,
                 DataBeacon = 10,
                 DataPong = 41,
                 DataEpsResponse = 43,
@@ -259,7 +260,7 @@ namespace Cosmos {
             struct __attribute__ ((packed))  Header
             {
                 uint16_t data_size = 0;
-                TypeId type = TypeId::CommandPing;
+                TypeId type = TypeId::Blank;
                 uint8_t radio = 0;
                 uint8_t orig = 254; // refer to NodeData::NODEIDORIG;
                 uint8_t dest = 255; // refer to NodeData::NODEIDDEST;

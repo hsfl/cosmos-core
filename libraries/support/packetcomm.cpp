@@ -1,9 +1,19 @@
 #include "packetcomm.h"
 namespace Cosmos {
     namespace Support {
-        //PacketComm::PacketComm()
-        //{
-        //}
+        PacketComm::PacketComm(uint16_t size)
+        {
+            if (size >= 4)
+            {
+                data.resize(size);
+            }
+            else
+            {
+                data.resize(4);
+            }
+            uint32to(decisec(), &data[0], ByteOrder::LITTLEENDIAN);
+            RawPacketize();
+        }
 
         void PacketComm::CalcCRC()
         {
@@ -83,6 +93,10 @@ namespace Cosmos {
             return Unwrap();
         }
 
+        //! \brief Wrap up header and payload
+        //! Merge ::Cosmos::Support::PacketComm::data and ::Cosmos::Support::PacketComm::header
+        //! into ::Cosmos::Support::PacketComm::wrapped
+        //! \return Boolean success
         bool PacketComm::Wrap()
         {
             header.data_size = data.size();
