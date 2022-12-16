@@ -28,11 +28,11 @@ namespace Cosmos
             return cnodes.count(nodename);
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, vector<Convert::tlestruc> tles)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::tlestruc tle)
         {
             if (AddNode(nodename, stype, ptype, atype, ttype, etype))
             {
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, tles, currentutc);
+                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, tle, currentutc);
                 if (error < 0)
                 {
                     return error;
