@@ -54,6 +54,7 @@ uint16_t string_parse(char *string, char *word[], uint16_t size);
 string string_replace(string str, const string from, const string to);
 int string_cmp(const char *wild, const char *string);
 string to_hex_string(vector <uint8_t> buffer, bool ascii=false, uint16_t start=0);
+string to_hex_string(uint8_t* buffer, uint16_t size, bool ascii=false, uint16_t start=0);
 vector<uint8_t> from_hex_string(string hex);
 vector<uint8_t> from_hex_vector(vector<uint8_t> hex);
 string to_astring(vector<uint8_t> buf, bool hex=true);

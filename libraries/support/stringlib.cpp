@@ -234,6 +234,22 @@ double StringParser::getFieldNumberAsDouble(uint32_t index)
 int StringParser::getFieldNumberAsInteger(uint32_t index) { return getFieldNumberAsDouble(index); }
 
 /**
+ * @brief Convert byte array to human-readable string
+ *
+ * @param buffer Pointer to byte array
+ * @param size Length of array
+ * @param ascii If true, converts alphanumeric and whitespace ascii values to equivalent ascii character
+ * @param start Offset to start in buffer
+ * @return Human-readable string
+ */
+string to_hex_string(uint8_t* buffer, uint16_t size, bool ascii, uint16_t start)
+{
+    vector<uint8_t> data;
+    data.assign(buffer+start, buffer+start+size);
+    return to_hex_string(data, ascii);
+}
+
+/**
  * @brief Convert byte vector to human-readable string
  * 
  * @param buffer Byte vector
