@@ -59,7 +59,6 @@ namespace Cosmos
 {
     namespace Support
     {
-
         //! \ingroup agentclass
         //! \ingroup agentclass
         //! \defgroup agentclass_functions Agent Server and Client functions
@@ -3839,57 +3838,6 @@ acquired.
             return channels.Check(verification);
         }
 
-        int32_t Agent::channel_push(string name, PacketComm& packet)
-        {
-            int32_t number = channel_number(name);
-            if (number < 0)
-            {
-                return number;
-            }
-            return channel_push(number, packet);
-        }
-
-        int32_t Agent::channel_push(uint8_t number, PacketComm& packet)
-        {
-            int32_t iretn=0;
-            if (number >= channels.channel.size())
-            {
-                return GENERAL_ERROR_OUTOFRANGE;
-            }
-
-            iretn = channels.Push(number, packet);
-
-            return iretn;
-        }
-
-        int32_t Agent::channel_push(string name, vector<PacketComm>& packets)
-        {
-            int32_t number = channel_number(name);
-            if (number < 0)
-            {
-                return number;
-            }
-            return channel_push(number, packets);
-        }
-
-        int32_t Agent::channel_push(uint8_t number, vector<PacketComm>& packets)
-        {
-            int32_t iretn;
-            if (number >= channels.channel.size())
-            {
-                return GENERAL_ERROR_OUTOFRANGE;
-            }
-            for (PacketComm &p : packets)
-            {
-                iretn = channel_push(number, p);
-                if (iretn < 0)
-                {
-                    return iretn;
-                }
-            }
-            return packets.size();
-        }
-
         int32_t Agent::push_response(string name, uint8_t sourceid, uint8_t dest, uint32_t id, vector<uint8_t> response)
         {
             int32_t number = channel_number(name);
@@ -4034,29 +3982,6 @@ acquired.
             return response.size();
         }
 
-        int32_t Agent::channel_pull(string name, PacketComm &packet)
-        {
-            int32_t number = channel_number(name);
-            if (number < 0)
-            {
-                return number;
-            }
-            return channel_pull(number, packet);
-        }
-
-        int32_t Agent::channel_pull(uint8_t number, PacketComm &packet)
-        {
-            int32_t iretn=0;
-            if (number >= channels.channel.size())
-            {
-                return GENERAL_ERROR_OUTOFRANGE;
-            }
-
-            iretn = channels.Pull(number, packet);
-
-            return iretn;
-        }
-
         int32_t Agent::monitor_unwrapped(string name, PacketComm &packet, string extra)
         {
             int32_t number = channel_number(name);
@@ -4089,6 +4014,80 @@ acquired.
             printf("\n");
             fflush(stdout);
             return 0;
+        }
+
+        int32_t Agent::channel_push(string name, PacketComm& packet)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+            return channel_push(number, packet);
+        }
+
+        int32_t Agent::channel_push(uint8_t number, PacketComm& packet)
+        {
+            int32_t iretn=0;
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            iretn = channels.Push(number, packet);
+
+            return iretn;
+        }
+
+        int32_t Agent::channel_push(string name, vector<PacketComm>& packets)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+            return channel_push(number, packets);
+        }
+
+        int32_t Agent::channel_push(uint8_t number, vector<PacketComm>& packets)
+        {
+            int32_t iretn;
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            for (PacketComm &p : packets)
+            {
+                iretn = channel_push(number, p);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+            }
+            return packets.size();
+        }
+
+        int32_t Agent::channel_pull(string name, PacketComm &packet)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+            return channel_pull(number, packet);
+        }
+
+        int32_t Agent::channel_pull(uint8_t number, PacketComm &packet)
+        {
+            int32_t iretn=0;
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            iretn = channels.Pull(number, packet);
+
+            return iretn;
         }
 
         int32_t Agent::channel_add(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
@@ -4269,6 +4268,69 @@ acquired.
             iretn = channels.TestStop(number, seconds);
             return iretn;
         }
+
+        int32_t Agent::channel_enable(string name, int8_t value)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+
+            return channels.Enable(number, value);
+        }
+
+        int32_t Agent::channel_enable(uint8_t number, int8_t value)
+        {
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            return channels.Enabled(number);
+        }
+
+        int32_t Agent::channel_enabled(string name)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+
+            return channels.Enabled(number);
+        }
+
+        int32_t Agent::channel_enabled(uint8_t number)
+        {
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            return channels.Enabled(number);
+        }
+
+//        int32_t Agent::channel_disable(string name)
+//        {
+//            int32_t number = channel_number(name);
+//            if (number < 0)
+//            {
+//                return number;
+//            }
+
+//            return channels.Disable(number);
+//        }
+
+//        int32_t Agent::channel_disable(uint8_t number)
+//        {
+//            if (number >= channels.channel.size())
+//            {
+//                return GENERAL_ERROR_OUTOFRANGE;
+//            }
+
+//            return channels.Disable(number);
+//        }
 
         int32_t Agent::channel_clear(string name)
         {

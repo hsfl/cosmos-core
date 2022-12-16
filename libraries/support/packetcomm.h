@@ -74,6 +74,7 @@ namespace Cosmos {
                 CommandGetTimeHuman = 143,
                 CommandGetTimeBinary = 144,
                 CommandSetOpsMode = 145,
+                CommandEnableChannel = 146,
                 CommandAdcsCommunicate = 150,
                 CommandAdcsState = 151,
                 CommandAdcsSetRunMode = 152,
@@ -152,6 +153,7 @@ namespace Cosmos {
                 {TypeId::CommandExecLoadCommand, "ExecLoadCommand"},
                 {TypeId::CommandExecAddCommand, "ExecAddCommand"},
                 {TypeId::CommandRadioCommunicate, "RadioCommunicate"},
+                {TypeId::CommandEnableChannel, "EnableChannel"},
             };
 
             std::map<string, TypeId> StringType = {
@@ -214,6 +216,7 @@ namespace Cosmos {
                 {"ExecAddCommand", TypeId::CommandExecAddCommand},
 
                 {"RadioCommunicate", TypeId::CommandRadioCommunicate},
+                {"EnableChannel", TypeId::CommandEnableChannel},
             };
 
             struct __attribute__ ((packed)) CommunicateHeader

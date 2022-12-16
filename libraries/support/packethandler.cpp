@@ -55,6 +55,7 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandEpsSwitchNames, EpsForward);
             add_func(PacketComm::TypeId::CommandExecLoadCommand, ExecForward);
             add_func(PacketComm::TypeId::CommandExecAddCommand, ExecForward);
+            add_func(PacketComm::TypeId::CommandEnableChannel, EnableChannel);
 
             // Telemetry
             add_func(PacketComm::TypeId::DataBeacon, DecodeBeacon);
@@ -794,6 +795,13 @@ namespace Cosmos {
             return iretn;
         }
 
+        int32_t PacketHandler::EnableChannel(PacketComm &packet, string &response, Agent* agent)
+        {
+            int32_t iretn=0;
+            iretn = agent->channel_enable(packet.data[0], packet.data[1]);
+            return iretn;
+        }
+
 
         // Queue Packetcomm packets
 
@@ -841,6 +849,27 @@ namespace Cosmos {
             packet.data[0] = btype;
             packet.data[1] = bcount;
             iretn = agent->channel_push(agent->channel_number(channel), packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::QueueBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NodeData::NODE_ID_TYPE orig, NodeData::NODE_ID_TYPE dest, string radio)
+        {
+            int32_t iretn=0;
+            PacketComm packet;
+
+            Beacon beacon;
+            vector<uint8_t> bytes;
+            beacon.Init();
+            beacon.EncodeBinary((Beacon::TypeId)btype, agent->cinfo, bytes);
+            packet.header.type = PacketComm::TypeId::DataBeacon;
+            packet.header.orig = orig;
+            packet.header.dest = dest;
+            packet.data.clear();
+            packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
+            for (uint16_t i=0; i<bcount; ++i)
+            {
+                iretn = agent->channel_push(radio, packet);
+            }
             return iretn;
         }
 
@@ -1091,6 +1120,22 @@ namespace Cosmos {
             packet.data.resize(9);
             doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
             packet.data[8] = direction;
+            iretn = agent->channel_push(agent->channel_number(channel), packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::QueueEnableChannel(uint8_t number, uint8_t enable,  Agent* agent, string channel, NodeData::NODE_ID_TYPE dest, string radio)
+        {
+            int32_t iretn = 0;
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandEnableChannel;
+            packet.header.orig = agent->nodeId;
+            packet.header.dest = dest;
+            packet.header.radio = agent->channel_number(radio);
+            packet.data.resize(2);
+            packet.data[0] = number;
+            packet.data[1] = enable;
             iretn = agent->channel_push(agent->channel_number(channel), packet);
             return iretn;
         }

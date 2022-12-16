@@ -136,6 +136,11 @@ namespace Cosmos
 {
     namespace Support
     {
+        //! \class Agent agentclass.h "agent/agentclass.h"
+        //! Add COSMOS awareness.
+        //! Sets up minimum framework for COSMOS awareness. The minimum call makes a nodeless client, setting up the
+        //! message ring buffer thread, and a main thread of execution. Additional parameters are related to making
+        //! the program a true Agent by tieing it to a node, and starting the request and heartbeat threads.
         class Agent
         {
         public:
@@ -467,6 +472,12 @@ namespace Cosmos
             int32_t channel_teststart(uint8_t number, uint8_t nradio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
             int32_t channel_teststop(string name, float seconds=5.);
             int32_t channel_teststop(uint8_t number, float seconds=5.);
+            int32_t channel_enabled(string name);
+            int32_t channel_enabled(uint8_t number);
+            int32_t channel_enable(string name, int8_t value);
+            int32_t channel_enable(uint8_t number, int8_t value);
+//            int32_t channel_disable(string name);
+//            int32_t channel_disable(uint8_t number);
 
             int32_t task_add(string command);
             int32_t task_del(uint32_t deci);

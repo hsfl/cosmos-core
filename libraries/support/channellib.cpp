@@ -58,6 +58,11 @@ namespace Cosmos {
             channel[5].datasize = 1400;
             channel[5].maximum = 1000;
 
+            channel[5].name = "LOG";
+            channel[5].mtx = new std::recursive_mutex;
+            channel[5].datasize = 1400;
+            channel[5].maximum = 1000;
+
             this->verification = verification;
             return channel.size();
         }
@@ -524,6 +529,97 @@ namespace Cosmos {
             channel[number].mtx->unlock();
             return number;
         }
+
+        //! \brief Enable transmission over channel
+        //! \param channel Channel name
+        //! \param value 0 = disabled, 1 = active, 2 = suppressed
+        //! \return Previous state, or negative error.
+        int32_t Channel::Enable(string name, int8_t value)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return Enable(iretn, value);
+            }
+            return GENERAL_ERROR_OUTOFRANGE;
+        }
+
+        //! \brief Enable transmission over channel
+        //! \param channel Channel number
+        //! \param value 0 = disabled, 1 = active, 2 = suppressed
+        //! \return Previous state, or negative error.
+        int32_t Channel::Enable(uint8_t number, int8_t value)
+        {
+            if (number >= channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            int32_t iretn = 0;
+            if (channel[number].enabled == value)
+            {
+                iretn = value;
+            }
+            else
+            {
+                iretn = channel[number].enabled;
+                channel[number].enabled = value;
+            }
+            return iretn;
+        }
+
+        //! \brief Enabled State of transmission over channel
+        //! \param channel Channel name
+        //! \return Current state, or negative error.
+        int32_t Channel::Enabled(string name)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return Enabled(iretn);
+            }
+            return GENERAL_ERROR_OUTOFRANGE;
+        }
+
+        //! \brief Enabled State of transmission over channel
+        //! \param channel Channel number
+        //! \return Current state, or negative error.
+        int32_t Channel::Enabled(uint8_t number)
+        {
+            if (number >= channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            int32_t iretn = 0;
+            iretn = channel[number].enabled;
+            return iretn;
+        }
+
+        //! \brief Disable transmission over channel
+        //! \param channel Channel name
+        //! \return 0 or 1 depending on previous state, or negative error.
+//        int32_t Channel::Disable(string name)
+//        {
+//            int32_t iretn = Find(name);
+//            if (iretn >= 0)
+//            {
+//                return Disable(iretn);
+//            }
+//            return GENERAL_ERROR_OUTOFRANGE;
+//        }
+
+        //! \brief Disable transmission over channel
+        //! \param channel Channel number
+        //! \return 0 or 1 depending on previous state, or negative error.
+//        int32_t Channel::Disable(uint8_t number)
+//        {
+//            int32_t iretn = 0;
+//            if (channel[number].enabled)
+//            {
+//                iretn = 1;
+//            }
+//            channel[number].enabled = false;
+//            return iretn;
+//        }
 
         //! \brief Start channel performance test by channel name.
         //! \param name Name of channel.

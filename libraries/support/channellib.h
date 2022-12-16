@@ -60,6 +60,7 @@ namespace Cosmos {
                 uint8_t test_stop = 100;
                 uint32_t test_id = 0;
                 uint32_t test_bytes = 1000;
+                int8_t enabled = 0;
             };
             vector<channelstruc> channel;
             int32_t Init(uint32_t verification=0x352e);
@@ -75,6 +76,12 @@ namespace Cosmos {
             int32_t Size(uint8_t number=0);
             int32_t Clear(string name);
             int32_t Clear(uint8_t number);
+            int32_t Enable(string name, int8_t value);
+            int32_t Enable(uint8_t number, int8_t value);
+            int32_t Enabled(string name);
+            int32_t Enabled(uint8_t number);
+//            int32_t Disable(string name);
+//            int32_t Disable(uint8_t number);
             double Age(string name);
             double Age(uint8_t number);
             size_t Bytes(string name);
