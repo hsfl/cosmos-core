@@ -67,17 +67,17 @@ namespace Cosmos {
             return Unwrap(checkcrc);
         }
 
-        bool PacketComm::SLIPUnPacketize()
+        bool PacketComm::SLIPUnPacketize(bool checkcrc)
         {
             int32_t iretn = slip_unpack(packetized, wrapped);
             if (iretn <= 0)
             {
                 return false;
             }
-            return Unwrap();
+            return Unwrap(checkcrc);
         }
 
-        bool PacketComm::ASMUnPacketize()
+        bool PacketComm::ASMUnPacketize(bool checkcrc)
         {
             wrapped.clear();
             if (atsm[0] == packetized[0] && atsm[1] == packetized[1] && atsm[2] == packetized[2] && atsm[3] == packetized[3])
@@ -90,7 +90,15 @@ namespace Cosmos {
                 input.insert(wrapped.begin(), &packetized[4], &packetized[packetized.size()]);
                 uint8from(input, wrapped, ByteOrder::BIGENDIAN);
             }
-            return Unwrap();
+            return Unwrap(checkcrc);
+        }
+
+        bool PacketComm::HDLCUnPacketize(bool checkcrc)
+        {
+            Ax25Handle axhandle;
+            axhandle.unstuff(packetized);
+            wrapped = axhandle.ax25_packet;
+            return Unwrap(checkcrc);
         }
 
         //! \brief Wrap up header and payload
@@ -159,19 +167,30 @@ namespace Cosmos {
             return true;
         }
 
-        bool PacketComm::AX25Packetize(string dest_call, string sour_call, uint8_t dest_stat, uint8_t sour_stat, uint8_t cont, uint8_t prot)
+        bool PacketComm::AX25Packetize(string dest_call, string sour_call, uint8_t flagcount, uint8_t dest_stat, uint8_t sour_stat, uint8_t cont, uint8_t prot)
         {
             if (!Wrap())
             {
                 return false;
             }
             Ax25Handle axhandle(dest_call, sour_call, dest_stat, sour_stat, cont, prot);
-//            wrapped.resize(wrapped.size()+6);
             axhandle.load(wrapped);
-            axhandle.stuff();
+            axhandle.stuff({}, flagcount);
             vector<uint8_t> ax25packet = axhandle.get_hdlc_packet();
             packetized.clear();
             packetized.insert(packetized.begin(), ax25packet.begin(), ax25packet.end());
+            return true;
+        }
+
+        bool PacketComm::HDLCPacketize(uint8_t flagcount)
+        {
+            if (!Wrap())
+            {
+                return false;
+            }
+            Ax25Handle axhandle;
+            axhandle.stuff(wrapped, flagcount);
+            packetized = axhandle.get_hdlc_packet();
             return true;
         }
 

@@ -4,7 +4,7 @@
 #include "support/configCosmosKernel.h"
 #include "math/crclib.h"
 #include "support/sliplib.h"
-#include "device/general/ax25class.h"
+#include "support/ax25class.h"
 #include "support/timelib.h"
 
 namespace Cosmos {
@@ -27,12 +27,14 @@ namespace Cosmos {
             bool CheckCRC();
             int32_t Unwrap(bool checkcrc=true);
             int32_t RawUnPacketize(bool invert=false, bool checkcrc=true);
-            bool ASMUnPacketize();
-            bool SLIPUnPacketize();
+            bool ASMUnPacketize(bool checkcrc=true);
+            bool SLIPUnPacketize(bool checkcrc=true);
+            bool HDLCUnPacketize(bool checkcrc=true);
             bool Wrap();
             bool RawPacketize();
             bool ASMPacketize();
-            bool AX25Packetize(string dest_call="", string sour_call="", uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
+            bool AX25Packetize(string dest_call="", string sour_call="", uint8_t flagcount=2, uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
+            bool HDLCPacketize(uint8_t flagcount);
             bool SLIPPacketize();
 
             enum class TypeId : uint8_t {

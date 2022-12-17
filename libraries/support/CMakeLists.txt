@@ -79,9 +79,9 @@ add_library(CosmosBeacon STATIC beacon.cpp beacon.h)
 install(TARGETS CosmosBeacon DESTINATION lib)
 target_link_libraries(CosmosBeacon CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
 
-add_library(CosmosPacket STATIC packetcomm.cpp packetcomm.h)
+add_library(CosmosPacket STATIC packetcomm.cpp packetcomm.h ax25class.cpp ax25class.h)
 install(TARGETS CosmosPacket DESTINATION lib)
-target_link_libraries(CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosPacket CosmosAgent CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
 
 add_library(Envi STATIC envi.cpp envi.h)
 install(TARGETS Envi DESTINATION lib)

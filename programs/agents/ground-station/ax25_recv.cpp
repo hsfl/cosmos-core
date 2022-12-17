@@ -28,7 +28,7 @@
 ********************************************************************/
 #include "support/configCosmos.h"
 #include "support/jsondef.h"
-#include "device/general/ax25class.h"
+#include "support/ax25class.h"
 #include "support/timelib.h"
 #include "device/serial/serialclass.h"
 #include "support/socketlib.h"
