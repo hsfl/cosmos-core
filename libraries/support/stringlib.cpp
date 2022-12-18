@@ -257,7 +257,7 @@ string to_hex_string(uint8_t* buffer, uint16_t size, bool ascii, uint16_t start)
  * @param start Offset to start in buffer
  * @return Human-readable string
  */
-string to_hex_string(vector <uint8_t> buffer, bool ascii, uint16_t start)
+string to_hex_string(const vector<uint8_t> &buffer, bool ascii, uint16_t start)
 {
     std::stringstream ss;
     if (start >= buffer.size())
@@ -278,7 +278,7 @@ string to_hex_string(vector <uint8_t> buffer, bool ascii, uint16_t start)
     return ss.str();
 }
 
-vector<uint8_t> from_hex_string(string hex)
+vector<uint8_t> from_hex_string(std::string &hex)
 {
     vector<uint8_t> bytes;
     for (uint16_t ib=0; ib<hex.length()/2; ++ib)
@@ -290,7 +290,7 @@ vector<uint8_t> from_hex_string(string hex)
     return bytes;
 }
 
-vector<uint8_t> from_hex_vector(vector<uint8_t> hex)
+vector<uint8_t> from_hex_vector(vector<uint8_t>& hex)
 {
     vector<uint8_t> bytes;
     for (uint16_t ib=0; ib<hex.size()/2; ++ib)
@@ -333,6 +333,18 @@ string to_astring(char *value, size_t length, bool hex)
     {
         output = value;
     }
+    return output;
+}
+
+string to_string(const vector<uint8_t> &buf)
+{
+    string output(buf.begin(), buf.end());
+    return output;
+}
+
+vector<uint8_t> to_bytes(const string &buf)
+{
+    vector<uint8_t> output(buf.begin(), buf.end());
     return output;
 }
 
@@ -612,6 +624,11 @@ string to_bool(bool value, char type)
         break;
     }
     return output;
+}
+
+string to_iso8601(double value)
+{
+    return utc2iso8601(value);
 }
 
 string to_unixtime(double value, uint8_t precision)
