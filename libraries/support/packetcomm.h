@@ -138,6 +138,7 @@ namespace Cosmos {
                 {TypeId::CommandGetTimeHuman, "GetTimeHuman"},
                 {TypeId::CommandGetTimeBinary, "GetTimeBinary"},
                 {TypeId::CommandSetOpsMode, "SetOpsMode"},
+                {TypeId::CommandEnableChannel, "EnableChannel"},
                 {TypeId::CommandAdcsCommunicate, "AdcsCommunicate"},
                 {TypeId::CommandAdcsState, "AdcsState"},
                 {TypeId::CommandAdcsSetRunMode, "AdcsSetRunMode"},
@@ -156,7 +157,6 @@ namespace Cosmos {
                 {TypeId::CommandExecLoadCommand, "ExecLoadCommand"},
                 {TypeId::CommandExecAddCommand, "ExecAddCommand"},
                 {TypeId::CommandRadioCommunicate, "RadioCommunicate"},
-                {TypeId::CommandEnableChannel, "EnableChannel"},
             };
 
             std::map<string, TypeId> StringType = {
@@ -200,6 +200,7 @@ namespace Cosmos {
                 {"GetTimeHuman", TypeId::CommandGetTimeHuman},
                 {"GetTimeBinary", TypeId::CommandGetTimeBinary},
                 {"SetOpsMode", TypeId::CommandSetOpsMode},
+                {"EnableChannel", TypeId::CommandEnableChannel},
                 {"EpsCommunicate", TypeId::CommandEpsCommunicate},
                 {"EpsSwitchName", TypeId::CommandEpsSwitchName},
                 {"EpsSwitchNumber", TypeId::CommandEpsSwitchNumber},
@@ -217,9 +218,7 @@ namespace Cosmos {
                 {"AdcsOrbitParameters", TypeId::CommandAdcsOrbitParameters},
                 {"ExecLoadCommand", TypeId::CommandExecLoadCommand},
                 {"ExecAddCommand", TypeId::CommandExecAddCommand},
-
                 {"RadioCommunicate", TypeId::CommandRadioCommunicate},
-                {"EnableChannel", TypeId::CommandEnableChannel},
             };
 
             struct __attribute__ ((packed)) CommunicateHeader

@@ -40,6 +40,7 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandGetTimeHuman, GetTimeHuman);
             add_func(PacketComm::TypeId::CommandGetTimeBinary, GetTimeBinary);
             add_func(PacketComm::TypeId::CommandSetOpsMode, ExecForward);
+            add_func(PacketComm::TypeId::CommandEnableChannel, EnableChannel);
             add_func(PacketComm::TypeId::CommandAdcsCommunicate, AdcsForward);
             add_func(PacketComm::TypeId::CommandAdcsState, AdcsForward);
             add_func(PacketComm::TypeId::CommandAdcsGetAdcsState, AdcsForward);
@@ -55,7 +56,6 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandEpsSwitchNames, EpsForward);
             add_func(PacketComm::TypeId::CommandExecLoadCommand, ExecForward);
             add_func(PacketComm::TypeId::CommandExecAddCommand, ExecForward);
-            add_func(PacketComm::TypeId::CommandEnableChannel, EnableChannel);
 
             // Telemetry
             add_func(PacketComm::TypeId::DataBeacon, DecodeBeacon);
@@ -798,7 +798,19 @@ namespace Cosmos {
         int32_t PacketHandler::EnableChannel(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
-            iretn = agent->channel_enable(packet.data[0], packet.data[1]);
+            if (packet.data[1] < 32)
+            {
+                iretn = agent->channel_enable(packet.data[1], packet.data[0]);
+            }
+            else
+            {
+                string name(&packet.data[1], &packet.data[1]+(packet.data.size()-1));
+                iretn = agent->channel_number(name);
+                if (iretn >= 0)
+                {
+                    iretn = agent->channel_enable(name, packet.data[0]);
+                }
+            }
             return iretn;
         }
 
@@ -1124,6 +1136,25 @@ namespace Cosmos {
             return iretn;
         }
 
+        int32_t PacketHandler::QueueEnableChannel(string& name, uint8_t enable,  Agent* agent, string channel, NodeData::NODE_ID_TYPE dest, string radio)
+        {
+            int32_t iretn = agent->channel_number(name);
+            if (iretn >= 0)
+            {
+                PacketComm packet;
+
+                packet.header.type = PacketComm::TypeId::CommandEnableChannel;
+                packet.header.orig = agent->nodeId;
+                packet.header.dest = dest;
+                packet.header.radio = agent->channel_number(radio);
+                packet.data.resize(1);
+                packet.data[0] = enable;
+                packet.data.insert(packet.data.end(), name.begin(), name.end());
+                iretn = agent->channel_push(agent->channel_number(channel), packet);
+            }
+            return iretn;
+        }
+
         int32_t PacketHandler::QueueEnableChannel(uint8_t number, uint8_t enable,  Agent* agent, string channel, NodeData::NODE_ID_TYPE dest, string radio)
         {
             int32_t iretn = 0;
@@ -1134,8 +1165,8 @@ namespace Cosmos {
             packet.header.dest = dest;
             packet.header.radio = agent->channel_number(radio);
             packet.data.resize(2);
-            packet.data[0] = number;
-            packet.data[1] = enable;
+            packet.data[0] = enable;
+            packet.data[1] = number;
             iretn = agent->channel_push(agent->channel_number(channel), packet);
             return iretn;
         }
