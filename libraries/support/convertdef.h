@@ -948,7 +948,7 @@ namespace Cosmos {
         ::std::ostream& operator << (::std::ostream& out, const locstruc& a);
         ::std::istream& operator >> (::std::istream& in, locstruc& a);
 
-        //! In units **for** the SGP4 propogator (not NORAD TLE itself).
+        //! In units **for** the SGP4 propagator (not NORAD TLE itself).
         struct tlestruc
         {
             double utc = 0.;
