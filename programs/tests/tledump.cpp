@@ -14,6 +14,11 @@ int main(int argc, char *argv[])
         load_lines(fname, lines);
         Convert::lines2eci(lines[0].utc, lines, loc.pos.eci);
     }
+    double period = (D2PI/lines[0].mm)/1400;
+    if (argc == 3)
+    {
+        period = atof(argv[2]);
+    }
 
     Convert::tle2eci(lines[0].utc, lines[0], loc.pos.eci);
 
@@ -23,7 +28,7 @@ int main(int argc, char *argv[])
     Convert::eci2kep(loc.pos.eci, kep);
     Convert::kep2eci(kep, loc2.pos.eci);
 
-    for (double dt=0.; dt<(D2PI/lines[0].mm)/1400; dt+=10./86400)
+    for (double dt=0.; dt<period; dt+=10./86400)
     {
         Convert::lines2eci(lines[0].utc+dt, lines, loc.pos.eci);
         ++loc.pos.eci.pass;
