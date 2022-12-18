@@ -1,6 +1,7 @@
 #include "physics/simulatorclass.h"
-#include "support/jsonclass.h"
+#include "support/cosmos-errclass.h"
 #include "support/datalib.h"
+#include "support/jsonclass.h"
 #include "support/packetcomm.h"
 #include <iomanip>
 #include <sstream>

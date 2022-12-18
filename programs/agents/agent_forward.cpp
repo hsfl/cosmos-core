@@ -93,11 +93,11 @@ int main(int argc, char *argv[])
     }
 
     // Start thread for incoming forwarding.
-    thread thread_forwarding;
-    thread_forwarding = thread(forwarding_loop);
+    std::thread thread_forwarding;
+    thread_forwarding = std::thread(forwarding_loop);
 
-    thread thread_opening;
-    thread_opening = thread(opening_loop);
+    std::thread thread_opening;
+    thread_opening = std::thread(opening_loop);
 
     // Start performing the body of the agent
     //    uint8_t post[AGENTMAXBUFFER];

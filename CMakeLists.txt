@@ -52,6 +52,7 @@ set (COSMOS_CORE_SOURCE ${CMAKE_SOURCE_DIR})
 set(BUILD_COSMOS_CORE_AGENT                ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_PHYSICS              ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_MATH                 ON)          #ON/OFF
+set(BUILD_COSMOS_CORE_MODULE               ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_SUPPORT              ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_DEVICES              ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_THIRDPARTY_JPEG      ON)          #ON/OFF

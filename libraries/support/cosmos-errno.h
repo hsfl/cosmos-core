@@ -27,10 +27,29 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+/*!	\file cosmos-errno.h
+    \brief COSMOS Error Codes
+*/
+//! \ingroup support
+//! \defgroup  error COSMOS Error codes
+//! Error Codes.
+//!
+//! Definitions of the error codes used throughout all COSMOS related software. These codes
+//! are guaranteed to lie outside the range of general error codes, and further divided in to
+//! groups of ten by area of applicability. Support functions are provided for string
+//! versiosn of the error codes.
+
+//! \ingroup error
+//! \defgroup error_defines COSMOS Error Code definitions
+//! @{
+// All COSMOS errors are less than -200 since the range of standard system errors
+// is 1-200
+//! @}
+
 #ifndef _COSMOS_ERROR_H
 #define _COSMOS_ERROR_H 1
 
-#include "support/configCosmos.h"
+#include "support/configCosmosKernel.h"
 #include <errno.h>
 
 namespace Cosmos {
@@ -312,61 +331,7 @@ namespace Cosmos {
 
             COSMOS_ERROR_END = -3001
             };
-        class Error {
-        public:
-            Error();
 
-
-
-            typedef  map<int16_t, string> ErrorMap;
-            ErrorMap ErrorStrings;
-
-            enum LogType
-                {
-                LOG_NONE = 0,
-                LOG_STDOUT_FAST = 1,
-                LOG_STDOUT_FFLUSH = 2,
-                LOG_FILE_FAST = 3,
-                LOG_FILE_FFLUSH = 4,
-                LOG_FILE_CLOSE = 5
-                };
-
-            string ErrorString(int16_t number);
-            int32_t Set(uint16_t type=0, string ipathname="", double iinterval=1800., string iextension="log");
-            int32_t Type(uint16_t type);
-            int32_t Type();
-            FILE *Open();
-            int32_t Close();
-            int32_t Printf(string output);
-            int32_t Printf(const char *fmt, ...);
-
-
-        private:
-            double interval = 30. / 1440.;
-            double oldmjd = 0.;
-            uint16_t type = 0;
-            string pathName;
-            string Extension = "log";
-            FILE *log_fd = nullptr;
-        };
-
-        /*!	\file cosmos-errno.h
-    \brief COSMOS Error Codes
-    */
-        //! \ingroup support
-        //! \defgroup  error COSMOS Error codes
-        //! Error Codes.
-        //!
-        //! Definitions of the error codes used throughout all COSMOS related software. These codes
-        //! are guaranteed to lie outside the range of general error codes, and further divided in to
-        //! groups of ten by area of applicability. Support functions are provided for string
-        //! versiosn of the error codes.
-
-        //! \ingroup error
-        //! \defgroup error_defines COSMOS Error Code definitions
-        //! @{
-        // All COSMOS errors are less than -200 since the range of standard system errors
-        // is 1-200
 #define GS232B_ERROR_OPEN -201
 #define GS232B_ERROR_CLOSED -202
 #define GS232B_ERROR_OUTOFRANGE -203
@@ -627,32 +592,10 @@ namespace Cosmos {
 #define GENERAL_ERROR_BAD_FD            -2033   // No or unusable file descriptor
 #define GENERAL_ERROR_BAD_ACK            -2034   // Bad acknowledgement
 #define GENERAL_ERROR_EOF               -2035
+#define GENERAL_ERROR_BAD_DIR           -2036
 
 #define GPHOTO2_ERROR -3000
 
-
-        //! @}
-
-
-        //! \ingroup error
-        //! \defgroup error_functions Errno support functions
-        //! @{
-        string cosmos_error_string(int32_t cosmos_errno);
-        int32_t set_cosmos_error_level(uint16_t level=0, string pathname="./");
-        FILE* get_cosmos_error_fd(double mjd=0.);
-        int32_t close_cosmos_error_fd();
-
-#define cosmos_error_printf(mjd, ...) \
-    do { \
-    if ((FILE* fd = get_cosmos_error_fd(mjd, path) != nullptr) \
-        { \
-    char _buf[512]; \
-    fprintf(fd, __VA_ARGS__); \
-    } \
-    } while(0);
-
-
-        //! @}
     }
 }
 

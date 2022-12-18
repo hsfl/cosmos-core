@@ -36,7 +36,7 @@
 
 int main(int argc, char *argv[])
 {
-    std::vector<gige_acknowledge_ack> gige_list;
+    vector<gige_acknowledge_ack> gige_list;
     double wait_time = 0.;
 
     if (argc == 2)

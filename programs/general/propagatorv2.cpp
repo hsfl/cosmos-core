@@ -28,6 +28,7 @@ static double attdt = 1.;
 static double minaccelratio = 10;
 constexpr double d2s = 1./86400.;
 constexpr double d2s2 = 1./(86400.*86400.);
+static string targetfile = "targets.dat";
 
 // 0 : string of pearls
 // 1 : surrounding diamond
@@ -94,6 +95,7 @@ int main(int argc, char *argv[])
     if (!jargs["simdt"].is_null()) simdt = jargs["simdt"].number_value();
     if (!jargs["attdt"].is_null()) attdt = jargs["attdt"].number_value();
     if (!jargs["minaccelratio"].is_null()) minaccelratio = jargs["minaccelratio"].number_value();
+    if (!jargs["targetfile"].is_null()) targetfile = jargs["targetfile"].string_value();
 
     // initialize simulation agent
     agent = new Agent("", "", 0.);
@@ -111,15 +113,35 @@ int main(int argc, char *argv[])
 
 //    iretn = sim->AddNode("mother", Physics::Structure::U12, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     initialloc.att.icrf.s = q_eye();
-    iretn = sim->AddNode("mother", Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+    iretn = sim->AddNode("mother", Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
     sit = sim->GetNode("mother");
-    sit->second->AddTarget("Punta_Arenas", RADOF(-53.1638), RADOF(-70.9171), 0.);
-    sit->second->AddTarget("Awarua", RADOF(-46.4923), RADOF(168.2808), 0.);
-    sit->second->AddTarget("Puertollano", RADOF(38.6884), RADOF(4.1079), 0.);
-    sit->second->AddTarget("Svalbard", RADOF(77.8750), RADOF(20.9752), 0.);
-    sit->second->AddTarget("CONUS", RADOF(48.8719), RADOF(-124.0436), RADOF(26.9051), RADOF(-66.3209));
-    sit->second->AddTarget("Sahara", RADOF(32.4981), RADOF(-1.1719), RADOF(15.9423), RADOF(31.7363));
-    sit->second->AddTarget("Greenland", RADOF(80.7336), RADOF(-54.8762), RADOF(73.8102), RADOF(-31.8558));
+    FILE *fp = fopen(targetfile.c_str(), "r");
+    if (fp == nullptr)
+    {
+        agent->debug_error.Printf("Bad Target File: %s\n", targetfile.c_str());
+        exit(1);
+    }
+    string line;
+    line.resize(200);
+    while (fgets((char *)line.data(), 200, fp) != nullptr)
+    {
+        vector<string> args = string_split(line);
+        if (args.size() == 4)
+        {
+            sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
+        }
+        else if (args.size() == 5)
+        {
+            sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])));
+        }
+    }
+//    sit->second->AddTarget("Punta_Arenas", RADOF(-53.1638), RADOF(-70.9171), 0.);
+//    sit->second->AddTarget("Awarua", RADOF(-46.4923), RADOF(168.2808), 0.);
+//    sit->second->AddTarget("Puertollano", RADOF(38.6884), RADOF(4.1079), 0.);
+//    sit->second->AddTarget("Svalbard", RADOF(77.8750), RADOF(20.9752), 0.);
+//    sit->second->AddTarget("CONUS", RADOF(48.8719), RADOF(-124.0436), RADOF(26.9051), RADOF(-66.3209));
+//    sit->second->AddTarget("Sahara", RADOF(32.4981), RADOF(-1.1719), RADOF(15.9423), RADOF(31.7363));
+//    sit->second->AddTarget("Greenland", RADOF(80.7336), RADOF(-54.8762), RADOF(73.8102), RADOF(-31.8558));
 
     string header;
     header += "Name\tSeconds\tUTC\t";
@@ -158,7 +180,7 @@ int main(int argc, char *argv[])
     }
 
     double mjd = currentmjd();
-    string path = data_name("", mjd, "txt", "orbit");
+    string path = data_name(mjd, "txt", "", "", "orbit");
     FILE *ofp = fopen(path.c_str(), "w");
     fprintf(ofp, "%s\n", header.c_str());
 
@@ -179,7 +201,7 @@ int main(int argc, char *argv[])
     header += "AzFrom\t";
     header += "ElFrom\t";
 
-    path = data_name("", mjd, "txt", "event");
+    path = data_name(mjd, "txt", "", "", "event");
     FILE *efp = fopen(path.c_str(), "w");
     fprintf(efp, "%s\n", header.c_str());
 

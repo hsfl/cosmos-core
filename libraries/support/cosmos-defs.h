@@ -41,9 +41,6 @@
 #include <vector>
 #include <list>
 #include <queue>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 
 //! \ingroup defs
 //! \defgroup defs_storage Constants defining limits on storage.
@@ -102,6 +99,8 @@ enum NODE_TYPE : uint16_t
     NODE_TYPE_MARS=12,
     NODE_TYPE_LOCATION=13,
     NODE_TYPE_TESTBED=14,
+    NODE_TYPE_SQUARE=15,
+    NODE_TYPE_CIRCLE=16,
     NODE_TYPE_COUNT,
     NODE_TYPE_NONE=UINT16_MAX
 };

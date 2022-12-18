@@ -59,7 +59,6 @@ namespace Cosmos
 {
     namespace Support
     {
-
         //! \ingroup agentclass
         //! \ingroup agentclass
         //! \defgroup agentclass_functions Agent Server and Client functions
@@ -306,18 +305,32 @@ namespace Cosmos
                         "    SendBeacon [type:count]\n"
                         "    ClearQueue [channel]\n"
                         "    ExternalCommand command parameters\n"
-                        "    TestRadio start:step:count:byte_count\n"
+                        "    ExternalTask command parameters\n"
+                        "    TestRadio start step count bytes\n"
                         "    ListDirectory node:agent\n"
                         "    TransferFile node:agent:file\n"
                         "    TransferNode node\n"
                         "    TransferRadio\n"
-                        "    Request request parameters\n"
+                        "    InternalRequest request parameters\n"
                         "    Ping {string}\n"
-                        "    SetTime {MJD}\n"
+                        "    SetTime {MJD {direction}}\n"
                         "    GetTimeHuman\n"
                         "    GetTimeBinary\n"
-                        "    EPSCommand sbid:command:hexstring\n"
+                        "    SetOpsMode [modestring]\n"
+                        "    EnableChannel [channelstring | channelnumber] {State}\n"
+                        "    EpsCommunicate sbid:command:hexstring:response_size\n"
+                        "    EpsSwitchStatus [0-1|vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200]\n"
+                        "    EpsState {0|1|2|3}\n"
+                        "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200}:[seconds]\n"
+                        "    EpsSwitchNumber {0-1}:[seconds]\n"
+                        "    EpsSwitchNames {vbatt_bus:...} [seconds:...]\n"
+                        "    AdcsState {0-7} {0-18} \n"
+                        "    AdcsCommunicate command:hexstring:response_size\n"
                         "");
+            add_request("list_channels", req_list_channels, "", "List current channels");
+            add_request("run_command", req_run_command, "command parameters", "Run external command for immediate response");
+            add_request("add_task", req_add_task, "command parameters", "Start external command as Task for output to file");
+            add_request("test_channel", req_test_channel, "channel radio dest start step count bytes", "Run channel performance test");
 
             // Set up Full SOH string
             //            set_fullsohstring(json_list_of_fullsoh(cinfo));
@@ -753,7 +766,7 @@ namespace Cosmos
 
         //! Return Agent ::cosmosstruc
         /*! Return a pointer to the Agent's internal copy of the ::cosmosstruc.
-    \return A pointer to the ::cosmosstruc, otherwise NULL.
+    \return A pointer to the Cosmos::Support::cosmosstruc, otherwise NULL.
 */
         cosmosstruc *Agent::get_cosmosstruc() { return (cinfo); }
 
@@ -1780,8 +1793,8 @@ namespace Cosmos
             PacketComm packet;
             string type = "Ping";
             string dest = "iobc";
-            int32_t channelout = 0;
-            int32_t channelin = 0;
+            int32_t outchannel = 0;
+            int32_t inchannel = 0;
             vector<string> parms;
             uint16_t repeat = 1;
 
@@ -1797,17 +1810,17 @@ namespace Cosmos
                     vector<string> radios = string_split(args[2], ":");
                     if (radios.size() > 0)
                     {
-                        channelout = agent->channel_number(radios[0]);
-                        if (channelout < 0)
+                        outchannel = agent->channel_number(radios[0]);
+                        if (outchannel < 0)
                         {
-                            channelout = 0;
+                            outchannel = 0;
                         }
                         if (radios.size() > 1)
                         {
-                            channelin = agent->channel_number(radios[1]);
-                            if (channelin < 0)
+                            inchannel = agent->channel_number(radios[1]);
+                            if (inchannel < 0)
                             {
-                                channelin = 0;
+                                inchannel = 0;
                             }
                             if (radios.size() > 2)
                             {
@@ -1832,11 +1845,16 @@ namespace Cosmos
                 }
             }
 
+            if (packet.StringType.find(type) == packet.StringType.end())
+            {
+                response = type;
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
             packet.header.type = packet.StringType[type];
             packet.header.orig = agent->nodeId;
             packet.header.dest = agent->nodeData.lookup_node_id(dest);
-            packet.header.radio = channelin;
-            response = type + " " + dest + " " + agent->channels.channel[channelout].name + " " + agent->channels.channel[channelin].name;
+            packet.header.radio = inchannel;
+            response = "dest:" + dest + " radioup:" + agent->channels.channel[outchannel].name + " radiodown:" + agent->channels.channel[inchannel].name + " " + type;
             switch (packet.header.type)
             {
             case PacketComm::TypeId::CommandReset:
@@ -1877,21 +1895,26 @@ namespace Cosmos
                             bcount = stoi(parms[1]);
                         }
                     }
-                    packet.data.resize(3);
+                    packet.data.resize(2);
                     packet.data[0] = btype;
                     packet.data[1] = bcount;
+                    response += " " + to_unsigned(packet.data[0]) + " " + to_unsigned(packet.data[1]);
                 }
                 break;
             case PacketComm::TypeId::CommandClearQueue:
-                packet.data.resize(4, 0);
-                uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
-                packet.data[4] = 0;
-                if (parms.size() > 0)
                 {
-                    packet.data[4] = stoi(parms[1]);
+                    packet.data.resize(4, 0);
+                    uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    packet.data[4] = 0;
+                    if (parms.size() > 0)
+                    {
+                        packet.data[4] = stoi(parms[1]);
+                    }
+                    response += " " + to_hex(agent->get_verification()) + " " + to_unsigned(packet.data[4]);
                 }
                 break;
             case PacketComm::TypeId::CommandExternalCommand:
+            case PacketComm::TypeId::CommandExternalTask:
                 {
                     string command = "uptime";
                     if (parms.size() > 0)
@@ -1907,8 +1930,10 @@ namespace Cosmos
                         }
                     }
                     packet.data.resize(4);
-                    uint32to(centisec(), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    uint32_t centi = centisec();
+                    uint32to(centi, &packet.data[0], ByteOrder::LITTLEENDIAN);
                     packet.data.insert(packet.data.end(), command.begin(), command.end());
+                    response += " " + to_unsigned(centi) + " " + command;
                 }
                 break;
             case PacketComm::TypeId::CommandTestRadio:
@@ -1916,13 +1941,13 @@ namespace Cosmos
                     uint8_t start = 0;
                     uint8_t step = 1;
                     uint8_t count = 255;
-                    uint32_t seconds = 10;
+                    uint32_t bytes = 4000;
                     if (parms.size() == 4)
                     {
                         start = stoi(parms[0]);
                         step = stoi(parms[1]);
                         count = stoi(parms[2]);
-                        seconds = stoi(parms[3]);
+                        bytes = stoi(parms[3]);
                     }
                     packet.data.resize(11);
                     packet.data[0] = start;
@@ -1930,7 +1955,13 @@ namespace Cosmos
                     packet.data[2] = count;
                     uint32_t test_id = centisec();
                     uint32to(test_id, &packet.data[3], ByteOrder::LITTLEENDIAN);
-                    uint32to(seconds, &packet.data[7], ByteOrder::LITTLEENDIAN);
+                    uint32to(bytes, &packet.data[7], ByteOrder::LITTLEENDIAN);
+                    response += " " + to_unsigned(test_id)
+                            + " " + to_unsigned(start)
+                            + " " + to_unsigned(step)
+                            + " " + to_unsigned(count)
+                            +  " " + to_unsigned(bytes)
+                            ;
                 }
                 break;
             case PacketComm::TypeId::CommandListDirectory:
@@ -1955,48 +1986,48 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandTransferFile:
                 {
-                string node = agent->nodeName;
-                string agentname = agent->agentName;
-                string file = "";
-                if (parms.size() > 0)
-                {
-                    node = parms[0];
-                    if (parms.size() > 1)
+                    string node = agent->nodeName;
+                    string agentname = agent->agentName;
+                    string file = "";
+                    if (parms.size() > 0)
                     {
-                        agentname = parms[1];
-                        if (parms.size() > 2)
+                        node = parms[0];
+                        if (parms.size() > 1)
                         {
-                            file = parms[2];
+                            agentname = parms[1];
+                            if (parms.size() > 2)
+                            {
+                                file = parms[2];
+                            }
                         }
                     }
-                }
-                packet.data.resize(1);
-                packet.data[0] = parms[0].size();
+                    packet.data.resize(1);
+                    packet.data[0] = parms[0].size();
 
-                packet.data.push_back((uint8_t)node.size());
-                packet.data.insert(packet.data.end(), node.begin(), node.end());
-                packet.data.push_back((uint8_t)agentname.size());
-                packet.data.insert(packet.data.end(), agentname.begin(), agentname.end());
-                packet.data.push_back((uint8_t)file.size());
-                packet.data.insert(packet.data.end(), file.begin(), file.end());
+                    packet.data.push_back((uint8_t)node.size());
+                    packet.data.insert(packet.data.end(), node.begin(), node.end());
+                    packet.data.push_back((uint8_t)agentname.size());
+                    packet.data.insert(packet.data.end(), agentname.begin(), agentname.end());
+                    packet.data.push_back((uint8_t)file.size());
+                    packet.data.insert(packet.data.end(), file.begin(), file.end());
                 }
                 break;
             case PacketComm::TypeId::CommandTransferNode:
                 {
-                string node = agent->nodeName;
-                if (parms.size() > 0)
-                {
-                    node = parms[0];
-                }
-                packet.data.resize(1);
-                packet.data[0] = parms[0].size();
+                    string node = agent->nodeName;
+                    if (parms.size() > 0)
+                    {
+                        node = parms[0];
+                    }
+                    packet.data.resize(1);
+                    packet.data[0] = parms[0].size();
 
-                packet.data.push_back((uint8_t)node.size());
-                packet.data.insert(packet.data.end(), node.begin(), node.end());
+                    packet.data.push_back((uint8_t)node.size());
+                    packet.data.insert(packet.data.end(), node.begin(), node.end());
                 }
                 break;
             case PacketComm::TypeId::CommandTransferRadio:
-                if (parms.size() > 0)
+                if (parms.size() > 2)
                 {
                     int32_t ch = agent->channel_number(parms[0]);
                     if (ch < 0)
@@ -2006,6 +2037,7 @@ namespace Cosmos
                     }
                     packet.data.resize(1);
                     packet.data[0] = ch;
+                    packet.data[1] = stoi(parms[1]);
                 }
                 break;
             case PacketComm::TypeId::CommandInternalRequest:
@@ -2024,8 +2056,10 @@ namespace Cosmos
                         }
                     }
                     packet.data.resize(4);
-                    uint32to(centisec(), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    uint32_t centi = centisec();
+                    uint32to(centi, &packet.data[0], ByteOrder::LITTLEENDIAN);
                     packet.data.insert(packet.data.end(), command.begin(), command.end());
+                    response += " " + to_unsigned(centi) + " " + command;
                 }
                 break;
             case PacketComm::TypeId::CommandPing:
@@ -2036,19 +2070,28 @@ namespace Cosmos
                         ping = parms[0];
                     }
                     packet.data.resize(4);
-                    uint32to(centisec(), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    uint32_t centi = centisec();
+                    uint32to(centi, &packet.data[0], ByteOrder::LITTLEENDIAN);
                     packet.data.insert(packet.data.end(), ping.begin(), ping.end());
+                    response += " " + to_unsigned(centi) + " " + ping;
                 }
                 break;
             case PacketComm::TypeId::CommandSetTime:
                 {
                     double mjd = currentmjd();
+                    int8_t direction = 0;
                     if (parms.size() > 0)
                     {
                         mjd = stof(parms[0]);
+                        if (parms.size() > 1)
+                        {
+                            direction = stoi(parms[1]);
+                        }
                     }
-                    packet.data.resize(8);
+                    packet.data.resize(9);
                     doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    packet.data[8] = direction;
+                    response += " " + to_iso8601(mjd) + " " + to_signed(direction);
                 }
                 break;
             case PacketComm::TypeId::CommandGetTimeHuman:
@@ -2056,27 +2099,97 @@ namespace Cosmos
                 {
                 }
                 break;
+            case PacketComm::TypeId::CommandSetOpsMode:
+                {
+                    packet.data.clear();
+                    if (parms.size())
+                    {
+                        packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
+                    }
+                }
+                break;
+            case PacketComm::TypeId::CommandEnableChannel:
+                {
+                    packet.data.clear();
+                    if (parms.size() > 0)
+                    {
+                        packet.data.resize(1);
+                        if (parms.size() > 1)
+                        {
+                            packet.data[0] = stoi(parms[1]);
+                        }
+                        else
+                        {
+                            packet.data[0] = 0;
+                        }
+                        if (isdigit(parms[0][0]))
+                        {
+                            packet.data[1] = stoi(parms[0]);
+                            response += " " + to_unsigned(packet.data[1]) + " " + to_unsigned(packet.data[0]);
+                        }
+                        else
+                        {
+                            packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
+                            response += " " + parms[0] + " " + to_unsigned(packet.data[0]);
+                        }
+                    }
+                }
+                break;
             case PacketComm::TypeId::CommandEpsCommunicate:
                 {
-                    packet.data.resize(2+parms[2].size()/2);
-                    packet.data[0] = stoi(parms[0]);
-                    packet.data[1] = stoi(parms[1]);
-                    vector<uint8_t> bytes = from_hex_string(parms[0]);
-                    packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
+                    if (parms.size())
+                    {
+                        parms = string_split(parms[0], ":", false);
+                        if (parms.size() > 2)
+                        {
+                            PacketComm::CommunicateHeader header;
+                            header.unit = stoi(parms[0]);
+                            header.command = stoi(parms[1]);
+                            header.responsecount = stoi(parms[2]);
+                            packet.data.resize(4);
+                            memcpy(packet.data.data(), &header, sizeof(header));
+                            if (parms.size() > 3)
+                            {
+                                vector<uint8_t> bytes = from_hex_string(parms[3]);
+                                packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
+                            }
+                        }
+                    }
                 }
+                break;
             case PacketComm::TypeId::CommandEpsSwitchName:
                 {
-                    packet.data.resize(2);
-                    uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
-                    packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
+                    if (parms.size())
+                    {
+                        parms = string_split(parms[0], ":", false);
+                        if (parms.size())
+                        {
+                            packet.data.resize(2);
+                            if (parms.size() > 1)
+                            {
+                                uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                            }
+                            else
+                            {
+                                uint16to(300, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                            }
+                            packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
+                        }
+                    }
                 }
                 break;
             case PacketComm::TypeId::CommandEpsSwitchNumber:
                 {
-                    packet.data.resize(4);
-                    uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
-                    packet.data[2] = stoi(parms[1]);
-                    packet.data[3] = stoi(parms[2]);
+                    if (parms.size())
+                    {
+                        parms = string_split(parms[0], ":", false);
+                        if (parms.size())
+                        {
+                            packet.data.resize(4);
+                            uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                            uint16to(stoi(parms[0]), &packet.data[2], ByteOrder::LITTLEENDIAN);
+                        }
+                    }
                 }
                 break;
             case PacketComm::TypeId::CommandEpsReset:
@@ -2106,19 +2219,148 @@ namespace Cosmos
                     }
                     packet.data.resize(8);
                     doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    break;
+                }
+            case PacketComm::TypeId::CommandEpsSwitchNames:
+                {
+                    vector<string> names = string_split(parms[0], ":");
+                    vector<string> times = string_split(parms[1], ":");
+                    if (names.size() == times.size())
+                    {
+                        packet.data.resize(1);
+                        packet.data[0] = static_cast<uint8_t>(names.size());
+                        for (uint16_t i=0; i<names.size(); ++i)
+                        {
+                            packet.data.resize(packet.data.size()+3);
+                            uint16to(stoi(times[i]), &packet.data[packet.data.size()-2], ByteOrder::LITTLEENDIAN);
+                            packet.data[packet.data.size()-1] = names[i].size();
+                            packet.data.insert(packet.data.end(), names[i].begin(), names[i].end());
+                        }
+                    }
+                }
+                break;
+            case PacketComm::TypeId::CommandEpsSwitchStatus:
+                {
+                    packet.data.clear();
                 }
                 break;
             default:
                 return 0;
                 break;
             }
-            packet.Wrap();
 
             for (uint16_t i=0; i<repeat; ++i)
             {
-                agent->push_unwrapped(channelout, packet);
+                agent->channel_push(outchannel, packet);
+                secondsleep(.1);
             }
             return response.length();
+        }
+
+        //! Run immediate command
+        /*! Run the specified command with specified parameters and return the response.
+     * \param request Text of request.
+     * \param output Text of response to request.
+     * \param agent Pointer to Cosmos::Agent to use.
+     * \return 0, or negative error.
+     */
+        int32_t Agent::req_run_command(string &request, string &response, Agent *agent)
+        {
+            if (request.find(" ") == string::npos)
+            {
+                return GENERAL_ERROR_ARGS;
+            }
+
+            request.erase(0, request.find(" ")+1);
+            return data_execute(request, response);
+        }
+
+        //! Launch background Task
+        /*! Run the specified command with specified parameters in an external shell and save the response
+         * to a file.
+     * \param request Text of request.
+     * \param output Text of response to request.
+     * \param agent Pointer to Cosmos::Agent to use.
+     * \return 0, or negative error.
+     */
+        int32_t Agent::req_add_task(string &request, string &response, Agent *agent)
+        {
+            if (request.find(" ") == string::npos)
+            {
+                return GENERAL_ERROR_ARGS;
+            }
+
+            request.erase(0, request.find(" ")+1);
+            int32_t iretn = agent->task_add(request);
+            response = "Task: " + agent->task_command(iretn) + " in " + agent->task_path(iretn) + " #" + to_unsigned(agent->task_size());
+            return iretn;
+        }
+
+        //! List current channels
+        /*! Provide a detailed list of all the Channels currently defined
+     * \return 0, or negative error.
+     */
+        int32_t Agent::req_list_channels(string &request, string &response, Agent *agent)
+        {
+            response.clear();
+            for (uint16_t i=0; i<agent->channels.channel.size(); ++i)
+            {
+                response += to_label("Name", agent->channel_name(i));
+                response += " " + to_label("Number", i);
+                response += " " + to_label("Age", agent->channel_age(i));
+                response += " " + to_label("Size", agent->channel_size(i));
+                response += "\n";
+            }
+            return response.size();
+        }
+
+        //! \brief Run a performance test on requested channel.
+        //! \param request Request.
+        //! \param response Any response.
+        //! \param agent Pointer to Agent.
+        //! \return Zero or negative error.
+        int32_t Agent::req_test_channel(string &request, string &response, Agent *agent)
+        {
+            vector<string> args = string_split(request);
+            if (args.size() > 3)
+            {
+                uint8_t start = 0;
+                uint8_t step = 1;
+                uint8_t stop = 255;
+                uint32_t total = 0;
+
+                uint8_t channel = agent->channel_number(args[1]);
+                total = agent->channel_speed(channel) * 10.;
+                uint8_t radio = agent->channel_number(args[2]);
+                uint8_t dest = agent->nodeData.lookup_node_id(args[3]);
+                uint8_t orig = agent->nodeId;
+                if (args.size() > 6)
+                {
+                    start =  stoi(args[4]);
+                    step =  stoi(args[5]);
+                    stop =  stoi(args[6]);
+                    if (args.size() > 7)
+                    {
+                        total = stoi(args[7]);
+                    }
+                }
+                uint32_t id = centisec();
+                agent->channel_teststart(channel, radio, id, orig, dest, start, step, stop, total);
+                response = "Test:";
+                response += to_label(" Channel", channel);
+                response += to_label(" Radio", radio);
+                response += to_label(" Orig", orig);
+                response += to_label(" Dest", dest);
+                response += to_label(" Start", start);
+                response += to_label(" Step", step);
+                response += to_label(" Stop", stop);
+                response += to_label(" Total", total);
+                return 0;
+            }
+            else
+            {
+                return GENERAL_ERROR_ARGS;
+            }
         }
 
         //! Open COSMOS output channel
@@ -3631,7 +3873,7 @@ acquired.
             return 0;
         }
 
-        int32_t Agent::get_verification()
+        uint32_t Agent::get_verification()
         {
             return channels.verification;
         }
@@ -3641,79 +3883,19 @@ acquired.
             return channels.Check(verification);
         }
 
-        int32_t Agent::add_channel(string name, uint16_t datasize)
-        {
-            int32_t iretn = 0;
-            if (channels.channel.size() == 0)
-            {
-                iretn = channels.Init();
-                if (iretn < 0)
-                {
-                    return iretn;
-                }
-            }
-            return channels.Add(name, datasize);
-        }
-
-        int32_t Agent::push_unwrapped(string name, PacketComm& packet)
+        int32_t Agent::push_response(string name, uint8_t sourceid, uint8_t dest, uint32_t id, vector<uint8_t> response)
         {
             int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
             }
-            return push_unwrapped(number, packet);
+            return push_response(number, sourceid, dest, id, response);
         }
 
-        int32_t Agent::push_unwrapped(uint8_t number, PacketComm& packet)
+        int32_t Agent::push_response(uint8_t number, uint8_t sourceid, uint8_t dest, uint32_t id, vector<uint8_t> response)
         {
-            if (number >= channels.channel.size())
-            {
-                return GENERAL_ERROR_OUTOFRANGE;
-            }
-
-            return channels.Push(number, packet);
-        }
-
-        int32_t Agent::push_unwrapped(string name, vector<PacketComm>& packets)
-        {
-            int32_t number = channel_number(name);
-            if (number < 0)
-            {
-                return number;
-            }
-            for (auto &p : packets)
-            {
-                channels.Push(number, p);
-            }
-            return packets.size();
-        }
-
-        int32_t Agent::push_unwrapped(uint8_t number, vector<PacketComm>& packets)
-        {
-            if (number >= channels.channel.size())
-            {
-                return GENERAL_ERROR_OUTOFRANGE;
-            }
-            for (auto &p : packets)
-            {
-                channels.Push(number, p);
-            }
-            return packets.size();
-        }
-
-        int32_t Agent::push_response(string name, uint8_t dest, uint32_t id, vector<uint8_t> response)
-        {
-            int32_t number = channel_number(name);
-            if (number < 0)
-            {
-                return number;
-            }
-            return push_response(number, dest, id, response);
-        }
-
-        int32_t Agent::push_response(uint8_t number, uint8_t dest, uint32_t id, vector<uint8_t> response)
-        {
+            // int32_t iretn = 0;
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
@@ -3723,6 +3905,7 @@ acquired.
             {
                 PacketComm packet;
                 PacketComm::ResponseHeader header;
+                header.source_id = sourceid;
                 if (id)
                 {
                     header.response_id = id;
@@ -3731,7 +3914,7 @@ acquired.
                 {
                     header.response_id = centisec();
                 }
-                header.met = 86400 * (utc2unixseconds(currentmjd()) - cinfo->node.utcstart);
+                header.deci = decisec();
                 uint16_t chunk_size = channels.channel[number].datasize - COSMOS_SIZEOF(PacketComm::ResponseHeader);
 
                 if (response.size() / chunk_size > 254)
@@ -3740,7 +3923,7 @@ acquired.
                 }
                 else
                 {
-                    header.chunks = response.size() / chunk_size + 1;
+                    header.chunks = (response.size() - 1) / chunk_size + 1;
                 }
                 packet.header.type = PacketComm::TypeId::DataResponse;
                 packet.header.orig = nodeId;
@@ -3756,23 +3939,24 @@ acquired.
                     packet.data.resize(COSMOS_SIZEOF(PacketComm::ResponseHeader));
                     memcpy(packet.data.data(), &header, COSMOS_SIZEOF(PacketComm::ResponseHeader));
                     packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
-                    channels.Push(number, packet);
+                    channel_push(number, packet); // channels.Push(number, packet);
+                    monitor_unwrapped(number, packet, "Response");
                 }
             }
             return response.size();
         }
 
-        int32_t Agent::push_response(string name, uint8_t dest, uint32_t id, string response)
+        int32_t Agent::push_response(string name, uint8_t sourceid, uint8_t dest, uint32_t id, string response)
         {
             int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
             }
-            return push_response(number, dest, id, response);
+            return push_response(number, sourceid, dest, id, response);
         }
 
-        int32_t Agent::push_response(uint8_t number, uint8_t dest, uint32_t id, string response)
+        int32_t Agent::push_response(uint8_t number, uint8_t sourceid, uint8_t dest, uint32_t id, string response)
         {
             if (number >= channels.channel.size())
             {
@@ -3780,27 +3964,217 @@ acquired.
             }
             vector<uint8_t> bresponse;
             bresponse.insert(bresponse.end(), response.begin(), response.end());
-            return push_response(number, dest, id, bresponse);
+            return push_response(number, sourceid, dest, id, bresponse);
         }
 
-        int32_t Agent::pull_unwrapped(string name, PacketComm &packet)
+        int32_t Agent::push_hardware_response(PacketComm::TypeId type, string name, uint8_t dest, uint8_t unit, uint8_t command, vector<uint8_t> response)
         {
             int32_t number = channel_number(name);
             if (number < 0)
             {
                 return number;
             }
-            return pull_unwrapped(number, packet);
+            return push_hardware_response(type, number, dest, unit, command, response);
         }
 
-        int32_t Agent::pull_unwrapped(uint8_t number, PacketComm &packet)
+        int32_t Agent::push_hardware_response(PacketComm::TypeId type, uint8_t number, uint8_t dest, uint8_t unit, uint8_t command, vector<uint8_t> response)
+        {
+            // int32_t iretn = 0;
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            if (response.size())
+            {
+                PacketComm packet;
+                PacketComm::CommunicateResponseHeader header;
+                header.deci = decisec();
+                header.unit = unit;
+                header.command = command;
+                uint16_t chunk_size = channels.channel[number].datasize - sizeof(header);
+
+                if (response.size() / chunk_size > 254)
+                {
+                    header.chunks = 255;
+                }
+                else
+                {
+                    header.chunks = (response.size() - 1) / chunk_size + 1;
+                }
+                packet.header.type = type;
+                packet.header.radio = number;
+                packet.header.orig = nodeId;
+                packet.header.dest = dest;
+                for (header.chunk_id=0; header.chunk_id<header.chunks; ++header.chunk_id)
+                {
+                    uint16_t chunk_begin = header.chunk_id * chunk_size;
+                    uint16_t chunk_end = chunk_begin + chunk_size;
+                    if (chunk_end > response.size())
+                    {
+                        chunk_end = response.size();
+                    }
+                    packet.data.resize(sizeof(header));
+                    memcpy(packet.data.data(), &header, sizeof(header));
+                    packet.data.insert(packet.data.end(), &response[chunk_begin], &response[chunk_end]);
+                    /*iretn =*/ channels.Push(number, packet);
+                    //                    if (iretn > 0)
+                    //                    {
+                    //                        monitor_unwrapped(number, packet, to_label("Response", static_cast<uint8_t>(type)));
+                    //                    }
+                }
+            }
+            return response.size();
+        }
+
+        int32_t Agent::monitor_unwrapped(string name, PacketComm &packet, string extra)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+            return monitor_unwrapped(number, packet, extra);
+        }
+
+        int32_t Agent::monitor_unwrapped(uint8_t number, PacketComm &packet, string extra)
         {
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
 
-            return channels.Pull(number, packet);
+            if (extra.empty())
+            {
+                printf("%u [%s(%u) Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+            }
+            else
+            {
+                printf("%u %s [%s(%u) Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+            }
+            for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
+            {
+                printf(" %02x", packet.data[i]);
+            }
+            printf("\n");
+            fflush(stdout);
+            return 0;
+        }
+
+        int32_t Agent::channel_push(string name, PacketComm& packet)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+            return channel_push(number, packet);
+        }
+
+        int32_t Agent::channel_push(uint8_t number, PacketComm& packet)
+        {
+            int32_t iretn=0;
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            iretn = channels.Push(number, packet);
+
+            return iretn;
+        }
+
+        int32_t Agent::channel_push(string name, vector<PacketComm>& packets)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+            return channel_push(number, packets);
+        }
+
+        int32_t Agent::channel_push(uint8_t number, vector<PacketComm>& packets)
+        {
+            int32_t iretn;
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            for (PacketComm &p : packets)
+            {
+                iretn = channel_push(number, p);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+            }
+            return packets.size();
+        }
+
+        int32_t Agent::channel_pull(string name, PacketComm &packet)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+            return channel_pull(number, packet);
+        }
+
+        int32_t Agent::channel_pull(uint8_t number, PacketComm &packet)
+        {
+            int32_t iretn=0;
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            iretn = channels.Pull(number, packet);
+
+            return iretn;
+        }
+
+        int32_t Agent::channel_add(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
+        {
+            int32_t iretn = 0;
+            if (channels.channel.size() == 0)
+            {
+                iretn = channels.Init(channels.verification);
+                if (iretn < 0)
+                {
+                    return iretn;
+                }
+            }
+            if (maximum == 0)
+            {
+                if (byte_rate <= 0.)
+                {
+                    if (rawsize == 0)
+                    {
+                        if (datasize == 0)
+                        {
+                            return channels.Add(name);
+                        }
+                        else
+                        {
+                            return channels.Add(name, datasize);
+                        }
+                    }
+                    else
+                    {
+                        return channels.Add(name, datasize, rawsize);
+                    }
+                }
+                else
+                {
+                    return channels.Add(name, datasize, rawsize, byte_rate);
+                }
+            }
+            else
+            {
+                return channels.Add(name, datasize, rawsize, byte_rate, maximum);
+            }
         }
 
         int32_t Agent::channel_size(string name)
@@ -3813,7 +4187,197 @@ acquired.
             return channels.Size(number);
         }
 
-        int32_t Agent::clear_channel(string name)
+        float Agent::channel_speed(string name)
+        {
+            return channels.ByteRate(name);
+        }
+
+        float Agent::channel_speed(uint8_t number)
+        {
+            return channels.ByteRate(number);
+        }
+
+        double Agent::channel_age(string name)
+        {
+            return channels.Age(name);
+        }
+
+        double Agent::channel_age(uint8_t number)
+        {
+            return channels.Age(number);
+        }
+
+        size_t Agent::channel_bytes(string name)
+        {
+            return channels.Bytes(name);
+        }
+
+        size_t Agent::channel_bytes(uint8_t number)
+        {
+            return channels.Bytes(number);
+        }
+
+        uint32_t Agent::channel_packets(string name)
+        {
+            return channels.Packets(name);
+        }
+
+        uint32_t Agent::channel_packets(uint8_t number)
+        {
+            return channels.Packets(number);
+        }
+
+        double Agent::channel_touch(string name)
+        {
+            return channels.Touch(name);
+        }
+
+        double Agent::channel_touch(uint8_t number)
+        {
+            return channels.Touch(number);
+        }
+
+        ssize_t Agent::channel_increment(string name, size_t bytes, uint32_t packets)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+
+            return channel_increment(number, bytes, packets);
+        }
+
+        ssize_t Agent::channel_increment(uint8_t number, size_t bytes, uint32_t packets)
+        {
+            int32_t iretn = 0;
+            iretn = channels.Increment(number, bytes, packets);
+            return iretn;
+        }
+
+        ssize_t Agent::channel_decrement(string name, size_t bytes, uint32_t packets)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+
+            return channel_decrement(number, bytes, packets);
+        }
+
+        ssize_t Agent::channel_decrement(uint8_t number, size_t bytes, uint32_t packets)
+        {
+            int32_t iretn = 0;
+            iretn = channels.Decrement(number, bytes, packets);
+            return iretn;
+        }
+
+        int32_t Agent::channel_teststart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+            int32_t nradio = channel_number(radio);
+            if (nradio < 0)
+            {
+                return nradio;
+            }
+
+            return channel_teststart(number, nradio, id, orig, dest, start, step, stop, total);
+        }
+
+        int32_t Agent::channel_teststart(uint8_t number, uint8_t radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
+        {
+            int32_t iretn = 0;
+            iretn = channels.TestStart(number, radio, id, orig, dest, start, step, stop, total);
+            return iretn;
+        }
+
+        int32_t Agent::channel_teststop(string name, float seconds)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+
+            return channel_teststop(number, seconds);
+        }
+
+        int32_t Agent::channel_teststop(uint8_t number, float seconds)
+        {
+            int32_t iretn = 0;
+            iretn = channels.TestStop(number, seconds);
+            return iretn;
+        }
+
+        int32_t Agent::channel_enable(string name, int8_t value)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+
+            return channels.Enable(number, value);
+        }
+
+        int32_t Agent::channel_enable(uint8_t number, int8_t value)
+        {
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            return channels.Enable(number, value);
+        }
+
+        int32_t Agent::channel_enabled(string name)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+
+            return channels.Enabled(number);
+        }
+
+        int32_t Agent::channel_enabled(uint8_t number)
+        {
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            return channels.Enabled(number);
+        }
+
+        //        int32_t Agent::channel_disable(string name)
+        //        {
+        //            int32_t number = channel_number(name);
+        //            if (number < 0)
+        //            {
+        //                return number;
+        //            }
+
+        //            return channels.Disable(number);
+        //        }
+
+        //        int32_t Agent::channel_disable(uint8_t number)
+        //        {
+        //            if (number >= channels.channel.size())
+        //            {
+        //                return GENERAL_ERROR_OUTOFRANGE;
+        //            }
+
+        //            return channels.Disable(number);
+        //        }
+
+        int32_t Agent::channel_clear(string name)
         {
             int32_t number = channel_number(name);
             if (number < 0)
@@ -3824,7 +4388,7 @@ acquired.
             return channels.Clear(number);
         }
 
-        int32_t Agent::clear_channel(uint8_t number)
+        int32_t Agent::channel_clear(uint8_t number)
         {
             if (number >= channels.channel.size())
             {
@@ -3870,6 +4434,90 @@ acquired.
                 return GENERAL_ERROR_OUTOFRANGE;
             }
             return channels.channel[number].datasize;
+        }
+
+        int32_t Agent::channel_rawsize(string name)
+        {
+            int32_t iretn = channel_number(name);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            return channels.channel[iretn].rawsize;
+        }
+
+        int32_t Agent::channel_rawsize(uint8_t number)
+        {
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            return channels.channel[number].rawsize;
+        }
+
+        int32_t Agent::channel_maximum(string name, uint16_t maximum)
+        {
+            int32_t iretn = channel_number(name);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            return channel_maximum(iretn, maximum);
+        }
+
+        int32_t Agent::channel_maximum(uint8_t number, uint16_t maximum)
+        {
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            channels.channel[number].maximum = maximum;
+            return channels.channel[number].maximum;
+        }
+
+        int32_t Agent::task_add(string command)
+        {
+            return tasks.Add(command);
+        }
+
+        int32_t Agent::task_del(uint32_t deci)
+        {
+            return tasks.Del(deci);
+        }
+
+        int32_t Agent::task_iretn(uint16_t number)
+        {
+            return tasks.Iretn(number);
+        }
+
+        uint32_t Agent::task_deci(uint16_t number)
+        {
+            return tasks.Deci(number);
+        }
+
+        double Agent::task_startmjd(uint16_t number)
+        {
+            return tasks.Startmjd(number);
+        }
+
+        uint8_t Agent::task_state(uint16_t number)
+        {
+            return tasks.State(number);
+        }
+
+        string Agent::task_command(uint16_t number)
+        {
+            return tasks.Command(number);
+        }
+
+        string Agent::task_path(uint16_t number)
+        {
+            return tasks.Path(number);
+        }
+
+        int32_t Agent::task_size()
+        {
+            return tasks.Size();
         }
 
         double Agent::get_timeStart()

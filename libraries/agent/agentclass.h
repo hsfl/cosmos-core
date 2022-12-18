@@ -123,17 +123,24 @@
 //! with Cosmos::secondsleep. Upon exiting from this loop, you should call Cosmos::Agent::shutdown.
 
 #include "support/configCosmos.h"
+#include "support/cosmos-errclass.h"
 #include "support/jsonlib.h"
 #include "support/jsonclass.h"
 #include "device/cpu/devicecpu.h"
 #include "support/packetcomm.h"
 #include "support/channellib.h"
 #include "support/beacon.h"
+#include "task.h"
 
 namespace Cosmos
 {
     namespace Support
     {
+        //! \class Agent agentclass.h "agent/agentclass.h"
+        //! Add COSMOS awareness.
+        //! Sets up minimum framework for COSMOS awareness. The minimum call makes a nodeless client, setting up the
+        //! message ring buffer thread, and a main thread of execution. Additional parameters are related to making
+        //! the program a true Agent by tieing it to a node, and starting the request and heartbeat threads.
         class Agent
         {
         public:
@@ -355,14 +362,14 @@ namespace Cosmos
             int32_t add_device(string name, DeviceType type, devicestruc **device);
             int32_t device_property_name(string device, string property, string& name);
 
-            int32_t send_request_getvalue(beatstruc agent, std::vector<string> names, Json::Object &jobj);
+            int32_t send_request_getvalue(beatstruc agent, vector<string> names, Json::Object &jobj);
             int32_t create_device_value_alias(string devicename, string propertyname, string alias);
             int32_t create_alias(string cosmosname, string alias);
 
             int32_t set_value(string jsonname, double value);
             double get_value(string jsonname);
-            int32_t get_device_values(string device, std::vector<string>props, string& json);
-            int32_t get_values(std::vector<string> names, string& json);
+            int32_t get_device_values(string device, vector<string>props, string& json);
+            int32_t get_values(vector<string> names, string& json);
 
             double get_timeStart();
 
@@ -411,32 +418,81 @@ namespace Cosmos
             int32_t process_request(string &bufferin, string &bufferout);
 
             int32_t set_verification(uint32_t verification);
-            int32_t get_verification();
+            uint32_t get_verification();
             int32_t check_verification(uint32_t verification);
+            int32_t channel_push(string name, PacketComm &packet);
+            int32_t channel_push(uint8_t number, PacketComm& packet);
+            int32_t channel_push(string name, vector<PacketComm>& packets);
+            int32_t channel_push(uint8_t number, vector<PacketComm>& packets);
+            int32_t push_response(string name, uint8_t sourceid, uint8_t dest, uint32_t id, string response="");
+            int32_t push_response(uint8_t number, uint8_t sourceid, uint8_t dest, uint32_t id, string response="");
+            int32_t push_response(string name, uint8_t sourceid, uint8_t dest, uint32_t id, vector<uint8_t> response);
+            int32_t push_response(uint8_t number, uint8_t sourceid, uint8_t dest, uint32_t id, vector<uint8_t> response);
+            int32_t push_hardware_response(PacketComm::TypeId type, string name, uint8_t dest, uint8_t unit, uint8_t command, vector<uint8_t> response);
+            int32_t push_hardware_response(PacketComm::TypeId type, uint8_t number, uint8_t dest, uint8_t unit, uint8_t command, vector<uint8_t> response);
+            int32_t channel_pull(string name, PacketComm& packet);
+            int32_t channel_pull(uint8_t number, PacketComm& packet);
+            int32_t monitor_unwrapped(string name, PacketComm& packet, string extra="");
+            int32_t monitor_unwrapped(uint8_t number, PacketComm& packet, string extra="");
             int32_t init_channels(uint32_t verification=0x352e);
-            int32_t add_channel(string name, uint16_t datasize=200);
-            int32_t push_unwrapped(string name, PacketComm &packet);
-            int32_t push_unwrapped(uint8_t number, PacketComm& packet);
-            int32_t push_unwrapped(string name, vector<PacketComm>& packets);
-            int32_t push_unwrapped(uint8_t number, vector<PacketComm>& packets);
-            int32_t push_response(string name, uint8_t dest, uint32_t id, string response="");
-            int32_t push_response(uint8_t number, uint8_t dest, uint32_t id, string response="");
-            int32_t push_response(string name, uint8_t dest, uint32_t id, vector<uint8_t> response);
-            int32_t push_response(uint8_t number, uint8_t dest, uint32_t id, vector<uint8_t> response);
-            int32_t pull_unwrapped(string name, PacketComm& packet);
-            int32_t pull_unwrapped(uint8_t number, PacketComm& packet);
+            int32_t channel_add(string name, uint16_t datasize=0, uint16_t rawsize=0, float byte_rate=0., uint16_t maximum=0);
+            //! Number of packets currently in the channel
             int32_t channel_size(string name);
+            //! Number of packets currently in the channel
             int32_t channel_size(uint8_t number);
-            int32_t clear_channel(string name);
-            int32_t clear_channel(uint8_t number);
+            float channel_speed(string name);
+            float channel_speed(uint8_t number);
+            double channel_age(string name);
+            double channel_age(uint8_t number);
+            size_t channel_bytes(string name);
+            size_t channel_bytes(uint8_t number);
+            uint32_t channel_packets(string name);
+            uint32_t channel_packets(uint8_t number);
+            double channel_touch(string name);
+            double channel_touch(uint8_t number);
+            ssize_t channel_increment(string name, size_t bytes, uint32_t packets=1);
+            ssize_t channel_increment(uint8_t number, size_t bytes, uint32_t packets=1);
+            ssize_t channel_decrement(string name, size_t bytes, uint32_t packets=1);
+            ssize_t channel_decrement(uint8_t number, size_t bytes, uint32_t packets=1);
+            int32_t channel_clear(string name);
+            int32_t channel_clear(uint8_t number);
             int32_t channel_number(string name);
             string channel_name(uint8_t number);
+            //! Max data size of channel
             int32_t channel_datasize(string name);
+            //! Max data size of channel
             int32_t channel_datasize(uint8_t number);
+            //! Max packet size of channel
+            int32_t channel_rawsize(string name);
+            //! Max packet size of channel
+            int32_t channel_rawsize(uint8_t number);
+            int32_t channel_maximum(string name, uint16_t maximum);
+            int32_t channel_maximum(uint8_t number, uint16_t maximum);
+            int32_t channel_teststart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
+            int32_t channel_teststart(uint8_t number, uint8_t nradio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
+            int32_t channel_teststop(string name, float seconds=5.);
+            int32_t channel_teststop(uint8_t number, float seconds=5.);
+            int32_t channel_enabled(string name);
+            int32_t channel_enabled(uint8_t number);
+            int32_t channel_enable(string name, int8_t value);
+            int32_t channel_enable(uint8_t number, int8_t value);
+//            int32_t channel_disable(string name);
+//            int32_t channel_disable(uint8_t number);
+
+            int32_t task_add(string command);
+            int32_t task_del(uint32_t deci);
+            int32_t task_iretn(uint16_t number);
+            uint32_t task_deci(uint16_t number);
+            double task_startmjd(uint16_t number);
+            uint8_t task_state(uint16_t number);
+            string task_command(uint16_t number);
+            string task_path(uint16_t number);
+            int32_t task_size();
 
         protected:
         private:
 
+            Task tasks;
             Channel channels;
             uint16_t debug_level = 0;
             NetworkType networkType = NetworkType::UDP;
@@ -528,6 +584,10 @@ namespace Cosmos
             static int32_t req_jsondump(string &, string &response, Agent *agent);
             static int32_t req_all_names_types(string &, string &response, Agent *agent);
             static int32_t req_command(string &, string &response, Agent *agent);
+            static int32_t req_run_command(string &, string &response, Agent *agent);
+            static int32_t req_add_task(string &, string &response, Agent *agent);
+            static int32_t req_list_channels(string &, string &response, Agent *agent);
+            static int32_t req_test_channel(string &, string &response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos

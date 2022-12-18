@@ -16,6 +16,7 @@ if(${USE_COSMOS_FROM} MATCHES "SOURCE")
     add_subdirectory(${COSMOS_SOURCE}/core/libraries/agent     ${CMAKE_BINARY_DIR}/libraries/agent/)
     add_subdirectory(${COSMOS_SOURCE}/core/libraries/support   ${CMAKE_BINARY_DIR}/libraries/support/)
     add_subdirectory(${COSMOS_SOURCE}/core/libraries/math      ${CMAKE_BINARY_DIR}/libraries/math/)
+    add_subdirectory(${COSMOS_SOURCE}/core/libraries/module    ${CMAKE_BINARY_DIR}/libraries/module/)
     add_subdirectory(${COSMOS_SOURCE}/core/libraries/physics   ${CMAKE_BINARY_DIR}/libraries/physics/)
 
 

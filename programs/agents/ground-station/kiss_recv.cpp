@@ -27,6 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 #include "support/configCosmos.h"
+#include "support/cosmos-errclass.h"
 #include "support/jsondef.h"
 #include "device/general/kisslib.h"
 #include "support/timelib.h"

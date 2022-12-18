@@ -42,10 +42,12 @@
 /*! Divide a string into substrings based on a delimeter and return a vector of the
  * results.
     \param in Zero terminated character string.
-    \param delimeter string of delimeters.
+    \param delimeter String of delimeters.
+    \param multi Flag indicating whether or not to count repeated separators as a
+    single separator.
     \return vector of sub strings.
 */
-vector < string > string_split(string in, string delimeters) {
+vector < string > string_split(string in, string delimeters, bool multi) {
     vector<string> result;
     const char *str = in.data();
     do {
@@ -70,6 +72,10 @@ vector < string > string_split(string in, string delimeters) {
         if (begin != str)
         {
             result.push_back(string(begin, str));
+        }
+        else if (!multi)
+        {
+            result.push_back("");
         }
     } while (0 != *str++);
     return result;
@@ -113,6 +119,24 @@ uint16_t string_parse(char *string, char *words[], uint16_t wmax) {
     if (ccount) wcount++;
     words[wcount] = (char *)nullptr;
     return (wcount);
+}
+
+/// Replace every occurance of a substring within a string with another subtring.
+/** Search through a string for every instance of a specified substring, then replace. For internal use.
+    @param	str		string to search through
+    @param	from	substring to replace
+    @param	to		substring to be replaced with
+    @return	n/a
+*/
+string string_replace(string str, const string from, const string to)
+{
+    if(from.empty()) return str;
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length();
+    }
+    return str;
 }
 
 int string_cmp(const char *wild, const char *string) {
@@ -209,23 +233,52 @@ double StringParser::getFieldNumberAsDouble(uint32_t index)
 
 int StringParser::getFieldNumberAsInteger(uint32_t index) { return getFieldNumberAsDouble(index); }
 
-string to_hex_string(vector <uint8_t> buffer, bool ascii) {
-    string output;
-    output.resize(buffer.size() * 8 + 1);
-    for (uint16_t i=0; i<buffer.size(); ++i) {
-        if (ascii && buffer[i] > 31 && buffer[i] < 127)
+/**
+ * @brief Convert byte array to human-readable string
+ *
+ * @param buffer Pointer to byte array
+ * @param size Length of array
+ * @param ascii If true, converts alphanumeric and whitespace ascii values to equivalent ascii character
+ * @param start Offset to start in buffer
+ * @return Human-readable string
+ */
+string to_hex_string(uint8_t* buffer, uint16_t size, bool ascii, uint16_t start)
+{
+    vector<uint8_t> data;
+    data.assign(buffer+start, buffer+start+size);
+    return to_hex_string(data, ascii);
+}
+
+/**
+ * @brief Convert byte vector to human-readable string
+ * 
+ * @param buffer Byte vector
+ * @param ascii If true, converts alphanumeric and whitespace ascii values to equivalent ascii character
+ * @param start Offset to start in buffer
+ * @return Human-readable string
+ */
+string to_hex_string(const vector<uint8_t> &buffer, bool ascii, uint16_t start)
+{
+    std::stringstream ss;
+    if (start >= buffer.size())
+    {
+        start = buffer.size() - 1;
+    }
+    for (uint16_t i=start; i<buffer.size(); ++i)
+    {
+        if (ascii && (ispunct(buffer[i]) || isalnum(buffer[i]) || isspace(buffer[i])))
         {
-            sprintf(&output[strlen(output.c_str())], " %c", buffer[i]);
+            ss << buffer[i];
         }
         else
         {
-            sprintf(&output[strlen(output.c_str())], " %02x", buffer[i]);
+            ss << " " << std::hex << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(buffer[i]);
         }
     }
-    return output;
+    return ss.str();
 }
 
-vector<uint8_t> from_hex_string(string hex)
+vector<uint8_t> from_hex_string(std::string &hex)
 {
     vector<uint8_t> bytes;
     for (uint16_t ib=0; ib<hex.length()/2; ++ib)
@@ -237,7 +290,7 @@ vector<uint8_t> from_hex_string(string hex)
     return bytes;
 }
 
-vector<uint8_t> from_hex_vector(vector<uint8_t> hex)
+vector<uint8_t> from_hex_vector(vector<uint8_t>& hex)
 {
     vector<uint8_t> bytes;
     for (uint16_t ib=0; ib<hex.size()/2; ++ib)
@@ -279,6 +332,71 @@ string to_astring(char *value, size_t length, bool hex)
     else
     {
         output = value;
+    }
+    return output;
+}
+
+string to_string(const vector<uint8_t> &buf)
+{
+    string output(buf.begin(), buf.end());
+    return output;
+}
+
+vector<uint8_t> to_bytes(const string &buf)
+{
+    vector<uint8_t> output(buf.begin(), buf.end());
+    return output;
+}
+
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+string to_binary(uint64_t value, uint16_t digits, bool zerofill)
+#else
+string to_binary(size_t value, uint16_t digits, bool zerofill)
+#endif
+{
+    string output="0b";
+    if (digits > 66)
+    {
+        digits = 66;
+    }
+    output.resize(digits);
+    uint8_t bits = 0;
+    if (value > 0)
+    {
+        bits = log2(value) + 1;
+    }
+
+    if (zerofill)
+    {
+        if (digits > bits)
+        {
+            for (uint8_t i=0; i<digits-bits; ++i)
+            {
+                output += "0";
+            }
+        }
+    }
+    else
+    {
+        for (uint8_t i=bits-1; i<bits; --i)
+        {
+            if (value & 1<<i)
+            {
+                output += "1";
+            }
+            else
+            {
+                output += "0";
+            }
+        }
+    }
+    if (digits)
+    {
+        output.resize(digits);
+    }
+    else
+    {
+        output.resize(strlen(output.c_str()));
     }
     return output;
 }
@@ -435,7 +553,7 @@ string to_floatany(float value, uint16_t precision) {
     if (precision) {
         sprintf(&output[0], "%.*g", precision, static_cast<double>(value));
     } else {
-        sprintf(&output[0], "%.*g", 13, static_cast<double>(value));
+        sprintf(&output[0], "%.*g", std::numeric_limits<float>::digits10, static_cast<double>(value));
     }
     output.resize(strlen(&output[0]));
     return output;
@@ -445,7 +563,7 @@ string to_floatany(double value, uint16_t precision) {
     string output="";
     if (!precision)
     {
-        precision = 17;
+        precision = std::numeric_limits<double>::digits10;
     }
     output.resize(17+precision);
     sprintf(&output[0], "%.*g", precision, value);
@@ -484,12 +602,33 @@ string to_angle(double value, char units, uint8_t precision) {
     return "";
 }
 
-string to_bool(bool value) {
-    string output = value?"Yes":"No";
-//    output.resize(2);
-//    output[0] =  value?'1':'0';
-//    output.resize(strlen(&output[0]));
+string to_bool(bool value, char type)
+{
+    string output;
+    switch (type)
+    {
+    case 'y':
+        output = value?"y":"n";
+        break;
+    case 'Y':
+        output = value?"Y":"N";
+        break;
+    case 't':
+        output = value?"t":"f";
+        break;
+    case 'T':
+        output = value?"T":"F";
+        break;
+    case '1':
+        output = value?"1":"0";
+        break;
+    }
     return output;
+}
+
+string to_iso8601(double value)
+{
+    return utc2iso8601(value);
 }
 
 string to_unixtime(double value, uint8_t precision)

@@ -65,15 +65,26 @@ static string nodedir;
 
 //! Construct DataLog
 //! Class for logging regular entries
-DataLog::DataLog(double stride, bool fastmode)
+DataLog::DataLog()
 {
+}
+
+//! \brief Initialize ::DataLog
+//! Preset DataLog to be used for provided conditions
+int32_t DataLog::Init(std::string node, std::string agent, std::string type, std::string extra, double stride, bool fastmode)
+{
+    fout = nullptr;
+    this->node = node;
+    this->agent = agent;
+    this->type = type;
+    this->extra = extra;
     this->fastmode = fastmode;
     if (stride < 0.)
     {
         stride = 0.;
     }
-    this->stride = stride;
-    fout = nullptr;
+    this->stride = stride / 86400.;
+    return 0;
 }
 
 //! Change DataLog stride
@@ -117,13 +128,71 @@ int32_t DataLog::SetFastmode(bool state)
 //! \param mjd UTC in Modified Julian Day
 int32_t DataLog::SetStartdate(double mjd)
 {
-    if (mjd < 0.)
+    if (mjd <= 0.)
     {
-        mjd = 0.;
+        mjd = currentmjd();
     }
     startdate = mjd;
-    enddate = mjd - 1.;
+    enddate = mjd;
     return startdate;
+}
+
+//! \brief Write DataLog
+//! Append binary data to file described by ::DataLog.
+//! \return Zero or negative error.
+int32_t DataLog::Write(string& data)
+{
+    vector<uint8_t> bdata;
+    bdata.insert(bdata.begin(), data.begin(), data.end());
+    return Write(bdata);
+}
+
+//! \brief Write DataLog
+//! Append binary data to file described by ::DataLog.
+//! \return Zero or negative error.
+int32_t DataLog::Write(vector<uint8_t>& data)
+{
+    int32_t iretn = 0;
+    if (currentmjd() >= enddate)
+    {
+        printf("Move %f %f %f\n", startdate, enddate, stride);
+        startdate = enddate;
+        enddate += stride;
+        if (fout != nullptr)
+        {
+            fclose(fout);
+            fout = nullptr;
+        }
+        if (!path.empty() && path.find("/temp/") != string::npos)
+        {
+            string movepath = string_replace(path, "/temp", "/outgoing");
+            iretn = log_move(path, movepath, true);
+        }
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+    if (fout == nullptr)
+    {
+        path = data_type_path(node, "temp", agent, startdate, type, extra);
+        if (path.empty())
+        {
+            return GENERAL_ERROR_EMPTY;
+        }
+        fout = data_open(path, const_cast<char *>("a+"));
+        if (fout == nullptr)
+        {
+            return GENERAL_ERROR_BAD_FD;
+        }
+    }
+    iretn = fwrite(data.data(), data.size(), 1, fout);
+    if (!fastmode)
+    {
+        fclose(fout);
+        fout = nullptr;
+    }
+    return iretn;
 }
 
 //! Write log entry - full
@@ -144,7 +213,7 @@ int32_t DataLog::Write(vector<uint8_t> data, string node, string agent, string t
     if (currentmjd() >= enddate)
     {
         startdate = enddate;
-        enddate += stride / 86400.;
+        enddate += stride;
         if (fout != nullptr)
         {
             fclose(fout);
@@ -202,14 +271,14 @@ string log_write(string node, string agent, double utc, string extra, string typ
     if (utc == 0.)
         return "";
 
-//    if (extra.empty())
-//    {
-//        path = data_type_path(node, location, agent, utc, type);
-//    }
-//    else
-//    {
-//        path = data_type_path(node, location, agent, utc, extra, type);
-//    }
+    //    if (extra.empty())
+    //    {
+    //        path = data_type_path(node, location, agent, utc, type);
+    //    }
+    //    else
+    //    {
+    //        path = data_type_path(node, location, agent, utc, extra, type);
+    //    }
     path = data_type_path(node, location, agent, utc, type, extra);
 
     if (location == "immediate")
@@ -278,13 +347,21 @@ string log_write(string node, int type, double utc, const char *record, string d
 int32_t log_move(string oldpath, string newpath, bool compress)
 {
     int32_t iretn = 0;
-    if (compress)
+    if (compress && oldpath.find(".gz") == string::npos)
     {
         char buffer[8192];
         string temppath = oldpath + ".gz";
         newpath += ".gz";
         FILE *fin = data_open(oldpath, "rb");
+        if(fin == nullptr)
+        {
+            return GENERAL_ERROR_OPEN;
+        }
         FILE *fout = data_open(temppath, "wb");
+        if(fout == nullptr)
+        {
+            return GENERAL_ERROR_OPEN;
+        }
         gzFile gzfout;
         gzfout = gzdopen(fileno(fout), "a");
 
@@ -306,7 +383,7 @@ int32_t log_move(string oldpath, string newpath, bool compress)
             iretn = -errno;
             return iretn;
         }
-        iretn = remove(temppath.c_str());
+        iretn = remove(oldpath.c_str());
         if (iretn < 0)
         {
             iretn = -errno;
@@ -361,6 +438,32 @@ int32_t log_move(string node, string agent, string srclocation, string dstlocati
 int32_t log_move(string node, string agent)
 {
     return log_move(node, agent, "temp", "outgoing", true);
+}
+
+//! Relocate files.
+/*! Move files previously created with ::log_write to their final location.
+ * The short version assumes a source location of "temp" and a destination
+ * locations of "outgoing". The routine will find all files currently in
+ * {node}/temp/{agent} and move them to {node}/outgoing/{agent}.
+ * \param node Node name.
+ * \param agent Agent name.
+ */
+int32_t log_relocate(string srcdir, string dstdir, bool compress)
+{
+    int32_t iretn = 0;
+    vector<filestruc> files = data_list_files(srcdir);
+    if (data_isdir(dstdir, true))
+    {
+        for (filestruc file : files)
+        {
+            iretn = log_move(file.path, dstdir+"/"+file.name, compress);
+        }
+        return iretn;
+    }
+    else
+    {
+        return GENERAL_ERROR_BAD_DIR;
+    }
 }
 
 //! Get a list of days in a Node archive.
@@ -557,7 +660,8 @@ size_t data_list_files(string directory, vector<filestruc>& files)
             if (td->d_name[0] != '.')
             {
                 tf.name = td->d_name;
-                tf.path = directory + "/" + tf.name;
+                tf.directory = directory + "/";
+                tf.path =  tf.directory + tf.name;
                 vector <string> parts = string_split(directory, "/");
                 if (parts.size() > 2)
                 {
@@ -601,6 +705,25 @@ size_t data_list_files(string directory, vector<filestruc>& files)
     return files.size();
 }
 
+/**
+ * @brief Get list of files and folders in a Node's <location> folder.
+ * 
+ * location is generally incoming or outgoing.
+ * Meaning, the intended purpose of this function is to return the agents in, for example, a node's outgoing folder.
+ * 
+ * @param node Node to search
+ * @param location Subdirectory of node to search
+ * @return A C++ vector of ::filestruc. Zero size if no files are found.
+ */
+vector<filestruc> data_list_files(string node, string location)
+{
+    vector<filestruc> files;
+    string dtemp = data_base_path(node, location);
+    data_list_files(dtemp, files);
+
+    return files;
+}
+
 //! Get list of files in a Node, directly.
 /*! Generate a list of files for the indicated Node, location (eg. incoming, outgoing, ...),
  * and Agent. The result is returned as a vector of ::filestruc, one entry for each file found.
@@ -632,13 +755,13 @@ size_t data_list_files(string node, string location, string agent, vector<filest
 {
     string dtemp;
     dtemp = data_base_path(node, location, agent);
-//    size_t fcnt = files.size();
+    //    size_t fcnt = files.size();
     data_list_files(dtemp, files);
-//    for (size_t i=fcnt; i<files.size(); ++i)
-//    {
-//        files[i].agent = agent;
-//        files[i].node = node;
-//    }
+    //    for (size_t i=fcnt; i<files.size(); ++i)
+    //    {
+    //        files[i].agent = agent;
+    //        files[i].node = node;
+    //    }
 
     return (files.size());
 }
@@ -706,25 +829,24 @@ int32_t data_list_nodes(vector<string>& nodes)
 *    \param type Any valid extension type
 *    \return Filename string, otherwise nullptr
 */
-string data_name(string node, double mjd, string type, string extra)
+string data_name(double mjd, string type, string node, string agent, string extra)
 {
     string name;
-    char ntemp[100];
 
     int32_t year, month, seconds;
     double jday, day;
 
     mjd2ymd(mjd,year,month,day,jday);
     seconds = static_cast<int32_t>(86400.*(jday-static_cast<int32_t>(jday)));
-    if (node.empty())
+    name = to_unsigned(year, 4, true) + to_unsigned(jday, 3, true) + to_unsigned(seconds, 5, true);
+    if (!node.empty())
     {
-        sprintf(ntemp,"%04d%03d%05d", year, static_cast<int32_t>(jday), seconds);
+        name += ("_" + node);
     }
-    else
+    if (!agent.empty())
     {
-        sprintf(ntemp,"%s_%04d%03d%05d", node.c_str(), year, static_cast<int32_t>(jday), seconds);
+        name += ("_" + agent);
     }
-    name = ntemp;
     if (!extra.empty())
     {
         name += ("_" + extra);
@@ -735,11 +857,6 @@ string data_name(string node, double mjd, string type, string extra)
     }
     return (name);
 }
-
-//string data_name(string node, double mjd, string type)
-//{
-//    return data_name(node, mjd, type, "");
-//}
 
 //! Get date from file name.
 /*! Assuming the COSMOS standard filename format from ::data_name, extract
@@ -847,15 +964,15 @@ string data_base_path(string node, string location, string agent)
     {
         if (agent.empty())
         {
-            path = tpath;
+            tpath += "/none";
         }
         else
         {
             tpath += "/" + agent;
-            if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
-            {
-                path = tpath;
-            }
+        }
+        if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
+        {
+            path = tpath;
         }
     }
     return path;
@@ -870,7 +987,14 @@ string data_base_path(string node, string location)
     tpath = data_base_path(node);
     if (!tpath.empty())
     {
-        tpath += "/" + location;
+        if (location.empty())
+        {
+            tpath += "/none";
+        }
+        else
+        {
+            tpath += "/" + location;
+        }
         if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
         {
             path = tpath;
@@ -888,7 +1012,14 @@ string data_base_path(string node)
     int32_t iretn = get_cosmosnodes(tpath);
     if (iretn >= 0)
     {
-        tpath += "/" + node;
+        if (node.empty())
+        {
+            tpath += "/none";
+        }
+        else
+        {
+            tpath += "/" + node;
+        }
 
         if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
         {
@@ -949,6 +1080,45 @@ string data_archive_path(string node, string agent, double mjd)
 //}
 
 //! Create data file path
+/*! Build a path to a data file based on time, type, node, agent, and extra information.
+ * \param location Subfolder in Node directory (outgoing, incoming, data, temp).
+ * \param mjd UTC of creation date in Modified Julian Day
+ * \param type Any valid extension type
+ * \param node Node directory in ::cosmosroot.
+ * \param agent Task specific subfolder of location, if relevant
+ * \param extra Extra text to add to the full name.
+ * \return File path string, otherwise empty
+*/
+string data_path(string location, double mjd, string type, string node, string agent, string extra)
+{
+    string path;
+    string tpath = "";
+    if (!(fabs(mjd) > 0.))
+    {
+        mjd = currentmjd();
+    }
+
+    if (location == "data")
+    {
+        tpath = data_archive_path(node, agent, mjd);
+    }
+    else
+    {
+        tpath = data_base_path(node, location, agent);
+    }
+
+    if (!tpath.empty())
+    {
+        tpath += "/" + data_name(mjd, type, node, agent, extra);
+        path = tpath;
+    }
+    return path;
+
+
+    return tpath;
+}
+
+//! Create data file path
 /*! Build a path to a data file using its filename and the current Node
  * directory.
  * \param node Node directory in ::cosmosroot.
@@ -961,7 +1131,7 @@ string data_archive_path(string node, string agent, double mjd)
 */
 string data_type_path(string node, string location, string agent, double mjd, string type, string extra)
 {
-    string tpath = data_name_path(node, location, agent, mjd, data_name(node, mjd, type, extra));
+    string tpath = data_name_path(node, location, agent, mjd, data_name(mjd, node, agent, extra, type));
 
     return tpath;
 }
@@ -1146,7 +1316,6 @@ int32_t set_cosmosroot(bool create_flag)
 {
     string croot;
     char *troot;
-    int32_t iretn = 0;
 
     if (cosmosroot.empty())
     {
@@ -1161,77 +1330,43 @@ int32_t set_cosmosroot(bool create_flag)
         }
 
         // No environment variables set. Look in standard location.
-#if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
-        // default path on macOS and linux is home folder for running user
-
-        if ((troot = getenv("HOME")) != nullptr)
-        {
-            croot = troot + (string)"/cosmos";
-        }
-        else
-        {
-            croot = "";
-            return (DATA_ERROR_ROOT_FOLDER);
-        }
-#endif
-
-#ifdef COSMOS_WIN_OS
+#if defined(COSMOS_WIN_OS)
         croot = "c:/cosmos";
+#elseif defined(COSMOS_MAC_OS)
+        croot = "/Applications/cosmos";
+#else
+        croot = "/cosmos";
 #endif
-        if (!set_cosmosroot(croot, false))
+        if (!set_cosmosroot(croot, create_flag))
         {
             return 0;
         }
 
+        // , or home folder for running user
+        if ((troot = getenv("HOME")) != nullptr)
+        {
+            croot = troot + string("/cosmos");
+            if (!set_cosmosroot(croot, create_flag))
+            {
+                return 0;
+            }
+        }
+
         // No standard location. Search upward for "cosmosroot"
-        croot = "cosmos";
-        for (size_t i=0; i<6; i++)
+        croot.resize(501);
+        croot = data_getcwd();
+        size_t cindex = croot.find("cosmos");
+        if (cindex != string::npos)
         {
-            if (!set_cosmosroot(croot, false))
+            croot.erase(cindex+6, string::npos);
+            if (!set_cosmosroot(croot, create_flag))
             {
                 return 0;
             }
-            croot = "../" + croot;
         }
-    }
 
-    // if cosmosroot is still empty then try to create standard location, otherwise fail
-    if (cosmosroot.empty())
-    {
-        if (create_flag)
-        {
-#ifdef COSMOS_LINUX_OS
-            if ((troot = getenv("HOME")) != nullptr)
-            {
-                croot = troot + (string)"/cosmos";
-            }
-            else
-            {
-                croot = "";
-                return (DATA_ERROR_ROOT_FOLDER);
-            }
-#endif
-
-#ifdef COSMOS_MAC_OS
-            croot = "/Applications/cosmos";
-#endif
-
-#ifdef COSMOS_WIN_OS
-            croot = "c:/cosmos";
-#endif
-            if ((iretn=set_cosmosroot(croot, create_flag)) == 0)
-            {
-                return 0;
-            }
-            else
-            {
-                return iretn;
-            }
-        }
-        else
-        {
-            return (DATA_ERROR_ROOT_FOLDER);
-        }
+        cosmosroot.clear();
+        return (DATA_ERROR_ROOT_FOLDER);
     }
     return 0;
 }
@@ -1594,7 +1729,14 @@ int32_t get_cosmosnodes(string &result, bool create_flag)
         }
     }
 
-    result = cosmosnodes;
+    if (cosmosnodes.back() == '/')
+    {
+        result = cosmosnodes;
+    }
+    else
+    {
+        result = cosmosnodes + '/';
+    }
     return 0;
 }
 
@@ -1646,8 +1788,30 @@ string get_nodedir(string node, bool create_flag)
  */
 int32_t data_move(filestruc file, string location, bool compress)
 {
-        int32_t iretn = log_move(file.path, data_base_path(file.node, location, file.agent, file.name), compress);
+    int32_t iretn = log_move(file.path, data_base_path(file.node, location, file.agent, file.name), compress);
+    return iretn;
+}
+
+//! Move data file - filepath version.
+/*! Move filerepresented by path previously created with ::data_path, optionally
+ * compressing with gzip. The routine will move the file specified in filepath to {node}/{dstlocation}/{agent}.
+ * The path is assumed to be of the form {cosmosnodes}/{node}/{location}/{agent}/{filename}
+ * \param filepath File information.
+ * \param location Destination location name.
+ * \param compress Wether or not to compress with gzip.
+ */
+int32_t data_move_path(string path, string location, bool compress)
+{
+    vector<string> parts = string_split(path, "/");
+    if (parts.size() >= 5)
+    {
+        int32_t iretn = log_move(path, data_base_path(parts[parts.size()-4], location, parts[parts.size()-2], parts[parts.size()-1]), compress);
         return iretn;
+    }
+    else
+    {
+        return GENERAL_ERROR_ARGS;
+    }
 }
 
 //! Load data from archive
@@ -1868,9 +2032,33 @@ double findfirstday(string name)
     }
 }
 
-bool data_isdir(string path)
+bool data_isdir(string path, bool create_flag)
 {
     struct stat st;
+
+    if (path.empty())
+    {
+        return false;
+    }
+
+    if (create_flag)
+    {
+        vector<string> dirs = string_split(path, "/");
+        string tpath;
+        if (path[0] == '/')
+        {
+            tpath = "/";
+        }
+        for (string subdir : dirs)
+        {
+            tpath += subdir;
+            if (COSMOS_MKDIR(tpath.c_str(), 00777) < 0 && errno != EEXIST)
+            {
+                return false;
+            }
+            tpath += "/";
+        }
+    }
 
     if (!stat(path.c_str(), &st) && S_ISDIR(st.st_mode))
     {
@@ -1928,6 +2116,11 @@ bool data_issymlink(string path)
 
 }
 
+//! Check if file exists at given path.
+//! Optionally checks if the file is the specified size.
+//! \param path File path
+//! \param size Check if file is this size. Optional.
+//! \return true if file exists and, if size was specified, is equal to the specified size.
 bool data_isfile(string path, off_t size)
 {
     struct stat st;
@@ -1951,8 +2144,8 @@ double data_ctime(string path)
     {
         struct timeval unixtime;
 #ifdef COSMOS_WIN_OS
-		unixtime.tv_sec = st.st_ctime;
-		unixtime.tv_usec = 0;
+        unixtime.tv_sec = st.st_ctime;
+        unixtime.tv_usec = 0;
 #elif defined(COSMOS_LINUX_OS)
         unixtime.tv_sec = st.st_ctim.tv_sec;
         unixtime.tv_usec = st.st_ctim.tv_nsec / 1000;
@@ -1980,24 +2173,24 @@ off_t data_size(string path)
 
 }
 
-int32_t data_execute(vector<uint8_t> cmd)
+int32_t data_execute(vector<uint8_t> cmd, float timer)
 {
     string result;
-    return data_execute(cmd, result);
+    return data_execute(cmd, result, timer);
 }
 
-int32_t data_execute(string cmd)
+int32_t data_execute(string cmd, float timer)
 {
     string result;
-    return data_execute(cmd, result);
+    return data_execute(cmd, result, timer);
 }
 
-int32_t data_execute(vector<uint8_t> cmd, string& result, string shell)
+int32_t data_execute(vector<uint8_t> cmd, string& result, float timer, string shell)
 {
-    return data_execute(string(cmd.begin(), cmd.end()), result, shell);
+    return data_execute(string(cmd.begin(), cmd.end()), result, timer, shell);
 }
 
-int32_t data_execute(string cmd, string& result, string shell)
+int32_t data_execute(string cmd, string& result, float timer, string shell)
 {
 #if defined(COSMOS_WIN_OS)
     if (!data_isfile(cmd))
@@ -2070,15 +2263,15 @@ int32_t data_execute(string cmd, string& result, string shell)
     // Create the child process.
 
     bSuccess = CreateProcess(NULL,
-        (LPSTR)cmd.c_str(),                // command line
-        NULL,               // process security attributes
-        NULL,               // primary thread security attributes
-        TRUE,               // handles are inherited
-        CREATE_NO_WINDOW,   // creation flags
-        NULL,               // use parent's environment
-        NULL,               // use parent's current directory
-        &siStartInfo,       // STARTUPINFO pointer
-        &piProcInfo);       // receives PROCESS_INFORMATION
+                             (LPSTR)cmd.c_str(),                // command line
+                             NULL,               // process security attributes
+                             NULL,               // primary thread security attributes
+                             TRUE,               // handles are inherited
+                             CREATE_NO_WINDOW,   // creation flags
+                             NULL,               // use parent's environment
+                             NULL,               // use parent's current directory
+                             &siStartInfo,       // STARTUPINFO pointer
+                             &piProcInfo);       // receives PROCESS_INFORMATION
 
     // If an error occurs, exit the application.
     if (bSuccess)
@@ -2140,8 +2333,9 @@ int32_t data_execute(string cmd, string& result, string shell)
 
 
 #else
+    int32_t iretn = 0;
     FILE * stream;
-    char buffer[198];
+//    char buffer[198];
     result.clear();
 
     vector<string> cmds = string_split(cmd, " ");
@@ -2173,7 +2367,8 @@ int32_t data_execute(string cmd, string& result, string shell)
     {
         cmd.insert(0, get_cosmosroot() + "/bin/");
     }
-    else {
+    else
+    {
         return GENERAL_ERROR_UNDEFINED;
     }
 
@@ -2185,14 +2380,18 @@ int32_t data_execute(string cmd, string& result, string shell)
             shell = eshell;
         }
     }
-    else if (data_isfile(shell))
-    {
-        cmd.insert(0, shell + " -c ");
-    }
 
-    if (shell.find("csh") != string::npos)
+    if (shell != "/bin/sh" && data_isfile(shell))
     {
-        cmd.append(" |& cat");
+        cmd.insert(0, shell + " -c \"");
+        if (shell.find("csh") != string::npos)
+        {
+            cmd.append(" |& cat\"");
+        }
+        else
+        {
+            cmd.append(" 2>&1\"");
+        }
     }
     else
     {
@@ -2200,21 +2399,168 @@ int32_t data_execute(string cmd, string& result, string shell)
     }
 
     stream = popen(cmd.c_str(), "r");
+    fcntl(fileno(stream), F_SETFL, O_NONBLOCK);
     if (stream)
     {
-        while (!feof(stream))
+        ElapsedTime et;
+        do
         {
-            if (fgets(buffer, 198, stream) != nullptr)
+            fd_set set;
+            FD_ZERO(&set);
+            FD_SET(fileno(stream), &set);
+            timeval timeout;
+            timeout.tv_sec = static_cast<int32_t>(timer);
+            timeout.tv_usec = static_cast<int32_t>(1000000. * (timer - timeout.tv_sec));
+            int rv = select(fileno(stream)+1, &set, nullptr, nullptr, &timeout);
+            if (rv == -1)
             {
-                result.append(buffer);
+                iretn = -errno;
+                break;
             }
+            else if (rv == 0)
+            {
+                iretn = GENERAL_ERROR_TIMEOUT;
+                break;
+            }
+            else
+            {
+                if (FD_ISSET(fileno(stream), &set))
+                {
+                    uint8_t c;
+                    int response = read(fileno(stream), &c, 1);
+                    if (response > 0)
+                    {
+                        result.push_back(c);
+                    }
+                    else
+                    {
+                        if (response < 0)
+                        {
+                            iretn = -errno;
+                            break;
+                        }
+                        else
+                        {
+                            iretn = GENERAL_ERROR_TIMEOUT;
+                            break;
+                        }
+                    }
+                }
+            }
+        } while (et.split() < timer);
+
+//        while (!feof(stream))
+//        {
+//            if (fgets(buffer, 198, stream) != nullptr)
+//            {
+//                result.append(buffer);
+//            }
+//        }
+        if ((iretn=pclose(stream)) < 0)
+        {
+            iretn = -errno;
         }
-        pclose(stream);
+    }
+    else
+    {
+        iretn = -errno;
     }
 #endif
 
-    return result.size();
+    return iretn;
+}
 
+int32_t data_task(string command, string outpath, float timeout, string shell)
+{
+    string result;
+    int32_t iretn = data_execute(command, result, timeout, shell);
+    FILE* fp = fopen(outpath.c_str(), "w");
+    if (fp != nullptr)
+    {
+        fwrite(result.data(), result.size(), 1, fp);
+        fclose(fp);
+        return iretn;
+    }
+    else
+    {
+        return -errno;
+    }
+}
+
+int32_t data_shell(string command_line, string outpath, string inpath, string errpath)
+{
+    printf("Data: Shell Command=%s Out=%s Err=%s\n", command_line.c_str(), outpath.c_str(), errpath.c_str());
+    fflush(stdout);
+    int32_t iretn=0;
+    int devin, devout, deverr;
+    int prev_stdin, prev_stdout, prev_stderr;
+
+    if (command_line.empty())
+    {
+        return GENERAL_ERROR_EMPTY;
+    }
+
+    if (outpath.empty())
+    {
+        devout = dup(STDOUT_FILENO);
+    }
+    else
+    {
+        devout = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+        if (devout == -1)
+        {
+            devout = dup(STDOUT_FILENO);
+        }
+    }
+    // Redirect.
+    prev_stdout = dup(STDOUT_FILENO);
+    dup2(devout, STDOUT_FILENO);
+    close(devout);
+
+    if (inpath.empty())
+    {
+        devin = open("/dev/null", O_RDWR);
+    }
+    else
+    {
+        devin = open(inpath.c_str(), O_RDONLY, 00666);
+        if (devin == -1)
+        {
+            devin = open("/dev/null", O_RDWR);
+        }
+    }
+    prev_stdin = dup(STDIN_FILENO);
+    dup2(devin, STDIN_FILENO);
+    close(devin);
+
+    prev_stderr = dup(STDERR_FILENO);
+    if (errpath.empty())
+    {
+        deverr = devout;
+    }
+    else
+    {
+        deverr = open(errpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+        if (deverr == -1)
+        {
+            deverr = devout;
+        }
+    }
+    dup2(deverr, STDERR_FILENO);
+    close(deverr);
+
+    // Execute the command.
+    iretn = system(command_line.c_str());
+
+    // Reset standard file handles
+    dup2(prev_stdin, STDIN_FILENO);
+    dup2(prev_stdout, STDOUT_FILENO);
+    dup2(prev_stderr, STDERR_FILENO);
+    close(prev_stdin);
+    close(prev_stdout);
+    close(prev_stderr);
+
+    return iretn;
 }
 
 // Define the static member variables here
@@ -2344,8 +2690,38 @@ string NodeData::lookup_node_id_name(NODE_ID_TYPE node_id)
     return "";
 }
 
+const string data_getcwd()
+{
+    size_t buf_size = 1024;
+    char* buf = NULL;
+    char* r_buf;
+
+    do
+    {
+        buf = static_cast<char*>(realloc(buf, buf_size));
+        r_buf = getcwd(buf, buf_size);
+        if (!r_buf)
+        {
+            if (errno == ERANGE)
+            {
+                buf_size *= 2;
+            }
+            else
+            {
+                free(buf);
+                return "";
+                // Or some other error handling code
+            }
+        }
+    } while (!r_buf);
+
+    string str(buf);
+    free(buf);
+    return str;
+}
+
 void GITTEST::f()	{
-	return;
+    return;
 }
 
 //! @}

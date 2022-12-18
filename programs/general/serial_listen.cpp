@@ -1,6 +1,7 @@
 #include "support/configCosmos.h"
-#include "device/serial/serialclass.h"
+#include "support/cosmos-errclass.h"
 #include "support/elapsedtime.h"
+#include "device/serial/serialclass.h"
 
 int main(int argc, char *argv[])
 {

@@ -37,35 +37,6 @@
 //! \addtogroup sliplib_functions
 //! @{
 
-//! Check SLIP packet CRC
-/*! Get the CRC from the end of a SLIP packet and check it against the
- * calculated CRC.
-	\param sbuf Pointer to buffer containing SLIP encoded data plus CRC.
-	\param ssize Total size of buffer, including CRC.
-	\return 0 if CRC checks out, otherwise SLIP_ERROR_CRC.
-*/
-int32_t slip_check_crc(uint8_t *sbuf, uint16_t ssize)
-	{
-	uint16_t crc, crc2;
-
-	crc = slip_get_crc(sbuf,ssize-2);
-	crc2 = slip_calc_crc(sbuf,ssize-2);
-	if (crc != crc2)
-		return (SLIP_ERROR_CRC);
-	return 0;
-	}
-
-int32_t slip_check_crc(vector<uint8_t> &sbuf)
-    {
-    uint16_t crc, crc2;
-
-    crc = slip_get_crc(sbuf);
-    crc2 = slip_calc_crc(sbuf);
-    if (crc != crc2)
-        return (SLIP_ERROR_CRC);
-    return 0;
-    }
-
 //! Unpack SLIP packet
 /*! Convert SLIP data in one buffer to raw ASCII data in second buffer and return
  * length.
@@ -78,21 +49,11 @@ int32_t slip_check_crc(vector<uint8_t> &sbuf)
 
 int32_t slip_unpack(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize)
 {
-    if (slip_check_crc(sbuf, ssize))
-    {
-        return (SLIP_ERROR_CRC);
-    }
-
-	return (slip_decode(sbuf, ssize-2, rbuf, rsize));
+	return (slip_decode(sbuf, ssize, rbuf, rsize));
 }
 
 int32_t slip_unpack(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf)
 {
-    if (slip_check_crc(sbuf))
-    {
-        return (SLIP_ERROR_CRC);
-    }
-
     return (slip_decode(sbuf, rbuf));
 }
 
@@ -158,7 +119,7 @@ int32_t slip_decode(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf)
     j = 0;
     do
     {
-        if (j > sbuf.size()-3)
+        if (j > sbuf.size()-1)
         {
             return (SLIP_ERROR_PACKING);
         }
@@ -167,7 +128,7 @@ int32_t slip_decode(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf)
 
     do
     {
-        if (j > sbuf.size()-3)
+        if (j > sbuf.size()-1)
         {
             return (SLIP_ERROR_PACKING);
         }
@@ -175,7 +136,7 @@ int32_t slip_decode(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf)
         switch (ch)
         {
         case SLIP_FESC:
-            if (j > sbuf.size()-3)
+            if (j > sbuf.size()-1)
                 return (SLIP_ERROR_PACKING);
             ch = sbuf[j++];
             switch (ch)
@@ -214,7 +175,7 @@ int32_t slip_encode(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize
 	uint16_t i, j;
 
 	i = j = 0;
-	if (ssize < 3)
+	if (ssize < 2)
 		return (SLIP_ERROR_BUFFER);
 	sbuf[i++] = SLIP_FEND;
 
@@ -223,19 +184,19 @@ int32_t slip_encode(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize
 		switch (rbuf[j])
 		{
 		case SLIP_FEND:
-			if (i > ssize-4)
+			if (i >= ssize-2)
 				return (SLIP_ERROR_BUFFER);
 			sbuf[i++] = SLIP_FESC;
 			sbuf[i++] = SLIP_TFEND;
 			break;
 		case SLIP_FESC:
-			if (i > ssize-4)
+			if (i >= ssize-2)
 				return (SLIP_ERROR_BUFFER);
 			sbuf[i++] = SLIP_FESC;
 			sbuf[i++] = SLIP_TFESC;
 			break;
 		default:
-			if (i > ssize-3)
+			if (i >= ssize-1)
 				return (SLIP_ERROR_BUFFER);
 			sbuf[i++] = rbuf[j];
 			break;
@@ -270,8 +231,6 @@ int32_t slip_encode(vector<uint8_t> &rbuf, vector<uint8_t> &sbuf)
         }
     }
     sbuf.push_back(SLIP_FEND);
-    sbuf.push_back(0);
-    sbuf.push_back(0);
     return (sbuf.size());
 }
 
@@ -291,9 +250,6 @@ int32_t slip_pack(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize)
 
 	i = slip_encode(rbuf, rsize, sbuf, ssize);
 	if (i < 0) return (SLIP_ERROR_BUFFER);
-	if (ssize < i+3) return (SLIP_ERROR_BUFFER);
-	slip_set_crc(sbuf,i);
-	i+=2;
 	return (i);
 }
 
@@ -307,102 +263,7 @@ int32_t slip_pack(vector<uint8_t> &rbuf, vector<uint8_t> &sbuf)
         return iretn;
     }
 
-    slip_set_crc(sbuf);
     return sbuf.size();
-}
-
-//! Calculate CRC-16-CCITT
-/*! Calculate 16-bit CCITT CRC for the indicated buffer and number of bytes.
- * The initial shift register value is 0xffff, and the calculation
- * starts with the LSB, so the Polynomial is 0x8408.
-	\param buf bytes to calculate on
-	\param size number of bytes
-	\return calculated CRC
-*/
-uint16_t slip_calc_crc(uint8_t *buf, uint16_t size)
-{
-	uint16_t crc = 0xffff;
-	uint8_t ch;
-	int i, j;
-
-	for (i=0; i<size; ++i)
-	{
-		ch = buf[i];
-		for (j=0; j<8; j++)
-		{
-			crc = (crc >> 1)^(((ch^crc)&0x01)?0x8408:0);
-			ch >>= 1;
-		}
-	}
-	return (crc);
-}
-
-uint16_t slip_calc_crc(vector<uint8_t> &buf)
-{
-    uint16_t crc = 0xffff;
-    uint8_t ch;
-
-    for (size_t i=0; i<buf.size()-2; ++i)
-    {
-        ch = buf[i];
-        for (size_t j=0; j<8; ++j)
-        {
-            crc = (crc >> 1)^(((ch^crc)&0x01)?0x8408:0);
-            ch >>= 1;
-        }
-    }
-    return (crc);
-}
-
-//! Get CRC from SLIP buffer
-/*! Extract the CRC from the specified point in a SLIP buffer and return it as an
- * unsigned integer.
-	\param buf SLIP buffer
-	\param index Location in buffer of start of CRC
-	\return CRC
-*/
-uint16_t slip_get_crc(uint8_t *buf, uint16_t index)
-{
-	uint16_t crc;
-
-    memcpy(&crc, &buf[index], 2);
-
-	return (crc);
-}
-
-uint16_t slip_get_crc(vector<uint8_t> &buf)
-{
-    uint16_t crc;
-
-    memcpy(&crc, &buf[buf.size()-2], 2);
-
-    return (crc);
-}
-
-//! Set CRC for SLIP buffer
-/*! Calculate the CRC for the specified length SLIP buffer and append it to the buffer.
-	\param buf SLIP buffer
-	\param index Location in buffer of start of CRC
-	\return Calculated CRC
-*/
-uint16_t slip_set_crc(uint8_t *buf, uint16_t index)
-{
-	uint16_t crc;
-
-    crc = slip_calc_crc(buf, index);
-    memcpy(&buf[index], &crc, 2);
-
-	return (crc);
-}
-
-uint16_t slip_set_crc(vector<uint8_t> &buf)
-{
-    uint16_t crc;
-
-    crc = slip_calc_crc(buf);
-    memcpy(&buf[buf.size()-2], &crc, 2);
-
-    return (crc);
 }
 
 int32_t slip_extract(FILE *fp, vector<uint8_t> &rbuf)
@@ -462,5 +323,47 @@ int32_t slip_extract(FILE *fp, vector<uint8_t> &rbuf)
     return (rbuf.size());
 }
 
+//! Calculate CRC-16-CCITT
+/*! Calculate 16-bit CCITT CRC for the indicated buffer and number of bytes.
+ * The initial shift register value is 0xffff, and the calculation
+ * starts with the LSB, so the Polynomial is 0x8408.
+	\param buf bytes to calculate on
+	\param size number of bytes
+	\return calculated CRC
+*/
+uint16_t slip_calc_crc(uint8_t *buf, uint16_t size)
+{
+	uint16_t crc = 0xffff;
+	uint8_t ch;
+	int i, j;
+
+	for (i=0; i<size; ++i)
+	{
+		ch = buf[i];
+		for (j=0; j<8; j++)
+		{
+			crc = (crc >> 1)^(((ch^crc)&0x01)?0x8408:0);
+			ch >>= 1;
+		}
+	}
+	return (crc);
+}
+
+uint16_t slip_calc_crc(vector<uint8_t> &buf)
+{
+    uint16_t crc = 0xffff;
+    uint8_t ch;
+
+    for (size_t i=0; i<buf.size()-2; ++i)
+    {
+        ch = buf[i];
+        for (size_t j=0; j<8; ++j)
+        {
+            crc = (crc >> 1)^(((ch^crc)&0x01)?0x8408:0);
+            ch >>= 1;
+        }
+    }
+    return (crc);
+}
 
 //! @}

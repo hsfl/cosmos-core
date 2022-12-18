@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 {
     struct timeval mytime;
     struct tm *mytm;
-    int tut, value, ttype, i, tlen;
+    int tut, value, ttype, i, tlen=0;
     int cflag = 0;
     //int vflag = 0;
     time_t thetime;

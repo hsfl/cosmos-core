@@ -1,4 +1,4 @@
-#cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.1)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -17,20 +17,15 @@ target_link_libraries(CosmosSupport ${COSMOS_LIBS})
 add_library(CosmosSlip STATIC sliplib.cpp sliplib.h)
 install(TARGETS CosmosSlip DESTINATION lib)
 
-# NOTE: CosmosTransfer is old, use CosmosTransferClass
-add_library(CosmosTransfer STATIC transferlib.cpp transferlib.h)
+add_library(CosmosTransfer STATIC transferclass.h transferclass.cpp transferlib.h transferlib.cpp)
 install(TARGETS DESTINATION lib)
-target_link_libraries(CosmosTransfer CosmosNamespace CosmosSupport ${COSMOS_LIBS})
-
-add_library(CosmosTransferClass STATIC transferclass.h transferclass.cpp transferlib2.h transferlib2.cpp)
-install(TARGETS DESTINATION lib)
-target_link_libraries(CosmosTransferClass CosmosPacket CosmosNamespace CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosTransfer CosmosPacket CosmosNamespace CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosPrint STATIC print_utils.cpp print_utils.h)
 install(TARGETS CosmosPrint DESTINATION lib)
 target_link_libraries(CosmosPrint  CosmosSupport ${COSMOS_LIBS})
 
-add_library(CosmosError STATIC cosmos-errno.cpp cosmos-errno.h )
+add_library(CosmosError STATIC cosmos-errno.h cosmos-errclass.h cosmos-errclass.cpp)
 install(TARGETS CosmosError DESTINATION lib)
 target_link_libraries(CosmosError CosmosString CosmosData CosmosSupport ${COSMOS_LIBS})
 
@@ -78,15 +73,15 @@ target_link_libraries(CosmosPacketHandler CosmosBeacon CosmosPacket CosmosAgent 
 
 add_library(CosmosChannel STATIC channellib.cpp channellib.h)
 install(TARGETS CosmosChannel DESTINATION lib)
-target_link_libraries(CosmosChannel CosmosBeacon CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosChannel CosmosTime CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosBeacon STATIC beacon.cpp beacon.h)
 install(TARGETS CosmosBeacon DESTINATION lib)
 target_link_libraries(CosmosBeacon CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
 
-add_library(CosmosPacket STATIC packetcomm.cpp packetcomm.h)
+add_library(CosmosPacket STATIC packetcomm.cpp packetcomm.h ax25class.cpp ax25class.h)
 install(TARGETS CosmosPacket DESTINATION lib)
-target_link_libraries(CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosPacket CosmosAgent CosmosMath CosmosNamespace CosmosSlip CosmosError CosmosSupport ${COSMOS_LIBS})
 
 add_library(Envi STATIC envi.cpp envi.h)
 install(TARGETS Envi DESTINATION lib)

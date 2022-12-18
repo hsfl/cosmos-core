@@ -32,7 +32,6 @@
 */
 
 #include "agent/command_queue.h"
-#include "support/stringlib.h"
 
 namespace Cosmos
 {
@@ -114,7 +113,7 @@ namespace Cosmos
         // event spawned is not currently active.
         size_t CommandQueue::join_event_threads()
         {
-//            static auto join_event = [] (std::thread &t) {
+//            static auto join_event = [] (thread &t) {
 //                t.join();
 //            };
 
@@ -165,7 +164,7 @@ namespace Cosmos
             strcpy(command_line, cmd.get_data().c_str());
 
             // We keep track of all threads spawned to join before moving log files.
-            event_threads.push_back(std::thread([=] () {
+            event_threads.push_back(thread([=] () {
                 int devn, prev_stdin, prev_stdout, prev_stderr;
                 if (outpath.empty()) {
                     devn = open("/dev/null", O_RDWR);
@@ -185,7 +184,11 @@ namespace Cosmos
                 close(devn);
 
                 // Execute the command.
-                system(command_line);
+                size_t ret = system(command_line);
+                if (ret == 0)
+                {
+                    queue_changed = true;
+                }
 
                 dup2(prev_stdin, STDIN_FILENO);
                 dup2(prev_stdout, STDOUT_FILENO);

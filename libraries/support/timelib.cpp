@@ -83,7 +83,7 @@ namespace Cosmos {
             TimeUtils tu;
             unix_time = tu.secondsSinceEpoch() + _timezone;
 #else
-            struct timeval mytime;
+            timeval mytime;
             gettimeofday(&mytime, NULL);
             if (mytime.tv_usec > 500000)
             {
@@ -157,9 +157,9 @@ namespace Cosmos {
  * \param utc as Modified Julian Day.
  * \return Timeval structure with Unix time.
  */
-        struct timeval utc2unix(double utc)
+        timeval utc2unix(double utc)
         {
-            struct timeval unixtime;
+            timeval unixtime;
             double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
             unixtime.tv_sec = (int)unixseconds;
             unixtime.tv_usec = 1000000. * (unixseconds - unixtime.tv_sec);
@@ -946,58 +946,67 @@ namespace Cosmos {
             return 0;
         }
 
-        double set_local_clock(double utc_to)
+        double set_local_clock(double utc_to, int8_t direction)
         {
             int32_t iretn = 0;
             double utc_from = currentmjd();
             double deltat = 86400.*(utc_to - utc_from);
-            //    printf("Set Local Clock %f\n", deltat);
-            if (fabs(deltat) > 1.)
+            if (!direction || direction * deltat > 0)
             {
-                // Gross adjustment to system clock
-#if defined(COSMOS_WIN_OS)
-                SYSTEMTIME newtime;
-                SetSystemTime(&newtime);
-#else
-                struct timeval newtime = utc2unix(utc_to);
-
-                // TODO: check with Eric if this is the right way to set the time?
-                iretn = settimeofday(&newtime, nullptr);
-                if (iretn < 0)
+                if (fabs(deltat) > 1.)
                 {
-                    return 0.;
-                }
+                    // Gross adjustment to system clock
+#if defined(COSMOS_WIN_OS)
+                    SYSTEMTIME newtime;
+                    SetSystemTime(&newtime);
+#else
+                    struct timeval newtime = utc2unix(utc_to);
+
+                    // TODO: check with Eric if this is the right way to set the time?
+                    iretn = settimeofday(&newtime, nullptr);
+                    if (iretn < 0)
+                    {
+                        return 0.;
+                    }
 #endif
+                }
+                else
+                {
+                    // Fine adjustment using adjtime()
+                    if (fabs(deltat) > .001)
+                    {
+#if defined(COSMOS_WIN_OS)
+                        double newdelta;
+                        newdelta = deltat * 1e7;
+                        SetSystemTimeAdjustment(newdelta,false);
+#else
+
+                        struct timeval newdelta, olddelta;
+                        newdelta.tv_sec = deltat;
+                        newdelta.tv_usec = 100000. * (deltat - newdelta.tv_sec) + .5;
+
+                        // adjust the time
+                        iretn = adjtime(&newdelta, &olddelta);
+                        return 0.;
+#endif
+                    }
+                }
+                return deltat;
             }
             else
             {
-                // Fine adjustment using adjtime()
-                if (fabs(deltat) > .001)
-                {
-#if defined(COSMOS_WIN_OS)
-                    double newdelta;
-                    newdelta = deltat * 1e7;
-                    SetSystemTimeAdjustment(newdelta,false);
-#else
-
-                    struct timeval newdelta, olddelta;
-                    newdelta.tv_sec = deltat;
-                    newdelta.tv_usec = 100000. * (deltat - newdelta.tv_sec) + .5;
-
-                    // adjust the time
-                    iretn = adjtime(&newdelta, &olddelta);
-                    return 0.;
-#endif
-                }
-
+                return 0.;
             }
-            return deltat;
         }
 
+        //! Sleep in micro seconds
+        //! Sleep for the requested amount of time in  micro seconds.
+        //! \param usec Number of micro seconds to sleep
+        //! \return Zero or negative error
         int32_t microsleep(uint64_t usec)
         {
 
-            struct timespec ts{};
+            struct timespec ts;
             ts.tv_sec = usec / 1000000;
             ts.tv_nsec = (usec % 1000000) * 1000;
 
@@ -1016,6 +1025,10 @@ namespace Cosmos {
             }
         }
 
+        //! Sleep in seconds
+        //! Sleep for the requested amount of time in seconds.
+        //! \param seconds Number of seconds to sleep
+        //! \return Zero or negative error
         int32_t secondsleep(double seconds)
         {
             if (seconds < 0.)
@@ -1025,23 +1038,95 @@ namespace Cosmos {
             return microsleep(seconds * 1000000);
         }
 
-        double newyear(int32_t years)
+        //! MJD for nearest year.
+        //! Return the Modified Julian Day for January 1, 00:00 of the year of the provided date.
+        //! \param mjd Date, in MJD, for which the nearest year will be calculated. If this value is zero,
+        //! or not provided, then the ::currentmjd will be used.
+        //! \return Date of nearest year in MJD.
+        double newyear(double mjd)
         {
-            calstruc newyear =  mjd2cal(trunc(currentmjd()));
-            newyear.year += years;
+            calstruc newyear;
+            if (mjd == 0.)
+            {
+                newyear =  mjd2cal(trunc(currentmjd()));
+            }
+            else
+            {
+                newyear =  mjd2cal(trunc(mjd));
+            }
             return cal2mjd(newyear);
         }
 
+        //! MJD for nearest decade.
+        //! Return the Modified Julian Day for January 1, 00:00 of the decade of the provided date.
+        //! \param mjd Date, in MJD, for which the nearest decade will be calculated. If this value is zero,
+        //! or not provided, then the ::currentmjd will be used.
+        //! \return Date of nearest decade in MJD.
+        double newdecade(double mjd)
+        {
+            calstruc newyear;
+            if (mjd == 0.)
+            {
+                newyear =  mjd2cal(trunc(currentmjd()));
+            }
+            else
+            {
+                newyear =  mjd2cal(trunc(mjd));
+            }
+            newyear.year = 10 * (newyear.year / 10);
+            return cal2mjd(newyear);
+        }
+
+        //! Centi seconds in nearest year.
+        //! Number of 1/100's of a second since the beginning of the nearest year.
+        //! \param mjd Date, in MJD, for which the nearest year will be calculated. If this value is zero,
+        //! or not provided, then the ::currentmjd will be used.
+        //! \return Elapsed time from nearest year in centi seconds.
         uint32_t centisec(double mjd)
         {
             if (mjd == 0.)
             {
-                return 8640000. * (currentmjd() - newyear());
+                return 8640000. * (currentmjd() - newyear()) + .5;
             }
             else
             {
-                return 8640000. * (mjd - newyear());
+                return 8640000. * (mjd - newyear()) + .5;
             }
+        }
+
+        //! Date from centi seconds
+        //! Modified Julian Day of a time expressed as the number of elpased centi seconds from the nearest year.
+        //! \param centi Number of elapsed centi seconds.
+        //! \return Date in MJD.
+        double centisec2mjd(uint32_t centi)
+        {
+            return centi / 8640000.+ newyear();
+        }
+
+        //! Deci seconds in nearest year.
+        //! Number of 1/10's of a second since the beginning of the nearest decade.
+        //! \param mjd Date, in MJD, for which the nearest decade will be calculated. If this value is zero,
+        //! or not provided, then the ::currentmjd will be used.
+        //! \return Elapsed time from nearest decade in deci seconds.
+        uint32_t decisec(double mjd)
+        {
+            if (mjd == 0.)
+            {
+                return 864000. * (currentmjd() - newdecade()) + .5;
+            }
+            else
+            {
+                return 864000. * (mjd - newdecade()) + .5;
+            }
+        }
+
+        //! Date from deci seconds
+        //! Modified Julian Day of a time expressed as the number of elpased deci seconds from the nearest decade.
+        //! \param deci Number of elapsed centi seconds.
+        //! \return Date in MJD.
+        double decisec2mjd(uint32_t deci)
+        {
+            return deci / 864000.+ newdecade();
         }
     }
 }

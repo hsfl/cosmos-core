@@ -79,7 +79,7 @@ void move_and_compress_exec ();
 static double logdate_exec=0.;
 static double newlogstride_exec = 300. / 86400.;
 static double logstride_exec = 0.;
-static std::mutex exec_mutex;
+static mutex exec_mutex;
 
 int32_t get_last_offset();
 int32_t get_flags();
@@ -121,9 +121,9 @@ static double newlogperiod = 30. / 86400.;
 static double logperiod = 0;
 static double newlogstride_soh = 600. / 86400.;
 static double logstride_soh = 0.;
-static std::mutex soh_mutex;
+static mutex soh_mutex;
 
-static std::mutex beacon_mutex;
+static mutex beacon_mutex;
 void move_and_compress_beacon();
 //void get_beacon_cpu();
 int32_t get_power_mode();
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_date").c_str(), "r");
+        FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/last_date").c_str(), "r");
         if (fp != nullptr)
         {
             calstruc date;
@@ -460,7 +460,7 @@ int main(int argc, char *argv[])
         vector<string> nodes = data_list_nodes();
         for (string& node : nodes)
         {
-            string incoming_dir = get_cosmosnodes() + "/" + node + "/incoming/exec/";
+            string incoming_dir = get_cosmosnodes() + "" + node + "/incoming/exec/";
             if (data_isdir(incoming_dir) && node != agent->nodeName)
             {
                 cmd_queue.load_commands(incoming_dir);
@@ -471,7 +471,7 @@ int main(int argc, char *argv[])
 
         if (savet.split() > 60.)
         {
-            FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_date").c_str(), "w");
+            FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/last_date").c_str(), "w");
             if (fp)
             {
                 savet.reset();
@@ -493,7 +493,7 @@ int main(int argc, char *argv[])
 int32_t get_last_offset()
 {
     int32_t offset = 0;
-    FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_offset").c_str(), "r");
+    FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/last_offset").c_str(), "r");
     if (fp != nullptr)
     {
         fscanf(fp, "%d", &offset);
@@ -507,7 +507,7 @@ int32_t get_flags()
     int8_t launched = 0;
     int8_t bootcheck = 0;
     int8_t deployed = 0;
-    FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/boot_flags").c_str(), "r");
+    FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/boot_flags").c_str(), "r");
     if (fp != nullptr)
     {
         fscanf(fp, "%hhd %hhd %hhd", &launched, &deployed, &bootcheck);

@@ -115,6 +115,7 @@ typedef struct
     string agent;
     string name;
     string type;
+    string directory;
     string path;
     off_t size;
     uint16_t year;
@@ -130,12 +131,14 @@ string log_write(string node, string agent, double utc, string extra, string typ
 int32_t log_move(string node, string agent, string srclocation, string dstlocation, bool compress=true);
 int32_t log_move(string node, string agent);
 int32_t log_move(string oldpath, string newpath, bool compress);
+int32_t log_relocate(string srcdir, string dstdir, bool compress="true");
 string log_read(gzFile &file, int num);
 //int check_events(eventstruc* events, int max, cosmosstruc* data);
 vector<string> data_list_nodes();
 int32_t data_list_nodes(vector<string>& nodes);
 vector<filestruc> data_list_files(string directory);
 size_t data_list_files(string directory, vector<filestruc>& files);
+vector<filestruc> data_list_files(string node, string location);
 vector<filestruc> data_list_files(string node, string location, string agent);
 size_t data_list_files(string node, string location, string agent, vector<filestruc>& files);
 vector<filestruc> data_list_archive(string node, string agent, double utc, string type);
@@ -144,29 +147,31 @@ vector <double> data_list_archive_days(string node, string agent);
 FILE* data_open(string path, const char *mode);
 int32_t data_name_date(string node, string filename, uint16_t &year, uint16_t &jday, uint32_t &seconds);
 int32_t data_name_date(string node, string filename, double &utc);
-string data_name(string node, double mjd, string type="", string extra="");
-//string data_name(string node, double mjd, string type="");
+string data_name(double mjd, string type="", string node="", string agent="", string extra="");
 string data_base_path(string node);
 string data_base_path(string node, string location);
 string data_base_path(string node, string location, string agent);
 string data_base_path(string node, string location, string agent, string filename);
 string data_archive_path(string node, string agent, double mjd);
 //string data_type_path(string node, string location, string agent, double mjd, string type);
+string data_path(string location, double mjd=0., string type="", string node="", string agent="", string extra="");
 string data_type_path(string node, string location, string agent, double mjd, string type, string extra="");
 string data_name_path(string node, string location="", string agent="", double mjd=0., string name="");
 filestruc data_name_struc(string node, string location="", string agent="", double mjd=0., string name="");
 string data_resource_path(string name);
 bool data_exists(string& path);
-bool data_isdir(string path);
+bool data_isdir(string path, bool create_flag=false);
 bool data_ischardev(string path);
 bool data_isblkdev(string path);
 bool data_issymlink(string path);
 bool data_isfile(string path, off_t size=0);
 double data_ctime(string path);
-int32_t data_execute(vector<uint8_t> cmd);
-int32_t data_execute(string cmd);
-int32_t data_execute(vector<uint8_t> cmd, string& result, string shell="");
-int32_t data_execute(string cmd, string& result, string shell="");
+int32_t data_execute(vector<uint8_t> cmd, float timeout=10.);
+int32_t data_execute(string cmd, float timeout=10.);
+int32_t data_execute(vector<uint8_t> cmd, string& result, float timeout=10., string shell="");
+int32_t data_execute(string cmd, string& result, float timeout=10., string shell="");
+int32_t data_task(string cmd, string outpath, float timeout=10., string shell="");
+int32_t data_shell(string command_line, string outpath="", string inpath="", string errpath="");
 off_t data_size(string path);
 int32_t set_cosmosroot(string name, bool create_flag=false);
 int32_t set_cosmosroot(bool create_flag=false);
@@ -187,15 +192,20 @@ string get_cosmosnodes(bool create_flag=false);
 string get_nodedir(string node, bool create_flag=false);
 int32_t data_load_archive(string node, string agent, double utcbegin, double utcend, string type, vector<string> &result);
 int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result);
-int32_t data_move(filestruc file, string location, bool compress=true);
+int32_t data_move(filestruc file, string location="outgoing", bool compress=true);
+int32_t data_move_path(string path, string location="outgoing", bool compress="true");
 //int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc* root);
 double findlastday(string node);
 double findfirstday(string node);
+const string data_getcwd();
 
 class DataLog
 {
 public:
-    DataLog(double stride=0., bool fastmode=false);
+    DataLog();
+    int32_t Init(string node, string agent="self", string type="log", string extra="", double stride=0., bool fastmode=false);
+    int32_t Write(string& data);
+    int32_t Write(vector<uint8_t>& data);
     int32_t Write(vector<uint8_t> data, string node, string agent="generic", string type="log", string extra="");
     int32_t Write(double utc, vector<uint8_t> data, string node, string agent="generic", string type="log", string extra="");
     int32_t Write(string data, string node, string agent="generic", string type="log", string extra="");
@@ -204,12 +214,15 @@ public:
     int32_t SetFastmode(bool state=false);
     int32_t SetStartdate(double mjd=0.);
 
+    string node;
+    string agent;
+    string type;
+    string extra;
     bool fastmode;
     double stride;
     double enddate = 0.;
     double startdate = 0.;
     string path;
-    string node;
 private:
 
     FILE* fout;

@@ -31,85 +31,11 @@
 #ifndef CONFIGCOSMOS_H
 #define CONFIGCOSMOS_H
 
-// NB: EJP 20170403 - added to suppress the ocean of format errors that will never be correct for all
-// platforms. We will just have to get the formatting right on our own.
-//pragma GCC diagnostic ignored "-Wformat="
-
 //! \file configCosmos.h
 //! \brief Headers and definitions common to all COSMOS
 
-// ------------------------------------------------------------------
-// Building under Windows
-#ifdef _WIN32
+#include "support/configCosmosKernel.h"
 
-#define COSMOS_WIN_OS
-
-//! // determine if we're compiling with MSVC
-#ifdef _MSC_BUILD
-#define COSMOS_WIN_BUILD_MSVC
-#endif
-
-// TODO: Explain the reason why this is here
-#define NTDDI_VERSION NTDDI_WIN7
-
-#ifndef _WIN32_WINNT
-    #define _WIN32_WINNT _WIN32_WINNT_WIN7
-#endif
-#define _WIN32_WINNT _WIN32_WINNT_WIN7
-#endif // Building under Windows
-
-// for MSVC
-#define _CRT_SECURE_NO_DEPRECATE
-
-// --------------------- FOR ALL PLATFORMS ------------------------------
-#define _USE_MATH_DEFINES
-#include <climits>
-#include <csignal>
-#include <cstdint>
-#include <cinttypes>
-#include <cstdio>
-#include <cstddef>
-#include <cstdlib>
-#include <cerrno>
-#include <cstring>
-#include <cmath>
-using std::isfinite;
-//using std::isinf;
-//using std::isnan;
-#include <fstream>
-#include <iosfwd>
-using std::ifstream;
-using std::ofstream;
-#include <iostream>
-using std::cout;
-using std::cerr;
-using std::endl;
-#include <sstream>
-using std::stringstream;
-#include <regex>
-#include <iomanip>
-using std::fixed;
-using std::setprecision;
-using std::setw;
-using std::left;
-using std::right;
-#ifdef COSMOS_WIN_BUILD_MSVC
-#include <io.h> // replaces in some ways unistd for windows
-#else
-#include <unistd.h>
-#endif
-#include <fcntl.h>
-
-#include <limits>
-#include <string>
-using std::string;
-//using std::to_string;
-#include <vector>
-using std::vector;
-#include <stack>
-using std::stack;
-#include <deque>
-using std::deque;
 #include <mutex>
 using std::mutex;
 using std::unique_lock;
@@ -117,35 +43,10 @@ using std::unique_lock;
 using std::thread;
 #include <condition_variable>
 using std::condition_variable;
-#include <queue>
-using std::queue;
-#include <sstream>
-using std::istringstream;
 #include <map>
 using std::map;
-using std::pair;
-#include <unordered_map>
-using std::unordered_map;
-#include <list>
-using std::list;
-#include <limits>
-using std::numeric_limits;
 
-//#include "support/cosmos-errno.h"
-#include "support/cosmos-defs.h"
-
-namespace Cosmos { namespace Support {} }
-
-using namespace Cosmos;
-using namespace Cosmos::Support;
-
-//! \ingroup defs
-//! \defgroup defs_macros Special COSMOS macros
-//!
-//! @{
-#define COSMOS_SIZEOF(element) (reinterpret_cast<ptrdiff_t>(((element*)0)+1))
-//! @}
-
+#include "support/cosmos-errclass.h"
 
 // To check the OS Pre-defined Compiler Macros go to
 // http://sourceforge.net/p/predef/wiki/OperatingSystems/
@@ -153,10 +54,11 @@ using namespace Cosmos::Support;
 // --------------------- LINUX ------------------------------------
 // linux definition can be UNIX or __unix__ or LINUX or __linux__.
 // For GCC on Linux: __GNUC__
-#ifdef __linux__
+#if defined(__linux__) || defined(USE_LINUX_LIBRARIES)
 //! \addtogroup defs_macros More Special COSMOS macros
 //! @{
 #define COSMOS_LINUX_OS
+#ifndef COSMOS_MICRO_COSMOS // reduce includes for Micro-COSMOS 
 #define COSMOS_USLEEP(usec) usleep(static_cast<uint32_t>(usec))
 #define COSMOS_SLEEP(sec) usleep(static_cast<uint32_t>((sec>=0.?sec:0)*1e6)) // this allows decimal seconds
 #define CLOSE_SOCKET(socket) ::close(socket)
@@ -172,6 +74,8 @@ using namespace Cosmos::Support;
 #include <sys/vfs.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
+#include "json11.hpp"
+#endif
 #endif
 
 // --------------------- WINDOWS ------------------------------------
@@ -212,6 +116,7 @@ using namespace Cosmos::Support;
 #include <thread>
 #include <io.h>
 #include <process.h>
+#include "json11.hpp"
 
 #endif
 
@@ -236,6 +141,7 @@ using namespace Cosmos::Support;
 #include <sys/time.h>
 #include <sys/param.h>
 #include <sys/mount.h>
+#include "json11.hpp"
 #endif
 
 // --------------------- CYGWIN ------------------------------------
@@ -256,9 +162,7 @@ using namespace Cosmos::Support;
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/vfs.h>
-#endif // COSMOS_CYGWIN_OS
-
 #include "json11.hpp"
-
+#endif // COSMOS_CYGWIN_OS
 
 #endif // CONFIGCOSMOS_H

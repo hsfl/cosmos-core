@@ -93,11 +93,11 @@ namespace Cosmos {
         sem_t* i2csem=nullptr;
         double i2cwait = 5.;
         timespec absi2cwait = {0, 0};
-        mutex mtx;
+        // mutex mtx;
         int32_t error;
 
     };
 
 
-} // end of namepsace Cosmos
+} // end of namespace Cosmos
 #endif // COSMOS_DEVICE_I2C_CLASS_H

@@ -30,6 +30,7 @@
 #include "support/configCosmos.h"
 
 #include "support/demlib.h"
+#include <mutex>
 #include <sys/stat.h>
 
 namespace Cosmos {
@@ -39,7 +40,7 @@ namespace Cosmos {
         char bodynames[20][15] = {"mercury","venus","earth","mars","jupiter","saturn","uranus","neptune","pluto","moon","sun","near","","","","","","","",""};
         static uint32_t maxalloc=300000000L, totalloc=0;
         //static sem_t *bsem,tsem;
-        static std::mutex bsem;
+        static mutex bsem;
         // running: 0 = uninitialized, 1 = ready, 2 = insufficient memory
         static int running = 0;
 

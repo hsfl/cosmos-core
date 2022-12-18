@@ -1,14 +1,18 @@
 #include "packetcomm.h"
-#include "math/mathlib.h"
-#include "support/sliplib.h"
-#include "support/datalib.h"
-#include "support/stringlib.h"
-#include "device/general/ax25class.h"
-
 namespace Cosmos {
     namespace Support {
-        PacketComm::PacketComm()
+        PacketComm::PacketComm(uint16_t size)
         {
+            if (size >= 4)
+            {
+                data.resize(size);
+            }
+            else
+            {
+                data.resize(4);
+            }
+            uint32to(decisec(), &data[0], ByteOrder::LITTLEENDIAN);
+            RawPacketize();
         }
 
         void PacketComm::CalcCRC()
@@ -21,35 +25,36 @@ namespace Cosmos {
             return true;
         }
 
-        bool PacketComm::Unwrap(bool checkcrc)
+        int32_t PacketComm::Unwrap(bool checkcrc)
         {
             if (wrapped.size() <= 0)
             {
-                return false;
+                return GENERAL_ERROR_BAD_SIZE;
             }
             memcpy(&header, &wrapped[0], COSMOS_SIZEOF(Header));
-            if (wrapped.size() < uint32_t(header.data_size + COSMOS_SIZEOF(Header) + 2))
+            uint32_t wrapsize = header.data_size + COSMOS_SIZEOF(Header) + 2;
+            if (wrapped.size() < wrapsize)
             {
-                return false;
+                return GENERAL_ERROR_BAD_SIZE;
             }
-            wrapped.resize(header.data_size + COSMOS_SIZEOF(Header) + 2);
+            wrapped.resize(wrapsize);
             if (checkcrc)
             {
                 uint16_t crcin = uint16from(&wrapped[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
                 crc = calc_crc.calc(wrapped.data(), wrapped.size()-2);
                 if (crc != crcin)
                 {
-                    return false;
+                    return GENERAL_ERROR_CRC;
                 }
             }
 
             data.clear();
             data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(Header)], &wrapped[header.data_size+COSMOS_SIZEOF(Header)]);
 
-            return true;
+            return data.size();
         }
 
-        bool PacketComm::RawUnPacketize(bool invert, bool checkcrc)
+        int32_t PacketComm::RawUnPacketize(bool invert, bool checkcrc)
         {
             if (invert)
             {
@@ -62,21 +67,17 @@ namespace Cosmos {
             return Unwrap(checkcrc);
         }
 
-//        bool PacketComm::RXSUnPacketize()
-//        {
-//            memcpy(&ccsds_header, packetized.data(), 6);
-//            wrapped.clear();
-//            wrapped.insert(wrapped.begin(), &packetized[6], &packetized[packetized.size()-(packetized.size()<189?6:194-packetized.size())]);
-//            return Unwrap();
-//        }
-
-        bool PacketComm::SLIPUnPacketize()
+        bool PacketComm::SLIPUnPacketize(bool checkcrc)
         {
-            slip_unpack(packetized, wrapped);
-            return Unwrap();
+            int32_t iretn = slip_unpack(packetized, wrapped);
+            if (iretn <= 0)
+            {
+                return false;
+            }
+            return Unwrap(checkcrc);
         }
 
-        bool PacketComm::ASMUnPacketize()
+        bool PacketComm::ASMUnPacketize(bool checkcrc)
         {
             wrapped.clear();
             if (atsm[0] == packetized[0] && atsm[1] == packetized[1] && atsm[2] == packetized[2] && atsm[3] == packetized[3])
@@ -89,9 +90,21 @@ namespace Cosmos {
                 input.insert(wrapped.begin(), &packetized[4], &packetized[packetized.size()]);
                 uint8from(input, wrapped, ByteOrder::BIGENDIAN);
             }
-            return Unwrap();
+            return Unwrap(checkcrc);
         }
 
+        bool PacketComm::HDLCUnPacketize(bool checkcrc)
+        {
+            Ax25Handle axhandle;
+            axhandle.unstuff(packetized);
+            wrapped = axhandle.ax25_packet;
+            return Unwrap(checkcrc);
+        }
+
+        //! \brief Wrap up header and payload
+        //! Merge ::Cosmos::Support::PacketComm::data and ::Cosmos::Support::PacketComm::header
+        //! into ::Cosmos::Support::PacketComm::wrapped
+        //! \return Boolean success
         bool PacketComm::Wrap()
         {
             header.data_size = data.size();
@@ -154,19 +167,30 @@ namespace Cosmos {
             return true;
         }
 
-        bool PacketComm::AX25Packetize(string dest_call, string sour_call, uint8_t dest_stat, uint8_t sour_stat, uint8_t cont, uint8_t prot)
+        bool PacketComm::AX25Packetize(string dest_call, string sour_call, uint8_t flagcount, uint8_t dest_stat, uint8_t sour_stat, uint8_t cont, uint8_t prot)
         {
             if (!Wrap())
             {
                 return false;
             }
             Ax25Handle axhandle(dest_call, sour_call, dest_stat, sour_stat, cont, prot);
-            wrapped.resize(wrapped.size()+6);
             axhandle.load(wrapped);
-            axhandle.stuff();
+            axhandle.stuff({}, flagcount);
             vector<uint8_t> ax25packet = axhandle.get_hdlc_packet();
             packetized.clear();
             packetized.insert(packetized.begin(), ax25packet.begin(), ax25packet.end());
+            return true;
+        }
+
+        bool PacketComm::HDLCPacketize(uint8_t flagcount)
+        {
+            if (!Wrap())
+            {
+                return false;
+            }
+            Ax25Handle axhandle;
+            axhandle.stuff(wrapped, flagcount);
+            packetized = axhandle.get_hdlc_packet();
             return true;
         }
 
@@ -175,29 +199,5 @@ namespace Cosmos {
 //            secret = secretnumber;
 //            return;
 //        }
-
-        // Thread-safe way of pushing onto the packet queue
-        int32_t PacketComm::PushQueue(queue<PacketComm> &queue, mutex &mtx)
-        {
-            std::lock_guard<mutex> lock(mtx);
-            queue.push(*this);
-            return 1;
-        }
-        // Thread-safe way of pulling from the packet queue
-        int32_t PacketComm::PullQueue(queue<PacketComm> &queue, mutex &mtx)
-        {
-            std::lock_guard<mutex> lock(mtx);
-            if (queue.size())
-            {
-                *this = queue.front();
-                queue.pop();
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
     }
 }

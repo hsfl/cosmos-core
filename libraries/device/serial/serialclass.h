@@ -66,7 +66,7 @@ namespace Cosmos {
         int32_t put_string(string data);
         int32_t put_data(vector <uint8_t> data);
         int32_t put_data(const uint8_t *data, size_t size);
-        int32_t put_slip(vector <uint8_t> data);
+        int32_t put_slip(const vector<uint8_t>& data);
         int32_t put_slip(const uint8_t *data, size_t size);
         int32_t put_nmea(vector <uint8_t> data);
         int32_t drain();
@@ -127,5 +127,5 @@ namespace Cosmos {
     };
 
 
-} // end of namepsace Cosmos
+} // end of namespace Cosmos
 #endif // SERIALCLASS_H

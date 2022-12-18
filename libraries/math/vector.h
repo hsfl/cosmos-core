@@ -492,7 +492,7 @@ struct qcomplex
 ::std::ostream& operator << (::std::ostream& out, const qcomplex& a);
 ::std::istream& operator >> (::std::istream& out, qcomplex& a);
 
-//! Quaternion, scalar last, using vector elements.
+//! Quaternion, scalar last, using std::vector elements.
 /*! Can be thought of as vector elements, q1, q2, q3, followed by
 * scalar q4.
 */
@@ -547,7 +547,7 @@ struct qlast
 ::std::ostream& operator << (::std::ostream& out, const qlast& a);
 ::std::istream& operator >> (::std::istream& out, qlast& a);
 
-//! Quaternion, scalar first using vector elements.
+//! Quaternion, scalar first using std::vector elements.
 /*! Can be thought of as scalar element, q0, followed by vector
 * elements, q1, q2, q3.
 */

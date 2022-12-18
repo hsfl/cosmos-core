@@ -31,6 +31,7 @@
         \brief Ephemeris library source file
 */
 
+#include <mutex>
 #include "support/ephemlib.h"
 #include "support/jpleph.h"
 #include "support/datalib.h"
@@ -41,7 +42,7 @@ namespace Cosmos {
 
         static void *jplephem = nullptr;
 
-        static std::mutex eph_mutex;
+        static mutex eph_mutex;
 
         //! \addtogroup ephemlib_functions
         //! @{

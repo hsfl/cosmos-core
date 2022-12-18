@@ -61,10 +61,10 @@ namespace Cosmos {
         //! \addtogroup convertlib_functions
         //! @{
 
-        //! Initialize ::locstruc.
+        //! Initialize ::Cosmos::Convert::locstruc.
         /*! Set entire structure to zero so that we can
  * properly propagate changes.
-    \param loc Pointer to ::locstruc that contains positions.
+    \param loc Pointer to ::Cosmos::Convert::locstruc that contains positions.
     attitudes.
 */
         int32_t loc_clear(locstruc *loc)
@@ -80,10 +80,10 @@ namespace Cosmos {
             return 0;
         }
 
-        //! Initialize ::posstruc.
+        //! Initialize ::Cosmos::Convert::posstruc.
         /*! Set entire structure to zero so that we can
  * properly propagate changes.
-    \param loc Pointer to ::locstruc that contains positions.
+    \param loc Pointer to ::Cosmos::Convert::locstruc that contains positions.
     attitudes.
 */
         int32_t pos_clear(locstruc *loc)
@@ -100,10 +100,10 @@ namespace Cosmos {
             return 0;
         }
 
-        //! Initialize ::attstruc.
+        //! Initialize ::Cosmos::Convert::attstruc.
         /*! Set entire structure to zero so that we can
  * properly propagate changes.
-    \param att Pointer to ::attstruc that contains attitudes.
+    \param att Pointer to ::Cosmos::Convert::attstruc that contains attitudes.
 */
         int32_t att_clear(attstruc &att)
         {
@@ -114,7 +114,7 @@ namespace Cosmos {
         //! Calculate Extra position information
         /*! Calculate things like sun position and insolation, and elements that are used in
  * conversion, like libration and J2000 rotation matrices.
-    \param loc ::locstruc with the current position and those to be updated.
+    \param loc ::Cosmos::Convert::locstruc with the current position and those to be updated.
 */
         int32_t pos_extra(double utc, locstruc *loc)
         {
@@ -180,8 +180,8 @@ namespace Cosmos {
 
         //! Set Barycentric position
         /*! Set the current time and position to whatever is in the Barycentric position of the
- * ::locstruc. Then propagate to all the other positions.
-    \param loc ::locstruc with the current position and those to be updated.
+ * ::Cosmos::Convert::locstruc. Then propagate to all the other positions.
+    \param loc ::Cosmos::Convert::locstruc with the current position and those to be updated.
 */
         int32_t pos_icrf(locstruc *loc)
         {
@@ -265,8 +265,8 @@ namespace Cosmos {
 
         //! Set ECI position
         /*! Set the current time and position to whatever is in the Earth Centered Inertial position of the
- * ::locstruc. Then propagate to all the other positions.
-    \param loc ::locstruc with the current position and those to be updated.
+ * ::Cosmos::Convert::locstruc. Then propagate to all the other positions.
+    \param loc ::Cosmos::Convert::locstruc with the current position and those to be updated.
 */
         int32_t pos_eci(locstruc *loc)
         {
@@ -308,8 +308,8 @@ namespace Cosmos {
 
         //! Set SCI position
         /*! Set the current time and position to whatever is in the Selene Centered Inertial position of the
- * ::locstruc. Then propagate to all the other positions.
-    \param loc ::locstruc with the current position and those to be updated.
+ * ::Cosmos::Convert::locstruc. Then propagate to all the other positions.
+    \param loc ::Cosmos::Convert::locstruc with the current position and those to be updated.
 */
         int32_t pos_sci(locstruc *loc)
         {
@@ -351,8 +351,8 @@ namespace Cosmos {
 
         //! Set Geocentric position
         /*! Set the current time and position to whatever is in the Geocentric position of the
- * ::locstruc. Then propagate to all the other positions.
-    \param loc ::locstruc with the current position and those to be updated.
+ * ::Cosmos::Convert::locstruc. Then propagate to all the other positions.
+    \param loc ::Cosmos::Convert::locstruc with the current position and those to be updated.
 */
         int32_t pos_geoc(locstruc *loc)
         {
@@ -402,8 +402,8 @@ namespace Cosmos {
 
         //! Set Selenocentric position
         /*! Set the current time and position to whatever is in the Selenocentric position of the
- * ::locstruc. Then propagate to all the other positions.
-    \param loc ::locstruc with the current position and those to be updated.
+ * ::Cosmos::Convert::locstruc. Then propagate to all the other positions.
+    \param loc ::Cosmos::Convert::locstruc with the current position and those to be updated.
 */
         int32_t pos_selc(locstruc *loc)
         {
@@ -447,8 +447,8 @@ namespace Cosmos {
 
         //! Set Selenographic position
         /*! Set the current time and position to whatever is in the Selenographic position of the
- * ::locstruc. Then propagate to all the other positions.
-    \param loc ::locstruc with the current position and those to be updated.
+ * ::Cosmos::Convert::locstruc. Then propagate to all the other positions.
+    \param loc ::Cosmos::Convert::locstruc with the current position and those to be updated.
 */
         int32_t pos_selg(locstruc *loc)
         {
@@ -482,8 +482,8 @@ namespace Cosmos {
 
         //! Set Geographic position
         /*! Set the current time and position to whatever is in the Geographic position of the
- * ::locstruc. Then propagate to all the other positions.
-    \param loc ::locstruc with the current position and those to be updated.
+ * ::Cosmos::Convert::locstruc. Then propagate to all the other positions.
+    \param loc ::Cosmos::Convert::locstruc with the current position and those to be updated.
 */
         int32_t pos_geos(locstruc *loc)
         {
@@ -517,8 +517,8 @@ namespace Cosmos {
 
         //! Set Geodetic position
         /*! Set the current time and position to whatever is in the Geodetic position of the
- * ::locstruc. Then propagate to all the other positions.
-    \param loc ::locstruc with the current position and those to be updated.
+ * ::Cosmos::Convert::locstruc. Then propagate to all the other positions.
+    \param loc ::Cosmos::Convert::locstruc with the current position and those to be updated.
 */
         int32_t pos_geod(locstruc *loc)
         {
@@ -555,9 +555,9 @@ namespace Cosmos {
         }
 
         //! Convert Barycentric to ECI
-        /*! Propagate the position found in the Barycentric slot of the supplied ::locstruc to
+        /*! Propagate the position found in the Barycentric slot of the supplied ::Cosmos::Convert::locstruc to
  * the Earth Centered Inertial slot, performing all relevant updates.
-    \param loc Working ::locstruc
+    \param loc Working ::Cosmos::Convert::locstruc
 */
         int32_t pos_icrf2eci(locstruc *loc)
         {
@@ -596,9 +596,9 @@ namespace Cosmos {
         }
 
         //! Convert ECI to Barycentric
-        /*! Propagate the position found in the Earth Centered Inertial slot of the supplied ::locstruc to
+        /*! Propagate the position found in the Earth Centered Inertial slot of the supplied ::Cosmos::Convert::locstruc to
  * the Barycentric slot, performing all relevant updates.
-    \param loc Working ::locstruc
+    \param loc Working ::Cosmos::Convert::locstruc
 */
         int32_t pos_eci2icrf(locstruc *loc)
         {
@@ -635,9 +635,9 @@ namespace Cosmos {
         }
 
         //! Convert Barycentric to SCI
-        /*! Propagate the position found in the Barycentric slot of the supplied ::locstruc to
+        /*! Propagate the position found in the Barycentric slot of the supplied ::Cosmos::Convert::locstruc to
  * the Selene Centered Inertial slot, performing all relevant updates.
-    \param loc Working ::locstruc
+    \param loc Working ::Cosmos::Convert::locstruc
 */
         int32_t pos_icrf2sci(locstruc *loc)
         {
@@ -677,9 +677,9 @@ namespace Cosmos {
         }
 
         //! Convert SCI to Barycentric
-        /*! Propagate the position found in the Selene Centered Inertial slot of the supplied ::locstruc to
+        /*! Propagate the position found in the Selene Centered Inertial slot of the supplied ::Cosmos::Convert::locstruc to
  * the Barycentric slot, performing all relevant updates.
-    \param loc Working ::locstruc
+    \param loc Working ::Cosmos::Convert::locstruc
 */
         int32_t pos_sci2icrf(locstruc *loc)
         {
@@ -717,9 +717,9 @@ namespace Cosmos {
         }
 
         //! Convert ECI to GEOC
-        /*! Propagate the position found in the Earth Centered Inertial slot of the supplied ::locstruc to
+        /*! Propagate the position found in the Earth Centered Inertial slot of the supplied ::Cosmos::Convert::locstruc to
  * the Geocentric slot, performing all relevant updates.
-    \param loc Working ::locstruc
+    \param loc Working ::Cosmos::Convert::locstruc
 */
         int32_t pos_eci2geoc(locstruc *loc)
         {
@@ -797,9 +797,9 @@ namespace Cosmos {
         }
 
         //! Convert GEOC to ECI
-        /*! Propagate the position found in the Geocentric slot of the supplied ::locstruc to
+        /*! Propagate the position found in the Geocentric slot of the supplied ::Cosmos::Convert::locstruc to
  * the Earth Centered Inertial slot, performing all relevant updates.
-    \param loc Working ::locstruc
+    \param loc Working ::Cosmos::Convert::locstruc
 */
         int32_t pos_geoc2eci(locstruc *loc)
         {
@@ -871,8 +871,8 @@ namespace Cosmos {
         }
 
         //! Convert GEOC to GEOS
-        /*! Convert a Geocentric ::cartpos to a Geographic ::spherpos.
-    \param loc ::locstruc containing position.
+        /*! Convert a Geocentric ::Cosmos::Convert::cartpos to a Geographic ::Cosmos::Convert::spherpos.
+    \param loc ::Cosmos::Convert::locstruc containing position.
 */
         int32_t pos_geoc2geos(locstruc *loc)
         {
@@ -931,8 +931,8 @@ namespace Cosmos {
         }
 
         //! Convert GEOS to GEOC
-        /*! Convert a Geographic ::spherpos to a Geocentric ::cartpos.
-    \param loc ::locstruc containing position.
+        /*! Convert a Geographic ::Cosmos::Convert::spherpos to a Geocentric ::Cosmos::Convert::cartpos.
+    \param loc ::Cosmos::Convert::locstruc containing position.
 */
         int32_t pos_geos2geoc(locstruc *loc)
         {
@@ -983,7 +983,7 @@ namespace Cosmos {
         }
 
         //! Convert GEOC to GEOD
-        /*! Convert a Geocentric ::cartpos to a Geodetic ::geoidpos.
+        /*! Convert a Geocentric ::Cosmos::Convert::cartpos to a Geodetic ::Cosmos::Convert::geoidpos.
     \param geoc Source Geocentric position.
     \param geod Destination Geodetic position.
 */
@@ -1046,8 +1046,8 @@ namespace Cosmos {
         }
 
         //! Update locstruc GEOC to GEOD
-        /*! Convert a Geocentric ::cartpos to a Geodetic ::geoidpos in the provided locstruc.
-    \param loc ::locstruc to be updated.
+        /*! Convert a Geocentric ::Cosmos::Convert::cartpos to a Geodetic ::Cosmos::Convert::geoidpos in the provided locstruc.
+    \param loc ::Cosmos::Convert::locstruc to be updated.
 */
         int32_t pos_geoc2geod(locstruc *loc)
         {
@@ -1088,7 +1088,7 @@ namespace Cosmos {
         }
 
         //! Convert GEOD to GEOC
-        /*! Convert a Geodetic ::geoidpos to a Geocentric ::cartpos.
+        /*! Convert a Geodetic ::Cosmos::Convert::geoidpos to a Geocentric ::Cosmos::Convert::cartpos.
     \param geod Source Geodetic position.
     \param geoc Destination Geocentric position.
 */
@@ -1124,8 +1124,8 @@ namespace Cosmos {
         }
 
         //! Update GEOD to GEOC in locstruc
-        /*! Update the Geodetic ::geoidpos to a Geocentric ::cartpos in the provided locstruc.
-    \param loc ::locstruc to be updated.
+        /*! Update the Geodetic ::Cosmos::Convert::geoidpos to a Geocentric ::Cosmos::Convert::cartpos in the provided locstruc.
+    \param loc ::Cosmos::Convert::locstruc to be updated.
 */
         int32_t pos_geod2geoc(locstruc *loc)
         {
@@ -1160,9 +1160,9 @@ namespace Cosmos {
         }
 
         //! Convert SCI to SELC
-        /*! Propagate the position found in the Selene Centered Inertial slot of the supplied ::locstruc to
+        /*! Propagate the position found in the Selene Centered Inertial slot of the supplied ::Cosmos::Convert::locstruc to
  * the Selenocentric slot, performing all relevant updates.
-    \param loc Working ::locstruc
+    \param loc Working ::Cosmos::Convert::locstruc
 */
         int32_t pos_sci2selc(locstruc *loc)
         {
@@ -1238,9 +1238,9 @@ namespace Cosmos {
         }
 
         //! Convert SELC to SCI
-        /*! Propagate the position found in the Selenocentric slot of the supplied ::locstruc to
+        /*! Propagate the position found in the Selenocentric slot of the supplied ::Cosmos::Convert::locstruc to
  * the Selene Centered Inertial slot, performing all relevant updates.
-    \param loc Working ::locstruc
+    \param loc Working ::Cosmos::Convert::locstruc
 */
         int32_t pos_selc2sci(locstruc *loc)
         {
@@ -1297,9 +1297,9 @@ namespace Cosmos {
         }
 
         //! Convert SELC to SELG
-        /*! Propagate the position found in the Selenocentric slot of the supplied ::locstruc to
+        /*! Propagate the position found in the Selenocentric slot of the supplied ::Cosmos::Convert::locstruc to
  * the Selenographic slot, performing all relevant updates.
-    \param loc Working ::locstruc
+    \param loc Working ::Cosmos::Convert::locstruc
 */
         int32_t pos_selc2selg(locstruc *loc)
         {
@@ -1404,7 +1404,7 @@ namespace Cosmos {
         //! Calculate Extra attitude information
         /*! Calculate things like conversion matrix for ICRF to Body and Body to
  * ICRF.
-    \param loc ::locstruc with the current location and those to be updated.
+    \param loc ::Cosmos::Convert::locstruc with the current location and those to be updated.
 */
         int32_t att_extra(locstruc *loc)
         {
@@ -2393,7 +2393,7 @@ namespace Cosmos {
         /*! Work through provided location structure, first identifying the
 frame that is most up to date, then updating all other frames to
 match.
-    \param loc ::locstruc to be synchronized
+    \param loc ::Cosmos::Convert::locstruc to be synchronized
 */
         int32_t loc_update(locstruc *loc)
         {
@@ -3286,12 +3286,33 @@ match.
             return 0;
         }
 
+        //! Geodetic to Separation
+        //! Calculate the separation distance between two geodetic positions.
+        //! \param src Starting position
+        //! \param dst Target position
+        //! \param sep Reference to distance between the two
+        int32_t geod2sep(gvector src, gvector dst, double &sep)
+        {
+//            sep = acos( sin(src.lat) * sin(dst.lat) + cos(src.lat) * cos(dst.lat) * cos(dst.lat - src.lat) ) * REARTHM;
+            sep = geod2sep(src, dst);
+            return 0;
+        }
+
+        double geod2sep(gvector src, gvector dst)
+        {
+            double dphi = dst.lon - src.lon;
+            double dlambda = dst.lat - src.lat;
+            double a = sin(dphi / 2.) * sin(dphi / 2.) + cos(src.lat) * cos(dst.lat) * sin(dlambda / 2.);
+            double c = 2 * atan2(sqrt(a), sqrt(1-a));
+            return REARTHM * c;
+        }
+
         //! Return position from TLE set
         /*! Find the TLE closest to, but not exceeding the provided utc, then
  * return the position in ECI coordinates.
     \param utc Coordinated Universal Time in Modified Julian Days.
     \param lines Vector of TLE's.
-    \param eci Pointer to ::cartpos in ECI frame.
+    \param eci Pointer to ::Cosmos::Convert::cartpos in ECI frame.
     */
         int lines2eci(double utc, vector<tlestruc>lines, cartpos &eci)
         {
@@ -3321,8 +3342,8 @@ match.
         /**
 * SGP4 propagator algoritm
 * @param utc Specified time as Modified Julian Date
-* @param tle Two Line Element structure, given as pointer to a ::tlestruc
-* @param pos_teme result from SGP4 algorithm is a cartesian state given in TEME frame, as pointer to a ::cartpos
+* @param tle Two Line Element structure, given as pointer to a ::Cosmos::Convert::tlestruc
+* @param pos_teme result from SGP4 algorithm is a cartesian state given in TEME frame, as pointer to a ::Cosmos::Convert::cartpos
 */
         int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
         {
@@ -3576,7 +3597,7 @@ match.
             return y;
         }
 
-        int32_t rv2tle(double utc, cartpos eci, tlestruc &tle)
+        int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
         {
             // ICRF to Mean of Data (undo Precession)
             rmatrix bm;
@@ -3601,7 +3622,7 @@ match.
             eci.s = rv_mmult(sm,eci.s);
             eci.v = rv_mmult(sm,eci.v);
 
-            //            function [e, mm, ma, i, ap, raan] = rv2tle(reci, veci)
+            //            function [e, mm, ma, i, ap, raan] = eci2tle(reci, veci)
             //            % convert osculating position and velocity vectors
             //            % to components of two line element set (TLE)
             //            % input
@@ -3836,56 +3857,56 @@ match.
         //! TLE from ECI
         /*! Convert an ECI state vector into an SGP4 TLE
  * \param utc UTC time of ECI State Vector and TLE
- * \param eci State Vector to convert, stored as ::cartpos
- * \param tle Two Line Element, stored as ::tlestruc
+ * \param eci State Vector to convert, stored as ::Cosmos::Convert::cartpos
+ * \param tle Two Line Element, stored as ::Cosmos::Convert::tlestruc
  */
-        int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
-        {
-            // ICRF to Mean of Data (undo Precession)
-            rmatrix bm;
-            gcrf2j2000(&bm);
-            eci.s = rv_mmult(bm,eci.s);
-            eci.v = rv_mmult(bm,eci.v);
+//        int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
+//        {
+//            // ICRF to Mean of Data (undo Precession)
+//            rmatrix bm;
+//            gcrf2j2000(&bm);
+//            eci.s = rv_mmult(bm,eci.s);
+//            eci.v = rv_mmult(bm,eci.v);
 
-            rmatrix pm;
-            j20002mean(utc,&pm);
-            eci.s = rv_mmult(pm,eci.s);
-            eci.v = rv_mmult(pm,eci.v);
+//            rmatrix pm;
+//            j20002mean(utc,&pm);
+//            eci.s = rv_mmult(pm,eci.s);
+//            eci.v = rv_mmult(pm,eci.v);
 
-            // Mean of Date to True of Date (undo Nutation)
-            rmatrix nm;
-            mean2true(utc,&nm);
-            eci.s = rv_mmult(nm,eci.s);
-            eci.v = rv_mmult(nm,eci.v);
+//            // Mean of Date to True of Date (undo Nutation)
+//            rmatrix nm;
+//            mean2true(utc,&nm);
+//            eci.s = rv_mmult(nm,eci.s);
+//            eci.v = rv_mmult(nm,eci.v);
 
-            // True of Date to Uniform of Date (undo Equation of Equinoxes)
-            rmatrix sm;
-            true2teme(utc, &sm);
-            eci.s = rv_mmult(sm,eci.s);
-            eci.v = rv_mmult(sm,eci.v);
+//            // True of Date to Uniform of Date (undo Equation of Equinoxes)
+//            rmatrix sm;
+//            true2teme(utc, &sm);
+//            eci.s = rv_mmult(sm,eci.s);
+//            eci.v = rv_mmult(sm,eci.v);
 
-            // Convert to Keplerian Elements
-            kepstruc kep;
-            eci2kep(eci, kep);
+//            // Convert to Keplerian Elements
+//            kepstruc kep;
+//            eci2kep(eci, kep);
 
-            // Store in relevant parts of TLE
-            tle.orbit = 0;
-            tle.ap = kep.ap;
-            tle.e = kep.e;
-            tle.i = kep.i;
-            tle.ma = kep.ma;
-            tle.mm = kep.mm * 60.; // Keplerian in SI units (radians / seconds), convert to radians / minute.
-            tle.raan = kep.raan;
-            tle.utc = utc;
+//            // Store in relevant parts of TLE
+//            tle.orbit = 0;
+//            tle.ap = kep.ap;
+//            tle.e = kep.e;
+//            tle.i = kep.i;
+//            tle.ma = kep.ma;
+//            tle.mm = kep.mm * 60.; // Keplerian in SI units (radians / seconds), convert to radians / minute.
+//            tle.raan = kep.raan;
+//            tle.utc = utc;
 
-            return 0;
-        }
+//            return 0;
+//        }
 
         /**
 * Convert a Two Line Element into a location at the specified time.
 * @param utc Specified time as Modified Julian Date
-* @param tle Two Line Element, given as pointer to a ::tlestruc
-* @param eci Converted location, given as pointer to a ::cartpos
+* @param tle Two Line Element, given as pointer to a ::Cosmos::Convert::tlestruc
+* @param eci Converted location, given as pointer to a ::Cosmos::Convert::cartpos
 */
         int tle2eci(double utc, tlestruc tle, cartpos &eci)
         {
@@ -3925,7 +3946,7 @@ match.
         }
 
         //! Get TLE from array of TLE's
-        /*! Return the indexed entry from an array of ::tlestruc. If the
+        /*! Return the indexed entry from an array of ::Cosmos::Convert::tlestruc. If the
  * index is larger than the size of the array, an empty TLE with time
  * set to zero is returned.
     \param index Index into the array.
@@ -4029,7 +4050,7 @@ match.
         /*!
 * Load Two Line Element file into array of TLE's
 * \param fname Name of file containing elements
-* \param lines Array of ::tlestruc structures to contain elements
+* \param lines Array of ::Cosmos::Convert::tlestruc structures to contain elements
 * \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
 */
         int32_t load_lines(string fname, vector<tlestruc>& lines)
@@ -4131,7 +4152,7 @@ match.
 
         /*! Load Two Line Element file for multiple satellites into array of TLE's
 * \param fname Name of file containing elements
-* \param lines Array of ::tlestruc structures to contain elements
+* \param lines Array of ::Cosmos::Convert::tlestruc structures to contain elements
 * \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
 */
         int32_t load_lines_multi(string fname, vector<tlestruc>& lines)

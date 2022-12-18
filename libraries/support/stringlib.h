@@ -49,21 +49,28 @@
 //! \defgroup stringlib_functions String handling functions
 //! @{
 
-vector < string > string_split(string in, string delimeters=" \t,");
+vector < string > string_split(string in, string delimeters=" \t,", bool multi=true);
 uint16_t string_parse(char *string, char *word[], uint16_t size);
+string string_replace(string str, const string from, const string to);
 int string_cmp(const char *wild, const char *string);
-string to_hex_string(vector <uint8_t> buffer, bool ascii=false);
-vector<uint8_t> from_hex_string(string hex);
-vector<uint8_t> from_hex_vector(vector<uint8_t> hex);
+string to_hex_string(const vector<uint8_t> &buffer, bool ascii=false, uint16_t start=0);
+string to_hex_string(uint8_t* buffer, uint16_t size, bool ascii=false, uint16_t start=0);
+vector<uint8_t> from_hex_string(string& hex);
+vector<uint8_t> from_hex_vector(vector<uint8_t>& hex);
 string to_astring(vector<uint8_t> buf, bool hex=true);
 string to_astring(string buf, bool hex=false);
 string to_astring(char *value, size_t length, bool hex=false);
+// These two assume all bytes are ASCII characters
+string to_string(const vector<uint8_t>& buf);
+vector<uint8_t> to_bytes(const string &buf);
 // These next three are intentionally NOT (u)int64_t, as that does not always carry cleanly to 32 bit systems.
 // size_t and ptrdiff_t will map to the largest integer the system actually knows how to deal with.
 #if ((SIZE_WIDTH) == (UINT64_WIDTH))
+string to_binary(uint64_t value, uint16_t digits=0, bool zerofill=false);
 string to_hex(uint64_t value, uint16_t digits=0, bool zerofill=false);
 string to_unsigned(uint64_t value, uint16_t digits=0, bool zerofill=false);
 #else
+string to_binary(size_t value, uint16_t digits=0, bool zerofill=false);
 string to_hex(size_t value, uint16_t digits=0, bool zerofill=false);
 string to_unsigned(size_t value, uint16_t digits=0, bool zerofill=false);
 #endif
@@ -82,9 +89,10 @@ string to_floatany(double value, uint16_t precision=0);
 string to_mjd(double value);
 string to_temperature(double value, char units='K', uint8_t precision=4);
 string to_angle(double value, char units='R', uint8_t precision=4);
-string to_bool(bool value);
+string to_bool(bool value, char type='y');
 string to_unixtime(double mjd, uint8_t precision=0);
 string to_datename(double mjd);
+string to_iso8601(double mjd);
 
 string to_json(string key, string value);
 string to_json(string key, double value);

@@ -370,7 +370,7 @@ namespace Cosmos
         }
 
 
-        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, vector<Convert::tlestruc> lines, double utc)
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::tlestruc tle, double utc)
         {
             dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
             dtj = dt / 86400.;
@@ -379,14 +379,8 @@ namespace Cosmos
             currentinfo.node.name = name;
             currentinfo.node.agent = "sim";
             currentinfo.node.loc.utc = utc;
-            if (lines.size())
-            {
-                lines2eci(currentinfo.node.loc.utc, lines, currentinfo.node.loc.pos.eci);
-                tle = lines;
-            }
-            else {
-                return GENERAL_ERROR_POSITION;
-            }
+            Convert::tle2eci(currentinfo.node.loc.utc, tle, currentinfo.node.loc.pos.eci);
+            this->tle = tle;
 
             structure = new Structure(&currentinfo.node.phys);
             structure->Setup(stype);
@@ -408,18 +402,17 @@ namespace Cosmos
                 gjposition = new GaussJacksonPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 6);
                 dt = gjposition->dt;
                 dtj = gjposition->dtj;
-                if (tle.size())
-                {
-                    gjposition->Init(tle);
-                }
-                else {
-                    gjposition->Init();
-                }
+                gjposition->Init(tle);
                 break;
             case Propagator::Type::PositionGeo:
                 geoposition = new GeoPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 dt = geoposition->dt;
                 dtj = geoposition->dtj;
+                break;
+            case Propagator::Type::PositionTle:
+                tleposition = new TlePositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                dt = tleposition->dt;
+                dtj = tleposition->dtj;
                 break;
             default:
                 inposition = new InertialPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
@@ -587,6 +580,10 @@ namespace Cosmos
                 geoposition = new GeoPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 geoposition->Init();
                 break;
+            case Propagator::Type::PositionTle:
+                tleposition = new TlePositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+                tleposition->Init();
+                break;
             default:
                 inposition = new InertialPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
                 inposition->Init();
@@ -729,6 +726,9 @@ namespace Cosmos
                 case Propagator::Type::PositionGeo:
                     static_cast<GeoPositionPropagator *>(geoposition)->Propagate(nextutc);
                     break;
+                case Propagator::Type::PositionTle:
+                    static_cast<TlePositionPropagator *>(tleposition)->Propagate(nextutc);
+                    break;
                 default:
                     break;
                 }
@@ -868,12 +868,13 @@ namespace Cosmos
             return iretn;
         }
 
-        int32_t State::AddTarget(std::string name, Convert::locstruc loc, uint16_t type, gvector size)
+        int32_t State::AddTarget(std::string name, Convert::locstruc loc, NODE_TYPE type, gvector size)
         {
             targetstruc ttarget;
             ttarget.type = type;
             ttarget.name = name;
             ttarget.cloc = loc;
+            ttarget.area = 0.;
             ttarget.size = size;
             ttarget.loc = loc;
 
@@ -881,7 +882,21 @@ namespace Cosmos
             return targets.size();
         }
 
-        int32_t State::AddTarget(string name, double lat, double lon, double alt, uint16_t type)
+        int32_t State::AddTarget(std::string name, Convert::locstruc loc, NODE_TYPE type, double area)
+        {
+            targetstruc ttarget;
+            ttarget.type = type;
+            ttarget.name = name;
+            ttarget.cloc = loc;
+            ttarget.size = gvector();
+            ttarget.area  = area;
+            ttarget.loc = loc;
+
+            targets.push_back(ttarget);
+            return targets.size();
+        }
+
+        int32_t State::AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type)
         {
             Convert::locstruc loc;
             loc.pos.geod.pass = 1;
@@ -893,23 +908,24 @@ namespace Cosmos
             loc.pos.geod.a = gv_zero();
             loc.pos.geod.pass++;
             Convert::pos_geod(loc);
-            return AddTarget(name, loc, type);
+            return AddTarget(name, loc, type, area);
         }
 
-        int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, uint16_t type)
+        int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type)
         {
             Convert::locstruc loc;
             loc.pos.geod.pass = 1;
             loc.pos.geod.utc = currentinfo.node.utc;
             loc.pos.geod.s.lat = (ullat + lrlat) / 2.;
             loc.pos.geod.s.lon = (ullon + lrlon) / 2.;
-            loc.pos.geod.s.h = 0.;
+            loc.pos.geod.s.h = alt;
             loc.pos.geod.v = gv_zero();
             loc.pos.geod.a = gv_zero();
-            gvector size(ullat-lrlat, lrlon-ullon, 0.);
+//            gvector size(ullat-lrlat, lrlon-ullon, 0.);
             loc.pos.geod.pass++;
             Convert::pos_geod(loc);
-            return AddTarget(name, loc, type, size);
+            double area = (ullat-lrlat) * (cos(lrlon) * lrlon - cos(ullon) * ullon) * REARTHM * REARTHM;
+            return AddTarget(name, loc, type, area);
         }
 
         int32_t InertialAttitudePropagator::Init()
@@ -1362,6 +1378,52 @@ namespace Cosmos
             return 0;
         }
 
+        int32_t TlePositionPropagator::Init(Convert::tlestruc tle)
+        {
+            this->tle = tle;
+            Convert::tle2eci(currentutc, tle, currentloc->pos.eci);
+            currentloc->pos.eci.pass++;
+            PosAccel(currentloc, currentphys);
+            Convert::pos_eci(currentloc);
+
+            return 0;
+        }
+
+        int32_t TlePositionPropagator::Init()
+        {
+            Convert::eci2tle(currentutc, currentloc->pos.eci, tle);
+            PosAccel(currentloc, currentphys);
+
+            return 0;
+        }
+
+        int32_t TlePositionPropagator::Reset(double nextutc)
+        {
+            currentloc->pos = initialloc.pos;
+            currentutc = currentloc->pos.utc;
+            Propagate(nextutc);
+
+            return 0;
+        }
+
+        int32_t TlePositionPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            while ((nextutc - currentutc) > dtj / 2.)
+            {
+                currentutc += dtj;
+                Convert::tle2eci(currentutc, tle, currentloc->pos.eci);
+                currentloc->pos.eci.pass++;
+                PosAccel(currentloc, currentphys);
+                Convert::pos_eci(currentloc);
+            }
+
+            return 0;
+        }
+
         int32_t GaussJacksonPositionPropagator::Setup()
         {
             step.resize(order+2);
@@ -1488,12 +1550,12 @@ namespace Cosmos
             return 0;
         }
 
-        int32_t GaussJacksonPositionPropagator::Init(vector<Convert::tlestruc>lines)
+        int32_t GaussJacksonPositionPropagator::Init(Convert::tlestruc tle)
         {
             int32_t iretn = 0;
 
-            loc_clear(step[order+1].loc);
-            lines2eci(currentloc->utc, lines, currentloc->pos.eci);
+            Convert::loc_clear(step[order+1].loc);
+            Convert::tle2eci(currentloc->utc, tle, currentloc->pos.eci);
             ++currentloc->pos.eci.pass;
             Convert::pos_eci(currentloc);
             PosAccel(currentloc, currentphys);
@@ -1505,7 +1567,7 @@ namespace Cosmos
             {
                 step[i].loc = step[i+1].loc;
                 step[i].loc.utc -= dtj;
-                lines2eci(step[i].loc.utc, lines, step[i].loc.pos.eci);
+                Convert::tle2eci(step[i].loc.utc, tle, step[i].loc.pos.eci);
                 step[i].loc.pos.eci.pass++;
                 Convert::pos_eci(step[i].loc);
 
@@ -1521,7 +1583,7 @@ namespace Cosmos
                 step[i].loc = step[i-1].loc;
 
                 step[i].loc.utc += dtj;
-                lines2eci(step[i].loc.utc, lines, step[i].loc.pos.eci);
+                Convert::tle2eci(step[i].loc.utc, tle, step[i].loc.pos.eci);
                 step[i].loc.pos.eci.pass++;
                 Convert::pos_eci(step[i].loc);
 

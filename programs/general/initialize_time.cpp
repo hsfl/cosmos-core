@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
         {
             double delta = set_local_clock(currentmjd() + offset);
             printf("Initialized time from server: Delta %f Offset %f\n", delta, offset*86400.);
-            FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_date").c_str(), "w");
+            FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/last_date").c_str(), "w");
             if (fp)
             {
                 calstruc date = mjd2cal(currentmjd());
@@ -70,17 +70,17 @@ int main(int argc, char *argv[])
     }
     else
     {
-        FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_date").c_str(), "r");
+        FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/last_date").c_str(), "r");
         if (fp != nullptr)
         {
             calstruc date;
             int32_t offset = 0;
-            fscanf(fp, "%02d%02d%02d%02d%04d%*c%02d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year, &date.second);
+            iretn = fscanf(fp, "%02d%02d%02d%02d%04d%*c%02d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year, &date.second);
             fclose(fp);
-            fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_offset").c_str(), "r");
+            fp = fopen((get_cosmosnodes() + agent->nodeName + "/last_offset").c_str(), "r");
             if (fp != nullptr)
             {
-                fscanf(fp, "%d", &offset);
+                iretn = fscanf(fp, "%d", &offset);
             }
             date.second += offset;
             double delta = cal2mjd(date) -  currentmjd();

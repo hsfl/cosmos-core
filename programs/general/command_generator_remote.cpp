@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
         cout << "Adding command/event to node directory:" << outgoing_dir << endl;
 
         // write command string to file in outgoing_dir
-        string outfilename = data_name(node, currentmjd(),"","command");
+        string outfilename = data_name(currentmjd(), "", node, "command");
         ofstream cmdfile;
         cmdfile.open(outgoing_dir + outfilename);
         cmdfile << event;

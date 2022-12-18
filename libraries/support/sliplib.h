@@ -39,7 +39,7 @@
 //! A library providing support functions for the COSMOS specific SLIP protocol.
 
 
-#include "support/configCosmos.h"
+#include "support/configCosmosKernel.h"
 
 #include "support/cosmos-errno.h"
 #include <cstring>
@@ -74,23 +74,18 @@
 //! \defgroup sliplib_functions COSMOS SLIP support functions
 //! @{
 
-int32_t slip_check_crc(uint8_t *sbuf, uint16_t ssize);
 int32_t slip_unpack(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize);
 int32_t slip_decode(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize);
 int32_t slip_pack(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize);
 int32_t slip_encode(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize);
-uint16_t slip_calc_crc(uint8_t *buf, uint16_t size);
-uint16_t slip_get_crc(uint8_t *buf, uint16_t size);
-uint16_t slip_set_crc(uint8_t *buf, uint16_t size);
-int32_t slip_check_crc(vector<uint8_t> &sbuf);
 int32_t slip_unpack(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf);
 int32_t slip_decode(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf);
 int32_t slip_pack(vector<uint8_t> &rbuf, vector<uint8_t> &sbuf);
 int32_t slip_encode(vector<uint8_t> &rbuf, vector<uint8_t> &sbuf);
-uint16_t slip_calc_crc(vector<uint8_t> &buf);
-uint16_t slip_get_crc(vector<uint8_t> &buf);
-uint16_t slip_set_crc(vector<uint8_t> &buf);
 int32_t slip_extract(FILE *fp, vector<uint8_t> &buf);
+uint16_t slip_calc_crc(uint8_t *buf, uint16_t size);
+uint16_t slip_calc_crc(vector<uint8_t> &buf);
+
 
 //! @}
 

@@ -30,8 +30,11 @@
 #ifndef _GIGE_H
 #define _GIGE_H 1
 
+#include <mutex>
+#include <thread>
 #include "support/configCosmos.h"
 #include "support/socketlib.h"
+#include "math/bytelib.h"
 #include "math/vector.h"
 using namespace Cosmos::Math::Vectors;
 

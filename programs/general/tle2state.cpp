@@ -35,7 +35,7 @@
 int main(int argc, char *argv[])
 {
     Convert::cartpos eci;
-    std::vector <Convert::tlestruc> tle;
+    vector <Convert::tlestruc> tle;
     double utc = 0.;
     string tlename;
 

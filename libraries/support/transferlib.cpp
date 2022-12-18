@@ -1,619 +1,490 @@
-/********************************************************************
-* Copyright (C) 2015 by Interstel Technologies, Inc.
-*   and Hawaii Space Flight Laboratory.
-*
-* This file is part of the COSMOS/core that is the central
-* module for COSMOS. For more information on COSMOS go to
-* <http://cosmos-project.com>
-*
-* The COSMOS/core software is licenced under the
-* GNU Lesser General Public License (LGPL) version 3 licence.
-*
-* You should have received a copy of the
-* GNU Lesser General Public License
-* If not, go to <http://www.gnu.org/licenses/>
-*
-* COSMOS/core is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public License
-* as published by the Free Software Foundation, either version 3 of
-* the License, or (at your option) any later version.
-*
-* COSMOS/core is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* Refer to the "licences" folder for further information on the
-* condititons and terms to use this software.
-********************************************************************/
-
 #include "support/transferlib.h"
-#include "support/timelib.h"
-#include <iostream>
-#include <sys/stat.h>
 
-//#define DA_BUG
-
-//using namespace PACKET_TYPE;
-
-//bool IS_MESSAGE(const unsigned char P_TYPE)	{ return P_TYPE & PACKET_MESSAGE; }
-//bool IS_REQUEST(const unsigned char P_TYPE) { return P_TYPE & PACKET_REQUEST; }
-bool IS_METADATA(const unsigned char P_TYPE){ return (((P_TYPE & 0x0f) & PACKET_METADATA) != 0); }
-bool IS_DATA(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_DATA) != 0); }
-bool IS_REQDATA(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_REQDATA) != 0); }
-bool IS_REQMETA(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_REQMETA) != 0); }
-bool IS_COMPLETE(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_COMPLETE) != 0); }
-bool IS_CANCEL(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_CANCEL) != 0); }
-bool IS_QUEUE(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_QUEUE) != 0); }
-
-/** the Node ID lookup table */
-static vector <string> nodeids;
-//uint8_t lookup_node_id(PACKET_NODE_ID_TYPE node_id);
-//uint8_t lookup_node_id(string node_name);
-
-void make_complete_packet(vector<PACKET_BYTE>& packet, packet_struct_complete complete)
-{
-    make_complete_packet(packet, complete.node_id, complete.tx_id);
-}
-
-void make_complete_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
-{
-    PACKET_TYPE type = salt_type(PACKET_COMPLETE);
-
-    packet.resize(PACKET_COMPLETE_OFFSET_TOTAL);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
-    memmove(&packet[0]+PACKET_COMPLETE_OFFSET_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
-    memmove(&packet[0]+PACKET_COMPLETE_OFFSET_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
-    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
-}
-
-void extract_complete(vector<PACKET_BYTE>& packet, packet_struct_complete &complete)
-{
-    extract_complete(packet, complete.node_id, complete.tx_id);
-}
-
-void extract_complete(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE &tx_id)
-{
-    memmove(&node_id, &packet[0]+PACKET_COMPLETE_OFFSET_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
-    memmove(&tx_id, &packet[0]+PACKET_COMPLETE_OFFSET_TX_ID, sizeof(PACKET_TX_ID_TYPE));
-}
-
-void make_cancel_packet(vector<PACKET_BYTE>& packet, packet_struct_cancel cancel)
-{
-    make_cancel_packet(packet, cancel.node_id, cancel.tx_id);
-}
-
-void make_cancel_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
-{
-    PACKET_TYPE type = salt_type(PACKET_CANCEL);
-
-    packet.resize(PACKET_CANCEL_OFFSET_TOTAL);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
-    memmove(&packet[0]+PACKET_CANCEL_OFFSET_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
-    memmove(&packet[0]+PACKET_CANCEL_OFFSET_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
-    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
-}
-
-void extract_cancel(vector<PACKET_BYTE>& packet, packet_struct_cancel &cancel)
-{
-    extract_cancel(packet, cancel.node_id, cancel.tx_id);
-}
-
-void extract_cancel(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE &tx_id)
-{
-    memmove(&node_id, &packet[0]+PACKET_CANCEL_OFFSET_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
-    memmove(&tx_id, &packet[0]+PACKET_CANCEL_OFFSET_TX_ID, sizeof(PACKET_TX_ID_TYPE));
-}
-
-void make_reqmeta_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta)
-{
-    PACKET_TYPE type = salt_type(PACKET_REQMETA);
-
-    packet.resize(PACKET_REQMETA_OFFSET_TOTAL);
-    memset(&packet[0], 0, PACKET_REQMETA_OFFSET_TOTAL);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, COSMOS_SIZEOF(PACKET_TYPE));
-    memmove(&packet[0]+PACKET_REQMETA_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-    memmove(&packet[0]+PACKET_REQMETA_OFFSET_NODE_NAME, node_name.c_str(), node_name.size());
-    memmove(&packet[0]+PACKET_REQMETA_OFFSET_TX_ID, &reqmeta[0], COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
-    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
-}
-
-void extract_reqmeta(vector<PACKET_BYTE>& packet, packet_struct_reqmeta& reqmeta)
-{
-    memmove(&reqmeta.node_id, &packet[0]+PACKET_REQMETA_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-    memmove(&reqmeta.node_name, &packet[0]+PACKET_REQMETA_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
-    memmove(&reqmeta.tx_id, &packet[0]+PACKET_REQMETA_OFFSET_TX_ID, COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
-}
-
-void make_reqdata_packet(vector<PACKET_BYTE>& packet, packet_struct_reqdata reqdata)
-{
-    make_reqdata_packet(packet, reqdata.node_id, reqdata.tx_id, reqdata.hole_start, reqdata.hole_end);
-}
-
-void make_reqdata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end)
-{
-    PACKET_TYPE type = salt_type(PACKET_REQDATA);
-
-    packet.resize(PACKET_REQDATA_OFFSET_TOTAL);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
-    memmove(&packet[0]+PACKET_REQDATA_OFFSET_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
-    memmove(&packet[0]+PACKET_REQDATA_OFFSET_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
-    memmove(&packet[0]+PACKET_REQDATA_OFFSET_HOLE_START, &hole_start, sizeof(PACKET_FILE_SIZE_TYPE));
-    memmove(&packet[0]+PACKET_REQDATA_OFFSET_HOLE_END, &hole_end, sizeof(PACKET_FILE_SIZE_TYPE));
-    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
-}
-
-void extract_reqdata(vector<PACKET_BYTE>& packet, packet_struct_reqdata &reqdata)
-{
-    extract_reqdata(packet, reqdata.node_id, reqdata.tx_id, reqdata.hole_start, reqdata.hole_end);
-}
-
-void extract_reqdata(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE &tx_id, PACKET_FILE_SIZE_TYPE &hole_start, PACKET_FILE_SIZE_TYPE &hole_end)
-{
-    memmove(&node_id, &packet[0]+PACKET_REQDATA_OFFSET_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
-    memmove(&tx_id, &packet[0]+PACKET_REQDATA_OFFSET_TX_ID, sizeof(PACKET_TX_ID_TYPE));
-    memmove(&hole_start, &packet[0]+PACKET_REQDATA_OFFSET_HOLE_START, sizeof(hole_start));
-    memmove(&hole_end, &packet[0]+PACKET_REQDATA_OFFSET_HOLE_END, sizeof(hole_end));
-}
-
-void make_metadata_packet(vector<PACKET_BYTE>& packet , packet_struct_metalong meta)
-{
-    make_metadata_packet(packet, meta.tx_id, meta.file_name, meta.file_size, meta.node_name, meta.agent_name);
-}
-
-void make_metadata_packet(vector<PACKET_BYTE>& packet , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name)
-{
-    PACKET_TYPE type = salt_type(PACKET_METADATA);
-
-    packet.resize(PACKET_METALONG_OFFSET_TOTAL);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
-    memmove(&packet[0]+PACKET_METALONG_OFFSET_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
-    memmove(&packet[0]+PACKET_METALONG_OFFSET_FILE_NAME, file_name, TRANSFER_MAX_FILENAME);
-    memmove(&packet[0]+PACKET_METALONG_OFFSET_FILE_SIZE, &file_size, sizeof(file_size));
-    memmove(&packet[0]+PACKET_METALONG_OFFSET_NODE_NAME, node_name, COSMOS_MAX_NAME);
-    memmove(&packet[0]+PACKET_METALONG_OFFSET_AGENT_NAME, agent_name, COSMOS_MAX_NAME);
-    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
-}
-
-void make_metadata_packet(vector<PACKET_BYTE>& packet , packet_struct_metashort meta)
-{
-    make_metadata_packet(packet, meta.node_id, meta.tx_id, meta.file_name, meta.file_size, meta.agent_name);
-}
-
-void make_metadata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name)
-{
-    PACKET_TYPE type = salt_type(PACKET_METADATA);
-
-    packet.resize(PACKET_METASHORT_OFFSET_TOTAL);
-
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
-    memmove(&packet[0]+PACKET_METASHORT_OFFSET_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
-    memmove(&packet[0]+PACKET_METASHORT_OFFSET_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
-    memmove(&packet[0]+PACKET_METASHORT_OFFSET_FILE_NAME, file_name, TRANSFER_MAX_FILENAME);
-    memmove(&packet[0]+PACKET_METASHORT_OFFSET_FILE_SIZE, &file_size, sizeof(file_size));
-    memmove(&packet[0]+PACKET_METASHORT_OFFSET_AGENT_NAME, agent_name, COSMOS_MAX_NAME);
-    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
-}
-
-void extract_metadata(vector<PACKET_BYTE>& packet, packet_struct_metalong &meta)
-{
-    extract_metadata(packet, meta.tx_id, meta.file_name, meta.file_size, meta.node_name, meta.agent_name);
-}
-
-void extract_metadata(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, char* node_name, char* agent_name)
-{
-    memmove(&tx_id, &packet[0]+PACKET_METALONG_OFFSET_TX_ID, sizeof(PACKET_TX_ID_TYPE));
-    memmove(node_name, &packet[0]+PACKET_METALONG_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
-    memmove(file_name, &packet[0]+PACKET_METALONG_OFFSET_FILE_NAME, TRANSFER_MAX_FILENAME);
-    memmove(&file_size, &packet[0]+PACKET_METALONG_OFFSET_FILE_SIZE, sizeof(file_size));
-    memmove(agent_name, &packet[0]+PACKET_METALONG_OFFSET_AGENT_NAME, COSMOS_MAX_NAME);
-}
-
-void extract_metadata(vector<PACKET_BYTE>& packet, packet_struct_metashort &meta)
-{
-    extract_metadata(packet, meta.tx_id, meta.file_name, meta.file_size, meta.node_id, meta.agent_name);
-}
-
-void extract_metadata(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, PACKET_NODE_ID_TYPE& node_id, char* agent_name)
-{
-    memmove(&tx_id, &packet[0]+PACKET_METASHORT_OFFSET_TX_ID, sizeof(PACKET_TX_ID_TYPE));
-    memmove(file_name, &packet[0]+PACKET_METASHORT_OFFSET_FILE_NAME, TRANSFER_MAX_FILENAME);
-    memmove(&file_size, &packet[0]+PACKET_METASHORT_OFFSET_FILE_SIZE, sizeof(file_size));
-    memmove(&node_id, &packet[0]+PACKET_METASHORT_OFFSET_NODE_ID, COSMOS_MAX_NAME);
-    memmove(agent_name, &packet[0]+PACKET_METASHORT_OFFSET_AGENT_NAME, COSMOS_MAX_NAME);
-}
-
-void make_data_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk)
-{
-    PACKET_TYPE type = salt_type(PACKET_DATA);
-
-    packet.resize(PACKET_DATA_OFFSET_HEADER_TOTAL+byte_count);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
-    memmove(&packet[0]+PACKET_DATA_OFFSET_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
-    memmove(&packet[0]+PACKET_DATA_OFFSET_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
-    memmove(&packet[0]+PACKET_DATA_OFFSET_BYTE_COUNT, &byte_count, sizeof(PACKET_CHUNK_SIZE_TYPE));
-    memmove(&packet[0]+PACKET_DATA_OFFSET_CHUNK_START, &chunk_start, sizeof(chunk_start));
-    memmove(&packet[0]+PACKET_DATA_OFFSET_CHUNK, chunk, byte_count);
-    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
-}
-
-//Function to extract necessary fileds from a received data packet
-void extract_data(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_CHUNK_SIZE_TYPE& byte_count, PACKET_FILE_SIZE_TYPE& chunk_start, PACKET_BYTE* chunk)
-{
-    memmove(&node_id, &packet[0]+PACKET_DATA_OFFSET_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
-    memmove(&tx_id, &packet[0]+PACKET_DATA_OFFSET_TX_ID, sizeof(PACKET_TX_ID_TYPE));
-    memmove(&byte_count, &packet[0]+PACKET_DATA_OFFSET_BYTE_COUNT, sizeof(byte_count));
-    memmove(&chunk_start, &packet[0]+PACKET_DATA_OFFSET_CHUNK_START, sizeof(chunk_start));
-    memmove(chunk, &packet[0]+PACKET_DATA_OFFSET_CHUNK, byte_count);
-}
-
-void make_reqqueue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name)
-{
-    PACKET_TYPE type = salt_type(PACKET_REQQUEUE);
-
-    packet.resize(PACKET_REQQUEUE_OFFSET_TOTAL);
-    memset(&packet[0], 0, PACKET_REQQUEUE_OFFSET_TOTAL);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
-    memmove(&packet[0]+PACKET_REQQUEUE_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-    memmove(&packet[0]+PACKET_REQQUEUE_OFFSET_NODE_NAME, node_name.c_str(), node_name.size());
-    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
-}
-
-//Function to extract necessary fileds from a received reqqueue packet
-void extract_reqqueue(vector<PACKET_BYTE>& packet, packet_struct_reqqueue& reqqueue)
-{
-    memmove(&reqqueue.node_id, &packet[0]+PACKET_REQQUEUE_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-    memmove(&reqqueue.node_name, &packet[0]+PACKET_REQQUEUE_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
-}
-
-void make_queue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> queue)
-{
-    PACKET_TYPE type = salt_type(PACKET_QUEUE);
-
-    packet.resize(PACKET_QUEUE_OFFSET_TOTAL);
-    memset(&packet[0], 0, PACKET_QUEUE_OFFSET_TOTAL);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
-    memmove(&packet[0]+PACKET_QUEUE_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-    memmove(&packet[0]+PACKET_QUEUE_OFFSET_NODE_NAME, node_name.c_str(), node_name.size());
-    memmove(&packet[0]+PACKET_QUEUE_OFFSET_TX_ID, &queue[0], COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
-    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
-}
-
-//Function to extract necessary fields from a received queue packet
-void extract_queue(vector<PACKET_BYTE>& packet, packet_struct_queue& queue)
-{
-    memmove(&queue.node_id, &packet[0]+PACKET_QUEUE_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-    memmove(&queue.node_name, &packet[0]+PACKET_QUEUE_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
-    memmove(&queue.tx_id, &packet[0]+PACKET_QUEUE_OFFSET_TX_ID, COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
-}
-
-void make_heartbeat_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, PACKET_BYTE beat_period, PACKET_UNIXTIME_TYPE throughput, PACKET_UNIXTIME_TYPE funixtime)
-{
-    PACKET_TYPE type = salt_type(PACKET_HEARTBEAT);
-
-    packet.resize(PACKET_HEARTBEAT_OFFSET_TOTAL);
-    memset(&packet[0], 0, PACKET_HEARTBEAT_OFFSET_TOTAL);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
-    memmove(&packet[0]+PACKET_HEARTBEAT_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-    memmove(&packet[0]+PACKET_HEARTBEAT_OFFSET_NODE_NAME, node_name.c_str(), node_name.size());
-    memmove(&packet[0]+PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD, &beat_period, 1);
-    memmove(&packet[0]+PACKET_HEARTBEAT_OFFSET_THROUGHPUT, &throughput, 4);
-    memmove(&packet[0]+PACKET_HEARTBEAT_OFFSET_FUNIXTIME, &funixtime, 4);
-    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
-}
-
-//Function to extract necessary fileds from a received heartbeat packet
-void extract_heartbeat(vector<PACKET_BYTE>& packet, packet_struct_heartbeat& heartbeat)
-{
-    memmove(&heartbeat.node_id, &packet[0]+PACKET_HEARTBEAT_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-    memmove(&heartbeat.node_name, &packet[0]+PACKET_HEARTBEAT_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
-    memmove(&heartbeat.beat_period, &packet[0]+PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD, 1);
-    memmove(&heartbeat.throughput, &packet[0]+PACKET_HEARTBEAT_OFFSET_THROUGHPUT, 4);
-    memmove(&heartbeat.funixtime, &packet[0]+PACKET_HEARTBEAT_OFFSET_FUNIXTIME, 4);
-}
-
-void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string message)
-{
-    PACKET_TYPE type = salt_type(PACKET_MESSAGE);
-
-    packet.resize(PACKET_MESSAGE_OFFSET_TOTAL);
-    memset(&packet[0], 0, PACKET_MESSAGE_OFFSET_TOTAL);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
-    memmove(&packet[0]+PACKET_MESSAGE_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-    PACKET_BYTE length = message.size();
-    memmove(&packet[0]+PACKET_MESSAGE_OFFSET_LENGTH, &length, 1);
-    memmove(&packet[0]+PACKET_MESSAGE_OFFSET_BYTES, &message[0], TRANSFER_MAX_PROTOCOL_PACKET - 2);
-    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
-}
-
-//Function to extract necessary fileds from a received message packet
-void extract_message(vector<PACKET_BYTE>& packet, packet_struct_message& message)
-{
-    memmove(&message.node_id, &packet[0]+PACKET_MESSAGE_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-    memmove(&message.length, &packet[0]+PACKET_MESSAGE_OFFSET_LENGTH, 1);
-    memmove(&message.bytes[0], &packet[0]+PACKET_MESSAGE_OFFSET_BYTES, message.length);
-}
-
-void make_command_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string command)
-{
-    PACKET_TYPE type = salt_type(PACKET_COMMAND);
-
-    packet.resize(PACKET_COMMAND_OFFSET_TOTAL);
-    memset(&packet[0], 0, PACKET_COMMAND_OFFSET_TOTAL);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
-    memmove(&packet[0]+PACKET_COMMAND_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-    PACKET_BYTE length = command.size();
-    memmove(&packet[0]+PACKET_COMMAND_OFFSET_LENGTH, &length, 1);
-    memmove(&packet[0]+PACKET_COMMAND_OFFSET_BYTES, &command[0], TRANSFER_MAX_PROTOCOL_PACKET - 2);
-    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
-    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
-}
-
-//Function to extract necessary fileds from a received command packet
-void extract_command(vector<PACKET_BYTE>& packet, packet_struct_command& command)
-{
-    memmove(&command.node_id, &packet[0]+PACKET_COMMAND_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-    memmove(&command.length, &packet[0]+PACKET_COMMAND_OFFSET_LENGTH, 1);
-    memmove(&command.bytes[0], &packet[0]+PACKET_COMMAND_OFFSET_BYTES, command.length);
-}
-
-void show_fstream_state(std::ifstream& )  {
-    std::cout<<"eobit =\t"<<std::ios_base::eofbit<<std::endl;
-    std::cout<<"failbit =\t"<<std::ios_base::failbit<<std::endl;
-    std::cout<<"badbit =\t"<<std::ios_base::badbit<<std::endl;
-    std::cout<<"goodbit =\t"<<std::ios_base::goodbit<<std::endl;
-    return;
-}
-
-// Function to get age of a file in seconds
-time_t get_file_age(string filename)
-{
-    struct stat stat_buf;
-    if (stat(filename.c_str(), &stat_buf) != 0)
-    {
-        return 0;
-    }
-    else
-    {
-        struct timeval cmjd = utc2unix(currentmjd(0.));
-        return (cmjd.tv_sec-stat_buf.st_mtime);
-    }
-}
-
-//Function which gets the size of a file
-//! Get size of file
-/*! Looks up the size of the file on the filesystem. This returns a 32 bit signed
- * integer so that it works for most files we want to transfer. If the file is larger
- * than 2^32/2, then it will turn negative and be treated as an error.
- * \param filename Full path to file
- * \return Size, or negative error.
- */
-int32_t get_file_size(string filename)
-{
-    int32_t iretn = 0;
-    struct stat stat_buf;
-
-    if ((stat(filename.c_str(), &stat_buf)) == 0)
-    {
-        iretn = stat_buf.st_size;
-        return  iretn;
-    }
-    else
-    {
-        return -errno;
-    }
-}
-
-int32_t get_file_size(const char* filename)
-{
-    string sfilename = filename;
-    return get_file_size(sfilename);
-}
-
-void print_cstring(uint8_t* buf, int siz)
-{
-    for(int i=0; i<siz; ++i)
-        printf("%c", buf[i]);
-    printf("\n");
-    printf("\n");
-    return;
-}
-
-void print_cstring_with_index(uint8_t* buf, int siz)
-{
-    using std::min;
-    int start = 0;
-    int linesize = 40;
-    while(start < siz)	{
-        for(int i=start; i<min(start+linesize,siz); ++i)
-            printf("%2c", buf[i]);
-        printf("\n");
-        for(int i=start; i<min(start+linesize,siz); ++i)
-            printf("%02d", i%100);
-        printf("\n");
-        printf("\n");
-
-        start+=linesize;
-    }
-    return;
-}
-
-void print_cstring_hex(uint8_t* buf, int siz)
-{
-    for(int i=0; i<siz; ++i)
-        printf("%02x", buf[i]);
-    printf("\n");
-    printf("\n");
-    return;
-}
-
-void print_cstring_hex_with_index(uint8_t* buf, int siz)
-{
-    using std::min;
-    int start = 0;
-    int linesize = 40;
-    while(start < siz)	{
-        for(int i=start; i<min(start+linesize,siz); ++i)
-            printf("%02x", buf[i]);
-        printf("\n");
-        for(int i=start; i<min(start+linesize,siz); ++i)
-            printf("%02d", i%100);
-        printf("\n");
-        printf("\n");
-
-        start+=linesize;
-    }
-    return;
-}
-
-void unable_to_remove(string filename)  {
-    std::cout<<"ERROR:\tunable to remove file <"<<filename<<">"<<std::endl;
-    return;
-}
-
-PACKET_TYPE salt_type(PACKET_TYPE type)
-{
-    double cmjd = currentmjd();
-    uint8_t time_salt = (uint32_t)((cmjd-(int)cmjd) * 86400.) % 16;
-    type &= 0xf;
-    type |= time_salt << 4;
-    return type;
-}
-
-int32_t check_node_id(PACKET_NODE_ID_TYPE node_id)
-{
-    int32_t iretn = 0;
-
-    if ((iretn=load_nodeids()) <= 0)
-    {
-        return iretn;
-    }
-
-
-    if (node_id > 0 && nodeids[node_id].size())
-    {
-        return node_id;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-int32_t lookup_node_id(string node_name)
-{
-    int32_t iretn = 0;
-
-    if ((iretn=load_nodeids()) <= 0)
-    {
-        return iretn;
-    }
-
-    uint8_t node_id = 0;
-    for (uint8_t i=1; i<nodeids.size(); ++i)
-    {
-        if (nodeids[i] == node_name)
+namespace Cosmos {
+    namespace Support {
+        //! For sorting files by size in ascending order
+        bool filestruc_smaller_by_size(const filestruc& a, const filestruc& b)
         {
-            node_id = i;
-            break;
+            return a.size < b.size;
         }
-    }
 
-    return node_id;
-}
-
-string lookup_node_id_name(PACKET_NODE_ID_TYPE node_id)
-{
-    string name;
-    if (load_nodeids() > 0 && node_id > 0 && nodeids[node_id].size())
-    {
-        return nodeids[node_id];
-    }
-    else
-    {
-        return "";
-    }
-}
-
-int32_t load_nodeids()
-{
-    char buf[103];
-    if (nodeids.size() == 0)
-    {
-        FILE *fp = data_open(get_cosmosnodes()+"/nodeids.ini", "rb");
-        if (fp)
+        //! For sorting chunks in ascending order
+        bool lower_chunk(file_progress i,file_progress j)
         {
-            uint16_t max_index = 0;
-            vector<uint16_t> tindex;
-            vector<string> tnodeid;
-            while (fgets(buf, 102, fp) != nullptr)
+            return (i.chunk_start<j.chunk_start);
+        }
+
+        //! Create a QUEUE-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param orig_node_id ID of the origin node in the node table
+        //! \param node_name Name of the origin node
+        //! \param queue A vector with QUEUE data
+        //! \return n/a
+        void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileQueue;
+            packet.data.resize(sizeof(packet_struct_queue), 0);
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_queue, node_id),   &orig_node_id,     COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_queue, node_name), node_name.c_str(), node_name.size());
+            
+            vector<PACKET_QUEUE_FLAGS_TYPE> row(PACKET_QUEUE_FLAGS_LIMIT, 0);
+            for (PACKET_TX_ID_TYPE tx_id : queue)
             {
-                uint16_t index = 0;
-                string nodeid;
-                if (buf[strlen(buf)-1] == '\n')
+                // Note: this logic assumes that PACKET_QUEUE_FLAGS_TYPE is a uint16_t
+                uint8_t flags = tx_id >> 4;
+                uint8_t lshift = tx_id & 15; // 0b1111
+                PACKET_QUEUE_FLAGS_TYPE mask = 1 << lshift;
+                row[flags] |= mask;
+            }
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_queue,tx_ids), &row[0], COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE) * PACKET_QUEUE_FLAGS_LIMIT);
+        }
+
+        //! Extracts the necessary fields from a received QUEUE packet.
+        //! \param pdata An incoming QUEUE-type packet
+        //! \param queue Reference to a packet_struct_queue to fill
+        //! \return n/a
+        void deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue)
+        {
+            memcpy(&queue, pdata.data(), sizeof(packet_struct_queue));
+        }
+
+        //! Create a CANCEL-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param orig_node_id ID of the origin node in the node table
+        //! \param tx_id ID of the transaction
+        //! \return n/a
+        void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileCancel;
+            packet.data.resize(sizeof(packet_struct_cancel));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_cancel, node_id), &orig_node_id,  sizeof(PACKET_NODE_ID_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_cancel, tx_id),   &tx_id,         sizeof(PACKET_TX_ID_TYPE));
+        }
+
+        //! Extracts the necessary fields from a received CANCEL packet.
+        //! \param pdata An incoming CANCEL-type packet
+        //! \param cancel Reference to a packet_struct_cancel to fill
+        //! \return n/a
+        void deserialize_cancel(const vector<PACKET_BYTE>& pdata, packet_struct_cancel &cancel)
+        {
+            memcpy(&cancel, pdata.data(), sizeof(packet_struct_cancel));
+        }
+
+        //! Create a REQCOMPLETE-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param orig_node_id ID of the origin node in the node table
+        //! \param tx_id ID of the transaction
+        //! \return n/a
+        void serialize_reqcomplete(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileReqComplete;
+            packet.data.resize(sizeof(packet_struct_reqcomplete));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqcomplete, node_id), &orig_node_id,   sizeof(PACKET_NODE_ID_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqcomplete, tx_id),   &tx_id,          sizeof(PACKET_TX_ID_TYPE));
+        }
+
+        //! Extracts the necessary fields from a received REQCOMPLETE packet.
+        //! \param pdata An incoming COMPLETE-type packet
+        //! \param reqcomplete Reference to a packet_struct_reqcomplete to fill
+        //! \return n/a
+        void deserialize_reqcomplete(const vector<PACKET_BYTE>& pdata, packet_struct_reqcomplete &reqcomplete)
+        {
+            memcpy(&reqcomplete, pdata.data(), sizeof(packet_struct_reqcomplete));
+        }
+
+        //! Create a COMPLETE-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param node_id ID of the receiver node in the node table
+        //! \param tx_id ID of the transaction
+        //! \return n/a
+        void serialize_complete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileComplete;
+            packet.data.resize(sizeof(packet_struct_complete));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_complete, node_id), &node_id, sizeof(PACKET_NODE_ID_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_complete, tx_id),   &tx_id,   sizeof(PACKET_TX_ID_TYPE));
+        }
+
+        //! Extracts the necessary fields from a received COMPLETE packet.
+        //! \param pdata An incoming COMPLETE-type packet
+        //! \param complete Reference to a packet_struct_complete to fill
+        //! \return n/a
+        void deserialize_complete(const vector<PACKET_BYTE>& pdata, packet_struct_complete &complete)
+        {
+            memcpy(&complete, pdata.data(), sizeof(packet_struct_complete));
+        }
+
+        //! Create a REQMETA-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param node_id ID of the requester node in the node table
+        //! \param node_name Name of the origin node
+        //! \param reqmeta A vector with REQMETA data
+        //! \return n/a
+        void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileReqMeta;
+            packet.data.resize(sizeof(packet_struct_reqmeta), 0);
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqmeta, node_id),   &node_id,            COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqmeta, node_name), node_name.c_str(),   node_name.size());
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqmeta, tx_id),     reqmeta.data(),      COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
+        }
+
+        //! Extracts the necessary fields from a received REQMETA packet.
+        //! \param pdata An incoming REQMETA-type packet
+        //! \param reqmeta Reference to a packet_struct_reqmeta to fill
+        //! \return n/a
+        void deserialize_reqmeta(const vector<PACKET_BYTE>& pdata, packet_struct_reqmeta& reqmeta)
+        {
+            memcpy(&reqmeta, pdata.data(), sizeof(packet_struct_reqmeta));
+        }
+
+        //! Create a REQDATA-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param node_id ID of the requester node in the node table
+        //! \param tx_id ID of the transaction
+        //! \param hole_start Index of byte start of data chunk
+        //! \param hole_end Index of byte end of data chunk
+        //! \return n/a
+        void serialize_reqdata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileReqData;
+            packet.data.resize(sizeof(packet_struct_reqdata));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, node_id),    &node_id,    sizeof(PACKET_NODE_ID_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, tx_id),      &tx_id,      sizeof(PACKET_TX_ID_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, hole_start), &hole_start, sizeof(PACKET_FILE_SIZE_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, hole_end),   &hole_end,   sizeof(PACKET_FILE_SIZE_TYPE));
+        }
+
+        //! Extracts the necessary fields from a received REQDATA packet.
+        //! \param pdata An incoming REQDATA-type packet
+        //! \param reqdata Reference to a packet_struct_reqdata to fill
+        //! \return n/a
+        void deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata &reqdata)
+        {   
+            memcpy(&reqdata, pdata.data(), sizeof(packet_struct_reqdata));
+        }
+
+        //! Create a long METADATA-type PacketComm packet.
+        //! Includes node_name, omits node_id information.
+        //! Used by write_meta()
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param tx_id Transaction ID of file transfer
+        //! \param file_name Name of the file
+        //! \param file_size Size of the file
+        //! \param node_name Name of the receiving node
+        //! \param agent_name Name of the receiving agent
+        //! \return n/a
+        void serialize_metadata(PacketComm& packet, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileMetaData;
+            packet.data.resize(sizeof(packet_struct_metalong));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_metalong, node_name),  node_name,  COSMOS_MAX_NAME);
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_metalong, tx_id),      &tx_id,     sizeof(PACKET_TX_ID_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_metalong, agent_name), agent_name, COSMOS_MAX_NAME);
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_metalong, file_name),  file_name,  TRANSFER_MAX_FILENAME);
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_metalong, file_size),  &file_size, sizeof(file_size));
+        }
+
+        //! Extracts the necessary fields from a received long META packet.
+        //! \param pdata An incoming long META-type packet
+        //! \param meta Reference to a packet_struct_long to fill
+        //! \return n/a
+        void deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metalong &meta)
+        {
+            memcpy(&meta, pdata.data(), sizeof(packet_struct_metalong));
+        }
+
+        //! Create a short METADATA-type PacketComm packet.
+        //! Includes node_id, omits node_name information.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param orig_node_id Node's ID in the node table
+        //! \param tx_id Transaction ID of file transfer
+        //! \param file_name Name of the file
+        //! \param file_size Size of the file
+        //! \param agent_name Name of the sending agent
+        //! \return n/a
+        void serialize_metadata(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileMetaData;
+            packet.data.resize(sizeof(packet_struct_metashort));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_metashort, node_id),    &orig_node_id,   sizeof(PACKET_NODE_ID_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_metashort, tx_id),      &tx_id,         sizeof(PACKET_TX_ID_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_metashort, agent_name), agent_name,     COSMOS_MAX_NAME);
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_metashort, file_name),  file_name,      TRANSFER_MAX_FILENAME);
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_metashort, file_size),  &file_size,     sizeof(file_size));
+        }
+
+        //! Extracts the necessary fields from a received short META packet.
+        //! \param pdata An incoming short META-type packet
+        //! \param meta Reference to a packet_struct_metashort to fill
+        //! \return n/a
+        void deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metashort &meta)
+        {
+            memcpy(&meta, pdata.data(), sizeof(packet_struct_metashort));
+        }
+
+        //! Create a DATA-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param orig_node_id Node's ID in the node table
+        //! \param byte_count Number of bytes of data data
+        //! \param chunk_start Byte of index of start of this chunk in the file
+        //! \param chunk Array of bytes defining this chunk
+        //! \return n/a
+        void serialize_data(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileChunkData;
+            packet.data.resize(offsetof(struct packet_struct_data, chunk) + byte_count);
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_data, node_id),     &orig_node_id,  sizeof(PACKET_NODE_ID_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_data, tx_id),       &tx_id,         sizeof(PACKET_TX_ID_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_data, byte_count),  &byte_count,    sizeof(PACKET_CHUNK_SIZE_TYPE));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_data, chunk_start), &chunk_start,   sizeof(chunk_start));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_data, chunk),       chunk,          byte_count);
+        }
+
+        //! Extracts the necessary fields from a received DATA packet.
+        //! \param pdata An incoming DATA-type packet
+        //! \param data Reference to a packet_struct_data to fill
+        //! \return n/a
+        void deserialize_data(const vector<PACKET_BYTE>& pdata, packet_struct_data &data)
+        {
+            memcpy(&data.node_id,     &pdata[0]+offsetof(struct packet_struct_data, node_id),     sizeof(PACKET_NODE_ID_TYPE));
+            memcpy(&data.tx_id,       &pdata[0]+offsetof(struct packet_struct_data, tx_id),       sizeof(PACKET_TX_ID_TYPE));
+            memcpy(&data.byte_count,  &pdata[0]+offsetof(struct packet_struct_data, byte_count),  sizeof(data.byte_count));
+            memcpy(&data.chunk_start, &pdata[0]+offsetof(struct packet_struct_data, chunk_start), sizeof(data.chunk_start));
+            data.chunk.resize(data.byte_count);
+            memcpy(data.chunk.data(), pdata.data()+offsetof(struct packet_struct_data, chunk), data.byte_count);
+        }
+
+        //! Merges any overlapping chunks in the tx.file_info deque.
+        //! \param tx A tx_progress to merge chunks for
+        //! \return Sum of bytes of the chunks in tx
+        PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx)
+        {
+            // Remove any chunks that go beyond the file size
+            for (uint16_t i=tx.file_info.size()-1; i<tx.file_info.size(); --i)
+            {
+                if (tx.file_info[i].chunk_end >= tx.file_size)
                 {
-                    buf[strlen(buf)-1] = 0;
+                    tx.file_info.pop_back();
                 }
-                if (buf[1] == ' ')
+            }
+            switch (tx.file_info.size())
+            {
+            case 0:
                 {
-                    buf[1] = 0;
-                    index = atoi(buf);
-                    nodeid = &buf[2];
+                    tx.total_bytes = 0;
+                    break;
                 }
-                else if (buf[2] == ' ')
+            case 1:
                 {
-                    buf[2] = 0;
-                    index = atoi(buf);
-                    nodeid = &buf[3];
+                    tx.total_bytes = (tx.file_info[0].chunk_end - tx.file_info[0].chunk_start) + 1;
+                    break;
                 }
-                else if (buf[3] == ' ')
+            default:
                 {
-                    buf[3] = 0;
-                    index = atoi(buf);
-                    nodeid = &buf[4];
-                }
-                else
-                {
-                    index = 0;
-                }
-                if (index)
-                {
-                    if (index > max_index)
+                    tx.total_bytes = 0;
+                    sort(tx.file_info.begin(), tx.file_info.end(), lower_chunk);
+                    // Merge chunks
+                    for (uint32_t i=0; i<tx.file_info.size(); ++i)
                     {
-                        max_index = index;
+                        for (uint32_t j=i+1; j<tx.file_info.size(); ++j)
+                        {
+                            while (j < tx.file_info.size() && tx.file_info[j].chunk_start <= tx.file_info[i].chunk_end+1)
+                            {
+                                if (tx.file_info[j].chunk_end > tx.file_info[i].chunk_end)
+                                {
+                                    tx.file_info[i].chunk_end = tx.file_info[j].chunk_end;
+                                }
+                                tx.file_info.erase(tx.file_info.begin()+j);
+                            }
+                        }
+                        tx.total_bytes += (tx.file_info[i].chunk_end - tx.file_info[i].chunk_start) + 1;
                     }
-                    tindex.push_back(index);
-                    tnodeid.push_back(nodeid);
+                    break;
                 }
             }
-            fclose(fp);
-            nodeids.resize(max_index+1);
-            for (uint16_t i=0; i<tindex.size(); ++i)
+            return tx.total_bytes;
+        }
+
+        //! Determines which chunks are missing for an incoming file.
+        //! Used by the receiving side to request missing data with REQDATA packets.
+        //! \param tx_in The tx_progress of a file in the incoming queue
+        //! \return A vector of missing chunks
+        vector<file_progress> find_chunks_missing(tx_progress& tx_in)
+        {
+            vector<file_progress> missing;
+            file_progress tp;
+
+            if (!tx_in.sentmeta)
             {
-                nodeids[tindex[i]] = tnodeid[i];
+                return missing;
+            }
+
+            if (tx_in.file_info.size() == 0)
+            {
+                tp.chunk_start = 0;
+                tp.chunk_end = tx_in.file_size - 1;
+                missing.push_back(tp);
+            }
+            else
+            {
+                merge_chunks_overlap(tx_in);
+                sort(tx_in.file_info.begin(), tx_in.file_info.end(), lower_chunk);
+
+                // Check missing before first chunk
+                if (tx_in.file_info[0].chunk_start)
+                {
+                    tp.chunk_start = 0;
+                    tp.chunk_end = tx_in.file_info[0].chunk_start - 1;
+                    missing.push_back(tp);
+                }
+
+                // Check missing between chunks
+                for (uint32_t i=1; i<tx_in.file_info.size(); ++i)
+                {
+                    if (tx_in.file_info[i-1].chunk_end+1 != tx_in.file_info[i].chunk_start)
+                    {
+                        tp.chunk_start = tx_in.file_info[i-1].chunk_end + 1;
+                        tp.chunk_end = tx_in.file_info[i].chunk_start - 1;
+                        missing.push_back(tp);
+                    }
+                }
+
+                // Check missing after last chunk
+                if (tx_in.file_info[tx_in.file_info.size()-1].chunk_end + 1 != tx_in.file_size)
+                {
+                    tp.chunk_start = tx_in.file_info[tx_in.file_info.size()-1].chunk_end + 1;
+                    tp.chunk_end = tx_in.file_size - 1;
+                    missing.push_back(tp);
+                }
+            }
+
+            // calculate bytes so far
+            tx_in.total_bytes = 0;
+            for (file_progress prog : tx_in.file_info)
+            {
+                tx_in.total_bytes += (prog.chunk_end - prog.chunk_start) + 1;
+            }
+            if (tx_in.total_bytes == tx_in.file_size)
+            {
+                tx_in.complete = true;
+            }
+
+            return (missing);
+        }
+
+        //! Adds a chunk to the tx_progress vector.
+        //! Used when a DATA or REQDATA packet is received.
+        //! \param tx The tx_progress of a file in the incoming queue
+        //! \param tp Data chunk to add
+        //! \return true if tx_in was updated
+        bool add_chunk(tx_progress& tx, file_progress& tp)
+        {
+            uint32_t check=0;
+            bool duplicate = false;
+            bool updated = false;
+            PACKET_CHUNK_SIZE_TYPE byte_count = tp.chunk_end - tp.chunk_start + 1;
+
+            // Do we have any data yet?
+            if (!tx.file_info.size())
+            {
+                // Add first entry, then write data
+                tx.file_info.push_back(tp);
+                tx.total_bytes += byte_count;
+                updated = true;
+            }
+            else
+            {
+                // Check against existing data
+                for (uint32_t j=0; j<tx.file_info.size(); ++j)
+                {
+                    // Check for duplicate
+                    if (tp.chunk_start >= tx.file_info[j].chunk_start && tp.chunk_end <= tx.file_info[j].chunk_end)
+                    {
+                        duplicate = true;
+                        break;
+                    }
+                    // If we start before this entry
+                    if (tp.chunk_start < tx.file_info[j].chunk_start)
+                    {
+                        // If we end before this entry (at least one byte between), insert
+                        if (tp.chunk_end + 1 < tx.file_info[j].chunk_start)
+                        {
+                            tx.file_info.insert(tx.file_info.begin()+j, tp);
+                            tx.total_bytes += byte_count;
+                            updated = true;
+                            break;
+                        }
+                        // Otherwise, extend the near end
+                        else
+                        {
+                            tp.chunk_end = tx.file_info[j].chunk_start - 1;
+                            tx.file_info[j].chunk_start = tp.chunk_start;
+                            byte_count = (tp.chunk_end - tp.chunk_start) + 1;
+                            tx.total_bytes += byte_count;
+                            updated = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        // If we overlap on the end, extend the far end
+                        if (tp.chunk_start <= tx.file_info[j].chunk_end + 1)
+                        {
+                            if (tp.chunk_end > tx.file_info[j].chunk_end)
+                            {
+                                byte_count = tp.chunk_end - tx.file_info[j].chunk_end;
+                                tp.chunk_start = tx.file_info[j].chunk_end + 1;
+                                tx.file_info[j].chunk_end = tp.chunk_end;
+                                tx.total_bytes += byte_count;
+                                updated = true;
+                                break;
+                            }
+                        }
+                    }
+                    check = j + 1;
+                }
+
+
+                // If we are higher than everything currently in the list, then append
+                if (!duplicate && check == tx.file_info.size())
+                {
+                    tx.file_info.push_back(tp);
+                    tx.total_bytes += byte_count;
+                    updated = true;
+                }
+            }
+
+            return updated;
+        }
+
+        //! Gets the size of a file.
+        /*! Looks up the size of the file on the filesystem. This returns a 32 bit signed
+        * integer so that it works for most files we want to transfer. If the file is larger
+        * than 2^32/2, then it will turn negative and be treated as an error.
+        * \param filename Full path to file
+        * \return Size, or negative error.
+        */
+        int32_t get_file_size(string filename)
+        {
+            int32_t iretn = 0;
+            struct stat stat_buf;
+
+            if ((stat(filename.c_str(), &stat_buf)) == 0)
+            {
+                iretn = stat_buf.st_size;
+                return  iretn;
+            }
+            else
+            {
+                return -errno;
             }
         }
-        else
+
+        int32_t get_file_size(const char* filename)
         {
-            return -errno;
+            string sfilename = filename;
+            return get_file_size(sfilename);
         }
     }
-
-    return nodeids.size();
-}
-
-vector <string> get_nodeids()
-{
-    return nodeids;
 }

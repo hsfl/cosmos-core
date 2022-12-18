@@ -31,6 +31,7 @@
 #ifndef USRP_LIB_H
 #define USRP_LIB_H
 
+#include <mutex>
 #include "support/configCosmos.h"
 #include "support/socketlib.h"
 #include "support/stringlib.h"
@@ -70,7 +71,7 @@ struct usrp_handle
     uint8_t channelnum;
     socket_channel socket;
     uint16_t port;
-    std::mutex mut;
+    mutex mut;
     vector <uint8_t> response;
     uint8_t freqband;
     uint8_t filtband;

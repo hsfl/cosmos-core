@@ -909,9 +909,9 @@ namespace Cosmos {
         {
             //! Master time for location, in Modified Julian Day
             double utc = 0.;
-            //! ::posstruc for this time.
+            //! Cosmos::Support::posstruc for this time.
             posstruc pos;
-            //! ::attstruc for this time.
+            //! Cosmos::Support::attstruc for this time.
             attstruc att;
 
             /// Convert class contents to JSON object
@@ -948,7 +948,7 @@ namespace Cosmos {
         ::std::ostream& operator << (::std::ostream& out, const locstruc& a);
         ::std::istream& operator >> (::std::istream& in, locstruc& a);
 
-        //! In units **for** the SGP4 propogator (not NORAD TLE itself).
+        //! In units **for** the SGP4 propagator (not NORAD TLE itself).
         struct tlestruc
         {
             double utc = 0.;
@@ -1058,6 +1058,21 @@ namespace Cosmos {
             // Epoch (year.day)
             double ep;
         };
+
+		//  JIMNOTE: compiler doesn't like this defined here (multiple defined error), maybe the header guard is messed up somewhere?
+		//bool operator==(const sgp4struc& s1, const sgp4struc& s2)	{
+			//return	(
+				//s1.i == s2.i &&
+				//s1.e == s2.e &&
+				//s1.raan == s2.raan &&
+				//s1.ap == s2.ap &&
+				//s1.bstar == s2.bstar &&
+				//s1.mm == s2.mm &&
+				//s1.ma == s2.ma &&
+				//s1.ep == s2.ep
+			//);
+		//}
     }
 }
+
 #endif

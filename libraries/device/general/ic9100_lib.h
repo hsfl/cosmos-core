@@ -31,6 +31,7 @@
 #ifndef IC9100_LIB_H
 #define IC9100_LIB_H
 
+#include <mutex>
 #include "support/configCosmos.h"
 #include "device/serial/serialclass.h"
 
@@ -68,7 +69,7 @@ struct ic9100_handle
     uint8_t address;
     uint8_t channelnum;
     Serial *serial;
-    std::mutex mut;
+    mutex mut;
     vector <uint8_t> response;
     uint8_t freqband;
     uint8_t filtband;

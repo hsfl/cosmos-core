@@ -69,7 +69,7 @@ class ElapsedTime {
 #endif
 
 public:
-    ElapsedTime();
+    ElapsedTime(double initialseconds=0.);
     //int timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y);
     //float elapsed_time(struct timeval a,struct timeval b);
     void printElapsedTime();
@@ -85,7 +85,7 @@ public:
     double check();
     void reset();
 
-    void start();
+    void start(double initialseconds=0.);
     double stop();
 
     void tic();

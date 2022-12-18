@@ -49,6 +49,17 @@ ENDIF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
 
 # -----------------------------------------------
 # Build Support Library
+IF(${BUILD_COSMOS_CORE_MODULE} MATCHES "ON")
+    MESSAGE("- Module Library")
+    add_subdirectory(${COSMOS_CORE_SOURCE}/libraries/module ${CMAKE_BINARY_DIR}/libraries/module)
+    SET(LINK_LIBRARY_COSMOS_CORE_MODULE CosmosModule)
+#    set(COSMOS_LIBS ${COSMOS_LIBS})
+ENDIF(${BUILD_COSMOS_CORE_MODULE} MATCHES "ON")
+
+# -----------------------------------------------
+
+# -----------------------------------------------
+# Build Support Library
 IF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
     MESSAGE("- Support Library")
     add_subdirectory(${COSMOS_CORE_SOURCE}/libraries/support ${CMAKE_BINARY_DIR}/libraries/support)
