@@ -2157,6 +2157,39 @@ namespace Cosmos
                     }
                 }
                 break;
+            case PacketComm::TypeId::CommandAdcsState:
+                {
+                    packet.data.resize(1);
+                    packet.data[0] = stoi(parms[0]);
+                    for (uint16_t i=1; i<parms.size(); ++i)
+                    {
+                        string arg = parms[i] + " ";
+                        packet.data.insert(packet.data.end(), arg.begin(), arg.end());
+                    }
+                }
+                break;
+            case PacketComm::TypeId::CommandAdcsCommunicate:
+                {
+                    if (parms.size())
+                    {
+                        parms = string_split(parms[0], ":", false);
+                        if (parms.size() > 2)
+                        {
+                            PacketComm::CommunicateHeader header;
+                            header.unit = stoi(parms[0]);
+                            header.command = stoi(parms[1]);
+                            header.responsecount = stoi(parms[2]);
+                            packet.data.resize(4);
+                            memcpy(packet.data.data(), &header, sizeof(header));
+                            if (parms.size() > 3)
+                            {
+                                vector<uint8_t> bytes = from_hex_string(parms[3]);
+                                packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
+                            }
+                        }
+                    }
+                }
+                break;
             case PacketComm::TypeId::CommandEpsSwitchName:
                 {
                     if (parms.size())
