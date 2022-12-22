@@ -1018,7 +1018,7 @@ string data_base_path(string node)
         }
         else
         {
-            tpath += "/" + node;
+            tpath += node;
         }
 
         if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
