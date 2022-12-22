@@ -324,7 +324,7 @@ namespace Cosmos
                         "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200}:[seconds]\n"
                         "    EpsSwitchNumber {0-1}:[seconds]\n"
                         "    EpsSwitchNames {vbatt_bus:...} [seconds:...]\n"
-                        "    AdcsState {0-7} {0-18} \n"
+                        "    AdcsState {0-7} {0-255} ... \n"
                         "    AdcsCommunicate command:hexstring:response_size\n"
                         "");
             add_request("list_channels", req_list_channels, "", "List current channels");
@@ -2064,7 +2064,7 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandPing:
                 {
-                    string ping = "abcdefghijklmnopqrstuvwxyz0123456789";
+                    string ping = utc2iso8601(currentmjd());
                     if (parms.size() > 0)
                     {
                         ping = parms[0];
