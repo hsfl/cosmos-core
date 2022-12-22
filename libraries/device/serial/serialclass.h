@@ -50,6 +50,7 @@ namespace Cosmos {
         int32_t close_device();
         int32_t set_restoreonclose(bool argument);
         int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+        int32_t change_baud(size_t dbaud);
         int32_t set_flowcontrol(bool rtscts, bool xonxoff);
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
         int32_t set_timeout(int minchar, double timeout);

@@ -184,6 +184,13 @@ namespace Cosmos {
         return 0;
     }
 
+    int32_t Serial::change_baud(size_t dbaud)
+    {
+        baud = dbaud;
+        error = set_params(baud, bits, parity, stop);
+        return error;
+    }
+
     int32_t Serial::set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
         baud = dbaud;
