@@ -101,6 +101,15 @@ namespace Cosmos {
             return Unwrap(checkcrc);
         }
 
+        bool PacketComm::AX25UnPacketize(bool checkcrc)
+        {
+            Ax25Handle axhandle;
+//            axhandle.unstuff(packetized);
+            axhandle.unload();
+            wrapped = axhandle.ax25_packet;
+            return Unwrap(checkcrc);
+        }
+
         //! \brief Wrap up header and payload
         //! Merge ::Cosmos::Support::PacketComm::data and ::Cosmos::Support::PacketComm::header
         //! into ::Cosmos::Support::PacketComm::wrapped

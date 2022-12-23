@@ -30,6 +30,7 @@ namespace Cosmos {
             bool ASMUnPacketize(bool checkcrc=true);
             bool SLIPUnPacketize(bool checkcrc=true);
             bool HDLCUnPacketize(bool checkcrc=true);
+            bool AX25UnPacketize(bool checkcrc=true);
             bool Wrap();
             bool RawPacketize();
             bool ASMPacketize();
