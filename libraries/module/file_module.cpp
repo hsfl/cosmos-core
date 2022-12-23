@@ -275,8 +275,7 @@ namespace Cosmos
             // Set transfer class to use file packet sizes of the new channel
             if (new_out_radio)
             {
-                // TODO: the -30 is a temporary measure to get this working while I investigate packet size weirdness
-                int32_t channel_datasize = agent->channel_datasize(new_out_radio) - 30;
+                int32_t channel_datasize = agent->channel_datasize(new_out_radio);
                 if (channel_datasize <= 0)
                 {
                     return;
