@@ -50,6 +50,7 @@
 //! @{
 
 vector < string > string_split(string in, string delimeters=" \t,", bool multi=true);
+string string_join(vector<string>& in, string delimeter=" ", uint16_t first=0, uint16_t last=65535);
 uint16_t string_parse(char *string, char *word[], uint16_t size);
 string string_replace(string str, const string from, const string to);
 int string_cmp(const char *wild, const char *string);
@@ -61,7 +62,7 @@ string to_astring(vector<uint8_t> buf, bool hex=true);
 string to_astring(string buf, bool hex=false);
 string to_astring(char *value, size_t length, bool hex=false);
 // These two assume all bytes are ASCII characters
-string to_string(const vector<uint8_t>& buf);
+string to_string(const vector<uint8_t>& buf, uint16_t offset=0);
 vector<uint8_t> to_bytes(const string &buf);
 // These next three are intentionally NOT (u)int64_t, as that does not always carry cleanly to 32 bit systems.
 // size_t and ptrdiff_t will map to the largest integer the system actually knows how to deal with.

@@ -81,6 +81,29 @@ vector < string > string_split(string in, string delimeters, bool multi) {
     return result;
 }
 
+//! \brief Join a vector of string together
+//! Turn vector<string> into a single string, separated by delimeter.
+//! \param in vector<string>
+//! \param delimeter Separator to use. Defaults to " ".
+//! \return Newly created string.
+string string_join(vector<std::string> &in, std::string delimeter, uint16_t first, uint16_t last)
+{
+    string out;
+    if (in.size() > first)
+    {
+        if (last >= in.size())
+        {
+            last = in.size() - 1;
+        }
+        out = in[first];
+        for (uint16_t i=first+1; i<=last; ++i)
+        {
+            out += delimeter + in[i];
+        }
+    }
+    return out;
+}
+
 //! Parse a string into words
 /*! Divide a string into words separated by white space and return an array of the
  * results.
@@ -336,9 +359,9 @@ string to_astring(char *value, size_t length, bool hex)
     return output;
 }
 
-string to_string(const vector<uint8_t> &buf)
+string to_string(const vector<uint8_t> &buf, uint16_t offset)
 {
-    string output(buf.begin(), buf.end());
+    string output(buf.begin()+offset, buf.end());
     return output;
 }
 
