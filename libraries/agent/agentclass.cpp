@@ -321,9 +321,9 @@ namespace Cosmos
                         "    EpsCommunicate sbid:command:hexstring:response_size\n"
                         "    EpsSwitchStatus [0-1|vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200]\n"
                         "    EpsState {0|1|2|3}\n"
-                        "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200}:[seconds]\n"
-                        "    EpsSwitchNumber {0-1}:[seconds]\n"
-                        "    EpsSwitchNames {vbatt_bus:...} [seconds:...]\n"
+                        "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [0|1|2]\n"
+                        "    EpsSwitchNumber {0-32} [0|1|2]\n"
+                        "    EpsSwitchNames {vbatt_bus ...} [0|1|2]\n"
                         "    AdcsState {0-7} {0-255} ... \n"
                         "    AdcsCommunicate command:hexstring:response_size\n"
                         "");
@@ -2194,20 +2194,16 @@ namespace Cosmos
                 {
                     if (parms.size())
                     {
-                        parms = string_split(parms[0], ":", false);
-                        if (parms.size())
+                        packet.data.resize(1);
+                        if (parms.size() > 1)
                         {
-                            packet.data.resize(2);
-                            if (parms.size() > 1)
-                            {
-                                uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
-                            }
-                            else
-                            {
-                                uint16to(300, &packet.data[0], ByteOrder::LITTLEENDIAN);
-                            }
-                            packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
+                            packet.data[0] = stoi(parms[1]);
                         }
+                        else
+                        {
+                            packet.data[0] = 2;
+                        }
+                        packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
                     }
                 }
                 break;
@@ -2215,13 +2211,16 @@ namespace Cosmos
                 {
                     if (parms.size())
                     {
-                        parms = string_split(parms[0], ":", false);
-                        if (parms.size())
+                        packet.data.resize(3);
+                        if (parms.size() > 1)
                         {
-                            packet.data.resize(4);
-                            uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
-                            uint16to(stoi(parms[0]), &packet.data[2], ByteOrder::LITTLEENDIAN);
+                            packet.data[0] = stoi(parms[1]);
                         }
+                        else
+                        {
+                            packet.data[0] = 2;
+                        }
+                        uint16to(stoi(parms[0]), &packet.data[1], ByteOrder::LITTLEENDIAN);
                     }
                 }
                 break;
@@ -2246,7 +2245,7 @@ namespace Cosmos
             case PacketComm::TypeId::CommandEpsSetTime:
                 {
                     double mjd = currentmjd();
-                    if (parms.size() > 0)
+                    if (parms.size())
                     {
                         mjd = stof(parms[0]);
                     }
@@ -2256,19 +2255,22 @@ namespace Cosmos
                 }
             case PacketComm::TypeId::CommandEpsSwitchNames:
                 {
-                    vector<string> names = string_split(parms[0], ":");
-                    vector<string> times = string_split(parms[1], ":");
-                    if (names.size() == times.size())
+                    string names;
+                    packet.data.resize(1);
+                    packet.data[0] = 0;
+                    if (parms.size())
                     {
-                        packet.data.resize(1);
-                        packet.data[0] = static_cast<uint8_t>(names.size());
-                        for (uint16_t i=0; i<names.size(); ++i)
+                        if (parms.size() > 1 && isdigit(parms.back()[0]))
                         {
-                            packet.data.resize(packet.data.size()+3);
-                            uint16to(stoi(times[i]), &packet.data[packet.data.size()-2], ByteOrder::LITTLEENDIAN);
-                            packet.data[packet.data.size()-1] = names[i].size();
-                            packet.data.insert(packet.data.end(), names[i].begin(), names[i].end());
+                            packet.data[0] = stoi(parms.back());
+                            names = string_join(parms, " ", 0, parms.size()-2);
                         }
+                        else
+                        {
+                            packet.data[0] = 2;
+                            names = string_join(parms, " ");
+                        }
+                        packet.data.insert(packet.data.end(), names.begin(), names.end());
                     }
                 }
                 break;

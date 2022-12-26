@@ -953,7 +953,15 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsSwitchName(string name, uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        //! \brief Queue EpsSwitchName packet
+        //! Queue packet to change switch by name; on, of, or toggle, as indicated.
+        //! \param name Name of switch.
+        //! \param state 0 = off, 1 = on, 2 = toggle.
+        //! \param agent Pointer to ::Cosmos::Support::Agent.
+        //! \param dest Destination Node number.
+        //! \param radio Radio name.
+        //! \return Zero or negative error.
+        int32_t PacketHandler::QueueEpsSwitchName(string name, uint8_t state, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -962,20 +970,36 @@ namespace Cosmos {
             packet.header.orig = agent->nodeId;
             packet.header.dest = dest;
             packet.header.radio = agent->channel_number(radio);
-            packet.data.resize(2);
-            uint16to(seconds, &packet.data[0], ByteOrder::LITTLEENDIAN);
+            packet.data.resize(1);
+            packet.data[0] = state;
             packet.data.insert(packet.data.end(), name.begin(), name.end());
             iretn = agent->channel_push(agent->channel_number("EPS"), packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsSwitchNames(vector<string> names, vector<uint16_t> seconds, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        //! \brief Queue EpsSwitchNames packet
+        //! Queue packet to switch names in list on, of, or toggle, as indicated.
+        //! \param names ::vector of names as ::string.
+        //! \param state 0 = off, 1 = on, 2 = toggle.
+        //! \param agent Pointer to ::Cosmos::Support::Agent.
+        //! \param dest Destination Node number.
+        //! \param radio Radio name.
+        //! \return Zero or negative error.
+        int32_t PacketHandler::QueueEpsSwitchNames(vector<string> names, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
         {
-            if (names.size() != seconds.size())
-            {
-                return GENERAL_ERROR_MISMATCH;
-            }
+            return QueueEpsSwitchNames(string_join(names), agent, dest, radio);
+        }
 
+        //! \brief Queue EpsSwitchNames packet
+        //! Queue packet to switch names in list on, of, or toggle, as indicated.
+        //! \param names ::string of space separated names.
+        //! \param state 0 = off, 1 = on, 2 = toggle.
+        //! \param agent Pointer to ::Cosmos::Support::Agent.
+        //! \param dest Destination Node number.
+        //! \param radio Radio name.
+        //! \return Zero or negative error.
+        int32_t PacketHandler::QueueEpsSwitchNames(string names, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        {
             int32_t iretn = 0;
             PacketComm packet;
 
@@ -983,20 +1007,20 @@ namespace Cosmos {
             packet.header.orig = agent->nodeId;
             packet.header.dest = dest;
             packet.header.radio = agent->channel_number(radio);
-            packet.data.resize(1);
-            packet.data[0] = static_cast<uint8_t>(names.size());
-            for (uint16_t i=0; i<names.size(); ++i)
-            {
-                packet.data.resize(packet.data.size() + 3);
-                uint16to(seconds[i], &packet.data[packet.data.size() - 3], ByteOrder::LITTLEENDIAN);
-                packet.data[packet.data.size()-1] = names[i].size();
-                packet.data.insert(packet.data.end(), names[i].begin(), names[i].end());
-            }
+            packet.data.insert(packet.data.end(), names.begin(), names.end());
             iretn = agent->channel_push(agent->channel_number("EPS"), packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsSwitchNumber(uint16_t number, uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        //! \brief Queue EpsSwitchNumber packet
+        //! Queue packet to change switch by number; on, of, or toggle, as indicated.
+        //! \param number Number of switch.
+        //! \param state 0 = off, 1 = on, 2 = toggle.
+        //! \param agent Pointer to ::Cosmos::Support::Agent.
+        //! \param dest Destination Node number.
+        //! \param radio Radio name.
+        //! \return Zero or negative error.
+        int32_t PacketHandler::QueueEpsSwitchNumber(uint16_t number, uint8_t state, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1005,8 +1029,8 @@ namespace Cosmos {
             packet.header.orig = agent->nodeId;
             packet.header.dest = dest;
             packet.header.radio = agent->channel_number(radio);
-            packet.data.resize(4);
-            uint16to(seconds, &packet.data[0], ByteOrder::LITTLEENDIAN);
+            packet.data.resize(3);
+            packet.data[0] = state;
             uint16to(number, &packet.data[2], ByteOrder::LITTLEENDIAN);
             iretn = agent->channel_push(agent->channel_number("EPS"), packet);
             return iretn;
