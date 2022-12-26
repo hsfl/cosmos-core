@@ -1389,10 +1389,16 @@ int32_t test_many_files()
     return iretn;
 }
 
-// Node 1 sends file and Node 2 receives completely and sends CANCEL packet, but Node 1 misses the CANCEL packet.
-// Node 1 then starts up some more transfers with the same tx_ids.
-// Expect: Node 2 will mark the complete file as complete and move over, and any incomplete files will be moved over as is.
-//         Then, the new files should be fully received as expected.
+// Node 1 sends file and Node 2 receives completely up until Node 1's CANCEL packets, which are missed.
+// Additionally, the first file of the bunch has its COMPLETE packet missed too.
+// Node 1 then queues up some more files to send. The txid for the one that missed the COMPLETE packet stays, but
+// the txids that were previously used by the ones which sent out the CANCEL (but were missed by Node 2) are reused
+// for new transactions.
+// When Node 1 starts sending out packets again, Node 1 sends REQCOMPLETE for the first, then normally for the new files.
+// Node 2 sends a COMPLETE, and then overwrites the txid for its internal receive list for the txids that missed the CANCEL
+// packets, since they were already completed and moved.
+// Files are then transferred normally.
+// Expect: Node 2 receives all files (none are overwritten or omitted)
 int32_t test_packet_cancel_missed()
 {
     int32_t iretn = 0;
@@ -1462,9 +1468,7 @@ int32_t test_packet_cancel_missed()
     }
     // Number of packets sent by each node
     vector<int32_t> packets_sent = {0,0};
-    // Up to last DATA packet, node2 starts listening after this many runs have passed
-    int32_t runs = 0;
-    // +2 for the two REQCOMPLETE packets, then +1 run for the waittime wait, then the +1 at the end for the CANCEL packet
+    // How many packets are expected to be sent out, the sum of the number of packets sent out by both nodes
     int32_t packet_expected_total
         = num_files*ceil(file_size_bytes / node1.get_packet_size())*2   // number of DATA packets, everything gets sent twice
         + num_files*2     // number of METADATA packets
@@ -1537,7 +1541,6 @@ int32_t test_packet_cancel_missed()
         {
             break;
         }
-        ++runs;
     } // End while
 
     // Create more test files on sender side
@@ -1612,7 +1615,6 @@ int32_t test_packet_cancel_missed()
         {
             break;
         }
-        ++runs;
     } // End while
 
     // Verify expected results
