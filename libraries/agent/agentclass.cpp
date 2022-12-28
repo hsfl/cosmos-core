@@ -2201,7 +2201,7 @@ namespace Cosmos
                         }
                         else
                         {
-                            packet.data[0] = 2;
+                            packet.data[0] = 1;
                         }
                         packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
                     }
@@ -2218,7 +2218,7 @@ namespace Cosmos
                         }
                         else
                         {
-                            packet.data[0] = 2;
+                            packet.data[0] = 1;
                         }
                         uint16to(stoi(parms[0]), &packet.data[1], ByteOrder::LITTLEENDIAN);
                     }
@@ -2255,23 +2255,8 @@ namespace Cosmos
                 }
             case PacketComm::TypeId::CommandEpsSwitchNames:
                 {
-                    string names;
-                    packet.data.resize(1);
-                    packet.data[0] = 0;
-                    if (parms.size())
-                    {
-                        if (parms.size() > 1 && isdigit(parms.back()[0]))
-                        {
-                            packet.data[0] = stoi(parms.back());
-                            names = string_join(parms, " ", 0, parms.size()-2);
-                        }
-                        else
-                        {
-                            packet.data[0] = 2;
-                            names = string_join(parms, " ");
-                        }
-                        packet.data.insert(packet.data.end(), names.begin(), names.end());
-                    }
+                    string names = string_join(parms, " ");
+                    packet.data.insert(packet.data.end(), names.begin(), names.end());
                 }
                 break;
             case PacketComm::TypeId::CommandEpsSwitchStatus:
