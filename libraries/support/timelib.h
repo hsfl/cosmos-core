@@ -150,11 +150,11 @@ namespace Cosmos {
                                         int32_t hour, int32_t minute, double second);
 
         // utc to another format
-        timeval utc2unix(double utc);
-        double utc2unixseconds(double utc);
-        double utc2gmst2000(double mjd);
-        string utc2unixdate(double utc);
-        string utc2iso8601(double mjd);
+        timeval utc2unix(double utc=0.);
+        double utc2unixseconds(double utc=0.);
+        double utc2gmst2000(double mjd=0.);
+        string utc2unixdate(double utc=0.);
+        string utc2iso8601(double mjd=0.);
         double iso86012utc(string date);
 
         // gps to another format

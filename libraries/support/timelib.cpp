@@ -160,6 +160,10 @@ namespace Cosmos {
         timeval utc2unix(double utc)
         {
             timeval unixtime;
+            if (utc > 0.)
+            {
+                utc = currentmjd();
+            }
             double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
             unixtime.tv_sec = (int)unixseconds;
             unixtime.tv_usec = 1000000. * (unixseconds - unixtime.tv_sec);
@@ -174,6 +178,10 @@ namespace Cosmos {
  */
         double utc2unixseconds(double utc)
         {
+            if (utc > 0.)
+            {
+                utc = currentmjd();
+            }
             double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
 
             return unixseconds;
@@ -586,6 +594,10 @@ namespace Cosmos {
             int32_t iy=0, im=0, id=0, ihh, imm, iss;
             double fd=0.;
 
+            if (utc > 0.)
+            {
+                utc = currentmjd();
+            }
             mjd2ymd(utc, iy, im, fd);
             id = static_cast <int32_t>(fd);
             fd -= id;
@@ -603,7 +615,7 @@ namespace Cosmos {
         /*! Represent the given UTC as an extended calendar format ISO 8601
  * string in the format:
  * YYYY-MM-DDTHH:MM:SS
- * \param utc Coordinated Universal Time expressed in Modified Julian Days.
+ * \param utc Coordinated Universal Time expressed in Modified Julian Days. If 0., then use current time.
  * \return C++ String containing the ISO 8601 date.
  */
         string utc2iso8601(double utc)
@@ -612,6 +624,10 @@ namespace Cosmos {
             int32_t iy=0, im=0, id=0, ihh, imm, iss;
             double fd=0.;
 
+            if (utc > 0.)
+            {
+                utc = currentmjd();
+            }
             mjd2ymd(utc, iy, im, fd);
             id = (int32_t)fd;
             fd -= id;
