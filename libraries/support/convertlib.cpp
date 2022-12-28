@@ -5103,6 +5103,10 @@ matrix, for the provided UTC date.
             static double lgmst = 0.;
             double tt;
 
+            if (utc > 0.)
+            {
+                utc = currentmjd();
+            }
             if (utc != lutc)
             {
                 //		ut1 = utc2ut1(utc);
