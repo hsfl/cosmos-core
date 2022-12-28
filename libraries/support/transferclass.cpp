@@ -78,6 +78,7 @@ namespace Cosmos {
                 {
                     this->debug_error->Printf("%.4f Couldn't load node lookup table\n", tet.split());
                 }
+                // TODO semantically, return value should be negative on error (ie: not 0 or 1)
                 return node_ids_size;
             }
             // printf("Initialize Transfer step 2\n");
@@ -367,7 +368,7 @@ namespace Cosmos {
                     PacketComm packet;
                     packet.header.orig = self_node_id;
                     packet.header.dest = dest_node_id;
-                    serialize_metadata(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.agent_name.c_str());
+                    serialize_metadata(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx.tx_id, tx.file_name, tx.file_size, tx.agent_name);
                     packets.push_back(packet);
                     txq[dest_node_idx].outgoing.progress[tx_id].sentmeta = true;
                 }
@@ -409,9 +410,10 @@ namespace Cosmos {
                                 tp = txq[dest_node_idx].outgoing.progress[tx_id].file_info[0];
 
                                 PACKET_FILE_SIZE_TYPE byte_count = (tp.chunk_end - tp.chunk_start) + 1;
-                                if (byte_count > packet_size)
+                                const int32_t packet_data_size_limit = packet_size - offsetof(struct packet_struct_data, chunk);
+                                if (byte_count > packet_data_size_limit)
                                 {
-                                    byte_count = packet_size;
+                                    byte_count = packet_data_size_limit;
                                 }
 
                                 tp.chunk_end = tp.chunk_start + byte_count - 1;
@@ -538,7 +540,7 @@ namespace Cosmos {
                 PacketComm packet;
                 packet.header.orig = self_node_id;
                 packet.header.dest = dest_node_id;
-                serialize_queue(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), self_node_name, tqueue);
+                serialize_queue(packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), self_node_name, tqueue);
                 packets.push_back(packet);
                 txq[dest_node_idx].outgoing.sentqueue = true;
             }
@@ -616,8 +618,7 @@ namespace Cosmos {
             }
 
             // Hold REQMETA bits in here
-            vector<PACKET_TX_ID_TYPE> treqmeta (TRANSFER_QUEUE_LIMIT, 0);
-            PACKET_TX_ID_TYPE qidx = 0;
+            vector<PACKET_TX_ID_TYPE> treqmeta;
 
             // Iterate over tx_id's requiring a response
             for (PACKET_TX_ID_TYPE tx_id : txq[orig_node_idx].incoming.respond)
@@ -627,7 +628,7 @@ namespace Cosmos {
                 // **************************************************************
                 if (!txq[orig_node_idx].incoming.progress[tx_id].sentmeta)
                 {
-                    treqmeta[qidx++] = tx_id;
+                    treqmeta.push_back(tx_id);
                 }
 
                 // **************************************************************
@@ -663,7 +664,7 @@ namespace Cosmos {
             txq[orig_node_idx].incoming.respond.clear();
             
             // Send REQMETA packet if needed
-            if (qidx)
+            if (treqmeta.size())
             {
                 PacketComm packet;
                 packet.header.orig = self_node_id;
@@ -811,7 +812,7 @@ namespace Cosmos {
                 tp.chunk_end = tx_out.file_size - 1;
                 tx_out.file_info.push_back(tp);
 
-                write_meta(tx_out);
+                write_meta(tx_out, 0.);
 
                 int32_t iretn = outgoing_tx_add(tx_out, dest_node);
                 return iretn;
@@ -1170,10 +1171,10 @@ namespace Cosmos {
         }
 
         /**
-         * @brief Updates internal structures from a receied META-type packet
+         * @brief Updates internal structures from a received META-type packet
          * 
          * @param meta Incoming META packet
-         * @return int32_t 
+         * @return tx_id on success, negative on failure
          */
         int32_t Transfer::incoming_tx_update(const packet_struct_metashort &meta)
         {
@@ -1410,19 +1411,25 @@ namespace Cosmos {
                     txq[orig_node_idx].outgoing.sentqueue = false;
 
                     // Send requested META packets
-                    if (txq[orig_node_idx].node_id > 0)
+                    PACKET_TX_ID_TYPE tx_id = 0;
+                    // Iterate over every group of flags
+                    for (auto flags : reqmeta.tx_ids)
                     {
-                        for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
+                        for (size_t i = 0; i < sizeof(flags) * 8; ++i)
                         {
-                            PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[orig_node_idx].outgoing, reqmeta.tx_id[i]);
-                            if (tx_id > 0)
+                            bool flag = flags & 1;
+                            // If this tx_id's METADATA is being requested and the tx_id is valid, set sentmeta flag to false to resend
+                            if (flag && check_tx_id(txq[orig_node_idx].outgoing, tx_id) > 0)
                             {
                                 txq[orig_node_idx].outgoing.progress[tx_id].sentmeta = false;
                             }
+
+                            flags = flags >> 1;
+                            ++tx_id;
                         }
                     }
-                    break;
                 }
+                break;
             case PacketComm::TypeId::DataFileMetaData:
                 {
                     packet_struct_metashort meta;
@@ -1434,9 +1441,8 @@ namespace Cosmos {
                     {
                         iretn = 0;
                     }
-
-                    break;
                 }
+                break;
             case PacketComm::TypeId::DataFileReqData:
                 {
                     packet_struct_reqdata reqdata;
@@ -1467,8 +1473,8 @@ namespace Cosmos {
                             txq[orig_node_idx].outgoing.progress[tx_id].sentdata = false;
                         }
                     }
-                    break;
                 }
+                break;
             case PacketComm::TypeId::DataFileChunkData:
                 {
                     packet_struct_data data;
@@ -1532,6 +1538,7 @@ namespace Cosmos {
                             }
                         }
 
+                        // Check fp open success
                         if (txq[orig_node_idx].incoming.progress[tx_id].fp == nullptr)
                         {
                             if (debug_error != nullptr)
@@ -1548,6 +1555,7 @@ namespace Cosmos {
                             write_meta(txq[orig_node_idx].incoming.progress[tx_id]);
                             if (debug_error != nullptr)
                             {
+                                // Leave this commented out since there are a lot of DATA packets flowing
                                 //debug_error->Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), data.byte_count, tx_id);
                             }
 
@@ -1565,9 +1573,8 @@ namespace Cosmos {
                     {
                         txq[orig_node_idx].incoming.respond.push_back(tx_id);
                     }
-
-                    break;
                 }
+                break;
             case PacketComm::TypeId::DataFileReqComplete:
                 {
                     packet_struct_reqcomplete reqcomplete;
@@ -1585,9 +1592,8 @@ namespace Cosmos {
                     }
                     txq[orig_node_idx].incoming.respond.push_back(reqcomplete.tx_id);
                     iretn = RESPONSE_REQUIRED;
-
-                    break;
                 }
+                break;
             case PacketComm::TypeId::DataFileComplete:
                 {
                     packet_struct_complete complete;
@@ -1601,9 +1607,8 @@ namespace Cosmos {
                         txq[orig_node_idx].outgoing.progress[tx_id].sentdata = true;
                         txq[orig_node_idx].outgoing.progress[tx_id].sentmeta = true;
                     }
-
-                    break;
                 }
+                break;
             case PacketComm::TypeId::DataFileCancel:
                 {
                     packet_struct_cancel cancel;
@@ -1615,9 +1620,8 @@ namespace Cosmos {
                         // Remove the transaction
                         incoming_tx_del(node_id, tx_id);
                     }
-
-                    break;
                 }
+                break;
             default:
                 return COSMOS_PACKET_TYPE_MISMATCH;
                 break;
@@ -1664,18 +1668,30 @@ namespace Cosmos {
             if (currentmjd(0.) - tx.savetime > interval/86400.)
             {
                 tx.savetime = currentmjd(0.);
-                serialize_metadata(packet, tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.node_name.c_str(), (char *)tx.agent_name.c_str());
+                serialize_metadata(packet, tx.tx_id, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
                 file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary); // Note: truncs by default
                 if(!file_name.is_open())
                 {
                     return (-errno);
                 }
 
+                // Structure of a .meta file:
+                // Byte 0-3: packet size (n)
+                // Byte 4-5: packet crc
+                // Byte 6-(6+n): packet meta struct
+                // Byte (6+n)-end: file_progress structs[]
+
+                // where file_progress structs[] are a consecutive list of the following:
+                // Byte 0-1: file_progress
+                // Byte 3-4: crc
+                // ... repeat above structure per packet
                 uint16_t crc;
                 CRC16 calc_crc;
-                file_name.write((char *)&packet.data[0], sizeof(packet_struct_metalong));
                 crc = calc_crc.calc(packet.data);
-                file_name.write((char *)&crc, 2);
+                size_t packet_size = packet.data.size();
+                file_name.write((char *)&packet_size, sizeof(packet_size));
+                file_name.write((char *)&crc, sizeof(crc));
+                file_name.write((char *)&packet.data[0], packet.data.size());
                 for (file_progress progress_info : tx.file_info)
                 {
                     file_name.write((const char *)&progress_info, sizeof(progress_info));
@@ -1692,7 +1708,8 @@ namespace Cosmos {
         //! \return 0 on success, negative on error
         int32_t Transfer::read_meta(tx_progress& tx)
         {
-            vector<PACKET_BYTE> packet(sizeof(packet_struct_metalong),0);
+            // TODO: add check for wrong formatting of meta? Currently fails on unexpected values
+
             std::ifstream file_name;
             packet_struct_metalong meta;
 
@@ -1714,22 +1731,39 @@ namespace Cosmos {
             tx.savetime = 0.;
             tx.complete = false;
 
+            // Structure of a .meta file:
+            // Byte 0-3: packet size (n)
+            // Byte 4-5: packet crc
+            // Byte 6-(6+n): packet meta struct
+            // Byte (6+n)-end: file_progress structs[]
 
-            // load metadata
+            // where file_progress structs[] are a consecutive list of the following:
+            // Byte 0-1: file_progress
+            // Byte 3-4: crc
+            // ... repeat above structure per packet
 
-            file_name.read((char *)&packet[0], sizeof(packet_struct_metalong));
+            // Load metadata
+            size_t packet_size;
+            file_name.read((char *)&packet_size, sizeof(packet_size));
             if (file_name.eof())
             {
                 return DATA_ERROR_SIZE_MISMATCH;
             }
             uint16_t crc;
-            CRC16 calc_crc;
-            file_name.read((char *)&crc, 2);
+            file_name.read((char *)&crc, sizeof(crc));
             if (file_name.eof())
             {
                 return DATA_ERROR_SIZE_MISMATCH;
             }
-            if (crc != calc_crc.calc((uint8_t *)&packet[0], sizeof(packet_struct_metalong)))
+            vector<PACKET_BYTE> packet;
+            packet.resize(packet_size);
+            file_name.read((char *)packet.data(), packet_size);
+            if (file_name.eof())
+            {
+                return DATA_ERROR_SIZE_MISMATCH;
+            }
+            CRC16 calc_crc;
+            if (crc != calc_crc.calc(packet.data(), packet.size()))
             {
                 file_name.close();
                 return DATA_ERROR_CRC;

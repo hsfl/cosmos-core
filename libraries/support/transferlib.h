@@ -37,31 +37,30 @@ namespace Cosmos {
             PACKET_UNIXTIME_TYPE funixtime;
         };
 
-        typedef uint16_t PACKET_QUEUE_FLAGS_TYPE;
+        typedef uint8_t PACKET_QUEUE_FLAGS_TYPE;
         #define PACKET_QUEUE_FLAGS_LIMIT (PROGRESS_QUEUE_SIZE/(COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE)*8))
         
         struct packet_struct_queue
         {
             PACKET_NODE_ID_TYPE node_id;
-            char node_name[COSMOS_MAX_NAME+1];
-            //! An array of 16 uint16_t's, equaling 256 bits total, each corresponding to
+            uint8_t node_name_len;
+            string node_name;
+            //! An array of 32 uint8_t's, equaling 256 bits total, each corresponding to
             //! a tx_id in the outgoing/incoming queues.
             PACKET_QUEUE_FLAGS_TYPE tx_ids[PACKET_QUEUE_FLAGS_LIMIT];
         };
 
-        struct packet_struct_reqmeta
-        {
-            PACKET_NODE_ID_TYPE node_id;
-            char node_name[COSMOS_MAX_NAME+1];
-            PACKET_TX_ID_TYPE tx_id[TRANSFER_QUEUE_LIMIT];
-        };
+        using packet_struct_reqmeta = packet_struct_queue;
 
         struct packet_struct_metalong
         {
-            char node_name[COSMOS_MAX_NAME+1];
+            uint8_t node_name_len;
+            string node_name;
             PACKET_TX_ID_TYPE tx_id;
-            char agent_name[COSMOS_MAX_NAME+1];
-            char file_name[TRANSFER_MAX_FILENAME];
+            uint8_t agent_name_len;
+            string agent_name;
+            uint8_t file_name_len;
+            string file_name;
             PACKET_FILE_SIZE_TYPE file_size;
         };
 
@@ -69,8 +68,10 @@ namespace Cosmos {
         {
             PACKET_NODE_ID_TYPE node_id;
             PACKET_TX_ID_TYPE tx_id;
-            char agent_name[COSMOS_MAX_NAME+1];
-            char file_name[TRANSFER_MAX_FILENAME];
+            uint8_t agent_name_len;
+            string agent_name;
+            uint8_t file_name_len;
+            string file_name;
             PACKET_FILE_SIZE_TYPE file_size;
         };
 
@@ -190,13 +191,13 @@ namespace Cosmos {
         void deserialize_reqcomplete(const vector<PACKET_BYTE>& pdata, packet_struct_reqcomplete &reqcomplete);
         void serialize_complete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
         void deserialize_complete(const vector<PACKET_BYTE>& pdata, packet_struct_complete& complete);
-        void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta);
+        void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& reqmeta);
         void deserialize_reqmeta(const vector<PACKET_BYTE>& pdata, packet_struct_reqmeta& reqmeta);
         void serialize_reqdata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end);
         void deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata& reqdata);
-        void serialize_metadata(PacketComm& packet, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name);
+        void serialize_metadata(PacketComm& packet, PACKET_TX_ID_TYPE tx_id, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& node_name, const string& agent_name);
         void deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metalong& meta);
-        void serialize_metadata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name);
+        void serialize_metadata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id , PACKET_TX_ID_TYPE tx_id, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& agent_name);
         void deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metashort& meta);
         void serialize_data(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk);
         void deserialize_data(const vector<PACKET_BYTE>& pdata, packet_struct_data& data);

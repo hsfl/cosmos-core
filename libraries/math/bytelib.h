@@ -41,7 +41,7 @@ void uint8from(vector<uint8_t> src, vector<uint8_t> &dst, ByteOrder order);
 void uint8to(vector<uint8_t> src, vector<uint8_t> dst, ByteOrder order);
 uint16_t uint16from(uint8_t *pointer, ByteOrder order);
 int16_t int16from(uint8_t *pointer, ByteOrder order);
-uint32_t uint32from(uint8_t *pointer, ByteOrder order);
+uint32_t uint32from(const uint8_t *pointer, ByteOrder order);
 int32_t int32from(uint8_t *pointer, ByteOrder order);
 float floatfrom(uint8_t *pointer, ByteOrder order);
 double doublefrom(uint8_t *pointer, ByteOrder order);
