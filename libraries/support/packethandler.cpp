@@ -1007,6 +1007,7 @@ namespace Cosmos {
             packet.header.orig = agent->nodeId;
             packet.header.dest = dest;
             packet.header.radio = agent->channel_number(radio);
+            packet.data.clear();
             packet.data.insert(packet.data.end(), names.begin(), names.end());
             iretn = agent->channel_push(agent->channel_number("EPS"), packet);
             return iretn;
