@@ -93,7 +93,7 @@ namespace Cosmos {
                 }
                 break;
             case TypeId::TsenBeaconS:
-//                if (cinfo->devspec.tsen.size() >= 6)
+                //                if (cinfo->devspec.tsen.size() >= 6)
                 {
                     tsen_beacons beacon;
                     beacon.deci = cinfo->node.deci;
@@ -204,7 +204,7 @@ namespace Cosmos {
                     }
                 }
                 break;
-            case TypeId::CPUBeaconL:
+            case TypeId::CPUBeacon:
                 if (cinfo->devspec.cpu.size())
                 {
                     cpus_beacon beacon;
@@ -226,13 +226,77 @@ namespace Cosmos {
                         beacon.cpu[i].mmemory = 1000. * (cinfo->devspec.cpu[i].gib / cinfo->devspec.cpu[i].maxgib) + .5;
                         beacon.cpu[i].mdisk = cinfo->devspec.cpu[i].storage * 1000. + .5;
                         beacon.cpu[i].ctemp = cinfo->devspec.cpu[i].temp * 100. + .5;
-                        //                        printf("EB CPU %u %s: pidx=%u uptime=%u name=%s\n", i, cinfo->devspec.cpu[i].name.c_str(), cinfo->devspec.cpu[i].pidx, cinfo->devspec.cpu[i].uptime, cinfo->pieces[cinfo->devspec.cpu[i].pidx].name.c_str());
-                        fflush(stdout);
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+9+cpucount*sizeof(cpu_beacon));
                 }
                 break;
-            case TypeId::TsenBeaconL:
+            case TypeId::TelemBeacon:
+                if (cinfo->devspec.telem.size())
+                {
+                    vector<uint8_t> bytes;
+                    for (uint16_t i=0; i<cinfo->devspec.telem.size(); ++i)
+                    {
+                        bytes.clear();
+                        switch (cinfo->devspec.telem[i].type)
+                        {
+                        case 0:
+                            {
+                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vuint8, &cinfo->devspec.telem[i].vuint8+1);
+                            }
+                            break;
+                        case 1:
+                            {
+                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vint8, &cinfo->devspec.telem[i].vint8+1);
+                            }
+                            break;
+                        case 2:
+                            {
+                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vuint16, &cinfo->devspec.telem[i].vuint16+2);
+                            }
+                            break;
+                        case 3:
+                            {
+                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vint16, &cinfo->devspec.telem[i].vint16+2);
+                            }
+                            break;
+                        case 4:
+                            {
+                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vuint32, &cinfo->devspec.telem[i].vuint32+4);
+                            }
+                            break;
+                        case 5:
+                            {
+                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vint32, &cinfo->devspec.telem[i].vint32+4);
+                            }
+                            break;
+                        case 6:
+                            {
+                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vfloat, &cinfo->devspec.telem[i].vfloat+4);
+                            }
+                            break;
+                        case 7:
+                            {
+                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vdouble, &cinfo->devspec.telem[i].vdouble+8);
+                            }
+                            break;
+                        case 8:
+                            {
+                                bytes.insert(bytes.end(), cinfo->devspec.telem[i].vstring.begin(), cinfo->devspec.telem[i].vstring.end());
+                            }
+                            break;
+                        }
+                        if (telem_count - data.size() < bytes.size())
+                        {
+                            break;
+                        }
+                        data.insert(data.end(), bytes.begin(), bytes.end());
+                    }
+                    telems_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+                    memcpy(beacon.content, data.data(), data.size());
+                }
+                break;
+            case TypeId::TsenBeacon:
                 if (cinfo->devspec.tsen.size())
                 {
                     tsen_beacon beacon;
@@ -246,7 +310,7 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+tsencount*2);
                 }
                 break;
-            case TypeId::EPSSWCHBeaconL:
+            case TypeId::EPSSWCHBeacon:
                 if (cinfo->devspec.swch.size())
                 {
                     epsswchs_beacon beacon;
@@ -261,7 +325,7 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+swchcount*sizeof(epsswch_beacon));
                 }
                 break;
-            case TypeId::EPSBCREGBeaconL:
+            case TypeId::EPSBCREGBeacon:
                 if (cinfo->devspec.swch.size())
                 {
                     epsbcregs_beacon beacon;
@@ -279,7 +343,7 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+pvcount*sizeof(epsbcreg_beacon));
                 }
                 break;
-            case TypeId::EPSBATTBeaconL:
+            case TypeId::EPSBATTBeacon:
                 if (cinfo->devspec.swch.size())
                 {
                     epsbatts_beacon beacon;
@@ -295,23 +359,23 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+battcount*sizeof(epsbatt_beacon));
                 }
                 break;
-//            case TypeId::EPSSUMBeaconL:
-//                if (cinfo->devspec.swch.size())
-//                {
-//                    epsbatts_beacon beacon;
-//                    beacon.deci = cinfo->node.deci;
-//                    uint16_t battcount = cinfo->devspec.batt.size() < epsbatt_count?cinfo->devspec.batt.size():epsbatt_count;
-//                    for (uint16_t i=0; i<battcount; ++i)
-//                    {
-//                        beacon.batt[i].mamp = cinfo->devspec.batt[i].amp * 1000. + .5;
-//                        beacon.batt[i].mvolt = cinfo->devspec.batt[i].volt * 1000. + .5;
-//                        beacon.batt[i].cpercent = cinfo->devspec.batt[i].percentage * 100. + .5;
-//                        beacon.batt[i].ctemp = cinfo->devspec.batt[i].temp * 100. + .5;
-//                    }
-//                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+battcount*sizeof(epsbatt_beacon));
-//                }
-//                break;
-            case TypeId::ADCSMTRBeaconL:
+                //            case TypeId::EPSSUMBeacon:
+                //                if (cinfo->devspec.swch.size())
+                //                {
+                //                    epsbatts_beacon beacon;
+                //                    beacon.deci = cinfo->node.deci;
+                //                    uint16_t battcount = cinfo->devspec.batt.size() < epsbatt_count?cinfo->devspec.batt.size():epsbatt_count;
+                //                    for (uint16_t i=0; i<battcount; ++i)
+                //                    {
+                //                        beacon.batt[i].mamp = cinfo->devspec.batt[i].amp * 1000. + .5;
+                //                        beacon.batt[i].mvolt = cinfo->devspec.batt[i].volt * 1000. + .5;
+                //                        beacon.batt[i].cpercent = cinfo->devspec.batt[i].percentage * 100. + .5;
+                //                        beacon.batt[i].ctemp = cinfo->devspec.batt[i].temp * 100. + .5;
+                //                    }
+                //                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+battcount*sizeof(epsbatt_beacon));
+                //                }
+                //                break;
+            case TypeId::ADCSMTRBeacon:
                 if (cinfo->devspec.mtr.size())
                 {
                     adcsmtrs_beacon beacon;
@@ -328,7 +392,7 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+mtrcount*sizeof(adcsmtr_beacon));
                 }
                 break;
-            case TypeId::ADCSStateBeaconL:
+            case TypeId::ADCSStateBeacon:
                 {
                     adcsstate_beacon beacon;
                     beacon.deci = cinfo->node.deci;
@@ -353,14 +417,14 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
                 }
                 break;
-            case TypeId::RadioBeaconL:
+            case TypeId::RadioBeacon:
                 {
                     radios_beacon beacon;
                     beacon.deci = cinfo->node.deci;
                     uint16_t radiocount = 0;
                     if (cinfo->devspec.rxr.size() || cinfo->devspec.txr.size())
                     {
-//                        uint16_t rxrcount = cinfo->devspec.rxr.size() < rxrtxr_count?cinfo->devspec.rxr.size():rxrtxr_count;
+                        //                        uint16_t rxrcount = cinfo->devspec.rxr.size() < rxrtxr_count?cinfo->devspec.rxr.size():rxrtxr_count;
                         for (uint16_t i=0; i<cinfo->devspec.rxr.size(); ++i)
                         {
                             if (radiocount >= rxrtxr_count)
@@ -376,26 +440,26 @@ namespace Cosmos {
                             beacon.radio[radiocount].lastdeci = decisec(cinfo->devspec.rxr[i].utcin);
                             ++radiocount;
                         }
-//                        if (radiocount < rxrtxr_count)
-//                        {
-//                            uint16_t txr_count = rxrtxr_count - radiocount;
-//                            uint16_t txrcount = cinfo->devspec.txr.size() < txr_count?cinfo->devspec.txr.size():txr_count;
-                            for (uint16_t i=0; i<cinfo->devspec.txr.size(); ++i)
+                        //                        if (radiocount < rxrtxr_count)
+                        //                        {
+                        //                            uint16_t txr_count = rxrtxr_count - radiocount;
+                        //                            uint16_t txrcount = cinfo->devspec.txr.size() < txr_count?cinfo->devspec.txr.size():txr_count;
+                        for (uint16_t i=0; i<cinfo->devspec.txr.size(); ++i)
+                        {
+                            if (radiocount >= rxrtxr_count)
                             {
-                                if (radiocount >= rxrtxr_count)
-                                {
-                                    break;
-                                }
-                                beacon.radio[radiocount].packet_size = cinfo->devspec.txr[i].pktsize;
-                                beacon.radio[radiocount].kbyte_rate = cinfo->devspec.txr[i].byte_rate / 1000.;
-                                beacon.radio[radiocount].uptime = cinfo->devspec.txr[i].pktsize;
-                                beacon.radio[radiocount].ctemp = cinfo->devspec.txr[i].temp / 100.;
-                                beacon.radio[radiocount].kpower = cinfo->devspec.txr[i].powerout / 1000.;
-                                beacon.radio[radiocount].bytes = cinfo->devspec.txr[i].bytesout;
-                                beacon.radio[radiocount].lastdeci = decisec(cinfo->devspec.txr[i].utcout);
-                                ++radiocount;
+                                break;
                             }
-//                        }
+                            beacon.radio[radiocount].packet_size = cinfo->devspec.txr[i].pktsize;
+                            beacon.radio[radiocount].kbyte_rate = cinfo->devspec.txr[i].byte_rate / 1000.;
+                            beacon.radio[radiocount].uptime = cinfo->devspec.txr[i].pktsize;
+                            beacon.radio[radiocount].ctemp = cinfo->devspec.txr[i].temp / 100.;
+                            beacon.radio[radiocount].kpower = cinfo->devspec.txr[i].powerout / 1000.;
+                            beacon.radio[radiocount].bytes = cinfo->devspec.txr[i].bytesout;
+                            beacon.radio[radiocount].lastdeci = decisec(cinfo->devspec.txr[i].utcout);
+                            ++radiocount;
+                        }
+                        //                        }
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+radiocount*sizeof(radio_beacon));
                 }
@@ -416,7 +480,7 @@ namespace Cosmos {
                 {
                     switch (type)
                     {
-                    case TypeId::ADCSStateBeaconL:
+                    case TypeId::ADCSStateBeacon:
                         {
                             adcsstate_beacon beacon;
                             if (data.size() <= sizeof(beacon)) {
@@ -669,7 +733,7 @@ namespace Cosmos {
                             }
                         }
                         break;
-                    case TypeId::CPUBeaconL:
+                    case TypeId::CPUBeacon:
                         {
                             cpus_beacon beacon;
                             if (data.size() <= sizeof(beacon))
@@ -697,7 +761,121 @@ namespace Cosmos {
                             }
                         }
                         break;
-                    case TypeId::TsenBeaconL:
+                    case TypeId::TelemBeacon:
+                        {
+                            telems_beacon beacon;
+                            if (data.size() <= sizeof(beacon))
+                            {
+                                memcpy(&beacon, data.data(), data.size());
+                            }
+                            else
+                            {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            uint16_t i = 5;
+                            switch (cinfo->devspec.telem[i].type)
+                            {
+                            case 0:
+                                {
+                                    if (i + 1 > telem_count)
+                                    {
+                                        break;
+                                    }
+                                    cinfo->devspec.telem[i].vuint8 = beacon.content[i];
+                                    ++i;
+                                }
+                                break;
+                            case 1:
+                                {
+                                    if (i + 1 > telem_count)
+                                    {
+                                        break;
+                                    }
+                                    cinfo->devspec.telem[i].vint8 = beacon.content[i];
+                                    ++i;
+                                }
+                                break;
+                            case 2:
+                                {
+                                    if (i + 2 > telem_count)
+                                    {
+                                        break;
+                                    }
+                                    cinfo->devspec.telem[i].vuint16 = uint16from(&beacon.content[i]);
+                                    i += 2;
+                                }
+                                break;
+                            case 3:
+                                {
+                                    if (i + 2 > telem_count)
+                                    {
+                                        break;
+                                    }
+                                    cinfo->devspec.telem[i].vint16 = uint16from(&beacon.content[i]);
+                                    i += 2;
+                                }
+                                break;
+                            case 4:
+                                {
+                                    if (i + 4 > telem_count)
+                                    {
+                                        break;
+                                    }
+                                    cinfo->devspec.telem[i].vuint32 = uint32from(&beacon.content[i]);
+                                    i += 4;
+                                }
+                                break;
+                            case 5:
+                                {
+                                    if (i + 4 > telem_count)
+                                    {
+                                        break;
+                                    }
+                                    cinfo->devspec.telem[i].vint32 = uint32from(&beacon.content[i]);
+                                    i += 4;
+                                }
+                                break;
+                            case 6:
+                                {
+                                    if (i + 4 > telem_count)
+                                    {
+                                        break;
+                                    }
+                                    cinfo->devspec.telem[i].vfloat = floatfrom(&beacon.content[i]);
+                                    i += 4;
+                                }
+                                break;
+                            case 7:
+                                {
+                                    if (i + 8 > telem_count)
+                                    {
+                                        break;
+                                    }
+                                    cinfo->devspec.telem[i].vdouble = doublefrom(&beacon.content[i]);
+                                    i += 8;
+                                }
+                                break;
+                            case 8:
+                                {
+                                    if (i + 1 + beacon.content[i] > telem_count)
+                                    {
+                                        break;
+                                    }
+                                    cinfo->devspec.telem[i].vstring.clear();
+                                    cinfo->devspec.telem[i].vstring.insert(cinfo->devspec.telem[i].vstring.end(), &beacon.content[i+1], &beacon.content[i+1+beacon.content[i]]);
+                                    i+= beacon.content[i] + 1;
+                                }
+                                break;
+                            }
+                            if (i > telem_count)
+                            {
+                                break;
+                            }
+                            cinfo->devspec.telem[i].utc = mjd;
+                        }
+                        break;
+                    case TypeId::TsenBeacon:
                         {
                             tsen_beacon beacon;
                             if (data.size() <= sizeof(beacon))
@@ -719,7 +897,7 @@ namespace Cosmos {
                             }
                         }
                         break;
-                    case TypeId::EPSSWCHBeaconL:
+                    case TypeId::EPSSWCHBeacon:
                         {
                             epsswchs_beacon beacon;
                             if (data.size() <= sizeof(beacon))
@@ -740,7 +918,7 @@ namespace Cosmos {
                             }
                         }
                         break;
-                    case TypeId::EPSBCREGBeaconL:
+                    case TypeId::EPSBCREGBeacon:
                         {
                             epsbcregs_beacon beacon;
                             if (data.size() <= sizeof(beacon))
@@ -765,7 +943,7 @@ namespace Cosmos {
                             }
                         }
                         break;
-                    case TypeId::EPSBATTBeaconL:
+                    case TypeId::EPSBATTBeacon:
                         {
                             epsbatts_beacon beacon;
                             if (data.size() <= sizeof(beacon))
@@ -788,7 +966,7 @@ namespace Cosmos {
                             }
                         }
                         break;
-                    case TypeId::RadioBeaconL:
+                    case TypeId::RadioBeacon:
                         {
                             radios_beacon beacon;
                             if (data.size() <= sizeof(beacon))
@@ -799,9 +977,9 @@ namespace Cosmos {
                             {
                                 return GENERAL_ERROR_BAD_SIZE;
                             }
-//                            double mjd = decisec2mjd(beacon.deci);
+                            //                            double mjd = decisec2mjd(beacon.deci);
                             uint16_t radiocount = 0;
-//                            uint16_t rxrcount = cinfo->devspec.rxr.size() < rxrtxr_count?cinfo->devspec.rxr.size():rxrtxr_count;
+                            //                            uint16_t rxrcount = cinfo->devspec.rxr.size() < rxrtxr_count?cinfo->devspec.rxr.size():rxrtxr_count;
                             for (uint16_t i=0; i<cinfo->devspec.rxr.size(); ++i)
                             {
                                 if (radiocount >= rxrtxr_count)
@@ -860,7 +1038,7 @@ namespace Cosmos {
             Contents.clear();
             switch (type)
             {
-            case TypeId::ADCSStateBeaconL:
+            case TypeId::ADCSStateBeacon:
                 {
                     // JIMNOTE: should not this be mjd to deci?
                     json_out(Contents, "node_loc_pos_eci_utc", cinfo);
@@ -974,7 +1152,7 @@ namespace Cosmos {
                     }
                 }
                 break;
-            case TypeId::CPUBeaconL:
+            case TypeId::CPUBeacon:
                 {
                     json_out(Contents, "node_utc", cinfo);
                     json_out(Contents, "node_utcstart", cinfo);
@@ -990,7 +1168,64 @@ namespace Cosmos {
                     }
                 }
                 break;
-            case TypeId::TsenBeaconL:
+            case TypeId::TelemBeacon:
+                {
+                    for (uint16_t i=0; i<cinfo->devspec.telem.size(); ++i)
+                    {
+                        json_out_1d(Contents, "device_telem_utc", i, cinfo);
+                        json_out_1d(Contents, "device_telem_name", i, cinfo);
+                        switch (cinfo->devspec.telem[i].type)
+                        {
+                        case 0:
+                            {
+                                json_out_1d(Contents, "device_telem_vuint8", i, cinfo);
+                            }
+                            break;
+                        case 1:
+                            {
+                                json_out_1d(Contents, "device_telem_vint8", i, cinfo);
+                            }
+                            break;
+                        case 2:
+                            {
+                                json_out_1d(Contents, "device_telem_vuint16", i, cinfo);
+                            }
+                            break;
+                        case 3:
+                            {
+                                json_out_1d(Contents, "device_telem_vint16", i, cinfo);
+                            }
+                            break;
+                        case 4:
+                            {
+                                json_out_1d(Contents, "device_telem_vuint32", i, cinfo);
+                            }
+                            break;
+                        case 5:
+                            {
+                                json_out_1d(Contents, "device_telem_vint32", i, cinfo);
+                            }
+                            break;
+                        case 6:
+                            {
+                                json_out_1d(Contents, "device_telem_vfloat", i, cinfo);
+                            }
+                            break;
+                        case 7:
+                            {
+                                json_out_1d(Contents, "device_telem_vdouble", i, cinfo);
+                            }
+                            break;
+                        case 8:
+                            {
+                                json_out_1d(Contents, "device_telem_vstring", i, cinfo);
+                            }
+                            break;
+                        }
+                    }
+                }
+                break;
+            case TypeId::TsenBeacon:
                 {
                     for (uint16_t i=0; i<cinfo->devspec.tsen.size(); ++i)
                     {
@@ -999,7 +1234,7 @@ namespace Cosmos {
                     }
                 }
                 break;
-            case TypeId::EPSSWCHBeaconL:
+            case TypeId::EPSSWCHBeacon:
                 {
                     for (uint16_t i=0; i<cinfo->devspec.swch.size(); ++i)
                     {
@@ -1010,7 +1245,7 @@ namespace Cosmos {
                     }
                 }
                 break;
-            case TypeId::EPSBCREGBeaconL:
+            case TypeId::EPSBCREGBeacon:
                 {
                     for (uint16_t i=0; i<cinfo->devspec.bcreg.size(); ++i)
                     {
@@ -1025,7 +1260,7 @@ namespace Cosmos {
                     }
                 }
                 break;
-            case TypeId::EPSBATTBeaconL:
+            case TypeId::EPSBATTBeacon:
                 {
                     for (uint16_t i=0; i<cinfo->devspec.batt.size(); ++i)
                     {
@@ -1038,7 +1273,7 @@ namespace Cosmos {
                     }
                 }
                 break;
-            case TypeId::RadioBeaconL:
+            case TypeId::RadioBeacon:
                 {
                     for (uint16_t i=0; i<cinfo->devspec.rxr.size(); ++i)
                     {
