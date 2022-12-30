@@ -2458,14 +2458,23 @@ union as a ::devicestruc.
             {8, "vstring"}
         };
 
+        static map<uint16_t, uint16_t> TelemTypeSize = {
+            {0, 1},
+            {1, 1},
+            {2, 2},
+            {3, 2},
+            {4, 4},
+            {5, 4},
+            {6, 4},
+            {7, 8},
+            {8, 0}
+        };
+
         struct telemstruc : public devicestruc
         {
             //! Data type
             uint16_t type = 0;
             string name;
-            //! Union of data
-            //union
-            //{
             uint8_t vuint8 = 0;
             int8_t vint8 = 0;
             uint16_t vuint16 = 0;
@@ -2474,9 +2483,7 @@ union as a ::devicestruc.
             int32_t vint32 = 0;
             float vfloat = 0.f;
             double vdouble = 0.f;
-            //		char vstring[COSMOS_MAX_NAME+1] = "";
             string vstring;
-            //};
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -4092,11 +4099,19 @@ union as a ::devicestruc.
         // TODO: add struct description
         struct camstruc : public devicestruc
         {
+            //! Lens Step
+            int16_t lstep;
             uint16_t pwidth = 0;
             uint16_t pheight = 0;
             float width = 0.f;
             float height = 0.f;
             float flength = 0.f;
+            //! DN noise
+            float noise = 0.f;
+            //! Lens temperature
+            float ltemp = 0.f;
+            //! Target temperature
+            float ttemp = 0.f;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -4104,11 +4119,13 @@ union as a ::devicestruc.
     */
             json11::Json to_json() const {
                 return json11::Json::object {
+                    { "lstep" , lstep },
                     { "pwidth" , pwidth },
                     { "pheight", pheight },
                     { "width"  , width },
                     { "height" , height },
-                    { "flength", flength }
+                    { "flength", flength },
+                    { "ltemp", ltemp}
                 };
             }
 
@@ -4121,11 +4138,13 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
+                    if(!parsed["lstep"].is_null()) { lstep = parsed["lstep"].int_value(); }
                     if(!parsed["pwidth"].is_null()) { pwidth = parsed["pwidth"].int_value(); }
                     if(!parsed["pheight"].is_null()) { pheight = parsed["pheight"].int_value(); }
                     if(!parsed["width"].is_null()) { width = parsed["width"].number_value(); }
                     if(!parsed["height"].is_null()) { height = parsed["height"].number_value(); }
                     if(!parsed["flength"].is_null()) { flength = parsed["flength"].number_value(); }
+                    if(!parsed["ltemp"].is_null()) { ltemp = parsed["ltemp"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -7953,11 +7972,13 @@ union as a ::devicestruc.
                     case DeviceType::CAM:
                         basename = "devspec.cam[" + std::to_string(didx) + "]";
                         add_name(basename+"", &devspec.cam[didx], "camstruc");
+                        add_name(basename+".lstep", &devspec.cam[didx].lstep, "uint16_t");
                         add_name(basename+".pwidth", &devspec.cam[didx].pwidth, "uint16_t");
                         add_name(basename+".pheight", &devspec.cam[didx].pheight, "uint16_t");
                         add_name(basename+".width", &devspec.cam[didx].width, "float");
                         add_name(basename+".height", &devspec.cam[didx].height, "float");
                         add_name(basename+".flength", &devspec.cam[didx].flength, "float");
+                        add_name(basename+".ltemp", &devspec.cam[didx].ltemp, "float");
                         break;
                     case DeviceType::CPU:
                         basename = "devspec.cpu[" + std::to_string(didx) + "]";

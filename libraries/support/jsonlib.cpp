@@ -8465,11 +8465,13 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             json_addentry("device_cam_temp",didx, UINT16_MAX, (uint8_t *)&device->temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cam_power",didx, UINT16_MAX, (uint8_t *)&device->power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cam_drate",didx, UINT16_MAX, (uint8_t *)&device->drate, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+            json_addentry("device_cam_lstep",didx, UINT16_MAX, (uint8_t *)&device->lstep, (uint16_t)JSON_TYPE_UINT16, cinfo);
             json_addentry("device_cam_pwidth",didx, UINT16_MAX, (uint8_t *)&device->pwidth, (uint16_t)JSON_TYPE_UINT16, cinfo);
             json_addentry("device_cam_pheight",didx, UINT16_MAX, (uint8_t *)&device->pheight, (uint16_t)JSON_TYPE_UINT16, cinfo);
             json_addentry("device_cam_width",didx, UINT16_MAX, (uint8_t *)&device->width, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cam_height",didx, UINT16_MAX, (uint8_t *)&device->height, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cam_flength",didx, UINT16_MAX, (uint8_t *)&device->flength, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+            json_addentry("device_cam_ltemp",didx, UINT16_MAX, (uint8_t *)&device->ltemp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             break;
         }
         //! Processing Unit
@@ -9172,11 +9174,13 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_cam_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_power",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_drate",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cam_lstep",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_pwidth",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_pheight",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_width",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_height",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_flength",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cam_ltemp",didx, UINT16_MAX, cinfo, state);
         break;
         //! Processing Unit
     case DeviceType::CPU:
@@ -11468,16 +11472,13 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Cameras
                 if (!strcmp(device_type_string[i].c_str(),"cam"))
                 {
+                    json_out_1d(jstring, "device_cam_lstep",j, cinfo);
                     json_out_1d(jstring, "device_cam_pwidth",j, cinfo);
-                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring, "device_cam_pheight",j, cinfo);
-                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring, "device_cam_width",j, cinfo);
-                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring, "device_cam_height",j, cinfo);
-                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring, "device_cam_flength",j, cinfo);
-                    // json_out_character(jstring, '\n');
+                    json_out_1d(jstring, "device_cam_ltemp",j, cinfo);
                     continue;
                 }
 
