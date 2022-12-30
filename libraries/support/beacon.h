@@ -299,6 +299,7 @@ namespace Cosmos {
                 //double epoch = 0.;
             } ;
 
+            // Long Beacons
             struct __attribute__ ((packed)) adcsstate_beacon
             {
                 uint8_t		type = (uint8_t)TypeId::ADCSStateBeaconL;
@@ -320,10 +321,8 @@ namespace Cosmos {
 				double att_icrf_omega_x;
 				double att_icrf_omega_y;
 				double att_icrf_omega_z;
-
             };
 
-            // Long Beacons
             struct __attribute__ ((packed)) cpu_beacon
             {
                 float uptime = 0.;
@@ -410,6 +409,7 @@ namespace Cosmos {
 
             struct __attribute__ ((packed)) adcsmtr_beacon
             {
+				// JIMNOTE:  this beacon is missing type and deci?
                 float mom = 0.;
                 float align[4] = {0.};
             };
@@ -424,6 +424,7 @@ namespace Cosmos {
 
             struct __attribute__ ((packed)) adcsrw_beacon
             {
+				// JIMNOTE:  this beacon is missing type and deci?
                 float omega = 0.;
                 float alpha = 0.;
 //                float moi[3] = {0.};
