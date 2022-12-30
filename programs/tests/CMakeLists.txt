@@ -57,4 +57,5 @@ target_link_libraries(file_transfer_test CosmosAgent CosmosTransfer CosmosSlip)
 
 if(${BUILD_PROGRAMS_TESTS} MATCHES "YES")
     add_subdirectory(unit_tests)
+    add_subdirectory(integration_tests)
 endif()

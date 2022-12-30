@@ -1161,7 +1161,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEnableChannel(string& name, uint8_t enable,  Agent* agent, string channel, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEnableChannel(const string& name, uint8_t enable,  Agent* agent, const string& channel, NodeData::NODE_ID_TYPE dest, const string& radio)
         {
             int32_t iretn = agent->channel_number(name);
             if (iretn >= 0)
@@ -1180,7 +1180,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEnableChannel(uint8_t number, uint8_t enable,  Agent* agent, string channel, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEnableChannel(uint8_t number, uint8_t enable,  Agent* agent, const string& channel, NodeData::NODE_ID_TYPE dest, const string& radio)
         {
             int32_t iretn = 0;
             PacketComm packet;

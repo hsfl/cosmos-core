@@ -63,6 +63,13 @@ namespace Cosmos
         //! \ingroup agentclass
         //! \defgroup agentclass_functions Agent Server and Client functions
         //! @{
+        
+        //! Creates a skeleton agent with no setup
+        //! \param placeholder Does nothing but provide a different function signature for overloading
+        Agent::Agent(uint8_t placeholder)
+        {
+            debug_error.Set(0);
+        }
 
         //! Add COSMOS awareness.
         //! Sets up minimum framework for COSMOS awareness. The minimum call makes a nodeless client, setting up the

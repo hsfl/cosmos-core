@@ -4,14 +4,12 @@ namespace Cosmos
 {
     namespace Module
     {
-        FileModule::FileModule()
-        {
+        FileModule::FileModule() {}
 
-        }
-
-        int32_t FileModule::Init(Agent *agent, const vector<string> file_transfer_contact_nodes)
+        int32_t FileModule::Init(Agent *parent_agent, const vector<string> file_transfer_contact_nodes)
         {
-            this->agent = agent;
+            agent = parent_agent;
+            
             // Initialize Transfer class
             int32_t iretn = transfer.Init(agent->nodeName, &agent->debug_error);
             if (iretn < 0)

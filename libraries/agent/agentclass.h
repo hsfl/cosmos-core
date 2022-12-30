@@ -144,6 +144,7 @@ namespace Cosmos
         class Agent
         {
         public:
+            Agent(uint8_t placeholder);
             Agent(
                 const string &node_name = "",
                 const string &agent_name = "",

@@ -1,6 +1,8 @@
 #ifndef FILE_MODULE_H
 #define FILE_MODULE_H
 
+// This subagent handles file transfers
+
 #include "support/configCosmos.h"
 #include "agent/agentclass.h"
 #include "support/packetcomm.h"
@@ -24,9 +26,6 @@ namespace Cosmos
              */
             int32_t Init(Agent *agent, const vector<string> file_transfer_contact_nodes);
             void Loop();
-            int32_t mychannel;
-            bool running;
-            Agent *agent;
 
             //! Sets the radios in radios_channel_number to use in order of their priority
             void set_radios(vector<uint8_t> radios);
@@ -44,6 +43,10 @@ namespace Cosmos
             bool file_transfer_respond = false;
             //! The nodes that this node has file transfer capabilities with
             vector<string> contact_nodes;
+
+            int32_t mychannel = 0;
+            bool running = false;
+            Agent *agent;
 
             /**
              * @brief Sets the availability of a radio
