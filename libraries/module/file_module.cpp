@@ -23,7 +23,7 @@ namespace Cosmos
             // 0th element is itself for incoming, and others are for outgoing transfers.
             contact_nodes = { agent->nodeName };
             contact_nodes.insert(contact_nodes.end(), file_transfer_contact_nodes.begin(), file_transfer_contact_nodes.end());
-            
+
             return iretn;
         }
 

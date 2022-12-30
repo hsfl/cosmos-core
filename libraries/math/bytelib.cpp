@@ -145,7 +145,7 @@ int16_t int16from(uint8_t *pointer, ByteOrder order)
     \return 32 bit unsigned integer
 */
 
-uint32_t uint32from(uint8_t *pointer, ByteOrder order)
+uint32_t uint32from(const uint8_t *pointer, ByteOrder order)
 {
     uint32_t *result;
     uint8_t *rb;

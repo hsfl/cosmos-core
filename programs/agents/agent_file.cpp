@@ -634,23 +634,28 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
                 break;
             }
         case PacketComm::TypeId::DataFileReqMeta:
-            {
-                agent->debug_error.Printf("[REQMETA] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
-                for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
-                    if (packet.data[offsetof(struct packet_struct_reqmeta, tx_id)+i])
-                    {
-                        agent->debug_error.Printf("%u ", packet.data[offsetof(struct packet_struct_reqmeta, tx_id)+i]);
-                    }
-                break;
-            }
         case PacketComm::TypeId::DataFileQueue:
             {
-                agent->debug_error.Printf("[QUEUE] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
-                // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint16_t type
+                packet_struct_queue queue;
+                deserialize_queue(packet.data, queue);
+                string label = packet.header.type == PacketComm::TypeId::DataFileReqMeta ? "REQMETA" : "QUEUE";
+                agent->debug_error.Printf("[%s] %u ", label.c_str(), node_id);
+                // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint8_t type
                 for (PACKET_QUEUE_FLAGS_TYPE i=0; i<PACKET_QUEUE_FLAGS_LIMIT; ++i)
                 {
-                    PACKET_QUEUE_FLAGS_TYPE flags = uint16from(&packet.data[offsetof(struct packet_struct_queue, tx_ids)+(2*i)], ByteOrder::LITTLEENDIAN);
-                    agent->debug_error.Printf("%u ", flags);
+                    PACKET_QUEUE_FLAGS_TYPE flags = queue.tx_ids[i];
+                    //agent->debug_error.Printf("[%u] ", flags);
+                    PACKET_TX_ID_TYPE hi = i << 3;
+                    for (size_t bit = 0; bit < sizeof(PACKET_QUEUE_FLAGS_TYPE)*8; ++bit)
+                    {
+                        uint8_t flag = (flags >> bit) & 1;
+                        if (!flag)
+                        {
+                            continue;
+                        }
+                        PACKET_TX_ID_TYPE tx_id = hi | bit;
+                        agent->debug_error.Printf("%u ", unsigned(tx_id));
+                    }
                 }
             }
             break;

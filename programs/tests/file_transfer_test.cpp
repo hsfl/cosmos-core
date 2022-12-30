@@ -4,6 +4,7 @@
 //! delete_test_dirs, by default true, will remove the created test directories. 0 or 1.
 //! packet_size is the size of the transfer file packet. Simulate packet size restrictions of various radios.
 //! Test as of this commit successful for up to packet_size=65535, didn't test above that
+//! Test as of this commit successful for as lower bound packet_size=47 (a shorter node name will make this smaller by same amount)
 
 #include "support/transferclass.h"
 #include <fstream>
@@ -16,9 +17,9 @@
 PACKET_CHUNK_SIZE_TYPE PACKET_SIZE = 217;
 
 // Node names for the test transferclass's
-const string node1_name = "transfer_test_node_1";
-const string node2_name = "transfer_test_node_2";
-const string tname3 = "transfer_test_node_3";
+const string node1_name = "filetestnode1";
+const string node2_name = "filetestnode2";
+const string tname3 = "filetestnode3";
 const int node1_id = 1;
 const int node2_id = 8;
 
@@ -269,12 +270,12 @@ int main(int argc, char *argv[])
     //////////////////////////////////////////////////////////////////////////
     // Run tests
     //////////////////////////////////////////////////////////////////////////
-    // run_test(test_zero_size_files, "test_zero_size_files");
-    // run_test(test_large_files, "test_large_files");
-    // run_test(test_stop_resume, "test_stop_resume");
-    // run_test(test_stop_resume2, "test_stop_resume2");
-    // run_test(test_packet_reqcomplete, "test_packet_reqcomplete");
-    // run_test(test_many_files, "test_many_files"); // This one takes about 16 seconds, comment out to save some time to test other tests
+    run_test(test_zero_size_files, "test_zero_size_files");
+    run_test(test_large_files, "test_large_files");
+    run_test(test_stop_resume, "test_stop_resume");
+    run_test(test_stop_resume2, "test_stop_resume2");
+    run_test(test_packet_reqcomplete, "test_packet_reqcomplete");
+    run_test(test_many_files, "test_many_files"); // This one takes about 16 seconds, comment out to save some time to test other tests
     run_test(test_packet_cancel_missed, "test_packet_cancel_missed");
 
     //////////////////////////////////////////////////////////////////////////
@@ -334,7 +335,7 @@ void run_test(test_func test, string test_name)
     else
     {
         test_log.Printf("...success.\n");
-        debug_log.Printf("%5s | Test %s success.\n", "OK", test_name.c_str());
+        debug_log.Printf("%5s | Test %s passed.\n", "OK", test_name.c_str());
     }
     node1_log.Printf("\n");
     node2_log.Printf("\n");
@@ -412,6 +413,12 @@ int32_t test_zero_size_files()
         {
             // Have node 2 receive all these packets
             debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
             debug_packet(lpacket, 0, "Incoming", &node2_log);
             iretn = node2.receive_packet(lpacket);
             if (iretn == node2.RESPONSE_REQUIRED)
@@ -441,6 +448,12 @@ int32_t test_zero_size_files()
             for (auto& rpacket : rpackets)
             {
                 debug_packet(rpacket, 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpacket.data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
                 debug_packet(rpacket, 0, "Incoming", &node1_log);
                 node1.receive_packet(rpacket);
             }
@@ -455,6 +468,7 @@ int32_t test_zero_size_files()
 
         ++runs;
     }
+endoftest:
 
     // Verify expected results
     iretn = 0;
@@ -536,8 +550,9 @@ int32_t test_large_files()
     }
     // Number of packets sent by each node
     vector<int32_t> packets_sent = {0,0};
+    const int32_t packet_data_size_limit = node1.get_packet_size() - offsetof(struct packet_struct_data, chunk);
     int32_t packet_expected_total
-        = num_files*ceil(file_size_bytes / node1.get_packet_size())   // number of DATA packets
+        = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets
         + num_files     // number of METADATA packets
         + 1             // number of QUEUE packets
         + num_files     // number of COMPLETE packets
@@ -552,6 +567,12 @@ int32_t test_large_files()
             ++packets_sent[NODE1];
             // Have node 2 receive all these packets
             debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
             debug_packet(lpacket, 0, "Incoming", &node2_log);
             iretn = node2.receive_packet(lpacket);
             if (iretn == node2.RESPONSE_REQUIRED)
@@ -581,6 +602,12 @@ int32_t test_large_files()
             {
                 ++packets_sent[NODE2];
                 debug_packet(rpacket, 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpacket.data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
                 debug_packet(rpacket, 0, "Incoming", &node1_log);
                 node1.receive_packet(rpacket);
             }
@@ -593,6 +620,7 @@ int32_t test_large_files()
             break;
         }
     }
+endoftest:
 
     // Verify expected results
     iretn = 0;
@@ -627,7 +655,7 @@ int32_t test_stop_resume()
     Transfer node1a, node2a;
     // Second load after stop
     Transfer node1b;
-    size_t num_files = 3;
+    size_t num_files = 50;
     double file_size_kib = 6.;
     double file_size_bytes = file_size_kib * 1024;
     
@@ -678,17 +706,16 @@ int32_t test_stop_resume()
     // Number of packets sent by each node
     vector<int32_t> packets_sent = {0,0};
     // Restart at halfway point
-    int32_t restart_run = ceil(file_size_bytes / node1a.get_packet_size())/2;
+    const int32_t packet_data_size_limit = node1a.get_packet_size() - offsetof(struct packet_struct_data, chunk);
+    int32_t restart_run = ceil(file_size_bytes / packet_data_size_limit)/2;
     int32_t packet_expected_total
-        = num_files*ceil(file_size_bytes / node1a.get_packet_size())   // number of DATA packets
-        + (num_files*2) // number of METADATA packets, twice since node1 restarts
-        + 2             // number of QUEUE packets, twice since node1 restarts
+        = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets
+        + num_files*2   // number of METADATA packets, twice since node1 restarts
+        + 1*2           // number of QUEUE packets, twice since node1 restarts
         + 0             // number of REQCOMPLETE packets
         + num_files     // number of COMPLETE packets
-        // Use the following two lines instead if restart happens after all data has been sent, REQCOMPLETE and COMPLETE numbers differ
-        // + num_files     // number of REQCOMPLETE packets
-        // + (num_files*2) // number of COMPLETE packets, TODO: *2 is a bug, consider if this needs fixing, incoming.respond can have same tx_id pushed twice
         + num_files;    // number of CANCEL packets
+
     // Perform first run to all-data-sent/write_meta point, then stop
     for (int runs=0; runs < restart_run; ++runs)
     {
@@ -705,6 +732,12 @@ int32_t test_stop_resume()
             ++packets_sent[NODE1];
             // Have node 2 receive all these packets
             debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
             debug_packet(lpacket, 0, "Incoming", &node2_log);
             iretn = node2a.receive_packet(lpacket);
             if (iretn == node2a.RESPONSE_REQUIRED)
@@ -741,13 +774,22 @@ int32_t test_stop_resume()
 
     node1_log.Printf("------------------------\n--- Restarting node1 ---\n------------------------\n");
     node2_log.Printf("------------------------\n--- Restarting node1 ---\n------------------------\n");
+    node1_log.Printf("(Packets sent so far: node1:%d node2:%d)\n", packets_sent[NODE1], packets_sent[NODE2]);
+    node2_log.Printf("(Packets sent so far: node1:%d node2:%d)\n", packets_sent[NODE1], packets_sent[NODE2]);
     // Now start up node1b and resume file transfer
+    // Load test nodeid table
+    load_temp_nodeids();
     iretn = node1b.Init(node1_name, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
+        // Restore old nodeids.ini file here in case test crashes
+        restore_original_nodeids();
         return -1;
     }
+    // Restore old nodeids.ini file here in case test crashes
+    restore_original_nodeids();
+
     node1b.set_packet_size(PACKET_SIZE);
     // Note: with enabled-by-default, this is unnecessary
     // iretn = node1b.outgoing_tx_load(node2_name);
@@ -767,6 +809,12 @@ int32_t test_stop_resume()
             ++packets_sent[NODE1];
             // Have node 2 receive all these packets
             debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
             debug_packet(lpacket, 0, "Incoming", &node2_log);
             iretn = node2a.receive_packet(lpacket);
             if (iretn == node2a.RESPONSE_REQUIRED)
@@ -796,6 +844,12 @@ int32_t test_stop_resume()
             {
                 ++packets_sent[NODE2];
                 debug_packet(rpacket, 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpacket.data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
                 debug_packet(rpacket, 0, "Incoming", &node1_log);
                 node1b.receive_packet(rpacket);
             }
@@ -808,6 +862,7 @@ int32_t test_stop_resume()
             break;
         }
     }
+endoftest:
 
     // Verify expected results
     iretn = 0;
@@ -841,7 +896,8 @@ int32_t test_stop_resume2()
     Transfer node1a, node2a;
     // Second load after stop
     Transfer node2b;
-    size_t num_files = 3;
+    size_t num_files = 50;
+    double waittime_sec = 0.5;
     double file_size_kib = ((PACKET_SIZE/1024)+1)*10;
     double file_size_bytes = file_size_kib * 1024;
 
@@ -875,7 +931,12 @@ int32_t test_stop_resume2()
         debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
         return iretn;
     }
-    node2a.set_packet_size(PACKET_SIZE);
+    iretn = node2a.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
 
     // Restore old nodeids.ini file here in case test crashes
     restore_original_nodeids();
@@ -898,14 +959,15 @@ int32_t test_stop_resume2()
     // Number of packets sent by each node
     vector<int32_t> packets_sent = {0,0};
     // Restart at halfway point
-    int32_t restart_run = ceil(file_size_bytes / node1a.get_packet_size())/2;
+    const int32_t packet_data_size_limit = node1a.get_packet_size() - offsetof(struct packet_struct_data, chunk);
+    int32_t restart_run = ceil(file_size_bytes / packet_data_size_limit)/2;
     if (restart_run-miss-1 <= 0)
     {
         debug_log.Printf("Error, restart_run must be greater than 0 or the results will not be accurate. Adjust packet_size, file_size_kb, or miss\n");
         return GENERAL_ERROR_ERROR;
     }
     int32_t packet_expected_total
-        = num_files*ceil(file_size_bytes / node1a.get_packet_size())   // number of DATA packets assuming no drops
+        = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets assuming no drops
         + (num_files * miss)    // additional number of DATA packets that are requested because they were missed
         + (num_files*2)         // number of METADATA packets, twice since node2 restarts
         + 2                     // number of QUEUE packets, twice since node2 restarts
@@ -930,6 +992,12 @@ int32_t test_stop_resume2()
             ++packets_sent[NODE1];
             // Have node 2 receive all these packets, but skip a few
             debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
             if (runs < restart_run - miss)
             {
                 debug_packet(lpacket, 0, "Incoming", &node2_log);
@@ -969,14 +1037,34 @@ int32_t test_stop_resume2()
 
     node1_log.Printf("------------------------\n--- Restarting node2 ---\n------------------------\n");
     node2_log.Printf("------------------------\n--- Restarting node2 ---\n------------------------\n");
+    node1_log.Printf("(Packets sent so far: node1:%d node2:%d)\n", packets_sent[NODE1], packets_sent[NODE2]);
+    node2_log.Printf("(Packets sent so far: node1:%d node2:%d)\n", packets_sent[NODE1], packets_sent[NODE2]);
     // Now start up node2b and resume file transfer
+    // Load test nodeid table
+    load_temp_nodeids();
     iretn = node2b.Init(node2_name, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
+        // Restore old nodeids.ini file here in case test crashes
+        restore_original_nodeids();
         return -1;
     }
-    node2b.set_packet_size(PACKET_SIZE);
+    // Restore old nodeids.ini file here in case test crashes
+    restore_original_nodeids();
+    iretn = node2b.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
+    // This below may not be necessary (well it isn't) if next_response is reset on a REQMETA receive, double check that logic
+    iretn = node2b.set_waittime(node1_name, 0, waittime_sec);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_waittime %d\n", iretn);
+        return iretn;
+    }
 
     while (true)
     {
@@ -988,6 +1076,12 @@ int32_t test_stop_resume2()
             ++packets_sent[NODE1];
             // Have node 2 receive all these packets
             debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
             debug_packet(lpacket, 0, "Incoming", &node2_log);
             iretn = node2b.receive_packet(lpacket);
             if (iretn == node2b.RESPONSE_REQUIRED)
@@ -1017,6 +1111,12 @@ int32_t test_stop_resume2()
             {
                 ++packets_sent[NODE2];
                 debug_packet(rpacket, 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpacket.data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
                 debug_packet(rpacket, 0, "Incoming", &node1_log);
                 node1a.receive_packet(rpacket);
             }
@@ -1029,6 +1129,7 @@ int32_t test_stop_resume2()
             break;
         }
     }
+endoftest:
 
     // Verify expected results
     iretn = 0;
@@ -1110,11 +1211,12 @@ int32_t test_packet_reqcomplete()
     }
     // Number of packets sent by each node
     vector<int32_t> packets_sent = {0,0};
+    const int32_t packet_data_size_limit = node1.get_packet_size() - offsetof(struct packet_struct_data, chunk);
     // Up to last DATA packet, node2 starts listening after this many runs have passed
     int32_t runs = 0;
     // +2 for the two REQCOMPLETE packets, then +1 run for the waittime wait, then the +1 at the end for the CANCEL packet
     int32_t packet_expected_total
-        = num_files*ceil(file_size_bytes / node1.get_packet_size())*2   // number of DATA packets, everything gets sent twice
+        = num_files*ceil(file_size_bytes / packet_data_size_limit)*2   // number of DATA packets, everything gets sent twice
         + (num_files*2) // number of METADATA packets
         + 2             // number of QUEUE packets
         + (num_files*2) // number of REQCOMPLETE packets, gets sent twice
@@ -1142,6 +1244,12 @@ int32_t test_packet_reqcomplete()
         {
             ++packets_sent[NODE1];
             debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
             if (lpacket.header.type == PacketComm::TypeId::DataFileReqComplete)
             {
                 start_receiving = true;
@@ -1189,6 +1297,12 @@ int32_t test_packet_reqcomplete()
             {
                 ++packets_sent[NODE2];
                 debug_packet(rpacket, 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpacket.data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
                 debug_packet(rpacket, 0, "Incoming", &node1_log);
                 node1.receive_packet(rpacket);
             }
@@ -1202,6 +1316,7 @@ int32_t test_packet_reqcomplete()
         }
         ++runs;
     }
+endoftest:
 
     // Verify expected results
     iretn = 0;
@@ -1287,9 +1402,10 @@ int32_t test_many_files()
 
     // Number of packets sent by each node
     vector<int32_t> packets_sent = {0,0};
+    const int32_t packet_data_size_limit = node1.get_packet_size() - offsetof(struct packet_struct_data, chunk);
     // A bit difficult to estimate, but this should be the upper bound
     int32_t packet_expected_total
-        = ceil(test.get_total_bytes() / double(node1.get_packet_size()))   // number of DATA packets
+        = ceil(test.get_total_bytes() / double(packet_data_size_limit))   // number of DATA packets
         + (num_files*2) // number of METADATA packets
         + 1*num_files   // number of QUEUE packets, will be much less than this
         + num_files     // number of REQCOMPLETE packets
@@ -1311,6 +1427,12 @@ int32_t test_many_files()
         {
             ++packets_sent[NODE1];
             debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
             debug_packet(lpacket, 0, "Incoming", &node2_log);
             iretn = node2.receive_packet(lpacket);
             if (iretn == node2.RESPONSE_REQUIRED)
@@ -1352,6 +1474,12 @@ int32_t test_many_files()
             {
                 ++packets_sent[NODE2];
                 debug_packet(rpacket, 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpacket.data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
                 debug_packet(rpacket, 0, "Incoming", &node1_log);
                 node1.receive_packet(rpacket);
             }
@@ -1365,6 +1493,7 @@ int32_t test_many_files()
             break;
         }
     }
+endoftest:
 
     // Verify expected results
     iretn = 0;
@@ -1468,9 +1597,10 @@ int32_t test_packet_cancel_missed()
     }
     // Number of packets sent by each node
     vector<int32_t> packets_sent = {0,0};
+    const int32_t packet_data_size_limit = node1.get_packet_size() - offsetof(struct packet_struct_data, chunk);
     // How many packets are expected to be sent out, the sum of the number of packets sent out by both nodes
     int32_t packet_expected_total
-        = num_files*ceil(file_size_bytes / node1.get_packet_size())*2   // number of DATA packets, everything gets sent twice
+        = num_files*ceil(file_size_bytes / packet_data_size_limit)*2   // number of DATA packets, everything gets sent twice
         + num_files*2     // number of METADATA packets
         + 1*2             // number of QUEUE packets
         + num_files*2     // number of REQCOMPLETE packets, gets sent twice
@@ -1486,6 +1616,12 @@ int32_t test_packet_cancel_missed()
         {
             ++packets_sent[NODE1];
             debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
             // Have node 2 miss the CANCEL packet this first iteration
             if (lpacket.header.type != PacketComm::TypeId::DataFileCancel)
             {
@@ -1521,6 +1657,12 @@ int32_t test_packet_cancel_missed()
             {
                 ++packets_sent[NODE2];
                 debug_packet(rpackets[i], 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpackets[i].data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpackets[i].header.type, rpackets[i].data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
                 // Don't send a COMPLETE packet on the first one of the bunch
                 // in order to verify proper handling of an incomplete
                 // transaction being "overwritten"
@@ -1575,6 +1717,12 @@ int32_t test_packet_cancel_missed()
         {
             ++packets_sent[NODE1];
             debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
             debug_packet(lpacket, 0, "Incoming", &node2_log);
             iretn = node2.receive_packet(lpacket);
             if (iretn == node2.RESPONSE_REQUIRED)
@@ -1604,6 +1752,12 @@ int32_t test_packet_cancel_missed()
             {
                 ++packets_sent[NODE2];
                 debug_packet(rpacket, 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpacket.data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
                 debug_packet(rpacket, 0, "Incoming", &node1_log);
                 node1.receive_packet(rpacket);
             }
@@ -1616,6 +1770,7 @@ int32_t test_packet_cancel_missed()
             break;
         }
     } // End while
+endoftest:
 
     // Verify expected results
     iretn = 0;
@@ -1758,8 +1913,9 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_
         {
         case PacketComm::TypeId::DataFileMetaData:
             {
-                string file_name(&packet.data[offsetof(packet_struct_metashort, file_name)], &packet.data[offsetof(packet_struct_metashort, file_name)+TRANSFER_MAX_FILENAME]);
-                err_log->Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(packet_struct_metashort, tx_id)], file_name.c_str());
+                packet_struct_metashort meta;
+                deserialize_metadata(packet.data, meta);
+                err_log->Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(packet_struct_metashort, tx_id)], meta.file_name.c_str());
                 break;
             }
         case PacketComm::TypeId::DataFileChunkData:
@@ -1788,25 +1944,19 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_
                 break;
             }
         case PacketComm::TypeId::DataFileReqMeta:
-            {
-                err_log->Printf("[REQMETA] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
-                for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
-                    if (packet.data[offsetof(packet_struct_reqmeta, tx_id)+i])
-                    {
-                        err_log->Printf("%u ", packet.data[offsetof(packet_struct_reqmeta, tx_id)+i]);
-                    }
-                break;
-            }
         case PacketComm::TypeId::DataFileQueue:
             {
-                err_log->Printf("[QUEUE] %u %s ", node_id, &packet.data[COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)]);
-                // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint16_t type
+                packet_struct_queue queue;
+                deserialize_queue(packet.data, queue);
+                string label = packet.header.type == PacketComm::TypeId::DataFileReqMeta ? "REQMETA" : "QUEUE";
+                err_log->Printf("[%s] %u ", label.c_str(), node_id);
+                // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint8_t type
                 for (PACKET_QUEUE_FLAGS_TYPE i=0; i<PACKET_QUEUE_FLAGS_LIMIT; ++i)
                 {
-                    PACKET_QUEUE_FLAGS_TYPE flags = uint16from(&packet.data[offsetof(packet_struct_queue, tx_ids)+(2*i)], ByteOrder::LITTLEENDIAN);
+                    PACKET_QUEUE_FLAGS_TYPE flags = queue.tx_ids[i];
                     //err_log->Printf("[%u] ", flags);
-                    PACKET_TX_ID_TYPE hi = i << 4;
-                    for (size_t bit = 0; bit < COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE)*8; ++bit)
+                    PACKET_TX_ID_TYPE hi = i << 3;
+                    for (size_t bit = 0; bit < sizeof(PACKET_QUEUE_FLAGS_TYPE)*8; ++bit)
                     {
                         uint8_t flag = (flags >> bit) & 1;
                         if (!flag)
@@ -1841,4 +1991,6 @@ didn't a directory get deleted in an outgoing subfolder?
 new node_ids being added, node id mismatch between nodes
 test heartbeat and command stuff
 resuming, skipping with missing chunks
+stopping and resuming both
+making receiver less tied to tx_ids (also have better unique transaction IDs in every packet)
 */
