@@ -400,6 +400,19 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+mtrcount*sizeof(adcsmtr_beacon));
                 }
                 break;
+            case TypeId::ADCSGyroBeacon:
+                if (cinfo->devspec.gyro.size())
+                {
+                    adcsgyros_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+                    uint16_t gyrocount = cinfo->devspec.gyro.size() < adcsgyro_count?cinfo->devspec.gyro.size():adcsgyro_count;
+                    for (uint16_t i=0; i<gyrocount; ++i)
+                    {
+                        beacon.gyro[i].omega = cinfo->devspec.gyro[i].omega;
+                    }
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+offsetof(adcsgyros_beacon, gyro)+gyrocount*sizeof(adcsmtr_beacon));
+                }
+                break;
             case TypeId::ADCSStateBeacon:
                 {
                     adcsstate_beacon beacon;
@@ -427,7 +440,6 @@ namespace Cosmos {
                 break;
             case TypeId::RadioBeacon:
                 {
-                    cout << "GOT A RADIO" << endl;
                     radios_beacon beacon;
                     beacon.deci = cinfo->node.deci;
                     uint16_t radiocount = 0;
@@ -992,6 +1004,29 @@ namespace Cosmos {
                             }
                         }
                         break;
+                    case TypeId::ADCSGyroBeacon:
+                        {
+                            adcsgyros_beacon beacon;
+                            if (data.size() <= sizeof(beacon))
+                            {
+                                memcpy(&beacon, data.data(), data.size());
+                            }
+                            else
+                            {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            for (uint16_t i=0; i<cinfo->devspec.gyro.size(); ++i)
+                            {
+                                if (i >= adcsgyro_count)
+                                {
+                                    break;
+                                }
+                                cinfo->devspec.gyro[i].utc = mjd;
+                                cinfo->devspec.gyro[i].omega = beacon.gyro[i].omega;
+                            }
+                        }
+                        break;
                     case TypeId::RadioBeacon:
                         {
                             radios_beacon beacon;
@@ -1298,6 +1333,16 @@ namespace Cosmos {
                         json_out_1d(Contents, "device_batt_power", i, cinfo);
                         json_out_1d(Contents, "device_batt_temp", i, cinfo);
                         json_out_1d(Contents, "device_batt_percentage", i, cinfo);
+                    }
+                }
+                break;
+            case TypeId::ADCSGyroBeacon:
+                {
+                    for (uint16_t i=0; i<cinfo->devspec.gyro.size(); ++i)
+                    {
+                        json_out_1d(Contents, "device_gyro_utc", i, cinfo);
+                        json_out_1d(Contents, "device_gyro_name", i, cinfo);
+                        json_out_1d(Contents, "device_gyro_omega", i, cinfo);
                     }
                 }
                 break;
