@@ -51,6 +51,8 @@ void restore_original_nodeids();
 void cleanup();
 void rmdir(const string dirpath);
 int32_t create_file(int32_t kib, string file_path);
+int32_t write_bad_meta(tx_progress& tx);
+int32_t write_bad_meta(tx_progress& tx, uint16_t num_bytes);
 void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_log);
 template <typename T> T sumv(vector<T> vec);
 
@@ -64,6 +66,7 @@ int32_t test_stop_resume2();
 int32_t test_packet_reqcomplete();
 int32_t test_many_files();
 int32_t test_packet_cancel_missed();
+int32_t test_bad_meta();
 
 // Hold common test parameters to reuse for testing and verification steps
 struct test_params
@@ -219,6 +222,22 @@ struct test_params
         return iretn;
     }
 
+    // Verify that the temp directory containing the meta files are what is expected
+    // orig_node_name: Name of the origin node
+    // expected_file_num: Number of files you expect to see in the incoming folder
+    int32_t verify_temp_dir(string orig_node_name, size_t expected_file_num)
+    {
+        int32_t iretn = 0;
+        vector<filestruc> temp_dir= data_list_files(orig_node_name, "temp", "file");
+        if (temp_dir.size() != expected_file_num)
+        {
+            debug_log.Printf("Verification fail: File count incorrect. %s/temp/file: %d, expected: %d\n", orig_node_name.c_str(), temp_dir.size(), expected_file_num);
+            --iretn;
+        }
+
+        return iretn;
+    }
+
     // Get total size of test files created
     size_t get_total_bytes()
     {
@@ -277,6 +296,7 @@ int main(int argc, char *argv[])
     run_test(test_packet_reqcomplete, "test_packet_reqcomplete");
     run_test(test_many_files, "test_many_files"); // This one takes about 16 seconds, comment out to save some time to test other tests
     run_test(test_packet_cancel_missed, "test_packet_cancel_missed");
+    run_test(test_bad_meta, "test_bad_meta");
 
     //////////////////////////////////////////////////////////////////////////
     // Clean up
@@ -482,6 +502,8 @@ endoftest:
     // Zero-size files were ignored
     iretn += test.verify_incoming_dir(node1_name, 0);
     iretn += test.verify_outgoing_dir(node2_name, num_files);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
     
 
     // Outgoing/incoming queues are empty
@@ -634,6 +656,8 @@ endoftest:
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
 
     // Outgoing/incoming queues are empty
     if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
@@ -876,6 +900,8 @@ endoftest:
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
 
     // Outgoing/incoming queues are empty
     if (node1b.outgoing_tx_recount(node2_name) || node2a.incoming_tx_recount(node1_name))
@@ -1143,6 +1169,8 @@ endoftest:
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
 
     // Outgoing/incoming queues are empty
     if (node1a.outgoing_tx_recount(node2_name) || node2b.incoming_tx_recount(node1_name))
@@ -1330,6 +1358,8 @@ endoftest:
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
 
     // Outgoing/incoming queues are empty
     if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
@@ -1507,6 +1537,8 @@ endoftest:
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
 
     // Outgoing/incoming queues are empty
     if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
@@ -1784,6 +1816,117 @@ endoftest:
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files*2);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
+
+    // Outgoing/incoming queues are empty
+    if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
+    {
+        debug_log.Printf("Verification fail: queue not empty. node1 outgoing: %d, node2 incoming: %d\n", node1.outgoing_tx_recount(node2_name), node2.incoming_tx_recount(node1_name));
+        --iretn;
+    }
+
+    return iretn;
+}
+
+// Due to either file corruption or using a previous version of transferclass, the .meta file
+// is badly formed.
+// Expect: Bad meta files are deleted
+int32_t test_bad_meta()
+{
+    int32_t iretn = 0;
+    Transfer node1, node2;
+    size_t num_files = 0;
+    double file_size_kib = 0.;
+
+    // Initialize test parameters
+    test_params test;
+    // Create first set of files
+    iretn = test.init(node1_name, node2_name, file_size_kib, num_files, __func__);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing test params %d\n", iretn);
+        return iretn;
+    }
+
+    // Create bad meta files
+    int32_t seed = decisec();
+    srand(seed);
+    debug_log.Printf("%5d | Using rand seed:%d\n", __LINE__, seed);
+    size_t num_old_meta_files = 50;
+    for (size_t i=0; i < num_old_meta_files; ++i)
+    {
+        tx_progress tx;
+        tx.temppath = data_base_path(node1_name, "temp", "file", "out_"+std::to_string(i));
+        tx.agent_name = __func__;
+        tx.node_name = node1_name;
+        tx.file_size = rand() % 65535;
+        iretn = write_bad_meta(tx);
+        if (iretn < 0)
+        {
+            debug_log.Printf("Error creating bad old meta file %d\n", iretn);
+            return iretn;
+        }
+    }
+    // write bad gibberish meta data
+    size_t num_gibberish_meta_files = 50;
+    for (size_t i=num_old_meta_files; i < num_old_meta_files+num_gibberish_meta_files; ++i)
+    {
+        tx_progress tx;
+        tx.temppath = data_base_path(node2_name, "temp", "file", "in_"+std::to_string(i));
+        tx.agent_name = __func__;
+        tx.node_name = node2_name;
+        tx.file_size = rand() % 65535;
+        iretn = write_bad_meta(tx, tx.file_size);
+        if (iretn < 0)
+        {
+            debug_log.Printf("Error creating bad gibberish meta file %d\n", iretn);
+            return iretn;
+        }
+    }
+
+    // Load nodeid table
+    load_temp_nodeids();
+
+    // Initialize file transfer classes
+    iretn = node1.Init(node1_name, &node1_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node1_name.c_str());
+        restore_original_nodeids();
+        return iretn;
+    }
+    iretn = node2.Init(node2_name, &node2_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node2_name.c_str());
+        restore_original_nodeids();
+        return iretn;
+    }
+    iretn = node1.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        restore_original_nodeids();
+        return iretn;
+    }
+    iretn = node2.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        restore_original_nodeids();
+        return iretn;
+    }
+
+    // Restore old nodeids.ini file here in case test crashes
+    restore_original_nodeids();
+
+    // Verify expected results
+    iretn = 0;
+
+    // File was successfully transferred
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
 
     // Outgoing/incoming queues are empty
     if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
@@ -1866,6 +2009,57 @@ int32_t create_file(int32_t kib, string file_path)
             return -1;
         }
     }
+    return 0;
+}
+
+// The old way of writing meta files, prior to commit 6c05a9262c0cb7e791465e8754782d813ba95417
+int32_t write_bad_meta(tx_progress& tx)
+{
+    PacketComm packet;
+    std::ofstream file_name;
+
+    serialize_metadata(packet, tx.tx_id, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
+    file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary); // Note: truncs by default
+    if(!file_name.is_open())
+    {
+        return (-errno);
+    }
+    uint16_t crc;
+    CRC16 calc_crc;
+    file_name.write((char *)&packet.data[0], sizeof(packet_struct_metalong));
+    crc = calc_crc.calc(packet.data);
+    file_name.write((char *)&crc, 2);
+    for (file_progress progress_info : tx.file_info)
+    {
+        file_name.write((const char *)&progress_info, sizeof(progress_info));
+        crc = calc_crc.calc((uint8_t *)&progress_info, sizeof(progress_info));
+        file_name.write((char *)&crc, 2);
+    }
+    file_name.close();
+
+    return 0;
+}
+
+// Writes a bunch of gibberish to a meta file
+// tx: include some basic setup stuff to create the meta file, like the temppath
+// num_bytes the number of bytes to write to the garbage meta file
+int32_t write_bad_meta(tx_progress& tx, uint16_t num_bytes)
+{
+    PacketComm packet;
+    std::ofstream file_name;
+    serialize_metadata(packet, tx.tx_id, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
+    file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary); // Note: truncs by default
+    if(!file_name.is_open())
+    {
+        return (-errno);
+    }
+    vector<uint8_t> write_bytes(num_bytes);
+    for (size_t i=0; i<write_bytes.size(); ++i)
+    {
+        write_bytes[i] = rand() % 256;
+    }
+    file_name.write((const char *)&write_bytes, write_bytes.size());
+    file_name.close();
     return 0;
 }
 
