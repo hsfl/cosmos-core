@@ -1786,6 +1786,7 @@ namespace Cosmos {
             {
                 file_name.close();
                 remove((tx.temppath + ".meta").c_str());
+                remove((tx.temppath + ".file").c_str());
                 if (debug_error != nullptr)
                 {
                     debug_error->Printf("%.4f %.4f Main: read_meta: %s bad_alloc exception. Removing meta\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str());
