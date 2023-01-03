@@ -2473,8 +2473,7 @@ union as a ::devicestruc.
         struct telemstruc : public devicestruc
         {
             //! Data type
-            uint16_t type = 0;
-            string name;
+            uint16_t vtype = 0;
             uint8_t vuint8 = 0;
             int8_t vint8 = 0;
             uint16_t vuint16 = 0;
@@ -2491,8 +2490,7 @@ union as a ::devicestruc.
     */
             json11::Json to_json() const {
                 return json11::Json::object {
-                    { "type" , type },
-                    { "name", name },
+                    { "vtype" , vtype },
                     { "vuint8", static_cast<int>(vuint8) },
                     { "vint8", vint8 },
                     { "vuint16", vuint16 },

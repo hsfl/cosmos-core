@@ -237,49 +237,49 @@ namespace Cosmos {
                     for (uint16_t i=0; i<cinfo->devspec.telem.size(); ++i)
                     {
                         bytes.clear();
-                        switch (cinfo->devspec.telem[i].type)
+                        switch (cinfo->devspec.telem[i].vtype)
                         {
-                        case 0:
+                        case JSON_TYPE_UINT8:
                             {
                                 bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vuint8, &cinfo->devspec.telem[i].vuint8+1);
                             }
                             break;
-                        case 1:
+                        case JSON_TYPE_INT8:
                             {
                                 bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vint8, &cinfo->devspec.telem[i].vint8+1);
                             }
                             break;
-                        case 2:
+                        case JSON_TYPE_UINT16:
                             {
                                 bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vuint16, &cinfo->devspec.telem[i].vuint16+2);
                             }
                             break;
-                        case 3:
+                        case JSON_TYPE_INT16:
                             {
                                 bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vint16, &cinfo->devspec.telem[i].vint16+2);
                             }
                             break;
-                        case 4:
+                        case JSON_TYPE_UINT32:
                             {
                                 bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vuint32, &cinfo->devspec.telem[i].vuint32+4);
                             }
                             break;
-                        case 5:
+                        case JSON_TYPE_INT32:
                             {
                                 bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vint32, &cinfo->devspec.telem[i].vint32+4);
                             }
                             break;
-                        case 6:
+                        case JSON_TYPE_FLOAT:
                             {
                                 bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vfloat, &cinfo->devspec.telem[i].vfloat+4);
                             }
                             break;
-                        case 7:
+                        case JSON_TYPE_DOUBLE:
                             {
                                 bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vdouble, &cinfo->devspec.telem[i].vdouble+8);
                             }
                             break;
-                        case 8:
+                        case JSON_TYPE_STRING:
                             {
                                 bytes.insert(bytes.end(), cinfo->devspec.telem[i].vstring.begin(), cinfo->devspec.telem[i].vstring.end());
                             }
@@ -774,7 +774,7 @@ namespace Cosmos {
                             }
                             double mjd = decisec2mjd(beacon.deci);
                             uint16_t i = 5;
-                            switch (cinfo->devspec.telem[i].type)
+                            switch (cinfo->devspec.telem[i].vtype)
                             {
                             case 0:
                                 {
@@ -1174,53 +1174,55 @@ namespace Cosmos {
                     {
                         json_out_1d(Contents, "device_telem_utc", i, cinfo);
                         json_out_1d(Contents, "device_telem_name", i, cinfo);
-                        switch (cinfo->devspec.telem[i].type)
+                        switch (cinfo->devspec.telem[i].vtype)
                         {
-                        case 0:
+                        case JSON_TYPE_UINT8:
                             {
                                 json_out_1d(Contents, "device_telem_vuint8", i, cinfo);
                             }
                             break;
-                        case 1:
+                        case JSON_TYPE_INT8:
                             {
                                 json_out_1d(Contents, "device_telem_vint8", i, cinfo);
                             }
                             break;
-                        case 2:
+                        case JSON_TYPE_UINT16:
                             {
                                 json_out_1d(Contents, "device_telem_vuint16", i, cinfo);
                             }
                             break;
-                        case 3:
+                        case JSON_TYPE_INT16:
                             {
                                 json_out_1d(Contents, "device_telem_vint16", i, cinfo);
                             }
                             break;
-                        case 4:
+                        case JSON_TYPE_UINT32:
                             {
                                 json_out_1d(Contents, "device_telem_vuint32", i, cinfo);
                             }
                             break;
-                        case 5:
+                        case JSON_TYPE_INT32:
                             {
                                 json_out_1d(Contents, "device_telem_vint32", i, cinfo);
                             }
                             break;
-                        case 6:
+                        case JSON_TYPE_FLOAT:
                             {
                                 json_out_1d(Contents, "device_telem_vfloat", i, cinfo);
                             }
                             break;
-                        case 7:
+                        case JSON_TYPE_DOUBLE:
                             {
                                 json_out_1d(Contents, "device_telem_vdouble", i, cinfo);
                             }
                             break;
-                        case 8:
+                        case JSON_TYPE_STRING:
                             {
                                 json_out_1d(Contents, "device_telem_vstring", i, cinfo);
                             }
                             break;
+                        default:
+                            return GENERAL_ERROR_MISMATCH;
                         }
                     }
                 }
