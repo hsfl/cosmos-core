@@ -1085,6 +1085,28 @@ namespace Cosmos {
             return iretn;
         }
 
+        //! Adds a new incoming file. Called when a METADATA packet is the first to arrive
+        int32_t Transfer::incoming_tx_add(const string node_name, const packet_struct_metashort& meta)
+        {
+            tx_progress tx_in;
+
+            tx_in.tx_id = meta.tx_id;
+            tx_in.sentmeta = false;
+            tx_in.sentdata = false;
+            tx_in.complete = false;
+            tx_in.node_name = node_name;
+            tx_in.agent_name = meta.agent_name;
+            tx_in.file_name = meta.file_name;
+            tx_in.savetime = 0.;
+            tx_in.file_size = meta.file_size;
+            tx_in.total_bytes = 0;
+            tx_in.file_info.clear();
+
+            int32_t iretn = incoming_tx_add(tx_in);
+
+            return iretn;
+        }
+
         //! Adds a new file to incoming queue
         //! \return Number of files in incoming queue, or error value
         int32_t Transfer::incoming_tx_add(tx_progress &tx_in)
@@ -1106,7 +1128,7 @@ namespace Cosmos {
 
 
             // Check for an actual file name
-            if (tx_in.file_name.size())
+            if (tx_in.file_name.size() && tx_in.agent_name.size())
             {
                 tx_in.filepath = data_base_path(tx_in.node_name, "incoming", tx_in.agent_name, tx_in.file_name);
             }
@@ -1205,7 +1227,7 @@ namespace Cosmos {
                     {
                         return TRANSFER_ERROR_INDEX;
                     }
-                    int32_t iretn = incoming_tx_add(node_name, meta.tx_id);
+                    int32_t iretn = incoming_tx_add(node_name, meta);
                     if (iretn <= 0) {
                         return iretn;
                     }
@@ -1756,7 +1778,20 @@ namespace Cosmos {
                 return DATA_ERROR_SIZE_MISMATCH;
             }
             vector<PACKET_BYTE> packet;
-            packet.resize(packet_size);
+            // Handle packet_size being exceptionally large enough to trigger a bad_alloc exception
+            try {
+                packet.resize(packet_size);
+            }
+            catch (std::bad_alloc& e)
+            {
+                file_name.close();
+                remove((tx.temppath + ".meta").c_str());
+                if (debug_error != nullptr)
+                {
+                    debug_error->Printf("%.4f %.4f Main: read_meta: %s bad_alloc exception. Removing meta\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str());
+                }
+                return DATA_ERROR_SIZE_MISMATCH;
+            }
             file_name.read((char *)packet.data(), packet_size);
             if (file_name.eof())
             {
