@@ -91,6 +91,7 @@ namespace Cosmos {
                 {TypeId::ADCSORBITBeaconS, "ADCSORBITBeaconS"},
                 {TypeId::ADCSStateBeaconS, "ADCSStateBeaconS"},
                 {TypeId::CPUBeacon, "CPUBeacon"},
+                {TypeId::TelemBeacon, "TelemBeacon"},
                 {TypeId::TsenBeacon, "TsenBeacon"},
                 {TypeId::EPSBCREGBeacon, "EPSBCREGBeacon"},
                 {TypeId::EPSSWCHBeacon, "EPSSWCHBeacon"},

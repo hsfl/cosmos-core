@@ -233,6 +233,9 @@ namespace Cosmos {
             case TypeId::TelemBeacon:
                 if (cinfo->devspec.telem.size())
                 {
+                    telems_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+                    size_t offset = 0;
                     vector<uint8_t> bytes;
                     for (uint16_t i=0; i<cinfo->devspec.telem.size(); ++i)
                     {
@@ -241,59 +244,64 @@ namespace Cosmos {
                         {
                         case JSON_TYPE_UINT8:
                             {
-                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vuint8, &cinfo->devspec.telem[i].vuint8+1);
+                                bytes.assign((uint8_t*)&cinfo->devspec.telem[i].vuint8, (uint8_t*)(&cinfo->devspec.telem[i].vuint8+1));
                             }
                             break;
                         case JSON_TYPE_INT8:
                             {
-                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vint8, &cinfo->devspec.telem[i].vint8+1);
+                                bytes.assign((uint8_t*)&cinfo->devspec.telem[i].vint8, (uint8_t*)(&cinfo->devspec.telem[i].vint8+1));
                             }
                             break;
                         case JSON_TYPE_UINT16:
                             {
-                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vuint16, &cinfo->devspec.telem[i].vuint16+2);
+                                bytes.assign((uint8_t*)&cinfo->devspec.telem[i].vuint16, (uint8_t*)(&cinfo->devspec.telem[i].vuint16+1));
                             }
                             break;
                         case JSON_TYPE_INT16:
                             {
-                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vint16, &cinfo->devspec.telem[i].vint16+2);
+                                bytes.assign((uint8_t*)&cinfo->devspec.telem[i].vint16, (uint8_t*)(&cinfo->devspec.telem[i].vint16+1));
                             }
                             break;
                         case JSON_TYPE_UINT32:
                             {
-                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vuint32, &cinfo->devspec.telem[i].vuint32+4);
+                                bytes.assign((uint8_t*)&cinfo->devspec.telem[i].vuint32, (uint8_t*)(&cinfo->devspec.telem[i].vuint32+1));
                             }
                             break;
                         case JSON_TYPE_INT32:
                             {
-                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vint32, &cinfo->devspec.telem[i].vint32+4);
+                                bytes.assign((uint8_t*)&cinfo->devspec.telem[i].vint32, (uint8_t*)(&cinfo->devspec.telem[i].vint32+1));
                             }
                             break;
                         case JSON_TYPE_FLOAT:
                             {
-                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vfloat, &cinfo->devspec.telem[i].vfloat+4);
+                                bytes.assign((uint8_t*)&cinfo->devspec.telem[i].vfloat, (uint8_t*)(&cinfo->devspec.telem[i].vfloat+1));
                             }
                             break;
                         case JSON_TYPE_DOUBLE:
                             {
-                                bytes.insert(bytes.end(), &cinfo->devspec.telem[i].vdouble, &cinfo->devspec.telem[i].vdouble+8);
+                                bytes.assign((uint8_t*)&cinfo->devspec.telem[i].vdouble, (uint8_t*)(&cinfo->devspec.telem[i].vdouble+1));
                             }
                             break;
                         case JSON_TYPE_STRING:
                             {
+                                // Note, currently supporting only up to string length 255 (not that telem_count is that long anyway)
+                                if (cinfo->devspec.telem[i].vstring.size() > 255)
+                                {
+                                    break;
+                                }
+                                bytes.push_back(cinfo->devspec.telem[i].vstring.size());
                                 bytes.insert(bytes.end(), cinfo->devspec.telem[i].vstring.begin(), cinfo->devspec.telem[i].vstring.end());
                             }
                             break;
-                        }
-                        if (telem_count - data.size() < bytes.size())
+                        } // End switch
+                        if (offset + bytes.size() > sizeof(beacon.content))
                         {
                             break;
                         }
-                        data.insert(data.end(), bytes.begin(), bytes.end());
-                    }
-                    telems_beacon beacon;
-                    beacon.deci = cinfo->node.deci;
-                    memcpy(beacon.content, data.data(), data.size());
+                        std::copy_n(bytes.data(), bytes.size(), &beacon.content[offset]);
+                        offset += bytes.size();
+                    } // End for
+                    data.assign((uint8_t*)(&beacon), (uint8_t*)(&beacon)+sizeof(beacon));
                 }
                 break;
             case TypeId::TsenBeacon:
@@ -419,6 +427,7 @@ namespace Cosmos {
                 break;
             case TypeId::RadioBeacon:
                 {
+                    cout << "GOT A RADIO" << endl;
                     radios_beacon beacon;
                     beacon.deci = cinfo->node.deci;
                     uint16_t radiocount = 0;
@@ -773,106 +782,123 @@ namespace Cosmos {
                                 return GENERAL_ERROR_BAD_SIZE;
                             }
                             double mjd = decisec2mjd(beacon.deci);
-                            uint16_t i = 5;
-                            switch (cinfo->devspec.telem[i].vtype)
+                            size_t offset = 0;
+                            bool break_for = false;
+                            for (size_t i=0; i<cinfo->devspec.telem.size(); ++i)
                             {
-                            case 0:
+                                switch (cinfo->devspec.telem[i].vtype)
                                 {
-                                    if (i + 1 > telem_count)
+                                case JSON_TYPE_UINT8:
                                     {
-                                        break;
+                                        if (offset + sizeof(cinfo->devspec.telem[i].vuint8) > sizeof(beacon.content))
+                                        {
+                                            break_for = true;
+                                            break;
+                                        }
+                                        cinfo->devspec.telem[i].vuint8 = beacon.content[offset];
+                                        offset += sizeof(cinfo->devspec.telem[i].vuint8);
                                     }
-                                    cinfo->devspec.telem[i].vuint8 = beacon.content[i];
-                                    ++i;
+                                    break;
+                                case JSON_TYPE_INT8:
+                                    {
+                                        if (offset + sizeof(cinfo->devspec.telem[i].vint8) > sizeof(beacon.content))
+                                        {
+                                            break_for = true;
+                                            break;
+                                        }
+                                        cinfo->devspec.telem[i].vint8 = beacon.content[offset];
+                                        offset += sizeof(cinfo->devspec.telem[i].vint8);
+                                    }
+                                    break;
+                                case JSON_TYPE_UINT16:
+                                    {
+                                        if (offset + sizeof(cinfo->devspec.telem[i].vuint16) > sizeof(beacon.content))
+                                        {
+                                            break_for = true;
+                                            break;
+                                        }
+                                        cinfo->devspec.telem[i].vuint16 = uint16from(&beacon.content[offset]);
+                                        offset += sizeof(cinfo->devspec.telem[i].vuint16);
+                                    }
+                                    break;
+                                case JSON_TYPE_INT16:
+                                    {
+                                        if (offset + sizeof(cinfo->devspec.telem[i].vint16) > sizeof(beacon.content))
+                                        {
+                                            break_for = true;
+                                            break;
+                                        }
+                                        cinfo->devspec.telem[i].vint16 = int16from(&beacon.content[offset]);
+                                        offset += sizeof(cinfo->devspec.telem[i].vint16);
+                                    }
+                                    break;
+                                case JSON_TYPE_UINT32:
+                                    {
+                                        if (offset + sizeof(cinfo->devspec.telem[i].vuint32) > sizeof(beacon.content))
+                                        {
+                                            break_for = true;
+                                            break;
+                                        }
+                                        cinfo->devspec.telem[i].vuint32 = uint32from(&beacon.content[offset]);
+                                        offset += sizeof(cinfo->devspec.telem[i].vuint32);
+                                    }
+                                    break;
+                                case JSON_TYPE_INT32:
+                                    {
+                                        if (offset + sizeof(cinfo->devspec.telem[i].vint32) > sizeof(beacon.content))
+                                        {
+                                            break_for = true;
+                                            break;
+                                        }
+                                        cinfo->devspec.telem[i].vint32 = int32from(&beacon.content[offset]);
+                                        offset += sizeof(cinfo->devspec.telem[i].vint32);
+                                    }
+                                    break;
+                                case JSON_TYPE_FLOAT:
+                                    {
+                                        if (offset + sizeof(cinfo->devspec.telem[i].vfloat) > sizeof(beacon.content))
+                                        {
+                                            break_for = true;
+                                            break;
+                                        }
+                                        cinfo->devspec.telem[i].vfloat = floatfrom(&beacon.content[offset]); 
+                                        offset += sizeof(cinfo->devspec.telem[i].vfloat);
+                                    }
+                                    break;
+                                case JSON_TYPE_DOUBLE:
+                                    {
+                                        if (offset + sizeof(cinfo->devspec.telem[i].vdouble) > sizeof(beacon.content))
+                                        {
+                                            break_for = true;
+                                            break;
+                                        }
+                                        cinfo->devspec.telem[i].vdouble = doublefrom(&beacon.content[offset]);
+                                        offset += sizeof(cinfo->devspec.telem[i].vdouble);
+                                    }
+                                    break;
+                                case JSON_TYPE_STRING:
+                                    {
+                                        // First byte of string is the string size
+                                        uint8_t str_len = beacon.content[offset];
+                                        if (offset + 1 + str_len > sizeof(beacon.content))
+                                        {
+                                            break_for = true;
+                                            break;
+                                        }
+                                        cinfo->devspec.telem[i].vstring.clear();
+                                        cinfo->devspec.telem[i].vstring.insert(cinfo->devspec.telem[i].vstring.end(), &beacon.content[offset+1], &beacon.content[offset+1+str_len]);
+                                        offset += 1 + str_len;
+                                    }
+                                    break;
+                                default:
+                                    return GENERAL_ERROR_MISMATCH;
                                 }
-                                break;
-                            case 1:
+                                if (break_for)
                                 {
-                                    if (i + 1 > telem_count)
-                                    {
-                                        break;
-                                    }
-                                    cinfo->devspec.telem[i].vint8 = beacon.content[i];
-                                    ++i;
+                                    break;
                                 }
-                                break;
-                            case 2:
-                                {
-                                    if (i + 2 > telem_count)
-                                    {
-                                        break;
-                                    }
-                                    cinfo->devspec.telem[i].vuint16 = uint16from(&beacon.content[i]);
-                                    i += 2;
-                                }
-                                break;
-                            case 3:
-                                {
-                                    if (i + 2 > telem_count)
-                                    {
-                                        break;
-                                    }
-                                    cinfo->devspec.telem[i].vint16 = uint16from(&beacon.content[i]);
-                                    i += 2;
-                                }
-                                break;
-                            case 4:
-                                {
-                                    if (i + 4 > telem_count)
-                                    {
-                                        break;
-                                    }
-                                    cinfo->devspec.telem[i].vuint32 = uint32from(&beacon.content[i]);
-                                    i += 4;
-                                }
-                                break;
-                            case 5:
-                                {
-                                    if (i + 4 > telem_count)
-                                    {
-                                        break;
-                                    }
-                                    cinfo->devspec.telem[i].vint32 = uint32from(&beacon.content[i]);
-                                    i += 4;
-                                }
-                                break;
-                            case 6:
-                                {
-                                    if (i + 4 > telem_count)
-                                    {
-                                        break;
-                                    }
-                                    cinfo->devspec.telem[i].vfloat = floatfrom(&beacon.content[i]);
-                                    i += 4;
-                                }
-                                break;
-                            case 7:
-                                {
-                                    if (i + 8 > telem_count)
-                                    {
-                                        break;
-                                    }
-                                    cinfo->devspec.telem[i].vdouble = doublefrom(&beacon.content[i]);
-                                    i += 8;
-                                }
-                                break;
-                            case 8:
-                                {
-                                    if (i + 1 + beacon.content[i] > telem_count)
-                                    {
-                                        break;
-                                    }
-                                    cinfo->devspec.telem[i].vstring.clear();
-                                    cinfo->devspec.telem[i].vstring.insert(cinfo->devspec.telem[i].vstring.end(), &beacon.content[i+1], &beacon.content[i+1+beacon.content[i]]);
-                                    i+= beacon.content[i] + 1;
-                                }
-                                break;
+                                cinfo->devspec.telem[i].utc = mjd;
                             }
-                            if (i > telem_count)
-                            {
-                                break;
-                            }
-                            cinfo->devspec.telem[i].utc = mjd;
                         }
                         break;
                     case TypeId::TsenBeacon:
