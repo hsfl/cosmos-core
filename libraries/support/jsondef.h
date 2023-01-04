@@ -2473,8 +2473,7 @@ union as a ::devicestruc.
         struct telemstruc : public devicestruc
         {
             //! Data type
-            uint16_t type = 0;
-            string name;
+            uint16_t vtype = 0;
             uint8_t vuint8 = 0;
             int8_t vint8 = 0;
             uint16_t vuint16 = 0;

@@ -821,9 +821,9 @@ namespace Cosmos {
             PacketComm test_packet;
             test_packet.data.resize(channel[number].datasize);
             test_packet.header.type = PacketComm::TypeId::DataTest;
-            test_packet.header.orig = orig;
-            test_packet.header.dest = dest;
-            test_packet.header.radio = radio;
+            test_packet.header.nodeorig = orig;
+            test_packet.header.nodedest = dest;
+            test_packet.header.chanorig = radio;
 
             PacketComm::TestHeader theader;
             theader.size = channel[number].datasize-(sizeof(theader)+2);

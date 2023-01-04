@@ -33,6 +33,7 @@ namespace Cosmos {
                 None = 0,
                 CPU1BeaconS = 10,
                 CPU2BeaconS = 11,
+                TimeBeaconS = 12,
                 TsenBeaconS = 20,
                 EPSCPUBeaconS = 30,
                 EPSBCREGBeaconS = 31,

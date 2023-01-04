@@ -11,6 +11,7 @@ namespace Cosmos
 
         int32_t FileModule::Init(Agent *agent, const vector<string> file_transfer_contact_nodes)
         {
+            agent->debug_error.Printf("FILE: Init\n");
             this->agent = agent;
             // Initialize Transfer class
             int32_t iretn = transfer.Init(agent->nodeName, &agent->debug_error);
@@ -148,7 +149,7 @@ namespace Cosmos
                                 if (out_radio)
                                 {
                                     string s = transfer.list_outgoing();
-                                    agent->push_response(out_radio, packet.header.orig, mychannel, centisec(), s);
+                                    agent->push_response(out_radio, packet.header.nodeorig, mychannel, centisec(), s);
                                 }
                             }
                             break;
@@ -212,7 +213,7 @@ namespace Cosmos
                     // Transfer to radio
                     for (auto &p : file_packets)
                     {
-                        // TODO: note that p does not set header.radio
+                        // TODO: note that p does not set header.chanorig
                         iretn = agent->channel_push(out_radio, p);
 
                         // Stop using this channel on error

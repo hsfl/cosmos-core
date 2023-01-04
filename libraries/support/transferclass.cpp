@@ -64,13 +64,14 @@ namespace Cosmos {
          */
         int32_t Transfer::Init(const string calling_node_name, Error* debug_error)
         {
+
             int32_t iretn = 0;
             this->debug_error = debug_error;
 
-            // printf("Initialize Transfer step 1\n");
+             this->debug_error->Printf("Transfer: step 1\n");
             // fflush(stdout);
             // secondsleep(3.);
-            // Initialize Transfer Queue
+            // Transfer: Queue
             const int32_t node_ids_size = NodeData::load_node_ids();
             if (node_ids_size < 2)
             {
@@ -81,7 +82,7 @@ namespace Cosmos {
                 // TODO semantically, return value should be negative on error (ie: not 0 or 1)
                 return node_ids_size;
             }
-            // printf("Initialize Transfer step 2\n");
+             this->debug_error->Printf("Transfer: step 2\n");
             // fflush(stdout);
             // secondsleep(3.);
             // Identify and store calling node's node_id
@@ -97,7 +98,7 @@ namespace Cosmos {
             self_node_id = iretn;
             self_node_name = calling_node_name;
 
-            // printf("Initialize Transfer step 3\n");
+             this->debug_error->Printf("Transfer: step 3\n");
             // fflush(stdout);
             // secondsleep(3.);
             // Create map of node_ids to indexes into txq
@@ -118,7 +119,7 @@ namespace Cosmos {
                 ++tidx;
             }
 
-            // printf("Initialize Transfer step 4\n");
+             this->debug_error->Printf("Transfer: step 4\n");
             // fflush(stdout);
             // secondsleep(3.);
             // Restore in progress transfers from previous run
@@ -126,6 +127,7 @@ namespace Cosmos {
             {
                 for(filestruc file : data_list_files(transfer_node.node_name, "temp", "file"))
                 {
+                    this->debug_error->Printf("Transfer: Restore %s %s\n", transfer_node.node_name.c_str(), file.name.c_str());
                     // Add entry for each meta file
                     if (file.type == "meta")
                     {
@@ -366,8 +368,8 @@ namespace Cosmos {
                 {
                     tx_progress tx = txq[dest_node_idx].outgoing.progress[tx_id];
                     PacketComm packet;
-                    packet.header.orig = self_node_id;
-                    packet.header.dest = dest_node_id;
+                    packet.header.nodeorig = self_node_id;
+                    packet.header.nodedest = dest_node_id;
                     serialize_metadata(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx.tx_id, tx.file_name, tx.file_size, tx.agent_name);
                     packets.push_back(packet);
                     txq[dest_node_idx].outgoing.progress[tx_id].sentmeta = true;
@@ -428,8 +430,8 @@ namespace Cosmos {
                                 if (nbytes == byte_count)
                                 {
                                     PacketComm packet;
-                                    packet.header.orig = self_node_id;
-                                    packet.header.dest = dest_node_id;
+                                    packet.header.nodeorig = self_node_id;
+                                    packet.header.nodedest = dest_node_id;
                                     serialize_data(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[dest_node_idx].outgoing.progress[tx_id].tx_id, byte_count, tp.chunk_start, chunk);
                                     packets.push_back(packet);
                                     txq[dest_node_idx].outgoing.progress[tx_id].file_info[0].chunk_start = tp.chunk_end + 1;
@@ -495,8 +497,8 @@ namespace Cosmos {
 
                         // Send a CANCEL packet
                         PacketComm packet;
-                        packet.header.orig = self_node_id;
-                        packet.header.dest = dest_node_id;
+                        packet.header.nodeorig = self_node_id;
+                        packet.header.nodedest = dest_node_id;
                         serialize_cancel(packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), tx_id);
                         packets.push_back(packet);
                     }
@@ -511,8 +513,8 @@ namespace Cosmos {
                 // **************************************************************
                             txq[dest_node_idx].outgoing.progress[tx_id].next_response = currentmjd() + txq[dest_node_idx].outgoing.waittime;
                             PacketComm packet;
-                            packet.header.orig = self_node_id;
-                            packet.header.dest = dest_node_id;
+                            packet.header.nodeorig = self_node_id;
+                            packet.header.nodedest = dest_node_id;
                             serialize_reqcomplete(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx_id);
                             packets.push_back(packet);
                         }
@@ -538,8 +540,8 @@ namespace Cosmos {
             if (tqueue.size())
             {
                 PacketComm packet;
-                packet.header.orig = self_node_id;
-                packet.header.dest = dest_node_id;
+                packet.header.nodeorig = self_node_id;
+                packet.header.nodedest = dest_node_id;
                 serialize_queue(packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), self_node_name, tqueue);
                 packets.push_back(packet);
                 txq[dest_node_idx].outgoing.sentqueue = true;
@@ -642,8 +644,8 @@ namespace Cosmos {
                     for (uint32_t j=0; j<missing.size(); ++j)
                     {
                         PacketComm packet;
-                        packet.header.orig = self_node_id;
-                        packet.header.dest = orig_node_id;
+                        packet.header.nodeorig = self_node_id;
+                        packet.header.nodedest = orig_node_id;
                         serialize_reqdata(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[orig_node_idx].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
                         packets.push_back(packet);
                     }
@@ -654,8 +656,8 @@ namespace Cosmos {
                 else
                 {
                     PacketComm packet;
-                    packet.header.orig = self_node_id;
-                    packet.header.dest = orig_node_id;
+                    packet.header.nodeorig = self_node_id;
+                    packet.header.nodedest = orig_node_id;
                     serialize_complete(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx_id);
                     packets.push_back(packet);
                 }
@@ -667,8 +669,8 @@ namespace Cosmos {
             if (treqmeta.size())
             {
                 PacketComm packet;
-                packet.header.orig = self_node_id;
-                packet.header.dest = orig_node_id;
+                packet.header.nodeorig = self_node_id;
+                packet.header.nodedest = orig_node_id;
                 serialize_reqmeta(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[orig_node_idx].node_name, treqmeta);
                 packets.push_back(packet);
             }

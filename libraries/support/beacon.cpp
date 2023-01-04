@@ -92,6 +92,16 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
                 }
                 break;
+            case TypeId::TimeBeaconS:
+                if (cinfo->devspec.cpu.size())
+                {
+                    data.resize(16);
+                    double mjd = currentmjd();
+                    memcpy(&data[0], &mjd, 8);
+                    double utcstart = cinfo->node.utcstart;
+                    memcpy(&data[8], &utcstart, 8);
+                }
+                break;
             case TypeId::TsenBeaconS:
                 //                if (cinfo->devspec.tsen.size() >= 6)
                 {
@@ -594,6 +604,12 @@ namespace Cosmos {
                             cinfo->node.utcstart = unix2utc(beacon.initialdate);
                         }
                         break;
+                    case TypeId::TimeBeaconS:
+                        {
+                            cinfo->node.utc = doublefrom(&data[0]);
+                            cinfo->node.utcstart = doublefrom(&data[8]);
+                        }
+                        break;
                     case TypeId::TsenBeaconS:
                         {
                             tsen_beacons beacon;
@@ -1092,6 +1108,12 @@ namespace Cosmos {
                     json_out_1d(Contents, "device_cpu_utc", 0, cinfo);
                     json_out_1d(Contents, "device_cpu_uptime", 0, cinfo);
                     json_out_1d(Contents, "device_cpu_boot_count", 0, cinfo);
+                    json_out(Contents, "node_utcstart", cinfo);
+                }
+                break;
+            case TypeId::TimeBeaconS:
+                {
+                    json_out(Contents, "node_utc", cinfo);
                     json_out(Contents, "node_utcstart", cinfo);
                 }
                 break;
