@@ -61,6 +61,7 @@ namespace Cosmos {
 //                EPSSUMBeacon = 134,
                 ADCSStateBeacon = 140,
                 ADCSMTRBeacon = 143,
+                ADCSGyroBeacon = 144,
 //                ADCSRWBeacon = 141,
 //                ADCSIMUBeacon = 142,
 //                ADCSGPSBeacon = 143,
@@ -92,6 +93,7 @@ namespace Cosmos {
                 {TypeId::ADCSORBITBeaconS, "ADCSORBITBeaconS"},
                 {TypeId::ADCSStateBeaconS, "ADCSStateBeaconS"},
                 {TypeId::CPUBeacon, "CPUBeacon"},
+                {TypeId::TelemBeacon, "TelemBeacon"},
                 {TypeId::TsenBeacon, "TsenBeacon"},
                 {TypeId::EPSBCREGBeacon, "EPSBCREGBeacon"},
                 {TypeId::EPSSWCHBeacon, "EPSSWCHBeacon"},
@@ -99,6 +101,7 @@ namespace Cosmos {
 //                {TypeId::EPSSUMBeacon, "EPSSUMBeacon"},
                 {TypeId::ADCSStateBeacon, "ADCSStateBeacon"},
                 {TypeId::ADCSMTRBeacon, "ADCSMTRBeacon"},
+                {TypeId::ADCSGyroBeacon, "ADCSGyroBeacon"},
 //                {TypeId::ADCSRWBeacon, "ADCSRWBeacon"},
 //                {TypeId::ADCSGPSBeacon, "ADCSGPSBeacon"},
 //                {TypeId::ADCSIMUBeacon, "ADCSIMUBeacon"},
@@ -433,6 +436,19 @@ namespace Cosmos {
                 uint8_t type = (uint8_t)TypeId::ADCSMTRBeacon;
                 uint32_t deci = 0;
                 adcsmtr_beacon mtr[adcsmtr_count];
+            };
+
+            struct __attribute__ ((packed)) adcsgyro_beacon
+            {
+                float omega = 0.;
+            };
+
+            static constexpr uint8_t adcsgyro_count = 200 / sizeof(adcsmtr_beacon);
+            struct __attribute__ ((packed)) adcsgyros_beacon
+            {
+                uint8_t type = (uint8_t)TypeId::ADCSGyroBeacon;
+                uint32_t deci = 0;
+                adcsgyro_beacon gyro[adcsgyro_count];
             };
 
             struct __attribute__ ((packed)) adcsrw_beacon

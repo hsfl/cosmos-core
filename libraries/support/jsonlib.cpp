@@ -8926,8 +8926,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             iretn = json_addentry("device_telem_name",didx, UINT16_MAX, (uint8_t *)&device->name, (uint16_t)JSON_TYPE_STRING, cinfo);
             iretn = json_addentry("device_telem_utc",didx, UINT16_MAX, (uint8_t *)&device->utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
             json_addentry("device_telem_cidx",didx, UINT16_MAX, (uint8_t *)&device->cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
-            json_addentry("device_telem_type",didx, UINT16_MAX, (uint8_t *)&device->type, (uint16_t)JSON_TYPE_UINT32, cinfo);
-            json_addentry("device_telem_name",didx, UINT16_MAX, (uint8_t *)&device->name, (uint16_t)JSON_TYPE_STRING, cinfo);
+            json_addentry("device_telem_vtype",didx, UINT16_MAX, (uint8_t *)&device->vtype, (uint16_t)JSON_TYPE_UINT16, cinfo);
             json_addentry("device_telem_vuint8",didx, UINT16_MAX, (uint8_t *)&device->vuint8, (uint16_t)JSON_TYPE_UINT8, cinfo);
             json_addentry("device_telem_vint8",didx, UINT16_MAX, (uint8_t *)&device->vint8, (uint16_t)JSON_TYPE_INT8, cinfo);
             json_addentry("device_telem_vuint16",didx, UINT16_MAX, (uint8_t *)&device->vuint16, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -9038,7 +9037,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_telem_name",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_telem_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_telem_cidx",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_telem_type",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_telem_vtype",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_telem_vuint8",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_telem_vint8",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_telem_vuint16",didx, UINT16_MAX, cinfo, state);
@@ -11485,8 +11484,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Telemetry
                 if (!strcmp(device_type_string[i].c_str(),"telem"))
                 {
-                    json_out_1d(jstring, "device_telem_type",j, cinfo);
-                    json_out_1d(jstring, "device_telem_name",j, cinfo);
+                    json_out_1d(jstring, "device_telem_vtype",j, cinfo);
                     //                    switch (json_get_int((char *)"device_telem_type",j, cinfo))
                     //                    {
                     //                    case TELEM_TYPE_UINT8:

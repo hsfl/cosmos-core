@@ -91,7 +91,7 @@ namespace Cosmos {
             {
                 if (this->debug_error != nullptr)
                 {
-                    this->debug_error->Printf("%.4f Could not find node %s in node table!\n", calling_node_name.c_str(), tet.split());
+                    this->debug_error->Printf("%.4f Could not find node %s in node table!\n", tet.split(), calling_node_name.c_str());
                 }
                 return COSMOS_TRANSFER_ERROR_NODE;
             }
@@ -1087,6 +1087,28 @@ namespace Cosmos {
             return iretn;
         }
 
+        //! Adds a new incoming file. Called when a METADATA packet is the first to arrive
+        int32_t Transfer::incoming_tx_add(const string node_name, const packet_struct_metashort& meta)
+        {
+            tx_progress tx_in;
+
+            tx_in.tx_id = meta.tx_id;
+            tx_in.sentmeta = false;
+            tx_in.sentdata = false;
+            tx_in.complete = false;
+            tx_in.node_name = node_name;
+            tx_in.agent_name = meta.agent_name;
+            tx_in.file_name = meta.file_name;
+            tx_in.savetime = 0.;
+            tx_in.file_size = meta.file_size;
+            tx_in.total_bytes = 0;
+            tx_in.file_info.clear();
+
+            int32_t iretn = incoming_tx_add(tx_in);
+
+            return iretn;
+        }
+
         //! Adds a new file to incoming queue
         //! \return Number of files in incoming queue, or error value
         int32_t Transfer::incoming_tx_add(tx_progress &tx_in)
@@ -1108,7 +1130,7 @@ namespace Cosmos {
 
 
             // Check for an actual file name
-            if (tx_in.file_name.size())
+            if (tx_in.file_name.size() && tx_in.agent_name.size())
             {
                 tx_in.filepath = data_base_path(tx_in.node_name, "incoming", tx_in.agent_name, tx_in.file_name);
             }
@@ -1207,7 +1229,7 @@ namespace Cosmos {
                     {
                         return TRANSFER_ERROR_INDEX;
                     }
-                    int32_t iretn = incoming_tx_add(node_name, meta.tx_id);
+                    int32_t iretn = incoming_tx_add(node_name, meta);
                     if (iretn <= 0) {
                         return iretn;
                     }
@@ -1707,11 +1729,9 @@ namespace Cosmos {
         }
 
         //! Read in-progress file from a previous run
-        //! \return 0 on success, negative on error
+        //! \return 0 on success; if error, will remove the .meta and .file files and return a negative error value
         int32_t Transfer::read_meta(tx_progress& tx)
         {
-            // TODO: add check for wrong formatting of meta? Currently fails on unexpected values
-
             std::ifstream file_name;
             packet_struct_metalong meta;
 
@@ -1747,30 +1767,87 @@ namespace Cosmos {
             // Load metadata
             size_t packet_size;
             file_name.read((char *)&packet_size, sizeof(packet_size));
-            if (file_name.eof())
+            // Check for file OoB or an absurd packet_size
+            if (file_name.eof() || packet_size > 9999)
             {
+                file_name.close();
+                remove((tx.temppath + ".meta").c_str());
+                remove((tx.temppath + ".file").c_str());
+                if (debug_error != nullptr)
+                {
+                    debug_error->Printf("%.4f %.4f Main: read_meta: %s Error in packet_size read. Removing meta\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str());
+                }
                 return DATA_ERROR_SIZE_MISMATCH;
             }
             uint16_t crc;
             file_name.read((char *)&crc, sizeof(crc));
             if (file_name.eof())
             {
+                file_name.close();
+                remove((tx.temppath + ".meta").c_str());
+                remove((tx.temppath + ".file").c_str());
+                if (debug_error != nullptr)
+                {
+                    debug_error->Printf("%.4f %.4f Main: read_meta: %s Error in crc read. Removing meta\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str());
+                }
                 return DATA_ERROR_SIZE_MISMATCH;
             }
             vector<PACKET_BYTE> packet;
-            packet.resize(packet_size);
+            // Handle packet_size being exceptionally large enough to trigger a bad_alloc exception
+            try {
+                packet.resize(packet_size);
+            }
+            catch (std::bad_alloc& e)
+            {
+                file_name.close();
+                remove((tx.temppath + ".meta").c_str());
+                remove((tx.temppath + ".file").c_str());
+                if (debug_error != nullptr)
+                {
+                    debug_error->Printf("%.4f %.4f Main: read_meta: %s bad_alloc exception. Removing meta\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str());
+                }
+                return DATA_ERROR_SIZE_MISMATCH;
+            }
             file_name.read((char *)packet.data(), packet_size);
             if (file_name.eof())
             {
+                file_name.close();
+                remove((tx.temppath + ".meta").c_str());
+                remove((tx.temppath + ".file").c_str());
+                if (debug_error != nullptr)
+                {
+                    debug_error->Printf("%.4f %.4f Main: read_meta: %s Error in packet data read. Removing meta\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str());
+                }
                 return DATA_ERROR_SIZE_MISMATCH;
             }
             CRC16 calc_crc;
             if (crc != calc_crc.calc(packet.data(), packet.size()))
             {
                 file_name.close();
+                remove((tx.temppath + ".meta").c_str());
+                remove((tx.temppath + ".file").c_str());
+                if (debug_error != nullptr)
+                {
+                    debug_error->Printf("%.4f %.4f Main: read_meta: %s Error in crc check. Removing meta\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str());
+                }
                 return DATA_ERROR_CRC;
             }
             deserialize_metadata(packet, meta);
+
+            // Check for absurd data sizes that would happen on attempting to
+            // ingest outdated .meta formats or file corruption
+            if (meta.node_name_len > COSMOS_MAX_NAME || meta.agent_name_len > COSMOS_MAX_NAME || meta.file_name_len > TRANSFER_MAX_FILENAME)
+            {
+                file_name.close();
+                remove((tx.temppath + ".meta").c_str());
+                remove((tx.temppath + ".file").c_str());
+                if (debug_error != nullptr)
+                {
+                    debug_error->Printf("%.4f %.4f Main: read_meta: %s Error in deserialize. Removing meta\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str());
+                }
+                return DATA_ERROR_SIZE_MISMATCH;
+            }
+
             tx.tx_id = meta.tx_id;
             // Origin node name
             tx.node_name = meta.node_name;
@@ -1794,11 +1871,24 @@ namespace Cosmos {
                 file_name.read((char *)&crc, 2);
                 if (file_name.eof())
                 {
+                    file_name.close();
+                    remove((tx.temppath + ".meta").c_str());
+                    remove((tx.temppath + ".file").c_str());
+                    if (debug_error != nullptr)
+                    {
+                        debug_error->Printf("%.4f %.4f Main: read_meta: %s Error in progress crc read. Removing meta\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str());
+                    }
                     return DATA_ERROR_SIZE_MISMATCH;
                 }
                 if (crc != calc_crc.calc((uint8_t *)&progress_info, sizeof(progress_info)))
                 {
                     file_name.close();
+                    remove((tx.temppath + ".meta").c_str());
+                    remove((tx.temppath + ".file").c_str());
+                    if (debug_error != nullptr)
+                    {
+                        debug_error->Printf("%.4f %.4f Main: read_meta: %s Error in progress crc check. Removing meta\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str());
+                    }
                     return DATA_ERROR_CRC;
                 }
                 tx.file_info.push_back(progress_info);

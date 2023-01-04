@@ -2490,8 +2490,7 @@ union as a ::devicestruc.
     */
             json11::Json to_json() const {
                 return json11::Json::object {
-                    { "type" , type },
-                    { "name", name },
+                    { "vtype" , vtype },
                     { "vuint8", static_cast<int>(vuint8) },
                     { "vint8", vint8 },
                     { "vuint16", vuint16 },
