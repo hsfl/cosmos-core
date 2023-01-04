@@ -68,7 +68,10 @@ namespace Cosmos {
             int32_t iretn = 0;
             this->debug_error = debug_error;
 
-             this->debug_error->Printf("Transfer: step 1\n");
+            if (this->debug_error != nullptr)
+            {
+                this->debug_error->Printf("Transfer: step 1\n");
+            }
             // fflush(stdout);
             // secondsleep(3.);
             // Transfer: Queue
@@ -82,7 +85,10 @@ namespace Cosmos {
                 // TODO semantically, return value should be negative on error (ie: not 0 or 1)
                 return node_ids_size;
             }
-             this->debug_error->Printf("Transfer: step 2\n");
+            if (this->debug_error != nullptr)
+            {
+                this->debug_error->Printf("Transfer: step 2\n");
+            }
             // fflush(stdout);
             // secondsleep(3.);
             // Identify and store calling node's node_id
@@ -98,7 +104,10 @@ namespace Cosmos {
             self_node_id = iretn;
             self_node_name = calling_node_name;
 
-             this->debug_error->Printf("Transfer: step 3\n");
+            if (this->debug_error != nullptr)
+            {
+                this->debug_error->Printf("Transfer: step 3\n");
+            }
             // fflush(stdout);
             // secondsleep(3.);
             // Create map of node_ids to indexes into txq
@@ -119,7 +128,10 @@ namespace Cosmos {
                 ++tidx;
             }
 
-             this->debug_error->Printf("Transfer: step 4\n");
+            if (this->debug_error != nullptr)
+            {
+                this->debug_error->Printf("Transfer: step 4\n");
+            }
             // fflush(stdout);
             // secondsleep(3.);
             // Restore in progress transfers from previous run
@@ -127,7 +139,10 @@ namespace Cosmos {
             {
                 for(filestruc file : data_list_files(transfer_node.node_name, "temp", "file"))
                 {
-                    this->debug_error->Printf("Transfer: Restore %s %s\n", transfer_node.node_name.c_str(), file.name.c_str());
+                    if (this->debug_error != nullptr)
+                    {
+                        this->debug_error->Printf("Transfer: Restore %s %s\n", transfer_node.node_name.c_str(), file.name.c_str());
+                    }
                     // Add entry for each meta file
                     if (file.type == "meta")
                     {
