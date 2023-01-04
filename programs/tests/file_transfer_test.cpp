@@ -68,6 +68,16 @@ int32_t test_many_files();
 int32_t test_packet_cancel_missed();
 int32_t test_bad_meta();
 
+// Used in bad_meta test
+struct old_metalong
+{
+    char node_name[COSMOS_MAX_NAME+1];
+    PACKET_TX_ID_TYPE tx_id;
+    char agent_name[COSMOS_MAX_NAME+1];
+    char file_name[TRANSFER_MAX_FILENAME];
+    PACKET_FILE_SIZE_TYPE file_size;
+};
+
 // Hold common test parameters to reuse for testing and verification steps
 struct test_params
 {
@@ -2012,13 +2022,30 @@ int32_t create_file(int32_t kib, string file_path)
     return 0;
 }
 
+void serialize_oldmetadata(PacketComm& packet, PACKET_TX_ID_TYPE tx_id, const char* file_name, PACKET_FILE_SIZE_TYPE file_size, const char* node_name, const char* agent_name)
+{
+    const size_t _PACKET_METALONG_OFFSET_NODE_NAME = 0;
+    const size_t _PACKET_METALONG_OFFSET_TX_ID = _PACKET_METALONG_OFFSET_NODE_NAME + COSMOS_MAX_NAME;
+    const size_t _PACKET_METALONG_OFFSET_AGENT_NAME = _PACKET_METALONG_OFFSET_TX_ID + sizeof(PACKET_FILE_SIZE_TYPE);
+    const size_t _PACKET_METALONG_OFFSET_FILE_NAME = _PACKET_METALONG_OFFSET_AGENT_NAME + COSMOS_MAX_NAME;
+    const size_t _PACKET_METALONG_OFFSET_FILE_SIZE = _PACKET_METALONG_OFFSET_FILE_NAME + TRANSFER_MAX_FILENAME;
+    const size_t _PACKET_METALONG_OFFSET_TOTAL = _PACKET_METALONG_OFFSET_FILE_SIZE + sizeof(PACKET_FILE_SIZE_TYPE);
+    packet.header.type = PacketComm::TypeId::DataFileMetaData;
+    packet.data.resize(_PACKET_METALONG_OFFSET_TOTAL);
+    memmove(&packet.data[0]+COSMOS_MAX_NAME,      &tx_id,     sizeof(PACKET_TX_ID_TYPE));
+    memmove(&packet.data[0]+_PACKET_METALONG_OFFSET_FILE_NAME,  file_name,  TRANSFER_MAX_FILENAME);
+    memmove(&packet.data[0]+_PACKET_METALONG_OFFSET_FILE_SIZE,  &file_size, sizeof(file_size));
+    memmove(&packet.data[0]+_PACKET_METALONG_OFFSET_NODE_NAME,  node_name,  COSMOS_MAX_NAME);
+    memmove(&packet.data[0]+COSMOS_MAX_NAME+1, agent_name, COSMOS_MAX_NAME);
+}
+
 // The old way of writing meta files, prior to commit 6c05a9262c0cb7e791465e8754782d813ba95417
 int32_t write_bad_meta(tx_progress& tx)
 {
     PacketComm packet;
     std::ofstream file_name;
 
-    serialize_metadata(packet, tx.tx_id, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
+    serialize_oldmetadata(packet, tx.tx_id, tx.file_name.c_str(), tx.file_size, tx.node_name.c_str(), tx.agent_name.c_str());
     file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary); // Note: truncs by default
     if(!file_name.is_open())
     {
@@ -2026,7 +2053,7 @@ int32_t write_bad_meta(tx_progress& tx)
     }
     uint16_t crc;
     CRC16 calc_crc;
-    file_name.write((char *)&packet.data[0], sizeof(packet_struct_metalong));
+    file_name.write((char *)&packet.data[0], sizeof(old_metalong));
     crc = calc_crc.calc(packet.data);
     file_name.write((char *)&crc, 2);
     for (file_progress progress_info : tx.file_info)
