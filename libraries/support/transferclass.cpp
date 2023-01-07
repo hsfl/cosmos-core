@@ -424,7 +424,7 @@ namespace Cosmos {
                             if (txq[dest_node_idx].outgoing.progress[tx_id].fp != nullptr)
                             {
                                 file_progress tp;
-                                tp = txq[dest_node_idx].outgoing.progress[tx_id].file_info[0];
+                                tp = txq[dest_node_idx].outgoing.progress[tx_id].file_info.back();
 
                                 PACKET_FILE_SIZE_TYPE byte_count = (tp.chunk_end - tp.chunk_start) + 1;
                                 const int32_t packet_data_size_limit = packet_size - offsetof(struct packet_struct_data, chunk);
@@ -449,7 +449,7 @@ namespace Cosmos {
                                     packet.header.nodedest = dest_node_id;
                                     serialize_data(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[dest_node_idx].outgoing.progress[tx_id].tx_id, byte_count, tp.chunk_start, chunk);
                                     packets.push_back(packet);
-                                    txq[dest_node_idx].outgoing.progress[tx_id].file_info[0].chunk_start = tp.chunk_end + 1;
+                                    txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_start = tp.chunk_end + 1;
                                 }
                                 else
                                 {
@@ -460,13 +460,13 @@ namespace Cosmos {
                                 }
                                 delete[] chunk;
 
-                                // Check if front chunk is finished yet
-                                if (txq[dest_node_idx].outgoing.progress[tx_id].file_info[0].chunk_start > txq[dest_node_idx].outgoing.progress[tx_id].file_info[0].chunk_end)
+                                // Check if last chunk is finished yet
+                                if (txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_start > txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_end)
                                 {
                                     // All done with this file_info entry. Close file and remove entry.
                                     fclose(txq[dest_node_idx].outgoing.progress[tx_id].fp);
                                     txq[dest_node_idx].outgoing.progress[tx_id].fp = nullptr;
-                                    txq[dest_node_idx].outgoing.progress[tx_id].file_info.pop_front();
+                                    txq[dest_node_idx].outgoing.progress[tx_id].file_info.pop_back();
                                     // Update total_bytes
                                     merge_chunks_overlap(txq[dest_node_idx].outgoing.progress[tx_id]);
 
@@ -1598,13 +1598,20 @@ namespace Cosmos {
                                 //debug_error->Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), data.byte_count, tx_id);
                             }
 
-                            // If all bytes have been received, mark as all data sent over
-                            if (txq[orig_node_idx].incoming.progress[tx_id].file_size == txq[orig_node_idx].incoming.progress[tx_id].total_bytes)
+                            // Check if all data has been received (we must have the METADATA)
+                            // incoming total_bytes updated by add_chunks() or merge_chunks_overlap()
+                            if (txq[orig_node_idx].incoming.progress[tx_id].sentmeta && txq[orig_node_idx].incoming.progress[tx_id].total_bytes >= txq[orig_node_idx].incoming.progress[tx_id].file_size)
                             {
-                                txq[orig_node_idx].incoming.progress[tx_id].sentdata = true;
-                                // Move file over to final destination
-                                incoming_tx_complete(node_id, tx_id);
-                                iretn = RESPONSE_REQUIRED;
+                                // Merge chunks and recalculate actual total correctly
+                                merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
+                                if (txq[orig_node_idx].incoming.progress[tx_id].total_bytes == txq[orig_node_idx].incoming.progress[tx_id].file_size)
+                                {
+                                    // If all chunks received, then mark as all data sent over
+                                    txq[orig_node_idx].incoming.progress[tx_id].sentdata = true;
+                                    // Move file over to final destination
+                                    incoming_tx_complete(node_id, tx_id);
+                                    iretn = RESPONSE_REQUIRED;
+                                }
                             }
                         }
                     }

@@ -152,7 +152,7 @@ namespace Cosmos {
             // Total bytes sent/received so far
             PACKET_FILE_SIZE_TYPE total_bytes=0;
             // Chunks to be sent, or chunks that have been received
-            deque<file_progress> file_info;
+            vector<file_progress> file_info;
             FILE * fp;
         };
 
@@ -205,7 +205,7 @@ namespace Cosmos {
         // Accumulate and manage chunks
         PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);
         vector<file_progress> find_chunks_missing(tx_progress& tx);
-        bool add_chunk(tx_progress& tx, file_progress& tp);
+        bool add_chunk(tx_progress& tx, const file_progress& tp);
 
         // Random utility functions
         bool filestruc_smaller_by_size(const filestruc& a, const filestruc& b);
