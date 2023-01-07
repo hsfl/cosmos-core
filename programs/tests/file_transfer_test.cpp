@@ -49,9 +49,6 @@ string nodeids_ini_path, nodeids_ini_backup_path;
 
 // RNG seed
 uint32_t seed = 0;
-// For logging how many packets have gone in or out
-size_t in_count = 0;
-size_t out_count = 0;
 
 // Helper functions
 void load_temp_nodeids();
