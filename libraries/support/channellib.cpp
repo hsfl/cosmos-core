@@ -26,7 +26,7 @@ namespace Cosmos {
         int32_t Channel::Init(uint32_t verification)
         {
             // Set up default channels for internal activity
-            channel.resize(6);
+            channel.resize(7);
 
             channel[0].name = "SELF";
             channel[0].mtx = new std::recursive_mutex;
@@ -58,10 +58,10 @@ namespace Cosmos {
             channel[5].datasize = 1400;
             channel[5].maximum = 1000;
 
-            channel[5].name = "LOG";
-            channel[5].mtx = new std::recursive_mutex;
-            channel[5].datasize = 1400;
-            channel[5].maximum = 1000;
+            channel[6].name = "LOG";
+            channel[6].mtx = new std::recursive_mutex;
+            channel[6].datasize = 1400;
+            channel[6].maximum = 1000;
 
             this->verification = verification;
             return channel.size();
