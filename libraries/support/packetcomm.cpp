@@ -25,6 +25,8 @@ namespace Cosmos {
             return true;
         }
 
+        //! \param checkcrc Perform crc check validation
+        //! \return Data size on success, negative on error
         int32_t PacketComm::Unwrap(bool checkcrc)
         {
             style = PacketStyle::None;

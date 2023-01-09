@@ -297,7 +297,7 @@ namespace Cosmos {
                                 // Note, currently supporting only up to string length 255 (not that telem_count is that long anyway)
                                 if (cinfo->devspec.telem[i].vstring.size() > 255)
                                 {
-                                    break;
+                                    continue;
                                 }
                                 bytes.push_back(cinfo->devspec.telem[i].vstring.size());
                                 bytes.insert(bytes.end(), cinfo->devspec.telem[i].vstring.begin(), cinfo->devspec.telem[i].vstring.end());

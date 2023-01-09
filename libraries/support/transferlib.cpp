@@ -350,11 +350,16 @@ namespace Cosmos {
         PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx)
         {
             // Remove any chunks that go beyond the file size
-            for (uint16_t i=tx.file_info.size()-1; i<tx.file_info.size(); --i)
+            auto it = tx.file_info.begin();
+            while (it != tx.file_info.end())
             {
-                if (tx.file_info[i].chunk_end >= tx.file_size)
+                if (it->chunk_end >= tx.file_size)
                 {
-                    tx.file_info.pop_back();
+                    // TODO: consider if another data structure may be better
+                    it = tx.file_info.erase(it);
+                }
+                else {
+                    ++it;
                 }
             }
             switch (tx.file_info.size())
@@ -362,36 +367,45 @@ namespace Cosmos {
             case 0:
                 {
                     tx.total_bytes = 0;
-                    break;
                 }
+                break;
             case 1:
                 {
                     tx.total_bytes = (tx.file_info[0].chunk_end - tx.file_info[0].chunk_start) + 1;
-                    break;
                 }
+                break;
             default:
                 {
                     tx.total_bytes = 0;
                     sort(tx.file_info.begin(), tx.file_info.end(), lower_chunk);
                     // Merge chunks
-                    for (uint32_t i=0; i<tx.file_info.size(); ++i)
+                    for (auto it = tx.file_info.begin(); it != tx.file_info.end(); ++it)
                     {
-                        for (uint32_t j=i+1; j<tx.file_info.size(); ++j)
+                        tx.total_bytes += (it->chunk_end - it->chunk_start) + 1;
+                        auto it_next = it+1;
+                        while (it_next != tx.file_info.end())
                         {
-                            while (j < tx.file_info.size() && tx.file_info[j].chunk_start <= tx.file_info[i].chunk_end+1)
+                            // Merge if the next chunk's start overlaps with the previous chunk's end
+                            if (it_next->chunk_start <= it->chunk_end+1)
                             {
-                                if (tx.file_info[j].chunk_end > tx.file_info[i].chunk_end)
+                                // Sanity check in case the next chunk's end was less than the previous chunk's end
+                                if (it_next->chunk_end > it->chunk_end)
                                 {
-                                    tx.file_info[i].chunk_end = tx.file_info[j].chunk_end;
+                                    tx.total_bytes += it_next->chunk_end - it->chunk_end;
+                                    it->chunk_end = it_next->chunk_end;
                                 }
-                                tx.file_info.erase(tx.file_info.begin()+j);
+                                it_next = tx.file_info.erase(it_next);
                             }
-                        }
-                        tx.total_bytes += (tx.file_info[i].chunk_end - tx.file_info[i].chunk_start) + 1;
-                    }
-                    break;
-                }
-            }
+                            else
+                            {
+                                ++it_next;
+                            }
+                        } // End while
+                    } // End for
+                } // End default
+                break;
+            } // End switch
+
             return tx.total_bytes;
         }
 
@@ -467,12 +481,9 @@ namespace Cosmos {
         //! \param tx The tx_progress of a file in the incoming queue
         //! \param tp Data chunk to add
         //! \return true if tx_in was updated
-        bool add_chunk(tx_progress& tx, file_progress& tp)
+        bool add_chunk(tx_progress& tx, const file_progress& tp)
         {
-            uint32_t check=0;
-            bool duplicate = false;
-            bool updated = false;
-            PACKET_CHUNK_SIZE_TYPE byte_count = tp.chunk_end - tp.chunk_start + 1;
+            const PACKET_CHUNK_SIZE_TYPE byte_count = tp.chunk_end - tp.chunk_start + 1;
 
             // Do we have any data yet?
             if (!tx.file_info.size())
@@ -480,7 +491,7 @@ namespace Cosmos {
                 // Add first entry, then write data
                 tx.file_info.push_back(tp);
                 tx.total_bytes += byte_count;
-                updated = true;
+                return true;
             }
             else
             {
@@ -490,61 +501,57 @@ namespace Cosmos {
                     // Check for duplicate
                     if (tp.chunk_start >= tx.file_info[j].chunk_start && tp.chunk_end <= tx.file_info[j].chunk_end)
                     {
-                        duplicate = true;
-                        break;
+                        return false;
                     }
                     // If we start before this entry
                     if (tp.chunk_start < tx.file_info[j].chunk_start)
                     {
-                        // If we end before this entry (at least one byte between), insert
+                        // If we end before this entry starts (at least one byte between), insert this new chunk
                         if (tp.chunk_end + 1 < tx.file_info[j].chunk_start)
                         {
                             tx.file_info.insert(tx.file_info.begin()+j, tp);
                             tx.total_bytes += byte_count;
-                            updated = true;
-                            break;
+                            return true;
                         }
-                        // Otherwise, extend the near end
+                        // We end beyond the start of this chunk
                         else
                         {
-                            tp.chunk_end = tx.file_info[j].chunk_start - 1;
-                            tx.file_info[j].chunk_start = tp.chunk_start;
-                            byte_count = (tp.chunk_end - tp.chunk_start) + 1;
-                            tx.total_bytes += byte_count;
-                            updated = true;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        // If we overlap on the end, extend the far end
-                        if (tp.chunk_start <= tx.file_info[j].chunk_end + 1)
-                        {
+                            // If we completely encompass this chunk, have this chunk match start and end
                             if (tp.chunk_end > tx.file_info[j].chunk_end)
                             {
-                                byte_count = tp.chunk_end - tx.file_info[j].chunk_end;
-                                tp.chunk_start = tx.file_info[j].chunk_end + 1;
+                                tx.total_bytes += (tx.file_info[j].chunk_start - tp.chunk_start);
+                                tx.total_bytes += (tp.chunk_end - tx.file_info[j].chunk_end);
+                                tx.file_info[j].chunk_start = tp.chunk_start;
                                 tx.file_info[j].chunk_end = tp.chunk_end;
-                                tx.total_bytes += byte_count;
-                                updated = true;
-                                break;
+                                return true;
                             }
+                            // We end before the end of this chunk, then extend the front of this chunk
+                            tx.total_bytes += (tx.file_info[j].chunk_start - tp.chunk_start);
+                            tx.file_info[j].chunk_start = tp.chunk_start;
+                            return true;
                         }
                     }
-                    check = j + 1;
-                }
-
+                    // If we start somewhere between the start and end of this chunk
+                    else if (tp.chunk_start <= tx.file_info[j].chunk_end + 1)
+                    {
+                        // If we end beyond the end of this chunk, then extend the end of this chunk
+                        if (tp.chunk_end > tx.file_info[j].chunk_end)
+                        {
+                            tx.total_bytes += (tp.chunk_end - tx.file_info[j].chunk_end);
+                            tx.file_info[j].chunk_end = tp.chunk_end;
+                            return true;
+                        }
+                    }
+                    // We were somewhere beyond the end of this chunk
+                } // End for
 
                 // If we are higher than everything currently in the list, then append
-                if (!duplicate && check == tx.file_info.size())
-                {
-                    tx.file_info.push_back(tp);
-                    tx.total_bytes += byte_count;
-                    updated = true;
-                }
+                tx.file_info.push_back(tp);
+                tx.total_bytes += byte_count;
+                return true;
             }
 
-            return updated;
+            return false;
         }
 
         //! Gets the size of a file.
