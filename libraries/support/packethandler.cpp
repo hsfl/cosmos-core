@@ -467,7 +467,7 @@ namespace Cosmos {
         int32_t PacketHandler::DecodeTest(PacketComm& packet, string &response, Agent *agent)
         {
             static CRC16 calc_crc;
-            static uint32_t last_test_id = 0;
+            // static uint32_t last_test_id = 0;
             int32_t iretn=0;
             struct test_control
             {
