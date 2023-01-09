@@ -323,7 +323,6 @@ namespace Cosmos {
                     for (uint16_t i=0; i<tsencount; ++i)
                     {
                         beacon.ctemp[i] = cinfo->devspec.tsen[i].temp * 100. + .5;
-                        //                        printf("EB TSEN %u %s: pidx=%u temp=%f\n", i, cinfo->devspec.tsen[i].name.c_str(), cinfo->devspec.tsen[i].pidx, cinfo->devspec.tsen[i].temp);
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+tsencount*2);
                 }
@@ -338,7 +337,6 @@ namespace Cosmos {
                     {
                         beacon.swch[i].mamp = cinfo->devspec.swch[i].amp * 1000. + .5;
                         beacon.swch[i].mvolt = cinfo->devspec.swch[i].volt * 1000. + .5;
-                        //                        printf("EB SWCH %u %s: pidx=%u volt=%f amp=%f\n", i, cinfo->devspec.swch[i].name.c_str(), cinfo->devspec.swch[i].pidx, cinfo->devspec.swch[i].volt, cinfo->devspec.swch[i].amp);
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+swchcount*sizeof(epsswch_beacon));
                 }
@@ -498,7 +496,6 @@ namespace Cosmos {
             default:
                 return GENERAL_ERROR_OUTOFRANGE;
             }
-            //            printf("Beacon: Type=%u Size=%lu\n", (uint16_t)type, data.size());
             return data.size();
         }
 
