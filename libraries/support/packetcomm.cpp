@@ -33,7 +33,7 @@ namespace Cosmos {
                 return GENERAL_ERROR_BAD_SIZE;
             }
 
-            // First: Try Long packet
+            // First: Try V2 packet
             if (wrapped.size() >= COSMOS_SIZEOF(Header))
             {
                 memcpy(&header, &wrapped[0], COSMOS_SIZEOF(Header));
@@ -41,54 +41,74 @@ namespace Cosmos {
                 uint32_t wrapsize = header.data_size + COSMOS_SIZEOF(Header) + 2;
                 if (wrapped.size() >= wrapsize)
                 {
-                    uint16_t crcin = uint16from(&wrapped[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
-                    crc = calc_crc.calc(wrapped.data(), wrapsize-2);
-                    if (!checkcrc || crc == crcin)
+                    if (checkcrc)
                     {
-                        wrapped.resize(wrapsize);
+                        uint16_t crcin = uint16from(&wrapped[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
+                        crc = calc_crc.calc(wrapped.data(), wrapsize-2);
+                        if (crc != crcin)
+                        {
+                            checkcrc = false;
+                            wrapped.resize(wrapsize);
+                            style = PacketStyle::V2;
+                        }
+                    }
+                    else
+                    {
+                        checkcrc = true;
+                    }
+                    if (checkcrc)
+                    {
+                        data.clear();
+                        data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(Header)], &wrapped[header.data_size+COSMOS_SIZEOF(Header)]);
                         style = PacketStyle::V2;
+                        return data.size();
                     }
                 }
-                data.clear();
-                data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(Header)], &wrapped[header.data_size+COSMOS_SIZEOF(Header)]);
-                style = PacketStyle::V2;
-                return data.size();
             }
 
             // Second: Try Medium packet
-            if (wrapped.size() >= COSMOS_SIZEOF(HeaderV1))
-            {
-                memcpy(&headerv1, &wrapped[0], COSMOS_SIZEOF(HeaderV1));
-                headerv1.data_size = uint16from(&headerv1.data_size, ByteOrder::BIGENDIAN);
-                uint32_t wrapsize = headerv1.data_size + COSMOS_SIZEOF(HeaderV1) + 2;
-                if (wrapped.size() >= wrapsize)
-                {
-                    uint16_t crcin = uint16from(&wrapped[headerv1.data_size+COSMOS_SIZEOF(HeaderV1)], ByteOrder::LITTLEENDIAN);
-                    crc = calc_crc.calc(wrapped.data(), wrapsize-2);
-                    if (!checkcrc || crc == crcin)
-                    {
-                        wrapped.resize(wrapsize);
-                        style = PacketStyle::V2;
-                    }
-                }
-                data.clear();
-                data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(HeaderV1)], &wrapped[headerv1.data_size+COSMOS_SIZEOF(HeaderV1)]);
-                style = PacketStyle::V1;
-                header.type = static_cast<TypeId>(headerv1.type);
-                header.data_size = headerv1.data_size;
-                header.nodeorig = headerv1.nodeorig;
-                header.nodedest = headerv1.nodedest;
-                header.chanorig = headerv1.chanorig;
-                header.chandest = headerv1.chanorig;
-                return data.size();
-            }
+//            if (wrapped.size() >= COSMOS_SIZEOF(HeaderV1))
+//            {
+//                memcpy(&headerv1, &wrapped[0], COSMOS_SIZEOF(HeaderV1));
+//                headerv1.data_size = uint16from(&headerv1.data_size, ByteOrder::BIGENDIAN);
+//                uint32_t wrapsize = headerv1.data_size + COSMOS_SIZEOF(HeaderV1) + 2;
+//                if (wrapped.size() >= wrapsize)
+//                {
+//                    uint16_t crcin = uint16from(&wrapped[headerv1.data_size+COSMOS_SIZEOF(HeaderV1)], ByteOrder::LITTLEENDIAN);
+//                    crc = calc_crc.calc(wrapped.data(), wrapsize-2);
+//                    if (!checkcrc || crc == crcin)
+//                    {
+//                        wrapped.resize(wrapsize);
+//                        style = PacketStyle::V2;
+//                    }
+//                }
+//                data.clear();
+//                data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(HeaderV1)], &wrapped[headerv1.data_size+COSMOS_SIZEOF(HeaderV1)]);
+//                style = PacketStyle::V1;
+//                header.type = static_cast<TypeId>(headerv1.type);
+//                header.data_size = headerv1.data_size;
+//                header.nodeorig = headerv1.nodeorig;
+//                header.nodedest = headerv1.nodedest;
+//                header.chanorig = headerv1.chanorig;
+//                header.chandest = headerv1.chanorig;
+//                return data.size();
+//            }
 
-            // If we get here: Assume Short packet
+            // If we get here: Try Short packet
             // Short packet
-            header.type = static_cast<PacketComm::TypeId>(wrapped[0]);
             header.data_size = wrapped.size() - 1;
             data.clear();
             data.insert(data.begin(), &wrapped[1], &wrapped[header.data_size+1]);
+            uint8_t cs = 0;
+            for (uint8_t byte : data)
+            {
+                cs += byte;
+            }
+            if (cs != wrapped[0] >> 4)
+            {
+                return GENERAL_ERROR_CRC;
+            }
+            header.type = static_cast<PacketComm::TypeId>(wrapped[0] & 0x0f);
             style = PacketStyle::Minimal;
             header.nodeorig = 254;
             header.nodedest = 255;
@@ -164,8 +184,13 @@ namespace Cosmos {
             case PacketStyle::Minimal:
                 {
                     header.data_size = data.size();
+                    uint8_t cs = 0;
+                    for (uint8_t byte : data)
+                    {
+                        cs += byte;
+                    }
                     wrapped.resize(1);
-                    wrapped[0] = static_cast<uint8_t>(header.type);
+                    wrapped[0] = (cs & 0x0f) << 4 + static_cast<uint8_t>(header.type) & 0x0f;
                     wrapped.insert(wrapped.end(), data.begin(), data.end());
                 }
                 break;
