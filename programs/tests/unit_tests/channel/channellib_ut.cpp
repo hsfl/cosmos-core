@@ -51,7 +51,7 @@ TEST_F(ChannelUTest, Pulling_corrupt_packet_fails)
     // Corrupt the packet
     channel.channel[0].quu.back().wrapped.at(sizeof(PacketComm::Header))++;
     iretn = channel.Pull(0, packet);
-    EXPECT_EQ(iretn, 0);
+    EXPECT_LT(iretn, 0);
 
 }
 
