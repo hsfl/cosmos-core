@@ -359,13 +359,13 @@ string to_astring(char *value, size_t length, bool hex)
     return output;
 }
 
-string to_string(const vector<uint8_t> &buf, uint16_t offset)
+string byte_vector_to_string(const vector<uint8_t> &buf, uint16_t offset)
 {
     string output(buf.begin()+offset, buf.end());
     return output;
 }
 
-vector<uint8_t> to_bytes(const string &buf)
+vector<uint8_t> string_to_byte_vector(const string &buf)
 {
     vector<uint8_t> output(buf.begin(), buf.end());
     return output;
