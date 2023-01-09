@@ -447,7 +447,7 @@ namespace Cosmos {
         //! after it is pulled from ::Cosmos::Support::Channel::channelstruc::quu.
         //! \param number Number of channel.
         //! \param packet ::Cosmos::Support::PacketComm packet.
-        //! \return New ::Cosmos::Support::Channel::channelstruc::quu size or negative error.
+        //! \return Zero if nothing to pull, One if successful, or negative error.
         int32_t Channel::Pull(uint8_t number, PacketComm &packet)
         {
             int32_t iretn = 0;
@@ -461,9 +461,12 @@ namespace Cosmos {
                 if (channel[number].quu.size())
                 {
                     packet = channel[number].quu.front();
-                    packet.Unwrap();
+                    iretn = packet.Unwrap();
+                    if (iretn >= 0)
+                    {
+                        iretn = 1;
+                    }
                     channel[number].quu.pop();
-                    iretn = 1;
                 }
                 else
                 {
