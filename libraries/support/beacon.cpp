@@ -1424,7 +1424,7 @@ namespace Cosmos {
                 break;
             case TypeId::ADCSMTRBeacon:
                 {
-                    for (uint16_t i=0; i<cinfo->devspec.gyro.size(); ++i)
+                    for (uint16_t i=0; i<cinfo->devspec.mtr.size(); ++i)
                     {
                         json_out_1d(Contents, "device_mtr_utc", i, cinfo);
                         json_out_1d(Contents, "device_mtr_name", i, cinfo);
@@ -1445,7 +1445,7 @@ namespace Cosmos {
                 break;
             case TypeId::ADCSRWBeacon:
                 {
-                    for (uint16_t i=0; i<cinfo->devspec.gyro.size(); ++i)
+                    for (uint16_t i=0; i<cinfo->devspec.rw.size(); ++i)
                     {
                         json_out_1d(Contents, "device_rw_utc", i, cinfo);
                         json_out_1d(Contents, "device_rw_name", i, cinfo);
