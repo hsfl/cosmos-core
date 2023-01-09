@@ -14,7 +14,10 @@ TEST(PacketCommUTest, Unwrap_fails_if_packet_is_corrupted)
     packet.data = mock_bytes;
     packet.Wrap();
 
+    // Corrupt the packet
     packet.wrapped[sizeof(Support::PacketComm::Header)]++;
+
+    // Unwrap should fail
     int32_t iretn = packet.Unwrap();
     EXPECT_LT(iretn, 0);
 }
