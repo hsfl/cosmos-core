@@ -7,7 +7,7 @@ namespace Unit {
 namespace PacketComm {
 
 
-TEST(PacketCommUTest, Unwraps_fails_if_packet_is_corrupted)
+TEST(PacketCommUTest, Unwrap_fails_if_packet_is_corrupted)
 {
     Support::PacketComm packet;
     vector<uint8_t> mock_bytes = {0, 1, 2, 3, 4, 5};
