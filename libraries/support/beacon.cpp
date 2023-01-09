@@ -405,7 +405,7 @@ namespace Cosmos {
                         beacon.mtr[i].align[2] = cinfo->devspec.mtr[i].align.d.y * 100. + .5;
                         beacon.mtr[i].align[3] = cinfo->devspec.mtr[i].align.d.z * 100. + .5;
                     }
-                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+mtrcount*sizeof(adcsmtr_beacon));
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+offsetof(adcsmtrs_beacon, adcsmtrs_beacon::mtr)+mtrcount*sizeof(adcsmtr_beacon));
                 }
                 break;
             case TypeId::ADCSGyroBeacon:
@@ -418,7 +418,22 @@ namespace Cosmos {
                     {
                         beacon.gyro[i].omega = cinfo->devspec.gyro[i].omega;
                     }
-                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+offsetof(adcsgyros_beacon, gyro)+gyrocount*sizeof(adcsmtr_beacon));
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+offsetof(adcsgyros_beacon, adcsgyros_beacon::gyro)+gyrocount*sizeof(adcsgyro_beacon));
+                }
+                break;
+            case TypeId::ADCSRWBeacon:
+                if (cinfo->devspec.rw.size())
+                {
+                    adcsrws_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+                    uint16_t rwcount = cinfo->devspec.rw.size() < adcsrw_count?cinfo->devspec.rw.size():adcsrw_count;
+                    for (uint16_t i=0; i<rwcount; ++i)
+                    {
+                        beacon.rw[i].amp = cinfo->devspec.rw[i].amp;
+                        beacon.rw[i].omg = cinfo->devspec.rw[i].omg;
+                        beacon.rw[i].romg = cinfo->devspec.rw[i].romg;
+                    }
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+offsetof(adcsrws_beacon, adcsrws_beacon::rw)+rwcount*sizeof(adcsrw_beacon));
                 }
                 break;
             case TypeId::ADCSStateBeacon:
@@ -1017,6 +1032,33 @@ namespace Cosmos {
                             }
                         }
                         break;
+                    case TypeId::ADCSMTRBeacon:
+                        {
+                            adcsmtrs_beacon beacon;
+                            if (data.size() <= sizeof(beacon))
+                            {
+                                memcpy(&beacon, data.data(), data.size());
+                            }
+                            else
+                            {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            for (uint16_t i=0; i<cinfo->devspec.mtr.size(); ++i)
+                            {
+                                if (i >= adcsmtr_count)
+                                {
+                                    break;
+                                }
+                                cinfo->devspec.mtr[i].utc = mjd;
+                                cinfo->devspec.mtr[i].mom = beacon.mtr[i].mom;
+                                cinfo->devspec.mtr[i].align.d.x = beacon.mtr[i].align[0];
+                                cinfo->devspec.mtr[i].align.d.y = beacon.mtr[i].align[1];
+                                cinfo->devspec.mtr[i].align.d.z = beacon.mtr[i].align[2];
+                                cinfo->devspec.mtr[i].align.w = beacon.mtr[i].align[3];
+                            }
+                        }
+                        break;
                     case TypeId::ADCSGyroBeacon:
                         {
                             adcsgyros_beacon beacon;
@@ -1037,6 +1079,31 @@ namespace Cosmos {
                                 }
                                 cinfo->devspec.gyro[i].utc = mjd;
                                 cinfo->devspec.gyro[i].omega = beacon.gyro[i].omega;
+                            }
+                        }
+                        break;
+                    case TypeId::ADCSRWBeacon:
+                        {
+                            adcsrws_beacon beacon;
+                            if (data.size() <= sizeof(beacon))
+                            {
+                                memcpy(&beacon, data.data(), data.size());
+                            }
+                            else
+                            {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            for (uint16_t i=0; i<cinfo->devspec.rw.size(); ++i)
+                            {
+                                if (i >= adcsrw_count)
+                                {
+                                    break;
+                                }
+                                cinfo->devspec.rw[i].utc = mjd;
+                                cinfo->devspec.rw[i].amp = beacon.rw[i].amp;
+                                cinfo->devspec.rw[i].omg = beacon.rw[i].omg;
+                                cinfo->devspec.rw[i].romg = beacon.rw[i].romg;
                             }
                         }
                         break;
@@ -1355,6 +1422,17 @@ namespace Cosmos {
                     }
                 }
                 break;
+            case TypeId::ADCSMTRBeacon:
+                {
+                    for (uint16_t i=0; i<cinfo->devspec.gyro.size(); ++i)
+                    {
+                        json_out_1d(Contents, "device_mtr_utc", i, cinfo);
+                        json_out_1d(Contents, "device_mtr_name", i, cinfo);
+                        json_out_1d(Contents, "device_mtr_mom", i, cinfo);
+                        json_out_1d(Contents, "device_mtr_align", i, cinfo);
+                    }
+                }
+                break;
             case TypeId::ADCSGyroBeacon:
                 {
                     for (uint16_t i=0; i<cinfo->devspec.gyro.size(); ++i)
@@ -1362,6 +1440,18 @@ namespace Cosmos {
                         json_out_1d(Contents, "device_gyro_utc", i, cinfo);
                         json_out_1d(Contents, "device_gyro_name", i, cinfo);
                         json_out_1d(Contents, "device_gyro_omega", i, cinfo);
+                    }
+                }
+                break;
+            case TypeId::ADCSRWBeacon:
+                {
+                    for (uint16_t i=0; i<cinfo->devspec.gyro.size(); ++i)
+                    {
+                        json_out_1d(Contents, "device_rw_utc", i, cinfo);
+                        json_out_1d(Contents, "device_rw_name", i, cinfo);
+                        json_out_1d(Contents, "device_rw_amp", i, cinfo);
+                        json_out_1d(Contents, "device_rw_omg", i, cinfo);
+                        json_out_1d(Contents, "device_rw_romg", i, cinfo);
                     }
                 }
                 break;

@@ -62,7 +62,7 @@ namespace Cosmos {
                 ADCSStateBeacon = 140,
                 ADCSMTRBeacon = 143,
                 ADCSGyroBeacon = 144,
-//                ADCSRWBeacon = 141,
+                ADCSRWBeacon = 145,
 //                ADCSIMUBeacon = 142,
 //                ADCSGPSBeacon = 143,
 //                ADCSSTTBeacon = 144,
@@ -443,7 +443,7 @@ namespace Cosmos {
                 float omega = 0.;
             };
 
-            static constexpr uint8_t adcsgyro_count = 200 / sizeof(adcsmtr_beacon);
+            static constexpr uint8_t adcsgyro_count = 200 / sizeof(adcsgyro_beacon);
             struct __attribute__ ((packed)) adcsgyros_beacon
             {
                 uint8_t type = (uint8_t)TypeId::ADCSGyroBeacon;
@@ -453,20 +453,18 @@ namespace Cosmos {
 
             struct __attribute__ ((packed)) adcsrw_beacon
             {
-				// JIMNOTE:  this beacon is missing type and deci?
-                float omega = 0.;
-                float alpha = 0.;
-//                float moi[3] = {0.};
-//                float align[4] = {0.};
+                float amp = 0.;
+                float omg = 0.;
+                float romg = 0.;
             };
 
-//            static constexpr uint8_t adcsrw_count = 200 / sizeof(adcsrw_beacon);
-//            struct __attribute__ ((packed)) adcsrws_beacon
-//            {
-//                uint8_t type = 141;
-//                uint32_t deci = 0;
-//                adcsrw_beacon rw[adcsrw_count];
-//            };
+           static constexpr uint8_t adcsrw_count = 200 / sizeof(adcsrw_beacon);
+           struct __attribute__ ((packed)) adcsrws_beacon
+           {
+               uint8_t type = (uint8_t)TypeId::ADCSRWBeacon;
+               uint32_t deci = 0;
+               adcsrw_beacon rw[adcsrw_count];
+           };
 
 //            struct __attribute__ ((packed)) adcsimu_beacon
 //            {
