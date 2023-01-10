@@ -1858,9 +1858,9 @@ namespace Cosmos
                 return GENERAL_ERROR_OUTOFRANGE;
             }
             packet.header.type = packet.StringType[type];
-            packet.header.orig = agent->nodeId;
-            packet.header.dest = agent->nodeData.lookup_node_id(dest);
-            packet.header.radio = inchannel;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = agent->nodeData.lookup_node_id(dest);
+            packet.header.chanorig = inchannel;
             response = "dest:" + dest + " radioup:" + agent->channels.channel[outchannel].name + " radiodown:" + agent->channels.channel[inchannel].name + " " + type;
             switch (packet.header.type)
             {
@@ -3953,8 +3953,8 @@ acquired.
                     header.chunks = (response.size() - 1) / chunk_size + 1;
                 }
                 packet.header.type = PacketComm::TypeId::DataResponse;
-                packet.header.orig = nodeId;
-                packet.header.dest = dest;
+                packet.header.nodeorig = nodeId;
+                packet.header.nodedest = dest;
                 for (header.chunk_id=0; header.chunk_id<header.chunks; ++header.chunk_id)
                 {
                     uint16_t chunk_begin = header.chunk_id * chunk_size;
@@ -4030,9 +4030,9 @@ acquired.
                     header.chunks = (response.size() - 1) / chunk_size + 1;
                 }
                 packet.header.type = type;
-                packet.header.radio = number;
-                packet.header.orig = nodeId;
-                packet.header.dest = dest;
+                packet.header.chanorig = number;
+                packet.header.nodeorig = nodeId;
+                packet.header.nodedest = dest;
                 for (header.chunk_id=0; header.chunk_id<header.chunks; ++header.chunk_id)
                 {
                     uint16_t chunk_begin = header.chunk_id * chunk_size;
@@ -4073,11 +4073,11 @@ acquired.
 
             if (extra.empty())
             {
-                printf("%u [%s(%u) Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                printf("%u [%s(%u) Type=%hu, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             else
             {
-                printf("%u %s [%s(%u) Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                printf("%u %s [%s(%u) Type=%hu, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
             {

@@ -231,6 +231,7 @@ namespace Cosmos {
         int32_t leap_seconds(double mjd);
         double utc2era(double mjd);
         double utc2gmst1982(double mjd);
+        double utc2gmst2000(double mjd=0.);
         double utc2jcenut1(double mjd);
         double utc2tt(double mjd);
         double utc2jcentt(double mjd);

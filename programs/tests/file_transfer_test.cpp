@@ -8,7 +8,9 @@
 
 #include "support/transferclass.h"
 #include <fstream>
-#include <numeric> // for std::accumulate
+#include <numeric>      // for std::accumulate
+#include <algorithm>    // for std::shuffle
+#include <random>       // for std::default_random_machine
 
 #define NODE1 0
 #define NODE2 1
@@ -45,12 +47,17 @@ Error node1_log, node2_log;
 // nodeids.ini file path, and path for its backup
 string nodeids_ini_path, nodeids_ini_backup_path;
 
+// RNG seed
+uint32_t seed = 0;
+
 // Helper functions
 void load_temp_nodeids();
 void restore_original_nodeids();
 void cleanup();
 void rmdir(const string dirpath);
 int32_t create_file(int32_t kib, string file_path);
+int32_t write_bad_meta(tx_progress& tx);
+int32_t write_bad_meta(tx_progress& tx, uint16_t num_bytes);
 void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_log);
 template <typename T> T sumv(vector<T> vec);
 
@@ -64,6 +71,18 @@ int32_t test_stop_resume2();
 int32_t test_packet_reqcomplete();
 int32_t test_many_files();
 int32_t test_packet_cancel_missed();
+int32_t test_bad_meta();
+int32_t test_chaotic_order();
+
+// Used in bad_meta test
+struct old_metalong
+{
+    char node_name[COSMOS_MAX_NAME+1];
+    PACKET_TX_ID_TYPE tx_id;
+    char agent_name[COSMOS_MAX_NAME+1];
+    char file_name[TRANSFER_MAX_FILENAME];
+    PACKET_FILE_SIZE_TYPE file_size;
+};
 
 // Hold common test parameters to reuse for testing and verification steps
 struct test_params
@@ -219,6 +238,22 @@ struct test_params
         return iretn;
     }
 
+    // Verify that the temp directory containing the meta files are what is expected
+    // orig_node_name: Name of the origin node
+    // expected_file_num: Number of files you expect to see in the incoming folder
+    int32_t verify_temp_dir(string orig_node_name, size_t expected_file_num)
+    {
+        int32_t iretn = 0;
+        vector<filestruc> temp_dir= data_list_files(orig_node_name, "temp", "file");
+        if (temp_dir.size() != expected_file_num)
+        {
+            debug_log.Printf("Verification fail: File count incorrect. %s/temp/file: %d, expected: %d\n", orig_node_name.c_str(), temp_dir.size(), expected_file_num);
+            --iretn;
+        }
+
+        return iretn;
+    }
+
     // Get total size of test files created
     size_t get_total_bytes()
     {
@@ -266,6 +301,10 @@ int main(int argc, char *argv[])
     node1_log.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "node1_transfer_test_log");
     node2_log.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "node2_transfer_test_log");
 
+    // Randomize seed
+    seed = decisec();
+    srand(seed);
+    debug_log.Printf("%5d | Using rand seed:%d\n", __LINE__, seed);
 
     //////////////////////////////////////////////////////////////////////////
     // Run tests
@@ -277,6 +316,8 @@ int main(int argc, char *argv[])
     run_test(test_packet_reqcomplete, "test_packet_reqcomplete");
     run_test(test_many_files, "test_many_files"); // This one takes about 16 seconds, comment out to save some time to test other tests
     run_test(test_packet_cancel_missed, "test_packet_cancel_missed");
+    run_test(test_bad_meta, "test_bad_meta");
+    run_test(test_chaotic_order, "test_chaotic_order");
 
     //////////////////////////////////////////////////////////////////////////
     // Clean up
@@ -482,6 +523,8 @@ endoftest:
     // Zero-size files were ignored
     iretn += test.verify_incoming_dir(node1_name, 0);
     iretn += test.verify_outgoing_dir(node2_name, num_files);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
     
 
     // Outgoing/incoming queues are empty
@@ -634,6 +677,8 @@ endoftest:
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
 
     // Outgoing/incoming queues are empty
     if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
@@ -876,6 +921,8 @@ endoftest:
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
 
     // Outgoing/incoming queues are empty
     if (node1b.outgoing_tx_recount(node2_name) || node2a.incoming_tx_recount(node1_name))
@@ -1143,6 +1190,8 @@ endoftest:
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
 
     // Outgoing/incoming queues are empty
     if (node1a.outgoing_tx_recount(node2_name) || node2b.incoming_tx_recount(node1_name))
@@ -1330,6 +1379,8 @@ endoftest:
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
 
     // Outgoing/incoming queues are empty
     if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
@@ -1507,6 +1558,8 @@ endoftest:
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
 
     // Outgoing/incoming queues are empty
     if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
@@ -1784,6 +1837,352 @@ endoftest:
     // File was successfully transferred
     iretn += test.verify_incoming_dir(node1_name, num_files*2);
     iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
+
+    // Outgoing/incoming queues are empty
+    if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
+    {
+        debug_log.Printf("Verification fail: queue not empty. node1 outgoing: %d, node2 incoming: %d\n", node1.outgoing_tx_recount(node2_name), node2.incoming_tx_recount(node1_name));
+        --iretn;
+    }
+
+    return iretn;
+}
+
+// Due to either file corruption or using a previous version of transferclass, the .meta file
+// is badly formed.
+// Expect: Bad meta files are deleted
+int32_t test_bad_meta()
+{
+    int32_t iretn = 0;
+    Transfer node1, node2;
+    size_t num_files = 0;
+    double file_size_kib = 0.;
+
+    // Initialize test parameters
+    test_params test;
+    // Create first set of files
+    iretn = test.init(node1_name, node2_name, file_size_kib, num_files, __func__);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing test params %d\n", iretn);
+        return iretn;
+    }
+
+    // Create bad meta files
+    size_t num_old_meta_files = 50;
+    for (size_t i=0; i < num_old_meta_files; ++i)
+    {
+        tx_progress tx;
+        tx.temppath = data_base_path(node1_name, "temp", "file", "out_"+std::to_string(i));
+        tx.agent_name = __func__;
+        tx.node_name = node1_name;
+        tx.file_size = rand() % 65535;
+        iretn = write_bad_meta(tx);
+        if (iretn < 0)
+        {
+            debug_log.Printf("Error creating bad old meta file %d\n", iretn);
+            return iretn;
+        }
+    }
+    // write bad gibberish meta data
+    size_t num_gibberish_meta_files = 50;
+    for (size_t i=num_old_meta_files; i < num_old_meta_files+num_gibberish_meta_files; ++i)
+    {
+        tx_progress tx;
+        tx.temppath = data_base_path(node2_name, "temp", "file", "in_"+std::to_string(i));
+        tx.agent_name = __func__;
+        tx.node_name = node2_name;
+        tx.file_size = rand() % 65535;
+        iretn = write_bad_meta(tx, tx.file_size);
+        if (iretn < 0)
+        {
+            debug_log.Printf("Error creating bad gibberish meta file %d\n", iretn);
+            return iretn;
+        }
+    }
+
+    // Load nodeid table
+    load_temp_nodeids();
+
+    // Initialize file transfer classes
+    iretn = node1.Init(node1_name, &node1_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node1_name.c_str());
+        restore_original_nodeids();
+        return iretn;
+    }
+    iretn = node2.Init(node2_name, &node2_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node2_name.c_str());
+        restore_original_nodeids();
+        return iretn;
+    }
+    iretn = node1.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        restore_original_nodeids();
+        return iretn;
+    }
+    iretn = node2.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        restore_original_nodeids();
+        return iretn;
+    }
+
+    // Restore old nodeids.ini file here in case test crashes
+    restore_original_nodeids();
+
+    // Verify expected results
+    iretn = 0;
+
+    // File was successfully transferred
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
+
+    // Outgoing/incoming queues are empty
+    if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
+    {
+        debug_log.Printf("Verification fail: queue not empty. node1 outgoing: %d, node2 incoming: %d\n", node1.outgoing_tx_recount(node2_name), node2.incoming_tx_recount(node1_name));
+        --iretn;
+    }
+
+    return iretn;
+}
+
+// Node 1 sends packets in a completely chaotic, random order, with differing packet sizes, and some duplicated
+// Expect: Stuff to transfer
+int32_t test_chaotic_order()
+{
+    int32_t iretn = 0;
+    Transfer node1, node2;
+    size_t num_files = 1;
+    double file_size_kib = 15.;
+    double file_size_bytes = file_size_kib * 1024;
+
+    // Initialize test parameters
+    test_params test;
+    iretn = test.init(node1_name, node2_name, file_size_kib, num_files, __func__);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing test params %d\n", iretn);
+        return iretn;
+    }
+
+    // Load nodeid table
+    load_temp_nodeids();
+
+    iretn = node1.Init(node1_name, &node1_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node1_name.c_str());
+        restore_original_nodeids();
+        return iretn;
+    }
+    iretn = node2.Init(node2_name, &node2_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node2_name.c_str());
+        restore_original_nodeids();
+        return iretn;
+    }
+    iretn = node1.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        restore_original_nodeids();
+        return iretn;
+    }
+    node2.set_packet_size(PACKET_SIZE);
+
+    // Restore old nodeids.ini file here in case test crashes
+    restore_original_nodeids();
+
+    vector<PacketComm> queued_lpackets, lpackets, rpackets;
+    bool respond = false;
+    // Start transfer process
+    iretn = node1.outgoing_tx_load(node2_name);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in outgoing_tx_load\n");
+        return iretn;
+    }
+    // Number of packets sent by each node
+    vector<int32_t> packets_sent = {0,0};
+    const int32_t packet_data_size_limit = node1.get_packet_size() - offsetof(struct packet_struct_data, chunk);
+    // Hard to calculate, in a perfect transfer (no chaos), shouldn't be more than this,
+    int32_t packet_expected_total
+        = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets
+        + num_files     // number of METADATA packets
+        + 1             // number of QUEUE packets
+        + num_files     // number of COMPLETE packets
+        + num_files;    // number of CANCEL packets
+    // but increase by a bit since repeated packets are sent and what not.
+    packet_expected_total *= 1.25;
+    
+    // Allow a deviation of packet size of +/-25%
+    const size_t packet_size_deviation = PACKET_SIZE * 0.25;
+
+    // First get all packets to send out
+    queued_lpackets.clear();
+    size_t last_size = 0;
+    while (true)
+    {
+        // Get node 1's packets to send to node 2
+        node1.get_outgoing_lpackets(node2_name, queued_lpackets);
+
+        // Break if all outgoing lpackets were grabbed
+        if (queued_lpackets.size() == last_size)
+        {
+            break;
+        }
+
+        // Randomly increase or decrease the packet size
+        if (!(rand()%3))
+        {
+            const int32_t sign = (rand()%2)*2 - 1;
+            const float percent = (rand()%11) / 10;
+            const int32_t deviation = packet_size_deviation * percent * sign;
+            const size_t new_packet_size = PACKET_SIZE + deviation;
+            node1.set_packet_size(new_packet_size);
+        }
+
+        // Occasionally repeat a random packet
+        if (!(rand()%5))
+        {
+            const size_t insert_pos = queued_lpackets.size();
+            const size_t copy_pos = rand()%insert_pos;
+            queued_lpackets.resize(insert_pos + 1);
+            std::copy_n(queued_lpackets.begin()+copy_pos, 1, queued_lpackets.begin() + insert_pos);
+        }
+
+        last_size = queued_lpackets.size();
+    }
+    // Shuffle the queue
+    auto rng = std::default_random_engine {seed};
+    std::shuffle(std::begin(queued_lpackets), std::end(queued_lpackets), rng);
+    // Offset in the queued_lpackets vector to start transfering again from
+    size_t qlp_offset = 0;
+    // don't break out of sending queued_lpackets immediately
+    int32_t break_offset = 4;
+    // Now send them all out
+    while (true)
+    {
+        lpackets.clear();
+        // Get node 1's packets to send to node 2
+        node1.get_outgoing_lpackets(node2_name, lpackets);
+        for (auto& lpacket : lpackets)
+        {
+            ++packets_sent[NODE1];
+            // Have node 2 receive all these packets
+            debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE+packet_size_deviation)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
+            debug_packet(lpacket, 0, "Incoming", &node2_log);
+            iretn = node2.receive_packet(lpacket);
+            if (iretn == node2.RESPONSE_REQUIRED)
+            {
+                respond = true;
+            }
+        }
+        for (size_t i=qlp_offset; i < queued_lpackets.size(); ++i)
+        {
+            ++packets_sent[NODE1];
+            // Have node 2 receive all these packets
+            debug_packet(queued_lpackets[i], 1, "Outgoing", &node1_log);
+            // Check packet size, can't be greater than max deviation
+            if (queued_lpackets[i].data.size() > PACKET_SIZE+packet_size_deviation)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, queued_lpackets[i].header.type, queued_lpackets[i].data.size(), PACKET_SIZE+packet_size_deviation);
+                goto endoftest;
+            }
+            debug_packet(queued_lpackets[i], 0, "Incoming", &node2_log);
+            iretn = node2.receive_packet(queued_lpackets[i]);
+            if (iretn == node2.RESPONSE_REQUIRED)
+            {
+                respond = true;
+            }
+            if (respond)
+            {
+                // Keep sending for a bit, don't break immediately
+                --break_offset;
+                if (break_offset < 0 || i >= (queued_lpackets.size()-1))
+                {
+                    // Resume sending from last offset
+                    break_offset = 4;
+                    qlp_offset = i+1;
+                    break;
+                }
+            }
+        }
+
+        // break if transfers stop
+        if ((qlp_offset >= queued_lpackets.size()) && !respond)
+        {
+            string rs = respond ? "true" : "false";
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+            break;
+        }
+        if (sumv(packets_sent) > packet_expected_total*2)
+        {
+            string rs = respond ? "true" : "false";
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+        }
+
+        if (respond)
+        {
+            rpackets.clear();
+            node2.get_outgoing_rpackets(rpackets);
+            for (auto& rpacket : rpackets)
+            {
+                ++packets_sent[NODE2];
+                debug_packet(rpacket, 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpacket.data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
+                debug_packet(rpacket, 0, "Incoming", &node1_log);
+                node1.receive_packet(rpacket);
+            }
+            respond = false;
+        }
+
+        // // break if estimate is greatly exceeded
+        if (sumv(packets_sent) > packet_expected_total*2)
+        {
+            break;
+        }
+    }
+
+
+endoftest:
+
+    // Verify expected results
+    iretn = 0;
+    // Number of iteration matches estimate
+    if (sumv(packets_sent) > packet_expected_total*2)
+    {
+        debug_log.Printf("Verification fail: runlimit exceeded. node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+        --iretn;
+    }
+
+    // File was successfully transferred
+    iretn += test.verify_incoming_dir(node1_name, num_files);
+    iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
 
     // Outgoing/incoming queues are empty
     if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
@@ -1851,21 +2250,93 @@ void rmdir(const string dirpath)
     }
 }
 
-// Create an all-zero-char file of kib kibibytes at the file_path
+// Create an file of kib kibibytes at the file_path
 // kb: kibibytes
 // Returns 0 on success, negative on error
 int32_t create_file(int32_t kib, string file_path)
 {
-    vector<char> zeros(1024, 0);
+    vector<char> bytes(1024, 0);
+    for (size_t i=0; i < bytes.size(); ++i)
+    {
+        bytes[i] = i & 0xFF;
+    }
     ofstream of(file_path, std::ios::binary | std::ios::out);
     for(int i = 0; i < kib; ++i)
     {
-        if (!of.write(&zeros[0], zeros.size()))
+        if (!of.write(&bytes[0], bytes.size()))
         {
             debug_log.Printf("Error creating %s\n", file_path.c_str());
             return -1;
         }
     }
+    return 0;
+}
+
+void serialize_oldmetadata(PacketComm& packet, PACKET_TX_ID_TYPE tx_id, const char* file_name, PACKET_FILE_SIZE_TYPE file_size, const char* node_name, const char* agent_name)
+{
+    const size_t _PACKET_METALONG_OFFSET_NODE_NAME = 0;
+    const size_t _PACKET_METALONG_OFFSET_TX_ID = _PACKET_METALONG_OFFSET_NODE_NAME + COSMOS_MAX_NAME;
+    const size_t _PACKET_METALONG_OFFSET_AGENT_NAME = _PACKET_METALONG_OFFSET_TX_ID + sizeof(PACKET_FILE_SIZE_TYPE);
+    const size_t _PACKET_METALONG_OFFSET_FILE_NAME = _PACKET_METALONG_OFFSET_AGENT_NAME + COSMOS_MAX_NAME;
+    const size_t _PACKET_METALONG_OFFSET_FILE_SIZE = _PACKET_METALONG_OFFSET_FILE_NAME + TRANSFER_MAX_FILENAME;
+    const size_t _PACKET_METALONG_OFFSET_TOTAL = _PACKET_METALONG_OFFSET_FILE_SIZE + sizeof(PACKET_FILE_SIZE_TYPE);
+    packet.header.type = PacketComm::TypeId::DataFileMetaData;
+    packet.data.resize(_PACKET_METALONG_OFFSET_TOTAL);
+    memmove(&packet.data[0]+COSMOS_MAX_NAME,      &tx_id,     sizeof(PACKET_TX_ID_TYPE));
+    memmove(&packet.data[0]+_PACKET_METALONG_OFFSET_FILE_NAME,  file_name,  TRANSFER_MAX_FILENAME);
+    memmove(&packet.data[0]+_PACKET_METALONG_OFFSET_FILE_SIZE,  &file_size, sizeof(file_size));
+    memmove(&packet.data[0]+_PACKET_METALONG_OFFSET_NODE_NAME,  node_name,  COSMOS_MAX_NAME);
+    memmove(&packet.data[0]+COSMOS_MAX_NAME+1, agent_name, COSMOS_MAX_NAME);
+}
+
+// The old way of writing meta files, prior to commit 6c05a9262c0cb7e791465e8754782d813ba95417
+int32_t write_bad_meta(tx_progress& tx)
+{
+    PacketComm packet;
+    std::ofstream file_name;
+
+    serialize_oldmetadata(packet, tx.tx_id, tx.file_name.c_str(), tx.file_size, tx.node_name.c_str(), tx.agent_name.c_str());
+    file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary); // Note: truncs by default
+    if(!file_name.is_open())
+    {
+        return (-errno);
+    }
+    uint16_t crc;
+    CRC16 calc_crc;
+    file_name.write((char *)&packet.data[0], sizeof(old_metalong));
+    crc = calc_crc.calc(packet.data);
+    file_name.write((char *)&crc, 2);
+    for (file_progress progress_info : tx.file_info)
+    {
+        file_name.write((const char *)&progress_info, sizeof(progress_info));
+        crc = calc_crc.calc((uint8_t *)&progress_info, sizeof(progress_info));
+        file_name.write((char *)&crc, 2);
+    }
+    file_name.close();
+
+    return 0;
+}
+
+// Writes a bunch of gibberish to a meta file
+// tx: include some basic setup stuff to create the meta file, like the temppath
+// num_bytes the number of bytes to write to the garbage meta file
+int32_t write_bad_meta(tx_progress& tx, uint16_t num_bytes)
+{
+    PacketComm packet;
+    std::ofstream file_name;
+    serialize_metadata(packet, tx.tx_id, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
+    file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary); // Note: truncs by default
+    if(!file_name.is_open())
+    {
+        return (-errno);
+    }
+    vector<uint8_t> write_bytes(num_bytes);
+    for (size_t i=0; i<write_bytes.size(); ++i)
+    {
+        write_bytes[i] = rand() % 256;
+    }
+    file_name.write((const char *)&write_bytes, write_bytes.size());
+    file_name.close();
     return 0;
 }
 

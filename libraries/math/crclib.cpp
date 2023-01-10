@@ -141,12 +141,14 @@ uint16_t CRC16::calc_file(string file_path)
     {
         if (lsbfirst)
         {
-            data = byte ^ (remainder & 0xff);
+            // Note, char is signed
+            data = static_cast<uint8_t>(byte) ^ (remainder & 0xff);
             remainder = lookup[data] ^ (remainder >> 8);
         }
         else
         {
-            data = byte ^ (remainder >> (8));
+            // Note, char is signed
+            data = static_cast<uint8_t>(byte) ^ (remainder >> (8));
             remainder = lookup[data] ^ (remainder << 8);
         }
     }
@@ -320,7 +322,7 @@ uint16_t calc_crc16(vector<uint8_t> buf, uint16_t poly, uint16_t crc, uint16_t x
 
     for (uint16_t i=0; i<buf.size(); i++)
     {
-        uint ch = buf[i];
+        uint16_t ch = buf[i];
         for (uint16_t j=0; j<8; j++)
         {
             if (lsbfirst)

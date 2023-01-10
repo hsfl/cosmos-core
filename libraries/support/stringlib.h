@@ -62,8 +62,8 @@ string to_astring(vector<uint8_t> buf, bool hex=true);
 string to_astring(string buf, bool hex=false);
 string to_astring(char *value, size_t length, bool hex=false);
 // These two assume all bytes are ASCII characters
-string to_string(const vector<uint8_t>& buf, uint16_t offset=0);
-vector<uint8_t> to_bytes(const string &buf);
+string byte_vector_to_string(const vector<uint8_t>& buf, uint16_t offset=0);
+vector<uint8_t> string_to_byte_vector(const string &buf);
 // These next three are intentionally NOT (u)int64_t, as that does not always carry cleanly to 32 bit systems.
 // size_t and ptrdiff_t will map to the largest integer the system actually knows how to deal with.
 #if ((SIZE_WIDTH) == (UINT64_WIDTH))

@@ -146,7 +146,7 @@ namespace Cosmos
                                 if (out_radio)
                                 {
                                     string s = transfer.list_outgoing();
-                                    agent->push_response(out_radio, packet.header.orig, mychannel, centisec(), s);
+                                    agent->push_response(out_radio, packet.header.nodeorig, mychannel, centisec(), s);
                                 }
                             }
                             break;
@@ -210,7 +210,7 @@ namespace Cosmos
                     // Transfer to radio
                     for (auto &p : file_packets)
                     {
-                        // TODO: note that p does not set header.radio
+                        // TODO: note that p does not set header.chanorig
                         iretn = agent->channel_push(out_radio, p);
 
                         // Stop using this channel on error

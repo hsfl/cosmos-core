@@ -26,7 +26,7 @@ namespace Cosmos {
         int32_t Channel::Init(uint32_t verification)
         {
             // Set up default channels for internal activity
-            channel.resize(6);
+            channel.resize(7);
 
             channel[0].name = "SELF";
             channel[0].mtx = new std::recursive_mutex;
@@ -58,10 +58,10 @@ namespace Cosmos {
             channel[5].datasize = 1400;
             channel[5].maximum = 1000;
 
-            channel[5].name = "LOG";
-            channel[5].mtx = new std::recursive_mutex;
-            channel[5].datasize = 1400;
-            channel[5].maximum = 1000;
+            channel[6].name = "LOG";
+            channel[6].mtx = new std::recursive_mutex;
+            channel[6].datasize = 1400;
+            channel[6].maximum = 1000;
 
             this->verification = verification;
             return channel.size();
@@ -447,7 +447,7 @@ namespace Cosmos {
         //! after it is pulled from ::Cosmos::Support::Channel::channelstruc::quu.
         //! \param number Number of channel.
         //! \param packet ::Cosmos::Support::PacketComm packet.
-        //! \return New ::Cosmos::Support::Channel::channelstruc::quu size or negative error.
+        //! \return Zero if nothing to pull, One if successful, or negative error.
         int32_t Channel::Pull(uint8_t number, PacketComm &packet)
         {
             int32_t iretn = 0;
@@ -461,9 +461,12 @@ namespace Cosmos {
                 if (channel[number].quu.size())
                 {
                     packet = channel[number].quu.front();
-                    packet.Unwrap();
+                    iretn = packet.Unwrap();
+                    if (iretn >= 0)
+                    {
+                        iretn = 1;
+                    }
                     channel[number].quu.pop();
-                    iretn = 1;
                 }
                 else
                 {
@@ -821,9 +824,9 @@ namespace Cosmos {
             PacketComm test_packet;
             test_packet.data.resize(channel[number].datasize);
             test_packet.header.type = PacketComm::TypeId::DataTest;
-            test_packet.header.orig = orig;
-            test_packet.header.dest = dest;
-            test_packet.header.radio = radio;
+            test_packet.header.nodeorig = orig;
+            test_packet.header.nodedest = dest;
+            test_packet.header.chanorig = radio;
 
             PacketComm::TestHeader theader;
             theader.size = channel[number].datasize-(sizeof(theader)+2);

@@ -25,32 +25,97 @@ namespace Cosmos {
             return true;
         }
 
+        //! \param checkcrc Perform crc check validation
+        //! \return Data size on success, negative on error
         int32_t PacketComm::Unwrap(bool checkcrc)
         {
+            style = PacketStyle::None;
             if (wrapped.size() <= 0)
             {
                 return GENERAL_ERROR_BAD_SIZE;
             }
-            memcpy(&header, &wrapped[0], COSMOS_SIZEOF(Header));
-            uint32_t wrapsize = header.data_size + COSMOS_SIZEOF(Header) + 2;
-            if (wrapped.size() < wrapsize)
+
+            // First: Try V2 packet
+            if (wrapped.size() >= COSMOS_SIZEOF(Header))
             {
-                return GENERAL_ERROR_BAD_SIZE;
-            }
-            wrapped.resize(wrapsize);
-            if (checkcrc)
-            {
-                uint16_t crcin = uint16from(&wrapped[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
-                crc = calc_crc.calc(wrapped.data(), wrapped.size()-2);
-                if (crc != crcin)
+                memcpy(&header, &wrapped[0], COSMOS_SIZEOF(Header));
+                header.data_size = uint16from(reinterpret_cast<uint8_t *>(&header.data_size));
+                uint32_t wrapsize = header.data_size + COSMOS_SIZEOF(Header) + 2;
+                if (wrapped.size() >= wrapsize)
                 {
-                    return GENERAL_ERROR_CRC;
+                    if (checkcrc)
+                    {
+                        uint16_t crcin = uint16from(&wrapped[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
+                        crc = calc_crc.calc(wrapped.data(), wrapsize-2);
+                        if (crc != crcin)
+                        {
+                            checkcrc = false;
+                            wrapped.resize(wrapsize);
+                            style = PacketStyle::V2;
+                        }
+                    }
+                    else
+                    {
+                        checkcrc = true;
+                    }
+                    if (checkcrc)
+                    {
+                        data.clear();
+                        data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(Header)], &wrapped[header.data_size+COSMOS_SIZEOF(Header)]);
+                        style = PacketStyle::V2;
+                        return data.size();
+                    }
                 }
             }
 
-            data.clear();
-            data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(Header)], &wrapped[header.data_size+COSMOS_SIZEOF(Header)]);
+            // Second: Try Medium packet
+//            if (wrapped.size() >= COSMOS_SIZEOF(HeaderV1))
+//            {
+//                memcpy(&headerv1, &wrapped[0], COSMOS_SIZEOF(HeaderV1));
+//                headerv1.data_size = uint16from(&headerv1.data_size, ByteOrder::BIGENDIAN);
+//                uint32_t wrapsize = headerv1.data_size + COSMOS_SIZEOF(HeaderV1) + 2;
+//                if (wrapped.size() >= wrapsize)
+//                {
+//                    uint16_t crcin = uint16from(&wrapped[headerv1.data_size+COSMOS_SIZEOF(HeaderV1)], ByteOrder::LITTLEENDIAN);
+//                    crc = calc_crc.calc(wrapped.data(), wrapsize-2);
+//                    if (!checkcrc || crc == crcin)
+//                    {
+//                        wrapped.resize(wrapsize);
+//                        style = PacketStyle::V2;
+//                    }
+//                }
+//                data.clear();
+//                data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(HeaderV1)], &wrapped[headerv1.data_size+COSMOS_SIZEOF(HeaderV1)]);
+//                style = PacketStyle::V1;
+//                header.type = static_cast<TypeId>(headerv1.type);
+//                header.data_size = headerv1.data_size;
+//                header.nodeorig = headerv1.nodeorig;
+//                header.nodedest = headerv1.nodedest;
+//                header.chanorig = headerv1.chanorig;
+//                header.chandest = headerv1.chanorig;
+//                return data.size();
+//            }
 
+            // If we get here: Try Short packet
+            // Short packet
+            header.data_size = wrapped.size() - 1;
+            data.clear();
+            data.insert(data.begin(), &wrapped[1], &wrapped[header.data_size+1]);
+            uint8_t cs = 0;
+            for (uint8_t byte : data)
+            {
+                cs += byte;
+            }
+            if (cs != wrapped[0] >> 4)
+            {
+                return GENERAL_ERROR_CRC;
+            }
+            header.type = static_cast<PacketComm::TypeId>(wrapped[0] & 0x0f);
+            style = PacketStyle::Minimal;
+            header.nodeorig = 254;
+            header.nodedest = 255;
+            header.chanorig = 0;
+            header.chandest = 0;
             return data.size();
         }
 
@@ -104,7 +169,7 @@ namespace Cosmos {
         bool PacketComm::AX25UnPacketize(bool checkcrc)
         {
             Ax25Handle axhandle;
-//            axhandle.unstuff(packetized);
+            //            axhandle.unstuff(packetized);
             axhandle.unload();
             wrapped = axhandle.ax25_packet;
             return Unwrap(checkcrc);
@@ -116,14 +181,56 @@ namespace Cosmos {
         //! \return Boolean success
         bool PacketComm::Wrap()
         {
-            header.data_size = data.size();
-            wrapped.resize(COSMOS_SIZEOF(Header));
-            memcpy(&wrapped[0], &header, COSMOS_SIZEOF(Header));
-            wrapped.insert(wrapped.end(), data.begin(), data.end());
-            crc = calc_crc.calc(wrapped);
-            wrapped.resize(wrapped.size()+2);
-            wrapped[wrapped.size()-2] = crc & 0xff;
-            wrapped[wrapped.size()-1] = crc >> 8;
+            switch (style)
+            {
+            case PacketStyle::Minimal:
+                {
+                    header.data_size = data.size();
+                    uint8_t cs = 0;
+                    for (uint8_t byte : data)
+                    {
+                        cs += byte;
+                    }
+                    wrapped.resize(1);
+                    wrapped[0] = (cs & 0x0f) << 4 + static_cast<uint8_t>(header.type) & 0x0f;
+                    wrapped.insert(wrapped.end(), data.begin(), data.end());
+                }
+                break;
+            case PacketStyle::V1:
+                {
+                    header.data_size = data.size();
+                    headerv1.data_size = header.data_size;
+                    headerv1.type = static_cast<TypeIdV1>(header.type);
+                    headerv1.nodeorig = header.nodeorig;
+                    headerv1.nodedest = header.nodedest;
+                    headerv1.chanorig = header.chanorig;
+                    wrapped.resize(COSMOS_SIZEOF(HeaderV1));
+                    memcpy(&wrapped[0], &headerv1, COSMOS_SIZEOF(HeaderV1));
+                    wrapped.insert(wrapped.end(), data.begin(), data.end());
+                    crc = calc_crc.calc(wrapped);
+                    wrapped.resize(wrapped.size()+2);
+                    wrapped[wrapped.size()-2] = crc & 0xff;
+                    wrapped[wrapped.size()-1] = crc >> 8;
+                }
+                break;
+            case PacketStyle::V2:
+                {
+                    header.data_size = data.size();
+                    wrapped.resize(COSMOS_SIZEOF(Header));
+                    memcpy(&wrapped[0], &header, COSMOS_SIZEOF(Header));
+                    wrapped.insert(wrapped.end(), data.begin(), data.end());
+                    crc = calc_crc.calc(wrapped);
+                    wrapped.resize(wrapped.size()+2);
+                    wrapped[wrapped.size()-2] = crc & 0xff;
+                    wrapped[wrapped.size()-1] = crc >> 8;
+                }
+                break;
+            default:
+                {
+                    return false;
+                }
+                break;
+            }
 
             return true;
         }
@@ -138,18 +245,6 @@ namespace Cosmos {
             packetized.insert(packetized.begin(), wrapped.begin(), wrapped.end());
             return true;
         }
-
-//        bool PacketComm::TXSPacketize()
-//        {
-//            if (!Wrap())
-//            {
-//                return false;
-//            }
-//            packetized.clear();
-//            packetized.insert(packetized.begin(), satsm.begin(), satsm.end());
-//            packetized.insert(packetized.begin(), wrapped.begin(), wrapped.end());
-//            return true;
-//        }
 
         bool PacketComm::SLIPPacketize()
         {
@@ -202,11 +297,5 @@ namespace Cosmos {
             packetized = axhandle.get_hdlc_packet();
             return true;
         }
-
-//        void PacketComm::SetSecret(uint32_t secretnumber)
-//        {
-//            secret = secretnumber;
-//            return;
-//        }
     }
 }

@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
                    );
 
             double eres = sit->second->targets[id].range * ifov;
-            double cameraradius;
+            // double cameraradius;
             double cameraarea;
             double targetarea = sit->second->targets[id].area;
             double targetradius = sqrt(targetarea / DPI);
