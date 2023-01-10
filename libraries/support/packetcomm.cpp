@@ -192,7 +192,7 @@ namespace Cosmos {
                         cs += byte;
                     }
                     wrapped.resize(1);
-                    wrapped[0] = (cs & 0x0f) << 4 + static_cast<uint8_t>(header.type) & 0x0f;
+                    wrapped[0] = ((cs & 0x0f) << 4) + (static_cast<uint8_t>(header.type) & 0x0f);
                     wrapped.insert(wrapped.end(), data.begin(), data.end());
                 }
                 break;
