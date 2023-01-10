@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.1)
 message(STATUS "${CMAKE_CURRENT_SOURCE_DIR} : ")
 
 add_executable(test_all test_all.cpp)
-install(TARGETS test_all DESTINATION bin/test)
+install(TARGETS test_all DESTINATION bin)
 
 add_subdirectory(channel)
 add_subdirectory(packetcomm)
