@@ -399,11 +399,11 @@ namespace Cosmos {
                     uint16_t mtrcount = cinfo->devspec.mtr.size() < adcsmtr_count?cinfo->devspec.mtr.size():adcsmtr_count;
                     for (uint16_t i=0; i<mtrcount; ++i)
                     {
-                        beacon.mtr[i].mom = cinfo->devspec.mtr[i].mom * 1000. + .5;
-                        beacon.mtr[i].align[0] = cinfo->devspec.mtr[i].align.w * 1000. + .5;
-                        beacon.mtr[i].align[1] = cinfo->devspec.mtr[i].align.d.x * 100. + .5;
-                        beacon.mtr[i].align[2] = cinfo->devspec.mtr[i].align.d.y * 100. + .5;
-                        beacon.mtr[i].align[3] = cinfo->devspec.mtr[i].align.d.z * 100. + .5;
+                        beacon.mtr[i].mom = cinfo->devspec.mtr[i].mom;
+                        beacon.mtr[i].align[0] = cinfo->devspec.mtr[i].align.w;
+                        beacon.mtr[i].align[1] = cinfo->devspec.mtr[i].align.d.x;
+                        beacon.mtr[i].align[2] = cinfo->devspec.mtr[i].align.d.y;
+                        beacon.mtr[i].align[3] = cinfo->devspec.mtr[i].align.d.z;
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+offsetof(adcsmtrs_beacon, adcsmtrs_beacon::mtr)+mtrcount*sizeof(adcsmtr_beacon));
                 }
