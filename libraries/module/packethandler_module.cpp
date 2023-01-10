@@ -37,10 +37,11 @@ namespace Module
             if (agent->channel_pull(mychannel, packet) > 0)
             {
                 string response;
+                response.clear();
                 packethandler.process(packet, response);
-                if (packet.header.radio > 0)
+                if (response.size() > 0)
                 {
-                    agent->push_response(packet.header.radio, mychannel, packet.header.orig, 0, response);
+                    agent->push_response(packet.header.chanorig, mychannel, packet.header.nodeorig, 0, response);
                 }
             }
 

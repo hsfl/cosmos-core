@@ -87,7 +87,7 @@ namespace Module
         {
             return;
         }
-        switch(packet.header.dest)
+        switch(packet.header.nodedest)
         {
         // TODO: consider generic packet forwarding to other nodes
         default:
