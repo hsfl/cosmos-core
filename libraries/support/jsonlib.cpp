@@ -6810,7 +6810,7 @@ int32_t json_load_node(string node, jsonnode &json)
     {
         // First time, so write it
         utcstart = currentmjd();
-        printf("jsonlib: create utcstart %f\n", utcstart);
+        // printf("jsonlib: create utcstart %f\n", utcstart);
         FILE *ifp = fopen(fname.c_str(), "w");
         if (ifp == nullptr)
         {
@@ -6827,7 +6827,7 @@ int32_t json_load_node(string node, jsonnode &json)
         {
             // Still some problem, so just set it to current time
             utcstart = currentmjd();
-            printf("jsonlib: fix utcstart %f\n", utcstart);
+            // printf("jsonlib: fix utcstart %f\n", utcstart);
         }
         else
         {
@@ -6835,7 +6835,7 @@ int32_t json_load_node(string node, jsonnode &json)
             if (iretn != 1)
             {
                 utcstart = currentmjd();
-                printf("jsonlib: read utcstart %f\n", utcstart);
+                // printf("jsonlib: read utcstart %f\n", utcstart);
             }
             fclose(ifp);
         }
