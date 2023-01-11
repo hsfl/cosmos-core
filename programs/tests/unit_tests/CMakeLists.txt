@@ -7,6 +7,7 @@ message(STATUS "${CMAKE_CURRENT_SOURCE_DIR} : ")
 add_executable(test_all test_all.cpp)
 install(TARGETS test_all DESTINATION bin)
 
+add_subdirectory(beacon)
 add_subdirectory(channel)
 add_subdirectory(packetcomm)
 add_subdirectory(transfer)

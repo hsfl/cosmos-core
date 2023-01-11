@@ -198,6 +198,7 @@ int32_t data_move_path(string path, string location="outgoing", bool compress="t
 double findlastday(string node);
 double findfirstday(string node);
 const string data_getcwd();
+void rmdir(const string& dirpath);
 
 class DataLog
 {
