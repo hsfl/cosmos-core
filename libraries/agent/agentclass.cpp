@@ -329,8 +329,8 @@ namespace Cosmos
                         "    EpsSwitchStatus [0-1|vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200]\n"
                         "    EpsState {0|1|2|3}\n"
                         "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [0|1|2]\n"
-                        "    EpsSwitchNumber {0-32} [0|1|2]\n"
-                        "    EpsSwitchNames {vbatt_bus ...} [0|1|2]\n"
+                        "    EpsSwitchNumber boardid switchid [0|1]\n"
+                        "    EpsSwitchNames {vbatt_bus ...} [0|1]\n"
                         "    AdcsState {0-7} {0-255} ... \n"
                         "    AdcsCommunicate command:hexstring:response_size\n"
                         "");
@@ -2216,18 +2216,20 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandEpsSwitchNumber:
                 {
-                    if (parms.size())
+                    if (parms.size() > 1)
                     {
                         packet.data.resize(3);
-                        if (parms.size() > 1)
+                        if (parms.size() > 2)
                         {
-                            packet.data[0] = stoi(parms[1]);
+                            packet.data[0] = stoi(parms[2]);
                         }
                         else
                         {
                             packet.data[0] = 1;
                         }
-                        uint16to(stoi(parms[0]), &packet.data[1], ByteOrder::LITTLEENDIAN);
+                        packet.data[1] = stoi(parms[0]);
+                        packet.data[2] = stoi(parms[1]);
+//                        uint16to(stoi(parms[0]), &packet.data[1], ByteOrder::LITTLEENDIAN);
                     }
                 }
                 break;
