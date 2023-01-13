@@ -142,29 +142,18 @@ namespace Cosmos {
                 CommandExecAddCommand = 171,
                 CommandRadioCommunicate = 180,
                 CommandNop = 255,
-                };
+            };
 
             enum class TypeId : uint16_t {
                 Blank = 0,
                 DataBeacon = 10,
                 DataPong = 41,
                 DataEpsResponse = 43,
-                DataRadioResponse = 44,
                 DataAdcsResponse = 45,
                 DataResponse = 61,
                 DataIP = 62,
                 DataTest = 63,
                 DataTime = 64,
-                DataFileCommand = 71,
-                DataFileMessage = 72,
-                DataFileQueue = 79,
-                DataFileCancel = 80,
-                DataFileComplete = 81,
-                DataFileReqMeta = 82,
-                DataFileReqData = 83,
-                DataFileMetaData = 84,
-                DataFileChunkData = 85,
-                DataFileReqComplete = 86,
                 DataNop = 0x7f,
 
                 Command = 0x80,
@@ -173,25 +162,18 @@ namespace Cosmos {
                 CommandSendBeacon = 130,
                 CommandClearQueue = 131,
                 CommandExternalCommand = 132,
-                CommandTestRadio = 133,
-                CommandListDirectory = 134,
-                CommandTransferFile = 135,
-                CommandTransferNode = 136,
-                CommandTransferRadio = 137,
-                CommandTransferList = 138,
                 CommandExternalTask = 139,
                 CommandInternalRequest = 140,
                 CommandPing = 141,
                 CommandSetTime = 142,
                 CommandGetTimeHuman = 143,
                 CommandGetTimeBinary = 144,
-                CommandSetOpsMode = 145,
+                CommandNop = 255,
+
+                // 0x0100 NET COMMANDS
+
+                // 0x0200 EPS COMMANDS
                 CommandEnableChannel = 146,
-                CommandAdcsCommunicate = 150,
-                CommandAdcsState = 151,
-                CommandAdcsSetRunMode = 152,
-                CommandAdcsGetAdcsState = 155,
-                CommandAdcsOrbitParameters = 156,
                 CommandEpsCommunicate = 160,
                 CommandEpsSwitchName = 161,
                 CommandEpsSwitchNumber = 162,
@@ -202,11 +184,44 @@ namespace Cosmos {
                 CommandEpsMinimumPower = 167,
                 CommandEpsSwitchNames = 168,
                 CommandEpsSwitchStatus = 169,
+
+                // 0x0300 ADCS COMMANDS
+                CommandAdcsCommunicate = 150,
+                CommandAdcsState = 151,
+                CommandAdcsSetRunMode = 152,
+                CommandAdcsGetAdcsState = 155,
+                CommandAdcsOrbitParameters = 156,
+
+                // 0x0400 FILE COMMANDS
+                DataFileCommand = 71,
+                DataFileMessage = 72,
+                DataFileQueue = 79,
+                DataFileCancel = 80,
+                DataFileComplete = 81,
+                DataFileReqMeta = 82,
+                DataFileReqData = 83,
+                DataFileMetaData = 84,
+                DataFileChunkData = 85,
+                DataFileReqComplete = 86,
+                CommandListDirectory = 134,
+                CommandTransferFile = 135,
+                CommandTransferNode = 136,
+                CommandTransferRadio = 137,
+                CommandTransferList = 138,
+
+                // 0x0500 EXEC COMMANDS
+                CommandSetOpsMode = 145,
                 CommandExecLoadCommand = 170,
                 CommandExecAddCommand = 171,
-                CommandRadioCommunicate = 180,
-                CommandNop = 255,
-                };
+
+                // 0x0600 LOG PACKETS
+
+                // 0x0800 RADIO PACKETS
+                CommandRadioCommunicate = 2048,
+                DataRadioResponse = 2049,
+                CommandTestRadio = 2050,
+                CommandRadioAstrodevCommunicate = 2064,
+            };
 
             std::map<TypeId, string> TypeString = {
                 {TypeId::DataBeacon, "Beacon"},
@@ -266,6 +281,7 @@ namespace Cosmos {
                 {TypeId::CommandExecLoadCommand, "ExecLoadCommand"},
                 {TypeId::CommandExecAddCommand, "ExecAddCommand"},
                 {TypeId::CommandRadioCommunicate, "RadioCommunicate"},
+                {TypeId::CommandRadioAstrodevCommunicate, "RadioAstrodevCommunicate"},
             };
 
             std::map<string, TypeId> StringType = {
@@ -328,6 +344,7 @@ namespace Cosmos {
                 {"ExecLoadCommand", TypeId::CommandExecLoadCommand},
                 {"ExecAddCommand", TypeId::CommandExecAddCommand},
                 {"RadioCommunicate", TypeId::CommandRadioCommunicate},
+                {"RadioAstrodevCommunicate", TypeId::CommandRadioAstrodevCommunicate},
             };
 
 //            enum class TypeId : uint16_t {

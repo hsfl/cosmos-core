@@ -225,17 +225,10 @@ namespace Cosmos {
                     {
                         beacon.cpu[i].uptime = cinfo->devspec.cpu[i].uptime;
                         beacon.cpu[i].bootcount = cinfo->devspec.cpu[i].boot_count;
-                        if (cinfo->devspec.cpu[i].load < 65.536)
-                        {
-                            beacon.cpu[i].mload = cinfo->devspec.cpu[i].load * 1000. + .5;
-                        }
-                        else
-                        {
-                            beacon.cpu[i].mload = 65535;
-                        }
-                        beacon.cpu[i].mmemory = 1000. * cinfo->devspec.cpu[i].gib + .5;
-                        beacon.cpu[i].mdisk = cinfo->devspec.cpu[i].storage * 1000. + .5;
-                        beacon.cpu[i].ctemp = cinfo->devspec.cpu[i].temp * 100. + .5;
+                        beacon.cpu[i].mload = std::min(cinfo->devspec.cpu[i].load * 1000. + .5, 65535.);
+                        beacon.cpu[i].mmemory = std::min(1000. * cinfo->devspec.cpu[i].gib + .5, 65535.);
+                        beacon.cpu[i].mdisk = std::min(cinfo->devspec.cpu[i].storage * 1000. + .5, 65535.);
+                        beacon.cpu[i].ctemp = std::min(cinfo->devspec.cpu[i].temp * 100. + .5, 65535.);
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+9+cpucount*sizeof(cpu_beacon));
                 }
@@ -1052,10 +1045,10 @@ namespace Cosmos {
                                 }
                                 cinfo->devspec.mtr[i].utc = mjd;
                                 cinfo->devspec.mtr[i].mom = beacon.mtr[i].mom;
-                                cinfo->devspec.mtr[i].align.d.x = beacon.mtr[i].align[0];
-                                cinfo->devspec.mtr[i].align.d.y = beacon.mtr[i].align[1];
-                                cinfo->devspec.mtr[i].align.d.z = beacon.mtr[i].align[2];
-                                cinfo->devspec.mtr[i].align.w = beacon.mtr[i].align[3];
+                                cinfo->devspec.mtr[i].align.w = beacon.mtr[i].align[0];
+                                cinfo->devspec.mtr[i].align.d.x = beacon.mtr[i].align[1];
+                                cinfo->devspec.mtr[i].align.d.y = beacon.mtr[i].align[2];
+                                cinfo->devspec.mtr[i].align.d.z = beacon.mtr[i].align[3];
                             }
                         }
                         break;
@@ -1301,7 +1294,7 @@ namespace Cosmos {
                 break;
             case TypeId::CPUBeacon:
                 {
-                    json_out(Contents, "node_utc", cinfo);
+                    //json_out(Contents, "node_utc", cinfo);
                     json_out(Contents, "node_utcstart", cinfo);
                     for (uint16_t i=0; i<cinfo->devspec.cpu.size(); ++i)
                     {

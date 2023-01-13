@@ -960,10 +960,18 @@ int32_t json_createport(cosmosstruc *cinfo, string name, PORT_TYPE type)
 }
 
 //! Add new device
-/*! Take an empty ::devicestruc and fill it with the provided information.
-     * \param type JSON_DEVICE_TYPE
-     * \return Zero, or negative error
-     */
+//! Take an empty ::devicestruc and fill it with the provided information.
+//! Because the devspec push_back may (and does) cause devspec
+//! to be reallocated, the previous entries in device for that particular DeviceType
+//! no longer point to valid addresses and need to be re-pointed correctly.
+//! However, this function is called in json_addpiece(), which is called by
+//! json_createpiece(), which calls json_mapdeviceentry(), which uses the addresses
+//! that may/will become invalidated to create jmap entries.
+//! For running json_dump_node(), this isn't an issue because that function
+//! works off the jmap entries but doesn't use the stored pointers.
+//! Please call json_updatecosmosstruc() to fix this problem.
+//!  \param type JSON_DEVICE_TYPE
+//!  \return Zero, or negative error
 int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
 {
     if (ctype < DeviceType::COUNT)
@@ -6810,7 +6818,7 @@ int32_t json_load_node(string node, jsonnode &json)
     {
         // First time, so write it
         utcstart = currentmjd();
-        printf("jsonlib: create utcstart %f\n", utcstart);
+        // printf("jsonlib: create utcstart %f\n", utcstart);
         FILE *ifp = fopen(fname.c_str(), "w");
         if (ifp == nullptr)
         {
@@ -6827,7 +6835,7 @@ int32_t json_load_node(string node, jsonnode &json)
         {
             // Still some problem, so just set it to current time
             utcstart = currentmjd();
-            printf("jsonlib: fix utcstart %f\n", utcstart);
+            // printf("jsonlib: fix utcstart %f\n", utcstart);
         }
         else
         {
@@ -6835,7 +6843,7 @@ int32_t json_load_node(string node, jsonnode &json)
             if (iretn != 1)
             {
                 utcstart = currentmjd();
-                printf("jsonlib: read utcstart %f\n", utcstart);
+                // printf("jsonlib: read utcstart %f\n", utcstart);
             }
             fclose(ifp);
         }

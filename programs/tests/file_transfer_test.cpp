@@ -54,7 +54,6 @@ uint32_t seed = 0;
 void load_temp_nodeids();
 void restore_original_nodeids();
 void cleanup();
-void rmdir(const string dirpath);
 int32_t create_file(int32_t kib, string file_path);
 int32_t write_bad_meta(tx_progress& tx);
 int32_t write_bad_meta(tx_progress& tx, uint16_t num_bytes);
@@ -2228,26 +2227,6 @@ void cleanup()
     rmdir(get_cosmosnodes() + "" + tname3);
 
     debug_log.Printf("OK.\n");
-}
-
-void rmdir(const string dirpath)
-{
-    // (In)sanity checks before running rm -r
-    if (data_isdir(dirpath)
-    && std::count(dirpath.begin(), dirpath.end(), '/') > 3
-    && !std::count(dirpath.begin(), dirpath.end(), ' ')
-    && !std::count(dirpath.begin(), dirpath.end(), '\t')
-    && !std::count(dirpath.begin(), dirpath.end(), '\v')
-    && !std::count(dirpath.begin(), dirpath.end(), '\n')
-    && !std::count(dirpath.begin(), dirpath.end(), '\r')
-    && !std::count(dirpath.begin(), dirpath.end(), '\\')
-    && !std::count(dirpath.begin(), dirpath.end(), '|')
-    && !std::count(dirpath.begin(), dirpath.end(), '-')
-    && !std::count(dirpath.begin(), dirpath.end(), '.'))
-    {
-        data_execute("rm -r " + dirpath);
-        debug_log.Printf("... ");
-    }
 }
 
 // Create an file of kib kibibytes at the file_path

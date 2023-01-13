@@ -2722,6 +2722,25 @@ const string data_getcwd()
     return str;
 }
 
+void rmdir(const string& dirpath)
+{
+    // (In)sanity checks before running rm -r
+    if (data_isdir(dirpath)
+    && std::count(dirpath.begin(), dirpath.end(), '/') > 3
+    && !std::count(dirpath.begin(), dirpath.end(), ' ')
+    && !std::count(dirpath.begin(), dirpath.end(), '\t')
+    && !std::count(dirpath.begin(), dirpath.end(), '\v')
+    && !std::count(dirpath.begin(), dirpath.end(), '\n')
+    && !std::count(dirpath.begin(), dirpath.end(), '\r')
+    && !std::count(dirpath.begin(), dirpath.end(), '\\')
+    && !std::count(dirpath.begin(), dirpath.end(), '|')
+    && !std::count(dirpath.begin(), dirpath.end(), '-')
+    && !std::count(dirpath.begin(), dirpath.end(), '.'))
+    {
+        data_execute("rm -r " + dirpath);
+    }
+}
+
 void GITTEST::f()	{
     return;
 }

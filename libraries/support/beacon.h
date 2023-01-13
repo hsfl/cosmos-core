@@ -102,7 +102,7 @@ namespace Cosmos {
                 {TypeId::ADCSStateBeacon, "ADCSStateBeacon"},
                 {TypeId::ADCSMTRBeacon, "ADCSMTRBeacon"},
                 {TypeId::ADCSGyroBeacon, "ADCSGyroBeacon"},
-//                {TypeId::ADCSRWBeacon, "ADCSRWBeacon"},
+                {TypeId::ADCSRWBeacon, "ADCSRWBeacon"},
 //                {TypeId::ADCSGPSBeacon, "ADCSGPSBeacon"},
 //                {TypeId::ADCSIMUBeacon, "ADCSIMUBeacon"},
 //                {TypeId::ADCSSTTBeacon, "ADCSSTTBeacon"},
@@ -330,7 +330,7 @@ namespace Cosmos {
 
             struct __attribute__ ((packed)) cpu_beacon
             {
-                float uptime = 0.;
+                uint32_t uptime = 0.;
                 uint32_t bootcount = 0;
                 uint16_t mload = 0;
                 uint16_t mmemory = 0;
