@@ -61,7 +61,7 @@ target_link_libraries(CosmosCad CosmosMath CosmosData CosmosSupport ${COSMOS_LIB
 
 add_library(CosmosTime STATIC timelib.cpp timelib.h timeutils.cpp timeutils.h elapsedtime.cpp elapsedtime.h )
 install(TARGETS CosmosTime DESTINATION lib)
-target_link_libraries(CosmosTime CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosTime CosmosError CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosData STATIC datalib.cpp datalib.h)
 install(TARGETS CosmosData DESTINATION lib)

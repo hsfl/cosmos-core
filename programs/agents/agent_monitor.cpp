@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
         {
             logperiod = newlogperiod;
             logdate_soh = agent->cinfo->node.utc;
-            log_move(agent->cinfo->node.name, "soh");
+            log_move_agent_temp(agent->cinfo->node.name, "soh");
         }
 
         // Check if either of the logstride have changed
@@ -240,27 +240,27 @@ int main(int argc, char *argv[])
         {
             logstride_exec = newlogstride_exec;
             logdate_exec = currentmjd(0.);
-            log_move(nodename, "exec");
+            log_move_agent_temp(nodename, "exec");
         }
 
         if (newlogstride_soh != logstride_soh )
         {
             logstride_soh = newlogstride_soh;
             logdate_soh = currentmjd(0.);
-            log_move(nodename, "soh");
+            log_move_agent_temp(nodename, "soh");
         }
 
         // Check if either of the logstride have expired
         if (floor(cmjd/logstride_exec)*logstride_exec > logdate_exec)
         {
             logdate_exec = floor(cmjd/logstride_exec)*logstride_exec;
-            log_move(nodename, "exec");
+            log_move_agent_temp(nodename, "exec");
         }
 
         if (floor(cmjd/logstride_soh)*logstride_soh > logdate_soh)
         {
             logdate_soh = floor(cmjd/logstride_soh)*logstride_soh;
-            log_move(nodename, "soh");
+            log_move_agent_temp(nodename, "soh");
         }
 
         // Perform SOH specific functions
@@ -316,7 +316,7 @@ int32_t request_set_logstride_exec(string &request, string &response, Agent *age
 int32_t request_reopen_exec(string &request, string &response, Agent *agent)
 {
     logdate_exec = ((cosmosstruc *)agent->cinfo)->node.loc.utc;
-    log_move(((cosmosstruc *)agent->cinfo)->node.name, "exec");
+    log_move_agent_temp(((cosmosstruc *)agent->cinfo)->node.name, "exec");
     return 0;
 }
 
@@ -497,7 +497,7 @@ int32_t request_run(string &request, string &response, Agent *agent)
 int32_t request_reopen_soh(string &request, string &response, Agent *agent)
 {
     logdate_soh = ((cosmosstruc *)agent->cinfo)->node.loc.utc;
-    log_move(((cosmosstruc *)agent->cinfo)->node.name, "soh");
+    log_move_agent_temp(((cosmosstruc *)agent->cinfo)->node.name, "soh");
     return 0;
 }
 

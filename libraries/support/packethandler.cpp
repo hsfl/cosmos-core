@@ -192,7 +192,7 @@ namespace Cosmos {
                         fclose(tf);
                         if (data_isfile(file.path) && last_response_id != response_id)
                         {
-                            iretn = data_move(file, "incoming", false);
+                            iretn = data_move_file(file, "incoming", false);
                             last_response_id = response_id;
                         }
                     }
@@ -273,7 +273,7 @@ namespace Cosmos {
                         // Check if all chunks received
                         if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
                         {
-                            iretn = data_move(file, "incoming", false);
+                            iretn = data_move_file(file, "incoming", false);
                             response += " Complete";
                         }
                     }
@@ -356,7 +356,7 @@ namespace Cosmos {
                         // Check if all chunks received
                         if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
                         {
-                            iretn = data_move(file, "incoming", false);
+                            iretn = data_move_file(file, "incoming", false);
                             response += " Complete";
                         }
                     }
@@ -440,7 +440,7 @@ namespace Cosmos {
 
                         if (chunk_id == chunks - 1 && data_isfile(file.path, chunk_id*chunk_size+this_chunk_size))
                         {
-                            iretn = data_move(file, "incoming", false);
+                            iretn = data_move_file(file, "incoming", false);
                             response += " Complete";
                         }
                     }
@@ -514,7 +514,7 @@ namespace Cosmos {
 //                    }
                     if (!test.path.empty())
                     {
-                        log_move(test.path, string_replace(test.path, "temp", "outgoing"), true);
+                        log_move_file(test.path, string_replace(test.path, "temp", "outgoing"), true);
                     }
                     test.path = data_name_path(agent->nodeData.lookup_node_id_name(packet.header.nodeorig), "temp", agent->agentName, 0., "test_"+to_unsigned(header.test_id));
                     test.good_count = 0;
@@ -752,7 +752,7 @@ namespace Cosmos {
             int32_t iretn=0;
             double mjd = doublefrom(packet.data.data(), ByteOrder::LITTLEENDIAN);
             double delta = set_local_clock(mjd, packet.data[8]);
-            response = to_label("Delta Seconds", delta);
+            response = to_label("Delta Seconds", delta) + to_label(" Direction", packet.data[8]);
 
             iretn = QueueEpsSetTime(currentmjd(), agent);
             return iretn;

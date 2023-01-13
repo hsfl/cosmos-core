@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
         if ((dtemp=floor(mjdnow/logstride)*logstride) > logdate)
         {
             logdate = dtemp;
-            log_move(agent->cinfo->node.name, "soh");
+            log_move_agent_temp(agent->cinfo->node.name, "soh");
         }
 
         for (uint16_t i=0; i<agent->cinfo->target.size(); ++i)

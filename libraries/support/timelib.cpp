@@ -160,7 +160,7 @@ namespace Cosmos {
         timeval utc2unix(double utc)
         {
             timeval unixtime;
-            if (utc > 0.)
+            if (utc == 0.)
             {
                 utc = currentmjd();
             }
@@ -178,7 +178,7 @@ namespace Cosmos {
  */
         double utc2unixseconds(double utc)
         {
-            if (utc > 0.)
+            if (utc == 0.)
             {
                 utc = currentmjd();
             }
@@ -594,7 +594,7 @@ namespace Cosmos {
             int32_t iy=0, im=0, id=0, ihh, imm, iss;
             double fd=0.;
 
-            if (utc > 0.)
+            if (utc == 0.)
             {
                 utc = currentmjd();
             }
@@ -624,7 +624,7 @@ namespace Cosmos {
             int32_t iy=0, im=0, id=0, ihh, imm, iss;
             double fd=0.;
 
-            if (utc > 0.)
+            if (utc == 0.)
             {
                 utc = currentmjd();
             }
@@ -976,7 +976,7 @@ namespace Cosmos {
                     SYSTEMTIME newtime;
                     SetSystemTime(&newtime);
 #else
-                    struct timeval newtime = utc2unix(utc_to);
+                    timeval newtime = utc2unix(utc_to);
 
                     // TODO: check with Eric if this is the right way to set the time?
                     iretn = settimeofday(&newtime, nullptr);

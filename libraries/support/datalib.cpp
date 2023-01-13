@@ -155,7 +155,6 @@ int32_t DataLog::Write(vector<uint8_t>& data)
     int32_t iretn = 0;
     if (currentmjd() >= enddate)
     {
-        printf("Move %f %f %f\n", startdate, enddate, stride);
         startdate = enddate;
         enddate += stride;
         if (fout != nullptr)
@@ -166,7 +165,7 @@ int32_t DataLog::Write(vector<uint8_t>& data)
         if (!path.empty() && path.find("/temp/") != string::npos)
         {
             string movepath = string_replace(path, "/temp", "/outgoing");
-            iretn = log_move(path, movepath, true);
+            iretn = log_move_file(path, movepath, true);
         }
         if (iretn < 0)
         {
@@ -223,7 +222,7 @@ int32_t DataLog::Write(vector<uint8_t> data, string node, string agent, string t
         {
             string movepath = path;
             movepath.replace(movepath.find("/temp/"), 10, "/outgoing/");
-            iretn = log_move(path, movepath, true);
+            iretn = log_move_file(path, movepath, true);
         }
         if (iretn < 0)
         {
@@ -337,14 +336,13 @@ string log_write(string node, int type, double utc, const char *record, string d
 }
 
 //! Move log file - path version.
-/*! Move files previously created with ::log_write to their final location, optionally
- * compressing with gzip. The path version accepts only specific paths, from and to,
- * and whether compression should be used.
+/*! Move a single file previously created with ::log_write to a final location, optionally
+ * compressing with gzip.
  * \param oldpath Path to move from.
  * \param newpath Path to move to.
  * \param compress Wether or not to compress with gzip.
  */
-int32_t log_move(string oldpath, string newpath, bool compress)
+int32_t log_move_file(string oldpath, string newpath, bool compress)
 {
     int32_t iretn = 0;
     if (compress && oldpath.find(".gz") == string::npos)
@@ -410,18 +408,22 @@ int32_t log_move(string oldpath, string newpath, bool compress)
  * \param srclocation Source location name.
  * \param dstlocation Destination location name.
  * \param compress Wether or not to compress with gzip.
+ * \param age File must be this many seconds or older to move.
  */
-int32_t log_move(string node, string agent, string srclocation, string dstlocation, bool compress)
+int32_t log_move_agent_src(string node, string agent, string srclocation, string dstlocation, bool compress, float age)
 {
     int32_t iretn = 0;
     vector<filestruc> oldfiles;
     iretn = data_list_files(node, srclocation, agent, oldfiles);
     for (auto oldfile: oldfiles)
     {
-        iretn = log_move(oldfile.path, data_base_path(node, dstlocation, agent, oldfile.name), compress);
-        if (iretn < 0)
+        if (86400.*(currentmjd()-oldfile.utc) > age)
         {
-            return iretn;
+            iretn = log_move_file(oldfile.path, data_base_path(node, dstlocation, agent, oldfile.name), compress);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
         }
     }
     return iretn;
@@ -435,9 +437,9 @@ int32_t log_move(string node, string agent, string srclocation, string dstlocati
  * \param node Node name.
  * \param agent Agent name.
  */
-int32_t log_move(string node, string agent)
+int32_t log_move_agent_temp(string node, string agent, float age)
 {
-    return log_move(node, agent, "temp", "outgoing", true);
+    return log_move_agent_src(node, agent, "temp", "outgoing", true, age);
 }
 
 //! Relocate files.
@@ -448,7 +450,7 @@ int32_t log_move(string node, string agent)
  * \param node Node name.
  * \param agent Agent name.
  */
-int32_t log_relocate(string srcdir, string dstdir, bool compress)
+int32_t log_move_directory(string srcdir, string dstdir, bool compress)
 {
     int32_t iretn = 0;
     vector<filestruc> files = data_list_files(srcdir);
@@ -456,7 +458,7 @@ int32_t log_relocate(string srcdir, string dstdir, bool compress)
     {
         for (filestruc file : files)
         {
-            iretn = log_move(file.path, dstdir+"/"+file.name, compress);
+            iretn = log_move_file(file.path, dstdir+"/"+file.name, compress);
         }
         return iretn;
     }
@@ -1786,9 +1788,9 @@ string get_nodedir(string node, bool create_flag)
  * \param location Destination location name.
  * \param compress Wether or not to compress with gzip.
  */
-int32_t data_move(filestruc file, string location, bool compress)
+int32_t data_move_file(filestruc file, string location, bool compress)
 {
-    int32_t iretn = log_move(file.path, data_base_path(file.node, location, file.agent, file.name), compress);
+    int32_t iretn = log_move_file(file.path, data_base_path(file.node, location, file.agent, file.name), compress);
     return iretn;
 }
 
@@ -1800,12 +1802,12 @@ int32_t data_move(filestruc file, string location, bool compress)
  * \param location Destination location name.
  * \param compress Wether or not to compress with gzip.
  */
-int32_t data_move_path(string path, string location, bool compress)
+int32_t data_move_file(string path, string location, bool compress)
 {
     vector<string> parts = string_split(path, "/");
     if (parts.size() >= 5)
     {
-        int32_t iretn = log_move(path, data_base_path(parts[parts.size()-4], location, parts[parts.size()-2], parts[parts.size()-1]), compress);
+        int32_t iretn = log_move_file(path, data_base_path(parts[parts.size()-4], location, parts[parts.size()-2], parts[parts.size()-1]), compress);
         return iretn;
     }
     else

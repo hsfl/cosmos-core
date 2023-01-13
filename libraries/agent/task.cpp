@@ -52,7 +52,7 @@ namespace Cosmos {
                         {
                             (*iter).iretn = (*iter).result.get();
                             (*iter).state = 2;
-                            log_move((*iter).path, data_base_path(NodeName, "outgoing", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName)), true);
+                            log_move_file((*iter).path, data_base_path(NodeName, "outgoing", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName)), true);
                             (*iter).path = data_base_path(NodeName, "temp", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName));
                         }
                     }

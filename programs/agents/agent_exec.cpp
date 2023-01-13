@@ -907,12 +907,12 @@ void collect_data_loop() noexcept
 void move_and_compress_exec () {
     exec_mutex.lock();
     cmd_queue.join_event_threads();
-    log_move(agent->getNode(), "exec");
+    log_move_agent_temp(agent->getNode(), "exec");
     exec_mutex.unlock();
 }
 void move_and_compress_soh () {
     soh_mutex.lock();
-    log_move(agent->getNode(), "soh");
+    log_move_agent_temp(agent->getNode(), "soh");
     soh_mutex.unlock();
 }
 
@@ -920,7 +920,7 @@ void move_and_compress_beacon () {
     string beacon_string;
     beacon_mutex.lock();
     log_write(agent->cinfo->node.name, DATA_LOG_TYPE_BEACON, logdate_soh, json_of_beacon(beacon_string, agent->cinfo));
-    log_move(agent->getNode(), "beacon");
+    log_move_agent_temp(agent->getNode(), "beacon");
     beacon_mutex.unlock();
 }
 
