@@ -332,10 +332,10 @@ namespace Cosmos {
             {
                 float uptime = 0.;
                 uint32_t bootcount = 0;
-                uint16_t mload = 0.;
-                uint16_t mmemory = 0.;
-                uint16_t mdisk = 0.;
-                uint16_t ctemp = 0.;
+                uint16_t mload = 0;
+                uint16_t mmemory = 0;
+                uint16_t mdisk = 0;
+                uint16_t ctemp = 0;
             } ;
 
             static constexpr uint8_t cpu_count = 200 / sizeof(cpu_beacon);

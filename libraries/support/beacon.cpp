@@ -233,7 +233,7 @@ namespace Cosmos {
                         {
                             beacon.cpu[i].mload = 65535;
                         }
-                        beacon.cpu[i].mmemory = 1000. * (cinfo->devspec.cpu[i].gib / cinfo->devspec.cpu[i].maxgib) + .5;
+                        beacon.cpu[i].mmemory = 1000. * cinfo->devspec.cpu[i].gib + .5;
                         beacon.cpu[i].mdisk = cinfo->devspec.cpu[i].storage * 1000. + .5;
                         beacon.cpu[i].ctemp = cinfo->devspec.cpu[i].temp * 100. + .5;
                     }
@@ -803,7 +803,7 @@ namespace Cosmos {
                                     cinfo->devspec.cpu[i].uptime = beacon.cpu[i].uptime;
                                     cinfo->devspec.cpu[i].boot_count = beacon.cpu[i].bootcount;
                                     cinfo->devspec.cpu[i].load = beacon.cpu[i].mload / 1000.;
-                                    cinfo->devspec.cpu[i].gib = cinfo->devspec.cpu[i].maxgib * (beacon.cpu[i].mmemory / 1000.);
+                                    cinfo->devspec.cpu[i].gib = beacon.cpu[i].mmemory / 1000.;
                                     cinfo->devspec.cpu[i].storage = beacon.cpu[i].mdisk / 1000.;
                                     cinfo->devspec.cpu[i].temp = beacon.cpu[i].ctemp / 100.;
                                 }
@@ -1310,6 +1310,7 @@ namespace Cosmos {
                         json_out_1d(Contents, "device_cpu_boot_count", i, cinfo);
                         json_out_1d(Contents, "device_cpu_load", i, cinfo);
                         json_out_1d(Contents, "device_cpu_gib", i, cinfo);
+                        json_out_1d(Contents, "device_cpu_maxgib", i, cinfo);
                         json_out_1d(Contents, "device_cpu_storage", i, cinfo);
                         json_out_1d(Contents, "device_cpu_temp", i, cinfo);
                     }
