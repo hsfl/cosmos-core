@@ -83,7 +83,7 @@ namespace Cosmos
                                 }
                             }
                             break;
-                        case PacketComm::TypeId::CommandTransferFile:
+                        case PacketComm::TypeId::CommandFileTransferFile:
                             {
                                 string node_name;
                                 size_t nn_len = packet.data[0];
@@ -101,7 +101,7 @@ namespace Cosmos
                                 string s = std::to_string(iretn) + " files enabled";
                             }
                             break;
-                        case PacketComm::TypeId::CommandTransferNode:
+                        case PacketComm::TypeId::CommandFileTransferNode:
                             {
                                 string node_name;
                                 size_t nn_len = packet.data[0];
@@ -114,7 +114,7 @@ namespace Cosmos
                                 string s = std::to_string(iretn) + " files enabled";
                             }
                             break;
-                        case PacketComm::TypeId::CommandTransferRadio:
+                        case PacketComm::TypeId::CommandFileTransferRadio:
                             {
                                 uint8_t current_out_radio = out_radio;
                                 set_radio_availability(packet.data[0], packet.data[1]);
@@ -141,7 +141,7 @@ namespace Cosmos
                                 }
                             }
                             break;
-                        case PacketComm::TypeId::CommandTransferList:
+                        case PacketComm::TypeId::CommandFileTransferList:
                             {
                                 if (out_radio)
                                 {

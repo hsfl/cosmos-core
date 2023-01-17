@@ -22,25 +22,25 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::DataFileReqComplete, FileForward);
 
             // Commands
-            add_func(PacketComm::TypeId::CommandReset, Reset);
-            add_func(PacketComm::TypeId::CommandReboot, Reboot);
-            add_func(PacketComm::TypeId::CommandSendBeacon, SendBeacon);
-            add_func(PacketComm::TypeId::CommandClearQueue, ClearQueue);
-            add_func(PacketComm::TypeId::CommandExternalCommand, ExternalCommand);
-            add_func(PacketComm::TypeId::CommandExternalTask, ExternalTask);
-            add_func(PacketComm::TypeId::CommandTestRadio, TestRadio);
-            add_func(PacketComm::TypeId::CommandListDirectory, ListDirectory);
-            add_func(PacketComm::TypeId::CommandTransferFile, FileForward);
-            add_func(PacketComm::TypeId::CommandTransferNode, FileForward);
-            add_func(PacketComm::TypeId::CommandTransferRadio, FileForward);
-            add_func(PacketComm::TypeId::CommandTransferList, FileForward);
-            add_func(PacketComm::TypeId::CommandInternalRequest, InternalRequest);
-            add_func(PacketComm::TypeId::CommandPing, Ping);
-            add_func(PacketComm::TypeId::CommandSetTime, SetTime);
-            add_func(PacketComm::TypeId::CommandGetTimeHuman, GetTimeHuman);
-            add_func(PacketComm::TypeId::CommandGetTimeBinary, GetTimeBinary);
-            add_func(PacketComm::TypeId::CommandSetOpsMode, ExecForward);
-            add_func(PacketComm::TypeId::CommandEnableChannel, EnableChannel);
+            add_func(PacketComm::TypeId::CommandObcReset, Reset);
+            add_func(PacketComm::TypeId::CommandObcReboot, Reboot);
+            add_func(PacketComm::TypeId::CommandObcSendBeacon, SendBeacon);
+            add_func(PacketComm::TypeId::CommandExecClearQueue, ClearQueue);
+            add_func(PacketComm::TypeId::CommandObcExternalCommand, ExternalCommand);
+            add_func(PacketComm::TypeId::CommandObcExternalTask, ExternalTask);
+            add_func(PacketComm::TypeId::CommandRadioTest, TestRadio);
+            add_func(PacketComm::TypeId::CommandFileListDirectory, ListDirectory);
+            add_func(PacketComm::TypeId::CommandFileTransferFile, FileForward);
+            add_func(PacketComm::TypeId::CommandFileTransferNode, FileForward);
+            add_func(PacketComm::TypeId::CommandFileTransferRadio, FileForward);
+            add_func(PacketComm::TypeId::CommandFileTransferList, FileForward);
+            add_func(PacketComm::TypeId::CommandObcInternalRequest, InternalRequest);
+            add_func(PacketComm::TypeId::CommandObcPing, Ping);
+            add_func(PacketComm::TypeId::CommandObcSetTime, SetTime);
+            add_func(PacketComm::TypeId::CommandObcGetTimeHuman, GetTimeHuman);
+            add_func(PacketComm::TypeId::CommandObcGetTimeBinary, GetTimeBinary);
+            add_func(PacketComm::TypeId::CommandExecSetOpsMode, ExecForward);
+            add_func(PacketComm::TypeId::CommandExecEnableChannel, EnableChannel);
             add_func(PacketComm::TypeId::CommandAdcsCommunicate, AdcsForward);
             add_func(PacketComm::TypeId::CommandAdcsState, AdcsForward);
             add_func(PacketComm::TypeId::CommandAdcsGetAdcsState, AdcsForward);
@@ -58,13 +58,13 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandExecAddCommand, ExecForward);
 
             // Telemetry
-            add_func(PacketComm::TypeId::DataBeacon, DecodeBeacon);
-            add_func(PacketComm::TypeId::DataPong, DecodePong);
+            add_func(PacketComm::TypeId::DataObcBeacon, DecodeBeacon);
+            add_func(PacketComm::TypeId::DataObcPong, DecodePong);
             add_func(PacketComm::TypeId::DataAdcsResponse, DecodeAdcsResponse);
             add_func(PacketComm::TypeId::DataEpsResponse, DecodeEpsResponse);
-            add_func(PacketComm::TypeId::DataResponse, DecodeResponse);
-            add_func(PacketComm::TypeId::DataTest, DecodeTest);
-            add_func(PacketComm::TypeId::DataTime, DecodeTime);
+            add_func(PacketComm::TypeId::DataObcResponse, DecodeResponse);
+            add_func(PacketComm::TypeId::DataRadioTest, DecodeTest);
+            add_func(PacketComm::TypeId::DataObcTime, DecodeTime);
 
             return 0;
         }
@@ -82,7 +82,7 @@ namespace Cosmos {
                 header.response_id = response_id;
                 header.deci = decisec();
                 PacketComm packet;
-                packet.header.type = PacketComm::TypeId::DataResponse;
+                packet.header.type = PacketComm::TypeId::DataObcResponse;
                 uint8_t chunk_size = (data_size-COSMOS_SIZEOF(PacketComm::ResponseHeader));
                 if (response.size() / chunk_size > 254)
                 {
@@ -653,7 +653,7 @@ namespace Cosmos {
             vector<uint8_t> bytes;
             beacon.Init();
             beacon.EncodeBinary((Beacon::TypeId)packet.data[0], agent->cinfo, bytes);
-            packet.header.type = PacketComm::TypeId::DataBeacon;
+            packet.header.type = PacketComm::TypeId::DataObcBeacon;
             packet.header.nodedest = packet.header.nodeorig;
             packet.header.nodeorig = agent->nodeId;
             packet.data.clear();
@@ -739,7 +739,7 @@ namespace Cosmos {
         {
             int32_t iretn=0;
 
-            packet.header.type = PacketComm::TypeId::DataPong;
+            packet.header.type = PacketComm::TypeId::DataObcPong;
             NodeData::NODE_ID_TYPE temp = packet.header.nodedest;
             packet.header.nodedest = packet.header.nodeorig;
             packet.header.nodeorig = temp;
@@ -770,7 +770,7 @@ namespace Cosmos {
         int32_t PacketHandler::GetTimeBinary(PacketComm &packet, string &response, Agent* agent)
         {
             int32_t iretn=0;
-            packet.header.type = PacketComm::TypeId::DataTime;
+            packet.header.type = PacketComm::TypeId::DataObcTime;
             packet.header.nodedest = packet.header.nodeorig;
             packet.header.nodeorig = agent->nodeId;
             packet.data.resize(16);
@@ -836,7 +836,7 @@ namespace Cosmos {
             int32_t iretn = 0;
             PacketComm packet;
 
-            packet.header.type = PacketComm::TypeId::CommandReset;
+            packet.header.type = PacketComm::TypeId::CommandObcReset;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
             packet.header.chanorig = agent->channel_number(radio);
@@ -852,7 +852,7 @@ namespace Cosmos {
             int32_t iretn = 0;
             PacketComm packet;
 
-            packet.header.type = PacketComm::TypeId::CommandReboot;
+            packet.header.type = PacketComm::TypeId::CommandObcReboot;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
             packet.header.chanorig = agent->channel_number(radio);
@@ -867,7 +867,7 @@ namespace Cosmos {
             int32_t iretn = 0;
             PacketComm packet;
 
-            packet.header.type = PacketComm::TypeId::CommandSendBeacon;
+            packet.header.type = PacketComm::TypeId::CommandObcSendBeacon;
             packet.header.nodeorig = dest;
             packet.header.nodedest = orig;
             packet.header.chanorig = agent->channel_number(radio);
@@ -887,7 +887,7 @@ namespace Cosmos {
             vector<uint8_t> bytes;
             beacon.Init();
             beacon.EncodeBinary((Beacon::TypeId)btype, agent->cinfo, bytes);
-            packet.header.type = PacketComm::TypeId::DataBeacon;
+            packet.header.type = PacketComm::TypeId::DataObcBeacon;
             packet.header.nodeorig = orig;
             packet.header.nodedest = dest;
             packet.data.clear();
@@ -1129,7 +1129,7 @@ namespace Cosmos {
             int32_t iretn = 0;
             PacketComm packet;
 
-            packet.header.type = PacketComm::TypeId::CommandTransferRadio;
+            packet.header.type = PacketComm::TypeId::CommandFileTransferRadio;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
             packet.header.chanorig = 0;
@@ -1145,7 +1145,7 @@ namespace Cosmos {
             int32_t iretn = 0;
             PacketComm packet;
 
-            packet.header.type = PacketComm::TypeId::CommandTestRadio;
+            packet.header.type = PacketComm::TypeId::CommandRadioTest;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
             packet.header.chanorig = agent->channel_number(radio);
@@ -1164,7 +1164,7 @@ namespace Cosmos {
             int32_t iretn = 0;
             PacketComm packet;
 
-            packet.header.type = PacketComm::TypeId::CommandSetTime;
+            packet.header.type = PacketComm::TypeId::CommandObcSetTime;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
             packet.header.chanorig = agent->channel_number(radio);
@@ -1182,7 +1182,7 @@ namespace Cosmos {
             {
                 PacketComm packet;
 
-                packet.header.type = PacketComm::TypeId::CommandEnableChannel;
+                packet.header.type = PacketComm::TypeId::CommandExecEnableChannel;
                 packet.header.nodeorig = agent->nodeId;
                 packet.header.nodedest = dest;
                 packet.header.chanorig = agent->channel_number(radio);
@@ -1199,7 +1199,7 @@ namespace Cosmos {
             int32_t iretn = 0;
             PacketComm packet;
 
-            packet.header.type = PacketComm::TypeId::CommandEnableChannel;
+            packet.header.type = PacketComm::TypeId::CommandExecEnableChannel;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
             packet.header.chanorig = agent->channel_number(radio);
