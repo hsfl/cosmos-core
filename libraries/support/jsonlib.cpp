@@ -712,7 +712,6 @@ int32_t json_create_mcc(string &node_name)
 
         for (size_t i=0; i<cinfo->node.piece_cnt; ++i)
         {
-
             cinfo->device[i]->pidx = i;
             cinfo->device[i]->cidx = i;
             switch (i)
@@ -746,12 +745,10 @@ int32_t json_create_mcc(string &node_name)
             }
             json_mapcompentry(i, cinfo);
             json_togglecompentry(i, cinfo, true);
-            cinfo->device[i]->enabled = true;
+//            cinfo->device[i]->enabled = true;
         }
 
-//        int32_t iretn = json_dump_node(cinfo);
         json_destroy(cinfo);
-//        return iretn;
         return 0;
     }
     else
@@ -7535,7 +7532,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             for (uint16_t i=0; i< cinfo->node.device_cnt; i++)
             {
                 // Initialize to disabled
-                cinfo->device[i]->enabled = false;
+                cinfo->device[i]->state = 0;
                 // Add relevant names for generic device to namespace
                 json_mapcompentry(i, cinfo);
                 // Initialize to no port
@@ -7565,7 +7562,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         // Work through jmap, enabling each device for which device_type has been enabled
         for (size_t i=0; i<cinfo->node.device_cnt; i++)
         {
-            cinfo->device[i]->enabled = json_checkentry("device_type", i, UINT16_MAX, cinfo);
+            cinfo->device[i]->state = json_checkentry("device_type", i, UINT16_MAX, cinfo);
         }
 
         // Fourth: enter information for specific devices

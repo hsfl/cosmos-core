@@ -191,7 +191,7 @@ namespace Cosmos {
                     uint16_t rxrcount = cinfo->devspec.rxr.size();
                     for (uint16_t i=0; i<rxrcount; ++i)
                     {
-                        if (cinfo->devspec.rxr[i].enabled)
+                        if (cinfo->devspec.rxr[i].state)
                         {
                             beacon.active |= (1 << radiocount++);
                         }
@@ -203,7 +203,7 @@ namespace Cosmos {
                     uint16_t txrcount = cinfo->devspec.txr.size();
                     for (uint16_t i=0; i<txrcount; ++i)
                     {
-                        if (cinfo->devspec.txr[i].enabled)
+                        if (cinfo->devspec.txr[i].state)
                         {
                             beacon.active |= (1 << radiocount++);
                         }
@@ -748,11 +748,11 @@ namespace Cosmos {
                                 cinfo->devspec.rxr[i].utc = mjd;
                                 if (beacon.active & (1 << radiocount++))
                                 {
-                                    cinfo->devspec.rxr[i].enabled = true;
+                                    cinfo->devspec.rxr[i].state = 1;
                                 }
                                 else
                                 {
-                                    cinfo->devspec.rxr[i].enabled = false;
+                                    cinfo->devspec.rxr[i].state = 0;
                                 }
                                 cinfo->devspec.rxr[i].utcin = decisec2mjd(beacon.lastdeciup);
                             }
@@ -765,11 +765,11 @@ namespace Cosmos {
                                 cinfo->devspec.txr[i].utc = mjd;
                                 if (beacon.active & (1 << radiocount++))
                                 {
-                                    cinfo->devspec.txr[i].enabled = true;
+                                    cinfo->devspec.txr[i].state = 1;
                                 }
                                 else
                                 {
-                                    cinfo->devspec.txr[i].enabled = false;
+                                    cinfo->devspec.txr[i].state = 0;
                                 }
                                 cinfo->devspec.txr[i].utcout = decisec2mjd(beacon.lastdecidown);
                             }

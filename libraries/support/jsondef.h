@@ -2312,7 +2312,7 @@ union as a ::devicestruc.
             //! Device name
             string name;
             //! Enabled?
-            bool enabled = true;
+            uint8_t state = 0;
             //! Component Type
             uint16_t type = 0;
             //! Device Model
@@ -2361,7 +2361,7 @@ union as a ::devicestruc.
     */
             json11::Json to_json() const {
                 return json11::Json::object {
-                    { "enabled" , enabled },
+                    { "state" , state },
                     { "type"	, type },
                     { "model"   , model },
                     { "flag"	, static_cast<int>(flag) },
@@ -2394,7 +2394,7 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["enabled"].is_null()) { enabled = parsed["enabled"].bool_value(); }
+                    if(!parsed["state"].is_null()) { state = parsed["state"].int_value(); }
                     if(!parsed["type"].is_null()) { type = parsed["type"].int_value(); }
                     if(!parsed["model"].is_null()) { model = parsed["model"].int_value(); }
                     if(!parsed["flag"].is_null()) { flag = parsed["flag"].int_value(); }
@@ -7902,7 +7902,7 @@ union as a ::devicestruc.
                 {
                     string basename = "device[" + std::to_string(i) + "]";
                     add_name(basename, &device[i], "devicestruc");
-                    add_name(basename+".enabled", &device[i]->enabled, "bool");
+                    add_name(basename+".state", &device[i]->state, "uint8_t");
                     add_name(basename+".type", &device[i]->type, "uint16_t");
                     add_name(basename+".model", &device[i]->model, "uint16_t");
                     add_name(basename+".flag", &device[i]->flag, "uint32_t");
