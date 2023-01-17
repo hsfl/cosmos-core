@@ -26,42 +26,39 @@ namespace Cosmos {
         int32_t Channel::Init(uint32_t verification)
         {
             // Set up default channels for internal activity
-            channel.resize(7);
+            channel.resize(8);
 
             channel[0].name = "SELF";
             channel[0].mtx = new std::recursive_mutex;
-            channel[0].datasize = 1400;
             channel[0].maximum = 1000;
 
-            channel[1].name = "NET";
+            channel[1].name = "OBC";
             channel[1].mtx = new std::recursive_mutex;
-            channel[1].datasize = 1400;
             channel[1].maximum = 1000;
 
             channel[2].name = "EPS";
             channel[2].mtx = new std::recursive_mutex;
-            channel[2].datasize = 1400;
             channel[2].maximum = 1000;
 
             channel[3].name = "ADCS";
             channel[3].mtx = new std::recursive_mutex;
-            channel[3].datasize = 1400;
             channel[3].maximum = 1000;
 
             channel[4].name = "FILE";
             channel[4].mtx = new std::recursive_mutex;
-            channel[4].datasize = 1400;
             channel[4].maximum = 1000;
 
             channel[5].name = "EXEC";
             channel[5].mtx = new std::recursive_mutex;
-            channel[5].datasize = 1400;
             channel[5].maximum = 1000;
 
             channel[6].name = "LOG";
             channel[6].mtx = new std::recursive_mutex;
-            channel[6].datasize = 1400;
             channel[6].maximum = 1000;
+
+            channel[7].name = "COMM";
+            channel[7].mtx = new std::recursive_mutex;
+            channel[7].maximum = 1000;
 
             this->verification = verification;
             return channel.size();
@@ -597,33 +594,6 @@ namespace Cosmos {
             return iretn;
         }
 
-        //! \brief Disable transmission over channel
-        //! \param channel Channel name
-        //! \return 0 or 1 depending on previous state, or negative error.
-//        int32_t Channel::Disable(string name)
-//        {
-//            int32_t iretn = Find(name);
-//            if (iretn >= 0)
-//            {
-//                return Disable(iretn);
-//            }
-//            return GENERAL_ERROR_OUTOFRANGE;
-//        }
-
-        //! \brief Disable transmission over channel
-        //! \param channel Channel number
-        //! \return 0 or 1 depending on previous state, or negative error.
-//        int32_t Channel::Disable(uint8_t number)
-//        {
-//            int32_t iretn = 0;
-//            if (channel[number].enabled)
-//            {
-//                iretn = 1;
-//            }
-//            channel[number].enabled = false;
-//            return iretn;
-//        }
-
         //! \brief Start channel performance test by channel name.
         //! \param name Name of channel.
         //! \param radio Name of radio.
@@ -823,7 +793,7 @@ namespace Cosmos {
             // Packet defaults
             PacketComm test_packet;
             test_packet.data.resize(channel[number].datasize);
-            test_packet.header.type = PacketComm::TypeId::DataTest;
+            test_packet.header.type = PacketComm::TypeId::DataRadioTest;
             test_packet.header.nodeorig = orig;
             test_packet.header.nodedest = dest;
             test_packet.header.chanorig = radio;

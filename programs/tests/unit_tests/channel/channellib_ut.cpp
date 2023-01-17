@@ -25,12 +25,13 @@ void ChannelUTest::TearDown()
 TEST_F(ChannelUTest, Fixture_class_initializes_correctly)
 {
     SetUp();
-    vector<string> channel_names = {"SELF", "NET", "EPS", "ADCS", "FILE", "EXEC", "LOG"};
-    EXPECT_EQ(channel.channel.size(), 7);
+    vector<string> channel_names = {"SELF", "OBC", "EPS", "ADCS", "FILE", "EXEC", "LOG", "COMM"};
+    EXPECT_EQ(channel.channel.size(), 8);
     for (size_t i=0; i < channel.channel.size(); ++i)
     {
         EXPECT_EQ(channel.channel[i].name, channel_names[i]);
-        EXPECT_EQ(channel.channel[i].datasize, 1400);
+        EXPECT_EQ(channel.channel[i].datasize, 1390);
+        EXPECT_EQ(channel.channel[i].rawsize, 1400);
         EXPECT_EQ(channel.channel[i].maximum, 1000);
     }
 }
