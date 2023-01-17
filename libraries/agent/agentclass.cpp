@@ -326,11 +326,11 @@ namespace Cosmos
                         "    SetOpsMode [modestring]\n"
                         "    EnableChannel [channelstring | channelnumber] {State}\n"
                         "    EpsCommunicate sbid:command:hexstring:response_size\n"
-                        "    EpsSwitchStatus [0-1|vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200]\n"
+                        "    EpsSwitchStatus [0-1|vbattbus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200]\n"
                         "    EpsState {0|1|2|3}\n"
-                        "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [0|1|2]\n"
+                        "    EpsSwitchName {vbattbus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [0|1|2]\n"
                         "    EpsSwitchNumber boardid switchid [0|1]\n"
-                        "    EpsSwitchNames {vbatt_bus ...} [0|1]\n"
+                        "    EpsSwitchNames {vbattbus ...} [0|1]\n"
                         "    AdcsState {0-7} {0-255} ... \n"
                         "    AdcsCommunicate command:hexstring:response_size\n"
                         "");
@@ -1015,13 +1015,53 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_help_json(string &, string &output, Agent* agent) {
+        int32_t Agent::req_help_json(string &request, string &output, Agent* agent)
+        {
+            string function = "all";
+            if (request.size())
+            {
+                vector<string> args = string_split(request);
+                if (args.size() > 1 && args[0] == "help")
+                {
+                    function = args[1];
+                }
+            }
             string help_string, s;
             size_t qpos, prev_qpos = 0;
             help_string += "{\"requests\": [";
-            for(map<string, request_entry>::iterator it = agent->reqs.begin(); it != agent->reqs.end(); ++it) {
-                //            help_string += "        ";
-                if(it != agent->reqs.begin()) help_string+=",";
+            map<string, request_entry>::iterator it;
+            if (function == "all")
+            {
+                for(it = agent->reqs.begin(); it != agent->reqs.end(); ++it)
+                {
+                    if(it != agent->reqs.begin()) help_string+=",";
+                    help_string += "{\"token\": \"";
+                    help_string += it->second.token;
+                    help_string += "\", \"synopsis\": \"";
+                    qpos = 0;
+                    prev_qpos = 0;
+                    s = it->second.synopsis;
+                    while((qpos=s.substr(prev_qpos).find("\""))!= string::npos)
+                    {
+                        s.replace(qpos+prev_qpos, 1, "\\\"");
+                        prev_qpos +=qpos+2;
+                    }
+                    help_string+= s;
+                    help_string += "\", \"description\": \"";
+                    qpos = 0;
+                    prev_qpos = 0;
+                    s = it->second.description;
+                    while((qpos=s.substr(prev_qpos).find("\""))!= string::npos){
+                        s.replace(qpos+prev_qpos, 1, "\\\"");
+                        prev_qpos +=qpos+2;
+                    }
+                    help_string+= s;
+
+                    help_string +="\"}";
+                }
+            }
+            else if ((it = agent->reqs.find(function)) != agent->reqs.end())
+            {
                 help_string += "{\"token\": \"";
                 help_string += it->second.token;
                 help_string += "\", \"synopsis\": \"";
@@ -1046,15 +1086,48 @@ namespace Cosmos
 
                 help_string +="\"}";
             }
+            else
+            {
+                help_string += "{\"token\": \"";
+                help_string += function;
+                help_string += "\", \"synopsis\": \"Unknown Function";
+                help_string +="\"}";
+            }
             help_string += "]}";
             output = help_string;
             return 0;
         }
 
-        int32_t Agent::req_help(string &, string &output, Agent* agent) {
+        int32_t Agent::req_help(string &request, string &output, Agent* agent)
+        {
+            string function = "all";
+            if (request.size())
+            {
+                vector<string> args = string_split(request);
+                if (args.size() > 1 && args[0] == "help")
+                {
+                    function = args[1];
+                }
+            }
             string help_string;
             help_string += "\n";
-            for(map<string, request_entry>::iterator it = agent->reqs.begin(); it != agent->reqs.end(); ++it) {
+            map<string, request_entry>::iterator it;
+            if (function == "all")
+            {
+                for(it = agent->reqs.begin(); it != agent->reqs.end(); ++it)
+                {
+                    help_string += "        ";
+                    help_string += it->second.token;
+                    help_string += " ";
+                    help_string += it->second.synopsis;
+                    help_string += "\n";
+                    help_string += "                ";
+                    help_string += it->second.description;
+                    help_string += "\n\n";
+                }
+            }
+            else if ((it = agent->reqs.find(function)) != agent->reqs.end())
+            {
                 help_string += "        ";
                 help_string += it->second.token;
                 help_string += " ";
@@ -1063,6 +1136,11 @@ namespace Cosmos
                 help_string += "                ";
                 help_string += it->second.description;
                 help_string += "\n\n";
+            }
+            else
+            {
+                help_string += "Unknown Function";
+                help_string += "\n";
             }
             help_string += "\n";
             output = help_string;
@@ -1864,7 +1942,7 @@ namespace Cosmos
             response = "dest:" + dest + " radioup:" + agent->channels.channel[outchannel].name + " radiodown:" + agent->channels.channel[inchannel].name + " " + type;
             switch (packet.header.type)
             {
-            case PacketComm::TypeId::CommandReset:
+            case PacketComm::TypeId::CommandObcReset:
                 packet.data.resize(8, 0);
                 uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
                 if (parms.size() > 0)
@@ -1873,7 +1951,7 @@ namespace Cosmos
                     uint32to(seconds, &packet.data[4], ByteOrder::LITTLEENDIAN);
                 }
                 break;
-            case PacketComm::TypeId::CommandReboot:
+            case PacketComm::TypeId::CommandObcReboot:
                 packet.data.resize(8, 0);
                 uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
                 if (parms.size() > 0)
@@ -1882,7 +1960,7 @@ namespace Cosmos
                     uint32to(seconds, &packet.data[4], ByteOrder::LITTLEENDIAN);
                 }
                 break;
-            case PacketComm::TypeId::CommandSendBeacon:
+            case PacketComm::TypeId::CommandObcSendBeacon:
                 {
                     uint8_t btype = (uint8_t)Beacon::TypeId::CPU1BeaconS;
                     uint8_t bcount = 1;
@@ -1908,7 +1986,7 @@ namespace Cosmos
                     response += " " + to_unsigned(packet.data[0]) + " " + to_unsigned(packet.data[1]);
                 }
                 break;
-            case PacketComm::TypeId::CommandClearQueue:
+            case PacketComm::TypeId::CommandExecClearQueue:
                 {
                     packet.data.resize(4, 0);
                     uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
@@ -1920,8 +1998,8 @@ namespace Cosmos
                     response += " " + to_hex(agent->get_verification()) + " " + to_unsigned(packet.data[4]);
                 }
                 break;
-            case PacketComm::TypeId::CommandExternalCommand:
-            case PacketComm::TypeId::CommandExternalTask:
+            case PacketComm::TypeId::CommandObcExternalCommand:
+            case PacketComm::TypeId::CommandObcExternalTask:
                 {
                     string command = "uptime";
                     if (parms.size() > 0)
@@ -1943,7 +2021,7 @@ namespace Cosmos
                     response += " " + to_unsigned(centi) + " " + command;
                 }
                 break;
-            case PacketComm::TypeId::CommandTestRadio:
+            case PacketComm::TypeId::CommandRadioTest:
                 {
                     uint8_t start = 0;
                     uint8_t step = 1;
@@ -1964,14 +2042,14 @@ namespace Cosmos
                     uint32to(test_id, &packet.data[3], ByteOrder::LITTLEENDIAN);
                     uint32to(bytes, &packet.data[7], ByteOrder::LITTLEENDIAN);
                     response += " " + to_unsigned(test_id)
-                            + " " + to_unsigned(start)
-                            + " " + to_unsigned(step)
-                            + " " + to_unsigned(count)
-                            +  " " + to_unsigned(bytes)
-                            ;
+                                + " " + to_unsigned(start)
+                                + " " + to_unsigned(step)
+                                + " " + to_unsigned(count)
+                                +  " " + to_unsigned(bytes)
+                                ;
                 }
                 break;
-            case PacketComm::TypeId::CommandListDirectory:
+            case PacketComm::TypeId::CommandFileListDirectory:
                 {
                     string node = "any";
                     string agent = "any";
@@ -1991,7 +2069,7 @@ namespace Cosmos
                     packet.data.insert(packet.data.end(), agent.begin(), agent.end());
                 }
                 break;
-            case PacketComm::TypeId::CommandTransferFile:
+            case PacketComm::TypeId::CommandFileTransferFile:
                 {
                     string node = agent->nodeName;
                     string agentname = agent->agentName;
@@ -2019,7 +2097,7 @@ namespace Cosmos
                     packet.data.insert(packet.data.end(), file.begin(), file.end());
                 }
                 break;
-            case PacketComm::TypeId::CommandTransferNode:
+            case PacketComm::TypeId::CommandFileTransferNode:
                 {
                     string node = agent->nodeName;
                     if (parms.size() > 0)
@@ -2033,7 +2111,7 @@ namespace Cosmos
                     packet.data.insert(packet.data.end(), node.begin(), node.end());
                 }
                 break;
-            case PacketComm::TypeId::CommandTransferRadio:
+            case PacketComm::TypeId::CommandFileTransferRadio:
                 if (parms.size() > 2)
                 {
                     int32_t ch = agent->channel_number(parms[0]);
@@ -2047,7 +2125,7 @@ namespace Cosmos
                     packet.data[1] = stoi(parms[1]);
                 }
                 break;
-            case PacketComm::TypeId::CommandInternalRequest:
+            case PacketComm::TypeId::CommandObcInternalRequest:
                 {
                     string command = "status";
                     if (parms.size() > 0)
@@ -2069,7 +2147,7 @@ namespace Cosmos
                     response += " " + to_unsigned(centi) + " " + command;
                 }
                 break;
-            case PacketComm::TypeId::CommandPing:
+            case PacketComm::TypeId::CommandObcPing:
                 {
                     string ping = utc2iso8601(currentmjd());
                     if (parms.size() > 0)
@@ -2083,7 +2161,7 @@ namespace Cosmos
                     response += " " + to_unsigned(centi) + " " + ping;
                 }
                 break;
-            case PacketComm::TypeId::CommandSetTime:
+            case PacketComm::TypeId::CommandObcSetTime:
                 {
                     double mjd = currentmjd();
                     int8_t direction = 0;
@@ -2101,12 +2179,12 @@ namespace Cosmos
                     response += " " + to_iso8601(mjd) + " " + to_signed(direction);
                 }
                 break;
-            case PacketComm::TypeId::CommandGetTimeHuman:
-            case PacketComm::TypeId::CommandGetTimeBinary:
+            case PacketComm::TypeId::CommandObcGetTimeHuman:
+            case PacketComm::TypeId::CommandObcGetTimeBinary:
                 {
                 }
                 break;
-            case PacketComm::TypeId::CommandSetOpsMode:
+            case PacketComm::TypeId::CommandExecSetOpsMode:
                 {
                     packet.data.clear();
                     if (parms.size())
@@ -2115,7 +2193,7 @@ namespace Cosmos
                     }
                 }
                 break;
-            case PacketComm::TypeId::CommandEnableChannel:
+            case PacketComm::TypeId::CommandExecEnableChannel:
                 {
                     packet.data.clear();
                     if (parms.size() > 0)
@@ -2229,7 +2307,7 @@ namespace Cosmos
                         }
                         packet.data[1] = stoi(parms[0]);
                         packet.data[2] = stoi(parms[1]);
-//                        uint16to(stoi(parms[0]), &packet.data[1], ByteOrder::LITTLEENDIAN);
+                        //                        uint16to(stoi(parms[0]), &packet.data[1], ByteOrder::LITTLEENDIAN);
                     }
                 }
                 break;
@@ -3954,7 +4032,7 @@ acquired.
                 {
                     header.chunks = (response.size() - 1) / chunk_size + 1;
                 }
-                packet.header.type = PacketComm::TypeId::DataResponse;
+                packet.header.type = PacketComm::TypeId::DataObcResponse;
                 packet.header.nodeorig = nodeId;
                 packet.header.nodedest = dest;
                 for (header.chunk_id=0; header.chunk_id<header.chunks; ++header.chunk_id)
@@ -4075,11 +4153,11 @@ acquired.
 
             if (extra.empty())
             {
-                printf("%u [%s(%u) Type=%hu, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                printf("%u [%s(%u) Type=%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             else
             {
-                printf("%u %s [%s(%u) Type=%hu, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                printf("%u %s [%s(%u) Type=%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
             {
