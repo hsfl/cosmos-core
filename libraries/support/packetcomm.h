@@ -745,6 +745,7 @@ namespace Cosmos {
             int32_t Unwrap(bool checkcrc=true);
             int32_t Unwrap(bool checkcrc, bool minimal_header);
             int32_t RawUnPacketize(bool invert=false, bool checkcrc=true);
+            int32_t RawUnPacketize(bool invert, bool checkcrc, bool minimal_header);
             bool ASMUnPacketize(bool checkcrc=true);
             bool SLIPUnPacketize(bool checkcrc=true);
             bool HDLCUnPacketize(bool checkcrc=true);

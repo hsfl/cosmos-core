@@ -117,6 +117,19 @@ namespace Cosmos {
             return Unwrap(checkcrc);
         }
 
+        int32_t PacketComm::RawUnPacketize(bool invert, bool checkcrc, bool minimal_header)
+        {
+            if (invert)
+            {
+                uint8from(packetized, wrapped, ByteOrder::BIGENDIAN);
+            }
+            else
+            {
+                wrapped = packetized;
+            }
+            return Unwrap(checkcrc, minimal_header);
+        }
+
         bool PacketComm::SLIPUnPacketize(bool checkcrc)
         {
             int32_t iretn = slip_unpack(packetized, wrapped);
