@@ -25,9 +25,14 @@ namespace Cosmos {
             return true;
         }
 
+        int32_t PacketComm::Unwrap(bool checkcrc)
+        {
+            return Unwrap(checkcrc, false);
+        }
+
         //! \param checkcrc Perform crc check validation
         //! \return Data size on success, negative on error
-        int32_t PacketComm::Unwrap(bool checkcrc)
+        int32_t PacketComm::Unwrap(bool checkcrc, bool minimal_header)
         {
             style = PacketStyle::None;
             if (wrapped.size() <= 0)
@@ -35,88 +40,68 @@ namespace Cosmos {
                 return GENERAL_ERROR_BAD_SIZE;
             }
 
-            // First: Try V2 packet
-            if (wrapped.size() >= COSMOS_SIZEOF(Header))
+            switch(minimal_header)
             {
-                memcpy(&header, &wrapped[0], COSMOS_SIZEOF(Header));
-                header.data_size = uint16from(reinterpret_cast<uint8_t *>(&header.data_size));
-                uint32_t wrapsize = header.data_size + COSMOS_SIZEOF(Header) + 2;
-                if (wrapped.size() >= wrapsize)
+            case true:
                 {
-                    if (checkcrc)
+                    // Short packet
+                    header.data_size = wrapped.size() - 1;
+                    data.clear();
+                    data.insert(data.begin(), &wrapped[1], &wrapped[header.data_size+1]);
+                    uint8_t cs = 0;
+                    for (uint8_t byte : data)
                     {
-                        uint16_t crcin = uint16from(&wrapped[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
-                        crc = calc_crc.calc(wrapped.data(), wrapsize-2);
-                        if (crc != crcin)
+                        cs += byte;
+                    }
+                    if (cs != wrapped[0] >> 4)
+                    {
+                        return GENERAL_ERROR_CRC;
+                    }
+                    header.type = static_cast<PacketComm::TypeId>(wrapped[0] & 0x0f);
+                    style = PacketStyle::Minimal;
+                    header.nodeorig = 254;
+                    header.nodedest = 255;
+                    header.chanorig = 0;
+                    header.chandest = 0;
+                    return data.size();
+                }
+            case false:
+                {
+                    // V2 packet
+                    if (wrapped.size() >= COSMOS_SIZEOF(Header))
+                    {
+                        memcpy(&header, &wrapped[0], COSMOS_SIZEOF(Header));
+                        header.data_size = uint16from(reinterpret_cast<uint8_t *>(&header.data_size));
+                        uint32_t wrapsize = header.data_size + COSMOS_SIZEOF(Header) + 2;
+                        if (wrapped.size() >= wrapsize)
                         {
-                            checkcrc = false;
-                            wrapped.resize(wrapsize);
-                            style = PacketStyle::V2;
+                            if (checkcrc)
+                            {
+                                uint16_t crcin = uint16from(&wrapped[header.data_size+COSMOS_SIZEOF(Header)], ByteOrder::LITTLEENDIAN);
+                                crc = calc_crc.calc(wrapped.data(), wrapsize-2);
+                                if (crc != crcin)
+                                {
+                                    checkcrc = false;
+                                    wrapped.resize(wrapsize);
+                                    style = PacketStyle::V2;
+                                }
+                            }
+                            else
+                            {
+                                checkcrc = true;
+                            }
+                            if (checkcrc)
+                            {
+                                data.clear();
+                                data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(Header)], &wrapped[header.data_size+COSMOS_SIZEOF(Header)]);
+                                style = PacketStyle::V2;
+                                return data.size();
+                            }
                         }
-                    }
-                    else
-                    {
-                        checkcrc = true;
-                    }
-                    if (checkcrc)
-                    {
-                        data.clear();
-                        data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(Header)], &wrapped[header.data_size+COSMOS_SIZEOF(Header)]);
-                        style = PacketStyle::V2;
-                        return data.size();
                     }
                 }
             }
-
-            // Second: Try Medium packet
-//            if (wrapped.size() >= COSMOS_SIZEOF(HeaderV1))
-//            {
-//                memcpy(&headerv1, &wrapped[0], COSMOS_SIZEOF(HeaderV1));
-//                headerv1.data_size = uint16from(&headerv1.data_size, ByteOrder::BIGENDIAN);
-//                uint32_t wrapsize = headerv1.data_size + COSMOS_SIZEOF(HeaderV1) + 2;
-//                if (wrapped.size() >= wrapsize)
-//                {
-//                    uint16_t crcin = uint16from(&wrapped[headerv1.data_size+COSMOS_SIZEOF(HeaderV1)], ByteOrder::LITTLEENDIAN);
-//                    crc = calc_crc.calc(wrapped.data(), wrapsize-2);
-//                    if (!checkcrc || crc == crcin)
-//                    {
-//                        wrapped.resize(wrapsize);
-//                        style = PacketStyle::V2;
-//                    }
-//                }
-//                data.clear();
-//                data.insert(data.begin(), &wrapped[COSMOS_SIZEOF(HeaderV1)], &wrapped[headerv1.data_size+COSMOS_SIZEOF(HeaderV1)]);
-//                style = PacketStyle::V1;
-//                header.type = static_cast<TypeId>(headerv1.type);
-//                header.data_size = headerv1.data_size;
-//                header.nodeorig = headerv1.nodeorig;
-//                header.nodedest = headerv1.nodedest;
-//                header.chanorig = headerv1.chanorig;
-//                header.chandest = headerv1.chanorig;
-//                return data.size();
-//            }
-
-            // If we get here: Try Short packet
-            // Short packet
-            header.data_size = wrapped.size() - 1;
-            data.clear();
-            data.insert(data.begin(), &wrapped[1], &wrapped[header.data_size+1]);
-            uint8_t cs = 0;
-            for (uint8_t byte : data)
-            {
-                cs += byte;
-            }
-            if (cs != wrapped[0] >> 4)
-            {
-                return GENERAL_ERROR_CRC;
-            }
-            header.type = static_cast<PacketComm::TypeId>(wrapped[0] & 0x0f);
-            style = PacketStyle::Minimal;
-            header.nodeorig = 254;
-            header.nodedest = 255;
-            header.chanorig = 0;
-            header.chandest = 0;
-            return data.size();
+            return DATA_ERROR_CRC;
         }
 
         int32_t PacketComm::RawUnPacketize(bool invert, bool checkcrc)
@@ -130,6 +115,19 @@ namespace Cosmos {
                 wrapped = packetized;
             }
             return Unwrap(checkcrc);
+        }
+
+        int32_t PacketComm::RawUnPacketize(bool invert, bool checkcrc, bool minimal_header)
+        {
+            if (invert)
+            {
+                uint8from(packetized, wrapped, ByteOrder::BIGENDIAN);
+            }
+            else
+            {
+                wrapped = packetized;
+            }
+            return Unwrap(checkcrc, minimal_header);
         }
 
         bool PacketComm::SLIPUnPacketize(bool checkcrc)
