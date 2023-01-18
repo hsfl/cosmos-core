@@ -119,7 +119,7 @@ namespace Cosmos {
         {
             int32_t iretn = 0;
             response.clear();
-            FuncEntry &fentry = Funcs[(uint8_t)packet.header.type];
+            FuncEntry &fentry = Funcs[(uint16_t)packet.header.type];
             if (fentry.efunction != nullptr)
             {
                 iretn = fentry.efunction(packet, response, this->agent);
@@ -138,7 +138,7 @@ namespace Cosmos {
             FuncEntry tentry;
             tentry.type = type;
             tentry.efunction = function;
-            Funcs[(uint8_t)type] = tentry;
+            Funcs[(uint16_t)type] = tentry;
             return 0;
         }
 

@@ -32,7 +32,8 @@ namespace Cosmos {
                 //! Pointer to function to call with request vector as argument and returning any error
                 ExternalFunc efunction=nullptr;
             };
-            FuncEntry Funcs[256];
+            unordered_map<uint16_t, FuncEntry> Funcs;
+//            FuncEntry Funcs[256];
             int32_t add_func(PacketComm::TypeId type, ExternalFunc function);
             int32_t process(PacketComm &packet, string &response);
             int32_t process(PacketComm &packet);

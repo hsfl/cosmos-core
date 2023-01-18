@@ -292,7 +292,7 @@ namespace Cosmos {
 
                 DataRadio = 0x700,
                 DataRadioTest = 0x701,
-                DataRadioResponse = 0x701,
+                DataRadioResponse = 0x702,
                 CommandRadio = 0x780,
                 CommandRadioTest = 0x781,
                 CommandRadioCommunicate = 0x782,

@@ -1939,6 +1939,7 @@ namespace Cosmos
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = agent->nodeData.lookup_node_id(dest);
             packet.header.chanorig = inchannel;
+            packet.header.chandest = outchannel;
             response = "dest:" + dest + " radioup:" + agent->channels.channel[outchannel].name + " radiodown:" + agent->channels.channel[inchannel].name + " " + type;
             switch (packet.header.type)
             {
@@ -4153,11 +4154,11 @@ acquired.
 
             if (extra.empty())
             {
-                printf("%u [%s(%u) Type=%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                printf("%u [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             else
             {
-                printf("%u %s [%s(%u) Type=%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                printf("%u %s [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
             {
