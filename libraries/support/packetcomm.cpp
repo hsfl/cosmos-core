@@ -194,23 +194,23 @@ namespace Cosmos {
                     wrapped.insert(wrapped.end(), data.begin(), data.end());
                 }
                 break;
-            case PacketStyle::V1:
-                {
-                    header.data_size = data.size();
-                    headerv1.data_size = header.data_size;
-                    headerv1.type = static_cast<TypeIdV1>(header.type);
-                    headerv1.nodeorig = header.nodeorig;
-                    headerv1.nodedest = header.nodedest;
-                    headerv1.chanorig = header.chanorig;
-                    wrapped.resize(COSMOS_SIZEOF(HeaderV1));
-                    memcpy(&wrapped[0], &headerv1, COSMOS_SIZEOF(HeaderV1));
-                    wrapped.insert(wrapped.end(), data.begin(), data.end());
-                    crc = calc_crc.calc(wrapped);
-                    wrapped.resize(wrapped.size()+2);
-                    wrapped[wrapped.size()-2] = crc & 0xff;
-                    wrapped[wrapped.size()-1] = crc >> 8;
-                }
-                break;
+//            case PacketStyle::V1:
+//                {
+//                    header.data_size = data.size();
+//                    headerv1.data_size = header.data_size;
+//                    headerv1.type = static_cast<TypeIdV1>(header.type);
+//                    headerv1.nodeorig = header.nodeorig;
+//                    headerv1.nodedest = header.nodedest;
+//                    headerv1.chanorig = header.chanorig;
+//                    wrapped.resize(COSMOS_SIZEOF(HeaderV1));
+//                    memcpy(&wrapped[0], &headerv1, COSMOS_SIZEOF(HeaderV1));
+//                    wrapped.insert(wrapped.end(), data.begin(), data.end());
+//                    crc = calc_crc.calc(wrapped);
+//                    wrapped.resize(wrapped.size()+2);
+//                    wrapped[wrapped.size()-2] = crc & 0xff;
+//                    wrapped[wrapped.size()-1] = crc >> 8;
+//                }
+//                break;
             case PacketStyle::V2:
                 {
                     header.data_size = data.size();
