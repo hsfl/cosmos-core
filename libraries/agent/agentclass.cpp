@@ -4169,6 +4169,18 @@ acquired.
             return 0;
         }
 
+        int32_t Agent::channel_set_comm_priority(uint8_t number)
+        {
+            if (number < 0 || number > 255)
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            
+            channels.comm_id = number;
+
+            return 0;
+        }
+
         int32_t Agent::channel_push(string name, PacketComm& packet)
         {
             int32_t number = channel_number(name);
@@ -4218,6 +4230,16 @@ acquired.
                 }
             }
             return packets.size();
+        }
+
+        int32_t Agent::channel_push_comm(PacketComm &packet) 
+        {
+            if (channels.comm_id == 255)
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            return channel_push(channels.comm_id, packet);
         }
 
         int32_t Agent::channel_pull(string name, PacketComm &packet)

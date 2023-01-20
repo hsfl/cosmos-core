@@ -421,10 +421,12 @@ namespace Cosmos
             int32_t set_verification(uint32_t verification);
             uint32_t get_verification();
             int32_t check_verification(uint32_t verification);
+            int32_t channel_set_comm_priority(uint8_t number);
             int32_t channel_push(string name, PacketComm &packet);
             int32_t channel_push(uint8_t number, PacketComm& packet);
             int32_t channel_push(string name, vector<PacketComm>& packets);
             int32_t channel_push(uint8_t number, vector<PacketComm>& packets);
+            int32_t channel_push_comm(PacketComm &packet);
             int32_t push_response(string name, uint8_t sourceid, uint8_t dest, uint32_t id, string response="");
             int32_t push_response(uint8_t number, uint8_t sourceid, uint8_t dest, uint32_t id, string response="");
             int32_t push_response(string name, uint8_t sourceid, uint8_t dest, uint32_t id, vector<uint8_t> response);
