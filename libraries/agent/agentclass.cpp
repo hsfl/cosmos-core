@@ -4171,7 +4171,13 @@ acquired.
 
         int32_t Agent::channel_set_comm_priority(uint8_t number)
         {
+            if (number < 0 || number > 255)
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            
             channels.comm_id = number;
+
             return 0;
         }
 
