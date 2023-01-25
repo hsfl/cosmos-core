@@ -91,6 +91,7 @@ namespace Module
         {
         // TODO: consider generic packet forwarding to other nodes
         default:
+            agent->monitor_unwrapped(mychannel, packet, "Receive");
             agent->channel_push(0, packet);
         }
     }
@@ -103,6 +104,7 @@ namespace Module
             return;
         }
         packet.RawPacketize();
+        agent->monitor_unwrapped(mychannel, packet, "Transmit");
         socket_sendto(sock_out, packet.packetized);
     }
 

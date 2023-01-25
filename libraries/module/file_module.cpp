@@ -15,14 +15,24 @@ namespace Cosmos
             if (iretn < 0)
             {
                 agent->debug_error.Printf("%.4f Error initializing transfer class!: %s\n", agent->uptime.split(), agent->debug_error.ErrorString(iretn).c_str());
+                return iretn;
             }
 
             // List of nodes to handle files for
             // 0th element is itself for incoming, and others are for outgoing transfers.
-            contact_nodes = { agent->nodeName };
-            contact_nodes.insert(contact_nodes.end(), file_transfer_contact_nodes.begin(), file_transfer_contact_nodes.end());
+            contact_nodes = { agent->nodeId };
+            for (const string& node : file_transfer_contact_nodes)
+            {
+                iretn = NodeData::lookup_node_id(node);
+                if (iretn <= 0)
+                {
+                    agent->debug_error.Printf("%.4f Could not find node ID for node name: %s\n", agent->uptime.split(), node.c_str());
+                    continue;
+                }
+                contact_nodes.push_back(static_cast<uint8_t>(iretn));
+            }
 
-            return iretn;
+            return 0;
         }
 
         // This thread handles file transfers
@@ -54,7 +64,6 @@ namespace Cosmos
                         {
                             break;
                         }
-                        // agent->monitor_unwrapped(mychannel, packet, "Pull");
                         // Packets for us
                         switch (packet.header.type)
                         {
@@ -158,7 +167,7 @@ namespace Cosmos
                     // No outgoing radio connection established
                     if (!out_radio)
                     {
-                        secondsleep(5.);
+                        secondsleep(1.);
                         continue;
                     }
 
@@ -203,7 +212,7 @@ namespace Cosmos
 
                     if (!file_packets.size())
                     {
-                        secondsleep(5.);
+                        secondsleep(1.);
                         continue;
                     }
 
@@ -211,6 +220,9 @@ namespace Cosmos
                     for (auto &p : file_packets)
                     {
                         // TODO: note that p does not set header.chanorig
+                        p.header.chanorig = mychannel;
+                        p.header.chandest = mychannel;
+
                         iretn = agent->channel_push(out_radio, p);
 
                         // Stop using this channel on error

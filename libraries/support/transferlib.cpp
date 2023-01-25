@@ -156,29 +156,56 @@ namespace Cosmos {
         }
 
         //! Create a REQDATA-type PacketComm packet.
-        //! \param packet Reference to a PacketComm packet to fill in
-        //! \param node_id ID of the requester node in the node table
+        //! \param packets Reference to a vector of PacketComm packets to push to
+        //! \param self_node_id ID of the requester node in the node table
+        //! \param orig_node_id ID of the origin node in the node table
         //! \param tx_id ID of the transaction
-        //! \param hole_start Index of byte start of data chunk
-        //! \param hole_end Index of byte end of data chunk
+        //! \param holes Vector of file_progress holes
+        //! \param packet_data_size Limit of packet data size
         //! \return n/a
-        void serialize_reqdata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end)
+        void serialize_reqdata(vector<PacketComm>& packets, PACKET_NODE_ID_TYPE self_node_id, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id, vector<file_progress>& holes, PACKET_CHUNK_SIZE_TYPE packet_data_size)
         {
+            PacketComm packet;
+            packet.header.nodeorig = self_node_id;
+            packet.header.nodedest = orig_node_id;
             packet.header.type = PacketComm::TypeId::DataFileReqData;
-            packet.data.resize(sizeof(packet_struct_reqdata));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, node_id),    &node_id,    sizeof(PACKET_NODE_ID_TYPE));
+            packet.data.reserve(packet_data_size);
+            packet.data.resize(offsetof(struct packet_struct_reqdata, holes));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, node_id),    &self_node_id,    sizeof(PACKET_NODE_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, tx_id),      &tx_id,      sizeof(PACKET_TX_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, hole_start), &hole_start, sizeof(PACKET_FILE_SIZE_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, hole_end),   &hole_end,   sizeof(PACKET_FILE_SIZE_TYPE));
+            uint16_t num_holes = 0;
+            for (auto& hole : holes)
+            {
+                if (packet.data.size() + sizeof(hole) > packet_data_size)
+                {
+                    memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, num_holes), &num_holes, sizeof(num_holes));
+                    packets.push_back(packet);
+                    packet.data.resize(offsetof(struct packet_struct_reqdata, holes));
+                    num_holes = 0;
+                }
+                packet.data.insert(packet.data.end(), (uint8_t*)&hole, (uint8_t*)((&hole)+1));
+                ++num_holes;
+            }
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, num_holes), &num_holes, sizeof(num_holes));
+            packets.push_back(packet);
         }
 
         //! Extracts the necessary fields from a received REQDATA packet.
         //! \param pdata An incoming REQDATA-type packet
         //! \param reqdata Reference to a packet_struct_reqdata to fill
-        //! \return n/a
-        void deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata &reqdata)
+        //! \return 0 on success, negative on error
+        int32_t deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata &reqdata)
         {   
-            memcpy(&reqdata, pdata.data(), sizeof(packet_struct_reqdata));
+            memcpy(&reqdata.node_id,     &pdata[0]+offsetof(struct packet_struct_reqdata, node_id),     sizeof(PACKET_NODE_ID_TYPE));
+            memcpy(&reqdata.tx_id,       &pdata[0]+offsetof(struct packet_struct_reqdata, tx_id),       sizeof(PACKET_TX_ID_TYPE));
+            memcpy(&reqdata.num_holes,  &pdata[0]+offsetof(struct packet_struct_reqdata, num_holes),  sizeof(uint16_t));
+            if (offsetof(struct packet_struct_reqdata, holes) + reqdata.num_holes * sizeof(file_progress) != pdata.size())
+            {
+                return COSMOS_DATA_ERROR_SIZE_MISMATCH;
+            }
+            reqdata.holes.resize(reqdata.num_holes);
+            memcpy(reqdata.holes.data(), pdata.data()+offsetof(struct packet_struct_reqdata, holes), reqdata.num_holes*sizeof(file_progress));
+            return 0;
         }
 
         //! Create a long METADATA-type PacketComm packet.

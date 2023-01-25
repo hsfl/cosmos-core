@@ -4,12 +4,17 @@
 #include "support/transferlib.h"
 #include "gtest/gtest.h"
 
+void compare_file_progress(const file_progress& fp, const file_progress& fp2, size_t LINE)
+{
+    EXPECT_EQ(fp.chunk_start, fp2.chunk_start) << "transferlib_ut.h:" << LINE;
+    EXPECT_EQ(fp.chunk_end, fp2.chunk_end) << "transferlib_ut.h:" << LINE;
+}
+
 void compare_tx_progress(const vector<file_progress>& tp, const vector<file_progress>& tp2, size_t LINE)
 {
     EXPECT_EQ(tp.size(), tp2.size());
     for (size_t i=0; i<tp.size(); ++i) {
-        EXPECT_EQ(tp[i].chunk_start, tp2[i].chunk_start) << "transferlib_ut.h:" << LINE;
-        EXPECT_EQ(tp[i].chunk_end, tp2[i].chunk_end) << "transferlib_ut.h:" << LINE;
+        compare_file_progress(tp[i], tp2[i], LINE);
     }
 }
 
@@ -134,5 +139,31 @@ TEST(TransferlibTest, merge_chunks_overlap)
     EXPECT_EQ(tx.total_bytes, 0);
 }
 
+TEST(TransferlibTest, reqdata_packets_are_created_correctly)
+{
+    // Keep mock file_info here
+    vector<file_progress> holes;
+    size_t packet_size = 214;
+    int32_t current_start = 0;
+    for (size_t i=0; i < (packet_size*3) / sizeof(file_progress); ++i)
+    {
+        holes.push_back({current_start, current_start + 50});
+        current_start += 52;
+    }
+    vector<PacketComm> reqdata_packets;
+    serialize_reqdata(reqdata_packets, 1, 2, 127, holes, packet_size);
+    size_t current_hole_idx = 0;
+    for (auto& packet : reqdata_packets)
+    {
+        packet_struct_reqdata reqdata;
+        deserialize_reqdata(packet.data, reqdata);
+        for (auto& hole : reqdata.holes)
+        {
+            compare_file_progress(holes[current_hole_idx], hole, __LINE__);
+            ++current_hole_idx;
+        }
+    }
+    EXPECT_EQ(current_hole_idx, holes.size());
+}
 
 #endif // End __TRANSFERLIB_UT_H__

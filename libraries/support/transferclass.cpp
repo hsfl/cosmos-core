@@ -82,8 +82,7 @@ namespace Cosmos {
                 {
                     this->debug_error->Printf("%.4f Couldn't load node lookup table\n", tet.split());
                 }
-                // TODO semantically, return value should be negative on error (ie: not 0 or 1)
-                return node_ids_size;
+                return COSMOS_TRANSFER_ERROR_NODE;
             }
             if (this->debug_error != nullptr)
             {
@@ -647,23 +646,15 @@ namespace Cosmos {
                 {
                     treqmeta.push_back(tx_id);
                 }
-
                 // **************************************************************
                 // ** REQDATA ***************************************************
                 // **************************************************************
-                if (!txq[orig_node_idx].incoming.progress[tx_id].sentdata)
+                else if (!txq[orig_node_idx].incoming.progress[tx_id].sentdata)
                 {
                     // Request missing data
                     vector<file_progress> missing;
                     missing = find_chunks_missing(txq[orig_node_idx].incoming.progress[tx_id]);
-                    for (uint32_t j=0; j<missing.size(); ++j)
-                    {
-                        PacketComm packet;
-                        packet.header.nodeorig = self_node_id;
-                        packet.header.nodedest = orig_node_id;
-                        serialize_reqdata(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[orig_node_idx].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
-                        packets.push_back(packet);
-                    }
+                    serialize_reqdata(packets, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), orig_node_id, txq[orig_node_idx].incoming.progress[tx_id].tx_id, missing, packet_size);
                 }
                 // **************************************************************
                 // ** COMPLETE **************************************************
@@ -1486,31 +1477,38 @@ namespace Cosmos {
                 {
                     packet_struct_reqdata reqdata;
 
-                    deserialize_reqdata(packet.data, reqdata);
-
-                    // Simple validity check
-                    if (reqdata.hole_end < reqdata.hole_start)
+                    iretn = deserialize_reqdata(packet.data, reqdata);
+                    if (iretn < 0)
                     {
                         break;
                     }
 
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[orig_node_idx].outgoing, reqdata.tx_id);
                     
-                    // tx_id now points to the valid entry to which we should add the data
-                    if (tx_id > 0)
+                    if (tx_id <= 0)
                     {
-                        // Add this chunk to the queue
-                        file_progress tp;
-                        tp.chunk_start = reqdata.hole_start;
-                        tp.chunk_end = reqdata.hole_end;
-                        bool updated = add_chunk(txq[orig_node_idx].outgoing.progress[tx_id], tp);
-
-                        // Save meta to disk
-                        if (updated)
+                        break;
+                    }
+                    // tx_id now points to the valid entry to which we should add the data
+                    bool updated = false;
+                    for (auto& hole : reqdata.holes)
+                    {
+                        // Simple validity check
+                        if (hole.chunk_end < hole.chunk_start)
                         {
-                            write_meta(txq[orig_node_idx].outgoing.progress[tx_id]);
-                            txq[orig_node_idx].outgoing.progress[tx_id].sentdata = false;
+                            continue;
                         }
+                        // Add this chunk to the queue
+                        updated = add_chunk(txq[orig_node_idx].outgoing.progress[tx_id], hole) || updated;
+                    }
+                    // Recalculate chunks
+                    merge_chunks_overlap(txq[orig_node_idx].outgoing.progress[tx_id]);
+
+                    // Save meta to disk
+                    if (updated)
+                    {
+                        write_meta(txq[orig_node_idx].outgoing.progress[tx_id]);
+                        txq[orig_node_idx].outgoing.progress[tx_id].sentdata = false;
                     }
                 }
                 break;

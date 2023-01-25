@@ -42,7 +42,7 @@ namespace Cosmos
             bool file_transfer_enabled = false;
             bool file_transfer_respond = false;
             //! The nodes that this node has file transfer capabilities with
-            vector<string> contact_nodes;
+            vector<uint8_t> contact_nodes;
 
             int32_t mychannel = 0;
             bool running = false;
