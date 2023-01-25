@@ -196,6 +196,10 @@ namespace Cosmos {
         //! \return 0 on success, negative on error
         int32_t deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata &reqdata)
         {   
+            if (pdata.size() < offsetof(struct packet_struct_reqdata, holes))
+            {
+                return COSMOS_DATA_ERROR_SIZE_MISMATCH;
+            }
             memcpy(&reqdata.node_id,     &pdata[0]+offsetof(struct packet_struct_reqdata, node_id),     sizeof(PACKET_NODE_ID_TYPE));
             memcpy(&reqdata.tx_id,       &pdata[0]+offsetof(struct packet_struct_reqdata, tx_id),       sizeof(PACKET_TX_ID_TYPE));
             memcpy(&reqdata.num_holes,  &pdata[0]+offsetof(struct packet_struct_reqdata, num_holes),  sizeof(uint16_t));
