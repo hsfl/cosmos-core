@@ -56,6 +56,7 @@ namespace Cosmos
         public:
             Task(string node="", string agent="");
             ~Task();
+            void Start();
             void Runner();
             int32_t Add(string command);
             int32_t Del(uint32_t deci);
