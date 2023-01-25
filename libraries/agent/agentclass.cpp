@@ -4154,18 +4154,18 @@ acquired.
 
             if (extra.empty())
             {
-                printf("%u [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                debug_error.Printf("%u [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             else
             {
-                printf("%u %s [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                debug_error.Printf("%u %s [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
             {
-                printf(" %02x", packet.data[i]);
+                debug_error.Printf(" %02x", packet.data[i]);
             }
-            printf("\n");
-            fflush(stdout);
+            debug_error.Printf("\n");
+            // fflush(stdout);
             return 0;
         }
 
