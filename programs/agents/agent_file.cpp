@@ -615,7 +615,13 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
             }
         case PacketComm::TypeId::DataFileReqData:
             {
-                agent->debug_error.Printf("[REQDATA] %u %u %u %u ", node_id, packet.data[offsetof(struct packet_struct_reqdata, tx_id)], packet.data[offsetof(struct packet_struct_reqdata, hole_start)]+256U*(packet.data[offsetof(struct packet_struct_reqdata, hole_start)+1]+256U*(packet.data[offsetof(struct packet_struct_reqdata, hole_start)+2]+256U*packet.data[offsetof(struct packet_struct_reqdata, hole_start)+3])), packet.data[offsetof(struct packet_struct_reqdata, hole_end)]+256U*(packet.data[offsetof(struct packet_struct_reqdata, hole_end)+1]+256U*(packet.data[offsetof(struct packet_struct_reqdata, hole_end)+2]+256U*packet.data[offsetof(struct packet_struct_reqdata, hole_end)+3])));
+                agent->debug_error.Printf("[REQDATA] ");
+                for (auto& byte : packet.data)
+                {
+                    agent->debug_error.Printf("%u ", unsigned(byte));
+                }
+                agent->debug_error.Printf("\n");
+                break;
                 break;
             }
         case PacketComm::TypeId::DataFileReqComplete:
