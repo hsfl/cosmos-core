@@ -39,10 +39,6 @@ void FileSubagentTest::TestSetup()
     vector<vector<string>> transfer_node_contacts = {{"_tnode_2"}, {"_tnode_1"}};
     for (size_t i=0; i<agents.size(); ++i)
     {
-        // Node log file
-        string logname = "file_it" + agents[i]->nodeName + "_log";
-        agents[i]->debug_error.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "test_logs/" + logname);
-
         // File subagent setup
         file_subagents[i] = new Module::FileModule();
         int32_t iretn = file_subagents[i]->Init(agents[i], transfer_node_contacts[i]);

@@ -426,7 +426,7 @@ namespace Cosmos {
                                 tp = txq[dest_node_idx].outgoing.progress[tx_id].file_info.back();
 
                                 PACKET_FILE_SIZE_TYPE byte_count = (tp.chunk_end - tp.chunk_start) + 1;
-                                const int32_t packet_data_size_limit = packet_size - offsetof(struct packet_struct_data, chunk);
+                                const PACKET_FILE_SIZE_TYPE packet_data_size_limit = packet_size - offsetof(struct packet_struct_data, chunk);
                                 if (byte_count > packet_data_size_limit)
                                 {
                                     byte_count = packet_data_size_limit;
@@ -435,13 +435,13 @@ namespace Cosmos {
                                 tp.chunk_end = tp.chunk_start + byte_count - 1;
 
                                 // Read the packet and send it
-                                int32_t nbytes;
+                                size_t nbytes = 0;
                                 PACKET_BYTE* chunk = new PACKET_BYTE[byte_count]();
-                                if (!(nbytes = fseek(txq[dest_node_idx].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET)))
+                                if (!fseek(txq[dest_node_idx].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET))
                                 {
                                     nbytes = fread(chunk, 1, byte_count, txq[dest_node_idx].outgoing.progress[tx_id].fp);
                                 }
-                                if (nbytes == byte_count)
+                                if (nbytes == static_cast<size_t>(byte_count))
                                 {
                                     PacketComm packet;
                                     packet.header.nodeorig = self_node_id;
@@ -724,7 +724,12 @@ namespace Cosmos {
 
             // Get the file path and size
             string filepath = data_base_path(dest_node, "outgoing", dest_agent, file_name);
-            int32_t file_size = get_file_size(filepath);
+            PACKET_FILE_SIZE_TYPE file_size = 0;
+            int32_t iretn = get_file_size(filepath, file_size);
+            if (iretn < 0)
+            {
+                return TRANSFER_ERROR_FILESIZE;
+            }
 
             // Go through existing queue
             // - if it is already there and the size is different, remove it
@@ -793,15 +798,6 @@ namespace Cosmos {
 
                 // get the file size
                 tx_out.file_size = file_size;
-
-                if(tx_out.file_size < 0)
-                {
-                    if (debug_error != nullptr)
-                    {
-                        debug_error->Printf("%.4f %.4f Main: outgoing_tx_add: DATA_ERROR_SIZE_MISMATCH\n", tet.split(), dt.lap());
-                    }
-                    return DATA_ERROR_SIZE_MISMATCH;
-                }
 
                 // see if file can be opened
                 filename.open(tx_out.filepath, std::ios::in|std::ios::binary);
@@ -908,7 +904,11 @@ namespace Cosmos {
 
             tx_out.fp = nullptr;
             //get the file size
-            tx_out.file_size = get_file_size(tx_out.filepath);
+            int32_t iretn = get_file_size(tx_out.filepath, tx_out.file_size);
+            if (iretn < 0)
+            {
+                return TRANSFER_ERROR_FILESIZE;
+            }
             tx_out.savetime = 0.;
 
             // save and queue metadata packet
@@ -2092,7 +2092,7 @@ string Transfer::list_outgoing()
                 jlist.push_back(json11::Json::object {
                     { "tx_id", tx.tx_id },
                     { "file_name", tx.file_name },
-                    { "file_size", tx.file_size },
+                    { "file_size", static_cast<int>(tx.file_size) },
                     { "node_name", tx.node_name },
                     { "enabled", tx.enabled }
                 });
@@ -2124,8 +2124,8 @@ string Transfer::list_incoming()
                 jlist.push_back(json11::Json::object {
                     { "tx_id", tx.tx_id },
                     { "file_name", tx.file_name },
-                    { "file_size", tx.file_size },
-                    { "total_bytes", tx.total_bytes },
+                    { "file_size", static_cast<int>(tx.file_size) },
+                    { "total_bytes", static_cast<int>(tx.total_bytes) },
                     { "sent_meta", tx.sentmeta }
                 });
             }

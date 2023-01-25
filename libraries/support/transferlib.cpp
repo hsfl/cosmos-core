@@ -586,21 +586,21 @@ namespace Cosmos {
         }
 
         //! Gets the size of a file.
-        /*! Looks up the size of the file on the filesystem. This returns a 32 bit signed
-        * integer so that it works for most files we want to transfer. If the file is larger
-        * than 2^32/2, then it will turn negative and be treated as an error.
+        /*! Looks up the size of the file on the filesystem.
+        * On success, sets the size param to the size of the file.
+        * Performs a conversion from off_t to uint32_t, which we will say is large enough for our purposes.
         * \param filename Full path to file
-        * \return Size, or negative error.
+        * \param size On success, this is set to the size of the file
+        * \return 0 on success, or negative error.
         */
-        int32_t get_file_size(string filename)
+        int32_t get_file_size(string filename, PACKET_FILE_SIZE_TYPE& size)
         {
-            int32_t iretn = 0;
             struct stat stat_buf;
 
             if ((stat(filename.c_str(), &stat_buf)) == 0)
             {
-                iretn = stat_buf.st_size;
-                return  iretn;
+                size = static_cast<PACKET_FILE_SIZE_TYPE>(stat_buf.st_size);
+                return 0;
             }
             else
             {
@@ -608,10 +608,10 @@ namespace Cosmos {
             }
         }
 
-        int32_t get_file_size(const char* filename)
+        int32_t get_file_size(const char* filename, PACKET_FILE_SIZE_TYPE& size)
         {
             string sfilename = filename;
-            return get_file_size(sfilename);
+            return get_file_size(sfilename, size);
         }
     }
 }

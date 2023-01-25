@@ -25,7 +25,7 @@ namespace Cosmos {
         typedef uint8_t PACKET_NODE_ID_TYPE;
         typedef uint8_t PACKET_TX_ID_TYPE;
         typedef uint16_t PACKET_CHUNK_SIZE_TYPE;
-        typedef int32_t PACKET_FILE_SIZE_TYPE;
+        typedef uint32_t PACKET_FILE_SIZE_TYPE;
         typedef uint32_t PACKET_UNIXTIME_TYPE;
 
         /// Chunk start and end.
@@ -179,8 +179,8 @@ namespace Cosmos {
         };
 
         //Function which gets the size of a file
-        int32_t get_file_size(string filename);
-        int32_t get_file_size(const char* filename);
+        int32_t get_file_size(string filename, PACKET_FILE_SIZE_TYPE& size);
+        int32_t get_file_size(const char* filename, PACKET_FILE_SIZE_TYPE& size);
 
         // Converts packet types to and from byte arrays
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue);

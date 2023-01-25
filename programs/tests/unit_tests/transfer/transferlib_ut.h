@@ -144,7 +144,7 @@ TEST(TransferlibTest, reqdata_packets_are_created_correctly)
     // Keep mock file_info here
     vector<file_progress> holes;
     size_t packet_size = 214;
-    int32_t current_start = 0;
+    uint32_t current_start = 0;
     for (size_t i=0; i < (packet_size*3) / sizeof(file_progress); ++i)
     {
         holes.push_back({current_start, current_start + 50});

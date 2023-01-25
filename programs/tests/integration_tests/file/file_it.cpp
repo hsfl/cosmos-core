@@ -41,7 +41,7 @@ void FileSubagentTest::SetUp(uint8_t test_num_agents)
         agents[i]->nodeName = "_tnode_" + std::to_string(i+1);
         agents[i]->nodeId = i+1;
         agents[i]->init_channels();
-        string agent_log_name = "file_it" + agents[i]->nodeName + "_log";
+        string agent_log_name = agents[i]->nodeName + "_log";
         agents[i]->debug_error.Set(Error::LOG_FILE_FFLUSH, test_base_path + agent_log_name);
     }
 }
