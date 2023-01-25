@@ -43,15 +43,6 @@ void FileSubagentTest::SetUp(uint8_t test_num_agents)
         agents[i]->init_channels();
         string agent_log_name = "file_it" + agents[i]->nodeName + "_log";
         agents[i]->debug_error.Set(Error::LOG_FILE_FFLUSH, test_base_path + agent_log_name);
-
-        // Create the file subagents, but finish the setup later
-        file_subagents[i] = new Module::FileModule();
-        //file_subagents[i]->Init();
-
-        // Each agent has a packethandler to route file packets to file channel
-        packethandler_subagents[i] = new Module::PacketHandlerModule();
-        int32_t iretn = packethandler_subagents[i]->Init(agents[i], "SELF");
-        ASSERT_GE(iretn, 0);
     }
 }
 
@@ -150,6 +141,8 @@ TEST_F(FileSubagentTest, Can_perform_basic_transfer)
     }
     EXPECT_NE(state, test_state::UNFINISHED);
     verify_outgoing_dir("_tnode_2", 0);
+    verify_temp_dir("_tnode_1", 0);
+    verify_temp_dir("_tnode_2", 0);
 }
 
 // No frills basic transfer across two nodes, from node1 to node2
@@ -175,6 +168,8 @@ TEST_F(FileSubagentTest, Bad_reqdata_fails_gracefully)
 
     // All is good if it doesn't crash
     secondsleep(8.);
+    verify_temp_dir("_tnode_1", 0);
+    verify_temp_dir("_tnode_2", 0);
 }
 
 

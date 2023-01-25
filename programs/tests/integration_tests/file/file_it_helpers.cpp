@@ -36,20 +36,29 @@ void FileSubagentTest::cleanup(uint8_t num_agents)
 
 void FileSubagentTest::TestSetup()
 {
-    vector<vector<string>> communication_topolgy = {{"_tnode_2"}, {"_tnode_1"}};
+    vector<vector<string>> transfer_node_contacts = {{"_tnode_2"}, {"_tnode_1"}};
     for (size_t i=0; i<agents.size(); ++i)
     {
         // Node log file
         string logname = "file_it" + agents[i]->nodeName + "_log";
         agents[i]->debug_error.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "test_logs/" + logname);
+
         // File subagent setup
-        int32_t iretn = file_subagents[i]->Init(agents[i], communication_topolgy[i]);
+        file_subagents[i] = new Module::FileModule();
+        int32_t iretn = file_subagents[i]->Init(agents[i], transfer_node_contacts[i]);
         ASSERT_GE(iretn, 0);
+
+        // Each agent has a packethandler to route file packets to file channel
+        packethandler_subagents[i] = new Module::PacketHandlerModule();
+        iretn = packethandler_subagents[i]->Init(agents[i], "SELF");
+        ASSERT_GE(iretn, 0);
+
         // Websocket channel adding
         iretn = agents[i]->channel_add("SOCKRADIO", 224, 234, 1200.);
         ASSERT_GE(iretn, 0);
         iretn = agents[i]->channel_number("SOCKRADIO");
         ASSERT_GE(iretn, 0);
+
         // File subagent to communicate out of SOCKRADIO
         uint8_t sockradio_id = iretn;
         file_subagents[i]->set_radios({sockradio_id});
@@ -67,10 +76,14 @@ void FileSubagentTest::TestSetup()
     ASSERT_GE(iretn, 0);
 
     // Start threads
-    subagent_threads.push_back(thread([=] { file_subagents[0]->Loop(); }));
-    subagent_threads.push_back(thread([=] { file_subagents[1]->Loop(); }));
-    subagent_threads.push_back(thread([=] { websocket_subagents[0]->Loop(); }));
-    subagent_threads.push_back(thread([=] { websocket_subagents[1]->Loop(); }));
+    for (auto& file_subagent : file_subagents)
+    {
+        subagent_threads.push_back(thread([=] { file_subagent->Loop(); }));
+    }
+    for (auto& websocket_subagent : websocket_subagents)
+    {
+        subagent_threads.push_back(thread([=] { websocket_subagent->Loop(); }));
+    }
     for (auto& packethandler_subagent : packethandler_subagents)
     {
         subagent_threads.push_back(thread([=] { packethandler_subagent->Loop(); }));
@@ -173,6 +186,17 @@ void FileSubagentTest::verify_outgoing_dir(string dest_node_name, size_t expecte
     if (outgoing_dir.size() != expected_file_num)
     {
         test_log.Printf("Verification fail: File count incorrect. outgoing_dir: %d, expected: %d\n", outgoing_dir.size(), expected_file_num);
+        state = test_state::FAIL;
+    }
+}
+
+void FileSubagentTest::verify_temp_dir(string orig_node_name, size_t expected_file_num)
+{
+    vector<filestruc> temp_dir= data_list_files(orig_node_name, "temp", "file");
+    EXPECT_EQ(temp_dir.size(), expected_file_num);
+    if (temp_dir.size() != expected_file_num)
+    {
+        test_log.Printf("Verification fail: File count incorrect. %s/temp/file: %d, expected: %d\n", orig_node_name.c_str(), temp_dir.size(), expected_file_num);
         state = test_state::FAIL;
     }
 }

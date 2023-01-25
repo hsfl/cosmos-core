@@ -83,6 +83,11 @@ protected:
     //! \param expected_file_num: Number of files you expect to see in the incoming folder
     void verify_outgoing_dir(string dest_node_name, size_t expected_file_num);
 
+    //! Verify that the temp directory containing the meta files are what is expected
+    //! \param orig_node_name: Name of the origin node
+    //! \param expected_file_num: Number of files you expect to see in the temp/file folder
+    void verify_temp_dir(string orig_node_name, size_t expected_file_num);
+
     /** Create test files for transfer.
     * Files are created in log_it/TESTNAME
     * Records file sizes and file crcs for later verification.
