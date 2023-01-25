@@ -100,6 +100,8 @@ namespace Cosmos
             debug_level = dlevel;
             debug_error.Set(dlevel,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
 
+            tasks.Start();
+
             // Initialize COSMOS data space
             cinfo = json_init();
 
