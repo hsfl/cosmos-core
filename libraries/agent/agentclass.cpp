@@ -4203,6 +4203,19 @@ acquired.
             return iretn;
         }
 
+        int32_t Agent::channel_push(PacketComm& packet)
+        {
+            int32_t iretn=0;
+            if (packet.header.chandest >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            iretn = channels.Push(packet.header.chandest, packet);
+
+            return iretn;
+        }
+
         int32_t Agent::channel_push(string name, vector<PacketComm>& packets)
         {
             int32_t number = channel_number(name);

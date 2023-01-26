@@ -85,7 +85,6 @@ namespace Cosmos {
             static int32_t QueueReset(uint16_t seconds, uint32_t verification_check, Agent* agent, string channel="EXEC", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueReboot(uint32_t verification_check, Agent* agent, string channel="EXEC", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueSendBeacon(uint8_t btype, uint8_t bcount, Agent* agent, string channel="EXEC", NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
-            static int32_t QueueBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NodeData::NODE_ID_TYPE orig=NodeData::NODEIDORIG, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
 
             static int32_t QueueAdcsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueAdcsState(uint8_t state, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
@@ -103,6 +102,7 @@ namespace Cosmos {
             static int32_t QueueTransferRadio(uint8_t use_radio, bool availability, Agent* agent, NodeData::NODE_ID_TYPE dest);
             static int32_t QueueTestRadio(uint8_t start, uint8_t step, uint8_t stop, uint32_t count, Agent* agent, string testradio="", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueSetTime(double mjd, int8_t direction, Agent* agent, string channel="", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
+            static int32_t QueueBeacon(uint8_t btype, uint8_t bcount, Agent* agent, string channel="", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, string radio="");
             static int32_t QueueEnableChannel(const string& name, uint8_t enable, Agent* agent, const std::string &channel="", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, const string& radio="");
             static int32_t QueueEnableChannel(uint8_t number, uint8_t enable, Agent* agent, const string& channel="", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, const string& radio="");
         private:

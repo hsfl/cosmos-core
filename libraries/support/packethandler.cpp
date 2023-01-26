@@ -878,7 +878,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NodeData::NODE_ID_TYPE orig, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueBeacon(uint8_t btype, uint8_t bcount, Agent* agent, string channel, NodeData::NODE_ID_TYPE dest, string radio)
         {
             int32_t iretn=0;
             PacketComm packet;
@@ -888,13 +888,15 @@ namespace Cosmos {
             beacon.Init();
             beacon.EncodeBinary((Beacon::TypeId)btype, agent->cinfo, bytes);
             packet.header.type = PacketComm::TypeId::DataObcBeacon;
-            packet.header.nodeorig = orig;
+            packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
+            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chandest = agent->channel_number(channel);
             packet.data.clear();
             packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
             for (uint16_t i=0; i<bcount; ++i)
             {
-                iretn = agent->channel_push(radio, packet);
+                iretn = agent->channel_push(packet);
             }
             return iretn;
         }
@@ -1168,10 +1170,11 @@ namespace Cosmos {
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
             packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chandest = agent->channel_number(channel);
             packet.data.resize(9);
             doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
             packet.data[8] = direction;
-            iretn = agent->channel_push(agent->channel_number(channel), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
