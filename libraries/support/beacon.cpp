@@ -982,10 +982,12 @@ namespace Cosmos {
                                 if (beacon.swch[i].mamp)
                                 {
                                     cinfo->devspec.swch[i].amp = beacon.swch[i].mamp / 1000.;
+                                    cinfo->devspec.swch[i].state = 1;
                                 }
                                 else
                                 {
                                     cinfo->devspec.swch[i].amp = 0.;
+                                    cinfo->devspec.swch[i].state = 0;
                                 }
                                 cinfo->devspec.swch[i].power = cinfo->devspec.swch[i].volt * cinfo->devspec.swch[i].amp;
                             }
