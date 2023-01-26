@@ -2375,7 +2375,12 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_
             }
         case PacketComm::TypeId::DataFileReqData:
             {
-                err_log->Printf("[REQDATA] %u %u %u %u ", node_id, packet.data[offsetof(packet_struct_reqdata, tx_id)], packet.data[offsetof(packet_struct_reqdata, hole_start)]+256U*(packet.data[offsetof(packet_struct_reqdata, hole_start)+1]+256U*(packet.data[offsetof(packet_struct_reqdata, hole_start)+2]+256U*packet.data[offsetof(packet_struct_reqdata, hole_start)+3])), packet.data[offsetof(packet_struct_reqdata, hole_end)]+256U*(packet.data[offsetof(packet_struct_reqdata, hole_end)+1]+256U*(packet.data[offsetof(packet_struct_reqdata, hole_end)+2]+256U*packet.data[offsetof(packet_struct_reqdata, hole_end)+3])));
+                err_log->Printf("[REQDATA] ");
+                for (auto& byte : packet.data)
+                {
+                    err_log->Printf("%u ", unsigned(byte));
+                }
+                err_log->Printf("\n");
                 break;
             }
         case PacketComm::TypeId::DataFileReqComplete:

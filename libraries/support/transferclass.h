@@ -73,6 +73,8 @@ namespace Cosmos {
             int32_t get_outgoing_lpackets(const string node_name, vector<PacketComm> &packets);
             int32_t get_outgoing_rpackets(vector<PacketComm> &packets);
             int32_t get_outgoing_rpackets(const string node_name, vector<PacketComm> &packets);
+            int32_t get_outgoing_lpackets(const uint8_t node_id, vector<PacketComm> &packets);
+            int32_t get_outgoing_rpackets(const uint8_t node_id, vector<PacketComm> &packets);
             int32_t receive_packet(const PacketComm& packet);
 
             // Various publicly available requests
@@ -109,10 +111,6 @@ namespace Cosmos {
 
             // Pointer to calling agent's debug_error
             Error* debug_error = nullptr;
-
-            // Internal use
-            int32_t get_outgoing_lpackets(const uint8_t node_id, vector<PacketComm> &packets);
-            int32_t get_outgoing_rpackets(const uint8_t node_id, vector<PacketComm> &packets);
 
             // Private queue manipulation functions
             int32_t outgoing_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1, const bool remove_file=true);

@@ -82,8 +82,7 @@ namespace Cosmos {
                 {
                     this->debug_error->Printf("%.4f Couldn't load node lookup table\n", tet.split());
                 }
-                // TODO semantically, return value should be negative on error (ie: not 0 or 1)
-                return node_ids_size;
+                return COSMOS_TRANSFER_ERROR_NODE;
             }
             if (this->debug_error != nullptr)
             {
@@ -427,7 +426,7 @@ namespace Cosmos {
                                 tp = txq[dest_node_idx].outgoing.progress[tx_id].file_info.back();
 
                                 PACKET_FILE_SIZE_TYPE byte_count = (tp.chunk_end - tp.chunk_start) + 1;
-                                const int32_t packet_data_size_limit = packet_size - offsetof(struct packet_struct_data, chunk);
+                                const PACKET_FILE_SIZE_TYPE packet_data_size_limit = packet_size - offsetof(struct packet_struct_data, chunk);
                                 if (byte_count > packet_data_size_limit)
                                 {
                                     byte_count = packet_data_size_limit;
@@ -436,13 +435,13 @@ namespace Cosmos {
                                 tp.chunk_end = tp.chunk_start + byte_count - 1;
 
                                 // Read the packet and send it
-                                int32_t nbytes;
+                                size_t nbytes = 0;
                                 PACKET_BYTE* chunk = new PACKET_BYTE[byte_count]();
-                                if (!(nbytes = fseek(txq[dest_node_idx].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET)))
+                                if (!fseek(txq[dest_node_idx].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET))
                                 {
                                     nbytes = fread(chunk, 1, byte_count, txq[dest_node_idx].outgoing.progress[tx_id].fp);
                                 }
-                                if (nbytes == byte_count)
+                                if (nbytes == static_cast<size_t>(byte_count))
                                 {
                                     PacketComm packet;
                                     packet.header.nodeorig = self_node_id;
@@ -647,23 +646,15 @@ namespace Cosmos {
                 {
                     treqmeta.push_back(tx_id);
                 }
-
                 // **************************************************************
                 // ** REQDATA ***************************************************
                 // **************************************************************
-                if (!txq[orig_node_idx].incoming.progress[tx_id].sentdata)
+                else if (!txq[orig_node_idx].incoming.progress[tx_id].sentdata)
                 {
                     // Request missing data
                     vector<file_progress> missing;
                     missing = find_chunks_missing(txq[orig_node_idx].incoming.progress[tx_id]);
-                    for (uint32_t j=0; j<missing.size(); ++j)
-                    {
-                        PacketComm packet;
-                        packet.header.nodeorig = self_node_id;
-                        packet.header.nodedest = orig_node_id;
-                        serialize_reqdata(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[orig_node_idx].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
-                        packets.push_back(packet);
-                    }
+                    serialize_reqdata(packets, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), orig_node_id, txq[orig_node_idx].incoming.progress[tx_id].tx_id, missing, packet_size);
                 }
                 // **************************************************************
                 // ** COMPLETE **************************************************
@@ -733,7 +724,12 @@ namespace Cosmos {
 
             // Get the file path and size
             string filepath = data_base_path(dest_node, "outgoing", dest_agent, file_name);
-            int32_t file_size = get_file_size(filepath);
+            PACKET_FILE_SIZE_TYPE file_size = 0;
+            int32_t iretn = get_file_size(filepath, file_size);
+            if (iretn < 0)
+            {
+                return TRANSFER_ERROR_FILESIZE;
+            }
 
             // Go through existing queue
             // - if it is already there and the size is different, remove it
@@ -802,15 +798,6 @@ namespace Cosmos {
 
                 // get the file size
                 tx_out.file_size = file_size;
-
-                if(tx_out.file_size < 0)
-                {
-                    if (debug_error != nullptr)
-                    {
-                        debug_error->Printf("%.4f %.4f Main: outgoing_tx_add: DATA_ERROR_SIZE_MISMATCH\n", tet.split(), dt.lap());
-                    }
-                    return DATA_ERROR_SIZE_MISMATCH;
-                }
 
                 // see if file can be opened
                 filename.open(tx_out.filepath, std::ios::in|std::ios::binary);
@@ -917,7 +904,11 @@ namespace Cosmos {
 
             tx_out.fp = nullptr;
             //get the file size
-            tx_out.file_size = get_file_size(tx_out.filepath);
+            int32_t iretn = get_file_size(tx_out.filepath, tx_out.file_size);
+            if (iretn < 0)
+            {
+                return TRANSFER_ERROR_FILESIZE;
+            }
             tx_out.savetime = 0.;
 
             // save and queue metadata packet
@@ -1486,31 +1477,38 @@ namespace Cosmos {
                 {
                     packet_struct_reqdata reqdata;
 
-                    deserialize_reqdata(packet.data, reqdata);
-
-                    // Simple validity check
-                    if (reqdata.hole_end < reqdata.hole_start)
+                    iretn = deserialize_reqdata(packet.data, reqdata);
+                    if (iretn < 0)
                     {
                         break;
                     }
 
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[orig_node_idx].outgoing, reqdata.tx_id);
                     
-                    // tx_id now points to the valid entry to which we should add the data
-                    if (tx_id > 0)
+                    if (tx_id <= 0)
                     {
-                        // Add this chunk to the queue
-                        file_progress tp;
-                        tp.chunk_start = reqdata.hole_start;
-                        tp.chunk_end = reqdata.hole_end;
-                        bool updated = add_chunk(txq[orig_node_idx].outgoing.progress[tx_id], tp);
-
-                        // Save meta to disk
-                        if (updated)
+                        break;
+                    }
+                    // tx_id now points to the valid entry to which we should add the data
+                    bool updated = false;
+                    for (auto& hole : reqdata.holes)
+                    {
+                        // Simple validity check
+                        if (hole.chunk_end < hole.chunk_start)
                         {
-                            write_meta(txq[orig_node_idx].outgoing.progress[tx_id]);
-                            txq[orig_node_idx].outgoing.progress[tx_id].sentdata = false;
+                            continue;
                         }
+                        // Add this chunk to the queue
+                        updated = add_chunk(txq[orig_node_idx].outgoing.progress[tx_id], hole) || updated;
+                    }
+                    // Recalculate chunks
+                    merge_chunks_overlap(txq[orig_node_idx].outgoing.progress[tx_id]);
+
+                    // Save meta to disk
+                    if (updated)
+                    {
+                        write_meta(txq[orig_node_idx].outgoing.progress[tx_id]);
+                        txq[orig_node_idx].outgoing.progress[tx_id].sentdata = false;
                     }
                 }
                 break;
@@ -2094,7 +2092,7 @@ string Transfer::list_outgoing()
                 jlist.push_back(json11::Json::object {
                     { "tx_id", tx.tx_id },
                     { "file_name", tx.file_name },
-                    { "file_size", tx.file_size },
+                    { "file_size", static_cast<int>(tx.file_size) },
                     { "node_name", tx.node_name },
                     { "enabled", tx.enabled }
                 });
@@ -2126,8 +2124,8 @@ string Transfer::list_incoming()
                 jlist.push_back(json11::Json::object {
                     { "tx_id", tx.tx_id },
                     { "file_name", tx.file_name },
-                    { "file_size", tx.file_size },
-                    { "total_bytes", tx.total_bytes },
+                    { "file_size", static_cast<int>(tx.file_size) },
+                    { "total_bytes", static_cast<int>(tx.total_bytes) },
                     { "sent_meta", tx.sentmeta }
                 });
             }

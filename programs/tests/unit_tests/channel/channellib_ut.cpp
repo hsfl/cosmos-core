@@ -33,6 +33,7 @@ TEST_F(ChannelUTest, Fixture_class_initializes_correctly)
         EXPECT_EQ(channel.channel[i].datasize, 1390);
         EXPECT_EQ(channel.channel[i].rawsize, 1400);
         EXPECT_EQ(channel.channel[i].maximum, 1000);
+        EXPECT_EQ(channel.channel[i].quu.size(), 0);
     }
 }
 

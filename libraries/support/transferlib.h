@@ -25,8 +25,15 @@ namespace Cosmos {
         typedef uint8_t PACKET_NODE_ID_TYPE;
         typedef uint8_t PACKET_TX_ID_TYPE;
         typedef uint16_t PACKET_CHUNK_SIZE_TYPE;
-        typedef int32_t PACKET_FILE_SIZE_TYPE;
+        typedef uint32_t PACKET_FILE_SIZE_TYPE;
         typedef uint32_t PACKET_UNIXTIME_TYPE;
+
+        /// Chunk start and end.
+        struct file_progress
+        {
+            PACKET_FILE_SIZE_TYPE chunk_start;
+            PACKET_FILE_SIZE_TYPE chunk_end;
+        };
 
         struct packet_struct_heartbeat
         {
@@ -79,8 +86,8 @@ namespace Cosmos {
         {
             PACKET_NODE_ID_TYPE node_id;
             PACKET_TX_ID_TYPE tx_id;
-            PACKET_FILE_SIZE_TYPE hole_start;
-            PACKET_FILE_SIZE_TYPE hole_end;
+            uint16_t num_holes;
+            vector<file_progress> holes;
         };
 
         struct packet_struct_data
@@ -114,13 +121,6 @@ namespace Cosmos {
         {
             PACKET_NODE_ID_TYPE node_id;
             PACKET_TX_ID_TYPE tx_id;
-        };
-
-        /// Chunk start and end.
-        struct file_progress
-        {
-            PACKET_FILE_SIZE_TYPE chunk_start;
-            PACKET_FILE_SIZE_TYPE chunk_end;
         };
 
         /// Holds data about the transfer progress of a single file.
@@ -179,8 +179,8 @@ namespace Cosmos {
         };
 
         //Function which gets the size of a file
-        int32_t get_file_size(string filename);
-        int32_t get_file_size(const char* filename);
+        int32_t get_file_size(string filename, PACKET_FILE_SIZE_TYPE& size);
+        int32_t get_file_size(const char* filename, PACKET_FILE_SIZE_TYPE& size);
 
         // Converts packet types to and from byte arrays
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue);
@@ -193,8 +193,8 @@ namespace Cosmos {
         void deserialize_complete(const vector<PACKET_BYTE>& pdata, packet_struct_complete& complete);
         void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& reqmeta);
         void deserialize_reqmeta(const vector<PACKET_BYTE>& pdata, packet_struct_reqmeta& reqmeta);
-        void serialize_reqdata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end);
-        void deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata& reqdata);
+        void serialize_reqdata(vector<PacketComm>& packets, PACKET_NODE_ID_TYPE self_node_id, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id, vector<file_progress>& holes, PACKET_CHUNK_SIZE_TYPE packet_data_size);
+        int32_t deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata& reqdata);
         void serialize_metadata(PacketComm& packet, PACKET_TX_ID_TYPE tx_id, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& node_name, const string& agent_name);
         void deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metalong& meta);
         void serialize_metadata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id , PACKET_TX_ID_TYPE tx_id, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& agent_name);

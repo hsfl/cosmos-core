@@ -66,10 +66,7 @@ namespace Cosmos
         
         //! Creates a skeleton agent with no setup
         //! \param placeholder Does nothing but provide a different function signature for overloading
-        Agent::Agent(uint8_t placeholder)
-        {
-            debug_error.Set(0);
-        }
+        Agent::Agent(uint8_t placeholder) {}
 
         //! Add COSMOS awareness.
         //! Sets up minimum framework for COSMOS awareness. The minimum call makes a nodeless client, setting up the
@@ -99,6 +96,8 @@ namespace Cosmos
             uptime.reset();
             debug_level = dlevel;
             debug_error.Set(dlevel,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
+
+            tasks.Start();
 
             // Initialize COSMOS data space
             cinfo = json_init();
@@ -4165,7 +4164,7 @@ acquired.
                 debug_error.Printf(" %02x", packet.data[i]);
             }
             debug_error.Printf("\n");
-            fflush(stdout);
+            // fflush(stdout);
             return 0;
         }
 

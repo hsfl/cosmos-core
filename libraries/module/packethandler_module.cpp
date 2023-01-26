@@ -14,7 +14,7 @@ namespace Module
 
         mychannel_name = channel_name;
         mychannel = agent->channel_number(mychannel_name);
-        if (mychannel <= 0)
+        if (mychannel < 0 || (!mychannel && channel_name != "SELF"))
         {
             agent->debug_error.Printf("No channel for radio %s\n", mychannel_name.c_str());
             return Cosmos::Support::ErrorNumbers::COSMOS_GENERAL_ERROR_ERROR;

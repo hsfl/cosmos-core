@@ -14,12 +14,14 @@ namespace Cosmos {
                 gethostname(hostname, sizeof (hostname));
                 NodeName = hostname;
             }
-            state = 1;
-            mythread = thread([=] { Runner(); });
         }
 
         Task::~Task()
         {
+            if (!state)
+            {
+                return;
+            }
             state = 2;
             ElapsedTime et;
             while (et.split() < 5. && state != 3)
@@ -30,6 +32,12 @@ namespace Cosmos {
             {
                 mythread.join();
             }
+        }
+
+        void Task::Start()
+        {
+            state = 1;
+            mythread = thread([=] { Runner(); });
         }
 
         void Task::Runner()
