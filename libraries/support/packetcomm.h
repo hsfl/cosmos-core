@@ -333,7 +333,7 @@ namespace Cosmos {
 //                uint8_t data_size;
 //                uint8_t nodeorig = 254; // refer to NodeData::NODEIDORIG;
 //                uint8_t nodedest = 255; // refer to NodeData::NODEIDDEST;
-//                uint8_t chanorig = 0;
+//                uint8_t chanin = 0;
 //            } headerv1;
 
             struct __attribute__ ((packed))  Header
@@ -342,8 +342,8 @@ namespace Cosmos {
                 uint16_t data_size;
                 uint8_t nodeorig = 254; // refer to NodeData::NODEIDORIG;
                 uint8_t nodedest = 255; // refer to NodeData::NODEIDDEST;
-                uint8_t chanorig = 0;
-                uint8_t chandest = 0;
+                uint8_t chanin = 0;
+                uint8_t chanout = 0;
             } header;
 
             CCSDS_Header ccsds_header;

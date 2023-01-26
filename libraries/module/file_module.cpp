@@ -219,9 +219,9 @@ namespace Cosmos
                     // Transfer to radio
                     for (auto &p : file_packets)
                     {
-                        // TODO: note that p does not set header.chanorig
-                        p.header.chanorig = mychannel;
-                        p.header.chandest = mychannel;
+                        // TODO: note that p does not set header.chanin
+                        p.header.chanin = mychannel;
+                        p.header.chanout = mychannel;
 
                         iretn = agent->channel_push(out_radio, p);
 

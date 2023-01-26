@@ -61,8 +61,8 @@ namespace Cosmos {
                     style = PacketStyle::Minimal;
                     header.nodeorig = 254;
                     header.nodedest = 255;
-                    header.chanorig = 0;
-                    header.chandest = 0;
+                    header.chanin = 0;
+                    header.chanout = 0;
                     return data.size();
                 }
             case false:
@@ -201,7 +201,7 @@ namespace Cosmos {
 //                    headerv1.type = static_cast<TypeIdV1>(header.type);
 //                    headerv1.nodeorig = header.nodeorig;
 //                    headerv1.nodedest = header.nodedest;
-//                    headerv1.chanorig = header.chanorig;
+//                    headerv1.chanin = header.chanin;
 //                    wrapped.resize(COSMOS_SIZEOF(HeaderV1));
 //                    memcpy(&wrapped[0], &headerv1, COSMOS_SIZEOF(HeaderV1));
 //                    wrapped.insert(wrapped.end(), data.begin(), data.end());

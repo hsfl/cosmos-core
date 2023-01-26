@@ -41,7 +41,7 @@ namespace Module
                 packethandler.process(packet, response);
                 if (response.size() > 0)
                 {
-                    agent->push_response(packet.header.chanorig, mychannel, packet.header.nodeorig, 0, response);
+                    agent->push_response(packet.header.chanin, mychannel, packet.header.nodeorig, 0, response);
                 }
             }
 

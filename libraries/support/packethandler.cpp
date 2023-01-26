@@ -158,11 +158,11 @@ namespace Cosmos {
             beacon.EncodeJson(beacon.type, agent->cinfo, response);
 
             // Log beacon
-            string orig_node = agent->nodeData.lookup_node_id_name(packet.header.nodeorig);
-            if (!orig_node.empty())
-            {
-                log_write(orig_node, "beacon", agent->get_timeStart(), "", "beacon", response, "incoming");
-            }
+//            string orig_node = agent->nodeData.lookup_node_id_name(packet.header.nodeorig);
+//            if (!orig_node.empty())
+//            {
+//                log_write(orig_node, "beacon", agent->get_timeStart(), "", "beacon", response, "incoming");
+//            }
 
             return 0;
         }
@@ -229,13 +229,13 @@ namespace Cosmos {
                 uint16_t chunks;
                 filestruc file;
 
-                iretn = agent->channel_push(agent->channel_number("EPS"), packet);
+                iretn = agent->channel_push(packet);
 
                 PacketComm::EpsResponseHeader header;
                 header_size = sizeof(header);
                 memcpy(&header, packet.data.data(), header_size);
                 this_chunk_size = packet.data.size() - header_size;
-                chunk_size = agent->channel_datasize(packet.header.chanorig) - header_size;
+                chunk_size = agent->channel_datasize(packet.header.chanin) - header_size;
                 chunk_id = header.chunk_id;
                 chunks = header.chunks;
                 file = data_name_struc(NodeData::lookup_node_id_name(packet.header.nodeorig), "temp", "eps", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "eresp", NodeData::lookup_node_id_name(packet.header.nodeorig), "eps", to_unsigned(header.unit)+"_"+to_unsigned(header.command)));
@@ -317,7 +317,7 @@ namespace Cosmos {
                 header_size = sizeof(header);
                 memcpy(&header, packet.data.data(), header_size);
                 this_chunk_size = packet.data.size() - header_size;
-                chunk_size = agent->channel_datasize(packet.header.chanorig) - header_size;
+                chunk_size = agent->channel_datasize(packet.header.chanin) - header_size;
                 chunk_id = header.chunk_id;
                 chunks = header.chunks;
                 file = data_name_struc(NodeData::lookup_node_id_name(packet.header.nodeorig), "temp", "adcs", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "aresp", NodeData::lookup_node_id_name(packet.header.nodeorig), "adcs", to_unsigned(header.command)));
@@ -399,7 +399,7 @@ namespace Cosmos {
                 header_size = COSMOS_SIZEOF(PacketComm::ResponseHeader);
                 memcpy(&header, packet.data.data(), header_size);
                 this_chunk_size = packet.data.size() - header_size;
-                chunk_size = agent->channel_datasize(packet.header.chanorig) - header_size;
+                chunk_size = agent->channel_datasize(packet.header.chanin) - header_size;
                 chunk_id = header.chunk_id;
                 chunks = header.chunks;
                 file = data_name_struc(NodeData::lookup_node_id_name(packet.header.nodeorig), "temp", "main", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "gresp", NodeData::lookup_node_id_name(packet.header.nodeorig), "main", to_unsigned(header.response_id)));
@@ -660,7 +660,7 @@ namespace Cosmos {
             packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
             for (uint16_t i=0; i<count; ++i)
             {
-                iretn = agent->channel_push(packet.header.chanorig, packet);
+                iretn = agent->channel_push(packet.header.chanin, packet);
             }
             return iretn;
         }
@@ -684,7 +684,7 @@ namespace Cosmos {
             // Run command, return response
             int32_t iretn = data_execute(string(packet.data.begin()+4, packet.data.end()), response);
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->push_response(packet.header.chanorig, 0, packet.header.nodeorig, response_id, string(response.begin(), response.end()));
+            iretn = agent->push_response(packet.header.chanin, 0, packet.header.nodeorig, response_id, string(response.begin(), response.end()));
             response.clear();
             return iretn;
         }
@@ -695,14 +695,14 @@ namespace Cosmos {
             int32_t iretn = agent->task_add(string(packet.data.begin()+4, packet.data.end()));
             response = "Running: " + agent->task_command(iretn) + " in " + agent->task_path(iretn) + " #" + to_unsigned(agent->task_size());
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->push_response(packet.header.chanorig, 0, packet.header.nodeorig, response_id, string(response.begin(), response.end()));
+            iretn = agent->push_response(packet.header.chanin, 0, packet.header.nodeorig, response_id, string(response.begin(), response.end()));
             response.clear();
             return iretn;
         }
 
         int32_t PacketHandler::TestRadio(PacketComm& packet, string &response, Agent* agent)
         {
-            int32_t iretn = agent->channel_push(packet.header.chanorig, packet);
+            int32_t iretn = agent->channel_push(packet.header.chanin, packet);
             return iretn;
         }
 
@@ -720,7 +720,7 @@ namespace Cosmos {
                 response += file.name + " ";
             }
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->push_response(packet.header.chanorig, 0, packet.header.nodeorig, response_id, response);
+            iretn = agent->push_response(packet.header.chanin, 0, packet.header.nodeorig, response_id, response);
             response.clear();
             return iretn;
         }
@@ -731,7 +731,7 @@ namespace Cosmos {
             string erequest = string(packet.data.begin()+4, packet.data.end());
             int32_t iretn = agent->process_request(erequest, response);
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->push_response(packet.header.chanorig, 0, packet.header.nodeorig, response_id, response);
+            iretn = agent->push_response(packet.header.chanin, 0, packet.header.nodeorig, response_id, response);
             return iretn;
         }
 
@@ -743,7 +743,7 @@ namespace Cosmos {
             NodeData::NODE_ID_TYPE temp = packet.header.nodedest;
             packet.header.nodedest = packet.header.nodeorig;
             packet.header.nodeorig = temp;
-            iretn = agent->channel_push(packet.header.chanorig, packet);
+            iretn = agent->channel_push(packet.header.chanin, packet);
             return iretn;
         }
 
@@ -763,7 +763,7 @@ namespace Cosmos {
             int32_t iretn=0;
             response = mjd2iso8601(currentmjd());
             response += " " + to_label("MET", currentmjd() - agent->cinfo->node.utcstart);
-            iretn = agent->push_response(packet.header.chanorig, 0, packet.header.nodeorig, centisec(), response);
+            iretn = agent->push_response(packet.header.chanin, 0, packet.header.nodeorig, centisec(), response);
             return iretn;
         }
 
@@ -777,7 +777,7 @@ namespace Cosmos {
             double mjd = currentmjd();
             memcpy(&packet.data[0], &mjd, 8);
             memcpy(&packet.data[8], &agent->cinfo->node.utcstart, 8);
-            iretn = agent->channel_push(packet.header.chanorig, packet);
+            iretn = agent->channel_push(packet.header.chanin, packet);
             return iretn;
         }
 
@@ -831,7 +831,7 @@ namespace Cosmos {
 
         // Queue Packetcomm packets
 
-        int32_t PacketHandler::QueueReset(uint16_t seconds, uint32_t verification_check, Agent* agent, string channel, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueReset(uint16_t seconds, uint32_t verification_check, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -839,15 +839,16 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandObcReset;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
             packet.data.resize(6);
             uint32to(verification_check, &packet.data[0], ByteOrder::LITTLEENDIAN);
             uint16to(seconds, &packet.data[4], ByteOrder::LITTLEENDIAN);
-            iretn = agent->channel_push(agent->channel_number(channel), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueReboot(uint32_t verification_check, Agent* agent, string channel, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueReboot(uint32_t verification_check, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -855,14 +856,15 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandObcReboot;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
             packet.data.resize(6);
             uint32to(verification_check, &packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->channel_push(agent->channel_number(channel), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueSendBeacon(uint8_t btype, uint8_t bcount, Agent* agent, string channel, NodeData::NODE_ID_TYPE orig, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueSendBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NodeData::NODE_ID_TYPE orig, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -870,15 +872,16 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandObcSendBeacon;
             packet.header.nodeorig = dest;
             packet.header.nodedest = orig;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
             packet.data.resize(2);
             packet.data[0] = btype;
             packet.data[1] = bcount;
-            iretn = agent->channel_push(agent->channel_number(channel), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueBeacon(uint8_t btype, uint8_t bcount, Agent* agent, string channel, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn=0;
             PacketComm packet;
@@ -890,8 +893,8 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::DataObcBeacon;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
-            packet.header.chandest = agent->channel_number(channel);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
             packet.data.clear();
             packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
             for (uint16_t i=0; i<bcount; ++i)
@@ -901,7 +904,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueAdcsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueAdcsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm::CommunicateHeader header;
@@ -915,39 +918,34 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandAdcsCommunicate;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("ADCS");
             packet.data.resize(sizeof(header));
             memcpy(packet.data.data(), &header, sizeof(header));
             packet.data.insert(packet.data.end(), data.begin(), data.end());
-            iretn = agent->channel_push(agent->channel_number("ADCS"), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueAdcsState(uint8_t state, vector<uint8_t>  data, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueAdcsState(uint8_t state, vector<uint8_t>  data, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
-//            PacketComm::StateHeader header;
-
-//            header.unit = unit;
-//            header.command = command;
-//            header.responsecount = rcount;
 
             PacketComm packet;
 
             packet.header.type = PacketComm::TypeId::CommandAdcsState;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("ADCS");
             packet.data.resize(1);
             packet.data[0] = state;
-//            packet.data.resize(sizeof(header));
-//            memcpy(packet.data.data(), &header, sizeof(header));
             packet.data.insert(packet.data.end(), data.begin(), data.end());
-            iretn = agent->channel_push(agent->channel_number("ADCS"), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEpsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm::CommunicateHeader header;
@@ -961,11 +959,12 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandEpsCommunicate;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("EPS");
             packet.data.resize(sizeof(header));
             memcpy(packet.data.data(), &header, sizeof(header));
             packet.data.insert(packet.data.end(), data.begin(), data.end());
-            iretn = agent->channel_push(agent->channel_number("EPS"), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
@@ -977,7 +976,7 @@ namespace Cosmos {
         //! \param dest Destination Node number.
         //! \param radio Radio name.
         //! \return Zero or negative error.
-        int32_t PacketHandler::QueueEpsSwitchName(const std::string &name, uint8_t state, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEpsSwitchName(const std::string &name, uint8_t state, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -985,11 +984,12 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandEpsSwitchName;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("EPS");
             packet.data.resize(1);
             packet.data[0] = state;
             packet.data.insert(packet.data.end(), name.begin(), name.end());
-            iretn = agent->channel_push(agent->channel_number("EPS"), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
@@ -1001,9 +1001,9 @@ namespace Cosmos {
         //! \param dest Destination Node number.
         //! \param radio Radio name.
         //! \return Zero or negative error.
-        int32_t PacketHandler::QueueEpsSwitchNames(vector<std::string> &names, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEpsSwitchNames(vector<std::string> &names, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
-            return QueueEpsSwitchNames(string_join(names), agent, dest, radio);
+            return QueueEpsSwitchNames(string_join(names), agent, dest, radioin);
         }
 
         //! \brief Queue EpsSwitchNames packet
@@ -1014,7 +1014,7 @@ namespace Cosmos {
         //! \param dest Destination Node number.
         //! \param radio Radio name.
         //! \return Zero or negative error.
-        int32_t PacketHandler::QueueEpsSwitchNames(const string& names, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEpsSwitchNames(const string& names, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1022,10 +1022,11 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandEpsSwitchNames;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("EPS");
             packet.data.clear();
             packet.data.insert(packet.data.end(), names.begin(), names.end());
-            iretn = agent->channel_push(agent->channel_number("EPS"), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
@@ -1037,7 +1038,7 @@ namespace Cosmos {
         //! \param dest Destination Node number.
         //! \param radio Radio name.
         //! \return Zero or negative error.
-        int32_t PacketHandler::QueueEpsSwitchNumber(uint16_t number, uint8_t state, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEpsSwitchNumber(uint16_t number, uint8_t state, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1045,15 +1046,16 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandEpsSwitchName;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("EPS");
             packet.data.resize(3);
             packet.data[0] = state;
             uint16to(number, &packet.data[2], ByteOrder::LITTLEENDIAN);
-            iretn = agent->channel_push(agent->channel_number("EPS"), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsReset(uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEpsReset(uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1061,14 +1063,15 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandEpsReset;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("EPS");
             packet.data.resize(2);
             uint16to(seconds, &packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->channel_push(agent->channel_number("EPS"), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsState(uint8_t state, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEpsState(uint8_t state, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1076,14 +1079,15 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandEpsState;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("EPS");
             packet.data.resize(1);
             packet.data[0] = state;
-            iretn = agent->channel_push(agent->channel_number("EPS"), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsWatchdog(uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEpsWatchdog(uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1091,14 +1095,15 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandEpsWatchdog;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("EPS");
             packet.data.resize(2);
             uint16to(seconds, &packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->channel_push(agent->channel_number("EPS"), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsSetTime(double mjd, Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEpsSetTime(double mjd, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1106,14 +1111,15 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandEpsSetTime;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("EPS");
             packet.data.resize(8);
             doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
-            iretn = agent->channel_push(agent->channel_number("EPS"), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsMinimumPower(Agent* agent, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueEpsMinimumPower(Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1121,8 +1127,9 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandEpsMinimumPower;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
-            iretn = agent->channel_push(agent->channel_number("EPS"), packet);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("EPS");
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
@@ -1134,15 +1141,16 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandFileTransferRadio;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = 0;
+            packet.header.chanin = 0;
+            packet.header.chanout = agent->channel_number("FILE");
             packet.data.resize(2);
             packet.data[0] = use_radio;
             packet.data[1] = availability;
-            iretn = agent->channel_push(agent->channel_number("FILE"), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueTestRadio(uint8_t start, uint8_t step, uint8_t stop, uint32_t count, Agent* agent, string testradio, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueTestRadio(uint8_t start, uint8_t step, uint8_t stop, uint32_t count, Agent* agent, string testradio, NodeData::NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1150,18 +1158,19 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandRadioTest;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(testradio);
             packet.data.resize(11);
             packet.data[0] = start;
             packet.data[1] = step;
             packet.data[2] = stop;
             uint32to(decisec(), &packet.data[3], ByteOrder::LITTLEENDIAN);
             uint32to(count, &packet.data[7], ByteOrder::LITTLEENDIAN);
-            iretn = agent->channel_push(agent->channel_number(testradio), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
 
-        int32_t PacketHandler::QueueSetTime(double mjd, int8_t direction , Agent* agent, string channel, NodeData::NODE_ID_TYPE dest, string radio)
+        int32_t PacketHandler::QueueSetTime(double mjd, int8_t direction , Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1169,8 +1178,8 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandObcSetTime;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
-            packet.header.chandest = agent->channel_number(channel);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
             packet.data.resize(9);
             doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
             packet.data[8] = direction;
@@ -1178,7 +1187,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEnableChannel(const string &name, uint8_t enable,  Agent* agent, const string& channel, NodeData::NODE_ID_TYPE dest, const std::string &radio)
+        int32_t PacketHandler::QueueEnableChannel(const string &name, uint8_t enable,  Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string &radioin)
         {
             int32_t iretn = agent->channel_number(name);
             if (iretn >= 0)
@@ -1188,16 +1197,17 @@ namespace Cosmos {
                 packet.header.type = PacketComm::TypeId::CommandExecEnableChannel;
                 packet.header.nodeorig = agent->nodeId;
                 packet.header.nodedest = dest;
-                packet.header.chanorig = agent->channel_number(radio);
+                packet.header.chanin = agent->channel_number(radioin);
+                packet.header.chanout = agent->channel_number(channelout);
                 packet.data.resize(1);
                 packet.data[0] = enable;
                 packet.data.insert(packet.data.end(), name.begin(), name.end());
-                iretn = agent->channel_push(agent->channel_number(channel), packet);
+                iretn = agent->channel_push(packet);
             }
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEnableChannel(uint8_t number, uint8_t enable,  Agent* agent, const std::string &channel, NodeData::NODE_ID_TYPE dest, const std::string &radio)
+        int32_t PacketHandler::QueueEnableChannel(uint8_t number, uint8_t enable,  Agent* agent, NodeData::NODE_ID_TYPE dest, const std::string &channelout, const string &radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1205,11 +1215,12 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::CommandExecEnableChannel;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
-            packet.header.chanorig = agent->channel_number(radio);
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
             packet.data.resize(2);
             packet.data[0] = enable;
             packet.data[1] = number;
-            iretn = agent->channel_push(agent->channel_number(channel), packet);
+            iretn = agent->channel_push(packet);
             return iretn;
         }
     }

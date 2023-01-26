@@ -796,7 +796,7 @@ namespace Cosmos {
             test_packet.header.type = PacketComm::TypeId::DataRadioTest;
             test_packet.header.nodeorig = orig;
             test_packet.header.nodedest = dest;
-            test_packet.header.chanorig = radio;
+            test_packet.header.chanin = radio;
 
             PacketComm::TestHeader theader;
             theader.size = channel[number].datasize-(sizeof(theader)+2);

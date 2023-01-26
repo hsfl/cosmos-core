@@ -1937,8 +1937,8 @@ namespace Cosmos
             packet.header.type = packet.StringType[type];
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = agent->nodeData.lookup_node_id(dest);
-            packet.header.chanorig = inchannel;
-            packet.header.chandest = outchannel;
+            packet.header.chanin = inchannel;
+            packet.header.chanout = outchannel;
             response = "dest:" + dest + " radioup:" + agent->channels.channel[outchannel].name + " radiodown:" + agent->channels.channel[inchannel].name + " " + type;
             switch (packet.header.type)
             {
@@ -4110,7 +4110,7 @@ acquired.
                     header.chunks = (response.size() - 1) / chunk_size + 1;
                 }
                 packet.header.type = type;
-                packet.header.chanorig = number;
+                packet.header.chanin = number;
                 packet.header.nodeorig = nodeId;
                 packet.header.nodedest = dest;
                 for (header.chunk_id=0; header.chunk_id<header.chunks; ++header.chunk_id)
@@ -4153,11 +4153,11 @@ acquired.
 
             if (extra.empty())
             {
-                debug_error.Printf("%u [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                debug_error.Printf("%u [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanin, packet.header.chanout, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             else
             {
-                debug_error.Printf("%u %s [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanorig, packet.header.chandest, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                debug_error.Printf("%u %s [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanin, packet.header.chanout, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
             {
@@ -4206,12 +4206,12 @@ acquired.
         int32_t Agent::channel_push(PacketComm& packet)
         {
             int32_t iretn=0;
-            if (packet.header.chandest >= channels.channel.size())
+            if (packet.header.chanout >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
 
-            iretn = channels.Push(packet.header.chandest, packet);
+            iretn = channels.Push(packet.header.chanout, packet);
 
             return iretn;
         }
