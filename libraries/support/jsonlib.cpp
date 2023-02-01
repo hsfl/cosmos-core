@@ -8882,6 +8882,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             json_addentry("device_swch_amp",didx, UINT16_MAX, (uint8_t *)&device->amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_swch_power",didx, UINT16_MAX, (uint8_t *)&device->power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_swch_energy",didx, UINT16_MAX, (uint8_t *)&device->energy, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+            json_addentry("device_swch_state",didx, UINT16_MAX, (uint8_t *)&device->state, (uint16_t)JSON_TYPE_UINT8, cinfo);
             break;
         }
     case DeviceType::TCU:
@@ -9425,10 +9426,10 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_swch_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_swch_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_swch_temp",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_swch_volt",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_swch_amp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_swch_volt",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_swch_energy",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_swch_state",didx, UINT16_MAX, cinfo, state);
         break;
         //! Rotor
     case DeviceType::ROT:

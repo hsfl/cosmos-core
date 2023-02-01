@@ -158,20 +158,20 @@ int main(int argc, char *argv[])
 
     if ((iretn = agent->wait()) < 0)
     {
-        agent->debug_error.Printf("%.4f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_log.Printf("%.4f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
     else
     {
-        agent->debug_error.Printf("%.4f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+        agent->debug_log.Printf("%.4f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
-    agent->debug_error.Printf("%.4f Node: %s Agent: %s - Established\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
+    agent->debug_log.Printf("%.4f Node: %s Agent: %s - Established\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
 
     out_comm_channel.resize(1);
     if((iretn = socket_open(&out_comm_channel[0].chansock, NetworkType::UDP, "", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
     {
-        agent->debug_error.Printf("%.4f Main: Node: %s Agent: %s - Listening socket failure\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
+        agent->debug_log.Printf("%.4f Main: Node: %s Agent: %s - Listening socket failure\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
         agent->shutdown();
         exit (-errno);
     }
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
     out_comm_channel[0].node = agent->nodeName; // TODO: consider this
     out_comm_channel[0].throughput = default_throughput;
     out_comm_channel[0].packet_size = default_packet_size;
-    agent->debug_error.Printf("%.4f Node: %s Agent: %s - Listening socket open\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
+    agent->debug_log.Printf("%.4f Node: %s Agent: %s - Listening socket open\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
 
     if (argc > 1 && ((argv[1][0] < '0' || argv[1][0] > '9') || argc == 3))
     {
@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
         }
         if((iretn = socket_open(&out_comm_channel[1].chansock, NetworkType::UDP, out_comm_channel[1].chanip.c_str(), AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
         {
-            agent->debug_error.Printf("%.4f Node: %s IP: %s - Sending socket failure\n", tet.split(), out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str());
+            agent->debug_log.Printf("%.4f Node: %s IP: %s - Sending socket failure\n", tet.split(), out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str());
             agent->shutdown();
             exit (-errno);
         }
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
         out_comm_channel[1].lomjd = out_comm_channel[1].nmjd;
         out_comm_channel[1].fmjd = out_comm_channel[1].nmjd;
         out_comm_channel[1].packet_size = default_packet_size;
-        agent->debug_error.Printf("%.4f Network: Old: %u %s %s %u\n", tet.split(), 1, out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str(), ntohs(out_comm_channel[1].chansock.caddr.sin_port));
+        agent->debug_log.Printf("%.4f Network: Old: %u %s %s %u\n", tet.split(), 1, out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str(), ntohs(out_comm_channel[1].chansock.caddr.sin_port));
     
         logstride_sec = 600.; // longer logstride
     }
@@ -233,10 +233,10 @@ int main(int argc, char *argv[])
         exit (iretn);
 
     // Initialize Transfer class
-    iretn = transfer.Init(agent->nodeName, &agent->debug_error);
+    iretn = transfer.Init(agent->nodeName, &agent->debug_log);
     if (iretn < 0)
     {
-        agent->debug_error.Printf("%.4f Error initializing transfer class!\n", tet.split());
+        agent->debug_log.Printf("%.4f Error initializing transfer class!\n", tet.split());
         agent->shutdown();
         exit (iretn);
     }
@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
                 transfer_mtx.unlock();
                 if (iretn < 0 && agent->get_debug_level())
                 {
-                    agent->debug_error.Printf("%16.10f Error in get_outgoing_rpackets: %d\n", currentmjd(), iretn);
+                    agent->debug_log.Printf("%16.10f Error in get_outgoing_rpackets: %d\n", currentmjd(), iretn);
                 }
             }
             file_transfer_respond.store(false);
@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
                 transfer_mtx.unlock();
                 if (iretn < 0 && agent->get_debug_level())
                 {
-                    agent->debug_error.Printf("%16.10f Error in get_outgoing_lpackets: %d\n", currentmjd(), iretn);
+                    agent->debug_log.Printf("%16.10f Error in get_outgoing_lpackets: %d\n", currentmjd(), iretn);
                 }
             }
         }
@@ -329,7 +329,7 @@ int main(int argc, char *argv[])
 
     if (agent->get_debug_level())
     {
-        agent->debug_error.Printf("%.4f %.4f Main: Node: %s Agent: %s - Exiting\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
+        agent->debug_log.Printf("%.4f %.4f Main: Node: %s Agent: %s - Exiting\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
     }
 
     recv_loop_thread.join();
@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
 
     if (agent->get_debug_level())
     {
-        agent->debug_error.Printf("%.4f %.4f Main: Node: %s Agent: %s - Shutting down\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
+        agent->debug_log.Printf("%.4f %.4f Main: Node: %s Agent: %s - Shutting down\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
     }
 
     agent->shutdown();
@@ -378,7 +378,7 @@ void recv_loop() noexcept
             if (iretn < 0) {
                 if (agent->get_debug_level())
                 {
-                    agent->debug_error.Printf("%.4f %.4f Main: Node: %s Agent: %s - Error in receive_packet(): %d\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str(), iretn);
+                    agent->debug_log.Printf("%.4f %.4f Main: Node: %s Agent: %s - Error in receive_packet(): %d\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str(), iretn);
                 }
                 if (iretn == COSMOS_PACKET_TYPE_MISMATCH)
                 {
@@ -421,7 +421,7 @@ void recv_loop() noexcept
                     out_comm_channel.push_back(tchannel);
                     if (agent->get_debug_level())
                     {
-                        agent->debug_error.Printf("%.4f %.4f agent_file: main loop: Adding new node:IP %s:%.17s\n", tet.split(), dt.lap(), node_name.c_str(), tchannel.chansock.address);
+                        agent->debug_log.Printf("%.4f %.4f agent_file: main loop: Adding new node:IP %s:%.17s\n", tet.split(), dt.lap(), node_name.c_str(), tchannel.chansock.address);
                     }
                 }
                 out_comm_lock.unlock();*/
@@ -569,16 +569,16 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
             {
                 if (!node_name.empty())
                 {
-                    agent->debug_error.Printf("%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
+                    agent->debug_log.Printf("%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
                 }
                 else
                 {
-                    agent->debug_error.Printf("%.4f %.4f RECV L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
+                    agent->debug_log.Printf("%.4f %.4f RECV L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
                 }
             }
             else
             {
-                agent->debug_error.Printf("%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
+                agent->debug_log.Printf("%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
             }
         }
         else if (direction == PACKET_OUT)
@@ -587,16 +587,16 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
             {
                 if (!node_name.empty())
                 {
-                    agent->debug_error.Printf("%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
+                    agent->debug_log.Printf("%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
                 }
                 else
                 {
-                    agent->debug_error.Printf("%.4f %.4f SEND L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
+                    agent->debug_log.Printf("%.4f %.4f SEND L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
                 }
             }
             else
             {
-                agent->debug_error.Printf("%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
+                agent->debug_log.Printf("%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
             }
         }
 
@@ -605,38 +605,38 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
         case PacketComm::TypeId::DataFileMetaData:
             {
                 string file_name(&packet.data[offsetof(struct packet_struct_metashort, file_name)], &packet.data[offsetof(struct packet_struct_metashort, file_name)+TRANSFER_MAX_FILENAME]);
-                agent->debug_error.Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(struct packet_struct_metashort, tx_id)], file_name.c_str());
+                agent->debug_log.Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(struct packet_struct_metashort, tx_id)], file_name.c_str());
                 break;
             }
         case PacketComm::TypeId::DataFileChunkData:
             {
-                agent->debug_error.Printf("[DATA] %u %u %u %u ", node_id, packet.data[offsetof(struct packet_struct_data, tx_id)], packet.data[offsetof(struct packet_struct_data, chunk_start)]+256U*(packet.data[offsetof(struct packet_struct_data, chunk_start)+1]+256U*(packet.data[offsetof(struct packet_struct_data, chunk_start)+2]+256U*packet.data[offsetof(struct packet_struct_data, chunk_start)+3])), packet.data[offsetof(struct packet_struct_data, byte_count)]+256U*packet.data[offsetof(struct packet_struct_data, byte_count)+1]);
+                agent->debug_log.Printf("[DATA] %u %u %u %u ", node_id, packet.data[offsetof(struct packet_struct_data, tx_id)], packet.data[offsetof(struct packet_struct_data, chunk_start)]+256U*(packet.data[offsetof(struct packet_struct_data, chunk_start)+1]+256U*(packet.data[offsetof(struct packet_struct_data, chunk_start)+2]+256U*packet.data[offsetof(struct packet_struct_data, chunk_start)+3])), packet.data[offsetof(struct packet_struct_data, byte_count)]+256U*packet.data[offsetof(struct packet_struct_data, byte_count)+1]);
                 break;
             }
         case PacketComm::TypeId::DataFileReqData:
             {
-                agent->debug_error.Printf("[REQDATA] ");
+                agent->debug_log.Printf("[REQDATA] ");
                 for (auto& byte : packet.data)
                 {
-                    agent->debug_error.Printf("%u ", unsigned(byte));
+                    agent->debug_log.Printf("%u ", unsigned(byte));
                 }
-                agent->debug_error.Printf("\n");
+                agent->debug_log.Printf("\n");
                 break;
                 break;
             }
         case PacketComm::TypeId::DataFileReqComplete:
             {
-                agent->debug_error.Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[offsetof(struct packet_struct_reqcomplete, tx_id)]);
+                agent->debug_log.Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[offsetof(struct packet_struct_reqcomplete, tx_id)]);
                 break;
             }
         case PacketComm::TypeId::DataFileComplete:
             {
-                agent->debug_error.Printf("[COMPLETE] %u %u ", node_id, packet.data[offsetof(struct packet_struct_complete, tx_id)]);
+                agent->debug_log.Printf("[COMPLETE] %u %u ", node_id, packet.data[offsetof(struct packet_struct_complete, tx_id)]);
                 break;
             }
         case PacketComm::TypeId::DataFileCancel:
             {
-                agent->debug_error.Printf("[CANCEL] %u %u ", node_id, packet.data[offsetof(struct packet_struct_cancel, tx_id)]);
+                agent->debug_log.Printf("[CANCEL] %u %u ", node_id, packet.data[offsetof(struct packet_struct_cancel, tx_id)]);
                 break;
             }
         case PacketComm::TypeId::DataFileReqMeta:
@@ -645,12 +645,12 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
                 packet_struct_queue queue;
                 deserialize_queue(packet.data, queue);
                 string label = packet.header.type == PacketComm::TypeId::DataFileReqMeta ? "REQMETA" : "QUEUE";
-                agent->debug_error.Printf("[%s] %u ", label.c_str(), node_id);
+                agent->debug_log.Printf("[%s] %u ", label.c_str(), node_id);
                 // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint8_t type
                 for (PACKET_QUEUE_FLAGS_TYPE i=0; i<PACKET_QUEUE_FLAGS_LIMIT; ++i)
                 {
                     PACKET_QUEUE_FLAGS_TYPE flags = queue.tx_ids[i];
-                    //agent->debug_error.Printf("[%u] ", flags);
+                    //agent->debug_log.Printf("[%u] ", flags);
                     PACKET_TX_ID_TYPE hi = i << 3;
                     for (size_t bit = 0; bit < sizeof(PACKET_QUEUE_FLAGS_TYPE)*8; ++bit)
                     {
@@ -660,17 +660,17 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
                             continue;
                         }
                         PACKET_TX_ID_TYPE tx_id = hi | bit;
-                        agent->debug_error.Printf("%u ", unsigned(tx_id));
+                        agent->debug_log.Printf("%u ", unsigned(tx_id));
                     }
                 }
             }
             break;
         default:
             {
-                agent->debug_error.Printf("[ERROR] %u %s", node_id, "Error in debug_packet switch on packet.header.type");
+                agent->debug_log.Printf("[ERROR] %u %s", node_id, "Error in debug_packet switch on packet.header.type");
             }
         }
-        agent->debug_error.Printf("\n");
+        agent->debug_log.Printf("\n");
         // fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }

@@ -1,5 +1,5 @@
 #include "support/configCosmos.h"
-#include "support/cosmos-errclass.h"
+#include "support/logger.h"
 #include "support/elapsedtime.h"
 #include "device/serial/serialclass.h"
 

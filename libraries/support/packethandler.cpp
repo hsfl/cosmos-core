@@ -158,11 +158,11 @@ namespace Cosmos {
             beacon.EncodeJson(beacon.type, agent->cinfo, response);
 
             // Log beacon
-//            string orig_node = agent->nodeData.lookup_node_id_name(packet.header.nodeorig);
-//            if (!orig_node.empty())
-//            {
-//                log_write(orig_node, "beacon", agent->get_timeStart(), "", "beacon", response, "incoming");
-//            }
+            //            string orig_node = agent->nodeData.lookup_node_id_name(packet.header.nodeorig);
+            //            if (!orig_node.empty())
+            //            {
+            //                log_write(orig_node, "beacon", agent->get_timeStart(), "", "beacon", response, "incoming");
+            //            }
 
             return 0;
         }
@@ -267,7 +267,7 @@ namespace Cosmos {
                             iretn = -errno;
                         }
                         fclose(tf);
-//                        response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
+                        //                        response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
                         response = "[" + to_unsigned(chunk_id) + ":" + to_unsigned(chunks) + "]" + to_hex_string(packet.data, false, header_size);
 
                         // Check if all chunks received
@@ -350,7 +350,7 @@ namespace Cosmos {
                             iretn = -errno;
                         }
                         fclose(tf);
-//                        response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
+                        //                        response = "chunks=" + std::to_string(chunks) + " chunk_id=" + std::to_string(chunk_id) + "chunk_size=" + std::to_string(this_chunk_size);
                         response = "[" + to_unsigned(chunk_id) + ":" + to_unsigned(chunks) + ":" + to_unsigned(this_chunk_size) + "]" + to_hex_string(packet.data, false, header_size);
 
                         // Check if all chunks received
@@ -483,7 +483,7 @@ namespace Cosmos {
                 string path;
             };
             static test_control test;
-//            static map<uint32_t, test_control> tests;
+            //            static map<uint32_t, test_control> tests;
             response.clear();
 
             if (packet.data.size() > COSMOS_SIZEOF(PacketComm::TestHeader))
@@ -496,25 +496,25 @@ namespace Cosmos {
                 if (header.test_id != test.test_id)
                 {
                     // New Test
-//                    if (tests.find(last_test_id) != tests.end())
-//                    {
-//                        // Finish off existing test
-//                        response += to_label("MET", (currentmjd() - agent->cinfo->node.utcstart));
-//                        response += to_label(" Test_Id", last_test_id);
-//                        response +=  to_label(" Packet_Id", tests[last_test_id].packet_id);
-//                        response += " Good: " + to_unsigned(tests[last_test_id].good_count);
-//                        response += " Skip: " + to_unsigned(tests[last_test_id].skip_count);
-//                        response += " Size: " + to_unsigned(tests[last_test_id].size_count);
-//                        response += " Crc: " + to_unsigned(tests[last_test_id].crc_count);
-//                        response += to_label(" Bytes", tests[last_test_id].total_bytes);
-//                        response += to_label(" Count", tests[last_test_id].total_count);
-//                        response += to_label(" Seconds", tests[last_test_id].et.split());
-//                        response += to_label(" Speed", tests[last_test_id].total_bytes / tests[last_test_id].et.split());
-//                        response += " Abort: \n";
-//                    }
+                    //                    if (tests.find(last_test_id) != tests.end())
+                    //                    {
+                    //                        // Finish off existing test
+                    //                        response += to_label("MET", (currentmjd() - agent->cinfo->node.utcstart));
+                    //                        response += to_label(" Test_Id", last_test_id);
+                    //                        response +=  to_label(" Packet_Id", tests[last_test_id].packet_id);
+                    //                        response += " Good: " + to_unsigned(tests[last_test_id].good_count);
+                    //                        response += " Skip: " + to_unsigned(tests[last_test_id].skip_count);
+                    //                        response += " Size: " + to_unsigned(tests[last_test_id].size_count);
+                    //                        response += " Crc: " + to_unsigned(tests[last_test_id].crc_count);
+                    //                        response += to_label(" Bytes", tests[last_test_id].total_bytes);
+                    //                        response += to_label(" Count", tests[last_test_id].total_count);
+                    //                        response += to_label(" Seconds", tests[last_test_id].et.split());
+                    //                        response += to_label(" Speed", tests[last_test_id].total_bytes / tests[last_test_id].et.split());
+                    //                        response += " Abort: \n";
+                    //                    }
                     if (!test.path.empty())
                     {
-                        log_move_file(test.path, string_replace(test.path, "temp", "outgoing"), true);
+                        log_move_file(test.path, string_replace(test.path, "temp", "incoming"), true);
                     }
                     test.path = data_name_path(agent->nodeData.lookup_node_id_name(packet.header.nodeorig), "temp", agent->agentName, 0., "test_"+to_unsigned(header.test_id));
                     test.good_count = 0;
@@ -523,7 +523,7 @@ namespace Cosmos {
                     test.skip_count = 0;
                     test.packet_id = 0;
                     test.et.reset();
-                    agent->debug_error.Printf("Test: %s\n", test.path.c_str());
+                    agent->debug_log.Printf("Test: %s\n", test.path.c_str());
                 }
 
                 test.total_count = test.good_count + test.crc_count + test.size_count;
@@ -562,21 +562,33 @@ namespace Cosmos {
                 response += to_label(" Count", test.total_count);
                 response += to_label(" Seconds", test.et.split());
                 response += to_label(" Speed", test.total_bytes / test.et.split());
+
                 if (header.packet_id == ((uint32_t)-1))
                 {
                     response += " Complete: ";
+                    FILE *tf = fopen(test.path.c_str(), "a");
+                    if (tf != nullptr)
+                    {
+                        iretn = fprintf(tf, "%s\n", response.c_str());
+                        fclose(tf);
+                    }
+                    log_move_file(test.path, string_replace(test.path, "temp", "incoming"), true);
+                    test.path.clear();
                 }
-                else if (test.test_id < header.test_id)
+                else
                 {
-                    response += " Start: ";
+                    if (test.test_id < header.test_id)
+                    {
+                        response += " Start: ";
+                    }
+                    FILE *tf = fopen(test.path.c_str(), "a");
+                    if (tf != nullptr)
+                    {
+                        iretn = fprintf(tf, "%s\n", response.c_str());
+                        fclose(tf);
+                    }
                 }
 
-                FILE *tf = fopen(test.path.c_str(), "a");
-                if (tf != nullptr)
-                {
-                    iretn = fprintf(tf, "%s\n", response.c_str());
-                    fclose(tf);
-                }
 
                 test.packet_id = header.packet_id;
                 test.test_id = header.test_id;

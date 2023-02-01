@@ -11,10 +11,10 @@ namespace Cosmos
             agent = parent_agent;
             
             // Initialize Transfer class
-            int32_t iretn = transfer.Init(agent->nodeName, &agent->debug_error);
+            int32_t iretn = transfer.Init(agent->nodeName, &agent->debug_log);
             if (iretn < 0)
             {
-                agent->debug_error.Printf("%.4f Error initializing transfer class!: %s\n", agent->uptime.split(), agent->debug_error.ErrorString(iretn).c_str());
+                agent->debug_log.Printf("%.4f Error initializing transfer class!: %s\n", agent->uptime.split(), cosmos_error_string(iretn).c_str());
                 return iretn;
             }
 
@@ -26,7 +26,7 @@ namespace Cosmos
                 iretn = NodeData::lookup_node_id(node);
                 if (iretn <= 0)
                 {
-                    agent->debug_error.Printf("%.4f Could not find node ID for node name: %s\n", agent->uptime.split(), node.c_str());
+                    agent->debug_log.Printf("%.4f Could not find node ID for node name: %s\n", agent->uptime.split(), node.c_str());
                     continue;
                 }
                 contact_nodes.push_back(static_cast<uint8_t>(iretn));
@@ -45,7 +45,7 @@ namespace Cosmos
             // Accumulate here before transfering to proper queues
             vector<PacketComm> file_packets;
 
-            agent->debug_error.Printf("Starting File Loop\n");
+            agent->debug_log.Printf("Starting File Loop\n");
 
             // Perform initial load
             double diskcheckwait = 30./86400.;
@@ -87,7 +87,7 @@ namespace Cosmos
                                 {
                                     if (agent->get_debug_level())
                                     {
-                                        agent->debug_error.Printf("%.4f Main: Node: %s Agent: %s - Error in receive_packet(): %d\n", agent->uptime.split(), agent->nodeName.c_str(), agent->agentName.c_str(), iretn);
+                                        agent->debug_log.Printf("%.4f Main: Node: %s Agent: %s - Error in receive_packet(): %d\n", agent->uptime.split(), agent->nodeName.c_str(), agent->agentName.c_str(), iretn);
                                     }
                                 }
                             }
@@ -179,7 +179,7 @@ namespace Cosmos
                             iretn = transfer.get_outgoing_rpackets(contact_nodes[i], file_packets);
                             if (iretn < 0)
                             {
-                                agent->debug_error.Printf("%16.10f Error in get_outgoing_rpackets: %d\n", currentmjd(), cosmos_error_string(iretn).c_str());
+                                agent->debug_log.Printf("%16.10f Error in get_outgoing_rpackets: %d\n", currentmjd(), cosmos_error_string(iretn).c_str());
                             }
                         }
                         file_transfer_respond = false;
@@ -205,7 +205,7 @@ namespace Cosmos
                             iretn = transfer.get_outgoing_lpackets(contact_nodes[i], file_packets);
                             if (iretn < 0)
                             {
-                                agent->debug_error.Printf("%16.10f Error in get_outgoing_lpackets: %s\n", currentmjd(), cosmos_error_string(iretn).c_str());
+                                agent->debug_log.Printf("%16.10f Error in get_outgoing_lpackets: %s\n", currentmjd(), cosmos_error_string(iretn).c_str());
                             }
                         }
                     }

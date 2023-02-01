@@ -32,17 +32,17 @@ CRC16 calc_crc;
 bool remove_test_dirs = true;
 
 // Non-debug logging
-Error test_log;
+Log::Logger test_log;
 int32_t test_count = 0;
 int32_t err_count = 0;
 ElapsedTime test_timer;
 
 // Debug logging to a file for more precise info
-Error debug_log;
+Log::Logger debug_log;
 ElapsedTime tet, dt;
 
 // Log node output to a file
-Error node1_log, node2_log;
+Log::Logger node1_log, node2_log;
 
 // nodeids.ini file path, and path for its backup
 string nodeids_ini_path, nodeids_ini_backup_path;
@@ -57,7 +57,7 @@ void cleanup();
 int32_t create_file(int32_t kib, string file_path);
 int32_t write_bad_meta(tx_progress& tx);
 int32_t write_bad_meta(tx_progress& tx, uint16_t num_bytes);
-void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_log);
+void debug_packet(PacketComm packet, uint8_t direction, string type, Log::Logger* debug_log);
 template <typename T> T sumv(vector<T> vec);
 
 // Tests
@@ -295,10 +295,10 @@ int main(int argc, char *argv[])
     }
 
     // Setup log paths and settings
-    test_log.Set(Error::LOG_STDOUT_FFLUSH);
-    debug_log.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "file_transfer_tests");
-    node1_log.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "node1_transfer_test_log");
-    node2_log.Set(Error::LOG_FILE_FFLUSH, get_cosmosnodes() + "node2_transfer_test_log");
+    test_log.Set(Log::LogType::LOG_STDOUT_FFLUSH);
+    debug_log.Set(Log::LogType::LOG_FILE_FFLUSH, get_cosmosnodes() + "file_transfer_tests");
+    node1_log.Set(Log::LogType::LOG_FILE_FFLUSH, get_cosmosnodes() + "node1_transfer_test_log");
+    node2_log.Set(Log::LogType::LOG_FILE_FFLUSH, get_cosmosnodes() + "node2_transfer_test_log");
 
     // Randomize seed
     seed = decisec();
@@ -2332,7 +2332,7 @@ T sumv(vector<T> vec)
 //! \param type Incoming or outgoing, used only in the print statement
 //! \param err_log Pointer to Error object to log with
 //! \return n/a
-void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_log)
+void debug_packet(PacketComm packet, uint8_t direction, string type, Log::Logger* debug_log)
 {
     if (packet.header.type == PacketComm::TypeId::DataFileChunkData)
     {
@@ -2345,18 +2345,18 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_
         }
     }
 
-    if (err_log->Type())
+    if (debug_log->Type())
     {
         string node_name = NodeData::lookup_node_id_name(packet.data[0]);
         uint8_t node_id = NodeData::check_node_id(packet.data[0]);
 
         if (direction == 0)
         {
-            err_log->Printf("%.4f %.4f RECV L %u R %u %s [%s] Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), type.c_str(), packet.data.size());
+            debug_log->Printf("%.4f %.4f RECV L %u R %u %s [%s] Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), type.c_str(), packet.data.size());
         }
         else if (direction == 1)
         {
-            err_log->Printf("%.4f %.4f SEND L %u R %u %s [%s] Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), type.c_str(), packet.data.size());
+            debug_log->Printf("%.4f %.4f SEND L %u R %u %s [%s] Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), type.c_str(), packet.data.size());
         }
 
         switch (packet.header.type)
@@ -2365,37 +2365,37 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_
             {
                 packet_struct_metashort meta;
                 deserialize_metadata(packet.data, meta);
-                err_log->Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(packet_struct_metashort, tx_id)], meta.file_name.c_str());
+                debug_log->Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(packet_struct_metashort, tx_id)], meta.file_name.c_str());
                 break;
             }
         case PacketComm::TypeId::DataFileChunkData:
             {
-                err_log->Printf("[DATA] %u %u %u %u ", node_id, packet.data[offsetof(packet_struct_data, tx_id)], packet.data[offsetof(packet_struct_data, chunk_start)]+256U*(packet.data[offsetof(packet_struct_data, chunk_start)+1]+256U*(packet.data[offsetof(packet_struct_data, chunk_start)+2]+256U*packet.data[offsetof(packet_struct_data, chunk_start)+3])), packet.data[offsetof(packet_struct_data, byte_count)]+256U*packet.data[offsetof(packet_struct_data, byte_count)+1]);
+                debug_log->Printf("[DATA] %u %u %u %u ", node_id, packet.data[offsetof(packet_struct_data, tx_id)], packet.data[offsetof(packet_struct_data, chunk_start)]+256U*(packet.data[offsetof(packet_struct_data, chunk_start)+1]+256U*(packet.data[offsetof(packet_struct_data, chunk_start)+2]+256U*packet.data[offsetof(packet_struct_data, chunk_start)+3])), packet.data[offsetof(packet_struct_data, byte_count)]+256U*packet.data[offsetof(packet_struct_data, byte_count)+1]);
                 break;
             }
         case PacketComm::TypeId::DataFileReqData:
             {
-                err_log->Printf("[REQDATA] ");
+                debug_log->Printf("[REQDATA] ");
                 for (auto& byte : packet.data)
                 {
-                    err_log->Printf("%u ", unsigned(byte));
+                    debug_log->Printf("%u ", unsigned(byte));
                 }
-                err_log->Printf("\n");
+                debug_log->Printf("\n");
                 break;
             }
         case PacketComm::TypeId::DataFileReqComplete:
             {
-                err_log->Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[offsetof(packet_struct_reqcomplete, tx_id)]);
+                debug_log->Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[offsetof(packet_struct_reqcomplete, tx_id)]);
                 break;
             }
         case PacketComm::TypeId::DataFileComplete:
             {
-                err_log->Printf("[COMPLETE] %u %u ", node_id, packet.data[offsetof(packet_struct_complete, tx_id)]);
+                debug_log->Printf("[COMPLETE] %u %u ", node_id, packet.data[offsetof(packet_struct_complete, tx_id)]);
                 break;
             }
         case PacketComm::TypeId::DataFileCancel:
             {
-                err_log->Printf("[CANCEL] %u %u ", node_id, packet.data[offsetof(packet_struct_cancel, tx_id)]);
+                debug_log->Printf("[CANCEL] %u %u ", node_id, packet.data[offsetof(packet_struct_cancel, tx_id)]);
                 break;
             }
         case PacketComm::TypeId::DataFileReqMeta:
@@ -2404,12 +2404,12 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_
                 packet_struct_queue queue;
                 deserialize_queue(packet.data, queue);
                 string label = packet.header.type == PacketComm::TypeId::DataFileReqMeta ? "REQMETA" : "QUEUE";
-                err_log->Printf("[%s] %u ", label.c_str(), node_id);
+                debug_log->Printf("[%s] %u ", label.c_str(), node_id);
                 // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint8_t type
                 for (PACKET_QUEUE_FLAGS_TYPE i=0; i<PACKET_QUEUE_FLAGS_LIMIT; ++i)
                 {
                     PACKET_QUEUE_FLAGS_TYPE flags = queue.tx_ids[i];
-                    //err_log->Printf("[%u] ", flags);
+                    //debug_log->Printf("[%u] ", flags);
                     PACKET_TX_ID_TYPE hi = i << 3;
                     for (size_t bit = 0; bit < sizeof(PACKET_QUEUE_FLAGS_TYPE)*8; ++bit)
                     {
@@ -2419,17 +2419,17 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Error* err_
                             continue;
                         }
                         PACKET_TX_ID_TYPE tx_id = hi | bit;
-                        err_log->Printf("%u ", unsigned(tx_id));
+                        debug_log->Printf("%u ", unsigned(tx_id));
                     }
                 }
             }
             break;
         default:
             {
-                err_log->Printf("[OTHER] %u %s", node_id, "Non-file transfer type in packet.header.type");
+                debug_log->Printf("[OTHER] %u %s", node_id, "Non-file transfer type in packet.header.type");
             }
         }
-        err_log->Printf("\n");
+        debug_log->Printf("\n");
     }
 
     return;

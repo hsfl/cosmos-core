@@ -328,14 +328,8 @@ namespace Cosmos {
                     uint16_t swchcount = cinfo->devspec.swch.size() < epsswch_count?cinfo->devspec.swch.size():epsswch_count;
                     for (uint16_t i=0; i<swchcount; ++i)
                     {
-                        if (cinfo->devspec.swch[i].state)
-                        {
-                            beacon.swch[i].mamp = cinfo->devspec.swch[i].amp * 1000. + .5;
-                        }
-                        else
-                        {
-                            beacon.swch[i].mamp = 0;
-                        }
+                        beacon.swch[i].state = cinfo->devspec.swch[i].state;
+                        beacon.swch[i].mamp = cinfo->devspec.swch[i].amp * 1000. + .5;
                         beacon.swch[i].mvolt = cinfo->devspec.swch[i].volt * 1000. + .5;
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+swchcount*sizeof(epsswch_beacon));
@@ -979,16 +973,8 @@ namespace Cosmos {
                             {
                                 cinfo->devspec.swch[i].utc = mjd;
                                 cinfo->devspec.swch[i].volt = beacon.swch[i].mvolt / 1000.;
-                                if (beacon.swch[i].mamp)
-                                {
-                                    cinfo->devspec.swch[i].amp = beacon.swch[i].mamp / 1000.;
-                                    cinfo->devspec.swch[i].state = 1;
-                                }
-                                else
-                                {
-                                    cinfo->devspec.swch[i].amp = 0.;
-                                    cinfo->devspec.swch[i].state = 0;
-                                }
+                                cinfo->devspec.swch[i].state = beacon.swch[i].state;
+                                cinfo->devspec.swch[i].amp = beacon.swch[i].mamp / 1000.;
                                 cinfo->devspec.swch[i].power = cinfo->devspec.swch[i].volt * cinfo->devspec.swch[i].amp;
                             }
                         }
@@ -1401,6 +1387,7 @@ namespace Cosmos {
                         json_out_1d(Contents, "device_swch_amp", i, cinfo);
                         json_out_1d(Contents, "device_swch_volt", i, cinfo);
                         json_out_1d(Contents, "device_swch_power", i, cinfo);
+                        json_out_1d(Contents, "device_swch_state", i, cinfo);
                     }
                 }
                 break;

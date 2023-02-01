@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     sim = new Physics::Simulator();
     iretn = sim->GetError();
     if (iretn <0) {
-        agent->debug_error.Printf("Error Creating Simulator: %s\n", cosmos_error_string(iretn).c_str());
+        agent->debug_log.Printf("Error Creating Simulator: %s\n", cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
     currentutc = initialutc;
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     FILE *fp = fopen(targetfile.c_str(), "r");
     if (fp == nullptr)
     {
-        agent->debug_error.Printf("Bad Target File: %s\n", targetfile.c_str());
+        agent->debug_log.Printf("Bad Target File: %s\n", targetfile.c_str());
         exit(1);
     }
     string line;

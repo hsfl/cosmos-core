@@ -16,20 +16,20 @@ namespace Module
         mychannel = agent->channel_number(mychannel_name);
         if (mychannel < 0 || (!mychannel && channel_name != "SELF"))
         {
-            agent->debug_error.Printf("No channel for radio %s\n", mychannel_name.c_str());
+            agent->debug_log.Printf("No channel for radio %s\n", mychannel_name.c_str());
             return Cosmos::Support::ErrorNumbers::COSMOS_GENERAL_ERROR_ERROR;
         }
 
         packethandler.init(agent);
 
-        agent->debug_error.Printf("Subagent %s Init success!\n", mychannel_name.c_str());
+        agent->debug_log.Printf("Subagent %s Init success!\n", mychannel_name.c_str());
 
         return 0;
     }
 
     void PacketHandlerModule::Loop()
     {
-        agent->debug_error.Printf("Starting %s loop.\n", mychannel_name.c_str());
+        agent->debug_log.Printf("Starting %s loop.\n", mychannel_name.c_str());
         PacketComm packet;
         while(agent->running())
         {

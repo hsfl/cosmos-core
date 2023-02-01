@@ -95,7 +95,7 @@ namespace Cosmos
             int32_t iretn = 0;
             uptime.reset();
             debug_level = dlevel;
-            debug_error.Set(dlevel,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
+            debug_log.Set(dlevel, true,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
 
             tasks.Start();
 
@@ -104,7 +104,7 @@ namespace Cosmos
 
             if (cinfo == nullptr) {
                 error_value = AGENT_ERROR_JSON_CREATE;
-                debug_error.Printf("Failed to initialize Namespace\n");
+                debug_log.Printf("Failed to initialize Namespace\n");
                 shutdown();
                 return;
             }
@@ -112,10 +112,11 @@ namespace Cosmos
             cinfo->agent[0].stateflag = static_cast<uint16_t>(State::INIT);
 
             // Establish subscribe channel
-            iretn = subscribe(NetworkType::MULTICAST, AGENTMCAST, AGENTSENDPORT, 1000);
+//            iretn = subscribe(NetworkType::MULTICAST, AGENTMCAST, AGENTSENDPORT, 1000);
+            iretn = subscribe(NetworkType::UDP, AGENTLOOPBACK, AGENTSENDPORT, 1000);
             if (iretn) {
                 error_value = iretn;
-                debug_error.Printf("Failed to open Subscribe channel\n");
+                debug_log.Printf("Failed to open Subscribe channel\n");
                 shutdown();
                 return;
             }
@@ -134,7 +135,7 @@ namespace Cosmos
             }
             if ((iretn=json_setup_node(nodeName, cinfo)) != 0) {
                 error_value = iretn;
-                debug_error.Printf("Failed to set up Namespace\n");
+                debug_log.Printf("Failed to set up Namespace\n");
                 shutdown();
                 return;
             }
@@ -151,7 +152,7 @@ namespace Cosmos
             iretn = publish(cinfo->agent[0].beat.ntype, AGENTSENDPORT);
             if (iretn) {
                 error_value = iretn;
-                debug_error.Printf("Failed to open publish channel\n");
+                debug_log.Printf("Failed to open publish channel\n");
                 shutdown();
                 return;
             }
@@ -161,7 +162,7 @@ namespace Cosmos
             if (iretn < 0)
             {
                 error_value = iretn;
-                debug_error.Printf("Failed to find Node Id table\n");
+                debug_log.Printf("Failed to find Node Id table\n");
                 shutdown();
                 return;
             }
@@ -181,7 +182,7 @@ namespace Cosmos
             //        if (strlen(cinfo->node.name)>COSMOS_MAX_NAME || agent_name.length()>COSMOS_MAX_NAME) {
             if (cinfo->node.name.size() > COSMOS_MAX_NAME || agent_name.length()>COSMOS_MAX_NAME) {
                 error_value = JSON_ERROR_NAME_LENGTH;
-                debug_error.Printf("Node or Agent name too large\n");
+                debug_log.Printf("Node or Agent name too large\n");
                 shutdown();
                 return;
             }
@@ -192,7 +193,7 @@ namespace Cosmos
             if (!mflag) {
                 if (check_agent(cinfo->node.name, agent_name, timeoutSec)) {
                     error_value = AGENT_ERROR_SERVER_RUNNING;
-                    debug_error.Printf("Agent is already running\n");
+                    debug_log.Printf("Agent is already running\n");
                     shutdown();
                     return;
                 }
@@ -202,7 +203,7 @@ namespace Cosmos
                 //            if (strlen(cinfo->node.name)>COSMOS_MAX_NAME-4 || agent_name.size()>COSMOS_MAX_NAME-4) {
                 if (cinfo->node.name.size()>COSMOS_MAX_NAME-4 || agent_name.size()>COSMOS_MAX_NAME-4) {
                     error_value = JSON_ERROR_NAME_LENGTH;
-                    debug_error.Printf("Node or Agent name too large\n");
+                    debug_log.Printf("Node or Agent name too large\n");
                     shutdown();
                     return;
                 }
@@ -226,12 +227,12 @@ namespace Cosmos
             timeStart = currentmjd();
 
             if (debug_level>2) {
-                debug_error.Printf("------------------------------------------------------\n");
-                debug_error.Printf("COSMOS AGENT '%s' on node '%s'\n", agent_name.c_str(), nodeName.c_str());
-                debug_error.Printf("Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
-                debug_error.Printf("Agent started at %s\n", mjdToGregorian(timeStart).c_str());
-                debug_error.Printf("Debug level %u\n", debug_level);
-                debug_error.Printf("------------------------------------------------------\n");
+                debug_log.Printf("------------------------------------------------------\n");
+                debug_log.Printf("COSMOS AGENT '%s' on node '%s'\n", agent_name.c_str(), nodeName.c_str());
+                debug_log.Printf("Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
+                debug_log.Printf("Agent started at %s\n", mjdToGregorian(timeStart).c_str());
+                debug_log.Printf("Debug level %u\n", debug_level);
+                debug_log.Printf("------------------------------------------------------\n");
             }
 
             if (bprd >= AGENT_HEARTBEAT_PERIOD_MIN) {
@@ -258,7 +259,7 @@ namespace Cosmos
             if (!hthread.joinable() || !cthread.joinable()) {
                 // TODO: create error value
                 //error_value = iretn;
-                debug_error.Printf("Failed to start Heartbeat and/or Request Loops\n");
+                debug_log.Printf("Failed to start Heartbeat and/or Request Loops\n");
                 shutdown();
                 return;
             }
@@ -443,7 +444,7 @@ namespace Cosmos
         int32_t Agent::shutdown()
         {
             if (debug_level) {
-                debug_error.Printf("Shutting down Agent. Last error: %s\n", cosmos_error_string(error_value).c_str());
+                debug_log.Printf("Shutting down Agent. Last error: %s\n", cosmos_error_string(error_value).c_str());
                 fflush(stdout);
             }
 
@@ -518,7 +519,7 @@ namespace Cosmos
             nbytes = std::min(request.size(), (size_t)hbeat.bsz);
             nbytes=sendto(sendchan.cudp, request.c_str(), nbytes, 0, (struct sockaddr *)&sendchan.caddr, sizeof(struct sockaddr_in));
             if (debug_level) {
-                debug_error.Printf("Send Request: [%s:%u:%d] %s\n", sendchan.address, sendchan.cport, iretn, &request[0]);
+                debug_log.Printf("Send Request: [%s:%u:%d] %s\n", sendchan.address, sendchan.cport, iretn, &request[0]);
             }
 
             if ((nbytes) < 0) {
@@ -862,7 +863,7 @@ namespace Cosmos
             process_mutex.lock();
 
             if (debug_level) {
-                debug_error.Printf("Request: [%lu] %s\n",bufferin.size(), &bufferin[0]);
+                debug_log.Printf("Request: [%lu] %s\n",bufferin.size(), &bufferin[0]);
                 fflush(stdout);
             }
 
@@ -898,7 +899,7 @@ namespace Cosmos
 
             iretn = sendto(cinfo->agent[0].req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, sizeof(struct sockaddr_in));
             if (debug_level) {
-                debug_error.Printf("Response: [%s:%u:%d] %s\n", cinfo->agent[0].req.address, cinfo->agent[0].req.cport, iretn, &bufferout[0]);
+                debug_log.Printf("Response: [%s:%u:%d] %s\n", cinfo->agent[0].req.address, cinfo->agent[0].req.cport, iretn, &bufferout[0]);
             }
 
             process_mutex.unlock();
@@ -979,7 +980,7 @@ namespace Cosmos
                 //                iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.length()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
                 iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.size()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
                 if (agent->get_debug_level()) {
-                    agent->debug_error.Printf("Forward: [%s:%u:%d] %s\n", agent->cinfo->agent[0].pub[i].address, agent->cinfo->agent[0].pub[i].cport, iretn, (const char *)&request[request.size()-count]);
+                    agent->debug_log.Printf("Forward: [%s:%u:%d] %s\n", agent->cinfo->agent[0].pub[i].address, agent->cinfo->agent[0].pub[i].cport, iretn, (const char *)&request[request.size()-count]);
                 }
             }
             //            sprintf(output,"%.17g %d ",currentmjd(0),iretn);
@@ -3027,7 +3028,7 @@ namespace Cosmos
                                 sizeof(struct sockaddr_in)                  // size of address to socket pointer
                                 );
                         //                    if (debug_level) {
-                        //                        debug_error.Printf("Post PTP Local: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
+                        //                        debug_log.Printf("Post PTP Local: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
                         //                    }
                         //                    printf("Send P2P Local: %u %d\n", (uint8_t)type, iretn);
                     }
@@ -3039,7 +3040,7 @@ namespace Cosmos
                             sizeof(struct sockaddr_in)                  // size of address to socket pointer
                             );
                     //                if (debug_level) {
-                    //                    debug_error.Printf("Post PTP Remote: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
+                    //                    debug_log.Printf("Post PTP Remote: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
                     //                }
                     //                printf("Send P2P Remote: %u %d\n", (uint8_t)type, iretn);
                 }
@@ -3067,7 +3068,7 @@ namespace Cosmos
                             sizeof(struct sockaddr_in)                  // size of address to socket pointer
                             );
                     //                if (debug_level) {
-                    //                    debug_error.Printf("Post Broadcast: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
+                    //                    debug_log.Printf("Post Broadcast: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
                     //                }
                     //                printf("Send Generic: %s %u %u %d\n", cinfo->agent[0].pub[i].address, ntohs(cinfo->agent[0].pub[i].baddr.sin_port), (uint8_t)type, iretn);
                 }
@@ -3709,23 +3710,23 @@ acquired.
         int32_t Agent::set_debug_level(uint16_t level)
         {
             debug_level = level;
-            debug_error.Set(level,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
-            return debug_error.Type(level);
+            debug_log.Set(level, true,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
+            return debug_log.Type();
         }
 
         int32_t Agent::get_debug_level()
         {
-            return debug_error.Type();
+            return debug_log.Type();
         }
 
         FILE *Agent::get_debug_fd(double mjd)
         {
-            return debug_error.Open();
+            return debug_log.Open();
         }
 
         int32_t Agent::close_debug_fd()
         {
-            return debug_error.Close();
+            return debug_log.Close();
         }
 
         // Set our producer for all functions associated with time authority (i.e. the mjd request).
@@ -4153,17 +4154,17 @@ acquired.
 
             if (extra.empty())
             {
-                debug_error.Printf("%u [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanin, packet.header.chanout, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                debug_log.Printf("%u [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanin, packet.header.chanout, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             else
             {
-                debug_error.Printf("%u %s [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanin, packet.header.chanout, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                debug_log.Printf("%u %s [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanin, packet.header.chanout, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
             }
             for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
             {
-                debug_error.Printf(" %02x", packet.data[i]);
+                debug_log.Printf(" %02x", packet.data[i]);
             }
-            debug_error.Printf("\n");
+            debug_log.Printf("\n");
             // fflush(stdout);
             return 0;
         }

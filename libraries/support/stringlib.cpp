@@ -151,7 +151,7 @@ uint16_t string_parse(char *string, char *words[], uint16_t wmax) {
     @param	to		substring to be replaced with
     @return	n/a
 */
-string string_replace(string str, const string from, const string to)
+string string_replace(string str, const string& from, const string& to)
 {
     if(from.empty()) return str;
     size_t start_pos = 0;

@@ -58,7 +58,7 @@ namespace Cosmos {
             Transfer();
             // int32_t Init(string node, string agent, uint16_t chunk_size);
             int32_t Init(const string calling_node_name);
-            int32_t Init(const string calling_node_name, Error* debug_error);
+            int32_t Init(const string calling_node_name, Log::Logger* debug_log);
             //int32_t Load(string filename, vector<chunk> &chunks);
             int32_t outgoing_tx_add(tx_progress &tx_out, const string dest_node_name);
             int32_t outgoing_tx_add(const string dest_node, const string dest_agent, const string file_name);
@@ -109,8 +109,8 @@ namespace Cosmos {
             // Byte size limit of a packet
             PACKET_CHUNK_SIZE_TYPE packet_size = 217;
 
-            // Pointer to calling agent's debug_error
-            Error* debug_error = nullptr;
+            // Pointer to calling agent's debug_log
+            Log::Logger* debug_log = nullptr;
 
             // Private queue manipulation functions
             int32_t outgoing_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1, const bool remove_file=true);

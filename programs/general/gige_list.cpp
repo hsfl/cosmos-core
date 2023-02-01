@@ -57,11 +57,11 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-    Error errorlog;
-    errorlog.Set(1);
+    Log::Logger debuglog;
+    debuglog.Set(1);
 	for (uint16_t i=0; i<gige_list.size(); ++i)
 	{
-        errorlog.Printf("Camera %u: %s %s %s\n", i, gige_value_to_address(gige_list[i].address), gige_list[i].serial_number, gige_list[i].manufacturer);
+        debuglog.Printf("Camera %u: %s %s %s\n", i, gige_value_to_address(gige_list[i].address), gige_list[i].serial_number, gige_list[i].manufacturer);
 	}
 
     exit(0);
