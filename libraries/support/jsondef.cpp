@@ -3522,6 +3522,30 @@ namespace Cosmos
             column_names.clear();
             namespace_names.clear();
 
+            // swchstruc table
+            table_name = "swchstruc";
+            column_names.push_back("node_name");
+            column_names.push_back("didx");
+            column_names.push_back("utc");
+            column_names.push_back("volt");
+            column_names.push_back("amp");
+            column_names.push_back("power");
+            column_names.push_back("temp");
+            for (uint16_t i=0; i<cinfo->devspec.swch.size(); ++i)
+            {
+                string didx = std::to_string(i);
+                namespace_names.push_back("node.name");
+                namespace_names.push_back("devspec.swch["+didx+"].didx");
+                namespace_names.push_back("devspec.swch["+didx+"].utc");
+                namespace_names.push_back("devspec.swch["+didx+"].volt");
+                namespace_names.push_back("devspec.swch["+didx+"].amp");
+                namespace_names.push_back("devspec.swch["+didx+"].power");
+                namespace_names.push_back("devspec.swch["+didx+"].temp");
+            }
+            tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names, "insert ignore"));
+            column_names.clear();
+            namespace_names.clear();
+
             // locstruc_eci table
             table_name = "locstruc_eci";
             column_names.push_back("node_name");
