@@ -123,7 +123,7 @@
 //! with Cosmos::secondsleep. Upon exiting from this loop, you should call Cosmos::Agent::shutdown.
 
 #include "support/configCosmos.h"
-#include "support/cosmos-errclass.h"
+#include "support/logger.h"
 #include "support/jsonlib.h"
 #include "support/jsonclass.h"
 #include "device/cpu/devicecpu.h"
@@ -207,6 +207,8 @@ namespace Cosmos
 #define AGENTRECVPORT 10021
             //! AGENT heartbeat Multicast address
 #define AGENTMCAST "225.1.1.1"
+            //! Loopback
+#define AGENTLOOPBACK "127.0.0.1"
             //! Maximum AGENT server list count
 #define AGENTMAXLIST 500
             //! Maximum AGENT heartbeat size
@@ -404,7 +406,7 @@ namespace Cosmos
             int32_t close_debug_fd();
 
             // Add implementation of new COSMOS Error
-            Error debug_error;
+            Log::Logger debug_log;
 //            int32_t Printf(string output);
 //            int32_t Printf(const char *fmt, ...);
 

@@ -1,12 +1,12 @@
 #include "support/configCosmos.h"
-#include "support/cosmos-errclass.h"
+#include "support/logger.h"
 #include "support/timelib.h"
 
 int main()
 {
-    Error errorlog;
+    Log::Logger debuglog;
 
-    errorlog.Set(Error::LogType::LOG_STDOUT_FFLUSH);
-    errorlog.Printf("Hi there");
-    errorlog.Printf("The Time Is %s\n", utc2iso8601(currentmjd()).c_str());
+    debuglog.Set(Log::LogType::LOG_STDOUT_FFLUSH);
+    debuglog.Printf("Hi there");
+    debuglog.Printf("The Time Is %s\n", utc2iso8601(currentmjd()).c_str());
 }

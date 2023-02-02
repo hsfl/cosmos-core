@@ -18,7 +18,7 @@ namespace Module
         mychannel = agent->channel_number(mychannel_name);
         if (mychannel <= 0)
         {
-            agent->debug_error.Printf("No channel for radio %s\n", mychannel_name.c_str());
+            agent->debug_log.Printf("No channel for radio %s\n", mychannel_name.c_str());
             return Cosmos::Support::ErrorNumbers::COSMOS_GENERAL_ERROR_ERROR;
         }
         mydatasize = agent->channel_datasize(mychannel);
@@ -29,7 +29,7 @@ namespace Module
         iretn = socket_open(&sock_in, NetworkType::UDP,  "", port_in, SOCKET_LISTEN, SOCKET_BLOCKING, 50000);
         if (iretn < 0)
         {
-            agent->debug_error.Printf("Error in socket_open in, iretn:%d, %s\n", iretn, mychannel_name.c_str());
+            agent->debug_log.Printf("Error in socket_open in, iretn:%d, %s\n", iretn, mychannel_name.c_str());
             return iretn;
         }
 
@@ -37,18 +37,18 @@ namespace Module
         iretn = socket_open(&sock_out, NetworkType::UDP, ip.c_str(), port_out, SOCKET_TALK, SOCKET_BLOCKING, 2000000);
         if (iretn < 0)
         {
-            agent->debug_error.Printf("Error in socket_open out, iretn:%d, %s\n", iretn, mychannel_name.c_str());
+            agent->debug_log.Printf("Error in socket_open out, iretn:%d, %s\n", iretn, mychannel_name.c_str());
             return iretn;
         }
 
-        agent->debug_error.Printf("Subagent %s Init success!\n", mychannel_name.c_str());
+        agent->debug_log.Printf("Subagent %s Init success!\n", mychannel_name.c_str());
 
         return 0;
     }
 
     void WebsocketModule::Loop()
     {
-        agent->debug_error.Printf("Starting %s loop.\n", mychannel_name.c_str());
+        agent->debug_log.Printf("Starting %s loop.\n", mychannel_name.c_str());
         while(agent->running())
         {
             // Comm - External

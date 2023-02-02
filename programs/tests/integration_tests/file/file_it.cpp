@@ -14,7 +14,7 @@ void FileSubagentTest::SetUp(uint8_t test_num_agents)
     const string test_base_path = log_base_path + test_name + "/";
     if (COSMOS_MKDIR(test_base_path.c_str(),00777) != 0 && errno != EEXIST) { FAIL() << errno; }
     // Main log file for the current test
-    test_log.Set(Error::LOG_FILE_FFLUSH, test_base_path + "TestLog");
+    test_log.Set(Log::LogType::LOG_FILE_FFLUSH, test_base_path + "TestLog");
 
     double seed = decisec();
     srand(seed);
@@ -42,7 +42,7 @@ void FileSubagentTest::SetUp(uint8_t test_num_agents)
         agents[i]->nodeId = i+1;
         agents[i]->init_channels();
         string agent_log_name = agents[i]->nodeName + "_log";
-        agents[i]->debug_error.Set(Error::LOG_FILE_FFLUSH, test_base_path + agent_log_name);
+        agents[i]->debug_log.Set(Log::LogType::LOG_FILE_FFLUSH, test_base_path + agent_log_name);
     }
 }
 
@@ -57,7 +57,7 @@ void FileSubagentTest::TearDown()
 
     // Stop the agents and join all threads
     for (auto& agent : agents) {
-        agent->debug_error.Close();
+        agent->debug_log.Close();
         agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
     }
     for (auto& thread: subagent_threads) {

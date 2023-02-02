@@ -388,6 +388,7 @@ namespace Cosmos {
 
             struct __attribute__ ((packed)) epsswch_beacon
             {
+                uint8_t state = 0;
                 int16_t mvolt = 0.;
                 int16_t mamp = 0.;
             } ;

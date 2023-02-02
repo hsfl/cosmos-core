@@ -56,7 +56,7 @@ protected:
     //! Name of the current test. Also used as agent subfolder name.
     string test_name;
     //! Log file for test output
-    Error test_log;
+    Log::Logger test_log;
 
     enum class test_state: uint8_t { UNFINISHED, SUCCESS, FAIL };
     test_state state = test_state::UNFINISHED;
