@@ -43,7 +43,7 @@ install(TARGETS CosmosNetwork DESTINATION lib)
 #target_link_libraries(CosmosNetwork CosmosTime)
 target_link_libraries(CosmosNetwork CosmosTime CosmosMath CosmosSupport ${COSMOS_LIBS})
 
-add_library(CosmosNamespace STATIC json11.cpp jsonlib.cpp json11.hpp jsonlib.h jsondef.h)
+add_library(CosmosNamespace STATIC json11.cpp jsonlib.cpp json11.hpp jsonlib.h jsondef.h jsondef.cpp)
 install(TARGETS CosmosNamespace DESTINATION lib)
 target_link_libraries(CosmosNamespace CosmosConvert CosmosCad CosmosJson CosmosDeviceCpu CosmosDeviceDisk CosmosString CosmosMath CosmosSupport ${COSMOS_LIBS})
 

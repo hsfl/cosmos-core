@@ -535,8 +535,6 @@ cosmosstruc* json_init(cosmosstruc *cinfo)
     // NS2
 //    cinfo->add_default_names();
 
-
-
     return cinfo;
 }
 
