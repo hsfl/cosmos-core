@@ -30,6 +30,7 @@ const string JNAME = "name";
 const string JECI = "eci";
 const string JKEP = "kep";
 const string JPHYS = "phys";
+const string JLVLH= "lvlh";
 const string JPX = "px";
 const string JPY = "py";
 const string JPZ = "pz";
@@ -64,6 +65,7 @@ const string JATTX = "qx";
 const string JATTY = "qy";
 const string JATTZ = "qz";
 const string JATTW = "qw";
+const string JATTLVLH = "attlvlh";  // LVLH Attitude
 
 // Special keys in args, will be treated a bit specially
 const string JSENDTODB = "db";
@@ -707,6 +709,13 @@ int32_t create_sim_snapshot(const prop_unit& prop, json11::Json::array& output)
                 eci_telem[JATTZ] = sit->second->currentinfo.node.loc.att.geoc.s.d.z;
                 eci_telem[JATTW] = sit->second->currentinfo.node.loc.att.geoc.s.w;
                 node_telem[JECI] = eci_telem;
+            } else if (t == JATTLVLH) {
+                json11::Json::object lvlh_telem = node_telem[JLVLH].object_items();
+                lvlh_telem[JATTX] = sit->second->currentinfo.node.loc.att.lvlh.s.d.x;
+                lvlh_telem[JATTY] = sit->second->currentinfo.node.loc.att.lvlh.s.d.y;
+                lvlh_telem[JATTZ] = sit->second->currentinfo.node.loc.att.lvlh.s.d.z;
+                lvlh_telem[JATTW] = sit->second->currentinfo.node.loc.att.lvlh.s.w;
+                node_telem[JLVLH] = lvlh_telem;
             } else if (t == JPOSPHYS) {
                 json11::Json::object phys_telem = node_telem[JPHYS].object_items();
                 phys_telem[JLAT] = sit->second->currentinfo.node.loc.pos.geod.s.lat;
