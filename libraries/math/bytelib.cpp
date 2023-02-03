@@ -19,6 +19,47 @@ ByteOrder local_byte_order()
         return (ByteOrder::LITTLEENDIAN);
 }
 
+//! Memory to generic unsigned integer
+/*! Return the generic unsigned integer equivalent of a location in memory, reversed based on the local byte order.
+    \param pointer location in memory to be cast
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
+    \return 8 bit unsigned integer
+*/
+
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+uint64_t uintswap(uint8_t bits, uint64_t value, ByteOrder order)
+{
+    uint64_t rb = value;
+    uint64_t rev = 0;
+#else
+size_t uintswap(uint8_t bits, size_t value, ByteOrder order)
+{
+    size_t rb = value;
+    size_t rev = 0;
+#endif
+    if (local_byte_order() == order)
+    {
+        return rb;
+    }
+    else
+    {
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+        for (uint64_t ic=0; ic<bits; ++ic)
+#else
+        for (size_t ic=0; ic<bits; ++ic)
+#endif
+        {
+            rev <<= 1;
+            if ((rb & 1) == 1)
+            {
+                rev ^= 1;
+            }
+            rb >>= 1;
+        }
+        return rev;
+    }
+}
+
 //! Memory to 8 bit unsigned integer
 /*! Return the 8 bit unsigned integer equivalent of a location in memory, reversed based on the local byte order.
     \param pointer location in memory to be cast
