@@ -220,10 +220,10 @@ namespace Cosmos
             }
 
             // Initialize important server variables
-
             cinfo->agent[0].beat.node = cinfo->node.name;
             cinfo->agent[0].beat.proc = tname;
             agentName = cinfo->agent[0].beat.proc;
+            cinfo->node.agent = agentName;
             timeStart = currentmjd();
 
             if (debug_level>2) {
