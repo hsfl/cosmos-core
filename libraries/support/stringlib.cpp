@@ -301,14 +301,28 @@ string to_hex_string(const vector<uint8_t> &buffer, bool ascii, uint16_t start)
     return ss.str();
 }
 
-vector<uint8_t> from_hex_string(std::string &hex)
+vector<uint8_t> from_hex_string(string hex)
 {
     vector<uint8_t> bytes;
     for (uint16_t ib=0; ib<hex.length()/2; ++ib)
     {
-        bytes.push_back(hex[ib*2]-'0');
-        bytes[ib] *= 16;
-        bytes[ib] += hex[ib*2]-'0';
+        if (from_hex(hex[ib*2]) < 16)
+        {
+            bytes.push_back(from_hex(hex[ib*2]));
+            if (from_hex(hex[ib*2+1]) < 16)
+            {
+                bytes[ib] *= 16;
+                bytes[ib] += from_hex(hex[ib*2+1]);
+            }
+            else
+            {
+                return bytes;
+            }
+        }
+        else
+        {
+            return bytes;
+        }
     }
     return bytes;
 }
@@ -318,9 +332,23 @@ vector<uint8_t> from_hex_vector(vector<uint8_t>& hex)
     vector<uint8_t> bytes;
     for (uint16_t ib=0; ib<hex.size()/2; ++ib)
     {
-        bytes.push_back(hex[ib*2]-'0');
-        bytes[ib] *= 16;
-        bytes[ib] += hex[ib*2]-'0';
+        if (from_hex(hex[ib*2]) < 16)
+        {
+            bytes.push_back(from_hex(hex[ib*2]));
+            if (from_hex(hex[ib*2+1]) < 16)
+            {
+                bytes[ib] *= 16;
+                bytes[ib] += from_hex(hex[ib*2+1]);
+            }
+            else
+            {
+                return bytes;
+            }
+        }
+        else
+        {
+            return bytes;
+        }
     }
     return bytes;
 }
@@ -422,6 +450,50 @@ string to_binary(size_t value, uint16_t digits, bool zerofill)
         output.resize(strlen(output.c_str()));
     }
     return output;
+}
+
+uint8_t from_hex(char value)
+{
+    if (value >= '0' && value <= '9')
+    {
+        return value - '0';
+    }
+    else if (value >= 'a' && value <= 'f')
+    {
+        return (value - 'a') + 10;
+    }
+    else if (value >= 'A' && value <= 'F')
+    {
+        return (value - 'A') + 10;
+    }
+    else
+    {
+        return 16;
+    }
+}
+
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+uint64_t from_hex(string value)
+{
+uint64_t result;
+#else
+size_t from_hex(string value)
+{
+size_t result;
+#endif
+    for (uint16_t i=0; i<value.size(); ++i)
+    {
+        if (from_hex(value[i] < 16))
+        {
+            result <<= 4;
+            result += from_hex(value[i]);
+        }
+        else
+        {
+            return result;
+        }
+    }
+    return result;
 }
 
 #if ((SIZE_WIDTH) == (UINT64_WIDTH))
