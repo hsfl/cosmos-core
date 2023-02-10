@@ -167,9 +167,19 @@ namespace Cosmos {
         bool PacketComm::AX25UnPacketize(bool checkcrc)
         {
             Ax25Handle axhandle;
-            //            axhandle.unstuff(packetized);
-            axhandle.unload();
-            wrapped = axhandle.ax25_packet;
+            if (packetized.size() > 18)
+            {
+                axhandle.ax25_packet.clear();
+                axhandle.ax25_packet.insert(axhandle.ax25_packet.begin(), packetized.begin() + 16, packetized.end() - 2);
+                packetized = axhandle.ax25_packet;
+                uint8from(packetized, wrapped, ByteOrder::BIGENDIAN);
+            }
+            else
+            {
+                packetized.clear();
+            }
+//            axhandle.unload();
+//            wrapped = axhandle.ax25_packet;
             return Unwrap(checkcrc);
         }
 
@@ -279,8 +289,9 @@ namespace Cosmos {
             axhandle.load(wrapped);
             axhandle.stuff({}, flagcount);
             vector<uint8_t> ax25packet = axhandle.get_hdlc_packet();
-            packetized.clear();
-            packetized.insert(packetized.begin(), ax25packet.begin(), ax25packet.end());
+            uint8from(ax25packet, packetized, ByteOrder::BIGENDIAN);
+//            packetized.clear();
+//            packetized.insert(packetized.begin(), ax25packet.begin(), ax25packet.end());
             return true;
         }
 
