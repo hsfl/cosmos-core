@@ -409,7 +409,6 @@ namespace Cosmos {
                 channel[number].quu.push(packet);
                 Increment(number, packet.wrapped.size());
                 Touch(number);
-//                channel[number].timestamp = currentmjd();
                 if (channel[number].quu.size() > channel[number].maximum)
                 {
                     Decrement(number, channel[number].quu.front().wrapped.size());
@@ -417,6 +416,7 @@ namespace Cosmos {
                 }
                 iretn = channel[number].quu.size();
                 channel[number].mtx->unlock();
+                secondsleep(packet.wrapped.size() / channel[number].byte_rate);
             }
             return iretn;
         }
