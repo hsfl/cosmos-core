@@ -626,6 +626,10 @@ the CCP register and closing all sockets.
                     if (iretn < handle->bufferin.size())
                     {
                         handle->ptqueue.back().resize(iretn);
+//                        if (handle->bufferin[4] == 1)
+//                        {
+//                            printf("Push: %lu %lu\n", handle->bufferin.size(), handle->ptqueue.size());
+//                        }
                     }
                     handle->ptmutex.unlock();
                 }
@@ -792,6 +796,7 @@ the CCP register and closing all sockets.
                 }
 
 //                printf("B: %u %f %u\n", ip, et.split(), tbytes);
+                data.average = 0.;
                 if (tbytes == handle->bufferout.size()*2)
                 {
                     size_t ipix = 0;
@@ -841,6 +846,7 @@ the CCP register and closing all sockets.
                         data.std[ir][ic] = 0;
                     }
                     data.mean[ir][ic] /= frames;
+                    data.average += data.mean[ir][ic];
                     if (data.mean[ir][ic] > data.max.z)
                     {
                         data.max.x = ic;
@@ -855,11 +861,12 @@ the CCP register and closing all sockets.
                     }
                 }
             }
+            data.average /= tbytes;
             return (tbytes);
 
         }
 
-        int32_t pt1000_image(gige_handle *handle, uint32_t frames, gige_data &data, gige_data &dark)
+        int32_t pt1000_image_dark(gige_handle *handle, uint32_t frames, gige_data &data, gige_data &dark)
         {
             int32_t tbytes;
             tbytes = pt1000_image(handle, frames, data);
@@ -878,6 +885,48 @@ the CCP register and closing all sockets.
                 for (size_t ic=0; ic<handle->width/handle->binwidth; ++ic)
                 {
                     data.mean[ir][ic] -= dark.mean[ir][ic];
+                    if (data.mean[ir][ic] > data.max.z)
+                    {
+                        data.max.x = ic;
+                        data.max.y = ir;
+                        data.max.z = data.mean[ir][ic];
+                    }
+                    if (data.mean[ir][ic] < data.min.z)
+                    {
+                        data.min.x = ic;
+                        data.min.y = ir;
+                        data.min.z = data.mean[ir][ic];
+                    }
+                }
+            }
+            return tbytes;
+        }
+
+        int32_t pt1000_image_flat(gige_handle *handle, uint32_t frames, gige_data &data, gige_data &flat)
+        {
+            static ElapsedTime et;
+            int32_t tbytes;
+            tbytes = pt1000_image(handle, frames, data);
+            if (data.average < 1000.)
+            {
+                printf("Low average: %f %.3f\n", data.average, et.split());
+            }
+            if (tbytes < 0)
+            {
+                return tbytes;
+            }
+            data.max.x = handle->width/handle->binwidth;
+            data.max.y = handle->height/handle->binheight;
+            data.max.z = 0.;
+            data.min.x = handle->width/handle->binwidth;
+            data.min.y = handle->height/handle->binheight;
+            data.min.z = 65536. * 65536.;
+            for (size_t ir=0; ir<handle->height/handle->binheight; ++ir)
+            {
+                for (size_t ic=0; ic<handle->width/handle->binwidth; ++ic)
+                {
+                    data.mean[ir][ic] /= (flat.mean[ir][ic] / flat.average);
+                    data.std[ir][ic] /= (flat.mean[ir][ic] / flat.average);
                     if (data.mean[ir][ic] > data.max.z)
                     {
                         data.max.x = ic;
