@@ -377,6 +377,8 @@ namespace Cosmos {
             vector<uint8_t> atsmr = {0x58, 0xf3, 0x3f, 0xb8};
             vector<uint8_t> satsm = {0x35, 0x2e, 0xf8, 0x53};
             CRC16 calc_crc;
+
+            void Invert(vector<uint8_t>& data);
             void CalcCRC();
             bool CheckCRC();
             int32_t Unwrap(bool checkcrc=true);

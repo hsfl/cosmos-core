@@ -2469,6 +2469,7 @@ int32_t data_execute(string cmd, string& result, float timer, string shell)
         {
             iretn = -errno;
         }
+        iretn = result.size();
     }
     else
     {

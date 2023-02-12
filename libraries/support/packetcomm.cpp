@@ -15,6 +15,14 @@ namespace Cosmos {
             RawPacketize();
         }
 
+        void PacketComm::Invert(vector<uint8_t> &data)
+        {
+            vector<uint8_t> result;
+            uint8from(data, result, ByteOrder::BIGENDIAN);
+            data = result;
+            return;
+        }
+
         void PacketComm::CalcCRC()
         {
             crc = calc_crc.calc(data);
@@ -166,21 +174,31 @@ namespace Cosmos {
 
         bool PacketComm::AX25UnPacketize(bool checkcrc)
         {
+            int32_t iretn = 0;
             Ax25Handle axhandle;
-            if (packetized.size() > 18)
+            axhandle.set_ax25_packet(packetized);
+            iretn = axhandle.unload(checkcrc);
+            if (iretn >= 0)
             {
-                axhandle.ax25_packet.clear();
-                axhandle.ax25_packet.insert(axhandle.ax25_packet.begin(), packetized.begin() + 16, packetized.end() - 2);
-                packetized = axhandle.ax25_packet;
-                uint8from(packetized, wrapped, ByteOrder::BIGENDIAN);
+                wrapped = axhandle.ax25_packet;
+                return Unwrap(checkcrc);
             }
             else
             {
-                packetized.clear();
+                wrapped.clear();
+                return false;
             }
-//            axhandle.unload();
-//            wrapped = axhandle.ax25_packet;
-            return Unwrap(checkcrc);
+//            if (packetized.size() > 18)
+//            {
+//                axhandle.ax25_packet.clear();
+//                axhandle.ax25_packet.insert(axhandle.ax25_packet.begin(), packetized.begin() + 16, packetized.end() - 2);
+//                packetized = axhandle.ax25_packet;
+//                uint8from(packetized, wrapped, ByteOrder::BIGENDIAN);
+//            }
+//            else
+//            {
+//                packetized.clear();
+//            }
         }
 
         //! \brief Wrap up header and payload
@@ -289,9 +307,8 @@ namespace Cosmos {
             axhandle.load(wrapped);
             axhandle.stuff({}, flagcount);
             vector<uint8_t> ax25packet = axhandle.get_hdlc_packet();
-            uint8from(ax25packet, packetized, ByteOrder::BIGENDIAN);
-//            packetized.clear();
-//            packetized.insert(packetized.begin(), ax25packet.begin(), ax25packet.end());
+            packetized.clear();
+            packetized.insert(packetized.begin(), ax25packet.begin(), ax25packet.end());
             return true;
         }
 

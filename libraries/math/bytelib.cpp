@@ -67,7 +67,7 @@ size_t uintswap(uint8_t bits, size_t value, ByteOrder order)
     \return 8 bit unsigned integer
 */
 
-uint8_t uint8from(uint8_t *pointer, ByteOrder order)
+uint8_t uint8from(const uint8_t *pointer, ByteOrder order)
 {
     uint8_t rb = *pointer;
     uint8_t rev = 0;
@@ -90,7 +90,7 @@ uint8_t uint8from(uint8_t *pointer, ByteOrder order)
     }
 }
 
-uint8_t uint8to(uint8_t *pointer, ByteOrder order)
+uint8_t uint8to(const uint8_t *pointer, ByteOrder order)
 {
     uint8_t rb = *pointer;
     uint8_t rev = 0;
@@ -113,7 +113,7 @@ uint8_t uint8to(uint8_t *pointer, ByteOrder order)
     }
 }
 
-void uint8from(vector<uint8_t> src, vector<uint8_t> &dst, ByteOrder order)
+void uint8from(const vector<uint8_t> &src, vector<uint8_t> &dst, ByteOrder order)
 {
     dst.resize(src.size());
     for (size_t i=0; i<src.size(); ++i)
@@ -122,7 +122,7 @@ void uint8from(vector<uint8_t> src, vector<uint8_t> &dst, ByteOrder order)
     }
 }
 
-void uint8to(vector<uint8_t> src, vector<uint8_t> &dst, ByteOrder order)
+void uint8to(const vector<uint8_t> &src, vector<uint8_t> &dst, ByteOrder order)
 {
     dst.resize(src.size());
     for (size_t i=0; i<src.size(); ++i)
