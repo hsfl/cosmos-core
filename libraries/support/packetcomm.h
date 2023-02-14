@@ -24,70 +24,6 @@ namespace Cosmos {
 
             PacketComm(uint16_t size=4);
 
-//            enum class TypeIdV1 : uint8_t {
-//                Blank = 0,
-//                DataObcBeacon = 10,
-//                DataObcPong = 41,
-//                DataEpsResponse = 43,
-//                DataRadioResponse = 44,
-//                DataAdcsResponse = 45,
-//                DataObcResponse = 61,
-//                DataIP = 62,
-//                DataRadioTest = 63,
-//                DataObcTime = 64,
-//                DataFileCommand = 71,
-//                DataFileMessage = 72,
-//                DataFileQueue = 79,
-//                DataFileCancel = 80,
-//                DataFileComplete = 81,
-//                DataFileReqMeta = 82,
-//                DataFileReqData = 83,
-//                DataFileMetaData = 84,
-//                DataFileChunkData = 85,
-//                DataFileReqComplete = 86,
-//                DataObcNop = 0x7f,
-
-//                Command = 0x80,
-//                CommandObcReset = 128,
-//                CommandObcReboot = 129,
-//                CommandObcSendBeacon = 130,
-//                CommandExecClearQueue = 131,
-//                CommandObcExternalCommand = 132,
-//                CommandRadioTest = 133,
-//                CommandFileListDirectory = 134,
-//                CommandFileTransferFile = 135,
-//                CommandFileTransferNode = 136,
-//                CommandFileTransferRadio = 137,
-//                CommandFileTransferList = 138,
-//                CommandObcExternalTask = 139,
-//                CommandObcInternalRequest = 140,
-//                CommandObcPing = 141,
-//                CommandObcSetTime = 142,
-//                CommandObcGetTimeHuman = 143,
-//                CommandObcGetTimeBinary = 144,
-//                CommandExecSetOpsMode = 145,
-//                CommandExecEnableChannel = 146,
-//                CommandAdcsCommunicate = 150,
-//                CommandAdcsState = 151,
-//                CommandAdcsSetRunMode = 152,
-//                CommandAdcsGetAdcsState = 155,
-//                CommandAdcsOrbitParameters = 156,
-//                CommandEpsCommunicate = 160,
-//                CommandEpsSwitchName = 161,
-//                CommandEpsSwitchNumber = 162,
-//                CommandEpsReset = 163,
-//                CommandEpsState = 164,
-//                CommandEpsWatchdog = 165,
-//                CommandEpsSetTime = 166,
-//                CommandEpsMinimumPower = 167,
-//                CommandEpsSwitchNames = 168,
-//                CommandEpsSwitchStatus = 169,
-//                CommandExecLoadCommand = 170,
-//                CommandExecAddCommand = 171,
-//                CommandRadioCommunicate = 180,
-//                CommandObcNop = 255,
-//            };
-
             enum class TypeId : uint16_t {
                 Blank = 0,
 
@@ -327,15 +263,6 @@ namespace Cosmos {
                 uint32_t packet_id = 0;
             };
 
-//            struct __attribute__ ((packed))  HeaderV1
-//            {
-//                TypeIdV1 type = TypeIdV1::Blank;
-//                uint8_t data_size;
-//                uint8_t nodeorig = 254; // refer to NodeData::NODEIDORIG;
-//                uint8_t nodedest = 255; // refer to NodeData::NODEIDDEST;
-//                uint8_t chanin = 0;
-//            } headerv1;
-
             struct __attribute__ ((packed))  Header
             {
                 TypeId type = TypeId::Blank;
@@ -368,11 +295,6 @@ namespace Cosmos {
                 uint32_t txid;
             };
 
-            struct FileMeta
-            {
-
-            };
-
             vector<uint8_t> atsm = {0x1a, 0xcf, 0xfc, 0x1d};
             vector<uint8_t> atsmr = {0x58, 0xf3, 0x3f, 0xb8};
             vector<uint8_t> satsm = {0x35, 0x2e, 0xf8, 0x53};
@@ -397,9 +319,6 @@ namespace Cosmos {
             bool SLIPPacketize();
 
         private:
-
-//            Transfer ttransfer;
-//            int32_t close_transfer();
 
         };
     }
