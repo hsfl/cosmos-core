@@ -89,11 +89,11 @@ namespace Cosmos {
 
                 DataExec = 0x500,
                 CommandExec = 0x580,
-                CommandExecClearQueue = 0x582,
-                CommandExecSetOpsMode = 0x583,
-                CommandExecEnableChannel = 0x584,
-                CommandExecLoadCommand = 170,
-                CommandExecAddCommand = 171,
+                CommandExecClearQueue = 0x581,
+                CommandExecSetOpsMode = 0x582,
+                CommandExecEnableChannel = 0x583,
+                CommandExecLoadCommand = 0x584,
+                CommandExecAddCommand = 0x585,
 
                 DataRadio = 0x700,
                 DataRadioTest = 0x701,
