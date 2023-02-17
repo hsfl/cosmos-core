@@ -4152,20 +4152,52 @@ acquired.
                 return GENERAL_ERROR_OUTOFRANGE;
             }
 
+            string bytes;
+            for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
+            {
+                bytes += " " + to_hex(packet.data[i], 2, true);
+            }
             if (extra.empty())
             {
-                debug_log.Printf("%u [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanin, packet.header.chanout, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                debug_log.Printf("[Name=%s, Enabled=%u, Size=%lu Age=%f Length=%u PacketCnt=%u ByteCnt=%lu] [Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u]] %s\n", channel_name(number).c_str(), channel_enabled(number), packet.packetized.size(), channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanin, packet.header.chanout, bytes.c_str());
             }
             else
             {
-                debug_log.Printf("%u %s [%s(%u) Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u] CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanin, packet.header.chanout, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                debug_log.Printf("%s [Name=%s, Enabled=%u, Size=%lu Age=%f Length=%u PacketCnt=%u ByteCnt=%lu] [Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u]] %s\n", extra.c_str(), channel_name(number).c_str(), channel_enabled(number), packet.packetized.size(), channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanin, packet.header.chanout, bytes.c_str());
             }
+            return 0;
+        }
+
+        int32_t Agent::monitor_unpacketized(string name, PacketComm &packet, string extra)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+            return monitor_unpacketized(number, packet, extra);
+        }
+
+        int32_t Agent::monitor_unpacketized(uint8_t number, PacketComm &packet, string extra)
+        {
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            string bytes;
             for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
             {
-                debug_log.Printf(" %02x", packet.data[i]);
+                bytes += " " + to_hex(packet.data[i], 2, true);
             }
-            debug_log.Printf("\n");
-            // fflush(stdout);
+            if (extra.empty())
+            {
+                debug_log.Printf("[Name=%s, Enabled=%u, Size=%lu Age=%f Length=%u PacketCnt=%u ByteCnt=%lu] %s\n", channel_name(number).c_str(), channel_enabled(number), packet.packetized.size(), channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number), bytes.c_str());
+            }
+            else
+            {
+                debug_log.Printf("%s [Name=%s, Enabled=%u, Size=%lu Age=%f Length=%u PacketCnt=%u ByteCnt=%lu]\n", extra.c_str(), channel_name(number).c_str(), channel_enabled(number), packet.packetized.size(), channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number), bytes.c_str());
+            }
             return 0;
         }
 
@@ -4312,6 +4344,16 @@ acquired.
             {
                 return channels.Add(name, datasize, rawsize, byte_rate, maximum);
             }
+        }
+
+        int32_t Agent::channel_update(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
+        {
+            return channels.Update(name, datasize, rawsize, byte_rate, maximum);
+        }
+
+        int32_t Agent::channel_update(uint8_t number, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
+        {
+            return channels.Update(number, datasize, rawsize, byte_rate, maximum);
         }
 
         int32_t Agent::channel_size(string name)

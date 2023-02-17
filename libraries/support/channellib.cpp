@@ -78,8 +78,8 @@ namespace Cosmos {
 
         //! \brief Add additional channel.
         //! \param name Name of channel.
-        //! \param Maximum size of Cosmos::PacketComm::data.
-        //! \param Maximum size of associated hardware packet.
+        //! \param datasize Maximum size of Cosmos::PacketComm::data.
+        //! \param rawsize Maximum size of associated hardware packet.
         //! \param byte_rate Speed of associated hardware.
         //! \param maximum Maximum size of ::channelstruc::quu.
         int32_t Channel::Add(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
@@ -108,6 +108,65 @@ namespace Cosmos {
             return channel.size() - 1;
         }
 
+        //! \brief Update existing channel.
+        //! \param name Name of channel.
+        //! \param datasize Maximum size of Cosmos::PacketComm::data.
+        //! \param rawsize Maximum size of associated hardware packet.
+        //! \param byte_rate Speed of associated hardware.
+        //! \param maximum Maximum size of ::channelstruc::quu.
+        int32_t Channel::Update(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                if (datasize)
+                {
+                    channel[iretn].datasize = datasize;
+                }
+                if (rawsize)
+                {
+                    channel[iretn].rawsize = rawsize;
+                }
+                if (byte_rate)
+                {
+                    channel[iretn].byte_rate = byte_rate;
+                }
+                if (maximum)
+                {
+                    channel[iretn].maximum = maximum;
+                }
+            }
+            return iretn;
+        }
+
+        int32_t Channel::Update(uint8_t number, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
+        {
+            if (number < channel.size())
+            {
+                if (datasize)
+                {
+                    channel[number].datasize = datasize;
+                }
+                if (rawsize)
+                {
+                    channel[number].rawsize = rawsize;
+                }
+                if (byte_rate)
+                {
+                    channel[number].byte_rate = byte_rate;
+                }
+                if (maximum)
+                {
+                    channel[number].maximum = maximum;
+                }
+                return number;
+            }
+            else
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+        }
+
         //! \brief Find channel number from name.
         //! \param name Name of channel.
         //! \return Number found. Blank name will return 0 (SELF).
@@ -133,7 +192,7 @@ namespace Cosmos {
         string Channel::Find(uint8_t number)
         {
             string result = "";
-            if (number > channel.size())
+            if (number >= channel.size())
             {
                 return result;
             }

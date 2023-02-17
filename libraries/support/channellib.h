@@ -68,6 +68,8 @@ namespace Cosmos {
             int32_t Init(uint32_t verification=0x352e);
             int32_t Check(uint32_t verification);
             int32_t Add(string name, uint16_t datasize=PACKETCOMM_WRAPPED_SIZE, uint16_t rawsize=0, float byte_rate=1e8, uint16_t maximum=100);
+            int32_t Update(string name, uint16_t datasize=0, uint16_t rawsize=0, float byte_rate=0, uint16_t maximum=0);
+            int32_t Update(uint8_t number, uint16_t datasize=0, uint16_t rawsize=0, float byte_rate=0, uint16_t maximum=0);
             int32_t Find(string name);
             string Find(uint8_t number);
             int32_t Push(string name, PacketComm &packet);

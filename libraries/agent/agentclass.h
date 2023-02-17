@@ -440,8 +440,12 @@ namespace Cosmos
             int32_t channel_pull(uint8_t number, PacketComm& packet);
             int32_t monitor_unwrapped(string name, PacketComm& packet, string extra="");
             int32_t monitor_unwrapped(uint8_t number, PacketComm& packet, string extra="");
+            int32_t monitor_unpacketized(string name, PacketComm& packet, string extra="");
+            int32_t monitor_unpacketized(uint8_t number, PacketComm& packet, string extra="");
             int32_t init_channels(uint32_t verification=0x352e);
             int32_t channel_add(string name, uint16_t datasize=0, uint16_t rawsize=0, float byte_rate=0., uint16_t maximum=0);
+            int32_t channel_update(string name, uint16_t datasize=0, uint16_t rawsize=0, float byte_rate=0., uint16_t maximum=0);
+            int32_t channel_update(uint8_t number, uint16_t datasize=0, uint16_t rawsize=0, float byte_rate=0., uint16_t maximum=0);
             //! Number of packets currently in the channel
             int32_t channel_size(string name);
             //! Number of packets currently in the channel
