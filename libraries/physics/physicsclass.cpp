@@ -896,6 +896,11 @@ namespace Cosmos
             return targets.size();
         }
 
+        int32_t State::AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type)
+        {
+            return AddTarget(name, lat, lon, DPI * 1e6, alt, type);
+        }
+
         int32_t State::AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type)
         {
             Convert::locstruc loc;
