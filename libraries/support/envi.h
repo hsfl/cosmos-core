@@ -35,6 +35,8 @@ typedef struct envi_hdr
     vector <string> keys;
     vector <string> values;
     string basename;
+    string hdrname;
+    string dataname;
     } envi_hdr;
 
 
@@ -44,3 +46,4 @@ int32_t write_envi_data(string name, size_t columns, size_t rows, size_t planes,
 int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data);
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<double>>> &data);
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<double>> &data);
+int32_t read_envi_data(string filename, vector<vector<vector<double>>> &data);

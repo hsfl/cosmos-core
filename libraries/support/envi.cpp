@@ -2,41 +2,58 @@
 //#include <cstdio>
 //#include <string>
 #include "envi.h"
+#include "support/datalib.h"
 
 int32_t read_envi_hdr(string file, envi_hdr &hdr)
 {
-    char fname[250], inbuf[1000];
+    char inbuf[1000];
     FILE *fp;
 
-    size_t ext=file.find_last_of(".");
-    if (ext != string::npos)
+    if (!data_isfile(file))
+    {
+        return COSMOS_GENERAL_ERROR_NAME;
+    }
+
+    size_t ext;
+    if ((ext = file.find(".hdr")) != string::npos)
     {
         hdr.basename = file.substr(0, ext);
+        hdr.dataname = hdr.basename;
+        if (!data_isfile(hdr.dataname))
+        {
+            return COSMOS_GENERAL_ERROR_NAME;
+        }
+        hdr.hdrname = file;
+    }
+    else if (data_isfile(file + ".hdr"))
+    {
+        hdr.basename = file;
+        hdr.hdrname = hdr.basename + ".hdr";
+        if (!data_isfile(hdr.hdrname))
+        {
+            return COSMOS_GENERAL_ERROR_NAME;
+        }
+        hdr.dataname = file;
+    }
+    else if ((ext=file.find_last_of(".")) != string::npos)
+    {
+        hdr.basename = file.substr(0, ext);
+        hdr.hdrname = hdr.basename + ".hdr";
+        if (!data_isfile(hdr.hdrname))
+        {
+            return COSMOS_GENERAL_ERROR_NAME;
+        }
+        hdr.dataname = file;
     }
     else
     {
-        hdr.basename = file;
+        return COSMOS_GENERAL_ERROR_NAME;
     }
-    sprintf(fname,"%s.hdr",hdr.basename.c_str());
-    fp = fopen(fname,"r");
+
+    fp = fopen(hdr.hdrname.c_str(),"r");
     if (fp == nullptr)
     {
-        //        for (size_t i=file.size()-1; i<file.size(); --i)
-        for (size_t i=file.size()-1; (i>0 && i<file.size()); --i)
-        {
-            if (file[i] == '.')
-            {
-                file.resize(i);
-                hdr.basename = file;
-                sprintf(fname,"%s.hdr",file.data());
-                fp = fopen(fname,"r");
-                break;
-            }
-        }
-        if (fp == nullptr)
-        {
-            return (-1);
-        }
+        return (-errno);
     }
 
     hdr.keys.resize(0);
@@ -266,6 +283,326 @@ int32_t write_envi_hdr(envi_hdr &hdr)
     return (0);
 }
 
+int32_t read_envi_data(string fname, vector<vector<vector<double>>> &data)
+{
+    envi_hdr ehdr;
+    int32_t iretn = 0;
+
+    iretn = read_envi_hdr(fname, ehdr);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    switch (ehdr.interleave)
+    {
+    case BSQ:
+        data.resize(ehdr.planes);
+        for (uint16_t ip=0; ip<ehdr.planes; ++ip)
+        {
+            data[ip].resize(ehdr.rows);
+            for (uint16_t ir=0; ir<ehdr.rows; ++ir)
+            {
+                data[ip][ir].resize(ehdr.columns);
+            }
+        }
+        break;
+    case BIL:
+        data.resize(ehdr.rows);
+        for (uint16_t ip=0; ip<ehdr.rows; ++ip)
+        {
+            data[ip].resize(ehdr.planes);
+            for (uint16_t ir=0; ir<ehdr.planes; ++ir)
+            {
+                data[ip][ir].resize(ehdr.columns);
+            }
+        }
+        break;
+    case BIP:
+        data.resize(ehdr.rows);
+        for (uint16_t ip=0; ip<ehdr.rows; ++ip)
+        {
+            data[ip].resize(ehdr.columns);
+            for (uint16_t ir=0; ir<ehdr.columns; ++ir)
+            {
+                data[ip][ir].resize(ehdr.planes);
+            }
+        }
+        break;
+    default:
+        return COSMOS_GENERAL_ERROR_OUTOFRANGE;
+        break;
+    }
+
+    FILE *fp = fopen(fname.c_str(), "rb");
+    if (fp == nullptr)
+    {
+        return -errno;
+    }
+
+    uint8_t datasize=1;
+
+    switch (ehdr.interleave)
+    {
+    case BSQ:
+        for (size_t ip=0; ip<ehdr.planes; ++ip)
+        {
+            for (size_t ir=0; ir<ehdr.rows; ++ir)
+            {
+                switch (ehdr.datatype)
+                {
+                case DT_BYTE:
+                    {
+                        datasize = 1;
+                        vector<uint8_t> datain(ehdr.columns);
+                        fread(datain.data(), datasize, ehdr.columns, fp);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            data[ip][ir][ic] = datain[ic];
+                        }
+                    }
+                    break;
+                case DT_INT:
+                    {
+                        datasize = 2;
+                        vector<int16_t> datain(ehdr.columns);
+                        fread(datain.data(), datasize, ehdr.columns, fp);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            data[ip][ir][ic] = datain[ic];
+                        }
+                    }
+                    break;
+                case DT_U_INT:
+                    {
+                        datasize = 2;
+                        vector<uint16_t> datain(ehdr.columns);
+                        fread(datain.data(), datasize, ehdr.columns, fp);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            data[ip][ir][ic] = datain[ic];
+                        }
+                    }
+                    break;
+                case DT_LONG:
+                    {
+                        datasize = 4;
+                        vector<int32_t> datain(ehdr.columns);
+                        fread(datain.data(), datasize, ehdr.columns, fp);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            data[ip][ir][ic] = datain[ic];
+                        }
+                    }
+                    break;
+                case DT_U_LONG:
+                    {
+                        datasize = 4;
+                        vector<uint32_t> datain(ehdr.columns);
+                        fread(datain.data(), datasize, ehdr.columns, fp);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            data[ip][ir][ic] = datain[ic];
+                        }
+                    }
+                    break;
+                case DT_FLOAT:
+                    {
+                        datasize = 4;
+                        vector<float> datain(ehdr.columns);
+                        fread(datain.data(), datasize, ehdr.columns, fp);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            data[ip][ir][ic] = datain[ic];
+                        }
+                    }
+                    break;
+                case DT_DOUBLE:
+                    datasize = 8;
+                    fread(data[ip][ir].data(), datasize, ehdr.columns, fp);
+                    break;
+                }
+            }
+        }
+        break;
+    case BIL:
+        for (size_t ir=0; ir<ehdr.rows; ++ir)
+        {
+            for (size_t ip=0; ip<ehdr.planes; ++ip)
+            {
+                switch (ehdr.datatype)
+                {
+                case DT_BYTE:
+                    {
+                        datasize = 1;
+                        vector<uint8_t> datain(ehdr.columns);
+                        fread(datain.data(), datasize, ehdr.columns, fp);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            data[ip][ir][ic] = datain[ic];
+                        }
+                    }
+                    break;
+                case DT_INT:
+                    {
+                        datasize = 2;
+                        vector<int16_t> datain(ehdr.columns);
+                        fread(datain.data(), datasize, ehdr.columns, fp);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            data[ip][ir][ic] = datain[ic];
+                        }
+                    }
+                    break;
+                case DT_U_INT:
+                    {
+                        datasize = 2;
+                        vector<uint16_t> datain(ehdr.columns);
+                        fread(datain.data(), datasize, ehdr.columns, fp);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            data[ip][ir][ic] = datain[ic];
+                        }
+                    }
+                    break;
+                case DT_LONG:
+                    {
+                        datasize = 4;
+                        vector<int32_t> datain(ehdr.columns);
+                        fread(datain.data(), datasize, ehdr.columns, fp);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            data[ip][ir][ic] = datain[ic];
+                        }
+                    }
+                    break;
+                case DT_U_LONG:
+                    {
+                        datasize = 4;
+                        vector<uint32_t> datain(ehdr.columns);
+                        fread(datain.data(), datasize, ehdr.columns, fp);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            data[ip][ir][ic] = datain[ic];
+                        }
+                    }
+                    break;
+                case DT_FLOAT:
+                    {
+                        datasize = 4;
+                        vector<float> datain(ehdr.columns);
+                        fread(datain.data(), datasize, ehdr.columns, fp);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            data[ip][ir][ic] = datain[ic];
+                        }
+                    }
+                    break;
+                case DT_DOUBLE:
+                    datasize = 8;
+                    fread(data[ip][ir].data(), datasize, ehdr.columns, fp);
+                    break;
+                }
+            }
+        }
+        break;
+    case BIP:
+        for (size_t ir=0; ir<ehdr.rows; ++ir)
+        {
+            for (size_t ic=0; ic<ehdr.columns; ++ic)
+            {
+                switch (ehdr.datatype)
+                {
+                case DT_BYTE:
+                    {
+                        datasize = 1;
+                        vector<uint8_t> datain(ehdr.planes);
+                        fread(datain.data(), datasize, ehdr.planes, fp);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            data[ip][ir][ic] = datain[ip];
+                        }
+                    }
+                    break;
+                case DT_INT:
+                    {
+                        datasize = 2;
+                        vector<int16_t> datain(ehdr.planes);
+                        fread(datain.data(), datasize, ehdr.planes, fp);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            data[ip][ir][ic] = datain[ip];
+                        }
+                    }
+                    break;
+                case DT_U_INT:
+                    {
+                        datasize = 2;
+                        vector<uint16_t> datain(ehdr.planes);
+                        fread(datain.data(), datasize, ehdr.planes, fp);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            data[ip][ir][ic] = datain[ip];
+                        }
+                    }
+                    break;
+                case DT_LONG:
+                    {
+                        datasize = 4;
+                        vector<int32_t> datain(ehdr.planes);
+                        fread(datain.data(), datasize, ehdr.planes, fp);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            data[ip][ir][ic] = datain[ip];
+                        }
+                    }
+                    break;
+                case DT_U_LONG:
+                    {
+                        datasize = 4;
+                        vector<uint32_t> datain(ehdr.planes);
+                        fread(datain.data(), datasize, ehdr.planes, fp);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            data[ip][ir][ic] = datain[ip];
+                        }
+                    }
+                    break;
+                case DT_FLOAT:
+                    {
+                        datasize = 4;
+                        vector<float> datain(ehdr.planes);
+                        fread(datain.data(), datasize, ehdr.planes, fp);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            data[ip][ir][ic] = datain[ip];
+                        }
+                    }
+                    break;
+                case DT_DOUBLE:
+                    {
+                        datasize = 8;
+                        vector<double> datain(ehdr.planes);
+                        fread(datain.data(), datasize, ehdr.planes, fp);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            data[ip][ir][ic] = datain[ip];
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        break;
+    default:
+        break;
+    }
+
+    fclose(fp);
+    return datasize * ehdr.planes * ehdr.columns * ehdr.rows;
+
+}
+
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<double>> &data)
 {
     int32_t iretn = 0;
@@ -276,7 +613,7 @@ int32_t write_envi_data(string name, uint8_t interleave, vector<vector<double>> 
 }
 
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<double>>> &data)
-    {
+{
     envi_hdr ehdr;
     int32_t iretn = 0;
 
@@ -351,25 +688,6 @@ int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<do
     }
 
     uint8_t datasize=1;
-    switch (ehdr.datatype)
-    {
-    case DT_BYTE:
-        datasize = 1;
-        break;
-    case DT_INT:
-    case DT_U_INT:
-        datasize = 2;
-        break;
-    case DT_LONG:
-    case DT_U_LONG:
-    case DT_FLOAT:
-        datasize = 4;
-        break;
-    case DT_DOUBLE:
-        datasize = 8;
-        break;
-    }
-
     switch (ehdr.interleave)
     {
     case BSQ:
@@ -377,7 +695,81 @@ int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<do
         {
             for (size_t ir=0; ir<ehdr.rows; ++ir)
             {
-                fwrite(data[ip][ir].data(), datasize, ehdr.columns, fp);
+                switch (ehdr.datatype)
+                {
+                case DT_BYTE:
+                    {
+                        datasize = 1;
+                        vector<uint8_t> dataout(ehdr.columns);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            dataout[ic] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                case DT_INT:
+                    {
+                        datasize = 2;
+                        vector<int16_t> dataout(ehdr.columns);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            dataout[ic] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                case DT_U_INT:
+                    {
+                        datasize = 2;
+                        vector<uint16_t> dataout(ehdr.columns);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            dataout[ic] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                case DT_LONG:
+                    {
+                        datasize = 4;
+                        vector<int32_t> dataout(ehdr.columns);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            dataout[ic] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                case DT_U_LONG:
+                    {
+                        datasize = 4;
+                        vector<uint32_t> dataout(ehdr.columns);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            dataout[ic] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                case DT_FLOAT:
+                    {
+                        datasize = 4;
+                        vector<float> dataout(ehdr.columns);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            dataout[ic] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                case DT_DOUBLE:
+                    {
+                        datasize = 8;
+                        fwrite(data[ip][ir].data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                }
             }
         }
         break;
@@ -386,7 +778,81 @@ int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<do
         {
             for (size_t ip=0; ip<ehdr.planes; ++ip)
             {
-                fwrite(data[ir][ip].data(), datasize, ehdr.columns, fp);
+                switch (ehdr.datatype)
+                {
+                case DT_BYTE:
+                    {
+                        datasize = 1;
+                        vector<uint8_t> dataout(ehdr.columns);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            dataout[ic] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                case DT_INT:
+                    {
+                        datasize = 2;
+                        vector<int16_t> dataout(ehdr.columns);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            dataout[ic] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                case DT_U_INT:
+                    {
+                        datasize = 2;
+                        vector<uint16_t> dataout(ehdr.columns);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            dataout[ic] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                case DT_LONG:
+                    {
+                        datasize = 4;
+                        vector<int32_t> dataout(ehdr.columns);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            dataout[ic] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                case DT_U_LONG:
+                    {
+                        datasize = 4;
+                        vector<uint32_t> dataout(ehdr.columns);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            dataout[ic] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                case DT_FLOAT:
+                    {
+                        datasize = 4;
+                        vector<float> dataout(ehdr.columns);
+                        for (size_t ic=0; ic<ehdr.columns; ++ic)
+                        {
+                            dataout[ic] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                case DT_DOUBLE:
+                    {
+                        datasize = 8;
+                        fwrite(data[ip][ir].data(), datasize, ehdr.columns, fp);
+                    }
+                    break;
+                }
             }
         }
         break;
@@ -395,7 +861,86 @@ int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<do
         {
             for (size_t ic=0; ic<ehdr.columns; ++ic)
             {
-                fwrite(data[ir][ic].data(), datasize, ehdr.planes, fp);
+                switch (ehdr.datatype)
+                {
+                case DT_BYTE:
+                    {
+                        datasize = 1;
+                        vector<uint8_t> dataout(ehdr.planes);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            dataout[ip] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.planes, fp);
+                    }
+                    break;
+                case DT_INT:
+                    {
+                        datasize = 2;
+                        vector<int16_t> dataout(ehdr.planes);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            dataout[ip] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.planes, fp);
+                    }
+                    break;
+                case DT_U_INT:
+                    {
+                        datasize = 2;
+                        vector<uint16_t> dataout(ehdr.planes);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            dataout[ip] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.planes, fp);
+                    }
+                    break;
+                case DT_LONG:
+                    {
+                        datasize = 4;
+                        vector<int32_t> dataout(ehdr.planes);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            dataout[ip] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.planes, fp);
+                    }
+                    break;
+                case DT_U_LONG:
+                    {
+                        datasize = 4;
+                        vector<uint32_t> dataout(ehdr.planes);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            dataout[ip] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.planes, fp);
+                    }
+                    break;
+                case DT_FLOAT:
+                    {
+                        datasize = 4;
+                        vector<float> dataout(ehdr.planes);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            dataout[ip] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.planes, fp);
+                    }
+                    break;
+                case DT_DOUBLE:
+                    {
+                        datasize = 8;
+                        vector<double> dataout(ehdr.planes);
+                        for (size_t ip=0; ip<ehdr.planes; ++ip)
+                        {
+                            dataout[ip] = data[ip][ir][ic];
+                        }
+                        fwrite(dataout.data(), datasize, ehdr.planes, fp);
+                    }
+                    break;
+                }
             }
         }
         break;
