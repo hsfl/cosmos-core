@@ -361,7 +361,7 @@ void StartCamera(gige_handle* handle)
 
 //////////////////////////////////////////////////////////////////////
 
-int ShutdownCamera(gige_handle* handle)
+int StopCamera(gige_handle* handle)
 {
     // Stop Grabbing Frames
     gige_writereg(handle, A35_ACQUISITIONSTOP, 0x1);
