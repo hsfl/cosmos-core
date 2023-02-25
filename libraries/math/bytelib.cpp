@@ -37,11 +37,7 @@ size_t uintswap(uint8_t bits, size_t value, ByteOrder order)
     size_t rb = value;
     size_t rev = 0;
 #endif
-    if (local_byte_order() == order)
-    {
-        return rb;
-    }
-    else
+    if (order == ByteOrder::NONE || order != local_byte_order())
     {
 #if ((SIZE_WIDTH) == (UINT64_WIDTH))
         for (uint64_t ic=0; ic<bits; ++ic)
@@ -57,6 +53,10 @@ size_t uintswap(uint8_t bits, size_t value, ByteOrder order)
             rb >>= 1;
         }
         return rev;
+    }
+    else
+    {
+        return rb;
     }
 }
 

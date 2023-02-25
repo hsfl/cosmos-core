@@ -57,7 +57,8 @@ enum class ByteOrder : std::uint8_t {
     //! Intel byte order
     INTEL=ByteOrder::LITTLEENDIAN,
     //! Network byte order
-    NETWORK=ByteOrder::BIGENDIAN
+    NETWORK=ByteOrder::BIGENDIAN,
+    NONE=2
 };
 
 #define DIRECTION_ROW 0
