@@ -2352,6 +2352,40 @@ namespace Cosmos
                     packet.data.clear();
                 }
                 break;
+            case PacketComm::TypeId::CommandCameraOn:
+                {
+                    packet.data.resize(1);
+                        if (parms.size())
+                        {
+                            packet.data[0] = atoi(parms[0].c_str());
+                        }
+                        else
+                        {
+                            packet.data[0] = 0;
+                        }
+                }
+                break;
+            case PacketComm::TypeId::CommandCameraCapture:
+                {
+                    if (parms.size() > 1)
+                    {
+                        packet.data.resize(8);
+                        uint16to(atoi(parms[0].c_str()), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                        uint16to(atoi(parms[1].c_str()), &packet.data[2], ByteOrder::LITTLEENDIAN);
+                        if (parms.size() > 2)
+                        {
+                            uint16to(atoi(parms[2].c_str()), &packet.data[4], ByteOrder::LITTLEENDIAN);
+                        }
+                        else
+                        {
+                            packet.data[0] = 1;
+                        }
+                        packet.data[1] = stoi(parms[0]);
+                        packet.data[2] = stoi(parms[1]);
+                        //                        uint16to(stoi(parms[0]), &packet.data[1], ByteOrder::LITTLEENDIAN);
+                    }
+                }
+                break;
             default:
                 return 0;
                 break;

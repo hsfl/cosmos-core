@@ -102,6 +102,11 @@ namespace Cosmos {
                 CommandRadioTest = 0x781,
                 CommandRadioCommunicate = 0x782,
                 CommandRadioAstrodevCommunicate = 0x783,
+
+                DataCamera = 0x800,
+                CommandCamera = 0x880,
+                CommandCameraOn = 0x881,
+                CommandCameraCapture = 0x882,
             };
 
             std::map<TypeId, string> TypeString = {
