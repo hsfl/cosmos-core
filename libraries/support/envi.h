@@ -40,10 +40,10 @@ typedef struct envi_hdr
     } envi_hdr;
 
 
-int32_t read_envi_hdr(string file, envi_hdr &hdr);
 int32_t write_envi_hdr(envi_hdr &hdr);
 int32_t write_envi_data(string name, size_t columns, size_t rows, size_t planes, uint8_t datatype, uint8_t interleave, uint8_t *data);
 int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data);
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<double>>> &data);
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<double>> &data);
-int32_t read_envi_data(string filename, vector<vector<vector<double>>> &data);
+int32_t read_envi_hdr(string file, envi_hdr &hdr);
+int32_t read_envi_data(string filename, envi_hdr &hdr, vector<vector<vector<double>>> &data);

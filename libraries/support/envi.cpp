@@ -283,9 +283,8 @@ int32_t write_envi_hdr(envi_hdr &hdr)
     return (0);
 }
 
-int32_t read_envi_data(string fname, vector<vector<vector<double>>> &data)
+int32_t read_envi_data(string fname, envi_hdr &ehdr, vector<vector<vector<double>>> &data)
 {
-    envi_hdr ehdr;
     int32_t iretn = 0;
 
     iretn = read_envi_hdr(fname, ehdr);
@@ -334,7 +333,7 @@ int32_t read_envi_data(string fname, vector<vector<vector<double>>> &data)
         break;
     }
 
-    FILE *fp = fopen(fname.c_str(), "rb");
+    FILE *fp = fopen(ehdr.dataname.c_str(), "rb");
     if (fp == nullptr)
     {
         return -errno;
