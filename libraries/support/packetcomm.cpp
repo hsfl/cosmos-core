@@ -161,6 +161,10 @@ namespace Cosmos {
                 input.insert(input.begin(), &packetized[4], &packetized[packetized.size()]);
                 uint8from(input, wrapped, ByteOrder::BIGENDIAN);
             }
+            else
+            {
+                return false;
+            }
             return Unwrap(checkcrc);
         }
 
