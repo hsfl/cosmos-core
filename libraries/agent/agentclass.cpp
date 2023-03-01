@@ -2022,6 +2022,27 @@ namespace Cosmos
                     response += " " + to_unsigned(centi) + " " + command;
                 }
                 break;
+            
+            case PacketComm::TypeId::CommandRadioAstrodevCommunicate:
+                try
+                {
+                    // String args are converted to uint8_t and pushed straight in
+                    for (size_t i=0; i<parms.size(); ++i)
+                    {
+                        packet.data.push_back(std::stoi(parms[i]) & 0xff);
+                    }
+                }
+                catch (const std::invalid_argument& e)
+                {
+                    response += "Caught invalid_argument exception";
+                    break;
+                }
+                catch (const std::out_of_range& e)
+                {
+                    response += "Caught out_of_range exception";
+                    break;
+                }
+                break;
             case PacketComm::TypeId::CommandRadioTest:
                 {
                     uint8_t start = 0;

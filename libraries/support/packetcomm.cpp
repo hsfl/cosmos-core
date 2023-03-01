@@ -158,8 +158,12 @@ namespace Cosmos {
             else if (atsmr[0] == packetized[0] && atsmr[1] == packetized[1] && atsmr[2] == packetized[2] && atsmr[3] == packetized[3])
             {
                 vector<uint8_t> input;
-                input.insert(wrapped.begin(), &packetized[4], &packetized[packetized.size()]);
+                input.insert(input.begin(), &packetized[4], &packetized[packetized.size()]);
                 uint8from(input, wrapped, ByteOrder::BIGENDIAN);
+            }
+            else
+            {
+                return false;
             }
             return Unwrap(checkcrc);
         }
