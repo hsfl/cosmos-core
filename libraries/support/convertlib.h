@@ -178,6 +178,7 @@ namespace Cosmos {
         int32_t loc_update(locstruc &loc);
 
         double mjd2gmst(double mjd);
+        int32_t geod2utm(geoidpos &geod, Vector &utm);
         int32_t geoc2geod(Convert::cartpos &geoc, geoidpos &geod);
         int32_t geos2geoc(Convert::spherpos *geos, cartpos *geoc);
         int32_t geod2geoc(geoidpos &geod, cartpos &geoc);

@@ -2367,22 +2367,31 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandCameraCapture:
                 {
-                    if (parms.size() > 1)
+                    packet.data.resize(12);
+                    uint16to(0, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    uint16to(640, &packet.data[2], ByteOrder::LITTLEENDIAN);
+                    uint16to(0, &packet.data[4], ByteOrder::LITTLEENDIAN);
+                    uint16to(512, &packet.data[6], ByteOrder::LITTLEENDIAN);
+                    uint16to(1, &packet.data[8], ByteOrder::LITTLEENDIAN);
+                    uint16to(350, &packet.data[10], ByteOrder::LITTLEENDIAN);
+                    if (parms.size() > 3)
                     {
-                        packet.data.resize(8);
                         uint16to(atoi(parms[0].c_str()), &packet.data[0], ByteOrder::LITTLEENDIAN);
                         uint16to(atoi(parms[1].c_str()), &packet.data[2], ByteOrder::LITTLEENDIAN);
-                        if (parms.size() > 2)
+                        uint16to(atoi(parms[2].c_str()), &packet.data[4], ByteOrder::LITTLEENDIAN);
+                        uint16to(atoi(parms[3].c_str()), &packet.data[6], ByteOrder::LITTLEENDIAN);
+                        if (parms.size() > 4)
                         {
-                            uint16to(atoi(parms[2].c_str()), &packet.data[4], ByteOrder::LITTLEENDIAN);
+                            uint16to(atoi(parms[4].c_str()), &packet.data[8], ByteOrder::LITTLEENDIAN);
+                            if (parms.size() > 5)
+                            {
+                                uint16to(atoi(parms[5].c_str()), &packet.data[10], ByteOrder::LITTLEENDIAN);
+                                if (parms.size() > 6)
+                                {
+                                    packet.data.insert(packet.data.end(), args[5].begin(), args[5].end());
+                                }
+                            }
                         }
-                        else
-                        {
-                            packet.data[0] = 1;
-                        }
-                        packet.data[1] = stoi(parms[0]);
-                        packet.data[2] = stoi(parms[1]);
-                        //                        uint16to(stoi(parms[0]), &packet.data[1], ByteOrder::LITTLEENDIAN);
                     }
                 }
                 break;
