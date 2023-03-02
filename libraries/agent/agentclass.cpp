@@ -331,6 +331,7 @@ namespace Cosmos
                         "    EpsSwitchName {vbattbus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [0|1|2]\n"
                         "    EpsSwitchNumber boardid switchid [0|1]\n"
                         "    EpsSwitchNames {vbattbus ...} [0|1]\n"
+                        "    AdcsOrbitParameters inc ecc raan ap bstar mm ma epoch\n"
                         "    AdcsState {0-7} {0-255} ... \n"
                         "    AdcsCommunicate command:hexstring:response_size\n"
                         "");
@@ -2261,6 +2262,52 @@ namespace Cosmos
                                 packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
                             }
                         }
+                    }
+                }
+                break;
+            case PacketComm::TypeId::CommandAdcsOrbitParameters:
+                {
+                    double d1 = 0.0;
+                    double d2 = 0.0;
+                    double d3 = 0.0;
+                    double d4 = 0.0;
+                    double d5 = 0.0;
+                    double d6 = 0.0;
+                    double d7 = 0.0;
+                    double d8 = 0.0;
+
+                    if(parms.size() == 8)	{
+                        d1 = stod(parms[0]);
+                        const unsigned char* ptr = reinterpret_cast<const unsigned char*>(&d1);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d2 = stod(parms[1]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d2);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d3 = stod(parms[2]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d3);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d4 = stod(parms[3]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d4);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d5 = stod(parms[4]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d5);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d6 = stod(parms[5]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d6);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d7 = stod(parms[6]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d7);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d8 = stod(parms[7]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d8);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
                     }
                 }
                 break;
