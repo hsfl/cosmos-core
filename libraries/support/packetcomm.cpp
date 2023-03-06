@@ -291,6 +291,18 @@ namespace Cosmos {
 
         bool PacketComm::ASMPacketize()
         {
+            // Default call has no padding at the end
+            return ASMPacketize(data.size() + sizeof(PacketComm::header) + 2 + atsm.size());
+        }
+
+        //! @param packet_wrapped_size Size to stuff a packet up to for fixed-sized requirements
+        bool PacketComm::ASMPacketize(uint16_t packet_wrapped_size)
+        {
+            // 2 is crc size
+            if (data.size() + sizeof(PacketComm::header) + 2 + atsm.size() > packet_wrapped_size)
+            {
+                return false;
+            }
             if (!Wrap())
             {
                 return false;
@@ -298,6 +310,7 @@ namespace Cosmos {
             packetized.clear();
             packetized.insert(packetized.begin(), atsm.begin(), atsm.end());
             packetized.insert(packetized.end(), wrapped.begin(), wrapped.end());
+            packetized.resize(packet_wrapped_size, 0);
             return true;
         }
 
