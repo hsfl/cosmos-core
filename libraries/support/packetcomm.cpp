@@ -165,7 +165,7 @@ namespace Cosmos {
             {
                 return false;
             }
-            return Unwrap(checkcrc);
+            return (Unwrap(checkcrc) >= 0);
         }
 
         bool PacketComm::HDLCUnPacketize(bool checkcrc)
