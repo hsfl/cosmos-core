@@ -953,10 +953,10 @@ namespace Cosmos {
         {
             double utc = 0.;
             // JIMNOTE: remove magic number
-            char name[25] = "";
+            string name = string(25, ' ');
             uint16_t snumber = 0;
             // JIMNOTE: remove magic number
-            char id[9] = "";
+            string id = string(9, ' ');
             //! Drag (1/Earth radii)
             double bstar = 0.;
             //! Inclination (radians)
@@ -1004,9 +1004,9 @@ namespace Cosmos {
                 json11::Json parsed = json11::Json::parse(js,error);
                 if(error.empty()) {
                     if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
-                    if(!parsed["name"].is_null())    strcpy(name, parsed["name"].string_value().c_str());
+                    if(!parsed["name"].is_null())    name = parsed["name"].string_value();
                     if(!parsed["snumber"].is_null())    snumber =  parsed["snumber"].int_value();
-                    if(!parsed["id"].is_null())    strcpy(id, parsed["id"].string_value().c_str());
+                    if(!parsed["id"].is_null())    id = parsed["id"].string_value();
                     if(!parsed["bstar"].is_null())    bstar =  parsed["bstar"].number_value();
                     if(!parsed["i"].is_null())    i =  parsed["i"].number_value();
                     if(!parsed["raan"].is_null())    raan =  parsed["raan"].number_value();

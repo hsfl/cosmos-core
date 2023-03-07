@@ -1094,6 +1094,7 @@ namespace Cosmos {
         int32_t geod2utm(geoidpos &geod, Vector &utm)
         {
             // Calculate meridional arc
+            // Reference: https://fypandroid.wordpress.com/2011/09/03/converting-utm-to-latitude-and-longitude-or-vice-versa/
             constexpr double e = sqrt(1. - FRATIO2);
             constexpr double ep = (1. - FRATIO2) / FRATIO2;
             constexpr double e2 = e * e;
@@ -1122,7 +1123,7 @@ namespace Cosmos {
             double clat4 = clat2 * clat2;
             double tlat = tan(geod.s.lat);
             double tlat2 = tlat * tlat;
-            double k3 = (5. - tlat2 + 9. * ep2 * clat2 + 4. * e4 * clat4) * .9996 * slat * clat3 / 24.;
+            double k3 = (5. - tlat2 + 9. * ep2 * clat2 + 4. * ep4 * clat4) * .9996 * slat * clat3 / 24.;
             double p = geod.s.lon;
             double p2 = p * p;
             double p3 = p2 * p;
@@ -4052,13 +4053,13 @@ match.
 
             while (!feof(fdes))
             {
-                strcpy(tle.name,tlename);
+                tle.name = tlename;
 
                 // Line 1
                 if (fgets(ibuf,80,fdes) == nullptr)
                     break;
                 sscanf(&ibuf[2],"%5hu",&tle.snumber);
-                sscanf(&ibuf[9],"%6s",tle.id);
+                sscanf(&ibuf[9],"%6s",tle.id.data());
                 sscanf(&ibuf[18],"%2hu",&year);
                 if (year < 57)
                     year += 2000;
@@ -4130,7 +4131,7 @@ match.
 
             while (!feof(fdes))
             {
-                strcpy(tle.name,tlename);
+                tle.name = tlename;
 
                 // Line 1
                 if (fgets(ibuf,80,fdes) == nullptr)
@@ -4149,7 +4150,7 @@ match.
                 }
                 cs = cs % 10;
                 sscanf(&ibuf[2],"%5hu",&tle.snumber);
-                sscanf(&ibuf[9],"%6s",tle.id);
+                sscanf(&ibuf[9],"%6s",tle.id.data());
                 sscanf(&ibuf[18],"%2hu",&year);
                 if (year < 57)
                     year += 2000;
@@ -4232,13 +4233,13 @@ match.
                 }
                 tlename[i+1] = 0;
 
-                strcpy(tle.name,tlename);
+                tle.name = tlename;
 
                 // Line 1
                 if (fgets(ibuf,80,fdes) == nullptr)
                     break;
                 sscanf(&ibuf[2],"%5hu",&tle.snumber);
-                sscanf(&ibuf[9],"%6s",tle.id);
+                sscanf(&ibuf[9],"%6s",tle.id.data());
                 sscanf(&ibuf[18],"%2hu",&year);
                 if (year < 57)
                     year += 2000;

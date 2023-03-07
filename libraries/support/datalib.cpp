@@ -1140,7 +1140,7 @@ string data_path(string location, double mjd, string type, string node, string a
 */
 string data_type_path(string node, string location, string agent, double mjd, string type, string extra)
 {
-    string tpath = data_name_path(node, location, agent, mjd, data_name(mjd, node, agent, extra, type));
+    string tpath = data_name_path(node, location, agent, mjd, data_name(mjd, type, node, agent, extra));
 
     return tpath;
 }

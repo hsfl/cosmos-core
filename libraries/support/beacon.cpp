@@ -29,24 +29,6 @@ namespace Cosmos {
             this->type = type;
             switch (type)
             {
-            case TypeId::ADCSORBITBeaconS:
-                if (cinfo->tle.size())
-                {
-                    adcsorbit_beacon beacon;
-                    beacon.deci = cinfo->node.deci;
-
-                    beacon.i = cinfo->tle[0].i;
-                    beacon.e = cinfo->tle[0].e;
-                    beacon.raan = cinfo->tle[0].raan;
-                    beacon.ap = cinfo->tle[0].ap;
-                    beacon.bstar = cinfo->tle[0].bstar;
-                    beacon.mm = cinfo->tle[0].mm;
-                    beacon.ma = cinfo->tle[0].ma;
-                    //beacon.epoch = cinfo->tle[0].epoch;
-
-                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
-                }
-                break;
             case TypeId::ADCSEXTRABeaconS:
                 if (cinfo->devspec.mag.size())
                 {
@@ -455,6 +437,24 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
                 }
                 break;
+            case TypeId::ADCSORBITBeacon:
+                if (cinfo->tle.size())
+                {
+                    adcsorbit_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+
+                    beacon.utc = cinfo->tle[0].utc;
+                    beacon.i = cinfo->tle[0].i;
+                    beacon.e = cinfo->tle[0].e;
+                    beacon.raan = cinfo->tle[0].raan;
+                    beacon.ap = cinfo->tle[0].ap;
+                    beacon.bstar = cinfo->tle[0].bstar;
+                    beacon.mm = cinfo->tle[0].mm;
+                    beacon.ma = cinfo->tle[0].ma;
+
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+                }
+                break;
             case TypeId::RadioBeacon:
                 {
                     radios_beacon beacon;
@@ -550,7 +550,7 @@ namespace Cosmos {
                             cinfo->node.loc.att.icrf.v.col[2] = beacon.att_icrf_omega_z;
                         }
                         break;
-                    case TypeId::ADCSORBITBeaconS:
+                    case TypeId::ADCSORBITBeacon:
                         {
                             adcsorbit_beacon beacon;
                             if (data.size() <= sizeof(beacon)) {
@@ -558,17 +558,18 @@ namespace Cosmos {
                             } else {
                                 return GENERAL_ERROR_BAD_SIZE;
                             }
-                            double mjd = decisec2mjd(beacon.deci);
-                            cinfo->tle[0].utc = mjd;
 
-                            cinfo->tle[0].i = beacon.i;
-                            cinfo->tle[0].e = beacon.e;
-                            cinfo->tle[0].raan = beacon.raan;
-                            cinfo->tle[0].ap = beacon.ap;
-                            cinfo->tle[0].bstar = beacon.bstar;
-                            cinfo->tle[0].mm = beacon.mm;
-                            cinfo->tle[0].ma = beacon.ma;
-                            //cinfo->tle[0].epoch = beacon.epoch;
+                            if (cinfo->tle.size())
+                            {
+                                cinfo->tle[0].utc = beacon.utc;
+                                cinfo->tle[0].i = beacon.i;
+                                cinfo->tle[0].e = beacon.e;
+                                cinfo->tle[0].raan = beacon.raan;
+                                cinfo->tle[0].ap = beacon.ap;
+                                cinfo->tle[0].bstar = beacon.bstar;
+                                cinfo->tle[0].mm = beacon.mm;
+                                cinfo->tle[0].ma = beacon.ma;
+                            }
                         }
                         break;
                     case TypeId::ADCSEXTRABeaconS:
@@ -1186,7 +1187,7 @@ namespace Cosmos {
                     json_out(Contents, "node_loc_att_icrf_v", cinfo);
                 }
                 break;
-            case TypeId::ADCSORBITBeaconS:
+            case TypeId::ADCSORBITBeacon:
                 {
                     json_out_1d(Contents, "tle_utc", 0, cinfo);
                     json_out_1d(Contents, "tle_i", 0, cinfo);

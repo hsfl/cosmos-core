@@ -1020,6 +1020,7 @@ class sim_param	{
             string devspec = "";
             string ports = "";
             string targets = "";
+            string tles = "";
             string aliases = "";
 
             // Convert class contents to JSON object
@@ -1035,6 +1036,7 @@ class sim_param	{
                     { "devspec" , devspec },
                     { "ports" , ports },
                     { "targets" , targets },
+                    { "tles" , tles },
                     { "aliases" , aliases }
                 };
             }
@@ -1054,6 +1056,7 @@ class sim_param	{
                     if(!parsed["devspec"].is_null())	devspec = parsed["devspec"].string_value();
                     if(!parsed["ports"].is_null())		ports = parsed["ports"].string_value();
                     if(!parsed["targets"].is_null())	targets = parsed["targets"].string_value();
+                    if(!parsed["tles"].is_null())	tles = parsed["tles"].string_value();
                     if(!parsed["aliases"].is_null())	aliases = parsed["aliases"].string_value();
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -4098,7 +4101,7 @@ union as a ::devicestruc.
         // TODO: add struct description
         struct camstruc : public devicestruc
         {
-            //! Lens Step
+            //! lens Step
             int16_t lstep;
             uint16_t pwidth = 0;
             uint16_t pheight = 0;
@@ -4107,7 +4110,7 @@ union as a ::devicestruc.
             float flength = 0.f;
             //! DN noise
             float noise = 0.f;
-            //! Lens temperature
+            //! lens temperature
             float ltemp = 0.f;
             //! Target temperature
             float ttemp = 0.f;

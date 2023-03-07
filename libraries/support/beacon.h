@@ -50,7 +50,6 @@ namespace Cosmos {
                 ADCSSunBeaconS = 47,
                 ADCSNadirBeaconS = 48,
                 ADCSEXTRABeaconS = 49,
-                ADCSORBITBeaconS = 50,
 				ADCSStateBeaconS = 51,
                 CPUBeacon = 110,
                 TelemBeacon = 111,
@@ -63,6 +62,7 @@ namespace Cosmos {
                 ADCSMTRBeacon = 143,
                 ADCSGyroBeacon = 144,
                 ADCSRWBeacon = 145,
+                ADCSORBITBeacon = 146,
 //                ADCSIMUBeacon = 142,
 //                ADCSGPSBeacon = 143,
 //                ADCSSTTBeacon = 144,
@@ -90,7 +90,7 @@ namespace Cosmos {
                 {TypeId::ADCSSunBeaconS, "ADCSSunBeaconS"},
                 {TypeId::ADCSNadirBeaconS, "ADCSNadirBeaconS"},
                 {TypeId::ADCSEXTRABeaconS, "ADCSEXTRABeaconS"},
-                {TypeId::ADCSORBITBeaconS, "ADCSORBITBeaconS"},
+                {TypeId::ADCSORBITBeacon, "ADCSORBITBeacon"},
                 {TypeId::ADCSStateBeaconS, "ADCSStateBeaconS"},
                 {TypeId::CPUBeacon, "CPUBeacon"},
                 {TypeId::TelemBeacon, "TelemBeacon"},
@@ -288,22 +288,6 @@ namespace Cosmos {
                 float z = 0.;
             } ;
 
-            struct __attribute__ ((packed)) adcsorbit_beacon
-            {
-                uint8_t type = 50;
-                uint32_t deci = 0;
-                double i = 0.;
-                double e = 0.;
-                double raan = 0.;
-                double ap = 0.;
-                double bstar = 0.;
-                double mm = 0.;
-                double ma = 0.;
-
-				// where does this get stored?
-                //double epoch = 0.;
-            } ;
-
             // Long Beacons
             struct __attribute__ ((packed)) adcsstate_beacon
             {
@@ -466,6 +450,20 @@ namespace Cosmos {
                uint32_t deci = 0;
                adcsrw_beacon rw[adcsrw_count];
            };
+
+           struct __attribute__ ((packed)) adcsorbit_beacon
+           {
+               uint8_t type = (uint8_t)TypeId::ADCSORBITBeacon;
+               uint32_t deci = 0;
+               double utc = 0.;
+               double i = 0.;
+               double e = 0.;
+               double raan = 0.;
+               double ap = 0.;
+               double bstar = 0.;
+               double mm = 0.;
+               double ma = 0.;
+           } ;
 
 //            struct __attribute__ ((packed)) adcsimu_beacon
 //            {

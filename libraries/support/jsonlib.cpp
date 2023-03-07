@@ -81,7 +81,7 @@ void json_init_unit(cosmosstruc* cinfo)	{
     for (uint16_t i=0; i<JSON_UNIT_COUNT; ++i)
     {
         // SI Units
-//        cinfo->unit.push_back(vector<unitstruc>());
+        //        cinfo->unit.push_back(vector<unitstruc>());
         unitstruc tunit;
 
         switch (i)
@@ -420,44 +420,44 @@ void json_init_reserve(cosmosstruc* cinfo) {
     // JIMNOTE: change all to reserve
     // reserve/resize fixed-sized vectors
     cinfo->unit.clear();
-//    cinfo->unit.reserve(JSON_UNIT_COUNT);
+    //    cinfo->unit.reserve(JSON_UNIT_COUNT);
 
     cinfo->jmap.resize(JSON_MAX_HASH);
     cinfo->ujmap.clear();
     cinfo->emap.resize(JSON_MAX_HASH);
 
-//    cinfo->node.name.reserve(COSMOS_MAX_NAME+1);
-//    cinfo->node.agent.reserve(COSMOS_MAX_NAME+1);
-//    cinfo->node.lastevent.reserve(COSMOS_MAX_NAME+1);
+    //    cinfo->node.name.reserve(COSMOS_MAX_NAME+1);
+    //    cinfo->node.agent.reserve(COSMOS_MAX_NAME+1);
+    //    cinfo->node.lastevent.reserve(COSMOS_MAX_NAME+1);
 
     // TODO: enforce this maximum for all vert/tri.push_back calls
     cinfo->node.phys.vertices.clear();
-//    cinfo->node.phys.vertices.reserve(MAX_NUMBER_OF_VERTICES);
+    //    cinfo->node.phys.vertices.reserve(MAX_NUMBER_OF_VERTICES);
     cinfo->node.phys.triangles.clear();
-//    cinfo->node.phys.triangles.reserve(MAX_NUMBER_OF_TRIANGLES);
+    //    cinfo->node.phys.triangles.reserve(MAX_NUMBER_OF_TRIANGLES);
 
     cinfo->vertexs.clear();
-//    cinfo->vertexs.reserve(MAX_NUMBER_OF_VERTEXS);
+    //    cinfo->vertexs.reserve(MAX_NUMBER_OF_VERTEXS);
     cinfo->normals.clear();
-//    cinfo->normals.reserve(MAX_NUMBER_OF_NORMALS);
+    //    cinfo->normals.reserve(MAX_NUMBER_OF_NORMALS);
 
-//    cinfo->user.reserve(MAX_NUMBER_OF_USERS);
-//    cinfo->user.resize(MAX_NUMBER_OF_USERS);
+    //    cinfo->user.reserve(MAX_NUMBER_OF_USERS);
+    //    cinfo->user.resize(MAX_NUMBER_OF_USERS);
 
-//    cinfo->agent.reserve(MAX_NUMBER_OF_AGENTS);
+    //    cinfo->agent.reserve(MAX_NUMBER_OF_AGENTS);
     cinfo->agent.resize(1);
 
     cinfo->equation.clear();
-//    cinfo->equation.reserve(MAX_NUMBER_OF_EQUATIONS);
+    //    cinfo->equation.reserve(MAX_NUMBER_OF_EQUATIONS);
     cinfo->pieces.clear();
-//    cinfo->pieces.reserve(MAX_NUMBER_OF_PIECES);
+    //    cinfo->pieces.reserve(MAX_NUMBER_OF_PIECES);
     cinfo->device.clear();
-//    cinfo->device.reserve(MAX_NUMBER_OF_DEVICES);
+    //    cinfo->device.reserve(MAX_NUMBER_OF_DEVICES);
     cinfo->target.clear();
-//    cinfo->target.reserve(MAX_NUMBER_OF_TARGETS);
+    //    cinfo->target.reserve(MAX_NUMBER_OF_TARGETS);
 
     cinfo->sim_states.clear();
-//    cinfo->sim_states.reserve(MAX_NUMBER_OF_SATELLITES);
+    //    cinfo->sim_states.reserve(MAX_NUMBER_OF_SATELLITES);
 
     // init sim_states
     sim_state s;
@@ -482,14 +482,14 @@ void json_init_reserve(cosmosstruc* cinfo) {
     s.agent_name = "mother";
     cinfo->sim_states.push_back(s);
 
-//    cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
+    //    cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
     cinfo->event.resize(1);
 
     cinfo->port.clear();
-//    cinfo->port.reserve(MAX_NUMBER_OF_PORTS);
+    //    cinfo->port.reserve(MAX_NUMBER_OF_PORTS);
 
     cinfo->tle.clear();
-//    cinfo->tle.reserve(MAX_NUMBER_OF_TLES);
+    //    cinfo->tle.reserve(MAX_NUMBER_OF_TLES);
     return;
 }
 
@@ -506,9 +506,9 @@ cosmosstruc* json_init(cosmosstruc *cinfo)
     json_init_device_type_string();
     // would be nice to have unit test for these three guys
     //SCOTTNOTE: reserve capacity for all vectors in these strucs
-//    cinfo->node.name = "";
-//    cinfo->node.agent = "";
-//    cinfo->node.lastevent = "";
+    //    cinfo->node.name = "";
+    //    cinfo->node.agent = "";
+    //    cinfo->node.lastevent = "";
     //	cinfo->node = nodestruc();
     //    cinfo->node.phys = physicsstruc();
     //	cinfo->devspec = devspecstruc();
@@ -525,7 +525,7 @@ cosmosstruc* json_init(cosmosstruc *cinfo)
     cinfo->timestamp = currentmjd();
 
     // NS1 check
-//    int32_t iretn = json_mapbaseentries(cinfo);
+    //    int32_t iretn = json_mapbaseentries(cinfo);
     int32_t iretn = json_updatecosmosstruc(cinfo);
     if (iretn < 0) {
         delete cinfo;
@@ -533,7 +533,7 @@ cosmosstruc* json_init(cosmosstruc *cinfo)
     }
 
     // NS2
-//    cinfo->add_default_names();
+    //    cinfo->add_default_names();
 
     return cinfo;
 }
@@ -593,8 +593,8 @@ int32_t json_create_node(cosmosstruc *cinfo, string &node_name, uint16_t node_ty
         cinfo->node.name = node_name;
         cinfo->node.type = node_type;
 
-//        int32_t iretn = json_dump_node(cinfo);
-//        return iretn;
+        //        int32_t iretn = json_dump_node(cinfo);
+        //        return iretn;
         return 0;
     }
     else
@@ -664,9 +664,9 @@ int32_t json_create_cpu(string &node_name)
         cinfo->node.port_cnt = 1;
         cinfo->port.resize(cinfo->node.port_cnt);
 
-//        int32_t iretn = json_dump_node(cinfo);
+        //        int32_t iretn = json_dump_node(cinfo);
         json_destroy(cinfo);
-//        return iretn;
+        //        return iretn;
         return 0;
     }
     else
@@ -743,7 +743,7 @@ int32_t json_create_mcc(string &node_name)
             }
             json_mapcompentry(i, cinfo);
             json_togglecompentry(i, cinfo, true);
-//            cinfo->device[i]->enabled = true;
+            //            cinfo->device[i]->enabled = true;
         }
 
         json_destroy(cinfo);
@@ -1011,10 +1011,10 @@ int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
             //! Processing Unit
         case DeviceType::CPU:
             {
-            cinfo->devspec.cpu.push_back(cpustruc{});
-            cinfo->devspec.cpu.back().didx = cinfo->devspec.cpu.size() - 1;
-            cinfo->devspec.cpu_cnt = cinfo->devspec.cpu.size();
-            cinfo->device.push_back(&cinfo->devspec.cpu.back());
+                cinfo->devspec.cpu.push_back(cpustruc{});
+                cinfo->devspec.cpu.back().didx = cinfo->devspec.cpu.size() - 1;
+                cinfo->devspec.cpu_cnt = cinfo->devspec.cpu.size();
+                cinfo->device.push_back(&cinfo->devspec.cpu.back());
             }
             break;
             //! Disk
@@ -2796,7 +2796,144 @@ int32_t json_out_locstruc(string &jstring, Convert::locstruc value)
     return 0;
 }
 
+//! TLE structure to JSON
+//! Converts ::tlestruc to JSON
 //! Command event to JSON
+//! \param jstring Reference to JSON stream.
+//! \param value The TLE to be converted.
+int32_t json_out_tle(string &jstring, Convert::tlestruc &value)
+{
+    int32_t iretn = 0;
+
+    if ((iretn=json_out_character(jstring, '{')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_utc")) < 0)
+        return iretn;
+    if ((iretn=json_out_double(jstring, value.utc)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_name")) < 0)
+        return iretn;
+    if ((iretn=json_out_string(jstring, value.name, 25)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_snumber")) < 0)
+        return iretn;
+    if ((iretn=json_out_uint16(jstring, value.snumber)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_id")) < 0)
+        return iretn;
+    if ((iretn=json_out_string(jstring, value.id, 9)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_bstar")) < 0)
+        return iretn;
+    if ((iretn=json_out_double(jstring, value.bstar)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_i")) < 0)
+        return iretn;
+    if ((iretn=json_out_double(jstring, value.i)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_raan")) < 0)
+        return iretn;
+    if ((iretn=json_out_double(jstring, value.raan)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_e")) < 0)
+        return iretn;
+    if ((iretn=json_out_double(jstring, value.e)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_ap")) < 0)
+        return iretn;
+    if ((iretn=json_out_double(jstring, value.ap)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_ma")) < 0)
+        return iretn;
+    if ((iretn=json_out_double(jstring, value.ma)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_mm")) < 0)
+        return iretn;
+    if ((iretn=json_out_double(jstring, value.mm)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_orbit")) < 0)
+        return iretn;
+    if ((iretn=json_out_uint32(jstring, value.orbit)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_character(jstring, '}')) < 0)
+        return iretn;
+    return 0;
+}
+
+//! TLE structures to JSON
+//! Converts ::vector of ::tlestruc to JSON
+//! Command event to JSON
+//! \param jstring Reference to JSON stream.
+//! \param value The ::vector of TLEs to be converted.
+int32_t json_out_tles(string &jstring, vector<Convert::tlestruc> &value)
+{
+    int32_t iretn = 0;
+
+    if ((iretn=json_out_character(jstring,'[')) < 0)
+        return iretn;
+
+    for (Convert::tlestruc &tle : value)
+    {
+        if ((iretn=json_out_tle(jstring, tle)) < 0)
+        {
+            return iretn;
+        }
+        if ((iretn=json_out_character(jstring,',')) < 0)
+        {
+            return iretn;
+        }
+    }
+
+    if (jstring.back() == ',')
+    {
+        jstring.back() = ']';
+    }
+    else
+    {
+        jstring.push_back(']');
+    }
+
+    return value.size();
+}
+
+//! \return 0 if successful, negative error otherwise.
 /*! Appends a JSON entry to the current JSON stream for the indicated
  * ::eventstruc specific to a command event.
     \param jstring Reference to JSON stream.
@@ -6770,41 +6907,42 @@ int32_t json_load_node(string node, jsonnode &json)
         free(ibuf);
     }
 
-    // 1A: load state vector, if it is present
-    fname = nodepath + "/state.ini";
+    // 1A: load state vector TLE's, if present
 
-    if (!stat(fname.c_str(),&fstat) && fstat.st_size)
-    {
-        ifs.open(fname);
-        if (ifs.is_open())
-        {
-            ibuf = (char *)calloc(1,fstat.st_size+1);
-            ifs.read(ibuf, fstat.st_size);
-            ifs.close();
-            ibuf[fstat.st_size] = 0;
-            json.state = ibuf;
-            free(ibuf);
-        }
-    }
+//    fname = nodepath + "/state.ini";
+
+//    if (!stat(fname.c_str(),&fstat) && fstat.st_size)
+//    {
+//        ifs.open(fname);
+//        if (ifs.is_open())
+//        {
+//            ibuf = (char *)calloc(1,fstat.st_size+1);
+//            ifs.read(ibuf, fstat.st_size);
+//            ifs.close();
+//            ibuf[fstat.st_size] = 0;
+//            json.state = ibuf;
+//            free(ibuf);
+//        }
+//    }
     // If not, use TLE if it is present
-    else {
-        fname = nodepath + "/state.tle";
+//    else {
+//        fname = nodepath + "/state.tle";
 
-        if (!stat(fname.c_str(),&fstat) && fstat.st_size)
-        {
-            int32_t iretn = 0;
-            Convert::cartpos eci;
-            vector <Convert::tlestruc> tles;
-            iretn = load_lines(fname, tles);
-            if (iretn > 0)
-            {
-                if ((iretn=lines2eci(currentmjd()-10./1440., tles, eci)) == 0)
-                {
-                    json_out_ecipos(json.state, eci);
-                }
-            }
-        }
-    }
+//        if (!stat(fname.c_str(),&fstat) && fstat.st_size)
+//        {
+//            iretn = 0;
+//            Convert::cartpos eci;
+//            vector <Convert::tlestruc> tles;
+//            iretn = load_lines(fname, tles);
+//            if (iretn > 0)
+//            {
+//                if ((iretn=lines2eci(currentmjd()-10./1440., tles, eci)) == 0)
+//                {
+//                    json_out_ecipos(json.state, eci);
+//                }
+//            }
+//        }
+//    }
 
     // Set node_utcstart
     fname = nodepath + "/node_utcstart.dat";
@@ -7098,57 +7236,57 @@ int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
     for (auto &dev : cinfo->devspec.ant)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.batt)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.bcreg)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.bus)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.cam)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.cpu)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.disk)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.gps)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.gyro)
@@ -7174,50 +7312,50 @@ int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
     for (auto &dev : cinfo->devspec.mcc)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.motr)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.mtr)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.pload)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.prop)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.psen)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.pvstrg)
     {
         cinfo->device[dev.cidx] = &dev;
-//        json_mapcompentry(dev.cidx, cinfo);
-//        json_mapdeviceentry(&dev, cinfo);
+        //        json_mapcompentry(dev.cidx, cinfo);
+        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.rot)
@@ -7369,14 +7507,10 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     // 1A: load state vector, if it is present
     if (!json.state.empty())
     {
-        // NS1
-        // if ((iretn = json_parse(json.state, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
-        // NS2 maybe use set_json?  do we even need this?  what is the purpose of jsonnode?
         if ((iretn = json_parse(json.state, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
         {
             return iretn;
         }
-        //        loc_update(&cinfo->node.loc);
     }
 
     // Second: enter information for pieces
@@ -7588,7 +7722,14 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             cinfo->device[i]->volt = cinfo->device[i]->nvolt;
         }
 
-        // Fifth: enter information for ports
+        // Fifth: recover any state vector information
+        iretn = load_tle(cinfo);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+
+        // Sixth: enter information for ports
         // Resize, then add names for ports
         cinfo->port.resize(cinfo->node.port_cnt);
         if (cinfo->port.size() != cinfo->node.port_cnt)
@@ -7717,7 +7858,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
 {
     string jst;
     string filename;
-//    json_mapentries(cinfo);
+    //    json_mapentries(cinfo);
     json_updatecosmosstruc(cinfo);
 
     // Node
@@ -7813,15 +7954,15 @@ int32_t json_mapentries(cosmosstruc *cinfo)
 {
     json_mapbaseentries(cinfo);
 
-//    for (uint16_t i=0; i<cinfo->node.vertex_cnt; i++)
-//    {
-//        json_mapvertexentry(i, cinfo);
-//    }
+    //    for (uint16_t i=0; i<cinfo->node.vertex_cnt; i++)
+    //    {
+    //        json_mapvertexentry(i, cinfo);
+    //    }
 
-//    for (uint16_t i=0; i<cinfo->node.face_cnt; i++)
-//    {
-//        json_mapfaceentry(i, cinfo);
-//    }
+    //    for (uint16_t i=0; i<cinfo->node.face_cnt; i++)
+    //    {
+    //        json_mapfaceentry(i, cinfo);
+    //    }
 
     for (uint16_t i=0; i<cinfo->node.piece_cnt; i++)
     {
@@ -7841,6 +7982,11 @@ int32_t json_mapentries(cosmosstruc *cinfo)
     for (uint16_t i=0; i<cinfo->node.port_cnt; i++)
     {
         json_mapportentry(i, cinfo);
+    }
+
+    for (uint16_t i=0; i<cinfo->node.tle_cnt; ++i)
+    {
+        json_maptleentry(i, cinfo);
     }
 
     return cinfo->jmapped;
@@ -8385,9 +8531,9 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
 {
     int32_t iretn = 0;
     uint16_t didx = devicein->didx;
-//    uint16_t cidx = devicein->cidx;
-//    uint16_t pidx = cinfo->device[cidx]->pidx;
-//    piecestruc *pptr = &cinfo->pieces[pidx];
+    //    uint16_t cidx = devicein->cidx;
+    //    uint16_t pidx = cinfo->device[cidx]->pidx;
+    //    piecestruc *pptr = &cinfo->pieces[pidx];
 
     switch (static_cast <DeviceType>(devicein->type))
     {
@@ -8643,8 +8789,8 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             json_addentry("device_mag_volt",didx, UINT16_MAX, (uint8_t *)&device->volt, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_VOLTAGE);
             json_addentry("device_mag_power",didx, UINT16_MAX, (uint8_t *)&device->power, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
             json_addentry("device_mag_align",didx, UINT16_MAX, (uint8_t *)&device->align, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
-//            json_addentry("device_mag_omega",didx, UINT16_MAX, (uint8_t *)&device->omega, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ANGULAR_RATE);
-//            json_addentry("device_mag_alpha",didx, UINT16_MAX, (uint8_t *)&device->alpha, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
+            //            json_addentry("device_mag_omega",didx, UINT16_MAX, (uint8_t *)&device->omega, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ANGULAR_RATE);
+            //            json_addentry("device_mag_alpha",didx, UINT16_MAX, (uint8_t *)&device->alpha, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
             json_addentry("device_mag_mag",didx, UINT16_MAX, (uint8_t *)&device->mag, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_MAGFIELD);
             json_addentry("device_mag_mag_x",didx, UINT16_MAX, (uint8_t *)&device->mag.col[0], (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_MAGFIELD);
             json_addentry("device_mag_mag_y",didx, UINT16_MAX, (uint8_t *)&device->mag.col[1], (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_MAGFIELD);
@@ -9562,6 +9708,53 @@ int32_t json_toggleportentry(uint16_t portidx, cosmosstruc *cinfo, bool state)
 
     json_toggleentry("port_name", portidx, UINT16_MAX, cinfo, state);
     iretn = json_toggleentry("port_type", portidx, UINT16_MAX, cinfo,state);
+
+    return iretn;
+}
+
+//! Add tle entry.
+/*! Add entries specific to tle number tleidx to the JSON Namespace map.
+ \param tleidx Port number.
+
+    \return The current number of entries, if successful, 0 if the entry could not be added.
+ */
+uint16_t json_maptleentry(uint16_t tleidx, cosmosstruc *cinfo)
+{
+    int32_t iretn = 0;
+
+    json_addentry("tle_utc", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,utc)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+    json_addentry("tle_name", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,name)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_STRING, (uint16_t)JSON_STRUCT_TLE, cinfo);
+    json_addentry("tle_snumber", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,snumber)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_UINT16, (uint16_t)JSON_STRUCT_TLE, cinfo);
+    json_addentry("tle_id", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,id)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_STRING, (uint16_t)JSON_STRUCT_TLE, cinfo);
+    json_addentry("tle_bstar", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,bstar)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+    json_addentry("tle_i", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,i)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+    json_addentry("tle_raan", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,raan)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+    json_addentry("tle_e", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,e)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+    json_addentry("tle_ap", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,ap)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+    json_addentry("tle_ma", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,ma)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+    json_addentry("tle_mm", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,mm)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+    iretn = json_addentry("tle_orbit", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,orbit)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_UINT32, (uint16_t)JSON_STRUCT_TLE, cinfo);
+
+    if (iretn >= 0)
+    {
+        iretn = cinfo->jmapped;
+    }
+    return iretn;
+}
+
+//! Toggle tle entry.
+/*! Toggle enable state of entries specific to tle number i in the JSON Namespace map.
+ \param tleidx Port number.
+
+    \param state Enable state.
+    \return The current number of entries, if successful, 0 if the entry could not be added.
+ */
+int32_t json_toggletleentry(uint16_t tleidx, cosmosstruc *cinfo, bool state)
+{
+    int32_t iretn = 0;
+
+    json_toggleentry("tle_name", tleidx, UINT16_MAX, cinfo, state);
+    iretn = json_toggleentry("tle_type", tleidx, UINT16_MAX, cinfo,state);
 
     return iretn;
 }
@@ -12307,11 +12500,63 @@ int32_t load_target(cosmosstruc *cinfo)
         }
         fclose(op);
         //JIMNOTE:  take away this resize
+        //EJPNOTE: keep the resize, when combined with the original resize it keeps the pointers from being changed
         cinfo->target.resize(count);
         return (count);
     }
     else
         return 0;
+}
+
+//! Load TLE list
+/*! Load the file state.tle into an array of ::tlestruc. Space for the array is automatically allocated
+ * and the number of items returned.
+
+    \param cinfo Reference to ::cosmosstruc to use.
+ *	\return Number of items loaded.
+*/
+
+int32_t load_tle(cosmosstruc *cinfo)
+{
+    int32_t iretn = 0;
+    string fname;
+    struct stat fstat;
+
+    fname = get_nodedir(cinfo->node.name) + "/state.tle";
+    if (!stat(fname.c_str(),&fstat) && fstat.st_size)
+    {
+        iretn = load_lines(fname, cinfo->tle);
+        if (iretn <= 0)
+        {
+            return iretn;
+        }
+        if (iretn > MAX_NUMBER_OF_TLES)
+        {
+            cinfo->node.tle_cnt = MAX_NUMBER_OF_TLES;
+        }
+        else
+        {
+            cinfo->node.tle_cnt = iretn;
+        }
+        cinfo->tle.resize(cinfo->node.tle_cnt);
+        for (uint16_t i=0; i<cinfo->node.tle_cnt; ++i)
+        {
+            json_addentry("tle_utc",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,utc)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+            json_addentry("tle_name",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,name)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_STRING, (uint16_t)JSON_STRUCT_TLE, cinfo);
+            json_addentry("tle_snumber",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,snumber)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_UINT16, (uint16_t)JSON_STRUCT_TLE, cinfo);
+            json_addentry("tle_id",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,id)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_STRING, (uint16_t)JSON_STRUCT_TLE, cinfo);
+            json_addentry("tle_bstar",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,bstar)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+            json_addentry("tle_i",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,i)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+            json_addentry("tle_raan",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,raan)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+            json_addentry("tle_e",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,e)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+            json_addentry("tle_ap",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,ap)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+            json_addentry("tle_ma",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,ma)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+            json_addentry("tle_mm",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,mm)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
+            json_addentry("tle_orbit",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,orbit)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_UINT32, (uint16_t)JSON_STRUCT_TLE, cinfo);
+        }
+        return (cinfo->node.tle_cnt);
+    }
+    return GENERAL_ERROR_BAD_FD;
 }
 
 //! Update Track list
@@ -12417,8 +12662,8 @@ size_t load_dictionary(vector<eventstruc> &dict, cosmosstruc *cinfo, const char 
 size_t calc_events(vector<eventstruc> &dictionary, cosmosstruc *cinfo, vector<eventstruc> &events)
 {
     double value;
-//    char *sptr;
-//    char *eptr;
+    //    char *sptr;
+    //    char *eptr;
     size_t sptr;
     size_t eptr;
 
@@ -12438,12 +12683,12 @@ size_t calc_events(vector<eventstruc> &dictionary, cosmosstruc *cinfo, vector<ev
                 tstring = json_get_string(events[events.size()-1].name.substr(sptr+2, (eptr-sptr)-2), cinfo);
                 events[events.size()-1].name.replace(sptr, string::npos, tstring);
             }
-//            if ((sptr=strstr(events[events.size()-1].name.c_str(),"${")) != nullptr && (eptr=strstr(sptr,"}")) != nullptr)
-//            {
-//                *eptr = 0;
-//                tstring = json_get_string(sptr+2, cinfo);
-//                strcpy(sptr, tstring.c_str());
-//            }
+            //            if ((sptr=strstr(events[events.size()-1].name.c_str(),"${")) != nullptr && (eptr=strstr(sptr,"}")) != nullptr)
+            //            {
+            //                *eptr = 0;
+            //                tstring = json_get_string(sptr+2, cinfo);
+            //                strcpy(sptr, tstring.c_str());
+            //            }
         }
         dictionary[k].value = value;
     }

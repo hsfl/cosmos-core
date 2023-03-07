@@ -157,6 +157,8 @@ uint16_t json_mapdeviceentry(devicestruc *devicein, cosmosstruc *cinfo);
 int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinfo, bool state);
 uint16_t json_mapportentry(uint16_t portidx, cosmosstruc *cinfo);
 int32_t json_toggleportentry(uint16_t portidx, cosmosstruc *cinfo, bool state);
+uint16_t json_maptleentry(uint16_t tleidx, cosmosstruc *cinfo);
+int32_t json_toggletleentry(uint16_t tleidx, cosmosstruc *cinfo, bool state);
 int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo);
 int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo);
 size_t json_count_hash(uint16_t hash, cosmosstruc *cinfo);
@@ -216,6 +218,8 @@ int32_t json_out_posstruc(string &jstring, Convert::posstruc value);
 int32_t json_out_attstruc(string &jstring, Convert::attstruc value);
 int32_t json_out_locstruc(string &jstring, Convert::locstruc value);
 int32_t json_out_commandevent(string &jstring, eventstruc event);
+int32_t json_out_tle(string &jstring, Convert::tlestruc &tle);
+int32_t json_out_tles(string &jstring, vector<Convert::tlestruc> &tles);
 
 uint8_t *json_ptrto(string token, cosmosstruc *cinfo);
 uint8_t *json_ptrto_1d(const char *token, uint16_t index1, cosmosstruc *cinfo);
@@ -287,6 +291,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo);
 int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag = false);
 int32_t json_setup_node(string &node, cosmosstruc *cinfo);
 int32_t json_load_node(string node, jsonnode &json);
+int32_t load_tle(cosmosstruc *cinfo);
 int32_t json_dump_node(cosmosstruc *cinfo);
 int32_t json_recenter_node(cosmosstruc *cinfo);
 
