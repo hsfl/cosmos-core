@@ -310,7 +310,14 @@ namespace Cosmos {
             packetized.clear();
             packetized.insert(packetized.begin(), atsm.begin(), atsm.end());
             packetized.insert(packetized.end(), wrapped.begin(), wrapped.end());
-            packetized.resize(packet_wrapped_size, 0);
+            // Adjust packet size to specified padded size
+            // XBand seems to ignore packets if it's all just 0 or 1 (though it seems to like other numbers), so just fill with a sequence
+            const size_t wrapped_size = packetized.size();
+            packetized.resize(packet_wrapped_size);
+            for (size_t i=wrapped_size ; i<packet_wrapped_size; ++i)
+            {
+                packetized[i] = i;
+            }
             return true;
         }
 
