@@ -165,7 +165,7 @@ namespace Cosmos {
             {
                 return false;
             }
-            return Unwrap(checkcrc);
+            return (Unwrap(checkcrc) >= 0);
         }
 
         bool PacketComm::HDLCUnPacketize(bool checkcrc)
@@ -291,6 +291,18 @@ namespace Cosmos {
 
         bool PacketComm::ASMPacketize()
         {
+            // Default call has no padding at the end
+            return ASMPacketize(data.size() + sizeof(PacketComm::header) + 2 + atsm.size());
+        }
+
+        //! @param packet_wrapped_size Size to stuff a packet up to for fixed-sized requirements
+        bool PacketComm::ASMPacketize(uint16_t packet_wrapped_size)
+        {
+            // 2 is crc size
+            if (data.size() + sizeof(PacketComm::header) + 2 + atsm.size() > packet_wrapped_size)
+            {
+                return false;
+            }
             if (!Wrap())
             {
                 return false;
@@ -298,6 +310,14 @@ namespace Cosmos {
             packetized.clear();
             packetized.insert(packetized.begin(), atsm.begin(), atsm.end());
             packetized.insert(packetized.end(), wrapped.begin(), wrapped.end());
+            // Adjust packet size to specified padded size
+            // XBand seems to ignore packets if it's all just 0 or 1 (though it seems to like other numbers), so just fill with a sequence
+            const size_t wrapped_size = packetized.size();
+            packetized.resize(packet_wrapped_size);
+            for (size_t i=wrapped_size ; i<packet_wrapped_size; ++i)
+            {
+                packetized[i] = i;
+            }
             return true;
         }
 

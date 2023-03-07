@@ -319,6 +319,8 @@ namespace Cosmos {
             bool Wrap();
             bool RawPacketize();
             bool ASMPacketize();
+            //! Pads packetized packets to specified size
+            bool ASMPacketize(uint16_t packet_wrapped_size);
             bool AX25Packetize(string dest_call="", string sour_call="", uint8_t flagcount=2, uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
             bool HDLCPacketize(uint8_t flagcount=10);
             bool SLIPPacketize();

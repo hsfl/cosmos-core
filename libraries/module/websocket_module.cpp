@@ -79,7 +79,6 @@ namespace Module
 
     void WebsocketModule::Loop()
     {
-        int32_t iretn = 0;
         agent->debug_log.Printf("Starting %s loop.\n", mychannel_name.c_str());
         while(agent->running())
         {
@@ -111,7 +110,7 @@ namespace Module
         PacketComm packet;
         if (
             // In TCP Mode, only sock_out is set up
-            (tcp_mode && socket_recvfrom(sock_out, packet.packetized, 10000 <= 0)
+            ((tcp_mode && socket_recvfrom(sock_out, packet.packetized, 10000 <= 0))
             // In UDP Mode, recv from sock_in
             || socket_recvfrom(sock_in, packet.packetized, 10000) <= 0)
             )
