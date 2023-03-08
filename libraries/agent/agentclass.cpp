@@ -2135,17 +2135,30 @@ namespace Cosmos
                 }
                 break;
             case PacketComm::TypeId::CommandFileTransferRadio:
-                if (parms.size() > 2)
                 {
+                    if (parms.size() < 2)
+                    {
+                        response = "Invalid arguments";
+                        return response.size();
+                    }
                     int32_t ch = agent->channel_number(parms[0]);
                     if (ch < 0)
                     {
                         response = "Invalid channel";
                         return response.size();
                     }
-                    packet.data.resize(1);
-                    packet.data[0] = ch;
-                    packet.data[1] = stoi(parms[1]);
+                    packet.data.resize(2);
+                    packet.data[0] = ch & 0xFF;
+                    try
+                    {
+                        packet.data[1] = stoi(parms[1]);
+                        response = "Setting radio " + std::to_string(unsigned(packet.data[0])) + " to " + std::to_string(unsigned(packet.data[1]));
+                    }
+                    catch(const std::exception& e)
+                    {
+                        response = "Invalid parm[1]";
+                        return response.size();
+                    }
                 }
                 break;
             case PacketComm::TypeId::CommandObcInternalRequest:
