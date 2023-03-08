@@ -122,6 +122,8 @@ namespace Cosmos {
             int32_t incoming_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
             int32_t incoming_tx_complete(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
 
+            // Reuse to write the meta
+            PacketComm write_meta_packet;
             int32_t write_meta(tx_progress& tx, double interval=5.);
             int32_t read_meta(tx_progress& tx);
 

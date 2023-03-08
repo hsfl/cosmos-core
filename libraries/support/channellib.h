@@ -45,7 +45,7 @@ namespace Cosmos {
                 uint16_t datasize = PACKETCOMM_DATA_SIZE;
                 uint16_t rawsize = PACKETCOMM_PACKETIZED_SIZE;
                 uint16_t maximum = 100;
-                float byte_rate = 1200.;
+                float byte_rate = 1e9;
                 // Radio test variables
                 thread testthread;
                 uint8_t testrunning = 0;
