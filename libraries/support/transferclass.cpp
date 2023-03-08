@@ -1706,13 +1706,12 @@ namespace Cosmos {
         //! \return 0 on success, negative on error
         int32_t Transfer::write_meta(tx_progress& tx, const double interval)
         {
-            PacketComm packet;
             std::ofstream file_name;
 
             if (currentmjd(0.) - tx.savetime > interval/86400.)
             {
                 tx.savetime = currentmjd(0.);
-                serialize_metadata(packet, tx.tx_id, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
+                serialize_metadata(write_meta_packet, tx.tx_id, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
                 file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary); // Note: truncs by default
                 if(!file_name.is_open())
                 {
@@ -1729,17 +1728,15 @@ namespace Cosmos {
                 // Byte 0-1: file_progress
                 // Byte 3-4: crc
                 // ... repeat above structure per packet
-                uint16_t crc;
-                CRC16 calc_crc;
-                crc = calc_crc.calc(packet.data);
-                size_t packet_size = packet.data.size();
+                uint16_t crc = write_meta_packet.calc_crc.calc(write_meta_packet.data);
+                size_t packet_size = write_meta_packet.data.size();
                 file_name.write((char *)&packet_size, sizeof(packet_size));
                 file_name.write((char *)&crc, sizeof(crc));
-                file_name.write((char *)&packet.data[0], packet.data.size());
+                file_name.write((char *)&write_meta_packet.data[0], write_meta_packet.data.size());
                 for (file_progress progress_info : tx.file_info)
                 {
                     file_name.write((const char *)&progress_info, sizeof(progress_info));
-                    crc = calc_crc.calc((uint8_t *)&progress_info, sizeof(progress_info));
+                    crc = write_meta_packet.calc_crc.calc((uint8_t *)&progress_info, sizeof(progress_info));
                     file_name.write((char *)&crc, 2);
                 }
                 file_name.close();
