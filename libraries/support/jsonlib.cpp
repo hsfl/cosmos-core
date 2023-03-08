@@ -7724,10 +7724,10 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 
         // Fifth: recover any state vector information
         iretn = load_tle(cinfo);
-        if (iretn < 0)
-        {
-            return iretn;
-        }
+//        if (iretn < 0)
+//        {
+//            return iretn;
+//        }
 
         // Sixth: enter information for ports
         // Resize, then add names for ports
