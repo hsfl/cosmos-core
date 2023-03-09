@@ -355,6 +355,18 @@ int32_t log_move_file(string oldpath, string newpath, bool compress)
         {
             return GENERAL_ERROR_OPEN;
         }
+        fseek(fin, 0, SEEK_END); // seek to end of file
+        int64_t size = ftell(fin); // get current file pointer
+        fseek(fin, 0, SEEK_SET); // seek back to beginning of file
+        if(size <= 0)
+        {
+            //close the file
+            fclose(fin);
+            //remove the file
+            remove(oldpath.c_str());
+            //exit log_move_file
+            return GENERAL_ERROR_BAD_SIZE;
+        }
         FILE *fout = data_open(temppath, "wb");
         if(fout == nullptr)
         {
