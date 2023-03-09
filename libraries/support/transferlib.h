@@ -153,19 +153,23 @@ namespace Cosmos {
             PACKET_FILE_SIZE_TYPE total_bytes=0;
             // Chunks to be sent, or chunks that have been received
             vector<file_progress> file_info;
-            FILE * fp;
+            FILE * fp = nullptr;
         };
 
         /// Holds data about the queue of file transfers in progress.
         struct tx_entry
         {
             bool sentqueue = false;
+            // Number of files in the incoming or outgoing queue
             PACKET_TX_ID_TYPE size;
             string node_name="";
             // Time to wait before sending out another response request or respond packet
-            double waittime = 60./86400.;
+            double waittime = 20./86400.;
             // Vector of tx_id's needing responses. Used by the incoming queue.
             vector<PACKET_TX_ID_TYPE> respond;
+            //! The incoming or outgoing queue. Indexed by the tx_id.
+            //! tx_id of 0 holds the special semantic meaning of "not in use", so
+            //! don't use progress[0].
             tx_progress progress[PROGRESS_QUEUE_SIZE];
         };
 
