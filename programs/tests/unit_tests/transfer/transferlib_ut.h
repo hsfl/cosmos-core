@@ -473,53 +473,61 @@ TEST(TransferlibTest, add_chunk_with_start_and_end)
 TEST(TransferlibTest, add_chunks)
 {
     // Keep mock file_info here
-    vector<file_progress> mfile_info = {{300, 399}, {600, 799}, {900, 999}};
-    bool is_start = true;
-    bool is_end = false;
-
-    // Modify this, compare against mock
-    tx_progress tx;
-    tx.file_size = 1000;
-    tx.total_bytes = 0;
-    tx.file_info.clear();
-    // Dummy hole to add
-    file_progress hole;
-    bool ret;
-
-    // Test start that does not overlap ///////////////////////////////////////////////////
-    // Add initial chunks
-    ret = add_chunks(tx, mfile_info, 0);
-    EXPECT_EQ(ret, true);
-    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
-
-    // Add a start-hole that is at the front, no overlaps
-    hole = {100, 199};
-    ret = add_chunk(tx, hole, is_start, is_end);
-    EXPECT_EQ(ret, true);
-    mfile_info = {{100, 199}, {300, 399}, {600, 799}, {900, 999}};
-    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
-
-    // Keep mock file_info here
     vector<file_progress> holes;
+    
+    // First create a bunch of holes, and reqdata packets
     size_t packet_size = 214;
-    uint32_t current_start = 0;
-    for (size_t i=0; i < (packet_size*3) / sizeof(file_progress); ++i)
+    size_t num_reqdata_packets = 4;
+    PACKET_FILE_SIZE_TYPE current_start = 0;
+    // Initialize holes = {0, 99}, {200, 299}, {400, 499}, ..., etc.
+    for (size_t i=0; i < (packet_size*num_reqdata_packets) / sizeof(file_progress); ++i)
     {
-        holes.push_back({current_start, current_start + 50});
-        current_start += 52;
+        holes.push_back({current_start, current_start + 99});
+        current_start += 200;
     }
     vector<PacketComm> reqdata_packets;
     serialize_reqdata(reqdata_packets, 1, 2, 127, holes, packet_size);
-    size_t current_hole_idx = 0;
+
+    // Modify this, compare against mock
+    tx_progress tx;
+    tx.file_size = current_start;
+    tx.total_bytes = 0;
+    tx.file_info.clear();
+
+    // Deserialize each reqdata packet
     for (size_t i=0; i<reqdata_packets.size(); ++i)
     {
         packet_struct_reqdata reqdata;
         int32_t start_end_signifier = deserialize_reqdata(reqdata_packets[i].data, reqdata);
-        uint8_t signifier = reqdata_packets[i].data[reqdata_packets[i].data.size()-1];
-        EXPECT_EQ(start_end_signifier, signifier);
+        // First packet should contain start of holes
+        if (i == 0)
+        {
+            EXPECT_EQ(start_end_signifier & 0x1, 0x1);
+        }
+        // Last packet should contain end of holes
+        if (i == reqdata_packets.size() - 1)
+        {
+            EXPECT_EQ(start_end_signifier & 0x2, 0x2);
+        }
+        add_chunks(tx, reqdata.holes, start_end_signifier);
     }
+    compare_tx_progress(tx.file_info, holes, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(holes));
+
+    // Add two end pieces
+    vector<file_progress> start_end_holes = { {300,549}, {900,999} };
+    reqdata_packets.clear();
+    serialize_reqdata(reqdata_packets, 1, 2, 127, start_end_holes, packet_size);
+    packet_struct_reqdata reqdata;
+    int32_t start_end_signifier = deserialize_reqdata(reqdata_packets[0].data, reqdata);
+    add_chunks(tx, reqdata.holes, start_end_signifier);
+    // Compare
+    // { {0,99}, {200,299}, {400,499}, {600,499}, {800,899}, {1000,1999}, ..., etc. }
+    // + { {300,549}, {900,999} } (has start and end!)
+    // = { {300,549}, {600,699}, {800,999} }
+    holes = { {300,549}, {600,699}, {800,999} };
+    compare_tx_progress(tx.file_info, holes, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(holes));
 }
 
 TEST(TransferlibTest, merge_chunks_overlap)
@@ -595,6 +603,33 @@ TEST(TransferlibTest, reqdata_packets_are_created_correctly)
         }
     }
     EXPECT_EQ(current_hole_idx, holes.size());
+}
+
+TEST(TransferlibTest, clear_tx_entry)
+{
+    tx_entry tx;
+    // Add some files
+    tx.progress[1].temppath = "testfile1";
+    FILE* fp;
+    fp = fopen((tx.progress[1].temppath + ".meta").c_str(), "w");
+    ASSERT_NE(fp, nullptr);
+    fclose(fp);
+    fp = nullptr;
+    tx.progress[1].fp = fopen((tx.progress[1].temppath + ".file").c_str(), "w");
+    ASSERT_NE(tx.progress[1].fp, nullptr);
+    // File 10 will have only a .meta, no .file
+    tx.progress[10].temppath = "testfile10";
+    fp = fopen((tx.progress[10].temppath + ".meta").c_str(), "w");
+    ASSERT_NE(fp, nullptr);
+    fclose(fp);
+    fp = nullptr;
+
+    // Attempt clear
+    clear_tx_entry(tx);
+    // Calling it again ought to segfault if a file pointer was not properly defaulted
+    clear_tx_entry(tx);
+    // Look inside the folder of the test executable, no testfiles should be around if
+    // clear_tx_entry properly cleaned things up
 }
 
 #endif // End __TRANSFERLIB_UT_H__
