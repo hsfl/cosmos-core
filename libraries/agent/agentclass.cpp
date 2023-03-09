@@ -942,19 +942,14 @@ namespace Cosmos
                         }
                     }
 
-                    if (mess.meta.type == AgentMessage::REQUEST && cinfo->agent[0].beat.proc.compare("")) {
+                    if (mess.meta.type == AgentMessage::REQUEST && cinfo->agent[0].beat.proc.compare(""))
+                    {
                         string response;
                         process_request(mess.adata, response);
                         Agent::post(AgentMessage::RESPONSE, response);
-                    } else {
-                        //                        size_t new_position;
-                        //                        new_position = message_head + 1;
-                        //                        if (new_position >= message_ring.size())
-                        //                        {
-                        //                            new_position = 0;
-                        //                        }
-                        //                        message_ring[new_position] = mess;
-                        //                        message_head = new_position;
+                    }
+                    else
+                    {
                         message_queue.push_back(mess);
                         if (message_queue.size() > MESSAGE_RING_SIZE) { message_queue.pop_front(); }
                     }
