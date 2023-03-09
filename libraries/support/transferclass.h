@@ -87,6 +87,9 @@ namespace Cosmos {
             string list_incoming();
             int32_t set_waittime(const uint8_t node_id, const uint8_t direction, const double waittime);
             int32_t set_waittime(const string node_name, const uint8_t direction, const double waittime);
+            int32_t reset_queue();
+            int32_t reset_queue(string node_name);
+            int32_t reset_queue(uint8_t node_id, uint8_t direction);
 
             // Getters/setters
             PACKET_CHUNK_SIZE_TYPE get_packet_size();

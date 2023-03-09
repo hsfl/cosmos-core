@@ -2195,3 +2195,40 @@ size_t Transfer::node_id_to_txq_idx(const uint8_t node_id)
         return INVALID_TXQ_IDX;
     }
 }
+
+/**
+ * @brief Resets queues, clearing out everything inside to the defaults.
+ * 
+ * Also clears out all temporary files for specified nodes
+ * 
+ * @param node_id ID of node
+ * @param direction 0 to clear incoming, 1 to clear outgoing, 2 to clear both
+ * @return int32_t 
+ */
+int32_t Transfer::reset_queue(uint8_t node_id, uint8_t direction)
+{
+    const size_t txq_idx = node_id_to_txq_idx(node_id);
+    if (txq_idx == INVALID_TXQ_IDX)
+    {
+        return TRANSFER_ERROR_NODE;
+    }
+
+    int32_t iretn = 0;
+    switch(direction)
+    {
+    // Clear incoming
+    case 0:
+        iretn = clear_tx_entry(txq[txq_idx].incoming);
+        break;
+    // Clear outgoing
+    case 1:
+        iretn = clear_tx_entry(txq[txq_idx].outgoing);
+        break;
+    // Clear both
+    default:
+        clear_tx_entry(txq[txq_idx].incoming);
+        clear_tx_entry(txq[txq_idx].outgoing);
+        break;
+    }
+    return iretn;
+}

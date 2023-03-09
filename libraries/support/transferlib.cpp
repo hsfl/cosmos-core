@@ -753,5 +753,36 @@ namespace Cosmos {
             string sfilename = filename;
             return get_file_size(sfilename, size);
         }
+
+        /**
+         * @brief Clears out the incoming or outgoing tx_entry.
+         * 
+         *  Resets the queue to a clean state. If there are temp files, then those
+         *  are cleared out too.
+         * 
+         * @param tx The incoming or outgoing tx_entry to clear out
+         * @return int32_t 0 on success, negative on error
+         */
+        int32_t clear_tx_entry(tx_entry& tx)
+        {
+            // Check file stuff first
+            for (size_t i=0; i < PROGRESS_QUEUE_SIZE; ++i)
+            {
+                // Close file pointer
+                if (tx.progress[i].fp != nullptr)
+                {
+                    fclose(tx.progress[i].fp);
+                    tx.progress[i].fp = nullptr;
+                }
+                // Clear out temporary files
+                if (tx.progress[i].temppath.size())
+                {
+                    remove((tx.progress[i].temppath + ".meta").c_str());
+                    remove((tx.progress[i].temppath + ".file").c_str());
+                }
+            }
+            // Reset everything to default
+            tx = tx_entry();
+        }
     }
 }
