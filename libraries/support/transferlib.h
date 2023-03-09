@@ -206,6 +206,8 @@ namespace Cosmos {
         PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);
         vector<file_progress> find_chunks_missing(tx_progress& tx);
         bool add_chunk(tx_progress& tx, const file_progress& tp);
+        bool add_chunk(tx_progress& tx, const file_progress& tp, bool first, bool last);
+        bool add_chunks(tx_progress& tx, const vector<file_progress>& holes, uint8_t start_end_signifier);
 
         // Random utility functions
         bool filestruc_smaller_by_size(const filestruc& a, const filestruc& b);

@@ -18,6 +18,16 @@ void compare_tx_progress(const vector<file_progress>& tp, const vector<file_prog
     }
 }
 
+size_t sum_fp(const vector<file_progress>& tp)
+{
+    size_t sum = 0;
+    for (const auto& hole : tp)
+    {
+        sum += (hole.chunk_end - hole.chunk_start) + 1;
+    }
+    return sum;
+}
+
 TEST(TransferlibTest, add_chunk)
 {
     // Keep mock file_info here
@@ -37,13 +47,13 @@ TEST(TransferlibTest, add_chunk)
     mfile_info = {tp};
     EXPECT_EQ(ret, true);
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, 201);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 
     // Add duplicate chunk
     ret = add_chunk(tx, tp);
     EXPECT_EQ(ret, false);
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, 201);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 
     // Add a chunk with chunk start overlapping between existing chunk
     tp = {50, 300};
@@ -51,7 +61,7 @@ TEST(TransferlibTest, add_chunk)
     mfile_info = {{0, 300}};
     EXPECT_EQ(ret, true);
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, 301);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 
     // Add a chunk that does not overlap at all
     tp = {700, 800};
@@ -59,7 +69,7 @@ TEST(TransferlibTest, add_chunk)
     mfile_info = {{0, 300}, {700, 800}};
     EXPECT_EQ(ret, true);
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, 301+101);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 
     // Add a chunk inbetween that does not overlap
     tp = {400, 500};
@@ -67,7 +77,7 @@ TEST(TransferlibTest, add_chunk)
     mfile_info = {{0, 300}, {400, 500}, {700, 800}};
     EXPECT_EQ(ret, true);
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, 301+101+101);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 
     // Add a chunk that completely encompasses a chunk
     tp = {350, 550};
@@ -75,7 +85,7 @@ TEST(TransferlibTest, add_chunk)
     mfile_info = {{0, 300}, {350, 550}, {700, 800}};
     EXPECT_EQ(ret, true);
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, 301+201+101);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 
     // Add a chunk that overlaps on the end with another chunk
     tp = {600, 750};
@@ -83,7 +93,7 @@ TEST(TransferlibTest, add_chunk)
     mfile_info = {{0, 300}, {350, 550}, {600, 800}};
     EXPECT_EQ(ret, true);
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, 301+201+201);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 
     // Add a chunk at the end of the queue, no overlaps
     tp = {900, 999};
@@ -91,7 +101,7 @@ TEST(TransferlibTest, add_chunk)
     mfile_info = {{0, 300}, {350, 550}, {600, 800}, {900, 999}};
     EXPECT_EQ(ret, true);
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, 301+201+201+100);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 
     // Add a multi-chunk overlapping chunk
     tp = {300, 400};
@@ -99,7 +109,417 @@ TEST(TransferlibTest, add_chunk)
     mfile_info = {{0, 400}, {350, 550}, {600, 800}, {900, 999}};
     EXPECT_EQ(ret, true);
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, 401+201+201+100);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+}
+
+TEST(TransferlibTest, add_chunk_with_start)
+{
+    // Keep mock file_info here
+    vector<file_progress> mfile_info = {{300, 399}, {600, 799}, {900, 999}};
+    bool is_start = true;
+    bool is_end = false;
+
+    // Modify this, compare against mock
+    tx_progress tx;
+    tx.file_size = 1000;
+    tx.total_bytes = 0;
+    tx.file_info.clear();
+    // Dummy hole to add
+    file_progress hole;
+    bool ret;
+
+    // Test start that does not overlap ///////////////////////////////////////////////////
+    // Add initial chunks
+    ret = add_chunks(tx, mfile_info, 0);
+    EXPECT_EQ(ret, true);
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start-hole that is at the front, no overlaps
+    hole = {100, 199};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{100, 199}, {300, 399}, {600, 799}, {900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start-hole that starts and ends before a hole in the middle
+    hole = {225, 249};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{225, 249}, {300, 399}, {600, 799}, {900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start-hole that is at the front and overlaps with the first hole
+    hole = {50, 230};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{50, 249}, {300, 399}, {600, 799}, {900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start-hole that starts before a hole in the middle of the vector,
+    // and ends after that hole, but does not overlap with the next.
+    hole = {350, 450};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{350, 450}, {600, 799}, {900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start-hole that starts before a hole in the middle of the vector,
+    // but overlaps with the next.
+    hole = {500, 650};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{500, 799}, {900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Test start overlaps in middle of a hole ////////////////////////////////////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {600, 799}, {900, 999}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+
+    // Add a start-hole that starts in the middle of a hole
+    // that is in the middle of the vector, and ends within that same hole
+    hole = {325, 374};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{325, 399}, {600, 799}, {900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start-hole that starts in the middle of a hole
+    // that is in the middle of the vector, but does not overlap with the next.
+    hole = {350, 449};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{350, 449}, {600, 799}, {900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start-hole that starts in the middle of a hole
+    // that is in the middle of the vector, has an end beyond that hole,
+    // but does not overlap with the next.
+    hole = {700, 950};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{700, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Test start-hole at the end, no overlap /////////////////////////////////////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 799}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+    // Add start-hole that starts at the end, no overlap
+    hole = {900, 999};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+}
+
+TEST(TransferlibTest, add_chunk_with_end)
+{
+    // Keep mock file_info here
+    vector<file_progress> mfile_info;
+    bool is_start = false;
+    bool is_end = true;
+
+    // Modify this, compare against mock
+    tx_progress tx;
+    tx.file_size = 1000;
+    tx.total_bytes = 0;
+    tx.file_info.clear();
+    // Dummy hole to add
+    file_progress hole;
+    bool ret;
+
+    // Test start that does not overlap ///////////////////////////////////////////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {600, 799}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+
+    // Add an end-hole that is at the end, no overlaps
+    hole = {900, 999};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{100, 199}, {300, 399}, {600, 799}, {900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add an end-hole that starts and ends before a hole in the middle
+    hole = {825, 849};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{100, 199}, {300, 399}, {600, 799}, {825, 849}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add an end-hole that is at the end and overlaps with the last hole
+    hole = {830, 999};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{100, 199}, {300, 399}, {600, 799}, {825, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add an end-hole that starts before a hole in the middle of the vector,
+    // but overlaps with the next.
+    hole = {550, 650};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{100, 199}, {300, 399}, {550, 650}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add an end-hole that starts before a hole in the middle of the vector,
+    // and ends after that hole, but does not overlap with the next.
+    hole = {525, 750};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{100, 199}, {300, 399}, {525, 750}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Test start overlaps in middle of a hole ////////////////////////////////////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 799}, {900, 999}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+
+    // Add an end-hole that starts in the middle of a hole
+    // that is in the middle of the vector, and ends within that same hole
+    hole = {725, 774};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 774}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add an end-hole that starts in the middle of a hole
+    // that is in the middle of the vector, has an end beyond that hole,
+    // but does not overlap with the next.
+    hole = {550, 649};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{100, 199}, {300, 399}, {500, 649}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add an end-hole that starts in the middle of a hole
+    // that is in the middle of the vector, and overlaps with the next
+    hole = {150, 349};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{100, 349}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Test end-hole at the end, no overlap ///////////////////////////////////////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 799}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+    // Add end-hole that starts at the end, no overlap
+    hole = {900,999};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 799}, {900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+}
+
+TEST(TransferlibTest, add_chunk_with_start_and_end)
+{
+    // Keep mock file_info here
+    vector<file_progress> mfile_info;
+    bool is_start = true;
+    bool is_end = true;
+
+    // Modify this, compare against mock
+    tx_progress tx;
+    tx.file_size = 1000;
+    tx.total_bytes = 0;
+    tx.file_info.clear();
+    // Dummy hole to add
+    file_progress hole;
+    bool ret;
+
+    // Test start that does not overlap ///////////////////////////////////////////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 799}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+
+    // Add a start&end-hole that is at the end, no overlaps
+    hole = {900, 999};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start&end-hole that starts and ends before a hole in the middle //////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 799}, {900, 999}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+
+    hole = {625, 649};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{625, 649}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start&end-hole that is at the end and overlaps with the last hole ////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 799}, {900, 919}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+
+    hole = {830, 999};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{830, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start&end-hole that starts before a hole in the middle of the vector, ////////
+    // but overlaps with the next. ////////////////////////////////////////////////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 799}, {900, 999}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+
+    hole = {550, 750};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{550, 750}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Test start overlaps in middle of a hole ////////////////////////////////////////////
+    // Add a start&end-hole that starts in the middle of a hole ///////////////////////////
+    // that is in the middle of the vector, and ends within that same hole ////////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 799}, {900, 999}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+    
+    hole = {525, 574};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{525, 574}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start&end-hole that starts in the middle of a hole ///////////////////////////
+    // that is in the middle of the vector, has an end beyond that hole, //////////////////
+    // but does not overlap with the next./////////////////////////////////////////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 799}, {900, 999}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+
+    hole = {550, 649};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{550, 649}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start&end-hole that starts in the middle of a hole ///////////////////////////
+    // that is in the middle of the vector, and overlaps with the next ////////////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 799}, {900, 999}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+
+    hole = {350, 549};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{350, 549}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+
+    // Test end-hole at the end, no overlap ///////////////////////////////////////////////
+    // Add start&end-hole that starts at the end, no overlap //////////////////////////////
+    // Reinitialize
+    mfile_info = {{100, 199}, {300, 399}, {500, 599}, {700, 799}};
+    tx.file_info = mfile_info;
+    tx.total_bytes = sum_fp(mfile_info);
+
+    hole = {900,999};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+}
+
+
+TEST(TransferlibTest, add_chunks)
+{
+    // Keep mock file_info here
+    vector<file_progress> mfile_info = {{300, 399}, {600, 799}, {900, 999}};
+    bool is_start = true;
+    bool is_end = false;
+
+    // Modify this, compare against mock
+    tx_progress tx;
+    tx.file_size = 1000;
+    tx.total_bytes = 0;
+    tx.file_info.clear();
+    // Dummy hole to add
+    file_progress hole;
+    bool ret;
+
+    // Test start that does not overlap ///////////////////////////////////////////////////
+    // Add initial chunks
+    ret = add_chunks(tx, mfile_info, 0);
+    EXPECT_EQ(ret, true);
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Add a start-hole that is at the front, no overlaps
+    hole = {100, 199};
+    ret = add_chunk(tx, hole, is_start, is_end);
+    EXPECT_EQ(ret, true);
+    mfile_info = {{100, 199}, {300, 399}, {600, 799}, {900, 999}};
+    compare_tx_progress(tx.file_info, mfile_info, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
+
+    // Keep mock file_info here
+    vector<file_progress> holes;
+    size_t packet_size = 214;
+    uint32_t current_start = 0;
+    for (size_t i=0; i < (packet_size*3) / sizeof(file_progress); ++i)
+    {
+        holes.push_back({current_start, current_start + 50});
+        current_start += 52;
+    }
+    vector<PacketComm> reqdata_packets;
+    serialize_reqdata(reqdata_packets, 1, 2, 127, holes, packet_size);
+    size_t current_hole_idx = 0;
+    for (size_t i=0; i<reqdata_packets.size(); ++i)
+    {
+        packet_struct_reqdata reqdata;
+        int32_t start_end_signifier = deserialize_reqdata(reqdata_packets[i].data, reqdata);
+        uint8_t signifier = reqdata_packets[i].data[reqdata_packets[i].data.size()-1];
+        EXPECT_EQ(start_end_signifier, signifier);
+    }
 }
 
 TEST(TransferlibTest, merge_chunks_overlap)
@@ -109,7 +529,6 @@ TEST(TransferlibTest, merge_chunks_overlap)
 
     tx_progress tx;
     tx.file_size = 1000;
-    tx.total_bytes = 401+201+201+100;
     tx.file_info = {{900, 999}, {0, 400}, {350, 550}, {600, 800}};
     mfile_info = {{0, 400}, {350, 550}, {600, 800}, {900, 999}};
     // Test sorting is correct
@@ -120,7 +539,7 @@ TEST(TransferlibTest, merge_chunks_overlap)
     merge_chunks_overlap(tx);
     mfile_info = {{0, 550}, {600, 800}, {900, 999}};
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, 551+201+100);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 
     
     // Chunks that go beyond file size should be evicted
@@ -128,7 +547,7 @@ TEST(TransferlibTest, merge_chunks_overlap)
     merge_chunks_overlap(tx);
     mfile_info = {{100,200}};
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, 101);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 
     // Test that file_size 0 (no metadata received yet) and erasing single element is safe
     tx.file_size = 0;
@@ -153,10 +572,22 @@ TEST(TransferlibTest, reqdata_packets_are_created_correctly)
     vector<PacketComm> reqdata_packets;
     serialize_reqdata(reqdata_packets, 1, 2, 127, holes, packet_size);
     size_t current_hole_idx = 0;
-    for (auto& packet : reqdata_packets)
+    for (size_t i=0; i<reqdata_packets.size(); ++i)
     {
         packet_struct_reqdata reqdata;
-        deserialize_reqdata(packet.data, reqdata);
+        int32_t start_end_signifier = deserialize_reqdata(reqdata_packets[i].data, reqdata);
+        uint8_t signifier = reqdata_packets[i].data[reqdata_packets[i].data.size()-1];
+        EXPECT_EQ(start_end_signifier, signifier);
+        // First packet should contain start of holes
+        if (i == 0)
+        {
+            EXPECT_EQ(signifier & 0x1, 0x1);
+        }
+        // Last packet should contain end of holes
+        if (i == reqdata_packets.size() - 1)
+        {
+            EXPECT_EQ(signifier & 0x2, 0x2);
+        }
         for (auto& hole : reqdata.holes)
         {
             compare_file_progress(holes[current_hole_idx], hole, __LINE__);

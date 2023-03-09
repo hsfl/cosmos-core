@@ -174,18 +174,37 @@ namespace Cosmos {
             memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, node_id),    &self_node_id,    sizeof(PACKET_NODE_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, tx_id),      &tx_id,      sizeof(PACKET_TX_ID_TYPE));
             uint16_t num_holes = 0;
-            for (auto& hole : holes)
+            // Add as many holes as possible to each reqdata packet
+            const uint8_t has_first = 1;
+            const uint8_t has_last = 2;
+            // Apply has_first or has_last bit masking to this to signify whether the current
+            // reqdata packet contains the first and/or last hole
+            uint8_t contains_first_or_last = has_first;
+            for (size_t i=0; i < holes.size(); ++i)
             {
-                if (packet.data.size() + sizeof(hole) > packet_data_size)
+                // If i==0, mark first. if i == holes.size()-1, mark end
+                // If neither, mark nothing
+                // If no more holes can be fit into this packet.
+                // (save 1 byte at the end for signifying first and/or last hole)
+                if (packet.data.size() + sizeof(holes[i]) > static_cast<size_t>(packet_data_size-1))
                 {
+                    // Copy in num_holes into place
                     memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, num_holes), &num_holes, sizeof(num_holes));
+                    // Last element is first/last signifier
+                    packet.data.push_back(contains_first_or_last);
                     packets.push_back(packet);
+                    // Resize back to reqdata header
                     packet.data.resize(offsetof(struct packet_struct_reqdata, holes));
                     num_holes = 0;
+                    contains_first_or_last = 0;
                 }
-                packet.data.insert(packet.data.end(), (uint8_t*)&hole, (uint8_t*)((&hole)+1));
+                // Append holes to holes vector
+                packet.data.insert(packet.data.end(), (uint8_t*)&holes[i], (uint8_t*)((&holes[i])+1));
                 ++num_holes;
             }
+            // Mark last packet as containing the last hole
+            contains_first_or_last |= has_last;
+            packet.data.push_back(contains_first_or_last);
             memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, num_holes), &num_holes, sizeof(num_holes));
             packets.push_back(packet);
         }
@@ -193,7 +212,10 @@ namespace Cosmos {
         //! Extracts the necessary fields from a received REQDATA packet.
         //! \param pdata An incoming REQDATA-type packet
         //! \param reqdata Reference to a packet_struct_reqdata to fill
-        //! \return 0 on success, negative on error
+        //! \return non-negative on success: 0 if this reqdata packet has neither first nor last
+        //! hole, 1 if this contains the first hole, 2 if this contains the last hole,
+        //! and 3 if both. Since holes are assumed to be sorted, first is firster, last is laster.
+        //! Negative on error.
         int32_t deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata &reqdata)
         {   
             if (pdata.size() < offsetof(struct packet_struct_reqdata, holes))
@@ -203,13 +225,16 @@ namespace Cosmos {
             memcpy(&reqdata.node_id,     &pdata[0]+offsetof(struct packet_struct_reqdata, node_id),     sizeof(PACKET_NODE_ID_TYPE));
             memcpy(&reqdata.tx_id,       &pdata[0]+offsetof(struct packet_struct_reqdata, tx_id),       sizeof(PACKET_TX_ID_TYPE));
             memcpy(&reqdata.num_holes,  &pdata[0]+offsetof(struct packet_struct_reqdata, num_holes),  sizeof(uint16_t));
-            if (offsetof(struct packet_struct_reqdata, holes) + reqdata.num_holes * sizeof(file_progress) != pdata.size())
+            size_t packet_size = offsetof(struct packet_struct_reqdata, holes) + reqdata.num_holes * sizeof(file_progress);
+            // Last byte must be the first/last hole signifier
+            if (pdata.size() != packet_size + 1)
             {
                 return COSMOS_DATA_ERROR_SIZE_MISMATCH;
             }
             reqdata.holes.resize(reqdata.num_holes);
             memcpy(reqdata.holes.data(), pdata.data()+offsetof(struct packet_struct_reqdata, holes), reqdata.num_holes*sizeof(file_progress));
-            return 0;
+            // Return first/last hole signifier
+            return pdata[pdata.size()-1];
         }
 
         //! Create a long METADATA-type PacketComm packet.
@@ -507,13 +532,67 @@ namespace Cosmos {
             return (missing);
         }
 
+        //! Adds a vector chunk to the tx_progress vector.
+        //! Used when sender receives a REQDATA packet.
+        //! \param tx The tx_progress of a file in the incoming queue
+        //! \param holes Data chunks to add
+        //! \param start_end_signifier The return of deserialize_reqdata(), signifies whether this sorted vector contains the first or last hole
+        //! \return true if tx was updated
+        bool add_chunks(tx_progress& tx, const vector<file_progress>& holes, uint8_t start_end_signifier)
+        {
+            bool updated = false;
+            bool has_start = start_end_signifier & 0x1; // has start if bit 0 is set
+            bool has_end = start_end_signifier & 0x2; // has end if bit 1 is set
+            for (size_t i=0; i<holes.size(); ++i)
+            {
+                // Simple validity check
+                if (holes[i].chunk_end < holes[i].chunk_start)
+                {
+                    continue;
+                }
+
+                bool is_start = false;
+                bool is_end = false;
+
+                if (has_start && i == 0)
+                {
+                    is_start = true;
+                }
+                if (has_end && (i == holes.size() - 1))
+                {
+                    is_end = true;
+                }
+                // Add this chunk to the queue
+                updated = add_chunk(tx, holes[i], is_start, is_end) || updated;
+            }
+            return updated;
+        }
+
         //! Adds a chunk to the tx_progress vector.
-        //! Used when a DATA or REQDATA packet is received.
+        //! Used when a DATA packet is received.
         //! \param tx The tx_progress of a file in the incoming queue
         //! \param tp Data chunk to add
         //! \return true if tx_in was updated
         bool add_chunk(tx_progress& tx, const file_progress& tp)
         {
+            return add_chunk(tx, tp, false, false);
+        }
+
+        //! Adds a chunk to the tx_progress vector.
+        //! Called by the other add_chunk or add_chunks.
+        //! \param tx The tx_progress of a file in the incoming queue
+        //! \param tp Data chunk to add
+        //! \param is_start If this chunk's start is the holes vector's start
+        //! \param is_end If this chunk's end is the holes vector's end
+        //! \return true if tx_in was updated
+        bool add_chunk(tx_progress& tx, const file_progress& tp, bool is_start, bool is_end)
+        {
+            // Sort first before truncating either end
+            if (is_start || is_end)
+            {
+                sort(tx.file_info.begin(), tx.file_info.end(), lower_chunk);
+            }
+            // Bytes in hole
             const PACKET_CHUNK_SIZE_TYPE byte_count = tp.chunk_end - tp.chunk_start + 1;
 
             // Do we have any data yet?
@@ -524,65 +603,126 @@ namespace Cosmos {
                 tx.total_bytes += byte_count;
                 return true;
             }
-            else
+            // Check against existing data
+            for (uint32_t j=0; j<tx.file_info.size(); ++j)
             {
-                // Check against existing data
-                for (uint32_t j=0; j<tx.file_info.size(); ++j)
+                // If we start before this entry
+                if (tp.chunk_start < tx.file_info[j].chunk_start)
                 {
-                    // Check for duplicate
-                    if (tp.chunk_start >= tx.file_info[j].chunk_start && tp.chunk_end <= tx.file_info[j].chunk_end)
+                    
+                    // If the new chunk is the start hole, then truncate anything before
+                    if (is_start)
                     {
-                        return false;
+                        tx.file_info.erase(tx.file_info.begin(), tx.file_info.begin()+j);
+                        j = 0;
                     }
-                    // If we start before this entry
-                    if (tp.chunk_start < tx.file_info[j].chunk_start)
+                    // If we end before this entry starts (at least one byte between)
+                    if (tp.chunk_end + 1 < tx.file_info[j].chunk_start)
                     {
-                        // If we end before this entry starts (at least one byte between), insert this new chunk
-                        if (tp.chunk_end + 1 < tx.file_info[j].chunk_start)
+                        // If the new chunk is the end hole, then truncate anything beyond
+                        if (is_end)
                         {
-                            tx.file_info.insert(tx.file_info.begin()+j, tp);
-                            tx.total_bytes += byte_count;
-                            return true;
+                            tx.file_info.resize(j);
                         }
-                        // We end beyond the start of this chunk
-                        else
+                        // Insert the new chunk
+                        tx.file_info.insert(tx.file_info.begin()+j, tp);
+                        tx.total_bytes += byte_count;
+
+                        if (is_start || is_end)
                         {
-                            // If we completely encompass this chunk, have this chunk match start and end
-                            if (tp.chunk_end > tx.file_info[j].chunk_end)
-                            {
-                                tx.total_bytes += (tx.file_info[j].chunk_start - tp.chunk_start);
-                                tx.total_bytes += (tp.chunk_end - tx.file_info[j].chunk_end);
-                                tx.file_info[j].chunk_start = tp.chunk_start;
-                                tx.file_info[j].chunk_end = tp.chunk_end;
-                                return true;
-                            }
-                            // We end before the end of this chunk, then extend the front of this chunk
-                            tx.total_bytes += (tx.file_info[j].chunk_start - tp.chunk_start);
-                            tx.file_info[j].chunk_start = tp.chunk_start;
-                            return true;
+                            // Recalculate total_bytes
+                            merge_chunks_overlap(tx);
                         }
+                        return true;
                     }
-                    // If we start somewhere between the start and end of this chunk
-                    else if (tp.chunk_start <= tx.file_info[j].chunk_end + 1)
+                    // We end beyond the start of this chunk
+                    else
                     {
-                        // If we end beyond the end of this chunk, then extend the end of this chunk
+                        // If the new chunk is the end hole, then truncate anything beyond
+                        // and set the end to the new chunk's end
+                        if (is_end)
+                        {
+                            tx.file_info.resize(j+1);
+                            tx.file_info[j].chunk_end = tp.chunk_end;
+                        }
+                        // If we completely encompass this chunk, have this chunk match start and end
                         if (tp.chunk_end > tx.file_info[j].chunk_end)
                         {
+                            tx.total_bytes += (tx.file_info[j].chunk_start - tp.chunk_start);
                             tx.total_bytes += (tp.chunk_end - tx.file_info[j].chunk_end);
+                            tx.file_info[j].chunk_start = tp.chunk_start;
                             tx.file_info[j].chunk_end = tp.chunk_end;
+                            if (is_start || is_end)
+                            {
+                                // Recalculate total_bytes
+                                merge_chunks_overlap(tx);
+                            }
                             return true;
                         }
+                        // We end before the end of this chunk, then extend the front of this chunk
+                        tx.total_bytes += (tx.file_info[j].chunk_start - tp.chunk_start);
+                        tx.file_info[j].chunk_start = tp.chunk_start;
+                        if (is_start || is_end)
+                        {
+                            // Recalculate total_bytes
+                            merge_chunks_overlap(tx);
+                        }
+                        return true;
                     }
-                    // We were somewhere beyond the end of this chunk
-                } // End for
+                }
+                // If we start somewhere between the start and end of this chunk
+                else if (tp.chunk_start <= tx.file_info[j].chunk_end + 1)
+                {
+                    // If the new chunk is the end hole, then truncate anything beyond
+                    // and set the end to the new chunk's end
+                    if (is_end)
+                    {
+                        tx.file_info.resize(j+1);
+                        tx.file_info[j].chunk_end = tp.chunk_end;
+                    }
+                    // If the new chunk is the start hole, then truncate anything before
+                    if (is_start)
+                    {
+                        tx.file_info.erase(tx.file_info.begin(), tx.file_info.begin()+j);
+                        j = 0;
+                        tx.file_info[j].chunk_start = tp.chunk_start;
+                    }
+                    // If we end beyond the end of this chunk, then extend the end of this chunk
+                    if (tp.chunk_end > tx.file_info[j].chunk_end)
+                    {
+                        tx.total_bytes += (tp.chunk_end - tx.file_info[j].chunk_end);
+                        tx.file_info[j].chunk_end = tp.chunk_end;
+                        if (is_start || is_end)
+                        {
+                            // Recalculate total_bytes
+                            merge_chunks_overlap(tx);
+                        }
+                        return true;
+                    }
+                    if (is_start || is_end)
+                    {
+                        // Recalculate total_bytes
+                        merge_chunks_overlap(tx);
+                    }
+                    // New chunk is completely inside this chunk, just discard it.
+                    // Unless, we had to truncate anything before, then we did in fact update.
+                    return is_start || is_end;
+                }
+                // We were somewhere beyond the end of this chunk
+            } // End for
 
-                // If we are higher than everything currently in the list, then append
-                tx.file_info.push_back(tp);
-                tx.total_bytes += byte_count;
-                return true;
+            // If we are higher than everything currently in the list
+            // If the new chunk is the start hole, then clear the whole vector
+            if (is_start)
+            {
+                tx.file_info.clear();
+                tx.total_bytes = 0;
             }
+            // Append
+            tx.file_info.push_back(tp);
+            tx.total_bytes += byte_count;
 
-            return false;
+            return true;
         }
 
         //! Gets the size of a file.
