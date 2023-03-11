@@ -317,6 +317,7 @@ namespace Cosmos {
             bool HDLCUnPacketize(bool checkcrc=true);
             bool AX25UnPacketize(bool checkcrc=true);
             bool Wrap();
+            bool Wrap(bool calc_checksum);
             bool RawPacketize();
             bool ASMPacketize();
             //! Pads packetized packets to specified size
