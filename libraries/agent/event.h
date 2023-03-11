@@ -187,7 +187,8 @@ namespace Cosmos
                     string data,
                     double utc,
                     string condition,
-                    uint32_t flag
+                    uint32_t flag,
+                    uint16_t type
                     );
 
             string generator(eventstruc event);

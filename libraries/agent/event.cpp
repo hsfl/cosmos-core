@@ -50,13 +50,12 @@ Event::Event() :
 /// Destructor
 Event::~Event() {}
 
-string Event::generator(
-	string name,
-	string data,
-	double mjd,
-	string condition,
-	uint32_t flag
-) {
+string Event::generator(string name,
+    string data,
+    double mjd,
+    string condition,
+    uint32_t flag
+, uint16_t type) {
 
     this->name = name;
     this->data = data;
@@ -64,7 +63,7 @@ string Event::generator(
     this->condition = condition;
     this->flag = flag;
     this->utcexec = 0.;
-    this->type = EVENT_TYPE_COMMAND;
+    this->type = type;
     event_string = "";
     event_string = this->get_event_string();
 
@@ -74,7 +73,7 @@ string Event::generator(
 string Event::generator(eventstruc event) {
 
     // returns a string with the event and also puts the string in "event_string"
-    return generator(event.name, event.data, event.utc, event.condition, event.flag);;
+    return generator(event.name, event.data, event.utc, event.condition, event.flag, event.type);;
 }
 
 

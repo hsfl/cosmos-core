@@ -40,6 +40,7 @@ using std::endl;
 int main(int argc, char *argv[])
 {
 
+    uint16_t type = EVENT_TYPE_COMMAND;
     uint32_t flag = 0;
     string data = "";
     string condition = "";
@@ -112,11 +113,11 @@ int main(int argc, char *argv[])
 
         cout << "Usage" << endl << endl;
         cout << "  command_generator [options]" << endl;
-        cout << "  command_generator name command [time | +sec] [condition] [repeat_flag] [node]" << endl << endl;
+        cout << "  command_generator name {req|cmd} text [time | +sec] [condition] [repeat_flag] [node]" << endl << endl;
 
 
         cout << "Example" << endl << endl;
-        cout << "  $ command_generator myCmd1 \"agent kauaicc_sim execsoh get_queue_size\" +10" << endl << endl;
+        cout << "  $ command_generator myCmd1 cmd \"agent kauaicc_sim execsoh get_queue_size\" +10" << endl << endl;
         cout << "  This will run the command \"agent kauaicc_sim execsoh get_queue_size\" \n"
                 "  with name 'myCmd' within 10 seconds from now." << endl << endl;
 
@@ -124,7 +125,8 @@ int main(int argc, char *argv[])
 
         cout << "  name   \t = name of the command, can be a string or combination of \n "
                 "          \t   alphanumeric characters (ex: myCmd1)" << endl;
-        cout << "  command\t = the actual command to be executed, if more than one word \n"
+        cout << "  {cmd|req} \t = cmd (External Command), req (Internal Request)" << endl;
+        cout << "  text\t = the actual text of the cmmand or request, if more than one word \n"
                 "          \t   enclose the command string in quotes \n"
                 "          \t   (ex: \"agent kauaicc_sim execsoh get_queue_size\"" << endl;
         cout << "  time   \t = optional argument to enter the desired modified julian date\n"
@@ -145,7 +147,7 @@ int main(int argc, char *argv[])
 //    cout << "Command string:" << endl;
 	// JIMNOTE: this could be done in the constructor
 
-    cout << event.generator(name, data, utc, condition, flag) << endl << endl;
+    cout << event.generator(name, data, utc, condition, flag, type) << endl << endl;
 
     if (!node.empty()) {
         cout << "Adding command/event to node " << node << endl;

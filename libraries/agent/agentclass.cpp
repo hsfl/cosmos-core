@@ -2224,6 +2224,15 @@ namespace Cosmos
                     }
                 }
                 break;
+            case PacketComm::TypeId::CommandExecAddCommand:
+                {
+                    packet.data.clear();
+                }
+                if (parms.size())
+                {
+                    packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
+                }
+                break;
             case PacketComm::TypeId::CommandExecEnableChannel:
                 {
                     packet.data.clear();

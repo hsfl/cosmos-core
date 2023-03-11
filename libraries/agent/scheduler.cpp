@@ -56,7 +56,7 @@ namespace Cosmos
                                  uint32_t flag) {
 
             Event event;
-            event.generator(name, data, mjd, condition, flag);
+            event.generator(name, data, mjd, condition, flag, EVENT_TYPE_COMMAND);
 
             //com.set_command(line);
 
@@ -87,7 +87,7 @@ namespace Cosmos
 
             // set the event_string
             // JIMNOTE: this could be done in a constructor
-            event.generator(name, data, mjd, condition, flag);
+            event.generator(name, data, mjd, condition, flag, EVENT_TYPE_COMMAND);
 
             if (!agent_exec_soh.exists) {
                 cout << "could not find agent exec" << endl;
