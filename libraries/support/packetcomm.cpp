@@ -211,6 +211,16 @@ namespace Cosmos {
         //! \return Boolean success
         bool PacketComm::Wrap()
         {
+            return Wrap(true);
+        }
+
+        //! \brief Wrap up header and payload
+        //! Merge ::Cosmos::Support::PacketComm::data and ::Cosmos::Support::PacketComm::header
+        //! into ::Cosmos::Support::PacketComm::wrapped
+        //! \param calc_checksum If false, skips crc calculation
+        //! \return Boolean success
+        bool PacketComm::Wrap(bool calc_checksum)
+        {
             switch (style)
             {
             case PacketStyle::Minimal:
@@ -249,7 +259,7 @@ namespace Cosmos {
                     wrapped.resize(COSMOS_SIZEOF(Header));
                     memcpy(&wrapped[0], &header, COSMOS_SIZEOF(Header));
                     wrapped.insert(wrapped.end(), data.begin(), data.end());
-                    crc = calc_crc.calc(wrapped);
+                    crc = calc_checksum ? calc_crc.calc(wrapped) : 0;
                     wrapped.resize(wrapped.size()+2);
                     wrapped[wrapped.size()-2] = crc & 0xff;
                     wrapped[wrapped.size()-1] = crc >> 8;
