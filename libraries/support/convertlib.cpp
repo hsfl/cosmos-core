@@ -1096,42 +1096,39 @@ namespace Cosmos {
             // Calculate meridional arc
             // Reference: https://fypandroid.wordpress.com/2011/09/03/converting-utm-to-latitude-and-longitude-or-vice-versa/
             constexpr double e = sqrt(1. - FRATIO2);
-            constexpr double ep = (1. - FRATIO2) / FRATIO2;
-            constexpr double e2 = e * e;
-            constexpr double ep2 = ep * ep;
-            constexpr double e4 = e2 * e2;
-            constexpr double ep4 = ep2 * ep2;
-            constexpr double e6 = e4 * e2;
-            constexpr double e8 = e4 * e4;
-            constexpr double e10 = e6 * e4;
-            constexpr double c1 = 1 + (3./4.) * e2 + (45./64) * e4 + (175./256.) * e6 + (11025./16384.) * e8 + (43659./65536.) * e10;
-            constexpr double c2 = (3./4.) * e2 + (15./16.) * e4 + (525./512.) * e6 + (2205./2048.) * e8 + (72765./65536.) * e10;
-            constexpr double c3 = (15./64.) * e4 + (105./256.) * e6 + (2205./4096.) * e8 + (10395./16384.) * e10;
-            constexpr double c4 = (35./512) * e6 + (315./2048.) * e8 + (31185./131072.) * e10;
-            constexpr double c5 = (315./16384.) * e8 + (3465./65536.) * e10;
-            constexpr double c6 = (693./131072.) * e10;
+//            constexpr double ep = (1. - FRATIO2) / FRATIO2;
+//            constexpr double e2 = e * e;
+//            constexpr double ep2 = ep * ep;
+//            constexpr double e4 = e2 * e2;
+//            constexpr double ep4 = ep2 * ep2;
+//            constexpr double e6 = e4 * e2;
+//            constexpr double e8 = e4 * e4;
+//            constexpr double e10 = e6 * e4;
+//            constexpr double c1 = 1 + (3./4.) * e2 + (45./64) * e4 + (175./256.) * e6 + (11025./16384.) * e8 + (43659./65536.) * e10;
+//            constexpr double c2 = (3./4.) * e2 + (15./16.) * e4 + (525./512.) * e6 + (2205./2048.) * e8 + (72765./65536.) * e10;
+//            constexpr double c3 = (15./64.) * e4 + (105./256.) * e6 + (2205./4096.) * e8 + (10395./16384.) * e10;
+//            constexpr double c4 = (35./512) * e6 + (315./2048.) * e8 + (31185./131072.) * e10;
+//            constexpr double c5 = (315./16384.) * e8 + (3465./65536.) * e10;
+//            constexpr double c6 = (693./131072.) * e10;
 
-            double s = REARTHM * FRATIO2 * (c1 * geod.s.lat - c2 * sin(2. * geod.s.lat) / 2. + c3 * sin(4. * geod.s.lat) / 4. - c4 * sin(6. * geod.s.lat) / 6. + c5 * sin(8. * geod.s.lat) / 8. - c6 * sin(10. * geod.s.lat) / 10.);
+//            double s = REARTHM * FRATIO2 * (c1 * geod.s.lat - c2 * sin(2. * geod.s.lat) / 2. + c3 * sin(4. * geod.s.lat) / 4. - c4 * sin(6. * geod.s.lat) / 6. + c5 * sin(8. * geod.s.lat) / 8. - c6 * sin(10. * geod.s.lat) / 10.);
 
-            double k1 = .9996 * s;
-            double slat = sin(geod.s.lat);
-            double nu = REARTHM / sqrt(1. - e2 * slat * slat);
-            double k2 = .9996 * nu * sin(2. * geod.s.lat) / 4.;
-            double clat = cos(geod.s.lat);
-            double clat2 = clat * clat;
-            double clat3 = clat * clat2;
-            double clat4 = clat2 * clat2;
-            double tlat = tan(geod.s.lat);
-            double tlat2 = tlat * tlat;
-            double k3 = (5. - tlat2 + 9. * ep2 * clat2 + 4. * ep4 * clat4) * .9996 * slat * clat3 / 24.;
-            double p = geod.s.lon;
-            double p2 = p * p;
-            double p3 = p2 * p;
+//            double k1 = .9996 * s;
+//            double slat = sin(geod.s.lat);
+//            double nu = REARTHM / sqrt(1. - e2 * slat * slat);
+//            double k2 = .9996 * nu * sin(2. * geod.s.lat) / 4.;
+//            double clat2 = clat * clat;
+//            double clat3 = clat * clat2;
+//            double clat4 = clat2 * clat2;
+//            double k3 = (5. - tlat2 + 9. * ep2 * clat2 + 4. * ep4 * clat4) * .9996 * slat * clat3 / 24.;
+//            double p = geod.s.lon;
+//            double p2 = p * p;
+//            double p3 = p2 * p;
 //            double p4 = p2 * p2;
-            utm.x = k1 + p2 * (k2 + p2 * k3);
-            double k4 = .9996 * nu * clat;
-            double k5 = (1. - tlat2 + ep2 * clat2) * .9996 * nu * clat3 / 6.;
-            utm.y = k4 * p + k5 * p3;
+//            utm.x = k1 + p2 * (k2 + p2 * k3);
+//            double k4 = .9996 * nu * clat;
+//            double k5 = (1. - tlat2 + ep2 * clat2) * .9996 * nu * clat3 / 6.;
+//            utm.y = k4 * p + k5 * p3;
 
             constexpr double n = FLATTENING / (2 - FLATTENING);
             constexpr double n2 = n * n;
@@ -1149,15 +1146,17 @@ namespace Cosmos {
             a[4] = 34729. * n5 / 80640. - 3418889. * n6 / 1995840.;
             a[5] = 212378941. * n6 / 319334400.;
 
-            double b[6];
-            b[0] = n / 2. - 2. * n2 / 3. + 37. * n3 / 96. - n4 / 360. - 81. * n5 / 512. + 96199. * n6 / 604800.;
-            b[1] = n2 / 48. + n3 / 15. - 437. * n4 / 1440. + 46. * n5 / 105. - 1118711. * n6 / 3870720.;
-            b[2] = 17. * n3 / 180. - 37. * n4 / 840. - 209 * n5 / 4480 + 5569 * n6 / 90720;
-            b[3] = 4397 * n4 / 161280 - 11 * n5 / 504 - 830251 * n6 / 7257600;
-            b[4] = 4583 * n5 / 161280 - 108847 * n6 / 3991680;
-            b[5] = 20648693 * n6 / 638668800;
+//            double b[6];
+//            b[0] = n / 2. - 2. * n2 / 3. + 37. * n3 / 96. - n4 / 360. - 81. * n5 / 512. + 96199. * n6 / 604800.;
+//            b[1] = n2 / 48. + n3 / 15. - 437. * n4 / 1440. + 46. * n5 / 105. - 1118711. * n6 / 3870720.;
+//            b[2] = 17. * n3 / 180. - 37. * n4 / 840. - 209 * n5 / 4480 + 5569 * n6 / 90720;
+//            b[3] = 4397 * n4 / 161280 - 11 * n5 / 504 - 830251 * n6 / 7257600;
+//            b[4] = 4583 * n5 / 161280 - 108847 * n6 / 3991680;
+//            b[5] = 20648693 * n6 / 638668800;
 
-//            double phip = asin(tanh(atanh(sin(geod.s.lat) - e * atanh(e * sin(geod.s.lat)))));
+            double clat = cos(geod.s.lat);
+            double tlat = tan(geod.s.lat);
+            double tlat2 = tlat * tlat;
             double sigma = sinh(e * atanh(e * tlat / sqrt(1 + tlat2)));
             double tlatp = tlat * sqrt(1 + sigma * sigma) - sigma * sqrt(1 + tlat2);
             double zetap = atan(tlatp / clat);
@@ -3691,27 +3690,27 @@ match.
         int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
         {
             // ICRF to Mean of Data (undo Precession)
-            rmatrix bm;
-            gcrf2j2000(&bm);
-            eci.s = rv_mmult(bm,eci.s);
-            eci.v = rv_mmult(bm,eci.v);
+//            rmatrix bm;
+//            gcrf2j2000(&bm);
+//            eci.s = rv_mmult(bm,eci.s);
+//            eci.v = rv_mmult(bm,eci.v);
 
-            rmatrix pm;
-            j20002mean(utc,&pm);
-            eci.s = rv_mmult(pm,eci.s);
-            eci.v = rv_mmult(pm,eci.v);
+//            rmatrix pm;
+//            j20002mean(utc,&pm);
+//            eci.s = rv_mmult(pm,eci.s);
+//            eci.v = rv_mmult(pm,eci.v);
 
-            // Mean of Date to True of Date (undo Nutation)
-            rmatrix nm;
-            mean2true(utc,&nm);
-            eci.s = rv_mmult(nm,eci.s);
-            eci.v = rv_mmult(nm,eci.v);
+//            // Mean of Date to True of Date (undo Nutation)
+//            rmatrix nm;
+//            mean2true(utc,&nm);
+//            eci.s = rv_mmult(nm,eci.s);
+//            eci.v = rv_mmult(nm,eci.v);
 
-            // True of Date to Uniform of Date (undo Equation of Equinoxes)
-            rmatrix sm;
-            true2teme(utc, &sm);
-            eci.s = rv_mmult(sm,eci.s);
-            eci.v = rv_mmult(sm,eci.v);
+//            // True of Date to Uniform of Date (undo Equation of Equinoxes)
+//            rmatrix sm;
+//            true2teme(utc, &sm);
+//            eci.s = rv_mmult(sm,eci.s);
+//            eci.v = rv_mmult(sm,eci.v);
 
             //            function [e, mm, ma, i, ap, raan] = eci2tle(reci, veci)
             //            % convert osculating position and velocity vectors
