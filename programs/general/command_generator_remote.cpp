@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     Event event;
     cout << "Command string:" << endl;
 
-    cout << event.generator(name, data, utc, condition, flag) << endl << endl;
+    cout << event.generator(name, data, utc, condition, flag, EVENT_TYPE_COMMAND) << endl << endl;
     // Find agent_mongo
     Agent *agent = new Agent("", "temp");
     beatstruc agent_mongo_soh = agent->find_agent("any", "mongo");
