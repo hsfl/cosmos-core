@@ -40,7 +40,7 @@ namespace Cosmos
         vector<uint8_t> Crypto::encrypt(vector<uint8_t> plaintext_str)
         {
             int ciphertext_len;
-            vector<uint8_t> buf(4096);
+            vector<uint8_t> buf(plaintext_str.size());
             vector<uint8_t> ciphertext_str;
 
             EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, iv.size(), NULL);
@@ -57,7 +57,7 @@ namespace Cosmos
         vector<uint8_t> Crypto::decrypt(vector<uint8_t> ciphertext_str)
         {
             int plaintext_len;
-            vector<uint8_t> buf(4096);
+            vector<uint8_t> buf(ciphertext_str.size());
             vector<uint8_t> plaintext_str;
 
             for (size_t i = 0; i < ciphertext_str.size() - iv.size(); i++)
