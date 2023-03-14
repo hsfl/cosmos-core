@@ -2292,7 +2292,15 @@ namespace Cosmos
                     double d6 = 0.0;
                     double d7 = 0.0;
                     double d8 = 0.0;
+					// if filename is given
+                    if(parms.size() == 1)	{
+// load the TLE into sgp4 var
+// put sgp4 var into 
+// then fall thru using parms
 
+					}
+
+					// if arguments are given
                     if(parms.size() == 8)	{
                         d1 = stod(parms[0]);
                         const unsigned char* ptr = reinterpret_cast<const unsigned char*>(&d1);
