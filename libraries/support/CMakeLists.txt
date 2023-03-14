@@ -88,11 +88,6 @@ add_library(Envi STATIC envi.cpp envi.h)
 install(TARGETS Envi DESTINATION lib)
 target_link_libraries(Envi CosmosData CosmosSupport ${COSMOS_LIBS})
 
-find_package(OpenSSL REQUIRED)
-add_library(CosmosCrypto STATIC crypto.cpp crypto.h)
-install(TARGETS CosmosCrypto DESTINATION lib)
-target_link_libraries(CosmosCrypto CosmosSupport CosmosTime CosmosMath OpenSSL::SSL OpenSSL::Crypto ${COSMOS_LIBS})
-
 install(FILES ${INCLUDES} DESTINATION include/support)
 install(FILES ${INCLUDESPP} DESTINATION include/support)
 
