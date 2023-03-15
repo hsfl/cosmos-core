@@ -783,6 +783,7 @@ namespace Cosmos {
             }
             // Reset everything to default
             tx = tx_entry();
+            return 0;
         }
     }
 }
