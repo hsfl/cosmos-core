@@ -148,7 +148,12 @@ namespace Cosmos {
             return Unwrap(checkcrc);
         }
 
-        bool PacketComm::ASMUnPacketize(bool checkcrc)
+        bool PacketComm::ASMUnPacketize()
+        {
+            return (ASMUnPacketize(true, false));
+        }
+
+        bool PacketComm::ASMUnPacketize(bool checkcrc, bool descramble)
         {
             wrapped.clear();
             if (atsm[0] == packetized[0] && atsm[1] == packetized[1] && atsm[2] == packetized[2] && atsm[3] == packetized[3])
@@ -164,6 +169,22 @@ namespace Cosmos {
             else
             {
                 return false;
+            }
+            // Apply Galois LFSR (de)scrambling to avoid long contiguous sequences of 0s or 1s
+            if (descramble)
+            {
+                uint16_t lfsr = 0xACE1u;
+                const uint16_t poly = 0x8016;
+                for (size_t i=0; i<wrapped.size(); ++i)
+                {
+                    uint16_t lsb = lfsr & 0x1;
+                    lfsr >>= 1;
+                    if (lsb)
+                    {
+                        lfsr ^= poly;
+                    }
+                    wrapped[i] ^= lfsr;
+                }
             }
             return (Unwrap(checkcrc) >= 0);
         }
@@ -302,11 +323,11 @@ namespace Cosmos {
         bool PacketComm::ASMPacketize()
         {
             // Default call has no padding at the end
-            return ASMPacketize(data.size() + sizeof(PacketComm::header) + 2 + atsm.size());
+            return ASMPacketize(data.size() + sizeof(PacketComm::header) + 2 + atsm.size(), false);
         }
 
         //! @param packet_wrapped_size Size to stuff a packet up to for fixed-sized requirements
-        bool PacketComm::ASMPacketize(uint16_t packet_wrapped_size)
+        bool PacketComm::ASMPacketize(uint16_t packet_wrapped_size, bool scramble)
         {
             // 2 is crc size
             if (data.size() + sizeof(PacketComm::header) + 2 + atsm.size() > packet_wrapped_size)
@@ -317,16 +338,28 @@ namespace Cosmos {
             {
                 return false;
             }
+            
             packetized.clear();
             packetized.insert(packetized.begin(), atsm.begin(), atsm.end());
             packetized.insert(packetized.end(), wrapped.begin(), wrapped.end());
             // Adjust packet size to specified padded size
             // XBand seems to ignore packets if it's all just 0 or 1 (though it seems to like other numbers), so just fill with a sequence
-            const size_t wrapped_size = packetized.size();
-            packetized.resize(packet_wrapped_size);
-            for (size_t i=wrapped_size ; i<packet_wrapped_size; ++i)
+            packetized.resize(packet_wrapped_size, 0);
+            // Apply Galois LFSR scrambling to avoid long contiguous sequences of 0s or 1s
+            if (scramble)
             {
-                packetized[i] = i;
+                uint16_t lfsr = 0xACE1u;
+                const uint16_t poly = 0x8016;
+                for (size_t i=atsm.size(); i<packetized.size(); ++i)
+                {
+                    uint16_t lsb = lfsr & 0x1;
+                    lfsr >>= 1;
+                    if (lsb)
+                    {
+                        lfsr ^= poly;
+                    }
+                    packetized[i] ^= lfsr;
+                }
             }
             return true;
         }
