@@ -3522,6 +3522,94 @@ namespace Cosmos
             column_names.clear();
             namespace_names.clear();
 
+            // gyrostruc table
+            table_name = "gyrostruc";
+            column_names.push_back("node_name");
+            column_names.push_back("didx");
+            column_names.push_back("utc");
+            column_names.push_back("omega");
+            for (uint16_t i=0; i<cinfo->devspec.gyro.size(); ++i)
+            {
+                string didx = std::to_string(i);
+                namespace_names.push_back("node.name");
+                namespace_names.push_back("devspec.gyro["+didx+"].didx");
+                namespace_names.push_back("devspec.gyro["+didx+"].utc");
+                namespace_names.push_back("devspec.gyro["+didx+"].omega");
+            }
+            tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names, "insert ignore"));
+            column_names.clear();
+            namespace_names.clear();
+
+            // magstruc table
+            table_name = "magstruc";
+            column_names.push_back("node_name");
+            column_names.push_back("didx");
+            column_names.push_back("utc");
+            column_names.push_back("mag_x");
+            column_names.push_back("mag_y");
+            column_names.push_back("mag_z");
+            for (uint16_t i=0; i<cinfo->devspec.mag.size(); ++i)
+            {
+                string didx = std::to_string(i);
+                namespace_names.push_back("node.name");
+                namespace_names.push_back("devspec.mag["+didx+"].didx");
+                namespace_names.push_back("devspec.mag["+didx+"].utc");
+                namespace_names.push_back("devspec.mag["+didx+"].col[0]");
+                namespace_names.push_back("devspec.mag["+didx+"].col[1]");
+                namespace_names.push_back("devspec.mag["+didx+"].col[2]");
+            }
+            tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names, "insert ignore"));
+            column_names.clear();
+            namespace_names.clear();
+
+            // mtrstruc table
+            table_name = "mtrstruc";
+            column_names.push_back("node_name");
+            column_names.push_back("didx");
+            column_names.push_back("utc");
+            column_names.push_back("mom");
+            column_names.push_back("align_w");
+            column_names.push_back("align_x");
+            column_names.push_back("align_y");
+            column_names.push_back("align_z");
+            for (uint16_t i=0; i<cinfo->devspec.mtr.size(); ++i)
+            {
+                string didx = std::to_string(i);
+                namespace_names.push_back("node.name");
+                namespace_names.push_back("devspec.mtr["+didx+"].didx");
+                namespace_names.push_back("devspec.mtr["+didx+"].utc");
+                namespace_names.push_back("devspec.mtr["+didx+"].mom");
+                namespace_names.push_back("devspec.mtr["+didx+"].align.w");
+                namespace_names.push_back("devspec.mtr["+didx+"].align.d.x");
+                namespace_names.push_back("devspec.mtr["+didx+"].align.d.y");
+                namespace_names.push_back("devspec.mtr["+didx+"].align.d.z");
+            }
+            tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names, "insert ignore"));
+            column_names.clear();
+            namespace_names.clear();
+
+            // rwstruc table
+            table_name = "rwstruc";
+            column_names.push_back("node_name");
+            column_names.push_back("didx");
+            column_names.push_back("utc");
+            column_names.push_back("amp");
+            column_names.push_back("omg");
+            column_names.push_back("romg");
+            for (uint16_t i=0; i<cinfo->devspec.rw.size(); ++i)
+            {
+                string didx = std::to_string(i);
+                namespace_names.push_back("node.name");
+                namespace_names.push_back("devspec.rw["+didx+"].didx");
+                namespace_names.push_back("devspec.rw["+didx+"].utc");
+                namespace_names.push_back("devspec.rw["+didx+"].amp");
+                namespace_names.push_back("devspec.rw["+didx+"].omg");
+                namespace_names.push_back("devspec.rw["+didx+"].romg");
+            }
+            tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names, "insert ignore"));
+            column_names.clear();
+            namespace_names.clear();
+
             // swchstruc table
             table_name = "swchstruc";
             column_names.push_back("node_name");
