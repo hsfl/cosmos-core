@@ -53,7 +53,8 @@
 #define _SIZEOF_ADDR_IFREQ sizeof
 #endif
 
-#include<iostream>
+#include <iostream>
+#include "support/convertlib.h"
 
 namespace Cosmos
 {
