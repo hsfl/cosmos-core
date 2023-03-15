@@ -2292,13 +2292,52 @@ namespace Cosmos
                     double d6 = 0.0;
                     double d7 = 0.0;
                     double d8 = 0.0;
+
 					// if filename is given
                     if(parms.size() == 1)	{
-// load the TLE into sgp4 var
-// put sgp4 var into 
-// then fall thru using parms
 
-					}
+                        // load the TLE into sgp4 variable
+                        vector<Convert::tlestruc> tle_lines;
+                        int32_t iretn = Cosmos::Convert::load_lines(parms[0], tle_lines);
+                        if(iretn<0) {
+                            //debug_log.Printf("TLE file <%s> not found\n", parms[0].c_str());
+                            break;
+                        }
+                        Convert::sgp4struc sgp4_parameters;
+                        iretn = Cosmos::Convert::tle2sgp4(tle_lines[0], sgp4_parameters);
+                        if(iretn<0) {
+                            //debug_log.Printf("unable to convert TLE file <%s>\n", parms[0].c_str());
+                            break;
+                        }
+
+						d1 = sgp4_parameters.i;
+						d2 = sgp4_parameters.e;
+						d3 = sgp4_parameters.raan;
+						d4 = sgp4_parameters.ap;
+						d5 = sgp4_parameters.bstar;
+						d6 = sgp4_parameters.mm;
+						d7 = sgp4_parameters.ma;
+						d8 = sgp4_parameters.ep;
+
+                        const unsigned char* ptr = reinterpret_cast<const unsigned char*>(&d1);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+                        ptr = reinterpret_cast<const unsigned char*>(&d2);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+                        ptr = reinterpret_cast<const unsigned char*>(&d3);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+                        ptr = reinterpret_cast<const unsigned char*>(&d4);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+                        ptr = reinterpret_cast<const unsigned char*>(&d5);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+                        ptr = reinterpret_cast<const unsigned char*>(&d6);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+                        ptr = reinterpret_cast<const unsigned char*>(&d7);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+                        ptr = reinterpret_cast<const unsigned char*>(&d8);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+						break;
+					} else 
 
 					// if arguments are given
                     if(parms.size() == 8)	{

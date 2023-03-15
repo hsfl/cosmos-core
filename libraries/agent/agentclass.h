@@ -131,6 +131,7 @@
 #include "support/channellib.h"
 #include "support/beacon.h"
 #include "task.h"
+#include "support/convertlib.h"
 
 namespace Cosmos
 {
