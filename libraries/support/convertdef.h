@@ -956,7 +956,7 @@ namespace Cosmos {
             string name = string(25, ' ');
             uint16_t snumber = 0;
             // JIMNOTE: remove magic number
-            string id = string(9, ' ');
+            string id = "";
             //! Drag (1/Earth radii)
             double bstar = 0.;
             //! Inclination (radians)
