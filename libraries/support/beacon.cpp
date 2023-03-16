@@ -491,7 +491,7 @@ namespace Cosmos {
                             beacon.radio[radiocount].packet_size = cinfo->devspec.txr[i].pktsize;
                             beacon.radio[radiocount].kbyte_rate = cinfo->devspec.txr[i].byte_rate / 1000.;
                             beacon.radio[radiocount].uptime = cinfo->devspec.txr[i].pktsize;
-                            beacon.radio[radiocount].ctemp = cinfo->devspec.txr[i].temp / 100.;
+                            beacon.radio[radiocount].ctemp = cinfo->devspec.txr[i].temp * 100.;
                             beacon.radio[radiocount].kpower = cinfo->devspec.txr[i].powerout / 1000.;
                             beacon.radio[radiocount].bytes = cinfo->devspec.txr[i].bytesout;
                             beacon.radio[radiocount].lastdeci = decisec(cinfo->devspec.txr[i].utcout);
@@ -500,6 +500,28 @@ namespace Cosmos {
                         //                        }
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+radiocount*sizeof(radio_beacon));
+                }
+                break;
+            case TypeId::CameraBeacon:
+                {
+                    cameras_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+                    uint16_t cameracount = 0;
+
+                    for (uint16_t i=0; i<cinfo->devspec.cam.size(); ++i)
+                    {
+                        if (cameracount >= camera_count)
+                        {
+                            break;
+                        }
+                        beacon.camera[cameracount].width = cinfo->devspec.cam[i].width;
+                        beacon.camera[cameracount].height = cinfo->devspec.cam[i].height;
+                        beacon.camera[cameracount].tctemp = cinfo->devspec.cam[i].ttemp * 100. + .5;
+                        beacon.camera[cameracount].fctemp = cinfo->devspec.cam[i].temp * 100. + .5;
+                        beacon.camera[cameracount].lctemp = cinfo->devspec.cam[i].ltemp * 100. + .5;
+                        beacon.camera[cameracount].lstep = cinfo->devspec.cam[i].lstep;
+                        ++cameracount;
+                    }
                 }
                 break;
             default:

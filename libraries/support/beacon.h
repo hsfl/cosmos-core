@@ -69,6 +69,7 @@ namespace Cosmos {
 //                ADCSSSENBeacon = 145,
 //                ADCSATTBeacon = 146,
                 RadioBeacon = 147,
+                CameraBeacon = 148,
                 };
 
             map<TypeId, string> TypeString = {
@@ -541,24 +542,42 @@ namespace Cosmos {
 //                adcsssen_beacon coarse[10];
 //            };
 
-            struct __attribute__ ((packed)) radio_beacon
-            {
-                uint16_t packet_size;
-                uint16_t kbyte_rate;
-                uint16_t ctemp;
-                uint16_t kpower;
-                uint32_t uptime;
-                uint32_t bytes;
-                uint32_t lastdeci;
-            };
+           struct __attribute__ ((packed)) radio_beacon
+           {
+               uint16_t packet_size;
+               uint16_t kbyte_rate;
+               uint16_t ctemp;
+               uint16_t kpower;
+               uint32_t uptime;
+               uint32_t bytes;
+               uint32_t lastdeci;
+           };
 
-            static constexpr uint8_t rxrtxr_count = 200 / sizeof(radio_beacon);
-            struct __attribute__ ((packed)) radios_beacon
-            {
-                uint8_t type = (uint8_t)TypeId::RadioBeacon;
-                uint32_t deci = 0;
-                radio_beacon radio[rxrtxr_count];
-            };
+           static constexpr uint8_t rxrtxr_count = 200 / sizeof(radio_beacon);
+           struct __attribute__ ((packed)) radios_beacon
+           {
+               uint8_t type = (uint8_t)TypeId::RadioBeacon;
+               uint32_t deci = 0;
+               radio_beacon radio[rxrtxr_count];
+           };
+
+           struct __attribute__ ((packed)) camera_beacon
+           {
+               uint16_t width;
+               uint16_t height;
+               uint16_t tctemp;
+               uint16_t fctemp;
+               uint16_t lctemp;
+               uint16_t lstep;
+           };
+
+           static constexpr uint8_t camera_count = 200 / sizeof(camera_beacon);
+           struct __attribute__ ((packed)) cameras_beacon
+           {
+               uint8_t type = (uint8_t)TypeId::CameraBeacon;
+               uint32_t deci = 0;
+               camera_beacon camera[camera_count];
+           };
 
 
             double get_interval();
