@@ -4100,7 +4100,7 @@ match.
                 if (fgets(ibuf,80,fdes) == nullptr)
                     break;
                 sscanf(&ibuf[2],"%5hu",&tle.snumber);
-                sscanf(&ibuf[9],"%8s",tle.id.c_str());
+				tle.id = string(ibuf).substr(9,9);
                 sscanf(&ibuf[18],"%2hu",&year);
                 if (year < 57)
                     year += 2000;
@@ -4191,7 +4191,7 @@ match.
                 }
                 cs = cs % 10;
                 sscanf(&ibuf[2],"%5hu",&tle.snumber);
-                sscanf(&ibuf[9],"%8s",tle.id.data());
+				tle.id = string(ibuf).substr(9,9);
                 sscanf(&ibuf[18],"%2hu",&year);
                 if (year < 57)
                     year += 2000;
@@ -4280,7 +4280,7 @@ match.
                 if (fgets(ibuf,80,fdes) == nullptr)
                     break;
                 sscanf(&ibuf[2],"%5hu",&tle.snumber);
-                sscanf(&ibuf[9],"%8s",tle.id.data());
+				tle.id = string(ibuf).substr(9,9);
                 sscanf(&ibuf[18],"%2hu",&year);
                 if (year < 57)
                     year += 2000;

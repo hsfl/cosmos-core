@@ -172,7 +172,7 @@ namespace Cosmos {
                 case LOG_FILE_FAST:
                 case LOG_FILE_FFLUSH:
                 default:
-                    if (pathName.empty())
+                    if (ipathname.empty())
                     {
                         pathName = data_base_path("", "temp", "log");
                     }

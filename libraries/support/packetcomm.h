@@ -312,7 +312,8 @@ namespace Cosmos {
             int32_t Unwrap(bool checkcrc, bool minimal_header);
             int32_t RawUnPacketize(bool invert=false, bool checkcrc=true);
             int32_t RawUnPacketize(bool invert, bool checkcrc, bool minimal_header);
-            bool ASMUnPacketize(bool checkcrc=true);
+            bool ASMUnPacketize();
+            bool ASMUnPacketize(bool checkcrc, bool descramble);
             bool SLIPUnPacketize(bool checkcrc=true);
             bool HDLCUnPacketize(bool checkcrc=true);
             bool AX25UnPacketize(bool checkcrc=true);
@@ -321,7 +322,7 @@ namespace Cosmos {
             bool RawPacketize();
             bool ASMPacketize();
             //! Pads packetized packets to specified size
-            bool ASMPacketize(uint16_t packet_wrapped_size);
+            bool ASMPacketize(uint16_t packet_wrapped_size, bool scramble);
             bool AX25Packetize(string dest_call="", string sour_call="", uint8_t flagcount=2, uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
             bool HDLCPacketize(uint8_t flagcount=10);
             bool SLIPPacketize();
