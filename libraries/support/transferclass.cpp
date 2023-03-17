@@ -936,6 +936,7 @@ namespace Cosmos {
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].datatime = tx_out.datatime;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].file_size = tx_out.file_size;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].total_bytes = tx_out.total_bytes;
+            // txq[dest_node_idx].outgoing.progress[tx_out.tx_id].next_response = currentmjd() + tx_out.waittime;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].file_info.clear();
             for (file_progress filep : tx_out.file_info)
             {
@@ -1184,6 +1185,7 @@ namespace Cosmos {
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].savetime = tx_in.savetime;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].file_size = tx_in.file_size;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].total_bytes = tx_in.total_bytes;
+            // txq[orig_node_idx].incoming.progress[tx_in.tx_id].next_response = currentmjd() + tx_in.waittime;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].file_info.clear();
             for (file_progress filep : tx_in.file_info)
             {
@@ -1477,8 +1479,8 @@ namespace Cosmos {
                 {
                     packet_struct_reqdata reqdata;
 
-                    iretn = deserialize_reqdata(packet.data, reqdata);
-                    if (iretn < 0)
+                    int32_t start_end_signifier = deserialize_reqdata(packet.data, reqdata);
+                    if (start_end_signifier < 0)
                     {
                         break;
                     }
@@ -1490,17 +1492,9 @@ namespace Cosmos {
                         break;
                     }
                     // tx_id now points to the valid entry to which we should add the data
-                    bool updated = false;
-                    for (auto& hole : reqdata.holes)
-                    {
-                        // Simple validity check
-                        if (hole.chunk_end < hole.chunk_start)
-                        {
-                            continue;
-                        }
-                        // Add this chunk to the queue
-                        updated = add_chunk(txq[orig_node_idx].outgoing.progress[tx_id], hole) || updated;
-                    }
+                    // Add this chunk to the queue
+                    bool updated = add_chunks(txq[orig_node_idx].outgoing.progress[tx_id], reqdata.holes, start_end_signifier);
+                    
                     // Recalculate chunks
                     merge_chunks_overlap(txq[orig_node_idx].outgoing.progress[tx_id]);
 
@@ -1539,8 +1533,8 @@ namespace Cosmos {
                     }
 
                     // Request META if it hasn't been received yet and it's been awhile since we last requested it
-                    if (!txq[orig_node_idx].incoming.progress[data.tx_id].sentmeta
-                    && currentmjd() > txq[orig_node_idx].incoming.progress[tx_id].next_response)
+                    // Also to periodically keep the sender up-to-date on holes
+                    if (currentmjd() > txq[orig_node_idx].incoming.progress[tx_id].next_response)
                     {
                         txq[orig_node_idx].incoming.progress[tx_id].next_response = currentmjd() + txq[orig_node_idx].incoming.waittime;
                         iretn = RESPONSE_REQUIRED;
@@ -1588,6 +1582,7 @@ namespace Cosmos {
                             fseek(txq[orig_node_idx].incoming.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
                             fwrite(data.chunk.data(), data.byte_count, 1, txq[orig_node_idx].incoming.progress[tx_id].fp);
                             fflush(txq[orig_node_idx].incoming.progress[tx_id].fp);
+                            merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
                             // Write latest meta data to disk
                             write_meta(txq[orig_node_idx].incoming.progress[tx_id]);
                             if (debug_log != nullptr)
@@ -1601,7 +1596,7 @@ namespace Cosmos {
                             if (txq[orig_node_idx].incoming.progress[tx_id].sentmeta && txq[orig_node_idx].incoming.progress[tx_id].total_bytes >= txq[orig_node_idx].incoming.progress[tx_id].file_size)
                             {
                                 // Merge chunks and recalculate actual total correctly
-                                merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
+                                // merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
                                 if (txq[orig_node_idx].incoming.progress[tx_id].total_bytes == txq[orig_node_idx].incoming.progress[tx_id].file_size)
                                 {
                                     // If all chunks received, then mark as all data sent over
@@ -1755,7 +1750,7 @@ namespace Cosmos {
             struct stat statbuf;
             if (!stat((tx.temppath + ".meta").c_str(), &statbuf) && statbuf.st_size >= COSMOS_SIZEOF(file_progress))
             {
-                file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary);
+                file_name.open(tx.temppath + ".meta", std::ios::in|std::ios::binary);
                 if(!file_name.is_open())
                 {
                     return (-errno);
@@ -2226,8 +2221,18 @@ int32_t Transfer::reset_queue(uint8_t node_id, uint8_t direction)
         break;
     // Clear both
     default:
-        clear_tx_entry(txq[txq_idx].incoming);
-        clear_tx_entry(txq[txq_idx].outgoing);
+        {
+            string node_name = txq[txq_idx].node_name;
+            clear_tx_entry(txq[txq_idx].incoming);
+            clear_tx_entry(txq[txq_idx].outgoing);
+            // Also clear out the entire temp folder for the node
+            string nodes_folder_path;
+            if (get_cosmosnodes(nodes_folder_path) < 0 || nodes_folder_path.empty())
+            {
+                break;
+            }
+            rmdir_contents(nodes_folder_path + "/" + node_name + "/temp/file");
+        }
         break;
     }
     return iretn;

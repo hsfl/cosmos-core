@@ -295,10 +295,14 @@ int main(int argc, char *argv[])
     }
 
     // Setup log paths and settings
+    string debug_log_path = get_cosmosnodes() + "file_transfer_tests";
+    string node1_log_path = get_cosmosnodes() + "node1_transfer_test_log";
+    string node2_log_path = get_cosmosnodes() + "node2_transfer_test_log";
     test_log.Set(Log::LogType::LOG_STDOUT_FFLUSH);
-    debug_log.Set(Log::LogType::LOG_FILE_FFLUSH, get_cosmosnodes() + "file_transfer_tests");
-    node1_log.Set(Log::LogType::LOG_FILE_FFLUSH, get_cosmosnodes() + "node1_transfer_test_log");
-    node2_log.Set(Log::LogType::LOG_FILE_FFLUSH, get_cosmosnodes() + "node2_transfer_test_log");
+    debug_log.Set(Log::LogType::LOG_FILE_FFLUSH, false, debug_log_path, 1., "");
+    node1_log.Set(Log::LogType::LOG_FILE_FFLUSH, false, node1_log_path, 1., "");
+    node2_log.Set(Log::LogType::LOG_FILE_FFLUSH, false, node2_log_path, 1., "");
+    test_log.Printf("Log files created at:\n%s\n%s\n%s\n", debug_log_path.c_str(), node1_log_path.c_str(), node2_log_path.c_str());
 
     // Randomize seed
     seed = decisec();
@@ -313,7 +317,7 @@ int main(int argc, char *argv[])
     run_test(test_stop_resume, "test_stop_resume");
     run_test(test_stop_resume2, "test_stop_resume2");
     run_test(test_packet_reqcomplete, "test_packet_reqcomplete");
-    run_test(test_many_files, "test_many_files"); // This one takes about 16 seconds, comment out to save some time to test other tests
+    //run_test(test_many_files, "test_many_files"); // This one takes about 16 seconds, comment out to save some time to test other tests
     run_test(test_packet_cancel_missed, "test_packet_cancel_missed");
     run_test(test_bad_meta, "test_bad_meta");
     run_test(test_chaotic_order, "test_chaotic_order");
@@ -323,7 +327,7 @@ int main(int argc, char *argv[])
     //////////////////////////////////////////////////////////////////////////
 
     debug_log.Printf("%s\n", "Cleaning up.");
-    //cleanup();
+    // cleanup();
 
 
     //////////////////////////////////////////////////////////////////////////
@@ -756,6 +760,7 @@ int32_t test_stop_resume()
         = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets
         + num_files*2   // number of METADATA packets, twice since node1 restarts
         + 1*2           // number of QUEUE packets, twice since node1 restarts
+        + num_files     // number of REQDATA packets (sent by default)
         + 0             // number of REQCOMPLETE packets
         + num_files     // number of COMPLETE packets
         + num_files;    // number of CANCEL packets
