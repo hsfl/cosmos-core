@@ -55,6 +55,7 @@ namespace Cosmos {
             // Commands
             static int32_t Reset(PacketComm &packet, string &response, Agent* agent);
             static int32_t Reboot(PacketComm &packet, string &response, Agent* agent);
+            static int32_t Halt(PacketComm &packet, string &response, Agent* agent);
             static int32_t SendBeacon(PacketComm &packet, string &response, Agent* agent);
             static int32_t ClearQueue(PacketComm &packet, string &response, Agent* agent);
             static int32_t ExternalCommand(PacketComm &packet, string &response, Agent* agent);
@@ -74,6 +75,7 @@ namespace Cosmos {
             static int32_t EpsForward(PacketComm &packet, string &response, Agent* agent);
             static int32_t ExecForward(PacketComm &packet, string &response, Agent* agent);
             static int32_t FileForward(PacketComm &packet, string &response, Agent* agent);
+            static int32_t ImageForward(PacketComm &packet, string &response, Agent* agent);
             static int32_t RadioForward(PacketComm &packet, string &response, Agent* agent);
             static int32_t EnableChannel(PacketComm &packet, string &response, Agent* agent);
 //            static int32_t EpsSwitchName(PacketComm &packet, string &response, Agent* agent);

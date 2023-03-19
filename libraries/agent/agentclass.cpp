@@ -53,8 +53,7 @@
 #define _SIZEOF_ADDR_IFREQ sizeof
 #endif
 
-#include <iostream>
-#include "support/convertlib.h"
+#include<iostream>
 
 namespace Cosmos
 {
@@ -113,7 +112,7 @@ namespace Cosmos
             cinfo->agent[0].stateflag = static_cast<uint16_t>(State::INIT);
 
             // Establish subscribe channel
-//            iretn = subscribe(NetworkType::MULTICAST, AGENTMCAST, AGENTSENDPORT, 1000);
+            //            iretn = subscribe(NetworkType::MULTICAST, AGENTMCAST, AGENTSENDPORT, 1000);
             iretn = subscribe(NetworkType::UDP, AGENTLOOPBACK, AGENTSENDPORT, 1000);
             if (iretn) {
                 error_value = iretn;
@@ -310,6 +309,7 @@ namespace Cosmos
                         "Commands:\n"
                         "    Reset [seconds_delay]\n"
                         "    Reboot [seconds_delay]\n"
+                        "    Halt [seconds_delay]\n"
                         "    SendBeacon [type:count]\n"
                         "    ClearQueue [channel]\n"
                         "    ExternalCommand command parameters\n"
@@ -335,6 +335,7 @@ namespace Cosmos
                         "    AdcsOrbitParameters inc ecc raan ap bstar mm ma epoch\n"
                         "    AdcsState {0-7} {0-255} ... \n"
                         "    AdcsCommunicate command:hexstring:response_size\n"
+                        "    CameraCapture [frames [usec [ startcol width [startrow height [name]]]]]\n"
                         "");
             add_request("list_channels", req_list_channels, "", "List current channels");
             add_request("run_command", req_run_command, "command parameters", "Run external command for immediate response");
@@ -1958,6 +1959,15 @@ namespace Cosmos
                     uint32to(seconds, &packet.data[4], ByteOrder::LITTLEENDIAN);
                 }
                 break;
+            case PacketComm::TypeId::CommandObcHalt:
+                packet.data.resize(8, 0);
+                uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                if (parms.size() > 0)
+                {
+                    uint32_t seconds = stoi(parms[0]);
+                    uint32to(seconds, &packet.data[4], ByteOrder::LITTLEENDIAN);
+                }
+                break;
             case PacketComm::TypeId::CommandObcSendBeacon:
                 {
                     uint8_t btype = (uint8_t)Beacon::TypeId::CPU1BeaconS;
@@ -2019,7 +2029,7 @@ namespace Cosmos
                     response += " " + to_unsigned(centi) + " " + command;
                 }
                 break;
-            
+
             case PacketComm::TypeId::CommandRadioAstrodevCommunicate:
                 try
                 {
@@ -2294,53 +2304,6 @@ namespace Cosmos
                     double d7 = 0.0;
                     double d8 = 0.0;
 
-					// if filename is given
-                    if(parms.size() == 1)	{
-
-                        // load the TLE into sgp4 variable
-                        vector<Convert::tlestruc> tle_lines;
-                        int32_t iretn = Cosmos::Convert::load_lines(parms[0], tle_lines);
-                        if(iretn<0) {
-                            //debug_log.Printf("TLE file <%s> not found\n", parms[0].c_str());
-                            break;
-                        }
-                        Convert::sgp4struc sgp4_parameters;
-                        iretn = Cosmos::Convert::tle2sgp4(tle_lines[0], sgp4_parameters);
-                        if(iretn<0) {
-                            //debug_log.Printf("unable to convert TLE file <%s>\n", parms[0].c_str());
-                            break;
-                        }
-
-						d1 = sgp4_parameters.i;
-						d2 = sgp4_parameters.e;
-						d3 = sgp4_parameters.raan;
-						d4 = sgp4_parameters.ap;
-						d5 = sgp4_parameters.bstar;
-						d6 = sgp4_parameters.mm;
-						d7 = sgp4_parameters.ma;
-						d8 = sgp4_parameters.ep;
-
-                        const unsigned char* ptr = reinterpret_cast<const unsigned char*>(&d1);
-                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
-                        ptr = reinterpret_cast<const unsigned char*>(&d2);
-                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
-                        ptr = reinterpret_cast<const unsigned char*>(&d3);
-                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
-                        ptr = reinterpret_cast<const unsigned char*>(&d4);
-                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
-                        ptr = reinterpret_cast<const unsigned char*>(&d5);
-                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
-                        ptr = reinterpret_cast<const unsigned char*>(&d6);
-                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
-                        ptr = reinterpret_cast<const unsigned char*>(&d7);
-                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
-                        ptr = reinterpret_cast<const unsigned char*>(&d8);
-                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
-
-						break;
-					} else 
-
-					// if arguments are given
                     if(parms.size() == 8)	{
                         d1 = stod(parms[0]);
                         const unsigned char* ptr = reinterpret_cast<const unsigned char*>(&d1);
@@ -2488,40 +2451,43 @@ namespace Cosmos
             case PacketComm::TypeId::CommandCameraOn:
                 {
                     packet.data.resize(1);
-                        if (parms.size())
-                        {
-                            packet.data[0] = atoi(parms[0].c_str());
-                        }
-                        else
-                        {
-                            packet.data[0] = 0;
-                        }
+                    if (parms.size())
+                    {
+                        packet.data[0] = atoi(parms[0].c_str());
+                    }
+                    else
+                    {
+                        packet.data[0] = 0;
+                    }
                 }
                 break;
             case PacketComm::TypeId::CommandCameraCapture:
                 {
                     packet.data.resize(12);
-                    uint16to(0, &packet.data[0], ByteOrder::LITTLEENDIAN);
-                    uint16to(640, &packet.data[2], ByteOrder::LITTLEENDIAN);
+                    uint16to(1, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    uint16to(350, &packet.data[2], ByteOrder::LITTLEENDIAN);
                     uint16to(0, &packet.data[4], ByteOrder::LITTLEENDIAN);
-                    uint16to(512, &packet.data[6], ByteOrder::LITTLEENDIAN);
-                    uint16to(1, &packet.data[8], ByteOrder::LITTLEENDIAN);
-                    uint16to(350, &packet.data[10], ByteOrder::LITTLEENDIAN);
-                    if (parms.size() > 3)
+                    uint16to(640, &packet.data[6], ByteOrder::LITTLEENDIAN);
+                    uint16to(0, &packet.data[8], ByteOrder::LITTLEENDIAN);
+                    uint16to(512, &packet.data[10], ByteOrder::LITTLEENDIAN);
+                    if (parms.size() > 0)
                     {
                         uint16to(atoi(parms[0].c_str()), &packet.data[0], ByteOrder::LITTLEENDIAN);
-                        uint16to(atoi(parms[1].c_str()), &packet.data[2], ByteOrder::LITTLEENDIAN);
-                        uint16to(atoi(parms[2].c_str()), &packet.data[4], ByteOrder::LITTLEENDIAN);
-                        uint16to(atoi(parms[3].c_str()), &packet.data[6], ByteOrder::LITTLEENDIAN);
-                        if (parms.size() > 4)
+                        if (parms.size() > 1)
                         {
-                            uint16to(atoi(parms[4].c_str()), &packet.data[8], ByteOrder::LITTLEENDIAN);
-                            if (parms.size() > 5)
+                            uint16to(atoi(parms[1].c_str()), &packet.data[2], ByteOrder::LITTLEENDIAN);
+                            if (parms.size() > 3)
                             {
-                                uint16to(atoi(parms[5].c_str()), &packet.data[10], ByteOrder::LITTLEENDIAN);
-                                if (parms.size() > 6)
+                                uint16to(atoi(parms[2].c_str()), &packet.data[4], ByteOrder::LITTLEENDIAN);
+                                uint16to(atoi(parms[3].c_str()), &packet.data[6], ByteOrder::LITTLEENDIAN);
+                                if (parms.size() > 5)
                                 {
-                                    packet.data.insert(packet.data.end(), args[5].begin(), args[5].end());
+                                    uint16to(atoi(parms[4].c_str()), &packet.data[8], ByteOrder::LITTLEENDIAN);
+                                    uint16to(atoi(parms[5].c_str()), &packet.data[10], ByteOrder::LITTLEENDIAN);
+                                    if (parms.size() > 6)
+                                    {
+                                        packet.data.insert(packet.data.end(), parms[6].begin(), parms[6].end());
+                                    }
                                 }
                             }
                         }
@@ -4378,7 +4344,7 @@ acquired.
         }
 
         int32_t Agent::channel_set_comm_priority(uint8_t number)
-        {            
+        {
             channels.comm_id = number;
             return 0;
         }
@@ -4447,7 +4413,7 @@ acquired.
             return packets.size();
         }
 
-        int32_t Agent::channel_push_comm(PacketComm &packet) 
+        int32_t Agent::channel_push_comm(PacketComm &packet)
         {
             if (channels.comm_id == 255)
             {

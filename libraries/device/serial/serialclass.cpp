@@ -1323,6 +1323,7 @@ namespace Cosmos {
             return (error);
         }
 
+        data.clear();
         for (uint16_t i=0; i<size; ++i)
         {
             if ((error=get_char()) < 0)

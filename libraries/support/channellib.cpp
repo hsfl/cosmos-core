@@ -60,6 +60,10 @@ namespace Cosmos {
             channel[7].mtx = new std::recursive_mutex;
             channel[7].maximum = 1000;
 
+            channel[7].name = "IMAGE";
+            channel[7].mtx = new std::recursive_mutex;
+            channel[7].maximum = 1000;
+
             this->verification = verification;
             return channel.size();
         }

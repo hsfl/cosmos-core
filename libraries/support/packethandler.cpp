@@ -25,7 +25,12 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandObcReset, Reset);
             add_func(PacketComm::TypeId::CommandObcReboot, Reboot);
             add_func(PacketComm::TypeId::CommandObcSendBeacon, SendBeacon);
-            add_func(PacketComm::TypeId::CommandExecClearQueue, ClearQueue);
+            add_func(PacketComm::TypeId::CommandObcHalt, Reboot);
+            add_func(PacketComm::TypeId::CommandObcInternalRequest, InternalRequest);
+            add_func(PacketComm::TypeId::CommandObcPing, Ping);
+            add_func(PacketComm::TypeId::CommandObcSetTime, SetTime);
+            add_func(PacketComm::TypeId::CommandObcGetTimeHuman, GetTimeHuman);
+            add_func(PacketComm::TypeId::CommandObcGetTimeBinary, GetTimeBinary);
             add_func(PacketComm::TypeId::CommandObcExternalCommand, ExternalCommand);
             add_func(PacketComm::TypeId::CommandObcExternalTask, ExternalTask);
             add_func(PacketComm::TypeId::CommandRadioTest, TestRadio);
@@ -34,13 +39,11 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandFileTransferNode, FileForward);
             add_func(PacketComm::TypeId::CommandFileTransferRadio, FileForward);
             add_func(PacketComm::TypeId::CommandFileTransferList, FileForward);
-            add_func(PacketComm::TypeId::CommandObcInternalRequest, InternalRequest);
-            add_func(PacketComm::TypeId::CommandObcPing, Ping);
-            add_func(PacketComm::TypeId::CommandObcSetTime, SetTime);
-            add_func(PacketComm::TypeId::CommandObcGetTimeHuman, GetTimeHuman);
-            add_func(PacketComm::TypeId::CommandObcGetTimeBinary, GetTimeBinary);
+            add_func(PacketComm::TypeId::CommandExecClearQueue, ClearQueue);
             add_func(PacketComm::TypeId::CommandExecSetOpsMode, ExecForward);
             add_func(PacketComm::TypeId::CommandExecEnableChannel, EnableChannel);
+            add_func(PacketComm::TypeId::CommandExecLoadCommand, ExecForward);
+            add_func(PacketComm::TypeId::CommandExecAddCommand, ExecForward);
             add_func(PacketComm::TypeId::CommandAdcsCommunicate, AdcsForward);
             add_func(PacketComm::TypeId::CommandAdcsState, AdcsForward);
             add_func(PacketComm::TypeId::CommandAdcsGetAdcsState, AdcsForward);
@@ -54,8 +57,7 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandEpsSetTime, EpsForward);
             add_func(PacketComm::TypeId::CommandEpsMinimumPower, EpsForward);
             add_func(PacketComm::TypeId::CommandEpsSwitchNames, EpsForward);
-            add_func(PacketComm::TypeId::CommandExecLoadCommand, ExecForward);
-            add_func(PacketComm::TypeId::CommandExecAddCommand, ExecForward);
+            add_func(PacketComm::TypeId::CommandCameraCapture, ImageForward);
 
             // Telemetry
             add_func(PacketComm::TypeId::DataObcBeacon, DecodeBeacon);
@@ -632,8 +634,11 @@ namespace Cosmos {
                 response = "Verification Failed: [" + to_hex(verification_check) + ":" + to_hex(agent->get_verification()) + "] " + cosmos_error_string(iretn);
                 return iretn;
             }
-            uint16_t seconds;
-            seconds = uint16from(&packet.data[4], ByteOrder::LITTLEENDIAN);
+            uint16_t seconds = 10;
+            if (packet.data.size() >5)
+            {
+                seconds = uint16from(&packet.data[4], ByteOrder::LITTLEENDIAN);
+            }
 
             response = "Resetting Power in " + to_unsigned(seconds) + " seconds";
 
@@ -652,8 +657,36 @@ namespace Cosmos {
                 response = "Verification Failed: [" + to_hex(verification_check) + ":" + to_hex(agent->get_verification()) + "] " + cosmos_error_string(iretn);
                 return iretn;
             }
+            uint16_t seconds = 0;
+            if (packet.data.size() >5)
+            {
+                seconds = uint16from(&packet.data[4], ByteOrder::LITTLEENDIAN);
+            }
+
             response = "Rebooting";
-            data_execute("reboot");
+            data_execute("sleep " + to_unsigned(seconds) + ";" + "reboot");
+            return iretn;
+        }
+
+        int32_t PacketHandler::Halt(PacketComm& packet, string &response, Agent* agent)
+        {
+            int32_t iretn=0;
+            uint32_t verification_check;
+            verification_check = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
+            iretn = agent->check_verification(verification_check);
+            if (iretn < 0)
+            {
+                response = "Verification Failed: [" + to_hex(verification_check) + ":" + to_hex(agent->get_verification()) + "] " + cosmos_error_string(iretn);
+                return iretn;
+            }
+            uint16_t seconds = 0;
+            if (packet.data.size() >5)
+            {
+                seconds = uint16from(&packet.data[4], ByteOrder::LITTLEENDIAN);
+            }
+
+            response = "Halting";
+            data_execute("halt " + to_unsigned(seconds) + ";" + "reboot");
             return iretn;
         }
 
@@ -818,6 +851,13 @@ namespace Cosmos {
         {
             int32_t iretn=0;
             iretn = agent->channel_push(agent->channel_number("FILE"), packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::ImageForward(PacketComm &packet, string &response, Agent* agent)
+        {
+            int32_t iretn=0;
+            iretn = agent->channel_push(agent->channel_number("IMAGE"), packet);
             return iretn;
         }
 

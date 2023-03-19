@@ -44,6 +44,7 @@ namespace Cosmos {
                 CommandObcExternalTask = 0x188,
                 CommandObcInternalRequest = 0x189,
                 CommandObcSendBeacon = 0x18a,
+                CommandObcHalt = 0x18b,
                 CommandObcNop = 0x1ff,
 
                 DataEps = 0x200,
@@ -135,6 +136,7 @@ namespace Cosmos {
                 {TypeId::CommandExecClearQueue, "ClearQueue"},
                 {TypeId::CommandObcExternalCommand, "ExternalCommand"},
                 {TypeId::CommandObcExternalTask, "ExternalTask"},
+                {TypeId::CommandObcHalt, "Halt"},
                 {TypeId::CommandRadioTest, "TestRadio"},
                 {TypeId::CommandFileListDirectory, "ListDirectory"},
                 {TypeId::CommandFileTransferFile, "TransferFile"},
@@ -167,6 +169,7 @@ namespace Cosmos {
                 {TypeId::CommandExecAddCommand, "ExecAddCommand"},
                 {TypeId::CommandRadioCommunicate, "RadioCommunicate"},
                 {TypeId::CommandRadioAstrodevCommunicate, "RadioAstrodevCommunicate"},
+                {TypeId::CommandCameraCapture, "CameraCapture"},
             };
 
             std::map<string, TypeId> StringType = {
@@ -197,6 +200,7 @@ namespace Cosmos {
                 {"ClearQueue", TypeId::CommandExecClearQueue},
                 {"ExternalCommand", TypeId::CommandObcExternalCommand},
                 {"ExternalTask", TypeId::CommandObcExternalTask},
+                {"Halt", TypeId::CommandObcHalt},
                 {"TestRadio", TypeId::CommandRadioTest},
                 {"ListDirectory", TypeId::CommandFileListDirectory},
                 {"TransferFile", TypeId::CommandFileTransferFile},
@@ -229,6 +233,7 @@ namespace Cosmos {
                 {"ExecAddCommand", TypeId::CommandExecAddCommand},
                 {"RadioCommunicate", TypeId::CommandRadioCommunicate},
                 {"RadioAstrodevCommunicate", TypeId::CommandRadioAstrodevCommunicate},
+                {"CameraCapture", TypeId::CommandCameraCapture},
             };
 
             struct __attribute__ ((packed)) CommunicateHeader
