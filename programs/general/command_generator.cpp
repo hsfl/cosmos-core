@@ -51,58 +51,65 @@ int main(int argc, char *argv[])
 
     switch (argc)
     {
-    case 8: // add command to the scheduler
+    case 9: // add command to the scheduler
         {
-            node = string(argv[6]);
+            node = string(argv[8]);
         }
-    case 7: // set solo flag
+    case 8: // set solo flag
         {
-            if (atoi(argv[6]))
+            if (atoi(argv[7]))
             {
                 flag |= EVENT_FLAG_SOLO;
             }
         }
-    case 6: // set repeat flag
+    case 7: // set repeat flag
         {
-            if (atoi(argv[5]))
+            if (atoi(argv[6]))
             {
                 flag |= EVENT_FLAG_REPEAT;
             }
         }
-    case 5: // set conditions
+    case 6: // set conditions
         {
-            condition = argv[4];
+            condition = argv[5];
             if (condition != "{}")
             {
                 flag |= EVENT_FLAG_CONDITIONAL;
             }
         }
-    case 4: // set time utc in mjd
+    case 5: // set time utc in mjd
         {
-            switch (argv[3][0])
+            switch (argv[4][0])
             {
             // add a few seconds to current time
             case '+':
                 {
-                    double seconds = atof(&argv[3][1]);
+                    double seconds = atof(&argv[4][1]);
                     utc = currentmjd() + seconds / 86400.;
                     break;
                 }
             default:
                 // use set time
                 {
-                    utc = atof(argv[3]);
+                    utc = atof(argv[4]);
                     break;
                 }
             }
         }
-    case 3: // set command string
+    case 4: // set command string
     {
-        data = argv[2];
+        data = argv[3];
     }
-    case 2: // set command name
+    case 3: // set command name
     {
-        name = argv[1];
+        name = argv[2];
+    }
+    case 2: // set command type
+    {
+            if (!strcmp(argv[1], "req"))
+            {
+                type = EVENT_TYPE_REQUEST;
+            }
         break;
     }
     default:
@@ -113,7 +120,7 @@ int main(int argc, char *argv[])
 
         cout << "Usage" << endl << endl;
         cout << "  command_generator [options]" << endl;
-        cout << "  command_generator name {req|cmd} text [time | +sec] [condition] [repeat_flag] [node]" << endl << endl;
+        cout << "  command_generator {req|cmd} name text [time | +sec] [condition] [repeat_flag] [node]" << endl << endl;
 
 
         cout << "Example" << endl << endl;

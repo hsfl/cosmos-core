@@ -736,7 +736,8 @@ int32_t request_add_command(string &request, string &response, Agent *)
     cmd.set_command(line);
 
     // add command
-    if(cmd.is_command()) {
+    if(cmd.is_command())
+    {
         cmd_queue.add_command(cmd);
         response =  "Command added to queue: " + line;
     }

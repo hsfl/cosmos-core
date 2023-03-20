@@ -153,6 +153,7 @@ namespace Cosmos
         */
         int32_t CommandQueue::run_request(Agent *agent, Event& cmd, string node_name, double logdate_exec)
         {
+            int32_t iretn = 0;
             queue_changed = true;
 
             // set time executed & actual flag
@@ -162,15 +163,18 @@ namespace Cosmos
             string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
             string bufferout;
             string request = cmd.get_data();
-            int32_t iretn = agent->process_request(request, bufferout);
-            FILE *fp = fopen(outpath.c_str(), "w");
-            if (fp != nullptr)
+            iretn = agent->process_request(request, bufferout);
+            if (iretn >= 0)
             {
-                fwrite(bufferout.data(), 1, bufferout.size(), fp);
+                FILE *fp = fopen(outpath.c_str(), "w");
+                if (fp != nullptr)
+                {
+                    fwrite(bufferout.data(), 1, bufferout.size(), fp);
+                }
+                // log to event file
+                log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
             }
-            // log to event file
-            log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
-            return 0;
+            return iretn;
         }
 
         //! Run the given Command Event
@@ -303,7 +307,14 @@ namespace Cosmos
                                 // else command is non-repeatable
                                 else
                                 {
-                                    run_command(*ii, node_name, logdate_exec);
+                                    if (ii->type == EVENT_TYPE_COMMAND)
+                                    {
+                                        run_command(*ii, node_name, logdate_exec);
+                                    }
+                                    else if (ii->type == EVENT_TYPE_REQUEST)
+                                    {
+                                        run_request(agent, *ii, node_name, logdate_exec);
+                                    }
                                     events.push_back(*ii);
                                     if (events.size() > 10)
                                     {
@@ -322,7 +333,14 @@ namespace Cosmos
                         // else command is non-conditional
                         else
                         {
-                            run_command(*ii, node_name, logdate_exec);
+                            if (ii->type == EVENT_TYPE_COMMAND)
+                            {
+                                run_command(*ii, node_name, logdate_exec);
+                            }
+                            else if (ii->type == EVENT_TYPE_REQUEST)
+                            {
+                                run_request(agent, *ii, node_name, logdate_exec);
+                            }
                             events.push_back(*ii);
                             if (events.size() > 10)
                             {

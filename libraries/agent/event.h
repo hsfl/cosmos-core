@@ -161,7 +161,8 @@ namespace Cosmos
             /**
         \return	True if %Event is a command, otherwise false
     */
-            bool	is_command()	{	return (type & EVENT_TYPE_COMMAND);	}
+            bool	is_command()	{	return (type & EVENT_TYPE_COMMAND || type & EVENT_TYPE_REQUEST);	}
+//            bool	is_request()	{	return (type & EVENT_TYPE_REQUEST);	}
 
             ///	Determines if the %Event is a conditional command
             /**

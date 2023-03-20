@@ -81,18 +81,18 @@ string Event::generator(eventstruc event) {
 ::std::ostream& operator<<(::std::ostream& out, const Event& cmd)
 {
     JSONObject jobj;
-    jobj.addElement("event_utc", JSONValue(cmd.mjd));
+    jobj.addElement("utc", JSONValue(cmd.mjd));
     if (cmd.utcexec != 0.)
     {
-        jobj.addElement("event_utcexec", JSONValue(cmd.utcexec));
+        jobj.addElement("utcexec", JSONValue(cmd.utcexec));
     }
-    jobj.addElement("event_name", JSONValue(cmd.name));
-    jobj.addElement("event_type", JSONValue(cmd.type));
-    jobj.addElement("event_flag", JSONValue(cmd.flag));
-    jobj.addElement("event_data", JSONValue(cmd.data));
+    jobj.addElement("name", JSONValue(cmd.name));
+    jobj.addElement("type", JSONValue(cmd.type));
+    jobj.addElement("flag", JSONValue(cmd.flag));
+    jobj.addElement("data", JSONValue(cmd.data));
     if (cmd.flag & EVENT_FLAG_CONDITIONAL)
     {
-        jobj.addElement("event_condition", JSONValue(cmd.condition));
+        jobj.addElement("condition", JSONValue(cmd.condition));
     }
     out	<< std::setprecision(15) << jobj.to_json_string();
     return out;
