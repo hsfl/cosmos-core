@@ -486,7 +486,7 @@ TEST(TransferlibTest, add_chunks)
         current_start += 200;
     }
     vector<PacketComm> reqdata_packets;
-    serialize_reqdata(reqdata_packets, 1, 2, 127, holes, packet_size);
+    serialize_reqdata(reqdata_packets, 1, 2, 127, 0, holes, packet_size);
 
     // Modify this, compare against mock
     tx_progress tx;
@@ -517,7 +517,7 @@ TEST(TransferlibTest, add_chunks)
     // Add two end pieces
     vector<file_progress> start_end_holes = { {300,549}, {900,999} };
     reqdata_packets.clear();
-    serialize_reqdata(reqdata_packets, 1, 2, 127, start_end_holes, packet_size);
+    serialize_reqdata(reqdata_packets, 1, 2, 127, 0, start_end_holes, packet_size);
     packet_struct_reqdata reqdata;
     int32_t start_end_signifier = deserialize_reqdata(reqdata_packets[0].data, reqdata);
     add_chunks(tx, reqdata.holes, start_end_signifier);
@@ -578,7 +578,7 @@ TEST(TransferlibTest, reqdata_packets_are_created_correctly)
         current_start += 52;
     }
     vector<PacketComm> reqdata_packets;
-    serialize_reqdata(reqdata_packets, 1, 2, 127, holes, packet_size);
+    serialize_reqdata(reqdata_packets, 1, 2, 127, 0, holes, packet_size);
     size_t current_hole_idx = 0;
     for (size_t i=0; i<reqdata_packets.size(); ++i)
     {

@@ -2308,7 +2308,7 @@ int32_t write_bad_meta(tx_progress& tx, uint16_t num_bytes)
 {
     PacketComm packet;
     std::ofstream file_name;
-    serialize_metadata(packet, tx.tx_id, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
+    serialize_metadata(packet, tx.tx_id, tx.file_crc, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
     file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary); // Note: truncs by default
     if(!file_name.is_open())
     {
@@ -2370,12 +2370,12 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Log::Logger
             {
                 packet_struct_metashort meta;
                 deserialize_metadata(packet.data, meta);
-                debug_log->Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(packet_struct_metashort, tx_id)], meta.file_name.c_str());
+                debug_log->Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(packet_struct_metashort, header.tx_id)], meta.file_name.c_str());
                 break;
             }
         case PacketComm::TypeId::DataFileChunkData:
             {
-                debug_log->Printf("[DATA] %u %u %u %u ", node_id, packet.data[offsetof(packet_struct_data, tx_id)], packet.data[offsetof(packet_struct_data, chunk_start)]+256U*(packet.data[offsetof(packet_struct_data, chunk_start)+1]+256U*(packet.data[offsetof(packet_struct_data, chunk_start)+2]+256U*packet.data[offsetof(packet_struct_data, chunk_start)+3])), packet.data[offsetof(packet_struct_data, byte_count)]+256U*packet.data[offsetof(packet_struct_data, byte_count)+1]);
+                debug_log->Printf("[DATA] %u %u %u %u ", node_id, packet.data[offsetof(packet_struct_data, header.tx_id)], packet.data[offsetof(packet_struct_data, chunk_start)]+256U*(packet.data[offsetof(packet_struct_data, chunk_start)+1]+256U*(packet.data[offsetof(packet_struct_data, chunk_start)+2]+256U*packet.data[offsetof(packet_struct_data, chunk_start)+3])), packet.data[offsetof(packet_struct_data, byte_count)]+256U*packet.data[offsetof(packet_struct_data, byte_count)+1]);
                 break;
             }
         case PacketComm::TypeId::DataFileReqData:
@@ -2390,17 +2390,17 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Log::Logger
             }
         case PacketComm::TypeId::DataFileReqComplete:
             {
-                debug_log->Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[offsetof(packet_struct_reqcomplete, tx_id)]);
+                debug_log->Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[offsetof(packet_struct_reqcomplete, header.tx_id)]);
                 break;
             }
         case PacketComm::TypeId::DataFileComplete:
             {
-                debug_log->Printf("[COMPLETE] %u %u ", node_id, packet.data[offsetof(packet_struct_complete, tx_id)]);
+                debug_log->Printf("[COMPLETE] %u %u ", node_id, packet.data[offsetof(packet_struct_complete, header.tx_id)]);
                 break;
             }
         case PacketComm::TypeId::DataFileCancel:
             {
-                debug_log->Printf("[CANCEL] %u %u ", node_id, packet.data[offsetof(packet_struct_cancel, tx_id)]);
+                debug_log->Printf("[CANCEL] %u %u ", node_id, packet.data[offsetof(packet_struct_cancel, header.tx_id)]);
                 break;
             }
         case PacketComm::TypeId::DataFileReqMeta:

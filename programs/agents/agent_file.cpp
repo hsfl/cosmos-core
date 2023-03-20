@@ -82,7 +82,6 @@ typedef struct
     double lomjd;
     double nmjd;
     double fmjd;
-    packet_struct_heartbeat heartbeat;
 } channelstruc;
 
 static PACKET_CHUNK_SIZE_TYPE default_packet_size=PACKET_SIZE_HI;
