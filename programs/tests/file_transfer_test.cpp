@@ -72,6 +72,8 @@ int32_t test_many_files();
 int32_t test_packet_cancel_missed();
 int32_t test_bad_meta();
 int32_t test_chaotic_order();
+int32_t test_file_deleted_midrun();
+int32_t test_txid_overlap();
 
 // Used in bad_meta test
 struct old_metalong
@@ -192,13 +194,23 @@ struct test_params
     // expected_file_num: Number of files you expect to see in the incoming folder
     int32_t verify_incoming_dir(string orig_node_name, size_t expected_file_num)
     {
+        return verify_incoming_dir(orig_node_name, expected_file_num, false);
+    }
+    // Verify that any files that were transferred are identical to the originals that were being sent
+    // orig_node_name: Name of the origin node
+    // expected_file_num: Number of files you expect to see in the incoming folder
+    // perform_only_count_check: If set to true, only checks if the file count is correct, but doesn't care if other validations are mismatched
+    int32_t verify_incoming_dir(string orig_node_name, size_t expected_file_num, bool perform_only_count_check)
+    {
         int32_t iretn = 0;
+        int32_t simple_verify = iretn;
         vector<filestruc> incoming_dir = data_list_files(orig_node_name, "incoming", agent_subfolder_name);
         if (incoming_dir.size() != expected_file_num)
         {
             debug_log.Printf("Verification fail: File count incorrect. incoming_dir: %d, expected: %d\n", incoming_dir.size(), expected_file_num);
             --iretn;
         }
+        simple_verify = iretn;
         for (filestruc& file : incoming_dir)
         {
             if (file_crcs.find(file.name) == file_crcs.end() || file_sizes.find(file.name) == file_sizes.end())
@@ -219,7 +231,7 @@ struct test_params
                 --iretn;
             }
         }
-        return iretn;
+        return perform_only_count_check ? simple_verify : iretn;
     }
 
     // Verify that there are the number of files in the outgoing directory that you expect
@@ -321,6 +333,7 @@ int main(int argc, char *argv[])
     run_test(test_packet_cancel_missed, "test_packet_cancel_missed");
     run_test(test_bad_meta, "test_bad_meta");
     run_test(test_chaotic_order, "test_chaotic_order"); // This test is a bit janky, think of it more as an investigative test. Doesn't necessarily have to pass.
+    run_test(test_file_deleted_midrun, "test_file_deleted_midrun");
 
     //////////////////////////////////////////////////////////////////////////
     // Clean up
@@ -447,7 +460,7 @@ int32_t test_zero_size_files()
         return iretn;
     }
     int32_t runs = 0;
-    int32_t runlimit = 0;
+    int32_t runlimit = 1; // One QUEUE packet sent
     while (true)
     {
         lpackets.clear();
@@ -600,7 +613,7 @@ int32_t test_large_files()
     int32_t packet_expected_total
         = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets
         + num_files     // number of METADATA packets
-        + 1             // number of QUEUE packets
+        + 2             // number of QUEUE packets
         + num_files     // number of COMPLETE packets
         + num_files;    // number of CANCEL packets
     while (true)
@@ -759,7 +772,7 @@ int32_t test_stop_resume()
     int32_t packet_expected_total
         = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets
         + num_files*2   // number of METADATA packets, twice since node1 restarts
-        + 1*2           // number of QUEUE packets, twice since node1 restarts
+        + 2*2           // number of QUEUE packets, twice since node1 restarts
         + num_files     // number of REQDATA packets (sent by default)
         + 0             // number of REQCOMPLETE packets
         + num_files     // number of COMPLETE packets
@@ -1035,7 +1048,7 @@ int32_t test_stop_resume2()
         = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets assuming no drops
         + (num_files * miss)    // additional number of DATA packets that are requested because they were missed
         + (num_files*2)         // number of METADATA packets, twice since node2 restarts
-        + 2                     // number of QUEUE packets, twice since node2 restarts
+        + 3                     // number of QUEUE packets, two times for a usual run, then one final time after success
         + 1                     // number of REQMETA packets
         + num_files             // number of REQCOMPLETE packets
         + num_files*2           // number of REQDATA packets (gets sent out immediately once)
@@ -1300,7 +1313,7 @@ int32_t test_packet_reqcomplete()
     int32_t packet_expected_total
         = num_files*ceil(file_size_bytes / packet_data_size_limit)*2   // number of DATA packets, everything gets sent twice
         + (num_files*2) // number of METADATA packets
-        + 2             // number of QUEUE packets
+        + 3             // number of QUEUE packets, two times for a usual run, then one final time after success
         + (num_files*2) // number of REQCOMPLETE packets, gets sent twice
         + 1             // number of REQMETA packets
         + num_files*2   // number of REQDATA packets (gets sent out immediately once)
@@ -1488,7 +1501,7 @@ int32_t test_many_files()
     int32_t packet_expected_total
         = ceil(test.get_total_bytes() / double(packet_data_size_limit))   // number of DATA packets
         + (num_files*2) // number of METADATA packets
-        + 1*num_files   // number of QUEUE packets, will be much less than this
+        + 2*num_files   // number of QUEUE packets, will be much less than this
         + num_files     // number of REQCOMPLETE packets
         + num_files     // number of COMPLETE packets
         + num_files;    // number of CANCEL packets
@@ -1686,7 +1699,7 @@ int32_t test_packet_cancel_missed()
     int32_t packet_expected_total
         = num_files*ceil(file_size_bytes / packet_data_size_limit)*2   // number of DATA packets, everything gets sent twice
         + num_files*2     // number of METADATA packets
-        + 1*2             // number of QUEUE packets
+        + 2*2             // number of QUEUE packets
         + num_files*2     // number of REQCOMPLETE packets, gets sent twice
         + num_files*2     // number of COMPLETE packets, gets sent twice
         + num_files*2;    // number of CANCEL packets, gets sent twice (though only received once)
@@ -2063,7 +2076,7 @@ int32_t test_chaotic_order()
     int32_t packet_expected_total
         = num_files*ceil(file_size_bytes / packet_data_size_limit)*2   // number of DATA packets, REQDATA will probably cause at least one resend because of the screwed up order
         + num_files     // number of METADATA packets
-        + 1             // number of QUEUE packets
+        + 2             // number of QUEUE packets
         + num_files     // number of REQDATA packets (likely to be sent out)
         + num_files     // number of COMPLETE packets
         + num_files;    // number of CANCEL packets
@@ -2259,8 +2272,6 @@ int32_t test_chaotic_order()
             break;
         }
     }
-
-
 endoftest:
 
     // Verify expected results
@@ -2269,6 +2280,462 @@ endoftest:
     if (sumv(packets_sent) > packet_expected_total*3)
     {
         debug_log.Printf("Verification fail: runlimit exceeded. node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total*3);
+        --iretn;
+    }
+
+    // File was successfully transferred
+    iretn += test.verify_incoming_dir(node1_name, num_files);
+    iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
+
+    // Outgoing/incoming queues are empty
+    if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
+    {
+        debug_log.Printf("Verification fail: queue not empty. node1 outgoing: %d, node2 incoming: %d\n", node1.outgoing_tx_recount(node2_name), node2.incoming_tx_recount(node1_name));
+        --iretn;
+    }
+
+    return iretn;
+}
+
+// Node 1 starts transferring files to node 2. One gets deleted midrun, another gets deleted between runs (after reboot)
+// Expect: Graceful failure, transactions cancelled, queues emptied and no artifacts remaining
+int32_t test_file_deleted_midrun()
+{
+    int32_t iretn = 0;
+    // First load, then stop
+    Transfer node1a, node2a;
+    // Second load after stop
+    Transfer node1b;
+    size_t num_files = 2;
+    double file_size_kib = 10.;
+    double file_size_bytes = file_size_kib * 1024;
+
+    // Initialize test parameters
+    test_params test;
+    iretn = test.init(node1_name, node2_name, file_size_kib, num_files, __func__);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing test params %d\n", iretn);
+        return iretn;
+    }
+
+    string base_path = data_base_path(node2_name, "outgoing", __func__);
+    if (!base_path.size())
+    {
+        debug_log.Printf("%5d | Error getting base path to test file!");
+        return TRANSFER_ERROR_FILENAME;
+    }
+    string file1_path = base_path + "/" + (test.file_crcs.begin())->first;
+    string file2_path = base_path + "/" + (++test.file_crcs.begin())->first;
+
+    // Load nodeid table
+    load_temp_nodeids();
+
+    iretn = node1a.Init(node1_name, &node1_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node1_name.c_str());
+        return iretn;
+    }
+    iretn = node2a.Init(node2_name, &node2_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node2_name.c_str());
+        return iretn;
+    }
+    iretn = node1a.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
+    node2a.set_packet_size(PACKET_SIZE);
+
+    // Restore old nodeids.ini file here in case test crashes
+    restore_original_nodeids();
+
+    vector<PacketComm> lpackets, rpackets;
+    bool respond = false;
+
+    // Start transfer process
+    iretn = node1a.outgoing_tx_load(node2_name);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in outgoing_tx_load\n");
+        return iretn;
+    }
+    // Number of packets sent by each node
+    vector<int32_t> packets_sent = {0,0};
+    const int32_t packet_data_size_limit = node1a.get_packet_size() - offsetof(struct packet_struct_data, chunk);
+    // Restart at halfway point
+    int32_t restart_run = ceil(file_size_bytes / packet_data_size_limit)/2;
+    // Delete first file in middle of first run
+    int32_t delete_run = restart_run/2;
+
+    int32_t packet_expected_total
+        = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets
+        + num_files*2   // number of METADATA packets, twice since node1 restarts
+        + 3             // number of QUEUE packets, two for a usual run, one more after restart and nothing to send
+        + 0             // number of REQDATA packets
+        + 0             // number of REQCOMPLETE packets
+        + num_files     // number of COMPLETE packets
+        + num_files;    // number of CANCEL packets
+    // Perform first run to all-data-sent/write_meta point, then stop
+    for (int runs=0; runs < restart_run; ++runs)
+    {
+        if (runs == delete_run)
+        {
+            // Delete second file
+            if (!base_path.size())
+            {
+                debug_log.Printf("%5d | Error getting base path to test file!");
+                goto endoftest;
+            }
+            node1_log.Printf("Removing file %s\n", file2_path.c_str());
+            node2_log.Printf("Removing file %s\n", file2_path.c_str());
+            remove(file2_path.c_str());
+        }
+        if (runs == restart_run-1)
+        {
+            // write_meta only writes metadata every 5 seconds by default, so allow time for last iteration to be written to disk
+            secondsleep(5.);
+        }
+        lpackets.clear();
+        // Get node 1's packets to send to node 2
+        node1a.get_outgoing_lpackets(node2_name, lpackets);
+        for (auto& lpacket : lpackets)
+        {
+            ++packets_sent[NODE1];
+            // Have node 2 receive all these packets
+            debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
+            debug_packet(lpacket, 0, "Incoming", &node2_log);
+            iretn = node2a.receive_packet(lpacket);
+            if (iretn == node2a.RESPONSE_REQUIRED)
+            {
+                respond = true;
+            }
+        }
+
+        // break if transfers stop
+        if ((!lpackets.size() && !respond))
+        {
+            string rs = respond ? "true" : "false";
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+            break;
+        }
+        if (sumv(packets_sent) > packet_expected_total)
+        {
+            string rs = respond ? "true" : "false";
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+        }
+
+        if (respond)
+        {
+            rpackets.clear();
+            node2a.get_outgoing_rpackets(rpackets);
+            for (auto& rpacket : rpackets)
+            {
+                ++packets_sent[NODE2];
+                debug_packet(rpacket, 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpacket.data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
+                debug_packet(rpacket, 0, "Incoming", &node1_log);
+                node1a.receive_packet(rpacket);
+            }
+            respond = false;
+        }
+
+        // break if estimate is exceeded
+        if (sumv(packets_sent) > packet_expected_total)
+        {
+            break;
+        }
+    }
+
+    node1_log.Printf("------------------------\n--- Restarting node1 ---\n------------------------\n");
+    node2_log.Printf("------------------------\n--- Restarting node1 ---\n------------------------\n");
+    node1_log.Printf("(Packets sent so far: node1:%d node2:%d)\n", packets_sent[NODE1], packets_sent[NODE2]);
+    node2_log.Printf("(Packets sent so far: node1:%d node2:%d)\n", packets_sent[NODE1], packets_sent[NODE2]);
+    
+    // Delete first file
+    node1_log.Printf("Removing file %s\n", file1_path.c_str());
+    node2_log.Printf("Removing file %s\n", file1_path.c_str());
+    remove(file1_path.c_str());
+    
+    // Now start up node1b and resume file transfer
+    // Load test nodeid table
+    load_temp_nodeids();
+    iretn = node1b.Init(node1_name, &node1_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node1_name.c_str());
+        // Restore old nodeids.ini file here in case test crashes
+        restore_original_nodeids();
+        return -1;
+    }
+    // Restore old nodeids.ini file here in case test crashes
+    restore_original_nodeids();
+    node1b.set_packet_size(PACKET_SIZE);
+
+    // At this point, receiver side will have a .file and .meta sitting on
+    // some tx_id that will remain silent until an lpacket is sent for that
+    // same tx_id. Receiver currently doesn't think to automatically request
+    // updates. Here we'll manually do a REQQUEUE.
+    {
+        PacketComm rpacket;
+        rpacket.header.nodedest = node1_id;
+        rpacket.header.nodeorig = node2_id;
+        vector<PACKET_TX_ID_TYPE> treqmeta;
+        treqmeta.clear();
+        serialize_reqmeta(rpacket, static_cast<PACKET_NODE_ID_TYPE>(node2_id), node1_name, treqmeta);
+        ++packets_sent[NODE2];
+        debug_packet(rpacket, 1, "Outgoing", &node2_log);
+        // Check packet size
+        if (rpacket.data.size() > PACKET_SIZE)
+        {
+            debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+            goto endoftest;
+        }
+        debug_packet(rpacket, 0, "Incoming", &node1_log);
+        node1b.receive_packet(rpacket);
+    }
+
+    while (true)
+    {
+        lpackets.clear();
+        // Get node 1's packets to send to node 2
+        node1b.get_outgoing_lpackets(node2_name, lpackets);
+        for (auto& lpacket : lpackets)
+        {
+            ++packets_sent[NODE1];
+            // Have node 2 receive all these packets
+            debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
+            debug_packet(lpacket, 0, "Incoming", &node2_log);
+            iretn = node2a.receive_packet(lpacket);
+            if (iretn == node2a.RESPONSE_REQUIRED)
+            {
+                respond = true;
+            }
+        }
+
+        // break if transfers stop
+        if ((!lpackets.size() && !respond))
+        {
+            string rs = respond ? "true" : "false";
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+            break;
+        }
+        if (sumv(packets_sent) > packet_expected_total)
+        {
+            string rs = respond ? "true" : "false";
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+        }
+
+        if (respond)
+        {
+            rpackets.clear();
+            node2a.get_outgoing_rpackets(rpackets);
+            for (auto& rpacket : rpackets)
+            {
+                ++packets_sent[NODE2];
+                debug_packet(rpacket, 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpacket.data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
+                debug_packet(rpacket, 0, "Incoming", &node1_log);
+                node1b.receive_packet(rpacket);
+            }
+            respond = false;
+        }
+
+        // break if runlimit is reached
+        if (sumv(packets_sent) > packet_expected_total)
+        {
+            break;
+        }
+    }
+endoftest:
+
+    // Verify expected results
+    iretn = 0;
+    // Number of iteration matches estimate
+    if (sumv(packets_sent) > packet_expected_total)
+    {
+        debug_log.Printf("Verification fail: runlimit exceeded. node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+        --iretn;
+    }
+
+    // File was successfully transferred
+    iretn += test.verify_incoming_dir(node1_name, 2, true);
+    iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
+
+    // Outgoing/incoming queues are empty
+    if (node1b.outgoing_tx_recount(node2_name) || node2a.incoming_tx_recount(node1_name))
+    {
+        debug_log.Printf("Verification fail: queue check fail. node1b outgoing: %d, node2a incoming: %d\n", node1b.outgoing_tx_recount(node2_name), node2a.incoming_tx_recount(node1_name));
+        --iretn;
+    }
+
+    return iretn;
+}
+
+// Node 1 transfers multiple large files to Node 2, no other tricks
+// Expect: Stuff to transfer
+int32_t test_txid_overlap()
+{
+    int32_t iretn = 0;
+    Transfer node1, node2;
+    size_t num_files = 3;
+    double file_size_kib = 2.;
+    double file_size_bytes = file_size_kib * 1024;
+
+    // Initialize test parameters
+    test_params test;
+    iretn = test.init(node1_name, node2_name, file_size_kib, num_files, __func__);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing test params %d\n", iretn);
+        return iretn;
+    }
+
+    // Load nodeid table
+    load_temp_nodeids();
+
+    iretn = node1.Init(node1_name, &node1_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node1_name.c_str());
+        return iretn;
+    }
+    iretn = node2.Init(node2_name, &node2_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node2_name.c_str());
+        return iretn;
+    }
+    iretn = node1.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
+    node2.set_packet_size(PACKET_SIZE);
+
+    // Restore old nodeids.ini file here in case test crashes
+    restore_original_nodeids();
+
+    vector<PacketComm> lpackets, rpackets;
+    bool respond = false;
+    // Start transfer process
+    iretn = node1.outgoing_tx_load(node2_name);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in outgoing_tx_load\n");
+        return iretn;
+    }
+    // Number of packets sent by each node
+    vector<int32_t> packets_sent = {0,0};
+    const int32_t packet_data_size_limit = node1.get_packet_size() - offsetof(struct packet_struct_data, chunk);
+    int32_t packet_expected_total
+        = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets
+        + num_files     // number of METADATA packets
+        + 1             // number of QUEUE packets
+        + num_files     // number of COMPLETE packets
+        + num_files;    // number of CANCEL packets
+    while (true)
+    {
+        lpackets.clear();
+        // Get node 1's packets to send to node 2
+        node1.get_outgoing_lpackets(node2_name, lpackets);
+        for (auto& lpacket : lpackets)
+        {
+            ++packets_sent[NODE1];
+            // Have node 2 receive all these packets
+            debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
+            debug_packet(lpacket, 0, "Incoming", &node2_log);
+            iretn = node2.receive_packet(lpacket);
+            if (iretn == node2.RESPONSE_REQUIRED)
+            {
+                respond = true;
+            }
+        }
+
+        // break if transfers stop
+        if ((!lpackets.size() && !respond))
+        {
+            string rs = respond ? "true" : "false";
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+            break;
+        }
+        if (sumv(packets_sent) > packet_expected_total)
+        {
+            string rs = respond ? "true" : "false";
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+        }
+
+        if (respond)
+        {
+            rpackets.clear();
+            node2.get_outgoing_rpackets(rpackets);
+            for (auto& rpacket : rpackets)
+            {
+                ++packets_sent[NODE2];
+                debug_packet(rpacket, 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpacket.data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
+                debug_packet(rpacket, 0, "Incoming", &node1_log);
+                node1.receive_packet(rpacket);
+            }
+            respond = false;
+        }
+
+        // break if estimate is exceeded
+        if (sumv(packets_sent) > packet_expected_total)
+        {
+            break;
+        }
+    }
+endoftest:
+
+    // Verify expected results
+    iretn = 0;
+    // Number of iteration matches estimate
+    if (sumv(packets_sent) > packet_expected_total)
+    {
+        debug_log.Printf("Verification fail: runlimit exceeded. node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
         --iretn;
     }
 
@@ -2534,13 +3001,6 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Log::Logger
 /*
 test cases:
 check all arrays for segfault conditions
-packet destination confusion, overlapping tx_ids
 tx queue filling
-files being deleted mid-transfer
-didn't a directory get deleted in an outgoing subfolder?
 new node_ids being added, node id mismatch between nodes
-test heartbeat and command stuff
-resuming, skipping with missing chunks
-stopping and resuming both
-making receiver less tied to tx_ids (also have better unique transaction IDs in every packet)
 */

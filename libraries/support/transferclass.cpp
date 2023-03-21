@@ -154,6 +154,17 @@ namespace Cosmos {
                             {
                                 merge_chunks_overlap(tx_in);
                                 iretn = incoming_tx_add(tx_in);
+                                // Error readd-ing incoming meta, move what was there, delete meta files
+                                if (iretn < 0)
+                                {
+                                    if (debug_log != nullptr)
+                                    {
+                                        debug_log->Printf("%.4f %.4f Init: Error readd-ing incoming meta, moving: %u %s %s %s %s\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.file_name.c_str(), tx_in.filepath.c_str());
+                                    }
+                                    rename((tx_in.temppath + ".file").c_str(), (tx_in.filepath + "_INITADD_ERR").c_str());
+                                    remove((tx_in.temppath + ".meta").c_str());
+                                    remove((tx_in.temppath + ".file").c_str());
+                                }
                             }
                         }
 
@@ -167,6 +178,16 @@ namespace Cosmos {
                             {
                                 merge_chunks_overlap(tx_out);
                                 iretn = outgoing_tx_add(tx_out, transfer_node.node_name);
+                                // Error readd-ing outgoing meta, delete meta files
+                                if (iretn < 0)
+                                {
+                                    if (debug_log != nullptr)
+                                    {
+                                        debug_log->Printf("%.4f %.4f Init: Error readd-ing outgoing meta, deleting: %s\n", tet.split(), dt.lap(), tx_out.filepath.c_str());
+                                    }
+                                    remove((tx_out.temppath + ".meta").c_str()); 
+                                    remove((tx_out.temppath + ".meta").c_str());
+                                }
                             }
                         }
                     }
@@ -371,15 +392,16 @@ namespace Cosmos {
             // Iterate over all files in outgoing queue, push necessary packets
             for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
             {
-                // Skip files that are not enabled for transfer
-                if (!txq[dest_node_idx].outgoing.progress[tx_id].enabled)
-                {
-                    continue;
-                }
                 // Check if this is a valid outgoing transaction
                 // Note: the semantic of this equality comparison necessarily implies the unavailability of tx_id == 0
                 // This check is entered if REQMETA is received for an invalid tx_id
                 if (txq[dest_node_idx].outgoing.progress[tx_id].tx_id != tx_id) {
+                    if (!txq[dest_node_idx].outgoing.progress[tx_id].enabled)
+                    {
+                        // Not a transaction to consider, skip
+                        continue;
+                    }
+                    // The other side thinks this is a valid transaction, respond that it isn't
                     txq[dest_node_idx].outgoing.progress[tx_id].enabled = false;
                     PacketComm packet;
                     packet.header.nodeorig = self_node_id;
@@ -432,6 +454,13 @@ namespace Cosmos {
                             {
                                 txq[dest_node_idx].outgoing.progress[tx_id].fp = fopen(txq[dest_node_idx].outgoing.progress[tx_id].filepath.c_str(), "r");
                             }
+                            // Check if file still exists
+                            else if (!data_exists(txq[dest_node_idx].outgoing.progress[tx_id].filepath))
+                            {
+                                // Some problem with this transmission, ask other end to dequeue it
+                                txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
+                                txq[dest_node_idx].outgoing.progress[tx_id].complete = true;
+                            }
 
                             // If we're good, continue with the process
                             if (txq[dest_node_idx].outgoing.progress[tx_id].fp != nullptr)
@@ -451,6 +480,7 @@ namespace Cosmos {
                                 // Read the packet and send it
                                 size_t nbytes = 0;
                                 PACKET_BYTE* chunk = new PACKET_BYTE[byte_count]();
+                                // Read bytes into chunk
                                 if (!fseek(txq[dest_node_idx].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET))
                                 {
                                     nbytes = fread(chunk, 1, byte_count, txq[dest_node_idx].outgoing.progress[tx_id].fp);
@@ -566,7 +596,7 @@ namespace Cosmos {
             }
 
             // Push QUEUE packet if it needs to be sent
-            if (tqueue.size())
+            if (sendqueue)
             {
                 PacketComm packet;
                 packet.header.nodeorig = self_node_id;
@@ -723,17 +753,29 @@ namespace Cosmos {
             const uint8_t dest_node_id = NodeData::lookup_node_id(dest_node);
             if (dest_node_id == NodeData::NODEIDUNKNOWN)
             {
+                if (debug_log != nullptr)
+                {
+                    debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
+                }
                 return TRANSFER_ERROR_NODE;
             }
             const size_t dest_node_idx = node_id_to_txq_idx(dest_node_id);
             if (dest_node_idx == INVALID_TXQ_IDX)
             {
+                if (debug_log != nullptr)
+                {
+                    debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_NODE\n", tet.split(), dt.lap());
+                }
                 return TRANSFER_ERROR_NODE;
             }
 
             // Only add if we have room
             if (txq[dest_node_idx].outgoing.size == PROGRESS_QUEUE_SIZE-1)
             {
+                if (debug_log != nullptr)
+                {
+                    debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_QUEUEFULL\n", tet.split(), dt.lap());
+                }
                 return TRANSFER_ERROR_QUEUEFULL;
             }
 
@@ -743,6 +785,10 @@ namespace Cosmos {
             int32_t iretn = get_file_size(filepath, file_size);
             if (iretn < 0)
             {
+                if (debug_log != nullptr)
+                {
+                    debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILESIZE\n", tet.split(), dt.lap());
+                }
                 return TRANSFER_ERROR_FILESIZE;
             }
 
@@ -769,11 +815,19 @@ namespace Cosmos {
                     }
                     else
                     {
+                        if (debug_log != nullptr)
+                        {
+                            debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILESIZE\n", tet.split(), dt.lap());
+                        }
                         outgoing_tx_del(dest_node_id, i, false);
                         return TRANSFER_ERROR_FILESIZE;
                     }
                     if (txq[dest_node_idx].outgoing.progress[i].enabled && txq[dest_node_idx].outgoing.progress[i].file_size == 0)
                     {
+                        if (debug_log != nullptr)
+                        {
+                            debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILEZERO\n", tet.split(), dt.lap());
+                        }
                         outgoing_tx_del(dest_node_id, i, true);
                         return TRANSFER_ERROR_FILEZERO;
                     }
@@ -838,6 +892,10 @@ namespace Cosmos {
             }
             else
             {
+                if (debug_log != nullptr)
+                {
+                    debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_MATCH\n", tet.split(), dt.lap());
+                }
                 return TRANSFER_ERROR_MATCH;
             }
         }
@@ -859,7 +917,7 @@ namespace Cosmos {
             {
                 if (debug_log != nullptr)
                 {
-                    debug_log->Printf("TRANSFER_ERROR_NODE\n");
+                    debug_log->Printf("dest_node_id not found for node_name %s\n", dest_node_name.c_str());
                 }
                 if (dest_node_id == NodeData::NODEIDUNKNOWN)
                 {
@@ -873,6 +931,10 @@ namespace Cosmos {
             const size_t dest_node_idx = node_id_to_txq_idx(dest_node_id);
             if (dest_node_idx == INVALID_TXQ_IDX)
             {
+                if (debug_log != nullptr)
+                {
+                    debug_log->Printf("Error getting txq_idx for node_id %u\n", dest_node_id);
+                }
                 return TRANSFER_ERROR_NODE;
             }
 
@@ -922,6 +984,10 @@ namespace Cosmos {
             int32_t iretn = get_file_size(tx_out.filepath, tx_out.file_size);
             if (iretn < 0)
             {
+                if (debug_log != nullptr)
+                {
+                    debug_log->Printf("%u %s %s %s TRANSFER_ERROR_FILESIZE\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str());
+                }
                 return TRANSFER_ERROR_FILESIZE;
             }
             tx_out.savetime = 0.;
@@ -995,6 +1061,10 @@ namespace Cosmos {
             tx_progress tx_out = txq[dest_node_idx].outgoing.progress[tx_id];
 
             // erase the transaction
+            if (txq[dest_node_idx].outgoing.progress[tx_id].fp != nullptr)
+            {
+                fclose(txq[dest_node_idx].outgoing.progress[tx_id].fp);
+            }
             txq[dest_node_idx].outgoing.progress[tx_id].fp = nullptr;
             txq[dest_node_idx].outgoing.progress[tx_id].enabled = false;
             txq[dest_node_idx].outgoing.progress[tx_id].tx_id = 0;
@@ -1442,6 +1512,9 @@ namespace Cosmos {
                             // TODO: I think this logic fails for multiple senders
                             else if (!flag && txq[orig_node_idx].incoming.progress[tx_id].tx_id)
                             {
+                                // This renaming would only occur in error states.
+                                // A file completed correctly would already be renamed and moved.
+                                txq[orig_node_idx].incoming.progress[tx_id].filepath += "_DEQUEUE_ERR";
                                 incoming_tx_del(node_id, tx_id);
                             }
 
@@ -1686,6 +1759,9 @@ namespace Cosmos {
                     if (tx_id > 0)
                     {
                         // Remove the transaction
+                        // This renaming would only occur in error states.
+                        // A file completed correctly would already be renamed and moved.
+                        txq[orig_node_idx].incoming.progress[tx_id].filepath += "_CANCEL_ERR";
                         incoming_tx_del(node_id, tx_id);
                     }
                 }
