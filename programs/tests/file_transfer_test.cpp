@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
     string debug_log_path = get_cosmosnodes() + "file_transfer_tests";
     string node1_log_path = get_cosmosnodes() + "node1_transfer_test_log";
     string node2_log_path = get_cosmosnodes() + "node2_transfer_test_log";
-    test_log.Set(Log::LogType::LOG_STDOUT_FFLUSH);
+    test_log.Set(Log::LogType::LOG_STDOUT_FFLUSH, true, "", 1800., "");
     debug_log.Set(Log::LogType::LOG_FILE_FFLUSH, false, debug_log_path, 1., "");
     node1_log.Set(Log::LogType::LOG_FILE_FFLUSH, false, node1_log_path, 1., "");
     node2_log.Set(Log::LogType::LOG_FILE_FFLUSH, false, node2_log_path, 1., "");
@@ -317,10 +317,10 @@ int main(int argc, char *argv[])
     run_test(test_stop_resume, "test_stop_resume");
     run_test(test_stop_resume2, "test_stop_resume2");
     run_test(test_packet_reqcomplete, "test_packet_reqcomplete");
-    //run_test(test_many_files, "test_many_files"); // This one takes about 16 seconds, comment out to save some time to test other tests
+    run_test(test_many_files, "test_many_files"); // This one takes about 16 seconds, comment out to save some time to test other tests
     run_test(test_packet_cancel_missed, "test_packet_cancel_missed");
     run_test(test_bad_meta, "test_bad_meta");
-    run_test(test_chaotic_order, "test_chaotic_order");
+    run_test(test_chaotic_order, "test_chaotic_order"); // This test is a bit janky, think of it more as an investigative test. Doesn't necessarily have to pass.
 
     //////////////////////////////////////////////////////////////////////////
     // Clean up
@@ -951,6 +951,8 @@ int32_t test_stop_resume2()
     double waittime_sec = 0.5;
     double file_size_kib = ((PACKET_SIZE/1024)+1)*10;
     double file_size_bytes = file_size_kib * 1024;
+    // Attempt one sleep to retrigger response wait cycle
+    bool waitted_once = false;
 
     // Initialize test parameters
     test_params test;
@@ -992,6 +994,18 @@ int32_t test_stop_resume2()
     // Restore old nodeids.ini file here in case test crashes
     restore_original_nodeids();
 
+
+    // Modify wait times to not have to wait forever
+    iretn = node1a.set_waittime(node2_name, 2, waittime_sec);
+    iretn = node2a.set_waittime(node1_name, 2, waittime_sec);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_waittime %d\n", iretn);
+        return iretn;
+    }
+    // Allow trigger of first response
+    secondsleep(waittime_sec);
+
     vector<PacketComm> lpackets, rpackets;
     bool respond = false;
     // Start transfer process
@@ -1024,7 +1038,7 @@ int32_t test_stop_resume2()
         + 2                     // number of QUEUE packets, twice since node2 restarts
         + 1                     // number of REQMETA packets
         + num_files             // number of REQCOMPLETE packets
-        + num_files             // number of REQDATA packets
+        + num_files*2           // number of REQDATA packets (gets sent out immediately once)
         + num_files             // number of COMPLETE packets
         + num_files;            // number of CANCEL packets
     // Perform first run to all-data-sent/write_meta point, then stop
@@ -1109,13 +1123,14 @@ int32_t test_stop_resume2()
         debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
         return iretn;
     }
-    // This below may not be necessary (well it isn't) if next_response is reset on a REQMETA receive, double check that logic
-    iretn = node2b.set_waittime(node1_name, 0, waittime_sec);
+
+    iretn = node2b.set_waittime(node1_name, 2, waittime_sec);
     if (iretn < 0)
     {
         debug_log.Printf("Error in set_waittime %d\n", iretn);
         return iretn;
     }
+    secondsleep(waittime_sec);
 
     while (true)
     {
@@ -1144,6 +1159,12 @@ int32_t test_stop_resume2()
         // break if transfers stop
         if ((!lpackets.size() && !respond))
         {
+            if (!waitted_once)
+            {
+                waitted_once = true;
+                secondsleep(waittime_sec);
+                continue;
+            }
             string rs = respond ? "true" : "false";
             debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
             break;
@@ -1214,7 +1235,7 @@ int32_t test_packet_reqcomplete()
     int32_t iretn = 0;
     Transfer node1, node2;
     size_t num_files = 1;
-    double waittime_sec = 1.;
+    double waittime_sec = 3.;
     double file_size_kib = 2.;
     double file_size_bytes = file_size_kib * 1024;
 
@@ -1255,6 +1276,14 @@ int32_t test_packet_reqcomplete()
 
     vector<PacketComm> lpackets, rpackets;
     bool respond = false;
+    // Modify wait times to not have to wait forever
+    iretn = node1.set_waittime(node2_name, 2, waittime_sec);
+    iretn = node2.set_waittime(node1_name, 2, waittime_sec);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_waittime %d\n", iretn);
+    }
+
     // Start transfer process
     iretn = node1.outgoing_tx_load(node2_name);
     if (iretn < 0)
@@ -1274,18 +1303,15 @@ int32_t test_packet_reqcomplete()
         + 2             // number of QUEUE packets
         + (num_files*2) // number of REQCOMPLETE packets, gets sent twice
         + 1             // number of REQMETA packets
-        + num_files     // number of REQDATA packets
+        + num_files*2   // number of REQDATA packets (gets sent out immediately once)
         + num_files     // number of COMPLETE packets
         + num_files;    // number of CANCEL packets
 
     // Wait only once for the second REQCOMPLETE
     bool waited = false;
-    // This below may not be necessary (well it isn't) if next_response is reset on a REQMETA receive, double check that logic
-    iretn = node1.set_waittime(node2_name, 1, waittime_sec);
-    if (iretn < 0)
-    {
-        debug_log.Printf("Error in set_waittime %d\n", iretn);
-    }
+
+    // Sleep so that the first REQCOMPLETE can be sent
+    secondsleep(waittime_sec+.5);
     // Start receiving after REQCOMPLETE is received
     bool start_receiving = false;
     while (true)
@@ -1467,6 +1493,7 @@ int32_t test_many_files()
         + num_files     // number of COMPLETE packets
         + num_files;    // number of CANCEL packets
 
+    // Modify wait times to not have to wait forever
     iretn = node1.set_waittime(node2_name, 1, waittime_sec);
     if (iretn < 0)
     {
@@ -1632,7 +1659,7 @@ int32_t test_packet_cancel_missed()
         debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
         return iretn;
     }
-    // This below may not be necessary (well it isn't) if next_response is reset on a REQMETA receive, double check that logic
+    // Modify wait times to not have to wait forever
     iretn = node1.set_waittime(node2_name, 1, waittime_sec);
     if (iretn < 0)
     {
@@ -1795,8 +1822,9 @@ int32_t test_packet_cancel_missed()
             debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
             break;
         }
-        if (sumv(packets_sent) > packet_expected_total*2)
+        if ((sumv(packets_sent) > packet_expected_total*2))
         {
+            respond = true;
             string rs = respond ? "true" : "false";
             debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
         }
@@ -1969,6 +1997,10 @@ int32_t test_chaotic_order()
     size_t num_files = 1;
     double file_size_kib = 15.;
     double file_size_bytes = file_size_kib * 1024;
+    // Because of haphazard nature of this test, there's the possibility of weird meta stuff going around at the end of the test.
+    // When that happens, we want node2 to clear things up by requesting the state of things one last time before failing the test.
+    bool one_last_respond = true;
+    double waittime_sec = 3.;
 
     // Initialize test parameters
     test_params test;
@@ -2010,6 +2042,13 @@ int32_t test_chaotic_order()
 
     vector<PacketComm> queued_lpackets, lpackets, rpackets;
     bool respond = false;
+    // Modify wait times to not have to wait forever
+    iretn = node1.set_waittime(node2_name, 2, waittime_sec);
+    iretn = node2.set_waittime(node1_name, 2, waittime_sec);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_waittime %d\n", iretn);
+    }
     // Start transfer process
     iretn = node1.outgoing_tx_load(node2_name);
     if (iretn < 0)
@@ -2022,13 +2061,14 @@ int32_t test_chaotic_order()
     const int32_t packet_data_size_limit = node1.get_packet_size() - offsetof(struct packet_struct_data, chunk);
     // Hard to calculate, in a perfect transfer (no chaos), shouldn't be more than this,
     int32_t packet_expected_total
-        = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets
+        = num_files*ceil(file_size_bytes / packet_data_size_limit)*2   // number of DATA packets, REQDATA will probably cause at least one resend because of the screwed up order
         + num_files     // number of METADATA packets
         + 1             // number of QUEUE packets
+        + num_files     // number of REQDATA packets (likely to be sent out)
         + num_files     // number of COMPLETE packets
         + num_files;    // number of CANCEL packets
     // but increase by a bit since repeated packets are sent and what not.
-    packet_expected_total *= 1.25;
+    packet_expected_total *= 3;
     
     // Allow a deviation of packet size of +/-25%
     const size_t packet_size_deviation = PACKET_SIZE * 0.25;
@@ -2058,12 +2098,15 @@ int32_t test_chaotic_order()
         }
 
         // Occasionally repeat a random packet
-        if (!(rand()%5))
+        if (!(rand()%7))
         {
-            const size_t insert_pos = queued_lpackets.size();
-            const size_t copy_pos = rand()%insert_pos;
-            queued_lpackets.resize(insert_pos + 1);
-            std::copy_n(queued_lpackets.begin()+copy_pos, 1, queued_lpackets.begin() + insert_pos);
+            for (size_t i=0; i<10; ++i)
+            {
+                const size_t insert_pos = queued_lpackets.size();
+                const size_t copy_pos = rand()%insert_pos;
+                queued_lpackets.resize(insert_pos + 1);
+                std::copy_n(queued_lpackets.begin()+copy_pos, 1, queued_lpackets.begin() + insert_pos);
+            }
         }
 
         last_size = queued_lpackets.size();
@@ -2071,8 +2114,11 @@ int32_t test_chaotic_order()
     // Shuffle the queue
     auto rng = std::default_random_engine {seed};
     std::shuffle(std::begin(queued_lpackets), std::end(queued_lpackets), rng);
+    node1_log.Printf("%5d | queued_lpackets size:%lu\n", __LINE__, queued_lpackets.size());
+    node2_log.Printf("%5d | queued_lpackets size:%lu\n", __LINE__, queued_lpackets.size());
     // Offset in the queued_lpackets vector to start transfering again from
     size_t qlp_offset = 0;
+    size_t i = qlp_offset;
     // don't break out of sending queued_lpackets immediately
     int32_t break_offset = 4;
     // Now send them all out
@@ -2099,7 +2145,8 @@ int32_t test_chaotic_order()
                 respond = true;
             }
         }
-        for (size_t i=qlp_offset; i < queued_lpackets.size(); ++i)
+        // Send some of the out-of-sequence packets to try to mess things up
+        for (i=qlp_offset; i < queued_lpackets.size(); ++i)
         {
             ++packets_sent[NODE1];
             // Have node 2 receive all these packets
@@ -2116,6 +2163,7 @@ int32_t test_chaotic_order()
             {
                 respond = true;
             }
+            // Node2 wants to respond, but keep sending it junk for a bit
             if (respond)
             {
                 // Keep sending for a bit, don't break immediately
@@ -2124,23 +2172,52 @@ int32_t test_chaotic_order()
                 {
                     // Resume sending from last offset
                     break_offset = 4;
-                    qlp_offset = i+1;
                     break;
                 }
             }
+            // Or, switch back out of bad packets for a bit
+            if (packets_sent[NODE1] % (queued_lpackets.size()/2) == 0)
+            {
+                secondsleep(waittime_sec);
+                break_offset = 4;
+                break;
+            }
         }
+        qlp_offset = i+1;
 
-        // break if transfers stop
-        if ((qlp_offset >= queued_lpackets.size()) && !respond)
+        if ((sumv(packets_sent) > packet_expected_total*2) && one_last_respond)
         {
+            respond = true;
+            // Trigger response
+            secondsleep(waittime_sec+0.5);
+            node1_log.Printf("Triggering one_last_respond\n");
+            node2_log.Printf("Triggering one_last_respond\n");
             string rs = respond ? "true" : "false";
-            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
-            break;
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total*2);
         }
-        if (sumv(packets_sent) > packet_expected_total*2)
+        if (sumv(packets_sent) > packet_expected_total*3)
         {
             string rs = respond ? "true" : "false";
-            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total*3);
+        }
+        // break if transfers stop
+        if (!lpackets.size() && (qlp_offset >= queued_lpackets.size()) && !respond)
+        {
+            string rs = respond ? "true" : "false";
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total*3);
+            if (one_last_respond)
+            {
+                respond = true;
+                one_last_respond = false;
+                // Trigger response
+                secondsleep(waittime_sec);
+                node1_log.Printf("Triggering one_last_respond\n");
+                node2_log.Printf("Triggering one_last_respond\n");
+            }
+            else
+            {
+                break;
+            }
         }
 
         if (respond)
@@ -2160,11 +2237,24 @@ int32_t test_chaotic_order()
                 debug_packet(rpacket, 0, "Incoming", &node1_log);
                 node1.receive_packet(rpacket);
             }
+            if (rpackets.size())
+            {
+                secondsleep(waittime_sec-0.1);
+            }
             respond = false;
         }
 
-        // // break if estimate is greatly exceeded
+        // break if expected total exceeded by a large amount
         if (sumv(packets_sent) > packet_expected_total*2)
+        {
+            if (one_last_respond)
+            {
+                one_last_respond = false;
+                continue;
+            }
+        }
+        // True break, test failed
+        if (sumv(packets_sent) > packet_expected_total*3)
         {
             break;
         }
@@ -2176,9 +2266,9 @@ endoftest:
     // Verify expected results
     iretn = 0;
     // Number of iteration matches estimate
-    if (sumv(packets_sent) > packet_expected_total*2)
+    if (sumv(packets_sent) > packet_expected_total*3)
     {
-        debug_log.Printf("Verification fail: runlimit exceeded. node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+        debug_log.Printf("Verification fail: runlimit exceeded. node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total*3);
         --iretn;
     }
 

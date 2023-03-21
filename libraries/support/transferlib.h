@@ -28,6 +28,7 @@ namespace Cosmos {
         typedef uint16_t PACKET_CHUNK_SIZE_TYPE;
         typedef uint32_t PACKET_FILE_SIZE_TYPE;
         typedef uint32_t PACKET_UNIXTIME_TYPE;
+        const PACKET_FILE_CRC_TYPE PACKET_FILE_CRC_FORCE = 65535;
 
         /// Chunk start and end.
         struct file_progress
@@ -121,7 +122,7 @@ namespace Cosmos {
             PACKET_TX_ID_TYPE tx_id=0;
             PACKET_FILE_CRC_TYPE file_crc=0;
             // Whether the file is marked for transfer
-            bool enabled=true;
+            bool enabled=false;
             // If initial METADATA has been sent/received
             bool sentmeta=false;
             // If all DATA has been sent/received
@@ -137,7 +138,7 @@ namespace Cosmos {
             string temppath="";
             // Time of last write_meta()
             double savetime=0.;
-            // Time the last response request or respond packet was sent
+            // Last response sent time + tx_entry::waittime. Responses are sent out again when current MJD exceeds this value.
             double next_response = 0.;
             // Size of the full file
             PACKET_FILE_SIZE_TYPE file_size=0;

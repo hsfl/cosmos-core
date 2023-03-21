@@ -161,6 +161,7 @@ namespace Cosmos {
                         if (!file.name.compare(0,4,"out_"))
                         {
                             tx_progress tx_out;
+                            tx_out.enabled = true;
                             tx_out.temppath = file.path.substr(0,file.path.find(".meta"));
                             if (read_meta(tx_out) >= 0)
                             {
@@ -370,8 +371,21 @@ namespace Cosmos {
             // Iterate over all files in outgoing queue, push necessary packets
             for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
             {
+                // Skip files that are not enabled for transfer
+                if (!txq[dest_node_idx].outgoing.progress[tx_id].enabled)
+                {
+                    continue;
+                }
                 // Check if this is a valid outgoing transaction
+                // Note: the semantic of this equality comparison necessarily implies the unavailability of tx_id == 0
+                // This check is entered if REQMETA is received for an invalid tx_id
                 if (txq[dest_node_idx].outgoing.progress[tx_id].tx_id != tx_id) {
+                    txq[dest_node_idx].outgoing.progress[tx_id].enabled = false;
+                    PacketComm packet;
+                    packet.header.nodeorig = self_node_id;
+                    packet.header.nodedest = dest_node_id;
+                    serialize_cancel(packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), tx_id, PACKET_FILE_CRC_FORCE);
+                    packets.push_back(packet);
                     continue;
                 }
 
@@ -934,9 +948,9 @@ namespace Cosmos {
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].filepath = tx_out.filepath;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].temppath = tx_out.temppath;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].savetime = tx_out.savetime;
+            txq[dest_node_idx].outgoing.progress[tx_out.tx_id].next_response = 0;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].file_size = tx_out.file_size;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].total_bytes = tx_out.total_bytes;
-            // txq[dest_node_idx].outgoing.progress[tx_out.tx_id].next_response = currentmjd() + tx_out.waittime;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].file_info.clear();
             for (file_progress filep : tx_out.file_info)
             {
@@ -1184,9 +1198,9 @@ namespace Cosmos {
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].filepath = tx_in.filepath;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].temppath = tx_in.temppath;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].savetime = tx_in.savetime;
+            txq[orig_node_idx].incoming.progress[tx_in.tx_id].next_response = currentmjd() + txq[orig_node_idx].incoming.waittime;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].file_size = tx_in.file_size;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].total_bytes = tx_in.total_bytes;
-            // txq[orig_node_idx].incoming.progress[tx_in.tx_id].next_response = currentmjd() + tx_in.waittime;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].file_info.clear();
             for (file_progress filep : tx_in.file_info)
             {
@@ -1320,6 +1334,9 @@ namespace Cosmos {
             txq[orig_node_idx].incoming.progress[tx_id].tx_id = 0;
             txq[orig_node_idx].incoming.progress[tx_id].file_crc = 0;
             txq[orig_node_idx].incoming.progress[tx_id].complete = false;
+            txq[orig_node_idx].incoming.progress[tx_id].complete = false;
+            txq[orig_node_idx].incoming.progress[tx_id].file_name.clear();
+            txq[orig_node_idx].incoming.progress[tx_id].filepath.clear();
             txq[orig_node_idx].incoming.progress[tx_id].file_info.clear();
 
             return incoming_tx_recount(orig_node_id);
@@ -1385,6 +1402,7 @@ namespace Cosmos {
         //! Handles receiving of incoming file transfer-type packet.
         //! Make sure to process the PacketComm packet before calling this (with SLIPIn() or equivalent).
         //! \param packet PacketComm packet containing file transfer-type data
+        //! \param response_queue Any l-type responses (e.g., CANCEL) are pushed onto this vector.
         //! \return 0 on success, RESPONSE_REQUIRED if get_outgoing_packets() needs to be called
         int32_t Transfer::receive_packet(const PacketComm& packet)
         {
@@ -1451,9 +1469,21 @@ namespace Cosmos {
                         {
                             bool flag = flags & 1;
                             // If this tx_id's METADATA is being requested and the tx_id is valid, set sentmeta flag to false to resend
-                            if (flag && check_tx_id(txq[orig_node_idx].outgoing, tx_id) > 0)
+                            if (flag)
                             {
-                                txq[orig_node_idx].outgoing.progress[tx_id].sentmeta = false;
+                                // This is a valid outgoing tx_id, resend META
+                                if (check_tx_id(txq[orig_node_idx].outgoing, tx_id) > 0)
+                                {
+                                    txq[orig_node_idx].outgoing.progress[tx_id].sentmeta = false;
+                                }
+                                // This is no longer a valid outgoing tx_id, cancel the transaction
+                                else
+                                {
+                                    // Set to enable for get_outgoing_lpackets() to handle,
+                                    // but tx_id = 0 indicates the erroneous state of the transaction
+                                    txq[orig_node_idx].outgoing.progress[tx_id].enabled = true;
+                                    txq[orig_node_idx].outgoing.progress[tx_id].tx_id = 0;
+                                }
                             }
 
                             flags = flags >> 1;
@@ -1609,7 +1639,10 @@ namespace Cosmos {
                     }
                     if (iretn == RESPONSE_REQUIRED)
                     {
-                        txq[orig_node_idx].incoming.respond.push_back(tx_id);
+                        if (std::find(txq[orig_node_idx].incoming.respond.begin(), txq[orig_node_idx].incoming.respond.end(), tx_id) == txq[orig_node_idx].incoming.respond.end())
+                        {
+                            txq[orig_node_idx].incoming.respond.push_back(tx_id);
+                        }
                     }
                 }
                 break;
@@ -1622,13 +1655,10 @@ namespace Cosmos {
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[orig_node_idx].incoming, reqcomplete.header.tx_id);
 
                     // No transaction ID, so metadata needs to be requested first
-                    if (tx_id <= 0)
+                    if (std::find(txq[orig_node_idx].incoming.respond.begin(), txq[orig_node_idx].incoming.respond.end(), tx_id) == txq[orig_node_idx].incoming.respond.end())
                     {
-                        // Trigger REQMETA sending check
-                        // Technically this line is redundant and pointless (update: what did I mean by this?)
-                        txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].sentmeta = false;
+                        txq[orig_node_idx].incoming.respond.push_back(reqcomplete.header.tx_id);
                     }
-                    txq[orig_node_idx].incoming.respond.push_back(reqcomplete.header.tx_id);
                     iretn = RESPONSE_REQUIRED;
                 }
                 break;
