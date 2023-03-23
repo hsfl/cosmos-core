@@ -18,28 +18,22 @@ namespace Cosmos {
         //! Create a QUEUE-type PacketComm packet.
         //! \param packet Reference to a PacketComm packet to fill in
         //! \param orig_node_id ID of the origin node in the node table
-        //! \param node_name Name of the origin node
         //! \param queue A vector with QUEUE data
         //! \return n/a
-        void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue)
+        void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, const vector<PACKET_TX_ID_TYPE>& queue)
         {
-            const uint8_t MAXSTRLEN = sizeof(uint8_t);
             packet.header.type = PacketComm::TypeId::DataFileQueue;
             packet.data.resize(
-                sizeof(uint8_t)                         // version
-                + sizeof(PACKET_NODE_ID_TYPE)           // node_id
-                + MAXSTRLEN                             // node_name_len
-                + node_name.size()                      // node_name
+                sizeof(file_packet_header)              // header
                 + sizeof(packet_struct_queue::tx_ids)); // tx_ids
             size_t offset = 0;
-            packet.data[offset] = FILE_TRANSFER_PROTOCOL_VERSION;
-            offset += sizeof(FILE_TRANSFER_PROTOCOL_VERSION);
-            packet.data[offset] = orig_node_id;
-            offset += sizeof(PACKET_NODE_ID_TYPE);
-            packet.data[offset] = node_name.size();
-            offset += MAXSTRLEN;
-            std::copy(node_name.begin(), node_name.end(), &packet.data[offset]);
-            offset += node_name.size();
+            file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
+            header.node_id = orig_node_id;
+            header.tx_id = 0;
+            header.file_crc = 0;
+            memcpy(&packet.data[offset], &header, sizeof(file_packet_header));
+            offset += sizeof(file_packet_header);
 
             vector<PACKET_QUEUE_FLAGS_TYPE> row(PACKET_QUEUE_FLAGS_LIMIT, 0);
             for (PACKET_TX_ID_TYPE tx_id : queue)
@@ -68,16 +62,9 @@ namespace Cosmos {
             {
                 return TRANSFER_ERROR_VERSION;
             }
-            const uint8_t MAXSTRLEN = sizeof(uint8_t);
-            queue.version = pdata[0];
-            size_t offset = 1;
-            queue.node_id = pdata[offset];
-            offset += sizeof(PACKET_NODE_ID_TYPE);
-            queue.node_name_len = pdata[offset];
-            offset += MAXSTRLEN;
-            queue.node_name.resize(queue.node_name_len);
-            std::copy_n(pdata.begin()+offset, queue.node_name_len, queue.node_name.begin());
-            offset += queue.node_name.size();
+            size_t offset = 0;
+            memcpy(&queue.header, &pdata[offset], sizeof(file_packet_header));
+            offset += sizeof(file_packet_header);
             std::copy(pdata.begin()+offset, pdata.end(), queue.tx_ids);
 
             return 0;
@@ -193,7 +180,7 @@ namespace Cosmos {
         //! \return n/a
         void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& reqmeta)
         {
-            serialize_queue(packet, node_id, node_name, reqmeta);
+            serialize_queue(packet, node_id, reqmeta);
             packet.header.type = PacketComm::TypeId::DataFileReqMeta;
         }
 

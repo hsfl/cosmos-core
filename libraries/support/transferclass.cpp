@@ -159,12 +159,22 @@ namespace Cosmos {
                                 {
                                     if (debug_log != nullptr)
                                     {
-                                        debug_log->Printf("%.4f %.4f Init: Error readd-ing incoming meta, moving: %u %s %s %s %s\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.file_name.c_str(), tx_in.filepath.c_str());
+                                        debug_log->Printf("%.4f %.4f Init: Error readd-ing incoming meta. Moving: %u %s %s %s %s\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.file_name.c_str(), tx_in.filepath.c_str());
                                     }
                                     rename((tx_in.temppath + ".file").c_str(), (tx_in.filepath + "_INITADD_ERR").c_str());
                                     remove((tx_in.temppath + ".meta").c_str());
                                     remove((tx_in.temppath + ".file").c_str());
                                 }
+                            }
+                            else
+                            {
+                                if (debug_log != nullptr)
+                                {
+                                    debug_log->Printf("%.4f %.4f Init: Error reading incoming meta, version mismatch. Moving: %u %s %s %s %s\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.file_name.c_str(), tx_in.filepath.c_str());
+                                }
+                                rename((tx_in.temppath + ".file").c_str(), (tx_in.filepath + "_INITADD_VER_ERR").c_str());
+                                remove((tx_in.temppath + ".meta").c_str());
+                                remove((tx_in.temppath + ".file").c_str());
                             }
                         }
 
@@ -183,11 +193,18 @@ namespace Cosmos {
                                 {
                                     if (debug_log != nullptr)
                                     {
-                                        debug_log->Printf("%.4f %.4f Init: Error readd-ing outgoing meta, deleting: %s\n", tet.split(), dt.lap(), tx_out.filepath.c_str());
+                                        debug_log->Printf("%.4f %.4f Init: Error readd-ing outgoing meta. Deleting: %s\n", tet.split(), dt.lap(), tx_out.filepath.c_str());
                                     }
                                     remove((tx_out.temppath + ".meta").c_str()); 
-                                    remove((tx_out.temppath + ".meta").c_str());
                                 }
+                            }
+                            else
+                            {
+                                if (debug_log != nullptr)
+                                {
+                                    debug_log->Printf("%.4f %.4f Init: Error reading outgoing meta, version mismatch. Deleting: %s\n", tet.split(), dt.lap(), tx_out.filepath.c_str());
+                                }
+                                remove((tx_out.temppath + ".meta").c_str()); 
                             }
                         }
                     }
@@ -595,7 +612,7 @@ namespace Cosmos {
             {
                 outgoing_packet.header.nodeorig = self_node_id;
                 outgoing_packet.header.nodedest = dest_node_id;
-                serialize_queue(outgoing_packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), self_node_name, tqueue);
+                serialize_queue(outgoing_packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), tqueue);
                 packets.push_back(outgoing_packet);
                 txq[dest_node_idx].outgoing.sentqueue = true;
             }
@@ -1324,7 +1341,7 @@ namespace Cosmos {
                     // A file completed correctly would already be renamed and moved.
                     if (debug_log != nullptr)
                     {
-                        debug_log->Printf("%.4f %.4f File crc differs, closing existing transaction: %u %u %u %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_crc, meta.header.tx_id, meta.header.file_crc, txq[orig_node_idx].incoming.progress[meta.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_name.c_str());
+                        debug_log->Printf("%.4f %.4f Incoming: MetaData: File crc differs, closing existing transaction: %u %u %u %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_crc, meta.header.tx_id, meta.header.file_crc, txq[orig_node_idx].incoming.progress[meta.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_name.c_str());
                     }
                     txq[orig_node_idx].incoming.progress[meta.header.tx_id].filepath += "_METATXID_ERR";
                     incoming_tx_del(orig_node_id, meta.header.tx_id);
@@ -1514,14 +1531,15 @@ namespace Cosmos {
 
             // If tx_id matches, but file_crc does not match, then cancel current transaction and begin a new one
             // Note, tx_id must be > 0
-            if (data.header.tx_id && txq[orig_node_idx].incoming.progress[tx_id].tx_id == data.header.tx_id
+            if (txq[orig_node_idx].incoming.progress[tx_id].sentmeta && data.header.tx_id
+            && txq[orig_node_idx].incoming.progress[tx_id].tx_id == data.header.tx_id
             && txq[orig_node_idx].incoming.progress[tx_id].file_crc != data.header.file_crc)
             {
                 // This renaming would only occur in error states.
                 // A file completed correctly would already be renamed and moved.
                 if (debug_log != nullptr)
                 {
-                    debug_log->Printf("%.4f %.4f File crc differs, closing existing transaction: %u %u %u %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[data.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[data.header.tx_id].file_crc, data.header.tx_id, data.header.file_crc, txq[orig_node_idx].incoming.progress[data.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[data.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[data.header.tx_id].file_name.c_str());
+                    debug_log->Printf("%.4f %.4f Incoming: Data: File crc differs, closing existing transaction: %u %u %u %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[data.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[data.header.tx_id].file_crc, data.header.tx_id, data.header.file_crc, txq[orig_node_idx].incoming.progress[data.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[data.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[data.header.tx_id].file_name.c_str());
                 }
                 txq[orig_node_idx].incoming.progress[data.header.tx_id].filepath += "_DATATXID_ERR";
                 incoming_tx_del(node_id, data.header.tx_id);
@@ -1686,7 +1704,12 @@ namespace Cosmos {
                             // If a file is in the QUEUE packet but not in our local queue, add it
                             if (flag && !(txq[orig_node_idx].incoming.progress[tx_id].tx_id))
                             {
-                                incoming_tx_add(queue.node_name, tx_id, 0);
+                                string node_name = NodeData::lookup_node_id_name(queue.header.node_id);
+                                if (node_name.empty())
+                                {
+                                    continue;
+                                }
+                                incoming_tx_add(node_name, tx_id, 0);
                             }
                             // If a file is in our local queue but not in the QUEUE packet, delete it
                             // TODO: I think this logic fails for multiple senders
@@ -1812,7 +1835,7 @@ namespace Cosmos {
                         // A file completed correctly would already be renamed and moved.
                         if (debug_log != nullptr)
                         {
-                            debug_log->Printf("%.4f %.4f File crc differs, closing existing transaction: %u %u %u %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].file_crc, reqcomplete.header.tx_id, reqcomplete.header.file_crc, txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].file_name.c_str());
+                            debug_log->Printf("%.4f %.4f Incoming: ReqComplete: File crc differs, closing existing transaction: %u %u %u %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].file_crc, reqcomplete.header.tx_id, reqcomplete.header.file_crc, txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].file_name.c_str());
                         }
                         txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].filepath += "_REQCTXID_ERR";
                         incoming_tx_del(node_id, reqcomplete.header.tx_id);

@@ -45,35 +45,6 @@ namespace Cosmos {
             PACKET_FILE_SIZE_TYPE chunk_end;
         };
 
-        typedef uint8_t PACKET_QUEUE_FLAGS_TYPE;
-        #define PACKET_QUEUE_FLAGS_LIMIT (PROGRESS_QUEUE_SIZE/(COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE)*8))
-        
-        struct packet_struct_queue
-        {
-            uint8_t version = FILE_TRANSFER_PROTOCOL_VERSION;
-            PACKET_NODE_ID_TYPE node_id;
-            uint8_t node_name_len;
-            string node_name;
-            //! An array of 32 uint8_t's, equaling 256 bits total, each corresponding to
-            //! a tx_id in the outgoing/incoming queues.
-            PACKET_QUEUE_FLAGS_TYPE tx_ids[PACKET_QUEUE_FLAGS_LIMIT];
-        };
-
-        using packet_struct_reqmeta = packet_struct_queue;
-
-        struct packet_struct_metafile
-        {
-            uint8_t node_name_len;
-            string node_name;
-            PACKET_TX_ID_TYPE tx_id;
-            PACKET_FILE_CRC_TYPE file_crc;
-            uint8_t agent_name_len;
-            string agent_name;
-            uint8_t file_name_len;
-            string file_name;
-            PACKET_FILE_SIZE_TYPE file_size;
-        };
-
         //! All communication file packets to have this header
         struct file_packet_header
         {
@@ -86,6 +57,19 @@ namespace Cosmos {
             //! Checksum of file. Combination of tx_id and file_crc to ideally be unique.
             PACKET_FILE_CRC_TYPE file_crc;
         };
+
+        typedef uint8_t PACKET_QUEUE_FLAGS_TYPE;
+        #define PACKET_QUEUE_FLAGS_LIMIT (PROGRESS_QUEUE_SIZE/(COSMOS_SIZEOF(PACKET_QUEUE_FLAGS_TYPE)*8))
+        
+        struct packet_struct_queue
+        {
+            file_packet_header header;
+            //! An array of 32 uint8_t's, equaling 256 bits total, each corresponding to
+            //! a tx_id in the outgoing/incoming queues.
+            PACKET_QUEUE_FLAGS_TYPE tx_ids[PACKET_QUEUE_FLAGS_LIMIT];
+        };
+
+        using packet_struct_reqmeta = packet_struct_queue;
 
         struct packet_struct_metadata
         {
@@ -125,6 +109,19 @@ namespace Cosmos {
         struct packet_struct_cancel
         {
             file_packet_header header;
+        };
+
+        struct packet_struct_metafile
+        {
+            uint8_t node_name_len;
+            string node_name;
+            PACKET_TX_ID_TYPE tx_id;
+            PACKET_FILE_CRC_TYPE file_crc;
+            uint8_t agent_name_len;
+            string agent_name;
+            uint8_t file_name_len;
+            string file_name;
+            PACKET_FILE_SIZE_TYPE file_size;
         };
 
         /// Holds data about the transfer progress of a single file.
@@ -191,7 +188,7 @@ namespace Cosmos {
         int32_t get_file_size(const char* filename, PACKET_FILE_SIZE_TYPE& size);
 
         // Converts packet types to and from byte arrays
-        void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue);
+        void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, const vector<PACKET_TX_ID_TYPE>& queue);
         int32_t deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue);
         void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc);
         int32_t deserialize_cancel(const vector<PACKET_BYTE>& pdata, packet_struct_cancel& cancel);

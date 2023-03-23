@@ -557,13 +557,13 @@ TEST(TransferlibTest, merge_chunks_overlap)
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
     EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 
-    // Test that file_size 0 (no metadata received yet) and erasing single element is safe
+    // Test that file_size 0 (no metadata received yet) does not erase current progress
     tx.file_size = 0;
     tx.file_info = {{100, 200}};
-    mfile_info = {};
+    mfile_info = {{100,200}};
     merge_chunks_overlap(tx);
     compare_tx_progress(tx.file_info, mfile_info, __LINE__);
-    EXPECT_EQ(tx.total_bytes, 0);
+    EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 }
 
 TEST(TransferlibTest, reqdata_packets_are_created_correctly)
