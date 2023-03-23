@@ -134,7 +134,12 @@ int32_t FileSubagentTest::create_test_files(string orig_node, string dest_node, 
         {
             return iretn;
         }
-        file_crcs[tfilename] = calc_crc.calc_file(orig_out_dir + "/" + tfilename);
+        int32_t iretn = calc_crc.calc_file(orig_out_dir + "/" + tfilename);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+        file_crcs[tfilename] = iretn;
         file_sizes[tfilename] = file_size_bytes;
     }
     return 0;
@@ -159,7 +164,12 @@ void FileSubagentTest::verify_incoming_dir(string orig_node_name, size_t expecte
             state = test_state::FAIL;
             continue;
         }
-        uint16_t crc_recv = calc_crc.calc_file(dest_in_dir + "/" + file.name);
+        int32_t crc_recv = calc_crc.calc_file(dest_in_dir + "/" + file.name);
+        EXPECT_GE(crc_recv, 0);
+        if (crc_recv < 0)
+        {
+            test_log.Printf("Error in calc_file. %s %d\n", file.name.c_str(), file_crcs[file.name]);
+        }
         EXPECT_EQ(file_crcs[file.name], crc_recv);
         if (file_crcs[file.name] != crc_recv)
         {

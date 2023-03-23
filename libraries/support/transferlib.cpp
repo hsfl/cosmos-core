@@ -26,11 +26,14 @@ namespace Cosmos {
             const uint8_t MAXSTRLEN = sizeof(uint8_t);
             packet.header.type = PacketComm::TypeId::DataFileQueue;
             packet.data.resize(
-                sizeof(PACKET_NODE_ID_TYPE)             // node_id
+                sizeof(uint8_t)                         // version
+                + sizeof(PACKET_NODE_ID_TYPE)           // node_id
                 + MAXSTRLEN                             // node_name_len
                 + node_name.size()                      // node_name
                 + sizeof(packet_struct_queue::tx_ids)); // tx_ids
             size_t offset = 0;
+            packet.data[offset] = FILE_TRANSFER_PROTOCOL_VERSION;
+            offset += sizeof(FILE_TRANSFER_PROTOCOL_VERSION);
             packet.data[offset] = orig_node_id;
             offset += sizeof(PACKET_NODE_ID_TYPE);
             packet.data[offset] = node_name.size();
@@ -53,11 +56,21 @@ namespace Cosmos {
         //! Extracts the necessary fields from a received QUEUE packet.
         //! \param pdata An incoming QUEUE-type packet
         //! \param queue Reference to a packet_struct_queue to fill
-        //! \return n/a
-        void deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue)
+        //! \return 0 on success, negative on error
+        int32_t deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue)
         {
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
             const uint8_t MAXSTRLEN = sizeof(uint8_t);
-            size_t offset = 0;
+            queue.version = pdata[0];
+            size_t offset = 1;
             queue.node_id = pdata[offset];
             offset += sizeof(PACKET_NODE_ID_TYPE);
             queue.node_name_len = pdata[offset];
@@ -66,6 +79,8 @@ namespace Cosmos {
             std::copy_n(pdata.begin()+offset, queue.node_name_len, queue.node_name.begin());
             offset += queue.node_name.size();
             std::copy(pdata.begin()+offset, pdata.end(), queue.tx_ids);
+
+            return 0;
         }
 
         //! Create a CANCEL-type PacketComm packet.
@@ -77,6 +92,7 @@ namespace Cosmos {
         {
             packet.header.type = PacketComm::TypeId::DataFileCancel;
             packet.data.resize(sizeof(packet_struct_cancel));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_cancel, header.version), &FILE_TRANSFER_PROTOCOL_VERSION,  sizeof(PACKET_NODE_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_cancel, header.node_id), &orig_node_id,  sizeof(PACKET_NODE_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_cancel, header.tx_id),   &tx_id,         sizeof(PACKET_TX_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_cancel, header.file_crc),&file_crc,      sizeof(PACKET_FILE_CRC_TYPE));
@@ -85,10 +101,20 @@ namespace Cosmos {
         //! Extracts the necessary fields from a received CANCEL packet.
         //! \param pdata An incoming CANCEL-type packet
         //! \param cancel Reference to a packet_struct_cancel to fill
-        //! \return n/a
-        void deserialize_cancel(const vector<PACKET_BYTE>& pdata, packet_struct_cancel &cancel)
+        //! \return 0 on success, negative on error
+        int32_t deserialize_cancel(const vector<PACKET_BYTE>& pdata, packet_struct_cancel &cancel)
         {
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
             memcpy(&cancel, pdata.data(), sizeof(packet_struct_cancel));
+            return 0;
         }
 
         //! Create a REQCOMPLETE-type PacketComm packet.
@@ -100,6 +126,7 @@ namespace Cosmos {
         {
             packet.header.type = PacketComm::TypeId::DataFileReqComplete;
             packet.data.resize(sizeof(packet_struct_reqcomplete));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqcomplete, header.version), &FILE_TRANSFER_PROTOCOL_VERSION,   sizeof(PACKET_NODE_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_reqcomplete, header.node_id), &orig_node_id,   sizeof(PACKET_NODE_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_reqcomplete, header.tx_id),   &tx_id,          sizeof(PACKET_TX_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_reqcomplete, header.file_crc),&file_crc,       sizeof(PACKET_FILE_CRC_TYPE));
@@ -108,10 +135,20 @@ namespace Cosmos {
         //! Extracts the necessary fields from a received REQCOMPLETE packet.
         //! \param pdata An incoming COMPLETE-type packet
         //! \param reqcomplete Reference to a packet_struct_reqcomplete to fill
-        //! \return n/a
-        void deserialize_reqcomplete(const vector<PACKET_BYTE>& pdata, packet_struct_reqcomplete &reqcomplete)
+        //! \return 0 on success, negative on error
+        int32_t deserialize_reqcomplete(const vector<PACKET_BYTE>& pdata, packet_struct_reqcomplete &reqcomplete)
         {
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
             memcpy(&reqcomplete, pdata.data(), sizeof(packet_struct_reqcomplete));
+            return 0;
         }
 
         //! Create a COMPLETE-type PacketComm packet.
@@ -123,6 +160,7 @@ namespace Cosmos {
         {
             packet.header.type = PacketComm::TypeId::DataFileComplete;
             packet.data.resize(sizeof(packet_struct_complete));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_complete, header.version), &FILE_TRANSFER_PROTOCOL_VERSION, sizeof(PACKET_NODE_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_complete, header.node_id), &node_id, sizeof(PACKET_NODE_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_complete, header.tx_id),   &tx_id,   sizeof(PACKET_TX_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_complete, header.file_crc),&file_crc,sizeof(PACKET_FILE_CRC_TYPE));
@@ -131,10 +169,20 @@ namespace Cosmos {
         //! Extracts the necessary fields from a received COMPLETE packet.
         //! \param pdata An incoming COMPLETE-type packet
         //! \param complete Reference to a packet_struct_complete to fill
-        //! \return n/a
-        void deserialize_complete(const vector<PACKET_BYTE>& pdata, packet_struct_complete &complete)
+        //! \return 0 on success, negative on error
+        int32_t deserialize_complete(const vector<PACKET_BYTE>& pdata, packet_struct_complete &complete)
         {
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
             memcpy(&complete, pdata.data(), sizeof(packet_struct_complete));
+            return 0;
         }
 
         //! Create a REQMETA-type PacketComm packet.
@@ -152,10 +200,10 @@ namespace Cosmos {
         //! Extracts the necessary fields from a received REQMETA packet.
         //! \param pdata An incoming REQMETA-type packet
         //! \param reqmeta Reference to a packet_struct_reqmeta to fill
-        //! \return n/a
-        void deserialize_reqmeta(const vector<PACKET_BYTE>& pdata, packet_struct_reqmeta& reqmeta)
+        //! \return 0 on success, negative on error
+        int32_t deserialize_reqmeta(const vector<PACKET_BYTE>& pdata, packet_struct_reqmeta& reqmeta)
         {
-            deserialize_queue(pdata, reqmeta);
+            return deserialize_queue(pdata, reqmeta);
         }
 
         //! Create a REQDATA-type PacketComm packet.
@@ -174,6 +222,7 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::DataFileReqData;
             packet.data.reserve(packet_data_size);
             packet.data.resize(offsetof(struct packet_struct_reqdata, holes));
+            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, header.version),    &FILE_TRANSFER_PROTOCOL_VERSION,    sizeof(PACKET_NODE_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, header.node_id),    &self_node_id,    sizeof(PACKET_NODE_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, header.tx_id),      &tx_id,      sizeof(PACKET_TX_ID_TYPE));
             memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, header.file_crc),   &file_crc,   sizeof(PACKET_FILE_CRC_TYPE));
@@ -222,6 +271,17 @@ namespace Cosmos {
         //! Negative on error.
         int32_t deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata &reqdata)
         {   
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            reqdata.header.version = pdata[0];
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
+
             if (pdata.size() < offsetof(struct packet_struct_reqdata, holes))
             {
                 return COSMOS_DATA_ERROR_SIZE_MISMATCH;
@@ -240,7 +300,7 @@ namespace Cosmos {
             return pdata[pdata.size()-1];
         }
 
-        //! Create a long METADATA-type PacketComm packet.
+        //! Serialize data to write to a .meta file.
         //! Includes node_name, omits node_id information.
         //! Used by write_meta()
         //! \param packet Reference to a PacketComm packet to fill in
@@ -250,11 +310,10 @@ namespace Cosmos {
         //! \param node_name Name of the receiving node
         //! \param agent_name Name of the receiving agent
         //! \return n/a
-        void serialize_metadata(PacketComm& packet, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& node_name, const string& agent_name)
+        void serialize_metafile(vector<PACKET_BYTE>& pdata, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& node_name, const string& agent_name)
         {
             const uint8_t MAXSTRLEN = sizeof(uint8_t);
-            packet.header.type = PacketComm::TypeId::DataFileMetaData;
-            packet.data.resize(
+            pdata.resize(
                 MAXSTRLEN                           // node_name_len
                 + node_name.size()                  // node_name
                 + sizeof(PACKET_TX_ID_TYPE)         // tx_id
@@ -265,30 +324,31 @@ namespace Cosmos {
                 + file_name.size()                  // file_name
                 + sizeof(PACKET_FILE_SIZE_TYPE));   // file_size
             size_t offset = 0;
-            packet.data[offset] = node_name.size();
+            pdata[offset] = node_name.size();
             offset += MAXSTRLEN;
-            std::copy_n(node_name.begin(), node_name.size(), &packet.data[offset]);
+            std::copy_n(node_name.begin(), node_name.size(), &pdata[offset]);
             offset += node_name.size();
-            packet.data[offset] = tx_id;
+            pdata[offset] = tx_id;
             offset += sizeof(PACKET_TX_ID_TYPE);
-            std::copy_n(&file_crc, sizeof(PACKET_FILE_CRC_TYPE), &packet.data[offset]);
+            memcpy(&pdata[offset], &file_crc, sizeof(PACKET_FILE_CRC_TYPE));
             offset += sizeof(PACKET_FILE_CRC_TYPE);
-            packet.data[offset] = agent_name.size();
+            pdata[offset] = agent_name.size();
             offset += MAXSTRLEN;
-            std::copy_n(agent_name.begin(), agent_name.size(), &packet.data[offset]);
+            std::copy_n(agent_name.begin(), agent_name.size(), &pdata[offset]);
             offset += agent_name.size();
-            packet.data[offset] = file_name.size();
+            pdata[offset] = file_name.size();
             offset += MAXSTRLEN;
-            std::copy_n(file_name.begin(), file_name.size(), &packet.data[offset]);
+            std::copy_n(file_name.begin(), file_name.size(), &pdata[offset]);
             offset += file_name.size();
-            uint32to(file_size, &packet.data[offset], ByteOrder::LITTLEENDIAN);
+            uint32to(file_size, &pdata[offset], ByteOrder::LITTLEENDIAN);
         }
 
-        //! Extracts the necessary fields from a received long META packet.
+        //! Extracts the necessary fields from a .meta file.
+        //! Used by read_meta()
         //! \param pdata An incoming long META-type packet
         //! \param meta Reference to a packet_struct_long to fill
-        //! \return n/a
-        void deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metalong &meta)
+        //! \return 0 on success, negative on error
+        int32_t deserialize_metafile(const vector<PACKET_BYTE>& pdata, packet_struct_metafile &meta)
         {
             const uint8_t MAXSTRLEN = sizeof(uint8_t);
             size_t offset = 0;
@@ -299,7 +359,7 @@ namespace Cosmos {
             offset += meta.node_name.size();
             meta.tx_id = pdata[offset];
             offset += sizeof(PACKET_TX_ID_TYPE);
-            std::copy_n(pdata.begin()+offset, sizeof(PACKET_FILE_CRC_TYPE), &meta.file_crc);
+            memcpy(&meta.file_crc, &pdata[offset], sizeof(PACKET_FILE_CRC_TYPE));
             offset += sizeof(PACKET_FILE_CRC_TYPE);
             meta.agent_name_len = pdata[offset];
             offset += MAXSTRLEN;
@@ -312,6 +372,7 @@ namespace Cosmos {
             std::copy_n(pdata.begin()+offset, meta.file_name_len, meta.file_name.begin());
             offset += meta.file_name.size();
             meta.file_size = uint32from(&pdata[offset], ByteOrder::LITTLEENDIAN);
+            return 0;
         }
 
         //! Create a short METADATA-type PacketComm packet.
@@ -336,6 +397,7 @@ namespace Cosmos {
                 + sizeof(PACKET_FILE_SIZE_TYPE));   // file_size
             size_t offset = 0;
             file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
             header.node_id = orig_node_id;
             header.tx_id = tx_id;
             header.file_crc = file_crc;
@@ -354,10 +416,20 @@ namespace Cosmos {
 
         //! Extracts the necessary fields from a received short META packet.
         //! \param pdata An incoming short META-type packet
-        //! \param meta Reference to a packet_struct_metashort to fill
-        //! \return n/a
-        void deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metashort &meta)
+        //! \param meta Reference to a packet_struct_metadata to fill
+        //! \return 0 on success, negative on error
+        int32_t deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metadata &meta)
         {
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            meta.header.version = pdata[0];
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
             const uint8_t MAXSTRLEN = sizeof(uint8_t);
             size_t offset = 0;
             memcpy(&meta.header, &pdata[offset], sizeof(file_packet_header));
@@ -373,6 +445,7 @@ namespace Cosmos {
             std::copy_n(pdata.begin()+offset, meta.file_name_len, meta.file_name.begin());
             offset += meta.file_name.size();
             meta.file_size = uint32from(&pdata[offset], ByteOrder::LITTLEENDIAN);
+            return 0;
         }
 
         //! Create a DATA-type PacketComm packet.
@@ -387,6 +460,7 @@ namespace Cosmos {
             packet.header.type = PacketComm::TypeId::DataFileChunkData;
             packet.data.resize(offsetof(struct packet_struct_data, chunk) + byte_count);
             file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
             header.node_id = orig_node_id;
             header.tx_id = tx_id;
             header.file_crc = file_crc;
@@ -399,14 +473,24 @@ namespace Cosmos {
         //! Extracts the necessary fields from a received DATA packet.
         //! \param pdata An incoming DATA-type packet
         //! \param data Reference to a packet_struct_data to fill
-        //! \return n/a
-        void deserialize_data(const vector<PACKET_BYTE>& pdata, packet_struct_data &data)
+        //! \return 0 on success, negative on error
+        int32_t deserialize_data(const vector<PACKET_BYTE>& pdata, packet_struct_data &data)
         {
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
             memcpy(&data.header,      &pdata[0]+offsetof(struct packet_struct_data, header),      sizeof(file_packet_header));
             memcpy(&data.byte_count,  &pdata[0]+offsetof(struct packet_struct_data, byte_count),  sizeof(data.byte_count));
             memcpy(&data.chunk_start, &pdata[0]+offsetof(struct packet_struct_data, chunk_start), sizeof(data.chunk_start));
             data.chunk.resize(data.byte_count);
             memcpy(data.chunk.data(), pdata.data()+offsetof(struct packet_struct_data, chunk), data.byte_count);
+            return 0;
         }
 
         //! Merges any overlapping chunks in the tx.file_info deque.
@@ -416,15 +500,19 @@ namespace Cosmos {
         {
             // Remove any chunks that go beyond the file size
             auto it = tx.file_info.begin();
-            while (it != tx.file_info.end())
+            // If the METADATA has yet to be received, then file_size will be 0
+            if (tx.file_size > 0)
             {
-                if (it->chunk_end >= tx.file_size)
+                while (it != tx.file_info.end())
                 {
-                    // TODO: consider if another data structure may be better
-                    it = tx.file_info.erase(it);
-                }
-                else {
-                    ++it;
+                    if (it->chunk_end >= tx.file_size)
+                    {
+                        // TODO: consider if another data structure may be better
+                        it = tx.file_info.erase(it);
+                    }
+                    else {
+                        ++it;
+                    }
                 }
             }
             switch (tx.file_info.size())

@@ -177,6 +177,7 @@ namespace Cosmos {
             ErrorStrings[ErrorNumbers::COSMOS_TRANSFER_ERROR_DUPLICATE] = "TRANSFER_ERROR_DUPLICATE";
             ErrorStrings[ErrorNumbers::COSMOS_TRANSFER_ERROR_FILESIZE] = "Bad File Size";
             ErrorStrings[ErrorNumbers::COSMOS_TRANSFER_ERROR_FILEZERO] = "Zero File Size";
+            ErrorStrings[ErrorNumbers::COSMOS_TRANSFER_ERROR_VERSION] = "Transfer protocol version mismatch";
             ErrorStrings[ErrorNumbers::COSMOS_SOCKET_ERROR_CS] = "SOCKET_ERROR_CS";
             ErrorStrings[ErrorNumbers::COSMOS_SOCKET_ERROR_PROTOCOL] = "SOCKET_ERROR_PROTOCOL";
             ErrorStrings[ErrorNumbers::COSMOS_SOCKET_READ_TIMEOUT] = "SOCKET_READ_TIMEOUT";

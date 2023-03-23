@@ -63,7 +63,7 @@ public:
     uint16_t calc(string message, uint16_t size);
     uint16_t calc(string message);
     uint16_t calc(uint8_t *message, uint16_t size);
-    uint16_t calc_file(string file_path);
+    int32_t calc_file(string file_path);
 
 private:
     string type = "ccitt-false";

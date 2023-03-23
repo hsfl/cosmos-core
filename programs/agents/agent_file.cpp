@@ -603,8 +603,8 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
     //     {
     //     case PacketComm::TypeId::DataFileMetaData:
     //         {
-    //             string file_name(&packet.data[offsetof(struct packet_struct_metashort, file_name)], &packet.data[offsetof(struct packet_struct_metashort, file_name)+TRANSFER_MAX_FILENAME]);
-    //             agent->debug_log.Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(struct packet_struct_metashort, tx_id)], file_name.c_str());
+    //             string file_name(&packet.data[offsetof(struct packet_struct_metadata, file_name)], &packet.data[offsetof(struct packet_struct_metadata, file_name)+TRANSFER_MAX_FILENAME]);
+    //             agent->debug_log.Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(struct packet_struct_metadata, tx_id)], file_name.c_str());
     //             break;
     //         }
     //     case PacketComm::TypeId::DataFileChunkData:

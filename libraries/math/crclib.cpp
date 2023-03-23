@@ -122,8 +122,8 @@ uint16_t CRC16::calc(uint8_t *message, uint16_t size)
 }
 
 // Modified for calculating the crc of a file
-// Returns 0 if file cannot be opened
-uint16_t CRC16::calc_file(string file_path)
+// Returns non-negative uint16_t crc on success, negative on error
+int32_t CRC16::calc_file(string file_path)
 {
     uint8_t data;
     uint16_t remainder = initial;
@@ -132,7 +132,7 @@ uint16_t CRC16::calc_file(string file_path)
     ifstream file(file_path, std::ios::in | std::ios::binary);
     if (!file.is_open())
     {
-        return 0;
+        return COSMOS_TRANSFER_ERROR_FILENAME;
     }
 
     // Divide message by the polynomial a byte at a time until EOF

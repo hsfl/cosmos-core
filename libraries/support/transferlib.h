@@ -22,6 +22,7 @@ namespace Cosmos {
         typedef uint8_t PACKET_BYTE;
         typedef uint8_t PACKET_TYPE;
         typedef uint16_t PACKET_CRC;
+        typedef uint8_t FILE_PROTOCOL_VERSION_TYPE;
         typedef uint8_t PACKET_NODE_ID_TYPE;
         typedef uint8_t PACKET_TX_ID_TYPE;
         typedef uint16_t PACKET_FILE_CRC_TYPE;
@@ -29,6 +30,13 @@ namespace Cosmos {
         typedef uint32_t PACKET_FILE_SIZE_TYPE;
         typedef uint32_t PACKET_UNIXTIME_TYPE;
         const PACKET_FILE_CRC_TYPE PACKET_FILE_CRC_FORCE = 65535;
+
+        //! Increment version whenever the protocol has breaking changes to avoid version mismatches.
+        //! This is the version number of the protocol packets that are sent between nodes.
+        constexpr uint8_t FILE_TRANSFER_PROTOCOL_VERSION = 2;
+        //! This is the version of the .meta and .file files that are created and used by write_meta() and read_meta.
+        //!To be treated separately from FILE_TRANSFER_PROTOCOL_VERSION.
+        constexpr uint8_t FILE_TRANSFER_METAFILE_VERSION = 99;
 
         /// Chunk start and end.
         struct file_progress
@@ -42,6 +50,7 @@ namespace Cosmos {
         
         struct packet_struct_queue
         {
+            uint8_t version = FILE_TRANSFER_PROTOCOL_VERSION;
             PACKET_NODE_ID_TYPE node_id;
             uint8_t node_name_len;
             string node_name;
@@ -52,7 +61,7 @@ namespace Cosmos {
 
         using packet_struct_reqmeta = packet_struct_queue;
 
-        struct packet_struct_metalong
+        struct packet_struct_metafile
         {
             uint8_t node_name_len;
             string node_name;
@@ -68,6 +77,8 @@ namespace Cosmos {
         //! All communication file packets to have this header
         struct file_packet_header
         {
+            //! File transfer protocol version
+            uint8_t version = FILE_TRANSFER_PROTOCOL_VERSION;
             //! ID of origin or destination node
             PACKET_NODE_ID_TYPE node_id;
             //! Transaction ID, indexes into tx_entry::progress
@@ -76,7 +87,7 @@ namespace Cosmos {
             PACKET_FILE_CRC_TYPE file_crc;
         };
 
-        struct packet_struct_metashort
+        struct packet_struct_metadata
         {
             file_packet_header header;
             uint8_t agent_name_len;
@@ -181,23 +192,23 @@ namespace Cosmos {
 
         // Converts packet types to and from byte arrays
         void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& queue);
-        void deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue);
+        int32_t deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue);
         void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc);
-        void deserialize_cancel(const vector<PACKET_BYTE>& pdata, packet_struct_cancel& cancel);
+        int32_t deserialize_cancel(const vector<PACKET_BYTE>& pdata, packet_struct_cancel& cancel);
         void serialize_reqcomplete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc);
-        void deserialize_reqcomplete(const vector<PACKET_BYTE>& pdata, packet_struct_reqcomplete &reqcomplete);
+        int32_t deserialize_reqcomplete(const vector<PACKET_BYTE>& pdata, packet_struct_reqcomplete &reqcomplete);
         void serialize_complete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc);
-        void deserialize_complete(const vector<PACKET_BYTE>& pdata, packet_struct_complete& complete);
+        int32_t deserialize_complete(const vector<PACKET_BYTE>& pdata, packet_struct_complete& complete);
         void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& reqmeta);
-        void deserialize_reqmeta(const vector<PACKET_BYTE>& pdata, packet_struct_reqmeta& reqmeta);
+        int32_t deserialize_reqmeta(const vector<PACKET_BYTE>& pdata, packet_struct_reqmeta& reqmeta);
         void serialize_reqdata(vector<PacketComm>& packets, PACKET_NODE_ID_TYPE self_node_id, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, vector<file_progress>& holes, PACKET_CHUNK_SIZE_TYPE packet_data_size);
         int32_t deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata& reqdata);
-        void serialize_metadata(PacketComm& packet, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& node_name, const string& agent_name);
-        void deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metalong& meta);
+        void serialize_metafile(vector<PACKET_BYTE>& pdata, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& node_name, const string& agent_name);
+        int32_t deserialize_metafile(const vector<PACKET_BYTE>& pdata, packet_struct_metafile& meta);
         void serialize_metadata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& agent_name);
-        void deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metashort& meta);
+        int32_t deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metadata& meta);
         void serialize_data(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk);
-        void deserialize_data(const vector<PACKET_BYTE>& pdata, packet_struct_data& data);
+        int32_t deserialize_data(const vector<PACKET_BYTE>& pdata, packet_struct_data& data);
 
         // Accumulate and manage chunks
         PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);

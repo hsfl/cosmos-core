@@ -403,11 +403,10 @@ namespace Cosmos {
                     }
                     // The other side thinks this is a valid transaction, respond that it isn't
                     txq[dest_node_idx].outgoing.progress[tx_id].enabled = false;
-                    PacketComm packet;
-                    packet.header.nodeorig = self_node_id;
-                    packet.header.nodedest = dest_node_id;
-                    serialize_cancel(packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), tx_id, PACKET_FILE_CRC_FORCE);
-                    packets.push_back(packet);
+                    outgoing_packet.header.nodeorig = self_node_id;
+                    outgoing_packet.header.nodedest = dest_node_id;
+                    serialize_cancel(outgoing_packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), tx_id, PACKET_FILE_CRC_FORCE);
+                    packets.push_back(outgoing_packet);
                     continue;
                 }
 
@@ -417,11 +416,10 @@ namespace Cosmos {
                 if (!txq[dest_node_idx].outgoing.progress[tx_id].sentmeta)
                 {
                     tx_progress& tx = txq[dest_node_idx].outgoing.progress[tx_id];
-                    PacketComm packet;
-                    packet.header.nodeorig = self_node_id;
-                    packet.header.nodedest = dest_node_id;
-                    serialize_metadata(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx.tx_id, tx.file_crc, tx.file_name, tx.file_size, tx.agent_name);
-                    packets.push_back(packet);
+                    outgoing_packet.header.nodeorig = self_node_id;
+                    outgoing_packet.header.nodedest = dest_node_id;
+                    serialize_metadata(outgoing_packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx.tx_id, tx.file_crc, tx.file_name, tx.file_size, tx.agent_name);
+                    packets.push_back(outgoing_packet);
                     txq[dest_node_idx].outgoing.progress[tx_id].sentmeta = true;
                 }
 
@@ -487,11 +485,10 @@ namespace Cosmos {
                                 }
                                 if (nbytes == static_cast<size_t>(byte_count))
                                 {
-                                    PacketComm packet;
-                                    packet.header.nodeorig = self_node_id;
-                                    packet.header.nodedest = dest_node_id;
-                                    serialize_data(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[dest_node_idx].outgoing.progress[tx_id].tx_id, txq[dest_node_idx].outgoing.progress[tx_id].file_crc, byte_count, tp.chunk_start, chunk);
-                                    packets.push_back(packet);
+                                    outgoing_packet.header.nodeorig = self_node_id;
+                                    outgoing_packet.header.nodedest = dest_node_id;
+                                    serialize_data(outgoing_packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[dest_node_idx].outgoing.progress[tx_id].tx_id, txq[dest_node_idx].outgoing.progress[tx_id].file_crc, byte_count, tp.chunk_start, chunk);
+                                    packets.push_back(outgoing_packet);
                                     txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_start = tp.chunk_end + 1;
                                 }
                                 else
@@ -555,11 +552,10 @@ namespace Cosmos {
                         outgoing_tx_del(dest_node_id, tx_id);
 
                         // Send a CANCEL packet
-                        PacketComm packet;
-                        packet.header.nodeorig = self_node_id;
-                        packet.header.nodedest = dest_node_id;
-                        serialize_cancel(packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), tx_id, file_crc);
-                        packets.push_back(packet);
+                        outgoing_packet.header.nodeorig = self_node_id;
+                        outgoing_packet.header.nodedest = dest_node_id;
+                        serialize_cancel(outgoing_packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), tx_id, file_crc);
+                        packets.push_back(outgoing_packet);
                     }
                     // A COMPLETE packet was not received yet
                     else
@@ -571,11 +567,10 @@ namespace Cosmos {
                 // ** REQCOMPLETE ***********************************************
                 // **************************************************************
                             txq[dest_node_idx].outgoing.progress[tx_id].next_response = currentmjd() + txq[dest_node_idx].outgoing.waittime;
-                            PacketComm packet;
-                            packet.header.nodeorig = self_node_id;
-                            packet.header.nodedest = dest_node_id;
-                            serialize_reqcomplete(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx_id, txq[dest_node_idx].outgoing.progress[tx_id].file_crc);
-                            packets.push_back(packet);
+                            outgoing_packet.header.nodeorig = self_node_id;
+                            outgoing_packet.header.nodedest = dest_node_id;
+                            serialize_reqcomplete(outgoing_packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx_id, txq[dest_node_idx].outgoing.progress[tx_id].file_crc);
+                            packets.push_back(outgoing_packet);
                         }
 
                         // If it's too soon, don't send a REQCOMPLETE packet yet.
@@ -598,11 +593,10 @@ namespace Cosmos {
             // Push QUEUE packet if it needs to be sent
             if (sendqueue)
             {
-                PacketComm packet;
-                packet.header.nodeorig = self_node_id;
-                packet.header.nodedest = dest_node_id;
-                serialize_queue(packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), self_node_name, tqueue);
-                packets.push_back(packet);
+                outgoing_packet.header.nodeorig = self_node_id;
+                outgoing_packet.header.nodedest = dest_node_id;
+                serialize_queue(outgoing_packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), self_node_name, tqueue);
+                packets.push_back(outgoing_packet);
                 txq[dest_node_idx].outgoing.sentqueue = true;
             }
 
@@ -868,9 +862,9 @@ namespace Cosmos {
                 // get the file size
                 tx_out.file_size = file_size;
 
-                // see if file can be opened
-                filename.open(tx_out.filepath, std::ios::in|std::ios::binary);
-                if(!filename.is_open())
+                // Calculate the file_crc
+                int32_t iretn = calc_crc.calc_file(tx_out.filepath);
+                if (iretn < 0)
                 {
                     if (debug_log != nullptr)
                     {
@@ -878,7 +872,7 @@ namespace Cosmos {
                     }
                     return -errno;
                 }
-                filename.close();
+                tx_out.file_crc = iretn;
 
                 file_progress tp;
                 tp.chunk_start = 0;
@@ -887,7 +881,7 @@ namespace Cosmos {
 
                 write_meta(tx_out, 0.);
 
-                int32_t iretn = outgoing_tx_add(tx_out, dest_node);
+                iretn = outgoing_tx_add(tx_out, dest_node);
                 return iretn;
             }
             else
@@ -971,7 +965,7 @@ namespace Cosmos {
                     // Remove the META file
                     if (debug_log != nullptr)
                     {
-                        debug_log->Printf("%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str());
+                        debug_log->Printf("%u %u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_out.tx_id, tx_out.file_crc, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str());
                     }
                     string filepath = tx_out.temppath + ".meta";
                     remove(filepath.c_str());
@@ -999,11 +993,12 @@ namespace Cosmos {
 
             if (debug_log != nullptr)
             {
-                debug_log->Printf("%u %s %s %s %d ", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                debug_log->Printf("%u %u %s %s %s %d ", tx_out.tx_id, tx_out.file_crc, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str(), PROGRESS_QUEUE_SIZE);
             }
 
             // Good to go. Add it to queue.
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].tx_id = tx_out.tx_id;
+            txq[dest_node_idx].outgoing.progress[tx_out.tx_id].file_crc = tx_out.file_crc;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].sentmeta = tx_out.sentmeta;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].sentdata = tx_out.sentdata;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].complete = tx_out.complete;
@@ -1158,11 +1153,15 @@ namespace Cosmos {
             }
         }
 
-        int32_t Transfer::incoming_tx_add(const string node_name, const PACKET_TX_ID_TYPE tx_id)
+        //! Adds a new incoming transaction.
+        //! Called when knowledge of this transaction is first gained from a DATA or QUEUE packet.
+        //! i.e., no META data is acquired yet.
+        int32_t Transfer::incoming_tx_add(const string node_name, const PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc)
         {
             tx_progress tx_in;
 
             tx_in.tx_id = tx_id;
+            tx_in.file_crc = file_crc;
             tx_in.sentmeta = false;
             tx_in.sentdata = false;
             tx_in.complete = false;
@@ -1179,13 +1178,15 @@ namespace Cosmos {
             return iretn;
         }
 
-        //! Adds a new incoming file. Called when a METADATA packet is the first to arrive
-        int32_t Transfer::incoming_tx_add(const string node_name, const packet_struct_metashort& meta)
+        //! Adds a new incoming file.
+        //! Called when a METADATA packet is the first to arrive
+        int32_t Transfer::incoming_tx_add(const string node_name, const packet_struct_metadata& meta)
         {
             tx_progress tx_in;
 
             tx_in.tx_id = meta.header.tx_id;
-            tx_in.sentmeta = false;
+            tx_in.file_crc = meta.header.file_crc;
+            tx_in.sentmeta = true;
             tx_in.sentdata = false;
             tx_in.complete = false;
             tx_in.node_name = node_name;
@@ -1259,6 +1260,7 @@ namespace Cosmos {
 
             // Put it in list
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].tx_id = tx_in.tx_id;
+            txq[orig_node_idx].incoming.progress[tx_in.tx_id].file_crc = tx_in.file_crc;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].sentmeta = tx_in.sentmeta;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].sentdata = tx_in.sentdata;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].complete = tx_in.complete;
@@ -1281,7 +1283,7 @@ namespace Cosmos {
 
             if (debug_log != nullptr)
             {
-                debug_log->Printf("%.4f %.4f Main/Incoming: Add incoming: %u %s %s %s %d\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                debug_log->Printf("%.4f %.4f Main/Incoming: Add incoming: %u %u %s %s %s %d\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.file_crc, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str(), PROGRESS_QUEUE_SIZE);
             }
 
             return incoming_tx_recount(orig_node_id);
@@ -1293,7 +1295,7 @@ namespace Cosmos {
          * @param meta Incoming META packet
          * @return tx_id on success, negative on failure
          */
-        int32_t Transfer::incoming_tx_update(const packet_struct_metashort &meta)
+        int32_t Transfer::incoming_tx_update(const packet_struct_metadata &meta)
         {
             int32_t orig_node_id = NodeData::check_node_id(meta.header.node_id);
             if (orig_node_id == NodeData::NODEIDUNKNOWN)
@@ -1312,6 +1314,23 @@ namespace Cosmos {
 
             if (meta.header.tx_id)
             {
+                // Check if file_crc is the same. If they differ, this is a new transaction. If so, cancel current entry and move
+                // If QUEUE is received first, then file_crc will not be known. Only delete the current transaction
+                // if the meta has already been received but the file_crc differs.
+                if (txq[orig_node_idx].incoming.progress[meta.header.tx_id].sentmeta
+                && txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_crc != meta.header.file_crc)
+                {
+                    // This renaming would only occur in error states.
+                    // A file completed correctly would already be renamed and moved.
+                    if (debug_log != nullptr)
+                    {
+                        debug_log->Printf("%.4f %.4f File crc differs, closing existing transaction: %u %u %u %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_crc, meta.header.tx_id, meta.header.file_crc, txq[orig_node_idx].incoming.progress[meta.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_name.c_str());
+                    }
+                    txq[orig_node_idx].incoming.progress[meta.header.tx_id].filepath += "_METATXID_ERR";
+                    incoming_tx_del(orig_node_id, meta.header.tx_id);
+                    // Fallthrough to META received for the first time code
+                }
+
                 // This will run if META is received first
                 // If so, add the file to the incoming queue.
                 if (txq[orig_node_idx].incoming.progress[meta.header.tx_id].tx_id != meta.header.tx_id)
@@ -1328,10 +1347,13 @@ namespace Cosmos {
                     }
                 }
 
+
                 // This will run if either META is received for the first time or if requested by REQMETA
                 if (!txq[orig_node_idx].incoming.progress[meta.header.tx_id].sentmeta)
                 {
                     // Core META information
+                    txq[orig_node_idx].incoming.progress[meta.header.tx_id].tx_id = meta.header.tx_id;
+                    txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_crc = meta.header.file_crc;
                     txq[orig_node_idx].incoming.progress[meta.header.tx_id].node_name = txq[orig_node_idx].node_name;
                     txq[orig_node_idx].incoming.progress[meta.header.tx_id].agent_name = meta.agent_name;
                     txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_name = meta.file_name;
@@ -1398,15 +1420,24 @@ namespace Cosmos {
 
             if (debug_log != nullptr)
             {
-                debug_log->Printf("%.4f %.4f Incoming: Del incoming: %u %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[tx_id].tx_id, txq[orig_node_idx].incoming.progress[tx_id].node_name.c_str());
+                debug_log->Printf("%.4f %.4f Incoming: Delete incoming: %u %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[tx_id].tx_id, txq[orig_node_idx].incoming.progress[tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[tx_id].node_name.c_str());
             }
 
             txq[orig_node_idx].incoming.progress[tx_id].tx_id = 0;
             txq[orig_node_idx].incoming.progress[tx_id].file_crc = 0;
+            txq[orig_node_idx].incoming.progress[tx_id].enabled = false;
+            txq[orig_node_idx].incoming.progress[tx_id].sentmeta = false;
+            txq[orig_node_idx].incoming.progress[tx_id].sentdata = false;
             txq[orig_node_idx].incoming.progress[tx_id].complete = false;
-            txq[orig_node_idx].incoming.progress[tx_id].complete = false;
+            txq[orig_node_idx].incoming.progress[tx_id].node_name.clear();
+            txq[orig_node_idx].incoming.progress[tx_id].agent_name.clear();
             txq[orig_node_idx].incoming.progress[tx_id].file_name.clear();
             txq[orig_node_idx].incoming.progress[tx_id].filepath.clear();
+            txq[orig_node_idx].incoming.progress[tx_id].temppath.clear();
+            txq[orig_node_idx].incoming.progress[tx_id].savetime = 0.;
+            txq[orig_node_idx].incoming.progress[tx_id].next_response = 0.;
+            txq[orig_node_idx].incoming.progress[tx_id].file_size = 0.;
+            txq[orig_node_idx].incoming.progress[tx_id].total_bytes = 0.;
             txq[orig_node_idx].incoming.progress[tx_id].file_info.clear();
 
             return incoming_tx_recount(orig_node_id);
@@ -1452,7 +1483,7 @@ namespace Cosmos {
 
             if (debug_log != nullptr)
             {
-                debug_log->Printf("%.4f %.4f Incoming: Complete incoming: %u %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[tx_id].tx_id, txq[orig_node_idx].incoming.progress[tx_id].node_name.c_str());
+                debug_log->Printf("%.4f %.4f Incoming: Complete incoming: %u %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[tx_id].tx_id, txq[orig_node_idx].incoming.progress[tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[tx_id].file_name.c_str());
             }
 
             string filepath;
@@ -1469,6 +1500,146 @@ namespace Cosmos {
             return 0;
         }
 
+        //! Receive a chunk of file data
+        //! Called by receive_packet() when a DATA packet is received.
+        //! \param data Deserialized DATA packet
+        //! \param node_id Origin node_id
+        //! \param orig_node_idx Index of origin node id in the txq
+        //! \return 0 on success, negative on error
+        int32_t Transfer::incoming_tx_data(packet_struct_data& data, uint8_t node_id, size_t orig_node_idx)
+        {
+            int32_t iretn = 0;
+            // create transaction entry if new, and then add data
+            PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[orig_node_idx].incoming, data.header.tx_id);
+
+            // If tx_id matches, but file_crc does not match, then cancel current transaction and begin a new one
+            // Note, tx_id must be > 0
+            if (data.header.tx_id && txq[orig_node_idx].incoming.progress[tx_id].tx_id == data.header.tx_id
+            && txq[orig_node_idx].incoming.progress[tx_id].file_crc != data.header.file_crc)
+            {
+                // This renaming would only occur in error states.
+                // A file completed correctly would already be renamed and moved.
+                if (debug_log != nullptr)
+                {
+                    debug_log->Printf("%.4f %.4f File crc differs, closing existing transaction: %u %u %u %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[data.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[data.header.tx_id].file_crc, data.header.tx_id, data.header.file_crc, txq[orig_node_idx].incoming.progress[data.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[data.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[data.header.tx_id].file_name.c_str());
+                }
+                txq[orig_node_idx].incoming.progress[data.header.tx_id].filepath += "_DATATXID_ERR";
+                incoming_tx_del(node_id, data.header.tx_id);
+                tx_id = 0;
+                // Fallthrough to DATA received for the first time code
+            }
+
+            // If transaction does not exist in incoming queue, then request META
+            if (!tx_id)
+            {
+                tx_id = data.header.tx_id;
+                string node_name = NodeData::lookup_node_id_name(node_id);
+                if (node_name.empty())
+                {
+                    return TRANSFER_ERROR_INDEX;
+                }
+                iretn = incoming_tx_add(node_name, data.header.tx_id, data.header.file_crc);
+                if (iretn <= 0) {
+                    return iretn;
+                }
+            }
+
+            // Request META if it hasn't been received yet and it's been awhile since we last requested it
+            // Also to periodically keep the sender up-to-date on holes
+            if (currentmjd() > txq[orig_node_idx].incoming.progress[tx_id].next_response)
+            {
+                txq[orig_node_idx].incoming.progress[tx_id].next_response = currentmjd() + txq[orig_node_idx].incoming.waittime;
+                iretn = RESPONSE_REQUIRED;
+            }
+
+            // Regardless, receive the DATA anyway
+
+            // tx_id now points to the valid entry to which we should add the data
+            file_progress tp;
+            tp.chunk_start = data.chunk_start;
+            tp.chunk_end = data.chunk_start + data.byte_count - 1;
+
+            // Attempt to add chunk to incoming queue
+            bool updated = add_chunk(txq[orig_node_idx].incoming.progress[tx_id], tp);
+
+            // Write to disk if this is new data
+            if (updated)
+            {
+                string partial_filepath;
+                // Write incoming data to disk
+                if (txq[orig_node_idx].incoming.progress[tx_id].fp == nullptr)
+                {
+                    partial_filepath = txq[orig_node_idx].incoming.progress[tx_id].temppath + ".file";
+                    if (data_exists(partial_filepath))
+                    {
+                        txq[orig_node_idx].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "r+");
+                    }
+                    else
+                    {
+                        txq[orig_node_idx].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "w");
+                    }
+                }
+
+                // Check fp open success
+                if (txq[orig_node_idx].incoming.progress[tx_id].fp == nullptr)
+                {
+                    if (debug_log != nullptr)
+                    {
+                        debug_log->Printf("%.4f %.4f Incoming: File Error: %s %s on ID: %u Chunk: %u\n", tet.split(), dt.lap(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
+                    }
+                    // TODO: Actually, what would you do here?
+                    iretn = GENERAL_ERROR_NULLPOINTER;
+                }
+                else
+                {
+                    fseek(txq[orig_node_idx].incoming.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
+                    fwrite(data.chunk.data(), data.byte_count, 1, txq[orig_node_idx].incoming.progress[tx_id].fp);
+                    fflush(txq[orig_node_idx].incoming.progress[tx_id].fp);
+                    // Recalculate total periodically, if it's time to resend a REQDATA to the sender
+                    if (iretn == RESPONSE_REQUIRED)
+                    {
+                        merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
+                    }
+                    // Write latest meta data to disk
+                    write_meta(txq[orig_node_idx].incoming.progress[tx_id]);
+                    if (debug_log != nullptr)
+                    {
+                        // Leave this commented out since there are a lot of DATA packets flowing
+                        //debug_log->Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), data.byte_count, tx_id);
+                    }
+
+                    // Check if all data has been received (we must have the METADATA)
+                    // incoming total_bytes updated by add_chunks() or merge_chunks_overlap()
+                    if (txq[orig_node_idx].incoming.progress[tx_id].sentmeta && txq[orig_node_idx].incoming.progress[tx_id].total_bytes >= txq[orig_node_idx].incoming.progress[tx_id].file_size)
+                    {
+                        // Merge chunks and recalculate actual total correctly
+                        merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
+                        if (txq[orig_node_idx].incoming.progress[tx_id].total_bytes == txq[orig_node_idx].incoming.progress[tx_id].file_size)
+                        {
+                            // TODO: check file_crc
+                            {
+
+                            }
+                            // If all chunks received, then mark as all data sent over
+                            txq[orig_node_idx].incoming.progress[tx_id].sentdata = true;
+                            // Move file over to final destination
+                            incoming_tx_complete(node_id, tx_id);
+                            iretn = RESPONSE_REQUIRED;
+                        }
+                    }
+                }
+            }
+            if (iretn == RESPONSE_REQUIRED)
+            {
+                if (std::find(txq[orig_node_idx].incoming.respond.begin(), txq[orig_node_idx].incoming.respond.end(), tx_id) == txq[orig_node_idx].incoming.respond.end())
+                {
+                    txq[orig_node_idx].incoming.respond.push_back(tx_id);
+                }
+            }
+
+            return iretn;
+        }
+
         //! Handles receiving of incoming file transfer-type packet.
         //! Make sure to process the PacketComm packet before calling this (with SLIPIn() or equivalent).
         //! \param packet PacketComm packet containing file transfer-type data
@@ -1477,7 +1648,16 @@ namespace Cosmos {
         int32_t Transfer::receive_packet(const PacketComm& packet)
         {
             int32_t iretn = 0;
-            const uint8_t node_id = packet.data[0];
+            if (!packet.data.size())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject if versions don't match
+            if (packet.data[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
+            const uint8_t node_id = packet.data[1];
             const size_t orig_node_idx = node_id_to_txq_idx(node_id);
             if (orig_node_idx == INVALID_TXQ_IDX)
             {
@@ -1506,7 +1686,7 @@ namespace Cosmos {
                             // If a file is in the QUEUE packet but not in our local queue, add it
                             if (flag && !(txq[orig_node_idx].incoming.progress[tx_id].tx_id))
                             {
-                                incoming_tx_add(queue.node_name, tx_id);
+                                incoming_tx_add(queue.node_name, tx_id, 0);
                             }
                             // If a file is in our local queue but not in the QUEUE packet, delete it
                             // TODO: I think this logic fails for multiple senders
@@ -1567,7 +1747,7 @@ namespace Cosmos {
                 break;
             case PacketComm::TypeId::DataFileMetaData:
                 {
-                    packet_struct_metashort meta;
+                    packet_struct_metadata meta;
 
                     deserialize_metadata(packet.data, meta);
 
@@ -1615,108 +1795,7 @@ namespace Cosmos {
 
                     deserialize_data(packet.data, data);
 
-                    // create transaction entry if new, and then add data
-
-                    PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[orig_node_idx].incoming, data.header.tx_id);
-
-                    // If transaction does not exist in incoming queue, then request META
-                    if (!tx_id)
-                    {
-                        tx_id = data.header.tx_id;
-                        string node_name = NodeData::lookup_node_id_name(node_id);
-                        if (node_name.empty())
-                        {
-                            iretn = TRANSFER_ERROR_INDEX;
-                            break;
-                        }
-                        iretn = incoming_tx_add(node_name, data.header.tx_id);
-                        if (iretn <= 0) {
-                            break;
-                        }
-                    }
-
-                    // Request META if it hasn't been received yet and it's been awhile since we last requested it
-                    // Also to periodically keep the sender up-to-date on holes
-                    if (currentmjd() > txq[orig_node_idx].incoming.progress[tx_id].next_response)
-                    {
-                        txq[orig_node_idx].incoming.progress[tx_id].next_response = currentmjd() + txq[orig_node_idx].incoming.waittime;
-                        iretn = RESPONSE_REQUIRED;
-                    }
-
-                    // Regardless, receive the DATA anyway
-
-                    // tx_id now points to the valid entry to which we should add the data
-                    file_progress tp;
-                    tp.chunk_start = data.chunk_start;
-                    tp.chunk_end = data.chunk_start + data.byte_count - 1;
-
-                    // Attempt to add chunk to incoming queue
-                    bool updated = add_chunk(txq[orig_node_idx].incoming.progress[tx_id], tp);
-
-                    // Write to disk if this is new data
-                    if (updated)
-                    {
-                        string partial_filepath;
-                        // Write incoming data to disk
-                        if (txq[orig_node_idx].incoming.progress[tx_id].fp == nullptr)
-                        {
-                            partial_filepath = txq[orig_node_idx].incoming.progress[tx_id].temppath + ".file";
-                            if (data_exists(partial_filepath))
-                            {
-                                txq[orig_node_idx].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "r+");
-                            }
-                            else
-                            {
-                                txq[orig_node_idx].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "w");
-                            }
-                        }
-
-                        // Check fp open success
-                        if (txq[orig_node_idx].incoming.progress[tx_id].fp == nullptr)
-                        {
-                            if (debug_log != nullptr)
-                            {
-                                debug_log->Printf("%.4f %.4f Incoming: File Error: %s %s on ID: %u Chunk: %u\n", tet.split(), dt.lap(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
-                            }
-                        }
-                        else
-                        {
-                            fseek(txq[orig_node_idx].incoming.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
-                            fwrite(data.chunk.data(), data.byte_count, 1, txq[orig_node_idx].incoming.progress[tx_id].fp);
-                            fflush(txq[orig_node_idx].incoming.progress[tx_id].fp);
-                            merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
-                            // Write latest meta data to disk
-                            write_meta(txq[orig_node_idx].incoming.progress[tx_id]);
-                            if (debug_log != nullptr)
-                            {
-                                // Leave this commented out since there are a lot of DATA packets flowing
-                                //debug_log->Printf("%.4f %.4f Incoming: Received DATA/Write: %u bytes for tx_id: %u\n", tet.split(), dt.lap(), data.byte_count, tx_id);
-                            }
-
-                            // Check if all data has been received (we must have the METADATA)
-                            // incoming total_bytes updated by add_chunks() or merge_chunks_overlap()
-                            if (txq[orig_node_idx].incoming.progress[tx_id].sentmeta && txq[orig_node_idx].incoming.progress[tx_id].total_bytes >= txq[orig_node_idx].incoming.progress[tx_id].file_size)
-                            {
-                                // Merge chunks and recalculate actual total correctly
-                                // merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
-                                if (txq[orig_node_idx].incoming.progress[tx_id].total_bytes == txq[orig_node_idx].incoming.progress[tx_id].file_size)
-                                {
-                                    // If all chunks received, then mark as all data sent over
-                                    txq[orig_node_idx].incoming.progress[tx_id].sentdata = true;
-                                    // Move file over to final destination
-                                    incoming_tx_complete(node_id, tx_id);
-                                    iretn = RESPONSE_REQUIRED;
-                                }
-                            }
-                        }
-                    }
-                    if (iretn == RESPONSE_REQUIRED)
-                    {
-                        if (std::find(txq[orig_node_idx].incoming.respond.begin(), txq[orig_node_idx].incoming.respond.end(), tx_id) == txq[orig_node_idx].incoming.respond.end())
-                        {
-                            txq[orig_node_idx].incoming.respond.push_back(tx_id);
-                        }
-                    }
+                    iretn = incoming_tx_data(data, node_id, orig_node_idx);
                 }
                 break;
             case PacketComm::TypeId::DataFileReqComplete:
@@ -1725,10 +1804,23 @@ namespace Cosmos {
 
                     deserialize_reqcomplete(packet.data, reqcomplete);
 
-                    PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[orig_node_idx].incoming, reqcomplete.header.tx_id);
+                    // Check if file_crc is the same. If they differ, this is a new transaction. If so, cancel current entry and move
+                    if (reqcomplete.header.tx_id && txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].tx_id == reqcomplete.header.tx_id
+                    && txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].file_crc != reqcomplete.header.file_crc)
+                    {
+                        // This renaming would only occur in error states.
+                        // A file completed correctly would already be renamed and moved.
+                        if (debug_log != nullptr)
+                        {
+                            debug_log->Printf("%.4f %.4f File crc differs, closing existing transaction: %u %u %u %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].file_crc, reqcomplete.header.tx_id, reqcomplete.header.file_crc, txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].file_name.c_str());
+                        }
+                        txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].filepath += "_REQCTXID_ERR";
+                        incoming_tx_del(node_id, reqcomplete.header.tx_id);
+                        // Fallthrough to REQCOMPLETE received for the first time code
+                    }
 
                     // No transaction ID, so metadata needs to be requested first
-                    if (std::find(txq[orig_node_idx].incoming.respond.begin(), txq[orig_node_idx].incoming.respond.end(), tx_id) == txq[orig_node_idx].incoming.respond.end())
+                    if (std::find(txq[orig_node_idx].incoming.respond.begin(), txq[orig_node_idx].incoming.respond.end(), reqcomplete.header.tx_id) == txq[orig_node_idx].incoming.respond.end())
                     {
                         txq[orig_node_idx].incoming.respond.push_back(reqcomplete.header.tx_id);
                     }
@@ -1811,7 +1903,7 @@ namespace Cosmos {
             if (currentmjd(0.) - tx.savetime > interval/86400.)
             {
                 tx.savetime = currentmjd(0.);
-                serialize_metadata(write_meta_packet, tx.tx_id, tx.file_crc, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
+                serialize_metafile(meta_file_data, tx.tx_id, tx.file_crc, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
                 file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary); // Note: truncs by default
                 if(!file_name.is_open())
                 {
@@ -1819,24 +1911,26 @@ namespace Cosmos {
                 }
 
                 // Structure of a .meta file:
-                // Byte 0-3: packet size (n)
-                // Byte 4-5: packet crc
-                // Byte 6-(6+n): packet meta struct
-                // Byte (6+n)-end: file_progress structs[]
+                // Byte 0: FILE_TRANSFER_METAFILE_VERSION
+                // Byte 1-4: packet size (n)
+                // Byte 5-6: packet crc
+                // Byte 7-(7+n): packet metalong struct
+                // Byte (7+n)-end: file_progress structs[]
 
                 // where file_progress structs[] are a consecutive list of the following:
                 // Byte 0-1: file_progress
                 // Byte 3-4: crc
                 // ... repeat above structure per packet
-                uint16_t crc = write_meta_packet.calc_crc.calc(write_meta_packet.data);
-                size_t packet_size = write_meta_packet.data.size();
+                file_name.write((char *)&FILE_TRANSFER_METAFILE_VERSION, sizeof(uint8_t));
+                uint16_t crc = calc_crc.calc(meta_file_data);
+                size_t packet_size = meta_file_data.size();
                 file_name.write((char *)&packet_size, sizeof(packet_size));
                 file_name.write((char *)&crc, sizeof(crc));
-                file_name.write((char *)&write_meta_packet.data[0], write_meta_packet.data.size());
+                file_name.write((char *)&meta_file_data[0], meta_file_data.size());
                 for (file_progress progress_info : tx.file_info)
                 {
                     file_name.write((const char *)&progress_info, sizeof(progress_info));
-                    crc = write_meta_packet.calc_crc.calc((uint8_t *)&progress_info, sizeof(progress_info));
+                    crc = calc_crc.calc((uint8_t *)&progress_info, sizeof(progress_info));
                     file_name.write((char *)&crc, 2);
                 }
                 file_name.close();
@@ -1850,7 +1944,6 @@ namespace Cosmos {
         int32_t Transfer::read_meta(tx_progress& tx)
         {
             std::ifstream file_name;
-            packet_struct_metalong meta;
 
             struct stat statbuf;
             if (!stat((tx.temppath + ".meta").c_str(), &statbuf) && statbuf.st_size >= COSMOS_SIZEOF(file_progress))
@@ -1871,10 +1964,11 @@ namespace Cosmos {
             tx.complete = false;
 
             // Structure of a .meta file:
-            // Byte 0-3: packet size (n)
-            // Byte 4-5: packet crc
-            // Byte 6-(6+n): packet meta struct
-            // Byte (6+n)-end: file_progress structs[]
+            // Byte 0: FILE_TRANSFER_METAFILE_VERSION
+                // Byte 1-4: packet size (n)
+                // Byte 5-6: packet crc
+                // Byte 7-(7+n): packet metalong struct
+                // Byte (7+n)-end: file_progress structs[]
 
             // where file_progress structs[] are a consecutive list of the following:
             // Byte 0-1: file_progress
@@ -1882,6 +1976,20 @@ namespace Cosmos {
             // ... repeat above structure per packet
 
             // Load metadata
+            // Reject if versions don't match
+            uint8_t metafile_version;
+            file_name.read((char *)&metafile_version, sizeof(uint8_t));
+            if (metafile_version != FILE_TRANSFER_METAFILE_VERSION)
+            {
+                file_name.close();
+                remove((tx.temppath + ".meta").c_str());
+                remove((tx.temppath + ".file").c_str());
+                if (debug_log != nullptr)
+                {
+                    debug_log->Printf("%.4f %.4f Main: read_meta: %s Error wrong metafile version. Was %u expected %u\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str(), unsigned(metafile_version), unsigned(FILE_TRANSFER_METAFILE_VERSION));
+                }
+                return TRANSFER_ERROR_VERSION;
+            }
             size_t packet_size;
             file_name.read((char *)&packet_size, sizeof(packet_size));
             // Check for file OoB or an absurd packet_size
@@ -1909,10 +2017,10 @@ namespace Cosmos {
                 }
                 return DATA_ERROR_SIZE_MISMATCH;
             }
-            vector<PACKET_BYTE> packet;
+            vector<PACKET_BYTE> bytes;
             // Handle packet_size being exceptionally large enough to trigger a bad_alloc exception
             try {
-                packet.resize(packet_size);
+                bytes.resize(packet_size);
             }
             catch (std::bad_alloc& e)
             {
@@ -1925,7 +2033,7 @@ namespace Cosmos {
                 }
                 return DATA_ERROR_SIZE_MISMATCH;
             }
-            file_name.read((char *)packet.data(), packet_size);
+            file_name.read((char *)bytes.data(), packet_size);
             if (file_name.eof())
             {
                 file_name.close();
@@ -1937,8 +2045,7 @@ namespace Cosmos {
                 }
                 return DATA_ERROR_SIZE_MISMATCH;
             }
-            CRC16 calc_crc;
-            if (crc != calc_crc.calc(packet.data(), packet.size()))
+            if (crc != calc_crc.calc(bytes.data(), bytes.size()))
             {
                 file_name.close();
                 remove((tx.temppath + ".meta").c_str());
@@ -1949,7 +2056,8 @@ namespace Cosmos {
                 }
                 return DATA_ERROR_CRC;
             }
-            deserialize_metadata(packet, meta);
+            packet_struct_metafile meta;
+            deserialize_metafile(bytes, meta);
 
             // Check for absurd data sizes that would happen on attempting to
             // ingest outdated .meta formats or file corruption
@@ -1966,6 +2074,8 @@ namespace Cosmos {
             }
 
             tx.tx_id = meta.tx_id;
+            tx.file_crc = meta.file_crc;
+            tx.sentmeta = !!meta.file_name.size(); // META was obtained if file_name is known
             // Origin node name
             tx.node_name = meta.node_name;
             // Destination agent name
