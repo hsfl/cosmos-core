@@ -300,26 +300,25 @@ namespace Cosmos {
                 sort(file_names.begin(), file_names.end(), filestruc_smaller_by_size);
                 for(uint16_t i=0; i<file_names.size(); ++i)
                 {
-                    filestruc file = file_names[i];
                     if (txq[dest_node_idx].outgoing.size == PROGRESS_QUEUE_SIZE - 1)
                     {
                         break;
                     }
 
                     //Ignore sub-directories
-                    if (file.type == "directory")
+                    if (file_names[i].type == "directory")
                     {
                         continue;
                     }
 
-                    // TODO: consider how to handle zero-size file
-                    // Ignore zero length files (may still be being formed)
-                    if (file.size == 0)
+                    // Remove zero-length files
+                    if (file_names[i].size == 0)
                     {
+                        remove(file_names[i].path.c_str());
                         continue;
                     }
 
-                    outgoing_tx_add(file.node, file.agent, file.name);
+                    outgoing_tx_add(file_names[i].node, file_names[i].agent, file_names[i].name);
                 }
             }
 
@@ -707,20 +706,6 @@ namespace Cosmos {
                 // **************************************************************
                 else if (!txq[orig_node_idx].incoming.progress[tx_id].sentdata)
                 {
-                    // Merge chunks and recalculate actual total correctly
-                        // merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
-                        // if (txq[orig_node_idx].incoming.progress[tx_id].total_bytes == txq[orig_node_idx].incoming.progress[tx_id].file_size)
-                        // {
-                        //     // TODO: check file_crc
-                        //     {
-
-                        //     }
-                        //     // If all chunks received, then mark as all data sent over
-                        //     txq[orig_node_idx].incoming.progress[tx_id].sentdata = true;
-                        //     // Move file over to final destination
-                        //     incoming_tx_complete(node_id, tx_id);
-                        //     iretn = RESPONSE_REQUIRED;
-                        // }
                     // Request missing data
                     vector<file_progress> missing;
                     missing = find_chunks_missing(txq[orig_node_idx].incoming.progress[tx_id]);
@@ -735,6 +720,22 @@ namespace Cosmos {
                         // But all DATA is received
                         // Then METADATA is received (after a )
                         // And then REQCOMPLETE was received
+
+                        // Now check the file_crc
+                        int32_t crcret = calc_crc.calc_file(txq[orig_node_idx].incoming.progress[tx_id].temppath + ".file");
+                        if (crcret < 0 || txq[orig_node_idx].incoming.progress[tx_id].file_crc != crcret)
+                        {
+                            if (debug_log != nullptr)
+                            {
+                                debug_log->Printf("%.4f %.4f rpacket/ReqData: Error in final crc check. Was %d expected %u\n", tet.split(), dt.lap(), crcret, txq[orig_node_idx].incoming.progress[tx_id].file_crc);
+                            }
+                            txq[orig_node_idx].incoming.progress[tx_id].complete = false;
+                            txq[orig_node_idx].incoming.progress[tx_id].filepath += "_FILECRC_ERR";
+                            incoming_tx_del(orig_node_id, tx_id);
+                            continue;
+                        }
+
+                        // Received file's checksum matches sender's checksum, file is succesfully received
                         incoming_tx_complete(orig_node_id, tx_id);
                     }
                 }
@@ -750,6 +751,8 @@ namespace Cosmos {
                     serialize_complete(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx_id, txq[orig_node_idx].incoming.progress[tx_id].file_crc);
                     packets.push_back(packet);
                 }
+
+                txq[orig_node_idx].incoming.progress[tx_id].next_response = currentmjd() + txq[orig_node_idx].incoming.waittime;
             }
 
             txq[orig_node_idx].incoming.respond.clear();
@@ -1426,7 +1429,6 @@ namespace Cosmos {
                 {
                     debug_log->Printf("%.4f %.4f Incoming: Update incoming: %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[meta.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_name.c_str());
                 }
-                debug_log->Printf("tx_id: %u total_size: %u file_size: %u\n", unsigned(meta.header.tx_id), txq[orig_node_idx].incoming.progress[meta.header.tx_id].total_bytes, txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_size);
 
                 return meta.header.tx_id;
             }
@@ -1625,7 +1627,6 @@ namespace Cosmos {
                         txq[orig_node_idx].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "w");
                     }
                 }
-                debug_log->Printf("tx_id: %u total_size: %u file_size: %u\n", unsigned(tx_id), txq[orig_node_idx].incoming.progress[tx_id].total_bytes, txq[orig_node_idx].incoming.progress[tx_id].file_size);
 
                 // Check fp open success
                 if (txq[orig_node_idx].incoming.progress[tx_id].fp == nullptr)
@@ -1663,15 +1664,26 @@ namespace Cosmos {
                         merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
                         if (txq[orig_node_idx].incoming.progress[tx_id].total_bytes == txq[orig_node_idx].incoming.progress[tx_id].file_size)
                         {
-                            // TODO: check file_crc
+                            // Now check the file_crc
+                            int32_t crcret = calc_crc.calc_file(txq[orig_node_idx].incoming.progress[tx_id].temppath + ".file");
+                            if (crcret < 0 || txq[orig_node_idx].incoming.progress[tx_id].file_crc != crcret)
                             {
-
+                                if (debug_log != nullptr)
+                                {
+                                    debug_log->Printf("%.4f %.4f Incoming/Data: Error in final crc check. Was %d expected %u\n", tet.split(), dt.lap(), crcret, txq[orig_node_idx].incoming.progress[tx_id].file_crc);
+                                }
+                                txq[orig_node_idx].incoming.progress[tx_id].filepath += "_FILECRC_ERR";
+                                incoming_tx_del(node_id, tx_id);
                             }
-                            // If all chunks received, then mark as all data sent over
-                            txq[orig_node_idx].incoming.progress[tx_id].sentdata = true;
-                            // Move file over to final destination
-                            incoming_tx_complete(node_id, tx_id);
-                            iretn = RESPONSE_REQUIRED;
+                            else
+                            {
+                                // Received file's checksum matches sender's checksum, file is succesfully received
+                                // Mark as all data sent over
+                                txq[orig_node_idx].incoming.progress[tx_id].sentdata = true;
+                                // Move file over to final destination
+                                incoming_tx_complete(node_id, tx_id);
+                                iretn = RESPONSE_REQUIRED;
+                            }
                         }
                     }
                 }
@@ -1746,7 +1758,7 @@ namespace Cosmos {
                             {
                                 // This renaming would only occur in error states.
                                 // A file completed correctly would already be renamed and moved.
-                                txq[orig_node_idx].incoming.progress[tx_id].filepath += "_DEQUEUE_ERR";
+                                txq[orig_node_idx].incoming.progress[tx_id].filepath += "_QUEUE_ERR";
                                 incoming_tx_del(node_id, tx_id);
                             }
 
@@ -1857,7 +1869,8 @@ namespace Cosmos {
                     deserialize_reqcomplete(packet.data, reqcomplete);
 
                     // Check if file_crc is the same. If they differ, this is a new transaction. If so, cancel current entry and move
-                    if (reqcomplete.header.tx_id && txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].tx_id == reqcomplete.header.tx_id
+                    if (txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].sentmeta && reqcomplete.header.tx_id
+                    && txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].tx_id == reqcomplete.header.tx_id
                     && txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].file_crc != reqcomplete.header.file_crc)
                     {
                         // This renaming would only occur in error states.
