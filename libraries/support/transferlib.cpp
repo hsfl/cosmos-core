@@ -610,6 +610,7 @@ namespace Cosmos {
             }
             if (tx_in.total_bytes == tx_in.file_size)
             {
+                tx_in.sentdata = true;
                 tx_in.complete = true;
             }
 

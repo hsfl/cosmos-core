@@ -707,15 +707,42 @@ namespace Cosmos {
                 // **************************************************************
                 else if (!txq[orig_node_idx].incoming.progress[tx_id].sentdata)
                 {
+                    // Merge chunks and recalculate actual total correctly
+                        // merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
+                        // if (txq[orig_node_idx].incoming.progress[tx_id].total_bytes == txq[orig_node_idx].incoming.progress[tx_id].file_size)
+                        // {
+                        //     // TODO: check file_crc
+                        //     {
+
+                        //     }
+                        //     // If all chunks received, then mark as all data sent over
+                        //     txq[orig_node_idx].incoming.progress[tx_id].sentdata = true;
+                        //     // Move file over to final destination
+                        //     incoming_tx_complete(node_id, tx_id);
+                        //     iretn = RESPONSE_REQUIRED;
+                        // }
                     // Request missing data
                     vector<file_progress> missing;
                     missing = find_chunks_missing(txq[orig_node_idx].incoming.progress[tx_id]);
-                    serialize_reqdata(packets, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), orig_node_id, txq[orig_node_idx].incoming.progress[tx_id].tx_id, txq[orig_node_idx].incoming.progress[tx_id].file_crc, missing, packet_size);
+                    if (missing.size())
+                    {
+                        serialize_reqdata(packets, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), orig_node_id, txq[orig_node_idx].incoming.progress[tx_id].tx_id, txq[orig_node_idx].incoming.progress[tx_id].file_crc, missing, packet_size);
+                    }
+                    else
+                    {
+                        // This code block to run under this scenario:
+                        // METADATA is missed
+                        // But all DATA is received
+                        // Then METADATA is received (after a )
+                        // And then REQCOMPLETE was received
+                        incoming_tx_complete(orig_node_id, tx_id);
+                    }
                 }
                 // **************************************************************
                 // ** COMPLETE **************************************************
                 // **************************************************************
-                else
+                if (txq[orig_node_idx].incoming.progress[tx_id].sentmeta
+                && txq[orig_node_idx].incoming.progress[tx_id].sentdata)
                 {
                     PacketComm packet;
                     packet.header.nodeorig = self_node_id;
@@ -1399,6 +1426,7 @@ namespace Cosmos {
                 {
                     debug_log->Printf("%.4f %.4f Incoming: Update incoming: %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[meta.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_name.c_str());
                 }
+                debug_log->Printf("tx_id: %u total_size: %u file_size: %u\n", unsigned(meta.header.tx_id), txq[orig_node_idx].incoming.progress[meta.header.tx_id].total_bytes, txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_size);
 
                 return meta.header.tx_id;
             }
@@ -1597,6 +1625,7 @@ namespace Cosmos {
                         txq[orig_node_idx].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "w");
                     }
                 }
+                debug_log->Printf("tx_id: %u total_size: %u file_size: %u\n", unsigned(tx_id), txq[orig_node_idx].incoming.progress[tx_id].total_bytes, txq[orig_node_idx].incoming.progress[tx_id].file_size);
 
                 // Check fp open success
                 if (txq[orig_node_idx].incoming.progress[tx_id].fp == nullptr)

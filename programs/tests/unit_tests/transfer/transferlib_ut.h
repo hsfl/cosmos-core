@@ -13,7 +13,8 @@ void compare_file_progress(const file_progress& fp, const file_progress& fp2, si
 void compare_tx_progress(const vector<file_progress>& tp, const vector<file_progress>& tp2, size_t LINE)
 {
     EXPECT_EQ(tp.size(), tp2.size());
-    for (size_t i=0; i<tp.size(); ++i) {
+    size_t size = std::min(tp.size(), tp2.size());
+    for (size_t i=0; i<size; ++i) {
         compare_file_progress(tp[i], tp2[i], LINE);
     }
 }
@@ -566,7 +567,7 @@ TEST(TransferlibTest, merge_chunks_overlap)
     EXPECT_EQ(tx.total_bytes, sum_fp(mfile_info));
 }
 
-TEST(TransferlibTest, reqdata_packets_are_created_correctly)
+TEST(TransferlibTest, reqdata_packets_with_start_end_signifier)
 {
     // Keep mock file_info here
     vector<file_progress> holes;
@@ -604,6 +605,207 @@ TEST(TransferlibTest, reqdata_packets_are_created_correctly)
     }
     EXPECT_EQ(current_hole_idx, holes.size());
 }
+
+TEST(TransferlibTest, reqdata_packets)
+{
+    // Keep mock file_info here
+    vector<file_progress> mock_missing;
+    vector<file_progress> missing;
+
+    tx_progress tx, tx2;
+    tx.sentmeta = tx2.sentmeta = true;
+    tx.file_size = tx2.file_size = 1000;
+
+    // Chunk has a whole in the middle and ends
+    tx.file_info = {{100, 249}, {750,899}};
+    mock_missing = {{0,99}, {250,749}, {900,999}};
+    missing = find_chunks_missing(tx);
+    compare_tx_progress(missing, mock_missing, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(tx.file_info));
+    EXPECT_EQ(tx.complete, false);
+
+    vector<PacketComm> packets;
+    PACKET_NODE_ID_TYPE self_node_id = 1;
+    PACKET_NODE_ID_TYPE orig_node_id = 10;
+    uint8_t tx_id = 172;
+    uint16_t file_crc = 99;
+    PACKET_CHUNK_SIZE_TYPE packet_size = 200;
+    serialize_reqdata(packets, self_node_id, orig_node_id, tx_id, file_crc, missing, packet_size);
+    
+    // Receive
+    for (auto packet : packets)
+    {
+        packet_struct_reqdata reqdata;
+        int32_t start_end_signifier = deserialize_reqdata(packet.data, reqdata);
+        EXPECT_GE(start_end_signifier, 0);
+        if (start_end_signifier < 0)
+        {
+            continue;
+        }
+        
+        EXPECT_GT(reqdata.header.tx_id, 0);
+        if (tx_id <= 0)
+        {
+            continue;
+        }
+
+        // Add this chunk to the queue
+        bool updated = add_chunks(tx2, reqdata.holes, start_end_signifier);
+        EXPECT_EQ(updated, true);
+        
+        // Recalculate chunks
+        merge_chunks_overlap(tx2);
+    }
+    compare_tx_progress(tx2.file_info, mock_missing, __LINE__);
+}
+
+TEST(TransferlibTest, reqdata_packets_no_holes)
+{
+    // Keep mock file_info here
+    vector<file_progress> mock_missing;
+    vector<file_progress> missing;
+
+    tx_progress tx, tx2;
+    tx.sentmeta = tx2.sentmeta = true;
+    tx.file_size = tx2.file_size = 1000;
+    tx2.file_info = {{0,999}};
+
+    // Chunk has a whole in the middle and ends
+    tx.file_info = {{0,999}};
+    mock_missing = {};
+    missing = find_chunks_missing(tx);
+    compare_tx_progress(missing, mock_missing, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(tx.file_info));
+    EXPECT_EQ(tx.complete, true);
+
+    vector<PacketComm> packets;
+    PACKET_NODE_ID_TYPE self_node_id = 1;
+    PACKET_NODE_ID_TYPE orig_node_id = 10;
+    uint8_t tx_id = 172;
+    uint16_t file_crc = 99;
+    PACKET_CHUNK_SIZE_TYPE packet_size = 200;
+    serialize_reqdata(packets, self_node_id, orig_node_id, tx_id, file_crc, missing, packet_size);
+    
+    // Receive
+    for (auto packet : packets)
+    {
+        packet_struct_reqdata reqdata;
+        int32_t start_end_signifier = deserialize_reqdata(packet.data, reqdata);
+        EXPECT_GE(start_end_signifier, 0);
+        if (start_end_signifier < 0)
+        {
+            continue;
+        }
+        
+        EXPECT_GT(reqdata.header.tx_id, 0);
+        if (tx_id <= 0)
+        {
+            continue;
+        }
+
+        // Add this chunk to the queue
+        bool updated = add_chunks(tx2, reqdata.holes, start_end_signifier);
+        EXPECT_EQ(updated, true);
+        
+        // Recalculate chunks
+        merge_chunks_overlap(tx2);
+    }
+    compare_tx_progress(tx2.file_info, mock_missing, __LINE__);
+}
+
+TEST(TransferlibTest, find_chunks_missing)
+{
+    // Keep mock file_info here
+    vector<file_progress> mock_missing;
+    vector<file_progress> missing;
+
+    tx_progress tx;
+
+    // If METADATA was not received yet, then file_size is not
+    // known, so return empty
+    tx.sentmeta = false;
+    tx.file_size = 1000;
+    tx.file_info = {{0, 499}};
+    mock_missing = {};
+    missing = find_chunks_missing(tx);
+    compare_tx_progress(missing, mock_missing, __LINE__);
+
+    // No received chunks
+    tx.sentmeta = true;
+    tx.file_info = {};
+    mock_missing = {{0, 999}};
+    missing = find_chunks_missing(tx);
+    compare_tx_progress(missing, mock_missing, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(tx.file_info));
+    EXPECT_EQ(tx.complete, false);
+
+    // Chunk is flush against beginning
+    tx.sentmeta = true;
+    tx.file_info = {{0, 499}};
+    mock_missing = {{500, 999}};
+    missing = find_chunks_missing(tx);
+    compare_tx_progress(missing, mock_missing, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(tx.file_info));
+    EXPECT_EQ(tx.complete, false);
+
+    // Chunk is flush against the end
+    tx.file_info = {{500, 999}};
+    mock_missing = {{0, 499}};
+    missing = find_chunks_missing(tx);
+    compare_tx_progress(missing, mock_missing, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(tx.file_info));
+    EXPECT_EQ(tx.complete, false);
+
+    // Chunk has a whole to left and right
+    tx.file_info = {{250, 749}};
+    mock_missing = {{0, 249}, {750, 999}};
+    missing = find_chunks_missing(tx);
+    compare_tx_progress(missing, mock_missing, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(tx.file_info));
+    EXPECT_EQ(tx.complete, false);
+
+    // Chunk has a whole in the middle
+    tx.file_info = {{0, 249}, {750,999}};
+    mock_missing = {{250,749}};
+    missing = find_chunks_missing(tx);
+    compare_tx_progress(missing, mock_missing, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(tx.file_info));
+    EXPECT_EQ(tx.complete, false);
+
+    // Chunk has a whole in the middle and ends
+    tx.file_info = {{100, 249}, {750,899}};
+    mock_missing = {{0,99}, {250,749}, {900,999}};
+    missing = find_chunks_missing(tx);
+    compare_tx_progress(missing, mock_missing, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp(tx.file_info));
+    EXPECT_EQ(tx.complete, false);
+
+    // Chunk overlaps beyond the end of the file_size
+    // Chunks that go over the file size are evicted
+    tx.file_info = {{100, 249}, {750,1099}};
+    mock_missing = {{0,99}, {250,999}};
+    missing = find_chunks_missing(tx);
+    compare_tx_progress(missing, mock_missing, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp({{100, 249}}));
+    EXPECT_EQ(tx.complete, false);
+
+    // Chunks completely beyond the file
+    tx.file_info = {{100, 249}, {1099,1199}};
+    mock_missing = {{0,99}, {250,999}};
+    missing = find_chunks_missing(tx);
+    compare_tx_progress(missing, mock_missing, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp({{100, 249}}));
+    EXPECT_EQ(tx.complete, false);
+
+    // Chunks completely beyond the file
+    tx.file_info = {{0, 600}, {500,999}};
+    mock_missing = {};
+    missing = find_chunks_missing(tx);
+    compare_tx_progress(missing, mock_missing, __LINE__);
+    EXPECT_EQ(tx.total_bytes, sum_fp({{0, 999}}));
+    EXPECT_EQ(tx.complete, true);
+}
+
 
 TEST(TransferlibTest, clear_tx_entry)
 {

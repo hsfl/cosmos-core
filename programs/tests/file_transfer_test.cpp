@@ -3317,7 +3317,7 @@ int32_t test_late_meta()
     int32_t iretn = 0;
     Transfer node1, node2;
     size_t num_files = 3;
-    double file_size_kib = 50.;
+    double file_size_kib = 5.;
     double file_size_bytes = file_size_kib * 1024;
 
     // Initialize test parameters
@@ -3355,7 +3355,7 @@ int32_t test_late_meta()
     // Restore old nodeids.ini file here in case test crashes
     restore_original_nodeids();
     // Modify wait times to attempt to trigger REQDATA in DATA receive
-    double waittime_sec = 1;
+    double waittime_sec = 2;
     iretn = node1.set_waittime(node2_name, 2, waittime_sec);
     iretn = node2.set_waittime(node1_name, 2, waittime_sec);
     if (iretn < 0)
@@ -3378,14 +3378,15 @@ int32_t test_late_meta()
     int32_t packet_expected_total
         = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets
         + num_files     // number of METADATA packets
-        + 2             // number of QUEUE packets
-        + 1             // number of REQMETA packets
-        + 0             // number of REQDATA packets
-        + num_files     // number of REQCOMPLETE packets
+        + 4             // number of QUEUE packets, 2 for a usual run, once in the middle along with METADATA when requested, then one final one at the end
+        + 2             // number of REQMETA packets, first is ignored, second after a REQCOMPLETE
+        + 0             // number of REQDATA packets, could happen on imperfect transmission
+        + num_files*2   // number of REQCOMPLETE packets, first after all DATA is sent, second after a wait
         + num_files     // number of COMPLETE packets
         + num_files;    // number of CANCEL packets
-    // Discard the METADATA packet once
-    bool hold_metadata_once = true;
+    // Discard the first round of REQMETA packets
+    int16_t hold_metadata = 2;
+    int16_t num_responses = 4;
     while (true)
     {
         lpackets.clear();
@@ -3393,13 +3394,10 @@ int32_t test_late_meta()
         node1.get_outgoing_lpackets(node2_name, lpackets);
         for (auto& lpacket : lpackets)
         {
-            // For one round of packets, discard all the METADATA packets until later
-            if (hold_metadata_once)
+            // Discard all the METADATA packets until second REQMETA is received
+            if (hold_metadata && lpacket.header.type == PacketComm::TypeId::DataFileMetaData)
             {
-                if (lpacket.header.type == PacketComm::TypeId::DataFileMetaData)
-                {
-                    continue;
-                }
+                continue;
             }
             ++packets_sent[NODE1];
             // Have node 2 receive all these packets
@@ -3417,12 +3415,15 @@ int32_t test_late_meta()
                 respond = true;
             }
         }
-        // The next METADATA packets all to go through
-        hold_metadata_once = false;
 
         // break if transfers stop
         if ((!lpackets.size() && !respond))
         {
+            if (num_responses--)
+            {
+                secondsleep(waittime_sec);
+                continue;
+            }
             string rs = respond ? "true" : "false";
             debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
             break;
@@ -3439,6 +3440,11 @@ int32_t test_late_meta()
             node2.get_outgoing_rpackets(rpackets);
             for (auto& rpacket : rpackets)
             {
+                // Discard all the METADATA packets until second REQMETA is received
+                if (hold_metadata > 0 && rpacket.header.type == PacketComm::TypeId::DataFileReqMeta)
+                {
+                    --hold_metadata;
+                }
                 ++packets_sent[NODE2];
                 debug_packet(rpacket, 1, "Outgoing", &node2_log);
                 // Check packet size
@@ -3703,6 +3709,7 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Log::Logger
         // PACKET_FILE_SIZE_TYPE chunk_start;
         // memmove(&chunk_start, &packet.data[0]+PACKET_DATA_OFFSET_CHUNK_START, sizeof(chunk_start));
         // if (chunk_start != 0)
+        if (!verbose_log)
         {
             return;
         }
@@ -3738,7 +3745,7 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Log::Logger
             }
         case PacketComm::TypeId::DataFileReqData:
             {
-                debug_log->Printf("[REQDATA] v%u ", packet.data[offsetof(packet_struct_metadata, header.version)]);
+                debug_log->Printf("[REQDATA] v");
                 for (auto& byte : packet.data)
                 {
                     debug_log->Printf("%u ", unsigned(byte));
