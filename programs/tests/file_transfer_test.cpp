@@ -31,6 +31,12 @@ CRC16 calc_crc;
 // Whether to remove the created test directories or not
 bool remove_test_dirs = true;
 
+// Verbose log
+bool verbose_log = false;
+
+// User specified test
+string specified_test = "";
+
 // Non-debug logging
 Log::Logger test_log;
 int32_t test_count = 0;
@@ -59,10 +65,12 @@ int32_t write_bad_meta(tx_progress& tx);
 int32_t write_bad_meta(tx_progress& tx, uint16_t num_bytes);
 void debug_packet(PacketComm packet, uint8_t direction, string type, Log::Logger* debug_log);
 template <typename T> T sumv(vector<T> vec);
+void handle_args(int argc, char *argv[]);
 
 // Tests
 typedef int32_t (*test_func)();
 void run_test(test_func, string test_name);
+void run_all_tests();
 int32_t test_zero_size_files();
 int32_t test_large_files_and_queue();
 int32_t test_stop_resume();
@@ -75,6 +83,7 @@ int32_t test_chaotic_order();
 int32_t test_file_deleted_midrun();
 int32_t test_txid_overlap();
 int32_t test_wrong_protocol_version();
+int32_t test_late_meta();
 
 // Used in bad_meta test
 struct old_metalong
@@ -295,31 +304,7 @@ struct test_params
 // main loop
 int main(int argc, char *argv[])
 {
-    // Optional argument packet_size
-    if (argc > 1)
-    {
-        try
-        {
-            remove_test_dirs = !!std::stoi(argv[1]);
-        }
-        catch (std::exception const &e)
-        {
-            std::cout << "Error: <packet_size> argument was invalid: " << e.what() << std::endl;
-            return COSMOS_GENERAL_ERROR_ARGS;
-        }
-    }
-    if (argc > 2)
-    {
-        try
-        {
-            PACKET_SIZE = std::stoi(argv[2]);
-        }
-        catch (std::exception const &e)
-        {
-            std::cout << "Error: <packet_size> argument was invalid: " << e.what() << std::endl;
-            return COSMOS_GENERAL_ERROR_ARGS;
-        }
-    }
+    handle_args(argc, argv);
 
     // Setup log paths and settings
     string debug_log_path = get_cosmosnodes() + "file_transfer_tests";
@@ -339,18 +324,20 @@ int main(int argc, char *argv[])
     //////////////////////////////////////////////////////////////////////////
     // Run tests
     //////////////////////////////////////////////////////////////////////////
-    // run_test(test_zero_size_files, "test_zero_size_files");
-    run_test(test_large_files_and_queue, "test_large_files_and_queue");
-    // run_test(test_stop_resume, "test_stop_resume");
-    // run_test(test_stop_resume2, "test_stop_resume2");
-    // run_test(test_packet_reqcomplete, "test_packet_reqcomplete");
-    // run_test(test_many_files, "test_many_files"); // This one takes about 16 seconds, comment out to save some time to test other tests
-    // run_test(test_packet_cancel_missed, "test_packet_cancel_missed");
-    // run_test(test_bad_meta, "test_bad_meta");
-    // run_test(test_chaotic_order, "test_chaotic_order"); // This test is a bit janky, think of it more as an investigative test. Doesn't necessarily have to pass.
-    // run_test(test_file_deleted_midrun, "test_file_deleted_midrun");
-    // run_test(test_txid_overlap, "test_txid_overlap");
-    // run_test(test_wrong_protocol_version, "test_wrong_protocol_version");
+    specified_test == "test_zero_size_files"        ? run_test(test_zero_size_files, "test_zero_size_files") :
+    specified_test == "test_large_files_and_queue"  ? run_test(test_large_files_and_queue, "test_large_files_and_queue") :
+    specified_test == "test_stop_resume"            ? run_test(test_stop_resume, "test_stop_resume") :
+    specified_test == "test_stop_resume2"           ? run_test(test_stop_resume2, "test_stop_resume2") :
+    specified_test == "test_packet_reqcomplete"     ? run_test(test_packet_reqcomplete, "test_packet_reqcomplete") :
+    specified_test == "test_many_files"             ? run_test(test_many_files, "test_many_files") : // This one takes about 16 seconds, comment out to save some time to test other tests
+    specified_test == "test_packet_cancel_missed"   ? run_test(test_packet_cancel_missed, "test_packet_cancel_missed") :
+    specified_test == "test_bad_meta"               ? run_test(test_bad_meta, "test_bad_meta") :
+    specified_test == "test_chaotic_order"          ? run_test(test_chaotic_order, "test_chaotic_order") : // This test is a bit janky, think of it more as an investigative test. Doesn't necessarily have to pass.
+    specified_test == "test_file_deleted_midrun"    ? run_test(test_file_deleted_midrun, "test_file_deleted_midrun") :
+    specified_test == "test_txid_overlap"           ? run_test(test_txid_overlap, "test_txid_overlap") :
+    specified_test == "test_wrong_protocol_version" ? run_test(test_wrong_protocol_version, "test_wrong_protocol_version") :
+    specified_test == "test_late_meta"              ? run_test(test_late_meta, "test_late_meta") :
+    run_all_tests();
 
     //////////////////////////////////////////////////////////////////////////
     // Clean up
@@ -422,6 +409,23 @@ void run_test(test_func test, string test_name)
         cleanup();
     }
     debug_log.Printf("\n");
+}
+
+void run_all_tests()
+{
+    run_test(test_zero_size_files, "test_zero_size_files");
+    run_test(test_large_files_and_queue, "test_large_files_and_queue");
+    run_test(test_stop_resume, "test_stop_resume");
+    run_test(test_stop_resume2, "test_stop_resume2");
+    run_test(test_packet_reqcomplete, "test_packet_reqcomplete");
+    run_test(test_many_files, "test_many_files"); // This one takes about 16 seconds, comment out to save some time to test other tests
+    run_test(test_packet_cancel_missed, "test_packet_cancel_missed");
+    run_test(test_bad_meta, "test_bad_meta");
+    run_test(test_chaotic_order, "test_chaotic_order"); // This test is a bit janky, think of it more as an investigative test. Doesn't necessarily have to pass.
+    run_test(test_file_deleted_midrun, "test_file_deleted_midrun");
+    run_test(test_txid_overlap, "test_txid_overlap");
+    run_test(test_wrong_protocol_version, "test_wrong_protocol_version");
+    run_test(test_late_meta, "test_late_meta");
 }
 
 // Node 1 attempts to transfer zero-size files to node 2
@@ -3306,6 +3310,182 @@ endoftest:
     return iretn;
 }
 
+// METADATA packet arrives a bit late.
+// Expect: All received chunks should continue to be received WITHOUT being discarded.
+int32_t test_late_meta()
+{
+    int32_t iretn = 0;
+    Transfer node1, node2;
+    size_t num_files = 3;
+    double file_size_kib = 50.;
+    double file_size_bytes = file_size_kib * 1024;
+
+    // Initialize test parameters
+    test_params test;
+    iretn = test.init(node1_name, node2_name, file_size_kib, num_files, __func__);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing test params %d\n", iretn);
+        return iretn;
+    }
+
+    // Load nodeid table
+    load_temp_nodeids();
+
+    iretn = node1.Init(node1_name, &node1_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node1_name.c_str());
+        return iretn;
+    }
+    iretn = node2.Init(node2_name, &node2_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node2_name.c_str());
+        return iretn;
+    }
+    iretn = node1.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
+    node2.set_packet_size(PACKET_SIZE);
+
+    // Restore old nodeids.ini file here in case test crashes
+    restore_original_nodeids();
+    // Modify wait times to attempt to trigger REQDATA in DATA receive
+    double waittime_sec = 1;
+    iretn = node1.set_waittime(node2_name, 2, waittime_sec);
+    iretn = node2.set_waittime(node1_name, 2, waittime_sec);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_waittime %d\n", iretn);
+        return iretn;
+    }
+    vector<PacketComm> lpackets, rpackets;
+    bool respond = false;
+    // Start transfer process
+    iretn = node1.outgoing_tx_load(node2_name);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in outgoing_tx_load\n");
+        return iretn;
+    }
+    // Number of packets sent by each node
+    vector<int32_t> packets_sent = {0,0};
+    const int32_t packet_data_size_limit = node1.get_packet_size() - offsetof(struct packet_struct_data, chunk);
+    int32_t packet_expected_total
+        = num_files*ceil(file_size_bytes / packet_data_size_limit)   // number of DATA packets
+        + num_files     // number of METADATA packets
+        + 2             // number of QUEUE packets
+        + 1             // number of REQMETA packets
+        + 0             // number of REQDATA packets
+        + num_files     // number of REQCOMPLETE packets
+        + num_files     // number of COMPLETE packets
+        + num_files;    // number of CANCEL packets
+    // Discard the METADATA packet once
+    bool hold_metadata_once = true;
+    while (true)
+    {
+        lpackets.clear();
+        // Get node 1's packets to send to node 2
+        node1.get_outgoing_lpackets(node2_name, lpackets);
+        for (auto& lpacket : lpackets)
+        {
+            // For one round of packets, discard all the METADATA packets until later
+            if (hold_metadata_once)
+            {
+                if (lpacket.header.type == PacketComm::TypeId::DataFileMetaData)
+                {
+                    continue;
+                }
+            }
+            ++packets_sent[NODE1];
+            // Have node 2 receive all these packets
+            debug_packet(lpacket, 1, "Outgoing", &node1_log);
+            // Check packet size
+            if (lpacket.data.size() > PACKET_SIZE)
+            {
+                debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, lpacket.header.type, lpacket.data.size(), PACKET_SIZE);
+                goto endoftest;
+            }
+            debug_packet(lpacket, 0, "Incoming", &node2_log);
+            iretn = node2.receive_packet(lpacket);
+            if (iretn == node2.RESPONSE_REQUIRED)
+            {
+                respond = true;
+            }
+        }
+        // The next METADATA packets all to go through
+        hold_metadata_once = false;
+
+        // break if transfers stop
+        if ((!lpackets.size() && !respond))
+        {
+            string rs = respond ? "true" : "false";
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+            break;
+        }
+        if (sumv(packets_sent) > packet_expected_total)
+        {
+            string rs = respond ? "true" : "false";
+            debug_log.Printf("%5d | lpackets.size(): %d, respond: %s, node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", __LINE__, lpackets.size(), rs.c_str(), packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+        }
+
+        if (respond)
+        {
+            rpackets.clear();
+            node2.get_outgoing_rpackets(rpackets);
+            for (auto& rpacket : rpackets)
+            {
+                ++packets_sent[NODE2];
+                debug_packet(rpacket, 1, "Outgoing", &node2_log);
+                // Check packet size
+                if (rpacket.data.size() > PACKET_SIZE)
+                {
+                    debug_log.Printf("%5d | PACKET_SIZE exceeded! type:%d size:%d limit:%d\n", __LINE__, rpacket.header.type, rpacket.data.size(), PACKET_SIZE);
+                    goto endoftest;
+                }
+                debug_packet(rpacket, 0, "Incoming", &node1_log);
+                node1.receive_packet(rpacket);
+            }
+            respond = false;
+        }
+
+        // break if estimate is exceeded
+        if (sumv(packets_sent) > packet_expected_total)
+        {
+            break;
+        }
+    }
+endoftest:
+
+    // Verify expected results
+    iretn = 0;
+    // Number of iteration matches estimate
+    if (sumv(packets_sent) > packet_expected_total)
+    {
+        debug_log.Printf("Verification fail: runlimit exceeded. node1 sent: %d, node2 sent: %d, total packets sent: %d, expected packets sent: %d\n", packets_sent[NODE1], packets_sent[NODE2], sumv(packets_sent), packet_expected_total);
+        --iretn;
+    }
+
+    // File was successfully transferred
+    iretn += test.verify_incoming_dir(node1_name, num_files);
+    iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
+
+    // Outgoing/incoming queues are empty
+    if (node1.outgoing_tx_recount(node2_name) || node2.incoming_tx_recount(node1_name))
+    {
+        debug_log.Printf("Verification fail: queue not empty. node1 outgoing: %d, node2 incoming: %d\n", node1.outgoing_tx_recount(node2_name), node2.incoming_tx_recount(node1_name));
+        --iretn;
+    }
+
+    return iretn;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // Helper functions
 //////////////////////////////////////////////////////////////////////////////
@@ -3437,6 +3617,76 @@ T sumv(vector<T> vec)
 {
     T zero = 0;
     return std::accumulate(vec.begin(), vec.end(), zero);
+}
+
+void handle_args(int argc, char *argv[])
+{
+    printf("Runs a series of tests over the file transfer protocol.\n");
+    // Handle arguments
+    if (argc == 1)
+    {
+        // If left blank, print everything
+        printf("Use --help or -h to display usage.\n\n");
+        return;
+    }
+    for(int i = 1; i < argc; i++){
+        // Handle flags
+        string arg(argv[i]);
+        if (arg == "-h" || arg == "--help")
+        {
+            printf("Usage: monitor_adcs [-h|--help] [-v|--verbose] [-k|--keep-dir] [-p|--packet-size <PACKETSIZE>] [-t|--test <TESTNAME>]\n");
+            printf("  -h or --help flag will print this help message.\n");
+            printf("  -v or --verbose flag will print out the DATA packets to the debug log as well.\n");
+            printf("  -k or --keep-dir flag will not delete the test folders after running.\n");
+            printf("  -p or --packet-size flag will set the size limit of the packet for transmissions during the test. Defaults to 217.\n");
+            printf("  -t or --test flag will have only the specified test be run.\n");
+            printf("<TESTNAME> can be any of the following:\n");
+            printf("  test_zero_size_files\n");
+            printf("  test_large_files_and_queue\n");
+            printf("  test_stop_resume\n");
+            printf("  test_stop_resume2\n");
+            printf("  test_packet_reqcomplete\n");
+            printf("  test_many_files\n");
+            printf("  test_packet_cancel_missed\n");
+            printf("  test_bad_meta\n");
+            printf("  test_chaotic_order\n");
+            printf("  test_file_deleted_midrun\n");
+            printf("  test_txid_overlap\n");
+            printf("  test_wrong_protocol_version\n");
+            printf("  test_late_meta\n");
+            printf("If no test is specified, then all tests will be run.\n");
+            printf("Log files will be created in the ~/cosmos/nodes/ folder.\n");
+            exit(0);
+        }
+        else if (arg == "-v" || arg == "--verbose")
+        {
+            verbose_log = true;
+            printf("Enabled verbose logging.\n");
+        }
+        else if (arg == "-k" || arg == "--keep-dir")
+        {
+            remove_test_dirs = false;
+            printf("Keeping test folders.\n");
+        }
+        else if ((arg == "-p" || arg == "--packet-size") && (i+1 < argc))
+        {
+            ++i;
+            try
+            {
+                PACKET_SIZE = std::stoi(argv[i]);
+            }
+            catch (std::exception const &e)
+            {
+                std::cout << "Error: <packet_size> argument was invalid: " << e.what() << std::endl;
+            }
+            printf("Using packet size %u\n", PACKET_SIZE);
+        }
+        else if ((arg == "-t" || arg == "--test") && (i+1 < argc))
+        {
+            ++i;
+            specified_test = string(argv[i]);
+        }
+    }
 }
 
 //! For printing out debug statements about incoming and outgoing packets.
