@@ -133,18 +133,18 @@ void Event::set_command(string jstring)
 string Event::get_event_string()
 {
     JSONObject jobj;
-    jobj.addElement("event_utc", JSONValue(mjd));
+    jobj.addElement("utc", JSONValue(mjd));
     if (utcexec != 0.)
     {
-        jobj.addElement("event_utcexec", JSONValue(utcexec));
+        jobj.addElement("utcexec", JSONValue(utcexec));
     }
-    jobj.addElement("event_name", JSONValue(name));
-    jobj.addElement("event_type", JSONValue(type));
-    jobj.addElement("event_flag", JSONValue(flag));
-    jobj.addElement("event_data", JSONValue(data));
+    jobj.addElement("name", JSONValue(name));
+    jobj.addElement("type", JSONValue(type));
+    jobj.addElement("flag", JSONValue(flag));
+    jobj.addElement("data", JSONValue(data));
     if (flag & EVENT_FLAG_CONDITIONAL)
     {
-        jobj.addElement("event_condition", JSONValue(condition));
+        jobj.addElement("condition", JSONValue(condition));
     }
 
     return jobj.to_json_string();
