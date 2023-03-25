@@ -85,6 +85,7 @@ int32_t test_chaotic_order();
 int32_t test_file_deleted_midrun();
 int32_t test_txid_overlap();
 int32_t test_wrong_protocol_version();
+int32_t test_wrong_protocol_version2();
 int32_t test_late_meta();
 int32_t test_file_crc_check_fail();
 
@@ -181,6 +182,10 @@ struct test_params
         orig_out_dir = data_base_path(dest_node, "outgoing", agent_subfolder_name);
         dest_in_dir = data_base_path(orig_node, "incoming", agent_subfolder_name);
         double m;
+        if (!num_files)
+        {
+            return 0;
+        }
         if (num_files == 1)
         {
             m = 0;
@@ -339,10 +344,11 @@ int main(int argc, char *argv[])
     specified_test == "test_file_deleted_midrun"    ? run_test(test_file_deleted_midrun, "test_file_deleted_midrun") :
     specified_test == "test_txid_overlap"           ? run_test(test_txid_overlap, "test_txid_overlap") :
     specified_test == "test_wrong_protocol_version" ? run_test(test_wrong_protocol_version, "test_wrong_protocol_version") :
+    specified_test == "test_wrong_protocol_version2"? run_test(test_wrong_protocol_version2, "test_wrong_protocol_version2") :
     specified_test == "test_late_meta"              ? run_test(test_late_meta, "test_late_meta") :
     specified_test == "test_file_crc_check_fail"    ? run_test(test_file_crc_check_fail, "test_file_crc_check_fail") :
     specified_test.empty()                          ? run_all_tests() :
-    printf("No test named %s, run with --help flag to display usage.\n", specified_test.c_str());
+    printf("No test named %s, run with --help flag to display all tests.\n", specified_test.c_str());
 
     //////////////////////////////////////////////////////////////////////////
     // Clean up
@@ -386,7 +392,7 @@ int32_t run_test(test_func test, string test_name)
 {
     int32_t iretn = 0;
     ++test_count;
-    test_log.Printf("%-38s", ("Running " + test_name + "...").c_str());
+    test_log.Printf("%-40s", ("Running " + test_name + "...").c_str());
     debug_log.Printf("%s\n", ("===== Running " + test_name + " =====").c_str());
     node1_log.Printf("%s\n", ("===== Running " + test_name + " =====").c_str());
     node2_log.Printf("%s\n", ("===== Running " + test_name + " =====").c_str());
@@ -432,6 +438,7 @@ int32_t run_all_tests()
     run_test(test_file_deleted_midrun, "test_file_deleted_midrun");
     run_test(test_txid_overlap, "test_txid_overlap");
     run_test(test_wrong_protocol_version, "test_wrong_protocol_version");
+    run_test(test_wrong_protocol_version2, "test_wrong_protocol_version2");
     run_test(test_late_meta, "test_late_meta");
     run_test(test_file_crc_check_fail, "test_file_crc_check_fail");
 
@@ -3320,6 +3327,113 @@ endoftest:
     return iretn;
 }
 
+// Sends every type of protocol packet to a node.
+// Expect: No wrong-version packets will be accepted.
+int32_t test_wrong_protocol_version2()
+{
+    int32_t iretn = 0;
+    Transfer node1;
+
+    // Initialize test parameters
+    test_params test;
+    iretn = test.init(node1_name, node2_name, 0, 0, __func__);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing test params %d\n", iretn);
+        return iretn;
+    }
+
+    // Load nodeid table
+    load_temp_nodeids();
+
+    iretn = node1.Init(node1_name, &node1_log);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error initializing %s\n", node1_name.c_str());
+        return iretn;
+    }
+    iretn = node1.set_packet_size(PACKET_SIZE);
+    if (iretn < 0)
+    {
+        debug_log.Printf("Error in set_packet_size(): %s\n", cosmos_error_string(iretn).c_str());
+        return iretn;
+    }
+
+    // Restore old nodeids.ini file here in case test crashes
+    restore_original_nodeids();
+
+    vector<PacketComm> packets;
+
+    tx_progress tx;
+    tx.tx_id = 172;
+    tx.file_crc = 12345;
+    tx.file_name = "testfile";
+    tx.file_size = 1000;
+    tx.node_name = node1_name;
+    tx.agent_name = "agent1";
+    uint8_t chunk[217];
+    vector<file_progress> holes = {{0,999}};
+    uint8_t bad_ver = 255;
+
+    PacketComm file_packet;
+    file_packet.header.nodeorig = node2_id;
+    file_packet.header.nodedest = node1_id;
+    // QUEUE
+    serialize_queue(file_packet, node2_id, {});
+    packets.push_back(file_packet);
+    // METADATA
+    serialize_metadata(file_packet, node2_id, tx.tx_id, tx.file_crc, tx.file_name, tx.file_size, tx.agent_name);
+    packets.push_back(file_packet);
+    // DATA
+    serialize_data(file_packet, node2_id, tx.tx_id, tx.file_crc, 217, 0, chunk);
+    packets.push_back(file_packet);
+    // REQCOMPLETE
+    serialize_reqcomplete(file_packet, node2_id, tx.tx_id, tx.file_crc);
+    packets.push_back(file_packet);
+    // CANCEL
+    serialize_cancel(file_packet, node2_id, tx.tx_id, PACKET_FILE_CRC_FORCE);
+    packets.push_back(file_packet);
+    // REQMETA
+    serialize_reqmeta(file_packet, node2_id, tx.node_name, {tx.tx_id});
+    packets.push_back(file_packet);
+    // REQDATA
+    serialize_reqdata(packets, node2_id, node1_id, tx.tx_id, tx.file_crc, holes, PACKET_SIZE);
+    packets.push_back(file_packet);
+    // COMPLETE
+    serialize_complete(file_packet, node2_id, tx.tx_id, tx.file_crc);
+    packets.push_back(file_packet);
+
+    iretn = 0;
+    for (auto packet : packets)
+    {
+        packet.data[0] = bad_ver;
+        int32_t rcv_iretn = node1.receive_packet(packet);
+        if (rcv_iretn != TRANSFER_ERROR_VERSION)
+        {
+            debug_log.Printf("%5d | Mismatch version not rejected. ver:%u|%u type:%u retval:%d\n", __LINE__, unsigned(packet.data[0]), unsigned(FILE_TRANSFER_PROTOCOL_VERSION), packet.header.type, rcv_iretn);
+            --iretn;
+        }
+        node1_log.Printf("Packet type:%u returned: (%d) %s\n", packet.header.type, rcv_iretn, cosmos_error_string(rcv_iretn).c_str());
+    }
+
+    // Verify expected results
+    iretn += test.verify_incoming_dir(node1_name, 0);
+    iretn += test.verify_outgoing_dir(node1_name, 0);
+    iretn += test.verify_incoming_dir(node2_name, 0);
+    iretn += test.verify_outgoing_dir(node2_name, 0);
+    iretn += test.verify_temp_dir(node1_name, 0);
+    iretn += test.verify_temp_dir(node2_name, 0);
+
+    // Outgoing/incoming queues are empty
+    if (node1.outgoing_tx_recount(node2_name) || node1.incoming_tx_recount(node2_name))
+    {
+        debug_log.Printf("Verification fail: queue not empty. node1 outgoing: %d, node1 incoming: %d\n", node1.outgoing_tx_recount(node2_name), node1.incoming_tx_recount(node2_name));
+        --iretn;
+    }
+
+    return iretn;
+}
+
 // METADATA packet arrives a bit late.
 // Also, since this nicely gets into the REQDATA section of get_outgoing_rpackets, will also
 // stick in a crc fail case here too.
@@ -3896,6 +4010,7 @@ void handle_args(int argc, char *argv[])
             printf("  test_file_deleted_midrun\n");
             printf("  test_txid_overlap\n");
             printf("  test_wrong_protocol_version\n");
+            printf("  test_wrong_protocol_version2\n");
             printf("  test_late_meta\n");
             printf("  test_file_crc_check_fail\n");
             printf("If no test is specified, then all tests will be run.\n");

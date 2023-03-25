@@ -68,12 +68,11 @@ namespace Cosmos {
             int32_t iretn = 0;
             this->debug_log = debug_log;
 
-            if (this->debug_log != nullptr)
-            {
-                this->debug_log->Printf("Transfer: step 1\n");
-            }
-            // fflush(stdout);
-            // secondsleep(3.);
+            // if (this->debug_log != nullptr)
+            // {
+            //     this->debug_log->Printf("Transfer: step 1\n");
+            // }
+
             // Transfer: Queue
             const int32_t node_ids_size = NodeData::load_node_ids();
             if (node_ids_size < 2)
@@ -84,12 +83,11 @@ namespace Cosmos {
                 }
                 return COSMOS_TRANSFER_ERROR_NODE;
             }
-            if (this->debug_log != nullptr)
-            {
-                this->debug_log->Printf("Transfer: step 2\n");
-            }
-            // fflush(stdout);
-            // secondsleep(3.);
+            // if (this->debug_log != nullptr)
+            // {
+            //     this->debug_log->Printf("Transfer: step 2\n");
+            // }
+
             // Identify and store calling node's node_id
             iretn = NodeData::lookup_node_id(calling_node_name);
             if (iretn == NodeData::NODEIDUNKNOWN)
@@ -102,13 +100,11 @@ namespace Cosmos {
             }
             self_node_id = iretn;
             self_node_name = calling_node_name;
+            // if (this->debug_log != nullptr)
+            // {
+            //     this->debug_log->Printf("Transfer: step 3\n");
+            // }
 
-            if (this->debug_log != nullptr)
-            {
-                this->debug_log->Printf("Transfer: step 3\n");
-            }
-            // fflush(stdout);
-            // secondsleep(3.);
             // Create map of node_ids to indexes into txq
             txq.clear();
             txq.resize(node_ids_size);
@@ -126,13 +122,11 @@ namespace Cosmos {
                 txq[tidx].node_id = it->second;
                 ++tidx;
             }
+            // if (this->debug_log != nullptr)
+            // {
+            //     this->debug_log->Printf("Transfer: step 4\n");
+            // }
 
-            if (this->debug_log != nullptr)
-            {
-                this->debug_log->Printf("Transfer: step 4\n");
-            }
-            // fflush(stdout);
-            // secondsleep(3.);
             // Restore in progress transfers from previous run
             for (auto& transfer_node : txq)
             {
