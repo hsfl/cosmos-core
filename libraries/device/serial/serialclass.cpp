@@ -1315,15 +1315,19 @@ namespace Cosmos {
         return (static_cast<int32_t>(data.size()));
     }
 
-    int32_t Serial::get_data(vector <uint8_t> &data, size_t size)
+    int32_t Serial::get_data(vector <uint8_t> &data, size_t size, bool append)
     {
+        ElapsedTime et;
         if (fd < 0)
         {
             error = SERIAL_ERROR_OPEN;
             return (error);
         }
 
-        data.clear();
+        if (!append)
+        {
+            data.clear();
+        }
         for (uint16_t i=0; i<size; ++i)
         {
             if ((error=get_char()) < 0)

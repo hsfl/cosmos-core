@@ -74,7 +74,7 @@ namespace Cosmos {
         int32_t poll_char();
         int32_t get_char();
         int32_t get_char(uint8_t &buffer);
-        int32_t get_data(vector <uint8_t> &data, size_t size=SIZE_MAX);
+        int32_t get_data(vector <uint8_t> &data, size_t size=SIZE_MAX, bool append=false);
         int32_t get_string(string &data, size_t size=SIZE_MAX);
         int32_t get_string(string &data, char endc=0);
         int32_t get_data(uint8_t *data, size_t size);
