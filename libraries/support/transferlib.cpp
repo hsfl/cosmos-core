@@ -79,10 +79,12 @@ namespace Cosmos {
         {
             packet.header.type = PacketComm::TypeId::DataFileCancel;
             packet.data.resize(sizeof(packet_struct_cancel));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_cancel, header.version), &FILE_TRANSFER_PROTOCOL_VERSION,  sizeof(PACKET_NODE_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_cancel, header.node_id), &orig_node_id,  sizeof(PACKET_NODE_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_cancel, header.tx_id),   &tx_id,         sizeof(PACKET_TX_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_cancel, header.file_crc),&file_crc,      sizeof(PACKET_FILE_CRC_TYPE));
+            file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
+            header.node_id = orig_node_id;
+            header.tx_id = tx_id;
+            header.file_crc = file_crc;
+            memcpy(&packet.data[0], &header, sizeof(file_packet_header));
         }
 
         //! Extracts the necessary fields from a received CANCEL packet.
@@ -112,11 +114,13 @@ namespace Cosmos {
         void serialize_reqcomplete(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc)
         {
             packet.header.type = PacketComm::TypeId::DataFileReqComplete;
-            packet.data.resize(sizeof(packet_struct_reqcomplete));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqcomplete, header.version), &FILE_TRANSFER_PROTOCOL_VERSION,   sizeof(PACKET_NODE_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqcomplete, header.node_id), &orig_node_id,   sizeof(PACKET_NODE_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqcomplete, header.tx_id),   &tx_id,          sizeof(PACKET_TX_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqcomplete, header.file_crc),&file_crc,       sizeof(PACKET_FILE_CRC_TYPE));
+            packet.data.resize(sizeof(file_packet_header));
+            file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
+            header.node_id = orig_node_id;
+            header.tx_id = tx_id;
+            header.file_crc = file_crc;
+            memcpy(&packet.data[0], &header, sizeof(file_packet_header));
         }
 
         //! Extracts the necessary fields from a received REQCOMPLETE packet.
@@ -146,11 +150,13 @@ namespace Cosmos {
         void serialize_complete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc)
         {
             packet.header.type = PacketComm::TypeId::DataFileComplete;
-            packet.data.resize(sizeof(packet_struct_complete));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_complete, header.version), &FILE_TRANSFER_PROTOCOL_VERSION, sizeof(PACKET_NODE_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_complete, header.node_id), &node_id, sizeof(PACKET_NODE_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_complete, header.tx_id),   &tx_id,   sizeof(PACKET_TX_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_complete, header.file_crc),&file_crc,sizeof(PACKET_FILE_CRC_TYPE));
+            packet.data.resize(sizeof(file_packet_header));
+            file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
+            header.node_id = node_id;
+            header.tx_id = tx_id;
+            header.file_crc = file_crc;
+            memcpy(&packet.data[0], &header, sizeof(file_packet_header));
         }
 
         //! Extracts the necessary fields from a received COMPLETE packet.
@@ -168,7 +174,7 @@ namespace Cosmos {
             {
                 return TRANSFER_ERROR_VERSION;
             }
-            memcpy(&complete, pdata.data(), sizeof(packet_struct_complete));
+            memcpy(&complete, pdata.data(), sizeof(file_packet_header));
             return 0;
         }
 
@@ -208,15 +214,23 @@ namespace Cosmos {
             packet.header.nodedest = orig_node_id;
             packet.header.type = PacketComm::TypeId::DataFileReqData;
             packet.data.reserve(packet_data_size);
-            packet.data.resize(offsetof(struct packet_struct_reqdata, holes));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, header.version),    &FILE_TRANSFER_PROTOCOL_VERSION,    sizeof(PACKET_NODE_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, header.node_id),    &self_node_id,    sizeof(PACKET_NODE_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, header.tx_id),      &tx_id,      sizeof(PACKET_TX_ID_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, header.file_crc),   &file_crc,   sizeof(PACKET_FILE_CRC_TYPE));
+
+
             uint16_t num_holes = 0;
+            constexpr size_t num_holes_offset   = sizeof(file_packet_header);
+            constexpr size_t holes_offset       = sizeof(file_packet_header) + sizeof(num_holes);
+            packet.data.resize(holes_offset);
+            file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
+            header.node_id = self_node_id;
+            header.tx_id = tx_id;
+            header.file_crc = file_crc;
+            memcpy(&packet.data[0], &header, sizeof(file_packet_header));
+
+
             // Add as many holes as possible to each reqdata packet
-            const uint8_t has_first = 1;
-            const uint8_t has_last = 2;
+            constexpr uint8_t has_first = 1;
+            constexpr uint8_t has_last = 2;
             // Apply has_first or has_last bit masking to this to signify whether the current
             // reqdata packet contains the first and/or last hole
             uint8_t contains_first_or_last = has_first;
@@ -229,12 +243,12 @@ namespace Cosmos {
                 if (packet.data.size() + sizeof(holes[i]) > static_cast<size_t>(packet_data_size-1))
                 {
                     // Copy in num_holes into place
-                    memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, num_holes), &num_holes, sizeof(num_holes));
+                    memcpy(&packet.data[0]+num_holes_offset, &num_holes, sizeof(num_holes));
                     // Last element is first/last signifier
                     packet.data.push_back(contains_first_or_last);
                     packets.push_back(packet);
-                    // Resize back to reqdata header
-                    packet.data.resize(offsetof(struct packet_struct_reqdata, holes));
+                    // Resize back to reqdata header to create next reqdata packet
+                    packet.data.resize(holes_offset);
                     num_holes = 0;
                     contains_first_or_last = 0;
                 }
@@ -245,7 +259,7 @@ namespace Cosmos {
             // Mark last packet as containing the last hole
             contains_first_or_last |= has_last;
             packet.data.push_back(contains_first_or_last);
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_reqdata, num_holes), &num_holes, sizeof(num_holes));
+            memcpy(&packet.data[0]+num_holes_offset, &num_holes, sizeof(num_holes));
             packets.push_back(packet);
         }
 
@@ -269,20 +283,22 @@ namespace Cosmos {
                 return TRANSFER_ERROR_VERSION;
             }
 
-            if (pdata.size() < offsetof(struct packet_struct_reqdata, holes))
+            constexpr size_t num_holes_offset   = sizeof(file_packet_header);
+            constexpr size_t holes_offset       = sizeof(file_packet_header) + sizeof(uint16_t);
+            if (pdata.size() < holes_offset)
             {
                 return COSMOS_DATA_ERROR_SIZE_MISMATCH;
             }
-            memcpy(&reqdata.header,     &pdata[0]+offsetof(struct packet_struct_reqdata, header),     sizeof(packet_struct_reqdata::header));
-            memcpy(&reqdata.num_holes,  &pdata[0]+offsetof(struct packet_struct_reqdata, num_holes),  sizeof(packet_struct_reqdata::num_holes));
-            size_t packet_size = offsetof(struct packet_struct_reqdata, holes) + reqdata.num_holes * sizeof(file_progress);
+            memcpy(&reqdata.header,     &pdata[0],     sizeof(packet_struct_reqdata::header));
+            memcpy(&reqdata.num_holes,  &pdata[0]+num_holes_offset,  sizeof(packet_struct_reqdata::num_holes));
+            size_t packet_size = holes_offset + reqdata.num_holes * sizeof(file_progress);
             // Last byte must be the first/last hole signifier
             if (pdata.size() != packet_size + 1)
             {
                 return COSMOS_DATA_ERROR_SIZE_MISMATCH;
             }
             reqdata.holes.resize(reqdata.num_holes);
-            memcpy(reqdata.holes.data(), pdata.data()+offsetof(struct packet_struct_reqdata, holes), reqdata.num_holes*sizeof(file_progress));
+            memcpy(reqdata.holes.data(), pdata.data()+holes_offset, reqdata.num_holes*sizeof(file_progress));
             // Return first/last hole signifier
             return pdata[pdata.size()-1];
         }
@@ -299,7 +315,7 @@ namespace Cosmos {
         //! \return n/a
         void serialize_metafile(vector<PACKET_BYTE>& pdata, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& node_name, const string& agent_name)
         {
-            const uint8_t MAXSTRLEN = sizeof(uint8_t);
+            constexpr uint8_t MAXSTRLEN = sizeof(uint8_t);
             pdata.resize(
                 MAXSTRLEN                           // node_name_len
                 + node_name.size()                  // node_name
@@ -337,7 +353,7 @@ namespace Cosmos {
         //! \return 0 on success, negative on error
         int32_t deserialize_metafile(const vector<PACKET_BYTE>& pdata, packet_struct_metafile &meta)
         {
-            const uint8_t MAXSTRLEN = sizeof(uint8_t);
+            constexpr uint8_t MAXSTRLEN = sizeof(uint8_t);
             size_t offset = 0;
             meta.node_name_len = pdata[offset];
             offset += MAXSTRLEN;
@@ -373,7 +389,7 @@ namespace Cosmos {
         //! \return n/a
         void serialize_metadata(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id , PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& agent_name)
         {
-            const uint8_t MAXSTRLEN = sizeof(uint8_t);
+            constexpr uint8_t MAXSTRLEN = sizeof(uint8_t);
             packet.header.type = PacketComm::TypeId::DataFileMetaData;
             packet.data.resize(
                 sizeof(file_packet_header)          // header
@@ -417,7 +433,7 @@ namespace Cosmos {
             {
                 return TRANSFER_ERROR_VERSION;
             }
-            const uint8_t MAXSTRLEN = sizeof(uint8_t);
+            constexpr uint8_t MAXSTRLEN = sizeof(uint8_t);
             size_t offset = 0;
             memcpy(&meta.header, &pdata[offset], sizeof(file_packet_header));
             offset += sizeof(file_packet_header);
@@ -445,16 +461,20 @@ namespace Cosmos {
         void serialize_data(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk)
         {
             packet.header.type = PacketComm::TypeId::DataFileChunkData;
-            packet.data.resize(offsetof(struct packet_struct_data, chunk) + byte_count);
+            constexpr size_t byte_count_offset  = sizeof(file_packet_header);
+            constexpr size_t chunk_start_offset = byte_count_offset     + sizeof(PACKET_CHUNK_SIZE_TYPE);
+            constexpr size_t chunk_offset       = chunk_start_offset    + sizeof(PACKET_FILE_SIZE_TYPE);
+
+            packet.data.resize(chunk_offset + byte_count);
             file_packet_header header;
             header.version = FILE_TRANSFER_PROTOCOL_VERSION;
             header.node_id = orig_node_id;
             header.tx_id = tx_id;
             header.file_crc = file_crc;
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_data, header),      &header,        sizeof(file_packet_header));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_data, byte_count),  &byte_count,    sizeof(PACKET_CHUNK_SIZE_TYPE));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_data, chunk_start), &chunk_start,   sizeof(chunk_start));
-            memcpy(&packet.data[0]+offsetof(struct packet_struct_data, chunk),       chunk,          byte_count);
+            memcpy(&packet.data[0],                    &header,        sizeof(file_packet_header));
+            memcpy(&packet.data[0]+byte_count_offset,  &byte_count,    sizeof(PACKET_CHUNK_SIZE_TYPE));
+            memcpy(&packet.data[0]+chunk_start_offset, &chunk_start,   sizeof(chunk_start));
+            memcpy(&packet.data[0]+chunk_offset,       chunk,          byte_count);
         }
 
         //! Extracts the necessary fields from a received DATA packet.
@@ -472,11 +492,15 @@ namespace Cosmos {
             {
                 return TRANSFER_ERROR_VERSION;
             }
-            memcpy(&data.header,      &pdata[0]+offsetof(struct packet_struct_data, header),      sizeof(file_packet_header));
-            memcpy(&data.byte_count,  &pdata[0]+offsetof(struct packet_struct_data, byte_count),  sizeof(data.byte_count));
-            memcpy(&data.chunk_start, &pdata[0]+offsetof(struct packet_struct_data, chunk_start), sizeof(data.chunk_start));
+            constexpr size_t byte_count_offset  = sizeof(file_packet_header);
+            constexpr size_t chunk_start_offset = byte_count_offset     + sizeof(PACKET_CHUNK_SIZE_TYPE);
+            constexpr size_t chunk_offset       = chunk_start_offset    + sizeof(PACKET_FILE_SIZE_TYPE);
+
+            memcpy(&data.header,      &pdata[0],      sizeof(file_packet_header));
+            memcpy(&data.byte_count,  &pdata[0]+byte_count_offset,  sizeof(data.byte_count));
+            memcpy(&data.chunk_start, &pdata[0]+chunk_start_offset, sizeof(data.chunk_start));
             data.chunk.resize(data.byte_count);
-            memcpy(data.chunk.data(), pdata.data()+offsetof(struct packet_struct_data, chunk), data.byte_count);
+            memcpy(data.chunk.data(), pdata.data()+chunk_offset, data.byte_count);
             return 0;
         }
 

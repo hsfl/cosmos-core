@@ -33,7 +33,7 @@ namespace Cosmos {
 
         //! Increment version whenever the protocol has breaking changes to avoid version mismatches.
         //! This is the version number of the protocol packets that are sent between nodes.
-        constexpr uint8_t FILE_TRANSFER_PROTOCOL_VERSION = 2;
+        constexpr uint8_t FILE_TRANSFER_PROTOCOL_VERSION = 3;
         //! This is the version of the .meta and .file files that are created and used by write_meta() and read_meta.
         //!To be treated separately from FILE_TRANSFER_PROTOCOL_VERSION.
         constexpr uint8_t FILE_TRANSFER_METAFILE_VERSION = 99;

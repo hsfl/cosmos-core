@@ -637,14 +637,16 @@ TEST(TransferlibTest, reqdata_packets)
     {
         packet_struct_reqdata reqdata;
         int32_t start_end_signifier = deserialize_reqdata(packet.data, reqdata);
-        EXPECT_GE(start_end_signifier, 0);
-        if (start_end_signifier < 0)
-        {
-            continue;
-        }
+        EXPECT_EQ(unsigned(reqdata.header.node_id), unsigned(self_node_id));
         
         EXPECT_GT(reqdata.header.tx_id, 0);
         if (tx_id <= 0)
+        {
+            continue;
+        }
+
+        EXPECT_GE(start_end_signifier, 0);
+        if (start_end_signifier < 0)
         {
             continue;
         }
@@ -670,7 +672,6 @@ TEST(TransferlibTest, reqdata_packets_no_holes)
     tx.file_size = tx2.file_size = 1000;
     tx2.file_info = {{0,999}};
 
-    // Chunk has a whole in the middle and ends
     tx.file_info = {{0,999}};
     mock_missing = {};
     missing = find_chunks_missing(tx);
@@ -832,6 +833,162 @@ TEST(TransferlibTest, clear_tx_entry)
     clear_tx_entry(tx);
     // Look inside the folder of the test executable, no testfiles should be around if
     // clear_tx_entry properly cleaned things up
+}
+
+TEST(TransferlibTest, data_packets_are_correct)
+{
+    PacketComm packet;
+    uint8_t orig_node_id = 1;
+    PACKET_TX_ID_TYPE tx_id = 172;
+    PACKET_FILE_SIZE_TYPE file_crc = 25522;
+    PACKET_CHUNK_SIZE_TYPE byte_count = 150;
+    PACKET_FILE_SIZE_TYPE chunk_start = 0;
+    PACKET_BYTE chunk[150];
+    for (size_t i=0; i<byte_count; ++i)
+    {
+        chunk[i] = i;
+    }
+    serialize_data(packet, orig_node_id, tx_id, file_crc, byte_count, chunk_start, chunk);
+
+    packet_struct_data data;
+    deserialize_data(packet.data, data);
+    EXPECT_EQ(data.header.version, FILE_TRANSFER_PROTOCOL_VERSION);
+    EXPECT_EQ(data.header.node_id, orig_node_id);
+    EXPECT_EQ(data.header.tx_id, tx_id);
+    EXPECT_EQ(data.header.file_crc, file_crc);
+    EXPECT_EQ(data.byte_count, byte_count);
+    EXPECT_EQ(data.chunk_start, chunk_start);
+    ASSERT_EQ(data.chunk.size(), byte_count);
+    bool diff = false;
+    for (size_t i=0; i<byte_count; ++i)
+    {
+        if (data.chunk[i] != chunk[i])
+        {
+            diff = true;
+            break;
+        }
+    }
+    EXPECT_EQ(diff, false);
+}
+
+TEST(TransferlibTest, complete_packets_are_correct)
+{
+    PacketComm packet;
+    uint8_t node_id = 1;
+    PACKET_TX_ID_TYPE tx_id = 172;
+    PACKET_FILE_SIZE_TYPE file_crc = 25522;
+    serialize_complete(packet, node_id, tx_id, file_crc);
+
+    packet_struct_complete complete;
+    deserialize_complete(packet.data, complete);
+    EXPECT_EQ(complete.header.version, FILE_TRANSFER_PROTOCOL_VERSION);
+    EXPECT_EQ(complete.header.node_id, node_id);
+    EXPECT_EQ(complete.header.tx_id, tx_id);
+    EXPECT_EQ(complete.header.file_crc, file_crc);
+}
+
+TEST(TransferlibTest, reqcomplete_packets_are_correct)
+{
+    PacketComm packet;
+    uint8_t node_id = 1;
+    PACKET_TX_ID_TYPE tx_id = 172;
+    PACKET_FILE_SIZE_TYPE file_crc = 25522;
+    serialize_reqcomplete(packet, node_id, tx_id, file_crc);
+
+    packet_struct_reqcomplete reqcomplete;
+    deserialize_reqcomplete(packet.data, reqcomplete);
+    EXPECT_EQ(reqcomplete.header.version, FILE_TRANSFER_PROTOCOL_VERSION);
+    EXPECT_EQ(reqcomplete.header.node_id, node_id);
+    EXPECT_EQ(reqcomplete.header.tx_id, tx_id);
+    EXPECT_EQ(reqcomplete.header.file_crc, file_crc);
+}
+
+TEST(TransferlibTest, metadata_packets_are_correct)
+{
+    PacketComm packet;
+    uint8_t node_id = 1;
+    PACKET_TX_ID_TYPE tx_id = 172;
+    PACKET_FILE_SIZE_TYPE file_crc = 25522;
+    const string file_name = "filename";
+    PACKET_FILE_SIZE_TYPE file_size = 63330;
+    const string agent_name = "agentname";
+    serialize_metadata(packet, node_id, tx_id, file_crc, file_name, file_size, agent_name);
+
+    packet_struct_metadata meta;
+    deserialize_metadata(packet.data, meta);
+    EXPECT_EQ(meta.header.version, FILE_TRANSFER_PROTOCOL_VERSION);
+    EXPECT_EQ(meta.header.node_id, node_id);
+    EXPECT_EQ(meta.header.tx_id, tx_id);
+    EXPECT_EQ(meta.header.file_crc, file_crc);
+    EXPECT_EQ(meta.agent_name_len, agent_name.size());
+    EXPECT_EQ(meta.agent_name, agent_name);
+    EXPECT_EQ(meta.file_name_len, file_name.size());
+    EXPECT_EQ(meta.file_name, file_name);
+    EXPECT_EQ(meta.file_size, file_size);
+}
+
+TEST(TransferlibTest, reqmeta_packets_are_correct)
+{
+    PacketComm packet;
+    uint8_t node_id = 1;
+    PACKET_TX_ID_TYPE tx_id = 0;
+    PACKET_FILE_SIZE_TYPE file_crc = 0;
+    const string node_name = "nodename";
+    vector<PACKET_TX_ID_TYPE> req_ids = {1, 2, 15, 33, 34, 56, 122, 208, 244};
+    serialize_reqmeta(packet, node_id, node_name, req_ids);
+
+    packet_struct_reqmeta reqmeta;
+    deserialize_reqmeta(packet.data, reqmeta);
+    EXPECT_EQ(reqmeta.header.version, FILE_TRANSFER_PROTOCOL_VERSION);
+    EXPECT_EQ(reqmeta.header.node_id, node_id);
+    EXPECT_EQ(reqmeta.header.tx_id, tx_id);
+    EXPECT_EQ(reqmeta.header.file_crc, file_crc);
+    for (auto tx_id : req_ids)
+    {
+        uint8_t bitshift = tx_id % 8;
+        uint8_t bucket = tx_id / 8;
+        EXPECT_EQ((reqmeta.tx_ids[bucket] >> bitshift) & 0x1, 1) << "tx_id: " << unsigned(tx_id);
+    }
+}
+
+TEST(TransferlibTest, queue_packets_are_correct)
+{
+    PacketComm packet;
+    uint8_t node_id = 1;
+    PACKET_TX_ID_TYPE tx_id = 0;
+    PACKET_FILE_SIZE_TYPE file_crc = 0;
+    const string node_name = "nodename";
+    vector<PACKET_TX_ID_TYPE> req_ids = {1, 2, 15, 33, 34, 56, 122, 208, 244};
+    serialize_queue(packet, node_id, req_ids);
+
+    packet_struct_queue queue;
+    deserialize_queue(packet.data, queue);
+    EXPECT_EQ(queue.header.version, FILE_TRANSFER_PROTOCOL_VERSION);
+    EXPECT_EQ(queue.header.node_id, node_id);
+    EXPECT_EQ(queue.header.tx_id, tx_id);
+    EXPECT_EQ(queue.header.file_crc, file_crc);
+    for (auto tx_id : req_ids)
+    {
+        uint8_t bitshift = tx_id % 8;
+        uint8_t bucket = tx_id / 8;
+        EXPECT_EQ((queue.tx_ids[bucket] >> bitshift) & 0x1, 1) << "tx_id: " << unsigned(tx_id);
+    }
+}
+
+TEST(TransferlibTest, cancel_packets_are_correct)
+{
+    PacketComm packet;
+    uint8_t node_id = 1;
+    PACKET_TX_ID_TYPE tx_id = 172;
+    PACKET_FILE_SIZE_TYPE file_crc = 25522;
+    serialize_cancel(packet, node_id, tx_id, file_crc);
+
+    packet_struct_cancel cancel;
+    deserialize_cancel(packet.data, cancel);
+    EXPECT_EQ(cancel.header.version, FILE_TRANSFER_PROTOCOL_VERSION);
+    EXPECT_EQ(cancel.header.node_id, node_id);
+    EXPECT_EQ(cancel.header.tx_id, tx_id);
+    EXPECT_EQ(cancel.header.file_crc, file_crc);
 }
 
 #endif // End __TRANSFERLIB_UT_H__
