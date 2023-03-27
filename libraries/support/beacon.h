@@ -110,6 +110,7 @@ namespace Cosmos {
 //                {TypeId::ADCSSSENBeacon, "ADCSSSENBeacon"},
 //                {TypeId::ADCSATTBeacon, "ADCSATTBeacon"},
                 {TypeId::RadioBeacon, "RadioBeacon"},
+                {TypeId::CameraBeacon, "CameraBeacon"},
             };
 
             int32_t Init();
