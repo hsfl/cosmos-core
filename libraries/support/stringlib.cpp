@@ -81,6 +81,38 @@ vector < string > string_split(string in, string delimeters, bool multi) {
     return result;
 }
 
+//! \brief Find nth occurence
+//! Return position of the nth occurence of desired string
+//! \param input Input string to search
+//! \param chars Characters to look for
+//! \return Position, or string::npos
+size_t string_find(string input, string chars, uint16_t num)
+{
+    size_t pos = 0;
+    for (uint16_t i=0; i<num; ++i)
+    {
+        size_t npos = input.find(chars);
+        if (npos == string::npos || npos+1 >= input.size())
+        {
+            pos = string::npos;
+            break;
+        }
+        else
+        {
+            pos += npos + 1;
+            input = input.substr(npos + 1);
+        }
+    }
+    if (pos == 0)
+    {
+        return string::npos;
+    }
+    else
+    {
+        return pos;
+    }
+}
+
 //! \brief Join a vector of string together
 //! Turn vector<string> into a single string, separated by delimeter.
 //! \param in vector<string>
