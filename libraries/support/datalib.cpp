@@ -71,10 +71,11 @@ DataLog::DataLog()
 
 //! \brief Initialize ::DataLog
 //! Preset DataLog to be used for provided conditions
-int32_t DataLog::Init(std::string node, std::string agent, std::string type, std::string extra, double stride, bool fastmode)
+int32_t DataLog::Init(std::string node, std::string location, std::string agent, std::string type, std::string extra, double stride, bool fastmode)
 {
     fout = nullptr;
     this->node = node;
+    this->location = location;
     this->agent = agent;
     this->type = type;
     this->extra = extra;
@@ -162,9 +163,9 @@ int32_t DataLog::Write(vector<uint8_t>& data)
             fclose(fout);
             fout = nullptr;
         }
-        if (!path.empty() && path.find("/temp/") != string::npos)
+        if (!path.empty() && !location.empty() && path.find("/temp/") != string::npos)
         {
-            string movepath = string_replace(path, "/temp", "/outgoing");
+            string movepath = string_replace(path, "/temp", "/" + location);
             iretn = log_move_file(path, movepath, true);
         }
         if (iretn < 0)
@@ -199,14 +200,12 @@ int32_t DataLog::Write(vector<uint8_t>& data)
 //! is created as {node}_yyyyjjjsssss_{extra}.{type}
 //! \param data Data to be written.
 //! \param node Node name.
-//! \param agent Agent name.
+//! \param location Location, subfolder of node.
+//! \param agent Agent name, subfolder of location.
 //! \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
-//! \param extra Extra part  of name.
 //! \param type Type part of name.
-//! \param record String to be appended to file.
-//! \param location Location name.
-
-int32_t DataLog::Write(vector<uint8_t> data, string node, string agent, string type, string extra)
+//! \param extra Extra part  of name.
+int32_t DataLog::Write(vector<uint8_t> data, string node, string location, string agent, string type, string extra)
 {
     int32_t iretn = 0;
     if (currentmjd() >= enddate)
@@ -218,10 +217,10 @@ int32_t DataLog::Write(vector<uint8_t> data, string node, string agent, string t
             fclose(fout);
             fout = nullptr;
         }
-        if (!path.empty() && path.find("/temp/") != string::npos)
+        if (!path.empty() && !location.empty() && path.find("/temp/") != string::npos)
         {
             string movepath = path;
-            movepath.replace(movepath.find("/temp/"), 10, "/outgoing/");
+            movepath.replace(movepath.find("/temp/"), 10, "/"+location+"/");
             iretn = log_move_file(path, movepath, true);
         }
         if (iretn < 0)

@@ -205,18 +205,19 @@ class DataLog
 {
 public:
     DataLog();
-    int32_t Init(string node, string agent="self", string type="log", string extra="", double stride=0., bool fastmode=false);
+    int32_t Init(string node, string location="outgoing", string agent="self", string type="log", string extra="", double stride=0., bool fastmode=false);
     int32_t Write(string& data);
     int32_t Write(vector<uint8_t>& data);
-    int32_t Write(vector<uint8_t> data, string node, string agent="generic", string type="log", string extra="");
+    int32_t Write(vector<uint8_t> data, string node, string location="outgoing", string agent="generic", string type="log", string extra="");
     int32_t Write(double utc, vector<uint8_t> data, string node, string agent="generic", string type="log", string extra="");
     int32_t Write(string data, string node, string agent="generic", string type="log", string extra="");
-    int32_t Write(double utc, string data, string node, string agent="generic", string type="log", string extra="");
+    int32_t Write(double utc, string data, string node, string location="outgoing", string agent="generic", string type="log", string extra="");
     int32_t SetStride(double seconds=0.);
     int32_t SetFastmode(bool state=false);
     int32_t SetStartdate(double mjd=0.);
 
     string node;
+    string location;
     string agent;
     string type;
     string extra;
