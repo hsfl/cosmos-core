@@ -1,31 +1,31 @@
 /********************************************************************
-* Copyright (C) 2015 by Interstel Technologies, Inc.
-*   and Hawaii Space Flight Laboratory.
-*
-* This file is part of the COSMOS/core that is the central
-* module for COSMOS. For more information on COSMOS go to
-* <http://cosmos-project.com>
-*
-* The COSMOS/core software is licenced under the
-* GNU Lesser General Public License (LGPL) version 3 licence.
-*
-* You should have received a copy of the
-* GNU Lesser General Public License
-* If not, go to <http://www.gnu.org/licenses/>
-*
-* COSMOS/core is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public License
-* as published by the Free Software Foundation, either version 3 of
-* the License, or (at your option) any later version.
-*
-* COSMOS/core is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* Refer to the "licences" folder for further information on the
-* condititons and terms to use this software.
-********************************************************************/
+ * Copyright (C) 2015 by Interstel Technologies, Inc.
+ *   and Hawaii Space Flight Laboratory.
+ *
+ * This file is part of the COSMOS/core that is the central
+ * module for COSMOS. For more information on COSMOS go to
+ * <http://cosmos-project.com>
+ *
+ * The COSMOS/core software is licenced under the
+ * GNU Lesser General Public License (LGPL) version 3 licence.
+ *
+ * You should have received a copy of the
+ * GNU Lesser General Public License
+ * If not, go to <http://www.gnu.org/licenses/>
+ *
+ * COSMOS/core is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * COSMOS/core is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * Refer to the "licences" folder for further information on the
+ * condititons and terms to use this software.
+ ********************************************************************/
 
 /*! \file convertlib.cpp
     \brief Coordinate conversion library source file
@@ -41,8 +41,10 @@
 
 #include <iostream>
 
-namespace Cosmos {
-    namespace Convert {
+namespace Cosmos
+{
+    namespace Convert
+    {
 
         struct iersstruc
         {
@@ -55,8 +57,7 @@ namespace Cosmos {
 
         static uint16_t tlecount;
         static vector<iersstruc> iers;
-        static uint32_t iersbase=0;
-
+        static uint32_t iersbase = 0;
 
         //! \addtogroup convertlib_functions
         //! @{
@@ -138,7 +139,7 @@ namespace Cosmos {
             double tt = utc2tt(utc);
             if (tt <= 0.)
             {
-                return static_cast <int32_t>(tt);
+                return static_cast<int32_t>(tt);
             }
             loc.pos.extra.tt = tt;
 
@@ -146,21 +147,20 @@ namespace Cosmos {
             loc.pos.extra.tdb = utc2tdb(utc);
             loc.pos.extra.ut = utc2ut1(utc);
 
-            gcrf2itrs(utc,&loc.pos.extra.j2t,&loc.pos.extra.j2e,&loc.pos.extra.dj2e,&loc.pos.extra.ddj2e);
+            gcrf2itrs(utc, &loc.pos.extra.j2t, &loc.pos.extra.j2e, &loc.pos.extra.dj2e, &loc.pos.extra.ddj2e);
             loc.pos.extra.t2j = rm_transpose(loc.pos.extra.j2t);
             loc.pos.extra.e2j = rm_transpose(loc.pos.extra.j2e);
             loc.pos.extra.de2j = rm_transpose(loc.pos.extra.dj2e);
             loc.pos.extra.dde2j = rm_transpose(loc.pos.extra.ddj2e);
 
-            jpllib(utc,&loc.pos.extra.s2t,&loc.pos.extra.ds2t);
+            jpllib(utc, &loc.pos.extra.s2t, &loc.pos.extra.ds2t);
             loc.pos.extra.t2s = rm_transpose(loc.pos.extra.s2t);
             loc.pos.extra.dt2s = rm_transpose(loc.pos.extra.ds2t);
 
-            loc.pos.extra.j2s = rm_mmult(loc.pos.extra.t2s,loc.pos.extra.j2t);
+            loc.pos.extra.j2s = rm_mmult(loc.pos.extra.t2s, loc.pos.extra.j2t);
             loc.pos.extra.s2j = rm_transpose(loc.pos.extra.j2s);
 
-
-            jplpos(JPL_SUN_BARY,JPL_EARTH,loc.pos.extra.tt,&loc.pos.extra.sun2earth);
+            jplpos(JPL_SUN_BARY, JPL_EARTH, loc.pos.extra.tt, &loc.pos.extra.sun2earth);
             loc.pos.extra.sun2earth.utc = utc;
             locstruc tloc;
             tloc.utc = utc;
@@ -169,7 +169,7 @@ namespace Cosmos {
             tloc.pos.eci.s = rv_smult(-1., tloc.pos.eci.s);
             pos_eci2geoc(tloc);
             loc.pos.extra.sungeo = tloc.pos.geod.s;
-            jplpos(JPL_SUN_BARY,JPL_MOON,loc.pos.extra.tt,&loc.pos.extra.sun2moon);
+            jplpos(JPL_SUN_BARY, JPL_MOON, loc.pos.extra.tt, &loc.pos.extra.sun2moon);
             loc.pos.extra.sun2moon.utc = utc;
             tloc.pos.eci.s = rv_sub(loc.pos.extra.sun2moon.s, loc.pos.extra.sun2earth.s);
             pos_eci2geoc(tloc);
@@ -209,41 +209,39 @@ namespace Cosmos {
 
             // Determine closest planetary body
             loc.pos.extra.closest = COSMOS_EARTH;
-            if (length_rv(rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2moon.s)) < length_rv(rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2earth.s)))
+            if (length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2moon.s)) < length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2earth.s)))
                 loc.pos.extra.closest = COSMOS_MOON;
 
             // Set SUN specific stuff
             distance = length_rv(loc.pos.icrf.s);
-            loc.pos.sunsize = static_cast <float>(RSUNM/distance);
-            loc.pos.sunradiance = static_cast <float>(3.839e26/(4.*DPI*distance*distance));
+            loc.pos.sunsize = static_cast<float>(RSUNM / distance);
+            loc.pos.sunradiance = static_cast<float>(3.839e26 / (4. * DPI * distance * distance));
 
             // Check Earth:Sun separation
-            sat2body = rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2earth.s);
-            loc.pos.earthsep = static_cast <float>(sep_rv(loc.pos.icrf.s,sat2body));
-            loc.pos.earthsep -= static_cast <float>(asin(REARTHM/length_rv(sat2body)));
+            sat2body = rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2earth.s);
+            loc.pos.earthsep = static_cast<float>(sep_rv(loc.pos.icrf.s, sat2body));
+            loc.pos.earthsep -= static_cast<float>(asin(REARTHM / length_rv(sat2body)));
             if (loc.pos.earthsep < -loc.pos.sunsize)
                 loc.pos.sunradiance = 0.;
-            else
-                if (loc.pos.earthsep <= loc.pos.sunsize)
-                {
-                    theta = DPI*(loc.pos.sunsize+loc.pos.earthsep)/loc.pos.sunsize;
-                    loc.pos.sunradiance *= static_cast <float>((theta - sin(theta))/D2PI);
-                }
+            else if (loc.pos.earthsep <= loc.pos.sunsize)
+            {
+                theta = DPI * (loc.pos.sunsize + loc.pos.earthsep) / loc.pos.sunsize;
+                loc.pos.sunradiance *= static_cast<float>((theta - sin(theta)) / D2PI);
+            }
 
             // Set Moon specific stuff
-            sat2body = rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2moon.s);
+            sat2body = rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2moon.s);
 
             // Check Earth:Moon separation
-            loc.pos.moonsep = static_cast <float>(sep_rv(loc.pos.icrf.s,sat2body));
-            loc.pos.moonsep -= static_cast <float>(asin(RMOONM/length_rv(sat2body)));
+            loc.pos.moonsep = static_cast<float>(sep_rv(loc.pos.icrf.s, sat2body));
+            loc.pos.moonsep -= static_cast<float>(asin(RMOONM / length_rv(sat2body)));
             if (loc.pos.moonsep < -loc.pos.sunsize)
                 loc.pos.sunradiance = 0.;
-            else
-                if (loc.pos.moonsep <= loc.pos.sunsize)
-                {
-                    theta = DPI*(loc.pos.sunsize+loc.pos.moonsep)/loc.pos.sunsize;
-                    loc.pos.sunradiance *= static_cast <float>((theta - sin(theta))/D2PI);
-                }
+            else if (loc.pos.moonsep <= loc.pos.sunsize)
+            {
+                theta = DPI * (loc.pos.sunsize + loc.pos.moonsep) / loc.pos.sunsize;
+                loc.pos.sunradiance *= static_cast<float>((theta - sin(theta)) / D2PI);
+            }
 
             // Set related attitudes
             loc.att.icrf.pass = loc.pos.icrf.pass;
@@ -550,7 +548,7 @@ namespace Cosmos {
             geomag_front(loc.pos.geod.s, mjd2year(loc.utc), loc.pos.bearth);
 
             // Transform to ITRS
-            loc.pos.bearth = irotate(q_change_around_z(-loc.pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc.pos.geod.s.lat),loc.pos.bearth));
+            loc.pos.bearth = irotate(q_change_around_z(-loc.pos.geod.s.lon), irotate(q_change_around_y(DPI2 + loc.pos.geod.s.lat), loc.pos.bearth));
             return 0;
         }
 
@@ -589,9 +587,9 @@ namespace Cosmos {
             // Heliocentric to Geocentric Ecliptic
             loc.pos.eci.s = loc.pos.eci.v = loc.pos.eci.a = rv_zero();
 
-            loc.pos.eci.s = rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2earth.s);
-            loc.pos.eci.v = rv_sub(loc.pos.icrf.v,loc.pos.extra.sun2earth.v);
-            loc.pos.eci.a = rv_sub(loc.pos.icrf.a,loc.pos.extra.sun2earth.a);
+            loc.pos.eci.s = rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2earth.s);
+            loc.pos.eci.v = rv_sub(loc.pos.icrf.v, loc.pos.extra.sun2earth.v);
+            loc.pos.eci.a = rv_sub(loc.pos.icrf.a, loc.pos.extra.sun2earth.a);
             return 0;
         }
 
@@ -628,9 +626,9 @@ namespace Cosmos {
             loc.pos.icrf.utc = loc.pos.eci.utc;
 
             // Geocentric Equatorial to Heliocentric
-            loc.pos.icrf.s = rv_add(loc.pos.eci.s,loc.pos.extra.sun2earth.s);
-            loc.pos.icrf.v = rv_add(loc.pos.eci.v,loc.pos.extra.sun2earth.v);
-            loc.pos.icrf.a = rv_add(loc.pos.eci.a,loc.pos.extra.sun2earth.a);
+            loc.pos.icrf.s = rv_add(loc.pos.eci.s, loc.pos.extra.sun2earth.s);
+            loc.pos.icrf.v = rv_add(loc.pos.eci.v, loc.pos.extra.sun2earth.v);
+            loc.pos.icrf.a = rv_add(loc.pos.eci.a, loc.pos.extra.sun2earth.a);
             return 0;
         }
 
@@ -669,9 +667,9 @@ namespace Cosmos {
             // Heliocentric to Geocentric Ecliptic
             loc.pos.sci.s = loc.pos.sci.v = loc.pos.sci.a = rv_zero();
 
-            loc.pos.sci.s = rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2moon.s);
-            loc.pos.sci.v = rv_sub(loc.pos.icrf.v,loc.pos.extra.sun2moon.v);
-            loc.pos.sci.a = rv_sub(loc.pos.icrf.a,loc.pos.extra.sun2moon.a);
+            loc.pos.sci.s = rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2moon.s);
+            loc.pos.sci.v = rv_sub(loc.pos.icrf.v, loc.pos.extra.sun2moon.v);
+            loc.pos.sci.a = rv_sub(loc.pos.icrf.a, loc.pos.extra.sun2moon.a);
 
             return 0;
         }
@@ -709,9 +707,9 @@ namespace Cosmos {
             loc.pos.icrf.pass = loc.pos.sci.pass;
 
             // Geocentric Equatorial to Heliocentric
-            loc.pos.icrf.s = rv_add(loc.pos.sci.s,loc.pos.extra.sun2moon.s);
-            loc.pos.icrf.v = rv_add(loc.pos.sci.v,loc.pos.extra.sun2moon.v);
-            loc.pos.icrf.a = rv_add(loc.pos.sci.a,loc.pos.extra.sun2moon.a);
+            loc.pos.icrf.s = rv_add(loc.pos.sci.s, loc.pos.extra.sun2moon.s);
+            loc.pos.icrf.v = rv_add(loc.pos.sci.v, loc.pos.extra.sun2moon.v);
+            loc.pos.icrf.a = rv_add(loc.pos.sci.a, loc.pos.extra.sun2moon.a);
 
             return 0;
         }
@@ -751,18 +749,18 @@ namespace Cosmos {
             loc.pos.geoc.pass = loc.att.icrf.pass = loc.pos.eci.pass;
 
             // Apply first order transform to all
-            loc.pos.geoc.s = rv_mmult(loc.pos.extra.j2e,loc.pos.eci.s);
-            loc.pos.geoc.v = rv_mmult(loc.pos.extra.j2e,loc.pos.eci.v);
-            loc.pos.geoc.a = rv_mmult(loc.pos.extra.j2e,loc.pos.eci.a);
+            loc.pos.geoc.s = rv_mmult(loc.pos.extra.j2e, loc.pos.eci.s);
+            loc.pos.geoc.v = rv_mmult(loc.pos.extra.j2e, loc.pos.eci.v);
+            loc.pos.geoc.a = rv_mmult(loc.pos.extra.j2e, loc.pos.eci.a);
 
             // Apply second order term due to first derivative of rotation matrix
-            v2 = rv_mmult(loc.pos.extra.dj2e,loc.pos.eci.s);
-            loc.pos.geoc.v = rv_add(loc.pos.geoc.v,v2);
-            v2 = rv_smult(2.,rv_mmult(loc.pos.extra.dj2e,loc.pos.eci.v));
-            loc.pos.geoc.a = rv_add(loc.pos.geoc.a,v2);
+            v2 = rv_mmult(loc.pos.extra.dj2e, loc.pos.eci.s);
+            loc.pos.geoc.v = rv_add(loc.pos.geoc.v, v2);
+            v2 = rv_smult(2., rv_mmult(loc.pos.extra.dj2e, loc.pos.eci.v));
+            loc.pos.geoc.a = rv_add(loc.pos.geoc.a, v2);
             // Apply third order correction due to second derivative of rotation matrix
-            v2 = rv_mmult(loc.pos.extra.ddj2e,loc.pos.eci.s);
-            loc.pos.geoc.a = rv_add(loc.pos.geoc.a,v2);
+            v2 = rv_mmult(loc.pos.extra.ddj2e, loc.pos.eci.s);
+            loc.pos.geoc.a = rv_add(loc.pos.geoc.a, v2);
 
             // Convert GEOC Position to GEOD
             pos_geoc2geod(loc);
@@ -777,14 +775,12 @@ namespace Cosmos {
                 return iretn;
             }
 
-
             // Convert ITRF Attitude to Topo
             iretn = att_planec2topo(loc);
             if (iretn < 0)
             {
                 return iretn;
             }
-
 
             // Convert ITRF Attitude to LVLH
             iretn = att_planec2lvlh(loc);
@@ -831,18 +827,18 @@ namespace Cosmos {
             loc.pos.eci.pass = loc.att.geoc.pass = loc.pos.geoc.pass;
 
             // Apply first order transform to all
-            loc.pos.eci.s = rv_mmult(loc.pos.extra.e2j,loc.pos.geoc.s);
-            loc.pos.eci.v = rv_mmult(loc.pos.extra.e2j,loc.pos.geoc.v);
-            loc.pos.eci.a = rv_mmult(loc.pos.extra.e2j,loc.pos.geoc.a);
+            loc.pos.eci.s = rv_mmult(loc.pos.extra.e2j, loc.pos.geoc.s);
+            loc.pos.eci.v = rv_mmult(loc.pos.extra.e2j, loc.pos.geoc.v);
+            loc.pos.eci.a = rv_mmult(loc.pos.extra.e2j, loc.pos.geoc.a);
 
             // Apply second order correction due to first derivative of rotation matrix
-            ds = rv_mmult(loc.pos.extra.de2j,loc.pos.geoc.s);
-            loc.pos.eci.v = rv_add(loc.pos.eci.v,ds);
-            ds = rv_smult(2.,rv_mmult(loc.pos.extra.de2j,loc.pos.geoc.v));
-            loc.pos.eci.a = rv_add(loc.pos.eci.a,ds);
+            ds = rv_mmult(loc.pos.extra.de2j, loc.pos.geoc.s);
+            loc.pos.eci.v = rv_add(loc.pos.eci.v, ds);
+            ds = rv_smult(2., rv_mmult(loc.pos.extra.de2j, loc.pos.geoc.v));
+            loc.pos.eci.a = rv_add(loc.pos.eci.a, ds);
             // Apply third order correction due to second derivative of rotation matrix
-            ds = rv_mmult(loc.pos.extra.dde2j,loc.pos.geoc.s);
-            loc.pos.eci.a = rv_add(loc.pos.eci.a,ds);
+            ds = rv_mmult(loc.pos.extra.dde2j, loc.pos.geoc.s);
+            loc.pos.eci.a = rv_add(loc.pos.eci.a, ds);
 
             // Convert ITRF Attitude to ICRF
             iretn = att_geoc2icrf(loc);
@@ -851,14 +847,12 @@ namespace Cosmos {
                 return iretn;
             }
 
-
             // Convert ITRF Attitude to LVLH
             iretn = att_planec2lvlh(loc);
             if (iretn < 0)
             {
                 return iretn;
             }
-
 
             // Convert ITRF Attitude to TOPO
             iretn = att_planec2topo(loc);
@@ -905,19 +899,19 @@ namespace Cosmos {
             loc.pos.geos.pass = loc.pos.geoc.pass;
 
             // Convert Geocentric Cartesian to Spherical
-            minir2 = loc.pos.geoc.s.col[0]*loc.pos.geoc.s.col[0]+loc.pos.geoc.s.col[1]*loc.pos.geoc.s.col[1];
+            minir2 = loc.pos.geoc.s.col[0] * loc.pos.geoc.s.col[0] + loc.pos.geoc.s.col[1] * loc.pos.geoc.s.col[1];
             minir = sqrt(minir2);
-            r2 = minir2+loc.pos.geoc.s.col[2]*loc.pos.geoc.s.col[2];
+            r2 = minir2 + loc.pos.geoc.s.col[2] * loc.pos.geoc.s.col[2];
             loc.pos.geos.s.r = r = sqrt(r2);
-            sp = loc.pos.geoc.s.col[2]/r;
+            sp = loc.pos.geoc.s.col[2] / r;
             loc.pos.geos.s.phi = asin(sp);
-            loc.pos.geos.s.lambda = atan2(loc.pos.geoc.s.col[1],loc.pos.geoc.s.col[0]);
+            loc.pos.geos.s.lambda = atan2(loc.pos.geoc.s.col[1], loc.pos.geoc.s.col[0]);
 
-            xvx = loc.pos.geoc.s.col[0]*loc.pos.geoc.v.col[0];
-            yvy = loc.pos.geoc.s.col[1]*loc.pos.geoc.v.col[1];
-            loc.pos.geos.v.r = (xvx+yvy+loc.pos.geoc.s.col[2]*loc.pos.geoc.v.col[2])/r;
-            loc.pos.geos.v.phi = (-(xvx+yvy) * loc.pos.geoc.s.col[2] + minir2*loc.pos.geoc.v.col[2])/(r2*minir);
-            //loc.pos.geos.v.lambda = -(loc.pos.geoc.s.col[0]*loc.pos.geoc.v.col[1]+loc.pos.geoc.s.col[1]*loc.pos.geoc.v.col[0])/minir2;
+            xvx = loc.pos.geoc.s.col[0] * loc.pos.geoc.v.col[0];
+            yvy = loc.pos.geoc.s.col[1] * loc.pos.geoc.v.col[1];
+            loc.pos.geos.v.r = (xvx + yvy + loc.pos.geoc.s.col[2] * loc.pos.geoc.v.col[2]) / r;
+            loc.pos.geos.v.phi = (-(xvx + yvy) * loc.pos.geoc.s.col[2] + minir2 * loc.pos.geoc.v.col[2]) / (r2 * minir);
+            // loc.pos.geos.v.lambda = -(loc.pos.geoc.s.col[0]*loc.pos.geoc.v.col[1]+loc.pos.geoc.s.col[1]*loc.pos.geoc.v.col[0])/minir2;
 
             cp = minir / r;
             cl = loc.pos.geoc.s.col[0] / minir;
@@ -974,8 +968,8 @@ namespace Cosmos {
             loc.pos.geoc.s.col[1] = cpr * sl;
             loc.pos.geoc.s.col[2] = loc.pos.geos.s.r * sp;
 
-            //loc.pos.geoc.v.col[0] = loc.pos.geos.v.r * cp * cl - loc.pos.geos.v.phi * loc.pos.geos.s.r * sp * cl - loc.pos.geos.v.lambda * cpr * sl;
-            //loc.pos.geoc.v.col[1] = loc.pos.geos.v.r * cp * sl - loc.pos.geos.v.phi * loc.pos.geos.s.r * sp * sl + loc.pos.geos.v.lambda * cpr * cl;
+            // loc.pos.geoc.v.col[0] = loc.pos.geos.v.r * cp * cl - loc.pos.geos.v.phi * loc.pos.geos.s.r * sp * cl - loc.pos.geos.v.lambda * cpr * sl;
+            // loc.pos.geoc.v.col[1] = loc.pos.geos.v.r * cp * sl - loc.pos.geos.v.phi * loc.pos.geos.s.r * sp * sl + loc.pos.geos.v.lambda * cpr * cl;
             loc.pos.geoc.v.col[0] = loc.pos.geos.v.r * cp * cl - loc.pos.geos.v.lambda * cpr * sl - loc.pos.geos.v.phi * loc.pos.geos.s.r * sp * cl;
             loc.pos.geoc.v.col[1] = loc.pos.geos.v.r * cp * sl + loc.pos.geos.v.lambda * cpr * cl - loc.pos.geos.v.phi * loc.pos.geos.s.r * sp * sl;
             loc.pos.geoc.v.col[2] = loc.pos.geos.v.r * sp + loc.pos.geos.v.phi * cpr;
@@ -1002,18 +996,18 @@ namespace Cosmos {
             // TODO: Explain math
             // e2 (square of first eccentricity) = 1 - (1 - f)^2
             e2 = (1. - FRATIO2);
-            p = sqrt(geoc.s.col[0]*geoc.s.col[0] + geoc.s.col[1]*geoc.s.col[1]);
-            nh = sqrt(p*p + geoc.s.col[2]*geoc.s.col[2]) - REARTHM;
-            phi = atan2(geoc.s.col[2],p);
+            p = sqrt(geoc.s.col[0] * geoc.s.col[0] + geoc.s.col[1] * geoc.s.col[1]);
+            nh = sqrt(p * p + geoc.s.col[2] * geoc.s.col[2]) - REARTHM;
+            phi = atan2(geoc.s.col[2], p);
             do
             {
                 h = nh;
                 st = sin(phi);
                 // rn = radius of curvature in the vertical prime
-                rn = REARTHM / sqrt(1.-e2*st*st);
-                nh = p/cos(phi) - rn;
-                phi = atan( (geoc.s.col[2]/p)/(1.-e2*rn/(rn+h) ) );
-            } while (fabs(nh-h) > .01);
+                rn = REARTHM / sqrt(1. - e2 * st * st);
+                nh = p / cos(phi) - rn;
+                phi = atan((geoc.s.col[2] / p) / (1. - e2 * rn / (rn + h)));
+            } while (fabs(nh - h) > .01);
 
             geod.s.lat = phi;
             geod.s.h = h;
@@ -1024,7 +1018,7 @@ namespace Cosmos {
             sn = sin(geod.s.lon);
             cn = cos(geod.s.lon);
 
-            c = 1./sqrt(ct * ct + FRATIO2 * st *st);
+            c = 1. / sqrt(ct * ct + FRATIO2 * st * st);
             rp = geod.s.h + REARTHM * FRATIO2 * c * c * c;
             a1 = ct * cn;
             b1 = -geoc.s.col[1];
@@ -1034,8 +1028,8 @@ namespace Cosmos {
             c2 = -st * sn * rp;
             a3 = st;
             c3 = ct * rp;
-            rbc = (b1*c2 - b2*c1)/c3;
-            geod.v.h = (b2 * geoc.v.col[0] - b1 * geoc.v.col[1] + rbc * geoc.v.col[2])/(b2 * a1 - b1 * a2 + rbc*a3);
+            rbc = (b1 * c2 - b2 * c1) / c3;
+            geod.v.h = (b2 * geoc.v.col[0] - b1 * geoc.v.col[1] + rbc * geoc.v.col[2]) / (b2 * a1 - b1 * a2 + rbc * a3);
             geod.v.lat = (geoc.v.col[2] - a3 * geod.v.h) / c3;
             if (fabs(b1) > fabs(b2))
                 geod.v.lon = (geoc.v.col[0] - a1 * geod.v.h - c1 * geod.v.lat) / b1;
@@ -1082,7 +1076,7 @@ namespace Cosmos {
             geomag_front(loc.pos.geod.s, mjd2year(loc.utc), loc.pos.bearth);
 
             // Transform to ITRS
-            loc.pos.bearth = irotate(q_change_around_z(-loc.pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc.pos.geod.s.lat),loc.pos.bearth));
+            loc.pos.bearth = irotate(q_change_around_z(-loc.pos.geod.s.lon), irotate(q_change_around_y(DPI2 + loc.pos.geod.s.lat), loc.pos.bearth));
 
             return 0;
         }
@@ -1096,39 +1090,39 @@ namespace Cosmos {
             // Calculate meridional arc
             // Reference: https://fypandroid.wordpress.com/2011/09/03/converting-utm-to-latitude-and-longitude-or-vice-versa/
             constexpr double e = sqrt(1. - FRATIO2);
-//            constexpr double ep = (1. - FRATIO2) / FRATIO2;
-//            constexpr double e2 = e * e;
-//            constexpr double ep2 = ep * ep;
-//            constexpr double e4 = e2 * e2;
-//            constexpr double ep4 = ep2 * ep2;
-//            constexpr double e6 = e4 * e2;
-//            constexpr double e8 = e4 * e4;
-//            constexpr double e10 = e6 * e4;
-//            constexpr double c1 = 1 + (3./4.) * e2 + (45./64) * e4 + (175./256.) * e6 + (11025./16384.) * e8 + (43659./65536.) * e10;
-//            constexpr double c2 = (3./4.) * e2 + (15./16.) * e4 + (525./512.) * e6 + (2205./2048.) * e8 + (72765./65536.) * e10;
-//            constexpr double c3 = (15./64.) * e4 + (105./256.) * e6 + (2205./4096.) * e8 + (10395./16384.) * e10;
-//            constexpr double c4 = (35./512) * e6 + (315./2048.) * e8 + (31185./131072.) * e10;
-//            constexpr double c5 = (315./16384.) * e8 + (3465./65536.) * e10;
-//            constexpr double c6 = (693./131072.) * e10;
+            //            constexpr double ep = (1. - FRATIO2) / FRATIO2;
+            //            constexpr double e2 = e * e;
+            //            constexpr double ep2 = ep * ep;
+            //            constexpr double e4 = e2 * e2;
+            //            constexpr double ep4 = ep2 * ep2;
+            //            constexpr double e6 = e4 * e2;
+            //            constexpr double e8 = e4 * e4;
+            //            constexpr double e10 = e6 * e4;
+            //            constexpr double c1 = 1 + (3./4.) * e2 + (45./64) * e4 + (175./256.) * e6 + (11025./16384.) * e8 + (43659./65536.) * e10;
+            //            constexpr double c2 = (3./4.) * e2 + (15./16.) * e4 + (525./512.) * e6 + (2205./2048.) * e8 + (72765./65536.) * e10;
+            //            constexpr double c3 = (15./64.) * e4 + (105./256.) * e6 + (2205./4096.) * e8 + (10395./16384.) * e10;
+            //            constexpr double c4 = (35./512) * e6 + (315./2048.) * e8 + (31185./131072.) * e10;
+            //            constexpr double c5 = (315./16384.) * e8 + (3465./65536.) * e10;
+            //            constexpr double c6 = (693./131072.) * e10;
 
-//            double s = REARTHM * FRATIO2 * (c1 * geod.s.lat - c2 * sin(2. * geod.s.lat) / 2. + c3 * sin(4. * geod.s.lat) / 4. - c4 * sin(6. * geod.s.lat) / 6. + c5 * sin(8. * geod.s.lat) / 8. - c6 * sin(10. * geod.s.lat) / 10.);
+            //            double s = REARTHM * FRATIO2 * (c1 * geod.s.lat - c2 * sin(2. * geod.s.lat) / 2. + c3 * sin(4. * geod.s.lat) / 4. - c4 * sin(6. * geod.s.lat) / 6. + c5 * sin(8. * geod.s.lat) / 8. - c6 * sin(10. * geod.s.lat) / 10.);
 
-//            double k1 = .9996 * s;
-//            double slat = sin(geod.s.lat);
-//            double nu = REARTHM / sqrt(1. - e2 * slat * slat);
-//            double k2 = .9996 * nu * sin(2. * geod.s.lat) / 4.;
-//            double clat2 = clat * clat;
-//            double clat3 = clat * clat2;
-//            double clat4 = clat2 * clat2;
-//            double k3 = (5. - tlat2 + 9. * ep2 * clat2 + 4. * ep4 * clat4) * .9996 * slat * clat3 / 24.;
-//            double p = geod.s.lon;
-//            double p2 = p * p;
-//            double p3 = p2 * p;
-//            double p4 = p2 * p2;
-//            utm.x = k1 + p2 * (k2 + p2 * k3);
-//            double k4 = .9996 * nu * clat;
-//            double k5 = (1. - tlat2 + ep2 * clat2) * .9996 * nu * clat3 / 6.;
-//            utm.y = k4 * p + k5 * p3;
+            //            double k1 = .9996 * s;
+            //            double slat = sin(geod.s.lat);
+            //            double nu = REARTHM / sqrt(1. - e2 * slat * slat);
+            //            double k2 = .9996 * nu * sin(2. * geod.s.lat) / 4.;
+            //            double clat2 = clat * clat;
+            //            double clat3 = clat * clat2;
+            //            double clat4 = clat2 * clat2;
+            //            double k3 = (5. - tlat2 + 9. * ep2 * clat2 + 4. * ep4 * clat4) * .9996 * slat * clat3 / 24.;
+            //            double p = geod.s.lon;
+            //            double p2 = p * p;
+            //            double p3 = p2 * p;
+            //            double p4 = p2 * p2;
+            //            utm.x = k1 + p2 * (k2 + p2 * k3);
+            //            double k4 = .9996 * nu * clat;
+            //            double k5 = (1. - tlat2 + ep2 * clat2) * .9996 * nu * clat3 / 6.;
+            //            utm.y = k4 * p + k5 * p3;
 
             constexpr double n = FLATTENING / (2 - FLATTENING);
             constexpr double n2 = n * n;
@@ -1140,19 +1134,19 @@ namespace Cosmos {
 
             double a[6];
             a[0] = n / 2. - 2. * n2 / 3. + 5 * n3 / 16. + 41. * n4 / 180. - 127. * n5 / 288. + 7891. * n6 / 37800.;
-            a[1] = 13. * n2 / 48. - 3. * n3 / 5. + 557. * n4 / 1440. +281. * n5 / 630. - 1983433. * n6 / 1935360.;
+            a[1] = 13. * n2 / 48. - 3. * n3 / 5. + 557. * n4 / 1440. + 281. * n5 / 630. - 1983433. * n6 / 1935360.;
             a[2] = 61. * n3 / 240. - 103 * n4 / 140. + 15061. * n5 / 26880. + 167603. * n6 / 181440.;
             a[3] = 49561. * n4 / 161280. - 179. * n5 / 168. + 6601661. * n6 / 7257600.;
             a[4] = 34729. * n5 / 80640. - 3418889. * n6 / 1995840.;
             a[5] = 212378941. * n6 / 319334400.;
 
-//            double b[6];
-//            b[0] = n / 2. - 2. * n2 / 3. + 37. * n3 / 96. - n4 / 360. - 81. * n5 / 512. + 96199. * n6 / 604800.;
-//            b[1] = n2 / 48. + n3 / 15. - 437. * n4 / 1440. + 46. * n5 / 105. - 1118711. * n6 / 3870720.;
-//            b[2] = 17. * n3 / 180. - 37. * n4 / 840. - 209 * n5 / 4480 + 5569 * n6 / 90720;
-//            b[3] = 4397 * n4 / 161280 - 11 * n5 / 504 - 830251 * n6 / 7257600;
-//            b[4] = 4583 * n5 / 161280 - 108847 * n6 / 3991680;
-//            b[5] = 20648693 * n6 / 638668800;
+            //            double b[6];
+            //            b[0] = n / 2. - 2. * n2 / 3. + 37. * n3 / 96. - n4 / 360. - 81. * n5 / 512. + 96199. * n6 / 604800.;
+            //            b[1] = n2 / 48. + n3 / 15. - 437. * n4 / 1440. + 46. * n5 / 105. - 1118711. * n6 / 3870720.;
+            //            b[2] = 17. * n3 / 180. - 37. * n4 / 840. - 209 * n5 / 4480 + 5569 * n6 / 90720;
+            //            b[3] = 4397 * n4 / 161280 - 11 * n5 / 504 - 830251 * n6 / 7257600;
+            //            b[4] = 4583 * n5 / 161280 - 108847 * n6 / 3991680;
+            //            b[5] = 20648693 * n6 / 638668800;
 
             double clat = cos(geod.s.lat);
             double tlat = tan(geod.s.lat);
@@ -1166,10 +1160,10 @@ namespace Cosmos {
             double etap = asinh(slon / sqrt(tlatp * tlatp + clon2));
             double zeta = zetap;
             double eta = etap;
-            for (uint16_t i=0; i<6; ++i)
+            for (uint16_t i = 0; i < 6; ++i)
             {
-                zeta += a[i] * sin(2 * (i+1) * zetap) * cosh(2 * (i+1) * etap);
-                eta += a[i] * cos(2 * (i+1) * zetap) * sinh(2 * (i+1) * etap);
+                zeta += a[i] * sin(2 * (i + 1) * zetap) * cosh(2 * (i + 1) * etap);
+                eta += a[i] * cos(2 * (i + 1) * zetap) * sinh(2 * (i + 1) * etap);
             }
             utm.x = .9996 * A * eta;
             utm.y = .9996 * A * zeta;
@@ -1190,7 +1184,7 @@ namespace Cosmos {
             // Determine effects of oblate spheroid
             ct = cos(geod.s.lat);
             st = sin(geod.s.lat);
-            c = 1./sqrt(ct * ct + FRATIO2 * st * st);
+            c = 1. / sqrt(ct * ct + FRATIO2 * st * st);
             c2 = c * c;
             s = FRATIO2 * c;
             r = (REARTHM * c + geod.s.h) * ct;
@@ -1285,17 +1279,17 @@ namespace Cosmos {
             loc.pos.selc.pass = loc.att.icrf.pass = loc.pos.sci.pass;
 
             // Apply first order transform to all: J2000 to ITRS, then Earth to Moon
-            loc.pos.selc.s = rv_mmult(loc.pos.extra.j2s,loc.pos.sci.s);
-            loc.pos.selc.v = rv_mmult(loc.pos.extra.j2s,loc.pos.sci.v);
-            loc.pos.selc.a = rv_mmult(loc.pos.extra.j2s,loc.pos.sci.a);
+            loc.pos.selc.s = rv_mmult(loc.pos.extra.j2s, loc.pos.sci.s);
+            loc.pos.selc.v = rv_mmult(loc.pos.extra.j2s, loc.pos.sci.v);
+            loc.pos.selc.a = rv_mmult(loc.pos.extra.j2s, loc.pos.sci.a);
 
             // Apply second order term due to first derivative of rotation matrix
-            m1 = rm_mmult(loc.pos.extra.dt2s,loc.pos.extra.j2t);
-            v2 = rv_mmult(m1,loc.pos.sci.s);
-            loc.pos.selc.v = rv_add(loc.pos.selc.v,v2);
+            m1 = rm_mmult(loc.pos.extra.dt2s, loc.pos.extra.j2t);
+            v2 = rv_mmult(m1, loc.pos.sci.s);
+            loc.pos.selc.v = rv_add(loc.pos.selc.v, v2);
 
-            v2 = rv_smult(2.,rv_mmult(m1,loc.pos.sci.v));
-            loc.pos.selc.a = rv_add(loc.pos.selc.a,v2);
+            v2 = rv_smult(2., rv_mmult(m1, loc.pos.sci.v));
+            loc.pos.selc.a = rv_add(loc.pos.selc.a, v2);
 
             // Convert SELC Position to SELG
             pos_selc2selg(loc);
@@ -1307,7 +1301,6 @@ namespace Cosmos {
                 return iretn;
             }
 
-
             // Convert ITRF Attitude to Topo
             iretn = att_planec2topo(loc);
             if (iretn < 0)
@@ -1315,14 +1308,12 @@ namespace Cosmos {
                 return iretn;
             }
 
-
             // Convert ITRF Attitude to LVLH
             iretn = att_planec2lvlh(loc);
             if (iretn < 0)
             {
                 return iretn;
             }
-
 
             return iretn;
         }
@@ -1363,18 +1354,18 @@ namespace Cosmos {
             loc.pos.sci.pass = loc.att.selc.pass = loc.pos.selc.pass;
 
             // Apply first order transform to all
-            loc.pos.sci.s = rv_mmult(loc.pos.extra.s2j,loc.pos.selc.s);
-            loc.pos.sci.v = rv_mmult(loc.pos.extra.s2j,loc.pos.selc.v);
-            loc.pos.sci.a = rv_mmult(loc.pos.extra.s2j,loc.pos.selc.a);
+            loc.pos.sci.s = rv_mmult(loc.pos.extra.s2j, loc.pos.selc.s);
+            loc.pos.sci.v = rv_mmult(loc.pos.extra.s2j, loc.pos.selc.v);
+            loc.pos.sci.a = rv_mmult(loc.pos.extra.s2j, loc.pos.selc.a);
 
             // Apply second order correction due to first derivative of rotation matrix
-            m1 = rm_mmult(loc.pos.extra.t2j,loc.pos.extra.ds2t);
-            v2 = rv_mmult(m1,loc.pos.selc.s);
-            loc.pos.sci.v = rv_add(loc.pos.selc.v,v2);
+            m1 = rm_mmult(loc.pos.extra.t2j, loc.pos.extra.ds2t);
+            v2 = rv_mmult(m1, loc.pos.selc.s);
+            loc.pos.sci.v = rv_add(loc.pos.selc.v, v2);
 
-            m1 = rm_smult(2.,m1);
-            v2 = rv_mmult(m1,loc.pos.sci.v);
-            loc.pos.sci.a = rv_add(loc.pos.selc.a,v2);
+            m1 = rm_smult(2., m1);
+            v2 = rv_mmult(m1, loc.pos.sci.v);
+            loc.pos.sci.a = rv_add(loc.pos.selc.a, v2);
 
             // Convert SCI Attitude to ICRF
             iretn = att_selc2icrf(loc);
@@ -1421,23 +1412,23 @@ namespace Cosmos {
             loc.pos.selg.pass = loc.pos.selc.pass;
 
             // Convert Geocentric Cartesian to Spherical
-            minir2 = loc.pos.selc.s.col[0]*loc.pos.selc.s.col[0]+loc.pos.selc.s.col[1]*loc.pos.selc.s.col[1];
-            minir = fixprecision(sqrt(minir2),.1);
-            r2 = minir2+loc.pos.selc.s.col[2]*loc.pos.selc.s.col[2];
-            r = fixprecision(sqrt(r2),.1);
-            loc.pos.selg.s.lat = asin(loc.pos.selc.s.col[2]/r);
-            loc.pos.selg.s.lon = atan2(loc.pos.selc.s.col[1],loc.pos.selc.s.col[0]);
+            minir2 = loc.pos.selc.s.col[0] * loc.pos.selc.s.col[0] + loc.pos.selc.s.col[1] * loc.pos.selc.s.col[1];
+            minir = fixprecision(sqrt(minir2), .1);
+            r2 = minir2 + loc.pos.selc.s.col[2] * loc.pos.selc.s.col[2];
+            r = fixprecision(sqrt(r2), .1);
+            loc.pos.selg.s.lat = asin(loc.pos.selc.s.col[2] / r);
+            loc.pos.selg.s.lon = atan2(loc.pos.selc.s.col[1], loc.pos.selc.s.col[0]);
             loc.pos.selg.s.h = r - (RMOONM);
 
-            xvx = loc.pos.selc.s.col[0]*loc.pos.selc.v.col[0];
-            yvy = loc.pos.selc.s.col[1]*loc.pos.selc.v.col[1];
-            loc.pos.selg.v.h = (xvx+yvy+loc.pos.selc.s.col[2]*loc.pos.selc.v.col[2])/r;
-            loc.pos.selg.v.lat = (-(xvx+yvy) * loc.pos.selc.s.col[2] + minir2*loc.pos.selc.v.col[2])/(r2*minir);
-            loc.pos.selg.v.lon = (loc.pos.selc.s.col[0]*loc.pos.selc.v.col[1]+loc.pos.selc.s.col[1]*loc.pos.selc.v.col[0])/minir2;
+            xvx = loc.pos.selc.s.col[0] * loc.pos.selc.v.col[0];
+            yvy = loc.pos.selc.s.col[1] * loc.pos.selc.v.col[1];
+            loc.pos.selg.v.h = (xvx + yvy + loc.pos.selc.s.col[2] * loc.pos.selc.v.col[2]) / r;
+            loc.pos.selg.v.lat = (-(xvx + yvy) * loc.pos.selc.s.col[2] + minir2 * loc.pos.selc.v.col[2]) / (r2 * minir);
+            loc.pos.selg.v.lon = (loc.pos.selc.s.col[0] * loc.pos.selc.v.col[1] + loc.pos.selc.s.col[1] * loc.pos.selc.v.col[0]) / minir2;
 
             // Indicate we have set SELG position
-            loc.pos.selg.s.lat = fixprecision(loc.pos.selg.s.lat,.1/r);
-            loc.pos.selg.s.lon = fixprecision(loc.pos.selg.s.lon,.1/r);
+            loc.pos.selg.s.lat = fixprecision(loc.pos.selg.s.lat, .1 / r);
+            loc.pos.selg.s.lon = fixprecision(loc.pos.selg.s.lon, .1 / r);
             return 0;
         }
 
@@ -1552,19 +1543,19 @@ namespace Cosmos {
             }
 
             // Use to rotate ECI into ITRS
-            loc.att.geoc.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.j2e),loc.att.icrf.s);
+            loc.att.geoc.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.j2e), loc.att.icrf.s);
             normalize_q(&loc.att.geoc.s);
-            loc.att.geoc.v = rv_mmult(loc.pos.extra.j2e,loc.att.icrf.v);
-            loc.att.geoc.a = rv_mmult(loc.pos.extra.j2e,loc.att.icrf.a);
+            loc.att.geoc.v = rv_mmult(loc.pos.extra.j2e, loc.att.icrf.v);
+            loc.att.geoc.a = rv_mmult(loc.pos.extra.j2e, loc.att.icrf.a);
 
             // Correct velocity for ECI angular velocity wrt ITRS, expressed in ITRS
             radius = length_rv(loc.pos.eci.s);
 
-            alpha = rv_smult(1./(radius*radius),rv_cross(rv_mmult(loc.pos.extra.j2e,loc.pos.eci.s),rv_mmult(loc.pos.extra.dj2e,loc.pos.eci.s)));
-            loc.att.geoc.v = rv_add(loc.att.geoc.v,alpha);
+            alpha = rv_smult(1. / (radius * radius), rv_cross(rv_mmult(loc.pos.extra.j2e, loc.pos.eci.s), rv_mmult(loc.pos.extra.dj2e, loc.pos.eci.s)));
+            loc.att.geoc.v = rv_add(loc.att.geoc.v, alpha);
 
-            alpha = rv_smult(2./(radius*radius),rv_cross(rv_mmult(loc.pos.extra.j2e,loc.pos.eci.s),rv_mmult(loc.pos.extra.dj2e,loc.pos.eci.v)));
-            loc.att.geoc.a = rv_add(loc.att.geoc.a,alpha);
+            alpha = rv_smult(2. / (radius * radius), rv_cross(rv_mmult(loc.pos.extra.j2e, loc.pos.eci.s), rv_mmult(loc.pos.extra.dj2e, loc.pos.eci.v)));
+            loc.att.geoc.a = rv_add(loc.att.geoc.a, alpha);
 
             // Convert ITRF attitude to Topocentric
             iretn = att_planec2topo(loc);
@@ -1572,7 +1563,6 @@ namespace Cosmos {
             {
                 return iretn;
             }
-
 
             // Convert ITRF attitude to LVLH
             iretn = att_planec2lvlh(loc);
@@ -1618,19 +1608,19 @@ namespace Cosmos {
             }
 
             // Perform first order rotation of ITRS frame into ECI frame
-            loc.att.icrf.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.e2j),loc.att.geoc.s);
+            loc.att.icrf.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.e2j), loc.att.geoc.s);
             normalize_q(&loc.att.icrf.s);
-            loc.att.icrf.v = rv_mmult(loc.pos.extra.e2j,loc.att.geoc.v);
-            loc.att.icrf.a = rv_mmult(loc.pos.extra.e2j,loc.att.geoc.a);
+            loc.att.icrf.v = rv_mmult(loc.pos.extra.e2j, loc.att.geoc.v);
+            loc.att.icrf.a = rv_mmult(loc.pos.extra.e2j, loc.att.geoc.a);
 
             // Correct for ITRS angular velocity wrt ECI, expressed in ECI
             radius = length_rv(loc.pos.geoc.s);
 
-            alpha = rv_smult(1./(radius*radius),rv_cross(rv_mmult(loc.pos.extra.e2j,loc.pos.geoc.s),rv_mmult(loc.pos.extra.de2j,loc.pos.geoc.s)));
-            loc.att.icrf.v = rv_add(loc.att.icrf.v,alpha);
+            alpha = rv_smult(1. / (radius * radius), rv_cross(rv_mmult(loc.pos.extra.e2j, loc.pos.geoc.s), rv_mmult(loc.pos.extra.de2j, loc.pos.geoc.s)));
+            loc.att.icrf.v = rv_add(loc.att.icrf.v, alpha);
 
-            alpha = rv_smult(2./(radius*radius),rv_cross(rv_mmult(loc.pos.extra.e2j,loc.pos.geoc.s),rv_mmult(loc.pos.extra.de2j,loc.pos.geoc.v)));
-            loc.att.icrf.a = rv_add(loc.att.icrf.a,alpha);
+            alpha = rv_smult(2. / (radius * radius), rv_cross(rv_mmult(loc.pos.extra.e2j, loc.pos.geoc.s), rv_mmult(loc.pos.extra.de2j, loc.pos.geoc.v)));
+            loc.att.icrf.a = rv_add(loc.att.icrf.a, alpha);
 
             // Extra attitude information
             iretn = att_extra(loc);
@@ -1698,7 +1688,7 @@ namespace Cosmos {
 
         int32_t att_icrf2selc(locstruc *loc)
         {
-            return  att_icrf2selc(*loc);
+            return att_icrf2selc(*loc);
         }
 
         int32_t att_icrf2selc(locstruc &loc)
@@ -1728,21 +1718,21 @@ namespace Cosmos {
             }
 
             // Use to rotate ICRF into SELC
-            loc.att.selc.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.j2s),loc.att.icrf.s);
+            loc.att.selc.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.j2s), loc.att.icrf.s);
             normalize_q(&loc.att.selc.s);
-            loc.att.selc.v = rv_mmult(loc.pos.extra.j2s,loc.att.icrf.v);
-            loc.att.selc.a = rv_mmult(loc.pos.extra.j2s,loc.att.icrf.a);
+            loc.att.selc.v = rv_mmult(loc.pos.extra.j2s, loc.att.icrf.v);
+            loc.att.selc.a = rv_mmult(loc.pos.extra.j2s, loc.att.icrf.a);
 
             // Correct velocity for ECI angular velocity wrt ITRS, expressed in ITRS
             radius = length_rv(loc.pos.eci.s);
 
             dpm = rm_zero();
 
-            alpha = rv_smult(1./(radius*radius),rv_cross(rv_mmult(loc.pos.extra.j2s,loc.pos.eci.s),rv_mmult(dpm,loc.pos.eci.s)));
-            loc.att.selc.v = rv_add(loc.att.selc.v,alpha);
+            alpha = rv_smult(1. / (radius * radius), rv_cross(rv_mmult(loc.pos.extra.j2s, loc.pos.eci.s), rv_mmult(dpm, loc.pos.eci.s)));
+            loc.att.selc.v = rv_add(loc.att.selc.v, alpha);
 
-            alpha = rv_smult(2./(radius*radius),rv_cross(rv_mmult(loc.pos.extra.j2s,loc.pos.eci.s),rv_mmult(dpm,loc.pos.eci.v)));
-            loc.att.selc.a = rv_add(loc.att.selc.a,alpha);
+            alpha = rv_smult(2. / (radius * radius), rv_cross(rv_mmult(loc.pos.extra.j2s, loc.pos.eci.s), rv_mmult(dpm, loc.pos.eci.v)));
+            loc.att.selc.a = rv_add(loc.att.selc.a, alpha);
 
             // Synchronize LVLH
             iretn = att_planec2lvlh(loc);
@@ -1792,10 +1782,10 @@ namespace Cosmos {
             }
 
             // Perform first order rotation of SELC frame into ICRF frame
-            loc.att.icrf.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.s2j),loc.att.selc.s);
+            loc.att.icrf.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.s2j), loc.att.selc.s);
             normalize_q(&loc.att.icrf.s);
-            loc.att.icrf.v = rv_mmult(loc.pos.extra.s2j,loc.att.selc.v);
-            loc.att.icrf.a = rv_mmult(loc.pos.extra.s2j,loc.att.selc.a);
+            loc.att.icrf.v = rv_mmult(loc.pos.extra.s2j, loc.att.selc.v);
+            loc.att.icrf.a = rv_mmult(loc.pos.extra.s2j, loc.att.selc.a);
 
             // Extra attitude information
             iretn = att_extra(loc);
@@ -1930,7 +1920,6 @@ namespace Cosmos {
                 {
                     return iretn;
                 }
-
             }
 
             if (loc.att.icrf.pass > loc.att.selc.pass)
@@ -1946,7 +1935,6 @@ namespace Cosmos {
                 {
                     return iretn;
                 }
-
             }
             return 0;
         }
@@ -1964,8 +1952,8 @@ namespace Cosmos {
 
         int32_t att_planec2lvlh(locstruc &loc)
         {
-            quaternion qe_z = {{0.,0.,0.},1.}, qe_y = {{0.,0.,0.},1.}, fqe = {{0.,0.,0.},1.}, rqe = {{0.,0.,0.},1.};
-            rvector lvlh_z = {0.,0.,1.}, lvlh_y = {0.,1.,0.}, geoc_z = {0.,0.,0.}, geoc_y = {0.,0.,0.}, alpha = {0.,0.,0.};
+            quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.}, fqe = {{0., 0., 0.}, 1.}, rqe = {{0., 0., 0.}, 1.};
+            rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.}, alpha = {0., 0., 0.};
             qatt *patt;
             cartpos *ppos;
             double radius;
@@ -2004,39 +1992,39 @@ namespace Cosmos {
             loc.att.lvlh.pass = patt->pass;
 
             // LVLH Z is opposite of direction to satellite
-            geoc_z = rv_smult(-1.,ppos->s);
+            geoc_z = rv_smult(-1., ppos->s);
             normalize_rv(geoc_z);
 
             // LVLH Y is Cross Product of LVLH Z and velocity vector
-            geoc_y = rv_cross(geoc_z,ppos->v);
+            geoc_y = rv_cross(geoc_z, ppos->v);
             normalize_rv(geoc_y);
 
             // Determine intrinsic rotation of ITRF Z  into LVLH Z
-            qe_z = q_conjugate(q_drotate_between_rv(geoc_z,lvlh_z));
+            qe_z = q_conjugate(q_drotate_between_rv(geoc_z, lvlh_z));
 
             // Use to intrinsically rotate ITRF Y into intermediate Y
             //	geoc_y = drotate(qe_z,geoc_y);
-            geoc_y = irotate(qe_z,geoc_y);
+            geoc_y = irotate(qe_z, geoc_y);
 
             // Determine intrinsic rotation of this intermediate Y into LVLH Y
-            qe_y = q_conjugate(q_drotate_between_rv(geoc_y,lvlh_y));
+            qe_y = q_conjugate(q_drotate_between_rv(geoc_y, lvlh_y));
 
             // Combine to determine intrinsic rotation of ITRF into LVLH
-            fqe = q_fmult(qe_z,qe_y);
+            fqe = q_fmult(qe_z, qe_y);
             normalize_q(&fqe);
             rqe = q_conjugate(fqe);
 
             // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
-            alpha = rv_smult(1./(radius*radius),rv_cross(ppos->s,ppos->v));
-            loc.att.lvlh.v = rv_sub(patt->v,alpha);
+            alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
+            loc.att.lvlh.v = rv_sub(patt->v, alpha);
 
             // Transform ITRS into LVLH
             //	loc.att.lvlh.s = q_fmult(patt->s,fqe);
             //	loc.att.lvlh.v = irotate(fqe,loc.att.lvlh.v);
             //	loc.att.lvlh.a = irotate(fqe,patt->a);
-            loc.att.lvlh.s = q_fmult(rqe,patt->s);
-            loc.att.lvlh.v = irotate(fqe,loc.att.lvlh.v);
-            loc.att.lvlh.a = irotate(fqe,patt->a);
+            loc.att.lvlh.s = q_fmult(rqe, patt->s);
+            loc.att.lvlh.v = irotate(fqe, loc.att.lvlh.v);
+            loc.att.lvlh.a = irotate(fqe, patt->a);
 
             return 0;
         }
@@ -2054,8 +2042,8 @@ namespace Cosmos {
 
         int32_t att_lvlh2planec(locstruc &loc)
         {
-            quaternion qe_z = {{0.,0.,0.},1.}, qe_y = {{0.,0.,0.},1.}, fqe = {{0.,0.,0.},1.}, rqe = {{0.,0.,0.},1.};
-            rvector lvlh_z = {0.,0.,1.}, lvlh_y = {0.,1.,0.}, geoc_z = {0.,0.,0.}, geoc_y = {0.,0.,0.}, alpha = {0.,0.,0.};
+            quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.}, fqe = {{0., 0., 0.}, 1.}, rqe = {{0., 0., 0.}, 1.};
+            rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.}, alpha = {0., 0., 0.};
             qatt *patt;
             cartpos *ppos;
             double radius;
@@ -2081,7 +2069,6 @@ namespace Cosmos {
             }
             radius = length_rv(ppos->s);
 
-
             // Update time
             patt->utc = loc.att.lvlh.utc;
 
@@ -2089,48 +2076,48 @@ namespace Cosmos {
             ppos->pass = patt->pass = loc.att.lvlh.pass;
 
             // LVLH Z is opposite of earth to satellite vector
-            geoc_z = rv_smult(-1.,ppos->s);
+            geoc_z = rv_smult(-1., ppos->s);
             normalize_rv(geoc_z);
 
             // LVLH Y is Cross Product of LVLH Z and velocity vector
-            geoc_y = rv_cross(geoc_z,ppos->v);
+            geoc_y = rv_cross(geoc_z, ppos->v);
             normalize_rv(geoc_y);
 
             // Determine rotation of ITRF Z  into LVLH Z
-            qe_z = q_conjugate(q_drotate_between_rv(geoc_z,lvlh_z));
-            geoc_z = irotate(qe_z,geoc_z);
+            qe_z = q_conjugate(q_drotate_between_rv(geoc_z, lvlh_z));
+            geoc_z = irotate(qe_z, geoc_z);
 
             // Use to rotate LVLH Y into intermediate LVLH Y
             //	geoc_y = drotate(qe_z,geoc_y);
-            geoc_y = irotate(qe_z,geoc_y);
+            geoc_y = irotate(qe_z, geoc_y);
 
             // Determine rotation of this LVLH Y into ITRF Y
-            qe_y = q_conjugate(q_drotate_between_rv(geoc_y,lvlh_y));
+            qe_y = q_conjugate(q_drotate_between_rv(geoc_y, lvlh_y));
 
             // Multiply to determine transformation of ITRF frame into LVLH frame
-            fqe = q_fmult(qe_z,qe_y);
+            fqe = q_fmult(qe_z, qe_y);
             normalize_q(&fqe);
             rqe = q_conjugate(fqe);
 
             // LVLH Z is opposite of earth to satellite vector
-            geoc_z = rv_smult(-1.,ppos->s);
+            geoc_z = rv_smult(-1., ppos->s);
             normalize_rv(geoc_z);
 
             // LVLH Y is Cross Product of LVLH Z and velocity vector
-            geoc_y = rv_cross(geoc_z,ppos->v);
+            geoc_y = rv_cross(geoc_z, ppos->v);
             normalize_rv(geoc_y);
 
             // Rotate LVLH frame into ITRS frame
             //	patt->s = q_fmult(rqe,loc.att.lvlh.s);
             //	patt->v = irotate(fqe,loc.att.lvlh.v);
             //	patt->a = irotate(fqe,loc.att.lvlh.a);
-            patt->s = q_fmult(fqe,loc.att.lvlh.s);
-            patt->v = irotate(rqe,loc.att.lvlh.v);
-            patt->a = irotate(rqe,loc.att.lvlh.a);
+            patt->s = q_fmult(fqe, loc.att.lvlh.s);
+            patt->v = irotate(rqe, loc.att.lvlh.v);
+            patt->a = irotate(rqe, loc.att.lvlh.a);
 
             // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
-            alpha = rv_smult(1./(radius*radius),rv_cross(ppos->s,ppos->v));
-            patt->v = rv_add(patt->v,alpha);
+            alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
+            patt->v = rv_add(patt->v, alpha);
 
             // Synchronize Topo
             iretn = att_planec2topo(loc);
@@ -2138,7 +2125,6 @@ namespace Cosmos {
             {
                 return iretn;
             }
-
 
             return 0;
         }
@@ -2301,31 +2287,31 @@ namespace Cosmos {
             loc.att.topo.pass = patt->pass;
 
             // Determine rotation of Topo unit Z  into ITRS Z
-            t2g_z = q_conjugate(q_drotate_between_rv(rv_unitz(),ppos->s));
+            t2g_z = q_conjugate(q_drotate_between_rv(rv_unitz(), ppos->s));
 
             // Use to rotate Topo unit X into intermediate Topo X
-            topo_x = irotate(t2g_z,rv_unitx());
+            topo_x = irotate(t2g_z, rv_unitx());
 
             // Define ITRS unit x as x=-Topo.y and y=Topo.x
             geoc_x.col[0] = -ppos->s.col[1];
             geoc_x.col[1] = ppos->s.col[0];
 
             // Determine rotation of intermediate Topo X into ITRS unit X
-            t2g_x = q_conjugate(q_drotate_between_rv(topo_x,geoc_x));
+            t2g_x = q_conjugate(q_drotate_between_rv(topo_x, geoc_x));
 
             // Multiply to determine rotation of Topo frame into ITRS frame
-            t2g = q_fmult(t2g_z,t2g_x);
+            t2g = q_fmult(t2g_z, t2g_x);
             normalize_q(&t2g);
             g2t = q_conjugate(t2g);
 
             // Correct velocity for Topo angular velocity wrt ITRS, expressed in ITRS
-            alpha = rv_smult(-1./(length_rv(ppos->s)*length_rv(ppos->s)),rv_cross(ppos->s,ppos->v));
+            alpha = rv_smult(-1. / (length_rv(ppos->s) * length_rv(ppos->s)), rv_cross(ppos->s, ppos->v));
             loc.att.topo.v = rv_add(patt->v, alpha);
 
             // Rotate ITRS frame into Topo frame
             loc.att.topo.s = q_fmult(g2t, patt->s);
-            loc.att.topo.v = irotate(t2g,loc.att.topo.v);
-            loc.att.topo.a = irotate(t2g,patt->a);
+            loc.att.topo.v = irotate(t2g, loc.att.topo.v);
+            loc.att.topo.a = irotate(t2g, patt->a);
 
             return 0;
         }
@@ -2369,33 +2355,33 @@ namespace Cosmos {
             ppos->pass = patt->pass = loc.att.topo.pass;
 
             // Determine rotation of Topo unit Z  into ITRS Z
-            t2g_z = q_conjugate(q_drotate_between_rv(rv_unitz(),ppos->s));
+            t2g_z = q_conjugate(q_drotate_between_rv(rv_unitz(), ppos->s));
 
             // Use to rotate Topo unit X into intermediate Topo X
-            topo_x = irotate(t2g_z,rv_unitx());
+            topo_x = irotate(t2g_z, rv_unitx());
 
             // Define ITRS unit x as x=-Topo.y and y=Topo.x
             geoc_x.col[0] = -ppos->s.col[1];
             geoc_x.col[1] = ppos->s.col[0];
 
             // Determine rotation of intermediate Topo X into ITRS unit X
-            t2g_x = q_conjugate(q_drotate_between_rv(topo_x,geoc_x));
+            t2g_x = q_conjugate(q_drotate_between_rv(topo_x, geoc_x));
 
             // Multiply to determine rotation of Topo frame into ITRS frame
-            t2g = q_fmult(t2g_z,t2g_x);
+            t2g = q_fmult(t2g_z, t2g_x);
             normalize_q(&t2g);
             g2t = q_conjugate(t2g);
 
             // Rotate Topo frame into ITRS frame
-            patt->s = q_fmult(loc.att.topo.s,t2g);
-            patt->v = irotate(g2t,loc.att.topo.v);
-            patt->a = irotate(g2t,loc.att.topo.a);
+            patt->s = q_fmult(loc.att.topo.s, t2g);
+            patt->v = irotate(g2t, loc.att.topo.v);
+            patt->a = irotate(g2t, loc.att.topo.a);
 
             // Correct velocity for Topo angular velocity wrt ITRS, expressed in ITRS
-            alpha = rv_smult(-1./(length_rv(ppos->s)*length_rv(ppos->s)),rv_cross(ppos->s,ppos->v));
+            alpha = rv_smult(-1. / (length_rv(ppos->s) * length_rv(ppos->s)), rv_cross(ppos->s, ppos->v));
 
             // Correct for rotation of frame
-            patt->v = rv_add(loc.att.topo.v,alpha);
+            patt->v = rv_add(loc.att.topo.v, alpha);
 
             switch (loc.pos.extra.closest)
             {
@@ -2422,7 +2408,6 @@ namespace Cosmos {
             {
                 return iretn;
             }
-
 
             return 0;
         }
@@ -2460,7 +2445,6 @@ namespace Cosmos {
                     {
                         return iretn;
                     }
-
                 }
                 break;
             case COSMOS_MOON:
@@ -2472,7 +2456,6 @@ namespace Cosmos {
                     {
                         return iretn;
                     }
-
                 }
                 break;
             }
@@ -2493,8 +2476,8 @@ match.
 
         int32_t loc_update(locstruc &loc)
         {
-            uint32_t ppass=0, apass = 0;
-            int32_t ptype=-1, atype = -1;
+            uint32_t ppass = 0, apass = 0;
+            int32_t ptype = -1, atype = -1;
             int32_t iretn = 0;
 
             if (loc.att.icrf.pass > apass)
@@ -2657,7 +2640,7 @@ match.
             cvector polm = polar_motion(utc);
             double pols = -47. * 4.848136811095359935899141e-12 * ttc;
 
-            *rm = rm_mmult(rm_change_around_z(-pols),rm_mmult(rm_change_around_y(polm.x),rm_change_around_x(polm.y)));
+            *rm = rm_mmult(rm_change_around_z(-pols), rm_mmult(rm_change_around_y(polm.x), rm_change_around_x(polm.y)));
             return 0;
         }
 
@@ -2735,22 +2718,22 @@ match.
 
             se = sin(eps);
             sdp = sin(nuts.col[0]);
-            sde = sin(-eps+nuts.col[1]);
+            sde = sin(-eps + nuts.col[1]);
             ce = cos(eps);
             cdp = cos(nuts.col[0]);
-            cde = cos(-eps+nuts.col[1]);
+            cde = cos(-eps + nuts.col[1]);
 
             pm->row[0].col[0] = cdp;
-            pm->row[0].col[1] = sdp*ce;
-            pm->row[0].col[2] = sdp*se;
+            pm->row[0].col[1] = sdp * ce;
+            pm->row[0].col[2] = sdp * se;
 
-            pm->row[1].col[0] = -sdp*cde;
-            pm->row[1].col[1] = cde*cdp*ce-se*sde;
-            pm->row[1].col[2] = cde*cdp*se+ce*sde;
+            pm->row[1].col[0] = -sdp * cde;
+            pm->row[1].col[1] = cde * cdp * ce - se * sde;
+            pm->row[1].col[2] = cde * cdp * se + ce * sde;
 
-            pm->row[2].col[0] = sdp*sde;
-            pm->row[2].col[1] = -sde*cdp*ce-se*cde;
-            pm->row[2].col[2] = -sde*cdp*se+cde*ce;
+            pm->row[2].col[0] = sdp * sde;
+            pm->row[2].col[1] = -sde * cdp * ce - se * cde;
+            pm->row[2].col[2] = -sde * cdp * se + cde * ce;
 
             oep0 = ep0;
             opm = *pm;
@@ -2840,7 +2823,7 @@ match.
             }
             else
             {
-                gcrf2itrs(utc,rnp,rm,drm,ddrm);
+                gcrf2itrs(utc, rnp, rm, drm, ddrm);
                 ornp = *rnp = rm_transpose(*rnp);
                 orm = *rm = rm_transpose(*rm);
                 odrm = *drm = rm_transpose(*drm);
@@ -2865,7 +2848,7 @@ match.
             double ut1;
             rmatrix nrm[3], ndrm, nddrm;
             rmatrix pm, nm, sm, pw;
-            static rmatrix bm = {{1.,-0.000273e-8,9.740996e-8},{0.000273e-8,1.,1.324146e-8},{-9.740996e-8,-1.324146e-8,1.}};
+            static rmatrix bm = {{1., -0.000273e-8, 9.740996e-8}, {0.000273e-8, 1., 1.324146e-8}, {-9.740996e-8, -1.324146e-8, 1.}};
             static rmatrix orm, odrm, oddrm, ornp;
             static double outc = 0.;
             static double realsec = 0.;
@@ -2888,7 +2871,7 @@ match.
             // Set size of actual second if first time in
             if (realsec == 0.)
             {
-                ut1 = utc + 1./86400.;
+                ut1 = utc + 1. / 86400.;
                 realsec = ut1 - utc;
             }
 
@@ -2897,7 +2880,7 @@ match.
             utc -= realsec;
             // Calculate bias offset for GCRF to J2000
             gcrf2j2000(&bm);
-            for (i=0; i<3; i++)
+            for (i = 0; i < 3; i++)
             {
                 // Calculate Precession Matrix (pm)
                 //		ttc = utc2jcentt(utc);
@@ -2957,17 +2940,17 @@ match.
 
                 // Start with ICRS to J2000 Matrix (bm)
                 // Final Matrix = pw * sm * nm * pm * bm
-                nrm[i] = rm_mmult(nm,rm_mmult(pm,bm));
-                if (i==1)
+                nrm[i] = rm_mmult(nm, rm_mmult(pm, bm));
+                if (i == 1)
                     *rnp = nrm[i];
 
-                nrm[i] = rm_mmult(sm,nrm[i]);
-                nrm[i] = rm_mmult(pw,nrm[i]);
+                nrm[i] = rm_mmult(sm, nrm[i]);
+                nrm[i] = rm_mmult(pw, nrm[i]);
                 utc += realsec;
             }
 
-            nddrm = rm_sub(rm_sub(nrm[2],nrm[1]),rm_sub(nrm[1],nrm[0]));
-            ndrm = rm_smult(.5,rm_sub(nrm[2],nrm[0]));
+            nddrm = rm_sub(rm_sub(nrm[2], nrm[1]), rm_sub(nrm[1], nrm[0]));
+            ndrm = rm_smult(.5, rm_sub(nrm[2], nrm[0]));
             orm = *rm = (rm_quaternion2dcm(q_dcm2quaternion_rm(nrm[1])));
             odrm = *drm = ndrm;
             oddrm = *ddrm = nddrm;
@@ -2999,9 +2982,9 @@ match.
             /* Euler angles */
             tas2r = t * DAS2R;
             w = 2306.2181;
-            zeta = (w + ( ( 0.30188) + 0.017998 * t ) * t ) * tas2r;
-            z = (w + ( ( 1.09468) + 0.018203 * t ) * t ) * tas2r;
-            theta = ((2004.3109)+ ((-0.42665) - 0.041833 * t) * t) * tas2r;
+            zeta = (w + ((0.30188) + 0.017998 * t) * t) * tas2r;
+            z = (w + ((1.09468) + 0.018203 * t) * t) * tas2r;
+            theta = ((2004.3109) + ((-0.42665) - 0.041833 * t) * t) * tas2r;
 
             ca = cos(zeta);
             sa = -sin(zeta);
@@ -3010,14 +2993,14 @@ match.
             cg = cos(z);
             sg = -sin(z);
 
-            pm->row[0].col[0] = ca*cb*cg - sa*sg;
-            pm->row[0].col[1] = cg*sa*cb +ca*sg;
-            pm->row[0].col[2] = -sb*cg;
-            pm->row[1].col[0] = -ca*cb*sg - sa*cg;
-            pm->row[1].col[1] = -sa*cb*sg + ca*cg;
-            pm->row[1].col[2] = sg*sb;
-            pm->row[2].col[0] = ca*sb;
-            pm->row[2].col[1] = sa*sb;
+            pm->row[0].col[0] = ca * cb * cg - sa * sg;
+            pm->row[0].col[1] = cg * sa * cb + ca * sg;
+            pm->row[0].col[2] = -sb * cg;
+            pm->row[1].col[0] = -ca * cb * sg - sa * cg;
+            pm->row[1].col[1] = -sa * cb * sg + ca * cg;
+            pm->row[1].col[2] = sg * sb;
+            pm->row[2].col[0] = ca * sb;
+            pm->row[2].col[1] = sa * sb;
             pm->row[2].col[2] = cb;
             opm = *pm;
             oep1 = ep1;
@@ -3027,14 +3010,14 @@ match.
         int32_t gcrf2j2000(rmatrix *rm)
         {
             // Vallado, Seago, Seidelmann: Implementation Issues Surrounding the New IAU Reference System for Astrodynamics
-            static rmatrix bm = {{0.99999999999999,-0.0000000707827974,0.0000000805621715},{0.0000000707827948,0.9999999999999969,0.0000000330604145},{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}};
+            static rmatrix bm = {{0.99999999999999, -0.0000000707827974, 0.0000000805621715}, {0.0000000707827948, 0.9999999999999969, 0.0000000330604145}, {-0.0000000805621738, -0.0000000330604088, 0.9999999999999962}};
             *rm = bm;
             return 0;
         }
 
         int32_t j20002gcrf(rmatrix *rm)
         {
-            static rmatrix bm = {{0.99999999999999,-0.0000000707827974,0.0000000805621715},{0.0000000707827948,0.9999999999999969,0.0000000330604145},{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}};
+            static rmatrix bm = {{0.99999999999999, -0.0000000707827974, 0.0000000805621715}, {0.0000000707827948, 0.9999999999999969, 0.0000000330604145}, {-0.0000000805621738, -0.0000000330604088, 0.9999999999999962}};
             *rm = rm_transpose(bm);
             return 0;
         }
@@ -3045,19 +3028,19 @@ match.
             double ca, sa, cb, sb, cg, sg;
 
             /* Interval between basic epoch J2000.0 and beginning epoch (JC) */
-            //t0 = ( ep0 - 2000.0 ) / 100.0;
+            // t0 = ( ep0 - 2000.0 ) / 100.0;
             t0 = (ep0 - 51544.5) / 36525.;
 
             /* Interval over which precession required (JC) */
-            //t =  ( ep1 - ep0 ) / 100.0;
+            // t =  ( ep1 - ep0 ) / 100.0;
             t = (ep1 - ep0) / 36525.;
 
             /* Euler angles */
             tas2r = t * DAS2R;
-            w = 2306.2181 + ( ( 1.39656 - ( 0.000139 * t0 ) ) * t0 );
-            zeta = (w + ( ( 0.30188 - 0.000344 * t0 ) + 0.017998 * t ) * t ) * tas2r;
-            z = (w + ( ( 1.09468 + 0.000066 * t0 ) + 0.018203 * t ) * t ) * tas2r;
-            theta = ((2004.3109 + (-0.85330 - 0.000217 * t0) * t0)+ ((-0.42665 - 0.000217 * t0) - 0.041833 * t) * t) * tas2r;
+            w = 2306.2181 + ((1.39656 - (0.000139 * t0)) * t0);
+            zeta = (w + ((0.30188 - 0.000344 * t0) + 0.017998 * t) * t) * tas2r;
+            z = (w + ((1.09468 + 0.000066 * t0) + 0.018203 * t) * t) * tas2r;
+            theta = ((2004.3109 + (-0.85330 - 0.000217 * t0) * t0) + ((-0.42665 - 0.000217 * t0) - 0.041833 * t) * t) * tas2r;
 
             ca = cos(zeta);
             sa = -sin(zeta);
@@ -3066,14 +3049,14 @@ match.
             cg = cos(z);
             sg = -sin(z);
 
-            pm->row[0].col[0] = ca*cb*cg - sa*sg;
-            pm->row[0].col[1] = cg*sa*cb +ca*sg;
-            pm->row[0].col[2] = -sb*cg;
-            pm->row[1].col[0] = -ca*cb*sg - sa*cg;
-            pm->row[1].col[1] = -sa*cb*sg + ca*cg;
-            pm->row[1].col[2] = sg*sb;
-            pm->row[2].col[0] = ca*sb;
-            pm->row[2].col[1] = sa*sb;
+            pm->row[0].col[0] = ca * cb * cg - sa * sg;
+            pm->row[0].col[1] = cg * sa * cb + ca * sg;
+            pm->row[0].col[2] = -sb * cg;
+            pm->row[1].col[0] = -ca * cb * sg - sa * cg;
+            pm->row[1].col[1] = -sa * cb * sg + ca * cg;
+            pm->row[1].col[2] = sg * sb;
+            pm->row[2].col[0] = ca * sb;
+            pm->row[2].col[1] = sa * sb;
             pm->row[2].col[2] = cb;
 
             return 0;
@@ -3088,10 +3071,9 @@ match.
             double c1 = V.norm2() - GM / S.norm();
             double rdotv = S.dot(V);
             Vector ebar = (c1 * S - rdotv * V) / GM;
-            qperi = irotate_for(Vector(1.,0.,0.), Vector(0.,0.,1.), ebar, H);
+            qperi = irotate_for(Vector(1., 0., 0.), Vector(0., 0., 1.), ebar, H);
 
             return 0;
-
         }
 
         int32_t peri2cart(cartpos cart, Quaternion &qcart)
@@ -3121,10 +3103,10 @@ match.
             qpos.col[2] = 0.;
 
             // find mean motion and period
-            kep.mm = sqrt(GM/pow(kep.a,3.));
+            kep.mm = sqrt(GM / pow(kep.a, 3.));
             kep.period = 2. * DPI / kep.mm;
-            qvel.col[0] = -kep.mm * kep.a * sea / (1. - kep.e*cea);
-            qvel.col[1] = kep.mm * kep.a * sqe * cea / (1. - kep.e*cea);
+            qvel.col[0] = -kep.mm * kep.a * sea / (1. - kep.e * cea);
+            qvel.col[1] = kep.mm * kep.a * sqe * cea / (1. - kep.e * cea);
             qvel.col[2] = 0.;
 
             s1 = sin(kep.raan);
@@ -3134,16 +3116,16 @@ match.
             s3 = sin(kep.ap);
             c3 = cos(kep.ap);
 
-            xx = c1*c3 - s1*c2*s3;
-            xy = -c1*s3 - s1*c2*c3;
-            xz = s1*s2;
+            xx = c1 * c3 - s1 * c2 * s3;
+            xy = -c1 * s3 - s1 * c2 * c3;
+            xz = s1 * s2;
 
-            yx = s1*c3 + c1*c2*s3;
-            yy = -s1*s3 + c1*c2*c3;
-            yz = -c1*s2;
+            yx = s1 * c3 + c1 * c2 * s3;
+            yy = -s1 * s3 + c1 * c2 * c3;
+            yz = -c1 * s2;
 
-            zx = s2*s3;
-            zy = s2*c3;
+            zx = s2 * s3;
+            zy = s2 * c3;
             zz = c2;
 
             eci.s = eci.v = eci.a = rv_zero();
@@ -3161,7 +3143,7 @@ match.
             return 0;
         }
 
-        int32_t eci2kep(cartpos &eci,kepstruc &kep)
+        int32_t eci2kep(cartpos &eci, kepstruc &kep)
         {
             double magr, magv, magn, sme, rdotv, temp;
             double c1, hk, magh;
@@ -3176,20 +3158,20 @@ match.
             magv = length_rv(eci.v);
             if (magv < D_SMALL)
                 magv = D_SMALL;
-            kep.h = rv_cross(eci.s,eci.v);
+            kep.h = rv_cross(eci.s, eci.v);
             if (magr == D_SMALL && magv == D_SMALL)
-                kep.fa = acos(1./D_SMALL);
+                kep.fa = acos(1. / D_SMALL);
             else
-                kep.fa = acos(length_rv(kep.h)/(magr*magv));
-            kep.eta = magv*magv/2. - GM/magr;
+                kep.fa = acos(length_rv(kep.h) / (magr * magv));
+            kep.eta = magv * magv / 2. - GM / magr;
             magh = length_rv(kep.h);
-            jplpos(JPL_EARTH,JPL_SUN_BARY,utc2tt(eci.utc),&earthpos);
+            jplpos(JPL_EARTH, JPL_SUN_BARY, utc2tt(eci.utc), &earthpos);
             earthpos.utc = eci.utc;
             rsun = earthpos.s;
             normalize_rv(rsun);
             hsat = kep.h;
             normalize_rv(hsat);
-            kep.beta = asin(dot_rv(rsun,hsat));
+            kep.beta = asin(dot_rv(rsun, hsat));
 
             if (magh > O_SMALL)
             {
@@ -3199,7 +3181,7 @@ match.
                 nbar.col[2] = 0.0;
                 magn = length_rv(nbar);
                 c1 = magv * magv - GM / magr;
-                rdotv = dot_rv(eci.s,eci.v);
+                rdotv = dot_rv(eci.s, eci.v);
                 ebar.col[0] = (c1 * eci.s.col[0] - rdotv * eci.v.col[0]) / GM;
                 ebar.col[1] = (c1 * eci.s.col[1] - rdotv * eci.v.col[1]) / GM;
                 ebar.col[2] = (c1 * eci.s.col[2] - rdotv * eci.v.col[2]) / GM;
@@ -3213,7 +3195,7 @@ match.
                 //	p = magh * magh / GM;
 
                 // find mean motion and period
-                kep.mm = sqrt(GM/pow(kep.a,3.));
+                kep.mm = sqrt(GM / pow(kep.a, 3.));
                 kep.period = 2. * DPI / kep.mm;
 
                 // -----------------  find inclination   -------------------
@@ -3225,7 +3207,7 @@ match.
                 {
                     temp = nbar.col[0] / magn;
                     if (fabs(temp) > 1.)
-                        temp = temp<1.?-1.:(temp>1.?1.:0.);
+                        temp = temp < 1. ? -1. : (temp > 1. ? 1. : 0.);
                     kep.raan = acos(temp);
                     if (nbar.col[1] < 0.)
                         kep.raan = D2PI - kep.raan;
@@ -3234,14 +3216,14 @@ match.
                     kep.raan = O_UNDEFINED;
 
                 // Find eccentric and mean anomaly
-                kep.ea = atan2(rdotv/sqrt(kep.a*GM),1.-magr/kep.a);
-                kep.ma = kep.ea - kep.e*sin(kep.ea);
+                kep.ea = atan2(rdotv / sqrt(kep.a * GM), 1. - magr / kep.a);
+                kep.ma = kep.ea - kep.e * sin(kep.ea);
 
                 // Find argument of latitude
-                kep.alat = atan2(eci.s.col[2],(eci.s.col[1]*kep.h.col[0]-eci.s.col[0]*kep.h.col[1])/magh);
+                kep.alat = atan2(eci.s.col[2], (eci.s.col[1] * kep.h.col[0] - eci.s.col[0] * kep.h.col[1]) / magh);
 
                 // Find true anomaly
-                kep.ta = atan2(sqrt(1-kep.e*kep.e)*sin(kep.ea),cos(kep.ea)-kep.e);
+                kep.ta = atan2(sqrt(1 - kep.e * kep.e) * sin(kep.ea), cos(kep.ea) - kep.e);
 
                 // Find argument of perigee
                 kep.ap = kep.alat - kep.ta;
@@ -3257,10 +3239,10 @@ match.
 
         //! Geocentric to Topocentric
         /*! Calculate the Topocentric position of a Target with respect to a Source.
- * \param source Geodetic location of Source.
- * \param targetgeoc Geocentric location of Target.
- * \param topo Resulting Topocentric position.
- */
+         * \param source Geodetic location of Source.
+         * \param targetgeoc Geocentric location of Target.
+         * \param topo Resulting Topocentric position.
+         */
         int32_t geoc2topo(gvector source, rvector targetgeoc, rvector &topo)
         {
             rmatrix g2t;
@@ -3277,16 +3259,16 @@ match.
             g2t.row[0].col[0] = -slon;
             g2t.row[0].col[1] = clon;
             g2t.row[0].col[2] = 0.;
-            g2t.row[1].col[0] = -slat*clon;
-            g2t.row[1].col[1] = -slat*slon;
+            g2t.row[1].col[0] = -slat * clon;
+            g2t.row[1].col[1] = -slat * slon;
             g2t.row[1].col[2] = clat;
-            g2t.row[2].col[0] = clat*clon;
-            g2t.row[2].col[1] = clat*slon;
+            g2t.row[2].col[0] = clat * clon;
+            g2t.row[2].col[1] = clat * slon;
             g2t.row[2].col[2] = slat;
 
             ct = cos(source.lat);
             st = sin(source.lat);
-            c = 1./sqrt(ct * ct + FRATIO2 * st * st);
+            c = 1. / sqrt(ct * ct + FRATIO2 * st * st);
             s = FRATIO2 * c;
             r = (REARTHM * c + source.h) * ct;
             sourcegeoc.col[2] = (REARTHM * s + source.h) * st;
@@ -3297,17 +3279,17 @@ match.
             sourcegeoc.col[0] = r * cs;
             sourcegeoc.col[1] = r * ss;
 
-            topo = rv_mmult(g2t,rv_sub(targetgeoc,sourcegeoc));
+            topo = rv_mmult(g2t, rv_sub(targetgeoc, sourcegeoc));
 
             return 0;
         }
 
         //! Body Centric to Topocentric
         /*! Calculate the Topocentric position of a Target with respect to a Source.
- * \param source Body centered location of Source.
- * \param target Body centered location of Target.
- * \param topo Resulting Topocentric position.
- */
+         * \param source Body centered location of Source.
+         * \param target Body centered location of Target.
+         * \param topo Resulting Topocentric position.
+         */
         int32_t body2topo(Vector source, Vector target, Vector &topo)
         {
             Matrix b2t;
@@ -3340,11 +3322,11 @@ match.
             b2t[0][0] = -slon;
             b2t[0][1] = clon;
             b2t[0][2] = 0.;
-            b2t[1][0] = -slat*clon;
-            b2t[1][1] = -slat*slon;
+            b2t[1][0] = -slat * clon;
+            b2t[1][1] = -slat * slon;
             b2t[1][2] = clat;
-            b2t[2][0] = clat*clon;
-            b2t[2][1] = clat*slon;
+            b2t[2][0] = clat * clon;
+            b2t[2][1] = clat * slon;
             b2t[2][2] = slat;
 
             topo = b2t * (target - source);
@@ -3359,8 +3341,8 @@ match.
         //! \param el Calculated elevation in radians
         int32_t topo2azel(rvector tpos, float &az, float &el)
         {
-            az = static_cast <float>(atan2(tpos.col[0], tpos.col[1]));
-            el = static_cast <float>(atan2(tpos.col[2], sqrt(tpos.col[0] * tpos.col[0] + tpos.col[1] * tpos.col[1])));
+            az = static_cast<float>(atan2(tpos.col[0], tpos.col[1]));
+            el = static_cast<float>(atan2(tpos.col[2], sqrt(tpos.col[0] * tpos.col[0] + tpos.col[1] * tpos.col[1])));
             return 0;
         }
 
@@ -3371,8 +3353,8 @@ match.
         //! \param el Calculated elevation in radians
         int32_t topo2azel(Vector tpos, float &az, float &el)
         {
-            az = static_cast <float>(atan2(tpos[0], tpos[1]));
-            el = static_cast <float>(atan2(tpos[2], sqrt(tpos[0] * tpos[0] + tpos[1] * tpos[1])));
+            az = static_cast<float>(atan2(tpos[0], tpos[1]));
+            el = static_cast<float>(atan2(tpos[2], sqrt(tpos[0] * tpos[0] + tpos[1] * tpos[1])));
             return 0;
         }
 
@@ -3383,7 +3365,7 @@ match.
         //! \param sep Reference to distance between the two
         int32_t geod2sep(gvector src, gvector dst, double &sep)
         {
-//            sep = acos( sin(src.lat) * sin(dst.lat) + cos(src.lat) * cos(dst.lat) * cos(dst.lat - src.lat) ) * REARTHM;
+            //            sep = acos( sin(src.lat) * sin(dst.lat) + cos(src.lat) * cos(dst.lat) * cos(dst.lat - src.lat) ) * REARTHM;
             sep = geod2sep(src, dst);
             return 0;
         }
@@ -3393,7 +3375,7 @@ match.
             double dphi = dst.lon - src.lon;
             double dlambda = dst.lat - src.lat;
             double a = sin(dphi / 2.) * sin(dphi / 2.) + cos(src.lat) * cos(dst.lat) * sin(dlambda / 2.);
-            double c = 2 * atan2(sqrt(a), sqrt(1-a));
+            double c = 2 * atan2(sqrt(a), sqrt(1 - a));
             return REARTHM * c;
         }
 
@@ -3404,20 +3386,21 @@ match.
     \param lines Vector of TLE's.
     \param eci Pointer to ::Cosmos::Convert::cartpos in ECI frame.
     */
-        int lines2eci(double utc, vector<tlestruc>lines, cartpos &eci)
+        int lines2eci(double utc, vector<tlestruc> lines, cartpos &eci)
         {
-            uint16_t lindex=0;
+            uint16_t lindex = 0;
             int32_t iretn = 0;
 
             if (utc >= lines[lindex].utc)
             {
-                for (uint16_t i=lindex; i<lines.size(); i++)
+                for (uint16_t i = lindex; i < lines.size(); i++)
                 {
                     if (utc >= lines[i].utc)
                     {
                         lindex = i;
                     }
-                    else {
+                    else
+                    {
                         break;
                     }
                 }
@@ -3430,18 +3413,18 @@ match.
         }
 
         /**
-* SGP4 propagator algoritm
-* @param utc Specified time as Modified Julian Date
-* @param tle Two Line Element structure, given as pointer to a ::Cosmos::Convert::tlestruc
-* @param pos_teme result from SGP4 algorithm is a cartesian state given in TEME frame, as pointer to a ::Cosmos::Convert::cartpos
-*/
+         * SGP4 propagator algoritm
+         * @param utc Specified time as Modified Julian Date
+         * @param tle Two Line Element structure, given as pointer to a ::Cosmos::Convert::tlestruc
+         * @param pos_teme result from SGP4 algorithm is a cartesian state given in TEME frame, as pointer to a ::Cosmos::Convert::cartpos
+         */
         int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
         {
             //	rmatrix pm = {{{{0.}}}};
             //	static int lsnumber=-99;
-            static double c1=0.;
-            static double cosio=0. ,x3thm1=0. , xnodp=0. ,aodp=0.,isimp=0.,eta=0.,sinio=0. ,x1mth2=0.,c4=0.,c5=0.;
-            static double xmdot=0.,omgdot=0., xnodot=0.,omgcof=0.,xmcof=0., xnodcf=0.,t2cof=0.,xlcof=0.,aycof=0.;
+            static double c1 = 0.;
+            static double cosio = 0., x3thm1 = 0., xnodp = 0., aodp = 0., isimp = 0., eta = 0., sinio = 0., x1mth2 = 0., c4 = 0., c5 = 0.;
+            static double xmdot = 0., omgdot = 0., xnodot = 0., omgcof = 0., xmcof = 0., xnodcf = 0., t2cof = 0., xlcof = 0., aycof = 0.;
             int i;
             double temp, temp1, temp2, temp3, temp4, temp5, temp6;
             double tempa, tempe, templ;
@@ -3450,15 +3433,15 @@ match.
             double perige, eosq, pinvsq, tsi, etasq, eeta, psisq, g, xmdf;
             double tsince, omgadf, alpha, xnoddf, xmp, tsq, xnode, delomg, delm;
             double tcube, tfour, a, e, xl, beta, axn, xn, xll, ayn, capu, aynl;
-            double xlt, sinepw, cosepw, epw, ecose, esine,  pl, r, elsq;
+            double xlt, sinepw, cosepw, epw, ecose, esine, pl, r, elsq;
             double rdot, rfdot, cosu, sinu, u, sin2u, cos2u, uk, rk, ux, uy, uz;
             double vx, vy, vz, xinck, rdotk, rfdotk, sinuk, cosuk, sinik, cosik, xnodek;
             double xmx, xmy, sinnok, cosnok;
             //	locstruc loc;
-            static double lutc=0.;
-            static uint16_t lsnumber=0;
+            static double lutc = 0.;
+            static uint16_t lsnumber = 0;
 
-            static double delmo,sinmo,x7thm1,d2,d3,d4,t3cof,t4cof,t5cof, betal;
+            static double delmo, sinmo, x7thm1, d2, d3, d4, t3cof, t4cof, t5cof, betal;
 
             if (tle.utc != lutc || tle.snumber != lsnumber)
             {
@@ -3468,85 +3451,85 @@ match.
                 }
                 // RECOVER ORIGINAL MEAN MOTION ( xnodp ) AND SEMIMAJOR AXIS (aodp)
                 // FROM INPUT ELEMENTS
-                a1=pow((SGP4_XKE/ tle.mm ),SGP4_TOTHRD);
+                a1 = pow((SGP4_XKE / tle.mm), SGP4_TOTHRD);
                 cosio = cos(tle.i);
-                theta2=cosio * cosio;
-                x3thm1 =3.*theta2-1.;
+                theta2 = cosio * cosio;
+                x3thm1 = 3. * theta2 - 1.;
                 eosq = tle.e * tle.e;
-                betao2=1.- eosq;
-                betao=sqrt(betao2);
-                del1=1.5*SGP4_CK2*x3thm1 /(a1*a1*betao*betao2);
-                ao=a1*(1.-del1*(.5*SGP4_TOTHRD+del1*(1.+134./81.*del1)));
-                delo=1.5*SGP4_CK2*x3thm1 /(ao*ao*betao*betao2);
-                xnodp = tle.mm /(1.+delo);
-                aodp=ao/(1.-delo);
+                betao2 = 1. - eosq;
+                betao = sqrt(betao2);
+                del1 = 1.5 * SGP4_CK2 * x3thm1 / (a1 * a1 * betao * betao2);
+                ao = a1 * (1. - del1 * (.5 * SGP4_TOTHRD + del1 * (1. + 134. / 81. * del1)));
+                delo = 1.5 * SGP4_CK2 * x3thm1 / (ao * ao * betao * betao2);
+                xnodp = tle.mm / (1. + delo);
+                aodp = ao / (1. - delo);
                 // INITIALIZATION
                 // FOR PERIGEE LESS THAN 220 KILOMETERS, THE isimp FLAG IS SET AND
                 // THE EQUATIONS ARE TRUNCATED TO LINEAR VARIATION IN sqrt A AND
                 // QUADRATIC VARIATION IN MEAN ANOMALY. ALSO, THE c3 TERM, THE
                 // DELTA alpha TERM, AND THE DELTA M TERM ARE DROPPED.
-                isimp=0;
-                if((aodp*(1.- tle.e)/SGP4_AE) < (220./SGP4_XKMPER+SGP4_AE))
-                    isimp=1;
+                isimp = 0;
+                if ((aodp * (1. - tle.e) / SGP4_AE) < (220. / SGP4_XKMPER + SGP4_AE))
+                    isimp = 1;
                 // FOR PERIGEE BELOW 156 KM, THE VALUES OF
                 // S AND SGP4_QOMS2T ARE ALTERED
-                s4=SGP4_S;
-                qoms24=SGP4_QOMS2T;
-                perige=(aodp*(1.- tle.e )-SGP4_AE)*SGP4_XKMPER;
-                if(perige < 156.)
+                s4 = SGP4_S;
+                qoms24 = SGP4_QOMS2T;
+                perige = (aodp * (1. - tle.e) - SGP4_AE) * SGP4_XKMPER;
+                if (perige < 156.)
                 {
-                    s4=perige-78.;
-                    if(perige <= 98.)
+                    s4 = perige - 78.;
+                    if (perige <= 98.)
                     {
-                        s4=20.;
-                        qoms24=pow(((120.-s4)*SGP4_AE/SGP4_XKMPER),4.);
-                        s4=s4/SGP4_XKMPER+SGP4_AE;
+                        s4 = 20.;
+                        qoms24 = pow(((120. - s4) * SGP4_AE / SGP4_XKMPER), 4.);
+                        s4 = s4 / SGP4_XKMPER + SGP4_AE;
                     }
                 }
-                pinvsq = 1./(aodp*aodp*betao2*betao2);
-                tsi =1./(aodp-s4);
-                eta=aodp* tle.e * tsi;
-                etasq=eta*eta;
-                eeta= tle.e *eta;
-                psisq=fabs(1.-etasq);
-                coef=qoms24*pow(tsi,4.);
-                coef1=coef/pow(psisq,3.5);
-                c2=coef1* xnodp *(aodp*(1.+1.5*etasq+eeta*(4.+etasq))+.75* SGP4_CK2*tsi/psisq*x3thm1 *(8.+3.*etasq*(8.+etasq)));
-                c1 = tle.bstar *c2;
-                sinio =sin( tle.i );
-                g =-SGP4_XJ3/SGP4_CK2*pow(SGP4_AE,3.);
-                c3 =coef*tsi*g* xnodp *SGP4_AE*sinio / tle.e;
-                x1mth2 =1.-theta2;
-                c4 =2.* xnodp *coef1*aodp*betao2*(eta* (2.+.5*etasq)+ tle.e *(.5+2.*etasq)-2.*SGP4_CK2*tsi/ (aodp*psisq)*(-3.*x3thm1 *(1.-2.*eeta+etasq* (1.5-.5*eeta))+.75*x1mth2*(2.*etasq-eeta* (1.+etasq))*cos(2.* tle.ap )));
-                c5 =2.*coef1*aodp*betao2*(1.+2.75*(etasq+eeta)+eeta*etasq);
-                theta4 =theta2*theta2;
-                temp1 =3.*SGP4_CK2*pinvsq* xnodp;
-                temp2 = temp1*SGP4_CK2*pinvsq;
-                temp3 =1.25*SGP4_CK4*pinvsq*pinvsq* xnodp;
-                xmdot = xnodp +.5* temp1*betao*x3thm1 +.0625* temp2*betao* (13.-78.*theta2+137.*theta4);
-                x1m5th =1.-5.*theta2;
-                omgdot =-.5* temp1*x1m5th+.0625* temp2*(7.-114.*theta2+ 395.*theta4)+ temp3*(3.-36.*theta2+49.*theta4);
-                xhdot1 =- temp1*cosio;
-                xnodot =xhdot1+(.5* temp2*(4.-19.*theta2)+2.* temp3*(3.- 7.*theta2))*cosio;
-                omgcof = tle.bstar *c3*cos( tle.ap );
-                xmcof =-SGP4_TOTHRD*coef* tle.bstar *SGP4_AE/eeta;
-                xnodcf =3.5*betao2*xhdot1*c1;
-                t2cof =1.5*c1;
-                xlcof =.125*g*sinio *(3.+5.*cosio )/(1.+cosio );
-                aycof =.25*g*sinio;
-                delmo =pow((1.+eta*cos( tle.ma )),3.);
-                sinmo =sin( tle.ma );
-                x7thm1 =7.*theta2-1.;
-                if(isimp != 1)
+                pinvsq = 1. / (aodp * aodp * betao2 * betao2);
+                tsi = 1. / (aodp - s4);
+                eta = aodp * tle.e * tsi;
+                etasq = eta * eta;
+                eeta = tle.e * eta;
+                psisq = fabs(1. - etasq);
+                coef = qoms24 * pow(tsi, 4.);
+                coef1 = coef / pow(psisq, 3.5);
+                c2 = coef1 * xnodp * (aodp * (1. + 1.5 * etasq + eeta * (4. + etasq)) + .75 * SGP4_CK2 * tsi / psisq * x3thm1 * (8. + 3. * etasq * (8. + etasq)));
+                c1 = tle.bstar * c2;
+                sinio = sin(tle.i);
+                g = -SGP4_XJ3 / SGP4_CK2 * pow(SGP4_AE, 3.);
+                c3 = coef * tsi * g * xnodp * SGP4_AE * sinio / tle.e;
+                x1mth2 = 1. - theta2;
+                c4 = 2. * xnodp * coef1 * aodp * betao2 * (eta * (2. + .5 * etasq) + tle.e * (.5 + 2. * etasq) - 2. * SGP4_CK2 * tsi / (aodp * psisq) * (-3. * x3thm1 * (1. - 2. * eeta + etasq * (1.5 - .5 * eeta)) + .75 * x1mth2 * (2. * etasq - eeta * (1. + etasq)) * cos(2. * tle.ap)));
+                c5 = 2. * coef1 * aodp * betao2 * (1. + 2.75 * (etasq + eeta) + eeta * etasq);
+                theta4 = theta2 * theta2;
+                temp1 = 3. * SGP4_CK2 * pinvsq * xnodp;
+                temp2 = temp1 * SGP4_CK2 * pinvsq;
+                temp3 = 1.25 * SGP4_CK4 * pinvsq * pinvsq * xnodp;
+                xmdot = xnodp + .5 * temp1 * betao * x3thm1 + .0625 * temp2 * betao * (13. - 78. * theta2 + 137. * theta4);
+                x1m5th = 1. - 5. * theta2;
+                omgdot = -.5 * temp1 * x1m5th + .0625 * temp2 * (7. - 114. * theta2 + 395. * theta4) + temp3 * (3. - 36. * theta2 + 49. * theta4);
+                xhdot1 = -temp1 * cosio;
+                xnodot = xhdot1 + (.5 * temp2 * (4. - 19. * theta2) + 2. * temp3 * (3. - 7. * theta2)) * cosio;
+                omgcof = tle.bstar * c3 * cos(tle.ap);
+                xmcof = -SGP4_TOTHRD * coef * tle.bstar * SGP4_AE / eeta;
+                xnodcf = 3.5 * betao2 * xhdot1 * c1;
+                t2cof = 1.5 * c1;
+                xlcof = .125 * g * sinio * (3. + 5. * cosio) / (1. + cosio);
+                aycof = .25 * g * sinio;
+                delmo = pow((1. + eta * cos(tle.ma)), 3.);
+                sinmo = sin(tle.ma);
+                x7thm1 = 7. * theta2 - 1.;
+                if (isimp != 1)
                 {
-                    c1sq=c1*c1;
-                    d2=4.*aodp*tsi*c1sq;
-                    temp =d2*tsi*c1/3.;
-                    d3=(17.*aodp+s4)* temp;
-                    d4=.5* temp *aodp*tsi*(221.*aodp+31.*s4)*c1;
-                    t3cof=d2+2.*c1sq;
-                    t4cof=.25*(3.*d3+c1*(12.*d2+10.*c1sq));
-                    t5cof=.2*(3.*d4+12.*c1*d3+6.*d2*d2+15.*c1sq*( 2.*d2+c1sq));
+                    c1sq = c1 * c1;
+                    d2 = 4. * aodp * tsi * c1sq;
+                    temp = d2 * tsi * c1 / 3.;
+                    d3 = (17. * aodp + s4) * temp;
+                    d4 = .5 * temp * aodp * tsi * (221. * aodp + 31. * s4) * c1;
+                    t3cof = d2 + 2. * c1sq;
+                    t4cof = .25 * (3. * d3 + c1 * (12. * d2 + 10. * c1sq));
+                    t5cof = .2 * (3. * d4 + 12. * c1 * d3 + 6. * d2 * d2 + 15. * c1sq * (2. * d2 + c1sq));
                 }
                 lsnumber = tle.snumber;
                 lutc = tle.utc;
@@ -3554,113 +3537,112 @@ match.
 
             // UPDATE FOR SECULAR GRAVITY AND ATMOSPHERIC DRAG
             tsince = (utc - tle.utc) * SGP4_XMNPDA;
-            xmdf = tle.ma +xmdot*tsince;
-            omgadf= tle.ap +omgdot*tsince;
-            xnoddf= tle.raan + xnodot*tsince;
-            alpha=omgadf;
+            xmdf = tle.ma + xmdot * tsince;
+            omgadf = tle.ap + omgdot * tsince;
+            xnoddf = tle.raan + xnodot * tsince;
+            alpha = omgadf;
             xmp = xmdf;
-            tsq=tsince*tsince;
-            xnode= xnoddf+ xnodcf*tsq;
-            tempa=1.-c1*tsince;
-            tempe= tle.bstar *c4*tsince;
-            templ=t2cof*tsq;
-            if(isimp != 1)
+            tsq = tsince * tsince;
+            xnode = xnoddf + xnodcf * tsq;
+            tempa = 1. - c1 * tsince;
+            tempe = tle.bstar * c4 * tsince;
+            templ = t2cof * tsq;
+            if (isimp != 1)
             {
-                delomg=omgcof*tsince;
-                delm=xmcof*(pow((1.+eta*cos( xmdf )),3.)-delmo);
-                temp =delomg+delm;
+                delomg = omgcof * tsince;
+                delm = xmcof * (pow((1. + eta * cos(xmdf)), 3.) - delmo);
+                temp = delomg + delm;
                 xmp = xmdf + temp;
-                alpha=omgadf- temp;
-                tcube=tsq*tsince;
-                tfour=tsince*tcube;
-                tempa = tempa-d2*tsq-d3*tcube-d4*tfour;
-                tempe = tempe+ tle.bstar *c5*(sin( xmp )-sinmo);
-                templ = templ+t3cof*tcube+ tfour*(t4cof+tsince*t5cof);
+                alpha = omgadf - temp;
+                tcube = tsq * tsince;
+                tfour = tsince * tcube;
+                tempa = tempa - d2 * tsq - d3 * tcube - d4 * tfour;
+                tempe = tempe + tle.bstar * c5 * (sin(xmp) - sinmo);
+                templ = templ + t3cof * tcube + tfour * (t4cof + tsince * t5cof);
             }
-            a =aodp* tempa * tempa;
+            a = aodp * tempa * tempa;
             e = tle.e - tempe;
-            xl= xmp +alpha+ xnode+ xnodp * templ;
-            beta=sqrt(1.-e*e);
-            xn=SGP4_XKE/pow(a,1.5);
+            xl = xmp + alpha + xnode + xnodp * templ;
+            beta = sqrt(1. - e * e);
+            xn = SGP4_XKE / pow(a, 1.5);
             // LONG PERIOD PERIODICS
-            axn=e*cos(alpha);
-            temp =1./(a*beta*beta);
-            xll= temp *xlcof*axn;
-            aynl= temp *aycof;
-            xlt=xl+xll;
-            ayn=e*sin(alpha)+aynl;
+            axn = e * cos(alpha);
+            temp = 1. / (a * beta * beta);
+            xll = temp * xlcof * axn;
+            aynl = temp * aycof;
+            xlt = xl + xll;
+            ayn = e * sin(alpha) + aynl;
             // SOLVE KEplERS EQUATION;
-            capu=ranrm(xlt- xnode);
-            temp2=capu;
-            for (i=1; i<=10; i++)
+            capu = ranrm(xlt - xnode);
+            temp2 = capu;
+            for (i = 1; i <= 10; i++)
             {
-                sinepw=sin( temp2);
-                cosepw=cos( temp2);
-                temp3=axn*sinepw;
-                temp4=ayn*cosepw;
-                temp5=axn*cosepw;
-                temp6=ayn*sinepw;
-                epw=(capu- temp4+ temp3- temp2)/(1.- temp5- temp6)+ temp2;
-                if(fabs(epw- temp2) <= SGP4_E6A)
+                sinepw = sin(temp2);
+                cosepw = cos(temp2);
+                temp3 = axn * sinepw;
+                temp4 = ayn * cosepw;
+                temp5 = axn * cosepw;
+                temp6 = ayn * sinepw;
+                epw = (capu - temp4 + temp3 - temp2) / (1. - temp5 - temp6) + temp2;
+                if (fabs(epw - temp2) <= SGP4_E6A)
                     break;
-                temp2=epw;
+                temp2 = epw;
             }
             // SHORT PERIOD PRELIMINARY QUANTITIES;
-            ecose= temp5+ temp6;
-            esine= temp3- temp4;
-            elsq=axn*axn+ayn*ayn;
-            temp =1.-elsq;
-            pl=a* temp;
-            r=a*(1.-ecose);
-            temp1=1./r;
-            rdot=SGP4_XKE*sqrt(a)*esine* temp1;
-            rfdot=SGP4_XKE*sqrt(pl)* temp1;
-            temp2=a* temp1;
-            betal=sqrt( temp );
-            temp3=1./(1.+betal);
-            cosu = temp2*(cosepw-axn+ayn*esine* temp3);
-            sinu= temp2*(sinepw-ayn-axn*esine* temp3);
-            u=actan(sinu, cosu );
-            sin2u=2.*sinu* cosu;
-            cos2u =2.* cosu * cosu -1.;
-            temp =1./pl;
-            temp1=SGP4_CK2* temp;
-            temp2= temp1* temp;
+            ecose = temp5 + temp6;
+            esine = temp3 - temp4;
+            elsq = axn * axn + ayn * ayn;
+            temp = 1. - elsq;
+            pl = a * temp;
+            r = a * (1. - ecose);
+            temp1 = 1. / r;
+            rdot = SGP4_XKE * sqrt(a) * esine * temp1;
+            rfdot = SGP4_XKE * sqrt(pl) * temp1;
+            temp2 = a * temp1;
+            betal = sqrt(temp);
+            temp3 = 1. / (1. + betal);
+            cosu = temp2 * (cosepw - axn + ayn * esine * temp3);
+            sinu = temp2 * (sinepw - ayn - axn * esine * temp3);
+            u = actan(sinu, cosu);
+            sin2u = 2. * sinu * cosu;
+            cos2u = 2. * cosu * cosu - 1.;
+            temp = 1. / pl;
+            temp1 = SGP4_CK2 * temp;
+            temp2 = temp1 * temp;
             // UPDATE FOR SHORT PERIODICS;
-            rk =r*(1.-1.5* temp2*betal*x3thm1 )+.5* temp1*x1mth2* cos2u;
-            uk=u-.25* temp2*x7thm1*sin2u;
-            xnodek= xnode+1.5* temp2*cosio *sin2u;
-            xinck= tle.i +1.5* temp2*cosio *sinio * cos2u;
-            rdotk=rdot-xn* temp1*x1mth2*sin2u;
-            rfdotk=rfdot+xn* temp1*(x1mth2* cos2u +1.5*x3thm1 );
+            rk = r * (1. - 1.5 * temp2 * betal * x3thm1) + .5 * temp1 * x1mth2 * cos2u;
+            uk = u - .25 * temp2 * x7thm1 * sin2u;
+            xnodek = xnode + 1.5 * temp2 * cosio * sin2u;
+            xinck = tle.i + 1.5 * temp2 * cosio * sinio * cos2u;
+            rdotk = rdot - xn * temp1 * x1mth2 * sin2u;
+            rfdotk = rfdot + xn * temp1 * (x1mth2 * cos2u + 1.5 * x3thm1);
             // ORIENTATION VECTORS;
-            sinuk =sin(uk);
-            cosuk=cos(uk);
-            sinik =sin(xinck);
-            cosik =cos(xinck);
-            sinnok=sin( xnodek);
-            cosnok=cos( xnodek);
-            xmx=-sinnok* cosik;
-            xmy=cosnok* cosik;
-            ux=xmx* sinuk +cosnok* cosuk;
-            uy=xmy* sinuk +sinnok* cosuk;
-            uz= sinik * sinuk;
-            vx=xmx* cosuk-cosnok* sinuk;
-            vy=xmy* cosuk-sinnok* sinuk;
-            vz= sinik * cosuk;
+            sinuk = sin(uk);
+            cosuk = cos(uk);
+            sinik = sin(xinck);
+            cosik = cos(xinck);
+            sinnok = sin(xnodek);
+            cosnok = cos(xnodek);
+            xmx = -sinnok * cosik;
+            xmy = cosnok * cosik;
+            ux = xmx * sinuk + cosnok * cosuk;
+            uy = xmy * sinuk + sinnok * cosuk;
+            uz = sinik * sinuk;
+            vx = xmx * cosuk - cosnok * sinuk;
+            vy = xmy * cosuk - sinnok * sinuk;
+            vz = sinik * cosuk;
             // POSITION AND VELOCITY in TEME
             pos_teme.s = pos_teme.v = pos_teme.a = rv_zero();
 
-            pos_teme.s.col[0] = 1000. * SGP4_XKMPER * rk *ux;
-            pos_teme.s.col[1] = 1000. * SGP4_XKMPER * rk *uy;
-            pos_teme.s.col[2] = 1000. * SGP4_XKMPER * rk *uz;
-            pos_teme.v.col[0] = 1000. * SGP4_XKMPER * (rdotk*ux+rfdotk*vx) / 60.;
-            pos_teme.v.col[1] = 1000. * SGP4_XKMPER * (rdotk*uy+rfdotk*vy) / 60.;
-            pos_teme.v.col[2] = 1000. * SGP4_XKMPER * (rdotk*uz+rfdotk*vz) / 60.;
+            pos_teme.s.col[0] = 1000. * SGP4_XKMPER * rk * ux;
+            pos_teme.s.col[1] = 1000. * SGP4_XKMPER * rk * uy;
+            pos_teme.s.col[2] = 1000. * SGP4_XKMPER * rk * uz;
+            pos_teme.v.col[0] = 1000. * SGP4_XKMPER * (rdotk * ux + rfdotk * vx) / 60.;
+            pos_teme.v.col[1] = 1000. * SGP4_XKMPER * (rdotk * uy + rfdotk * vy) / 60.;
+            pos_teme.v.col[2] = 1000. * SGP4_XKMPER * (rdotk * uz + rfdotk * vz) / 60.;
 
             return 0;
         }
-
 
         double atan3(double sa, double cb)
         {
@@ -3669,7 +3651,7 @@ match.
             double epsilon = 0.0000000001;
             if (fabs(sa) < epsilon)
             {
-                y = cb>=0?DPI:0.;
+                y = cb >= 0 ? DPI : 0.;
                 //        y = (1 - sign(cb)) * DPI2;
             }
             else
@@ -3681,7 +3663,7 @@ match.
                 }
                 else
                 {
-                    y = (sa<=0?D3PI2:DPI2) + (sa<0?-1.:1.) * (cb<0?-1.:1.) * (fabs(atan(sa / cb)) - DPI2);
+                    y = (sa <= 0 ? D3PI2 : DPI2) + (sa < 0 ? -1. : 1.) * (cb < 0 ? -1. : 1.) * (fabs(atan(sa / cb)) - DPI2);
                 }
             }
             return y;
@@ -3690,27 +3672,27 @@ match.
         int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
         {
             // ICRF to Mean of Data (undo Precession)
-//            rmatrix bm;
-//            gcrf2j2000(&bm);
-//            eci.s = rv_mmult(bm,eci.s);
-//            eci.v = rv_mmult(bm,eci.v);
+            //            rmatrix bm;
+            //            gcrf2j2000(&bm);
+            //            eci.s = rv_mmult(bm,eci.s);
+            //            eci.v = rv_mmult(bm,eci.v);
 
-//            rmatrix pm;
-//            j20002mean(utc,&pm);
-//            eci.s = rv_mmult(pm,eci.s);
-//            eci.v = rv_mmult(pm,eci.v);
+            //            rmatrix pm;
+            //            j20002mean(utc,&pm);
+            //            eci.s = rv_mmult(pm,eci.s);
+            //            eci.v = rv_mmult(pm,eci.v);
 
-//            // Mean of Date to True of Date (undo Nutation)
-//            rmatrix nm;
-//            mean2true(utc,&nm);
-//            eci.s = rv_mmult(nm,eci.s);
-//            eci.v = rv_mmult(nm,eci.v);
+            //            // Mean of Date to True of Date (undo Nutation)
+            //            rmatrix nm;
+            //            mean2true(utc,&nm);
+            //            eci.s = rv_mmult(nm,eci.s);
+            //            eci.v = rv_mmult(nm,eci.v);
 
-//            // True of Date to Uniform of Date (undo Equation of Equinoxes)
-//            rmatrix sm;
-//            true2teme(utc, &sm);
-//            eci.s = rv_mmult(sm,eci.s);
-//            eci.v = rv_mmult(sm,eci.v);
+            //            // True of Date to Uniform of Date (undo Equation of Equinoxes)
+            //            rmatrix sm;
+            //            true2teme(utc, &sm);
+            //            eci.s = rv_mmult(sm,eci.s);
+            //            eci.v = rv_mmult(sm,eci.v);
 
             //            function [e, mm, ma, i, ap, raan] = eci2tle(reci, veci)
             //            % convert osculating position and velocity vectors
@@ -3826,7 +3808,7 @@ match.
             double sinio;
             double cosio;
             double x3thm1;
-            for (uint16_t i=0; i<20; ++i)
+            for (uint16_t i = 0; i < 20; ++i)
             {
                 double a2 = pl;
                 double betal = sqrt(pl / aodp);
@@ -3881,7 +3863,7 @@ match.
             double sinepw;
             double cosepw;
             double beta;
-            for (uint16_t i=0; i<20; ++i)
+            for (uint16_t i = 0; i < 20; ++i)
             {
                 double a2 = tle.e;
                 beta = 1.0 - tle.e * tle.e;
@@ -3926,7 +3908,7 @@ match.
             double a1 = a0;
             double beta2 = sqrt(beta);
             temp = 1.5 * ck2 * x3thm1 / (beta * beta2);
-            for (uint16_t i=0; i<20; ++i)
+            for (uint16_t i = 0; i < 20; ++i)
             {
                 double a2 = a1;
                 double d0 = temp / (a0 * a0);
@@ -3946,89 +3928,88 @@ match.
 
         //! TLE from ECI
         /*! Convert an ECI state vector into an SGP4 TLE
- * \param utc UTC time of ECI State Vector and TLE
- * \param eci State Vector to convert, stored as ::Cosmos::Convert::cartpos
- * \param tle Two Line Element, stored as ::Cosmos::Convert::tlestruc
- */
-//        int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
-//        {
-//            // ICRF to Mean of Data (undo Precession)
-//            rmatrix bm;
-//            gcrf2j2000(&bm);
-//            eci.s = rv_mmult(bm,eci.s);
-//            eci.v = rv_mmult(bm,eci.v);
+         * \param utc UTC time of ECI State Vector and TLE
+         * \param eci State Vector to convert, stored as ::Cosmos::Convert::cartpos
+         * \param tle Two Line Element, stored as ::Cosmos::Convert::tlestruc
+         */
+        //        int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
+        //        {
+        //            // ICRF to Mean of Data (undo Precession)
+        //            rmatrix bm;
+        //            gcrf2j2000(&bm);
+        //            eci.s = rv_mmult(bm,eci.s);
+        //            eci.v = rv_mmult(bm,eci.v);
 
-//            rmatrix pm;
-//            j20002mean(utc,&pm);
-//            eci.s = rv_mmult(pm,eci.s);
-//            eci.v = rv_mmult(pm,eci.v);
+        //            rmatrix pm;
+        //            j20002mean(utc,&pm);
+        //            eci.s = rv_mmult(pm,eci.s);
+        //            eci.v = rv_mmult(pm,eci.v);
 
-//            // Mean of Date to True of Date (undo Nutation)
-//            rmatrix nm;
-//            mean2true(utc,&nm);
-//            eci.s = rv_mmult(nm,eci.s);
-//            eci.v = rv_mmult(nm,eci.v);
+        //            // Mean of Date to True of Date (undo Nutation)
+        //            rmatrix nm;
+        //            mean2true(utc,&nm);
+        //            eci.s = rv_mmult(nm,eci.s);
+        //            eci.v = rv_mmult(nm,eci.v);
 
-//            // True of Date to Uniform of Date (undo Equation of Equinoxes)
-//            rmatrix sm;
-//            true2teme(utc, &sm);
-//            eci.s = rv_mmult(sm,eci.s);
-//            eci.v = rv_mmult(sm,eci.v);
+        //            // True of Date to Uniform of Date (undo Equation of Equinoxes)
+        //            rmatrix sm;
+        //            true2teme(utc, &sm);
+        //            eci.s = rv_mmult(sm,eci.s);
+        //            eci.v = rv_mmult(sm,eci.v);
 
-//            // Convert to Keplerian Elements
-//            kepstruc kep;
-//            eci2kep(eci, kep);
+        //            // Convert to Keplerian Elements
+        //            kepstruc kep;
+        //            eci2kep(eci, kep);
 
-//            // Store in relevant parts of TLE
-//            tle.orbit = 0;
-//            tle.ap = kep.ap;
-//            tle.e = kep.e;
-//            tle.i = kep.i;
-//            tle.ma = kep.ma;
-//            tle.mm = kep.mm * 60.; // Keplerian in SI units (radians / seconds), convert to radians / minute.
-//            tle.raan = kep.raan;
-//            tle.utc = utc;
+        //            // Store in relevant parts of TLE
+        //            tle.orbit = 0;
+        //            tle.ap = kep.ap;
+        //            tle.e = kep.e;
+        //            tle.i = kep.i;
+        //            tle.ma = kep.ma;
+        //            tle.mm = kep.mm * 60.; // Keplerian in SI units (radians / seconds), convert to radians / minute.
+        //            tle.raan = kep.raan;
+        //            tle.utc = utc;
 
-//            return 0;
-//        }
+        //            return 0;
+        //        }
 
         /**
-* Convert a Two Line Element into a location at the specified time.
-* @param utc Specified time as Modified Julian Date
-* @param tle Two Line Element, given as pointer to a ::Cosmos::Convert::tlestruc
-* @param eci Converted location, given as pointer to a ::Cosmos::Convert::cartpos
-*/
+         * Convert a Two Line Element into a location at the specified time.
+         * @param utc Specified time as Modified Julian Date
+         * @param tle Two Line Element, given as pointer to a ::Cosmos::Convert::tlestruc
+         * @param eci Converted location, given as pointer to a ::Cosmos::Convert::cartpos
+         */
         int tle2eci(double utc, tlestruc tle, cartpos &eci)
         {
 
             // call sgp4, eci is passed by reference
             sgp4(utc, tle, eci);
 
-
-            //eci = *teme;
+            // eci = *teme;
 
             // Uniform of Date to True of Date (Equation of Equinoxes)
             rmatrix sm;
             teme2true(utc, &sm);
-            eci.s = rv_mmult(sm,eci.s);
-            eci.v = rv_mmult(sm,eci.v);
+            eci.s = rv_mmult(sm, eci.s);
+            eci.v = rv_mmult(sm, eci.v);
 
             // True of Date to Mean of Date (Nutation)
             rmatrix nm;
-            true2mean(utc,&nm);
-            eci.s = rv_mmult(nm,eci.s);
-            eci.v = rv_mmult(nm,eci.v);
+            true2mean(utc, &nm);
+            eci.s = rv_mmult(nm, eci.s);
+            eci.v = rv_mmult(nm, eci.v);
 
             // Mean of Date to ICRF (precession)
             rmatrix pm;
-            mean2j2000(utc,&pm);
-            eci.s = rv_mmult(pm,eci.s);
-            eci.v = rv_mmult(pm,eci.v);
+            mean2j2000(utc, &pm);
+            eci.s = rv_mmult(pm, eci.s);
+            eci.v = rv_mmult(pm, eci.v);
 
             rmatrix bm;
             j20002gcrf(&bm);
-            eci.s = rv_mmult(bm,eci.s);
-            eci.v = rv_mmult(bm,eci.v);
+            eci.s = rv_mmult(bm, eci.s);
+            eci.v = rv_mmult(bm, eci.v);
 
             eci.utc = utc;
 
@@ -4058,14 +4039,13 @@ match.
             }
         }
 
-
         //! Load TLE from file. TODO!!! create new class for dealing with TLEs
         /*!
-* Load Two Line Element file into TLE structure
-* \param fname Name of file containing elements
-* \param tle structure to contain TLE elements
-* \return 0 if parsing was sucessfull, otherwise a negative error.
-*/
+         * Load Two Line Element file into TLE structure
+         * \param fname Name of file containing elements
+         * \param tle structure to contain TLE elements
+         * \return 0 if parsing was sucessfull, otherwise a negative error.
+         */
         int32_t loadTLE(char *fname, tlestruc &tle)
         {
             FILE *fdes;
@@ -4075,59 +4055,59 @@ match.
             char ibuf[81], tlename[81];
             int i;
 
-            if ((fdes=fopen(fname,"r")) == nullptr)
+            if ((fdes = fopen(fname, "r")) == nullptr)
                 return (-1);
 
             tlecount = 0;
 
             // Name Line
-            char* ichar = fgets(tlename,80,fdes);
+            char *ichar = fgets(tlename, 80, fdes);
             if (ichar == nullptr || feof(fdes))
                 return (-1);
 
-            for (i=strlen(tlename)-1; i>0; i--)
+            for (i = strlen(tlename) - 1; i > 0; i--)
             {
-                if (tlename[i]!=' ' && tlename[i]!='\r' && tlename[i]!='\n')
+                if (tlename[i] != ' ' && tlename[i] != '\r' && tlename[i] != '\n')
                     break;
             }
-            tlename[i+1] = 0;
+            tlename[i + 1] = 0;
 
             while (!feof(fdes))
             {
                 tle.name = tlename;
 
                 // Line 1
-                if (fgets(ibuf,80,fdes) == nullptr)
+                if (fgets(ibuf, 80, fdes) == nullptr)
                     break;
-                sscanf(&ibuf[2],"%5hu",&tle.snumber);
-				tle.id = string(ibuf).substr(9,9);
-                sscanf(&ibuf[18],"%2hu",&year);
+                sscanf(&ibuf[2], "%5hu", &tle.snumber);
+                tle.id = string(ibuf).substr(9, 9);
+                sscanf(&ibuf[18], "%2hu", &year);
                 if (year < 57)
                     year += 2000;
                 else
                     year += 1900;
-                sscanf(&ibuf[20],"%12lf",&jday);
-                tle.utc = cal2mjd((int)year,1,0.);
+                sscanf(&ibuf[20], "%12lf", &jday);
+                tle.utc = cal2mjd((int)year, 1, 0.);
                 tle.utc += jday;
                 if (strlen(ibuf) > 50)
                 {
-                    sscanf(&ibuf[53],"%6d%2d",&bdragm,&bdrage);
-                    tle.bstar = pow(10.,bdrage)*bdragm/1.e5;
+                    sscanf(&ibuf[53], "%6d%2d", &bdragm, &bdrage);
+                    tle.bstar = pow(10., bdrage) * bdragm / 1.e5;
                 }
                 else
                     tle.bstar = 0.;
 
                 // Line 2
-                char* ichar = fgets(ibuf,80,fdes);
+                char *ichar = fgets(ibuf, 80, fdes);
                 if (ichar != NULL)
                 {
                     ibuf[68] = 0;
-                    sscanf(&ibuf[8],"%8lf %8lf %7d %8lf %8lf %11lf%5u",&tle.i,&tle.raan,&ecc,&tle.ap,&tle.ma,&tle.mm,&tle.orbit);
+                    sscanf(&ibuf[8], "%8lf %8lf %7d %8lf %8lf %11lf%5u", &tle.i, &tle.raan, &ecc, &tle.ap, &tle.ma, &tle.mm, &tle.orbit);
                     tle.i = RADOF(tle.i);
                     tle.raan = RADOF(tle.raan);
                     tle.ap = RADOF(tle.ap);
                     tle.ma = RADOF(tle.ma);
-                    tle.mm *= D2PI/1440.;
+                    tle.mm *= D2PI / 1440.;
                     tle.e = ecc / 1.e7;
                 }
             }
@@ -4135,15 +4115,14 @@ match.
             return 0;
         }
 
-
         //! Load TLE from file. TODO!!! Rename Function to loadTle and create new class for dealing with TLEs
         /*!
-* Load Two Line Element file into array of TLE's
-* \param fname Name of file containing elements
-* \param lines Array of ::Cosmos::Convert::tlestruc structures to contain elements
-* \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
-*/
-        int32_t load_lines(string fname, vector<tlestruc>& lines)
+         * Load Two Line Element file into array of TLE's
+         * \param fname Name of file containing elements
+         * \param lines Array of ::Cosmos::Convert::tlestruc structures to contain elements
+         * \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
+         */
+        int32_t load_lines(string fname, vector<tlestruc> &lines)
         {
             FILE *fdes;
             uint16_t year;
@@ -4153,85 +4132,85 @@ match.
             int i;
             tlestruc tle;
 
-            if ((fdes=fopen(fname.c_str(),"r")) == nullptr)
+            if ((fdes = fopen(fname.c_str(), "r")) == nullptr)
                 return (-1);
 
             tlecount = 0;
 
             // Name Line
-            char* ichar = fgets(tlename,80,fdes);
+            char *ichar = fgets(tlename, 80, fdes);
             if (ichar == nullptr || feof(fdes))
                 return (-1);
 
-            for (i=strlen(tlename)-1; i>0; i--)
+            for (i = strlen(tlename) - 1; i > 0; i--)
             {
-                if (tlename[i]!=' ' && tlename[i]!='\r' && tlename[i]!='\n')
+                if (tlename[i] != ' ' && tlename[i] != '\r' && tlename[i] != '\n')
                     break;
             }
-            tlename[i+1] = 0;
+            tlename[i + 1] = 0;
 
             while (!feof(fdes))
             {
                 tle.name = tlename;
 
                 // Line 1
-                if (fgets(ibuf,80,fdes) == nullptr)
+                if (fgets(ibuf, 80, fdes) == nullptr)
                     break;
                 uint16_t cs = 0;
-                for (uint16_t i=0; i<68; ++i)
+                for (uint16_t i = 0; i < 68; ++i)
                 {
                     if (ibuf[i] >= '0' && ibuf[i] <= '9')
                     {
-                        cs =(cs + (ibuf[i] - '0'));
+                        cs = (cs + (ibuf[i] - '0'));
                     }
                     else if (ibuf[i] == '-')
                     {
-                        cs =(cs + 1);
+                        cs = (cs + 1);
                     }
                 }
                 cs = cs % 10;
-                sscanf(&ibuf[2],"%5hu",&tle.snumber);
-				tle.id = string(ibuf).substr(9,9);
-                sscanf(&ibuf[18],"%2hu",&year);
+                sscanf(&ibuf[2], "%5hu", &tle.snumber);
+                tle.id = string(ibuf).substr(9, 9);
+                sscanf(&ibuf[18], "%2hu", &year);
                 if (year < 57)
                     year += 2000;
                 else
                     year += 1900;
-                sscanf(&ibuf[20],"%12lf",&jday);
-                tle.utc = cal2mjd((int)year,1,0.);
+                sscanf(&ibuf[20], "%12lf", &jday);
+                tle.utc = cal2mjd((int)year, 1, 0.);
                 tle.utc += jday;
                 if (strlen(ibuf) > 50)
                 {
-                    sscanf(&ibuf[53],"%6d%2d",&bdragm,&bdrage);
-                    tle.bstar = pow(10.,bdrage)*bdragm/1.e5;
+                    sscanf(&ibuf[53], "%6d%2d", &bdragm, &bdrage);
+                    tle.bstar = pow(10., bdrage) * bdragm / 1.e5;
                 }
                 else
                     tle.bstar = 0.;
 
                 // Line 2
-                char* ichar = fgets(ibuf,80,fdes);
+                char *ichar = fgets(ibuf, 80, fdes);
                 if (ichar != NULL)
                 {
                     cs = 0;
-                    for (uint16_t i=0; i<68; ++i)
+                    for (uint16_t i = 0; i < 68; ++i)
                     {
                         if (ichar[i] >= '0' && ichar[i] <= '9')
                         {
-                            cs =(cs + (ichar[i] - '0'));
+                            cs = (cs + (ichar[i] - '0'));
                         }
                         else if (ichar[i] == '-')
                         {
-                            cs =(cs + 1);
+                            cs = (cs + 1);
                         }
                     }
                     cs = cs % 10;
                     ibuf[68] = 0;
-                    sscanf(&ibuf[8],"%8lf %8lf %7d %8lf %8lf %11lf%5u",&tle.i,&tle.raan,&ecc,&tle.ap,&tle.ma,&tle.mm,&tle.orbit);
+                    sscanf(&ibuf[8], "%8lf %8lf %7d %8lf %8lf %11lf%5u", &tle.i, &tle.raan, &ecc, &tle.ap, &tle.ma, &tle.mm, &tle.orbit);
                     tle.i = RADOF(tle.i);
                     tle.raan = RADOF(tle.raan);
                     tle.ap = RADOF(tle.ap);
                     tle.ma = RADOF(tle.ma);
-                    tle.mm *= D2PI/1440.;
+                    tle.mm *= D2PI / 1440.;
                     tle.e = ecc / 1.e7;
                     lines.push_back(tle);
                 }
@@ -4241,11 +4220,11 @@ match.
         }
 
         /*! Load Two Line Element file for multiple satellites into array of TLE's
-* \param fname Name of file containing elements
-* \param lines Array of ::Cosmos::Convert::tlestruc structures to contain elements
-* \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
-*/
-        int32_t load_lines_multi(string fname, vector<tlestruc>& lines)
+         * \param fname Name of file containing elements
+         * \param lines Array of ::Cosmos::Convert::tlestruc structures to contain elements
+         * \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
+         */
+        int32_t load_lines_multi(string fname, vector<tlestruc> &lines)
         {
             FILE *fdes;
             uint16_t year;
@@ -4255,7 +4234,7 @@ match.
             int i;
             tlestruc tle;
 
-            if ((fdes=fopen(fname.c_str(),"r")) == nullptr)
+            if ((fdes = fopen(fname.c_str(), "r")) == nullptr)
                 return (-1);
 
             tlecount = 0;
@@ -4263,51 +4242,51 @@ match.
             while (!feof(fdes))
             {
                 // Name Line
-                char* ichar = fgets(tlename,80,fdes);
+                char *ichar = fgets(tlename, 80, fdes);
                 if (ichar == nullptr || feof(fdes))
                     break;
 
-                for (i=strlen(tlename)-1; i>0; i--)
+                for (i = strlen(tlename) - 1; i > 0; i--)
                 {
-                    if (tlename[i]!=' ' && tlename[i]!='\r' && tlename[i]!='\n')
+                    if (tlename[i] != ' ' && tlename[i] != '\r' && tlename[i] != '\n')
                         break;
                 }
-                tlename[i+1] = 0;
+                tlename[i + 1] = 0;
 
                 tle.name = tlename;
 
                 // Line 1
-                if (fgets(ibuf,80,fdes) == nullptr)
+                if (fgets(ibuf, 80, fdes) == nullptr)
                     break;
-                sscanf(&ibuf[2],"%5hu",&tle.snumber);
-				tle.id = string(ibuf).substr(9,9);
-                sscanf(&ibuf[18],"%2hu",&year);
+                sscanf(&ibuf[2], "%5hu", &tle.snumber);
+                tle.id = string(ibuf).substr(9, 9);
+                sscanf(&ibuf[18], "%2hu", &year);
                 if (year < 57)
                     year += 2000;
                 else
                     year += 1900;
-                sscanf(&ibuf[20],"%12lf",&jday);
-                tle.utc = cal2mjd((int)year,1,0.);
+                sscanf(&ibuf[20], "%12lf", &jday);
+                tle.utc = cal2mjd((int)year, 1, 0.);
                 tle.utc += jday;
                 if (strlen(ibuf) > 50)
                 {
-                    sscanf(&ibuf[53],"%6d%2d",&bdragm,&bdrage);
-                    tle.bstar = pow(10.,bdrage)*bdragm/1.e5;
+                    sscanf(&ibuf[53], "%6d%2d", &bdragm, &bdrage);
+                    tle.bstar = pow(10., bdrage) * bdragm / 1.e5;
                 }
                 else
                     tle.bstar = 0.;
 
                 // Line 2
-                ichar = fgets(ibuf,80,fdes);
+                ichar = fgets(ibuf, 80, fdes);
                 if (ichar != NULL)
                 {
                     ibuf[68] = 0;
-                    sscanf(&ibuf[8],"%8lf %8lf %7d %8lf %8lf %11lf%5u",&tle.i,&tle.raan,&ecc,&tle.ap,&tle.ma,&tle.mm,&tle.orbit);
+                    sscanf(&ibuf[8], "%8lf %8lf %7d %8lf %8lf %11lf%5u", &tle.i, &tle.raan, &ecc, &tle.ap, &tle.ma, &tle.mm, &tle.orbit);
                     tle.i = RADOF(tle.i);
                     tle.raan = RADOF(tle.raan);
                     tle.ap = RADOF(tle.ap);
                     tle.ma = RADOF(tle.ma);
-                    tle.mm *= D2PI/1440.;
+                    tle.mm *= D2PI / 1440.;
                     tle.e = ecc / 1.e7;
                     lines.push_back(tle);
                 }
@@ -4331,27 +4310,27 @@ match.
             cposstruc *tpos;
             char ibuf[250];
 
-            if ((fdes=fopen(filename.c_str(),"r")) == nullptr)
+            if ((fdes = fopen(filename.c_str(), "r")) == nullptr)
                 return (STK_ERROR_NOTFOUND);
 
             maxcount = 1000;
-            stkdata.pos = (cposstruc *)calloc(maxcount,sizeof(cposstruc));
+            stkdata.pos = (cposstruc *)calloc(maxcount, sizeof(cposstruc));
             stkdata.count = 0;
             while (!feof(fdes))
             {
-                char* ichar = fgets(ibuf,250,fdes);
+                char *ichar = fgets(ibuf, 250, fdes);
                 if (ichar == nullptr || feof(fdes))
                     break;
-                if ((iretn=sscanf(ibuf,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",&stkdata.pos[stkdata.count].pos.utc,&stkdata.pos[stkdata.count].pos.s.col[0],&stkdata.pos[stkdata.count].pos.s.col[1],&stkdata.pos[stkdata.count].pos.s.col[2],&stkdata.pos[stkdata.count].pos.v.col[0],&stkdata.pos[stkdata.count].pos.v.col[1],&stkdata.pos[stkdata.count].pos.v.col[2],&stkdata.pos[stkdata.count].pos.a.col[0],&stkdata.pos[stkdata.count].pos.a.col[1],&stkdata.pos[stkdata.count].pos.a.col[2])) == 10)
+                if ((iretn = sscanf(ibuf, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", &stkdata.pos[stkdata.count].pos.utc, &stkdata.pos[stkdata.count].pos.s.col[0], &stkdata.pos[stkdata.count].pos.s.col[1], &stkdata.pos[stkdata.count].pos.s.col[2], &stkdata.pos[stkdata.count].pos.v.col[0], &stkdata.pos[stkdata.count].pos.v.col[1], &stkdata.pos[stkdata.count].pos.v.col[2], &stkdata.pos[stkdata.count].pos.a.col[0], &stkdata.pos[stkdata.count].pos.a.col[1], &stkdata.pos[stkdata.count].pos.a.col[2])) == 10)
                 {
                     stkdata.pos[stkdata.count].utc = stkdata.pos[stkdata.count].pos.utc;
                     stkdata.count++;
-                    if (!(stkdata.count%1000))
+                    if (!(stkdata.count % 1000))
                     {
                         maxcount += 1000;
                         tpos = stkdata.pos;
-                        stkdata.pos = (cposstruc *)calloc(maxcount,sizeof(cposstruc));
-                        memcpy(stkdata.pos,tpos,(maxcount-1000)*sizeof(cposstruc));
+                        stkdata.pos = (cposstruc *)calloc(maxcount, sizeof(cposstruc));
+                        memcpy(stkdata.pos, tpos, (maxcount - 1000) * sizeof(cposstruc));
                         free(tpos);
                     }
                 }
@@ -4361,7 +4340,7 @@ match.
             fclose(fdes);
             if (stkdata.count)
             {
-                stkdata.dt = ((stkdata.pos[9].utc - stkdata.pos[0].utc))/9.;
+                stkdata.dt = ((stkdata.pos[9].utc - stkdata.pos[0].utc)) / 9.;
             }
             return (stkdata.count);
         }
@@ -4380,7 +4359,7 @@ match.
             uvector t{}, p{}, su{}, vu{}, au{};
             rmatrix s, v, a;
 
-            findex = ((utc-stk.pos[0].utc)/stk.dt)+.5;
+            findex = ((utc - stk.pos[0].utc) / stk.dt) + .5;
             if (findex < 1)
             {
                 findex = 1.;
@@ -4390,42 +4369,41 @@ match.
                 findex = stk.count - 1;
             }
 
-            findex = (int)findex + ((utc-stk.pos[(int)findex].utc)/stk.dt) + .5;
+            findex = (int)findex + ((utc - stk.pos[(int)findex].utc) / stk.dt) + .5;
 
-            index = (int)findex-1;
+            index = (int)findex - 1;
             if (index < 0)
                 return (STK_ERROR_LOWINDEX);
 
-            if (index > (int32_t)stk.count-3)
+            if (index > (int32_t)stk.count - 3)
                 return (STK_ERROR_HIGHINDEX);
 
-
-            for (i=0; i<3; i++)
+            for (i = 0; i < 3; i++)
             {
-                t.a4[i] = utc-stk.pos[index+i].utc;
-                for (j=0; j<3; j++)
+                t.a4[i] = utc - stk.pos[index + i].utc;
+                for (j = 0; j < 3; j++)
                 {
-                    s.row[j].col[i] = stk.pos[index+i].pos.s.col[j];
-                    v.row[j].col[i] = stk.pos[index+i].pos.v.col[j];
-                    a.row[j].col[i] = stk.pos[index+i].pos.a.col[j];
+                    s.row[j].col[i] = stk.pos[index + i].pos.s.col[j];
+                    v.row[j].col[i] = stk.pos[index + i].pos.v.col[j];
+                    a.row[j].col[i] = stk.pos[index + i].pos.a.col[j];
                 }
             }
 
             eci.utc = utc;
             eci.s = eci.v = eci.a = rv_zero();
 
-            for (j=0; j<3; j++)
+            for (j = 0; j < 3; j++)
             {
                 su.r = s.row[j];
-                p = rv_fitpoly(t,su,2);
+                p = rv_fitpoly(t, su, 2);
                 //	eci.s.col[j] = p.a4[0] + utc * (p.a4[1] + utc * p.a4[2]);
                 eci.s.col[j] = p.a4[0];
                 vu.r = v.row[j];
-                p = rv_fitpoly(t,vu,2);
+                p = rv_fitpoly(t, vu, 2);
                 //	eci.v.col[j] = p.a4[0] + utc * (p.a4[1] + utc * p.a4[2]);
                 eci.v.col[j] = p.a4[0];
                 au.r = a.row[j];
-                p = rv_fitpoly(t,au,2);
+                p = rv_fitpoly(t, au, 2);
                 //	eci.a.col[j] = p.a4[0] + utc * (p.a4[1] + utc * p.a4[2]);
                 eci.a.col[j] = p.a4[0];
             }
@@ -4433,223 +4411,187 @@ match.
             return 0;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const cartpos& a)
+        ::std::ostream &operator<<(::std::ostream &out, const cartpos &a)
         {
             out << a.utc << "\t" << a.s << "\t" << a.v << "\t" << a.a << "\t" << a.pass;
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, cartpos& a)
+        ::std::istream &operator>>(::std::istream &in, cartpos &a)
         {
             in >> a.utc >> a.s >> a.v >> a.a >> a.pass;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const cposstruc& a)
+        ::std::ostream &operator<<(::std::ostream &out, const cposstruc &a)
         {
             out << a.utc << "\t" << a.pos;
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, cposstruc& a)
+        ::std::istream &operator>>(::std::istream &in, cposstruc &a)
         {
             in >> a.utc >> a.pos;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const geoidpos& a)
+        ::std::ostream &operator<<(::std::ostream &out, const geoidpos &a)
         {
-            out<<a.utc<<"\t"<<a.s<<"\t"<<a.v<<"\t"<<a.a<<"\t"<<a.pass;
+            out << a.utc << "\t" << a.s << "\t" << a.v << "\t" << a.a << "\t" << a.pass;
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, geoidpos& a)
+        ::std::istream &operator>>(::std::istream &in, geoidpos &a)
         {
             in >> a.utc >> a.s >> a.v >> a.a >> a.pass;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const spherpos& a)
+        ::std::ostream &operator<<(::std::ostream &out, const spherpos &a)
         {
-            out<<a.utc<<"\t"<<a.s<<"\t"<<a.v<<"\t"<<a.a<<"\t"<<a.pass;
+            out << a.utc << "\t" << a.s << "\t" << a.v << "\t" << a.a << "\t" << a.pass;
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, spherpos& a)
+        ::std::istream &operator>>(::std::istream &in, spherpos &a)
         {
             in >> a.utc >> a.s >> a.v >> a.a >> a.pass;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const aattstruc& a)
+        ::std::ostream &operator<<(::std::ostream &out, const aattstruc &a)
         {
-            out<<a.utc<<"\t"<<a.s<<"\t"<<a.v<<"\t"<<a.a;
+            out << a.utc << "\t" << a.s << "\t" << a.v << "\t" << a.a;
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, aattstruc& a)
+        ::std::istream &operator>>(::std::istream &in, aattstruc &a)
         {
             in >> a.utc >> a.s >> a.v >> a.a;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const quatatt& a)
+        ::std::ostream &operator<<(::std::ostream &out, const quatatt &a)
         {
-            out<<a.utc<<"\t"<<a.s<<"\t"<<a.v<<"\t"<<a.a;
+            out << a.utc << "\t" << a.s << "\t" << a.v << "\t" << a.a;
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, quatatt& a)
+        ::std::istream &operator>>(::std::istream &in, quatatt &a)
         {
             in >> a.utc >> a.s >> a.v >> a.a;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const dcmatt& a)
+        ::std::ostream &operator<<(::std::ostream &out, const dcmatt &a)
         {
-            out<<a.utc<<"\t"<<a.s<<"\t"<<a.v<<"\t"<<a.a;
+            out << a.utc << "\t" << a.s << "\t" << a.v << "\t" << a.a;
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, dcmatt& a)
+        ::std::istream &operator>>(::std::istream &in, dcmatt &a)
         {
             in >> a.utc >> a.s >> a.v >> a.a;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const qatt& a)
+        ::std::ostream &operator<<(::std::ostream &out, const qatt &a)
         {
-            out<<a.utc<<"\t"<<a.s<<"\t"<<a.v<<"\t"<<a.a<<"\t"<<a.pass;
+            out << a.utc << "\t" << a.s << "\t" << a.v << "\t" << a.a << "\t" << a.pass;
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, qatt& a)
+        ::std::istream &operator>>(::std::istream &in, qatt &a)
         {
             in >> a.utc >> a.s >> a.v >> a.a >> a.pass;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const kepstruc& a)
+        ::std::ostream &operator<<(::std::ostream &out, const kepstruc &a)
         {
-            out <<a.utc<<"\t"
-               <<a.orbit<<"\t"
-              <<a.period<<"\t"
-             <<a.a<<"\t"
-            <<a.e<<"\t"
-            <<a.h<<"\t"
-            <<a.beta<<"\t"
-            <<a.eta<<"\t"
-            <<a.i<<"\t"
-            <<a.raan<<"\t"
-            <<a.ap<<"\t"
-            <<a.alat<<"\t"
-            <<a.ma<<"\t"
-            <<a.ta<<"\t"
-            <<a.ea<<"\t"
-            <<a.mm<<"\t"
-            <<a.fa;
+            out << a.utc << "\t"
+                << a.orbit << "\t"
+                << a.period << "\t"
+                << a.a << "\t"
+                << a.e << "\t"
+                << a.h << "\t"
+                << a.beta << "\t"
+                << a.eta << "\t"
+                << a.i << "\t"
+                << a.raan << "\t"
+                << a.ap << "\t"
+                << a.alat << "\t"
+                << a.ma << "\t"
+                << a.ta << "\t"
+                << a.ea << "\t"
+                << a.mm << "\t"
+                << a.fa;
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, kepstruc& a)
+        ::std::istream &operator>>(::std::istream &in, kepstruc &a)
         {
-            in  >>a.utc
-                    >>a.orbit
-                    >>a.period
-                    >>a.a
-                    >>a.e
-                    >>a.h
-                    >>a.beta
-                    >>a.eta
-                    >>a.i
-                    >>a.raan
-                    >>a.ap
-                    >>a.alat
-                    >>a.ma
-                    >>a.ta
-                    >>a.ea
-                    >>a.mm
-                    >>a.fa;
+            in >> a.utc >> a.orbit >> a.period >> a.a >> a.e >> a.h >> a.beta >> a.eta >> a.i >> a.raan >> a.ap >> a.alat >> a.ma >> a.ta >> a.ea >> a.mm >> a.fa;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const bodypos& a)
+        ::std::ostream &operator<<(::std::ostream &out, const bodypos &a)
         {
             out << a.sepangle << "\t" << a.size << "\t" << a.radiance;
             return out;
         }
 
-        ::std::istream& operator << (::std::istream& in, bodypos& a)
+        ::std::istream &operator<<(::std::istream &in, bodypos &a)
         {
             in >> a.sepangle >> a.size >> a.radiance;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const extrapos& a)
+        ::std::ostream &operator<<(::std::ostream &out, const extrapos &a)
         {
-            out <<a.utc<<"\t"
-               <<a.tt<<"\t"
-              <<a.ut<<"\t"
-             <<a.tdb<<"\t"
-            <<a.j2e<<"\t"
-            <<a.dj2e<<"\t"
-            <<a.ddj2e<<"\t"
-            <<a.e2j<<"\t"
-            <<a.de2j<<"\t"
-            <<a.dde2j<<"\t"
-            <<a.j2t<<"\t"
-            <<a.j2s<<"\t"
-            <<a.t2j<<"\t"
-            <<a.s2j<<"\t"
-            <<a.s2t<<"\t"
-            <<a.ds2t<<"\t"
-            <<a.t2s<<"\t"
-            <<a.dt2s<<"\t"
-            <<a.sun2earth<<"\t"
-            <<a.sun2moon<<"\t"
-            <<a.closest;
+            out << a.utc << "\t"
+                << a.tt << "\t"
+                << a.ut << "\t"
+                << a.tdb << "\t"
+                << a.j2e << "\t"
+                << a.dj2e << "\t"
+                << a.ddj2e << "\t"
+                << a.e2j << "\t"
+                << a.de2j << "\t"
+                << a.dde2j << "\t"
+                << a.j2t << "\t"
+                << a.j2s << "\t"
+                << a.t2j << "\t"
+                << a.s2j << "\t"
+                << a.s2t << "\t"
+                << a.ds2t << "\t"
+                << a.t2s << "\t"
+                << a.dt2s << "\t"
+                << a.sun2earth << "\t"
+                << a.sun2moon << "\t"
+                << a.closest;
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, extrapos& a)
+        ::std::istream &operator>>(::std::istream &in, extrapos &a)
         {
-            in >>a.utc
-                    >>a.tt
-                    >>a.ut
-                    >>a.tdb
-                    >>a.j2e
-                    >>a.dj2e
-                    >>a.ddj2e
-                    >>a.e2j
-                    >>a.de2j
-                    >>a.dde2j
-                    >>a.j2t
-                    >>a.j2s
-                    >>a.t2j
-                    >>a.s2j
-                    >>a.s2t
-                    >>a.ds2t
-                    >>a.t2s
-                    >>a.dt2s
-                    >>a.sun2earth
-                    >>a.sun2moon
-                    >>a.closest;
+            in >> a.utc >> a.tt >> a.ut >> a.tdb >> a.j2e >> a.dj2e >> a.ddj2e >> a.e2j >> a.de2j >> a.dde2j >> a.j2t >> a.j2s >> a.t2j >> a.s2j >> a.s2t >> a.ds2t >> a.t2s >> a.dt2s >> a.sun2earth >> a.sun2moon >> a.closest;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const extraatt& a)
+        ::std::ostream &operator<<(::std::ostream &out, const extraatt &a)
         {
             out << a.utc << "\t" << a.j2b << "\t" << a.b2j;
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, extraatt& a)
+        ::std::istream &operator>>(::std::istream &in, extraatt &a)
         {
             in >> a.utc >> a.j2b >> a.b2j;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const posstruc& a)
+        ::std::ostream &operator<<(::std::ostream &out, const posstruc &a)
         {
             out << a.utc << "\t"
                 << a.icrf << "\t"
@@ -4668,26 +4610,13 @@ match.
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, posstruc& a)
+        ::std::istream &operator>>(::std::istream &in, posstruc &a)
         {
-            in  >> a.utc
-                    >> a.icrf
-                    >> a.eci
-                    >> a.sci
-                    >> a.geoc
-                    >> a.selc
-                    >> a.geod
-                    >> a.selg
-                    >> a.geos
-                    >> a.extra
-                    >> a.earthsep
-                    >> a.moonsep
-                    >> a.sunsize
-                    >> a.sunradiance;
+            in >> a.utc >> a.icrf >> a.eci >> a.sci >> a.geoc >> a.selc >> a.geod >> a.selg >> a.geos >> a.extra >> a.earthsep >> a.moonsep >> a.sunsize >> a.sunradiance;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const attstruc& a)
+        ::std::ostream &operator<<(::std::ostream &out, const attstruc &a)
         {
             out << a.utc << "\t"
                 << a.topo << "\t"
@@ -4699,19 +4628,13 @@ match.
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, attstruc& a)
+        ::std::istream &operator>>(::std::istream &in, attstruc &a)
         {
-            in  >> a.utc
-                    >> a.topo
-                    >> a.lvlh
-                    >> a.geoc
-                    >> a.selc
-                    >> a.icrf
-                    >> a.extra;
+            in >> a.utc >> a.topo >> a.lvlh >> a.geoc >> a.selc >> a.icrf >> a.extra;
             return in;
         }
 
-        ::std::ostream& operator << (::std::ostream& out, const locstruc& a)
+        ::std::ostream &operator<<(::std::ostream &out, const locstruc &a)
         {
             out << a.utc << "\t"
                 << a.pos << "\t"
@@ -4719,11 +4642,9 @@ match.
             return out;
         }
 
-        ::std::istream& operator >> (::std::istream& in, locstruc& a)
+        ::std::istream &operator>>(::std::istream &in, locstruc &a)
         {
-            in  >> a.utc
-                    >> a.pos
-                    >> a.att;
+            in >> a.utc >> a.pos >> a.att;
             return in;
         }
 
@@ -4750,30 +4671,34 @@ match.
             tle.bstar = sgp4.bstar;
             tle.e = sgp4.e;
             tle.ma = RADOF(sgp4.ma);
-            tle.mm = sgp4.mm * D2PI / 1440. ;
+            tle.mm = sgp4.mm * D2PI / 1440.;
             tle.raan = RADOF(sgp4.raan);
             int year = sgp4.ep / 1000;
-            double jday = sgp4.ep - (year *1000);
+            double jday = sgp4.ep - (year * 1000);
             if (year < 57)
                 year += 2000;
             else
                 year += 1900;
-            tle.utc = cal2mjd((int)year,1,0.);
+            tle.utc = cal2mjd((int)year, 1, 0.);
             tle.utc += jday;
 
             return 0;
         }
 
         // https://space.stackexchange.com/questions/5358/what-does-check-sum-tle-mean
-        int tle_checksum(char *line) {
+        int tle_checksum(char *line)
+        {
             const int TLE_LINE_LENGTH = 69; // Ignore current checksum.
             int checksum = 0;
 
-            for (int i = 0; i < TLE_LINE_LENGTH; i++) {
-                if (line[i] == '-') {
+            for (int i = 0; i < TLE_LINE_LENGTH; i++)
+            {
+                if (line[i] == '-')
+                {
                     checksum++;
                 }
-                else if (isdigit(line[i])) {
+                else if (isdigit(line[i]))
+                {
                     checksum += line[i] - '0';
                 } // Ignore whitespace.
             }
@@ -4803,27 +4728,27 @@ match.
             //    char *line_1 = strstr(tle_buffer, "\n");
             char *line_1 = strstr(static_cast<char *>(&ref_tle[0]), "\n");
             sprintf(field_buffer, "%14s", epoch.c_str());
-            strncpy(line_1+19, field_buffer, 14);
-            //sprintf(field_buffer, "");
+            strncpy(line_1 + 19, field_buffer, 14);
+            // sprintf(field_buffer, "");
 
             // Populate our fields for line 2.
             char *line_2 = strstr(line_1 + 1, "\n");
             sprintf(field_buffer, "%#08.4f", DEGOF(tles.i));
-            strncpy(line_2+9, field_buffer, 8);
+            strncpy(line_2 + 9, field_buffer, 8);
             sprintf(field_buffer, "%08.4f", DEGOF(tles.raan));
-            strncpy(line_2+18, field_buffer, 8);
-            sprintf(field_buffer, "%07d", static_cast<int>(tles.e*pow(10,7)));
-            strncpy(line_2+27, field_buffer, 7);
+            strncpy(line_2 + 18, field_buffer, 8);
+            sprintf(field_buffer, "%07d", static_cast<int>(tles.e * pow(10, 7)));
+            strncpy(line_2 + 27, field_buffer, 7);
             sprintf(field_buffer, "%#08.4f", DEGOF(tles.ap));
-            strncpy(line_2+35, field_buffer, 8);
+            strncpy(line_2 + 35, field_buffer, 8);
             sprintf(field_buffer, "%#08.4f", (DEGOF(tles.ma) < 0) ? 360 + DEGOF(tles.ma) : DEGOF(tles.ma));
-            strncpy(line_2+44, field_buffer, 8);
+            strncpy(line_2 + 44, field_buffer, 8);
             sprintf(field_buffer, "%#011.8f", tles.mm * 1440. / D2PI); // rad/min ---> rev/day
-            strncpy(line_2+53, field_buffer, 11);
+            strncpy(line_2 + 53, field_buffer, 11);
 
             // Compute our checksum (copy null character here).
             sprintf(field_buffer, "%1d", tle_checksum(line_2));
-            strncpy(line_2+69, field_buffer, 2);
+            strncpy(line_2 + 69, field_buffer, 2);
 
             //    tle = string(tle_buffer);
             tle = ref_tle;
@@ -4840,15 +4765,15 @@ match.
 */
         rvector utc2nuts(double mjd)
         {
-            static double lmjd=0.;
-            static uvector lcalc={{{0.,0.,0.},0.}};
+            static double lmjd = 0.;
+            static uvector lcalc = {{{0., 0., 0.}, 0.}};
 
             if (mjd != lmjd)
             {
                 double tt = utc2tt(mjd);
                 if (tt > 0.)
                 {
-                    jplnut(tt,(double *)&lcalc.a4);
+                    jplnut(tt, (double *)&lcalc.a4);
                     lmjd = mjd;
                 }
             }
@@ -4863,8 +4788,8 @@ matrix, for the provided UTC date.
 */
         double utc2dpsi(double mjd)
         {
-            static double lmjd=0.;
-            static double lcalc=0.;
+            static double lmjd = 0.;
+            static double lcalc = 0.;
             rvector nuts;
 
             if (mjd != lmjd)
@@ -4884,8 +4809,8 @@ matrix, for the provided UTC date.
 */
         double utc2depsilon(double mjd)
         {
-            static double lmjd=0.;
-            static double lcalc=0.;
+            static double lmjd = 0.;
+            static double lcalc = 0.;
             rvector nuts;
 
             if (mjd != lmjd)
@@ -4904,8 +4829,8 @@ matrix, for the provided UTC date.
 */
         double utc2gast(double mjd)
         {
-            static double lmjd=0.;
-            static double lgast=0.;
+            static double lmjd = 0.;
+            static double lgast = 0.;
             double omega, F, D;
 
             if (mjd != lmjd)
@@ -4915,9 +4840,9 @@ matrix, for the provided UTC date.
                 D = utc2D(mjd);
                 lgast = utc2gmst1982(mjd) + utc2dpsi(mjd) * cos(utc2epsilon(mjd));
                 lgast += DAS2R * .00264096 * sin(omega);
-                lgast += DAS2R * .00006352 * sin(2.*omega);
-                lgast += DAS2R * .00001175 * sin(2.*F - 2.*D + 3.*omega);
-                lgast += DAS2R * .00001121 * sin(2.*F - 2.*D + omega);
+                lgast += DAS2R * .00006352 * sin(2. * omega);
+                lgast += DAS2R * .00001175 * sin(2. * F - 2. * D + 3. * omega);
+                lgast += DAS2R * .00001121 * sin(2. * F - 2. * D + omega);
                 lgast = ranrm(lgast);
                 lmjd = mjd;
             }
@@ -4931,7 +4856,7 @@ matrix, for the provided UTC date.
 */
         double utc2dut1(double mjd)
         {
-            static double lmjd=0.;
+            static double lmjd = 0.;
             static double lcalc = 0.;
             double frac;
             //	uint32_t mjdi;
@@ -4943,7 +4868,7 @@ matrix, for the provided UTC date.
                 {
                     if ((uint32_t)mjd >= iersbase)
                     {
-                        if ((iersidx=(uint32_t)mjd-iersbase) > iers.size())
+                        if ((iersidx = (uint32_t)mjd - iersbase) > iers.size())
                         {
                             iersidx = iers.size() - 2;
                         }
@@ -4954,7 +4879,7 @@ matrix, for the provided UTC date.
                     }
                     //			mjdi = (uint32_t)mjd;
                     frac = mjd - (uint32_t)mjd;
-                    lcalc = ((frac*iers[1+iersidx].dutc+(1.-frac)*iers[iersidx].dutc)/86400.);
+                    lcalc = ((frac * iers[1 + iersidx].dutc + (1. - frac) * iers[iersidx].dutc) / 86400.);
                     lmjd = mjd;
                 }
                 else
@@ -4972,8 +4897,8 @@ matrix, for the provided UTC date.
 */
         double utc2ut1(double mjd)
         {
-            static double lmjd=0.;
-            static double lut=0.;
+            static double lmjd = 0.;
+            static double lut = 0.;
 
             if (mjd != lmjd)
             {
@@ -5000,11 +4925,11 @@ matrix, for the provided UTC date.
             uint32_t iersidx;
             int32_t iretn = 0;
 
-            if ((iretn=load_iers()) && iers.size() > 1)
+            if ((iretn = load_iers()) && iers.size() > 1)
             {
                 if ((uint32_t)mjd >= iersbase)
                 {
-                    if ((iersidx=(uint32_t)mjd-iersbase) > iers.size())
+                    if ((iersidx = (uint32_t)mjd - iersbase) > iers.size())
                     {
                         iersidx = iers.size() - 1;
                     }
@@ -5014,7 +4939,7 @@ matrix, for the provided UTC date.
                     iersidx = 0;
                     return ((double)iretn);
                 }
-                return (mjd-(32.184+iers[iersidx].ls)/86400.);
+                return (mjd - (32.184 + iers[iersidx].ls) / 86400.);
             }
             else
                 return (0.);
@@ -5029,18 +4954,18 @@ matrix, for the provided UTC date.
 */
         double utc2tt(double mjd)
         {
-            static double lmjd=0.;
-            static double ltt=0.;
-            uint32_t iersidx=0;
+            static double lmjd = 0.;
+            static double ltt = 0.;
+            uint32_t iersidx = 0;
             int32_t iretn = 0;
 
             if (mjd != lmjd)
             {
-                if ((iretn=load_iers()) && iers.size() > 1)
+                if ((iretn = load_iers()) && iers.size() > 1)
                 {
                     if ((uint32_t)mjd >= iersbase)
                     {
-                        if ((iersidx=(uint32_t)mjd-iersbase) > iers.size())
+                        if ((iersidx = (uint32_t)mjd - iersbase) > iers.size())
                         {
                             iersidx = iers.size() - 1;
                         }
@@ -5049,7 +4974,7 @@ matrix, for the provided UTC date.
                     {
                         iersidx = 0;
                     }
-                    ltt = (mjd+(32.184+iers[iersidx].ls)/86400.);
+                    ltt = (mjd + (32.184 + iers[iersidx].ls) / 86400.);
                     lmjd = mjd;
                     return (ltt);
                 }
@@ -5084,13 +5009,13 @@ matrix, for the provided UTC date.
                 {
                     return iretn;
                 }
-                fname += "/general/iers_pm_dut_ls.txt";
-                if ((fdes=fopen(fname.c_str(),"r")) != NULL)
+                fname += "/cosmos-resources/general/iers_pm_dut_ls.txt";
+                if ((fdes = fopen(fname.c_str(), "r")) != NULL)
                 {
                     char data[100];
-                    while (fgets(data,100,fdes))
+                    while (fgets(data, 100, fdes))
                     {
-                        sscanf(data,"%u %lg %lg %lg %u",&tiers.mjd,&tiers.pmx,&tiers.pmy,&tiers.dutc,&tiers.ls);
+                        sscanf(data, "%u %lg %lg %lg %u", &tiers.mjd, &tiers.pmx, &tiers.pmy, &tiers.dutc, &tiers.ls);
                         iers.push_back(tiers);
                     }
                     fclose(fdes);
@@ -5114,7 +5039,7 @@ matrix, for the provided UTC date.
             {
                 if ((uint32_t)mjd >= iersbase)
                 {
-                    if ((iersidx=(uint32_t)mjd-iersbase) > iers.size())
+                    if ((iersidx = (uint32_t)mjd - iersbase) > iers.size())
                     {
                         iersidx = iers.size() - 1;
                     }
@@ -5146,7 +5071,7 @@ matrix, for the provided UTC date.
             {
                 if ((uint32_t)mjd >= iersbase)
                 {
-                    if ((iersidx=(uint32_t)mjd-iersbase) > iers.size())
+                    if ((iersidx = (uint32_t)mjd - iersbase) > iers.size())
                     {
                         iersidx = iers.size() - 2;
                     }
@@ -5158,8 +5083,8 @@ matrix, for the provided UTC date.
                 //		mjdi = (uint32_t)mjd;
                 frac = mjd - (uint32_t)mjd;
                 pm = cv_zero();
-                pm.x = frac*iers[1+iersidx].pmx+(1.-frac)*iers[iersidx].pmx;
-                pm.y = frac*iers[1+iersidx].pmy+(1.-frac)*iers[iersidx].pmy;
+                pm.x = frac * iers[1 + iersidx].pmx + (1. - frac) * iers[iersidx].pmx;
+                pm.y = frac * iers[1 + iersidx].pmy + (1. - frac) * iers[iersidx].pmy;
             }
 
             return (pm);
@@ -5173,8 +5098,8 @@ matrix, for the provided UTC date.
 */
         double utc2era(double mjd)
         {
-            static double lmjd=0.;
-            static double ltheta=0.;
+            static double lmjd = 0.;
+            static double ltheta = 0.;
             double ut1;
 
             if (mjd != lmjd)
@@ -5189,7 +5114,7 @@ matrix, for the provided UTC date.
 
         double utc2gmst2000(double utc)
         {
-            static double lutc=0.;
+            static double lutc = 0.;
             static double lgmst = 0.;
             double tt;
 
@@ -5215,14 +5140,14 @@ matrix, for the provided UTC date.
 */
         double utc2gmst1982(double mjd)
         {
-            static double lmjd=0.;
-            static double lcalc=0.;
+            static double lmjd = 0.;
+            static double lcalc = 0.;
             double jcen;
 
             if (mjd != lmjd)
             {
                 jcen = utc2jcentt(mjd);
-                lcalc = utc2era(mjd) + DS2R*(.014506+jcen*(4612.156534+jcen*(1.3915817+jcen*(-.00000044+jcen*(-.000029956+jcen*(-.0000000368))))))/15.;
+                lcalc = utc2era(mjd) + DS2R * (.014506 + jcen * (4612.156534 + jcen * (1.3915817 + jcen * (-.00000044 + jcen * (-.000029956 + jcen * (-.0000000368)))))) / 15.;
                 lcalc = ranrm(lcalc);
                 lmjd = mjd;
             }
@@ -5237,12 +5162,12 @@ matrix, for the provided UTC date.
 */
         double utc2jcenut1(double mjd)
         {
-            static double lmjd=0.;
-            static double lcalc=0.;
+            static double lmjd = 0.;
+            static double lcalc = 0.;
 
             if (mjd != lmjd)
             {
-                lcalc = (utc2ut1(mjd)-51544.5) / 36525.;
+                lcalc = (utc2ut1(mjd) - 51544.5) / 36525.;
                 lmjd = mjd;
             }
             return (lcalc);
@@ -5254,8 +5179,8 @@ matrix, for the provided UTC date.
         */
         double utc2jcentt(double mjd)
         {
-            static double lmjd=0.;
-            static double lcalc=0.;
+            static double lmjd = 0.;
+            static double lcalc = 0.;
 
             if (mjd != lmjd)
             {
@@ -5282,14 +5207,14 @@ matrix, for the provided UTC date.
         double utc2epsilon(double mjd)
         {
             // Vallado, et al, AAS-06_134, eq. 17
-            static double lmjd=0.;
-            static double lcalc=0.;
+            static double lmjd = 0.;
+            static double lcalc = 0.;
             double jcen;
 
             if (mjd != lmjd)
             {
                 jcen = utc2jcentt(mjd);
-                lcalc = DAS2R*(84381.406+jcen*(-46.836769+jcen*(-.0001831+jcen*(0.0020034+jcen*(-0.000000576+jcen*(-0.0000000434))))));
+                lcalc = DAS2R * (84381.406 + jcen * (-46.836769 + jcen * (-.0001831 + jcen * (0.0020034 + jcen * (-0.000000576 + jcen * (-0.0000000434))))));
                 lcalc = ranrm(lcalc);
                 lmjd = mjd;
             }
@@ -5303,14 +5228,14 @@ matrix, for the provided UTC date.
         */
         double utc2L(double mjd)
         {
-            static double lmjd=0.;
-            static double lcalc=0.;
+            static double lmjd = 0.;
+            static double lcalc = 0.;
             double jcen;
 
             if (mjd != lmjd)
             {
                 jcen = utc2jcentt(mjd);
-                lcalc = DAS2R*(485868.249036+jcen*(1717915923.2178+jcen*(31.8792+jcen*(.051635+jcen*(-.0002447)))));
+                lcalc = DAS2R * (485868.249036 + jcen * (1717915923.2178 + jcen * (31.8792 + jcen * (.051635 + jcen * (-.0002447)))));
                 lcalc = ranrm(lcalc);
                 lmjd = mjd;
             }
@@ -5324,14 +5249,14 @@ matrix, for the provided UTC date.
         */
         double utc2Lp(double mjd)
         {
-            static double lmjd=0.;
-            static double lcalc=0.;
+            static double lmjd = 0.;
+            static double lcalc = 0.;
             double jcen;
 
             if (mjd != lmjd)
             {
                 jcen = utc2jcentt(mjd);
-                lcalc = DAS2R*(1287104.79305+jcen*(129596581.0481+jcen*(-.5532+jcen*(.000136+jcen*(-.00001149)))));
+                lcalc = DAS2R * (1287104.79305 + jcen * (129596581.0481 + jcen * (-.5532 + jcen * (.000136 + jcen * (-.00001149)))));
                 lcalc = ranrm(lcalc);
                 lmjd = mjd;
             }
@@ -5345,14 +5270,14 @@ matrix, for the provided UTC date.
         */
         double utc2F(double mjd)
         {
-            static double lmjd=0.;
-            static double lcalc=0.;
+            static double lmjd = 0.;
+            static double lcalc = 0.;
             double jcen;
 
             if (mjd != lmjd)
             {
                 jcen = utc2jcentt(mjd);
-                lcalc = DAS2R*(335779.526232+jcen*(1739527262.8478+jcen*(-12.7512+jcen*(-.001037+jcen*(.00000417)))));
+                lcalc = DAS2R * (335779.526232 + jcen * (1739527262.8478 + jcen * (-12.7512 + jcen * (-.001037 + jcen * (.00000417)))));
                 lcalc = ranrm(lcalc);
                 lmjd = mjd;
             }
@@ -5366,14 +5291,14 @@ matrix, for the provided UTC date.
         */
         double utc2D(double mjd)
         {
-            static double lmjd=0.;
-            static double lcalc=0.;
+            static double lmjd = 0.;
+            static double lcalc = 0.;
             double jcen;
 
             if (mjd != lmjd)
             {
                 jcen = utc2jcentt(mjd);
-                lcalc = DAS2R*(1072260.70369+jcen*(1602961601.209+jcen*(-6.3706+jcen*(.006593+jcen*(-.00003169)))));
+                lcalc = DAS2R * (1072260.70369 + jcen * (1602961601.209 + jcen * (-6.3706 + jcen * (.006593 + jcen * (-.00003169)))));
                 lcalc = ranrm(lcalc);
                 lmjd = mjd;
             }
@@ -5387,14 +5312,14 @@ matrix, for the provided UTC date.
         */
         double utc2omega(double mjd)
         {
-            static double lmjd=0.;
-            static double lcalc=0.;
+            static double lmjd = 0.;
+            static double lcalc = 0.;
             double jcen;
 
             if (mjd != lmjd)
             {
                 jcen = utc2jcentt(mjd);
-                lcalc = DAS2R*(450160.398036+jcen*(-6962890.5431+jcen*(7.4722+jcen*(.007702+jcen*(-.00005939)))));
+                lcalc = DAS2R * (450160.398036 + jcen * (-6962890.5431 + jcen * (7.4722 + jcen * (.007702 + jcen * (-.00005939)))));
                 lcalc = ranrm(lcalc);
                 lmjd = mjd;
             }
@@ -5403,52 +5328,52 @@ matrix, for the provided UTC date.
 
         //! Precession zeta value
         /*! Calculate angle zeta used in the calculation of Precession, re.
-        *  Capitaine, et. al, A&A, 412, 567-586 (2003)
-        * Expressions for IAU 2000 precession quantities
-        * Equation 40
-        * \param utc Epoch in Modified Julian Day.
-        * \return Zeta in radians
-        */
+         *  Capitaine, et. al, A&A, 412, 567-586 (2003)
+         * Expressions for IAU 2000 precession quantities
+         * Equation 40
+         * \param utc Epoch in Modified Julian Day.
+         * \return Zeta in radians
+         */
         double utc2zeta(double utc)
         {
             double ttc = utc2jcentt(utc);
             //	double zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971 + ttc*(0.0000003173))))))*DAS2R;
             // Vallado, eqn. 3-88
-            double zeta = (ttc*(2306.2181 + ttc*(0.30188 + ttc*(0.017998))))*DAS2R;
+            double zeta = (ttc * (2306.2181 + ttc * (0.30188 + ttc * (0.017998)))) * DAS2R;
             return zeta;
         }
 
         //! Precession z value
         /*! Calculate angle z used in the calculation of Precession, re.
-        *  Capitaine, et. al, A&A, 412, 567-586 (2003)
-        * Expressions for IAU 2000 precession quantities
-        * Equation 40
-        * \param utc Epoch in Modified Julian Day.
-        * \return Zeta in radians
-        */
+         *  Capitaine, et. al, A&A, 412, 567-586 (2003)
+         * Expressions for IAU 2000 precession quantities
+         * Equation 40
+         * \param utc Epoch in Modified Julian Day.
+         * \return Zeta in radians
+         */
         double utc2z(double utc)
         {
             double ttc = utc2jcentt(utc);
             //	double z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596 + ttc*(0.0000002904))))))*DAS2R;
             // Vallado, eqn. 3-88
-            double z = (ttc*(2306.2181 + ttc*(1.09468 + ttc*(0.018203))))*DAS2R;
+            double z = (ttc * (2306.2181 + ttc * (1.09468 + ttc * (0.018203)))) * DAS2R;
             return z;
         }
 
         //! Precession theta value
         /*! Calculate angle theta used in the calculation of Precession, re.
-        *  Capitaine, et. al, A&A, 412, 567-586 (2003)
-        * Expressions for IAU 2000 precession quantities
-        * Equation 40
-        * \param utc Epoch in Modified Julian Day.
-        * \return Zeta in radians
-        */
+         *  Capitaine, et. al, A&A, 412, 567-586 (2003)
+         * Expressions for IAU 2000 precession quantities
+         * Equation 40
+         * \param utc Epoch in Modified Julian Day.
+         * \return Zeta in radians
+         */
         double utc2theta(double utc)
         {
             double ttc = utc2jcentt(utc);
             //	double theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
             // Vallado, eqn. 3-88
-            double theta = ttc*(2004.3109 + ttc*(-0.42665 + ttc*(-0.041833)))*DAS2R;
+            double theta = ttc * (2004.3109 + ttc * (-0.42665 + ttc * (-0.041833))) * DAS2R;
             return theta;
         }
 
@@ -5460,8 +5385,8 @@ matrix, for the provided UTC date.
         */
         double utc2tdb(double mjd)
         {
-            static double lmjd=0.;
-            static double ltdb=0.;
+            static double lmjd = 0.;
+            static double ltdb = 0.;
             double tt, g;
 
             if (mjd != lmjd)
@@ -5469,8 +5394,8 @@ matrix, for the provided UTC date.
                 tt = utc2tt(mjd);
                 if (tt > 0.)
                 {
-                    g = 6.2400756746 + .0172019703436*(mjd-51544.5);
-                    ltdb = (tt + (.001658*sin(g)+.000014*sin(2*g))/86400.);
+                    g = 6.2400756746 + .0172019703436 * (mjd - 51544.5);
+                    ltdb = (tt + (.001658 * sin(g) + .000014 * sin(2 * g)) / 86400.);
                     lmjd = mjd;
                 }
             }
@@ -5479,16 +5404,16 @@ matrix, for the provided UTC date.
 
         //! Convert UTC to GPS
         /*! Convert Coordinated Universal Time to GPS Time, correcting for the appropriate
-        * number of leap seconds. Leap Second table is first initialized from
-        * disk if it hasn't yet been.
-        * \param utc UTC expressed in Modified Julian Days
-        * \return GPS Time expressed in Modified Julian Days, otherwise negative error
-        */
+         * number of leap seconds. Leap Second table is first initialized from
+         * disk if it hasn't yet been.
+         * \param utc UTC expressed in Modified Julian Days
+         * \return GPS Time expressed in Modified Julian Days, otherwise negative error
+         */
         double utc2gps(double utc)
         {
             double gps;
 
-            if ((gps=utc2tt(utc)) <= 0.)
+            if ((gps = utc2tt(utc)) <= 0.)
             {
                 return (gps);
             }
@@ -5500,25 +5425,24 @@ matrix, for the provided UTC date.
 
         //! Convert GPS to UTC
         /*! Convert GPS Time to Coordinated Universal Time, correcting for the appropriate
- * number of leap seconds. Leap Second table is first initialized from
- * disk if it hasn't yet been.
- * \param gps GPS Time expressed in Modified Julian Days
- * \return UTC expressed in Modified Julian Days, otherwise 0.
- */
+         * number of leap seconds. Leap Second table is first initialized from
+         * disk if it hasn't yet been.
+         * \param gps GPS Time expressed in Modified Julian Days
+         * \return UTC expressed in Modified Julian Days, otherwise 0.
+         */
         double gps2utc(double gps)
         {
             double utc;
 
             gps += 51.184 / 86400.;
 
-            if ((utc=tt2utc(gps)) <= 0.)
+            if ((utc = tt2utc(gps)) <= 0.)
             {
                 return (utc);
             }
 
             return (utc);
         }
-
 
     }
 }

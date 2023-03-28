@@ -472,7 +472,7 @@ namespace Cosmos {
                             beacon.radio[radiocount].packet_size = cinfo->devspec.rxr[i].pktsize;
                             beacon.radio[radiocount].kbyte_rate = cinfo->devspec.rxr[i].byte_rate / 1000.;
                             beacon.radio[radiocount].uptime = cinfo->devspec.rxr[i].uptime;
-                            beacon.radio[radiocount].ctemp = cinfo->devspec.rxr[i].temp / 100.;
+                            beacon.radio[radiocount].ctemp = cinfo->devspec.rxr[i].temp * 100.;
                             beacon.radio[radiocount].kpower = cinfo->devspec.rxr[i].powerin / 1000.;
                             beacon.radio[radiocount].bytes = cinfo->devspec.rxr[i].bytesin;
                             beacon.radio[radiocount].lastdeci = decisec(cinfo->devspec.rxr[i].utcin);
@@ -522,6 +522,7 @@ namespace Cosmos {
                         beacon.camera[cameracount].lstep = cinfo->devspec.cam[i].lstep;
                         ++cameracount;
                     }
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+offsetof(cameras_beacon, cameras_beacon::camera)+cameracount*sizeof(camera_beacon));
                 }
                 break;
             default:
@@ -1148,7 +1149,7 @@ namespace Cosmos {
                                 cinfo->devspec.rxr[i].pktsize = beacon.radio[radiocount].packet_size;
                                 cinfo->devspec.rxr[i].byte_rate = beacon.radio[radiocount].kbyte_rate * 1000.;
                                 cinfo->devspec.rxr[i].uptime = beacon.radio[radiocount].uptime;
-                                cinfo->devspec.rxr[i].temp = beacon.radio[radiocount].ctemp * 100.;
+                                cinfo->devspec.rxr[i].temp = beacon.radio[radiocount].ctemp / 100.;
                                 cinfo->devspec.rxr[i].powerin = beacon.radio[radiocount].kpower * 1000.;
                                 cinfo->devspec.rxr[i].bytesin = beacon.radio[radiocount].bytes;
                                 cinfo->devspec.rxr[i].utcin = decisec2mjd(beacon.radio[radiocount].lastdeci);
@@ -1163,11 +1164,39 @@ namespace Cosmos {
                                 cinfo->devspec.txr[i].pktsize = beacon.radio[radiocount].packet_size;
                                 cinfo->devspec.txr[i].byte_rate = beacon.radio[radiocount].kbyte_rate * 1000.;
                                 cinfo->devspec.txr[i].uptime = beacon.radio[radiocount].uptime;
-                                cinfo->devspec.txr[i].temp = beacon.radio[radiocount].ctemp * 100.;
+                                cinfo->devspec.txr[i].temp = beacon.radio[radiocount].ctemp / 100.;
                                 cinfo->devspec.txr[i].powerout = beacon.radio[radiocount].kpower * 1000.;
                                 cinfo->devspec.txr[i].bytesout = beacon.radio[radiocount].bytes;
                                 cinfo->devspec.txr[i].utcout = decisec2mjd(beacon.radio[radiocount].lastdeci);
                                 ++radiocount;
+                            }
+                        }
+                        break;
+                    case TypeId::CameraBeacon:
+                        {
+                            cameras_beacon beacon;
+                            if (data.size() <= sizeof(beacon))
+                            {
+                                memcpy(&beacon, data.data(), data.size());
+                            }
+                            else
+                            {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            for (uint16_t i=0; i<cinfo->devspec.cam.size(); ++i)
+                            {
+                                if (i >= camera_count)
+                                {
+                                    break;
+                                }
+                                cinfo->devspec.cam[i].utc = mjd;
+                                cinfo->devspec.cam[i].width = beacon.camera[i].width;
+                                cinfo->devspec.cam[i].height = beacon.camera[i].height;
+                                cinfo->devspec.cam[i].ttemp = beacon.camera[i].tctemp / 100.;
+                                cinfo->devspec.cam[i].temp = beacon.camera[i].fctemp / 100.;
+                                cinfo->devspec.cam[i].ltemp = beacon.camera[i].lctemp / 100.;
+                                cinfo->devspec.cam[i].lstep = beacon.camera[i].lstep;
                             }
                         }
                         break;
@@ -1503,6 +1532,20 @@ namespace Cosmos {
                         json_out_1d(Contents, "device_txr_bytesout", i, cinfo);
                         json_out_1d(Contents, "device_txr_powerout", i, cinfo);
                         json_out_1d(Contents, "device_txr_utcout", i, cinfo);
+                    }
+                }
+                break;
+            case TypeId::CameraBeacon:
+                {
+                    for (uint16_t i=0; i<cinfo->devspec.cam.size(); ++i)
+                    {
+                        json_out_1d(Contents, "device_cam_utc", i, cinfo);
+                        json_out_1d(Contents, "device_cam_width", i, cinfo);
+                        json_out_1d(Contents, "device_cam_height", i, cinfo);
+                        json_out_1d(Contents, "device_cam_ttemp", i, cinfo);
+                        json_out_1d(Contents, "device_cam_temp", i, cinfo);
+                        json_out_1d(Contents, "device_cam_ltemp", i, cinfo);
+                        json_out_1d(Contents, "device_cam_lstep", i, cinfo);
                     }
                 }
                 break;

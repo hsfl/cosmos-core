@@ -87,6 +87,9 @@ namespace Cosmos {
             string list_incoming();
             int32_t set_waittime(const uint8_t node_id, const uint8_t direction, const double waittime);
             int32_t set_waittime(const string node_name, const uint8_t direction, const double waittime);
+            int32_t reset_queue();
+            int32_t reset_queue(string node_name);
+            int32_t reset_queue(uint8_t node_id, uint8_t direction);
 
             // Getters/setters
             PACKET_CHUNK_SIZE_TYPE get_packet_size();
@@ -115,20 +118,26 @@ namespace Cosmos {
             // Private queue manipulation functions
             int32_t outgoing_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1, const bool remove_file=true);
             PACKET_TX_ID_TYPE check_tx_id(const tx_entry &txentry, const PACKET_TX_ID_TYPE tx_id);
-            int32_t incoming_tx_add(const string node_name, const PACKET_TX_ID_TYPE tx_id);
-            int32_t incoming_tx_add(const string node_name, const packet_struct_metashort& meta);
+            int32_t incoming_tx_add(const string node_name, const PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc);
+            int32_t incoming_tx_add(const string node_name, const packet_struct_metadata& meta);
             int32_t incoming_tx_add(tx_progress &tx_in);
-            int32_t incoming_tx_update(const packet_struct_metashort &meta);
+            int32_t incoming_tx_update(const packet_struct_metadata &meta);
             int32_t incoming_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
             int32_t incoming_tx_complete(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
+            int32_t incoming_tx_data(packet_struct_data& data, uint8_t node_id, size_t orig_node_idx);
 
-            // Reuse to write the meta
-            PacketComm write_meta_packet;
+            // Reuse to write the META
+            vector<uint8_t> meta_file_data;
+            // Reuse to create outgoing lpackets
+            PacketComm outgoing_packet;
             int32_t write_meta(tx_progress& tx, double interval=5.);
             int32_t read_meta(tx_progress& tx);
 
             static const size_t INVALID_TXQ_IDX = (size_t)-1;
             size_t node_id_to_txq_idx(const uint8_t node_id);
+
+            // Reuse crc class
+            CRC16 calc_crc;
         };
     }
 }

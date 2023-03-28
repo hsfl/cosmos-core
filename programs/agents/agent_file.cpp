@@ -82,7 +82,6 @@ typedef struct
     double lomjd;
     double nmjd;
     double fmjd;
-    packet_struct_heartbeat heartbeat;
 } channelstruc;
 
 static PACKET_CHUNK_SIZE_TYPE default_packet_size=PACKET_SIZE_HI;
@@ -556,124 +555,124 @@ int32_t myrecvfrom(string type, socket_channel &channel, PacketComm& packet, uin
 //! \return n/a
 void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use_channel)
 {
-    if (agent->get_debug_level())
-    {
-        debug_fd_lock.lock();
+    // if (agent->get_debug_level())
+    // {
+    //     debug_fd_lock.lock();
 
-        string node_name = NodeData::lookup_node_id_name(packet.data[0]);
-        uint8_t node_id = NodeData::check_node_id(packet.data[0]);
+    //     string node_name = NodeData::lookup_node_id_name(packet.data[0]);
+    //     uint8_t node_id = NodeData::check_node_id(packet.data[0]);
         
-        if (direction == PACKET_IN)
-        {
-            if (out_comm_channel[use_channel].node.empty())
-            {
-                if (!node_name.empty())
-                {
-                    agent->debug_log.Printf("%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
-                }
-                else
-                {
-                    agent->debug_log.Printf("%.4f %.4f RECV L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
-                }
-            }
-            else
-            {
-                agent->debug_log.Printf("%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
-            }
-        }
-        else if (direction == PACKET_OUT)
-        {
-            if (out_comm_channel[use_channel].node.empty())
-            {
-                if (!node_name.empty())
-                {
-                    agent->debug_log.Printf("%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
-                }
-                else
-                {
-                    agent->debug_log.Printf("%.4f %.4f SEND L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
-                }
-            }
-            else
-            {
-                agent->debug_log.Printf("%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
-            }
-        }
+    //     if (direction == PACKET_IN)
+    //     {
+    //         if (out_comm_channel[use_channel].node.empty())
+    //         {
+    //             if (!node_name.empty())
+    //             {
+    //                 agent->debug_log.Printf("%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
+    //             }
+    //             else
+    //             {
+    //                 agent->debug_log.Printf("%.4f %.4f RECV L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
+    //             }
+    //         }
+    //         else
+    //         {
+    //             agent->debug_log.Printf("%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
+    //         }
+    //     }
+    //     else if (direction == PACKET_OUT)
+    //     {
+    //         if (out_comm_channel[use_channel].node.empty())
+    //         {
+    //             if (!node_name.empty())
+    //             {
+    //                 agent->debug_log.Printf("%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
+    //             }
+    //             else
+    //             {
+    //                 agent->debug_log.Printf("%.4f %.4f SEND L %u R %u Unknown %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
+    //             }
+    //         }
+    //         else
+    //         {
+    //             agent->debug_log.Printf("%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %lu ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, packet.data.size());
+    //         }
+    //     }
 
-        switch (packet.header.type)
-        {
-        case PacketComm::TypeId::DataFileMetaData:
-            {
-                string file_name(&packet.data[offsetof(struct packet_struct_metashort, file_name)], &packet.data[offsetof(struct packet_struct_metashort, file_name)+TRANSFER_MAX_FILENAME]);
-                agent->debug_log.Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(struct packet_struct_metashort, tx_id)], file_name.c_str());
-                break;
-            }
-        case PacketComm::TypeId::DataFileChunkData:
-            {
-                agent->debug_log.Printf("[DATA] %u %u %u %u ", node_id, packet.data[offsetof(struct packet_struct_data, tx_id)], packet.data[offsetof(struct packet_struct_data, chunk_start)]+256U*(packet.data[offsetof(struct packet_struct_data, chunk_start)+1]+256U*(packet.data[offsetof(struct packet_struct_data, chunk_start)+2]+256U*packet.data[offsetof(struct packet_struct_data, chunk_start)+3])), packet.data[offsetof(struct packet_struct_data, byte_count)]+256U*packet.data[offsetof(struct packet_struct_data, byte_count)+1]);
-                break;
-            }
-        case PacketComm::TypeId::DataFileReqData:
-            {
-                agent->debug_log.Printf("[REQDATA] ");
-                for (auto& byte : packet.data)
-                {
-                    agent->debug_log.Printf("%u ", unsigned(byte));
-                }
-                agent->debug_log.Printf("\n");
-                break;
-                break;
-            }
-        case PacketComm::TypeId::DataFileReqComplete:
-            {
-                agent->debug_log.Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[offsetof(struct packet_struct_reqcomplete, tx_id)]);
-                break;
-            }
-        case PacketComm::TypeId::DataFileComplete:
-            {
-                agent->debug_log.Printf("[COMPLETE] %u %u ", node_id, packet.data[offsetof(struct packet_struct_complete, tx_id)]);
-                break;
-            }
-        case PacketComm::TypeId::DataFileCancel:
-            {
-                agent->debug_log.Printf("[CANCEL] %u %u ", node_id, packet.data[offsetof(struct packet_struct_cancel, tx_id)]);
-                break;
-            }
-        case PacketComm::TypeId::DataFileReqMeta:
-        case PacketComm::TypeId::DataFileQueue:
-            {
-                packet_struct_queue queue;
-                deserialize_queue(packet.data, queue);
-                string label = packet.header.type == PacketComm::TypeId::DataFileReqMeta ? "REQMETA" : "QUEUE";
-                agent->debug_log.Printf("[%s] %u ", label.c_str(), node_id);
-                // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint8_t type
-                for (PACKET_QUEUE_FLAGS_TYPE i=0; i<PACKET_QUEUE_FLAGS_LIMIT; ++i)
-                {
-                    PACKET_QUEUE_FLAGS_TYPE flags = queue.tx_ids[i];
-                    //agent->debug_log.Printf("[%u] ", flags);
-                    PACKET_TX_ID_TYPE hi = i << 3;
-                    for (size_t bit = 0; bit < sizeof(PACKET_QUEUE_FLAGS_TYPE)*8; ++bit)
-                    {
-                        uint8_t flag = (flags >> bit) & 1;
-                        if (!flag)
-                        {
-                            continue;
-                        }
-                        PACKET_TX_ID_TYPE tx_id = hi | bit;
-                        agent->debug_log.Printf("%u ", unsigned(tx_id));
-                    }
-                }
-            }
-            break;
-        default:
-            {
-                agent->debug_log.Printf("[ERROR] %u %s", node_id, "Error in debug_packet switch on packet.header.type");
-            }
-        }
-        agent->debug_log.Printf("\n");
-        // fflush(agent->get_debug_fd());
-        debug_fd_lock.unlock();
-    }
+    //     switch (packet.header.type)
+    //     {
+    //     case PacketComm::TypeId::DataFileMetaData:
+    //         {
+    //             string file_name(&packet.data[offsetof(struct packet_struct_metadata, file_name)], &packet.data[offsetof(struct packet_struct_metadata, file_name)+TRANSFER_MAX_FILENAME]);
+    //             agent->debug_log.Printf("[METADATA] %u %u %s ", node_id, packet.data[offsetof(struct packet_struct_metadata, tx_id)], file_name.c_str());
+    //             break;
+    //         }
+    //     case PacketComm::TypeId::DataFileChunkData:
+    //         {
+    //             agent->debug_log.Printf("[DATA] %u %u %u %u ", node_id, packet.data[offsetof(struct packet_struct_data, tx_id)], packet.data[offsetof(struct packet_struct_data, chunk_start)]+256U*(packet.data[offsetof(struct packet_struct_data, chunk_start)+1]+256U*(packet.data[offsetof(struct packet_struct_data, chunk_start)+2]+256U*packet.data[offsetof(struct packet_struct_data, chunk_start)+3])), packet.data[offsetof(struct packet_struct_data, byte_count)]+256U*packet.data[offsetof(struct packet_struct_data, byte_count)+1]);
+    //             break;
+    //         }
+    //     case PacketComm::TypeId::DataFileReqData:
+    //         {
+    //             agent->debug_log.Printf("[REQDATA] ");
+    //             for (auto& byte : packet.data)
+    //             {
+    //                 agent->debug_log.Printf("%u ", unsigned(byte));
+    //             }
+    //             agent->debug_log.Printf("\n");
+    //             break;
+    //             break;
+    //         }
+    //     case PacketComm::TypeId::DataFileReqComplete:
+    //         {
+    //             agent->debug_log.Printf("[REQCOMPLETE] %u %u ", node_id, packet.data[offsetof(struct packet_struct_reqcomplete, tx_id)]);
+    //             break;
+    //         }
+    //     case PacketComm::TypeId::DataFileComplete:
+    //         {
+    //             agent->debug_log.Printf("[COMPLETE] %u %u ", node_id, packet.data[offsetof(struct packet_struct_complete, tx_id)]);
+    //             break;
+    //         }
+    //     case PacketComm::TypeId::DataFileCancel:
+    //         {
+    //             agent->debug_log.Printf("[CANCEL] %u %u ", node_id, packet.data[offsetof(struct packet_struct_cancel, tx_id)]);
+    //             break;
+    //         }
+    //     case PacketComm::TypeId::DataFileReqMeta:
+    //     case PacketComm::TypeId::DataFileQueue:
+    //         {
+    //             packet_struct_queue queue;
+    //             deserialize_queue(packet.data, queue);
+    //             string label = packet.header.type == PacketComm::TypeId::DataFileReqMeta ? "REQMETA" : "QUEUE";
+    //             agent->debug_log.Printf("[%s] %u ", label.c_str(), node_id);
+    //             // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint8_t type
+    //             for (PACKET_QUEUE_FLAGS_TYPE i=0; i<PACKET_QUEUE_FLAGS_LIMIT; ++i)
+    //             {
+    //                 PACKET_QUEUE_FLAGS_TYPE flags = queue.tx_ids[i];
+    //                 //agent->debug_log.Printf("[%u] ", flags);
+    //                 PACKET_TX_ID_TYPE hi = i << 3;
+    //                 for (size_t bit = 0; bit < sizeof(PACKET_QUEUE_FLAGS_TYPE)*8; ++bit)
+    //                 {
+    //                     uint8_t flag = (flags >> bit) & 1;
+    //                     if (!flag)
+    //                     {
+    //                         continue;
+    //                     }
+    //                     PACKET_TX_ID_TYPE tx_id = hi | bit;
+    //                     agent->debug_log.Printf("%u ", unsigned(tx_id));
+    //                 }
+    //             }
+    //         }
+    //         break;
+    //     default:
+    //         {
+    //             agent->debug_log.Printf("[ERROR] %u %s", node_id, "Error in debug_packet switch on packet.header.type");
+    //         }
+    //     }
+    //     agent->debug_log.Printf("\n");
+    //     // fflush(agent->get_debug_fd());
+    //     debug_fd_lock.unlock();
+    // }
 }
 
 // Agent request functions

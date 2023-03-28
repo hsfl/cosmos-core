@@ -118,11 +118,6 @@ namespace Module
             return;
         }
 
-        cout << "Bytes: " << packet.packetized.size() << ": ";
-        for (auto el : packet.packetized)
-        {
-            cout << unsigned(el) << " ";
-        } cout << endl;
         agent->channel_touch(mychannel);
         agent->channel_increment(mychannel, packet.packetized.size());
 

@@ -8621,6 +8621,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             json_addentry("device_cam_height",didx, UINT16_MAX, (uint8_t *)&device->height, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cam_flength",didx, UINT16_MAX, (uint8_t *)&device->flength, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cam_ltemp",didx, UINT16_MAX, (uint8_t *)&device->ltemp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+            json_addentry("device_cam_ttemp",didx, UINT16_MAX, (uint8_t *)&device->ttemp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             break;
         }
         //! Processing Unit
@@ -9330,6 +9331,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_cam_height",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_flength",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_ltemp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cam_ttemp",didx, UINT16_MAX, cinfo, state);
         break;
         //! Processing Unit
     case DeviceType::CPU:
@@ -11675,6 +11677,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                     json_out_1d(jstring, "device_cam_height",j, cinfo);
                     json_out_1d(jstring, "device_cam_flength",j, cinfo);
                     json_out_1d(jstring, "device_cam_ltemp",j, cinfo);
+                    json_out_1d(jstring, "device_cam_ttemp",j, cinfo);
                     continue;
                 }
 

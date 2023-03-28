@@ -199,6 +199,7 @@ double findlastday(string node);
 double findfirstday(string node);
 const string data_getcwd();
 void rmdir(const string& dirpath);
+void rmdir_contents(const string& dirpath);
 
 class DataLog
 {
