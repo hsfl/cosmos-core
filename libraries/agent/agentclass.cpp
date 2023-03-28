@@ -336,6 +336,7 @@ namespace Cosmos
                         "    AdcsState {0-7} {0-255} ... \n"
                         "    AdcsCommunicate command:hexstring:response_size\n"
                         "    CameraCapture [frames [usec [ startcol width [startrow height [name]]]]]\n"
+                        "    ExecAddCommand json_event_string\n"
                         "");
             add_request("list_channels", req_list_channels, "", "List current channels");
             add_request("run_command", req_run_command, "command parameters", "Run external command for immediate response");
@@ -1879,6 +1880,7 @@ namespace Cosmos
             int32_t outchannel = 0;
             int32_t inchannel = 0;
             vector<string> parms;
+            string parmstring;
             uint16_t repeat = 1;
 
             vector<string> args = string_split(request);
@@ -1923,6 +1925,7 @@ namespace Cosmos
                             {
                                 parms.push_back(args[i]);
                             }
+                            parmstring = request.substr(string_find(request, " ", 4));
                         }
                     }
                 }
@@ -2239,9 +2242,9 @@ namespace Cosmos
                 {
                     packet.data.clear();
                 }
-                if (parms.size())
+                if (parmstring.size())
                 {
-                    packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
+                    packet.data.insert(packet.data.end(), parmstring.begin(), parmstring.end());
                 }
                 break;
             case PacketComm::TypeId::CommandExecEnableChannel:
