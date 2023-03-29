@@ -71,7 +71,7 @@ DataLog::DataLog()
 
 //! \brief Initialize ::DataLog
 //! Preset DataLog to be used for provided conditions
-int32_t DataLog::Init(std::string node, std::string location, std::string agent, std::string type, std::string extra, double stride, bool fastmode)
+int32_t DataLog::Init(std::string node, std::string location, std::string agent, std::string type, std::string extra, double stride, bool fastmode, bool compress)
 {
     fout = nullptr;
     this->node = node;
@@ -80,6 +80,7 @@ int32_t DataLog::Init(std::string node, std::string location, std::string agent,
     this->type = type;
     this->extra = extra;
     this->fastmode = fastmode;
+    this->compress = compress;
     if (stride < 0.)
     {
         stride = 0.;
@@ -165,8 +166,8 @@ int32_t DataLog::Write(vector<uint8_t>& data)
         }
         if (!path.empty() && !location.empty() && path.find("/temp/") != string::npos)
         {
-            string movepath = string_replace(path, "/temp", "/" + location);
-            iretn = log_move_file(path, movepath, true);
+            string movepath = string_replace(path, "/temp/", "/" + location + "/");
+            iretn = log_move_file(path, movepath, compress);
         }
         if (iretn < 0)
         {
@@ -219,9 +220,8 @@ int32_t DataLog::Write(vector<uint8_t> data, string node, string location, strin
         }
         if (!path.empty() && !location.empty() && path.find("/temp/") != string::npos)
         {
-            string movepath = path;
-            movepath.replace(movepath.find("/temp/"), 10, "/"+location+"/");
-            iretn = log_move_file(path, movepath, true);
+            string movepath = string_replace(path, "/temp/", "/" + location + "/");
+            iretn = log_move_file(path, movepath, compress);
         }
         if (iretn < 0)
         {
@@ -248,6 +248,28 @@ int32_t DataLog::Write(vector<uint8_t> data, string node, string location, strin
         fout = nullptr;
     }
     return iretn;
+}
+
+//! If stridetime has elapsed since last write, then close the file
+//! Append the provided string to a file in the {node}/{location}/{agent} directory. The file name
+//! is created as {node}_yyyyjjjsssss_{extra}.{type}
+//! \return 0 on success, negative on error
+int32_t DataLog::CloseIfStrideTime()
+{
+    if (fout != nullptr && currentmjd() >= enddate)
+    {
+        startdate = enddate;
+        enddate += stride;
+        fclose(fout);
+        fout = nullptr;
+        if (!path.empty() && !location.empty() && path.find("/temp/") != string::npos)
+        {
+            string movepath = string_replace(path, "/temp/", "/" + location + "/");
+            return log_move_file(path, movepath, compress);
+        }
+        return COSMOS_GENERAL_ERROR_NAME;
+    }
+    return COSMOS_GENERAL_ERROR_NOTREADY;
 }
 
 //! Write log entry - full
@@ -340,6 +362,7 @@ string log_write(string node, int type, double utc, const char *record, string d
  * \param oldpath Path to move from.
  * \param newpath Path to move to.
  * \param compress Wether or not to compress with gzip.
+ * \return 0 on success, negative on error.
  */
 int32_t log_move_file(string oldpath, string newpath, bool compress)
 {

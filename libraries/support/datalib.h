@@ -205,7 +205,7 @@ class DataLog
 {
 public:
     DataLog();
-    int32_t Init(string node, string location="outgoing", string agent="self", string type="log", string extra="", double stride=0., bool fastmode=false);
+    int32_t Init(string node, string location="outgoing", string agent="self", string type="log", string extra="", double stride=0., bool fastmode=false, bool compress=true);
     int32_t Write(string& data);
     int32_t Write(vector<uint8_t>& data);
     int32_t Write(vector<uint8_t> data, string node, string location="outgoing", string agent="generic", string type="log", string extra="");
@@ -215,6 +215,7 @@ public:
     int32_t SetStride(double seconds=0.);
     int32_t SetFastmode(bool state=false);
     int32_t SetStartdate(double mjd=0.);
+    int32_t CloseIfStrideTime();
 
     string node;
     string location;
@@ -222,6 +223,7 @@ public:
     string type;
     string extra;
     bool fastmode;
+    bool compress;
     double stride;
     double enddate = 0.;
     double startdate = 0.;
