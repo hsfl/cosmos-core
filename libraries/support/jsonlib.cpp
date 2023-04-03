@@ -8117,6 +8117,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_loc_pos_geoc_s_z", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geoc.s.col[2], (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_LENGTH);
     json_addentry("node_loc_pos_geos", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geos, (uint16_t)JSON_TYPE_POS_GEOS, cinfo);
     json_addentry("node_loc_pos_eci", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.eci, (uint16_t)JSON_TYPE_POS_ECI, cinfo);
+    json_addentry("node_loc_pos_eci_utc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.eci.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     json_addentry("node_loc_pos_eci_s", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.eci.s, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_LENGTH);
     json_addentry("node_loc_pos_eci_v", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.eci.v, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_SPEED);
     json_addentry("node_loc_pos_eci_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.eci.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ACCELERATION);
