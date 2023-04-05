@@ -169,6 +169,7 @@ namespace Cosmos {
                 {TypeId::CommandExecAddCommand, "ExecAddCommand"},
                 {TypeId::CommandRadioCommunicate, "RadioCommunicate"},
                 {TypeId::CommandRadioAstrodevCommunicate, "RadioAstrodevCommunicate"},
+                {TypeId::CommandCameraOn, "CameraOn"},
                 {TypeId::CommandCameraCapture, "CameraCapture"},
             };
 
@@ -233,6 +234,7 @@ namespace Cosmos {
                 {"ExecAddCommand", TypeId::CommandExecAddCommand},
                 {"RadioCommunicate", TypeId::CommandRadioCommunicate},
                 {"RadioAstrodevCommunicate", TypeId::CommandRadioAstrodevCommunicate},
+                {"CameraOn", TypeId::CommandCameraOn},
                 {"CameraCapture", TypeId::CommandCameraCapture},
             };
 
