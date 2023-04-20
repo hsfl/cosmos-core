@@ -468,6 +468,7 @@ namespace Cosmos {
 
         int32_t PacketHandler::DecodeTest(PacketComm& packet, string &response, Agent *agent)
         {
+            static FILE *tf = nullptr;
             static CRC16 calc_crc;
             // static uint32_t last_test_id = 0;
             int32_t iretn=0;
@@ -477,6 +478,7 @@ namespace Cosmos {
                 uint32_t total_bytes = 0;
                 uint32_t total_count = 0;
                 uint32_t good_count = 0;
+                uint32_t repeat_count = 0;
                 uint32_t crc_count = 0;
                 uint32_t size_count = 0;
                 uint32_t skip_count = 0;
@@ -490,61 +492,66 @@ namespace Cosmos {
 
             if (packet.data.size() > COSMOS_SIZEOF(PacketComm::TestHeader))
             {
+                uint16_t crccalc = calc_crc.calc(&packet.data[0], packet.data.size()-2);
+                uint16_t crcdata = 256 * packet.data[packet.data.size()-1] + packet.data[packet.data.size()-2];
+                if (crccalc != crcdata)
+                {
+                    ++test.crc_count;
+                    return GENERAL_ERROR_CRC;
+                }
                 PacketComm::TestHeader header;
                 uint16_t header_size = COSMOS_SIZEOF(PacketComm::TestHeader);
                 memcpy(&header, packet.data.data(), header_size);
                 uint16_t data_size = packet.data.size() - header_size;
 
+                if (tf == nullptr)
+                {
+                    test.path = data_name_path(agent->nodeData.lookup_node_id_name(packet.header.nodeorig), "temp", agent->agentName, 0., "test_"+to_unsigned(header.test_id));
+                    tf = fopen(test.path.c_str(), "a");
+                }
+
                 if (header.test_id != test.test_id)
                 {
-                    // New Test
-                    //                    if (tests.find(last_test_id) != tests.end())
-                    //                    {
-                    //                        // Finish off existing test
-                    //                        response += to_label("MET", (currentmjd() - agent->cinfo->node.utcstart));
-                    //                        response += to_label(" Test_Id", last_test_id);
-                    //                        response +=  to_label(" Packet_Id", tests[last_test_id].packet_id);
-                    //                        response += " Good: " + to_unsigned(tests[last_test_id].good_count);
-                    //                        response += " Skip: " + to_unsigned(tests[last_test_id].skip_count);
-                    //                        response += " Size: " + to_unsigned(tests[last_test_id].size_count);
-                    //                        response += " Crc: " + to_unsigned(tests[last_test_id].crc_count);
-                    //                        response += to_label(" Bytes", tests[last_test_id].total_bytes);
-                    //                        response += to_label(" Count", tests[last_test_id].total_count);
-                    //                        response += to_label(" Seconds", tests[last_test_id].et.split());
-                    //                        response += to_label(" Speed", tests[last_test_id].total_bytes / tests[last_test_id].et.split());
-                    //                        response += " Abort: \n";
-                    //                    }
-                    if (!test.path.empty())
+                    if (tf != nullptr)
                     {
+                        fclose(tf);
+                        tf = nullptr;
                         log_move_file(test.path, string_replace(test.path, "temp", "incoming"), true);
+                        test.path.clear();
                     }
-                    test.path = data_name_path(agent->nodeData.lookup_node_id_name(packet.header.nodeorig), "temp", agent->agentName, 0., "test_"+to_unsigned(header.test_id));
+
                     test.good_count = 0;
                     test.crc_count = 0;
                     test.size_count = 0;
                     test.skip_count = 0;
                     test.packet_id = 0;
                     test.et.reset();
-                    agent->debug_log.Printf("Test: %s\n", test.path.c_str());
+                    test.total_bytes = 0;
                 }
 
-                test.total_count = test.good_count + test.crc_count + test.size_count;
-                if (header.packet_id - test.packet_id > 1 && header.packet_id != ((uint32_t)-1))
+                test.total_bytes += data_size;
+                if (header.packet_id == ((uint32_t)-1))
+                {
+                    ++test.good_count;
+                    response = "Complete: ";
+                }
+                else if (header.packet_id < test.packet_id)
+                {
+                    ++test.repeat_count;
+                    response = "Repeat: ";
+                }
+                else if (header.packet_id > test.packet_id + 1)
                 {
                     test.skip_count += (header.packet_id - test.packet_id) - 1;
-                }
-
-                uint16_t crccalc = calc_crc.calc(&packet.data[0], packet.data.size()-2);
-                uint16_t crcdata = 256 * packet.data[packet.data.size()-1] + packet.data[packet.data.size()-2];
-                if (crccalc != crcdata)
-                {
-                    ++test.crc_count;
+                    ++test.good_count;
+                    response = "Skip: ";
                 }
                 else
                 {
-                    test.total_bytes += data_size;
                     ++test.good_count;
+                    response = "Good: ";
                 }
+
                 test.total_count = test.good_count + test.crc_count + test.size_count + test.skip_count;
                 response += to_label("MET", (currentmjd() - agent->cinfo->node.utcstart));
                 response += to_label(" Test_Id", header.test_id);
@@ -565,32 +572,27 @@ namespace Cosmos {
                 response += to_label(" Seconds", test.et.split());
                 response += to_label(" Speed", test.total_bytes / test.et.split());
 
-                if (header.packet_id == ((uint32_t)-1))
+                if (tf == nullptr)
                 {
-                    response += " Complete: ";
-                    FILE *tf = fopen(test.path.c_str(), "a");
-                    if (tf != nullptr)
+                    test.path = data_name_path(agent->nodeData.lookup_node_id_name(packet.header.nodeorig), "temp", agent->agentName, 0., "test_"+to_unsigned(header.test_id));
+                    tf = fopen(test.path.c_str(), "a");
+                    if (tf == nullptr)
                     {
-                        iretn = fprintf(tf, "%s\n", response.c_str());
-                        fclose(tf);
-                    }
-                    log_move_file(test.path, string_replace(test.path, "temp", "incoming"), true);
-                    test.path.clear();
-                }
-                else
-                {
-                    if (test.test_id < header.test_id)
-                    {
-                        response += " Start: ";
-                    }
-                    FILE *tf = fopen(test.path.c_str(), "a");
-                    if (tf != nullptr)
-                    {
-                        iretn = fprintf(tf, "%s\n", response.c_str());
-                        fclose(tf);
+                        test.path.clear();
                     }
                 }
 
+                if (tf != nullptr)
+                {
+                    iretn = fprintf(tf, "%s\n", response.c_str());
+                    if (header.packet_id == ((uint32_t)-1))
+                    {
+                        fclose(tf);
+                        tf = nullptr;
+                        log_move_file(test.path, string_replace(test.path, "temp", "incoming"), true);
+                        test.path.clear();
+                    }
+                }
 
                 test.packet_id = header.packet_id;
                 test.test_id = header.test_id;
