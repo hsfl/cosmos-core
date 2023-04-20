@@ -39,6 +39,7 @@ target_link_libraries(agent_route CosmosAgent)
 target_link_libraries(agent_tunnel2 CosmosAgent CosmosDeviceSerial)
 target_link_libraries(agent_cpu CosmosAgent)
 target_link_libraries(agent_exec CosmosEvent CosmosAgent CosmosCommand)
+target_link_libraries(agent_propagator CosmosAgent CosmosPhysics CosmosAgent)
 
 if(${BUILD_AGENTS_TYPE} MATCHES "ALL")
     add_subdirectory(ground-station)
