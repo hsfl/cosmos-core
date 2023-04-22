@@ -9,6 +9,7 @@ install(TARGETS test_all DESTINATION bin)
 
 add_subdirectory(beacon)
 add_subdirectory(channel)
+add_subdirectory(json)
 add_subdirectory(packetcomm)
 add_subdirectory(transfer)
 
@@ -17,6 +18,7 @@ target_link_libraries(
     test_all
     # Test libraries
     CosmosUTChannel
+    CosmosUTJson
     CosmosUTTransfer
     # Additional libraries
     CosmosNamespace

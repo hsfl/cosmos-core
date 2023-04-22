@@ -293,7 +293,6 @@ int32_t json_setup_node(string &node, cosmosstruc *cinfo);
 int32_t json_load_node(string node, jsonnode &json);
 int32_t load_tle(cosmosstruc *cinfo);
 int32_t json_dump_node(cosmosstruc *cinfo);
-int32_t json_recenter_node(cosmosstruc *cinfo);
 
 const char *json_of_wildcard(string &jstring, string wildcard, cosmosstruc *cinfo);
 const char *json_of_list(string &jstring, string tokens, cosmosstruc *cinfo);
@@ -341,9 +340,6 @@ int32_t json_equation_map(string equation, cosmosstruc *cinfo, jsonhandle *handl
 bool json_static(char* json_extended_name);
 bool json_dynamic(char* json_extended_name);
 
-int32_t node_init(string name, cosmosstruc *cinfo);
-int32_t node_calc(cosmosstruc *cinfo);
-void create_databases(cosmosstruc *cinfo);
 //void load_databases(char *name, uint16_t type, cosmosstruc *cinfo);
 size_t load_dictionary(vector<eventstruc> &dict, cosmosstruc *cinfo, const char *file);
 int32_t load_target(cosmosstruc *cinfo);
@@ -356,8 +352,12 @@ string port_type_name(uint32_t type);
 int32_t device_index(cosmosstruc* cinfo, string name);
 bool device_has_property(uint16_t deviceType, string prop);
 string json_memory_usage();
-int32_t json_get_nodes(vector<cosmosstruc> &data);
 int32_t kml_write(cosmosstruc* cinfo);
+
+void rebase_node(cosmosstruc *cinfo);
+void update_faces(const vector<Vector>& vertices, vector<facestruc>& faces);
+Vector update_pieces(cosmosstruc* cinfo);
+int32_t node_calc(cosmosstruc *cinfo);
 
 //! @}
 

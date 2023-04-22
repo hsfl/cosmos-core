@@ -54,7 +54,7 @@ namespace Cosmos {
             };
             //! Returned by receive_packet() if there was something of concern requring the receive to send out a response-type packet of some sort (e.g., REQMETA, REQDATA, etc.)
             static const int32_t RESPONSE_REQUIRED = 1;
-            
+
             Transfer();
             // int32_t Init(string node, string agent, uint16_t chunk_size);
             int32_t Init(const string calling_node_name);

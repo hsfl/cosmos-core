@@ -4410,6 +4410,11 @@ union as a ::devicestruc.
                     triangles[i].shrinkusage();
                 }
                 vector<trianglestruc>(triangles).swap(triangles);
+                for (size_t i=0; i<faces.size(); ++i)
+                {
+                    faces[i].shrinkusage();
+                }
+                vector<facestruc>(faces).swap(faces);
             }
 
             double dt = 0.;
@@ -4452,6 +4457,7 @@ union as a ::devicestruc.
 
             vector <Vector> vertices;
             vector <trianglestruc> triangles;
+            vector <facestruc> faces;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -4490,7 +4496,8 @@ union as a ::devicestruc.
                     { "moi" , moi },
                     { "com" , com },
                     { "vertices" , vertices },
-                    { "triangles" , triangles }
+                    { "triangles" , triangles },
+                    { "faces" , faces }
                 };
             }
 
@@ -4538,6 +4545,9 @@ union as a ::devicestruc.
                     }
                     for(size_t i = 0; i < triangles.size(); ++i)	{
                         if(!parsed["triangles"][i].is_null())	{ triangles[i].from_json(parsed["triangles"][i].dump()); }
+                    }
+                    for(size_t i = 0; i < faces.size(); ++i)	{
+                        if(!parsed["faces"][i].is_null())	{ faces[i].from_json(parsed["faces"][i].dump()); }
                     }
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
@@ -4589,7 +4599,6 @@ union as a ::devicestruc.
 
             // actually these are cosmosstruc counts...
             uint16_t vertex_cnt = 0;
-            uint16_t normal_cnt = 0;
             uint16_t face_cnt = 0;
             uint16_t piece_cnt = 0;
             uint16_t device_cnt = 0;
@@ -4640,7 +4649,6 @@ union as a ::devicestruc.
                     { "state" , state },
 
                     { "vertex_cnt" , vertex_cnt },
-                    { "normal_cnt" , normal_cnt },
                     { "face_cnt" , face_cnt },
                     { "piece_cnt" , piece_cnt },
                     { "device_cnt" , device_cnt },
@@ -4690,7 +4698,6 @@ union as a ::devicestruc.
                     if(!parsed["state"].is_null())	{ state = parsed["state"].int_value(); }
 
                     if(!parsed["vertex_cnt"].is_null())	{ vertex_cnt = parsed["vertex_cnt"].int_value(); }
-                    if(!parsed["normal_cnt"].is_null())	{ normal_cnt = parsed["normal_cnt"].int_value(); }
                     if(!parsed["face_cnt"].is_null())	{ face_cnt = parsed["face_cnt"].int_value(); }
                     if(!parsed["piece_cnt"].is_null())	{ piece_cnt = parsed["piece_cnt"].int_value(); }
                     if(!parsed["device_cnt"].is_null())	{ device_cnt = parsed["device_cnt"].int_value(); }
@@ -5223,26 +5230,9 @@ union as a ::devicestruc.
                     total += alias[i].memoryusage();
                 }
                 total += node.memoryusage();
-                for (size_t i=0; i<vertexs.size(); ++i)
-                {
-                    total += sizeof(vertexstruc);
-                }
-                for (size_t i=0; i<normals.size(); ++i)
-                {
-                    total += sizeof(vertexstruc);
-                }
-                for (size_t i=0; i<faces.size(); ++i)
-                {
-                    total += faces[i].memoryusage();
-                }
                 for (size_t i=0; i<pieces.size(); ++i)
                 {
                     total += pieces[i].memoryusage();
-                }
-                total += sizeof(obj);
-                for (size_t i=0; i<device.size(); ++i)
-                {
-                    total += sizeof(device[i]);
                 }
                 total += devspec.memoryusage();
                 for (size_t i=0; i<port.size(); ++i)
@@ -5313,10 +5303,6 @@ union as a ::devicestruc.
                     alias[i].shrinkusage();
                 }
                 node.shrinkusage();
-                for (size_t i=0; i<faces.size(); ++i)
-                {
-                    faces[i].shrinkusage();
-                }
                 for (size_t i=0; i<pieces.size(); ++i)
                 {
                     pieces[i].shrinkusage();
@@ -5382,20 +5368,8 @@ union as a ::devicestruc.
             //! Structure for summary information in node
             nodestruc node;
 
-            //! Vector of all vertexs in node.
-            vector <vertexstruc> vertexs;
-
-            //! Vector of all vertexs in node.
-            vector <vertexstruc> normals;
-
-            //! Vector of all faces in node.
-            vector <facestruc> faces;
-
             //! Vector of all pieces in node.
             vector<piecestruc> pieces;
-
-            //! Wavefront obj structure
-            wavefront obj;
 
             //! Vector of all general (common) information for devices (components) in node.
             vector<devicestruc*> device;
@@ -5426,305 +5400,6 @@ union as a ::devicestruc.
 
             //! Array of Two Line Elements
             vector<Convert::tlestruc> tle;
-
-            //! JSON descriptive information
-            jsonnode json;
-
-            /// Support for Simulation (just for testing and integration)
-
-            // fictional mass and density
-            double mass = 1.0;
-            double dens = 1.0;
-
-            // position
-            double	t_pos = 0.0;
-            double	x_pos = 0.0;
-            double	y_pos = 0.0;
-            double	z_pos = 0.0;
-
-            // velocity
-            double	t_vel = 0.0;
-            double	x_vel = 0.0;
-            double	y_vel = 0.0;
-            double	z_vel = 0.0;
-
-            // acceleration
-            double	t_acc = 0.0;
-            double	x_acc = 0.0;
-            double	y_acc = 0.0;
-            double	z_acc = 0.0;
-
-            // attitude
-            double	t_att = 0.0;
-            double	pitch = 0.0;
-            double	roll =  0.0;
-            double	yaw =   0.0;
-
-            // orbital elements
-
-            // epoch (do i wanna do it this way?)
-
-            // initial position
-            //double	x_0_pos = 0.0;
-            //double	y_0_pos = 0.0;
-            //double	z_0_pos = 0.0;
-
-            // initial velocity
-            //double	x_0_vel = 0.0;
-            //double	y_0_vel = 0.0;
-            //double	z_0_vel = 0.0;
-
-            // t0 = time of epoch
-            //double	t0 = 0.0;
-            // v0 = true anomaly of epoch
-            //double	v0 = 0.0;
-
-            // a = semi-major axis (m)
-            double	a = 0.0;
-            // e = eccentricity
-            double	e = 0.0;
-
-            // BONUS ROUND
-
-            // b = semi-minor axis (m)
-            double b = a*sqrt(1.0 - pow(e,2.0));
-
-            // l = semi-latus rectum = h^2/mu = b^2/a = a*(1-e^2) = wow!
-            double l = a*(1.0-pow(e,2.0));
-
-
-            // i = inclination (radians)
-            double	i = 0.0;
-            // O = longitude of the right ascending node (radians)
-            double	O = 0.0;
-            // w = argument of the periapsis (radians)
-            double	w = 0.0;
-            // tau = time of periapsis passage (seconds)
-            double	tau = 0.0;
-
-
-            // G = gravitational constant = 6.67430(15)*10^(−11) m3⋅kg–1⋅s–2
-            double G = 6.6743015e-11;
-
-            // M = Mass of the Earth = 5.9722*10^24 kg
-            double mass_of_Earth = 5.9722e24;
-
-            // mu = standard gravitational parameter (m3/s2)
-            double mu = G * mass_of_Earth;
-
-            // n = mean angular motion (rad/s) [ used to find a in TLEs ]
-            double n = pow( (mu / pow(a,3.0) ), (0.5) );
-
-            // T = period of orbit (seconds)
-            double T = ( 2.0 * M_PI ) / n;
-
-            // t = current time (should this be seconds?  or days?)
-            double t = 0.0;
-
-            // M = mean anamoly
-            //double M = n * (t - tau);
-            double M = fmod(n * (t - tau), 2*M_PI);
-
-            // v = true anomaly (Fourier approximation)
-            double v = M + (2.0*e-0.25*pow(e,3.0))*sin(M) + 1.25*pow(e,2.0)*sin(2.0*M) + (13.0/12.0)*pow(e,3.0)*sin(3.0*M);
-
-            // r(v(t)) = radius (distance from focus of attraction to orbiting body)
-            double r = l / (1.0 + e*cos(v));
-
-            // position at time t in perifocal co-ords (as function of v(t))
-            double P_pos_t = r * cos(v);
-            double Q_pos_t = r * sin(v);
-            double W_pos_t = 0.0;
-
-            // velocity at time t in perifocal co-ords (as function of v(t))
-            double P_vel_t = sqrt(mu/l) * -sin(v);
-            double Q_vel_t = sqrt(mu/l) * (e+cos(v));
-            double W_vel_t = 0.0;
-
-            // acceleration at time t in perifocal co-ords (as function of v(t))
-            double P_acc_t = 0.0;
-            double Q_acc_t = 0.0;
-            double W_acc_t = 0.0;
-
-            // rotation matrix from perifocal to equitorial coordinates (R_row_col)
-
-            //	|R_0_0	R_0_1	R_0_2|	[ P ]     [I]
-            //	|R_1_0	R_1_1	R_1_2|* | Q | ==> |J|
-            //	|R_2_0	R_2_1	R_2_2|	[ W ]     [K]
-
-            // (inverse transform is the transpose of R)
-
-            double R_0_0 = 0.0;
-            double R_1_0 = 0.0;
-            double R_2_0 = 0.0;
-
-            double R_0_1 = 0.0;
-            double R_1_1 = 0.0;
-            double R_2_1 = 0.0;
-
-            double R_0_2 = 0.0;
-            double R_1_2 = 0.0;
-            double R_2_2 = 0.0;
-
-            /// Support for Simulation (just for testing and integration)
-            void set_up_rotation_matrix ()	{
-                R_0_0 =	-sin(O)*cos(i)*sin(w) + cos(O)*cos(w);
-                R_0_1 =	-sin(O)*cos(i)*cos(w) - cos(O)*sin(w);
-                R_0_2 =	        sin(O)*sin(i);
-
-                R_1_0 =	 cos(O)*cos(i)*sin(w) + sin(O)*cos(w);
-                R_1_1 =	 cos(O)*cos(i)*cos(w) - sin(O)*sin(w);
-                R_1_2 =	-cos(O)*sin(i);
-
-                R_2_0 =	        sin(i)*sin(w);
-                R_2_1 =	        sin(i)*cos(w);
-                R_2_2 =	        cos(i);
-                return;
-            }
-
-            // equatorial co-ordinates (ECI)
-            double I_pos_t = 0.0;
-            double J_pos_t = 0.0;
-            double K_pos_t = 0.0;
-
-            double I_vel_t = 0.0;
-            double J_vel_t = 0.0;
-            double K_vel_t = 0.0;
-
-            double I_acc_t = 0.0;
-            double J_acc_t = 0.0;
-            double K_acc_t = 0.0;
-
-            // set position, velocity, acceleration at given time (in MJD)
-            void set_PQW(double time)	{
-
-                // to find position and velocity at time t
-                // 0    Make sure all necessary orbital elements are set
-                t = time; // in MJD
-                double t_secs = fmod(time*24.*60.*60.,T); // in seconds of orbit
-                l = a*(1.0-pow(e,2.0));
-                // 1    Calculate mean anamoly (M)
-                M = fmod(n * (t_secs - tau), 2*M_PI);
-                // 2    Calculate true anamoly (v)
-                v = M + (2.0*e-0.25*pow(e,3.0))*sin(M) + 1.25*pow(e,2.0)*sin(2.0*M) + (13.0/12.0)*pow(e,3.0)*sin(3.0*M);
-                // 3    Calculate radius (r)
-                r = l / (1.0 + e*cos(v));
-                // 4    Calculate position vector <P_pos_t, Q_pos_t, W_pos_t>
-                P_pos_t = r * cos(v);
-                Q_pos_t = r * sin(v);
-                W_pos_t = 0.0;
-
-                // 4    Calculate velocity vector <P_pos_t, Q_pos_t, W_pos_t>
-                P_vel_t = sqrt(mu/l) * -sin(v);
-                Q_vel_t = sqrt(mu/l) * (e+cos(v));
-                W_vel_t = 0.0;
-
-
-                // 5	Calculate acceleration vector <P_acc_t, Q_acc_t, W_acc_t>
-                // a nanosecond apart
-                double dt = t_secs + 0.000000001;
-                double M_dt = fmod(n * (dt - tau), 2*M_PI);
-                double v_dt = M_dt + (2.0*e-0.25*pow(e,3.0))*sin(M_dt) + 1.25*pow(e,2.0)*sin(2.0*M_dt) + (13.0/12.0)*pow(e,3.0)*sin(3.0*M_dt);
-                //double r_dt = l / (1.0 + e*cos(v_dt));
-
-                double P_vel_dt = sqrt(mu/l) * -sin(v_dt);
-                double Q_vel_dt = sqrt(mu/l) * (e+cos(v_dt));
-                double W_vel_dt = 0.0;
-
-                P_acc_t = (P_vel_t - P_vel_dt) / (t_secs-dt);
-                Q_acc_t = (Q_vel_t - Q_vel_dt) / (t_secs-dt);
-                W_acc_t = (W_vel_t - W_vel_dt) / (t_secs-dt);
-
-                return;
-
-            }
-
-            // perifocal to geocentric equatorial co-ordinate conversion
-            void set_IJK_from_PQW ()	{
-                set_up_rotation_matrix();
-                I_pos_t = R_0_0 * P_pos_t + R_0_1 * Q_pos_t + R_0_2 * W_pos_t;
-                J_pos_t = R_1_0 * P_pos_t + R_1_1 * Q_pos_t + R_1_2 * W_pos_t;
-                K_pos_t = R_2_0 * P_pos_t + R_2_1 * Q_pos_t + R_2_2 * W_pos_t;
-
-                I_vel_t = R_0_0 * P_vel_t + R_0_1 * Q_vel_t + R_0_2 * W_vel_t;
-                J_vel_t = R_1_0 * P_vel_t + R_1_1 * Q_vel_t + R_1_2 * W_vel_t;
-                K_vel_t = R_2_0 * P_vel_t + R_2_1 * Q_vel_t + R_2_2 * W_vel_t;
-
-                I_acc_t = R_0_0 * P_acc_t + R_0_1 * Q_acc_t + R_0_2 * W_acc_t;
-                J_acc_t = R_1_0 * P_acc_t + R_1_1 * Q_acc_t + R_1_2 * W_acc_t;
-                K_acc_t = R_2_0 * P_acc_t + R_2_1 * Q_acc_t + R_2_2 * W_acc_t;
-
-                return;
-            }
-
-
-            // placeholder for state updater from Eric's propagator
-            // time t is in MJD
-            void update_sim_state(double t)	{
-                set_PQW(t);
-                set_IJK_from_PQW();
-
-                // update the state for the calling agent
-                // find index of calling agent in sim_states[]
-                for(size_t i = 0; i < sim_states.size(); ++i)	{
-                    string node_name(agent[0].beat.node);
-                    string agent_name(agent[0].beat.proc);
-                    if(sim_states[i].node_name == node_name && sim_states[i].agent_name == agent_name)	{
-
-                        // update to most recent values
-                        sim_states[i].t_pos = t;
-                        sim_states[i].x_pos = I_pos_t;
-                        sim_states[i].y_pos = J_pos_t;
-                        sim_states[i].z_pos = K_pos_t;
-
-                        sim_states[i].t_vel = t;
-                        sim_states[i].x_vel = I_vel_t;
-                        sim_states[i].y_vel = J_vel_t;
-                        sim_states[i].z_vel = K_vel_t;
-
-                        sim_states[i].t_acc = t;
-                        sim_states[i].x_acc = I_acc_t;
-                        sim_states[i].y_acc = J_acc_t;
-                        sim_states[i].z_acc = K_acc_t;
-
-                        break;
-                    }
-                }
-                return;
-            }
-
-
-            // geocentric equatorial to perifocal co-ordinate conversion
-            void set_PQW_from_IJK ()	{
-                set_up_rotation_matrix();
-                P_pos_t = R_0_0 * I_pos_t + R_1_0 * J_pos_t + R_2_0 * K_pos_t;
-                Q_pos_t = R_0_1 * I_pos_t + R_1_1 * J_pos_t + R_2_1 * K_pos_t;
-                W_pos_t = R_0_2 * I_pos_t + R_1_2 * J_pos_t + R_2_2 * K_pos_t;
-
-                P_vel_t = R_0_0 * I_vel_t + R_1_0 * J_vel_t + R_2_0 * K_vel_t;
-                Q_vel_t = R_0_1 * I_vel_t + R_1_1 * J_vel_t + R_2_1 * K_vel_t;
-                W_vel_t = R_0_2 * I_vel_t + R_1_2 * J_vel_t + R_2_2 * K_vel_t;
-
-                P_acc_t = R_0_0 * I_acc_t + R_1_0 * J_acc_t + R_2_0 * K_acc_t;
-                Q_acc_t = R_0_1 * I_acc_t + R_1_1 * J_acc_t + R_2_1 * K_acc_t;
-                W_acc_t = R_0_2 * I_acc_t + R_1_2 * J_acc_t + R_2_2 * K_acc_t;
-                return;
-            }
-
-
-            // orbital equations
-
-            // to find position and velocity at time t
-            // 0	Make sure all orbital elements are set
-            // 1	Calculate mean anamoly (M)
-            // 2	Calculate true anamoly (v)
-            // 3	Calculate radius (r)
-            // 4	Calculate position vector <P_pos_t, Q_pos_t, R_pos_t>
-            // 5	Calculate velocity vector <P_vel_t, Q_vel_t, R_vel_t>
-            // 6	Transform perifocal (PQW) co-ords to geocentric equatorial (IJK) co-ords
-
-
-
 
             /// Support for Namespace 2.0
 
@@ -6864,11 +6539,7 @@ union as a ::devicestruc.
                     { "unit" , unit },
                     { "equation" , equation },
                     { "node" , node },
-                    { "vertexs" , vertexs },
-                    { "normals" , normals },
-                    { "faces" , faces },
                     { "pieces" , pieces },
-                    { "obj" , obj },
 //                    { "device" , device },
                     { "devspec" , devspec },
                     { "port" , port },
@@ -6902,16 +6573,6 @@ union as a ::devicestruc.
                         if (!p["equation"][i].is_null()) { equation[i].from_json(p["equation"][i].dump()); }
                     }
                     if (!p["node"].is_null()) { node.from_json(p["node"].dump()); }
-                    for (size_t i = 0; i < vertexs.size(); ++i) {
-                        if (!p["vertexs"][i].is_null()) { vertexs[i].from_json(p["vertexs"][i].dump()); }
-                    }
-                    for (size_t i = 0; i < normals.size(); ++i) {
-                        if (!p["normals"][i].is_null()) { normals[i].from_json(p["normals"][i].dump()); }
-                    }
-                    for (size_t i = 0; i < faces.size(); ++i) {
-                        if (!p["faces"][i].is_null()) { faces[i].from_json(p["faces"][i].dump()); }
-                    }
-                    if (!p["obj"].is_null()) { cosmosstruc::obj.from_json(p["obj"].dump()); }
                     for (size_t i = 0; i < device.size(); ++i) {
                         if (!p["device"][i].is_null()) { device[i]->from_json(p["device"][i].dump()); }
                     }

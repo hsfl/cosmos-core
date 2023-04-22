@@ -45,6 +45,34 @@
 cosmosstruc *cosmos_data;
 Convert::stkstruc stk;
 
+//! Initialize Node configuration
+/*! Load initial Node configuration file. Then calculate all derivative values (eg. COM)
+    \param node Node to be initialized using node.ini. Node must be a directory in
+    ::nodedir. If NULL, node.ini must be in current directory.
+    \param cinfo Reference to ::cosmosstruc to use.
+    \return 0, or negative error.
+*/
+int32_t node_init(string node, cosmosstruc *cinfo)
+{
+    int32_t iretn = 0;
+
+    if (cinfo == nullptr)
+        return (JSON_ERROR_NOJMAP);
+
+    iretn = json_setup_node(node, cinfo);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    node_calc(cinfo);
+
+    //! Load targeting information
+    cinfo->node.target_cnt = (uint16_t)load_target(cinfo);
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     int iretn;

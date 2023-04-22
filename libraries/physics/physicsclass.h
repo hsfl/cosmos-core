@@ -100,6 +100,7 @@ namespace Cosmos
             int32_t add_face(string name, Vector size, Quaternion orientation, Vector offset);
             int32_t add_triangle(Vector pointa, Vector pointb, Vector pointc, double depth, bool external=true, float pcell=.85);
             int32_t add_vertex(Vector point);
+            int32_t find_vertex(const Vector& point);
 
         private:
             Type type;

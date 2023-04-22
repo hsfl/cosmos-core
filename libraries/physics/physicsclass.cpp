@@ -266,6 +266,26 @@ namespace Cosmos
             add_triangle(point1, point2, point4, depth, external, pcell);
             add_triangle(point2, point3, point4, depth, external, pcell);
             add_triangle(point3, point0, point4, depth, external, pcell);
+            
+            int32_t p0_idx = find_vertex(point0);
+            int32_t p1_idx = find_vertex(point1);
+            int32_t p2_idx = find_vertex(point2);
+            int32_t p3_idx = find_vertex(point3);
+            if (p0_idx < 0 || p1_idx < 0 || p2_idx < 0 || p3_idx < 0)
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            facestruc face;
+            face.vertex_cnt = 4;
+            face.vertex_idx = {
+                static_cast<uint16_t>(p0_idx),
+                static_cast<uint16_t>(p1_idx),
+                static_cast<uint16_t>(p2_idx),
+                static_cast<uint16_t>(p3_idx)
+            };
+            // TODO: if any points are identical, then the norm becomes nan
+            //  and causes issues. Probably best to address identical points here.
+            currentphys->faces.push_back(face);
 
             return 0;
         }
@@ -294,6 +314,24 @@ namespace Cosmos
             add_triangle(points[1], points[1], points[4], size.z);
             add_triangle(points[2], points[3], points[4], size.z);
             add_triangle(points[3], points[0], points[4], size.z);
+
+            int32_t p0_idx = find_vertex(points[0]);
+            int32_t p1_idx = find_vertex(points[1]);
+            int32_t p2_idx = find_vertex(points[2]);
+            int32_t p3_idx = find_vertex(points[3]);
+            if (p0_idx < 0 || p1_idx < 0 || p2_idx < 0 || p3_idx < 0)
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+            facestruc face;
+            face.vertex_cnt = 4;
+            face.vertex_idx = {
+                static_cast<uint16_t>(p0_idx),
+                static_cast<uint16_t>(p1_idx),
+                static_cast<uint16_t>(p2_idx),
+                static_cast<uint16_t>(p3_idx)
+            };
+            currentphys->faces.push_back(face);
 
             return 4;
         }
@@ -346,20 +384,9 @@ namespace Cosmos
 
         int32_t Structure::add_vertex(Vector point)
         {
-            bool found = false;
+            int32_t index = find_vertex(point);
 
-            int32_t index = -1;
-            for (uint16_t i=0; i<currentphys->vertices.size(); ++ i)
-            {
-                if ((point - currentphys->vertices[i]).norm() < .001)
-                {
-                    found = true;
-                    index = i;
-                    break;
-                }
-            }
-
-            if (found)
+            if (index >= 0)
             {
                 return index;
             }
@@ -367,6 +394,19 @@ namespace Cosmos
                 currentphys->vertices.push_back(point);
                 return currentphys->vertices.size() - 1;
             }
+        }
+
+        int32_t Structure::find_vertex(const Vector& point)
+        {
+
+            for (uint16_t i=0; i<currentphys->vertices.size(); ++ i)
+            {
+                if ((point - currentphys->vertices[i]).norm() < .001)
+                {
+                    return i;
+                }
+            }
+            return GENERAL_ERROR_OUTOFRANGE;
         }
 
 

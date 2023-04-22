@@ -90,7 +90,6 @@ namespace Cosmos
             add_name("node.type", &node.type, "uint16_t");
             add_name("node.state", &node.state, "uint16_t");
             add_name("node.vertex_cnt", &node.vertex_cnt, "uint16_t");
-            add_name("node.normal_cnt", &node.normal_cnt, "uint16_t");
             add_name("node.face_cnt", &node.face_cnt, "uint16_t");
             add_name("node.piece_cnt", &node.piece_cnt, "uint16_t");
             add_name("node.device_cnt", &node.device_cnt, "uint16_t");
@@ -1751,53 +1750,6 @@ namespace Cosmos
                 }
             }
 
-
-            // vector<vertexstruc> vertexs
-            add_name("vertexs", &vertexs, "vector<vertexstruc>");
-            for(size_t i = 0; i < vertexs.size(); ++i) {
-                string basename = "vertexs[" + std::to_string(i) + "]";
-                add_name(basename, &vertexs[i], "vertexstruc");
-                add_name(basename+".x", &vertexs[i].x, "double");
-                add_name(basename+".y", &vertexs[i].y, "double");
-                add_name(basename+".z", &vertexs[i].z, "double");
-                add_name(basename+".w", &vertexs[i].w, "double");
-            }
-
-            // vector<vertexstruc> normals
-            add_name("normals", &normals, "vector<vertexstruc>");
-            for(size_t i = 0; i < normals.size(); ++i) {
-                string basename = "normals[" + std::to_string(i) + "]";
-                add_name(basename, &normals[i], "vertexstruc");
-                add_name(basename+".x", &normals[i].x, "double");
-                add_name(basename+".y", &normals[i].y, "double");
-                add_name(basename+".z", &normals[i].z, "double");
-                add_name(basename+".w", &normals[i].w, "double");
-            }
-
-            // vector<facestruc> faces
-            add_name("faces", &faces, "vector<facestruc>");
-            for(size_t i = 0; i < faces.size(); ++i) {
-                string basename = "faces[" + std::to_string(i) + "]";
-                add_name(basename, &faces[i], "facestruc");
-                add_name(basename+".vertex_cnt", &faces[i].vertex_cnt, "uint16_t");
-                add_name(basename+".vertex_idx", &faces[i].vertex_idx, "vector<uint16_t>");
-                for(size_t j = 0; j < faces[i].vertex_idx.size(); ++j) {
-                    string rebasename = basename + ".vertex_idx[" + std::to_string(j) + "]";
-                    add_name(rebasename, &faces[i].vertex_idx[j], "uint16_t");
-                }
-                add_name(basename+".com", &faces[i].com, "Vector");
-                add_name(basename+".com.x", &faces[i].com.x, "double");
-                add_name(basename+".com.y", &faces[i].com.y, "double");
-                add_name(basename+".com.z", &faces[i].com.z, "double");
-                add_name(basename+".com.w", &faces[i].com.w, "double");
-                add_name(basename+".normal", &faces[i].normal, "Vector");
-                add_name(basename+".normal.x", &faces[i].normal.x, "double");
-                add_name(basename+".normal.y", &faces[i].normal.y, "double");
-                add_name(basename+".normal.z", &faces[i].normal.z, "double");
-                add_name(basename+".normal.w", &faces[i].normal.w, "double");
-                add_name(basename+".area", &faces[i].area, "double");
-            }
-
             // vector<piecestruc> pieces
             add_name("pieces", &pieces, "vector<piecestruc>");
             for(size_t i = 0; i < pieces.size(); ++i) {
@@ -1855,159 +1807,6 @@ namespace Cosmos
                 add_name(basename+".material_specular.y", &pieces[i].material_specular.y, "double");
                 add_name(basename+".material_specular.z", &pieces[i].material_specular.z, "double");
                 add_name(basename+".material_specular.w", &pieces[i].material_specular.w, "double");
-            }
-
-            // wavefront obj
-            add_name("obj", &obj, "wavefront");
-            add_name("obj.Vg", &obj.Vg, "vector<Vector>");
-            for(size_t i = 0; i < obj.Vg.size(); ++i) {
-                string basename = "obj.Vg[" + std::to_string(i) + "]";
-                add_name(basename, &obj.Vg[i], "Vector");
-                add_name(basename+".x", &obj.Vg[i].x, "double");
-                add_name(basename+".y", &obj.Vg[i].y, "double");
-                add_name(basename+".z", &obj.Vg[i].z, "double");
-                add_name(basename+".w", &obj.Vg[i].w, "double");
-            }
-            add_name("obj.Vt", &obj.Vt, "vector<Vector>");
-            for(size_t i = 0; i < obj.Vt.size(); ++i) {
-                string basename = "obj.Vt[" + std::to_string(i) + "]";
-                add_name(basename, &obj.Vt[i], "Vector");
-                add_name(basename+".x", &obj.Vt[i].x, "double");
-                add_name(basename+".y", &obj.Vt[i].y, "double");
-                add_name(basename+".z", &obj.Vt[i].z, "double");
-                add_name(basename+".w", &obj.Vt[i].w, "double");
-            }
-            add_name("obj.Vn", &obj.Vn, "vector<Vector>");
-            for(size_t i = 0; i < obj.Vn.size(); ++i) {
-                string basename = "obj.Vn[" + std::to_string(i) + "]";
-                add_name(basename, &obj.Vn[i], "Vector");
-                add_name(basename+".x", &obj.Vn[i].x, "double");
-                add_name(basename+".y", &obj.Vn[i].y, "double");
-                add_name(basename+".z", &obj.Vn[i].z, "double");
-                add_name(basename+".w", &obj.Vn[i].w, "double");
-            }
-            add_name("obj.Vp", &obj.Vp, "vector<Vector>");
-            for(size_t i = 0; i < obj.Vp.size(); ++i) {
-                string basename = "obj.Vp[" + std::to_string(i) + "]";
-                add_name(basename, &obj.Vp[i], "Vector");
-                add_name(basename+".x", &obj.Vp[i].x, "double");
-                add_name(basename+".y", &obj.Vp[i].y, "double");
-                add_name(basename+".z", &obj.Vp[i].z, "double");
-                add_name(basename+".w", &obj.Vp[i].w, "double");
-            }
-            add_name("obj.Materials", &obj.Materials, "vector<material>");
-            for(size_t i = 0; i < obj.Materials.size(); ++i) {
-                string basename = "obj.Materials[" + std::to_string(i) + "]";
-                add_name(basename, &obj.Materials[i], "material");
-                add_name(basename+".name", &obj.Materials[i].name, "string");
-                add_name(basename+".density", &obj.Materials[i].density, "float");
-                add_name(basename+".ambient", &obj.Materials[i].ambient, "Vector");
-                add_name(basename+".ambient.x", &obj.Materials[i].ambient.x, "double");
-                add_name(basename+".ambient.y", &obj.Materials[i].ambient.y, "double");
-                add_name(basename+".ambient.z", &obj.Materials[i].ambient.z, "double");
-                add_name(basename+".ambient.w", &obj.Materials[i].ambient.w, "double");
-                add_name(basename+".diffuse", &obj.Materials[i].diffuse, "Vector");
-                add_name(basename+".diffuse.x", &obj.Materials[i].diffuse.x, "double");
-                add_name(basename+".diffuse.y", &obj.Materials[i].diffuse.y, "double");
-                add_name(basename+".diffuse.z", &obj.Materials[i].diffuse.z, "double");
-                add_name(basename+".diffuse.w", &obj.Materials[i].diffuse.w, "double");
-                add_name(basename+".specular", &obj.Materials[i].specular, "Vector");
-                add_name(basename+".specular.x", &obj.Materials[i].specular.x, "double");
-                add_name(basename+".specular.y", &obj.Materials[i].specular.y, "double");
-                add_name(basename+".specular.z", &obj.Materials[i].specular.z, "double");
-                add_name(basename+".specular.w", &obj.Materials[i].specular.w, "double");
-            }
-            add_name("obj.Points", &obj.Points, "vector<point>");
-            for(size_t i = 0; i < obj.Points.size(); ++i) {
-                string basename = "obj.Points[" + std::to_string(i) + "]";
-                add_name(basename, &obj.Points[i], "point");
-                add_name(basename+".groups", &obj.Points[i].groups, "vector<size_t>");
-                for(size_t j = 0; j < obj.Points[i].groups.size(); ++j) {
-                    string rebasename = basename + ".groups[" + std::to_string(j) + "]";
-                    add_name(rebasename, &obj.Points[i].groups[j], "size_t");
-                }
-                add_name(basename+".vertex", &obj.Points[i].vertex, "size_t");
-            }
-            add_name("obj.Lines", &obj.Lines, "vector<line>");
-            for(size_t i = 0; i < obj.Lines.size(); ++i) {
-                string basename = "obj.Lines[" + std::to_string(i) + "]";
-                add_name(basename, &obj.Lines[i], "line");
-                add_name(basename+".groups", &obj.Lines[i].groups, "vector<size_t>");
-                for(size_t j = 0; j < obj.Lines[i].groups.size(); ++j) {
-                    string rebasename = basename + ".groups[" + std::to_string(j) + "]";
-                    add_name(rebasename, &obj.Lines[i].groups[j], "size_t");
-                }
-                add_name(basename+".vertices", &obj.Lines[i].vertices, "vector<vertex>");
-                for(size_t j = 0; j < obj.Lines[i].vertices.size(); ++j) {
-                    string rebasename = basename + ".vertices[" + std::to_string(j) + "]";
-                    add_name(rebasename, &obj.Lines[i].vertices[j], "vertex");
-                    add_name(rebasename+".v", &obj.Lines[i].vertices[j].v, "size_t");
-                    add_name(rebasename+".vt", &obj.Lines[i].vertices[j].vt, "size_t");
-                    add_name(rebasename+".vn", &obj.Lines[i].vertices[j].vn, "size_t");
-                }
-                add_name(basename+".centroid", &obj.Lines[i].centroid, "Vector");
-                add_name(basename+".centroid.x", &obj.Lines[i].centroid.x, "double");
-                add_name(basename+".centroid.y", &obj.Lines[i].centroid.y, "double");
-                add_name(basename+".centroid.z", &obj.Lines[i].centroid.z, "double");
-                add_name(basename+".centroid.w", &obj.Lines[i].centroid.w, "double");
-                add_name(basename+".length", &obj.Lines[i].length, "double");
-            }
-            add_name("obj.Faces", &obj.Faces, "vector<face>");
-            for(size_t i = 0; i < obj.Faces.size(); ++i) {
-                string basename = "obj.Faces[" + std::to_string(i) + "]";
-                add_name(basename, &obj.Faces[i], "face");
-                add_name(basename+".groups", &obj.Faces[i].groups, "vector<size_t>");
-                for(size_t j = 0; j < obj.Faces[i].groups.size(); ++j) {
-                    string rebasename = basename + ".groups[" + std::to_string(j) + "]";
-                    add_name(rebasename, &obj.Faces[i].groups[j], "size_t");
-                }
-                add_name(basename+".vertices", &obj.Faces[i].vertices, "vector<vertex>");
-                for(size_t j = 0; j < obj.Faces[i].vertices.size(); ++j) {
-                    string rebasename = basename + ".vertices[" + std::to_string(j) + "]";
-                    add_name(rebasename, &obj.Faces[i].vertices[j], "vertex");
-                    add_name(rebasename+".v", &obj.Faces[i].vertices[j].v, "size_t");
-                    add_name(rebasename+".vt", &obj.Faces[i].vertices[j].vt, "size_t");
-                    add_name(rebasename+".vn", &obj.Faces[i].vertices[j].vn, "size_t");
-                }
-                add_name(basename+".com", &obj.Faces[i].com, "Vector");
-                add_name(basename+".com.x", &obj.Faces[i].com.x, "double");
-                add_name(basename+".com.y", &obj.Faces[i].com.y, "double");
-                add_name(basename+".com.z", &obj.Faces[i].com.z, "double");
-                add_name(basename+".com.w", &obj.Faces[i].com.w, "double");
-                add_name(basename+".normal", &obj.Faces[i].normal, "Vector");
-                add_name(basename+".normal.x", &obj.Faces[i].normal.x, "double");
-                add_name(basename+".normal.y", &obj.Faces[i].normal.y, "double");
-                add_name(basename+".normal.z", &obj.Faces[i].normal.z, "double");
-                add_name(basename+".normal.w", &obj.Faces[i].normal.w, "double");
-                add_name(basename+".area", &obj.Faces[i].area, "double");
-            }
-            add_name("obj.Groups", &obj.Groups, "vector<group>");
-            for(size_t i = 0; i < obj.Groups.size(); ++i) {
-                string basename = "obj.Groups[" + std::to_string(i) + "]";
-                add_name(basename, &obj.Groups[i], "group");
-                add_name(basename+".name", &obj.Groups[i].name, "string");
-                add_name(basename+".materialidx", &obj.Groups[i].materialidx, "size_t");
-                add_name(basename+".pointidx", &obj.Groups[i].pointidx, "vector<size_t>");
-                for(size_t j = 0; j < obj.Groups[i].pointidx.size(); ++j) {
-                    string rebasename = basename + ".pointidx[" + std::to_string(j) + "]";
-                    add_name(rebasename, &obj.Groups[i].pointidx[j], "size_t");
-                }
-                add_name(basename+".lineidx", &obj.Groups[i].lineidx, "vector<size_t>");
-                for(size_t j = 0; j < obj.Groups[i].lineidx.size(); ++j) {
-                    string rebasename = basename + ".lineidx[" + std::to_string(j) + "]";
-                    add_name(rebasename, &obj.Groups[i].lineidx[j], "size_t");
-                }
-                add_name(basename+".faceidx", &obj.Groups[i].faceidx, "vector<size_t>");
-                for(size_t j = 0; j < obj.Groups[i].faceidx.size(); ++j) {
-                    string rebasename = basename + ".faceidx[" + std::to_string(j) + "]";
-                    add_name(rebasename, &obj.Groups[i].faceidx[j], "size_t");
-                }
-                add_name(basename+".com", &obj.Groups[i].com, "Vector");
-                add_name(basename+".com.x", &obj.Groups[i].com.x, "double");
-                add_name(basename+".com.y", &obj.Groups[i].com.y, "double");
-                add_name(basename+".com.z", &obj.Groups[i].com.z, "double");
-                add_name(basename+".com.w", &obj.Groups[i].com.w, "double");
-                add_name(basename+".volume", &obj.Groups[i].volume, "double");
             }
 
             // vector<devicestruc*> device
@@ -3329,19 +3128,6 @@ namespace Cosmos
                 add_name(basename+".mm", &tle[i].mm, "double");
                 add_name(basename+".orbit", &tle[i].orbit, "uint32_t");
             }
-
-            // jsonnode json
-            add_name("json", &json, "jsonnode");
-            add_name("json.name", &json.name, "string");
-            add_name("json.node", &json.node, "string");
-            add_name("json.state", &json.state, "string");
-            add_name("json.vertexs", &json.vertexs, "string");
-            add_name("json.faces", &json.faces, "string");
-            add_name("json.pieces", &json.pieces, "string");
-            add_name("json.devgen", &json.devgen, "string");
-            add_name("json.devspec", &json.devspec, "string");
-            add_name("json.ports", &json.ports, "string");
-            add_name("json.targets", &json.targets, "string");
         }
 
         string cosmos2table::insert_value(cosmosstruc& C, const string& name)	{

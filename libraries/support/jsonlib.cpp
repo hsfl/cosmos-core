@@ -434,12 +434,6 @@ void json_init_reserve(cosmosstruc* cinfo) {
     cinfo->node.phys.vertices.clear();
     //    cinfo->node.phys.vertices.reserve(MAX_NUMBER_OF_VERTICES);
     cinfo->node.phys.triangles.clear();
-    //    cinfo->node.phys.triangles.reserve(MAX_NUMBER_OF_TRIANGLES);
-
-    cinfo->vertexs.clear();
-    //    cinfo->vertexs.reserve(MAX_NUMBER_OF_VERTEXS);
-    cinfo->normals.clear();
-    //    cinfo->normals.reserve(MAX_NUMBER_OF_NORMALS);
 
     //    cinfo->user.reserve(MAX_NUMBER_OF_USERS);
     //    cinfo->user.resize(MAX_NUMBER_OF_USERS);
@@ -969,6 +963,10 @@ int32_t json_createport(cosmosstruc *cinfo, string name, PORT_TYPE type)
 //!  \return Zero, or negative error
 int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
 {
+    if (pidx == 65535)
+    {
+        cout << "0| detected 65535, device.size(): " << cinfo->device.size() << endl;
+    }
     if (ctype < DeviceType::COUNT)
     {
         switch(ctype)
@@ -1086,6 +1084,11 @@ int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
             cinfo->devspec.pload.back().didx = cinfo->devspec.pload.size() - 1;
             cinfo->devspec.pload_cnt = cinfo->devspec.pload.size();
             cinfo->device.push_back(&cinfo->devspec.pload.back());
+
+    if (pidx == 65535)
+    {
+        cout << "1| detected 65535, device.size(): " << cinfo->device.size() << " device[0]->pidx: " << cinfo->device[0]->pidx << endl;
+    }
             break;
             //! Propellant Tank
         case DeviceType::PROP:
@@ -1177,6 +1180,7 @@ int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
             cinfo->devspec.telem.back().didx = cinfo->devspec.telem.size() - 1;
             cinfo->devspec.telem_cnt = cinfo->devspec.telem.size();
             cinfo->device.push_back(&cinfo->devspec.telem.back());
+            cout << "T1| Telem, device.size(): " << cinfo->device.size() << " cinfo->device[0]->type: " << cinfo->device[0]->type << " device[0]->pidx: " << cinfo->device[0]->pidx << " device.back->pidx(): " << cinfo->device.back()->pidx << endl;
             break;
             //! Thruster
         case DeviceType::THST:
@@ -1222,6 +1226,15 @@ int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
         cinfo->device.back()->cidx = static_cast <int32_t>(cinfo->device.size() - 1);
         cinfo->device.back()->type = static_cast<uint16_t>(ctype);
         cinfo->node.device_cnt = cinfo->device.size();
+json_updatecosmosstruc(cinfo);
+    if (pidx == 65535)
+    {
+        cout << "2| detected 65535, device.size(): " << cinfo->device.size() << " device[0]->pidx: " << cinfo->device[0]->pidx << endl;
+    }
+    if (ctype == DeviceType::TELEM)
+    {
+        cout << "T2| Telem, device.size(): " << cinfo->device.size() << " cinfo->device[0]->type: " << cinfo->device[0]->type << " device[0]->pidx: " << cinfo->device[0]->pidx << " device.back->pidx(): " << cinfo->device.back()->pidx << endl;
+    }
     }
     return (static_cast <int32_t>(cinfo->device.size() - 1));
 }
@@ -7102,57 +7115,95 @@ int32_t json_load_node(string node, jsonnode &json)
     return 0;
 }
 
-int32_t json_recenter_node(cosmosstruc *cinfo)
+//! Recalculates centroid, normal, and area for each face, then recenters all vectors to the node's center of mass
+//! \param cinfo Pointer to the node's cosmosstruc
+void rebase_node(cosmosstruc *cinfo)
 {
-    // Calculate centroid, normal and area for each face
-    for (size_t i=0; i<cinfo->faces.size(); ++i)
+    update_faces(cinfo->node.phys.vertices, cinfo->node.phys.faces);
+
+    Vector tcom = update_pieces(cinfo);
+
+    // Calculate special norm for external panels?
+    // TODO: Check if the code omitted here from json_recenter_node() but was not in objlib.cpp is needed
+
+    // Recenter all vectors to total Center of Mass
+    for (vertexstruc &vertex : cinfo->node.phys.vertices)
     {
-        if (cinfo->faces[i].vertex_cnt)
+        vertex -= tcom;
+    }
+    for (facestruc &face : cinfo->node.phys.faces)
+    {
+        face.com -= tcom;
+        face.normal -= tcom;
+    }
+    for (piecestruc &piece : cinfo->pieces)
+    {
+        piece.com -= tcom;
+    }
+}
+
+//! Calculates centroid, normal, and area for each face
+//! Called by rebase_node()
+//! \param vertices Vector of vertices that the face has indexes to for its vertices
+//! \param faces Vector of faces to recalculate statics for
+void update_faces(const vector<Vector>& vertices, vector<facestruc>& faces)
+{
+    for (facestruc &face : faces)
+    {
+        if (face.vertex_idx.size() < 2)
         {
-            Vector fcentroid = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
-            fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[1]];
-            Vector v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
-            Vector v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[1]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
-            Vector fnormal = v1.cross(v2);
-            for (size_t j=2; j<cinfo->faces[i].vertex_cnt; ++j)
-            {
-                fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[j]];
-                v1 = v2;
-                v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[j-1]];
-                fnormal += v1.cross(v2);
-            }
+            continue;
+        }
+
+        Vector fcentroid = vertices[face.vertex_idx[0]];
+        fcentroid += vertices[face.vertex_idx[1]];
+        Vector v1 = vertices[face.vertex_idx[0]] - vertices[face.vertex_idx[face.vertex_idx.size()-1]];
+        Vector v2 = vertices[face.vertex_idx[1]] - vertices[face.vertex_idx[0]];
+        Vector fnormal = v1.cross(v2);
+        for (size_t j=2; j<face.vertex_idx.size(); ++j)
+        {
+            fcentroid += vertices[face.vertex_idx[j]];
             v1 = v2;
-            v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
+            v2 = vertices[face.vertex_idx[j]] - vertices[face.vertex_idx[j-1]];
             fnormal += v1.cross(v2);
+        }
+        fcentroid /= face.vertex_idx.size();
+        v1 = v2;
+        v2 = vertices[face.vertex_idx[0]] - vertices[face.vertex_idx[face.vertex_idx.size()-1]];
+        fnormal += v1.cross(v2);
+        fnormal.normalize();
+        face.normal = fnormal;
 
-            fcentroid /= cinfo->faces[i].vertex_cnt;
-            fnormal.normalize();
-            cinfo->faces[i].normal = fnormal;
-
-            cinfo->faces[i].com = Vector();
-            cinfo->faces[i].area = 0.;
-            v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]] - fcentroid;
-            for (size_t j=0; j<cinfo->faces[i].vertex_cnt; ++j)
-            {
-                v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - fcentroid;
-                // Area of triangle made by v1, v2 and Face centroid
-                double tarea = v1.area(v2);
-                // Sum
-                cinfo->faces[i].area += tarea;
-                // Centroid of triangle made by v1, v2 amd Face centroid
-                Vector tcentroid = (v1 + v2 + fcentroid) / 3.;
-                // Weighted sum
-                cinfo->faces[i].com += tcentroid * tarea;
-                v1 = v2;
-            }
-            // Divide by summed weights
-            if (cinfo->faces[i].area)
-            {
-                cinfo->faces[i].com /= cinfo->faces[i].area;
-            }
+        face.com = Vector ();
+        face.area = 0.;
+        v1 = vertices[face.vertex_idx[face.vertex_idx.size()-1]] - fcentroid;
+        for (size_t j=0; j<face.vertex_idx.size(); ++j)
+        {
+            v2 = vertices[face.vertex_idx[j]] - fcentroid;
+            // Area of triangle made by v1, v2 and Face centroid
+            double tarea = v1.area(v2);
+            // Sum
+            face.area += tarea;
+            // Centroid of triangle made by v1, v2 amd Face centroid
+            Vector tcentroid = (v1 + v2) / 3. + fcentroid;
+            // Weighted sum
+            // Vector test = tarea * tcentroid;
+            face.com += tcentroid * tarea;
+            v1 = v2;
+        }
+        // Divide by summed weights
+        if (face.area)
+        {
+            face.com /= face.area;
         }
     }
+}
 
+//! Recalculate volume and center of mass for each piece
+//! \param cinfo Pointer to node's cosmosstruc
+//! \return Total center of mass
+Vector update_pieces(cosmosstruc* cinfo)
+{
     Vector tcom = Vector();
     double tvolume = 0.;
     for (size_t i=0; i<cinfo->pieces.size(); ++i)
@@ -7161,14 +7212,14 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
         cinfo->pieces[i].com = Vector ();
         for (size_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
         {
-            if (cinfo->faces.size() <= cinfo->pieces[i].face_idx[j])
+            if (cinfo->node.phys.faces.size() <= cinfo->pieces[i].face_idx[j])
             {
-                cinfo->faces.resize(cinfo->pieces[i].face_idx[j]+1);
-                cinfo->faces[cinfo->pieces[i].face_idx[j]].com = Vector ();
-                cinfo->faces[cinfo->pieces[i].face_idx[j]].area = 0.;
-                cinfo->faces[cinfo->pieces[i].face_idx[j]].normal = Vector ();
+                cinfo->node.phys.faces.resize(cinfo->pieces[i].face_idx[j]+1);
+                cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]].com = Vector ();
+                cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]].area = 0.;
+                cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]].normal = Vector ();
             }
-            cinfo->pieces[i].com += cinfo->faces[cinfo->pieces[i].face_idx[j]].com;
+            cinfo->pieces[i].com += cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]].com;
         }
         if (cinfo->pieces[i].face_cnt)
         {
@@ -7176,17 +7227,16 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
         }
 
         // Calculate volume for each Piece using center of mass for each Face
-        // Calculate normal for each Face that faces away from center of piece, or center of object
         cinfo->pieces[i].volume = 0.;
         for (size_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
         {
-            Vector dv = cinfo->faces[(cinfo->pieces[i].face_idx[j])].com - cinfo->pieces[i].com;
+            Vector dv = cinfo->node.phys.faces[(cinfo->pieces[i].face_idx[j])].com - cinfo->pieces[i].com;
             if (dv.norm() != 0.)
             {
-                cinfo->pieces[i].volume += cinfo->faces[(cinfo->pieces[i].face_idx[j])].area * dv.norm() / 3.;
+                cinfo->pieces[i].volume += cinfo->node.phys.faces[(cinfo->pieces[i].face_idx[j])].area * dv.norm() / 3.;
             }
         }
-        cinfo->node.face_cnt = cinfo->faces.size();
+        cinfo->node.face_cnt = cinfo->node.phys.faces.size();
         tvolume += cinfo->pieces[i].volume;
         tcom +=  cinfo->pieces[i].com * cinfo->pieces[i].volume;
     }
@@ -7195,36 +7245,166 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
         tcom /= tvolume;
     }
 
-    // Calculate special norm for external panels
-    for (size_t i=0; i<cinfo->pieces.size(); ++i)
+    return tcom;
+}
+
+//! Calculate Satellite configuration values.
+/*! Using the provided satellite structure, populate the derivative static quantities and initialize any
+* reasonable dynamic quantities.
+    \param cinfo Reference to ::cosmosstruc to use.
+    \return 0
+*/
+int32_t node_calc(cosmosstruc *cinfo)
+{
+    //    uint16_t n, i, j, k;
+    //    double dm, ta, tb, tc;
+    //    rvector tv0, tv1, tv2, tv3, dv, sv;
+
+    cinfo->node.phys.hcap = cinfo->node.phys.heat = 0.;
+    cinfo->node.phys.mass = 0.;
+    cinfo->node.phys.moi = rv_zero();
+    cinfo->node.phys.com = rv_zero();
+
+    rebase_node(cinfo);
+
+    for (size_t n=0; n<cinfo->pieces.size(); n++)
     {
-        if (cinfo->pieces[i].face_cnt == 1)
+        cinfo->pieces[n].mass = cinfo->pieces[n].volume * cinfo->pieces[n].density;
+        if (cinfo->pieces[n].mass == 0.)
+            cinfo->pieces[n].mass = .001f;
+        //        cinfo->pieces[n].temp = 300.;
+        cinfo->pieces[n].heat = cinfo->pieces[n].temp * cinfo->pieces[n].hcap;
+        cinfo->node.phys.heat += cinfo->pieces[n].heat;
+        cinfo->node.phys.mass += cinfo->pieces[n].mass;
+        cinfo->node.phys.hcap += cinfo->pieces[n].hcap * cinfo->pieces[n].mass;
+
+    }
+
+    if (cinfo->node.phys.mass == 0.)
+    {
+        cinfo->node.phys.mass = 1.;
+    }
+
+    // Turn on power buses
+    for (size_t n=0; n<cinfo->devspec.bus_cnt; n++)
+    {
+        cinfo->devspec.bus[n].flag |= DEVICE_FLAG_ON;
+    }
+
+
+    for (size_t n=0; n<cinfo->node.device_cnt; n++)
+    {
+        /*
+    if (cinfo->device[n].pidx >= 0)
         {
-            Vector dv = cinfo->faces[cinfo->pieces[i].face_idx[0]].com - tcom;
-            if (dv.separation(cinfo->faces[cinfo->pieces[i].face_idx[0]].normal) > DPI2)
-            {
-                cinfo->normals.push_back(-cinfo->faces[cinfo->pieces[i].face_idx[0]].normal);
-                cinfo->pieces[i].face_idx[0] = cinfo->normals.size() - 1;
-            }
+        cinfo->node.com.col[0] += cinfo->pieces[cinfo->device[n].pidx].centroid.col[0] * cinfo->device[n]->mass;
+        cinfo->node.com.col[1] += cinfo->pieces[cinfo->device[n].pidx].centroid.col[1] * cinfo->device[n]->mass;
+        cinfo->node.com.col[2] += cinfo->pieces[cinfo->device[n].pidx].centroid.col[2] * cinfo->device[n]->mass;
+        }
+    if (cinfo->device[n].pidx >= 0)
+        {
+        cinfo->pieces[cinfo->device[n].pidx].heat += 300. * cinfo->pieces[cinfo->device[n].pidx].hcap * cinfo->device[n]->mass;
+        cinfo->node.heat += 300. * cinfo->pieces[cinfo->device[n].pidx].hcap * cinfo->device[n]->mass;
+        }
+    cinfo->node.mass += cinfo->device[n]->mass;
+    */
+        //        cinfo->device[n]->temp = 300.;
+        //        cinfo->device[n]->flag |= DEVICE_FLAG_ON;
+        if (cinfo->device[n]->flag & DEVICE_FLAG_ON)
+        {
+            cinfo->device[n]->amp = cinfo->device[n]->namp;
+            cinfo->device[n]->volt = cinfo->device[n]->nvolt;
+            cinfo->device[n]->power = cinfo->device[n]->amp * cinfo->device[n]->volt;
+        }
+        if (cinfo->device[n]->bidx < cinfo->devspec.bus_cnt && cinfo->devspec.bus[cinfo->device[n]->bidx].volt < cinfo->device[n]->volt)
+        {
+            cinfo->devspec.bus[cinfo->device[n]->bidx].volt = cinfo->device[n]->volt;
         }
     }
 
-    // Recenter all vectors to object center of mass
-    for (size_t i=0; i<cinfo->vertexs.size(); ++i)
+    //    cinfo->node.phys.com = rv_smult(1./cinfo->node.phys.mass,cinfo->node.phys.com);
+    cinfo->node.phys.hcap /= cinfo->node.phys.mass;
+
+    for (size_t n=0; n<cinfo->pieces.size(); n++)
     {
-        cinfo->vertexs[i] -= tcom;
+        piecestruc *tpiece = &cinfo->pieces[n];
+        tpiece->shove = Vector();
+        tpiece->twist = Vector();
+        switch (cinfo->pieces[n].face_cnt)
+        {
+        default:
+            {
+                double ta = tpiece->com.flattenx().norm();
+                cinfo->node.phys.moi.x += tpiece->mass * ta * ta;
+                ta = tpiece->com.flatteny().norm();
+                cinfo->node.phys.moi.y += tpiece->mass * ta * ta;
+                ta = tpiece->com.flattenz().norm();
+                cinfo->node.phys.moi.z += tpiece->mass * ta * ta;
+            }
+            break;
+        case 1:
+            {
+                tpiece->shove = -tpiece->area * (cinfo->node.phys.faces[tpiece->face_idx[0]].normal.dot(tpiece->com)) * tpiece->com / (tpiece->com.norm() * tpiece->com.norm());
+                tpiece->twist = -tpiece->area * tpiece->com.norm() * cinfo->node.phys.faces[tpiece->face_idx[0]].normal - tpiece->com.norm() * tpiece->shove;
+            }
+            break;
+        case 0:
+            break;
+        }
     }
 
-    for (size_t i=0; i<cinfo->faces.size(); ++i)
+    if (cinfo->node.phys.moi.norm() == 0.)
     {
-        cinfo->faces[i].com -= tcom;
-        cinfo->faces[i].normal -= tcom;
+        cinfo->node.phys.moi.clear(1.,1.,1.);
     }
 
-    for (size_t i=0; i<cinfo->pieces.size(); ++i)
+    // Turn all CPU's on
+    for (size_t n=0; n<cinfo->devspec.cpu_cnt; n++)
     {
-        cinfo->pieces[i].com -= tcom;
+        cinfo->devspec.cpu[n].flag |= DEVICE_FLAG_ON;
     }
+
+    // Turn on all IMU's
+    for (size_t n=0; n<cinfo->devspec.imu_cnt; n++)
+    {
+        cinfo->devspec.imu[n].flag |= DEVICE_FLAG_ON;
+    }
+
+    // Turn on all MGR's
+    for (size_t n=0; n<cinfo->devspec.mag_cnt; n++)
+    {
+        cinfo->devspec.mag[n].flag |= DEVICE_FLAG_ON;
+    }
+
+    // Turn on all GYRO's
+    for (size_t n=0; n<cinfo->devspec.gyro_cnt; n++)
+    {
+        cinfo->devspec.gyro[n].flag |= DEVICE_FLAG_ON;
+    }
+
+    // Turn on all GPS's
+    for (size_t n=0; n<cinfo->devspec.gps_cnt; n++)
+    {
+        cinfo->devspec.gps[n].flag |= DEVICE_FLAG_ON;
+    }
+
+    cinfo->node.phys.battcap = 0.;
+    for (size_t n=0; n<cinfo->devspec.batt_cnt; n++)
+    {
+        cinfo->node.phys.battcap += cinfo->devspec.batt[n].capacity;
+        cinfo->devspec.batt[n].charge = cinfo->devspec.batt[n].capacity;
+    }
+    cinfo->node.phys.battlev = cinfo->node.phys.battcap;
+
+    // Turn off reaction wheels
+    for (size_t i=0; i<cinfo->devspec.rw_cnt; i++)
+    {
+        cinfo->devspec.rw[i].alp = cinfo->devspec.rw[i].omg = 0.;
+    }
+
+    // Set fictional torque to zero
+    cinfo->node.phys.ftorque = rv_zero();
+
     return 0;
 }
 
@@ -7434,9 +7614,8 @@ int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
         ++count;
     }
 
-    cinfo->node.vertex_cnt = cinfo->vertexs.size();
-    cinfo->node.normal_cnt = cinfo->normals.size();
-    cinfo->node.face_cnt = cinfo->faces.size();
+    cinfo->node.vertex_cnt = cinfo->node.phys.vertices.size();
+    cinfo->node.face_cnt = cinfo->node.phys.faces.size();
     cinfo->node.piece_cnt = cinfo->pieces.size();
     cinfo->node.device_cnt = cinfo->device.size();
     cinfo->node.port_cnt = cinfo->port.size();
@@ -7515,12 +7694,12 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 
     // Second: enter information for pieces
     // Vertices
-    cinfo->vertexs.clear();
+    cinfo->node.phys.vertices.clear();
     if (cinfo->node.vertex_cnt)
     {
         // be careful about resizing vertex past MAX_NUMBER_VERTEXS
-        cinfo->vertexs.resize(cinfo->node.vertex_cnt);
-        if (cinfo->vertexs.size() != cinfo->node.vertex_cnt)
+        cinfo->node.phys.vertices.resize(cinfo->node.vertex_cnt);
+        if (cinfo->node.phys.vertices.size() != cinfo->node.vertex_cnt)
         {
             return (AGENT_ERROR_MEMORY);
         }
@@ -7542,11 +7721,11 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 
 
     // Faces
-    cinfo->faces.clear();
+    cinfo->node.phys.faces.clear();
     if (cinfo->node.face_cnt)
     {
-        cinfo->faces.resize(cinfo->node.face_cnt);
-        if (cinfo->faces.size() != cinfo->node.face_cnt)
+        cinfo->node.phys.faces.resize(cinfo->node.face_cnt);
+        if (cinfo->node.phys.faces.size() != cinfo->node.face_cnt)
         {
             return (AGENT_ERROR_MEMORY);
         }
@@ -7570,7 +7749,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         for (uint16_t i=0; i<cinfo->node.face_cnt; i++)
         {
             //Add relevant names to namespace
-            cinfo->faces[i].vertex_idx.resize(cinfo->faces[i].vertex_cnt);
+            cinfo->node.phys.faces[i].vertex_idx.resize(cinfo->node.phys.faces[i].vertex_cnt);
             json_mapfaceentry(i, cinfo);
         }
 
@@ -7642,21 +7821,30 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         // Parse data for general device information
         if (!json.devgen.empty())
         {
+            cout << "0| cinfo->device.size(): " << cinfo->device.size() << endl;
             Json devgen;
             devgen.extract_contents(json.devgen);
             Json::Object jobj = devgen.ObjectContents;
             vector<size_t> pidx;
+            cout << "1| cinfo->device.size(): " << cinfo->device.size() << endl;
             for (auto &dev : jobj)
             {
                 size_t cidx = stol(dev.first.substr(dev.first.find_last_of('_')+1));
                 if (dev.first.find("all_pidx") != string::npos)
                 {
+                    cout << "all_pidx: " << dev.first << ":" << dev.second.svalue << ":" << dev.second.nvalue << endl;
                     pidx.push_back(dev.second.nvalue);
                 }
                 else if (dev.first.find("all_type") != string::npos)
                 {
+                    cout << "all_type: " << dev.first << " type: " << dev.second.nvalue << " pidx: " << pidx[cidx] << endl;
                     iretn = json_adddevice(cinfo, pidx[cidx], (DeviceType)(dev.second.nvalue));
                 }
+            }
+            cout << "2| cinfo->device.size(): " << cinfo->device.size() << endl;
+            if (cinfo->device.size())
+            {
+                cout << "cinfo->device[0]->pidx: " << cinfo->device[0]->pidx << ", " << cinfo->device[1]->pidx << ", " << cinfo->device[2]->pidx << endl;
             }
 
             json_updatecosmosstruc(cinfo);
@@ -7779,9 +7967,11 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             }
         }
 
+        // Fix all pointers and name mappings one last time
+        json_updatecosmosstruc(cinfo);
+
     }
 
-    cinfo->json = json;
     double mjd = currentmjd(cinfo->node.utcoffset);
 
     if (cinfo->node.type == NODE_TYPE_SUN)
@@ -7954,15 +8144,15 @@ int32_t json_mapentries(cosmosstruc *cinfo)
 {
     json_mapbaseentries(cinfo);
 
-    //    for (uint16_t i=0; i<cinfo->node.vertex_cnt; i++)
-    //    {
-    //        json_mapvertexentry(i, cinfo);
-    //    }
+    for (uint16_t i=0; i<cinfo->node.vertex_cnt; i++)
+    {
+        json_mapvertexentry(i, cinfo);
+    }
 
-    //    for (uint16_t i=0; i<cinfo->node.face_cnt; i++)
-    //    {
-    //        json_mapfaceentry(i, cinfo);
-    //    }
+    for (uint16_t i=0; i<cinfo->node.face_cnt; i++)
+    {
+        json_mapfaceentry(i, cinfo);
+    }
 
     for (uint16_t i=0; i<cinfo->node.piece_cnt; i++)
     {
@@ -8268,7 +8458,6 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_range", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.range, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_LENGTH);
     json_addentry("node_device_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.device_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_vertex_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.vertex_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("node_normal_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.normal_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_face_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.face_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_piece_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.piece_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_port_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.port_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -8331,10 +8520,10 @@ int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo)
 {
     int32_t iretn=0;
 
-    iretn = json_addentry("vertex", vidx, UINT16_MAX, (uint8_t *)&cinfo->vertexs[vidx], (uint16_t)JSON_TYPE_VECTOR, cinfo);
-    iretn = json_addentry("vertex_x", vidx, UINT16_MAX, (uint8_t *)&cinfo->vertexs[vidx].x, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
-    iretn = json_addentry("vertex_y", vidx, UINT16_MAX, (uint8_t *)&cinfo->vertexs[vidx].y, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
-    iretn = json_addentry("vertex_z", vidx, UINT16_MAX, (uint8_t *)&cinfo->vertexs[vidx].z, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+    iretn = json_addentry("vertex", vidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.vertices[vidx], (uint16_t)JSON_TYPE_VECTOR, cinfo);
+    iretn = json_addentry("vertex_x", vidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.vertices[vidx].x, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+    iretn = json_addentry("vertex_y", vidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.vertices[vidx].y, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+    iretn = json_addentry("vertex_z", vidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.vertices[vidx].z, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
 
     if (iretn >= 0)
     {
@@ -8356,14 +8545,14 @@ int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo)
 {
     int32_t iretn=0;
 
-    iretn = json_addentry("face", fidx, UINT16_MAX, (uint8_t *)&cinfo->faces[fidx], (uint16_t)JSON_TYPE_FACESTRUC, cinfo);
-    iretn = json_addentry("face_com", fidx, UINT16_MAX, (uint8_t *)&cinfo->faces[fidx].com, (uint16_t)JSON_TYPE_VECTOR, cinfo);
-    iretn = json_addentry("face_normal", fidx, UINT16_MAX, (uint8_t *)&cinfo->faces[fidx].normal, (uint16_t)JSON_TYPE_VECTOR, cinfo);
-    iretn = json_addentry("face_area", fidx, UINT16_MAX, (uint8_t *)&cinfo->faces[fidx].area, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
-    iretn = json_addentry("face_vertex_cnt", fidx, UINT16_MAX, (uint8_t *)&cinfo->faces[fidx].vertex_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    for (uint16_t j=0; j<cinfo->faces[fidx].vertex_cnt; ++j)
+    iretn = json_addentry("face", fidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.faces[fidx], (uint16_t)JSON_TYPE_FACESTRUC, cinfo);
+    iretn = json_addentry("face_com", fidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.faces[fidx].com, (uint16_t)JSON_TYPE_VECTOR, cinfo);
+    iretn = json_addentry("face_normal", fidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.faces[fidx].normal, (uint16_t)JSON_TYPE_VECTOR, cinfo);
+    iretn = json_addentry("face_area", fidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.faces[fidx].area, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+    iretn = json_addentry("face_vertex_cnt", fidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.faces[fidx].vertex_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    for (uint16_t j=0; j<cinfo->node.phys.faces[fidx].vertex_cnt; ++j)
     {
-        iretn = json_addentry("face_vertex_idx", fidx,j,(uint8_t *)&cinfo->faces[fidx].vertex_idx[j], (uint16_t)JSON_TYPE_UINT16, cinfo);
+        iretn = json_addentry("face_vertex_idx", fidx,j,(uint8_t *)&cinfo->node.phys.faces[fidx].vertex_idx[j], (uint16_t)JSON_TYPE_UINT16, cinfo);
     }
 
     if (iretn >= 0)
@@ -11970,14 +12159,13 @@ int32_t json_shrink(cosmosstruc *cinfo)
 
     cinfo->node.shrinkusage();
 
-    vector<vertexstruc>(cinfo->vertexs).swap(cinfo->vertexs);
-    vector<vertexstruc>(cinfo->normals).swap(cinfo->normals);
+    vector<vertexstruc>(cinfo->node.phys.vertices).swap(cinfo->node.phys.vertices);
 
-    for (size_t i=0; i<cinfo->faces.size(); ++i)
+    for (size_t i=0; i<cinfo->node.phys.faces.size(); ++i)
     {
-        cinfo->faces[i].shrinkusage();
+        cinfo->node.phys.faces[i].shrinkusage();
     }
-    vector<facestruc>(cinfo->faces).swap(cinfo->faces);
+    vector<facestruc>(cinfo->node.phys.faces).swap(cinfo->node.phys.faces);
 
     for (size_t i=0; i<cinfo->pieces.size(); ++i)
     {
@@ -12036,422 +12224,6 @@ uint32_t json_get_name_list_count(cosmosstruc *cinfo)
     }
     return count;
 }
-
-//! Initialize Node configuration
-/*! Load initial Node configuration file. Then calculate all derivative values (eg. COM)
-    \param node Node to be initialized using node.ini. Node must be a directory in
-    ::nodedir. If NULL, node.ini must be in current directory.
-    \param cinfo Reference to ::cosmosstruc to use.
-    \return 0, or negative error.
-*/
-int32_t node_init(string node, cosmosstruc *cinfo)
-{
-    int32_t iretn = 0;
-
-    if (cinfo == nullptr)
-        return (JSON_ERROR_NOJMAP);
-
-    iretn = json_setup_node(node, cinfo);
-    if (iretn < 0)
-    {
-        return iretn;
-    }
-
-    node_calc(cinfo);
-
-    //! Load targeting information
-    cinfo->node.target_cnt = (uint16_t)load_target(cinfo);
-
-    return 0;
-}
-
-//! Calculate Satellite configuration values.
-/*! Using the provided satellite structure, populate the derivative static quantities and initialize any
- * reasonable dynamic quantities.
-    \param cinfo Reference to ::cosmosstruc to use.
-    \return 0
-*/
-int32_t node_calc(cosmosstruc *cinfo)
-{
-    //    uint16_t n, i, j, k;
-    //    double dm, ta, tb, tc;
-    //    rvector tv0, tv1, tv2, tv3, dv, sv;
-
-    cinfo->node.phys.hcap = cinfo->node.phys.heat = 0.;
-    cinfo->node.phys.mass = 0.;
-    cinfo->node.phys.moi = rv_zero();
-    cinfo->node.phys.com = rv_zero();
-
-    json_recenter_node(cinfo);
-
-    for (size_t n=0; n<cinfo->pieces.size(); n++)
-    {
-        cinfo->pieces[n].mass = cinfo->pieces[n].volume * cinfo->pieces[n].density;
-        if (cinfo->pieces[n].mass == 0.)
-            cinfo->pieces[n].mass = .001f;
-        //        cinfo->pieces[n].temp = 300.;
-        cinfo->pieces[n].heat = cinfo->pieces[n].temp * cinfo->pieces[n].hcap;
-        cinfo->node.phys.heat += cinfo->pieces[n].heat;
-        cinfo->node.phys.mass += cinfo->pieces[n].mass;
-        cinfo->node.phys.hcap += cinfo->pieces[n].hcap * cinfo->pieces[n].mass;
-
-    }
-
-    if (cinfo->node.phys.mass == 0.)
-    {
-        cinfo->node.phys.mass = 1.;
-    }
-
-    // Turn on power buses
-    for (size_t n=0; n<cinfo->devspec.bus_cnt; n++)
-    {
-        cinfo->devspec.bus[n].flag |= DEVICE_FLAG_ON;
-    }
-
-
-    for (size_t n=0; n<cinfo->node.device_cnt; n++)
-    {
-        /*
-    if (cinfo->device[n].pidx >= 0)
-        {
-        cinfo->node.com.col[0] += cinfo->pieces[cinfo->device[n].pidx].centroid.col[0] * cinfo->device[n]->mass;
-        cinfo->node.com.col[1] += cinfo->pieces[cinfo->device[n].pidx].centroid.col[1] * cinfo->device[n]->mass;
-        cinfo->node.com.col[2] += cinfo->pieces[cinfo->device[n].pidx].centroid.col[2] * cinfo->device[n]->mass;
-        }
-    if (cinfo->device[n].pidx >= 0)
-        {
-        cinfo->pieces[cinfo->device[n].pidx].heat += 300. * cinfo->pieces[cinfo->device[n].pidx].hcap * cinfo->device[n]->mass;
-        cinfo->node.heat += 300. * cinfo->pieces[cinfo->device[n].pidx].hcap * cinfo->device[n]->mass;
-        }
-    cinfo->node.mass += cinfo->device[n]->mass;
-    */
-        //        cinfo->device[n]->temp = 300.;
-        //        cinfo->device[n]->flag |= DEVICE_FLAG_ON;
-        if (cinfo->device[n]->flag & DEVICE_FLAG_ON)
-        {
-            cinfo->device[n]->amp = cinfo->device[n]->namp;
-            cinfo->device[n]->volt = cinfo->device[n]->nvolt;
-            cinfo->device[n]->power = cinfo->device[n]->amp * cinfo->device[n]->volt;
-        }
-        if (cinfo->device[n]->bidx < cinfo->devspec.bus_cnt && cinfo->devspec.bus[cinfo->device[n]->bidx].volt < cinfo->device[n]->volt)
-        {
-            cinfo->devspec.bus[cinfo->device[n]->bidx].volt = cinfo->device[n]->volt;
-        }
-    }
-
-    //    cinfo->node.phys.com = rv_smult(1./cinfo->node.phys.mass,cinfo->node.phys.com);
-    cinfo->node.phys.hcap /= cinfo->node.phys.mass;
-
-    for (size_t n=0; n<cinfo->pieces.size(); n++)
-    {
-        piecestruc *tpiece = &cinfo->pieces[n];
-        tpiece->shove = Vector();
-        tpiece->twist = Vector();
-        switch (cinfo->pieces[n].face_cnt)
-        {
-        default:
-            {
-                double ta = tpiece->com.flattenx().norm();
-                cinfo->node.phys.moi.x += tpiece->mass * ta * ta;
-                ta = tpiece->com.flatteny().norm();
-                cinfo->node.phys.moi.y += tpiece->mass * ta * ta;
-                ta = tpiece->com.flattenz().norm();
-                cinfo->node.phys.moi.z += tpiece->mass * ta * ta;
-            }
-            break;
-        case 1:
-            {
-                tpiece->shove = -tpiece->area * (cinfo->faces[tpiece->face_idx[0]].normal.dot(tpiece->com)) * tpiece->com / (tpiece->com.norm() * tpiece->com.norm());
-                tpiece->twist = -tpiece->area * tpiece->com.norm() * cinfo->faces[tpiece->face_idx[0]].normal - tpiece->com.norm() * tpiece->shove;
-            }
-            break;
-        case 0:
-            break;
-        }
-    }
-
-    if (cinfo->node.phys.moi.norm() == 0.)
-    {
-        cinfo->node.phys.moi.clear(1.,1.,1.);
-    }
-
-    // Turn all CPU's on
-    for (size_t n=0; n<cinfo->devspec.cpu_cnt; n++)
-    {
-        cinfo->devspec.cpu[n].flag |= DEVICE_FLAG_ON;
-    }
-
-    // Turn on all IMU's
-    for (size_t n=0; n<cinfo->devspec.imu_cnt; n++)
-    {
-        cinfo->devspec.imu[n].flag |= DEVICE_FLAG_ON;
-    }
-
-    // Turn on all MGR's
-    for (size_t n=0; n<cinfo->devspec.mag_cnt; n++)
-    {
-        cinfo->devspec.mag[n].flag |= DEVICE_FLAG_ON;
-    }
-
-    // Turn on all GYRO's
-    for (size_t n=0; n<cinfo->devspec.gyro_cnt; n++)
-    {
-        cinfo->devspec.gyro[n].flag |= DEVICE_FLAG_ON;
-    }
-
-    // Turn on all GPS's
-    for (size_t n=0; n<cinfo->devspec.gps_cnt; n++)
-    {
-        cinfo->devspec.gps[n].flag |= DEVICE_FLAG_ON;
-    }
-
-    cinfo->node.phys.battcap = 0.;
-    for (size_t n=0; n<cinfo->devspec.batt_cnt; n++)
-    {
-        cinfo->node.phys.battcap += cinfo->devspec.batt[n].capacity;
-        cinfo->devspec.batt[n].charge = cinfo->devspec.batt[n].capacity;
-    }
-    cinfo->node.phys.battlev = cinfo->node.phys.battcap;
-
-    // Turn off reaction wheels
-    for (size_t i=0; i<cinfo->devspec.rw_cnt; i++)
-    {
-        cinfo->devspec.rw[i].alp = cinfo->devspec.rw[i].omg = 0.;
-    }
-
-    // Set fictional torque to zero
-    cinfo->node.phys.ftorque = rv_zero();
-
-    return 0;
-}
-
-//! Dump tab delimited database files
-/*! Create files that can be read in to a relational database representing the various elements of
- * the satellite. Tables are created for Parts, Components, Devices, Temperature Sensors and
- * Power Buses.
-*/
-void create_databases(cosmosstruc *cinfo)
-{
-    FILE *op;
-    uint32_t i, j;
-    piecestruc s;
-    //    allstruc cs;
-    devicestruc* cs;
-    imustruc ims;
-    sttstruc sts;
-    int32_t iretn = 0;
-
-    /*
- *	op = fopen("target.txt","w");
-    fprintf(op,"gs_idx	gs_name	gs_pos_lat	gs_pos_lon	gs_pos_alt	gs_min gs_az	gs_el\n");
-    for (i=0; i<cinfo->node.target_cnt; i++)
-    {
-        fprintf(op,"%d\t%s\t%u\n",i,cinfo->target[i].name,cinfo->target[i].type);
-    }
-    fclose(op);
-*/
-
-    //    op = fopen("piece.txt","w");
-    //    fprintf(op,"PartIndex\tName\tType\tTemperatureIndex\tComponentIndex\tMass\tEmissivity\tAbsorptivity\tDimension\tHeatCapacity\tHeatConductivity\tArea\tTemp\tHeat\tPointCount\tPoint1X\tPoint1Y\tPoint1Z\tPoint2X\tPoint2Y\tPoint2Z\tPoint3X\tPoint3Y\tPoint3Z\tPoint4X\tPoint4Y\tPoint4Z\tPoint5X\tPoint5Y\tPoint5Z\tPoint6X\tPoint6Y\tPoint6Z\tPoint7X\tPoint7Y\tPoint7Z\tPoint8X\tPoint8Y\tPoint8Z\n");
-    //    for (i=0; i<cinfo->pieces.size(); i++)
-    //    {
-    //        s = cinfo->pieces[i];
-    //        fprintf(op,"%d\t%s\t%d\t%d\t%.4f\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.6f\t%u",i,s.name,s.type,s.cidx,s.mass,s.emi,s.abs,s.dim,s.hcap,s.hcon,s.area,s.pnt_cnt);
-    //        for (j=0; j<s.face_cnt; j++)
-    //        {
-    //            fprintf(op,"\t%.6f\t%.6f\t%.6f",s.vertex_idx[j].col[0],s.vertex_idx[j].col[1],s.vertex_idx[j].col[2]);
-    //        }
-    //        fprintf(op,"\n");
-    //    }
-    //    fclose(op);
-
-    op = fopen("comp.txt","w");
-    fprintf(op,"device_all_idx\tdevice_all_type\tdevice_all_didx\tdevice_all_pidx\tdevice_all_bidx\tdevice_all_namp\tdevice_all_nvolt\tdevice_all_amp\tdevice_all_volt\tdevice_all_temp\tdevice_all_on\n");
-    for (i=0; i<cinfo->node.device_cnt; i++)
-    {
-        cs = cinfo->device[i];
-        fprintf(op,"%d\t%d\t%d\t%d\t%d\t%.15g\t%.15g\n",i,cs->type,cs->didx,cs->pidx,cs->bidx,cs->amp,cs->volt);
-    }
-    fclose(op);
-
-    op = fopen("rw.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tMomentX\tMomentY\tMomentZ\tMaxAngularSpeed\tAngularSpeed\tAngularAcceleration\n");
-    for (i=0; i<cinfo->devspec.rw_cnt; i++)
-    {
-        rwstruc rws = cinfo->devspec.rw[i];
-        //        devicestruc d = cinfo->devspec.rw[i]];
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,rws.cidx,rws.align.d.x,rws.align.d.y,rws.align.d.z,rws.align.w,rws.mom.col[0],rws.mom.col[1],rws.mom.col[2],rws.mxomg,rws.mxalp);
-    }
-    fclose(op);
-
-    op = fopen("tsen.txt","w");
-    fprintf(op,"TemperatureIndex\tCompIndex\tTemperature\n");
-    for (i=0; i<cinfo->devspec.tsen_cnt; i++)
-    {
-        tsenstruc tsens = cinfo->devspec.tsen[i];
-        fprintf(op,"%d\t%d\t%.15g\n",i,tsens.cidx,tsens.temp);
-    }
-    fclose(op);
-
-    op = fopen("strg.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tEfficiencyB\tEfficiencyM\tMaxPower\tPower\n");
-    for (i=0; i<cinfo->devspec.pvstrg_cnt; i++)
-    {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.pvstrg[i].cidx,cinfo->devspec.pvstrg[i].effbase,cinfo->devspec.pvstrg[i].effslope,cinfo->devspec.pvstrg[i].maxpower,cinfo->devspec.pvstrg[i].power);
-    }
-    fclose(op);
-
-    op = fopen("batt.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tCapacity\tEfficiency\tCharge\n");
-    for (i=0; i<cinfo->devspec.batt_cnt; i++)
-    {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.batt[i].cidx,cinfo->devspec.batt[i].capacity,cinfo->devspec.batt[i].efficiency,cinfo->devspec.batt[i].charge);
-    }
-    fclose(op);
-
-    op = fopen("ssen.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tQuadrantVoltageA\tQuadrantVoltageB\tQuadrantVoltageC\tQuadrantVoltageD\tAzimuth\tElevation\n");
-    for (i=0; i<cinfo->devspec.ssen_cnt; i++)
-    {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.ssen[i].cidx,cinfo->devspec.ssen[i].align.d.x,cinfo->devspec.ssen[i].align.d.y,cinfo->devspec.ssen[i].align.d.z,cinfo->devspec.ssen[i].align.w,cinfo->devspec.ssen[i].qva,cinfo->devspec.ssen[i].qvb,cinfo->devspec.ssen[i].qvc,cinfo->devspec.ssen[i].qvd,cinfo->devspec.ssen[i].azimuth,cinfo->devspec.ssen[i].elevation);
-    }
-    fclose(op);
-
-    op = fopen("imu.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tPositionX\tPositionY\tPositionZ\tVelocityX\tVelocityY\tVelocityZ\tAccelerationX\tAccelerationY\tAccelerationZ\tAttitudeQx\tAttitudeQy\tAttitudeQz\tAttitudeQw\tAngularVelocityX\tAngularVelocityY\tAngularVelocityZ\tAngularAccelerationX\tAngularAccelerationY\tAngularAccelerationZ\tMagneticFieldX\tMagneticFieldY\tMagneticFieldZ\tCalibrationQx\tCalibrationQy\tCalibrationQz\tCalibrationQw\n");
-    for (i=0; i<cinfo->devspec.imu_cnt; i++)
-    {
-        ims = cinfo->devspec.imu[i];
-        devicestruc d = cinfo->devspec.imu[i];
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,d.cidx,ims.align.d.x,ims.align.d.y,ims.align.d.z,ims.align.w);
-    }
-    fclose(op);
-
-    op = fopen("gyro.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tOmegaX\tOmegaY\tOmegaZ\tAlphaX\tAlphaY\tAlphaZ\n");
-    for (i=0; i<cinfo->devspec.gyro_cnt; i++)
-    {
-        gyrostruc ims = cinfo->devspec.gyro[i];
-        devicestruc d = cinfo->devspec.gyro[i];
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,d.cidx,ims.align.d.x,ims.align.d.y,ims.align.d.z,ims.align.w);
-    }
-    fclose(op);
-
-    op = fopen("mag.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tPositionX\tPositionY\tPositionZ\tVelocityX\tVelocityY\tVelocityZ\tAccelerationX\tAccelerationY\tAccelerationZ\tAttitudeQx\tAttitudeQy\tAttitudeQz\tAttitudeQw\tAngularVelocityX\tAngularVelocityY\tAngularVelocityZ\tAngularAccelerationX\tAngularAccelerationY\tAngularAccelerationZ\tMagneticFieldX\tMagneticFieldY\tMagneticFieldZ\tCalibrationQx\tCalibrationQy\tCalibrationQz\tCalibrationQw\n");
-    for (i=0; i<cinfo->devspec.mag_cnt; i++)
-    {
-        magstruc ims = cinfo->devspec.mag[i];
-        devicestruc d = cinfo->devspec.mag[i];
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,d.cidx,ims.align.d.x,ims.align.d.y,ims.align.d.z,ims.align.w);
-    }
-    fclose(op);
-
-    op = fopen("stt.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tAttitudeQx\tAttitudeQy\tAttitudeQz\tAttitudeQw\tAngularVelocityX\tAngularVelocityY\tAngularVelocityZ\tAngularAccelerationX\tAngularAccelerationY\tAngularAccelerationZ\tCalibrationQx\tCalibrationQy\tCalibrationQz\tCalibrationQw\n");
-    for (i=0; i<cinfo->devspec.stt_cnt; i++)
-    {
-        sts = cinfo->devspec.stt[i];
-        devicestruc d = cinfo->devspec.stt[i];
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,d.cidx,sts.align.d.x,sts.align.d.y,sts.align.d.z,sts.align.w);
-    }
-    fclose(op);
-
-    op = fopen("mtr.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tMagneticMomentX\tMagneticMomentY\tMagneticMomentZ\tMagneticField\n");
-    for (i=0; i<cinfo->devspec.mtr_cnt; i++)
-    {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.mtr[i].cidx,cinfo->devspec.mtr[i].align.d.x,cinfo->devspec.mtr[i].align.d.y,cinfo->devspec.mtr[i].align.d.z,cinfo->devspec.mtr[i].align.w,cinfo->devspec.mtr[i].npoly[0],cinfo->devspec.mtr[i].npoly[1],cinfo->devspec.mtr[i].npoly[2],cinfo->devspec.mtr[i].mom);
-    }
-    fclose(op);
-
-    op = fopen("gps.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tLatitude\tLongitude\tAltitude\tVelocityX\tVelocityY\tVelocityZ\n");
-    for (i=0; i<cinfo->devspec.gps_cnt; i++)
-    {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.gps[i].cidx,cinfo->devspec.gps[i].geocs.col[0],cinfo->devspec.gps[i].geocs.col[1],cinfo->devspec.gps[i].geocs.col[2],cinfo->devspec.gps[i].geocv.col[0],cinfo->devspec.gps[i].geocv.col[1],cinfo->devspec.gps[i].geocv.col[2]);
-    }
-    fclose(op);
-
-    op = fopen("cpu.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tLoad\tMemoryUse\tMemoryFree\tDiskUse\n");
-    for (i=0; i<cinfo->devspec.cpu_cnt; i++)
-    {
-        fprintf(op,"%d\t%d\t%.8g\t%.8g\t%.8g\n",i,cinfo->devspec.cpu[i].cidx,cinfo->devspec.cpu[i].maxgib,cinfo->devspec.cpu[i].load,cinfo->devspec.cpu[i].gib);
-    }
-    fclose(op);
-
-    op = fopen("pload.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tKeyCount");
-    for (i=0; i<MAXPLOADKEYCNT; i++)
-    {
-        fprintf(op,"\tKey%d",i);
-    }
-    for (i=0; i<MAXPLOADKEYCNT; i++)
-    {
-        fprintf(op,"\tValue%d",i);
-    }
-    fprintf(op,"\n");
-    for (i=0; i<cinfo->devspec.pload_cnt; i++)
-    {
-        fprintf(op,"%d\t%d\t%d",i,cinfo->devspec.pload[i].cidx,cinfo->devspec.pload[i].key_cnt);
-        for (j=0; j<MAXPLOADKEYCNT; j++)
-        {
-            fprintf(op,"\t%d",cinfo->devspec.pload[i].keyidx[j]);
-        }
-        for (j=0; j<MAXPLOADKEYCNT; j++)
-        {
-            fprintf(op,"\t%.15g",cinfo->devspec.pload[i].keyval[j]);
-        }
-        fprintf(op,"\n");
-    }
-    fclose(op);
-
-    op = fopen("motr.txt","w");
-    fprintf(op,"motr_idx\tmotr_cidx\tmotr_spd\tmotr_rat\tmotr_rat\n");
-    for (i=0; i<cinfo->devspec.motr_cnt; i++)
-    {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.motr[i].cidx,cinfo->devspec.motr[i].max,cinfo->devspec.motr[i].rat,cinfo->devspec.motr[i].spd);
-    }
-    fclose(op);
-
-    op = fopen("swch.txt","w");
-    fprintf(op,"swch_idx\tswch_cidx\n");
-    for (i=0; i<cinfo->devspec.swch_cnt; i++)
-    {
-        iretn = fscanf(op,"%*d\t%hu\n",&cinfo->devspec.swch[i].cidx);
-        if (iretn < 1)
-        {
-            break;
-        }
-    }
-    fclose(op);
-
-    op = fopen("thst.txt","w");
-    fprintf(op,"thst_idx\tthst_cidx\tthst_idx\tthst_isp\tthst_flw\n");
-    for (i=0; i<cinfo->devspec.thst_cnt; i++)
-    {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\n",i,cinfo->devspec.thst[i].cidx,cinfo->devspec.thst[i].isp,cinfo->devspec.thst[i].flw);
-    }
-    fclose(op);
-
-    op = fopen("prop.txt","w");
-    fprintf(op,"prop_idx\tprop_cidx\tprop_cap\tprop_lev\n");
-    for (i=0; i<cinfo->devspec.prop_cnt; i++)
-    {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\n",i,cinfo->devspec.prop[i].cidx,cinfo->devspec.prop[i].cap,cinfo->devspec.prop[i].lev);
-    }
-    fclose(op);
-
-    op = fopen("xyzsen.txt","w");
-    fprintf(op,"DeviceIndex\tComponentIndex\tDirectionx\tDirectiony\tDirectionz\n");
-    for (i=0; i<cinfo->devspec.xyzsen_cnt; i++)
-    {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.xyzsen[i].cidx,cinfo->devspec.xyzsen[i].direction.col[0],cinfo->devspec.xyzsen[i].direction.col[1],cinfo->devspec.xyzsen[i].direction.col[2]);
-    }
-    fclose(op);
-}
-
 
 //! Load Track list
 /*! Load the file target.ini into an array of ::targetstruc. Space for the array is automatically allocated
@@ -13059,50 +12831,6 @@ string json_memory_usage()
     output += to_label("uordblks", m.uordblks) + "\n";
     output += to_label("fordblks", m.fordblks);
     return output;
-}
-
-//! Get vector of Node structures.
-/*! Scan the COSMOS root directory and return a ::cosmosstruc for each
- * Node that is found.
- * \param node Vector of ::cosmosstruc for each Node.
- * \return Zero or negative error.
- */
-int32_t json_get_nodes(vector<cosmosstruc> &node)
-{
-    DIR *jdp;
-    string dtemp;
-    string rootd;
-    struct dirent *td;
-    cosmosstruc *tnode;
-
-    int32_t iretn = get_cosmosnodes(rootd);
-    if (iretn < 0)
-    {
-        return iretn;
-    }
-
-    if ((tnode=json_init()) == nullptr)
-    {
-        return (NODE_ERROR_NODE);
-    }
-
-    dtemp = rootd;
-    if ((jdp=opendir(dtemp.c_str())) != nullptr)
-    {
-        while ((td=readdir(jdp)) != nullptr)
-        {
-            if (td->d_name[0] != '.')
-            {
-                string nodepath = td->d_name;
-                if (!json_setup_node(nodepath, tnode))
-                {
-                    node.push_back(*tnode);
-                }
-            }
-        }
-        closedir(jdp);
-    }
-    return 0;
 }
 
 //! Add to KML path

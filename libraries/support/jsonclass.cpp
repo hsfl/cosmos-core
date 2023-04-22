@@ -216,6 +216,10 @@ namespace Cosmos
                 return iretn;
             }
             iretn = extract_value(begin, end, member.second);
+            if (member.first.substr(member.first.size()-3) == "000")
+            {
+                cout << member.first << ":" << member.second.svalue << endl;
+            }
             return iretn;
         }
 

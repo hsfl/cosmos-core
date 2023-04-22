@@ -15,7 +15,7 @@ target_link_libraries(CosmosEvent CosmosTime CosmosNamespace CosmosSupport ${COS
 
 add_library(CosmosAgent STATIC agentclass.cpp agentclass.h)
 install(TARGETS CosmosAgent DESTINATION lib)
-target_link_libraries(CosmosAgent CosmosLog CosmosTask CosmosChannel CosmosPacket CosmosBeacon CosmosDeviceCpu CosmosLog CosmosString CosmosTime CosmosData CosmosNetwork CosmosJson CosmosCad CosmosNamespace CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosAgent CosmosLog CosmosTask CosmosChannel CosmosPacket CosmosBeacon CosmosDeviceCpu CosmosLog CosmosString CosmosTime CosmosData CosmosNetwork CosmosJson CosmosCad CosmosNamespace CosmosPhysics CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosCommand STATIC command_queue.cpp command_queue.h )
 install(TARGETS CosmosCommand DESTINATION lib)

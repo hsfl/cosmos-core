@@ -48,6 +48,49 @@
 //#include "support/timelib.h"
 
 int agent_data();
+//! Get vector of Node structures.
+/*! Scan the COSMOS root directory and return a ::cosmosstruc for each
+ * Node that is found.
+ * \param node Vector of ::cosmosstruc for each Node.
+ * \return Zero or negative error.
+ */
+int32_t json_get_nodes(vector<cosmosstruc> &node)
+{
+    DIR *jdp;
+    string dtemp;
+    string rootd;
+    struct dirent *td;
+    cosmosstruc *tnode;
+
+    int32_t iretn = get_cosmosnodes(rootd);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    if ((tnode=json_init()) == nullptr)
+    {
+        return (NODE_ERROR_NODE);
+    }
+
+    dtemp = rootd;
+    if ((jdp=opendir(dtemp.c_str())) != nullptr)
+    {
+        while ((td=readdir(jdp)) != nullptr)
+        {
+            if (td->d_name[0] != '.')
+            {
+                string nodepath = td->d_name;
+                if (!json_setup_node(nodepath, tnode))
+                {
+                    node.push_back(*tnode);
+                }
+            }
+        }
+        closedir(jdp);
+    }
+    return 0;
+}
 
 std::vector<agentstruc> agents;
 agentstruc tempagent;
