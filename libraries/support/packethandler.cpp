@@ -935,6 +935,24 @@ namespace Cosmos {
             return iretn;
         }
 
+        int32_t PacketHandler::CreateBeacon(PacketComm &packet, uint8_t btype, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        {
+            int32_t iretn=0;
+
+            Beacon beacon;
+            vector<uint8_t> bytes;
+            beacon.Init();
+            beacon.EncodeBinary((Beacon::TypeId)btype, agent->cinfo, bytes);
+            packet.header.type = PacketComm::TypeId::DataObcBeacon;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = dest;
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
+            packet.data.clear();
+            packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
+            return iretn;
+        }
+
         int32_t PacketHandler::QueueBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn=0;

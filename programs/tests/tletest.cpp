@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     }
 
     double mjd0 = currentmjd();
-    double mjd1 = mjd0 + 1.;
+//    double mjd1 = mjd0 + 1.;
     loc_clear(loc0);
     Convert::tle2eci(mjd0, lines[0], loc0.pos.eci);
     Convert::eci2tle(loc0.pos.eci.utc, loc0.pos.eci, tle1);

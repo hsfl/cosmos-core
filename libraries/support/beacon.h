@@ -51,6 +51,9 @@ namespace Cosmos {
                 ADCSNadirBeaconS = 48,
                 ADCSEXTRABeaconS = 49,
 				ADCSStateBeaconS = 51,
+                NodeLocBeacon = 100,
+                NodePhysBeacon = 101,
+                NodeTargetBeacon = 102,
                 CPUBeacon = 110,
                 TelemBeacon = 111,
                 TsenBeacon = 120,
@@ -93,6 +96,9 @@ namespace Cosmos {
                 {TypeId::ADCSEXTRABeaconS, "ADCSEXTRABeaconS"},
                 {TypeId::ADCSORBITBeacon, "ADCSORBITBeacon"},
                 {TypeId::ADCSStateBeaconS, "ADCSStateBeaconS"},
+                {TypeId::NodeLocBeacon, "NodeLocBeacon"},
+                {TypeId::NodePhysBeacon, "NodePhysBeacon"},
+                {TypeId::NodeTargetBeacon, "NodeTargetBeacon"},
                 {TypeId::CPUBeacon, "CPUBeacon"},
                 {TypeId::TelemBeacon, "TelemBeacon"},
                 {TypeId::TsenBeacon, "TsenBeacon"},
@@ -296,22 +302,78 @@ namespace Cosmos {
                 uint8_t		type = (uint8_t)TypeId::ADCSStateBeacon;
                 uint32_t	deci = 0;
 
-				double x_eci;
-				double y_eci;
-				double z_eci;
+                double x_eci;
+                double y_eci;
+                double z_eci;
 
-				double vx_eci;
-				double vy_eci;
-				double vz_eci;
+                double vx_eci;
+                double vy_eci;
+                double vz_eci;
 
-				double att_icrf_x;
-				double att_icrf_y;
-				double att_icrf_z;
-				double att_icrf_w;
+                double att_icrf_x;
+                double att_icrf_y;
+                double att_icrf_z;
+                double att_icrf_w;
 
-				double att_icrf_omega_x;
-				double att_icrf_omega_y;
-				double att_icrf_omega_z;
+                double att_icrf_omega_x;
+                double att_icrf_omega_y;
+                double att_icrf_omega_z;
+            };
+
+            struct __attribute__ ((packed)) nodeloc_beacon
+            {
+                uint8_t		type = (uint8_t)TypeId::NodeLocBeacon;
+                uint32_t	deci = 0;
+
+                double x_eci;
+                double y_eci;
+                double z_eci;
+
+                double vx_eci;
+                double vy_eci;
+                double vz_eci;
+
+                double att_icrf_x;
+                double att_icrf_y;
+                double att_icrf_z;
+                double att_icrf_w;
+
+                double att_icrf_omega_x;
+                double att_icrf_omega_y;
+                double att_icrf_omega_z;
+            };
+
+            struct __attribute__ ((packed)) nodephys_beacon
+            {
+                uint8_t		type = (uint8_t)TypeId::NodePhysBeacon;
+                uint32_t	deci = 0;
+
+                float temp;
+                float battlev;
+                float powgen;
+                float powuse;
+            };
+
+            struct __attribute__ ((packed)) target_beacon
+            {
+                float azfrom = 0.f;
+                float elfrom = 0.f;
+                float azto = 0.f;
+                float elto = 0.f;
+                float maxelto = 0.f;
+                double range = 0.;
+                double close = 0.;
+                float bearing;
+                float distance;
+            } ;
+
+            static constexpr uint8_t target_count = 200 / sizeof(target_beacon);
+            struct __attribute__ ((packed)) nodetarget_beacon
+            {
+                uint8_t type = (uint8_t)TypeId::NodeTargetBeacon;
+                uint32_t deci = 0;
+                uint32_t initialdate = 0;
+                target_beacon target[target_count];
             };
 
             struct __attribute__ ((packed)) cpu_beacon

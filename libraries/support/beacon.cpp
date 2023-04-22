@@ -196,6 +196,63 @@ namespace Cosmos {
                     }
                 }
                 break;
+            case TypeId::NodeLocBeacon:
+                {
+                    nodeloc_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+
+                    beacon.x_eci = cinfo->node.loc.pos.eci.s.col[0];
+                    beacon.y_eci = cinfo->node.loc.pos.eci.s.col[1];
+                    beacon.z_eci = cinfo->node.loc.pos.eci.s.col[2];
+
+                    beacon.vx_eci = cinfo->node.loc.pos.eci.v.col[0];
+                    beacon.vy_eci = cinfo->node.loc.pos.eci.v.col[1];
+                    beacon.vz_eci = cinfo->node.loc.pos.eci.v.col[2];
+
+                    beacon.att_icrf_x = cinfo->node.loc.att.icrf.s.d.x;
+                    beacon.att_icrf_y = cinfo->node.loc.att.icrf.s.d.y;
+                    beacon.att_icrf_z = cinfo->node.loc.att.icrf.s.d.z;
+                    beacon.att_icrf_w = cinfo->node.loc.att.icrf.s.w;
+
+                    beacon.att_icrf_omega_x = cinfo->node.loc.att.icrf.v.col[0];
+                    beacon.att_icrf_omega_y = cinfo->node.loc.att.icrf.v.col[1];
+                    beacon.att_icrf_omega_z = cinfo->node.loc.att.icrf.v.col[2];
+
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+                }
+                break;
+            case TypeId::NodePhysBeacon:
+                {
+                    nodephys_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+
+                    beacon.temp = cinfo->node.phys.temp;
+                    beacon.battlev = cinfo->node.phys.battlev;
+                    beacon.powgen = cinfo->node.phys.powgen;
+                    beacon.powuse = cinfo->node.phys.powuse;
+
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
+                }
+                break;
+            case TypeId::NodeTargetBeacon:
+                if (cinfo->target.size())
+                {
+                    nodetarget_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+                    beacon.initialdate = utc2unixseconds(cinfo->node.utcstart) + .5;
+                    uint16_t targetcount = cinfo->target.size() < target_count?cinfo->target.size():target_count;
+                    for (uint16_t i=0; i<targetcount; ++i)
+                    {
+                        beacon.target[i].azfrom = cinfo->target[i].azfrom;
+                        beacon.target[i].elfrom = cinfo->target[i].elfrom;
+                        beacon.target[i].azto = cinfo->target[i].azto;
+                        beacon.target[i].elto = cinfo->target[i].elto;
+                        beacon.target[i].range = cinfo->target[i].range;
+                        beacon.target[i].close = cinfo->target[i].close;
+                    }
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+9+targetcount*sizeof(target_beacon));
+                }
+                break;
             case TypeId::CPUBeacon:
                 if (cinfo->devspec.cpu.size())
                 {

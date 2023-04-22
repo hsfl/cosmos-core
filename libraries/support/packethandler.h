@@ -104,6 +104,7 @@ namespace Cosmos {
             static int32_t QueueTransferRadio(uint8_t use_radio, bool availability, Agent* agent, NodeData::NODE_ID_TYPE dest);
             static int32_t QueueTestRadio(uint8_t start, uint8_t step, uint8_t stop, uint32_t count, Agent* agent, string testradio="", NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, const string& radioin="");
             static int32_t QueueSetTime(double mjd, int8_t direction, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, const string& channelout="", const string& radioin="");
+            static int32_t CreateBeacon(PacketComm &packet, uint8_t btype, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, const string& channelout="", const string& radioin="");
             static int32_t QueueBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, const string& channelout="", const string& radioin="");
             static int32_t QueueEnableChannel(const string& name, uint8_t enable, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, const string &channelout="", const string& radioin="");
             static int32_t QueueEnableChannel(uint8_t number, uint8_t enable, Agent* agent, NodeData::NODE_ID_TYPE dest=NodeData::NODEIDDEST, const string& channelout="", const string& radioin="");
