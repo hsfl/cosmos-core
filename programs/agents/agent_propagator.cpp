@@ -10,27 +10,21 @@ using namespace Convert;
 
 Vector calc_control_torque_b(Convert::qatt tatt, Convert::qatt catt, Vector moi, double portion);
 
-static Physics::Simulator::StateList::iterator sit;
-static Physics::Simulator *sim;
-static Agent *agent;
+Physics::Simulator::StateList::iterator sit;
+Physics::Simulator *sim;
+Agent *agent;
 string agentname = "propagate";
-static double speed=1.;
-static double maxaccel = .1;
-static double minaccel;
+double initialutc = 59270.949409722227;
+double speed=1.;
+double maxaccel = .1;
+double minaccel;
 double offset = 0.;
-static double initialutc = 59270.949409722227;
-static double initiallat = RADOF(21.3069);
-static double initiallon = RADOF(-157.8583);
-static double initialalt = 400000.;
-static double initialangle = RADOF(54.);
-static Convert::locstruc initialloc;
-static double initialsep = 0.;
-static double deltat = .0655;
-static double runcount = 1500;
-static double currentutc;
-static double simdt = 1.;
-static double attdt = 1.;
-static double minaccelratio = 10;
+double deltat = .0655;
+double runcount = 1500;
+double currentutc;
+double simdt = 1.;
+double attdt = 1.;
+double minaccelratio = 10;
 constexpr double d2s = 1./86400.;
 constexpr double d2s2 = 1./(86400.*86400.);
 string targetfile = "targets.dat";
@@ -42,13 +36,14 @@ string satfile = "sats.dat";
 //// 3 : high/low attraction experiment
 //static uint8_t shapetype = 0;
 //static double shapeseparation = 500.;
-static LsFit tattfit;
-static LsFit omegafit;
+LsFit tattfit;
+LsFit omegafit;
 //static bool altprint = false;
-int32_t parse_jargs(string args);
+int32_t parse_control(string args);
 int32_t parse_sat(string args);
 
 vector<cosmosstruc> sats;
+vector<Physics::Simulator::StateList::iterator> sits;
 
 int main(int argc, char *argv[])
 {
@@ -58,7 +53,7 @@ int main(int argc, char *argv[])
     // initialize simulation agent
     if (argc > 1)
     {
-        parse_jargs(argv[1]);
+        parse_control(argv[1]);
     }
 
     agent = new Agent("", agentname, 0.);
@@ -83,9 +78,6 @@ int main(int argc, char *argv[])
         parse_sat(buf);
     }
 
-    initialloc.att.icrf.s = q_eye();
-    iretn = sim->AddNode("mother", Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
-    sit = sim->GetNode("mother");
 
     // Load in targets
     fp = fopen(targetfile.c_str(), "r");
@@ -109,7 +101,7 @@ int main(int argc, char *argv[])
             sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])));
         }
     }
-    double mjd = currentmjd();
+//    double mjd = currentmjd();
 
     PacketComm packet;
     double elapsed = 0;
@@ -121,9 +113,9 @@ int main(int argc, char *argv[])
     offset = initialutc - currentmjd();
     while (agent->running())
     {
-//        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeLocBeacon), agent);
-//        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodePhysBeacon), agent);
-//        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeTargetBeacon), agent);
+        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeLocBeacon), agent);
+        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodePhysBeacon), agent);
+        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeTargetBeacon), agent);
 
         // Attitude adjustment
         // Desired attitude comes from aligning satellite Z with desired Z and satellite Y with desired Y
@@ -165,22 +157,22 @@ int main(int argc, char *argv[])
 
 
         // Heading and Angular Velocity
-        double cphi = cos(sit->second->currentinfo.node.loc.pos.geos.v.phi);
-        double cphi2 = cphi * cphi;
-        double phi2 = sit->second->currentinfo.node.loc.pos.geos.v.phi * sit->second->currentinfo.node.loc.pos.geos.v.phi;
-        double lambda2 = sit->second->currentinfo.node.loc.pos.geos.v.lambda * sit->second->currentinfo.node.loc.pos.geos.v.lambda;
-        double anglev;
-        double heading;
-        if (cphi2 != 0.)
-        {
-            anglev = sqrt(phi2 + lambda2 / cphi2);
-            heading = atan2(sit->second->currentinfo.node.loc.pos.geos.v.phi, sit->second->currentinfo.node.loc.pos.geos.v.lambda / cphi);
-        }
-        else
-        {
-            anglev = sqrt(phi2);
-            heading = DPI;
-        }
+//        double cphi = cos(sit->second->currentinfo.node.loc.pos.geos.v.phi);
+//        double cphi2 = cphi * cphi;
+//        double phi2 = sit->second->currentinfo.node.loc.pos.geos.v.phi * sit->second->currentinfo.node.loc.pos.geos.v.phi;
+//        double lambda2 = sit->second->currentinfo.node.loc.pos.geos.v.lambda * sit->second->currentinfo.node.loc.pos.geos.v.lambda;
+//        double anglev;
+//        double heading;
+//        if (cphi2 != 0.)
+//        {
+//            anglev = sqrt(phi2 + lambda2 / cphi2);
+//            heading = atan2(sit->second->currentinfo.node.loc.pos.geos.v.phi, sit->second->currentinfo.node.loc.pos.geos.v.lambda / cphi);
+//        }
+//        else
+//        {
+//            anglev = sqrt(phi2);
+//            heading = DPI;
+//        }
 
         ++elapsed;
         secondsleep(simdt - ret.lap());
@@ -190,7 +182,7 @@ int main(int argc, char *argv[])
     agent->shutdown();
 }
 
-int32_t parse_jargs(string args)
+int32_t parse_control(string args)
 {
     uint16_t argcount = 0;
     string estring;
@@ -220,21 +212,16 @@ int32_t parse_jargs(string args)
         ++argcount;
         speed = jargs["speed"].number_value();
     }
-    if (!jargs["maxaccel"].is_null())
-    {
-        ++argcount;
-        maxaccel = jargs["maxaccel"].number_value();
-    }
     if (!jargs["initialutc"].is_null())
     {
         ++argcount;
         initialutc = jargs["initialutc"].number_value();
     }
-    if (!jargs["initialsep"].is_null())
-    {
-        ++argcount;
-        initialsep = jargs["initialsep"].number_value();
-    }
+//    if (!jargs["initialsep"].is_null())
+//    {
+//        ++argcount;
+//        initialsep = jargs["initialsep"].number_value();
+//    }
     if (!jargs["deltat"].is_null())
     {
         ++argcount;
@@ -271,11 +258,30 @@ int32_t parse_jargs(string args)
 
 int32_t parse_sat(string args)
 {
+    int32_t iretn;
+    string satname;
+    double initiallat = RADOF(21.3069);
+    double initiallon = RADOF(-157.8583);
+    double initialalt = 400000.;
+    double initialangle = RADOF(54.);
+    Convert::locstruc initialloc;
+//    double initialsep = 0.;
     uint16_t argcount = 0;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
-    cosmosstruc cinfo;
+//    cosmosstruc cinfo;
     initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+    satname = "sat_" + to_unsigned(sats.size(), 2);
+    if (!jargs["satname"].is_null())
+    {
+        ++argcount;
+        satname = jargs["satname"].string_value();
+    }
+    if (!jargs["maxaccel"].is_null())
+    {
+        ++argcount;
+        maxaccel = jargs["maxaccel"].number_value();
+    }
     if (!jargs["phys"].is_null())
     {
         ++argcount;
@@ -315,5 +321,8 @@ int32_t parse_sat(string args)
         initialloc.pos.eci.pass++;
         pos_eci(initialloc);
     }
-
+    initialloc.att.icrf.s = q_eye();
+    iretn = sim->AddNode(satname, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+    sits.push_back(sim->GetNode(satname));
+    return iretn;
 }
