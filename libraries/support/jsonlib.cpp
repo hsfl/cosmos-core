@@ -893,7 +893,7 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
     piece.hcon = hcon;
     if (ctype < DeviceType::COUNT)
     {
-        iretn = json_adddevice(cinfo, static_cast <uint16_t>(cinfo->pieces.size()) - 1, ctype);
+        iretn = json_adddevice(cinfo, static_cast <uint16_t>(cinfo->pieces.size()), ctype);
         if (iretn < 0)
         {
             return iretn;
@@ -963,10 +963,6 @@ int32_t json_createport(cosmosstruc *cinfo, string name, PORT_TYPE type)
 //!  \return Zero, or negative error
 int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
 {
-    if (pidx == 65535)
-    {
-        cout << "0| detected 65535, device.size(): " << cinfo->device.size() << endl;
-    }
     if (ctype < DeviceType::COUNT)
     {
         switch(ctype)
@@ -1084,11 +1080,6 @@ int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
             cinfo->devspec.pload.back().didx = cinfo->devspec.pload.size() - 1;
             cinfo->devspec.pload_cnt = cinfo->devspec.pload.size();
             cinfo->device.push_back(&cinfo->devspec.pload.back());
-
-    if (pidx == 65535)
-    {
-        cout << "1| detected 65535, device.size(): " << cinfo->device.size() << " device[0]->pidx: " << cinfo->device[0]->pidx << endl;
-    }
             break;
             //! Propellant Tank
         case DeviceType::PROP:
@@ -1180,7 +1171,6 @@ int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
             cinfo->devspec.telem.back().didx = cinfo->devspec.telem.size() - 1;
             cinfo->devspec.telem_cnt = cinfo->devspec.telem.size();
             cinfo->device.push_back(&cinfo->devspec.telem.back());
-            cout << "T1| Telem, device.size(): " << cinfo->device.size() << " cinfo->device[0]->type: " << cinfo->device[0]->type << " device[0]->pidx: " << cinfo->device[0]->pidx << " device.back->pidx(): " << cinfo->device.back()->pidx << endl;
             break;
             //! Thruster
         case DeviceType::THST:
@@ -1226,15 +1216,6 @@ int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
         cinfo->device.back()->cidx = static_cast <int32_t>(cinfo->device.size() - 1);
         cinfo->device.back()->type = static_cast<uint16_t>(ctype);
         cinfo->node.device_cnt = cinfo->device.size();
-json_updatecosmosstruc(cinfo);
-    if (pidx == 65535)
-    {
-        cout << "2| detected 65535, device.size(): " << cinfo->device.size() << " device[0]->pidx: " << cinfo->device[0]->pidx << endl;
-    }
-    if (ctype == DeviceType::TELEM)
-    {
-        cout << "T2| Telem, device.size(): " << cinfo->device.size() << " cinfo->device[0]->type: " << cinfo->device[0]->type << " device[0]->pidx: " << cinfo->device[0]->pidx << " device.back->pidx(): " << cinfo->device.back()->pidx << endl;
-    }
     }
     return (static_cast <int32_t>(cinfo->device.size() - 1));
 }
@@ -7821,30 +7802,21 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         // Parse data for general device information
         if (!json.devgen.empty())
         {
-            cout << "0| cinfo->device.size(): " << cinfo->device.size() << endl;
             Json devgen;
             devgen.extract_contents(json.devgen);
             Json::Object jobj = devgen.ObjectContents;
             vector<size_t> pidx;
-            cout << "1| cinfo->device.size(): " << cinfo->device.size() << endl;
             for (auto &dev : jobj)
             {
                 size_t cidx = stol(dev.first.substr(dev.first.find_last_of('_')+1));
                 if (dev.first.find("all_pidx") != string::npos)
                 {
-                    cout << "all_pidx: " << dev.first << ":" << dev.second.svalue << ":" << dev.second.nvalue << endl;
                     pidx.push_back(dev.second.nvalue);
                 }
                 else if (dev.first.find("all_type") != string::npos)
                 {
-                    cout << "all_type: " << dev.first << " type: " << dev.second.nvalue << " pidx: " << pidx[cidx] << endl;
                     iretn = json_adddevice(cinfo, pidx[cidx], (DeviceType)(dev.second.nvalue));
                 }
-            }
-            cout << "2| cinfo->device.size(): " << cinfo->device.size() << endl;
-            if (cinfo->device.size())
-            {
-                cout << "cinfo->device[0]->pidx: " << cinfo->device[0]->pidx << ", " << cinfo->device[1]->pidx << ", " << cinfo->device[2]->pidx << endl;
             }
 
             json_updatecosmosstruc(cinfo);
