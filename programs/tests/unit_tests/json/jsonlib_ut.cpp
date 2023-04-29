@@ -124,7 +124,7 @@ TEST_F(JsonlibUTest, ini_dump_loads_correctly)
         EXPECT_EQ(agent->cinfo->device[i]->name, agent2->cinfo->device[i]->name);
         EXPECT_EQ(agent->cinfo->device[i]->model, agent2->cinfo->device[i]->model);
         EXPECT_EQ(agent->cinfo->device[i]->didx, agent2->cinfo->device[i]->didx);
-        ASSERT_EQ(agent->cinfo->device[i]->pidx, agent2->cinfo->device[i]->pidx) << "Error in i: " << i;
+        EXPECT_EQ(agent->cinfo->device[i]->pidx, agent2->cinfo->device[i]->pidx) << "Error in i: " << i;
         EXPECT_EQ(agent->cinfo->device[i]->bidx, agent2->cinfo->device[i]->bidx);
         EXPECT_EQ(agent->cinfo->device[i]->addr, agent2->cinfo->device[i]->addr);
         EXPECT_EQ(agent->cinfo->device[i]->portidx, agent2->cinfo->device[i]->portidx);
@@ -134,10 +134,48 @@ TEST_F(JsonlibUTest, ini_dump_loads_correctly)
     }
 
     // Specific Devices
+    string devspec, devspec2;
+    json_devices_specific(devspec, agent->cinfo);
+    json_devices_specific(devspec2, agent2->cinfo);
+    EXPECT_EQ(devspec, devspec2);
 
     // Ports
+    for (uint16_t i=0; i<agent->cinfo->node.port_cnt; ++i)
+    {
+        EXPECT_EQ(agent->cinfo->port[i].name, agent2->cinfo->port[i].name);
+        EXPECT_EQ(agent->cinfo->port[i].type, agent2->cinfo->port[i].type);
+    }
 
     // Aliases
+    EXPECT_EQ(agent->cinfo->alias.size(), agent2->cinfo->alias.size());
+    EXPECT_EQ(agent->cinfo->emap.size(), agent2->cinfo->emap.size());
+    if (agent->cinfo->alias.size() == agent2->cinfo->alias.size()
+    && agent->cinfo->emap.size() == agent2->cinfo->emap.size())
+    {
+        auto ait = agent->cinfo->alias.begin();
+        auto ait2 = agent2->cinfo->alias.begin();
+        for (;ait != agent->cinfo->alias.end();)
+        {
+            EXPECT_EQ(agent->cinfo->emap[ait->handle.hash].size(), agent2->cinfo->emap[ait2->handle.hash].size());
+            if (agent->cinfo->emap[ait->handle.hash].size() != agent2->cinfo->emap[ait2->handle.hash].size())
+            {
+                break;
+            }
+            EXPECT_EQ(agent->cinfo->emap[ait->handle.hash][ait->handle.index].text, agent2->cinfo->emap[ait2->handle.hash][ait2->handle.index].text);
+            ait++;
+            ait2++;
+        }
+    }
+
+    // Equations
+    EXPECT_EQ(agent->cinfo->equation.size(), agent2->cinfo->equation.size());
+    if (agent->cinfo->equation.size() == agent2->cinfo->equation.size())
+    {
+        for (size_t i=0; i<agent->cinfo->equation.size(); ++i)
+        {
+            EXPECT_EQ(agent->cinfo->equation[i].name, agent2->cinfo->equation[i].name);
+        }
+    }
 
 }
 
