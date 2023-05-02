@@ -5196,17 +5196,6 @@ union as a ::devicestruc.
             size_t memoryusage()
             {
                 size_t total = sizeof(cosmosstruc);
-                for (size_t i=0; i<jmap.size(); ++i)
-                {
-                    for (size_t j=0; j<jmap[i].size(); ++j)
-                    {
-                        total += jmap[i][j].memoryusage();
-                    }
-                }
-                for (auto &entry : ujmap)
-                {
-                    total += entry.second.memoryusage();
-                }
                 for (size_t i=0; i<emap.size(); ++i)
                 {
                     for (size_t j=0; j<emap[i].size(); ++j)
@@ -5269,17 +5258,6 @@ union as a ::devicestruc.
 
             void shrinkusage()
             {
-                for (size_t i=0; i<jmap.size(); ++i)
-                {
-                    for (size_t j=0; j<jmap[i].size(); ++j)
-                    {
-                        jmap[i][j].shrinkusage();
-                    }
-                }
-                for (auto &entry : ujmap)
-                {
-                    entry.second.shrinkusage();
-                }
                 for (size_t i=0; i<emap.size(); ++i)
                 {
                     for (size_t j=0; j<emap[i].size(); ++j)
@@ -5344,14 +5322,6 @@ union as a ::devicestruc.
 
             //! Timestamp for last change to data
             double timestamp = 0.;
-
-            //! Whether JSON map has been created.
-            uint16_t jmapped = 0;
-            uint16_t ujmapped = 0;
-
-            //! JSON Namespace Map matrix. first entry hash, second is items with that hash
-            vector<vector<jsonentry> > jmap; // depricate me!
-            std::unordered_map<string, jsonentry> ujmap;
 
             //! JSON Equation Map matrix.
             vector<vector<jsonequation> > emap; // depricate me?
@@ -5643,6 +5613,37 @@ union as a ::devicestruc.
                 return *get_pointer<T>(s);
             }
 
+            //! Tag dispatching struct for use with get_value() to handle data in the Namespace of type vector<T*> (e.g., vector<devicestruc*>)
+            static struct VectorOfPtrsTag{} vector_of_ptrs;
+
+            /**
+             * @brief Get value for data in the Namespace of type vector<T*>
+             * 
+             * @tparam T Element in the vector
+             * @param s String name in the Namespace
+             * @return vector<T> A vector of dereferenced pointers
+             */
+            template<class T>
+            vector<T> get_value(const string& s, VectorOfPtrsTag)	{
+                // change to static null object?
+                vector<T> dummy;
+                const auto it = names.find(s);
+                if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return dummy;	}
+                vector<T*>* vec_of_ptr = get_pointer<vector<T*>>(s);
+                if (vec_of_ptr == nullptr) { return dummy; };
+                dummy.reserve(vec_of_ptr->size());
+                std::transform(std::begin(*vec_of_ptr), std::end(*vec_of_ptr),
+                    std::back_inserter(dummy),[](T* item){return *item;});
+                return dummy;
+            }
+
+            /**
+             * @brief Get the value of a pointer type in Namespace 2.0
+             * 
+             * @tparam T The datatype of the associated data is T*
+             * @param s String name to search in Namespace 2.0
+             * @return T Dereferenced pointer value
+             */
             template<class T>
             T get_ivalue(const string& s) const	{
                 // change to static null object?
@@ -6378,7 +6379,7 @@ union as a ::devicestruc.
                     } else if (type == "vector<devicestruc>") {
                         json = json11::Json::object { { s, get_value<vector<devicestruc> >(s) } };
                     } else if (type == "vector<devicestruc*>") {
-                        json = json11::Json::object { { s, get_ivalue<vector<devicestruc> > (s) } };
+                        json = json11::Json::object { { s, get_value<devicestruc> (s, vector_of_ptrs) } };
                     } else if (type == "vector<equationstruc>") {
                         json = json11::Json::object { { s, get_value<vector<equationstruc> >(s) } };
                     } else if (type == "vector<sim_param>") {
@@ -6534,8 +6535,6 @@ union as a ::devicestruc.
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "timestamp" , timestamp },
-                    { "jmapped" , jmapped },
-                    { "ujmapped" , ujmapped },
                     { "unit" , unit },
                     { "equation" , equation },
                     { "node" , node },
@@ -6562,8 +6561,6 @@ union as a ::devicestruc.
                 json11::Json p = json11::Json::parse(s,error);
                 if(error.empty()) {
                     if (!p["timestamp"].is_null()) { timestamp = p["timestamp"].number_value(); }
-                    if (!p["jmapped"].is_null()) { jmapped = p["jmapped"].number_value(); }
-                    if (!p["ujmapped"].is_null()) { ujmapped = p["ujmapped"].number_value(); }
                     for (size_t i = 0; i < unit.size(); ++i) {
                         for (size_t j = 0; j < unit[i].size(); ++j) {
                             if (!p["unit"][i][j].is_null()) { unit[i][j].from_json(p["unit"][i][j].dump()); }

@@ -98,7 +98,8 @@ int main(int argc, char *argv[])
     {
         ibuf = (char *)calloc(1,fstat.st_size+1);
         fgets(ibuf,fstat.st_size,fdes);
-        json_parse(ibuf, agent->cinfo);
+        // TODO: fix
+        // json_parse(ibuf, agent->cinfo);
         free(ibuf);
         mjdnow = agent->cinfo->node.loc.pos.eci.utc;
     }

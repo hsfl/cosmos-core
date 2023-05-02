@@ -159,8 +159,6 @@ namespace Cosmos
             ~Agent();
 
             //! State of Health element vector
-            vector<jsonentry*> sohtable;
-            vector<jsonentry*> fullsohtable;
 			vector<string> sohstring;
 
             enum class State : uint16_t {
@@ -319,8 +317,6 @@ namespace Cosmos
             int32_t last_error();
             int32_t set_sohstring(string list);
             int32_t set_sohstring(vector<string> list);
-            int32_t set_sohstring2(vector<string> list);
-            int32_t set_fullsohstring(string list);
             cosmosstruc *get_cosmosstruc();
             void get_ip(char* buffer, size_t buflen);
             void get_ip_list(uint16_t port);
@@ -371,8 +367,6 @@ namespace Cosmos
 
             int32_t set_value(string jsonname, double value);
             double get_value(string jsonname);
-            int32_t get_device_values(string device, vector<string>props, string& json);
-            int32_t get_values(vector<string> names, string& json);
 
             double get_timeStart();
 
@@ -566,18 +560,14 @@ namespace Cosmos
             static int32_t req_run(string &request, string &response, Agent *agent);
             static int32_t req_status(string &request, string &response, Agent *agent);
             static int32_t req_debug_level(string &request, string &response, Agent *agent);
-            static int32_t req_getvalue(string &request, string &response, Agent *agent);
             static int32_t req_get_value(string &request, string &response, Agent *agent);
             static int32_t req_get_state(string &request, string &response, Agent *agent);
             static int32_t req_get_time(string &request, string &response, Agent *agent);
-            static int32_t req_setvalue(string &request, string &response, Agent *agent);
             static int32_t req_set_value(string &request, string &response, Agent *agent);
-            static int32_t req_listnames(string &request, string &response, Agent *agent);
             static int32_t req_heartbeat(string &request, string &response, Agent *agent);
             static int32_t req_postsoh(string &request, string &response, Agent *agent);
             static int32_t req_utc(string &request, string &response, Agent *agent);
             static int32_t req_soh(string &, string &response, Agent *agent);
-            static int32_t req_fullsoh(string &, string &response, Agent *agent);
             static int32_t req_jsondump(string &, string &response, Agent *agent);
             static int32_t req_all_names_types(string &, string &response, Agent *agent);
             static int32_t req_command(string &, string &response, Agent *agent);

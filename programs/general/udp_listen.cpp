@@ -124,7 +124,8 @@ int main(int argc, char *argv[])
     agent = new Agent("nps", "udp");
 
 	// Create default logstring
-    strcpy(logstring,json_of_soh(jjstring, agent->cinfo));
+    // TODO: fix
+    // strcpy(logstring,json_of_soh(jjstring, agent->cinfo));
 	j = 0;
 	tlen = strlen(logstring);
 	for (i=1; i<tlen-j; ++i)
@@ -257,8 +258,9 @@ int main(int argc, char *argv[])
 			}
 
 			// Broadcast it
-            agent->post(Agent::AgentMessage::SOH, json_of_list(myjstring, logstring, agent->cinfo));
-            log_write(agent->cinfo->node.name,DATA_LOG_TYPE_SOH,floor(agent->cinfo->node.loc.utc), json_of_list(jjstring,logstring, agent->cinfo));
+            // TODO: fix
+            // agent->post(Agent::AgentMessage::SOH, json_of_list(myjstring, logstring, agent->cinfo));
+            // log_write(agent->cinfo->node.name,DATA_LOG_TYPE_SOH,floor(agent->cinfo->node.loc.utc), json_of_list(jjstring,logstring, agent->cinfo));
 
         } // End If: packet reception / parse / idle cycle
 

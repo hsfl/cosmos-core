@@ -78,10 +78,10 @@ int main(int argc, char **argv)
     beatstruc agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
     //cout<<"["<<node_name<<":"<<agent_name<<"] looking for ["<<node_name<<":"<<agent_target<<"]..."<<endl;
 
-    if(agent->get_debug_level()>1)	{
-        cout<<"A agent "<<agent_target<<" beatstruc:"<<endl;
-        cout<<agent_target_heartbeat;
-    }
+    // if(agent->get_debug_level()>1)	{
+    //     cout<<"A agent "<<agent_target<<" beatstruc:"<<endl;
+    //     cout<<agent_target_heartbeat;
+    // }
 
     string response; // Variable to store agent_002's response
 
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
     //agent->set_sohstring2({});	// works!
     //agent->set_sohstring2({"Short UTC"});		// works!
     //agent->set_sohstring2({"A_NAME_NOT_IN_NAMESPACE"});	// works!
-    agent->set_sohstring2({"Short UTC","Longest Ever UTC","A_NAME_NOT_IN_NAMESPACE","devspec"});
+    // agent->set_sohstring2({"Short UTC","Longest Ever UTC","A_NAME_NOT_IN_NAMESPACE","devspec"});
 
     // testing longitude/latitude/altitude (ie: geodetic) conversion to eci
     Convert::locstruc testtarget;

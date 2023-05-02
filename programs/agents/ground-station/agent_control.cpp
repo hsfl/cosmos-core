@@ -691,7 +691,8 @@ void monitor()
         {
             cdata_mutex.lock();
             // Extract telemetry
-            json_parse(mess.adata, agent->cinfo);
+            // TODO: fix
+            // json_parse(mess.adata, agent->cinfo);
 
             // Extract agent information
             for (size_t i=0; i<myantennas.size(); ++i)

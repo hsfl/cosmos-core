@@ -173,13 +173,13 @@ void JsonlibUTest::make_devices()
     // aliases.ini
     iretn = json_addentry("alias_node_type", "(\"node_type\"+\"node_type\")", agent->cinfo);
     EXPECT_GE(iretn, 0);
-
-    // Update all physical quantities
-    node_calc(agent->cinfo);
     // rebase_node(agent->cinfo);
 
     // Fix pointers
     json_updatecosmosstruc(agent->cinfo);
+
+    // Update all physical quantities
+    node_calc(agent->cinfo);
 
     // Dump ini files
     json_dump_node(agent->cinfo);

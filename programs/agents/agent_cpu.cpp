@@ -171,6 +171,7 @@ int main(int argc, char *argv[])
 
     iretn = get_sensors(temps);
     size_t tcount = 0;
+    vector<string> sohstring;
     for (auto const &entry : temps)
     {
         string name = "telem_" + to_unsigned(tcount, 2, true);
@@ -181,19 +182,25 @@ int main(int argc, char *argv[])
         agent->cinfo->devspec.telem[didx].name = entry.first;
         agent->cinfo->devspec.telem[didx].type = TelemTypeValue["vfloat"];
         agent->cinfo->devspec.telem[didx].vfloat = entry.second;
-        sohstring += ",\"device_telem_utc_" + to_unsigned(didx, 3, true) + "\"";
-        sohstring += ",\"device_telem_name_" + to_unsigned(didx, 3, true) + "\"";
-        sohstring += ",\"device_telem_type_" + to_unsigned(didx, 3, true) + "\"";
-        sohstring += ",\"device_telem_vfloat_" + to_unsigned(didx, 3, true) + "\"";
+        // TODO: fix
+        // sohstring.push_back("device_telem_utc_" + to_unsigned(didx, 3, true));
+        // sohstring += ",\"device_telem_utc_" + to_unsigned(didx, 3, true) + "\"";
+        // sohstring += ",\"device_telem_name_" + to_unsigned(didx, 3, true) + "\"";
+        // sohstring += ",\"device_telem_type_" + to_unsigned(didx, 3, true) + "\"";
+        // sohstring += ",\"device_telem_vfloat_" + to_unsigned(didx, 3, true) + "\"";
         ++tcount;
     }
 
-    sohstring += "}";
+    // sohstring += "}";
     agent->set_sohstring(sohstring);
     json_updatecosmosstruc(agent->cinfo);
     printf("Memory: %s\n", json_memory_usage().c_str());
-
-    printf("SOH String: %s\n", sohstring.c_str());
+    printf("SOH String: ");
+    for (auto el : sohstring)
+    {
+        printf("%s, ", el.c_str());
+    }
+    printf("\n");
 
     //    json_dump_node(agent->cinfo);
 

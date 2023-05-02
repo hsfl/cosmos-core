@@ -25,7 +25,6 @@ foreach(file ${files})
 
 endforeach()
 
-target_link_libraries(agent_arduino CosmosAgent CosmosPhysics CosmosDeviceGeneral)
 target_link_libraries(agent_node CosmosAgent CosmosPhysics CosmosDeviceGeneral)
 target_link_libraries(agent_physics CosmosAgent CosmosPhysics CosmosDeviceGeneral)
 target_link_libraries(agent_transmitter CosmosAgent CosmosPhysics CosmosDeviceGeneral)

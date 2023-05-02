@@ -64,13 +64,10 @@ foreach(file ${files})
 
 endforeach()
 
-target_link_libraries(add_radio CosmosAgent CosmosNetwork CosmosSupport)
 target_link_libraries(agent_antenna CosmosAgent CosmosDeviceGeneral)
 target_link_libraries(agent_control CosmosAgent CosmosPhysics)
 target_link_libraries(agent_kpc9612p CosmosAgent CosmosDeviceGeneral)
-target_link_libraries(agent_radio CosmosAgent CosmosDeviceSerial CosmosDeviceGeneral)
 target_link_libraries(ax25_recv CosmosCad CosmosAgent CosmosDeviceSerial CosmosDeviceGeneral)
-target_link_libraries(ic9100 CosmosDeviceSerial CosmosAgent CosmosDeviceGeneral)
 target_link_libraries(kiss_recv CosmosString CosmosTime CosmosDeviceGeneral CosmosLog CosmosSlip)
 target_link_libraries(kiss_send CosmosDeviceGeneral CosmosSlip)
 target_link_libraries(kpc9612p_recv CosmosTime CosmosDeviceGeneral)

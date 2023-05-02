@@ -322,9 +322,10 @@ int main(int argc, char *argv[])
     cdthread = thread([=] { collect_data_loop(); });
 
     // Create default logstring
-    logstring = json_list_of_soh(agent->cinfo);
-    printf("===\nlogstring: %s\n===\n", logstring.c_str()); fflush(stdout);
-    json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
+    // TODO: fix
+    // logstring = json_list_of_soh(agent->cinfo);
+    // printf("===\nlogstring: %s\n===\n", logstring.c_str()); fflush(stdout);
+    // json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
 
     agent->set_sohstring(logstring);
 
@@ -429,7 +430,8 @@ int main(int argc, char *argv[])
             llogmjd = clogmjd;
             if (log_data_flag && agent->cinfo->node.utc != 0. && logstring.size())
             {
-                log_write(agent->cinfo->node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo));
+                // TODO: fix
+                // log_write(agent->cinfo->node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo));
 //                log_write(agent->cinfo->node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo), static_cast <string>("immediate"));
             }
         }
@@ -451,7 +453,8 @@ int main(int argc, char *argv[])
                 agent->cinfo->event[0] = events[k];
                 //                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
                 agent->cinfo->event[0].condition = agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text;
-                log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo));
+                // TODO: fix
+                // log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo));
             }
         }
 
@@ -806,7 +809,8 @@ int32_t request_set_logstring(string &request, string &, Agent *agent)
 {
     request.erase(0, request.find(" ")+1);
     logtable.clear();
-    json_table_of_list(logtable, request.c_str(), agent->cinfo);
+    // TODO: fix
+    // json_table_of_list(logtable, request.c_str(), agent->cinfo);
     return 0;
 }
 
@@ -888,7 +892,8 @@ void collect_data_loop() noexcept
         {
             if (mess.meta.type < Agent::AgentMessage::BINARY)
             {
-                json_parse(mess.adata, agent->cinfo);
+                // TODO: fix
+                // json_parse(mess.adata, agent->cinfo);
                 agent->cinfo->node.utc = currentmjd(0.);
 
                 for (devicestruc* device: agent->cinfo->device)
@@ -920,7 +925,8 @@ void move_and_compress_soh () {
 void move_and_compress_beacon () {
     string beacon_string;
     beacon_mutex.lock();
-    log_write(agent->cinfo->node.name, DATA_LOG_TYPE_BEACON, logdate_soh, json_of_beacon(beacon_string, agent->cinfo));
+    // TODO: fix
+    // log_write(agent->cinfo->node.name, DATA_LOG_TYPE_BEACON, logdate_soh, json_of_beacon(beacon_string, agent->cinfo));
     log_move_agent_temp(agent->getNode(), "beacon");
     beacon_mutex.unlock();
 }

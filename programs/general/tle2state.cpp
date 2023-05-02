@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     eci.utc = utc;
 
     string jsp;
-    json_out_ecipos(jsp, eci);
+    jsp = eci.to_json().dump();
 
     printf("%s\n", jsp.c_str());
 }

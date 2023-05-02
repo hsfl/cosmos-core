@@ -51,10 +51,6 @@ namespace Cosmos
             // double timestamp
             add_name("timestamp", &timestamp, "double");
 
-            // uint16_t jmapped
-            add_name("jmapped", &jmapped, "uint16_t");
-            add_name("ujmapped", &ujmapped, "uint16_t");
-
             // vector<vector<unitstruc>> unit
             add_name("unit", &unit, "vector<vector<unitstruc>>");
             for(size_t i = 0; i < unit.size(); ++i) {

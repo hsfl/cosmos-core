@@ -374,7 +374,8 @@ int main(int argc, char *argv[])
                         memcpy(&header[0], message.adata.data(), message.meta.jlength);
                         json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo);
                         json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo);
-                        json_parse(message.adata.c_str(), agent->cinfo);
+                        // TODO: fix
+                        // json_parse(message.adata.c_str(), agent->cinfo);
                     }
                     else
                     {

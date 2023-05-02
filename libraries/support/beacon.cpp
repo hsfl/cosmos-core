@@ -1229,26 +1229,25 @@ namespace Cosmos {
             case TypeId::ADCSStateBeacon:
                 {
                     // JIMNOTE: should not this be mjd to deci?
-                    json_out(Contents, "node_loc_pos_eci_utc", cinfo);
+                    // json_out(Contents, "node_loc_pos_eci_utc", cinfo);
 
-                    json_out(Contents, "node_loc_pos_eci_s", cinfo);
-                    json_out(Contents, "node_loc_pos_eci_v", cinfo);
+                    // json_out(Contents, "node_loc_pos_eci_s", cinfo);
+                    // json_out(Contents, "node_loc_pos_eci_v", cinfo);
 
-                    json_out(Contents, "node_loc_att_icrf_s", cinfo);
-                    json_out(Contents, "node_loc_att_icrf_v", cinfo);
+                    // json_out(Contents, "node_loc_att_icrf_s", cinfo);
+                    // json_out(Contents, "node_loc_att_icrf_v", cinfo);
                 }
                 break;
             case TypeId::ADCSORBITBeacon:
                 {
-                    json_out_1d(Contents, "tle_utc", 0, cinfo);
-                    json_out_1d(Contents, "tle_i", 0, cinfo);
-                    json_out_1d(Contents, "tle_e", 0, cinfo);
-                    json_out_1d(Contents, "tle_raan", 0, cinfo);
-                    json_out_1d(Contents, "tle_ap", 0, cinfo);
-                    json_out_1d(Contents, "tle_bstar", 0, cinfo);
-                    json_out_1d(Contents, "tle_mm", 0, cinfo);
-                    json_out_1d(Contents, "tle_ma", 0, cinfo);
-                    //json_out_1d(Contents, "tle_epoch", 0, cinfo);
+                    // json_out_1d(Contents, "tle_utc", 0, cinfo);
+                    // json_out_1d(Contents, "tle_i", 0, cinfo);
+                    // json_out_1d(Contents, "tle_e", 0, cinfo);
+                    // json_out_1d(Contents, "tle_raan", 0, cinfo);
+                    // json_out_1d(Contents, "tle_ap", 0, cinfo);
+                    // json_out_1d(Contents, "tle_bstar", 0, cinfo);
+                    // json_out_1d(Contents, "tle_mm", 0, cinfo);
+                    // json_out_1d(Contents, "tle_ma", 0, cinfo);
                 }
                 break;
             case TypeId::ADCSEXTRABeaconS:
@@ -1261,40 +1260,40 @@ namespace Cosmos {
                 {
                     // does this need mag utc?
                     // JIMNOTE double check the JSON output (vector or not?)
-                    json_out_1d(Contents, "device_mag_utc", 0, cinfo);
-                    json_out_1d(Contents, "device_mag_mag_x", 0, cinfo);
-                    json_out_1d(Contents, "device_mag_mag_y", 0, cinfo);
-                    json_out_1d(Contents, "device_mag_mag_z", 0, cinfo);
+                    // json_out_1d(Contents, "device_mag_utc", 0, cinfo);
+                    // json_out_1d(Contents, "device_mag_mag_x", 0, cinfo);
+                    // json_out_1d(Contents, "device_mag_mag_y", 0, cinfo);
+                    // json_out_1d(Contents, "device_mag_mag_z", 0, cinfo);
                 }
                 break;
             case TypeId::CPU1BeaconS:
                 {
-                    json_out_1d(Contents, "device_cpu_utc", 0, cinfo);
-                    json_out_1d(Contents, "device_cpu_load", 0, cinfo);
-                    json_out_1d(Contents, "device_cpu_gib", 0, cinfo);
-                    json_out_1d(Contents, "device_disk_gib", 0, cinfo);
+                    // json_out_1d(Contents, "device_cpu_utc", 0, cinfo);
+                    // json_out_1d(Contents, "device_cpu_load", 0, cinfo);
+                    // json_out_1d(Contents, "device_cpu_gib", 0, cinfo);
+                    // json_out_1d(Contents, "device_disk_gib", 0, cinfo);
                 }
                 break;
             case TypeId::CPU2BeaconS:
                 {
-                    json_out_1d(Contents, "device_cpu_utc", 0, cinfo);
-                    json_out_1d(Contents, "device_cpu_uptime", 0, cinfo);
-                    json_out_1d(Contents, "device_cpu_boot_count", 0, cinfo);
-                    json_out(Contents, "node_utcstart", cinfo);
+                    // json_out_1d(Contents, "device_cpu_utc", 0, cinfo);
+                    // json_out_1d(Contents, "device_cpu_uptime", 0, cinfo);
+                    // json_out_1d(Contents, "device_cpu_boot_count", 0, cinfo);
+                    // json_out(Contents, "node_utcstart", cinfo);
                 }
                 break;
             case TypeId::TimeBeaconS:
                 {
-                    json_out(Contents, "node_utc", cinfo);
-                    json_out(Contents, "node_utcstart", cinfo);
+                    // json_out(Contents, "node_utc", cinfo);
+                    // json_out(Contents, "node_utcstart", cinfo);
                 }
                 break;
             case TypeId::TsenBeaconS:
                 {
                     for (uint16_t i=0; i<std::min(static_cast<size_t>(6), cinfo->devspec.tsen.size()); ++i)
                     {
-                        json_out_1d(Contents, "device_tsen_utc", i, cinfo);
-                        json_out_1d(Contents, "device_tsen_temp", i, cinfo);
+                        // json_out_1d(Contents, "device_tsen_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_tsen_temp", i, cinfo);
                     }
                 }
                 break;
@@ -1304,10 +1303,10 @@ namespace Cosmos {
                     {
                         if (cinfo->devspec.cpu[i].name.find("eps") != string::npos)
                         {
-                            json_out_1d(Contents, "device_cpu_utc", i, cinfo);
-                            json_out_1d(Contents, "device_cpu_volt", i, cinfo);
-                            json_out_1d(Contents, "device_cpu_amp", i, cinfo);
-                            json_out_1d(Contents, "device_cpu_temp", i, cinfo);
+                            // json_out_1d(Contents, "device_cpu_utc", i, cinfo);
+                            // json_out_1d(Contents, "device_cpu_volt", i, cinfo);
+                            // json_out_1d(Contents, "device_cpu_amp", i, cinfo);
+                            // json_out_1d(Contents, "device_cpu_temp", i, cinfo);
                             break;
                         }
                     }
@@ -1317,10 +1316,10 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.bcreg.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_bcreg_utc", i, cinfo);
-                        json_out_1d(Contents, "device_bcreg_volt", i, cinfo);
-                        json_out_1d(Contents, "device_bcreg_amp", i, cinfo);
-                        json_out_1d(Contents, "device_bcreg_temp", i, cinfo);
+                        // json_out_1d(Contents, "device_bcreg_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_bcreg_volt", i, cinfo);
+                        // json_out_1d(Contents, "device_bcreg_amp", i, cinfo);
+                        // json_out_1d(Contents, "device_bcreg_temp", i, cinfo);
                     }
                 }
                 break;
@@ -1328,10 +1327,10 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.swch.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_swch_utc", i, cinfo);
-                        json_out_1d(Contents, "device_swch_volt", i, cinfo);
-                        json_out_1d(Contents, "device_swch_amp", i, cinfo);
-                        json_out_1d(Contents, "device_swch_temp", i, cinfo);
+                        // json_out_1d(Contents, "device_swch_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_swch_volt", i, cinfo);
+                        // json_out_1d(Contents, "device_swch_amp", i, cinfo);
+                        // json_out_1d(Contents, "device_swch_temp", i, cinfo);
                     }
                 }
                 break;
@@ -1339,95 +1338,95 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.batt.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_batt_utc", i, cinfo);
-                        json_out_1d(Contents, "device_batt_volt", i, cinfo);
-                        json_out_1d(Contents, "device_batt_amp", i, cinfo);
-                        json_out_1d(Contents, "device_batt_temp", i, cinfo);
+                        // json_out_1d(Contents, "device_batt_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_batt_volt", i, cinfo);
+                        // json_out_1d(Contents, "device_batt_amp", i, cinfo);
+                        // json_out_1d(Contents, "device_batt_temp", i, cinfo);
                     }
                 }
                 break;
             case TypeId::CPUBeacon:
                 {
                     //json_out(Contents, "node_utc", cinfo);
-                    json_out(Contents, "node_utcstart", cinfo);
-                    for (uint16_t i=0; i<cinfo->devspec.cpu.size(); ++i)
-                    {
-                        json_out_1d(Contents, "device_cpu_utc", i, cinfo);
-                        json_out_1d(Contents, "device_cpu_uptime", i, cinfo);
-                        json_out_1d(Contents, "device_cpu_boot_count", i, cinfo);
-                        json_out_1d(Contents, "device_cpu_load", i, cinfo);
-                        json_out_1d(Contents, "device_cpu_gib", i, cinfo);
-                        json_out_1d(Contents, "device_cpu_maxgib", i, cinfo);
-                        json_out_1d(Contents, "device_cpu_storage", i, cinfo);
-                        json_out_1d(Contents, "device_cpu_temp", i, cinfo);
-                    }
+                    // json_out(Contents, "node_utcstart", cinfo);
+                    // for (uint16_t i=0; i<cinfo->devspec.cpu.size(); ++i)
+                    // {
+                    //     json_out_1d(Contents, "device_cpu_utc", i, cinfo);
+                    //     json_out_1d(Contents, "device_cpu_uptime", i, cinfo);
+                    //     json_out_1d(Contents, "device_cpu_boot_count", i, cinfo);
+                    //     json_out_1d(Contents, "device_cpu_load", i, cinfo);
+                    //     json_out_1d(Contents, "device_cpu_gib", i, cinfo);
+                    //     json_out_1d(Contents, "device_cpu_maxgib", i, cinfo);
+                    //     json_out_1d(Contents, "device_cpu_storage", i, cinfo);
+                    //     json_out_1d(Contents, "device_cpu_temp", i, cinfo);
+                    // }
                 }
                 break;
             case TypeId::TelemBeacon:
                 {
-                    for (uint16_t i=0; i<cinfo->devspec.telem.size(); ++i)
-                    {
-                        json_out_1d(Contents, "device_telem_utc", i, cinfo);
-                        json_out_1d(Contents, "device_telem_name", i, cinfo);
-                        switch (cinfo->devspec.telem[i].vtype)
-                        {
-                        case JSON_TYPE_UINT8:
-                            {
-                                json_out_1d(Contents, "device_telem_vuint8", i, cinfo);
-                            }
-                            break;
-                        case JSON_TYPE_INT8:
-                            {
-                                json_out_1d(Contents, "device_telem_vint8", i, cinfo);
-                            }
-                            break;
-                        case JSON_TYPE_UINT16:
-                            {
-                                json_out_1d(Contents, "device_telem_vuint16", i, cinfo);
-                            }
-                            break;
-                        case JSON_TYPE_INT16:
-                            {
-                                json_out_1d(Contents, "device_telem_vint16", i, cinfo);
-                            }
-                            break;
-                        case JSON_TYPE_UINT32:
-                            {
-                                json_out_1d(Contents, "device_telem_vuint32", i, cinfo);
-                            }
-                            break;
-                        case JSON_TYPE_INT32:
-                            {
-                                json_out_1d(Contents, "device_telem_vint32", i, cinfo);
-                            }
-                            break;
-                        case JSON_TYPE_FLOAT:
-                            {
-                                json_out_1d(Contents, "device_telem_vfloat", i, cinfo);
-                            }
-                            break;
-                        case JSON_TYPE_DOUBLE:
-                            {
-                                json_out_1d(Contents, "device_telem_vdouble", i, cinfo);
-                            }
-                            break;
-                        case JSON_TYPE_STRING:
-                            {
-                                json_out_1d(Contents, "device_telem_vstring", i, cinfo);
-                            }
-                            break;
-                        default:
-                            return GENERAL_ERROR_MISMATCH;
-                        }
-                    }
+                    // for (uint16_t i=0; i<cinfo->devspec.telem.size(); ++i)
+                    // {
+                    //     json_out_1d(Contents, "device_telem_utc", i, cinfo);
+                    //     json_out_1d(Contents, "device_telem_name", i, cinfo);
+                    //     switch (cinfo->devspec.telem[i].vtype)
+                    //     {
+                    //     case JSON_TYPE_UINT8:
+                    //         {
+                    //             json_out_1d(Contents, "device_telem_vuint8", i, cinfo);
+                    //         }
+                    //         break;
+                    //     case JSON_TYPE_INT8:
+                    //         {
+                    //             json_out_1d(Contents, "device_telem_vint8", i, cinfo);
+                    //         }
+                    //         break;
+                    //     case JSON_TYPE_UINT16:
+                    //         {
+                    //             json_out_1d(Contents, "device_telem_vuint16", i, cinfo);
+                    //         }
+                    //         break;
+                    //     case JSON_TYPE_INT16:
+                    //         {
+                    //             json_out_1d(Contents, "device_telem_vint16", i, cinfo);
+                    //         }
+                    //         break;
+                    //     case JSON_TYPE_UINT32:
+                    //         {
+                    //             json_out_1d(Contents, "device_telem_vuint32", i, cinfo);
+                    //         }
+                    //         break;
+                    //     case JSON_TYPE_INT32:
+                    //         {
+                    //             json_out_1d(Contents, "device_telem_vint32", i, cinfo);
+                    //         }
+                    //         break;
+                    //     case JSON_TYPE_FLOAT:
+                    //         {
+                    //             json_out_1d(Contents, "device_telem_vfloat", i, cinfo);
+                    //         }
+                    //         break;
+                    //     case JSON_TYPE_DOUBLE:
+                    //         {
+                    //             json_out_1d(Contents, "device_telem_vdouble", i, cinfo);
+                    //         }
+                    //         break;
+                    //     case JSON_TYPE_STRING:
+                    //         {
+                    //             json_out_1d(Contents, "device_telem_vstring", i, cinfo);
+                    //         }
+                    //         break;
+                    //     default:
+                    //         return GENERAL_ERROR_MISMATCH;
+                    //     }
+                    // }
                 }
                 break;
             case TypeId::TsenBeacon:
                 {
                     for (uint16_t i=0; i<cinfo->devspec.tsen.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_tsen_utc", i, cinfo);
-                        json_out_1d(Contents, "device_tsen_temp", i, cinfo);
+                        // json_out_1d(Contents, "device_tsen_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_tsen_temp", i, cinfo);
                     }
                 }
                 break;
@@ -1435,11 +1434,11 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.swch.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_swch_utc", i, cinfo);
-                        json_out_1d(Contents, "device_swch_amp", i, cinfo);
-                        json_out_1d(Contents, "device_swch_volt", i, cinfo);
-                        json_out_1d(Contents, "device_swch_power", i, cinfo);
-                        json_out_1d(Contents, "device_swch_state", i, cinfo);
+                        // json_out_1d(Contents, "device_swch_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_swch_amp", i, cinfo);
+                        // json_out_1d(Contents, "device_swch_volt", i, cinfo);
+                        // json_out_1d(Contents, "device_swch_power", i, cinfo);
+                        // json_out_1d(Contents, "device_swch_state", i, cinfo);
                     }
                 }
                 break;
@@ -1447,14 +1446,14 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.bcreg.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_bcreg_utc", i, cinfo);
-                        json_out_1d(Contents, "device_bcreg_amp", i, cinfo);
-                        json_out_1d(Contents, "device_bcreg_volt", i, cinfo);
-                        json_out_1d(Contents, "device_bcreg_power", i, cinfo);
-                        json_out_1d(Contents, "device_bcreg_mpptin_amp", i, cinfo);
-                        json_out_1d(Contents, "device_bcreg_mpptin_volt", i, cinfo);
-                        json_out_1d(Contents, "device_bcreg_mpptout_amp", i, cinfo);
-                        json_out_1d(Contents, "device_bcreg_mpptout_volt", i, cinfo);
+                        // json_out_1d(Contents, "device_bcreg_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_bcreg_amp", i, cinfo);
+                        // json_out_1d(Contents, "device_bcreg_volt", i, cinfo);
+                        // json_out_1d(Contents, "device_bcreg_power", i, cinfo);
+                        // json_out_1d(Contents, "device_bcreg_mpptin_amp", i, cinfo);
+                        // json_out_1d(Contents, "device_bcreg_mpptin_volt", i, cinfo);
+                        // json_out_1d(Contents, "device_bcreg_mpptout_amp", i, cinfo);
+                        // json_out_1d(Contents, "device_bcreg_mpptout_volt", i, cinfo);
                     }
                 }
                 break;
@@ -1462,12 +1461,12 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.batt.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_batt_utc", i, cinfo);
-                        json_out_1d(Contents, "device_batt_amp", i, cinfo);
-                        json_out_1d(Contents, "device_batt_volt", i, cinfo);
-                        json_out_1d(Contents, "device_batt_power", i, cinfo);
-                        json_out_1d(Contents, "device_batt_temp", i, cinfo);
-                        json_out_1d(Contents, "device_batt_percentage", i, cinfo);
+                        // json_out_1d(Contents, "device_batt_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_batt_amp", i, cinfo);
+                        // json_out_1d(Contents, "device_batt_volt", i, cinfo);
+                        // json_out_1d(Contents, "device_batt_power", i, cinfo);
+                        // json_out_1d(Contents, "device_batt_temp", i, cinfo);
+                        // json_out_1d(Contents, "device_batt_percentage", i, cinfo);
                     }
                 }
                 break;
@@ -1475,10 +1474,10 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.mtr.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_mtr_utc", i, cinfo);
-                        json_out_1d(Contents, "device_mtr_name", i, cinfo);
-                        json_out_1d(Contents, "device_mtr_mom", i, cinfo);
-                        json_out_1d(Contents, "device_mtr_align", i, cinfo);
+                        // json_out_1d(Contents, "device_mtr_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_mtr_name", i, cinfo);
+                        // json_out_1d(Contents, "device_mtr_mom", i, cinfo);
+                        // json_out_1d(Contents, "device_mtr_align", i, cinfo);
                     }
                 }
                 break;
@@ -1486,9 +1485,9 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.gyro.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_gyro_utc", i, cinfo);
-                        json_out_1d(Contents, "device_gyro_name", i, cinfo);
-                        json_out_1d(Contents, "device_gyro_omega", i, cinfo);
+                        // json_out_1d(Contents, "device_gyro_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_gyro_name", i, cinfo);
+                        // json_out_1d(Contents, "device_gyro_omega", i, cinfo);
                     }
                 }
                 break;
@@ -1496,11 +1495,11 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.rw.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_rw_utc", i, cinfo);
-                        json_out_1d(Contents, "device_rw_name", i, cinfo);
-                        json_out_1d(Contents, "device_rw_amp", i, cinfo);
-                        json_out_1d(Contents, "device_rw_omg", i, cinfo);
-                        json_out_1d(Contents, "device_rw_romg", i, cinfo);
+                        // json_out_1d(Contents, "device_rw_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_rw_name", i, cinfo);
+                        // json_out_1d(Contents, "device_rw_amp", i, cinfo);
+                        // json_out_1d(Contents, "device_rw_omg", i, cinfo);
+                        // json_out_1d(Contents, "device_rw_romg", i, cinfo);
                     }
                 }
                 break;
@@ -1508,30 +1507,30 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.rxr.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_rxr_utc", i, cinfo);
-                        json_out_1d(Contents, "device_rxr_amp", i, cinfo);
-                        json_out_1d(Contents, "device_rxr_volt", i, cinfo);
-                        json_out_1d(Contents, "device_rxr_power", i, cinfo);
-                        json_out_1d(Contents, "device_rxr_temp", i, cinfo);
-                        json_out_1d(Contents, "device_rxr_pktsize", i, cinfo);
-                        json_out_1d(Contents, "device_rxr_byte_rate", i, cinfo);
-                        json_out_1d(Contents, "device_rxr_uptime", i, cinfo);
-                        json_out_1d(Contents, "device_rxr_bytesin", i, cinfo);
-                        json_out_1d(Contents, "device_rxr_powerin", i, cinfo);
-                        json_out_1d(Contents, "device_rxr_utcin", i, cinfo);
+                        // json_out_1d(Contents, "device_rxr_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_rxr_amp", i, cinfo);
+                        // json_out_1d(Contents, "device_rxr_volt", i, cinfo);
+                        // json_out_1d(Contents, "device_rxr_power", i, cinfo);
+                        // json_out_1d(Contents, "device_rxr_temp", i, cinfo);
+                        // json_out_1d(Contents, "device_rxr_pktsize", i, cinfo);
+                        // json_out_1d(Contents, "device_rxr_byte_rate", i, cinfo);
+                        // json_out_1d(Contents, "device_rxr_uptime", i, cinfo);
+                        // json_out_1d(Contents, "device_rxr_bytesin", i, cinfo);
+                        // json_out_1d(Contents, "device_rxr_powerin", i, cinfo);
+                        // json_out_1d(Contents, "device_rxr_utcin", i, cinfo);
                     }
                     for (uint16_t i=0; i<cinfo->devspec.txr.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_txr_amp", i, cinfo);
-                        json_out_1d(Contents, "device_txr_volt", i, cinfo);
-                        json_out_1d(Contents, "device_txr_power", i, cinfo);
-                        json_out_1d(Contents, "device_txr_temp", i, cinfo);
-                        json_out_1d(Contents, "device_txr_pktsize", i, cinfo);
-                        json_out_1d(Contents, "device_txr_byte_rate", i, cinfo);
-                        json_out_1d(Contents, "device_txr_uptime", i, cinfo);
-                        json_out_1d(Contents, "device_txr_bytesout", i, cinfo);
-                        json_out_1d(Contents, "device_txr_powerout", i, cinfo);
-                        json_out_1d(Contents, "device_txr_utcout", i, cinfo);
+                        // json_out_1d(Contents, "device_txr_amp", i, cinfo);
+                        // json_out_1d(Contents, "device_txr_volt", i, cinfo);
+                        // json_out_1d(Contents, "device_txr_power", i, cinfo);
+                        // json_out_1d(Contents, "device_txr_temp", i, cinfo);
+                        // json_out_1d(Contents, "device_txr_pktsize", i, cinfo);
+                        // json_out_1d(Contents, "device_txr_byte_rate", i, cinfo);
+                        // json_out_1d(Contents, "device_txr_uptime", i, cinfo);
+                        // json_out_1d(Contents, "device_txr_bytesout", i, cinfo);
+                        // json_out_1d(Contents, "device_txr_powerout", i, cinfo);
+                        // json_out_1d(Contents, "device_txr_utcout", i, cinfo);
                     }
                 }
                 break;
@@ -1539,13 +1538,13 @@ namespace Cosmos {
                 {
                     for (uint16_t i=0; i<cinfo->devspec.cam.size(); ++i)
                     {
-                        json_out_1d(Contents, "device_cam_utc", i, cinfo);
-                        json_out_1d(Contents, "device_cam_width", i, cinfo);
-                        json_out_1d(Contents, "device_cam_height", i, cinfo);
-                        json_out_1d(Contents, "device_cam_ttemp", i, cinfo);
-                        json_out_1d(Contents, "device_cam_temp", i, cinfo);
-                        json_out_1d(Contents, "device_cam_ltemp", i, cinfo);
-                        json_out_1d(Contents, "device_cam_lstep", i, cinfo);
+                        // json_out_1d(Contents, "device_cam_utc", i, cinfo);
+                        // json_out_1d(Contents, "device_cam_width", i, cinfo);
+                        // json_out_1d(Contents, "device_cam_height", i, cinfo);
+                        // json_out_1d(Contents, "device_cam_ttemp", i, cinfo);
+                        // json_out_1d(Contents, "device_cam_temp", i, cinfo);
+                        // json_out_1d(Contents, "device_cam_ltemp", i, cinfo);
+                        // json_out_1d(Contents, "device_cam_lstep", i, cinfo);
                     }
                 }
                 break;

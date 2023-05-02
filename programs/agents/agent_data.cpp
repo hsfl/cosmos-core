@@ -296,8 +296,8 @@ for (i=0; i<request.length(); ++i)
 	if (request[i] == '{')
 		break;
 }
-
-json_parse(&request[i], agent->cinfo); //cinfo->stat.agent.user
+// TODO: fix
+// json_parse(&request[i], agent->cinfo); //cinfo->stat.agent.user
 													// .event
 													// .utc ->date
 													// .node

@@ -276,20 +276,16 @@ namespace Cosmos
             add_request("run",req_run,"","request to transition this agent to run state");
             add_request("status",req_status,"","request the status of this agent");
             add_request("debug_level",req_debug_level,"{\"name1\",\"name2\",...}","get/set debug_level of agent");
-            add_request("getvalue",req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
             add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent (Namespace 2.0)");
             add_request("get_state",req_get_state,"[{] \"name1\",\"name2\",... [}]","get current state value(s) from agent");
             add_request("get_time",req_get_time,"","return the current time of the agent");
-            add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
             add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent (Namespace 2.0)");
-            add_request("listnames",req_listnames,"","list the Namespace of the agent");
             add_request("forward",req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
             add_request("echo",req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
             add_request("heartbeat",req_heartbeat,"","Post a hearbeat");
             add_request("postsoh",req_postsoh,"","Post a SOH");
             add_request("utc",req_utc,"","Get UTC as both Modified Julian Day and Unix Time");
             add_request("soh",req_soh,"","Get Limited SOH string");
-            add_request("fullsoh",req_fullsoh,"","Get Full SOH string");
             add_request("jsondump",req_jsondump,"","Dump JSON ini files to node folder");
             add_request("all_names_types",req_all_names_types,"","return text with all names and types in Namespace 2.0");
             add_request("command", req_command, "node radioout:radioin:repeat command arg1 arg2 arg3 ...",
@@ -330,9 +326,6 @@ namespace Cosmos
             add_request("run_command", req_run_command, "command parameters", "Run external command for immediate response");
             add_request("add_task", req_add_task, "command parameters", "Start external command as Task for output to file");
             add_request("test_channel", req_test_channel, "channel radio dest start step count bytes", "Run channel performance test");
-
-            // Set up Full SOH string
-            //            set_fullsohstring(json_list_of_fullsoh(cinfo));
 
             cinfo->agent[0].server = 1;
             cinfo->agent[0].stateflag = static_cast<uint16_t>(Agent::State::RUN);
@@ -714,52 +707,42 @@ namespace Cosmos
             return(slist);
         }
 
-        //! Set Limited SOH string
-        /*! Set the Limited SOH string to a JSON list of \ref jsonlib_namespace names. A
- * proper JSON list will begin and end with matched curly braces, be comma separated,
- * and have all strings in double quotes.
-    \param list Properly formatted list of JSON names.
-    \return 0, otherwise a negative error.
-*/
-        int32_t Agent::set_sohstring(string list) {
-            if (!sohtable.empty()) { sohtable.clear(); }
-            json_table_of_list(sohtable, list, cinfo);
+        /**
+         * @brief Set SOH string
+         * 
+         * Set the SOH string to a json list of \ref namespace 2.0 names.
+         * 
+         * @param list Json vector of strings
+         * @return int32_t 0, otherwise a negative error.
+        */
+        int32_t Agent::set_sohstring(string list)
+        {
+            if(list.size() == 0) return ErrorNumbers::COSMOS_GENERAL_ERROR_EMPTY;
+            string error;
+            json11::Json p = json11::Json::parse(list,error);
+            if(error.empty() && p.is_array()) {
+                vector<string> soh;
+                for (auto el : p.array_items())
+                {
+                    soh.push_back(el.dump());
+                }
+                return set_sohstring(soh);
+            }
             return 0;
         }
 
+        /**
+         * @brief Set SOH string
+         * 
+         * Set the SOH string to a json list of \ref namespace 2.0 names.
+         * 
+         * @param list Vector of strings of namespace 2.0 names.
+         * @return int32_t 0, otherwise a negative error.
+        */
         int32_t Agent::set_sohstring(vector<string> list)
         {
             if(list.size() == 0) return ErrorNumbers::COSMOS_GENERAL_ERROR_EMPTY;
-            string jsonlist = "{";
-            for(string name: list){
-                jsonlist += "\"" + name + "\",";
-            }
-            jsonlist.pop_back(); // remove last ","
-            jsonlist += "}";
-            return set_sohstring(jsonlist);
-        }
-
-        //! Set SOH string
-        /*! Set the SOH string to a json list of \ref namespace 2.0 names.
-        \param list Vector of strings of namespace 2.0 names.
-        \return 0, otherwise a negative error.
-    */
-        int32_t Agent::set_sohstring2(vector<string> list) {
             sohstring = list;
-
-            return 0;
-        }
-
-        //! Set Full SOH string
-        /*! Set the Full SOH string to a JSON list of \ref jsonlib_namespace names. A
- * proper JSON list will begin and end with matched curly braces, be comma separated,
- * and have all strings in double quotes.
-    \param list Properly formatted list of JSON names.
-    \return 0, otherwise a negative error.
-*/
-        int32_t Agent::set_fullsohstring(string list) {
-            if (!fullsohtable.empty()) { fullsohtable.clear(); }
-            json_table_of_list(fullsohtable, list, cinfo);
             return 0;
         }
 
@@ -1230,9 +1213,9 @@ namespace Cosmos
  */
         //        int32_t Agent::req_status(char*, char* output, Agent* agent)
         int32_t Agent::req_status(string &, string &output, Agent* agent) {
-            string jstring;
+            string jstring = agent->cinfo->get_json("agent[0].beat");
 
-            if (json_of_agent(jstring, agent->cinfo) != NULL)
+            if (jstring.size())
             {
                 //                strncpy(output, jstring.c_str(),agent->cinfo->agent[0].beat.bsz);
                 //                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
@@ -1263,31 +1246,6 @@ namespace Cosmos
             }
             output = std::to_string(agent->get_debug_level());
             return 0;
-        }
-
-        //! Built-in Get Internal Value request
-        /*! Returns the current value of the requested Name Space values. Names are expressed as a JSON object.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        int32_t Agent::req_getvalue(string &request, string &output, Agent* agent)
-        {
-            //	cout<<"req_getvalue(): incoming request          = <"<<request<<">"<<endl;
-            //	cout<<"req_getvalue(): incoming request.size()   = "<<request.size()<<endl;
-            //	cout<<"req_getvalue(): incoming request.length() = "<<request.length()<<endl;
-            string jstring;
-            if (json_of_list(jstring, request, agent->cinfo) != NULL) {
-                output = jstring;
-                if (output.length() > agent->cinfo->agent[0].beat.bsz) {
-                    output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-                }
-                //	cout<<"req_getvalue(): outgoing response         = <"<<output<<">"<<endl;
-                return 0;
-            } else {
-                return (JSON_ERROR_EOS);
-            }
         }
 
         int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
@@ -1355,20 +1313,6 @@ namespace Cosmos
             return 0;
         }
 
-        //! Built-in Set Internal Value request
-        /*! Sets the current value of the requested Name Space values. Names and values are expressed as a JSON object.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        int32_t Agent::req_setvalue(string &request, string &output, Agent* agent) {
-            int32_t iretn = 0;
-            iretn = json_parse(request, agent->cinfo);
-            output = std::to_string(iretn);
-            return(iretn);
-        }
-
         /**
  * @brief Agent::req_set_value (Namespace 2.0)
  * @param request
@@ -1387,20 +1331,6 @@ namespace Cosmos
             // set the value from json string
             agent->cinfo->set_json(request);
             cout<<"req_set_value():outgoing response         = <"<<response<<">"<<endl;
-            return 0;
-        }
-
-        //! Built-in List Name Space Names request
-        /*! Returns a list of all names in the JSON Name Space.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_listnames(char *, char* output, Agent* agent)
-        int32_t Agent::req_listnames(string &, string &output, Agent* agent) {
-            output = json_list_of_all(agent->cinfo);
-            if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
             return 0;
         }
 
@@ -1436,37 +1366,23 @@ namespace Cosmos
         }
 
         int32_t Agent::req_soh(string &, string &response, Agent *agent) {
-            // Return Namespace 1.0 soh
-            if(!agent->sohtable.empty()) {
-                string rjstring;
-                response = json_of_table(rjstring, agent->sohtable, agent->cinfo);
-            }
-            // Return Namespace 2.0 soh
-            else {
-                string jsonlist = "{";
-                // Iterate through list of names, get json for each name if it's in Namespace 2.0
-                for(string name: agent->sohstring) {
-                    string jsonname = agent->cinfo->get_json(name);
-                    if(jsonname.size() > 1) {
-                        // Trim beginning and ending curly braces
-                        jsonname = jsonname.substr(1, jsonname.size()-2);
-                        jsonlist += jsonname + ",";
-                    }
+            string jsonlist = "{";
+            // Iterate through list of names, get json for each name if it's in Namespace 2.0
+            for(string name: agent->sohstring) {
+                string jsonname = agent->cinfo->get_json(name);
+                if(jsonname.size() > 1) {
+                    // Trim beginning and ending curly braces
+                    jsonname = jsonname.substr(1, jsonname.size()-2);
+                    jsonlist += jsonname + ",";
                 }
-                if(jsonlist.size() > 1) {
-                    jsonlist.pop_back(); // remove last ","
-                    jsonlist += "}";
-                } else {
-                    jsonlist = "";
-                }
-                response = jsonlist;
             }
-            return 0;
-        }
-
-        int32_t Agent::req_fullsoh(string &, string &response, Agent *agent) {
-            string rjstring;
-            response = json_of_table(rjstring, agent->fullsohtable, agent->cinfo);
+            if(jsonlist.size() > 1) {
+                jsonlist.pop_back(); // remove last ","
+                jsonlist += "}";
+            } else {
+                jsonlist = "";
+            }
+            response = jsonlist;
             return 0;
         }
 
@@ -2904,7 +2820,8 @@ namespace Cosmos
         int32_t Agent::post_soh() {
             int32_t iretn = 0;
             cinfo->agent[0].beat.utc = currentmjd(0.);
-            iretn = post(AgentMessage::SOH, json_of_table(hbjstring, sohtable, (cosmosstruc *)cinfo));
+            // TODO: fix
+            // iretn = post(AgentMessage::SOH, json_of_table(hbjstring, sohtable, (cosmosstruc *)cinfo));
             return iretn;
         }
 
@@ -3285,7 +3202,8 @@ namespace Cosmos
 
             if (iretn >= 0 && iretn < static_cast <int32_t>(Agent::AgentMessage::BINARY))
             {
-                json_parse(message.adata, cinfo);
+                // TODO: fix
+                // json_parse(message.adata, cinfo);
                 return iretn;
             }
 
@@ -3688,67 +3606,14 @@ acquired.
             if(jsonname.length() == 0) {
                 return ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
             }
-            jsonentry* jentry = json_entry_of(jsonname, cinfo);
-            return json_set_number(value, jentry, cinfo);
+            cinfo->set_value(jsonname, value);
+            return 0;
 
         }
 
         double Agent::get_value(string jsonname)
         {
             return json_get_double(jsonname, cinfo);
-        }
-
-        /**
-     * @brief Agent::get_device_values
-     * @param device device name or piece name
-     * @param props property names
-     * @param json json string of device values {"name1": value ,"name2": value2}
-     * @return status (negative on error)
-     */
-        int32_t Agent::get_device_values(string device, vector<string> props, string &json)
-        {
-            if(props.size() == 0) return 0;
-            int32_t pidx = json_findpiece(cinfo, device);
-            if(pidx < 0 ) {
-                return pidx;
-            }
-            int32_t cindex = cinfo->pieces[pidx].cidx;
-            int32_t didx = cinfo->device[cindex]->didx;
-            if(didx < 0) {
-                return didx;
-            }
-
-            uint16_t type = cinfo->device[cindex]->type;
-            string devtype = device_type_name(type);
-            // check if property exists in device
-
-            char dindex[4];
-            sprintf(dindex, "%03u", didx);
-            string name;
-            vector<string> names;
-            for(string p: props){
-                name = "device_" + devtype+"_"+p + "_" + string(dindex);
-                if(!device_has_property(type, p) && json_entry_of(name, cinfo) == nullptr){
-                    return ErrorNumbers::COSMOS_GENERAL_ERROR_NAME;
-                }
-                names.push_back(name);
-            }
-            return get_values(names, json);
-        }
-
-
-        int32_t Agent::get_values(vector<string> names, string &json)
-        {
-            if(names.size() == 0) return 0;
-            string jsonlist = "{";
-            for(string p: names) {
-                jsonlist += "\"" + p + "\",";
-            }
-            jsonlist.pop_back();
-            jsonlist+= "}";
-
-            int32_t status = req_getvalue(jsonlist, json, this);
-            return status;
         }
 
         int32_t Agent::init_channels(uint32_t verification)

@@ -191,26 +191,28 @@ int main(int argc, char *argv[])
 // hijack agent_calc to demonstrate namespace 2.0
 
 	// verify the counts
-		size_t n1 = 0;
-    	for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i) {
-    		for (uint16_t j=0; j<agent->cinfo->jmap[i].size(); ++j) {
-				n1++;
-			}
-		}
-	cout<<"There were "<<n1<<" entries in namespace 1.0 and "<<agent->cinfo->jmapped<<" is the value of jmapped."<<endl;
+    // TODO: fix
+	// 	size_t n1 = 0;
+    // 	for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i) {
+    // 		for (uint16_t j=0; j<agent->cinfo->jmap[i].size(); ++j) {
+	// 			n1++;
+	// 		}
+	// 	}
+	// cout<<"There were "<<n1<<" entries in namespace 1.0 and "<<agent->cinfo->jmapped<<" is the value of jmapped."<<endl;
 
-	cout<<"\nWould you like to see the names from Namespace 1.0? (y/n) : ";
+	// cout<<"\nWould you like to see the names from Namespace 1.0? (y/n) : ";
 	char see;
 	cin>>see;
-	if(see == 'Y' || see == 'y')	{
-		cout<<endl;
-		// printout all namespace 1.0 names
-    	for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i) {
-    		for (uint16_t j=0; j<agent->cinfo->jmap[i].size(); ++j) {
-           		cout << "jmap[" << i << "]["<<j<<"] :\t" << agent->cinfo->jmap[i][j].name << endl;
-			}
-		}
-	}	
+    // TODO: fix
+	// if(see == 'Y' || see == 'y')	{
+	// 	cout<<endl;
+	// 	// printout all namespace 1.0 names
+    // 	for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i) {
+    // 		for (uint16_t j=0; j<agent->cinfo->jmap[i].size(); ++j) {
+    //        		cout << "jmap[" << i << "]["<<j<<"] :\t" << agent->cinfo->jmap[i][j].name << endl;
+	// 		}
+	// 	}
+	// }	
 
 /*	old namespace 1.0 way of getting values with json_out(..)
     cout << agent->cinfo->node.name << endl;

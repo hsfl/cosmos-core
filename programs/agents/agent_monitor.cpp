@@ -208,9 +208,10 @@ int main(int argc, char *argv[])
         exit (iretn);
 
     // Create default logstring
-    logstring = json_list_of_soh(agent->cinfo);
-    printf("logstring: %s\n", logstring.c_str());
-    json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
+    // TODO: fix
+    // logstring = json_list_of_soh(agent->cinfo);
+    // printf("logstring: %s\n", logstring.c_str());
+    // json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
     //	agent_set_sohstring(agent->cinfo, logstring.c_str());
 
     load_dictionary(eventdict, agent->cinfo, (const char *)"events.dict");
@@ -268,7 +269,8 @@ int main(int argc, char *argv[])
         {
             loc_update(&agent->cinfo->node.loc);
             update_target(agent->cinfo);
-            agent->post(Agent::AgentMessage::SOH, json_of_table(myjstring, logtable, agent->cinfo));
+            // TODO: fix
+            // agent->post(Agent::AgentMessage::SOH, json_of_table(myjstring, logtable, agent->cinfo));
             calc_events(eventdict, agent->cinfo, events);
             for (uint32_t k=0; k<events.size(); ++k)
             {
@@ -277,7 +279,8 @@ int main(int argc, char *argv[])
                 agent->cinfo->event[0] = events[k];
 //                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
                 agent->cinfo->event[0].condition = agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text;
-                log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo));
+                // TODO: fix
+                // log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo));
             }
         }
 
@@ -287,7 +290,8 @@ int main(int argc, char *argv[])
             lmjd = cmjd;
             if (agent->cinfo->node.utc != 0. && logstring.size())
             {
-                log_write(agent->cinfo->node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo));
+                // TODO: fix
+                // log_write(agent->cinfo->node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo));
             }
         }
 
@@ -511,7 +515,8 @@ int32_t request_set_logstring(string &request, string &response, Agent *agent)
 {
     logstring = &request[strlen("set_logstring")+1];
     logtable.clear();
-    json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
+    // TODO: fix
+    // json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
     return 0;
 }
 
@@ -555,14 +560,15 @@ void print_command()
 {
     string jsp;
 
-    json_out(jsp,(char*)"event_utc", agent->cinfo);
-    json_out(jsp,(char*)"event_utcexec", agent->cinfo);
-    json_out(jsp,(char*)"event_name", agent->cinfo);
-    json_out(jsp,(char*)"event_type", agent->cinfo);
-    json_out(jsp,(char*)"event_flag", agent->cinfo);
-    json_out(jsp,(char*)"event_data", agent->cinfo);
-    json_out(jsp,(char*)"event_condition", agent->cinfo);
-    cout<<"<"<<jsp<<">"<<endl;
+    // TODO: fix
+    // json_out(jsp,(char*)"event_utc", agent->cinfo);
+    // json_out(jsp,(char*)"event_utcexec", agent->cinfo);
+    // json_out(jsp,(char*)"event_name", agent->cinfo);
+    // json_out(jsp,(char*)"event_type", agent->cinfo);
+    // json_out(jsp,(char*)"event_flag", agent->cinfo);
+    // json_out(jsp,(char*)"event_data", agent->cinfo);
+    // json_out(jsp,(char*)"event_condition", agent->cinfo);
+    // cout<<"<"<<jsp<<">"<<endl;
 
     return;
 }

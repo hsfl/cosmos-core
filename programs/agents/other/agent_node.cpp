@@ -163,7 +163,8 @@ int main(int argc, char *argv[])
     if (loadmjd(lastday) == 0. && agent->cinfo->node.type == NODE_TYPE_GROUNDSTATION)
 	{
         agent->cinfo->node.loc.utc = currentmjd(0.);
-        cache[3].telem.push_back(json_of_list(myjstring,(char *)"{\"node_utc\",\"node_loc_pos_geod\",\"node_loc_att_topo\",\"node_powgen\",\"node_powuse\",\"node_battlev\"", agent->cinfo));
+        // TODO: fix
+        // cache[3].telem.push_back(json_of_list(myjstring,(char *)"{\"node_utc\",\"node_loc_pos_geod\",\"node_loc_att_topo\",\"node_powgen\",\"node_powuse\",\"node_battlev\"", agent->cinfo));
 	}
 
 	printf("Loaded day %f\n",lastday);
@@ -181,7 +182,8 @@ int main(int argc, char *argv[])
 	printf("Loaded Ephemeris\n");
 
 	// Start performing the body of the agent
-    json_parse((char *)(cache[3].telem[cache[3].telem.size()-1].c_str()), agent->cinfo);
+    // TODO: fix
+    // json_parse((char *)(cache[3].telem[cache[3].telem.size()-1].c_str()), agent->cinfo);
 //    loc_update(&agent->cinfo->node.loc);
 
     switch (agent->cinfo->node.type)
@@ -239,7 +241,8 @@ int main(int argc, char *argv[])
 			break;
 		}
 //		agent->post(Agent::AgentMessage::SOH, json_of_list(myjstring, agent->cinfo->agent[0].sohstring,cinfo));
-        agent->post(Agent::AgentMessage::SOH, json_of_table(myjstring, agent->sohtable,  agent->cinfo));
+        // TODO: fix
+        // agent->post(Agent::AgentMessage::SOH, json_of_table(myjstring, agent->sohtable,  agent->cinfo));
 		sleept = (int)((nextmjd-currentmjd(0.))*86400000000.);
 		if (sleept < 0) sleept = 0;
 		COSMOS_USLEEP(sleept);
@@ -296,7 +299,8 @@ void loadephemeris()
 	}
 
 	// Cache[j] holds most recent day
-    json_parse((char *)(cache[3].telem[cache[3].telem.size()-1].c_str()), agent->cinfo);
+    // TODO: fix
+    // json_parse((char *)(cache[3].telem[cache[3].telem.size()-1].c_str()), agent->cinfo);
     loc_update(&agent->cinfo->node.loc);
 
 	for (j=4; j<MAXEPHEM+4; ++j)
@@ -314,7 +318,8 @@ void loadephemeris()
     update_target(agent->cinfo);
 	do
 	{
-        cache[3+(int)(ctime-stime)].telem.push_back(json_of_list(myjstring,(char *)"{\"node_utc\",\"node_loc_pos_eci\",\"node_loc_att_icrf\",\"node_powgen\",\"node_powuse\",\"node_battlev\"", agent->cinfo));
+        // TODO: fix
+        // cache[3+(int)(ctime-stime)].telem.push_back(json_of_list(myjstring,(char *)"{\"node_utc\",\"node_loc_pos_eci\",\"node_loc_att_icrf\",\"node_powgen\",\"node_powuse\",\"node_battlev\"", agent->cinfo));
         calc_events(eventdict,  agent->cinfo, events);
 		for (k=0; k<events.size(); ++k)
 		{
@@ -323,7 +328,8 @@ void loadephemeris()
             agent->cinfo->event[0] = events[k];
             //                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
             agent->cinfo->event[0].condition = agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text;
-            cache[3+(int)(ctime-stime)].event.push_back(json_of_event(myjstring, agent->cinfo));
+            // TODO: fix
+            // cache[3+(int)(ctime-stime)].event.push_back(json_of_event(myjstring, agent->cinfo));
         }
 		cache[3+(int)(ctime-stime)].mjd = (int)ctime;
 		cache[3+(int)(ctime-stime)].utime = ctime;
@@ -516,7 +522,8 @@ int32_t request_next(string &request, string &response, Agent *)
 		case 'r':
 			if (mindex >= 0)
 			{
-                response = (json_of_target(reqjstring, agent->cinfo, mindex));
+                // TODO: fix
+                // response = (json_of_target(reqjstring, agent->cinfo, mindex));
                 if (mindex < agent->cinfo->node.target_cnt-1)
 					++mindex;
 				return 0;
@@ -528,7 +535,8 @@ int32_t request_next(string &request, string &response, Agent *)
 		if (dindex <= commanddict.size())
 		{
             agent->cinfo->event[0] = commanddict[dindex];
-            response = (json_of_event(myjstring, agent->cinfo));
+            // TODO: fix
+            // response = (json_of_event(myjstring, agent->cinfo));
 			if (dindex < commanddict.size()-1)
 				++dindex;
 			return 0;
@@ -544,6 +552,7 @@ int32_t request_next(string &request, string &response, Agent *)
 */
 int32_t request_getnode(string &request, string &response, Agent *)
 {
-    response = (json_of_node(reqjstring, agent->cinfo));
+    // TODO: fix
+    // response = (json_of_node(reqjstring, agent->cinfo));
 	return 0;
 }
