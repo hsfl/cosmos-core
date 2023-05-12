@@ -527,7 +527,7 @@ int main(int argc, char *argv[])
 
     iretn = connect_radio();
 
-    agent->cinfo->agent[0].aprd = 1.;
+    agent->cinfo->agent0.aprd = 1.;
     agent->start_active_loop();
     while (agent->running())
     {

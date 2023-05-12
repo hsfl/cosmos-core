@@ -1357,6 +1357,8 @@ class sim_param	{
                 beat.shrinkusage();
             }
 
+            //! Agent Name
+            string name;
             //! Client initialized?
             bool client = true;
             //! Subscription channel (for Client)
@@ -1387,6 +1389,7 @@ class sim_param	{
             json11::Json to_json() const {
                 //		vector<uint16_t> v_pub = vector<uint16_t>(pub, pub+AGENTMAXIF);
                 return json11::Json::object {
+                    { "name" , name },
                     { "client" , client },
                     //TODO?			{ "sub"	, sub },
                     { "server" , server },
@@ -1410,6 +1413,7 @@ class sim_param	{
                 string error;
                 json11::Json p = json11::Json::parse(s,error);
                 if(error.empty()) {
+                    if(!p["name"].is_null()) { name = p["name"].string_value(); }
                     if(!p["client"].is_null()) { client = p["client"].bool_value(); }
                     //TODO?			if(!p["sub"].is_null()) sub.from_json(p["sub"].dump());
                     if(!p["server"].is_null()) { server = p["server"].bool_value(); }
@@ -4548,7 +4552,35 @@ union as a ::devicestruc.
 
         };
 
-        //! Node Structure
+        typedef uint8_t NODE_ID_TYPE;
+        static constexpr uint8_t NODEIDUNKNOWN = 0;
+        static constexpr uint8_t NODEIDORIG = 254;
+        static constexpr uint8_t NODEIDDEST = 255;
+
+        //! \brief Realm Structure
+        //! Structure for storing all information shared by Nodes within a Realm.
+        class realmstruc
+        {
+        public:
+            size_t memoryusage()
+            {
+                size_t total = sizeof(realmstruc);
+                total += name.capacity();
+                total += node_ids.size() * 4;
+                return total;
+            }
+
+            void shrinkusage()
+            {
+                string(name).swap(name);
+                map<string, uint8_t>(node_ids).swap(node_ids);
+            }
+
+            string name;
+            map<string, NODE_ID_TYPE> node_ids = {{"unkown", NODEIDUNKNOWN}, {"origin", NODEIDORIG}, {"destination", NODEIDDEST}};
+        };
+
+        //! \brief Node Structure
         //! Structure for storing all information about a Node that never changes, or only
         //! changes slowly. The information for initializing this should be in node.ini.
         class nodestruc
@@ -4558,7 +4590,7 @@ union as a ::devicestruc.
             {
                 size_t total = sizeof(nodestruc);
                 total += name.capacity();
-                total += agent.capacity();
+//                total += agent.capacity();
                 total += lastevent.capacity();
                 return total;
             }
@@ -4566,7 +4598,7 @@ union as a ::devicestruc.
             void shrinkusage()
             {
                 string(name).swap(name);
-                string(agent).swap(agent);
+//                string(agent).swap(agent);
                 string(lastevent).swap(lastevent);
                 phys.shrinkusage();
             }
@@ -4574,9 +4606,9 @@ union as a ::devicestruc.
             //! Node Name.
             //    char name[COSMOS_MAX_NAME+1] = "";
             string name="";
-            //! Agent Name.
-            //    char agent[COSMOS_MAX_NAME+1] = "";
-            string agent="";
+//            //! Agent Name.
+//            //    char agent[COSMOS_MAX_NAME+1] = "";
+//            string agent="";
             //! Last event
             //	char lastevent[COSMOS_MAX_NAME+1] = "";
             string lastevent="";
@@ -4586,19 +4618,6 @@ union as a ::devicestruc.
             uint16_t type = 0;
             //! Operational state
             uint16_t state = 0;
-
-            // actually these are cosmosstruc counts...
-            uint16_t vertex_cnt = 0;
-            uint16_t normal_cnt = 0;
-            uint16_t face_cnt = 0;
-            uint16_t piece_cnt = 0;
-            uint16_t device_cnt = 0;
-            uint16_t port_cnt = 0;
-            uint16_t agent_cnt = 0;
-            uint16_t event_cnt = 0;
-            uint16_t target_cnt = 0;
-            uint16_t user_cnt = 0;
-            uint16_t tle_cnt = 0;
 
             uint16_t flags = 0;
             int16_t powmode = 0;
@@ -4633,23 +4652,11 @@ union as a ::devicestruc.
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "name" , name },
-                    { "agent" , agent },
+//                    { "agent" , agent },
                     { "lastevent" , lastevent },
                     { "lasteventutc" , lasteventutc },
                     { "type" , type },
                     { "state" , state },
-
-                    { "vertex_cnt" , vertex_cnt },
-                    { "normal_cnt" , normal_cnt },
-                    { "face_cnt" , face_cnt },
-                    { "piece_cnt" , piece_cnt },
-                    { "device_cnt" , device_cnt },
-                    { "port_cnt" , port_cnt },
-                    { "agent_cnt" , agent_cnt },
-                    { "event_cnt" , event_cnt },
-                    { "target_cnt" , target_cnt },
-                    { "user_cnt" , user_cnt },
-                    { "tle_cnt" , tle_cnt },
 
                     { "flags" , flags },
                     { "powmode" , powmode },
@@ -4683,23 +4690,11 @@ union as a ::devicestruc.
                     //            if(!parsed["agent"].is_null())			{ strcpy(agent, parsed["agent"].string_value().c_str()); }
                     //			if(!parsed["lastevent"].is_null())		{ strcpy(lastevent, parsed["lastevent"].string_value().c_str()); }
                     if(!parsed["name"].is_null())			{ name = parsed["name"].string_value(); }
-                    if(!parsed["agent"].is_null())			{ agent = parsed["agent"].string_value(); }
+//                    if(!parsed["agent"].is_null())			{ agent = parsed["agent"].string_value(); }
                     if(!parsed["lastevent"].is_null())		{ lastevent = parsed["lastevent"].string_value(); }
                     if(!parsed["lasteventutc"].is_null())	{ lasteventutc = parsed["lasteventutc"].number_value(); }
                     if(!parsed["type"].is_null())	{ type = parsed["type"].int_value(); }
                     if(!parsed["state"].is_null())	{ state = parsed["state"].int_value(); }
-
-                    if(!parsed["vertex_cnt"].is_null())	{ vertex_cnt = parsed["vertex_cnt"].int_value(); }
-                    if(!parsed["normal_cnt"].is_null())	{ normal_cnt = parsed["normal_cnt"].int_value(); }
-                    if(!parsed["face_cnt"].is_null())	{ face_cnt = parsed["face_cnt"].int_value(); }
-                    if(!parsed["piece_cnt"].is_null())	{ piece_cnt = parsed["piece_cnt"].int_value(); }
-                    if(!parsed["device_cnt"].is_null())	{ device_cnt = parsed["device_cnt"].int_value(); }
-                    if(!parsed["port_cnt"].is_null())	{ port_cnt = parsed["port_cnt"].int_value(); }
-                    if(!parsed["agent_cnt"].is_null())	{ agent_cnt = parsed["agent_cnt"].int_value(); }
-                    if(!parsed["event_cnt"].is_null())	{ event_cnt = parsed["event_cnt"].int_value(); }
-                    if(!parsed["target_cnt"].is_null())	{ target_cnt = parsed["target_cnt"].int_value(); }
-                    if(!parsed["user_cnt"].is_null())	{ user_cnt = parsed["user_cnt"].int_value(); }
-                    if(!parsed["tle_cnt"].is_null())	{ tle_cnt = parsed["tle_cnt"].int_value(); }
 
                     if(!parsed["flags"].is_null())	{ flags = parsed["flags"].int_value(); }
                     if(!parsed["powmode"].is_null())	{ powmode = parsed["powmode"].int_value(); }
@@ -5249,10 +5244,11 @@ union as a ::devicestruc.
                 {
                     total += port[i].memoryusage();
                 }
-                for (size_t i=0; i<agent.size(); ++i)
-                {
-                    total += agent[i].memoryusage();
-                }
+//                for (size_t i=0; i<agent.size(); ++i)
+//                {
+//                    total += agent[i].memoryusage();
+//                }
+                total += agent0.memoryusage();
                 for (size_t i=0; i<sim_states.size(); ++i)
                 {
                     total += sizeof(sim_states[i]);
@@ -5326,10 +5322,11 @@ union as a ::devicestruc.
                 {
                     port[i].shrinkusage();
                 }
-                for (size_t i=0; i<agent.size(); ++i)
-                {
-                    agent[i].shrinkusage();
-                }
+//                for (size_t i=0; i<agent.size(); ++i)
+//                {
+//                    agent[i].shrinkusage();
+//                }
+                agent0.shrinkusage();
                 for (size_t i=0; i<event.size(); ++i)
                 {
                     event[i].shrinkusage();
@@ -5379,35 +5376,45 @@ union as a ::devicestruc.
             //! Array of Aliases
             vector<aliasstruc> alias;
 
+            //! Structure for summary information in realm
+            realmstruc realm;
+
             //! Structure for summary information in node
             nodestruc node;
 
             //! Vector of all vertexs in node.
             vector <vertexstruc> vertexs;
+            uint16_t vertex_cnt = 0;
 
             //! Vector of all vertexs in node.
             vector <vertexstruc> normals;
+            uint16_t normal_cnt = 0;
 
             //! Vector of all faces in node.
             vector <facestruc> faces;
+            uint16_t face_cnt = 0;
 
             //! Vector of all pieces in node.
             vector<piecestruc> pieces;
+            uint16_t piece_cnt = 0;
 
             //! Wavefront obj structure
             wavefront obj;
 
             //! Vector of all general (common) information for devices (components) in node.
             vector<devicestruc*> device;
+            uint16_t device_cnt = 0;
 
             //! Structure for devices (components) special data in node, by type.
             devspecstruc devspec;
 
             //! Vector of all ports known to node.
             vector<portstruc> port;
+            uint16_t port_cnt = 0;
 
             //! Single entry vector for agent information.
-            vector<agentstruc> agent;
+            agentstruc agent0;
+//            uint16_t agent_cnt = 0;
 
             //! Vector of State information for all nodes
             vector<sim_state> sim_states;
@@ -5417,15 +5424,19 @@ union as a ::devicestruc.
 
             //! Single entry vector for event information.
             vector<eventstruc> event;
+            uint16_t event_cnt = 0;
 
             //! Vector of all targets known to node.
             vector<targetstruc> target;
+            uint16_t target_cnt = 0;
 
             //! Single entry vector for user information.
             vector<userstruc> user;
+            uint16_t user_cnt = 0;
 
             //! Array of Two Line Elements
             vector<Convert::tlestruc> tle;
+            uint16_t tle_cnt = 0;
 
             //! JSON descriptive information
             jsonnode json;
@@ -5667,8 +5678,8 @@ union as a ::devicestruc.
                 // update the state for the calling agent
                 // find index of calling agent in sim_states[]
                 for(size_t i = 0; i < sim_states.size(); ++i)	{
-                    string node_name(agent[0].beat.node);
-                    string agent_name(agent[0].beat.proc);
+                    string node_name(agent0.beat.node);
+                    string agent_name(agent0.beat.proc);
                     if(sim_states[i].node_name == node_name && sim_states[i].agent_name == agent_name)	{
 
                         // update to most recent values
@@ -6872,12 +6883,23 @@ union as a ::devicestruc.
 //                    { "device" , device },
                     { "devspec" , devspec },
                     { "port" , port },
-                    { "agent" , agent },
+                    { "agent" , agent0 },
                     { "event" , event },
                     { "target" , target },
                     { "user" , user },
                     { "tle" , tle },
-                    { "sim_states" , sim_states }
+                    { "sim_states" , sim_states },
+                    { "vertex_cnt" , vertex_cnt },
+                    { "normal_cnt" , normal_cnt },
+                    { "face_cnt" , face_cnt },
+                    { "piece_cnt" , piece_cnt },
+                    { "device_cnt" , device_cnt },
+                    { "port_cnt" , port_cnt },
+//                    { "agent_cnt" , agent_cnt },
+                    { "event_cnt" , event_cnt },
+                    { "target_cnt" , target_cnt },
+                    { "user_cnt" , user_cnt },
+                    { "tle_cnt" , tle_cnt }
                 };
             }
 
@@ -6893,6 +6915,20 @@ union as a ::devicestruc.
                     if (!p["timestamp"].is_null()) { timestamp = p["timestamp"].number_value(); }
                     if (!p["jmapped"].is_null()) { jmapped = p["jmapped"].number_value(); }
                     if (!p["ujmapped"].is_null()) { ujmapped = p["ujmapped"].number_value(); }
+
+                    if(!p["vertex_cnt"].is_null())	{ vertex_cnt = p["vertex_cnt"].int_value(); }
+                    if(!p["normal_cnt"].is_null())	{ normal_cnt = p["normal_cnt"].int_value(); }
+                    if(!p["face_cnt"].is_null())	{ face_cnt = p["face_cnt"].int_value(); }
+                    if(!p["piece_cnt"].is_null())	{ piece_cnt = p["piece_cnt"].int_value(); }
+                    if(!p["device_cnt"].is_null())	{ device_cnt = p["device_cnt"].int_value(); }
+                    if(!p["port_cnt"].is_null())	{ port_cnt = p["port_cnt"].int_value(); }
+//                    if(!p["agent_cnt"].is_null())	{ agent_cnt = p["agent_cnt"].int_value(); }
+                    if(!p["event_cnt"].is_null())	{ event_cnt = p["event_cnt"].int_value(); }
+                    if(!p["target_cnt"].is_null())	{ target_cnt = p["target_cnt"].int_value(); }
+                    if(!p["user_cnt"].is_null())	{ user_cnt = p["user_cnt"].int_value(); }
+                    if(!p["tle_cnt"].is_null())	{ tle_cnt = p["tle_cnt"].int_value(); }
+
+
                     for (size_t i = 0; i < unit.size(); ++i) {
                         for (size_t j = 0; j < unit[i].size(); ++j) {
                             if (!p["unit"][i][j].is_null()) { unit[i][j].from_json(p["unit"][i][j].dump()); }
@@ -6919,9 +6955,10 @@ union as a ::devicestruc.
                     for (size_t i = 0; i < port.size(); ++i) {
                         if (!p["port"][i].is_null()) { port[i].from_json(p["port"][i].dump()); }
                     }
-                    for (size_t i = 0; i < agent.size(); ++i) {
-                        if (!p["agent"][i].is_null()) { agent[i].from_json(p["agent"][i].dump()); }
-                    }
+//                    for (size_t i = 0; i < agent.size(); ++i) {
+//                        if (!p["agent"][i].is_null()) { agent[i].from_json(p["agent"][i].dump()); }
+//                    }
+                    if (!p["agent0"][i].is_null()) { agent0.from_json(p["agent0"].dump()); }
                     for (size_t i = 0; i < event.size(); ++i) {
                         if (!p["event"][i].is_null()) { event[i].from_json(p["event"][i].dump()); }
                     }

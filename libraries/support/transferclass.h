@@ -57,8 +57,8 @@ namespace Cosmos {
             
             Transfer();
             // int32_t Init(string node, string agent, uint16_t chunk_size);
-            int32_t Init(const string calling_node_name);
-            int32_t Init(const string calling_node_name, Log::Logger* debug_log);
+            int32_t Init(cosmosstruc *cinfo);
+            int32_t Init(cosmosstruc *cinfo, Log::Logger* debug_log);
             //int32_t Load(string filename, vector<chunk> &chunks);
             int32_t outgoing_tx_add(tx_progress &tx_out, const string dest_node_name);
             int32_t outgoing_tx_add(const string dest_node, const string dest_agent, const string file_name);
@@ -96,6 +96,8 @@ namespace Cosmos {
             int32_t set_packet_size(const PACKET_CHUNK_SIZE_TYPE size);
 
         private:
+            //! Associated cosmosstruc
+            cosmosstruc *cinfo;
             /// The node_name of the calling node
             string self_node_name;
             /// The node_id of the calling node

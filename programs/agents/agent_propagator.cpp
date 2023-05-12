@@ -45,6 +45,13 @@ int32_t parse_sat(string args);
 vector<cosmosstruc> sats;
 vector<Physics::Simulator::StateList::iterator> sits;
 
+
+int net_port_in = 10080;
+socket_channel net_channel_in;
+string net_address_out;
+int net_port_out = 10081;
+socket_channel net_channel_out;
+
 int main(int argc, char *argv[])
 {
     int32_t iretn = 0;
@@ -81,27 +88,27 @@ int main(int argc, char *argv[])
 
     // Load in targets
     fp = fopen(targetfile.c_str(), "r");
-    if (fp == nullptr)
+    if (fp != nullptr)
     {
-        agent->debug_log.Printf("Bad Target File: %s\n", targetfile.c_str());
-        agent->shutdown();
-        exit(1);
-    }
-    string line;
-    line.resize(200);
-    while (fgets((char *)line.data(), 200, fp) != nullptr)
-    {
-        vector<string> args = string_split(line);
-        if (args.size() == 4)
+        string line;
+        line.resize(200);
+        while (fgets((char *)line.data(), 200, fp) != nullptr)
         {
-            sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
-        }
-        else if (args.size() == 5)
-        {
-            sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])));
+            vector<string> args = string_split(line);
+            if (args.size() == 4)
+            {
+                sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
+            }
+            else if (args.size() == 5)
+            {
+                sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])));
+            }
         }
     }
-//    double mjd = currentmjd();
+
+    // Open socket for sending data to and from agent_propagator
+    iretn = socket_open(&net_channel_in, NetworkType::UDP, "", net_port_in, SOCKET_LISTEN, SOCKET_NONBLOCKING);
+    iretn = socket_open(&net_channel_out, NetworkType::UDP, net_address_out.c_str(), net_port_out, SOCKET_TALK, SOCKET_NONBLOCKING);
 
     PacketComm packet;
     double elapsed = 0;
@@ -114,8 +121,11 @@ int main(int argc, char *argv[])
     while (agent->running())
     {
         iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeLocBeacon), agent);
+        iretn = socket_sendto(net_channel_out, packet.wrapped);
         iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodePhysBeacon), agent);
+        iretn = socket_sendto(net_channel_out, packet.wrapped);
         iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeTargetBeacon), agent);
+        iretn = socket_sendto(net_channel_out, packet.wrapped);
 
         // Attitude adjustment
         // Desired attitude comes from aligning satellite Z with desired Z and satellite Y with desired Y
@@ -325,4 +335,59 @@ int32_t parse_sat(string args)
     iretn = sim->AddNode(satname, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
     sits.push_back(sim->GetNode(satname));
     return iretn;
+}
+
+int32_t parse_target(string args)
+{
+//    int32_t iretn;
+    string name;
+    NODE_TYPE type = NODE_TYPE_TARGET;
+    double clat = RADOF(21.3069);
+    double clon = RADOF(-157.8583);
+    double dlat = 0.;
+    double dlon = 0.;
+    double alt = 0.;
+    uint16_t argcount = 0;
+    string estring;
+    json11::Json jargs = json11::Json::parse(args, estring);
+    if (!jargs["name"].is_null())
+    {
+        ++argcount;
+        name = jargs["name"].string_value();
+    }
+    if (!jargs["type"].is_null())
+    {
+        ++argcount;
+        type = static_cast<NODE_TYPE>(jargs["type"].number_value());
+    }
+    if (!jargs["alt"].is_null())
+    {
+        ++argcount;
+        alt = jargs["alt"].number_value();
+    }
+    if (!jargs["clat"].is_null())
+    {
+        ++argcount;
+        clat = jargs["clat"].number_value();
+    }
+    if (!jargs["clon"].is_null())
+    {
+        ++argcount;
+        clon = jargs["clon"].number_value();
+    }
+    if (!jargs["dlat"].is_null())
+    {
+        ++argcount;
+        dlat = jargs["dlat"].number_value();
+    }
+    if (!jargs["dlon"].is_null())
+    {
+        ++argcount;
+        dlon = jargs["dlon"].number_value();
+    }
+    for (Physics::Simulator::StateList::iterator sit : sits)
+    {
+        sit->second->AddTarget(name, clat+dlat, clon-dlon, clat-dlat, clon+dlon, alt, type);
+    }
+    return sits.size();
 }

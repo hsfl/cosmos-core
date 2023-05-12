@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
     }
 
     // Start performing the body of the agent
-    agent->cinfo->agent[0].aprd = 1.;
+    agent->cinfo->agent0.aprd = 1.;
     agent->start_active_loop();
     while(agent->running())
     {

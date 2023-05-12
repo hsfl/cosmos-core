@@ -215,10 +215,10 @@ void forwarding_loop()
                 }
             }
 
-            for (size_t i=0; i<agent->cinfo->agent[0].ifcnt; ++i)
+            for (size_t i=0; i<agent->cinfo->agent0.ifcnt; ++i)
             {
-                sendto(agent->cinfo->agent[0].pub[i].cudp, (const char *)input.data(), input.size(), 0, (struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr, sizeof(struct sockaddr_in));
-//                socket_sendto(agent->cinfo->agent[0].pub[i], input);
+                sendto(agent->cinfo->agent0.pub[i].cudp, (const char *)input.data(), input.size(), 0, (struct sockaddr *)&agent->cinfo->agent0.pub[i].baddr, sizeof(struct sockaddr_in));
+//                socket_sendto(agent->cinfo->agent0.pub[i], input);
             }
         }
     }

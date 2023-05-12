@@ -45,12 +45,16 @@
 
 //! Path to COSMOS root directory
 static string cosmosroot;
-//! Path to COSMOS Nodes directory
-static string cosmosnodes="";
 //! Path to COSMOS Resources directory
 static string cosmosresources;
+//! Path to COSMOS Nodes directory
+static string cosmosnodes="";
 //! Path to current COSMOS Node directory
 static string nodedir;
+//! Path to COSMOS Nodes directory
+static string cosmosrealms="";
+//! Path to current COSMOS Node directory
+static string realmdir;
 
 //! @}
 
@@ -71,7 +75,7 @@ DataLog::DataLog()
 
 //! \brief Initialize ::DataLog
 //! Preset DataLog to be used for provided conditions
-int32_t DataLog::Init(std::string node, std::string location, std::string agent, std::string type, std::string extra, double stride, bool fastmode, bool compress)
+int32_t DataLog::Init(string node, std::string location, string agent, string type, string extra, double stride, bool fastmode, bool compress)
 {
     fout = nullptr;
     this->node = node;
@@ -1822,6 +1826,179 @@ string get_nodedir(string node, bool create_flag)
     return (nodedir);
 }
 
+//! Set Nodes Directory
+/*! Set the internal variable that points to where all COSMOS resource files
+             * are stored.
+                \param name Absolute or relative pathname of directory.
+    \param create_flag Create directory if not already present.
+                \return Zero, or negative error.
+            */
+int32_t set_cosmosrealms(string name, bool create_flag)
+{
+    cosmosrealms.clear();
+    for (size_t i=0; i<name.length(); ++i)
+    {
+        if (name[i] == '\\')
+        {
+            name.replace(i, 1, "/");
+        }
+    }
+    if (data_isdir(name))
+    {
+        cosmosrealms = name;
+        return 0;
+    }
+    else
+    {
+        if (create_flag)
+        {
+            if (COSMOS_MKDIR(name.c_str(), 00777) == 0 || errno == EEXIST)
+            {
+                cosmosrealms = name;
+                return 0;
+            }
+            else
+            {
+                return -errno;
+            }
+        }
+        else
+        {
+            return DATA_ERROR_NODES_FOLDER;
+        }
+    }
+}
+
+//! Find COSMOS Nodes Directory on Windows, Linux or MacOS
+/*! Set the internal variable that points to where all COSMOS realm files
+             * are stored. This either uses the value in COSMOSNODES, or looks for the directory
+             * up to 6 levels above the current directory, first in "cosmosrealms", and then in "realms".
+             * \return Zero, or negative error.
+            */
+int32_t set_cosmosrealms(bool create_flag)
+{
+    string croot;
+    char *troot;
+    int32_t iretn = 0;
+
+    if (cosmosrealms.empty())
+    {
+        // find environment variable COSMOSNODES
+        if ((troot = getenv("COSMOSNODES")) != nullptr)
+        {
+            croot = troot;
+            if ((iretn=set_cosmosrealms(croot, create_flag)) == 0)
+            {
+                return 0;
+            }
+            else
+            {
+                return iretn;
+            }
+        }
+        else // look for the default path: $COSMOS/realms or $HOME/cosmos/realms
+        {
+            if ((iretn = set_cosmosroot(create_flag)) == 0)
+            {
+                croot = cosmosroot + "/realms";
+                iretn = set_cosmosrealms(croot, create_flag);
+                return iretn;
+            }
+            else
+            {
+                return iretn;
+            }
+        }
+    }
+
+    return 0;
+}
+
+//! Return COSMOS Nodes Directory
+/*! Get the internal variable that points to where all COSMOS Node files are
+             * stored. Initialize variable if this is the first call to the function.
+    \param create_flag Create directory if not already present.
+             * \return Length of string, otherwise negative error.
+            */
+string get_cosmosrealms(bool create_flag)
+{
+    string result="";
+    get_cosmosrealms(result, create_flag);
+    return result;
+}
+
+//! Get COSMOS Nodes Directory
+/*! Get the internal variable that points to where all COSMOS files are
+             * stored.
+             * \param result String to place path in.
+    \param create_flag Create directory if not already present.
+             * \return Zero, or negative error.
+            */
+int32_t get_cosmosrealms(string &result, bool create_flag)
+{
+    int32_t iretn = 0;
+
+    result.clear();
+    if (cosmosrealms.empty())
+    {
+        iretn = set_cosmosrealms(create_flag);
+        if (iretn < 0)
+        {
+            //            std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/realms folder" << std::endl;
+            return iretn;
+        }
+    }
+
+    if (cosmosrealms.back() == '/')
+    {
+        result = cosmosrealms;
+    }
+    else
+    {
+        result = cosmosrealms + '/';
+    }
+    return 0;
+}
+
+//! Get Current Node Directory
+/*! Get the internal variable that points to where realm files are
+             * stored for the current Node.
+             * \param realm Name of current Node
+             * \param create_flag Whether or not to create realm directory if it doesn't already exist.
+             * \return Pointer to character string containing path to Node, otherwise nullptr.
+            */
+string get_realmdir(string realm, bool create_flag)
+{
+    realmdir.clear();
+    if (!set_cosmosrealms(create_flag))
+    {
+        realmdir = cosmosrealms + "/" + realm;
+
+        // if the realm folder does not exist
+        if (!data_isdir(realmdir))
+        {
+            // if the create folder flag is not on then
+            // exit this function without a realmdir
+            if (!create_flag)
+            {
+                realmdir.clear();
+            }
+            else // let's create the realm directory (good for on the fly realms)
+            {
+                if (COSMOS_MKDIR(realmdir.c_str(),00777) != 0)
+                {
+                    realmdir.clear();
+                }
+            }
+        } else {
+            // realm folder exists
+        }
+    }
+
+    // if the realm folder exists or was created let's return the path
+    return (realmdir);
+}
+
 //! Move data file - filestruc version.
 /*! Move files previously created using ::file_struc to their final location, optionally
  * compressing with gzip. The routine will move the file specified in filestruc to {node}/{dstlocation}/{agent}.
@@ -2608,131 +2785,157 @@ int32_t data_shell(string command_line, string outpath, string inpath, string er
 }
 
 // Define the static member variables here
-map<string, uint8_t> NodeData::node_ids;
+//map<string, uint8_t> NodeList::node_ids;
 
-//! Loads node table from nodeids.ini configuration file
-//! nodeids is a vector of node name strings indexed by a node_id
-int32_t NodeData::load_node_ids()
-{
-    if (NodeData::node_ids.size() == 0)
-    {
-        char buf[103];
-        FILE *fp = data_open(get_cosmosnodes()+"/nodeids.ini", "rb");
-        if (fp)
-        {
-            // Loop until eof
-            while (fgets(buf, 102, fp) != nullptr)
-            {
-                uint16_t nodeid = 0;
-                string node_name;
-                // Turn whitespace into null terminators, then grab node names and idxs
-                if (buf[strlen(buf)-1] == '\n')
-                {
-                    buf[strlen(buf)-1] = 0;
-                }
-                if (buf[1] == ' ')
-                {
-                    buf[1] = 0;
-                    nodeid = atoi(buf);
-                    node_name = &buf[2];
-                }
-                else if (buf[2] == ' ')
-                {
-                    buf[2] = 0;
-                    nodeid = atoi(buf);
-                    node_name = &buf[3];
-                }
-                else if (buf[3] == ' ')
-                {
-                    buf[3] = 0;
-                    nodeid = atoi(buf);
-                    node_name = &buf[4];
-                }
-                else
-                {
-                    continue;
-                }
-                node_ids[node_name] = nodeid;
-            }
-            fclose(fp);
-        }
-        else
-        {
-            return -errno;
-        }
-    }
+////! \brief Loads target table from targets.ini configuration file
+////! targets
+////! \param realm std::string containing name of Realm
+//int32_t NodeList::load_targets(string realm)
+//{
+//    fp = fopen(targetfile.c_str(), "r");
+//    if (fp != nullptr)
+//    {
+//        string line;
+//        line.resize(200);
+//        while (fgets((char *)line.data(), 200, fp) != nullptr)
+//        {
+//            vector<string> args = string_split(line);
+//            if (args.size() == 4)
+//            {
+//                sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
+//            }
+//            else if (args.size() == 5)
+//            {
+//                sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])));
+//            }
+//        }
+//    }
+//}
 
-    return NodeData::node_ids.size();
-}
+////! \brief Loads node table from nodeids.ini configuration file
+////! nodeids is a map of node name strings indexed by a node_id
+////! \param realm std::string containing name of Realm
+//int32_t NodeList::load_node_ids(string realm)
+//{
+//    if (NodeList::node_ids.size() == 0)
+//    {
+//        char buf[103];
+//        FILE *fp = data_open(get_cosmosrealms()+"/"+realm+"/nodeids.ini", "rb");
+//        if (fp)
+//        {
+//            // Loop until eof
+//            while (fgets(buf, 102, fp) != nullptr)
+//            {
+//                uint16_t nodeid = 0;
+//                string node_name;
+//                // Turn whitespace into null terminators, then grab node names and idxs
+//                if (buf[strlen(buf)-1] == '\n')
+//                {
+//                    buf[strlen(buf)-1] = 0;
+//                }
+//                if (buf[1] == ' ')
+//                {
+//                    buf[1] = 0;
+//                    nodeid = atoi(buf);
+//                    node_name = &buf[2];
+//                }
+//                else if (buf[2] == ' ')
+//                {
+//                    buf[2] = 0;
+//                    nodeid = atoi(buf);
+//                    node_name = &buf[3];
+//                }
+//                else if (buf[3] == ' ')
+//                {
+//                    buf[3] = 0;
+//                    nodeid = atoi(buf);
+//                    node_name = &buf[4];
+//                }
+//                else
+//                {
+//                    continue;
+//                }
+//                node_ids[node_name] = nodeid;
+//            }
+//            fclose(fp);
+//        }
+//        else
+//        {
+//            return -errno;
+//        }
+//    }
 
-//! Check if a node_id is in the node table
-//! \param node_id
-//! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
-int32_t NodeData::check_node_id(NODE_ID_TYPE node_id)
-{
+//    return NodeList::node_ids.size();
+//}
 
-    if (NodeData::load_node_ids() <= 0)
-    {
-        return NODEIDUNKNOWN;
-    }
+////! Check if a node_id is in the node table
+////! \param node_id
+////! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
+//int32_t NodeList::check_node_id(NODE_ID_TYPE node_id)
+//{
 
-    for (auto it = node_ids.begin(); it != node_ids.end(); ++it)
-    {
-        if (it->second == node_id)
-        {
-            return node_id;
-        }
-    }
-    return NODEIDUNKNOWN;
-}
+//    if (NodeList::load_node_ids() <= 0)
+//    {
+//        return NODEIDUNKNOWN;
+//    }
 
-//! Gets the node_id associated with a node name
-//! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
-int32_t NodeData::lookup_node_id(string node_name)
-{
-    int32_t iretn = 0;
+//    for (auto it = node_ids.begin(); it != node_ids.end(); ++it)
+//    {
+//        if (it->second == node_id)
+//        {
+//            return node_id;
+//        }
+//    }
+//    return NODEIDUNKNOWN;
+//}
 
-    if ((iretn=NodeData::load_node_ids()) <= 0)
-    {
-        return NODEIDUNKNOWN;
-    }
+////! Gets the node_id associated with a node name
+////! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
+//int32_t NodeList::lookup_node_id(string node_name)
+//{
+//    int32_t iretn = 0;
 
-    auto it = node_ids.find(node_name);
-    if (it == node_ids.end())
-    {
-        return NODEIDUNKNOWN;
-    }
-    return it->second;
-}
+//    if ((iretn=NodeList::load_node_ids()) <= 0)
+//    {
+//        return NODEIDUNKNOWN;
+//    }
 
-//! Find the node name associated with the given node id in the node table.
-//! \param node_id Node ID
-//! \return Node name on success, or empty string on failure
-string NodeData::lookup_node_id_name(NODE_ID_TYPE node_id)
-{
-    if (node_id == NodeData::NODEIDORIG)
-    {
-        return "Origin";
-    }
-    else if (node_id == NodeData::NODEIDDEST)
-    {
-        return "Destination";
-    }
-    else if (node_id == NodeData::NODEIDUNKNOWN || NodeData::load_node_ids() <= 0)
-    {
-        return "";
-    }
+//    auto it = node_ids.find(node_name);
+//    if (it == node_ids.end())
+//    {
+//        return NODEIDUNKNOWN;
+//    }
+//    return it->second;
+//}
 
-    for (auto it = node_ids.begin(); it != node_ids.end(); ++it)
-    {
-        if (it->second == node_id)
-        {
-            return it->first;
-        }
-    }
+////! Find the node name associated with the given node id in the node table.
+////! \param node_id Node ID
+////! \return Node name on success, or empty string on failure
+//string NodeList::lookup_node_id_name(NODE_ID_TYPE node_id)
+//{
+//    if (node_id == NODEIDORIG)
+//    {
+//        return "Origin";
+//    }
+//    else if (node_id == NODEIDDEST)
+//    {
+//        return "Destination";
+//    }
+//    else if (node_id == NODEIDUNKNOWN || NodeList::load_node_ids() <= 0)
+//    {
+//        return "";
+//    }
 
-    return "";
-}
+//    for (auto it = node_ids.begin(); it != node_ids.end(); ++it)
+//    {
+//        if (it->second == node_id)
+//        {
+//            return it->first;
+//        }
+//    }
+
+//    return "";
+//}
 
 const string data_getcwd()
 {

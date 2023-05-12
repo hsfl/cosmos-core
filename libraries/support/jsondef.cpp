@@ -84,22 +84,22 @@ namespace Cosmos
             // nodestruc node
             add_name("node", &node, "nodestruc");
             add_name("node.name", &node.name, "string");
-            add_name("node.agent", &node.agent, "string");
+//            add_name("agent0.name", &agent0.name, "string");
             add_name("node.lastevent", &node.lastevent, "string");
             add_name("node.lasteventutc", &node.lasteventutc, "double");
             add_name("node.type", &node.type, "uint16_t");
             add_name("node.state", &node.state, "uint16_t");
-            add_name("node.vertex_cnt", &node.vertex_cnt, "uint16_t");
-            add_name("node.normal_cnt", &node.normal_cnt, "uint16_t");
-            add_name("node.face_cnt", &node.face_cnt, "uint16_t");
-            add_name("node.piece_cnt", &node.piece_cnt, "uint16_t");
-            add_name("node.device_cnt", &node.device_cnt, "uint16_t");
-            add_name("node.port_cnt", &node.port_cnt, "uint16_t");
-            add_name("node.agent_cnt", &node.agent_cnt, "uint16_t");
-            add_name("node.event_cnt", &node.event_cnt, "uint16_t");
-            add_name("node.target_cnt", &node.target_cnt, "uint16_t");
-            add_name("node.user_cnt", &node.user_cnt, "uint16_t");
-            add_name("node.tle_cnt", &node.tle_cnt, "uint16_t");
+            add_name("vertex_cnt", &vertex_cnt, "uint16_t");
+            add_name("normal_cnt", &normal_cnt, "uint16_t");
+            add_name("face_cnt", &face_cnt, "uint16_t");
+            add_name("piece_cnt", &piece_cnt, "uint16_t");
+            add_name("device_cnt", &device_cnt, "uint16_t");
+            add_name("port_cnt", &port_cnt, "uint16_t");
+//            add_name("agent_cnt", &agent_cnt, "uint16_t");
+            add_name("event_cnt", &event_cnt, "uint16_t");
+            add_name("target_cnt", &target_cnt, "uint16_t");
+            add_name("user_cnt", &user_cnt, "uint16_t");
+            add_name("tle_cnt", &tle_cnt, "uint16_t");
             add_name("node.flags", &node.flags, "uint16_t");
             add_name("node.powmode", &node.powmode, "int16_t");
             add_name("node.downtime", &node.downtime, "uint32_t");
@@ -2640,55 +2640,100 @@ namespace Cosmos
                 add_name(basename+".name", &port[i].name, "string");
             }
 
-            // vector<agentstruc> agent
-            add_name("agent", &agent, "vector<agentstruc>");
-            for(size_t i = 0; i < agent.size(); ++i) {
-                string basename = "agent[" + std::to_string(i) + "]";
-                add_name(basename, &agent[i], "agentstruc");
-                add_name(basename+".client", &agent[i].client, "bool");
-                add_name(basename+".sub", &agent[i].sub, "socket_channel");
-                add_name(basename+".sub.type", &agent[i].sub.type, "NetworkType");
-                add_name(basename+".sub.cudp", &agent[i].sub.cudp, "int32_t");
-                add_name(basename+".server", &agent[i].server, "bool");
-                add_name(basename+".ifcnt", &agent[i].ifcnt, "size_t");
-                add_name(basename+".pub", &agent[i].pub, "socket_channel[]");
-                for(size_t j = 0; j < sizeof(agent[i].pub)/sizeof(agent[i].pub[0]); ++j) {
-                    string rebasename = basename + ".pub[" + std::to_string(j) + "]";
-                    add_name(rebasename, &agent[i].pub[j], "socket_channel");
-                    add_name(rebasename+".type", &agent[i].pub[j].type, "NetworkType");
-                    add_name(rebasename+".cudp", &agent[i].pub[j].cudp, "int32_t");
-                }
-                add_name(basename+".req", &agent[i].req, "socket_channel");
-                add_name(basename+".req.type", &agent[i].req.type, "NetworkType");
-                add_name(basename+".req.cudp", &agent[i].req.cudp, "int32_t");
-                add_name(basename+".pid", &agent[i].pid, "int32_t");
-                add_name(basename+".aprd", &agent[i].aprd, "double");
-                add_name(basename+".stateflag", &agent[i].stateflag, "uint16_t");
-                add_name(basename+".reqs", &agent[i].reqs, "vector<agent_request_entry>");
-                for(size_t j = 0; j < agent[i].reqs.size(); ++j) {
-                    string rebasename = basename + ".reqs[" + std::to_string(j) + "]";
-                    add_name(rebasename, &agent[i].reqs[j], "agent_request_entry");
-                    add_name(rebasename+".token", &agent[i].reqs[j].token, "string");
-                    add_name(rebasename+".function", &agent[i].reqs[j].function, "agent_request_function");
-                    add_name(rebasename+".synopsis", &agent[i].reqs[j].synopsis, "string");
-                    add_name(rebasename+".description", &agent[i].reqs[j].description, "string");
-                }
-                add_name(basename+".beat", &agent[i].beat, "beatstruc");
-                add_name(basename+".beat.utc", &agent[i].beat.utc, "double");
-                add_name(basename+".beat.node", &agent[i].beat.node, "string");
-                add_name(basename+".beat.proc", &agent[i].beat.proc, "string");
-                add_name(basename+".beat.ntype", &agent[i].beat.ntype, "NetworkType");
-                add_name(basename+".beat.addr", &agent[i].beat.addr, "char[]");
-                add_name(basename+".beat.port", &agent[i].beat.port, "uint16_t");
-                add_name(basename+".beat.bsz", &agent[i].beat.bsz, "uint32_t");
-                add_name(basename+".beat.bprd", &agent[i].beat.bprd, "double");
-                add_name(basename+".beat.user", &agent[i].beat.user, "char[]");
-                add_name(basename+".beat.cpu", &agent[i].beat.cpu, "float");
-                add_name(basename+".beat.memory", &agent[i].beat.memory, "float");
-                add_name(basename+".beat.jitter", &agent[i].beat.jitter, "double");
-                add_name(basename+".beat.dcycle", &agent[i].beat.dcycle, "double");
-                add_name(basename+".beat.exists", &agent[i].beat.exists, "bool");
+//            add_name("agent", &agent, "vector<agentstruc>");
+//            for(size_t i = 0; i < agent.size(); ++i) {
+//                string basename = "agent[" + std::to_string(i) + "]";
+//                add_name(basename, &agent[i], "agentstruc");
+//                add_name(basename+".client", &agent[i].client, "bool");
+//                add_name(basename+".sub", &agent[i].sub, "socket_channel");
+//                add_name(basename+".sub.type", &agent[i].sub.type, "NetworkType");
+//                add_name(basename+".sub.cudp", &agent[i].sub.cudp, "int32_t");
+//                add_name(basename+".server", &agent[i].server, "bool");
+//                add_name(basename+".ifcnt", &agent[i].ifcnt, "size_t");
+//                add_name(basename+".pub", &agent[i].pub, "socket_channel[]");
+//                for(size_t j = 0; j < sizeof(agent[i].pub)/sizeof(agent[i].pub[0]); ++j) {
+//                    string rebasename = basename + ".pub[" + std::to_string(j) + "]";
+//                    add_name(rebasename, &agent[i].pub[j], "socket_channel");
+//                    add_name(rebasename+".type", &agent[i].pub[j].type, "NetworkType");
+//                    add_name(rebasename+".cudp", &agent[i].pub[j].cudp, "int32_t");
+//                }
+//                add_name(basename+".req", &agent[i].req, "socket_channel");
+//                add_name(basename+".req.type", &agent[i].req.type, "NetworkType");
+//                add_name(basename+".req.cudp", &agent[i].req.cudp, "int32_t");
+//                add_name(basename+".pid", &agent[i].pid, "int32_t");
+//                add_name(basename+".aprd", &agent[i].aprd, "double");
+//                add_name(basename+".stateflag", &agent[i].stateflag, "uint16_t");
+//                add_name(basename+".reqs", &agent[i].reqs, "vector<agent_request_entry>");
+//                for(size_t j = 0; j < agent[i].reqs.size(); ++j) {
+//                    string rebasename = basename + ".reqs[" + std::to_string(j) + "]";
+//                    add_name(rebasename, &agent[i].reqs[j], "agent_request_entry");
+//                    add_name(rebasename+".token", &agent[i].reqs[j].token, "string");
+//                    add_name(rebasename+".function", &agent[i].reqs[j].function, "agent_request_function");
+//                    add_name(rebasename+".synopsis", &agent[i].reqs[j].synopsis, "string");
+//                    add_name(rebasename+".description", &agent[i].reqs[j].description, "string");
+//                }
+//                add_name(basename+".beat", &agent[i].beat, "beatstruc");
+//                add_name(basename+".beat.utc", &agent[i].beat.utc, "double");
+//                add_name(basename+".beat.node", &agent[i].beat.node, "string");
+//                add_name(basename+".beat.proc", &agent[i].beat.proc, "string");
+//                add_name(basename+".beat.ntype", &agent[i].beat.ntype, "NetworkType");
+//                add_name(basename+".beat.addr", &agent[i].beat.addr, "char[]");
+//                add_name(basename+".beat.port", &agent[i].beat.port, "uint16_t");
+//                add_name(basename+".beat.bsz", &agent[i].beat.bsz, "uint32_t");
+//                add_name(basename+".beat.bprd", &agent[i].beat.bprd, "double");
+//                add_name(basename+".beat.user", &agent[i].beat.user, "char[]");
+//                add_name(basename+".beat.cpu", &agent[i].beat.cpu, "float");
+//                add_name(basename+".beat.memory", &agent[i].beat.memory, "float");
+//                add_name(basename+".beat.jitter", &agent[i].beat.jitter, "double");
+//                add_name(basename+".beat.dcycle", &agent[i].beat.dcycle, "double");
+//                add_name(basename+".beat.exists", &agent[i].beat.exists, "bool");
+//            }
+
+            string basename = "agent0";
+            add_name(basename, &agent0, "agentstruc");
+            add_name(basename+".client", &agent0.client, "bool");
+            add_name(basename+".sub", &agent0.sub, "socket_channel");
+            add_name(basename+".sub.type", &agent0.sub.type, "NetworkType");
+            add_name(basename+".sub.cudp", &agent0.sub.cudp, "int32_t");
+            add_name(basename+".server", &agent0.server, "bool");
+            add_name(basename+".ifcnt", &agent0.ifcnt, "size_t");
+            add_name(basename+".pub", &agent0.pub, "socket_channel[]");
+            for(size_t j = 0; j < sizeof(agent0.pub)/sizeof(agent0.pub[0]); ++j) {
+                string rebasename = basename + ".pub[" + std::to_string(j) + "]";
+                add_name(rebasename, &agent0.pub[j], "socket_channel");
+                add_name(rebasename+".type", &agent0.pub[j].type, "NetworkType");
+                add_name(rebasename+".cudp", &agent0.pub[j].cudp, "int32_t");
             }
+            add_name(basename+".req", &agent0.req, "socket_channel");
+            add_name(basename+".req.type", &agent0.req.type, "NetworkType");
+            add_name(basename+".req.cudp", &agent0.req.cudp, "int32_t");
+            add_name(basename+".pid", &agent0.pid, "int32_t");
+            add_name(basename+".aprd", &agent0.aprd, "double");
+            add_name(basename+".stateflag", &agent0.stateflag, "uint16_t");
+            add_name(basename+".reqs", &agent0.reqs, "vector<agent_request_entry>");
+            for(size_t j = 0; j < agent0.reqs.size(); ++j) {
+                string rebasename = basename + ".reqs[" + std::to_string(j) + "]";
+                add_name(rebasename, &agent0.reqs[j], "agent_request_entry");
+                add_name(rebasename+".token", &agent0.reqs[j].token, "string");
+                add_name(rebasename+".function", &agent0.reqs[j].function, "agent_request_function");
+                add_name(rebasename+".synopsis", &agent0.reqs[j].synopsis, "string");
+                add_name(rebasename+".description", &agent0.reqs[j].description, "string");
+            }
+            add_name(basename+".beat", &agent0.beat, "beatstruc");
+            add_name(basename+".beat.utc", &agent0.beat.utc, "double");
+            add_name(basename+".beat.node", &agent0.beat.node, "string");
+            add_name(basename+".beat.proc", &agent0.beat.proc, "string");
+            add_name(basename+".beat.ntype", &agent0.beat.ntype, "NetworkType");
+            add_name(basename+".beat.addr", &agent0.beat.addr, "char[]");
+            add_name(basename+".beat.port", &agent0.beat.port, "uint16_t");
+            add_name(basename+".beat.bsz", &agent0.beat.bsz, "uint32_t");
+            add_name(basename+".beat.bprd", &agent0.beat.bprd, "double");
+            add_name(basename+".beat.user", &agent0.beat.user, "char[]");
+            add_name(basename+".beat.cpu", &agent0.beat.cpu, "float");
+            add_name(basename+".beat.memory", &agent0.beat.memory, "float");
+            add_name(basename+".beat.jitter", &agent0.beat.jitter, "double");
+            add_name(basename+".beat.dcycle", &agent0.beat.dcycle, "double");
+            add_name(basename+".beat.exists", &agent0.beat.exists, "bool");
 
             // vector<sim_state> sim_states
             add_name("sim_states", &sim_states, "vector<sim_state>");
@@ -3408,7 +3453,7 @@ namespace Cosmos
             // {
                 //cinfo->agent[i].beat.node;proc
                 namespace_names.push_back("node.name");
-                namespace_names.push_back("node.agent");
+                namespace_names.push_back("agent0.name");
                 namespace_names.push_back("node.utc");
                 namespace_names.push_back("node.utcstart");
             // }

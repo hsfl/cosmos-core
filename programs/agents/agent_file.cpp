@@ -165,12 +165,12 @@ int main(int argc, char *argv[])
         agent->debug_log.Printf("%.4f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
-    agent->debug_log.Printf("%.4f Node: %s Agent: %s - Established\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
+    agent->debug_log.Printf("%.4f Node: %s Agent: %s - Established\n", tet.split(), agent->cinfo->node.name.c_str(), agent->cinfo->agent0.name.c_str());
 
     out_comm_channel.resize(1);
     if((iretn = socket_open(&out_comm_channel[0].chansock, NetworkType::UDP, "", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
     {
-        agent->debug_log.Printf("%.4f Main: Node: %s Agent: %s - Listening socket failure\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
+        agent->debug_log.Printf("%.4f Main: Node: %s Agent: %s - Listening socket failure\n", tet.split(), agent->cinfo->node.name.c_str(), agent->cinfo->agent0.name.c_str());
         agent->shutdown();
         exit (-errno);
     }
@@ -181,10 +181,10 @@ int main(int argc, char *argv[])
     out_comm_channel[0].limjd = out_comm_channel[0].nmjd;
     out_comm_channel[0].lomjd = out_comm_channel[0].nmjd;
     out_comm_channel[0].fmjd = out_comm_channel[0].nmjd;
-    out_comm_channel[0].node = agent->nodeName; // TODO: consider this
+    out_comm_channel[0].node = agent->cinfo->node.name; // TODO: consider this
     out_comm_channel[0].throughput = default_throughput;
     out_comm_channel[0].packet_size = default_packet_size;
-    agent->debug_log.Printf("%.4f Node: %s Agent: %s - Listening socket open\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
+    agent->debug_log.Printf("%.4f Node: %s Agent: %s - Listening socket open\n", tet.split(), agent->cinfo->node.name.c_str(), agent->cinfo->agent0.name.c_str());
 
     if (argc > 1 && ((argv[1][0] < '0' || argv[1][0] > '9') || argc == 3))
     {
@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
         exit (iretn);
 
     // Initialize Transfer class
-    iretn = transfer.Init(agent->nodeName, &agent->debug_log);
+    iretn = transfer.Init(agent->cinfo, &agent->debug_log);
     if (iretn < 0)
     {
         agent->debug_log.Printf("%.4f Error initializing transfer class!\n", tet.split());
@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
 
     if (agent->get_debug_level())
     {
-        agent->debug_log.Printf("%.4f %.4f Main: Node: %s Agent: %s - Exiting\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
+        agent->debug_log.Printf("%.4f %.4f Main: Node: %s Agent: %s - Exiting\n", tet.split(), dt.lap(), agent->cinfo->node.name.c_str(), agent->cinfo->agent0.name.c_str());
     }
 
     recv_loop_thread.join();
@@ -336,7 +336,7 @@ int main(int argc, char *argv[])
 
     if (agent->get_debug_level())
     {
-        agent->debug_log.Printf("%.4f %.4f Main: Node: %s Agent: %s - Shutting down\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
+        agent->debug_log.Printf("%.4f %.4f Main: Node: %s Agent: %s - Shutting down\n", tet.split(), dt.lap(), agent->cinfo->node.name.c_str(), agent->cinfo->agent0.name.c_str());
     }
 
     agent->shutdown();
@@ -377,7 +377,7 @@ void recv_loop() noexcept
             if (iretn < 0) {
                 if (agent->get_debug_level())
                 {
-                    agent->debug_log.Printf("%.4f %.4f Main: Node: %s Agent: %s - Error in receive_packet(): %d\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str(), iretn);
+                    agent->debug_log.Printf("%.4f %.4f Main: Node: %s Agent: %s - Error in receive_packet(): %d\n", tet.split(), dt.lap(), agent->cinfo->node.name.c_str(), agent->cinfo->agent0.name.c_str(), iretn);
                 }
                 if (iretn == COSMOS_PACKET_TYPE_MISMATCH)
                 {
@@ -559,8 +559,8 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, int32_t use
     // {
     //     debug_fd_lock.lock();
 
-    //     string node_name = NodeData::lookup_node_id_name(packet.data[0]);
-    //     uint8_t node_id = NodeData::check_node_id(packet.data[0]);
+    //     string node_name = NodeList::lookup_node_id_name(packet.data[0]);
+    //     uint8_t node_id = NodeList::check_node_id(packet.data[0]);
         
     //     if (direction == PACKET_IN)
     //     {

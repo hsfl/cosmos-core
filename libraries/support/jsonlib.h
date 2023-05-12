@@ -122,8 +122,8 @@ void json_init_unit(cosmosstruc* cinfo);
 void json_init_device_type_string();
 void json_init_node(cosmosstruc* cinfo);
 void json_init_reserve(cosmosstruc* cinfo);
-cosmosstruc *json_init(cosmosstruc *cinfo);
-cosmosstruc *json_init();
+cosmosstruc *json_init(cosmosstruc *cinfo, string node="");
+cosmosstruc *json_init(string node="");
 int32_t json_create_node(cosmosstruc *cinfo, string &node_name, uint16_t node_type=NODE_TYPE_COMPUTER);
 int32_t json_create_cpu(string &node_name);
 int32_t json_shrink(cosmosstruc *cinfo);
@@ -346,6 +346,13 @@ int32_t node_calc(cosmosstruc *cinfo);
 void create_databases(cosmosstruc *cinfo);
 //void load_databases(char *name, uint16_t type, cosmosstruc *cinfo);
 size_t load_dictionary(vector<eventstruc> &dict, cosmosstruc *cinfo, const char *file);
+
+int32_t save_node_ids(cosmosstruc *cinfo);
+int32_t load_node_ids(cosmosstruc *cinfo, string realm="");
+int32_t check_node_id(cosmosstruc *cinfo, NODE_ID_TYPE node_id);
+int32_t lookup_node_id(cosmosstruc *cinfo, string node_name);
+string lookup_node_id_name(cosmosstruc *cinfo, NODE_ID_TYPE node_id);
+
 int32_t load_target(cosmosstruc *cinfo);
 int32_t update_target(cosmosstruc *cinfo);
 int32_t update_target(Convert::locstruc source, targetstruc &target);

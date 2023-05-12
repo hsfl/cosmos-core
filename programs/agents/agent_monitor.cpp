@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
     }
 
     agent->cinfo->node.utc = 0.;
-    agent->cinfo->agent[0].aprd = .5;
+    agent->cinfo->agent0.aprd = .5;
 
     cout<<"  started."<<endl;
 
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
     lmjd = currentmjd();
     while(agent->running())
     {
-        nextmjd += agent->cinfo->agent[0].aprd/86400.;
+        nextmjd += agent->cinfo->agent0.aprd/86400.;
         dmjd = (cmjd-lmjd)*86400.;
         agent->cinfo->node.utc = cmjd = currentmjd();
 

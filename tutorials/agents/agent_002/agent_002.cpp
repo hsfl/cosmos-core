@@ -221,6 +221,6 @@ int32_t hello_agent_002_request_function(string & request, string &response, Age
     response = "hello " + std::to_string(request_counter);
 
 	// agent is set to this pointer?
-    //cout << "[" << node_name << ":" << agent_name <<"] received a request from ["<<a->nodeName<<":"<<a->agentName<<"]! Its response is: " << response << endl;
+    //cout << "[" << node_name << ":" << agent_name <<"] received a request from ["<<a->cinfo->node.name<<":"<<a->cinfo->agent0.name<<"]! Its response is: " << response << endl;
     return 0;
 }

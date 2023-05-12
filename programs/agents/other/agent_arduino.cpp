@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     while(agent->running())
 	{
 		// Set beginning of next cycle;
-        nmjd += agent->cinfo->agent[0].aprd/86400.;
+        nmjd += agent->cinfo->agent0.aprd/86400.;
 
         // Gather arduino data
         iretn = cssl_getdata(serial, buffer, 400);

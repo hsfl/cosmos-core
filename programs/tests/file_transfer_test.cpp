@@ -21,7 +21,9 @@
 PACKET_CHUNK_SIZE_TYPE PACKET_SIZE = 217;
 
 // Node names for the test transferclass's
+cosmosstruc* cinfo1;
 const string node1_name = "filetestnode1";
+cosmosstruc* cinfo2;
 const string node2_name = "filetestnode2";
 const string tname3 = "filetestnode3";
 const int node1_id = 1;
@@ -59,7 +61,7 @@ string nodeids_ini_path, nodeids_ini_backup_path;
 uint32_t seed = 0;
 
 // Helper functions
-void load_temp_nodeids();
+void make_temp_nodeids();
 void restore_original_nodeids();
 void cleanup();
 int32_t create_file(int32_t kib, string file_path);
@@ -312,6 +314,8 @@ struct test_params
 // main loop
 int main(int argc, char *argv[])
 {
+    cinfo1 = json_init("node1");
+    cinfo2 = json_init("node2");
     handle_args(argc, argv);
 
     // Setup log paths and settings
@@ -463,15 +467,15 @@ int32_t test_zero_size_files()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1.Init(node1_name);
+    iretn = node1.Init(cinfo1);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return iretn;
     }
-    iretn = node2.Init(node2_name);
+    iretn = node2.Init(cinfo2);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -611,15 +615,15 @@ int32_t test_large_files_and_queue()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1.Init(node1_name, &node1_log);
+    iretn = node1.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return iretn;
     }
-    iretn = node2.Init(node2_name, &node2_log);
+    iretn = node2.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -802,15 +806,15 @@ int32_t test_stop_resume()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1a.Init(node1_name, &node1_log);
+    iretn = node1a.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return iretn;
     }
-    iretn = node2a.Init(node2_name, &node2_log);
+    iretn = node2a.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -912,8 +916,8 @@ int32_t test_stop_resume()
     node2_log.Printf("(Packets sent so far: node1:%d node2:%d)\n", packets_sent[NODE1], packets_sent[NODE2]);
     // Now start up node1b and resume file transfer
     // Load test nodeid table
-    load_temp_nodeids();
-    iretn = node1b.Init(node1_name, &node1_log);
+    make_temp_nodeids();
+    iretn = node1b.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
@@ -1049,15 +1053,15 @@ int32_t test_stop_resume2()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1a.Init(node1_name, &node1_log);
+    iretn = node1a.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return -1;
     }
-    iretn = node2a.Init(node2_name, &node2_log);
+    iretn = node2a.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -1189,8 +1193,8 @@ int32_t test_stop_resume2()
     node2_log.Printf("(Packets sent so far: node1:%d node2:%d)\n", packets_sent[NODE1], packets_sent[NODE2]);
     // Now start up node2b and resume file transfer
     // Load test nodeid table
-    load_temp_nodeids();
-    iretn = node2b.Init(node2_name, &node2_log);
+    make_temp_nodeids();
+    iretn = node2b.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -1330,15 +1334,15 @@ int32_t test_packet_reqcomplete()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1.Init(node1_name, &node1_log);
+    iretn = node1.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return iretn;
     }
-    iretn = node2.Init(node2_name, &node2_log);
+    iretn = node2.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -1523,15 +1527,15 @@ int32_t test_many_files()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1.Init(node1_name, &node1_log);
+    iretn = node1.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return iretn;
     }
-    iretn = node2.Init(node2_name, &node2_log);
+    iretn = node2.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -1711,16 +1715,16 @@ int32_t test_packet_cancel_missed()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
     // Initialize file transfer classes
-    iretn = node1.Init(node1_name, &node1_log);
+    iretn = node1.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return iretn;
     }
-    iretn = node2.Init(node2_name, &node2_log);
+    iretn = node2.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -2015,17 +2019,17 @@ int32_t test_bad_meta()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
     // Initialize file transfer classes
-    iretn = node1.Init(node1_name, &node1_log);
+    iretn = node1.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         restore_original_nodeids();
         return iretn;
     }
-    iretn = node2.Init(node2_name, &node2_log);
+    iretn = node2.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -2091,16 +2095,16 @@ int32_t test_chaotic_order()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1.Init(node1_name, &node1_log);
+    iretn = node1.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         restore_original_nodeids();
         return iretn;
     }
-    iretn = node2.Init(node2_name, &node2_log);
+    iretn = node2.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -2397,15 +2401,15 @@ int32_t test_file_deleted_midrun()
     string file2_path = base_path + "/" + (++test.file_crcs.begin())->first;
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1a.Init(node1_name, &node1_log);
+    iretn = node1a.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return iretn;
     }
-    iretn = node2a.Init(node2_name, &node2_log);
+    iretn = node2a.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -2542,8 +2546,8 @@ int32_t test_file_deleted_midrun()
     
     // Now start up node1b and resume file transfer
     // Load test nodeid table
-    load_temp_nodeids();
-    iretn = node1b.Init(node1_name, &node1_log);
+    make_temp_nodeids();
+    iretn = node1b.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
@@ -2706,15 +2710,15 @@ int32_t test_txid_overlap()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1a.Init(node1_name, &node1_log);
+    iretn = node1a.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return iretn;
     }
-    iretn = node2a.Init(node2_name, &node2_log);
+    iretn = node2a.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -2874,8 +2878,8 @@ int32_t test_txid_overlap()
     
     // Now start up node1b and resume file transfer
     // Load test nodeid table
-    load_temp_nodeids();
-    iretn = node1b.Init(node1_name, &node1_log);
+    make_temp_nodeids();
+    iretn = node1b.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
@@ -3063,15 +3067,15 @@ int32_t test_wrong_protocol_version()
     vector<filestruc> temp_dir;
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1a.Init(node1_name, &node1_log);
+    iretn = node1a.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return iretn;
     }
-    iretn = node2a.Init(node2_name, &node2_log);
+    iretn = node2a.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -3203,8 +3207,8 @@ int32_t test_wrong_protocol_version()
     
     // Now start up node1b and resume file transfer
     // Load test nodeid table
-    load_temp_nodeids();
-    iretn = node2b.Init(node2_name, &node2_log);
+    make_temp_nodeids();
+    iretn = node2b.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
@@ -3344,9 +3348,9 @@ int32_t test_wrong_protocol_version2()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1.Init(node1_name, &node1_log);
+    iretn = node1.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
@@ -3456,15 +3460,15 @@ int32_t test_late_meta()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1.Init(node1_name, &node1_log);
+    iretn = node1.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return iretn;
     }
-    iretn = node2.Init(node2_name, &node2_log);
+    iretn = node2.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -3670,15 +3674,15 @@ int32_t test_file_crc_check_fail()
     }
 
     // Load nodeid table
-    load_temp_nodeids();
+    make_temp_nodeids();
 
-    iretn = node1.Init(node1_name, &node1_log);
+    iretn = node1.Init(cinfo1, &node1_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node1_name.c_str());
         return iretn;
     }
-    iretn = node2.Init(node2_name, &node2_log);
+    iretn = node2.Init(cinfo2, &node2_log);
     if (iretn < 0)
     {
         debug_log.Printf("Error initializing %s\n", node2_name.c_str());
@@ -3847,18 +3851,28 @@ endoftest:
 // Helper functions
 //////////////////////////////////////////////////////////////////////////////
 
-void load_temp_nodeids()
+void make_temp_nodeids()
 {
     // Backup existing nodeids.ini file
-    nodeids_ini_path = get_cosmosnodes() + "nodeids.ini";
-    nodeids_ini_backup_path = get_cosmosnodes() + "nodeids.ini.back";
-    rename(nodeids_ini_path.c_str(), nodeids_ini_backup_path.c_str());
+//    nodeids_ini_path = get_cosmosnodes() + "nodeids.ini";
+//    nodeids_ini_backup_path = get_cosmosnodes() + "nodeids.ini.back";
+//    rename(nodeids_ini_path.c_str(), nodeids_ini_backup_path.c_str());
 
     // Load in some arbitrary node ids
-    ofstream temp_nodeids_ini(nodeids_ini_path, std::ios::trunc);
-    temp_nodeids_ini << node1_id << " " << node1_name << "\n";
-    temp_nodeids_ini << node2_id << " " << node2_name << "\n";
-    temp_nodeids_ini.close();    
+//    ofstream temp_nodeids_ini(nodeids_ini_path, std::ios::trunc);
+//    temp_nodeids_ini << node1_id << " " << node1_name << "\n";
+//    temp_nodeids_ini << node2_id << " " << node2_name << "\n";
+//    temp_nodeids_ini.close();
+
+    cinfo1->realm.name = "test";
+    cinfo1->node.name = node1_name;
+    cinfo1->realm.node_ids[node1_name] = node1_id;
+    cinfo1->realm.node_ids[node2_name] = node2_id;
+
+    cinfo2->realm.name = "test";
+    cinfo2->node.name = node2_name;
+    cinfo2->realm.node_ids[node1_name] = node1_id;
+    cinfo2->realm.node_ids[node2_name] = node2_id;
 }
 
 void restore_original_nodeids()
@@ -4070,8 +4084,8 @@ void debug_packet(PacketComm packet, uint8_t direction, string type, Log::Logger
 
     if (debug_log->Type())
     {
-        string node_name = NodeData::lookup_node_id_name(packet.data[0]);
-        uint8_t node_id = NodeData::check_node_id(packet.data[0]);
+        string node_name = lookup_node_id_name(cinfo1, packet.data[0]);
+        uint8_t node_id = check_node_id(cinfo1, packet.data[0]);
 
         if (direction == 0)
         {
