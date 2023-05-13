@@ -13,8 +13,9 @@ namespace Integration {
 namespace File {
 
 //! Set up some nodeids for the test to use
-void FileSubagentTest::make_temp_nodeids(cosmosstruc& cinfo, uint8_t num_agents)
+void FileSubagentTest::make_temp_nodeids(uint8_t num_agents)
 {
+    cosmosstruc cinfo;
     cinfo.realm.name = "test";
     // Load in some arbitrary node ids
     // Note: cannot use node_id = 0, as it is reserved for NODEIDUNKNOWN
@@ -38,7 +39,7 @@ void FileSubagentTest::cleanup(uint8_t num_agents)
 
 void FileSubagentTest::TestSetup()
 {
-    vector<vector<string>> transfer_node_contacts = {{"destination"}, {"origin"}};
+    vector<vector<string>> transfer_node_contacts = {{"_tnode_2"}, {"_tnode_1"}};
     for (size_t i=0; i<agents.size(); ++i)
     {
         // File subagent setup
