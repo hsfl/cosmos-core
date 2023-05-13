@@ -1384,19 +1384,20 @@ int32_t set_cosmosroot(bool create_flag)
 #else
         croot = "/cosmos";
 #endif
-        if (!set_cosmosroot(croot, create_flag))
-        {
-            return 0;
-        }
 
-        // , or home folder for running user
+        // home folder for running user
         if ((troot = getenv("HOME")) != nullptr)
         {
-            croot = troot + string("/cosmos");
-            if (!set_cosmosroot(croot, create_flag))
+            if (!set_cosmosroot(troot + string("/cosmos"), create_flag))
             {
                 return 0;
             }
+        }
+
+        // Try root
+        if (!set_cosmosroot(croot, create_flag))
+        {
+            return 0;
         }
 
         // No standard location. Search upward for "cosmosroot"
