@@ -12462,11 +12462,11 @@ void create_databases(cosmosstruc *cinfo)
 //! \param realm std::string containing name of Realm
 int32_t load_node_ids(cosmosstruc* cinfo, string realm)
 {
-    if (realm.empty() && cinfo->realm.name.empty())
+    if ((realm.empty() && cinfo->realm.name.empty()))
     {
         return GENERAL_ERROR_EMPTY;
     }
-    if (cinfo->realm.name != realm)
+    if (cinfo->realm.name != realm && realm.size())
     {
         char buf[103];
         FILE *fp = data_open(get_realmdir(realm)+"/nodeids.ini", "rb");
@@ -12529,7 +12529,7 @@ int32_t save_node_ids(cosmosstruc* cinfo)
         return GENERAL_ERROR_EMPTY;
     }
 
-        FILE *fp = data_open(get_realmdir(cinfo->realm.name)+"/nodeids.ini", "wb");
+        FILE *fp = data_open(get_realmdir(cinfo->realm.name, true)+"/nodeids.ini", "wb");
         if (fp)
         {
             for (auto node : cinfo->realm.node_ids)

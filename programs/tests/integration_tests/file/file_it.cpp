@@ -9,7 +9,7 @@ void FileSubagentTest::SetUp(uint8_t test_num_agents)
 {
     // Create log directories
     test_name = ::testing::UnitTest::GetInstance()->current_test_info()->name();
-    const string log_base_path = get_cosmosnodes() + "logs_it/";
+    const string log_base_path = get_cosmosnodes(true) + "logs_it/";
     if (COSMOS_MKDIR(log_base_path.c_str(),00777) != 0 && errno != EEXIST) { FAIL() << errno; }
     const string test_base_path = log_base_path + test_name + "/";
     if (COSMOS_MKDIR(test_base_path.c_str(),00777) != 0 && errno != EEXIST) { FAIL() << errno; }
@@ -21,25 +21,24 @@ void FileSubagentTest::SetUp(uint8_t test_num_agents)
     test_log.Printf("Using rand seed:%d\n", seed);
     num_agents = test_num_agents;
     // Agents represent the source and destination nodes
-    agents.resize(num_agents);
+    agents.resize(num_agents, nullptr);
     // Each agent has one corresponding file subagent + file channel
-    file_subagents.resize(num_agents);
+    file_subagents.resize(num_agents, nullptr);
     // The packethandler routes stuff sent to the main channel to the file channel
-    packethandler_subagents.resize(num_agents);
+    packethandler_subagents.resize(num_agents, nullptr);
 
     // Load the node name:node id table for the tests (note, static data is shared for all agents in this process)
-    cosmosstruc cinfo;
-    make_temp_nodeids(cinfo, num_agents);
-
+    make_temp_nodeids(num_agents);
 
     // Setup the test agents
     for (size_t i=0; i < num_agents; ++i)
     {
         agents[i] = new Agent(0);
         agents[i]->cinfo = new cosmosstruc();
-        agents[i]->cinfo->realm = cinfo.realm;
+        ASSERT_GE(load_node_ids(agents[i]->cinfo, "test"), num_agents+3);
         agents[i]->cinfo->agent0.stateflag = static_cast<uint16_t>(Cosmos::Support::Agent::State::INIT);
         agents[i]->cinfo->node.name = "_tnode_" + std::to_string(i+1);
+        ASSERT_GT(lookup_node_id(agents[i]->cinfo, agents[i]->cinfo->node.name), 0);
         agents[i]->nodeId = lookup_node_id(agents[i]->cinfo, agents[i]->cinfo->node.name);
         agents[i]->init_channels();
         string agent_log_name = agents[i]->cinfo->node.name + "_log";
@@ -58,6 +57,9 @@ void FileSubagentTest::TearDown()
 
     // Stop the agents and join all threads
     for (auto& agent : agents) {
+        if (agent == nullptr) {
+            continue;
+        }
         agent->debug_log.Close();
         agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
     }
@@ -66,6 +68,9 @@ void FileSubagentTest::TearDown()
     }
     subagent_threads.clear();
     for (auto& agent : agents) {
+        if (agent == nullptr) {
+            continue;
+        }
         delete agent->cinfo;
         // Agent destructor attempts delete of cinfo (and some other things), set to nullptr to avoid headaches
         agent->cinfo = nullptr;
@@ -98,7 +103,6 @@ TEST_F(FileSubagentTest, Initialization_succeeds)
     EXPECT_EQ(agents.size(), num_agents);
     EXPECT_EQ(file_subagents.size(), num_agents);
     EXPECT_EQ(packethandler_subagents.size(), num_agents);
-//    EXPECT_EQ(NodeList::node_ids.size(), num_agents);
     EXPECT_EQ(agents[0]->cinfo->realm.node_ids.size()-3, num_agents);
 
     for (size_t i=0; i < test_num_agents; ++i)
@@ -111,7 +115,6 @@ TEST_F(FileSubagentTest, Initialization_succeeds)
         EXPECT_EQ(agents[i]->cinfo->node.name, node_name);
         EXPECT_EQ(agents[i]->nodeId, i+1);
     }
-
 }
 
 // No frills basic transfer across two nodes, from node1 to node2
@@ -127,7 +130,7 @@ TEST_F(FileSubagentTest, Can_perform_basic_transfer)
     ASSERT_NO_FATAL_FAILURE(TestSetup());
 
     // Create files
-    int32_t iretn = create_test_files("origin", "destination", file_size_kib, num_files, "");
+    int32_t iretn = create_test_files("_tnode_1", "_tnode_2", file_size_kib, num_files, "");
     ASSERT_GE(iretn, 0);
 
     // Initiate file transfers
@@ -138,13 +141,13 @@ TEST_F(FileSubagentTest, Can_perform_basic_transfer)
     // Check directories every second
     while (timeout_timer.split() < timeout && state == test_state::UNFINISHED)
     {
-        verify_incoming_dir("origin", num_files);
+        verify_incoming_dir("_tnode_1", num_files);
         secondsleep(3.);
     }
     EXPECT_NE(state, test_state::UNFINISHED);
-    verify_outgoing_dir("destination", 0);
-    verify_temp_dir("origin", 0);
-    verify_temp_dir("destination", 0);
+    verify_outgoing_dir("_tnode_2", 0);
+    verify_temp_dir("_tnode_1", 0);
+    verify_temp_dir("_tnode_2", 0);
 }
 
 // No frills basic transfer across two nodes, from node1 to node2
@@ -161,8 +164,7 @@ TEST_F(FileSubagentTest, Bad_reqdata_fails_gracefully)
     PacketComm packet;
     packet.header.type = PacketComm::TypeId::DataFileReqData;
     packet.data.resize(12);
-//    int32_t iretn = lookup_node_id(agent->cinfo, "destination");
-    int32_t iretn = NODEIDDEST;
+   int32_t iretn = lookup_node_id(agents[0]->cinfo, "_tnode_2");
     packet.data[0] = iretn & 0xFF;
     packet.data[1] = 2;
     uint32to(128, &packet.data[4]);
@@ -171,8 +173,8 @@ TEST_F(FileSubagentTest, Bad_reqdata_fails_gracefully)
 
     // All is good if it doesn't crash
     secondsleep(8.);
-    verify_temp_dir("origin", 0);
-    verify_temp_dir("destination", 0);
+    verify_temp_dir("_tnode_1", 0);
+    verify_temp_dir("_tnode_2", 0);
 }
 
 
