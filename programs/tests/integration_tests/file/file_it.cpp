@@ -28,7 +28,7 @@ void FileSubagentTest::SetUp(uint8_t test_num_agents)
     packethandler_subagents.resize(num_agents, nullptr);
 
     // Load the node name:node id table for the tests (note, static data is shared for all agents in this process)
-    make_temp_nodeids(num_agents);
+    generate_temp_nodeids(num_agents);
 
     // Setup the test agents
     for (size_t i=0; i < num_agents; ++i)

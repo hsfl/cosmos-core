@@ -13,7 +13,7 @@ namespace Integration {
 namespace File {
 
 //! Set up some nodeids for the test to use
-void FileSubagentTest::make_temp_nodeids(uint8_t num_agents)
+void FileSubagentTest::generate_temp_nodeids(uint8_t num_agents)
 {
     cosmosstruc cinfo;
     cinfo.realm.name = "test";
