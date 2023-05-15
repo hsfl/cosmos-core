@@ -161,7 +161,7 @@ TEST_F(FileSubagentTest, Bad_reqdata_fails_gracefully)
     PacketComm packet;
     packet.header.type = PacketComm::TypeId::DataFileReqData;
     packet.data.resize(12);
-//    int32_t iretn = NodeList::lookup_node_id("destination");
+//    int32_t iretn = lookup_node_id(agent->cinfo, "destination");
     int32_t iretn = NODEIDDEST;
     packet.data[0] = iretn & 0xFF;
     packet.data[1] = 2;

@@ -2891,7 +2891,7 @@ int32_t data_shell(string command_line, string outpath, string inpath, string er
 
 ////! Gets the node_id associated with a node name
 ////! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
-//int32_t NodeList::lookup_node_id(string node_name)
+//int32_t lookup_node_id(agent->cinfo, string node_name)
 //{
 //    int32_t iretn = 0;
 
