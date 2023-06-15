@@ -136,7 +136,7 @@ int main(int argc, char* argv[]){
     //	cout << "-----------------------------------------------" << endl;
 
     // Establish the command channel and heartbeat
-    agent = new Agent(node_name, agent_name);
+    agent = new Agent("", node_name, agent_name);
 
     if (agent->last_error()<0)
     {

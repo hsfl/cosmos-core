@@ -145,16 +145,15 @@ namespace Cosmos
         {
         public:
             Agent(uint8_t placeholder);
-            Agent(
-                const string &node_name = "",
-                const string &agent_name = "",
-                double bprd = 0.,
-				uint32_t bsize = AGENTMAXBUFFER,
-				bool mflag = false,
-				int32_t portnum = 0,
-                NetworkType ntype = NetworkType::UDP,
-                uint16_t dlevel = 0
-			);
+            Agent(string realm_name = "",
+                  string node_name = "",
+                  string agent_name = "",
+                  double bprd = 0.,
+                  uint32_t bsize = AGENTMAXBUFFER,
+                  bool mflag = false,
+                  int32_t portnum = 0,
+                  NetworkType ntype = NetworkType::UDP,
+                  uint16_t dlevel = 0);
 
             ~Agent();
 
@@ -412,11 +411,11 @@ namespace Cosmos
 
             // agent variables
             ElapsedTime uptime;
-            string nodeName;
-            string agentName;
+//            string cinfo->node.name;
+//            string cinfo->agent0.name;
             vector<beatstruc> slist;
-            NodeData nodeData;
-            NodeData::NODE_ID_TYPE nodeId;
+//            NodeList nodeData;
+            NODE_ID_TYPE nodeId;
 
             int32_t process_request(string &bufferin, string &bufferout);
 

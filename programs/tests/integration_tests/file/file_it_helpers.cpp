@@ -13,15 +13,18 @@ namespace Integration {
 namespace File {
 
 //! Set up some nodeids for the test to use
-void FileSubagentTest::load_temp_nodeids(uint8_t num_agents)
+void FileSubagentTest::generate_temp_nodeids(uint8_t num_agents)
 {
+    cosmosstruc cinfo;
+    cinfo.realm.name = "test";
     // Load in some arbitrary node ids
     // Note: cannot use node_id = 0, as it is reserved for NODEIDUNKNOWN
     for (size_t i=0; i<num_agents; ++i)
     {
-        std::string node_name = "_tnode_" + std::to_string(i+1);
-        NodeData::node_ids[node_name] = i+1;
+        string node_name = "_tnode_" + std::to_string(i+1);
+        cinfo.realm.node_ids[node_name] = i+1;
     }
+    save_node_ids(&cinfo);
 }
 
 void FileSubagentTest::cleanup(uint8_t num_agents)
@@ -29,7 +32,7 @@ void FileSubagentTest::cleanup(uint8_t num_agents)
     // Delete created folders, don't touch this
     for (size_t i=0; i<num_agents; ++i)
     {
-        std::string node_name = "_tnode_" + std::to_string(i+1);
+        string node_name = "_tnode_" + std::to_string(i+1);
         rmdir(get_cosmosnodes() + node_name);
     }
 }

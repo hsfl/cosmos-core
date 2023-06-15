@@ -377,7 +377,7 @@ namespace Cosmos
 
             //            strncpy(currentinfo.node.name, name.c_str(), COSMOS_MAX_NAME);
             currentinfo.node.name = name;
-            currentinfo.node.agent = "sim";
+            currentinfo.agent0.name = "sim";
             currentinfo.node.loc.utc = utc;
             Convert::tle2eci(currentinfo.node.loc.utc, tle, currentinfo.node.loc.pos.eci);
             this->tle = tle;
@@ -556,7 +556,7 @@ namespace Cosmos
             dtj = dt / 86400.;
 
             currentinfo.node.name = name;
-            currentinfo.node.agent = "sim";
+            currentinfo.agent0.name = "sim";
 
             structure = new Structure(&currentinfo.node.phys);
             structure->Setup(stype);

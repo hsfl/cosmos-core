@@ -169,10 +169,6 @@ static uint16_t rotctlport = 0;
 static socket_channel rotctlchannel;
 static std::thread rthread;
 
-// Here are internally provided functions
-//int json_init();
-//int myinit();
-//int load_gs_info(char *file);
 int load_tle_info(char *file);
 
 // Here are variables for internal use
@@ -210,11 +206,11 @@ int main(int argc, char *argv[])
 
     //    if (nodename.empty())
     //    {
-    //        agent = new Agent("", (antbase+"antenna").c_str(), 5.);
+    //        agent = new Agent("", "", (antbase+"antenna").c_str(), 5.);
     //    }
     //    else
     //    {
-    agent = new Agent(nodename, (antbase).c_str(), 5.);
+    agent = new Agent("", nodename, (antbase).c_str(), 5.);
     //    }
 
     if ((iretn = agent->wait()) < 0)
@@ -226,7 +222,7 @@ int main(int argc, char *argv[])
     {
         agent->debug_log.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
-    nodename = agent->nodeName;
+    nodename = agent->cinfo->node.name;
 
     iretn = json_createpiece(agent->cinfo, antbase, DeviceType::ANT);
     if (iretn < 0)
@@ -331,7 +327,7 @@ int main(int argc, char *argv[])
     ElapsedTime et;
 
     // Start performing the body of the agent
-    agent->cinfo->agent[0].aprd = .5;
+    agent->cinfo->agent0.aprd = .5;
     agent->start_active_loop();
     while(agent->running())
     {

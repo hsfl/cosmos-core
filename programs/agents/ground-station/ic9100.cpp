@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
     }
 
     // Establish the command channel and heartbeat
-    agent = new Agent(nodename);
+    agent = new Agent("", nodename);
 
     if ((iretn = agent->wait()) < 0)
     {

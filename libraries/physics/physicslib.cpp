@@ -1347,7 +1347,7 @@ for (il=0; il<5; il++)
                 cinfo->devspec.bus[i].amp = 0.;
             }
 
-            for (i=0; i<cinfo->node.device_cnt; i++)
+            for (i=0; i<cinfo->device_cnt; i++)
             {
                 index = cinfo->device[i]->bidx;
                 if (index >= cinfo->devspec.bus_cnt)
@@ -1364,7 +1364,7 @@ for (il=0; il<5; il++)
                     }
                     if (cinfo->device[i]->power <= 0.)
                         continue;
-                    if (cinfo->device[i]->pidx < cinfo->node.piece_cnt)
+                    if (cinfo->device[i]->pidx < cinfo->piece_cnt)
                     {
                         cinfo->pieces[cinfo->device[i]->pidx].heat += .8 * cinfo->device[i]->power * cinfo->node.phys.dt;
                     }

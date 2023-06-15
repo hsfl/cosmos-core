@@ -62,7 +62,7 @@ protected:
     test_state state = test_state::UNFINISHED;
 
     //! Set up some nodeids for the test to use
-    void load_temp_nodeids(uint8_t num_agents);
+    void generate_temp_nodeids(uint8_t num_agents);
 
     //! Removes created test directories
     void cleanup(uint8_t num_agents);

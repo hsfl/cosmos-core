@@ -224,11 +224,11 @@ int main(int argc, char *argv[])
     // Establish the command channel and heartbeat
     if (nodename.empty())
     {
-        agent = new Agent("", agentname, 5.);
+        agent = new Agent("", "", agentname, 5.);
     }
     else
     {
-        agent = new Agent(nodename, agentname, 5.);
+        agent = new Agent("", nodename, agentname, 5.);
     }
 
     if ((iretn = agent->wait()) < 0)
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
             case NODE_TYPE_MOON:
                 trackstruc ttrack;
                 ttrack.name = nodes[i];
-                cosmosstruc *cinfo = json_init();
+                cosmosstruc *cinfo = json_init(ttrack.name);
                 iretn = json_setup_node(ttrack.name, cinfo);
                 if (iretn == 0 && (currentmjd()-cinfo->node.loc.pos.eci.utc) < 10.)
                 {
@@ -519,7 +519,7 @@ int main(int argc, char *argv[])
     ElapsedTime et;
 
     // Start main thread
-    agent->cinfo->agent[0].aprd = 1.;
+    agent->cinfo->agent0.aprd = 1.;
     agent->start_active_loop();
     while (agent->running())
     {

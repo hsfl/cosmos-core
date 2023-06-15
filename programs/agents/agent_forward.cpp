@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     }
 
     // Initialize the Agent
-    agent = new Agent("", "forward", 5.);
+    agent = new Agent("", "", "forward", 5.);
     if ((iretn = agent->wait()) < 0)
     {
         agent->debug_log.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
@@ -215,10 +215,10 @@ void forwarding_loop()
                 }
             }
 
-            for (size_t i=0; i<agent->cinfo->agent[0].ifcnt; ++i)
+            for (size_t i=0; i<agent->cinfo->agent0.ifcnt; ++i)
             {
-                sendto(agent->cinfo->agent[0].pub[i].cudp, (const char *)input.data(), input.size(), 0, (struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr, sizeof(struct sockaddr_in));
-//                socket_sendto(agent->cinfo->agent[0].pub[i], input);
+                sendto(agent->cinfo->agent0.pub[i].cudp, (const char *)input.data(), input.size(), 0, (struct sockaddr *)&agent->cinfo->agent0.pub[i].baddr, sizeof(struct sockaddr_in));
+//                socket_sendto(agent->cinfo->agent0.pub[i], input);
             }
         }
     }

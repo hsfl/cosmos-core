@@ -23,7 +23,7 @@ namespace Cosmos
 
         int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
         {
-            Physics::State* newstate = new Physics::State;
+            Physics::State* newstate = new Physics::State(nodename);
             cnodes.insert(pair<string, Physics::State*>(nodename, newstate));
             return cnodes.count(nodename);
         }

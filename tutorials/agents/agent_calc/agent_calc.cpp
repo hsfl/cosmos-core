@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 	if (argc > 1)
     {
         // Initialize agent instance with specified node and agent names
-        agent = new Agent(nodename, agentname);
+        agent = new Agent("", nodename, agentname);
 
         // Check if agent was successfully constructed.
         if ((iretn = agent->wait()) < 0)
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 	else
     {
         // Initialize agent instance with unspecified node name but specified agent name
-        agent = new Agent("otb", agentname);
+        agent = new Agent("", "otb", agentname);
 
         // Check if agent was successfully constructed.
         if ((iretn = agent->wait()) < 0)
