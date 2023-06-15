@@ -835,6 +835,12 @@ rvector rv_sqrt(rvector vec)
     return in;
 }
 
+// add vector to vector operator
+rvector operator + (rvector v1, rvector v2)
+{
+    return rv_add(v1, v2);
+}
+
 // multiply vector by scalar operator
 rvector operator * (rvector v, double scalar)
 {

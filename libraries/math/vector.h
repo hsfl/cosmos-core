@@ -94,6 +94,7 @@ struct rvector
 ::std::ostream& operator << (::std::ostream& out, const rvector& a);
 ::std::ostream& operator << (::std::ostream& out, const vector<rvector>& a);
 ::std::istream& operator >> (::std::istream& out, rvector& a);
+rvector operator + (rvector v1, rvector v2); // multiply vector by vector operator
 rvector operator * (rvector v, double scalar); // multiply vector by vector operator
 rvector operator * (rvector v1, rvector v2); // multiply vector by vector operator
 rvector operator / (rvector v, double scalar); // divide vector by scalar operator

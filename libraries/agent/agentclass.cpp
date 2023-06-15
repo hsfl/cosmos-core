@@ -73,6 +73,7 @@ namespace Cosmos
         //! message ring buffer thread, and a main thread of execution. Additional parameters are related to making
         //! the program a true Agent by tieing it to a node, and starting the request and heartbeat threads.
         //! \param ntype Transport Layer protocol to be used, taken from ::NetworkType. Defaults to UDP Broadcast.
+        //! \param realm_name Realm name. Defaults to empty.
         //! \param node_name Node name. Defaults to empty.
         //! \param agent_name Agent name. Defaults to empty. If this is defined, the full Agent code will be started.
         //! \param bprd Period, in seconds, for heartbeat. Defaults to 1.
@@ -82,14 +83,15 @@ namespace Cosmos
         //! the Agent already running.
         //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
         //! \param dlevel debug level. Defaults to 1 so that if there is an error the user can immediately see it. also initialized in the namespace variables
-        Agent::Agent(string node_name,
-                string agent_name,
-                double bprd,
-                uint32_t bsize,
-                bool mflag,
-                int32_t portnum,
-                NetworkType ntype,
-                uint16_t dlevel)
+        Agent::Agent(string realm_name,
+                     string node_name,
+                     string agent_name,
+                     double bprd,
+                     uint32_t bsize,
+                     bool mflag,
+                     int32_t portnum,
+                     NetworkType ntype,
+                     uint16_t dlevel)
         {
             int32_t iretn = 0;
             uptime.reset();
@@ -102,6 +104,7 @@ namespace Cosmos
                 node_name = hostname;
             }
 
+            // Initialize logging
             debug_level = dlevel;
             debug_log.Set(dlevel, true,  data_base_path(node_name, "temp", agent_name), 1800., "debug");
 
@@ -150,14 +153,34 @@ namespace Cosmos
                 return;
             }
 
-            // Load node id table
+            // Set Realm:
+            // if empty, use "all"
+            // if Node is not in Realm, add it
+            iretn = load_node_ids(cinfo, realm_name);
+            if (iretn < 0)
+            {
+                error_value = iretn;
+                debug_log.Printf("Failed to find Realm %s\n", realm_name.c_str());
+                shutdown();
+                return;
+            }
+            for (auto id : cinfo->realm.node_ids)
+            {
+                debug_log.Printf("Node Index: %u Name: %s\n", static_cast<uint8_t>(id.second), id.first.c_str());
+            }
+
+            // Find Node in Realm
             iretn = lookup_node_id(cinfo, cinfo->node.name);
             if (iretn < 0)
             {
                 error_value = iretn;
-                debug_log.Printf("Failed to find Node Id table\n");
+                debug_log.Printf("Failed to find Node %s in Realm %s\n", cinfo->node.name.c_str(), realm_name.c_str());
                 shutdown();
                 return;
+            }
+            else if (iretn == 0)
+            {
+                iretn = add_node_id(cinfo, cinfo->node.name);
             }
             nodeId = iretn;
 

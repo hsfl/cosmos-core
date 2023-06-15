@@ -145,15 +145,15 @@ namespace Cosmos
         {
         public:
             Agent(uint8_t placeholder);
-            Agent(string node_name = "",
-                string agent_name = "",
-                double bprd = 0.,
-                uint32_t bsize = AGENTMAXBUFFER,
-                bool mflag = false,
-                int32_t portnum = 0,
-                NetworkType ntype = NetworkType::UDP,
-                uint16_t dlevel = 0
-            );
+            Agent(string realm_name = "",
+                  string node_name = "",
+                  string agent_name = "",
+                  double bprd = 0.,
+                  uint32_t bsize = AGENTMAXBUFFER,
+                  bool mflag = false,
+                  int32_t portnum = 0,
+                  NetworkType ntype = NetworkType::UDP,
+                  uint16_t dlevel = 0);
 
             ~Agent();
 

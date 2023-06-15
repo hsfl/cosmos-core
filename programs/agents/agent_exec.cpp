@@ -161,13 +161,13 @@ int main(int argc, char *argv[])
     // Set node name to first argument
     if (argc == 2)
     {
-        agent = new Agent(argv[1], "exec", 0.);
+        agent = new Agent("", argv[1], "exec", 0.);
     }
     else
     {
         char hostname[60];
         gethostname(hostname, sizeof (hostname));
-        agent = new Agent(hostname, "exec", 0.);
+        agent = new Agent("", hostname, "exec", 0.);
     }
 
     if ((iretn = agent->wait()) < 0)

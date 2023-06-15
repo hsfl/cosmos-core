@@ -95,11 +95,11 @@ int main(int argc, char *argv[])
     printf("Memory: %s\n", json_memory_usage().c_str());
 
     if (argc == 2) {
-        agent = new Agent(argv[1], "cpu", 15.);
+        agent = new Agent("", argv[1], "cpu", 15.);
     } else {
         char hostname[60];
         gethostname(hostname, sizeof (hostname));
-        agent = new Agent(hostname, "cpu", 15.);
+        agent = new Agent("", hostname, "cpu", 15.);
     }
     printf("Mmeory: %s\n", json_memory_usage().c_str());
     agent->set_debug_level(1);

@@ -161,11 +161,11 @@ int main(int argc, char *argv[])
 
     if (nodename.empty())
     {
-        agent = new Agent("");
+        agent = new Agent("", "");
     }
     else
     {
-        agent = new Agent(nodename);
+        agent = new Agent("", nodename);
     }
 
     iretn = json_createpiece(agent->cinfo, antbase.c_str(), DeviceType::ANT);

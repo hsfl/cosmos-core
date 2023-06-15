@@ -35,11 +35,11 @@ int main(int argc, char* argv[])
     Agent *myagent;
 
     if (argc == 2) {
-        myagent = new Agent(argv[1]);
+        myagent = new Agent("", argv[1]);
     } else {
         char hostname[60];
         gethostname(hostname, sizeof (hostname));
-        myagent = new Agent(hostname);
+        myagent = new Agent("", hostname);
     }
 
     size_t total = 0;

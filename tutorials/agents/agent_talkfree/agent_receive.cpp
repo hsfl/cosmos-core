@@ -41,7 +41,7 @@ int main()
     Agent *agent;
 
     // TODO: remove telem node, replace by node on the fly
-    agent = new Agent("telem","receive");
+    agent = new Agent("", "telem","receive");
     if (agent->cinfo != nullptr && agent->running())
     {
         while (agent->running())

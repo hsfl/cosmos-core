@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
                 minelev = RADOF(stof(nodename.substr(nodename.find(":")+1)));
                 nodename = nodename.substr(0, nodename.find(":"));
             }
-            Agent *agent = new Agent(nodename);
+            Agent *agent = new Agent("", nodename);
             if ((iretn = agent->wait()) >= 0)
             {
                 double utcnow;

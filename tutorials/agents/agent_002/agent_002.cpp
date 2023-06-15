@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 		//int jah2 = 240;
     // construct agent 
 	cout << node_agent_name <<" starting..."<<endl;
-	agent = new Agent(node_name, agent_name, 1.);
+	agent = new Agent("", node_name, agent_name, 1.);
     if(agent->last_error() < 0) {
         cout<<"error: unable to start "<<node_agent_name<<" ("<<agent->last_error()<<") "<<cosmos_error_string(agent->last_error())<<endl;
         exit(1);

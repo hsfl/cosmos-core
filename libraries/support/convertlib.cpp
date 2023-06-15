@@ -175,6 +175,61 @@ namespace Cosmos
             pos_eci2geoc(tloc);
             loc.pos.extra.moongeo = tloc.pos.geod.s;
 
+            // LVLH related
+            quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.};
+            loc.pos.extra.g2l = {{0., 0., 0.}, 1.};
+            loc.pos.extra.l2g = {{0., 0., 0.}, 1.};
+            rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.};
+            qatt *patt;
+            cartpos *ppos;
+            switch (loc.pos.extra.closest)
+            {
+            case COSMOS_EARTH:
+            default:
+                // Check time
+                if (!isfinite(loc.att.geoc.utc) || loc.att.geoc.utc == 0.)
+                {
+                    return CONVERT_ERROR_UTC;
+                }
+
+                patt = &loc.att.geoc;
+                ppos = &loc.pos.geoc;
+                break;
+            case COSMOS_MOON:
+                // Check time
+                if (!isfinite(loc.att.selc.utc) || loc.att.selc.utc == 0.)
+                {
+                    return CONVERT_ERROR_UTC;
+                }
+
+                patt = &loc.att.selc;
+                ppos = &loc.pos.selc;
+                break;
+            }
+
+            // LVLH Z is opposite of direction to satellite
+            geoc_z = rv_smult(-1., ppos->s);
+            normalize_rv(geoc_z);
+
+            // LVLH Y is Cross Product of LVLH Z and velocity vector
+            geoc_y = rv_cross(geoc_z, ppos->v);
+            normalize_rv(geoc_y);
+
+            // Determine intrinsic rotation of ITRF Z  into LVLH Z
+            qe_z = q_conjugate(q_drotate_between_rv(geoc_z, lvlh_z));
+
+            // Use to intrinsically rotate ITRF Y into intermediate Y
+            //	geoc_y = drotate(qe_z,geoc_y);
+            geoc_y = irotate(qe_z, geoc_y);
+
+            // Determine intrinsic rotation of this intermediate Y into LVLH Y
+            qe_y = q_conjugate(q_drotate_between_rv(geoc_y, lvlh_y));
+
+            // Combine to determine intrinsic rotation of ITRF into LVLH
+            loc.pos.extra.g2l = q_fmult(qe_z, qe_y);
+            normalize_q(&loc.pos.extra.g2l);
+            loc.pos.extra.l2g = q_conjugate(loc.pos.extra.g2l);
+
             return 0;
         }
 
@@ -1952,8 +2007,10 @@ namespace Cosmos
 
         int32_t att_planec2lvlh(locstruc &loc)
         {
-            quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.}, fqe = {{0., 0., 0.}, 1.}, rqe = {{0., 0., 0.}, 1.};
-            rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.}, alpha = {0., 0., 0.};
+//            quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.};
+//            loc.pos.extra.g2l = {{0., 0., 0.}, 1.};
+//            loc.pos.extra.l2g = {{0., 0., 0.}, 1.};
+//            rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.}, alpha = {0., 0., 0.};
             qatt *patt;
             cartpos *ppos;
             double radius;
@@ -1992,39 +2049,36 @@ namespace Cosmos
             loc.att.lvlh.pass = patt->pass;
 
             // LVLH Z is opposite of direction to satellite
-            geoc_z = rv_smult(-1., ppos->s);
-            normalize_rv(geoc_z);
+//            geoc_z = rv_smult(-1., ppos->s);
+//            normalize_rv(geoc_z);
 
             // LVLH Y is Cross Product of LVLH Z and velocity vector
-            geoc_y = rv_cross(geoc_z, ppos->v);
-            normalize_rv(geoc_y);
+//            geoc_y = rv_cross(geoc_z, ppos->v);
+//            normalize_rv(geoc_y);
 
             // Determine intrinsic rotation of ITRF Z  into LVLH Z
-            qe_z = q_conjugate(q_drotate_between_rv(geoc_z, lvlh_z));
+//            qe_z = q_conjugate(q_drotate_between_rv(geoc_z, lvlh_z));
 
             // Use to intrinsically rotate ITRF Y into intermediate Y
             //	geoc_y = drotate(qe_z,geoc_y);
-            geoc_y = irotate(qe_z, geoc_y);
+//            geoc_y = irotate(qe_z, geoc_y);
 
             // Determine intrinsic rotation of this intermediate Y into LVLH Y
-            qe_y = q_conjugate(q_drotate_between_rv(geoc_y, lvlh_y));
+//            qe_y = q_conjugate(q_drotate_between_rv(geoc_y, lvlh_y));
 
             // Combine to determine intrinsic rotation of ITRF into LVLH
-            fqe = q_fmult(qe_z, qe_y);
-            normalize_q(&fqe);
-            rqe = q_conjugate(fqe);
+//            loc.pos.extra.g2l = q_fmult(qe_z, qe_y);
+//            normalize_q(&loc.pos.extra.g2l);
+//            rqe = q_conjugate(loc.pos.extra.g2l);
 
             // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
-            alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
+            rvector alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
             loc.att.lvlh.v = rv_sub(patt->v, alpha);
 
             // Transform ITRS into LVLH
-            //	loc.att.lvlh.s = q_fmult(patt->s,fqe);
-            //	loc.att.lvlh.v = irotate(fqe,loc.att.lvlh.v);
-            //	loc.att.lvlh.a = irotate(fqe,patt->a);
-            loc.att.lvlh.s = q_fmult(rqe, patt->s);
-            loc.att.lvlh.v = irotate(fqe, loc.att.lvlh.v);
-            loc.att.lvlh.a = irotate(fqe, patt->a);
+            loc.att.lvlh.s = q_fmult(loc.pos.extra.l2g, patt->s);
+            loc.att.lvlh.v = irotate(loc.pos.extra.g2l, loc.att.lvlh.v);
+            loc.att.lvlh.a = irotate(loc.pos.extra.g2l, patt->a);
 
             return 0;
         }
@@ -2042,8 +2096,8 @@ namespace Cosmos
 
         int32_t att_lvlh2planec(locstruc &loc)
         {
-            quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.}, fqe = {{0., 0., 0.}, 1.}, rqe = {{0., 0., 0.}, 1.};
-            rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.}, alpha = {0., 0., 0.};
+//            quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.}, fqe = {{0., 0., 0.}, 1.}, rqe = {{0., 0., 0.}, 1.};
+//            rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.}, alpha = {0., 0., 0.};
             qatt *patt;
             cartpos *ppos;
             double radius;
@@ -2076,47 +2130,43 @@ namespace Cosmos
             ppos->pass = patt->pass = loc.att.lvlh.pass;
 
             // LVLH Z is opposite of earth to satellite vector
-            geoc_z = rv_smult(-1., ppos->s);
-            normalize_rv(geoc_z);
+//            geoc_z = rv_smult(-1., ppos->s);
+//            normalize_rv(geoc_z);
 
             // LVLH Y is Cross Product of LVLH Z and velocity vector
-            geoc_y = rv_cross(geoc_z, ppos->v);
-            normalize_rv(geoc_y);
+//            geoc_y = rv_cross(geoc_z, ppos->v);
+//            normalize_rv(geoc_y);
 
             // Determine rotation of ITRF Z  into LVLH Z
-            qe_z = q_conjugate(q_drotate_between_rv(geoc_z, lvlh_z));
-            geoc_z = irotate(qe_z, geoc_z);
+//            qe_z = q_conjugate(q_drotate_between_rv(geoc_z, lvlh_z));
+//            geoc_z = irotate(qe_z, geoc_z);
 
             // Use to rotate LVLH Y into intermediate LVLH Y
-            //	geoc_y = drotate(qe_z,geoc_y);
-            geoc_y = irotate(qe_z, geoc_y);
+//            geoc_y = irotate(qe_z, geoc_y);
 
             // Determine rotation of this LVLH Y into ITRF Y
-            qe_y = q_conjugate(q_drotate_between_rv(geoc_y, lvlh_y));
+//            qe_y = q_conjugate(q_drotate_between_rv(geoc_y, lvlh_y));
 
             // Multiply to determine transformation of ITRF frame into LVLH frame
-            fqe = q_fmult(qe_z, qe_y);
-            normalize_q(&fqe);
-            rqe = q_conjugate(fqe);
+//            loc.pos.extra.g2l = q_fmult(qe_z, qe_y);
+//            normalize_q(&loc.pos.extra.g2l);
+//            rqe = q_conjugate(loc.pos.extra.g2l);
 
             // LVLH Z is opposite of earth to satellite vector
-            geoc_z = rv_smult(-1., ppos->s);
-            normalize_rv(geoc_z);
+//            geoc_z = rv_smult(-1., ppos->s);
+//            normalize_rv(geoc_z);
 
             // LVLH Y is Cross Product of LVLH Z and velocity vector
-            geoc_y = rv_cross(geoc_z, ppos->v);
-            normalize_rv(geoc_y);
+//            geoc_y = rv_cross(geoc_z, ppos->v);
+//            normalize_rv(geoc_y);
 
             // Rotate LVLH frame into ITRS frame
-            //	patt->s = q_fmult(rqe,loc.att.lvlh.s);
-            //	patt->v = irotate(fqe,loc.att.lvlh.v);
-            //	patt->a = irotate(fqe,loc.att.lvlh.a);
-            patt->s = q_fmult(fqe, loc.att.lvlh.s);
-            patt->v = irotate(rqe, loc.att.lvlh.v);
-            patt->a = irotate(rqe, loc.att.lvlh.a);
+            patt->s = q_fmult(loc.pos.extra.g2l, loc.att.lvlh.s);
+            patt->v = irotate(loc.pos.extra.l2g, loc.att.lvlh.v);
+            patt->a = irotate(loc.pos.extra.l2g, loc.att.lvlh.a);
 
             // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
-            alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
+            rvector alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
             patt->v = rv_add(patt->v, alpha);
 
             // Synchronize Topo
@@ -2257,7 +2307,7 @@ namespace Cosmos
         int32_t att_planec2topo(locstruc &loc)
         {
             quaternion t2g, t2g_z, t2g_x, g2t;
-            rvector geoc_x, topo_x, alpha;
+            rvector geoc_x, topo_x;
             qatt *patt;
             cartpos *ppos;
 
@@ -2305,7 +2355,7 @@ namespace Cosmos
             g2t = q_conjugate(t2g);
 
             // Correct velocity for Topo angular velocity wrt ITRS, expressed in ITRS
-            alpha = rv_smult(-1. / (length_rv(ppos->s) * length_rv(ppos->s)), rv_cross(ppos->s, ppos->v));
+            rvector alpha = rv_smult(-1. / (length_rv(ppos->s) * length_rv(ppos->s)), rv_cross(ppos->s, ppos->v));
             loc.att.topo.v = rv_add(patt->v, alpha);
 
             // Rotate ITRS frame into Topo frame
@@ -2330,7 +2380,7 @@ namespace Cosmos
         int32_t att_topo2planec(locstruc &loc)
         {
             quaternion t2g, t2g_z, t2g_x, g2t;
-            rvector geoc_x, topo_x, alpha;
+            rvector geoc_x, topo_x;
             qatt *patt;
             cartpos *ppos;
             int32_t iretn = 0;
@@ -2378,7 +2428,7 @@ namespace Cosmos
             patt->a = irotate(g2t, loc.att.topo.a);
 
             // Correct velocity for Topo angular velocity wrt ITRS, expressed in ITRS
-            alpha = rv_smult(-1. / (length_rv(ppos->s) * length_rv(ppos->s)), rv_cross(ppos->s, ppos->v));
+            rvector alpha = rv_smult(-1. / (length_rv(ppos->s) * length_rv(ppos->s)), rv_cross(ppos->s, ppos->v));
 
             // Correct for rotation of frame
             patt->v = rv_add(loc.att.topo.v, alpha);
@@ -4567,6 +4617,8 @@ match.
                 << a.ds2t << "\t"
                 << a.t2s << "\t"
                 << a.dt2s << "\t"
+                << a.l2g << "\t"
+                << a.g2l << "\t"
                 << a.sun2earth << "\t"
                 << a.sun2moon << "\t"
                 << a.closest;
@@ -4575,7 +4627,7 @@ match.
 
         ::std::istream &operator>>(::std::istream &in, extrapos &a)
         {
-            in >> a.utc >> a.tt >> a.ut >> a.tdb >> a.j2e >> a.dj2e >> a.ddj2e >> a.e2j >> a.de2j >> a.dde2j >> a.j2t >> a.j2s >> a.t2j >> a.s2j >> a.s2t >> a.ds2t >> a.t2s >> a.dt2s >> a.sun2earth >> a.sun2moon >> a.closest;
+            in >> a.utc >> a.tt >> a.ut >> a.tdb >> a.j2e >> a.dj2e >> a.ddj2e >> a.e2j >> a.de2j >> a.dde2j >> a.j2t >> a.j2s >> a.t2j >> a.s2j >> a.s2t >> a.ds2t >> a.t2s >> a.dt2s >> a.g2l >> a.l2g >> a.sun2earth >> a.sun2moon >> a.closest;
             return in;
         }
 

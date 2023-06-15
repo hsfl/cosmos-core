@@ -36,7 +36,7 @@
 
 //! Open publication channel
 //! Open UDP sockets on each interface that is not local or PTP. This channel is then available for broadcast messages.
-//! \param channel Pointer to ::socket_channel holding final configuration.
+//! \param channel Pointer to ::socket_bus holding final configuration.
 //! \param port Dedicated port number.
 //! \return Zero, or negative error.
 int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
@@ -249,7 +249,7 @@ int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
 
         bus[(bus.size() - 1)].flags = ifra->ifr_flags;
 
-        if ((bus[(bus.size() - 1)].flags & IFF_POINTOPOINT) || (bus[(bus.size() - 1)].flags & IFF_UP) == 0)
+        if ((bus[(bus.size() - 1)].flags & IFF_POINTOPOINT) || (bus[(bus.size() - 1)].flags & IFF_MULTICAST) || (bus[(bus.size() - 1)].flags & IFF_UP) == 0)
         {
             continue;
         }
@@ -1063,7 +1063,7 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port)
                 tiface.flags = ifra->ifr_flags;
 
 //                if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || ((ifra->ifr_flags & (IFF_BROADCAST)) == 0 && (ifra->ifr_flags & (IFF_POINTOPOINT)) == 0))
-                if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0)
+                if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_MULTICAST) || (ifra->ifr_flags & IFF_UP) == 0)
                 {
                     continue;
                 }

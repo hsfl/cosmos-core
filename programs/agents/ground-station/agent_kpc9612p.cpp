@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     }
 
     // Initialize the Agent
-    if (!(agent = new Agent("", ("tunnel_"+tunnel_ip), 1., MAXBUFFERSIZE)))
+    if (!(agent = new Agent("", "", ("tunnel_"+tunnel_ip), 1., MAXBUFFERSIZE)))
         exit (AGENT_ERROR_JSON_CREATE);
 
     // If ip_address is our own, then don't form Tunnel interface.

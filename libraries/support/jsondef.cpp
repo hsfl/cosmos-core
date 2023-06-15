@@ -425,6 +425,18 @@ namespace Cosmos
                     add_name(rebasename, &node.loc.pos.extra.dt2s.row[i].col[j], "double");
                 }
             }
+            add_name("node.loc.pos.extra.l2g", &node.loc.pos.extra.l2g, "quaternion");
+            add_name("node.loc.pos.extra.l2g.d", &node.loc.pos.extra.l2g.d, "cvector");
+            add_name("node.loc.pos.extra.l2g.d.x", &node.loc.pos.extra.l2g.d.x, "double");
+            add_name("node.loc.pos.extra.l2g.d.y", &node.loc.pos.extra.l2g.d.y, "double");
+            add_name("node.loc.pos.extra.l2g.d.z", &node.loc.pos.extra.l2g.d.z, "double");
+            add_name("node.loc.pos.extra.l2g.w", &node.loc.pos.extra.l2g.w, "double");
+            add_name("node.loc.pos.extra.g2l", &node.loc.pos.extra.g2l, "quaternion");
+            add_name("node.loc.pos.extra.g2l.d", &node.loc.pos.extra.g2l.d, "cvector");
+            add_name("node.loc.pos.extra.g2l.d.x", &node.loc.pos.extra.g2l.d.x, "double");
+            add_name("node.loc.pos.extra.g2l.d.y", &node.loc.pos.extra.g2l.d.y, "double");
+            add_name("node.loc.pos.extra.g2l.d.z", &node.loc.pos.extra.g2l.d.z, "double");
+            add_name("node.loc.pos.extra.g2l.w", &node.loc.pos.extra.g2l.w, "double");
             add_name("node.loc.pos.extra.sun2earth", &node.loc.pos.extra.sun2earth, "cartpos");
             add_name("node.loc.pos.extra.sun2earth.utc", &node.loc.pos.extra.sun2earth.utc, "double");
             add_name("node.loc.pos.extra.sun2earth.s", &node.loc.pos.extra.sun2earth.s, "rvector");
@@ -923,6 +935,18 @@ namespace Cosmos
                     add_name(rebasename, &node.loc_est.pos.extra.dt2s.row[i].col[j], "double");
                 }
             }
+            add_name("node.loc_est.pos.extra.l2g", &node.loc_est.pos.extra.l2g, "quaternion");
+            add_name("node.loc_est.pos.extra.l2g.d", &node.loc_est.pos.extra.l2g.d, "cvector");
+            add_name("node.loc_est.pos.extra.l2g.d.x", &node.loc_est.pos.extra.l2g.d.x, "double");
+            add_name("node.loc_est.pos.extra.l2g.d.y", &node.loc_est.pos.extra.l2g.d.y, "double");
+            add_name("node.loc_est.pos.extra.l2g.d.z", &node.loc_est.pos.extra.l2g.d.z, "double");
+            add_name("node.loc_est.pos.extra.l2g.w", &node.loc_est.pos.extra.l2g.w, "double");
+            add_name("node.loc_est.pos.extra.g2l", &node.loc_est.pos.extra.g2l, "quaternion");
+            add_name("node.loc_est.pos.extra.g2l.d", &node.loc_est.pos.extra.g2l.d, "cvector");
+            add_name("node.loc_est.pos.extra.g2l.d.x", &node.loc_est.pos.extra.g2l.d.x, "double");
+            add_name("node.loc_est.pos.extra.g2l.d.y", &node.loc_est.pos.extra.g2l.d.y, "double");
+            add_name("node.loc_est.pos.extra.g2l.d.z", &node.loc_est.pos.extra.g2l.d.z, "double");
+            add_name("node.loc_est.pos.extra.g2l.w", &node.loc_est.pos.extra.g2l.w, "double");
             add_name("node.loc_est.pos.extra.sun2earth", &node.loc_est.pos.extra.sun2earth, "cartpos");
             add_name("node.loc_est.pos.extra.sun2earth.utc", &node.loc_est.pos.extra.sun2earth.utc, "double");
             add_name("node.loc_est.pos.extra.sun2earth.s", &node.loc_est.pos.extra.sun2earth.s, "rvector");
@@ -1421,6 +1445,18 @@ namespace Cosmos
                     add_name(rebasename, &node.loc_std.pos.extra.dt2s.row[i].col[j], "double");
                 }
             }
+            add_name("node.loc_std.pos.extra.l2g", &node.loc_std.pos.extra.l2g, "quaternion");
+            add_name("node.loc_std.pos.extra.l2g.d", &node.loc_std.pos.extra.l2g.d, "cvector");
+            add_name("node.loc_std.pos.extra.l2g.d.x", &node.loc_std.pos.extra.l2g.d.x, "double");
+            add_name("node.loc_std.pos.extra.l2g.d.y", &node.loc_std.pos.extra.l2g.d.y, "double");
+            add_name("node.loc_std.pos.extra.l2g.d.z", &node.loc_std.pos.extra.l2g.d.z, "double");
+            add_name("node.loc_std.pos.extra.l2g.w", &node.loc_std.pos.extra.l2g.w, "double");
+            add_name("node.loc_std.pos.extra.g2l", &node.loc_std.pos.extra.g2l, "quaternion");
+            add_name("node.loc_std.pos.extra.g2l.d", &node.loc_std.pos.extra.g2l.d, "cvector");
+            add_name("node.loc_std.pos.extra.g2l.d.x", &node.loc_std.pos.extra.g2l.d.x, "double");
+            add_name("node.loc_std.pos.extra.g2l.d.y", &node.loc_std.pos.extra.g2l.d.y, "double");
+            add_name("node.loc_std.pos.extra.g2l.d.z", &node.loc_std.pos.extra.g2l.d.z, "double");
+            add_name("node.loc_std.pos.extra.g2l.w", &node.loc_std.pos.extra.g2l.w, "double");
             add_name("node.loc_std.pos.extra.sun2earth", &node.loc_std.pos.extra.sun2earth, "cartpos");
             add_name("node.loc_std.pos.extra.sun2earth.utc", &node.loc_std.pos.extra.sun2earth.utc, "double");
             add_name("node.loc_std.pos.extra.sun2earth.s", &node.loc_std.pos.extra.sun2earth.s, "rvector");
@@ -3157,6 +3193,18 @@ namespace Cosmos
                         add_name(rebasename2, &target[i].loc.pos.extra.dt2s.row[j].col[k], "double");
                     }
                 }
+                add_name(basename+".loc.pos.extra.l2g", &target[i].loc.pos.extra.l2g, "quaternion");
+                add_name(basename+".loc.pos.extra.l2g.d", &target[i].loc.pos.extra.l2g.d, "cvector");
+                add_name(basename+".loc.pos.extra.l2g.d.x", &target[i].loc.pos.extra.l2g.d.x, "double");
+                add_name(basename+".loc.pos.extra.l2g.d.y", &target[i].loc.pos.extra.l2g.d.y, "double");
+                add_name(basename+".loc.pos.extra.l2g.d.z", &target[i].loc.pos.extra.l2g.d.z, "double");
+                add_name(basename+".loc.pos.extra.l2g.w", &target[i].loc.pos.extra.l2g.w, "double");
+                add_name(basename+".loc.pos.extra.g2l", &target[i].loc.pos.extra.g2l, "quaternion");
+                add_name(basename+".loc.pos.extra.g2l.d", &target[i].loc.pos.extra.g2l.d, "cvector");
+                add_name(basename+".loc.pos.extra.g2l.d.x", &target[i].loc.pos.extra.g2l.d.x, "double");
+                add_name(basename+".loc.pos.extra.g2l.d.y", &target[i].loc.pos.extra.g2l.d.y, "double");
+                add_name(basename+".loc.pos.extra.g2l.d.z", &target[i].loc.pos.extra.g2l.d.z, "double");
+                add_name(basename+".loc.pos.extra.g2l.w", &target[i].loc.pos.extra.g2l.w, "double");
                 add_name(basename+".loc.pos.extra.sun2earth", &target[i].loc.pos.extra.sun2earth, "cartpos");
                 add_name(basename+".loc.pos.extra.sun2earth.utc", &target[i].loc.pos.extra.sun2earth.utc, "double");
                 add_name(basename+".loc.pos.extra.sun2earth.s", &target[i].loc.pos.extra.sun2earth.s, "rvector");

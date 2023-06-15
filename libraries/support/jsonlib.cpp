@@ -12462,11 +12462,18 @@ void create_databases(cosmosstruc *cinfo)
 //! \param realm std::string containing name of Realm
 int32_t load_node_ids(cosmosstruc* cinfo, string realm)
 {
-    if ((realm.empty() && cinfo->realm.name.empty()))
+    int32_t iretn = 0;
+
+    if (realm.empty())
     {
-        return GENERAL_ERROR_EMPTY;
+        cinfo->realm.name = "all";
+        iretn = json_get_node_ids(cinfo->realm.node_ids);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
     }
-    if (cinfo->realm.name != realm && realm.size())
+    else if (cinfo->realm.name != realm)
     {
         char buf[103];
         FILE *fp = data_open(get_realmdir(realm)+"/nodeids.ini", "rb");
@@ -12510,10 +12517,10 @@ int32_t load_node_ids(cosmosstruc* cinfo, string realm)
             }
             fclose(fp);
         }
-        else
-        {
-            return -errno;
-        }
+//        else
+//        {
+//            return -errno;
+//        }
     }
 
     return cinfo->realm.node_ids.size();
@@ -12551,12 +12558,6 @@ int32_t save_node_ids(cosmosstruc* cinfo)
 //! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
 int32_t check_node_id(cosmosstruc *cinfo, NODE_ID_TYPE node_id)
 {
-
-    if (load_node_ids(cinfo) <= 0)
-    {
-        return NODEIDUNKNOWN;
-    }
-
     for (auto it = cinfo->realm.node_ids.begin(); it != cinfo->realm.node_ids.end(); ++it)
     {
         if (it->second == node_id)
@@ -12571,19 +12572,26 @@ int32_t check_node_id(cosmosstruc *cinfo, NODE_ID_TYPE node_id)
 //! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
 int32_t lookup_node_id(cosmosstruc *cinfo, string node_name)
 {
-//    int32_t iretn = 0;
-
-//    if ((iretn=load_node_ids(cinfo)) <= 0)
-//    {
-//        return NODEIDUNKNOWN;
-//    }
-
     auto it = cinfo->realm.node_ids.find(node_name);
     if (it == cinfo->realm.node_ids.end())
     {
         return NODEIDUNKNOWN;
     }
     return it->second;
+}
+
+//! Gets the node_id associated with a node name
+//! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
+int32_t add_node_id(cosmosstruc *cinfo, string node_name)
+{
+    int32_t nodeid;
+    nodeid = lookup_node_id(cinfo, node_name);
+    if (nodeid == NODEIDUNKNOWN)
+    {
+        nodeid = cinfo->realm.node_ids.size() + 1;
+        cinfo->realm.node_ids[node_name] = nodeid;
+    }
+    return nodeid;
 }
 
 //! Find the node name associated with the given node id in the node table.
@@ -13267,6 +13275,43 @@ int32_t json_get_nodes(vector<cosmosstruc> &node)
         closedir(jdp);
     }
     return 0;
+}
+
+//! Get map of Node IDs.
+/*! Scan the COSMOS root directory and add an entry for each
+ * Node that is found.
+ * \param node_ids map of node_id for each Node.
+ * \return Zero or negative error.
+ */
+int32_t json_get_node_ids(map<string, uint8_t>& node_ids)
+{
+    DIR *jdp;
+    string dtemp;
+    string rootd;
+    struct dirent *td;
+
+    int32_t iretn = get_cosmosnodes(rootd);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    node_ids = {{"unkown", NODEIDUNKNOWN}, {"origin", NODEIDORIG}, {"destination", NODEIDDEST}};
+    dtemp = rootd;
+    uint8_t node_idx = 1;
+    if ((jdp=opendir(dtemp.c_str())) != nullptr)
+    {
+        while ((td=readdir(jdp)) != nullptr)
+        {
+            if (td->d_name[0] != '.')
+            {
+                string nodepath = td->d_name;
+                node_ids[nodepath] = node_idx++;
+            }
+        }
+        closedir(jdp);
+    }
+    return node_idx;
 }
 
 //! Add to KML path

@@ -36,7 +36,7 @@ int32_t request_hello(string &request, string &response, Agent* agent){
 int main(int argc, char **argv)
 {
     int32_t status = 0;
-    agent = new Agent("","test_simple_request");
+    agent = new Agent("", "","test_simple_request");
 
     status = agent->add_request("add", request_add, "int1 int2", "returns the sum of 2 integers");
     status = agent->add_request("hello", request_hello, "", "replies with: \"HelloWorld\"");

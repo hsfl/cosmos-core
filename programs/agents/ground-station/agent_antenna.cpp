@@ -206,11 +206,11 @@ int main(int argc, char *argv[])
 
     //    if (nodename.empty())
     //    {
-    //        agent = new Agent("", (antbase+"antenna").c_str(), 5.);
+    //        agent = new Agent("", "", (antbase+"antenna").c_str(), 5.);
     //    }
     //    else
     //    {
-    agent = new Agent(nodename, (antbase).c_str(), 5.);
+    agent = new Agent("", nodename, (antbase).c_str(), 5.);
     //    }
 
     if ((iretn = agent->wait()) < 0)

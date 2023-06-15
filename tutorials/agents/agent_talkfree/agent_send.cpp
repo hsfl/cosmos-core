@@ -39,7 +39,7 @@ int main()
 
     Agent *agent;
 
-    agent = new Agent("telem","send");
+    agent = new Agent("", "telem","send");
     if (agent->cinfo != nullptr && agent->running())
     {
         while (agent->running())

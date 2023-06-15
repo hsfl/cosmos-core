@@ -13,8 +13,8 @@ Vector calc_control_torque_b(Convert::qatt tatt, Convert::qatt catt, Vector moi,
 Physics::Simulator::StateList::iterator sit;
 Physics::Simulator *sim;
 Agent *agent;
-string agentname = "propagate";
-double initialutc = 59270.949409722227;
+string realmname = "propagate";
+double initialutc = 0.;
 double speed=1.;
 double maxaccel = .1;
 double minaccel;
@@ -50,7 +50,7 @@ int net_port_in = 10080;
 socket_channel net_channel_in;
 string net_address_out;
 int net_port_out = 10081;
-socket_channel net_channel_out;
+socket_bus net_channel_out;
 
 int main(int argc, char *argv[])
 {
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
         parse_control(argv[1]);
     }
 
-    agent = new Agent("", agentname, 0.);
+    agent = new Agent(realmname, "master", "propagate", 0.);
     agent->set_debug_level(0);
 
     // initialize simulator object
@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
     }
     currentutc = initialutc;
     sim->Init(currentutc, simdt);
+
 
     // Load in satellites
     fp = fopen(satfile.c_str(), "r");
@@ -94,32 +95,45 @@ int main(int argc, char *argv[])
         line.resize(200);
         while (fgets((char *)line.data(), 200, fp) != nullptr)
         {
-            vector<string> args = string_split(line);
-            if (args.size() == 4)
+            vector<string> args = string_split(line, " \t\n");
+            for (Physics::Simulator::StateList::iterator sit : sits)
             {
-                sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
-            }
-            else if (args.size() == 5)
-            {
-                sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])));
+                if (args.size() == 4)
+                {
+                    sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
+                }
+                else if (args.size() == 5)
+                {
+                    sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])));
+                }
             }
         }
     }
 
     // Open socket for sending data to and from agent_propagator
     iretn = socket_open(&net_channel_in, NetworkType::UDP, "", net_port_in, SOCKET_LISTEN, SOCKET_NONBLOCKING);
-    iretn = socket_open(&net_channel_out, NetworkType::UDP, net_address_out.c_str(), net_port_out, SOCKET_TALK, SOCKET_NONBLOCKING);
+//    iretn = socket_open(&net_channel_out, NetworkType::UDP, net_address_out.c_str(), net_port_out, SOCKET_TALK, SOCKET_NONBLOCKING);
+    iretn = socket_publish(net_channel_out, net_port_out);
 
     PacketComm packet;
     double elapsed = 0;
     double pcount = 0.;
     minaccel = maxaccel / minaccelratio;
-    locstruc lastloc;
-    vector<targetstruc> lasttargets;
-    ElapsedTime ret;
     offset = initialutc - currentmjd();
     while (agent->running())
     {
+        ElapsedTime ret;
+        for (Physics::Simulator::StateList::iterator sit : sits)
+        {
+            string output;
+            output += sit->second->currentinfo.get_json("node.utc");
+            output += sit->second->currentinfo.get_json("node.name");
+            output += sit->second->currentinfo.get_json("node.loc.pos.eci.s");
+            output += sit->second->currentinfo.get_json("node.loc.pos.eci.v");
+//            output += sit->second->currentinfo.node.loc.pos.eci.s.to_json().dump();
+//            output += sit->second->currentinfo.node.loc.pos.eci.v.to_json().dump();
+            iretn = socket_sendto(net_channel_out, output);
+        }
         iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeLocBeacon), agent);
         iretn = socket_sendto(net_channel_out, packet.wrapped);
         iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodePhysBeacon), agent);
@@ -134,59 +148,11 @@ int main(int argc, char *argv[])
         locstruc stloc;
 
         // update states information for all nodes
-        lastloc = sit->second->currentinfo.node.loc;
-        lasttargets = sit->second->targets;
         sim->Propagate();
         pcount += simdt;
 
-        stloc.pos.eci.s = rv_sub(sit->second->targets[0].loc.pos.eci.s, sit->second->currentinfo.node.loc.pos.eci.s);
-
-        Vector eci_z = Vector(stloc.pos.eci.s);
-
-        // Desired Y is cross product of Desired Z and velocity vector
-        Vector eci_y = eci_z.cross(Vector(sit->second->currentinfo.node.loc.pos.eci.v));
-
-        tatt.utc = currentmjd() - offset;
-        tatt.s = irotate_for(eci_y, eci_z, unityV(), unitzV()).to_q();
-        rvector test;
-        test  = rv_smult(eci_y.norm(), drotate(tatt.s, rv_unity()));
-        test  = rv_smult(eci_z.norm(), drotate(tatt.s, rv_unitz()));
-        tattfit.update(tatt.utc, tatt.s);
-        Quaternion dqs = Quaternion(q_smult(d2s, tattfit.slopequaternion(tatt.utc)));
-        Quaternion omega = 2. * dqs * Quaternion(tatt.s).conjugate();
-        tatt.v.col[0] = omega.x;
-        tatt.v.col[1] = omega.y;
-        tatt.v.col[2] = omega.z;
-        omegafit.update(tatt.utc, tatt.v);
-        tatt.a = rv_smult(d2s, omegafit.slopervector(tatt.utc));
-
-        // Determine full rotation of Desired into Satellite
-        //                satt = sit->second->currentinfo.node.loc.att.icrf;
-        //                sit->second->currentinfo.node.phys.ftorque = rv_smult(1., calc_control_torque_b(tatt, satt, sit->second->currentinfo.node.phys.moi, 1.).to_rv());
-        sit->second->currentinfo.node.loc.att.icrf = tatt;
-
-
-        // Heading and Angular Velocity
-//        double cphi = cos(sit->second->currentinfo.node.loc.pos.geos.v.phi);
-//        double cphi2 = cphi * cphi;
-//        double phi2 = sit->second->currentinfo.node.loc.pos.geos.v.phi * sit->second->currentinfo.node.loc.pos.geos.v.phi;
-//        double lambda2 = sit->second->currentinfo.node.loc.pos.geos.v.lambda * sit->second->currentinfo.node.loc.pos.geos.v.lambda;
-//        double anglev;
-//        double heading;
-//        if (cphi2 != 0.)
-//        {
-//            anglev = sqrt(phi2 + lambda2 / cphi2);
-//            heading = atan2(sit->second->currentinfo.node.loc.pos.geos.v.phi, sit->second->currentinfo.node.loc.pos.geos.v.lambda / cphi);
-//        }
-//        else
-//        {
-//            anglev = sqrt(phi2);
-//            heading = DPI;
-//        }
-
         ++elapsed;
-        secondsleep(simdt - ret.lap());
-        ret.reset();
+        secondsleep(simdt/speed - ret.lap());
     }
 
     agent->shutdown();
@@ -197,21 +163,6 @@ int32_t parse_control(string args)
     uint16_t argcount = 0;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
-//    if (!jargs["altprint"].is_null())
-//    {
-//        ++argcount;
-//        altprint = jargs["altprint"].bool_value();
-//    }
-//    if (!jargs["shapetype"].is_null())
-//    {
-//        ++argcount;
-//        shapetype = jargs["shapetype"].number_value();
-//    }
-//    if (!jargs["shapeseparation"].is_null())
-//    {
-//        ++argcount;
-//        shapeseparation = jargs["shapeseparation"].number_value();
-//    }
     if (!jargs["runcount"].is_null())
     {
         ++argcount;
@@ -227,11 +178,6 @@ int32_t parse_control(string args)
         ++argcount;
         initialutc = jargs["initialutc"].number_value();
     }
-//    if (!jargs["initialsep"].is_null())
-//    {
-//        ++argcount;
-//        initialsep = jargs["initialsep"].number_value();
-//    }
     if (!jargs["deltat"].is_null())
     {
         ++argcount;
@@ -257,10 +203,10 @@ int32_t parse_control(string args)
         ++argcount;
         targetfile = jargs["targetfile"].string_value();
     }
-    if (!jargs["agentname"].is_null())
+    if (!jargs["realmname"].is_null())
     {
         ++argcount;
-        agentname = jargs["agentname"].string_value();
+        realmname = jargs["realmname"].string_value();
     }
 
     return argcount;
@@ -269,28 +215,42 @@ int32_t parse_control(string args)
 int32_t parse_sat(string args)
 {
     int32_t iretn;
-    string satname;
+    string nodename;
     double initiallat = RADOF(21.3069);
     double initiallon = RADOF(-157.8583);
     double initialalt = 400000.;
     double initialangle = RADOF(54.);
     Convert::locstruc initialloc;
-//    double initialsep = 0.;
     uint16_t argcount = 0;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
-//    cosmosstruc cinfo;
-    initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
-    satname = "sat_" + to_unsigned(sats.size(), 2);
-    if (!jargs["satname"].is_null())
-    {
-        ++argcount;
-        satname = jargs["satname"].string_value();
-    }
+//    initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     if (!jargs["maxaccel"].is_null())
     {
         ++argcount;
         maxaccel = jargs["maxaccel"].number_value();
+    }
+    if (!jargs["lvlh"].is_null())
+    {
+        ++argcount;
+        json11::Json::object values = jargs["lvlh"].object_items();
+        Physics::Simulator::StateList::iterator sit = sim->GetNode("mother");
+        initialloc = sit->second->currentinfo.node.loc;
+        cartpos dpos;
+        dpos.s.col[0] = values["x"].number_value();
+        dpos.s.col[1] = values["y"].number_value();
+        dpos.s.col[2] = values["z"].number_value();
+        dpos.s = irotate(initialloc.pos.extra.l2g, dpos.s);
+        dpos.s = rv_mmult(initialloc.pos.extra.e2j, dpos.s);
+        initialloc.pos.eci.s = initialloc.pos.eci.s + dpos.s;
+        dpos.v.col[0] = values["vx"].number_value();
+        dpos.v.col[1] = values["vy"].number_value();
+        dpos.v.col[2] = values["vz"].number_value();
+        dpos.v = irotate(initialloc.pos.extra.l2g, dpos.v);
+        dpos.v = rv_mmult(initialloc.pos.extra.e2j, dpos.v);
+        initialloc.pos.eci.v = initialloc.pos.eci.v + dpos.v;
+        initialloc.pos.eci.pass++;
+        pos_eci(initialloc);
     }
     if (!jargs["phys"].is_null())
     {
@@ -300,12 +260,17 @@ int32_t parse_sat(string args)
         initiallon = RADOF(values["lon"].number_value());
         initialalt = values["alt"].number_value();
         initialangle = RADOF(values["angle"].number_value());
+        if (initialutc == 0.)
+        {
+            initialutc = currentmjd();
+        }
         initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     }
     if (!jargs["eci"].is_null())
     {
         ++argcount;
         json11::Json::object values = jargs["eci"].object_items();
+        initialloc.pos.eci.utc = (values["utc"].number_value());
         initialloc.pos.eci.s.col[0] = (values["x"].number_value());
         initialloc.pos.eci.s.col[1] = (values["y"].number_value());
         initialloc.pos.eci.s.col[2] = (values["z"].number_value());
@@ -320,6 +285,10 @@ int32_t parse_sat(string args)
         ++argcount;
         json11::Json::object values = jargs["kep"].object_items();
         kepstruc kep;
+        if (initialutc == 0.)
+        {
+            initialutc = currentmjd();
+        }
         kep.utc = initialutc;
         kep.ea = values["ea"].number_value();
         kep.i = values["i"].number_value();
@@ -331,9 +300,33 @@ int32_t parse_sat(string args)
         initialloc.pos.eci.pass++;
         pos_eci(initialloc);
     }
+    if (!jargs["tle"].is_null())
+    {
+        ++argcount;
+        json11::Json::object values = jargs["tle"].object_items();
+        vector<Convert::tlestruc>lines;
+        string fname = values["filename"].string_value();
+        load_lines(fname, lines);
+        if (initialutc == 0.)
+        {
+            initialutc = lines[0].utc;
+        }
+        lines2eci(initialutc, lines, initialloc.pos.eci);
+        initialloc.pos.eci.pass++;
+        pos_eci(initialloc);
+    }
     initialloc.att.icrf.s = q_eye();
-    iretn = sim->AddNode(satname, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
-    sits.push_back(sim->GetNode(satname));
+    if (!sats.size())
+    {
+        nodename = "mother";
+        initialutc = initialloc.utc;
+    }
+    else
+    {
+        nodename = "child_" + to_unsigned(sats.size(), 2);
+    }
+    iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+    sits.push_back(sim->GetNode(nodename));
     return iretn;
 }
 

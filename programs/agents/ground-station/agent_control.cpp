@@ -224,11 +224,11 @@ int main(int argc, char *argv[])
     // Establish the command channel and heartbeat
     if (nodename.empty())
     {
-        agent = new Agent("", agentname, 5.);
+        agent = new Agent("", "", agentname, 5.);
     }
     else
     {
-        agent = new Agent(nodename, agentname, 5.);
+        agent = new Agent("", nodename, agentname, 5.);
     }
 
     if ((iretn = agent->wait()) < 0)

@@ -351,6 +351,7 @@ int32_t save_node_ids(cosmosstruc *cinfo);
 int32_t load_node_ids(cosmosstruc *cinfo, string realm="");
 int32_t check_node_id(cosmosstruc *cinfo, NODE_ID_TYPE node_id);
 int32_t lookup_node_id(cosmosstruc *cinfo, string node_name);
+int32_t add_node_id(cosmosstruc *cinfo, string node_name);
 string lookup_node_id_name(cosmosstruc *cinfo, NODE_ID_TYPE node_id);
 
 int32_t load_target(cosmosstruc *cinfo);
@@ -364,6 +365,7 @@ int32_t device_index(cosmosstruc* cinfo, string name);
 bool device_has_property(uint16_t deviceType, string prop);
 string json_memory_usage();
 int32_t json_get_nodes(vector<cosmosstruc> &data);
+int32_t json_get_node_ids(map<string, uint8_t>& node_ids);
 int32_t kml_write(cosmosstruc* cinfo);
 
 //! @}

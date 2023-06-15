@@ -52,8 +52,8 @@ namespace Cosmos
             int32_t UpdatePush(string name, Vector fpush);
             int32_t UpdateThrust(string name, Vector thrust);
             int32_t UpdateTorque(string name, Vector torque);
-            double initialutc;
-            double currentutc;
+            double initialutc = 0.;
+            double currentutc = 0.;
             StateList cnodes;
 
         private:

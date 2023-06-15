@@ -44,7 +44,7 @@ socket_channel rcvchan;
 int main(int argc, char *argv[])
 {
 	// Initialize the Agent
-    if (!(agent = new Agent("", "route", 0., MAXBUFFERSIZE)))
+    if (!(agent = new Agent("", "", "route", 0., MAXBUFFERSIZE)))
 	{
 		exit (AGENT_ERROR_JSON_CREATE);
 	}

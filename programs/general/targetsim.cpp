@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     runcount = timespan;
 
     // initialize simulation agent
-    agent = new Agent("", "", 0.);
+    agent = new Agent("", "", "", 0.);
     agent->set_debug_level(0);
 
     // initialize simulator object

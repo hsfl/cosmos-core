@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
         default_packet_size = PACKET_SIZE_LO;
     }
 
-    agent = new Agent("", "file", 0.);
+    agent = new Agent("", "", "file", 0.);
     // Middle argument is debug mode
     if (argc > 1 && (argv[1][0] >= '0' && argv[1][0] <= '9'))
     {
