@@ -451,7 +451,7 @@ namespace Cosmos
                 thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
                 break;
             default:
-                thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
+                thermal = nullptr;
                 break;
             }
             this->ttype = ttype;
@@ -462,7 +462,7 @@ namespace Cosmos
                 electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
                 break;
             default:
-                electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
+                electrical = nullptr;
                 break;
             }
             this->etype = etype;
@@ -627,8 +627,7 @@ namespace Cosmos
                 thermal->Init();
                 break;
             default:
-                thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
-                thermal->Init();
+                thermal = nullptr;
                 break;
             }
             this->ttype = ttype;
@@ -640,8 +639,7 @@ namespace Cosmos
                 electrical->Init();
                 break;
             default:
-                electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
-                electrical->Init();
+                electrical = nullptr;
                 break;
             }
             this->etype = etype;
@@ -684,10 +682,16 @@ namespace Cosmos
                 PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
 
                 // Thermal
-                static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
+                if (thermal != nullptr)
+                {
+                    static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
+                }
 
                 // Electrical
-                static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
+                if (thermal != nullptr)
+                {
+                    static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
+                }
 
                 // Attitude
                 switch (atype)

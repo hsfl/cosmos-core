@@ -5061,7 +5061,7 @@ matrix, for the provided UTC date.
                 {
                     return iretn;
                 }
-                fname += "/cosmos-resources/general/iers_pm_dut_ls.txt";
+                fname += "/general/iers_pm_dut_ls.txt";
                 if ((fdes = fopen(fname.c_str(), "r")) != NULL)
                 {
                     char data[100];
