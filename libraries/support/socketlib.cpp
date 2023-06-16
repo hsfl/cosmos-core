@@ -39,7 +39,7 @@
 //! \param channel Pointer to ::socket_bus holding final configuration.
 //! \param port Dedicated port number.
 //! \return Zero, or negative error.
-int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
+int32_t socket_publish(socket_bus& bus, uint16_t port)
 {
     int32_t iretn = 0;
     int on = 1;
@@ -55,6 +55,7 @@ int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
 
     if ((bus[(bus.size() - 1)].cudp = socket(AF_INET,SOCK_DGRAM,0)) < 0)
     {
+        bus.resize(bus.size()-1);
         return (-errno);
     }
 
@@ -70,12 +71,12 @@ int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
     if (iretn < 0)
     {
         CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
-        bus[(bus.size() - 1)].cudp = iretn;
+        bus.resize(bus.size()-1);
         return iretn;
     }
 
-    // Use above socket to find available interfaces and establish
-    // publication on each.
+// Use above socket to find available interfaces and establish
+// publication on each.
 
 #if defined(COSMOS_WIN_OS)
     struct sockaddr_storage ss;
@@ -85,6 +86,7 @@ int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
     uint32_t nif;
     if (WSAIoctl(bus[(bus.size() - 1)].cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR) {
         CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+        bus.resize(bus.size()-1);
         return (AGENT_ERROR_DISCOVERY);
     }
 
@@ -114,12 +116,6 @@ int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
         memset(&bus[(bus.size() - 1)].caddr,0,sizeof(struct sockaddr_in));
         bus[i].caddr.sin_family = AF_INET;
         bus[i].baddr.sin_family = AF_INET;
-        if (type == NetworkType::MULTICAST) {
-            sslen = sizeof(ss);
-            WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-            bus[(bus.size() - 1)].caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-            bus[(bus.size() - 1)].baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-        } else {
             if ((iretn = setsockopt(bus[(bus.size() - 1)].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
             {
                 CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
@@ -134,7 +130,6 @@ int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
             net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
             bcast = ip | (~net);
             bus[(bus.size() - 1)].baddr.sin_addr.S_un.S_addr = bcast;
-        }
         bus[(bus.size() - 1)].caddr.sin_port = htons(port);
         bus[(bus.size() - 1)].baddr.sin_port = htons(port);
         bus[(bus.size() - 1)].type = type;
@@ -172,11 +167,6 @@ int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
                 continue;
             }
 
-            if (type == NetworkType::MULTICAST)
-            {
-                inet_pton(AF_INET,AGENTMCAST,&bus[(bus.size() - 1)].caddr.sin_addr);
-                inet_pton(AF_INET,AGENTMCAST,&bus[(bus.size() - 1)].baddr.sin_addr);
-            } else {
                 if ((iretn = setsockopt(bus[(bus.size() - 1)].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0) {
                     CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
                     continue;
@@ -195,7 +185,6 @@ int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
                 bcast = ip | (~net);
                 bus[(bus.size() - 1)].baddr.sin_addr.s_addr = bcast;
                 inet_ntop(if_addr->ifa_netmask->sa_family,&bus[(bus.size() - 1)].baddr.sin_addr,bus[(bus.size() - 1)].baddress,sizeof(bus[(bus.size() - 1)].baddress));
-            }
             bus[(bus.size() - 1)].caddr.sin_port = htons(port);
             bus[(bus.size() - 1)].baddr.sin_port = htons(port);
             bus[(bus.size() - 1)].type = type;
@@ -216,6 +205,7 @@ int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
     {
         iretn = -errno;
         CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+        bus.resize(bus.size()-1);
         return (iretn);
     }
     // Use result to discover interfaces.
@@ -249,7 +239,7 @@ int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
 
         bus[(bus.size() - 1)].flags = ifra->ifr_flags;
 
-        if ((bus[(bus.size() - 1)].flags & IFF_POINTOPOINT) || (bus[(bus.size() - 1)].flags & IFF_MULTICAST) || (bus[(bus.size() - 1)].flags & IFF_UP) == 0)
+        if ((bus[(bus.size() - 1)].flags & IFF_POINTOPOINT) || (bus[(bus.size() - 1)].flags & IFF_UP) == 0)
         {
             continue;
         }
@@ -262,93 +252,70 @@ int32_t socket_publish(socket_bus& bus, uint16_t port, string mcast)
             continue;
         }
 
-        if (!mcast.empty())
+        if ((bus[(bus.size() - 1)].flags & IFF_POINTOPOINT))
         {
-            inet_pton(AF_INET, mcast.c_str(), &bus[(bus.size() - 1)].caddr.sin_addr);
-            inet_pton(AF_INET, mcast.c_str(), &bus[(bus.size() - 1)].baddr.sin_addr);
-        }
-        else
-        {
-            //                            int val = IP_PMTUDISC_DO;
-            //                            if ((iretn = setsockopt(bus[(bus.size() - 1)].cudp, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val))) < 0)
-            //                            {
-            //                                CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
-            //                                continue;
-            //                            }
-
-            if ((bus[(bus.size() - 1)].flags & IFF_POINTOPOINT))
-            {
-                if (ioctl(bus[(bus.size() - 1)].cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
-                {
-                    continue;
-                }
-                bus[(bus.size() - 1)].baddr = bus[(bus.size() - 1)].caddr;
-                inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,bus[(bus.size() - 1)].baddress,sizeof(bus[(bus.size() - 1)].baddress));
-                inet_pton(AF_INET,bus[(bus.size() - 1)].baddress,&bus[(bus.size() - 1)].baddr.sin_addr);
-            }
-            else if ((bus[(bus.size() - 1)].flags & IFF_LOOPBACK))
-            {
-                bus[(bus.size() - 1)].baddr = bus[(bus.size() - 1)].caddr;
-                inet_pton(AF_INET, "225.1.1.1", &bus[(bus.size() - 1)].baddr.sin_addr);
-            }
-            else
-            {
-                if ((iretn = setsockopt(bus[(bus.size() - 1)].cudp, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on))) < 0)
-                {
-                    CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
-                    continue;
-                }
-
-                if (ioctl(bus[(bus.size() - 1)].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
-                {
-                    continue;
-                }
-                bus[(bus.size() - 1)].baddr = bus[(bus.size() - 1)].caddr;
-                inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,bus[(bus.size() - 1)].baddress,sizeof(bus[(bus.size() - 1)].baddress));
-                inet_pton(AF_INET,bus[(bus.size() - 1)].baddress,&bus[(bus.size() - 1)].baddr.sin_addr);
-            }
-
-            if (ioctl(bus[(bus.size() - 1)].cudp,SIOCGIFADDR,(char *)ifra) < 0)
+            if (ioctl(bus[(bus.size() - 1)].cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
             {
                 continue;
             }
-            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,bus[(bus.size() - 1)].address,sizeof(bus[(bus.size() - 1)].address));
-            inet_pton(AF_INET,bus[(bus.size() - 1)].address,&bus[(bus.size() - 1)].caddr.sin_addr);
+            bus[(bus.size() - 1)].baddr = bus[(bus.size() - 1)].caddr;
+            inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,bus[(bus.size() - 1)].baddress,sizeof(bus[(bus.size() - 1)].baddress));
+            inet_pton(AF_INET,bus[(bus.size() - 1)].baddress,&bus[(bus.size() - 1)].baddr.sin_addr);
+        }
+        else if ((bus[(bus.size() - 1)].flags & IFF_LOOPBACK))
+        {
+            bus[(bus.size() - 1)].baddr = bus[(bus.size() - 1)].caddr;
+            inet_pton(AF_INET, "127.0.0.1", &bus[(bus.size() - 1)].baddr.sin_addr);
+        }
+        else
+        {
+            if ((iretn = setsockopt(bus[(bus.size() - 1)].cudp, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on))) < 0)
+            {
+                CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
+                continue;
+            }
+
+            if (ioctl(bus[(bus.size() - 1)].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+            {
+                continue;
+            }
+            bus[(bus.size() - 1)].baddr = bus[(bus.size() - 1)].caddr;
+            inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,bus[(bus.size() - 1)].baddress,sizeof(bus[(bus.size() - 1)].baddress));
+            inet_pton(AF_INET,bus[(bus.size() - 1)].baddress,&bus[(bus.size() - 1)].baddr.sin_addr);
         }
 
+        if (ioctl(bus[(bus.size() - 1)].cudp,SIOCGIFADDR,(char *)ifra) < 0)
+        {
+            continue;
+        }
+        inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,bus[(bus.size() - 1)].address,sizeof(bus[(bus.size() - 1)].address));
+        inet_pton(AF_INET,bus[(bus.size() - 1)].address,&bus[(bus.size() - 1)].caddr.sin_addr);
+
         iretn = sendto(bus[(bus.size() - 1)].cudp,       // socket
-                (const char *)nullptr,                         // buffer to send
-                0,                      // size of buffer
-                0,                                          // flags
-                (struct sockaddr *)&bus[(bus.size() - 1)].baddr, // socket address
-                sizeof(struct sockaddr_in)                  // size of address to socket pointer
-                );
+                       (const char *)nullptr,                         // buffer to send
+                       0,                      // size of buffer
+                       0,                                          // flags
+                       (struct sockaddr *)&bus[(bus.size() - 1)].baddr, // socket address
+                       sizeof(struct sockaddr_in)                  // size of address to socket pointer
+                       );
         // Find assigned port, place in cport, and set caddr to requested port
         socklen_t namelen = sizeof(struct sockaddr_in);
         if ((iretn = getsockname(bus[(bus.size() - 1)].cudp, (sockaddr*)&bus[(bus.size() - 1)].caddr, &namelen)) == -1)
         {
             CLOSE_SOCKET(bus[(bus.size() - 1)].cudp);
-            bus[(bus.size() - 1)].cudp = -errno;
+            bus.resize(bus.size()-1);
             return (-errno);
         }
         bus[(bus.size() - 1)].cport = ntohs(bus[(bus.size() - 1)].caddr.sin_port);
         bus[(bus.size() - 1)].caddr.sin_port = htons(port);
         inet_pton(AF_INET,bus[(bus.size() - 1)].address,&bus[(bus.size() - 1)].caddr.sin_addr);
         bus[(bus.size() - 1)].baddr.sin_port = htons(port);
-        if (mcast.empty())
-        {
-            bus[(bus.size() - 1)].type = NetworkType::BROADCAST;
-        }
-        else
-        {
-            bus[(bus.size() - 1)].type = NetworkType::MULTICAST;
-        }
+        bus[(bus.size() - 1)].type = NetworkType::BROADCAST;
 
-
-        //                    printf("Interface #%lu: %u %s %u %s %u\n", (bus.size() - 1), bus[(bus.size() - 1)].cport, bus[(bus.size() - 1)].address, ntohs(bus[(bus.size() - 1)].caddr.sin_port), bus[(bus.size() - 1)].baddress, ntohs(bus[(bus.size() - 1)].baddr.sin_port));
         bus.resize(bus.size()+1);
     }
 #endif // COSMOS_WIN_OS
+    bus.resize(bus.size()-1);
     return 0;
 }
 
@@ -380,7 +347,7 @@ int32_t socket_open(socket_channel* channel, NetworkType ntype, const char *addr
 int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *address, uint16_t port, uint16_t role,
                     bool blocking, uint32_t usectimeo, uint32_t rcvbuf, uint32_t sndbuf)
 {
-//    socklen_t namelen;
+    //    socklen_t namelen;
     int32_t iretn = 0;
     struct ip_mreq mreq;
     int on = 1;
@@ -406,30 +373,23 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
     switch (ntype)
     {
     case NetworkType::MULTICAST:
-        {
-            if ((channel.cudp = socket(AF_INET,SOCK_DGRAM,IPPROTO_IP)) <0)
-            {
-                return (-errno);
-            }
-        }
-        break;
     case NetworkType::BROADCAST:
     case NetworkType::UDP:
+    {
+        if ((channel.cudp = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) <0)
         {
-            if ((channel.cudp = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) <0)
-            {
-                return (-errno);
-            }
+            return (-errno);
         }
-        break;
+    }
+    break;
     case NetworkType::TCP:
+    {
+        if ((channel.cudp = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) <0)
         {
-            if ((channel.cudp = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) <0)
-            {
-                return (-errno);
-            }
+            return (-errno);
         }
-        break;
+    }
+    break;
     default:
         return (SOCKET_ERROR_PROTOCOL);
         break;
@@ -495,54 +455,39 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
         case NetworkType::MULTICAST:
         case NetworkType::BROADCAST:
         case NetworkType::UDP:
-            {
-                channel.caddr.sin_addr.s_addr = htonl(INADDR_ANY);
-                if (::bind(channel.cudp,(struct sockaddr *)&channel.caddr, sizeof(struct sockaddr_in)) < 0)
-                {
-                    CLOSE_SOCKET(channel.cudp);
-                    channel.cudp = -errno;
-                    return (-errno);
-                }
-            }
-            break;
-        case NetworkType::TCP:
-            {
-                channel.caddr.sin_addr.s_addr = htonl(INADDR_ANY);
-                channel.caddr.sin_port = htons(port);
-                if (::bind(channel.cudp,(struct sockaddr *)&channel.caddr, sizeof(struct sockaddr_in)) < 0)
-                {
-                    CLOSE_SOCKET(channel.cudp);
-                    channel.cudp = -errno;
-                    return (-errno);
-                }
-
-                if (listen(channel.cudp, 1) < 0)
-                {
-                    CLOSE_SOCKET(channel.cudp);
-                    channel.cudp = -errno;
-                    return (-errno);
-                }
-            }
-            break;
-        default:
-            return (SOCKET_ERROR_PROTOCOL);
-            break;
-        }
-
-        if (ntype == NetworkType::MULTICAST)
         {
-            //! 2. Join multicast
-            inet_pton(AF_INET,address,&mreq.imr_multiaddr.s_addr);
-//            inte_pton(AF_INET, , &mreq.imr_interface.s_addr);
-            //			mreq.imr_multiaddr.s_addr = inet_addr(address);
-                        mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-            if (setsockopt(channel.cudp, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) < 0)
+            channel.caddr.sin_addr.s_addr = htonl(INADDR_ANY);
+            if (::bind(channel.cudp,(struct sockaddr *)&channel.caddr, sizeof(struct sockaddr_in)) < 0)
             {
                 CLOSE_SOCKET(channel.cudp);
                 channel.cudp = -errno;
                 return (-errno);
             }
         }
+        break;
+        case NetworkType::TCP:
+        {
+            channel.caddr.sin_addr.s_addr = htonl(INADDR_ANY);
+            channel.caddr.sin_port = htons(port);
+            if (::bind(channel.cudp,(struct sockaddr *)&channel.caddr, sizeof(struct sockaddr_in)) < 0)
+            {
+                CLOSE_SOCKET(channel.cudp);
+                channel.cudp = -errno;
+                return (-errno);
+            }
+
+            if (listen(channel.cudp, 1) < 0)
+            {
+                CLOSE_SOCKET(channel.cudp);
+                channel.cudp = -errno;
+                return (-errno);
+            }
+        }
+        break;
+        default:
+            return (SOCKET_ERROR_PROTOCOL);
+            break;
+        }        
         break;
     case SOCKET_JABBER:
 #ifdef COSMOS_MAC_OS
@@ -558,6 +503,7 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
 
         switch (ntype)
         {
+        case NetworkType::MULTICAST:
         case NetworkType::BROADCAST:
         case NetworkType::UDP:
             // Set up output
@@ -575,9 +521,6 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
                 channel.cudp = -errno;
                 return (-errno);
             }
-            break;
-        case NetworkType::MULTICAST:
-            inet_pton(AF_INET,address,&channel.caddr.sin_addr);
             break;
         default:
             return (SOCKET_ERROR_PROTOCOL);
@@ -653,17 +596,17 @@ int32_t socket_open(socket_bus& bus, uint16_t port, uint32_t usectimeout)
     {
         return COSMOS_AGENT_ERROR_DISCOVERY;
     }
-//    for (size_t i=0; i<bus.size(); ++i)
-//    {
-//        socket_channel tchan;
-//        if ((socket_open(&tchan, NetworkType::UDP, ifaces[i].baddress, 3956, SOCKET_TALK, true, 100000)) < 0) return (gige_list);
+    //    for (size_t i=0; i<bus.size(); ++i)
+    //    {
+    //        socket_channel tchan;
+    //        if ((socket_open(&tchan, NetworkType::UDP, ifaces[i].baddress, 3956, SOCKET_TALK, true, 100000)) < 0) return (gige_list);
 
-//        if ((setsockopt(tchan.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-//        {
-//            close(tchan.cudp);
-//            continue;
-//        }
-//    }
+    //        if ((setsockopt(tchan.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+    //        {
+    //            close(tchan.cudp);
+    //            continue;
+    //        }
+    //    }
     return 0;
 }
 
@@ -896,8 +839,8 @@ int32_t socket_close(socket_channel& channel)
         {
             iretn = -errno;
         }
-#endif
-        //    channel.address[0] = 0;
+#endif \
+    //    channel.address[0] = 0;
         channel.cudp = -1;
     }
     return iretn;
@@ -932,206 +875,181 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port)
     case NetworkType::MULTICAST:
     case NetworkType::UDP:
     case NetworkType::BROADCAST:
+    {
+        if ((cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
         {
-            if ((cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
-            {
-                return (iface);
-            }
+            return (iface);
+        }
 
-            // Use above socket to find available interfaces and establish
-            // publication on each.
+// Use above socket to find available interfaces and establish
+// publication on each.
 #ifdef COSMOS_WIN_OS
-            if (WSAIoctl(cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
+        if (WSAIoctl(cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
+        {
+            CLOSE_SOCKET(cudp);
+            return (iface);
+        }
+
+        nif = nbytes / sizeof(INTERFACE_INFO);
+        PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+        PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
+        pAddresses = (IP_ADAPTER_ADDRESSES *) calloc(sizeof(IP_ADAPTER_ADDRESSES), 2*nif);
+        ULONG outBufLen = sizeof(IP_ADAPTER_ADDRESSES) * 2 * nif;
+        DWORD dwRetVal;
+        if ((dwRetVal=GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen)) == ERROR_BUFFER_OVERFLOW)
+        {
+            free(pAddresses);
+            return (iface);
+        }
+
+        for (uint32_t i=0; i<nif; i++)
+        {
+            socket_channel tiface;
+            tiface.cudp = cudp;
+            inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,tiface.address,sizeof(tiface.address));
+            //			strncpy(tiface.address, inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr), 17);
+            if (!strcmp(tiface.address,"127.0.0.1"))
             {
-                CLOSE_SOCKET(cudp);
-                return (iface);
+                continue;
             }
 
-            nif = nbytes / sizeof(INTERFACE_INFO);
-            PIP_ADAPTER_ADDRESSES pAddresses = NULL;
-            PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
-            pAddresses = (IP_ADAPTER_ADDRESSES *) calloc(sizeof(IP_ADAPTER_ADDRESSES), 2*nif);
-            ULONG outBufLen = sizeof(IP_ADAPTER_ADDRESSES) * 2 * nif;
-            DWORD dwRetVal;
-            if ((dwRetVal=GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen)) == ERROR_BUFFER_OVERFLOW)
+            pCurrAddresses = pAddresses;
+            while (pAddresses)
             {
-                free(pAddresses);
-                return (iface);
+                if (((struct sockaddr_in *)(pCurrAddresses->FirstUnicastAddress->Address.lpSockaddr))->sin_addr.s_addr == ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.s_addr)
+                {
+                    strcpy(tiface.name, pCurrAddresses->AdapterName);
+                    break;
+                }
+                pCurrAddresses = pCurrAddresses->Next;
             }
-
-            for (uint32_t i=0; i<nif; i++)
-            {
-                socket_channel tiface;
-                tiface.cudp = cudp;
-                inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,tiface.address,sizeof(tiface.address));
-                //			strncpy(tiface.address, inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr), 17);
-                if (!strcmp(tiface.address,"127.0.0.1"))
+            memset(&tiface.caddr,0,sizeof(struct sockaddr_in));
+            memset(&tiface.baddr,0,sizeof(struct sockaddr_in));
+            tiface.caddr.sin_family = AF_INET;
+            tiface.baddr.sin_family = AF_INET;
+                if ((iretn = setsockopt(tiface.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
                 {
                     continue;
                 }
+                ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
+                net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
+                bcast = ip | (~net);
 
-                pCurrAddresses = pAddresses;
-                while (pAddresses)
-                {
-                    if (((struct sockaddr_in *)(pCurrAddresses->FirstUnicastAddress->Address.lpSockaddr))->sin_addr.s_addr == ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.s_addr)
-                    {
-                        strcpy(tiface.name, pCurrAddresses->AdapterName);
-                        break;
-                    }
-                    pCurrAddresses = pCurrAddresses->Next;
-                }
-                memset(&tiface.caddr,0,sizeof(struct sockaddr_in));
-                memset(&tiface.baddr,0,sizeof(struct sockaddr_in));
-                tiface.caddr.sin_family = AF_INET;
-                tiface.baddr.sin_family = AF_INET;
-                if (ntype == NetworkType::MULTICAST)
-                {
-                    inet_pton(AF_INET,(char *)COSMOSMCAST,&tiface.caddr.sin_addr);
-                    inet_pton(AF_INET,(char *)COSMOSMCAST,&tiface.baddr.sin_addr);
-                    //				struct sockaddr_storage ss;
-                    //			    int sslen;
-                    //				sslen = sizeof(ss);
-                    //				WSAStringToAddressA((char *)COSMOSMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-                    //				tiface.caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-                    //				tiface.baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-                }
-                else
-                {
-                    if ((iretn = setsockopt(tiface.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-                    {
-                        continue;
-                    }
-                    ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
-                    net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
-                    bcast = ip | (~net);
-
-                    tiface.caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
-                    tiface.caddr.sin_addr.S_un.S_addr = ip;
-                    tiface.baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
-                    tiface.baddr.sin_addr.S_un.S_addr = bcast;
-                }
-                //			struct sockaddr_storage ss;
-                //			((struct sockaddr_in *)&ss)->sin_addr = tiface.caddr.sin_addr;
-                //			ssize = strlen(tiface.address);
-                //			WSAAddressToStringA((struct sockaddr *)&tiface.caddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.address, (LPDWORD)&ssize);
-                inet_ntop(tiface.caddr.sin_family,&tiface.caddr.sin_addr,tiface.address,sizeof(tiface.address));
-                //			ssize = strlen(tiface.baddress);
-                //			WSAAddressToStringA((struct sockaddr *)&tiface.baddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.baddress, (LPDWORD)&ssize);
-                inet_ntop(tiface.baddr.sin_family,&tiface.baddr.sin_addr,tiface.baddress,sizeof(tiface.baddress));
-                tiface.type = ntype;
-                iface.push_back(tiface);
-            }
+                tiface.caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                tiface.caddr.sin_addr.S_un.S_addr = ip;
+                tiface.baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                tiface.baddr.sin_addr.S_un.S_addr = bcast;
+            //			struct sockaddr_storage ss;
+            //			((struct sockaddr_in *)&ss)->sin_addr = tiface.caddr.sin_addr;
+            //			ssize = strlen(tiface.address);
+            //			WSAAddressToStringA((struct sockaddr *)&tiface.caddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.address, (LPDWORD)&ssize);
+            inet_ntop(tiface.caddr.sin_family,&tiface.caddr.sin_addr,tiface.address,sizeof(tiface.address));
+            //			ssize = strlen(tiface.baddress);
+            //			WSAAddressToStringA((struct sockaddr *)&tiface.baddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.baddress, (LPDWORD)&ssize);
+            inet_ntop(tiface.baddr.sin_family,&tiface.baddr.sin_addr,tiface.baddress,sizeof(tiface.baddress));
+            tiface.type = ntype;
+            iface.push_back(tiface);
+        }
 #else
-            confa.ifc_len = sizeof(data);
-            confa.ifc_buf = (caddr_t)data;
-            if (ioctl(cudp,SIOCGIFCONF,&confa) < 0)
+        confa.ifc_len = sizeof(data);
+        confa.ifc_buf = (caddr_t)data;
+        if (ioctl(cudp,SIOCGIFCONF,&confa) < 0)
+        {
+            CLOSE_SOCKET(cudp);
+            return (iface);
+        }
+        // Use result to discover interfaces.
+        ifra = confa.ifc_req;
+        for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
+        {
+            if (ifra->ifr_addr.sa_family != AF_INET)
             {
-                CLOSE_SOCKET(cudp);
-                return (iface);
+                continue;
             }
-            // Use result to discover interfaces.
-            ifra = confa.ifc_req;
-            for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
+
+            socket_channel tiface;
+            // Open socket again if we had to close it
+            if ((tiface.cudp = socket(AF_INET,SOCK_DGRAM,0)) < 0)
             {
-                if (ifra->ifr_addr.sa_family != AF_INET)
-                {
-                    continue;
-                }
-
-                socket_channel tiface;
-                // Open socket again if we had to close it
-                if ((tiface.cudp = socket(AF_INET,SOCK_DGRAM,0)) < 0)
-                {
-                    continue;
-                }
-
-                if (fcntl(tiface.cudp, F_SETFL,O_NONBLOCK) < 0)
-                {
-                    iretn = -errno;
-                    CLOSE_SOCKET(tiface.cudp);
-                    tiface.cudp = iretn;
-                    continue;
-                }
-
-                inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,tiface.address,sizeof(tiface.address));
-                memcpy((char *)&tiface.caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
-
-                if (ioctl(tiface.cudp,SIOCGIFFLAGS, (char *)ifra) < 0)
-                {
-                    continue;
-                }
-                tiface.flags = ifra->ifr_flags;
-
-//                if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || ((ifra->ifr_flags & (IFF_BROADCAST)) == 0 && (ifra->ifr_flags & (IFF_POINTOPOINT)) == 0))
-                if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_MULTICAST) || (ifra->ifr_flags & IFF_UP) == 0)
-                {
-                    continue;
-                }
-
-                if (ntype == NetworkType::MULTICAST)
-                {
-                    inet_pton(AF_INET,COSMOSMCAST,&tiface.caddr.sin_addr);
-                    strncpy(tiface.baddress, COSMOSMCAST, 17);
-                    inet_pton(AF_INET,COSMOSMCAST,&tiface.baddr.sin_addr);
-                }
-                else
-                {
-                    {
-                        if ((iretn = setsockopt(tiface.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-                        {
-                            CLOSE_SOCKET(tiface.cudp);
-                            continue;
-                        }
-
-                        strncpy(tiface.name, ifra->ifr_name, COSMOS_MAX_NAME);
-
-                        if (ioctl(tiface.cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
-                        {
-                            continue;
-                        }
-                        memcpy((char *)&tiface.baddr, (char *)&ifra->ifr_broadaddr, sizeof(ifra->ifr_broadaddr));
-                    }
-
-                    if (ioctl(tiface.cudp,SIOCGIFADDR,(char *)ifra) < 0)
-                    {
-                        continue;
-                    }
-                    memcpy((char *)&tiface.caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
-                    inet_ntop(tiface.baddr.sin_family,&tiface.baddr.sin_addr,tiface.baddress,sizeof(tiface.baddress));
-                }
-
-                // Find assigned port, place in cport, and set caddr to requested port
-                socklen_t namelen = sizeof(struct sockaddr_in);
-                if ((iretn = getsockname(tiface.cudp, (sockaddr*)&tiface.caddr, &namelen)) == -1)
-                {
-                    CLOSE_SOCKET(tiface.cudp);
-                    continue;
-                }
-                tiface.cport = ntohs(tiface.caddr.sin_port);
-                tiface.caddr.sin_port = htons(port);
-                inet_pton(AF_INET,tiface.address,&tiface.caddr.sin_addr);
-                tiface.baddr.sin_port = htons(port);
-                tiface.type = ntype;
-                iface.push_back(tiface);
+                continue;
             }
-            if (iface.size() > 1)
+
+            if (fcntl(tiface.cudp, F_SETFL,O_NONBLOCK) < 0)
             {
-                for (uint16_t i=0; i<iface.size(); ++i)
+                iretn = -errno;
+                CLOSE_SOCKET(tiface.cudp);
+                tiface.cudp = iretn;
+                continue;
+            }
+
+            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,tiface.address,sizeof(tiface.address));
+            memcpy((char *)&tiface.caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+
+            if (ioctl(tiface.cudp,SIOCGIFFLAGS, (char *)ifra) < 0)
+            {
+                continue;
+            }
+            tiface.flags = ifra->ifr_flags;
+
+            //                if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || ((ifra->ifr_flags & (IFF_BROADCAST)) == 0 && (ifra->ifr_flags & (IFF_POINTOPOINT)) == 0))
+            if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0)
+            {
+                continue;
+            }
+
+            if ((iretn = setsockopt(tiface.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+            {
+                CLOSE_SOCKET(tiface.cudp);
+                continue;
+            }
+
+            strncpy(tiface.name, ifra->ifr_name, COSMOS_MAX_NAME);
+
+            if (ioctl(tiface.cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+            {
+                continue;
+            }
+            memcpy((char *)&tiface.baddr, (char *)&ifra->ifr_broadaddr, sizeof(ifra->ifr_broadaddr));
+
+            if (ioctl(tiface.cudp,SIOCGIFADDR,(char *)ifra) < 0)
+            {
+                continue;
+            }
+            memcpy((char *)&tiface.caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+            inet_ntop(tiface.baddr.sin_family,&tiface.baddr.sin_addr,tiface.baddress,sizeof(tiface.baddress));
+
+            // Find assigned port, place in cport, and set caddr to requested port
+            socklen_t namelen = sizeof(struct sockaddr_in);
+            if ((iretn = getsockname(tiface.cudp, (sockaddr*)&tiface.caddr, &namelen)) == -1)
+            {
+                CLOSE_SOCKET(tiface.cudp);
+                continue;
+            }
+            tiface.cport = ntohs(tiface.caddr.sin_port);
+            tiface.caddr.sin_port = htons(port);
+            inet_pton(AF_INET,tiface.address,&tiface.caddr.sin_addr);
+            tiface.baddr.sin_port = htons(port);
+            tiface.type = ntype;
+            iface.push_back(tiface);
+        }
+        if (iface.size() > 1)
+        {
+            for (uint16_t i=0; i<iface.size(); ++i)
+            {
+                if (iface[i].flags & IFF_LOOPBACK)
                 {
-                    if (iface[i].flags & IFF_LOOPBACK)
+                    for (uint16_t j=i; j<iface.size()-1; ++j)
                     {
-                        for (uint16_t j=i; j<iface.size()-1; ++j)
-                        {
-                            iface[j] = iface[j+1];
-                        }
-                        iface.resize(iface.size()-1);
+                        iface[j] = iface[j+1];
                     }
+                    iface.resize(iface.size()-1);
                 }
             }
+        }
 
 #endif // COSMOS_WIN_OS
-        }
-        break;
+    }
+    break;
     default:
         break;
     }
@@ -1163,7 +1081,7 @@ int32_t socket_recvfrom(socket_channel &channel, string &buffer, size_t maxlen, 
 }
 
 int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags)
-    {
+{
     int32_t nbytes;
     buffer.resize(maxlen);
     ElapsedTime et;
@@ -1189,7 +1107,7 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
 }
 
 int32_t socket_recv(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags)
-    {
+{
     int32_t nbytes;
     buffer.resize(maxlen);
     ElapsedTime et;
@@ -1529,9 +1447,9 @@ int32_t Udp::socketOpen()
         sslen = sizeof(ss);
         WSAStringToAddressA((LPSTR)sok.address.c_str(),AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
         sok.server.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-#endif
-        //>>
-        //port = port;
+#endif \
+    //>> \
+    //port = port;
 
         if (sok.connect){
             if ((iretn=connect(sok.handle, (struct sockaddr *)&sok.server, sok.addrlen)) < 0)

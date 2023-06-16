@@ -154,7 +154,7 @@ typedef vector<socket_channel> socket_bus;
 int32_t socket_open(socket_bus &bus, uint16_t port, uint32_t usectimeout=0);
 int32_t socket_open(socket_channel* channel, NetworkType ntype, const char *address, uint16_t port, uint16_t direction, bool blocking=true, uint32_t usectimeo=0, uint32_t rcvbuf=0, uint32_t sndbuf=0);
 int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *address, uint16_t port, uint16_t direction, bool blocking=true, uint32_t usectimeo=0, uint32_t rcvbuf=0, uint32_t sndbuf=0);
-int32_t socket_publish(socket_bus& channel, uint16_t port, string mcast="");
+int32_t socket_publish(socket_bus& channel, uint16_t port);
 int32_t socket_accept(socket_channel server, socket_channel& client);
 uint16_t socket_calc_udp_checksum(vector<uint8_t> packet);
 int32_t socket_check_udp_checksum(vector<uint8_t> packet);
