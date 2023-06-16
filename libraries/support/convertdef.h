@@ -614,6 +614,10 @@ namespace Cosmos {
             rmatrix ds2t;
             rmatrix t2s;
             rmatrix dt2s;
+            //! Transform between LVLH and GEOC
+            quaternion l2g;
+            quaternion g2l;
+            //! Misc
             cartpos sun2earth;
             gvector sungeo;
             cartpos sun2moon;
@@ -647,6 +651,9 @@ namespace Cosmos {
                     { "ds2t"  , ds2t },
                     { "t2s"   , t2s },
                     { "dt2s"  , dt2s },
+
+                    { "l2g" , l2g },
+                    { "g2l" , g2l },
 
                     { "sun2earth" , sun2earth },
                     { "sun2moon"  , sun2moon },
@@ -684,6 +691,9 @@ namespace Cosmos {
                     if(!p["ds2t"].is_null())    ds2t.from_json(p["ds2t"].dump());
                     if(!p["t2s"].is_null())     t2s.from_json(p["t2s"].dump());
                     if(!p["dt2s"].is_null())    dt2s.from_json(p["dt2s"].dump());
+
+                    if(!p["l2g"].is_null())     l2g.from_json(p["l2g"].dump());
+                    if(!p["g2l"].is_null())     g2l.from_json(p["g2l"].dump());
 
                     if(!p["sun2earth"].is_null())   sun2earth.from_json(p["sun2earth"].dump());
                     if(!p["sun2moon"].is_null())    sun2moon.from_json(p["sun2moon"].dump());

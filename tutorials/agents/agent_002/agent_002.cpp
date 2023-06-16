@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 		//int jah2 = 240;
     // construct agent 
 	cout << node_agent_name <<" starting..."<<endl;
-	agent = new Agent(node_name, agent_name, 1.);
+	agent = new Agent("", node_name, agent_name, 1.);
     if(agent->last_error() < 0) {
         cout<<"error: unable to start "<<node_agent_name<<" ("<<agent->last_error()<<") "<<cosmos_error_string(agent->last_error())<<endl;
         exit(1);
@@ -221,6 +221,6 @@ int32_t hello_agent_002_request_function(string & request, string &response, Age
     response = "hello " + std::to_string(request_counter);
 
 	// agent is set to this pointer?
-    //cout << "[" << node_name << ":" << agent_name <<"] received a request from ["<<a->nodeName<<":"<<a->agentName<<"]! Its response is: " << response << endl;
+    //cout << "[" << node_name << ":" << agent_name <<"] received a request from ["<<a->cinfo->node.name<<":"<<a->cinfo->agent0.name<<"]! Its response is: " << response << endl;
     return 0;
 }

@@ -95,11 +95,11 @@ int main(int argc, char *argv[])
     printf("Memory: %s\n", json_memory_usage().c_str());
 
     if (argc == 2) {
-        agent = new Agent(argv[1], "cpu", 15.);
+        agent = new Agent("", argv[1], "cpu", 15.);
     } else {
         char hostname[60];
         gethostname(hostname, sizeof (hostname));
-        agent = new Agent(hostname, "cpu", 15.);
+        agent = new Agent("", hostname, "cpu", 15.);
     }
     printf("Mmeory: %s\n", json_memory_usage().c_str());
     agent->set_debug_level(1);
@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
         agent->debug_log.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
-    iretn = json_createpiece(agent->cinfo, agent->nodeName + "_cpu", DeviceType::CPU);
+    iretn = json_createpiece(agent->cinfo, agent->cinfo->node.name + "_cpu", DeviceType::CPU);
 
     if (iretn < 0)
     {
@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 
     et.start();
 
-    agent->cinfo->agent[0].aprd = agent->cinfo->agent[0].beat.bprd;
+    agent->cinfo->agent0.aprd = agent->cinfo->agent0.beat.bprd;
     agent->start_active_loop();
 
     // Initialize temperature Fit
@@ -371,7 +371,7 @@ int32_t get_sensors(map<string, float> &temps)
 int32_t get_last_offset()
 {
     int32_t offset = 0;
-    FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/last_offset").c_str(), "r");
+    FILE *fp = fopen((get_cosmosnodes() + agent->cinfo->node.name + "/last_offset").c_str(), "r");
     if (fp != nullptr)
     {
         size_t ret = fscanf(fp, "%d", &offset);

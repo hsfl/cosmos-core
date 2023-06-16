@@ -11,7 +11,7 @@ namespace Cosmos
             agent = parent_agent;
             
             // Initialize Transfer class
-            int32_t iretn = transfer.Init(agent->nodeName, &agent->debug_log);
+            int32_t iretn = transfer.Init(agent->cinfo, &agent->debug_log);
             if (iretn < 0)
             {
                 agent->debug_log.Printf("%.4f Error initializing transfer class!: %s\n", agent->uptime.split(), cosmos_error_string(iretn).c_str());
@@ -23,7 +23,7 @@ namespace Cosmos
             contact_nodes = { agent->nodeId };
             for (const string& node : file_transfer_contact_nodes)
             {
-                iretn = NodeData::lookup_node_id(node);
+                iretn = lookup_node_id(agent->cinfo, node);
                 if (iretn <= 0)
                 {
                     agent->debug_log.Printf("%.4f Could not find node ID for node name: %s\n", agent->uptime.split(), node.c_str());
@@ -87,7 +87,7 @@ namespace Cosmos
                                 {
                                     if (agent->get_debug_level())
                                     {
-                                        agent->debug_log.Printf("%.4f Main: Node: %s Agent: %s - Error in receive_packet(): %d\n", agent->uptime.split(), agent->nodeName.c_str(), agent->agentName.c_str(), iretn);
+                                        agent->debug_log.Printf("%.4f Main: Node: %s Agent: %s - Error in receive_packet(): %d\n", agent->uptime.split(), agent->cinfo->node.name.c_str(), agent->cinfo->agent0.name.c_str(), iretn);
                                     }
                                 }
                             }

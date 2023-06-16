@@ -427,7 +427,7 @@ void json_init_reserve(cosmosstruc* cinfo) {
     cinfo->emap.resize(JSON_MAX_HASH);
 
     //    cinfo->node.name.reserve(COSMOS_MAX_NAME+1);
-    //    cinfo->node.agent.reserve(COSMOS_MAX_NAME+1);
+    //    cinfo->agent0.name.reserve(COSMOS_MAX_NAME+1);
     //    cinfo->node.lastevent.reserve(COSMOS_MAX_NAME+1);
 
     // TODO: enforce this maximum for all vert/tri.push_back calls
@@ -444,8 +444,7 @@ void json_init_reserve(cosmosstruc* cinfo) {
     //    cinfo->user.reserve(MAX_NUMBER_OF_USERS);
     //    cinfo->user.resize(MAX_NUMBER_OF_USERS);
 
-    //    cinfo->agent.reserve(MAX_NUMBER_OF_AGENTS);
-    cinfo->agent.resize(1);
+    //    cinfo->agent0.reserve(MAX_NUMBER_OF_AGENTS);
 
     cinfo->equation.clear();
     //    cinfo->equation.reserve(MAX_NUMBER_OF_EQUATIONS);
@@ -501,13 +500,13 @@ void json_init_reserve(cosmosstruc* cinfo) {
 
 // this should completely reserve all memory used up to MAX_NUMBER_OF_######
 // add_default_names at the very end
-cosmosstruc* json_init(cosmosstruc *cinfo)
+cosmosstruc* json_init(cosmosstruc *cinfo, string node)
 {
     json_init_device_type_string();
     // would be nice to have unit test for these three guys
     //SCOTTNOTE: reserve capacity for all vectors in these strucs
     //    cinfo->node.name = "";
-    //    cinfo->node.agent = "";
+    //    cinfo->agent0.name = "";
     //    cinfo->node.lastevent = "";
     //	cinfo->node = nodestruc();
     //    cinfo->node.phys = physicsstruc();
@@ -520,7 +519,11 @@ cosmosstruc* json_init(cosmosstruc *cinfo)
 
     json_init_reserve(cinfo);
     json_init_unit(cinfo);
-    json_init_node(cinfo);
+
+    cinfo->node.utc = 0;
+    cinfo->node.name = node;
+    cinfo->realm.name.clear();
+    cinfo->realm.node_ids.clear();
 
     cinfo->timestamp = currentmjd();
 
@@ -538,7 +541,7 @@ cosmosstruc* json_init(cosmosstruc *cinfo)
     return cinfo;
 }
 
-cosmosstruc* json_init()
+cosmosstruc* json_init(string node)
 {
     cosmosstruc* cinfo = nullptr;
     if ((cinfo = new cosmosstruc()) == nullptr)
@@ -546,7 +549,7 @@ cosmosstruc* json_init()
         return nullptr;
     }
 
-    return json_init(cinfo);
+    return json_init(cinfo, node);
 }
 
 //! Remove JSON pointer map
@@ -657,12 +660,12 @@ int32_t json_create_cpu(string &node_name)
         json_mappieceentry(cinfo->pieces.size()-1, cinfo);
         json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
 
-        cinfo->node.device_cnt = cinfo->node.piece_cnt;
-        cinfo->device.resize(cinfo->node.device_cnt);
+        cinfo->device_cnt = cinfo->piece_cnt;
+        cinfo->device.resize(cinfo->device_cnt);
         cinfo->devspec.cpu_cnt = 1;
         cinfo->devspec.disk_cnt = 1;
-        cinfo->node.port_cnt = 1;
-        cinfo->port.resize(cinfo->node.port_cnt);
+        cinfo->port_cnt = 1;
+        cinfo->port.resize(cinfo->port_cnt);
 
         //        int32_t iretn = json_dump_node(cinfo);
         json_destroy(cinfo);
@@ -702,13 +705,13 @@ int32_t json_create_mcc(string &node_name)
         json_mappieceentry(cinfo->pieces.size()-1, cinfo);
         json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
 
-        cinfo->node.device_cnt = cinfo->node.piece_cnt;
-        cinfo->device.resize(cinfo->node.device_cnt);
+        cinfo->device_cnt = cinfo->piece_cnt;
+        cinfo->device.resize(cinfo->device_cnt);
         cinfo->devspec.mcc_cnt = 1;
-        cinfo->node.port_cnt = 1;
-        cinfo->port.resize(cinfo->node.port_cnt);
+        cinfo->port_cnt = 1;
+        cinfo->port.resize(cinfo->port_cnt);
 
-        for (size_t i=0; i<cinfo->node.piece_cnt; ++i)
+        for (size_t i=0; i<cinfo->piece_cnt; ++i)
         {
             cinfo->device[i]->pidx = i;
             cinfo->device[i]->cidx = i;
@@ -914,7 +917,7 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
     piece.enabled = true;
     piece.face_cnt = 0;
     cinfo->pieces.push_back(piece);
-    cinfo->node.piece_cnt = static_cast <uint16_t>(cinfo->pieces.size());
+    cinfo->piece_cnt = static_cast <uint16_t>(cinfo->pieces.size());
 
     return (static_cast <int32_t>(cinfo->pieces.size() - 1));
 }
@@ -947,7 +950,7 @@ int32_t json_createport(cosmosstruc *cinfo, string name, PORT_TYPE type)
     port.name = name;
     port.type = type;
     cinfo->port.push_back(port);
-    cinfo->node.port_cnt = static_cast <uint16_t>(cinfo->port.size());
+    cinfo->port_cnt = static_cast <uint16_t>(cinfo->port.size());
     json_mapportentry(static_cast <uint16_t>(cinfo->port.size()) - 1, cinfo);
     json_toggleportentry(static_cast <uint16_t>(cinfo->port.size()) - 1, cinfo, true);
 
@@ -1221,7 +1224,7 @@ int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
         cinfo->device.back()->pidx = pidx;
         cinfo->device.back()->cidx = static_cast <int32_t>(cinfo->device.size() - 1);
         cinfo->device.back()->type = static_cast<uint16_t>(ctype);
-        cinfo->node.device_cnt = cinfo->device.size();
+        cinfo->device_cnt = cinfo->device.size();
     }
     return (static_cast <int32_t>(cinfo->device.size() - 1));
 }
@@ -3425,7 +3428,7 @@ uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosstruc *cinfo
         data = offset + (uint8_t *)cinfo;
         break;
     case JSON_STRUCT_AGENT:
-        data =  offset + (uint8_t *)cinfo->agent.data();
+        data =  offset + (uint8_t *)&(cinfo->agent0);
         break;
     case JSON_STRUCT_PHYSICS:
         data =  offset + (uint8_t *)&(cinfo->node.phys);
@@ -6822,7 +6825,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo)
         cinfo->node.phys = physicsstruc();
         break;
     case JSON_STRUCT_AGENT:
-        cinfo->agent.clear();
+        cinfo->agent0 = agentstruc();
         break;
     case JSON_STRUCT_USER:
         cinfo->user.clear();
@@ -7186,7 +7189,7 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
                 cinfo->pieces[i].volume += cinfo->faces[(cinfo->pieces[i].face_idx[j])].area * dv.norm() / 3.;
             }
         }
-        cinfo->node.face_cnt = cinfo->faces.size();
+        cinfo->face_cnt = cinfo->faces.size();
         tvolume += cinfo->pieces[i].volume;
         tcom +=  cinfo->pieces[i].com * cinfo->pieces[i].volume;
     }
@@ -7434,17 +7437,17 @@ int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
         ++count;
     }
 
-    cinfo->node.vertex_cnt = cinfo->vertexs.size();
-    cinfo->node.normal_cnt = cinfo->normals.size();
-    cinfo->node.face_cnt = cinfo->faces.size();
-    cinfo->node.piece_cnt = cinfo->pieces.size();
-    cinfo->node.device_cnt = cinfo->device.size();
-    cinfo->node.port_cnt = cinfo->port.size();
-    cinfo->node.agent_cnt = cinfo->agent.size();
-    cinfo->node.event_cnt = cinfo->event.size();
-    cinfo->node.target_cnt = cinfo->target.size();
-    cinfo->node.user_cnt = cinfo->user.size();
-    cinfo->node.tle_cnt = cinfo->tle.size();
+    cinfo->vertex_cnt = cinfo->vertexs.size();
+    cinfo->normal_cnt = cinfo->normals.size();
+    cinfo->face_cnt = cinfo->faces.size();
+    cinfo->piece_cnt = cinfo->pieces.size();
+    cinfo->device_cnt = cinfo->device.size();
+    cinfo->port_cnt = cinfo->port.size();
+//    cinfo->agent_cnt = cinfo->agent0.size();
+    cinfo->event_cnt = cinfo->event.size();
+    cinfo->target_cnt = cinfo->target.size();
+    cinfo->user_cnt = cinfo->user.size();
+    cinfo->tle_cnt = cinfo->tle.size();
 
     iretn = json_mapentries(cinfo);
     if (iretn >= 0)
@@ -7493,7 +7496,6 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     }
 
     string nodepath;
-    //    cinfo->name = cinfo->node.name;
     bool dump_flag = false;
     if (create_flag)
     {
@@ -7516,15 +7518,15 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     // Second: enter information for pieces
     // Vertices
     cinfo->vertexs.clear();
-    if (cinfo->node.vertex_cnt)
+    if (cinfo->vertex_cnt)
     {
         // be careful about resizing vertex past MAX_NUMBER_VERTEXS
-        cinfo->vertexs.resize(cinfo->node.vertex_cnt);
-        if (cinfo->vertexs.size() != cinfo->node.vertex_cnt)
+        cinfo->vertexs.resize(cinfo->vertex_cnt);
+        if (cinfo->vertexs.size() != cinfo->vertex_cnt)
         {
             return (AGENT_ERROR_MEMORY);
         }
-        for (uint16_t i=0; i<cinfo->node.vertex_cnt; i++)
+        for (uint16_t i=0; i<cinfo->vertex_cnt; i++)
         {
             //Add relevant names to namespace
             json_mapvertexentry(i, cinfo);
@@ -7543,15 +7545,15 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 
     // Faces
     cinfo->faces.clear();
-    if (cinfo->node.face_cnt)
+    if (cinfo->face_cnt)
     {
-        cinfo->faces.resize(cinfo->node.face_cnt);
-        if (cinfo->faces.size() != cinfo->node.face_cnt)
+        cinfo->faces.resize(cinfo->face_cnt);
+        if (cinfo->faces.size() != cinfo->face_cnt)
         {
             return (AGENT_ERROR_MEMORY);
         }
 
-        for (uint16_t i=0; i<cinfo->node.face_cnt; i++)
+        for (uint16_t i=0; i<cinfo->face_cnt; i++)
         {
             //Add relevant names to namespace
             json_mapfaceentry(i, cinfo);
@@ -7567,7 +7569,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         }
 
         // Do it a second time because now we know how many vertices in each face.
-        for (uint16_t i=0; i<cinfo->node.face_cnt; i++)
+        for (uint16_t i=0; i<cinfo->face_cnt; i++)
         {
             //Add relevant names to namespace
             cinfo->faces[i].vertex_idx.resize(cinfo->faces[i].vertex_cnt);
@@ -7586,15 +7588,15 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 
     // Resize, then add entries to map for pieces
     cinfo->pieces.clear();
-    if (cinfo->node.piece_cnt)
+    if (cinfo->piece_cnt)
     {
-        cinfo->pieces.resize(cinfo->node.piece_cnt);
-        if (cinfo->pieces.size() != cinfo->node.piece_cnt)
+        cinfo->pieces.resize(cinfo->piece_cnt);
+        if (cinfo->pieces.size() != cinfo->piece_cnt)
         {
             return (AGENT_ERROR_MEMORY);
         }
 
-        for (uint16_t i=0; i<cinfo->node.piece_cnt; i++)
+        for (uint16_t i=0; i<cinfo->piece_cnt; i++)
         {
             // Initialize to disabled
             cinfo->pieces[i].enabled = false;
@@ -7615,7 +7617,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         }
 
         // Do it a second time, now that we know how many faces in each piece
-        for (uint16_t i=0; i<cinfo->node.piece_cnt; i++)
+        for (uint16_t i=0; i<cinfo->piece_cnt; i++)
         {
             cinfo->pieces[i].face_idx.resize(cinfo->pieces[i].face_cnt);
             json_mappieceentry(i, cinfo);
@@ -7631,7 +7633,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         }
 
         // Work through jmap, enabling each piece for which piece_type has been enabled
-        for (size_t i=0; i<cinfo->node.piece_cnt; i++)
+        for (size_t i=0; i<cinfo->piece_cnt; i++)
         {
             cinfo->pieces[i].enabled = json_checkentry("piece_name", i, UINT16_MAX, cinfo);
         }
@@ -7661,7 +7663,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 
             json_updatecosmosstruc(cinfo);
 
-            for (uint16_t i=0; i< cinfo->node.device_cnt; i++)
+            for (uint16_t i=0; i< cinfo->device_cnt; i++)
             {
                 // Initialize to disabled
                 cinfo->device[i]->state = 0;
@@ -7678,7 +7680,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         }
 
         // Fix any mis registered pieces
-        for (size_t i=0; i < cinfo->node.piece_cnt; ++i)
+        for (size_t i=0; i < cinfo->piece_cnt; ++i)
         {
             if (cinfo->pieces[i].cidx != UINT16_MAX)
             {
@@ -7692,14 +7694,14 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         }
 
         // Work through jmap, enabling each device for which device_type has been enabled
-        for (size_t i=0; i<cinfo->node.device_cnt; i++)
+        for (size_t i=0; i<cinfo->device_cnt; i++)
         {
             cinfo->device[i]->state = json_checkentry("device_type", i, UINT16_MAX, cinfo);
         }
 
         // Fourth: enter information for specific devices
         // Add entries to map for Devices specific information
-        for (uint16_t i=0; i< cinfo->node.device_cnt; i++)
+        for (uint16_t i=0; i< cinfo->device_cnt; i++)
         {
             json_mapdeviceentry(cinfo->device[i], cinfo);
             //            json_pushdevspec(i, cinfo);
@@ -7715,7 +7717,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         }
 
         // Clean up any errors and perform some initializations
-        for (uint16_t i=0; i< cinfo->node.device_cnt; i++)
+        for (uint16_t i=0; i< cinfo->device_cnt; i++)
         {
             cinfo->device[i]->cidx = i;
             cinfo->device[i]->amp = cinfo->device[i]->namp;
@@ -7731,13 +7733,13 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 
         // Sixth: enter information for ports
         // Resize, then add names for ports
-        cinfo->port.resize(cinfo->node.port_cnt);
-        if (cinfo->port.size() != cinfo->node.port_cnt)
+        cinfo->port.resize(cinfo->port_cnt);
+        if (cinfo->port.size() != cinfo->port_cnt)
         {
             return (AGENT_ERROR_MEMORY);
         }
 
-        for (uint16_t i=0; i<cinfo->node.port_cnt; i++)
+        for (uint16_t i=0; i<cinfo->port_cnt; i++)
         {
             json_mapportentry(i, cinfo);
         }
@@ -7954,37 +7956,37 @@ int32_t json_mapentries(cosmosstruc *cinfo)
 {
     json_mapbaseentries(cinfo);
 
-    //    for (uint16_t i=0; i<cinfo->node.vertex_cnt; i++)
+    //    for (uint16_t i=0; i<cinfo->vertex_cnt; i++)
     //    {
     //        json_mapvertexentry(i, cinfo);
     //    }
 
-    //    for (uint16_t i=0; i<cinfo->node.face_cnt; i++)
+    //    for (uint16_t i=0; i<cinfo->face_cnt; i++)
     //    {
     //        json_mapfaceentry(i, cinfo);
     //    }
 
-    for (uint16_t i=0; i<cinfo->node.piece_cnt; i++)
+    for (uint16_t i=0; i<cinfo->piece_cnt; i++)
     {
         json_mappieceentry(i, cinfo);
     }
 
-    for (uint16_t i=0; i<cinfo->node.device_cnt; i++)
+    for (uint16_t i=0; i<cinfo->device_cnt; i++)
     {
         json_mapcompentry(i, cinfo);
     }
 
-    for (uint16_t i=0; i<cinfo->node.device_cnt; i++)
+    for (uint16_t i=0; i<cinfo->device_cnt; i++)
     {
         json_mapdeviceentry(cinfo->device[i], cinfo);
     }
 
-    for (uint16_t i=0; i<cinfo->node.port_cnt; i++)
+    for (uint16_t i=0; i<cinfo->port_cnt; i++)
     {
         json_mapportentry(i, cinfo);
     }
 
-    for (uint16_t i=0; i<cinfo->node.tle_cnt; ++i)
+    for (uint16_t i=0; i<cinfo->tle_cnt; ++i)
     {
         json_maptleentry(i, cinfo);
     }
@@ -8002,6 +8004,18 @@ int32_t json_mapentries(cosmosstruc *cinfo)
 int32_t json_mapbaseentries(cosmosstruc *cinfo)
 {
     int32_t iretn = 0;
+
+    // Everybody
+    json_addentry("node_device_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->device_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_vertex_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->vertex_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_normal_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->normal_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_face_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->face_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_piece_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->piece_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_port_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->port_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_target_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->target_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+//    json_addentry("node_agent_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->agent_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_event_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->event_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_user_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->user_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
 
     // User structure
     iretn = json_addentry("user_node", UINT16_MAX, UINT16_MAX,offsetof(userstruc,node), (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_USER, cinfo);
@@ -8078,7 +8092,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     // Node Structure
     json_addentry("node_utcoffset", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utcoffset, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("node_name", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.name, (uint16_t)JSON_TYPE_STRING, cinfo);
-    json_addentry("node_agent", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.agent, (uint16_t)JSON_TYPE_STRING, cinfo);
+//    json_addentry("node_agent", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->agent0.name, (uint16_t)JSON_TYPE_STRING, cinfo);
     json_addentry("node_lastevent", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.lastevent, (uint16_t)JSON_TYPE_STRING, cinfo);
     json_addentry("node_lasteventutc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.lasteventutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     json_addentry("node_type", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.type, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -8266,16 +8280,6 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_elfrom", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.elfrom, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
     json_addentry("node_elto", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.elto, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
     json_addentry("node_range", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.range, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_LENGTH);
-    json_addentry("node_device_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.device_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("node_vertex_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.vertex_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("node_normal_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.normal_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("node_face_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.face_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("node_piece_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.piece_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("node_port_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.port_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("node_target_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.target_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("node_agent_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.agent_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("node_event_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.event_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("node_user_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.user_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_ant_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.ant_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_batt_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.batt_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_bus_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.bus_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -11995,11 +11999,12 @@ int32_t json_shrink(cosmosstruc *cinfo)
     }
     vector<portstruc>(cinfo->port).swap(cinfo->port);
 
-    for (size_t i=0; i<cinfo->agent.size(); ++i)
-    {
-        cinfo->agent[i].shrinkusage();
-    }
-    vector<agentstruc>(cinfo->agent).swap(cinfo->agent);
+//    for (size_t i=0; i<cinfo->agent0.size(); ++i)
+//    {
+//        cinfo->agent[i].shrinkusage();
+//    }
+//    vector<agentstruc>(cinfo->agent).swap(cinfo->agent);
+    cinfo->agent0.shrinkusage();
 
     for (size_t i=0; i<cinfo->event.size(); ++i)
     {
@@ -12060,7 +12065,7 @@ int32_t node_init(string node, cosmosstruc *cinfo)
     node_calc(cinfo);
 
     //! Load targeting information
-    cinfo->node.target_cnt = (uint16_t)load_target(cinfo);
+    cinfo->target_cnt = (uint16_t)load_target(cinfo);
 
     return 0;
 }
@@ -12109,7 +12114,7 @@ int32_t node_calc(cosmosstruc *cinfo)
     }
 
 
-    for (size_t n=0; n<cinfo->node.device_cnt; n++)
+    for (size_t n=0; n<cinfo->device_cnt; n++)
     {
         /*
     if (cinfo->device[n].pidx >= 0)
@@ -12244,7 +12249,7 @@ void create_databases(cosmosstruc *cinfo)
     /*
  *	op = fopen("target.txt","w");
     fprintf(op,"gs_idx	gs_name	gs_pos_lat	gs_pos_lon	gs_pos_alt	gs_min gs_az	gs_el\n");
-    for (i=0; i<cinfo->node.target_cnt; i++)
+    for (i=0; i<cinfo->target_cnt; i++)
     {
         fprintf(op,"%d\t%s\t%u\n",i,cinfo->target[i].name,cinfo->target[i].type);
     }
@@ -12267,7 +12272,7 @@ void create_databases(cosmosstruc *cinfo)
 
     op = fopen("comp.txt","w");
     fprintf(op,"device_all_idx\tdevice_all_type\tdevice_all_didx\tdevice_all_pidx\tdevice_all_bidx\tdevice_all_namp\tdevice_all_nvolt\tdevice_all_amp\tdevice_all_volt\tdevice_all_temp\tdevice_all_on\n");
-    for (i=0; i<cinfo->node.device_cnt; i++)
+    for (i=0; i<cinfo->device_cnt; i++)
     {
         cs = cinfo->device[i];
         fprintf(op,"%d\t%d\t%d\t%d\t%d\t%.15g\t%.15g\n",i,cs->type,cs->didx,cs->pidx,cs->bidx,cs->amp,cs->volt);
@@ -12452,6 +12457,172 @@ void create_databases(cosmosstruc *cinfo)
     fclose(op);
 }
 
+//! \brief Loads node table from nodeids.ini configuration file
+//! nodeids is a map of node name strings indexed by a node_id
+//! \param realm std::string containing name of Realm
+int32_t load_node_ids(cosmosstruc* cinfo, string realm)
+{
+    int32_t iretn = 0;
+
+    if (realm.empty())
+    {
+        cinfo->realm.name = "all";
+        iretn = json_get_node_ids(cinfo->realm.node_ids);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+    else if (cinfo->realm.name != realm)
+    {
+        char buf[103];
+        FILE *fp = data_open(get_realmdir(realm)+"/nodeids.ini", "rb");
+        if (fp)
+        {
+            cinfo->realm.name = realm;
+            cinfo->realm.node_ids.clear();
+            // Loop until eof
+            while (fgets(buf, 102, fp) != nullptr)
+            {
+                uint16_t nodeid = 0;
+                string node_name;
+                // Turn whitespace into null terminators, then grab node names and idxs
+                if (buf[strlen(buf)-1] == '\n')
+                {
+                    buf[strlen(buf)-1] = 0;
+                }
+                if (buf[1] == ' ')
+                {
+                    buf[1] = 0;
+                    nodeid = atoi(buf);
+                    node_name = &buf[2];
+                }
+                else if (buf[2] == ' ')
+                {
+                    buf[2] = 0;
+                    nodeid = atoi(buf);
+                    node_name = &buf[3];
+                }
+                else if (buf[3] == ' ')
+                {
+                    buf[3] = 0;
+                    nodeid = atoi(buf);
+                    node_name = &buf[4];
+                }
+                else
+                {
+                    continue;
+                }
+                cinfo->realm.node_ids[node_name] = nodeid;
+            }
+            fclose(fp);
+        }
+//        else
+//        {
+//            return -errno;
+//        }
+    }
+
+    return cinfo->realm.node_ids.size();
+}
+
+//! \brief Saves node table to nodeids.ini configuration file
+//! nodeids is a map of node name strings indexed by a node_id
+//! \param realm std::string containing name of Realm
+int32_t save_node_ids(cosmosstruc* cinfo)
+{
+    if (cinfo->realm.name.empty())
+    {
+        return GENERAL_ERROR_EMPTY;
+    }
+
+        FILE *fp = data_open(get_realmdir(cinfo->realm.name, true)+"/nodeids.ini", "wb");
+        if (fp)
+        {
+            for (auto node : cinfo->realm.node_ids)
+            {
+                fprintf(fp, "%u %s\n", node.second, node.first.c_str());
+            }
+            fclose(fp);
+        }
+        else
+        {
+            return -errno;
+        }
+
+    return cinfo->realm.node_ids.size();
+}
+
+//! Check if a node_id is in the node table
+//! \param node_id
+//! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
+int32_t check_node_id(cosmosstruc *cinfo, NODE_ID_TYPE node_id)
+{
+    for (auto it = cinfo->realm.node_ids.begin(); it != cinfo->realm.node_ids.end(); ++it)
+    {
+        if (it->second == node_id)
+        {
+            return node_id;
+        }
+    }
+    return NODEIDUNKNOWN;
+}
+
+//! Gets the node_id associated with a node name
+//! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
+int32_t lookup_node_id(cosmosstruc *cinfo, string node_name)
+{
+    auto it = cinfo->realm.node_ids.find(node_name);
+    if (it == cinfo->realm.node_ids.end())
+    {
+        return NODEIDUNKNOWN;
+    }
+    return it->second;
+}
+
+//! Gets the node_id associated with a node name
+//! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
+int32_t add_node_id(cosmosstruc *cinfo, string node_name)
+{
+    int32_t nodeid;
+    nodeid = lookup_node_id(cinfo, node_name);
+    if (nodeid == NODEIDUNKNOWN)
+    {
+        nodeid = cinfo->realm.node_ids.size() + 1;
+        cinfo->realm.node_ids[node_name] = nodeid;
+    }
+    return nodeid;
+}
+
+//! Find the node name associated with the given node id in the node table.
+//! \param node_id Node ID
+//! \return Node name on success, or empty string on failure
+string lookup_node_id_name(cosmosstruc *cinfo, NODE_ID_TYPE node_id)
+{
+    if (node_id == NODEIDORIG)
+    {
+        return "Origin";
+    }
+    else if (node_id == NODEIDDEST)
+    {
+        return "Destination";
+    }
+    else if (node_id == NODEIDUNKNOWN || load_node_ids(cinfo) <= 0)
+    {
+        return "";
+    }
+
+    for (auto it = cinfo->realm.node_ids.begin(); it != cinfo->realm.node_ids.end(); ++it)
+    {
+        if (it->second == node_id)
+        {
+            return it->first;
+        }
+    }
+
+    return "";
+}
+
 
 //! Load Track list
 /*! Load the file target.ini into an array of ::targetstruc. Space for the array is automatically allocated
@@ -12468,7 +12639,8 @@ int32_t load_target(cosmosstruc *cinfo)
     char inb[JSON_MAX_DATA];
     uint16_t count;
 
-    fname = get_nodedir(cinfo->node.name) + "/target.ini";
+    fname = get_realmdir(cinfo->realm.name) + "/targets.ini";
+//    fname = get_nodedir(cinfo->node.name) + "/target.ini";
     count = 0;
     if ((op=fopen(fname.c_str(),"r")) != nullptr)
     {
@@ -12536,14 +12708,14 @@ int32_t load_tle(cosmosstruc *cinfo)
         }
         if (iretn > MAX_NUMBER_OF_TLES)
         {
-            cinfo->node.tle_cnt = MAX_NUMBER_OF_TLES;
+            cinfo->tle_cnt = MAX_NUMBER_OF_TLES;
         }
         else
         {
-            cinfo->node.tle_cnt = iretn;
+            cinfo->tle_cnt = iretn;
         }
-        cinfo->tle.resize(cinfo->node.tle_cnt);
-        for (uint16_t i=0; i<cinfo->node.tle_cnt; ++i)
+        cinfo->tle.resize(cinfo->tle_cnt);
+        for (uint16_t i=0; i<cinfo->tle_cnt; ++i)
         {
             json_addentry("tle_utc",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,utc)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
             json_addentry("tle_name",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,name)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_STRING, (uint16_t)JSON_STRUCT_TLE, cinfo);
@@ -12558,7 +12730,7 @@ int32_t load_tle(cosmosstruc *cinfo)
             json_addentry("tle_mm",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,mm)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
             json_addentry("tle_orbit",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,orbit)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_UINT32, (uint16_t)JSON_STRUCT_TLE, cinfo);
         }
-        return (cinfo->node.tle_cnt);
+        return (cinfo->tle_cnt);
     }
     return GENERAL_ERROR_BAD_FD;
 }
@@ -13103,6 +13275,43 @@ int32_t json_get_nodes(vector<cosmosstruc> &node)
         closedir(jdp);
     }
     return 0;
+}
+
+//! Get map of Node IDs.
+/*! Scan the COSMOS root directory and add an entry for each
+ * Node that is found.
+ * \param node_ids map of node_id for each Node.
+ * \return Zero or negative error.
+ */
+int32_t json_get_node_ids(map<string, uint8_t>& node_ids)
+{
+    DIR *jdp;
+    string dtemp;
+    string rootd;
+    struct dirent *td;
+
+    int32_t iretn = get_cosmosnodes(rootd);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    node_ids = {{"unkown", NODEIDUNKNOWN}, {"origin", NODEIDORIG}, {"destination", NODEIDDEST}};
+    dtemp = rootd;
+    uint8_t node_idx = 1;
+    if ((jdp=opendir(dtemp.c_str())) != nullptr)
+    {
+        while ((td=readdir(jdp)) != nullptr)
+        {
+            if (td->d_name[0] != '.')
+            {
+                string nodepath = td->d_name;
+                node_ids[nodepath] = node_idx++;
+            }
+        }
+        closedir(jdp);
+    }
+    return node_idx;
 }
 
 //! Add to KML path

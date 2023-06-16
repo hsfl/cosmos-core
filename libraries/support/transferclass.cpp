@@ -47,26 +47,27 @@ namespace Cosmos {
 
         /** 
          * Initialize the transfer class
-         * \param calling_node_name Name of node using this instance of transferclass
+         * \param calling_node_realm Name of node using this instance of transferclass
          * \return 0 if success
          */
-        int32_t Transfer::Init(const string calling_node_name)
+        int32_t Transfer::Init(cosmosstruc *cinfo)
         {
-            int32_t iretn = Init(calling_node_name, nullptr);
+            int32_t iretn = Init(cinfo, nullptr);
             return iretn;
         }
 
         /** 
          * Initialize the transfer class
-         * \param calling_node_name Name of node using this instance of transferclass
+         * \param calling_node_realm Realm of node using this instance of transferclass
          * \param debug_log Pointer to an agent's debug_log to use to print error messages.
          * \return 0 if success
          */
-        int32_t Transfer::Init(const string calling_node_name, Log::Logger* debug_log)
+        int32_t Transfer::Init(cosmosstruc *cinfo, Log::Logger* debug_log)
         {
 
             int32_t iretn = 0;
             this->debug_log = debug_log;
+            this->cinfo = cinfo;
 
             // if (this->debug_log != nullptr)
             // {
@@ -74,8 +75,8 @@ namespace Cosmos {
             // }
 
             // Transfer: Queue
-            const int32_t node_ids_size = NodeData::load_node_ids();
-            if (node_ids_size < 2)
+            const int32_t node_ids_size = cinfo->realm.node_ids.size();
+            if (node_ids_size < 5)
             {
                 if (this->debug_log != nullptr)
                 {
@@ -89,17 +90,17 @@ namespace Cosmos {
             // }
 
             // Identify and store calling node's node_id
-            iretn = NodeData::lookup_node_id(calling_node_name);
-            if (iretn == NodeData::NODEIDUNKNOWN)
+            iretn = lookup_node_id(cinfo, cinfo->node.name);
+            if (iretn == NODEIDUNKNOWN)
             {
                 if (this->debug_log != nullptr)
                 {
-                    this->debug_log->Printf("%.4f Could not find node %s in node table!\n", tet.split(), calling_node_name.c_str());
+                    this->debug_log->Printf("%.4f Could not find node %s in node table!\n", tet.split(), cinfo->node.name.c_str());
                 }
                 return COSMOS_TRANSFER_ERROR_NODE;
             }
             self_node_id = iretn;
-            self_node_name = calling_node_name;
+            self_node_name = cinfo->node.name;
             // if (this->debug_log != nullptr)
             // {
             //     this->debug_log->Printf("Transfer: step 3\n");
@@ -110,11 +111,11 @@ namespace Cosmos {
             txq.resize(node_ids_size);
             node_id_to_txq_map.clear();
             size_t tidx = 0;
-            for (auto it = NodeData::node_ids.begin(); it != NodeData::node_ids.end(); ++it)
+            for (auto it = cinfo->realm.node_ids.begin(); it != cinfo->realm.node_ids.end(); ++it)
             {
-                if (it->second == self_node_id)
+                if (it->second == self_node_id || it->second == NODEIDUNKNOWN)
                 {
-                    // Don't add self to txq
+                    // Don't add self or unknown to txq
                     continue;
                 }
                 node_id_to_txq_map.insert(std::make_pair(it->second, tidx));
@@ -122,6 +123,7 @@ namespace Cosmos {
                 txq[tidx].node_id = it->second;
                 ++tidx;
             }
+            txq.resize(tidx);
             // if (this->debug_log != nullptr)
             // {
             //     this->debug_log->Printf("Transfer: step 4\n");
@@ -189,7 +191,7 @@ namespace Cosmos {
                                     {
                                         debug_log->Printf("%.4f %.4f Init: Error readd-ing outgoing meta. Deleting: %s\n", tet.split(), dt.lap(), tx_out.filepath.c_str());
                                     }
-                                    remove((tx_out.temppath + ".meta").c_str()); 
+                                    remove((tx_out.temppath + ".meta").c_str());
                                 }
                             }
                             else
@@ -198,7 +200,7 @@ namespace Cosmos {
                                 {
                                     debug_log->Printf("%.4f %.4f Init: Error reading outgoing meta, version mismatch. Deleting: %s\n", tet.split(), dt.lap(), tx_out.filepath.c_str());
                                 }
-                                remove((tx_out.temppath + ".meta").c_str()); 
+                                remove((tx_out.temppath + ".meta").c_str());
                             }
                         }
                     }
@@ -242,8 +244,8 @@ namespace Cosmos {
             {
                 return outgoing_tx_load();
             }
-            int32_t iretn = NodeData::lookup_node_id(node_name);
-            if (iretn == NodeData::NODEIDUNKNOWN)
+            int32_t iretn = lookup_node_id(cinfo, node_name);
+            if (iretn == NODEIDUNKNOWN)
             {
                 return TRANSFER_ERROR_NODE;
             }
@@ -274,7 +276,7 @@ namespace Cosmos {
             // Go through outgoing directories, adding files not already in queue
             if (txq[dest_node_idx].outgoing.size < PROGRESS_QUEUE_SIZE-1)
             {
-                string dest_node = NodeData::lookup_node_id_name(dest_node_id);
+                string dest_node = lookup_node_id_name(cinfo, dest_node_id);
                 if (dest_node.empty())
                 {
                     return TRANSFER_ERROR_NODE;
@@ -359,8 +361,8 @@ namespace Cosmos {
             }
 
             // Find corresponding node_id in the node table
-            uint8_t node_id = NodeData::lookup_node_id(node_name);
-            if (node_id == NodeData::NODEIDUNKNOWN)
+            uint8_t node_id = lookup_node_id(cinfo, node_name);
+            if (node_id == NODEIDUNKNOWN)
             {
                 if (debug_log != nullptr)
                 {
@@ -655,8 +657,8 @@ namespace Cosmos {
             }
 
             // Find corresponding node_id in the node table
-            uint8_t orig_node_id = NodeData::lookup_node_id(orig_node_name);
-            if (orig_node_id == NodeData::NODEIDUNKNOWN)
+            uint8_t orig_node_id = lookup_node_id(cinfo, orig_node_name);
+            if (orig_node_id == NODEIDUNKNOWN)
             {
                 return TRANSFER_ERROR_NODE;
             }
@@ -785,8 +787,8 @@ namespace Cosmos {
             // BEGIN GATHERING THE METADATA
             tx_progress tx_out;
 
-            const uint8_t dest_node_id = NodeData::lookup_node_id(dest_node);
-            if (dest_node_id == NodeData::NODEIDUNKNOWN)
+            const uint8_t dest_node_id = lookup_node_id(cinfo, dest_node);
+            if (dest_node_id == NODEIDUNKNOWN)
             {
                 if (debug_log != nullptr)
                 {
@@ -947,14 +949,14 @@ namespace Cosmos {
                 debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: ", tet.split(), dt.lap());
             }
 
-            const int32_t dest_node_id = NodeData::lookup_node_id(dest_node_name);
+            const int32_t dest_node_id = lookup_node_id(cinfo, dest_node_name);
             if (dest_node_id <= 0)
             {
                 if (debug_log != nullptr)
                 {
                     debug_log->Printf("dest_node_id not found for node_name %s\n", dest_node_name.c_str());
                 }
-                if (dest_node_id == NodeData::NODEIDUNKNOWN)
+                if (dest_node_id == NODEIDUNKNOWN)
                 {
                     return TRANSFER_ERROR_NODE;
                 }
@@ -1083,13 +1085,13 @@ namespace Cosmos {
         int32_t Transfer::outgoing_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id, const bool remove_file)
         {
             const size_t dest_node_idx = node_id_to_txq_idx(node_id);
-            if (node_id == NodeData::NODEIDUNKNOWN || dest_node_idx == INVALID_TXQ_IDX)
+            if (node_id == NODEIDUNKNOWN || dest_node_idx == INVALID_TXQ_IDX)
             {
                 return TRANSFER_ERROR_INDEX;
             }
 
 
-            if (txq[dest_node_idx].outgoing.progress[tx_id].tx_id == NodeData::NODEIDUNKNOWN)
+            if (txq[dest_node_idx].outgoing.progress[tx_id].tx_id == NODEIDUNKNOWN)
             {
                 return TRANSFER_ERROR_MATCH;
             }
@@ -1154,7 +1156,7 @@ namespace Cosmos {
         //! \return Number of files in node's outgoing queue
         int32_t Transfer::outgoing_tx_recount(const string node_name)
         {
-            return outgoing_tx_recount(NodeData::lookup_node_id(node_name));
+            return outgoing_tx_recount(lookup_node_id(cinfo, node_name));
         }
 
         //! Recount number of files in outgoing queue
@@ -1163,7 +1165,7 @@ namespace Cosmos {
         int32_t Transfer::outgoing_tx_recount(const uint8_t node_id)
         {
             const size_t dest_node_idx = node_id_to_txq_idx(node_id);
-            if (node_id == NodeData::NODEIDUNKNOWN || dest_node_idx == INVALID_TXQ_IDX)
+            if (node_id == NODEIDUNKNOWN || dest_node_idx == INVALID_TXQ_IDX)
             {
                 return TRANSFER_ERROR_INDEX;
             }
@@ -1247,8 +1249,8 @@ namespace Cosmos {
         //! \return Number of files in incoming queue, or error value
         int32_t Transfer::incoming_tx_add(tx_progress &tx_in)
         {
-            uint8_t orig_node_id = NodeData::lookup_node_id(tx_in.node_name);
-            if (orig_node_id == NodeData::NODEIDUNKNOWN)
+            uint8_t orig_node_id = lookup_node_id(cinfo, tx_in.node_name);
+            if (orig_node_id == NODEIDUNKNOWN)
             {
                 if (debug_log != nullptr)
                 {
@@ -1338,8 +1340,8 @@ namespace Cosmos {
          */
         int32_t Transfer::incoming_tx_update(const packet_struct_metadata &meta)
         {
-            int32_t orig_node_id = NodeData::check_node_id(meta.header.node_id);
-            if (orig_node_id == NodeData::NODEIDUNKNOWN)
+            int32_t orig_node_id = check_node_id(cinfo, meta.header.node_id);
+            if (orig_node_id == NODEIDUNKNOWN)
             {
                 return TRANSFER_ERROR_NODE;
             }
@@ -1377,7 +1379,7 @@ namespace Cosmos {
                 if (txq[orig_node_idx].incoming.progress[meta.header.tx_id].tx_id != meta.header.tx_id)
                 {
                     txq[orig_node_idx].incoming.progress[meta.header.tx_id].tx_id = meta.header.tx_id;
-                    string node_name = NodeData::lookup_node_id_name(orig_node_id);
+                    string node_name = lookup_node_id_name(cinfo, orig_node_id);
                     if (node_name.empty())
                     {
                         return TRANSFER_ERROR_INDEX;
@@ -1438,12 +1440,12 @@ namespace Cosmos {
         int32_t Transfer::incoming_tx_del(const uint8_t orig_node_id, const PACKET_TX_ID_TYPE tx_id)
         {
             const size_t orig_node_idx = node_id_to_txq_idx(orig_node_id);
-            if (orig_node_id == NodeData::NODEIDUNKNOWN || orig_node_idx == INVALID_TXQ_IDX)
+            if (orig_node_id == NODEIDUNKNOWN || orig_node_idx == INVALID_TXQ_IDX)
             {
                 return TRANSFER_ERROR_NODE;
             }
 
-            if (txq[orig_node_idx].incoming.progress[tx_id].tx_id == NodeData::NODEIDUNKNOWN)
+            if (txq[orig_node_idx].incoming.progress[tx_id].tx_id == NODEIDUNKNOWN)
             {
                 return TRANSFER_ERROR_MATCH;
             }
@@ -1491,12 +1493,12 @@ namespace Cosmos {
         int32_t Transfer::incoming_tx_complete(const uint8_t orig_node_id, const PACKET_TX_ID_TYPE tx_id)
         {
             const size_t orig_node_idx = node_id_to_txq_idx(orig_node_id);
-            if (orig_node_id == NodeData::NODEIDUNKNOWN || orig_node_idx == INVALID_TXQ_IDX)
+            if (orig_node_id == NODEIDUNKNOWN || orig_node_idx == INVALID_TXQ_IDX)
             {
                 return TRANSFER_ERROR_NODE;
             }
 
-            if (txq[orig_node_idx].incoming.progress[tx_id].tx_id == NodeData::NODEIDUNKNOWN)
+            if (txq[orig_node_idx].incoming.progress[tx_id].tx_id == NODEIDUNKNOWN)
             {
                 return TRANSFER_ERROR_MATCH;
             }
@@ -1575,7 +1577,7 @@ namespace Cosmos {
             if (!tx_id)
             {
                 tx_id = data.header.tx_id;
-                string node_name = NodeData::lookup_node_id_name(node_id);
+                string node_name = lookup_node_id_name(cinfo, node_id);
                 if (node_name.empty())
                 {
                     return TRANSFER_ERROR_INDEX;
@@ -1739,7 +1741,7 @@ namespace Cosmos {
                             // If a file is in the QUEUE packet but not in our local queue, add it
                             if (flag && !(txq[orig_node_idx].incoming.progress[tx_id].tx_id))
                             {
-                                string node_name = NodeData::lookup_node_id_name(queue.header.node_id);
+                                string node_name = lookup_node_id_name(cinfo, queue.header.node_id);
                                 if (node_name.empty())
                                 {
                                     continue;
@@ -1927,13 +1929,13 @@ namespace Cosmos {
 
         int32_t Transfer::incoming_tx_recount(const string node_name)
         {
-            return incoming_tx_recount(NodeData::lookup_node_id(node_name));
+            return incoming_tx_recount(lookup_node_id(cinfo, node_name));
         }
 
         int32_t Transfer::incoming_tx_recount(const uint8_t node_id)
         {
             const size_t orig_node_idx = node_id_to_txq_idx(node_id);
-            if (node_id == NodeData::NODEIDUNKNOWN || orig_node_idx == INVALID_TXQ_IDX)
+            if (node_id == NODEIDUNKNOWN || orig_node_idx == INVALID_TXQ_IDX)
             {
                 return TRANSFER_ERROR_INDEX;
             }
@@ -2199,7 +2201,7 @@ namespace Cosmos {
 int32_t Transfer::set_enabled(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id, const bool enabled)
 {
     const size_t node_idx = node_id_to_txq_idx(node_id);
-    if (node_id == NodeData::NODEIDUNKNOWN || node_idx == INVALID_TXQ_IDX)
+    if (node_id == NODEIDUNKNOWN || node_idx == INVALID_TXQ_IDX)
     {
         return TRANSFER_ERROR_INDEX;
     }
@@ -2227,7 +2229,7 @@ int32_t Transfer::enable_single(const string node_name, const string file_name)
     {
         return TRANSFER_ERROR_NODE;
     }
-    uint8_t node_id = NodeData::lookup_node_id(node_name);
+    uint8_t node_id = lookup_node_id(cinfo, node_name);
     return enable_single(node_id, file_name);
 }
 
@@ -2242,7 +2244,7 @@ int32_t Transfer::enable_single(const string node_name, const string file_name)
 int32_t Transfer::enable_single(const uint8_t node_id, const string file_name)
 {
     const size_t node_idx = node_id_to_txq_idx(node_id);
-    if (node_id == NodeData::NODEIDUNKNOWN || node_idx == INVALID_TXQ_IDX)
+    if (node_id == NODEIDUNKNOWN || node_idx == INVALID_TXQ_IDX)
     {
         return TRANSFER_ERROR_INDEX;
     }
@@ -2305,7 +2307,7 @@ int32_t Transfer::enable_all(const string node_name)
     {
         return TRANSFER_ERROR_NODE;
     }
-    uint8_t node_id = NodeData::lookup_node_id(node_name);
+    uint8_t node_id = lookup_node_id(cinfo, node_name);
     return enable_all(node_id);
 }
 
@@ -2316,7 +2318,7 @@ int32_t Transfer::enable_all(const string node_name)
 int32_t Transfer::enable_all(const uint8_t node_id)
 {
     const size_t node_idx = node_id_to_txq_idx(node_id);
-    if (node_id == NodeData::NODEIDUNKNOWN || node_idx == INVALID_TXQ_IDX)
+    if (node_id == NODEIDUNKNOWN || node_idx == INVALID_TXQ_IDX)
     {
         return TRANSFER_ERROR_INDEX;
     }
@@ -2410,7 +2412,7 @@ string Transfer::list_incoming()
 int32_t Transfer::set_waittime(const uint8_t node_id, const uint8_t direction, const double waittime)
 {
     const size_t node_idx = node_id_to_txq_idx(node_id);
-    if (node_id == NodeData::NODEIDUNKNOWN || node_idx == INVALID_TXQ_IDX)
+    if (node_id == NODEIDUNKNOWN || node_idx == INVALID_TXQ_IDX)
     {
         return TRANSFER_ERROR_INDEX;
     }
@@ -2434,7 +2436,7 @@ int32_t Transfer::set_waittime(const uint8_t node_id, const uint8_t direction, c
 
 int32_t Transfer::set_waittime(const string node_name, const uint8_t direction, const double waittime)
 {
-    return set_waittime(NodeData::lookup_node_id(node_name), direction, waittime);
+    return set_waittime(lookup_node_id(cinfo, node_name), direction, waittime);
 }
 
 //! Get the currently configured size of the packet that transferclass is using

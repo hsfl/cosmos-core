@@ -16,11 +16,11 @@ void BeaconUTest::SetUp()
     rmdir(get_cosmosnodes() + TEST_NODE_NAME);
 
     srand(decisec());
-    agent = new Agent(0);
+    agent = new Agent("", 0);
     // Initialize COSMOS data space
-    agent->cinfo = json_init();
+    agent->cinfo = json_init(TEST_NODE_NAME);
     ASSERT_NE(agent->cinfo, nullptr);
-    agent->cinfo->node.name = TEST_NODE_NAME;
+//    agent->cinfo->node.name = TEST_NODE_NAME;
     beacon.Init();
     int32_t iretn;
 
@@ -56,18 +56,18 @@ void BeaconUTest::SetUp()
     delete agent->cinfo;
     agent->cinfo = nullptr;
     delete agent;
-    agent = new Agent(0);
+    agent = new Agent("", 0);
     // Initialize COSMOS data space
-    agent->cinfo = json_init();
+    agent->cinfo = json_init(TEST_NODE_NAME);
     ASSERT_NE(agent->cinfo, nullptr);
-    agent->cinfo->node.name = TEST_NODE_NAME;
+//    agent->cinfo->node.name = TEST_NODE_NAME;
     iretn = json_setup_node(agent->cinfo->node.name, agent->cinfo);
     ASSERT_EQ(iretn, 0);
     // Receiving agent
-    agent2 = new Agent(0);
-    agent2->cinfo = json_init();
-    ASSERT_NE(agent->cinfo, nullptr);
-    agent2->cinfo->node.name = TEST_NODE_NAME;
+    agent2 = new Agent("", 0);
+    agent2->cinfo = json_init(TEST_NODE_NAME);
+    ASSERT_NE(agent2->cinfo, nullptr);
+//    agent2->cinfo->node.name = TEST_NODE_NAME;
     iretn = json_setup_node(agent2->cinfo->node.name, agent2->cinfo);
     ASSERT_EQ(iretn, 0);
 }

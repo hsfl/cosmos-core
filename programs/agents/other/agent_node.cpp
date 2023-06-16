@@ -113,11 +113,11 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-    if (!(agent = new Agent(argv[1], "node")))
+    if (!(agent = new Agent("", argv[1], "node")))
 		exit (JSON_ERROR_NOJMAP);
 
 	// Set period of broadcasting SOH
-    agent->cinfo->agent[0].aprd = 1.;
+    agent->cinfo->agent0.aprd = 1.;
 
 	// Add additional requests
     if ((iretn=agent->add_request("loadmjd",request_loadmjd)))
@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
 	nextmjd = currentmjd(0.);
     while(agent->running())
 	{
-        nextmjd += agent->cinfo->agent[0].aprd/86400.;
+        nextmjd += agent->cinfo->agent0.aprd/86400.;
         if ((newlastday=findlastday(agent->cinfo->node.name)) != lastday)
 		{
 
@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
             Convert::pos_geod(&agent->cinfo->node.loc);
             update_target(agent->cinfo);
             agent->cinfo->node.loc.att.topo.s = q_eye();
-            for (uint32_t i=0; i<agent->cinfo->node.target_cnt; ++i)
+            for (uint32_t i=0; i<agent->cinfo->target_cnt; ++i)
 			{
                 if (agent->cinfo->target[i].elfrom > 0.)
 				{
@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
             att_topo(&agent->cinfo->node.loc);
 			break;
 		}
-//		agent->post(Agent::AgentMessage::SOH, json_of_list(myjstring, agent->cinfo->agent[0].sohstring,cinfo));
+//		agent->post(Agent::AgentMessage::SOH, json_of_list(myjstring, agent->cinfo->agent0.sohstring,cinfo));
         agent->post(Agent::AgentMessage::SOH, json_of_table(myjstring, agent->sohtable,  agent->cinfo));
 		sleept = (int)((nextmjd-currentmjd(0.))*86400000000.);
 		if (sleept < 0) sleept = 0;
@@ -419,7 +419,7 @@ int32_t request_loadmjd(string &request, string &response, Agent *)
 */
 int32_t request_counts(string &, string &response, Agent *)
 {
-    response = std::to_string(cache[cindex].telem.size()) + " " + std::to_string(cache[cindex].event.size()) + " " + std::to_string(commanddict.size()) + " " + std::to_string(agent->cinfo->node.target_cnt);
+    response = std::to_string(cache[cindex].telem.size()) + " " + std::to_string(cache[cindex].event.size()) + " " + std::to_string(commanddict.size()) + " " + std::to_string(agent->cinfo->target_cnt);
 	return 0;
 }
 
@@ -517,7 +517,7 @@ int32_t request_next(string &request, string &response, Agent *)
 			if (mindex >= 0)
 			{
                 response = (json_of_target(reqjstring, agent->cinfo, mindex));
-                if (mindex < agent->cinfo->node.target_cnt-1)
+                if (mindex < agent->cinfo->target_cnt-1)
 					++mindex;
 				return 0;
 			}

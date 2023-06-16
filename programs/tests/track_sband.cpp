@@ -161,11 +161,11 @@ int main(int argc, char *argv[])
 
     if (nodename.empty())
     {
-        agent = new Agent("");
+        agent = new Agent("", "");
     }
     else
     {
-        agent = new Agent(nodename);
+        agent = new Agent("", nodename);
     }
 
     iretn = json_createpiece(agent->cinfo, antbase.c_str(), DeviceType::ANT);
@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
     }
 
     // Start performing the body of the agent
-    agent->cinfo->agent[0].aprd = 1.;
+    agent->cinfo->agent0.aprd = 1.;
     agent->start_active_loop();
     while(agent->running())
     {

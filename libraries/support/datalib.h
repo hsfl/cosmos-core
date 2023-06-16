@@ -188,8 +188,13 @@ int32_t setEnvCosmos(string path);
 int32_t set_cosmosnodes(string name, bool create_flag=false);
 int32_t set_cosmosnodes(bool create_flag=false);
 int32_t get_cosmosnodes(string &result, bool create_flag=false);
-string get_cosmosnodes(bool create_flag=false);
 string get_nodedir(string node, bool create_flag=false);
+string get_cosmosnodes(bool create_flag=false);
+int32_t set_cosmosrealms(string name="", bool create_flag=false);
+int32_t set_cosmosrealms(bool create_flag=false);
+int32_t get_cosmosrealms(string &result, bool create_flag=false);
+string get_cosmosrealms(bool create_flag=false);
+string get_realmdir(string realm, bool create_flag=false);
 int32_t data_load_archive(string node, string agent, double utcbegin, double utcend, string type, vector<string> &result);
 int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result);
 int32_t data_move_file(filestruc file, string location="outgoing", bool compress=true);
@@ -233,21 +238,23 @@ private:
     FILE* fout;
 };
 
-class NodeData
-{
-public:
-    //! A table of node_id:node_names, used in node-to-node communications
-    static map<string, uint8_t> node_ids;
-    typedef uint8_t NODE_ID_TYPE;
-    static int32_t load_node_ids();
-    static int32_t check_node_id(NODE_ID_TYPE node_id);
-    static int32_t lookup_node_id(string node_name);
-    static string lookup_node_id_name(NODE_ID_TYPE node_id);
+//class NodeList
+//{
+//public:
+//    //! A table of node_id:node_names, used in node-to-node communications
+//    map<string, uint8_t> node_ids;
+//    typedef uint8_t NODE_ID_TYPE;
+//    int32_t load_node_ids(string realm="");
+//    int32_t check_node_id(NODE_ID_TYPE node_id);
+//    int32_t lookup_node_id(string node_name);
+//    string lookup_node_id_name(NODE_ID_TYPE node_id);
 
-    static constexpr uint8_t NODEIDUNKNOWN = 0;
-    static constexpr uint8_t NODEIDORIG = 254;
-    static constexpr uint8_t NODEIDDEST = 255;
-};
+
+
+//    static constexpr uint8_t NODEIDUNKNOWN = 0;
+//    static constexpr uint8_t NODEIDORIG = 254;
+//    static constexpr uint8_t NODEIDDEST = 255;
+//};
 
 class GITTEST	{
 	public:

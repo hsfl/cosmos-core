@@ -386,10 +386,10 @@ namespace Cosmos
         class State
         {
         public:
-            State()
+            State(string node)
             {
-                json_init(&currentinfo);
-                currentinfo.node.utc = 0.;
+                json_init(&currentinfo, node);
+//                currentinfo.node.utc = 0.;
             }
 
 //            string nodename;

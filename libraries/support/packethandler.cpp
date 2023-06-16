@@ -160,7 +160,7 @@ namespace Cosmos {
             beacon.EncodeJson(beacon.type, agent->cinfo, response);
 
             // Log beacon
-            //            string orig_node = agent->nodeData.lookup_node_id_name(packet.header.nodeorig);
+            //            string orig_node = lookup_node_id_name(agent->cinfo, packet.header.nodeorig);
             //            if (!orig_node.empty())
             //            {
             //                log_write(orig_node, "beacon", agent->get_timeStart(), "", "beacon", response, "incoming");
@@ -179,7 +179,7 @@ namespace Cosmos {
                 uint16_t pong_size = packet.data.size() - 4;
                 response = to_unsigned(response_id) + " ";
                 response.insert(response.end(), packet.data.begin()+4, packet.data.end());
-                filestruc file = data_name_struc(agent->nodeName, "temp", agent->agentName, 0., "pong_"+to_unsigned(response_id));
+                filestruc file = data_name_struc(agent->cinfo->node.name, "temp", agent->cinfo->agent0.name, 0., "pong_"+to_unsigned(response_id));
                 if (file.path.size())
                 {
                     FILE *tf;
@@ -240,7 +240,7 @@ namespace Cosmos {
                 chunk_size = agent->channel_datasize(packet.header.chanin) - header_size;
                 chunk_id = header.chunk_id;
                 chunks = header.chunks;
-                file = data_name_struc(NodeData::lookup_node_id_name(packet.header.nodeorig), "temp", "eps", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "eresp", NodeData::lookup_node_id_name(packet.header.nodeorig), "eps", to_unsigned(header.unit)+"_"+to_unsigned(header.command)));
+                file = data_name_struc(lookup_node_id_name(agent->cinfo, packet.header.nodeorig), "temp", "eps", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "eresp", lookup_node_id_name(agent->cinfo, packet.header.nodeorig), "eps", to_unsigned(header.unit)+"_"+to_unsigned(header.command)));
 
                 if (file.path.size())
                 {
@@ -322,7 +322,7 @@ namespace Cosmos {
                 chunk_size = agent->channel_datasize(packet.header.chanin) - header_size;
                 chunk_id = header.chunk_id;
                 chunks = header.chunks;
-                file = data_name_struc(NodeData::lookup_node_id_name(packet.header.nodeorig), "temp", "adcs", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "aresp", NodeData::lookup_node_id_name(packet.header.nodeorig), "adcs", to_unsigned(header.command)));
+                file = data_name_struc(lookup_node_id_name(agent->cinfo, packet.header.nodeorig), "temp", "adcs", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "aresp", lookup_node_id_name(agent->cinfo, packet.header.nodeorig), "adcs", to_unsigned(header.command)));
 
                 // Rebuild response with chunks
                 if (file.path.size())
@@ -404,7 +404,7 @@ namespace Cosmos {
                 chunk_size = agent->channel_datasize(packet.header.chanin) - header_size;
                 chunk_id = header.chunk_id;
                 chunks = header.chunks;
-                file = data_name_struc(NodeData::lookup_node_id_name(packet.header.nodeorig), "temp", "main", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "gresp", NodeData::lookup_node_id_name(packet.header.nodeorig), "main", to_unsigned(header.response_id)));
+                file = data_name_struc(lookup_node_id_name(agent->cinfo, packet.header.nodeorig), "temp", "main", decisec2mjd(header.deci), data_name(decisec2mjd(header.deci), "gresp", lookup_node_id_name(agent->cinfo, packet.header.nodeorig), "main", to_unsigned(header.response_id)));
 
                 if (file.path.size())
                 {
@@ -506,7 +506,7 @@ namespace Cosmos {
 
                 if (tf == nullptr)
                 {
-                    test.path = data_name_path(agent->nodeData.lookup_node_id_name(packet.header.nodeorig), "temp", agent->agentName, 0., "test_"+to_unsigned(header.test_id));
+                    test.path = data_name_path(lookup_node_id_name(agent->cinfo, packet.header.nodeorig), "temp", agent->cinfo->agent0.name, 0., "test_"+to_unsigned(header.test_id));
                     tf = fopen(test.path.c_str(), "a");
                 }
 
@@ -574,7 +574,7 @@ namespace Cosmos {
 
                 if (tf == nullptr)
                 {
-                    test.path = data_name_path(agent->nodeData.lookup_node_id_name(packet.header.nodeorig), "temp", agent->agentName, 0., "test_"+to_unsigned(header.test_id));
+                    test.path = data_name_path(lookup_node_id_name(agent->cinfo, packet.header.nodeorig), "temp", agent->cinfo->agent0.name, 0., "test_"+to_unsigned(header.test_id));
                     tf = fopen(test.path.c_str(), "a");
                     if (tf == nullptr)
                     {
@@ -787,7 +787,7 @@ namespace Cosmos {
             int32_t iretn=0;
 
             packet.header.type = PacketComm::TypeId::DataObcPong;
-            NodeData::NODE_ID_TYPE temp = packet.header.nodedest;
+            NODE_ID_TYPE temp = packet.header.nodedest;
             packet.header.nodedest = packet.header.nodeorig;
             packet.header.nodeorig = temp;
             iretn = agent->channel_push(packet.header.chanin, packet);
@@ -885,7 +885,7 @@ namespace Cosmos {
 
         // Queue Packetcomm packets
 
-        int32_t PacketHandler::QueueReset(uint16_t seconds, uint32_t verification_check, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        int32_t PacketHandler::QueueReset(uint16_t seconds, uint32_t verification_check, Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -902,7 +902,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueReboot(uint32_t verification_check, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        int32_t PacketHandler::QueueReboot(uint32_t verification_check, Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -918,7 +918,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueSendBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NodeData::NODE_ID_TYPE orig, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        int32_t PacketHandler::QueueSendBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NODE_ID_TYPE orig, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -935,7 +935,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::CreateBeacon(PacketComm &packet, uint8_t btype, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        int32_t PacketHandler::CreateBeacon(PacketComm &packet, uint8_t btype, Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn=0;
 
@@ -950,10 +950,11 @@ namespace Cosmos {
             packet.header.chanout = agent->channel_number(channelout);
             packet.data.clear();
             packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
+            packet.Wrap();
             return iretn;
         }
 
-        int32_t PacketHandler::QueueBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        int32_t PacketHandler::QueueBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn=0;
             PacketComm packet;
@@ -976,7 +977,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueAdcsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueAdcsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm::CommunicateHeader header;
@@ -999,7 +1000,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueAdcsState(uint8_t state, vector<uint8_t>  data, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueAdcsState(uint8_t state, vector<uint8_t>  data, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
 
@@ -1017,7 +1018,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueEpsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm::CommunicateHeader header;
@@ -1048,7 +1049,7 @@ namespace Cosmos {
         //! \param dest Destination Node number.
         //! \param radio Radio name.
         //! \return Zero or negative error.
-        int32_t PacketHandler::QueueEpsSwitchName(const std::string &name, uint8_t state, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueEpsSwitchName(const std::string &name, uint8_t state, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1073,7 +1074,7 @@ namespace Cosmos {
         //! \param dest Destination Node number.
         //! \param radio Radio name.
         //! \return Zero or negative error.
-        int32_t PacketHandler::QueueEpsSwitchNames(vector<std::string> &names, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueEpsSwitchNames(vector<std::string> &names, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             return QueueEpsSwitchNames(string_join(names), agent, dest, radioin);
         }
@@ -1086,7 +1087,7 @@ namespace Cosmos {
         //! \param dest Destination Node number.
         //! \param radio Radio name.
         //! \return Zero or negative error.
-        int32_t PacketHandler::QueueEpsSwitchNames(const string& names, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueEpsSwitchNames(const string& names, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1110,7 +1111,7 @@ namespace Cosmos {
         //! \param dest Destination Node number.
         //! \param radio Radio name.
         //! \return Zero or negative error.
-        int32_t PacketHandler::QueueEpsSwitchNumber(uint16_t number, uint8_t state, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueEpsSwitchNumber(uint16_t number, uint8_t state, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1127,7 +1128,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsReset(uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueEpsReset(uint16_t seconds, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1143,7 +1144,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsState(uint8_t state, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueEpsState(uint8_t state, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1159,7 +1160,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsWatchdog(uint16_t seconds, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueEpsWatchdog(uint16_t seconds, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1175,7 +1176,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsSetTime(double mjd, Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueEpsSetTime(double mjd, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1191,7 +1192,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEpsMinimumPower(Agent* agent, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueEpsMinimumPower(Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1205,7 +1206,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueTransferRadio(uint8_t use_radio, bool availability, Agent* agent, NodeData::NODE_ID_TYPE dest)
+        int32_t PacketHandler::QueueTransferRadio(uint8_t use_radio, bool availability, Agent* agent, NODE_ID_TYPE dest)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1222,7 +1223,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueTestRadio(uint8_t start, uint8_t step, uint8_t stop, uint32_t count, Agent* agent, string testradio, NodeData::NODE_ID_TYPE dest, const string& radioin)
+        int32_t PacketHandler::QueueTestRadio(uint8_t start, uint8_t step, uint8_t stop, uint32_t count, Agent* agent, string testradio, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1242,7 +1243,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueSetTime(double mjd, int8_t direction , Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        int32_t PacketHandler::QueueSetTime(double mjd, int8_t direction , Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1259,7 +1260,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEnableChannel(const string &name, uint8_t enable,  Agent* agent, NodeData::NODE_ID_TYPE dest, const string& channelout, const string &radioin)
+        int32_t PacketHandler::QueueEnableChannel(const string &name, uint8_t enable,  Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string &radioin)
         {
             int32_t iretn = agent->channel_number(name);
             if (iretn >= 0)
@@ -1279,7 +1280,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueEnableChannel(uint8_t number, uint8_t enable,  Agent* agent, NodeData::NODE_ID_TYPE dest, const std::string &channelout, const string &radioin)
+        int32_t PacketHandler::QueueEnableChannel(uint8_t number, uint8_t enable,  Agent* agent, NODE_ID_TYPE dest, const std::string &channelout, const string &radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;

@@ -161,13 +161,13 @@ int main(int argc, char *argv[])
     // Set node name to first argument
     if (argc == 2)
     {
-        agent = new Agent(argv[1], "exec", 0.);
+        agent = new Agent("", argv[1], "exec", 0.);
     }
     else
     {
         char hostname[60];
         gethostname(hostname, sizeof (hostname));
-        agent = new Agent(hostname, "exec", 0.);
+        agent = new Agent("", hostname, "exec", 0.);
     }
 
     if ((iretn = agent->wait()) < 0)
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/last_date").c_str(), "r");
+        FILE *fp = fopen((get_cosmosnodes() + agent->cinfo->node.name + "/last_date").c_str(), "r");
         if (fp != nullptr)
         {
             calstruc date;
@@ -210,11 +210,11 @@ int main(int argc, char *argv[])
     get_flags();
 
     agent->cinfo->node.utc = 0.;
-    agent->cinfo->agent[0].aprd = 1.;
+    agent->cinfo->agent0.aprd = 1.;
     cout<<"  started."<<endl;
 
     // Add initial nodes to realm
-    realm.push_back(agent->nodeName);
+    realm.push_back(agent->cinfo->node.name);
 
     // Establish Executive functions
 
@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
 //    vector <beatstruc> servers = agent->find_agents(1.);
 //    for (beatstruc &i : servers)
 //    {
-//        if (i.node.compare(agent->nodeName.c_str()) && !i.proc.compare("exec"))
+//        if (i.node.compare(agent->cinfo->node.name.c_str()) && !i.proc.compare("exec"))
 //        {
 //            log_data_flag = false;
 //            break;
@@ -461,7 +461,7 @@ int main(int argc, char *argv[])
         for (string& node : nodes)
         {
             string incoming_dir = get_cosmosnodes() + "" + node + "/incoming/exec/";
-            if (data_isdir(incoming_dir) && node != agent->nodeName)
+            if (data_isdir(incoming_dir) && node != agent->cinfo->node.name)
             {
                 cmd_queue.load_commands(incoming_dir);
             }
@@ -471,7 +471,7 @@ int main(int argc, char *argv[])
 
         if (savet.split() > 60.)
         {
-            FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/last_date").c_str(), "w");
+            FILE *fp = fopen((get_cosmosnodes() + agent->cinfo->node.name + "/last_date").c_str(), "w");
             if (fp)
             {
                 savet.reset();
@@ -493,7 +493,7 @@ int main(int argc, char *argv[])
 int32_t get_last_offset()
 {
     int32_t offset = 0;
-    FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/last_offset").c_str(), "r");
+    FILE *fp = fopen((get_cosmosnodes() + agent->cinfo->node.name + "/last_offset").c_str(), "r");
     if (fp != nullptr)
     {
         fscanf(fp, "%d", &offset);
@@ -507,7 +507,7 @@ int32_t get_flags()
     int8_t launched = 0;
     int8_t bootcheck = 0;
     int8_t deployed = 0;
-    FILE *fp = fopen((get_cosmosnodes() + agent->nodeName + "/boot_flags").c_str(), "r");
+    FILE *fp = fopen((get_cosmosnodes() + agent->cinfo->node.name + "/boot_flags").c_str(), "r");
     if (fp != nullptr)
     {
         fscanf(fp, "%hhd %hhd %hhd", &launched, &deployed, &bootcheck);

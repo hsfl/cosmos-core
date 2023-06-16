@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
     }
 
     // Establish the command channel and heartbeat
-    if (!(agent = new Agent(nodename, radioname)))
+    if (!(agent = new Agent("", nodename, radioname)))
     {
         std::cout << radioname << ": agent->setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
         exit (AGENT_ERROR_JSON_CREATE);
@@ -527,7 +527,7 @@ int main(int argc, char *argv[])
 
     iretn = connect_radio();
 
-    agent->cinfo->agent[0].aprd = 1.;
+    agent->cinfo->agent0.aprd = 1.;
     agent->start_active_loop();
     while (agent->running())
     {

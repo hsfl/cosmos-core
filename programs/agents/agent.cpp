@@ -224,14 +224,14 @@ int main(int argc, char *argv[])
                     {
                         for (i=0; i<agent->cinfo->devspec.imu_cnt; i++)
                         {
-                            if (agent->cinfo->agent[0].beat.utc > 0.)
+                            if (agent->cinfo->agent0.beat.utc > 0.)
                             {
                                 if (lmjd > 0.)
-                                    dmjd = 86400.*(agent->cinfo->agent[0].beat.utc-lmjd);
+                                    dmjd = 86400.*(agent->cinfo->agent0.beat.utc-lmjd);
                                 else
                                     dmjd = 0.;
                                 printf("%.15g %.4g\n",loc.utc,dmjd);
-                                lmjd = agent->cinfo->agent[0].beat.utc;
+                                lmjd = agent->cinfo->agent0.beat.utc;
                             }
                         }
                     }
@@ -427,14 +427,14 @@ int main(int argc, char *argv[])
                     {
                         for (i=0; i<agent->cinfo->devspec.imu_cnt; i++)
                         {
-                            if (agent->cinfo->agent[0].beat.utc > 0.)
+                            if (agent->cinfo->agent0.beat.utc > 0.)
                             {
                                 if (lmjd > 0.)
-                                    dmjd = 86400.*(agent->cinfo->agent[0].beat.utc-lmjd);
+                                    dmjd = 86400.*(agent->cinfo->agent0.beat.utc-lmjd);
                                 else
                                     dmjd = 0.;
                                 printf("%.15g %.4g\n",loc.utc,dmjd);
-                                lmjd = agent->cinfo->agent[0].beat.utc;
+                                lmjd = agent->cinfo->agent0.beat.utc;
                             }
                         }
                     }
