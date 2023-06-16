@@ -176,6 +176,7 @@ namespace Cosmos
             loc.pos.extra.moongeo = tloc.pos.geod.s;
 
             // LVLH related
+            att_icrf2geoc(tloc);
             quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.};
             loc.pos.extra.g2l = {{0., 0., 0.}, 1.};
             loc.pos.extra.l2g = {{0., 0., 0.}, 1.};
