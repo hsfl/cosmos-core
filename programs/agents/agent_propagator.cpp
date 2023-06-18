@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 
     // Open socket for sending data to and from agent_propagator
     iretn = socket_open(&net_channel_in, NetworkType::UDP, "", net_port_in, SOCKET_LISTEN, SOCKET_NONBLOCKING);
-//    iretn = socket_open(&net_channel_out, NetworkType::UDP, net_address_out.c_str(), net_port_out, SOCKET_TALK, SOCKET_NONBLOCKING);
+//    iretn = socket_open(net_channel_out, net_port_out);
     iretn = socket_publish(net_channel_out, net_port_out);
 
     PacketComm packet;
@@ -130,16 +130,15 @@ int main(int argc, char *argv[])
             output += sit->second->currentinfo.get_json("node.name");
             output += sit->second->currentinfo.get_json("node.loc.pos.eci.s");
             output += sit->second->currentinfo.get_json("node.loc.pos.eci.v");
-//            output += sit->second->currentinfo.node.loc.pos.eci.s.to_json().dump();
-//            output += sit->second->currentinfo.node.loc.pos.eci.v.to_json().dump();
-            iretn = socket_sendto(net_channel_out, output);
+//            iretn = socket_sendto(net_channel_out, output);
+            iretn = socket_post(net_channel_out, output);
         }
-        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeLocBeacon), agent);
-        iretn = socket_sendto(net_channel_out, packet.wrapped);
-        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodePhysBeacon), agent);
-        iretn = socket_sendto(net_channel_out, packet.wrapped);
-        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeTargetBeacon), agent);
-        iretn = socket_sendto(net_channel_out, packet.wrapped);
+//        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeLocBeacon), agent);
+//        iretn = socket_sendto(net_channel_out, packet.wrapped);
+//        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodePhysBeacon), agent);
+//        iretn = socket_sendto(net_channel_out, packet.wrapped);
+//        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeTargetBeacon), agent);
+//        iretn = socket_sendto(net_channel_out, packet.wrapped);
 
         // Attitude adjustment
         // Desired attitude comes from aligning satellite Z with desired Z and satellite Y with desired Y
