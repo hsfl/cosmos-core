@@ -1478,6 +1478,48 @@ int32_t Udp::socketOpen()
     return 0;
 }
 
+/**
+ * @brief Converts a hostname to an ip address
+ * 
+ * @param hostname Host name to convert.
+ * @param ipaddr Successful conversion stored here.
+ * @param response Error messages, if any.
+ * @return 0 on success, negative on error
+ */
+int32_t hostnameToIP(const string hostname, string& ipaddr, string& response)
+{
+    int32_t iretn = 0;
+    addrinfo hints;
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET; // Docker binds to both ipv4 and ipv6
+    hints.ai_socktype = 0;
+    hints.ai_protocol = 0;
+    addrinfo* addrs;
+    iretn = getaddrinfo(hostname.c_str(), NULL, &hints, &addrs);
+    if (iretn != 0)
+    {
+        response = "Failed to resolve hostname " + hostname + ": " + std::to_string(iretn) + " " + gai_strerror(iretn);
+        return iretn;
+    }
+    char addr_string[100];
+    // Only checking first in addrinfo list, they should all be similar
+    switch (addrs->ai_family)
+    {
+    case AF_INET:
+        inet_ntop(addrs->ai_family, &((struct sockaddr_in const *)addrs->ai_addr)->sin_addr, addr_string, 100);
+        break;
+    case AF_INET6:
+        inet_ntop(addrs->ai_family, &((struct sockaddr_in6 const *)addrs->ai_addr)->sin6_addr, addr_string, 100);
+        break;
+    default:
+        response = "addrs->ai_family was an unexpected value " + std::to_string(addrs->ai_family);
+        return GENERAL_ERROR_ARGS;
+        break;
+    }
+    ipaddr = addr_string;
+    freeaddrinfo(addrs);
+    return 0;
+}
 
 //-------------------------------------------------------------------
 // Simple UDP class to send data
