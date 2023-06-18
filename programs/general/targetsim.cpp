@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
     locstruc lastloc;
     vector<targetstruc> lasttargets;
     printf("Step\tMJD\tECIsx\tECIsy\tECIsz\tECIvx\tECIvy\tECIvz\tLon\tLat\tAlt");
-    for (uint16_t id=0; id<sit->second->targets.size(); ++id)
+    for (uint16_t id=0; id<sit->second->currentinfo.target.size(); ++id)
     {
         printf("\tIndex%02u\tLon%02u\tLat%02u\tRange%02u\tEL%02u\tAz%02u\tNadirArea%02u\tPointArea%02u\tTargetArea%02u",id,id,id,id,id,id,id,id,id);
     }
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
     {
         // update states information for all nodes
         lastloc = sit->second->currentinfo.node.loc;
-        lasttargets = sit->second->targets;
+        lasttargets = sit->second->currentinfo.target;
         sim->Propagate();
         printf("%u\t%f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.2f\t%.2f\t%.1f"
                , i
@@ -231,24 +231,24 @@ int main(int argc, char *argv[])
         double nadirarea = DPI * nadirradius2;
 
         // Perform metrics for each target
-        for (uint16_t id=0; id<sit->second->targets.size(); ++id)
+        for (uint16_t id=0; id<sit->second->currentinfo.target.size(); ++id)
         {
             printf("\t%u\t%.2f\t%.2f\t%.1f\t%.1f\t%.0f"
                    , id
-                   , DEGOF(sit->second->targets[id].loc.pos.geod.s.lon)
-                   , DEGOF(sit->second->targets[id].loc.pos.geod.s.lat)
-                   , sit->second->targets[id].range
-                   , DEGOF(sit->second->targets[id].elfrom)
-                   , DEGOF(sit->second->targets[id].azfrom)
+                   , DEGOF(sit->second->currentinfo.target[id].loc.pos.geod.s.lon)
+                   , DEGOF(sit->second->currentinfo.target[id].loc.pos.geod.s.lat)
+                   , sit->second->currentinfo.target[id].range
+                   , DEGOF(sit->second->currentinfo.target[id].elfrom)
+                   , DEGOF(sit->second->currentinfo.target[id].azfrom)
                    );
 
-            double eres = sit->second->targets[id].range * ifov;
+            double eres = sit->second->currentinfo.target[id].range * ifov;
             // double cameraradius;
             double cameraarea;
-            double targetarea = sit->second->targets[id].area;
+            double targetarea = sit->second->currentinfo.target[id].area;
             double targetradius = sqrt(targetarea / DPI);
             double targetradius2 = targetradius * targetradius;
-            double distance = sit->second->targets[id].range * cos(sit->second->targets[id].elfrom);
+            double distance = sit->second->currentinfo.target[id].range * cos(sit->second->currentinfo.target[id].elfrom);
             double distance2 = distance * distance;
 
             // Looking Nadir
@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
             // Elongated FOV
             if (eres <= resolution)
             {
-                cameraarea = DPI * eres * (eres / -sin(sit->second->targets[id].elfrom)) * (pixels / 2.) * (pixels / 2.);
+                cameraarea = DPI * eres * (eres / -sin(sit->second->currentinfo.target[id].elfrom)) * (pixels / 2.) * (pixels / 2.);
                 if (cameraarea > targetarea)
                 {
                     cameraarea = targetarea;
