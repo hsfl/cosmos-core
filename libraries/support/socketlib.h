@@ -177,6 +177,7 @@ int32_t socket_sendto(socket_channel &channel, const string buffer, int flags=0)
 int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
 int32_t socket_send(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
 vector <socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port=0);
+int32_t hostnameToIP(const string hostname, string& ipaddr, string& response);
 
 //-------------------------------------------------------------------
 // Simple UDP class to send data
