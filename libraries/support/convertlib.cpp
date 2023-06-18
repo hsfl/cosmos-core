@@ -174,9 +174,30 @@ namespace Cosmos
             tloc.pos.eci.s = rv_sub(loc.pos.extra.sun2moon.s, loc.pos.extra.sun2earth.s);
             pos_eci2geoc(tloc);
             loc.pos.extra.moongeo = tloc.pos.geod.s;
+            return 0;
+        }
+
+        int32_t pos_lvlh(double utc, locstruc *loc)
+        {
+            return pos_lvlh(utc, *loc);
+        }
+
+        int32_t pos_lvlh(double utc, locstruc &loc)
+        {
+            // Check time
+            if (!isfinite(utc) || utc == 0.)
+            {
+                return CONVERT_ERROR_UTC;
+            }
+
+            // These are all based on time, so they don't need to be repeated if time hasn't changed.
+//            if (loc.pos.extra.utc == utc)
+//            {
+//                return 0;
+//            }
 
             // LVLH related
-            att_icrf2geoc(tloc);
+//            att_icrf2geoc(loc);
             quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.};
             loc.pos.extra.g2l = {{0., 0., 0.}, 1.};
             loc.pos.extra.l2g = {{0., 0., 0.}, 1.};
@@ -2071,6 +2092,7 @@ namespace Cosmos
 //            loc.pos.extra.g2l = q_fmult(qe_z, qe_y);
 //            normalize_q(&loc.pos.extra.g2l);
 //            rqe = q_conjugate(loc.pos.extra.g2l);
+            pos_lvlh(patt->utc, loc);
 
             // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
             rvector alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
@@ -2160,6 +2182,7 @@ namespace Cosmos
             // LVLH Y is Cross Product of LVLH Z and velocity vector
 //            geoc_y = rv_cross(geoc_z, ppos->v);
 //            normalize_rv(geoc_y);
+            pos_lvlh(loc.att.lvlh.utc, loc);
 
             // Rotate LVLH frame into ITRS frame
             patt->s = q_fmult(loc.pos.extra.g2l, loc.att.lvlh.s);
