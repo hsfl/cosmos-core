@@ -42,7 +42,7 @@ LsFit omegafit;
 int32_t parse_control(string args);
 int32_t parse_sat(string args);
 
-vector<cosmosstruc> sats;
+//vector<cosmosstruc> sats;
 vector<Physics::Simulator::StateList::iterator> sits;
 
 
@@ -315,14 +315,14 @@ int32_t parse_sat(string args)
         pos_eci(initialloc);
     }
     initialloc.att.icrf.s = q_eye();
-    if (!sats.size())
+    if (!sits.size())
     {
         nodename = "mother";
         initialutc = initialloc.utc;
     }
     else
     {
-        nodename = "child_" + to_unsigned(sats.size(), 2);
+        nodename = "child_" + to_unsigned(sits.size(), 2, true);
     }
     iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
     sits.push_back(sim->GetNode(nodename));
