@@ -27,16 +27,16 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include <stdio.h>
 
-#include "agentlib.h"
+#include "agent/agentclass.h"
 
-char agentname[COSMOS_MAX_NAME] = "route";
+char agentname[COSMOS_MAX_NAME+1] = "route";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
-cosmosstruc *cdata;
+Agent *agent;
 socket_channel rcvchan;
 
 #define MAXBUFFERSIZE 2560 // comm buffer for agents
@@ -44,7 +44,7 @@ socket_channel rcvchan;
 int main(int argc, char *argv[])
 {
 	// Initialize the Agent
-	if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)NULL,(char *)"route",1.,0,MAXBUFFERSIZE,AGENT_SINGLE)))
+    if (!(agent = new Agent("", "", "route", 0., MAXBUFFERSIZE)))
 	{
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
@@ -52,32 +52,39 @@ int main(int argc, char *argv[])
 	// Preload the information about the interfaces
 	uint32_t addr_out[AGENTMAXIF];
 //	uint32_t addr_to[AGENTMAXIF];
-	for (uint16_t i=0; i<cdata[0].agent[0].ifcnt; ++i)
+    for (uint16_t i=0; i<agent->cinfo->agent0.ifcnt; ++i)
 	{
 #ifdef COSMOS_WIN_OS
-		addr_out[i] = uint32from((uint8_t *)&cdata[0].agent[0].pub[i].caddr.sin_addr.S_un.S_addr, ORDER_NETWORK);
-//		addr_to[i] = uint32from((uint8_t *)&cdata[0].agent[0].pub[i].baddr.sin_addr.S_un.S_addr, ORDER_NETWORK);
+        addr_out[i] = uint32from((uint8_t *)&agent->cinfo->agent0.pub[i].caddr.sin_addr.S_un.S_addr, ByteOrder::NETWORK);
+//		addr_to[i] = uint32from((uint8_t *)&agent->cinfo->agent0.pub[i].baddr.sin_addr.S_un.S_addr, ByteOrder::NETWORK);
 #else
-		addr_out[i] = uint32from((uint8_t *)&cdata[0].agent[0].pub[i].caddr.sin_addr.s_addr, ORDER_NETWORK);
-//		addr_to[i] = uint32from((uint8_t *)&cdata[0].agent[0].pub[i].baddr.sin_addr.s_addr, ORDER_NETWORK);
+        addr_out[i] = uint32from((uint8_t *)&agent->cinfo->agent0.pub[i].caddr.sin_addr.s_addr, ByteOrder::NETWORK);
+//		addr_to[i] = uint32from((uint8_t *)&agent->cinfo->agent0.pub[i].baddr.sin_addr.s_addr, ByteOrder::NETWORK);
 #endif
 	}
 
 	// Start performing the body of the agent
 	int nbytes;
 	char input[AGENTMAXBUFFER];
-	while(agent_running(cdata))
+    ElapsedTime ret;
+    while(agent->running())
 	{
-		nbytes = recvfrom(cdata[0].agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&cdata[0].agent[0].sub.caddr,(socklen_t *)&cdata[0].agent[0].sub.addrlen);
+        if (ret.split() > 5.)
+        {
+            agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
+//            agent->post(Agent::AgentMessage::REQUEST, "postsoh");
+            ret.reset();
+        }
+        nbytes = recvfrom(agent->cinfo->agent0.sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&agent->cinfo->agent0.sub.caddr,(socklen_t *)&agent->cinfo->agent0.sub.addrlen);
 		if (nbytes > 0)
 		{
 #ifdef COSMOS_WIN_OS
-			uint32_t addr_in = uint32from((uint8_t *)&cdata[0].agent[0].sub.caddr.sin_addr.S_un.S_addr, ORDER_NETWORK);
+            uint32_t addr_in = uint32from((uint8_t *)&agent->cinfo->agent0.sub.caddr.sin_addr.S_un.S_addr, ByteOrder::NETWORK);
 #else
-			uint32_t addr_in = uint32from((uint8_t *)&cdata[0].agent[0].sub.caddr.sin_addr.s_addr, ORDER_NETWORK);
+            uint32_t addr_in = uint32from((uint8_t *)&agent->cinfo->agent0.sub.caddr.sin_addr.s_addr, ByteOrder::NETWORK);
 #endif
 			bool forward=true;
-			for (uint16_t i=0; i<cdata[0].agent[0].ifcnt; ++i)
+            for (uint16_t i=0; i<agent->cinfo->agent0.ifcnt; ++i)
 			{
 				if (addr_in == addr_out[i])
 				{
@@ -88,13 +95,13 @@ int main(int argc, char *argv[])
 
 			if (forward)
 			{
-				for (uint16_t i=0; i<cdata[0].agent[0].ifcnt; ++i)
+                for (uint16_t i=0; i<agent->cinfo->agent0.ifcnt; ++i)
 				{
 					uint32_t address_xor = addr_in ^ addr_out[i];
 					if (address_xor > 255)
 					{
 //						printf("%x:%x:%x %d\n%s\n", addr_in, addr_out[i], addr_to[i], address_xor, input);
-						sendto(cdata[0].agent[0].pub[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&cdata[0].agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
+                        sendto(agent->cinfo->agent0.pub[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&agent->cinfo->agent0.pub[i].baddr,sizeof(struct sockaddr_in));
 //						fflush(stdout);
 					}
 				}
@@ -102,6 +109,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	agent_shutdown_server(cdata);
+    agent->shutdown();
 }
 

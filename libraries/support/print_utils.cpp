@@ -27,106 +27,282 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 // COSMOS Library for Printing Vector and stuff like that to the stream
 
-#include "print_utils.h"
+#include "support/print_utils.h"
 
 //-------------------------------------------------------------
 // print functions to help visualize vectors and other data
 
 
+PrintUtils::PrintUtils()
+{
+    reset();
+}
+
+void PrintUtils::reset()
+{
+    // default values
+    printOn = true; // start with a default printing behaviour
+    precision = -1; // start with no set precision
+    fieldwidth = -1; // start with no set fieldwidth
+    scale = 1;  // start with no scale factor
+    prefix = ""; // start with no prefix text
+    suffix = ""; // start with no suffix text
+    use_brackets = false; // start with no brackets around text
+    delimiter = ","; // start with coma delimiter
+    delimiter_flag = false; // start with no delimiter flags, user has to turn on this flag for use
+    fullMessage = ""; // clear the full message
+}
+
+void PrintUtils::text(string text)
+{
+    string out;
+
+    if (delimiter_flag)
+    {
+        out = text + delimiter;
+    }
+    else
+    {
+        out = text;
+    }
+
+    if (printOn) {
+        std::cout << out;
+    }
+
+    // add to full message
+    fullMessage += out;
+
+}
+
+
+
+
 // main print vector function with all options
 void PrintUtils::vector(
-        string text_prefix,
+        string prefix,
         rvector v,
         double scale,
-        string text_suffix,
-        int precision){
+        string suffix,
+        int precision,
+        int fieldwidth)
+{
 
-    if (precision != -1){
+    std::ostringstream out;
+
+    out << prefix;
+
+    //    if (delimiter_flag)
+    //    {
+    //        out << delimiter;
+    //    }
+
+    if (use_brackets)
+    {
+        out << "[";
+    }
+
+    // in case we don't want to print the vector with fixed width
+    if (precision != -1)
+    {
         // with set precision
-        cout.precision(precision);
-        cout << fixed;
+        //std::cout.precision(precision);
+        out << std::fixed;
+        out << std::setprecision(precision);
+    }
+
+    if (fieldwidth != -1)
+    {
+        // print with fixed width
+        // std::cout.width(filedwidth);
+
+        out << std::setw(fieldwidth) << v.col[0]*scale << ","
+            << std::setw(fieldwidth) << v.col[1]*scale <<  ","
+            << std::setw(fieldwidth) << v.col[2]*scale;
 
     }
-    cout << text_prefix << "[" << v.col[0]*scale << ", " << v.col[1]*scale <<  ", " << v.col[2]*scale << "]" << text_suffix;
+    else
+    {
+        // simple print, no fixed width
+        out << v.col[0]*scale << ","
+                              << v.col[1]*scale <<  ","
+                              << v.col[2]*scale;
+    }
 
+    if (use_brackets)
+    {
+        out << "]";
+    }
+
+    out << suffix;
+
+    if (delimiter_flag)
+    {
+        out << delimiter;
+    }
+
+    if (printOn) {
+        std::cout << out.str();
+    }
+
+    fullMessage += out.str();
+}
+
+//TODO: add vector(rvector v, precision)
+void PrintUtils::vector(rvector v)
+{
+    // simple print
+    vector(prefix, v, scale, suffix, precision, fieldwidth);
 }
 
 
-void PrintUtils::vector(rvector v){
-    // this prints the vector v enclosed in brackets like this: [x,y,z]
-    //cout << v;
-    vector("", v, 1, " ", -1);
+//void PrintUtils::vector(rvector v, int precision)
+//{
+//    vector("", v, 1., "", precision, -1);
+//}
+
+
+void PrintUtils::vector(string prefix, rvector v)
+{
+    vector(prefix, v, scale, suffix, precision, fieldwidth);
 }
 
-void PrintUtils::vector(rvector v, int precision){
-    cout.precision(precision);
-    // this prints the vector v enclosed in brackets like this: [x,y,z]
-    cout << fixed << "[" << v.col[0] << ", " << v.col[1] <<  ", " << v.col[2] << "]";
-}
-
-
-void PrintUtils::vector_endl(rvector v,
-                             double factor,
-                             string units,
-                             int precision){
-    cout.precision(precision);
-    // this prints the vector v enclosed in brackets like this: [x,y,z]
-    cout << fixed << "[" << v.col[0]*factor << ", " << v.col[1]*factor <<  ", " << v.col[2]*factor << "] " << units << endl;
-}
-
-
-void PrintUtils::vector(string vector_name, rvector v){
-    //cout << vector_name << ": " << v;
-    vector(vector_name, v, 1, " ", -1);
-}
-
-void PrintUtils::vector(string vector_name, rvector v, int precision){
-    vector(vector_name, v, 1, " ", precision);
-}
+//void PrintUtils::vector(string vector_name, rvector v, int precision)
+//{
+//    vector(vector_name, v, 1, "", precision, -1);
+//}
 
 //void PrintUtils::vector(string vector_name, rvector v, double scale, int precision){
 //    vector(vector_name, v, scale, " ", precision);
 //}
 
-void PrintUtils::vector(string vector_name, rvector v, string text_suffix, int precision){
-     vector(vector_name, v, 1, text_suffix, precision);
-}
-
-void PrintUtils::vectorScaled(string vector_name, rvector v, double scale, int precision){
-    vector(vector_name, v, scale, " ", precision);
-}
-
-
-// overloaded function with setprecision
 void PrintUtils::vector(string vector_name,
-                        double a,
-                        double b,
-                        double c,
-                        string units){
-    cout << vector_name << "[" << a << ", " << b <<  ", " << c << "] " << units << endl;
+                        rvector v,
+                        string suffix)
+{
+    vector(vector_name, v, scale, suffix, precision, fieldwidth);
 }
 
-// overloaded function with setprecision
-void PrintUtils::vector(string vector_name,
-                        double a,
-                        double b,
-                        double c,
-                        string units,
-                        int precision){
-    cout.precision(precision);
-    cout << vector_name << fixed << "[" << a << ", " << b <<  ", " << c << "] " << units << endl;
+void PrintUtils::vector(string prefix, rvector v, string suffix, int precision)
+{
+    vector(prefix, v, scale, suffix, precision, fieldwidth);
 }
 
-void PrintUtils::vector(string vector_name,
-                        double a,
-                        double b,
-                        double c,
-                        double d,
-                        string units){
-    cout << vector_name << "[" << a << ", " << b <<  ", " << c << ", " << d << "] " << units << endl;
+// ----------------------------------------------
+// Scalar prints
+
+
+// main print vector function with all options
+void PrintUtils::scalar(
+        string prefix,
+        double s,
+        double scale,
+        string suffix,
+        int precision,
+        int fieldwidth)
+{
+
+    std::ostringstream out;
+
+    out << prefix;
+
+    if (prefix == "")
+    {
+        // don't print delimiter
+    }
+    else
+    {
+        if (delimiter_flag)
+        {
+            out << delimiter;
+        }
+    }
+
+    if (use_brackets)
+    {
+        out << "[";
+    }
+
+    // in case we don't want to print the vector with fixed width
+    if (precision != -1)
+    {
+        out << std::fixed;
+        out << std::setprecision(precision);
+    }
+
+    if (fieldwidth != -1)
+    {
+        out << std::setw(fieldwidth);
+    }
+
+    out << s*scale;
+
+    if (suffix == "")
+    {
+        // don't print delimiter
+    }
+    else
+    {
+        if (delimiter_flag)
+        {
+            out << delimiter;
+        }
+    }
+
+    out << suffix;
+
+    if (use_brackets)
+    {
+        out << "]";
+    }
+
+    if (delimiter_flag)
+    {
+        out << delimiter;
+    }
+
+    if (printOn) {
+        std::cout << out.str();
+    }
+
+    fullMessage += out.str();
+}
+
+void PrintUtils::scalar(double s)
+{
+    scalar(prefix, s, scale, suffix, precision, fieldwidth);
+}
+
+void PrintUtils::scalar(string prefix,
+                        double s,
+                        string suffix)
+{
+    scalar(prefix, s, scale, suffix, precision, fieldwidth);
+}
+
+void PrintUtils::scalar(string prefix,
+                        double s)
+{
+    //    if (delimiter_flag)
+    //    {
+    //        scalar(prefix + delimiter, s, scale, suffix, precision, fieldwidth);
+    //    }
+    //    else
+    //    {
+    //        scalar(prefix, s, scale, suffix, precision, fieldwidth);
+    //    }
+
+    scalar(prefix, s, scale, suffix, precision, fieldwidth);
+}
+
+
+void PrintUtils::scalar(double s,
+                        string suffix)
+{
+    scalar("", s, scale, suffix, precision, fieldwidth);
 }
 
 
@@ -134,15 +310,300 @@ void PrintUtils::vector(string vector_name,
 
 
 
-void PrintUtils::vector2(string name_v1, rvector v1, string name_v2, rvector v2){
-    cout << name_v1 << ": " << v1 << " | " << name_v2 << ": " << v2 << endl;
+//void PrintUtils::vector_std::endl(rvector v,
+//                             double factor,
+//                             string units,
+//                             int precision)
+//{
+//    std::cout.precision(precision);
+//    // this prints the vector v enclosed in brackets like this: [x,y,z]
+//    std::cout << std::fixed << "[" << v.col[0]*factor << ", " << v.col[1]*factor <<  ", " << v.col[2]*factor << "] " << units << std::endl;
+//}
+
+
+//void PrintUtils::vectorScaled(string vector_name,
+//                              rvector v,
+//                              double scale,
+//                              int precision)
+//{
+//    vector(vector_name, v, scale, " ", precision);
+//}
+
+//void PrintUtils::vectorScaled(string vector_name,
+//							  quaternion q,
+//							  double scale,
+//							  int precision)
+//{
+//	vector(vector_name, q, scale, " ", precision);
+//}
+
+
+//// overloaded function
+//void PrintUtils::vector(string vector_name,
+//                        double a,
+//                        double b,
+//                        double c,
+//                        string units)
+//{
+//    std::cout << vector_name << "[" << a << ", " << b <<  ", " << c << "] " << units << std::endl;
+//}
+
+//// overloaded function with setprecision
+//void PrintUtils::vector(string vector_name,
+//                        double a,
+//                        double b,
+//                        double c,
+//                        string units,
+//                        int precision){
+//    std::cout.precision(precision);
+//    std::cout << vector_name << std::fixed << "[" << a << ", " << b <<  ", " << c << "] " << units << std::endl;
+//}
+
+//void PrintUtils::vector(string vector_name,
+//                        double a,
+//                        double b,
+//                        double c,
+//                        double d,
+//                        string units)
+//{
+//    std::cout << vector_name << "[" << a << ", " << b <<  ", " << c << ", " << d << "] " << units << std::endl;
+//}
+
+
+
+
+
+
+void PrintUtils::vector2(string name_v1,
+                         rvector v1,
+                         string name_v2,
+                         rvector v2)
+{
+    std::cout << name_v1 << ": " << v1 << " | " << name_v2 << ": " << v2 << std::endl;
 }
 
-void PrintUtils::vector2(string name_v1, rvector v1, string name_v2, rvector v2, int precision){
-    cout.precision(precision);
-    cout << name_v1 << fixed << "[" << v1.col[0] << ", " << v1.col[1] <<  ", " << v1.col[2] << "]" << " | " << name_v2 << "[" << v2.col[0] << ", " << v2.col[1] <<  ", " << v2.col[2] << "]" << endl;
+void PrintUtils::vector2(string name_v1,
+                         rvector v1,
+                         string name_v2,
+                         rvector v2,
+                         int precision)
+{
+    std::cout.precision(precision);
+    std::cout << name_v1 << std::fixed << "[" << v1.col[0] << ", " << v1.col[1] <<  ", " << v1.col[2] << "]" << " | " << name_v2 << "[" << v2.col[0] << ", " << v2.col[1] <<  ", " << v2.col[2] << "]" << std::endl;
 }
 
-void PrintUtils::end(){
-    cout << endl;
+
+
+void PrintUtils::vectorAndMag(string vector_name, rvector v)
+{
+    vectorAndMag(vector_name, v, "");
+}
+
+void PrintUtils::vectorAndMag(string vector_name, rvector v, string suffix)
+{
+    vector(vector_name, v, scale, "", precision, fieldwidth);
+
+    double magnitude = length_rv(v)*scale;
+
+    std::ostringstream out;
+
+    if (delimiter_flag)
+    {
+        out << " M,";
+    }
+    else
+    {
+        out << ", M,";
+    }
+
+    if (use_brackets)
+    {
+        out << "[";
+    }
+
+    if (precision != -1)
+    {
+        out << std::fixed;
+        out << std::setprecision(precision);
+    }
+
+    if (fieldwidth != -1)
+    {
+        out << std::fixed;
+        out << std::setw(fieldwidth) << magnitude;
+    }
+    else
+    {
+        out << magnitude;
+    }
+
+
+    out << suffix;
+
+    if (use_brackets)
+    {
+        out << "]";
+    }
+
+    if (delimiter_flag)
+    {
+        out << ",";
+    }
+    else
+    {
+        out << "";
+    }
+
+    // reset scale so that the next prints are not affected
+    scale = 1;
+
+    if (printOn) {
+        std::cout << out.str();
+    }
+
+    fullMessage += out.str();
+
+}
+
+
+
+// ----------------------------------------------
+// Quaternion prints
+
+string PrintUtils::quat(
+        string prefix,
+        quaternion q,
+        string suffix,
+        int precision,
+        int fieldwidth = 6)
+{
+
+    std::ostringstream out;
+
+    out << prefix;
+
+    //    if (delimiter_flag)
+    //    {
+    //        out << delimiter;
+    //    }
+
+    if (use_brackets)
+    {
+        out << "[";
+    }
+
+    if (precision != -1){
+        // with set precision
+        out << std::fixed;
+        out << std::setprecision(precision);
+    }
+
+    if (use_brackets)
+    {
+        out << "[xyzw],";
+    }
+
+    if (fieldwidth != -1)
+    {
+        // print with fixed width
+        if (use_brackets)
+        {
+            out << "(";
+        }
+        out << std::setw(fieldwidth) << q.d.x << ","
+            << std::setw(fieldwidth) << q.d.y << ","
+            << std::setw(fieldwidth) << q.d.z << ",";
+
+        if (use_brackets)
+        {
+            out << ")";
+        }
+        out << std::setw(fieldwidth) << q.w;
+
+    }
+    else
+    {
+        // simple print, no fixed width
+
+        if (use_brackets)
+        {
+            out << "(";
+        }
+        out << q.d.x << ","
+            << q.d.y << ","
+            << q.d.z << ",";
+
+        if (use_brackets)
+        {
+            out << ")";
+        }
+        out << q.w;
+    }
+
+
+    if (use_brackets)
+    {
+        out << "]";
+    }
+
+    out << suffix;
+
+    if (delimiter_flag)
+    {
+        out << delimiter;
+    }
+
+    if (printOn) {
+        std::cout << out.str();
+    }
+
+    // add to the message so it can be printed later
+    fullMessage += out.str();
+
+    //std::cout << prefix << "[[" << q.d.x*scale << "," << q.d.y*scale <<  "," << q.d.z*scale << "] " << q.w*scale << "]" << text_suffix;
+
+    // return the string produced
+    return out.str();
+}
+
+string PrintUtils::quat(quaternion q)
+{
+    // this prints the quaternion q enclosed in brackets like this: [[x,y,z] w]
+    //std::cout << q;
+    return quat(prefix, q, suffix, -1, fieldwidth);
+}
+
+void PrintUtils::quat(quaternion q, int precision)
+{
+    quat(prefix, q, suffix, precision, fieldwidth);
+}
+
+void PrintUtils::quat(string prefix, quaternion q)
+{
+    quat(prefix, q, suffix, precision, fieldwidth);
+}
+
+void PrintUtils::quat(string prefix, quaternion q, int precision)
+{
+    quat(prefix, q, suffix, precision, fieldwidth);
+}
+
+void PrintUtils::quat(string prefix,
+                      quaternion q,
+                      string suffix)
+{
+    quat(prefix, q, suffix, precision, fieldwidth);
+}
+
+void PrintUtils::quat(string prefix,
+                      quaternion q,
+                      string suffix,
+                      int precision)
+{
+    quat(prefix, q, suffix, precision, fieldwidth);
+}
+
+void PrintUtils::endline()
+{
+    std::cout << std::endl;
 }

@@ -27,9 +27,9 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "agentlib.h"
-#include "jsondef.h"
-#include "sliplib.h"
+#include "agent/agentclass.h"
+#include "support/jsondef.h"
+#include "support/sliplib.h"
 
 char address[] = "127.0.0.1";
 uint16_t port = 6868;
@@ -44,7 +44,7 @@ double cmjd, mjd;
 int main(int argc, char *argv[])
 {
 
-	int32_t iretn;
+	int32_t iretn = 0;
 	uint32_t count=0;
 	socket_channel chan;
 	char buf3[10000];
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	double imjd, elapsed;
 
 
-    if ((iretn=socket_open(&chan, SOCKET_TYPE_UDP, address, port, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
+    if ((iretn=socket_open(&chan, NetworkType::UDP, address, port, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
 	{
 		printf("Unable to open connection to [%s:6101]\n",address);
 	}

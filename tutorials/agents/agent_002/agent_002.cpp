@@ -1,0 +1,226 @@
+/********************************************************************
+* Copyright (C) 2015 by Interstel Technologies, Inc.
+*   and Hawaii Space Flight Laboratory.
+*
+* This file is part of the COSMOS/core that is the central
+* module for COSMOS. For more information on COSMOS go to
+* <http://cosmos-project.com>
+*
+* The COSMOS/core software is licenced under the
+* GNU Lesser General Public License (LGPL) version 3 licence.
+*
+* You should have received a copy of the
+* GNU Lesser General Public License
+* If not, go to <http://www.gnu.org/licenses/>
+*
+* COSMOS/core is free software: you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public License
+* as published by the Free Software Foundation, either version 3 of
+* the License, or (at your option) any later version.
+*
+* COSMOS/core is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Lesser General Public License for more details.
+*
+* Refer to the "licences" folder for further information on the
+* condititons and terms to use this software.
+********************************************************************/
+
+// Example of an agent making a request to another agent 
+// agent 002 makes request to 002 upon activation
+
+#include "support/configCosmos.h"
+#include "agent/agentclass.h"
+#include "support/stringlib.h"
+
+#include <iostream>
+#include <string>
+
+// The request function prototype
+int32_t hello_agent_002_request_function(string &request, string &response, Agent *cdata);
+
+/// number of requests that have been run since restarting agent
+static uint64_t request_counter = 0;
+
+/// ensure only one agent class instance per process
+string node_name = "sat_001";
+string agent_name = "agent_002";
+string node_agent_name = "["+node_name+":"+agent_name+"]";
+static Agent* agent;
+
+/// Program to demonstrate inter-communication between agents
+int main(int argc, char **argv)
+{
+		//int jah = 420;
+		//int jah2 = 240;
+    // construct agent 
+	cout << node_agent_name <<" starting..."<<endl;
+	agent = new Agent("", node_name, agent_name, 1.);
+    if(agent->last_error() < 0) {
+        cout<<"error: unable to start "<<node_agent_name<<" ("<<agent->last_error()<<") "<<cosmos_error_string(agent->last_error())<<endl;
+        exit(1);
+    } else {
+    	cout << ""<<node_agent_name<<" started."<<endl;
+    }
+
+    // add custom request functions for this agent
+    agent->add_request("any_body_out_there", hello_agent_002_request_function, "a request to respond with 'hello'");
+
+	// turn debug off
+    agent->set_debug_level(0);
+
+    // Start executing the agent
+    while(agent->running()) {
+		cout<<node_agent_name<<" running..."<<endl;
+
+        // Sleep for 4 sec
+        secondsleep(4.);
+        // Initiate request to agent_001
+		// name of agent target for request
+		string agent_target = "agent_001";
+		string node_target = "sat_111";
+
+/* old tests	
+		beatstruc agent_target_heartbeat = agent->find_agent(node_target, agent_target, 2.);
+		string target_request_name = "identify_yourself";
+		string response;
+	    agent->send_request(agent_target_heartbeat, target_request_name, response, 2.);
+		cout<<node_agent_name<<" transmit <"<<target_request_name<<"> request to ["<<node_target<<":"<<agent_target<<"]..."<<endl;
+
+		if (response.size() > 1) {
+        	// The case if agent_001 is on and successfully receives the request
+        	cout << node_agent_name<<" received <"<<target_request_name<<"> response from ["<<agent_target_heartbeat.node<<":"<<agent_target_heartbeat.proc<<"]:"<<endl;
+			cout<<"    RX: \""<< response <<"\" ("<<response.size()<<" bytes)"<< endl;
+        }
+
+        secondsleep(2.);
+		string response2;
+		string request2 = "setvalue {\"node_loc_orbit\":"+std::to_string((jah++))+"}";
+		// orphan request for testing
+		cout<<"attempting setting orbit value..."<<endl;
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), request2, response2, 2.);
+
+        secondsleep(2.);
+		// orphan request for testing
+		string response1;
+		string request1 = "setvalue {\"node_loc_utc\":"+std::to_string((jah2--))+"}";
+		cout<<"attempting setting UTC value..."<<endl;
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), request1, response1, 2.);
+*/
+///*
+		// old way
+		string response3;
+		cout<<"attempting 1.0 way of getting UTC value..."<<endl;
+		string request3 = "getvalue {\"node_loc_utc\"}";
+		cout<<"  request  = <"<<request3<<">"<<endl;
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), request3, response3, 2.);
+		cout<<"  response = <"<<response3<<">"<<endl;
+
+		// new way short name
+		string response4;
+		cout<<"attempting 2.0 way of getting UTC value with short name..."<<endl;
+		string request4 = "get_value \"Short UTC\"";
+		cout<<"  request  = <"<<request4<<">"<<endl;
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), request4, response4, 2.);
+		cout<<"  response = <"<<response4<<">"<<endl;
+
+		// new way long name
+		string response7;
+		cout<<"attempting 2.0 way of getting UTC value with long name..."<<endl;
+		string request7 = "get_value \"Longest Ever UTC\"";
+		cout<<"  request  = <"<<request7<<">"<<endl;
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), request7, response7, 2.);
+		cout<<"  response = <"<<response7<<">"<<endl;
+
+		string req = "get_value \"Longest Ever UTC\" \"Short UTC\"";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		string res;
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+//*/
+		//req.clear();
+		//req = "get_value \"cosmosdata\"";
+		//cout<<"  request  = <"<<req<<">"<<endl;
+		//res.clear();
+	   	//agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
+		//cout<<"  response = <"<<res<<">"<<endl;
+/*
+		req.clear();
+		req = "set_value {\"Longest Ever UTC\": 215},{\"user[0].tool\": \"Super Tool!\"}";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+
+		req.clear();
+		req = "get_value \"user\"";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+*/
+		// try out agent_calc
+		//string request5 = "add 3 4";
+		//string response5;
+		//cout<<"attempting calc..."<<endl;
+	   	//agent->send_request(agent->find_agent("otb", "calc", 2.), request5, response5, 2.);
+		//cout<<"  response = <"<<response5<<">"<<endl;
+
+		// tests for Agent State Request Functions
+			// replace with set_state
+		//req.clear();
+
+		req.clear();
+		req = "set_value {\"t_position\": 123456.789012345678901234567}";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+//
+		req.clear();
+		req = "set_state {\"t_position\": 12.23},{\"x_position\":2.34},{\"y_position\":3.45},{\"z_position\":4.56}";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+//
+//
+		req.clear();
+		req = "get_state";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+
+		req.clear();
+		req = "help";
+		cout<<"  request  = <"<<req<<">"<<endl;
+		res.clear();
+	   	//agent->send_request(agent->find_agent(node_target, agent_target, 2.), req, res, 2.);
+	   	agent->send_request(agent->find_agent(node_target, "agent_002", 2.), req, res, 2.);
+		cout<<"  response = <"<<res<<">"<<endl;
+
+        cout<<"Available Agents..."<<endl;
+        for(size_t i = 0; i < agent->agent_list.size(); ++i)    {
+            cout<<agent->agent_list[i].node<<":"<<agent->agent_list[i].proc<<endl;
+        }
+    }
+    return 0;
+}
+
+//!
+//! \brief The function to handle agent_001's request.
+//! \param The response to send back to agent_001.
+//! \return int
+//!
+// JIMNOTE:  Why is Agent part of request function signature?
+int32_t hello_agent_002_request_function(string & request, string &response, Agent *a)
+{
+    // Send response back to agent_001
+    response = "hello " + std::to_string(request_counter);
+
+	// agent is set to this pointer?
+    //cout << "[" << node_name << ":" << agent_name <<"] received a request from ["<<a->cinfo->node.name<<":"<<a->cinfo->agent0.name<<"]! Its response is: " << response << endl;
+    return 0;
+}

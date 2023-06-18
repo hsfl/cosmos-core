@@ -1,0 +1,24 @@
+#!/bin/bash
+
+## script to rebuild all targets and capture all output, recording number of warnings and errors
+
+# re-cmake the linux directory
+rm -fr linux 2>/dev/null
+mkdir linux
+./do_cmake linux
+
+# build all targets (-B) using 4 cores (-j4)
+cd linux
+make -B -j4 install 2>&1 | tee output.make
+
+# count the errors and warnings
+NUMBER_OF_ERRORS=`grep -i error: output.make | wc -l`
+NUMBER_OF_WARNINGS=`grep -i warning: output.make | wc -l`
+
+echo -e "\033[0;37mThere were\033[0m \033[0;36m$NUMBER_OF_WARNINGS\033[0m \033[0;37mwarnings and\033[0m \033[0;36m$NUMBER_OF_ERRORS\033[0m \033[0;37merrors.\033[0m"
+
+# exit with error if errors detected
+if [ "$NUMBER_OF_ERRORS" -ne 0 ] #-a "$NUMBER_OF_WARNINGS" -eq 0 ]; then
+then
+	exit 1
+fi

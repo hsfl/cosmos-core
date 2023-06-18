@@ -63,11 +63,11 @@ public:
 
     /*Set of functions to write cosmos datastructures to QListWidgetItems*/
     static void listWriteRVec(QListWidgetItem *listItem, rvector vect, int *roleIndex);
-    static void listWriteCartpos(QListWidgetItem *listItem, cartpos pos, int *roleIndex);
-    static void listWriteKepstruc(QListWidgetItem *listItem, kepstruc kep, int *roleIndex);
+    static void listWriteCartpos(QListWidgetItem *listItem, Convert::cartpos pos, int *roleIndex);
+    static void listWriteKepstruc(QListWidgetItem *listItem, Convert::kepstruc kep, int *roleIndex);
 
     static double angleDelta(double angle1, double angle2); //compares the two angles (radians) returns angle1-angle2
-    static kepstruc keplerDelta(kepstruc kep1, kepstruc kep2); //compares two kepstrucs and returns kep1-kep2
+    static Convert::kepstruc keplerDelta(kepstruc kep1, Convert::kepstruc kep2); //compares two Convert::kepstrucs and returns kep1-kep2
 
     bool isSelected;
     bool completed;

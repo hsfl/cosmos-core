@@ -38,16 +38,149 @@
 #ifndef _STRINGLIB_H
 #define _STRINGLIB_H 1
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
+#include "support/jsonobject.h"
 
 #include <errno.h>
+#include <string>
+#include <sstream>
 
 //! \ingroup stringlib
 //! \defgroup stringlib_functions String handling functions
 //! @{
 
+vector < string > string_split(string in, string delimeters=" \t,", bool multi=true);
+size_t string_find(string input, string chars, uint16_t num=1);
+string string_join(vector<string>& in, string delimeter=" ", uint16_t first=0, uint16_t last=65535);
 uint16_t string_parse(char *string, char *word[], uint16_t size);
+string string_replace(string str, const std::string &from, const std::string &to);
 int string_cmp(const char *wild, const char *string);
+string to_hex_string(const vector<uint8_t> &buffer, bool ascii=false, uint16_t start=0);
+string to_hex_string(uint8_t* buffer, uint16_t size, bool ascii=false, uint16_t start=0);
+vector<uint8_t> from_hex_string(std::string hex);
+vector<uint8_t> from_hex_vector(vector<uint8_t>& hex);
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+uint64_t from_hex(string value);
+#else
+size_t from_hex(string value);
+#endif
+uint8_t from_hex(char value);
+string to_astring(vector<uint8_t> buf, bool hex=true);
+string to_astring(string buf, bool hex=false);
+string to_astring(char *value, size_t length, bool hex=false);
+// These two assume all bytes are ASCII characters
+string byte_vector_to_string(const vector<uint8_t>& buf, uint16_t offset=0);
+vector<uint8_t> string_to_byte_vector(const string &buf);
+// These next three are intentionally NOT (u)int64_t, as that does not always carry cleanly to 32 bit systems.
+// size_t and ptrdiff_t will map to the largest integer the system actually knows how to deal with.
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+string to_binary(uint64_t value, uint16_t digits=0, bool zerofill=false);
+string to_hex(uint64_t value, uint16_t digits=0, bool zerofill=false);
+string to_unsigned(uint64_t value, uint16_t digits=0, bool zerofill=false);
+#else
+string to_binary(size_t value, uint16_t digits=0, bool zerofill=false);
+string to_hex(size_t value, uint16_t digits=0, bool zerofill=false);
+string to_unsigned(size_t value, uint16_t digits=0, bool zerofill=false);
+#endif
+#if ((PTRDIFF_WIDTH) == (INT64_WIDTH))
+string to_signed(int64_t value, uint16_t digits=0, bool zerofill=false);
+#else
+string to_signed(ptrdiff_t value, uint16_t digits=0, bool zerofill=false);
+#endif
+
+string to_floating(float value, uint16_t precision=0);
+string to_floating(double value, uint16_t precision=0);
+string to_floatexp(float value, uint16_t precision=0);
+string to_floatexp(double value, uint16_t precision=0);
+string to_floatany(float value, uint16_t precision=0);
+string to_floatany(double value, uint16_t precision=0);
+string to_mjd(double value);
+string to_temperature(double value, char units='K', uint8_t precision=4);
+string to_angle(double value, char units='R', uint8_t precision=4);
+string to_bool(bool value, char type='y');
+string to_unixtime(double mjd, uint8_t precision=0);
+string to_datename(double mjd);
+string to_iso8601(double mjd);
+
+string to_json(string key, string value);
+string to_json(string key, double value);
+#if ((PTRDIFF_WIDTH) == (INT64_WIDTH))
+string to_json(string key, int64_t value);
+#else
+string to_json(string key, ptrdiff_t value);
+#endif
+string to_json(string key, int32_t value);
+string to_json(string key, int16_t value);
+string to_json(string key, int8_t value);
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+string to_json(string key, uint64_t value);
+#else
+string to_json(string key, size_t value);
+#endif
+string to_json(string key, uint32_t value);
+string to_json(string key, uint16_t value);
+string to_json(string key, uint8_t value);
+
+string to_label(string label, string value);
+string to_label(string label, double value, uint16_t precision=0, bool mjd=false);
+string to_label(string label, float value, uint16_t precision=0, bool mjd=false);
+#if ((PTRDIFF_WIDTH) == (INT64_WIDTH))
+string to_label(string label, int64_t value, uint16_t digits=0, bool hex=false);
+#endif
+string to_label(string label, int32_t value, uint16_t digits=0, bool hex=false);
+string to_label(string label, int16_t value, uint16_t digits=0, bool hex=false);
+string to_label(string label, int8_t value, uint16_t digits=0, bool hex=false);
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+string to_label(string label, uint64_t value, uint16_t digits=0, bool hex=false);
+#endif
+string to_label(string label, uint32_t value, uint16_t digits=0, bool hex=false);
+string to_label(string label, uint16_t value, uint16_t digits=0, bool hex=false);
+string to_label(string label, uint8_t value, uint16_t digits=0, bool hex=false);
+string to_label(string label, bool value);
+string clean_string(string value);
+
+uint64_t to_uint64(string svalue);
+uint64_t to_uint64(const char* svalue, uint16_t digits=0);
+uint32_t to_uint32(string svalue);
+uint32_t to_uint32(const char* svalue, uint16_t digits=0);
+uint16_t to_uint16(string svalue);
+uint16_t to_uint16(const char* svalue, uint16_t digits=0);
+uint8_t to_uint8(string svalue);
+uint8_t to_uint8(const char* svalue, uint16_t digits=0);
+
+int64_t to_int64(string svalue);
+int64_t to_int64(const char* svalue, uint16_t digits=0);
+int32_t to_int32(string svalue);
+int32_t to_int32(const char* svalue, uint16_t digits=0);
+int16_t to_int16(string svalue);
+int16_t to_int16(const char* svalue, uint16_t digits=0);
+int8_t to_int8(string svalue);
+int8_t to_int8(const char* svalue, uint16_t digits=0);
+
+double_t to_double(string svalue);
+double_t to_double(const char* svalue, uint16_t digits=0);
+float_t to_float(string svalue);
+float_t to_float(const char* svalue, uint16_t digits=0);
+
+// Class to parse a comma delimited string
+class StringParser {
+
+    vector<string> vect;
+
+public:
+    // the offset allows you to move the index by an offset value
+	// this can be useful if, for example, getFieldNumber(1) should logically be getFieldNumber(2)
+    // the offset then is 1
+    int offset;
+    StringParser(string str);
+    StringParser(string str, char delimiter);
+    string getFieldNumber(uint32_t index);
+	double getFieldNumberAsDouble(uint32_t index);
+    void splitString(string str, char delimiter);
+    size_t numberOfFields;
+    int getFieldNumberAsInteger(uint32_t index);
+};
+
 //! @}
 
 #endif

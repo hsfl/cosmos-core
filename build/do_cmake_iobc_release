@@ -1,0 +1,4 @@
+#!/bin/bash
+mkdir iobc_hyti_release
+cd iobc_hyti_release
+cmake  -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../../cmake/toolchain_iobc_linux.cmake -DCROSS_TYPE=iobc -DCMAKE_INSTALL_PREFIX=~/cosmos/iobc ../..

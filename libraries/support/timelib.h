@@ -28,8 +28,8 @@
 ********************************************************************/
 
 /*! \file timelib.h
-	\brief timelib include file
-	A library providing functions for handling various types of time.
+    \brief timelib include file
+    A library providing functions for handling various types of time.
 */
 
 //! \ingroup support
@@ -51,10 +51,13 @@
 #ifndef _TIMELIB_H
 #define _TIMELIB_H 1
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
+#include "support/elapsedtime.h"
+#include "math/mathlib.h"
 
-#include "mathlib.h"
-#include "timeutils.hpp"
+#ifdef COSMOS_WIN_BUILD_MSVC
+#include "support/timeutils.h"
+#endif
 
 #include <cmath>
 #include <time.h>
@@ -66,108 +69,135 @@
 //! \ingroup timelib
 //! \defgroup timelib_constants Time handling constants
 //! @{
+namespace Cosmos {
+    namespace Support {
 
-#define MJD2JD(mjd) (double)((mjd) + 2400000.5)
-#define JD2MJD(jd) (double)((jd) - 2400000.5)
-//! @}
 
-//! \ingroup timelib
-//! \defgroup timelib_typedefs Time handling type definitions
-//! @{
-struct timestruc
-{
-	double mjd;
-	int32_t year;
-	int32_t month;
-	int32_t day;
-	double fd;
-	double tt_mjd;
-	double gmst_rad;
-};
+#define MJD_UNIX_OFFSET 40587.
+#define JD_MJD_OFFSET 2400000.5
+#define MJD2JD(mjd) (double)((mjd) + JD_MJD_OFFSET)
+#define JD2MJD(jd) (double)((jd) - JD_MJD_OFFSET)
+#define DAY_TO_SECONDS 86400.
+        //#define CURR_MJD current_mjd()
+        //#define CURRENT_TIME_us CURR_MJD*DAY_TO_SECONDS*1000*1000
+#define SECONDS_TO_DAYS(x)              ((double)(x) / DAY_TO_SECONDS)
+#define DAYS_TO_SECONDS(x)              ((double)(x) * DAY_TO_SECONDS)
+#define TIME_SECS_TO_DAYS(x)            ((double)(x) / DAY_TO_SECONDS)
+#define TIME_DAYS_TO_SECS(x)            ((double)(x) * DAY_TO_SECONDS)
+#define TIME_SECS_SINCE_MJD(x)          (  ( (currentmjd(0.)-(x)) ) * DAY_TO_SECONDS   )
+#define TIME_UNIXs_TO_MJD(unixSecs)     (  ( (unixSecs) / DAY_TO_SECONDS ) + MJD_UNIX_OFFSET  )            // From http://stackoverflow.com/questions/466321/convert-unix-timestamp-to-julian
+#define TIME_MJD_TO_UNIXs(mjd)          (((mjd) - MJD_UNIX_OFFSET) * DAY_TO_SECONDS)                       // Inverse operation of above
+#define TIME_UNIX_TV_TO_DOUBLE_SECS(x)  ( ((double)(x.tv_sec)) + ((double)(x.tv_usec)  / 1000000. ) )
+#define UPTIME (DAY_TO_SECONDS*(currentmjd(0.)-mjd_start_time))
 
-struct calstruc
-{
-	int32_t year;
-	int32_t month;
-	int32_t dom;
-	int32_t doy;
-	int32_t hour;
-	int32_t minute;
-	int32_t second;
-	int32_t nsecond;
-};
+        //! @}
 
-//! @}
+        //! \ingroup timelib
+        //! \defgroup timelib_typedefs Time handling type definitions
+        //! @{
+        struct timestruc
+        {
+            double mjd;
+            int32_t year;
+            int32_t month;
+            int32_t day;
+            double fd;
+            double tt_mjd;
+            double gmst_rad;
+        };
 
-//! \ingroup timelib
-//! \defgroup timelib_functions Time handling functions
-//! @{
+        struct calstruc
+        {
+            int32_t year;
+            int32_t month = 1;
+            int32_t dom = 1;
+            int32_t doy = 1;
+            int32_t hour = 0;
+            int32_t minute = 0;
+            int32_t second = 0;
+            int32_t nsecond = 0;
+        };
 
-double currentmjd(double offset);
-double currentmjd();
+        class DateTime {
 
-// gregorian calendar (year, month, day) to another format
-double cal2mjd(calstruc date);
-double  cal2mjd(int32_t year, int32_t month, double day);
-double  cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t minute, int32_t second, int32_t nsecond);
-double  gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
-                                   int32_t hour, int32_t minute, double second);
+        public:
+            double mjd; // represented in Modified Julian Date
 
-// utc to another format
-struct timeval utc2unix(double utc);
-double utc2epsilon(double mjd);
-double utc2depsilon(double mjd);
-double utc2dpsi(double mjd);
-double utc2L(double mjd);
-double utc2Lp(double mjd);
-double utc2F(double mjd);
-double utc2D(double mjd);
-double utc2omega(double mjd);
-double utc2tt(double mjd);
-double utc2gps(double utc);
-double utc2ut1(double mjd);
-double utc2dut1(double mjd);
-double utc2tdb(double mjd);
-double utc2tdb(double mjd);
-double utc2gmst(double mjd);
-double utc2gast(double mjd);
-rvector utc2nuts(double mjd);
-double utc2theta(double mjd);
-double utc2jcen(double mjd);
-string utc2iso8601(double mjd);
+            DateTime();
+            DateTime(int year, int month, int day, int hour, int minute, double seconds);
+            //    ~DateTime();
 
-// gps to another format
-double  gps2utc(double gps);
-void    gps2week(double gps, uint32_t& week, double& seconds);
-double  week2gps(uint32_t week, double seconds);
+        };
 
-// mjd to another format
-double  mjd2year(double mjd);
-calstruc mjd2cal(double mjd);
-int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day);
-int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &doy);
-string mjdToGregorian(double mjd);
-int32_t mjdToGregorian(double mjd, int32_t *year, int32_t *month, int32_t *day,
-                      int32_t *hour, int32_t *minute, int32_t *second);
-string  mjdToGregorianDDMMMYYYY(double mjd);
-string  mjdToGregorianDDMmmYYYY(double mjd);
-string  mjd2iso8601(double mjd);
-double  mjd2jd(double mjd);
-double  jd2mjd(double jd);
+        //! @}
 
-// other
-double unix2utc(struct timeval unixtime);
-double unix2utc(double unixtime);
-double  tt2utc(double mjd);
-double  tt2tdb(double mjd);
-double  julcen(double mjd);
-cvector polar_motion(double mjd);
-int32_t leap_seconds(double mjd);
-double  ranrm(double angle);
-int16_t isleap(int32_t year);
-int32_t load_iers();
-string  seconds2DDHHMMSS(double elapsed_seconds);
+        //! \ingroup timelib
+        //! \defgroup timelib_functions Time handling functions
+        //! @{
 
+        double currentmjd();
+        double currentmjd(double offset);
+        uint64_t get_unix_time(uint64_t offset=0);
+        string get_local_time();
+
+        // gregorian calendar (year, month, day) to another format
+        double cal2mjd(calstruc date);
+        double cal2mjd(double year);
+        double cal2mjd(int32_t year, double dayOfYear=1.);
+        double cal2mjd(int32_t year, int32_t month=1, double day=1.);
+        double cal2mjd(int32_t year, int32_t month=1, int32_t day=1, int32_t hour=0, int32_t minute=0, int32_t second=0, int32_t nsecond=0);
+        double gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
+                                        int32_t hour, int32_t minute, double second);
+
+        // utc to another format
+        timeval utc2unix(double utc=0.);
+        double utc2unixseconds(double utc=0.);
+        string utc2unixdate(double utc=0.);
+        string utc2iso8601(double mjd=0.);
+        double iso86012utc(string date);
+
+        // gps to another format
+        void    gps2week(double gps, uint32_t& week, double& seconds);
+        double  week2gps(uint32_t week, double seconds);
+
+        // mjd to another format
+        double mjd2year(double mjd);
+        double mjd2doy(double mjd);
+        calstruc mjd2cal(double mjd);
+        int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day);
+        int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &doy);
+        string mjdToGregorian(double mjd);
+        int32_t mjdToGregorian(double mjd, int32_t *year, int32_t *month, int32_t *day,
+                               int32_t *hour, int32_t *minute, int32_t *second);
+        string mjdToGregorianFormat(double mjd);
+        string  mjdToGregorianDDMMMYYYY(double mjd);
+        string  mjdToGregorianDDMmmYYYY(double mjd);
+        string  mjd2iso8601(double mjd);
+        double  mjd2jd(double mjd);
+        double  jd2mjd(double jd);
+        int32_t mjd2tlef(double mjd, string &tle);
+
+        // other
+        double unix2utc(struct timeval unixtime);
+        double unix2utc(double unixtime);
+        double  tt2tdb(double mjd);
+        double  julcen(double mjd);
+        double  ranrm(double angle);
+        int16_t isleap(int32_t year);
+        string  seconds2DDHHMMSS(double elapsed_seconds);
+        int32_t timed_countdown(int32_t seconds, int32_t step=10., string message="");
+        double set_local_clock(double utc_to, int8_t direction=0);
+        int32_t microsleep(uint64_t usec);
+        int32_t secondsleep(double seconds);
+        double newyear(double mjd=0);
+        double newdecade(double mjd=0);
+        uint32_t centisec(double mjd=0.);
+        double centisec2mjd(uint32_t centi);
+        uint32_t decisec(double mjd=0.);
+        double decisec2mjd(uint32_t deci);
+
+    }
+}
 //! @}
 
 #endif

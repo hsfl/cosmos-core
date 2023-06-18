@@ -27,9 +27,10 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "agentlib.h"
-#include "jsondef.h"
-#include "sliplib.h"
+//#include "agent/agentclass.h"
+#include "support/jsondef.h"
+#include "support/sliplib.h"
+#include "support/timelib.h"
 
 #define INFO_SIZE 32
 
@@ -49,7 +50,7 @@ int main(int argc, char *argv[])
 	bool error_injector_drop_enable = false; // Choose to enable error in data section
 	int error_injector_drop_counter = 175; // Inject error starting at packet 175
 
-	int32_t iretn;
+	int32_t iretn = 0;
 	uint16_t count=0;
 	socket_channel chan;
 	uint8_t buf1[10000];
@@ -84,7 +85,7 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	if ((iretn=socket_open(&chan, SOCKET_TYPE_UDP, address, 6101, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
+    if ((iretn=socket_open(&chan, NetworkType::UDP, address, 6101, SOCKET_TALK, SOCKET_BLOCKING, 100000)) < 0)
 	{
 		printf("Unable to open connection to [%s:6101]\n",address);
 	}

@@ -1,368 +1,898 @@
-/********************************************************************
-* Copyright (C) 2015 by Interstel Technologies, Inc.
-*   and Hawaii Space Flight Laboratory.
-*
-* This file is part of the COSMOS/core that is the central
-* module for COSMOS. For more information on COSMOS go to
-* <http://cosmos-project.com>
-*
-* The COSMOS/core software is licenced under the
-* GNU Lesser General Public License (LGPL) version 3 licence.
-*
-* You should have received a copy of the
-* GNU Lesser General Public License
-* If not, go to <http://www.gnu.org/licenses/>
-*
-* COSMOS/core is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public License
-* as published by the Free Software Foundation, either version 3 of
-* the License, or (at your option) any later version.
-*
-* COSMOS/core is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* Refer to the "licences" folder for further information on the
-* condititons and terms to use this software.
-********************************************************************/
+#include "support/transferlib.h"
+#include "math/bytelib.h"
 
-#include "transferlib.h"
-#include "timelib.h"
-#include <iostream>
-#include <sys/stat.h>
+namespace Cosmos {
+    namespace Support {
+        //! For sorting files by size in ascending order
+        bool filestruc_smaller_by_size(const filestruc& a, const filestruc& b)
+        {
+            return a.size < b.size;
+        }
 
-//#define DA_BUG
+        //! For sorting chunks in ascending order
+        bool lower_chunk(file_progress i,file_progress j)
+        {
+            return (i.chunk_start<j.chunk_start);
+        }
 
-//using namespace PACKET_TYPE;
+        //! Create a QUEUE-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param orig_node_id ID of the origin node in the node table
+        //! \param queue A vector with QUEUE data
+        //! \return n/a
+        void serialize_queue(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, const vector<PACKET_TX_ID_TYPE>& queue)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileQueue;
+            packet.data.resize(
+                sizeof(file_packet_header)              // header
+                + sizeof(packet_struct_queue::tx_ids)); // tx_ids
+            size_t offset = 0;
+            file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
+            header.node_id = orig_node_id;
+            header.tx_id = 0;
+            header.file_crc = 0;
+            memcpy(&packet.data[offset], &header, sizeof(file_packet_header));
+            offset += sizeof(file_packet_header);
 
-//bool IS_MESSAGE(const unsigned char P_TYPE)	{ return P_TYPE & PACKET_MESSAGE; }
-//bool IS_REQUEST(const unsigned char P_TYPE) { return P_TYPE & PACKET_REQUEST; }
-bool IS_METADATA(const unsigned char P_TYPE){ return (((P_TYPE & 0x0f) & PACKET_METADATA) != 0); }
-bool IS_DATA(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_DATA) != 0); }
-bool IS_REQDATA(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_REQDATA) != 0); }
-bool IS_REQMETA(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_REQMETA) != 0); }
-bool IS_COMPLETE(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_COMPLETE) != 0); }
-bool IS_CANCEL(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_CANCEL) != 0); }
-bool IS_QUEUE(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_QUEUE) != 0); }
+            vector<PACKET_QUEUE_FLAGS_TYPE> row(PACKET_QUEUE_FLAGS_LIMIT, 0);
+            for (PACKET_TX_ID_TYPE tx_id : queue)
+            {
+                // Note: this logic assumes that PACKET_QUEUE_FLAGS_TYPE is a uint8_t
+                uint8_t flags = tx_id >> 3;
+                uint8_t lshift = tx_id & 7; // 0b111
+                PACKET_QUEUE_FLAGS_TYPE mask = 1 << lshift;
+                row[flags] |= mask;
+            }
+            std::copy(row.begin(), row.end(), packet.data.begin()+offset);
+        }
 
-void make_complete_packet(vector<PACKET_BYTE>& packet, packet_struct_complete complete)
-{
-	make_complete_packet(packet, complete.node_id, complete.tx_id);
-}
+        //! Extracts the necessary fields from a received QUEUE packet.
+        //! \param pdata An incoming QUEUE-type packet
+        //! \param queue Reference to a packet_struct_queue to fill
+        //! \return 0 on success, negative on error
+        int32_t deserialize_queue(const vector<PACKET_BYTE>& pdata, packet_struct_queue& queue)
+        {
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
+            size_t offset = 0;
+            memcpy(&queue.header, &pdata[offset], sizeof(file_packet_header));
+            offset += sizeof(file_packet_header);
+            std::copy(pdata.begin()+offset, pdata.end(), queue.tx_ids);
 
-void make_complete_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
-{
-	PACKET_TYPE type = salt_type(PACKET_COMPLETE);
+            return 0;
+        }
 
-	packet.resize(PACKET_COMPLETE_SIZE);
-	memmove(&packet[0]+PACKET_COMPLETE_TYPE, &type, sizeof(PACKET_TYPE));
-	memmove(&packet[0]+PACKET_COMPLETE_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
-	memmove(&packet[0]+PACKET_COMPLETE_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
-}
+        //! Create a CANCEL-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param orig_node_id ID of the origin node in the node table
+        //! \param tx_id ID of the transaction
+        //! \return n/a
+        void serialize_cancel(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileCancel;
+            packet.data.resize(sizeof(packet_struct_cancel));
+            file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
+            header.node_id = orig_node_id;
+            header.tx_id = tx_id;
+            header.file_crc = file_crc;
+            memcpy(&packet.data[0], &header, sizeof(file_packet_header));
+        }
 
-void extract_complete(vector<PACKET_BYTE>& packet, packet_struct_complete &complete)
-{
-	extract_complete(packet, complete.node_id, complete.tx_id);
-}
+        //! Extracts the necessary fields from a received CANCEL packet.
+        //! \param pdata An incoming CANCEL-type packet
+        //! \param cancel Reference to a packet_struct_cancel to fill
+        //! \return 0 on success, negative on error
+        int32_t deserialize_cancel(const vector<PACKET_BYTE>& pdata, packet_struct_cancel &cancel)
+        {
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
+            memcpy(&cancel, pdata.data(), sizeof(packet_struct_cancel));
+            return 0;
+        }
 
-void extract_complete(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE &tx_id)
-{
-	memmove(&node_id, &packet[0]+PACKET_COMPLETE_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
-	memmove(&tx_id, &packet[0]+PACKET_COMPLETE_TX_ID, sizeof(PACKET_TX_ID_TYPE));
-}
+        //! Create a REQCOMPLETE-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param orig_node_id ID of the origin node in the node table
+        //! \param tx_id ID of the transaction
+        //! \return n/a
+        void serialize_reqcomplete(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileReqComplete;
+            packet.data.resize(sizeof(file_packet_header));
+            file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
+            header.node_id = orig_node_id;
+            header.tx_id = tx_id;
+            header.file_crc = file_crc;
+            memcpy(&packet.data[0], &header, sizeof(file_packet_header));
+        }
 
-void make_cancel_packet(vector<PACKET_BYTE>& packet, packet_struct_cancel cancel)
-{
-	make_cancel_packet(packet, cancel.node_id, cancel.tx_id);
-}
+        //! Extracts the necessary fields from a received REQCOMPLETE packet.
+        //! \param pdata An incoming COMPLETE-type packet
+        //! \param reqcomplete Reference to a packet_struct_reqcomplete to fill
+        //! \return 0 on success, negative on error
+        int32_t deserialize_reqcomplete(const vector<PACKET_BYTE>& pdata, packet_struct_reqcomplete &reqcomplete)
+        {
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
+            memcpy(&reqcomplete, pdata.data(), sizeof(packet_struct_reqcomplete));
+            return 0;
+        }
 
-void make_cancel_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
-{
-	PACKET_TYPE type = salt_type(PACKET_CANCEL);
+        //! Create a COMPLETE-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param node_id ID of the receiver node in the node table
+        //! \param tx_id ID of the transaction
+        //! \return n/a
+        void serialize_complete(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileComplete;
+            packet.data.resize(sizeof(file_packet_header));
+            file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
+            header.node_id = node_id;
+            header.tx_id = tx_id;
+            header.file_crc = file_crc;
+            memcpy(&packet.data[0], &header, sizeof(file_packet_header));
+        }
 
-	packet.resize(PACKET_CANCEL_SIZE);
-	memmove(&packet[0]+PACKET_CANCEL_TYPE, &type, sizeof(PACKET_TYPE));
-	memmove(&packet[0]+PACKET_CANCEL_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
-	memmove(&packet[0]+PACKET_CANCEL_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
-}
+        //! Extracts the necessary fields from a received COMPLETE packet.
+        //! \param pdata An incoming COMPLETE-type packet
+        //! \param complete Reference to a packet_struct_complete to fill
+        //! \return 0 on success, negative on error
+        int32_t deserialize_complete(const vector<PACKET_BYTE>& pdata, packet_struct_complete &complete)
+        {
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
+            memcpy(&complete, pdata.data(), sizeof(file_packet_header));
+            return 0;
+        }
 
-void extract_cancel(vector<PACKET_BYTE>& packet, packet_struct_cancel &cancel)
-{
-	extract_cancel(packet, cancel.node_id, cancel.tx_id);
-}
+        //! Create a REQMETA-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param node_id ID of the requester node in the node table
+        //! \param node_name Name of the origin node
+        //! \param reqmeta A vector with REQMETA data
+        //! \return n/a
+        void serialize_reqmeta(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, string node_name, const vector<PACKET_TX_ID_TYPE>& reqmeta)
+        {
+            serialize_queue(packet, node_id, reqmeta);
+            packet.header.type = PacketComm::TypeId::DataFileReqMeta;
+        }
 
-void extract_cancel(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE &tx_id)
-{
-	memmove(&node_id, &packet[0]+PACKET_CANCEL_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
-	memmove(&tx_id, &packet[0]+PACKET_CANCEL_TX_ID, sizeof(PACKET_TX_ID_TYPE));
-}
+        //! Extracts the necessary fields from a received REQMETA packet.
+        //! \param pdata An incoming REQMETA-type packet
+        //! \param reqmeta Reference to a packet_struct_reqmeta to fill
+        //! \return 0 on success, negative on error
+        int32_t deserialize_reqmeta(const vector<PACKET_BYTE>& pdata, packet_struct_reqmeta& reqmeta)
+        {
+            return deserialize_queue(pdata, reqmeta);
+        }
 
-void make_reqmeta_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta)
-{
-	PACKET_TYPE type = salt_type(PACKET_REQMETA);
+        //! Create a REQDATA-type PacketComm packet.
+        //! \param packets Reference to a vector of PacketComm packets to push to
+        //! \param self_node_id ID of the requester node in the node table
+        //! \param orig_node_id ID of the origin node in the node table
+        //! \param tx_id ID of the transaction
+        //! \param holes Vector of file_progress holes
+        //! \param packet_data_size Limit of packet data size
+        //! \return n/a
+        void serialize_reqdata(vector<PacketComm>& packets, PACKET_NODE_ID_TYPE self_node_id, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, vector<file_progress>& holes, PACKET_CHUNK_SIZE_TYPE packet_data_size)
+        {
+            PacketComm packet;
+            packet.header.nodeorig = self_node_id;
+            packet.header.nodedest = orig_node_id;
+            packet.header.type = PacketComm::TypeId::DataFileReqData;
+            packet.data.reserve(packet_data_size);
 
-	packet.resize(PACKET_REQMETA_SIZE);
-	memset(&packet[0], 0, PACKET_REQMETA_SIZE);
-	memmove(&packet[0]+PACKET_REQMETA_TYPE, &type, COSMOS_SIZEOF(PACKET_TYPE));
-	memmove(&packet[0]+PACKET_REQMETA_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-	memmove(&packet[0]+PACKET_REQMETA_NODE_NAME, node_name.c_str(), node_name.size());
-	memmove(&packet[0]+PACKET_REQMETA_TX_ID, &reqmeta[0], COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
-}
 
-void extract_reqmeta(vector<PACKET_BYTE>& packet, packet_struct_reqmeta& reqmeta)
-{
-	memmove(&reqmeta.node_id, &packet[0]+PACKET_REQMETA_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-	memmove(&reqmeta.node_name, &packet[0]+PACKET_REQMETA_NODE_NAME, COSMOS_MAX_NAME);
-	memmove(&reqmeta.tx_id, &packet[0]+PACKET_REQMETA_TX_ID, COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
-}
+            uint16_t num_holes = 0;
+            constexpr size_t num_holes_offset   = sizeof(file_packet_header);
+            constexpr size_t holes_offset       = sizeof(file_packet_header) + sizeof(num_holes);
+            packet.data.resize(holes_offset);
+            file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
+            header.node_id = self_node_id;
+            header.tx_id = tx_id;
+            header.file_crc = file_crc;
+            memcpy(&packet.data[0], &header, sizeof(file_packet_header));
 
-void make_reqdata_packet(vector<PACKET_BYTE>& packet, packet_struct_reqdata reqdata)
-{
-	make_reqdata_packet(packet, reqdata.node_id, reqdata.tx_id, reqdata.hole_start, reqdata.hole_end);
-}
 
-void make_reqdata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end)
-{
-	PACKET_TYPE type = salt_type(PACKET_REQDATA);
+            // Add as many holes as possible to each reqdata packet
+            constexpr uint8_t has_first = 1;
+            constexpr uint8_t has_last = 2;
+            // Apply has_first or has_last bit masking to this to signify whether the current
+            // reqdata packet contains the first and/or last hole
+            uint8_t contains_first_or_last = has_first;
+            for (size_t i=0; i < holes.size(); ++i)
+            {
+                // If i==0, mark first. if i == holes.size()-1, mark end
+                // If neither, mark nothing
+                // If no more holes can be fit into this packet.
+                // (save 1 byte at the end for signifying first and/or last hole)
+                if (packet.data.size() + sizeof(holes[i]) > static_cast<size_t>(packet_data_size-1))
+                {
+                    // Copy in num_holes into place
+                    memcpy(&packet.data[0]+num_holes_offset, &num_holes, sizeof(num_holes));
+                    // Last element is first/last signifier
+                    packet.data.push_back(contains_first_or_last);
+                    packets.push_back(packet);
+                    // Resize back to reqdata header to create next reqdata packet
+                    packet.data.resize(holes_offset);
+                    num_holes = 0;
+                    contains_first_or_last = 0;
+                }
+                // Append holes to holes vector
+                packet.data.insert(packet.data.end(), (uint8_t*)&holes[i], (uint8_t*)((&holes[i])+1));
+                ++num_holes;
+            }
+            // Mark last packet as containing the last hole
+            contains_first_or_last |= has_last;
+            packet.data.push_back(contains_first_or_last);
+            memcpy(&packet.data[0]+num_holes_offset, &num_holes, sizeof(num_holes));
+            packets.push_back(packet);
+        }
 
-	packet.resize(PACKET_REQDATA_SIZE);
-	memmove(&packet[0]+PACKET_REQDATA_TYPE, &type, sizeof(PACKET_TYPE));
-	memmove(&packet[0]+PACKET_REQDATA_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
-	memmove(&packet[0]+PACKET_REQDATA_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
-	memmove(&packet[0]+PACKET_REQDATA_HOLE_START, &hole_start, sizeof(PACKET_FILE_SIZE_TYPE));
-	memmove(&packet[0]+PACKET_REQDATA_HOLE_END, &hole_end, sizeof(PACKET_FILE_SIZE_TYPE));
-}
+        //! Extracts the necessary fields from a received REQDATA packet.
+        //! \param pdata An incoming REQDATA-type packet
+        //! \param reqdata Reference to a packet_struct_reqdata to fill
+        //! \return non-negative on success: 0 if this reqdata packet has neither first nor last
+        //! hole, 1 if this contains the first hole, 2 if this contains the last hole,
+        //! and 3 if both. Since holes are assumed to be sorted, first is firster, last is laster.
+        //! Negative on error.
+        int32_t deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata &reqdata)
+        {   
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            reqdata.header.version = pdata[0];
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
 
-void extract_reqdata(vector<PACKET_BYTE>& packet, packet_struct_reqdata &reqdata)
-{
-	extract_reqdata(packet, reqdata.node_id, reqdata.tx_id, reqdata.hole_start, reqdata.hole_end);
-}
+            constexpr size_t num_holes_offset   = sizeof(file_packet_header);
+            constexpr size_t holes_offset       = sizeof(file_packet_header) + sizeof(uint16_t);
+            if (pdata.size() < holes_offset)
+            {
+                return COSMOS_DATA_ERROR_SIZE_MISMATCH;
+            }
+            memcpy(&reqdata.header,     &pdata[0],     sizeof(packet_struct_reqdata::header));
+            memcpy(&reqdata.num_holes,  &pdata[0]+num_holes_offset,  sizeof(packet_struct_reqdata::num_holes));
+            size_t packet_size = holes_offset + reqdata.num_holes * sizeof(file_progress);
+            // Last byte must be the first/last hole signifier
+            if (pdata.size() != packet_size + 1)
+            {
+                return COSMOS_DATA_ERROR_SIZE_MISMATCH;
+            }
+            reqdata.holes.resize(reqdata.num_holes);
+            memcpy(reqdata.holes.data(), pdata.data()+holes_offset, reqdata.num_holes*sizeof(file_progress));
+            // Return first/last hole signifier
+            return pdata[pdata.size()-1];
+        }
 
-void extract_reqdata(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE &tx_id, PACKET_FILE_SIZE_TYPE &hole_start, PACKET_FILE_SIZE_TYPE &hole_end)
-{
-	memmove(&node_id, &packet[0]+PACKET_REQDATA_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
-	memmove(&tx_id, &packet[0]+PACKET_REQDATA_TX_ID, sizeof(PACKET_TX_ID_TYPE));
-	memmove(&hole_start, &packet[0]+PACKET_REQDATA_HOLE_START, sizeof(hole_start));
-	memmove(&hole_end, &packet[0]+PACKET_REQDATA_HOLE_END, sizeof(hole_end));
-}
+        //! Serialize data to write to a .meta file.
+        //! Includes node_name, omits node_id information.
+        //! Used by write_meta()
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param tx_id Transaction ID of file transfer
+        //! \param file_name Name of the file
+        //! \param file_size Size of the file
+        //! \param node_name Name of the receiving node
+        //! \param agent_name Name of the receiving agent
+        //! \return n/a
+        void serialize_metafile(vector<PACKET_BYTE>& pdata, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& node_name, const string& agent_name)
+        {
+            constexpr uint8_t MAXSTRLEN = sizeof(uint8_t);
+            pdata.resize(
+                MAXSTRLEN                           // node_name_len
+                + node_name.size()                  // node_name
+                + sizeof(PACKET_TX_ID_TYPE)         // tx_id
+                + sizeof(PACKET_FILE_CRC_TYPE)      // file_crc
+                + MAXSTRLEN                         // agent_name_len
+                + agent_name.size()                 // agent_name
+                + MAXSTRLEN                         // file_name_len
+                + file_name.size()                  // file_name
+                + sizeof(PACKET_FILE_SIZE_TYPE));   // file_size
+            size_t offset = 0;
+            pdata[offset] = node_name.size();
+            offset += MAXSTRLEN;
+            std::copy_n(node_name.begin(), node_name.size(), &pdata[offset]);
+            offset += node_name.size();
+            pdata[offset] = tx_id;
+            offset += sizeof(PACKET_TX_ID_TYPE);
+            memcpy(&pdata[offset], &file_crc, sizeof(PACKET_FILE_CRC_TYPE));
+            offset += sizeof(PACKET_FILE_CRC_TYPE);
+            pdata[offset] = agent_name.size();
+            offset += MAXSTRLEN;
+            std::copy_n(agent_name.begin(), agent_name.size(), &pdata[offset]);
+            offset += agent_name.size();
+            pdata[offset] = file_name.size();
+            offset += MAXSTRLEN;
+            std::copy_n(file_name.begin(), file_name.size(), &pdata[offset]);
+            offset += file_name.size();
+            uint32to(file_size, &pdata[offset], ByteOrder::LITTLEENDIAN);
+        }
 
-void make_metadata_packet(vector<PACKET_BYTE>& packet , packet_struct_metalong meta)
-{
-	make_metadata_packet(packet, meta.tx_id, meta.file_name, meta.file_size, meta.node_name, meta.agent_name);
-}
+        //! Extracts the necessary fields from a .meta file.
+        //! Used by read_meta()
+        //! \param pdata An incoming long META-type packet
+        //! \param meta Reference to a packet_struct_long to fill
+        //! \return 0 on success, negative on error
+        int32_t deserialize_metafile(const vector<PACKET_BYTE>& pdata, packet_struct_metafile &meta)
+        {
+            constexpr uint8_t MAXSTRLEN = sizeof(uint8_t);
+            size_t offset = 0;
+            meta.node_name_len = pdata[offset];
+            offset += MAXSTRLEN;
+            meta.node_name.resize(meta.node_name_len);
+            std::copy_n(pdata.begin()+offset, meta.node_name_len, meta.node_name.begin());
+            offset += meta.node_name.size();
+            meta.tx_id = pdata[offset];
+            offset += sizeof(PACKET_TX_ID_TYPE);
+            memcpy(&meta.file_crc, &pdata[offset], sizeof(PACKET_FILE_CRC_TYPE));
+            offset += sizeof(PACKET_FILE_CRC_TYPE);
+            meta.agent_name_len = pdata[offset];
+            offset += MAXSTRLEN;
+            meta.agent_name.resize(meta.agent_name_len);
+            std::copy_n(pdata.begin()+offset, meta.agent_name_len, meta.agent_name.begin());
+            offset += meta.agent_name.size();
+            meta.file_name_len = pdata[offset];
+            offset += MAXSTRLEN;
+            meta.file_name.resize(meta.file_name_len);
+            std::copy_n(pdata.begin()+offset, meta.file_name_len, meta.file_name.begin());
+            offset += meta.file_name.size();
+            meta.file_size = uint32from(&pdata[offset], ByteOrder::LITTLEENDIAN);
+            return 0;
+        }
 
-void make_metadata_packet(vector<PACKET_BYTE>& packet , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name)
-{
-	PACKET_TYPE type = salt_type(PACKET_METADATA);
+        //! Create a short METADATA-type PacketComm packet.
+        //! Includes node_id, omits node_name information.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param orig_node_id Node's ID in the node table
+        //! \param tx_id Transaction ID of file transfer
+        //! \param file_name Name of the file
+        //! \param file_size Size of the file
+        //! \param agent_name Name of the sending agent
+        //! \return n/a
+        void serialize_metadata(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id , PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& agent_name)
+        {
+            constexpr uint8_t MAXSTRLEN = sizeof(uint8_t);
+            packet.header.type = PacketComm::TypeId::DataFileMetaData;
+            packet.data.resize(
+                sizeof(file_packet_header)          // header
+                + MAXSTRLEN                         // agent_name_len
+                + agent_name.size()                 // agent_name
+                + MAXSTRLEN                         // file_name_len
+                + file_name.size()                  // file_name
+                + sizeof(PACKET_FILE_SIZE_TYPE));   // file_size
+            size_t offset = 0;
+            file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
+            header.node_id = orig_node_id;
+            header.tx_id = tx_id;
+            header.file_crc = file_crc;
+            memcpy(&packet.data[offset], &header, sizeof(file_packet_header));
+            offset += sizeof(file_packet_header);
+            packet.data[offset] = agent_name.size();
+            offset += MAXSTRLEN;
+            std::copy_n(agent_name.begin(), agent_name.size(), &packet.data[offset]);
+            offset += agent_name.size();
+            packet.data[offset] = file_name.size();
+            offset += MAXSTRLEN;
+            std::copy_n(file_name.begin(), file_name.size(), &packet.data[offset]);
+            offset += file_name.size();
+            uint32to(file_size, &packet.data[offset], ByteOrder::LITTLEENDIAN);
+        }
 
-	packet.resize(PACKET_METALONG_SIZE);
-	memmove(&packet[0]+PACKET_METALONG_TYPE, &type, sizeof(PACKET_TYPE));
-	memmove(&packet[0]+PACKET_METALONG_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
-	memmove(&packet[0]+PACKET_METALONG_FILE_NAME, file_name, TRANSFER_MAX_FILENAME);
-	memmove(&packet[0]+PACKET_METALONG_FILE_SIZE, &file_size, sizeof(file_size));
-	memmove(&packet[0]+PACKET_METALONG_NODE_NAME, node_name, COSMOS_MAX_NAME);
-	memmove(&packet[0]+PACKET_METALONG_AGENT_NAME, agent_name, COSMOS_MAX_NAME);
-}
+        //! Extracts the necessary fields from a received short META packet.
+        //! \param pdata An incoming short META-type packet
+        //! \param meta Reference to a packet_struct_metadata to fill
+        //! \return 0 on success, negative on error
+        int32_t deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metadata &meta)
+        {
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            meta.header.version = pdata[0];
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
+            constexpr uint8_t MAXSTRLEN = sizeof(uint8_t);
+            size_t offset = 0;
+            memcpy(&meta.header, &pdata[offset], sizeof(file_packet_header));
+            offset += sizeof(file_packet_header);
+            meta.agent_name_len = pdata[offset];
+            offset += MAXSTRLEN;
+            meta.agent_name.resize(meta.agent_name_len);
+            std::copy_n(pdata.begin()+offset, meta.agent_name_len, meta.agent_name.begin());
+            offset += meta.agent_name.size();
+            meta.file_name_len = pdata[offset];
+            offset += MAXSTRLEN;
+            meta.file_name.resize(meta.file_name_len);
+            std::copy_n(pdata.begin()+offset, meta.file_name_len, meta.file_name.begin());
+            offset += meta.file_name.size();
+            meta.file_size = uint32from(&pdata[offset], ByteOrder::LITTLEENDIAN);
+            return 0;
+        }
 
-void make_metadata_packet(vector<PACKET_BYTE>& packet , packet_struct_metashort meta)
-{
-	make_metadata_packet(packet, meta.node_id, meta.tx_id, meta.file_name, meta.file_size, meta.agent_name);
-}
+        //! Create a DATA-type PacketComm packet.
+        //! \param packet Reference to a PacketComm packet to fill in
+        //! \param orig_node_id Node's ID in the node table
+        //! \param byte_count Number of bytes of data data
+        //! \param chunk_start Byte of index of start of this chunk in the file
+        //! \param chunk Array of bytes defining this chunk
+        //! \return n/a
+        void serialize_data(PacketComm& packet, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk)
+        {
+            packet.header.type = PacketComm::TypeId::DataFileChunkData;
+            constexpr size_t byte_count_offset  = sizeof(file_packet_header);
+            constexpr size_t chunk_start_offset = byte_count_offset     + sizeof(PACKET_CHUNK_SIZE_TYPE);
+            constexpr size_t chunk_offset       = chunk_start_offset    + sizeof(PACKET_FILE_SIZE_TYPE);
 
-void make_metadata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name)
-{
-	PACKET_TYPE type = salt_type(PACKET_METADATA);
+            packet.data.resize(chunk_offset + byte_count);
+            file_packet_header header;
+            header.version = FILE_TRANSFER_PROTOCOL_VERSION;
+            header.node_id = orig_node_id;
+            header.tx_id = tx_id;
+            header.file_crc = file_crc;
+            memcpy(&packet.data[0],                    &header,        sizeof(file_packet_header));
+            memcpy(&packet.data[0]+byte_count_offset,  &byte_count,    sizeof(PACKET_CHUNK_SIZE_TYPE));
+            memcpy(&packet.data[0]+chunk_start_offset, &chunk_start,   sizeof(chunk_start));
+            memcpy(&packet.data[0]+chunk_offset,       chunk,          byte_count);
+        }
 
-	packet.resize(PACKET_METASHORT_SIZE);
+        //! Extracts the necessary fields from a received DATA packet.
+        //! \param pdata An incoming DATA-type packet
+        //! \param data Reference to a packet_struct_data to fill
+        //! \return 0 on success, negative on error
+        int32_t deserialize_data(const vector<PACKET_BYTE>& pdata, packet_struct_data &data)
+        {
+            if (pdata.empty())
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            // Reject version mismatches
+            if (pdata[0] != FILE_TRANSFER_PROTOCOL_VERSION)
+            {
+                return TRANSFER_ERROR_VERSION;
+            }
+            constexpr size_t byte_count_offset  = sizeof(file_packet_header);
+            constexpr size_t chunk_start_offset = byte_count_offset     + sizeof(PACKET_CHUNK_SIZE_TYPE);
+            constexpr size_t chunk_offset       = chunk_start_offset    + sizeof(PACKET_FILE_SIZE_TYPE);
 
-	memmove(&packet[0]+PACKET_METASHORT_TYPE, &type, sizeof(PACKET_TYPE));
-	memmove(&packet[0]+PACKET_METASHORT_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
-	memmove(&packet[0]+PACKET_METASHORT_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
-	memmove(&packet[0]+PACKET_METASHORT_FILE_NAME, file_name, TRANSFER_MAX_FILENAME);
-	memmove(&packet[0]+PACKET_METASHORT_FILE_SIZE, &file_size, sizeof(file_size));
-	memmove(&packet[0]+PACKET_METASHORT_AGENT_NAME, agent_name, COSMOS_MAX_NAME);
-}
+            memcpy(&data.header,      &pdata[0],      sizeof(file_packet_header));
+            memcpy(&data.byte_count,  &pdata[0]+byte_count_offset,  sizeof(data.byte_count));
+            memcpy(&data.chunk_start, &pdata[0]+chunk_start_offset, sizeof(data.chunk_start));
+            data.chunk.resize(data.byte_count);
+            memcpy(data.chunk.data(), pdata.data()+chunk_offset, data.byte_count);
+            return 0;
+        }
 
-void extract_metadata(vector<PACKET_BYTE>& packet, packet_struct_metalong &meta)
-{
-	extract_metadata(packet, meta.tx_id, meta.file_name, meta.file_size, meta.node_name, meta.agent_name);
-}
+        //! Merges any overlapping chunks in the tx.file_info deque.
+        //! \param tx A tx_progress to merge chunks for
+        //! \return Sum of bytes of the chunks in tx
+        PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx)
+        {
+            // Remove any chunks that go beyond the file size
+            auto it = tx.file_info.begin();
+            // If the METADATA has yet to be received, then file_size will be 0
+            if (tx.file_size > 0)
+            {
+                while (it != tx.file_info.end())
+                {
+                    if (it->chunk_end >= tx.file_size)
+                    {
+                        // TODO: consider if another data structure may be better
+                        it = tx.file_info.erase(it);
+                    }
+                    else {
+                        ++it;
+                    }
+                }
+            }
+            switch (tx.file_info.size())
+            {
+            case 0:
+                {
+                    tx.total_bytes = 0;
+                }
+                break;
+            case 1:
+                {
+                    tx.total_bytes = (tx.file_info[0].chunk_end - tx.file_info[0].chunk_start) + 1;
+                }
+                break;
+            default:
+                {
+                    tx.total_bytes = 0;
+                    sort(tx.file_info.begin(), tx.file_info.end(), lower_chunk);
+                    // Merge chunks
+                    for (auto it = tx.file_info.begin(); it != tx.file_info.end(); ++it)
+                    {
+                        tx.total_bytes += (it->chunk_end - it->chunk_start) + 1;
+                        auto it_next = it+1;
+                        while (it_next != tx.file_info.end())
+                        {
+                            // Merge if the next chunk's start overlaps with the previous chunk's end
+                            if (it_next->chunk_start <= it->chunk_end+1)
+                            {
+                                // Sanity check in case the next chunk's end was less than the previous chunk's end
+                                if (it_next->chunk_end > it->chunk_end)
+                                {
+                                    tx.total_bytes += it_next->chunk_end - it->chunk_end;
+                                    it->chunk_end = it_next->chunk_end;
+                                }
+                                it_next = tx.file_info.erase(it_next);
+                            }
+                            else
+                            {
+                                ++it_next;
+                            }
+                        } // End while
+                    } // End for
+                } // End default
+                break;
+            } // End switch
 
-void extract_metadata(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, char* node_name, char* agent_name)
-{
-	memmove(&tx_id, &packet[0]+PACKET_METALONG_TX_ID, sizeof(PACKET_TX_ID_TYPE));
-	memmove(node_name, &packet[0]+PACKET_METALONG_NODE_NAME, COSMOS_MAX_NAME);
-	memmove(file_name, &packet[0]+PACKET_METALONG_FILE_NAME, TRANSFER_MAX_FILENAME);
-	memmove(&file_size, &packet[0]+PACKET_METALONG_FILE_SIZE, sizeof(file_size));
-	memmove(agent_name, &packet[0]+PACKET_METALONG_AGENT_NAME, COSMOS_MAX_NAME);
-}
+            return tx.total_bytes;
+        }
 
-void extract_metadata(vector<PACKET_BYTE>& packet, packet_struct_metashort &meta)
-{
-	extract_metadata(packet, meta.tx_id, meta.file_name, meta.file_size, meta.node_id, meta.agent_name);
-}
+        //! Determines which chunks are missing for an incoming file.
+        //! Used by the receiving side to request missing data with REQDATA packets.
+        //! \param tx_in The tx_progress of a file in the incoming queue
+        //! \return A vector of missing chunks
+        vector<file_progress> find_chunks_missing(tx_progress& tx_in)
+        {
+            vector<file_progress> missing;
+            file_progress tp;
 
-void extract_metadata(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, PACKET_NODE_ID_TYPE& node_id, char* agent_name)
-{
-	memmove(&tx_id, &packet[0]+PACKET_METASHORT_TX_ID, sizeof(PACKET_TX_ID_TYPE));
-	memmove(file_name, &packet[0]+PACKET_METASHORT_FILE_NAME, TRANSFER_MAX_FILENAME);
-	memmove(&file_size, &packet[0]+PACKET_METASHORT_FILE_SIZE, sizeof(file_size));
-	memmove(&node_id, &packet[0]+PACKET_METASHORT_NODE_ID, COSMOS_MAX_NAME);
-	memmove(agent_name, &packet[0]+PACKET_METASHORT_AGENT_NAME, COSMOS_MAX_NAME);
-}
+            if (!tx_in.sentmeta)
+            {
+                return missing;
+            }
 
-void make_data_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk)
-{
-	PACKET_TYPE type = salt_type(PACKET_DATA);
+            if (tx_in.file_info.size() == 0)
+            {
+                tp.chunk_start = 0;
+                tp.chunk_end = tx_in.file_size - 1;
+                missing.push_back(tp);
+            }
+            else
+            {
+                merge_chunks_overlap(tx_in);
+                sort(tx_in.file_info.begin(), tx_in.file_info.end(), lower_chunk);
 
-	packet.resize(PACKET_DATA_HEADER_SIZE+byte_count);
-	memmove(&packet[0]+PACKET_DATA_TYPE, &type, sizeof(PACKET_TYPE));
-	memmove(&packet[0]+PACKET_DATA_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
-	memmove(&packet[0]+PACKET_DATA_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
-	memmove(&packet[0]+PACKET_DATA_BYTE_COUNT, &byte_count, sizeof(PACKET_CHUNK_SIZE_TYPE));
-	memmove(&packet[0]+PACKET_DATA_CHUNK_START, &chunk_start, sizeof(chunk_start));
-	memmove(&packet[0]+PACKET_DATA_CHUNK, chunk, byte_count);
-}
+                // Check missing before first chunk
+                if (tx_in.file_info[0].chunk_start)
+                {
+                    tp.chunk_start = 0;
+                    tp.chunk_end = tx_in.file_info[0].chunk_start - 1;
+                    missing.push_back(tp);
+                }
 
-//Function to extract necessary fileds from a received data packet
-void extract_data(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_CHUNK_SIZE_TYPE& byte_count, PACKET_FILE_SIZE_TYPE& chunk_start, PACKET_BYTE* chunk)
-{
-	memmove(&node_id, &packet[0]+PACKET_DATA_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
-	memmove(&tx_id, &packet[0]+PACKET_DATA_TX_ID, sizeof(PACKET_TX_ID_TYPE));
-	memmove(&byte_count, &packet[0]+PACKET_DATA_BYTE_COUNT, sizeof(byte_count));
-	memmove(&chunk_start, &packet[0]+PACKET_DATA_CHUNK_START, sizeof(chunk_start));
-	memmove(chunk, &packet[0]+PACKET_DATA_CHUNK, byte_count);
-}
+                // Check missing between chunks
+                for (uint32_t i=1; i<tx_in.file_info.size(); ++i)
+                {
+                    if (tx_in.file_info[i-1].chunk_end+1 != tx_in.file_info[i].chunk_start)
+                    {
+                        tp.chunk_start = tx_in.file_info[i-1].chunk_end + 1;
+                        tp.chunk_end = tx_in.file_info[i].chunk_start - 1;
+                        missing.push_back(tp);
+                    }
+                }
 
-void make_queue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> queue)
-{
-	PACKET_TYPE type = salt_type(PACKET_QUEUE);
+                // Check missing after last chunk
+                if (tx_in.file_info[tx_in.file_info.size()-1].chunk_end + 1 != tx_in.file_size)
+                {
+                    tp.chunk_start = tx_in.file_info[tx_in.file_info.size()-1].chunk_end + 1;
+                    tp.chunk_end = tx_in.file_size - 1;
+                    missing.push_back(tp);
+                }
+            }
 
-	packet.resize(PACKET_QUEUE_SIZE);
-	memset(&packet[0], 0, PACKET_QUEUE_SIZE);
-	memmove(&packet[0]+PACKET_QUEUE_TYPE, &type, sizeof(PACKET_TYPE));
-	memmove(&packet[0]+PACKET_QUEUE_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-	memmove(&packet[0]+PACKET_QUEUE_NODE_NAME, node_name.c_str(), node_name.size());
-	memmove(&packet[0]+PACKET_QUEUE_TX_ID, &queue[0], COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
-}
+            // calculate bytes so far
+            tx_in.total_bytes = 0;
+            for (file_progress prog : tx_in.file_info)
+            {
+                tx_in.total_bytes += (prog.chunk_end - prog.chunk_start) + 1;
+            }
+            if (tx_in.total_bytes == tx_in.file_size)
+            {
+                tx_in.sentdata = true;
+                tx_in.complete = true;
+            }
 
-//Function to extract necessary fileds from a received queue packet
-void extract_queue(vector<PACKET_BYTE>& packet, packet_struct_queue& queue)
-{
-	memmove(&queue.node_id, &packet[0]+PACKET_QUEUE_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
-	memmove(&queue.node_name, &packet[0]+PACKET_QUEUE_NODE_NAME, COSMOS_MAX_NAME);
-	memmove(&queue.tx_id, &packet[0]+PACKET_QUEUE_TX_ID, COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
-}
+            return (missing);
+        }
 
-void show_fstream_state(ifstream& )  {
-	cout<<"eobit =\t"<<ios_base::eofbit<<endl;
-	cout<<"failbit =\t"<<ios_base::failbit<<endl;
-	cout<<"badbit =\t"<<ios_base::badbit<<endl;
-	cout<<"goodbit =\t"<<ios_base::goodbit<<endl;
-	return;
-}
+        //! Adds a vector chunk to the tx_progress vector.
+        //! Used when sender receives a REQDATA packet.
+        //! \param tx The tx_progress of a file in the incoming queue
+        //! \param holes Data chunks to add
+        //! \param start_end_signifier The return of deserialize_reqdata(), signifies whether this sorted vector contains the first or last hole
+        //! \return true if tx was updated
+        bool add_chunks(tx_progress& tx, const vector<file_progress>& holes, uint8_t start_end_signifier)
+        {
+            bool updated = false;
+            bool has_start = start_end_signifier & 0x1; // has start if bit 0 is set
+            bool has_end = start_end_signifier & 0x2; // has end if bit 1 is set
+            for (size_t i=0; i<holes.size(); ++i)
+            {
+                // Simple validity check
+                if (holes[i].chunk_end < holes[i].chunk_start)
+                {
+                    continue;
+                }
 
-// Function to get age of a file in seconds
-time_t get_file_age(string filename)
-{
-	struct stat stat_buf;
-	if (stat(filename.c_str(), &stat_buf) != 0)
-	{
-		return 0;
-	}
-	else
-	{
-		struct timeval cmjd = utc2unix(currentmjd(0.));
-		return (cmjd.tv_sec-stat_buf.st_mtime);
-	}
-}
+                bool is_start = false;
+                bool is_end = false;
 
-//Function which gets the size of a file
-uint32_t get_file_size(string filename)
-{
-	struct stat stat_buf;
+                if (has_start && i == 0)
+                {
+                    is_start = true;
+                }
+                if (has_end && (i == holes.size() - 1))
+                {
+                    is_end = true;
+                }
+                // Add this chunk to the queue
+                updated = add_chunk(tx, holes[i], is_start, is_end) || updated;
+            }
+            return updated;
+        }
 
-	if ((stat(filename.c_str(), &stat_buf)) == 0)
-	{
-		return  stat_buf.st_size;
-	}
-	else
-	{
-		return 0;
-	}
-}
+        //! Adds a chunk to the tx_progress vector.
+        //! Used when a DATA packet is received.
+        //! \param tx The tx_progress of a file in the incoming queue
+        //! \param tp Data chunk to add
+        //! \return true if tx_in was updated
+        bool add_chunk(tx_progress& tx, const file_progress& tp)
+        {
+            return add_chunk(tx, tp, false, false);
+        }
 
-uint32_t get_file_size(const char* filename)
-{
-	string sfilename = filename;
-	return get_file_size(sfilename);
-}
+        //! Adds a chunk to the tx_progress vector.
+        //! Called by the other add_chunk or add_chunks.
+        //! \param tx The tx_progress of a file in the incoming queue
+        //! \param tp Data chunk to add
+        //! \param is_start If this chunk's start is the holes vector's start
+        //! \param is_end If this chunk's end is the holes vector's end
+        //! \return true if tx_in was updated
+        bool add_chunk(tx_progress& tx, const file_progress& tp, bool is_start, bool is_end)
+        {
+            // Sort first before truncating either end
+            if (is_start || is_end)
+            {
+                sort(tx.file_info.begin(), tx.file_info.end(), lower_chunk);
+            }
+            // Bytes in hole
+            const PACKET_CHUNK_SIZE_TYPE byte_count = tp.chunk_end - tp.chunk_start + 1;
 
-void print_cstring(uint8_t* buf, int siz)
-{
-	for(int i=0; i<siz; ++i)
-		printf("%c", buf[i]);
-	printf("\n");
-	printf("\n");
-	return;
-}
+            // Do we have any data yet?
+            if (!tx.file_info.size())
+            {
+                // Add first entry, then write data
+                tx.file_info.push_back(tp);
+                tx.total_bytes += byte_count;
+                return true;
+            }
+            // Check against existing data
+            for (uint32_t j=0; j<tx.file_info.size(); ++j)
+            {
+                // If we start before this entry
+                if (tp.chunk_start < tx.file_info[j].chunk_start)
+                {
+                    
+                    // If the new chunk is the start hole, then truncate anything before
+                    if (is_start)
+                    {
+                        tx.file_info.erase(tx.file_info.begin(), tx.file_info.begin()+j);
+                        j = 0;
+                    }
+                    // If we end before this entry starts (at least one byte between)
+                    if (tp.chunk_end + 1 < tx.file_info[j].chunk_start)
+                    {
+                        // If the new chunk is the end hole, then truncate anything beyond
+                        if (is_end)
+                        {
+                            tx.file_info.resize(j);
+                        }
+                        // Insert the new chunk
+                        tx.file_info.insert(tx.file_info.begin()+j, tp);
+                        tx.total_bytes += byte_count;
 
-void print_cstring_with_index(uint8_t* buf, int siz)
-{
-	int start = 0;
-	int linesize = 40;
-	while(start < siz)	{
-		for(int i=start; i<min(start+linesize,siz); ++i)
-			printf("%2c", buf[i]);
-		printf("\n");
-		for(int i=start; i<min(start+linesize,siz); ++i)
-			printf("%02d", i%100);
-		printf("\n");
-		printf("\n");
+                        if (is_start || is_end)
+                        {
+                            // Recalculate total_bytes
+                            merge_chunks_overlap(tx);
+                        }
+                        return true;
+                    }
+                    // We end beyond the start of this chunk
+                    else
+                    {
+                        // If the new chunk is the end hole, then truncate anything beyond
+                        // and set the end to the new chunk's end
+                        if (is_end)
+                        {
+                            tx.file_info.resize(j+1);
+                            tx.file_info[j].chunk_end = tp.chunk_end;
+                        }
+                        // If we completely encompass this chunk, have this chunk match start and end
+                        if (tp.chunk_end > tx.file_info[j].chunk_end)
+                        {
+                            tx.total_bytes += (tx.file_info[j].chunk_start - tp.chunk_start);
+                            tx.total_bytes += (tp.chunk_end - tx.file_info[j].chunk_end);
+                            tx.file_info[j].chunk_start = tp.chunk_start;
+                            tx.file_info[j].chunk_end = tp.chunk_end;
+                            if (is_start || is_end)
+                            {
+                                // Recalculate total_bytes
+                                merge_chunks_overlap(tx);
+                            }
+                            return true;
+                        }
+                        // We end before the end of this chunk, then extend the front of this chunk
+                        tx.total_bytes += (tx.file_info[j].chunk_start - tp.chunk_start);
+                        tx.file_info[j].chunk_start = tp.chunk_start;
+                        if (is_start || is_end)
+                        {
+                            // Recalculate total_bytes
+                            merge_chunks_overlap(tx);
+                        }
+                        return true;
+                    }
+                }
+                // If we start somewhere between the start and end of this chunk
+                else if (tp.chunk_start <= tx.file_info[j].chunk_end + 1)
+                {
+                    // If the new chunk is the end hole, then truncate anything beyond
+                    // and set the end to the new chunk's end
+                    if (is_end)
+                    {
+                        tx.file_info.resize(j+1);
+                        tx.file_info[j].chunk_end = tp.chunk_end;
+                    }
+                    // If the new chunk is the start hole, then truncate anything before
+                    if (is_start)
+                    {
+                        tx.file_info.erase(tx.file_info.begin(), tx.file_info.begin()+j);
+                        j = 0;
+                        tx.file_info[j].chunk_start = tp.chunk_start;
+                    }
+                    // If we end beyond the end of this chunk, then extend the end of this chunk
+                    if (tp.chunk_end > tx.file_info[j].chunk_end)
+                    {
+                        tx.total_bytes += (tp.chunk_end - tx.file_info[j].chunk_end);
+                        tx.file_info[j].chunk_end = tp.chunk_end;
+                        if (is_start || is_end)
+                        {
+                            // Recalculate total_bytes
+                            merge_chunks_overlap(tx);
+                        }
+                        return true;
+                    }
+                    if (is_start || is_end)
+                    {
+                        // Recalculate total_bytes
+                        merge_chunks_overlap(tx);
+                    }
+                    // New chunk is completely inside this chunk, just discard it.
+                    // Unless, we had to truncate anything before, then we did in fact update.
+                    return is_start || is_end;
+                }
+                // We were somewhere beyond the end of this chunk
+            } // End for
 
-		start+=linesize;
-	}
-	return;
-}
+            // If we are higher than everything currently in the list
+            // If the new chunk is the start hole, then clear the whole vector
+            if (is_start)
+            {
+                tx.file_info.clear();
+                tx.total_bytes = 0;
+            }
+            // Append
+            tx.file_info.push_back(tp);
+            tx.total_bytes += byte_count;
 
-void print_cstring_hex(uint8_t* buf, int siz)
-{
-	for(int i=0; i<siz; ++i)
-		printf("%02x", buf[i]);
-	printf("\n");
-	printf("\n");
-	return;
-}
+            return true;
+        }
 
-void print_cstring_hex_with_index(uint8_t* buf, int siz)
-{
-	int start = 0;
-	int linesize = 40;
-	while(start < siz)	{
-		for(int i=start; i<min(start+linesize,siz); ++i)
-			printf("%02x", buf[i]);
-		printf("\n");
-		for(int i=start; i<min(start+linesize,siz); ++i)
-			printf("%02d", i%100);
-		printf("\n");
-		printf("\n");
+        //! Gets the size of a file.
+        /*! Looks up the size of the file on the filesystem.
+        * On success, sets the size param to the size of the file.
+        * Performs a conversion from off_t to uint32_t, which we will say is large enough for our purposes.
+        * \param filename Full path to file
+        * \param size On success, this is set to the size of the file
+        * \return 0 on success, or negative error.
+        */
+        int32_t get_file_size(string filename, PACKET_FILE_SIZE_TYPE& size)
+        {
+            struct stat stat_buf;
 
-		start+=linesize;
-	}
-	return;
-}
+            if ((stat(filename.c_str(), &stat_buf)) == 0)
+            {
+                size = static_cast<PACKET_FILE_SIZE_TYPE>(stat_buf.st_size);
+                return 0;
+            }
+            else
+            {
+                return -errno;
+            }
+        }
 
-void unable_to_remove(string filename)  {
-	cout<<"ERROR:\tunable to remove file <"<<filename<<">"<<endl;
-	return;
-}
+        int32_t get_file_size(const char* filename, PACKET_FILE_SIZE_TYPE& size)
+        {
+            string sfilename = filename;
+            return get_file_size(sfilename, size);
+        }
 
-PACKET_TYPE salt_type(PACKET_TYPE type)
-{
-	double cmjd = currentmjd();
-	uint8_t time_salt = (uint32_t)((cmjd-(int)cmjd) * 86400.) % 16;
-	type &= 0xf;
-	type |= time_salt << 4;
-	return type;
+        /**
+         * @brief Clears out the incoming or outgoing tx_entry.
+         * 
+         *  Resets the queue to a clean state. If there are temp files, then those
+         *  are cleared out too.
+         * 
+         * @param tx The incoming or outgoing tx_entry to clear out
+         * @return int32_t 0 on success, negative on error
+         */
+        int32_t clear_tx_entry(tx_entry& tx)
+        {
+            // Check file stuff first
+            for (size_t i=0; i < PROGRESS_QUEUE_SIZE; ++i)
+            {
+                // Close file pointer
+                if (tx.progress[i].fp != nullptr)
+                {
+                    fclose(tx.progress[i].fp);
+                    tx.progress[i].fp = nullptr;
+                }
+                // Clear out temporary files
+                if (tx.progress[i].temppath.size())
+                {
+                    remove((tx.progress[i].temppath + ".meta").c_str());
+                    remove((tx.progress[i].temppath + ".file").c_str());
+                }
+            }
+            // Reset everything to default
+            tx = tx_entry();
+            return 0;
+        }
+    }
 }

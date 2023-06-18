@@ -1,0 +1,4 @@
+#!/bin/bash
+mkdir linux
+cd linux
+cmake $2 -DBUILD_STATIC=On -DCMAKE_BUILD_TYPE=Debug -DBUILD_TYPE=COMPLETE ../..

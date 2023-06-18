@@ -1,0 +1,4 @@
+#!/bin/bash
+mkdir arm_$1
+cd arm_$1
+cmake  -DCMAKE_BUILD_TYPE=$1 -DCMAKE_TOOLCHAIN_FILE=../../cmake/toolchain_arm_linux.cmake -DCROSS_TYPE=arm ../..

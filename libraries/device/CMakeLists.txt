@@ -1,14 +1,20 @@
-cmake_minimum_required(VERSION 2.6)
+#cmake_minimum_required(VERSION 3.1)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../support)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../device)
+#MACRO(SUBDIRLIST result curdir)
+#  FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
+#  SET(dirlist "")
+#  FOREACH(child ${children})
+#    IF(IS_DIRECTORY ${curdir}/${child})
+#        LIST(APPEND dirlist ${child})
+#    ENDIF()
+#  ENDFOREACH()
+#  SET(${result} ${dirlist})
+#ENDMACRO()
 
-FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+## go into every folder to find more cmakelists
+#SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_library(CosmosDevice STATIC ${SOURCES})
-
-install(TARGETS CosmosDevice DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include)
+#message("-------------------------")
+#message("-------------------------")
+#message("add each device library into the main CosmosDevice lib:")
 

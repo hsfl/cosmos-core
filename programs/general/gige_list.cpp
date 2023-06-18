@@ -27,24 +27,42 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "gige_lib.h"
-#include "agentlib.h"
-#include "datalib.h"
+#include "device/general/gige_lib.h"
+#include "agent/agentclass.h"
+#include "support/datalib.h"
 #include "time.h"
+#include "support/elapsedtime.h"
+#include "support/cosmos-errno.h"
 
 int main(int argc, char *argv[])
 {
-	vector<gige_acknowledge_ack> gige_list;
+    vector<gige_acknowledge_ack> gige_list;
+    double wait_time = 0.;
 
+    if (argc == 2)
+    {
+        wait_time = atof(argv[1]);
+    }
+
+    ElapsedTime et;
+    et.start();
+    do
+    {
 	gige_list = gige_discover();
+    } while (gige_list.size() == 0 && et.split() < wait_time);
+
 	if (!gige_list.size())
 	{
 		printf("Couldn't find any cameras\n");
 		exit(1);
 	}
 
+    Log::Logger debuglog;
+    debuglog.Set(1);
 	for (uint16_t i=0; i<gige_list.size(); ++i)
 	{
-		printf("Camera %u: %s %s %s\n", i, gige_value_to_address(gige_list[i].address), gige_list[i].serial_number, gige_list[i].manufacturer);
+        debuglog.Printf("Camera %u: %s %s %s\n", i, gige_value_to_address(gige_list[i].address), gige_list[i].serial_number, gige_list[i].manufacturer);
 	}
+
+    exit(0);
 }

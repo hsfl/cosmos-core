@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# script to make sure that only code that compiles is committed to the repo!
+
+MIRROR=mirror
+TMPDIR=tmpdir
+
+
+mkdir -p $MIRROR
+mkdir -p $TMPDIR
+
+# Checkout a copy of the current index into MIRROR
+git checkout-index --prefix=$MIRROR/ -af
+
+# Remove files from MIRROR which are no longer present in the index
+git diff-index --cached --name-only --diff-filter=D -z HEAD | (cd $MIRROR && xargs -0 rm -f --)
+
+
+# Copy only _changed files_ from MIRROR to TMPDIR, without copying timestamps.
+# This includes copying over new files, and deleting removed ones.  This way,
+# build_all_linus will only rebuild what is necessary to validate the commit.
+rsync -rlpgoDO --size-only --delete $MIRROR/ $TMPDIR/
+
+cd $TMPDIR
+
+cd build
+
+./build_all_linux
+
+NOT_SUCCESS=$?
+
+if [ $NOT_SUCCESS -ne 0 ]; then
+	echo -e "\033[0;37mSorry, code that does not compile may not be committed. Please fix the errors and try again.\033[0m"
+else
+	echo -e "\033[0;37mNo compilation errors detected. Committing...\033[0m"
+fi
+
+#GTEST RUNS
+
+exit $NOT_SUCCESS

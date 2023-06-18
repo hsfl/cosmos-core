@@ -1,0 +1,9 @@
+#!/bin/bash
+mkdir -p $COSMOS/log
+agent_file $1 >> $COSMOS/log/agent_file.log 2>&1 &
+
+# Exit 0 for rc.local success
+exit 0
+
+
+

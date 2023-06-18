@@ -27,13 +27,18 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+// TODO: rename calss from ElapseTime to StopWatch
 // change class elapsedtime to stopwatch with functions jsut like a stop watch:
 // - start
 // - stop
 // - lap
 // - reset
 
-#include "elapsedtime.hpp"
+#include "support/elapsedtime.h"
+#include "support/timelib.h"
+
+using std::cout;
+using std::endl;
 
 // -------------------------------------------------------------------
 // ElapsedTime class
@@ -66,105 +71,125 @@
 //    auto end = chrono::steady_clock::now();
 //    auto diff = end - start;
 //    double test = chrono::duration <double> (diff).count();
-//    cout <<  test << " s" << endl;
+//    std::cout <<  test << " s" << std::endl;
 
 
+
+
+/*!
+ * \brief ElapsedTime::ElapsedTime
+ */
+ElapsedTime::ElapsedTime(double initialseconds)
+{
+    // by default start the timer
+    start(initialseconds);
+}
+
+//
+/*!
+ * \brief ElapsedTime::info, combines toc and print, this simplifies the calling of functions
+ */
 void ElapsedTime::info(){
-#ifndef BUILD_TYPE_arm
-    cout << "system_clock" << endl;
-    cout << chrono::system_clock::period::num << endl;
-    cout << chrono::system_clock::period::den << endl;
-    cout << "steady = " << boolalpha << chrono::system_clock::is_steady << endl << endl;
+#ifndef CROSS_TYPE_arm
+    std::cout << "system_clock" << std::endl;
+    std::cout << std::chrono::system_clock::period::num << std::endl;
+    std::cout << std::chrono::system_clock::period::den << std::endl;
+    std::cout << "steady = " << std::boolalpha << std::chrono::system_clock::is_steady << std::endl << std::endl;
 
-    cout << "high_resolution_clock" << endl;
-    cout << chrono::high_resolution_clock::period::num << endl;
-    cout << chrono::high_resolution_clock::period::den << endl;
-    cout << "steady = " << boolalpha << chrono::high_resolution_clock::is_steady << endl << endl;
+    std::cout << "high_resolution_clock" << std::endl;
+    std::cout << std::chrono::high_resolution_clock::period::num << std::endl;
+    std::cout << std::chrono::high_resolution_clock::period::den << std::endl;
+    std::cout << "steady = " << std::boolalpha << std::chrono::high_resolution_clock::is_steady << std::endl << std::endl;
 
-    cout << "steady_clock" << endl;
-    cout << chrono::steady_clock::period::num << endl;
-    cout << chrono::steady_clock::period::den << endl;
-    cout << "steady = " << boolalpha << chrono::steady_clock::is_steady << endl << endl;
+    std::cout << "steady_clock" << std::endl;
+    std::cout << std::chrono::steady_clock::period::num << std::endl;
+    std::cout << std::chrono::steady_clock::period::den << std::endl;
+    std::cout << "steady = " << std::boolalpha << std::chrono::steady_clock::is_steady << std::endl << std::endl;
 #endif
 
 }
 
-
-// new function
-// combines toc and print, this simplifies the calling of functions
+/*!
+ * \brief ElapsedTime::printElapsedTime
+ */
 void ElapsedTime::printElapsedTime()
 {
     if (print){
         //char buffer[50];
         //sprintf(buffer,"Elapsed Time: %.6f s",elapsedTime);
-        //cout << buffer << endl;
-        cout << "Elapsed Time "<< elapsedTime << " s" << endl;
+        //std::cout << buffer << std::endl;
+        std::cout << "Elapsed Time "<< elapsedTime << " s" << std::endl;
     }
 }
 
+/*!
+ * \brief ElapsedTime::printElapsedTime
+ * \param text
+ */
 void ElapsedTime::printElapsedTime(string text)
 {
     if (print){
         //toc();
         //char buffer[50];
         //sprintf(buffer,"Elapsed Time (%s): %.6f s",text.c_str(),elapsedTime);
-        //cout << buffer << endl;
-        cout << "Elapsed Time (" << text << "): "<< elapsedTime<< " s" << endl;
+        //std::cout << buffer << std::endl;
+        std::cout << "Elapsed Time (" << text << "): "<< elapsedTime<< " s" << std::endl;
     }
 }
 
 //! Lap Time
-/*! This is the elapsed time since the last Lap Time. ::timeCheck is set in order
+/*! This is the elapsed time since the last Lap Time. ::ElapsedTime::timeCheck is set in order
  * to keep track of this event.
  * \return Time since last call to lap(), reset(), or start(), in seconds.
 */
 double ElapsedTime::lap()
 {
-#ifdef BUILD_TYPE_arm
-//	clock_gettime(CLOCK_MONOTONIC, &timeNow);
-//	elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_nsec - timeCheck.tv_nsec) / 1e9;
-	gettimeofday(&timeNow, nullptr);
-	elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_usec - timeCheck.tv_usec) / 1e6;
+#ifdef CROSS_TYPE_arm
+    //	clock_gettime(CLOCK_MONOTONIC, &timeNow);
+    //	elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_nsec - timeCheck.tv_nsec) / 1e9;
+    gettimeofday(&timeNow, nullptr);
+    elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_usec - timeCheck.tv_usec) / 1e6;
 #else
-	timeNow = chrono::steady_clock::now();
-	elapsedTime =  chrono::duration<double>(timeNow - timeCheck).count();
+    timeNow = std::chrono::steady_clock::now();
+    elapsedTime =  std::chrono::duration<double>(timeNow - timeCheck).count();
 #endif
 
-	timeCheck = timeNow;
-	return elapsedTime;
+    timeCheck = timeNow;
+    return elapsedTime;
 
 }
 
 
-// equivalent to matlab to start a stopwatch timer
+/*!
+ * \brief ElapsedTime::tic, equivalent to matlab to start a stopwatch timer
+ */
 void ElapsedTime::tic(){
     start();
 }
 
-// equivalent to matlab to stop a stopwatch timer
+/*!
+ * \brief ElapsedTime::toc, equivalent to matlab to stop a stopwatch timer
+ * \return
+ */
 double ElapsedTime::toc(){
 
-//    stop();
-	split();
-	printElapsedTime();
+    //    stop();
+    split();
+    printElapsedTime();
 
     return elapsedTime;
 }
 
 
-// equivalent to matlab to stop a stopwatch timer
-//double ElapsedTime::toc(bool print_flag){
+/*!
+ * \brief ElapsedTime::toc, equivalent to matlab to stop a stopwatch timer
+ * \param text
+ * \return
+ */
+double ElapsedTime::toc(string text)
+{
 
-//    print = print_flag;
-//    toc();
-
-//    return elapsedTime;
-//}
-
-double ElapsedTime::toc(string text){
-
-//    stop();
-	split();
+    split();
 
     // print the text
     printElapsedTime(text);
@@ -172,53 +197,119 @@ double ElapsedTime::toc(string text){
     return elapsedTime;
 }
 
-
-void ElapsedTime::start(){
+/*!
+ * \brief ElapsedTime::start
+ */
+void ElapsedTime::start(double initialseconds)
+{
     //Get the start time
-#ifdef BUILD_TYPE_arm
-//	clock_gettime(CLOCK_MONOTONIC, &timeStart);
-	gettimeofday(&timeStart, nullptr);
+#ifdef CROSS_TYPE_arm
+    //	clock_gettime(CLOCK_MONOTONIC, &timeStart);
+    gettimeofday(&timeStart, nullptr);
+    timeStart.tv_sec -= initialseconds;
 #else
-	timeStart = chrono::steady_clock::now();
+    // On windows using MinGw32 it does not get better than 1ms
+    // new c++11
+    timeStart = std::chrono::steady_clock::now() - std::chrono::milliseconds(static_cast<uint64_t>(1000.*initialseconds));
 #endif
+    timeAlarm = timeStart;
     timeCheck = timeStart;
-    elapsedTime = 0;
+    elapsedTime = initialseconds;
+    set(0);
 }
 
-//double ElapsedTime::stop(){
-double ElapsedTime::split(){
+/*!
+ * \brief ElapsedTime::stop
+ * \return
+ */
+// TODO: if calling start again it should allow you to continue from the previous stop time
+double ElapsedTime::stop()
+{
+    //elapsedTime = 0;
+    return split();
+}
+
+/*!
+ * \brief ElapsedTime::split, gets the current elapsed time since the start()
+ * \return
+ * was previously stop()
+ */
+double ElapsedTime::split()
+{
     //Get the final time
 
-#ifdef BUILD_TYPE_arm
-//	clock_gettime(CLOCK_MONOTONIC, &timeNow);
-//	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_nsec - timeStart.tv_nsec) / 1e9;
-	gettimeofday(&timeNow, nullptr);
-	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_usec - timeStart.tv_usec) / 1e6;
+#ifdef CROSS_TYPE_arm
+    //	clock_gettime(CLOCK_MONOTONIC, &timeNow);
+    //	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_nsec - timeStart.tv_nsec) / 1e9;
+    gettimeofday(&timeNow, nullptr);
+    elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_usec - timeStart.tv_usec) / 1e6;
 #else
-	timeNow = chrono::steady_clock::now();
-	elapsedTime =  chrono::duration<double>(timeNow - timeStart).count();
+    timeNow = std::chrono::steady_clock::now();
+    elapsedTime =  std::chrono::duration<double>(timeNow - timeStart).count();
 #endif
 
-    timeCheck = timeNow;
-	return elapsedTime;
+    return elapsedTime;
+}
+
+double ElapsedTime::set(double seconds)
+{
+#ifdef CROSS_TYPE_arm
+    gettimeofday(&timeAlarm, nullptr);
+    timeAlarm.tv_sec += int64_t(seconds);
+    timeAlarm.tv_usec += int64_t(1000000. * (seconds - int64_t(seconds)));
+#else
+    // On windows using MinGw32 it does not get better than 1ms
+    // new c++11
+    timeAlarm = std::chrono::steady_clock::now() + std::chrono::microseconds(int64_t(seconds) * 1000000);
+#endif
+    remainingTime = seconds;
+    return remainingTime;
+}
+
+double ElapsedTime::timer()
+{
+    //Get the remaining time on timer
+
+#ifdef CROSS_TYPE_arm
+    gettimeofday(&timeNow, nullptr);
+    remainingTime = (timeAlarm.tv_sec - timeNow.tv_sec) + (timeAlarm.tv_usec - timeNow.tv_usec) / 1e6;
+#else
+    timeNow = std::chrono::steady_clock::now();
+    remainingTime =  std::chrono::duration<double>(timeAlarm - timeNow).count() / 1000.;
+#endif
+
+    return remainingTime;
 }
 
 double ElapsedTime::getElapsedTime(){
     //Get the elapsedTime from start
-    return lap();
+    return split();
 }
 
+double ElapsedTime::getElapsedTimeSince(double startMjd){
+    //Get the elapsedTime from start to now
+    return (currentmjd()-startMjd)*86400;
+}
+
+
+/*!
+ * \brief compute the elapsed time between the two provided times
+ * \param startMjd First time.
+ * \param endMjd Second time.
+ * \return elapsed time in seconds
+ */
+double ElapsedTime::getElapsedTime(double startMjd, double endMjd)
+{
+    // compute the elapsed time between start and end
+    return (endMjd-startMjd)*86400;
+}
+
+/*!
+ * \brief ElapsedTime::reset
+ */
+//TODO: just reset the timer values, don't start counting again
 void ElapsedTime::reset(){
-    // set elapsedTime to 0
-
-	// On windows using MinGw32 it does not get better than 1ms
-	// new c++11
-    //time2 = chrono::steady_clock::now();
-
-    //elapsedTime = getElapsedTime();
-    //timeStart = chrono::steady_clock::now();
     start();
-    //return elapsedTime;
 }
 
 // -------------OLD Code

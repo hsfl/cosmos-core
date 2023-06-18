@@ -27,12 +27,14 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "mathlib.h"
+//TODO: add description
+
+#include "math/mathlib.h"
 
 int main(int argc, char *argv[])
 {
-	rvector sourcea = {{1., 0., 0.}};
-	rvector sourceb = {{0., 1., 0.}};
+	rvector sourcea = {1., 0., 0.};
+	rvector sourceb = {0., 1., 0.};
 	rvector targeta;
 	rvector targetb;
 
@@ -69,7 +71,7 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	quaternion tq = q_transform_for(sourcea, sourceb, targeta, targetb);
+    quaternion tq = q_irotate_for(sourcea, sourceb, targeta, targetb);
 
 	printf("%f [ %f, %f, %f ]\n", tq.w, tq.d.x, tq.d.y, tq.d.z);
 }

@@ -27,99 +27,241 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
+#include <algorithm>
+#include "agent/agentclass.h"
 
-#include <stdio.h>
+void opening_loop();
+void forwarding_loop();
 
-#include "agentlib.h"
+static Agent *agent;
+static socket_channel rcvchan;
+static vector<socket_channel> sendchan;
 
-void incoming_thread();
-char agentname[COSMOS_MAX_NAME] = "forward";
-int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-
-cosmosstruc *cdata;
-socket_channel rcvchan;
+int32_t request_add_forward(string &req, string & , Agent *);
+int32_t request_del_forward(string &req, string &, Agent *);
 
 #define MAXBUFFERSIZE 2560 // comm buffer for agents
 
 int main(int argc, char *argv[])
 {
-	int32_t iretn;
-	socket_channel tempchan;
-	vector<socket_channel> sendchan;
+    int32_t iretn = 0;
 
-	if (argc < 2)
-	{
-		printf("Usage: agent_forward {ipaddresses1} [{ipaddress2} {ipaddress3} ...]\n");
-		exit (1);
-	}
+    if (argc < 1)
+    {
+        printf("Usage: agent_forward [{ipaddresses1} {ipaddress2} {ipaddress3} ...]\n");
+        exit (1);
+    }
 
-	// Initialize the Agent
-	if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)NULL,(char *)"forward",1.,AGENTRECVPORT,MAXBUFFERSIZE,AGENT_SINGLE)))
-	{
-		exit (AGENT_ERROR_JSON_CREATE);
-	}
+    // Initialize the Agent
+    agent = new Agent("", "", "forward", 5.);
+    if ((iretn = agent->wait()) < 0)
+    {
+        agent->debug_log.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        exit(iretn);
+    }
+    else
+    {
+        agent->debug_log.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+    }
 
-	// Open sockets to each address to be used for outgoing forwarding.
-	for (uint16_t i=1; i<argc; ++i)
-	{
-		if ((iretn=socket_open(&tempchan, SOCKET_TYPE_UDP, argv[i], AGENTRECVPORT, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) == 0)
-		{
-			sendchan.push_back(tempchan);
-		}
-	}
 
-	// Open the socket for incoming forwarding.
-	if ((iretn=socket_open(&rcvchan, SOCKET_TYPE_UDP, "", AGENTRECVPORT, AGENT_LISTEN, AGENT_BLOCKING, AGENTRCVTIMEO)) != 0)
-	{
-		for (uint16_t i=0; i<sendchan.size(); ++i)
-		{
-			close(sendchan[i].cudp);
-		}
-		agent_shutdown_server(cdata);
-		printf("Could not open incoming socket for forwarding: %d\n", iretn);
-		exit (1);
-	}
+    // Add requests
+    if ((iretn=agent->add_request("add_forward",request_add_forward,"add_forward xxx.xxx.xxx.xxx", "Add address to forwarding list.")))
+        exit (iretn);
 
-	// Start thread for incoming forwarding.
-	thread thread_incoming;
-	thread_incoming = thread(incoming_thread);
+    // Open sockets to each address to be used for outgoing forwarding.
+    for (uint16_t i=1; i<argc; ++i)
+    {
+        socket_channel tempchan;
+        if ((iretn=socket_open(&tempchan, NetworkType::UDP, argv[i], AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) == 0)
+        {
+            sendchan.push_back(tempchan);
+        }
+    }
 
-	// Start performing the body of the agent
-	int nbytes;
-	char input[AGENTMAXBUFFER];
-	while(agent_running(cdata))
-	{
+    // Open the socket for incoming forwarding.
+    if ((iretn=socket_open(&rcvchan, NetworkType::UDP, "", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, AGENTRCVTIMEO)) != 0)
+    {
+        for (uint16_t i=0; i<sendchan.size(); ++i)
+        {
+            close(sendchan[i].cudp);
+        }
+        agent->shutdown();
+        printf("Could not open incoming socket for forwarding: %d\n", iretn);
+        exit (1);
+    }
 
-		nbytes = recvfrom(cdata[0].agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)NULL,(socklen_t *)NULL);
-		for (uint16_t i=0; i<sendchan.size(); ++i)
-		{
-			iretn = sendto(sendchan[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&sendchan[i].caddr,sizeof(struct sockaddr_in));
-		}
-	}
+    // Start thread for incoming forwarding.
+    std::thread thread_forwarding;
+    thread_forwarding = std::thread(forwarding_loop);
 
-	thread_incoming.join();
-	for (uint16_t i=0; i<sendchan.size(); ++i)
-	{
-		close(sendchan[i].cudp);
-	}
-	agent_shutdown_server(cdata);
+    std::thread thread_opening;
+    thread_opening = std::thread(opening_loop);
+
+    // Start performing the body of the agent
+    //    uint8_t post[AGENTMAXBUFFER];
+    //    size_t nbytes;
+
+    while(agent->running())
+    {
+        Agent::messstruc mess;
+        iretn = agent->readring(mess, Agent::AgentMessage::ALL, 1., Agent::Where::TAIL);
+
+        if (iretn > 0)
+        {
+            vector <uint8_t> post;
+            post.resize(mess.jdata.length() + 3 + (mess.meta.type < Agent::AgentMessage::BINARY ? mess.adata.size() : mess.bdata.size()));
+            post[0] = static_cast <uint8_t>(mess.meta.type);
+            post[1] = static_cast <uint8_t>(mess.jdata.length() % 256);
+            post[2] = static_cast <uint8_t>(mess.jdata.length() / 256);
+            std::copy(mess.jdata.begin(), mess.jdata.end(), post.begin() + 3);
+
+            if (post.size() <= AGENTMAXBUFFER)
+            {
+                if (mess.meta.type < Agent::AgentMessage::BINARY)
+                {
+                    if (mess.adata.size())
+                    {
+                        std::copy(mess.adata.begin(), mess.adata.end(), post.begin() + mess.jdata.length() + 3);
+                    }
+                }
+                else
+                {
+                    if (mess.bdata.size())
+                    {
+                        std::copy(mess.bdata.begin(), mess.bdata.end(), post.begin() + mess.jdata.length() + 3);
+                    }
+                }
+            }
+
+            // Forward to all connected forwarders
+            for (uint16_t i=0; i<sendchan.size(); ++i)
+            {
+                if (sendchan[i].cudp >= 0)
+                {
+                    iretn = socket_sendto(sendchan[i], post);
+                    if (agent->get_debug_level() > 1)
+                    {
+                        if (iretn < 0)
+                        {
+                            agent->debug_log.Printf("%s: Failed To %s\n", mjd2iso8601(currentmjd()).c_str(), sendchan[i].address);
+                        }
+                        else
+                        {
+                            agent->debug_log.Printf("%s: Sent %zu Bytes To %s\n", mjd2iso8601(currentmjd()).c_str(), post.size(), sendchan[i].address);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    thread_forwarding.join();
+    thread_opening.join();
+    for (uint16_t i=0; i<sendchan.size(); ++i)
+    {
+        close(sendchan[i].cudp);
+    }
+    agent->shutdown();
 }
 
-void incoming_thread()
+void opening_loop()
 {
-	//	int32_t iretn;
-	int32_t nbytes;
-	char input[AGENTMAXBUFFER];
+    while(agent->running())
+    {
+        for (socket_channel &tchan : sendchan)
+        {
+            if (tchan.cudp < 0)
+            {
+                socket_channel tempchan;
+                if ((socket_open(&tempchan, NetworkType::UDP, tchan.address, AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) == 0)
+                {
+                    tchan = tempchan;
+                }
+            }
+        }
+        secondsleep(.1);
+    }
+}
 
-	while(agent_running(cdata))
-	{
-		if ((nbytes = recvfrom(rcvchan.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)NULL,(socklen_t *)NULL)) > 0)
-		{
-			for (uint16_t i=0; i<cdata[0].agent[0].ifcnt; ++i)
-			{
-				sendto(cdata[0].agent[0].pub[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&((cosmosstruc *)cdata)->agent[0].pub[i].caddr,sizeof(struct sockaddr_in));
-			}
-		}
-	}
+void forwarding_loop()
+{
+    int32_t nbytes;
+    vector <uint8_t> input;
+
+    while(agent->running())
+    {
+        if ((nbytes = socket_recvfrom(rcvchan, input, AGENTMAXBUFFER, 0)) > 0)
+        {
+            // New forwarder? Add to forwarding list
+            bool found = false;
+            for (size_t i=0; i<sendchan.size(); ++i)
+            {
+                if (!strcmp(sendchan[i].address, rcvchan.address))
+                {
+                    found = true;
+                }
+            }
+
+            if (!found)
+            {
+                socket_channel tempchan;
+                strncpy(tempchan.address, rcvchan.address, 17);
+                sendchan.push_back(tempchan);
+                if (agent->get_debug_level())
+                {
+                    agent->debug_log.Printf("%s: Added %s\n", mjd2iso8601(currentmjd()).c_str(), tempchan.address);
+                }
+            }
+
+            for (size_t i=0; i<agent->cinfo->agent0.ifcnt; ++i)
+            {
+                sendto(agent->cinfo->agent0.pub[i].cudp, (const char *)input.data(), input.size(), 0, (struct sockaddr *)&agent->cinfo->agent0.pub[i].baddr, sizeof(struct sockaddr_in));
+//                socket_sendto(agent->cinfo->agent0.pub[i], input);
+            }
+        }
+    }
+}
+
+int32_t request_add_forward(string &req, string &, Agent *)
+{
+    char address[50];
+    sscanf(req.c_str(), "%*s %s", address);
+
+    bool found = false;
+    for (size_t i=0; i<sendchan.size(); ++i)
+    {
+        if (!strcmp(sendchan[i].address, address))
+        {
+            found = true;
+            sendchan[i].cudp = -1;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        socket_channel tempchan;
+        strncpy(tempchan.address, address, 17);
+        sendchan.push_back(tempchan);
+    }
+
+    return 0;
+}
+
+int32_t request_del_forward(string &req, string & , Agent *)
+{
+    char address[50];
+    sscanf(req.c_str(), "%*s %s", address);
+
+    for (size_t i=0; i<sendchan.size(); ++i)
+    {
+        if (!strcmp(sendchan[i].address, address))
+        {
+            socket_close(&sendchan[i]);
+            sendchan[i].cudp = -2;
+        }
+    }
+    return 0;
 }

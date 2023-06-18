@@ -28,8 +28,8 @@
 ********************************************************************/
 
 /*!	\file cosmos-defs.h
-	\brief COSMOS definitions
-	Definitions specific to the COSMOS environement
+    \brief COSMOS definitions
+    Definitions specific to the COSMOS environement
 */
 //!	\defgroup  defs COSMOS Definitions
 //! Constant definitions useful throughout COSMOS.
@@ -39,12 +39,8 @@
 
 #include <map>
 #include <vector>
+#include <list>
 #include <queue>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-
-using namespace std;
 
 //! \ingroup defs
 //! \defgroup defs_storage Constants defining limits on storage.
@@ -60,36 +56,67 @@ using namespace std;
 //! \defgroup defs_piece Constants defining Part types.
 //! @{
 //! These constants define the different Part types that a Node can be made of.
+enum PIECE
+{
+    //! External Panel: n vertices and a thickness, subject to external forces
+    PIECE_TYPE_EXTERNAL_PANEL=0,
+    //! Internal Panel: n vertices and a thickness
+    PIECE_TYPE_INTERNAL_PANEL=1,
+    //! Box: 8 vertices defining 2 parallel sides and a wall thickness, first set curled pointing out, second set pointing in
+    PIECE_TYPE_BOX=2,
+    //! Cylinder: 3 points and a wall thickness, first end, second end, point on radius of second end
+    PIECE_TYPE_CYLINDER=3,
+    //! Sphere: 2 points and a wall thickness; center and point on surface.
+    PIECE_TYPE_SPHERE=4,
+    //! Dimensionless:
+    PIECE_TYPE_DIMENSIONLESS=5,
+    //! Cone: same as Cylinder except first end is a point.
+    PIECE_TYPE_CONE=6,
+    PIECE_TYPE_COUNT,
+    PIECE_TYPE_NONE=UINT16_MAX
+};
 
-//! External Panel: n vertices and a thickness, subject to external forces
-#define PIECE_TYPE_EXTERNAL_PANEL 0
-//! Internal Panel: n vertices and a thickness
-#define PIECE_TYPE_INTERNAL_PANEL 1
-//! Box: 8 vertices defining 2 parallel sides and a wall thickness, first set curled pointing out, second set pointing in
-#define PIECE_TYPE_BOX 2
-//! Cylinder: 3 points and a wall thickness, first end, second end, point on radius of second end
-#define PIECE_TYPE_CYLINDER 3
-//! Sphere: 2 points and a wall thickness; center and point on surface.
-#define PIECE_TYPE_SPHERE 4
-//! Dimensionless:
-#define PIECE_TYPE_DIMENSIONLESS 5
-//! Cone: same as Cylinder except first end is a point.
-#define PIECE_TYPE_CONE 6
 //! @}
 
 
 //! \ingroup defs
 //! \defgroup defs_node_type Constants defining Node types.
 //! @{
-#define NODE_TYPE_SATELLITE 0
-#define NODE_TYPE_GROUNDSTATION 1
-#define NODE_TYPE_MOC 2
-#define NODE_TYPE_VEHICLE 3
-#define NODE_TYPE_UAV 4
-#define NODE_TYPE_TARGET 5
-#define NODE_TYPE_BALLOON 6
-#define NODE_TYPE_SHIP 7
-#define NODE_TYPE_DATA 8
+enum NODE_TYPE : uint16_t
+{
+    NODE_TYPE_SATELLITE=0,
+    NODE_TYPE_GROUNDSTATION=1,
+    NODE_TYPE_MOC=2,
+    NODE_TYPE_VEHICLE=3,
+    NODE_TYPE_UAV=4,
+    NODE_TYPE_TARGET=5,
+    NODE_TYPE_BALLOON=6,
+    NODE_TYPE_SHIP=7,
+    NODE_TYPE_DATA=8,
+    NODE_TYPE_COMPUTER=9,
+    NODE_TYPE_SUN=10,
+    NODE_TYPE_MOON=11,
+    NODE_TYPE_MARS=12,
+    NODE_TYPE_LOCATION=13,
+    NODE_TYPE_TESTBED=14,
+    NODE_TYPE_SQUARE=15,
+    NODE_TYPE_CIRCLE=16,
+    NODE_TYPE_COUNT,
+    NODE_TYPE_NONE=UINT16_MAX
+};
+
+//! \defgroup defs_node_flag Constants defining Node flags.
+//! @{
+enum NODE_FLAG : uint16_t
+{
+    NODE_FLAG_NONE=0,
+    NODE_FLAG_CHARGING=0x0001,
+    NODE_FLAG_LAUNCHED=0x0002,
+    NODE_FLAG_DEPLOYED=0x0004,
+    NODE_FLAG_BOOTCHECK=0x0008,
+    NODE_FLAG_ALL=UINT16_MAX
+};
+
 //! @}
 
 //! \ingroup defs
@@ -115,7 +142,7 @@ using namespace std;
 #define EVENT_FLAG_ALARM 0x0180
 //! Audible alarm
 #define EVENT_SCALE_ALARM 0x0080
-//! 8 bit flag, 0 - 7, see ::EVENT_SCALE_PRIORITY.
+//! 3 bit flag, 0 - 7, see ::EVENT_SCALE_PRIORITY.
 #define EVENT_FLAG_PRIORITY 0x0070
 //! Event display priority (0 = never , 1 = always, 2 = orbit, 3 = 15min, 4 = 5min, 5 = max zoom)
 #define EVENT_SCALE_PRIORITY 0x0010
@@ -143,6 +170,8 @@ using namespace std;
 #define EVENT_FLAG_REPEAT		0x20000
 //! Event true last time
 #define EVENT_FLAG_TRUE			0x40000
+//! Command Event should run by itself
+#define EVENT_FLAG_SOLO			0x80000
 
 //! @}
 
@@ -150,7 +179,7 @@ using namespace std;
 //! \defgroup defs_event_type Constants defining Event types.
 //! @{
 /*! These constants are for defining Events. TYPEs represent what
- * inititiated the event. If the type is ::EVENT_TYPE_CALCULATED, then it
+ * inititiated the event. If the type is EVENT_TYPE_CALCULATED, then it
  * was initiiated by some generic equation.
  */
 
@@ -196,37 +225,6 @@ using namespace std;
 #define EVENT_TYPE_MESSAGE 0x8000
 
 
-
-//! @}
-
-//! \ingroup defs
-//! \defgroup defs_agent Constants defining Agent values.
-//! @{
-#define AGENT_PORT_BASE 6100
-#define AGENT_PORT_EXECUTIVE (AGENT_PORT_BASE+1)
-#define AGENT_PORT_SOH (AGENT_PORT_BASE+2)
-#define AGENT_PORT_TIME (AGENT_PORT_BASE+3)
-#define AGENT_PORT_SIMULATOR (AGENT_PORT_BASE+4)
-
-//! Shutting down Agent
-#define AGENT_STATE_SHUTDOWN 0
-//! Agent Initializing
-#define AGENT_STATE_INIT 1
-//! Agent Running
-#define AGENT_STATE_RUN 2
-//! Agent in Safe State
-#define AGENT_STATE_SAFE 3
-//! Agent in Debug State
-#define AGENT_STATE_DEBUG 4
-
-//! Multiple agents per name
-#define AGENT_MULTIPLE true
-//! Single agent per name
-#define AGENT_SINGLE false
-//! Blocking Agent
-#define AGENT_BLOCKING true
-//! Non-blocking Agent
-#define AGENT_NONBLOCKING false
 
 //! @}
 
