@@ -77,6 +77,7 @@ namespace Cosmos {
         // TODO: implement using pos_geoc2geod
         int32_t loc_clear(locstruc *loc);
         int32_t pos_extra(double utc, locstruc *loc);
+        int32_t pos_lvlh(double utc, locstruc *loc);
         int32_t pos_icrf(locstruc *loc);
         int32_t pos_eci(locstruc *loc);
         int32_t pos_sci(locstruc *loc);
@@ -106,6 +107,7 @@ namespace Cosmos {
 
         int32_t loc_clear(locstruc &loc);
         int32_t pos_extra(double utc, locstruc &loc);
+        int32_t pos_lvlh(double utc, locstruc &loc);
         int32_t pos_clear(locstruc &loc);
         int32_t pos_icrf(locstruc &loc);
         int32_t pos_eci(locstruc &loc);

@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
 
     header += "temperature\tpowgen\t";
 
-    for (uint16_t id=0; id<sit->second->targets.size(); ++id)
+    for (uint16_t id=0; id<sit->second->currentinfo.target.size(); ++id)
     {
         header += "target_name_" + to_unsigned(id, 0) + "\t";
 
@@ -220,11 +220,11 @@ int main(int argc, char *argv[])
 
         // update states information for all nodes
         lastloc = sit->second->currentinfo.node.loc;
-        lasttargets = sit->second->targets;
+        lasttargets = sit->second->currentinfo.target;
         sim->Propagate();
         pcount += simdt;
 
-        stloc.pos.eci.s = rv_sub(sit->second->targets[0].loc.pos.eci.s, sit->second->currentinfo.node.loc.pos.eci.s);
+        stloc.pos.eci.s = rv_sub(sit->second->currentinfo.target[0].loc.pos.eci.s, sit->second->currentinfo.node.loc.pos.eci.s);
 
         Vector eci_z = Vector(stloc.pos.eci.s);
 
@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
             output += to_floatany(sit->second->currentinfo.node.phys.temp) + "\t";
             output += to_floatany(sit->second->currentinfo.node.phys.powgen) + "\t";
 
-            for (targetstruc &target : sit->second->targets)
+            for (targetstruc &target : sit->second->currentinfo.target)
             {
                 output += (target.name) + "\t";
                 output += to_floatany(target.loc.pos.geod.s.lat) + "\t";
@@ -383,22 +383,22 @@ int main(int argc, char *argv[])
             heading = DPI;
         }
 
-        for (uint16_t id=0; id<sit->second->targets.size(); ++id)
+        for (uint16_t id=0; id<sit->second->currentinfo.target.size(); ++id)
         {
             // Check ahead for target
-            double cd = cos(heading - sit->second->targets[id].bearing);
+            double cd = cos(heading - sit->second->currentinfo.target[id].bearing);
             if (cd > .8)
             {
-                double atime = sit->second->targets[id].distance / (anglev * cd);
+                double atime = sit->second->currentinfo.target[id].distance / (anglev * cd);
                 double latime = lasttargets[id].distance / (anglev * cd);
                 if ((latime >= 600.8 && atime < 600.9) || (latime >= 300.8 && atime <= 300.9))
                 {
                     output.clear();
                     output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
                     output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
-                    output += sit->second->targets[id].name + "\t";
+                    output += sit->second->currentinfo.target[id].name + "\t";
 
-                    if (sit->second->targets[id].type == NODE_TYPE_GROUNDSTATION)
+                    if (sit->second->currentinfo.target[id].type == NODE_TYPE_GROUNDSTATION)
                     {
                         output += "GS_PREP_SECONDS-" + to_unsigned(atime, 3, true) + "\t";
                     }
@@ -407,92 +407,92 @@ int main(int argc, char *argv[])
                         output += "IMAGE_PREP_SECONDS-" + to_unsigned(atime, 3, true) + "\t";
                     }
 
-                    output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
-                    output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
-                    output += to_floatany(sit->second->targets[id].range) + "\t";
-                    output += to_floatany(sit->second->targets[id].close) + "\t";
-                    output += to_floatany(sit->second->targets[id].azto) + "\t";
-                    output += to_floatany(sit->second->targets[id].elto) + "\t";
-                    output += to_floatany(sit->second->targets[id].azfrom) + "\t";
-                    output += to_floatany(sit->second->targets[id].elfrom) + "\t";
+                    output += to_floatany(sit->second->currentinfo.target[id].loc.pos.geod.s.lat) + "\t";
+                    output += to_floatany(sit->second->currentinfo.target[id].loc.pos.geod.s.lon) + "\t";
+                    output += to_floatany(sit->second->currentinfo.target[id].range) + "\t";
+                    output += to_floatany(sit->second->currentinfo.target[id].close) + "\t";
+                    output += to_floatany(sit->second->currentinfo.target[id].azto) + "\t";
+                    output += to_floatany(sit->second->currentinfo.target[id].elto) + "\t";
+                    output += to_floatany(sit->second->currentinfo.target[id].azfrom) + "\t";
+                    output += to_floatany(sit->second->currentinfo.target[id].elfrom) + "\t";
 
                     fprintf(efp, "%s\n", output.c_str());
                 }
             }
 
             //Check start of image
-            if (lasttargets[id].min != 2. && sit->second->targets[id].min == 2.)
+            if (lasttargets[id].min != 2. && sit->second->currentinfo.target[id].min == 2.)
             {
                 output.clear();
                 output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
                 output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
-                output += sit->second->targets[id].name + "\t";
+                output += sit->second->currentinfo.target[id].name + "\t";
 
                 output += "IMAGE_START\t";
 
-                output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
-                output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
-                output += to_floatany(sit->second->targets[id].range) + "\t";
-                output += to_floatany(sit->second->targets[id].close) + "\t";
-                output += to_floatany(sit->second->targets[id].azto) + "\t";
-                output += to_floatany(sit->second->targets[id].elto) + "\t";
-                output += to_floatany(sit->second->targets[id].azfrom) + "\t";
-                output += to_floatany(sit->second->targets[id].elfrom) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].loc.pos.geod.s.lat) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].loc.pos.geod.s.lon) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].range) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].close) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].azto) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].elto) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].azfrom) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].elfrom) + "\t";
 
                 fprintf(efp, "%s\n", output.c_str());
             }
 
             //Check stop of image
-            if (lasttargets[id].min == 2. && sit->second->targets[id].min != 2.)
+            if (lasttargets[id].min == 2. && sit->second->currentinfo.target[id].min != 2.)
             {
                 output.clear();
                 output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
                 output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
-                output += sit->second->targets[id].name + "\t";
+                output += sit->second->currentinfo.target[id].name + "\t";
 
                 output += "IMAGE_STOP+" + to_unsigned(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc-lasttargets[id].utc), 3, true) + "\t";
 
-                output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
-                output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
-                output += to_floatany(sit->second->targets[id].range) + "\t";
-                output += to_floatany(sit->second->targets[id].close) + "\t";
-                output += to_floatany(sit->second->targets[id].azto) + "\t";
-                output += to_floatany(sit->second->targets[id].elto) + "\t";
-                output += to_floatany(sit->second->targets[id].azfrom) + "\t";
-                output += to_floatany(sit->second->targets[id].elfrom) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].loc.pos.geod.s.lat) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].loc.pos.geod.s.lon) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].range) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].close) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].azto) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].elto) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].azfrom) + "\t";
+                output += to_floatany(sit->second->currentinfo.target[id].elfrom) + "\t";
 
                 fprintf(efp, "%s\n", output.c_str());
             }
 
             // If Ground Station, Check current elevation
-            if (sit->second->targets[id].type == NODE_TYPE_GROUNDSTATION)
+            if (sit->second->currentinfo.target[id].type == NODE_TYPE_GROUNDSTATION)
             {
                 for (float el = RADOF(0.); el < RADOF(90.); el += RADOF(15.))
                 {
-                    if (sit->second->targets[id].elto >= el &&  lasttargets[id].elto <= el)
+                    if (sit->second->currentinfo.target[id].elto >= el &&  lasttargets[id].elto <= el)
                     {
                         output.clear();
                         output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
                         output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
-                        output += sit->second->targets[id].name + "\t";
+                        output += sit->second->currentinfo.target[id].name + "\t";
 
                         output += "GS_ELEVATION_" + to_unsigned(DEGOF(el), 2, true) + "\t";
 
-                        output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
-                        output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
-                        output += to_floatany(sit->second->targets[id].range) + "\t";
-                        output += to_floatany(sit->second->targets[id].close) + "\t";
-                        output += to_floatany(sit->second->targets[id].azto) + "\t";
-                        output += to_floatany(sit->second->targets[id].elto) + "\t";
-                        output += to_floatany(sit->second->targets[id].azfrom) + "\t";
-                        output += to_floatany(sit->second->targets[id].elfrom) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].loc.pos.geod.s.lat) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].loc.pos.geod.s.lon) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].range) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].close) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].azto) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].elto) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].azfrom) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].elfrom) + "\t";
 
                         fprintf(efp, "%s\n", output.c_str());
                     }
                 }
 
                 // If Groundstation, check max elevation
-                if (sit->second->targets[id].maxelto > 0. && sit->second->targets[id].maxelto > sit->second->targets[id].elto && lasttargets[id].maxelto == lasttargets[id].elto)
+                if (sit->second->currentinfo.target[id].maxelto > 0. && sit->second->currentinfo.target[id].maxelto > sit->second->currentinfo.target[id].elto && lasttargets[id].maxelto == lasttargets[id].elto)
                 {
                     output.clear();
                     output += to_floatany(86400.*(lasttargets[id].utc - initialutc)) + "\t";
@@ -515,7 +515,7 @@ int main(int argc, char *argv[])
             }
 
             // Check image progress
-            else if (sit->second->targets[id].min == 2.)
+            else if (sit->second->currentinfo.target[id].min == 2.)
             {
                 for (int32_t dtime=100; dtime<900; dtime+=100)
                 {
@@ -524,18 +524,18 @@ int main(int argc, char *argv[])
                         output.clear();
                         output += to_floatany(86400.*(sit->second->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
                         output += to_mjd(sit->second->currentinfo.node.loc.pos.eci.utc) + "\t";
-                        output += sit->second->targets[id].name + "\t";
+                        output += sit->second->currentinfo.target[id].name + "\t";
 
                         output += "IMAGE_ELAPSED_SECONDS+" + to_unsigned(dtime, 3, true) + "\t";
 
-                        output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lat) + "\t";
-                        output += to_floatany(sit->second->targets[id].loc.pos.geod.s.lon) + "\t";
-                        output += to_floatany(sit->second->targets[id].range) + "\t";
-                        output += to_floatany(sit->second->targets[id].close) + "\t";
-                        output += to_floatany(sit->second->targets[id].azto) + "\t";
-                        output += to_floatany(sit->second->targets[id].elto) + "\t";
-                        output += to_floatany(sit->second->targets[id].azfrom) + "\t";
-                        output += to_floatany(sit->second->targets[id].elfrom) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].loc.pos.geod.s.lat) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].loc.pos.geod.s.lon) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].range) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].close) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].azto) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].elto) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].azfrom) + "\t";
+                        output += to_floatany(sit->second->currentinfo.target[id].elfrom) + "\t";
 
                         fprintf(efp, "%s\n", output.c_str());
                     }

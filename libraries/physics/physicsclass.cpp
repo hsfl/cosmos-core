@@ -451,7 +451,7 @@ namespace Cosmos
                 thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
                 break;
             default:
-                thermal = nullptr;
+                thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
                 break;
             }
             this->ttype = ttype;
@@ -462,7 +462,7 @@ namespace Cosmos
                 electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
                 break;
             default:
-                electrical = nullptr;
+                electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
                 break;
             }
             this->etype = etype;
@@ -627,7 +627,8 @@ namespace Cosmos
                 thermal->Init();
                 break;
             default:
-                thermal = nullptr;
+                thermal = new ThermalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, 300.);
+                thermal->Init();
                 break;
             }
             this->ttype = ttype;
@@ -639,7 +640,8 @@ namespace Cosmos
                 electrical->Init();
                 break;
             default:
-                electrical = nullptr;
+                electrical = new ElectricalPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, .5);
+                electrical->Init();
                 break;
             }
             this->etype = etype;
@@ -682,16 +684,10 @@ namespace Cosmos
                 PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
 
                 // Thermal
-                if (thermal != nullptr)
-                {
-                    static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
-                }
+                static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
 
                 // Electrical
-                if (thermal != nullptr)
-                {
-                    static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
-                }
+                static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
 
                 // Attitude
                 switch (atype)
@@ -765,7 +761,7 @@ namespace Cosmos
             rvector topo;
             rvector ds;
             rvector dv;
-            for (targetstruc &target : targets)
+            for (targetstruc &target : currentinfo.target)
             {
                 target.cloc.pos.geod.utc = currentinfo.node.utc;
                 target.cloc.pos.geod.pass++;
@@ -882,8 +878,8 @@ namespace Cosmos
             ttarget.size = size;
             ttarget.loc = loc;
 
-            targets.push_back(ttarget);
-            return targets.size();
+            currentinfo.target.push_back(ttarget);
+            return currentinfo.target.size();
         }
 
         int32_t State::AddTarget(std::string name, Convert::locstruc loc, NODE_TYPE type, double area)
@@ -896,8 +892,8 @@ namespace Cosmos
             ttarget.area  = area;
             ttarget.loc = loc;
 
-            targets.push_back(ttarget);
-            return targets.size();
+            currentinfo.target.push_back(ttarget);
+            return currentinfo.target.size();
         }
 
         int32_t State::AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type)

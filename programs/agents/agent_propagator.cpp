@@ -1,3 +1,11 @@
+/* 
+ * Run this program from the ~/cosmos/realms/propagate folder.
+ * The initialutc 60107.01 should set the initial position of the satellites over Hawaii.
+ * If running on a local install, also add the argpair "cosmos_web_addr":"127.0.0.1"
+ * agent_propagator '{"initialutc":60107.01}'
+ * agent_propagator '{"initialutc":60107.01, "cosmos_web_addr":"127.0.0.1"}'
+ */
+
 #include "physics/simulatorclass.h"
 #include "agent/agentclass.h"
 #include "support/jsonclass.h"
@@ -42,7 +50,7 @@ LsFit omegafit;
 int32_t parse_control(string args);
 int32_t parse_sat(string args);
 
-vector<cosmosstruc> sats;
+//vector<cosmosstruc> sats;
 vector<Physics::Simulator::StateList::iterator> sits;
 
 
@@ -51,6 +59,16 @@ socket_channel net_channel_in;
 string net_address_out;
 int net_port_out = 10081;
 socket_bus net_channel_out;
+
+// For cosmos web
+socket_channel cosmos_web_telegraf_channel, cosmos_web_api_channel;
+const string TELEGRAF_ADDR = "cosmos_telegraf";
+string cosmos_web_addr = "";
+const int TELEGRAF_PORT = 10096;
+const int API_PORT = 10097;
+void add_sim_devices();
+void reset_db();
+int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo);
 
 int main(int argc, char *argv[])
 {
@@ -112,8 +130,40 @@ int main(int argc, char *argv[])
 
     // Open socket for sending data to and from agent_propagator
     iretn = socket_open(&net_channel_in, NetworkType::UDP, "", net_port_in, SOCKET_LISTEN, SOCKET_NONBLOCKING);
-//    iretn = socket_open(&net_channel_out, NetworkType::UDP, net_address_out.c_str(), net_port_out, SOCKET_TALK, SOCKET_NONBLOCKING);
+//    iretn = socket_open(net_channel_out, net_port_out);
     iretn = socket_publish(net_channel_out, net_port_out);
+
+    // Open sockets for sending data to cosmos web
+    // By default, attempts to send to the hostname "cosmos_telegraf",
+    // which is available in the COSMOS Docker application. If running
+    // on the host (i.e., not in a docker container), specify the
+    // cosmos_web_addr variable manually via the terminal args,
+    // such as {"cosmos_web_addr": "127.0.0.1"}
+    if (cosmos_web_addr.empty()) {
+        string response;
+        iretn = hostnameToIP(TELEGRAF_ADDR, cosmos_web_addr, response);
+        if (iretn < 0)
+        {
+            cout << "Encountered error in hostnameToIP: " << response << endl;
+            exit(0);
+        }
+    }
+    iretn = socket_open(&cosmos_web_telegraf_channel, NetworkType::UDP, cosmos_web_addr.c_str(), TELEGRAF_PORT, SOCKET_TALK, SOCKET_BLOCKING, 2000000 );
+    if ((iretn) < 0)
+    {
+        cout << "Failed to open socket cosmos_web_telegraf_channel: " << cosmos_error_string(iretn) << endl;
+        exit(0);
+    }
+    iretn = socket_open(&cosmos_web_api_channel, NetworkType::UDP, cosmos_web_addr.c_str(), API_PORT, SOCKET_TALK, SOCKET_BLOCKING, 2000000);
+    if ((iretn) < 0)
+    {
+        cout << "Failed to open socket cosmos_web_api_channel: " << cosmos_error_string(iretn) << endl;
+        exit(0);
+    }
+
+    add_sim_devices();
+    // Reset simulation db
+    reset_db();
 
     PacketComm packet;
     double elapsed = 0;
@@ -130,16 +180,17 @@ int main(int argc, char *argv[])
             output += sit->second->currentinfo.get_json("node.name");
             output += sit->second->currentinfo.get_json("node.loc.pos.eci.s");
             output += sit->second->currentinfo.get_json("node.loc.pos.eci.v");
-//            output += sit->second->currentinfo.node.loc.pos.eci.s.to_json().dump();
-//            output += sit->second->currentinfo.node.loc.pos.eci.v.to_json().dump();
-            iretn = socket_sendto(net_channel_out, output);
+//            iretn = socket_sendto(net_channel_out, output);
+            iretn = socket_post(net_channel_out, output);
+
+            send_telem_to_cosmos_web(&sit->second->currentinfo);
         }
-        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeLocBeacon), agent);
-        iretn = socket_sendto(net_channel_out, packet.wrapped);
-        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodePhysBeacon), agent);
-        iretn = socket_sendto(net_channel_out, packet.wrapped);
-        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeTargetBeacon), agent);
-        iretn = socket_sendto(net_channel_out, packet.wrapped);
+//        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeLocBeacon), agent);
+//        iretn = socket_sendto(net_channel_out, packet.wrapped);
+//        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodePhysBeacon), agent);
+//        iretn = socket_sendto(net_channel_out, packet.wrapped);
+//        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeTargetBeacon), agent);
+//        iretn = socket_sendto(net_channel_out, packet.wrapped);
 
         // Attitude adjustment
         // Desired attitude comes from aligning satellite Z with desired Z and satellite Y with desired Y
@@ -207,6 +258,11 @@ int32_t parse_control(string args)
     {
         ++argcount;
         realmname = jargs["realmname"].string_value();
+    }
+    if (!jargs["cosmos_web_addr"].is_null())
+    {
+        ++argcount;
+        cosmos_web_addr = jargs["cosmos_web_addr"].string_value();
     }
 
     return argcount;
@@ -316,14 +372,14 @@ int32_t parse_sat(string args)
         pos_eci(initialloc);
     }
     initialloc.att.icrf.s = q_eye();
-    if (!sats.size())
+    if (!sits.size())
     {
         nodename = "mother";
         initialutc = initialloc.utc;
     }
     else
     {
-        nodename = "child_" + to_unsigned(sats.size(), 2);
+        nodename = "child_" + to_unsigned(sits.size(), 2, true);
     }
     iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
     sits.push_back(sim->GetNode(nodename));
@@ -383,4 +439,234 @@ int32_t parse_target(string args)
         sit->second->AddTarget(name, clat+dlat, clon-dlon, clat-dlat, clon+dlon, alt, type);
     }
     return sits.size();
+}
+
+/**
+ * @brief Sends a single node's telems to cosmos web
+ * 
+ * @param cinfo cosmosstruc of some node to store telems for
+ * @return int32_t 0 on success, negative on failure
+ */
+int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
+{
+    // locstruc
+    json11::Json jobj = json11::Json::object({
+        {"node_name", cinfo->node.name },
+        {"node_loc", json11::Json::object({
+            {"pos", json11::Json::object({
+                {"eci", json11::Json::object({
+                    { "utc", cinfo->node.loc.pos.eci.utc },
+                    { "s", cinfo->node.loc.pos.eci.s },
+                    { "v", cinfo->node.loc.pos.eci.v }
+                })}
+            })},
+            {"att", json11::Json::object({
+                {"icrf", json11::Json::object({
+                    { "utc", cinfo->node.loc.att.icrf.utc },
+                    { "s", cinfo->node.loc.att.icrf.s },
+                    { "v", cinfo->node.loc.att.icrf.v }
+                })}
+            })}
+        })},
+    });
+    int32_t iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+    if (iretn < 0) { return iretn; }
+
+    // Devices are not auto-populated, so just use some RANDOM VALUES
+    // battstruc
+    jobj = json11::Json::object({
+        {"node_name", cinfo->node.name },
+        {"devspec", json11::Json::object({
+            {"batt", [cinfo]() -> vector<json11::Json>
+                {
+                    vector<json11::Json> ret;
+                    for (auto batt : cinfo->devspec.batt) {
+                        batt.amp = (rand()/(double)RAND_MAX) * (1.-0.5) +0.5;
+                        batt.volt = (rand()/(double)RAND_MAX) * (8.-5.) +5.;
+                        batt.power = batt.amp * batt.volt;
+                        ret.push_back({
+                            json11::Json::object({
+                                {"didx", batt.didx},
+                                {"utc", sim->currentutc},
+                                {"amp", batt.amp},
+                                {"volt", batt.volt},
+                                {"power", batt.power},
+                                {"temp", (rand()/(double)RAND_MAX) * (400.-375.) +375.},
+                                {"percentage", (rand()/(double)RAND_MAX) * (0.65-0.35) +0.35},
+                            })
+                        });
+                    }
+                    return ret;
+                }()
+            }
+        })}
+    });
+    iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+    if (iretn < 0) { return iretn; }
+
+    // bcregstruc
+    jobj = json11::Json::object({
+        {"node_name", cinfo->node.name },
+        {"devspec", json11::Json::object({
+            {"bcreg", [cinfo]() -> vector<json11::Json>
+                {
+                    vector<json11::Json> ret;
+                    for (auto bcr : cinfo->devspec.bcreg) {
+                        bcr.amp = (rand()/(double)RAND_MAX) * (1.-0.5) +0.5;
+                        bcr.volt = (rand()/(double)RAND_MAX) * (8.-5.) +5.;
+                        bcr.power = bcr.amp * bcr.volt;
+                        ret.push_back({
+                            json11::Json::object({
+                                {"didx", bcr.didx},
+                                {"utc", sim->currentutc},
+                                {"amp", bcr.amp},
+                                {"volt", bcr.volt},
+                                {"power", bcr.power},
+                                {"temp", (rand()/(double)RAND_MAX) * (400.-375.) +375.},
+                                {"mpptin_amp", bcr.amp * 0.9},
+                                {"mpptin_volt", bcr.volt * 0.9},
+                                {"mpptout_amp", bcr.amp * 0.5},
+                                {"mpptout_volt", bcr.volt * 0.5},
+                            })
+                        });
+                    }
+                    return ret;
+                }()
+            }
+        })}
+    });
+    iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+    if (iretn < 0) { return iretn; }
+
+    // cpustruc
+    jobj = json11::Json::object({
+        {"node_name", cinfo->node.name },
+        {"devspec", json11::Json::object({
+            {"cpu", [cinfo]() -> vector<json11::Json>
+                {
+                    vector<json11::Json> ret;
+                    for (auto cpu : cinfo->devspec.cpu) {
+                        ret.push_back({
+                            json11::Json::object({
+                                {"didx", cpu.didx},
+                                {"utc", sim->currentutc},
+                                {"temp", (rand()/(double)RAND_MAX) * (400.-375.) +375.},
+                                {"uptime", sim->currentutc - 59945.0}, // 01/01/2023
+                                {"gib", (rand()/(double)RAND_MAX) * (4.-2.) +2.},
+                                {"load", (rand()/(double)RAND_MAX) * (0.95-0.5) +0.5},
+                                {"boot_count", 2},
+                                {"storage", (rand()/(double)RAND_MAX) * (25.-9.) +9.},
+                            })
+                        });
+                    }
+                    return ret;
+                }()
+            }
+        })}
+    });
+    iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+    if (iretn < 0) { return iretn; }
+
+    // tsenstruc
+    jobj = json11::Json::object({
+        {"node_name", cinfo->node.name },
+        {"devspec", json11::Json::object({
+            {"tsen", [cinfo]() -> vector<json11::Json>
+                {
+                    vector<json11::Json> ret;
+                    for (auto tsen : cinfo->devspec.tsen) {
+                        ret.push_back({
+                            json11::Json::object({
+                                {"didx", tsen.didx},
+                                {"utc", sim->currentutc},
+                                {"temp", (rand()/(double)RAND_MAX) * (400.-375.) +375.},
+                            })
+                        });
+                    }
+                    return ret;
+                }()
+            }
+        })}
+    });
+    iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+    if (iretn < 0) { return iretn; }
+
+    return 0;
+}
+
+/**
+ * @brief Add devices to simulate to the nodes
+ */
+void add_sim_devices()
+{
+    for (auto s : sits)
+    {
+        // Battery
+        for (size_t i=0; i < 2; ++i) {
+            json_createpiece(&s->second->currentinfo, "Battery"+std::to_string(i), DeviceType::BATT);
+        }
+        // BC Regulators (solar panels)
+        json_createpiece(&s->second->currentinfo, "Left", DeviceType::BCREG);
+        json_createpiece(&s->second->currentinfo, "Right", DeviceType::BCREG);
+        // CPU
+        json_createpiece(&s->second->currentinfo, "iOBC", DeviceType::CPU);
+        json_createpiece(&s->second->currentinfo, "iX5-100", DeviceType::CPU);
+        // Thermal Sensors
+        json_createpiece(&s->second->currentinfo, "Camera", DeviceType::TSEN);
+        json_createpiece(&s->second->currentinfo, "Heat sink", DeviceType::TSEN);
+        json_createpiece(&s->second->currentinfo, "CPU", DeviceType::TSEN);
+
+        // Fix pointers
+        json_updatecosmosstruc(&s->second->currentinfo);
+        // Update all physical quantities
+        node_calc(&s->second->currentinfo);
+    }
+}
+
+/**
+ * @brief Reset the simulation database
+ */
+void reset_db()
+{
+    socket_sendto(cosmos_web_api_channel, "{\"swchstruc\": true, \"battstruc\": true, \"bcregstruc\": true, \"cpustruc\": true, \"device\": true, \"device_type\": true, \"locstruc\": true, \"magstruc\": true, \"node\": true, \"tsenstruc\": true, \"rwstruc\": true, \"mtrstruc\": true, \"attstruc_icrf\": true, \"cosmos_event\": true, \"event_type\": true, \"gyrostruc\": true, \"locstruc_eci\": true }");
+    // Iterate over sats
+    for (size_t id=0; id<sits.size(); ++id)
+    {
+        // Repopulate node table
+        json11::Json jobj = json11::Json::object({
+            {"node", json11::Json::object({
+                { "node_id", static_cast<uint16_t>(id) },
+                { "node_name", sits[id]->second->currentinfo.node.name },
+                { "node_type", NODE_TYPE_SATELLITE },
+                { "agent_name", sits[id]->second->currentinfo.agent0.name },
+                { "utc", sim->currentutc },
+                { "utcstart", currentutc }
+            })}
+        });
+        socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+        // Add device info
+        jobj = json11::Json::object({
+            {"node_name", sits[id]->second->currentinfo.node.name },
+            {"device", [id]() -> vector<json11::Json>
+                {
+                    vector<json11::Json> ret;
+                    for (auto device : sits[id]->second->currentinfo.device) {
+                        ret.push_back({
+                            json11::Json::object({
+                                { "type", device->type },
+                                { "cidx", device->cidx },
+                                { "didx", device->didx },
+                                { "name", device->name }
+                            })
+                        });
+                    }
+                    return ret;
+                }()
+            }
+        });
+        cout << jobj.dump() << endl;
+        socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+    }
+    cout << "Resetting db..." << endl;
+    secondsleep(1.);
 }

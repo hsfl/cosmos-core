@@ -392,17 +392,17 @@ namespace Cosmos
 //                currentinfo.node.utc = 0.;
             }
 
-//            string nodename;
+
             cosmosstruc currentinfo;
-//            double currentutc=0.;
+
             Convert::locstruc initialloc;
-//            Convert::locstruc currentloc;
+
             physicsstruc initialphys;
-//            physicsstruc currentphys;
+
             double dt;
             double dtj;
 
-            vector<targetstruc> targets;
+//            vector<targetstruc> targets;
 
             Propagator::Type ptype;
             InertialPositionPropagator *inposition;
