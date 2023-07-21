@@ -370,7 +370,7 @@ namespace Cosmos
         }
 
 
-        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::tlestruc tle, double utc)
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::tlestruc tle, double utc)
         {
             dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
             dtj = dt / 86400.;
@@ -467,6 +467,17 @@ namespace Cosmos
             }
             this->etype = etype;
 
+            switch (oeventtype)
+            {
+            case Propagator::Type::OrbitalEvent:
+                orbitalevent = new OrbitalEventPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target, currentinfo.event);
+                break;
+            default:
+                orbitalevent = nullptr;
+                break;
+            }
+            this->oeventtype = oeventtype;
+
             if (ptype == Propagator::PositionGeo)
             {
                 Convert::pos_geod(currentinfo.node.loc);
@@ -525,7 +536,7 @@ namespace Cosmos
                 return iretn;
             }
 
-            return Init(name, idt, stype, ptype, atype, ttype, etype);
+            return Init(name, idt, stype, ptype, atype, ttype, etype, Propagator::Type::None);
         }
 
         int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf)
@@ -547,10 +558,32 @@ namespace Cosmos
                 return iretn;
             }
 
-            return Init(name, idt, stype, ptype, atype, ttype, etype);
+            return Init(name, idt, stype, ptype, atype, ttype, etype, Propagator::Type::None);
         }
 
-        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf)
+        {
+            int32_t iretn = 0;
+            Convert::pos_clear(currentinfo.node.loc);
+            currentinfo.node.loc.pos.eci = eci;
+            currentinfo.node.loc.pos.eci.pass++;
+            iretn = Convert::pos_eci(currentinfo.node.loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            currentinfo.node.loc.att.icrf = icrf;
+            currentinfo.node.loc.att.icrf.pass++;
+            iretn = Convert::att_icrf(currentinfo.node.loc);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+
+            return Init(name, idt, stype, ptype, atype, ttype, etype, oeventtype);
+        }
+
+        int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype)
         {
             dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
             dtj = dt / 86400.;
@@ -665,6 +698,17 @@ namespace Cosmos
                 AttAccel(currentinfo.node.loc, currentinfo.node.phys);
             }
 
+            switch (oeventtype)
+            {
+            case Propagator::Type::OrbitalEvent:
+                orbitalevent = new OrbitalEventPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target, currentinfo.event);
+                break;
+            default:
+                orbitalevent = nullptr;
+                break;
+            }
+            this->oeventtype = oeventtype;
+
             initialloc = currentinfo.node.loc;
             initialphys = currentinfo.node.phys;
             currentinfo.node.utc = currentinfo.node.loc.utc;
@@ -750,6 +794,12 @@ namespace Cosmos
                 {
                     Convert::att_icrf(currentinfo.node.loc);
                     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+                }
+
+                // Orbital event propagator
+                if (orbitalevent != nullptr)
+                {
+                    orbitalevent->Propagate(nextutc);
                 }
 
                 // Update time
@@ -856,6 +906,17 @@ namespace Cosmos
             }
 
             return count;
+        }
+
+        int32_t State::End()
+        {
+            // Orbital event propagator
+            if (orbitalevent != nullptr)
+            {
+                orbitalevent->End();
+            }
+
+            return 0.;
         }
 
         int32_t State::Reset(double nextutc)
@@ -1279,6 +1340,181 @@ namespace Cosmos
                 }
             }
             return 0;
+        }
+
+        int32_t OrbitalEventPropagator::Init()
+        {
+            umbra_start = 0.;
+            gs_AoS.clear();
+            return 0;
+        }
+
+        int32_t OrbitalEventPropagator::Reset()
+        {
+            currentutc = currentloc->utc;
+            umbra_start = 0.;
+            gs_AoS.clear();
+            return 0;
+        }
+
+        int32_t OrbitalEventPropagator::Propagate(double nextutc)
+        {
+            if (nextutc == 0.)
+            {
+                nextutc = currentutc + dtj;
+            }
+            while ((nextutc - currentutc) > dtj / 2.)
+            {
+                currentutc += dtj;
+
+                check_umbra_event(false);
+                check_target_events(false);
+            }
+
+            return 0;
+        }
+
+        int32_t OrbitalEventPropagator::End()
+        {
+            // Force event end if active
+            check_umbra_event(true);
+            check_target_events(true);
+            return 0;
+        }
+
+        void OrbitalEventPropagator::check_umbra_event(bool force_end)
+        {
+            // Umbra start
+            if (umbra_start == 0. && !currentloc->pos.sunradiance)
+            {
+                umbra_start = currentutc;
+            }
+            // Umbra end
+            else if (umbra_start != 0. && (currentloc->pos.sunradiance || force_end))
+            {
+                // Add umbra to event list
+                eventstruc umbra_event;
+                umbra_event.type = EVENT_TYPE_UMBRA;
+                umbra_event.utc = umbra_start;
+                umbra_event.dtime = currentutc - umbra_start;
+                events.push_back(umbra_event);
+                umbra_start = 0.;
+            }
+        }
+
+        void OrbitalEventPropagator::check_target_events(bool force_end)
+        {
+            for (auto target = targets.begin(); target != targets.end(); target++)
+            {
+                if (target->type == NODE_TYPE_GROUNDSTATION)
+                {
+                    check_gs_aos_event(*target, force_end);
+                }
+                else if (target->type == NODE_TYPE_TARGET)
+                {
+                    check_target_aos_event(*target, force_end);
+                }
+            }
+        }
+
+        void OrbitalEventPropagator::check_gs_aos_event(const targetstruc& gs, bool force_end)
+        {
+            // Find target sight acquisition/loss
+            // Groundstation is in line-of-sight if elto (elevation from target to sat) is positive
+            double elto_deg = DEGOF(gs.elto);
+            if (gs_AoS.find(gs.name) == gs_AoS.end())
+            {
+                gs_AoS[gs.name] = {std::make_pair(0.,0.f),std::make_pair(0.,0.f),std::make_pair(0.,0.f),std::make_pair(0.,0.f)};
+            }
+            target_aos_set& gsAOS = gs_AoS[gs.name];
+            // Update highest elevation values for 0/5/10 degree events
+            for (size_t i=0; i<gsAOS.size()-1; ++i)
+            {
+                // gsAOS[i].first is the mjd timestamp of when the event began
+                // gsAOS[i].second is the max elevation for this AoS event
+
+                gsAOS[i].second = std::max(gsAOS[i].second, gs.elto);
+                // AoS
+                if (elto_deg > i*5. && gsAOS[i].first == 0.)
+                {
+                    gsAOS[i].first = currentutc;
+                }
+                // LoS
+                else if ((force_end || elto_deg <= i*5.) && gsAOS[i].first != 0.)
+                {
+                    // Add event to event list
+                    eventstruc gs_aos_event;
+                    gs_aos_event.name = gs.name;
+                    gs_aos_event.type = GS_EVENT_CODE[i];
+                    gs_aos_event.utc = gsAOS[i].first;
+                    gs_aos_event.dtime = currentutc - gsAOS[i].first;
+                    gs_aos_event.value = gsAOS[i].second;
+                    events.push_back(gs_aos_event);
+                    // Reset this AoS event
+                    gsAOS[i].first = 0.;
+                    gsAOS[i].second = 0.f;
+                }
+            }
+            // MAXDEG event
+            // AoS
+            if (gs.elto > 0. && gs.elto > gsAOS[DEGMAX].second)
+            {
+                // Keep track of when the max elevation was achieved
+                gsAOS[DEGMAX].first = currentutc;
+                gsAOS[DEGMAX].second = gs.elto;
+            }
+            // LoS
+            else if ((force_end || gs.elto <= 0.) && gsAOS[DEGMAX].first != 0.)
+            {
+                // Add event to event list
+                eventstruc gs_aos_event;
+                gs_aos_event.name = gs.name;
+                gs_aos_event.type = GS_EVENT_CODE[DEGMAX];
+                gs_aos_event.utc = gsAOS[DEGMAX].first;
+                gs_aos_event.dtime = 0;
+                gs_aos_event.value = gsAOS[DEGMAX].second;
+                events.push_back(gs_aos_event);
+                // Reset this AoS event
+                gsAOS[DEGMAX].first = 0.;
+                gsAOS[DEGMAX].second = 0.f;
+            }
+        }
+
+        void OrbitalEventPropagator::check_target_aos_event(const targetstruc& target, bool force_end)
+        {
+            // Find target sight acquisition/loss
+            // Target is in line-of-sight if elto (elevation from target to sat) is positive
+            double elto_deg = DEGOF(target.elto);
+            if (target_AoS.find(target.name) == target_AoS.end())
+            {
+                target_AoS[target.name] = {std::make_pair(0.,0.f)};
+            }
+            aos_pair& tAOS = target_AoS[target.name];
+            // Update highest elevation values for 0/5/10 degree events
+            // tAOS[i].first is the mjd timestamp of when the event began
+            // tAOS[i].second is the max elevation for this AoS event
+
+            tAOS.second = std::max(tAOS.second, target.elto);
+            // AoS
+            if (elto_deg > 0. && tAOS.first == 0.)
+            {
+                tAOS.first = currentutc;
+            }
+            // LoS
+            else if ((force_end || elto_deg <= 0.) && tAOS.first != 0.)
+            {
+                // Add event to event list
+                eventstruc target_aos_event;
+                target_aos_event.name = target.name;
+                target_aos_event.type = EVENT_TYPE_TARG;
+                target_aos_event.utc = tAOS.first;
+                target_aos_event.dtime = currentutc - tAOS.first;
+                target_aos_event.value = tAOS.second;
+                events.push_back(target_aos_event);
+                // Reset this AoS event
+                tAOS.first = 0.;
+                tAOS.second = 0.f;
+            }
         }
 
         int32_t InertialPositionPropagator::Init()
@@ -2568,7 +2804,7 @@ namespace Cosmos
             return 0;
         }
 
-        double nplgndr(uint32_t l, uint32_t m, double x)
+        double Nplgndr(uint32_t l, uint32_t m, double x)
         {
             double fact,pll,pmm,pmmp1,omx2, oldfact;
             uint16_t i, ll, mm;

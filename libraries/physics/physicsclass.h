@@ -143,7 +143,8 @@ namespace Cosmos
                 AttitudeGeo = 23,
                 AttitudeSolar = 24,
                 Thermal = 30,
-                Electrical = 40
+                Electrical = 40,
+                OrbitalEvent = 50,
                 };
             Type type;
 
@@ -383,6 +384,53 @@ namespace Cosmos
             float battery_charge;
         };
 
+        // Generates orbital events and other events that arise naturally out of being in the space environment
+        class OrbitalEventPropagator : public Propagator
+        {
+        public:
+            OrbitalEventPropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt, vector<targetstruc>& targets, vector<eventstruc>& events)
+                : Propagator{ newloc, newphys, idt }, targets(targets), events(events) {}
+            int32_t Init();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset();
+            int32_t End();
+        private:
+            //! Track when an umbra region starts
+            double umbra_start = 0.;
+            //! Reference to target list in cosmosstruc
+            vector<targetstruc>& targets;
+            //! Reference to event list in cosmosstruc, orbital/physical events are appended to this as they occur
+            vector<eventstruc>& events;
+            //! Each AoS tracks the time it started and the max value
+            using aos_pair = std::pair<double, float>;
+            //! Each target tracks 4 events: 0 deg AoS/LoS, 5 deg AoS/LoS, 10 deg AoS/LoS, max deg AoS/LoS
+            using target_aos_set = std::array<aos_pair, 4>;
+            //! Use these to access the 3 event types in aos_set
+            const uint8_t DEG0 = 0;
+            const uint8_t DEG5 = 1;
+            const uint8_t DEG10 = 2;
+            const uint8_t DEGMAX = 3;
+            const uint32_t GS_EVENT_CODE[4] = {EVENT_TYPE_GS, EVENT_TYPE_GS5, EVENT_TYPE_GS10, EVENT_TYPE_GSMAX};
+            //! Tracks Acquisition of Signal events for each groundstation
+            map<string, target_aos_set> gs_AoS;
+            //! Tracks Acquisition of Sight events for each target. Targets track only DEG0
+            map<string, aos_pair> target_AoS;
+
+            //! Checks for Umbra enter/exit event
+            //! \param final If true, forces end of event if active
+            void check_umbra_event(bool force_end);
+            //! Iterates over targets, then calls gs or target function depending on the type
+            void check_target_events(bool force_end);
+            //! Checks for groundstation AoS/LoS events
+            //! \param gs Reference to groundstation to check
+            //! \param final If true, forces end of event if active
+            void check_gs_aos_event(const targetstruc& gs, bool force_end);
+            //! Checks for target AoS/LoS events
+            //! \param target Reference to target to check
+            //! \param final If true, forces end of event if active
+            void check_target_aos_event(const targetstruc& target, bool force_end);
+        };
+
         class State
         {
         public:
@@ -421,19 +469,27 @@ namespace Cosmos
             Propagator::Type ttype;
             ThermalPropagator *thermal;
 
+
             Propagator::Type etype;
             ElectricalPropagator *electrical;
             Convert::tlestruc tle;
+
+            Propagator::Type oeventtype;
+            OrbitalEventPropagator *orbitalevent;
 
             Structure::Type stype;
             Structure *structure;
 
 //            int32_t Init(Propagator *posprop, Propagator *attprop, Propagator *thermprop, Propagator *elecprop);
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::tlestruc tle, double utc);
+            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::tlestruc tle, double utc);
             int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci);
             int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf);
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype);
+            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf);
+            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype);
+            //! Propagates simulated physical state to the next timestep
             int32_t Propagate(double nextutc=0.);
+            //! Runs any code that the propagators need to run at the end of a simulation run
+            int32_t End();
             int32_t Reset(double nextutc=0.);
             int32_t AddTarget(string name, Convert::locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
             int32_t AddTarget(string name, Convert::locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, double area=0.);

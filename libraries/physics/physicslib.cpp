@@ -845,10 +845,10 @@ for (il=0; il<5; il++)
 
         //! Update Ground Station data
         /*!
-* Calculates aziumth and elevation for each gound station in the list of ground stations
+* Calculates aziumth and elevation for each gound station in the list of grougroundstnd stations
 * for a satellite at the indicated position.
-    \param satellite pointer to a ::locstruc specifying satellite position
-    \param groundstation pointer to a ::locstruc specifying groundstation to be targeted
+    \param satellite pointer to a ::locstruc specifying satellite position, in eci.
+    \param groundstation pointer to a ::locstruc specifying groundstation to be targeted, in geod.
     \return ::svector containing azimuth in lambda, elevation in phi
     and slant range in r.
     \see Convert::geoc2topo
