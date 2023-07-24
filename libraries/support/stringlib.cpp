@@ -85,6 +85,7 @@ vector < string > string_split(string in, string delimeters, bool multi) {
 //! Return position of the nth occurence of desired string
 //! \param input Input string to search
 //! \param chars Characters to look for
+//! \param num Last character to search
 //! \return Position, or string::npos
 size_t string_find(string input, string chars, uint16_t num)
 {
@@ -113,10 +114,42 @@ size_t string_find(string input, string chars, uint16_t num)
     }
 }
 
+//! \brief Find nth string in vector<>
+//! Return index of the nth occurence of desired string in vector
+//! \param input Input vector<string> to search
+//! \param chars String to look for
+//! \param num n
+//! \return Index, or string::npos
+size_t string_find(vector<string> input, string chars, uint16_t num)
+{
+    size_t count = 0;
+    for (uint16_t i=0; i<input.size(); ++i)
+    {
+        size_t npos = input[i].find(chars);
+        if (npos != string::npos)
+        {
+            if (++count == num)
+            {
+                break;
+            }
+        }
+    }
+    if (count < num)
+    {
+        return string::npos;
+    }
+    else
+    {
+        return count;
+    }
+}
+
 //! \brief Join a vector of string together
 //! Turn vector<string> into a single string, separated by delimeter.
 //! \param in vector<string>
 //! \param delimeter Separator to use. Defaults to " ".
+//! \param first First element to use
+//! \param last Last element to use
 //! \return Newly created string.
 string string_join(vector<std::string> &in, std::string delimeter, uint16_t first, uint16_t last)
 {
