@@ -51,6 +51,7 @@
 
 vector < string > string_split(string in, string delimeters=" \t,", bool multi=true);
 size_t string_find(string input, string chars, uint16_t num=1);
+size_t string_find(vector<string> input, string chars, uint16_t num=1);
 string string_join(vector<string>& in, string delimeter=" ", uint16_t first=0, uint16_t last=65535);
 uint16_t string_parse(char *string, char *word[], uint16_t size);
 string string_replace(string str, const std::string &from, const std::string &to);
