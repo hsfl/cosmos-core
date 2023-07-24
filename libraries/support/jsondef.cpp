@@ -2128,6 +2128,11 @@ namespace Cosmos
                     add_name(basename+".height", &devspec.cam[didx].height, "float");
                     add_name(basename+".flength", &devspec.cam[didx].flength, "float");
                     add_name(basename+".ltemp", &devspec.cam[didx].ltemp, "float");
+                    add_name(basename+".ttemp", &devspec.cam[didx].ttemp, "float");
+                    add_name(basename+".fov", &devspec.cam[didx].fov, "float");
+                    add_name(basename+".ifov", &devspec.cam[didx].ifov, "float");
+                    add_name(basename+".specmin", &devspec.cam[didx].specmin, "float");
+                    add_name(basename+".specmax", &devspec.cam[didx].specmax, "float");
                     break;
                 case DeviceType::CPU:
                     basename = "devspec.cpu[" + std::to_string(didx) + "]";

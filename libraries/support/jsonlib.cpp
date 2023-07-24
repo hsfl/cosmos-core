@@ -8627,6 +8627,10 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             json_addentry("device_cam_flength",didx, UINT16_MAX, (uint8_t *)&device->flength, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cam_ltemp",didx, UINT16_MAX, (uint8_t *)&device->ltemp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cam_ttemp",didx, UINT16_MAX, (uint8_t *)&device->ttemp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+            json_addentry("device_cam_fov",didx, UINT16_MAX, (uint8_t *)&device->fov, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+            json_addentry("device_cam_ifov",didx, UINT16_MAX, (uint8_t *)&device->ifov, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+            json_addentry("device_cam_specmin",didx, UINT16_MAX, (uint8_t *)&device->specmin, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+            json_addentry("device_cam_specmax",didx, UINT16_MAX, (uint8_t *)&device->specmax, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             break;
         }
         //! Processing Unit
@@ -9337,6 +9341,10 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_cam_flength",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_ltemp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_ttemp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cam_fov",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cam_ifov",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cam_specmin",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cam_specmax",didx, UINT16_MAX, cinfo, state);
         break;
         //! Processing Unit
     case DeviceType::CPU:
@@ -11683,6 +11691,10 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                     json_out_1d(jstring, "device_cam_flength",j, cinfo);
                     json_out_1d(jstring, "device_cam_ltemp",j, cinfo);
                     json_out_1d(jstring, "device_cam_ttemp",j, cinfo);
+                    json_out_1d(jstring, "device_cam_fov",j, cinfo);
+                    json_out_1d(jstring, "device_cam_ifov",j, cinfo);
+                    json_out_1d(jstring, "device_cam_specmin",j, cinfo);
+                    json_out_1d(jstring, "device_cam_specmax",j, cinfo);
                     continue;
                 }
 
@@ -12089,18 +12101,53 @@ int32_t node_calc(cosmosstruc *cinfo)
 
     json_recenter_node(cinfo);
 
-    for (size_t n=0; n<cinfo->pieces.size(); n++)
-    {
-        cinfo->pieces[n].mass = cinfo->pieces[n].volume * cinfo->pieces[n].density;
-        if (cinfo->pieces[n].mass == 0.)
-            cinfo->pieces[n].mass = .001f;
-        //        cinfo->pieces[n].temp = 300.;
-        cinfo->pieces[n].heat = cinfo->pieces[n].temp * cinfo->pieces[n].hcap;
-        cinfo->node.phys.heat += cinfo->pieces[n].heat;
-        cinfo->node.phys.mass += cinfo->pieces[n].mass;
-        cinfo->node.phys.hcap += cinfo->pieces[n].hcap * cinfo->pieces[n].mass;
 
+    // Calculate Center of mass and internal area
+    cinfo->node.phys.area = 0.;
+    cinfo->node.phys.com.clear();
+    cinfo->node.phys.mass = 0.;
+    for (trianglestruc triangle : cinfo->node.phys.triangles)
+    {
+        if (triangle.external <= 1)
+        {
+            cinfo->node.phys.area += triangle.area;
+        }
+        if (!triangle.external)
+        {
+            cinfo->node.phys.area += triangle.area;
+        }
+//        triangle.heat = triangle.temp * triangle.hcap;
+        cinfo->node.phys.heat += triangle.temp * triangle.hcap;
+        cinfo->node.phys.com += triangle.com * triangle.mass;
+        cinfo->node.phys.mass += triangle.mass;
+        cinfo->node.phys.hcap += triangle.hcap * triangle.mass;
     }
+    if (cinfo->node.phys.mass == 0.F)
+    {
+        return GENERAL_ERROR_TOO_LOW;
+    }
+    cinfo->node.phys.com /= cinfo->node.phys.mass;
+
+    // Calculate Principal Moments of Inertia WRT COM
+    cinfo->node.phys.moi.clear();
+    for (trianglestruc triangle : cinfo->node.phys.triangles)
+    {
+        cinfo->node.phys.moi.x += (cinfo->node.phys.com.x - triangle.com.x) * (cinfo->node.phys.com.x - triangle.com.x) * triangle.mass;
+        cinfo->node.phys.moi.y += (cinfo->node.phys.com.y - triangle.com.y) * (cinfo->node.phys.com.y - triangle.com.y) * triangle.mass;
+        cinfo->node.phys.moi.z += (cinfo->node.phys.com.z - triangle.com.z) * (cinfo->node.phys.com.z - triangle.com.z) * triangle.mass;
+    }
+//    for (size_t n=0; n<cinfo->pieces.size(); n++)
+//    {
+//        cinfo->pieces[n].mass = cinfo->pieces[n].volume * cinfo->pieces[n].density;
+//        if (cinfo->pieces[n].mass == 0.)
+//            cinfo->pieces[n].mass = .001f;
+//        //        cinfo->pieces[n].temp = 300.;
+//        cinfo->pieces[n].heat = cinfo->pieces[n].temp * cinfo->pieces[n].hcap;
+//        cinfo->node.phys.heat += cinfo->pieces[n].heat;
+//        cinfo->node.phys.mass += cinfo->pieces[n].mass;
+//        cinfo->node.phys.hcap += cinfo->pieces[n].hcap * cinfo->pieces[n].mass;
+
+//    }
 
     if (cinfo->node.phys.mass == 0.)
     {
@@ -12517,10 +12564,6 @@ int32_t load_node_ids(cosmosstruc* cinfo, string realm)
             }
             fclose(fp);
         }
-//        else
-//        {
-//            return -errno;
-//        }
     }
 
     return cinfo->realm.node_ids.size();
@@ -12572,6 +12615,10 @@ int32_t check_node_id(cosmosstruc *cinfo, NODE_ID_TYPE node_id)
 //! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
 int32_t lookup_node_id(cosmosstruc *cinfo, string node_name)
 {
+//    for (auto it = cinfo->realm.node_ids.begin(); it != cinfo->realm.node_ids.end(); ++it)
+//    {
+//        printf("lookup_node_id: Name %s ID %u\n", it->first.c_str(), it->second);
+//    }
     auto it = cinfo->realm.node_ids.find(node_name);
     if (it == cinfo->realm.node_ids.end())
     {
@@ -12607,7 +12654,8 @@ string lookup_node_id_name(cosmosstruc *cinfo, NODE_ID_TYPE node_id)
     {
         return "Destination";
     }
-    else if (node_id == NODEIDUNKNOWN || load_node_ids(cinfo) <= 0)
+//    else if (node_id == NODEIDUNKNOWN || load_node_ids(cinfo, cinfo->realm.name) <= 0)
+    else if (node_id == NODEIDUNKNOWN)
     {
         return "";
     }

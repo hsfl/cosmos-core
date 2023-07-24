@@ -4118,6 +4118,14 @@ union as a ::devicestruc.
             float ltemp = 0.f;
             //! Target temperature
             float ttemp = 0.f;
+            //! Field of view
+            float fov = 0.001;
+            //! Instantaneous field of view
+            float ifov = 0.00001;
+            //! Minimum spectral wavelength
+            float specmin = 300e-9;
+            //! Maximum spectral wavelength
+            float specmax = 1e-6;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -4131,7 +4139,12 @@ union as a ::devicestruc.
                     { "width"  , width },
                     { "height" , height },
                     { "flength", flength },
-                    { "ltemp", ltemp}
+                    { "ltemp", ltemp},
+                    { "ttemp", ttemp},
+                    { "fov", fov },
+                    { "ifov", ifov },
+                    { "specmin", specmin },
+                    { "specmax", specmax }
                 };
             }
 
@@ -4151,6 +4164,11 @@ union as a ::devicestruc.
                     if(!parsed["height"].is_null()) { height = parsed["height"].number_value(); }
                     if(!parsed["flength"].is_null()) { flength = parsed["flength"].number_value(); }
                     if(!parsed["ltemp"].is_null()) { ltemp = parsed["ltemp"].number_value(); }
+                    if(!parsed["ttemp"].is_null()) { ttemp = parsed["ttemp"].number_value(); }
+                    if(!parsed["fov"].is_null()) { fov = parsed["fov"].number_value(); }
+                    if(!parsed["ifov"].is_null()) { ifov = parsed["ifov"].number_value(); }
+                    if(!parsed["specmin"].is_null()) { specmin = parsed["specmin"].number_value(); }
+                    if(!parsed["specmax"].is_null()) { specmax = parsed["specmax"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -4428,8 +4446,8 @@ union as a ::devicestruc.
 
             float hcap = 900.f;
             float mass = 1.f;
-            float temp = 300.f;
-            float heat = 300. * 900. * 1.;
+            float temp = 600.f;
+            float heat = 600. * 900. * 1.;
             float radiation;
             float area = .001f;
             float battcap = 36000.f;
