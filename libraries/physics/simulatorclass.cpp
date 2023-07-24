@@ -32,7 +32,7 @@ namespace Cosmos
         {
             if (AddNode(nodename, stype, ptype, atype, ttype, etype))
             {
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, tle, currentutc);
+                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, Propagator::Type::None, tle, currentutc);
                 if (error < 0)
                 {
                     return error;
@@ -65,6 +65,23 @@ namespace Cosmos
             if (AddNode(nodename, stype, ptype, atype, ttype, etype))
             {
                 error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, eci, icrf);
+                if (error < 0)
+                {
+                    return error;
+                }
+                error = cnodes[nodename]->Propagate(currentutc);
+                if (error < 0)
+                {
+                    return error;
+                }
+            }
+            return cnodes.count(nodename);
+        }
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf)
+        {
+            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
+            {
+                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, eci, icrf);
                 if (error < 0)
                 {
                     return error;
@@ -156,6 +173,16 @@ namespace Cosmos
             for (auto &state : cnodes)
             {
                 iretn = state.second->Propagate(currentutc);
+            }
+            return iretn;
+        }
+
+        int32_t Simulator::End()
+        {
+            int32_t iretn = 0;
+            for (auto &state : cnodes)
+            {
+                iretn = state.second->End();
             }
             return iretn;
         }

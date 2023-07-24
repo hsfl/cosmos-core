@@ -1,8 +1,11 @@
 /* 
  * Run this program from the ~/cosmos/realms/propagate folder.
  * The initialutc 60107.01 should set the initial position of the satellites over Hawaii.
- * If running on a local install, also add the argpair "cosmos_web_addr":"127.0.0.1"
  * agent_propagator '{"initialutc":60107.01}'
+ * 
+ * Specifying the cosmos_web_addr variable enables telem output to a cosmos web install.
+ * If running the COSMOS Docker application, use the hostname "cosmos_telegraf".
+ * Otherwise, manually specify the IP address of the cosmos web server, like "127.0.0.1".
  * agent_propagator '{"initialutc":60107.01, "cosmos_web_addr":"127.0.0.1"}'
  */
 
@@ -18,23 +21,27 @@ using namespace Convert;
 
 Vector calc_control_torque_b(Convert::qatt tatt, Convert::qatt catt, Vector moi, double portion);
 
-Physics::Simulator::StateList::iterator sit;
 Physics::Simulator *sim;
 Agent *agent;
 string realmname = "propagate";
+// Simulation start time
 double initialutc = 0.;
+// Simulation end time, runs forever if set to 0.
+double endutc = 0.;
+// Multiplier for speed of simulation, 1 = realtime, 60 = 60x faster (1s realtime = 1min simtime), etc.
 double speed=1.;
+// Acceleration cap for thrusters
 double maxaccel = .1;
 double minaccel;
 double offset = 0.;
-double deltat = .0655;
-double runcount = 1500;
 double currentutc;
+// Simulation discrete timestep, in seconds
 double simdt = 1.;
-double attdt = 1.;
 double minaccelratio = 10;
+// Physical constants
 constexpr double d2s = 1./86400.;
 constexpr double d2s2 = 1./(86400.*86400.);
+
 string targetfile = "targets.dat";
 string satfile = "sats.dat";
 
@@ -49,10 +56,7 @@ LsFit omegafit;
 //static bool altprint = false;
 int32_t parse_control(string args);
 int32_t parse_sat(string args);
-
-//vector<cosmosstruc> sats;
-vector<Physics::Simulator::StateList::iterator> sits;
-
+void get_observation_windows();
 
 int net_port_in = 10080;
 socket_channel net_channel_in;
@@ -66,6 +70,7 @@ const string TELEGRAF_ADDR = "cosmos_telegraf";
 string cosmos_web_addr = "127.0.0.1";
 const int TELEGRAF_PORT = 10096;
 const int API_PORT = 10097;
+int32_t open_cosmos_web_sockets();
 void add_sim_devices();
 void reset_db();
 int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo);
@@ -95,7 +100,6 @@ int main(int argc, char *argv[])
     currentutc = initialutc;
     sim->Init(currentutc, simdt);
 
-
     // Load in satellites
     fp = fopen(satfile.c_str(), "r");
     char buf[150];
@@ -103,7 +107,6 @@ int main(int argc, char *argv[])
     {
         parse_sat(buf);
     }
-
 
     // Load in targets
     fp = fopen(targetfile.c_str(), "r");
@@ -114,7 +117,7 @@ int main(int argc, char *argv[])
         while (fgets((char *)line.data(), 200, fp) != nullptr)
         {
             vector<string> args = string_split(line, " \t\n");
-            for (Physics::Simulator::StateList::iterator sit : sits)
+            for (Physics::Simulator::StateList::iterator sit = sim->cnodes.begin(); sit != sim->cnodes.end(); sit++)
             {
                 if (args.size() == 4)
                 {
@@ -122,7 +125,7 @@ int main(int argc, char *argv[])
                 }
                 else if (args.size() == 5)
                 {
-                    sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])), 0., NODE_TYPE_LOCATION);
+                    sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])), NODE_TYPE_TARGET);
                 }
             }
         }
@@ -133,33 +136,7 @@ int main(int argc, char *argv[])
 //    iretn = socket_open(net_channel_out, net_port_out);
     iretn = socket_publish(net_channel_out, net_port_out);
 
-    // Open sockets for sending data to cosmos web
-    // By default, attempts to send to the hostname "cosmos_telegraf",
-    // which is available in the COSMOS Docker application. If running
-    // on the host (i.e., not in a docker container), specify the
-    // cosmos_web_addr variable manually via the terminal args,
-    // such as {"cosmos_web_addr": "127.0.0.1"}
-    if (cosmos_web_addr.empty()) {
-        string response;
-        iretn = hostnameToIP(TELEGRAF_ADDR, cosmos_web_addr, response);
-        if (iretn < 0)
-        {
-            cout << "Encountered error in hostnameToIP: " << response << endl;
-            exit(0);
-        }
-    }
-    iretn = socket_open(&cosmos_web_telegraf_channel, NetworkType::UDP, cosmos_web_addr.c_str(), TELEGRAF_PORT, SOCKET_TALK, SOCKET_BLOCKING, 2000000 );
-    if ((iretn) < 0)
-    {
-        cout << "Failed to open socket cosmos_web_telegraf_channel: " << cosmos_error_string(iretn) << endl;
-        exit(0);
-    }
-    iretn = socket_open(&cosmos_web_api_channel, NetworkType::UDP, cosmos_web_addr.c_str(), API_PORT, SOCKET_TALK, SOCKET_BLOCKING, 2000000);
-    if ((iretn) < 0)
-    {
-        cout << "Failed to open socket cosmos_web_api_channel: " << cosmos_error_string(iretn) << endl;
-        exit(0);
-    }
+    open_cosmos_web_sockets();
 
     add_sim_devices();
     // Reset simulation db
@@ -173,14 +150,13 @@ int main(int argc, char *argv[])
     while (agent->running())
     {
         ElapsedTime ret;
-        for (Physics::Simulator::StateList::iterator sit : sits)
+        for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); sit++)
         {
             string output;
             output += sit->second->currentinfo.get_json("node.utc");
             output += sit->second->currentinfo.get_json("node.name");
             output += sit->second->currentinfo.get_json("node.loc.pos.eci.s");
             output += sit->second->currentinfo.get_json("node.loc.pos.eci.v");
-//            iretn = socket_sendto(net_channel_out, output);
             iretn = socket_post(net_channel_out, output);
 
             send_telem_to_cosmos_web(&sit->second->currentinfo);
@@ -203,10 +179,130 @@ int main(int argc, char *argv[])
         pcount += simdt;
 
         ++elapsed;
+
+        cout << "sim->currentutc: " << std::to_string(sim->currentutc) << endl;
+
+        // Exit after sim completion
+        if (endutc > 0. && sim->currentutc > endutc)
+        {
+            break;
+        }
+
         secondsleep(simdt/speed - ret.lap());
     }
 
+    // Final propagator code to run
+    // OrbitalEventPropagator needs to force-end some events if they haven't finished yet.
+    sim->End();
+
+    // Find all sets of overlapping target viewing opportunities now that all
+    // target events have been calculated.
+    get_observation_windows();
+
     agent->shutdown();
+}
+
+
+// Find all sets of overlapping target viewing opportunities
+void get_observation_windows()
+{
+    for (auto cnode = sim->cnodes.begin(); cnode != sim->cnodes.end(); cnode++)
+    {
+        // Ascending sort by event starting utc time
+        std::sort(cnode->second->currentinfo.event.begin(), cnode->second->currentinfo.event.end(),
+            [](eventstruc e1, eventstruc e2)-> bool {
+                return e1.utc < e2.utc;
+            }
+        );
+        struct observation_window
+        {
+            uint32_t type = 0;
+            double utc = 0.;
+            double duration = 0.;
+            vector<string> elems;
+        };
+        vector<observation_window> windows;
+        observation_window window;
+        window.type = 0;
+        window.utc = 0.;
+        window.duration = 0.;
+        window.elems.clear();
+        cout << "\nNode: " << cnode->first << endl;
+        for (auto event = cnode->second->currentinfo.event.begin(); event != cnode->second->currentinfo.event.end(); event++)
+        {
+            if (event->type != EVENT_TYPE_TARG)
+            {
+                continue;
+            }
+            // New window
+            if ((window.utc + window.duration) < event->utc)
+            {
+                if (window.type != 0)
+                {
+                    // Don't push back the first event before starting to collect them
+                    windows.push_back(window);
+                }
+                window.type = EVENT_TYPE_TARG_OBSRV_WINDOW;
+                window.utc = event->utc;
+                window.duration = event->dtime;
+                window.elems = { event->name };
+            }
+            // Still within current window
+            else
+            {
+                window.duration = (event->utc - window.utc) + event->dtime;
+                window.elems.push_back(event->name);
+            }
+        }
+        // Do something with the discovered windows
+        for (auto it = windows.begin(); it != windows.end(); it++)
+        {
+            string ret = "";
+            for (auto el = it->elems.begin(); el != it->elems.end(); el++)
+            {
+                ret += *el + ", ";
+            }
+            cout << "startutc: " << std::left << std::setw(20) << std::setprecision(std::numeric_limits<double>::max_digits10) << it->utc
+                << " duration: " << std::left << std::setw(23) << std::setprecision(std::numeric_limits<double>::max_digits10) << it->duration
+                << " targets: " << ret << endl;
+        }
+    }
+}
+
+
+// Open sockets for sending data to cosmos web
+int32_t open_cosmos_web_sockets()
+{
+    // No telems are to be emitted if no address was specified
+    if (cosmos_web_addr.empty())
+    {
+        return 0;
+    }
+    if (cosmos_web_addr.find(".") == std::string::npos && cosmos_web_addr.find(":") == std::string::npos)
+    {
+        cout << ". or :?" << endl;
+        string response;
+        int32_t iretn = hostnameToIP(TELEGRAF_ADDR, cosmos_web_addr, response);
+        if (iretn < 0)
+        {
+            cout << "Encountered error in hostnameToIP: " << response << endl;
+            exit(0);
+        }
+    }
+
+    int32_t iretn = socket_open(&cosmos_web_telegraf_channel, NetworkType::UDP, cosmos_web_addr.c_str(), TELEGRAF_PORT, SOCKET_TALK, SOCKET_BLOCKING, 2000000 );
+    if ((iretn) < 0)
+    {
+        cout << "Failed to open socket cosmos_web_telegraf_channel: " << cosmos_error_string(iretn) << endl;
+        exit(0);
+    }
+    iretn = socket_open(&cosmos_web_api_channel, NetworkType::UDP, cosmos_web_addr.c_str(), API_PORT, SOCKET_TALK, SOCKET_BLOCKING, 2000000);
+    if ((iretn) < 0)
+    {
+        cout << "Failed to open socket cosmos_web_api_channel: " << cosmos_error_string(iretn) << endl;
+        exit(0);
+    }
+    return iretn;
 }
 
 int32_t parse_control(string args)
@@ -214,11 +310,6 @@ int32_t parse_control(string args)
     uint16_t argcount = 0;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
-    if (!jargs["runcount"].is_null())
-    {
-        ++argcount;
-        runcount = jargs["runcount"].number_value();
-    }
     if (!jargs["speed"].is_null())
     {
         ++argcount;
@@ -229,20 +320,15 @@ int32_t parse_control(string args)
         ++argcount;
         initialutc = jargs["initialutc"].number_value();
     }
-    if (!jargs["deltat"].is_null())
+    if (!jargs["endutc"].is_null())
     {
         ++argcount;
-        deltat = jargs["deltat"].number_value();
+        endutc = jargs["endutc"].number_value();
     }
     if (!jargs["simdt"].is_null())
     {
         ++argcount;
         simdt = jargs["simdt"].number_value();
-    }
-    if (!jargs["attdt"].is_null())
-    {
-        ++argcount;
-        attdt = jargs["attdt"].number_value();
     }
     if (!jargs["minaccelratio"].is_null())
     {
@@ -280,7 +366,7 @@ int32_t parse_sat(string args)
     uint16_t argcount = 0;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
-//    initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+    initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     if (!jargs["maxaccel"].is_null())
     {
         ++argcount;
@@ -372,7 +458,7 @@ int32_t parse_sat(string args)
         pos_eci(initialloc);
     }
     initialloc.att.icrf.s = q_eye();
-    if (!sits.size())
+    if (!sim->cnodes.size())
     {
         nodename = "mother";
         initialutc = initialloc.utc;
@@ -435,11 +521,11 @@ int32_t parse_target(string args)
         ++argcount;
         dlon = jargs["dlon"].number_value();
     }
-    for (Physics::Simulator::StateList::iterator sit : sits)
+    for (Physics::Simulator::StateList::iterator sit = sim->cnodes.begin(); sit != sim->cnodes.end(); sit++)
     {
         sit->second->AddTarget(name, clat+dlat, clon-dlon, clat-dlat, clon+dlon, alt, type);
     }
-    return sits.size();
+    return sim->cnodes.size();
 }
 
 /**
@@ -450,6 +536,10 @@ int32_t parse_target(string args)
  */
 int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
 {
+    if (cosmos_web_addr.empty())
+    {
+        return 0;
+    }
     // locstruc
     json11::Json jobj = json11::Json::object({
         {"node_name", cinfo->node.name },
@@ -600,27 +690,27 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
  */
 void add_sim_devices()
 {
-    for (auto s : sits)
+    for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); sit++)
     {
         // Battery
         for (size_t i=0; i < 2; ++i) {
-            json_createpiece(&s->second->currentinfo, "Battery"+std::to_string(i), DeviceType::BATT);
+            json_createpiece(&sit->second->currentinfo, "Battery"+std::to_string(i), DeviceType::BATT);
         }
         // BC Regulators (solar panels)
-        json_createpiece(&s->second->currentinfo, "Left", DeviceType::BCREG);
-        json_createpiece(&s->second->currentinfo, "Right", DeviceType::BCREG);
+        json_createpiece(&sit->second->currentinfo, "Left", DeviceType::BCREG);
+        json_createpiece(&sit->second->currentinfo, "Right", DeviceType::BCREG);
         // CPU
-        json_createpiece(&s->second->currentinfo, "iOBC", DeviceType::CPU);
-        json_createpiece(&s->second->currentinfo, "iX5-100", DeviceType::CPU);
+        json_createpiece(&sit->second->currentinfo, "iOBC", DeviceType::CPU);
+        json_createpiece(&sit->second->currentinfo, "iX5-100", DeviceType::CPU);
         // Thermal Sensors
-        json_createpiece(&s->second->currentinfo, "Camera", DeviceType::TSEN);
-        json_createpiece(&s->second->currentinfo, "Heat sink", DeviceType::TSEN);
-        json_createpiece(&s->second->currentinfo, "CPU", DeviceType::TSEN);
+        json_createpiece(&sit->second->currentinfo, "Camera", DeviceType::TSEN);
+        json_createpiece(&sit->second->currentinfo, "Heat sink", DeviceType::TSEN);
+        json_createpiece(&sit->second->currentinfo, "CPU", DeviceType::TSEN);
 
         // Fix pointers
-        json_updatecosmosstruc(&s->second->currentinfo);
+        json_updatecosmosstruc(&sit->second->currentinfo);
         // Update all physical quantities
-        node_calc(&s->second->currentinfo);
+        node_calc(&sit->second->currentinfo);
     }
 }
 
@@ -629,17 +719,26 @@ void add_sim_devices()
  */
 void reset_db()
 {
+    if (cosmos_web_addr.empty())
+    {
+        return;
+    }
     socket_sendto(cosmos_web_api_channel, "{\"swchstruc\": true, \"battstruc\": true, \"bcregstruc\": true, \"cpustruc\": true, \"device\": true, \"device_type\": true, \"locstruc\": true, \"magstruc\": true, \"node\": true, \"tsenstruc\": true, \"rwstruc\": true, \"mtrstruc\": true, \"attstruc_icrf\": true, \"cosmos_event\": true, \"event_type\": true, \"gyrostruc\": true, \"locstruc_eci\": true }");
     // Iterate over sats
-    for (size_t id=0; id<sits.size(); ++id)
+    uint16_t node_id = 1;
+    for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); sit++)
     {
+        // Compute node id manually until it's stored somewhere in cosmosstruc
+        uint16_t id = node_id;
+        sit->second->currentinfo.node.name == "mother" ? id = 0 : ++node_id;
+
         // Repopulate node table
         json11::Json jobj = json11::Json::object({
             {"node", json11::Json::object({
-                { "node_id", static_cast<uint16_t>(id) },
-                { "node_name", sits[id]->second->currentinfo.node.name },
+                { "node_id", id },
+                { "node_name", sit->second->currentinfo.node.name },
                 { "node_type", NODE_TYPE_SATELLITE },
-                { "agent_name", sits[id]->second->currentinfo.agent0.name },
+                { "agent_name", sit->second->currentinfo.agent0.name },
                 { "utc", sim->currentutc },
                 { "utcstart", currentutc }
             })}
@@ -647,11 +746,11 @@ void reset_db()
         socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
         // Add device info
         jobj = json11::Json::object({
-            {"node_name", sits[id]->second->currentinfo.node.name },
-            {"device", [id]() -> vector<json11::Json>
+            {"node_name", sit->second->currentinfo.node.name },
+            {"device", [id, sit]() -> vector<json11::Json>
                 {
                     vector<json11::Json> ret;
-                    for (auto device : sits[id]->second->currentinfo.device) {
+                    for (auto device : sit->second->currentinfo.device) {
                         ret.push_back({
                             json11::Json::object({
                                 { "type", device->type },
@@ -665,9 +764,8 @@ void reset_db()
                 }()
             }
         });
-        cout << jobj.dump() << endl;
         socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     }
-    cout << "Resetting db..." << endl;
+    // cout << "Resetting db..." << endl;
     secondsleep(1.);
 }
