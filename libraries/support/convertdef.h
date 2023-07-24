@@ -156,11 +156,11 @@ namespace Cosmos {
             //! UTC of Position
             double utc = 0.;
             //! Location
-            rvector s;
+            rvector s = {0., 0., 0.};
             //! Velocity
-            rvector v;
+            rvector v = {0., 0., 0.};
             //! Acceleration
-            rvector a;
+            rvector a = {0., 0., 0.};
             // TODO: get rid of this kind of stuff?
             //! pass indicator: allows synchronization with other attitude and position values.
             uint32_t pass = 0;

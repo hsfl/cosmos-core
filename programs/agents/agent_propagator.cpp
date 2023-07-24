@@ -63,7 +63,7 @@ socket_bus net_channel_out;
 // For cosmos web
 socket_channel cosmos_web_telegraf_channel, cosmos_web_api_channel;
 const string TELEGRAF_ADDR = "cosmos_telegraf";
-string cosmos_web_addr = "";
+string cosmos_web_addr = "127.0.0.1";
 const int TELEGRAF_PORT = 10096;
 const int API_PORT = 10097;
 void add_sim_devices();
@@ -118,11 +118,11 @@ int main(int argc, char *argv[])
             {
                 if (args.size() == 4)
                 {
-                    sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
+                    sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_LOCATION);
                 }
                 else if (args.size() == 5)
                 {
-                    sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])));
+                    sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])), 0., NODE_TYPE_LOCATION);
                 }
             }
         }
@@ -376,12 +376,13 @@ int32_t parse_sat(string args)
     {
         nodename = "mother";
         initialutc = initialloc.utc;
+        iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
     }
     else
     {
         nodename = "child_" + to_unsigned(sits.size(), 2, true);
+        iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
     }
-    iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
     sits.push_back(sim->GetNode(nodename));
     return iretn;
 }

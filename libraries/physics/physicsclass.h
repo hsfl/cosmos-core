@@ -137,11 +137,13 @@ namespace Cosmos
                 PositionGaussJackson = 12,
                 PositionGeo = 13,
                 PositionTle = 14,
+                PositionLvlh = 15,
                 AttitudeInertial = 20,
                 AttitudeIterative = 21,
                 AttitudeLVLH = 22,
                 AttitudeGeo = 23,
                 AttitudeSolar = 24,
+                AttitudeTarget = 25,
                 Thermal = 30,
                 Electrical = 40
                 };
@@ -263,6 +265,23 @@ namespace Cosmos
             vector<gjstruc> step;
         };
 
+        class LvlhPositionPropagator : public Propagator
+        {
+        public:
+            Convert::cartpos offset;
+            LvlhPositionPropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
+                : Propagator{ newloc, newphys, idt }
+            {
+                type = PositionLvlh;
+            }
+
+            int32_t Init(Convert::cartpos offset);
+            int32_t Propagate(Convert::cartpos base);
+            int32_t Reset(Convert::cartpos basepos, Convert::cartpos offset=Convert::cartpos());
+
+        private:
+        };
+
         class InertialAttitudePropagator : public Propagator
         {
         public:
@@ -344,6 +363,23 @@ namespace Cosmos
             Vector optimum{0.,0.,1.};
         };
 
+        class TargetAttitudePropagator : public Propagator
+        {
+        public:
+            TargetAttitudePropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
+                : Propagator{ newloc, newphys, idt }
+            {
+                type = AttitudeTarget;
+            }
+
+            int32_t Init();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
+
+        private:
+            Vector optimum{0.,0.,1.};
+        };
+
         class ThermalPropagator : public Propagator
         {
         public:
@@ -410,6 +446,7 @@ namespace Cosmos
             IterativePositionPropagator *itposition;
             GaussJacksonPositionPropagator *gjposition;
             TlePositionPropagator *tleposition;
+            LvlhPositionPropagator *lvlhposition;
 
             Propagator::Type atype;
             InertialAttitudePropagator *inattitude;
@@ -417,6 +454,7 @@ namespace Cosmos
             LVLHAttitudePropagator *lvattitude;
             GeoAttitudePropagator *geoattitude;
             SolarAttitudePropagator *solarattitude;
+            TargetAttitudePropagator *targetattitude;
 
             Propagator::Type ttype;
             ThermalPropagator *thermal;
@@ -433,7 +471,7 @@ namespace Cosmos
             int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci);
             int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf);
             int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype);
-            int32_t Propagate(double nextutc=0.);
+            int32_t Propagate(double nextutc=0., Convert::cartpos currenteci=Convert::cartpos());
             int32_t Reset(double nextutc=0.);
             int32_t AddTarget(string name, Convert::locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
             int32_t AddTarget(string name, Convert::locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, double area=0.);
