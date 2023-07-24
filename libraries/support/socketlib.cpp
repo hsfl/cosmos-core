@@ -349,7 +349,7 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
 {
     //    socklen_t namelen;
     int32_t iretn = 0;
-    struct ip_mreq mreq;
+//    struct ip_mreq mreq;
     int on = 1;
 
 #ifdef COSMOS_WIN_OS
@@ -1389,11 +1389,6 @@ int32_t Udp::socketOpen()
             }
             sok.port = ntohs(sok.server.sin_port);
         }
-        else
-        {
-            //>>
-            //port = port;
-        }
 
         if (sok.type == NetworkType::MULTICAST)
         {
@@ -1436,10 +1431,7 @@ int32_t Udp::socketOpen()
             return (SOCKET_ERROR_PROTOCOL);
             break;
         }
-        // >>
-        //port = port;
         break;
-        //------------------------------------------------------
     case SOCKET_TALK:
 #ifndef COSMOS_WIN_OS
         inet_pton(AF_INET,sok.address.c_str(),&sok.server.sin_addr);
@@ -1447,10 +1439,7 @@ int32_t Udp::socketOpen()
         sslen = sizeof(ss);
         WSAStringToAddressA((LPSTR)sok.address.c_str(),AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
         sok.server.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-#endif \
-    //>> \
-    //port = port;
-
+#endif
         if (sok.connect){
             if ((iretn=connect(sok.handle, (struct sockaddr *)&sok.server, sok.addrlen)) < 0)
             {
