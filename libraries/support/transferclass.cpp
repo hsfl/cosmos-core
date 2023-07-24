@@ -76,7 +76,7 @@ namespace Cosmos {
 
             // Transfer: Queue
             const int32_t node_ids_size = cinfo->realm.node_ids.size();
-            if (node_ids_size < 5)
+            if (node_ids_size < 2)
             {
                 if (this->debug_log != nullptr)
                 {
@@ -792,7 +792,7 @@ namespace Cosmos {
             {
                 if (debug_log != nullptr)
                 {
-                    debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
+                    debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_NODENAME %s\n", tet.split(), dt.lap(), dest_node.c_str());
                 }
                 return TRANSFER_ERROR_NODE;
             }
@@ -801,7 +801,7 @@ namespace Cosmos {
             {
                 if (debug_log != nullptr)
                 {
-                    debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_NODE\n", tet.split(), dt.lap());
+                    debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_NODE %s %u\n", tet.split(), dt.lap(), dest_node.c_str(), dest_node_id);
                 }
                 return TRANSFER_ERROR_NODE;
             }
