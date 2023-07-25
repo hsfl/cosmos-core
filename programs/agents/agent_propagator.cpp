@@ -466,10 +466,10 @@ int32_t parse_sat(string args)
     }
     else
     {
-        nodename = "child_" + to_unsigned(sits.size(), 2, true);
+        nodename = "child_" + to_unsigned(sim->cnodes.size(), 2, true);
         iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
     }
-    sits.push_back(sim->GetNode(nodename));
+//    sits.push_back(sim->GetNode(nodename));
     return iretn;
 }
 
