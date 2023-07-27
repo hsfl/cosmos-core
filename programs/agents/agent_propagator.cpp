@@ -67,7 +67,7 @@ socket_bus net_channel_out;
 // For cosmos web
 socket_channel cosmos_web_telegraf_channel, cosmos_web_api_channel;
 const string TELEGRAF_ADDR = "cosmos_telegraf";
-string cosmos_web_addr = "127.0.0.1";
+string cosmos_web_addr = "";
 const int TELEGRAF_PORT = 10096;
 const int API_PORT = 10097;
 int32_t open_cosmos_web_sockets();
