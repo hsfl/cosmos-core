@@ -67,12 +67,13 @@ socket_bus net_channel_out;
 // For cosmos web
 socket_channel cosmos_web_telegraf_channel, cosmos_web_api_channel;
 const string TELEGRAF_ADDR = "cosmos_telegraf";
-string cosmos_web_addr = "127.0.0.1";
+string cosmos_web_addr = "";
 const int TELEGRAF_PORT = 10096;
 const int API_PORT = 10097;
 int32_t open_cosmos_web_sockets();
 void add_sim_devices();
 void reset_db();
+void send_events_to_cosmos_web();
 int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo);
 
 int main(int argc, char *argv[])
@@ -121,11 +122,11 @@ int main(int argc, char *argv[])
             {
                 if (args.size() == 4)
                 {
-                    sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_LOCATION);
+                    sit->second->AddTarget(args[0], RADOF(stod(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_LOCATION);
                 }
                 else if (args.size() == 5)
                 {
-                    sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])), NODE_TYPE_TARGET);
+                    sit->second->AddTarget(args[0], RADOF(stod(args[1])), RADOF(stod(args[2])), stod(args[3]), stod(args[4]), NODE_TYPE_TARGET);
                 }
             }
         }
@@ -199,6 +200,8 @@ int main(int argc, char *argv[])
     // target events have been calculated.
     get_observation_windows();
 
+    send_events_to_cosmos_web();
+
     agent->shutdown();
 }
 
@@ -269,7 +272,6 @@ void get_observation_windows()
     }
 }
 
-
 // Open sockets for sending data to cosmos web
 int32_t open_cosmos_web_sockets()
 {
@@ -280,7 +282,6 @@ int32_t open_cosmos_web_sockets()
     }
     if (cosmos_web_addr.find(".") == std::string::npos && cosmos_web_addr.find(":") == std::string::npos)
     {
-        cout << ". or :?" << endl;
         string response;
         int32_t iretn = hostnameToIP(TELEGRAF_ADDR, cosmos_web_addr, response);
         if (iretn < 0)
@@ -681,6 +682,36 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
     return 0;
 }
 
+void send_events_to_cosmos_web()
+{
+    for (auto cnode = sim->cnodes.begin(); cnode != sim->cnodes.end(); cnode++)
+    {
+        json11::Json jobj = json11::Json::object({
+            {"event", [cnode]() -> vector<json11::Json>
+                {
+                    vector<json11::Json> ret;
+                    // Event id is currently arbitrary
+                    uint16_t event_id = 0;
+                    for (auto event : cnode->second->currentinfo.event) {
+                        ret.push_back({
+                            json11::Json::object({
+                                { "node_name"  , cnode->first },
+                                { "utc", event.utc },
+                                { "duration", event.dtime },
+                                { "event_id" , event_id++ },
+                                { "type" , static_cast<int32_t>(event.type) },
+                                { "event_name" , event.name },
+                            })
+                        });
+                    }
+                    return ret;
+                }()
+            }
+        });
+        socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+    }
+}
+
 /**
  * @brief Add devices to simulate to the nodes
  */
@@ -719,7 +750,7 @@ void reset_db()
     {
         return;
     }
-    socket_sendto(cosmos_web_api_channel, "{\"swchstruc\": true, \"battstruc\": true, \"bcregstruc\": true, \"cpustruc\": true, \"device\": true, \"device_type\": true, \"locstruc\": true, \"magstruc\": true, \"node\": true, \"tsenstruc\": true, \"rwstruc\": true, \"mtrstruc\": true, \"attstruc_icrf\": true, \"cosmos_event\": true, \"event_type\": true, \"gyrostruc\": true, \"locstruc_eci\": true }");
+    socket_sendto(cosmos_web_api_channel, "{\"swchstruc\": true, \"battstruc\": true, \"bcregstruc\": true, \"cpustruc\": true, \"device\": true, \"device_type\": true, \"locstruc\": true, \"magstruc\": true, \"node\": true, \"tsenstruc\": true, \"rwstruc\": true, \"mtrstruc\": true, \"attstruc_icrf\": true, \"cosmos_event\": true, \"event_type\": true, \"gyrostruc\": true, \"locstruc_eci\": true, \"target\": true, \"cosmos_event\": true }");
     // Iterate over sats
     uint16_t node_id = 1;
     for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); sit++)
@@ -753,6 +784,34 @@ void reset_db()
                                 { "cidx", device->cidx },
                                 { "didx", device->didx },
                                 { "name", device->name }
+                            })
+                        });
+                    }
+                    return ret;
+                }()
+            }
+        });
+        socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+    }
+    auto mother = sim->cnodes.find("mother");
+    if (mother != sim->cnodes.end())
+    {
+        // Groundstations & targets
+        json11::Json jobj = json11::Json::object({
+            {"target", [mother]() -> vector<json11::Json>
+                {
+                    vector<json11::Json> ret;
+                    uint16_t target_id = 0;
+                    for (auto target : mother->second->currentinfo.target) {
+                        ret.push_back({
+                            json11::Json::object({
+                                { "id"  , target_id++ },
+                                { "name", target.name },
+                                { "type", target.type },
+                                { "lat" , target.loc.pos.geod.s.lat },
+                                { "lon" , target.loc.pos.geod.s.lon },
+                                { "h" , target.loc.pos.geod.s.h },
+                                { "area" , target.area }
                             })
                         });
                     }
