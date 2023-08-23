@@ -163,12 +163,25 @@ int32_t write_envi_hdr(envi_hdr &hdr)
     string fname;
     FILE *fp;
 
-    size_t extension;
-    if ((extension = hdr.basename.find_last_of(".")) != string::npos)
+    size_t extension = 0;
+    if ((extension = hdr.basename.find(".bsq")) != string::npos)
     {
         fname = hdr.basename.substr(0, extension) + ".hdr";
     }
-    else {
+    else if ((extension = hdr.basename.find(".bip")) != string::npos)
+    {
+        fname = hdr.basename.substr(0, extension) + ".hdr";
+    }
+    else if ((extension = hdr.basename.find(".bil")) != string::npos)
+    {
+        fname = hdr.basename.substr(0, extension) + ".hdr";
+    }
+    else if ((extension = hdr.basename.find(".img")) != string::npos)
+    {
+        fname = hdr.basename.substr(0, extension) + ".hdr";
+    }
+    else
+    {
         fname = hdr.basename + ".hdr";
     }
     fp = fopen(fname.c_str(),"w");
@@ -658,7 +671,19 @@ int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<do
 
     size_t extension;
     string fname;
-    if ((extension = ehdr.basename.find_last_of(".")) != string::npos)
+    if ((extension = ehdr.basename.find(".bsq")) != string::npos)
+    {
+        fname = ehdr.basename;
+    }
+    else if ((extension = ehdr.basename.find(".bip")) != string::npos)
+    {
+        fname = ehdr.basename;
+    }
+    else if ((extension = ehdr.basename.find(".bil")) != string::npos)
+    {
+        fname = ehdr.basename;
+    }
+    else if ((extension = ehdr.basename.find(".img")) != string::npos)
     {
         fname = ehdr.basename;
     }

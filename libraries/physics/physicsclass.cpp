@@ -370,12 +370,11 @@ int32_t Structure::add_vertex(Vector point)
 }
 
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::tlestruc tle, double utc)
+int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::tlestruc tle, double utc, Convert::qatt icrf)
 {
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
 
-    //            strncpy(currentinfo.node.name, name.c_str(), COSMOS_MAX_NAME);
     currentinfo.node.name = name;
     currentinfo.agent0.name = "sim";
     currentinfo.node.loc.utc = utc;
@@ -529,6 +528,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
         break;
     }
     this->etype = etype;
+
     switch (oeventtype)
     {
     case Propagator::Type::OrbitalEvent:
@@ -556,36 +556,6 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     return 0;
 }
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci)
-{
-    int32_t iretn = 0;
-    Convert::pos_clear(currentinfo.node.loc);
-    currentinfo.node.loc.pos.eci = eci;
-    currentinfo.node.loc.pos.eci.pass++;
-    iretn = Convert::pos_eci(currentinfo.node.loc);
-    if (iretn < 0)
-    {
-        return iretn;
-    }
-    currentinfo.node.loc.att.lvlh.pass++;
-    currentinfo.node.loc.att.lvlh.s = q_eye();
-    currentinfo.node.loc.att.lvlh.v = rv_zero();
-    currentinfo.node.loc.att.lvlh.a = rv_zero();
-    currentinfo.node.loc.att.lvlh.utc = eci.utc;
-    iretn = Convert::att_lvlh(currentinfo.node.loc);
-    if (iretn < 0)
-    {
-        return iretn;
-    }
-
-    return Init(name, idt, stype, ptype, atype, ttype, etype, Propagator::Type::None);
-}
-
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf)
-{
-    return Init(name, idt, stype, ptype, atype, ttype, etype, Propagator::Type::None, eci, icrf);
-}
-
 int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf)
 {
     int32_t iretn = 0;
@@ -597,17 +567,60 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     {
         return iretn;
     }
-    currentinfo.node.loc.att.icrf = icrf;
-    currentinfo.node.loc.att.icrf.pass++;
-    iretn = Convert::att_icrf(currentinfo.node.loc);
-    if (iretn < 0)
+    if (length_q(icrf.s) <= __DBL_MIN__)
     {
-        return iretn;
+        currentinfo.node.loc.att.lvlh.pass++;
+        currentinfo.node.loc.att.lvlh.s = q_eye();
+        currentinfo.node.loc.att.lvlh.v = rv_zero();
+        currentinfo.node.loc.att.lvlh.a = rv_zero();
+        currentinfo.node.loc.att.lvlh.utc = eci.utc;
+        iretn = Convert::att_lvlh(currentinfo.node.loc);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
     }
-
+    else
+    {
+        currentinfo.node.loc.att.icrf = icrf;
+        currentinfo.node.loc.att.icrf.pass++;
+        iretn = Convert::att_icrf(currentinfo.node.loc);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
 
     return Init(name, idt, stype, ptype, atype, ttype, etype, oeventtype);
 }
+
+//int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf)
+//{
+//    return Init(name, idt, stype, ptype, atype, ttype, etype, Propagator::Type::None, eci, icrf);
+//}
+
+//int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf)
+//{
+//    int32_t iretn = 0;
+//    Convert::pos_clear(currentinfo.node.loc);
+//    currentinfo.node.loc.pos.eci = eci;
+//    currentinfo.node.loc.pos.eci.pass++;
+//    iretn = Convert::pos_eci(currentinfo.node.loc);
+//    if (iretn < 0)
+//    {
+//        return iretn;
+//    }
+//    currentinfo.node.loc.att.icrf = icrf;
+//    currentinfo.node.loc.att.icrf.pass++;
+//    iretn = Convert::att_icrf(currentinfo.node.loc);
+//    if (iretn < 0)
+//    {
+//        return iretn;
+//    }
+
+
+//    return Init(name, idt, stype, ptype, atype, ttype, etype, oeventtype);
+//}
 
 int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype)
 {
@@ -672,6 +685,42 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
         lvattitude = new LVLHAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
         lvattitude->Init();
         break;
+    case Propagator::Type::AttitudeTarget:
+    {
+        targetattitude = new TargetAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+        double range = 1000000.;
+        targetstruc ctarget;
+        for (targetstruc target : currentinfo.target)
+        {
+            if (target.elfrom > 0 && target.range < range)
+            {
+                range = target.range;
+                ctarget = target;
+            }
+        }
+        if (range < 1000000.)
+        {
+            currentinfo.node.loc.att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
+            currentinfo.node.loc.att.topo.v = rv_zero();
+            currentinfo.node.loc.att.topo.a = rv_zero();
+            currentinfo.node.loc.att.topo.utc = currentinfo.node.loc.utc;
+            currentinfo.node.loc.att.topo.pass++;
+            Convert::att_topo(currentinfo.node.loc);
+        }
+        else
+        {
+            currentinfo.node.loc.att.lvlh.s = q_eye();
+            currentinfo.node.loc.att.lvlh.v = rv_zero();
+            currentinfo.node.loc.att.lvlh.a = rv_zero();
+            currentinfo.node.loc.att.lvlh.utc = currentinfo.node.loc.utc;
+            currentinfo.node.loc.att.lvlh.pass++;
+            Convert::att_lvlh(currentinfo.node.loc);
+        }
+        currentinfo.node.loc.att.icrf.pass++;
+        Convert::att_icrf(currentinfo.node.loc);
+        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+    }
+        break;
     default:
         inattitude = new InertialAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
         inattitude->Init();
@@ -705,6 +754,17 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     }
     this->etype = etype;
 
+    switch (oeventtype)
+    {
+    case Propagator::Type::OrbitalEvent:
+        orbitalevent = new OrbitalEventPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target, currentinfo.event);
+        break;
+    default:
+        orbitalevent = nullptr;
+        break;
+    }
+    this->oeventtype = oeventtype;
+
     if (ptype == Propagator::PositionGeo)
     {
         Convert::pos_geod(currentinfo.node.loc);
@@ -723,16 +783,6 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
         Convert::att_icrf(currentinfo.node.loc);
         AttAccel(currentinfo.node.loc, currentinfo.node.phys);
     }
-    switch (oeventtype)
-    {
-    case Propagator::Type::OrbitalEvent:
-        orbitalevent = new OrbitalEventPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target, currentinfo.event);
-        break;
-    default:
-        orbitalevent = nullptr;
-        break;
-    }
-    this->oeventtype = oeventtype;
 
     initialloc = currentinfo.node.loc;
     initialphys = currentinfo.node.phys;
@@ -1611,10 +1661,6 @@ int32_t LvlhPositionPropagator::Reset(Convert::cartpos basepos, Convert::cartpos
 
 int32_t LvlhPositionPropagator::Propagate(Convert::cartpos basepos)
 {
-    if (basepos.utc == 0.)
-    {
-        basepos.utc = currentutc + dtj;
-    }
     currentutc = basepos.utc;
     currentloc->pos.icrf = basepos;
     currentloc->pos.icrf.pass++;

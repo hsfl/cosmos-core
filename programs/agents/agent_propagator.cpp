@@ -363,6 +363,7 @@ int32_t parse_sat(string args)
     double initialalt = 400000.;
     double initialangle = RADOF(54.);
     Convert::locstruc initialloc;
+    tlestruc initialtle;
     uint16_t argcount = 0;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
@@ -378,21 +379,13 @@ int32_t parse_sat(string args)
         json11::Json::object values = jargs["lvlh"].object_items();
         Physics::Simulator::StateList::iterator sit = sim->GetNode("mother");
         initialloc = sit->second->currentinfo.node.loc;
-        cartpos dpos;
-        dpos.s.col[0] = values["x"].number_value();
-        dpos.s.col[1] = values["y"].number_value();
-        dpos.s.col[2] = values["z"].number_value();
-        dpos.s = irotate(initialloc.pos.extra.l2g, dpos.s);
-        dpos.s = rv_mmult(initialloc.pos.extra.e2j, dpos.s);
-        initialloc.pos.eci.s = initialloc.pos.eci.s + dpos.s;
-        dpos.v.col[0] = values["vx"].number_value();
-        dpos.v.col[1] = values["vy"].number_value();
-        dpos.v.col[2] = values["vz"].number_value();
-        dpos.v = irotate(initialloc.pos.extra.l2g, dpos.v);
-        dpos.v = rv_mmult(initialloc.pos.extra.e2j, dpos.v);
-        initialloc.pos.eci.v = initialloc.pos.eci.v + dpos.v;
-        initialloc.pos.eci.pass++;
-        pos_eci(initialloc);
+        initialloc.pos.lvlh.s.col[0] = values["x"].number_value();
+        initialloc.pos.lvlh.s.col[1] = values["y"].number_value();
+        initialloc.pos.lvlh.s.col[2] = values["z"].number_value();
+        initialloc.pos.lvlh.v.col[0] = values["vx"].number_value();
+        initialloc.pos.lvlh.v.col[1] = values["vy"].number_value();
+        initialloc.pos.lvlh.v.col[2] = values["vz"].number_value();
+        initialloc.pos.lvlh.pass++;
     }
     if (!jargs["phys"].is_null())
     {
@@ -421,6 +414,7 @@ int32_t parse_sat(string args)
         initialloc.pos.eci.v.col[2] = (values["vz"].number_value());
         initialloc.pos.eci.pass++;
         pos_eci(initialloc);
+        eci2tle(initialutc, initialloc.pos.eci, initialtle);
     }
     if (!jargs["kep"].is_null())
     {
@@ -441,6 +435,7 @@ int32_t parse_sat(string args)
         kep2eci(kep, initialloc.pos.eci);
         initialloc.pos.eci.pass++;
         pos_eci(initialloc);
+        eci2tle(initialutc, initialloc.pos.eci, initialtle);
     }
     if (!jargs["tle"].is_null())
     {
@@ -456,18 +451,19 @@ int32_t parse_sat(string args)
         lines2eci(initialutc, lines, initialloc.pos.eci);
         initialloc.pos.eci.pass++;
         pos_eci(initialloc);
+        initialtle = lines[0];
     }
     initialloc.att.icrf.s = q_eye();
     if (!sim->cnodes.size())
     {
         nodename = "mother";
         initialutc = initialloc.utc;
-        iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+        iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialtle);
     }
     else
     {
         nodename = "child_" + to_unsigned(sim->cnodes.size(), 2, true);
-        iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+        iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.lvlh);
     }
 //    sits.push_back(sim->GetNode(nodename));
     return iretn;

@@ -333,6 +333,8 @@ namespace Cosmos
             JSON_TYPE_POS_GEOC,
             //! JSON Selenocentric Position
             JSON_TYPE_POS_SELC,
+            //! LVLH Mothership based position
+            JSON_TYPE_POS_LVLH,
             //! JSON Geodetic Position
             JSON_TYPE_POS_GEOD,
             //! JSON Geocentric Spherical

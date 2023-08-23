@@ -2662,6 +2662,14 @@ int32_t json_out_posstruc(string &jstring, Convert::posstruc value)
     if ((iretn=json_out_character(jstring,',')) < 0)
         return iretn;
 
+    // Output LVLH
+    if ((iretn=json_out_name(jstring, "lvlh")) < 0)
+        return iretn;
+    if ((iretn=json_out_cartpos(jstring,value.lvlh)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
     // Output Geodetic
     if ((iretn=json_out_name(jstring, "geod")) < 0)
         return iretn;
@@ -4723,6 +4731,11 @@ Convert::posstruc json_get_posstruc(const jsonentry &entry, cosmosstruc *cinfo)
                 Convert::pos_selc(&value);
             }
             break;
+        case JSON_TYPE_POS_LVLH:
+        {
+                value.pos.lvlh = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
+        }
+        break;
         case JSON_TYPE_POS_SELG:
             {
                 value.pos.selg = (Convert::geoidpos)(*(Convert::geoidpos *)(dptr));
@@ -6458,6 +6471,8 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         case JSON_TYPE_POS_SELC:
             Convert::pos_selc(&cinfo->node.loc);
             break;
+        case JSON_TYPE_POS_LVLH:
+            break;
         case JSON_TYPE_POS_GEOC:
             Convert::pos_geoc(&cinfo->node.loc);
             break;
@@ -6703,6 +6718,16 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(Convert::posstruc,selc), cinfo)) < 0)
+            return iretn;
+        if ((iretn = json_skip_character(ptr,',')) < 0)
+            return iretn;
+        if ((iretn = json_extract_string(ptr, empty)) < 0)
+            return iretn;
+        if ((iretn = json_skip_white(ptr)) < 0)
+            return iretn;
+        if ((iretn = json_skip_character(ptr,':')) < 0)
+            return iretn;
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(Convert::posstruc,lvlh), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -8137,6 +8162,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_loc_pos_eci_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.eci.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ACCELERATION);
     json_addentry("node_loc_pos_sci", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.sci, (uint16_t)JSON_TYPE_POS_SCI, cinfo);
     json_addentry("node_loc_pos_selc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.selc, (uint16_t)JSON_TYPE_POS_SELC, cinfo);
+    json_addentry("node_loc_pos_lvlh", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.lvlh, (uint16_t)JSON_TYPE_POS_SELC, cinfo);
     json_addentry("node_loc_pos_selg", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.selg, (uint16_t)JSON_TYPE_POS_SELG, cinfo);
     json_addentry("node_loc_pos_icrf", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.icrf, (uint16_t)JSON_TYPE_POS_ICRF, cinfo);
     json_addentry("node_loc_pos_sunsize", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.sunsize, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
@@ -8191,6 +8217,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_loc_est_pos_eci_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_est.pos.eci.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ACCELERATION);
     json_addentry("node_loc_est_pos_sci", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_est.pos.sci, (uint16_t)JSON_TYPE_POS_SCI, cinfo);
     json_addentry("node_loc_est_pos_selc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_est.pos.selc, (uint16_t)JSON_TYPE_POS_SELC, cinfo);
+    json_addentry("node_loc_est_pos_lvlh", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_est.pos.lvlh, (uint16_t)JSON_TYPE_POS_SELC, cinfo);
     json_addentry("node_loc_est_pos_selg", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_est.pos.selg, (uint16_t)JSON_TYPE_POS_SELG, cinfo);
     json_addentry("node_loc_est_pos_icrf", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_est.pos.icrf, (uint16_t)JSON_TYPE_POS_ICRF, cinfo);
     json_addentry("node_loc_est_pos_sunsize", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_est.pos.sunsize, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
@@ -8245,6 +8272,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_loc_std_pos_eci_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_std.pos.eci.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ACCELERATION);
     json_addentry("node_loc_std_pos_sci", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_std.pos.sci, (uint16_t)JSON_TYPE_POS_SCI, cinfo);
     json_addentry("node_loc_std_pos_selc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_std.pos.selc, (uint16_t)JSON_TYPE_POS_SELC, cinfo);
+    json_addentry("node_loc_std_pos_lvlh", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_std.pos.lvlh, (uint16_t)JSON_TYPE_POS_SELC, cinfo);
     json_addentry("node_loc_std_pos_selg", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_std.pos.selg, (uint16_t)JSON_TYPE_POS_SELG, cinfo);
     json_addentry("node_loc_std_pos_icrf", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_std.pos.icrf, (uint16_t)JSON_TYPE_POS_ICRF, cinfo);
     json_addentry("node_loc_std_pos_sunsize", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc_std.pos.sunsize, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);

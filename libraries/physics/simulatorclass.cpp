@@ -21,18 +21,18 @@ namespace Cosmos
             return error;
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype)
         {
             Physics::State* newstate = new Physics::State(nodename);
             cnodes.insert(pair<string, Physics::State*>(nodename, newstate));
             return cnodes.count(nodename);
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::tlestruc tle)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::tlestruc tle, Convert::qatt icrf)
         {
-            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
+            if (AddNode(nodename, stype, ptype, atype, ttype, etype, oeventtype))
             {
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, Propagator::Type::None, tle, currentutc);
+                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, tle, currentutc, icrf);
                 if (error < 0)
                 {
                     return error;
@@ -42,44 +42,27 @@ namespace Cosmos
             return cnodes.count(nodename);
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci)
-        {
-            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
-            {
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, eci);
-                if (error < 0)
-                {
-                    return error;
-                }
-                error = cnodes[nodename]->Propagate(currentutc);
-                if (error < 0)
-                {
-                    return error;
-                }
-            }
-            return cnodes.count(nodename);
-        }
+//        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci)
+//        {
+//            if (AddNode(nodename, stype, ptype, atype, ttype, etype, oeventtype))
+//            {
+//                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, eci);
+//                if (error < 0)
+//                {
+//                    return error;
+//                }
+//                error = cnodes[nodename]->Propagate(currentutc);
+//                if (error < 0)
+//                {
+//                    return error;
+//                }
+//            }
+//            return cnodes.count(nodename);
+//        }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf)
-        {
-            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
-            {
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, eci, icrf);
-                if (error < 0)
-                {
-                    return error;
-                }
-                error = cnodes[nodename]->Propagate(currentutc);
-                if (error < 0)
-                {
-                    return error;
-                }
-            }
-            return cnodes.count(nodename);
-        }
         int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf)
         {
-            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
+            if (AddNode(nodename, stype, ptype, atype, ttype, etype, oeventtype))
             {
                 error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, eci, icrf);
                 if (error < 0)
@@ -95,12 +78,30 @@ namespace Cosmos
             return cnodes.count(nodename);
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, double utc, double latitude, double longitude, double altitude, double angle, double timeshift)
+//        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf)
+//        {
+//            if (AddNode(nodename, stype, ptype, atype, ttype, etype, oeventtype))
+//            {
+//                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, eci, icrf);
+//                if (error < 0)
+//                {
+//                    return error;
+//                }
+//                error = cnodes[nodename]->Propagate(currentutc);
+//                if (error < 0)
+//                {
+//                    return error;
+//                }
+//            }
+//            return cnodes.count(nodename);
+//        }
+
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, double utc, double latitude, double longitude, double altitude, double angle, double timeshift)
         {
 //            Physics::State* newstate = new Physics::State;
 //            auto testit = cnodes.insert(pair<string, Physics::State*>(nodename, newstate));
 //            if (testit.second)
-            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
+            if (AddNode(nodename, stype, ptype, atype, ttype, etype, oeventtype))
             {
                 Convert::locstruc loc;
                 if (ptype == Propagator::PositionGeo)
@@ -130,7 +131,7 @@ namespace Cosmos
                     loc.att.lvlh.pass++;
                     Convert::att_lvlh(loc);
                 }
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, loc.pos.eci, loc.att.icrf);
+                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, loc.pos.eci, loc.att.icrf);
                 if (error < 0)
                 {
                     return error;

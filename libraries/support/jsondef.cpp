@@ -221,6 +221,29 @@ namespace Cosmos
                 add_name(basename, &node.loc.pos.selc.a.col[i], "double");
             }
             add_name("node.loc.pos.selc.pass", &node.loc.pos.selc.pass, "uint32_t");
+
+            add_name("node.loc.pos.lvlh", &node.loc.pos.lvlh, "cartpos");
+            add_name("node.loc.pos.lvlh.utc", &node.loc.pos.lvlh.utc, "double");
+            add_name("node.loc.pos.lvlh.s", &node.loc.pos.lvlh.s, "rvector");
+            add_name("node.loc.pos.lvlh.s.col", &node.loc.pos.lvlh.s.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc.pos.lvlh.s.col)/sizeof(node.loc.pos.lvlh.s.col[0]); ++i) {
+                string basename = "node.loc.pos.lvlh.s.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc.pos.lvlh.s.col[i], "double");
+            }
+            add_name("node.loc.pos.lvlh.v", &node.loc.pos.lvlh.v, "rvector");
+            add_name("node.loc.pos.lvlh.v.col", &node.loc.pos.lvlh.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc.pos.lvlh.v.col)/sizeof(node.loc.pos.lvlh.v.col[0]); ++i) {
+                string basename = "node.loc.pos.lvlh.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc.pos.lvlh.v.col[i], "double");
+            }
+            add_name("node.loc.pos.lvlh.a", &node.loc.pos.lvlh.a, "rvector");
+            add_name("node.loc.pos.lvlh.a.col", &node.loc.pos.lvlh.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc.pos.lvlh.a.col)/sizeof(node.loc.pos.lvlh.a.col[0]); ++i) {
+                string basename = "node.loc.pos.lvlh.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc.pos.lvlh.a.col[i], "double");
+            }
+            add_name("node.loc.pos.lvlh.pass", &node.loc.pos.lvlh.pass, "uint32_t");
+
             add_name("node.loc.pos.geod", &node.loc.pos.geod, "geoidpos");
             add_name("node.loc.pos.geod.utc", &node.loc.pos.geod.utc, "double");
             add_name("node.loc.pos.geod.s", &node.loc.pos.geod.s, "gvector");
@@ -556,6 +579,7 @@ namespace Cosmos
                 add_name(basename, &node.loc.att.geoc.a.col[i], "double");
             }
             add_name("node.loc.att.geoc.pass", &node.loc.att.geoc.pass, "uint32_t");
+
             add_name("node.loc.att.selc", &node.loc.att.selc, "qatt");
             add_name("node.loc.att.selc.utc", &node.loc.att.selc.utc, "double");
             add_name("node.loc.att.selc.s", &node.loc.att.selc.s, "quaternion");
@@ -577,6 +601,7 @@ namespace Cosmos
                 add_name(basename, &node.loc.att.selc.a.col[i], "double");
             }
             add_name("node.loc.att.selc.pass", &node.loc.att.selc.pass, "uint32_t");
+
             add_name("node.loc.att.icrf", &node.loc.att.icrf, "qatt");
             add_name("node.loc.att.icrf.utc", &node.loc.att.icrf.utc, "double");
             add_name("node.loc.att.icrf.s", &node.loc.att.icrf.s, "quaternion");
@@ -710,6 +735,7 @@ namespace Cosmos
                 add_name(basename, &node.loc_est.pos.geoc.a.col[i], "double");
             }
             add_name("node.loc_est.pos.geoc.pass", &node.loc_est.pos.geoc.pass, "uint32_t");
+
             add_name("node.loc_est.pos.selc", &node.loc_est.pos.selc, "cartpos");
             add_name("node.loc_est.pos.selc.utc", &node.loc_est.pos.selc.utc, "double");
             add_name("node.loc_est.pos.selc.s", &node.loc_est.pos.selc.s, "rvector");
@@ -731,6 +757,29 @@ namespace Cosmos
                 add_name(basename, &node.loc_est.pos.selc.a.col[i], "double");
             }
             add_name("node.loc_est.pos.selc.pass", &node.loc_est.pos.selc.pass, "uint32_t");
+
+            add_name("node.loc_est.pos.lvlh", &node.loc_est.pos.lvlh, "cartpos");
+            add_name("node.loc_est.pos.lvlh.utc", &node.loc_est.pos.lvlh.utc, "double");
+            add_name("node.loc_est.pos.lvlh.s", &node.loc_est.pos.lvlh.s, "rvector");
+            add_name("node.loc_est.pos.lvlh.s.col", &node.loc_est.pos.lvlh.s.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_est.pos.lvlh.s.col)/sizeof(node.loc_est.pos.lvlh.s.col[0]); ++i) {
+                string basename = "node.loc_est.pos.lvlh.s.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_est.pos.lvlh.s.col[i], "double");
+            }
+            add_name("node.loc_est.pos.lvlh.v", &node.loc_est.pos.lvlh.v, "rvector");
+            add_name("node.loc_est.pos.lvlh.v.col", &node.loc_est.pos.lvlh.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_est.pos.lvlh.v.col)/sizeof(node.loc_est.pos.lvlh.v.col[0]); ++i) {
+                string basename = "node.loc_est.pos.lvlh.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_est.pos.lvlh.v.col[i], "double");
+            }
+            add_name("node.loc_est.pos.lvlh.a", &node.loc_est.pos.lvlh.a, "rvector");
+            add_name("node.loc_est.pos.lvlh.a.col", &node.loc_est.pos.lvlh.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_est.pos.lvlh.a.col)/sizeof(node.loc_est.pos.lvlh.a.col[0]); ++i) {
+                string basename = "node.loc_est.pos.lvlh.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_est.pos.lvlh.a.col[i], "double");
+            }
+            add_name("node.loc_est.pos.lvlh.pass", &node.loc_est.pos.lvlh.pass, "uint32_t");
+
             add_name("node.loc_est.pos.geod", &node.loc_est.pos.geod, "geoidpos");
             add_name("node.loc_est.pos.geod.utc", &node.loc_est.pos.geod.utc, "double");
             add_name("node.loc_est.pos.geod.s", &node.loc_est.pos.geod.s, "gvector");
@@ -1220,6 +1269,7 @@ namespace Cosmos
                 add_name(basename, &node.loc_std.pos.geoc.a.col[i], "double");
             }
             add_name("node.loc_std.pos.geoc.pass", &node.loc_std.pos.geoc.pass, "uint32_t");
+
             add_name("node.loc_std.pos.selc", &node.loc_std.pos.selc, "cartpos");
             add_name("node.loc_std.pos.selc.utc", &node.loc_std.pos.selc.utc, "double");
             add_name("node.loc_std.pos.selc.s", &node.loc_std.pos.selc.s, "rvector");
@@ -1241,6 +1291,29 @@ namespace Cosmos
                 add_name(basename, &node.loc_std.pos.selc.a.col[i], "double");
             }
             add_name("node.loc_std.pos.selc.pass", &node.loc_std.pos.selc.pass, "uint32_t");
+
+            add_name("node.loc_std.pos.lvlh", &node.loc_std.pos.lvlh, "cartpos");
+            add_name("node.loc_std.pos.lvlh.utc", &node.loc_std.pos.lvlh.utc, "double");
+            add_name("node.loc_std.pos.lvlh.s", &node.loc_std.pos.lvlh.s, "rvector");
+            add_name("node.loc_std.pos.lvlh.s.col", &node.loc_std.pos.lvlh.s.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_std.pos.lvlh.s.col)/sizeof(node.loc_std.pos.lvlh.s.col[0]); ++i) {
+                string basename = "node.loc_std.pos.lvlh.s.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_std.pos.lvlh.s.col[i], "double");
+            }
+            add_name("node.loc_std.pos.lvlh.v", &node.loc_std.pos.lvlh.v, "rvector");
+            add_name("node.loc_std.pos.lvlh.v.col", &node.loc_std.pos.lvlh.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_std.pos.lvlh.v.col)/sizeof(node.loc_std.pos.lvlh.v.col[0]); ++i) {
+                string basename = "node.loc_std.pos.lvlh.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_std.pos.lvlh.v.col[i], "double");
+            }
+            add_name("node.loc_std.pos.lvlh.a", &node.loc_std.pos.lvlh.a, "rvector");
+            add_name("node.loc_std.pos.lvlh.a.col", &node.loc_std.pos.lvlh.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_std.pos.lvlh.a.col)/sizeof(node.loc_std.pos.lvlh.a.col[0]); ++i) {
+                string basename = "node.loc_std.pos.lvlh.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_std.pos.lvlh.a.col[i], "double");
+            }
+            add_name("node.loc_std.pos.lvlh.pass", &node.loc_std.pos.lvlh.pass, "uint32_t");
+
             add_name("node.loc_std.pos.geod", &node.loc_std.pos.geod, "geoidpos");
             add_name("node.loc_std.pos.geod.utc", &node.loc_std.pos.geod.utc, "double");
             add_name("node.loc_std.pos.geod.s", &node.loc_std.pos.geod.s, "gvector");
@@ -2973,6 +3046,7 @@ namespace Cosmos
                     add_name(rebasename, &target[i].loc.pos.geoc.a.col[j], "double");
                 }
                 add_name(basename+".loc.pos.geoc.pass", &target[i].loc.pos.geoc.pass, "uint32_t");
+
                 add_name(basename+".loc.pos.selc", &target[i].loc.pos.selc, "cartpos");
                 add_name(basename+".loc.pos.selc.utc", &target[i].loc.pos.selc.utc, "double");
                 add_name(basename+".loc.pos.selc.s", &target[i].loc.pos.selc.s, "rvector");
@@ -2994,6 +3068,29 @@ namespace Cosmos
                     add_name(rebasename, &target[i].loc.pos.selc.a.col[j], "double");
                 }
                 add_name(basename+".loc.pos.selc.pass", &target[i].loc.pos.selc.pass, "uint32_t");
+
+                add_name(basename+".loc.pos.lvlh", &target[i].loc.pos.lvlh, "cartpos");
+                add_name(basename+".loc.pos.lvlh.utc", &target[i].loc.pos.lvlh.utc, "double");
+                add_name(basename+".loc.pos.lvlh.s", &target[i].loc.pos.lvlh.s, "rvector");
+                add_name(basename+".loc.pos.lvlh.s.col", &target[i].loc.pos.lvlh.s.col, "double[]");
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.lvlh.s.col)/sizeof(target[i].loc.pos.lvlh.s.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.lvlh.s.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.lvlh.s.col[j], "double");
+                }
+                add_name(basename+".loc.pos.lvlh.v", &target[i].loc.pos.lvlh.v, "rvector");
+                add_name(basename+".loc.pos.lvlh.v.col", &target[i].loc.pos.lvlh.v.col, "double[]");
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.lvlh.v.col)/sizeof(target[i].loc.pos.lvlh.v.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.lvlh.v.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.lvlh.v.col[j], "double");
+                }
+                add_name(basename+".loc.pos.lvlh.a", &target[i].loc.pos.lvlh.a, "rvector");
+                add_name(basename+".loc.pos.lvlh.a.col", &target[i].loc.pos.lvlh.a.col, "double[]");
+                for(size_t j = 0; j < sizeof(target[i].loc.pos.lvlh.a.col)/sizeof(target[i].loc.pos.lvlh.a.col[0]); ++j) {
+                    string rebasename = basename + "loc.pos.lvlh.a.col[" + std::to_string(j) + "]";
+                    add_name(rebasename, &target[i].loc.pos.lvlh.a.col[j], "double");
+                }
+                add_name(basename+".loc.pos.lvlh.pass", &target[i].loc.pos.lvlh.pass, "uint32_t");
+
                 add_name(basename+".loc.pos.geod", &target[i].loc.pos.geod, "geoidpos");
                 add_name(basename+".loc.pos.geod.utc", &target[i].loc.pos.geod.utc, "double");
                 add_name(basename+".loc.pos.geod.s", &target[i].loc.pos.geod.s, "gvector");

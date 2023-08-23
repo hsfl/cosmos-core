@@ -488,11 +488,11 @@ namespace Cosmos {
 
             double utc = 0.;
             //! 0th derivative: Quaternion
-            quaternion s; //q
+            quaternion s = {{0., 0., 0.}, 0.}; //q
             //! 1st derivative: Omega - angular velocity
-            rvector v;  //dq
+            rvector v = {0., 0., 0.};  //dq
             //! 2nd derivative: Alpha - acceleration
-            rvector a;  //ddq
+            rvector a = {0., 0., 0.};  //ddq
             //! pass indicator: allows synchronization with other attitude and position values.
             uint32_t pass = 0;
 
@@ -767,6 +767,7 @@ namespace Cosmos {
             cartpos sci;
             cartpos geoc;
             cartpos selc;
+            cartpos lvlh;
             geoidpos geod;
             geoidpos selg;
             spherpos geos;
@@ -796,6 +797,7 @@ namespace Cosmos {
                     { "sci"  , sci },
                     { "geoc" , geoc },
                     { "selc" , selc },
+                    { "lvlh" , lvlh },
                     { "geod" , geod },
                     { "selg" , selg },
                     { "geos" , geos },
@@ -825,6 +827,7 @@ namespace Cosmos {
                     if(!parsed["sci"].is_null())    sci.from_json(parsed["sci"].dump());
                     if(!parsed["geoc"].is_null())   geoc.from_json(parsed["geoc"].dump());
                     if(!parsed["selc"].is_null())   selc.from_json(parsed["selc"].dump());
+                    if(!parsed["lvlh"].is_null())   lvlh.from_json(parsed["lvlh"].dump());
                     if(!parsed["geod"].is_null())   geod.from_json(parsed["geod"].dump());
                     if(!parsed["selg"].is_null())   selg.from_json(parsed["selg"].dump());
                     if(!parsed["geos"].is_null())   geos.from_json(parsed["geos"].dump());
