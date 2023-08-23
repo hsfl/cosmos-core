@@ -3161,6 +3161,64 @@ match.
             return 0;
         }
 
+        /**
+         * @brief Converts RIC coordinates to ECI
+         * 
+         * Requires origin's position and velocity to be set.
+         * Returns RIC-offsetted position and velocity in result.
+         * 
+         * @param orig Origin of the RIC frame in ECI
+         * @param ric Offset from origin of RIC frame, [0,1,2] = [R,I,C]
+         * @param result Converted ECI coordinates
+         * @return int32_t 0 on success, negative on error
+         */
+        int32_t ric2eci(cartpos orig, rvector ric, cartpos& result)
+        {
+            // 1 set the radius
+            double rad = length_rv(orig.s);
+
+            // 2 set the unit normal (to the position / velocity plane)
+            rvector u_n_orig = rv_cross(orig.s, orig.v);
+            normalize_rv(u_n_orig);
+
+            // 3 correct the unit velocity and then velocity vector to be the one for a completely circular orbit
+            rvector u_v_orig = rv_cross(u_n_orig, orig.s);
+            normalize_rv(u_v_orig);
+            // expand to actual circular velocity
+            double v_mag = sqrt(GM / length_rv(orig.s));
+            orig.v = u_v_orig * v_mag;
+
+            // 4 Find rotations axises for I and C rotations
+            rvector I_rotation_axis = u_n_orig;
+            rvector C_rotation_axis = u_v_orig * -1.0;
+
+            // first rotate by I about the normal
+            // position
+            rvector pos = rv_rotate(orig.s, I_rotation_axis, ric.col[1]/rad);
+            // velocity
+            rvector vel = rv_rotate(orig.v, I_rotation_axis, ric.col[1]/rad);
+
+            // second rotate by C about the velocity (actually the rotated velocity!)
+            // rotate the velocity axis
+            C_rotation_axis = rv_rotate(C_rotation_axis, I_rotation_axis, ric.col[1]/rad);
+
+            // position
+            pos = rv_rotate(pos, C_rotation_axis, ric.col[2]/rad);
+            // velocity
+            vel = rv_rotate(vel, C_rotation_axis, ric.col[2]/rad);
+
+            // expand to new radius
+            pos = pos * ((ric.col[0]+rad)/rad);
+
+            // correct to new velocity of new circular radius
+            vel = vel * (sqrt(GM / length_rv(pos)) / v_mag);
+
+            result.s = pos;
+            result.v = vel;
+
+            return 0;
+        }
+
         int32_t kep2eci(kepstruc &kep, cartpos &eci)
         {
             rvector qpos, qvel;

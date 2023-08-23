@@ -347,6 +347,7 @@ rvector rv_div(rvector a, rvector b);
 rvector rv_sqrt(rvector a);
 rvector rv_cross(rvector a, rvector b);
 rvector rv_convert(svector from);
+rvector rv_rotate(rvector point, rvector axis, double theta);
 
 double norm_rv(rvector a);
 
@@ -729,6 +730,7 @@ namespace Cosmos {
 			Vector flatteny();
 			Vector flattenz();
 			double sum();
+            Vector rotate(Vector point, double theta);
 
 			Vector &operator = (const rvector rv)
 			{

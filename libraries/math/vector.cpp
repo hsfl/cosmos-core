@@ -100,6 +100,29 @@ rvector rv_convert(svector from)
     return result;
 }
 
+/**
+ * @brief Rotates a point about an axis
+ * 
+ * Uses Rodrigues' rotation formula (https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula)
+ * 
+ * @param axis Axis to rotate
+ * @param point Point to rotate
+ * @param theta Angle to rotate about axis (in radians)
+ * @return rvector Rotated point
+ */
+rvector rv_rotate(rvector point, rvector axis, double theta)
+{
+    double k_dot_p = dot_rv(axis, point);
+
+    rvector k_cross_p = rv_cross(axis, point);
+
+    rvector ret;
+    ret.col[0] = point.col[0] * cos(theta) + sin(theta) * k_cross_p.col[0] + k_cross_p.col[0] * k_dot_p * (1-cos(theta));
+    ret.col[1] = point.col[1] * cos(theta) + sin(theta) * k_cross_p.col[1] + k_cross_p.col[1] * k_dot_p * (1-cos(theta));
+    ret.col[2] = point.col[2] * cos(theta) + sin(theta) * k_cross_p.col[2] + k_cross_p.col[2] * k_dot_p * (1-cos(theta));
+    return ret;
+}
+
 //! Zero row order vector
 /*! Creates a zero length row order vector.
         \return a ::rvector of zero length
@@ -2204,6 +2227,28 @@ namespace Cosmos {
                 Vector val = Vector(0., 0., 1.);
                 val *= scale;
                 return val;
+            }
+
+            /**
+             * @brief Rotates a point about axis defined by this vector
+             * 
+             * Uses Rodrigues' rotation formula (https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula)
+             * 
+             * @param point Point to rotate
+             * @param theta Angle to rotate about axis (in radians)
+             * @return Vector Rotated point
+             */
+            Vector Vector::rotate(Vector point, double theta)
+            {
+                double k_dot_p = dot(point);
+
+                Vector k_cross_p = cross(point);
+
+                Vector ret;
+                ret.x = point.x * cos(theta) + sin(theta) * k_cross_p.x + k_cross_p.x * k_dot_p * (1-cos(theta));
+                ret.y = point.y * cos(theta) + sin(theta) * k_cross_p.y + k_cross_p.y * k_dot_p * (1-cos(theta));
+                ret.z = point.z * cos(theta) + sin(theta) * k_cross_p.z + k_cross_p.z * k_dot_p * (1-cos(theta));
+                return ret;
             }
         }
 
