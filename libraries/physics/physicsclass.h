@@ -269,14 +269,13 @@ namespace Cosmos
         class LvlhPositionPropagator : public Propagator
         {
         public:
-            Convert::cartpos offset;
             LvlhPositionPropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
                 : Propagator{ newloc, newphys, idt }
             {
                 type = PositionLvlh;
             }
 
-            int32_t Init(Convert::cartpos offset);
+            int32_t Init(Convert::cartpos  basepos=Convert::cartpos());
             int32_t Propagate(Convert::cartpos base);
             int32_t Reset(Convert::cartpos basepos, Convert::cartpos offset=Convert::cartpos());
 
@@ -470,11 +469,19 @@ namespace Cosmos
         class State
         {
         public:
-            State(string node)
+            State(string node) : propagation_priority(0)
             {
                 json_init(&currentinfo, node);
-//                currentinfo.node.utc = 0.;
             }
+
+            State(string node, uint8_t propagation_priority) : propagation_priority(propagation_priority)
+            {
+                json_init(&currentinfo, node);
+            }
+
+            //! States in a Simulation are propagated in ascending order, this preserves any
+            //! dependencies that any States that must update after other have (e.g., mothership vs childsats)
+            const uint8_t propagation_priority = 0;
 
 
             cosmosstruc currentinfo;

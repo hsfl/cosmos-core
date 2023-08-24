@@ -141,11 +141,11 @@ int main(int argc, char *argv[])
             {
                 if (args.size() == 4)
                 {
-                    sit->second->AddTarget(args[0], RADOF(stod(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
+                    (*sit)->AddTarget(args[0], RADOF(stod(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
                 }
                 else if (args.size() == 5)
                 {
-                    sit->second->AddTarget(args[0], RADOF(stod(args[1])), RADOF(stod(args[2])), stod(args[3]), stod(args[4]), NODE_TYPE_TARGET);
+                    (*sit)->AddTarget(args[0], RADOF(stod(args[1])), RADOF(stod(args[2])), stod(args[3]), stod(args[4]), NODE_TYPE_TARGET);
                 }
             }
         }
@@ -173,13 +173,13 @@ int main(int argc, char *argv[])
         for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); sit++)
         {
             string output;
-            output += sit->second->currentinfo.get_json("node.utc");
-            output += sit->second->currentinfo.get_json("node.name");
-            output += sit->second->currentinfo.get_json("node.loc.pos.eci.s");
-            output += sit->second->currentinfo.get_json("node.loc.pos.eci.v");
+            output += (*sit)->currentinfo.get_json("node.utc");
+            output += (*sit)->currentinfo.get_json("node.name");
+            output += (*sit)->currentinfo.get_json("node.loc.pos.eci.s");
+            output += (*sit)->currentinfo.get_json("node.loc.pos.eci.v");
             iretn = socket_post(net_channel_out, output);
 
-            send_telem_to_cosmos_web(&sit->second->currentinfo);
+            send_telem_to_cosmos_web(&(*sit)->currentinfo);
         }
 //        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeLocBeacon), agent);
 //        iretn = socket_sendto(net_channel_out, packet.wrapped);
@@ -232,9 +232,9 @@ void get_observation_windows()
     vector<eventstruc*> events;
     for (auto cnode = sim->cnodes.begin(); cnode != sim->cnodes.end(); cnode++)
     {
-        cout << "\nNode: " << cnode->first << endl;
+        cout << "\nNode: " << (*cnode)->currentinfo.node.name << endl;
         events.clear();
-        for (auto event = cnode->second->currentinfo.event.begin(); event != cnode->second->currentinfo.event.end(); event++)
+        for (auto event = (*cnode)->currentinfo.event.begin(); event != (*cnode)->currentinfo.event.end(); event++)
         {
             if (event->type == EVENT_TYPE_TARG)
             {
@@ -249,7 +249,7 @@ void get_observation_windows()
     events.clear();
     for (auto cnode = sim->cnodes.begin(); cnode != sim->cnodes.end(); cnode++)
     {
-        for (auto event = cnode->second->currentinfo.event.begin(); event != cnode->second->currentinfo.event.end(); event++)
+        for (auto event = (*cnode)->currentinfo.event.begin(); event != (*cnode)->currentinfo.event.end(); event++)
         {
             if (event->type == EVENT_TYPE_TARG)
             {
@@ -456,7 +456,7 @@ int32_t parse_sat(string args)
         ++argcount;
         json11::Json::object values = jargs["lvlh"].object_items();
         Physics::Simulator::StateList::iterator sit = sim->GetNode("mother");
-        initialloc = sit->second->currentinfo.node.loc;
+        initialloc = (*sit)->currentinfo.node.loc;
         initialloc.pos.lvlh.s.col[0] = values["x"].number_value();
         initialloc.pos.lvlh.s.col[1] = values["y"].number_value();
         initialloc.pos.lvlh.s.col[2] = values["z"].number_value();
@@ -470,11 +470,21 @@ int32_t parse_sat(string args)
         ++argcount;
         json11::Json::object values = jargs["ric"].object_items();
         Physics::Simulator::StateList::iterator sit = sim->GetNode("mother");
-        initialloc = sit->second->currentinfo.node.loc;
+        initialloc = (*sit)->currentinfo.node.loc;
+        Convert::locstruc basepos = initialloc;
         rvector ric = { values["r"].number_value(), values["i"].number_value(), values["c"].number_value() };
-        ric2eci(sit->second->currentinfo.node.loc.pos.eci, ric, initialloc.pos.eci);
+        ric2eci((*sit)->currentinfo.node.loc.pos.eci, ric, initialloc.pos.eci);
         initialloc.pos.eci.pass++;
         pos_eci(initialloc);
+        // Store RIC as LVLH as well
+        Convert::cartpos geoc_offset;
+        geoc_offset.s = rv_sub(basepos.pos.geoc.s, initialloc.pos.geoc.s);
+        geoc_offset.v = rv_sub(basepos.pos.geoc.v, initialloc.pos.geoc.v);
+        geoc_offset.a = rv_sub(basepos.pos.geoc.a, initialloc.pos.geoc.a);
+        initialloc.pos.lvlh.s = irotate(basepos.pos.extra.g2l, geoc_offset.s);
+        initialloc.pos.lvlh.v = irotate(basepos.pos.extra.g2l, geoc_offset.v);
+        initialloc.pos.lvlh.a = irotate(basepos.pos.extra.g2l, geoc_offset.a);
+        initialloc.pos.lvlh.utc = initialloc.pos.utc;
     }
     if (!jargs["phys"].is_null())
     {
@@ -547,12 +557,23 @@ int32_t parse_sat(string args)
     {
         nodename = "mother";
         initialutc = initialloc.utc;
-        iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialtle);
+        initialutc = initialloc.utc;
+        iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.eci, initialloc.att.icrf);
+        // iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialtle);
     }
     else
     {
         nodename = "child_" + to_unsigned(sim->cnodes.size(), 2, true);
-        iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.eci, initialloc.att.icrf);
+        // TODO: position initialization should be independent from what position propagator is desired
+        if (!jargs["lvlh"].is_null() || !jargs["ric"].is_null())
+        {
+            Physics::Simulator::StateList::iterator sit = sim->GetNode("mother");
+            iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.lvlh, (*sit)->currentinfo.node.loc.pos.icrf);
+        }
+        else
+        {
+            iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.lvlh);
+        }
     }
 //    sits.push_back(sim->GetNode(nodename));
     return iretn;
@@ -608,7 +629,7 @@ int32_t parse_target(string args)
     }
     for (Physics::Simulator::StateList::iterator sit = sim->cnodes.begin(); sit != sim->cnodes.end(); sit++)
     {
-        sit->second->AddTarget(name, clat+dlat, clon-dlon, clat-dlat, clon+dlon, alt, type);
+        (*sit)->AddTarget(name, clat+dlat, clon-dlon, clat-dlat, clon+dlon, alt, type);
     }
     return sim->cnodes.size();
 }
@@ -646,6 +667,7 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
         })},
     });
     int32_t iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+    // int32_t iretn = 0; cout << jobj.dump() << endl;
     if (iretn < 0) { return iretn; }
 
     // Devices are not auto-populated, so just use some RANDOM VALUES
@@ -780,10 +802,10 @@ void send_events_to_cosmos_web()
                     vector<json11::Json> ret;
                     // Event id is currently arbitrary
                     uint16_t event_id = 0;
-                    for (auto event : cnode->second->currentinfo.event) {
+                    for (auto event : (*cnode)->currentinfo.event) {
                         ret.push_back({
                             json11::Json::object({
-                                { "node_name"  , cnode->first },
+                                { "node_name"  , (*cnode)->currentinfo.node.name },
                                 { "utc", event.utc },
                                 { "duration", event.dtime },
                                 { "event_id" , event_id++ },
@@ -809,23 +831,23 @@ void add_sim_devices()
     {
         // Battery
         for (size_t i=0; i < 2; ++i) {
-            json_createpiece(&sit->second->currentinfo, "Battery"+std::to_string(i), DeviceType::BATT);
+            json_createpiece(&(*sit)->currentinfo, "Battery"+std::to_string(i), DeviceType::BATT);
         }
         // BC Regulators (solar panels)
-        json_createpiece(&sit->second->currentinfo, "Left", DeviceType::BCREG);
-        json_createpiece(&sit->second->currentinfo, "Right", DeviceType::BCREG);
+        json_createpiece(&(*sit)->currentinfo, "Left", DeviceType::BCREG);
+        json_createpiece(&(*sit)->currentinfo, "Right", DeviceType::BCREG);
         // CPU
-        json_createpiece(&sit->second->currentinfo, "iOBC", DeviceType::CPU);
-        json_createpiece(&sit->second->currentinfo, "iX5-100", DeviceType::CPU);
+        json_createpiece(&(*sit)->currentinfo, "iOBC", DeviceType::CPU);
+        json_createpiece(&(*sit)->currentinfo, "iX5-100", DeviceType::CPU);
         // Thermal Sensors
-        json_createpiece(&sit->second->currentinfo, "Camera", DeviceType::TSEN);
-        json_createpiece(&sit->second->currentinfo, "Heat sink", DeviceType::TSEN);
-        json_createpiece(&sit->second->currentinfo, "CPU", DeviceType::TSEN);
+        json_createpiece(&(*sit)->currentinfo, "Camera", DeviceType::TSEN);
+        json_createpiece(&(*sit)->currentinfo, "Heat sink", DeviceType::TSEN);
+        json_createpiece(&(*sit)->currentinfo, "CPU", DeviceType::TSEN);
 
         // Fix pointers
-        json_updatecosmosstruc(&sit->second->currentinfo);
+        json_updatecosmosstruc(&(*sit)->currentinfo);
         // Update all physical quantities
-        node_calc(&sit->second->currentinfo);
+        node_calc(&(*sit)->currentinfo);
     }
 }
 
@@ -845,15 +867,15 @@ void reset_db()
     {
         // Compute node id manually until it's stored somewhere in cosmosstruc
         uint16_t id = node_id;
-        sit->second->currentinfo.node.name == "mother" ? id = 0 : ++node_id;
+        (*sit)->currentinfo.node.name == "mother" ? id = 0 : ++node_id;
 
         // Repopulate node table
         json11::Json jobj = json11::Json::object({
             {"node", json11::Json::object({
                 { "node_id", id },
-                { "node_name", sit->second->currentinfo.node.name },
+                { "node_name", (*sit)->currentinfo.node.name },
                 { "node_type", NODE_TYPE_SATELLITE },
-                { "agent_name", sit->second->currentinfo.agent0.name },
+                { "agent_name", (*sit)->currentinfo.agent0.name },
                 { "utc", sim->currentutc },
                 { "utcstart", currentutc }
             })}
@@ -861,11 +883,11 @@ void reset_db()
         socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
         // Add device info
         jobj = json11::Json::object({
-            {"node_name", sit->second->currentinfo.node.name },
+            {"node_name", (*sit)->currentinfo.node.name },
             {"device", [id, sit]() -> vector<json11::Json>
                 {
                     vector<json11::Json> ret;
-                    for (auto device : sit->second->currentinfo.device) {
+                    for (auto device : (*sit)->currentinfo.device) {
                         ret.push_back({
                             json11::Json::object({
                                 { "type", device->type },
@@ -881,7 +903,7 @@ void reset_db()
         });
         socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     }
-    auto mother = sim->cnodes.find("mother");
+    auto mother = sim->GetNode("mother");
     if (mother != sim->cnodes.end())
     {
         // Groundstations & targets
@@ -890,7 +912,7 @@ void reset_db()
                 {
                     vector<json11::Json> ret;
                     uint16_t target_id = 0;
-                    for (auto target : mother->second->currentinfo.target) {
+                    for (auto target : (*mother)->currentinfo.target) {
                         ret.push_back({
                             json11::Json::object({
                                 { "id"  , target_id++ },

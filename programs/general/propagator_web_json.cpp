@@ -244,15 +244,15 @@ int32_t init_propagator(prop_unit& prop, const string& args, string& response)
         }
 
         // Apply push
-        auto sit = prop.sim.cnodes.find(node.name);
+        auto sit = prop.sim.GetNode(node.name);
         if (sit == prop.sim.cnodes.end())
         {
             response = "Error at cnodes.find(" + node.name + "): " + cosmos_error_string(iretn);
             return COSMOS_GENERAL_ERROR_OUTOFRANGE;
         }
-        sit->second->currentinfo.node.phys.fpush.x = sit->second->currentinfo.node.phys.mass * node.push[0];
-        sit->second->currentinfo.node.phys.fpush.y = sit->second->currentinfo.node.phys.mass * node.push[1];
-        sit->second->currentinfo.node.phys.fpush.z = sit->second->currentinfo.node.phys.mass * node.push[2];
+        (*sit)->currentinfo.node.phys.fpush.x = (*sit)->currentinfo.node.phys.mass * node.push[0];
+        (*sit)->currentinfo.node.phys.fpush.y = (*sit)->currentinfo.node.phys.mass * node.push[1];
+        (*sit)->currentinfo.node.phys.fpush.z = (*sit)->currentinfo.node.phys.mass * node.push[2];
     }
 
     return 0;
@@ -678,54 +678,54 @@ int32_t create_sim_snapshot(const prop_unit& prop, json11::Json::array& output)
     for (auto sit = prop.sim.cnodes.begin(); sit != prop.sim.cnodes.end(); ++sit)
     {
         json11::Json::object node_telem;
-        node_telem[JNAME] = sit->first;
-        node_telem[JUTC] = sit->second->currentinfo.node.loc.pos.eci.utc;
+        node_telem[JNAME] = (*sit)->currentinfo.node.name;
+        node_telem[JUTC] = (*sit)->currentinfo.node.loc.pos.eci.utc;
         // Iterate over user's desired telems, adding it to the output
         for (string t : prop.telem)
         {
             if (t == JPOSECI) {
                 json11::Json::object eci_telem = node_telem[JECI].object_items();
-                eci_telem[JPX] = sit->second->currentinfo.node.loc.pos.eci.s.col[0];
-                eci_telem[JPY] = sit->second->currentinfo.node.loc.pos.eci.s.col[1];
-                eci_telem[JPZ] = sit->second->currentinfo.node.loc.pos.eci.s.col[2];
+                eci_telem[JPX] = (*sit)->currentinfo.node.loc.pos.eci.s.col[0];
+                eci_telem[JPY] = (*sit)->currentinfo.node.loc.pos.eci.s.col[1];
+                eci_telem[JPZ] = (*sit)->currentinfo.node.loc.pos.eci.s.col[2];
                 node_telem[JECI] = eci_telem;
             } else if (t == JVELECI) {
                 json11::Json::object eci_telem(node_telem[JECI].object_items());
-                eci_telem[JVX] = sit->second->currentinfo.node.loc.pos.eci.v.col[0];
-                eci_telem[JVY] = sit->second->currentinfo.node.loc.pos.eci.v.col[1];
-                eci_telem[JVZ] = sit->second->currentinfo.node.loc.pos.eci.v.col[2];
+                eci_telem[JVX] = (*sit)->currentinfo.node.loc.pos.eci.v.col[0];
+                eci_telem[JVY] = (*sit)->currentinfo.node.loc.pos.eci.v.col[1];
+                eci_telem[JVZ] = (*sit)->currentinfo.node.loc.pos.eci.v.col[2];
                 node_telem[JECI] = eci_telem;
             } else if (t == JACCECI) {
                 json11::Json::object eci_telem = node_telem[JECI].object_items();
-                eci_telem[JAX] = sit->second->currentinfo.node.loc.pos.eci.a.col[0];
-                eci_telem[JAY] = sit->second->currentinfo.node.loc.pos.eci.a.col[1];
-                eci_telem[JAZ] = sit->second->currentinfo.node.loc.pos.eci.a.col[2];
+                eci_telem[JAX] = (*sit)->currentinfo.node.loc.pos.eci.a.col[0];
+                eci_telem[JAY] = (*sit)->currentinfo.node.loc.pos.eci.a.col[1];
+                eci_telem[JAZ] = (*sit)->currentinfo.node.loc.pos.eci.a.col[2];
                 node_telem[JECI] = eci_telem;
             } else if (t == JATTECI) {
                 json11::Json::object eci_telem = node_telem[JECI].object_items();
                 // TODO: double check that att.geoc is correct for eci attitude
-                eci_telem[JATTX] = sit->second->currentinfo.node.loc.att.geoc.s.d.x;
-                eci_telem[JATTY] = sit->second->currentinfo.node.loc.att.geoc.s.d.y;
-                eci_telem[JATTZ] = sit->second->currentinfo.node.loc.att.geoc.s.d.z;
-                eci_telem[JATTW] = sit->second->currentinfo.node.loc.att.geoc.s.w;
+                eci_telem[JATTX] = (*sit)->currentinfo.node.loc.att.geoc.s.d.x;
+                eci_telem[JATTY] = (*sit)->currentinfo.node.loc.att.geoc.s.d.y;
+                eci_telem[JATTZ] = (*sit)->currentinfo.node.loc.att.geoc.s.d.z;
+                eci_telem[JATTW] = (*sit)->currentinfo.node.loc.att.geoc.s.w;
                 node_telem[JECI] = eci_telem;
             } else if (t == JATTLVLH) {
                 json11::Json::object lvlh_telem = node_telem[JLVLH].object_items();
-                lvlh_telem[JATTX] = sit->second->currentinfo.node.loc.att.lvlh.s.d.x;
-                lvlh_telem[JATTY] = sit->second->currentinfo.node.loc.att.lvlh.s.d.y;
-                lvlh_telem[JATTZ] = sit->second->currentinfo.node.loc.att.lvlh.s.d.z;
-                lvlh_telem[JATTW] = sit->second->currentinfo.node.loc.att.lvlh.s.w;
+                lvlh_telem[JATTX] = (*sit)->currentinfo.node.loc.att.lvlh.s.d.x;
+                lvlh_telem[JATTY] = (*sit)->currentinfo.node.loc.att.lvlh.s.d.y;
+                lvlh_telem[JATTZ] = (*sit)->currentinfo.node.loc.att.lvlh.s.d.z;
+                lvlh_telem[JATTW] = (*sit)->currentinfo.node.loc.att.lvlh.s.w;
                 node_telem[JLVLH] = lvlh_telem;
             } else if (t == JPOSPHYS) {
                 json11::Json::object phys_telem = node_telem[JPHYS].object_items();
-                phys_telem[JLAT] = sit->second->currentinfo.node.loc.pos.geod.s.lat;
-                phys_telem[JLON] = sit->second->currentinfo.node.loc.pos.geod.s.lon;
-                phys_telem[JALT] = sit->second->currentinfo.node.loc.pos.geod.s.h;
+                phys_telem[JLAT] = (*sit)->currentinfo.node.loc.pos.geod.s.lat;
+                phys_telem[JLON] = (*sit)->currentinfo.node.loc.pos.geod.s.lon;
+                phys_telem[JALT] = (*sit)->currentinfo.node.loc.pos.geod.s.h;
                 node_telem[JPHYS] = phys_telem;
             } else if (t == JPOSKEP) {
                 json11::Json::object kep_telem = node_telem[JKEP].object_items();
                 Convert::kepstruc kep;
-                Convert::eci2kep(sit->second->currentinfo.node.loc.pos.eci, kep);
+                Convert::eci2kep((*sit)->currentinfo.node.loc.pos.eci, kep);
                 kep_telem[JEA] = kep.ea;
                 kep_telem[JINC] = kep.i;
                 kep_telem[JAP] = kep.ap;

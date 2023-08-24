@@ -594,34 +594,6 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     return Init(name, idt, stype, ptype, atype, ttype, etype, oeventtype);
 }
 
-//int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf)
-//{
-//    return Init(name, idt, stype, ptype, atype, ttype, etype, Propagator::Type::None, eci, icrf);
-//}
-
-//int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf)
-//{
-//    int32_t iretn = 0;
-//    Convert::pos_clear(currentinfo.node.loc);
-//    currentinfo.node.loc.pos.eci = eci;
-//    currentinfo.node.loc.pos.eci.pass++;
-//    iretn = Convert::pos_eci(currentinfo.node.loc);
-//    if (iretn < 0)
-//    {
-//        return iretn;
-//    }
-//    currentinfo.node.loc.att.icrf = icrf;
-//    currentinfo.node.loc.att.icrf.pass++;
-//    iretn = Convert::att_icrf(currentinfo.node.loc);
-//    if (iretn < 0)
-//    {
-//        return iretn;
-//    }
-
-
-//    return Init(name, idt, stype, ptype, atype, ttype, etype, oeventtype);
-//}
-
 int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype)
 {
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
@@ -655,6 +627,9 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     case Propagator::Type::PositionTle:
         tleposition = new TlePositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
         tleposition->Init();
+        break;
+    case Propagator::Type::PositionLvlh:
+        lvlhposition = new LvlhPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
         break;
     default:
         inposition = new InertialPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
@@ -1641,9 +1616,23 @@ int32_t InertialPositionPropagator::Propagate(double nextutc)
     return 0;
 }
 
-int32_t LvlhPositionPropagator::Init(Convert::cartpos offset=Convert::cartpos())
+int32_t LvlhPositionPropagator::Init(Convert::cartpos basepos)
 {
-    this->offset = offset;
+    Convert::cartpos offset = currentloc->pos.lvlh;
+    currentutc = basepos.utc;
+    currentloc->pos.icrf = basepos;
+    // basepos's icrf.pass is one lower, so make sure it updates everything
+    currentloc->pos.icrf.pass = currentloc->pos.eci.pass + 1;
+    Convert::pos_icrf(currentloc);
+    offset.s = irotate(currentloc->pos.extra.l2g, offset.s);
+    currentloc->pos.geoc.s = rv_add(currentloc->pos.geoc.s, offset.s);
+    offset.v = irotate(currentloc->pos.extra.l2g, offset.v);
+    currentloc->pos.geoc.v = rv_add(currentloc->pos.geoc.v, offset.v);
+    offset.a = irotate(currentloc->pos.extra.l2g, offset.a);
+    currentloc->pos.geoc.a = rv_add(currentloc->pos.geoc.a, offset.a);
+    currentloc->pos.geoc.utc = basepos.utc;
+    currentloc->pos.geoc.pass++;
+    Convert::pos_geoc(currentloc);
     PosAccel(currentloc, currentphys);
 
     return 0;
@@ -1651,8 +1640,8 @@ int32_t LvlhPositionPropagator::Init(Convert::cartpos offset=Convert::cartpos())
 
 int32_t LvlhPositionPropagator::Reset(Convert::cartpos basepos, Convert::cartpos offset)
 {
-    this->offset = offset;
     currentloc->pos.eci = basepos;
+    currentloc->pos.lvlh = offset;
     currentutc = currentloc->pos.utc;
     Propagate(basepos);
 
@@ -1661,9 +1650,11 @@ int32_t LvlhPositionPropagator::Reset(Convert::cartpos basepos, Convert::cartpos
 
 int32_t LvlhPositionPropagator::Propagate(Convert::cartpos basepos)
 {
+    Convert::cartpos offset = currentloc->pos.lvlh;
     currentutc = basepos.utc;
     currentloc->pos.icrf = basepos;
-    currentloc->pos.icrf.pass++;
+    // basepos's icrf.pass is one lower, so make sure it updates everything
+    currentloc->pos.icrf.pass = currentloc->pos.eci.pass + 1;
     Convert::pos_icrf(currentloc);
     offset.s = irotate(currentloc->pos.extra.l2g, offset.s);
     currentloc->pos.geoc.s = rv_add(currentloc->pos.geoc.s, offset.s);
@@ -1671,6 +1662,7 @@ int32_t LvlhPositionPropagator::Propagate(Convert::cartpos basepos)
     currentloc->pos.geoc.v = rv_add(currentloc->pos.geoc.v, offset.v);
     offset.a = irotate(currentloc->pos.extra.l2g, offset.a);
     currentloc->pos.geoc.a = rv_add(currentloc->pos.geoc.a, offset.a);
+    currentloc->pos.geoc.utc = basepos.utc;
     currentloc->pos.geoc.pass++;
     Convert::pos_geoc(currentloc);
     PosAccel(currentloc, currentphys);
