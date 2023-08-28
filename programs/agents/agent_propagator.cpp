@@ -478,9 +478,9 @@ int32_t parse_sat(string args)
         pos_eci(initialloc);
         // Store RIC as LVLH as well
         Convert::cartpos geoc_offset;
-        geoc_offset.s = rv_sub(basepos.pos.geoc.s, initialloc.pos.geoc.s);
-        geoc_offset.v = rv_sub(basepos.pos.geoc.v, initialloc.pos.geoc.v);
-        geoc_offset.a = rv_sub(basepos.pos.geoc.a, initialloc.pos.geoc.a);
+        geoc_offset.s = rv_sub(initialloc.pos.geoc.s, basepos.pos.geoc.s);
+        geoc_offset.v = rv_sub(initialloc.pos.geoc.v, basepos.pos.geoc.v);
+        geoc_offset.a = rv_sub(initialloc.pos.geoc.a, basepos.pos.geoc.a);
         initialloc.pos.lvlh.s = irotate(basepos.pos.extra.g2l, geoc_offset.s);
         initialloc.pos.lvlh.v = irotate(basepos.pos.extra.g2l, geoc_offset.v);
         initialloc.pos.lvlh.a = irotate(basepos.pos.extra.g2l, geoc_offset.a);
