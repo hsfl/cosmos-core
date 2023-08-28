@@ -462,38 +462,14 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
         break;
     case Propagator::Type::AttitudeTarget:
     {
-        targetattitude = new TargetAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
-        double range = 1000000.;
-        targetstruc ctarget;
-        for (targetstruc target : currentinfo.target)
-        {
-            if (target.elfrom > 0 && target.range < range)
-            {
-                range = target.range;
-                ctarget = target;
-            }
-        }
-        if (range < 1000000.)
-        {
-            currentinfo.node.loc.att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
-            currentinfo.node.loc.att.topo.v = rv_zero();
-            currentinfo.node.loc.att.topo.a = rv_zero();
-            currentinfo.node.loc.att.topo.utc = utc;
-            currentinfo.node.loc.att.topo.pass++;
-            Convert::att_topo(currentinfo.node.loc);
-        }
-        else
-        {
-            currentinfo.node.loc.att.lvlh.s = q_eye();
-            currentinfo.node.loc.att.lvlh.v = rv_zero();
-            currentinfo.node.loc.att.lvlh.a = rv_zero();
-            currentinfo.node.loc.att.lvlh.utc = utc;
-            currentinfo.node.loc.att.lvlh.pass++;
-            Convert::att_lvlh(currentinfo.node.loc);
-        }
-        currentinfo.node.loc.att.icrf.pass++;
-        Convert::att_icrf(currentinfo.node.loc);
-        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+        targetattitude = new TargetAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target);
+        lvattitude = new LVLHAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+        currentinfo.node.loc.att.lvlh.s = q_eye();
+        currentinfo.node.loc.att.lvlh.v = rv_zero();
+        currentinfo.node.loc.att.lvlh.a = rv_zero();
+        currentinfo.node.loc.att.lvlh.utc = utc;
+        currentinfo.node.loc.att.lvlh.pass++;
+        Convert::att_lvlh(currentinfo.node.loc);
         break;
     }
     default:
@@ -662,38 +638,9 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
         break;
     case Propagator::Type::AttitudeTarget:
     {
-        targetattitude = new TargetAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
-        double range = 1000000.;
-        targetstruc ctarget;
-        for (targetstruc target : currentinfo.target)
-        {
-            if (target.elfrom > 0 && target.range < range)
-            {
-                range = target.range;
-                ctarget = target;
-            }
-        }
-        if (range < 1000000.)
-        {
-            currentinfo.node.loc.att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
-            currentinfo.node.loc.att.topo.v = rv_zero();
-            currentinfo.node.loc.att.topo.a = rv_zero();
-            currentinfo.node.loc.att.topo.utc = currentinfo.node.loc.utc;
-            currentinfo.node.loc.att.topo.pass++;
-            Convert::att_topo(currentinfo.node.loc);
-        }
-        else
-        {
-            currentinfo.node.loc.att.lvlh.s = q_eye();
-            currentinfo.node.loc.att.lvlh.v = rv_zero();
-            currentinfo.node.loc.att.lvlh.a = rv_zero();
-            currentinfo.node.loc.att.lvlh.utc = currentinfo.node.loc.utc;
-            currentinfo.node.loc.att.lvlh.pass++;
-            Convert::att_lvlh(currentinfo.node.loc);
-        }
-        currentinfo.node.loc.att.icrf.pass++;
-        Convert::att_icrf(currentinfo.node.loc);
-        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+        targetattitude = new TargetAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target);
+        lvattitude = new LVLHAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+        lvattitude->Init();
     }
         break;
     default:
@@ -800,6 +747,10 @@ int32_t State::Propagate(double nextutc, Convert::cartpos currenteci)
             break;
         case Propagator::Type::AttitudeSolar:
             static_cast<SolarAttitudePropagator *>(solarattitude)->Propagate(nextutc);
+            break;
+        case Propagator::Type::AttitudeTarget:
+            // Update again at end after targets update
+            static_cast<LVLHAttitudePropagator *>(lvattitude)->Propagate(nextutc);
             break;
         default:
             break;
@@ -956,6 +907,15 @@ int32_t State::Propagate(double nextutc, Convert::cartpos currenteci)
         dv = rv_sub(target.loc.pos.geoc.v, currentinfo.node.loc.pos.geoc.v);
         // Closing speed is length of ds in 1 second minus length of ds now.
         target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
+    }
+    // Attitude
+    switch (atype)
+    {
+    case Propagator::Type::AttitudeTarget:
+        static_cast<TargetAttitudePropagator *>(targetattitude)->Propagate(nextutc);
+        break;
+    default:
+        break;
     }
 
     return count;
@@ -1232,6 +1192,58 @@ int32_t SolarAttitudePropagator::Propagate(double nextutc)
     AttAccel(currentloc, currentphys);
     Convert::att_icrf(currentloc);
 
+    return 0;
+}
+
+int32_t TargetAttitudePropagator::Init()
+{
+    return 0;
+}
+
+int32_t TargetAttitudePropagator::Propagate(double nextutc)
+{
+    const double range_limit = 3000000.;
+    double range = range_limit;
+    targetstruc ctarget;
+    for (targetstruc target : targets)
+    {
+        if (target.elto > 0 && target.range < range)
+        {
+            range = target.range;
+            ctarget = target;
+        }
+    }
+    if (nextutc == 0.)
+    {
+        nextutc = currentutc + dtj;
+    }
+    currentutc = nextutc;
+    if (range < range_limit)
+    {
+        currentloc->att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
+        currentloc->att.topo.v = rv_zero();
+        currentloc->att.topo.a = rv_zero();
+        currentloc->att.topo.utc = currentutc;
+        currentloc->att.topo.pass++;
+        Convert::att_topo(currentloc);
+    }
+    else
+    {
+        currentloc->att.lvlh.s = q_eye();
+        currentloc->att.lvlh.v = rv_zero();
+        currentloc->att.lvlh.a = rv_zero();
+        currentloc->att.lvlh.utc = currentutc;
+        currentloc->att.lvlh.pass++;
+        Convert::att_lvlh(currentloc);
+    }
+    currentloc->att.icrf.pass++;
+    Convert::att_icrf(currentloc);
+    AttAccel(currentloc, currentphys);
+    return 0;
+}
+
+int32_t TargetAttitudePropagator::Reset(double nextutc)
+{
     return 0;
 }
 
