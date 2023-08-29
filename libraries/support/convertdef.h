@@ -52,6 +52,8 @@ namespace Cosmos {
 #define CLIGHT 299792458.
         //! SI Stefan-Boltzmann constant
 #define SIGMA 5.67e-8
+#define PLANCK1U 3.741771852e8
+#define PLANCK2U 1.438776877e4
         //! SI Gravitational constant
         //#define GC 6.672e-11
 #define SOL (86400.*2.99792458e8)
