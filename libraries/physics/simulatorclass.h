@@ -35,9 +35,9 @@ namespace Cosmos
             int32_t Init(double iutc, double idt=1.);
             int32_t Connect();
             StateList::iterator AddNode(string nodename, uint8_t propagation_priority);
-            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf=Convert::qatt());
-            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos lvlh, Convert::cartpos originicrf, Convert::qatt icrf=Convert::qatt());
-            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::tlestruc tle, Convert::qatt icrf=Convert::qatt());
+            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
+            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos lvlh, Convert::cartpos originicrf, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
+            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::tlestruc tle, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
             int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, double utc, double lat, double lon, double altitude, double angle, double timeshift=0.);
             int32_t GetError();
             int32_t Propagate(double nextutc=0.);

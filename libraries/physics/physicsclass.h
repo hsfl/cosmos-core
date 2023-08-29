@@ -366,11 +366,13 @@ namespace Cosmos
         class TargetAttitudePropagator : public Propagator
         {
         public:
-            TargetAttitudePropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt)
-                : Propagator{ newloc, newphys, idt }
+            TargetAttitudePropagator(Convert::locstruc *newloc, physicsstruc *newphys, double idt, vector<targetstruc>& targets)
+                : Propagator{ newloc, newphys, idt }, targets{targets}
             {
                 type = AttitudeTarget;
             }
+
+            vector<targetstruc>& targets;
 
             int32_t Init();
             int32_t Propagate(double nextutc=0.);

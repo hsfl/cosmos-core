@@ -3186,7 +3186,7 @@ match.
             normalize_rv(u_v_orig);
             // expand to actual circular velocity
             double v_mag = sqrt(GM / length_rv(orig.s));
-            orig.v = u_v_orig * v_mag;
+            // orig.v = u_v_orig * v_mag;
 
             // 4 Find rotations axises for I and C rotations
             rvector I_rotation_axis = u_n_orig;

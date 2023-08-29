@@ -40,9 +40,9 @@ namespace Cosmos
             return cnodes.insert(it, newstate);
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::tlestruc tle, Convert::qatt icrf)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::tlestruc tle, Convert::qatt icrf, uint8_t propagation_priority)
         {
-            auto it = AddNode(nodename, 0);
+            auto it = AddNode(nodename, propagation_priority);
             error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, tle, currentutc, icrf);
             if (error < 0)
             {
@@ -51,9 +51,9 @@ namespace Cosmos
             return cnodes.size();
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf, uint8_t propagation_priority)
         {
-            auto it = AddNode(nodename, 0);
+            auto it = AddNode(nodename, propagation_priority);
             error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, eci, icrf);
             if (error < 0)
             {
@@ -82,9 +82,9 @@ namespace Cosmos
          * @param icrf Attitude of node
          * @return int32_t 0 on success, negative on error
          */
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos lvlh, Convert::cartpos originicrf, Convert::qatt icrf)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos lvlh, Convert::cartpos originicrf, Convert::qatt icrf, uint8_t propagation_priority)
         {
-            auto it = AddNode(nodename, 0);
+            auto it = AddNode(nodename, propagation_priority);
             error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, originicrf, icrf);
             if (error < 0)
             {
