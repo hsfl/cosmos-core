@@ -4562,6 +4562,16 @@ acquired.
             return channels.Bytes(number);
         }
 
+        size_t Agent::channel_level(string name)
+        {
+            return channels.Level(name);
+        }
+
+        size_t Agent::channel_level(uint8_t number)
+        {
+            return channels.Level(number);
+        }
+
         uint32_t Agent::channel_packets(string name)
         {
             return channels.Packets(name);
@@ -4600,23 +4610,23 @@ acquired.
             return iretn;
         }
 
-        ssize_t Agent::channel_decrement(string name, size_t bytes, uint32_t packets)
-        {
-            int32_t number = channel_number(name);
-            if (number < 0)
-            {
-                return number;
-            }
+//        ssize_t Agent::channel_decrement(string name, size_t bytes, uint32_t packets)
+//        {
+//            int32_t number = channel_number(name);
+//            if (number < 0)
+//            {
+//                return number;
+//            }
 
-            return channel_decrement(number, bytes, packets);
-        }
+//            return channel_decrement(number, bytes, packets);
+//        }
 
-        ssize_t Agent::channel_decrement(uint8_t number, size_t bytes, uint32_t packets)
-        {
-            int32_t iretn = 0;
-            iretn = channels.Decrement(number, bytes, packets);
-            return iretn;
-        }
+//        ssize_t Agent::channel_decrement(uint8_t number, size_t bytes, uint32_t packets)
+//        {
+//            int32_t iretn = 0;
+//            iretn = channels.Decrement(number, bytes, packets);
+//            return iretn;
+//        }
 
         int32_t Agent::channel_teststart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
         {
@@ -4820,9 +4830,9 @@ acquired.
             return channels.channel[number].maximum;
         }
 
-        int32_t Agent::task_add(string command)
+        int32_t Agent::task_add(string command, string source)
         {
-            return tasks.Add(command);
+            return tasks.Add(command, source);
         }
 
         int32_t Agent::task_del(uint32_t deci)

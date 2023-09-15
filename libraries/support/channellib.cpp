@@ -263,6 +263,33 @@ namespace Cosmos {
             return channel[number].bytes;
         }
 
+        //! \brief Byte total from channel name.
+        //! Number of bytes in channel from ::Push.
+        //! \param name Name of channel.
+        //! \return Total bytes.
+        size_t Channel::Level(string name)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return Level(iretn);
+            }
+            return 0;
+        }
+
+        //! \brief Byte total from channel number.
+        //! Number of bytes passed through channel from ::Push.
+        //! \param number Number of channel.
+        //! \return Total bytes.
+        size_t Channel::Level(uint8_t number)
+        {
+            if (number >= channel.size())
+            {
+                return 0;
+            }
+            return channel[number].level;
+        }
+
         //! \brief Byte rate from channel name.
         //! Speed to use when pulling from channel and sending to associated device.
         //! \param name Name of channel.
@@ -380,7 +407,7 @@ namespace Cosmos {
             channel[number].bytes += byte_count;
             channel[number].packets += packet_count;
             channel[number].mtx->unlock();
-            return channel[number].bytes;
+            return channel[number].level;
         }
 
         //! \brief Decrement count totals by name.
@@ -389,15 +416,15 @@ namespace Cosmos {
         //! \param byte_count Number of bytes to decrement.
         //! \param packet_count Number of packets to decrement.
         //! \return New byte total or negative error.
-        ssize_t Channel::Decrement(string name, size_t byte_count, uint32_t packet_count)
-        {
-            int32_t iretn = Find(name);
-            if (iretn >= 0)
-            {
-                return Decrement(iretn, byte_count, packet_count);
-            }
-            return GENERAL_ERROR_OUTOFRANGE;
-        }
+//        ssize_t Channel::Decrement(string name, size_t byte_count, uint32_t packet_count)
+//        {
+//            int32_t iretn = Find(name);
+//            if (iretn >= 0)
+//            {
+//                return Decrement(iretn, byte_count, packet_count);
+//            }
+//            return GENERAL_ERROR_OUTOFRANGE;
+//        }
 
         //! \brief Decrement count totals by number.
         //! Subtract provided values from counters for ::Cosmos::Support::Channel::Bytes and ::Cosmos::Support::Channel::Packets.
@@ -405,32 +432,33 @@ namespace Cosmos {
         //! \param byte_count Number of bytes to decrement.
         //! \param packet_count Number of packets to decrement.
         //! \return New byte total or negative error.
-        ssize_t Channel::Decrement(uint8_t number, size_t byte_count, uint32_t packet_count)
-        {
-            if (number >= channel.size())
-            {
-                return GENERAL_ERROR_OUTOFRANGE;
-            }
-            channel[number].mtx->lock();
-            if (channel[number].bytes >= byte_count)
-            {
-                channel[number].bytes -= byte_count;
-            }
-            else
-            {
-                channel[number].bytes = 0;
-            }
-            if (channel[number].packets >= packet_count)
-            {
-                channel[number].packets -= packet_count;
-            }
-            else
-            {
-                channel[number].packets = 0;
-            }
-            channel[number].mtx->unlock();
-            return channel[number].bytes;
-        }
+//        ssize_t Channel::Decrement(uint8_t number, size_t byte_count, uint32_t packet_count)
+//        {
+//            if (number >= channel.size())
+//            {
+//                return GENERAL_ERROR_OUTOFRANGE;
+//            }
+//            channel[number].mtx->lock();
+//            if (channel[number].level >= byte_count)
+//            {
+//                channel[number].level -= byte_count;
+//            }
+//            else
+//            {
+//                channel[number].level = 0;
+//            }
+//            if (channel[number].packets >= packet_count)
+//            {
+//                channel[number].packets -= packet_count;
+//            }
+//            else
+//            {
+//                channel[number].packets = 0;
+//            }
+//            channel[number].mtx->unlock();
+//            printf("Decrement: %u %u %u %u\n", number, channel[number].quu.size(), channel[number].bytes, channel[number].level);
+//            return channel[number].level;
+//        }
 
         //! \brief Push packet to ::Cosmos::Support::Channel::channelstruc::quu by name.
         //! Packet is assumed to be unpacketized, with information in ::Cosmos::Support::PacketComm:data
@@ -470,11 +498,20 @@ namespace Cosmos {
                 packet.Wrap();
                 channel[number].mtx->lock();
                 channel[number].quu.push(packet);
+                channel[number].level += packet.wrapped.size();
                 Increment(number, packet.wrapped.size());
                 Touch(number);
                 if (channel[number].quu.size() > channel[number].maximum)
                 {
-                    Decrement(number, channel[number].quu.front().wrapped.size());
+//                    Decrement(number, channel[number].quu.front().wrapped.size());
+                    if (channel[number].level > channel[number].quu.front().wrapped.size())
+                    {
+                        channel[number].level -= channel[number].quu.front().wrapped.size();
+                    }
+                    else
+                    {
+                        channel[number].level = 0;
+                    }
                     channel[number].quu.pop();
                 }
                 iretn = channel[number].quu.size();
@@ -527,6 +564,15 @@ namespace Cosmos {
                         iretn = 1;
                     }
                     channel[number].quu.pop();
+//                    Decrement(number, packet.wrapped.size());
+                    if (channel[number].level > packet.wrapped.size())
+                    {
+                        channel[number].level -= packet.wrapped.size();
+                    }
+                    else
+                    {
+                        channel[number].level = 0;
+                    }
                 }
                 else
                 {

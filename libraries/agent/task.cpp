@@ -1,4 +1,5 @@
 #include "task.h"
+#include "support/stringlib.h"
 
 namespace Cosmos {
     namespace Support {
@@ -60,8 +61,9 @@ namespace Cosmos {
                         {
                             (*iter).iretn = (*iter).result.get();
                             (*iter).state = 2;
-                            log_move_file((*iter).path, data_base_path(NodeName, "outgoing", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName)), true);
-                            (*iter).path = data_base_path(NodeName, "temp", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName));
+//                            log_move_file((*iter).path, data_base_path(NodeName, "outgoing", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName)), true);
+//                            (*iter).path = data_base_path(NodeName, "temp", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName));
+                            int32_t iretn = log_move_file((*iter).path, string_replace((*iter).path, "/temp/", "/outgoing/"), true);
                         }
                     }
                     ++iter;
@@ -73,14 +75,21 @@ namespace Cosmos {
             return;
         }
 
-        int32_t Task::Add(string command)
+        int32_t Task::Add(string command, string node)
         {
             mtx.lock();
             tasks.resize(tasks.size()+1);
             tasks.back().startmjd = currentmjd();
             tasks.back().state = 0;
             tasks.back().command = command;
-            tasks.back().path = data_base_path(NodeName, "temp", AgentName, data_name(tasks.back().startmjd, "out", NodeName, AgentName));
+            if (node.empty())
+            {
+                tasks.back().path = data_base_path(NodeName, "temp", AgentName, data_name(tasks.back().startmjd, "out", NodeName, AgentName));
+            }
+            else
+            {
+                tasks.back().path = data_base_path(node, "temp", AgentName, data_name(tasks.back().startmjd, "out", NodeName, AgentName));
+            }
             mtx.unlock();
             return tasks.size();
         }

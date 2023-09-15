@@ -455,14 +455,16 @@ namespace Cosmos
             double channel_age(uint8_t number);
             size_t channel_bytes(string name);
             size_t channel_bytes(uint8_t number);
+            size_t channel_level(string name);
+            size_t channel_level(uint8_t number);
             uint32_t channel_packets(string name);
             uint32_t channel_packets(uint8_t number);
             double channel_touch(string name);
             double channel_touch(uint8_t number);
             ssize_t channel_increment(string name, size_t bytes, uint32_t packets=1);
             ssize_t channel_increment(uint8_t number, size_t bytes, uint32_t packets=1);
-            ssize_t channel_decrement(string name, size_t bytes, uint32_t packets=1);
-            ssize_t channel_decrement(uint8_t number, size_t bytes, uint32_t packets=1);
+//            ssize_t channel_decrement(string name, size_t bytes, uint32_t packets=1);
+//            ssize_t channel_decrement(uint8_t number, size_t bytes, uint32_t packets=1);
             int32_t channel_clear(string name);
             int32_t channel_clear(uint8_t number);
             int32_t channel_number(string name);
@@ -488,7 +490,7 @@ namespace Cosmos
 //            int32_t channel_disable(string name);
 //            int32_t channel_disable(uint8_t number);
 
-            int32_t task_add(string command);
+            int32_t task_add(string command, string source="");
             int32_t task_del(uint32_t deci);
             int32_t task_iretn(uint16_t number);
             uint32_t task_deci(uint16_t number);

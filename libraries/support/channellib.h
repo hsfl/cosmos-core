@@ -38,6 +38,7 @@ namespace Cosmos {
             {
                 double timestamp = 0.;
                 uint32_t packets = 0;
+                uint32_t level = 0;
                 size_t bytes = 0;
                 string name = "";
                 queue<PacketComm> quu;
@@ -90,6 +91,8 @@ namespace Cosmos {
             double Age(uint8_t number);
             size_t Bytes(string name);
             size_t Bytes(uint8_t number);
+            size_t Level(string name);
+            size_t Level(uint8_t number);
             float ByteRate(string name);
             float ByteRate(uint8_t number);
             uint32_t Packets(string name);
@@ -98,8 +101,8 @@ namespace Cosmos {
             double Touch(uint8_t number);
             ssize_t Increment(string name, size_t byte_count, uint32_t packet_count=1);
             ssize_t Increment(uint8_t number, size_t byte_count, uint32_t packet_count=1);
-            ssize_t Decrement(string name, size_t byte_count, uint32_t packet_count=1);
-            ssize_t Decrement(uint8_t number, size_t byte_count, uint32_t packet_count=1);
+//            ssize_t Decrement(string name, size_t byte_count, uint32_t packet_count=1);
+//            ssize_t Decrement(uint8_t number, size_t byte_count, uint32_t packet_count=1);
             int32_t TestStart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
             int32_t TestStart(uint8_t number, uint8_t radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
             int32_t TestStop(string name, float seconds=5.);
