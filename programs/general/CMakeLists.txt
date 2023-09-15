@@ -56,4 +56,5 @@ target_link_libraries(check_satnogs CosmosAgent CosmosJson CosmosTime CosmosMath
 target_link_libraries(shift_solid_thermal CosmosTime CosmosConvert)
 target_link_libraries(i2ctalk CosmosTime CosmosDeviceI2C CosmosLog)
 target_link_libraries(make_path CosmosData)
+target_link_libraries(countdown CosmosTime)
 
