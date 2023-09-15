@@ -135,12 +135,15 @@ namespace Cosmos {
         int32_t pos_selc2sci(locstruc &loc);
         int32_t pos_selg2selc(locstruc &loc);
         int32_t pos_selc2eci(locstruc &loc);
+        int32_t pos_lvlh2base(locstruc &loc);
+        int32_t pos_lvlh2eci(cartpos lvlh, locstruc &loc);
 
         int32_t eci2kep(cartpos &eci, kepstruc &kep);
         int32_t kep2eci(kepstruc &kep,cartpos &eci);
         int32_t cart2peri(cartpos cart, Quaternion &qperi);
         int32_t peri2cart(cartpos cart, Quaternion &qcart);
         int32_t ric2eci(cartpos orig, rvector ric, cartpos& result);
+        int32_t ric2eci(cartpos orig, Vector ric, cartpos& result);
 
         int32_t att_extra(locstruc *loc);
         int32_t att_icrf(locstruc *loc);

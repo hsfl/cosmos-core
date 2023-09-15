@@ -174,6 +174,8 @@ namespace Cosmos
             tloc.pos.eci.s = rv_sub(loc.pos.extra.sun2moon.s, loc.pos.extra.sun2earth.s);
             pos_eci2geoc(tloc);
             loc.pos.extra.moongeo = tloc.pos.geod.s;
+
+            pos_lvlh(utc, loc);
             return 0;
         }
 
@@ -190,14 +192,9 @@ namespace Cosmos
                 return CONVERT_ERROR_UTC;
             }
 
-            // These are all based on time, so they don't need to be repeated if time hasn't changed.
-//            if (loc.pos.extra.utc == utc)
-//            {
-//                return 0;
-//            }
+            pos_extra(utc, loc);
 
             // LVLH related
-//            att_icrf2geoc(loc);
             quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.};
             loc.pos.extra.g2l = {{0., 0., 0.}, 1.};
             loc.pos.extra.l2g = {{0., 0., 0.}, 1.};
@@ -2070,28 +2067,6 @@ namespace Cosmos
             // Update pass
             loc.att.lvlh.pass = patt->pass;
 
-            // LVLH Z is opposite of direction to satellite
-//            geoc_z = rv_smult(-1., ppos->s);
-//            normalize_rv(geoc_z);
-
-            // LVLH Y is Cross Product of LVLH Z and velocity vector
-//            geoc_y = rv_cross(geoc_z, ppos->v);
-//            normalize_rv(geoc_y);
-
-            // Determine intrinsic rotation of ITRF Z  into LVLH Z
-//            qe_z = q_conjugate(q_drotate_between_rv(geoc_z, lvlh_z));
-
-            // Use to intrinsically rotate ITRF Y into intermediate Y
-            //	geoc_y = drotate(qe_z,geoc_y);
-//            geoc_y = irotate(qe_z, geoc_y);
-
-            // Determine intrinsic rotation of this intermediate Y into LVLH Y
-//            qe_y = q_conjugate(q_drotate_between_rv(geoc_y, lvlh_y));
-
-            // Combine to determine intrinsic rotation of ITRF into LVLH
-//            loc.pos.extra.g2l = q_fmult(qe_z, qe_y);
-//            normalize_q(&loc.pos.extra.g2l);
-//            rqe = q_conjugate(loc.pos.extra.g2l);
             pos_lvlh(patt->utc, loc);
 
             // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
@@ -2152,36 +2127,6 @@ namespace Cosmos
             // Update pass
             ppos->pass = patt->pass = loc.att.lvlh.pass;
 
-            // LVLH Z is opposite of earth to satellite vector
-//            geoc_z = rv_smult(-1., ppos->s);
-//            normalize_rv(geoc_z);
-
-            // LVLH Y is Cross Product of LVLH Z and velocity vector
-//            geoc_y = rv_cross(geoc_z, ppos->v);
-//            normalize_rv(geoc_y);
-
-            // Determine rotation of ITRF Z  into LVLH Z
-//            qe_z = q_conjugate(q_drotate_between_rv(geoc_z, lvlh_z));
-//            geoc_z = irotate(qe_z, geoc_z);
-
-            // Use to rotate LVLH Y into intermediate LVLH Y
-//            geoc_y = irotate(qe_z, geoc_y);
-
-            // Determine rotation of this LVLH Y into ITRF Y
-//            qe_y = q_conjugate(q_drotate_between_rv(geoc_y, lvlh_y));
-
-            // Multiply to determine transformation of ITRF frame into LVLH frame
-//            loc.pos.extra.g2l = q_fmult(qe_z, qe_y);
-//            normalize_q(&loc.pos.extra.g2l);
-//            rqe = q_conjugate(loc.pos.extra.g2l);
-
-            // LVLH Z is opposite of earth to satellite vector
-//            geoc_z = rv_smult(-1., ppos->s);
-//            normalize_rv(geoc_z);
-
-            // LVLH Y is Cross Product of LVLH Z and velocity vector
-//            geoc_y = rv_cross(geoc_z, ppos->v);
-//            normalize_rv(geoc_y);
             pos_lvlh(loc.att.lvlh.utc, loc);
 
             // Rotate LVLH frame into ITRS frame
@@ -3163,10 +3108,10 @@ match.
 
         /**
          * @brief Converts RIC coordinates to ECI
-         * 
+         *
          * Requires origin's position and velocity to be set.
          * Returns RIC-offsetted position and velocity in result.
-         * 
+         *
          * @param orig Origin of the RIC frame in ECI
          * @param ric Offset from origin of RIC frame, [0,1,2] = [R,I,C]
          * @param result Converted ECI coordinates
@@ -3174,6 +3119,22 @@ match.
          */
         int32_t ric2eci(cartpos orig, rvector ric, cartpos& result)
         {
+            return ric2eci(orig, Vector(ric), result);
+        }
+
+        /**
+         * @brief Converts RIC coordinates to ECI
+         *
+         * Requires origin's position and velocity to be set.
+         * Returns RIC-offsetted position and velocity in result.
+         *
+         * @param orig Origin of the RIC frame in ECI
+         * @param ric Offset from origin of RIC frame, [x, y, z] = [R,I,C]
+         * @param result Converted ECI coordinates
+         * @return int32_t 0 on success, negative on error
+         */
+            int32_t ric2eci(cartpos orig, Vector ric, cartpos& result)
+            {
             // 1 set the radius
             double rad = length_rv(orig.s);
 
@@ -3194,21 +3155,21 @@ match.
 
             // first rotate by I about the normal
             // position
-            rvector pos = rv_rotate(orig.s, I_rotation_axis, ric.col[1]/rad);
+            rvector pos = rv_rotate(orig.s, I_rotation_axis, ric.y/rad);
             // velocity
-            rvector vel = rv_rotate(orig.v, I_rotation_axis, ric.col[1]/rad);
+            rvector vel = rv_rotate(orig.v, I_rotation_axis, ric.y/rad);
 
             // second rotate by C about the velocity (actually the rotated velocity!)
             // rotate the velocity axis
-            C_rotation_axis = rv_rotate(C_rotation_axis, I_rotation_axis, ric.col[1]/rad);
+            C_rotation_axis = rv_rotate(C_rotation_axis, I_rotation_axis, ric.y/rad);
 
             // position
-            pos = rv_rotate(pos, C_rotation_axis, ric.col[2]/rad);
+            pos = rv_rotate(pos, C_rotation_axis, ric.z/rad);
             // velocity
-            vel = rv_rotate(vel, C_rotation_axis, ric.col[2]/rad);
+            vel = rv_rotate(vel, C_rotation_axis, ric.z/rad);
 
             // expand to new radius
-            pos = pos * ((ric.col[0]+rad)/rad);
+            pos = pos * ((ric.x+rad)/rad);
 
             // correct to new velocity of new circular radius
             vel = vel * (sqrt(GM / length_rv(pos)) / v_mag);
@@ -3218,6 +3179,126 @@ match.
 
             return 0;
         }
+
+            /**
+         * @brief Converts Base coordinates to RIC offset coordinates
+         *
+         * Requires loc.pos to be fully set.
+         * Leaves RIC offset position, velocity and acceleration in loc.
+         *
+         * @param ric ::cartpos LVLH offsets to apply
+         * @param loc ::locstruc containing Base to convert
+         * @return int32_t 0 on success, negative on error
+         */
+            int32_t pos_ric2eci(cartpos ric, locstruc& loc)
+            {
+            qatt *patt;
+            cartpos *ppos;
+            switch (loc.pos.extra.closest)
+            {
+            case COSMOS_EARTH:
+            default:
+                // Check time
+                if (!isfinite(loc.att.geoc.utc) || loc.att.geoc.utc == 0.)
+                {
+                    return CONVERT_ERROR_UTC;
+                }
+
+                patt = &loc.att.geoc;
+                ppos = &loc.pos.geoc;
+                break;
+            case COSMOS_MOON:
+                // Check time
+                if (!isfinite(loc.att.selc.utc) || loc.att.selc.utc == 0.)
+                {
+                    return CONVERT_ERROR_UTC;
+                }
+
+                patt = &loc.att.selc;
+                ppos = &loc.pos.selc;
+                break;
+            }
+
+            // 1 set the radius
+            double rad = length_rv(ppos->s);
+
+            // 2 set the unit normal (to the position / velocity plane)
+            rvector u_n_orig = rv_cross(ppos->s, ppos->v);
+            normalize_rv(u_n_orig);
+
+            // 3 correct the unit velocity and then velocity vector to be the one for a completely circular orbit
+            rvector u_v_orig = rv_cross(u_n_orig, ppos->s);
+            normalize_rv(u_v_orig);
+
+            // expand to actual circular velocity
+            double v_mag = sqrt(GM / length_rv(ppos->s));
+            // ppos->v = u_v_orig * v_mag;
+
+            // 4 Find rotations axises for I and C rotations
+            rvector I_rotation_axis = u_n_orig;
+            rvector C_rotation_axis = -u_v_orig;
+
+            // first rotate by I about the normal
+            ppos->s = rv_rotate(ppos->s, I_rotation_axis, ric.s.col[1]/rad);
+            ppos->v = rv_rotate(ppos->v, I_rotation_axis, ric.s.col[1]/rad);
+            ppos->a = rv_rotate(ppos->a, I_rotation_axis, ric.s.col[1]/rad);
+
+            // second rotate by C about the velocity (actually the rotated velocity!)
+            // rotate the velocity axis
+            C_rotation_axis = rv_rotate(C_rotation_axis, I_rotation_axis, ric.s.col[1]/rad);
+
+            ppos->s = rv_rotate(ppos->s, C_rotation_axis, ric.s.col[2]/rad);
+            ppos->v = rv_rotate(ppos->v, C_rotation_axis, ric.s.col[2]/rad);
+            ppos->a = rv_rotate(ppos->a, C_rotation_axis, ric.s.col[2]/rad);
+
+            // expand to new radius
+            ppos->s *= ((ric.s.col[0]+rad)/rad);
+
+            // correct to new velocity of new circular radius
+            ppos->v *= (sqrt(GM / length_rv(ppos->s)) / v_mag);
+
+
+            return 0;
+            }
+
+            /**
+         * @brief Converts Base coordinates to LVLH offset coordinates
+         *
+         * Requires loc.pos to be fully set.
+         * Leaves LVLH offset position, velocity and acceleration in loc. Sets LVLH.
+         *
+         * @param lvlh ::cartpos LVLH offsets to apply
+         * @param loc ::locstruc containing Base to convert
+         * @return int32_t 0 on success, negative on error
+         */
+            int32_t pos_lvlh2eci(cartpos lvlh, locstruc& loc)
+            {
+            int32_t iretn;
+
+            // 1 Set the radius to the length of LVLH z
+            rvector lvlh_z = -loc.pos.geoc.s;
+            double r = length_rv(lvlh_z);
+
+            // 2 Set the LVLH y axis to the cross product of LVLH z and GEOC v
+            rvector lvlh_y = rv_normal(rv_cross(lvlh_z, loc.pos.geoc.v));
+
+            // 3 Rotate around LVLH y axis by -dx/r
+            loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, -lvlh.s.col[0] / r);
+
+            // 4 Set the LVLH x axis to the cross product of LVLH y and first LVLH z
+            rvector lvlh_x = rv_normal(rv_cross(lvlh_y, -loc.pos.geoc.s));
+
+            // 5 Rotate around LVLH x axis by dy/r
+            loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, lvlh.s.col[1] / r);
+
+            // 6 Scale the whole thing by dz/z
+//            loc.pos.geoc.s = ((r - lvlh.s.col[2]) / r) * loc.pos.geoc.s;
+            loc.pos.geoc.s = loc.pos.geoc.s * ((r - lvlh.s.col[2]) / r);
+
+            // 7 Adjust velocities
+
+            return 0;
+            }
 
         int32_t kep2eci(kepstruc &kep, cartpos &eci)
         {
