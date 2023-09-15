@@ -2696,7 +2696,8 @@ int32_t data_task(string command, string outpath, float timeout, string shell)
 {
     string result;
     int32_t iretn = data_execute(command, result, timeout, shell);
-    FILE* fp = fopen(outpath.c_str(), "w");
+
+    FILE* fp = data_open(outpath.c_str(), "w");
     if (fp != nullptr)
     {
         fwrite(result.data(), result.size(), 1, fp);
@@ -2711,8 +2712,8 @@ int32_t data_task(string command, string outpath, float timeout, string shell)
 
 int32_t data_shell(string command_line, string outpath, string inpath, string errpath)
 {
-    printf("Data: Shell Command=%s Out=%s Err=%s\n", command_line.c_str(), outpath.c_str(), errpath.c_str());
-    fflush(stdout);
+//    printf("Data: Shell Command=%s Out=%s Err=%s\n", command_line.c_str(), outpath.c_str(), errpath.c_str());
+//    fflush(stdout);
     int32_t iretn=0;
     int devin, devout, deverr;
     int prev_stdin, prev_stdout, prev_stderr;

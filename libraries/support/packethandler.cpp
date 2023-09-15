@@ -739,7 +739,8 @@ namespace Cosmos {
         int32_t PacketHandler::ExternalTask(PacketComm& packet, string &response, Agent* agent)
         {
             // Run command, return response
-            int32_t iretn = agent->task_add(string(packet.data.begin()+4, packet.data.end()));
+            string source = lookup_node_id_name(agent->cinfo, packet.header.nodeorig);
+            int32_t iretn = agent->task_add(string(packet.data.begin()+4, packet.data.end()), source);
             response = "Running: " + agent->task_command(iretn) + " in " + agent->task_path(iretn) + " #" + to_unsigned(agent->task_size());
             uint32_t response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             iretn = agent->push_response(packet.header.chanin, 0, packet.header.nodeorig, response_id, string(response.begin(), response.end()));
