@@ -8595,6 +8595,8 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             json_addentry("device_batt_cap",didx, UINT16_MAX, (uint8_t *)&device->capacity, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_batt_eff",didx, UINT16_MAX, (uint8_t *)&device->efficiency, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_batt_charge",didx, UINT16_MAX, (uint8_t *)&device->charge, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+            json_addentry("device_batt_state",didx, UINT16_MAX, (uint8_t *)&device->state, (uint16_t)JSON_TYPE_UINT8, cinfo);
+            json_addentry("device_batt_flag",didx, UINT16_MAX, (uint8_t *)&device->flag, (uint16_t)JSON_TYPE_UINT32, cinfo);
             json_addentry("device_batt_amp",didx, UINT16_MAX, (uint8_t *)&device->amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_batt_volt",didx, UINT16_MAX, (uint8_t *)&device->volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_batt_nvolt",didx, UINT16_MAX, (uint8_t *)&device->nvolt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -8668,6 +8670,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             iretn = json_addentry("device_cpu_name",didx, UINT16_MAX, (uint8_t *)&device->name, (uint16_t)JSON_TYPE_STRING, cinfo);
             iretn = json_addentry("device_cpu_utc",didx, UINT16_MAX, (uint8_t *)&device->utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
             json_addentry("device_cpu_cidx",didx, UINT16_MAX, (uint8_t *)&device->cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
+            json_addentry("device_cpu_flag",didx, UINT16_MAX, (uint8_t *)&device->flag, (uint16_t)JSON_TYPE_UINT32, cinfo);
             json_addentry("device_cpu_temp",didx, UINT16_MAX, (uint8_t *)&device->temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cpu_volt",didx, UINT16_MAX, (uint8_t *)&device->volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_cpu_amp",didx, UINT16_MAX, (uint8_t *)&device->amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);

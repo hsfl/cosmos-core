@@ -541,7 +541,7 @@ int32_t parse_sat(string args)
         ++argcount;
         json11::Json::object values = jargs["tle"].object_items();
         vector<Convert::tlestruc>lines;
-        string fname = values["filename"].string_value();
+        string fname = get_realmdir(realmname, true) + "/" + values["filename"].string_value();
         load_lines(fname, lines);
         if (initialutc == 0.)
         {
