@@ -59,7 +59,11 @@ struct rvector
 		col[0] = d0;
 		col[1] = d1;
 		col[2] = d2;
-	}
+    }
+    rvector operator * (const double scale) const; // multiply vector by scalar operator
+    rvector &operator += (const rvector &v2); // add vector by vector operator in place
+    rvector &operator *= (const double &scale); // add vector by vector operator in place
+    rvector &operator - (); // negate vector in place
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
@@ -94,8 +98,9 @@ struct rvector
 ::std::ostream& operator << (::std::ostream& out, const rvector& a);
 ::std::ostream& operator << (::std::ostream& out, const vector<rvector>& a);
 ::std::istream& operator >> (::std::istream& out, rvector& a);
-rvector operator + (rvector v1, rvector v2); // multiply vector by vector operator
-rvector operator * (rvector v, double scalar); // multiply vector by vector operator
+rvector operator + (rvector v1, rvector v2); // add two vector vector operator
+//rvector operator * (rvector v, double scalar); // multiply vector by vector operator
+rvector operator * (const double scale, const rvector v);
 rvector operator * (rvector v1, rvector v2); // multiply vector by vector operator
 rvector operator / (rvector v, double scalar); // divide vector by scalar operator
 bool operator == (rvector a, rvector b); // Compares two vectors

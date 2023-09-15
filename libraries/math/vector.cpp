@@ -864,16 +864,92 @@ rvector operator + (rvector v1, rvector v2)
     return rv_add(v1, v2);
 }
 
-// multiply vector by scalar operator
-rvector operator * (rvector v, double scalar)
+//! compound add two ::rvector
+/*! Add ::rvector to existing, returning a ::rvector.
+                \param b second vector to be added, in ::rvector form
+                \result the transformed vector, in ::rvector form
+        */
+rvector& rvector::operator += (const rvector &b)
 {
-    return rv_smult(scalar, v);
+    *this = *this + b;
+    return *this;
+}
+
+//! Scalar product.
+/*! Calculate the scalar product with the provided scale.
+         * \param scale Scale to multiply by.
+         * \return This times b.
+        */
+rvector rvector::operator *(const double scale) const
+{
+    rvector vo = *this;
+
+    vo *= scale;
+
+    return vo;
+}
+
+//! Reverse scalar product.
+/*! Calculate the scalar product with the provided scale.
+         * \param scale Scale to multiply by.
+         * \return Scale times this.
+        */
+//rvector rvector::operator * (const double scale, const rvector &v)
+//{
+//    return v * scale;
+//}
+
+//! compound multiply ::rvector by scalar
+/*! Multiply ::rvector by scalar, returning an ::rvector.
+                \param s scalar to multiply
+                \result the transformed vector, in ::rvector form
+        */
+rvector& rvector::operator *= (const double &scale)
+{
+    // If scale is basically 1., don't do anything
+    if (fabs(scale - (double)1.) > D_SMALL)
+    {
+        // If scale is basically 0., set to zero
+        if (fabs(scale - (double)0.) > D_SMALL)
+        {
+            // Otherwise, multiply
+            this->col[0] *= scale;
+            this->col[1] *= scale;
+            this->col[2] *= scale;
+        }
+        else
+        {
+            this->col[0] = 0.;
+            this->col[1] = 0.;
+            this->col[2] = 0.;
+        }
+    }
+    return *this;
+}
+
+//! compound negate ::rvector
+/*! Negate existing ::rvector, returning a ::rvector.
+                \result the transformed vector, in ::rvector form
+        */
+rvector& rvector::operator - ()
+{
+    this->col[0] = -this->col[0];
+    this->col[1] = -this->col[1];
+    this->col[2] = -this->col[2];
+    return *this;
 }
 
 // multiply vector by scalar operator
-rvector operator * (double scalar, rvector v)
+//rvector operator * (const double v, const rvector scale)
+//{
+//    return v * scale;
+//}
+
+// multiply vector by scalar operator
+rvector operator * (const double scalar, const rvector v)
 {
-    return rv_smult(scalar, v);
+//    return rv_smult(scalar, v);
+        return v * scalar;
 }
 
 // multiply vector by vector operator
