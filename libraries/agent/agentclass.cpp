@@ -338,7 +338,7 @@ namespace Cosmos
                         "    TransferRadio\n"
                         "    InternalRequest request parameters\n"
                         "    Ping {string}\n"
-                        "    SetTime {MJD {direction}}\n"
+                        "    SetTime {MJD|delta {direction}}\n"
                         "    GetTimeHuman\n"
                         "    GetTimeBinary\n"
                         "    SetOpsMode [modestring]\n"
@@ -2233,10 +2233,18 @@ namespace Cosmos
                     int8_t direction = 0;
                     if (parms.size() > 0)
                     {
-                        mjd = stof(parms[0]);
+                        if (parms[0][0] == '+' || parms[0][0] == '-')
+                        {
+                            mjd += atof(parms[0].c_str()) / 86400.;
+                            response += " by " + to_floating(atof(parms[0].c_str()) / 86400., .1);
+                        }
+                        else
+                        {
+                            mjd = atof(parms[0].c_str());
+                        }
                         if (parms.size() > 1)
                         {
-                            direction = stoi(parms[1]);
+                            direction = atoi(parms[1].c_str());
                         }
                     }
                     packet.data.resize(9);
