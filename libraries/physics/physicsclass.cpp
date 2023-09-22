@@ -1204,6 +1204,7 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
 {
     const double range_limit = 3000000.;
     double range = range_limit;
+    // Closest target
     targetstruc ctarget;
     for (targetstruc target : targets)
     {
@@ -1220,12 +1221,23 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
     currentutc = nextutc;
     if (range < range_limit)
     {
-        currentloc->att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
-        currentloc->att.topo.v = rv_zero();
-        currentloc->att.topo.a = rv_zero();
-        currentloc->att.topo.utc = currentutc;
-        currentloc->att.topo.pass++;
-        Convert::att_topo(currentloc);
+        // +Z vector in rotated frame
+        Vector eci_z = Vector(rv_sub(ctarget.loc.pos.eci.s, currentloc->pos.eci.s));
+        // Desired Y is cross product of Desired Z and velocity vector
+        Vector eci_y = eci_z.cross(Vector(currentloc->pos.eci.v));
+
+        currentloc->att.icrf.s = irotate_for(eci_y, eci_z, unityV(), unitzV()).to_q();
+        currentloc->att.icrf.v = rv_zero();
+        currentloc->att.icrf.a = rv_zero();
+        currentloc->att.icrf.utc = currentutc;
+    
+        // currentloc->att.topo.s = q_fmult(q_change_around_x(ctarget.elto*-1.),q_change_around_z(ctarget.azto));
+        // cout << setprecision(9) << currentutc << " | " << DEGOF(ctarget.elto) << "," << DEGOF(ctarget.azto) << "|" << DEGOF(ctarget.elfrom) << "," << DEGOF(ctarget.azfrom) << endl;
+        // currentloc->att.topo.v = rv_zero();
+        // currentloc->att.topo.a = rv_zero();
+        // currentloc->att.topo.utc = currentutc;
+        // currentloc->att.topo.pass++;
+        // Convert::att_topo(currentloc);
     }
     else
     {
@@ -1667,6 +1679,9 @@ int32_t LvlhPositionPropagator::Propagate(Convert::cartpos basepos)
     currentloc->pos.icrf = basepos;
     // basepos's icrf.pass is one lower, so make sure it updates everything
     currentloc->pos.icrf.pass = currentloc->pos.eci.pass + 1;
+    currentloc->pos.extra.utc = 0;
+    // TODO: check why geoc is increasing faster than other stuff?
+    currentloc->pos.geoc.pass = 0;
     Convert::pos_icrf(currentloc);
     offset.s = irotate(currentloc->pos.extra.l2g, offset.s);
     currentloc->pos.geoc.s = rv_add(currentloc->pos.geoc.s, offset.s);
