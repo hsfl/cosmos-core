@@ -63,7 +63,7 @@ namespace Cosmos {
                             (*iter).state = 2;
 //                            log_move_file((*iter).path, data_base_path(NodeName, "outgoing", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName)), true);
 //                            (*iter).path = data_base_path(NodeName, "temp", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName));
-                            int32_t iretn = log_move_file((*iter).path, string_replace((*iter).path, "/temp/", "/outgoing/"), true);
+                            log_move_file((*iter).path, string_replace((*iter).path, "/temp/", "/outgoing/"), true);
                         }
                     }
                     ++iter;
@@ -84,11 +84,11 @@ namespace Cosmos {
             tasks.back().command = command;
             if (node.empty())
             {
-                tasks.back().path = data_base_path(NodeName, "temp", AgentName, data_name(tasks.back().startmjd, "out", NodeName, AgentName));
+                tasks.back().path = data_base_path(NodeName, "temp", AgentName, data_name(tasks.back().startmjd, "task", NodeName, AgentName));
             }
             else
             {
-                tasks.back().path = data_base_path(node, "temp", AgentName, data_name(tasks.back().startmjd, "out", NodeName, AgentName));
+                tasks.back().path = data_base_path(node, "temp", AgentName, data_name(tasks.back().startmjd, "task", NodeName, AgentName));
             }
             mtx.unlock();
             return tasks.size();
