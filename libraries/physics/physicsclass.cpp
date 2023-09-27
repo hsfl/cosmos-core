@@ -1204,6 +1204,7 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
 {
     const double range_limit = 3000000.;
     double range = range_limit;
+    // Closest target
     targetstruc ctarget;
     for (targetstruc target : targets)
     {
@@ -1220,6 +1221,23 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
     currentutc = nextutc;
     if (range < range_limit)
     {
+        // +Z vector in rotated frame
+        Vector eci_z = Vector(rv_sub(ctarget.loc.pos.eci.s, currentloc->pos.eci.s));
+        // Desired Y is cross product of Desired Z and velocity vector
+        Vector eci_y = eci_z.cross(Vector(currentloc->pos.eci.v));
+
+        currentloc->att.icrf.s = irotate_for(eci_y, eci_z, unityV(), unitzV()).to_q();
+        currentloc->att.icrf.v = rv_zero();
+        currentloc->att.icrf.a = rv_zero();
+        currentloc->att.icrf.utc = currentutc;
+    
+        // currentloc->att.topo.s = q_fmult(q_change_around_x(ctarget.elto*-1.),q_change_around_z(ctarget.azto));
+        // cout << setprecision(9) << currentutc << " | " << DEGOF(ctarget.elto) << "," << DEGOF(ctarget.azto) << "|" << DEGOF(ctarget.elfrom) << "," << DEGOF(ctarget.azfrom) << endl;
+        // currentloc->att.topo.v = rv_zero();
+        // currentloc->att.topo.a = rv_zero();
+        // currentloc->att.topo.utc = currentutc;
+        // currentloc->att.topo.pass++;
+        // Convert::att_topo(currentloc);
         currentloc->att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
         currentloc->att.topo.v = rv_zero();
         currentloc->att.topo.a = rv_zero();
