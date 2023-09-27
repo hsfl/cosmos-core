@@ -163,6 +163,8 @@ namespace Cosmos {
             rvector v = {0., 0., 0.};
             //! Acceleration
             rvector a = {0., 0., 0.};
+            //! Jerk
+            rvector j = {0., 0., 0.};
             // TODO: get rid of this kind of stuff?
             //! pass indicator: allows synchronization with other attitude and position values.
             uint32_t pass = 0;
@@ -177,6 +179,7 @@ namespace Cosmos {
                     { "s", s },
                     { "v", v },
                     { "a", a },
+                    { "j", j },
                     { "pass", static_cast<int>(pass) }
                 };
             }
@@ -194,6 +197,7 @@ namespace Cosmos {
                     if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
                     if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
                     if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
+                    if(!parsed["j"].is_null())		j.from_json(parsed["j"].dump());
                     if(!parsed["pass"].is_null())	pass = parsed["pass"].int_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;

@@ -152,12 +152,17 @@ namespace Cosmos {
             return utc;
         }
 
-        //! UTC to Unix time
-        /*! Convert UTC in Modified Julian Day to a timeval structure representing Unix time.
+        //! UTC to Unix timeval
+        /*! Convert UTC in Modified Julian Day to a ::timeval structure representing Unix time.
  * \param utc as Modified Julian Day.
  * \return Timeval structure with Unix time.
  */
         timeval utc2unix(double utc)
+        {
+            return utc2timeval(utc);
+        }
+
+        timeval utc2timeval(double utc)
         {
             timeval unixtime;
             if (utc == 0.)
@@ -167,6 +172,25 @@ namespace Cosmos {
             double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
             unixtime.tv_sec = (int)unixseconds;
             unixtime.tv_usec = 1000000. * (unixseconds - unixtime.tv_sec);
+
+            return unixtime;
+        }
+
+        //! UTC to Unix timespec
+        /*! Convert UTC in Modified Julian Day to a ::timespec structure representing Unix time.
+ * \param utc as Modified Julian Day.
+ * \return Timespec structure with Unix time.
+ */
+        timespec utc2timespec(double utc)
+        {
+            timespec unixtime;
+            if (utc == 0.)
+            {
+                utc = currentmjd();
+            }
+            double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
+            unixtime.tv_sec = (int)unixseconds;
+            unixtime.tv_nsec = 1000000000. * (unixseconds - unixtime.tv_sec);
 
             return unixtime;
         }

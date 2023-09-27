@@ -199,7 +199,7 @@ namespace Cosmos
             loc.pos.extra.g2l = {{0., 0., 0.}, 1.};
             loc.pos.extra.l2g = {{0., 0., 0.}, 1.};
             rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.};
-            qatt *patt;
+//            qatt *patt;
             cartpos *ppos;
             switch (loc.pos.extra.closest)
             {
@@ -211,7 +211,7 @@ namespace Cosmos
                     return CONVERT_ERROR_UTC;
                 }
 
-                patt = &loc.att.geoc;
+//                patt = &loc.att.geoc;
                 ppos = &loc.pos.geoc;
                 break;
             case COSMOS_MOON:
@@ -221,7 +221,7 @@ namespace Cosmos
                     return CONVERT_ERROR_UTC;
                 }
 
-                patt = &loc.att.selc;
+//                patt = &loc.att.selc;
                 ppos = &loc.pos.selc;
                 break;
             }
@@ -659,11 +659,12 @@ namespace Cosmos
             loc.pos.eci.pass = loc.pos.icrf.pass;
 
             // Heliocentric to Geocentric Ecliptic
-            loc.pos.eci.s = loc.pos.eci.v = loc.pos.eci.a = rv_zero();
+            loc.pos.eci.s = loc.pos.eci.v = loc.pos.eci.a = loc.pos.eci.j = rv_zero();
 
             loc.pos.eci.s = rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2earth.s);
             loc.pos.eci.v = rv_sub(loc.pos.icrf.v, loc.pos.extra.sun2earth.v);
             loc.pos.eci.a = rv_sub(loc.pos.icrf.a, loc.pos.extra.sun2earth.a);
+            loc.pos.eci.j = rv_sub(loc.pos.icrf.j, loc.pos.extra.sun2earth.j);
             return 0;
         }
 
@@ -703,6 +704,7 @@ namespace Cosmos
             loc.pos.icrf.s = rv_add(loc.pos.eci.s, loc.pos.extra.sun2earth.s);
             loc.pos.icrf.v = rv_add(loc.pos.eci.v, loc.pos.extra.sun2earth.v);
             loc.pos.icrf.a = rv_add(loc.pos.eci.a, loc.pos.extra.sun2earth.a);
+            loc.pos.icrf.j = rv_add(loc.pos.eci.a, loc.pos.extra.sun2earth.j);
             return 0;
         }
 
@@ -739,11 +741,12 @@ namespace Cosmos
             loc.pos.sci.pass = loc.pos.icrf.pass;
 
             // Heliocentric to Geocentric Ecliptic
-            loc.pos.sci.s = loc.pos.sci.v = loc.pos.sci.a = rv_zero();
+            loc.pos.sci.s = loc.pos.sci.v = loc.pos.sci.a = loc.pos.sci.j = rv_zero();
 
             loc.pos.sci.s = rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2moon.s);
             loc.pos.sci.v = rv_sub(loc.pos.icrf.v, loc.pos.extra.sun2moon.v);
             loc.pos.sci.a = rv_sub(loc.pos.icrf.a, loc.pos.extra.sun2moon.a);
+            loc.pos.sci.j = rv_sub(loc.pos.icrf.j, loc.pos.extra.sun2moon.j);
 
             return 0;
         }
@@ -784,6 +787,7 @@ namespace Cosmos
             loc.pos.icrf.s = rv_add(loc.pos.sci.s, loc.pos.extra.sun2moon.s);
             loc.pos.icrf.v = rv_add(loc.pos.sci.v, loc.pos.extra.sun2moon.v);
             loc.pos.icrf.a = rv_add(loc.pos.sci.a, loc.pos.extra.sun2moon.a);
+            loc.pos.icrf.j = rv_add(loc.pos.sci.j, loc.pos.extra.sun2moon.j);
 
             return 0;
         }
@@ -822,19 +826,31 @@ namespace Cosmos
             // Update pass
             loc.pos.geoc.pass = loc.att.icrf.pass = loc.pos.eci.pass;
 
-            // Apply first order transform to all
+            // Apply transforms
+            // St = S * e2j
             loc.pos.geoc.s = rv_mmult(loc.pos.extra.j2e, loc.pos.eci.s);
-            loc.pos.geoc.v = rv_mmult(loc.pos.extra.j2e, loc.pos.eci.v);
-            loc.pos.geoc.a = rv_mmult(loc.pos.extra.j2e, loc.pos.eci.a);
 
-            // Apply second order term due to first derivative of rotation matrix
+            // Vt = V * e2j + S * e2j'
+            loc.pos.geoc.v = rv_mmult(loc.pos.extra.j2e, loc.pos.eci.v);
             v2 = rv_mmult(loc.pos.extra.dj2e, loc.pos.eci.s);
             loc.pos.geoc.v = rv_add(loc.pos.geoc.v, v2);
+
+            // At = A * e2j + 2 * V * e2j' + S * e2j''
+            loc.pos.geoc.a = rv_mmult(loc.pos.extra.j2e, loc.pos.eci.a);
             v2 = rv_smult(2., rv_mmult(loc.pos.extra.dj2e, loc.pos.eci.v));
             loc.pos.geoc.a = rv_add(loc.pos.geoc.a, v2);
-            // Apply third order correction due to second derivative of rotation matrix
             v2 = rv_mmult(loc.pos.extra.ddj2e, loc.pos.eci.s);
             loc.pos.geoc.a = rv_add(loc.pos.geoc.a, v2);
+
+            // Jt = J * e2j + 6 * A * e2j' + 6 * V * e2j'' + S * e2j'''
+            loc.pos.geoc.j = rv_mmult(loc.pos.extra.j2e, loc.pos.eci.j);
+            v2 = rv_smult(6., rv_mmult(loc.pos.extra.dj2e, loc.pos.eci.a));
+            loc.pos.geoc.j = rv_add(loc.pos.geoc.j, v2);
+            v2 = rv_smult(6., rv_mmult(loc.pos.extra.ddj2e, loc.pos.eci.v));
+            loc.pos.geoc.j = rv_add(loc.pos.geoc.j, v2);
+
+            // Apply second order term due to first derivative of rotation matrix
+            // Apply third order correction due to second derivative of rotation matrix
 
             // Convert GEOC Position to GEOD
             pos_geoc2geod(loc);
@@ -900,19 +916,28 @@ namespace Cosmos
             // Update pass
             loc.pos.eci.pass = loc.att.geoc.pass = loc.pos.geoc.pass;
 
-            // Apply first order transform to all
+            // Apply transforms
+            // St = S * e2j
             loc.pos.eci.s = rv_mmult(loc.pos.extra.e2j, loc.pos.geoc.s);
-            loc.pos.eci.v = rv_mmult(loc.pos.extra.e2j, loc.pos.geoc.v);
-            loc.pos.eci.a = rv_mmult(loc.pos.extra.e2j, loc.pos.geoc.a);
 
-            // Apply second order correction due to first derivative of rotation matrix
+            // Vt = V * e2j + S * e2j'
+            loc.pos.eci.v = rv_mmult(loc.pos.extra.e2j, loc.pos.geoc.v);
             ds = rv_mmult(loc.pos.extra.de2j, loc.pos.geoc.s);
             loc.pos.eci.v = rv_add(loc.pos.eci.v, ds);
+
+            // At = A * e2j + 2 * V * e2j' + S * e2j''
+            loc.pos.eci.a = rv_mmult(loc.pos.extra.e2j, loc.pos.geoc.a);
             ds = rv_smult(2., rv_mmult(loc.pos.extra.de2j, loc.pos.geoc.v));
             loc.pos.eci.a = rv_add(loc.pos.eci.a, ds);
-            // Apply third order correction due to second derivative of rotation matrix
             ds = rv_mmult(loc.pos.extra.dde2j, loc.pos.geoc.s);
             loc.pos.eci.a = rv_add(loc.pos.eci.a, ds);
+
+            // Jt = J * e2j + 6 * A * e2j' + 6 * V * e2j'' + S * e2j'''
+            loc.pos.eci.j = rv_mmult(loc.pos.extra.e2j, loc.pos.geoc.j);
+            ds = rv_smult(6., rv_mmult(loc.pos.extra.de2j, loc.pos.geoc.a));
+            loc.pos.eci.j = rv_add(loc.pos.eci.j, ds);
+            ds = rv_smult(6., rv_mmult(loc.pos.extra.dde2j, loc.pos.geoc.v));
+            loc.pos.eci.j = rv_add(loc.pos.eci.j, ds);
 
             // Convert ITRF Attitude to ICRF
             iretn = att_geoc2icrf(loc);
@@ -1036,7 +1061,7 @@ namespace Cosmos
             cl = cos(loc.pos.geos.s.lambda);
             cpr = cp * loc.pos.geos.s.r;
 
-            loc.pos.geoc.s = loc.pos.geoc.v = loc.pos.geoc.a = rv_zero();
+            loc.pos.geoc.s = loc.pos.geoc.v = loc.pos.geoc.a = loc.pos.geoc.j = rv_zero();
 
             loc.pos.geoc.s.col[0] = cpr * cl;
             loc.pos.geoc.s.col[1] = cpr * sl;
@@ -1356,6 +1381,7 @@ namespace Cosmos
             loc.pos.selc.s = rv_mmult(loc.pos.extra.j2s, loc.pos.sci.s);
             loc.pos.selc.v = rv_mmult(loc.pos.extra.j2s, loc.pos.sci.v);
             loc.pos.selc.a = rv_mmult(loc.pos.extra.j2s, loc.pos.sci.a);
+            loc.pos.selc.j = rv_mmult(loc.pos.extra.j2s, loc.pos.sci.j);
 
             // Apply second order term due to first derivative of rotation matrix
             m1 = rm_mmult(loc.pos.extra.dt2s, loc.pos.extra.j2t);
@@ -1364,6 +1390,9 @@ namespace Cosmos
 
             v2 = rv_smult(2., rv_mmult(m1, loc.pos.sci.v));
             loc.pos.selc.a = rv_add(loc.pos.selc.a, v2);
+
+            v2 = rv_smult(2., rv_mmult(m1, loc.pos.sci.a));
+            loc.pos.selc.j = rv_add(loc.pos.selc.j, v2);
 
             // Convert SELC Position to SELG
             pos_selc2selg(loc);
@@ -1431,6 +1460,7 @@ namespace Cosmos
             loc.pos.sci.s = rv_mmult(loc.pos.extra.s2j, loc.pos.selc.s);
             loc.pos.sci.v = rv_mmult(loc.pos.extra.s2j, loc.pos.selc.v);
             loc.pos.sci.a = rv_mmult(loc.pos.extra.s2j, loc.pos.selc.a);
+            loc.pos.sci.j = rv_mmult(loc.pos.extra.s2j, loc.pos.selc.j);
 
             // Apply second order correction due to first derivative of rotation matrix
             m1 = rm_mmult(loc.pos.extra.t2j, loc.pos.extra.ds2t);
@@ -3192,7 +3222,7 @@ match.
          */
             int32_t pos_ric2eci(cartpos ric, locstruc& loc)
             {
-            qatt *patt;
+//            qatt *patt;
             cartpos *ppos;
             switch (loc.pos.extra.closest)
             {
@@ -3204,7 +3234,7 @@ match.
                     return CONVERT_ERROR_UTC;
                 }
 
-                patt = &loc.att.geoc;
+//                patt = &loc.att.geoc;
                 ppos = &loc.pos.geoc;
                 break;
             case COSMOS_MOON:
@@ -3214,7 +3244,7 @@ match.
                     return CONVERT_ERROR_UTC;
                 }
 
-                patt = &loc.att.selc;
+//                patt = &loc.att.selc;
                 ppos = &loc.pos.selc;
                 break;
             }
@@ -3267,35 +3297,152 @@ match.
          * Requires loc.pos to be fully set.
          * Leaves LVLH offset position, velocity and acceleration in loc. Sets LVLH.
          *
+         * @param base ::cartpos GEOC base
          * @param lvlh ::cartpos LVLH offsets to apply
          * @param loc ::locstruc containing Base to convert
          * @return int32_t 0 on success, negative on error
          */
-            int32_t pos_lvlh2eci(cartpos lvlh, locstruc& loc)
+            int32_t pos_base2lvlh(cartpos base, cartpos lvlh, locstruc *loc)
             {
-            int32_t iretn;
+            return pos_eci2geoc(*loc);
+            }
+
+            int32_t pos_base2lvlh(cartpos base, cartpos lvlh, locstruc& loc)
+            {
+//            int32_t iretn;
+            rvector lvlh_x;
+            rvector lvlh_y;
+            rvector lvlh_z;
+            cartpos lvlh1;
+            cartpos geoc1;
+
+            // Initial GEOC
+            loc.pos.geoc = base;
 
             // 1 Set the radius to the length of LVLH z
-            rvector lvlh_z = -loc.pos.geoc.s;
+            lvlh_z = -loc.pos.geoc.s;
             double r = length_rv(lvlh_z);
 
             // 2 Set the LVLH y axis to the cross product of LVLH z and GEOC v
-            rvector lvlh_y = rv_normal(rv_cross(lvlh_z, loc.pos.geoc.v));
+            lvlh_y = rv_normal(rv_cross(lvlh_z, loc.pos.geoc.v));
 
             // 3 Rotate around LVLH y axis by -dx/r
             loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, -lvlh.s.col[0] / r);
 
             // 4 Set the LVLH x axis to the cross product of LVLH y and first LVLH z
-            rvector lvlh_x = rv_normal(rv_cross(lvlh_y, -loc.pos.geoc.s));
+            lvlh_x = rv_normal(rv_cross(lvlh_y, -loc.pos.geoc.s));
 
-            // 5 Rotate around LVLH x axis by dy/r
+            // 5 Rotate forwards around LVLH x axis by dy/r
             loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, lvlh.s.col[1] / r);
 
             // 6 Scale the whole thing by dz/z
-//            loc.pos.geoc.s = ((r - lvlh.s.col[2]) / r) * loc.pos.geoc.s;
-            loc.pos.geoc.s = loc.pos.geoc.s * ((r - lvlh.s.col[2]) / r);
+            loc.pos.geoc.s *= ((r - lvlh.s.col[2]) / r);
 
-            // 7 Adjust velocities
+            // t+1 GEOC and LVLH
+            lvlh1 = lvlh;
+            lvlh1.s += lvlh.v + lvlh.a / 2. + lvlh.j / 6.;
+            lvlh1.v += lvlh.a + lvlh.j / 2.;
+            lvlh1.a += lvlh.j;
+            geoc1 = base;
+            geoc1.s += loc.pos.geoc.v + loc.pos.geoc.a / 2. + loc.pos.geoc.j / 6;
+            geoc1.v += loc.pos.geoc.a + loc.pos.geoc.j / 2.;
+            geoc1.a += loc.pos.geoc.j;
+
+            // 1 Set the radius to the length of LVLH z
+            lvlh_z = -geoc1.s;
+            r = length_rv(lvlh_z);
+
+            // 2 Set the LVLH y axis to the cross product of LVLH z and GEOC v
+            lvlh_y = rv_normal(rv_cross(lvlh_z, geoc1.v));
+
+            // 3 Rotate around LVLH y axis by -dx/r
+            geoc1.s = rv_rotate(geoc1.s, lvlh_y, -lvlh1.s.col[0] / r);
+
+            // 4 Set the LVLH x axis to the cross product of LVLH y and first LVLH z
+            lvlh_x = rv_normal(rv_cross(lvlh_y, -geoc1.s));
+
+            // 5 Rotate around LVLH x axis by dy/r
+            geoc1.s = rv_rotate(geoc1.s, lvlh_x, lvlh1.s.col[1] / r);
+
+            // 6 Scale the whole thing by dz/z
+            geoc1.s = geoc1.s * ((r - lvlh1.s.col[2]) / r);
+
+            // Calculate the original geoc derivatives to allow geoc0 to become geoc1
+            loc.pos.geoc.v = geoc1.s - loc.pos.geoc.s;
+            loc.pos.geoc.a = geoc1.v - loc.pos.geoc.v;
+            loc.pos.geoc.j = geoc1.a - loc.pos.geoc.a;
+            ++loc.pos.geoc.pass;
+            pos_geoc(loc);
+
+            return 0;
+            }
+
+            /**
+         * @brief Converts LVLH offset coordinates to base coordinates
+         *
+         * Requires loc.pos to be fully set with current LVLH offset position.
+         *
+         * @param lvlh ::cartpos LVLH offsets to apply
+         * @param loc ::locstruc containing Offset to convert to Base
+         * @return int32_t 0 on success, negative on error
+         */
+            int32_t pos_lvlh2base(cartpos lvlh, locstruc& loc)
+            {
+//            int32_t iretn;
+            rvector lvlh_x;
+            rvector lvlh_y;
+            rvector lvlh_z;
+            cartpos lvlh1;
+            cartpos geoc1;
+            double r;
+
+            // t+1 GEOC
+            geoc1 = loc.pos.geoc;
+            geoc1.a += loc.pos.geoc.j;
+            geoc1.v += loc.pos.geoc.a;
+            geoc1.s += loc.pos.geoc.v;
+
+            // Scale by dz/z
+            r = length_rv(geoc1.s) +  lvlh.s.col[2];
+            geoc1.s *= (r / (r - lvlh1.s.col[2]));
+
+            // Set the LVLH y axis to the cross product of -GEOC s and GEOC v
+            lvlh_y = rv_normal(rv_cross(-geoc1.s, geoc1.v));
+
+            // Rotate around LVLH y axis by dx/r
+            geoc1.s = rv_rotate(geoc1.s, lvlh_y, lvlh.s.col[0] / r);
+
+            // Set the LVLH x axis to the cross product of LVLH y and current radius
+            lvlh_x = rv_normal(rv_cross(lvlh_y, -loc.pos.geoc.s));
+
+            // Rotate backwards around LVLH x axis by -dy/r
+            geoc1.s = rv_rotate(geoc1.s, lvlh_x, -lvlh.s.col[1] / r);
+
+            // Initial GEOC and LVLH
+            loc.pos.geoc = geoc1;
+            loc.pos.geoc.a -= geoc1.j;
+            loc.pos.geoc.v -= geoc1.a + geoc1.j / 2.;
+            loc.pos.geoc.s -= geoc1.v + geoc1.a / 2. +geoc1.j / 6.;
+            lvlh1 = lvlh;
+
+            // Scale by dz/z
+            r = length_rv(loc.pos.geoc.s) +  lvlh.s.col[2];
+            loc.pos.geoc.s *= (r / (r - lvlh1.s.col[2]));
+
+            // Set the LVLH y axis to the cross product of -GEOC s and GEOC v
+            lvlh_y = rv_normal(rv_cross(-loc.pos.geoc.s, loc.pos.geoc.v));
+
+            // Rotate around LVLH y axis by dx/r
+            loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, lvlh.s.col[0] / r);
+
+            // Set the LVLH x axis to the cross product of LVLH y and first LVLH z
+            lvlh_x = rv_normal(rv_cross(lvlh_y, -loc.pos.geoc.s));
+
+            // Rotate backwards around LVLH x axis by -dy/r
+            loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, -lvlh.s.col[1] / r);
+
+            ++loc.pos.geoc.pass;
+            pos_geoc(loc);
 
             return 0;
             }
@@ -3341,7 +3488,7 @@ match.
             zy = s2 * c3;
             zz = c2;
 
-            eci.s = eci.v = eci.a = rv_zero();
+            eci.s = eci.v = eci.a = eci.j = rv_zero();
 
             eci.s.col[0] = qpos.col[0] * xx + qpos.col[1] * xy + qpos.col[2] * xz;
             eci.s.col[1] = qpos.col[0] * yx + qpos.col[1] * yy + qpos.col[2] * yz;
@@ -3845,7 +3992,7 @@ match.
             vy = xmy * cosuk - sinnok * sinuk;
             vz = sinik * cosuk;
             // POSITION AND VELOCITY in TEME
-            pos_teme.s = pos_teme.v = pos_teme.a = rv_zero();
+            pos_teme.s = pos_teme.v = pos_teme.a = pos_teme.j = rv_zero();
 
             pos_teme.s.col[0] = 1000. * SGP4_XKMPER * rk * ux;
             pos_teme.s.col[1] = 1000. * SGP4_XKMPER * rk * uy;
@@ -4603,7 +4750,7 @@ match.
             }
 
             eci.utc = utc;
-            eci.s = eci.v = eci.a = rv_zero();
+            eci.s = eci.v = eci.a = eci.j = rv_zero();
 
             for (j = 0; j < 3; j++)
             {

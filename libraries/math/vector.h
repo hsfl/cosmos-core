@@ -62,6 +62,7 @@ struct rvector
     }
     rvector operator * (const double scale) const; // multiply vector by scalar operator
     rvector &operator += (const rvector &v2); // add vector by vector operator in place
+    rvector &operator -= (const rvector &v2); // add vector by vector operator in place
     rvector &operator *= (const double &scale); // add vector by vector operator in place
     rvector &operator - (); // negate vector in place
 
@@ -99,6 +100,7 @@ struct rvector
 ::std::ostream& operator << (::std::ostream& out, const vector<rvector>& a);
 ::std::istream& operator >> (::std::istream& out, rvector& a);
 rvector operator + (rvector v1, rvector v2); // add two vector vector operator
+rvector operator - (rvector v1, rvector v2); // subtract two vector vector operator
 //rvector operator * (rvector v, double scalar); // multiply vector by vector operator
 rvector operator * (const double scale, const rvector v);
 rvector operator * (rvector v1, rvector v2); // multiply vector by vector operator

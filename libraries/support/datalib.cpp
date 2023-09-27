@@ -880,12 +880,11 @@ string data_name(double mjd, string type, string node, string agent, string extr
 {
     string name;
 
-    int32_t year, month, seconds;
+    int32_t year, month;
     double jday, day;
 
     mjd2ymd(mjd,year,month,day,jday);
-    seconds = static_cast<int32_t>(86400.*(jday-static_cast<int32_t>(jday)));
-    name = to_unsigned(year, 4, true) + to_unsigned(jday, 3, true) + to_unsigned(seconds, 5, true);
+    name = to_unsigned(decisec(mjd), 10, true);
     if (!node.empty())
     {
         name += ("_" + node);
@@ -2521,7 +2520,7 @@ int32_t data_execute(string cmd, string& result, float timer, string shell)
         //and copies back into rsp before leaving
         size_t size = result.size();
         accum.resize(size);
-        result.clear();
+//        result.clear();
 
         do
         {
@@ -2556,8 +2555,7 @@ int32_t data_execute(string cmd, string& result, float timer, string shell)
 #else
     int32_t iretn = 0;
     FILE * stream;
-//    char buffer[198];
-    result.clear();
+//    result.clear();
 
     vector<string> cmds = string_split(cmd, " ");
     if (data_isfile(cmds[0]))

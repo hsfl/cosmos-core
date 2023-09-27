@@ -151,6 +151,8 @@ namespace Cosmos {
 
         // utc to another format
         timeval utc2unix(double utc=0.);
+        timeval utc2timeval(double utc=0.);
+        timespec utc2timespec(double utc=0.);
         double utc2unixseconds(double utc=0.);
         string utc2unixdate(double utc=0.);
         string utc2iso8601(double mjd=0.);

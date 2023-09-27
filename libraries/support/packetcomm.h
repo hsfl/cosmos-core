@@ -285,6 +285,7 @@ namespace Cosmos {
                 uint8_t chanout = 0;
             } header;
 
+            uint32_t response_id;
             CCSDS_Header ccsds_header;
             vector<uint8_t> packetized;
             vector<uint8_t> wrapped;

@@ -864,6 +864,12 @@ rvector operator + (rvector v1, rvector v2)
     return rv_add(v1, v2);
 }
 
+// subtract vector from vector operator
+rvector operator - (rvector v1, rvector v2)
+{
+    return rv_sub(v1, v2);
+}
+
 //! compound add two ::rvector
 /*! Add ::rvector to existing, returning a ::rvector.
                 \param b second vector to be added, in ::rvector form
@@ -872,6 +878,17 @@ rvector operator + (rvector v1, rvector v2)
 rvector& rvector::operator += (const rvector &b)
 {
     *this = *this + b;
+    return *this;
+}
+
+//! compound subtract two ::rvector
+/*! Subtract ::rvector to existing, returning a ::rvector.
+                \param b second vector to be subtracted, in ::rvector form
+                \result the transformed vector, in ::rvector form
+        */
+rvector& rvector::operator -= (const rvector &b)
+{
+    *this = *this - b;
     return *this;
 }
 

@@ -36,6 +36,7 @@
 #include "support/timelib.h"
 #include "physics/nrlmsise-00.h"
 #include "support/datalib.h"
+using namespace Cosmos::Convert;
 
 
 namespace Cosmos

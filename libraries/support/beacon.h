@@ -57,6 +57,7 @@ namespace Cosmos {
                 CPUBeacon = 110,
                 TelemBeacon = 111,
                 TsenBeacon = 120,
+                TsenBeaconL = 121,
                 EPSBCREGBeacon = 130,
                 EPSSWCHBeacon = 131,
                 EPSBATTBeacon = 132,
@@ -102,6 +103,7 @@ namespace Cosmos {
                 {TypeId::CPUBeacon, "CPUBeacon"},
                 {TypeId::TelemBeacon, "TelemBeacon"},
                 {TypeId::TsenBeacon, "TsenBeacon"},
+                {TypeId::TsenBeaconL, "TsenBeaconL"},
                 {TypeId::EPSBCREGBeacon, "EPSBCREGBeacon"},
                 {TypeId::EPSSWCHBeacon, "EPSSWCHBeacon"},
                 {TypeId::EPSBATTBeacon, "EPSBATTBeacon"},
@@ -414,6 +416,20 @@ namespace Cosmos {
                 uint8_t type = (uint8_t)TypeId::TsenBeacon;
                 uint32_t deci = 0;
                 uint16_t ctemp[tsen_count] = {0};
+            } ;
+
+            struct __attribute__ ((packed)) ltsen_beacon
+            {
+                uint8_t index = 0;
+                uint16_t ctemp = 0;
+            } ;
+
+            static constexpr uint8_t ltsen_count = 200 / sizeof(ltsen_beacon);
+            struct __attribute__ ((packed)) ltsens_beacon
+            {
+                uint8_t type = (uint8_t)TypeId::TsenBeaconL;
+                uint32_t deci = 0;
+                ltsen_beacon ltsen[ltsen_count];
             } ;
 
             struct __attribute__ ((packed)) epsbcreg_beacon

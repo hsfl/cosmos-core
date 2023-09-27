@@ -359,6 +359,25 @@ namespace Cosmos {
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+tsencount*2);
                 }
                 break;
+            case TypeId::TsenBeaconL:
+                if (cinfo->devspec.tsen.size())
+                {
+                    ltsens_beacon beacon;
+                    beacon.deci = cinfo->node.deci;
+                    uint16_t tsencount = 0;
+                    cinfo->devspec.tsen.size() < ltsen_count?cinfo->devspec.tsen.size():ltsen_count;
+                    for (uint16_t i=0; i<cinfo->devspec.tsen.size(); ++i)
+                    {
+                        if (tsencount < ltsen_count && cinfo->devspec.tsen[i].temp != 0.)
+                        {
+                            beacon.ltsen[i].index = i;
+                            beacon.ltsen[i].ctemp = cinfo->devspec.tsen[i].temp * 100. + .5;
+                            ++tsencount;
+                        }
+                    }
+                    data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+tsencount*2);
+                }
+                break;
             case TypeId::EPSSWCHBeacon:
                 if (cinfo->devspec.swch.size())
                 {
@@ -1017,7 +1036,7 @@ namespace Cosmos {
                         }
                         break;
                     case TypeId::TsenBeacon:
-                        {
+                    {
                             tsen_beacon beacon;
                             if (data.size() <= sizeof(beacon))
                             {
@@ -1036,8 +1055,30 @@ namespace Cosmos {
                                     cinfo->devspec.tsen[i].temp = beacon.ctemp[i] / 100.;
                                 }
                             }
-                        }
-                        break;
+                    }
+                    break;
+                    case TypeId::TsenBeaconL:
+                    {
+                            ltsens_beacon beacon;
+                            if (data.size() <= sizeof(beacon))
+                            {
+                                memcpy(&beacon, data.data(), data.size());
+                            }
+                            else
+                            {
+                                return GENERAL_ERROR_BAD_SIZE;
+                            }
+                            double mjd = decisec2mjd(beacon.deci);
+                            for (uint16_t i=0; i<(data.size()-5)/2; ++i)
+                            {
+                                if (beacon.ltsen[i].ctemp)
+                                {
+                                    cinfo->devspec.tsen[beacon.ltsen[i].index].utc = mjd;
+                                    cinfo->devspec.tsen[beacon.ltsen[i].index].temp = beacon.ltsen[i].ctemp / 100.;
+                                }
+                            }
+                    }
+                    break;
                     case TypeId::EPSSWCHBeacon:
                         {
                             epsswchs_beacon beacon;

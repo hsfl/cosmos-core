@@ -1556,6 +1556,8 @@ for (il=0; il<5; il++)
 */
         int32_t pos_accel(physicsstruc &physics, Convert::locstruc &loc)
         {
+            static rvector lacc;
+            static double lutc = 0.;
             int32_t iretn = 0;
             double radius;
             rvector ctpos, da, tda;
@@ -1643,6 +1645,16 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
             }
 
+            if (lutc != 0. && lutc != loc.pos.eci.utc)
+            {
+                loc.pos.eci.j = (loc.pos.eci.a - lacc) / (loc.pos.eci.utc - lutc);
+            }
+            else
+            {
+                loc.pos.eci.j = {0., 0., 0.};
+            }
+            lutc = loc.pos.eci.utc;
+            lacc = loc.pos.eci.a;
             loc.pos.eci.pass++;
             iretn = Convert::pos_eci(&loc);
             if (iretn < 0)

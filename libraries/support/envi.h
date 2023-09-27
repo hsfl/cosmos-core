@@ -18,11 +18,11 @@ typedef struct envi_hdr
     size_t planes;
     size_t rows;
     size_t columns;
-    size_t offset;
+    size_t offset = 0;
     size_t endian;
     size_t datatype;
-    size_t interleave;
-    size_t byteorder;
+    size_t interleave = BSQ;
+    size_t byteorder = BO_INTEL;
 	float x0;
 	float y0;
 	float xmpp;

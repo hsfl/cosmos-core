@@ -540,7 +540,7 @@ uint8_t from_hex(char value)
 #if ((SIZE_WIDTH) == (UINT64_WIDTH))
 uint64_t from_hex(string value)
 {
-uint64_t result;
+uint64_t result = 0;
 #else
 size_t from_hex(string value)
 {

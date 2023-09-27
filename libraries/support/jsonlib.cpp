@@ -2415,6 +2415,12 @@ int32_t json_out_cartpos(string &jstring, Convert::cartpos value)
     if ((iretn=json_out_rvector(jstring,value.a)) < 0)
         return iretn;
 
+    // Output Jerk
+    if ((iretn=json_out_name(jstring, "jrk")) < 0)
+        return iretn;
+    if ((iretn=json_out_rvector(jstring,value.j)) < 0)
+        return iretn;
+
     if ((iretn=json_out_character(jstring,'}')) < 0)
         return iretn;
     return 0;

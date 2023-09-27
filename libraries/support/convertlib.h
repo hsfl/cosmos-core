@@ -104,6 +104,7 @@ namespace Cosmos {
         int32_t pos_selc2sci(locstruc *loc);
         int32_t pos_selg2selc(locstruc *loc);
         int32_t pos_selc2eci(locstruc *loc);
+        int32_t pos_base2lvlh(cartpos base, cartpos lvlh, locstruc *loc);
 
         int32_t loc_clear(locstruc &loc);
         int32_t pos_extra(double utc, locstruc &loc);
@@ -135,8 +136,8 @@ namespace Cosmos {
         int32_t pos_selc2sci(locstruc &loc);
         int32_t pos_selg2selc(locstruc &loc);
         int32_t pos_selc2eci(locstruc &loc);
-        int32_t pos_lvlh2base(locstruc &loc);
-        int32_t pos_lvlh2eci(cartpos lvlh, locstruc &loc);
+        int32_t pos_lvlh2base(cartpos lvlh, locstruc &loc);
+        int32_t pos_base2lvlh(cartpos base, cartpos lvlh, locstruc &loc);
 
         int32_t eci2kep(cartpos &eci, kepstruc &kep);
         int32_t kep2eci(kepstruc &kep,cartpos &eci);
