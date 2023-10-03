@@ -205,7 +205,7 @@ namespace Cosmos {
             iretn = axhandle.unload(checkcrc);
             if (iretn >= 0)
             {
-                wrapped = axhandle.ax25_packet;
+                wrapped = axhandle.get_data();
                 return Unwrap(checkcrc);
             }
             else
