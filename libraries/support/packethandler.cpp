@@ -1278,6 +1278,10 @@ namespace Cosmos {
             packet.header.chanin = agent->channel_number(radioin);
             packet.header.chanout = agent->channel_number(channelout);
             packet.data.resize(9);
+            if (mjd < 3600.)
+            {
+                mjd = currentmjd() + mjd / 86400.;
+            }
             doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
             packet.data[8] = direction;
             iretn = agent->channel_push(packet);
