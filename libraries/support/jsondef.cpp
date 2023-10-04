@@ -2173,6 +2173,7 @@ namespace Cosmos
                     add_name(basename+".capacity", &devspec.batt[didx].capacity, "float");
                     add_name(basename+".efficiency", &devspec.batt[didx].efficiency, "float");
                     add_name(basename+".charge", &devspec.batt[didx].charge, "float");
+                    add_name(basename+".celltemp", &devspec.batt[didx].celltemp, "float");
                     add_name(basename+".r_in", &devspec.batt[didx].r_in, "float");
                     add_name(basename+".r_out", &devspec.batt[didx].r_out, "float");
                     add_name(basename+".percentage", &devspec.batt[didx].percentage, "float");

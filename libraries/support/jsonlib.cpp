@@ -8601,6 +8601,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
             json_addentry("device_batt_cap",didx, UINT16_MAX, (uint8_t *)&device->capacity, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_batt_eff",didx, UINT16_MAX, (uint8_t *)&device->efficiency, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_batt_charge",didx, UINT16_MAX, (uint8_t *)&device->charge, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+            json_addentry("device_batt_celltemp",didx, UINT16_MAX, (uint8_t *)&device->celltemp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
             json_addentry("device_batt_state",didx, UINT16_MAX, (uint8_t *)&device->state, (uint16_t)JSON_TYPE_UINT8, cinfo);
             json_addentry("device_batt_flag",didx, UINT16_MAX, (uint8_t *)&device->flag, (uint16_t)JSON_TYPE_UINT32, cinfo);
             json_addentry("device_batt_amp",didx, UINT16_MAX, (uint8_t *)&device->amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -9564,6 +9565,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_batt_cap",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_batt_eff",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_batt_charge",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_batt_celltemp",didx, UINT16_MAX, cinfo, state);
         break;
         //! Heater
     case DeviceType::HTR:
@@ -10594,7 +10596,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
         result += tempstring;
         sprintf(tempstring, ",\"device_batt_amp_%03d\",\"device_batt_volt_%03d\", \"device_batt_power_%03d\"",i, i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_batt_charge_%03d\",\"device_batt_percentage_%03d\", \"device_batt_time_remaining_%03d\"",i,i,i);
+        sprintf(tempstring, ",\"device_batt_charge_%03d\",\"device_batt_celltemp_%03d\",\"device_batt_percentage_%03d\", \"device_batt_time_remaining_%03d\"",i,i,i,i);
         result += tempstring;
     }
 
@@ -10917,7 +10919,7 @@ string json_list_of_fullsoh(cosmosstruc *cinfo)
         result += tempstring;
         sprintf(tempstring, ",\"device_batt_amp_%03d\",\"device_batt_volt_%03d\", \"device_batt_power_%03d\"",i, i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_batt_charge_%03d\",\"device_batt_percentage_%03d\", \"device_batt_time_remaining_%03d\"",i,i,i);
+        sprintf(tempstring, ",\"device_batt_charge_%03d\",\"device_batt_celltemp_%03d\",\"device_batt_percentage_%03d\", \"device_batt_time_remaining_%03d\"",i,i,i,i);
         result += tempstring;
     }
 
@@ -12394,7 +12396,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"DeviceIndex\tComponentIndex\tCapacity\tEfficiency\tCharge\n");
     for (i=0; i<cinfo->devspec.batt_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.batt[i].cidx,cinfo->devspec.batt[i].capacity,cinfo->devspec.batt[i].efficiency,cinfo->devspec.batt[i].charge);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.batt[i].cidx,cinfo->devspec.batt[i].capacity,cinfo->devspec.batt[i].efficiency,cinfo->devspec.batt[i].charge,cinfo->devspec.batt[i].celltemp);
     }
     fclose(op);
 

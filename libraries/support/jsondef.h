@@ -3578,6 +3578,8 @@ union as a ::devicestruc.
             float efficiency = 0.f;
             //! Charge in amp hours
             float charge = 0.f;
+            //! Cell Temperature
+            float celltemp = 0.f;
             //! Resistance in
             float r_in = 0.f;
             //! Resistance out
@@ -3596,6 +3598,7 @@ union as a ::devicestruc.
                     { "cap"  , capacity },
                     { "eff", efficiency },
                     { "charge"	, charge },
+                    { "celltemp"	, celltemp },
                     { "r_in"  , r_in },
                     { "r_out" , r_out },
                     { "percentage", percentage },
@@ -3615,6 +3618,7 @@ union as a ::devicestruc.
                     if(!parsed["cap"].is_null()) { capacity = parsed["cap"].number_value(); }
                     if(!parsed["eff"].is_null()) { efficiency = parsed["eff"].number_value(); }
                     if(!parsed["charge"].is_null()) { charge = parsed["charge"].number_value(); }
+                    if(!parsed["celltemp"].is_null()) { celltemp = parsed["celltemp"].number_value(); }
                     if(!parsed["r_in"].is_null()) { r_in = parsed["r_in"].number_value(); }
                     if(!parsed["r_out"].is_null()) { r_out = parsed["r_out"].number_value(); }
                     if(!parsed["percentage"].is_null()) { percentage = parsed["percentage"].number_value(); }
