@@ -453,6 +453,8 @@ namespace Cosmos
             float channel_speed(uint8_t number);
             double channel_age(string name);
             double channel_age(uint8_t number);
+            double channel_wakeup_timer(string name, double value=0.);
+            double channel_wakeup_timer(uint8_t number, double value=0.);
             size_t channel_bytes(string name);
             size_t channel_bytes(uint8_t number);
             size_t channel_level(string name);

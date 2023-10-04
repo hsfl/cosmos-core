@@ -3302,12 +3302,12 @@ match.
          * @param loc ::locstruc containing Base to convert
          * @return int32_t 0 on success, negative on error
          */
-            int32_t pos_base2lvlh(cartpos base, cartpos lvlh, locstruc *loc)
+            int32_t pos_origin2lvlh(cartpos origin, cartpos lvlh, locstruc *loc)
             {
-            return pos_eci2geoc(*loc);
+            return pos_origin2lvlh(origin, lvlh, *loc);
             }
 
-            int32_t pos_base2lvlh(cartpos base, cartpos lvlh, locstruc& loc)
+            int32_t pos_origin2lvlh(cartpos origin, cartpos lvlh, locstruc& loc)
             {
 //            int32_t iretn;
             rvector lvlh_x;
@@ -3317,7 +3317,7 @@ match.
             cartpos geoc1;
 
             // Initial GEOC
-            loc.pos.geoc = base;
+            loc.pos.geoc = origin;
 
             // 1 Set the radius to the length of LVLH z
             lvlh_z = -loc.pos.geoc.s;
@@ -3339,11 +3339,16 @@ match.
             loc.pos.geoc.s *= ((r - lvlh.s.col[2]) / r);
 
             // t+1 GEOC and LVLH
+//            double dr = lvlh.v.col[2];
+//            double theta = lvlh.s.col[0] / r;
+//            float dtheta = lvlh.v.col[0] / r;
+//            double omega = lvlh.s.col[1] / r;
+//            float domega = lvlh.v.col[1] / r;
             lvlh1 = lvlh;
             lvlh1.s += lvlh.v + lvlh.a / 2. + lvlh.j / 6.;
             lvlh1.v += lvlh.a + lvlh.j / 2.;
             lvlh1.a += lvlh.j;
-            geoc1 = base;
+            geoc1 = origin;
             geoc1.s += loc.pos.geoc.v + loc.pos.geoc.a / 2. + loc.pos.geoc.j / 6;
             geoc1.v += loc.pos.geoc.a + loc.pos.geoc.j / 2.;
             geoc1.a += loc.pos.geoc.j;
@@ -3386,7 +3391,12 @@ match.
          * @param loc ::locstruc containing Offset to convert to Base
          * @return int32_t 0 on success, negative on error
          */
-            int32_t pos_lvlh2base(cartpos lvlh, locstruc& loc)
+            int32_t pos_lvlh2origin(cartpos lvlh, locstruc* loc)
+            {
+            return pos_lvlh2origin(lvlh, *loc);
+            }
+
+            int32_t pos_lvlh2origin(cartpos lvlh, locstruc& loc)
             {
 //            int32_t iretn;
             rvector lvlh_x;

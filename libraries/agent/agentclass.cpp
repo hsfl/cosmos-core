@@ -4560,6 +4560,16 @@ acquired.
             return channels.Age(number);
         }
 
+        double Agent::channel_wakeup_timer(string name, double value)
+        {
+            return channels.WakeupTimer(name, value);
+        }
+
+        double Agent::channel_wakeup_timer(uint8_t number, double value)
+        {
+            return channels.WakeupTimer(number, value);
+        }
+
         size_t Agent::channel_bytes(string name)
         {
             return channels.Bytes(name);

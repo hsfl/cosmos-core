@@ -236,6 +236,37 @@ namespace Cosmos {
             return age;
         }
 
+        //! \brief WakeupTimer from channel name.
+        //! Time since ::channelstruc::quu was last modified by ::Push or ::Touch.
+        //! \param name Name of channel.
+        //! \return Time in seconds.
+        double Channel::WakeupTimer(string name, double value)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return WakeupTimer(iretn);
+            }
+            return -999999.;
+        }
+
+        //! \brief WakeupTimer from channel number.
+        //! Time since ::channelstruc::quu was last modified by ::Push or ::Touch.
+        //! \param number Number of channel.
+        //! \return Time in seconds.
+        double Channel::WakeupTimer(uint8_t number, double value)
+        {
+            if (number >= channel.size())
+            {
+                return -999999.;
+            }
+            if (value != 0.)
+            {
+                channel[number].wakeup_timer = value;
+            }
+            return channel[number].wakeup_timer;
+        }
+
         //! \brief Byte total from channel name.
         //! Number of bytes passed through channel from ::Push.
         //! \param name Name of channel.

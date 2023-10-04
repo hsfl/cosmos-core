@@ -47,6 +47,7 @@ namespace Cosmos {
                 uint16_t rawsize = PACKETCOMM_PACKETIZED_SIZE;
                 uint16_t maximum = 100;
                 float byte_rate = 1e9;
+                float wakeup_timer = 600.;
                 // Radio test variables
                 thread testthread;
                 uint8_t testrunning = 0;
@@ -89,6 +90,8 @@ namespace Cosmos {
 //            int32_t Disable(uint8_t number);
             double Age(string name);
             double Age(uint8_t number);
+            double WakeupTimer(string name, double value = 0.);
+            double WakeupTimer(uint8_t number, double value = 0.);
             size_t Bytes(string name);
             size_t Bytes(uint8_t number);
             size_t Level(string name);
