@@ -2261,6 +2261,13 @@ bool data_isdir(string path, bool create_flag)
         return false;
     }
 
+    char *rpath = realpath(path.c_str(), nullptr);
+    if (rpath == nullptr)
+    {
+        return false;
+    }
+    path = rpath;
+
     if (create_flag)
     {
         vector<string> dirs = string_split(path, "/");
@@ -2295,6 +2302,18 @@ bool data_ischardev(string path)
 {
     struct stat st;
 
+    if (path.empty())
+    {
+        return false;
+    }
+
+    char *rpath = realpath(path.c_str(), nullptr);
+    if (rpath == nullptr)
+    {
+        return false;
+    }
+    path = rpath;
+
     if (!stat(path.c_str(), &st) && S_ISCHR(st.st_mode))
     {
         return true;
@@ -2310,6 +2329,18 @@ bool data_isblkdev(string path)
 {
     struct stat st;
 
+    if (path.empty())
+    {
+        return false;
+    }
+
+    char *rpath = realpath(path.c_str(), nullptr);
+    if (rpath == nullptr)
+    {
+        return false;
+    }
+    path = rpath;
+
     if (!stat(path.c_str(), &st) && S_ISBLK(st.st_mode))
     {
         return true;
@@ -2324,6 +2355,11 @@ bool data_isblkdev(string path)
 bool data_issymlink(string path)
 {
     struct stat st;
+
+    if (path.empty())
+    {
+        return false;
+    }
 
     if (!stat(path.c_str(), &st) && S_ISLNK(st.st_mode))
     {
@@ -2344,6 +2380,18 @@ bool data_issymlink(string path)
 bool data_isfile(string path, off_t size)
 {
     struct stat st;
+
+    if (path.empty())
+    {
+        return false;
+    }
+
+    char *rpath = realpath(path.c_str(), nullptr);
+    if (rpath == nullptr)
+    {
+        return false;
+    }
+    path = rpath;
 
     if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode) && (!size || (size == st.st_size)))
     {
