@@ -537,7 +537,7 @@ namespace Cosmos {
                     ++test.good_count;
                     response = "Complete: ";
                 }
-                else if (header.packet_id < test.packet_id)
+                else if (header.packet_id <= test.packet_id)
                 {
                     ++test.repeat_count;
                     response = "Repeat: ";
