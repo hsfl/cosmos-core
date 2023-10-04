@@ -1094,6 +1094,9 @@ namespace Cosmos {
             {
                 newyear =  mjd2cal(trunc(mjd));
             }
+            newyear.month = 1;
+            newyear.dom = 1;
+            newyear.doy = 1;
             return cal2mjd(newyear);
         }
 
@@ -1114,6 +1117,9 @@ namespace Cosmos {
                 newyear =  mjd2cal(trunc(mjd));
             }
             newyear.year = 10 * (newyear.year / 10);
+            newyear.month = 1;
+            newyear.dom = 1;
+            newyear.doy = 1;
             return cal2mjd(newyear);
         }
 
@@ -1124,13 +1130,14 @@ namespace Cosmos {
         //! \return Elapsed time from nearest year in centi seconds.
         uint32_t centisec(double mjd)
         {
+            double yearmjd = newyear();
             if (mjd == 0.)
             {
-                return 8640000. * (currentmjd() - newyear()) + .5;
+                return 8640000. * (currentmjd() - yearmjd) + .5;
             }
             else
             {
-                return 8640000. * (mjd - newyear()) + .5;
+                return 8640000. * (mjd - yearmjd) + .5;
             }
         }
 
