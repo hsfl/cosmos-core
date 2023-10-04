@@ -1655,7 +1655,7 @@ int32_t LvlhPositionPropagator::Init(cartpos basepos)
     PosAccel(currentloc, currentphys);
 
     // Turn this into LVLH offset position
-    pos_base2lvlh(basepos, currentloc->pos.lvlh, currentloc);
+    pos_origin2lvlh(basepos, currentloc->pos.lvlh, currentloc);
     currentloc->pos.geoc.pass++;
     pos_geoc(currentloc);
     PosAccel(currentloc, currentphys);
@@ -1689,7 +1689,7 @@ int32_t LvlhPositionPropagator::Propagate(cartpos basepos)
         currentloc->pos.lvlh.a += dt * currentloc->pos.lvlh.j;
         currentloc->pos.lvlh.v += dt * (currentloc->pos.lvlh.a + (dt / 2.) * currentloc->pos.lvlh.j);
         currentloc->pos.lvlh.s += dt * (currentloc->pos.lvlh.v + dt * ((1/2.) * currentloc->pos.lvlh.a + dt * (1.6) * currentloc->pos.lvlh.j));
-        pos_base2lvlh(basepos, currentloc->pos.lvlh, currentloc);
+        pos_origin2lvlh(basepos, currentloc->pos.lvlh, currentloc);
         PosAccel(currentloc, currentphys);
     }
 
