@@ -18,12 +18,15 @@
 #define TMJD 10
 #define TSLON 11
 #define TSLAT 12
+#define TCENTI 13
+#define TDECI 14
 
 int main(int argc, char *argv[])
 {
     struct timeval mytime;
     struct tm *mytm;
-    int tut, value, ttype, i, tlen=0;
+    int32_t tut, uvalue, ttype, i, tlen=0;
+    double fvalue;
     int cflag = 0;
     //int vflag = 0;
     time_t thetime;
@@ -108,6 +111,14 @@ int main(int argc, char *argv[])
                 /* Time in Years */
                 ttype = TYEAR;
                 break;
+            case 'C':
+                // Time in centiseconds
+                ttype = TCENTI;
+                break;
+            case 'D':
+                // Time in deciseconds
+                ttype = TDECI;
+                break;
             case 'z':
                 ttype = TZENITH;
                 tut = 1;
@@ -169,46 +180,54 @@ int main(int argc, char *argv[])
             printf("%.2lf\n",zd*(180./3.16149));
             break;
         case TSECOND:
-            value = mytm->tm_sec;
-            printf("%02d\n",value);
+            uvalue = mytm->tm_sec;
+            printf("%02d\n",uvalue);
             break;
         case TMINUTE:
-            value = mytm->tm_min;
-            printf("%02d\n",value);
+            uvalue = mytm->tm_min;
+            printf("%02d\n",uvalue);
             break;
         case THOUR:
-            value = mytm->tm_hour;
-            printf("%02d\n",value);
+            uvalue = mytm->tm_hour;
+            printf("%02d\n",uvalue);
             break;
         case TDAY:
-            value = mytm->tm_yday + 1;
+            uvalue = mytm->tm_yday + 1;
             switch (tlen)
             {
             case 0:
-                printf("%d\n",value);
+                printf("%d\n",uvalue);
                 break;
             case 3:
-                printf("%03d\n",value);
+                printf("%03d\n",uvalue);
                 break;
             case 2:
-                printf("%02d\n",value);
+                printf("%02d\n",uvalue);
                 break;
             case 1:
-                printf("%01d\n",value);
+                printf("%01d\n",uvalue);
                 break;
             }
             break;
         case TMDAY:
-            value = mytm->tm_mday;
-            printf("%02d\n",value);
+            uvalue = mytm->tm_mday;
+            printf("%02d\n",uvalue);
             break;
         case TMONTH:
-            value = mytm->tm_mon+1;
-            printf("%02d\n",value);
+            uvalue = mytm->tm_mon+1;
+            printf("%02d\n",uvalue);
             break;
         case TYEAR:
-            value = mytm->tm_year+1900;
-            printf("%04d\n",value);
+            uvalue = mytm->tm_year+1900;
+            printf("%04d\n",uvalue);
+            break;
+        case TCENTI:
+            uvalue = centisec(mjd);
+            printf("%010u\n",uvalue);
+            break;
+        case TDECI:
+            uvalue = decisec(mjd);
+            printf("%010u\n",uvalue);
             break;
         case TMJD:
             printf("%lf\n",mjd);
