@@ -712,7 +712,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     return 0;
 }
 
-int32_t State::Propagate(double nextutc, cartpos currentgeoc)
+int32_t State::Propagate(double nextutc, cartpos currenteci)
 {
     int32_t count = 0;
     if (nextutc == 0.)
@@ -775,7 +775,7 @@ int32_t State::Propagate(double nextutc, cartpos currentgeoc)
             static_cast<TlePositionPropagator *>(tleposition)->Propagate(nextutc);
             break;
         case Propagator::Type::PositionLvlh:
-            static_cast<LvlhPositionPropagator *>(lvlhposition)->Propagate(currentgeoc);
+            static_cast<LvlhPositionPropagator *>(lvlhposition)->Propagate(currenteci);
             break;
         default:
             break;
@@ -1635,9 +1635,9 @@ int32_t InertialPositionPropagator::Propagate(double nextutc)
 int32_t LvlhPositionPropagator::Init(cartpos basepos)
 {
     // Set Base position
-    currentloc->pos.geoc = basepos;
-    currentloc->pos.geoc.pass = currentloc->pos.eci.pass + 1;
-    pos_geoc(currentloc);
+    currentloc->pos.eci = basepos;
+    currentloc->pos.eci.pass = std::max(currentloc->pos.icrf.pass, currentloc->pos.geoc.pass) + 1;
+    pos_eci(currentloc);
     PosAccel(currentloc, currentphys);
 
     // Turn this into LVLH offset position
@@ -1661,15 +1661,14 @@ int32_t LvlhPositionPropagator::Propagate(cartpos basepos)
     while ((basepos.utc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;
-        basepos.a += dt * basepos.j;
-        basepos.v += dt * (basepos.a + (dt / 2.) * basepos.j);
-        basepos.s += dt * (basepos.v + dt * ((1/2.) * basepos.a + dt * (1.6) * basepos.j));
-
-        currentloc->pos.lvlh.a += dt * currentloc->pos.lvlh.j;
-        currentloc->pos.lvlh.v += dt * (currentloc->pos.lvlh.a + (dt / 2.) * currentloc->pos.lvlh.j);
-        currentloc->pos.lvlh.s += dt * (currentloc->pos.lvlh.v + dt * ((1/2.) * currentloc->pos.lvlh.a + dt * (1.6) * currentloc->pos.lvlh.j));
+        // Acquire proper state vector necessary to acquire the current desired LVLH state
         pos_origin2lvlh(basepos, currentloc->pos.lvlh, currentloc);
         PosAccel(currentloc, currentphys);
+
+        // Propagate LVLH to t+1
+        // currentloc->pos.lvlh.a += dt * currentloc->pos.lvlh.j;
+        // currentloc->pos.lvlh.v += dt * (currentloc->pos.lvlh.a + (dt / 2.) * currentloc->pos.lvlh.j);
+        // currentloc->pos.lvlh.s += dt * (currentloc->pos.lvlh.v + dt * ((1/2.) * currentloc->pos.lvlh.a + dt * (1.6) * currentloc->pos.lvlh.j));
     }
 
     return 0;

@@ -105,8 +105,8 @@ rvector rv_convert(svector from)
  * 
  * Uses Rodrigues' rotation formula (https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula)
  * 
- * @param axis Axis to rotate
  * @param point Point to rotate
+ * @param axis Axis to rotate about
  * @param theta Angle to rotate about axis (in radians)
  * @return rvector Rotated point
  */

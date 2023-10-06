@@ -3292,14 +3292,16 @@ match.
             }
 
             /**
-         * @brief Converts Base coordinates to LVLH offset coordinates
+         * @brief Offsets Base coordinates by LVLH offset coordinates
          *
          * Requires loc.pos to be fully set.
-         * Leaves LVLH offset position, velocity and acceleration in loc. Sets LVLH.
+         * Computes the necessary GEOC state to achieve the desired LVLH state,
+         * then propagates that GEOC state to the other coordinates.
+         * loc.pos.lvlh is not modified.
          *
-         * @param base ::cartpos GEOC base
+         * @param base ::cartpos Origin of the LVLH frame in GEOC 
          * @param lvlh ::cartpos LVLH offsets to apply
-         * @param loc ::locstruc containing Base to convert
+         * @param loc ::locstruc New LVLH-offset state will be returned here
          * @return int32_t 0 on success, negative on error
          */
             int32_t pos_origin2lvlh(cartpos origin, cartpos lvlh, locstruc *loc)
@@ -3309,10 +3311,89 @@ match.
 
             int32_t pos_origin2lvlh(cartpos origin, cartpos lvlh, locstruc& loc)
             {
+                rvector lvlh_x;
+                rvector lvlh_y;
+                rvector lvlh_z;
+                // 1 Get lvlh basis vectors
+                lvlh_z = -rv_normal(origin.s);
+                lvlh_y = rv_normal(rv_cross(lvlh_z, origin.v));
+                lvlh_x = rv_normal(rv_cross(lvlh_y, lvlh_z));
+
+                // 2 Convert LVLH offsets into ECI
+                cartpos eci_offset;
+                eci_offset.s.col[0] = lvlh_x.col[0]*lvlh.s.col[0] + lvlh_y.col[0]*lvlh.s.col[1] + lvlh_z.col[0]*lvlh.s.col[2];
+                eci_offset.s.col[1] = lvlh_x.col[1]*lvlh.s.col[0] + lvlh_y.col[1]*lvlh.s.col[1] + lvlh_z.col[1]*lvlh.s.col[2];
+                eci_offset.s.col[2] = lvlh_x.col[2]*lvlh.s.col[0] + lvlh_y.col[2]*lvlh.s.col[1] + lvlh_z.col[2]*lvlh.s.col[2];
+                eci_offset.v.col[0] = lvlh_x.col[0]*lvlh.v.col[0] + lvlh_y.col[0]*lvlh.v.col[1] + lvlh_z.col[0]*lvlh.v.col[2];
+                eci_offset.v.col[1] = lvlh_x.col[1]*lvlh.v.col[0] + lvlh_y.col[1]*lvlh.v.col[1] + lvlh_z.col[1]*lvlh.v.col[2];
+                eci_offset.v.col[2] = lvlh_x.col[2]*lvlh.v.col[0] + lvlh_y.col[2]*lvlh.v.col[1] + lvlh_z.col[2]*lvlh.v.col[2];
+                eci_offset.a.col[0] = lvlh_x.col[0]*lvlh.a.col[0] + lvlh_y.col[0]*lvlh.a.col[1] + lvlh_z.col[0]*lvlh.a.col[2];
+                eci_offset.a.col[1] = lvlh_x.col[1]*lvlh.a.col[0] + lvlh_y.col[1]*lvlh.a.col[1] + lvlh_z.col[1]*lvlh.a.col[2];
+                eci_offset.a.col[2] = lvlh_x.col[2]*lvlh.a.col[0] + lvlh_y.col[2]*lvlh.a.col[1] + lvlh_z.col[2]*lvlh.a.col[2];
+
+                loc.pos.eci.s = origin.s + eci_offset.s;
+
+                // This is the equation to find the velocity of a point using observations
+                // from a translating and rotating reference frame B
+                // A_v_P = B_v_P/Q + A_v_Q
+                //       + (A_w_B x r_P/Q)    = Tangential velocity
+                // where:
+                // Reference frame A: The intertial reference frame
+                // Reference frame B: The rotating and translating reference frame
+                // Point P: The point that moves with respect to point Q
+                // Point Q: The origin of reference frame B
+                // A_v_P: The velocity of point P in reference frame A. The unknown quantity to solve for.
+                // B_v_P/Q: The velocity of point P in reference frame B as observed from point Q.
+                // A_v_Q: The velocity of point Q in reference frame A.
+                // A_w_B: The angular velocity of reference frame B
+                // r_P/Q: The distance between points P and Q (in reference frame A)
+
+                // B_v_P/Q = eci_offset.v
+                // A_v_Q = origin.v
+                // A_w_B = angular velocity = (s x v) / ||s||^2
+                rvector angular_velocity = rv_smult(1./pow(length_rv(origin.s),2),rv_cross(origin.s,origin.v));
+                // r_P/Q = eci_offset.s
+
+                // A_w_B x r_P/Q
+                rvector w_x_r = rv_cross(angular_velocity, eci_offset.s);
+
+                // Compute B_v_P/Q + A_v_Q + (A_w_B x r_P/Q)
+                loc.pos.eci.v = eci_offset.v + origin.v + w_x_r;
+
+                // This is the equation to find the acceleration of a point using observations
+                // from a rotating and translating reference frame B
+                // A_a_P = A_a_Q + B_a_P/Q
+                //       + A_alpha_B x r_P/Q        = Euler acceleration
+                //       + 2 * A_w_B x B_v_P/Q      = Coriolis acceleration
+                //       + A_w_B x (A_w_B x r_P/Q)  = Centripetal acceleration 
+                // where the new terms are:
+                // A_a_P: The acceleration of point P in reference frame A. The unknown quantity to solve for.
+                // A_a_Q: The acceleration of point Q in reference frame A.
+                // B_a_P/Q: The acceleration of point P in reference frame B as observed from point Q.
+                // A_alpha_B = The angular acceleration of reference frame B as observed by reference frame A.
+                
+                // A_a_Q = origin.a
+                // B_a_P/Q = eci_offset.a
+                // A_alpha_B = angular acceleration = (s x a) / ||s||^2
+                rvector angular_acceleration = rv_smult(1./pow(length_rv(origin.s),2),rv_cross(origin.s,origin.a));
+
+                // Compute
+                // A_a_P = A_a_Q + B_a_P/Q
+                loc.pos.eci.a = origin.a + eci_offset.a
+                //     + A_alpha_B x r_P/Q        = Euler acceleration
+                       + rv_cross(angular_acceleration, eci_offset.s)
+                //     + 2 * A_w_B x B_v_P/Q      = Coriolis acceleration
+                       + 2 * rv_cross(angular_velocity, eci_offset.v)
+                //     + A_w_B x (A_w_B x r_P/Q)  = Centripetal acceleration 
+                       + rv_cross(angular_velocity, w_x_r);
+                
+                loc.pos.eci.pass = std::max(loc.pos.icrf.pass, loc.pos.geoc.pass) + 1;
+                loc.pos.eci.utc = origin.utc;
+                pos_eci(loc);
+                return 0;
+
+
 //            int32_t iretn;
-            rvector lvlh_x;
-            rvector lvlh_y;
-            rvector lvlh_z;
             cartpos lvlh1;
             cartpos geoc1;
 
@@ -3326,17 +3407,25 @@ match.
             // 2 Set the LVLH y axis to the cross product of LVLH z and GEOC v
             lvlh_y = rv_normal(rv_cross(lvlh_z, loc.pos.geoc.v));
 
-            // 3 Rotate around LVLH y axis by -dx/r
+            // 3 Rotate around LVLH y axis by -dx/r, moves GEOC in intrack direction
+            // Assumes that lvlh.s is perifocal (i.e., curves, not rectilinear)
             loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, -lvlh.s.col[0] / r);
 
             // 4 Set the LVLH x axis to the cross product of LVLH y and first LVLH z
+            // Assumes spherical earth, i.e., that lvlh z is nadir
             lvlh_x = rv_normal(rv_cross(lvlh_y, -loc.pos.geoc.s));
 
-            // 5 Rotate forwards around LVLH x axis by dy/r
+            // 5 Rotate around LVLH x axis by dy/r, moves GEOC in crosstrack direction
             loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, lvlh.s.col[1] / r);
 
             // 6 Scale the whole thing by dz/z
             loc.pos.geoc.s *= ((r - lvlh.s.col[2]) / r);
+
+            // --------------------------------------------------------------------------
+            // loc.pos.geoc.s is now at GEOC position of origin offset by lvlh.s
+            // This is for time t0. In order to solve for the velocity and acceleration,
+            // we now have to look at the state vector at time t+1, then solve backwards.
+            // --------------------------------------------------------------------------
 
             // t+1 GEOC and LVLH
 //            double dr = lvlh.v.col[2];
@@ -3373,6 +3462,8 @@ match.
             geoc1.s = geoc1.s * ((r - lvlh1.s.col[2]) / r);
 
             // Calculate the original geoc derivatives to allow geoc0 to become geoc1
+            // Shouldn't the same equation be used to solve for the same terms?
+            // But I think there is more than one unknown per equality here
             loc.pos.geoc.v = geoc1.s - loc.pos.geoc.s;
             loc.pos.geoc.a = geoc1.v - loc.pos.geoc.v;
             loc.pos.geoc.j = geoc1.a - loc.pos.geoc.a;

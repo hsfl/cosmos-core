@@ -1,5 +1,4 @@
 /* 
- * Run this program from the ~/cosmos/realms/propagate folder.
  * The initialutc 60107.01 should set the initial position of the satellites over Hawaii.
  * agent_propagator '{"initialutc":60107.01}'
  * 
@@ -285,7 +284,7 @@ void event_union_utc(vector<eventstruc*> events)
         // New window
         if ((window.utc + window.duration) < (*event)->utc)
         {
-            if (window.type != 0)
+            if (event != events.begin())
             {
                 // Don't push back the first event before starting to collect them
                 windows.push_back(window);
@@ -300,6 +299,11 @@ void event_union_utc(vector<eventstruc*> events)
         {
             window.duration = ((*event)->utc - window.utc) + (*event)->dtime;
             window.elems.push_back((*event)->name);
+        }
+        // Push back if last event
+        if (event == events.end()-1)
+        {
+            windows.push_back(window);
         }
     }
     // Do something with the discovered windows
@@ -566,7 +570,7 @@ int32_t parse_sat(string args)
         nodename = "mother";
         initialutc = initialloc.utc;
         initialutc = initialloc.utc;
-        iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.eci, initialloc.att.icrf);
+        iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.eci, initialloc.att.icrf);
         // iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialtle);
     }
     else
@@ -576,7 +580,7 @@ int32_t parse_sat(string args)
         if (!jargs["lvlh"].is_null() || !jargs["ric"].is_null())
         {
             Physics::Simulator::StateList::iterator sit = sim->GetNode("mother");
-            iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.lvlh, (*sit)->currentinfo.node.loc.pos.geoc, Convert::qatt(), 1);
+            iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.lvlh, (*sit)->currentinfo.node.loc.pos.eci, Convert::qatt(), 1);
         }
         else
         {
