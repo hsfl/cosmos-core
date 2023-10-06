@@ -1230,20 +1230,6 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
         currentloc->att.icrf.v = rv_zero();
         currentloc->att.icrf.a = rv_zero();
         currentloc->att.icrf.utc = currentutc;
-    
-        // currentloc->att.topo.s = q_fmult(q_change_around_x(ctarget.elto*-1.),q_change_around_z(ctarget.azto));
-        // cout << setprecision(9) << currentutc << " | " << DEGOF(ctarget.elto) << "," << DEGOF(ctarget.azto) << "|" << DEGOF(ctarget.elfrom) << "," << DEGOF(ctarget.azfrom) << endl;
-        // currentloc->att.topo.v = rv_zero();
-        // currentloc->att.topo.a = rv_zero();
-        // currentloc->att.topo.utc = currentutc;
-        // currentloc->att.topo.pass++;
-        // Convert::att_topo(currentloc);
-        currentloc->att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
-        currentloc->att.topo.v = rv_zero();
-        currentloc->att.topo.a = rv_zero();
-        currentloc->att.topo.utc = currentutc;
-        currentloc->att.topo.pass++;
-        att_topo(currentloc);
     }
     else
     {
