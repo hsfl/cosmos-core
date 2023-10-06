@@ -78,21 +78,21 @@ namespace Cosmos
          * @param etype Electrical propagator
          * @param oeventtype Orbital Events propagator
          * @param lvlh LVLH coordinates
-         * @param originicrf The origin of the LVLH frame in ICRF
+         * @param origingeoc The origin of the LVLH frame in geocentric frame
          * @param icrf Attitude of node
          * @return int32_t 0 on success, negative on error
          */
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos lvlh, Convert::cartpos originicrf, Convert::qatt icrf, uint8_t propagation_priority)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos lvlh, Convert::cartpos origingeoc, Convert::qatt icrf, uint8_t propagation_priority)
         {
             auto it = AddNode(nodename, propagation_priority);
-            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, originicrf, icrf);
+            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, origingeoc, icrf);
             if (error < 0)
             {
                 return error;
             }
             (*it)->currentinfo.node.loc.pos.lvlh = lvlh;
-            (*it)->lvlhposition->Init(originicrf);
-            error = (*it)->Propagate(currentutc, originicrf);
+            (*it)->lvlhposition->Init(origingeoc);
+            error = (*it)->Propagate(currentutc, origingeoc);
             if (error < 0)
             {
                 return error;
@@ -174,7 +174,7 @@ namespace Cosmos
             {
                 // TODO: let states be able to specify which other state they need to reference
                 // instead of just using cnodes[0]
-                iretn = state->Propagate(currentutc, cnodes[0]->currentinfo.node.loc.pos.icrf);
+                iretn = state->Propagate(currentutc, cnodes[0]->currentinfo.node.loc.pos.geoc);
             }
             return iretn;
         }

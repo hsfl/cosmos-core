@@ -712,7 +712,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     return 0;
 }
 
-int32_t State::Propagate(double nextutc, cartpos currenteci)
+int32_t State::Propagate(double nextutc, cartpos currentgeoc)
 {
     int32_t count = 0;
     if (nextutc == 0.)
@@ -775,7 +775,7 @@ int32_t State::Propagate(double nextutc, cartpos currenteci)
             static_cast<TlePositionPropagator *>(tleposition)->Propagate(nextutc);
             break;
         case Propagator::Type::PositionLvlh:
-            static_cast<LvlhPositionPropagator *>(lvlhposition)->Propagate(currenteci);
+            static_cast<LvlhPositionPropagator *>(lvlhposition)->Propagate(currentgeoc);
             break;
         default:
             break;
@@ -1636,14 +1636,12 @@ int32_t LvlhPositionPropagator::Init(cartpos basepos)
 {
     // Set Base position
     currentloc->pos.geoc = basepos;
-    currentloc->pos.geoc.pass++;
+    currentloc->pos.geoc.pass = currentloc->pos.eci.pass + 1;
     pos_geoc(currentloc);
     PosAccel(currentloc, currentphys);
 
     // Turn this into LVLH offset position
     pos_origin2lvlh(basepos, currentloc->pos.lvlh, currentloc);
-    currentloc->pos.geoc.pass++;
-    pos_geoc(currentloc);
     PosAccel(currentloc, currentphys);
 
     return 0;
@@ -1660,11 +1658,6 @@ int32_t LvlhPositionPropagator::Reset(cartpos basepos, cartpos offset)
 
 int32_t LvlhPositionPropagator::Propagate(cartpos basepos)
 {
-//    if (nextutc == 0.)
-//    {
-//        nextutc = currentutc + dtj;
-//    }
-
     while ((basepos.utc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;

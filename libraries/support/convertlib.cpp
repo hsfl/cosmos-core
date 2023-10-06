@@ -3304,7 +3304,7 @@ match.
          */
             int32_t pos_origin2lvlh(cartpos origin, cartpos lvlh, locstruc *loc)
             {
-            return pos_origin2lvlh(origin, lvlh, *loc);
+                return pos_origin2lvlh(origin, lvlh, *loc);
             }
 
             int32_t pos_origin2lvlh(cartpos origin, cartpos lvlh, locstruc& loc)
@@ -3376,7 +3376,7 @@ match.
             loc.pos.geoc.v = geoc1.s - loc.pos.geoc.s;
             loc.pos.geoc.a = geoc1.v - loc.pos.geoc.v;
             loc.pos.geoc.j = geoc1.a - loc.pos.geoc.a;
-            ++loc.pos.geoc.pass;
+            loc.pos.geoc.pass = loc.pos.eci.pass + 1;
             pos_geoc(loc);
 
             return 0;

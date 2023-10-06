@@ -445,6 +445,10 @@ int32_t parse_sat(string args)
     uint16_t argcount = 0;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
+    if (estring.size())
+    {
+        return COSMOS_GENERAL_ERROR_INPUT;
+    }
     initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     if (!jargs["maxaccel"].is_null())
     {
@@ -474,7 +478,7 @@ int32_t parse_sat(string args)
         Convert::locstruc basepos = initialloc;
         rvector ric = { values["r"].number_value(), values["i"].number_value(), values["c"].number_value() };
         ric2eci((*sit)->currentinfo.node.loc.pos.eci, ric, initialloc.pos.eci);
-        initialloc.pos.eci.pass++;
+        initialloc.pos.eci.pass+=2;
         pos_eci(initialloc);
         // Store RIC as LVLH as well
         Convert::cartpos geoc_offset;
@@ -541,16 +545,20 @@ int32_t parse_sat(string args)
         ++argcount;
         json11::Json::object values = jargs["tle"].object_items();
         vector<Convert::tlestruc>lines;
-        string fname = get_realmdir(realmname, true) + "/" + values["filename"].string_value();
-        load_lines(fname, lines);
-        if (initialutc == 0.)
+        string realmdir = get_realmdir(realmname, true);
+        string fname = realmdir + "/" + values["filename"].string_value();
+        if (data_isfile(fname))
         {
-            initialutc = lines[0].utc;
+            load_lines(fname, lines);
+            if (initialutc == 0.)
+            {
+                initialutc = lines[0].utc;
+            }
+            lines2eci(initialutc, lines, initialloc.pos.eci);
+            initialloc.pos.eci.pass++;
+            pos_eci(initialloc);
+            initialtle = lines[0];
         }
-        lines2eci(initialutc, lines, initialloc.pos.eci);
-        initialloc.pos.eci.pass++;
-        pos_eci(initialloc);
-        initialtle = lines[0];
     }
     initialloc.att.icrf.s = q_eye();
     if (!sim->cnodes.size())
@@ -568,11 +576,11 @@ int32_t parse_sat(string args)
         if (!jargs["lvlh"].is_null() || !jargs["ric"].is_null())
         {
             Physics::Simulator::StateList::iterator sit = sim->GetNode("mother");
-            iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.lvlh, (*sit)->currentinfo.node.loc.pos.icrf);
+            iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.lvlh, (*sit)->currentinfo.node.loc.pos.geoc, Convert::qatt(), 1);
         }
         else
         {
-            iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.lvlh);
+            iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, Physics::Propagator::OrbitalEvent, initialloc.pos.eci);
         }
     }
 //    sits.push_back(sim->GetNode(nodename));
