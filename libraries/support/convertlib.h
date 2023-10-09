@@ -104,8 +104,8 @@ namespace Cosmos {
         int32_t pos_selc2sci(locstruc *loc);
         int32_t pos_selg2selc(locstruc *loc);
         int32_t pos_selc2eci(locstruc *loc);
-        int32_t pos_lvlh2origin(cartpos lvlh, locstruc *loc);
-        int32_t pos_origin2lvlh(cartpos origin, cartpos lvlh, locstruc *loc);
+        int32_t pos_lvlh2origin(locstruc *loc);
+        int32_t pos_origin2lvlh(locstruc *loc, cartpos lvlh);
 
         int32_t loc_clear(locstruc &loc);
         int32_t pos_extra(double utc, locstruc &loc);
@@ -137,8 +137,8 @@ namespace Cosmos {
         int32_t pos_selc2sci(locstruc &loc);
         int32_t pos_selg2selc(locstruc &loc);
         int32_t pos_selc2eci(locstruc &loc);
-        int32_t pos_lvlh2origin(cartpos lvlh, locstruc &loc);
-        int32_t pos_origin2lvlh(cartpos origin, cartpos lvlh, locstruc &loc);
+        int32_t pos_lvlh2origin(locstruc &loc);
+        int32_t pos_origin2lvlh(locstruc &loc, cartpos lvlh);
 
         int32_t eci2kep(cartpos &eci, kepstruc &kep);
         int32_t kep2eci(kepstruc &kep,cartpos &eci);
@@ -146,6 +146,8 @@ namespace Cosmos {
         int32_t peri2cart(cartpos cart, Quaternion &qcart);
         int32_t ric2eci(cartpos orig, rvector ric, cartpos& result);
         int32_t ric2eci(cartpos orig, Vector ric, cartpos& result);
+        int32_t ric2lvlh(cartpos ric, cartpos& lvlh);
+        int32_t lvlh2ric(cartpos lvlh, cartpos& ric);
 
         int32_t att_extra(locstruc *loc);
         int32_t att_icrf(locstruc *loc);

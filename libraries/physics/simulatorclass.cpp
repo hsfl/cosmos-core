@@ -40,10 +40,10 @@ namespace Cosmos
             return cnodes.insert(it, newstate);
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::tlestruc tle, Convert::qatt icrf, uint8_t propagation_priority)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::tlestruc tle, Convert::qatt icrf, uint8_t propagation_priority)
         {
             auto it = AddNode(nodename, propagation_priority);
-            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, tle, currentutc, icrf);
+            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, tle, currentutc, icrf);
             if (error < 0)
             {
                 return error;
@@ -51,10 +51,10 @@ namespace Cosmos
             return cnodes.size();
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos eci, Convert::qatt icrf, uint8_t propagation_priority)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf, uint8_t propagation_priority)
         {
             auto it = AddNode(nodename, propagation_priority);
-            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, eci, icrf);
+            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, eci, icrf);
             if (error < 0)
             {
                 return error;
@@ -82,17 +82,15 @@ namespace Cosmos
          * @param icrf Attitude of node
          * @return int32_t 0 on success, negative on error
          */
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, Convert::cartpos lvlh, Convert::cartpos originicrf, Convert::qatt icrf, uint8_t propagation_priority)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos lvlh, Convert::cartpos origineci, Convert::qatt icrf, uint8_t propagation_priority)
         {
             auto it = AddNode(nodename, propagation_priority);
-            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, originicrf, icrf);
+            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, origineci, lvlh, icrf);
             if (error < 0)
             {
                 return error;
             }
-            (*it)->currentinfo.node.loc.pos.lvlh = lvlh;
-            (*it)->lvlhposition->Init(originicrf);
-            error = (*it)->Propagate(currentutc, originicrf);
+            error = (*it)->Propagate(currentutc);
             if (error < 0)
             {
                 return error;
@@ -100,7 +98,7 @@ namespace Cosmos
             return cnodes.size();
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, double utc, double latitude, double longitude, double altitude, double angle, double timeshift)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, double utc, double latitude, double longitude, double altitude, double angle, double timeshift)
         {
             auto it = AddNode(nodename, 0);
             Convert::locstruc loc;
@@ -131,7 +129,7 @@ namespace Cosmos
                 loc.att.lvlh.pass++;
                 Convert::att_lvlh(loc);
             }
-            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, oeventtype, loc.pos.eci, loc.att.icrf);
+            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, loc.pos.eci, loc.att.icrf);
             if (error < 0)
             {
                 return error;
@@ -172,9 +170,7 @@ namespace Cosmos
             }
             for (auto &state : cnodes)
             {
-                // TODO: let states be able to specify which other state they need to reference
-                // instead of just using cnodes[0]
-                iretn = state->Propagate(currentutc, cnodes[0]->currentinfo.node.loc.pos.icrf);
+                iretn = state->Propagate(currentutc);
             }
             return iretn;
         }

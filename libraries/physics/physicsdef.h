@@ -125,6 +125,17 @@ namespace Cosmos {
             vector<gjstruc> step;
         };
 
+        //! Sensor coverage values
+
+        struct coverage
+        {
+            float area;
+            float resolution;
+            float specmin;
+            float specmax;
+            float azimuth;
+        };
+
         //! Finite Triangle Element
         //! Holds minimum information necessary to use smallest possible triangular element
         //! of a larger piece.

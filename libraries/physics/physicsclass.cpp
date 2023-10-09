@@ -370,7 +370,7 @@ int32_t Structure::add_vertex(Vector point)
 }
 
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, tlestruc tle, double utc, qatt icrf)
+int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf)
 {
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
@@ -441,7 +441,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
         AttAccel(currentinfo.node.loc, currentinfo.node.phys);
         break;
     case Propagator::Type::AttitudeLVLH:
-        lvattitude = new LVLHAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+        lvattitude = new LvlhAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
         currentinfo.node.loc.att.lvlh.s = q_eye();
         currentinfo.node.loc.att.lvlh.v = rv_zero();
         currentinfo.node.loc.att.lvlh.a = rv_zero();
@@ -463,7 +463,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     case Propagator::Type::AttitudeTarget:
     {
         targetattitude = new TargetAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target);
-        lvattitude = new LVLHAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+        lvattitude = new LvlhAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
         currentinfo.node.loc.att.lvlh.s = q_eye();
         currentinfo.node.loc.att.lvlh.v = rv_zero();
         currentinfo.node.loc.att.lvlh.a = rv_zero();
@@ -505,17 +505,6 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     }
     this->etype = etype;
 
-    switch (oeventtype)
-    {
-    case Propagator::Type::OrbitalEvent:
-        orbitalevent = new OrbitalEventPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target, currentinfo.event);
-        break;
-    default:
-        orbitalevent = nullptr;
-        break;
-    }
-    this->oeventtype = oeventtype;
-
     if (ptype == Propagator::PositionGeo)
     {
         pos_geod(currentinfo.node.loc);
@@ -526,13 +515,16 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
         PosAccel(currentinfo.node.loc, currentinfo.node.phys);
     }
 
+    orbitalevent = new OrbitalEventGenerator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target, currentinfo.event);
+    metric = new MetricGenerator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target, currentinfo.devspec.cam);
+
     initialloc = currentinfo.node.loc;
     initialphys = currentinfo.node.phys;
     currentinfo.node.utc = currentinfo.node.loc.utc;
     return 0;
 }
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype, cartpos eci, qatt icrf)
+int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf)
 {
     int32_t iretn = 0;
     pos_clear(currentinfo.node.loc);
@@ -567,10 +559,53 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
         }
     }
 
-    return Init(name, idt, stype, ptype, atype, ttype, etype, oeventtype);
+    return Init(name, idt, stype, ptype, atype, ttype, etype);
 }
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Propagator::Type oeventtype)
+int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, cartpos lvlh, qatt icrf)
+{
+    int32_t iretn = 0;
+    pos_clear(currentinfo.node.loc);
+    currentinfo.node.loc.pos.eci = eci;
+    currentinfo.node.loc.pos.eci.pass++;
+    iretn = pos_eci(currentinfo.node.loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    if (length_q(icrf.s) <= __DBL_MIN__)
+    {
+        currentinfo.node.loc.att.lvlh.pass++;
+        currentinfo.node.loc.att.lvlh.s = q_eye();
+        currentinfo.node.loc.att.lvlh.v = rv_zero();
+        currentinfo.node.loc.att.lvlh.a = rv_zero();
+        currentinfo.node.loc.att.lvlh.utc = eci.utc;
+        iretn = att_lvlh(currentinfo.node.loc);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+    else
+    {
+        currentinfo.node.loc.att.icrf = icrf;
+        currentinfo.node.loc.att.icrf.pass++;
+        iretn = att_icrf(currentinfo.node.loc);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+    iretn = pos_origin2lvlh(currentinfo.node.loc, lvlh);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    return Init(name, idt, stype, ptype, atype, ttype, etype);
+}
+
+int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
 {
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
@@ -606,6 +641,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
         break;
     case Propagator::Type::PositionLvlh:
         lvlhposition = new LvlhPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+        lvlhposition->Init();
         break;
     default:
         inposition = new InertialPositionPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
@@ -633,16 +669,16 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
         itattitude->Init();
         break;
     case Propagator::Type::AttitudeLVLH:
-        lvattitude = new LVLHAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+        lvattitude = new LvlhAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
         lvattitude->Init();
         break;
     case Propagator::Type::AttitudeTarget:
     {
         targetattitude = new TargetAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target);
-        lvattitude = new LVLHAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
+        lvattitude = new LvlhAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
         lvattitude->Init();
     }
-        break;
+    break;
     default:
         inattitude = new InertialAttitudePropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt);
         inattitude->Init();
@@ -676,17 +712,6 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     }
     this->etype = etype;
 
-    switch (oeventtype)
-    {
-    case Propagator::Type::OrbitalEvent:
-        orbitalevent = new OrbitalEventPropagator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target, currentinfo.event);
-        break;
-    default:
-        orbitalevent = nullptr;
-        break;
-    }
-    this->oeventtype = oeventtype;
-
     if (ptype == Propagator::PositionGeo)
     {
         pos_geod(currentinfo.node.loc);
@@ -706,13 +731,16 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
         AttAccel(currentinfo.node.loc, currentinfo.node.phys);
     }
 
+    orbitalevent = new OrbitalEventGenerator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target, currentinfo.event);
+    metric = new MetricGenerator(&currentinfo.node.loc, &currentinfo.node.phys, dt, currentinfo.target, currentinfo.devspec.cam);
+
     initialloc = currentinfo.node.loc;
     initialphys = currentinfo.node.phys;
     currentinfo.node.utc = currentinfo.node.loc.utc;
     return 0;
 }
 
-int32_t State::Propagate(double nextutc, cartpos currenteci)
+int32_t State::Propagate(double nextutc)
 {
     int32_t count = 0;
     if (nextutc == 0.)
@@ -729,32 +757,6 @@ int32_t State::Propagate(double nextutc, cartpos currenteci)
 
         // Electrical
         static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
-
-        // Attitude
-        switch (atype)
-        {
-        case Propagator::Type::AttitudeIterative:
-            static_cast<IterativeAttitudePropagator *>(itattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeInertial:
-            static_cast<InertialAttitudePropagator *>(inattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeLVLH:
-            static_cast<LVLHAttitudePropagator *>(lvattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeGeo:
-            static_cast<GeoAttitudePropagator *>(geoattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeSolar:
-            static_cast<SolarAttitudePropagator *>(solarattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeTarget:
-            // Update again at end after targets update
-            static_cast<LVLHAttitudePropagator *>(lvattitude)->Propagate(nextutc);
-            break;
-        default:
-            break;
-        }
 
         // Position
         switch (ptype)
@@ -775,7 +777,7 @@ int32_t State::Propagate(double nextutc, cartpos currenteci)
             static_cast<TlePositionPropagator *>(tleposition)->Propagate(nextutc);
             break;
         case Propagator::Type::PositionLvlh:
-            static_cast<LvlhPositionPropagator *>(lvlhposition)->Propagate(currenteci);
+            static_cast<LvlhPositionPropagator *>(lvlhposition)->Propagate(nextutc);
             break;
         default:
             break;
@@ -800,10 +802,42 @@ int32_t State::Propagate(double nextutc, cartpos currenteci)
             AttAccel(currentinfo.node.loc, currentinfo.node.phys);
         }
 
+        // Attitude
+        switch (atype)
+        {
+        case Propagator::Type::AttitudeIterative:
+            static_cast<IterativeAttitudePropagator *>(itattitude)->Propagate(nextutc);
+            break;
+        case Propagator::Type::AttitudeInertial:
+            static_cast<InertialAttitudePropagator *>(inattitude)->Propagate(nextutc);
+            break;
+        case Propagator::Type::AttitudeLVLH:
+            static_cast<LvlhAttitudePropagator *>(lvattitude)->Propagate(nextutc);
+            break;
+        case Propagator::Type::AttitudeGeo:
+            static_cast<GeoAttitudePropagator *>(geoattitude)->Propagate(nextutc);
+            break;
+        case Propagator::Type::AttitudeSolar:
+            static_cast<SolarAttitudePropagator *>(solarattitude)->Propagate(nextutc);
+            break;
+        case Propagator::Type::AttitudeTarget:
+            // Update again at end after targets update
+            static_cast<LvlhAttitudePropagator *>(lvattitude)->Propagate(nextutc);
+            break;
+        default:
+            break;
+        }
+
         // Orbital event propagator
         if (orbitalevent != nullptr)
         {
             orbitalevent->Propagate(nextutc);
+        }
+
+        // Metric propagator
+        if (metric != nullptr)
+        {
+            metric->Propagate(nextutc);
         }
 
         // Update time
@@ -1109,7 +1143,7 @@ int32_t IterativeAttitudePropagator::Propagate(double nextutc)
     return 0;
 }
 
-int32_t LVLHAttitudePropagator::Init()
+int32_t LvlhAttitudePropagator::Init()
 {
     currentloc->att.lvlh.utc = currentutc;
     currentloc->att.lvlh.s = q_eye();
@@ -1123,7 +1157,7 @@ int32_t LVLHAttitudePropagator::Init()
     return  0;
 }
 
-int32_t LVLHAttitudePropagator::Reset(double nextutc)
+int32_t LvlhAttitudePropagator::Reset(double nextutc)
 {
     currentloc->att = initialloc.att;
     currentutc = currentloc->att.utc;
@@ -1132,7 +1166,7 @@ int32_t LVLHAttitudePropagator::Reset(double nextutc)
     return  0;
 }
 
-int32_t LVLHAttitudePropagator::Propagate(double nextutc)
+int32_t LvlhAttitudePropagator::Propagate(double nextutc)
 {
     if (nextutc == 0.)
     {
@@ -1145,9 +1179,8 @@ int32_t LVLHAttitudePropagator::Propagate(double nextutc)
     currentloc->att.lvlh.v = rv_zero();
     currentloc->att.lvlh.a = rv_zero();
     ++currentloc->att.lvlh.pass;
-    att_lvlh2icrf(currentloc);
+    att_lvlh(currentloc);
     AttAccel(currentloc, currentphys);
-    att_icrf(currentloc);
 
     return 0;
 }
@@ -1230,7 +1263,7 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
         currentloc->att.icrf.v = rv_zero();
         currentloc->att.icrf.a = rv_zero();
         currentloc->att.icrf.utc = currentutc;
-    
+
         // currentloc->att.topo.s = q_fmult(q_change_around_x(ctarget.elto*-1.),q_change_around_z(ctarget.azto));
         // cout << setprecision(9) << currentutc << " | " << DEGOF(ctarget.elto) << "," << DEGOF(ctarget.azto) << "|" << DEGOF(ctarget.elfrom) << "," << DEGOF(ctarget.azfrom) << endl;
         // currentloc->att.topo.v = rv_zero();
@@ -1439,14 +1472,14 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
     return 0;
 }
 
-int32_t OrbitalEventPropagator::Init()
+int32_t OrbitalEventGenerator::Init()
 {
     umbra_start = 0.;
     gs_AoS.clear();
     return 0;
 }
 
-int32_t OrbitalEventPropagator::Reset()
+int32_t OrbitalEventGenerator::Reset()
 {
     currentutc = currentloc->utc;
     umbra_start = 0.;
@@ -1454,7 +1487,7 @@ int32_t OrbitalEventPropagator::Reset()
     return 0;
 }
 
-int32_t OrbitalEventPropagator::Propagate(double nextutc)
+int32_t OrbitalEventGenerator::Propagate(double nextutc)
 {
     if (nextutc == 0.)
     {
@@ -1471,7 +1504,7 @@ int32_t OrbitalEventPropagator::Propagate(double nextutc)
     return 0;
 }
 
-int32_t OrbitalEventPropagator::End()
+int32_t OrbitalEventGenerator::End()
 {
     // Force event end if active
     check_umbra_event(true);
@@ -1479,7 +1512,89 @@ int32_t OrbitalEventPropagator::End()
     return 0;
 }
 
-void OrbitalEventPropagator::check_umbra_event(bool force_end)
+int32_t MetricGenerator::Init()
+{
+    return 0;
+}
+
+int32_t MetricGenerator::AddDetector(float fov, float ifov, float specmin, float specmax)
+{
+    camstruc det;
+    det.fov = fov;
+    det.ifov = ifov;
+    det.specmin = specmin;
+    det.specmax = specmax;
+    detectors.push_back(det);
+    return detectors.size();
+}
+
+int32_t MetricGenerator::Propagate(double nextutc)
+{
+    if (coverage.size() != targets.size())
+    {
+        coverage.resize(targets.size());
+        for (uint16_t i=0; i<targets.size(); ++i)
+        {
+            coverage[i].resize(detectors.size());
+        }
+    }
+
+    for (uint16_t id=0; id<detectors.size(); ++id)
+    {
+        double nadirradius = currentloc->pos.geod.s.h * detectors[id].fov / 2.;
+        cartpos cpointing;
+        cpointing.s = drotate(currentloc->att.geoc.s, rv_unitz(-length_rv(currentloc->pos.geoc.s)));
+        rvector test = drotate(currentloc->att.lvlh.s, currentloc->pos.geoc.s);
+        geoidpos gpointing;
+        geoc2geod(cpointing, gpointing);
+        for (uint16_t it=0; it<targets.size(); ++it)
+        {
+            coverage[it][id].area = 0.;
+            if (targets[it].elfrom > 0.)
+            {
+                double dr = nadirradius / sin(targets[it].elfrom);
+                double dr2 = dr * dr;
+                double sep;
+                geod2sep(gpointing.s, targets[it].loc.pos.geod.s, sep);
+                double sep2 = sep * sep;
+                double tr = sqrt(targets[it].area / DPI);
+                double tr2 = tr * tr;
+                if (sep < dr + tr)
+                {
+                    coverage[it][id].azimuth = targets[it].azfrom;
+                    coverage[it][id].resolution = targets[it].range * detectors[id].ifov;
+                    coverage[it][id].specmin = detectors[id].specmin;
+                    coverage[it][id].specmax = detectors[id].specmax;
+                    if (sep < (dr<tr?tr:dr))
+                    {
+                        coverage[it][id].area = dr2 * acos((sep2 + dr2 - tr2) / (2 * sep * dr)) + tr2 * acos((sep2 + tr2 - dr2) / (2 * sep * tr));
+                        coverage[it][id].area -= sqrt((-sep + tr + dr) * (sep + tr - dr) * (sep - tr + dr) * (sep + tr + dr)) / 2.;
+                        coverage[it][id].area *= sin(targets[it].elfrom);
+                    }
+                    else
+                    {
+                        coverage[it][id].area = dr < tr ? DPI * dr2 * sin(targets[it].elfrom) : targets[it].area;
+                    }
+
+                    printf("\t%.3f", coverage[it][id].area);
+                }
+            }
+        }
+    }
+    if (nextutc == 0.)
+    {
+        nextutc = currentutc + dtj;
+    }
+    currentutc = nextutc;
+    return 0;
+}
+
+int32_t MetricGenerator::Reset(double nextutc)
+{
+    return 0;
+}
+
+void OrbitalEventGenerator::check_umbra_event(bool force_end)
 {
     // Umbra start
     if (umbra_start == 0. && !currentloc->pos.sunradiance)
@@ -1499,7 +1614,7 @@ void OrbitalEventPropagator::check_umbra_event(bool force_end)
     }
 }
 
-void OrbitalEventPropagator::check_target_events(bool force_end)
+void OrbitalEventGenerator::check_target_events(bool force_end)
 {
     for (auto target = targets.begin(); target != targets.end(); target++)
     {
@@ -1514,7 +1629,7 @@ void OrbitalEventPropagator::check_target_events(bool force_end)
     }
 }
 
-void OrbitalEventPropagator::check_gs_aos_event(const targetstruc& gs, bool force_end)
+void OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force_end)
 {
     // Find target sight acquisition/loss
     // Groundstation is in line-of-sight if elto (elevation from target to sat) is positive
@@ -1577,7 +1692,7 @@ void OrbitalEventPropagator::check_gs_aos_event(const targetstruc& gs, bool forc
     }
 }
 
-void OrbitalEventPropagator::check_target_aos_event(const targetstruc& target, bool force_end)
+void OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bool force_end)
 {
     // Find target sight acquisition/loss
     // Target is in line-of-sight if elto (elevation from target to sat) is positive
@@ -1646,50 +1761,42 @@ int32_t InertialPositionPropagator::Propagate(double nextutc)
     return 0;
 }
 
-int32_t LvlhPositionPropagator::Init(cartpos basepos)
+int32_t LvlhPositionPropagator::Init(cartpos lvlh)
 {
-    // Set Base position
-    currentloc->pos.geoc = basepos;
-    currentloc->pos.geoc.pass++;
-    pos_geoc(currentloc);
-    PosAccel(currentloc, currentphys);
-
-    // Turn this into LVLH offset position
-    pos_origin2lvlh(basepos, currentloc->pos.lvlh, currentloc);
-    currentloc->pos.geoc.pass++;
-    pos_geoc(currentloc);
+    pos_origin2lvlh(currentloc, lvlh);
     PosAccel(currentloc, currentphys);
 
     return 0;
 }
 
-int32_t LvlhPositionPropagator::Reset(cartpos basepos, cartpos offset)
+int32_t LvlhPositionPropagator::Reset(double nextutc)
 {
     currentloc->pos = initialloc.pos;
     currentutc = currentloc->pos.utc;
-    Propagate(basepos);
+    Propagate(nextutc);
 
     return 0;
 }
 
-int32_t LvlhPositionPropagator::Propagate(cartpos basepos)
+int32_t LvlhPositionPropagator::Propagate(double nextutc)
 {
-//    if (nextutc == 0.)
-//    {
-//        nextutc = currentutc + dtj;
-//    }
+    if (nextutc == 0.)
+    {
+        nextutc = currentutc + dtj;
+    }
 
-    while ((basepos.utc - currentutc) > dtj / 2.)
+    while ((nextutc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;
-        basepos.a += dt * basepos.j;
-        basepos.v += dt * (basepos.a + (dt / 2.) * basepos.j);
-        basepos.s += dt * (basepos.v + dt * ((1/2.) * basepos.a + dt * (1.6) * basepos.j));
+        currentloc->pos.lvlh.utc = currentutc;
+        cartpos lvlh = currentloc->pos.lvlh;
+        lvlh.a += dt * lvlh.j;
+        lvlh.v += dt * (lvlh.a + (dt / 2.) * lvlh.j);
+        lvlh.s += dt * (lvlh.v + dt * ((1/2.) * lvlh.a + dt * (1.6) * lvlh.j));
+        lvlh.utc += dtj;
+        pos_lvlh2origin(currentloc);
+        pos_origin2lvlh(currentloc, lvlh);
 
-        currentloc->pos.lvlh.a += dt * currentloc->pos.lvlh.j;
-        currentloc->pos.lvlh.v += dt * (currentloc->pos.lvlh.a + (dt / 2.) * currentloc->pos.lvlh.j);
-        currentloc->pos.lvlh.s += dt * (currentloc->pos.lvlh.v + dt * ((1/2.) * currentloc->pos.lvlh.a + dt * (1.6) * currentloc->pos.lvlh.j));
-        pos_origin2lvlh(basepos, currentloc->pos.lvlh, currentloc);
         PosAccel(currentloc, currentphys);
     }
 
@@ -1755,11 +1862,11 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
         currentloc->pos.eci.v += dt * (currentloc->pos.eci.a + (dt / 2.) * currentloc->pos.eci.j);
         currentloc->pos.eci.s += dt * (currentloc->pos.eci.v + dt * ((1/2.) * currentloc->pos.eci.a + dt * (1.6) * currentloc->pos.eci.j));
 
-//        rvector ds = rv_smult(.5 * dt * dt, currentloc->pos.eci.a);
-//        ds = rv_add(ds, rv_smult(dt, currentloc->pos.eci.v));
-//        currentloc->pos.eci.s = rv_add(currentloc->pos.eci.s, ds);
-//        currentloc->pos.eci.v = rv_add(currentloc->pos.eci.v, rv_smult(dt, currentloc->pos.eci.a));
-//        currentloc->pos.eci.utc = currentutc;
+        //        rvector ds = rv_smult(.5 * dt * dt, currentloc->pos.eci.a);
+        //        ds = rv_add(ds, rv_smult(dt, currentloc->pos.eci.v));
+        //        currentloc->pos.eci.s = rv_add(currentloc->pos.eci.s, ds);
+        //        currentloc->pos.eci.v = rv_add(currentloc->pos.eci.v, rv_smult(dt, currentloc->pos.eci.a));
+        //        currentloc->pos.eci.utc = currentutc;
         currentloc->pos.eci.pass++;
         PosAccel(currentloc, currentphys);
         pos_eci(currentloc);
@@ -2975,15 +3082,15 @@ double Nplgndr(uint32_t l, uint32_t m, double x)
         //		{
         pmm=1.0;
         if (mm > 0)
+        {
+            omx2=((1.0-x)*(1.0+x));
+            fact=1.0;
+            for (i=1;i<=mm;i++)
             {
-                omx2=((1.0-x)*(1.0+x));
-                fact=1.0;
-                for (i=1;i<=mm;i++)
-                {
-                    pmm *= fact*omx2/(fact+1.);
-                    fact += 2.0;
-                }
+                pmm *= fact*omx2/(fact+1.);
+                fact += 2.0;
             }
+        }
         pmm = sqrt((2.*m+1.)*pmm);
         if (mm%2 == 1)
             pmm = - pmm;

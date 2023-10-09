@@ -80,6 +80,7 @@ struct prop_types
     Physics::Propagator::Type thermal_prop = Physics::Propagator::None;
     Physics::Propagator::Type electrical_prop = Physics::Propagator::None;
     Physics::Propagator::Type oevent_prop = Physics::Propagator::None;
+    Physics::Propagator::Type detector_prop = Physics::Propagator::None;
 };
 
 
@@ -236,7 +237,7 @@ int32_t init_propagator(prop_unit& prop, const string& args, string& response)
     {
         node.pt.position_prop = Physics::Propagator::PositionGaussJackson;
         node.pt.attitude_prop = Physics::Propagator::AttitudeLVLH;
-        iretn = prop.sim.AddNode(node.name, node.pt.structure, node.pt.position_prop, node.pt.attitude_prop, node.pt.thermal_prop, node.pt.electrical_prop, node.pt.oevent_prop, node.initialloc.pos.eci, node.initialloc.att.icrf);
+        iretn = prop.sim.AddNode(node.name, node.pt.structure, node.pt.position_prop, node.pt.attitude_prop, node.pt.thermal_prop, node.pt.electrical_prop, node.initialloc.pos.eci, node.initialloc.att.icrf);
         if (iretn < 0)
         {
             response = "Error adding node " + node.name + ": " + cosmos_error_string(iretn);

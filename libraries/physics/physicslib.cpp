@@ -2055,6 +2055,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             cinfo->node.phys.utc = loc.utc;
 
             cinfo->timestamp = currentmjd();
+            cinfo->node.loc = sloc[0];
         }
 
         void propagate(cosmosstruc *cinfo, double utc)
