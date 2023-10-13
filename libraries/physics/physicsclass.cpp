@@ -1262,12 +1262,10 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
         // Desired Y is cross product of Desired Z and velocity vector
         Vector eci_y = eci_z.cross(Vector(currentloc->pos.eci.v));
 
-        currentloc->att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
-        currentloc->att.topo.v = rv_zero();
-        currentloc->att.topo.a = rv_zero();
-        currentloc->att.topo.utc = currentutc;
-        currentloc->att.topo.pass++;
-        att_topo(currentloc);
+        currentloc->att.icrf.s = irotate_for(eci_y, eci_z, unityV(), unitzV()).to_q();
+        currentloc->att.icrf.v = rv_zero();
+        currentloc->att.icrf.a = rv_zero();
+        currentloc->att.icrf.utc = currentutc;
     }
     else
     {
@@ -1788,6 +1786,11 @@ int32_t LvlhPositionPropagator::Propagate(double nextutc)
         pos_origin2lvlh(currentloc, lvlh);
 
         PosAccel(currentloc, currentphys);
+
+        // Propagate LVLH to t+1
+        // currentloc->pos.lvlh.a += dt * currentloc->pos.lvlh.j;
+        // currentloc->pos.lvlh.v += dt * (currentloc->pos.lvlh.a + (dt / 2.) * currentloc->pos.lvlh.j);
+        // currentloc->pos.lvlh.s += dt * (currentloc->pos.lvlh.v + dt * ((1/2.) * currentloc->pos.lvlh.a + dt * (1.6) * currentloc->pos.lvlh.j));
     }
 
     return 0;

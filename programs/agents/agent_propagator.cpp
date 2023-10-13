@@ -288,7 +288,7 @@ void event_union_utc(vector<eventstruc*> events)
         // New window
         if ((window.utc + window.duration) < (*event)->utc)
         {
-            if (window.type != 0)
+            if (event != events.begin())
             {
                 // Don't push back the first event before starting to collect them
                 windows.push_back(window);
@@ -303,6 +303,11 @@ void event_union_utc(vector<eventstruc*> events)
         {
             window.duration = ((*event)->utc - window.utc) + (*event)->dtime;
             window.elems.push_back((*event)->name);
+        }
+        // Push back if last event
+        if (event == events.end()-1)
+        {
+            windows.push_back(window);
         }
     }
     // Do something with the discovered windows
@@ -493,7 +498,7 @@ int32_t parse_sat(string args)
         Convert::locstruc basepos = initialloc;
         rvector ric = { values["r"].number_value(), values["i"].number_value(), values["c"].number_value() };
         ric2eci((*sit)->currentinfo.node.loc.pos.eci, ric, initialloc.pos.eci);
-        initialloc.pos.eci.pass++;
+        initialloc.pos.eci.pass+=2;
         pos_eci(initialloc);
         // Store RIC as LVLH as well
         Convert::cartpos geoc_offset;

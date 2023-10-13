@@ -78,7 +78,7 @@ namespace Cosmos
          * @param etype Electrical propagator
          * @param oeventtype Orbital Events propagator
          * @param lvlh LVLH coordinates
-         * @param originicrf The origin of the LVLH frame in ICRF
+         * @param origineci The origin of the LVLH frame in geocentric frame
          * @param icrf Attitude of node
          * @return int32_t 0 on success, negative on error
          */
