@@ -3738,7 +3738,7 @@ double geod2sep(gvector src, gvector dst)
 {
     double dphi = dst.lon - src.lon;
     double dlambda = dst.lat - src.lat;
-    double a = sin(dphi / 2.) * sin(dphi / 2.) + cos(src.lat) * cos(dst.lat) * sin(dlambda / 2.);
+    double a = sin(dphi / 2.) * sin(dphi / 2.) + cos(src.lat) * cos(dst.lat) * sin(dlambda / 2.) * sin(dlambda / 2.);
     double c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return REARTHM * c;
 }

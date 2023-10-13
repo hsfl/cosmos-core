@@ -822,7 +822,7 @@ int32_t State::Propagate(double nextutc)
             break;
         case Propagator::Type::AttitudeTarget:
             // Update again at end after targets update
-            static_cast<LvlhAttitudePropagator *>(lvattitude)->Propagate(nextutc);
+            static_cast<TargetAttitudePropagator *>(targetattitude)->Propagate(nextutc);
             break;
         default:
             break;
@@ -1254,23 +1254,14 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
     currentutc = nextutc;
     if (range < range_limit)
     {
+        rvector targ = ctarget.loc.pos.geoc.s - currentloc->pos.geoc.s;
+        quaternion qt = q_drotate_between_rv(-currentloc->pos.geoc.s, targ);
+
         // +Z vector in rotated frame
         Vector eci_z = Vector(rv_sub(ctarget.loc.pos.eci.s, currentloc->pos.eci.s));
         // Desired Y is cross product of Desired Z and velocity vector
         Vector eci_y = eci_z.cross(Vector(currentloc->pos.eci.v));
 
-        currentloc->att.icrf.s = irotate_for(eci_y, eci_z, unityV(), unitzV()).to_q();
-        currentloc->att.icrf.v = rv_zero();
-        currentloc->att.icrf.a = rv_zero();
-        currentloc->att.icrf.utc = currentutc;
-
-        // currentloc->att.topo.s = q_fmult(q_change_around_x(ctarget.elto*-1.),q_change_around_z(ctarget.azto));
-        // cout << setprecision(9) << currentutc << " | " << DEGOF(ctarget.elto) << "," << DEGOF(ctarget.azto) << "|" << DEGOF(ctarget.elfrom) << "," << DEGOF(ctarget.azfrom) << endl;
-        // currentloc->att.topo.v = rv_zero();
-        // currentloc->att.topo.a = rv_zero();
-        // currentloc->att.topo.utc = currentutc;
-        // currentloc->att.topo.pass++;
-        // Convert::att_topo(currentloc);
         currentloc->att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
         currentloc->att.topo.v = rv_zero();
         currentloc->att.topo.a = rv_zero();
@@ -1544,15 +1535,14 @@ int32_t MetricGenerator::Propagate(double nextutc)
         double nadirradius = currentloc->pos.geod.s.h * detectors[id].fov / 2.;
         cartpos cpointing;
         cpointing.s = drotate(currentloc->att.geoc.s, rv_unitz(-length_rv(currentloc->pos.geoc.s)));
-        rvector test = drotate(currentloc->att.lvlh.s, currentloc->pos.geoc.s);
         geoidpos gpointing;
         geoc2geod(cpointing, gpointing);
         for (uint16_t it=0; it<targets.size(); ++it)
         {
             coverage[it][id].area = 0.;
-            if (targets[it].elfrom > 0.)
+            if (targets[it].elto > 0.)
             {
-                double dr = nadirradius / sin(targets[it].elfrom);
+                double dr = nadirradius / sin(targets[it].elto);
                 double dr2 = dr * dr;
                 double sep;
                 geod2sep(gpointing.s, targets[it].loc.pos.geod.s, sep);
@@ -1561,22 +1551,22 @@ int32_t MetricGenerator::Propagate(double nextutc)
                 double tr2 = tr * tr;
                 if (sep < dr + tr)
                 {
-                    coverage[it][id].azimuth = targets[it].azfrom;
+                    coverage[it][id].azimuth = targets[it].azto;
                     coverage[it][id].resolution = targets[it].range * detectors[id].ifov;
                     coverage[it][id].specmin = detectors[id].specmin;
                     coverage[it][id].specmax = detectors[id].specmax;
-                    if (sep < (dr<tr?tr:dr))
+                    if (sep > fabs(tr - dr))
                     {
                         coverage[it][id].area = dr2 * acos((sep2 + dr2 - tr2) / (2 * sep * dr)) + tr2 * acos((sep2 + tr2 - dr2) / (2 * sep * tr));
                         coverage[it][id].area -= sqrt((-sep + tr + dr) * (sep + tr - dr) * (sep - tr + dr) * (sep + tr + dr)) / 2.;
-                        coverage[it][id].area *= sin(targets[it].elfrom);
+                        coverage[it][id].area *= sin(targets[it].elto);
                     }
                     else
                     {
-                        coverage[it][id].area = dr < tr ? DPI * dr2 * sin(targets[it].elfrom) : targets[it].area;
+                        coverage[it][id].area = dr < tr ? DPI * dr2 * sin(targets[it].elto) : targets[it].area;
                     }
 
-                    printf("\t%.3f", coverage[it][id].area);
+                    printf("\t%u %.1f %.1f %.1f %u %.3f %.1f\n", it, DEGOF(targets[it].azto), DEGOF(targets[it].elto), targets[it].range, id, coverage[it][id].area, coverage[it][id].resolution);
                 }
             }
         }

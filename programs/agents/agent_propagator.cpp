@@ -38,7 +38,7 @@ double speed=1.;
 double maxaccel = .1;
 double minaccel;
 double offset = 0.;
-double currentutc;
+double currentutc = 0.;
 // Simulation discrete timestep, in seconds
 double simdt = 1.;
 double minaccelratio = 10;
@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
     FILE *fp;
 
     // initialize simulation agent
+    motherutc = currentmjd();
     if (argc > 1)
     {
         parse_control(argv[1]);
@@ -449,7 +450,7 @@ int32_t parse_sat(string args)
     uint16_t argcount = 0;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
-    initialloc = Physics::shape2eci(motherutc, initiallat, initiallon, initialalt, initialangle, 0.);
+//    initialloc = Physics::shape2eci(motherutc, initiallat, initiallon, initialalt, initialangle, 0.);
     Physics::Propagator::Type type = Physics::Propagator::PositionInertial;
     if (!jargs["detector"].is_null())
     {
