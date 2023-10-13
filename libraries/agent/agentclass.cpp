@@ -2952,7 +2952,7 @@ namespace Cosmos
                         cinfo->agent0.pub[cinfo->agent0.ifcnt].type = type;
 
 
-                        printf("Interface #%lu: %u %s %u %s %u\n", cinfo->agent0.ifcnt, cinfo->agent0.pub[cinfo->agent0.ifcnt].cport, cinfo->agent0.pub[cinfo->agent0.ifcnt].address, ntohs(cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_port), cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress, ntohs(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_port));
+//                        printf("Interface #%lu: %u %s %u %s %u\n", cinfo->agent0.ifcnt, cinfo->agent0.pub[cinfo->agent0.ifcnt].cport, cinfo->agent0.pub[cinfo->agent0.ifcnt].address, ntohs(cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_port), cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress, ntohs(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_port));
                         cinfo->agent0.ifcnt++;
                     }
 #endif // COSMOS_WIN_OS
@@ -3185,7 +3185,7 @@ namespace Cosmos
                         cinfo->agent0.beat.jitter,
                         cinfo->agent0.beat.dcycle,
                         cinfo->node.utcoffset);
-                printf("POST %s %s\n", cinfo->agent0.pub[i].baddress, (char *)&post[3]);
+//                printf("POST %s %s\n", cinfo->agent0.pub[i].baddress, (char *)&post[3]);
                 size_t hlength = strlen((char *)&post[3]);
                 post[1] = hlength%256;
                 post[2] = hlength / 256;
@@ -3236,7 +3236,7 @@ namespace Cosmos
                                 (struct sockaddr *)&cinfo->agent0.pub[i].baddr, // socket address
                                 sizeof(struct sockaddr_in)                  // size of address to socket pointer
                                 );
-                        printf("Send Loopback: %s %u %u %d\n", cinfo->agent0.pub[i].baddress, ntohs(cinfo->agent0.pub[i].baddr.sin_port), (uint8_t)type, iretn);
+//                        printf("Send Loopback: %s %u %u %d\n", cinfo->agent0.pub[i].baddress, ntohs(cinfo->agent0.pub[i].baddr.sin_port), (uint8_t)type, iretn);
                     }
                 }
                 else
@@ -3423,7 +3423,7 @@ namespace Cosmos
                         if (cinfo->agent0.sub.addrlen == sizeof(cinfo->agent0.sub.caddr))
                         {
                             inet_ntop(cinfo->agent0.sub.caddr.sin_family,&(cinfo->agent0.sub.caddr.sin_addr),cinfo->agent0.sub.address,sizeof(cinfo->agent0.sub.address));
-                            printf("Receive: [%s %u] %u %d - ", cinfo->agent0.sub.address, htons(cinfo->agent0.sub.caddr.sin_port), input[0], nbytes);
+//                            printf("Receive: [%s %u] %u %d - ", cinfo->agent0.sub.address, htons(cinfo->agent0.sub.caddr.sin_port), input[0], nbytes);
                         }
                         //                    else
                         //                    {
@@ -3436,7 +3436,7 @@ namespace Cosmos
                             if (cinfo->agent0.sub.caddr.sin_port == ntohs(cinfo->agent0.pub[i].cport) &&
                                 cinfo->agent0.sub.caddr.sin_addr.s_addr == cinfo->agent0.pub[i].caddr.sin_addr.s_addr)
                             {
-                                printf("Echo\n");
+//                                printf("Echo\n");
                                 return 0;
                             }
                         }
@@ -3562,22 +3562,22 @@ namespace Cosmos
                         }
                         if (mess.meta.beat.node.compare(cinfo->agent0.beat.node) || mess.meta.beat.proc.compare(cinfo->agent0.beat.proc))
                         {
-                            printf("Valid: %s\n", mess.jdata.c_str());
+//                            printf("Valid: %s\n", mess.jdata.c_str());
                             return ((int)mess.meta.type);
                         }
                         else
                         {
-                            printf("Duplicate: %s %s\n",cinfo->agent0.beat.node.c_str(), cinfo->agent0.beat.proc.c_str() );
+//                            printf("Duplicate: %s %s\n",cinfo->agent0.beat.node.c_str(), cinfo->agent0.beat.proc.c_str() );
                         }
                     }
                     else
                     {
-                        printf("NoMatch\n");
+//                        printf("NoMatch\n");
                     }
                 }
                 else
                 {
-                    printf("Empty\n");
+//                    printf("Empty\n");
                 }
                 if (ep.split() >= waitsec) {
                     nbytes = 0;
