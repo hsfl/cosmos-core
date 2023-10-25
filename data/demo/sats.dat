@@ -1,5 +1,5 @@
-{"tle":{"filename":"tle.dat"}}
-{"lvlh":{"x":200,"y":0,"z":0}}
-{"lvlh":{"x":400,"y":0,"z":0}}
-{"lvlh":{"x":600,"y":0,"z":0}}
-{"lvlh":{"x":800,"y":0,"z":0}}
+{"tle":{"filename":"tle.dat"},"detector":{"fov":0.08,"ifov":0.00015,"specmin":4.0,"specmax":12.0}}
+{"lvlh":{"x":200,"y":0,"z":0},"detector":{"fov":0.026,"ifov":0.000025,"specmin":0.3,"specmax":1.0}}
+{"lvlh":{"x":400,"y":0,"z":0},"detector":{"fov":0.026,"ifov":0.000025,"specmin":0.3,"specmax":1.0}}
+{"lvlh":{"x":600,"y":0,"z":0},"detector":{"fov":0.077,"ifov":0.000075,"specmin":1.5,"specmax":4.0}}
+{"lvlh":{"x":800,"y":0,"z":0},"detector":{"fov":0.077,"ifov":0.000075,"specmin":1.5,"specmax":4.0}}

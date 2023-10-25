@@ -2946,7 +2946,8 @@ namespace Cosmos
 
             // vector<targetstruc> target
             add_name("target", &target, "vector<targetstruc>");
-            for(size_t i = 0; i < target.size(); ++i) {
+            for(size_t i = 0; i < target.size(); ++i)
+            {
                 string basename = "target[" + std::to_string(i) + "]";
                 add_name(basename, &target[i], "targetstruc");
                 add_name(basename+".utc", &target[i].utc, "double");
@@ -2956,9 +2957,12 @@ namespace Cosmos
                 add_name(basename+".elfrom", &target[i].elfrom, "float");
                 add_name(basename+".azto", &target[i].azto, "float");
                 add_name(basename+".elto", &target[i].elto, "float");
+                add_name(basename+".maxelto", &target[i].maxelto, "float");
                 add_name(basename+".range", &target[i].range, "double");
                 add_name(basename+".close", &target[i].close, "double");
                 add_name(basename+".min", &target[i].min, "float");
+                add_name(basename+".bearing", &target[i].bearing, "float");
+                add_name(basename+".distance", &target[i].distance, "float");
                 add_name(basename+".loc", &target[i].loc, "locstruc");
                 add_name(basename+".loc.utc", &target[i].loc.utc, "double");
                 add_name(basename+".loc.pos", &target[i].loc.pos, "posstruc");
@@ -3493,6 +3497,9 @@ namespace Cosmos
                         add_name(rebasename2, &target[i].loc.att.extra.b2j.row[j].col[k], "double");
                     }
                 }
+                add_name(basename+".size", &target[i].size, "gvector");
+                add_name(basename+".area", &target[i].area, "float");
+                add_name(basename+".resolution", &target[i].resolution, "float");
             }
 
 

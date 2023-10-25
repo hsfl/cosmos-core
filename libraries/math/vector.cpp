@@ -948,12 +948,13 @@ rvector& rvector::operator *= (const double &scale)
 /*! Negate existing ::rvector, returning a ::rvector.
                 \result the transformed vector, in ::rvector form
         */
-rvector& rvector::operator - ()
+rvector rvector::operator - () const
 {
-    this->col[0] = -this->col[0];
-    this->col[1] = -this->col[1];
-    this->col[2] = -this->col[2];
-    return *this;
+    rvector c;
+    c.col[0] = -col[0];
+    c.col[1] = -this->col[1];
+    c.col[2] = -this->col[2];
+    return c;
 }
 
 // multiply vector by scalar operator

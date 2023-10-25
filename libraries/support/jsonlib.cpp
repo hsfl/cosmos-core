@@ -9925,7 +9925,7 @@ const char *json_of_target(string &jstring, cosmosstruc *cinfo, uint16_t num)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring, "target_min",num, cinfo);
+    iretn = json_out_1d(jstring, "target_maxelto",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
@@ -9940,7 +9940,37 @@ const char *json_of_target(string &jstring, cosmosstruc *cinfo, uint16_t num)
     {
         return nullptr;
     }
+    iretn = json_out_1d(jstring, "target_min",num, cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
+    iretn = json_out_1d(jstring, "target_bearing",num, cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
+    iretn = json_out_1d(jstring, "target_distance",num, cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
     iretn = json_out_1d(jstring, "target_loc_pos_geod",num, cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
+    iretn = json_out_1d(jstring, "target_size",num, cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
+    iretn = json_out_1d(jstring, "target_area",num, cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
+    iretn = json_out_1d(jstring, "target_resolution",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
@@ -12736,17 +12766,19 @@ int32_t load_target(cosmosstruc *cinfo)
         cinfo->target.resize(MAX_NUMBER_OF_TARGETS);
         while (count < cinfo->target.size() && fgets(inb,JSON_MAX_DATA,op) != nullptr)
         {
-            json_addentry("target_range",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,range)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cinfo);
-            json_addentry("target_close",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,close)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_utc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,utc)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_name",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,name)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_STRING, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_type",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,type)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_UINT16, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_azfrom",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,azfrom)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
-            json_addentry("target_azto",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,azto)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_elfrom",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,elfrom)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
+            json_addentry("target_azto",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,azto)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_elto",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,elto)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
+            json_addentry("target_maxelto",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,maxelto)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
+            json_addentry("target_range",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,range)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cinfo);
+            json_addentry("target_close",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,close)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_min",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,min)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
-            json_addentry("target_size",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,size)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_LOCSTRUC, (uint16_t)JSON_STRUCT_TARGET, cinfo);
+            json_addentry("target_bearing",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,bearing)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
+            json_addentry("target_distance",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,distance)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_loc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_LOCSTRUC, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_loc_pos_geod",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.geod)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_POS_GEOD, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_loc_pos_eci",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.eci)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_POS_ECI, (uint16_t)JSON_STRUCT_TARGET, cinfo);
@@ -12760,6 +12792,9 @@ int32_t load_target(cosmosstruc *cinfo)
                 loc_update(&cinfo->target[count].loc);
                 ++count;
             }
+            json_addentry("target_size",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,size)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_GVECTOR, (uint16_t)JSON_STRUCT_TARGET, cinfo);
+            json_addentry("target_area",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,area)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
+            json_addentry("target_resolution",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,resolution)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
         }
         fclose(op);
         //JIMNOTE:  take away this resize
@@ -12834,7 +12869,7 @@ int32_t update_target(cosmosstruc *cinfo)
     //    rvector topo, dv, ds;
     for (uint32_t i=0; i<cinfo->target.size(); ++i)
     {
-        iretn = update_target(cinfo->target[i].loc, cinfo->target[i]);
+        iretn = update_target(cinfo->node.loc, cinfo->target[i]);
         //        loc_update(&cinfo->target[i].loc);
         //        Convert::geoc2topo(cinfo->target[i].loc.pos.geod.s,cinfo->node.loc.pos.geoc.s,topo);
         //        Convert::topo2azel(topo, cinfo->target[i].azto, cinfo->target[i].elto);
@@ -12852,9 +12887,88 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
 {
     rvector topo, dv, ds;
 
-    Convert::loc_update(&target.loc);
+//    Convert::loc_update(&target.loc);
+    target.cloc.pos.geod.utc = source.pos.geod.utc;
+    target.cloc.pos.geod.pass++;
+    Convert::loc_update(target.cloc);
+    target.loc = target.cloc;
+    if (target.size.lat)
+    {
+        if (source.pos.geod.s.lon >= fixangle(target.cloc.pos.geod.s.lon - target.size.lon / 2., false) && source.pos.geod.s.lon <= fixangle(target.cloc.pos.geod.s.lon + target.size.lon / 2., false))
+        {
+            target.loc.pos.geod.s.lon = source.pos.geod.s.lon;
+            if (source.pos.geod.s.lat >= target.cloc.pos.geod.s.lat + target.size.lat / 2.)
+            {
+                target.loc.pos.geod.s.lat = target.cloc.pos.geod.s.lat + target.size.lat / 2.;
+                target.loc.pos.geod.pass++;
+                Convert::pos_geod(target.loc);
+                if (source.pos.geod.v.lat < 0)
+                {
+                    target.min = 1.;
+                    target.utc = target.loc.utc;
+                }
+                else
+                {
+                    target.min = 3.;
+                    target.utc = target.loc.utc;
+                }
+            }
+            else if (source.pos.geod.s.lat <= target.cloc.pos.geod.s.lat - target.size.lat / 2)
+            {
+                target.loc.pos.geod.s.lat = target.cloc.pos.geod.s.lat - target.size.lat / 2.;
+                target.loc.pos.geod.pass++;
+                Convert::pos_geod(target.loc);
+                if (source.pos.geod.v.lat > 0)
+                {
+                    target.min = 1.;
+                    target.utc = target.loc.utc;
+                }
+                else
+                {
+                    target.min = 3.;
+                    target.utc = target.loc.utc;
+                }
+            }
+            else
+            {
+                if (target.min != 2.)
+                {
+                    target.utc = target.loc.utc;
+                }
+                target.loc.pos.geod.pass++;
+                Convert::pos_geod(target.loc);
+                target.min = 2.;
+            }
+        }
+        else
+        {
+            target.min = 0.;
+            target.utc = target.loc.utc;
+        }
+    }
+    else
+    {
+        target.min = 0.;
+        target.utc = target.loc.utc;
+    }
+
+    // Calculate bearing and distance
+    double dx = cos(target.loc.pos.geod.s.lat) * sin(target.loc.pos.geod.s.lon - source.pos.geod.s.lon);
+    double dy = cos(source.pos.geod.s.lat) * sin(target.loc.pos.geod.s.lat) - sin(source.pos.geod.s.lat) * cos(target.loc.pos.geod.s.lat) * cos(target.loc.pos.geod.s.lon - source.pos.geod.s.lon);
+    target.bearing = atan2(dy, dx);
+    target.distance = sep_rv(source.pos.geoc.s, target.loc.pos.geoc.s);
+
     Convert::geoc2topo(target.loc.pos.geod.s, source.pos.geoc.s,topo);
     Convert::topo2azel(topo, target.azto, target.elto);
+    if (target.elto <= 0.)
+    {
+        target.maxelto = target.elto;
+    }
+    else if (target.elto > target.maxelto)
+    {
+        target.maxelto = target.elto;
+    }
+
     Convert::geoc2topo(source.pos.geod.s, target.loc.pos.geoc.s, topo);
     Convert::topo2azel(topo, target.azfrom, target.elfrom);
     // Calculate direct vector from source to target

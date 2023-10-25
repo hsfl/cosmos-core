@@ -1984,7 +1984,12 @@ class sim_param	{
             Convert::locstruc loc;
             Convert::locstruc cloc;
             gvector size = {0., 0., 0.};
-            double area;
+            float area;
+            float resolution;
+            Physics::coverage vis;
+            Physics::coverage swir;
+            Physics::coverage mwir;
+            Physics::coverage lwir;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -2009,6 +2014,7 @@ class sim_param	{
                     { "cloc"	, cloc },
                     { "size", size},
                     { "area", area},
+                    { "resolution", resolution},
                 };
             }
 
@@ -2038,6 +2044,7 @@ class sim_param	{
                     if(!p["cloc"].is_null()) { cloc.from_json(p["cloc"].dump()); }
                     if(!p["size"].is_null()) { size.from_json(p["size"].dump()); }
                     if(!p["area"].is_null()) { area = p["area"].number_value(); }
+                    if(!p["resolution"].is_null()) { resolution = p["resolution"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -4132,6 +4139,8 @@ union as a ::devicestruc.
             float specmin = 300e-9;
             //! Maximum spectral wavelength
             float specmax = 1e-6;
+            //! Line of Sight
+            rvector los = {0., 0., 1.};
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -4628,13 +4637,8 @@ union as a ::devicestruc.
             }
 
             //! Node Name.
-            //    char name[COSMOS_MAX_NAME+1] = "";
             string name="";
-//            //! Agent Name.
-//            //    char agent[COSMOS_MAX_NAME+1] = "";
-//            string agent="";
             //! Last event
-            //	char lastevent[COSMOS_MAX_NAME+1] = "";
             string lastevent="";
             //! Last event UTC
             double lasteventutc = 0.;
@@ -4676,12 +4680,10 @@ union as a ::devicestruc.
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "name" , name },
-//                    { "agent" , agent },
                     { "lastevent" , lastevent },
                     { "lasteventutc" , lasteventutc },
                     { "type" , type },
                     { "state" , state },
-
                     { "flags" , flags },
                     { "powmode" , powmode },
                     { "downtime" , static_cast<int>(downtime) },
