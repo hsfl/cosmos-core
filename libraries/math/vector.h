@@ -64,7 +64,7 @@ struct rvector
     rvector &operator += (const rvector &v2); // add vector by vector operator in place
     rvector &operator -= (const rvector &v2); // add vector by vector operator in place
     rvector &operator *= (const double &scale); // add vector by vector operator in place
-    rvector &operator - (); // negate vector in place
+    rvector operator - () const; // negate vector in place
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
