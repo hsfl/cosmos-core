@@ -4139,6 +4139,8 @@ union as a ::devicestruc.
             float specmin = 300e-9;
             //! Maximum spectral wavelength
             float specmax = 1e-6;
+            //! Line of Sight
+            rvector los = {0., 0., 1.};
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class

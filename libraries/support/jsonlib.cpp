@@ -12869,7 +12869,7 @@ int32_t update_target(cosmosstruc *cinfo)
     //    rvector topo, dv, ds;
     for (uint32_t i=0; i<cinfo->target.size(); ++i)
     {
-        iretn = update_target(cinfo->target[i].loc, cinfo->target[i]);
+        iretn = update_target(cinfo->node.loc, cinfo->target[i]);
         //        loc_update(&cinfo->target[i].loc);
         //        Convert::geoc2topo(cinfo->target[i].loc.pos.geod.s,cinfo->node.loc.pos.geoc.s,topo);
         //        Convert::topo2azel(topo, cinfo->target[i].azto, cinfo->target[i].elto);
@@ -12887,9 +12887,88 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
 {
     rvector topo, dv, ds;
 
-    Convert::loc_update(&target.loc);
+//    Convert::loc_update(&target.loc);
+    target.cloc.pos.geod.utc = source.pos.geod.utc;
+    target.cloc.pos.geod.pass++;
+    Convert::loc_update(target.cloc);
+    target.loc = target.cloc;
+    if (target.size.lat)
+    {
+        if (source.pos.geod.s.lon >= fixangle(target.cloc.pos.geod.s.lon - target.size.lon / 2., false) && source.pos.geod.s.lon <= fixangle(target.cloc.pos.geod.s.lon + target.size.lon / 2., false))
+        {
+            target.loc.pos.geod.s.lon = source.pos.geod.s.lon;
+            if (source.pos.geod.s.lat >= target.cloc.pos.geod.s.lat + target.size.lat / 2.)
+            {
+                target.loc.pos.geod.s.lat = target.cloc.pos.geod.s.lat + target.size.lat / 2.;
+                target.loc.pos.geod.pass++;
+                Convert::pos_geod(target.loc);
+                if (source.pos.geod.v.lat < 0)
+                {
+                    target.min = 1.;
+                    target.utc = target.loc.utc;
+                }
+                else
+                {
+                    target.min = 3.;
+                    target.utc = target.loc.utc;
+                }
+            }
+            else if (source.pos.geod.s.lat <= target.cloc.pos.geod.s.lat - target.size.lat / 2)
+            {
+                target.loc.pos.geod.s.lat = target.cloc.pos.geod.s.lat - target.size.lat / 2.;
+                target.loc.pos.geod.pass++;
+                Convert::pos_geod(target.loc);
+                if (source.pos.geod.v.lat > 0)
+                {
+                    target.min = 1.;
+                    target.utc = target.loc.utc;
+                }
+                else
+                {
+                    target.min = 3.;
+                    target.utc = target.loc.utc;
+                }
+            }
+            else
+            {
+                if (target.min != 2.)
+                {
+                    target.utc = target.loc.utc;
+                }
+                target.loc.pos.geod.pass++;
+                Convert::pos_geod(target.loc);
+                target.min = 2.;
+            }
+        }
+        else
+        {
+            target.min = 0.;
+            target.utc = target.loc.utc;
+        }
+    }
+    else
+    {
+        target.min = 0.;
+        target.utc = target.loc.utc;
+    }
+
+    // Calculate bearing and distance
+    double dx = cos(target.loc.pos.geod.s.lat) * sin(target.loc.pos.geod.s.lon - source.pos.geod.s.lon);
+    double dy = cos(source.pos.geod.s.lat) * sin(target.loc.pos.geod.s.lat) - sin(source.pos.geod.s.lat) * cos(target.loc.pos.geod.s.lat) * cos(target.loc.pos.geod.s.lon - source.pos.geod.s.lon);
+    target.bearing = atan2(dy, dx);
+    target.distance = sep_rv(source.pos.geoc.s, target.loc.pos.geoc.s);
+
     Convert::geoc2topo(target.loc.pos.geod.s, source.pos.geoc.s,topo);
     Convert::topo2azel(topo, target.azto, target.elto);
+    if (target.elto <= 0.)
+    {
+        target.maxelto = target.elto;
+    }
+    else if (target.elto > target.maxelto)
+    {
+        target.maxelto = target.elto;
+    }
+
     Convert::geoc2topo(source.pos.geod.s, target.loc.pos.geoc.s, topo);
     Convert::topo2azel(topo, target.azfrom, target.elfrom);
     // Calculate direct vector from source to target
