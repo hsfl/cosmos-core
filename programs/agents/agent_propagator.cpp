@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
 
         ++elapsed;
 
-        cout << "sim->currentutc: " << std::to_string(sim->currentutc) << endl;
+//        cout << "sim->currentutc: " << std::to_string(sim->currentutc) << endl;
 
         // Exit after sim completion
         if (endutc > 0. && sim->currentutc > endutc)
@@ -524,7 +524,9 @@ int32_t parse_sat(string args)
             motherutc = currentmjd();
         }
         initialloc = Physics::shape2eci(motherutc, initiallat, initiallon, initialalt, initialangle, 0.);
-        type = Physics::Propagator::PositionIterative;
+        type = Physics::Propagator::PositionGaussJackson;
+//        eci2tle(motherutc, initialloc.pos.eci, initialtle);
+//        type = Physics::Propagator::PositionTle;
     }
     if (!jargs["eci"].is_null())
     {
@@ -598,7 +600,7 @@ int32_t parse_sat(string args)
         // TODO: position initialization should be independent from what position propagator is desired
         if (type == Physics::Propagator::PositionLvlh)
         {
-            iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.lvlh, mothereci, mothericrf);
+            iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, mothereci, initialloc.pos.lvlh, mothericrf);
         }
         else
         {
