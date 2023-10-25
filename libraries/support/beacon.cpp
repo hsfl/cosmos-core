@@ -354,7 +354,14 @@ namespace Cosmos {
                     uint16_t tsencount = cinfo->devspec.tsen.size() < tsen_count?cinfo->devspec.tsen.size():tsen_count;
                     for (uint16_t i=0; i<tsencount; ++i)
                     {
-                        beacon.ctemp[i] = cinfo->devspec.tsen[i].temp * 100. + .5;
+                        if (cinfo->devspec.tsen[i].utc < currentmjd() - 600. / 86400.)
+                        {
+                            beacon.ctemp[i] = 0;
+                        }
+                        else
+                        {
+                            beacon.ctemp[i] = cinfo->devspec.tsen[i].temp * 100. + .5;
+                        }
                     }
                     data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+5+tsencount*2);
                 }
@@ -368,7 +375,7 @@ namespace Cosmos {
                     cinfo->devspec.tsen.size() < ltsen_count?cinfo->devspec.tsen.size():ltsen_count;
                     for (uint16_t i=0; i<cinfo->devspec.tsen.size(); ++i)
                     {
-                        if (tsencount < ltsen_count && cinfo->devspec.tsen[i].temp != 0.)
+                        if (tsencount < ltsen_count && cinfo->devspec.tsen[i].temp != 0. && cinfo->devspec.tsen[i].utc >= currentmjd() - 600. / 86400.)
                         {
                             beacon.ltsen[i].index = i;
                             beacon.ltsen[i].ctemp = cinfo->devspec.tsen[i].temp * 100. + .5;
