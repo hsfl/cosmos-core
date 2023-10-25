@@ -36,7 +36,7 @@ namespace Cosmos
             int32_t Connect();
             StateList::iterator AddNode(string nodename, uint8_t propagation_priority);
             int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
-            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos lvlh, Convert::cartpos origineci, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
+            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos origineci, Convert::cartpos lvlh, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
             int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::tlestruc tle, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
             int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, double utc, double lat, double lon, double altitude, double angle, double timeshift=0.);
             int32_t GetError();

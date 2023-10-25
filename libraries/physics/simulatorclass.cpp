@@ -82,7 +82,7 @@ namespace Cosmos
          * @param icrf Attitude of node
          * @return int32_t 0 on success, negative on error
          */
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos lvlh, Convert::cartpos origineci, Convert::qatt icrf, uint8_t propagation_priority)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos origineci, Convert::cartpos lvlh, Convert::qatt icrf, uint8_t propagation_priority)
         {
             auto it = AddNode(nodename, propagation_priority);
             error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, origineci, lvlh, icrf);
@@ -170,7 +170,21 @@ namespace Cosmos
             }
             for (auto &state : cnodes)
             {
-                iretn = state->Propagate(currentutc);
+                switch(state->ptype)
+                {
+                case Physics::Propagator::Type::PositionInertial:
+                case Physics::Propagator::Type::PositionIterative:
+                case Physics::Propagator::Type::PositionGaussJackson:
+                case Physics::Propagator::Type::PositionGeo:
+                case Physics::Propagator::Type::PositionTle:
+                    iretn = state->Propagate(currentutc);
+                    break;
+                case Physics::Propagator::Type::PositionLvlh:
+                    iretn = state->Propagate(cnodes[0]->currentinfo.node.loc);
+                    break;
+                default:
+                    break;
+                }
             }
             return iretn;
         }
