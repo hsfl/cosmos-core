@@ -4610,7 +4610,7 @@ union as a ::devicestruc.
             }
 
             string name;
-            map<string, NODE_ID_TYPE> node_ids = {{"unkown", NODEIDUNKNOWN}, {"origin", NODEIDORIG}, {"destination", NODEIDDEST}};
+            map<string, NODE_ID_TYPE> node_ids = {{"unknown", NODEIDUNKNOWN}, {"origin", NODEIDORIG}, {"destination", NODEIDDEST}};
         };
 
         //! \brief Node Structure
