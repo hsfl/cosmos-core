@@ -348,9 +348,9 @@ namespace Cosmos
                         "    SetOpsMode [modestring]\n"
                         "    EnableChannel [channelstring | channelnumber] {State}\n"
                         "    EpsCommunicate sbid:command:hexstring:response_size\n"
-                        "    EpsSwitchStatus [0-1|vbattbus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200]\n"
+                        "    EpsSwitchStatus [0-1|vbattbus|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200]\n"
                         "    EpsState {0|1|2|3}\n"
-                        "    EpsSwitchName {vbattbus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [0|1|2]\n"
+                        "    EpsSwitchName {vbattbus|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [0|1|2]\n"
                         "    EpsSwitchNumber boardid switchid [0|1]\n"
                         "    EpsSwitchNames {vbattbus ...} [0|1]\n"
                         "    AdcsOrbitParameters inc ecc raan ap bstar mm ma epoch\n"
@@ -872,11 +872,14 @@ namespace Cosmos
 
             cinfo->agent0.beat.port = cinfo->agent0.req.cport;
 
-            while (cinfo->agent0.stateflag) {
+            while (cinfo->agent0.stateflag)
+            {
                 bufferin.resize(cinfo->agent0.beat.bsz);
+                cinfo->agent0.req.addrlen = sizeof(cinfo->agent0.req.caddr);
                 iretn = recvfrom(cinfo->agent0.req.cudp, &bufferin[0], bufferin.size(), 0, (struct sockaddr *)&cinfo->agent0.req.caddr, (socklen_t *)&cinfo->agent0.req.addrlen);
 
-                if (iretn > 0) {
+                if (iretn > 0)
+                {
                     string bufferout;
                     bufferin.resize(iretn);
                     process_request(bufferin, bufferout);
@@ -885,7 +888,8 @@ namespace Cosmos
             return;
         }
 
-        int32_t Agent::process_request(string &bufferin, string &bufferout) {
+        int32_t Agent::process_request(string &bufferin, string &bufferout)
+        {
             size_t i;
             int32_t iretn = 0;
 
@@ -909,27 +913,36 @@ namespace Cosmos
             request.resize(i);
 
             //for (i=0; i<reqs.size(); i++) { if (!strcmp(request.c_str(),reqs[i].token.c_str())) break; }
-            if(reqs.find(request) == reqs.end()) {
+            if(reqs.find(request) == reqs.end())
+            {
                 iretn = AGENT_ERROR_NULL;
                 bufferout = "[NOK] " + std::to_string(iretn);
-            } else {
+            }
+            else
+            {
                 request_entry &rentry = reqs[request];
                 iretn = -1;
-                if (rentry.efunction != nullptr) {
+                if (rentry.efunction != nullptr)
+                {
                     iretn = rentry.efunction(bufferin, request, this);
                 }
-                if (iretn >= 0) {
+                if (iretn >= 0)
+                {
                     request.resize(strlen(&request[0]));
                     bufferout = request;
-                } else {
+                }
+                else
+                {
                     bufferout = "[NOK] " + std::to_string(iretn);
                 }
             }
 
             iretn = sendto(cinfo->agent0.req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent0.req.caddr, sizeof(struct sockaddr_in));
-            if (debug_level) {
-                debug_log.Printf("Response: [%s:%u:%d] %s\n", cinfo->agent0.req.address, cinfo->agent0.req.cport, iretn, &bufferout[0]);
+            if (iretn < 0)
+            {
+                iretn = -errno;
             }
+            debug_log.Printf("Response: [%d:%s:%x:%u:%d] %s\n", cinfo->agent0.req.cudp, cinfo->agent0.req.address, ntohl(cinfo->agent0.req.caddr.sin_addr.s_addr), cinfo->agent0.req.cport, iretn, &bufferout[0]);
 
             process_mutex.unlock();
 
@@ -976,6 +989,15 @@ namespace Cosmos
                         string response;
                         process_request(mess.adata, response);
                         Agent::post(AgentMessage::RESPONSE, response);
+                    }
+                    else if (mess.meta.type == AgentMessage::COMM)
+                    {
+                        PacketComm packet;
+                        packet.wrapped = mess.bdata;
+                        if (packet.Unwrap() > 0 && packet.header.chanout < channel_count())
+                        {
+                            channel_push(packet.header.chanout, packet);
+                        }
                     }
                     else
                     {
@@ -2886,21 +2908,19 @@ namespace Cosmos
 
                             if ((cinfo->agent0.pub[cinfo->agent0.ifcnt].flags & IFF_POINTOPOINT))
                             {
-                                if (ioctl(cinfo->agent0.pub[0].cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
-                                {
-                                    continue;
-                                }
+//                                if (ioctl(cinfo->agent0.pub[0].cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
+//                                {
+//                                    continue;
+//                                }
+//                                cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr = cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr;
+//                                inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress,sizeof(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress));
+//                                inet_pton(AF_INET,cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress,&cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr);
                                 cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr = cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr;
-                                inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress,sizeof(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress));
-                                inet_pton(AF_INET,cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress,&cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr);
+                                strncpy(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress, cinfo->agent0.pub[cinfo->agent0.ifcnt].address, 17);
+                                inet_pton(AF_INET, cinfo->agent0.pub[cinfo->agent0.ifcnt].address, &cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr);
                             }
                             else if ((cinfo->agent0.pub[cinfo->agent0.ifcnt].flags & IFF_LOOPBACK))
                             {
-                                //                            if (ioctl(cinfo->agent0.pub[0].cudp,SIOCGIFADDR,(char *)ifra) < 0)
-                                //                            {
-                                //                                continue;
-                                //                            }
-                                //                            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress,sizeof(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress));
                                 cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr = cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr;
                                 strncpy(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress, cinfo->agent0.pub[cinfo->agent0.ifcnt].address, 17);
                                 inet_pton(AF_INET,AGENTLOOPBACK,&cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr);
@@ -3185,7 +3205,7 @@ namespace Cosmos
                         cinfo->agent0.beat.jitter,
                         cinfo->agent0.beat.dcycle,
                         cinfo->node.utcoffset);
-//                printf("POST %s %s\n", cinfo->agent0.pub[i].baddress, (char *)&post[3]);
+                debug_log.Printf("POST %u %x %s %s %s\n", i, cinfo->agent0.pub[i].flags, cinfo->agent0.pub[i].baddress, cinfo->agent0.pub[i].address, (char *)&post[3]);
                 size_t hlength = strlen((char *)&post[3]);
                 post[1] = hlength%256;
                 post[2] = hlength / 256;
@@ -3199,31 +3219,24 @@ namespace Cosmos
                 }
                 if (cinfo->agent0.pub[i].flags & IFF_POINTOPOINT)
                 {
-                    if (cinfo->agent0.ifcnt == 1)
-                    {
-                        iretn = sendto(cinfo->agent0.pub[i].cudp,       // socket
-                                (const char *)post,                         // buffer to send
-                                nbytes+message.size(),                      // size of buffer
-                                0,                                          // flags
-                                (struct sockaddr *)&cinfo->agent0.pub[i].caddr, // socket address
-                                sizeof(struct sockaddr_in)                  // size of address to socket pointer
-                                );
-                        //                    if (debug_level) {
-                        //                        debug_log.Printf("Post PTP Local: [%s:%u:%d] %s\n", cinfo->agent0.pub[i].address, cinfo->agent0.pub[i].cport, iretn, post);
-                        //                    }
-                        //                    printf("Send P2P Local: %u %d\n", (uint8_t)type, iretn);
-                    }
+//                    if (cinfo->agent0.ifcnt == 1)
+//                    {
+//                        iretn = sendto(cinfo->agent0.pub[i].cudp,       // socket
+//                                (const char *)post,                         // buffer to send
+//                                nbytes+message.size(),                      // size of buffer
+//                                0,                                          // flags
+//                                (struct sockaddr *)&cinfo->agent0.pub[i].caddr, // socket address
+//                                sizeof(struct sockaddr_in)                  // size of address to socket pointer
+//                                );
+//                    }
                     iretn = sendto(cinfo->agent0.pub[i].cudp,       // socket
                             (const char *)post,                         // buffer to send
                             nbytes+message.size(),                      // size of buffer
                             0,                                          // flags
-                            (struct sockaddr *)&cinfo->agent0.pub[i].baddr, // socket address
+                            (struct sockaddr *)&cinfo->agent0.pub[i].caddr, // socket address
                             sizeof(struct sockaddr_in)                  // size of address to socket pointer
                             );
-                    //                if (debug_level) {
-                    //                    debug_log.Printf("Post PTP Remote: [%s:%u:%d] %s\n", cinfo->agent0.pub[i].address, cinfo->agent0.pub[i].cport, iretn, post);
-                    //                }
-                    //                printf("Send P2P Remote: %u %d\n", (uint8_t)type, iretn);
+                    debug_log.Printf("Send P2P: %s %u %u %d\n", cinfo->agent0.pub[i].address, ntohs(cinfo->agent0.pub[i].caddr.sin_port), (uint8_t)type, iretn);
                 }
                 else if (cinfo->agent0.pub[i].flags & IFF_LOOPBACK)
                 {
@@ -3233,10 +3246,10 @@ namespace Cosmos
                                 (const char *)post,                         // buffer to send
                                 nbytes+message.size(),                      // size of buffer
                                 0,                                          // flags
-                                (struct sockaddr *)&cinfo->agent0.pub[i].baddr, // socket address
+                                (struct sockaddr *)&cinfo->agent0.pub[i].caddr, // socket address
                                 sizeof(struct sockaddr_in)                  // size of address to socket pointer
                                 );
-//                        printf("Send Loopback: %s %u %u %d\n", cinfo->agent0.pub[i].baddress, ntohs(cinfo->agent0.pub[i].baddr.sin_port), (uint8_t)type, iretn);
+                        debug_log.Printf("Send Loopback: %s %x %u %u %d\n", cinfo->agent0.pub[i].address, ntohl(cinfo->agent0.pub[i].caddr.sin_addr.s_addr), ntohs(cinfo->agent0.pub[i].caddr.sin_port), (uint8_t)type, iretn);
                     }
                 }
                 else
@@ -3248,9 +3261,6 @@ namespace Cosmos
                             (struct sockaddr *)&cinfo->agent0.pub[i].baddr, // socket address
                             sizeof(struct sockaddr_in)                  // size of address to socket pointer
                             );
-                    //                if (debug_level) {
-                    //                    debug_log.Printf("Post Broadcast: [%s:%u:%d] %s\n", cinfo->agent0.pub[i].baddress, cinfo->agent0.pub[i].cport, iretn, post);
-                    //                }
                     //                printf("Send Generic: %s %u %u %d\n", cinfo->agent0.pub[i].address, ntohs(cinfo->agent0.pub[i].baddr.sin_port), (uint8_t)type, iretn);
                 }
                 if (iretn < 0)
@@ -3423,12 +3433,12 @@ namespace Cosmos
                         if (cinfo->agent0.sub.addrlen == sizeof(cinfo->agent0.sub.caddr))
                         {
                             inet_ntop(cinfo->agent0.sub.caddr.sin_family,&(cinfo->agent0.sub.caddr.sin_addr),cinfo->agent0.sub.address,sizeof(cinfo->agent0.sub.address));
-//                            printf("Receive: [%s %u] %u %d - ", cinfo->agent0.sub.address, htons(cinfo->agent0.sub.caddr.sin_port), input[0], nbytes);
+                            debug_log.Printf("RECVFROM: [%s %u] %u %d \n", cinfo->agent0.sub.address, htons(cinfo->agent0.sub.caddr.sin_port), input[0], nbytes);
                         }
-                        //                    else
-                        //                    {
-                        //                        printf("Receive: [Unknown 0] %u %d - ", input[0], nbytes);
-                        //                    }
+                        else
+                        {
+                            debug_log.Printf("RECVFROM: [Unknown 0] %u %d \n", input[0], nbytes);
+                        }
 
                         // Return if port and address are our own
                         for (uint16_t i=1; i<cinfo->agent0.ifcnt; ++i)
@@ -4380,6 +4390,11 @@ acquired.
                 debug_log.Printf("%s [Name=%s, Enabled=%u, Size=%lu Age=%f Length=%u PacketCnt=%u ByteCnt=%lu]\n", extra.c_str(), channel_name(number).c_str(), channel_enabled(number), packet.packetized.size(), channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number), bytes.c_str());
             }
             return 0;
+        }
+
+        int32_t Agent::channel_count()
+        {
+            return channels.channel.size();
         }
 
         int32_t Agent::channel_set_comm_priority(uint8_t number)

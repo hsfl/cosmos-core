@@ -423,6 +423,7 @@ namespace Cosmos
             uint32_t get_verification();
             int32_t check_verification(uint32_t verification);
             int32_t channel_set_comm_priority(uint8_t number);
+            int32_t channel_count();
             int32_t channel_push(PacketComm &packet);
             int32_t channel_push(string name, PacketComm &packet);
             int32_t channel_push(uint8_t number, PacketComm& packet);
