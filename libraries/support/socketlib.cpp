@@ -442,13 +442,14 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
 #ifdef COSMOS_MAC_OS
         if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
 #else
-        if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on)) < 0)
+        if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
 #endif
         {
             CLOSE_SOCKET(channel.cudp);
             channel.cudp = -errno;
             return (-errno);
         }
+        setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on));
 
         switch (ntype)
         {
@@ -493,13 +494,14 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
 #ifdef COSMOS_MAC_OS
         if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
 #else
-        if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on)) < 0)
+        if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
 #endif
         {
             CLOSE_SOCKET(channel.cudp);
             channel.cudp = -errno;
             return (-errno);
         }
+        setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on));
 
         switch (ntype)
         {
@@ -1352,14 +1354,14 @@ int32_t Udp::socketOpen()
 #ifdef COSMOS_MAC_OS
         if (setsockopt(sok.handle,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
 #else
-        if (setsockopt(sok.handle,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on)) < 0)
+        if (setsockopt(sok.handle,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
 #endif
         {
             CLOSE_SOCKET(sok.handle);
             sok.handle = -errno;
             return (-errno);
         }
-
+        setsockopt(sok.handle,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on));
         sok.server.sin_addr.s_addr = htonl(INADDR_ANY);
 
         //Bind
