@@ -13512,7 +13512,7 @@ int32_t json_get_node_ids(map<string, uint8_t>& node_ids)
         return iretn;
     }
 
-    node_ids = {{"unkown", NODEIDUNKNOWN}, {"origin", NODEIDORIG}, {"destination", NODEIDDEST}};
+    node_ids = {{"unknown", NODEIDUNKNOWN}, {"origin", NODEIDORIG}, {"destination", NODEIDDEST}};
     dtemp = rootd;
     uint8_t node_idx = 1;
     if ((jdp=opendir(dtemp.c_str())) != nullptr)

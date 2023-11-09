@@ -127,6 +127,7 @@ int32_t CRC16::calc_file(string file_path)
 {
     uint8_t data;
     uint16_t remainder = initial;
+    int32_t iretn = 0;
 
     // Check file validity
     ifstream file(file_path, std::ios::in | std::ios::binary);
@@ -153,12 +154,18 @@ int32_t CRC16::calc_file(string file_path)
         }
     }
 
+    iretn = (remainder ^ xorout);
+    // Error encountered if read stops before EOF is reached
+    if (!file.eof())
+    {
+        iretn = COSMOS_GENERAL_ERROR_OPEN;
+    }
     file.close();
 
     /*
      * The final remainder is the CRC.
      */
-    return (remainder ^ xorout);
+    return iretn;
 }
 
 uint16_t calc_crc16ccitt_lsb(string buf, uint16_t crc, uint16_t skip)
