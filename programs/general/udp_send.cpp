@@ -32,8 +32,7 @@
 #include "support/sliplib.h"
 
 char address[] = "127.0.0.2";
-//uint16_t port = 6868;
-uint16_t port = 10020;
+uint16_t port = 6868;
 
 uint16_t bsize = 1500;
 uint16_t delay = 1;
@@ -48,7 +47,6 @@ int main(int argc, char *argv[])
 	int32_t iretn = 0;
 	uint32_t count=0;
 	socket_channel chan;
-    socket_channel chanin;
 	char buf3[10000];
 	int32_t lsleep, lat, lon, alt;
 	uint16_t len3;
@@ -56,11 +54,6 @@ int main(int argc, char *argv[])
 	float sec;
 	double imjd, elapsed;
 
-
-    if ((iretn = socket_open(&chanin, NetworkType::UDP, address, port, SOCKET_LISTEN, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
-    {
-        printf("Unable to open connection to listen %d\n", iretn);
-    }
 
     if ((iretn=socket_open(&chan, NetworkType::UDP, address, port, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
 	{
@@ -72,7 +65,6 @@ int main(int argc, char *argv[])
 	lon = -12083358;
 	alt = 50;
 	imjd = currentmjd(0.);
-    buf3[0] = 130;
 
     while (true)
 	{
@@ -80,20 +72,17 @@ int main(int argc, char *argv[])
         count++;
 		mjd = currentmjd(0.);
 		elapsed = 86400. * (mjd - imjd);
-		mjd -= (int)mjd;
-		hour =  mjd * 24;
-		min = 1400 * (mjd - hour/24.);
-		sec = 86400 * (mjd - (hour/24. + min/1400.));
-        sprintf(&buf3[3],"%02d%02d%02d%02d %7d %9d %d 1 100 293 293 27 0.09 0.00 1.01\n",hour,min,(int)sec,(int)(100*(sec-(int)sec)),(int)(lat+elapsed*2),(int)(lon+elapsed*1),(int)(alt+elapsed*5));
-        len3 = strlen(&buf3[3]);
-        buf3[1] = len3%256;
-        buf3[2] = len3 / 256;
+        mjd -= (int)mjd;
+        hour =  mjd * 24;
+        min = 1400 * (mjd - hour/24.);
+        sec = 86400 * (mjd - (hour/24. + min/1400.));
+        sprintf(buf3,"%02d%02d%02d%02d %7d %9d %d 1 100 293 293 27 0.09 0.00 1.01\n",hour,min,(int)sec,(int)(100*(sec-(int)sec)),(int)(lat+elapsed*2),(int)(lon+elapsed*1),(int)(alt+elapsed*5));
+        len3 = strlen(buf3);
 
         // Send packet
-        sendto(chan.cudp, (const char *)buf3, len3+3, 0, (struct sockaddr *)&chan.caddr, sizeof(struct sockaddr_in));
+        sendto(chan.cudp, (const char *)buf3, len3, 0, (struct sockaddr *)&chan.caddr, sizeof(struct sockaddr_in));
 
-        printf("[%s]\r", &buf3[3]);
-		fflush(stdout);
+        printf("[%s]\r", buf3);
         lsleep = 1*1000000;
 		COSMOS_USLEEP(lsleep);
 	}
