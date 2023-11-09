@@ -911,9 +911,9 @@ namespace Cosmos {
                 {
                     if (debug_log != nullptr)
                     {
-                        debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: Error opening file. %s\n", tet.split(), dt.lap(), cosmos_error_string(-errno).c_str());
+                        debug_log->Printf("%.4f %.4f Main: outgoing_tx_add: Error opening file. %s\n", tet.split(), dt.lap(), cosmos_error_string(iretn).c_str());
                     }
-                    return -errno;
+                    return iretn;
                 }
                 tx_out.file_crc = iretn;
 
@@ -2184,7 +2184,7 @@ namespace Cosmos {
             file_name.close();
             if (debug_log != nullptr)
             {
-                debug_log->Printf("%.4f %.4f Main: read_meta: %s tx_id: %d chunks: %lu\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
+                debug_log->Printf("%.4f %.4f Main: read_meta: %s tx_id: %d file_crc: %u chunks: %lu\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_crc, tx.file_info.size());
             }
 
             return 0;
@@ -2359,6 +2359,7 @@ string Transfer::list_outgoing()
             {
                 jlist.push_back(json11::Json::object {
                     { "tx_id", tx.tx_id },
+                    { "file_crc", tx.file_crc },
                     { "file_name", tx.file_name },
                     { "file_size", static_cast<int>(tx.file_size) },
                     { "node_name", tx.node_name },
@@ -2391,6 +2392,7 @@ string Transfer::list_incoming()
             {
                 jlist.push_back(json11::Json::object {
                     { "tx_id", tx.tx_id },
+                    { "file_crc", tx.file_crc },
                     { "file_name", tx.file_name },
                     { "file_size", static_cast<int>(tx.file_size) },
                     { "total_bytes", static_cast<int>(tx.total_bytes) },
