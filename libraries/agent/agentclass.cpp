@@ -3205,7 +3205,7 @@ namespace Cosmos
                         cinfo->agent0.beat.jitter,
                         cinfo->agent0.beat.dcycle,
                         cinfo->node.utcoffset);
-                debug_log.Printf("POST %u %x %s %s %s\n", i, cinfo->agent0.pub[i].flags, cinfo->agent0.pub[i].baddress, cinfo->agent0.pub[i].address, (char *)&post[3]);
+//                debug_log.Printf("POST %u %x %s %s %s\n", i, cinfo->agent0.pub[i].flags, cinfo->agent0.pub[i].baddress, cinfo->agent0.pub[i].address, (char *)&post[3]);
                 size_t hlength = strlen((char *)&post[3]);
                 post[1] = hlength%256;
                 post[2] = hlength / 256;
@@ -3236,7 +3236,7 @@ namespace Cosmos
                             (struct sockaddr *)&cinfo->agent0.pub[i].caddr, // socket address
                             sizeof(struct sockaddr_in)                  // size of address to socket pointer
                             );
-                    debug_log.Printf("Send P2P: %s %u %u %d\n", cinfo->agent0.pub[i].address, ntohs(cinfo->agent0.pub[i].caddr.sin_port), (uint8_t)type, iretn);
+//                    debug_log.Printf("Send P2P: %s %u %u %d\n", cinfo->agent0.pub[i].address, ntohs(cinfo->agent0.pub[i].caddr.sin_port), (uint8_t)type, iretn);
                 }
                 else if (cinfo->agent0.pub[i].flags & IFF_LOOPBACK)
                 {
@@ -3249,7 +3249,7 @@ namespace Cosmos
                                 (struct sockaddr *)&cinfo->agent0.pub[i].caddr, // socket address
                                 sizeof(struct sockaddr_in)                  // size of address to socket pointer
                                 );
-                        debug_log.Printf("Send Loopback: %s %x %u %u %d\n", cinfo->agent0.pub[i].address, ntohl(cinfo->agent0.pub[i].caddr.sin_addr.s_addr), ntohs(cinfo->agent0.pub[i].caddr.sin_port), (uint8_t)type, iretn);
+//                        debug_log.Printf("Send Loopback: %s %x %u %u %d\n", cinfo->agent0.pub[i].address, ntohl(cinfo->agent0.pub[i].caddr.sin_addr.s_addr), ntohs(cinfo->agent0.pub[i].caddr.sin_port), (uint8_t)type, iretn);
                     }
                 }
                 else
@@ -3261,7 +3261,7 @@ namespace Cosmos
                             (struct sockaddr *)&cinfo->agent0.pub[i].baddr, // socket address
                             sizeof(struct sockaddr_in)                  // size of address to socket pointer
                             );
-                    //                printf("Send Generic: %s %u %u %d\n", cinfo->agent0.pub[i].address, ntohs(cinfo->agent0.pub[i].baddr.sin_port), (uint8_t)type, iretn);
+//                    debug_log.Printf("Send Generic: %s %u %u %d\n", cinfo->agent0.pub[i].address, ntohs(cinfo->agent0.pub[i].baddr.sin_port), (uint8_t)type, iretn);
                 }
                 if (iretn < 0)
                 {
@@ -3433,12 +3433,12 @@ namespace Cosmos
                         if (cinfo->agent0.sub.addrlen == sizeof(cinfo->agent0.sub.caddr))
                         {
                             inet_ntop(cinfo->agent0.sub.caddr.sin_family,&(cinfo->agent0.sub.caddr.sin_addr),cinfo->agent0.sub.address,sizeof(cinfo->agent0.sub.address));
-                            debug_log.Printf("RECVFROM: [%s %u] %u %d \n", cinfo->agent0.sub.address, htons(cinfo->agent0.sub.caddr.sin_port), input[0], nbytes);
+//                            debug_log.Printf("RECVFROM: [%s %u] %u %d \n", cinfo->agent0.sub.address, htons(cinfo->agent0.sub.caddr.sin_port), input[0], nbytes);
                         }
-                        else
-                        {
-                            debug_log.Printf("RECVFROM: [Unknown 0] %u %d \n", input[0], nbytes);
-                        }
+//                        else
+//                        {
+//                            debug_log.Printf("RECVFROM: [Unknown 0] %u %d \n", input[0], nbytes);
+//                        }
 
                         // Return if port and address are our own
                         for (uint16_t i=1; i<cinfo->agent0.ifcnt; ++i)
