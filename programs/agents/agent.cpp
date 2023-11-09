@@ -83,14 +83,17 @@ int main(int argc, char *argv[])
     DeviceCpu deviceCpu;
     agent = new Agent("", "null");
     agent->set_debug_level(2);
-    agent->debug_log.Printf("Agent\n");
+    agent->debug_log.Printf("message_queue: %u\n", agent->message_queue.size());
     if (agent->cinfo == nullptr)
     {
         agent->debug_log.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(NODE_ERROR_NODE).c_str());
         exit(NODE_ERROR_NODE);
     }
+    secondsleep(.1);
+    agent->debug_log.Printf("message_queue: %u\n", agent->message_queue.size());
     agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
-    agent->debug_log.Printf("post\n");
+    secondsleep(.1);
+    agent->debug_log.Printf("message_queue: %u\n", agent->message_queue.size());
 
 
     // check command line arguments
@@ -249,8 +252,8 @@ int main(int argc, char *argv[])
             agent->debug_log.Printf("list\n");
             size_t agent_count = 0;
             ElapsedTime et;
-            agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
-            agent->debug_log.Printf("post\n");
+//            agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
+//            agent->debug_log.Printf("post\n");
             secondsleep(.5);
             do
             {
@@ -260,7 +263,6 @@ int main(int argc, char *argv[])
                     {
                         beatstruc cbeat = agent->agent_list[i];
                         agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
-                        agent->debug_log.Printf("send_request\n");
                         printf("[%lu] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node.c_str(),cbeat.proc.c_str(),cbeat.addr,cbeat.port,cbeat.bsz);
                         printf("\t%s\n",output.c_str());
                         fflush(stdout);
@@ -277,7 +279,7 @@ int main(int argc, char *argv[])
         {
             size_t agent_count = 0;
             ElapsedTime et;
-            agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
+//            agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
             secondsleep(.1);
             printf("{\"agent_list\":[");
             do
