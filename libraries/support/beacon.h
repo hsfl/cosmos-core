@@ -402,7 +402,7 @@ namespace Cosmos {
 //                vector<uint8_t> bytes;
 //            } ;
 
-            static constexpr uint8_t telem_count = 200-5;
+            static constexpr uint8_t telem_count = 175-5;
             struct __attribute__ ((packed)) telems_beacon
             {
                 uint8_t type = (uint8_t)TypeId::TelemBeacon;
