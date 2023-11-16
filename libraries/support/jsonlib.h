@@ -204,6 +204,7 @@ int32_t json_out_rvector(string &jstring,rvector value);
 int32_t json_out_tvector(string &jstring,rvector value);
 int32_t json_out_quaternion(string &jstring,quaternion value);
 int32_t json_out_cartpos(string &jstring, Convert::cartpos value);
+int32_t json_out_tlestruc(string &jstring, Convert::tlestruc &tle);
 int32_t json_out_geoidpos(string &jstring, Convert::geoidpos value);
 int32_t json_out_spherpos(string &jstring, Convert::spherpos value);
 int32_t json_out_dcmatt(string &jstring, Convert::dcmatt value);

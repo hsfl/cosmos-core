@@ -1121,7 +1121,9 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     currentinfo.agent0.name = "sim";
     currentinfo.node.loc.utc = utc;
     tle2eci(currentinfo.node.loc.utc, tle, currentinfo.node.loc.pos.eci);
-    this->tle = tle;
+    currentinfo.node.loc.tle = tle;
+    currentinfo.node.loc.pos.eci.pass++;
+    pos_eci(currentinfo.node.loc);
 
     structure = new Structure(&currentinfo.node.phys);
     structure->Setup(stype);
@@ -1143,7 +1145,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
         gjposition = new GaussJacksonPositionPropagator(&currentinfo, dt, 6);
         dt = gjposition->dt;
         dtj = gjposition->dtj;
-        gjposition->Init(tle);
+        gjposition->Init();
         break;
     case Propagator::Type::PositionGeo:
         geoposition = new GeoPositionPropagator(&currentinfo, dt);
@@ -1249,10 +1251,12 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
 
     if (ptype == Propagator::PositionGeo)
     {
+        currentinfo.node.loc.pos.geod.pass++;
         pos_geod(currentinfo.node.loc);
     }
     else
     {
+        currentinfo.node.loc.pos.eci.pass++;
         pos_eci(currentinfo.node.loc);
         PosAccel(currentinfo.node.loc, currentinfo.node.phys);
     }
@@ -1591,7 +1595,7 @@ int32_t State::Propagate(double nextutc)
     return count;
 }
 
-int32_t State::Propagate(const locstruc& loc)
+int32_t State::Propagate(locstruc &loc)
 {
     int32_t count = 0;
     double nextutc = loc.utc;
@@ -1622,7 +1626,9 @@ int32_t State::Propagate(const locstruc& loc)
             static_cast<TlePositionPropagator *>(tleposition)->Propagate(nextutc);
             break;
         case Propagator::Type::PositionLvlh:
+        {
             static_cast<LvlhPositionPropagator *>(lvlhposition)->Propagate(loc);
+        }
             break;
         default:
             break;
@@ -2280,10 +2286,16 @@ int32_t MetricGenerator::Propagate(double nextutc)
         }
     }
 
+    bool printed = false;
     for (uint16_t it=0; it<currentinfo->target.size(); ++it)
     {
         if (currentinfo->target[it].elto > 0.)
         {
+            if (!printed)
+            {
+                printf("[%.2f %.2f] ", DEGOF(currentinfo->node.loc.pos.geod.s.lat), DEGOF(currentinfo->node.loc.pos.geod.s.lon));
+                printed = true;
+            }
             for (uint16_t id=0; id<currentinfo->devspec.cam.size(); ++id)
             {
                 double h = currentinfo->node.loc.pos.geod.s.h;
@@ -2327,10 +2339,18 @@ int32_t MetricGenerator::Propagate(double nextutc)
                         coverage[it][id].area = dr < tr ? DPI * dr2 * sin(currentinfo->target[it].elto) : currentinfo->target[it].area;
                     }
 
-                    printf("\t%u %.1f %.1f %.1f %u %.3f %.1f\n", it, DEGOF(currentinfo->target[it].azto), DEGOF(currentinfo->target[it].elto), currentinfo->target[it].range, id, coverage[it][id].area, coverage[it][id].resolution);
+                    printf("[%u %.1f %.1f %.1f %u %.3f %.1f] ", it, DEGOF(currentinfo->target[it].azto), DEGOF(currentinfo->target[it].elto), currentinfo->target[it].range, id, coverage[it][id].area, coverage[it][id].resolution);
+                }
+                else
+                {
+                    printf("[%u %.1f %.1f %.1f] ", it, DEGOF(currentinfo->target[it].azto), DEGOF(currentinfo->target[it].elto), currentinfo->target[it].range);
                 }
             }
         }
+    }
+    if (printed)
+    {
+        printf("\n");
     }
     if (nextutc == 0.)
     {
@@ -2530,7 +2550,7 @@ int32_t LvlhPositionPropagator::Init(cartpos lvlh)
     return 0;
 }
 
-int32_t LvlhPositionPropagator::Reset(const locstruc &loc)
+int32_t LvlhPositionPropagator::Reset(locstruc &loc)
 {
     currentinfo->node.loc.pos = initialloc.pos;
     currentutc = currentinfo->node.loc.pos.utc;
@@ -2539,7 +2559,7 @@ int32_t LvlhPositionPropagator::Reset(const locstruc &loc)
     return 0;
 }
 
-int32_t LvlhPositionPropagator::Propagate(const locstruc &loc)
+int32_t LvlhPositionPropagator::Propagate(locstruc &loc)
 {
     double nextutc = loc.pos.geod.utc;
     while ((nextutc - currentutc) > dtj / 2.)
@@ -2551,6 +2571,7 @@ int32_t LvlhPositionPropagator::Propagate(const locstruc &loc)
         currentinfo->node.loc.pos.lvlh.s += dt * (currentinfo->node.loc.pos.lvlh.v + dt * ((1/2.) * currentinfo->node.loc.pos.lvlh.a + dt * (1.6) * currentinfo->node.loc.pos.lvlh.j));
     }
     cartpos lvlh = currentinfo->node.loc.pos.lvlh;
+    currentinfo->node.loc.tle.name = "";
     currentinfo->node.loc = loc;
     pos_origin2lvlh(currentinfo->node.loc, lvlh);
 
@@ -2631,21 +2652,20 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
     return 0;
 }
 
-int32_t TlePositionPropagator::Init(tlestruc tle)
-{
-    this->tle = tle;
-    tle2eci(currentutc, tle, currentinfo->node.loc.pos.eci);
-    currentinfo->node.loc.pos.eci.pass++;
-    PosAccel(currentinfo->node.loc, currentinfo->node.phys);
-    pos_eci(currentinfo->node.loc);
+//int32_t TlePositionPropagator::Init(tlestruc tle)
+//{
+//    tle2eci(currentutc, currentinfo->node.loc.tle, currentinfo->node.loc.pos.eci);
+//    currentinfo->node.loc.pos.eci.pass++;
+//    PosAccel(currentinfo->node.loc, currentinfo->node.phys);
+//    pos_eci(currentinfo->node.loc);
 
-    return 0;
-}
+//    return 0;
+//}
 
 int32_t TlePositionPropagator::Init()
 {
-    eci2tle(currentutc, currentinfo->node.loc.pos.eci, tle);
-    PosAccel(currentinfo->node.loc, currentinfo->node.phys);
+//    eci2tle(currentutc, currentinfo->node.loc.pos.eci, tle);
+//    PosAccel(currentinfo->node.loc, currentinfo->node.phys);
 
     return 0;
 }
@@ -2668,10 +2688,10 @@ int32_t TlePositionPropagator::Propagate(double nextutc)
     while ((nextutc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;
-        tle2eci(currentutc, tle, currentinfo->node.loc.pos.eci);
+        tle2eci(currentutc, currentinfo->node.loc.tle, currentinfo->node.loc.pos.eci);
         currentinfo->node.loc.pos.eci.pass++;
-        PosAccel(currentinfo->node.loc, currentinfo->node.phys);
         pos_eci(currentinfo->node.loc);
+        PosAccel(currentinfo->node.loc, currentinfo->node.phys);
     }
 
     return 0;

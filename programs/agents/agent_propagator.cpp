@@ -449,13 +449,11 @@ int32_t parse_sat(string args)
     double initialalt = 400000.;
     double initialangle = RADOF(54.);
     Convert::locstruc initialloc;
-    tlestruc initialtle;
     vector<camstruc> dets;
 
     uint16_t argcount = 0;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
-//    initialloc = Physics::shape2eci(motherutc, initiallat, initiallon, initialalt, initialangle, 0.);
     Physics::Propagator::Type type = Physics::Propagator::PositionInertial;
     if (!jargs["detector"].is_null())
     {
@@ -511,10 +509,10 @@ int32_t parse_sat(string args)
         initialloc.pos.lvlh.utc = initialloc.pos.utc;
         type = Physics::Propagator::PositionLvlh;
     }
-    if (!jargs["phys"].is_null())
+    if (!jargs["physfast"].is_null())
     {
         ++argcount;
-        json11::Json::object values = jargs["phys"].object_items();
+        json11::Json::object values = jargs["physfast"].object_items();
         initiallat = RADOF(values["lat"].number_value());
         initiallon = RADOF(values["lon"].number_value());
         initialalt = values["alt"].number_value();
@@ -524,14 +522,32 @@ int32_t parse_sat(string args)
             motherutc = currentmjd();
         }
         initialloc = Physics::shape2eci(motherutc, initiallat, initiallon, initialalt, initialangle, 0.);
-        type = Physics::Propagator::PositionGaussJackson;
-//        eci2tle(motherutc, initialloc.pos.eci, initialtle);
-//        type = Physics::Propagator::PositionTle;
+        pos_eci(initialloc);
+        eci2tle2(initialloc.pos.eci, initialloc.tle);
+        tle2eci(motherutc, initialloc.tle, initialloc.pos.eci);
+        pos_eci(initialloc);
+        type = Physics::Propagator::PositionTle;
     }
-    if (!jargs["eci"].is_null())
+    if (!jargs["physslow"].is_null())
     {
         ++argcount;
-        json11::Json::object values = jargs["eci"].object_items();
+        json11::Json::object values = jargs["physslow"].object_items();
+        initiallat = RADOF(values["lat"].number_value());
+        initiallon = RADOF(values["lon"].number_value());
+        initialalt = values["alt"].number_value();
+        initialangle = RADOF(values["angle"].number_value());
+        if (motherutc == 0.)
+        {
+            motherutc = currentmjd();
+        }
+        initialloc = Physics::shape2eci(motherutc, initiallat, initiallon, initialalt, initialangle, 0.);
+        eci2tle2(initialloc.pos.eci, initialloc.tle);
+        type = Physics::Propagator::PositionGaussJackson;
+    }
+    if (!jargs["ecifast"].is_null())
+    {
+        ++argcount;
+        json11::Json::object values = jargs["ecifast"].object_items();
         initialloc.pos.eci.utc = (values["utc"].number_value());
         initialloc.pos.eci.s.col[0] = (values["x"].number_value());
         initialloc.pos.eci.s.col[1] = (values["y"].number_value());
@@ -541,13 +557,29 @@ int32_t parse_sat(string args)
         initialloc.pos.eci.v.col[2] = (values["vz"].number_value());
         initialloc.pos.eci.pass++;
         pos_eci(initialloc);
-        eci2tle(motherutc, initialloc.pos.eci, initialtle);
+        eci2tle2(initialloc.pos.eci, initialloc.tle);
         type = Physics::Propagator::PositionTle;
     }
-    if (!jargs["kep"].is_null())
+    if (!jargs["ecislow"].is_null())
     {
         ++argcount;
-        json11::Json::object values = jargs["kep"].object_items();
+        json11::Json::object values = jargs["ecislow"].object_items();
+        initialloc.pos.eci.utc = (values["utc"].number_value());
+        initialloc.pos.eci.s.col[0] = (values["x"].number_value());
+        initialloc.pos.eci.s.col[1] = (values["y"].number_value());
+        initialloc.pos.eci.s.col[2] = (values["z"].number_value());
+        initialloc.pos.eci.v.col[0] = (values["vx"].number_value());
+        initialloc.pos.eci.v.col[1] = (values["vy"].number_value());
+        initialloc.pos.eci.v.col[2] = (values["vz"].number_value());
+        initialloc.pos.eci.pass++;
+        pos_eci(initialloc);
+        eci2tle2(initialloc.pos.eci, initialloc.tle);
+        type = Physics::Propagator::PositionGaussJackson;
+    }
+    if (!jargs["kepfast"].is_null())
+    {
+        ++argcount;
+        json11::Json::object values = jargs["kepfast"].object_items();
         kepstruc kep;
         if (motherutc == 0.)
         {
@@ -563,13 +595,35 @@ int32_t parse_sat(string args)
         kep2eci(kep, initialloc.pos.eci);
         initialloc.pos.eci.pass++;
         pos_eci(initialloc);
-        eci2tle(motherutc, initialloc.pos.eci, initialtle);
+        eci2tle2(initialloc.pos.eci, initialloc.tle);
         type = Physics::Propagator::PositionTle;
     }
-    if (!jargs["tle"].is_null())
+    if (!jargs["kepslow"].is_null())
     {
         ++argcount;
-        json11::Json::object values = jargs["tle"].object_items();
+        json11::Json::object values = jargs["kepslow"].object_items();
+        kepstruc kep;
+        if (motherutc == 0.)
+        {
+            motherutc = currentmjd();
+        }
+        kep.utc = motherutc;
+        kep.ea = values["ea"].number_value();
+        kep.i = values["i"].number_value();
+        kep.ap = values["ap"].number_value();
+        kep.raan = values["raan"].number_value();
+        kep.e = values["e"].number_value();
+        kep.a = values["a"].number_value();
+        kep2eci(kep, initialloc.pos.eci);
+        initialloc.pos.eci.pass++;
+        pos_eci(initialloc);
+        eci2tle2(initialloc.pos.eci, initialloc.tle);
+        type = Physics::Propagator::PositionGaussJackson;
+    }
+    if (!jargs["tlefast"].is_null())
+    {
+        ++argcount;
+        json11::Json::object values = jargs["tlefast"].object_items();
         vector<Convert::tlestruc>lines;
         string fname = get_realmdir(realmname, true) + "/" + values["filename"].string_value();
         load_lines(fname, lines);
@@ -577,11 +631,28 @@ int32_t parse_sat(string args)
         {
             motherutc = lines[0].utc;
         }
-        lines2eci(motherutc, lines, initialloc.pos.eci);
+        initialloc.tle = lines[0];
+        tle2eci(motherutc, initialloc.tle, initialloc.pos.eci);
         initialloc.pos.eci.pass++;
         pos_eci(initialloc);
-        initialtle = lines[0];
         type = Physics::Propagator::PositionTle;
+    }
+    if (!jargs["tleslow"].is_null())
+    {
+        ++argcount;
+        json11::Json::object values = jargs["tleslow"].object_items();
+        vector<Convert::tlestruc>lines;
+        string fname = get_realmdir(realmname, true) + "/" + values["filename"].string_value();
+        load_lines(fname, lines);
+        if (motherutc == 0.)
+        {
+            motherutc = lines[0].utc;
+        }
+        initialloc.tle = lines[0];
+        tle2eci(motherutc, initialloc.tle, initialloc.pos.eci);
+        initialloc.pos.eci.pass++;
+        pos_eci(initialloc);
+        type = Physics::Propagator::PositionGaussJackson;
     }
     initialloc.att.lvlh.s = q_eye();
     ++initialloc.att.lvlh.pass;
@@ -592,7 +663,14 @@ int32_t parse_sat(string args)
         motherutc = initialloc.utc;
         mothericrf = initialloc.att.icrf;
         mothereci = initialloc.pos.eci;
-        iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+        if (type == Physics::Propagator::PositionGaussJackson)
+        {
+            iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+        }
+        else
+        {
+            iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
+        }
     }
     else
     {

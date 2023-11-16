@@ -18,38 +18,39 @@ int main(int argc, char *argv[])
         load_lines(fname, lines);
     }
 
-    double mjd0 = currentmjd();
+//    double mjd0 = currentmjd();
+    double mjd0 = lines[0].utc;
 //    double mjd1 = mjd0 + 1.;
     loc_clear(loc0);
     Convert::tle2eci(mjd0, lines[0], loc0.pos.eci);
-    Convert::eci2tle(loc0.pos.eci.utc, loc0.pos.eci, tle1);
+    Convert::eci2tle2(loc0.pos.eci, tle1);
     ++loc0.pos.eci.pass;
     Convert::pos_eci(loc0);
     Vector utm;
     Convert::geod2utm(loc0.pos.geod, utm);
 
     loc_clear(loc0);
-    Convert::tle2eci(mjd0+1., lines[0], loc0.pos.eci);
+    Convert::tle2eci(mjd0+.1, lines[0], loc0.pos.eci);
 
     loc_clear(loc1);
-    Convert::tle2eci(mjd0+1., tle1, loc1.pos.eci);
+    Convert::tle2eci(mjd0+.1, tle1, loc1.pos.eci);
 
     tle2 = tle1;
     tle2.bstar = .0001;
     loc_clear(loc2);
-    Convert::tle2eci(mjd0+1., tle2, loc2.pos.eci);
+    Convert::tle2eci(mjd0+.1, tle2, loc2.pos.eci);
 
     tle3 = tle1;
     tle3.bstar = .001;
     loc_clear(loc3);
-    Convert::tle2eci(mjd0+1., tle3, loc3.pos.eci);
+    Convert::tle2eci(mjd0+.1, tle3, loc3.pos.eci);
 
     Convert::kepstruc kep;
     Convert::eci2kep(loc1.pos.eci, kep);
     Convert::kep2eci(kep, loc2.pos.eci);
 
 
-//    Convert::eci2tle(loc1.pos.eci.utc, loc1.pos.eci, tle2);
+//    Convert::eci2tle2(loc1.pos.eci.utc, loc1.pos.eci, tle2);
 //    Convert::tle2eci(tle2.utc, tle2, loc2.pos.eci);
 //    tle2.bstar = 300.*lines[0].bstar;
 //    for (double dt=0.; dt<1.; dt+=.01)
@@ -62,7 +63,7 @@ int main(int argc, char *argv[])
 //    printf("\n");
 
     Convert::tle2eci(mjd0, lines[0], loc1.pos.eci);
-    Convert::eci2tle(loc1.pos.eci.utc, loc1.pos.eci, tle3);
+    Convert::eci2tle2(loc1.pos.eci, tle3);
     Convert::tle2eci(tle3.utc, tle3, loc2.pos.eci);
 //    tle3.bstar = 4.7*lines[0].bstar;
     for (double dt=0.; dt<1.; dt+=.1)

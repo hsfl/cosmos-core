@@ -2633,6 +2633,11 @@ namespace Cosmos
                     add_name(basename+".vdouble", &devspec.telem[didx].vdouble, "double");
                     add_name(basename+".vstring", &devspec.telem[didx].vstring, "string");
                     break;
+                case DeviceType::NTELEM:
+                    basename = "devspec.ntelem[" + std::to_string(didx) + "]";
+                    add_name(basename+"", &devspec.telem[didx], "telemstruc");
+                    add_name(basename+".value", &devspec.ntelem[didx].value, "double");
+                    break;
                 case DeviceType::THST:
                     basename = "devspec.thst[" + std::to_string(didx) + "]";
                     add_name(basename+"", &devspec.thst[didx], "thststruc");
