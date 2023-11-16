@@ -714,6 +714,83 @@ namespace Cosmos {
         ::std::ostream& operator << (::std::ostream& out, const extrapos& a);
         ::std::istream& operator >> (::std::istream& in, extrapos& a);
 
+        //! In units **for** the SGP4 propagator (not NORAD TLE itself).
+        struct tlestruc
+        {
+            double utc = 0.;
+            // JIMNOTE: remove magic number
+//            string name = string(25, ' ');
+            string name = " ";
+            uint16_t snumber = 0;
+            string id = " ";
+            //! Drag (1/Earth radii)
+            double bstar = 0.;
+            //! Inclination (radians)
+            double i = 0.;
+            //! Right ascension of ascending node (radians)
+            double raan = 0.;
+            //! Eccentricity (unitless)
+            double e = 0.;
+            //! Argument of perigee (radians)
+            double ap = 0.;
+            //! Mean anomaly (radians)
+            double ma = 0.;
+            //! Mean motion (radians / minute)
+            double mm = 0.;
+            uint32_t orbit = 0;
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "utc" , utc },
+                    { "name" , name },
+                    { "snumber" , snumber },
+                    { "id" , id },
+                    { "bstar" , bstar },
+                    { "i" , i },
+                    { "raan" , raan },
+                    { "e" , e },
+                    { "ap" , ap },
+                    { "ma" , ma },
+                    { "mm" , mm },
+                    { "orbit" , static_cast<int>(orbit) }
+                };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param	s	JSON-formatted string to set class contents to
+        @return n/a
+    */
+            void from_json(const string& js) {
+                string error;
+                json11::Json parsed = json11::Json::parse(js,error);
+                if(error.empty()) {
+                    if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+                    if(!parsed["name"].is_null())    name = parsed["name"].string_value();
+                    if(!parsed["snumber"].is_null())    snumber =  parsed["snumber"].int_value();
+                    if(!parsed["id"].is_null())    id = parsed["id"].string_value();
+                    if(!parsed["bstar"].is_null())    bstar =  parsed["bstar"].number_value();
+                    if(!parsed["i"].is_null())    i =  parsed["i"].number_value();
+                    if(!parsed["raan"].is_null())    raan =  parsed["raan"].number_value();
+                    if(!parsed["e"].is_null())    e =  parsed["e"].number_value();
+                    if(!parsed["ap"].is_null())    ap =  parsed["ap"].number_value();
+                    if(!parsed["ma"].is_null())    ma =  parsed["ma"].number_value();
+                    if(!parsed["mm"].is_null())    mm =  parsed["mm"].number_value();
+                    if(!parsed["orbit"].is_null())    orbit =  parsed["orbit"].int_value();
+                } else {
+                    cerr<<"ERROR = "<<error<<endl;
+                }
+                return;
+            }
+        };
+
+        ::std::ostream& operator << (::std::ostream& out, const tlestruc& a);
+        ::std::istream& operator >> (::std::istream& in, tlestruc& a);
+
         //! Additional parameters relating to position that need only be calculated once.
         class extraatt
         {
@@ -928,6 +1005,7 @@ namespace Cosmos {
         {
             //! Master time for location, in Modified Julian Day
             double utc = 0.;
+            tlestruc tle;
             //! Cosmos::Support::posstruc for this time.
             posstruc pos;
             //! Cosmos::Support::attstruc for this time.
@@ -940,6 +1018,7 @@ namespace Cosmos {
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "utc" , utc },
+                    { "tle" , tle },
                     { "pos" , pos },
                     { "att" , att }
                 };
@@ -955,6 +1034,7 @@ namespace Cosmos {
                 json11::Json parsed = json11::Json::parse(js,error);
                 if(error.empty()) {
                     if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+                    if(!parsed["tle"].is_null())   tle.from_json(parsed["tle"].dump());
                     if(!parsed["pos"].is_null())    pos.from_json(parsed["pos"].dump());
                     if(!parsed["att"].is_null())    att.from_json(parsed["att"].dump());
                 } else {
@@ -966,79 +1046,6 @@ namespace Cosmos {
 
         ::std::ostream& operator << (::std::ostream& out, const locstruc& a);
         ::std::istream& operator >> (::std::istream& in, locstruc& a);
-
-        //! In units **for** the SGP4 propagator (not NORAD TLE itself).
-        struct tlestruc
-        {
-            double utc = 0.;
-            // JIMNOTE: remove magic number
-            string name = string(25, ' ');
-            uint16_t snumber = 0;
-            string id = string("");
-            //! Drag (1/Earth radii)
-            double bstar = 0.;
-            //! Inclination (radians)
-            double i = 0.;
-            //! Right ascension of ascending node (radians)
-            double raan = 0.;
-            //! Eccentricity (unitless)
-            double e = 0.;
-            //! Argument of perigee (radians)
-            double ap = 0.;
-            //! Mean anomaly (radians)
-            double ma = 0.;
-            //! Mean motion (radians / minute)
-            double mm = 0.;
-            uint32_t orbit = 0;
-
-            /// Convert class contents to JSON object
-            /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
-    */
-            json11::Json to_json() const {
-                return json11::Json::object {
-                    { "utc" , utc },
-                    { "name" , name },
-                    { "snumber" , snumber },
-                    { "id" , id },
-                    { "bstar" , bstar },
-                    { "i" , i },
-                    { "raan" , raan },
-                    { "e" , e },
-                    { "ap" , ap },
-                    { "ma" , ma },
-                    { "mm" , mm },
-                    { "orbit" , static_cast<int>(orbit) }
-                };
-            }
-
-            /// Set class contents from JSON string
-            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
-    */
-            void from_json(const string& js) {
-                string error;
-                json11::Json parsed = json11::Json::parse(js,error);
-                if(error.empty()) {
-                    if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
-                    if(!parsed["name"].is_null())    name = parsed["name"].string_value();
-                    if(!parsed["snumber"].is_null())    snumber =  parsed["snumber"].int_value();
-                    if(!parsed["id"].is_null())    id = parsed["id"].string_value();
-                    if(!parsed["bstar"].is_null())    bstar =  parsed["bstar"].number_value();
-                    if(!parsed["i"].is_null())    i =  parsed["i"].number_value();
-                    if(!parsed["raan"].is_null())    raan =  parsed["raan"].number_value();
-                    if(!parsed["e"].is_null())    e =  parsed["e"].number_value();
-                    if(!parsed["ap"].is_null())    ap =  parsed["ap"].number_value();
-                    if(!parsed["ma"].is_null())    ma =  parsed["ma"].number_value();
-                    if(!parsed["mm"].is_null())    mm =  parsed["mm"].number_value();
-                    if(!parsed["orbit"].is_null())    orbit =  parsed["orbit"].int_value();
-                } else {
-                    cerr<<"ERROR = "<<error<<endl;
-                }
-                return;
-            }
-        };
 
         //! STK positions structure
         /*! Structure for holding an array of position structures generated by STK.

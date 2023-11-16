@@ -130,7 +130,6 @@ namespace Cosmos
             physicsstruc initialphys;
 //            physicsstruc *currentphys;
             cosmosstruc *currentinfo;
-            tlestruc tle;
             bool enable = true;
 
             enum Type
@@ -282,8 +281,8 @@ namespace Cosmos
 
             int32_t Init();
             int32_t Init(cartpos lvlh);
-            int32_t Propagate(const locstruc& loc);
-            int32_t Reset(const locstruc& loc);
+            int32_t Propagate(locstruc &loc);
+            int32_t Reset(locstruc& loc);
 
         private:
         };
@@ -557,7 +556,7 @@ namespace Cosmos
 
             Propagator::Type etype;
             ElectricalPropagator *electrical;
-            tlestruc tle;
+//            tlestruc tle;
 
             OrbitalEventGenerator *orbitalevent;
             MetricGenerator *metric;
@@ -570,7 +569,7 @@ namespace Cosmos
             int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf=qatt());
             int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, cartpos lvlh, qatt icrf=qatt());
             int32_t Propagate(double nextutc=0.);
-            int32_t Propagate(const locstruc& nextloc);
+            int32_t Propagate(locstruc& nextloc);
             //! Propagates simulated physical state to the next timestep
             //! Runs any code that the propagators need to run at the end of a simulation run
             int32_t End();

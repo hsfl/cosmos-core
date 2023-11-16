@@ -2155,7 +2155,7 @@ int32_t att_lvlh2planec(locstruc &loc)
     patt->utc = loc.att.lvlh.utc;
 
     // Update pass
-    ppos->pass = patt->pass = loc.att.lvlh.pass;
+    patt->pass = loc.att.lvlh.pass;
 
     pos_lvlh(loc.att.lvlh.utc, loc);
 
@@ -3309,7 +3309,7 @@ int32_t pos_origin2lvlh(locstruc *loc, cartpos lvlh)
 int32_t pos_origin2lvlh(locstruc& loc, cartpos lvlh)
 {
     // Save att.lvlh at origin
-//    qatt qlvlh = loc.att.lvlh;
+    //    qatt qlvlh = loc.att.lvlh;
 
     rvector lvlh_x = drotate(loc.pos.extra.g2l, rvector(1., 0., 0.));
     rvector lvlh_y = drotate(loc.pos.extra.g2l, rvector(0., 1., 0.));
@@ -3357,7 +3357,7 @@ int32_t pos_lvlh2origin(locstruc* loc)
 int32_t pos_lvlh2origin(locstruc& loc)
 {
     // Save for later
-//    cartpos geoc = loc.pos.geoc;
+    //    cartpos geoc = loc.pos.geoc;
 
     rvector lvlh_x;
     rvector lvlh_y;
@@ -4033,7 +4033,7 @@ double atan3(double sa, double cb)
     return y;
 }
 
-int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
+int32_t eci2tle(cartpos eci, tlestruc &tle)
 {
     // ICRF to Mean of Data (undo Precession)
     //            rmatrix bm;
@@ -4075,7 +4075,7 @@ int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
     //            %            web site www.satelliteorbitdetermination.com
     //            % Orbital Mechanics with MATLAB
     //            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    tle.utc = utc;
+    tle.utc = eci.utc;
     double pi2 = D2PI;
     double xke = 0.0743669161331734132;
     double xj3 = -2.53881e-6;
@@ -4197,7 +4197,7 @@ int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
         temp = 2.0 / r - (rdot * rdot + rfdot * rfdot) / (xke * xke);
         aodp = 1.0 / temp;
         xn = xke * pow(aodp, (-1.5));
-        if (fabs(a2 - pl) < 1.0e-13)
+        if (fabs(a2 - pl) < 1.0e-17)
         {
             break;
         }
@@ -4254,7 +4254,7 @@ int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
             tle.e = 0.999;
         }
 
-        if (fabs(a2 - tle.e) < 1.0e-9)
+        if (fabs(a2 - tle.e) < 1.0e-17)
         {
             break;
         }
@@ -4279,7 +4279,7 @@ int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
         a0 = aodp * (1.0 - d0);
         double d1 = temp / (a1 * a1);
         a1 = a0 / (1.0 - d1 / 3.0 - d1 * d1 - 134.0 * d1 * d1 * d1 / 81.0);
-        if (fabs(a2 - a1) < 1.0e-13)
+        if (fabs(a2 - a1) < 1.0e-16)
         {
             break;
         }
@@ -4296,47 +4296,341 @@ int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
          * \param eci State Vector to convert, stored as ::Cosmos::Convert::cartpos
          * \param tle Two Line Element, stored as ::Cosmos::Convert::tlestruc
          */
-//        int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
-//        {
-//            // ICRF to Mean of Data (undo Precession)
-//            rmatrix bm;
-//            gcrf2j2000(&bm);
-//            eci.s = rv_mmult(bm,eci.s);
-//            eci.v = rv_mmult(bm,eci.v);
+int32_t eci2tle2(cartpos eci, tlestruc &tle)
+{
+    // ICRF to Mean of Data (undo Precession)
+    rmatrix bm;
+    gcrf2j2000(&bm);
+    eci.s = rv_mmult(bm,eci.s);
+    eci.v = rv_mmult(bm,eci.v);
 
-//            rmatrix pm;
-//            j20002mean(utc,&pm);
-//            eci.s = rv_mmult(pm,eci.s);
-//            eci.v = rv_mmult(pm,eci.v);
+    rmatrix pm;
+    j20002mean(eci.utc,&pm);
+    eci.s = rv_mmult(pm,eci.s);
+    eci.v = rv_mmult(pm,eci.v);
 
-//            // Mean of Date to True of Date (undo Nutation)
-//            rmatrix nm;
-//            mean2true(utc,&nm);
-//            eci.s = rv_mmult(nm,eci.s);
-//            eci.v = rv_mmult(nm,eci.v);
+    // Mean of Date to True of Date (undo Nutation)
+    rmatrix nm;
+    mean2true(eci.utc,&nm);
+    eci.s = rv_mmult(nm,eci.s);
+    eci.v = rv_mmult(nm,eci.v);
 
-//            // True of Date to Uniform of Date (undo Equation of Equinoxes)
-//            rmatrix sm;
-//            true2teme(utc, &sm);
-//            eci.s = rv_mmult(sm,eci.s);
-//            eci.v = rv_mmult(sm,eci.v);
+    // True of Date to Uniform of Date (undo Equation of Equinoxes)
+    rmatrix sm;
+    true2teme(eci.utc, &sm);
+    eci.s = rv_mmult(sm,eci.s);
+    eci.v = rv_mmult(sm,eci.v);
 
-//            // Convert to Keplerian Elements
-//            kepstruc kep;
-//            eci2kep(eci, kep);
+    // Convert to Keplerian Elements
+    kepstruc kep;
+    eci2kep(eci, kep);
 
-//            // Store in relevant parts of TLE
-//            tle.orbit = 0;
-//            tle.ap = kep.ap;
-//            tle.e = kep.e;
-//            tle.i = kep.i;
-//            tle.ma = kep.ma;
-//            tle.mm = kep.mm * 60.; // Keplerian in SI units (radians / seconds), convert to radians / minute.
-//            tle.raan = kep.raan;
-//            tle.utc = utc;
+    // Store in relevant parts of TLE
+    tle.bstar = .0001;
+    tle.orbit = 0;
+    tle.ap = kep.ap;
+    tle.e = kep.e;
+    tle.i = kep.i;
+    tle.ma = kep.ma;
+    tle.mm = kep.mm * 60.; // Keplerian in SI units (radians / seconds), convert to radians / minute.
+    tle.raan = kep.raan;
+    tle.utc = eci.utc;
+//    eci2tle(eci, tle);
+//    tle.bstar = .0001;
+    cartpos ecinew;
+//    tle2eci(eci.utc, tle, ecinew);
+    tlestruc tlenew;
+    tlenew = tle;
+    double errornew;
+    double error;
 
-//            return 0;
-//        }
+    double scale = .01;
+//    tle2eci(eci.utc, tle, ecinew);
+//    error = length_rv(ecinew.s-eci.s);
+    bool improved = false;
+    size_t count = 0;
+    do
+    {
+        tle2eci(eci.utc, tlenew, ecinew);
+        error = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+        improved = false;
+
+        tlenew.bstar = (1.+scale) * tle.bstar;
+        tle2eci(eci.utc, tlenew, ecinew);
+        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+        if (error - errornew > scale)
+        {
+            improved = true;
+            error = errornew;
+            tlenew.bstar = (1.-scale) * tle.bstar;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                error = errornew;
+                tle.bstar = tlenew.bstar;
+            }
+            else
+            {
+                tlenew.bstar = (1.+scale) * tle.bstar;
+                tle.bstar = tlenew.bstar;
+            }
+        }
+        else
+        {
+            tlenew.bstar = (1.-scale) * tle.bstar;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                improved = true;
+                error = errornew;
+                tle.bstar = tlenew.bstar;
+            }
+            else
+            {
+                tlenew.bstar = tle.bstar;
+            }
+        }
+
+        tlenew.ap = (1.+scale) * tle.ap;
+        tle2eci(eci.utc, tlenew, ecinew);
+        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+        if (error - errornew > scale)
+        {
+            improved = true;
+            error = errornew;
+            tlenew.ap = (1.-scale) * tle.ap;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                error = errornew;
+                tle.ap = tlenew.ap;
+            }
+            else
+            {
+                tlenew.ap = (1.+scale) * tle.ap;
+                tle.ap = tlenew.ap;
+            }
+        }
+        else
+        {
+            tlenew.ap = (1.-scale) * tle.ap;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                improved = true;
+                error = errornew;
+                tle.ap = tlenew.ap;
+            }
+            else
+            {
+                tlenew.ap = tle.ap;
+            }
+        }
+
+       tlenew.e = (1.+scale) * tle.e;
+        tle2eci(eci.utc, tlenew, ecinew);
+        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+        if (error - errornew > scale)
+        {
+            improved = true;
+            error = errornew;
+            tlenew.e = (1.-scale) * tle.e;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                error = errornew;
+                tle.e = tlenew.e;
+            }
+            else
+            {
+                tlenew.e = (1.+scale) * tle.e;
+                tle.e = tlenew.e;
+            }
+        }
+        else
+        {
+            tlenew.e = (1.-scale) * tle.e;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                improved = true;
+                error = errornew;
+                tle.e = tlenew.e;
+            }
+            else
+            {
+                tlenew.e = tle.e;
+            }
+        }
+
+        tlenew.i = (1.+scale) * tle.i;
+        tle2eci(eci.utc, tlenew, ecinew);
+        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+        if (error - errornew > scale)
+        {
+            improved = true;
+            error = errornew;
+            tlenew.i = (1.-scale) * tle.i;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                error = errornew;
+                tle.i = tlenew.i;
+            }
+            else
+            {
+                tlenew.i = (1.+scale) * tle.i;
+                tle.i = tlenew.i;
+            }
+        }
+        else
+        {
+            tlenew.i = (1.-scale) * tle.i;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                improved = true;
+                error = errornew;
+                tle.i = tlenew.i;
+            }
+            else
+            {
+                tlenew.i = tle.i;
+            }
+        }
+
+        tlenew.mm = (1.+scale) * tle.mm;
+        tle2eci(eci.utc, tlenew, ecinew);
+        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+        if (error - errornew > scale)
+        {
+            improved = true;
+            error = errornew;
+            tlenew.mm = (1.-scale) * tle.mm;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                error = errornew;
+                tle.mm = tlenew.mm;
+            }
+            else
+            {
+                tlenew.mm = (1.+scale) * tle.mm;
+                tle.mm = tlenew.mm;
+            }
+        }
+        else
+        {
+            tlenew.mm = (1.-scale) * tle.mm;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                improved = true;
+                error = errornew;
+                tle.mm = tlenew.mm;
+            }
+            else
+            {
+                tlenew.mm = tle.mm;
+            }
+        }
+
+        tlenew.ma = (1.+scale) * tle.ma;
+        tle2eci(eci.utc, tlenew, ecinew);
+        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+        if (error - errornew > scale)
+        {
+            improved = true;
+            error = errornew;
+            tlenew.ma = (1.-scale) * tle.ma;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                error = errornew;
+                tle.ma = tlenew.ma;
+            }
+            else
+            {
+                tlenew.ma = (1.+scale) * tle.ma;
+                tle.ma = tlenew.ma;
+            }
+        }
+        else
+        {
+            tlenew.ma = (1.-scale) * tle.ma;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                improved = true;
+                error = errornew;
+                tle.ma = tlenew.ma;
+            }
+            else
+            {
+                tlenew.ma = tle.ma;
+            }
+        }
+
+        tlenew.raan = (1.+scale) * tle.raan;
+        tle2eci(eci.utc, tlenew, ecinew);
+        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+        if (error - errornew > scale)
+        {
+            improved = true;
+            error = errornew;
+            tlenew.raan = (1.-scale) * tle.raan;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                error = errornew;
+                tle.raan = tlenew.raan;
+            }
+            else
+            {
+                tlenew.raan = (1.+scale) * tle.raan;
+                tle.raan = tlenew.raan;
+            }
+        }
+        else
+        {
+            tlenew.raan = (1.-scale) * tle.raan;
+            tle2eci(eci.utc, tlenew, ecinew);
+            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+            if (error - errornew > scale)
+            {
+                improved = true;
+                error = errornew;
+                tle.raan = tlenew.raan;
+            }
+            else
+            {
+                tlenew.raan = tle.raan;
+            }
+        }
+        ++count;
+
+        if (!improved)
+        {
+            scale /= 10.;
+            count = 0;
+        }
+    } while (scale > .000001);
+
+    return 0;
+}
 
 /**
          * Convert a Two Line Element into a location at the specified time.
@@ -5081,7 +5375,7 @@ int32_t eci2tlestring(cartpos eci, string &tle, string ref_tle, double bstar)
     string epoch;
     tlestruc tles; // <-- in SI units.
     mjd2tlef(eci.utc, epoch);
-    eci2tle(eci.utc, eci, tles);
+    eci2tle(eci, tles);
 
     // std::cout << "Inclination: " << DEGOF(tles.i) << std::endl;
     // std::cout << "Right acension of rising node: " << DEGOF(tles.raan) << std::endl;

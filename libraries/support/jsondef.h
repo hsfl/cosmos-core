@@ -322,9 +322,11 @@ namespace Cosmos
             JSON_TYPE_ATTSTRUC,
             //! JSON Agent Heartbeat
             JSON_TYPE_HBEAT,
+            //! JSON Two Line Element Position
+            JSON_TYPE_TLESTRUC,
             //! JSON Solar Barycentric Position
             JSON_TYPE_POS_ICRF,
-            JSON_TYPE_POS_FIRST = JSON_TYPE_POS_ICRF,
+//            JSON_TYPE_POS_FIRST = JSON_TYPE_POS_ICRF,
             //! JSON Earth Centered Inertial Position
             JSON_TYPE_POS_ECI,
             //! JSON Lunar Centered Inertial Position
@@ -371,7 +373,6 @@ namespace Cosmos
             JSON_TYPE_TARGETSTRUC,
             JSON_TYPE_USERSTRUC,
             JSON_TYPE_GLOSSARYSTRUC,
-            JSON_TYPE_TLESTRUC,
             //! JSON Timestamp
             JSON_TYPE_TIMESTAMP,
             //! JSON Equation
@@ -652,7 +653,11 @@ namespace Cosmos
             MAG=32,
             //! Earth Sensor
             XYZSEN=33,
+            //! Numeric Telemetry
+            NTELEM=34,
+            //! String Telemetry
             //! List count
+            STELEM=35,
             COUNT,
             //! Not a Component
             NONE=UINT16_MAX
@@ -2487,6 +2492,70 @@ union as a ::devicestruc.
             {8, 0}
         };
 
+        struct ntelemstruc : public devicestruc
+        {
+            //! Data type
+            double value = 0.f;
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                                            { "value", value },
+                                            };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param	s	JSON-formatted string to set class contents to
+        @return n/a
+    */
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["value"].is_null()) { value = parsed["type"].number_value(); }
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        } ;
+
+        struct stelemstruc : public devicestruc
+        {
+            //! Data type
+            string value = "";
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                                            { "value", value },
+                                            };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param	s	JSON-formatted string to set class contents to
+        @return n/a
+    */
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["value"].is_null()) { value = parsed["vstring"].string_value();}
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        } ;
+
         struct telemstruc : public devicestruc
         {
             //! Data type
@@ -2529,8 +2598,17 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["type"].is_null()) { type = parsed["type"].number_value(); }
-                    //  TODO:		  vstring = parsed["vstring"].string_value();
+                    if(!parsed["vtype"].is_null()) { vtype = parsed["vtype"].number_value(); }
+                    if(!parsed["vuint8"].is_null()) { vuint8 = parsed["vuint8"].number_value();}
+                    if(!parsed["vint8"].is_null()) { vint8 = parsed["vint8"].number_value();}
+                    if(!parsed["vuint16"].is_null()) { vuint16 = parsed["vuint16"].number_value();}
+                    if(!parsed["vint16"].is_null()) { vint16 = parsed["vint16"].number_value();}
+                    if(!parsed["vuint32"].is_null()) { vuint32 = parsed["vuint32"].number_value();}
+                    if(!parsed["vint32"].is_null()) { vint32 = parsed["vint32"].number_value();}
+                    if(!parsed["vfloat"].is_null()) { vfloat = parsed["32"].number_value();}
+                    if(!parsed["vdouble"].is_null()) { vdouble = parsed["vdouble"].number_value();}
+                    if(!parsed["vstring"].is_null()) { vstring = parsed["vstring"].string_value();}
+                    //  TODO:
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -4769,6 +4847,7 @@ union as a ::devicestruc.
                 total += mcc.capacity() * sizeof(mccstruc);
                 total += motr.capacity() * sizeof(motrstruc);
                 total += mtr.capacity() * sizeof(mtrstruc);
+                total += ntelem.capacity() * sizeof(ntelemstruc);
                 total += pload.capacity() * sizeof(ploadstruc);
                 total += prop.capacity() * sizeof(propstruc);
                 total += psen.capacity() * sizeof(psenstruc);
@@ -4777,6 +4856,7 @@ union as a ::devicestruc.
                 total += rw.capacity() * sizeof(rwstruc);
                 total += rxr.capacity() * sizeof(rxrstruc);
                 total += ssen.capacity() * sizeof(ssenstruc);
+                total += stelem.capacity() * sizeof(stelemstruc);
                 total += stt.capacity() * sizeof(sttstruc);
                 total += suchi.capacity() * sizeof(suchistruc);
                 total += swch.capacity() * sizeof(swchstruc);
@@ -4808,6 +4888,7 @@ union as a ::devicestruc.
                 vector<mccstruc>(mcc).swap(mcc);
                 vector<motrstruc>(motr).swap(motr);
                 vector<mtrstruc>(mtr).swap(mtr);
+                vector<ntelemstruc>(ntelem).swap(ntelem);
                 vector<ploadstruc>(pload).swap(pload);
                 vector<propstruc>(prop).swap(prop);
                 vector<psenstruc>(psen).swap(psen);
@@ -4816,6 +4897,7 @@ union as a ::devicestruc.
                 vector<rwstruc>(rw).swap(rw);
                 vector<rxrstruc>(rxr).swap(rxr);
                 vector<ssenstruc>(ssen).swap(ssen);
+                vector<stelemstruc>(stelem).swap(stelem);
                 vector<sttstruc>(stt).swap(stt);
                 vector<suchistruc>(suchi).swap(suchi);
                 vector<swchstruc>(swch).swap(swch);
@@ -4844,6 +4926,7 @@ union as a ::devicestruc.
             uint16_t mcc_cnt = 0;
             uint16_t motr_cnt = 0;
             uint16_t mtr_cnt = 0;
+            uint16_t ntelem_cnt = 0;
             uint16_t pload_cnt = 0;
             uint16_t prop_cnt = 0;
             uint16_t psen_cnt = 0;
@@ -4853,6 +4936,7 @@ union as a ::devicestruc.
             uint16_t rxr_cnt = 0;
             uint16_t ssen_cnt = 0;
             uint16_t pvstrg_cnt = 0;
+            uint16_t stelem_cnt = 0;
             uint16_t stt_cnt = 0;
             uint16_t suchi_cnt = 0;
             uint16_t swch_cnt = 0;
@@ -4880,6 +4964,7 @@ union as a ::devicestruc.
             vector<mccstruc>mcc;
             vector<motrstruc>motr;
             vector<mtrstruc>mtr;
+            vector<ntelemstruc>ntelem;
             vector<ploadstruc>pload;
             vector<propstruc>prop;
             vector<psenstruc>psen;
@@ -4888,6 +4973,7 @@ union as a ::devicestruc.
             vector<rwstruc>rw;
             vector<rxrstruc>rxr;
             vector<ssenstruc>ssen;
+            vector<stelemstruc>stelem;
             vector<sttstruc>stt;
             vector<suchistruc>suchi;
             vector<swchstruc>swch;
@@ -4921,6 +5007,7 @@ union as a ::devicestruc.
                     { "mcc_cnt", mcc_cnt },
                     { "motr_cnt", motr_cnt },
                     { "mtr_cnt", mtr_cnt },
+                    { "ntelem_cnt", ntelem_cnt },
                     { "pload_cnt", pload_cnt },
                     { "prop_cnt", prop_cnt },
                     { "psen_cnt", psen_cnt },
@@ -4929,6 +5016,7 @@ union as a ::devicestruc.
                     { "rw_cnt", rw_cnt },
                     { "rxr_cnt", rxr_cnt },
                     { "ssen_cnt", ssen_cnt },
+                    { "stelem_cnt", stelem_cnt },
                     { "pvstrg_cnt", pvstrg_cnt },
                     { "stt_cnt", stt_cnt },
                     { "suchi_cnt", suchi_cnt },
@@ -4957,6 +5045,7 @@ union as a ::devicestruc.
                     { "mcc", mcc },
                     { "motr", motr },
                     { "mtr", mtr },
+                    { "ntelem", ntelem },
                     { "pload", pload },
                     { "prop", prop },
                     { "psen", psen },
@@ -4965,6 +5054,7 @@ union as a ::devicestruc.
                     { "rw", rw },
                     { "rxr", rxr },
                     { "ssen", ssen },
+                    { "stelem", stelem },
                     { "stt", stt },
                     { "suchi", suchi },
                     { "swch", swch },
@@ -5005,6 +5095,7 @@ union as a ::devicestruc.
                     if(!p["mcc_cnt"].is_null()) { mcc_cnt = p["mcc_cnt"].int_value(); }
                     if(!p["motr_cnt"].is_null()) { motr_cnt = p["motr_cnt"].int_value(); }
                     if(!p["mtr_cnt"].is_null()) { mtr_cnt = p["mtr_cnt"].int_value(); }
+                    if(!p["ntelem_cnt"].is_null()) { ntelem_cnt = p["ntelem_cnt"].int_value(); }
                     if(!p["pload_cnt"].is_null()) { pload_cnt = p["pload_cnt"].int_value(); }
                     if(!p["prop_cnt"].is_null()) { prop_cnt = p["prop_cnt"].int_value(); }
 
@@ -5016,6 +5107,7 @@ union as a ::devicestruc.
 
                     if(!p["ssen_cnt"].is_null()) { ssen_cnt = p["ssen_cnt"].int_value(); }
                     if(!p["pvstrg_cnt"].is_null()) { pvstrg_cnt = p["pvstrg_cnt"].int_value(); }
+                    if(!p["stelem_cnt"].is_null()) { stelem_cnt = p["stelem_cnt"].int_value(); }
                     if(!p["stt_cnt"].is_null()) { stt_cnt = p["stt_cnt"].int_value(); }
                     if(!p["suchi_cnt"].is_null()) { suchi_cnt = p["suchi_cnt"].int_value(); }
                     if(!p["swch_cnt"].is_null()) { swch_cnt = p["swch_cnt"].int_value(); }
@@ -5081,6 +5173,9 @@ union as a ::devicestruc.
                     for(size_t i = 0; i < mtr.size(); ++i) {
                         if(!p["mtr"][i].is_null()) { mtr[i].from_json(p["mtr"][i].dump()); }
                     }
+                    for(size_t i = 0; i < telem.size(); ++i) {
+                        if(!p["ntelem"][i].is_null()) { ntelem[i].from_json(p["ntelem"][i].dump()); }
+                    }
                     for(size_t i = 0; i < pload.size(); ++i) {
                         if(!p["pload"][i].is_null()) { pload[i].from_json(p["pload"][i].dump()); }
                     }
@@ -5106,6 +5201,9 @@ union as a ::devicestruc.
                     }
                     for(size_t i = 0; i < ssen.size(); ++i) {
                         if(!p["ssen"][i].is_null()) { ssen[i].from_json(p["ssen"][i].dump()); }
+                    }
+                    for(size_t i = 0; i < telem.size(); ++i) {
+                        if(!p["stelem"][i].is_null()) { stelem[i].from_json(p["stelem"][i].dump()); }
                     }
                     for(size_t i = 0; i < stt.size(); ++i) {
                         if(!p["stt"][i].is_null()) { stt[i].from_json(p["stt"][i].dump()); }
