@@ -335,6 +335,12 @@ namespace Cosmos {
                                 bytes.insert(bytes.end(), cinfo->devspec.telem[i].vstring.begin(), cinfo->devspec.telem[i].vstring.end());
                             }
                             break;
+                        case JSON_TYPE_NONE:
+                            {
+                                continue;
+                            }
+                        default:
+                            return GENERAL_ERROR_MISMATCH;
                         } // End switch
                         if (offset + bytes.size() > sizeof(beacon.content))
                         {
@@ -1031,6 +1037,11 @@ namespace Cosmos {
                                         offset += 1 + str_len;
                                     }
                                     break;
+                                case JSON_TYPE_NONE:
+                                    {
+                                        continue;
+                                    }
+                                    break;
                                 default:
                                     return GENERAL_ERROR_MISMATCH;
                                 }
@@ -1521,6 +1532,10 @@ namespace Cosmos {
                                 json_out_1d(Contents, "device_telem_vstring", i, cinfo);
                             }
                             break;
+                        case JSON_TYPE_NONE:
+                            {
+                                continue;
+                            }
                         default:
                             return GENERAL_ERROR_MISMATCH;
                         }
