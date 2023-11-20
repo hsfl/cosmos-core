@@ -140,6 +140,7 @@ vector<filestruc> data_list_files(string directory);
 size_t data_list_files(string directory, vector<filestruc>& files);
 vector<filestruc> data_list_files(string node, string location);
 vector<filestruc> data_list_files(string node, string location, string agent);
+string data_list_latest_file(string node, string location, string agent);
 size_t data_list_files(string node, string location, string agent, vector<filestruc>& files);
 vector<filestruc> data_list_archive(string node, string agent, double utc, string type);
 vector<filestruc> data_list_archive(string node, string agent, double utc);
