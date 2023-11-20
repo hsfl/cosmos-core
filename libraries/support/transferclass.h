@@ -54,7 +54,7 @@ namespace Cosmos {
             };
             //! Returned by receive_packet() if there was something of concern requring the receive to send out a response-type packet of some sort (e.g., REQMETA, REQDATA, etc.)
             static const int32_t RESPONSE_REQUIRED = 1;
-            
+
             Transfer();
             // int32_t Init(string node, string agent, uint16_t chunk_size);
             int32_t Init(cosmosstruc *cinfo);
@@ -69,12 +69,8 @@ namespace Cosmos {
             int32_t outgoing_tx_recount(const uint8_t node_id);
             int32_t incoming_tx_recount(const string node_name);
             int32_t incoming_tx_recount(const uint8_t node_id);
-            int32_t get_outgoing_lpackets(vector<PacketComm> &packets);
-            int32_t get_outgoing_lpackets(const string node_name, vector<PacketComm> &packets);
-            int32_t get_outgoing_rpackets(vector<PacketComm> &packets);
-            int32_t get_outgoing_rpackets(const string node_name, vector<PacketComm> &packets);
-            int32_t get_outgoing_lpackets(const uint8_t node_id, vector<PacketComm> &packets);
-            int32_t get_outgoing_rpackets(const uint8_t node_id, vector<PacketComm> &packets);
+            int32_t send_outgoing_lpackets(const uint8_t dest_node_id, Agent* agent, const uint8_t channel_id, uint32_t max_packets_to_queue, double timeout);
+            int32_t send_outgoing_rpackets(const uint8_t orig_node_id, Agent* agent, const uint8_t channel_id, double timeout);
             int32_t receive_packet(const PacketComm& packet);
 
             // Various publicly available requests
@@ -95,6 +91,10 @@ namespace Cosmos {
             PACKET_CHUNK_SIZE_TYPE get_packet_size();
             int32_t set_packet_size(const PACKET_CHUNK_SIZE_TYPE size);
 
+            // Print out packets for debugging
+            void print_file_packet(PacketComm packet, uint8_t direction, string type, Log::Logger* debug_log);
+
+
         private:
             //! Associated cosmosstruc
             cosmosstruc *cinfo;
@@ -110,6 +110,8 @@ namespace Cosmos {
 
             // Timers for debug messages
             ElapsedTime dt, tet;
+            // Disable to surpress DATA type printing
+            bool verbose_log = false;
 
             // Byte size limit of a packet
             PACKET_CHUNK_SIZE_TYPE packet_size = 217;

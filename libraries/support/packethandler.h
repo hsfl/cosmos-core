@@ -82,7 +82,6 @@ namespace Cosmos {
 //            static int32_t EpsSwitchNumber(PacketComm &packet, string &response, Agent* agent);
 //            static int32_t EpsReset(PacketComm &packet, string &response, Agent* agent);
 //            static int32_t EpsState(PacketComm &packet, string &response, Agent* agent);
-            static int32_t request_command(string &, string &response, Agent *agent);
 
             static int32_t QueueReset(uint16_t seconds, uint32_t verification_check, Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& channelout="EXEC", const string& radioin="");
             static int32_t QueueReboot(uint32_t verification_check, Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& channelout="EXEC", const string& radioin="");

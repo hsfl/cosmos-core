@@ -44,7 +44,6 @@ target_link_libraries(agent_simple_request CosmosAgent CosmosLog)
 target_link_libraries(errortest CosmosTime CosmosLog)
 target_link_libraries(string_test CosmosString CosmosConvert)
 target_link_libraries(string_float_test CosmosString)
-target_link_libraries(file_transfer_test CosmosAgent CosmosTransfer CosmosSlip)
 
 #include(CTest)
 #enable_testing()

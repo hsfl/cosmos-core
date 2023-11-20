@@ -28,7 +28,6 @@
 ********************************************************************/
 
 #include "support/transferclass.h"
-
 namespace Cosmos {
     namespace Support {
         Transfer::Transfer()
@@ -326,63 +325,63 @@ namespace Cosmos {
         //! Not thread safe.
         //! \param packets Outgoing packets will be pushed onto this vector of PacketComm packets.
         //! \return
-        int32_t Transfer::get_outgoing_lpackets(vector<PacketComm> &packets)
-        {
-            for (auto it = node_id_to_txq_map.begin(); it != node_id_to_txq_map.end(); ++it)
-            {
-                int32_t iretn = get_outgoing_lpackets(it->first, packets);
-                if (iretn < 0)
-                {
-                    if (debug_log != nullptr)
-                    {
-                        debug_log->Printf("%.4f %.4f Main: get_outgoing_lpackets: %s at node %u\n", tet.split(), dt.lap(), cosmos_error_string(iretn).c_str(), it->first);
-                    }
-                    return iretn;
-                }
-            }
+        // int32_t Transfer::get_outgoing_lpackets(vector<PacketComm> &packets)
+        // {
+        //     for (auto it = node_id_to_txq_map.begin(); it != node_id_to_txq_map.end(); ++it)
+        //     {
+        //         int32_t iretn = get_outgoing_lpackets(it->first, packets);
+        //         if (iretn < 0)
+        //         {
+        //             if (debug_log != nullptr)
+        //             {
+        //                 debug_log->Printf("%.4f %.4f Main: get_outgoing_lpackets: %s at node %u\n", tet.split(), dt.lap(), cosmos_error_string(iretn).c_str(), it->first);
+        //             }
+        //             return iretn;
+        //         }
+        //     }
             
-            return 0;
-        }
+        //     return 0;
+        // }
 
         //! Look through the outgoing and incoming queues of the specified node and generate any necessary packets.
         //! Not thread safe.
         //! \param node_name Name of the node
         //! \param packets Outgoing packets will be pushed onto this vector of PacketComm packets.
         //! \return
-        int32_t Transfer::get_outgoing_lpackets(const string node_name, vector<PacketComm> &packets)
-        {
-            if (node_name.empty())
-            {
-                if (debug_log != nullptr)
-                {
-                    debug_log->Printf("%.4f %.4f Main: get_outgoing_lpackets: node_name is empty\n", tet.split(), dt.lap());
-                }
-                return TRANSFER_ERROR_FILENAME;
-            }
+        // int32_t Transfer::get_outgoing_lpackets(const string node_name, vector<PacketComm> &packets)
+        // {
+        //     if (node_name.empty())
+        //     {
+        //         if (debug_log != nullptr)
+        //         {
+        //             debug_log->Printf("%.4f %.4f Main: get_outgoing_lpackets: node_name is empty\n", tet.split(), dt.lap());
+        //         }
+        //         return TRANSFER_ERROR_FILENAME;
+        //     }
 
-            // Find corresponding node_id in the node table
-            uint8_t node_id = lookup_node_id(cinfo, node_name);
-            if (node_id == NODEIDUNKNOWN)
-            {
-                if (debug_log != nullptr)
-                {
-                    debug_log->Printf("%.4f %.4f Main: get_outgoing_lpackets: node_id is unknown\n", tet.split(), dt.lap());
-                }
-                return TRANSFER_ERROR_NODE;
-            }
+        //     // Find corresponding node_id in the node table
+        //     uint8_t node_id = lookup_node_id(cinfo, node_name);
+        //     if (node_id == NODEIDUNKNOWN)
+        //     {
+        //         if (debug_log != nullptr)
+        //         {
+        //             debug_log->Printf("%.4f %.4f Main: get_outgoing_lpackets: node_id is unknown\n", tet.split(), dt.lap());
+        //         }
+        //         return TRANSFER_ERROR_NODE;
+        //     }
 
-            int32_t iretn = 0;
-            iretn = get_outgoing_lpackets(node_id, packets);
+            // int32_t iretn = 0;
+            // iretn = get_outgoing_lpackets(node_id, packets);
 
-            return iretn;
-        }
+            // return iretn;
+        // }
 
         //! Look through the outgoing and incoming queues of the specified node and generate any necessary packets.
         //! Not thread safe.
         //! \param dest_node_id ID of dest node
         //! \param packets Outgoing packets will be pushed onto this vector of PacketComm packets.
-        //! \return 0 on success, negative on error
-        int32_t Transfer::get_outgoing_lpackets(const uint8_t dest_node_id, vector<PacketComm> &packets)
+        //! \return Number of total packets queued on success, negative on error
+        int32_t Transfer::send_outgoing_lpackets(const uint8_t dest_node_id, Agent* agent, const uint8_t channel_id, uint32_t max_packets_to_queue, double timeout)
         {
             // Check that node exists in the node table
             const size_t dest_node_idx = node_id_to_txq_idx(dest_node_id);
@@ -401,7 +400,34 @@ namespace Cosmos {
             // Store separately to not be affected by sentqueue being toggled mid-run, which would be bad.
             bool sendqueue = !txq[dest_node_idx].outgoing.sentqueue;
 
+            // Each file can queue up to a certain fraction of the max packets that can be queued up
+            uint32_t packets_per_file = 1;
+            uint8_t outgoing_file_count = txq[dest_node_idx].outgoing.size;
+            if (!outgoing_file_count)
+            {
+                return 0;
+            }
+            else
+            {
+                packets_per_file = std::max(max_packets_to_queue / outgoing_file_count, 1u);
+            }
+            // If a previous file did not use all its allotted packet count, then the next file(s) can queue up however many went unused
+            size_t extra_packets = 0;
+            // Keep track of total queued packets, don't exceed max
+            uint32_t total_queued_packets = 0;
+            // Since it's possible to queue too fast for the other threads to pull quickly enough,
+            // stop queueing up if we're edging up on the max size of the channel buffer.
+            int32_t channel_buffer_limit = agent->channel_maximum(channel_id) * 0.9;
+            if (channel_buffer_limit <= 0)
+            {
+                return GENERAL_ERROR_UNDERSIZE;
+            }
+
+            // Break out of chunk streaming if timeout time has elapsed
+            ElapsedTime file_stream_timeout;
+
             // Iterate over all files in outgoing queue, push necessary packets
+            // Since higher tx_ids have higher file sizes, let extra_packets accumulate for bigger files to use
             for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
             {
                 // Check if this is a valid outgoing transaction
@@ -418,9 +444,15 @@ namespace Cosmos {
                     outgoing_packet.header.nodeorig = self_node_id;
                     outgoing_packet.header.nodedest = dest_node_id;
                     serialize_cancel(outgoing_packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), tx_id, PACKET_FILE_CRC_FORCE);
-                    packets.push_back(outgoing_packet);
+                    agent->channel_push(channel_id, outgoing_packet);
+                    print_file_packet(outgoing_packet, 1, "Outgoing", &agent->debug_log);
+                    ++total_queued_packets;
                     continue;
                 }
+
+                // Files can queue up a number of extra packets that went unused so far
+                size_t packets_left_to_queue_for_this_file = packets_per_file + extra_packets;
+                extra_packets = 0;
 
                 // **************************************************************
                 // ** METADATA **************************************************
@@ -431,7 +463,9 @@ namespace Cosmos {
                     outgoing_packet.header.nodeorig = self_node_id;
                     outgoing_packet.header.nodedest = dest_node_id;
                     serialize_metadata(outgoing_packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx.tx_id, tx.file_crc, tx.file_name, tx.file_size, tx.agent_name);
-                    packets.push_back(outgoing_packet);
+                    agent->channel_push(channel_id, outgoing_packet);
+                    print_file_packet(outgoing_packet, 1, "Outgoing", &agent->debug_log);
+                    ++total_queued_packets;
                     txq[dest_node_idx].outgoing.progress[tx_id].sentmeta = true;
                 }
 
@@ -472,14 +506,24 @@ namespace Cosmos {
                                 txq[dest_node_idx].outgoing.progress[tx_id].complete = true;
                             }
 
-                            // If we're good, continue with the process
-                            if (txq[dest_node_idx].outgoing.progress[tx_id].fp != nullptr)
+                            // Some problem with this transmission, ask other end to dequeue it
+                            if (txq[dest_node_idx].outgoing.progress[tx_id].fp == nullptr)
+                            {
+                                txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
+                                txq[dest_node_idx].outgoing.progress[tx_id].complete = true;
+                            }
+
+                            // If we're good, continue with the process, queue up as many data packets as allotted
+                            const PACKET_FILE_SIZE_TYPE packet_data_size_limit = packet_size - offsetof(struct packet_struct_data, chunk);
+                            PACKET_BYTE* chunk = new PACKET_BYTE[packet_data_size_limit]();
+                            while (txq[dest_node_idx].outgoing.progress[tx_id].fp != nullptr // Check file is still open
+                            && packets_left_to_queue_for_this_file > 0                       // Queue up to max per file
+                            && total_queued_packets < max_packets_to_queue)                  // Don't exceed max
                             {
                                 file_progress tp;
                                 tp = txq[dest_node_idx].outgoing.progress[tx_id].file_info.back();
 
                                 PACKET_FILE_SIZE_TYPE byte_count = (tp.chunk_end - tp.chunk_start) + 1;
-                                const PACKET_FILE_SIZE_TYPE packet_data_size_limit = packet_size - offsetof(struct packet_struct_data, chunk);
                                 if (byte_count > packet_data_size_limit)
                                 {
                                     byte_count = packet_data_size_limit;
@@ -489,7 +533,6 @@ namespace Cosmos {
 
                                 // Read the packet and send it
                                 size_t nbytes = 0;
-                                PACKET_BYTE* chunk = new PACKET_BYTE[byte_count]();
                                 // Read bytes into chunk
                                 if (!fseek(txq[dest_node_idx].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET))
                                 {
@@ -500,8 +543,16 @@ namespace Cosmos {
                                     outgoing_packet.header.nodeorig = self_node_id;
                                     outgoing_packet.header.nodedest = dest_node_id;
                                     serialize_data(outgoing_packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[dest_node_idx].outgoing.progress[tx_id].tx_id, txq[dest_node_idx].outgoing.progress[tx_id].file_crc, byte_count, tp.chunk_start, chunk);
-                                    packets.push_back(outgoing_packet);
+                                    int32_t current_channel_buffer_size = agent->channel_push(channel_id, outgoing_packet);
+                                    print_file_packet(outgoing_packet, 1, "Outgoing", &agent->debug_log);
+                                    --packets_left_to_queue_for_this_file;
+                                    ++total_queued_packets;
                                     txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_start = tp.chunk_end + 1;
+                                    // Break out if channel is getting too full
+                                    if (current_channel_buffer_size < 0 || current_channel_buffer_size > channel_buffer_limit)
+                                    {
+                                        break;
+                                    }
                                 }
                                 else
                                 {
@@ -509,8 +560,8 @@ namespace Cosmos {
                                     // Remove transaction
                                     txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
                                     txq[dest_node_idx].outgoing.progress[tx_id].complete = true;
+                                    break;
                                 }
-                                delete[] chunk;
 
                                 // Check if last chunk is finished yet
                                 if (txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_start > txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_end)
@@ -528,18 +579,21 @@ namespace Cosmos {
                                         txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
                                         write_meta(txq[dest_node_idx].outgoing.progress[tx_id], 0.);
                                     }
+                                    break;
                                 }
                                 else
                                 {
                                     write_meta(txq[dest_node_idx].outgoing.progress[tx_id]);
                                 }
+                                // Break out if timeout has elapsed.
+                                // Put this at the end of the while loop so that each
+                                // file can send out at least 1 data packet per run.
+                                if (file_stream_timeout.split() > timeout)
+                                {
+                                    break;
+                                }
                             }
-                            else
-                            {
-                                // Some problem with this transmission, ask other end to dequeue it
-                                txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
-                                txq[dest_node_idx].outgoing.progress[tx_id].complete = true;
-                            }
+                            delete[] chunk;
                         }
                     }
                     // Zero length file, ask other end to dequeue it
@@ -567,7 +621,9 @@ namespace Cosmos {
                         outgoing_packet.header.nodeorig = self_node_id;
                         outgoing_packet.header.nodedest = dest_node_id;
                         serialize_cancel(outgoing_packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), tx_id, file_crc);
-                        packets.push_back(outgoing_packet);
+                        agent->channel_push(channel_id, outgoing_packet);
+                        print_file_packet(outgoing_packet, 1, "Outgoing", &agent->debug_log);
+                        ++total_queued_packets;
                     }
                     // A COMPLETE packet was not received yet
                     else
@@ -582,7 +638,9 @@ namespace Cosmos {
                             outgoing_packet.header.nodeorig = self_node_id;
                             outgoing_packet.header.nodedest = dest_node_id;
                             serialize_reqcomplete(outgoing_packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx_id, txq[dest_node_idx].outgoing.progress[tx_id].file_crc);
-                            packets.push_back(outgoing_packet);
+                            agent->channel_push(channel_id, outgoing_packet);
+                            print_file_packet(outgoing_packet, 1, "Outgoing", &agent->debug_log);
+                            ++total_queued_packets;
                         }
 
                         // If it's too soon, don't send a REQCOMPLETE packet yet.
@@ -600,6 +658,9 @@ namespace Cosmos {
                 {
                     tqueue.push_back(tx_id);
                 }
+
+                // Let next file queue up more if this file didn't have much
+                extra_packets = packets_left_to_queue_for_this_file;
             }
 
             // Push QUEUE packet if it needs to be sent
@@ -608,65 +669,13 @@ namespace Cosmos {
                 outgoing_packet.header.nodeorig = self_node_id;
                 outgoing_packet.header.nodedest = dest_node_id;
                 serialize_queue(outgoing_packet, static_cast<PACKET_NODE_ID_TYPE>(self_node_id), tqueue);
-                packets.push_back(outgoing_packet);
+                agent->channel_push(channel_id, outgoing_packet);
+                print_file_packet(outgoing_packet, 1, "Outgoing", &agent->debug_log);
+                ++total_queued_packets;
                 txq[dest_node_idx].outgoing.sentqueue = true;
             }
 
-            return 0;
-        }
-
-        //! Look through the outgoing and incoming queues of all nodes and generate any necessary packets.
-        //! These are response-type file transfer packets, to signal to the sender that something is wrong, or going right.
-        //! Note that this gets outgoing packets for every node, no distinction is made.
-        //! Not thread safe.
-        //! \param packets Outgoing packets will be pushed onto this vector of PacketComm packets.
-        //! \return
-        int32_t Transfer::get_outgoing_rpackets(vector<PacketComm> &packets)
-        {
-            for (auto it = node_id_to_txq_map.begin(); it != node_id_to_txq_map.end(); ++it)
-            {
-                int32_t iretn = get_outgoing_rpackets(it->first, packets);
-                if (iretn < 0)
-                {
-                    if (debug_log != nullptr)
-                    {
-                        debug_log->Printf("%.4f %.4f Main: get_outgoing_rpackets: %s at node %u\n", tet.split(), dt.lap(), cosmos_error_string(iretn).c_str(), it->first);
-                    }
-                    return iretn;
-                }
-            }
-            
-            return 0;
-        }
-
-        //! Look through the outgoing and incoming queues of the specified node and generate any necessary packets.
-        //! These are response-type file transfer packets, to signal to the sender that something is wrong, or going right.
-        //! Not thread safe.
-        //! \param node_name Name of the origin node
-        //! \param packets Outgoing packets will be pushed onto this vector of PacketComm packets.
-        //! \return
-        int32_t Transfer::get_outgoing_rpackets(const string orig_node_name, vector<PacketComm> &packets)
-        {
-            if (orig_node_name.empty())
-            {
-                if (debug_log != nullptr)
-                {
-                    debug_log->Printf("%.4f %.4f Main: get_outgoing_packets: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
-                }
-                return TRANSFER_ERROR_FILENAME;
-            }
-
-            // Find corresponding node_id in the node table
-            uint8_t orig_node_id = lookup_node_id(cinfo, orig_node_name);
-            if (orig_node_id == NODEIDUNKNOWN)
-            {
-                return TRANSFER_ERROR_NODE;
-            }
-
-            int32_t iretn = 0;
-            iretn = get_outgoing_rpackets(orig_node_id, packets);
-
-            return iretn;
+            return total_queued_packets;
         }
 
         //! Look through the outgoing and incoming queues of the specified node and generate any necessary packets.
@@ -675,7 +684,7 @@ namespace Cosmos {
         //! \param node_id ID of origin node in txq
         //! \param packets Outgoing packets will be pushed onto this vector of PacketComm packets.
         //! \return
-        int32_t Transfer::get_outgoing_rpackets(const uint8_t orig_node_id, vector<PacketComm> &packets)
+        int32_t Transfer::send_outgoing_rpackets(const uint8_t orig_node_id, Agent* agent, const uint8_t channel_id, double timeout)
         {
             // Check that node exists in the node table
             const size_t orig_node_idx = node_id_to_txq_idx(orig_node_id);
@@ -686,6 +695,17 @@ namespace Cosmos {
 
             // Hold REQMETA bits in here
             vector<PACKET_TX_ID_TYPE> treqmeta;
+            // Hold REQDATA packets here
+            vector<PacketComm> reqdata_packets;
+            // Since it's possible to queue too fast for the other threads to pull quickly enough,
+            // stop queueing up if we're edging up on the max size of the channel buffer.
+            int32_t channel_buffer_limit = agent->channel_maximum(channel_id) * 0.9;
+            if (channel_buffer_limit <= 0)
+            {
+                return GENERAL_ERROR_UNDERSIZE;
+            }
+            // Break out of chunk streaming if timeout time has elapsed
+            ElapsedTime file_stream_timeout;
 
             // Iterate over tx_id's requiring a response
             for (PACKET_TX_ID_TYPE tx_id : txq[orig_node_idx].incoming.respond)
@@ -707,7 +727,21 @@ namespace Cosmos {
                     missing = find_chunks_missing(txq[orig_node_idx].incoming.progress[tx_id]);
                     if (missing.size())
                     {
-                        serialize_reqdata(packets, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), orig_node_id, txq[orig_node_idx].incoming.progress[tx_id].tx_id, txq[orig_node_idx].incoming.progress[tx_id].file_crc, missing, packet_size);
+                        serialize_reqdata(reqdata_packets, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), orig_node_id, txq[orig_node_idx].incoming.progress[tx_id].tx_id, txq[orig_node_idx].incoming.progress[tx_id].file_crc, missing, packet_size);
+                        for (auto& packet: reqdata_packets)
+                        {
+                            int32_t current_channel_buffer_size = agent->channel_push(channel_id, packet);
+                            // Break out if channel is getting too full
+                            if (current_channel_buffer_size < 0 || current_channel_buffer_size > channel_buffer_limit)
+                            {
+                                break;
+                            }
+                            // Break out if timeout has elapsed
+                            if (file_stream_timeout.split() > timeout)
+                            {
+                                break;
+                            }
+                        }
                     }
                     else
                     {
@@ -745,7 +779,7 @@ namespace Cosmos {
                     packet.header.nodeorig = self_node_id;
                     packet.header.nodedest = orig_node_id;
                     serialize_complete(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx_id, txq[orig_node_idx].incoming.progress[tx_id].file_crc);
-                    packets.push_back(packet);
+                    agent->channel_push(channel_id, packet);
                 }
 
                 txq[orig_node_idx].incoming.progress[tx_id].next_response = currentmjd() + txq[orig_node_idx].incoming.waittime;
@@ -760,7 +794,7 @@ namespace Cosmos {
                 packet.header.nodeorig = self_node_id;
                 packet.header.nodedest = orig_node_id;
                 serialize_reqmeta(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[orig_node_idx].node_name, treqmeta);
-                packets.push_back(packet);
+                agent->channel_push(channel_id, packet);
             }
 
             return 0;
@@ -1883,6 +1917,7 @@ namespace Cosmos {
                     // No transaction ID, so metadata needs to be requested first
                     if (std::find(txq[orig_node_idx].incoming.respond.begin(), txq[orig_node_idx].incoming.respond.end(), reqcomplete.header.tx_id) == txq[orig_node_idx].incoming.respond.end())
                     {
+                        // cout << "REQCOMPLETE for unknown txid encountered: " << unsigned(reqcomplete.header.tx_id) << endl;
                         txq[orig_node_idx].incoming.respond.push_back(reqcomplete.header.tx_id);
                     }
                     iretn = RESPONSE_REQUIRED;
@@ -1979,9 +2014,9 @@ namespace Cosmos {
                 // Byte (7+n)-end: file_progress structs[]
 
                 // where file_progress structs[] are a consecutive list of the following:
-                // Byte 0-1: file_progress
-                // Byte 3-4: crc
-                // ... repeat above structure per packet
+                // Byte 0-7: file_progress
+                // Byte 8-9: crc
+                // ... repeat above structure per hole
                 file_name.write((char *)&FILE_TRANSFER_METAFILE_VERSION, sizeof(uint8_t));
                 uint16_t crc = calc_crc.calc(meta_file_data);
                 size_t packet_size = meta_file_data.size();
@@ -2032,9 +2067,9 @@ namespace Cosmos {
                 // Byte (7+n)-end: file_progress structs[]
 
             // where file_progress structs[] are a consecutive list of the following:
-            // Byte 0-1: file_progress
-            // Byte 3-4: crc
-            // ... repeat above structure per packet
+            // Byte 0-7: file_progress
+            // Byte 8-9: crc
+            // ... repeat above structure per hole
 
             // Load metadata
             // Reject if versions don't match
@@ -2514,4 +2549,107 @@ int32_t Transfer::reset_queue(uint8_t node_id, uint8_t direction)
         break;
     }
     return iretn;
+}
+
+void Transfer::print_file_packet(PacketComm packet, uint8_t direction, string type, Log::Logger* debug_log)
+{
+    if (packet.header.type == PacketComm::TypeId::DataFileChunkData)
+    {
+        // For DATA-type packets, print only the first time it comes in. Comment out these lines to skip all DATA-packet logging
+        // PACKET_FILE_SIZE_TYPE chunk_start;
+        // memmove(&chunk_start, &packet.data[0]+PACKET_DATA_OFFSET_CHUNK_START, sizeof(chunk_start));
+        // if (chunk_start != 0)
+        if (!verbose_log)
+        {
+            return;
+        }
+    }
+
+    if (debug_log->Type())
+    {
+        string node_name = lookup_node_id_name(cinfo, packet.data[0]);
+        uint8_t node_id = check_node_id(cinfo, packet.data[0]);
+
+        if (direction == 0)
+        {
+            debug_log->Printf("%.4f %.4f RECV L %u R %u %s [%s] Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), type.c_str(), packet.data.size());
+        }
+        else if (direction == 1)
+        {
+            debug_log->Printf("%.4f %.4f SEND L %u R %u %s [%s] Size: %lu ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), type.c_str(), packet.data.size());
+        }
+
+        switch (packet.header.type)
+        {
+        case PacketComm::TypeId::DataFileMetaData:
+            {
+                packet_struct_metadata meta;
+                deserialize_metadata(packet.data, meta);
+                debug_log->Printf("[METADATA] v%u %u %u %s ", packet.data[offsetof(packet_struct_metadata, header.version)], node_id, packet.data[offsetof(packet_struct_metadata, header.tx_id)], meta.file_name.c_str());
+                break;
+            }
+        case PacketComm::TypeId::DataFileChunkData:
+            {
+                debug_log->Printf("[DATA] v%u %u %u %u %u ", packet.data[offsetof(packet_struct_metadata, header.version)], node_id, packet.data[offsetof(packet_struct_data, header.tx_id)], packet.data[offsetof(packet_struct_data, chunk_start)]+256U*(packet.data[offsetof(packet_struct_data, chunk_start)+1]+256U*(packet.data[offsetof(packet_struct_data, chunk_start)+2]+256U*packet.data[offsetof(packet_struct_data, chunk_start)+3])), packet.data[offsetof(packet_struct_data, byte_count)]+256U*packet.data[offsetof(packet_struct_data, byte_count)+1]);
+                break;
+            }
+        case PacketComm::TypeId::DataFileReqData:
+            {
+                debug_log->Printf("[REQDATA] v");
+                for (auto& byte : packet.data)
+                {
+                    debug_log->Printf("%u ", unsigned(byte));
+                }
+                break;
+            }
+        case PacketComm::TypeId::DataFileReqComplete:
+            {
+                debug_log->Printf("[REQCOMPLETE] v%u %u %u ", packet.data[offsetof(packet_struct_metadata, header.version)], node_id, packet.data[offsetof(packet_struct_reqcomplete, header.tx_id)]);
+                break;
+            }
+        case PacketComm::TypeId::DataFileComplete:
+            {
+                debug_log->Printf("[COMPLETE] v%u %u %u ", packet.data[offsetof(packet_struct_metadata, header.version)], node_id, packet.data[offsetof(packet_struct_complete, header.tx_id)]);
+                break;
+            }
+        case PacketComm::TypeId::DataFileCancel:
+            {
+                debug_log->Printf("[CANCEL] v%u %u %u ", packet.data[offsetof(packet_struct_metadata, header.version)], node_id, packet.data[offsetof(packet_struct_cancel, header.tx_id)]);
+                break;
+            }
+        case PacketComm::TypeId::DataFileReqMeta:
+        case PacketComm::TypeId::DataFileQueue:
+            {
+                packet_struct_queue queue;
+                deserialize_queue(packet.data, queue);
+                string label = packet.header.type == PacketComm::TypeId::DataFileReqMeta ? "REQMETA" : "QUEUE";
+                debug_log->Printf("[%s] v%u %u ", label.c_str(), packet.data[offsetof(packet_struct_metadata, header.version)], node_id);
+                // Note: this assumes that PACKET_QUEUE_FLAGS_TYPE is a uint8_t type
+                for (PACKET_QUEUE_FLAGS_TYPE i=0; i<PACKET_QUEUE_FLAGS_LIMIT; ++i)
+                {
+                    PACKET_QUEUE_FLAGS_TYPE flags = queue.tx_ids[i];
+                    //debug_log->Printf("[%u] ", flags);
+                    PACKET_TX_ID_TYPE hi = i << 3;
+                    for (size_t bit = 0; bit < sizeof(PACKET_QUEUE_FLAGS_TYPE)*8; ++bit)
+                    {
+                        uint8_t flag = (flags >> bit) & 1;
+                        if (!flag)
+                        {
+                            continue;
+                        }
+                        PACKET_TX_ID_TYPE tx_id = hi | bit;
+                        debug_log->Printf("%u ", unsigned(tx_id));
+                    }
+                }
+            }
+            break;
+        default:
+            {
+                debug_log->Printf("[OTHER] %u %s", node_id, "Non-file transfer type in packet.header.type");
+            }
+        }
+        debug_log->Printf("\n");
+    }
+
+    return;
 }
