@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
             for (size_t i = 1; i < out_comm_channel.size(); ++i)
             {
                 transfer_mtx.lock();
-                iretn = transfer.get_outgoing_rpackets(out_comm_channel[i].node, file_packets);
+                // iretn = transfer.get_outgoing_rpackets(out_comm_channel[i].node, file_packets);
                 transfer_mtx.unlock();
                 if (iretn < 0 && agent->get_debug_level())
                 {
@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
             for (size_t i = 1; i < out_comm_channel.size(); ++i)
             {
                 transfer_mtx.lock();
-                iretn = transfer.get_outgoing_lpackets(out_comm_channel[i].node, file_packets);
+                // iretn = transfer.get_outgoing_lpackets(out_comm_channel[i].node, file_packets);
                 transfer_mtx.unlock();
                 if (iretn < 0 && agent->get_debug_level())
                 {

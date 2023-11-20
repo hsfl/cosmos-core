@@ -363,7 +363,7 @@ namespace Cosmos
             add_request("run_command", req_run_command, "command parameters", "Run external command for immediate response");
             add_request("add_task", req_add_task, "command parameters", "Start external command as Task for output to file");
             add_request("test_channel", req_test_channel, "channel radio dest start step count bytes", "Run channel performance test");
-
+            add_request("channel_enable", req_channel_enable, "channel state", "Set channel enabled state to the specified value");
             // Set up Full SOH string
             //            set_fullsohstring(json_list_of_fullsoh(cinfo));
 
@@ -2672,6 +2672,38 @@ namespace Cosmos
             }
         }
 
+        //! \brief Set the specified channel to the specified state
+        //! Expected args:
+        //! [0] channel_enable
+        //! [1] String name of channel
+        //! [2] int8_t value to set channel enabled status to
+        //! \param request Request.
+        //! \param response Any response.
+        //! \param agent Pointer to Agent.
+        //! \return Zero or negative error.
+        int32_t Agent::req_channel_enable(string &request, string &response, Agent *agent)
+        {
+            // Expected args: 
+            vector<string> args = string_split(request);
+            if (args.size() < 3)
+            {
+                response = "Incorrect args";
+                return 0;
+            }
+            try
+            {
+                int8_t new_state = std::stoi(args[2]) & 0xff;
+                agent->channel_enable(args[1], new_state);
+                response = "Set channel " + args[1] + " to " + std::to_string(agent->channel_enabled(args[1]));
+                return 0;
+            }
+            catch(...)
+            {
+                response = "Incorrect args";
+                return 0;
+            }
+        }
+
         //! Open COSMOS output channel
         /*! Establish a multicast socket for publishing COSMOS messages using the specified address and
  * port.
@@ -4397,12 +4429,6 @@ acquired.
             return channels.channel.size();
         }
 
-        int32_t Agent::channel_set_comm_priority(uint8_t number)
-        {
-            channels.comm_id = number;
-            return 0;
-        }
-
         int32_t Agent::channel_push(string name, PacketComm& packet)
         {
             int32_t number = channel_number(name);
@@ -4465,16 +4491,6 @@ acquired.
                 }
             }
             return packets.size();
-        }
-
-        int32_t Agent::channel_push_comm(PacketComm &packet)
-        {
-            if (channels.comm_id == 255)
-            {
-                return GENERAL_ERROR_OUTOFRANGE;
-            }
-
-            return channel_push(channels.comm_id, packet);
         }
 
         int32_t Agent::channel_pull(string name, PacketComm &packet)
@@ -4850,23 +4866,22 @@ acquired.
             return channels.channel[number].rawsize;
         }
 
-        int32_t Agent::channel_maximum(string name, uint16_t maximum)
+        int32_t Agent::channel_maximum(string name)
         {
             int32_t iretn = channel_number(name);
             if (iretn < 0)
             {
                 return iretn;
             }
-            return channel_maximum(iretn, maximum);
+            return channel_maximum(iretn);
         }
 
-        int32_t Agent::channel_maximum(uint8_t number, uint16_t maximum)
+        int32_t Agent::channel_maximum(uint8_t number)
         {
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
-            channels.channel[number].maximum = maximum;
             return channels.channel[number].maximum;
         }
 

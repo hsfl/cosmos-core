@@ -19,8 +19,7 @@ namespace Cosmos
             }
 
             // List of nodes to handle files for
-            // 0th element is itself for incoming, and others are for outgoing transfers.
-            contact_nodes = { agent->nodeId };
+            contact_nodes.clear();
             for (const string& node : file_transfer_contact_nodes)
             {
                 iretn = lookup_node_id(agent->cinfo, node);
@@ -42,8 +41,6 @@ namespace Cosmos
 
             PacketComm packet;
             mychannel = agent->channel_number("FILE");
-            // Accumulate here before transfering to proper queues
-            vector<PacketComm> file_packets;
 
             agent->debug_log.Printf("Starting File Loop\n");
 
@@ -78,6 +75,7 @@ namespace Cosmos
                         case PacketComm::TypeId::DataFileChunkData:
                         case PacketComm::TypeId::DataFileReqComplete:
                             {
+                                transfer.print_file_packet(packet, 0, "Incoming", &agent->debug_log);
                                 iretn = transfer.receive_packet(packet);
                                 if (iretn == transfer.RESPONSE_REQUIRED)
                                 {
@@ -142,7 +140,7 @@ namespace Cosmos
                                     {
                                         break;
                                     }
-                                    for (size_t i = 1; i < contact_nodes.size(); ++i)
+                                    for (size_t i = 0; i < contact_nodes.size(); ++i)
                                     {
                                         iretn = transfer.outgoing_tx_load(contact_nodes[i]);
                                     }
@@ -164,8 +162,9 @@ namespace Cosmos
                         }
                     }
 
-                    // No outgoing radio connection established
-                    if (!out_radio)
+                    // No outgoing radio connection established,
+                    // Or the channel is not in active mode
+                    if (!out_radio || agent->channel_enabled(out_radio) != 1)
                     {
                         secondsleep(1.);
                         continue;
@@ -174,9 +173,9 @@ namespace Cosmos
                     // Check if any response-type packets need to be pushed
                     if (file_transfer_respond)
                     {
-                        for (size_t i = 1; i < contact_nodes.size(); ++i)
+                        for (size_t i = 0; i < contact_nodes.size(); ++i)
                         {
-                            iretn = transfer.get_outgoing_rpackets(contact_nodes[i], file_packets);
+                            iretn = transfer.send_outgoing_rpackets(contact_nodes[i], agent, out_radio, continual_stream_time);
                             if (iretn < 0)
                             {
                                 agent->debug_log.Printf("%16.10f Error in get_outgoing_rpackets: %d\n", currentmjd(), cosmos_error_string(iretn).c_str());
@@ -192,7 +191,7 @@ namespace Cosmos
                         double currenttime = currentmjd();
                         if (currenttime > nextdiskcheck)
                         {
-                            for (size_t i = 1; i < contact_nodes.size(); ++i)
+                            for (size_t i = 0; i < contact_nodes.size(); ++i)
                             {
                                 iretn = transfer.outgoing_tx_load(contact_nodes[i]);
                             }
@@ -200,41 +199,39 @@ namespace Cosmos
                         }
 
                         // Perform runs of file packet grabbing
-                        for (size_t i = 1; i < contact_nodes.size(); ++i)
+                        for (size_t i = 0; i < contact_nodes.size(); ++i)
                         {
-                            iretn = transfer.get_outgoing_lpackets(contact_nodes[i], file_packets);
+                            // Consider current queue fullness, this decreases the effective time we have to queue and transmit
+                            double time_to_flush_current_queue = agent->channel_size(out_radio)/packet_rate;
+                            // Calculated as the amount of time we would like to transmit continually for
+                            double effective_time = continual_stream_time - time_to_flush_current_queue;
+                            if (effective_time <= 0)
+                            {
+                                // Wait until queue is less full
+                                continue;
+                            }
+                            // The amount of packets we can feasibly queue up without any issue
+                            uint32_t max_packets = effective_time * packet_rate;
+
+                            // Queue up outgoing file packets
+                            queueing_timer.reset();
+                            iretn = transfer.send_outgoing_lpackets(contact_nodes[i], agent, out_radio, max_packets, continual_stream_time);
+                            double queueing_time = queueing_timer.split();
+                            
                             if (iretn < 0)
                             {
                                 agent->debug_log.Printf("%16.10f Error in get_outgoing_lpackets: %s\n", currentmjd(), cosmos_error_string(iretn).c_str());
                             }
+                            else if (queueing_time > 0 && iretn > 0)
+                            {
+                                // Use the number of packets queued and the elapsed time
+                                // to calculate the queuing speed of the system.
+                                // Adds in some arbitrary inefficiency.
+                                // Keep the rate above some arbitrary lower bound.
+                                packet_rate = std::max((iretn / queueing_time)*0.75, PACKET_RATE_LOWER_BOUND);
+                            }
                         }
                     }
-
-                    if (!file_packets.size())
-                    {
-                        secondsleep(1.);
-                        continue;
-                    }
-
-                    // Transfer to radio
-                    for (auto &p : file_packets)
-                    {
-                        // TODO: note that p does not set header.chanin
-                        p.header.chanin = mychannel;
-                        p.header.chanout = mychannel;
-
-                        iretn = agent->channel_push(out_radio, p);
-
-                        // Stop using this channel on error
-                        if (iretn < 0)
-                        {
-                            set_radio_availability(out_radio, false);
-                            break;
-                        }
-                    }
-
-                    // Don't forget to clear the vector before next use!
-                    file_packets.clear();
                 }
                 std::this_thread::yield();
             }

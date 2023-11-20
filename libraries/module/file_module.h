@@ -44,6 +44,18 @@ namespace Cosmos
             //! The nodes that this node has file transfer capabilities with
             vector<uint8_t> contact_nodes;
 
+            //! The speed of packet queueing (packets/sec)
+            //! Internally keeps track of the queueing rate of the system,
+            //! used to determine how quickly and much to queue packets.
+            double packet_rate = 500.;
+            //! Don't let system weirdnesses let packet_rate below this value (packets/sec)
+            const double PACKET_RATE_LOWER_BOUND = 20.;
+            //! The timer to used to help determine the packet_rate
+            ElapsedTime queueing_timer;
+            //! About the amount of time (in seconds) to wish to continually stream out of a radio for before doing other logic.
+            //! TODO: Consider having a separate listening thread to not need stuff like this.
+            double continual_stream_time = 5.;
+
             int32_t mychannel = 0;
             bool running = false;
             Agent *agent;
