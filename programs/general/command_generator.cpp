@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 //    cout << "Command string:" << endl;
 	// JIMNOTE: this could be done in the constructor
 
-    cout << event.generator(name, data, utc, condition, flag, type) << endl << endl;
+    cout << event.generator(name, data, utc, condition, flag, type) << endl;
 
     if (!node.empty()) {
         cout << "Adding command/event to node " << node << endl;
