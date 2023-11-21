@@ -737,7 +737,7 @@ size_t data_list_files(string directory, vector<filestruc>& files)
                 files.push_back(tf);
                 for (size_t i=files.size()-1; i>1; --i)
                 {
-                    if (files[i].name < files[i-1].name)
+                    if (files[i].utc > files[i-1].utc)
                     {
                         filestruc tfile = files[i-1];
                         files[i-1] = files[i];
@@ -769,6 +769,30 @@ vector<filestruc> data_list_files(string node, string location)
     data_list_files(dtemp, files);
 
     return files;
+}
+
+//! Get name of most recent file in a Node, directly.
+/*! Generate a list of files for the indicated Node, location (eg. incoming, outgoing, ...),
+ * and Agent. The most recent result is returned as a ::std::string.
+ * \param node Node to search.
+ * \param location Subdirectory of Node to search.
+ * \param agent Subdirectory of location to search.
+ * \return A C++ ::std::string, indicating most recent file. Empty string if no files are found.
+ */
+string data_list_latest_file(string node, string location, string agent)
+{
+    vector<filestruc> files;
+
+    data_list_files(node, location, agent, files);
+
+    if (files.size())
+    {
+        return files[0].path;
+    }
+    else
+    {
+        return "";
+    }
 }
 
 //! Get list of files in a Node, directly.

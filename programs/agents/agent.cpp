@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
     // dont' print debug messages
     DeviceCpu deviceCpu;
     agent = new Agent("", "null");
-    agent->set_debug_level(2);
+    agent->set_debug_level(0);
     agent->debug_log.Printf("message_queue: %u\n", agent->message_queue.size());
     if (agent->cinfo == nullptr)
     {

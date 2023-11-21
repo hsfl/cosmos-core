@@ -330,6 +330,10 @@ double fixangle(double angle, bool d2pi=true);
 double actan(double y, double x);
 double fixprecision(double number, double precision);
 
+// FFT/DCT
+int32_t dodct(vector<float> datain, vector<float> &dct, uint16_t start=0, uint16_t end=0);
+
+
 class LsFit
 {
 private:
