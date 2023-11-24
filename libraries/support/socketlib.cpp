@@ -1102,8 +1102,9 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
         else
         {
             nbytes = -errno;
+            secondsleep(channel.timeout-et.split());
+            return nbytes;
         }
-        secondsleep(channel.timeout-et.split());
     }
     return nbytes;
 }

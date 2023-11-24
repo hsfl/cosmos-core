@@ -53,19 +53,6 @@
 const int REQUEST_WAIT_TIME = 2;
 const int SERVER_WAIT_TIME = 6;
 
-//void print_node_list(vector<string>& nlp) {
-
-//    if(nlp.empty())
-//    {
-//        return;
-//    }
-
-//    for(string n: nlp)
-//    {
-//        printf("    %s\n", n.c_str());
-//    }
-//    return;
-//}
 string output;
 string node_name = "";
 string agent_name = "";

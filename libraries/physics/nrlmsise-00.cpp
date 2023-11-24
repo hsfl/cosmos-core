@@ -232,7 +232,7 @@ namespace Cosmos {
             double ylog;
             a  = zhm / (xmm-xm);
             if (!((dm>0) && (dd>0))) {
-                printf("dnet log error %e %e %e\n",dm,dd,xm);
+//                printf("dnet log error %e %e %e\n",dm,dd,xm);
                 if ((dd==0) && (dm==0))
                     dd=1;
                 if (dm==0)
@@ -315,8 +315,8 @@ namespace Cosmos {
                     klo=k;
             }
             h = xa[khi] - xa[klo];
-            if (h==0.0)
-                printf("bad XA input to splint");
+//            if (h==0.0)
+//                printf("bad XA input to splint");
             a = (xa[khi] - x)/h;
             b = (x - xa[klo])/h;
             yi = a * ya[klo] + b * ya[khi] + ((a*a*a - a) * y2a[klo] + (b*b*b - b) * y2a[khi]) * h * h/6.0;
@@ -343,7 +343,7 @@ namespace Cosmos {
             int i, k;
             u=(double *)malloc(sizeof(double)*n);
             if (u==NULL) {
-                printf("Out Of Memory in spline - ERROR");
+//                printf("Out Of Memory in spline - ERROR");
                 return;
             }
             if (yp1>0.99E30) {
@@ -883,7 +883,7 @@ namespace Cosmos {
             if (p[99]==0)
                 p[99]=pset;
             if (p[99]!=pset) {
-                printf("Wrong parameter set for glob7s\n");
+//                printf("Wrong parameter set for glob7s\n");
                 return -1;
             }
             for (j=0;j<14;j++)
@@ -1169,7 +1169,7 @@ namespace Cosmos {
                 if (sqrt(diff*diff)<test)
                     return;
                 if (l==ltest) {
-                    printf("ERROR: ghp7 not converging for press %e, diff %e",press,diff);
+//                    printf("ERROR: ghp7 not converging for press %e, diff %e",press,diff);
                     return;
                 }
                 xm = output->d[5] / xn / 1.66E-24;
