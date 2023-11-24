@@ -693,7 +693,6 @@ value read from the ephemeris must be byte-swapped by these two functions. */
             for( i = 0; i < 13; i++)
                 rval->kernel_size +=
                         rval->ipt[i][1] * rval->ipt[i][2] * ((i == 11) ? 4 : 6);
-            // printf( "Kernel size = %d\n", rval->kernel_size);
             rval->recsize = rval->kernel_size * 4L;
             rval->ncoeff = rval->kernel_size / 2L;
 

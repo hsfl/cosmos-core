@@ -170,6 +170,8 @@ namespace Cosmos
                 if (fp != nullptr)
                 {
                     fwrite(bufferout.data(), 1, bufferout.size(), fp);
+                    fclose(fp);
+                    log_move_file(outpath, string_replace(outpath, "temp", "outgoing"), true);
                 }
                 // log to event file
                 log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
@@ -234,6 +236,10 @@ namespace Cosmos
                 close(prev_stdin);
                 close(prev_stdout);
                 close(prev_stderr);
+                if (!outpath.empty())
+                {
+                    log_move_file(outpath, string_replace(outpath, "temp", "outgoing"), true);
+                }
             }));
 
             // log to event file

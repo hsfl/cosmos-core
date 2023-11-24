@@ -2684,7 +2684,7 @@ namespace Cosmos
         //! \return Zero or negative error.
         int32_t Agent::req_channel_enable(string &request, string &response, Agent *agent)
         {
-            // Expected args: 
+            // Expected args:
             vector<string> args = string_split(request);
             if (args.size() < 3)
             {
@@ -3005,7 +3005,6 @@ namespace Cosmos
                         cinfo->agent0.pub[cinfo->agent0.ifcnt].type = type;
 
 
-//                        printf("Interface #%lu: %u %s %u %s %u\n", cinfo->agent0.ifcnt, cinfo->agent0.pub[cinfo->agent0.ifcnt].cport, cinfo->agent0.pub[cinfo->agent0.ifcnt].address, ntohs(cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_port), cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress, ntohs(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_port));
                         cinfo->agent0.ifcnt++;
                     }
 #endif // COSMOS_WIN_OS
@@ -3314,7 +3313,6 @@ namespace Cosmos
                         iretn= 0;
                     }
                 }
-                //            printf("Post: Type: %d Port: %d %d\n", type, cinfo->agent0.pub[i].cport, htons(cinfo->agent0.pub[i].caddr.sin_port));
             }
 
             if (iretn<0)
@@ -3479,7 +3477,6 @@ namespace Cosmos
                             if (cinfo->agent0.sub.caddr.sin_port == ntohs(cinfo->agent0.pub[i].cport) &&
                                 cinfo->agent0.sub.caddr.sin_addr.s_addr == cinfo->agent0.pub[i].caddr.sin_addr.s_addr)
                             {
-//                                printf("Echo\n");
                                 return 0;
                             }
                         }
@@ -3605,22 +3602,9 @@ namespace Cosmos
                         }
                         if (mess.meta.beat.node.compare(cinfo->agent0.beat.node) || mess.meta.beat.proc.compare(cinfo->agent0.beat.proc))
                         {
-//                            printf("Valid: %s\n", mess.jdata.c_str());
                             return ((int)mess.meta.type);
                         }
-                        else
-                        {
-//                            printf("Duplicate: %s %s\n",cinfo->agent0.beat.node.c_str(), cinfo->agent0.beat.proc.c_str() );
-                        }
                     }
-                    else
-                    {
-//                        printf("NoMatch\n");
-                    }
-                }
-                else
-                {
-//                    printf("Empty\n");
                 }
                 if (ep.split() >= waitsec) {
                     nbytes = 0;

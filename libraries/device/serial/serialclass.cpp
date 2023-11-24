@@ -1242,7 +1242,6 @@ namespace Cosmos {
         } while (et.split() < rictimeout);
 #endif
 
-//        printf("{%.5f}", et.split());
 
         if (et.split() > rictimeout)
         {

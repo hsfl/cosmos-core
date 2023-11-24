@@ -7195,7 +7195,6 @@ int32_t json_load_node(string node, jsonnode &json)
     {
         // First time, so write it
         utcstart = currentmjd();
-        // printf("jsonlib: create utcstart %f\n", utcstart);
         FILE *ifp = fopen(fname.c_str(), "w");
         if (ifp == nullptr)
         {
@@ -7212,7 +7211,6 @@ int32_t json_load_node(string node, jsonnode &json)
         {
             // Still some problem, so just set it to current time
             utcstart = currentmjd();
-            // printf("jsonlib: fix utcstart %f\n", utcstart);
         }
         else
         {
@@ -7220,7 +7218,6 @@ int32_t json_load_node(string node, jsonnode &json)
             if (iretn != 1)
             {
                 utcstart = currentmjd();
-                // printf("jsonlib: read utcstart %f\n", utcstart);
             }
             fclose(ifp);
         }
@@ -12930,10 +12927,6 @@ int32_t check_node_id(cosmosstruc *cinfo, NODE_ID_TYPE node_id)
 //! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
 int32_t lookup_node_id(cosmosstruc *cinfo, string node_name)
 {
-    //    for (auto it = cinfo->realm.node_ids.begin(); it != cinfo->realm.node_ids.end(); ++it)
-    //    {
-    //        printf("lookup_node_id: Name %s ID %u\n", it->first.c_str(), it->second);
-    //    }
     auto it = cinfo->realm.node_ids.find(node_name);
     if (it == cinfo->realm.node_ids.end())
     {

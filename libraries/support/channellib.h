@@ -84,8 +84,6 @@ namespace Cosmos {
             int32_t Enable(uint8_t number, int8_t value);
             int32_t Enabled(string name);
             int32_t Enabled(uint8_t number);
-//            int32_t Disable(string name);
-//            int32_t Disable(uint8_t number);
             double Age(string name);
             double Age(uint8_t number);
             double WakeupTimer(string name, double value = 0.);
@@ -102,8 +100,6 @@ namespace Cosmos {
             double Touch(uint8_t number);
             ssize_t Increment(string name, size_t byte_count, uint32_t packet_count=1);
             ssize_t Increment(uint8_t number, size_t byte_count, uint32_t packet_count=1);
-//            ssize_t Decrement(string name, size_t byte_count, uint32_t packet_count=1);
-//            ssize_t Decrement(uint8_t number, size_t byte_count, uint32_t packet_count=1);
             int32_t TestStart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
             int32_t TestStart(uint8_t number, uint8_t radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
             int32_t TestStop(string name, float seconds=5.);

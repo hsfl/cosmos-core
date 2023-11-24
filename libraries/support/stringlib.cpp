@@ -1001,17 +1001,22 @@ string to_label(string label, string value) {
     return label + ": " + (value);
 }
 
-string clean_string(string value) {
+string clean_string(string value)
+{
     string output;
-    for (uint16_t i=0; i<value.length(); ++i) {
-        if (value[i] != 0) {
+    for (uint16_t i=0; i<value.length(); ++i)
+    {
+        if (value[i] != 0)
+        {
             output.push_back(value[i]);
-            printf("%c", value[i]);
-        } else {
-            printf(" [0] ");
+//            printf("%c", value[i]);
         }
+//            else
+//        {
+//            printf(" [0] ");
+//        }
     }
-    printf("\n");
+//    printf("\n");
     output.push_back(0);
     return output;
 }
