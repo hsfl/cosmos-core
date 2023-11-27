@@ -96,8 +96,8 @@ namespace Cosmos {
             float ByteRate(uint8_t number);
             uint32_t Packets(string name);
             uint32_t Packets(uint8_t number);
-            double Touch(string name);
-            double Touch(uint8_t number);
+            double Touch(string name, double seconds = 0.);
+            double Touch(uint8_t number, double seconds = 0.);
             ssize_t Increment(string name, size_t byte_count, uint32_t packet_count=1);
             ssize_t Increment(uint8_t number, size_t byte_count, uint32_t packet_count=1);
             int32_t TestStart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);

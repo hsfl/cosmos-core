@@ -17,13 +17,32 @@ int32_t read_envi_hdr(string file, envi_hdr &hdr)
     size_t ext;
     if ((ext = file.find(".hdr")) != string::npos)
     {
+        hdr.hdrname = file;
         hdr.basename = file.substr(0, ext);
-        hdr.dataname = hdr.basename;
-        if (!data_isfile(hdr.dataname))
+        if (data_isfile(hdr.basename))
+        {
+            hdr.dataname = hdr.basename;
+        }
+        else if (data_isfile(hdr.basename+".img"))
+        {
+            hdr.dataname = hdr.basename + ".img";
+        }
+        else if (data_isfile(hdr.basename+".bsq"))
+        {
+            hdr.dataname = hdr.basename + ".bsq";
+        }
+        else if (data_isfile(hdr.basename+".bil"))
+        {
+            hdr.dataname = hdr.basename + ".bil";
+        }
+        else if (data_isfile(hdr.basename+".bip"))
+        {
+            hdr.dataname = hdr.basename + ".bip";
+        }
+        else
         {
             return COSMOS_GENERAL_ERROR_NAME;
         }
-        hdr.hdrname = file;
     }
     else if (data_isfile(file + ".hdr"))
     {

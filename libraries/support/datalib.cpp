@@ -735,7 +735,7 @@ size_t data_list_files(string directory, vector<filestruc>& files)
                     }
                 }
                 files.push_back(tf);
-                for (size_t i=files.size()-1; i>1; --i)
+                for (size_t i=files.size()-1; i>0; --i)
                 {
                     if (files[i].utc > files[i-1].utc)
                     {
@@ -785,9 +785,13 @@ string data_list_latest_file(string node, string location, string agent)
 
     data_list_files(node, location, agent, files);
 
+//    for (uint16_t i=0; i<files.size(); ++i)
+//    {
+//        printf("%u %s\n",i , files[i].path.c_str());
+//    }
     if (files.size())
     {
-        return files[0].path;
+        return files.front().path;
     }
     else
     {

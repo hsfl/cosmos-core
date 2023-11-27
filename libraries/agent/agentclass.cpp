@@ -364,6 +364,7 @@ namespace Cosmos
             add_request("add_task", req_add_task, "command parameters", "Start external command as Task for output to file");
             add_request("test_channel", req_test_channel, "channel radio dest start step count bytes", "Run channel performance test");
             add_request("channel_enable", req_channel_enable, "channel state", "Set channel enabled state to the specified value");
+            add_request("channel_touch", req_channel_touch, "channel [seconds]", "Reset channel age");
             // Set up Full SOH string
             //            set_fullsohstring(json_list_of_fullsoh(cinfo));
 
@@ -912,11 +913,11 @@ namespace Cosmos
             //request[i] = 0;
             request.resize(i);
 
-            //for (i=0; i<reqs.size(); i++) { if (!strcmp(request.c_str(),reqs[i].token.c_str())) break; }
+            bufferout = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " " + &bufferin[0] + "\n";
             if(reqs.find(request) == reqs.end())
             {
                 iretn = AGENT_ERROR_NULL;
-                bufferout = "[NOK] " + std::to_string(iretn);
+                bufferout += "[NOK] " + std::to_string(iretn);
             }
             else
             {
@@ -929,11 +930,15 @@ namespace Cosmos
                 if (iretn >= 0)
                 {
                     request.resize(strlen(&request[0]));
-                    bufferout = request;
+                    bufferout += request;
+                    if (bufferout.back() != '\n')
+                    {
+                        bufferout += "\n";
+                    }
                 }
                 else
                 {
-                    bufferout = "[NOK] " + std::to_string(iretn);
+                    bufferout += "[NOK] " + std::to_string(iretn) + "\n";
                 }
             }
 
@@ -2703,6 +2708,38 @@ namespace Cosmos
                 response = "Incorrect args";
                 return 0;
             }
+        }
+
+        //! \brief Reset the Age of the specified channel to the specifed value.
+        //! Expected args:
+        //! [0] channel_enable
+        //! [1] String name of channel
+        //! [2] float time in seconds to set channel age to
+        //! \param request Request.
+        //! \param response Any response.
+        //! \param agent Pointer to Agent.
+        //! \return Zero or negative error.
+        int32_t Agent::req_channel_touch(string &request, string &response, Agent *agent)
+        {
+            // Expected args:
+            vector<string> args = string_split(request);
+            if (args.size() < 2)
+            {
+                response = "Incorrect args";
+                return 0;
+            }
+            if (args.size() > 2)
+            {
+                double seconds = atof(args[2].c_str());
+                agent->channel_touch(args[1], seconds);
+                response = "Set channel " + args[1] + " age to " + std::to_string(agent->channel_age(args[1]));
+            }
+            else
+            {
+                agent->channel_touch(args[1]);
+                response = "Set channel " + args[1] + " age to " + std::to_string(agent->channel_age(args[1]));
+            }
+            return 0;
         }
 
         //! Open COSMOS output channel
@@ -4623,14 +4660,14 @@ acquired.
             return channels.Packets(number);
         }
 
-        double Agent::channel_touch(string name)
+        double Agent::channel_touch(string name, double seconds)
         {
-            return channels.Touch(name);
+            return channels.Touch(name, seconds);
         }
 
-        double Agent::channel_touch(uint8_t number)
+        double Agent::channel_touch(uint8_t number, double seconds)
         {
-            return channels.Touch(number);
+            return channels.Touch(number, seconds);
         }
 
         ssize_t Agent::channel_increment(string name, size_t bytes, uint32_t packets)
