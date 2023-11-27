@@ -24,6 +24,7 @@ foreach(file ${files})
 endforeach()
 
 target_link_libraries(archive CosmosAgent CosmosData)
+target_link_libraries(latest_file CosmosAgent CosmosData)
 target_link_libraries(calc_transform CosmosAgent CosmosMath)
 target_link_libraries(command_generator CosmosScheduler CosmosAgent)
 target_link_libraries(command_generator_remote CosmosEvent CosmosAgent)
