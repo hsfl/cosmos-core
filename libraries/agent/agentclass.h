@@ -461,8 +461,8 @@ namespace Cosmos
             size_t channel_level(uint8_t number);
             uint32_t channel_packets(string name);
             uint32_t channel_packets(uint8_t number);
-            double channel_touch(string name);
-            double channel_touch(uint8_t number);
+            double channel_touch(string name, double seconds=0.);
+            double channel_touch(uint8_t number, double seconds=0.);
             ssize_t channel_increment(string name, size_t bytes, uint32_t packets=1);
             ssize_t channel_increment(uint8_t number, size_t bytes, uint32_t packets=1);
 //            ssize_t channel_decrement(string name, size_t bytes, uint32_t packets=1);
@@ -602,6 +602,7 @@ namespace Cosmos
             static int32_t req_list_channels(string &, string &response, Agent *agent);
             static int32_t req_test_channel(string &, string &response, Agent *agent);
             static int32_t req_channel_enable(string &, string &response, Agent *agent);
+            static int32_t req_channel_touch(string &, string &response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos

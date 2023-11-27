@@ -379,12 +379,12 @@ namespace Cosmos {
         //! Update channel Age.
         //! \param name Name of channel.
         //! \return Previous age in seconds or -999999.
-        double Channel::Touch(string name)
+        double Channel::Touch(string name, double seconds)
         {
             int32_t iretn = Find(name);
             if (iretn >= 0)
             {
-                return Touch(iretn);
+                return Touch(iretn, seconds);
             }
             return -999999;
         }
@@ -393,7 +393,7 @@ namespace Cosmos {
         //! Update channel Age.
         //! \param number Number of channel.
         //! \return Previous age in seconds or -999999.
-        double Channel::Touch(uint8_t number)
+        double Channel::Touch(uint8_t number, double seconds)
         {
             if (number >= channel.size())
             {
@@ -401,7 +401,7 @@ namespace Cosmos {
             }
             channel[number].mtx->lock();
             double age = 86400. * (currentmjd() - channel[number].timestamp);
-            channel[number].timestamp = currentmjd();
+            channel[number].timestamp = currentmjd() - seconds / 86400.;
             channel[number].mtx->unlock();
             return age;
         }
