@@ -731,6 +731,7 @@ namespace Cosmos {
                         for (auto& packet: reqdata_packets)
                         {
                             int32_t current_channel_buffer_size = agent->channel_push(channel_id, packet);
+                            print_file_packet(packet, 1, "Outgoing", &agent->debug_log);
                             // Break out if channel is getting too full
                             if (current_channel_buffer_size < 0 || current_channel_buffer_size > channel_buffer_limit)
                             {
@@ -780,6 +781,7 @@ namespace Cosmos {
                     packet.header.nodedest = orig_node_id;
                     serialize_complete(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx_id, txq[orig_node_idx].incoming.progress[tx_id].file_crc);
                     agent->channel_push(channel_id, packet);
+                    print_file_packet(outgoing_packet, 1, "Outgoing", &agent->debug_log);
                 }
 
                 txq[orig_node_idx].incoming.progress[tx_id].next_response = currentmjd() + txq[orig_node_idx].incoming.waittime;
@@ -795,6 +797,7 @@ namespace Cosmos {
                 packet.header.nodedest = orig_node_id;
                 serialize_reqmeta(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[orig_node_idx].node_name, treqmeta);
                 agent->channel_push(channel_id, packet);
+                print_file_packet(outgoing_packet, 1, "Outgoing", &agent->debug_log);
             }
 
             return 0;
