@@ -216,6 +216,10 @@ namespace Cosmos {
             ErrorStrings[ErrorNumbers::COSMOS_SCPI_ERROR_OUTSIDE_LIMITS] = "SCPI Request Outside Valid Limits";
             ErrorStrings[ErrorNumbers::COSMOS_SCPI_ERROR_OUTSIDE_RANGE] = "SCPI Request Outside Supported Range";
             ErrorStrings[ErrorNumbers::COSMOS_PACKET_TYPE_MISMATCH] = "Packet Type ID not handled";
+            ErrorStrings[ErrorNumbers::COSMOS_DECRYPTION_ERROR] = "Decryption failed";
+            ErrorStrings[ErrorNumbers::COSMOS_ENCRYPTION_ERROR] = "Encryption failed";
+            ErrorStrings[ErrorNumbers::COSMOS_RADIO_FILLER_PACKET] = "Radio filler";
+            ErrorStrings[ErrorNumbers::COSMOS_RADIO_SYNC_WORD_ERROR] = "Sync word not found";
             ErrorStrings[ErrorNumbers::COSMOS_GENERAL_OK] = "No Problem";
             ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_NO_SIGNAL] = "No Signal";
             ErrorStrings[ErrorNumbers::COSMOS_GENERAL_ERROR_NOTSTARTED] = "Not Started";
