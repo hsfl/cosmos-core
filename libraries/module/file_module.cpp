@@ -128,7 +128,6 @@ namespace Cosmos
                                 if (out_radio == 0)
                                 {
                                     file_transfer_enabled = false;
-                                    string s = "Stopping transfer";
                                 }
                                 else
                                 {
@@ -289,7 +288,20 @@ namespace Cosmos
                 }
                 transfer.set_packet_size(channel_datasize);
             }
+            bool radio_changed = (out_radio != new_out_radio);
             out_radio = new_out_radio;
+
+            // If no radios for files to transfer over,
+            // close and flush all open file pointers.
+            // E.g., if a ground station pass is over
+            if (out_radio == 0 && radio_changed)
+            {
+                agent->debug_log.Printf("%.4f No radios for file transfer, flushing all file pointers\n", agent->uptime.split());
+                for (auto node : contact_nodes)
+                {
+                    transfer.close_file_pointers(node, 2);
+                }
+            }
         }
     }
 }

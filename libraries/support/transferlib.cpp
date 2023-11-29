@@ -894,5 +894,28 @@ namespace Cosmos {
             tx = tx_entry();
             return 0;
         }
+
+        /**
+         * @brief Closes file pointers for the incoming or outgoing tx_entry.
+         * 
+         * Use to flush current progress.
+         * 
+         * @param tx The incoming or outgoing tx_entry
+         * @return int32_t 0 on success, negative on error
+         */
+        int32_t flush_tx_entry(tx_entry& tx)
+        {
+            // Check file stuff first
+            for (size_t i=0; i < PROGRESS_QUEUE_SIZE; ++i)
+            {
+                // Close file pointer
+                if (tx.progress[i].fp != nullptr)
+                {
+                    fclose(tx.progress[i].fp);
+                    tx.progress[i].fp = nullptr;
+                }
+            }
+            return 0;
+        }
     }
 }

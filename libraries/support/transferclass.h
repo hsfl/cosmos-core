@@ -86,6 +86,7 @@ namespace Cosmos {
             int32_t reset_queue();
             int32_t reset_queue(string node_name);
             int32_t reset_queue(uint8_t node_id, uint8_t direction);
+            int32_t close_file_pointers(uint8_t node_id, uint8_t direction);
 
             // Getters/setters
             PACKET_CHUNK_SIZE_TYPE get_packet_size();

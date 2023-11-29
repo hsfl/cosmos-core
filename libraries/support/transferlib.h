@@ -218,6 +218,7 @@ namespace Cosmos {
         bool filestruc_smaller_by_size(const filestruc& a, const filestruc& b);
         bool lower_chunk(file_progress i,file_progress j);
         int32_t clear_tx_entry(tx_entry& tx);
+        int32_t flush_tx_entry(tx_entry& tx);
     }
 }
 
