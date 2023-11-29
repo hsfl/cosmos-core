@@ -2087,6 +2087,7 @@ namespace Cosmos
                 break;
 
             case PacketComm::TypeId::CommandRadioAstrodevCommunicate:
+                packet.data.clear();
                 try
                 {
                     // String args are converted to uint8_t and pushed straight in
