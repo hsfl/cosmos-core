@@ -731,6 +731,7 @@ namespace Cosmos {
                         for (auto& packet: reqdata_packets)
                         {
                             int32_t current_channel_buffer_size = agent->channel_push(channel_id, packet);
+                            print_file_packet(packet, 1, "Outgoing", &agent->debug_log);
                             // Break out if channel is getting too full
                             if (current_channel_buffer_size < 0 || current_channel_buffer_size > channel_buffer_limit)
                             {
@@ -780,6 +781,7 @@ namespace Cosmos {
                     packet.header.nodedest = orig_node_id;
                     serialize_complete(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx_id, txq[orig_node_idx].incoming.progress[tx_id].file_crc);
                     agent->channel_push(channel_id, packet);
+                    print_file_packet(packet, 1, "Outgoing", &agent->debug_log);
                 }
 
                 txq[orig_node_idx].incoming.progress[tx_id].next_response = currentmjd() + txq[orig_node_idx].incoming.waittime;
@@ -795,6 +797,7 @@ namespace Cosmos {
                 packet.header.nodedest = orig_node_id;
                 serialize_reqmeta(packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[orig_node_idx].node_name, treqmeta);
                 agent->channel_push(channel_id, packet);
+                print_file_packet(packet, 1, "Outgoing", &agent->debug_log);
             }
 
             return 0;
@@ -2551,6 +2554,52 @@ int32_t Transfer::reset_queue(uint8_t node_id, uint8_t direction)
     return iretn;
 }
 
+/**
+ * @brief Closes all open file pointers for specified node and direction.
+ * 
+ * @param node_id ID of node
+ * @param direction 0 to close incoming, 1 to close outgoing, 2 to close both
+ * @return int32_t 0 on success, negative on error
+ */
+int32_t Transfer::close_file_pointers(uint8_t node_id, uint8_t direction)
+{
+    const size_t txq_idx = node_id_to_txq_idx(node_id);
+    if (txq_idx == INVALID_TXQ_IDX)
+    {
+        return TRANSFER_ERROR_NODE;
+    }
+
+    int32_t iretn = 0;
+    switch(direction)
+    {
+    // Close incoming
+    case 0:
+        iretn = flush_tx_entry(txq[txq_idx].incoming);
+        break;
+    // Close outgoing
+    case 1:
+        iretn = flush_tx_entry(txq[txq_idx].outgoing);
+        break;
+    // Close both
+    default:
+        {
+            flush_tx_entry(txq[txq_idx].incoming);
+            flush_tx_entry(txq[txq_idx].outgoing);
+        }
+        break;
+    }
+    return iretn;
+}
+
+/**
+ * @brief Prints out debug information for file packets
+ * 
+ * @param packet PacketComm packet containing file packet
+ * @param direction 0 for incoming, 1 for outgoing
+ * @param type Extra print info, generally "outgoing" or "incoming". TODO: deprecate
+ * @param debug_log pointer to Logger to use to print
+ * @return int32_t 
+ */
 void Transfer::print_file_packet(PacketComm packet, uint8_t direction, string type, Log::Logger* debug_log)
 {
     if (packet.header.type == PacketComm::TypeId::DataFileChunkData)

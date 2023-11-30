@@ -292,6 +292,12 @@ namespace Cosmos {
 
             COSMOS_PACKET_TYPE_MISMATCH = -651, // If the type id of a packet is not handled
 
+            COSMOS_DECRYPTION_ERROR = -660, // If decryption fails
+            COSMOS_ENCRYPTION_ERROR = -665, // If encryption fails
+
+            COSMOS_RADIO_FILLER_PACKET = -670, // For received radio packets that are otherwise valid, but is only for filler
+            COSMOS_RADIO_SYNC_WORD_ERROR = -671, // If sync word was not found
+
             COSMOS_GENERAL_OK = -0,      /* everything is all right */
             COSMOS_GENERAL_ERROR_NO_SIGNAL         = -2001,     /* there's no free signal */
             COSMOS_GENERAL_ERROR_NOTSTARTED       = -2002,     /* uninitialized error */
