@@ -55,7 +55,7 @@ namespace Cosmos {
                 NodePhysBeacon = 101,
                 NodeTargetBeacon = 102,
                 CPUBeacon = 110,
-                TelemBeacon = 111,
+                CPUNameBeacon = 111,
                 TsenBeacon = 120,
                 TsenBeaconL = 121,
                 EPSBCREGBeacon = 130,
@@ -72,8 +72,9 @@ namespace Cosmos {
 //                ADCSSTTBeacon = 144,
 //                ADCSSSENBeacon = 145,
 //                ADCSATTBeacon = 146,
-                RadioBeacon = 147,
-                CameraBeacon = 148,
+                RadioBeacon = 150,
+                CameraBeacon = 160,
+                TelemBeacon = 170,
                 };
 
             map<TypeId, string> TypeString = {
@@ -299,6 +300,8 @@ namespace Cosmos {
             } ;
 
             // Long Beacons
+            static constexpr uint8_t large_beacon = 200;
+
             struct __attribute__ ((packed)) adcsstate_beacon
             {
                 uint8_t		type = (uint8_t)TypeId::ADCSStateBeacon;
@@ -369,7 +372,7 @@ namespace Cosmos {
                 float distance;
             } ;
 
-            static constexpr uint8_t target_count = 200 / sizeof(target_beacon);
+            static constexpr uint8_t target_count = large_beacon / sizeof(target_beacon);
             struct __attribute__ ((packed)) nodetarget_beacon
             {
                 uint8_t type = (uint8_t)TypeId::NodeTargetBeacon;
@@ -388,7 +391,7 @@ namespace Cosmos {
                 uint16_t ctemp = 0;
             } ;
 
-            static constexpr uint8_t cpu_count = 200 / sizeof(cpu_beacon);
+            static constexpr uint8_t cpu_count = large_beacon / sizeof(cpu_beacon);
             struct __attribute__ ((packed)) cpus_beacon
             {
                 uint8_t type = (uint8_t)TypeId::CPUBeacon;
@@ -410,7 +413,7 @@ namespace Cosmos {
                 uint8_t content[telem_count];
             };
 
-            static constexpr uint8_t tsen_count = 200 / sizeof(uint16_t);
+            static constexpr uint8_t tsen_count = large_beacon / sizeof(uint16_t);
             struct __attribute__ ((packed)) tsen_beacon
             {
                 uint8_t type = (uint8_t)TypeId::TsenBeacon;
@@ -424,7 +427,7 @@ namespace Cosmos {
                 uint16_t ctemp = 0;
             } ;
 
-            static constexpr uint8_t ltsen_count = 200 / sizeof(ltsen_beacon);
+            static constexpr uint8_t ltsen_count = large_beacon / sizeof(ltsen_beacon);
             struct __attribute__ ((packed)) ltsens_beacon
             {
                 uint8_t type = (uint8_t)TypeId::TsenBeaconL;
@@ -442,7 +445,7 @@ namespace Cosmos {
                 int16_t mpptout_mamp = 0.;
             } ;
 
-            static constexpr uint8_t epsbcreg_count = 200 / sizeof(epsbcreg_beacon);
+            static constexpr uint8_t epsbcreg_count = large_beacon / sizeof(epsbcreg_beacon);
             struct __attribute__ ((packed)) epsbcregs_beacon
             {
                 uint8_t type = (uint8_t)TypeId::EPSBCREGBeacon;
@@ -457,7 +460,7 @@ namespace Cosmos {
                 int16_t mamp = 0.;
             } ;
 
-            static constexpr uint8_t epsswch_count = 200 / sizeof(epsswch_beacon);
+            static constexpr uint8_t epsswch_count = large_beacon / sizeof(epsswch_beacon);
             struct __attribute__ ((packed)) epsswchs_beacon
             {
                 uint8_t type = (uint8_t)TypeId::EPSSWCHBeacon;
@@ -480,7 +483,7 @@ namespace Cosmos {
                 uint16_t ctemp = 0.;
             } ;
 
-            static constexpr uint8_t epsbatt_count = 200 / sizeof(epsbatt_beacon);
+            static constexpr uint8_t epsbatt_count = large_beacon / sizeof(epsbatt_beacon);
             struct __attribute__ ((packed)) epsbatts_beacon
             {
                 uint8_t type = (uint8_t)TypeId::EPSBATTBeacon;
@@ -495,7 +498,7 @@ namespace Cosmos {
                 float align[4] = {0.};
             };
 
-            static constexpr uint8_t adcsmtr_count = 200 / sizeof(adcsmtr_beacon);
+            static constexpr uint8_t adcsmtr_count = large_beacon / sizeof(adcsmtr_beacon);
             struct __attribute__ ((packed)) adcsmtrs_beacon
             {
                 uint8_t type = (uint8_t)TypeId::ADCSMTRBeacon;
@@ -508,7 +511,7 @@ namespace Cosmos {
                 float omega = 0.;
             };
 
-            static constexpr uint8_t adcsgyro_count = 200 / sizeof(adcsgyro_beacon);
+            static constexpr uint8_t adcsgyro_count = large_beacon / sizeof(adcsgyro_beacon);
             struct __attribute__ ((packed)) adcsgyros_beacon
             {
                 uint8_t type = (uint8_t)TypeId::ADCSGyroBeacon;
@@ -523,7 +526,7 @@ namespace Cosmos {
                 float romg = 0.;
             };
 
-           static constexpr uint8_t adcsrw_count = 200 / sizeof(adcsrw_beacon);
+           static constexpr uint8_t adcsrw_count = large_beacon / sizeof(adcsrw_beacon);
            struct __attribute__ ((packed)) adcsrws_beacon
            {
                uint8_t type = (uint8_t)TypeId::ADCSRWBeacon;
@@ -556,7 +559,7 @@ namespace Cosmos {
 //                float align[4] = {0.};
 //            };
 
-//            static constexpr uint8_t adcsimu_count = 200 / sizeof(adcsimu_beacon);
+//            static constexpr uint8_t adcsimu_count = large_beacon / sizeof(adcsimu_beacon);
 //            struct __attribute__ ((packed)) adcsimu1_beacon
 //            {
 //                uint8_t type = 142;
@@ -632,7 +635,7 @@ namespace Cosmos {
                uint32_t lastdeci;
            };
 
-           static constexpr uint8_t rxrtxr_count = 200 / sizeof(radio_beacon);
+           static constexpr uint8_t rxrtxr_count = large_beacon / sizeof(radio_beacon);
            struct __attribute__ ((packed)) radios_beacon
            {
                uint8_t type = (uint8_t)TypeId::RadioBeacon;
@@ -650,7 +653,7 @@ namespace Cosmos {
                uint16_t lstep;
            };
 
-           static constexpr uint8_t camera_count = 200 / sizeof(camera_beacon);
+           static constexpr uint8_t camera_count = large_beacon / sizeof(camera_beacon);
            struct __attribute__ ((packed)) cameras_beacon
            {
                uint8_t type = (uint8_t)TypeId::CameraBeacon;
