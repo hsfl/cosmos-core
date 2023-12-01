@@ -980,7 +980,12 @@ namespace Cosmos {
             Beacon beacon;
             vector<uint8_t> bytes;
             beacon.Init();
-            beacon.EncodeBinary((Beacon::TypeId)btype, agent->cinfo, bytes);
+            iretn = beacon.EncodeBinary((Beacon::TypeId)btype, agent->cinfo, bytes);
+            if (iretn < 0)
+            {
+                cout << "QueueBeacon error: " << unsigned(btype) << " iretn: " << iretn << endl;
+                return iretn;
+            }
             packet.header.type = PacketComm::TypeId::DataObcBeacon;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
