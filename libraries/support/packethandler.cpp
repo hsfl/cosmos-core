@@ -814,8 +814,6 @@ namespace Cosmos {
             int32_t iretn=0;
             double mjd = doublefrom(packet.data.data(), ByteOrder::LITTLEENDIAN);
             double delta = set_local_clock(mjd, packet.data[8]);
-//            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
-//            response += "Set Time\n";
             response += to_label("Delta Seconds", delta) + to_label(" Direction", packet.data[8]) + "\n";
 
             iretn = QueueEpsSetTime(currentmjd(), agent);

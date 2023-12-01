@@ -986,12 +986,12 @@ namespace Cosmos {
             return 0;
         }
 
-        double set_local_clock(double utc_to, int8_t direction)
+        double set_local_clock(double utc_to, float limit)
         {
             int32_t iretn = 0;
             double utc_from = currentmjd();
             double deltat = 86400.*(utc_to - utc_from);
-            if (!direction || direction * deltat > 0)
+            if (limit == 0. || (limit < 0. && deltat >= limit) || (limit > 0. && deltat <= 0.))
             {
                 if (fabs(deltat) > 1.)
                 {
@@ -1027,7 +1027,7 @@ namespace Cosmos {
 
                         // adjust the time
                         iretn = adjtime(&newdelta, &olddelta);
-                        return 0.;
+                        return deltat;
 #endif
                     }
                 }
@@ -1035,7 +1035,7 @@ namespace Cosmos {
             }
             else
             {
-                return 0.;
+                return deltat;
             }
         }
 

@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
             }
             date.second += offset;
             double delta = cal2mjd(date) -  currentmjd();
-            if (delta > 3.5e-4)
+            if (fabs(delta) > 3.5e-4)
             {
                 delta = set_local_clock(cal2mjd(date));
                 printf("Initialized time from file: Delta %f Offset %d\n", delta, offset);
