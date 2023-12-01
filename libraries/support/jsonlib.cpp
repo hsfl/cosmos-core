@@ -7180,9 +7180,8 @@ int32_t json_load_node(string node, jsonnode &json)
         calstruc date;
         fscanf(fp, "%02d%02d%02d%02d%04d%*c%02d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year, &date.second);
         fclose(fp);
-        //        initialmjd = currentmjd();
         double delta = cal2mjd(date) -  currentmjd();
-        if (delta > 3.5e-4)
+        if (fabs(delta) > 3.5e-4)
         {
             delta = set_local_clock(cal2mjd(date));
         }
