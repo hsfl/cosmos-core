@@ -188,7 +188,7 @@ namespace Cosmos {
         int16_t isleap(int32_t year);
         string  seconds2DDHHMMSS(double elapsed_seconds);
         int32_t timed_countdown(int32_t seconds, int32_t step=10., string message="");
-        double set_local_clock(double utc_to, int8_t direction=0);
+        double set_local_clock(double utc_to, float limit=0.);
         int32_t microsleep(uint64_t usec);
         int32_t secondsleep(double seconds);
         double newyear(double mjd=0);
