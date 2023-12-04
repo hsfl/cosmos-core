@@ -11,7 +11,7 @@ namespace Cosmos
             agent = parent_agent;
             
             // Initialize Transfer class
-            int32_t iretn = transfer.Init(agent->cinfo, &agent->debug_log);
+            int32_t iretn = transfer.Init(agent->cinfo, &agent->debug_log, keep_errored_files);
             if (iretn < 0)
             {
                 agent->debug_log.Printf("%.4f Error initializing transfer class!: %s\n", agent->uptime.split(), cosmos_error_string(iretn).c_str());

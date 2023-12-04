@@ -690,19 +690,21 @@ vector<filestruc> data_list_files(string directory)
  * Repeated calls to this function will append entries.
  * \param directory Directory to search.
  * \param files Reference to filestruc vector to fill.
+ * \param limit Limit the number of files to return from this call. Directories are returned but not counted.
  * \return Number of files found, otherwise negative error.
  */
-size_t data_list_files(string directory, vector<filestruc>& files)
+size_t data_list_files(string directory, vector<filestruc>& files, uint16_t limit)
 {
     DIR *jdp;
     struct dirent *td;
     filestruc tf;
+    uint16_t file_count = 0;
 
     tf.node = "";
     tf.agent = "";
     if ((jdp=opendir(directory.c_str())) != nullptr)
     {
-        while ((td=readdir(jdp)) != nullptr)
+        while ((td=readdir(jdp)) != nullptr && file_count < limit)
         {
             if (td->d_name[0] != '.')
             {
@@ -733,6 +735,7 @@ size_t data_list_files(string directory, vector<filestruc>& files)
                             break;
                         }
                     }
+                    ++file_count;
                 }
                 files.push_back(tf);
                 for (size_t i=files.size()-1; i>0; --i)
@@ -824,14 +827,15 @@ vector<filestruc> data_list_files(string node, string location, string agent)
  * \param location Subdirectory of Node to search.
  * \param agent Subdirectory of location to search.
  * \param files List of ::filestruc.
+ * \param limit Limit the maximum number of files to return from this call. Directories are returned but not counted.
  * \return Number of files found, otherwise negative error.
  */
-size_t data_list_files(string node, string location, string agent, vector<filestruc>& files)
+size_t data_list_files(string node, string location, string agent, vector<filestruc>& files, uint16_t limit)
 {
     string dtemp;
     dtemp = data_base_path(node, location, agent);
     //    size_t fcnt = files.size();
-    data_list_files(dtemp, files);
+    data_list_files(dtemp, files, limit);
     //    for (size_t i=fcnt; i<files.size(); ++i)
     //    {
     //        files[i].agent = agent;

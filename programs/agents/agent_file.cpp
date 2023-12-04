@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
         exit (iretn);
 
     // Initialize Transfer class
-    iretn = transfer.Init(agent->cinfo, &agent->debug_log);
+    iretn = transfer.Init(agent->cinfo, &agent->debug_log, false);
     if (iretn < 0)
     {
         agent->debug_log.Printf("%.4f Error initializing transfer class!\n", tet.split());

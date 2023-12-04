@@ -47,11 +47,12 @@ namespace Cosmos {
         /** 
          * Initialize the transfer class
          * \param calling_node_realm Name of node using this instance of transferclass
+         * \param keep_errored_files Whether to keep copies of files that have encountered errors and were cancelled
          * \return 0 if success
          */
-        int32_t Transfer::Init(cosmosstruc *cinfo)
+        int32_t Transfer::Init(cosmosstruc *cinfo, bool keep_errored_files)
         {
-            int32_t iretn = Init(cinfo, nullptr);
+            int32_t iretn = Init(cinfo, nullptr, keep_errored_files);
             return iretn;
         }
 
@@ -59,14 +60,16 @@ namespace Cosmos {
          * Initialize the transfer class
          * \param calling_node_realm Realm of node using this instance of transferclass
          * \param debug_log Pointer to an agent's debug_log to use to print error messages.
+         * \param keep_errored_files Whether to keep copies of files that have encountered errors and were cancelled
          * \return 0 if success
          */
-        int32_t Transfer::Init(cosmosstruc *cinfo, Log::Logger* debug_log)
+        int32_t Transfer::Init(cosmosstruc *cinfo, Log::Logger* debug_log, bool keep_errored_files)
         {
 
             int32_t iretn = 0;
             this->debug_log = debug_log;
             this->cinfo = cinfo;
+            this->keep_errored_files = keep_errored_files;
 
             // if (this->debug_log != nullptr)
             // {
@@ -156,7 +159,11 @@ namespace Cosmos {
                                     {
                                         debug_log->Printf("%.4f %.4f Init: Error readd-ing incoming meta. Moving: %u %s %s %s %s\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.file_name.c_str(), tx_in.filepath.c_str());
                                     }
-                                    rename((tx_in.temppath + ".file").c_str(), (tx_in.filepath + "_INITADD_ERR").c_str());
+                                    if (keep_errored_files)
+                                    {
+                                        string timestamp = to_unsigned(decisec(currentmjd()), 10, true);
+                                        rename((tx_in.temppath + ".file").c_str(), (tx_in.filepath + "_" + timestamp +  "_INITADD_ERR").c_str());
+                                    }
                                     remove((tx_in.temppath + ".meta").c_str());
                                     remove((tx_in.temppath + ".file").c_str());
                                 }
@@ -167,7 +174,11 @@ namespace Cosmos {
                                 {
                                     debug_log->Printf("%.4f %.4f Init: Error reading incoming meta, version mismatch. Moving: %u %s %s %s %s\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.file_name.c_str(), tx_in.filepath.c_str());
                                 }
-                                rename((tx_in.temppath + ".file").c_str(), (tx_in.filepath + "_INITADD_VER_ERR").c_str());
+                                if (keep_errored_files)
+                                {
+                                    string timestamp = to_unsigned(decisec(currentmjd()), 10, true);
+                                    rename((tx_in.temppath + ".file").c_str(), (tx_in.filepath + "_" + timestamp +  "_INITADD_VER_ERR").c_str());
+                                }
                                 remove((tx_in.temppath + ".meta").c_str());
                                 remove((tx_in.temppath + ".file").c_str());
                             }
@@ -287,7 +298,7 @@ namespace Cosmos {
                     // dest_node/outgoing/dest_agents
                     if (file.type == "directory")
                     {
-                        data_list_files(txq[dest_node_idx].node_name, "outgoing", file.name, file_names);
+                        data_list_files(txq[dest_node_idx].node_name, "outgoing", file.name, file_names, files_to_scan_per_dir);
                     }
                 }
 
@@ -761,7 +772,11 @@ namespace Cosmos {
                                 debug_log->Printf("%.4f %.4f rpacket/ReqData: Error in final crc check. Was %d expected %u\n", tet.split(), dt.lap(), crcret, txq[orig_node_idx].incoming.progress[tx_id].file_crc);
                             }
                             txq[orig_node_idx].incoming.progress[tx_id].complete = false;
-                            txq[orig_node_idx].incoming.progress[tx_id].filepath += "_FILECRC_ERR";
+                            if (keep_errored_files)
+                            {
+                                string timestamp = to_unsigned(decisec(currentmjd()), 10, true);
+                                txq[orig_node_idx].incoming.progress[tx_id].filepath += "_" + timestamp + "_FILECRC_ERR";
+                            }
                             incoming_tx_del(orig_node_id, tx_id);
                             continue;
                         }
@@ -1406,7 +1421,11 @@ namespace Cosmos {
                     {
                         debug_log->Printf("%.4f %.4f Incoming: MetaData: File crc differs, closing existing transaction: %u %u %u %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_crc, meta.header.tx_id, meta.header.file_crc, txq[orig_node_idx].incoming.progress[meta.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[meta.header.tx_id].file_name.c_str());
                     }
-                    txq[orig_node_idx].incoming.progress[meta.header.tx_id].filepath += "_METATXID_ERR";
+                    if (keep_errored_files)
+                    {
+                        string timestamp = to_unsigned(decisec(currentmjd()), 10, true);
+                        txq[orig_node_idx].incoming.progress[meta.header.tx_id].filepath += "_" + timestamp + "_METATXID_ERR";
+                    }
                     incoming_tx_del(orig_node_id, meta.header.tx_id);
                     // Fallthrough to META received for the first time code
                 }
@@ -1495,7 +1514,7 @@ namespace Cosmos {
             // Move file to its final location
             if (!txq[orig_node_idx].incoming.progress[tx_id].complete)
             {
-                incoming_tx_complete(orig_node_id, tx_id);
+                incoming_tx_complete(orig_node_id, tx_id, keep_errored_files);
             }
 
             if (debug_log != nullptr)
@@ -1527,7 +1546,7 @@ namespace Cosmos {
         //! Similar to incoming_tx_del() but doesn't reset the tx_id.
         //! Used when a file's data is fully received.
         //! \return 0 on success
-        int32_t Transfer::incoming_tx_complete(const uint8_t orig_node_id, const PACKET_TX_ID_TYPE tx_id)
+        int32_t Transfer::incoming_tx_complete(const uint8_t orig_node_id, const PACKET_TX_ID_TYPE tx_id, bool delete_file)
         {
             const size_t orig_node_idx = node_id_to_txq_idx(orig_node_id);
             if (orig_node_id == NODEIDUNKNOWN || orig_node_idx == INVALID_TXQ_IDX)
@@ -1553,18 +1572,29 @@ namespace Cosmos {
                 txq[orig_node_idx].incoming.progress[tx_id].fp = nullptr;
             }
             string completed_filepath = txq[orig_node_idx].incoming.progress[tx_id].temppath + ".file";
-            int iret = rename(completed_filepath.c_str(), txq[orig_node_idx].incoming.progress[tx_id].filepath.c_str());
-            // Make sure metadata is recorded
-            write_meta(txq[orig_node_idx].incoming.progress[tx_id], 0.);
-            if (!iret && debug_log != nullptr)
+            if (!delete_file)
             {
-                debug_log->Printf("%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, txq[orig_node_idx].incoming.progress[tx_id].filepath.c_str());
+                int iret = rename(completed_filepath.c_str(), txq[orig_node_idx].incoming.progress[tx_id].filepath.c_str());
+                // Make sure metadata is recorded
+                write_meta(txq[orig_node_idx].incoming.progress[tx_id], 0.);
+                if (!iret && debug_log != nullptr)
+                {
+                    debug_log->Printf("%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, txq[orig_node_idx].incoming.progress[tx_id].filepath.c_str());
+                }
+                if (debug_log != nullptr)
+                {
+                    debug_log->Printf("%.4f %.4f Incoming: Complete incoming: %u %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[tx_id].tx_id, txq[orig_node_idx].incoming.progress[tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[tx_id].file_name.c_str());
+                }
             }
-
-            if (debug_log != nullptr)
+            else
             {
-                debug_log->Printf("%.4f %.4f Incoming: Complete incoming: %u %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[tx_id].tx_id, txq[orig_node_idx].incoming.progress[tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[tx_id].file_name.c_str());
+                remove(completed_filepath.c_str());
+                if (debug_log != nullptr)
+                {
+                    debug_log->Printf("%.4f %.4f Incoming: Deleting: %s\n", tet.split(), dt.lap(), completed_filepath.c_str());
+                }
             }
+            
 
             string filepath;
             // Remove the DATA file
@@ -1604,7 +1634,11 @@ namespace Cosmos {
                 {
                     debug_log->Printf("%.4f %.4f Incoming: Data: File crc differs, closing existing transaction: %u %u %u %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[data.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[data.header.tx_id].file_crc, data.header.tx_id, data.header.file_crc, txq[orig_node_idx].incoming.progress[data.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[data.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[data.header.tx_id].file_name.c_str());
                 }
-                txq[orig_node_idx].incoming.progress[data.header.tx_id].filepath += "_DATATXID_ERR";
+                if (keep_errored_files)
+                {
+                    string timestamp = to_unsigned(decisec(currentmjd()), 10, true);
+                    txq[orig_node_idx].incoming.progress[data.header.tx_id].filepath += "_" + timestamp + "_DATATXID_ERR";
+                }
                 incoming_tx_del(node_id, data.header.tx_id);
                 tx_id = 0;
                 // Fallthrough to DATA received for the first time code
@@ -1705,7 +1739,11 @@ namespace Cosmos {
                                 {
                                     debug_log->Printf("%.4f %.4f Incoming/Data: Error in final crc check. Was %d expected %u\n", tet.split(), dt.lap(), crcret, txq[orig_node_idx].incoming.progress[tx_id].file_crc);
                                 }
-                                txq[orig_node_idx].incoming.progress[tx_id].filepath += "_FILECRC_ERR";
+                                if (keep_errored_files)
+                                {
+                                    string timestamp = to_unsigned(decisec(currentmjd()), 10, true);
+                                    txq[orig_node_idx].incoming.progress[tx_id].filepath += "_" + timestamp + "_FILECRC_ERR";
+                                }
                                 incoming_tx_del(node_id, tx_id);
                             }
                             else
@@ -1791,7 +1829,11 @@ namespace Cosmos {
                             {
                                 // This renaming would only occur in error states.
                                 // A file completed correctly would already be renamed and moved.
-                                txq[orig_node_idx].incoming.progress[tx_id].filepath += "_QUEUE_ERR";
+                                if (keep_errored_files)
+                                {
+                                    string timestamp = to_unsigned(decisec(currentmjd()), 10, true);
+                                    txq[orig_node_idx].incoming.progress[tx_id].filepath += "_" + timestamp + "_QUEUE_ERR";
+                                }
                                 incoming_tx_del(node_id, tx_id);
                             }
 
@@ -1912,7 +1954,11 @@ namespace Cosmos {
                         {
                             debug_log->Printf("%.4f %.4f Incoming: ReqComplete: File crc differs, closing existing transaction: %u %u %u %u %s %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].tx_id, txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].file_crc, reqcomplete.header.tx_id, reqcomplete.header.file_crc, txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].agent_name.c_str(), txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].file_name.c_str());
                         }
-                        txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].filepath += "_REQCTXID_ERR";
+                        if (keep_errored_files)
+                        {
+                            string timestamp = to_unsigned(decisec(currentmjd()), 10, true);
+                            txq[orig_node_idx].incoming.progress[reqcomplete.header.tx_id].filepath += "_" + timestamp + "_REQCTXID_ERR";
+                        }
                         incoming_tx_del(node_id, reqcomplete.header.tx_id);
                         // Fallthrough to REQCOMPLETE received for the first time code
                     }
@@ -1952,7 +1998,11 @@ namespace Cosmos {
                         // Remove the transaction
                         // This renaming would only occur in error states.
                         // A file completed correctly would already be renamed and moved.
-                        txq[orig_node_idx].incoming.progress[tx_id].filepath += "_CANCEL_ERR";
+                        if (keep_errored_files)
+                        {
+                            string timestamp = to_unsigned(decisec(currentmjd()), 10, true);
+                            txq[orig_node_idx].incoming.progress[tx_id].filepath += "_" + timestamp + "_CANCEL_ERR";
+                        }
                         incoming_tx_del(node_id, tx_id);
                     }
                 }
