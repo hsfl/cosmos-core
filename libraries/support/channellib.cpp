@@ -401,7 +401,7 @@ namespace Cosmos {
             }
             channel[number].mtx->lock();
             double age = age_timer.split();
-            age_timer.reset();
+            age_timer.start(seconds);
             channel[number].mtx->unlock();
             return age;
         }
