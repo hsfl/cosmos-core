@@ -1514,7 +1514,7 @@ namespace Cosmos {
             // Move file to its final location
             if (!txq[orig_node_idx].incoming.progress[tx_id].complete)
             {
-                incoming_tx_complete(orig_node_id, tx_id, keep_errored_files);
+                incoming_tx_complete(orig_node_id, tx_id, !keep_errored_files);
             }
 
             if (debug_log != nullptr)
