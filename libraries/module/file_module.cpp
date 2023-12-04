@@ -11,7 +11,7 @@ namespace Cosmos
             agent = parent_agent;
             
             // Initialize Transfer class
-            int32_t iretn = transfer.Init(agent->cinfo, &agent->debug_log);
+            int32_t iretn = transfer.Init(agent->cinfo, &agent->debug_log, keep_errored_files);
             if (iretn < 0)
             {
                 agent->debug_log.Printf("%.4f Error initializing transfer class!: %s\n", agent->uptime.split(), cosmos_error_string(iretn).c_str());
@@ -156,6 +156,33 @@ namespace Cosmos
                                 }
                             }
                             break;
+                        case PacketComm::TypeId::CommandFileResetQueue:
+                            {
+                                // Arg 0: node id of contact node to clear queue of
+                                // Arg 1: direction to clear (0 incoming, 1 outgoing, 2 both)
+                                if (packet.data.size() < 2)
+                                {
+                                    break;
+                                }
+                                for (auto node : contact_nodes)
+                                {
+                                    if (node == packet.data[0])
+                                    {
+                                        transfer.reset_queue(node, packet.data[1]);
+                                    }
+                                }
+                            }
+                            break;
+                        case PacketComm::TypeId::CommandFileStopTransfer:
+                            {
+                                out_radio = 0;
+                                file_transfer_enabled = false;
+                                for (auto node : contact_nodes)
+                                {
+                                    transfer.close_file_pointers(node, 2);
+                                }
+                            }
+                            break;
                         default:
                             break;
                         }
@@ -253,7 +280,7 @@ namespace Cosmos
                 if (radios_channel_number[i] == radio)
                 {
                     // Pointless to do the rest if no change is being made
-                    if (radios_available[i] == availability)
+                    if (radios_available[i] == availability && out_radio == radio)
                     {
                         return;
                     }

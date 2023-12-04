@@ -17,6 +17,7 @@ namespace Cosmos
         {
         public:
             FileModule();
+            FileModule(bool keep_errored_files) : keep_errored_files{keep_errored_files} {}
             /**
              * @brief Initialize FileModule
              * 
@@ -55,6 +56,9 @@ namespace Cosmos
             //! About the amount of time (in seconds) to wish to continually stream out of a radio for before doing other logic.
             //! TODO: Consider having a separate listening thread to not need stuff like this.
             double continual_stream_time = 5.;
+
+            // Whether to keep copies of files that have encountered errors and cancelled
+            const bool keep_errored_files = false;
 
             int32_t mychannel = 0;
             bool running = false;

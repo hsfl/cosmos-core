@@ -35,7 +35,8 @@ namespace Cosmos {
 
             struct channelstruc
             {
-                double timestamp = 0.;
+                channelstruc() {age_timer.start(get_unix_time());}
+                ElapsedTime age_timer;
                 uint32_t packets = 0;
                 uint32_t level = 0;
                 size_t bytes = 0;
@@ -113,7 +114,6 @@ namespace Cosmos {
             uint32_t verification = 0x352e;
 
         private:
-
         };
     }
 }

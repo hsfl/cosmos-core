@@ -57,8 +57,8 @@ namespace Cosmos {
 
             Transfer();
             // int32_t Init(string node, string agent, uint16_t chunk_size);
-            int32_t Init(cosmosstruc *cinfo);
-            int32_t Init(cosmosstruc *cinfo, Log::Logger* debug_log);
+            int32_t Init(cosmosstruc *cinfo, bool keep_errored_files);
+            int32_t Init(cosmosstruc *cinfo, Log::Logger* debug_log, bool keep_errored_files);
             //int32_t Load(string filename, vector<chunk> &chunks);
             int32_t outgoing_tx_add(tx_progress &tx_out, const string dest_node_name);
             int32_t outgoing_tx_add(const string dest_node, const string dest_agent, const string file_name);
@@ -117,6 +117,9 @@ namespace Cosmos {
             // Byte size limit of a packet
             PACKET_CHUNK_SIZE_TYPE packet_size = 217;
 
+            // The maximum number of files to scan in each outgoing/* folder
+            uint16_t files_to_scan_per_dir = 50;
+
             // Pointer to calling agent's debug_log
             Log::Logger* debug_log = nullptr;
 
@@ -128,7 +131,7 @@ namespace Cosmos {
             int32_t incoming_tx_add(tx_progress &tx_in);
             int32_t incoming_tx_update(const packet_struct_metadata &meta);
             int32_t incoming_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
-            int32_t incoming_tx_complete(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
+            int32_t incoming_tx_complete(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1, bool delete_file=false);
             int32_t incoming_tx_data(packet_struct_data& data, uint8_t node_id, size_t orig_node_idx);
 
             // Reuse to write the META
@@ -140,6 +143,9 @@ namespace Cosmos {
 
             static const size_t INVALID_TXQ_IDX = (size_t)-1;
             size_t node_id_to_txq_idx(const uint8_t node_id);
+
+            // Whether to keep copies of files that encountered errors and were cancelled
+            bool keep_errored_files = false;
 
             // Reuse crc class
             CRC16 calc_crc;
