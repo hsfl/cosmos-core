@@ -275,7 +275,8 @@ double ElapsedTime::timer()
     remainingTime = (timeAlarm.tv_sec - timeNow.tv_sec) + (timeAlarm.tv_usec - timeNow.tv_usec) / 1e6;
 #else
     timeNow = std::chrono::steady_clock::now();
-    remainingTime =  std::chrono::duration<double>(timeAlarm - timeNow).count() / 1000.;
+//    remainingTime =  std::chrono::duration<double>(timeAlarm - timeNow).count() / 1000.;
+    remainingTime =  std::chrono::duration<double>(timeAlarm - timeNow).count();
 #endif
 
     return remainingTime;

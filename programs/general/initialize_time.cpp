@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
     Agent *agent = new Agent();
 
 
+    double cmjd = currentmjd();
     double rmjd;
     double epsilon;
     double offset;
@@ -50,8 +51,7 @@ int main(int argc, char *argv[])
     }
     if (iretn >= 0)
     {
-//        offset *= 86400.;
-        if (offset < -1.574e-4 || offset > 1.574e-4)
+        if (offset <= 0. || offset > 1.574e-4)
         {
             double delta = set_local_clock(currentmjd() + offset);
             printf("Initialized time from server: Delta %f Offset %f\n", delta, offset*86400.);
@@ -68,36 +68,36 @@ int main(int argc, char *argv[])
             printf("No change from server: Offset %f\n", offset);
         }
     }
-    else
-    {
-        FILE *fp = fopen((get_cosmosnodes() + agent->cinfo->node.name + "/last_date").c_str(), "r");
-        if (fp != nullptr)
-        {
-            calstruc date;
-            int32_t offset = 0;
-            iretn = fscanf(fp, "%02d%02d%02d%02d%04d%*c%02d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year, &date.second);
-            fclose(fp);
-            fp = fopen((get_cosmosnodes() + agent->cinfo->node.name + "/last_offset").c_str(), "r");
-            if (fp != nullptr)
-            {
-                iretn = fscanf(fp, "%d", &offset);
-            }
-            date.second += offset;
-            double delta = cal2mjd(date) -  currentmjd();
-            if (fabs(delta) > 3.5e-4)
-            {
-                delta = set_local_clock(cal2mjd(date));
-                printf("Initialized time from file: Delta %f Offset %d\n", delta, offset);
-            }
-            else
-            {
-                printf("No change from file: Delta %f\n", delta);
-            }
-        }
-        else
-        {
-            printf("Failed to find time source\n");
-        }
-    }
-
+//    else
+//    {
+//        FILE *fp = fopen((get_cosmosnodes() + agent->cinfo->node.name + "/last_date").c_str(), "r");
+//        if (fp != nullptr)
+//        {
+//            calstruc date;
+//            int32_t offset = 0;
+//            iretn = fscanf(fp, "%02d%02d%02d%02d%04d%*c%02d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year, &date.second);
+//            fclose(fp);
+//            fp = fopen((get_cosmosnodes() + agent->cinfo->node.name + "/last_offset").c_str(), "r");
+//            if (fp != nullptr)
+//            {
+//                iretn = fscanf(fp, "%d", &offset);
+//            }
+//            date.second += offset;
+//            double delta = cal2mjd(date) -  currentmjd();
+//            if (fabs(delta) > 3.5e-4)
+//            {
+//                delta = set_local_clock(cal2mjd(date));
+//                printf("Initialized time from file: Delta %f Offset %d\n", delta, offset);
+//            }
+//            else
+//            {
+//                printf("No change from file: Delta %f\n", delta);
+//            }
+//        }
+//        else
+//        {
+//            printf("Failed to find time source\n");
+//        }
+//    }
+    printf("Total Change: %f\n", 86400. * (currentmjd() - cmjd));
 }
