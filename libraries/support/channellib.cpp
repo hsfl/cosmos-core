@@ -231,7 +231,7 @@ namespace Cosmos {
                 return -999999.;
             }
             channel[number].mtx->lock();
-            double age = 86400. * (currentmjd() - channel[number].timestamp);
+            double age = age_timer.split();
             channel[number].mtx->unlock();
             return age;
         }
@@ -400,8 +400,8 @@ namespace Cosmos {
                 return -999999.;
             }
             channel[number].mtx->lock();
-            double age = 86400. * (currentmjd() - channel[number].timestamp);
-            channel[number].timestamp = currentmjd() - seconds / 86400.;
+            double age = age_timer.split();
+            age_timer.reset();
             channel[number].mtx->unlock();
             return age;
         }
