@@ -813,10 +813,15 @@ namespace Cosmos {
         {
             int32_t iretn=0;
             double mjd = doublefrom(packet.data.data(), ByteOrder::LITTLEENDIAN);
-            double delta = set_local_clock(mjd, packet.data[8]);
-            response += to_label("Delta Seconds", delta) + to_label(" Direction", packet.data[8]) + "\n";
-
+            double delta = set_local_clock(mjd, floatfrom(&packet.data[8]));
             iretn = QueueEpsSetTime(currentmjd(), agent);
+            uint16_t bootseconds = uint16from(&packet.data[12]);
+            if (bootseconds)
+            {
+                data_execute("sleep " + to_unsigned(bootseconds) + " ;reboot");
+            }
+            response += to_label("Delta", delta) + to_label(" Limit", floatfrom(&packet.data[8])) + to_label(" Boot", bootseconds) + "\n";
+
             return iretn;
         }
 
@@ -978,12 +983,7 @@ namespace Cosmos {
             Beacon beacon;
             vector<uint8_t> bytes;
             beacon.Init();
-            iretn = beacon.EncodeBinary((Beacon::TypeId)btype, agent->cinfo, bytes);
-            if (iretn < 0)
-            {
-                cout << "QueueBeacon error: " << unsigned(btype) << " iretn: " << iretn << endl;
-                return iretn;
-            }
+            beacon.EncodeBinary((Beacon::TypeId)btype, agent->cinfo, bytes);
             packet.header.type = PacketComm::TypeId::DataObcBeacon;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
@@ -1264,7 +1264,7 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueSetTime(double mjd, int8_t direction , Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        int32_t PacketHandler::QueueSetTime(double mjd, float limit , Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1274,13 +1274,13 @@ namespace Cosmos {
             packet.header.nodedest = dest;
             packet.header.chanin = agent->channel_number(radioin);
             packet.header.chanout = agent->channel_number(channelout);
-            packet.data.resize(9);
+            packet.data.resize(12);
             if (mjd < 3600.)
             {
                 mjd = currentmjd() + mjd / 86400.;
             }
             doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
-            packet.data[8] = direction;
+            floatto(limit, &packet.data[8]);
             iretn = agent->channel_push(packet);
             return iretn;
         }

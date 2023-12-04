@@ -342,7 +342,7 @@ namespace Cosmos
                         "    TransferRadio\n"
                         "    InternalRequest request parameters\n"
                         "    Ping {string}\n"
-                        "    SetTime {MJD|delta {direction}}\n"
+                        "    SetTime {MJD|delta {limit}}\n"
                         "    GetTimeHuman\n"
                         "    GetTimeBinary\n"
                         "    SetOpsMode [modestring]\n"
@@ -2263,7 +2263,8 @@ namespace Cosmos
             case PacketComm::TypeId::CommandObcSetTime:
                 {
                     double mjd = currentmjd();
-                    int8_t direction = 0;
+                    float limit = 0.;
+                    uint16_t bootseconds = 0;
                     if (parms.size() > 0)
                     {
                         if (parms[0][0] == '+' || parms[0][0] == '-')
@@ -2277,13 +2278,18 @@ namespace Cosmos
                         }
                         if (parms.size() > 1)
                         {
-                            direction = atoi(parms[1].c_str());
+                            limit = atof(parms[1].c_str());
+                        }
+                        if (parms.size() > 2)
+                        {
+                            bootseconds = atoi(parms[2].c_str());
                         }
                     }
-                    packet.data.resize(9);
+                    packet.data.resize(14);
                     doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
-                    packet.data[8] = direction;
-                    response += " " + to_iso8601(mjd) + " " + to_signed(direction);
+                    floatto(limit, &packet.data[8]);
+                    uint16to(bootseconds, &packet.data[12]);
+                    response += " " + to_iso8601(mjd) + " " + to_floating(limit, 1) + " " + to_unsigned(bootseconds);
                 }
                 break;
             case PacketComm::TypeId::CommandObcGetTimeHuman:
