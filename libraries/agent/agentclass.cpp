@@ -2247,6 +2247,44 @@ namespace Cosmos
                     }
                 }
                 break;
+            case PacketComm::TypeId::CommandFileResetQueue:
+                {
+                    // Arg 0: node name of remote node's contact to clear
+                    // Arg 1: direction to clear (0 incoming, 1 outgoing, 2 both)
+                    if (parms.size() < 2)
+                    {
+                        response = "Invalid arguments";
+                        return response.size();
+                    }
+                    uint8_t node = lookup_node_id(agent->cinfo, parms[0]);
+                    if (node == NODEIDUNKNOWN)
+                    {
+                        response = "Invalid node name!";
+                        return response.size();
+                    }
+                    
+                    packet.data.resize(2);
+                    packet.data[0] = node;
+                    try
+                    {
+                        uint8_t dir = stoi(parms[1]);
+                        packet.data[1] = dir;
+                        response = "Clearing file transfer queue of node " + parms[0] + " for direction " + std::to_string((unsigned)dir);
+                    }
+                    catch(const std::exception& e)
+                    {
+                        response = "Invalid parm[1]";
+                        return response.size();
+                    }
+                }
+                break;
+            case PacketComm::TypeId::CommandFileStopTransfer:
+                {
+                    // No args
+                    packet.data.clear();
+                    response = "Stopping file transfer for remote node";
+                }
+                break;
             case PacketComm::TypeId::CommandObcInternalRequest:
                 {
                     string command = "status";
