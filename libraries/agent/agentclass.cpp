@@ -299,7 +299,7 @@ namespace Cosmos
             add_request("getvalue",req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
             add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent (Namespace 2.0)");
             add_request("get_state",req_get_state,"[{] \"name1\",\"name2\",... [}]","get current state value(s) from agent");
-            add_request("get_time",req_get_time,"","return the current time of the agent");
+            add_request("get_time",req_get_time,"[\"mjd\",\"humand\",\"met\"]","Return the current time of the agent. As either modified julian day, human readable, or mission elapsed time");
             add_request("get_position",req_get_position,"","return the current perifocal position of the agent");
             add_request("get_position_data",req_get_position_data,"","return the current perifocal position of the agent");
             add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
@@ -348,9 +348,9 @@ namespace Cosmos
                         "    SetOpsMode [modestring]\n"
                         "    EnableChannel [channelstring | channelnumber] {State}\n"
                         "    EpsCommunicate sbid:command:hexstring:response_size\n"
-                        "    EpsSwitchStatus [0-1|vbattbus|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200]\n"
+                        "    EpsSwitchStatus [0-1|vbattbus|5vbus|hdrm|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200|sif]\n"
                         "    EpsState {0|1|2|3}\n"
-                        "    EpsSwitchName {vbattbus|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200} [0|1|2]\n"
+                        "    EpsSwitchName {vbattbus|5vbus|hdrm|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200|sif} [0|1|2]\n"
                         "    EpsSwitchNumber boardid switchid [0|1]\n"
                         "    EpsSwitchNames {vbattbus ...} [0|1]\n"
                         "    AdcsOrbitParameters inc ecc raan ap bstar mm ma epoch\n"
@@ -1413,10 +1413,33 @@ namespace Cosmos
 
 
 
-        int32_t Agent::req_get_time(string &request, string &response, Agent* agent)	{
-            stringstream ss;
-            ss<<setprecision(numeric_limits<double>::digits10)<<currentmjd();
-            response = ss.str();
+        int32_t Agent::req_get_time(string &request, string &response, Agent* agent)
+        {
+            vector<string> args = string_split(request);
+
+            if (args.size() > 1)
+            {
+                if (args[1] == "mjd")
+                {
+                    response = to_mjd(currentmjd());
+                }
+                else if (args[1] == "human")
+                {
+                    response = utc2iso8601();
+                }
+                else if (args[1] == "met")
+                {
+                    response = to_floating(currentmjd() - agent->cinfo->node.utcstart);
+                }
+                else
+                {
+                    response = to_mjd(currentmjd());
+                }
+            }
+            else
+            {
+                response = to_mjd(currentmjd());
+            }
             return 0;
         }
 
@@ -2222,44 +2245,6 @@ namespace Cosmos
                         response = "Invalid parm[1]";
                         return response.size();
                     }
-                }
-                break;
-            case PacketComm::TypeId::CommandFileResetQueue:
-                {
-                    // Arg 0: node name of remote node's contact to clear
-                    // Arg 1: direction to clear (0 incoming, 1 outgoing, 2 both)
-                    if (parms.size() < 2)
-                    {
-                        response = "Invalid arguments";
-                        return response.size();
-                    }
-                    uint8_t node = lookup_node_id(agent->cinfo, parms[0]);
-                    if (node == NODEIDUNKNOWN)
-                    {
-                        response = "Invalid node name!";
-                        return response.size();
-                    }
-                    
-                    packet.data.resize(2);
-                    packet.data[0] = node;
-                    try
-                    {
-                        uint8_t dir = stoi(parms[1]);
-                        packet.data[1] = dir;
-                        response = "Clearing file transfer queue of node " + parms[0] + " for direction " + std::to_string((unsigned)dir);
-                    }
-                    catch(const std::exception& e)
-                    {
-                        response = "Invalid parm[1]";
-                        return response.size();
-                    }
-                }
-                break;
-            case PacketComm::TypeId::CommandFileStopTransfer:
-                {
-                    // No args
-                    packet.data.clear();
-                    response = "Stopping file transfer for remote node";
                 }
                 break;
             case PacketComm::TypeId::CommandObcInternalRequest:
