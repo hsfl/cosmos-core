@@ -813,16 +813,21 @@ namespace Cosmos {
 
         int32_t PacketHandler::SetTime(PacketComm &packet, string &response, Agent* agent)
         {
+            // Bytes 0-7: New MJD
+            // Bytes 8-11: Limit (in seconds). If the delta between the new MJD and current MJD exceeds the limit, clock will not be set. A value of 0 will force the change.
+            // Bytes 12-13: Boot seconds. Unless this value is 0, the system will be rebooted after a delay. Must be under 5 minutes, as it will hang up the main thread.
             int32_t iretn=0;
             double mjd = doublefrom(packet.data.data(), ByteOrder::LITTLEENDIAN);
-            double delta = set_local_clock(mjd, floatfrom(&packet.data[8]));
+            float limit = floatfrom(&packet.data[8]);
+            double delta = set_local_clock(mjd, limit);
             iretn = QueueEpsSetTime(currentmjd(), agent);
-            uint16_t bootseconds = uint16from(&packet.data[12]);
+            // Must be under 5 minutes. Sleep will hang up the processing thread, so keep relatively short.
+            uint16_t bootseconds = std::min(uint16from(&packet.data[12]), (uint16_t)300);
             if (bootseconds)
             {
                 data_execute("sleep " + to_unsigned(bootseconds) + " ;reboot");
             }
-            response += to_label("Delta", delta) + to_label(" Limit", floatfrom(&packet.data[8])) + to_label(" Boot", bootseconds) + "\n";
+            response += to_label("Delta", delta) + to_label(" Limit", limit) + to_label(" Boot", bootseconds) + "\n";
 
             return iretn;
         }
@@ -940,6 +945,26 @@ namespace Cosmos {
             iretn = agent->channel_push(packet);
             return iretn;
         }
+
+        int32_t PacketHandler::QueuePing(Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        {
+            int32_t iretn = 0;
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandObcReboot;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = dest;
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
+            string ping = utc2iso8601(currentmjd());
+            packet.data.resize(4);
+            uint32_t centi = centisec();
+            uint32to(centi, &packet.data[0], ByteOrder::LITTLEENDIAN);
+            packet.data.insert(packet.data.end(), ping.begin(), ping.end());
+            iretn = agent->channel_push(packet);
+            return iretn;
+        }
+
 
         int32_t PacketHandler::QueueSendBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NODE_ID_TYPE orig, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
@@ -1266,7 +1291,18 @@ namespace Cosmos {
             return iretn;
         }
 
-        int32_t PacketHandler::QueueSetTime(double mjd, float limit , Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        /**
+         * @brief Queues a beacon that sets the system clock of destination node
+         * @param mjd New MJD time, or if less than 3600, is used as an offset in seconds from current time.
+         * @param limit Limit (in seconds). If the delta between the new MJD and current MJD exceeds the limit, clock will not be set. A value of 0 will force the change.
+         * @param bootseconds Unless this value is 0, the system will be rebooted after a delay.
+         * @param agent Pointer to parent agent
+         * @param dest Node ID of destination
+         * @param channelout The Channel ID to send this packet out of
+         * @param radioin The Channel ID of the receiver's receive channel
+         * @return 0 on success, negative on error
+         */
+        int32_t PacketHandler::QueueSetTime(double mjd, float limit, uint16_t bootseconds, Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {
             int32_t iretn = 0;
             PacketComm packet;
@@ -1276,13 +1312,17 @@ namespace Cosmos {
             packet.header.nodedest = dest;
             packet.header.chanin = agent->channel_number(radioin);
             packet.header.chanout = agent->channel_number(channelout);
-            packet.data.resize(12);
+
+            // If the mjd parameter is less than 3600, treat as seconds-offset from current time
             if (mjd < 3600.)
             {
                 mjd = currentmjd() + mjd / 86400.;
             }
+            packet.data.resize(14);
             doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
             floatto(limit, &packet.data[8]);
+            uint16to(bootseconds, &packet.data[12]);
+
             iretn = agent->channel_push(packet);
             return iretn;
         }

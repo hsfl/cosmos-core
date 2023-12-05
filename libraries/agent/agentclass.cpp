@@ -2247,6 +2247,44 @@ namespace Cosmos
                     }
                 }
                 break;
+            case PacketComm::TypeId::CommandFileResetQueue:
+                {
+                    // Arg 0: node name of remote node's contact to clear
+                    // Arg 1: direction to clear (0 incoming, 1 outgoing, 2 both)
+                    if (parms.size() < 2)
+                    {
+                        response = "Invalid arguments";
+                        return response.size();
+                    }
+                    uint8_t node = lookup_node_id(agent->cinfo, parms[0]);
+                    if (node == NODEIDUNKNOWN)
+                    {
+                        response = "Invalid node name!";
+                        return response.size();
+                    }
+                    
+                    packet.data.resize(2);
+                    packet.data[0] = node;
+                    try
+                    {
+                        uint8_t dir = stoi(parms[1]);
+                        packet.data[1] = dir;
+                        response = "Clearing file transfer queue of node " + parms[0] + " for direction " + std::to_string((unsigned)dir);
+                    }
+                    catch(const std::exception& e)
+                    {
+                        response = "Invalid parm[1]";
+                        return response.size();
+                    }
+                }
+                break;
+            case PacketComm::TypeId::CommandFileStopTransfer:
+                {
+                    // No args
+                    packet.data.clear();
+                    response = "Stopping file transfer for remote node";
+                }
+                break;
             case PacketComm::TypeId::CommandObcInternalRequest:
                 {
                     string command = "status";
@@ -2285,6 +2323,9 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandObcSetTime:
                 {
+                    // Parm[0]: +|-SECONDOFFSET | NEW_MJD
+                    // Parm[1]: limit (in seconds). New mjd will not be applied if the delta from current time exceeds this value. (optional)
+                    // Parm[2]: bootseconds (unless this is 0, system will be rebooted after the requested delay). (optional)
                     double mjd = currentmjd();
                     float limit = 0.;
                     uint16_t bootseconds = 0;
@@ -2308,6 +2349,9 @@ namespace Cosmos
                             bootseconds = atoi(parms[2].c_str());
                         }
                     }
+                    // Bytes 0-7: New MJD
+                    // Bytes 8-11: Limit (in seconds). If the delta between the new MJD and current MJD exceeds the limit, clock will not be set. A value of 0 will force the change.
+                    // Bytes 12-13: Boot seconds. Unless this value is 0, the system will be rebooted after a delay.
                     packet.data.resize(14);
                     doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
                     floatto(limit, &packet.data[8]);
