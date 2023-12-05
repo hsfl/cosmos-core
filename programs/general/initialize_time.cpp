@@ -55,7 +55,6 @@ int main(int argc, char *argv[])
         mjdserver = currentmjd() + offset;
     }
 
-    int32_t iretn = 0;
     char hostname[60];
     gethostname(hostname, sizeof (hostname));
     string node_name = hostname;
