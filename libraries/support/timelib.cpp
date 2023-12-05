@@ -986,6 +986,12 @@ namespace Cosmos {
             return 0;
         }
 
+        /**
+         * @brief Set system clock
+         * @param utc_to New MJD to set system clock to
+         * @param limit If the delta between the current MJD and utc_to is greater than this argument (in seconds), clock will not be set. A value of 0 will force the change.
+         * @return The delta in seconds
+         */
         double set_local_clock(double utc_to, float limit)
         {
             int32_t iretn = 0;

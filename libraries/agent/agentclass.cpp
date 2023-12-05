@@ -2323,6 +2323,9 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandObcSetTime:
                 {
+                    // Parm[0]: +|-SECONDOFFSET | NEW_MJD
+                    // Parm[1]: limit (in seconds). New mjd will not be applied if the delta from current time exceeds this value. (optional)
+                    // Parm[2]: bootseconds (unless this is 0, system will be rebooted after the requested delay). (optional)
                     double mjd = currentmjd();
                     float limit = 0.;
                     uint16_t bootseconds = 0;
@@ -2346,6 +2349,9 @@ namespace Cosmos
                             bootseconds = atoi(parms[2].c_str());
                         }
                     }
+                    // Bytes 0-7: New MJD
+                    // Bytes 8-11: Limit (in seconds). If the delta between the new MJD and current MJD exceeds the limit, clock will not be set. A value of 0 will force the change.
+                    // Bytes 12-13: Boot seconds. Unless this value is 0, the system will be rebooted after a delay.
                     packet.data.resize(14);
                     doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
                     floatto(limit, &packet.data[8]);
