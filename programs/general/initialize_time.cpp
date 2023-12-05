@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
     Agent *agent = new Agent();
 
 
+    double mjdserver = 0.;
     double cmjd = currentmjd();
     double rmjd;
     double epsilon;
@@ -51,53 +52,37 @@ int main(int argc, char *argv[])
     }
     if (iretn >= 0)
     {
-        if (offset <= 0. || offset > 1.574e-4)
-        {
-            double delta = set_local_clock(currentmjd() + offset);
-            printf("Initialized time from server: Delta %f Offset %f\n", delta, offset*86400.);
-            FILE *fp = fopen((get_cosmosnodes() + agent->cinfo->node.name + "/last_date").c_str(), "w");
-            if (fp)
-            {
-                calstruc date = mjd2cal(currentmjd());
-                fprintf(fp, "%02d%02d%02d%02d%04d.59\n", date.month, date.dom, date.hour, date.minute, date.year);
-                fclose(fp);
-            }
-        }
-        else
-        {
-            printf("No change from server: Offset %f\n", offset);
-        }
+        mjdserver = currentmjd() + offset;
     }
-//    else
-//    {
-//        FILE *fp = fopen((get_cosmosnodes() + agent->cinfo->node.name + "/last_date").c_str(), "r");
-//        if (fp != nullptr)
-//        {
-//            calstruc date;
-//            int32_t offset = 0;
-//            iretn = fscanf(fp, "%02d%02d%02d%02d%04d%*c%02d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year, &date.second);
-//            fclose(fp);
-//            fp = fopen((get_cosmosnodes() + agent->cinfo->node.name + "/last_offset").c_str(), "r");
-//            if (fp != nullptr)
-//            {
-//                iretn = fscanf(fp, "%d", &offset);
-//            }
-//            date.second += offset;
-//            double delta = cal2mjd(date) -  currentmjd();
-//            if (fabs(delta) > 3.5e-4)
-//            {
-//                delta = set_local_clock(cal2mjd(date));
-//                printf("Initialized time from file: Delta %f Offset %d\n", delta, offset);
-//            }
-//            else
-//            {
-//                printf("No change from file: Delta %f\n", delta);
-//            }
-//        }
-//        else
-//        {
-//            printf("Failed to find time source\n");
-//        }
-//    }
-    printf("Total Change: %f\n", 86400. * (currentmjd() - cmjd));
+
+    int32_t iretn = 0;
+    char hostname[60];
+    gethostname(hostname, sizeof (hostname));
+    string node_name = hostname;
+
+    double mjdfile=0.;
+    // File
+    FILE *fp = fopen((get_cosmosnodes() + node_name + "/last_date").c_str(), "r");
+    if (fp != nullptr)
+    {
+        calstruc date;
+        iretn = fscanf(fp, "%02d%02d%02d%02d%04d%*c%02d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year, &date.second);
+        fclose(fp);
+        mjdfile = cal2mjd(date);
+    }
+
+    if (mjdserver > mjdfile)
+    {
+        double delta = set_local_clock(mjdserver);
+        printf("Initialized time from Server: Delta %f %s\n", delta, utc2iso8601(mjdserver).c_str());
+    }
+    else if (mjdfile > 0.)
+    {
+        double delta = set_local_clock(mjdfile);
+        printf("Initialized time from File: Delta %f %s\n", delta, utc2iso8601(mjdfile).c_str());
+    }
+    else
+    {
+        printf("Unable to find time source\n");
+    }
 }
