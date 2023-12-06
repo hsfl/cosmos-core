@@ -889,7 +889,7 @@ namespace Cosmos
             return;
         }
 
-        int32_t Agent::process_request(string &bufferin, string &bufferout)
+        int32_t Agent::process_request(string &bufferin, string &bufferout, bool send_response)
         {
             size_t i;
             int32_t iretn = 0;
@@ -942,12 +942,19 @@ namespace Cosmos
                 }
             }
 
-            iretn = sendto(cinfo->agent0.req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent0.req.caddr, sizeof(struct sockaddr_in));
-            if (iretn < 0)
+            if (send_response)
             {
-                iretn = -errno;
+                iretn = sendto(cinfo->agent0.req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent0.req.caddr, sizeof(struct sockaddr_in));
+                if (iretn < 0)
+                {
+                    iretn = -errno;
+                }
+                debug_log.Printf("Response: [%d:%s:%x:%u:%d] %s\n", cinfo->agent0.req.cudp, cinfo->agent0.req.address, ntohl(cinfo->agent0.req.caddr.sin_addr.s_addr), cinfo->agent0.req.cport, iretn, &bufferout[0]);
             }
-            debug_log.Printf("Response: [%d:%s:%x:%u:%d] %s\n", cinfo->agent0.req.cudp, cinfo->agent0.req.address, ntohl(cinfo->agent0.req.caddr.sin_addr.s_addr), cinfo->agent0.req.cport, iretn, &bufferout[0]);
+            else
+            {
+                debug_log.Printf("Response: [%d] %s\n", iretn, &bufferout[0]);
+            }
 
             process_mutex.unlock();
 
@@ -2049,14 +2056,9 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandObcSendBeacon:
                 {
-                    uint8_t btype = (uint8_t)Beacon::TypeId::None;
+                    uint8_t btype = (uint8_t)Beacon::TypeId::CPU1BeaconS;
                     uint8_t bcount = 1;
-                    if (!parms.size())
-                    {
-                        response = "Args: BEACONNAME [count]";
-                        return 0;
-                    }
-                    else
+                    if (parms.size() > 0)
                     {
                         Beacon tbeacon;
                         for (auto type : tbeacon.TypeString)
@@ -2067,11 +2069,6 @@ namespace Cosmos
                                 break;
                             }
                         }
-                        if (btype == (uint8_t)Beacon::TypeId::None)
-                        {
-                            response = "No beacon named " + parms[0] + " found!";
-                            return 0;
-                        }
                         if (parms.size() > 1)
                         {
                             bcount = stoi(parms[1]);
@@ -2080,7 +2077,7 @@ namespace Cosmos
                     packet.data.resize(2);
                     packet.data[0] = btype;
                     packet.data[1] = bcount;
-                    response += " Requesting " + to_unsigned(bcount) + " " + parms[0] + " (" + to_unsigned(btype) + ") beacons.";
+                    response += " " + to_unsigned(packet.data[0]) + " " + to_unsigned(packet.data[1]);
                 }
                 break;
             case PacketComm::TypeId::CommandExecClearQueue:
@@ -2257,44 +2254,6 @@ namespace Cosmos
                     }
                 }
                 break;
-            case PacketComm::TypeId::CommandFileResetQueue:
-                {
-                    // Arg 0: node name of remote node's contact to clear
-                    // Arg 1: direction to clear (0 incoming, 1 outgoing, 2 both)
-                    if (parms.size() < 2)
-                    {
-                        response = "Invalid arguments";
-                        return response.size();
-                    }
-                    uint8_t node = lookup_node_id(agent->cinfo, parms[0]);
-                    if (node == NODEIDUNKNOWN)
-                    {
-                        response = "Invalid node name!";
-                        return response.size();
-                    }
-                    
-                    packet.data.resize(2);
-                    packet.data[0] = node;
-                    try
-                    {
-                        uint8_t dir = stoi(parms[1]);
-                        packet.data[1] = dir;
-                        response = "Clearing file transfer queue of node " + parms[0] + " for direction " + std::to_string((unsigned)dir);
-                    }
-                    catch(const std::exception& e)
-                    {
-                        response = "Invalid parm[1]";
-                        return response.size();
-                    }
-                }
-                break;
-            case PacketComm::TypeId::CommandFileStopTransfer:
-                {
-                    // No args
-                    packet.data.clear();
-                    response = "Stopping file transfer for remote node";
-                }
-                break;
             case PacketComm::TypeId::CommandObcInternalRequest:
                 {
                     string command = "status";
@@ -2333,9 +2292,6 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandObcSetTime:
                 {
-                    // Parm[0]: +|-SECONDOFFSET | NEW_MJD
-                    // Parm[1]: limit (in seconds). New mjd will not be applied if the delta from current time exceeds this value. (optional)
-                    // Parm[2]: bootseconds (unless this is 0, system will be rebooted after the requested delay). (optional)
                     double mjd = currentmjd();
                     float limit = 0.;
                     uint16_t bootseconds = 0;
@@ -2359,9 +2315,6 @@ namespace Cosmos
                             bootseconds = atoi(parms[2].c_str());
                         }
                     }
-                    // Bytes 0-7: New MJD
-                    // Bytes 8-11: Limit (in seconds). If the delta between the new MJD and current MJD exceeds the limit, clock will not be set. A value of 0 will force the change.
-                    // Bytes 12-13: Boot seconds. Unless this value is 0, the system will be rebooted after a delay.
                     packet.data.resize(14);
                     doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
                     floatto(limit, &packet.data[8]);

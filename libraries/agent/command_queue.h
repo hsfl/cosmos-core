@@ -142,7 +142,7 @@ namespace Cosmos
 
             //! Run the given Request Event
             /*!
-            Execute an event using ford().  For each event run, the time of
+            Execute an event using fork().  For each event run, the time of
             execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
             and this updated command information is logged to the OUTPUT directory.
 
@@ -154,7 +154,7 @@ namespace Cosmos
 
             //! Run the given Command Event
             /*!
-            Execute an event using ford().  For each event run, the time of
+            Execute an event using fork().  For each event run, the time of
             execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
             and this updated command information is logged to the OUTPUT directory.
 
