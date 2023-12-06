@@ -973,7 +973,9 @@ namespace Cosmos {
         }
 
         //! Convert mjd to the TLE epoch format.
-        int32_t mjd2tlef(double mjd, string &tle) {
+        string mjd2tlef(double mjd)
+        {
+            string tle;
             char year_buffer[3], days_buffer[13];
 
             // Compute our year field.
@@ -983,7 +985,7 @@ namespace Cosmos {
             sprintf(days_buffer, "%012.8f", mjd2doy(mjd));
 
             tle = string(year_buffer) + string(days_buffer);
-            return 0;
+            return tle;
         }
 
         /**

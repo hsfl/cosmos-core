@@ -230,8 +230,9 @@ namespace Cosmos {
         int stk2eci(double utc, stkstruc &stk, cartpos &eci);
         int32_t tle2sgp4(tlestruc tle, sgp4struc &sgp4);
         int32_t sgp42tle(sgp4struc sgp4, tlestruc &tle);
-        int tle_checksum(char *line);
-        int32_t eci2tlestring(Convert::cartpos eci, string &tle, string ref_tle, double bstar=0);
+        int tle_checksum(const char *line);
+        string eci2tlestring(Convert::cartpos eci, tlestruc &reftle);
+        string tle2tlestring(tlestruc tles);
         rvector utc2nuts(double mjd);
         double utc2depsilon(double mjd);
         double utc2dpsi(double mjd);
