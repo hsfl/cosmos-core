@@ -45,8 +45,9 @@ namespace Cosmos
             agent->debug_log.Printf("Starting File Loop\n");
 
             // Perform initial load
-            double diskcheckwait = 30./86400.;
-            double nextdiskcheck = currentmjd(0.);
+            double diskcheckwait = 30.;
+            ElapsedTime disk_check_timer;
+            disk_check_timer.set(diskcheckwait);
 
             while(agent->running())
             {
@@ -133,9 +134,8 @@ namespace Cosmos
                                 {
                                     // Enable transfer and rescan outgoing directory
                                     file_transfer_enabled = true;
-                                    double currenttime = currentmjd();
                                     // Scan directories if scanning interval passed or if radio changed
-                                    if (currenttime < nextdiskcheck && out_radio == current_out_radio)
+                                    if (disk_check_timer.timer() > 0 && out_radio == current_out_radio)
                                     {
                                         break;
                                     }
@@ -143,7 +143,7 @@ namespace Cosmos
                                     {
                                         iretn = transfer.outgoing_tx_load(contact_nodes[i]);
                                     }
-                                    nextdiskcheck = currenttime + diskcheckwait;
+                                    disk_check_timer.set(diskcheckwait);
                                 }
                             }
                             break;
@@ -214,14 +214,13 @@ namespace Cosmos
                     if (file_transfer_enabled)
                     {
                         // Scan directories if scanning interval passed
-                        double currenttime = currentmjd();
-                        if (currenttime > nextdiskcheck)
+                        if (disk_check_timer.timer() < 0)
                         {
                             for (size_t i = 0; i < contact_nodes.size(); ++i)
                             {
                                 iretn = transfer.outgoing_tx_load(contact_nodes[i]);
                             }
-                            nextdiskcheck = currenttime + diskcheckwait;
+                            disk_check_timer.set(diskcheckwait);
                         }
 
                         // Perform runs of file packet grabbing

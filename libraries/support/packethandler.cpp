@@ -951,7 +951,7 @@ namespace Cosmos {
             int32_t iretn = 0;
             PacketComm packet;
 
-            packet.header.type = PacketComm::TypeId::CommandObcReboot;
+            packet.header.type = PacketComm::TypeId::CommandObcPing;
             packet.header.nodeorig = agent->nodeId;
             packet.header.nodedest = dest;
             packet.header.chanin = agent->channel_number(radioin);

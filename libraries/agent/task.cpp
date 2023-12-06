@@ -56,7 +56,6 @@ namespace Cosmos {
                     }
                     else if ((*iter).state == 1)
                     {
-                        (*iter).runtime = 86400. * (currentmjd() - (*iter).startmjd);
                         if ((*iter).result.valid() && (*iter).result.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
                         {
                             (*iter).iretn = (*iter).result.get();

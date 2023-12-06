@@ -78,7 +78,6 @@ namespace Cosmos
                 int32_t iretn = 0;
                 string path = "";
 //                string input;
-                double runtime = 0.;
                 uint32_t outsize = 0;
             };
 

@@ -144,10 +144,10 @@ namespace Cosmos {
             string filepath="";
             // Path to temporary meta and incomplete data files
             string temppath="";
-            // Time of last write_meta()
-            double savetime=0.;
-            // Last response sent time + tx_entry::waittime. Responses are sent out again when current MJD exceeds this value.
-            double next_response = 0.;
+            // Time since last write_meta()
+            ElapsedTime savetime;
+            // Timer until ok to send out another response-type packet.
+            ElapsedTime response_timer;
             // Size of the full file
             PACKET_FILE_SIZE_TYPE file_size=0;
             // Total bytes sent/received so far
@@ -165,7 +165,7 @@ namespace Cosmos {
             PACKET_TX_ID_TYPE size;
             string node_name="";
             // Time to wait before sending out another response request or respond packet
-            double waittime = 60./86400.;
+            double waittime = 60.;
             // Vector of tx_id's needing responses. Used by the incoming queue.
             vector<PACKET_TX_ID_TYPE> respond;
             //! The incoming or outgoing queue. Indexed by the tx_id.

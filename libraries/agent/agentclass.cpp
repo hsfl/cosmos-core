@@ -2049,9 +2049,14 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandObcSendBeacon:
                 {
-                    uint8_t btype = (uint8_t)Beacon::TypeId::CPU1BeaconS;
+                    uint8_t btype = (uint8_t)Beacon::TypeId::None;
                     uint8_t bcount = 1;
-                    if (parms.size() > 0)
+                    if (!parms.size())
+                    {
+                        response = "Args: BEACONNAME [count]";
+                        return 0;
+                    }
+                    else
                     {
                         Beacon tbeacon;
                         for (auto type : tbeacon.TypeString)
@@ -2062,6 +2067,11 @@ namespace Cosmos
                                 break;
                             }
                         }
+                        if (btype == (uint8_t)Beacon::TypeId::None)
+                        {
+                            response = "No beacon named " + parms[0] + " found!";
+                            return 0;
+                        }
                         if (parms.size() > 1)
                         {
                             bcount = stoi(parms[1]);
@@ -2070,7 +2080,7 @@ namespace Cosmos
                     packet.data.resize(2);
                     packet.data[0] = btype;
                     packet.data[1] = bcount;
-                    response += " " + to_unsigned(packet.data[0]) + " " + to_unsigned(packet.data[1]);
+                    response += " Requesting " + to_unsigned(bcount) + " " + parms[0] + " (" + to_unsigned(btype) + ") beacons.";
                 }
                 break;
             case PacketComm::TypeId::CommandExecClearQueue:

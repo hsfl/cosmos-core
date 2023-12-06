@@ -30,19 +30,7 @@
 #include "support/transferclass.h"
 namespace Cosmos {
     namespace Support {
-        Transfer::Transfer()
-        {
-            // calstruc cal = mjd2cal(currentmjd());
-            // txid = 100 * (utc2unixseconds(currentmjd()) - utc2unixseconds(cal2mjd(cal.year, 1.))) - 1;
-        }
-
-        // int32_t Transfer::Init(string node, string agent, uint16_t chunk_size)
-        // {
-        //     this->node = node;
-        //     this->agent = agent;
-        //     this->chunk_size = chunk_size;
-        //     return 0;
-        // }
+        Transfer::Transfer() {}
 
         /** 
          * Initialize the transfer class
@@ -640,12 +628,12 @@ namespace Cosmos {
                     else
                     {
                         // Check if it's not too soon to send another REQCOMPLETE packet
-                        if (currentmjd() > txq[dest_node_idx].outgoing.progress[tx_id].next_response)
+                        if (txq[dest_node_idx].outgoing.progress[tx_id].response_timer.timer() < 0)
                         {
                 // **************************************************************
                 // ** REQCOMPLETE ***********************************************
                 // **************************************************************
-                            txq[dest_node_idx].outgoing.progress[tx_id].next_response = currentmjd() + txq[dest_node_idx].outgoing.waittime;
+                            txq[dest_node_idx].outgoing.progress[tx_id].response_timer.set(txq[dest_node_idx].outgoing.waittime);
                             outgoing_packet.header.nodeorig = self_node_id;
                             outgoing_packet.header.nodedest = dest_node_id;
                             serialize_reqcomplete(outgoing_packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx_id, txq[dest_node_idx].outgoing.progress[tx_id].file_crc);
@@ -799,7 +787,7 @@ namespace Cosmos {
                     print_file_packet(packet, 1, "Outgoing", &agent->debug_log);
                 }
 
-                txq[orig_node_idx].incoming.progress[tx_id].next_response = currentmjd() + txq[orig_node_idx].incoming.waittime;
+                txq[orig_node_idx].incoming.progress[tx_id].response_timer.set(txq[orig_node_idx].incoming.waittime);
             }
 
             txq[orig_node_idx].incoming.respond.clear();
@@ -950,7 +938,7 @@ namespace Cosmos {
                 tx_out.file_name = file_name;
                 tx_out.temppath = data_base_path(dest_node, "temp", "file", "out_"+std::to_string(tx_out.tx_id));
                 tx_out.filepath = filepath;
-                tx_out.savetime = 0.;
+                tx_out.savetime.reset();
 
                 std::ifstream filename;
 
@@ -1079,8 +1067,6 @@ namespace Cosmos {
                 }
                 return TRANSFER_ERROR_FILESIZE;
             }
-            tx_out.savetime = 0.;
-
             // save and queue metadata packet
             tx_out.sentmeta = false;
             tx_out.sentdata = false;
@@ -1104,7 +1090,7 @@ namespace Cosmos {
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].filepath = tx_out.filepath;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].temppath = tx_out.temppath;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].savetime = tx_out.savetime;
-            txq[dest_node_idx].outgoing.progress[tx_out.tx_id].next_response = 0;
+            txq[dest_node_idx].outgoing.progress[tx_out.tx_id].response_timer.set(txq[dest_node_idx].outgoing.waittime);
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].file_size = tx_out.file_size;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].total_bytes = tx_out.total_bytes;
             txq[dest_node_idx].outgoing.progress[tx_out.tx_id].file_info.clear();
@@ -1161,7 +1147,7 @@ namespace Cosmos {
             txq[dest_node_idx].outgoing.progress[tx_id].file_crc = 0;
             txq[dest_node_idx].outgoing.progress[tx_id].complete = false;
             txq[dest_node_idx].outgoing.progress[tx_id].filepath = "";
-            txq[dest_node_idx].outgoing.progress[tx_id].savetime = 0;
+            txq[dest_node_idx].outgoing.progress[tx_id].savetime.reset();
             txq[dest_node_idx].outgoing.progress[tx_id].temppath = "";
             txq[dest_node_idx].outgoing.progress[tx_id].file_name = "";
             txq[dest_node_idx].outgoing.progress[tx_id].file_size = 0;
@@ -1263,7 +1249,7 @@ namespace Cosmos {
             tx_in.node_name = node_name;
             tx_in.agent_name = "";
             tx_in.file_name = "";
-            tx_in.savetime = 0.;
+            tx_in.savetime.reset();
             tx_in.file_size = 0;
             tx_in.total_bytes = 0;
             tx_in.file_info.clear();
@@ -1287,7 +1273,7 @@ namespace Cosmos {
             tx_in.node_name = node_name;
             tx_in.agent_name = meta.agent_name;
             tx_in.file_name = meta.file_name;
-            tx_in.savetime = 0.;
+            tx_in.savetime.reset();
             tx_in.file_size = meta.file_size;
             tx_in.total_bytes = 0;
             tx_in.file_info.clear();
@@ -1350,7 +1336,7 @@ namespace Cosmos {
                 }
             }
 
-            tx_in.savetime = 0.;
+            tx_in.savetime.reset();
             tx_in.fp = nullptr;
 
             // Put it in list
@@ -1365,7 +1351,7 @@ namespace Cosmos {
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].filepath = tx_in.filepath;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].temppath = tx_in.temppath;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].savetime = tx_in.savetime;
-            txq[orig_node_idx].incoming.progress[tx_in.tx_id].next_response = currentmjd() + txq[orig_node_idx].incoming.waittime;
+            txq[orig_node_idx].incoming.progress[tx_in.tx_id].response_timer.set(txq[orig_node_idx].incoming.waittime);
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].file_size = tx_in.file_size;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].total_bytes = tx_in.total_bytes;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].file_info.clear();
@@ -1465,7 +1451,7 @@ namespace Cosmos {
                         txq[orig_node_idx].incoming.progress[meta.header.tx_id].temppath = data_base_path(txq[orig_node_idx].incoming.progress[meta.header.tx_id].node_name, "temp", "file", tx_name);
                         
                         // Derivative META information
-                        txq[orig_node_idx].incoming.progress[meta.header.tx_id].savetime = 0.;
+                        txq[orig_node_idx].incoming.progress[meta.header.tx_id].savetime.reset();
                         txq[orig_node_idx].incoming.progress[meta.header.tx_id].complete = false;
                         txq[orig_node_idx].incoming.progress[meta.header.tx_id].total_bytes = 0;
                         txq[orig_node_idx].incoming.progress[meta.header.tx_id].fp = nullptr;
@@ -1533,8 +1519,8 @@ namespace Cosmos {
             txq[orig_node_idx].incoming.progress[tx_id].file_name.clear();
             txq[orig_node_idx].incoming.progress[tx_id].filepath.clear();
             txq[orig_node_idx].incoming.progress[tx_id].temppath.clear();
-            txq[orig_node_idx].incoming.progress[tx_id].savetime = 0.;
-            txq[orig_node_idx].incoming.progress[tx_id].next_response = 0.;
+            txq[orig_node_idx].incoming.progress[tx_id].savetime.reset();
+            txq[orig_node_idx].incoming.progress[tx_id].response_timer.reset();
             txq[orig_node_idx].incoming.progress[tx_id].file_size = 0.;
             txq[orig_node_idx].incoming.progress[tx_id].total_bytes = 0.;
             txq[orig_node_idx].incoming.progress[tx_id].file_info.clear();
@@ -1661,9 +1647,9 @@ namespace Cosmos {
 
             // Request META if it hasn't been received yet and it's been awhile since we last requested it
             // Also to periodically keep the sender up-to-date on holes
-            if (currentmjd() > txq[orig_node_idx].incoming.progress[tx_id].next_response)
+            if (txq[orig_node_idx].incoming.progress[tx_id].response_timer.timer() < 0)
             {
-                txq[orig_node_idx].incoming.progress[tx_id].next_response = currentmjd() + txq[orig_node_idx].incoming.waittime;
+                txq[orig_node_idx].incoming.progress[tx_id].response_timer.set(txq[orig_node_idx].incoming.waittime);
                 iretn = RESPONSE_REQUIRED;
             }
 
@@ -2043,15 +2029,15 @@ namespace Cosmos {
         //! Stores metadata of current progress status to a .meta file.
         //! Note that this function isn't called on a crash or agent stop, so transfer progress will resume from last call.
         //! \param tx A tx_progress to save
-        //! \param interval How long (in MJD) from previous call it must be before log file is updated
+        //! \param interval How long (in seconds) from previous call it must be before log file is updated
         //! \return 0 on success, negative on error
         int32_t Transfer::write_meta(tx_progress& tx, const double interval)
         {
             std::ofstream file_name;
 
-            if (currentmjd(0.) - tx.savetime > interval/86400.)
+            if (tx.savetime.split() > interval)
             {
-                tx.savetime = currentmjd(0.);
+                tx.savetime.reset();
                 serialize_metafile(meta_file_data, tx.tx_id, tx.file_crc, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
                 file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary); // Note: truncs by default
                 if(!file_name.is_open())
@@ -2109,7 +2095,7 @@ namespace Cosmos {
             }
 
             tx.fp = nullptr;
-            tx.savetime = 0.;
+            tx.savetime.reset();
             tx.complete = false;
 
             // Structure of a .meta file:
@@ -2510,14 +2496,14 @@ int32_t Transfer::set_waittime(const uint8_t node_id, const uint8_t direction, c
     switch(direction)
     {
     case 0:
-        txq[node_idx].incoming.waittime = waittime/86400.;
+        txq[node_idx].incoming.waittime = waittime;
         break;
     case 1:
-        txq[node_idx].outgoing.waittime = waittime/86400.;
+        txq[node_idx].outgoing.waittime = waittime;
         break;
     default:
-        txq[node_idx].incoming.waittime = waittime/86400.;
-        txq[node_idx].outgoing.waittime = waittime/86400.;
+        txq[node_idx].incoming.waittime = waittime;
+        txq[node_idx].outgoing.waittime = waittime;
         break;
     }
     
