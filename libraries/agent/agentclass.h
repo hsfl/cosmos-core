@@ -417,7 +417,7 @@ namespace Cosmos
 //            NodeList nodeData;
             NODE_ID_TYPE nodeId;
 
-            int32_t process_request(string &bufferin, string &bufferout);
+            int32_t process_request(string &bufferin, string &bufferout, bool send_response=true);
 
             int32_t set_verification(uint32_t verification);
             uint32_t get_verification();

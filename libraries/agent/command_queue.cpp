@@ -163,7 +163,8 @@ namespace Cosmos
             string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
             string bufferout;
             string request = cmd.get_data();
-            iretn = agent->process_request(request, bufferout);
+            iretn = agent->process_request(request, bufferout, false);
+            printf("CMD: running request [%s] in [%s] with result %d\n", request.c_str(), outpath.c_str(), iretn);
             if (iretn >= 0)
             {
                 FILE *fp = fopen(outpath.c_str(), "w");
@@ -172,6 +173,11 @@ namespace Cosmos
                     fwrite(bufferout.data(), 1, bufferout.size(), fp);
                     fclose(fp);
                     log_move_file(outpath, string_replace(outpath, "temp", "outgoing"), true);
+                    printf("CMD: moving request result to [%s]\n", string_replace(outpath, "temp", "outgoing").c_str());
+                }
+                else
+                {
+                    printf("CMD: failed to move request result to [%s] for %d\n", outpath.c_str(), errno);
                 }
                 // log to event file
                 log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
@@ -201,6 +207,7 @@ namespace Cosmos
             string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
             char command_line[100];
             strcpy(command_line, cmd.get_data().c_str());
+            printf("CMD: running command [%s] in [%s]\n", command_line, outpath.c_str());
 
             // We keep track of all threads spawned to join before moving log files.
             event_threads.push_back(thread([=] ()
@@ -239,6 +246,7 @@ namespace Cosmos
                 if (!outpath.empty())
                 {
                     log_move_file(outpath, string_replace(outpath, "temp", "outgoing"), true);
+                    printf("CMD: moving command result to [%s]\n", string_replace(outpath, "temp", "outgoing").c_str());
                 }
             }));
 
@@ -295,10 +303,12 @@ namespace Cosmos
                                         if (ii->type == EVENT_TYPE_COMMAND)
                                         {
                                             run_command(*ii, node_name, logdate_exec);
+                                            logdate_exec += 1./864000.;
                                         }
                                         else if (ii->type == EVENT_TYPE_REQUEST)
                                         {
                                             run_request(agent, *ii, node_name, logdate_exec);
+                                            logdate_exec += 1./864000.;
                                         }
                                         ii->set_alreadyrun(true);
                                         events.push_back(*ii);
@@ -316,10 +326,12 @@ namespace Cosmos
                                     if (ii->type == EVENT_TYPE_COMMAND)
                                     {
                                         run_command(*ii, node_name, logdate_exec);
+                                        logdate_exec += 1./864000.;
                                     }
                                     else if (ii->type == EVENT_TYPE_REQUEST)
                                     {
                                         run_request(agent, *ii, node_name, logdate_exec);
+                                        logdate_exec += 1./864000.;
                                     }
                                     events.push_back(*ii);
                                     if (events.size() > 10)
@@ -342,10 +354,12 @@ namespace Cosmos
                             if (ii->type == EVENT_TYPE_COMMAND)
                             {
                                 run_command(*ii, node_name, logdate_exec);
+                                logdate_exec += 1./864000.;
                             }
                             else if (ii->type == EVENT_TYPE_REQUEST)
                             {
                                 run_request(agent, *ii, node_name, logdate_exec);
+                                logdate_exec += 1./864000.;
                             }
                             events.push_back(*ii);
                             if (events.size() > 10)

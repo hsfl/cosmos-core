@@ -5346,9 +5346,9 @@ int32_t sgp42tle(sgp4struc sgp4, tlestruc &tle)
 }
 
 // https://space.stackexchange.com/questions/5358/what-does-check-sum-tle-mean
-int tle_checksum(char *line)
+int tle_checksum(const char *line)
 {
-    const int TLE_LINE_LENGTH = 69; // Ignore current checksum.
+    const int TLE_LINE_LENGTH = 68; // Ignore current checksum.
     int checksum = 0;
 
     for (int i = 0; i < TLE_LINE_LENGTH; i++)
@@ -5365,55 +5365,29 @@ int tle_checksum(char *line)
 
     return checksum % 10;
 }
-int32_t eci2tlestring(cartpos eci, string &tle, string ref_tle, double bstar)
+
+string eci2tlestring(cartpos eci, tlestruc &reftle)
 {
-    //    char tle_buffer[ref_tle.size()];
-    char field_buffer[30];
-    //    strcpy(tle_buffer, ref_tle.c_str());
+    eci2tle2(eci, reftle);
+    return tle2tlestring(reftle);
+}
 
-    // Convert to keplarian elements, compute our epoch field.
-    string epoch;
-    tlestruc tles; // <-- in SI units.
-    mjd2tlef(eci.utc, epoch);
-    eci2tle(eci, tles);
-
-    // std::cout << "Inclination: " << DEGOF(tles.i) << std::endl;
-    // std::cout << "Right acension of rising node: " << DEGOF(tles.raan) << std::endl;
-    // std::cout << "Eccentricity: " << tles.e << std::endl;
-    // std::cout << "Argument of perigee: " << DEGOF(tles.ap) << std::endl;
-    // std::cout << "Mean anomaly: " << ((DEGOF(tles.ma) < 0) ? 360 + DEGOF(tles.ma) : DEGOF(tles.ma)) << std::endl;
-    // std::cout << "Mean motion: " << tles.mm * 1440. / D2PI << std::endl;
+string tle2tlestring(tlestruc reftle)
+{
+    string line_1(69, ' ');
+    string line_2(69, ' ');
 
     // Ignore the name line. Populate our epoch field.
-    //    char *line_1 = strstr(tle_buffer, "\n");
-    char *line_1 = strstr(static_cast<char *>(&ref_tle[0]), "\n");
-    sprintf(field_buffer, "%14s", epoch.c_str());
-    strncpy(line_1 + 19, field_buffer, 14);
-    // sprintf(field_buffer, "");
+    sprintf(&line_1[0], "1 %5huU %8s %02hu%12f", reftle.id, mjd2year(reftle.utc)-2000, mjd2doy(reftle.utc));
+    int16_t bdrage = log10(reftle.bstar) + 5;
+    int16_t bdragm = reftle.bstar / pow(10., bdrage-5);
+    sprintf(&line_1[53], "%6d%2d", bdragm, bdrage);
+    line_1[68] = tle_checksum(line_1.data());
 
-    // Populate our fields for line 2.
-    char *line_2 = strstr(line_1 + 1, "\n");
-    sprintf(field_buffer, "%#08.4f", DEGOF(tles.i));
-    strncpy(line_2 + 9, field_buffer, 8);
-    sprintf(field_buffer, "%08.4f", DEGOF(tles.raan));
-    strncpy(line_2 + 18, field_buffer, 8);
-    sprintf(field_buffer, "%07d", static_cast<int>(tles.e * pow(10, 7)));
-    strncpy(line_2 + 27, field_buffer, 7);
-    sprintf(field_buffer, "%#08.4f", DEGOF(tles.ap));
-    strncpy(line_2 + 35, field_buffer, 8);
-    sprintf(field_buffer, "%#08.4f", (DEGOF(tles.ma) < 0) ? 360 + DEGOF(tles.ma) : DEGOF(tles.ma));
-    strncpy(line_2 + 44, field_buffer, 8);
-    sprintf(field_buffer, "%#011.8f", tles.mm * 1440. / D2PI); // rad/min ---> rev/day
-    strncpy(line_2 + 53, field_buffer, 11);
+    sprintf(&line_2[0], "2 %5hu %#08.4f %08f %07d %#08.4f %#08.4f %#011.8f%5u", reftle.id, DEGOF(reftle.i), DEGOF(reftle.raan), 1.e7*reftle.e, DEGOF(reftle.ap), (DEGOF(reftle.ma) < 0) ? 360 + DEGOF(reftle.ma) : DEGOF(reftle.ma), DEGOF(reftle.mm), reftle.orbit);
+    line_2[68] = tle_checksum(line_2.data());
 
-    // Compute our checksum (copy null character here).
-    sprintf(field_buffer, "%1d", tle_checksum(line_2));
-    strncpy(line_2 + 69, field_buffer, 2);
-
-    //    tle = string(tle_buffer);
-    tle = ref_tle;
-
-    return 0;
+    return reftle.name + "\n" + line_1 + "\n" + line_2 + "\n";
 }
 
 //! Nutation values

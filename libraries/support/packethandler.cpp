@@ -792,7 +792,7 @@ namespace Cosmos {
 //            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
             string erequest = string(packet.data.begin()+4, packet.data.end());
 //            response += "Internal Request " + erequest + "\n";
-            int32_t iretn = agent->process_request(erequest, response);
+            int32_t iretn = agent->process_request(erequest, response, false);
             packet.response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             return iretn;
         }

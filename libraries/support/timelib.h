@@ -177,7 +177,7 @@ namespace Cosmos {
         string  mjd2iso8601(double mjd);
         double  mjd2jd(double mjd);
         double  jd2mjd(double jd);
-        int32_t mjd2tlef(double mjd, string &tle);
+        string mjd2tlef(double mjd);
 
         // other
         double unix2utc(struct timeval unixtime);
