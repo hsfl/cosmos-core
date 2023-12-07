@@ -2056,9 +2056,14 @@ namespace Cosmos
                 break;
             case PacketComm::TypeId::CommandObcSendBeacon:
                 {
-                    uint8_t btype = (uint8_t)Beacon::TypeId::CPU1BeaconS;
+                    uint8_t btype = (uint8_t)Beacon::TypeId::None;
                     uint8_t bcount = 1;
-                    if (parms.size() > 0)
+                    if (!parms.size())
+                    {
+                        response = "Args: BEACONNAME [count]";
+                        return 0;
+                    }
+                    else
                     {
                         Beacon tbeacon;
                         for (auto type : tbeacon.TypeString)
@@ -2069,6 +2074,11 @@ namespace Cosmos
                                 break;
                             }
                         }
+                        if (btype == (uint8_t)Beacon::TypeId::None)
+                        {
+                            response = "No beacon named " + parms[0] + " found!";
+                            return 0;
+                        }
                         if (parms.size() > 1)
                         {
                             bcount = stoi(parms[1]);
@@ -2077,7 +2087,7 @@ namespace Cosmos
                     packet.data.resize(2);
                     packet.data[0] = btype;
                     packet.data[1] = bcount;
-                    response += " " + to_unsigned(packet.data[0]) + " " + to_unsigned(packet.data[1]);
+                    response += " Requesting " + to_unsigned(bcount) + " " + parms[0] + " (" + to_unsigned(btype) + ") beacons.";
                 }
                 break;
             case PacketComm::TypeId::CommandExecClearQueue:
@@ -2252,6 +2262,44 @@ namespace Cosmos
                         response = "Invalid parm[1]";
                         return response.size();
                     }
+                }
+                break;
+            case PacketComm::TypeId::CommandFileResetQueue:
+                {
+                    // Arg 0: node name of remote node's contact to clear
+                    // Arg 1: direction to clear (0 incoming, 1 outgoing, 2 both)
+                    if (parms.size() < 2)
+                    {
+                        response = "Invalid arguments";
+                        return response.size();
+                    }
+                    uint8_t node = lookup_node_id(agent->cinfo, parms[0]);
+                    if (node == NODEIDUNKNOWN)
+                    {
+                        response = "Invalid node name!";
+                        return response.size();
+                    }
+                    
+                    packet.data.resize(2);
+                    packet.data[0] = node;
+                    try
+                    {
+                        uint8_t dir = stoi(parms[1]);
+                        packet.data[1] = dir;
+                        response = "Clearing file transfer queue of node " + parms[0] + " for direction " + std::to_string((unsigned)dir);
+                    }
+                    catch(const std::exception& e)
+                    {
+                        response = "Invalid parm[1]";
+                        return response.size();
+                    }
+                }
+                break;
+            case PacketComm::TypeId::CommandFileStopTransfer:
+                {
+                    // No args
+                    packet.data.clear();
+                    response = "Stopping file transfer for remote node";
                 }
                 break;
             case PacketComm::TypeId::CommandObcInternalRequest:
