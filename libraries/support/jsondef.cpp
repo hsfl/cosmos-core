@@ -42,6 +42,7 @@ namespace Cosmos
         {
             
         }
+        #ifndef INFLIGHT_BUILD
 
         void cosmosstruc::add_default_names()
         {
@@ -4085,5 +4086,6 @@ namespace Cosmos
             
             return statements;
         }
+        #endif
     } // End namespace Support
 } // End namespace Cosmos
