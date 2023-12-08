@@ -13092,6 +13092,11 @@ int32_t load_tle(cosmosstruc *cinfo)
         }
         return (cinfo->tle_cnt);
     }
+    else
+    {
+        cinfo->tle.resize(1);
+    }
+
     return GENERAL_ERROR_BAD_FD;
 }
 

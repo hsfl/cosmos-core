@@ -839,6 +839,7 @@ namespace Cosmos {
 //            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
 //            response += "Get Time\n";
             response += to_label("MET", currentmjd() - agent->cinfo->node.utcstart);
+            response += to_label(" UTC", utc2iso8601(currentmjd())) + "\n";
             return iretn;
         }
 
