@@ -657,8 +657,6 @@ int32_t Beacon::Decode(vector<uint8_t> &data, cosmosstruc *cinfo)
                 double mjd = decisec2mjd(beacon.deci);
 
                 cinfo->node.loc.pos.eci.utc = mjd;
-                // JIMNOTE: need to update pass here?
-                // EP: 20221126 No, updating should be done elsewhere, depending on source of position
                 cinfo->node.loc.pos.eci.s.col[0] = beacon.x_eci;
                 cinfo->node.loc.pos.eci.s.col[1] = beacon.y_eci;
                 cinfo->node.loc.pos.eci.s.col[2] = beacon.z_eci;
@@ -666,6 +664,8 @@ int32_t Beacon::Decode(vector<uint8_t> &data, cosmosstruc *cinfo)
                 cinfo->node.loc.pos.eci.v.col[0] = beacon.vx_eci;
                 cinfo->node.loc.pos.eci.v.col[1] = beacon.vy_eci;
                 cinfo->node.loc.pos.eci.v.col[2] = beacon.vz_eci;
+
+                cinfo->node.loc.pos.eci.pass++;
 
                 cinfo->node.loc.att.icrf.utc = mjd;
                 // JIMNOTE: need to update pass here?
@@ -677,7 +677,8 @@ int32_t Beacon::Decode(vector<uint8_t> &data, cosmosstruc *cinfo)
                 cinfo->node.loc.att.icrf.v.col[0] = beacon.att_icrf_omega_x;
                 cinfo->node.loc.att.icrf.v.col[1] = beacon.att_icrf_omega_y;
                 cinfo->node.loc.att.icrf.v.col[2] = beacon.att_icrf_omega_z;
-            }
+
+                cinfo->node.loc.att.icrf.pass++;            }
             break;
             case TypeId::ADCSORBITBeacon:
             {
