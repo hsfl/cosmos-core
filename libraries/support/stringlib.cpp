@@ -752,10 +752,15 @@ string to_temperature(double value, char units, uint8_t precision)
 string to_angle(double value, char units, uint8_t precision) {
     switch (units)
     {
+    case 'r':
     case 'R':
         return to_floatany(value, precision);
+    case 'd':
+        return to_floatany(DEGOF(value), precision);
     case 'D':
         return to_floatany(DEGOF(value), precision) + 'D';
+    case 'a':
+        return to_floatany(value / DAS2R, precision);
     case 'A':
         return to_floatany(value / DAS2R, precision) + '\'';
     }
