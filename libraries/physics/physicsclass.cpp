@@ -2183,6 +2183,7 @@ int32_t ElectricalPropagator::Reset(float bp)
 
 int32_t ElectricalPropagator::Propagate(double nextutc)
 {
+    double dcharge;
     if (nextutc == 0.)
     {
         nextutc = currentutc + dtj;
@@ -2213,8 +2214,82 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
                 triangle.volt = 0.;
                 triangle.amp = 0.;
             }
-
         }
+        currentinfo->node.phys.powuse = 0.;
+        for (devicestruc* dev : currentinfo->device)
+        {
+            if (dev->state)
+            {
+                currentinfo->node.phys.powuse += dev->amp * dev->volt;
+            }
+        }
+        double pdelta = currentinfo->node.phys.powuse-currentinfo->node.phys.powgen;
+        if (currentinfo->devspec.batt_cnt)
+        {
+            double vsys = 0.;
+            double vmax = currentinfo->devspec.batt_cnt * currentinfo->devspec.batt[0].maxvolt;
+            double vmin = currentinfo->devspec.batt_cnt * currentinfo->devspec.batt[0].minvolt;
+            double vbat = vmin + (vmax - vmin) * currentinfo->node.phys.battlev / currentinfo->node.phys.battcap;
+            // Consuming
+            if (pdelta > 0.)
+            {
+                vsys = vbat - sqrt(pdelta * currentinfo->devspec.batt[0].rout);
+                if (currentinfo->devspec.bcreg_cnt)
+                {
+                    currentinfo->devspec.bcreg[0].mpptin_volt = 0.;
+                    currentinfo->devspec.bcreg[0].mpptout_volt = vsys;
+                    currentinfo->devspec.bcreg[0].volt = vsys;
+                }
+                if (vsys > vmax)
+                {
+                    vsys = vmax;
+                }
+                dcharge = -dt * (vsys - vbat) * (vsys - vbat) / currentinfo->devspec.batt[0].rout;
+            }
+            // Charging
+            else
+            {
+                vsys = vbat + sqrt(-pdelta * currentinfo->devspec.batt[0].rin);
+                if (currentinfo->devspec.bcreg_cnt)
+                {
+                    currentinfo->devspec.bcreg[0].mpptin_volt = vsys;
+                    currentinfo->devspec.bcreg[0].mpptout_volt = 0.;
+                    currentinfo->devspec.bcreg[0].volt = vsys;
+                }
+                if (vsys > vmax)
+                {
+                    vsys = vmax;
+                }
+                dcharge = dt * (vsys - vbat) * (vsys - vbat) / currentinfo->devspec.batt[0].rin;
+            }
+            for (uint16_t i=0; i<currentinfo->devspec.batt_cnt; i++)
+            {
+                currentinfo->devspec.batt[i].volt = vbat;
+                currentinfo->devspec.batt[i].amp = -dcharge / dt;
+                currentinfo->node.phys.battlev += dcharge;
+                currentinfo->devspec.batt[i].charge += dcharge;
+                if (currentinfo->devspec.batt[i].charge > currentinfo->devspec.batt[i].capacity)
+                    currentinfo->devspec.batt[i].charge = currentinfo->devspec.batt[i].capacity;
+                if (currentinfo->devspec.batt[i].charge < 0.)
+                    currentinfo->devspec.batt[i].charge = 0.;
+                currentinfo->devspec.batt[i].utc = currentinfo->node.loc.utc;
+            }
+
+            if (currentinfo->node.phys.powgen > currentinfo->node.phys.powuse)
+                currentinfo->node.flags |= NODE_FLAG_CHARGING;
+            else
+                currentinfo->node.flags &= ~NODE_FLAG_CHARGING;
+
+            if (currentinfo->node.phys.battlev < 0.)
+                currentinfo->node.phys.battlev = 0.;
+
+            if (currentinfo->node.phys.battlev >= currentinfo->node.phys.battcap)
+            {
+                currentinfo->node.flags &= ~NODE_FLAG_CHARGING;
+                currentinfo->node.phys.battlev = currentinfo->node.phys.battcap;
+            }
+        }
+
     }
     return 0;
 }
@@ -2286,16 +2361,16 @@ int32_t MetricGenerator::Propagate(double nextutc)
         }
     }
 
-    bool printed = false;
+//    bool printed = false;
     for (uint16_t it=0; it<currentinfo->target.size(); ++it)
     {
         if (currentinfo->target[it].elto > 0.)
         {
-            if (!printed)
-            {
-                printf("[%.2f %.2f] ", DEGOF(currentinfo->node.loc.pos.geod.s.lat), DEGOF(currentinfo->node.loc.pos.geod.s.lon));
-                printed = true;
-            }
+//            if (!printed)
+//            {
+//                printf("[%.2f %.2f] ", DEGOF(currentinfo->node.loc.pos.geod.s.lat), DEGOF(currentinfo->node.loc.pos.geod.s.lon));
+//                printed = true;
+//            }
             for (uint16_t id=0; id<currentinfo->devspec.cam.size(); ++id)
             {
                 double h = currentinfo->node.loc.pos.geod.s.h;
@@ -2339,19 +2414,19 @@ int32_t MetricGenerator::Propagate(double nextutc)
                         coverage[it][id].area = dr < tr ? DPI * dr2 * sin(currentinfo->target[it].elto) : currentinfo->target[it].area;
                     }
 
-                    printf("[%u %.1f %.1f %.1f %u %.3f %.1f] ", it, DEGOF(currentinfo->target[it].azto), DEGOF(currentinfo->target[it].elto), currentinfo->target[it].range, id, coverage[it][id].area, coverage[it][id].resolution);
+//                    printf("[%u %.1f %.1f %.1f %u %.3f %.1f] ", it, DEGOF(currentinfo->target[it].azto), DEGOF(currentinfo->target[it].elto), currentinfo->target[it].range, id, coverage[it][id].area, coverage[it][id].resolution);
                 }
-                else
-                {
-                    printf("[%u %.1f %.1f %.1f] ", it, DEGOF(currentinfo->target[it].azto), DEGOF(currentinfo->target[it].elto), currentinfo->target[it].range);
-                }
+//                else
+//                {
+//                    printf("[%u %.1f %.1f %.1f] ", it, DEGOF(currentinfo->target[it].azto), DEGOF(currentinfo->target[it].elto), currentinfo->target[it].range);
+//                }
             }
         }
     }
-    if (printed)
-    {
-        printf("\n");
-    }
+//    if (printed)
+//    {
+//        printf("\n");
+//    }
     if (nextutc == 0.)
     {
         nextutc = currentutc + dtj;
