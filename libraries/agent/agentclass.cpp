@@ -2453,7 +2453,9 @@ namespace Cosmos
                     double d7 = 0.0;
                     double d8 = 0.0;
 
-                    if(parms.size() == 8)	{
+                    packet.data.resize(0);
+                    if(parms.size() == 8)
+                    {
                         d1 = stod(parms[0]);
                         const unsigned char* ptr = reinterpret_cast<const unsigned char*>(&d1);
                         for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }

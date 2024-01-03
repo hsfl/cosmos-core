@@ -2624,7 +2624,7 @@ union as a ::devicestruc.
         struct ploadstruc : public devicestruc
         {
             //! Number of keys being used.
-            uint16_t key_cnt = 0;
+            uint16_t keycnt = 0;
             //! Name for each key.
             uint16_t keyidx[MAXPLOADKEYCNT] = {0};
             //! Value for each key.
@@ -2638,7 +2638,7 @@ union as a ::devicestruc.
                 vector<uint16_t> v_keyidx = vector<uint16_t>(keyidx, keyidx+MAXPLOADKEYCNT);
                 vector<float> v_keyval = vector<float>(keyval, keyval+MAXPLOADKEYCNT);
                 return json11::Json::object {
-                    { "key_cnt", key_cnt },
+                    { "keycnt", keycnt },
                     { "keyidx" , v_keyidx },
                     { "keyval" , v_keyval }
                 };
@@ -2653,7 +2653,7 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["key_cnt"].is_null()) { key_cnt = parsed["key_cnt"].number_value(); }
+                    if(!parsed["keycnt"].is_null()) { keycnt = parsed["keycnt"].number_value(); }
                     if(!parsed["keyidx"].is_null()) {
                         auto p_keyidx = parsed["keyidx"].array_items();
                         for(size_t i = 0; i != p_keyidx.size(); ++i) {
@@ -3657,18 +3657,22 @@ union as a ::devicestruc.
         //! Battery (BATT) structure.
         struct battstruc : public devicestruc
         {
-            //! Capacity in amp hours
-            float capacity = 0.f;
+            //! Nominal maximum voltage
+            float maxvolt = 3.825f;
+            //! Nominal minimum voltage
+            float minvolt = 2.75f;
+            //! Capacity in amp seconds
+            float capacity = 2700.f;
             //! Charge conversion efficiency
             float efficiency = 0.f;
-            //! Charge in amp hours
-            float charge = 0.f;
+            //! Charge in amp seconds
+            float  charge = 2700.f;
             //! Cell Temperature
             float celltemp = 0.f;
             //! Resistance in
-            float r_in = 0.f;
+            float rin = 0.3f;
             //! Resistance out
-            float r_out = 0.f;
+            float rout = 0.3f;
             //! Battery Percentage Remaining
             float percentage = 0.f;
             //! Time Remaining
@@ -3680,12 +3684,14 @@ union as a ::devicestruc.
     */
             json11::Json to_json() const {
                 return json11::Json::object {
+                    { "maxvolt", maxvolt },
+                    { "minvolt", minvolt },
                     { "cap"  , capacity },
                     { "eff", efficiency },
                     { "charge"	, charge },
                     { "celltemp"	, celltemp },
-                    { "r_in"  , r_in },
-                    { "r_out" , r_out },
+                    { "rin"  , rin },
+                    { "rout" , rout },
                     { "percentage", percentage },
                     { "time_remaining" , time_remaining }
                 };
@@ -3700,12 +3706,14 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
+                    if(!parsed["maxvolt"].is_null()) { maxvolt = parsed["maxvolt"].number_value(); }
+                    if(!parsed["minvolt"].is_null()) { minvolt = parsed["minvolt"].number_value(); }
                     if(!parsed["cap"].is_null()) { capacity = parsed["cap"].number_value(); }
                     if(!parsed["eff"].is_null()) { efficiency = parsed["eff"].number_value(); }
                     if(!parsed["charge"].is_null()) { charge = parsed["charge"].number_value(); }
                     if(!parsed["celltemp"].is_null()) { celltemp = parsed["celltemp"].number_value(); }
-                    if(!parsed["r_in"].is_null()) { r_in = parsed["r_in"].number_value(); }
-                    if(!parsed["r_out"].is_null()) { r_out = parsed["r_out"].number_value(); }
+                    if(!parsed["rin"].is_null()) { rin = parsed["rin"].number_value(); }
+                    if(!parsed["rout"].is_null()) { rout = parsed["rout"].number_value(); }
                     if(!parsed["percentage"].is_null()) { percentage = parsed["percentage"].number_value(); }
                     if(!parsed["time_remaining"].is_null()) { time_remaining = parsed["time_remaining"].number_value(); }
                 } else {

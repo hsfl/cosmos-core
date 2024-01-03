@@ -1081,7 +1081,7 @@ namespace Cosmos {
             // Mean Anomaly (deg)
             double ma;
             // Epoch (year.day)
-            double ep;
+            double ep = 0.;
         };
 
 		//  JIMNOTE: compiler doesn't like this defined here (multiple defined error), maybe the header guard is messed up somewhere?

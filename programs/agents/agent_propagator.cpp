@@ -32,6 +32,7 @@ cartpos mothereci;
 double motherutc = 60107.01;
 // Simulation end time, runs forever if set to 0.
 double endutc = 0.;
+double deltautc = 0.;
 // Multiplier for speed of simulation, 1 = realtime, 60 = 60x faster (1s realtime = 1min simtime), etc.
 double speed=1.;
 // Acceleration cap for thrusters
@@ -156,7 +157,7 @@ int main(int argc, char *argv[])
 
     // Open socket for sending data to and from agent_propagator
     iretn = socket_open(&net_channel_in, NetworkType::UDP, "", net_port_in, SOCKET_LISTEN, SOCKET_NONBLOCKING);
-//    iretn = socket_open(net_channel_out, net_port_out);
+    //    iretn = socket_open(net_channel_out, net_port_out);
     iretn = socket_publish(net_channel_out, net_port_out);
 
     open_cosmos_web_sockets();
@@ -173,23 +174,11 @@ int main(int argc, char *argv[])
     while (agent->running())
     {
         ElapsedTime ret;
-        for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); sit++)
+        for (Physics::State* sit : sim->cnodes)
         {
-            string output;
-            output += (*sit)->currentinfo.get_json("node.utc");
-            output += (*sit)->currentinfo.get_json("node.name");
-            output += (*sit)->currentinfo.get_json("node.loc.pos.eci.s");
-            output += (*sit)->currentinfo.get_json("node.loc.pos.eci.v");
-            iretn = socket_post(net_channel_out, output);
 
-            send_telem_to_cosmos_web(&(*sit)->currentinfo);
+            send_telem_to_cosmos_web(&sit->currentinfo);
         }
-//        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeLocBeacon), agent);
-//        iretn = socket_sendto(net_channel_out, packet.wrapped);
-//        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodePhysBeacon), agent);
-//        iretn = socket_sendto(net_channel_out, packet.wrapped);
-//        iretn = PacketHandler::CreateBeacon(packet, static_cast<uint8_t>(Beacon::TypeId::NodeTargetBeacon), agent);
-//        iretn = socket_sendto(net_channel_out, packet.wrapped);
 
         // Attitude adjustment
         // Desired attitude comes from aligning satellite Z with desired Z and satellite Y with desired Y
@@ -197,13 +186,25 @@ int main(int argc, char *argv[])
         qatt satt;
         locstruc stloc;
 
+        for (Physics::State* cnode : sim->cnodes)
+        {
+            cnode->currentinfo.devspec.cam[0].state = 0;
+            for (targetstruc target : cnode->currentinfo.target)
+            {
+                if (target.elto > 0)
+                {
+                    cnode->currentinfo.devspec.cam[0].state = 1;
+                }
+            }
+        }
+
         // update states information for all nodes
         sim->Propagate();
         pcount += simdt;
 
         ++elapsed;
 
-//        cout << "sim->currentutc: " << std::to_string(sim->currentutc) << endl;
+        //        cout << "sim->currentutc: " << std::to_string(sim->currentutc) << endl;
 
         // Exit after sim completion
         if (endutc > 0. && sim->currentutc > endutc)
@@ -275,10 +276,10 @@ void event_union_utc(vector<eventstruc*> events)
     window.elems.clear();
     // Ascending sort by event starting utc time
     std::sort(events.begin(), events.end(),
-        [](eventstruc* e1, eventstruc* e2)-> bool {
-            return e1->utc < e2->utc;
-        }
-    );
+              [](eventstruc* e1, eventstruc* e2)-> bool {
+                  return e1->utc < e2->utc;
+              }
+              );
     for (auto event = events.begin(); event != events.end(); event++)
     {
         if ((*event)->type != EVENT_TYPE_TARG)
@@ -324,8 +325,8 @@ void event_union_utc(vector<eventstruc*> events)
             }
         }
         cout << "startutc: " << std::left << std::setw(20) << std::setprecision(std::numeric_limits<double>::max_digits10) << it->utc
-            << " endutc: " << std::left << std::setw(20) << std::setprecision(std::numeric_limits<double>::max_digits10) << (it->utc + it->duration)
-            << " targets: " << ret << endl;
+             << " endutc: " << std::left << std::setw(20) << std::setprecision(std::numeric_limits<double>::max_digits10) << (it->utc + it->duration)
+             << " targets: " << ret << endl;
     }
 }
 
@@ -382,6 +383,11 @@ int32_t parse_control(string args)
     {
         ++argcount;
         endutc = jargs["endutc"].number_value();
+    }
+    if (!jargs["deltautc"].is_null())
+    {
+        ++argcount;
+        deltautc = jargs["deltautc"].number_value();
     }
     if (!jargs["simdt"].is_null())
     {
@@ -521,6 +527,10 @@ int32_t parse_sat(string args)
         {
             motherutc = currentmjd();
         }
+        if (deltautc != 0.)
+        {
+            endutc = motherutc + deltautc;
+        }
         initialloc = Physics::shape2eci(motherutc, initiallat, initiallon, initialalt, initialangle, 0.);
         pos_eci(initialloc);
         eci2tle2(initialloc.pos.eci, initialloc.tle);
@@ -539,6 +549,10 @@ int32_t parse_sat(string args)
         if (motherutc == 0.)
         {
             motherutc = currentmjd();
+        }
+        if (deltautc != 0.)
+        {
+            endutc = motherutc + deltautc;
         }
         initialloc = Physics::shape2eci(motherutc, initiallat, initiallon, initialalt, initialangle, 0.);
         eci2tle2(initialloc.pos.eci, initialloc.tle);
@@ -585,6 +599,10 @@ int32_t parse_sat(string args)
         {
             motherutc = currentmjd();
         }
+        if (deltautc != 0.)
+        {
+            endutc = motherutc + deltautc;
+        }
         kep.utc = motherutc;
         kep.ea = values["ea"].number_value();
         kep.i = values["i"].number_value();
@@ -606,6 +624,10 @@ int32_t parse_sat(string args)
         if (motherutc == 0.)
         {
             motherutc = currentmjd();
+        }
+        if (deltautc != 0.)
+        {
+            endutc = motherutc + deltautc;
         }
         kep.utc = motherutc;
         kep.ea = values["ea"].number_value();
@@ -631,6 +653,10 @@ int32_t parse_sat(string args)
         {
             motherutc = lines[0].utc;
         }
+        if (deltautc != 0.)
+        {
+            endutc = motherutc + deltautc;
+        }
         initialloc.tle = lines[0];
         tle2eci(motherutc, initialloc.tle, initialloc.pos.eci);
         initialloc.pos.eci.pass++;
@@ -647,6 +673,10 @@ int32_t parse_sat(string args)
         if (motherutc == 0.)
         {
             motherutc = lines[0].utc;
+        }
+        if (deltautc != 0.)
+        {
+            endutc = motherutc + deltautc;
         }
         initialloc.tle = lines[0];
         tle2eci(motherutc, initialloc.tle, initialloc.pos.eci);
@@ -686,8 +716,12 @@ int32_t parse_sat(string args)
         }
     }
     Physics::Simulator::StateList::iterator sit = sim->GetNode(nodename);
+        // Camera
     for (camstruc det : dets)
     {
+        det.volt = 5.;
+        det.amp = 20. / det.volt;
+        det.state = 0;
         (*sit)->currentinfo.devspec.cam.push_back(det);
     }
     (*sit)->currentinfo.devspec.cam_cnt = dets.size();
@@ -696,7 +730,7 @@ int32_t parse_sat(string args)
 
 int32_t parse_target(string args)
 {
-//    int32_t iretn;
+    //    int32_t iretn;
     string name;
     NODE_TYPE type = NODE_TYPE_TARGET;
     double clat = RADOF(21.3069);
@@ -763,24 +797,25 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
     }
     // locstruc
     json11::Json jobj = json11::Json::object({
-        {"node_name", cinfo->node.name },
-        {"node_loc", json11::Json::object({
-            {"pos", json11::Json::object({
-                {"eci", json11::Json::object({
-                    { "utc", cinfo->node.loc.pos.eci.utc },
-                    { "s", cinfo->node.loc.pos.eci.s },
-                    { "v", cinfo->node.loc.pos.eci.v }
-                })}
-            })},
-            {"att", json11::Json::object({
-                {"icrf", json11::Json::object({
-                    { "utc", cinfo->node.loc.att.icrf.utc },
-                    { "s", cinfo->node.loc.att.icrf.s },
-                    { "v", cinfo->node.loc.att.icrf.v }
-                })}
-            })}
-        })},
-    });
+                                              {"node_utc", cinfo->node.utc },
+                                              {"node_name", cinfo->node.name },
+                                              {"node_loc", json11::Json::object({
+                                                               {"pos", json11::Json::object({
+                                                                           {"eci", json11::Json::object({
+                                                                                       { "utc", cinfo->node.loc.pos.eci.utc },
+                                                                                       { "s", cinfo->node.loc.pos.eci.s },
+                                                                                       { "v", cinfo->node.loc.pos.eci.v }
+                                                                                   })}
+                                                                       })},
+                                                               {"att", json11::Json::object({
+                                                                           {"icrf", json11::Json::object({
+                                                                                        { "utc", cinfo->node.loc.att.icrf.utc },
+                                                                                        { "s", cinfo->node.loc.att.icrf.s },
+                                                                                        { "v", cinfo->node.loc.att.icrf.v }
+                                                                                    })}
+                                                                       })}
+                                                           })},
+                                              });
     int32_t iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     // int32_t iretn = 0; cout << jobj.dump() << endl;
     if (iretn < 0) { return iretn; }
@@ -790,29 +825,31 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
     jobj = json11::Json::object({
         {"node_name", cinfo->node.name },
         {"devspec", json11::Json::object({
-            {"batt", [cinfo]() -> vector<json11::Json>
-                {
-                    vector<json11::Json> ret;
-                    for (auto batt : cinfo->devspec.batt) {
-                        batt.amp = (rand()/(double)RAND_MAX) * (1.-0.5) +0.5;
-                        batt.volt = (rand()/(double)RAND_MAX) * (8.-5.) +5.;
-                        batt.power = batt.amp * batt.volt;
-                        ret.push_back({
-                            json11::Json::object({
-                                {"didx", batt.didx},
-                                {"utc", sim->currentutc},
-                                {"amp", batt.amp},
-                                {"volt", batt.volt},
-                                {"power", batt.power},
-                                {"temp", (rand()/(double)RAND_MAX) * (400.-375.) +375.},
-                                {"percentage", (rand()/(double)RAND_MAX) * (0.65-0.35) +0.35},
-                            })
-                        });
-                    }
-                    return ret;
-                }()
-            }
-        })}
+                        {"batt", [cinfo]() -> vector<json11::Json>
+                            {
+                                vector<json11::Json> ret;
+                                for (auto batt : cinfo->devspec.batt)
+                                {
+                                    //                        batt.amp = (rand()/(double)RAND_MAX) * (1.-0.5) +0.5;
+                                    //                        batt.volt = (rand()/(double)RAND_MAX) * (8.-5.) +5.;
+                                    batt.power = batt.amp * batt.volt;
+                                    batt.percentage = cinfo->node.phys.battlev / cinfo->node.phys.battcap;
+                                    ret.push_back({
+                                        json11::Json::object({
+                                                              {"didx", batt.didx},
+                                                              {"utc", sim->currentutc},
+                                                              {"amp", batt.amp},
+                                                              {"volt", batt.volt},
+                                                              {"power", batt.power},
+                                                              {"temp", (rand()/(double)RAND_MAX) * (400.-375.) +375.},
+                                                              {"percentage", batt.percentage},
+                                                              })
+                                    });
+                                }
+                                return ret;
+                            }()
+                        }
+                    })}
     });
     iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     if (iretn < 0) { return iretn; }
@@ -821,32 +858,32 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
     jobj = json11::Json::object({
         {"node_name", cinfo->node.name },
         {"devspec", json11::Json::object({
-            {"bcreg", [cinfo]() -> vector<json11::Json>
-                {
-                    vector<json11::Json> ret;
-                    for (auto bcr : cinfo->devspec.bcreg) {
-                        bcr.amp = (rand()/(double)RAND_MAX) * (1.-0.5) +0.5;
-                        bcr.volt = (rand()/(double)RAND_MAX) * (8.-5.) +5.;
-                        bcr.power = bcr.amp * bcr.volt;
-                        ret.push_back({
-                            json11::Json::object({
-                                {"didx", bcr.didx},
-                                {"utc", sim->currentutc},
-                                {"amp", bcr.amp},
-                                {"volt", bcr.volt},
-                                {"power", bcr.power},
-                                {"temp", (rand()/(double)RAND_MAX) * (400.-375.) +375.},
-                                {"mpptin_amp", bcr.amp * 0.9},
-                                {"mpptin_volt", bcr.volt * 0.9},
-                                {"mpptout_amp", bcr.amp * 0.5},
-                                {"mpptout_volt", bcr.volt * 0.5},
-                            })
-                        });
-                    }
-                    return ret;
-                }()
-            }
-        })}
+                        {"bcreg", [cinfo]() -> vector<json11::Json>
+                            {
+                                vector<json11::Json> ret;
+                                for (auto bcr : cinfo->devspec.bcreg) {
+//                                    bcr.amp = (rand()/(double)RAND_MAX) * (1.-0.5) +0.5;
+//                                    bcr.volt = (rand()/(double)RAND_MAX) * (8.-5.) +5.;
+                                    bcr.power = bcr.amp * bcr.volt;
+                                    ret.push_back({
+                                        json11::Json::object({
+                                                              {"didx", bcr.didx},
+                                                              {"utc", sim->currentutc},
+                                                              {"amp", bcr.amp},
+                                                              {"volt", bcr.volt},
+                                                              {"power", bcr.power},
+                                                              {"temp", (rand()/(double)RAND_MAX) * (400.-375.) +375.},
+                                                              {"mpptin_amp", bcr.amp * 0.9},
+                                                              {"mpptin_volt", bcr.volt * 0.9},
+                                                              {"mpptout_amp", bcr.amp * 0.5},
+                                                              {"mpptout_volt", bcr.volt * 0.5},
+                                                              })
+                                    });
+                                }
+                                return ret;
+                            }()
+                        }
+                    })}
     });
     iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     if (iretn < 0) { return iretn; }
@@ -855,27 +892,27 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
     jobj = json11::Json::object({
         {"node_name", cinfo->node.name },
         {"devspec", json11::Json::object({
-            {"cpu", [cinfo]() -> vector<json11::Json>
-                {
-                    vector<json11::Json> ret;
-                    for (auto cpu : cinfo->devspec.cpu) {
-                        ret.push_back({
-                            json11::Json::object({
-                                {"didx", cpu.didx},
-                                {"utc", sim->currentutc},
-                                {"temp", (rand()/(double)RAND_MAX) * (400.-375.) +375.},
-                                {"uptime", sim->currentutc - 59945.0}, // 01/01/2023 TODO: breaks db code if negative
-                                {"gib", (rand()/(double)RAND_MAX) * (4.-2.) +2.},
-                                {"load", (rand()/(double)RAND_MAX) * (0.95-0.5) +0.5},
-                                {"boot_count", 2},
-                                {"storage", (rand()/(double)RAND_MAX) * (25.-9.) +9.},
-                            })
-                        });
-                    }
-                    return ret;
-                }()
-            }
-        })}
+                        {"cpu", [cinfo]() -> vector<json11::Json>
+                            {
+                                vector<json11::Json> ret;
+                                for (auto cpu : cinfo->devspec.cpu) {
+                                    ret.push_back({
+                                        json11::Json::object({
+                                                              {"didx", cpu.didx},
+                                                              {"utc", sim->currentutc},
+                                                              {"temp", (rand()/(double)RAND_MAX) * (400.-375.) +375.},
+                                                              {"uptime", sim->currentutc - 59945.0}, // 01/01/2023 TODO: breaks db code if negative
+                                                              {"gib", (rand()/(double)RAND_MAX) * (4.-2.) +2.},
+                                                              {"load", (rand()/(double)RAND_MAX) * (0.95-0.5) +0.5},
+                                                              {"boot_count", 2},
+                                                              {"storage", (rand()/(double)RAND_MAX) * (25.-9.) +9.},
+                                                              })
+                                    });
+                                }
+                                return ret;
+                            }()
+                        }
+                    })}
     });
     iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     if (iretn < 0) { return iretn; }
@@ -884,22 +921,22 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
     jobj = json11::Json::object({
         {"node_name", cinfo->node.name },
         {"devspec", json11::Json::object({
-            {"tsen", [cinfo]() -> vector<json11::Json>
-                {
-                    vector<json11::Json> ret;
-                    for (auto tsen : cinfo->devspec.tsen) {
-                        ret.push_back({
-                            json11::Json::object({
-                                {"didx", tsen.didx},
-                                {"utc", sim->currentutc},
-                                {"temp", (rand()/(double)RAND_MAX) * (400.-375.) +375.},
-                            })
-                        });
-                    }
-                    return ret;
-                }()
-            }
-        })}
+                        {"tsen", [cinfo]() -> vector<json11::Json>
+                            {
+                                vector<json11::Json> ret;
+                                for (auto tsen : cinfo->devspec.tsen) {
+                                    ret.push_back({
+                                        json11::Json::object({
+                                                              {"didx", tsen.didx},
+                                                              {"utc", sim->currentutc},
+                                                              {"temp", (rand()/(double)RAND_MAX) * (400.-375.) +375.},
+                                                              })
+                                    });
+                                }
+                                return ret;
+                            }()
+                        }
+                    })}
     });
     iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     if (iretn < 0) { return iretn; }
@@ -920,13 +957,13 @@ void send_events_to_cosmos_web()
                     for (auto event : (*cnode)->currentinfo.event) {
                         ret.push_back({
                             json11::Json::object({
-                                { "node_name"  , (*cnode)->currentinfo.node.name },
-                                { "utc", event.utc },
-                                { "duration", event.dtime },
-                                { "event_id" , event_id++ },
-                                { "type" , static_cast<int32_t>(event.type) },
-                                { "event_name" , event.name },
-                            })
+                                                  { "node_name"  , (*cnode)->currentinfo.node.name },
+                                                  { "utc", event.utc },
+                                                  { "duration", event.dtime },
+                                                  { "event_id" , event_id++ },
+                                                  { "type" , static_cast<int32_t>(event.type) },
+                                                  { "event_name" , event.name },
+                                                  })
                         });
                     }
                     return ret;
@@ -945,15 +982,22 @@ void add_sim_devices()
     for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); sit++)
     {
         // Battery
-        for (size_t i=0; i < 2; ++i) {
+        for (size_t i=0; i < 4; ++i) {
             json_createpiece(&(*sit)->currentinfo, "Battery"+std::to_string(i), DeviceType::BATT);
         }
         // BC Regulators (solar panels)
-        json_createpiece(&(*sit)->currentinfo, "Left", DeviceType::BCREG);
-        json_createpiece(&(*sit)->currentinfo, "Right", DeviceType::BCREG);
+        json_createpiece(&(*sit)->currentinfo, "BCreg", DeviceType::BCREG);
+//        json_createpiece(&(*sit)->currentinfo, "Right", DeviceType::BCREG);
         // CPU
         json_createpiece(&(*sit)->currentinfo, "iOBC", DeviceType::CPU);
+        (*sit)->currentinfo.devspec.cpu[0].volt = 5.;
+        (*sit)->currentinfo.devspec.cpu[0].amp = 2. / (*sit)->currentinfo.devspec.cpu[0].volt;
+        (*sit)->currentinfo.devspec.cpu[0].state = 1;
         json_createpiece(&(*sit)->currentinfo, "iX5-100", DeviceType::CPU);
+        (*sit)->currentinfo.devspec.cpu[1].volt = 5.;
+        (*sit)->currentinfo.devspec.cpu[1].amp = 12. / (*sit)->currentinfo.devspec.cpu[1].volt;
+        (*sit)->currentinfo.devspec.cpu[1].state = 1;
+
         // Thermal Sensors
         json_createpiece(&(*sit)->currentinfo, "Camera", DeviceType::TSEN);
         json_createpiece(&(*sit)->currentinfo, "Heat sink", DeviceType::TSEN);
@@ -987,13 +1031,13 @@ void reset_db()
         // Repopulate node table
         json11::Json jobj = json11::Json::object({
             {"node", json11::Json::object({
-                { "node_id", id },
-                { "node_name", (*sit)->currentinfo.node.name },
-                { "node_type", NODE_TYPE_SATELLITE },
-                { "agent_name", (*sit)->currentinfo.agent0.name },
-                { "utc", sim->currentutc },
-                { "utcstart", currentutc }
-            })}
+                         { "node_id", id },
+                         { "node_name", (*sit)->currentinfo.node.name },
+                         { "node_type", NODE_TYPE_SATELLITE },
+                         { "agent_name", (*sit)->currentinfo.agent0.name },
+                         { "utc", sim->currentutc },
+                         { "utcstart", currentutc }
+                     })}
         });
         socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
         // Add device info
