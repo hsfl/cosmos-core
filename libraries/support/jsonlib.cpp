@@ -7700,7 +7700,9 @@ int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
     iretn = json_mapentries(cinfo);
     if (iretn >= 0)
     {
+#ifndef INFLIGHT_BUILD
         cinfo->add_default_names();
+#endif
     }
 
     return iretn;
