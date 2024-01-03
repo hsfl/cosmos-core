@@ -2170,12 +2170,14 @@ namespace Cosmos
                 case DeviceType::BATT:
                     basename = "devspec.batt[" + std::to_string(didx) + "]";
                     add_name(basename+"", &devspec.batt[didx], "battstruc");
-                    add_name(basename+".capacity", &devspec.batt[didx].capacity, "float");
-                    add_name(basename+".efficiency", &devspec.batt[didx].efficiency, "float");
+                    add_name(basename+".maxvolt", &devspec.batt[didx].maxvolt, "float");
+                    add_name(basename+".minvolt", &devspec.batt[didx].minvolt, "float");
+                    add_name(basename+".cap", &devspec.batt[didx].capacity, "float");
+                    add_name(basename+".eff", &devspec.batt[didx].efficiency, "float");
                     add_name(basename+".charge", &devspec.batt[didx].charge, "float");
                     add_name(basename+".celltemp", &devspec.batt[didx].celltemp, "float");
-                    add_name(basename+".r_in", &devspec.batt[didx].r_in, "float");
-                    add_name(basename+".r_out", &devspec.batt[didx].r_out, "float");
+                    add_name(basename+".rin", &devspec.batt[didx].rin, "float");
+                    add_name(basename+".rout", &devspec.batt[didx].rout, "float");
                     add_name(basename+".percentage", &devspec.batt[didx].percentage, "float");
                     add_name(basename+".time_remaining", &devspec.batt[didx].time_remaining, "float");
                     break;
@@ -2441,7 +2443,7 @@ namespace Cosmos
                 case DeviceType::PLOAD:
                     basename = "devspec.pload[" + std::to_string(didx) + "]";
                     add_name(basename+"", &devspec.pload[didx], "ploadstruc");
-                    add_name(basename+".key_cnt", &devspec.pload[didx].key_cnt, "uint16_t");
+                    add_name(basename+".keycnt", &devspec.pload[didx].keycnt, "uint16_t");
                     add_name(basename+".keyidx", &devspec.pload[didx].keyidx, "uint16_t[]");
                     for(size_t j = 0; j < sizeof(devspec.pload[didx].keyidx)/sizeof(devspec.pload[didx].keyidx[0]); ++j) {
                         string rebasename = basename + ".keyidx[" + std::to_string(j) + "]";

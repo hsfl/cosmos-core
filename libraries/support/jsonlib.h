@@ -361,6 +361,8 @@ int32_t update_target(Convert::locstruc source, targetstruc &target);
 size_t calc_events(vector<eventstruc> &dictionary, cosmosstruc *cinfo, vector<eventstruc> &events);
 uint16_t device_type_index(string name);
 string device_type_name(uint32_t type);
+uint16_t device_component_index(cosmosstruc* cinfo, string name, uint16_t didx);
+uint16_t device_component_index(cosmosstruc* cinfo, uint16_t type, uint16_t didx);
 string port_type_name(uint32_t type);
 int32_t device_index(cosmosstruc* cinfo, string name);
 bool device_has_property(uint16_t deviceType, string prop);
