@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     Physics::orbit_init_shape(0, 1., currentmjd(), 400000, RADOF(56.), 0., cinfo);
     Convert::cartpos geoc = cinfo->node.loc.pos.geoc;
 
-    Convert::qatt lvlhq = cinfo->node.loc.att.lvlh;
+    //Convert::qatt lvlhq = cinfo->node.loc.att.lvlh;
     Convert::cartpos lvlh;
 
     lvlh.s.col[0] = 5000.;
