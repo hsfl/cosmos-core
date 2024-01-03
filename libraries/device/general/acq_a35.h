@@ -46,7 +46,7 @@ bool InitCamera(uint16_t width, uint16_t height, gige_handle *handle);
 bool GetCameraFrame(gige_handle* handle, uint16_t *ImageFrameBuffer, uint32_t ImageSize);
 void WriteRegister(gige_handle* handle,  int16_t command, int16_t param1, int16_t param2, int16_t param3);
 void StartCamera(gige_handle *handle);
-int ShutdownCamera(gige_handle *handle);
+int StopCamera(gige_handle *handle);
 
 bool ResetCamera(gige_handle *handle);
 bool AutoFFC(gige_handle *handle);

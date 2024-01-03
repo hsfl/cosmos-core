@@ -50,13 +50,12 @@ Event::Event() :
 /// Destructor
 Event::~Event() {}
 
-string Event::generator(
-	string name,
-	string data,
-	double mjd,
-	string condition,
-	uint32_t flag
-) {
+string Event::generator(string name,
+    string data,
+    double mjd,
+    string condition,
+    uint32_t flag
+, uint16_t type) {
 
     this->name = name;
     this->data = data;
@@ -64,7 +63,7 @@ string Event::generator(
     this->condition = condition;
     this->flag = flag;
     this->utcexec = 0.;
-    this->type = EVENT_TYPE_COMMAND;
+    this->type = type;
     event_string = "";
     event_string = this->get_event_string();
 
@@ -74,7 +73,7 @@ string Event::generator(
 string Event::generator(eventstruc event) {
 
     // returns a string with the event and also puts the string in "event_string"
-    return generator(event.name, event.data, event.utc, event.condition, event.flag);;
+    return generator(event.name, event.data, event.utc, event.condition, event.flag, event.type);;
 }
 
 
@@ -82,18 +81,18 @@ string Event::generator(eventstruc event) {
 ::std::ostream& operator<<(::std::ostream& out, const Event& cmd)
 {
     JSONObject jobj;
-    jobj.addElement("event_utc", JSONValue(cmd.mjd));
+    jobj.addElement("utc", JSONValue(cmd.mjd));
     if (cmd.utcexec != 0.)
     {
-        jobj.addElement("event_utcexec", JSONValue(cmd.utcexec));
+        jobj.addElement("utcexec", JSONValue(cmd.utcexec));
     }
-    jobj.addElement("event_name", JSONValue(cmd.name));
-    jobj.addElement("event_type", JSONValue(cmd.type));
-    jobj.addElement("event_flag", JSONValue(cmd.flag));
-    jobj.addElement("event_data", JSONValue(cmd.data));
+    jobj.addElement("name", JSONValue(cmd.name));
+    jobj.addElement("type", JSONValue(cmd.type));
+    jobj.addElement("flag", JSONValue(cmd.flag));
+    jobj.addElement("data", JSONValue(cmd.data));
     if (cmd.flag & EVENT_FLAG_CONDITIONAL)
     {
-        jobj.addElement("event_condition", JSONValue(cmd.condition));
+        jobj.addElement("condition", JSONValue(cmd.condition));
     }
     out	<< std::setprecision(15) << jobj.to_json_string();
     return out;
@@ -134,18 +133,18 @@ void Event::set_command(string jstring)
 string Event::get_event_string()
 {
     JSONObject jobj;
-    jobj.addElement("event_utc", JSONValue(mjd));
+    jobj.addElement("utc", JSONValue(mjd));
     if (utcexec != 0.)
     {
-        jobj.addElement("event_utcexec", JSONValue(utcexec));
+        jobj.addElement("utcexec", JSONValue(utcexec));
     }
-    jobj.addElement("event_name", JSONValue(name));
-    jobj.addElement("event_type", JSONValue(type));
-    jobj.addElement("event_flag", JSONValue(flag));
-    jobj.addElement("event_data", JSONValue(data));
+    jobj.addElement("name", JSONValue(name));
+    jobj.addElement("type", JSONValue(type));
+    jobj.addElement("flag", JSONValue(flag));
+    jobj.addElement("data", JSONValue(data));
     if (flag & EVENT_FLAG_CONDITIONAL)
     {
-        jobj.addElement("event_condition", JSONValue(condition));
+        jobj.addElement("condition", JSONValue(condition));
     }
 
     return jobj.to_json_string();

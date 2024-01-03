@@ -54,7 +54,6 @@ double DeviceDisk::getAll(string path)
      ioctl(dev, DKIOCGETBLOCKSIZE, &sector_size);
 
      uint64_t disk_size = sector_count * sector_size;
-     printf("%ld", disk_size);
 
      Size = disk_size;
 

@@ -19,6 +19,47 @@ ByteOrder local_byte_order()
         return (ByteOrder::LITTLEENDIAN);
 }
 
+//! Memory to generic unsigned integer
+/*! Return the generic unsigned integer equivalent of a location in memory, reversed based on the local byte order.
+    \param pointer location in memory to be cast
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
+    \return 8 bit unsigned integer
+*/
+
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+uint64_t uintswap(uint8_t bits, uint64_t value, ByteOrder order)
+{
+    uint64_t rb = value;
+    uint64_t rev = 0;
+#else
+size_t uintswap(uint8_t bits, size_t value, ByteOrder order)
+{
+    size_t rb = value;
+    size_t rev = 0;
+#endif
+    if (order == ByteOrder::NONE || order != local_byte_order())
+    {
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+        for (uint64_t ic=0; ic<bits; ++ic)
+#else
+        for (size_t ic=0; ic<bits; ++ic)
+#endif
+        {
+            rev <<= 1;
+            if ((rb & 1) == 1)
+            {
+                rev ^= 1;
+            }
+            rb >>= 1;
+        }
+        return rev;
+    }
+    else
+    {
+        return rb;
+    }
+}
+
 //! Memory to 8 bit unsigned integer
 /*! Return the 8 bit unsigned integer equivalent of a location in memory, reversed based on the local byte order.
     \param pointer location in memory to be cast
@@ -26,7 +67,7 @@ ByteOrder local_byte_order()
     \return 8 bit unsigned integer
 */
 
-uint8_t uint8from(uint8_t *pointer, ByteOrder order)
+uint8_t uint8from(const uint8_t *pointer, ByteOrder order)
 {
     uint8_t rb = *pointer;
     uint8_t rev = 0;
@@ -49,7 +90,7 @@ uint8_t uint8from(uint8_t *pointer, ByteOrder order)
     }
 }
 
-uint8_t uint8to(uint8_t *pointer, ByteOrder order)
+uint8_t uint8to(const uint8_t *pointer, ByteOrder order)
 {
     uint8_t rb = *pointer;
     uint8_t rev = 0;
@@ -72,7 +113,7 @@ uint8_t uint8to(uint8_t *pointer, ByteOrder order)
     }
 }
 
-void uint8from(vector<uint8_t> src, vector<uint8_t> &dst, ByteOrder order)
+void uint8from(const vector<uint8_t> &src, vector<uint8_t> &dst, ByteOrder order)
 {
     dst.resize(src.size());
     for (size_t i=0; i<src.size(); ++i)
@@ -81,7 +122,7 @@ void uint8from(vector<uint8_t> src, vector<uint8_t> &dst, ByteOrder order)
     }
 }
 
-void uint8to(vector<uint8_t> src, vector<uint8_t> &dst, ByteOrder order)
+void uint8to(const vector<uint8_t> &src, vector<uint8_t> &dst, ByteOrder order)
 {
     dst.resize(src.size());
     for (size_t i=0; i<src.size(); ++i)
@@ -145,7 +186,7 @@ int16_t int16from(uint8_t *pointer, ByteOrder order)
     \return 32 bit unsigned integer
 */
 
-uint32_t uint32from(uint8_t *pointer, ByteOrder order)
+uint32_t uint32from(const uint8_t *pointer, ByteOrder order)
 {
     uint32_t *result;
     uint8_t *rb;

@@ -1,5 +1,6 @@
 #include "support/configCosmos.h"
 #include "support/timelib.h"
+#include "support/convertlib.h"
 #include <stdio.h>
 #include <sys/time.h>
 #include <time.h>
@@ -18,12 +19,14 @@
 #define TMJD 10
 #define TSLON 11
 #define TSLAT 12
+#define TCENTI 13
+#define TDECI 14
+#define TNSECOND 15
 
 int main(int argc, char *argv[])
 {
     struct timeval mytime;
-    struct tm *mytm;
-    int tut, value, ttype, i, tlen=0;
+    int32_t tut, uvalue, ttype, i, tlen=0;
     int cflag = 0;
     //int vflag = 0;
     time_t thetime;
@@ -50,13 +53,25 @@ int main(int argc, char *argv[])
                 ttype = TALL;
                 //vflag = 1;
                 break;
-            case 'l':
+            case 'L':
                 /* Time in HST */
                 tut = 0;
                 break;
-            case 'u':
-                /* Time in UT */
+            case 'U':
+                /* UTC */
                 tut = 1;
+                break;
+            case 'G':
+                /* GPS */
+                tut = 2;
+                break;
+            case 'T':
+                /* TT */
+                tut = 3;
+                break;
+            case 'A':
+                /* TAI */
+                tut = 4;
                 break;
             case 's':
                 switch (argv[i][2])
@@ -69,22 +84,26 @@ int main(int argc, char *argv[])
                     /* Solar Latitude */
                     ttype = TSLAT;
                     break;
-                default:
-                    /* Time in Seconds */
-                    ttype = TSECOND;
-                    break;
                 }
                 break;
-            case 'm':
+            case 'N':
+                /* Seconds */
+                ttype = TNSECOND;
+                break;
+            case 'S':
+                /* Seconds */
+                ttype = TSECOND;
+                break;
+            case 'M':
                 /* Time in Minutes */
                 ttype = TMINUTE;
                 break;
-            case 'h':
+            case 'H':
                 /* Time in Hours */
                 ttype = THOUR;
                 break;
-            case 'd':
-                /* Time in Days */
+            case 'j':
+                /* DOY */
                 ttype = TDAY;
                 switch (argv[i][2])
                 {
@@ -96,17 +115,25 @@ int main(int argc, char *argv[])
                     break;
                 }
                 break;
-            case 'n':
-                /* Time in Months */
+            case 'd':
+                /* Day of the Month, starting with 1 */
                 ttype = TMDAY;
                 break;
-            case 'g':
-                /* Time in Months */
+            case 'm':
+                /* Month, starting with 1 */
                 ttype = TMONTH;
                 break;
             case 'y':
                 /* Time in Years */
                 ttype = TYEAR;
+                break;
+            case 'C':
+                // Time in centiseconds
+                ttype = TCENTI;
+                break;
+            case 'D':
+                // Time in deciseconds
+                ttype = TDECI;
                 break;
             case 'z':
                 ttype = TZENITH;
@@ -116,7 +143,7 @@ int main(int argc, char *argv[])
                 ttype = TAIRMASS;
                 tut = 1;
                 break;
-            case 'j':
+            case 'J':
                 ttype = TMJD;
                 tut = 1;
                 break;
@@ -127,32 +154,46 @@ int main(int argc, char *argv[])
     /* Now get time and format it appropriately */
 
     gettimeofday(&mytime, NULL);
+    mjd = currentmjd();
     do
     {
-        thetime = mytime.tv_sec;
         switch (tut)
         {
         case 0:
+            thetime = utc2unixseconds(mjd);
+            struct tm *mytm;
             mytm = localtime(&thetime);
+            mjd += mytm->tm_gmtoff / 86400.;
             break;
-        case 1:
-            mytm = gmtime(&thetime);
+//        case 1:
+//            thetime = utc2unixseconds(currentmjd());
+//            mytm = gmtime(&thetime);
+//            break;
+        case 2:
+            mjd = Convert::utc2gps(mjd);
+//            thetime = utc2unixseconds(Convert::utc2gps(currentmjd()));
+//            mytm = gmtime(&thetime);
+            break;
+        case 3:
+            mjd = Convert::utc2tt(mjd);
+//            thetime = utc2unixseconds(Convert::utc2tt(currentmjd()));
+//            mytm = gmtime(&thetime);
+            break;
+        case 4:
+            mjd = Convert::utc2tt(mjd) - 32.184 / 86400.;
+//            thetime = utc2unixseconds(Convert::utc2tt(currentmjd()) - 32.184 / 86400.);
+//            mytm = gmtime(&thetime);
             break;
         }
 
-        mjd = cal2mjd(mytm->tm_year+1900, mytm->tm_mon+1, mytm->tm_mday);
+        calstruc mycal = mjd2cal(mjd);
         //lat = 20.5 * (3.1415926/180.);
         lon = -157.5 * (3.1415926/180.);
-//        slaRdplan(mjd,0,lon,lat,&ra,&dec,&diam);
-        mjd += ((mytm->tm_hour + (mytm->tm_min + mytm->tm_sec / 60.) / 60.) / 24.);
-//        lst = slaGmst(mjd) + lon;
         ha = lst - ra;
         slon = (lon - ha);
         if (slon < M_PI)
             slon += 2.*M_PI;
         slat = dec;
-//        zd = slaZd(ha,dec,lat);
-//        air = slaAirmas(zd);
 
         switch (ttype)
         {
@@ -168,59 +209,74 @@ int main(int argc, char *argv[])
         case TZENITH:
             printf("%.2lf\n",zd*(180./3.16149));
             break;
+        case TNSECOND:
+            uvalue = mycal.nsecond;
+            printf("%02d\n",uvalue);
+            break;
         case TSECOND:
-            value = mytm->tm_sec;
-            printf("%02d\n",value);
+            uvalue = mycal.second;
+            printf("%02d\n",uvalue);
             break;
         case TMINUTE:
-            value = mytm->tm_min;
-            printf("%02d\n",value);
+            uvalue = mycal.minute;
+            printf("%02d\n",uvalue);
             break;
         case THOUR:
-            value = mytm->tm_hour;
-            printf("%02d\n",value);
+            uvalue = mycal.hour;
+            printf("%02d\n",uvalue);
             break;
         case TDAY:
-            value = mytm->tm_yday + 1;
+            uvalue = mycal.doy;
             switch (tlen)
             {
             case 0:
-                printf("%d\n",value);
+                printf("%d\n",uvalue);
                 break;
             case 3:
-                printf("%03d\n",value);
+                printf("%03d\n",uvalue);
                 break;
             case 2:
-                printf("%02d\n",value);
+                printf("%02d\n",uvalue);
                 break;
             case 1:
-                printf("%01d\n",value);
+                printf("%01d\n",uvalue);
                 break;
             }
             break;
         case TMDAY:
-            value = mytm->tm_mday;
-            printf("%02d\n",value);
+            uvalue = mycal.dom;
+            printf("%02d\n",uvalue);
             break;
         case TMONTH:
-            value = mytm->tm_mon+1;
-            printf("%02d\n",value);
+            uvalue = mycal.month;
+            printf("%02d\n",uvalue);
             break;
         case TYEAR:
-            value = mytm->tm_year+1900;
-            printf("%04d\n",value);
+            uvalue = mycal.year;
+            printf("%04d\n",uvalue);
+            break;
+        case TCENTI:
+            uvalue = centisec(mjd);
+            printf("%010u\n",uvalue);
+            break;
+        case TDECI:
+            uvalue = decisec(mjd);
+            printf("%010u\n",uvalue);
             break;
         case TMJD:
-            printf("%lf\n",mjd);
+            printf("%.15g\n",mjd);
             break;
         case TALL:
             if (cflag)
-                printf("%04d %02d %02d %03d %02d:%02d:%02d %10ld %6.2lf %6.3lf\r",mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday,mytm->tm_yday+1,mytm->tm_hour,mytm->tm_min,mytm->tm_sec,mytime.tv_sec,zd*(180./3.16149),air);
+                printf("%04d %02d %02d %03d %02d:%02d:%02d %d %10ld %6.2lf %6.3lf\r",mycal.year,mycal.month,mycal.dom,mycal.doy+1,mycal.hour,mycal.minute,mycal.second,mycal.nsecond,mytime.tv_sec,zd*(180./3.16149),air);
             else
-                printf("%04d %02d %02d %03d %02d:%02d:%02d %10ld %6.2lf %6.3lf\n",mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday,mytm->tm_yday+1,mytm->tm_hour,mytm->tm_min,mytm->tm_sec,mytime.tv_sec,zd*(180./3.16149),air);
+                printf("%04d %02d %02d %03d %02d:%02d:%02d %d %10ld %6.2lf %6.3lf\n",mycal.year,mycal.month,mycal.dom,mycal.doy+1,mycal.hour,mycal.minute,mycal.second,mycal.nsecond,mytime.tv_sec,zd*(180./3.16149),air);
         }
         fflush(stdout);
-        usleep(1000000);
+        if (cflag)
+        {
+            usleep(1000000);
+        }
     }
     while (cflag);
 

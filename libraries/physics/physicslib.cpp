@@ -845,10 +845,10 @@ for (il=0; il<5; il++)
 
         //! Update Ground Station data
         /*!
-* Calculates aziumth and elevation for each gound station in the list of ground stations
+* Calculates aziumth and elevation for each gound station in the list of grougroundstnd stations
 * for a satellite at the indicated position.
-    \param satellite pointer to a ::locstruc specifying satellite position
-    \param groundstation pointer to a ::locstruc specifying groundstation to be targeted
+    \param satellite pointer to a ::locstruc specifying satellite position, in eci.
+    \param groundstation pointer to a ::locstruc specifying groundstation to be targeted, in geod.
     \return ::svector containing azimuth in lambda, elevation in phi
     and slant range in r.
     \see Convert::geoc2topo
@@ -1347,7 +1347,7 @@ for (il=0; il<5; il++)
                 cinfo->devspec.bus[i].amp = 0.;
             }
 
-            for (i=0; i<cinfo->node.device_cnt; i++)
+            for (i=0; i<cinfo->device_cnt; i++)
             {
                 index = cinfo->device[i]->bidx;
                 if (index >= cinfo->devspec.bus_cnt)
@@ -1364,7 +1364,7 @@ for (il=0; il<5; il++)
                     }
                     if (cinfo->device[i]->power <= 0.)
                         continue;
-                    if (cinfo->device[i]->pidx < cinfo->node.piece_cnt)
+                    if (cinfo->device[i]->pidx < cinfo->piece_cnt)
                     {
                         cinfo->pieces[cinfo->device[i]->pidx].heat += .8 * cinfo->device[i]->power * cinfo->node.phys.dt;
                     }
@@ -1556,6 +1556,8 @@ for (il=0; il<5; il++)
 */
         int32_t pos_accel(physicsstruc &physics, Convert::locstruc &loc)
         {
+            static rvector lacc;
+            static double lutc = 0.;
             int32_t iretn = 0;
             double radius;
             rvector ctpos, da, tda;
@@ -1643,6 +1645,16 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
             }
 
+            if (lutc != 0. && lutc != loc.pos.eci.utc)
+            {
+                loc.pos.eci.j = (loc.pos.eci.a - lacc) / (loc.pos.eci.utc - lutc);
+            }
+            else
+            {
+                loc.pos.eci.j = {0., 0., 0.};
+            }
+            lutc = loc.pos.eci.utc;
+            lacc = loc.pos.eci.a;
             loc.pos.eci.pass++;
             iretn = Convert::pos_eci(&loc);
             if (iretn < 0)
@@ -2043,6 +2055,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             cinfo->node.phys.utc = loc.utc;
 
             cinfo->timestamp = currentmjd();
+            cinfo->node.loc = sloc[0];
         }
 
         void propagate(cosmosstruc *cinfo, double utc)

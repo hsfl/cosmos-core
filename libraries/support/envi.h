@@ -18,11 +18,11 @@ typedef struct envi_hdr
     size_t planes;
     size_t rows;
     size_t columns;
-    size_t offset;
+    size_t offset = 0;
     size_t endian;
     size_t datatype;
-    size_t interleave;
-    size_t byteorder;
+    size_t interleave = BSQ;
+    size_t byteorder = BO_INTEL;
 	float x0;
 	float y0;
 	float xmpp;
@@ -35,12 +35,20 @@ typedef struct envi_hdr
     vector <string> keys;
     vector <string> values;
     string basename;
+    string hdrname;
+    string dataname;
+    uint8_t datasize = 0;
     } envi_hdr;
 
 
-int32_t read_envi_hdr(string file, envi_hdr &hdr);
 int32_t write_envi_hdr(envi_hdr &hdr);
 int32_t write_envi_data(string name, size_t columns, size_t rows, size_t planes, uint8_t datatype, uint8_t interleave, uint8_t *data);
 int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data);
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<double>>> &data);
+int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<uint16_t>>> &data);
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<double>> &data);
+int32_t write_envi_data(string name, uint8_t interleave, vector<vector<uint16_t>> &data);
+int32_t read_envi_hdr(string file, envi_hdr &hdr);
+int32_t read_envi_data(string filename, envi_hdr &hdr, vector<vector<vector<double>>> &data);
+int32_t read_envi_data(envi_hdr hdr, vector<vector<double>> &data, size_t plane);
+int32_t read_envi_data(envi_hdr hdr, vector<vector<double>> &data);

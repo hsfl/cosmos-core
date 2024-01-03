@@ -122,17 +122,18 @@ uint16_t CRC16::calc(uint8_t *message, uint16_t size)
 }
 
 // Modified for calculating the crc of a file
-// Returns 0 if file cannot be opened
-uint16_t CRC16::calc_file(string file_path)
+// Returns non-negative uint16_t crc on success, negative on error
+int32_t CRC16::calc_file(string file_path)
 {
     uint8_t data;
     uint16_t remainder = initial;
+    int32_t iretn = 0;
 
     // Check file validity
     ifstream file(file_path, std::ios::in | std::ios::binary);
     if (!file.is_open())
     {
-        return 0;
+        return COSMOS_TRANSFER_ERROR_FILENAME;
     }
 
     // Divide message by the polynomial a byte at a time until EOF
@@ -141,22 +142,30 @@ uint16_t CRC16::calc_file(string file_path)
     {
         if (lsbfirst)
         {
-            data = byte ^ (remainder & 0xff);
+            // Note, char is signed
+            data = static_cast<uint8_t>(byte) ^ (remainder & 0xff);
             remainder = lookup[data] ^ (remainder >> 8);
         }
         else
         {
-            data = byte ^ (remainder >> (8));
+            // Note, char is signed
+            data = static_cast<uint8_t>(byte) ^ (remainder >> (8));
             remainder = lookup[data] ^ (remainder << 8);
         }
     }
 
+    iretn = (remainder ^ xorout);
+    // Error encountered if read stops before EOF is reached
+    if (!file.eof())
+    {
+        iretn = COSMOS_GENERAL_ERROR_OPEN;
+    }
     file.close();
 
     /*
      * The final remainder is the CRC.
      */
-    return (remainder ^ xorout);
+    return iretn;
 }
 
 uint16_t calc_crc16ccitt_lsb(string buf, uint16_t crc, uint16_t skip)
@@ -320,7 +329,7 @@ uint16_t calc_crc16(vector<uint8_t> buf, uint16_t poly, uint16_t crc, uint16_t x
 
     for (uint16_t i=0; i<buf.size(); i++)
     {
-        uint ch = buf[i];
+        uint16_t ch = buf[i];
         for (uint16_t j=0; j<8; j++)
         {
             if (lsbfirst)

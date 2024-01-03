@@ -50,19 +50,28 @@
 //! @{
 
 vector < string > string_split(string in, string delimeters=" \t,", bool multi=true);
+size_t string_find(string input, string chars, uint16_t num=1);
+size_t string_find(vector<string> input, string chars, uint16_t num=1);
+string string_join(vector<string>& in, string delimeter=" ", uint16_t first=0, uint16_t last=65535);
 uint16_t string_parse(char *string, char *word[], uint16_t size);
-string string_replace(string str, const string from, const string to);
+string string_replace(string str, const std::string &from, const std::string &to);
 int string_cmp(const char *wild, const char *string);
 string to_hex_string(const vector<uint8_t> &buffer, bool ascii=false, uint16_t start=0);
 string to_hex_string(uint8_t* buffer, uint16_t size, bool ascii=false, uint16_t start=0);
-vector<uint8_t> from_hex_string(string& hex);
+vector<uint8_t> from_hex_string(std::string hex);
 vector<uint8_t> from_hex_vector(vector<uint8_t>& hex);
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+uint64_t from_hex(string value);
+#else
+size_t from_hex(string value);
+#endif
+uint8_t from_hex(char value);
 string to_astring(vector<uint8_t> buf, bool hex=true);
 string to_astring(string buf, bool hex=false);
 string to_astring(char *value, size_t length, bool hex=false);
 // These two assume all bytes are ASCII characters
-string to_string(const vector<uint8_t>& buf);
-vector<uint8_t> to_bytes(const string &buf);
+string byte_vector_to_string(const vector<uint8_t>& buf, uint16_t offset=0);
+vector<uint8_t> string_to_byte_vector(const string &buf);
 // These next three are intentionally NOT (u)int64_t, as that does not always carry cleanly to 32 bit systems.
 // size_t and ptrdiff_t will map to the largest integer the system actually knows how to deal with.
 #if ((SIZE_WIDTH) == (UINT64_WIDTH))

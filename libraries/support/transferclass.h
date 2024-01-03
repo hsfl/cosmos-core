@@ -54,11 +54,11 @@ namespace Cosmos {
             };
             //! Returned by receive_packet() if there was something of concern requring the receive to send out a response-type packet of some sort (e.g., REQMETA, REQDATA, etc.)
             static const int32_t RESPONSE_REQUIRED = 1;
-            
+
             Transfer();
             // int32_t Init(string node, string agent, uint16_t chunk_size);
-            int32_t Init(const string calling_node_name);
-            int32_t Init(const string calling_node_name, Error* debug_error);
+            int32_t Init(cosmosstruc *cinfo, bool keep_errored_files);
+            int32_t Init(cosmosstruc *cinfo, Log::Logger* debug_log, bool keep_errored_files);
             //int32_t Load(string filename, vector<chunk> &chunks);
             int32_t outgoing_tx_add(tx_progress &tx_out, const string dest_node_name);
             int32_t outgoing_tx_add(const string dest_node, const string dest_agent, const string file_name);
@@ -69,10 +69,8 @@ namespace Cosmos {
             int32_t outgoing_tx_recount(const uint8_t node_id);
             int32_t incoming_tx_recount(const string node_name);
             int32_t incoming_tx_recount(const uint8_t node_id);
-            int32_t get_outgoing_lpackets(vector<PacketComm> &packets);
-            int32_t get_outgoing_lpackets(const string node_name, vector<PacketComm> &packets);
-            int32_t get_outgoing_rpackets(vector<PacketComm> &packets);
-            int32_t get_outgoing_rpackets(const string node_name, vector<PacketComm> &packets);
+            int32_t send_outgoing_lpackets(const uint8_t dest_node_id, Agent* agent, const uint8_t channel_id, uint32_t max_packets_to_queue, double timeout);
+            int32_t send_outgoing_rpackets(const uint8_t orig_node_id, Agent* agent, const uint8_t channel_id, double timeout);
             int32_t receive_packet(const PacketComm& packet);
 
             // Various publicly available requests
@@ -85,12 +83,22 @@ namespace Cosmos {
             string list_incoming();
             int32_t set_waittime(const uint8_t node_id, const uint8_t direction, const double waittime);
             int32_t set_waittime(const string node_name, const uint8_t direction, const double waittime);
+            int32_t reset_queue();
+            int32_t reset_queue(string node_name);
+            int32_t reset_queue(uint8_t node_id, uint8_t direction);
+            int32_t close_file_pointers(uint8_t node_id, uint8_t direction);
 
             // Getters/setters
             PACKET_CHUNK_SIZE_TYPE get_packet_size();
             int32_t set_packet_size(const PACKET_CHUNK_SIZE_TYPE size);
 
+            // Print out packets for debugging
+            void print_file_packet(PacketComm packet, uint8_t direction, string type, Log::Logger* debug_log);
+
+
         private:
+            //! Associated cosmosstruc
+            cosmosstruc *cinfo;
             /// The node_name of the calling node
             string self_node_name;
             /// The node_id of the calling node
@@ -103,31 +111,44 @@ namespace Cosmos {
 
             // Timers for debug messages
             ElapsedTime dt, tet;
+            // Disable to surpress DATA type printing
+            bool verbose_log = false;
 
             // Byte size limit of a packet
             PACKET_CHUNK_SIZE_TYPE packet_size = 217;
 
-            // Pointer to calling agent's debug_error
-            Error* debug_error = nullptr;
+            // The maximum number of files to scan in each outgoing/* folder
+            uint16_t files_to_scan_per_dir = 50;
 
-            // Internal use
-            int32_t get_outgoing_lpackets(const uint8_t node_id, vector<PacketComm> &packets);
-            int32_t get_outgoing_rpackets(const uint8_t node_id, vector<PacketComm> &packets);
+            // Pointer to calling agent's debug_log
+            Log::Logger* debug_log = nullptr;
 
             // Private queue manipulation functions
             int32_t outgoing_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1, const bool remove_file=true);
             PACKET_TX_ID_TYPE check_tx_id(const tx_entry &txentry, const PACKET_TX_ID_TYPE tx_id);
-            int32_t incoming_tx_add(const string node_name, const PACKET_TX_ID_TYPE tx_id);
+            int32_t incoming_tx_add(const string node_name, const PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc);
+            int32_t incoming_tx_add(const string node_name, const packet_struct_metadata& meta);
             int32_t incoming_tx_add(tx_progress &tx_in);
-            int32_t incoming_tx_update(const packet_struct_metashort &meta);
+            int32_t incoming_tx_update(const packet_struct_metadata &meta);
             int32_t incoming_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
-            int32_t incoming_tx_complete(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
+            int32_t incoming_tx_complete(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1, bool delete_file=false);
+            int32_t incoming_tx_data(packet_struct_data& data, uint8_t node_id, size_t orig_node_idx);
 
+            // Reuse to write the META
+            vector<uint8_t> meta_file_data;
+            // Reuse to create outgoing lpackets
+            PacketComm outgoing_packet;
             int32_t write_meta(tx_progress& tx, double interval=5.);
             int32_t read_meta(tx_progress& tx);
 
             static const size_t INVALID_TXQ_IDX = (size_t)-1;
             size_t node_id_to_txq_idx(const uint8_t node_id);
+
+            // Whether to keep copies of files that encountered errors and were cancelled
+            bool keep_errored_files = false;
+
+            // Reuse crc class
+            CRC16 calc_crc;
         };
     }
 }

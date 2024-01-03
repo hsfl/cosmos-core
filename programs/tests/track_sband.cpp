@@ -161,17 +161,17 @@ int main(int argc, char *argv[])
 
     if (nodename.empty())
     {
-        agent = new Agent("");
+        agent = new Agent("", "");
     }
     else
     {
-        agent = new Agent(nodename);
+        agent = new Agent("", nodename);
     }
 
     iretn = json_createpiece(agent->cinfo, antbase.c_str(), DeviceType::ANT);
     if (iretn < 0)
     {
-        agent->debug_error.Printf("Failed to add %s ANT %s\n", antbase.c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_log.Printf("Failed to add %s ANT %s\n", antbase.c_str(), cosmos_error_string(iretn).c_str());
         agent->shutdown();
         exit(iretn);
     }
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
     iretn = json_dump_node(agent->cinfo);
     if (iretn < 0)
     {
-        agent->debug_error.Printf("Failed to save node %s\n", cosmos_error_string(iretn).c_str());
+        agent->debug_log.Printf("Failed to save node %s\n", cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
 
@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
     }
 
     // Start performing the body of the agent
-    agent->cinfo->agent[0].aprd = 1.;
+    agent->cinfo->agent0.aprd = 1.;
     agent->start_active_loop();
     while(agent->running())
     {

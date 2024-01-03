@@ -388,6 +388,7 @@ namespace Cosmos {
 
         struct gige_data
         {
+            double average;
             Vector max;
             Vector min;
             vector<vector<double>> mean;
@@ -417,7 +418,8 @@ namespace Cosmos {
         int32_t pt1000_stop_image(gige_handle *handle);
         int32_t pt1000_drain(gige_handle *handle, double timeout=1.);
         int32_t pt1000_image(gige_handle *handle, uint32_t frames, gige_data &data);
-        int32_t pt1000_image(gige_handle *handle, uint32_t frames, gige_data &data, gige_data &dark);
+        int32_t pt1000_image_dark(gige_handle *handle, uint32_t frames, gige_data &data, gige_data &dark);
+        int32_t pt1000_image_flat(gige_handle *handle, uint32_t frames, gige_data &data, gige_data &flat);
         int32_t pt1000_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
         int32_t pt1000_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin=1, uint32_t ybin=1);
         //! @}

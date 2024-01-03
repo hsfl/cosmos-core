@@ -206,16 +206,43 @@ namespace Cosmos {
             return tsize;
         }
 
-        int32_t Ax25Handle::unload()
+        int32_t Ax25Handle::unload(bool checkcrc)
         {
-            memcpy(&header, &ax25_packet[0], 16);
-            data.resize(ax25_packet.size() - 18);
-            memcpy(&data[0], &ax25_packet[16], data.size());
-            crc = ax25_packet[ax25_packet.size()-1];
-            crc = crc << 8;
-            crc = crc + ax25_packet[ax25_packet.size()-2];
-            crccalc = calc_crc.calc(&ax25_packet[0], ax25_packet.size()-2);
-            return 0;
+            if (ax25_packet.size() < 18)
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            if (checkcrc)
+            {
+                crc = uint16from(&ax25_packet[ax25_packet.size()-2], ByteOrder::LITTLEENDIAN);
+                crccalc = calc_crc.calc(ax25_packet.data(), ax25_packet.size()-2);
+                if (crc != crccalc)
+                {
+                    checkcrc = false;
+                }
+            }
+            else
+            {
+                checkcrc = true;
+            }
+            if (checkcrc)
+            {
+                memcpy(&header, &ax25_packet[0], 16);
+                data.resize(ax25_packet.size() - 18);
+                if (data.size())
+                {
+                    memcpy(&data[0], &ax25_packet[16], data.size());
+                }
+//            crc = ax25_packet[ax25_packet.size()-1];
+//            crc = crc << 8;
+//            crc = crc + ax25_packet[ax25_packet.size()-2];
+//            crccalc = calc_crc.calc(&ax25_packet[0], ax25_packet.size()-2);
+            return data.size();
+            }
+            else
+            {
+                return GENERAL_ERROR_CRC;
+            }
         }
 
         int32_t Ax25Handle::stuff(vector<uint8_t> ax25data, uint8_t flagcount, uint8_t flag)

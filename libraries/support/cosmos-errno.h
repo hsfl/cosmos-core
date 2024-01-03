@@ -232,6 +232,7 @@ namespace Cosmos {
             COSMOS_TRANSFER_ERROR_DUPLICATE = -476,
             COSMOS_TRANSFER_ERROR_FILESIZE = -477,
             COSMOS_TRANSFER_ERROR_FILEZERO = -478,
+            COSMOS_TRANSFER_ERROR_VERSION = -479,
 
             COSMOS_SOCKET_ERROR_CS = -481,
             COSMOS_SOCKET_ERROR_PROTOCOL = -482,
@@ -290,6 +291,12 @@ namespace Cosmos {
             COSMOS_ISIS_INTERNAL_ERROR = -646,
 
             COSMOS_PACKET_TYPE_MISMATCH = -651, // If the type id of a packet is not handled
+
+            COSMOS_DECRYPTION_ERROR = -660, // If decryption fails
+            COSMOS_ENCRYPTION_ERROR = -665, // If encryption fails
+
+            COSMOS_RADIO_FILLER_PACKET = -670, // For received radio packets that are otherwise valid, but is only for filler
+            COSMOS_RADIO_SYNC_WORD_ERROR = -671, // If sync word was not found
 
             COSMOS_GENERAL_OK = -0,      /* everything is all right */
             COSMOS_GENERAL_ERROR_NO_SIGNAL         = -2001,     /* there's no free signal */
@@ -507,6 +514,7 @@ namespace Cosmos {
 #define TRANSFER_ERROR_DUPLICATE -476
 #define TRANSFER_ERROR_FILESIZE -477
 #define TRANSFER_ERROR_FILEZERO -478
+#define TRANSFER_ERROR_VERSION -479
 
 #define SOCKET_ERROR_CS -481
 #define SOCKET_ERROR_PROTOCOL -482

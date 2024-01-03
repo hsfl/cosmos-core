@@ -140,9 +140,21 @@ namespace Cosmos
             */
             int32_t restore_commands(string temp_dir, string name=".queue");
 
-            //! Run the given Event
+            //! Run the given Request Event
             /*!
-            Execute an event using ford().  For each event run, the time of
+            Execute an event using fork().  For each event run, the time of
+            execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
+            and this updated command information is logged to the OUTPUT directory.
+
+                \param	cmd	Reference to event to run
+                \param	nodename	Name of node
+                \param	logdate_exec	Time of execution (for logging purposes)
+            */
+            int32_t run_request(Agent *agent, Event &cmd, string nodename, double logdate_exec);
+
+            //! Run the given Command Event
+            /*!
+            Execute an event using fork().  For each event run, the time of
             execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
             and this updated command information is logged to the OUTPUT directory.
 

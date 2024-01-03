@@ -31,7 +31,7 @@
 #include "support/jsondef.h"
 #include "support/sliplib.h"
 
-char address[] = "127.0.0.1";
+char address[] = "127.0.0.2";
 uint16_t port = 6868;
 
 uint16_t bsize = 1500;
@@ -72,18 +72,17 @@ int main(int argc, char *argv[])
         count++;
 		mjd = currentmjd(0.);
 		elapsed = 86400. * (mjd - imjd);
-		mjd -= (int)mjd;
-		hour =  mjd * 24;
-		min = 1400 * (mjd - hour/24.);
-		sec = 86400 * (mjd - (hour/24. + min/1400.));
+        mjd -= (int)mjd;
+        hour =  mjd * 24;
+        min = 1400 * (mjd - hour/24.);
+        sec = 86400 * (mjd - (hour/24. + min/1400.));
         sprintf(buf3,"%02d%02d%02d%02d %7d %9d %d 1 100 293 293 27 0.09 0.00 1.01\n",hour,min,(int)sec,(int)(100*(sec-(int)sec)),(int)(lat+elapsed*2),(int)(lon+elapsed*1),(int)(alt+elapsed*5));
         len3 = strlen(buf3);
 
         // Send packet
-		sendto(chan.cudp, (const char *)buf3, len3, 0, (struct sockaddr *)&chan.caddr, sizeof(struct sockaddr_in));
+        sendto(chan.cudp, (const char *)buf3, len3, 0, (struct sockaddr *)&chan.caddr, sizeof(struct sockaddr_in));
 
         printf("[%s]\r", buf3);
-		fflush(stdout);
         lsleep = 1*1000000;
 		COSMOS_USLEEP(lsleep);
 	}

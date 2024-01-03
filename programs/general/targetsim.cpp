@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     FILE *fp = fopen(targetfile.c_str(), "r");
     if (fp == nullptr)
     {
-        agent->debug_error.Printf("Bad Target File: %s\n", targetfile.c_str());
+        agent->debug_log.Printf("Bad Target File: %s\n", targetfile.c_str());
         exit(1);
     }
 
@@ -171,14 +171,14 @@ int main(int argc, char *argv[])
     runcount = timespan;
 
     // initialize simulation agent
-    agent = new Agent("", "", 0.);
+    agent = new Agent("", "", "", 0.);
     agent->set_debug_level(0);
 
     // initialize simulator object
     sim = new Physics::Simulator();
     iretn = sim->GetError();
     if (iretn <0) {
-        agent->debug_error.Printf("Error Creating Simulator: %s\n", cosmos_error_string(iretn).c_str());
+        agent->debug_log.Printf("Error Creating Simulator: %s\n", cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
     currentutc = initialutc;
@@ -186,12 +186,12 @@ int main(int argc, char *argv[])
 
     //    initialloc.att.icrf.s = q_eye();
     tlestruc tle;
-    eci2tle(initialutc, initialloc.pos.eci, tle);
+    eci2tle(initialloc.pos.eci, tle);
     iretn = sim->AddNode("mother", Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, tle);
     sit = sim->GetNode("mother");
     for (targetentry target : targets)
     {
-        sit->second->AddTarget(target.name, target.clat, target.clon, target.area, target.alt, NODE_TYPE_CIRCLE);
+        (*sit)->AddTarget(target.name, target.clat, target.clon, target.area, target.alt, NODE_TYPE_CIRCLE);
     }
 
     double elapsed = 0;
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
     locstruc lastloc;
     vector<targetstruc> lasttargets;
     printf("Step\tMJD\tECIsx\tECIsy\tECIsz\tECIvx\tECIvy\tECIvz\tLon\tLat\tAlt");
-    for (uint16_t id=0; id<sit->second->targets.size(); ++id)
+    for (uint16_t id=0; id<(*sit)->currentinfo.target.size(); ++id)
     {
         printf("\tIndex%02u\tLon%02u\tLat%02u\tRange%02u\tEL%02u\tAz%02u\tNadirArea%02u\tPointArea%02u\tTargetArea%02u",id,id,id,id,id,id,id,id,id);
     }
@@ -207,48 +207,48 @@ int main(int argc, char *argv[])
     for (uint32_t i=0; i<runcount; ++i)
     {
         // update states information for all nodes
-        lastloc = sit->second->currentinfo.node.loc;
-        lasttargets = sit->second->targets;
+        lastloc = (*sit)->currentinfo.node.loc;
+        lasttargets = (*sit)->currentinfo.target;
         sim->Propagate();
         printf("%u\t%f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.2f\t%.2f\t%.1f"
                , i
-               , sit->second->currentinfo.node.loc.pos.eci.utc
-               , sit->second->currentinfo.node.loc.pos.eci.s.col[0]
-               , sit->second->currentinfo.node.loc.pos.eci.s.col[1]
-               , sit->second->currentinfo.node.loc.pos.eci.s.col[2]
-                , sit->second->currentinfo.node.loc.pos.eci.v.col[0]
-                , sit->second->currentinfo.node.loc.pos.eci.v.col[1]
-                , sit->second->currentinfo.node.loc.pos.eci.v.col[2]
-                , DEGOF(sit->second->currentinfo.node.loc.pos.geod.s.lon)
-                , DEGOF(sit->second->currentinfo.node.loc.pos.geod.s.lat)
-                , sit->second->currentinfo.node.loc.pos.geod.s.h
+               , (*sit)->currentinfo.node.loc.pos.eci.utc
+               , (*sit)->currentinfo.node.loc.pos.eci.s.col[0]
+               , (*sit)->currentinfo.node.loc.pos.eci.s.col[1]
+               , (*sit)->currentinfo.node.loc.pos.eci.s.col[2]
+                , (*sit)->currentinfo.node.loc.pos.eci.v.col[0]
+                , (*sit)->currentinfo.node.loc.pos.eci.v.col[1]
+                , (*sit)->currentinfo.node.loc.pos.eci.v.col[2]
+                , DEGOF((*sit)->currentinfo.node.loc.pos.geod.s.lon)
+                , DEGOF((*sit)->currentinfo.node.loc.pos.geod.s.lat)
+                , (*sit)->currentinfo.node.loc.pos.geod.s.h
                );
         pcount += simdt;
 
-        double nadirres = sit->second->currentinfo.node.loc.pos.geod.s.h * ifov;
+        double nadirres = (*sit)->currentinfo.node.loc.pos.geod.s.h * ifov;
         double nadirradius = nadirres * pixels / 2.;
         double nadirradius2 = nadirradius * nadirradius;
         double nadirarea = DPI * nadirradius2;
 
         // Perform metrics for each target
-        for (uint16_t id=0; id<sit->second->targets.size(); ++id)
+        for (uint16_t id=0; id<(*sit)->currentinfo.target.size(); ++id)
         {
             printf("\t%u\t%.2f\t%.2f\t%.1f\t%.1f\t%.0f"
                    , id
-                   , DEGOF(sit->second->targets[id].loc.pos.geod.s.lon)
-                   , DEGOF(sit->second->targets[id].loc.pos.geod.s.lat)
-                   , sit->second->targets[id].range
-                   , DEGOF(sit->second->targets[id].elfrom)
-                   , DEGOF(sit->second->targets[id].azfrom)
+                   , DEGOF((*sit)->currentinfo.target[id].loc.pos.geod.s.lon)
+                   , DEGOF((*sit)->currentinfo.target[id].loc.pos.geod.s.lat)
+                   , (*sit)->currentinfo.target[id].range
+                   , DEGOF((*sit)->currentinfo.target[id].elfrom)
+                   , DEGOF((*sit)->currentinfo.target[id].azfrom)
                    );
 
-            double eres = sit->second->targets[id].range * ifov;
-            double cameraradius;
+            double eres = (*sit)->currentinfo.target[id].range * ifov;
+            // double cameraradius;
             double cameraarea;
-            double targetarea = sit->second->targets[id].area;
+            double targetarea = (*sit)->currentinfo.target[id].area;
             double targetradius = sqrt(targetarea / DPI);
             double targetradius2 = targetradius * targetradius;
-            double distance = sit->second->targets[id].range * cos(sit->second->targets[id].elfrom);
+            double distance = (*sit)->currentinfo.target[id].range * cos((*sit)->currentinfo.target[id].elfrom);
             double distance2 = distance * distance;
 
             // Looking Nadir
@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
             // Elongated FOV
             if (eres <= resolution)
             {
-                cameraarea = DPI * eres * (eres / -sin(sit->second->targets[id].elfrom)) * (pixels / 2.) * (pixels / 2.);
+                cameraarea = DPI * eres * (eres / -sin((*sit)->currentinfo.target[id].elfrom)) * (pixels / 2.) * (pixels / 2.);
                 if (cameraarea > targetarea)
                 {
                     cameraarea = targetarea;

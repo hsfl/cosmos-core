@@ -26,42 +26,43 @@ namespace Cosmos {
         int32_t Channel::Init(uint32_t verification)
         {
             // Set up default channels for internal activity
-            channel.resize(6);
+            channel.resize(8);
 
             channel[0].name = "SELF";
             channel[0].mtx = new std::recursive_mutex;
-            channel[0].datasize = 1400;
             channel[0].maximum = 1000;
 
-            channel[1].name = "NET";
+            channel[1].name = "OBC";
             channel[1].mtx = new std::recursive_mutex;
-            channel[1].datasize = 1400;
             channel[1].maximum = 1000;
 
             channel[2].name = "EPS";
             channel[2].mtx = new std::recursive_mutex;
-            channel[2].datasize = 1400;
             channel[2].maximum = 1000;
 
             channel[3].name = "ADCS";
             channel[3].mtx = new std::recursive_mutex;
-            channel[3].datasize = 1400;
             channel[3].maximum = 1000;
 
             channel[4].name = "FILE";
             channel[4].mtx = new std::recursive_mutex;
-            channel[4].datasize = 1400;
             channel[4].maximum = 1000;
 
             channel[5].name = "EXEC";
             channel[5].mtx = new std::recursive_mutex;
-            channel[5].datasize = 1400;
             channel[5].maximum = 1000;
 
-            channel[5].name = "LOG";
-            channel[5].mtx = new std::recursive_mutex;
-            channel[5].datasize = 1400;
-            channel[5].maximum = 1000;
+            channel[6].name = "LOG";
+            channel[6].mtx = new std::recursive_mutex;
+            channel[6].maximum = 1000;
+
+            channel[7].name = "COMM";
+            channel[7].mtx = new std::recursive_mutex;
+            channel[7].maximum = 1000;
+
+            channel[7].name = "IMAGE";
+            channel[7].mtx = new std::recursive_mutex;
+            channel[7].maximum = 1000;
 
             this->verification = verification;
             return channel.size();
@@ -81,8 +82,8 @@ namespace Cosmos {
 
         //! \brief Add additional channel.
         //! \param name Name of channel.
-        //! \param Maximum size of Cosmos::PacketComm::data.
-        //! \param Maximum size of associated hardware packet.
+        //! \param datasize Maximum size of Cosmos::PacketComm::data.
+        //! \param rawsize Maximum size of associated hardware packet.
         //! \param byte_rate Speed of associated hardware.
         //! \param maximum Maximum size of ::channelstruc::quu.
         int32_t Channel::Add(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
@@ -111,6 +112,65 @@ namespace Cosmos {
             return channel.size() - 1;
         }
 
+        //! \brief Update existing channel.
+        //! \param name Name of channel.
+        //! \param datasize Maximum size of Cosmos::PacketComm::data.
+        //! \param rawsize Maximum size of associated hardware packet.
+        //! \param byte_rate Speed of associated hardware.
+        //! \param maximum Maximum size of ::channelstruc::quu.
+        int32_t Channel::Update(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                if (datasize)
+                {
+                    channel[iretn].datasize = datasize;
+                }
+                if (rawsize)
+                {
+                    channel[iretn].rawsize = rawsize;
+                }
+                if (byte_rate)
+                {
+                    channel[iretn].byte_rate = byte_rate;
+                }
+                if (maximum)
+                {
+                    channel[iretn].maximum = maximum;
+                }
+            }
+            return iretn;
+        }
+
+        int32_t Channel::Update(uint8_t number, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
+        {
+            if (number < channel.size())
+            {
+                if (datasize)
+                {
+                    channel[number].datasize = datasize;
+                }
+                if (rawsize)
+                {
+                    channel[number].rawsize = rawsize;
+                }
+                if (byte_rate)
+                {
+                    channel[number].byte_rate = byte_rate;
+                }
+                if (maximum)
+                {
+                    channel[number].maximum = maximum;
+                }
+                return number;
+            }
+            else
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+        }
+
         //! \brief Find channel number from name.
         //! \param name Name of channel.
         //! \return Number found. Blank name will return 0 (SELF).
@@ -136,7 +196,7 @@ namespace Cosmos {
         string Channel::Find(uint8_t number)
         {
             string result = "";
-            if (number > channel.size())
+            if (number >= channel.size())
             {
                 return result;
             }
@@ -171,9 +231,40 @@ namespace Cosmos {
                 return -999999.;
             }
             channel[number].mtx->lock();
-            double age = 86400. * (currentmjd() - channel[number].timestamp);
+            double age = channel[number].age_timer.split();
             channel[number].mtx->unlock();
             return age;
+        }
+
+        //! \brief WakeupTimer from channel name.
+        //! Time since ::channelstruc::quu was last modified by ::Push or ::Touch.
+        //! \param name Name of channel.
+        //! \return Time in seconds.
+        double Channel::WakeupTimer(string name, double value)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return WakeupTimer(iretn);
+            }
+            return -999999.;
+        }
+
+        //! \brief WakeupTimer from channel number.
+        //! Time since ::channelstruc::quu was last modified by ::Push or ::Touch.
+        //! \param number Number of channel.
+        //! \return Time in seconds.
+        double Channel::WakeupTimer(uint8_t number, double value)
+        {
+            if (number >= channel.size())
+            {
+                return -999999.;
+            }
+            if (value != 0.)
+            {
+                channel[number].wakeup_timer = value;
+            }
+            return channel[number].wakeup_timer;
         }
 
         //! \brief Byte total from channel name.
@@ -201,6 +292,33 @@ namespace Cosmos {
                 return 0;
             }
             return channel[number].bytes;
+        }
+
+        //! \brief Byte total from channel name.
+        //! Number of bytes in channel from ::Push.
+        //! \param name Name of channel.
+        //! \return Total bytes.
+        size_t Channel::Level(string name)
+        {
+            int32_t iretn = Find(name);
+            if (iretn >= 0)
+            {
+                return Level(iretn);
+            }
+            return 0;
+        }
+
+        //! \brief Byte total from channel number.
+        //! Number of bytes passed through channel from ::Push.
+        //! \param number Number of channel.
+        //! \return Total bytes.
+        size_t Channel::Level(uint8_t number)
+        {
+            if (number >= channel.size())
+            {
+                return 0;
+            }
+            return channel[number].level;
         }
 
         //! \brief Byte rate from channel name.
@@ -261,12 +379,12 @@ namespace Cosmos {
         //! Update channel Age.
         //! \param name Name of channel.
         //! \return Previous age in seconds or -999999.
-        double Channel::Touch(string name)
+        double Channel::Touch(string name, double seconds)
         {
             int32_t iretn = Find(name);
             if (iretn >= 0)
             {
-                return Touch(iretn);
+                return Touch(iretn, seconds);
             }
             return -999999;
         }
@@ -275,15 +393,15 @@ namespace Cosmos {
         //! Update channel Age.
         //! \param number Number of channel.
         //! \return Previous age in seconds or -999999.
-        double Channel::Touch(uint8_t number)
+        double Channel::Touch(uint8_t number, double seconds)
         {
             if (number >= channel.size())
             {
                 return -999999.;
             }
             channel[number].mtx->lock();
-            double age = 86400. * (currentmjd() - channel[number].timestamp);
-            channel[number].timestamp = currentmjd();
+            double age = channel[number].age_timer.split();
+            channel[number].age_timer.start(seconds);
             channel[number].mtx->unlock();
             return age;
         }
@@ -320,56 +438,7 @@ namespace Cosmos {
             channel[number].bytes += byte_count;
             channel[number].packets += packet_count;
             channel[number].mtx->unlock();
-            return channel[number].bytes;
-        }
-
-        //! \brief Decrement count totals by name.
-        //! Subtract provided values from counters for ::Cosmos::Support::Channel::Bytes and ::Cosmos::Support::Channel::Packets.
-        //! \param name Name of channel.
-        //! \param byte_count Number of bytes to decrement.
-        //! \param packet_count Number of packets to decrement.
-        //! \return New byte total or negative error.
-        ssize_t Channel::Decrement(string name, size_t byte_count, uint32_t packet_count)
-        {
-            int32_t iretn = Find(name);
-            if (iretn >= 0)
-            {
-                return Decrement(iretn, byte_count, packet_count);
-            }
-            return GENERAL_ERROR_OUTOFRANGE;
-        }
-
-        //! \brief Decrement count totals by number.
-        //! Subtract provided values from counters for ::Cosmos::Support::Channel::Bytes and ::Cosmos::Support::Channel::Packets.
-        //! \param number Number of channel.
-        //! \param byte_count Number of bytes to decrement.
-        //! \param packet_count Number of packets to decrement.
-        //! \return New byte total or negative error.
-        ssize_t Channel::Decrement(uint8_t number, size_t byte_count, uint32_t packet_count)
-        {
-            if (number >= channel.size())
-            {
-                return GENERAL_ERROR_OUTOFRANGE;
-            }
-            channel[number].mtx->lock();
-            if (channel[number].bytes >= byte_count)
-            {
-                channel[number].bytes -= byte_count;
-            }
-            else
-            {
-                channel[number].bytes = 0;
-            }
-            if (channel[number].packets >= packet_count)
-            {
-                channel[number].packets -= packet_count;
-            }
-            else
-            {
-                channel[number].packets = 0;
-            }
-            channel[number].mtx->unlock();
-            return channel[number].bytes;
+            return channel[number].level;
         }
 
         //! \brief Push packet to ::Cosmos::Support::Channel::channelstruc::quu by name.
@@ -410,16 +479,24 @@ namespace Cosmos {
                 packet.Wrap();
                 channel[number].mtx->lock();
                 channel[number].quu.push(packet);
+                channel[number].level += packet.wrapped.size();
                 Increment(number, packet.wrapped.size());
                 Touch(number);
-//                channel[number].timestamp = currentmjd();
                 if (channel[number].quu.size() > channel[number].maximum)
                 {
-                    Decrement(number, channel[number].quu.front().wrapped.size());
+                    if (channel[number].level > channel[number].quu.front().wrapped.size())
+                    {
+                        channel[number].level -= channel[number].quu.front().wrapped.size();
+                    }
+                    else
+                    {
+                        channel[number].level = 0;
+                    }
                     channel[number].quu.pop();
                 }
                 iretn = channel[number].quu.size();
                 channel[number].mtx->unlock();
+                secondsleep(packet.wrapped.size() / channel[number].byte_rate);
             }
             return iretn;
         }
@@ -447,7 +524,7 @@ namespace Cosmos {
         //! after it is pulled from ::Cosmos::Support::Channel::channelstruc::quu.
         //! \param number Number of channel.
         //! \param packet ::Cosmos::Support::PacketComm packet.
-        //! \return New ::Cosmos::Support::Channel::channelstruc::quu size or negative error.
+        //! \return Zero if nothing to pull, One if successful, or negative error.
         int32_t Channel::Pull(uint8_t number, PacketComm &packet)
         {
             int32_t iretn = 0;
@@ -461,9 +538,20 @@ namespace Cosmos {
                 if (channel[number].quu.size())
                 {
                     packet = channel[number].quu.front();
-                    packet.Unwrap();
+                    iretn = packet.Unwrap();
+                    if (iretn >= 0)
+                    {
+                        iretn = 1;
+                    }
                     channel[number].quu.pop();
-                    iretn = 1;
+                    if (channel[number].level > packet.wrapped.size())
+                    {
+                        channel[number].level -= packet.wrapped.size();
+                    }
+                    else
+                    {
+                        channel[number].level = 0;
+                    }
                 }
                 else
                 {
@@ -593,33 +681,6 @@ namespace Cosmos {
             iretn = channel[number].enabled;
             return iretn;
         }
-
-        //! \brief Disable transmission over channel
-        //! \param channel Channel name
-        //! \return 0 or 1 depending on previous state, or negative error.
-//        int32_t Channel::Disable(string name)
-//        {
-//            int32_t iretn = Find(name);
-//            if (iretn >= 0)
-//            {
-//                return Disable(iretn);
-//            }
-//            return GENERAL_ERROR_OUTOFRANGE;
-//        }
-
-        //! \brief Disable transmission over channel
-        //! \param channel Channel number
-        //! \return 0 or 1 depending on previous state, or negative error.
-//        int32_t Channel::Disable(uint8_t number)
-//        {
-//            int32_t iretn = 0;
-//            if (channel[number].enabled)
-//            {
-//                iretn = 1;
-//            }
-//            channel[number].enabled = false;
-//            return iretn;
-//        }
 
         //! \brief Start channel performance test by channel name.
         //! \param name Name of channel.
@@ -820,10 +881,10 @@ namespace Cosmos {
             // Packet defaults
             PacketComm test_packet;
             test_packet.data.resize(channel[number].datasize);
-            test_packet.header.type = PacketComm::TypeId::DataTest;
-            test_packet.header.orig = orig;
-            test_packet.header.dest = dest;
-            test_packet.header.radio = radio;
+            test_packet.header.type = PacketComm::TypeId::DataRadioTest;
+            test_packet.header.nodeorig = orig;
+            test_packet.header.nodedest = dest;
+            test_packet.header.chanin = radio;
 
             PacketComm::TestHeader theader;
             theader.size = channel[number].datasize-(sizeof(theader)+2);

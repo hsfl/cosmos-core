@@ -100,6 +100,29 @@ rvector rv_convert(svector from)
     return result;
 }
 
+/**
+ * @brief Rotates a point about an axis
+ * 
+ * Uses Rodrigues' rotation formula (https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula)
+ * 
+ * @param point Point to rotate
+ * @param axis Axis to rotate about
+ * @param theta Angle to rotate about axis (in radians)
+ * @return rvector Rotated point
+ */
+rvector rv_rotate(rvector point, rvector axis, double theta)
+{
+    double k_dot_p = dot_rv(axis, point);
+
+    rvector k_cross_p = rv_cross(axis, point);
+
+    rvector ret;
+    ret.col[0] = point.col[0] * cos(theta) + sin(theta) * k_cross_p.col[0] + k_cross_p.col[0] * k_dot_p * (1-cos(theta));
+    ret.col[1] = point.col[1] * cos(theta) + sin(theta) * k_cross_p.col[1] + k_cross_p.col[1] * k_dot_p * (1-cos(theta));
+    ret.col[2] = point.col[2] * cos(theta) + sin(theta) * k_cross_p.col[2] + k_cross_p.col[2] * k_dot_p * (1-cos(theta));
+    return ret;
+}
+
 //! Zero row order vector
 /*! Creates a zero length row order vector.
         \return a ::rvector of zero length
@@ -835,16 +858,116 @@ rvector rv_sqrt(rvector vec)
     return in;
 }
 
-// multiply vector by scalar operator
-rvector operator * (rvector v, double scalar)
+// add vector to vector operator
+rvector operator + (rvector v1, rvector v2)
 {
-    return rv_smult(scalar, v);
+    return rv_add(v1, v2);
+}
+
+// subtract vector from vector operator
+rvector operator - (rvector v1, rvector v2)
+{
+    return rv_sub(v1, v2);
+}
+
+//! compound add two ::rvector
+/*! Add ::rvector to existing, returning a ::rvector.
+                \param b second vector to be added, in ::rvector form
+                \result the transformed vector, in ::rvector form
+        */
+rvector& rvector::operator += (const rvector &b)
+{
+    *this = *this + b;
+    return *this;
+}
+
+//! compound subtract two ::rvector
+/*! Subtract ::rvector to existing, returning a ::rvector.
+                \param b second vector to be subtracted, in ::rvector form
+                \result the transformed vector, in ::rvector form
+        */
+rvector& rvector::operator -= (const rvector &b)
+{
+    *this = *this - b;
+    return *this;
+}
+
+//! Scalar product.
+/*! Calculate the scalar product with the provided scale.
+         * \param scale Scale to multiply by.
+         * \return This times b.
+        */
+rvector rvector::operator *(const double scale) const
+{
+    rvector vo = *this;
+
+    vo *= scale;
+
+    return vo;
+}
+
+//! Reverse scalar product.
+/*! Calculate the scalar product with the provided scale.
+         * \param scale Scale to multiply by.
+         * \return Scale times this.
+        */
+//rvector rvector::operator * (const double scale, const rvector &v)
+//{
+//    return v * scale;
+//}
+
+//! compound multiply ::rvector by scalar
+/*! Multiply ::rvector by scalar, returning an ::rvector.
+                \param s scalar to multiply
+                \result the transformed vector, in ::rvector form
+        */
+rvector& rvector::operator *= (const double &scale)
+{
+    // If scale is basically 1., don't do anything
+    if (fabs(scale - (double)1.) > D_SMALL)
+    {
+        // If scale is basically 0., set to zero
+        if (fabs(scale - (double)0.) > D_SMALL)
+        {
+            // Otherwise, multiply
+            this->col[0] *= scale;
+            this->col[1] *= scale;
+            this->col[2] *= scale;
+        }
+        else
+        {
+            this->col[0] = 0.;
+            this->col[1] = 0.;
+            this->col[2] = 0.;
+        }
+    }
+    return *this;
+}
+
+//! compound negate ::rvector
+/*! Negate existing ::rvector, returning a ::rvector.
+                \result the transformed vector, in ::rvector form
+        */
+rvector rvector::operator - () const
+{
+    rvector c;
+    c.col[0] = -col[0];
+    c.col[1] = -this->col[1];
+    c.col[2] = -this->col[2];
+    return c;
 }
 
 // multiply vector by scalar operator
-rvector operator * (double scalar, rvector v)
+//rvector operator * (const double v, const rvector scale)
+//{
+//    return v * scale;
+//}
+
+// multiply vector by scalar operator
+rvector operator * (const double scalar, const rvector v)
 {
-    return rv_smult(scalar, v);
+//    return rv_smult(scalar, v);
+        return v * scalar;
 }
 
 // multiply vector by vector operator
@@ -2198,6 +2321,28 @@ namespace Cosmos {
                 Vector val = Vector(0., 0., 1.);
                 val *= scale;
                 return val;
+            }
+
+            /**
+             * @brief Rotates a point about axis defined by this vector
+             * 
+             * Uses Rodrigues' rotation formula (https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula)
+             * 
+             * @param point Point to rotate
+             * @param theta Angle to rotate about axis (in radians)
+             * @return Vector Rotated point
+             */
+            Vector Vector::rotate(Vector point, double theta)
+            {
+                double k_dot_p = dot(point);
+
+                Vector k_cross_p = cross(point);
+
+                Vector ret;
+                ret.x = point.x * cos(theta) + sin(theta) * k_cross_p.x + k_cross_p.x * k_dot_p * (1-cos(theta));
+                ret.y = point.y * cos(theta) + sin(theta) * k_cross_p.y + k_cross_p.y * k_dot_p * (1-cos(theta));
+                ret.z = point.z * cos(theta) + sin(theta) * k_cross_p.z + k_cross_p.z * k_dot_p * (1-cos(theta));
+                return ret;
             }
         }
 

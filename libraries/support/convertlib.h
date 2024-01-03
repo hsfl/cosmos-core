@@ -77,6 +77,7 @@ namespace Cosmos {
         // TODO: implement using pos_geoc2geod
         int32_t loc_clear(locstruc *loc);
         int32_t pos_extra(double utc, locstruc *loc);
+        int32_t pos_lvlh(double utc, locstruc *loc);
         int32_t pos_icrf(locstruc *loc);
         int32_t pos_eci(locstruc *loc);
         int32_t pos_sci(locstruc *loc);
@@ -103,9 +104,12 @@ namespace Cosmos {
         int32_t pos_selc2sci(locstruc *loc);
         int32_t pos_selg2selc(locstruc *loc);
         int32_t pos_selc2eci(locstruc *loc);
+        int32_t pos_lvlh2origin(locstruc *loc);
+        int32_t pos_origin2lvlh(locstruc *loc, cartpos lvlh);
 
         int32_t loc_clear(locstruc &loc);
         int32_t pos_extra(double utc, locstruc &loc);
+        int32_t pos_lvlh(double utc, locstruc &loc);
         int32_t pos_clear(locstruc &loc);
         int32_t pos_icrf(locstruc &loc);
         int32_t pos_eci(locstruc &loc);
@@ -133,11 +137,17 @@ namespace Cosmos {
         int32_t pos_selc2sci(locstruc &loc);
         int32_t pos_selg2selc(locstruc &loc);
         int32_t pos_selc2eci(locstruc &loc);
+        int32_t pos_lvlh2origin(locstruc &loc);
+        int32_t pos_origin2lvlh(locstruc &loc, cartpos lvlh);
 
         int32_t eci2kep(cartpos &eci, kepstruc &kep);
         int32_t kep2eci(kepstruc &kep,cartpos &eci);
         int32_t cart2peri(cartpos cart, Quaternion &qperi);
         int32_t peri2cart(cartpos cart, Quaternion &qcart);
+        int32_t ric2eci(cartpos orig, rvector ric, cartpos& result);
+        int32_t ric2eci(cartpos orig, Vector ric, cartpos& result);
+        int32_t ric2lvlh(cartpos ric, cartpos& lvlh);
+        int32_t lvlh2ric(cartpos lvlh, cartpos& ric);
 
         int32_t att_extra(locstruc *loc);
         int32_t att_icrf(locstruc *loc);
@@ -178,6 +188,7 @@ namespace Cosmos {
         int32_t loc_update(locstruc &loc);
 
         double mjd2gmst(double mjd);
+        int32_t geod2utm(geoidpos &geod, Vector &utm);
         int32_t geoc2geod(Convert::cartpos &geoc, geoidpos &geod);
         int32_t geos2geoc(Convert::spherpos *geos, cartpos *geoc);
         int32_t geod2geoc(geoidpos &geod, cartpos &geoc);
@@ -207,7 +218,8 @@ namespace Cosmos {
         int lines2eci(double mjd, vector<tlestruc> tle, cartpos &eci);
         int tle2eci(double mjd, tlestruc tle, cartpos &eci);
         double atan3(double sa, double cb);
-        int32_t eci2tle(double utc, cartpos eci, tlestruc &tle);
+        int32_t eci2tle(cartpos eci, tlestruc &tle);
+        int32_t eci2tle2(cartpos eci, tlestruc &tle);
 //        int32_t rv2tle(double utc, cartpos eci, tlestruc &tle);
         int sgp4(double utc, tlestruc tle, cartpos &pos_teme);
         tlestruc get_line(uint16_t index, vector<tlestruc> tle);
@@ -218,8 +230,9 @@ namespace Cosmos {
         int stk2eci(double utc, stkstruc &stk, cartpos &eci);
         int32_t tle2sgp4(tlestruc tle, sgp4struc &sgp4);
         int32_t sgp42tle(sgp4struc sgp4, tlestruc &tle);
-        int tle_checksum(char *line);
-        int32_t eci2tlestring(Convert::cartpos eci, string &tle, string ref_tle, double bstar=0);
+        int tle_checksum(const char *line);
+        string eci2tlestring(Convert::cartpos eci, tlestruc &reftle);
+        string tle2tlestring(tlestruc tles);
         rvector utc2nuts(double mjd);
         double utc2depsilon(double mjd);
         double utc2dpsi(double mjd);
@@ -231,6 +244,7 @@ namespace Cosmos {
         int32_t leap_seconds(double mjd);
         double utc2era(double mjd);
         double utc2gmst1982(double mjd);
+        double utc2gmst2000(double mjd=0.);
         double utc2jcenut1(double mjd);
         double utc2tt(double mjd);
         double utc2jcentt(double mjd);

@@ -81,6 +81,94 @@ vector < string > string_split(string in, string delimeters, bool multi) {
     return result;
 }
 
+//! \brief Find nth occurence
+//! Return position of the nth occurence of desired string
+//! \param input Input string to search
+//! \param chars Characters to look for
+//! \param num Last character to search
+//! \return Position, or string::npos
+size_t string_find(string input, string chars, uint16_t num)
+{
+    size_t pos = 0;
+    for (uint16_t i=0; i<num; ++i)
+    {
+        size_t npos = input.find(chars);
+        if (npos == string::npos || npos+1 >= input.size())
+        {
+            pos = string::npos;
+            break;
+        }
+        else
+        {
+            pos += npos + 1;
+            input = input.substr(npos + 1);
+        }
+    }
+    if (pos == 0)
+    {
+        return string::npos;
+    }
+    else
+    {
+        return pos;
+    }
+}
+
+//! \brief Find nth string in vector<>
+//! Return index of the nth occurence of desired string in vector
+//! \param input Input vector<string> to search
+//! \param chars String to look for
+//! \param num n
+//! \return Index, or string::npos
+size_t string_find(vector<string> input, string chars, uint16_t num)
+{
+    size_t count = 0;
+    for (uint16_t i=0; i<input.size(); ++i)
+    {
+        size_t npos = input[i].find(chars);
+        if (npos != string::npos)
+        {
+            if (++count == num)
+            {
+                break;
+            }
+        }
+    }
+    if (count < num)
+    {
+        return string::npos;
+    }
+    else
+    {
+        return count;
+    }
+}
+
+//! \brief Join a vector of string together
+//! Turn vector<string> into a single string, separated by delimeter.
+//! \param in vector<string>
+//! \param delimeter Separator to use. Defaults to " ".
+//! \param first First element to use
+//! \param last Last element to use
+//! \return Newly created string.
+string string_join(vector<std::string> &in, std::string delimeter, uint16_t first, uint16_t last)
+{
+    string out;
+    if (in.size() > first)
+    {
+        if (last >= in.size())
+        {
+            last = in.size() - 1;
+        }
+        out = in[first];
+        for (uint16_t i=first+1; i<=last; ++i)
+        {
+            out += delimeter + in[i];
+        }
+    }
+    return out;
+}
+
 //! Parse a string into words
 /*! Divide a string into words separated by white space and return an array of the
  * results.
@@ -128,7 +216,7 @@ uint16_t string_parse(char *string, char *words[], uint16_t wmax) {
     @param	to		substring to be replaced with
     @return	n/a
 */
-string string_replace(string str, const string from, const string to)
+string string_replace(string str, const string& from, const string& to)
 {
     if(from.empty()) return str;
     size_t start_pos = 0;
@@ -278,14 +366,28 @@ string to_hex_string(const vector<uint8_t> &buffer, bool ascii, uint16_t start)
     return ss.str();
 }
 
-vector<uint8_t> from_hex_string(std::string &hex)
+vector<uint8_t> from_hex_string(string hex)
 {
     vector<uint8_t> bytes;
     for (uint16_t ib=0; ib<hex.length()/2; ++ib)
     {
-        bytes.push_back(hex[ib*2]-'0');
-        bytes[ib] *= 16;
-        bytes[ib] += hex[ib*2]-'0';
+        if (from_hex(hex[ib*2]) < 16)
+        {
+            bytes.push_back(from_hex(hex[ib*2]));
+            if (from_hex(hex[ib*2+1]) < 16)
+            {
+                bytes[ib] *= 16;
+                bytes[ib] += from_hex(hex[ib*2+1]);
+            }
+            else
+            {
+                return bytes;
+            }
+        }
+        else
+        {
+            return bytes;
+        }
     }
     return bytes;
 }
@@ -295,9 +397,23 @@ vector<uint8_t> from_hex_vector(vector<uint8_t>& hex)
     vector<uint8_t> bytes;
     for (uint16_t ib=0; ib<hex.size()/2; ++ib)
     {
-        bytes.push_back(hex[ib*2]-'0');
-        bytes[ib] *= 16;
-        bytes[ib] += hex[ib*2]-'0';
+        if (from_hex(hex[ib*2]) < 16)
+        {
+            bytes.push_back(from_hex(hex[ib*2]));
+            if (from_hex(hex[ib*2+1]) < 16)
+            {
+                bytes[ib] *= 16;
+                bytes[ib] += from_hex(hex[ib*2+1]);
+            }
+            else
+            {
+                return bytes;
+            }
+        }
+        else
+        {
+            return bytes;
+        }
     }
     return bytes;
 }
@@ -336,13 +452,13 @@ string to_astring(char *value, size_t length, bool hex)
     return output;
 }
 
-string to_string(const vector<uint8_t> &buf)
+string byte_vector_to_string(const vector<uint8_t> &buf, uint16_t offset)
 {
-    string output(buf.begin(), buf.end());
+    string output(buf.begin()+offset, buf.end());
     return output;
 }
 
-vector<uint8_t> to_bytes(const string &buf)
+vector<uint8_t> string_to_byte_vector(const string &buf)
 {
     vector<uint8_t> output(buf.begin(), buf.end());
     return output;
@@ -399,6 +515,50 @@ string to_binary(size_t value, uint16_t digits, bool zerofill)
         output.resize(strlen(output.c_str()));
     }
     return output;
+}
+
+uint8_t from_hex(char value)
+{
+    if (value >= '0' && value <= '9')
+    {
+        return value - '0';
+    }
+    else if (value >= 'a' && value <= 'f')
+    {
+        return (value - 'a') + 10;
+    }
+    else if (value >= 'A' && value <= 'F')
+    {
+        return (value - 'A') + 10;
+    }
+    else
+    {
+        return 16;
+    }
+}
+
+#if ((SIZE_WIDTH) == (UINT64_WIDTH))
+uint64_t from_hex(string value)
+{
+uint64_t result = 0;
+#else
+size_t from_hex(string value)
+{
+size_t result;
+#endif
+    for (uint16_t i=0; i<value.size(); ++i)
+    {
+        if (from_hex(value[i] < 16))
+        {
+            result <<= 4;
+            result += from_hex(value[i]);
+        }
+        else
+        {
+            return result;
+        }
+    }
+    return result;
 }
 
 #if ((SIZE_WIDTH) == (UINT64_WIDTH))
@@ -841,17 +1001,22 @@ string to_label(string label, string value) {
     return label + ": " + (value);
 }
 
-string clean_string(string value) {
+string clean_string(string value)
+{
     string output;
-    for (uint16_t i=0; i<value.length(); ++i) {
-        if (value[i] != 0) {
+    for (uint16_t i=0; i<value.length(); ++i)
+    {
+        if (value[i] != 0)
+        {
             output.push_back(value[i]);
-            printf("%c", value[i]);
-        } else {
-            printf(" [0] ");
+//            printf("%c", value[i]);
         }
+//            else
+//        {
+//            printf(" [0] ");
+//        }
     }
-    printf("\n");
+//    printf("\n");
     output.push_back(0);
     return output;
 }

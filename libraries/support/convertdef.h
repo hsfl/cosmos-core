@@ -52,6 +52,8 @@ namespace Cosmos {
 #define CLIGHT 299792458.
         //! SI Stefan-Boltzmann constant
 #define SIGMA 5.67e-8
+#define PLANCK1U 3.741771852e8
+#define PLANCK2U 1.438776877e4
         //! SI Gravitational constant
         //#define GC 6.672e-11
 #define SOL (86400.*2.99792458e8)
@@ -156,11 +158,13 @@ namespace Cosmos {
             //! UTC of Position
             double utc = 0.;
             //! Location
-            rvector s;
+            rvector s = {0., 0., 0.};
             //! Velocity
-            rvector v;
+            rvector v = {0., 0., 0.};
             //! Acceleration
-            rvector a;
+            rvector a = {0., 0., 0.};
+            //! Jerk
+            rvector j = {0., 0., 0.};
             // TODO: get rid of this kind of stuff?
             //! pass indicator: allows synchronization with other attitude and position values.
             uint32_t pass = 0;
@@ -175,6 +179,7 @@ namespace Cosmos {
                     { "s", s },
                     { "v", v },
                     { "a", a },
+                    { "j", j },
                     { "pass", static_cast<int>(pass) }
                 };
             }
@@ -192,6 +197,7 @@ namespace Cosmos {
                     if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
                     if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
                     if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
+                    if(!parsed["j"].is_null())		j.from_json(parsed["j"].dump());
                     if(!parsed["pass"].is_null())	pass = parsed["pass"].int_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
@@ -488,11 +494,11 @@ namespace Cosmos {
 
             double utc = 0.;
             //! 0th derivative: Quaternion
-            quaternion s; //q
+            quaternion s = {{0., 0., 0.}, 0.}; //q
             //! 1st derivative: Omega - angular velocity
-            rvector v;  //dq
+            rvector v = {0., 0., 0.};  //dq
             //! 2nd derivative: Alpha - acceleration
-            rvector a;  //ddq
+            rvector a = {0., 0., 0.};  //ddq
             //! pass indicator: allows synchronization with other attitude and position values.
             uint32_t pass = 0;
 
@@ -614,6 +620,10 @@ namespace Cosmos {
             rmatrix ds2t;
             rmatrix t2s;
             rmatrix dt2s;
+            //! Transform between LVLH and GEOC
+            quaternion l2g;
+            quaternion g2l;
+            //! Misc
             cartpos sun2earth;
             gvector sungeo;
             cartpos sun2moon;
@@ -647,6 +657,9 @@ namespace Cosmos {
                     { "ds2t"  , ds2t },
                     { "t2s"   , t2s },
                     { "dt2s"  , dt2s },
+
+                    { "l2g" , l2g },
+                    { "g2l" , g2l },
 
                     { "sun2earth" , sun2earth },
                     { "sun2moon"  , sun2moon },
@@ -685,6 +698,9 @@ namespace Cosmos {
                     if(!p["t2s"].is_null())     t2s.from_json(p["t2s"].dump());
                     if(!p["dt2s"].is_null())    dt2s.from_json(p["dt2s"].dump());
 
+                    if(!p["l2g"].is_null())     l2g.from_json(p["l2g"].dump());
+                    if(!p["g2l"].is_null())     g2l.from_json(p["g2l"].dump());
+
                     if(!p["sun2earth"].is_null())   sun2earth.from_json(p["sun2earth"].dump());
                     if(!p["sun2moon"].is_null())    sun2moon.from_json(p["sun2moon"].dump());
                     if(!p["closest"].is_null()) closest = p["closest"].int_value();
@@ -697,6 +713,83 @@ namespace Cosmos {
 
         ::std::ostream& operator << (::std::ostream& out, const extrapos& a);
         ::std::istream& operator >> (::std::istream& in, extrapos& a);
+
+        //! In units **for** the SGP4 propagator (not NORAD TLE itself).
+        struct tlestruc
+        {
+            double utc = 0.;
+            // JIMNOTE: remove magic number
+//            string name = string(25, ' ');
+            string name = " ";
+            uint16_t snumber = 0;
+            string id = " ";
+            //! Drag (1/Earth radii)
+            double bstar = 0.;
+            //! Inclination (radians)
+            double i = 0.;
+            //! Right ascension of ascending node (radians)
+            double raan = 0.;
+            //! Eccentricity (unitless)
+            double e = 0.;
+            //! Argument of perigee (radians)
+            double ap = 0.;
+            //! Mean anomaly (radians)
+            double ma = 0.;
+            //! Mean motion (radians / minute)
+            double mm = 0.;
+            uint32_t orbit = 0;
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "utc" , utc },
+                    { "name" , name },
+                    { "snumber" , snumber },
+                    { "id" , id },
+                    { "bstar" , bstar },
+                    { "i" , i },
+                    { "raan" , raan },
+                    { "e" , e },
+                    { "ap" , ap },
+                    { "ma" , ma },
+                    { "mm" , mm },
+                    { "orbit" , static_cast<int>(orbit) }
+                };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param	s	JSON-formatted string to set class contents to
+        @return n/a
+    */
+            void from_json(const string& js) {
+                string error;
+                json11::Json parsed = json11::Json::parse(js,error);
+                if(error.empty()) {
+                    if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+                    if(!parsed["name"].is_null())    name = parsed["name"].string_value();
+                    if(!parsed["snumber"].is_null())    snumber =  parsed["snumber"].int_value();
+                    if(!parsed["id"].is_null())    id = parsed["id"].string_value();
+                    if(!parsed["bstar"].is_null())    bstar =  parsed["bstar"].number_value();
+                    if(!parsed["i"].is_null())    i =  parsed["i"].number_value();
+                    if(!parsed["raan"].is_null())    raan =  parsed["raan"].number_value();
+                    if(!parsed["e"].is_null())    e =  parsed["e"].number_value();
+                    if(!parsed["ap"].is_null())    ap =  parsed["ap"].number_value();
+                    if(!parsed["ma"].is_null())    ma =  parsed["ma"].number_value();
+                    if(!parsed["mm"].is_null())    mm =  parsed["mm"].number_value();
+                    if(!parsed["orbit"].is_null())    orbit =  parsed["orbit"].int_value();
+                } else {
+                    cerr<<"ERROR = "<<error<<endl;
+                }
+                return;
+            }
+        };
+
+        ::std::ostream& operator << (::std::ostream& out, const tlestruc& a);
+        ::std::istream& operator >> (::std::istream& in, tlestruc& a);
 
         //! Additional parameters relating to position that need only be calculated once.
         class extraatt
@@ -757,6 +850,7 @@ namespace Cosmos {
             cartpos sci;
             cartpos geoc;
             cartpos selc;
+            cartpos lvlh;
             geoidpos geod;
             geoidpos selg;
             spherpos geos;
@@ -786,6 +880,7 @@ namespace Cosmos {
                     { "sci"  , sci },
                     { "geoc" , geoc },
                     { "selc" , selc },
+                    { "lvlh" , lvlh },
                     { "geod" , geod },
                     { "selg" , selg },
                     { "geos" , geos },
@@ -815,6 +910,7 @@ namespace Cosmos {
                     if(!parsed["sci"].is_null())    sci.from_json(parsed["sci"].dump());
                     if(!parsed["geoc"].is_null())   geoc.from_json(parsed["geoc"].dump());
                     if(!parsed["selc"].is_null())   selc.from_json(parsed["selc"].dump());
+                    if(!parsed["lvlh"].is_null())   lvlh.from_json(parsed["lvlh"].dump());
                     if(!parsed["geod"].is_null())   geod.from_json(parsed["geod"].dump());
                     if(!parsed["selg"].is_null())   selg.from_json(parsed["selg"].dump());
                     if(!parsed["geos"].is_null())   geos.from_json(parsed["geos"].dump());
@@ -909,6 +1005,7 @@ namespace Cosmos {
         {
             //! Master time for location, in Modified Julian Day
             double utc = 0.;
+            tlestruc tle;
             //! Cosmos::Support::posstruc for this time.
             posstruc pos;
             //! Cosmos::Support::attstruc for this time.
@@ -921,6 +1018,7 @@ namespace Cosmos {
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "utc" , utc },
+                    { "tle" , tle },
                     { "pos" , pos },
                     { "att" , att }
                 };
@@ -936,6 +1034,7 @@ namespace Cosmos {
                 json11::Json parsed = json11::Json::parse(js,error);
                 if(error.empty()) {
                     if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+                    if(!parsed["tle"].is_null())   tle.from_json(parsed["tle"].dump());
                     if(!parsed["pos"].is_null())    pos.from_json(parsed["pos"].dump());
                     if(!parsed["att"].is_null())    att.from_json(parsed["att"].dump());
                 } else {
@@ -947,80 +1046,6 @@ namespace Cosmos {
 
         ::std::ostream& operator << (::std::ostream& out, const locstruc& a);
         ::std::istream& operator >> (::std::istream& in, locstruc& a);
-
-        //! In units **for** the SGP4 propagator (not NORAD TLE itself).
-        struct tlestruc
-        {
-            double utc = 0.;
-            // JIMNOTE: remove magic number
-            char name[25] = "";
-            uint16_t snumber = 0;
-            // JIMNOTE: remove magic number
-            char id[9] = "";
-            //! Drag (1/Earth radii)
-            double bstar = 0.;
-            //! Inclination (radians)
-            double i = 0.;
-            //! Right ascension of ascending node (radians)
-            double raan = 0.;
-            //! Eccentricity (unitless)
-            double e = 0.;
-            //! Argument of perigee (radians)
-            double ap = 0.;
-            //! Mean anomaly (radians)
-            double ma = 0.;
-            //! Mean motion (radians / minute)
-            double mm = 0.;
-            uint32_t orbit = 0;
-
-            /// Convert class contents to JSON object
-            /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
-    */
-            json11::Json to_json() const {
-                return json11::Json::object {
-                    { "utc" , utc },
-                    { "name" , name },
-                    { "snumber" , snumber },
-                    { "id" , id },
-                    { "bstar" , bstar },
-                    { "i" , i },
-                    { "raan" , raan },
-                    { "e" , e },
-                    { "ap" , ap },
-                    { "ma" , ma },
-                    { "mm" , mm },
-                    { "orbit" , static_cast<int>(orbit) }
-                };
-            }
-
-            /// Set class contents from JSON string
-            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
-    */
-            void from_json(const string& js) {
-                string error;
-                json11::Json parsed = json11::Json::parse(js,error);
-                if(error.empty()) {
-                    if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
-                    if(!parsed["name"].is_null())    strcpy(name, parsed["name"].string_value().c_str());
-                    if(!parsed["snumber"].is_null())    snumber =  parsed["snumber"].int_value();
-                    if(!parsed["id"].is_null())    strcpy(id, parsed["id"].string_value().c_str());
-                    if(!parsed["bstar"].is_null())    bstar =  parsed["bstar"].number_value();
-                    if(!parsed["i"].is_null())    i =  parsed["i"].number_value();
-                    if(!parsed["raan"].is_null())    raan =  parsed["raan"].number_value();
-                    if(!parsed["e"].is_null())    e =  parsed["e"].number_value();
-                    if(!parsed["ap"].is_null())    ap =  parsed["ap"].number_value();
-                    if(!parsed["ma"].is_null())    ma =  parsed["ma"].number_value();
-                    if(!parsed["mm"].is_null())    mm =  parsed["mm"].number_value();
-                    if(!parsed["orbit"].is_null())    orbit =  parsed["orbit"].int_value();
-                } else {
-                    cerr<<"ERROR = "<<error<<endl;
-                }
-                return;
-            }
-        };
 
         //! STK positions structure
         /*! Structure for holding an array of position structures generated by STK.

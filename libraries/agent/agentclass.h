@@ -123,7 +123,7 @@
 //! with Cosmos::secondsleep. Upon exiting from this loop, you should call Cosmos::Agent::shutdown.
 
 #include "support/configCosmos.h"
-#include "support/cosmos-errclass.h"
+#include "support/logger.h"
 #include "support/jsonlib.h"
 #include "support/jsonclass.h"
 #include "device/cpu/devicecpu.h"
@@ -144,16 +144,16 @@ namespace Cosmos
         class Agent
         {
         public:
-            Agent(
-                const string &node_name = "",
-                const string &agent_name = "",
-                double bprd = 0.,
-				uint32_t bsize = AGENTMAXBUFFER,
-				bool mflag = false,
-				int32_t portnum = 0,
-                NetworkType ntype = NetworkType::UDP,
-                uint16_t dlevel = 0
-			);
+            Agent(uint8_t placeholder);
+            Agent(string realm_name = "",
+                  string node_name = "",
+                  string agent_name = "",
+                  double bprd = 0.,
+                  uint32_t bsize = AGENTMAXBUFFER,
+                  bool mflag = false,
+                  int32_t portnum = 0,
+                  NetworkType ntype = NetworkType::UDP,
+                  uint16_t dlevel = 0);
 
             ~Agent();
 
@@ -206,6 +206,8 @@ namespace Cosmos
 #define AGENTRECVPORT 10021
             //! AGENT heartbeat Multicast address
 #define AGENTMCAST "225.1.1.1"
+            //! Loopback
+#define AGENTLOOPBACK "127.0.0.1"
             //! Maximum AGENT server list count
 #define AGENTMAXLIST 500
             //! Maximum AGENT heartbeat size
@@ -403,23 +405,26 @@ namespace Cosmos
             int32_t close_debug_fd();
 
             // Add implementation of new COSMOS Error
-            Error debug_error;
+            Log::Logger debug_log;
 //            int32_t Printf(string output);
 //            int32_t Printf(const char *fmt, ...);
 
             // agent variables
             ElapsedTime uptime;
-            string nodeName;
-            string agentName;
+//            string cinfo->node.name;
+//            string cinfo->agent0.name;
             vector<beatstruc> slist;
-            NodeData nodeData;
-            NodeData::NODE_ID_TYPE nodeId;
+//            NodeList nodeData;
+            NODE_ID_TYPE nodeId;
 
-            int32_t process_request(string &bufferin, string &bufferout);
+            int32_t process_request(string &bufferin, string &bufferout, bool send_response=true);
 
             int32_t set_verification(uint32_t verification);
             uint32_t get_verification();
             int32_t check_verification(uint32_t verification);
+            int32_t channel_set_comm_priority(uint8_t number);
+            int32_t channel_count();
+            int32_t channel_push(PacketComm &packet);
             int32_t channel_push(string name, PacketComm &packet);
             int32_t channel_push(uint8_t number, PacketComm& packet);
             int32_t channel_push(string name, vector<PacketComm>& packets);
@@ -434,8 +439,12 @@ namespace Cosmos
             int32_t channel_pull(uint8_t number, PacketComm& packet);
             int32_t monitor_unwrapped(string name, PacketComm& packet, string extra="");
             int32_t monitor_unwrapped(uint8_t number, PacketComm& packet, string extra="");
+            int32_t monitor_unpacketized(string name, PacketComm& packet, string extra="");
+            int32_t monitor_unpacketized(uint8_t number, PacketComm& packet, string extra="");
             int32_t init_channels(uint32_t verification=0x352e);
             int32_t channel_add(string name, uint16_t datasize=0, uint16_t rawsize=0, float byte_rate=0., uint16_t maximum=0);
+            int32_t channel_update(string name, uint16_t datasize=0, uint16_t rawsize=0, float byte_rate=0., uint16_t maximum=0);
+            int32_t channel_update(uint8_t number, uint16_t datasize=0, uint16_t rawsize=0, float byte_rate=0., uint16_t maximum=0);
             //! Number of packets currently in the channel
             int32_t channel_size(string name);
             //! Number of packets currently in the channel
@@ -444,16 +453,20 @@ namespace Cosmos
             float channel_speed(uint8_t number);
             double channel_age(string name);
             double channel_age(uint8_t number);
+            double channel_wakeup_timer(string name, double value=0.);
+            double channel_wakeup_timer(uint8_t number, double value=0.);
             size_t channel_bytes(string name);
             size_t channel_bytes(uint8_t number);
+            size_t channel_level(string name);
+            size_t channel_level(uint8_t number);
             uint32_t channel_packets(string name);
             uint32_t channel_packets(uint8_t number);
-            double channel_touch(string name);
-            double channel_touch(uint8_t number);
+            double channel_touch(string name, double seconds=0.);
+            double channel_touch(uint8_t number, double seconds=0.);
             ssize_t channel_increment(string name, size_t bytes, uint32_t packets=1);
             ssize_t channel_increment(uint8_t number, size_t bytes, uint32_t packets=1);
-            ssize_t channel_decrement(string name, size_t bytes, uint32_t packets=1);
-            ssize_t channel_decrement(uint8_t number, size_t bytes, uint32_t packets=1);
+//            ssize_t channel_decrement(string name, size_t bytes, uint32_t packets=1);
+//            ssize_t channel_decrement(uint8_t number, size_t bytes, uint32_t packets=1);
             int32_t channel_clear(string name);
             int32_t channel_clear(uint8_t number);
             int32_t channel_number(string name);
@@ -466,8 +479,8 @@ namespace Cosmos
             int32_t channel_rawsize(string name);
             //! Max packet size of channel
             int32_t channel_rawsize(uint8_t number);
-            int32_t channel_maximum(string name, uint16_t maximum);
-            int32_t channel_maximum(uint8_t number, uint16_t maximum);
+            int32_t channel_maximum(string name);
+            int32_t channel_maximum(uint8_t number);
             int32_t channel_teststart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
             int32_t channel_teststart(uint8_t number, uint8_t nradio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
             int32_t channel_teststop(string name, float seconds=5.);
@@ -479,7 +492,7 @@ namespace Cosmos
 //            int32_t channel_disable(string name);
 //            int32_t channel_disable(uint8_t number);
 
-            int32_t task_add(string command);
+            int32_t task_add(string command, string source="");
             int32_t task_del(uint32_t deci);
             int32_t task_iretn(uint16_t number);
             uint32_t task_deci(uint16_t number);
@@ -588,6 +601,8 @@ namespace Cosmos
             static int32_t req_add_task(string &, string &response, Agent *agent);
             static int32_t req_list_channels(string &, string &response, Agent *agent);
             static int32_t req_test_channel(string &, string &response, Agent *agent);
+            static int32_t req_channel_enable(string &, string &response, Agent *agent);
+            static int32_t req_channel_touch(string &, string &response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos

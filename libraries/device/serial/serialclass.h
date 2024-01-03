@@ -50,6 +50,7 @@ namespace Cosmos {
         int32_t close_device();
         int32_t set_restoreonclose(bool argument);
         int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+        int32_t change_baud(size_t dbaud);
         int32_t set_flowcontrol(bool rtscts, bool xonxoff);
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
         int32_t set_timeout(int minchar, double timeout);
@@ -73,7 +74,7 @@ namespace Cosmos {
         int32_t poll_char();
         int32_t get_char();
         int32_t get_char(uint8_t &buffer);
-        int32_t get_data(vector <uint8_t> &data, size_t size=SIZE_MAX);
+        int32_t get_data(vector <uint8_t> &data, size_t size=SIZE_MAX, bool append=false);
         int32_t get_string(string &data, size_t size=SIZE_MAX);
         int32_t get_string(string &data, char endc=0);
         int32_t get_data(uint8_t *data, size_t size);

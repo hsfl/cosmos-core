@@ -122,8 +122,8 @@ void json_init_unit(cosmosstruc* cinfo);
 void json_init_device_type_string();
 void json_init_node(cosmosstruc* cinfo);
 void json_init_reserve(cosmosstruc* cinfo);
-cosmosstruc *json_init(cosmosstruc *cinfo);
-cosmosstruc *json_init();
+cosmosstruc *json_init(cosmosstruc *cinfo, string node="");
+cosmosstruc *json_init(string node="");
 int32_t json_create_node(cosmosstruc *cinfo, string &node_name, uint16_t node_type=NODE_TYPE_COMPUTER);
 int32_t json_create_cpu(string &node_name);
 int32_t json_shrink(cosmosstruc *cinfo);
@@ -157,6 +157,8 @@ uint16_t json_mapdeviceentry(devicestruc *devicein, cosmosstruc *cinfo);
 int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinfo, bool state);
 uint16_t json_mapportentry(uint16_t portidx, cosmosstruc *cinfo);
 int32_t json_toggleportentry(uint16_t portidx, cosmosstruc *cinfo, bool state);
+uint16_t json_maptleentry(uint16_t tleidx, cosmosstruc *cinfo);
+int32_t json_toggletleentry(uint16_t tleidx, cosmosstruc *cinfo, bool state);
 int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo);
 int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo);
 size_t json_count_hash(uint16_t hash, cosmosstruc *cinfo);
@@ -202,6 +204,7 @@ int32_t json_out_rvector(string &jstring,rvector value);
 int32_t json_out_tvector(string &jstring,rvector value);
 int32_t json_out_quaternion(string &jstring,quaternion value);
 int32_t json_out_cartpos(string &jstring, Convert::cartpos value);
+int32_t json_out_tlestruc(string &jstring, Convert::tlestruc &tle);
 int32_t json_out_geoidpos(string &jstring, Convert::geoidpos value);
 int32_t json_out_spherpos(string &jstring, Convert::spherpos value);
 int32_t json_out_dcmatt(string &jstring, Convert::dcmatt value);
@@ -216,6 +219,8 @@ int32_t json_out_posstruc(string &jstring, Convert::posstruc value);
 int32_t json_out_attstruc(string &jstring, Convert::attstruc value);
 int32_t json_out_locstruc(string &jstring, Convert::locstruc value);
 int32_t json_out_commandevent(string &jstring, eventstruc event);
+int32_t json_out_tle(string &jstring, Convert::tlestruc &tle);
+int32_t json_out_tles(string &jstring, vector<Convert::tlestruc> &tles);
 
 uint8_t *json_ptrto(string token, cosmosstruc *cinfo);
 uint8_t *json_ptrto_1d(const char *token, uint16_t index1, cosmosstruc *cinfo);
@@ -287,6 +292,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo);
 int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag = false);
 int32_t json_setup_node(string &node, cosmosstruc *cinfo);
 int32_t json_load_node(string node, jsonnode &json);
+int32_t load_tle(cosmosstruc *cinfo);
 int32_t json_dump_node(cosmosstruc *cinfo);
 int32_t json_recenter_node(cosmosstruc *cinfo);
 
@@ -341,6 +347,14 @@ int32_t node_calc(cosmosstruc *cinfo);
 void create_databases(cosmosstruc *cinfo);
 //void load_databases(char *name, uint16_t type, cosmosstruc *cinfo);
 size_t load_dictionary(vector<eventstruc> &dict, cosmosstruc *cinfo, const char *file);
+
+int32_t save_node_ids(cosmosstruc *cinfo);
+int32_t load_node_ids(cosmosstruc *cinfo, string realm="");
+int32_t check_node_id(cosmosstruc *cinfo, NODE_ID_TYPE node_id);
+int32_t lookup_node_id(cosmosstruc *cinfo, string node_name);
+int32_t add_node_id(cosmosstruc *cinfo, string node_name);
+string lookup_node_id_name(cosmosstruc *cinfo, NODE_ID_TYPE node_id);
+
 int32_t load_target(cosmosstruc *cinfo);
 int32_t update_target(cosmosstruc *cinfo);
 int32_t update_target(Convert::locstruc source, targetstruc &target);
@@ -352,6 +366,7 @@ int32_t device_index(cosmosstruc* cinfo, string name);
 bool device_has_property(uint16_t deviceType, string prop);
 string json_memory_usage();
 int32_t json_get_nodes(vector<cosmosstruc> &data);
+int32_t json_get_node_ids(map<string, uint8_t>& node_ids);
 int32_t kml_write(cosmosstruc* cinfo);
 
 //! @}

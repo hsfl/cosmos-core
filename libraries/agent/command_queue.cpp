@@ -113,12 +113,12 @@ namespace Cosmos
         // event spawned is not currently active.
         size_t CommandQueue::join_event_threads()
         {
-//            static auto join_event = [] (thread &t) {
-//                t.join();
-//            };
+            //            static auto join_event = [] (thread &t) {
+            //                t.join();
+            //            };
 
-//            std::for_each(event_threads.begin(), event_threads.end(), join_event);
-//            event_threads.clear();
+            //            std::for_each(event_threads.begin(), event_threads.end(), join_event);
+            //            event_threads.clear();
             size_t count = 0;
             for(uint16_t i=0; i<event_threads.size(); ++i)
             {
@@ -140,9 +140,9 @@ namespace Cosmos
             }
         }
 
-        //! Run the given Event
+        //! Run the given Request Event
         /*!
-            Executes a command in a separate shell (system) using threads. For each
+            Submits a Request to the local agent. For each
             command run, the time of execution (utcexec) is set, the flag
             EVENT_FLAG_ACTUAL is set to true, and this updated command information is
             logged to the OUTPUT directory.
@@ -151,6 +151,51 @@ namespace Cosmos
             \param	nodename	Name of node
             \param	logdate_exec	Time of execution (for logging purposes)
         */
+        int32_t CommandQueue::run_request(Agent *agent, Event& cmd, string node_name, double logdate_exec)
+        {
+            int32_t iretn = 0;
+            queue_changed = true;
+
+            // set time executed & actual flag
+            cmd.set_utcexec();
+            cmd.set_actual();
+
+            string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
+            string bufferout;
+            string request = cmd.get_data();
+            iretn = agent->process_request(request, bufferout, false);
+            printf("CMD: running request [%s] in [%s] with result %d\n", request.c_str(), outpath.c_str(), iretn);
+            if (iretn >= 0)
+            {
+                FILE *fp = fopen(outpath.c_str(), "w");
+                if (fp != nullptr)
+                {
+                    fwrite(bufferout.data(), 1, bufferout.size(), fp);
+                    fclose(fp);
+                    log_move_file(outpath, string_replace(outpath, "temp", "outgoing"), true);
+                    printf("CMD: moving request result to [%s]\n", string_replace(outpath, "temp", "outgoing").c_str());
+                }
+                else
+                {
+                    printf("CMD: failed to move request result to [%s] for %d\n", outpath.c_str(), errno);
+                }
+                // log to event file
+                log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
+            }
+            return iretn;
+        }
+
+        //! Run the given Command Event
+        /*!
+                Executes a command in a separate shell (system) using threads. For each
+                command run, the time of execution (utcexec) is set, the flag
+                EVENT_FLAG_ACTUAL is set to true, and this updated command information is
+                logged to the OUTPUT directory.
+
+                \param	cmd	Reference to event to run
+                \param	nodename	Name of node
+                \param	logdate_exec	Time of execution (for logging purposes)
+            */
         int32_t CommandQueue::run_command(Event& cmd, string node_name, double logdate_exec)
         {
             queue_changed = true;
@@ -162,9 +207,11 @@ namespace Cosmos
             string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
             char command_line[100];
             strcpy(command_line, cmd.get_data().c_str());
+            printf("CMD: running command [%s] in [%s]\n", command_line, outpath.c_str());
 
             // We keep track of all threads spawned to join before moving log files.
-            event_threads.push_back(thread([=] () {
+            event_threads.push_back(thread([=] ()
+            {
                 int devn, prev_stdin, prev_stdout, prev_stderr;
                 if (outpath.empty()) {
                     devn = open("/dev/null", O_RDWR);
@@ -196,6 +243,11 @@ namespace Cosmos
                 close(prev_stdin);
                 close(prev_stdout);
                 close(prev_stderr);
+                if (!outpath.empty())
+                {
+                    log_move_file(outpath, string_replace(outpath, "temp", "outgoing"), true);
+                    printf("CMD: moving command result to [%s]\n", string_replace(outpath, "temp", "outgoing").c_str());
+                }
             }));
 
             // log to event file
@@ -242,27 +294,45 @@ namespace Cosmos
                                 if(ii->is_repeat())
                                 {
                                     // if command has not already run
-//                                    if(!ii->already_ran)
+                                    //                                    if(!ii->already_ran)
                                     if (!ii->is_alreadyrun())
                                     {
-//                                        strncpy(agent->cinfo->node.lastevent, ii->name.c_str(), COSMOS_MAX_NAME);
+                                        //                                        strncpy(agent->cinfo->node.lastevent, ii->name.c_str(), COSMOS_MAX_NAME);
                                         agent->cinfo->node.lastevent = ii->name;
                                         agent->cinfo->node.lasteventutc = currentmjd();
-                                        run_command(*ii, node_name, logdate_exec);
+                                        if (ii->type == EVENT_TYPE_COMMAND)
+                                        {
+                                            run_command(*ii, node_name, logdate_exec);
+                                            logdate_exec += 1./864000.;
+                                        }
+                                        else if (ii->type == EVENT_TYPE_REQUEST)
+                                        {
+                                            run_request(agent, *ii, node_name, logdate_exec);
+                                            logdate_exec += 1./864000.;
+                                        }
                                         ii->set_alreadyrun(true);
                                         events.push_back(*ii);
                                         if (events.size() > 10)
                                         {
                                             events.pop_front();
                                         }
-//                                        ii->already_ran = true;
+                                        //                                        ii->already_ran = true;
                                         break;
                                     }
                                 }
                                 // else command is non-repeatable
                                 else
                                 {
-                                    run_command(*ii, node_name, logdate_exec);
+                                    if (ii->type == EVENT_TYPE_COMMAND)
+                                    {
+                                        run_command(*ii, node_name, logdate_exec);
+                                        logdate_exec += 1./864000.;
+                                    }
+                                    else if (ii->type == EVENT_TYPE_REQUEST)
+                                    {
+                                        run_request(agent, *ii, node_name, logdate_exec);
+                                        logdate_exec += 1./864000.;
+                                    }
                                     events.push_back(*ii);
                                     if (events.size() > 10)
                                     {
@@ -281,7 +351,16 @@ namespace Cosmos
                         // else command is non-conditional
                         else
                         {
-                            run_command(*ii, node_name, logdate_exec);
+                            if (ii->type == EVENT_TYPE_COMMAND)
+                            {
+                                run_command(*ii, node_name, logdate_exec);
+                                logdate_exec += 1./864000.;
+                            }
+                            else if (ii->type == EVENT_TYPE_REQUEST)
+                            {
+                                run_request(agent, *ii, node_name, logdate_exec);
+                                logdate_exec += 1./864000.;
+                            }
                             events.push_back(*ii);
                             if (events.size() > 10)
                             {
@@ -397,7 +476,7 @@ namespace Cosmos
                     std::ifstream infile(infilepath.c_str());
                     if(!infile.is_open())
                     {
-//                        std::cout<<"unable to read file <"<<infilepath<<">"<<std::endl;
+                        //                        std::cout<<"unable to read file <"<<infilepath<<">"<<std::endl;
                         continue;
                     }
 
@@ -411,21 +490,21 @@ namespace Cosmos
 
                         if(cmd.is_command())
                         {
-//                            std::cout << "Command added: " << cmd;
+                            //                            std::cout << "Command added: " << cmd;
                             add_command(cmd);
                         }
-//                        else
-//                            std::cout<<"Not a command!"<<std::endl;
+                        //                        else
+                        //                            std::cout<<"Not a command!"<<std::endl;
                     }
                     infile.close();
 
                     //remove the .command file from incoming directory
                     if(remove(infilepath.c_str()))	{
-//                        std::cout<<"unable to delete file <"<<filename<<">"<<std::endl;
+                        //                        std::cout<<"unable to delete file <"<<filename<<">"<<std::endl;
                         continue;
                     }
 
-//                    std::cout<<"\nThe size of the command queue is: "<< get_command_size()<<std::endl;
+                    //                    std::cout<<"\nThe size of the command queue is: "<< get_command_size()<<std::endl;
                 }
             }
 

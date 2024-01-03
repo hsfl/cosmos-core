@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 {
     // construct agent
     cout << node_agent_name << " starting..."<<endl;
-    agent = new Agent(node_name, agent_name, 1.);
+    agent = new Agent("", node_name, agent_name, 1.);
 
     // exit with error if unable to start agent
     if(agent->last_error() < 0) {
@@ -216,7 +216,7 @@ int main(int argc, char **argv)
         cout<<"["<<node_name<<":"<<agent_name<<"] running..."<<endl;
 
         // get_value of beat
-        agent->send_request(agent->find_agent(node_target, agent_target, 2.), "get_value {\"agent[0].beat\"}", response, 2.);
+        agent->send_request(agent->find_agent(node_target, agent_target, 2.), "get_value {\"agent0.beat\"}", response, 2.);
         cout<<"beat = "<<response<<endl;
         response.clear();
 

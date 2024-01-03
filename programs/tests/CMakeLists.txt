@@ -23,6 +23,7 @@ foreach(file ${files})
 
 endforeach()
 
+target_link_libraries(poslvlh CosmosConvert CosmosPhysics)
 target_link_libraries(geod2eci2geod CosmosTime CosmosMath CosmosConvert)
 target_link_libraries(crctest CosmosMath)
 target_link_libraries(lsfittest CosmosMath)
@@ -39,11 +40,10 @@ target_link_libraries(track_sband CosmosDeviceGeneral CosmosDeviceSerial CosmosA
 target_link_libraries(serial_setdtr CosmosDeviceSerial CosmosTime)
 target_link_libraries(serialPutData CosmosDeviceSerial)
 target_link_libraries(serialSendChar CosmosDeviceSerial)
-target_link_libraries(agent_simple_request CosmosAgent CosmosError)
-target_link_libraries(errortest CosmosTime CosmosError)
+target_link_libraries(agent_simple_request CosmosAgent CosmosLog)
+target_link_libraries(errortest CosmosTime CosmosLog)
 target_link_libraries(string_test CosmosString CosmosConvert)
 target_link_libraries(string_float_test CosmosString)
-target_link_libraries(file_transfer_test CosmosAgent CosmosTransfer CosmosSlip)
 
 #include(CTest)
 #enable_testing()
@@ -57,4 +57,5 @@ target_link_libraries(file_transfer_test CosmosAgent CosmosTransfer CosmosSlip)
 
 if(${BUILD_PROGRAMS_TESTS} MATCHES "YES")
     add_subdirectory(unit_tests)
+    add_subdirectory(integration_tests)
 endif()

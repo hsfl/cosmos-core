@@ -21,110 +21,125 @@ namespace Cosmos
             return error;
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
+        bool compareByPriority(const Physics::State* left, const Physics::State* right)
         {
-            Physics::State* newstate = new Physics::State;
-            cnodes.insert(pair<string, Physics::State*>(nodename, newstate));
-            return cnodes.count(nodename);
+            return left->propagation_priority < right->propagation_priority;
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::tlestruc tle)
+        /**
+         * @brief Addes a node to be propagated, in descending order of priority
+         * 
+         * @param nodename Name of node
+         * @param propagation_priority Lower values are propagated before higher values
+         * @return int32_t 
+         */
+        Simulator::StateList::iterator Simulator::AddNode(string nodename, uint8_t propagation_priority)
         {
-            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
-            {
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, tle, currentutc);
-                if (error < 0)
-                {
-                    return error;
-                }
-            }
-            error = 0;
-            return cnodes.count(nodename);
+            Physics::State* newstate = new Physics::State(nodename, propagation_priority);
+            StateList::iterator it = std::upper_bound(cnodes.begin(), cnodes.end(), newstate, compareByPriority);
+            return cnodes.insert(it, newstate);
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::tlestruc tle, Convert::qatt icrf, uint8_t propagation_priority)
         {
-            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
+            auto it = AddNode(nodename, propagation_priority);
+            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, tle, currentutc, icrf);
+            if (error < 0)
             {
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, eci);
-                if (error < 0)
-                {
-                    return error;
-                }
-                error = cnodes[nodename]->Propagate(currentutc);
-                if (error < 0)
-                {
-                    return error;
-                }
+                return error;
             }
-            return cnodes.count(nodename);
+            return cnodes.size();
         }
 
-        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf)
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf, uint8_t propagation_priority)
         {
-            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
+            auto it = AddNode(nodename, propagation_priority);
+            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, eci, icrf);
+            if (error < 0)
             {
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, eci, icrf);
-                if (error < 0)
-                {
-                    return error;
-                }
-                error = cnodes[nodename]->Propagate(currentutc);
-                if (error < 0)
-                {
-                    return error;
-                }
+                return error;
             }
-            return cnodes.count(nodename);
+            error = (*it)->Propagate(currentutc);
+            if (error < 0)
+            {
+                return error;
+            }
+            return cnodes.size();
+        }
+
+        /**
+         * @brief Add a node with an LVLH position propagator
+         * 
+         * @param nodename Name of node
+         * @param stype Structural type
+         * @param ptype Position propagator
+         * @param atype Attitude propagator
+         * @param ttype Thermal propagator
+         * @param etype Electrical propagator
+         * @param oeventtype Orbital Events propagator
+         * @param lvlh LVLH coordinates
+         * @param origineci The origin of the LVLH frame in geocentric frame
+         * @param icrf Attitude of node
+         * @return int32_t 0 on success, negative on error
+         */
+        int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos origineci, Convert::cartpos lvlh, Convert::qatt icrf, uint8_t propagation_priority)
+        {
+            auto it = AddNode(nodename, propagation_priority);
+            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, origineci, lvlh, icrf);
+            if (error < 0)
+            {
+                return error;
+            }
+            error = (*it)->Propagate(currentutc);
+            if (error < 0)
+            {
+                return error;
+            }
+            return cnodes.size();
         }
 
         int32_t Simulator::AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, double utc, double latitude, double longitude, double altitude, double angle, double timeshift)
         {
-//            Physics::State* newstate = new Physics::State;
-//            auto testit = cnodes.insert(pair<string, Physics::State*>(nodename, newstate));
-//            if (testit.second)
-            if (AddNode(nodename, stype, ptype, atype, ttype, etype))
+            auto it = AddNode(nodename, 0);
+            Convert::locstruc loc;
+            if (ptype == Propagator::PositionGeo)
             {
-                Convert::locstruc loc;
-                if (ptype == Propagator::PositionGeo)
-                {
-                    loc.pos.geod.s.lat = latitude;
-                    loc.pos.geod.s.lon = longitude;
-                    loc.pos.geod.s.h = altitude;
-                    loc.pos.geod.v = gv_zero();
-                    loc.pos.geod.a = gv_zero();
-                    loc.pos.geod.utc = utc;
-                    loc.pos.geod.pass++;
-                    Convert::pos_geod(loc);
-                    loc.att.geoc.s = q_eye();
-                    loc.att.geoc.v = rv_zero();
-                    loc.att.geoc.a = rv_zero();
-                    loc.att.geoc.utc = utc;
-                    loc.att.geoc.pass++;
-                    Convert::att_geoc(loc);
-                }
-                else
-                {
-                    loc = Physics::shape2eci(utc, latitude, longitude, altitude, angle, timeshift);
-                    loc.att.lvlh.s = q_eye();
-                    loc.att.lvlh.v = rv_zero();
-                    loc.att.lvlh.a = rv_zero();
-                    loc.att.lvlh.utc = utc;
-                    loc.att.lvlh.pass++;
-                    Convert::att_lvlh(loc);
-                }
-                error = cnodes[nodename]->Init(nodename, dt, stype, ptype, atype, ttype, etype, loc.pos.eci, loc.att.icrf);
-                if (error < 0)
-                {
-                    return error;
-                }
-                error = cnodes[nodename]->Propagate(currentutc);
-                if (error < 0)
-                {
-                    return error;
-                }
+                loc.pos.geod.s.lat = latitude;
+                loc.pos.geod.s.lon = longitude;
+                loc.pos.geod.s.h = altitude;
+                loc.pos.geod.v = gv_zero();
+                loc.pos.geod.a = gv_zero();
+                loc.pos.geod.utc = utc;
+                loc.pos.geod.pass++;
+                Convert::pos_geod(loc);
+                loc.att.geoc.s = q_eye();
+                loc.att.geoc.v = rv_zero();
+                loc.att.geoc.a = rv_zero();
+                loc.att.geoc.utc = utc;
+                loc.att.geoc.pass++;
+                Convert::att_geoc(loc);
             }
-            return cnodes.count(nodename);
+            else
+            {
+                loc = Physics::shape2eci(utc, latitude, longitude, altitude, angle, timeshift);
+                loc.att.lvlh.s = q_eye();
+                loc.att.lvlh.v = rv_zero();
+                loc.att.lvlh.a = rv_zero();
+                loc.att.lvlh.utc = utc;
+                loc.att.lvlh.pass++;
+                Convert::att_lvlh(loc);
+            }
+            error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, loc.pos.eci, loc.att.icrf);
+            if (error < 0)
+            {
+                return error;
+            }
+            error = (*it)->Propagate(currentutc);
+            if (error < 0)
+            {
+                return error;
+            }
+            return cnodes.size();
         }
 
         int32_t Simulator::GetError()
@@ -138,7 +153,7 @@ namespace Cosmos
             currentutc = initialutc;
             for (auto &state : cnodes)
             {
-                state.second->Reset(currentutc);
+                state->Reset(currentutc);
             }
             return error;
         }
@@ -155,7 +170,31 @@ namespace Cosmos
             }
             for (auto &state : cnodes)
             {
-                iretn = state.second->Propagate(currentutc);
+                switch(state->ptype)
+                {
+                case Physics::Propagator::Type::PositionInertial:
+                case Physics::Propagator::Type::PositionIterative:
+                case Physics::Propagator::Type::PositionGaussJackson:
+                case Physics::Propagator::Type::PositionGeo:
+                case Physics::Propagator::Type::PositionTle:
+                    iretn = state->Propagate(currentutc);
+                    break;
+                case Physics::Propagator::Type::PositionLvlh:
+                    iretn = state->Propagate(cnodes[0]->currentinfo.node.loc);
+                    break;
+                default:
+                    break;
+                }
+            }
+            return iretn;
+        }
+
+        int32_t Simulator::End()
+        {
+            int32_t iretn = 0;
+            for (auto &state : cnodes)
+            {
+                iretn = state->End();
             }
             return iretn;
         }
@@ -179,18 +218,23 @@ namespace Cosmos
 
         int32_t Simulator::GetNode(string name, Physics::State* &node)
         {
-            StateList::iterator nodeit;
-            if ((nodeit=cnodes.find(name)) != cnodes.end()) {
-                node = nodeit->second;
-                return 1;
-            } else {
+            auto it = std::find_if(cnodes.begin(), cnodes.end(), [name](const Physics::State* state) {
+                return state->currentinfo.node.name == name;
+            });
+            if (it == cnodes.end())
+            {
                 return 0;
             }
+            node = *it;
+            return 1;
         }
 
         Simulator::StateList::iterator Simulator::GetNode(string name)
         {
-            return cnodes.find(name);
+            auto node = std::find_if(cnodes.begin(), cnodes.end(), [name](const Physics::State* state) {
+                return state->currentinfo.node.name == name;
+            });
+            return node;
         }
 
         Simulator::StateList::iterator Simulator::GetEnd()
@@ -200,38 +244,35 @@ namespace Cosmos
 
         int32_t Simulator::UpdatePush(string name, Vector fpush)
         {
-            StateList::iterator nodeit;
-            if ((nodeit=cnodes.find(name)) != cnodes.end())
+            auto node = GetNode(name);
+            if (node == cnodes.end())
             {
-                nodeit->second->currentinfo.node.phys.fpush = fpush;
-                return 1;
-            } else {
                 return 0;
             }
+            (*node)->currentinfo.node.phys.fpush = fpush;
+            return 1;
         }
 
         int32_t Simulator::UpdateThrust(string name, Vector thrust)
         {
-            StateList::iterator nodeit;
-            if ((nodeit=cnodes.find(name)) != cnodes.end())
+            auto node = GetNode(name);
+            if (node == cnodes.end())
             {
-                nodeit->second->currentinfo.node.phys.thrust = thrust;
-                return 1;
-            } else {
                 return 0;
             }
+            (*node)->currentinfo.node.phys.thrust = thrust;
+            return 1;
         }
 
         int32_t Simulator::UpdateTorque(string name, Vector torque)
         {
-            StateList::iterator nodeit;
-            if ((nodeit=cnodes.find(name)) != cnodes.end())
+            auto node = GetNode(name);
+            if (node == cnodes.end())
             {
-                nodeit->second->currentinfo.node.phys.ftorque = torque;
-                return 1;
-            } else {
                 return 0;
             }
+            (*node)->currentinfo.node.phys.ftorque = torque;
+            return 1;
         }
 
         Simulator::StateList Simulator::GetNodes() {

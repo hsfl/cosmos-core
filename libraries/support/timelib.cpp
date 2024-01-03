@@ -152,17 +152,45 @@ namespace Cosmos {
             return utc;
         }
 
-        //! UTC to Unix time
-        /*! Convert UTC in Modified Julian Day to a timeval structure representing Unix time.
+        //! UTC to Unix timeval
+        /*! Convert UTC in Modified Julian Day to a ::timeval structure representing Unix time.
  * \param utc as Modified Julian Day.
  * \return Timeval structure with Unix time.
  */
         timeval utc2unix(double utc)
         {
+            return utc2timeval(utc);
+        }
+
+        timeval utc2timeval(double utc)
+        {
             timeval unixtime;
+            if (utc == 0.)
+            {
+                utc = currentmjd();
+            }
             double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
             unixtime.tv_sec = (int)unixseconds;
             unixtime.tv_usec = 1000000. * (unixseconds - unixtime.tv_sec);
+
+            return unixtime;
+        }
+
+        //! UTC to Unix timespec
+        /*! Convert UTC in Modified Julian Day to a ::timespec structure representing Unix time.
+ * \param utc as Modified Julian Day.
+ * \return Timespec structure with Unix time.
+ */
+        timespec utc2timespec(double utc)
+        {
+            timespec unixtime;
+            if (utc == 0.)
+            {
+                utc = currentmjd();
+            }
+            double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
+            unixtime.tv_sec = (int)unixseconds;
+            unixtime.tv_nsec = 1000000000. * (unixseconds - unixtime.tv_sec);
 
             return unixtime;
         }
@@ -174,6 +202,10 @@ namespace Cosmos {
  */
         double utc2unixseconds(double utc)
         {
+            if (utc == 0.)
+            {
+                utc = currentmjd();
+            }
             double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
 
             return unixseconds;
@@ -586,6 +618,10 @@ namespace Cosmos {
             int32_t iy=0, im=0, id=0, ihh, imm, iss;
             double fd=0.;
 
+            if (utc == 0.)
+            {
+                utc = currentmjd();
+            }
             mjd2ymd(utc, iy, im, fd);
             id = static_cast <int32_t>(fd);
             fd -= id;
@@ -603,7 +639,7 @@ namespace Cosmos {
         /*! Represent the given UTC as an extended calendar format ISO 8601
  * string in the format:
  * YYYY-MM-DDTHH:MM:SS
- * \param utc Coordinated Universal Time expressed in Modified Julian Days.
+ * \param utc Coordinated Universal Time expressed in Modified Julian Days. If 0., then use current time.
  * \return C++ String containing the ISO 8601 date.
  */
         string utc2iso8601(double utc)
@@ -612,6 +648,10 @@ namespace Cosmos {
             int32_t iy=0, im=0, id=0, ihh, imm, iss;
             double fd=0.;
 
+            if (utc == 0.)
+            {
+                utc = currentmjd();
+            }
             mjd2ymd(utc, iy, im, fd);
             id = (int32_t)fd;
             fd -= id;
@@ -933,7 +973,9 @@ namespace Cosmos {
         }
 
         //! Convert mjd to the TLE epoch format.
-        int32_t mjd2tlef(double mjd, string &tle) {
+        string mjd2tlef(double mjd)
+        {
+            string tle;
             char year_buffer[3], days_buffer[13];
 
             // Compute our year field.
@@ -943,15 +985,21 @@ namespace Cosmos {
             sprintf(days_buffer, "%012.8f", mjd2doy(mjd));
 
             tle = string(year_buffer) + string(days_buffer);
-            return 0;
+            return tle;
         }
 
-        double set_local_clock(double utc_to, int8_t direction)
+        /**
+         * @brief Set system clock
+         * @param utc_to New MJD to set system clock to
+         * @param limit If the delta between the current MJD and utc_to is greater than this argument (in seconds), clock will not be set. A value of 0 will force the change.
+         * @return The delta in seconds
+         */
+        double set_local_clock(double utc_to, float limit)
         {
             int32_t iretn = 0;
             double utc_from = currentmjd();
             double deltat = 86400.*(utc_to - utc_from);
-            if (!direction || direction * deltat > 0)
+            if (limit == 0. || (limit < 0. && deltat >= limit) || (limit > 0. && deltat <= 0.))
             {
                 if (fabs(deltat) > 1.)
                 {
@@ -960,7 +1008,7 @@ namespace Cosmos {
                     SYSTEMTIME newtime;
                     SetSystemTime(&newtime);
 #else
-                    struct timeval newtime = utc2unix(utc_to);
+                    timeval newtime = utc2unix(utc_to);
 
                     // TODO: check with Eric if this is the right way to set the time?
                     iretn = settimeofday(&newtime, nullptr);
@@ -987,7 +1035,7 @@ namespace Cosmos {
 
                         // adjust the time
                         iretn = adjtime(&newdelta, &olddelta);
-                        return 0.;
+                        return deltat;
 #endif
                     }
                 }
@@ -995,7 +1043,7 @@ namespace Cosmos {
             }
             else
             {
-                return 0.;
+                return deltat;
             }
         }
 
@@ -1054,6 +1102,9 @@ namespace Cosmos {
             {
                 newyear =  mjd2cal(trunc(mjd));
             }
+            newyear.month = 1;
+            newyear.dom = 1;
+            newyear.doy = 1;
             return cal2mjd(newyear);
         }
 
@@ -1074,6 +1125,9 @@ namespace Cosmos {
                 newyear =  mjd2cal(trunc(mjd));
             }
             newyear.year = 10 * (newyear.year / 10);
+            newyear.month = 1;
+            newyear.dom = 1;
+            newyear.doy = 1;
             return cal2mjd(newyear);
         }
 
@@ -1084,13 +1138,14 @@ namespace Cosmos {
         //! \return Elapsed time from nearest year in centi seconds.
         uint32_t centisec(double mjd)
         {
+            double yearmjd = newyear();
             if (mjd == 0.)
             {
-                return 8640000. * (currentmjd() - newyear()) + .5;
+                return 8640000. * (currentmjd() - yearmjd) + .5;
             }
             else
             {
-                return 8640000. * (mjd - newyear()) + .5;
+                return 8640000. * (mjd - yearmjd) + .5;
             }
         }
 

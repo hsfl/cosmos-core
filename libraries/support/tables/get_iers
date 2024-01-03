@@ -1,4 +1,4 @@
 #!/bin/csh
-foreach num (`seq 253 389`)
+foreach num (`seq 253 429`)
 wget -nc https://datacenter.iers.org/data/207/bulletinb-$num.txt -O bulletinb-$num.txt
 end

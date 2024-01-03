@@ -161,7 +161,8 @@ namespace Cosmos
             /**
         \return	True if %Event is a command, otherwise false
     */
-            bool	is_command()	{	return (type & EVENT_TYPE_COMMAND);	}
+            bool	is_command()	{	return (type & EVENT_TYPE_COMMAND || type & EVENT_TYPE_REQUEST);	}
+//            bool	is_request()	{	return (type & EVENT_TYPE_REQUEST);	}
 
             ///	Determines if the %Event is a conditional command
             /**
@@ -187,7 +188,8 @@ namespace Cosmos
                     string data,
                     double utc,
                     string condition,
-                    uint32_t flag
+                    uint32_t flag,
+                    uint16_t type
                     );
 
             string generator(eventstruc event);

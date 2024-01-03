@@ -1,4 +1,5 @@
 #include "task.h"
+#include "support/stringlib.h"
 
 namespace Cosmos {
     namespace Support {
@@ -14,12 +15,14 @@ namespace Cosmos {
                 gethostname(hostname, sizeof (hostname));
                 NodeName = hostname;
             }
-            state = 1;
-            mythread = thread([=] { Runner(); });
         }
 
         Task::~Task()
         {
+            if (!state)
+            {
+                return;
+            }
             state = 2;
             ElapsedTime et;
             while (et.split() < 5. && state != 3)
@@ -30,6 +33,12 @@ namespace Cosmos {
             {
                 mythread.join();
             }
+        }
+
+        void Task::Start()
+        {
+            state = 1;
+            mythread = thread([=] { Runner(); });
         }
 
         void Task::Runner()
@@ -47,13 +56,13 @@ namespace Cosmos {
                     }
                     else if ((*iter).state == 1)
                     {
-                        (*iter).runtime = 86400. * (currentmjd() - (*iter).startmjd);
                         if ((*iter).result.valid() && (*iter).result.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
                         {
                             (*iter).iretn = (*iter).result.get();
                             (*iter).state = 2;
-                            log_move((*iter).path, data_base_path(NodeName, "outgoing", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName)), true);
-                            (*iter).path = data_base_path(NodeName, "temp", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName));
+//                            log_move_file((*iter).path, data_base_path(NodeName, "outgoing", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName)), true);
+//                            (*iter).path = data_base_path(NodeName, "temp", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName));
+                            log_move_file((*iter).path, string_replace((*iter).path, "/temp/", "/outgoing/"), true);
                         }
                     }
                     ++iter;
@@ -65,14 +74,21 @@ namespace Cosmos {
             return;
         }
 
-        int32_t Task::Add(string command)
+        int32_t Task::Add(string command, string node)
         {
             mtx.lock();
             tasks.resize(tasks.size()+1);
             tasks.back().startmjd = currentmjd();
             tasks.back().state = 0;
             tasks.back().command = command;
-            tasks.back().path = data_base_path(NodeName, "temp", AgentName, data_name(tasks.back().startmjd, "out", NodeName, AgentName));
+            if (node.empty())
+            {
+                tasks.back().path = data_base_path(NodeName, "temp", AgentName, data_name(tasks.back().startmjd, "task", NodeName, AgentName));
+            }
+            else
+            {
+                tasks.back().path = data_base_path(node, "temp", AgentName, data_name(tasks.back().startmjd, "task", NodeName, AgentName));
+            }
             mtx.unlock();
             return tasks.size();
         }

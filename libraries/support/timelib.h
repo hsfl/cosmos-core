@@ -150,11 +150,12 @@ namespace Cosmos {
                                         int32_t hour, int32_t minute, double second);
 
         // utc to another format
-        timeval utc2unix(double utc);
-        double utc2unixseconds(double utc);
-        double utc2gmst2000(double mjd);
-        string utc2unixdate(double utc);
-        string utc2iso8601(double mjd);
+        timeval utc2unix(double utc=0.);
+        timeval utc2timeval(double utc=0.);
+        timespec utc2timespec(double utc=0.);
+        double utc2unixseconds(double utc=0.);
+        string utc2unixdate(double utc=0.);
+        string utc2iso8601(double mjd=0.);
         double iso86012utc(string date);
 
         // gps to another format
@@ -176,7 +177,7 @@ namespace Cosmos {
         string  mjd2iso8601(double mjd);
         double  mjd2jd(double mjd);
         double  jd2mjd(double jd);
-        int32_t mjd2tlef(double mjd, string &tle);
+        string mjd2tlef(double mjd);
 
         // other
         double unix2utc(struct timeval unixtime);
@@ -187,7 +188,7 @@ namespace Cosmos {
         int16_t isleap(int32_t year);
         string  seconds2DDHHMMSS(double elapsed_seconds);
         int32_t timed_countdown(int32_t seconds, int32_t step=10., string message="");
-        double set_local_clock(double utc_to, int8_t direction=0);
+        double set_local_clock(double utc_to, float limit=0.);
         int32_t microsleep(uint64_t usec);
         int32_t secondsleep(double seconds);
         double newyear(double mjd=0);

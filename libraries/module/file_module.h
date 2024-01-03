@@ -1,6 +1,8 @@
 #ifndef FILE_MODULE_H
 #define FILE_MODULE_H
 
+// This subagent handles file transfers
+
 #include "support/configCosmos.h"
 #include "agent/agentclass.h"
 #include "support/packetcomm.h"
@@ -15,6 +17,7 @@ namespace Cosmos
         {
         public:
             FileModule();
+            FileModule(bool keep_errored_files) : keep_errored_files{keep_errored_files} {}
             /**
              * @brief Initialize FileModule
              * 
@@ -24,9 +27,6 @@ namespace Cosmos
              */
             int32_t Init(Agent *agent, const vector<string> file_transfer_contact_nodes);
             void Loop();
-            int32_t mychannel;
-            bool running;
-            Agent *agent;
 
             //! Sets the radios in radios_channel_number to use in order of their priority
             void set_radios(vector<uint8_t> radios);
@@ -43,7 +43,26 @@ namespace Cosmos
             bool file_transfer_enabled = false;
             bool file_transfer_respond = false;
             //! The nodes that this node has file transfer capabilities with
-            vector<string> contact_nodes;
+            vector<uint8_t> contact_nodes;
+
+            //! The speed of packet queueing (packets/sec)
+            //! Internally keeps track of the queueing rate of the system,
+            //! used to determine how quickly and much to queue packets.
+            double packet_rate = 500.;
+            //! Don't let system weirdnesses let packet_rate below this value (packets/sec)
+            const double PACKET_RATE_LOWER_BOUND = 20.;
+            //! The timer to used to help determine the packet_rate
+            ElapsedTime queueing_timer;
+            //! About the amount of time (in seconds) to wish to continually stream out of a radio for before doing other logic.
+            //! TODO: Consider having a separate listening thread to not need stuff like this.
+            double continual_stream_time = 5.;
+
+            // Whether to keep copies of files that have encountered errors and cancelled
+            const bool keep_errored_files = false;
+
+            int32_t mychannel = 0;
+            bool running = false;
+            Agent *agent;
 
             /**
              * @brief Sets the availability of a radio

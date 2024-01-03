@@ -45,12 +45,16 @@
 
 //! Path to COSMOS root directory
 static string cosmosroot;
-//! Path to COSMOS Nodes directory
-static string cosmosnodes="";
 //! Path to COSMOS Resources directory
 static string cosmosresources;
+//! Path to COSMOS Nodes directory
+static string cosmosnodes="";
 //! Path to current COSMOS Node directory
 static string nodedir;
+//! Path to COSMOS Nodes directory
+static string cosmosrealms="";
+//! Path to current COSMOS Node directory
+static string realmdir;
 
 //! @}
 
@@ -71,14 +75,16 @@ DataLog::DataLog()
 
 //! \brief Initialize ::DataLog
 //! Preset DataLog to be used for provided conditions
-int32_t DataLog::Init(std::string node, std::string agent, std::string type, std::string extra, double stride, bool fastmode)
+int32_t DataLog::Init(string node, std::string location, string agent, string type, string extra, double stride, bool fastmode, bool compress)
 {
     fout = nullptr;
     this->node = node;
+    this->location = location;
     this->agent = agent;
     this->type = type;
     this->extra = extra;
     this->fastmode = fastmode;
+    this->compress = compress;
     if (stride < 0.)
     {
         stride = 0.;
@@ -155,7 +161,6 @@ int32_t DataLog::Write(vector<uint8_t>& data)
     int32_t iretn = 0;
     if (currentmjd() >= enddate)
     {
-        printf("Move %f %f %f\n", startdate, enddate, stride);
         startdate = enddate;
         enddate += stride;
         if (fout != nullptr)
@@ -163,10 +168,10 @@ int32_t DataLog::Write(vector<uint8_t>& data)
             fclose(fout);
             fout = nullptr;
         }
-        if (!path.empty() && path.find("/temp/") != string::npos)
+        if (!path.empty() && !location.empty() && path.find("/temp/") != string::npos)
         {
-            string movepath = string_replace(path, "/temp", "/outgoing");
-            iretn = log_move(path, movepath, true);
+            string movepath = string_replace(path, "/temp/", "/" + location + "/");
+            iretn = log_move_file(path, movepath, compress);
         }
         if (iretn < 0)
         {
@@ -200,14 +205,12 @@ int32_t DataLog::Write(vector<uint8_t>& data)
 //! is created as {node}_yyyyjjjsssss_{extra}.{type}
 //! \param data Data to be written.
 //! \param node Node name.
-//! \param agent Agent name.
+//! \param location Location, subfolder of node.
+//! \param agent Agent name, subfolder of location.
 //! \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
-//! \param extra Extra part  of name.
 //! \param type Type part of name.
-//! \param record String to be appended to file.
-//! \param location Location name.
-
-int32_t DataLog::Write(vector<uint8_t> data, string node, string agent, string type, string extra)
+//! \param extra Extra part  of name.
+int32_t DataLog::Write(vector<uint8_t> data, string node, string location, string agent, string type, string extra)
 {
     int32_t iretn = 0;
     if (currentmjd() >= enddate)
@@ -219,11 +222,10 @@ int32_t DataLog::Write(vector<uint8_t> data, string node, string agent, string t
             fclose(fout);
             fout = nullptr;
         }
-        if (!path.empty() && path.find("/temp/") != string::npos)
+        if (!path.empty() && !location.empty() && path.find("/temp/") != string::npos)
         {
-            string movepath = path;
-            movepath.replace(movepath.find("/temp/"), 10, "/outgoing/");
-            iretn = log_move(path, movepath, true);
+            string movepath = string_replace(path, "/temp/", "/" + location + "/");
+            iretn = log_move_file(path, movepath, compress);
         }
         if (iretn < 0)
         {
@@ -250,6 +252,28 @@ int32_t DataLog::Write(vector<uint8_t> data, string node, string agent, string t
         fout = nullptr;
     }
     return iretn;
+}
+
+//! If stridetime has elapsed since last write, then close the file
+//! Append the provided string to a file in the {node}/{location}/{agent} directory. The file name
+//! is created as {node}_yyyyjjjsssss_{extra}.{type}
+//! \return 0 on success, negative on error
+int32_t DataLog::CloseIfStrideTime()
+{
+    if (fout != nullptr && currentmjd() >= enddate)
+    {
+        startdate = enddate;
+        enddate += stride;
+        fclose(fout);
+        fout = nullptr;
+        if (!path.empty() && !location.empty() && path.find("/temp/") != string::npos)
+        {
+            string movepath = string_replace(path, "/temp/", "/" + location + "/");
+            return log_move_file(path, movepath, compress);
+        }
+        return COSMOS_GENERAL_ERROR_NAME;
+    }
+    return COSMOS_GENERAL_ERROR_NOTREADY;
 }
 
 //! Write log entry - full
@@ -337,14 +361,14 @@ string log_write(string node, int type, double utc, const char *record, string d
 }
 
 //! Move log file - path version.
-/*! Move files previously created with ::log_write to their final location, optionally
- * compressing with gzip. The path version accepts only specific paths, from and to,
- * and whether compression should be used.
+/*! Move a single file previously created with ::log_write to a final location, optionally
+ * compressing with gzip.
  * \param oldpath Path to move from.
  * \param newpath Path to move to.
  * \param compress Wether or not to compress with gzip.
+ * \return 0 on success, negative on error.
  */
-int32_t log_move(string oldpath, string newpath, bool compress)
+int32_t log_move_file(string oldpath, string newpath, bool compress)
 {
     int32_t iretn = 0;
     if (compress && oldpath.find(".gz") == string::npos)
@@ -356,6 +380,18 @@ int32_t log_move(string oldpath, string newpath, bool compress)
         if(fin == nullptr)
         {
             return GENERAL_ERROR_OPEN;
+        }
+        fseek(fin, 0, SEEK_END); // seek to end of file
+        int64_t size = ftell(fin); // get current file pointer
+        fseek(fin, 0, SEEK_SET); // seek back to beginning of file
+        if(size <= 0)
+        {
+            //close the file
+            fclose(fin);
+            //remove the file
+            remove(oldpath.c_str());
+            //exit log_move_file
+            return GENERAL_ERROR_BAD_SIZE;
         }
         FILE *fout = data_open(temppath, "wb");
         if(fout == nullptr)
@@ -376,6 +412,13 @@ int32_t log_move(string oldpath, string newpath, bool compress)
 
         fclose(fin);
         gzclose_w(gzfout);
+        fclose(fout);
+        fout = data_open(newpath, "wb");
+        if(fout == nullptr)
+        {
+            iretn = remove(temppath.c_str());
+            return GENERAL_ERROR_OPEN;
+        }
         fclose(fout);
         iretn = rename(temppath.c_str(), newpath.c_str());
         if (iretn < 0)
@@ -410,18 +453,22 @@ int32_t log_move(string oldpath, string newpath, bool compress)
  * \param srclocation Source location name.
  * \param dstlocation Destination location name.
  * \param compress Wether or not to compress with gzip.
+ * \param age File must be this many seconds or older to move.
  */
-int32_t log_move(string node, string agent, string srclocation, string dstlocation, bool compress)
+int32_t log_move_agent_src(string node, string agent, string srclocation, string dstlocation, bool compress, float age)
 {
     int32_t iretn = 0;
     vector<filestruc> oldfiles;
     iretn = data_list_files(node, srclocation, agent, oldfiles);
     for (auto oldfile: oldfiles)
     {
-        iretn = log_move(oldfile.path, data_base_path(node, dstlocation, agent, oldfile.name), compress);
-        if (iretn < 0)
+        if (86400.*(currentmjd()-oldfile.utc) > age)
         {
-            return iretn;
+            iretn = log_move_file(oldfile.path, data_base_path(node, dstlocation, agent, oldfile.name), compress);
+            if (iretn < 0)
+            {
+                return iretn;
+            }
         }
     }
     return iretn;
@@ -435,9 +482,9 @@ int32_t log_move(string node, string agent, string srclocation, string dstlocati
  * \param node Node name.
  * \param agent Agent name.
  */
-int32_t log_move(string node, string agent)
+int32_t log_move_agent_temp(string node, string agent, float age)
 {
-    return log_move(node, agent, "temp", "outgoing", true);
+    return log_move_agent_src(node, agent, "temp", "outgoing", true, age);
 }
 
 //! Relocate files.
@@ -448,7 +495,7 @@ int32_t log_move(string node, string agent)
  * \param node Node name.
  * \param agent Agent name.
  */
-int32_t log_relocate(string srcdir, string dstdir, bool compress)
+int32_t log_move_directory(string srcdir, string dstdir, bool compress)
 {
     int32_t iretn = 0;
     vector<filestruc> files = data_list_files(srcdir);
@@ -456,7 +503,7 @@ int32_t log_relocate(string srcdir, string dstdir, bool compress)
     {
         for (filestruc file : files)
         {
-            iretn = log_move(file.path, dstdir+"/"+file.name, compress);
+            iretn = log_move_file(file.path, dstdir+"/"+file.name, compress);
         }
         return iretn;
     }
@@ -643,19 +690,21 @@ vector<filestruc> data_list_files(string directory)
  * Repeated calls to this function will append entries.
  * \param directory Directory to search.
  * \param files Reference to filestruc vector to fill.
+ * \param limit Limit the number of files to return from this call. Directories are returned but not counted.
  * \return Number of files found, otherwise negative error.
  */
-size_t data_list_files(string directory, vector<filestruc>& files)
+size_t data_list_files(string directory, vector<filestruc>& files, uint16_t limit)
 {
     DIR *jdp;
     struct dirent *td;
     filestruc tf;
+    uint16_t file_count = 0;
 
     tf.node = "";
     tf.agent = "";
     if ((jdp=opendir(directory.c_str())) != nullptr)
     {
-        while ((td=readdir(jdp)) != nullptr)
+        while ((td=readdir(jdp)) != nullptr && file_count < limit)
         {
             if (td->d_name[0] != '.')
             {
@@ -686,11 +735,12 @@ size_t data_list_files(string directory, vector<filestruc>& files)
                             break;
                         }
                     }
+                    ++file_count;
                 }
                 files.push_back(tf);
-                for (size_t i=files.size()-1; i>1; --i)
+                for (size_t i=files.size()-1; i>0; --i)
                 {
-                    if (files[i].name < files[i-1].name)
+                    if (files[i].utc > files[i-1].utc)
                     {
                         filestruc tfile = files[i-1];
                         files[i-1] = files[i];
@@ -724,6 +774,34 @@ vector<filestruc> data_list_files(string node, string location)
     return files;
 }
 
+//! Get name of most recent file in a Node, directly.
+/*! Generate a list of files for the indicated Node, location (eg. incoming, outgoing, ...),
+ * and Agent. The most recent result is returned as a ::std::string.
+ * \param node Node to search.
+ * \param location Subdirectory of Node to search.
+ * \param agent Subdirectory of location to search.
+ * \return A C++ ::std::string, indicating most recent file. Empty string if no files are found.
+ */
+string data_list_latest_file(string node, string location, string agent)
+{
+    vector<filestruc> files;
+
+    data_list_files(node, location, agent, files);
+
+//    for (uint16_t i=0; i<files.size(); ++i)
+//    {
+//        printf("%u %s\n",i , files[i].path.c_str());
+//    }
+    if (files.size())
+    {
+        return files.front().path;
+    }
+    else
+    {
+        return "";
+    }
+}
+
 //! Get list of files in a Node, directly.
 /*! Generate a list of files for the indicated Node, location (eg. incoming, outgoing, ...),
  * and Agent. The result is returned as a vector of ::filestruc, one entry for each file found.
@@ -749,14 +827,15 @@ vector<filestruc> data_list_files(string node, string location, string agent)
  * \param location Subdirectory of Node to search.
  * \param agent Subdirectory of location to search.
  * \param files List of ::filestruc.
+ * \param limit Limit the maximum number of files to return from this call. Directories are returned but not counted.
  * \return Number of files found, otherwise negative error.
  */
-size_t data_list_files(string node, string location, string agent, vector<filestruc>& files)
+size_t data_list_files(string node, string location, string agent, vector<filestruc>& files, uint16_t limit)
 {
     string dtemp;
     dtemp = data_base_path(node, location, agent);
     //    size_t fcnt = files.size();
-    data_list_files(dtemp, files);
+    data_list_files(dtemp, files, limit);
     //    for (size_t i=fcnt; i<files.size(); ++i)
     //    {
     //        files[i].agent = agent;
@@ -833,12 +912,11 @@ string data_name(double mjd, string type, string node, string agent, string extr
 {
     string name;
 
-    int32_t year, month, seconds;
+    int32_t year, month;
     double jday, day;
 
     mjd2ymd(mjd,year,month,day,jday);
-    seconds = static_cast<int32_t>(86400.*(jday-static_cast<int32_t>(jday)));
-    name = to_unsigned(year, 4, true) + to_unsigned(jday, 3, true) + to_unsigned(seconds, 5, true);
+    name = to_unsigned(decisec(mjd), 10, true);
     if (!node.empty())
     {
         name += ("_" + node);
@@ -1018,7 +1096,7 @@ string data_base_path(string node)
         }
         else
         {
-            tpath += "/" + node;
+            tpath += node;
         }
 
         if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
@@ -1131,7 +1209,7 @@ string data_path(string location, double mjd, string type, string node, string a
 */
 string data_type_path(string node, string location, string agent, double mjd, string type, string extra)
 {
-    string tpath = data_name_path(node, location, agent, mjd, data_name(mjd, node, agent, extra, type));
+    string tpath = data_name_path(node, location, agent, mjd, data_name(mjd, type, node, agent, extra));
 
     return tpath;
 }
@@ -1337,19 +1415,20 @@ int32_t set_cosmosroot(bool create_flag)
 #else
         croot = "/cosmos";
 #endif
-        if (!set_cosmosroot(croot, create_flag))
-        {
-            return 0;
-        }
 
-        // , or home folder for running user
+        // home folder for running user
         if ((troot = getenv("HOME")) != nullptr)
         {
-            croot = troot + string("/cosmos");
-            if (!set_cosmosroot(croot, create_flag))
+            if (!set_cosmosroot(troot + string("/cosmos"), create_flag))
             {
                 return 0;
             }
+        }
+
+        // Try root
+        if (!set_cosmosroot(croot, create_flag))
+        {
+            return 0;
         }
 
         // No standard location. Search upward for "cosmosroot"
@@ -1779,6 +1858,179 @@ string get_nodedir(string node, bool create_flag)
     return (nodedir);
 }
 
+//! Set Nodes Directory
+/*! Set the internal variable that points to where all COSMOS resource files
+             * are stored.
+                \param name Absolute or relative pathname of directory.
+    \param create_flag Create directory if not already present.
+                \return Zero, or negative error.
+            */
+int32_t set_cosmosrealms(string name, bool create_flag)
+{
+    cosmosrealms.clear();
+    for (size_t i=0; i<name.length(); ++i)
+    {
+        if (name[i] == '\\')
+        {
+            name.replace(i, 1, "/");
+        }
+    }
+    if (data_isdir(name))
+    {
+        cosmosrealms = name;
+        return 0;
+    }
+    else
+    {
+        if (create_flag)
+        {
+            if (COSMOS_MKDIR(name.c_str(), 00777) == 0 || errno == EEXIST)
+            {
+                cosmosrealms = name;
+                return 0;
+            }
+            else
+            {
+                return -errno;
+            }
+        }
+        else
+        {
+            return DATA_ERROR_NODES_FOLDER;
+        }
+    }
+}
+
+//! Find COSMOS Nodes Directory on Windows, Linux or MacOS
+/*! Set the internal variable that points to where all COSMOS realm files
+             * are stored. This either uses the value in COSMOSNODES, or looks for the directory
+             * up to 6 levels above the current directory, first in "cosmosrealms", and then in "realms".
+             * \return Zero, or negative error.
+            */
+int32_t set_cosmosrealms(bool create_flag)
+{
+    string croot;
+    char *troot;
+    int32_t iretn = 0;
+
+    if (cosmosrealms.empty())
+    {
+        // find environment variable COSMOSNODES
+        if ((troot = getenv("COSMOSNODES")) != nullptr)
+        {
+            croot = troot;
+            if ((iretn=set_cosmosrealms(croot, create_flag)) == 0)
+            {
+                return 0;
+            }
+            else
+            {
+                return iretn;
+            }
+        }
+        else // look for the default path: $COSMOS/realms or $HOME/cosmos/realms
+        {
+            if ((iretn = set_cosmosroot(create_flag)) == 0)
+            {
+                croot = cosmosroot + "/realms";
+                iretn = set_cosmosrealms(croot, create_flag);
+                return iretn;
+            }
+            else
+            {
+                return iretn;
+            }
+        }
+    }
+
+    return 0;
+}
+
+//! Return COSMOS Nodes Directory
+/*! Get the internal variable that points to where all COSMOS Node files are
+             * stored. Initialize variable if this is the first call to the function.
+    \param create_flag Create directory if not already present.
+             * \return Length of string, otherwise negative error.
+            */
+string get_cosmosrealms(bool create_flag)
+{
+    string result="";
+    get_cosmosrealms(result, create_flag);
+    return result;
+}
+
+//! Get COSMOS Nodes Directory
+/*! Get the internal variable that points to where all COSMOS files are
+             * stored.
+             * \param result String to place path in.
+    \param create_flag Create directory if not already present.
+             * \return Zero, or negative error.
+            */
+int32_t get_cosmosrealms(string &result, bool create_flag)
+{
+    int32_t iretn = 0;
+
+    result.clear();
+    if (cosmosrealms.empty())
+    {
+        iretn = set_cosmosrealms(create_flag);
+        if (iretn < 0)
+        {
+            //            std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/realms folder" << std::endl;
+            return iretn;
+        }
+    }
+
+    if (cosmosrealms.back() == '/')
+    {
+        result = cosmosrealms;
+    }
+    else
+    {
+        result = cosmosrealms + '/';
+    }
+    return 0;
+}
+
+//! Get Current Node Directory
+/*! Get the internal variable that points to where realm files are
+             * stored for the current Node.
+             * \param realm Name of current Node
+             * \param create_flag Whether or not to create realm directory if it doesn't already exist.
+             * \return Pointer to character string containing path to Node, otherwise nullptr.
+            */
+string get_realmdir(string realm, bool create_flag)
+{
+    realmdir.clear();
+    if (!set_cosmosrealms(create_flag))
+    {
+        realmdir = cosmosrealms + "/" + realm;
+
+        // if the realm folder does not exist
+        if (!data_isdir(realmdir))
+        {
+            // if the create folder flag is not on then
+            // exit this function without a realmdir
+            if (!create_flag)
+            {
+                realmdir.clear();
+            }
+            else // let's create the realm directory (good for on the fly realms)
+            {
+                if (COSMOS_MKDIR(realmdir.c_str(),00777) != 0)
+                {
+                    realmdir.clear();
+                }
+            }
+        } else {
+            // realm folder exists
+        }
+    }
+
+    // if the realm folder exists or was created let's return the path
+    return (realmdir);
+}
+
 //! Move data file - filestruc version.
 /*! Move files previously created using ::file_struc to their final location, optionally
  * compressing with gzip. The routine will move the file specified in filestruc to {node}/{dstlocation}/{agent}.
@@ -1786,9 +2038,9 @@ string get_nodedir(string node, bool create_flag)
  * \param location Destination location name.
  * \param compress Wether or not to compress with gzip.
  */
-int32_t data_move(filestruc file, string location, bool compress)
+int32_t data_move_file(filestruc file, string location, bool compress)
 {
-    int32_t iretn = log_move(file.path, data_base_path(file.node, location, file.agent, file.name), compress);
+    int32_t iretn = log_move_file(file.path, data_base_path(file.node, location, file.agent, file.name), compress);
     return iretn;
 }
 
@@ -1800,12 +2052,12 @@ int32_t data_move(filestruc file, string location, bool compress)
  * \param location Destination location name.
  * \param compress Wether or not to compress with gzip.
  */
-int32_t data_move_path(string path, string location, bool compress)
+int32_t data_move_file(string path, string location, bool compress)
 {
     vector<string> parts = string_split(path, "/");
     if (parts.size() >= 5)
     {
-        int32_t iretn = log_move(path, data_base_path(parts[parts.size()-4], location, parts[parts.size()-2], parts[parts.size()-1]), compress);
+        int32_t iretn = log_move_file(path, data_base_path(parts[parts.size()-4], location, parts[parts.size()-2], parts[parts.size()-1]), compress);
         return iretn;
     }
     else
@@ -2041,6 +2293,13 @@ bool data_isdir(string path, bool create_flag)
         return false;
     }
 
+    char *rpath = realpath(path.c_str(), nullptr);
+    if (rpath == nullptr)
+    {
+        return false;
+    }
+    path = rpath;
+
     if (create_flag)
     {
         vector<string> dirs = string_split(path, "/");
@@ -2075,6 +2334,18 @@ bool data_ischardev(string path)
 {
     struct stat st;
 
+    if (path.empty())
+    {
+        return false;
+    }
+
+    char *rpath = realpath(path.c_str(), nullptr);
+    if (rpath == nullptr)
+    {
+        return false;
+    }
+    path = rpath;
+
     if (!stat(path.c_str(), &st) && S_ISCHR(st.st_mode))
     {
         return true;
@@ -2090,6 +2361,18 @@ bool data_isblkdev(string path)
 {
     struct stat st;
 
+    if (path.empty())
+    {
+        return false;
+    }
+
+    char *rpath = realpath(path.c_str(), nullptr);
+    if (rpath == nullptr)
+    {
+        return false;
+    }
+    path = rpath;
+
     if (!stat(path.c_str(), &st) && S_ISBLK(st.st_mode))
     {
         return true;
@@ -2104,6 +2387,11 @@ bool data_isblkdev(string path)
 bool data_issymlink(string path)
 {
     struct stat st;
+
+    if (path.empty())
+    {
+        return false;
+    }
 
     if (!stat(path.c_str(), &st) && S_ISLNK(st.st_mode))
     {
@@ -2124,6 +2412,18 @@ bool data_issymlink(string path)
 bool data_isfile(string path, off_t size)
 {
     struct stat st;
+
+    if (path.empty())
+    {
+        return false;
+    }
+
+    char *rpath = realpath(path.c_str(), nullptr);
+    if (rpath == nullptr)
+    {
+        return false;
+    }
+    path = rpath;
 
     if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode) && (!size || (size == st.st_size)))
     {
@@ -2300,7 +2600,7 @@ int32_t data_execute(string cmd, string& result, float timer, string shell)
         //and copies back into rsp before leaving
         size_t size = result.size();
         accum.resize(size);
-        result.clear();
+//        result.clear();
 
         do
         {
@@ -2335,8 +2635,7 @@ int32_t data_execute(string cmd, string& result, float timer, string shell)
 #else
     int32_t iretn = 0;
     FILE * stream;
-//    char buffer[198];
-    result.clear();
+//    result.clear();
 
     vector<string> cmds = string_split(cmd, " ");
     if (data_isfile(cmds[0]))
@@ -2460,6 +2759,7 @@ int32_t data_execute(string cmd, string& result, float timer, string shell)
         {
             iretn = -errno;
         }
+        iretn = result.size();
     }
     else
     {
@@ -2474,7 +2774,8 @@ int32_t data_task(string command, string outpath, float timeout, string shell)
 {
     string result;
     int32_t iretn = data_execute(command, result, timeout, shell);
-    FILE* fp = fopen(outpath.c_str(), "w");
+
+    FILE* fp = data_open(outpath.c_str(), "w");
     if (fp != nullptr)
     {
         fwrite(result.data(), result.size(), 1, fp);
@@ -2489,8 +2790,6 @@ int32_t data_task(string command, string outpath, float timeout, string shell)
 
 int32_t data_shell(string command_line, string outpath, string inpath, string errpath)
 {
-    printf("Data: Shell Command=%s Out=%s Err=%s\n", command_line.c_str(), outpath.c_str(), errpath.c_str());
-    fflush(stdout);
     int32_t iretn=0;
     int devin, devout, deverr;
     int prev_stdin, prev_stdout, prev_stderr;
@@ -2564,131 +2863,157 @@ int32_t data_shell(string command_line, string outpath, string inpath, string er
 }
 
 // Define the static member variables here
-map<string, uint8_t> NodeData::node_ids;
+//map<string, uint8_t> NodeList::node_ids;
 
-//! Loads node table from nodeids.ini configuration file
-//! nodeids is a vector of node name strings indexed by a node_id
-int32_t NodeData::load_node_ids()
-{
-    if (NodeData::node_ids.size() == 0)
-    {
-        char buf[103];
-        FILE *fp = data_open(get_cosmosnodes()+"/nodeids.ini", "rb");
-        if (fp)
-        {
-            // Loop until eof
-            while (fgets(buf, 102, fp) != nullptr)
-            {
-                uint16_t nodeid = 0;
-                string node_name;
-                // Turn whitespace into null terminators, then grab node names and idxs
-                if (buf[strlen(buf)-1] == '\n')
-                {
-                    buf[strlen(buf)-1] = 0;
-                }
-                if (buf[1] == ' ')
-                {
-                    buf[1] = 0;
-                    nodeid = atoi(buf);
-                    node_name = &buf[2];
-                }
-                else if (buf[2] == ' ')
-                {
-                    buf[2] = 0;
-                    nodeid = atoi(buf);
-                    node_name = &buf[3];
-                }
-                else if (buf[3] == ' ')
-                {
-                    buf[3] = 0;
-                    nodeid = atoi(buf);
-                    node_name = &buf[4];
-                }
-                else
-                {
-                    continue;
-                }
-                node_ids[node_name] = nodeid;
-            }
-            fclose(fp);
-        }
-        else
-        {
-            return -errno;
-        }
-    }
+////! \brief Loads target table from targets.ini configuration file
+////! targets
+////! \param realm std::string containing name of Realm
+//int32_t NodeList::load_targets(string realm)
+//{
+//    fp = fopen(targetfile.c_str(), "r");
+//    if (fp != nullptr)
+//    {
+//        string line;
+//        line.resize(200);
+//        while (fgets((char *)line.data(), 200, fp) != nullptr)
+//        {
+//            vector<string> args = string_split(line);
+//            if (args.size() == 4)
+//            {
+//                sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
+//            }
+//            else if (args.size() == 5)
+//            {
+//                sit->second->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])));
+//            }
+//        }
+//    }
+//}
 
-    return NodeData::node_ids.size();
-}
+////! \brief Loads node table from nodeids.ini configuration file
+////! nodeids is a map of node name strings indexed by a node_id
+////! \param realm std::string containing name of Realm
+//int32_t NodeList::load_node_ids(string realm)
+//{
+//    if (NodeList::node_ids.size() == 0)
+//    {
+//        char buf[103];
+//        FILE *fp = data_open(get_cosmosrealms()+"/"+realm+"/nodeids.ini", "rb");
+//        if (fp)
+//        {
+//            // Loop until eof
+//            while (fgets(buf, 102, fp) != nullptr)
+//            {
+//                uint16_t nodeid = 0;
+//                string node_name;
+//                // Turn whitespace into null terminators, then grab node names and idxs
+//                if (buf[strlen(buf)-1] == '\n')
+//                {
+//                    buf[strlen(buf)-1] = 0;
+//                }
+//                if (buf[1] == ' ')
+//                {
+//                    buf[1] = 0;
+//                    nodeid = atoi(buf);
+//                    node_name = &buf[2];
+//                }
+//                else if (buf[2] == ' ')
+//                {
+//                    buf[2] = 0;
+//                    nodeid = atoi(buf);
+//                    node_name = &buf[3];
+//                }
+//                else if (buf[3] == ' ')
+//                {
+//                    buf[3] = 0;
+//                    nodeid = atoi(buf);
+//                    node_name = &buf[4];
+//                }
+//                else
+//                {
+//                    continue;
+//                }
+//                node_ids[node_name] = nodeid;
+//            }
+//            fclose(fp);
+//        }
+//        else
+//        {
+//            return -errno;
+//        }
+//    }
 
-//! Check if a node_id is in the node table
-//! \param node_id
-//! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
-int32_t NodeData::check_node_id(NODE_ID_TYPE node_id)
-{
+//    return NodeList::node_ids.size();
+//}
 
-    if (NodeData::load_node_ids() <= 0)
-    {
-        return NODEIDUNKNOWN;
-    }
+////! Check if a node_id is in the node table
+////! \param node_id
+////! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
+//int32_t NodeList::check_node_id(NODE_ID_TYPE node_id)
+//{
 
-    for (auto it = node_ids.begin(); it != node_ids.end(); ++it)
-    {
-        if (it->second == node_id)
-        {
-            return node_id;
-        }
-    }
-    return NODEIDUNKNOWN;
-}
+//    if (NodeList::load_node_ids() <= 0)
+//    {
+//        return NODEIDUNKNOWN;
+//    }
 
-//! Gets the node_id associated with a node name
-//! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
-int32_t NodeData::lookup_node_id(string node_name)
-{
-    int32_t iretn = 0;
+//    for (auto it = node_ids.begin(); it != node_ids.end(); ++it)
+//    {
+//        if (it->second == node_id)
+//        {
+//            return node_id;
+//        }
+//    }
+//    return NODEIDUNKNOWN;
+//}
 
-    if ((iretn=NodeData::load_node_ids()) <= 0)
-    {
-        return NODEIDUNKNOWN;
-    }
+////! Gets the node_id associated with a node name
+////! \return node_id on success, NODEIDUNKNOWN (0) if not found, negative on error
+//int32_t lookup_node_id(agent->cinfo, string node_name)
+//{
+//    int32_t iretn = 0;
 
-    auto it = node_ids.find(node_name);
-    if (it == node_ids.end())
-    {
-        return NODEIDUNKNOWN;
-    }
-    return it->second;
-}
+//    if ((iretn=NodeList::load_node_ids()) <= 0)
+//    {
+//        return NODEIDUNKNOWN;
+//    }
 
-//! Find the node name associated with the given node id in the node table.
-//! \param node_id Node ID
-//! \return Node name on success, or empty string on failure
-string NodeData::lookup_node_id_name(NODE_ID_TYPE node_id)
-{
-    if (node_id == NodeData::NODEIDORIG)
-    {
-        return "Origin";
-    }
-    else if (node_id == NodeData::NODEIDDEST)
-    {
-        return "Destination";
-    }
-    else if (node_id == NodeData::NODEIDUNKNOWN || NodeData::load_node_ids() <= 0)
-    {
-        return "";
-    }
+//    auto it = node_ids.find(node_name);
+//    if (it == node_ids.end())
+//    {
+//        return NODEIDUNKNOWN;
+//    }
+//    return it->second;
+//}
 
-    for (auto it = node_ids.begin(); it != node_ids.end(); ++it)
-    {
-        if (it->second == node_id)
-        {
-            return it->first;
-        }
-    }
+////! Find the node name associated with the given node id in the node table.
+////! \param node_id Node ID
+////! \return Node name on success, or empty string on failure
+//string NodeList::lookup_node_id_name(NODE_ID_TYPE node_id)
+//{
+//    if (node_id == NODEIDORIG)
+//    {
+//        return "Origin";
+//    }
+//    else if (node_id == NODEIDDEST)
+//    {
+//        return "Destination";
+//    }
+//    else if (node_id == NODEIDUNKNOWN || NodeList::load_node_ids() <= 0)
+//    {
+//        return "";
+//    }
 
-    return "";
-}
+//    for (auto it = node_ids.begin(); it != node_ids.end(); ++it)
+//    {
+//        if (it->second == node_id)
+//        {
+//            return it->first;
+//        }
+//    }
+
+//    return "";
+//}
 
 const string data_getcwd()
 {
@@ -2718,6 +3043,45 @@ const string data_getcwd()
     string str(buf);
     free(buf);
     return str;
+}
+
+void rmdir(const string& dirpath)
+{
+    // (In)sanity checks before running rm -r
+    if (data_isdir(dirpath)
+    && std::count(dirpath.begin(), dirpath.end(), '/') > 3
+    && !std::count(dirpath.begin(), dirpath.end(), ' ')
+    && !std::count(dirpath.begin(), dirpath.end(), '\t')
+    && !std::count(dirpath.begin(), dirpath.end(), '\v')
+    && !std::count(dirpath.begin(), dirpath.end(), '\n')
+    && !std::count(dirpath.begin(), dirpath.end(), '\r')
+    && !std::count(dirpath.begin(), dirpath.end(), '\\')
+    && !std::count(dirpath.begin(), dirpath.end(), '|')
+    && !std::count(dirpath.begin(), dirpath.end(), '-')
+    && !std::count(dirpath.begin(), dirpath.end(), '.'))
+    {
+        data_execute("rm -r " + dirpath);
+    }
+}
+
+// Removes all contents of a folder, but keeps the folder itself
+void rmdir_contents(const string& dirpath)
+{
+    // (In)sanity checks before running rm -r
+    if (data_isdir(dirpath)
+    && std::count(dirpath.begin(), dirpath.end(), '/') > 3
+    && !std::count(dirpath.begin(), dirpath.end(), ' ')
+    && !std::count(dirpath.begin(), dirpath.end(), '\t')
+    && !std::count(dirpath.begin(), dirpath.end(), '\v')
+    && !std::count(dirpath.begin(), dirpath.end(), '\n')
+    && !std::count(dirpath.begin(), dirpath.end(), '\r')
+    && !std::count(dirpath.begin(), dirpath.end(), '\\')
+    && !std::count(dirpath.begin(), dirpath.end(), '|')
+    && !std::count(dirpath.begin(), dirpath.end(), '-')
+    && !std::count(dirpath.begin(), dirpath.end(), '.'))
+    {
+        data_execute("rm -r " + dirpath + "/*");
+    }
 }
 
 void GITTEST::f()	{

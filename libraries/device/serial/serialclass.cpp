@@ -184,6 +184,13 @@ namespace Cosmos {
         return 0;
     }
 
+    int32_t Serial::change_baud(size_t dbaud)
+    {
+        baud = dbaud;
+        error = set_params(baud, bits, parity, stop);
+        return error;
+    }
+
     int32_t Serial::set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
         baud = dbaud;
@@ -1235,7 +1242,6 @@ namespace Cosmos {
         } while (et.split() < rictimeout);
 #endif
 
-//        printf("{%.5f}", et.split());
 
         if (et.split() > rictimeout)
         {
@@ -1308,14 +1314,19 @@ namespace Cosmos {
         return (static_cast<int32_t>(data.size()));
     }
 
-    int32_t Serial::get_data(vector <uint8_t> &data, size_t size)
+    int32_t Serial::get_data(vector <uint8_t> &data, size_t size, bool append)
     {
+        ElapsedTime et;
         if (fd < 0)
         {
             error = SERIAL_ERROR_OPEN;
             return (error);
         }
 
+        if (!append)
+        {
+            data.clear();
+        }
         for (uint16_t i=0; i<size; ++i)
         {
             if ((error=get_char()) < 0)

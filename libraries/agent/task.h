@@ -56,8 +56,9 @@ namespace Cosmos
         public:
             Task(string node="", string agent="");
             ~Task();
+            void Start();
             void Runner();
-            int32_t Add(string command);
+            int32_t Add(string command, string node="");
             int32_t Del(uint32_t deci);
             int32_t Iretn(uint16_t number);
             uint32_t Deci(uint16_t number);
@@ -77,7 +78,6 @@ namespace Cosmos
                 int32_t iretn = 0;
                 string path = "";
 //                string input;
-                double runtime = 0.;
                 uint32_t outsize = 0;
             };
 

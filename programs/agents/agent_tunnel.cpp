@@ -122,15 +122,15 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-    agent = new Agent("", "tunnel", 1., MAXBUFFERSIZE, true);
+    agent = new Agent("", "", "tunnel", 1., MAXBUFFERSIZE, true);
     if ((iretn = agent->wait()) < 0)
     {
-        agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_log.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
     else
     {
-        agent->debug_error.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+        agent->debug_log.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
 
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 
 	memset(&ifr1, 0, sizeof(ifr1));
 	ifr1.ifr_flags = IFF_TUN | IFF_NO_PI;
-    strncpy(ifr1.ifr_name, agent->cinfo->agent[0].beat.proc.c_str(), IFNAMSIZ);
+    strncpy(ifr1.ifr_name, agent->cinfo->agent0.beat.proc.c_str(), IFNAMSIZ);
     if (ioctl(tun_fd, TUNSETIFF, static_cast<void *>(&ifr1)) < 0)
 	{
 		perror("Error setting tunnel interface");
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Get ready to set things
-    strncpy(ifr2.ifr_name, agent->cinfo->agent[0].beat.proc.c_str(), IFNAMSIZ);
+    strncpy(ifr2.ifr_name, agent->cinfo->agent0.beat.proc.c_str(), IFNAMSIZ);
 	ifr2.ifr_addr.sa_family = AF_INET;
 
 	// Set interface address
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
     while(agent->running())
 	{
 		// Set beginning of next cycle;
-        nmjd += agent->cinfo->agent[0].aprd/86400.;
+        nmjd += agent->cinfo->agent0.aprd/86400.;
 
 		sleept = (int32_t)((nmjd - currentmjd(0.))*86400000000.);
 		if (sleept < 0)

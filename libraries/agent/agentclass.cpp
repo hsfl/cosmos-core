@@ -63,12 +63,17 @@ namespace Cosmos
         //! \ingroup agentclass
         //! \defgroup agentclass_functions Agent Server and Client functions
         //! @{
+        
+        //! Creates a skeleton agent with no setup
+        //! \param placeholder Does nothing but provide a different function signature for overloading
+        Agent::Agent(uint8_t placeholder) {}
 
         //! Add COSMOS awareness.
         //! Sets up minimum framework for COSMOS awareness. The minimum call makes a nodeless client, setting up the
         //! message ring buffer thread, and a main thread of execution. Additional parameters are related to making
         //! the program a true Agent by tieing it to a node, and starting the request and heartbeat threads.
         //! \param ntype Transport Layer protocol to be used, taken from ::NetworkType. Defaults to UDP Broadcast.
+        //! \param realm_name Realm name. Defaults to empty.
         //! \param node_name Node name. Defaults to empty.
         //! \param agent_name Agent name. Defaults to empty. If this is defined, the full Agent code will be started.
         //! \param bprd Period, in seconds, for heartbeat. Defaults to 1.
@@ -78,86 +83,108 @@ namespace Cosmos
         //! the Agent already running.
         //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
         //! \param dlevel debug level. Defaults to 1 so that if there is an error the user can immediately see it. also initialized in the namespace variables
-        Agent::Agent(
-                const string &node_name,
-                const string &agent_name,
-                double bprd,
-                uint32_t bsize,
-                bool mflag,
-                int32_t portnum,
-                NetworkType ntype,
-                uint16_t dlevel)
+        Agent::Agent(string realm_name,
+                     string node_name,
+                     string agent_name,
+                     double bprd,
+                     uint32_t bsize,
+                     bool mflag,
+                     int32_t portnum,
+                     NetworkType ntype,
+                     uint16_t dlevel)
         {
             int32_t iretn = 0;
             uptime.reset();
+
+            // Set up node: use hostname if it's empty.
+            if (node_name.empty())
+            {
+                char hostname[60];
+                gethostname(hostname, sizeof (hostname));
+                node_name = hostname;
+            }
+
+            // Initialize logging
             debug_level = dlevel;
-            debug_error.Set(dlevel,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
+            debug_log.Set(dlevel, true,  data_base_path(node_name, "temp", agent_name), 1800., "debug");
+
+            tasks.Start();
+            debug_log.Printf("Started Tasks\n");
 
             // Initialize COSMOS data space
-            cinfo = json_init();
+            cinfo = json_init(node_name);
 
             if (cinfo == nullptr) {
                 error_value = AGENT_ERROR_JSON_CREATE;
-                debug_error.Printf("Failed to initialize Namespace\n");
+                debug_log.Printf("Failed to initialize Namespace\n");
                 shutdown();
                 return;
             }
+            debug_log.Printf("Initialized Namespace\n");
 
-            cinfo->agent[0].stateflag = static_cast<uint16_t>(State::INIT);
+            cinfo->agent0.stateflag = static_cast<uint16_t>(State::INIT);
 
             // Establish subscribe channel
-            iretn = subscribe(NetworkType::MULTICAST, AGENTMCAST, AGENTSENDPORT, 1000);
+            iretn = subscribe(NetworkType::UDP, AGENTLOOPBACK, AGENTSENDPORT, 1000);
             if (iretn) {
                 error_value = iretn;
-                debug_error.Printf("Failed to open Subscribe channel\n");
+                debug_log.Printf("Failed to open Subscribe channel\n");
                 shutdown();
                 return;
             }
+            debug_log.Printf("Opened Subscribe channel\n");
 
-            // Set up node: shorten if too long, use hostname if it's empty.
-            if (node_name.length())
-            {
-                nodeName = node_name;
-            }
-            else {
-                {
-                    char hostname[60];
-                    gethostname(hostname, sizeof (hostname));
-                    nodeName = hostname;
-                }
-            }
-            if ((iretn=json_setup_node(nodeName, cinfo)) != 0) {
+            if ((iretn=json_setup_node(node_name, cinfo)) != 0) {
                 error_value = iretn;
-                debug_error.Printf("Failed to set up Namespace\n");
+                debug_log.Printf("Failed to set up Namespace\n");
                 shutdown();
                 return;
             }
+            debug_log.Printf("Set Up Namespace\n");
 
-            //        strcpy(cinfo->node.name, nodeName.c_str());
-            cinfo->node.name = nodeName;
-
-            cinfo->agent[0].client = 1;
+            cinfo->agent0.client = 1;
             cinfo->node.utc = 0.;
-            cinfo->agent[0].beat.node = cinfo->node.name;
+            cinfo->agent0.beat.node = cinfo->node.name;
 
             // Establish publish channel
-            cinfo->agent[0].beat.ntype = ntype;
-            iretn = publish(cinfo->agent[0].beat.ntype, AGENTSENDPORT);
+            cinfo->agent0.beat.ntype = ntype;
+            iretn = publish(cinfo->agent0.beat.ntype, AGENTSENDPORT);
             if (iretn) {
                 error_value = iretn;
-                debug_error.Printf("Failed to open publish channel\n");
+                debug_log.Printf("Failed to open publish channel\n");
                 shutdown();
                 return;
             }
+            debug_log.Printf("Opened Publish channel\n");
 
-            // Load node id table
-            iretn = nodeData.lookup_node_id(nodeName);
+            // Set Realm:
+            // if empty, use "all"
+            // if Node is not in Realm, add it
+            iretn = load_node_ids(cinfo, realm_name);
             if (iretn < 0)
             {
                 error_value = iretn;
-                debug_error.Printf("Failed to find Node Id table\n");
+                debug_log.Printf("Failed to find Realm %s\n", realm_name.c_str());
                 shutdown();
                 return;
+            }
+            for (auto id : cinfo->realm.node_ids)
+            {
+                debug_log.Printf("Node Index: %u Name: %s\n", static_cast<uint8_t>(id.second), id.first.c_str());
+            }
+
+            // Find Node in Realm
+            iretn = lookup_node_id(cinfo, cinfo->node.name);
+            if (iretn < 0)
+            {
+                error_value = iretn;
+                debug_log.Printf("Failed to find Node %s in Realm %s\n", cinfo->node.name.c_str(), realm_name.c_str());
+                shutdown();
+                return;
+            }
+            else if (iretn == 0)
+            {
+                iretn = add_node_id(cinfo, cinfo->node.name);
             }
             nodeId = iretn;
 
@@ -166,16 +193,17 @@ namespace Cosmos
             secondsleep(.1);
 
             // Return if all we are doing is setting up client.
-            if (agent_name.empty()) {
-                cinfo->agent[0].beat.proc = "";
-                cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
+            if (agent_name.empty())
+            {
+                cinfo->agent0.beat.proc = "";
+                cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::RUN);
                 return;
             }
 
             //        if (strlen(cinfo->node.name)>COSMOS_MAX_NAME || agent_name.length()>COSMOS_MAX_NAME) {
             if (cinfo->node.name.size() > COSMOS_MAX_NAME || agent_name.length()>COSMOS_MAX_NAME) {
                 error_value = JSON_ERROR_NAME_LENGTH;
-                debug_error.Printf("Node or Agent name too large\n");
+                debug_log.Printf("Node or Agent name too large\n");
                 shutdown();
                 return;
             }
@@ -186,7 +214,7 @@ namespace Cosmos
             if (!mflag) {
                 if (check_agent(cinfo->node.name, agent_name, timeoutSec)) {
                     error_value = AGENT_ERROR_SERVER_RUNNING;
-                    debug_error.Printf("Agent is already running\n");
+                    debug_log.Printf("Agent is already running\n");
                     shutdown();
                     return;
                 }
@@ -196,7 +224,7 @@ namespace Cosmos
                 //            if (strlen(cinfo->node.name)>COSMOS_MAX_NAME-4 || agent_name.size()>COSMOS_MAX_NAME-4) {
                 if (cinfo->node.name.size()>COSMOS_MAX_NAME-4 || agent_name.size()>COSMOS_MAX_NAME-4) {
                     error_value = JSON_ERROR_NAME_LENGTH;
-                    debug_error.Printf("Node or Agent name too large\n");
+                    debug_log.Printf("Node or Agent name too large\n");
                     shutdown();
                     return;
                 }
@@ -213,37 +241,37 @@ namespace Cosmos
             }
 
             // Initialize important server variables
-
-            cinfo->agent[0].beat.node = cinfo->node.name;
-            cinfo->agent[0].beat.proc = tname;
-            agentName = cinfo->agent[0].beat.proc;
+            cinfo->agent0.beat.node = cinfo->node.name;
+            cinfo->agent0.beat.proc = tname;
+//            cinfo->agent0.name = cinfo->agent0.beat.proc;
+            cinfo->agent0.name = cinfo->agent0.beat.proc;
             timeStart = currentmjd();
 
             if (debug_level>2) {
-                debug_error.Printf("------------------------------------------------------\n");
-                debug_error.Printf("COSMOS AGENT '%s' on node '%s'\n", agent_name.c_str(), nodeName.c_str());
-                debug_error.Printf("Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
-                debug_error.Printf("Agent started at %s\n", mjdToGregorian(timeStart).c_str());
-                debug_error.Printf("Debug level %u\n", debug_level);
-                debug_error.Printf("------------------------------------------------------\n");
+                debug_log.Printf("------------------------------------------------------\n");
+                debug_log.Printf("COSMOS AGENT '%s' on node '%s'\n", agent_name.c_str(), cinfo->node.name.c_str());
+                debug_log.Printf("Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
+                debug_log.Printf("Agent started at %s\n", mjdToGregorian(timeStart).c_str());
+                debug_log.Printf("Debug level %u\n", debug_level);
+                debug_log.Printf("------------------------------------------------------\n");
             }
 
             if (bprd >= AGENT_HEARTBEAT_PERIOD_MIN) {
-                cinfo->agent[0].beat.bprd = bprd;
+                cinfo->agent0.beat.bprd = bprd;
             } else {
-                cinfo->agent[0].beat.bprd = 0.;
+                cinfo->agent0.beat.bprd = 0.;
             }
-            cinfo->agent[0].stateflag = static_cast<uint16_t>(State::INIT);
-            cinfo->agent[0].beat.port = static_cast<uint16_t>(portnum);
-            cinfo->agent[0].beat.bsz = (bsize<=AGENTMAXBUFFER-4?bsize:AGENTMAXBUFFER-4);
+            cinfo->agent0.stateflag = static_cast<uint16_t>(State::INIT);
+            cinfo->agent0.beat.port = static_cast<uint16_t>(portnum);
+            cinfo->agent0.beat.bsz = (bsize<=AGENTMAXBUFFER-4?bsize:AGENTMAXBUFFER-4);
 
 #ifdef COSMOS_WIN_BUILD_MSVC
-            cinfo->agent[0].pid = _getpid();
+            cinfo->agent0.pid = _getpid();
 #else
-            cinfo->agent[0].pid = getpid();
+            cinfo->agent0.pid = getpid();
 #endif
-            cinfo->agent[0].aprd = 1.;
-            cinfo->agent[0].beat.user = "cosmos";
+            cinfo->agent0.aprd = 1.;
+            cinfo->agent0.beat.user = "cosmos";
 
             // Start the heartbeat and request threads running
             //    iretn = start();
@@ -252,7 +280,7 @@ namespace Cosmos
             if (!hthread.joinable() || !cthread.joinable()) {
                 // TODO: create error value
                 //error_value = iretn;
-                debug_error.Printf("Failed to start Heartbeat and/or Request Loops\n");
+                debug_log.Printf("Failed to start Heartbeat and/or Request Loops\n");
                 shutdown();
                 return;
             }
@@ -271,7 +299,7 @@ namespace Cosmos
             add_request("getvalue",req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
             add_request("get_value",req_get_value,"[{] \"name1\",\"name2\",... [}]","get specified value(s) from agent (Namespace 2.0)");
             add_request("get_state",req_get_state,"[{] \"name1\",\"name2\",... [}]","get current state value(s) from agent");
-            add_request("get_time",req_get_time,"","return the current time of the agent");
+            add_request("get_time",req_get_time,"[\"mjd\",\"humand\",\"met\"]","Return the current time of the agent. As either modified julian day, human readable, or mission elapsed time");
             add_request("get_position",req_get_position,"","return the current perifocal position of the agent");
             add_request("get_position_data",req_get_position_data,"","return the current perifocal position of the agent");
             add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
@@ -302,6 +330,7 @@ namespace Cosmos
                         "Commands:\n"
                         "    Reset [seconds_delay]\n"
                         "    Reboot [seconds_delay]\n"
+                        "    Halt [seconds_delay]\n"
                         "    SendBeacon [type:count]\n"
                         "    ClearQueue [channel]\n"
                         "    ExternalCommand command parameters\n"
@@ -313,31 +342,35 @@ namespace Cosmos
                         "    TransferRadio\n"
                         "    InternalRequest request parameters\n"
                         "    Ping {string}\n"
-                        "    SetTime {MJD {direction}}\n"
+                        "    SetTime {MJD|delta {limit}}\n"
                         "    GetTimeHuman\n"
                         "    GetTimeBinary\n"
                         "    SetOpsMode [modestring]\n"
                         "    EnableChannel [channelstring | channelnumber] {State}\n"
                         "    EpsCommunicate sbid:command:hexstring:response_size\n"
-                        "    EpsSwitchStatus [0-1|vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200]\n"
+                        "    EpsSwitchStatus [0-1|vbattbus|5vbus|hdrm|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200|sif]\n"
                         "    EpsState {0|1|2|3}\n"
-                        "    EpsSwitchName {vbatt_bus|simplex|5vbus|hdrm|hdrmalt|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200}:[seconds]\n"
-                        "    EpsSwitchNumber {0-1}:[seconds]\n"
-                        "    EpsSwitchNames {vbatt_bus:...} [seconds:...]\n"
-                        "    AdcsState {0-7} {0-18} \n"
+                        "    EpsSwitchName {vbattbus|5vbus|hdrm|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200|sif} [0|1|2]\n"
+                        "    EpsSwitchNumber boardid switchid [0|1]\n"
+                        "    EpsSwitchNames {vbattbus ...} [0|1]\n"
+                        "    AdcsOrbitParameters inc ecc raan ap bstar mm ma epoch\n"
+                        "    AdcsState {0-7} {0-255} ... \n"
                         "    AdcsCommunicate command:hexstring:response_size\n"
+                        "    CameraCapture [frames [usec [ startcol width [startrow height [name]]]]]\n"
+                        "    ExecAddCommand json_event_string\n"
                         "");
             add_request("list_channels", req_list_channels, "", "List current channels");
             add_request("run_command", req_run_command, "command parameters", "Run external command for immediate response");
             add_request("add_task", req_add_task, "command parameters", "Start external command as Task for output to file");
             add_request("test_channel", req_test_channel, "channel radio dest start step count bytes", "Run channel performance test");
-
+            add_request("channel_enable", req_channel_enable, "channel state", "Set channel enabled state to the specified value");
+            add_request("channel_touch", req_channel_touch, "channel [seconds]", "Reset channel age");
             // Set up Full SOH string
             //            set_fullsohstring(json_list_of_fullsoh(cinfo));
 
-            cinfo->agent[0].server = 1;
-            cinfo->agent[0].stateflag = static_cast<uint16_t>(Agent::State::RUN);
-            activeTimeout = currentmjd() + cinfo->agent[0].aprd / 86400.;
+            cinfo->agent0.server = 1;
+            cinfo->agent0.stateflag = static_cast<uint16_t>(Agent::State::RUN);
+            activeTimeout = currentmjd() + cinfo->agent0.aprd / 86400.;
         }
 
         Agent::~Agent() { Agent::shutdown(); }
@@ -415,7 +448,7 @@ namespace Cosmos
         //! Initializes timer for active loop using ::aprd
         //! \return Zero or negative error.
         int32_t Agent::start_active_loop() {
-            activeTimeout = currentmjd() + cinfo->agent[0].aprd / 86400.;
+            activeTimeout = currentmjd() + cinfo->agent0.aprd / 86400.;
             return 0;
         }
 
@@ -424,8 +457,8 @@ namespace Cosmos
         //! \return Zero or negative error.
         int32_t Agent::finish_active_loop() {
             double sleepsec = 86400.*(activeTimeout - currentmjd());
-            activeTimeout += cinfo->agent[0].aprd / 86400.;
-            cinfo->agent[0].beat.dcycle = (cinfo->agent[0].aprd - sleepsec) / cinfo->agent[0].aprd;
+            activeTimeout += cinfo->agent0.aprd / 86400.;
+            cinfo->agent0.beat.dcycle = (cinfo->agent0.aprd - sleepsec) / cinfo->agent0.aprd;
             secondsleep(sleepsec);
             return sleepsec*1000000;
         }
@@ -437,17 +470,21 @@ namespace Cosmos
         int32_t Agent::shutdown()
         {
             if (debug_level) {
-                debug_error.Printf("Shutting down Agent. Last error: %s\n", cosmos_error_string(error_value).c_str());
+                debug_log.Printf("Shutting down Agent. Last error: %s\n", cosmos_error_string(error_value).c_str());
                 fflush(stdout);
             }
 
-            if (cinfo != nullptr) { cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN); }
-
-            if (agentName.size()) {
-                if (hthread.joinable()) { hthread.join(); }
-                if (cthread.joinable()) { cthread.join(); }
-                Agent::unpublish();
+            if (cinfo != nullptr)
+            {
+                cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
+                if (cinfo->agent0.name.size())
+                {
+                    if (hthread.joinable()) { hthread.join(); }
+                    if (cthread.joinable()) { cthread.join(); }
+                    Agent::unpublish();
+                }
             }
+
             if (mthread.joinable()) { mthread.join(); }
             Agent::unsubscribe();
             json_destroy(cinfo);
@@ -459,7 +496,7 @@ namespace Cosmos
  * the threads are running.
     \return Value of internal state variable, as enumerated in Cosmos::Agent:State.
 */
-        uint16_t Agent::running() { return cinfo->agent[0].stateflag; }
+        uint16_t Agent::running() { return cinfo->agent0.stateflag; }
 
         //! Wait on state
         //! Wait for up to waitsec seconds for Agent to enter requested state
@@ -470,10 +507,10 @@ namespace Cosmos
             if (cinfo == nullptr) { return AGENT_ERROR_NULL; }
 
             ElapsedTime et;
-            while (cinfo->agent[0].stateflag != static_cast <uint16_t>(state) && et.split() < waitsec) {
+            while (cinfo->agent0.stateflag != static_cast <uint16_t>(state) && et.split() < waitsec) {
                 secondsleep(.1);
             }
-            if (cinfo->agent[0].stateflag == static_cast <uint16_t>(state)) {
+            if (cinfo->agent0.stateflag == static_cast <uint16_t>(state)) {
                 return 0;
             } else {
                 return GENERAL_ERROR_TIMEOUT;
@@ -512,7 +549,7 @@ namespace Cosmos
             nbytes = std::min(request.size(), (size_t)hbeat.bsz);
             nbytes=sendto(sendchan.cudp, request.c_str(), nbytes, 0, (struct sockaddr *)&sendchan.caddr, sizeof(struct sockaddr_in));
             if (debug_level) {
-                debug_error.Printf("Send Request: [%s:%u:%d] %s\n", sendchan.address, sendchan.cport, iretn, &request[0]);
+                debug_log.Printf("Send Request: [%s:%u:%d] %s\n", sendchan.address, sendchan.cport, iretn, &request[0]);
             }
 
             if ((nbytes) < 0) {
@@ -778,45 +815,45 @@ namespace Cosmos
         void Agent::heartbeat_loop() {
             ElapsedTime timer_beat;
 
-            while (cinfo->agent[0].stateflag) {
+            while (cinfo->agent0.stateflag) {
 
                 // compute the jitter
-                if (cinfo->agent[0].beat.bprd == 0.) {
-                    cinfo->agent[0].beat.jitter = timer_beat.split() - 1.;
+                if (cinfo->agent0.beat.bprd == 0.) {
+                    cinfo->agent0.beat.jitter = timer_beat.split() - 1.;
                 } else {
-                    cinfo->agent[0].beat.jitter = timer_beat.split() - cinfo->agent[0].beat.bprd;
+                    cinfo->agent0.beat.jitter = timer_beat.split() - cinfo->agent0.beat.bprd;
                 }
                 timer_beat.start();
 
                 // post comes first
-                if (cinfo->agent[0].beat.bprd != 0.) {
+                if (cinfo->agent0.beat.bprd != 0.) {
                     post_beat();
                 }
 
                 // TODO: move the monitoring calculations to another thread with its own loop time that can be controlled
                 // Compute other monitored quantities if monitoring
-                if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::MONITOR)) {
+                if (cinfo->agent0.stateflag == static_cast <uint16_t>(Agent::State::MONITOR)) {
                     // TODO: rename beat.cpu to beat.cpu_percent
                     // add beat.cpu_load
-                    cinfo->agent[0].beat.cpu    = deviceCpu_.getPercentUseForCurrentProcess();//cpu.getLoad();
-                    cinfo->agent[0].beat.memory = deviceCpu_.getVirtualMemoryUsed();
+                    cinfo->agent0.beat.cpu    = deviceCpu_.getPercentUseForCurrentProcess();//cpu.getLoad();
+                    cinfo->agent0.beat.memory = deviceCpu_.getVirtualMemoryUsed();
                 }
 
-                if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::SHUTDOWN)) {
-                    cinfo->agent[0].beat.cpu = 0;
-                    cinfo->agent[0].beat.memory = 0;
+                if (cinfo->agent0.stateflag == static_cast <uint16_t>(Agent::State::SHUTDOWN)) {
+                    cinfo->agent0.beat.cpu = 0;
+                    cinfo->agent0.beat.memory = 0;
                 }
 
 
-                if (cinfo->agent[0].beat.bprd < AGENT_HEARTBEAT_PERIOD_MIN) {
-                    cinfo->agent[0].beat.bprd = 0.;
+                if (cinfo->agent0.beat.bprd < AGENT_HEARTBEAT_PERIOD_MIN) {
+                    cinfo->agent0.beat.bprd = 0.;
                 }
 
-                if (cinfo->agent[0].beat.bprd == 0.) {
+                if (cinfo->agent0.beat.bprd == 0.) {
                     secondsleep(1.);
                 } else {
-                    if (timer_beat.split() <= cinfo->agent[0].beat.bprd) {
-                        secondsleep(cinfo->agent[0].beat.bprd - timer_beat.split());
+                    if (timer_beat.split() <= cinfo->agent0.beat.bprd) {
+                        secondsleep(cinfo->agent0.beat.bprd - timer_beat.split());
                     }
                 }
             }
@@ -832,15 +869,18 @@ namespace Cosmos
             int32_t iretn = 0;
             string bufferin;
 
-            if ((iretn = socket_open(&cinfo->agent[0].req, NetworkType::UDP, (char *)"", cinfo->agent[0].beat.port, SOCKET_LISTEN, SOCKET_BLOCKING, 2000000)) < 0) { return; }
+            if ((iretn = socket_open(&cinfo->agent0.req, NetworkType::UDP, (char *)"", cinfo->agent0.beat.port, SOCKET_LISTEN, SOCKET_BLOCKING, 2000000)) < 0) { return; }
 
-            cinfo->agent[0].beat.port = cinfo->agent[0].req.cport;
+            cinfo->agent0.beat.port = cinfo->agent0.req.cport;
 
-            while (cinfo->agent[0].stateflag) {
-                bufferin.resize(cinfo->agent[0].beat.bsz);
-                iretn = recvfrom(cinfo->agent[0].req.cudp, &bufferin[0], bufferin.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, (socklen_t *)&cinfo->agent[0].req.addrlen);
+            while (cinfo->agent0.stateflag)
+            {
+                bufferin.resize(cinfo->agent0.beat.bsz);
+                cinfo->agent0.req.addrlen = sizeof(cinfo->agent0.req.caddr);
+                iretn = recvfrom(cinfo->agent0.req.cudp, &bufferin[0], bufferin.size(), 0, (struct sockaddr *)&cinfo->agent0.req.caddr, (socklen_t *)&cinfo->agent0.req.addrlen);
 
-                if (iretn > 0) {
+                if (iretn > 0)
+                {
                     string bufferout;
                     bufferin.resize(iretn);
                     process_request(bufferin, bufferout);
@@ -849,14 +889,15 @@ namespace Cosmos
             return;
         }
 
-        int32_t Agent::process_request(string &bufferin, string &bufferout) {
+        int32_t Agent::process_request(string &bufferin, string &bufferout, bool send_response)
+        {
             size_t i;
             int32_t iretn = 0;
 
             process_mutex.lock();
 
             if (debug_level) {
-                debug_error.Printf("Request: [%lu] %s\n",bufferin.size(), &bufferin[0]);
+                debug_log.Printf("Request: [%lu] %s\n",bufferin.size(), &bufferin[0]);
                 fflush(stdout);
             }
 
@@ -872,27 +913,47 @@ namespace Cosmos
             //request[i] = 0;
             request.resize(i);
 
-            //for (i=0; i<reqs.size(); i++) { if (!strcmp(request.c_str(),reqs[i].token.c_str())) break; }
-            if(reqs.find(request) == reqs.end()) {
+            bufferout = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " " + &bufferin[0] + "\n";
+            if(reqs.find(request) == reqs.end())
+            {
                 iretn = AGENT_ERROR_NULL;
-                bufferout = "[NOK] " + std::to_string(iretn);
-            } else {
+                bufferout += "[NOK] " + std::to_string(iretn);
+            }
+            else
+            {
                 request_entry &rentry = reqs[request];
                 iretn = -1;
-                if (rentry.efunction != nullptr) {
+                if (rentry.efunction != nullptr)
+                {
                     iretn = rentry.efunction(bufferin, request, this);
                 }
-                if (iretn >= 0) {
+                if (iretn >= 0)
+                {
                     request.resize(strlen(&request[0]));
-                    bufferout = request;
-                } else {
-                    bufferout = "[NOK] " + std::to_string(iretn);
+                    bufferout += request;
+                    if (bufferout.back() != '\n')
+                    {
+                        bufferout += "\n";
+                    }
+                }
+                else
+                {
+                    bufferout += "[NOK] " + std::to_string(iretn) + "\n";
                 }
             }
 
-            iretn = sendto(cinfo->agent[0].req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, sizeof(struct sockaddr_in));
-            if (debug_level) {
-                debug_error.Printf("Response: [%s:%u:%d] %s\n", cinfo->agent[0].req.address, cinfo->agent[0].req.cport, iretn, &bufferout[0]);
+            if (send_response)
+            {
+                iretn = sendto(cinfo->agent0.req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent0.req.caddr, sizeof(struct sockaddr_in));
+                if (iretn < 0)
+                {
+                    iretn = -errno;
+                }
+                debug_log.Printf("Response: [%d:%s:%x:%u:%d] %s\n", cinfo->agent0.req.cudp, cinfo->agent0.req.address, ntohl(cinfo->agent0.req.caddr.sin_addr.s_addr), cinfo->agent0.req.cport, iretn, &bufferout[0]);
+            }
+            else
+            {
+                debug_log.Printf("Response: [%d] %s\n", iretn, &bufferout[0]);
             }
 
             process_mutex.unlock();
@@ -911,7 +972,8 @@ namespace Cosmos
             //            message_ring.resize(MESSAGE_RING_SIZE);
             while (Agent::running()) {
                 iretn = Agent::poll(mess, AgentMessage::ALL, 0.);
-                if (iretn > 0) {
+                if (iretn > 0)
+                {
                     if (!mess.meta.beat.proc.compare("") && mess.adata.empty()) {
                         continue;
                     }
@@ -934,19 +996,23 @@ namespace Cosmos
                         }
                     }
 
-                    if (mess.meta.type == AgentMessage::REQUEST && cinfo->agent[0].beat.proc.compare("")) {
+                    if (mess.meta.type == AgentMessage::REQUEST && cinfo->agent0.beat.proc.compare(""))
+                    {
                         string response;
                         process_request(mess.adata, response);
                         Agent::post(AgentMessage::RESPONSE, response);
-                    } else {
-                        //                        size_t new_position;
-                        //                        new_position = message_head + 1;
-                        //                        if (new_position >= message_ring.size())
-                        //                        {
-                        //                            new_position = 0;
-                        //                        }
-                        //                        message_ring[new_position] = mess;
-                        //                        message_head = new_position;
+                    }
+                    else if (mess.meta.type == AgentMessage::COMM)
+                    {
+                        PacketComm packet;
+                        packet.wrapped = mess.bdata;
+                        if (packet.Unwrap() > 0 && packet.header.chanout < channel_count())
+                        {
+                            channel_push(packet.header.chanout, packet);
+                        }
+                    }
+                    else
+                    {
                         message_queue.push_back(mess);
                         if (message_queue.size() > MESSAGE_RING_SIZE) { message_queue.pop_front(); }
                     }
@@ -968,12 +1034,12 @@ namespace Cosmos
 
             //            sscanf(&request[0],"%*s %hu",&count);
             sscanf(&request[0],"%*s %hu",&count);
-            for (uint16_t i=0; i<agent->cinfo->agent[0].ifcnt; ++i)
+            for (uint16_t i=0; i<agent->cinfo->agent0.ifcnt; ++i)
             {
-                //                iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.length()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
-                iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.size()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
+                //                iretn = sendto(agent->cinfo->agent0.pub[i].cudp,(const char *)&request[request.length()-count],count,0,(struct sockaddr *)&agent->cinfo->agent0.pub[i].baddr,sizeof(struct sockaddr_in));
+                iretn = sendto(agent->cinfo->agent0.pub[i].cudp,(const char *)&request[request.size()-count],count,0,(struct sockaddr *)&agent->cinfo->agent0.pub[i].baddr,sizeof(struct sockaddr_in));
                 if (agent->get_debug_level()) {
-                    agent->debug_error.Printf("Forward: [%s:%u:%d] %s\n", agent->cinfo->agent[0].pub[i].address, agent->cinfo->agent[0].pub[i].cport, iretn, (const char *)&request[request.size()-count]);
+                    agent->debug_log.Printf("Forward: [%s:%u:%d] %s\n", agent->cinfo->agent0.pub[i].address, agent->cinfo->agent0.pub[i].cport, iretn, (const char *)&request[request.size()-count]);
                 }
             }
             //            sprintf(output,"%.17g %d ",currentmjd(0),iretn);
@@ -1008,13 +1074,53 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_help_json(string &, string &output, Agent* agent) {
+        int32_t Agent::req_help_json(string &request, string &output, Agent* agent)
+        {
+            string function = "all";
+            if (request.size())
+            {
+                vector<string> args = string_split(request);
+                if (args.size() > 1 && args[0] == "help")
+                {
+                    function = args[1];
+                }
+            }
             string help_string, s;
             size_t qpos, prev_qpos = 0;
             help_string += "{\"requests\": [";
-            for(map<string, request_entry>::iterator it = agent->reqs.begin(); it != agent->reqs.end(); ++it) {
-                //            help_string += "        ";
-                if(it != agent->reqs.begin()) help_string+=",";
+            map<string, request_entry>::iterator it;
+            if (function == "all")
+            {
+                for(it = agent->reqs.begin(); it != agent->reqs.end(); ++it)
+                {
+                    if(it != agent->reqs.begin()) help_string+=",";
+                    help_string += "{\"token\": \"";
+                    help_string += it->second.token;
+                    help_string += "\", \"synopsis\": \"";
+                    qpos = 0;
+                    prev_qpos = 0;
+                    s = it->second.synopsis;
+                    while((qpos=s.substr(prev_qpos).find("\""))!= string::npos)
+                    {
+                        s.replace(qpos+prev_qpos, 1, "\\\"");
+                        prev_qpos +=qpos+2;
+                    }
+                    help_string+= s;
+                    help_string += "\", \"description\": \"";
+                    qpos = 0;
+                    prev_qpos = 0;
+                    s = it->second.description;
+                    while((qpos=s.substr(prev_qpos).find("\""))!= string::npos){
+                        s.replace(qpos+prev_qpos, 1, "\\\"");
+                        prev_qpos +=qpos+2;
+                    }
+                    help_string+= s;
+
+                    help_string +="\"}";
+                }
+            }
+            else if ((it = agent->reqs.find(function)) != agent->reqs.end())
+            {
                 help_string += "{\"token\": \"";
                 help_string += it->second.token;
                 help_string += "\", \"synopsis\": \"";
@@ -1039,15 +1145,48 @@ namespace Cosmos
 
                 help_string +="\"}";
             }
+            else
+            {
+                help_string += "{\"token\": \"";
+                help_string += function;
+                help_string += "\", \"synopsis\": \"Unknown Function";
+                help_string +="\"}";
+            }
             help_string += "]}";
             output = help_string;
             return 0;
         }
 
-        int32_t Agent::req_help(string &, string &output, Agent* agent) {
+        int32_t Agent::req_help(string &request, string &output, Agent* agent)
+        {
+            string function = "all";
+            if (request.size())
+            {
+                vector<string> args = string_split(request);
+                if (args.size() > 1 && args[0] == "help")
+                {
+                    function = args[1];
+                }
+            }
             string help_string;
             help_string += "\n";
-            for(map<string, request_entry>::iterator it = agent->reqs.begin(); it != agent->reqs.end(); ++it) {
+            map<string, request_entry>::iterator it;
+            if (function == "all")
+            {
+                for(it = agent->reqs.begin(); it != agent->reqs.end(); ++it)
+                {
+                    help_string += "        ";
+                    help_string += it->second.token;
+                    help_string += " ";
+                    help_string += it->second.synopsis;
+                    help_string += "\n";
+                    help_string += "                ";
+                    help_string += it->second.description;
+                    help_string += "\n\n";
+                }
+            }
+            else if ((it = agent->reqs.find(function)) != agent->reqs.end())
+            {
                 help_string += "        ";
                 help_string += it->second.token;
                 help_string += " ";
@@ -1056,6 +1195,11 @@ namespace Cosmos
                 help_string += "                ";
                 help_string += it->second.description;
                 help_string += "\n\n";
+            }
+            else
+            {
+                help_string += "Unknown Function";
+                help_string += "\n";
             }
             help_string += "\n";
             output = help_string;
@@ -1071,7 +1215,7 @@ namespace Cosmos
  */
         //        int32_t Agent::req_run(char*, char* output, Agent* agent)
         int32_t Agent::req_run(string &, string &output, Agent* agent) {
-            agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
+            agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::RUN);
             output[0] = 0;
             return(0);
         }
@@ -1085,7 +1229,7 @@ namespace Cosmos
  */
         //        int32_t Agent::req_init(char*, char* output, Agent* agent)
         int32_t Agent::req_init(string &, string &output, Agent* agent) {
-            agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::INIT);
+            agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::INIT);
             output[0] = 0;
             return(0);
         }
@@ -1099,7 +1243,7 @@ namespace Cosmos
  */
         //        int32_t Agent::req_idle(char*, char* output, Agent* agent)
         int32_t Agent::req_idle(string &, string &output, Agent* agent) {
-            agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::IDLE);
+            agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::IDLE);
             output[0] = 0;
             return(0);
         }
@@ -1113,7 +1257,7 @@ namespace Cosmos
  */
         //        int32_t Agent::req_monitor(char*, char* output, Agent* agent)
         int32_t Agent::req_monitor(string &, string &output, Agent* agent) {
-            agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::MONITOR);
+            agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::MONITOR);
             output[0] = 0;
             return(0);
         }
@@ -1127,7 +1271,7 @@ namespace Cosmos
  */
         //        int32_t Agent::req_reset(char*, char* output, Agent* agent)
         int32_t Agent::req_reset(string &, string &output, Agent* agent) {
-            agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RESET);
+            agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::RESET);
             output[0] = 0;
             return(0);
         }
@@ -1141,7 +1285,7 @@ namespace Cosmos
  */
         //        int32_t Agent::req_shutdown(char*, char* output, Agent* agent)
         int32_t Agent::req_shutdown(string &, string &output, Agent* agent) {
-            agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
+            agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
             //            output[0] = 0;
             output.clear();
             return(0);
@@ -1162,12 +1306,12 @@ namespace Cosmos
 
             if (json_of_agent(jstring, agent->cinfo) != NULL)
             {
-                //                strncpy(output, jstring.c_str(),agent->cinfo->agent[0].beat.bsz);
-                //                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+                //                strncpy(output, jstring.c_str(),agent->cinfo->agent0.beat.bsz);
+                //                output[agent->cinfo->agent0.beat.bsz-1] = 0;
                 output = jstring;
-                if (output.length() > agent->cinfo->agent[0].beat.bsz)
+                if (output.length() > agent->cinfo->agent0.beat.bsz)
                 {
-                    output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+                    output[agent->cinfo->agent0.beat.bsz-1] = 0;
                 }
                 return 0;
             } else {
@@ -1208,8 +1352,8 @@ namespace Cosmos
             string jstring;
             if (json_of_list(jstring, request, agent->cinfo) != NULL) {
                 output = jstring;
-                if (output.length() > agent->cinfo->agent[0].beat.bsz) {
-                    output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+                if (output.length() > agent->cinfo->agent0.beat.bsz) {
+                    output[agent->cinfo->agent0.beat.bsz-1] = 0;
                 }
                 //	cout<<"req_getvalue(): outgoing response         = <"<<output<<">"<<endl;
                 return 0;
@@ -1255,10 +1399,10 @@ namespace Cosmos
             response.clear();
             // find index of calling agent in sim_states[]
             for(size_t i = 0; i < agent->cinfo->sim_states.size(); ++i)   {
-                //        string node_name(agent->cinfo->agent[0].beat.node);
-                //        string agent_name(agent->cinfo->agent[0].beat.proc);
+                //        string node_name(agent->cinfo->agent0.beat.node);
+                //        string agent_name(agent->cinfo->agent0.beat.proc);
                 //        if(agent->cinfo->sim_states[i].node_name == node_name && agent->cinfo->sim_states[i].agent_name == agent_name)  {
-                if(agent->cinfo->sim_states[i].node_name == agent->cinfo->agent[0].beat.node)
+                if(agent->cinfo->sim_states[i].node_name == agent->cinfo->agent0.beat.node)
                 {
                     // this wraps as a json object
                     //string j = "sim_states[" + to_string(i) + "]";
@@ -1276,10 +1420,33 @@ namespace Cosmos
 
 
 
-        int32_t Agent::req_get_time(string &request, string &response, Agent* agent)	{
-            stringstream ss;
-            ss<<setprecision(numeric_limits<double>::digits10)<<currentmjd();
-            response = ss.str();
+        int32_t Agent::req_get_time(string &request, string &response, Agent* agent)
+        {
+            vector<string> args = string_split(request);
+
+            if (args.size() > 1)
+            {
+                if (args[1] == "mjd")
+                {
+                    response = to_mjd(currentmjd());
+                }
+                else if (args[1] == "human")
+                {
+                    response = utc2iso8601();
+                }
+                else if (args[1] == "met")
+                {
+                    response = to_floating(currentmjd() - agent->cinfo->node.utcstart);
+                }
+                else
+                {
+                    response = to_mjd(currentmjd());
+                }
+            }
+            else
+            {
+                response = to_mjd(currentmjd());
+            }
             return 0;
         }
 
@@ -1514,7 +1681,7 @@ namespace Cosmos
         //        int32_t Agent::req_listnames(char *, char* output, Agent* agent)
         int32_t Agent::req_listnames(string &, string &output, Agent* agent) {
             output = json_list_of_all(agent->cinfo);
-            if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
+            if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
@@ -1528,7 +1695,7 @@ namespace Cosmos
         //        int32_t Agent::req_nodejson(char *, char* output, Agent* agent)
         int32_t Agent::req_nodejson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.node.c_str();
-            if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
+            if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
@@ -1542,7 +1709,7 @@ namespace Cosmos
         //        int32_t Agent::req_statejson(char *, char* output, Agent* agent)
         int32_t Agent::req_statejson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.state.c_str();
-            if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
+            if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
@@ -1555,7 +1722,7 @@ namespace Cosmos
  */
         //    int32_t Agent::req_utcstartjson(string &, string &output, Agent* agent) {
         //        output = agent->cinfo->json.utcstart.c_str();
-        //        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
+        //        if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
         //        return 0;
         //    }
 
@@ -1569,7 +1736,7 @@ namespace Cosmos
         //        int32_t Agent::req_piecesjson(char *, char* output, Agent* agent)
         int32_t Agent::req_piecesjson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.pieces.c_str();
-            if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
+            if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
@@ -1583,7 +1750,7 @@ namespace Cosmos
         //        int32_t Agent::req_facesjson(char *, char* output, Agent* agent)
         int32_t Agent::req_facesjson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.faces.c_str();
-            if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
+            if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
@@ -1597,7 +1764,7 @@ namespace Cosmos
         //        int32_t Agent::req_vertexsjson(char *, char* output, Agent* agent)
         int32_t Agent::req_vertexsjson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.vertexs.c_str();
-            if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
+            if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
@@ -1611,7 +1778,7 @@ namespace Cosmos
         //        int32_t Agent::req_devgenjson(char *, char* output, Agent* agent)
         int32_t Agent::req_devgenjson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.devgen.c_str();
-            if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
+            if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
@@ -1625,7 +1792,7 @@ namespace Cosmos
         //        int32_t Agent::req_devspecjson(char *, char* output, Agent* agent)
         int32_t Agent::req_devspecjson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.devspec.c_str();
-            if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
+            if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
@@ -1638,12 +1805,12 @@ namespace Cosmos
  */
         //        int32_t Agent::req_portsjson(char *, char* output, Agent* agent)
         int32_t Agent::req_portsjson(string &, string &output, Agent* agent) {
-            //            strncpy(output, agent->cinfo->json.ports.c_str(), agent->cinfo->json.ports.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.ports.size():agent->cinfo->agent[0].beat.bsz-1);
-            //            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            //            strncpy(output, agent->cinfo->json.ports.c_str(), agent->cinfo->json.ports.size()<agent->cinfo->agent0.beat.bsz-1?agent->cinfo->json.ports.size():agent->cinfo->agent0.beat.bsz-1);
+            //            output[agent->cinfo->agent0.beat.bsz-1] = 0;
             output = agent->cinfo->json.ports.c_str();
-            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            if (output.length() > agent->cinfo->agent0.beat.bsz)
             {
-                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+                output[agent->cinfo->agent0.beat.bsz-1] = 0;
             }
             return 0;
         }
@@ -1657,12 +1824,12 @@ namespace Cosmos
  */
         //        int32_t Agent::req_targetsjson(char *, char* output, Agent* agent)
         int32_t Agent::req_targetsjson(string &, string &output, Agent* agent) {
-            //            strncpy(output, agent->cinfo->json.targets.c_str(), agent->cinfo->json.targets.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.targets.size():agent->cinfo->agent[0].beat.bsz-1);
-            //            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            //            strncpy(output, agent->cinfo->json.targets.c_str(), agent->cinfo->json.targets.size()<agent->cinfo->agent0.beat.bsz-1?agent->cinfo->json.targets.size():agent->cinfo->agent0.beat.bsz-1);
+            //            output[agent->cinfo->agent0.beat.bsz-1] = 0;
             output = agent->cinfo->json.targets.c_str();
-            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            if (output.length() > agent->cinfo->agent0.beat.bsz)
             {
-                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+                output[agent->cinfo->agent0.beat.bsz-1] = 0;
             }
             return 0;
         }
@@ -1676,10 +1843,10 @@ namespace Cosmos
  */
         //        int32_t Agent::req_aliasesjson(char *, char* output, Agent* agent)
         int32_t Agent::req_aliasesjson(string &, string & output, Agent* agent) {
-            //            strncpy(output, agent->cinfo->json.aliases.c_str(), agent->cinfo->json.aliases.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.aliases.size():agent->cinfo->agent[0].beat.bsz-1);
+            //            strncpy(output, agent->cinfo->json.aliases.c_str(), agent->cinfo->json.aliases.size()<agent->cinfo->agent0.beat.bsz-1?agent->cinfo->json.aliases.size():agent->cinfo->agent0.beat.bsz-1);
             output = agent->cinfo->json.aliases;
-            if (output.size() > agent->cinfo->agent[0].beat.bsz) {
-                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            if (output.size() > agent->cinfo->agent0.beat.bsz) {
+                output[agent->cinfo->agent0.beat.bsz-1] = 0;
             }
             return 0;
         }
@@ -1796,12 +1963,13 @@ namespace Cosmos
             int32_t outchannel = 0;
             int32_t inchannel = 0;
             vector<string> parms;
+            string parmstring;
             uint16_t repeat = 1;
 
             vector<string> args = string_split(request);
             if (args.size() > 1)
             {
-                if (agent->nodeData.lookup_node_id(args[1]) != agent->nodeData.NODEIDUNKNOWN)
+                if (lookup_node_id(agent->cinfo, args[1]) != NODEIDUNKNOWN)
                 {
                     dest = args[1];
                 }
@@ -1840,6 +2008,7 @@ namespace Cosmos
                             {
                                 parms.push_back(args[i]);
                             }
+                            parmstring = request.substr(string_find(request, " ", 4));
                         }
                     }
                 }
@@ -1851,13 +2020,14 @@ namespace Cosmos
                 return GENERAL_ERROR_OUTOFRANGE;
             }
             packet.header.type = packet.StringType[type];
-            packet.header.orig = agent->nodeId;
-            packet.header.dest = agent->nodeData.lookup_node_id(dest);
-            packet.header.radio = inchannel;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = lookup_node_id(agent->cinfo, dest);
+            packet.header.chanin = inchannel;
+            packet.header.chanout = outchannel;
             response = "dest:" + dest + " radioup:" + agent->channels.channel[outchannel].name + " radiodown:" + agent->channels.channel[inchannel].name + " " + type;
             switch (packet.header.type)
             {
-            case PacketComm::TypeId::CommandReset:
+            case PacketComm::TypeId::CommandObcReset:
                 packet.data.resize(8, 0);
                 uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
                 if (parms.size() > 0)
@@ -1866,7 +2036,7 @@ namespace Cosmos
                     uint32to(seconds, &packet.data[4], ByteOrder::LITTLEENDIAN);
                 }
                 break;
-            case PacketComm::TypeId::CommandReboot:
+            case PacketComm::TypeId::CommandObcReboot:
                 packet.data.resize(8, 0);
                 uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
                 if (parms.size() > 0)
@@ -1875,11 +2045,25 @@ namespace Cosmos
                     uint32to(seconds, &packet.data[4], ByteOrder::LITTLEENDIAN);
                 }
                 break;
-            case PacketComm::TypeId::CommandSendBeacon:
+            case PacketComm::TypeId::CommandObcHalt:
+                packet.data.resize(8, 0);
+                uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                if (parms.size() > 0)
                 {
-                    uint8_t btype = (uint8_t)Beacon::TypeId::CPU1BeaconS;
+                    uint32_t seconds = stoi(parms[0]);
+                    uint32to(seconds, &packet.data[4], ByteOrder::LITTLEENDIAN);
+                }
+                break;
+            case PacketComm::TypeId::CommandObcSendBeacon:
+                {
+                    uint8_t btype = (uint8_t)Beacon::TypeId::None;
                     uint8_t bcount = 1;
-                    if (parms.size() > 0)
+                    if (!parms.size())
+                    {
+                        response = "Args: BEACONNAME [count]";
+                        return 0;
+                    }
+                    else
                     {
                         Beacon tbeacon;
                         for (auto type : tbeacon.TypeString)
@@ -1890,6 +2074,11 @@ namespace Cosmos
                                 break;
                             }
                         }
+                        if (btype == (uint8_t)Beacon::TypeId::None)
+                        {
+                            response = "No beacon named " + parms[0] + " found!";
+                            return 0;
+                        }
                         if (parms.size() > 1)
                         {
                             bcount = stoi(parms[1]);
@@ -1898,10 +2087,10 @@ namespace Cosmos
                     packet.data.resize(2);
                     packet.data[0] = btype;
                     packet.data[1] = bcount;
-                    response += " " + to_unsigned(packet.data[0]) + " " + to_unsigned(packet.data[1]);
+                    response += " Requesting " + to_unsigned(bcount) + " " + parms[0] + " (" + to_unsigned(btype) + ") beacons.";
                 }
                 break;
-            case PacketComm::TypeId::CommandClearQueue:
+            case PacketComm::TypeId::CommandExecClearQueue:
                 {
                     packet.data.resize(4, 0);
                     uint32to(agent->get_verification(), &packet.data[0], ByteOrder::LITTLEENDIAN);
@@ -1913,8 +2102,8 @@ namespace Cosmos
                     response += " " + to_hex(agent->get_verification()) + " " + to_unsigned(packet.data[4]);
                 }
                 break;
-            case PacketComm::TypeId::CommandExternalCommand:
-            case PacketComm::TypeId::CommandExternalTask:
+            case PacketComm::TypeId::CommandObcExternalCommand:
+            case PacketComm::TypeId::CommandObcExternalTask:
                 {
                     string command = "uptime";
                     if (parms.size() > 0)
@@ -1936,7 +2125,29 @@ namespace Cosmos
                     response += " " + to_unsigned(centi) + " " + command;
                 }
                 break;
-            case PacketComm::TypeId::CommandTestRadio:
+
+            case PacketComm::TypeId::CommandRadioAstrodevCommunicate:
+                packet.data.clear();
+                try
+                {
+                    // String args are converted to uint8_t and pushed straight in
+                    for (size_t i=0; i<parms.size(); ++i)
+                    {
+                        packet.data.push_back(std::stoi(parms[i]) & 0xff);
+                    }
+                }
+                catch (const std::invalid_argument& e)
+                {
+                    response += "Caught invalid_argument exception";
+                    break;
+                }
+                catch (const std::out_of_range& e)
+                {
+                    response += "Caught out_of_range exception";
+                    break;
+                }
+                break;
+            case PacketComm::TypeId::CommandRadioTest:
                 {
                     uint8_t start = 0;
                     uint8_t step = 1;
@@ -1957,14 +2168,14 @@ namespace Cosmos
                     uint32to(test_id, &packet.data[3], ByteOrder::LITTLEENDIAN);
                     uint32to(bytes, &packet.data[7], ByteOrder::LITTLEENDIAN);
                     response += " " + to_unsigned(test_id)
-                            + " " + to_unsigned(start)
-                            + " " + to_unsigned(step)
-                            + " " + to_unsigned(count)
-                            +  " " + to_unsigned(bytes)
-                            ;
+                                + " " + to_unsigned(start)
+                                + " " + to_unsigned(step)
+                                + " " + to_unsigned(count)
+                                +  " " + to_unsigned(bytes)
+                                ;
                 }
                 break;
-            case PacketComm::TypeId::CommandListDirectory:
+            case PacketComm::TypeId::CommandFileListDirectory:
                 {
                     string node = "any";
                     string agent = "any";
@@ -1984,10 +2195,10 @@ namespace Cosmos
                     packet.data.insert(packet.data.end(), agent.begin(), agent.end());
                 }
                 break;
-            case PacketComm::TypeId::CommandTransferFile:
+            case PacketComm::TypeId::CommandFileTransferFile:
                 {
-                    string node = agent->nodeName;
-                    string agentname = agent->agentName;
+                    string node = agent->cinfo->node.name;
+                    string agentname = agent->cinfo->agent0.name;
                     string file = "";
                     if (parms.size() > 0)
                     {
@@ -2012,9 +2223,9 @@ namespace Cosmos
                     packet.data.insert(packet.data.end(), file.begin(), file.end());
                 }
                 break;
-            case PacketComm::TypeId::CommandTransferNode:
+            case PacketComm::TypeId::CommandFileTransferNode:
                 {
-                    string node = agent->nodeName;
+                    string node = agent->cinfo->node.name;
                     if (parms.size() > 0)
                     {
                         node = parms[0];
@@ -2026,21 +2237,72 @@ namespace Cosmos
                     packet.data.insert(packet.data.end(), node.begin(), node.end());
                 }
                 break;
-            case PacketComm::TypeId::CommandTransferRadio:
-                if (parms.size() > 2)
+            case PacketComm::TypeId::CommandFileTransferRadio:
                 {
+                    if (parms.size() < 2)
+                    {
+                        response = "Invalid arguments";
+                        return response.size();
+                    }
                     int32_t ch = agent->channel_number(parms[0]);
                     if (ch < 0)
                     {
                         response = "Invalid channel";
                         return response.size();
                     }
-                    packet.data.resize(1);
-                    packet.data[0] = ch;
-                    packet.data[1] = stoi(parms[1]);
+                    packet.data.resize(2);
+                    packet.data[0] = ch & 0xFF;
+                    try
+                    {
+                        packet.data[1] = stoi(parms[1]);
+                        response = "Setting radio " + std::to_string(unsigned(packet.data[0])) + " to " + std::to_string(unsigned(packet.data[1]));
+                    }
+                    catch(const std::exception& e)
+                    {
+                        response = "Invalid parm[1]";
+                        return response.size();
+                    }
                 }
                 break;
-            case PacketComm::TypeId::CommandInternalRequest:
+            case PacketComm::TypeId::CommandFileResetQueue:
+                {
+                    // Arg 0: node name of remote node's contact to clear
+                    // Arg 1: direction to clear (0 incoming, 1 outgoing, 2 both)
+                    if (parms.size() < 2)
+                    {
+                        response = "Invalid arguments";
+                        return response.size();
+                    }
+                    uint8_t node = lookup_node_id(agent->cinfo, parms[0]);
+                    if (node == NODEIDUNKNOWN)
+                    {
+                        response = "Invalid node name!";
+                        return response.size();
+                    }
+                    
+                    packet.data.resize(2);
+                    packet.data[0] = node;
+                    try
+                    {
+                        uint8_t dir = stoi(parms[1]);
+                        packet.data[1] = dir;
+                        response = "Clearing file transfer queue of node " + parms[0] + " for direction " + std::to_string((unsigned)dir);
+                    }
+                    catch(const std::exception& e)
+                    {
+                        response = "Invalid parm[1]";
+                        return response.size();
+                    }
+                }
+                break;
+            case PacketComm::TypeId::CommandFileStopTransfer:
+                {
+                    // No args
+                    packet.data.clear();
+                    response = "Stopping file transfer for remote node";
+                }
+                break;
+            case PacketComm::TypeId::CommandObcInternalRequest:
                 {
                     string command = "status";
                     if (parms.size() > 0)
@@ -2062,9 +2324,9 @@ namespace Cosmos
                     response += " " + to_unsigned(centi) + " " + command;
                 }
                 break;
-            case PacketComm::TypeId::CommandPing:
+            case PacketComm::TypeId::CommandObcPing:
                 {
-                    string ping = "abcdefghijklmnopqrstuvwxyz0123456789";
+                    string ping = utc2iso8601(currentmjd());
                     if (parms.size() > 0)
                     {
                         ping = parms[0];
@@ -2076,30 +2338,44 @@ namespace Cosmos
                     response += " " + to_unsigned(centi) + " " + ping;
                 }
                 break;
-            case PacketComm::TypeId::CommandSetTime:
+            case PacketComm::TypeId::CommandObcSetTime:
                 {
                     double mjd = currentmjd();
-                    int8_t direction = 0;
+                    float limit = 0.;
+                    uint16_t bootseconds = 0;
                     if (parms.size() > 0)
                     {
-                        mjd = stof(parms[0]);
+                        if (parms[0][0] == '+' || parms[0][0] == '-')
+                        {
+                            mjd += atof(parms[0].c_str()) / 86400.;
+                            response += " by " + to_floating(atof(parms[0].c_str()) / 86400., .1);
+                        }
+                        else
+                        {
+                            mjd = atof(parms[0].c_str());
+                        }
                         if (parms.size() > 1)
                         {
-                            direction = stoi(parms[1]);
+                            limit = atof(parms[1].c_str());
+                        }
+                        if (parms.size() > 2)
+                        {
+                            bootseconds = atoi(parms[2].c_str());
                         }
                     }
-                    packet.data.resize(9);
+                    packet.data.resize(14);
                     doubleto(mjd, &packet.data[0], ByteOrder::LITTLEENDIAN);
-                    packet.data[8] = direction;
-                    response += " " + to_iso8601(mjd) + " " + to_signed(direction);
+                    floatto(limit, &packet.data[8]);
+                    uint16to(bootseconds, &packet.data[12]);
+                    response += " " + to_iso8601(mjd) + " " + to_floating(limit, 1) + " " + to_unsigned(bootseconds);
                 }
                 break;
-            case PacketComm::TypeId::CommandGetTimeHuman:
-            case PacketComm::TypeId::CommandGetTimeBinary:
+            case PacketComm::TypeId::CommandObcGetTimeHuman:
+            case PacketComm::TypeId::CommandObcGetTimeBinary:
                 {
                 }
                 break;
-            case PacketComm::TypeId::CommandSetOpsMode:
+            case PacketComm::TypeId::CommandExecSetOpsMode:
                 {
                     packet.data.clear();
                     if (parms.size())
@@ -2108,7 +2384,16 @@ namespace Cosmos
                     }
                 }
                 break;
-            case PacketComm::TypeId::CommandEnableChannel:
+            case PacketComm::TypeId::CommandExecAddCommand:
+                {
+                    packet.data.clear();
+                }
+                if (parmstring.size())
+                {
+                    packet.data.insert(packet.data.end(), parmstring.begin(), parmstring.end());
+                }
+                break;
+            case PacketComm::TypeId::CommandExecEnableChannel:
                 {
                     packet.data.clear();
                     if (parms.size() > 0)
@@ -2157,38 +2442,118 @@ namespace Cosmos
                     }
                 }
                 break;
-            case PacketComm::TypeId::CommandEpsSwitchName:
+            case PacketComm::TypeId::CommandAdcsOrbitParameters:
+                {
+                    double d1 = 0.0;
+                    double d2 = 0.0;
+                    double d3 = 0.0;
+                    double d4 = 0.0;
+                    double d5 = 0.0;
+                    double d6 = 0.0;
+                    double d7 = 0.0;
+                    double d8 = 0.0;
+
+                    if(parms.size() == 8)	{
+                        d1 = stod(parms[0]);
+                        const unsigned char* ptr = reinterpret_cast<const unsigned char*>(&d1);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d2 = stod(parms[1]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d2);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d3 = stod(parms[2]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d3);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d4 = stod(parms[3]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d4);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d5 = stod(parms[4]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d5);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d6 = stod(parms[5]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d6);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d7 = stod(parms[6]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d7);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+
+                        d8 = stod(parms[7]);
+                        ptr = reinterpret_cast<const unsigned char*>(&d8);
+                        for (size_t i = 0; i < sizeof(double); ++i)	{ packet.data.push_back(ptr[i]); }
+                    }
+                }
+                break;
+            case PacketComm::TypeId::CommandAdcsState:
+                {
+                    packet.data.resize(1);
+                    packet.data[0] = stoi(parms[0]);
+                    for (uint16_t i=1; i<parms.size(); ++i)
+                    {
+                        string arg = parms[i] + " ";
+                        packet.data.insert(packet.data.end(), arg.begin(), arg.end());
+                    }
+                }
+                break;
+            case PacketComm::TypeId::CommandAdcsCommunicate:
                 {
                     if (parms.size())
                     {
                         parms = string_split(parms[0], ":", false);
-                        if (parms.size())
+                        if (parms.size() > 2)
                         {
-                            packet.data.resize(2);
-                            if (parms.size() > 1)
+                            PacketComm::CommunicateHeader header;
+                            header.unit = stoi(parms[0]);
+                            header.command = stoi(parms[1]);
+                            header.responsecount = stoi(parms[2]);
+                            packet.data.resize(4);
+                            memcpy(packet.data.data(), &header, sizeof(header));
+                            if (parms.size() > 3)
                             {
-                                uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                                vector<uint8_t> bytes = from_hex_string(parms[3]);
+                                packet.data.insert(packet.data.end(), bytes.begin(), bytes.end());
                             }
-                            else
-                            {
-                                uint16to(300, &packet.data[0], ByteOrder::LITTLEENDIAN);
-                            }
-                            packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
                         }
+                    }
+                }
+                break;
+            case PacketComm::TypeId::CommandEpsSwitchName:
+                {
+                    if (parms.size())
+                    {
+                        packet.data.resize(1);
+                        if (parms.size() > 1)
+                        {
+                            packet.data[0] = stoi(parms[1]);
+                        }
+                        else
+                        {
+                            packet.data[0] = 1;
+                        }
+                        packet.data.insert(packet.data.end(), parms[0].begin(), parms[0].end());
                     }
                 }
                 break;
             case PacketComm::TypeId::CommandEpsSwitchNumber:
                 {
-                    if (parms.size())
+                    if (parms.size() > 1)
                     {
-                        parms = string_split(parms[0], ":", false);
-                        if (parms.size())
+                        packet.data.resize(3);
+                        if (parms.size() > 2)
                         {
-                            packet.data.resize(4);
-                            uint16to(stoi(parms[1]), &packet.data[0], ByteOrder::LITTLEENDIAN);
-                            uint16to(stoi(parms[0]), &packet.data[2], ByteOrder::LITTLEENDIAN);
+                            packet.data[0] = stoi(parms[2]);
                         }
+                        else
+                        {
+                            packet.data[0] = 1;
+                        }
+                        packet.data[1] = stoi(parms[0]);
+                        packet.data[2] = stoi(parms[1]);
+                        //                        uint16to(stoi(parms[0]), &packet.data[1], ByteOrder::LITTLEENDIAN);
                     }
                 }
                 break;
@@ -2213,7 +2578,7 @@ namespace Cosmos
             case PacketComm::TypeId::CommandEpsSetTime:
                 {
                     double mjd = currentmjd();
-                    if (parms.size() > 0)
+                    if (parms.size())
                     {
                         mjd = stof(parms[0]);
                     }
@@ -2223,25 +2588,59 @@ namespace Cosmos
                 }
             case PacketComm::TypeId::CommandEpsSwitchNames:
                 {
-                    vector<string> names = string_split(parms[0], ":");
-                    vector<string> times = string_split(parms[1], ":");
-                    if (names.size() == times.size())
-                    {
-                        packet.data.resize(1);
-                        packet.data[0] = static_cast<uint8_t>(names.size());
-                        for (uint16_t i=0; i<names.size(); ++i)
-                        {
-                            packet.data.resize(packet.data.size()+3);
-                            uint16to(stoi(times[i]), &packet.data[packet.data.size()-2], ByteOrder::LITTLEENDIAN);
-                            packet.data[packet.data.size()-1] = names[i].size();
-                            packet.data.insert(packet.data.end(), names[i].begin(), names[i].end());
-                        }
-                    }
+                    string names = string_join(parms, " ");
+                    packet.data.insert(packet.data.end(), names.begin(), names.end());
                 }
                 break;
             case PacketComm::TypeId::CommandEpsSwitchStatus:
                 {
                     packet.data.clear();
+                }
+                break;
+            case PacketComm::TypeId::CommandCameraOn:
+                {
+                    packet.data.resize(1);
+                    if (parms.size())
+                    {
+                        packet.data[0] = atoi(parms[0].c_str());
+                    }
+                    else
+                    {
+                        packet.data[0] = 0;
+                    }
+                }
+                break;
+            case PacketComm::TypeId::CommandCameraCapture:
+                {
+                    packet.data.resize(12);
+                    uint16to(1, &packet.data[0], ByteOrder::LITTLEENDIAN);
+                    uint16to(350, &packet.data[2], ByteOrder::LITTLEENDIAN);
+                    uint16to(0, &packet.data[4], ByteOrder::LITTLEENDIAN);
+                    uint16to(640, &packet.data[6], ByteOrder::LITTLEENDIAN);
+                    uint16to(0, &packet.data[8], ByteOrder::LITTLEENDIAN);
+                    uint16to(512, &packet.data[10], ByteOrder::LITTLEENDIAN);
+                    if (parms.size() > 0)
+                    {
+                        uint16to(atoi(parms[0].c_str()), &packet.data[0], ByteOrder::LITTLEENDIAN);
+                        if (parms.size() > 1)
+                        {
+                            uint16to(atoi(parms[1].c_str()), &packet.data[2], ByteOrder::LITTLEENDIAN);
+                            if (parms.size() > 3)
+                            {
+                                uint16to(atoi(parms[2].c_str()), &packet.data[4], ByteOrder::LITTLEENDIAN);
+                                uint16to(atoi(parms[3].c_str()), &packet.data[6], ByteOrder::LITTLEENDIAN);
+                                if (parms.size() > 5)
+                                {
+                                    uint16to(atoi(parms[4].c_str()), &packet.data[8], ByteOrder::LITTLEENDIAN);
+                                    uint16to(atoi(parms[5].c_str()), &packet.data[10], ByteOrder::LITTLEENDIAN);
+                                    if (parms.size() > 6)
+                                    {
+                                        packet.data.insert(packet.data.end(), parms[6].begin(), parms[6].end());
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 break;
             default:
@@ -2251,7 +2650,8 @@ namespace Cosmos
 
             for (uint16_t i=0; i<repeat; ++i)
             {
-                agent->channel_push(outchannel, packet);
+//                agent->channel_push(outchannel, packet);
+                agent->channel_push(0, packet);
                 secondsleep(.1);
             }
             return response.length();
@@ -2332,7 +2732,7 @@ namespace Cosmos
                 uint8_t channel = agent->channel_number(args[1]);
                 total = agent->channel_speed(channel) * 10.;
                 uint8_t radio = agent->channel_number(args[2]);
-                uint8_t dest = agent->nodeData.lookup_node_id(args[3]);
+                uint8_t dest = lookup_node_id(agent->cinfo, args[3]);
                 uint8_t orig = agent->nodeId;
                 if (args.size() > 6)
                 {
@@ -2363,6 +2763,70 @@ namespace Cosmos
             }
         }
 
+        //! \brief Set the specified channel to the specified state
+        //! Expected args:
+        //! [0] channel_enable
+        //! [1] String name of channel
+        //! [2] int8_t value to set channel enabled status to
+        //! \param request Request.
+        //! \param response Any response.
+        //! \param agent Pointer to Agent.
+        //! \return Zero or negative error.
+        int32_t Agent::req_channel_enable(string &request, string &response, Agent *agent)
+        {
+            // Expected args:
+            vector<string> args = string_split(request);
+            if (args.size() < 3)
+            {
+                response = "Incorrect args";
+                return 0;
+            }
+            try
+            {
+                int8_t new_state = std::stoi(args[2]) & 0xff;
+                agent->channel_enable(args[1], new_state);
+                response = "Set channel " + args[1] + " to " + std::to_string(agent->channel_enabled(args[1]));
+                return 0;
+            }
+            catch(...)
+            {
+                response = "Incorrect args";
+                return 0;
+            }
+        }
+
+        //! \brief Reset the Age of the specified channel to the specifed value.
+        //! Expected args:
+        //! [0] channel_enable
+        //! [1] String name of channel
+        //! [2] float time in seconds to set channel age to
+        //! \param request Request.
+        //! \param response Any response.
+        //! \param agent Pointer to Agent.
+        //! \return Zero or negative error.
+        int32_t Agent::req_channel_touch(string &request, string &response, Agent *agent)
+        {
+            // Expected args:
+            vector<string> args = string_split(request);
+            if (args.size() < 2)
+            {
+                response = "Incorrect args";
+                return 0;
+            }
+            if (args.size() > 2)
+            {
+                double seconds = atof(args[2].c_str());
+                agent->channel_touch(args[1], seconds);
+                response = "Set channel " + args[1] + " age to " + std::to_string(agent->channel_age(args[1]));
+            }
+            else
+            {
+                agent->channel_touch(args[1]);
+                response = "Set channel " + args[1] + " age to " + std::to_string(agent->channel_age(args[1]));
+            }
+            return 0;
+        }
+
         //! Open COSMOS output channel
         /*! Establish a multicast socket for publishing COSMOS messages using the specified address and
  * port.
@@ -2376,7 +2840,7 @@ namespace Cosmos
             int on = 1;
 
             // Return immediately if we've already done this
-            if (cinfo->agent[0].pub[0].cport)
+            if (cinfo->agent0.pub[0].cport)
                 return 0;
 
             switch (type)
@@ -2385,25 +2849,25 @@ namespace Cosmos
             case NetworkType::UDP:
             case NetworkType::BROADCAST:
                 {
-                    for (uint32_t i=0; i<AGENTMAXIF; i++) { cinfo->agent[0].pub[i].cudp = -1; }
+                    for (uint32_t i=0; i<AGENTMAXIF; i++) { cinfo->agent0.pub[i].cudp = -1; }
 
-                    if ((cinfo->agent[0].pub[0].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0) { return (AGENT_ERROR_SOCKET); }
+                    if ((cinfo->agent0.pub[0].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0) { return (AGENT_ERROR_SOCKET); }
 
 #ifdef COSMOS_WIN_OS
                     u_long nonblocking = 1;;
-                    if (ioctlsocket(cinfo->agent[0].pub[0].cudp, FIONBIO, &nonblocking) != 0) { iretn = -WSAGetLastError(); }
+                    if (ioctlsocket(cinfo->agent0.pub[0].cudp, FIONBIO, &nonblocking) != 0) { iretn = -WSAGetLastError(); }
 #else
-                    if (fcntl(cinfo->agent[0].pub[0].cudp, F_SETFL,O_NONBLOCK) < 0) { iretn = -errno; }
+                    if (fcntl(cinfo->agent0.pub[0].cudp, F_SETFL,O_NONBLOCK) < 0) { iretn = -errno; }
 #endif
                     if (iretn < 0) {
-                        CLOSE_SOCKET(cinfo->agent[0].pub[0].cudp);
-                        cinfo->agent[0].pub[0].cudp = iretn;
+                        CLOSE_SOCKET(cinfo->agent0.pub[0].cudp);
+                        cinfo->agent0.pub[0].cudp = iretn;
                         return iretn;
                     }
 
                     // Use above socket to find available interfaces and establish
                     // publication on each.
-                    cinfo->agent[0].ifcnt = 0;
+                    cinfo->agent0.ifcnt = 0;
 
 #if defined(COSMOS_WIN_OS)
                     struct sockaddr_storage ss;
@@ -2411,63 +2875,63 @@ namespace Cosmos
                     INTERFACE_INFO ilist[20];
                     unsigned long nbytes;
                     uint32_t nif;
-                    if (WSAIoctl(cinfo->agent[0].pub[0].cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR) {
-                        CLOSE_SOCKET(cinfo->agent[0].pub[0].cudp);
+                    if (WSAIoctl(cinfo->agent0.pub[0].cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR) {
+                        CLOSE_SOCKET(cinfo->agent0.pub[0].cudp);
                         return (AGENT_ERROR_DISCOVERY);
                     }
 
                     nif = nbytes / sizeof(INTERFACE_INFO);
                     for (uint32_t i=0; i<nif; i++) {
-                        inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address));
-                        //            strcpy(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
-                        if (!strcmp(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,"127.0.0.1")) {
-                            if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp >= 0) {
-                                CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
-                                cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp = -1;
+                        inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,cinfo->agent0.pub[cinfo->agent0.ifcnt].address,sizeof(cinfo->agent0.pub[cinfo->agent0.ifcnt].address));
+                        //            strcpy(cinfo->agent0.pub[cinfo->agent0.ifcnt].address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+                        if (!strcmp(cinfo->agent0.pub[cinfo->agent0.ifcnt].address,"127.0.0.1")) {
+                            if (cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp >= 0) {
+                                CLOSE_SOCKET(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp);
+                                cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp = -1;
                             }
                             continue;
                         }
 
                         // No need to open first socket again
-                        if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp < 0) {
-                            if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0) {
+                        if (cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp < 0) {
+                            if ((cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0) {
                                 continue;
                             }
                             u_long nonblocking = 1;
-                            if (ioctlsocket(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, FIONBIO, &nonblocking) != 0) {
+                            if (ioctlsocket(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp, FIONBIO, &nonblocking) != 0) {
                                 continue;
                             }
                         }
 
-                        memset(&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr,0,sizeof(struct sockaddr_in));
-                        cinfo->agent[0].pub[i].caddr.sin_family = AF_INET;
-                        cinfo->agent[0].pub[i].baddr.sin_family = AF_INET;
+                        memset(&cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr,0,sizeof(struct sockaddr_in));
+                        cinfo->agent0.pub[i].caddr.sin_family = AF_INET;
+                        cinfo->agent0.pub[i].baddr.sin_family = AF_INET;
                         if (type == NetworkType::MULTICAST) {
                             sslen = sizeof(ss);
                             WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+                            cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+                            cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
                         } else {
-                            if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                            if ((iretn = setsockopt(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
                             {
-                                CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
+                                CLOSE_SOCKET(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp);
                                 continue;
                             }
 
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                            cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                            cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
 
                             uint32_t ip, net, bcast;
                             ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
                             net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
                             bcast = ip | (~net);
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr.S_un.S_addr = bcast;
+                            cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr.S_un.S_addr = bcast;
                         }
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_port = htons(port);
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_port = htons(port);
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].type = type;
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cport = port;
-                        cinfo->agent[0].ifcnt++;
+                        cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_port = htons(port);
+                        cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_port = htons(port);
+                        cinfo->agent0.pub[cinfo->agent0.ifcnt].type = type;
+                        cinfo->agent0.pub[cinfo->agent0.ifcnt].cport = port;
+                        cinfo->agent0.ifcnt++;
                     }
 #elif defined(COSMOS_MAC_OS)
                     struct ifaddrs *if_addrs = NULL;
@@ -2475,8 +2939,8 @@ namespace Cosmos
                     if (0 == getifaddrs(&if_addrs)) {
                         for (if_addr = if_addrs; if_addr != NULL; if_addr = if_addr->ifa_next) {
                             if (if_addr->ifa_addr->sa_family != AF_INET) { continue; }
-                            inet_ntop(if_addr->ifa_addr->sa_family,&((struct sockaddr_in*)if_addr->ifa_addr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address));
-                            memcpy((char *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr, (char *)if_addr->ifa_addr, sizeof(if_addr->ifa_addr));
+                            inet_ntop(if_addr->ifa_addr->sa_family,&((struct sockaddr_in*)if_addr->ifa_addr)->sin_addr,cinfo->agent0.pub[cinfo->agent0.ifcnt].address,sizeof(cinfo->agent0.pub[cinfo->agent0.ifcnt].address));
+                            memcpy((char *)&cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr, (char *)if_addr->ifa_addr, sizeof(if_addr->ifa_addr));
 
                             if ((if_addr->ifa_flags & IFF_POINTOPOINT) || (if_addr->ifa_flags & IFF_UP) == 0 || (if_addr->ifa_flags & IFF_LOOPBACK) || (if_addr->ifa_flags & (IFF_BROADCAST)) == 0)
                             {
@@ -2484,47 +2948,47 @@ namespace Cosmos
                             }
 
                             // No need to open first socket again
-                            if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp < 0) {
-                                if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0) {
+                            if (cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp < 0) {
+                                if ((cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0) {
                                     continue;
                                 }
 
-                                if (fcntl(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, F_SETFL,O_NONBLOCK) < 0) {
+                                if (fcntl(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp, F_SETFL,O_NONBLOCK) < 0) {
                                     iretn = -errno;
-                                    CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
-                                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp = iretn;
+                                    CLOSE_SOCKET(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp);
+                                    cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp = iretn;
                                     continue;
                                 }
                             }
 
                             if (type == NetworkType::MULTICAST) {
-                                inet_pton(AF_INET,AGENTMCAST,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr);
-                                inet_pton(AF_INET,AGENTMCAST,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
+                                inet_pton(AF_INET,AGENTMCAST,&cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_addr);
+                                inet_pton(AF_INET,AGENTMCAST,&cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr);
                             } else {
-                                if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0) {
-                                    CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
+                                if ((iretn = setsockopt(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0) {
+                                    CLOSE_SOCKET(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp);
                                     continue;
                                 }
 
-                                //                    if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+                                //                    if (ioctl(cinfo->agent0.pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
                                 //                    {
                                 //                        continue;
                                 //                    }
-                                //                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr;
-                                memcpy((char *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr, (char *)if_addr->ifa_netmask, sizeof(if_addr->ifa_netmask));
+                                //                    cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr = cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr;
+                                memcpy((char *)&cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr, (char *)if_addr->ifa_netmask, sizeof(if_addr->ifa_netmask));
 
                                 uint32_t ip, net, bcast;
-                                ip = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr.s_addr;
-                                net = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr.s_addr;
+                                ip = cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_addr.s_addr;
+                                net = cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr.s_addr;
                                 bcast = ip | (~net);
-                                cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr.s_addr = bcast;
-                                inet_ntop(if_addr->ifa_netmask->sa_family,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress));
+                                cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr.s_addr = bcast;
+                                inet_ntop(if_addr->ifa_netmask->sa_family,&cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr,cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress,sizeof(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress));
                             }
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_port = htons(port);
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_port = htons(port);
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].type = type;
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cport = port;
-                            cinfo->agent[0].ifcnt++;
+                            cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_port = htons(port);
+                            cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_port = htons(port);
+                            cinfo->agent0.pub[cinfo->agent0.ifcnt].type = type;
+                            cinfo->agent0.pub[cinfo->agent0.ifcnt].cport = port;
+                            cinfo->agent0.ifcnt++;
                         }
                         freeifaddrs(if_addrs);
                         if_addrs = NULL;
@@ -2536,9 +3000,9 @@ namespace Cosmos
 
                     confa.ifc_len = sizeof(data);
                     confa.ifc_buf = (caddr_t)data;
-                    if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFCONF,&confa) < 0)
+                    if (ioctl(cinfo->agent0.pub[0].cudp,SIOCGIFCONF,&confa) < 0)
                     {
-                        CLOSE_SOCKET(cinfo->agent[0].pub[0].cudp);
+                        CLOSE_SOCKET(cinfo->agent0.pub[0].cudp);
                         return (AGENT_ERROR_DISCOVERY);
                     }
                     // Use result to discover interfaces.
@@ -2552,120 +3016,118 @@ namespace Cosmos
                             continue;
                         }
 
-                        inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address));
-                        memcpy((char *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+                        inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent0.pub[cinfo->agent0.ifcnt].address,sizeof(cinfo->agent0.pub[cinfo->agent0.ifcnt].address));
+                        memcpy((char *)&cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
 
-                        if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0)
+                        if (ioctl(cinfo->agent0.pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0)
                         {
                             continue;
                         }
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags = ifra->ifr_flags;
+                        cinfo->agent0.pub[cinfo->agent0.ifcnt].flags = ifra->ifr_flags;
 
-                        if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_POINTOPOINT) || (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_UP) == 0)
+                        if ((cinfo->agent0.pub[cinfo->agent0.ifcnt].flags & IFF_POINTOPOINT) || (cinfo->agent0.pub[cinfo->agent0.ifcnt].flags & IFF_UP) == 0)
                         {
                             continue;
                         }
 
                         // Open socket again if we had to close it
-                        if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp < 0)
+                        if (cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp < 0)
                         {
-                            if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                            if ((cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
                             {
                                 continue;
                             }
 
-                            if (fcntl(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, F_SETFL,O_NONBLOCK) < 0)
+                            if (fcntl(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp, F_SETFL,O_NONBLOCK) < 0)
                             {
                                 iretn = -errno;
-                                CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
-                                cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp = iretn;
+                                CLOSE_SOCKET(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp);
+                                cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp = iretn;
                                 continue;
                             }
                         }
 
                         if (type == NetworkType::MULTICAST)
                         {
-                            inet_pton(AF_INET,AGENTMCAST,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr);
-                            inet_pton(AF_INET,AGENTMCAST,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
+                            inet_pton(AF_INET,AGENTMCAST,&cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_addr);
+                            inet_pton(AF_INET,AGENTMCAST,&cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr);
                         }
                         else
                         {
                             //                            int val = IP_PMTUDISC_DO;
-                            //                            if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val))) < 0)
+                            //                            if ((iretn = setsockopt(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val))) < 0)
                             //                            {
-                            //                                CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
+                            //                                CLOSE_SOCKET(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp);
                             //                                continue;
                             //                            }
 
-                            if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_POINTOPOINT))
+                            if ((cinfo->agent0.pub[cinfo->agent0.ifcnt].flags & IFF_POINTOPOINT))
                             {
-                                if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
-                                {
-                                    continue;
-                                }
-                                cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr;
-                                inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress));
-                                inet_pton(AF_INET,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
+//                                if (ioctl(cinfo->agent0.pub[0].cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
+//                                {
+//                                    continue;
+//                                }
+//                                cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr = cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr;
+//                                inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress,sizeof(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress));
+//                                inet_pton(AF_INET,cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress,&cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr);
+                                cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr = cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr;
+                                strncpy(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress, cinfo->agent0.pub[cinfo->agent0.ifcnt].address, 17);
+                                inet_pton(AF_INET, cinfo->agent0.pub[cinfo->agent0.ifcnt].address, &cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr);
                             }
-                            else if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].flags & IFF_LOOPBACK))
+                            else if ((cinfo->agent0.pub[cinfo->agent0.ifcnt].flags & IFF_LOOPBACK))
                             {
-                                //                            if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFADDR,(char *)ifra) < 0)
-                                //                            {
-                                //                                continue;
-                                //                            }
-                                //                            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress));
-                                cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr;
-                                inet_pton(AF_INET,AGENTMCAST,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
+                                cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr = cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr;
+                                strncpy(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress, cinfo->agent0.pub[cinfo->agent0.ifcnt].address, 17);
+                                inet_pton(AF_INET,AGENTLOOPBACK,&cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr);
                             }
                             else
                             {
-                                if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on))) < 0)
+                                if ((iretn = setsockopt(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on))) < 0)
                                 {
-                                    CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
+                                    CLOSE_SOCKET(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp);
                                     continue;
                                 }
 
-                                if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+                                if (ioctl(cinfo->agent0.pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
                                 {
                                     continue;
                                 }
-                                cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr;
-                                inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress));
-                                inet_pton(AF_INET,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
+                                cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr = cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr;
+                                inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress,sizeof(cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress));
+                                inet_pton(AF_INET,cinfo->agent0.pub[cinfo->agent0.ifcnt].baddress,&cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_addr);
                             }
 
-                            if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFADDR,(char *)ifra) < 0)
+                            if (ioctl(cinfo->agent0.pub[0].cudp,SIOCGIFADDR,(char *)ifra) < 0)
                             {
                                 continue;
                             }
-                            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address));
-                            inet_pton(AF_INET,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr);
+                            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent0.pub[cinfo->agent0.ifcnt].address,sizeof(cinfo->agent0.pub[cinfo->agent0.ifcnt].address));
+                            inet_pton(AF_INET,cinfo->agent0.pub[cinfo->agent0.ifcnt].address,&cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_addr);
                         }
 
-                        iretn = sendto(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp,       // socket
+                        iretn = sendto(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp,       // socket
                                 (const char *)nullptr,                         // buffer to send
                                 0,                      // size of buffer
                                 0,                                          // flags
-                                (struct sockaddr *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr, // socket address
+                                (struct sockaddr *)&cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr, // socket address
                                 sizeof(struct sockaddr_in)                  // size of address to socket pointer
                                 );
                         // Find assigned port, place in cport, and set caddr to requested port
                         socklen_t namelen = sizeof(struct sockaddr_in);
-                        if ((iretn = getsockname(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, (sockaddr*)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr, &namelen)) == -1)
+                        if ((iretn = getsockname(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp, (sockaddr*)&cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr, &namelen)) == -1)
                         {
-                            CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp = -errno;
+                            CLOSE_SOCKET(cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp);
+                            cinfo->agent0.pub[cinfo->agent0.ifcnt].cudp = -errno;
                             return (-errno);
                         }
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cport = ntohs(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_port);
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_port = htons(port);
-                        inet_pton(AF_INET,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr);
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_port = htons(port);
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].type = type;
+                        cinfo->agent0.pub[cinfo->agent0.ifcnt].cport = ntohs(cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_port);
+                        cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_port = htons(port);
+                        inet_pton(AF_INET,cinfo->agent0.pub[cinfo->agent0.ifcnt].address,&cinfo->agent0.pub[cinfo->agent0.ifcnt].caddr.sin_addr);
+                        cinfo->agent0.pub[cinfo->agent0.ifcnt].baddr.sin_port = htons(port);
+                        cinfo->agent0.pub[cinfo->agent0.ifcnt].type = type;
 
 
-                        //                    printf("Interface #%lu: %u %s %u %s %u\n", cinfo->agent[0].ifcnt, cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cport, cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address, ntohs(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_port), cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress, ntohs(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_port));
-                        cinfo->agent[0].ifcnt++;
+                        cinfo->agent0.ifcnt++;
                     }
 #endif // COSMOS_WIN_OS
                 }
@@ -2879,24 +3341,25 @@ namespace Cosmos
             int32_t iretn=0;
             uint8_t post[AGENTMAXBUFFER];
 
-            cinfo->agent[0].beat.utc = currentmjd();
+            cinfo->agent0.beat.utc = currentmjd();
             post[0] = (uint8_t)type;
             // this will broadcast messages to all external interfaces (ifcnt = interface count)
-            for (size_t i=0; i<cinfo->agent[0].ifcnt; i++)
+            for (size_t i=0; i<cinfo->agent0.ifcnt; i++)
             {
                 sprintf((char *)&post[3],"{\"agent_utc\":%.15g,\"agent_node\":\"%s\",\"agent_proc\":\"%s\",\"agent_addr\":\"%s\",\"agent_port\":%u,\"agent_bprd\":%f,\"agent_bsz\":%u,\"agent_cpu\":%f,\"agent_memory\":%f,\"agent_jitter\":%f,\"agent_dcycle\":%f,\"node_utcoffset\":%.15g}",
-                        cinfo->agent[0].beat.utc,
-                        cinfo->agent[0].beat.node.c_str(),
-                        cinfo->agent[0].beat.proc.c_str(),
-                        cinfo->agent[0].pub[i].address,
-                        cinfo->agent[0].beat.port,
-                        cinfo->agent[0].beat.bprd,
-                        cinfo->agent[0].beat.bsz,
-                        cinfo->agent[0].beat.cpu,
-                        cinfo->agent[0].beat.memory,
-                        cinfo->agent[0].beat.jitter,
-                        cinfo->agent[0].beat.dcycle,
+                        cinfo->agent0.beat.utc,
+                        cinfo->agent0.beat.node.c_str(),
+                        cinfo->agent0.beat.proc.c_str(),
+                        cinfo->agent0.pub[i].address,
+                        cinfo->agent0.beat.port,
+                        cinfo->agent0.beat.bprd,
+                        cinfo->agent0.beat.bsz,
+                        cinfo->agent0.beat.cpu,
+                        cinfo->agent0.beat.memory,
+                        cinfo->agent0.beat.jitter,
+                        cinfo->agent0.beat.dcycle,
                         cinfo->node.utcoffset);
+//                debug_log.Printf("POST %u %x %s %s %s\n", i, cinfo->agent0.pub[i].flags, cinfo->agent0.pub[i].baddress, cinfo->agent0.pub[i].address, (char *)&post[3]);
                 size_t hlength = strlen((char *)&post[3]);
                 post[1] = hlength%256;
                 post[2] = hlength / 256;
@@ -2908,61 +3371,51 @@ namespace Cosmos
                         return (AGENT_ERROR_BUFLEN);
                     memcpy(&post[nbytes], &message[0], message.size());
                 }
-                if (cinfo->agent[0].pub[i].flags & IFF_POINTOPOINT)
+                if (cinfo->agent0.pub[i].flags & IFF_POINTOPOINT)
                 {
-                    if (cinfo->agent[0].ifcnt == 1)
-                    {
-                        iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
-                                (const char *)post,                         // buffer to send
-                                nbytes+message.size(),                      // size of buffer
-                                0,                                          // flags
-                                (struct sockaddr *)&cinfo->agent[0].pub[i].caddr, // socket address
-                                sizeof(struct sockaddr_in)                  // size of address to socket pointer
-                                );
-                        //                    if (debug_level) {
-                        //                        debug_error.Printf("Post PTP Local: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
-                        //                    }
-                        //                    printf("Send P2P Local: %u %d\n", (uint8_t)type, iretn);
-                    }
-                    iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+//                    if (cinfo->agent0.ifcnt == 1)
+//                    {
+//                        iretn = sendto(cinfo->agent0.pub[i].cudp,       // socket
+//                                (const char *)post,                         // buffer to send
+//                                nbytes+message.size(),                      // size of buffer
+//                                0,                                          // flags
+//                                (struct sockaddr *)&cinfo->agent0.pub[i].caddr, // socket address
+//                                sizeof(struct sockaddr_in)                  // size of address to socket pointer
+//                                );
+//                    }
+                    iretn = sendto(cinfo->agent0.pub[i].cudp,       // socket
                             (const char *)post,                         // buffer to send
                             nbytes+message.size(),                      // size of buffer
                             0,                                          // flags
-                            (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
+                            (struct sockaddr *)&cinfo->agent0.pub[i].caddr, // socket address
                             sizeof(struct sockaddr_in)                  // size of address to socket pointer
                             );
-                    //                if (debug_level) {
-                    //                    debug_error.Printf("Post PTP Remote: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].address, cinfo->agent[0].pub[i].cport, iretn, post);
-                    //                }
-                    //                printf("Send P2P Remote: %u %d\n", (uint8_t)type, iretn);
+//                    debug_log.Printf("Send P2P: %s %u %u %d\n", cinfo->agent0.pub[i].address, ntohs(cinfo->agent0.pub[i].caddr.sin_port), (uint8_t)type, iretn);
                 }
-                else if (cinfo->agent[0].pub[i].flags & IFF_LOOPBACK)
+                else if (cinfo->agent0.pub[i].flags & IFF_LOOPBACK)
                 {
-                    if (cinfo->agent[0].ifcnt == 1)
+                    if (cinfo->agent0.ifcnt == 1)
                     {
-                        iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+                        iretn = sendto(cinfo->agent0.pub[i].cudp,       // socket
                                 (const char *)post,                         // buffer to send
                                 nbytes+message.size(),                      // size of buffer
                                 0,                                          // flags
-                                (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
+                                (struct sockaddr *)&cinfo->agent0.pub[i].caddr, // socket address
                                 sizeof(struct sockaddr_in)                  // size of address to socket pointer
                                 );
-                        //                printf("Send Loopback: %s %u %u %d\n", cinfo->agent[0].pub[i].baddress, ntohs(cinfo->agent[0].pub[i].baddr.sin_port), (uint8_t)type, iretn);
+//                        debug_log.Printf("Send Loopback: %s %x %u %u %d\n", cinfo->agent0.pub[i].address, ntohl(cinfo->agent0.pub[i].caddr.sin_addr.s_addr), ntohs(cinfo->agent0.pub[i].caddr.sin_port), (uint8_t)type, iretn);
                     }
                 }
                 else
                 {
-                    iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+                    iretn = sendto(cinfo->agent0.pub[i].cudp,       // socket
                             (const char *)post,                         // buffer to send
                             nbytes+message.size(),                      // size of buffer
                             0,                                          // flags
-                            (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
+                            (struct sockaddr *)&cinfo->agent0.pub[i].baddr, // socket address
                             sizeof(struct sockaddr_in)                  // size of address to socket pointer
                             );
-                    //                if (debug_level) {
-                    //                    debug_error.Printf("Post Broadcast: [%s:%u:%d] %s\n", cinfo->agent[0].pub[i].baddress, cinfo->agent[0].pub[i].cport, iretn, post);
-                    //                }
-                    //                printf("Send Generic: %s %u %u %d\n", cinfo->agent[0].pub[i].address, ntohs(cinfo->agent[0].pub[i].baddr.sin_port), (uint8_t)type, iretn);
+//                    debug_log.Printf("Send Generic: %s %u %u %d\n", cinfo->agent0.pub[i].address, ntohs(cinfo->agent0.pub[i].baddr.sin_port), (uint8_t)type, iretn);
                 }
                 if (iretn < 0)
                 {
@@ -2982,7 +3435,6 @@ namespace Cosmos
                         iretn= 0;
                     }
                 }
-                //            printf("Post: Type: %d Port: %d %d\n", type, cinfo->agent[0].pub[i].cport, htons(cinfo->agent[0].pub[i].caddr.sin_port));
             }
 
             if (iretn<0)
@@ -2999,7 +3451,7 @@ namespace Cosmos
         int32_t Agent::post_beat()
         {
             int32_t iretn = 0;
-            cinfo->agent[0].beat.utc = currentmjd(0.);
+            cinfo->agent0.beat.utc = currentmjd(0.);
             iretn = post(AgentMessage::BEAT);
             //            if (!sohtable.empty())
             //            {
@@ -3014,7 +3466,7 @@ namespace Cosmos
 
         int32_t Agent::post_soh() {
             int32_t iretn = 0;
-            cinfo->agent[0].beat.utc = currentmjd(0.);
+            cinfo->agent0.beat.utc = currentmjd(0.);
             iretn = post(AgentMessage::SOH, json_of_table(hbjstring, sohtable, (cosmosstruc *)cinfo));
             return iretn;
         }
@@ -3025,7 +3477,7 @@ namespace Cosmos
 */
         int32_t Agent::unpublish() {
             if (cinfo == nullptr) { return 0; }
-            for (size_t i=0; i<cinfo->agent[0].ifcnt; ++i) { CLOSE_SOCKET(cinfo->agent[0].pub[i].cudp); }
+            for (size_t i=0; i<cinfo->agent0.ifcnt; ++i) { CLOSE_SOCKET(cinfo->agent0.pub[i].cudp); }
             return 0;
         }
 
@@ -3042,11 +3494,11 @@ namespace Cosmos
             int32_t iretn = 0;
 
             // ?? this is preventing from running socket_open if
-            // for some reason cinfo->agent[0].sub.cport was ill initialized
+            // for some reason cinfo->agent0.sub.cport was ill initialized
 #ifndef COSMOS_WIN_BUILD_MSVC
-            if (cinfo->agent[0].sub.cport) { return 0; }
+            if (cinfo->agent0.sub.cport) { return SOCKET_ERROR_OPEN; }
 #endif
-            if ((iretn=socket_open(&cinfo->agent[0].sub,type,address,port,SOCKET_LISTEN,SOCKET_BLOCKING, usectimeo)) < 0) {
+            if ((iretn=socket_open(&cinfo->agent0.sub,type,address,port,SOCKET_LISTEN,SOCKET_BLOCKING, usectimeo)) < 0) {
                 return iretn;
             }
             return 0;
@@ -3070,7 +3522,7 @@ namespace Cosmos
 \return 0, otherwise negative error.
 */
         int32_t Agent::unsubscribe() {
-            if (cinfo != nullptr) { CLOSE_SOCKET(cinfo->agent[0].sub.cudp); }
+            if (cinfo != nullptr) { CLOSE_SOCKET(cinfo->agent0.sub.cudp); }
             return 0;
         }
 
@@ -3091,7 +3543,7 @@ namespace Cosmos
                 return AGENT_ERROR_NULL;
             }
 
-            if (!cinfo->agent[0].sub.cport) {
+            if (!cinfo->agent0.sub.cport) {
                 return (AGENT_ERROR_CHANNEL);
             }
 
@@ -3118,36 +3570,35 @@ namespace Cosmos
             do
             {
                 nbytes = 0;
-                switch (cinfo->agent[0].sub.type)
+                switch (cinfo->agent0.sub.type)
                 {
                 case NetworkType::MULTICAST:
                 case NetworkType::UDP:
                     {
-                        cinfo->agent[0].sub.addrlen = sizeof(cinfo->agent[0].sub.caddr);
-                        nbytes = recvfrom(cinfo->agent[0].sub.cudp, (char *)input,AGENTMAXBUFFER, 0, (struct sockaddr *)&cinfo->agent[0].sub.caddr, (socklen_t *)&cinfo->agent[0].sub.addrlen);
+                        cinfo->agent0.sub.addrlen = sizeof(cinfo->agent0.sub.caddr);
+                        nbytes = recvfrom(cinfo->agent0.sub.cudp, (char *)input,AGENTMAXBUFFER, 0, (struct sockaddr *)&cinfo->agent0.sub.caddr, (socklen_t *)&cinfo->agent0.sub.addrlen);
 
                         // Return if error
                         if (nbytes < 0)
                         {
                             return nbytes;
                         }
-                        if (cinfo->agent[0].sub.addrlen == sizeof(cinfo->agent[0].sub.caddr))
+                        if (cinfo->agent0.sub.addrlen == sizeof(cinfo->agent0.sub.caddr))
                         {
-                            inet_ntop(cinfo->agent[0].sub.caddr.sin_family,&(cinfo->agent[0].sub.caddr.sin_addr),cinfo->agent[0].sub.address,sizeof(cinfo->agent[0].sub.address));
-                            //                        printf("Receive: [%s %u] %u %d - ", cinfo->agent[0].sub.address, htons(cinfo->agent[0].sub.caddr.sin_port), input[0], nbytes);
+                            inet_ntop(cinfo->agent0.sub.caddr.sin_family,&(cinfo->agent0.sub.caddr.sin_addr),cinfo->agent0.sub.address,sizeof(cinfo->agent0.sub.address));
+//                            debug_log.Printf("RECVFROM: [%s %u] %u %d \n", cinfo->agent0.sub.address, htons(cinfo->agent0.sub.caddr.sin_port), input[0], nbytes);
                         }
-                        //                    else
-                        //                    {
-                        //                        printf("Receive: [Unknown 0] %u %d - ", input[0], nbytes);
-                        //                    }
+//                        else
+//                        {
+//                            debug_log.Printf("RECVFROM: [Unknown 0] %u %d \n", input[0], nbytes);
+//                        }
 
                         // Return if port and address are our own
-                        for (uint16_t i=0; i<cinfo->agent[0].ifcnt; ++i)
+                        for (uint16_t i=1; i<cinfo->agent0.ifcnt; ++i)
                         {
-                            if (cinfo->agent[0].sub.caddr.sin_port == ntohs(cinfo->agent[0].pub[i].cport) &&
-                                cinfo->agent[0].sub.caddr.sin_addr.s_addr == cinfo->agent[0].pub[i].caddr.sin_addr.s_addr)
+                            if (cinfo->agent0.sub.caddr.sin_port == ntohs(cinfo->agent0.pub[i].cport) &&
+                                cinfo->agent0.sub.caddr.sin_addr.s_addr == cinfo->agent0.pub[i].caddr.sin_addr.s_addr)
                             {
-                                //                            printf("Echo\n");
                                 return 0;
                             }
                         }
@@ -3271,25 +3722,12 @@ namespace Cosmos
                                 mess.meta.beat.proc = proc;
                             }
                         }
-                        if (mess.meta.beat.node.compare(cinfo->agent[0].beat.node) || mess.meta.beat.proc.compare(cinfo->agent[0].beat.proc))
+                        if (mess.meta.beat.node.compare(cinfo->agent0.beat.node) || mess.meta.beat.proc.compare(cinfo->agent0.beat.proc))
                         {
-                            //                        printf("Valid: %s\n", mess.jdata.c_str());
                             return ((int)mess.meta.type);
                         }
-                        //                    else
-                        //                    {
-                        //                        printf("Duplicate: %s %s\n",cinfo->agent[0].beat.node.c_str(), cinfo->agent[0].beat.proc.c_str() );
-                        //                    }
                     }
-                    //                else
-                    //                {
-                    //                    printf("NoMatch\n");
-                    //                }
                 }
-                //            else
-                //            {
-                //                printf("Empty\n");
-                //            }
                 if (ep.split() >= waitsec) {
                     nbytes = 0;
                 } else {
@@ -3561,9 +3999,9 @@ acquired.
         //        return (imu);
         //    }
 
-        string Agent::getNode() { return nodeName; }
+        string Agent::getNode() { return cinfo->node.name; }
 
-        string Agent::getAgent() { return agentName; }
+        string Agent::getAgent() { return cinfo->agent0.name; }
 
 
         int32_t Agent::getJson(string node, jsonnode &jnode)
@@ -3602,23 +4040,23 @@ acquired.
         int32_t Agent::set_debug_level(uint16_t level)
         {
             debug_level = level;
-            debug_error.Set(level,  data_base_path(nodeName, "temp", agentName), 1800., "debug");
-            return debug_error.Type(level);
+            debug_log.Set(level, true,  data_base_path(cinfo->node.name, "temp", cinfo->agent0.name), 1800., "debug");
+            return debug_log.Type();
         }
 
         int32_t Agent::get_debug_level()
         {
-            return debug_error.Type();
+            return debug_log.Type();
         }
 
         FILE *Agent::get_debug_fd(double mjd)
         {
-            return debug_error.Open();
+            return debug_log.Open();
         }
 
         int32_t Agent::close_debug_fd()
         {
-            return debug_error.Close();
+            return debug_log.Close();
         }
 
         // Set our producer for all functions associated with time authority (i.e. the mjd request).
@@ -3665,7 +4103,7 @@ acquired.
 
         int32_t Agent::set_activity_period(double period)
         {
-            this->cinfo->agent[0].aprd = period;
+            this->cinfo->agent0.aprd = period;
             return 0;
         }
 
@@ -3925,9 +4363,9 @@ acquired.
                 {
                     header.chunks = (response.size() - 1) / chunk_size + 1;
                 }
-                packet.header.type = PacketComm::TypeId::DataResponse;
-                packet.header.orig = nodeId;
-                packet.header.dest = dest;
+                packet.header.type = PacketComm::TypeId::DataObcResponse;
+                packet.header.nodeorig = nodeId;
+                packet.header.nodedest = dest;
                 for (header.chunk_id=0; header.chunk_id<header.chunks; ++header.chunk_id)
                 {
                     uint16_t chunk_begin = header.chunk_id * chunk_size;
@@ -4003,9 +4441,9 @@ acquired.
                     header.chunks = (response.size() - 1) / chunk_size + 1;
                 }
                 packet.header.type = type;
-                packet.header.radio = number;
-                packet.header.orig = nodeId;
-                packet.header.dest = dest;
+                packet.header.chanin = number;
+                packet.header.nodeorig = nodeId;
+                packet.header.nodedest = dest;
                 for (header.chunk_id=0; header.chunk_id<header.chunks; ++header.chunk_id)
                 {
                     uint16_t chunk_begin = header.chunk_id * chunk_size;
@@ -4044,21 +4482,58 @@ acquired.
                 return GENERAL_ERROR_OUTOFRANGE;
             }
 
+            string bytes;
+            for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
+            {
+                bytes += " " + to_hex(packet.data[i], 2, true);
+            }
             if (extra.empty())
             {
-                printf("%u [%s(%u) Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                debug_log.Printf("[Name=%s, Enabled=%u, Size=%lu Age=%f Length=%u PacketCnt=%u ByteCnt=%lu] [Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u]] %s\n", channel_name(number).c_str(), channel_enabled(number), packet.packetized.size(), channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanin, packet.header.chanout, bytes.c_str());
             }
             else
             {
-                printf("%u %s [%s(%u) Type=%hu, Size=%lu Orig=%u Dest=%u Radio=%u CAge=%f CSize=%u CPackets=%u CBytes=%lu]", decisec(), extra.c_str(), channel_name(number).c_str(), channel_enabled(number), static_cast<uint8_t>(packet.header.type), packet.data.size(), packet.header.orig, packet.header.dest, packet.header.radio, channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number));
+                debug_log.Printf("%s [Name=%s, Enabled=%u, Size=%lu Age=%f Length=%u PacketCnt=%u ByteCnt=%lu] [Type=0x%x, Size=%lu Node=[%u %u] Chan=[%u %u]] %s\n", extra.c_str(), channel_name(number).c_str(), channel_enabled(number), packet.packetized.size(), channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number), static_cast<uint16_t>(packet.header.type), packet.data.size(), packet.header.nodeorig, packet.header.nodedest, packet.header.chanin, packet.header.chanout, bytes.c_str());
             }
+            return 0;
+        }
+
+        int32_t Agent::monitor_unpacketized(string name, PacketComm &packet, string extra)
+        {
+            int32_t number = channel_number(name);
+            if (number < 0)
+            {
+                return number;
+            }
+            return monitor_unpacketized(number, packet, extra);
+        }
+
+        int32_t Agent::monitor_unpacketized(uint8_t number, PacketComm &packet, string extra)
+        {
+            if (number >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            string bytes;
             for (uint16_t i=0; i<std::min(static_cast<size_t>(12), packet.data.size()); ++i)
             {
-                printf(" %02x", packet.data[i]);
+                bytes += " " + to_hex(packet.data[i], 2, true);
             }
-            printf("\n");
-            fflush(stdout);
+            if (extra.empty())
+            {
+                debug_log.Printf("[Name=%s, Enabled=%u, Size=%lu Age=%f Length=%u PacketCnt=%u ByteCnt=%lu] %s\n", channel_name(number).c_str(), channel_enabled(number), packet.packetized.size(), channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number), bytes.c_str());
+            }
+            else
+            {
+                debug_log.Printf("%s [Name=%s, Enabled=%u, Size=%lu Age=%f Length=%u PacketCnt=%u ByteCnt=%lu]\n", extra.c_str(), channel_name(number).c_str(), channel_enabled(number), packet.packetized.size(), channel_age(number), channel_size(number), channel_packets(number), channel_bytes(number), bytes.c_str());
+            }
             return 0;
+        }
+
+        int32_t Agent::channel_count()
+        {
+            return channels.channel.size();
         }
 
         int32_t Agent::channel_push(string name, PacketComm& packet)
@@ -4080,6 +4555,19 @@ acquired.
             }
 
             iretn = channels.Push(number, packet);
+
+            return iretn;
+        }
+
+        int32_t Agent::channel_push(PacketComm& packet)
+        {
+            int32_t iretn=0;
+            if (packet.header.chanout >= channels.channel.size())
+            {
+                return GENERAL_ERROR_OUTOFRANGE;
+            }
+
+            iretn = channels.Push(packet.header.chanout, packet);
 
             return iretn;
         }
@@ -4177,6 +4665,16 @@ acquired.
             }
         }
 
+        int32_t Agent::channel_update(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
+        {
+            return channels.Update(name, datasize, rawsize, byte_rate, maximum);
+        }
+
+        int32_t Agent::channel_update(uint8_t number, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
+        {
+            return channels.Update(number, datasize, rawsize, byte_rate, maximum);
+        }
+
         int32_t Agent::channel_size(string name)
         {
             return channels.Size(name);
@@ -4207,6 +4705,16 @@ acquired.
             return channels.Age(number);
         }
 
+        double Agent::channel_wakeup_timer(string name, double value)
+        {
+            return channels.WakeupTimer(name, value);
+        }
+
+        double Agent::channel_wakeup_timer(uint8_t number, double value)
+        {
+            return channels.WakeupTimer(number, value);
+        }
+
         size_t Agent::channel_bytes(string name)
         {
             return channels.Bytes(name);
@@ -4215,6 +4723,16 @@ acquired.
         size_t Agent::channel_bytes(uint8_t number)
         {
             return channels.Bytes(number);
+        }
+
+        size_t Agent::channel_level(string name)
+        {
+            return channels.Level(name);
+        }
+
+        size_t Agent::channel_level(uint8_t number)
+        {
+            return channels.Level(number);
         }
 
         uint32_t Agent::channel_packets(string name)
@@ -4227,14 +4745,14 @@ acquired.
             return channels.Packets(number);
         }
 
-        double Agent::channel_touch(string name)
+        double Agent::channel_touch(string name, double seconds)
         {
-            return channels.Touch(name);
+            return channels.Touch(name, seconds);
         }
 
-        double Agent::channel_touch(uint8_t number)
+        double Agent::channel_touch(uint8_t number, double seconds)
         {
-            return channels.Touch(number);
+            return channels.Touch(number, seconds);
         }
 
         ssize_t Agent::channel_increment(string name, size_t bytes, uint32_t packets)
@@ -4255,23 +4773,23 @@ acquired.
             return iretn;
         }
 
-        ssize_t Agent::channel_decrement(string name, size_t bytes, uint32_t packets)
-        {
-            int32_t number = channel_number(name);
-            if (number < 0)
-            {
-                return number;
-            }
+//        ssize_t Agent::channel_decrement(string name, size_t bytes, uint32_t packets)
+//        {
+//            int32_t number = channel_number(name);
+//            if (number < 0)
+//            {
+//                return number;
+//            }
 
-            return channel_decrement(number, bytes, packets);
-        }
+//            return channel_decrement(number, bytes, packets);
+//        }
 
-        ssize_t Agent::channel_decrement(uint8_t number, size_t bytes, uint32_t packets)
-        {
-            int32_t iretn = 0;
-            iretn = channels.Decrement(number, bytes, packets);
-            return iretn;
-        }
+//        ssize_t Agent::channel_decrement(uint8_t number, size_t bytes, uint32_t packets)
+//        {
+//            int32_t iretn = 0;
+//            iretn = channels.Decrement(number, bytes, packets);
+//            return iretn;
+//        }
 
         int32_t Agent::channel_teststart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
         {
@@ -4455,29 +4973,28 @@ acquired.
             return channels.channel[number].rawsize;
         }
 
-        int32_t Agent::channel_maximum(string name, uint16_t maximum)
+        int32_t Agent::channel_maximum(string name)
         {
             int32_t iretn = channel_number(name);
             if (iretn < 0)
             {
                 return iretn;
             }
-            return channel_maximum(iretn, maximum);
+            return channel_maximum(iretn);
         }
 
-        int32_t Agent::channel_maximum(uint8_t number, uint16_t maximum)
+        int32_t Agent::channel_maximum(uint8_t number)
         {
             if (number >= channels.channel.size())
             {
                 return GENERAL_ERROR_OUTOFRANGE;
             }
-            channels.channel[number].maximum = maximum;
             return channels.channel[number].maximum;
         }
 
-        int32_t Agent::task_add(string command)
+        int32_t Agent::task_add(string command, string source)
         {
-            return tasks.Add(command);
+            return tasks.Add(command, source);
         }
 
         int32_t Agent::task_del(uint32_t deci)

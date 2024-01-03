@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     }
 
     // Establish the command channel and heartbeat
-    if (!(agent = new Agent(nodename)))
+    if (!(agent = new Agent("", nodename)))
     {
         std::cout << ": agent_setup_client failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
         exit (AGENT_ERROR_JSON_CREATE);
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
                 case NODE_TYPE_SATELLITE:
                     trackstruc ttrack;
                     ttrack.name = nodes[i];
-                    cosmosstruc *cinfo = json_init();
+                    cosmosstruc *cinfo = json_init(ttrack.name);
                     iretn = json_setup_node(ttrack.name, cinfo);
                     if (iretn == 0)
                     {

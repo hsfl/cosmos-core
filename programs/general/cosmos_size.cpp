@@ -35,11 +35,11 @@ int main(int argc, char* argv[])
     Agent *myagent;
 
     if (argc == 2) {
-        myagent = new Agent(argv[1]);
+        myagent = new Agent("", argv[1]);
     } else {
         char hostname[60];
         gethostname(hostname, sizeof (hostname));
-        myagent = new Agent(hostname);
+        myagent = new Agent("", hostname);
     }
 
     size_t total = 0;
@@ -170,13 +170,8 @@ int main(int argc, char* argv[])
     }
     printf("Ports:\t\t%lu\t%lu\n", count, total);
 
-    count = sizeof(c->agent);
-    total += sizeof(c->agent);
-    for (size_t i=0; i<c->agent.size(); ++i)
-    {
-        count += c->agent[i].memoryusage();
-        total += c->agent[i].memoryusage();
-    }
+    count = sizeof(c->agent0);
+    total += sizeof(c->agent0);
     printf("Agents:\t\t%lu\t%lu\n", count, total);
 
     count = sizeof(c->sim_states);

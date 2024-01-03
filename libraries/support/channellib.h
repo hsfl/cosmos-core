@@ -35,8 +35,10 @@ namespace Cosmos {
 
             struct channelstruc
             {
-                double timestamp = 0.;
+                channelstruc() {age_timer.start(get_unix_time());}
+                ElapsedTime age_timer;
                 uint32_t packets = 0;
+                uint32_t level = 0;
                 size_t bytes = 0;
                 string name = "";
                 queue<PacketComm> quu;
@@ -44,7 +46,8 @@ namespace Cosmos {
                 uint16_t datasize = PACKETCOMM_DATA_SIZE;
                 uint16_t rawsize = PACKETCOMM_PACKETIZED_SIZE;
                 uint16_t maximum = 100;
-                float byte_rate = 0.;
+                float byte_rate = 1e9;
+                float wakeup_timer = 600.;
                 // Radio test variables
                 thread testthread;
                 uint8_t testrunning = 0;
@@ -66,6 +69,8 @@ namespace Cosmos {
             int32_t Init(uint32_t verification=0x352e);
             int32_t Check(uint32_t verification);
             int32_t Add(string name, uint16_t datasize=PACKETCOMM_WRAPPED_SIZE, uint16_t rawsize=0, float byte_rate=1e8, uint16_t maximum=100);
+            int32_t Update(string name, uint16_t datasize=0, uint16_t rawsize=0, float byte_rate=0, uint16_t maximum=0);
+            int32_t Update(uint8_t number, uint16_t datasize=0, uint16_t rawsize=0, float byte_rate=0, uint16_t maximum=0);
             int32_t Find(string name);
             string Find(uint8_t number);
             int32_t Push(string name, PacketComm &packet);
@@ -80,22 +85,22 @@ namespace Cosmos {
             int32_t Enable(uint8_t number, int8_t value);
             int32_t Enabled(string name);
             int32_t Enabled(uint8_t number);
-//            int32_t Disable(string name);
-//            int32_t Disable(uint8_t number);
             double Age(string name);
             double Age(uint8_t number);
+            double WakeupTimer(string name, double value = 0.);
+            double WakeupTimer(uint8_t number, double value = 0.);
             size_t Bytes(string name);
             size_t Bytes(uint8_t number);
+            size_t Level(string name);
+            size_t Level(uint8_t number);
             float ByteRate(string name);
             float ByteRate(uint8_t number);
             uint32_t Packets(string name);
             uint32_t Packets(uint8_t number);
-            double Touch(string name);
-            double Touch(uint8_t number);
+            double Touch(string name, double seconds = 0.);
+            double Touch(uint8_t number, double seconds = 0.);
             ssize_t Increment(string name, size_t byte_count, uint32_t packet_count=1);
             ssize_t Increment(uint8_t number, size_t byte_count, uint32_t packet_count=1);
-            ssize_t Decrement(string name, size_t byte_count, uint32_t packet_count=1);
-            ssize_t Decrement(uint8_t number, size_t byte_count, uint32_t packet_count=1);
             int32_t TestStart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
             int32_t TestStart(uint8_t number, uint8_t radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total);
             int32_t TestStop(string name, float seconds=5.);
@@ -109,7 +114,6 @@ namespace Cosmos {
             uint32_t verification = 0x352e;
 
         private:
-
         };
     }
 }

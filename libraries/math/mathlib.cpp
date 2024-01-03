@@ -2037,6 +2037,42 @@ cmatrix cm_change_between_cv(cvector from, cvector to)
     return cm_quaternion2dcm(q_change_between_cv(from,to));
 }
 
+//! Discrete Cosine Transform
+//! Perform a DCT on the provided data, over the range specified.
+//! \param datain ::Vector of data to be transformed.
+//! \param dct ::Vector of DCT to be returned, only over requested range.
+//! \param start Defaults to 0
+//! \param end Defaults to N-1
+int32_t dodct(vector <float> datain, vector <float> &dctout, uint16_t start, uint16_t end)
+{
+    size_t nelements = datain.size();
+    if (end == 0)
+    {
+        end = nelements -1;
+    }
+
+//    // Apodize
+//    for (uint16_t ic=0; ic<nelements; ++ic)
+//    {
+//        // Apodize
+//        datain[ic] *= ((nelements - 1) - ic) / (nelements-1.);
+//    }
+
+    // Calculate FFT
+    dctout.resize((end-start)+1);
+    for (uint16_t ic1=0; ic1<dctout.size(); ++ic1)
+    {
+        double dpiic1n = DPI * (ic1+start) / nelements;
+        dctout[ic1] = 2. * datain[0] * cos(dpiic1n * (0.5)) / (nelements * sqrt(2.));
+        for (uint16_t ic2=1; ic2<nelements; ++ic2)
+        {
+            dctout[ic1] += 2. * datain[ic2] * cos(dpiic1n * (ic2 + 0.5)) / nelements;
+        }
+    }
+    return 1;
+
+}
+
 //! Multi element, variable order least squares fit.
 /*! Constructor for cnt element, ord order least squares fit.
  * \param cnt Number of elements to be fit.

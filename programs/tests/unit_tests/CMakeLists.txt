@@ -2,25 +2,25 @@ cmake_minimum_required(VERSION 3.1)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR} ../../build/linux/googletest-src/googletest/include/)
 
-file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-
 message(STATUS "${CMAKE_CURRENT_SOURCE_DIR} : ")
-message(${files})
 
-foreach(file ${files})
-    get_filename_component(bfile ${file} NAME_WE)
-    add_executable(${bfile} ${bfile}.cpp)
-#    target_link_libraries(${bfile} CosmosSupport ${COSMOS_LIBS} gtest gtest_main)
-    install(TARGETS ${bfile} DESTINATION bin)
+add_executable(test_all test_all.cpp)
+install(TARGETS test_all DESTINATION bin)
 
-    if(${DEPLOY_BIN_FILES_TO_REMOTE} MATCHES "YES")
-        add_deployment_binary(${bfile} "bin")
-    endif()
+add_subdirectory(beacon)
+add_subdirectory(channel)
+add_subdirectory(packetcomm)
+add_subdirectory(transfer)
 
-    if(${DEPLOY_SRC_FILES_TO_REMOTE} MATCHES "YES")
-        add_deployment_source(${bfile}.cpp "src")
-    endif()
-
-endforeach()
-
-target_link_libraries(test_all CosmosNamespace gtest gtest_main)
+target_link_libraries(
+    # Our test program
+    test_all
+    # Test libraries
+    CosmosUTChannel
+    CosmosUTTransfer
+    # Additional libraries
+    CosmosNamespace
+    # Google Test library
+    gtest
+    gtest_main
+)

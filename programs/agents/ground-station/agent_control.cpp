@@ -224,21 +224,21 @@ int main(int argc, char *argv[])
     // Establish the command channel and heartbeat
     if (nodename.empty())
     {
-        agent = new Agent("", agentname, 5.);
+        agent = new Agent("", "", agentname, 5.);
     }
     else
     {
-        agent = new Agent(nodename, agentname, 5.);
+        agent = new Agent("", nodename, agentname, 5.);
     }
 
     if ((iretn = agent->wait()) < 0)
     {
-        agent->debug_error.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        agent->debug_log.Printf("%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
     else
     {
-        agent->debug_error.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+        agent->debug_log.Printf("%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
     // Build up table of our radios
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
             case NODE_TYPE_MOON:
                 trackstruc ttrack;
                 ttrack.name = nodes[i];
-                cosmosstruc *cinfo = json_init();
+                cosmosstruc *cinfo = json_init(ttrack.name);
                 iretn = json_setup_node(ttrack.name, cinfo);
                 if (iretn == 0 && (currentmjd()-cinfo->node.loc.pos.eci.utc) < 10.)
                 {
@@ -519,7 +519,7 @@ int main(int argc, char *argv[])
     ElapsedTime et;
 
     // Start main thread
-    agent->cinfo->agent[0].aprd = 1.;
+    agent->cinfo->agent0.aprd = 1.;
     agent->start_active_loop();
     while (agent->running())
     {

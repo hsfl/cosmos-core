@@ -30,17 +30,19 @@ namespace Cosmos
                 Running
                 };
 
-            typedef map<string, Physics::State*> StateList;
+            typedef vector<Physics::State*> StateList;
 
             int32_t Init(double iutc, double idt=1.);
             int32_t Connect();
-            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype);
-            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci);
-            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf);
-            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::tlestruc tle);
+            StateList::iterator AddNode(string nodename, uint8_t propagation_priority);
+            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
+            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos origineci, Convert::cartpos lvlh, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
+            int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::tlestruc tle, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
             int32_t AddNode(string nodename, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, double utc, double lat, double lon, double altitude, double angle, double timeshift=0.);
             int32_t GetError();
             int32_t Propagate(double nextutc=0.);
+            //! Ends the simulation and runs any code that the propagators need to run at the end
+            int32_t End();
             int32_t Reset();
             int32_t Run();
             int32_t Pause();
@@ -52,8 +54,8 @@ namespace Cosmos
             int32_t UpdatePush(string name, Vector fpush);
             int32_t UpdateThrust(string name, Vector thrust);
             int32_t UpdateTorque(string name, Vector torque);
-            double initialutc;
-            double currentutc;
+            double initialutc = 0.;
+            double currentutc = 0.;
             StateList cnodes;
 
         private:

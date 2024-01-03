@@ -41,11 +41,11 @@ int main(int argc, char *argv[])
 
     if (argc == 2)
     {
-        agent = new Agent("", argv[1]);
+        agent = new Agent("", "", argv[1]);
     }
     else
     {
-        agent = new Agent("", "ntp");
+        agent = new Agent("", "", "ntp");
     }
 
     while (agent->running())
