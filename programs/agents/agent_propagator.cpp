@@ -73,9 +73,10 @@ int net_port_out = 10081;
 socket_bus net_channel_out;
 
 // For cosmos web
-socket_channel cosmos_web_telegraf_channel, cosmos_web_api_channel;
+socket_channel cosmos_web_telegraf_channel, cosmos_web_telegraf_dev_channel, cosmos_web_api_channel;
 const string TELEGRAF_ADDR = "cosmos_telegraf";
 string cosmos_web_addr = "";
+const int TELEGRAF_PORT_DEV = 10095;
 const int TELEGRAF_PORT = 10096;
 const int API_PORT = 10097;
 int32_t open_cosmos_web_sockets();
@@ -353,6 +354,12 @@ int32_t open_cosmos_web_sockets()
     if ((iretn) < 0)
     {
         cout << "Failed to open socket cosmos_web_telegraf_channel: " << cosmos_error_string(iretn) << endl;
+        exit(0);
+    }
+    iretn = socket_open(&cosmos_web_telegraf_dev_channel, NetworkType::UDP, cosmos_web_addr.c_str(), TELEGRAF_PORT_DEV, SOCKET_TALK, SOCKET_BLOCKING, 2000000 );
+    if ((iretn) < 0)
+    {
+        cout << "Failed to open socket cosmos_web_telegraf_dev_channel: " << cosmos_error_string(iretn) << endl;
         exit(0);
     }
     iretn = socket_open(&cosmos_web_api_channel, NetworkType::UDP, cosmos_web_addr.c_str(), API_PORT, SOCKET_TALK, SOCKET_BLOCKING, 2000000);
@@ -797,7 +804,6 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
     }
     // locstruc
     json11::Json jobj = json11::Json::object({
-                                              {"node_utc", cinfo->node.utc },
                                               {"node_name", cinfo->node.name },
                                               {"node_loc", json11::Json::object({
                                                                {"pos", json11::Json::object({
@@ -817,7 +823,7 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
                                                            })},
                                               });
     int32_t iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
-    // int32_t iretn = 0; cout << jobj.dump() << endl;
+    // cout << jobj.dump() << endl;
     if (iretn < 0) { return iretn; }
 
     // Devices are not auto-populated, so just use some RANDOM VALUES
@@ -940,6 +946,42 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
     });
     iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     if (iretn < 0) { return iretn; }
+
+    // Targets, send to dev db
+    jobj = json11::Json::object({
+        {"node_name", cinfo->node.name },
+        {"node_utc", cinfo->node.utc},
+        {"target", [cinfo]() -> vector<json11::Json>
+            {
+                vector<json11::Json> ret;
+                for (auto target : cinfo->target)
+                {
+                    ret.push_back({
+                        json11::Json::object({
+                            {"name", target.name},
+                            {"type", target.type},
+                            {"azfrom", target.azfrom},
+                            {"elfrom", target.elfrom},
+                            {"azto", target.azto},
+                            {"elto", target.elto},
+                            {"maxelto", target.maxelto},
+                            {"range", target.range},
+                            {"close", target.close},
+                            {"min", target.min},
+                            {"bearing", target.bearing},
+                            {"size", target.size},
+                            {"area", target.area},
+                            {"resolution", target.resolution},
+                            })
+                    });
+                }
+                return ret;
+            }()
+        }
+    });
+    iretn = socket_sendto(cosmos_web_telegraf_dev_channel, jobj.dump());
+    if (iretn < 0) { return iretn; }
+
 
     return 0;
 }
