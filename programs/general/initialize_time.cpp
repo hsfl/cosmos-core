@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
 
     double mjdserver = 0.;
-    double cmjd = currentmjd();
+    //double cmjd = currentmjd();
     double rmjd;
     double epsilon;
     double offset;
