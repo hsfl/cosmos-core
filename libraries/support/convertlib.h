@@ -149,6 +149,9 @@ namespace Cosmos {
         int32_t ric2lvlh(cartpos ric, cartpos& lvlh);
         int32_t lvlh2ric(cartpos lvlh, cartpos& ric);
 
+        locstruc shape2eci(double utc, double altitude, double angle, double timeshift);
+        locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift);
+
         int32_t att_extra(locstruc *loc);
         int32_t att_icrf(locstruc *loc);
         int32_t att_lvlh(locstruc *loc);
@@ -226,6 +229,8 @@ namespace Cosmos {
         int32_t load_lines(string fname, vector<tlestruc>& tle);
         int32_t load_lines_multi(string fname, vector<tlestruc>& tle);
         int32_t loadTLE(char *fname, tlestruc &tle);
+        int32_t load_tle(char *fname, tlestruc &tle);
+        int32_t load_tle(string fname, tlestruc &tle);
         int32_t load_stk(string filename, stkstruc &stkdata);
         int stk2eci(double utc, stkstruc &stk, cartpos &eci);
         int32_t tle2sgp4(tlestruc tle, sgp4struc &sgp4);

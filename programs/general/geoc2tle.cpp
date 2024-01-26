@@ -55,6 +55,7 @@ int main(int argc, char *argv[])
     output += " " + to_label("AP", tle.raan, 8);
     output += " " + to_label("BSTAR", tle.bstar, 8);
     output += " " + to_label("MM", tle.mm, 8);
+    output += " " + to_label("DMM", tle.dmm, 8);
     output += " " + to_label("MA", tle.ma, 8);
     output += " " + to_label("EPOCH", tle.utc, 8);
     printf("%s\n", output.c_str());

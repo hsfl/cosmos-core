@@ -30,20 +30,19 @@ int main(int argc, char *argv[])
     Convert::geod2utm(loc0.pos.geod, utm);
 
     loc_clear(loc0);
-    Convert::tle2eci(mjd0+.1, lines[0], loc0.pos.eci);
+    Convert::tle2eci(mjd0, lines[0], loc0.pos.eci);
+    Convert::eci2tle2(loc0.pos.eci, tle1);
 
     loc_clear(loc1);
-    Convert::tle2eci(mjd0+.1, tle1, loc1.pos.eci);
+    Convert::tle2eci(mjd0, tle1, loc1.pos.eci);
 
-    tle2 = tle1;
-    tle2.bstar = .0001;
+    Convert::eci2tle2(loc1.pos.eci, tle2);
     loc_clear(loc2);
-    Convert::tle2eci(mjd0+.1, tle2, loc2.pos.eci);
+    Convert::tle2eci(mjd0, tle2, loc2.pos.eci);
 
-    tle3 = tle1;
-    tle3.bstar = .001;
+    Convert::eci2tle2(loc2.pos.eci, tle3);
     loc_clear(loc3);
-    Convert::tle2eci(mjd0+.1, tle3, loc3.pos.eci);
+    Convert::tle2eci(mjd0, tle3, loc3.pos.eci);
 
     Convert::kepstruc kep;
     Convert::eci2kep(loc1.pos.eci, kep);

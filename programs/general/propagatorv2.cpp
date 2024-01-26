@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
     currentutc = initialutc;
     sim->Init(currentutc, simdt);
 
-//    iretn = sim->AddNode("mother", Physics::Structure::U12, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+//    iretn = sim->AddNode("mother", "U12", Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     initialloc.att.icrf.s = q_eye();
-    iretn = sim->AddNode("mother", Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+    iretn = sim->AddNode("mother", "HEX65W80H", Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
     sit = sim->GetNode("mother");
     FILE *fp = fopen(targetfile.c_str(), "r");
     if (fp == nullptr)

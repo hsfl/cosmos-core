@@ -702,11 +702,11 @@ int32_t parse_sat(string args)
         mothereci = initialloc.pos.eci;
         if (type == Physics::Propagator::PositionGaussJackson)
         {
-            iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+            iretn = sim->AddNode(nodename, "HEX65W80H", Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
         }
         else
         {
-            iretn = sim->AddNode(nodename, Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
+            iretn = sim->AddNode(nodename, "HEX65W80H", Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
         }
     }
     else
@@ -715,11 +715,11 @@ int32_t parse_sat(string args)
         // TODO: position initialization should be independent from what position propagator is desired
         if (type == Physics::Propagator::PositionLvlh)
         {
-            iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, mothereci, initialloc.pos.lvlh, mothericrf);
+            iretn = sim->AddNode(nodename, "U12", Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, mothereci, initialloc.pos.lvlh, mothericrf);
         }
         else
         {
-            iretn = sim->AddNode(nodename, Physics::Structure::U12, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, mothericrf);
+            iretn = sim->AddNode(nodename, "U12", Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, mothericrf);
         }
     }
     Physics::Simulator::StateList::iterator sit = sim->GetNode(nodename);

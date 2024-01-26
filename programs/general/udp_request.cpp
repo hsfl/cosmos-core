@@ -50,10 +50,11 @@ int main(int argc, char *argv[])
     socket_channel chan;
     socket_channel chanin;
     char buf3[10000];
-    int32_t lsleep, lat, lon, alt;
+    int32_t lsleep;
+//    int32_t lat, lon, alt;
     uint16_t len3;
-    int32_t hour, min;
-    float sec;
+//    int32_t hour, min;
+//    float sec;
     double imjd, elapsed;
 
 
@@ -68,9 +69,9 @@ int main(int argc, char *argv[])
     }
 
     COSMOS_USLEEP(1*1000000);
-    lat = 3705459;
-    lon = -12083358;
-    alt = 50;
+//    lat = 3705459;
+//    lon = -12083358;
+//    alt = 50;
     imjd = currentmjd(0.);
     buf3[0] = 130;
 
