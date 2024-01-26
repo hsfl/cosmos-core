@@ -74,7 +74,7 @@ const string JSENDTODB = "db";
 // Specify these with json args
 struct prop_types
 {
-    Physics::Structure::Type structure = Physics::Structure::NoType;
+    string structure = "NoType";
     Physics::Propagator::Type position_prop = Physics::Propagator::None;
     Physics::Propagator::Type attitude_prop = Physics::Propagator::None;
     Physics::Propagator::Type thermal_prop = Physics::Propagator::None;
@@ -650,7 +650,7 @@ int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& res
             } else if (node[JSHAPE].string_value() == "U6") {
                 new_node.pt.structure = Physics::Structure::U6;
             } else if (node[JSHAPE].string_value() == "U12") {
-                new_node.pt.structure = Physics::Structure::U12;
+                new_node.pt.structure = "U12";
             } else {
                 response = "Argument format error, " + JSHAPE + " " + node[JSHAPE].string_value() + " is not supported.";
                 return COSMOS_GENERAL_ERROR_ARGS;

@@ -89,6 +89,8 @@ string to_signed(int64_t value, uint16_t digits=0, bool zerofill=false);
 string to_signed(ptrdiff_t value, uint16_t digits=0, bool zerofill=false);
 #endif
 
+string to_fixed(double value, uint16_t digits, uint16_t precision=0, bool zerofill=false);
+//string to_fixed(double value, uint16_t digits, uint16_t precision=0, bool zerofill=false);
 string to_floating(float value, uint16_t precision=0);
 string to_floating(double value, uint16_t precision=0);
 string to_floatexp(float value, uint16_t precision=0);

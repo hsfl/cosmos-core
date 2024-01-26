@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
     //    initialloc.att.icrf.s = q_eye();
     tlestruc tle;
     eci2tle(initialloc.pos.eci, tle);
-    iretn = sim->AddNode("mother", Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, tle);
+    iretn = sim->AddNode("mother", "HEX65W80H", Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, tle);
     sit = sim->GetNode("mother");
     for (targetentry target : targets)
     {

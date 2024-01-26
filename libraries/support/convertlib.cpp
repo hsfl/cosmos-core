@@ -33,6 +33,8 @@
 
 #include "support/convertlib.h"
 #include "support/jsondef.h"
+#include "support/stringlib.h"
+#include "physics/physicsclass.h"
 
 // Used to mark unused variables as known
 #ifndef UNUSED_VARIABLE_LOCALDEF
@@ -3509,25 +3511,47 @@ int32_t kep2eci(kepstruc &kep, cartpos &eci)
 
 int32_t eci2kep(cartpos &eci, kepstruc &kep)
 {
-    double magr, magv, magn, sme, rdotv, temp;
+    double rmag, rmag2=D_SMALL, rmag3=D_SMALL, drmag=0.;
+    double vmag, vmag2=D_SMALL, vmag3=D_SMALL, vmag4=D_SMALL, vmag5=D_SMALL, vmag6=D_SMALL, dvmag=0.;
+    double magn, sme, rdotv, temp;
     double c1, hk, magh;
     rvector nbar, ebar, rsun, hsat;
     cartpos earthpos;
 
     kep.utc = eci.utc;
+    kep.ddmm = 0.;
 
-    magr = length_rv(eci.s);
-    if (magr < D_SMALL)
-        magr = D_SMALL;
-    magv = length_rv(eci.v);
-    if (magv < D_SMALL)
-        magv = D_SMALL;
+    rmag = length_rv(eci.s);
+    if (rmag < D_SMALL)
+    {
+        rmag = D_SMALL;
+    }
+    else
+    {
+        rmag2= rmag * rmag;
+        rmag3 = rmag * rmag2;
+        drmag = (eci.s.col[0] * eci.v.col[0] + eci.s.col[1] * eci.v.col[1] + eci.s.col[2] * eci.v.col[2]) / rmag;
+    }
+    vmag = length_rv(eci.v);
+    if (vmag < D_SMALL)
+    {
+        vmag = D_SMALL;
+    }
+    else
+    {
+        vmag2 = vmag * vmag;
+        vmag3 = vmag * vmag2;
+        vmag4 = vmag * vmag3;
+        vmag5 = vmag * vmag4;
+        vmag6 = vmag * vmag5;
+        dvmag = (eci.v.col[0] * eci.a.col[0] + eci.v.col[1] * eci.a.col[1] + eci.v.col[2] * eci.a.col[2]) / vmag;
+    }
     kep.h = rv_cross(eci.s, eci.v);
-    if (magr == D_SMALL && magv == D_SMALL)
+    if (rmag == D_SMALL && vmag == D_SMALL)
         kep.fa = acos(1. / D_SMALL);
     else
-        kep.fa = acos(length_rv(kep.h) / (magr * magv));
-    kep.eta = magv * magv / 2. - GM / magr;
+        kep.fa = acos(length_rv(kep.h) / (rmag * vmag));
+    kep.eta = vmag2 / 2. - GM / rmag;
     magh = length_rv(kep.h);
     jplpos(JPL_EARTH, JPL_SUN_BARY, utc2tt(eci.utc), &earthpos);
     earthpos.utc = eci.utc;
@@ -3544,23 +3568,31 @@ int32_t eci2kep(cartpos &eci, kepstruc &kep)
         nbar.col[1] = kep.h.col[0];
         nbar.col[2] = 0.0;
         magn = length_rv(nbar);
-        c1 = magv * magv - GM / magr;
+        c1 = vmag2 - GM / rmag;
         rdotv = dot_rv(eci.s, eci.v);
         ebar.col[0] = (c1 * eci.s.col[0] - rdotv * eci.v.col[0]) / GM;
         ebar.col[1] = (c1 * eci.s.col[1] - rdotv * eci.v.col[1]) / GM;
         ebar.col[2] = (c1 * eci.s.col[2] - rdotv * eci.v.col[2]) / GM;
         kep.e = length_rv(ebar);
 
-        sme = (magv * magv * 0.5) - (GM / magr);
+        sme = (vmag2 * 0.5) - (GM / rmag);
         if (fabs(sme) > O_SMALL)
+        {
             kep.a = -GM / (2. * sme);
+            kep.mm = sqrt(GM / pow(kep.a, 3.));
+            kep.dmm = (-6. * vmag6 / GM2 + 6. * vmag4 / (rmag * GM) - 24. * vmag / rmag2) * dvmag;
+            kep.dmm += (-6. * vmag4 / (rmag2 * GM) + 24. * vmag2 / rmag3 - 24. * GM / rmag3) * drmag;
+            kep.dmm /= 2. * kep.mm;
+        }
         else
+        {
             kep.a = O_INFINITE;
-        //	p = magh * magh / GM;
+            kep.mm = O_SMALL;
+            kep.dmm = D_SMALL;
+        }
+        kep.period = 2. * DPI / kep.mm;
 
         // find mean motion and period
-        kep.mm = sqrt(GM / pow(kep.a, 3.));
-        kep.period = 2. * DPI / kep.mm;
 
         // -----------------  find inclination   -------------------
         hk = kep.h.col[2] / magh;
@@ -3580,7 +3612,7 @@ int32_t eci2kep(cartpos &eci, kepstruc &kep)
             kep.raan = O_UNDEFINED;
 
         // Find eccentric and mean anomaly
-        kep.ea = atan2(rdotv / sqrt(kep.a * GM), 1. - magr / kep.a);
+        kep.ea = atan2(rdotv / sqrt(kep.a * GM), 1. - rmag / kep.a);
         kep.ma = kep.ea - kep.e * sin(kep.ea);
 
         // Find argument of latitude
@@ -3595,7 +3627,7 @@ int32_t eci2kep(cartpos &eci, kepstruc &kep)
     else
     {
         kep.a = kep.e = kep.i = kep.raan = O_UNDEFINED;
-        kep.ap = kep.alat = kep.ma = kep.ta = kep.ea = kep.mm = O_UNDEFINED;
+        kep.ap = kep.alat = kep.ma = kep.ta = kep.ea = kep.mm = kep.dmm = kep.ddmm = O_UNDEFINED;
     }
 
     return 0;
@@ -3792,6 +3824,8 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
     int i;
     double temp, temp1, temp2, temp3, temp4, temp5, temp6;
     double tempa, tempe, templ;
+    // Mean motion per minute
+    double mmm;
     double ao, a1, c2, c3, coef, coef1, theta4, c1sq;
     double theta2, betao2, betao, delo, del1, s4, qoms24, x1m5th, xhdot1;
     double perige, eosq, pinvsq, tsi, etasq, eeta, psisq, g, xmdf;
@@ -3815,7 +3849,8 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
         }
         // RECOVER ORIGINAL MEAN MOTION ( xnodp ) AND SEMIMAJOR AXIS (aodp)
         // FROM INPUT ELEMENTS
-        a1 = pow((SGP4_XKE / tle.mm), SGP4_TOTHRD);
+        mmm = tle.mm * 60.;
+        a1 = pow((SGP4_XKE / mmm), SGP4_TOTHRD);
         cosio = cos(tle.i);
         theta2 = cosio * cosio;
         x3thm1 = 3. * theta2 - 1.;
@@ -3825,7 +3860,7 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
         del1 = 1.5 * SGP4_CK2 * x3thm1 / (a1 * a1 * betao * betao2);
         ao = a1 * (1. - del1 * (.5 * SGP4_TOTHRD + del1 * (1. + 134. / 81. * del1)));
         delo = 1.5 * SGP4_CK2 * x3thm1 / (ao * ao * betao * betao2);
-        xnodp = tle.mm / (1. + delo);
+        xnodp = mmm / (1. + delo);
         aodp = ao / (1. - delo);
         // INITIALIZATION
         // FOR PERIGEE LESS THAN 220 KILOMETERS, THE isimp FLAG IS SET AND
@@ -4284,8 +4319,7 @@ int32_t eci2tle(cartpos eci, tlestruc &tle)
             break;
         }
     }
-    tle.mm = xke * pow(a1, -1.5);
-    //            mm = mm / (pi2 / 1440.0);
+    tle.mm = xke * pow(a1, -1.5) / 60.;
 
     return 0;
 }
@@ -4332,7 +4366,8 @@ int32_t eci2tle2(cartpos eci, tlestruc &tle)
     tle.e = kep.e;
     tle.i = kep.i;
     tle.ma = kep.ma;
-    tle.mm = kep.mm * 60.; // Keplerian in SI units (radians / seconds), convert to radians / minute.
+    tle.mm = kep.mm;
+    tle.dmm = kep.dmm * D2PI / (86400. * 86400.);
     tle.raan = kep.raan;
     tle.utc = eci.utc;
 //    eci2tle(eci, tle);
@@ -4706,6 +4741,16 @@ tlestruc get_line(uint16_t index, vector<tlestruc> lines)
          */
 int32_t loadTLE(char *fname, tlestruc &tle)
 {
+    return load_tle(fname, tle);
+}
+
+int32_t load_tle(string fname, tlestruc &tle)
+{
+    return load_tle((char *)fname.c_str(), tle);
+}
+
+int32_t load_tle(char *fname, tlestruc &tle)
+{
     FILE *fdes;
     uint16_t year;
     double jday;
@@ -4747,6 +4792,9 @@ int32_t loadTLE(char *fname, tlestruc &tle)
         sscanf(&ibuf[20], "%12lf", &jday);
         tle.utc = cal2mjd((int)year, 1, 0.);
         tle.utc += jday;
+        sscanf(&ibuf[33], "%lf", &tle.dmm);
+        tle.dmm *= D2PI / (86400. * 86400.);
+        tle.ddmm = 0.;
         if (strlen(ibuf) > 50)
         {
             sscanf(&ibuf[53], "%6d%2d", &bdragm, &bdrage);
@@ -4765,7 +4813,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
             tle.raan = RADOF(tle.raan);
             tle.ap = RADOF(tle.ap);
             tle.ma = RADOF(tle.ma);
-            tle.mm *= D2PI / 1440.;
+            tle.mm *= D2PI / 86400.;
             tle.e = ecc / 1.e7;
         }
     }
@@ -4837,6 +4885,9 @@ int32_t load_lines(string fname, vector<tlestruc> &lines)
         sscanf(&ibuf[20], "%12lf", &jday);
         tle.utc = cal2mjd((int)year, 1, 0.);
         tle.utc += jday;
+        sscanf(&ibuf[33], "%lf", &tle.dmm);
+        tle.dmm *= D2PI / (86400. * 86400.);
+        tle.ddmm = 0.;
         if (strlen(ibuf) > 50)
         {
             sscanf(&ibuf[53], "%6d%2d", &bdragm, &bdrage);
@@ -4868,7 +4919,7 @@ int32_t load_lines(string fname, vector<tlestruc> &lines)
             tle.raan = RADOF(tle.raan);
             tle.ap = RADOF(tle.ap);
             tle.ma = RADOF(tle.ma);
-            tle.mm *= D2PI / 1440.;
+            tle.mm *= D2PI / 86400.;
             tle.e = ecc / 1.e7;
             lines.push_back(tle);
         }
@@ -4926,6 +4977,9 @@ int32_t load_lines_multi(string fname, vector<tlestruc> &lines)
         sscanf(&ibuf[20], "%12lf", &jday);
         tle.utc = cal2mjd((int)year, 1, 0.);
         tle.utc += jday;
+        sscanf(&ibuf[33], "%lf", &tle.dmm);
+        tle.dmm *= D2PI / (86400. * 86400.);
+        tle.ddmm = 0.;
         if (strlen(ibuf) > 50)
         {
             sscanf(&ibuf[53], "%6d%2d", &bdragm, &bdrage);
@@ -4944,7 +4998,7 @@ int32_t load_lines_multi(string fname, vector<tlestruc> &lines)
             tle.raan = RADOF(tle.raan);
             tle.ap = RADOF(tle.ap);
             tle.ma = RADOF(tle.ma);
-            tle.mm *= D2PI / 1440.;
+            tle.mm *= D2PI / 86400.;
             tle.e = ecc / 1.e7;
             lines.push_back(tle);
         }
@@ -5183,13 +5237,14 @@ int stk2eci(double utc, stkstruc &stk, cartpos &eci)
         << a.ta << "\t"
         << a.ea << "\t"
         << a.mm << "\t"
+        << a.dmm << "\t"
         << a.fa;
     return out;
 }
 
 ::std::istream &operator>>(::std::istream &in, kepstruc &a)
 {
-    in >> a.utc >> a.orbit >> a.period >> a.a >> a.e >> a.h >> a.beta >> a.eta >> a.i >> a.raan >> a.ap >> a.alat >> a.ma >> a.ta >> a.ea >> a.mm >> a.fa;
+    in >> a.utc >> a.orbit >> a.period >> a.a >> a.e >> a.h >> a.beta >> a.eta >> a.i >> a.raan >> a.ap >> a.alat >> a.ma >> a.ta >> a.ea >> a.mm >> a.dmm >> a.fa;
     return in;
 }
 
@@ -5317,7 +5372,7 @@ int32_t tle2sgp4(tlestruc tle, sgp4struc &sgp4)
     sgp4.bstar = tle.bstar;
     sgp4.e = tle.e;
     sgp4.ma = DEGOF(tle.ma);
-    sgp4.mm = tle.mm * 1440. / D2PI;
+    sgp4.mm = tle.mm * 86400. / D2PI;
     calstruc cal = mjd2cal(tle.utc);
     sgp4.ep = (cal.year - 2000.) * 1000. + cal.doy + cal.hour / 24. + cal.minute / 1440. + (cal.second + cal.nsecond / 1e9) / 86400.;
     sgp4.raan = DEGOF(tle.raan);
@@ -5331,7 +5386,7 @@ int32_t sgp42tle(sgp4struc sgp4, tlestruc &tle)
     tle.bstar = sgp4.bstar;
     tle.e = sgp4.e;
     tle.ma = RADOF(sgp4.ma);
-    tle.mm = sgp4.mm * D2PI / 1440.;
+    tle.mm = sgp4.mm * D2PI / 86400.;
     tle.raan = RADOF(sgp4.raan);
     int year = sgp4.ep / 1000;
     double jday = sgp4.ep - (year * 1000);
@@ -5374,20 +5429,40 @@ string eci2tlestring(cartpos eci, tlestruc &reftle)
 
 string tle2tlestring(tlestruc reftle)
 {
-    string line_1(69, ' ');
-    string line_2(69, ' ');
+//    string line_1(69, ' ');
+//    string line_2(69, ' ');
+    string line_1;
+    string line_2;
 
     // Ignore the name line. Populate our epoch field.
-    sprintf(&line_1[0], "1 %5huU %8s %02hu%12f", reftle.id, mjd2year(reftle.utc)-2000, mjd2doy(reftle.utc));
+    line_1 = "1 ";
+    line_1 += to_unsigned(reftle.snumber, 5, true) + "U ";
+    line_1 += reftle.id + string(9-reftle.id.size(), ' ');
+    line_1 += to_unsigned(mjd2year(reftle.utc)-2000, 2, true);
+    line_1 += to_fixed(mjd2doy(reftle.utc), 12, 8, true) + " ";
+    line_1 += to_floating(reftle.dmm*86400.*86400./D2PI, 8) + " ";
+    line_1 += " 00000-0 ";
     int16_t bdrage = log10(reftle.bstar) + 5;
+    line_1 += to_unsigned(bdrage, 6, true);
     int16_t bdragm = reftle.bstar / pow(10., bdrage-5);
-    sprintf(&line_1[53], "%6d%2d", bdragm, bdrage);
-    line_1[68] = tle_checksum(line_1.data());
+    line_1 += to_unsigned(bdragm, 2, true) + " 0    0";
+    line_1 += to_unsigned(tle_checksum(line_1.data()), 1);
 
-    sprintf(&line_2[0], "2 %5hu %#08.4f %08f %07d %#08.4f %#08.4f %#011.8f%5u", reftle.id, DEGOF(reftle.i), DEGOF(reftle.raan), 1.e7*reftle.e, DEGOF(reftle.ap), (DEGOF(reftle.ma) < 0) ? 360 + DEGOF(reftle.ma) : DEGOF(reftle.ma), DEGOF(reftle.mm), reftle.orbit);
-    line_2[68] = tle_checksum(line_2.data());
+    line_2 = "2 ";
+    line_2 += to_unsigned(reftle.snumber, 5, true) + " ";
+    line_2 += to_fixed(DEGOF(reftle.i), 8, 4) + " ";
+    line_2 += to_fixed(DEGOF(reftle.raan), 8, 4) + " ";
+    line_2 += to_unsigned(1.e7*reftle.e, 7) + " ";
+    line_2 += to_fixed(DEGOF(reftle.ap), 8, 4) + " ";
+    line_2 += to_fixed((DEGOF(reftle.ma) < 0) ? 360 + DEGOF(reftle.ma) : DEGOF(reftle.ma), 8, 4) + " ";
+    line_2 += to_fixed(reftle.mm*86400./D2PI, 11, 8);
+    line_2 += "00000";
+    line_2 += to_unsigned(tle_checksum(line_1.data()), 1);
 
-    return reftle.name + "\n" + line_1 + "\n" + line_2 + "\n";
+    string response = reftle.name + "\n";
+    response += line_1 + "\n";
+    response += line_2 + "\n";
+    return response;
 }
 
 //! Nutation values

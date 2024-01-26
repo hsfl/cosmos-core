@@ -92,6 +92,7 @@ namespace Cosmos
 
             }
 
+            int32_t Setup(string stype);
             int32_t Setup(Type type);
             int32_t add_hex(double width=30, double height=30, ExternalPanelType type=NoPanel);
             int32_t add_oct(double width=30, double height=30, ExternalPanelType type=NoPanel);
@@ -561,13 +562,13 @@ namespace Cosmos
             OrbitalEventGenerator *orbitalevent;
             MetricGenerator *metric;
 
-            Structure::Type stype;
+            string stype;
             Structure *structure;
 
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype);
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf=qatt());
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf=qatt());
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, cartpos lvlh, qatt icrf=qatt());
+            int32_t Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype);
+            int32_t Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf=qatt());
+            int32_t Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf=qatt());
+            int32_t Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, cartpos lvlh, qatt icrf=qatt());
             int32_t Propagate(double nextutc=0.);
             int32_t Propagate(locstruc& nextloc);
             //! Propagates simulated physical state to the next timestep
@@ -582,6 +583,7 @@ namespace Cosmos
         };
 
 
+        double Rearth(double lat);
         double Msis00Density(posstruc pos,float f107avg,float f107,float magidx);
         Vector GravityAccel(posstruc pos, uint16_t model, uint32_t degree);
         int32_t GravityParams(int16_t model);
@@ -596,7 +598,7 @@ namespace Cosmos
 
         locstruc shape2eci(double utc, double altitude, double angle, double timeshift);
         locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift);
-
+        int32_t load_loc(string fname, locstruc& loc);
 
     } //end of namespace Physics
 } // end of namespace Cosmos

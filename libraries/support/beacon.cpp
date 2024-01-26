@@ -557,6 +557,7 @@ int32_t Beacon::EncodeBinary(TypeId type, cosmosstruc* cinfo, vector<uint8_t> &d
             beacon.bstar = cinfo->tle[0].bstar;
             beacon.mm = cinfo->tle[0].mm;
             beacon.ma = cinfo->tle[0].ma;
+            beacon.dmm = cinfo->tle[0].dmm;
 
             data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
         }
@@ -699,6 +700,7 @@ int32_t Beacon::Decode(vector<uint8_t> &data, cosmosstruc *cinfo)
                     cinfo->tle[0].bstar = beacon.bstar;
                     cinfo->tle[0].mm = beacon.mm;
                     cinfo->tle[0].ma = beacon.ma;
+                    cinfo->tle[0].dmm = beacon.dmm;
                 }
             }
             break;

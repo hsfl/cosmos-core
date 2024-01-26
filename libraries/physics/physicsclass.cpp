@@ -1,4 +1,5 @@
 #include "physicsclass.h"
+#include "support/enumlib.h"
 
 namespace Cosmos
 {
@@ -635,7 +636,7 @@ double Nplgndr(uint32_t l, uint32_t m, double x)
     }
 }
 
-double rearth(double lat)
+double Rearth(double lat)
 {
     double st,ct;
     double c;
@@ -664,8 +665,8 @@ locstruc shape2eci(double utc, double latitude, double longitude, double altitud
     double st = sin(latitude);
     double c = 1./sqrt(ct * ct + FRATIO2 * st * st);
     double s = FRATIO2 * c;
-    double r = (rearth(0.) * c + altitude) * ct;
-    double z = ((rearth(0.) * s + altitude) * st);
+    double r = (Rearth(0.) * c + altitude) * ct;
+    double z = ((Rearth(0.) * s + altitude) * st);
     double radius = sqrt(r * r + z * z);
     double phi = asin(z / radius);
 
@@ -723,27 +724,132 @@ locstruc shape2eci(double utc, double latitude, double longitude, double altitud
     loc.pos.geoc.pass++;
     pos_geoc(loc);
 
-    //            kepstruc kep;
-    //            eci2kep(loc.pos.eci, kep);
-    //            if (timeshift != 0.)
-    //            {
-    //                kepstruc kep;
-    //                double dea;
-    //                eci2kep(loc.pos.eci, kep);
-    //                kep.ma += timeshift * kep.mm;
-    //                uint16_t count = 0;
-    //                do
-    //                {
-    //                    dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
-    //                    kep.ea -= dea;
-    //                } while (++count < 100 && fabs(dea) > .000001);
-    //                kep2eci(kep, loc.pos.eci);
-    //                loc.pos.eci.pass++;
-    //                pos_eci(loc);
-    //            }
-
-
     return loc;
+}
+
+//! Populate locstruc from file
+//! Read JSON in provided file and populate locstruc based on contents:
+//! - "type":"phys" : Physical orbit using ::Physics::shape2eci
+//! - "type":"eci" : Orbit expressed in ECI coordinates
+//! - "type":"kep" : Orbit expressed in Keplerian Elements
+//! - "type":"tle" : Orbit expressed as TLE
+//! \param fname File name for orbit
+//! \param loc ::Convert::locstruc in to which to place orbit
+//! \return Zero or negative error
+int32_t load_loc(string fname, locstruc& loc)
+{
+    FILE *fdes;
+    int32_t iretn;
+
+    if ((fdes = fopen(fname.c_str(), "r")) == nullptr)
+    {
+        return (-errno);
+    }
+
+    char* input = nullptr;
+    size_t n = 0;
+    if ((iretn=getline(&input, &n, fdes)) < 0)
+    {
+        return -errno;
+    }
+
+    string estring;
+    json11::Json jargs = json11::Json::parse(input, estring);
+    free(input);
+    if (!jargs["phys"].is_null())
+    {
+        json11::Json::object values = jargs["phys"].object_items();
+        loc.pos.geod.s.lat = RADOF(values["lat"].number_value());
+        loc.pos.geod.s.lon = RADOF(values["lon"].number_value());
+        loc.pos.geod.s.h = values["alt"].number_value();
+        double angle = RADOF(values["angle"].number_value());
+        loc.pos.geod.utc = values["utc"].number_value();
+        if (loc.pos.geod.utc == 0.)
+        {
+            loc.pos.geod.utc = currentmjd();
+        }
+        loc = Physics::shape2eci(loc.pos.geod.utc, loc.pos.geod.s.lat, loc.pos.geod.s.lon, loc.pos.geod.s.h,angle, 0.);
+        return 0;
+    }
+    if (!jargs["eci"].is_null())
+    {
+        json11::Json::object values = jargs["eci"].object_items();
+        loc.pos.eci.utc = (values["utc"].number_value());
+        if (loc.pos.eci.utc == 0.)
+        {
+            loc.pos.eci.utc = currentmjd();
+        }
+        loc.pos.eci.s.col[0] = (values["x"].number_value());
+        loc.pos.eci.s.col[1] = (values["y"].number_value());
+        loc.pos.eci.s.col[2] = (values["z"].number_value());
+        loc.pos.eci.v.col[0] = (values["vx"].number_value());
+        loc.pos.eci.v.col[1] = (values["vy"].number_value());
+        loc.pos.eci.v.col[2] = (values["vz"].number_value());
+        loc.pos.eci.pass++;
+        pos_eci(loc);
+        return 0;
+    }
+    if (!jargs["kep"].is_null())
+    {
+        json11::Json::object values = jargs["kep"].object_items();
+        kepstruc kep;
+        kep.utc = (values["utc"].number_value());
+        if (kep.utc == 0.)
+        {
+            kep.utc = currentmjd();
+        }
+        kep.ea = values["ea"].number_value();
+        kep.i = values["i"].number_value();
+        kep.ap = values["ap"].number_value();
+        kep.raan = values["raan"].number_value();
+        kep.e = values["e"].number_value();
+        kep.a = values["a"].number_value();
+        kep2eci(kep, loc.pos.eci);
+        loc.pos.eci.pass++;
+        pos_eci(loc);
+        return 0;
+    }
+    if (!jargs["tle"].is_null())
+    {
+        json11::Json::object values = jargs["tle"].object_items();
+        string fname = values["filename"].string_value();
+        if ((iretn=load_tle(fname, loc.tle)) < 0)
+        {
+            return iretn;
+        }
+        tle2eci(loc.tle.utc, loc.tle, loc.pos.eci);
+        loc.pos.eci.pass++;
+        pos_eci(loc);
+        return 0;
+    }
+    return GENERAL_ERROR_ARGS;
+}
+
+int32_t Structure::Setup(string stype)
+{
+    static Enum stypes;
+    if (!stypes.Size())
+    {
+        stypes.Init({
+            "NoType",
+            "U1","U1X","U1Y","U1XY",
+            "U1_5","U1_5X","U1_5Y","U1_5XY",
+            "U2","U2X","U2Y","U2XY",
+            "U3","U3X","U3Y","U3XY",
+            "U6","U6X","U6Y","U6XY",
+            "U12","U12X","U12Y","U12XY",
+            "HEX65W80H"
+                    }, {0});
+    }
+
+    if (stypes.Exists(stype))
+    {
+        return Setup(static_cast<Type>(stypes[stype]));
+    }
+    else
+    {
+        return Type::NoType;
+    }
 }
 
 int32_t Structure::Setup(Type type)
@@ -1112,7 +1218,7 @@ int32_t Structure::add_vertex(Vector point)
 }
 
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf)
+int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf)
 {
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
@@ -1270,7 +1376,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     return 0;
 }
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf)
+int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf)
 {
     int32_t iretn = 0;
     pos_clear(currentinfo.node.loc);
@@ -1308,7 +1414,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     return Init(name, idt, stype, ptype, atype, ttype, etype);
 }
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, cartpos lvlh, qatt icrf)
+int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, cartpos lvlh, qatt icrf)
 {
     int32_t iretn = 0;
     pos_clear(currentinfo.node.loc);
@@ -1351,7 +1457,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     return Init(name, idt, stype, ptype, atype, ttype, etype);
 }
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
+int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
 {
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
@@ -2382,7 +2488,7 @@ int32_t MetricGenerator::Propagate(double nextutc)
                 double t1a = tan(angle);
                 double t2a = t1a * t1a;
                 double t4a = t2a * t2a;
-                double r = rearth(currentinfo->node.loc.pos.geod.s.lat);
+                double r = Rearth(currentinfo->node.loc.pos.geod.s.lat);
                 double lsep = (sqrt(t4a * (-4. * h2 - 8. * r * h) + t2a * 4. * r * r) + 2. * t2a * (h + r)) / (2. * (t2a + 1.));
 //                lsep = (sqrt(t4a * (-4. * h2 - 8. * r * h) + t2a * 4. * r * r) + 2. * t2a * (h + r)) / (2. * (t2a + 1.));
                 cpointing.s = cpointing.s * lsep / cos(angle);

@@ -3538,6 +3538,7 @@ namespace Cosmos
                 add_name(basename+".ap", &tle[i].ap, "double");
                 add_name(basename+".ma", &tle[i].ma, "double");
                 add_name(basename+".mm", &tle[i].mm, "double");
+                add_name(basename+".dmm", &tle[i].dmm, "double");
                 add_name(basename+".orbit", &tle[i].orbit, "uint32_t");
             }
 

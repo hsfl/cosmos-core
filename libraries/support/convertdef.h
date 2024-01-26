@@ -74,6 +74,8 @@ namespace Cosmos {
         //! SI Mass * Gravitational Constant for Earth
         //#define GM static_cast<double>((3.98600441789e14))
 #define GM static_cast<double>((3.986004415e14))
+#define GM2 (GM*GM)
+#define GM3 (GM*GM2)
         //! SI Mass * Gravitational Constant for Moon
 #define GMOON  static_cast<double>((4.9028029535968e+12))
         //! SI Mass * Gravitational Constant for Sun
@@ -576,6 +578,8 @@ namespace Cosmos {
             double ea;
             //! Mean Motion
             double mm;
+            double dmm;
+            double ddmm;
             double fa;
         };
 
@@ -737,6 +741,10 @@ namespace Cosmos {
             double ma = 0.;
             //! Mean motion (radians / minute)
             double mm = 0.;
+            //! Mean motion first derivative (radians / minute)
+            double dmm = 0.;
+            //! Mean motion second derivative (radians / minute)
+            double ddmm = 0.;
             uint32_t orbit = 0;
 
             /// Convert class contents to JSON object
@@ -756,6 +764,8 @@ namespace Cosmos {
                     { "ap" , ap },
                     { "ma" , ma },
                     { "mm" , mm },
+                    { "dmm" , dmm },
+                    { "ddmm" , ddmm },
                     { "orbit" , static_cast<int>(orbit) }
                 };
             }
@@ -780,6 +790,8 @@ namespace Cosmos {
                     if(!parsed["ap"].is_null())    ap =  parsed["ap"].number_value();
                     if(!parsed["ma"].is_null())    ma =  parsed["ma"].number_value();
                     if(!parsed["mm"].is_null())    mm =  parsed["mm"].number_value();
+                    if(!parsed["dmm"].is_null())    dmm =  parsed["dmm"].number_value();
+                    if(!parsed["ddmm"].is_null())    ddmm =  parsed["ddmm"].number_value();
                     if(!parsed["orbit"].is_null())    orbit =  parsed["orbit"].int_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
@@ -1083,20 +1095,6 @@ namespace Cosmos {
             // Epoch (year.day)
             double ep = 0.;
         };
-
-		//  JIMNOTE: compiler doesn't like this defined here (multiple defined error), maybe the header guard is messed up somewhere?
-		//bool operator==(const sgp4struc& s1, const sgp4struc& s2)	{
-			//return	(
-				//s1.i == s2.i &&
-				//s1.e == s2.e &&
-				//s1.raan == s2.raan &&
-				//s1.ap == s2.ap &&
-				//s1.bstar == s2.bstar &&
-				//s1.mm == s2.mm &&
-				//s1.ma == s2.ma &&
-				//s1.ep == s2.ep
-			//);
-		//}
     }
 }
 

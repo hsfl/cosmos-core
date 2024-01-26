@@ -657,6 +657,30 @@ string to_unsigned(uint32_t value, uint16_t digits, bool zerofill)
     return output;
 }
 
+string to_fixed(double value, uint16_t digits, uint16_t precision, bool zerofill) {
+    string output="";
+    output.resize(digits+2);
+    if (zerofill)
+    {
+        if (precision) {
+            sprintf(&output[0], "%0*.*f", digits, precision, static_cast<double>(value));
+        } else {
+            sprintf(&output[0], "%0*f", digits, static_cast<double>(value));
+        }
+    }
+    else
+    {
+        if (precision) {
+            sprintf(&output[0], "%*.*f", digits, precision, static_cast<double>(value));
+        } else {
+            sprintf(&output[0], "%*f", digits, static_cast<double>(value));
+        }
+    }
+
+    output.resize(strlen(&output[0]));
+    return output;
+}
+
 string to_floating(float value, uint16_t precision) {
     string output="";
     output.resize(17+precision);

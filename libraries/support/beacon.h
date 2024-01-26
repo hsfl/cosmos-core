@@ -546,6 +546,7 @@ namespace Cosmos {
                double bstar = 0.;
                double mm = 0.;
                double ma = 0.;
+               double dmm = 0.;
            } ;
 
 //            struct __attribute__ ((packed)) adcsimu_beacon

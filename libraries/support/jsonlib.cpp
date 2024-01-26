@@ -2923,6 +2923,13 @@ int32_t json_out_tlestruc(string &jstring, Convert::tlestruc &value)
     if ((iretn=json_out_character(jstring,',')) < 0)
         return iretn;
 
+    if ((iretn=json_out_name(jstring, (char *)"dmm")) < 0)
+        return iretn;
+    if ((iretn=json_out_double(jstring, value.dmm)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
     if ((iretn=json_out_name(jstring, (char *)"orbit")) < 0)
         return iretn;
     if ((iretn=json_out_uint32(jstring, value.orbit)) < 0)
@@ -3018,6 +3025,13 @@ int32_t json_out_tle(string &jstring, Convert::tlestruc &value)
     if ((iretn=json_out_name(jstring, (char *)"tle_mm")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring, value.mm)) < 0)
+        return iretn;
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return iretn;
+
+    if ((iretn=json_out_name(jstring, (char *)"tle_dmm")) < 0)
+        return iretn;
+    if ((iretn=json_out_double(jstring, value.dmm)) < 0)
         return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
         return iretn;
