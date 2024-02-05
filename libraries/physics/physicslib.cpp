@@ -1298,11 +1298,21 @@ for (il=0; il<5; il++)
             // Simulate thsters
             for (i=0; i<cinfo->devspec.thst_cnt; i++)
             {
-                //        cinfo->devspec.thst[i].flw = (length_rv(cinfo->node.phys.thrust) / cinfo->devspec.thst_cnt) / cinfo->devspec.thst[i].isp;
-                cinfo->devspec.thst[i].flw = (cinfo->node.phys.thrust.norm() / cinfo->devspec.thst_cnt) / cinfo->devspec.thst[i].isp;
-                if (cinfo->devspec.thst[i].flw < .002)
+                cinfo->devspec.thst[i].flw = (cinfo->node.phys.thrust.norm() / cinfo->devspec.thst_cnt);
+                if (cinfo->devspec.thst[i].flw > cinfo->devspec.thst[i].maxthrust)
+                {
+                    cinfo->devspec.thst[i].flw = cinfo->devspec.thst[i].maxthrust / cinfo->devspec.thst[i].isp;
+                    cinfo->devspec.thst[i].utilization = 1.;
+                }
+                else
+                {
+                    cinfo->devspec.thst[i].utilization = cinfo->devspec.thst[i].flw / cinfo->devspec.thst[i].maxthrust;
+                    cinfo->devspec.thst[i].flw /= cinfo->devspec.thst[i].isp;
+                }
+                if (cinfo->devspec.thst[i].utilization < .02)
                 {
                     cinfo->devspec.thst[i].flw = 0.;
+                    cinfo->devspec.thst[i].utilization = 0.;
                 }
                 cinfo->devspec.prop[i].lev -= cinfo->node.phys.dt * cinfo->devspec.thst[i].flw;
                 cinfo->devspec.thst[i].utc = loc.utc;

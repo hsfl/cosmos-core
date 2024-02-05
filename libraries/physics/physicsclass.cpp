@@ -1826,70 +1826,70 @@ int32_t State::Reset(double nextutc)
     return iretn;
 }
 
-int32_t State::AddTarget(std::string name, locstruc loc, NODE_TYPE type, gvector size)
-{
-    targetstruc ttarget;
-    ttarget.type = type;
-    ttarget.name = name;
-    ttarget.cloc = loc;
-    ttarget.area = 0.;
-    ttarget.size = size;
-    ttarget.loc = loc;
+//int32_t State::AddTarget(std::string name, locstruc loc, NODE_TYPE type, gvector size)
+//{
+//    targetstruc ttarget;
+//    ttarget.type = type;
+//    ttarget.name = name;
+//    ttarget.cloc = loc;
+//    ttarget.area = 0.;
+//    ttarget.size = size;
+//    ttarget.loc = loc;
 
-    currentinfo.target.push_back(ttarget);
-    return currentinfo.target.size();
-}
+//    currentinfo.target.push_back(ttarget);
+//    return currentinfo.target.size();
+//}
 
-int32_t State::AddTarget(std::string name, locstruc loc, NODE_TYPE type, double area)
-{
-    targetstruc ttarget;
-    ttarget.type = type;
-    ttarget.name = name;
-    ttarget.cloc = loc;
-    ttarget.size = gvector();
-    ttarget.area  = area;
-    ttarget.loc = loc;
+//int32_t State::AddTarget(std::string name, locstruc loc, NODE_TYPE type, double area)
+//{
+//    targetstruc ttarget;
+//    ttarget.type = type;
+//    ttarget.name = name;
+//    ttarget.cloc = loc;
+//    ttarget.size = gvector();
+//    ttarget.area  = area;
+//    ttarget.loc = loc;
 
-    currentinfo.target.push_back(ttarget);
-    return currentinfo.target.size();
-}
+//    currentinfo.target.push_back(ttarget);
+//    return currentinfo.target.size();
+//}
 
-int32_t State::AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type)
-{
-    return AddTarget(name, lat, lon, DPI * 1e6, alt, type);
-}
+//int32_t State::AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type)
+//{
+//    return AddTarget(name, lat, lon, DPI * 1e6, alt, type);
+//}
 
-int32_t State::AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type)
-{
-    locstruc loc;
-    loc.pos.geod.pass = 1;
-    loc.pos.geod.utc = currentinfo.node.utc;
-    loc.pos.geod.s.lat = lat;
-    loc.pos.geod.s.lon = lon;
-    loc.pos.geod.s.h = alt;
-    loc.pos.geod.v = gv_zero();
-    loc.pos.geod.a = gv_zero();
-    loc.pos.geod.pass++;
-    pos_geod(loc);
-    return AddTarget(name, loc, type, area);
-}
+//int32_t State::AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type)
+//{
+//    locstruc loc;
+//    loc.pos.geod.pass = 1;
+//    loc.pos.geod.utc = currentinfo.node.utc;
+//    loc.pos.geod.s.lat = lat;
+//    loc.pos.geod.s.lon = lon;
+//    loc.pos.geod.s.h = alt;
+//    loc.pos.geod.v = gv_zero();
+//    loc.pos.geod.a = gv_zero();
+//    loc.pos.geod.pass++;
+//    pos_geod(loc);
+//    return AddTarget(name, loc, type, area);
+//}
 
-int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type)
-{
-    locstruc loc;
-    loc.pos.geod.pass = 1;
-    loc.pos.geod.utc = currentinfo.node.utc;
-    loc.pos.geod.s.lat = (ullat + lrlat) / 2.;
-    loc.pos.geod.s.lon = (ullon + lrlon) / 2.;
-    loc.pos.geod.s.h = alt;
-    loc.pos.geod.v = gv_zero();
-    loc.pos.geod.a = gv_zero();
-    //            gvector size(ullat-lrlat, lrlon-ullon, 0.);
-    loc.pos.geod.pass++;
-    pos_geod(loc);
-    double area = (ullat-lrlat) * (cos(lrlon) * lrlon - cos(ullon) * ullon) * REARTHM * REARTHM;
-    return AddTarget(name, loc, type, area);
-}
+//int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type)
+//{
+//    locstruc loc;
+//    loc.pos.geod.pass = 1;
+//    loc.pos.geod.utc = currentinfo.node.utc;
+//    loc.pos.geod.s.lat = (ullat + lrlat) / 2.;
+//    loc.pos.geod.s.lon = (ullon + lrlon) / 2.;
+//    loc.pos.geod.s.h = alt;
+//    loc.pos.geod.v = gv_zero();
+//    loc.pos.geod.a = gv_zero();
+//    //            gvector size(ullat-lrlat, lrlon-ullon, 0.);
+//    loc.pos.geod.pass++;
+//    pos_geod(loc);
+//    double area = (ullat-lrlat) * (cos(lrlon) * lrlon - cos(ullon) * ullon) * REARTHM * REARTHM;
+//    return AddTarget(name, loc, type, area);
+//}
 
 int32_t InertialAttitudePropagator::Init()
 {
@@ -2445,16 +2445,16 @@ int32_t MetricGenerator::Init()
     return 0;
 }
 
-int32_t MetricGenerator::AddDetector(float fov, float ifov, float specmin, float specmax)
-{
-    camstruc det;
-    det.fov = fov;
-    det.ifov = ifov;
-    det.specmin = specmin;
-    det.specmax = specmax;
-    currentinfo->devspec.cam.push_back(det);
-    return currentinfo->devspec.cam.size();
-}
+//int32_t MetricGenerator::AddDetector(float fov, float ifov, float specmin, float specmax)
+//{
+//    camstruc det;
+//    det.fov = fov;
+//    det.ifov = ifov;
+//    det.specmin = specmin;
+//    det.specmax = specmax;
+//    currentinfo->devspec.cam.push_back(det);
+//    return currentinfo->devspec.cam.size();
+//}
 
 int32_t MetricGenerator::Propagate(double nextutc)
 {
@@ -2472,11 +2472,6 @@ int32_t MetricGenerator::Propagate(double nextutc)
     {
         if (currentinfo->target[it].elto > 0.)
         {
-//            if (!printed)
-//            {
-//                printf("[%.2f %.2f] ", DEGOF(currentinfo->node.loc.pos.geod.s.lat), DEGOF(currentinfo->node.loc.pos.geod.s.lon));
-//                printed = true;
-//            }
             for (uint16_t id=0; id<currentinfo->devspec.cam.size(); ++id)
             {
                 double h = currentinfo->node.loc.pos.geod.s.h;
@@ -2519,13 +2514,15 @@ int32_t MetricGenerator::Propagate(double nextutc)
                     {
                         coverage[it][id].area = dr < tr ? DPI * dr2 * sin(currentinfo->target[it].elto) : currentinfo->target[it].area;
                     }
-
-//                    printf("[%u %.1f %.1f %.1f %u %.3f %.1f] ", it, DEGOF(currentinfo->target[it].azto), DEGOF(currentinfo->target[it].elto), currentinfo->target[it].range, id, coverage[it][id].area, coverage[it][id].resolution);
                 }
-//                else
-//                {
-//                    printf("[%u %.1f %.1f %.1f] ", it, DEGOF(currentinfo->target[it].azto), DEGOF(currentinfo->target[it].elto), currentinfo->target[it].range);
-//                }
+                if (coverage[it][id].area < currentinfo->target[it].area)
+                {
+                    coverage[it][id].percent = coverage[it][id].area / currentinfo->target[it].area;
+                }
+                else
+                {
+                    coverage[it][id].percent = 1.;
+                }
             }
         }
     }

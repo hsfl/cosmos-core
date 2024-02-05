@@ -3821,12 +3821,16 @@ union as a ::devicestruc.
         //! Thruster (THST) dynamic structure
         struct thststruc : public devicestruc
         {
-            //! Flow
-            quaternion align;
-            //! Specific Impulse in dynes per kg per second
-            float flw = 0.f;
             //! Rotation of thrust vector (+z) in to node frame.
-            float isp = 0.f;
+            quaternion align;
+            //! Flow in kg per second
+            float flw = 0.f;
+            //! Specific Impulse in 100000 dynes per kg per second
+            float isp = 100.f;
+            //! Maximum possible thrust
+            float maxthrust = 0.f;
+            //! Percent utilization (maximum 1.0)
+            float utilization = 0.;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -3836,7 +3840,9 @@ union as a ::devicestruc.
                 return json11::Json::object {
                     { "align" , align },
                     { "flw"   , flw },
-                    { "isp"   , isp }
+                    { "isp"   , isp },
+                    { "maxthrust"   , maxthrust },
+                    { "utilization"   , utilization }
                 };
             }
 
@@ -3852,6 +3858,8 @@ union as a ::devicestruc.
                     if(!parsed["align"].is_null()) { align.from_json(parsed["align"].dump()); }
                     if(!parsed["flw"].is_null()) { flw = parsed["flw"].number_value(); }
                     if(!parsed["isp"].is_null()) { isp = parsed["isp"].number_value(); }
+                    if(!parsed["maxthrust"].is_null()) { maxthrust = parsed["maxthrust"].number_value(); }
+                    if(!parsed["utilization"].is_null()) { utilization = parsed["utilization"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }

@@ -26,6 +26,154 @@ namespace Cosmos
             return left->propagation_priority < right->propagation_priority;
         }
 
+        //! @brief Add a detector to the list of available detectors in the Sim.
+        //! @param fov Full Field of View of the detector in radians.
+        //! @param ifov Instrument FOV (single pixel) in radians.
+        //! @param specmin Lower wavelength of spectral coverage, in meters.
+        //! @param specmax Upper wavelength of spectral coverage, in meters.
+        //! @return New number of detectors, or negative error.
+        int32_t Simulator::AddDetector(string name, float fov, float ifov, float specmin, float specmax)
+        {
+            camstruc det;
+            det.name = name;
+            det.fov = fov;
+            det.ifov = ifov;
+            det.specmin = specmin;
+            det.specmax = specmax;
+            det.state = 0;
+            return AddDetector(det);
+        }
+
+        int32_t Simulator::AddDetector(camstruc& det)
+        {
+            if (detectors.find(det.name) == detectors.end())
+            {
+                detectors[det.name] = det;
+            }
+            return detectors.size();
+
+        }
+
+        //! @brief Add a target to the list of available targets in the Sim.
+        //! @param name Unique target name.
+        //! @param loc Location as ::Convert::locstruc.
+        //! @param type Node type.
+        //! @param size Size as ::gvector.
+        //! @return Current size of target list, or negative error.
+
+        int32_t Simulator::AddTarget(std::string name, locstruc loc, NODE_TYPE type, gvector size)
+        {
+            targetstruc ttarget;
+            ttarget.type = type;
+            ttarget.name = name;
+            ttarget.cloc = loc;
+            ttarget.area = 0.;
+            ttarget.size = size;
+            ttarget.loc = loc;
+
+            return AddTarget(ttarget);
+        }
+
+        //! @brief Add a target to the list of available targets in the Sim.
+        //! @param name Unique target name.
+        //! @param loc Location as ::Convert::locstruc.
+        //! @param type Node type.
+        //! @param area Area of target, in square meters.
+        //! @return Current size of target list, or negative error.
+
+        int32_t Simulator::AddTarget(std::string name, locstruc loc, NODE_TYPE type, double area)
+        {
+            targetstruc ttarget;
+            ttarget.type = type;
+            ttarget.name = name;
+            ttarget.cloc = loc;
+            ttarget.size = gvector();
+            ttarget.area  = area;
+            ttarget.loc = loc;
+
+            return AddTarget(ttarget);
+        }
+
+        //! @brief Add a target to the list of available targets in the Sim.
+        //! @param name Unique target name.
+        //! @param lat Central latitude of target, in radians.
+        //! @param lon Central longitude of target, in radians.
+        //! @param alt Central altitude of target, in meters.
+        //! @param type Node type.
+        //! @return Current size of target list, or negative error.
+
+        int32_t Simulator::AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type)
+        {
+            return AddTarget(name, lat, lon, DPI * 1e6, alt, type);
+        }
+
+        //! @brief Add a target to the list of available targets in the Sim.
+        //! @param name Unique target name.
+        //! @param lat Central latitude of target, in radians.
+        //! @param lon Central longitude of target, in radians.
+        //! @param alt Central altitude of target, in meters.
+        //! @param area Area of target, in square meters.
+        //! @param type Node type.
+        //! @return Current size of target list, or negative error.
+
+        int32_t Simulator::AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type)
+        {
+            locstruc loc;
+            loc.pos.geod.pass = 1;
+            loc.pos.geod.utc = currentutc;
+            loc.pos.geod.s.lat = lat;
+            loc.pos.geod.s.lon = lon;
+            loc.pos.geod.s.h = alt;
+            loc.pos.geod.v = gv_zero();
+            loc.pos.geod.a = gv_zero();
+            loc.pos.geod.pass++;
+            pos_geod(loc);
+            return AddTarget(name, loc, type, area);
+        }
+
+        //! @brief Add a target to the list of available targets in the Sim.
+        //! @param name Unique target name.
+        //! @param ullat Upper left latitude of target area.
+        //! @param ullon Upper left longitude of target area.
+        //! @param lrlat Lower right latitude of target area.
+        //! @param lrlon Lower right longitude of target area.
+        //! @param type Node type.
+        //! @return Current size of target list, or negative error.
+
+        int32_t Simulator::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type)
+        {
+            locstruc loc;
+            loc.pos.geod.pass = 1;
+            loc.pos.geod.utc = currentutc;
+            loc.pos.geod.s.lat = (ullat + lrlat) / 2.;
+            loc.pos.geod.s.lon = (ullon + lrlon) / 2.;
+            loc.pos.geod.s.h = alt;
+            loc.pos.geod.v = gv_zero();
+            loc.pos.geod.a = gv_zero();
+            loc.pos.geod.pass++;
+            pos_geod(loc);
+            double area = (ullat-lrlat) * (cos(lrlon) * lrlon - cos(ullon) * ullon) * REARTHM * REARTHM;
+            return AddTarget(name, loc, type, area);
+        }
+
+        //! @brief Add a target to the list of available targets in the Sim.
+        //! @param targ Complete target as ::targetstruc.
+        //! @return Current size of target list, or negative error.
+
+        int32_t Simulator::AddTarget(targetstruc& targ)
+        {
+            if (targets.find(targ.name) == targets.end())
+            {
+                targets[targ.name] = targ;
+                for (auto &state : cnodes)
+                {
+                    state->currentinfo.target.push_back(targ);
+                    ++state->currentinfo.target_cnt;
+                }
+            }
+            return targets.size();
+        }
+
         /**
          * @brief Addes a node to be propagated, in descending order of priority
          * 

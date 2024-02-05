@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
     sit = sim->GetNode("mother");
     for (targetentry target : targets)
     {
-        (*sit)->AddTarget(target.name, target.clat, target.clon, target.area, target.alt, NODE_TYPE_CIRCLE);
+        sim->AddTarget(target.name, target.clat, target.clon, target.area, target.alt, NODE_TYPE_CIRCLE);
     }
 
     double elapsed = 0;

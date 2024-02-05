@@ -489,7 +489,7 @@ namespace Cosmos
             vector<vector<Physics::coverage>> coverage;
 
             int32_t Init();
-            int32_t AddDetector(float fov, float ifov, float specmin, float specmax);
+//            int32_t AddDetector(float fov, float ifov, float specmin, float specmax);
             int32_t Propagate(double nextutc=0.);
             int32_t Reset(double nextutc=0.);
 
@@ -575,11 +575,11 @@ namespace Cosmos
             //! Runs any code that the propagators need to run at the end of a simulation run
             int32_t End();
             int32_t Reset(double nextutc=0.);
-            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
-            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, double area=0.);
-            int32_t AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
-            int32_t AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
-            int32_t AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type=NODE_TYPE_SQUARE);
+//            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
+//            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, double area=0.);
+//            int32_t AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
+//            int32_t AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
+//            int32_t AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type=NODE_TYPE_SQUARE);
         };
 
 

@@ -9405,6 +9405,8 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
         json_addentry("device_thst_isp",didx, UINT16_MAX, (uint8_t *)&device->isp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_thst_align",didx, UINT16_MAX, (uint8_t *)&device->align, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
         json_addentry("device_thst_flw",didx, UINT16_MAX, (uint8_t *)&device->flw, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_thst_maxthrust",didx, UINT16_MAX, (uint8_t *)&device->maxthrust, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_thst_utilization",didx, UINT16_MAX, (uint8_t *)&device->utilization, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
     }
     case DeviceType::TNC:
@@ -9879,6 +9881,8 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_thst_isp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_thst_align",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_thst_flw",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_thst_maxthrust",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_thst_utilization",didx, UINT16_MAX, cinfo, state);
         break;
         //! Propellant Tank
     case DeviceType::PROP:
@@ -10929,7 +10933,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
     {
         sprintf(tempstring, ",\"device_thst_utc_%03d\",\"device_thst_temp_%03d\"", i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_thst_align_%03d\",\"device_thst_flw_%03d\"",i,i);
+        sprintf(tempstring, ",\"device_thst_align_%03d\",\"device_thst_flw_%03d\",\"device_thst_maxthrust_%03d\",\"device_thst_utilization_%03d\"",i,i,i,i);
         result += tempstring;
     }
 
@@ -11256,7 +11260,7 @@ string json_list_of_fullsoh(cosmosstruc *cinfo)
     {
         sprintf(tempstring, ",\"device_thst_utc_%03d\",\"device_thst_temp_%03d\"", i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_thst_align_%03d\",\"device_thst_flw_%03d\"",i,i);
+        sprintf(tempstring, ",\"device_thst_align_%03d\",\"device_thst_flw_%03d\",\"device_thst_maxthrust_%03d\",\"device_thst_utilization_%03d\"",i,i,i,i);
         result += tempstring;
     }
 
@@ -12820,10 +12824,10 @@ void create_databases(cosmosstruc *cinfo)
     fclose(op);
 
     op = fopen("thst.txt","w");
-    fprintf(op,"thst_idx\tthst_cidx\tthst_idx\tthst_isp\tthst_flw\n");
+    fprintf(op,"thst_idx\tthst_cidx\tthst_idx\tthst_isp\tthst_flw\tthst_maxthrust\tthst_utilization\n");
     for (i=0; i<cinfo->devspec.thst_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\n",i,cinfo->devspec.thst[i].cidx,cinfo->devspec.thst[i].isp,cinfo->devspec.thst[i].flw);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.thst[i].cidx,cinfo->devspec.thst[i].isp,cinfo->devspec.thst[i].flw,cinfo->devspec.thst[i].maxthrust,cinfo->devspec.thst[i].utilization);
     }
     fclose(op);
 
