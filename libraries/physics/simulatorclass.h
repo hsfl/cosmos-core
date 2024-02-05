@@ -39,6 +39,14 @@ namespace Cosmos
             int32_t AddNode(string nodename, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos origineci, Convert::cartpos lvlh, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
             int32_t AddNode(string nodename, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::tlestruc tle, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
             int32_t AddNode(string nodename, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, double utc, double lat, double lon, double altitude, double angle, double timeshift=0.);
+            int32_t AddDetector(camstruc& det);
+            int32_t AddDetector(string name, float fov, float ifov, float specmin, float specmax);
+            int32_t AddTarget(targetstruc& targ);
+            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
+            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, double area=0.);
+            int32_t AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
+            int32_t AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
+            int32_t AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type=NODE_TYPE_SQUARE);
             int32_t GetError();
             int32_t Propagate(double nextutc=0.);
             //! Ends the simulation and runs any code that the propagators need to run at the end
@@ -57,6 +65,8 @@ namespace Cosmos
             double initialutc = 0.;
             double currentutc = 0.;
             StateList cnodes;
+            map<string, camstruc> detectors;
+            map<string, targetstruc> targets;
 
         private:
             bool server;

@@ -2652,6 +2652,8 @@ namespace Cosmos
                     add_name(basename+".align.w", &devspec.thst[didx].align.w, "double");
                     add_name(basename+".flw", &devspec.thst[didx].flw, "float");
                     add_name(basename+".isp", &devspec.thst[didx].isp, "float");
+                    add_name(basename+".maxthrust", &devspec.thst[didx].maxthrust, "float");
+                    add_name(basename+".utilization", &devspec.thst[didx].utilization, "float");
                     break;
                 case DeviceType::TNC:
                     basename = "devspec.tnc[" + std::to_string(didx) + "]";
