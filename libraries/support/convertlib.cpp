@@ -3436,7 +3436,8 @@ int32_t pos_origin2lvlh(locstruc& loc, cartpos lvlh)
     printf("ax %.3f ay %.3f az %.3f mag %.3f\n", tloc1.pos.eci.a.col[0], tloc1.pos.eci.a.col[1], tloc1.pos.eci.a.col[2], length_rv(tloc1.pos.eci.a));
 
     locstruc tloc = loc;
-    tloc.pos.eci.s += rv_mmult(tloc.pos.extra.e2l, lvlh.s);
+    eci_offset.s = rv_mmult(tloc.pos.extra.e2l, lvlh.s);
+    tloc.pos.eci.s += eci_offset.s;
     tloc.pos.eci.v += rv_mmult(tloc.pos.extra.de2l, lvlh.v);
     tloc.pos.eci.a += rv_mmult(tloc.pos.extra.dde2l, lvlh.a);
     tloc.pos.eci.pass++;
