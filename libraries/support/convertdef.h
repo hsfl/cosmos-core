@@ -627,6 +627,13 @@ namespace Cosmos {
             //! Transform between LVLH and GEOC
             quaternion l2g;
             quaternion g2l;
+            //! Transform between LVLH and ECI
+            rmatrix l2e;
+            rmatrix e2l;
+            rmatrix dl2e;
+            rmatrix de2l;
+            rmatrix ddl2e;
+            rmatrix dde2l;
             //! Misc
             cartpos sun2earth;
             gvector sungeo;

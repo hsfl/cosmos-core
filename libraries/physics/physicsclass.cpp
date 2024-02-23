@@ -2500,6 +2500,7 @@ int32_t MetricGenerator::Propagate(double nextutc)
                 double tr2 = tr * tr;
                 if (sep < dr + tr)
                 {
+                    coverage[it][id].elevation = currentinfo->target[it].elto;
                     coverage[it][id].azimuth = currentinfo->target[it].azto;
                     coverage[it][id].resolution = currentinfo->target[it].range * currentinfo->devspec.cam[id].ifov;
                     coverage[it][id].specmin = currentinfo->devspec.cam[id].specmin;

@@ -59,6 +59,7 @@ namespace Cosmos
             StateList::iterator GetNode(string name);
             StateList::iterator GetEnd();
             StateList GetNodes();
+            int32_t NudgeNode(string name, cartpos pos=cartpos(), qatt att=qatt());
             int32_t UpdatePush(string name, Vector fpush);
             int32_t UpdateThrust(string name, Vector thrust);
             int32_t UpdateTorque(string name, Vector torque);
