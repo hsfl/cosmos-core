@@ -17,15 +17,15 @@ int main(int argc, char *argv[])
     lvlh.s.col[0] = 0.;
     lvlh.s.col[1] = 0.;
     lvlh.s.col[2] = 0.;
-    if (argc == 2)
+    if (argc > 1)
     {
         lvlh.s.col[0] = atof(argv[1]);
     }
-    if (argc == 3)
+    if (argc > 2)
     {
         lvlh.s.col[1] = atof(argv[2]);
     }
-    if (argc == 4)
+    if (argc > 3)
     {
         lvlh.s.col[2] = atof(argv[3]);
     }
