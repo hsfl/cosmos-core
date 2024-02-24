@@ -205,25 +205,25 @@ int32_t pos_lvlh(double utc, locstruc &loc)
     loc.pos.extra.ddl2e = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
 
     double s = length_rv(loc.pos.eci.s);
-    loc.pos.extra.e2l.row[2] = -loc.pos.eci.s / s;
-    loc.pos.extra.de2l.row[2] = -(loc.pos.eci.v - dot_rv(-loc.pos.extra.e2l.row[2], loc.pos.eci.v) * (-loc.pos.extra.e2l.row[2])) / s;
-    loc.pos.extra.dde2l.row[2] = -(loc.pos.eci.a - dot_rv(-loc.pos.extra.e2l.row[2], loc.pos.eci.v) * -loc.pos.extra.de2l.row[2] - (dot_rv(-loc.pos.extra.e2l.row[2], loc.pos.eci.a) + dot_rv(-loc.pos.extra.de2l.row[2], loc.pos.eci.v)) * -loc.pos.extra.e2l.row[2]) / s;
+    loc.pos.extra.l2e.row[2] = -loc.pos.eci.s / s;
+    loc.pos.extra.dl2e.row[2] = -(loc.pos.eci.v - dot_rv(-loc.pos.extra.l2e.row[2], loc.pos.eci.v) * (-loc.pos.extra.l2e.row[2])) / s;
+    loc.pos.extra.ddl2e.row[2] = -(loc.pos.eci.a - dot_rv(-loc.pos.extra.l2e.row[2], loc.pos.eci.v) * -loc.pos.extra.dl2e.row[2] - (dot_rv(-loc.pos.extra.l2e.row[2], loc.pos.eci.a) + dot_rv(-loc.pos.extra.dl2e.row[2], loc.pos.eci.v)) * -loc.pos.extra.l2e.row[2]) / s;
 
     rvector hbar = rv_cross(loc.pos.eci.s, loc.pos.eci.v);
     double h = length_rv(hbar);
     rvector hdbar = rv_cross(loc.pos.eci.s, loc.pos.eci.a);
     rvector hddbar = rv_cross(loc.pos.eci.s, loc.pos.eci.j) + rv_cross(loc.pos.eci.v, loc.pos.eci.a);
-    loc.pos.extra.e2l.row[1] = -hbar / h;
-    loc.pos.extra.de2l.row[2] = -(hdbar - dot_rv(-loc.pos.extra.e2l.row[1], hdbar) * (-loc.pos.extra.e2l.row[1])) / h;
-    loc.pos.extra.dde2l.row[2] = -(hddbar - dot_rv(-loc.pos.extra.e2l.row[1], hdbar) * -loc.pos.extra.de2l.row[1] - (dot_rv(-loc.pos.extra.e2l.row[1], hddbar) + dot_rv(-loc.pos.extra.de2l.row[1], hdbar)) * -loc.pos.extra.e2l.row[1]) / h;
+    loc.pos.extra.l2e.row[1] = -hbar / h;
+    loc.pos.extra.dl2e.row[2] = -(hdbar - dot_rv(-loc.pos.extra.l2e.row[1], hdbar) * (-loc.pos.extra.l2e.row[1])) / h;
+    loc.pos.extra.ddl2e.row[2] = -(hddbar - dot_rv(-loc.pos.extra.l2e.row[1], hdbar) * -loc.pos.extra.dl2e.row[1] - (dot_rv(-loc.pos.extra.l2e.row[1], hddbar) + dot_rv(-loc.pos.extra.dl2e.row[1], hdbar)) * -loc.pos.extra.l2e.row[1]) / h;
 
-    loc.pos.extra.e2l.row[0] = rv_cross(loc.pos.extra.e2l.row[2], loc.pos.extra.e2l.row[1]);
-    loc.pos.extra.de2l.row[0] = rv_cross(loc.pos.extra.e2l.row[2], loc.pos.extra.de2l.row[1]) + rv_cross(loc.pos.extra.de2l.row[2], loc.pos.extra.e2l.row[1]);
-    loc.pos.extra.dde2l.row[0] = rv_cross(loc.pos.extra.e2l.row[2], loc.pos.extra.dde2l.row[1]) + 2. * rv_cross(loc.pos.extra.de2l.row[2], loc.pos.extra.de2l.row[1]) + rv_cross(loc.pos.extra.dde2l.row[2], loc.pos.extra.e2l.row[1]);
+    loc.pos.extra.l2e.row[0] = rv_cross(loc.pos.extra.l2e.row[1], loc.pos.extra.l2e.row[2]);
+    loc.pos.extra.dl2e.row[0] = rv_cross(loc.pos.extra.l2e.row[1], loc.pos.extra.dl2e.row[2]) + rv_cross(loc.pos.extra.dl2e.row[1], loc.pos.extra.l2e.row[2]);
+    loc.pos.extra.ddl2e.row[0] = rv_cross(loc.pos.extra.l2e.row[1], loc.pos.extra.ddl2e.row[2]) + 2. * rv_cross(loc.pos.extra.dl2e.row[1], loc.pos.extra.dl2e.row[2]) + rv_cross(loc.pos.extra.ddl2e.row[1], loc.pos.extra.l2e.row[2]);
 
-    loc.pos.extra.l2e = rm_transpose(loc.pos.extra.e2l);
-    loc.pos.extra.dl2e = rm_transpose(loc.pos.extra.de2l);
-    loc.pos.extra.ddl2e = rm_transpose(loc.pos.extra.dde2l);
+    loc.pos.extra.e2l = rm_transpose(loc.pos.extra.l2e);
+    loc.pos.extra.de2l= rm_transpose(loc.pos.extra.dl2e);
+    loc.pos.extra.dde2l = rm_transpose(loc.pos.extra.ddl2e);
 
     quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.};
     loc.pos.extra.g2l = {{0., 0., 0.}, 1.};
