@@ -177,24 +177,24 @@ int32_t pos_extra(double utc, locstruc &loc)
     pos_eci2geoc(tloc);
     loc.pos.extra.moongeo = tloc.pos.geod.s;
 
-    pos_lvlh(utc, loc);
+//    pos_lvlh(utc, loc);
     return 0;
 }
 
-int32_t pos_lvlh(double utc, locstruc *loc)
+int32_t pos_lvlh(locstruc *loc)
 {
-    return pos_lvlh(utc, *loc);
+    return pos_lvlh(*loc);
 }
 
-int32_t pos_lvlh(double utc, locstruc &loc)
+int32_t pos_lvlh(locstruc &loc)
 {
     // Check time
-    if (!isfinite(utc) || utc == 0.)
-    {
-        return CONVERT_ERROR_UTC;
-    }
+//    if (!isfinite(utc) || utc == 0.)
+//    {
+//        return CONVERT_ERROR_UTC;
+//    }
 
-    pos_extra(utc, loc);
+//    pos_extra(utc, loc);
 
     // LVLH related
     loc.pos.extra.p2l = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
@@ -215,31 +215,39 @@ int32_t pos_lvlh(double utc, locstruc &loc)
     case COSMOS_EARTH:
     default:
         // Check time
-        if (!isfinite(loc.pos.eci.utc) || loc.pos.eci.utc == 0.)
-        {
-            return CONVERT_ERROR_UTC;
-        }
+//        if (!isfinite(loc.pos.eci.utc) || loc.pos.eci.utc == 0.)
+//        {
+//            return CONVERT_ERROR_UTC;
+//        }
 
         ppos = &loc.pos.eci;
         break;
     case COSMOS_MOON:
         // Check time
-        if (!isfinite(loc.pos.sci.utc) || loc.pos.sci.utc == 0.)
-        {
-            return CONVERT_ERROR_UTC;
-        }
+//        if (!isfinite(loc.pos.sci.utc) || loc.pos.sci.utc == 0.)
+//        {
+//            return CONVERT_ERROR_UTC;
+//        }
 
         ppos = &loc.pos.sci;
         break;
     }
 
     double s = length_rv(ppos->s);
+    if (s < 1e6)
+    {
+        return CONVERT_ERROR_RADIUS;
+    }
     loc.pos.extra.l2p.row[2] = -ppos->s / s;
     loc.pos.extra.dl2p.row[2] = -(ppos->v - dot_rv(-loc.pos.extra.l2p.row[2], ppos->v) * (-loc.pos.extra.l2p.row[2])) / s;
     loc.pos.extra.ddl2p.row[2] = -(ppos->a - dot_rv(-loc.pos.extra.l2p.row[2], ppos->v) * -loc.pos.extra.dl2p.row[2] - (dot_rv(-loc.pos.extra.l2p.row[2], ppos->a) + dot_rv(-loc.pos.extra.dl2p.row[2], ppos->v)) * -loc.pos.extra.l2p.row[2]) / s;
 
     rvector hbar = rv_cross(ppos->s, ppos->v);
     double h = length_rv(hbar);
+    if (s < 1e6)
+    {
+        return CONVERT_ERROR_RADIUS;
+    }
     rvector hdbar = rv_cross(ppos->s, ppos->a);
     rvector hddbar = rv_cross(ppos->s, ppos->j) + rv_cross(ppos->v, ppos->a);
     loc.pos.extra.l2p.row[1] = -hbar / h;
@@ -309,9 +317,11 @@ int32_t pos_icrf(locstruc &loc)
     }
 
     // Determine closest planetary body
-    loc.pos.extra.closest = COSMOS_EARTH;
-    if (length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2moon.s)) < length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2earth.s)))
-        loc.pos.extra.closest = COSMOS_MOON;
+//    loc.pos.extra.closest = COSMOS_EARTH;
+//    if (length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2moon.s)) < length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2earth.s)))
+//    {
+//        loc.pos.extra.closest = COSMOS_MOON;
+//    }
 
     // Set SUN specific stuff
     distance = length_rv(loc.pos.icrf.s);
@@ -388,6 +398,16 @@ int32_t pos_eci(locstruc &loc)
         return iretn;
     }
 
+    // Set closest
+    double moongrav = MMOON / (length_rv(loc.pos.sci.s) * length_rv(loc.pos.sci.s));
+    double earthgrav = MEARTH / (length_rv(loc.pos.eci.s) * length_rv(loc.pos.eci.s));
+    loc.pos.extra.closest = COSMOS_EARTH;
+    if (earthgrav < moongrav)
+    {
+        loc.pos.extra.closest = COSMOS_MOON;
+    }
+    pos_lvlh(loc);
+
     // Set adjoining positions
     if (loc.pos.eci.pass > loc.pos.icrf.pass)
     {
@@ -430,6 +450,16 @@ int32_t pos_sci(locstruc &loc)
     {
         return iretn;
     }
+
+    // Set closest
+    double moongrav = MMOON / (length_rv(loc.pos.sci.s) * length_rv(loc.pos.sci.s));
+    double earthgrav = MEARTH / (length_rv(loc.pos.eci.s) * length_rv(loc.pos.eci.s));
+    loc.pos.extra.closest = COSMOS_EARTH;
+    if (earthgrav < moongrav)
+    {
+        loc.pos.extra.closest = COSMOS_MOON;
+    }
+    pos_lvlh(loc);
 
     // Set adjoining positions
     if (loc.pos.sci.pass > loc.pos.icrf.pass)
@@ -2124,7 +2154,7 @@ int32_t att_planec2lvlh(locstruc &loc)
     // Update pass
     loc.att.lvlh.pass = patt->pass;
 
-    pos_lvlh(patt->utc, loc);
+//    pos_lvlh(patt->utc, loc);
 
     // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
     rvector alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
@@ -2184,7 +2214,7 @@ int32_t att_lvlh2planec(locstruc &loc)
     // Update pass
     patt->pass = loc.att.lvlh.pass;
 
-    pos_lvlh(loc.att.lvlh.utc, loc);
+//    pos_lvlh(loc.att.lvlh.utc, loc);
 
     // Rotate LVLH frame into ITRS frame
     patt->s = q_fmult(loc.pos.extra.e2l, loc.att.lvlh.s);
