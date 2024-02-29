@@ -197,87 +197,84 @@ int32_t pos_lvlh(double utc, locstruc &loc)
     pos_extra(utc, loc);
 
     // LVLH related
-    loc.pos.extra.e2l = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
-    loc.pos.extra.l2e = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
-    loc.pos.extra.de2l = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
-    loc.pos.extra.dl2e = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
-    loc.pos.extra.dde2l = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
-    loc.pos.extra.ddl2e = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
-
-    double s = length_rv(loc.pos.eci.s);
-    loc.pos.extra.l2e.row[2] = -loc.pos.eci.s / s;
-    loc.pos.extra.dl2e.row[2] = -(loc.pos.eci.v - dot_rv(-loc.pos.extra.l2e.row[2], loc.pos.eci.v) * (-loc.pos.extra.l2e.row[2])) / s;
-    loc.pos.extra.ddl2e.row[2] = -(loc.pos.eci.a - dot_rv(-loc.pos.extra.l2e.row[2], loc.pos.eci.v) * -loc.pos.extra.dl2e.row[2] - (dot_rv(-loc.pos.extra.l2e.row[2], loc.pos.eci.a) + dot_rv(-loc.pos.extra.dl2e.row[2], loc.pos.eci.v)) * -loc.pos.extra.l2e.row[2]) / s;
-
-    rvector hbar = rv_cross(loc.pos.eci.s, loc.pos.eci.v);
-    double h = length_rv(hbar);
-    rvector hdbar = rv_cross(loc.pos.eci.s, loc.pos.eci.a);
-    rvector hddbar = rv_cross(loc.pos.eci.s, loc.pos.eci.j) + rv_cross(loc.pos.eci.v, loc.pos.eci.a);
-    loc.pos.extra.l2e.row[1] = -hbar / h;
-    loc.pos.extra.dl2e.row[2] = -(hdbar - dot_rv(-loc.pos.extra.l2e.row[1], hdbar) * (-loc.pos.extra.l2e.row[1])) / h;
-    loc.pos.extra.ddl2e.row[2] = -(hddbar - dot_rv(-loc.pos.extra.l2e.row[1], hdbar) * -loc.pos.extra.dl2e.row[1] - (dot_rv(-loc.pos.extra.l2e.row[1], hddbar) + dot_rv(-loc.pos.extra.dl2e.row[1], hdbar)) * -loc.pos.extra.l2e.row[1]) / h;
-
-    loc.pos.extra.l2e.row[0] = rv_cross(loc.pos.extra.l2e.row[1], loc.pos.extra.l2e.row[2]);
-    loc.pos.extra.dl2e.row[0] = rv_cross(loc.pos.extra.l2e.row[1], loc.pos.extra.dl2e.row[2]) + rv_cross(loc.pos.extra.dl2e.row[1], loc.pos.extra.l2e.row[2]);
-    loc.pos.extra.ddl2e.row[0] = rv_cross(loc.pos.extra.l2e.row[1], loc.pos.extra.ddl2e.row[2]) + 2. * rv_cross(loc.pos.extra.dl2e.row[1], loc.pos.extra.dl2e.row[2]) + rv_cross(loc.pos.extra.ddl2e.row[1], loc.pos.extra.l2e.row[2]);
-
-    loc.pos.extra.e2l = rm_transpose(loc.pos.extra.l2e);
-    loc.pos.extra.de2l= rm_transpose(loc.pos.extra.dl2e);
-    loc.pos.extra.dde2l = rm_transpose(loc.pos.extra.ddl2e);
+    loc.pos.extra.p2l = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
+    loc.pos.extra.l2p = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
+    loc.pos.extra.dp2l = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
+    loc.pos.extra.dl2p = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
+    loc.pos.extra.ddp2l = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
+    loc.pos.extra.ddl2p = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
 
     quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.};
-    loc.pos.extra.g2l = {{0., 0., 0.}, 1.};
-    loc.pos.extra.l2g = {{0., 0., 0.}, 1.};
-    rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.};
-    //            qatt *patt;
+    loc.pos.extra.e2l = {{0., 0., 0.}, 1.};
+    loc.pos.extra.l2e = {{0., 0., 0.}, 1.};
+    rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, planec_z = {0., 0., 0.}, planec_y = {0., 0., 0.};
+
     cartpos *ppos;
     switch (loc.pos.extra.closest)
     {
     case COSMOS_EARTH:
     default:
         // Check time
-        if (!isfinite(loc.att.geoc.utc) || loc.att.geoc.utc == 0.)
+        if (!isfinite(loc.pos.eci.utc) || loc.pos.eci.utc == 0.)
         {
             return CONVERT_ERROR_UTC;
         }
 
-        //                patt = &loc.att.geoc;
-        ppos = &loc.pos.geoc;
+        ppos = &loc.pos.eci;
         break;
     case COSMOS_MOON:
         // Check time
-        if (!isfinite(loc.att.selc.utc) || loc.att.selc.utc == 0.)
+        if (!isfinite(loc.pos.sci.utc) || loc.pos.sci.utc == 0.)
         {
             return CONVERT_ERROR_UTC;
         }
 
-        //                patt = &loc.att.selc;
-        ppos = &loc.pos.selc;
+        ppos = &loc.pos.sci;
         break;
     }
 
+    double s = length_rv(ppos->s);
+    loc.pos.extra.l2p.row[2] = -ppos->s / s;
+    loc.pos.extra.dl2p.row[2] = -(ppos->v - dot_rv(-loc.pos.extra.l2p.row[2], ppos->v) * (-loc.pos.extra.l2p.row[2])) / s;
+    loc.pos.extra.ddl2p.row[2] = -(ppos->a - dot_rv(-loc.pos.extra.l2p.row[2], ppos->v) * -loc.pos.extra.dl2p.row[2] - (dot_rv(-loc.pos.extra.l2p.row[2], ppos->a) + dot_rv(-loc.pos.extra.dl2p.row[2], ppos->v)) * -loc.pos.extra.l2p.row[2]) / s;
+
+    rvector hbar = rv_cross(ppos->s, ppos->v);
+    double h = length_rv(hbar);
+    rvector hdbar = rv_cross(ppos->s, ppos->a);
+    rvector hddbar = rv_cross(ppos->s, ppos->j) + rv_cross(ppos->v, ppos->a);
+    loc.pos.extra.l2p.row[1] = -hbar / h;
+    loc.pos.extra.dl2p.row[2] = -(hdbar - dot_rv(-loc.pos.extra.l2p.row[1], hdbar) * (-loc.pos.extra.l2p.row[1])) / h;
+    loc.pos.extra.ddl2p.row[2] = -(hddbar - dot_rv(-loc.pos.extra.l2p.row[1], hdbar) * -loc.pos.extra.dl2p.row[1] - (dot_rv(-loc.pos.extra.l2p.row[1], hddbar) + dot_rv(-loc.pos.extra.dl2p.row[1], hdbar)) * -loc.pos.extra.l2p.row[1]) / h;
+
+    loc.pos.extra.l2p.row[0] = rv_cross(loc.pos.extra.l2p.row[1], loc.pos.extra.l2p.row[2]);
+    loc.pos.extra.dl2p.row[0] = rv_cross(loc.pos.extra.l2p.row[1], loc.pos.extra.dl2p.row[2]) + rv_cross(loc.pos.extra.dl2p.row[1], loc.pos.extra.l2p.row[2]);
+    loc.pos.extra.ddl2p.row[0] = rv_cross(loc.pos.extra.l2p.row[1], loc.pos.extra.ddl2p.row[2]) + 2. * rv_cross(loc.pos.extra.dl2p.row[1], loc.pos.extra.dl2p.row[2]) + rv_cross(loc.pos.extra.ddl2p.row[1], loc.pos.extra.l2p.row[2]);
+
+    loc.pos.extra.p2l = rm_transpose(loc.pos.extra.l2p);
+    loc.pos.extra.dp2l= rm_transpose(loc.pos.extra.dl2p);
+    loc.pos.extra.ddp2l = rm_transpose(loc.pos.extra.ddl2p);
+
     // LVLH Z is opposite of direction to satellite
-    geoc_z = rv_smult(-1., ppos->s);
-    normalize_rv(geoc_z);
+    planec_z = rv_smult(-1., ppos->s);
+    normalize_rv(planec_z);
 
     // LVLH Y is Cross Product of LVLH Z and velocity vector
-    geoc_y = rv_cross(geoc_z, ppos->v);
-    normalize_rv(geoc_y);
+    planec_y = rv_cross(planec_z, ppos->v);
+    normalize_rv(planec_y);
 
     // Determine intrinsic rotation of ITRF Z  into LVLH Z
-    qe_z = q_conjugate(q_drotate_between_rv(geoc_z, lvlh_z));
+    qe_z = q_conjugate(q_drotate_between_rv(planec_z, lvlh_z));
 
     // Use to intrinsically rotate ITRF Y into intermediate Y
-    //	geoc_y = drotate(qe_z,geoc_y);
-    geoc_y = irotate(qe_z, geoc_y);
+    planec_y = irotate(qe_z, planec_y);
 
     // Determine intrinsic rotation of this intermediate Y into LVLH Y
-    qe_y = q_conjugate(q_drotate_between_rv(geoc_y, lvlh_y));
+    qe_y = q_conjugate(q_drotate_between_rv(planec_y, lvlh_y));
 
     // Combine to determine intrinsic rotation of ITRF into LVLH
-    loc.pos.extra.g2l = q_fmult(qe_z, qe_y);
-    normalize_q(&loc.pos.extra.g2l);
-    loc.pos.extra.l2g = q_conjugate(loc.pos.extra.g2l);
+    loc.pos.extra.e2l = q_fmult(qe_z, qe_y);
+    normalize_q(&loc.pos.extra.e2l);
+    loc.pos.extra.l2e = q_conjugate(loc.pos.extra.e2l);
 
     return 0;
 }
@@ -2087,8 +2084,8 @@ int32_t att_planec2lvlh(locstruc *loc)
 int32_t att_planec2lvlh(locstruc &loc)
 {
     //            quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.};
-    //            loc.pos.extra.g2l = {{0., 0., 0.}, 1.};
-    //            loc.pos.extra.l2g = {{0., 0., 0.}, 1.};
+    //            loc.pos.extra.e2l = {{0., 0., 0.}, 1.};
+    //            loc.pos.extra.l2e = {{0., 0., 0.}, 1.};
     //            rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.}, alpha = {0., 0., 0.};
     qatt *patt;
     cartpos *ppos;
@@ -2134,9 +2131,9 @@ int32_t att_planec2lvlh(locstruc &loc)
     loc.att.lvlh.v = rv_sub(patt->v, alpha);
 
     // Transform ITRS into LVLH
-    loc.att.lvlh.s = q_fmult(loc.pos.extra.l2g, patt->s);
-    loc.att.lvlh.v = irotate(loc.pos.extra.g2l, loc.att.lvlh.v);
-    loc.att.lvlh.a = irotate(loc.pos.extra.g2l, patt->a);
+    loc.att.lvlh.s = q_fmult(loc.pos.extra.l2e, patt->s);
+    loc.att.lvlh.v = irotate(loc.pos.extra.e2l, loc.att.lvlh.v);
+    loc.att.lvlh.a = irotate(loc.pos.extra.e2l, patt->a);
 
     return 0;
 }
@@ -2190,9 +2187,9 @@ int32_t att_lvlh2planec(locstruc &loc)
     pos_lvlh(loc.att.lvlh.utc, loc);
 
     // Rotate LVLH frame into ITRS frame
-    patt->s = q_fmult(loc.pos.extra.g2l, loc.att.lvlh.s);
-    patt->v = irotate(loc.pos.extra.l2g, loc.att.lvlh.v);
-    patt->a = irotate(loc.pos.extra.l2g, loc.att.lvlh.a);
+    patt->s = q_fmult(loc.pos.extra.e2l, loc.att.lvlh.s);
+    patt->v = irotate(loc.pos.extra.l2e, loc.att.lvlh.v);
+    patt->a = irotate(loc.pos.extra.l2e, loc.att.lvlh.a);
 
     // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
     rvector alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
@@ -3436,10 +3433,10 @@ int32_t pos_origin2lvlh(locstruc& loc, cartpos lvlh)
     printf("ax %.3f ay %.3f az %.3f mag %.3f\n", tloc1.pos.eci.a.col[0], tloc1.pos.eci.a.col[1], tloc1.pos.eci.a.col[2], length_rv(tloc1.pos.eci.a));
 
     locstruc tloc = loc;
-    eci_offset.s = rv_mmult(tloc.pos.extra.e2l, lvlh.s);
+    eci_offset.s = rv_mmult(tloc.pos.extra.p2l, lvlh.s);
     tloc.pos.eci.s += eci_offset.s;
-    tloc.pos.eci.v += rv_mmult(tloc.pos.extra.de2l, lvlh.v);
-    tloc.pos.eci.a += rv_mmult(tloc.pos.extra.dde2l, lvlh.a);
+    tloc.pos.eci.v += rv_mmult(tloc.pos.extra.dp2l, lvlh.v);
+    tloc.pos.eci.a += rv_mmult(tloc.pos.extra.ddp2l, lvlh.a);
     tloc.pos.eci.pass++;
     pos_eci(tloc);
     printf("Eric:\n");
@@ -3448,12 +3445,12 @@ int32_t pos_origin2lvlh(locstruc& loc, cartpos lvlh)
     printf("ax %.3f ay %.3f az %.3f mag %.3f\n", tloc.pos.eci.a.col[0], tloc.pos.eci.a.col[1], tloc.pos.eci.a.col[2], length_rv(tloc.pos.eci.a));
     fflush(stdout);
 
-    lvlh_x = drotate(loc.pos.extra.g2l, rvector(1., 0., 0.));
-    lvlh_y = drotate(loc.pos.extra.g2l, rvector(0., 1., 0.));
+    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
+    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
 
-    loc.pos.geoc.v += drotate(loc.pos.extra.g2l, lvlh.v);
-    loc.pos.geoc.a += drotate(loc.pos.extra.g2l, lvlh.a);
-    loc.pos.geoc.j += drotate(loc.pos.extra.g2l, lvlh.j);
+    loc.pos.geoc.v += drotate(loc.pos.extra.e2l, lvlh.v);
+    loc.pos.geoc.a += drotate(loc.pos.extra.e2l, lvlh.a);
+    loc.pos.geoc.j += drotate(loc.pos.extra.e2l, lvlh.j);
 
     double r = length_rv(loc.pos.geoc.s);
 
@@ -3502,13 +3499,13 @@ int32_t pos_lvlh2origin(locstruc& loc)
 
     double r = length_rv(loc.pos.geoc.s) +  loc.pos.lvlh.s.col[2];
 
-    lvlh_x = drotate(loc.pos.extra.g2l, rvector(1., 0., 0.));
-    lvlh_y = drotate(loc.pos.extra.g2l, rvector(0., 1., 0.));
-    lvlh_z = drotate(loc.pos.extra.g2l, rvector(0., 0., 1.));
+    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
+    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
+    lvlh_z = drotate(loc.pos.extra.e2l, rvector(0., 0., 1.));
 
-    loc.pos.geoc.v -= drotate(loc.pos.extra.g2l, loc.pos.lvlh.v);
-    loc.pos.geoc.a -= drotate(loc.pos.extra.g2l, loc.pos.lvlh.a);
-    loc.pos.geoc.j -= drotate(loc.pos.extra.g2l, loc.pos.lvlh.j);
+    loc.pos.geoc.v -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.v);
+    loc.pos.geoc.a -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.a);
+    loc.pos.geoc.j -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.j);
 
     // Rotate around LVLH y axis by dx/r
     loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, loc.pos.lvlh.s.col[0] / r);
@@ -5415,8 +5412,8 @@ int stk2eci(double utc, stkstruc &stk, cartpos &eci)
         << a.ds2t << "\t"
         << a.t2s << "\t"
         << a.dt2s << "\t"
-        << a.l2g << "\t"
-        << a.g2l << "\t"
+        << a.l2e << "\t"
+        << a.e2l << "\t"
         << a.sun2earth << "\t"
         << a.sun2moon << "\t"
         << a.closest;
@@ -5425,7 +5422,7 @@ int stk2eci(double utc, stkstruc &stk, cartpos &eci)
 
 ::std::istream &operator>>(::std::istream &in, extrapos &a)
 {
-    in >> a.utc >> a.tt >> a.ut >> a.tdb >> a.j2e >> a.dj2e >> a.ddj2e >> a.e2j >> a.de2j >> a.dde2j >> a.j2t >> a.j2s >> a.t2j >> a.s2j >> a.s2t >> a.ds2t >> a.t2s >> a.dt2s >> a.g2l >> a.l2g >> a.sun2earth >> a.sun2moon >> a.closest;
+    in >> a.utc >> a.tt >> a.ut >> a.tdb >> a.j2e >> a.dj2e >> a.ddj2e >> a.e2j >> a.de2j >> a.dde2j >> a.j2t >> a.j2s >> a.t2j >> a.s2j >> a.s2t >> a.ds2t >> a.t2s >> a.dt2s >> a.e2l >> a.l2e >> a.sun2earth >> a.sun2moon >> a.closest;
     return in;
 }
 
