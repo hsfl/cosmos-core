@@ -526,9 +526,9 @@ int32_t parse_sat(string args)
         geoc_offset.s = rv_sub(initialloc.pos.geoc.s, basepos.pos.geoc.s);
         geoc_offset.v = rv_sub(initialloc.pos.geoc.v, basepos.pos.geoc.v);
         geoc_offset.a = rv_sub(initialloc.pos.geoc.a, basepos.pos.geoc.a);
-        initialloc.pos.lvlh.s = irotate(basepos.pos.extra.g2l, geoc_offset.s);
-        initialloc.pos.lvlh.v = irotate(basepos.pos.extra.g2l, geoc_offset.v);
-        initialloc.pos.lvlh.a = irotate(basepos.pos.extra.g2l, geoc_offset.a);
+        initialloc.pos.lvlh.s = irotate(basepos.pos.extra.e2l, geoc_offset.s);
+        initialloc.pos.lvlh.v = irotate(basepos.pos.extra.e2l, geoc_offset.v);
+        initialloc.pos.lvlh.a = irotate(basepos.pos.extra.e2l, geoc_offset.a);
         initialloc.pos.lvlh.utc = initialloc.pos.utc;
         type = Physics::Propagator::PositionLvlh;
     }
