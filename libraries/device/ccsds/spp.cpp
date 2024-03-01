@@ -1,39 +1,49 @@
-/********************************************************************
-* Copyright (C) 2015 by Interstel Technologies, Inc.
-*   and Hawaii Space Flight Laboratory.
-*
-* This file is part of the COSMOS/core that is the central
-* module for COSMOS. For more information on COSMOS go to
-* <http://cosmos-project.com>
-*
-* The COSMOS/core software is licenced under the
-* GNU Lesser General Public License (LGPL) version 3 licence.
-*
-* You should have received a copy of the
-* GNU Lesser General Public License
-* If not, go to <http://www.gnu.org/licenses/>
-*
-* COSMOS/core is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public License
-* as published by the Free Software Foundation, either version 3 of
-* the License, or (at your option) any later version.
-*
-* COSMOS/core is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* Refer to the "licences" folder for further information on the
-* condititons and terms to use this software.
-********************************************************************/
+/**
+ * @file spp.cpp
+ * @brief 
+ * 
+ * Copyright (C) 2024 by Interstel Technologies, Inc. and Hawaii Space Flight
+ * Laboratory.
+ * 
+ * This file is part of the COSMOS/core that is the central module for COSMOS.
+ * For more information on COSMOS go to <http://cosmos-project.com>
+ * 
+ * The COSMOS/core software is licenced under the GNU Lesser General Public
+ * License (LGPL) version 3 licence.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License. If
+ * not, go to <http://www.gnu.org/licenses/>
+ * 
+ * COSMOS/core is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * COSMOS/core is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * Refer to the "licences" folder for further information on the conditions and
+ * terms to use this software.
+ */
 
-// TODO: rename to serial.cpp only
+/** @todo rename to serial.cpp only */
 #include "spp.h"
 
 namespace Cosmos {
     namespace Protocols {
         namespace Ccsds {
-
+            /**
+             * @brief Construct a new Spp:: Spp object
+             * 
+             * @param apid 
+             * @param telecommand 
+             * @param secondary_header 
+             * @param version 
+             * 
+             * @todo Document this. 
+             */
             Spp::Spp(uint16_t apid, bool telecommand, bool secondary_header, uint8_t version)
             {
                 frame.primary_header_fields.version = version;
@@ -57,6 +67,15 @@ namespace Cosmos {
                 }
             }
 
+            /**
+             * @brief 
+             * 
+             * @param number 
+             * @param value 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::setHeaderByte(uint8_t number, uint8_t value)
             {
                 if (number > 6)
@@ -67,6 +86,14 @@ namespace Cosmos {
                 return number;
             }
 
+            /**
+             * @brief 
+             * 
+             * @param version 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::setVersion(uint8_t version)
             {
                 if (version < 8)
@@ -80,6 +107,14 @@ namespace Cosmos {
                 }
             }
 
+            /**
+             * @brief 
+             * 
+             * @param apid 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::setApid(uint16_t apid)
             {
                 if (apid < 2048)
@@ -94,6 +129,13 @@ namespace Cosmos {
                 }
             }
 
+            /**
+             * @brief 
+             * 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::setApidIdle()
             {
                 frame.primary_header_fields.apid_lsb = 255;
@@ -101,6 +143,14 @@ namespace Cosmos {
                 return 0;
             }
 
+            /**
+             * @brief 
+             * 
+             * @param type 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::setType(PacketType type)
             {
                 if (type == PacketType::Telecommand || type == PacketType::Telemetry)
@@ -114,6 +164,14 @@ namespace Cosmos {
                 }
             }
 
+            /**
+             * @brief 
+             * 
+             * @param present 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::setSecondaryHeaderFlag(bool present)
             {
                 if (present)
@@ -127,6 +185,35 @@ namespace Cosmos {
                 return 0;
             }
 
+            /**
+             * @brief 
+             * 
+             * @param flag 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
+            int32_t Spp::setSequenceFlags(SequenceFlags flag)
+            {
+                if (flag == SequenceFlags::ContinuationSegment || flag == SequenceFlags::FirstSegment || flag == SequenceFlags::LastSegment || flag == SequenceFlags::UnSegmented)
+                {
+                    frame.primary_header_fields.sequence_flags = (unsigned)flag;
+                    return 0;
+                }
+                else
+                {
+                    return GENERAL_ERROR_OUTOFRANGE;
+                }
+            }
+
+            /**
+             * @brief 
+             * 
+             * @param count 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::setSequenceCount(uint16_t count)
             {
                 if (count < 16384)
@@ -141,19 +228,14 @@ namespace Cosmos {
                 }
             }
 
-            int32_t Spp::setSequenceFlags(SequenceFlags flag)
-            {
-                if (flag == SequenceFlags::ContinuationSegment || flag == SequenceFlags::FirstSegment || flag == SequenceFlags::LastSegment || flag == SequenceFlags::UnSegmented)
-                {
-                    frame.primary_header_fields.sequence_flags = (unsigned)flag;
-                    return 0;
-                }
-                else
-                {
-                    return GENERAL_ERROR_OUTOFRANGE;
-                }
-            }
-
+            /**
+             * @brief 
+             * 
+             * @param length 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::setDataLength(uint32_t length)
             {
                 if (length < 65537 && length > 0)
@@ -169,46 +251,110 @@ namespace Cosmos {
                 }
             }
 
+            /**
+             * @brief 
+             * 
+             * @return uint8_t 
+             * 
+             * @todo Document this.
+             */
             uint8_t Spp::getVersion()
             {
                 return frame.primary_header_fields.version;
             }
 
+            /**
+             * @brief 
+             * 
+             * @return uint16_t 
+             * 
+             * @todo Document this.
+             */
             uint16_t Spp::getApid()
             {
                 return 256 * frame.primary_header_fields.apid_msb + frame.primary_header_fields.apid_lsb;
             }
 
+            /**
+             * @brief 
+             * 
+             * @return Spp::PacketType 
+             * 
+             * @todo Document this.
+             */
             Spp::PacketType Spp::getType()
             {
                 return (PacketType)frame.primary_header_fields.type;
             }
 
+            /**
+             * @brief 
+             * 
+             * @return true 
+             * @return false 
+             * 
+             * @todo Document this.
+             */
             bool Spp::getSecondaryHeaderFlag()
             {
                 return frame.primary_header_fields.secondary_header_flag;
             }
 
+            /**
+             * @brief 
+             * 
+             * @return Spp::SequenceFlags 
+             * 
+             * @todo Document this.
+             */
             Spp::SequenceFlags Spp::getSequenceFlags()
             {
                 return (SequenceFlags)frame.primary_header_fields.sequence_flags;
             }
 
+            /**
+             * @brief 
+             * 
+             * @return uint16_t 
+             * 
+             * @todo Document this.
+             */
             uint16_t Spp::getSequenceCount()
             {
                 return frame.primary_header_fields.sequence_count_msb * 256L + frame.primary_header_fields.sequence_count_lsb;
             }
 
+            /**
+             * @brief 
+             * 
+             * @return uint32_t 
+             * 
+             * @todo Document this.
+             */
             uint32_t Spp::getDataLength()
             {
                 return frame.primary_header_fields.data_length_msb * 256L + frame.primary_header_fields.data_length_lsb + 1;
             }
 
+            /**
+             * @brief 
+             * 
+             * @return Spp::packet 
+             * 
+             * @todo Document this.
+             */
             Spp::packet Spp::getFrame()
             {
                 return frame;
             }
 
+            /**
+             * @brief 
+             * 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::clearPacket()
             {
                 stage = PacketStage::Start;
@@ -216,12 +362,48 @@ namespace Cosmos {
                 return 0;
             }
 
+            /**
+             * @brief 
+             * 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::clearDataBytes()
             {
                 frame.data_bytes.clear();
                 return 0;
             }
 
+            /**
+             * @brief 
+             * 
+             * @param dbytes 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
+            int32_t Spp::getDataBytes(vector <uint8_t> &dbytes)
+            {
+                if (dbytes.size() < 65536)
+                {
+                    frame.data_bytes = dbytes;
+                    return 0;
+                }
+                else
+                {
+                    return GENERAL_ERROR_OVERSIZE;
+                }
+            }
+
+            /**
+             * @brief 
+             * 
+             * @param byte 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::addByte(uint8_t byte)
             {
                 switch (stage)
@@ -253,6 +435,14 @@ namespace Cosmos {
                 return GENERAL_ERROR_UNDEFINED;
             }
 
+            /**
+             * @brief 
+             * 
+             * @param dbyte 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::addDataByte(uint8_t dbyte)
             {
                 if (frame.data_bytes.size() < 65536)
@@ -266,31 +456,33 @@ namespace Cosmos {
                 }
             }
 
-            int32_t Spp::getDataBytes(vector <uint8_t> &dbytes)
-            {
-                if (dbytes.size() < 65536)
-                {
-                    frame.data_bytes = dbytes;
-                    return 0;
-                }
-                else
-                {
-                    return GENERAL_ERROR_OVERSIZE;
-                }
-            }
-
+            /**
+             * @brief 
+             * 
+             * @param dbytes 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::setDataBytes(vector <uint8_t> &dbytes)
             {
                     dbytes = frame.data_bytes;
                     return 0;
             }
 
+            /**
+             * @brief 
+             * 
+             * @param header 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Spp::getHeaderBytes(uint8_t* &header)
             {
                 header=frame.primary_header_bytes;
                 return 0;
             }
-
         }
     }
 } // end of namespace Cosmos

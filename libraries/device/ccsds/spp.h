@@ -1,31 +1,32 @@
-/********************************************************************
-* Copyright (C) 2015 by Interstel Technologies, Inc.
-*   and Hawaii Space Flight Laboratory.
-*
-* This file is part of the COSMOS/core that is the central
-* module for COSMOS. For more information on COSMOS go to
-* <http://cosmos-project.com>
-*
-* The COSMOS/core software is licenced under the
-* GNU Lesser General Public License (LGPL) version 3 licence.
-*
-* You should have received a copy of the
-* GNU Lesser General Public License
-* If not, go to <http://www.gnu.org/licenses/>
-*
-* COSMOS/core is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public License
-* as published by the Free Software Foundation, either version 3 of
-* the License, or (at your option) any later version.
-*
-* COSMOS/core is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* Refer to the "licences" folder for further information on the
-* condititons and terms to use this software.
-********************************************************************/
+/**
+ * @file spp.h
+ * @brief 
+ * 
+ * Copyright (C) 2024 by Interstel Technologies, Inc. and Hawaii Space Flight
+ * Laboratory.
+ * 
+ * This file is part of the COSMOS/core that is the central module for COSMOS.
+ * For more information on COSMOS go to <http://cosmos-project.com>
+ * 
+ * The COSMOS/core software is licenced under the GNU Lesser General Public
+ * License (LGPL) version 3 licence.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License. If
+ * not, go to <http://www.gnu.org/licenses/>
+ * 
+ * COSMOS/core is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * COSMOS/core is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * Refer to the "licences" folder for further information on the conditions and
+ * terms to use this software.
+ */
 
 #ifndef SPP_H
 #define SPP_H
@@ -35,21 +36,23 @@
 
 namespace Cosmos {
     namespace Protocols {
+        /** @todo Document this. */
         namespace Ccsds {
-
+            /** @todo Document this. */
             class Spp
             {
             public:
                 Spp(uint16_t apid=0, bool telecommand=static_cast<bool>(PacketType::Telemetry), bool secondary_header=false, uint8_t version=0);
 //                ~Spp();
 
-
+                /** @todo Document this.*/
                 enum class PacketType : uint8_t
                     {
                     Telemetry,
                     Telecommand
                     };
 
+                /** @todo Document this.*/
                 enum class SequenceFlags : uint8_t
                     {
                     ContinuationSegment,
@@ -58,6 +61,7 @@ namespace Cosmos {
                     UnSegmented
                     };
 
+                /** @todo Document this.*/
                 enum class PacketStage : uint16_t
                     {
                     Start,
@@ -70,6 +74,7 @@ namespace Cosmos {
                     DataBytes
                     };
 
+                /** @todo Document this.*/
                 struct primary_header
                 {
                     unsigned apid_msb : 3;
@@ -84,6 +89,7 @@ namespace Cosmos {
                     unsigned data_length_lsb : 8;
                 };
 
+                /** @todo Document this.*/
                 struct packet
                 {
                     union
@@ -114,6 +120,7 @@ namespace Cosmos {
                 packet getFrame();
 
                 int32_t clearPacket();
+                /** @todo Define this function. */
                 int32_t clearHeaderBytes();
                 int32_t clearDataBytes();
                 int32_t getDataBytes(vector <uint8_t> &dbytes);
@@ -123,8 +130,11 @@ namespace Cosmos {
                 int32_t getHeaderBytes(uint8_t* &header);
 
             protected:
+                /** @todo Document this.*/
                 packet frame;
+                /** @todo Document this.*/
                 int32_t error;
+                /** @todo Document this.*/
                 PacketStage stage=PacketStage::Start;
             };
         }
