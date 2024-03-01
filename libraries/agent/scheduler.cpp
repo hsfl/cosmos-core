@@ -1,35 +1,32 @@
-/********************************************************************
-* Copyright (C) 2015 by Interstel Technologies, Inc.
-*   and Hawaii Space Flight Laboratory.
-*
-* This file is part of the COSMOS/core that is the central
-* module for COSMOS. For more information on COSMOS go to
-* <http://cosmos-project.com>
-*
-* The COSMOS/core software is licenced under the
-* GNU Lesser General Public License (LGPL) version 3 licence.
-*
-* You should have received a copy of the
-* GNU Lesser General Public License
-* If not, go to <http://www.gnu.org/licenses/>
-*
-* COSMOS/core is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public License
-* as published by the Free Software Foundation, either version 3 of
-* the License, or (at your option) any later version.
-*
-* COSMOS/core is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* Refer to the "licences" folder for further information on the
-* condititons and terms to use this software.
-********************************************************************/
-
-/*! \file scheduler.cpp
-    \brief Agent support functions
-*/
+/**
+ * @file scheduler.cpp
+ * @brief Agent support functions
+ * 
+ * Copyright (C) 2024 by Interstel Technologies, Inc. and Hawaii Space Flight
+ * Laboratory.
+ * 
+ * This file is part of the COSMOS/core that is the central module for COSMOS.
+ * For more information on COSMOS go to <http://cosmos-project.com>
+ * 
+ * The COSMOS/core software is licenced under the GNU Lesser General Public
+ * License (LGPL) version 3 licence.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License. If
+ * not, go to <http://www.gnu.org/licenses/>
+ * 
+ * COSMOS/core is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * COSMOS/core is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * Refer to the "licences" folder for further information on the conditions and
+ * terms to use this software.
+ */
 
 #include "agent/scheduler.h"
 
@@ -37,7 +34,13 @@ namespace Cosmos
 {
     namespace Support
     {
-
+        /**
+         * @brief Construct a new Scheduler:: Scheduler object
+         * 
+         * @param node_name 
+         * 
+         * @todo Document this.
+         */
         Scheduler::Scheduler(string node_name) {
 
             agent = new Agent("", node_name, "test");
@@ -45,10 +48,26 @@ namespace Cosmos
 
         }
 
+        /**
+         * @brief Destroy the Scheduler:: Scheduler object
+         * 
+         * @todo Document this.
+         */
         Scheduler::~Scheduler() {
 
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param data 
+         * @param mjd 
+         * @param condition 
+         * @param flag 
+         * 
+         * @todo Document this.
+         */
         void Scheduler::addEvent(string name,
                                  string data,
                                  double mjd,
@@ -73,10 +92,28 @@ namespace Cosmos
 
         }
 
+        /**
+         * @brief 
+         * 
+         * @param event 
+         * 
+         * @todo Document this.
+         */
         void Scheduler::addEvent(Event event) {
             addEvent(event.name, event.data, event.mjd, event.condition, event.flag);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param data 
+         * @param mjd 
+         * @param condition 
+         * @param flag 
+         * 
+         * @todo Document this.
+         */
         void Scheduler::deleteEvent(string name,
                                     string data,
                                     double mjd,
@@ -101,10 +138,24 @@ namespace Cosmos
 
         }
 
+        /**
+         * @brief 
+         * 
+         * @param event 
+         * 
+         * @todo Document this.
+         */
         void Scheduler::deleteEvent(Event event) {
             deleteEvent(event.name,event.data, event.mjd, event.condition, event.flag);
         }
 
+        /**
+         * @brief 
+         * 
+         * @return int 
+         * 
+         * @todo Document this.
+         */
         int Scheduler::getEventQueueSize() {
             if (!agent_exec_soh.exists) {
                 cout << "could not find agent exec" << endl;
@@ -121,6 +172,11 @@ namespace Cosmos
             return queue_size;
         }
 
+        /**
+         * @brief 
+         * 
+         * @todo Document this.
+         */
         void Scheduler::getEventQueue() {
             if (!agent_exec_soh.exists) {
                 cout << "could not find agent exec" << endl;
