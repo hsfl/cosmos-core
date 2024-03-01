@@ -1,8 +1,46 @@
+/**
+ * @file task.cpp
+ * @brief 
+ * 
+ * Copyright (C) 2024 by Interstel Technologies, Inc. and Hawaii Space Flight
+ * Laboratory.
+ * 
+ * This file is part of the COSMOS/core that is the central module for COSMOS.
+ * For more information on COSMOS go to <http://cosmos-project.com>
+ * 
+ * The COSMOS/core software is licenced under the GNU Lesser General Public
+ * License (LGPL) version 3 licence.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License. If
+ * not, go to <http://www.gnu.org/licenses/>
+ * 
+ * COSMOS/core is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * COSMOS/core is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * Refer to the "licences" folder for further information on the conditions and
+ * terms to use this software.
+ */
+
 #include "task.h"
 #include "support/stringlib.h"
 
 namespace Cosmos {
     namespace Support {
+        /**
+         * @brief Construct a new Task:: Task object
+         * 
+         * @param node 
+         * @param agent 
+         * 
+         * @todo Document this.
+         */
         Task::Task(string node, string agent)
         {
             if (agent.empty())
@@ -17,6 +55,11 @@ namespace Cosmos {
             }
         }
 
+        /**
+         * @brief Destroy the Task:: Task object
+         * 
+         * @todo Document this.
+         */
         Task::~Task()
         {
             if (!state)
@@ -35,12 +78,22 @@ namespace Cosmos {
             }
         }
 
+        /**
+         * @brief 
+         * 
+         * @todo Document this.
+         */
         void Task::Start()
         {
             state = 1;
             mythread = thread([=] { Runner(); });
         }
 
+        /**
+         * @brief 
+         * 
+         * @todo Document this.
+         */
         void Task::Runner()
         {
             state = 1;
@@ -74,6 +127,15 @@ namespace Cosmos {
             return;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param command 
+         * @param node 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Task::Add(string command, string node)
         {
             mtx.lock();
@@ -93,6 +155,14 @@ namespace Cosmos {
             return tasks.size();
         }
 
+        /**
+         * @brief 
+         * 
+         * @param deci 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Task::Del(uint32_t deci)
         {
             mtx.lock();
@@ -112,6 +182,14 @@ namespace Cosmos {
             return tasks.size();
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Task::Iretn(uint16_t number)
         {
             int32_t iretn = 0;
@@ -132,6 +210,14 @@ namespace Cosmos {
             return (iretn);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return uint32_t 
+         * 
+         * @todo Document this.
+         */
         uint32_t Task::Deci(uint16_t number)
         {
             uint32_t deci = 0;
@@ -152,6 +238,14 @@ namespace Cosmos {
             return (deci);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return double 
+         * 
+         * @todo Document this.
+         */
         double Task::Startmjd(uint16_t number)
         {
             double startmjd = 0.;
@@ -172,6 +266,14 @@ namespace Cosmos {
             return startmjd;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return uint8_t 
+         * 
+         * @todo Document this.
+         */
         uint8_t Task::State(uint16_t number)
         {
             uint8_t state = 0;
@@ -192,6 +294,14 @@ namespace Cosmos {
             return state;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return string 
+         * 
+         * @todo Document this.
+         */
         string Task::Command(uint16_t number)
         {
             string command = "";
@@ -212,7 +322,14 @@ namespace Cosmos {
             return command;
         }
 
-
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return string 
+         * 
+         * @todo Document this.
+         */
         string Task::Path(uint16_t number)
         {
             string path = "";
@@ -233,6 +350,13 @@ namespace Cosmos {
             return path;
         }
 
+        /**
+         * @brief 
+         * 
+         * @return uint16_t 
+         * 
+         * @todo Document this.
+         */
         uint16_t Task::Size()
         {
             return tasks.size();
