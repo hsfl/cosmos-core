@@ -1,38 +1,52 @@
-/********************************************************************
-* Copyright (C) 2015 by Interstel Technologies, Inc.
-*   and Hawaii Space Flight Laboratory.
-*
-* This file is part of the COSMOS/core that is the central
-* module for COSMOS. For more information on COSMOS go to
-* <http://cosmos-project.com>
-*
-* The COSMOS/core software is licenced under the
-* GNU Lesser General Public License (LGPL) version 3 licence.
-*
-* You should have received a copy of the
-* GNU Lesser General Public License
-* If not, go to <http://www.gnu.org/licenses/>
-*
-* COSMOS/core is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public License
-* as published by the Free Software Foundation, either version 3 of
-* the License, or (at your option) any later version.
-*
-* COSMOS/core is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* Refer to the "licences" folder for further information on the
-* condititons and terms to use this software.
-********************************************************************/
+/**
+ * @file devicecpu.cpp
+ * @brief 
+ * 
+ * Copyright (C) 2024 by Interstel Technologies, Inc. and Hawaii Space Flight
+ * Laboratory.
+ * 
+ * This file is part of the COSMOS/core that is the central module for COSMOS.
+ * For more information on COSMOS go to <http://cosmos-project.com>
+ * 
+ * The COSMOS/core software is licenced under the GNU Lesser General Public
+ * License (LGPL) version 3 licence.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License. If
+ * not, go to <http://www.gnu.org/licenses/>
+ * 
+ * COSMOS/core is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * COSMOS/core is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * Refer to the "licences" folder for further information on the conditions and
+ * terms to use this software.
+ */
+
 #include "device/cpu/devicecpu.h"
 
+/**
+ * @brief Construct a new Device Cpu:: Device Cpu object
+ * 
+ * @todo Document this.
+ */
 DeviceCpu::DeviceCpu()
 {
 
 }
 
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
 double DeviceCpu::getLoad()
 {
 
@@ -51,6 +65,13 @@ double DeviceCpu::getLoad()
     return load;
 }
 
+/**
+ * @brief 
+ * 
+ * @return uint16_t 
+ * 
+ * @todo Document this.
+ */
 uint16_t DeviceCpu::getCpuCount()
 {
     uint16_t count = 1;
@@ -60,15 +81,13 @@ uint16_t DeviceCpu::getCpuCount()
     return count;
 }
 
-uint16_t DeviceCpu::getBootCount()
-{
-    uint16_t count = 1;
-#if defined(COSMOS_LINUX_OS)
-    count = cpuLinux.getBootCount();
-#endif
-    return count;
-}
-
+/**
+ * @brief 
+ * 
+ * @return uint32_t 
+ * 
+ * @todo Document this.
+ */
 uint32_t DeviceCpu::getUptime()
 {
     uint32_t count = 1;
@@ -78,91 +97,29 @@ uint32_t DeviceCpu::getUptime()
     return count;
 }
 
-// in bytes
-double DeviceCpu::getMemoryTotal(){
-
+/**
+ * @brief 
+ * 
+ * @return uint16_t 
+ * 
+ * @todo Document this.
+ */
+uint16_t DeviceCpu::getBootCount()
+{
+    uint16_t count = 1;
 #if defined(COSMOS_LINUX_OS)
-    memoryTotal = cpuLinux.getMemoryTotal();
+    count = cpuLinux.getBootCount();
 #endif
-
-#if defined(COSMOS_WIN_OS)
-    memoryTotal = cpuWin.getVirtualMemoryTotal();
-#endif
-    return memoryTotal;
+    return count;
 }
 
-// in bytes
-double DeviceCpu::getMemoryUsed(){
-
-#if defined(COSMOS_LINUX_OS)
-    memoryUsed = cpuLinux.getMemoryUsed();
-#endif
-
-#if defined(COSMOS_WIN_OS)
-    memoryUsed = cpuWin.getVirtualMemoryUsed();
-#endif
-    return memoryUsed;
-}
-
-// in bytes
-double DeviceCpu::getVirtualMemoryUsed(){
-
-#if defined(COSMOS_LINUX_OS)
-    virtualMemoryUsed = cpuLinux.getVirtualMemoryUsed();
-#endif
-
-#if defined(COSMOS_WIN_OS)
-    virtualMemoryUsed = cpuWin.getVirtualMemoryUsed();
-#endif
-    return virtualMemoryUsed;
-
-}
-
-double DeviceCpu::getMemoryUsedKiB()
-{
-    return BytesToKiB(getMemoryUsed());
-}
-
-double DeviceCpu::getMemoryUsedMiB()
-{
-    return BytesToMiB(getMemoryUsed());
-}
-
-double DeviceCpu::getMemoryUsedMB()
-{
-    return BytesToMB(getMemoryUsed());
-}
-
-double DeviceCpu::getMemoryTotalKiB()
-{
-    return BytesToKiB(getMemoryTotal());
-}
-
-double DeviceCpu::getMemoryTotalMiB()
-{
-    return BytesToMiB(getMemoryTotal());
-}
-
-double DeviceCpu::getMemoryTotalMB()
-{
-    return BytesToMB(getMemoryTotal());
-}
-
-double DeviceCpu::getVirtualMemoryUsedKiB()
-{
-    return BytesToKiB(getVirtualMemoryUsed());
-}
-
-double DeviceCpu::getVirtualMemoryUsedMiB()
-{
-    return BytesToMiB(getVirtualMemoryUsed());
-}
-
-double DeviceCpu::getVirtualMemoryUsedMB()
-{
-    return BytesToMB(getVirtualMemoryUsed());
-}
-
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
 double DeviceCpu::getVirtualMemoryTotal(){
 
 #if defined(COSMOS_LINUX_OS)
@@ -177,7 +134,35 @@ double DeviceCpu::getVirtualMemoryTotal(){
     return virtualMemoryTotal;
 }
 
+/**
+ * @brief 
+ * 
+ * in bytes
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::getVirtualMemoryUsed(){
 
+#if defined(COSMOS_LINUX_OS)
+    virtualMemoryUsed = cpuLinux.getVirtualMemoryUsed();
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    virtualMemoryUsed = cpuWin.getVirtualMemoryUsed();
+#endif
+    return virtualMemoryUsed;
+
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
 double DeviceCpu::getVirtualMemoryUsedPercent(){
 
     double virtualMemoryUsedPercent = getVirtualMemoryUsed() / getVirtualMemoryTotal();
@@ -185,7 +170,13 @@ double DeviceCpu::getVirtualMemoryUsedPercent(){
     return virtualMemoryUsedPercent;
 }
 
-
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
 double DeviceCpu::getPercentUseForCurrentProcess(){
 
 #if defined(COSMOS_LINUX_OS)
@@ -200,6 +191,13 @@ double DeviceCpu::getPercentUseForCurrentProcess(){
 
 }
 
+/**
+ * @brief 
+ * 
+ * @return string 
+ * 
+ * @todo Document this.
+ */
 string DeviceCpu::getHostName()
 {
 #if defined(COSMOS_LINUX_OS)
@@ -217,6 +215,203 @@ string DeviceCpu::getHostName()
     return hostName;
 }
 
+/**
+ * @brief 
+ * 
+ * @param bytes 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::BytesToKiB(double bytes)
+{
+    return bytes/1024.;
+}
+
+/**
+ * @brief 
+ * 
+ * @param bytes 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::BytesToMiB(double bytes)
+{
+    return bytes/1024./1024.;
+}
+
+/**
+ * @brief 
+ * 
+ * @param bytes 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::BytesToMB(double bytes)
+{
+    return bytes/1000./1000.;
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::getVirtualMemoryUsedKiB()
+{
+    return BytesToKiB(getVirtualMemoryUsed());
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::getVirtualMemoryUsedMiB()
+{
+    return BytesToMiB(getVirtualMemoryUsed());
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::getVirtualMemoryUsedMB()
+{
+    return BytesToMB(getVirtualMemoryUsed());
+}
+
+/**
+ * @brief 
+ * 
+ * in bytes
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::getMemoryUsed(){
+
+#if defined(COSMOS_LINUX_OS)
+    memoryUsed = cpuLinux.getMemoryUsed();
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    memoryUsed = cpuWin.getVirtualMemoryUsed();
+#endif
+    return memoryUsed;
+}
+
+/**
+ * @brief 
+ * 
+ * in bytes
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::getMemoryTotal(){
+
+#if defined(COSMOS_LINUX_OS)
+    memoryTotal = cpuLinux.getMemoryTotal();
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    memoryTotal = cpuWin.getVirtualMemoryTotal();
+#endif
+    return memoryTotal;
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::getMemoryUsedKiB()
+{
+    return BytesToKiB(getMemoryUsed());
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::getMemoryUsedMiB()
+{
+    return BytesToMiB(getMemoryUsed());
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::getMemoryUsedMB()
+{
+    return BytesToMB(getMemoryUsed());
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::getMemoryTotalKiB()
+{
+    return BytesToKiB(getMemoryTotal());
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::getMemoryTotalMiB()
+{
+    return BytesToMiB(getMemoryTotal());
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpu::getMemoryTotalMB()
+{
+    return BytesToMB(getMemoryTotal());
+}
+
+/**
+ * @brief 
+ * 
+ * @param processName 
+ * @return pid_t 
+ * 
+ * @todo Document this.
+ */
 pid_t DeviceCpu::getPidOf(string processName)
 {
 #if defined(COSMOS_LINUX_OS)
@@ -229,6 +424,14 @@ pid_t DeviceCpu::getPidOf(string processName)
 
 }
 
+/**
+ * @brief 
+ * 
+ * @param processName 
+ * @return pid_t 
+ * 
+ * @todo Document this.
+ */
 pid_t DeviceCpu::getMemoryUsedOf(string processName)
 {
 #if defined(COSMOS_LINUX_OS)
@@ -242,6 +445,14 @@ pid_t DeviceCpu::getMemoryUsedOf(string processName)
     return -1;
 }
 
+/**
+ * @brief 
+ * 
+ * @param processName 
+ * @return float 
+ * 
+ * @todo Document this.
+ */
 float DeviceCpu::getPercentCpuOf(string processName)
 {
 #if defined(COSMOS_LINUX_OS)
@@ -254,6 +465,14 @@ float DeviceCpu::getPercentCpuOf(string processName)
     return 0.;
 }
 
+/**
+ * @brief 
+ * 
+ * @param processName 
+ * @return float 
+ * 
+ * @todo Document this.
+ */
 float DeviceCpu::getPercentMemoryOf(string processName)
 {
 #if defined(COSMOS_LINUX_OS)
@@ -267,35 +486,188 @@ float DeviceCpu::getPercentMemoryOf(string processName)
     return 0.;
 }
 
-double DeviceCpu::BytesToKiB(double bytes)
-{
-    return bytes/1024.;
+/**
+ * @brief test function to stress cpu
+ * 
+ * @todo Document this.
+ */
+void DeviceCpu::stress(){
+    for (int i = 0; i< 40000; i++) {
+        double temp = sqrt(i)*i/log(i);
+        temp = sqrt(temp);
+    }
 }
 
-double DeviceCpu::BytesToMiB(double bytes)
+// ----------------------------------------------
+// WINDOWS
+// ----------------------------------------------
+#if defined (COSMOS_WIN_OS)
+/**
+ * @brief Construct a new Device Cpu Windows:: Device Cpu Windows object
+ * 
+ * @todo Document this.
+ */
+DeviceCpuWindows::DeviceCpuWindows()
 {
-    return bytes/1024./1024.;
+
 }
 
-double DeviceCpu::BytesToMB(double bytes)
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpuWindows::getLoad()
 {
-    return bytes/1000./1000.;
+    FILETIME idleTime, kernelTime, userTime;
+    return GetSystemTimes(&idleTime, &kernelTime, &userTime) ? CalculateCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime)+FileTimeToInt64(userTime)) : -1.0f;
 }
 
+/**
+ * @brief 
+ * 
+ * @param idleTicks 
+ * @param totalTicks 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpuWindows::CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks)
+{
+    static unsigned long long _previousTotalTicks = 0;
+    static unsigned long long _previousIdleTicks = 0;
 
+    unsigned long long totalTicksSinceLastTime = totalTicks-_previousTotalTicks;
+    unsigned long long idleTicksSinceLastTime  = idleTicks-_previousIdleTicks;
+
+    float ret = 1.0f-((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime)/totalTicksSinceLastTime : 0);
+
+    _previousTotalTicks = totalTicks;
+    _previousIdleTicks  = idleTicks;
+    return ret;
+}
+
+/**
+ * @brief 
+ * 
+ * @param ft 
+ * @return unsigned long long 
+ * 
+ * @todo Document this.
+ */
+unsigned long long DeviceCpuWindows::FileTimeToInt64(const FILETIME & ft)
+{
+    return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);
+}
+
+/**
+ * @brief 
+ * 
+ * @return string 
+ * 
+ * @todo Document this.
+ */
+string DeviceCpuWindows::getHostName()
+{
+    char nameBuf[MAX_COMPUTERNAME_LENGTH + 2];
+    DWORD nameBufSize;
+
+    nameBufSize = sizeof nameBuf - 1;
+    if (GetComputerNameA(nameBuf, &nameBufSize) == TRUE) {
+        _tprintf(_T("Device name is %s\n"), nameBuf);
+    }
+
+    //TODO: fix this
+    //    return  string(nameBuf);
+    string hostname = nameBuf;
+    return  hostname;
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpuWindows::getVirtualMemoryUsed()
+{
+    MEMORYSTATUSEX memInfo;
+    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+    GlobalMemoryStatusEx(&memInfo);
+    DWORDLONG virtualMemUsed = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;
+    return (virtualMemUsed) * 0.001; // convert byte to kilobyte
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpuWindows::getVirtualMemoryTotal()
+{
+    MEMORYSTATUSEX memInfo;
+    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+    GlobalMemoryStatusEx(&memInfo);
+    DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
+    return (totalVirtualMem) * 0.001; // convert byte to kilobyte
+}
+
+/**
+ * @brief 
+ * 
+ * @param processName 
+ * @return pid_t 
+ * 
+ * @todo Document this.
+ */
+pid_t DeviceCpuWindows::getPidOf(string processName)
+{
+    return 0;
+}
+#endif
 
 // ----------------------------------------------
 // Linux
 // ----------------------------------------------
 #if defined(COSMOS_LINUX_OS)
-
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file.
+ * 
+ * @todo Remove commented-out code?
+ */
 //static clock_t lastCPU, lastSysCPU, lastUserCPU, lastCPU_;
 
-
+/**
+ * @brief Get the cpu time object
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Helper function that is not declared in .h file
+ */
 double get_cpu_time(){
     return (double)clock() / CLOCKS_PER_SEC;
 }
 
+/**
+ * @brief Get the Time In Sec object
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Helper function that is not declared in .h file
+ */
 double getTimeInSec() {
     timeval t;
     gettimeofday(&t, NULL);
@@ -305,6 +677,18 @@ double getTimeInSec() {
 
 // simple function to collect the results from an exectuted command
 // used to get the information from 'ps' or other commands
+/**
+ * @brief simple function to collect the results from an executed command
+ * 
+ * used to get the information from 'ps' or other commands
+ * 
+ * @param command 
+ * @return string 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Helper function that is not declared in .h file
+ */
 string exec(string command) {
 
     std::shared_ptr<FILE> pipe(popen(command.c_str(), "r"), pclose);
@@ -318,7 +702,11 @@ string exec(string command) {
     return result;
 }
 
-
+/**
+ * @brief Construct a new Device Cpu Linux:: Device Cpu Linux object
+ * 
+ * @todo Document this.
+ */
 DeviceCpuLinux::DeviceCpuLinux()
 {
     load1minAverage = 0.0;
@@ -328,6 +716,13 @@ DeviceCpuLinux::DeviceCpuLinux()
     lastCPUtime  = get_cpu_time();
 }
 
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
 double DeviceCpuLinux::getLoad1minAverage()
 {
     static FILE *f =  nullptr;
@@ -353,12 +748,102 @@ double DeviceCpuLinux::getLoad1minAverage()
     return load;
 }
 
+/**
+ * @brief 
+ * 
+ * @return float 
+ * 
+ * @todo Document this.
+ */
+float DeviceCpuLinux::getPercentUseForCurrentProcess()
+{
 
 
+    // $ ps -C agent_cpu -o %cpu,%mem --> cpu % for entire lifetime
+    // $ top -b -n 1 | grep agent_cpu --> current cpu %
+
+    // the following core does not give
+    // same results as top ... so let's use 'ps' to get this information
+    //    struct tms timeSample;
+    //    clock_t now;
+
+    //CLOCKS_PER_SEC;
+    //rusage us;
+    //getrusage(RUSAGE_SELF,us);
+
+    //    double te_real = getTimeInSec() - lastCPUtime;
+    //    double te_cpu  = (double)(clock() - lastCPU_)/CLOCKS_PER_SEC;
 
 
-// this function is to be called before getPercentUseForCurrentProcess
-// not really working properly, using 'ps' for now
+    // update every 2 seconds
+    toc = getTimeInSec();
+    double elapsedTime =  toc - tic;
+    if (elapsedTime > 2){
+
+        //double elapsedTime = getTimeInSec() - tic;
+        double elapsedTimeCpu = get_cpu_time() - lastCPUtime;
+
+        //cout << "It took me " << te << " clicks (" << (double)te_cpu << " seconds), real time ";
+        //cout << (double)elapsedTime << " seconds" << endl;
+
+        percentCpu = (float)elapsedTimeCpu/elapsedTime * 100;
+        //std::cout << "%CPU " << percentCpu << std::endl;
+
+        tic = getTimeInSec();
+        lastCPUtime = get_cpu_time();
+    }
+
+    return percentCpu;
+
+}
+
+/**
+ * @brief 
+ * 
+ * @return float 
+ * 
+ * @todo Document this.
+ */
+float DeviceCpuLinux::getPercentUseForCurrentProcessOverLifetime()
+{
+    // NOTE: this is not the same as %CPU reported by top
+    // see: http://unix.stackexchange.com/questions/58539/top-and-ps-not-showing-the-same-cpu-result
+    // ps -C agent_cpu -o %cpu gives the cpu percentage over the lifetime of the process
+    // can be usefull as a metric but for now let's just use the current process cpu
+    float percent;
+
+    string procInfo = exec("ps -C "+ processName +" -o %cpu,%mem");
+
+    // using 'ps' command
+    // get the second line given by the process
+    std::size_t pos = procInfo.find("\n");
+    if(pos!=string::npos) {
+        procInfo = procInfo.substr(pos);
+    }
+
+    // go through every instance of '\n' and remove it
+    while ( (pos = procInfo.find("\n") ) !=string::npos) {
+        procInfo.erase(pos,1);
+    }
+
+    if (procInfo.size() > 0) {
+        StringParser sp(procInfo);
+        percent = sp.getFieldNumberAsDouble(1);
+    } else {
+        percent = -1.0;
+    }
+
+    return percent;
+}
+
+/**
+ * @brief 
+ * 
+ * @todo this function is to be called before getPercentUseForCurrentProcess
+ * not really working properly, using 'ps' for now
+ * 
+ * @todo Document this.
+ */
 void DeviceCpuLinux::initCpuUtilization()
 {
 
@@ -404,7 +889,74 @@ void DeviceCpuLinux::initCpuUtilization()
     }
 }
 
+/**
+ * @brief virtual memory used in Bytes
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpuLinux::getVirtualMemoryUsed()
+{
+    struct sysinfo memInfo;
+    sysinfo (&memInfo);
 
+    long long virtualMemUsed = memInfo.totalram - memInfo.freeram;
+
+    virtualMemUsed += memInfo.totalswap - memInfo.freeswap;
+    virtualMemUsed *= memInfo.mem_unit;
+
+    return (virtualMemUsed) ;
+}
+
+/**
+ * @brief total virtual memory in Bytes
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpuLinux::getVirtualMemoryTotal()
+{
+    struct sysinfo memInfo;
+    sysinfo (&memInfo);
+
+    long long totalVirtualMem = memInfo.totalram;
+
+    totalVirtualMem += memInfo.totalswap;
+    totalVirtualMem *= memInfo.mem_unit;
+
+    return (totalVirtualMem);
+}
+
+/**
+ * @brief free virtual memory in Bytes
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpuLinux::getVirtualMemoryFree()
+{
+    struct sysinfo memInfo;
+    sysinfo (&memInfo);
+
+    long long virtualMemFree = memInfo.freeram;
+
+    //virtualMemFree += memInfo.totalswap - memInfo.freeswap;
+    virtualMemFree *= memInfo.mem_unit;
+
+    return (virtualMemFree) ;
+
+}
+
+/**
+ * @brief 
+ * 
+ * @return string 
+ * 
+ * @todo Document this.
+ */
 string DeviceCpuLinux::getCurrentProcessName(){
 
     std::ifstream ifs ("/proc/self/status");
@@ -430,97 +982,29 @@ string DeviceCpuLinux::getCurrentProcessName(){
     return processName;
 }
 
-float DeviceCpuLinux::getPercentUseForCurrentProcess()
+/**
+ * @brief 
+ * 
+ * NOT TESTED
+ * 
+ * @return string 
+ * 
+ * @todo Document this.
+ */
+string DeviceCpuLinux::getHostName()
 {
-
-
-    // $ ps -C agent_cpu -o %cpu,%mem --> cpu % for entire lifetime
-    // $ top -b -n 1 | grep agent_cpu --> current cpu %
-
-    // the following core does not give
-    // same results as top ... so let's use 'ps' to get this information
-    //    struct tms timeSample;
-    //    clock_t now;
-
-    //CLOCKS_PER_SEC;
-    //rusage us;
-    //getrusage(RUSAGE_SELF,us);
-
-    //    double te_real = getTimeInSec() - lastCPUtime;
-    //    double te_cpu  = (double)(clock() - lastCPU_)/CLOCKS_PER_SEC;
-
-
-    // update every 2 seconds
-    toc = getTimeInSec();
-    double elapsedTime =  toc - tic;
-    if (elapsedTime > 2){
-
-        //double elapsedTime = getTimeInSec() - tic;
-        double elapsedTimeCpu = get_cpu_time() - lastCPUtime;
-
-        //cout << "It took me " << te << " clicks (" << (double)te_cpu << " seconds), real time ";
-        //cout << (double)elapsedTime << " seconds" << endl;
-
-        percentCpu = (float)elapsedTimeCpu/elapsedTime * 100;
-        //std::cout << "%CPU " << percentCpu << std::endl;
-
-        tic = getTimeInSec();
-        lastCPUtime = get_cpu_time();
-    }
-
-    return percentCpu;
-
+    char hostname[128];
+    gethostname(hostname, sizeof hostname);
+    return (string)hostname;
 }
 
-
-
-
-float DeviceCpuLinux::getPercentUseForCurrentProcessOverLifetime()
-{
-    // NOTE: this is not the same as %CPU reported by top
-    // see: http://unix.stackexchange.com/questions/58539/top-and-ps-not-showing-the-same-cpu-result
-    // ps -C agent_cpu -o %cpu gives the cpu percentage over the lifetime of the process
-    // can be usefull as a metric but for now let's just use the current process cpu
-    float percent;
-
-    string procInfo = exec("ps -C "+ processName +" -o %cpu,%mem");
-
-    // using 'ps' command
-    // get the second line given by the process
-    std::size_t pos = procInfo.find("\n");
-    if(pos!=string::npos) {
-        procInfo = procInfo.substr(pos);
-    }
-
-    // go through every instance of '\n' and remove it
-    while ( (pos = procInfo.find("\n") ) !=string::npos) {
-        procInfo.erase(pos,1);
-    }
-
-    if (procInfo.size() > 0) {
-        StringParser sp(procInfo);
-        percent = sp.getFieldNumberAsDouble(1);
-    } else {
-        percent = -1.0;
-    }
-
-    return percent;
-}
-
-
-// memory used in Bytes
-double DeviceCpuLinux::getMemoryTotal()
-{
-    struct sysinfo memInfo;
-    sysinfo (&memInfo);
-
-    long long memTotal = memInfo.totalram;
-    memTotal *= memInfo.mem_unit;
-
-    return (memTotal) ;
-}
-
-// memory used in Bytes
+/**
+ * @brief memory used in Bytes
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
 double DeviceCpuLinux::getMemoryUsed()
 {
     struct sysinfo memInfo;
@@ -532,60 +1016,32 @@ double DeviceCpuLinux::getMemoryUsed()
     return (memUsed) ;
 }
 
-
-
-
-// virtual memory used in Bytes
-double DeviceCpuLinux::getVirtualMemoryUsed()
+/**
+ * @brief memory used in Bytes
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpuLinux::getMemoryTotal()
 {
     struct sysinfo memInfo;
     sysinfo (&memInfo);
 
-    long long virtualMemUsed = memInfo.totalram - memInfo.freeram;
+    long long memTotal = memInfo.totalram;
+    memTotal *= memInfo.mem_unit;
 
-    virtualMemUsed += memInfo.totalswap - memInfo.freeswap;
-    virtualMemUsed *= memInfo.mem_unit;
-
-    return (virtualMemUsed) ;
+    return (memTotal) ;
 }
 
-
-// total virtual memory in Bytes
-double DeviceCpuLinux::getVirtualMemoryTotal()
-{
-    struct sysinfo memInfo;
-    sysinfo (&memInfo);
-
-    long long totalVirtualMem = memInfo.totalram;
-
-    totalVirtualMem += memInfo.totalswap;
-    totalVirtualMem *= memInfo.mem_unit;
-
-    return (totalVirtualMem);
-}
-
-// free virtual memory in Bytes
-double DeviceCpuLinux::getVirtualMemoryFree()
-{
-    struct sysinfo memInfo;
-    sysinfo (&memInfo);
-
-    long long virtualMemFree = memInfo.freeram;
-
-    //virtualMemFree += memInfo.totalswap - memInfo.freeswap;
-    virtualMemFree *= memInfo.mem_unit;
-
-    return (virtualMemFree) ;
-
-}
-
-string DeviceCpuLinux::getHostName() // NOT TESTED
-{
-    char hostname[128];
-    gethostname(hostname, sizeof hostname);
-    return (string)hostname;
-}
-
+/**
+ * @brief 
+ * 
+ * @param processName 
+ * @return pid_t 
+ * 
+ * @todo Document this.
+ */
 pid_t DeviceCpuLinux::getPidOf(string processName)
 {
     string tmp = "pidof " + processName;
@@ -602,7 +1058,14 @@ pid_t DeviceCpuLinux::getPidOf(string processName)
     return pid;
 }
 
-// in bytes
+/**
+ * @brief in bytes
+ * 
+ * @param processName 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
 double DeviceCpuLinux::getMemoryUsedOf(string processName)
 {
     if (processName.empty()) {
@@ -648,8 +1111,14 @@ double DeviceCpuLinux::getMemoryUsedOf(string processName)
 
 }
 
-
-
+/**
+ * @brief 
+ * 
+ * @param processName 
+ * @return float 
+ * 
+ * @todo Document this.
+ */
 float DeviceCpuLinux::getPercentCpuOf(string processName)
 {
     procStat pStat1;
@@ -672,166 +1141,121 @@ float DeviceCpuLinux::getPercentCpuOf(string processName)
     return percent;
 }
 
-
+/**
+ * @brief 
+ * 
+ * @param processName 
+ * @return float 
+ * 
+ * @todo Document this.
+ */
 float DeviceCpuLinux::getPercentMemoryOf(string processName)
 {
     return 100*getMemoryUsedOf(processName)/getMemoryTotal();
 }
 
+/**
+ * @brief 
+ * 
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
+int32_t DeviceCpuLinux::getCpuCount()
+{
+    uint16_t tcount = 0;
+//    uint16_t tindex;
+//    string tdata;
+//    int32_t iretn = 0;
 
-#endif // defined(COSMOS_LINUX_OS)
+//    iretn = data_execute("lscpu -p=cpu", tdata);
+//    if (iretn > 0)
+//    {
+//        vector<string> lines = string_split(tdata, "\n");
+//        for (string line : lines)
+//        {
+//            if (sscanf(line.c_str(), "%hu\n", &tindex) == 1)
+//            {
+//                ++tcount;
+//            }
+//        }
+//    }
+//    else {
+//        iretn = data_execute("grep processor /proc/cpuinfo | wc -l", tdata);
+//        if (iretn > 0)
+//        {
+//            tcount = stoi(tdata);
+//        }
+//    }
 
+    tcount = get_nprocs();
 
+    return tcount;
+}
 
-// test function to sress cpu
-void DeviceCpu::stress(){
-    for (int i = 0; i< 40000; i++) {
-        double temp = sqrt(i)*i/log(i);
-        temp = sqrt(temp);
+/**
+ * @brief 
+ * 
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
+int32_t DeviceCpuLinux::getBootCount()
+{
+    uint16_t bootcount = 0;
+    string tdata;
+    int32_t iretn = 0;
+    uint16_t tindex;
+
+    iretn = data_execute("boot_count_get", tdata);
+    if (iretn > 0)
+    {
+        if (sscanf(tdata.c_str(), "%hu\n", &tindex) == 1)
+        {
+            bootcount = tindex;
+        }
     }
+    //    pclose( fp );
+    return bootcount;
 }
 
-
-
-
-
-
-
-
-
-// ----------------------------------------------
-// MACOS
-// ----------------------------------------------
-#if defined (COSMOS_MAC_OS)
-double getTimeInSec() {
-    timeval t;
-    gettimeofday(&t, NULL);
-    return (double)t.tv_sec + (double)t.tv_usec / 1000000.0;;
-}
-
-double get_cpu_time(){
-    return (double)clock() / CLOCKS_PER_SEC;
-}
-
-DeviceCpuMac::DeviceCpuMac()
+/**
+ * @brief 
+ * 
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
+int32_t DeviceCpuLinux::getUptime()
 {
-    load1minAverage = 0.0;
-    //initCpuUtilization();
+    uint32_t uptime = 0.;
+//    string tdata;
+//    int32_t iretn = 0;
 
-    tic = getTimeInSec();
-    lastCPUtime  = get_cpu_time();
+//    iretn = data_execute("uptime -s", tdata);
+//    if (iretn > 0)
+//    {
+//        calstruc cal;
+//        if (sscanf(tdata.c_str(), "%d-%d-%d %d:%d:%d\n", &cal.year, &cal.month, &cal.dom, &cal.hour, &cal.minute, &cal.second) == 6)
+//        {
+//            uptime = 86400. * (currentmjd() - cal2mjd(cal));
+//        }
+//    }
+
+    struct sysinfo meminfo;
+    sysinfo(&meminfo);
+    uptime = meminfo.uptime;
+
+    return uptime;
 }
 
-
-double cpu_load()
-{
-    double avg;
-
-    return avg;
-
-}
-
-
-double DeviceCpuMac::getLoad1minAverage()
-{
-    double loadavg[3];
-
-    // same as running $sysctl vm.loadavg
-    getloadavg(loadavg,3);
-
-    // update internal variable
-    load1minAverage = loadavg[0];
-    return load1minAverage;
-}
-
-string DeviceCpuMac::getHostName() // NOT TESTED
-{
-    char hostname[128];
-    gethostname(hostname, sizeof hostname);
-    return (string)hostname;
-}
-
-
-#endif
-
-
-// ----------------------------------------------
-// WINDOWS
-// ----------------------------------------------
-#if defined (COSMOS_WIN_OS)
-DeviceCpuWindows::DeviceCpuWindows()
-{
-
-}
-
-double DeviceCpuWindows::getLoad()
-{
-    FILETIME idleTime, kernelTime, userTime;
-    return GetSystemTimes(&idleTime, &kernelTime, &userTime) ? CalculateCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime)+FileTimeToInt64(userTime)) : -1.0f;
-}
-
-double DeviceCpuWindows::CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks)
-{
-    static unsigned long long _previousTotalTicks = 0;
-    static unsigned long long _previousIdleTicks = 0;
-
-    unsigned long long totalTicksSinceLastTime = totalTicks-_previousTotalTicks;
-    unsigned long long idleTicksSinceLastTime  = idleTicks-_previousIdleTicks;
-
-    float ret = 1.0f-((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime)/totalTicksSinceLastTime : 0);
-
-    _previousTotalTicks = totalTicks;
-    _previousIdleTicks  = idleTicks;
-    return ret;
-}
-
-double DeviceCpuWindows::getVirtualMemoryTotal()
-{
-    MEMORYSTATUSEX memInfo;
-    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
-    GlobalMemoryStatusEx(&memInfo);
-    DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
-    return (totalVirtualMem) * 0.001; // convert byte to kilobyte
-}
-
-double DeviceCpuWindows::getVirtualMemoryUsed()
-{
-    MEMORYSTATUSEX memInfo;
-    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
-    GlobalMemoryStatusEx(&memInfo);
-    DWORDLONG virtualMemUsed = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;
-    return (virtualMemUsed) * 0.001; // convert byte to kilobyte
-}
-
-string DeviceCpuWindows::getHostName()
-{
-    char nameBuf[MAX_COMPUTERNAME_LENGTH + 2];
-    DWORD nameBufSize;
-
-    nameBufSize = sizeof nameBuf - 1;
-    if (GetComputerNameA(nameBuf, &nameBufSize) == TRUE) {
-        _tprintf(_T("Device name is %s\n"), nameBuf);
-    }
-
-    //TODO: fix this
-    //    return  string(nameBuf);
-    string hostname = nameBuf;
-    return  hostname;
-}
-
-unsigned long long DeviceCpuWindows::FileTimeToInt64(const FILETIME & ft)
-{
-    return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);
-}
-
-pid_t DeviceCpuWindows::getPidOf(string processName)
-{
-    return 0;
-}
-
-#endif
-
-#if defined(COSMOS_LINUX_OS)
+/**
+ * @brief Construct a new Device Cpu Linux::proc Pid Stat::proc Pid Stat object
+ * 
+ * @param processName 
+ * 
+ * @todo Document this.
+ */
 DeviceCpuLinux::procPidStat::procPidStat(string processName)
 {
     DeviceCpu dev;
@@ -880,6 +1304,12 @@ DeviceCpuLinux::procPidStat::procPidStat(string processName)
 
 }
 
+/**
+ * @brief Construct a new Device Cpu Linux::proc Stat::proc Stat object
+ * 
+ * @todo Document this.
+ * 
+ */
 DeviceCpuLinux::procStat::procStat()
 {
     // read /proc/stat
@@ -892,78 +1322,102 @@ DeviceCpuLinux::procStat::procStat()
     time_total = stoi(user) + stoi(nice) + stoi(system) + stoi(idle) + stoi(iowait) + stoi(irq) + stoi(softirq) + stoi(steal) + stoi(guest) + stoi(guest_nice);
 
 }
+#endif // defined(COSMOS_LINUX_OS)
 
-int32_t DeviceCpuLinux::getCpuCount()
-{
-    uint16_t tcount = 0;
-//    uint16_t tindex;
-//    string tdata;
-//    int32_t iretn = 0;
-
-//    iretn = data_execute("lscpu -p=cpu", tdata);
-//    if (iretn > 0)
-//    {
-//        vector<string> lines = string_split(tdata, "\n");
-//        for (string line : lines)
-//        {
-//            if (sscanf(line.c_str(), "%hu\n", &tindex) == 1)
-//            {
-//                ++tcount;
-//            }
-//        }
-//    }
-//    else {
-//        iretn = data_execute("grep processor /proc/cpuinfo | wc -l", tdata);
-//        if (iretn > 0)
-//        {
-//            tcount = stoi(tdata);
-//        }
-//    }
-
-    tcount = get_nprocs();
-
-    return tcount;
+// ----------------------------------------------
+// MACOS
+// ----------------------------------------------
+#if defined (COSMOS_MAC_OS)
+/**
+ * @brief Get the Time In Sec object
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Helper function that is not declared in .h file
+ */
+double getTimeInSec() {
+    timeval t;
+    gettimeofday(&t, NULL);
+    return (double)t.tv_sec + (double)t.tv_usec / 1000000.0;;
 }
 
-int32_t DeviceCpuLinux::getBootCount()
-{
-    uint16_t bootcount = 0;
-    string tdata;
-    int32_t iretn = 0;
-    uint16_t tindex;
-
-    iretn = data_execute("boot_count_get", tdata);
-    if (iretn > 0)
-    {
-        if (sscanf(tdata.c_str(), "%hu\n", &tindex) == 1)
-        {
-            bootcount = tindex;
-        }
-    }
-    //    pclose( fp );
-    return bootcount;
+/**
+ * @brief Get the cpu time object
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Helper function that is not declared in .h file
+ */
+double get_cpu_time(){
+    return (double)clock() / CLOCKS_PER_SEC;
 }
 
-int32_t DeviceCpuLinux::getUptime()
+/**
+ * @brief Construct a new Device Cpu Mac:: Device Cpu Mac object
+ * 
+ * @todo Document this.
+ */
+DeviceCpuMac::DeviceCpuMac()
 {
-    uint32_t uptime = 0.;
-//    string tdata;
-//    int32_t iretn = 0;
+    load1minAverage = 0.0;
+    //initCpuUtilization();
 
-//    iretn = data_execute("uptime -s", tdata);
-//    if (iretn > 0)
-//    {
-//        calstruc cal;
-//        if (sscanf(tdata.c_str(), "%d-%d-%d %d:%d:%d\n", &cal.year, &cal.month, &cal.dom, &cal.hour, &cal.minute, &cal.second) == 6)
-//        {
-//            uptime = 86400. * (currentmjd() - cal2mjd(cal));
-//        }
-//    }
-
-    struct sysinfo meminfo;
-    sysinfo(&meminfo);
-    uptime = meminfo.uptime;
-
-    return uptime;
+    tic = getTimeInSec();
+    lastCPUtime  = get_cpu_time();
 }
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Not in .h file.
+ */
+double cpu_load()
+{
+    double avg;
+
+    return avg;
+
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceCpuMac::getLoad1minAverage()
+{
+    double loadavg[3];
+
+    // same as running $sysctl vm.loadavg
+    getloadavg(loadavg,3);
+
+    // update internal variable
+    load1minAverage = loadavg[0];
+    return load1minAverage;
+}
+
+/**
+ * @brief 
+ * 
+ * NOT TESTED
+ * 
+ * @return string 
+ * 
+ * @todo Document this.
+ */
+string DeviceCpuMac::getHostName()
+{
+    char hostname[128];
+    gethostname(hostname, sizeof hostname);
+    return (string)hostname;
+}
+
 #endif
