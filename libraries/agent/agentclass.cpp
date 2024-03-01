@@ -1,35 +1,32 @@
-/********************************************************************
-* Copyright (C) 2015 by Interstel Technologies, Inc.
-*   and Hawaii Space Flight Laboratory.
-*
-* This file is part of the COSMOS/core that is the central
-* module for COSMOS. For more information on COSMOS go to
-* <http://cosmos-project.com>
-*
-* The COSMOS/core software is licenced under the
-* GNU Lesser General Public License (LGPL) version 3 licence.
-*
-* You should have received a copy of the
-* GNU Lesser General Public License
-* If not, go to <http://www.gnu.org/licenses/>
-*
-* COSMOS/core is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public License
-* as published by the Free Software Foundation, either version 3 of
-* the License, or (at your option) any later version.
-*
-* COSMOS/core is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* Refer to the "licences" folder for further information on the
-* condititons and terms to use this software.
-********************************************************************/
-
-/*! \file agentclass.cpp
-    \brief Agent support functions
-*/
+/**
+ * @file agentclass.cpp
+ * @brief Agent support functions
+ * 
+ * Copyright (C) 2024 by Interstel Technologies, Inc. and Hawaii Space Flight
+ * Laboratory.
+ * 
+ * This file is part of the COSMOS/core that is the central module for COSMOS.
+ * For more information on COSMOS go to <http://cosmos-project.com>
+ * 
+ * The COSMOS/core software is licenced under the GNU Lesser General Public
+ * License (LGPL) version 3 licence.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License. If
+ * not, go to <http://www.gnu.org/licenses/>
+ * 
+ * COSMOS/core is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * COSMOS/core is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * Refer to the "licences" folder for further information on the conditions and
+ * terms to use this software.
+ */
 
 #include "agent/agentclass.h"
 #include "support/cosmos-errno.h"
@@ -59,30 +56,52 @@ namespace Cosmos
 {
     namespace Support
     {
-        //! \ingroup agentclass
-        //! \ingroup agentclass
-        //! \defgroup agentclass_functions Agent Server and Client functions
-        //! @{
+        /**
+         * @ingroup agentclass
+         * @ingroup agentclass
+         * @defgroup agentclass_functions Agent Server and Client functions
+         * @{
+         */
         
-        //! Creates a skeleton agent with no setup
-        //! \param placeholder Does nothing but provide a different function signature for overloading
+        /**
+         * @brief Construct a new Agent:: Agent object
+         * 
+         * Creates a skeleton agent with no setup
+         * 
+         * @param placeholder Does nothing but provide a different function 
+         * signature for overloading
+         */
         Agent::Agent(uint8_t placeholder) {}
 
-        //! Add COSMOS awareness.
-        //! Sets up minimum framework for COSMOS awareness. The minimum call makes a nodeless client, setting up the
-        //! message ring buffer thread, and a main thread of execution. Additional parameters are related to making
-        //! the program a true Agent by tieing it to a node, and starting the request and heartbeat threads.
-        //! \param ntype Transport Layer protocol to be used, taken from ::NetworkType. Defaults to UDP Broadcast.
-        //! \param realm_name Realm name. Defaults to empty.
-        //! \param node_name Node name. Defaults to empty.
-        //! \param agent_name Agent name. Defaults to empty. If this is defined, the full Agent code will be started.
-        //! \param bprd Period, in seconds, for heartbeat. Defaults to 1.
-        //! \param bsize Size of interagent communication buffer. Defaults to ::AGENTMAXBUFFER.
-        //! \param mflag Boolean controlling whether or not multiple instances of the same Agent can start. If true, then Agent names
-        //! will have an index number appended (eg: myname_001). If false, agent will listen for 5 seconds and terminate if it senses
-        //! the Agent already running.
-        //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
-        //! \param dlevel debug level. Defaults to 1 so that if there is an error the user can immediately see it. also initialized in the namespace variables
+        /**
+         * @brief Construct a new Agent:: Agent object
+         * 
+         * Add COSMOS awareness.
+         * Sets up minimum framework for COSMOS awareness. The minimum call 
+         * makes a nodeless client, setting up the message ring buffer thread, 
+         * and a main thread of execution. Additional parameters are related to 
+         * making the program a true Agent by tieing it to a node, and starting 
+         * the request and heartbeat threads.
+         * 
+         * @param realm_name Realm name. Defaults to empty.
+         * @param node_name Node name. Defaults to empty.
+         * @param agent_name Agent name. Defaults to empty. If this is defined, 
+         * the full Agent code will be started.
+         * @param bprd Period, in seconds, for heartbeat. Defaults to 1.
+         * @param bsize Size of interagent communication buffer. Defaults to 
+         * ::AGENTMAXBUFFER.
+         * @param mflag Boolean controlling whether or not multiple instances of
+         * the same Agent can start. If true, then Agent names will have an 
+         * index number appended (eg: myname_001). If false, agent will listen 
+         * for 5 seconds and terminate if it senses the Agent already running.
+         * @param portnum The network port to listen on for requests. Defaults 
+         * to 0 whereupon it will use whatever the OS assigns.
+         * @param ntype Transport Layer protocol to be used, taken from 
+         * ::NetworkType. Defaults to UDP Broadcast.
+         * @param dlevel debug level. Defaults to 1 so that if there is an error
+         * the user can immediately see it. also initialized in the namespace 
+         * variables
+         */
         Agent::Agent(string realm_name,
                      string node_name,
                      string agent_name,
@@ -373,8 +392,15 @@ namespace Cosmos
             activeTimeout = currentmjd() + cinfo->agent0.aprd / 86400.;
         }
 
+        /**
+         * @brief Destroy the Agent:: Agent object
+         * 
+         * @todo Document this.
+         * 
+         */
         Agent::~Agent() { Agent::shutdown(); }
 
+        /** @todo Remove commented-out code? */
         //! Add internal request to Agent request list with description and synopsis.
         /*! Adds access to the indicated function by way of the given token. The provided
 * function, internal to the agent, will be called with the request string as its argument. Any result will then
@@ -405,17 +431,24 @@ namespace Cosmos
         //            return 0;
         //        }
 
-        //! Add external request to Agent request list with description and synopsis.
-        /*! Adds access to the indicated function by way of the given token. The provided
-* function, external to the agent, will be called with the request string as its argument. Any result will then
-* be returned in the output pointer.
-    \param token A string of maximum length ::COSMOS_MAX_NAME containing the token
-    for the request. This should be the first word in the request.
-    \param function The user supplied function to parse the specified request.
-    \param description A brief description of the function performed.
-    \param synopsis A usage synopsis for the request.
-    \return Error, if any, otherwise zero.
-*/
+        /**
+         * @brief Add external request to Agent request list with description 
+         * and synopsis.
+         * 
+         * Adds access to the indicated function by way of the given token. The 
+         * provided function, external to the agent, will be called with the 
+         * request string as its argument. Any result will then be returned in 
+         * the output pointer.
+         * 
+         * @param token A string of maximum length ::COSMOS_MAX_NAME containing 
+         * the token for the request. This should be the first word in the 
+         * request.
+         * @param function The user supplied function to parse the specified 
+         * request.
+         * @param synopsis A usage synopsis for the request.
+         * @param description A brief description of the function performed.
+         * @return int32_t Error, if any, otherwise zero.
+         */
         int32_t Agent::add_request(string token, Agent::external_request_function function, string synopsis, string description)
         {
             if (reqs.size() > AGENTMAXREQUESTCOUNT) return (AGENT_ERROR_REQ_COUNT);
@@ -430,13 +463,16 @@ namespace Cosmos
             return 0;
         }
 
-
-        //! Start Agent Request and Heartbeat loops
-        /*!	Starts the request and heartbeat threads for an Agent server initialized with
- * Cosmos::Agent::Agent. The Agent will open its request and heartbeat channels using the
- * address and port supplied in cinfo. The heartbeat will cycle with the period requested in cinfo.
-    \return value returned by request thread create
-*/
+        /**
+         * @brief Start Agent Request and Heartbeat loops
+         * 
+         * Starts the request and heartbeat threads for an Agent server 
+         * initialized with Cosmos::Agent::Agent. The Agent will open its 
+         * request and heartbeat channels using the address and port supplied in
+         * cinfo. The heartbeat will cycle with the period requested in cinfo.
+         * 
+         * @return int32_t value returned by request thread create
+         */
         int32_t Agent::start() {
             // start heartbeat thread
             hthread = thread([=] { heartbeat_loop(); });
@@ -444,17 +480,26 @@ namespace Cosmos
             return 0;
         }
 
-        //! Begin Active Loop
-        //! Initializes timer for active loop using ::aprd
-        //! \return Zero or negative error.
+        /**
+         * @brief Begin Active Loop
+         * 
+         * Initializes timer for active loop using ::aprd
+         * 
+         * @return int32_t Zero or negative error.
+         */
         int32_t Agent::start_active_loop() {
             activeTimeout = currentmjd() + cinfo->agent0.aprd / 86400.;
             return 0;
         }
 
-        //! Finish active loop
-        //! Sleep for the remainder of this loops ::aprd as initialized in ::start_active_loop.
-        //! \return Zero or negative error.
+        /**
+         * @brief Finish active loop
+         * 
+         * Sleep for the remainder of this loops ::aprd as initialized in 
+         * ::start_active_loop.
+         * 
+         * @return int32_t Zero or negative error.
+         */
         int32_t Agent::finish_active_loop() {
             double sleepsec = 86400.*(activeTimeout - currentmjd());
             activeTimeout += cinfo->agent0.aprd / 86400.;
@@ -463,10 +508,14 @@ namespace Cosmos
             return sleepsec*1000000;
         }
 
-        //! Shutdown agent gracefully
-        /*! Waits for threads to stop running if we are a server, then releases everything.
- * \return 0 or negative error.
- */
+        /**
+         * @brief Shutdown agent gracefully
+         * 
+         * Waits for threads to stop running if we are a server, then releases 
+         * everything.
+         * 
+         * @return int32_t 0 or negative error.
+         */
         int32_t Agent::shutdown()
         {
             if (debug_level) {
@@ -491,18 +540,26 @@ namespace Cosmos
             return 0;
         }
 
-        //! Check if we're supposed to be running
-        /*!	Returns the value of the internal variable that indicates that
- * the threads are running.
-    \return Value of internal state variable, as enumerated in Cosmos::Agent:State.
-*/
+        /**
+         * @brief Check if we're supposed to be running
+         * 
+         * Returns the value of the internal variable that indicates that the 
+         * threads are running.
+         * 
+         * @return uint16_t Value of internal state variable, as enumerated in 
+         * Cosmos::Agent:State.
+         */
         uint16_t Agent::running() { return cinfo->agent0.stateflag; }
 
-        //! Wait on state
-        //! Wait for up to waitsec seconds for Agent to enter requested state
-        //! \param state Desired ::Agent::State.
-        //! \param waitsec Maximum number of seconds to wait.
-        //! \return Zero, or timeout error.
+        /**
+         * @brief Wait on state
+         * 
+         * Wait for up to waitsec seconds for Agent to enter requested state
+         * 
+         * @param state Desired ::Agent::State.
+         * @param waitsec Maximum number of seconds to wait.
+         * @return int32_t Zero, or timeout error.
+         */
         int32_t Agent::wait(State state, double waitsec) {
             if (cinfo == nullptr) { return AGENT_ERROR_NULL; }
 
@@ -517,18 +574,29 @@ namespace Cosmos
             }
         }
 
-        //! Last error value.
-        //! Get value of last error returned by any function.
+        /**
+         * @brief Last error value.
+         * 
+         * Get value of last error returned by any function.
+         * 
+         * @return int32_t 
+         */
         int32_t Agent::last_error() { return (error_value); }
 
-        //! Send a request over AGENT
-        /*! Send a request string to the process at the provided address
-    \param hbeat The agent ::beatstruc
-    \param request the request and its arguments
-    \param output any output returned by the request
-    \param waitsec Maximum number of seconds to wait
-    \return Either the number of bytes returned, or an error number.
-*/
+        /**
+         * @brief Send a request over AGENT
+         * 
+         * Send a request string to the process at the provided address
+         * 
+         * @param hbeat The agent ::beatstruc
+         * @param request the request and its arguments
+         * @param output any output returned by the request
+         * @param waitsec Maximum number of seconds to wait
+         * @param delay_send 
+         * @param delay_receive 
+         * @return int32_t Either the number of bytes returned, or an error 
+         * number.
+         */
         int32_t Agent::send_request(beatstruc hbeat, string request, string &output, float waitsec, double delay_send, double delay_receive) {
 
             secondsleep(delay_send);
@@ -588,13 +656,17 @@ namespace Cosmos
             }
         }
 
-        //! Send request for Node JSON
-        /*! Send a set of requests to return the various JSON strings that make up a ::jsonnode.
-    \param hbeat The agent ::beatstruc
-    \param jnode ::jsonnode cotaining Node information.
-    \param waitsec Maximum number of seconds to wait.
-    \return Either the number of bytes returned, or an error number.
-*/
+        /**
+         * @brief Send request for Node JSON
+         * 
+         * Send a set of requests to return the various JSON strings that make 
+         * up a ::jsonnode.
+         * 
+         * @param hbeat The agent ::beatstruc
+         * @param jnode ::jsonnode cotaining Node information.
+         * @param waitsec Maximum number of seconds to wait.
+         * @return int32_t Either the number of bytes returned, or an error number.
+         */
         int32_t Agent::send_request_jsonnode(beatstruc hbeat, jsonnode &jnode, float waitsec) {
             int32_t iretn = 0;
 
@@ -621,16 +693,19 @@ namespace Cosmos
             return iretn;
         }
 
-        //! Get specific server.
-        /*! Listen to the multicast/broadcast traffic for a set amount of time,
- * waiting for a specific named server to appear, then return its
- * heartbeat.
-    \param node Node for the server.
-    \param name Name of the server.
-    \param waitsec Maximum number of seconds to wait
-    \param rbeat pointer to a location to store the heartbeat
-    \return 1 if found, otherwise 0, or an error number
-*/
+        /**
+         * @brief Get specific server.
+         * 
+         * Listen to the multicast/broadcast traffic for a set amount of time,
+         * waiting for a specific named server to appear, then return its
+         * heartbeat.
+         * 
+         * @param node Node for the server.
+         * @param agent 
+         * @param waitsec Maximum number of seconds to wait
+         * @param rbeat pointer to a location to store the heartbeat
+         * @return int32_t 1 if found, otherwise 0, or an error number
+         */
         int32_t Agent::get_agent(string node, string agent, double waitsec, beatstruc &rbeat)
         {
 
@@ -657,26 +732,34 @@ namespace Cosmos
             return 0;
         }
 
-        //! Check agent
-        /*! Check the Cosmos::Agent::agent_list for the particular agent
-    \param agent Name of agent.
-    \param node Node that agent is in.
-    \param waitsec Number of seconds to wait
-    \return 1 if found, otherwise 0, or an error number
- */
+        /**
+         * @brief Check agent
+         * 
+         * Check the Cosmos::Agent::agent_list for the particular agent
+         * 
+         * @param node Node that agent is in.
+         * @param agent Name of agent.
+         * @param waitsec Number of seconds to wait
+         * @return int32_t 1 if found, otherwise 0, or an error number
+         */
         int32_t Agent::check_agent(string node, string agent, double waitsec)
         {
             beatstruc tbeat;
             return get_agent(node, agent, waitsec, tbeat);
         }
 
-        //! Find agent
-        /*! Check the Cosmos::Agent::agent_list for the particular agent,
-     * returning its heartbeat if found.
-        \param agent Name of agent.
-        \param node Node that agent is in.
-        \return ::beatstruc of located agent, otherwise empty ::beatstruc.
-     */
+        /**
+         * @brief Find agent
+         * 
+         * Check the Cosmos::Agent::agent_list for the particular agent, 
+         * returning its heartbeat if found.
+         * 
+         * @param node Node that agent is in.
+         * @param agent Name of agent.
+         * @param waitsec 
+         * @return beatstruc ::beatstruc of located agent, otherwise empty 
+         * ::beatstruc.
+         */
         beatstruc Agent::find_agent(string node, string agent, double waitsec)
         {
             beatstruc rbeat;
@@ -708,6 +791,7 @@ namespace Cosmos
             //        return nobeat;
         }
 
+        /** @todo Remove commented-out code? */
         //! Find single server
         /*! Listen to the local subnet for a set amount of time,
  * collecting heartbeats, searching for a particular agent.
@@ -717,12 +801,16 @@ namespace Cosmos
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
 
-        //! Generate a list of request servers.
-        /*! Listen to the local subnet for a set amount of time,
- * collecting heartbeats. Return a list of heartbeats collected.
-    \param waitsec Maximum number of seconds to wait.
-    \return A vector of ::beatstruc entries listing the unique servers found.
-*/
+        /**
+         * @brief Generate a list of request servers.
+         * 
+         * Listen to the local subnet for a set amount of time, collecting 
+         * heartbeats. Return a list of heartbeats collected.
+         * 
+         * @param waitsec Maximum number of seconds to wait.
+         * @return vector<beatstruc> A vector of ::beatstruc entries listing the
+         * unique servers found.
+         */
         vector<beatstruc> Agent::find_agents(double waitsec) {
             beatstruc tbeat;
 
@@ -752,19 +840,30 @@ namespace Cosmos
             return(slist);
         }
 
-        //! Set Limited SOH string
-        /*! Set the Limited SOH string to a JSON list of \ref jsonlib_namespace names. A
- * proper JSON list will begin and end with matched curly braces, be comma separated,
- * and have all strings in double quotes.
-    \param list Properly formatted list of JSON names.
-    \return 0, otherwise a negative error.
-*/
+        /**
+         * @brief Set Limited SOH string
+         * 
+         * Set the Limited SOH string to a JSON list of \ref jsonlib_namespace 
+         * names. A proper JSON list will begin and end with matched curly 
+         * braces, be comma separated, and have all strings in double quotes.
+         * 
+         * @param list Properly formatted list of JSON names.
+         * @return int32_t 0, otherwise a negative error.
+         */
         int32_t Agent::set_sohstring(string list) {
             if (!sohtable.empty()) { sohtable.clear(); }
             json_table_of_list(sohtable, list, cinfo);
             return 0;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param list 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::set_sohstring(vector<string> list)
         {
             if(list.size() == 0) return ErrorNumbers::COSMOS_GENERAL_ERROR_EMPTY;
@@ -777,41 +876,55 @@ namespace Cosmos
             return set_sohstring(jsonlist);
         }
 
-        //! Set SOH string
-        /*! Set the SOH string to a json list of \ref namespace 2.0 names.
-        \param list Vector of strings of namespace 2.0 names.
-        \return 0, otherwise a negative error.
-    */
+        /**
+         * @brief Set SOH string
+         * 
+         * Set the SOH string to a json list of \ref namespace 2.0 names.
+         * 
+         * @param list Vector of strings of namespace 2.0 names.
+         * @return int32_t 0, otherwise a negative error.
+         */
         int32_t Agent::set_sohstring2(vector<string> list) {
             sohstring = list;
 
             return 0;
         }
 
-        //! Set Full SOH string
-        /*! Set the Full SOH string to a JSON list of \ref jsonlib_namespace names. A
- * proper JSON list will begin and end with matched curly braces, be comma separated,
- * and have all strings in double quotes.
-    \param list Properly formatted list of JSON names.
-    \return 0, otherwise a negative error.
-*/
+        /**
+         * @brief Set Full SOH string
+         * 
+         * Set the Full SOH string to a JSON list of \ref jsonlib_namespace 
+         * names. A proper JSON list will begin and end with matched curly 
+         * braces, be comma separated, and have all strings in double quotes.
+         * 
+         * @param list Properly formatted list of JSON names.
+         * @return int32_t 0, otherwise a negative error.
+         */
         int32_t Agent::set_fullsohstring(string list) {
             if (!fullsohtable.empty()) { fullsohtable.clear(); }
             json_table_of_list(fullsohtable, list, cinfo);
             return 0;
         }
 
-        //! Return Agent ::cosmosstruc
-        /*! Return a pointer to the Agent's internal copy of the ::cosmosstruc.
-    \return A pointer to the Cosmos::Support::cosmosstruc, otherwise NULL.
-*/
+        /**
+         * @brief Return Agent ::cosmosstruc
+         * 
+         * Return a pointer to the Agent's internal copy of the ::cosmosstruc.
+         * 
+         * @return cosmosstruc* A pointer to the Cosmos::Support::cosmosstruc, 
+         * otherwise NULL.
+         */
         cosmosstruc *Agent::get_cosmosstruc() { return (cinfo); }
 
-        //! Heartbeat Loop
-        /*! This function is run as a thread to provide the Heartbeat for the Agent. The Heartbeat will
- * consist of the contents of Agent::AGENT_MESSAG::BEAT in Cosmos::Agent::poll, plus the contents of the
- * Cosmos::Agent::sohstring. It will come every beatstruc::bprd seconds.
- */
+        /**
+         * @brief Heartbeat Loop
+         * 
+         * This function is run as a thread to provide the Heartbeat for the 
+         * Agent. The Heartbeat will consist of the contents of 
+         * Agent::AGENT_MESSAG::BEAT in Cosmos::Agent::poll, plus the contents 
+         * of the Cosmos::Agent::sohstring. It will come every beatstruc::bprd 
+         * seconds.
+         */
         void Agent::heartbeat_loop() {
             ElapsedTime timer_beat;
 
@@ -860,11 +973,14 @@ namespace Cosmos
             Agent::unpublish();
         }
 
-        //! Request Loop
-        /*! This function is run as a thread to service requests to the Agent. It receives requests on
- * it assigned port number, matches the first word of the request against its set of requests,
- * and then either performs the matched function, or returns [NOK].
- */
+        /**
+         * @brief Request Loop
+         * 
+         * This function is run as a thread to service requests to the Agent. 
+         * It receives requests on it assigned port number, matches the first 
+         * word of the request against its set of requests, and then either 
+         * performs the matched function, or returns [NOK].
+         */
         void Agent::request_loop() noexcept {
             int32_t iretn = 0;
             string bufferin;
@@ -889,6 +1005,16 @@ namespace Cosmos
             return;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param bufferin 
+         * @param bufferout 
+         * @param send_response 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::process_request(string &bufferin, string &bufferout, bool send_response)
         {
             size_t i;
@@ -961,10 +1087,14 @@ namespace Cosmos
             return iretn;
         }
 
-        //! Start listening for incoming messages over COSMOS Agent channel.
-        //! Keep track of any new Agents.
-        //! Add messages to message ring.
-        //! Perform and broadcast requests.
+        /**
+         * @brief 
+         * 
+         * Start listening for incoming messages over COSMOS Agent channel.
+         * Keep track of any new Agents.
+         * Add messages to message ring.
+         * Perform and broadcast requests.
+         */
         void Agent::message_loop() {
             messstruc mess;
             int32_t iretn = 0;
@@ -1020,14 +1150,20 @@ namespace Cosmos
             }
         }
 
-        //! Built-in Forward request
-        /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_forward(string & request, string & output, Agent *, Agent* agent)
+        /**
+         * @brief Built-in Forward request
+         * 
+         * Resends the received request, less count bytes, to all Publication 
+         * channels of the Agent.
+         * 
+         * int32_t Agent::req_forward(string & request, string & output,
+         *  Agent *, Agent* agent)
+         * 
+         * @param request Text of request.
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         */     
         int32_t Agent::req_forward(string &request, string &output, Agent* agent) {
             uint16_t count;
             int32_t iretn=-1;
@@ -1047,14 +1183,21 @@ namespace Cosmos
             return(0);
         }
 
-        //! Built-in Echo request
-        /*! Returns the received packet, reaclculating the CRC, and adding the time.
- * \param request Text of echo packet.
- * \param output Text of echoed packet.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_echo(string & request, string & output, Agent *, Agent*)
+        /**
+         * @brief Built-in Echo request
+         * 
+         * Returns the received packet, reaclculating the CRC, and adding the 
+         * time.
+         * 
+         * int32_t Agent::req_echo(string & request, string & output, Agent *,
+         *  Agent*)
+         * 
+         * @param request Text of echo packet.
+         * @param output Text of echoed packet.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Agent pointer.
+         */    
         int32_t Agent::req_echo(string &request, string &output, Agent*) {
             double mjd;
             uint16_t crc, count;
@@ -1067,13 +1210,16 @@ namespace Cosmos
             return 0;
         }
 
-        //! Built-in Help request
-        /*! Send help response.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
+        /**
+         * @brief Built-in Help request
+         * 
+         * Send help response.
+         * 
+         * @param request Text of request.
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         */
         int32_t Agent::req_help_json(string &request, string &output, Agent* agent)
         {
             string function = "all";
@@ -1157,6 +1303,16 @@ namespace Cosmos
             return 0;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param request 
+         * @param output 
+         * @param agent 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_help(string &request, string &output, Agent* agent)
         {
             string function = "all";
@@ -1206,101 +1362,143 @@ namespace Cosmos
             return 0;
         }
 
-        //! Built-in Set state to Run request
-        /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_run(char*, char* output, Agent* agent)
+        /**
+         * @brief Built-in Set state to Run request
+         * 
+         * Resends the received request, less count bytes, to all Publication 
+         * channels of the Agent.
+         * 
+         * int32_t Agent::req_run(char*, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * 
+         */   
         int32_t Agent::req_run(string &, string &output, Agent* agent) {
             agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::RUN);
             output[0] = 0;
             return(0);
         }
 
-        //! Built-in Set state to Init request
-        /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_init(char*, char* output, Agent* agent)
+        /**
+         * @brief Built-in Set state to Init request
+         * 
+         * Resends the received request, less count bytes, to all Publication 
+         * channels of the Agent.
+         * 
+         * int32_t Agent::req_init(char*, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */    
         int32_t Agent::req_init(string &, string &output, Agent* agent) {
             agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::INIT);
             output[0] = 0;
             return(0);
         }
 
-        //! Built-in Set state to Idle request
-        /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_idle(char*, char* output, Agent* agent)
+        /**
+         * @brief Built-in Set state to Idle request
+         * 
+         * Resends the received request, less count bytes, to all Publication 
+         * channels of the Agent.
+         * 
+         * int32_t Agent::req_idle(char*, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */  
         int32_t Agent::req_idle(string &, string &output, Agent* agent) {
             agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::IDLE);
             output[0] = 0;
             return(0);
         }
 
-        //! Built-in Set state to Monitor request
-        /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_monitor(char*, char* output, Agent* agent)
+        /**
+         * @brief Built-in Set state to Monitor request
+         * 
+         * Resends the received request, less count bytes, to all Publication 
+         * channels of the Agent.
+         * 
+         * int32_t Agent::req_monitor(char*, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */    
         int32_t Agent::req_monitor(string &, string &output, Agent* agent) {
             agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::MONITOR);
             output[0] = 0;
             return(0);
         }
 
-        //! Built-in Set state to Reset request
-        /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_reset(char*, char* output, Agent* agent)
+        /**
+         * @brief Built-in Set state to Reset request
+         * 
+         * Resends the received request, less count bytes, to all Publication 
+         * channels of the Agent.
+         * 
+         * int32_t Agent::req_reset(char*, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_reset(string &, string &output, Agent* agent) {
             agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::RESET);
             output[0] = 0;
             return(0);
         }
 
-        //! Built-in Set state to Shutdown request
-        /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_shutdown(char*, char* output, Agent* agent)
+        /**
+         * @brief Built-in Set state to Shutdown request
+         * 
+         * Resends the received request, less count bytes, to all Publication 
+         * channels of the Agent.
+         * 
+         * int32_t Agent::req_shutdown(char*, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_shutdown(string &, string &output, Agent* agent) {
             agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
             //            output[0] = 0;
             output.clear();
             return(0);
         }
-
-        // TODO: add a line break (\n) when printing the data
-        // this makes it easier to read
-        //! Built-in Status request
-        /*! Returns agent status.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_status(char*, char* output, Agent* agent)
+   
+        /**
+         * @brief Built-in Status request
+         * 
+         * Returns agent status.
+         * 
+         * int32_t Agent::req_status(char*, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         * 
+         * @todo add a line break (\n) when printing the data
+         * this makes it easier to read
+         */
         int32_t Agent::req_status(string &, string &output, Agent* agent) {
             string jstring;
 
@@ -1319,14 +1517,20 @@ namespace Cosmos
                 return(JSON_ERROR_SCAN);
             }
         }
-
-        //! Built-in Get Debug Level request
-        //! Returns or sets the debug_level value.
-        //! \param request Text of request.
-        //! \param output Text of response to request.
-        //! \param agent Pointer to Cosmos::Agent to use.
-        //! \return 0, or negative error.
-        //        int32_t Agent::req_debug_level(string &request, char* output, Agent* agent)
+    
+        /**
+         * @brief Built-in Get Debug Level request
+         * 
+         * Returns or sets the debug_level value.
+         * 
+         * int32_t Agent::req_debug_level(string &request, char* output,
+         *  Agent* agent)
+         * 
+         * @param request Text of request.
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         */
         int32_t Agent::req_debug_level(string &request, string &output, Agent* agent) {
             if (request != "debug_level") {
                 uint16_t level;
@@ -1337,13 +1541,17 @@ namespace Cosmos
             return 0;
         }
 
-        //! Built-in Get Internal Value request
-        /*! Returns the current value of the requested Name Space values. Names are expressed as a JSON object.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
+        /**
+         * @brief Built-in Get Internal Value request
+         * 
+         * Returns the current value of the requested Name Space values. Names 
+         * are expressed as a JSON object.
+         * 
+         * @param request Text of request.
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         */
         int32_t Agent::req_getvalue(string &request, string &output, Agent* agent)
         {
             //	cout<<"req_getvalue(): incoming request          = <"<<request<<">"<<endl;
@@ -1362,6 +1570,16 @@ namespace Cosmos
             }
         }
 
+        /**
+         * @brief 
+         * 
+         * @param request 
+         * @param response 
+         * @param agent 
+         * @return int32_t
+         * 
+         * @todo Document this. 
+         */
         int32_t Agent::req_get_value(string &request, string &response, Agent* agent)	{
             string req = request;
             //	cout<<"req_get_value():incoming request          = <"<<request<<">"<<endl;
@@ -1389,8 +1607,16 @@ namespace Cosmos
             return 0;
         }
 
-
-        // returns state of agent recieving request as JSON
+        /**
+         * @brief returns state of agent recieving request as JSON
+         * 
+         * @param request 
+         * @param response 
+         * @param agent 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_get_state(string &request, string &response, Agent* agent)	{
             string req = request;
             // remove function call and space
@@ -1418,8 +1644,16 @@ namespace Cosmos
             return 0;
         }
 
-
-
+        /**
+         * @brief 
+         * 
+         * @param request 
+         * @param response 
+         * @param agent 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_get_time(string &request, string &response, Agent* agent)
         {
             vector<string> args = string_split(request);
@@ -1450,7 +1684,18 @@ namespace Cosmos
             return 0;
         }
 
-        // request = "get_position mjdtime"
+        /**
+         * @brief 
+         * 
+         * request = "get_position mjdtime"
+         * 
+         * @param request 
+         * @param response 
+         * @param agent 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_get_position_data(string &request, string &response, Agent* agent)	{
 
             //cout<<"\tincoming request          = <"<<request<<">"<<endl;
@@ -1548,7 +1793,18 @@ namespace Cosmos
             return 0;
         }
 
-        // request = "get_position mjdtime"
+        /**
+         * @brief 
+         * 
+         * request = "get_position mjdtime"
+         * 
+         * @param request 
+         * @param response 
+         * @param agent 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_get_position(string &request, string &response, Agent* agent)	{
 
             //cout<<"\tincoming request          = <"<<request<<">"<<endl;
@@ -1634,15 +1890,17 @@ namespace Cosmos
             return 0;
         }
 
-
-
-        //! Built-in Set Internal Value request
-        /*! Sets the current value of the requested Name Space values. Names and values are expressed as a JSON object.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
+        /**
+         * @brief Built-in Set Internal Value request
+         * 
+         * Sets the current value of the requested Name Space values. Names and 
+         * values are expressed as a JSON object.
+         * 
+         * @param request Text of request.
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         */
         int32_t Agent::req_setvalue(string &request, string &output, Agent* agent) {
             int32_t iretn = 0;
             iretn = json_parse(request, agent->cinfo);
@@ -1651,12 +1909,15 @@ namespace Cosmos
         }
 
         /**
- * @brief Agent::req_set_value (Namespace 2.0)
- * @param request
- * @param response
- * @param agent
- * @return
- */
+         * @brief Agent::req_set_value (Namespace 2.0)
+         * 
+         * @param request 
+         * @param response 
+         * @param agent 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
             // remove function call and space ('set_value ')
             request.erase(0,10);
@@ -1671,48 +1932,64 @@ namespace Cosmos
             return 0;
         }
 
-        //! Built-in List Name Space Names request
-        /*! Returns a list of all names in the JSON Name Space.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_listnames(char *, char* output, Agent* agent)
+        /**
+         * @brief Built-in List Name Space Names request
+         * 
+         * Returns a list of all names in the JSON Name Space.
+         * 
+         * int32_t Agent::req_listnames(char *, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_listnames(string &, string &output, Agent* agent) {
             output = json_list_of_all(agent->cinfo);
             if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
-        //! Built-in Return Node JSON request
-        /*! Returns a JSON string representing the Node description.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_nodejson(char *, char* output, Agent* agent)
+        /**
+         * @brief Built-in Return Node JSON request
+         * 
+         * Returns a JSON string representing the Node description.
+         * 
+         * int32_t Agent::req_nodejson(char *, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */     
         int32_t Agent::req_nodejson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.node.c_str();
             if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
-        //! Built-in Return State Vector JSON request
-        /*! Returns a JSON string representing the State Vector.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_statejson(char *, char* output, Agent* agent)
+        /**
+         * @brief Built-in Return State Vector JSON request
+         * 
+         * Returns a JSON string representing the State Vector.
+         * 
+         * int32_t Agent::req_statejson(char *, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_statejson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.state.c_str();
             if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
+        /** @todo Remove commented-out code? */
         //! Built-in Return UTC Start Time JSON request
         /*! Returns a JSON string representing the UTC Start Time.
  * \param request Text of request.
@@ -1726,84 +2003,114 @@ namespace Cosmos
         //        return 0;
         //    }
 
-        //! Built-in Return Pieces JSON request
-        /*! Returns a JSON string representing the Piece information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_piecesjson(char *, char* output, Agent* agent)
+        /**
+         * @brief Built-in Return Pieces JSON request
+         * 
+         * Returns a JSON string representing the Piece information.
+         * 
+         * int32_t Agent::req_piecesjson(char *, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_piecesjson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.pieces.c_str();
             if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
-        //! Built-in Return Face JSON request
-        /*! Returns a JSON string representing the Face information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_facesjson(char *, char* output, Agent* agent)
+        /**
+         * @brief Built-in Return Face JSON request
+         * 
+         * Returns a JSON string representing the Face information.
+         * 
+         * int32_t Agent::req_facesjson(char *, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_facesjson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.faces.c_str();
             if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
-        //! Built-in Return Vertex JSON request
-        /*! Returns a JSON string representing the Vertex information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_vertexsjson(char *, char* output, Agent* agent)
+        /**
+         * @brief Built-in Return Vertex JSON request
+         * 
+         * Returns a JSON string representing the Vertex information.
+         * 
+         * int32_t Agent::req_vertexsjson(char *, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_vertexsjson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.vertexs.c_str();
             if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
-        //! Built-in Return devgen JSON request
-        /*! Returns a JSON string representing the generic device information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_devgenjson(char *, char* output, Agent* agent)
+        /**
+         * @brief Built-in Return devgen JSON request
+         * 
+         * Returns a JSON string representing the generic device information.
+         * 
+         * int32_t Agent::req_devgenjson(char *, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_devgenjson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.devgen.c_str();
             if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
-        //! Built-in Return devspec JSON request
-        /*! Returns a JSON string representing the special device information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_devspecjson(char *, char* output, Agent* agent)
+        /**
+         * @brief Built-in Return devspec JSON request
+         * 
+         * Returns a JSON string representing the special device information.
+         * 
+         * int32_t Agent::req_devspecjson(char *, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_devspecjson(string &, string &output, Agent* agent) {
             output = agent->cinfo->json.devspec.c_str();
             if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
             return 0;
         }
 
-        //! Built-in Return Ports JSON request
-        /*! Returns a JSON string representing the Port information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_portsjson(char *, char* output, Agent* agent)
+        /**
+         * @brief Built-in Return Ports JSON request
+         * 
+         * Returns a JSON string representing the Port information.
+         * 
+         * int32_t Agent::req_portsjson(char *, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_portsjson(string &, string &output, Agent* agent) {
             //            strncpy(output, agent->cinfo->json.ports.c_str(), agent->cinfo->json.ports.size()<agent->cinfo->agent0.beat.bsz-1?agent->cinfo->json.ports.size():agent->cinfo->agent0.beat.bsz-1);
             //            output[agent->cinfo->agent0.beat.bsz-1] = 0;
@@ -1815,14 +2122,19 @@ namespace Cosmos
             return 0;
         }
 
-        //! Built-in Return Target JSON request
-        /*! Returns a JSON string representing the Target information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_targetsjson(char *, char* output, Agent* agent)
+        /**
+         * @brief Built-in Return Target JSON request
+         * 
+         * Returns a JSON string representing the Target information.
+         * 
+         * int32_t Agent::req_targetsjson(char *, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_targetsjson(string &, string &output, Agent* agent) {
             //            strncpy(output, agent->cinfo->json.targets.c_str(), agent->cinfo->json.targets.size()<agent->cinfo->agent0.beat.bsz-1?agent->cinfo->json.targets.size():agent->cinfo->agent0.beat.bsz-1);
             //            output[agent->cinfo->agent0.beat.bsz-1] = 0;
@@ -1834,14 +2146,19 @@ namespace Cosmos
             return 0;
         }
 
-        //! Built-in Return Alias JSON request
-        /*! Returns a JSON string representing the alias information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_aliasesjson(char *, char* output, Agent* agent)
+        /**
+         * @brief Built-in Return Alias JSON request
+         * 
+         * Returns a JSON string representing the alias information.
+         * 
+         * int32_t Agent::req_aliasesjson(char *, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_aliasesjson(string &, string & output, Agent* agent) {
             //            strncpy(output, agent->cinfo->json.aliases.c_str(), agent->cinfo->json.aliases.size()<agent->cinfo->agent0.beat.bsz-1?agent->cinfo->json.aliases.size():agent->cinfo->agent0.beat.bsz-1);
             output = agent->cinfo->json.aliases;
@@ -1851,14 +2168,19 @@ namespace Cosmos
             return 0;
         }
 
-        //! Built-in Send Heartbeat request
-        /*! Send a Heartbeat out of the regular time for heartbeats.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-        //        int32_t Agent::req_heartbeat(char *, char* output, Agent* agent)
+        /**
+         * @brief Built-in Send Heartbeat request
+         * 
+         * Send a Heartbeat out of the regular time for heartbeats.
+         * 
+         * int32_t Agent::req_heartbeat(char *, char* output, Agent* agent)
+         * 
+         * @param output Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo No name for Request string.
+         */
         int32_t Agent::req_heartbeat(string &, string &output, Agent* agent) {
             //            output[0] = 0;
             output.clear();
@@ -1866,8 +2188,18 @@ namespace Cosmos
             iretn = agent->post_beat();
             return iretn;
         }
-
-        //        int32_t Agent::req_postsoh(char *, char* output, Agent* agent)
+   
+        /**
+         * @brief 
+         * 
+         * int32_t Agent::req_postsoh(char *, char* output, Agent* agent)
+         * 
+         * @param output 
+         * @param agent 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_postsoh(string &, string &output, Agent* agent) {
             //            output[0] = 0;
             output.clear();
@@ -1876,12 +2208,30 @@ namespace Cosmos
             return iretn;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param response 
+         * @param agent 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_utc(string &, string &response, Agent *agent) {
             //            response =  " %.15g %lf ", agent->agent_time_producer(), utc2unixseconds(agent->agent_time_producer()));
             response = to_mjd(agent->agent_time_producer()) + ' ' + std::to_string(utc2unixseconds(agent->agent_time_producer()));
             return 0;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param response 
+         * @param agent 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_soh(string &, string &response, Agent *agent) {
             // Return Namespace 1.0 soh
             if(!agent->sohtable.empty()) {
@@ -1911,21 +2261,49 @@ namespace Cosmos
             return 0;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param response 
+         * @param agent 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_fullsoh(string &, string &response, Agent *agent) {
             string rjstring;
             response = json_of_table(rjstring, agent->fullsohtable, agent->cinfo);
             return 0;
         }
 
-        //        int32_t Agent::req_jsondump(char *, char*, Agent *agent)
+        /**
+         * @brief 
+         * 
+         * int32_t Agent::req_jsondump(char *, char*, Agent *agent)
+         * 
+         * @param agent 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_jsondump(string &, string &, Agent *agent) {
             json_dump_node(agent->cinfo);
             return 0;
         }
 
-        // Return raw text of all names and associated types in agent's namespace
-        // Format is:
-        // name,\ttype\nname,\ttype ...etc
+        /**
+         * @brief Return raw text of all names and associated types in agent's 
+         * namespace
+         * 
+         * Format is:
+         * name,\ttype\nname,\ttype ...etc
+         * 
+         * @param response 
+         * @param agent 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_all_names_types(string &, string &response, Agent *agent)
         {
             response = "";
@@ -1946,15 +2324,17 @@ namespace Cosmos
             return 0;
         }
 
-
-        //! Send PacketComm command over requested radio
-        /*! Package up the specified command in a PacketComm packet. Place it on the queue for the
-         * specified radio.
-     * \param request Text of request.
-     * \param output Text of response to request.
-     * \param agent Pointer to Cosmos::Agent to use.
-     * \return 0, or negative error.
-     */
+        /**
+         * @brief Send PacketComm command over requested radio
+         * 
+         * Package up the specified command in a PacketComm packet. Place it on 
+         * the queue for the specified radio.
+         * 
+         * @param request Text of request.
+         * @param response Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         */
         int32_t Agent::req_command(string &request, string &response, Agent *agent)
         {
             PacketComm packet;
@@ -2659,13 +3039,17 @@ namespace Cosmos
             return response.length();
         }
 
-        //! Run immediate command
-        /*! Run the specified command with specified parameters and return the response.
-     * \param request Text of request.
-     * \param output Text of response to request.
-     * \param agent Pointer to Cosmos::Agent to use.
-     * \return 0, or negative error.
-     */
+        /**
+         * @brief Run immediate command
+         * 
+         * Run the specified command with specified parameters and return the 
+         * response.
+         * 
+         * @param request Text of request.
+         * @param response Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         */
         int32_t Agent::req_run_command(string &request, string &response, Agent *agent)
         {
             if (request.find(" ") == string::npos)
@@ -2677,14 +3061,17 @@ namespace Cosmos
             return data_execute(request, response);
         }
 
-        //! Launch background Task
-        /*! Run the specified command with specified parameters in an external shell and save the response
-         * to a file.
-     * \param request Text of request.
-     * \param output Text of response to request.
-     * \param agent Pointer to Cosmos::Agent to use.
-     * \return 0, or negative error.
-     */
+        /**
+         * @brief Launch background Task
+         * 
+         * Run the specified command with specified parameters in an external 
+         * shell and save the response to a file.
+         * 
+         * @param request Text of request.
+         * @param response Text of response to request.
+         * @param agent Pointer to Cosmos::Agent to use.
+         * @return int32_t 0, or negative error.
+         */
         int32_t Agent::req_add_task(string &request, string &response, Agent *agent)
         {
             if (request.find(" ") == string::npos)
@@ -2698,10 +3085,18 @@ namespace Cosmos
             return iretn;
         }
 
-        //! List current channels
-        /*! Provide a detailed list of all the Channels currently defined
-     * \return 0, or negative error.
-     */
+        /**
+         * @brief List current channels
+         * 
+         * Provide a detailed list of all the Channels currently defined
+         * 
+         * @param request 
+         * @param response 
+         * @param agent 
+         * @return int32_t 0, or negative error.
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::req_list_channels(string &request, string &response, Agent *agent)
         {
             response.clear();
@@ -2716,11 +3111,14 @@ namespace Cosmos
             return response.size();
         }
 
-        //! \brief Run a performance test on requested channel.
-        //! \param request Request.
-        //! \param response Any response.
-        //! \param agent Pointer to Agent.
-        //! \return Zero or negative error.
+        /**
+         * @brief Run a performance test on requested channel.
+         * 
+         * @param request Request.
+         * @param response Any response.
+         * @param agent Pointer to Agent.
+         * @return int32_t Zero or negative error.
+         */
         int32_t Agent::req_test_channel(string &request, string &response, Agent *agent)
         {
             vector<string> args = string_split(request);
@@ -2765,15 +3163,19 @@ namespace Cosmos
             }
         }
 
-        //! \brief Set the specified channel to the specified state
-        //! Expected args:
-        //! [0] channel_enable
-        //! [1] String name of channel
-        //! [2] int8_t value to set channel enabled status to
-        //! \param request Request.
-        //! \param response Any response.
-        //! \param agent Pointer to Agent.
-        //! \return Zero or negative error.
+        /**
+         * @brief Set the specified channel to the specified state
+         * 
+         * Expected args:
+         * [0] channel_enable
+         * [1] String name of channel
+         * [2] int8_t value to set channel enabled status to
+         * 
+         * @param request Request.
+         * @param response Any response.
+         * @param agent Pointer to Agent.
+         * @return int32_t Zero or negative error.
+         */
         int32_t Agent::req_channel_enable(string &request, string &response, Agent *agent)
         {
             // Expected args:
@@ -2797,15 +3199,19 @@ namespace Cosmos
             }
         }
 
-        //! \brief Reset the Age of the specified channel to the specifed value.
-        //! Expected args:
-        //! [0] channel_enable
-        //! [1] String name of channel
-        //! [2] float time in seconds to set channel age to
-        //! \param request Request.
-        //! \param response Any response.
-        //! \param agent Pointer to Agent.
-        //! \return Zero or negative error.
+        /**
+         * @brief Reset the Age of the specified channel to the specifed value.
+         * 
+         * Expected args:
+         * [0] channel_enable
+         * [1] String name of channel
+         * [2] float time in seconds to set channel age to
+         * 
+         * @param request Request.
+         * @param response Any response.
+         * @param agent Pointer to Agent.
+         * @return int32_t Zero or negative error.
+         */
         int32_t Agent::req_channel_touch(string &request, string &response, Agent *agent)
         {
             // Expected args:
@@ -2829,13 +3235,16 @@ namespace Cosmos
             return 0;
         }
 
-        //! Open COSMOS output channel
-        /*! Establish a multicast socket for publishing COSMOS messages using the specified address and
- * port.
- * \param type One of ::NetworkType.
- * \param port Port number to publish on.
- * \return 0, otherwise negative error.
-*/
+        /**
+         * @brief Open COSMOS output channel
+         * 
+         * Establish a multicast socket for publishing COSMOS messages using the
+         * specified address and port.
+         * 
+         * @param type One of ::NetworkType.
+         * @param port Port number to publish on.
+         * @return int32_t 0, otherwise negative error.
+         */
         int32_t Agent::publish(NetworkType type, uint16_t port)
         {
             int32_t iretn = 0;
@@ -3142,12 +3551,16 @@ namespace Cosmos
             return 0;
         }
 
-        //! Discover interfaces
-        /*! Return a vector of ::socket_channel containing info on each valid interface. For IPV4 this
- *	will include the address and broadcast address, in both string sockaddr_in format.
-\param ntype Type of network (Multicast, Broadcast UDP, CSP)
-\return Vector of interfaces
-*/
+        /**
+         * @brief Discover interfaces
+         * 
+         * Return a vector of ::socket_channel containing info on each valid 
+         * interface. For IPV4 this will include the address and broadcast 
+         * address, in both string sockaddr_in format.
+         * 
+         * @param ntype Type of network (Multicast, Broadcast UDP, CSP)
+         * @return vector<socket_channel> Vector of interfaces
+         */
         vector<socket_channel> Agent::find_addresses(NetworkType ntype)
         {
             vector<socket_channel> iface;
@@ -3301,11 +3714,16 @@ namespace Cosmos
             return (iface);
         }
 
-        //! Post a Cosmos::Agent::messstruc
-        /*! Post an already defined message on the previously opened publication channel.
-\param mess Cosmos::Agent::messstruc containing everything necessary, including type, header and data.
-\return 0, otherwise negative error.
-*/
+        /**
+         * @brief Post a Cosmos::Agent::messstruc
+         * 
+         * Post an already defined message on the previously opened publication 
+         * channel.
+         * 
+         * @param mess Cosmos::Agent::messstruc containing everything necessary,
+         * including type, header and data.
+         * @return int32_t 0, otherwise negative error.
+         */
         int32_t Agent::post(messstruc mess) {
             int32_t iretn = 0;
             if (mess.meta.type < Agent::AgentMessage::BINARY) {
@@ -3316,12 +3734,15 @@ namespace Cosmos
             return iretn;
         }
 
-        //! Post a JSON message
-        /*! Post a vector of bytes on the previously opened publication channel.
-\param type A byte indicating the type of message.
-\param message A NULL terminated JSON text string to post.
-\return 0, otherwise negative error.
-*/
+        /**
+         * @brief Post a JSON message
+         * 
+         * Post a vector of bytes on the previously opened publication channel.
+         * 
+         * @param type A byte indicating the type of message.
+         * @param message A NULL terminated JSON text string to post.
+         * @return int32_t 0, otherwise negative error.
+         */
         int32_t Agent::post(AgentMessage type, string message)
         {
             int32_t iretn = 0;
@@ -3331,12 +3752,15 @@ namespace Cosmos
             return iretn;
         }
 
-        //! Post a binary message
-        /*! Post a vector of bytes on the previously opened publication channel.
-\param type A byte indicating the type of message.
-\param message An array of bytes to post.
-\return 0, otherwise negative error.
-*/
+        /**
+         * @brief Post a binary message
+         * 
+         * Post a vector of bytes on the previously opened publication channel.
+         * 
+         * @param type A byte indicating the type of message.
+         * @param message An array of bytes to post.
+         * @return int32_t 0, otherwise negative error.
+         */
         int32_t Agent::post(AgentMessage type, vector <uint8_t> message)
         {
             size_t nbytes;
@@ -3450,6 +3874,13 @@ namespace Cosmos
             return 0;
         }
 
+        /**
+         * @brief 
+         * 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::post_beat()
         {
             int32_t iretn = 0;
@@ -3466,6 +3897,13 @@ namespace Cosmos
             return iretn;
         }
 
+        /**
+         * @brief 
+         * 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::post_soh() {
             int32_t iretn = 0;
             cinfo->agent0.beat.utc = currentmjd(0.);
@@ -3473,24 +3911,30 @@ namespace Cosmos
             return iretn;
         }
 
-        //! Close COSMOS output channel
-        /*! Close previously opened publication channels and recover any allocated resources.
-\return 0, otherwise negative error.
-*/
+        /**
+         * @brief Close COSMOS output channel
+         * 
+         * Close previously opened publication channels and recover any allocated resources.
+         * 
+         * @return int32_t 0, otherwise negative error.
+         */
         int32_t Agent::unpublish() {
             if (cinfo == nullptr) { return 0; }
             for (size_t i=0; i<cinfo->agent0.ifcnt; ++i) { CLOSE_SOCKET(cinfo->agent0.pub[i].cudp); }
             return 0;
         }
 
-        //! Open COSMOS channel for polling
-        /*! This establishes a multicast channel for subscribing to COSMOS messages.
-\param type 0=Multicast, 1=Broadcast UDP, 2=Broadcast CSP.
-\param address The IP Multicast address of the channel.
-\param port The port to use for the channel.
-\param usectimeo Blocking read timeout in micro seconds.
-\return 0, otherwise negative error.
-*/
+        /**
+         * @brief Open COSMOS channel for polling
+         * 
+         * This establishes a multicast channel for subscribing to COSMOS messages.
+         * 
+         * @param type 0=Multicast, 1=Broadcast UDP, 2=Broadcast CSP.
+         * @param address The IP Multicast address of the channel.
+         * @param port The port to use for the channel.
+         * @param usectimeo Blocking read timeout in micro seconds.
+         * @return int32_t 0, otherwise negative error.
+         */
         int32_t Agent::subscribe(NetworkType type, const char *address, uint16_t port, uint32_t usectimeo)
         {
             int32_t iretn = 0;
@@ -3506,36 +3950,49 @@ namespace Cosmos
             return 0;
         }
 
-        //! Open COSMOS channel for polling with 100 usec timeout.
-        /*! This establishes a multicast channel for subscribing to COSMOS messages. The timeout is set to
- * 100 usec.
-\param type 0=Multicast, 1=Broadcast UDP, 2=Broadcast CSP.
-\param address The IP Multicast address of the channel.
-\param port The port to use for the channel.
-\return 0, otherwise negative error.
-*/
+        /**
+         * @brief Open COSMOS channel for polling with 100 usec timeout.
+         * 
+         * This establishes a multicast channel for subscribing to COSMOS 
+         * messages. The timeout is set to 100 usec.
+         * 
+         * @param type 0=Multicast, 1=Broadcast UDP, 2=Broadcast CSP.
+         * @param address The IP Multicast address of the channel.
+         * @param port The port to use for the channel.
+         * @return int32_t 0, otherwise negative error.
+         */
         int32_t Agent::subscribe(NetworkType type, const char *address, uint16_t port) {
             int32_t iretn = 0;
             if ((iretn=Agent::subscribe(type, address, port, 100)) < 0) { return iretn; }
             return 0;
         }
-        //! Close COSMOS subscription channel
-        /*! Close channel previously opened for polling for messages and recover resources.
-\return 0, otherwise negative error.
-*/
+
+        /**
+         * @brief Close COSMOS subscription channel
+         * 
+         * Close channel previously opened for polling for messages and recover 
+         * resources.
+         * 
+         * @return int32_t 0, otherwise negative error.
+         */
         int32_t Agent::unsubscribe() {
             if (cinfo != nullptr) { CLOSE_SOCKET(cinfo->agent0.sub.cudp); }
             return 0;
         }
 
-        //! Listen for message
-        /*! Poll the subscription channel for the requested amount of time. Return as soon as a single message
- * comes in, or the timer runs out.
-\param mess Cosmos::Agent::messstruc for storing incoming message.
-\param type Type of message to look for, taken from Cosmos::Agent::AgentMessage.
-\param waitsec Number of seconds in timer.
-\return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
-*/
+        /**
+         * @brief Listen for message
+         * 
+         * Poll the subscription channel for the requested amount of time. 
+         * Return as soon as a single message comes in, or the timer runs out.
+         * 
+         * @param mess Cosmos::Agent::messstruc for storing incoming message.
+         * @param type Type of message to look for, taken from 
+         * Cosmos::Agent::AgentMessage.
+         * @param waitsec Number of seconds in timer.
+         * @return int32_t If a message comes in, return its type. If none comes
+         * in, return zero, otherwise negative error.
+         */
         int32_t Agent::poll(messstruc &mess, AgentMessage type, float waitsec)
         {
             int nbytes;
@@ -3740,15 +4197,25 @@ namespace Cosmos
             return 0;
         }
 
-        //! Check Ring for message
-        /*! Check the message ring for the requested amount of time. Return as soon as a message of the right type
- * is available, or the timer runs out.
-\param message Vector for storing incoming message.
-\param type Type of message to look for, taken from Cosmos::Agent::AgentMessage.
-\param waitsec Number of seconds in timer. If 0, return last message in ring immediatelly.
-\param where One of Where::HEAD or Where::TAIL, indicating whether to start at the head or tail of the ring.
-\return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
-*/
+        /**
+         * @brief Check Ring for message
+         * 
+         * Check the message ring for the requested amount of time. Return as 
+         * soon as a message of the right type is available, or the timer runs 
+         * out.
+         * 
+         * @param message Vector for storing incoming message.
+         * @param type Type of message to look for, taken from 
+         * Cosmos::Agent::AgentMessage.
+         * @param waitsec Number of seconds in timer. If 0, return last message 
+         * in ring immediatelly.
+         * @param where One of Where::HEAD or Where::TAIL, indicating whether to
+         * start at the head or tail of the ring.
+         * @param proc 
+         * @param node 
+         * @return int32_t If a message comes in, return its type. If none comes
+         * in, return zero, otherwise negative error.
+         */
         int32_t Agent::readring(messstruc &message, AgentMessage type, float waitsec, Where where, string proc, string node)
         {
             if (waitsec < 0.f) { waitsec = 0.; }
@@ -3781,16 +4248,24 @@ namespace Cosmos
             return 0;
         }
 
-        //! Check Ring for message
-        /*! Check the message ring for the requested amount of time. Return as soon as a message of the right type
-     * is available, or the timer runs out.
-    \param message Vector for storing incoming message.
-    \param realm Vector of node names that are within the realm to read
-    \param type Type of message to look for, taken from Cosmos::Agent::AgentMessage.
-    \param waitsec Number of seconds in timer. If 0, return last message in ring immediatelly.
-    \param where One of Where::HEAD or Where::TAIL, indicating whether to start at the head or tail of the ring.
-    \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
-    */
+        /**
+         * @brief Check Ring for message
+         * 
+         * Check the message ring for the requested amount of time. Return as 
+         * soon as a message of the right type is available, or the timer runs
+         * out.
+         * 
+         * @param message Vector for storing incoming message.
+         * @param realm Vector of node names that are within the realm to read
+         * @param type Type of message to look for, taken from 
+         * Cosmos::Agent::AgentMessage.
+         * @param waitsec Number of seconds in timer. If 0, return last message 
+         * in ring immediatelly.
+         * @param where One of Where::HEAD or Where::TAIL, indicating whether to
+         * start at the head or tail of the ring.
+         * @return int32_t If a message comes in, return its type. If none comes
+         * in, return zero, otherwise negative error.
+         */
         int32_t Agent::readring(messstruc &message, vector<string> realm, AgentMessage type, float waitsec, Where where)
         {
             if (waitsec < 0.f) { waitsec = 0.; }
@@ -3821,7 +4296,18 @@ namespace Cosmos
             return 0;
         }
 
-        //! Parse next message from ring
+        /**
+         * @brief Parse next message from ring
+         * 
+         * @param type 
+         * @param waitsec 
+         * @param where 
+         * @param proc 
+         * @param node 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::parsering(AgentMessage type, float waitsec, Where where, string proc, string node)
         {
             int32_t iretn = 0;
@@ -3843,11 +4329,15 @@ namespace Cosmos
             return GENERAL_ERROR_TIMEOUT;
         }
 
-        //! Change size of message ring.
-        //! Resize the message ring to hold a new maximum number of messages. Adjust the message pointers in the
-        //! ring to be appropriate.
-        //! \param newsize New maximum message count.
-        //! \return Negative error, or zero.
+        /**
+         * @brief Change size of message ring.
+         * 
+         * Resize the message ring to hold a new maximum number of messages. 
+         * Adjust the message pointers in the ring to be appropriate.
+         * 
+         * @param newsize New maximum message count.
+         * @return int32_t Negative error, or zero.
+         */
         int32_t Agent::resizering(size_t newsize)
         {
             if (message_head >= newsize) { message_head = 0; }
@@ -3855,17 +4345,23 @@ namespace Cosmos
             return 0;
         }
 
-        //! Empty message ring.
-        //! Set the internal pointers such that it appears that we have read any messages that are
-        //! in the message ring. This has the effect of emptying the message ring as far as Cosmos::Agent::readring
-        //! is concerned.
-        //! \return Negative error or zero.
+        /**
+         * @brief Empty message ring.
+         * 
+         * Set the internal pointers such that it appears that we have read any 
+         * messages that are in the message ring. This has the effect of 
+         * emptying the message ring as far as Cosmos::Agent::readring is 
+         * concerned.
+         * 
+         * @return int32_t Negative error or zero.
+         */
         int32_t Agent::clearring()
         {
             message_tail = message_head;
             return 0;
         }
 
+        /** @todo Remove commented-out code? */
         //! Listen for heartbeat
         /*! Poll the subscription channel until you receive a heartbeat message, or the timer runs out.
 \param waitsec Number of seconds to wait before timing out.
@@ -3877,18 +4373,16 @@ acquired.
         //        int32_t iretn = 0;
         //        beatstruc beat;
         //        messstruc mess;
-
         //        iretn = Agent::poll(mess, Agent::AgentMessage::BEAT, waitsec);
-
         //        beat.utc = 0.;
         //        if (iretn == Agent::AgentMessage::BEAT)
         //        {
         //            beat = mess.meta.beat;
         //        }
-
         //        return (beat);
         //    }
 
+        /** @todo Remove commented-out code? */
         //! Listen for Time
         /*! Poll the subscription channel until you receive a time message, or the timer runs out.
 \param waitsec Number of seconds to wait before timing out.
@@ -3900,9 +4394,7 @@ acquired.
         //        int32_t iretn = 0;
         //        timestruc time;
         //        messstruc mess;
-
         //		iretn = Agent::poll(mess, Agent::AgentMessage::TIME, waitsec);
-
         //		if (iretn == Agent::AgentMessage::TIME)
         //        {
         //            iretn = json_parse(mess.adata, cinfo->sdata);
@@ -3911,10 +4403,10 @@ acquired.
         //                time.mjd = cinfo->sdata.node.loc.utc;
         //            }
         //        }
-
         //        return (time);
         //    }
 
+        /** @todo Remove commented-out code? */
         //! Listen for Location
         /*! Poll the subscription channel until you receive a location message, or the timer runs out.
 \param waitsec Number of seconds to wait before timing out.
@@ -3926,9 +4418,7 @@ acquired.
         //        int32_t iretn = 0;
         //        Convert::locstruc loc;
         //        messstruc mess;
-
         //		iretn = Agent::poll(mess, Agent::AgentMessage::LOCATION, waitsec);
-
         //		if (iretn == Agent::AgentMessage::LOCATION)
         //        {
         //            iretn = json_parse(mess.adata, cinfo->sdata);
@@ -3937,10 +4427,10 @@ acquired.
         //                loc = cinfo->sdata.node.loc;
         //            }
         //        }
-
         //        return (loc);
         //    }
 
+        /** @todo Remove commented-out code? */
         //! Listen for Beacon
         /*! Poll the subscription channel until you receive a info message, or the timer runs out.
 \param waitsec Number of seconds to wait before timing out.
@@ -3953,9 +4443,7 @@ acquired.
         //        //summarystruc info;
         //        nodestruc info;
         //        messstruc mess;
-
         //		iretn = Agent::poll(mess, Agent::AgentMessage::TRACK, waitsec);
-
         //		if (iretn == Agent::AgentMessage::TRACK)
         //        {
         //            iretn = json_parse(mess.adata, cinfo->sdata);
@@ -3971,10 +4459,10 @@ acquired.
         //        }
         //        else
         //            info.loc.utc = 0.;
-
         //        return (info);
         //    }
 
+        /** @todo Remove commented-out code? */
         //! Listen for IMU device
         /*! Poll the subscription channel until you receive a IMU device message, or the timer runs out.
 \param waitsec Number of seconds to wait before timing out.
@@ -3986,9 +4474,7 @@ acquired.
         //        int32_t iretn = 0;
         //        imustruc imu;
         //        messstruc mess;
-
         //		iretn = Agent::poll(mess, Agent::AgentMessage::IMU, waitsec);
-
         //		if (iretn == Agent::AgentMessage::IMU)
         //        {
         //            iretn = json_parse(mess.adata, cinfo->sdata);
@@ -3997,15 +4483,36 @@ acquired.
         //                imu = *cinfo->sdata.devspec.imu[0].;
         //            }
         //        }
-
         //        return (imu);
         //    }
 
+        /**
+         * @brief 
+         * 
+         * @return string 
+         * 
+         * @todo Document this.
+         */
         string Agent::getNode() { return cinfo->node.name; }
 
+        /**
+         * @brief 
+         * 
+         * @return string 
+         * 
+         * @todo Document this.
+         */
         string Agent::getAgent() { return cinfo->agent0.name; }
 
-
+        /**
+         * @brief 
+         * 
+         * @param node 
+         * @param jnode 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::getJson(string node, jsonnode &jnode)
         {
             int32_t iretn=0;
@@ -4039,6 +4546,15 @@ acquired.
             return iretn;
         }
 
+        /**
+         * @brief Flag for level of debugging, keep it public so that it can be 
+         * controlled from the outside
+         * 
+         * @param level 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::set_debug_level(uint16_t level)
         {
             debug_level = level;
@@ -4046,29 +4562,77 @@ acquired.
             return debug_log.Type();
         }
 
+        /**
+         * @brief 
+         * 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::get_debug_level()
         {
             return debug_log.Type();
         }
 
+        /**
+         * @brief 
+         * 
+         * @param mjd 
+         * @return FILE* 
+         * 
+         * @todo Document this.
+         */
         FILE *Agent::get_debug_fd(double mjd)
         {
             return debug_log.Open();
         }
 
+        /**
+         * @brief 
+         * 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::close_debug_fd()
         {
             return debug_log.Close();
         }
 
-        // Set our producer for all functions associated with time authority (i.e. the mjd request).
+        /**
+         * @brief 
+         * 
+         * Set our producer for all functions associated with time authority 
+         * (i.e. the mjd request).
+         * 
+         * @param source 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::set_agent_time_producer(double (*source)()) {
             this->agent_time_producer = source;
             return 0;
         }
 
-        // A Cristian's algorithm approach to time synchronization, with our remote node as the time server.
-        // This is meant to be run on a time sink agent (a requester).
+        /**
+         * @brief 
+         * 
+         * A Cristian's algorithm approach to time synchronization, with our 
+         * remote node as the time server.
+         * 
+         * This is meant to be run on a time sink agent (a requester).
+         * 
+         * @param agent_time 
+         * @param epsilon 
+         * @param delta 
+         * @param agent 
+         * @param node 
+         * @param wait_sec 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::get_agent_time(double &agent_time, double &epsilon, double &delta, string agent, string node, double wait_sec) {
             static beatstruc agent_beat;
             string agent_response;
@@ -4103,6 +4667,14 @@ acquired.
             }
         }
 
+        /**
+         * @brief 
+         * 
+         * @param period 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::set_activity_period(double period)
         {
             this->cinfo->agent0.aprd = period;
@@ -4110,12 +4682,13 @@ acquired.
         }
 
         /**
-     * @brief Agent::add_device
-     * @param name piecename
-     * @param type of device
-     * @param device pointer to devicestruc
-     * @return status (negative on error)
-     */
+         * @brief Agent::add_device
+         * 
+         * @param name piecename
+         * @param type of device
+         * @param device pointer to devicestruc
+         * @return int32_t status (negative on error)
+         */
         int32_t Agent::add_device(string name, DeviceType type, devicestruc **device)
         {
             int32_t pindex = json_createpiece(cinfo, name, type);
@@ -4129,12 +4702,13 @@ acquired.
         }
 
         /**
-     * @brief Agent::device_property_name
-     * @param device (piecename) - for looking up the device index
-     * @param property
-     * @param name reference to output (ex: device_imu_alpha_000)
-     * @return status (negative on error)
-     */
+         * @brief Agent::device_property_name
+         * 
+         * @param device (piecename) - for looking up the device index
+         * @param property
+         * @param name reference to output (ex: device_imu_alpha_000)
+         * @return int32_t status (negative on error)
+         */
         int32_t Agent::device_property_name(string device, string property, string &name)
         {
             //! get the device index
@@ -4167,14 +4741,15 @@ acquired.
         }
 
         /**
-     * @brief creating and storing an alias for a device property
-     *   ex: creating alias from device_imu_alpha_000 to imu_acceleration
-     * @param devicename piecename - for looking up the device index
-     * @param propertyname
-     * @param alias name that will replace property name in alias
-     * @param error reference for returning an error
-     * @return status (negative on error)
-     */
+         * @brief creating and storing an alias for a device property
+         * 
+         * ex: creating alias from device_imu_alpha_000 to imu_acceleration
+         * 
+         * @param devicename piecename - for looking up the device index
+         * @param propertyname
+         * @param alias name that will replace property name in alias
+         * @return int32_t status (negative on error)
+         */
         int32_t Agent::create_device_value_alias(string devicename, string propertyname, string alias)
         {
             int32_t status = 0;
@@ -4187,12 +4762,14 @@ acquired.
         }
 
         /**
-     * @brief creating a direct alias (Namespace 1.0 method)
-     *   ex: creating alias from device_imu_alpha_000 to imu_acceleration
-     * @param cosmosname the default SOH name
-     * @param alias name that will replace cosmosname
-     * @return error
-     */
+         * @brief creating a direct alias (Namespace 1.0 method)
+         * 
+         * ex: creating alias from device_imu_alpha_000 to imu_acceleration
+         * 
+         * @param cosmosname the default SOH name
+         * @param alias name that will replace cosmosname
+         * @return int32_t error
+         */
         int32_t Agent::create_alias(string cosmosname, string alias)
         {
             //! Namespace 1.0 method of adding aliases
@@ -4205,6 +4782,16 @@ acquired.
             return status;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param agent 
+         * @param names 
+         * @param jobj 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::send_request_getvalue(beatstruc agent, vector<string> names, Json::Object &jobj)
         {
             int32_t status = 0;
@@ -4233,7 +4820,15 @@ acquired.
             return status;
         }
 
-
+        /**
+         * @brief 
+         * 
+         * @param jsonname 
+         * @param value 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::set_value(string jsonname, double value)
         {
             if(jsonname.length() == 0) {
@@ -4244,18 +4839,27 @@ acquired.
 
         }
 
+        /**
+         * @brief 
+         * 
+         * @param jsonname 
+         * @return double 
+         * 
+         * @todo Document this.
+         */
         double Agent::get_value(string jsonname)
         {
             return json_get_double(jsonname, cinfo);
         }
 
         /**
-     * @brief Agent::get_device_values
-     * @param device device name or piece name
-     * @param props property names
-     * @param json json string of device values {"name1": value ,"name2": value2}
-     * @return status (negative on error)
-     */
+         * @brief Agent::get_device_values
+         * 
+         * @param device device name or piece name
+         * @param props property names
+         * @param json json string of device values {"name1": value ,"name2": value2}
+         * @return int32_t status (negative on error)
+         */
         int32_t Agent::get_device_values(string device, vector<string> props, string &json)
         {
             if(props.size() == 0) return 0;
@@ -4287,7 +4891,15 @@ acquired.
             return get_values(names, json);
         }
 
-
+        /**
+         * @brief 
+         * 
+         * @param names 
+         * @param json 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::get_values(vector<string> names, string &json)
         {
             if(names.size() == 0) return 0;
@@ -4302,27 +4914,70 @@ acquired.
             return status;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param verification 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::init_channels(uint32_t verification)
         {
             return channels.Init(verification);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param verification 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::set_verification(uint32_t verification)
         {
             channels.verification = verification;
             return 0;
         }
 
+        /**
+         * @brief 
+         * 
+         * @return uint32_t 
+         * 
+         * @todo Document this.
+         */
         uint32_t Agent::get_verification()
         {
             return channels.verification;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param verification 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::check_verification(uint32_t verification)
         {
             return channels.Check(verification);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param sourceid 
+         * @param dest 
+         * @param id 
+         * @param response 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::push_response(string name, uint8_t sourceid, uint8_t dest, uint32_t id, vector<uint8_t> response)
         {
             int32_t number = channel_number(name);
@@ -4333,6 +4988,18 @@ acquired.
             return push_response(number, sourceid, dest, id, response);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param sourceid 
+         * @param dest 
+         * @param id 
+         * @param response 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::push_response(uint8_t number, uint8_t sourceid, uint8_t dest, uint32_t id, vector<uint8_t> response)
         {
             // int32_t iretn = 0;
@@ -4386,6 +5053,18 @@ acquired.
             return response.size();
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param sourceid 
+         * @param dest 
+         * @param id 
+         * @param response 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::push_response(string name, uint8_t sourceid, uint8_t dest, uint32_t id, string response)
         {
             int32_t number = channel_number(name);
@@ -4396,6 +5075,18 @@ acquired.
             return push_response(number, sourceid, dest, id, response);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param sourceid 
+         * @param dest 
+         * @param id 
+         * @param response 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::push_response(uint8_t number, uint8_t sourceid, uint8_t dest, uint32_t id, string response)
         {
             if (number >= channels.channel.size())
@@ -4407,6 +5098,19 @@ acquired.
             return push_response(number, sourceid, dest, id, bresponse);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param type 
+         * @param name 
+         * @param dest 
+         * @param unit 
+         * @param command 
+         * @param response 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::push_hardware_response(PacketComm::TypeId type, string name, uint8_t dest, uint8_t unit, uint8_t command, vector<uint8_t> response)
         {
             int32_t number = channel_number(name);
@@ -4417,6 +5121,19 @@ acquired.
             return push_hardware_response(type, number, dest, unit, command, response);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param type 
+         * @param number 
+         * @param dest 
+         * @param unit 
+         * @param command 
+         * @param response 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::push_hardware_response(PacketComm::TypeId type, uint8_t number, uint8_t dest, uint8_t unit, uint8_t command, vector<uint8_t> response)
         {
             // int32_t iretn = 0;
@@ -4467,6 +5184,16 @@ acquired.
             return response.size();
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param packet 
+         * @param extra 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::monitor_unwrapped(string name, PacketComm &packet, string extra)
         {
             int32_t number = channel_number(name);
@@ -4477,6 +5204,16 @@ acquired.
             return monitor_unwrapped(number, packet, extra);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param packet 
+         * @param extra 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::monitor_unwrapped(uint8_t number, PacketComm &packet, string extra)
         {
             if (number >= channels.channel.size())
@@ -4500,6 +5237,16 @@ acquired.
             return 0;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param packet 
+         * @param extra 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::monitor_unpacketized(string name, PacketComm &packet, string extra)
         {
             int32_t number = channel_number(name);
@@ -4510,6 +5257,16 @@ acquired.
             return monitor_unpacketized(number, packet, extra);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param packet 
+         * @param extra 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::monitor_unpacketized(uint8_t number, PacketComm &packet, string extra)
         {
             if (number >= channels.channel.size())
@@ -4533,11 +5290,27 @@ acquired.
             return 0;
         }
 
+        /**
+         * @brief 
+         * 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_count()
         {
             return channels.channel.size();
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param packet 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_push(string name, PacketComm& packet)
         {
             int32_t number = channel_number(name);
@@ -4548,6 +5321,15 @@ acquired.
             return channel_push(number, packet);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param packet 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_push(uint8_t number, PacketComm& packet)
         {
             int32_t iretn=0;
@@ -4561,6 +5343,14 @@ acquired.
             return iretn;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param packet 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_push(PacketComm& packet)
         {
             int32_t iretn=0;
@@ -4574,6 +5364,15 @@ acquired.
             return iretn;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param packets 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_push(string name, vector<PacketComm>& packets)
         {
             int32_t number = channel_number(name);
@@ -4584,6 +5383,15 @@ acquired.
             return channel_push(number, packets);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param packets 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_push(uint8_t number, vector<PacketComm>& packets)
         {
             int32_t iretn;
@@ -4602,6 +5410,15 @@ acquired.
             return packets.size();
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param packet 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_pull(string name, PacketComm &packet)
         {
             int32_t number = channel_number(name);
@@ -4612,6 +5429,15 @@ acquired.
             return channel_pull(number, packet);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param packet 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_pull(uint8_t number, PacketComm &packet)
         {
             int32_t iretn=0;
@@ -4625,6 +5451,18 @@ acquired.
             return iretn;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param datasize 
+         * @param rawsize 
+         * @param byte_rate 
+         * @param maximum 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_add(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
         {
             int32_t iretn = 0;
@@ -4667,96 +5505,262 @@ acquired.
             }
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param datasize 
+         * @param rawsize 
+         * @param byte_rate 
+         * @param maximum 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_update(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
         {
             return channels.Update(name, datasize, rawsize, byte_rate, maximum);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param datasize 
+         * @param rawsize 
+         * @param byte_rate 
+         * @param maximum 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_update(uint8_t number, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
         {
             return channels.Update(number, datasize, rawsize, byte_rate, maximum);
         }
 
+        /**
+         * @brief Number of packets currently in the channel
+         * 
+         * @param name 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_size(string name)
         {
             return channels.Size(name);
         }
 
+        /**
+         * @brief Number of packets currently in the channel
+         * 
+         * @param number 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_size(uint8_t number)
         {
             return channels.Size(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @return float 
+         * 
+         * @todo Document this.
+         */
         float Agent::channel_speed(string name)
         {
             return channels.ByteRate(name);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return float 
+         * 
+         * @todo Document this.
+         */
         float Agent::channel_speed(uint8_t number)
         {
             return channels.ByteRate(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @return double 
+         * 
+         * @todo Document this.
+         */
         double Agent::channel_age(string name)
         {
             return channels.Age(name);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return double 
+         * 
+         * @todo Document this.
+         */
         double Agent::channel_age(uint8_t number)
         {
             return channels.Age(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param value 
+         * @return double 
+         * 
+         * @todo Document this.
+         */
         double Agent::channel_wakeup_timer(string name, double value)
         {
             return channels.WakeupTimer(name, value);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param value 
+         * @return double 
+         * 
+         * @todo Document this.
+         */
         double Agent::channel_wakeup_timer(uint8_t number, double value)
         {
             return channels.WakeupTimer(number, value);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @return size_t 
+         * 
+         * @todo Document this.
+         */
         size_t Agent::channel_bytes(string name)
         {
             return channels.Bytes(name);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return size_t 
+         * 
+         * @todo Document this.
+         */
         size_t Agent::channel_bytes(uint8_t number)
         {
             return channels.Bytes(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @return size_t 
+         * 
+         * @todo Document this.
+         */
         size_t Agent::channel_level(string name)
         {
             return channels.Level(name);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return size_t 
+         * 
+         * @todo Document this.
+         */
         size_t Agent::channel_level(uint8_t number)
         {
             return channels.Level(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @return uint32_t 
+         * 
+         * @todo Document this.
+         */
         uint32_t Agent::channel_packets(string name)
         {
             return channels.Packets(name);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return uint32_t 
+         * 
+         * @todo Document this.
+         */
         uint32_t Agent::channel_packets(uint8_t number)
         {
             return channels.Packets(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param seconds 
+         * @return double 
+         * 
+         * @todo Document this.
+         */
         double Agent::channel_touch(string name, double seconds)
         {
             return channels.Touch(name, seconds);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param seconds 
+         * @return double 
+         * 
+         * @todo Document this.
+         */
         double Agent::channel_touch(uint8_t number, double seconds)
         {
             return channels.Touch(number, seconds);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param bytes 
+         * @param packets 
+         * @return ssize_t 
+         * 
+         * @todo Document this.
+         */
         ssize_t Agent::channel_increment(string name, size_t bytes, uint32_t packets)
         {
             int32_t number = channel_number(name);
@@ -4768,6 +5772,16 @@ acquired.
             return channel_increment(number, bytes, packets);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param bytes 
+         * @param packets 
+         * @return ssize_t 
+         * 
+         * @todo Document this.
+         */
         ssize_t Agent::channel_increment(uint8_t number, size_t bytes, uint32_t packets)
         {
             int32_t iretn = 0;
@@ -4775,6 +5789,7 @@ acquired.
             return iretn;
         }
 
+        /** @todo Remove commented-out code? */
 //        ssize_t Agent::channel_decrement(string name, size_t bytes, uint32_t packets)
 //        {
 //            int32_t number = channel_number(name);
@@ -4782,10 +5797,10 @@ acquired.
 //            {
 //                return number;
 //            }
-
 //            return channel_decrement(number, bytes, packets);
 //        }
 
+        /** @todo Remove commented-out code? */
 //        ssize_t Agent::channel_decrement(uint8_t number, size_t bytes, uint32_t packets)
 //        {
 //            int32_t iretn = 0;
@@ -4793,6 +5808,22 @@ acquired.
 //            return iretn;
 //        }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param radio 
+         * @param id 
+         * @param orig 
+         * @param dest 
+         * @param start 
+         * @param step 
+         * @param stop 
+         * @param total 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_teststart(string name, string radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
         {
             int32_t number = channel_number(name);
@@ -4809,6 +5840,22 @@ acquired.
             return channel_teststart(number, nradio, id, orig, dest, start, step, stop, total);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param radio 
+         * @param id 
+         * @param orig 
+         * @param dest 
+         * @param start 
+         * @param step 
+         * @param stop 
+         * @param total 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_teststart(uint8_t number, uint8_t radio, uint32_t id, uint8_t orig, uint8_t dest, uint8_t start, uint8_t step, uint8_t stop, uint32_t total)
         {
             int32_t iretn = 0;
@@ -4816,6 +5863,15 @@ acquired.
             return iretn;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param seconds 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_teststop(string name, float seconds)
         {
             int32_t number = channel_number(name);
@@ -4827,6 +5883,15 @@ acquired.
             return channel_teststop(number, seconds);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param seconds 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_teststop(uint8_t number, float seconds)
         {
             int32_t iretn = 0;
@@ -4834,6 +5899,15 @@ acquired.
             return iretn;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @param value 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_enable(string name, int8_t value)
         {
             int32_t number = channel_number(name);
@@ -4845,6 +5919,15 @@ acquired.
             return channels.Enable(number, value);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @param value 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_enable(uint8_t number, int8_t value)
         {
             if (number >= channels.channel.size())
@@ -4855,6 +5938,14 @@ acquired.
             return channels.Enable(number, value);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_enabled(string name)
         {
             int32_t number = channel_number(name);
@@ -4866,6 +5957,14 @@ acquired.
             return channels.Enabled(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_enabled(uint8_t number)
         {
             if (number >= channels.channel.size())
@@ -4876,6 +5975,7 @@ acquired.
             return channels.Enabled(number);
         }
 
+        /** @todo Remove commented-out code? */
         //        int32_t Agent::channel_disable(string name)
         //        {
         //            int32_t number = channel_number(name);
@@ -4883,20 +5983,27 @@ acquired.
         //            {
         //                return number;
         //            }
-
         //            return channels.Disable(number);
         //        }
 
+        /** @todo Remove commented-out code? */
         //        int32_t Agent::channel_disable(uint8_t number)
         //        {
         //            if (number >= channels.channel.size())
         //            {
         //                return GENERAL_ERROR_OUTOFRANGE;
         //            }
-
         //            return channels.Disable(number);
         //        }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_clear(string name)
         {
             int32_t number = channel_number(name);
@@ -4908,6 +6015,14 @@ acquired.
             return channels.Clear(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_clear(uint8_t number)
         {
             if (number >= channels.channel.size())
@@ -4918,6 +6033,14 @@ acquired.
             return channels.Clear(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_number(string name)
         {
             int32_t iretn = 0;
@@ -4932,11 +6055,27 @@ acquired.
             return channels.Find(name);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return string 
+         * 
+         * @todo Document this.
+         */
         string Agent::channel_name(uint8_t number)
         {
             return channels.Find(number);
         }
 
+        /**
+         * @brief Max data size of channel
+         * 
+         * @param name 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_datasize(string name)
         {
             int32_t iretn = channel_number(name);
@@ -4947,6 +6086,14 @@ acquired.
             return channels.channel[iretn].datasize;
         }
 
+        /**
+         * @brief Max data size of channel
+         * 
+         * @param number 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_datasize(uint8_t number)
         {
             if (number >= channels.channel.size())
@@ -4956,6 +6103,14 @@ acquired.
             return channels.channel[number].datasize;
         }
 
+        /**
+         * @brief Max packet size of channel
+         * 
+         * @param name 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_rawsize(string name)
         {
             int32_t iretn = channel_number(name);
@@ -4966,6 +6121,14 @@ acquired.
             return channels.channel[iretn].rawsize;
         }
 
+        /**
+         * @brief Max packet size of channel
+         * 
+         * @param number 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_rawsize(uint8_t number)
         {
             if (number >= channels.channel.size())
@@ -4975,6 +6138,14 @@ acquired.
             return channels.channel[number].rawsize;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param name 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_maximum(string name)
         {
             int32_t iretn = channel_number(name);
@@ -4985,6 +6156,14 @@ acquired.
             return channel_maximum(iretn);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::channel_maximum(uint8_t number)
         {
             if (number >= channels.channel.size())
@@ -4994,51 +6173,130 @@ acquired.
             return channels.channel[number].maximum;
         }
 
+        /**
+         * @brief 
+         * 
+         * @param command 
+         * @param source 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::task_add(string command, string source)
         {
             return tasks.Add(command, source);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param deci 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::task_del(uint32_t deci)
         {
             return tasks.Del(deci);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::task_iretn(uint16_t number)
         {
             return tasks.Iretn(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return uint32_t 
+         * 
+         * @todo Document this.
+         */
         uint32_t Agent::task_deci(uint16_t number)
         {
             return tasks.Deci(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return double 
+         * 
+         * @todo Document this.
+         */
         double Agent::task_startmjd(uint16_t number)
         {
             return tasks.Startmjd(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return uint8_t 
+         * 
+         * @todo Document this.
+         */
         uint8_t Agent::task_state(uint16_t number)
         {
             return tasks.State(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return string 
+         * 
+         * @todo Document this.
+         */
         string Agent::task_command(uint16_t number)
         {
             return tasks.Command(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @param number 
+         * @return string 
+         * 
+         * @todo Document this.
+         */
         string Agent::task_path(uint16_t number)
         {
             return tasks.Path(number);
         }
 
+        /**
+         * @brief 
+         * 
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t Agent::task_size()
         {
             return tasks.Size();
         }
 
+        /**
+         * @brief 
+         * 
+         * @return double 
+         * 
+         * @todo Document this.
+         */
         double Agent::get_timeStart()
         {
             return timeStart;
