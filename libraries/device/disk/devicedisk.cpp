@@ -1,22 +1,114 @@
+/**
+ * @file devicedisk.cpp
+ * @brief 
+ * 
+ * Copyright (C) 2024 by Interstel Technologies, Inc. and Hawaii Space Flight
+ * Laboratory.
+ * 
+ * This file is part of the COSMOS/core that is the central module for COSMOS.
+ * For more information on COSMOS go to <http://cosmos-project.com>
+ * 
+ * The COSMOS/core software is licenced under the GNU Lesser General Public
+ * License (LGPL) version 3 licence.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License. If
+ * not, go to <http://www.gnu.org/licenses/>
+ * 
+ * COSMOS/core is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * COSMOS/core is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * Refer to the "licences" folder for further information on the conditions and
+ * terms to use this software.
+ */
+
 #include "device/disk/devicedisk.h"
 
+/**
+ * @brief Construct a new Device Disk:: Device Disk object
+ * 
+ * @todo Document this.
+ */
 DeviceDisk::DeviceDisk()
 {
 
 }
 
-// get the disk size percentage
-double DeviceDisk::getAll()
+/**
+ * @brief 
+ * 
+ * @return vector <DeviceDisk::info> 
+ * 
+ * @todo Document this.
+ */
+vector <DeviceDisk::info> DeviceDisk::getInfo()
 {
-#if defined COSMOS_LINUX_OS
-    return getAll("/");
-#endif
+    vector <info> result;
+    info tinfo;
+#ifdef COSMOS_LINUX_OS
 
-#if defined COSMOS_WIN_OS
-    return getAll("C:");
+    static FILE *mfd = nullptr;
+    if (mfd == nullptr)
+    {
+        mfd = fopen("/proc/mounts", "r");
+        if (mfd == nullptr)
+        {
+            return result;
+        }
+    }
+
+    char nextline[100];
+    if (mfd != nullptr)
+    {
+        while (fgets(nextline, 100, mfd) != nullptr)
+        {
+            vector<string> fields = string_split(nextline);
+            if (fields.size() == 6 && (fields[2] == "ext4" || fields[2] == "btrfs" || fields[2] == "vfat"))
+            {
+                struct statvfs tstat;
+                if (statvfs(fields[0].c_str(), &tstat) == 0)
+                {
+                    tinfo.mount = fields[0];
+                    tinfo.size = tstat.f_bsize * tstat.f_blocks;
+                    tinfo.free = tstat.f_bsize * tstat.f_bfree;
+                    tinfo.used = tstat.f_bsize * (tstat.f_blocks - tstat.f_bfree);
+                    result.push_back(tinfo);
+                }
+            }
+        }
+    }
 #endif
+#ifdef COSMOS_WIN_OS
+    getAll();
+    tinfo.size = Size;
+    tinfo.free = Free;
+    tinfo.used = Used;
+    tinfo.mount = "c:/";
+    result.push_back(tinfo);
+#endif
+#ifdef COSMOS_MAC_OS
+    getAll();
+    tinfo.size = Size;
+    tinfo.mount = "/";
+    result.push_back(tinfo);
+#endif
+    return result;
 }
 
+/**
+ * @brief 
+ * 
+ * @param path 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
 double DeviceDisk::getAll(string path)
 {
     Size = 0;
@@ -87,6 +179,74 @@ double DeviceDisk::getAll(string path)
     return FreePercent;
 }
 
+/**
+ * @brief get all disk information in bytes
+ * 
+ * @param path 
+ * @return uint64_t 
+ * 
+ * @todo Document this.
+ */
+uint64_t DeviceDisk::getSize(const string path)
+{
+    getAll(path);
+    return Size;
+}
+
+/**
+ * @brief 
+ * 
+ * @param path 
+ * @return uint64_t 
+ * 
+ * @todo Document this.
+ */
+uint64_t DeviceDisk::getUsed(const string path)
+{
+    getAll(path);
+    return (Used);
+}
+
+/**
+ * @brief 
+ * 
+ * @param path 
+ * @return uint64_t 
+ * 
+ * @todo Document this.
+ */
+uint64_t DeviceDisk::getFree(string path)
+{
+    getAll(path);
+
+    return Free;
+}
+
+/**
+ * @brief get the disk size percentage
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceDisk::getAll()
+{
+#if defined COSMOS_LINUX_OS
+    return getAll("/");
+#endif
+
+#if defined COSMOS_WIN_OS
+    return getAll("C:");
+#endif
+}
+
+/**
+ * @brief 
+ * 
+ * @return uint64_t 
+ * 
+ * @todo Document this.
+ */
 uint64_t DeviceDisk::getSize()
 {
 #if defined COSMOS_LINUX_OS
@@ -98,28 +258,13 @@ uint64_t DeviceDisk::getSize()
 #endif
 }
 
-// get all disk information in bytes
-uint64_t DeviceDisk::getSize(const string path)
-{
-    getAll(path);
-    return Size;
-}
-
-
-double DeviceDisk::getSizeGiB(const string path)
-{
-    // convert from Byte to GiB
-    double size = getSize(path)/1073741824.;
-    return size;
-}
-
-double DeviceDisk::getSizeGiB()
-{
-    // convert from Byte to GiB
-    double size = getSize()/1073741824.;
-    return size;
-}
-
+/**
+ * @brief 
+ * 
+ * @return uint64_t 
+ * 
+ * @todo Document this.
+ */
 uint64_t DeviceDisk::getUsed()
 {
 #if defined COSMOS_LINUX_OS
@@ -131,26 +276,13 @@ uint64_t DeviceDisk::getUsed()
 #endif
 }
 
-uint64_t DeviceDisk::getUsed(const string path)
-{
-    getAll(path);
-    return (Used);
-}
-
-
-double DeviceDisk::getUsedGiB(const string path)
-{
-    // convert from Byte to GiB
-    return (double)getUsed(path)/1073741824.;
-}
-
-double DeviceDisk::getUsedGiB()
-{
-    // convert from Byte to GiB
-    return (double)getUsed()/1073741824.;
-}
-
-// get the free disk in bytes
+/**
+ * @brief get the free disk in bytes
+ * 
+ * @return uint64_t 
+ * 
+ * @todo Document this.
+ */
 uint64_t DeviceDisk::getFree()
 {
 #if defined COSMOS_LINUX_OS
@@ -162,77 +294,103 @@ uint64_t DeviceDisk::getFree()
 #endif
 }
 
-
-uint64_t DeviceDisk::getFree(string path)
-{
-    getAll(path);
-
-    return Free;
-}
-
-
+/**
+ * @brief 
+ * 
+ * @param path 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
 double DeviceDisk::getFreeGiB(string path)
 {
     // convert from Byte to GiB
     return (double)getFree(path)/1073741824.;
 }
 
+/**
+ * @brief 
+ * 
+ * @param path 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceDisk::getUsedGiB(const string path)
+{
+    // convert from Byte to GiB
+    return (double)getUsed(path)/1073741824.;
+}
+
+/**
+ * @brief 
+ * 
+ * @param path 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceDisk::getSizeGiB(const string path)
+{
+    // convert from Byte to GiB
+    double size = getSize(path)/1073741824.;
+    return size;
+}
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
 double DeviceDisk::getFreeGiB()
 {
     // convert from Byte to GiB
     return (double)getFree()/1073741824.;
 }
 
-vector <DeviceDisk::info> DeviceDisk::getInfo()
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceDisk::getUsedGiB()
 {
-    vector <info> result;
-    info tinfo;
-#ifdef COSMOS_LINUX_OS
-
-    static FILE *mfd = nullptr;
-    if (mfd == nullptr)
-    {
-        mfd = fopen("/proc/mounts", "r");
-        if (mfd == nullptr)
-        {
-            return result;
-        }
-    }
-
-    char nextline[100];
-    if (mfd != nullptr)
-    {
-        while (fgets(nextline, 100, mfd) != nullptr)
-        {
-            vector<string> fields = string_split(nextline);
-            if (fields.size() == 6 && (fields[2] == "ext4" || fields[2] == "btrfs" || fields[2] == "vfat"))
-            {
-                struct statvfs tstat;
-                if (statvfs(fields[0].c_str(), &tstat) == 0)
-                {
-                    tinfo.mount = fields[0];
-                    tinfo.size = tstat.f_bsize * tstat.f_blocks;
-                    tinfo.free = tstat.f_bsize * tstat.f_bfree;
-                    tinfo.used = tstat.f_bsize * (tstat.f_blocks - tstat.f_bfree);
-                    result.push_back(tinfo);
-                }
-            }
-        }
-    }
-#endif
-#ifdef COSMOS_WIN_OS
-    getAll();
-    tinfo.size = Size;
-    tinfo.free = Free;
-    tinfo.used = Used;
-    tinfo.mount = "c:/";
-    result.push_back(tinfo);
-#endif
-#ifdef COSMOS_MAC_OS
-    getAll();
-    tinfo.size = Size;
-    tinfo.mount = "/";
-    result.push_back(tinfo);
-#endif
-    return result;
+    // convert from Byte to GiB
+    return (double)getUsed()/1073741824.;
 }
+
+/**
+ * @brief 
+ * 
+ * @return double 
+ * 
+ * @todo Document this.
+ */
+double DeviceDisk::getSizeGiB()
+{
+    // convert from Byte to GiB
+    double size = getSize()/1073741824.;
+    return size;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
