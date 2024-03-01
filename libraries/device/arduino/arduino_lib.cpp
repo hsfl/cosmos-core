@@ -1,37 +1,36 @@
-/********************************************************************
-* Copyright (C) 2015 by Interstel Technologies, Inc.
-*   and Hawaii Space Flight Laboratory.
-*
-* This file is part of the COSMOS/core that is the central
-* module for COSMOS. For more information on COSMOS go to
-* <http://cosmos-project.com>
-*
-* The COSMOS/core software is licenced under the
-* GNU Lesser General Public License (LGPL) version 3 licence.
-*
-* You should have received a copy of the
-* GNU Lesser General Public License
-* If not, go to <http://www.gnu.org/licenses/>
-*
-* COSMOS/core is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public License
-* as published by the Free Software Foundation, either version 3 of
-* the License, or (at your option) any later version.
-*
-* COSMOS/core is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* Refer to the "licences" folder for further information on the
-* condititons and terms to use this software.
-********************************************************************/
-
-/*
+/**
+ * @file arduino_lib.cpp
+ * @brief 
+ * 
  * arduinolib
  * adapted from the arduino-serial program written by Tod E. Kurt
  * https://github.com/todbot/arduino-serial
- * only works for Mac and Linux, Windows support must be added
+ * only works for Mac and Linux, @todo Windows support must be added
+ * 
+ * Copyright (C) 2024 by Interstel Technologies, Inc. and Hawaii Space Flight
+ * Laboratory.
+ * 
+ * This file is part of the COSMOS/core that is the central module for COSMOS.
+ * For more information on COSMOS go to <http://cosmos-project.com>
+ * 
+ * The COSMOS/core software is licenced under the GNU Lesser General Public
+ * License (LGPL) version 3 licence.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License. If
+ * not, go to <http://www.gnu.org/licenses/>
+ * 
+ * COSMOS/core is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * COSMOS/core is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * Refer to the "licences" folder for further information on the conditions and
+ * terms to use this software.
  */
 
 #include "support/configCosmos.h"
@@ -50,18 +49,64 @@
 #endif
 
 #include <stdio.h>    // Standard input/output definitions
+/** @todo Remove commented-out code? */
 // #include <unistd.h>   // UNIX standard function definitions
 #include <fcntl.h>    // File control definitions
 #include <errno.h>    // Error number definitions
 #include <cstring>   // String function definitions
 
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file
+ */
 char serialport[256];
-//int baudrate = B9600;
+/**
+ * @brief 
+ * 
+ * int baudrate = B9600;
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file
+ */
 int baudrate = 9600;
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file
+ */
 int fd = 0;
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file
+ */
 char buf[256];
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file
+ */
 cssl_t *serial;
 
+/**
+ * @brief 
+ * 
+ * @param port 
+ * @param baud 
+ * @return int 
+ * 
+ * @todo Document this.
+ */
 int arduino_init(char* port, int baud) {
 	arduino_setport(port);
 	arduino_setbaud(baud);
@@ -69,6 +114,15 @@ int arduino_init(char* port, int baud) {
 		return -1;
 	return fd;
 }
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return int 
+ * 
+ * @todo Document this.
+ */
 int arduino_printstring(char* str) {
 	int32_t iretn = 0;
 	strcpy(buf,str);
@@ -76,24 +130,69 @@ int arduino_printstring(char* str) {
 		return -1;
 	return iretn;
 }
+
+/**
+ * @brief 
+ * 
+ * @param num 
+ * @return int 
+ * 
+ * @todo Document this.
+ */
 int arduino_printnum(int num) {
 	int32_t iretn = 0;
 	if((iretn = serialport_writebyte(fd, (uint8_t)num)) == -1)
 		return -1;
 	return iretn;
 }
+
+/**
+ * @brief 
+ * 
+ * @param delay 
+ * @return int 
+ * 
+ * @todo Document this.
+ */
 int arduino_delay(int delay) {
 	COSMOS_USLEEP(delay * 1000);
 	return delay;
 }
+
+/**
+ * @brief 
+ * 
+ * @param port 
+ * @return char* 
+ * 
+ * @todo Document this.
+ */
 char* arduino_setport(char* port) {
 	strcpy(serialport, port);
 	return serialport;
 }
+
+/**
+ * @brief 
+ * 
+ * @param baud 
+ * @return int 
+ * 
+ * @todo Document this.
+ */
 int arduino_setbaud(int baud) {
 	baudrate = baud;
 	return baudrate;
 }
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return char* 
+ * 
+ * @todo Document this.
+ */
 char* arduino_read(char* str) {
     serialport_read_until(fd, str, '\n');
     //printf("read: %s\n",str);
@@ -101,6 +200,13 @@ char* arduino_read(char* str) {
 	return str;
 }
 
+/**
+ * @brief 
+ * 
+ * @return int 
+ * 
+ * @todo Document this.
+ */
 int arduino_closeport() {
 	if(fd < 0)
 		return -1;
@@ -108,45 +214,21 @@ int arduino_closeport() {
 		return -1;
 	return fd;
 }
-int serialport_writebyte( int fd, uint8_t b)
-{
-    int n = write(fd,&b,1);
-    if( n!=1)
-        return -1;
-    return 0;
-}
 
-int serialport_write(int fd, const char* str)
-{
-    int len = strlen(str);
-    int n = write(fd, str, len);
-    if( n!=len ) 
-        return -1;
-    return 0;
-}
-
-int serialport_read_until(int fd, char* buf, char until)
-{
-    char b[1];
-    int i=0;
-    do { 
-        int n = read(fd, b, 1);  // read a char at a time
-        if( n==-1) return -1;    // couldn't read
-        if( n==0 ) {
-			COSMOS_USLEEP( 10 * 1000 ); // wait 10 msec try again
-            continue;
-        }
-        buf[i] = b[0]; i++;
-    } while( b[0] != until );
-
-    buf[i] = 0;  // null terminate the string
-    return 0;
-}
-
-// takes the string name of the serial port (e.g. "/dev/tty.usbserial","COM1")
-// and a baud rate (bps) and connects to that port at that speed and 8N1.
-// opens the port in fully raw mode so you can send binary data.
-// returns valid fd, or -1 on error
+/**
+ * @brief 
+ * 
+ * takes the string name of the serial port (e.g. "/dev/tty.usbserial","COM1") 
+ * and a baud rate (bps) and connects to that port at that speed and 8N1. opens 
+ * the port in fully raw mode so you can send binary data. returns valid fd, or 
+ * -1 on error
+ * 
+ * @param serialport 
+ * @param baud 
+ * @return int 
+ * 
+ * @todo Document this.
+ */
 int serialport_init(const char* serialport, int baud)
 {
 	serial = cssl_open(serialport, baud, 8, 0, 1);
@@ -211,4 +293,67 @@ int serialport_init(const char* serialport, int baud)
 	*/
 
 	return serial->fd;
+}
+
+/**
+ * @brief 
+ * 
+ * @param fd 
+ * @param b 
+ * @return int 
+ * 
+ * @todo Document this.
+ */
+int serialport_writebyte( int fd, uint8_t b)
+{
+    int n = write(fd,&b,1);
+    if( n!=1)
+        return -1;
+    return 0;
+}
+
+/**
+ * @brief 
+ * 
+ * @param fd 
+ * @param str 
+ * @return int 
+ * 
+ * @todo Document this.
+ */
+int serialport_write(int fd, const char* str)
+{
+    int len = strlen(str);
+    int n = write(fd, str, len);
+    if( n!=len ) 
+        return -1;
+    return 0;
+}
+
+/**
+ * @brief 
+ * 
+ * @param fd 
+ * @param buf 
+ * @param until 
+ * @return int 
+ * 
+ * @todo Document this.
+ */
+int serialport_read_until(int fd, char* buf, char until)
+{
+    char b[1];
+    int i=0;
+    do { 
+        int n = read(fd, b, 1);  // read a char at a time
+        if( n==-1) return -1;    // couldn't read
+        if( n==0 ) {
+			COSMOS_USLEEP( 10 * 1000 ); // wait 10 msec try again
+            continue;
+        }
+        buf[i] = b[0]; i++;
+    } while( b[0] != until );
+
+    buf[i] = 0;  // null terminate the string
+    return 0;
 }
