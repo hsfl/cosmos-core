@@ -1,35 +1,32 @@
-/********************************************************************
-* Copyright (C) 2015 by Interstel Technologies, Inc.
-*   and Hawaii Space Flight Laboratory.
-*
-* This file is part of the COSMOS/core that is the central
-* module for COSMOS. For more information on COSMOS go to
-* <http://cosmos-project.com>
-*
-* The COSMOS/core software is licenced under the
-* GNU Lesser General Public License (LGPL) version 3 licence.
-*
-* You should have received a copy of the
-* GNU Lesser General Public License
-* If not, go to <http://www.gnu.org/licenses/>
-*
-* COSMOS/core is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public License
-* as published by the Free Software Foundation, either version 3 of
-* the License, or (at your option) any later version.
-*
-* COSMOS/core is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* Refer to the "licences" folder for further information on the
-* condititons and terms to use this software.
-********************************************************************/
-
-/*! \file agentclass.cpp
-    \brief Agent support functions
-*/
+/**
+ * @file command_queue.cpp
+ * @brief 
+ * 
+ * Copyright (C) 2024 by Interstel Technologies, Inc. and Hawaii Space Flight
+ * Laboratory.
+ * 
+ * This file is part of the COSMOS/core that is the central module for COSMOS.
+ * For more information on COSMOS go to <http://cosmos-project.com>
+ * 
+ * The COSMOS/core software is licenced under the GNU Lesser General Public
+ * License (LGPL) version 3 licence.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License. If
+ * not, go to <http://www.gnu.org/licenses/>
+ * 
+ * COSMOS/core is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * COSMOS/core is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * Refer to the "licences" folder for further information on the conditions and
+ * terms to use this software.
+ */
 
 #include "agent/command_queue.h"
 
@@ -39,6 +36,17 @@ namespace Cosmos
     {
         namespace Command
         {
+            /**
+             * @brief 
+             * 
+             * @param command_line 
+             * @param outpath 
+             * @param inpath 
+             * @param errpath 
+             * @return int32_t 
+             * 
+             * @todo Document this.
+             */
             int32_t Shell(string command_line, string outpath, string inpath, string errpath)
             {
                 int32_t iretn=0;
@@ -106,11 +114,25 @@ namespace Cosmos
         // Class: CommandQueue
         // *************************************************************************
 
-
+        /**
+         * @brief Destroy the Command Queue:: Command Queue object
+         * 
+         * Ensure all threads are joined before destruction.
+         * 
+         * @todo Document this.
+         */
         CommandQueue::~CommandQueue () { join_event_threads(); }
 
-        // Before moving log files, we must join the event threads and ensure that each
-        // event spawned is not currently active.
+        /**
+         * @brief Join all threads spawn and empty our vector.
+         * 
+         * Before moving log files, we must join the event threads and ensure 
+         * that each event spawned is not currently active.
+         * 
+         * @return size_t 
+         * 
+         * @todo Document this.
+         */
         size_t CommandQueue::join_event_threads()
         {
             //            static auto join_event = [] (thread &t) {
@@ -140,17 +162,27 @@ namespace Cosmos
             }
         }
 
-        //! Run the given Request Event
-        /*!
-            Submits a Request to the local agent. For each
-            command run, the time of execution (utcexec) is set, the flag
-            EVENT_FLAG_ACTUAL is set to true, and this updated command information is
-            logged to the OUTPUT directory.
-
-            \param	cmd	Reference to event to run
-            \param	nodename	Name of node
-            \param	logdate_exec	Time of execution (for logging purposes)
-        */
+        /**
+         * @brief Run the given Request Event
+         * 
+         * Submits a Request to the local agent. For each command run, the time 
+         * of execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to 
+         * true, and this updated command information is logged to the OUTPUT 
+         * directory.
+         * 
+         * Execute an event using fork().  For each event run, the time of 
+         * execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to 
+         * true, and this updated command information is logged to the OUTPUT 
+         * directory.
+         * 
+         * @param agent 
+         * @param cmd Reference to event to run
+         * @param node_name Name of node
+         * @param logdate_exec Time of execution (for logging purposes)
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t CommandQueue::run_request(Agent *agent, Event& cmd, string node_name, double logdate_exec)
         {
             int32_t iretn = 0;
@@ -185,17 +217,21 @@ namespace Cosmos
             return iretn;
         }
 
-        //! Run the given Command Event
-        /*!
-                Executes a command in a separate shell (system) using threads. For each
-                command run, the time of execution (utcexec) is set, the flag
-                EVENT_FLAG_ACTUAL is set to true, and this updated command information is
-                logged to the OUTPUT directory.
-
-                \param	cmd	Reference to event to run
-                \param	nodename	Name of node
-                \param	logdate_exec	Time of execution (for logging purposes)
-            */
+        /**
+         * @brief Run the given Command Event
+         * 
+         * Executes a command in a separate shell (system) using threads. For 
+         * each command run, the time of execution (utcexec) is set, the flag
+         * EVENT_FLAG_ACTUAL is set to true, and this updated command 
+         * information is logged to the OUTPUT directory.
+         * 
+         * @param cmd Reference to event to run
+         * @param node_name Name of node
+         * @param logdate_exec Time of execution (for logging purposes)
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t CommandQueue::run_command(Event& cmd, string node_name, double logdate_exec)
         {
             queue_changed = true;
@@ -255,17 +291,21 @@ namespace Cosmos
             return 0;
         }
 
-        //!	Traverse the entire queue of Events, and run those which qualify.
-        /*!
-
-        An %Event only qualifies to run if the current time is greater than or equal to
-        the execution time of the %Event.  Further, if the %Event is conditional, then the
-        %Event condition must be true.
-
-            \param	agent	Pointer to Agent object (for call to condition_true(..))
-            \param	nodename	Name of the node
-            \param	logdate_exec	Time of execution (for logging purposes)
-        */
+        /**
+         * @brief Traverse the entire queue of Events, and run those which 
+         * qualify.
+         * 
+         * An %Event only qualifies to run if the current time is greater than 
+         * or equal to the execution time of the %Event.  Further, if the %Event
+         * is conditional, then the %Event condition must be true.
+         * 
+         * @param agent Pointer to Agent object (for call to condition_true(..))
+         * @param node_name Name of the node
+         * @param logdate_exec Time of execution (for logging purposes)
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t CommandQueue::run_commands(Agent *agent, string node_name, double logdate_exec)
         {
             for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
@@ -378,14 +418,21 @@ namespace Cosmos
             return static_cast<int32_t>(commands.size());
         }
 
-        //!	Save the queue of Events to a file
-        /*!
-            Commands are taken from the global command queue
-            Command queue is sorted by utc after loading
+        /**
+         * @brief Save the queue of Events to a file
+         * 
+         * Commands are taken from the global command queue
+         * Command queue is sorted by utc after loading
+         * 
+         * Save the queue of Events to the file temp_dir/.queue
 
-            \param	temp_dir	Directory where the .queue file will be written
-            \param	name	File where the .queue will be written
-        */
+         * 
+         * @param temp_dir Directory where the .queue file will be written
+         * @param name File where the .queue will be written
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t CommandQueue::save_commands(string temp_dir, string name)
         {
             if (!queue_changed)
@@ -410,14 +457,21 @@ namespace Cosmos
             return static_cast<int32_t>(commands.size());
         }
 
-        //!	Restore the queue of Events from a file
-        /*!
-            Commands are taken from the global command queue
-            Command queue is sorted by utc after loading
-
-            \param	temp_dir	Directory where the .queue file will be read from
-            \param	name	File where the .queue will be read from
-        */
+        /**
+         * @brief Restore the queue of Events from a file
+         * 
+         * Commands are taken from the global command queue
+         * Command queue is sorted by utc after loading
+         * 
+         * Save the queue of Events to the file temp_dir/.queue
+         * 
+         * @param temp_dir Directory where the .queue file will be written 
+         * Directory where the .queue file will be read from
+         * @param name File where the .queue will be read from
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t CommandQueue::restore_commands(string temp_dir, string name)
         {
             queue_changed = false;
@@ -446,13 +500,25 @@ namespace Cosmos
             return static_cast<int32_t>(commands.size());
         }
 
-
-        //!	Loads new commands from *.command files located in the incoming directory
-        /*!
-        // Commands are loaded into the global CommandQueue object (cmd_queue),
-        // *.command files are removed, and the command list is sorted by utc.
-            \param	incoming_dir	Directory where the .command files will be read from
-        */
+        /**
+         * @brief Load queue of Events from a file
+         * 
+         * Loads new commands from *.command files located in the incoming 
+         * directory
+         * 
+         * Commands are loaded into the global CommandQueue object (cmd_queue),
+         * *.command files are removed, and the command list is sorted by utc.
+         * 
+         * Reads new Events from *.command files in the incoming directory, adds
+         * them to the queue of Events, and deletes the *.command files. Events 
+         * in the queue are then sorted by their execution time.
+         * 
+         * @param incoming_dir Directory where the .queue file will be read from
+         * Directory where the .command files will be read from
+         * @return int32_t 
+         * 
+         * @todo Document this.
+         */
         int32_t CommandQueue::load_commands(string incoming_dir)
         {
             DIR *dir = nullptr;
@@ -514,13 +580,15 @@ namespace Cosmos
 
             return 0;
         }
-        ///	Remove **all** matching Event from the queue
         /**
-            \param	c	Event to remove
-            \return	The number of Events removed
-
-            This function only removes events from the queue if the are exactly equal to the given Event.
-        */
+         * @brief Remove **all** matching Event from the queue
+         * 
+         * This function only removes events from the queue if the are exactly 
+         * equal to the given Event.
+         * 
+         * @param c Event to remove
+         * @return int32_t The number of Events removed
+         */
         int32_t CommandQueue::del_command(Event& c)
         {
             size_t prev_sz = commands.size();
@@ -537,13 +605,15 @@ namespace Cosmos
 
         }
 
-        //! Remove Event from the queue based on position
-        /*!
-             \param  pos  Position of event to remove
-             \return The number of Events removed
-
-             This function removes events based on their queue position (0-indexed).
-        */
+        /**
+         * @brief Remove Event from the queue based on position
+         * 
+         * This function removes events based on their queue position 
+         * (0-indexed).
+         * 
+         * @param pos Position of event to remove
+         * @return int32_t The number of Events removed
+         */
         int32_t CommandQueue::del_command(int pos)
         {
             size_t prev_sz = commands.size();
@@ -555,6 +625,15 @@ namespace Cosmos
             return static_cast<int32_t>(prev_sz - commands.size());
         }
 
+        /**
+         * @brief Remove **all** matching Event from the queue
+         * 
+         * JIMNOTE:	this only adds given Event to the queue if the Event has 
+         * flag for EVENT_TYPE_COMMAND set to true
+         * 
+         * @param c Event to remove
+         * @return int32_t The number of Events removed
+         */
         int32_t CommandQueue::add_command(Event& c)
         {
             // Replace if it matches an existing command, otherwise add to queue
@@ -571,15 +650,16 @@ namespace Cosmos
             return 1;
         }
 
-        //!	Extraction operator
-        /*!
-            \param	out	Reference to ostream
-            \param	cmdq	Reference to CommandQueue (JIMNOTE: should be const, ya?)
-            \return	Reference to modified ostream
-
-            Writes the given CommandQueue to the given output stream (in JSON format) and returns a reference to the modified ostream.
-
-        */
+        /**
+         * @brief Extraction operator
+         * 
+         * Writes the given CommandQueue to the given output stream (in JSON 
+         * format) and returns a reference to the modified ostream.
+         * 
+         * @param out Reference to ostream
+         * @param cmdq Reference to CommandQueue (JIMNOTE: should be const, ya?)
+         * @return ::std::ostream& Reference to modified ostream
+         */
         ::std::ostream& operator<<(::std::ostream& out, CommandQueue& cmdq)
         {
             for(std::list<Event>::iterator ii = cmdq.commands.begin(); ii != cmdq.commands.end(); ++ii)
