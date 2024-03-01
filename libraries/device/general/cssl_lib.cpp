@@ -1,15 +1,19 @@
-//! \file cssl_lib.cpp
-//! \brief Simple Serial library source file
-
-/* Copyright 2003 Marcin Siennicki <m.siennicki@cloos.pl>
+/**
+ * @file cssl_lib.cpp
+ * @brief Simple Serial library source file
+ * 
+ * @todo This is not HSFL code. Verify the appropriate attributions are 
+ * included.
+ * 
+ * Copyright 2003 Marcin Siennicki <m.siennicki@cloos.pl>
  * see COPYING file for details
  * Columbo Simple Serial Library is an easy to use,
  * event driven serial port communication library for Linux.
- * Project website: http://sourceforge.net/projects/cssl/ */
+ * Project website: http://sourceforge.net/projects/cssl/
+ */
 
 #include "support/configCosmos.h"
-
-
+/** @todo Move to .h file */
 #include <stdio.h>
 #include <cstring>
 #include <sys/stat.h>
@@ -18,17 +22,27 @@
 
 #include "device/general/cssl_lib.h"
 
-/*
- * Static variables and constants
- */
+/* Static variables and constants */
 
-/* boolean that say if we have started cssl */
+/**
+ * @brief boolean that say if we have started cssl
+ * 
+ * @todo Move to .h file
+ */
 static int cssl_started=0;
 
-/* head of the cssl_t list */
+/**
+ * @brief head of the cssl_t list
+ * 
+ * @todo Move to .h file
+ */
 static cssl_t *head=0;
 
-/* error messages table */
+/**
+ * @brief error messages table
+ * 
+ * @todo Move to .h file
+ */
 static const char *cssl_errors[]= {
 	"cssl: OK",
 	"cssl: there's no free signal",
@@ -39,37 +53,53 @@ static const char *cssl_errors[]= {
 	"cssl: cannot open file"
 };
 
-/* status of last cssl function */ 
+/**
+ * @brief status of last cssl function
+ * 
+ * @todo Move to .h file
+ */
 static cssl_error_t cssl_error=CSSL_OK;
 
-//! \addtogroup cssl_lib_functions
-//! @{
-/**************************************
- * Public functions
- **************************************/
-
-/*-------------------------------------
- * Error handling
+/**
+ * @addtogroup cssl_lib_functions 
+ * @{
  */
 
-/* gets the last operation status message */
+/**
+ * @brief gets the last operation status message
+ * 
+ * get the error message
+ * 
+ * @return const char* 
+ * 
+ * @todo Document this.
+ */
 const char *cssl_geterrormsg()
 {
 	return cssl_errors[cssl_error];
 }
 
-
-/* gets the last error code */
+/**
+ * @brief gets the last error code
+ * 
+ * get the error code
+ * 
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
 int32_t cssl_geterror()
 {
 	return cssl_error;
 }
 
-/*-------------------------------------
- * Startig/stoping cssl
+/**
+ * @brief start the cssl
+ * 
+ * @return int32_t 
+ * 
+ * @todo Document this.
  */
-
-/* starts cssl */
 int32_t cssl_start()
 {
 	if (cssl_started) {
@@ -82,7 +112,13 @@ int32_t cssl_start()
 	return 0;
 }
 
-/* stops the cssl */
+/**
+ * @brief stops the cssl
+ * 
+ * finish all jobs, clear memory, etc.
+ * 
+ * @return int32_t 
+ */
 int32_t cssl_stop()
 {
 	/* if not started we do nothing */
@@ -99,17 +135,21 @@ int32_t cssl_stop()
 	return 0;
 }
 
-/*-------------------------------------
- * Basic port operation - open/close
+/**
+ * @brief opens the port
+ * 
+ * alloc new cssl_t struct and open the port
+ * 
+ * @param fname pathname of port file, for example "/dev/ttyS0"
+ * @param baud baudrate, integer, for example 19200
+ * @param bits data bits: 7 or 8
+ * @param parity parity: 0 - none, 1-odd, 2-even
+ * @param stop stop bits: 1 or 2
+ * @return cssl_t* 
+ * 
+ * @todo Document this.
  */
-
-
-/* opens the port */
-cssl_t *cssl_open(const char *fname,
-				  int baud,
-				  int bits,
-				  int parity,
-				  int stop)
+cssl_t *cssl_open(const char *fname, int baud, int bits, int parity, int stop)
 {
 	cssl_t *serial;
 
@@ -192,8 +232,16 @@ cssl_t *cssl_open(const char *fname,
 	return serial;
 }
 
-
-/* closes file, removes serial from the list and frees it */
+/**
+ * @brief closes the port, and frees its cssl_t struct
+ * 
+ * closes file, removes serial from the list and frees it
+ * 
+ * @param serial 
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
 int32_t cssl_close(cssl_t *serial)
 {
 	cssl_t *cur;
@@ -248,12 +296,18 @@ int32_t cssl_close(cssl_t *serial)
 	return (cssl_error);
 }
 
-
-/*-------------------------------------
- * Port setup
+/**
+ * @brief sets up the port parameters
+ * 
+ * setups the port, look at cssl_open
+ * 
+ * @param serial 
+ * @param baud 
+ * @param bits 
+ * @param parity 
+ * @param stop 
+ * @return int32_t 
  */
-
-/* sets up the port parameters */
 int32_t cssl_setup(cssl_t *serial, int baud, int bits, int parity, int stop)
 {
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
@@ -386,6 +440,16 @@ int32_t cssl_setup(cssl_t *serial, int baud, int bits, int parity, int stop)
 	return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param serial 
+ * @param rtscts Boolean:  0 - no rts/cts control, 1 - rts/cts control
+ * @param xonxoff Boolean:  0 - no xon/xoff,  1 - xon/xoff
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
 int32_t cssl_setflowcontrol(cssl_t *serial, int rtscts, int xonxoff)
 {
 	if (!cssl_started)
@@ -453,19 +517,35 @@ int32_t cssl_setflowcontrol(cssl_t *serial, int rtscts, int xonxoff)
 	return 0;
 }
 
-
-
-//! Set read timeout
-/* Sets timeout for reading in blocking mode. Read will return after at least
-	minchar bytes, or timeout seconds between bytes. Timeout granularity is
-	.1 seconds.
-	\param serial Handle returned by::cssl_open
-	\param minchar Minimum number of characters
-	\param timeout Minimum inter character time in seconds.
-*/
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
+/**
+ * @brief Set read timeout
+ * 
+ * Sets timeout for reading in blocking mode. Read will return after at least 
+ * minchar bytes, or timeout seconds between bytes. Timeout granularity is .1 
+ * seconds.
+ * 
+ * @param serial Handle returned by::cssl_open
+ * @param minchar Minimum number of characters
+ * @param timeout Minimum inter character time in seconds.
+ * 
+ * @todo Verify this documentation.
+ */
 int32_t cssl_settimeout(cssl_t *serial, int minchar, double timeout)
 #else // Windows
+/**
+ * @brief Set read timeout
+ * 
+ * Sets timeout for reading in blocking mode. Read will return after at least 
+ * minchar bytes, or timeout seconds between bytes. Timeout granularity is .1 
+ * seconds.
+ * 
+ * @param serial Handle returned by::cssl_open
+ * @param minchar Minimum number of characters
+ * @param timeout Minimum inter character time in seconds.
+ * 
+ * @todo minchar is not defined here.
+ */
 int32_t cssl_settimeout(cssl_t *serial, int, double timeout)
 #endif
 {
@@ -496,12 +576,17 @@ int32_t cssl_settimeout(cssl_t *serial, int, double timeout)
 	return 0;
 }
 
-
-/*-------------------------------------
- * Serial communication
+/**
+ * @brief sending a char
+ * 
+ * sends a char via serial port
+ * 
+ * @param serial 
+ * @param c 
+ * @return int32_t 
+ * 
+ * @todo Document this.
  */
-
-/* sending a char */
 int32_t cssl_putchar(cssl_t *serial, uint8_t c)
 {
 	if (!cssl_started)
@@ -531,9 +616,18 @@ int32_t cssl_putchar(cssl_t *serial, uint8_t c)
 	return 0;
 }
 
-/* sending a null-terminated string */
-int32_t cssl_putstring(cssl_t *serial,
-					char *str)
+/**
+ * @brief sending a null-terminated string
+ * 
+ * sends a null terminated string
+ * 
+ * @param serial 
+ * @param str 
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
+int32_t cssl_putstring(cssl_t *serial, char *str)
 {
 	if (!cssl_started) {
 		cssl_error=CSSL_ERROR_NOTSTARTED;
@@ -548,8 +642,18 @@ int32_t cssl_putstring(cssl_t *serial,
 	return nbytes;
 }
 
-
-/* sending a data of known size */
+/**
+ * @brief sending a data of known size
+ * 
+ * sends a data of known size
+ * 
+ * @param serial 
+ * @param data data
+ * @param datalen length of data
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
 int32_t cssl_putdata(cssl_t *serial, uint8_t *data, uint32_t datalen)
 {
 //	int32_t iretn = 0;
@@ -582,7 +686,16 @@ int32_t cssl_putdata(cssl_t *serial, uint8_t *data, uint32_t datalen)
 	return 0;
 }
 
-/* SLIP mode: writing a data buffer */
+/**
+ * @brief SLIP mode: writing a data buffer
+ * 
+ * @param serial 
+ * @param buf 
+ * @param size 
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
 int32_t cssl_putslip(cssl_t *serial, uint8_t *buf, size_t size)
 {
 	size_t i, j;
@@ -613,7 +726,16 @@ int32_t cssl_putslip(cssl_t *serial, uint8_t *buf, size_t size)
 	return (i);
 }
 
-/* NMEA mode: writing a data buffer */
+/**
+ * @brief NMEA mode: writing a data buffer
+ * 
+ * @param serial 
+ * @param buf 
+ * @param size 
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
 int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, size_t size)
 {
 	size_t j;
@@ -682,6 +804,14 @@ int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, size_t size)
 	return (j+3);
 }
 
+/**
+ * @brief waits until all data has been transmitted
+ * 
+ * @param serial 
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
 int32_t cssl_drain(cssl_t *serial)
 {
 	if (!cssl_started) {
@@ -705,7 +835,16 @@ int32_t cssl_drain(cssl_t *serial)
 	return 0;
 }
 
-/* blocking mode: reading a char */
+/**
+ * @brief blocking mode: reading a char
+ * 
+ * reads a char in blocking mode
+ * 
+ * @param serial 
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
 int32_t cssl_getchar(cssl_t *serial)
 {
 	int result;
@@ -734,7 +873,18 @@ int32_t cssl_getchar(cssl_t *serial)
 	}
 }
 
-/* blocking mode: reading a data buffer */
+/**
+ * @brief blocking mode: reading a data buffer
+ * 
+ * reads a data to a buffer in blocking mode
+ * 
+ * @param serial 
+ * @param buffer buffer for data
+ * @param size buffer size
+ * @return int32_t 
+ * 
+ * @todo Document this.
+ */
 int32_t cssl_getdata(cssl_t *serial, uint8_t *buffer, int size)
 {
 	int32_t iretn = 0;
@@ -760,69 +910,18 @@ int32_t cssl_getdata(cssl_t *serial, uint8_t *buffer, int size)
 	return (size);
 }
 
-//! Read Xmodem frame.
-/*! Read one Xmodem block (frame) of data, removing control characters
- * and calculating checksum. Supplied buffer is assumed to be at least 128
- * bytes.
-	\param serial Handle returned from :cssl_open.
-	\param buf Byte array to store incoming data.
-	\return Packet number or negative error.
-*/
-int32_t cssl_getxmodem(cssl_t* serial, uint8_t* buf)
-{
-	int16_t ch;
-
-	ch = cssl_getchar(serial);
-	if (ch != XMODEM_SOH)
-	{
-		if (ch == XMODEM_EOT)
-		{
-			return CSSL_ERROR_EOT;
-		}
-		else
-		{
-			return CSSL_ERROR_READ;
-		}
-	}
-	uint8_t blocknum = cssl_getchar(serial);
-	ch = cssl_getchar(serial);
-	if (255-blocknum != ch)
-	{
-		return CSSL_ERROR_READ;
-	}
-
-	uint16_t i = 0;
-	uint8_t csum = 0;
-	do
-	{
-		ch = cssl_getchar(serial);
-		if (ch < 0)
-		{
-			return (ch);
-		}
-		buf[i] = ch;
-		++i;
-		csum += ch;
-	} while (i<128);
-
-	ch = cssl_getchar(serial);
-	if (ch != csum)
-	{
-		return CSSL_ERROR_CHECKSUM;
-	}
-
-	return blocknum;
-}
-
-//! Read SLIP frame.
-/*! Read an entire frame of SLIP encoded data from the serial port.
- * Special SLIP characters are removed on the fly. Will stop early if
- * supplied buffer size is exceeded.
-	\param serial Handle returned from :cssl_open.
-	\param buf Byte array to store incoming data.
-	\param size Size of byte array.
-	\return Number of bytes read, up to maximum.
-*/
+/**
+ * @brief Read SLIP frame.
+ * 
+ * Read an entire frame of SLIP encoded data from the serial port. Special SLIP 
+ * characters are removed on the fly. Will stop early if supplied buffer size is
+ * exceeded.
+ * 
+ * @param serial Handle returned from :cssl_open.
+ * @param buf Byte array to store incoming data.
+ * @param size Size of byte array.
+ * @return int32_t Number of bytes read, up to maximum.
+ */
 int32_t cssl_getslip(cssl_t *serial, uint8_t *buf, uint16_t size)
 {
 	int16_t ch;
@@ -889,16 +988,18 @@ int32_t cssl_getslip(cssl_t *serial, uint8_t *buf, uint16_t size)
 	return (i);
 }
 
-//! Read NMEA response.
-/*! Read an entire NMEA response from the serial port.
- * The leading $ and trailing * and checksum are removed, and only the
- * payload of the response is returned. Will stop early if
- * supplied buffer size is exceeded.
-	\param serial Handle returned from :cssl_open.
-	\param buf Byte array to store incoming data.
-	\param size Size of byte array.
-	\return Number of bytes read, up to maximum.
-*/
+/**
+ * @brief Read NMEA response.
+ * 
+ * Read an entire NMEA response from the serial port. The leading $ and trailing
+ * * and checksum are removed, and only the payload of the response is returned.
+ * Will stop early if supplied buffer size is exceeded.
+ * 
+ * @param serial Handle returned from :cssl_open.
+ * @param buf Byte array to store incoming data.
+ * @param size Size of byte array.
+ * @return int32_t Number of bytes read, up to maximum.
+ */
 int32_t cssl_getnmea(cssl_t *serial, uint8_t *buf, uint16_t size)
 {
 	int16_t ch;
@@ -978,6 +1079,65 @@ int32_t cssl_getnmea(cssl_t *serial, uint8_t *buf, uint16_t size)
 	return (i);
 }
 
-//! @}
+/**
+ * @brief Read Xmodem frame.
+ * 
+ * Read one Xmodem block (frame) of data, removing control characters and 
+ * calculating checksum. Supplied buffer is assumed to be at least 128 bytes.
+ * 
+ * @param serial Handle returned from :cssl_open.
+ * @param buf Byte array to store incoming data.
+ * @return int32_t Packet number or negative error.
+ */
+int32_t cssl_getxmodem(cssl_t* serial, uint8_t* buf)
+{
+	int16_t ch;
+
+	ch = cssl_getchar(serial);
+	if (ch != XMODEM_SOH)
+	{
+		if (ch == XMODEM_EOT)
+		{
+			return CSSL_ERROR_EOT;
+		}
+		else
+		{
+			return CSSL_ERROR_READ;
+		}
+	}
+	uint8_t blocknum = cssl_getchar(serial);
+	ch = cssl_getchar(serial);
+	if (255-blocknum != ch)
+	{
+		return CSSL_ERROR_READ;
+	}
+
+	uint16_t i = 0;
+	uint8_t csum = 0;
+	do
+	{
+		ch = cssl_getchar(serial);
+		if (ch < 0)
+		{
+			return (ch);
+		}
+		buf[i] = ch;
+		++i;
+		csum += ch;
+	} while (i<128);
+
+	ch = cssl_getchar(serial);
+	if (ch != csum)
+	{
+		return CSSL_ERROR_CHECKSUM;
+	}
+
+	return blocknum;
+}
+
+/**
+ * @}
+ */
+
 /*------------------------------------------*/
 
