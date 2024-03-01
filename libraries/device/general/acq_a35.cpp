@@ -1,37 +1,32 @@
-/********************************************************************
-* Copyright (C) 2015 by Interstel Technologies, Inc.
-*   and Hawaii Space Flight Laboratory.
-*
-* This file is part of the COSMOS/core that is the central
-* module for COSMOS. For more information on COSMOS go to
-* <http://cosmos-project.com>
-*
-* The COSMOS/core software is licenced under the
-* GNU Lesser General Public License (LGPL) version 3 licence.
-*
-* You should have received a copy of the
-* GNU Lesser General Public License
-* If not, go to <http://www.gnu.org/licenses/>
-*
-* COSMOS/core is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public License
-* as published by the Free Software Foundation, either version 3 of
-* the License, or (at your option) any later version.
-*
-* COSMOS/core is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* Refer to the "licences" folder for further information on the
-* condititons and terms to use this software.
-********************************************************************/
-
-//////////////////////////////////////////////////////////////////////
-//
-//  AcqDummy.cpp - Implementation
-//
-//////////////////////////////////////////////////////////////////////
+/**
+ * @file acq_a35.cpp
+ * @brief AcqDummy.cpp - Implementation
+ * 
+ * Copyright (C) 2024 by Interstel Technologies, Inc. and Hawaii Space Flight
+ * Laboratory.
+ * 
+ * This file is part of the COSMOS/core that is the central module for COSMOS.
+ * For more information on COSMOS go to <http://cosmos-project.com>
+ * 
+ * The COSMOS/core software is licenced under the GNU Lesser General Public
+ * License (LGPL) version 3 licence.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License. If
+ * not, go to <http://www.gnu.org/licenses/>
+ * 
+ * COSMOS/core is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * COSMOS/core is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * Refer to the "licences" folder for further information on the conditions and
+ * terms to use this software.
+ */
 
 #include "agent/agentclass.h"
 #include "device/general/gige_lib.h"
@@ -41,19 +36,81 @@
 #include <sys/time.h>
 #endif
 
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file.
+ */
 #define IMAGESIZEMAX 86016
 
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file.
+ */
 extern gige_handle *handle;
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file.
+ */
 extern uint16_t ImageFrameBuffer[IMAGESIZEMAX];
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file.
+ */
 extern int32_t ImageSize;
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file.
+ */
 extern uint16_t Width, Height;
 
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file.
+ */
 unsigned int PacketSize;
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file.
+ */
 uint32_t PreviousImageNum=0;
-//////////////////////////////////////////////////////////////////////
 
-//! \addtogroup acq_a35_functions
-//! @{
+/**
+ * @addtogroup acq_a35_functions
+ * @{
+ */
+
+/**
+ * @brief 
+ * 
+ * @param width 
+ * @param height 
+ * @param handle 
+ * @return true 
+ * @return false 
+ * 
+ * @todo Document this.
+ */
 bool InitCamera(uint16_t width, uint16_t height, gige_handle* handle)
 {
     uint16_t i;
@@ -187,8 +244,17 @@ bool InitCamera(uint16_t width, uint16_t height, gige_handle* handle)
     return(true);
 }
 
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * @brief Get the Camera Frame object
+ * 
+ * @param handle 
+ * @param A35FrameBuffer 
+ * @param ImageSize 
+ * @return true 
+ * @return false 
+ * 
+ * @todo Document this.
+ */
 bool GetCameraFrame(gige_handle* handle, uint16_t *A35FrameBuffer, uint32_t ImageSize)
 {
 //    int16_t iretn;
@@ -347,9 +413,13 @@ bool GetCameraFrame(gige_handle* handle, uint16_t *A35FrameBuffer, uint32_t Imag
     return(true);
 }
 
-
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * @brief 
+ * 
+ * @param handle 
+ * 
+ * @todo Document this.
+ */
 void StartCamera(gige_handle* handle)
 {
     // Start Grabbing Frames
@@ -359,8 +429,14 @@ void StartCamera(gige_handle* handle)
 	gige_writereg(handle, A35_ACQUISITIONSTART, 0x1);
 }
 
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * @brief 
+ * 
+ * @param handle 
+ * @return int 
+ * 
+ * @todo Document this.
+ */
 int StopCamera(gige_handle* handle)
 {
     // Stop Grabbing Frames
@@ -371,48 +447,93 @@ int StopCamera(gige_handle* handle)
     return(0);
 }
 
-
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * @brief 
+ * 
+ * @param handle 
+ * @return true 
+ * @return false 
+ * 
+ * @todo Document this.
+ */
 bool ResetCamera(gige_handle* handle)
 {
     gige_writereg(handle, A35_CAMERAHEADRESET, 0); // Set FFC to Auto
     return(true);
 }
 
-
-//////////////////////////////////////////////////////////////////////
-
-// This will set AutoDUC to 5 minutes (0x12C seconds)
+/**
+ * @brief This will set AutoDUC to 5 minutes (0x12C seconds)
+ * 
+ * @param handle 
+ * @return true 
+ * @return false 
+ * 
+ * @todo Document this.
+ */
 bool AutoFFC(gige_handle* handle)
 {
     gige_writereg(handle, A35_FFCMODE, A35_FFCMODE_AUTO); // Set FFC to Auto
     return(true);
 }
 
-//////////////////////////////////////////////////////////////////////
-
-// This will set AutoDUC to 20 minutes (0x4B0 seconds)
+/**
+ * @brief This will set AutoDUC to 20 minutes (0x4B0 seconds)
+ * 
+ * @param handle 
+ * @return true 
+ * @return false 
+ * 
+ * @todo Document this.
+ */
 bool ManualFFC(gige_handle* handle)
 {
     gige_writereg(handle, A35_FFCMODE, A35_FFCMODE_MANUAL); // Set FFC to manual
     return(true);
 }
 
-//////////////////////////////////////////////////////////////////////
-
+/**
+ * @brief 
+ * 
+ * @param handle 
+ * @return true 
+ * @return false 
+ * 
+ * @todo Document this.
+ */
 bool DoFFC(gige_handle* handle)
 {
     gige_writereg(handle,A35_COMMAND_DOFFC,0); // Do Shutter
     return(true);
 }
 
+/**
+ * @brief Get the Temperature object
+ * 
+ * @param handle 
+ * @return true 
+ * @return false 
+ * 
+ * @todo Document this.
+ */
 bool GetTemperature(gige_handle* handle)
 {
     gige_writereg(handle,A35_TEMPERATUREFPA,0); // Get temperature
     return(true);
 }
 
+/**
+ * @brief Set the Frames To Skip object
+ * 
+ * @param FramesToSkip 
+ * @param handle 
+ * @return true 
+ * @return false 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Swapped parameters (see .h file)
+ */
 bool SetFramesToSkip(int FramesToSkip, gige_handle* handle)
 {
     FramesToSkip = (FramesToSkip << 16) & 0xFFF0000;
@@ -420,10 +541,21 @@ bool SetFramesToSkip(int FramesToSkip, gige_handle* handle)
     return(true);
 }
 
+/**
+ * @brief Set the Packet Delay object
+ * 
+ * @param PacketDelay 
+ * @param handle 
+ * @return true 
+ * @return false 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Swapped parameters (see .h file)
+ */
 bool SetPacketDelay(int PacketDelay, gige_handle* handle)
 {
     gige_writereg(handle, A35_PACKETDELAY, PacketDelay); // Get temperature
     return(true);
 }
-
 //! @}
