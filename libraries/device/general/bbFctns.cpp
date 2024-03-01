@@ -1,32 +1,34 @@
-/********************************************************************
-* Copyright (C) 2015 by Interstel Technologies, Inc.
-*   and Hawaii Space Flight Laboratory.
-*
-* This file is part of the COSMOS/core that is the central
-* module for COSMOS. For more information on COSMOS go to
-* <http://cosmos-project.com>
-*
-* The COSMOS/core software is licenced under the
-* GNU Lesser General Public License (LGPL) version 3 licence.
-*
-* You should have received a copy of the
-* GNU Lesser General Public License
-* If not, go to <http://www.gnu.org/licenses/>
-*
-* COSMOS/core is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public License
-* as published by the Free Software Foundation, either version 3 of
-* the License, or (at your option) any later version.
-*
-* COSMOS/core is distributed in the hope that it will be useful, but
-* WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* Refer to the "licences" folder for further information on the
-* condititons and terms to use this software.
-********************************************************************/
+/**
+ * @file bbFctns.cpp
+ * @brief 
+ * 
+ * Copyright (C) 2024 by Interstel Technologies, Inc. and Hawaii Space Flight
+ * Laboratory.
+ * 
+ * This file is part of the COSMOS/core that is the central module for COSMOS.
+ * For more information on COSMOS go to <http://cosmos-project.com>
+ * 
+ * The COSMOS/core software is licenced under the GNU Lesser General Public
+ * License (LGPL) version 3 licence.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License. If
+ * not, go to <http://www.gnu.org/licenses/>
+ * 
+ * COSMOS/core is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * COSMOS/core is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * Refer to the "licences" folder for further information on the conditions and
+ * terms to use this software.
+ */
 
+/** @todo Move includes to .h file. */
 // #include <unistd.h> //for COSMOS_USLEEP
 #include "support/configCosmos.h"
 #include <stdio.h>
@@ -40,11 +42,22 @@
 #include "device/general/cssl_lib.h"
 #include "device/general/bbFctns.h"
 
-
+/**
+ * @brief 
+ * 
+ * @todo Document this.
+ * 
+ * @todo Move to .h file.
+ */
 extern cssl_t *SerialBb;
 
-
-
+/**
+ * @brief 
+ * 
+ * @param BbPortNum 
+ * 
+ * @todo Document this.
+ */
 void FindBbPort(int *BbPortNum)
 {
     int i, nBytes = 255;
@@ -90,7 +103,16 @@ void FindBbPort(int *BbPortNum)
     }
 }
 
-
+/**
+ * @brief 
+ * 
+ * @param SerialBb 
+ * @param BbPortNum 
+ * @return true 
+ * @return false 
+ * 
+ * @todo Document this.
+ */
 bool OpenBb(cssl_t **SerialBb, int BbPortNum)
 {
     int nBytes = 255;
@@ -118,10 +140,14 @@ bool OpenBb(cssl_t **SerialBb, int BbPortNum)
     }
 }
 
-
-// *****************************************************************
-// Set the black body temperature
-// *****************************************************************
+/**
+ * @brief Set the black body temperature
+ * 
+ * @param DesiredTemperature 
+ * @param SerialBb 
+ * 
+ * @todo Document this.
+ */
 void runBbUnit1(float DesiredTemperature, cssl_t *SerialBb)
 {
     char comStringIn[256];
