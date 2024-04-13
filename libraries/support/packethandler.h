@@ -6,6 +6,7 @@
 #include "support/packetcomm.h"
 #include "support/beacon.h"
 #include "support/timelib.h"
+#include "support/convertlib.h"
 #include "agent/agentclass.h"
 
 // Class to create PacketComm packets and maintain response callbacks
@@ -67,6 +68,7 @@ namespace Cosmos {
 //            static int32_t TransferList(PacketComm &packet, string &response, Agent* agent);
             static int32_t InternalRequest(PacketComm &packet, string &response, Agent* agent);
             static int32_t Ping(PacketComm &packet, string &response, Agent* agent);
+            static int32_t SetTle(PacketComm &packet, string &response, Agent* agent);
             static int32_t SetTime(PacketComm &packet, string &response, Agent* agent);
             static int32_t GetTimeHuman(PacketComm &packet, string &response, Agent* agent);
             static int32_t GetTimeBinary(PacketComm &packet, string &response, Agent* agent);

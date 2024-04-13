@@ -315,6 +315,7 @@ int32_t Simulator::NudgeNode(string nodename, cartpos pos, qatt att)
 
     Vector newtorque;
     UpdateTorque(nodename, newtorque);
+    return 1;
 }
 
 /**

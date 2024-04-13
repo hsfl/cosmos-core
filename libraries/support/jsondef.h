@@ -1975,7 +1975,7 @@ class sim_param	{
 
             double utc = 0.;
             string name;
-            uint16_t type = 0;
+            uint16_t type = -1;
             float azfrom = 0.f;
             float elfrom = 0.f;
             float azto = 0.f;

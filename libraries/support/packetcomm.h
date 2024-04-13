@@ -45,6 +45,7 @@ namespace Cosmos {
                 CommandObcInternalRequest = 0x189,
                 CommandObcSendBeacon = 0x18a,
                 CommandObcHalt = 0x18b,
+                CommandObcSetTle = 0x18c,
                 CommandObcNop = 0x1ff,
 
                 DataEps = 0x200,
@@ -149,6 +150,7 @@ namespace Cosmos {
                 {TypeId::CommandFileStopTransfer, "FileStopTransfer"},
                 {TypeId::CommandObcInternalRequest, "InternalRequest"},
                 {TypeId::CommandObcPing, "Ping"},
+                {TypeId::CommandObcSetTle, "SetTle"},
                 {TypeId::CommandObcSetTime, "SetTime"},
                 {TypeId::CommandObcGetTimeHuman, "GetTimeHuman"},
                 {TypeId::CommandObcGetTimeBinary, "GetTimeBinary"},
@@ -216,6 +218,7 @@ namespace Cosmos {
                 {"FileStopTransfer", TypeId::CommandFileStopTransfer},
                 {"InternalRequest", TypeId::CommandObcInternalRequest},
                 {"Ping", TypeId::CommandObcPing},
+                {"SetTle", TypeId::CommandObcSetTle},
                 {"SetTime", TypeId::CommandObcSetTime},
                 {"GetTimeHuman", TypeId::CommandObcGetTimeHuman},
                 {"GetTimeBinary", TypeId::CommandObcGetTimeBinary},
