@@ -624,10 +624,9 @@ namespace Cosmos {
             rmatrix ds2t;
             rmatrix t2s;
             rmatrix dt2s;
-            //! Transform between LVLH and GEOC
+            //! Transform between LVLH and ECI/SCI
             quaternion l2e;
             quaternion e2l;
-            //! Transform between LVLH and ECI
             rmatrix l2p;
             rmatrix p2l;
             rmatrix dl2p;
