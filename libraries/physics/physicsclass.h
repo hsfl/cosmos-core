@@ -455,6 +455,7 @@ namespace Cosmos
             const uint8_t DEG10 = 2;
             const uint8_t DEGMAX = 3;
             const uint32_t GS_EVENT_CODE[4] = {EVENT_TYPE_GS, EVENT_TYPE_GS5, EVENT_TYPE_GS10, EVENT_TYPE_GSMAX};
+            const string GS_EVENT_STRING[4] = {"GS", "GS5", "GS10", "GSMAX"};
             //! Tracks Acquisition of Signal events for each groundstation
             map<string, target_aos_set> gs_AoS;
             //! Tracks Acquisition of Sight events for each target. Targets track only DEG0

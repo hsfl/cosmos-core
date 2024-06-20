@@ -55,7 +55,7 @@ struct trackstruc
     std::mutex *control_mutex;
     std::thread *control_thread;
     bool running;
-    float minelev = RADOF(15.);
+    float minelev = RADOF(5.);
 };
 static std::vector <trackstruc> tracks;
 trackstruc ttrack;
@@ -64,6 +64,8 @@ trackstruc ttrack;
 static double utcstart = 60418.48472;
 static double missionstart = 60418.48472;
 static double period = 1.;
+string mode = "table";
+bool calheader = true;
 
 void proptrack(size_t index, double utcnow);
 
@@ -75,6 +77,12 @@ int main(int argc, char *argv[])
     {
         utcstart = currentmjd();
     }
+    if (string(argv[argc-1]) == "cal")
+    {
+        mode = "cal";
+        --argc;
+    }
+
     switch (argc)
     {
     case 12:
@@ -180,7 +188,7 @@ int main(int argc, char *argv[])
         }
         break;
     default:
-        printf("Usage: get_contacts days [satname [ground1:minelev [ground2:minelev [...]]]]\n");
+        printf("Usage: get_ground_contacts days [satname [ground1:minelev [ground2:minelev [...]]]]\n");
         exit (1);
     }
 
@@ -212,8 +220,17 @@ int main(int argc, char *argv[])
         track.target.cloc = agent->cinfo->node.loc;
     }
 
+    if (mode != "cal")
+    {
+        printf("MET\tMJD\tStation\t");
+        printf("AOS UTC Date\tAOS UTC Time\tAOS HST Date\tAOS HST Time\tAOS Az\tAOS El\tAOS DT0\tAOS DT1\t");
+        printf("TSTART UTC Date\tTSTART UTC Time\tTSTART HST Date\tTSTART HST Time\tTSTART Az\tTSTART El\tTSTART DT0\tTSTART DT1\t");
+        printf("TMAX UTC Date\tTMAX UTC Time\tTMAX HST Date\tTMAX HST Time\tTMAX Az\tTMAX El\tTMAX DT0\tTMAX DT1\t");
+        printf("TEND UTC Date\tTEND UTC Time\tTEND HST Date\tTEND HST Time\tTEND Az\tTEND El\tTEND DT0\tTEND DT1\t");
+        printf("LOS UTC Date\tLOS UTC Time\tLOS HST Date\tLOS HST Time\tLOS Az\tLOS El\tLOS DT0\tLOS DT1\n");
+    }
     double utc;
-    for (utc=utcstart; utc<utcstart+period; utc+=1./86400)
+    for (utc=utcstart; utc<utcstart+period; utc+=.5/86400)
     {
         Convert::tle2eci(utc, loc.tle, loc.pos.eci);
         loc.pos.eci.pass++;
@@ -239,6 +256,10 @@ void proptrack(size_t index, double utcnow)
         if (tracks[index].target.elto > 0.)
         {
             tracks[index].aos0 = tracks[index].target;
+            tracks[index].aos1 = tracks[index].target;
+            tracks[index].tca = tracks[index].target;
+            tracks[index].los1 = tracks[index].target;
+            tracks[index].los0 = tracks[index].target;
             tracks[index].visible0 = true;
 
             tracks[index].highest = 0.;
@@ -281,12 +302,60 @@ void proptrack(size_t index, double utcnow)
             {
                 Convert::kepstruc kep;
                 Convert::eci2kep(tracks[index].tca.loc.pos.eci, kep);
-                //                printf("%s\t%f\t%f\t", tracks[index].target.name.c_str(), DEGOF(tracks[index].tca.loc.pos.earthsep), DEGOF(kep.beta));
-                printf("%s\t%s\t%.5f\t%13.5f\t%s\tAOS0\t%6.1f\t%6.1f\t%5.1f\t%5.1f\n", mjd2iso8601(tracks[index].aos0.utc).c_str(), mjd2iso8601(tracks[index].aos0.utc-10./24.).c_str(), tracks[index].aos0.utc - missionstart, tracks[index].aos0.utc, tracks[index].target.name.c_str(), DEGOF(tracks[index].aos0.azfrom), DEGOF(tracks[index].aos0.elto), 86400.*(tracks[index].aos0.utc-tracks[index].aos0.utc), 86400.*(tracks[index].aos0.utc-tracks[index].aos1.utc));
-                printf("%s\t%s\t%.5f\t%13.5f\t%s\tAOS1\t%6.1f\t%6.1f\t%5.1f\t%5.1f\n", mjd2iso8601(tracks[index].aos1.utc).c_str(), mjd2iso8601(tracks[index].aos1.utc-10./24.).c_str(), tracks[index].aos1.utc - missionstart, tracks[index].aos1.utc, tracks[index].target.name.c_str(), DEGOF(tracks[index].aos1.azfrom), DEGOF(tracks[index].aos1.elto), 86400.*(tracks[index].aos1.utc-tracks[index].aos0.utc), 86400.*(tracks[index].aos1.utc-tracks[index].aos1.utc));
-                printf("%s\t%s\t%.5f\t%13.5f\t%s\tTCA\t%6.1f\t%6.1f\t%5.1f\t%5.1f\n", mjd2iso8601(tracks[index].tca.utc).c_str(), mjd2iso8601(tracks[index].tca.utc-10./24.).c_str(), tracks[index].tca.utc - missionstart, tracks[index].tca.utc, tracks[index].target.name.c_str(), DEGOF(tracks[index].tca.azfrom), DEGOF(tracks[index].tca.elto), 86400.*(tracks[index].tca.utc-tracks[index].aos0.utc), 86400.*(tracks[index].tca.utc-tracks[index].aos1.utc));
-                printf("%s\t%s\t%.5f\t%13.5f\t%s\tLOS1\t%6.1f\t%6.1f\t%5.1f\t%5.1f\n", mjd2iso8601(tracks[index].los1.utc).c_str(), mjd2iso8601(tracks[index].los1.utc-10./24.).c_str(), tracks[index].los1.utc - missionstart, tracks[index].los1.utc, tracks[index].target.name.c_str(), DEGOF(tracks[index].los1.azfrom), DEGOF(tracks[index].los1.elto), 86400.*(tracks[index].los1.utc-tracks[index].aos0.utc), 86400.*(tracks[index].los1.utc-tracks[index].aos1.utc));
-                printf("%s\t%s\t%.5f\t%13.5f\t%s\tLOS0\t%6.1f\t%6.1f\t%5.1f\t%5.1f\n", mjd2iso8601(tracks[index].los0.utc).c_str(), mjd2iso8601(tracks[index].los0.utc-10./24.).c_str(), tracks[index].los0.utc - missionstart, tracks[index].los0.utc, tracks[index].target.name.c_str(), DEGOF(tracks[index].los0.azfrom), DEGOF(tracks[index].los0.elto), 86400.*(tracks[index].los0.utc-tracks[index].aos0.utc), 86400.*(tracks[index].los0.utc-tracks[index].aos1.utc));
+                if (mode == "cal")
+                {
+                    calstruc calaosa = mjd2cal(tracks[index].aos0.utc-10./24.);
+                    calstruc calaosb = mjd2cal(tracks[index].aos1.utc+1./1440.-10./24.);
+                    calstruc caltcaa = mjd2cal(tracks[index].aos1.utc-10./24.);
+                    calstruc caltcab = mjd2cal(tracks[index].los1.utc+1./1440.-10./24.);
+                    calstruc callosa = mjd2cal(tracks[index].los1.utc-10./24.);
+                    calstruc callosb = mjd2cal(tracks[index].los0.utc+1./1440.-10./24.);
+                    if (calheader)
+                    {
+                        printf("Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location\n");
+                        calheader = false;
+                    }
+                    printf("%s %02u,", tracks[index].target.name.c_str(), uint16_t(DEGOF(tracks[index].tca.elto)+.1));
+                    printf("%02d/%02d/%04d,%02d:%02d,", calaosa.month, calaosa.dom, calaosa.year, calaosa.hour, calaosa.minute);
+                    printf("%02d/%02d/%04d,%02d:%02d,", callosb.month, callosb.dom, callosb.year, callosb.hour, callosb.minute);
+                    printf("FALSE,TMAX %.0f degrees,%s\n", DEGOF(tracks[index].minelev), tracks[index].target.name.c_str());
+                }
+                else
+                {
+                    calstruc calutc;
+                    calstruc calhst;
+                    printf("%.5f\t%.5f\t%s\t", tracks[index].aos0.utc - missionstart, tracks[index].aos0.utc, tracks[index].target.name.c_str());
+
+                    calutc = mjd2cal(tracks[index].aos0.utc);
+                    calhst = mjd2cal(tracks[index].aos0.utc-10./24.);
+                    printf("%04d/%02d/%02d\t%02d:%02d:%02d\t", calutc.year, calutc.month, calutc.dom, calutc.hour, calutc.minute, calutc.second);
+                    printf("%04d/%02d/%02d\t%02d:%02d:%02d\t", calhst.year, calhst.month, calhst.dom, calhst.hour, calhst.minute, calhst.second);
+                    printf("%.1f\t%.1f\t%.0f\t%.0f\t", DEGOF(tracks[index].aos0.azto), DEGOF(tracks[index].aos0.elto), 86400.*(tracks[index].aos0.utc-tracks[index].aos0.utc), 86400.*(tracks[index].aos0.utc-tracks[index].aos1.utc));
+
+                    calutc = mjd2cal(tracks[index].aos1.utc);
+                    calhst = mjd2cal(tracks[index].aos1.utc-10./24.);
+                    printf("%04d/%02d/%02d\t%02d:%02d:%02d\t", calutc.year, calutc.month, calutc.dom, calutc.hour, calutc.minute, calutc.second);
+                    printf("%04d/%02d/%02d\t%02d:%02d:%02d\t", calhst.year, calhst.month, calhst.dom, calhst.hour, calhst.minute, calhst.second);
+                    printf("%.1f\t%.1f\t%.0f\t%.0f\t", DEGOF(tracks[index].aos1.azto), DEGOF(tracks[index].aos1.elto), 86400.*(tracks[index].aos1.utc-tracks[index].aos0.utc), 86400.*(tracks[index].aos1.utc-tracks[index].aos1.utc));
+
+                    calutc = mjd2cal(tracks[index].tca.utc);
+                    calhst = mjd2cal(tracks[index].tca.utc-10./24.);
+                    printf("%04d/%02d/%02d\t%02d:%02d:%02d\t", calutc.year, calutc.month, calutc.dom, calutc.hour, calutc.minute, calutc.second);
+                    printf("%04d/%02d/%02d\t%02d:%02d:%02d\t", calhst.year, calhst.month, calhst.dom, calhst.hour, calhst.minute, calhst.second);
+                    printf("%.1f\t%.1f\t%.0f\t%.0f\t", DEGOF(tracks[index].tca.azto), DEGOF(tracks[index].tca.elto), 86400.*(tracks[index].tca.utc-tracks[index].aos0.utc), 86400.*(tracks[index].tca.utc-tracks[index].aos1.utc));
+
+                    calutc = mjd2cal(tracks[index].los1.utc);
+                    calhst = mjd2cal(tracks[index].los1.utc-10./24.);
+                    printf("%04d/%02d/%02d\t%02d:%02d:%02d\t", calutc.year, calutc.month, calutc.dom, calutc.hour, calutc.minute, calutc.second);
+                    printf("%04d/%02d/%02d\t%02d:%02d:%02d\t", calhst.year, calhst.month, calhst.dom, calhst.hour, calhst.minute, calhst.second);
+                    printf("%.1f\t%.1f\t%.0f\t%.0f\t", DEGOF(tracks[index].los1.azto), DEGOF(tracks[index].los1.elto), 86400.*(tracks[index].los1.utc-tracks[index].aos0.utc), 86400.*(tracks[index].los1.utc-tracks[index].aos1.utc));
+
+                    calutc = mjd2cal(tracks[index].los0.utc);
+                    calhst = mjd2cal(tracks[index].los0.utc-10./24.);
+                    printf("%04d/%02d/%02d\t%02d:%02d:%02d\t", calutc.year, calutc.month, calutc.dom, calutc.hour, calutc.minute, calutc.second);
+                    printf("%04d/%02d/%02d\t%02d:%02d:%02d\t", calhst.year, calhst.month, calhst.dom, calhst.hour, calhst.minute, calhst.second);
+                    printf("%.1f\t%.1f\t%.0f\t%.0f\n", DEGOF(tracks[index].los0.azto), DEGOF(tracks[index].los0.elto), 86400.*(tracks[index].los0.utc-tracks[index].aos0.utc), 86400.*(tracks[index].los0.utc-tracks[index].aos1.utc));
+                }
                 fflush(stdout);
             }
         }

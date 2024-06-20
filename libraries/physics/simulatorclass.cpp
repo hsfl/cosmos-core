@@ -5,8 +5,9 @@ namespace Cosmos
 {
 namespace Physics
 {
-int32_t Simulator::Init(double iutc, double idt)
+int32_t Simulator::Init(double iutc, double idt, string realm)
 {
+    realmname = realm;
     currentutc = iutc;
     initialutc = iutc;
     dt = 86400.*((initialutc + (idt / 86400.))-initialutc);
@@ -170,6 +171,349 @@ int32_t Simulator::AddTarget(targetstruc& targ)
             state->currentinfo.target.push_back(targ);
             ++state->currentinfo.target_cnt;
         }
+    }
+    return targets.size();
+}
+
+//! @brief Add orbit from line of JSON in a file.
+//! @param filename Path to file containing satellite information.
+//! @return Number of arguments, or negative error.
+
+int32_t Simulator::ParseOrbitFile(string filename)
+{
+    int32_t iretn = 0;
+    string  args;
+    FILE *fp;
+    if (filename.empty())
+    {
+        filename = get_realmdir(realmname, true) + "/" + "orbit.dat";
+    }
+
+    if ((fp = fopen(filename.c_str(), "r")) != nullptr)
+    {
+        args.resize(160);
+        while (fgets((char *)args.data(), 149, fp) != nullptr)
+        {
+            iretn = ParseOrbitString(args);
+            if (iretn < 0)
+            {
+                fclose(fp);
+                return iretn;
+            }
+        }
+        fclose(fp);
+    }
+    return iretn;
+}
+
+//! @brief Add orbit from line of JSON in a string.
+//! @param args JSON line of orbit arguments.
+//! @return Number of arguments, or negative error.
+
+int32_t Simulator::ParseOrbitString(string args)
+{
+    double deltautc = 0.;
+    uint16_t argcount = 0;
+    string estring;
+    json11::Json jargs = json11::Json::parse(args, estring);
+    if (!jargs["model"].is_null())
+    {
+        ++argcount;
+        if (jargs["model"].string_value() == "fast")
+        {
+            fastcalc = true;
+        }
+        else if (jargs["model"].string_value() == "slow")
+        {
+            fastcalc = false;
+        }
+    }
+    if (!jargs["phys"].is_null())
+    {
+        double initiallat = RADOF(21.3069);
+        double initiallon = RADOF(-157.8583);
+        double initialalt = 400000.;
+        double initialangle = RADOF(54.);
+        ++argcount;
+        json11::Json::object values = jargs["phys"].object_items();
+        initiallat = RADOF(values["lat"].number_value());
+        initiallon = RADOF(values["lon"].number_value());
+        initialalt = values["alt"].number_value();
+        initialangle = RADOF(values["angle"].number_value());
+        if (fabs(initialutc) <= 3600.)
+        {
+            initialutc += currentmjd();
+        }
+        if (deltautc != 0.)
+        {
+            endutc = initialutc + deltautc;
+        }
+        initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+    }
+    if (!jargs["eci"].is_null())
+    {
+        ++argcount;
+        json11::Json::object values = jargs["eci"].object_items();
+        initialloc.pos.eci.utc = (values["utc"].number_value());
+        initialloc.pos.eci.s.col[0] = (values["x"].number_value());
+        initialloc.pos.eci.s.col[1] = (values["y"].number_value());
+        initialloc.pos.eci.s.col[2] = (values["z"].number_value());
+        initialloc.pos.eci.v.col[0] = (values["vx"].number_value());
+        initialloc.pos.eci.v.col[1] = (values["vy"].number_value());
+        initialloc.pos.eci.v.col[2] = (values["vz"].number_value());
+        initialloc.pos.eci.pass++;
+    }
+    if (!jargs["kep"].is_null())
+    {
+        ++argcount;
+        json11::Json::object values = jargs["kep"].object_items();
+        kepstruc kep;
+        if (fabs(initialutc) <= 3600.)
+        {
+            initialutc +=currentmjd();
+        }
+        if (deltautc != 0.)
+        {
+            endutc = initialutc + deltautc;
+        }
+        kep.utc = initialutc;
+        kep.ea = values["ea"].number_value();
+        kep.i = values["i"].number_value();
+        kep.ap = values["ap"].number_value();
+        kep.raan = values["raan"].number_value();
+        kep.e = values["e"].number_value();
+        kep.a = values["a"].number_value();
+        kep2eci(kep, initialloc.pos.eci);
+        initialloc.pos.eci.pass++;
+    }
+    if (!jargs["tle"].is_null())
+    {
+        ++argcount;
+        json11::Json::object values = jargs["tle"].object_items();
+        vector<Convert::tlestruc>lines;
+        string fname = get_realmdir(realmname, true) + "/" + values["filename"].string_value();
+        load_lines(fname, lines);
+        if (fabs(initialutc) <= 3600.)
+        {
+            initialutc +=lines[0].utc;
+        }
+        if (deltautc != 0.)
+        {
+            endutc = initialutc + deltautc;
+        }
+        initialloc.tle = lines[0];
+        tle2eci(initialutc, initialloc.tle, initialloc.pos.eci);
+        initialloc.pos.eci.pass++;
+    }
+    pos_eci(initialloc);
+    if (initialloc.tle.utc == 0.)
+    {
+        eci2tle2(initialloc.pos.eci, initialloc.tle);
+    }
+    return argcount;
+}
+
+//! @brief Add satellites from lines of JSON in a file.
+//! @param filename Path to file containing satellite information.
+//! @return Number of satellites, or negative error.
+
+int32_t Simulator::ParseSatFile(string filename)
+{
+    string  args;
+    FILE *fp;
+    int32_t iretn;
+
+    if (filename.empty())
+    {
+        filename = get_realmdir(realmname, true) + "/" + "sats.dat";
+    }
+
+    if ((fp = fopen(filename.c_str(), "r")) != nullptr)
+    {
+        args.resize(160);
+        while (fgets((char *)args.data(), 149, fp) != nullptr)
+        {
+            iretn = ParseSatString(args);
+            if (iretn < 0)
+            {
+                fclose(fp);
+                return iretn;
+            }
+        }
+        fclose(fp);
+    }
+    return cnodes.size();
+}
+
+//! @brief Add single satellite from line of JSON in a string.
+//! @param args JSON line of satellite arguments.
+//! @return Number of arguments, or negative error.
+
+int32_t Simulator::ParseSatString(string args)
+{
+    int32_t iretn;
+    double maxthrust = .1;
+    uint16_t argcount = 0;
+    string nodename;
+    vector<camstruc> dets;
+    locstruc satloc = initialloc;
+    cartpos lvlh;
+    string estring;
+    json11::Json jargs = json11::Json::parse(args, estring);
+    if (!jargs["nodename"].is_null())
+    {
+        ++argcount;
+        nodename = jargs["nodename"].string_value();
+    }
+    if (!jargs["detector"].is_null())
+    {
+        ++argcount;
+        json11::Json::object values = jargs["detector"].object_items();
+        camstruc det;
+        det.fov = values["fov"].number_value();
+        det.ifov = values["ifov"].number_value();
+        det.specmin = values["specmin"].number_value();
+        det.specmax = values["specmax"].number_value();
+        dets.push_back(det);
+        AddDetector(det);
+    }
+    if (!jargs["maxthrust"].is_null())
+    {
+        ++argcount;
+        maxthrust = jargs["maxthrust"].number_value();
+    }
+    if (!jargs["lvlh"].is_null())
+    {
+        ++argcount;
+        json11::Json::object values = jargs["lvlh"].object_items();
+        Physics::Simulator::StateList::iterator sit = cnodes.begin(); //GetNode("mother");
+        initialloc = (*sit)->currentinfo.node.loc;
+        lvlh.s.col[0] = values["x"].number_value();
+        lvlh.s.col[1] = values["y"].number_value();
+        lvlh.s.col[2] = values["z"].number_value();
+        lvlh.v.col[0] = values["vx"].number_value();
+        lvlh.v.col[1] = values["vy"].number_value();
+        lvlh.v.col[2] = values["vz"].number_value();
+        lvlh.pass++;
+        pos_origin2lvlh(satloc, lvlh);
+    }
+    if (!jargs["ric"].is_null())
+    {
+        ++argcount;
+        json11::Json::object values = jargs["ric"].object_items();
+        Convert::locstruc basepos = initialloc;
+        cartpos ric;
+        lvlh.s.col[0] = values["r"].number_value();
+        lvlh.s.col[1] = values["i"].number_value();
+        lvlh.s.col[2] = values["c"].number_value();
+        lvlh.v.col[0] = values["vr"].number_value();
+        lvlh.v.col[1] = values["vi"].number_value();
+        lvlh.v.col[2] = values["vc"].number_value();
+        cartpos lvlh;
+        ric2lvlh(ric, lvlh);
+        lvlh.pass++;
+        pos_origin2lvlh(satloc, lvlh);
+    }
+    if (!cnodes.size())
+    {
+        if (nodename.empty())
+        {
+            nodename = "mother";
+        }
+        if (fastcalc)
+        {
+            iretn = AddNode(nodename, "HEX65W80H", Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
+        }
+        else
+        {
+            iretn = AddNode(nodename, "HEX65W80H", Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+        }
+        Physics::Simulator::StateList::iterator sit = GetNode(nodename);
+
+        // Camera
+        for (camstruc det : dets)
+        {
+            det.volt = 5.;
+            det.amp = 20. / det.volt;
+            det.state = 0;
+            (*sit)->currentinfo.devspec.cam.push_back(det);
+        }
+        (*sit)->currentinfo.devspec.cam_cnt = dets.size();
+    }
+    else
+    {
+        if (nodename.empty())
+        {
+            nodename = "child_" + to_unsigned(cnodes.size(), 2, true);
+        }
+        iretn = AddNode(nodename, "U12", Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, satloc.pos.lvlh, initialloc.att.icrf);
+        Physics::Simulator::StateList::iterator sit = GetNode(nodename);
+
+        // Thruster
+        thststruc thrust;
+        thrust.maxthrust = maxthrust;
+        (*sit)->currentinfo.devspec.thst.push_back(thrust);
+        (*sit)->currentinfo.devspec.thst_cnt = 1;
+
+        // Camera
+        for (camstruc det : dets)
+        {
+            det.volt = 5.;
+            det.amp = 20. / det.volt;
+            det.state = 0;
+            (*sit)->currentinfo.devspec.cam.push_back(det);
+        }
+        (*sit)->currentinfo.devspec.cam_cnt = dets.size();
+    }
+    return argcount;
+}
+
+//! @brief Add targets from lines of JSON in a file.
+//! @param filename Path to file containing target information.
+//! @return Number of targets, or negative error.
+
+int32_t Simulator::ParseTargetFile(string filename)
+{
+    string  line;
+    FILE *fp;
+    int32_t iretn;
+
+    if (filename.empty())
+    {
+        filename = get_realmdir(realmname, true) + "/" + "targets.dat";
+    }
+
+    if ((fp = fopen(filename.c_str(), "r")) != nullptr)
+    {
+        line.resize(201);
+        while (fgets((char *)line.data(), 200, fp) != nullptr)
+        {
+            iretn = ParseTargetString(line);
+            if (iretn < 0)
+            {
+                fclose(fp);
+                return iretn;
+            }
+        }
+        fclose(fp);
+    }
+    return targets.size();
+}
+
+//! @brief Add single target from line of JSON in a string.
+//! @param args JSON line of target arguments.
+//! @return Number of arguments, or negative error.
+
+int32_t Simulator::ParseTargetString(string line)
+{
+    vector<string> args = string_split(line, " \t", true);
+    if (args.size() == 4)
+    {
+        AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
+    }
+    else if (args.size() == 5)
+    {
+        AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])), NODE_TYPE_TARGET);
     }
     return targets.size();
 }
