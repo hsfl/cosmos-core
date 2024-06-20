@@ -1733,6 +1733,10 @@ class sim_param	{
             float dbytes = 0.f;
             //! Event continuous bytes consumed.
             float cbytes = 0.f;
+            //! Event elevation
+            float el = 0.;
+            //! Event azimuth
+            float az = 0.;
             //! Handle of condition that caused event, NULL if timed event.
             jsonhandle handle;
             //! Event specific data.
@@ -1764,6 +1768,8 @@ class sim_param	{
                     { "cmass"   , cmass },
                     { "dbytes"  , dbytes },
                     { "cbytes"  , cbytes },
+                    { "el", el},
+                    {"az", az},
                     { "handle"  , handle },
                     { "data"	, data },
                     { "condition" , condition }
@@ -1795,6 +1801,8 @@ class sim_param	{
                     if(!p["cmass"].is_null()) { cmass = p["cmass"].number_value(); }
                     if(!p["dbytes"].is_null()) { dbytes = p["dbytes"].number_value(); }
                     if(!p["cbytes"].is_null()) { cbytes = p["cbytes"].number_value(); }
+                    if(!p["el"].is_null()) { el = p["el"].number_value(); }
+                    if(!p["az"].is_null()) { az = p["az"].number_value(); }
                     if(!p["handle"].is_null()) { handle.from_json(p["handle"].dump()); }
                     //			if(!p["data"].is_null()) { strcpy(data, p["data"].string_value().c_str()); }
                     //			if(!p["condition"].is_null()) { strcpy(condition, p["condition"].string_value().c_str()); }

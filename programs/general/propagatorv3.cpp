@@ -63,7 +63,9 @@ int main(int argc, char *argv[])
                                           {"event_name", event.name},
                                           {"event_type", event.type},
                                           {"event_flag", event.flag},
-                        {"geodpos", state->currentinfo.node.loc.pos.geod.s}
+                                          {"event_el", event.el},
+                                          {"event_az", event.az},
+                                          {"geodpos", state->currentinfo.node.loc.pos.geod.s}
                     });
                     printf("%s\n", jobj.dump().c_str());
                 }

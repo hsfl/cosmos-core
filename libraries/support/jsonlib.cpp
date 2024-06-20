@@ -8322,6 +8322,8 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
 
     // Event structure
     json_addentry("event_cbytes", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,cbytes), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_BYTES);
+    json_addentry("event_el", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,el), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_BYTES);
+    json_addentry("event_az", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,az), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_BYTES);
     json_addentry("event_cenergy", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,cenergy), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_ENERGY);
     json_addentry("event_cmass", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,cmass), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_MASS);
     json_addentry("event_condition", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,condition), (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_EVENT, cinfo);
@@ -11436,6 +11438,8 @@ const char *json_of_event(string &jstring, cosmosstruc *cinfo)
     if (json_get_double("event_cmass", cinfo) != 0.) json_out(jstring,"event_cmass", cinfo);
     if (json_get_double("event_dbytes", cinfo) != 0.) json_out(jstring,"event_dbytes", cinfo);
     if (json_get_double("event_cbytes", cinfo) != 0.) json_out(jstring,"event_cbytes", cinfo);
+    if (json_get_double("event_el", cinfo) != 0.) json_out(jstring,"event_el", cinfo);
+    if (json_get_double("event_az", cinfo) != 0.) json_out(jstring,"event_az", cinfo);
 
     return jstring.data();
 }
