@@ -4944,7 +4944,7 @@ int32_t load_tle(char *fname, tlestruc &tle)
         // Line 1
         if (fgets(ibuf, 80, fdes) == nullptr)
             break;
-        sscanf(&ibuf[2], "%5hu", &tle.snumber);
+        sscanf(&ibuf[2], "%5u", &tle.snumber);
         tle.id = string(ibuf).substr(9, 9);
         sscanf(&ibuf[18], "%2hu", &year);
         if (year < 57)
@@ -5024,6 +5024,10 @@ int32_t load_lines(string fname, vector<tlestruc> &lines)
         // Line 1
         if (fgets(ibuf, 80, fdes) == nullptr)
             break;
+        if (strlen(ibuf) < 68)
+        {
+            break;
+        }
         uint16_t cs = 0;
         for (uint16_t i = 0; i < 68; ++i)
         {
@@ -5037,7 +5041,7 @@ int32_t load_lines(string fname, vector<tlestruc> &lines)
             }
         }
         cs = cs % 10;
-        sscanf(&ibuf[2], "%5hu", &tle.snumber);
+        sscanf(&ibuf[2], "%5u", &tle.snumber);
         tle.id = string(ibuf).substr(9, 9);
         sscanf(&ibuf[18], "%2hu", &year);
         if (year < 57)
@@ -5129,7 +5133,7 @@ int32_t load_lines_multi(string fname, vector<tlestruc> &lines)
         // Line 1
         if (fgets(ibuf, 80, fdes) == nullptr)
             break;
-        sscanf(&ibuf[2], "%5hu", &tle.snumber);
+        sscanf(&ibuf[2], "%5u", &tle.snumber);
         tle.id = string(ibuf).substr(9, 9);
         sscanf(&ibuf[18], "%2hu", &year);
         if (year < 57)

@@ -368,9 +368,10 @@ string log_write(string node, int type, double utc, const char *record, string d
  * \param compress Wether or not to compress with gzip.
  * \return 0 on success, negative on error.
  */
-int32_t log_move_file(string oldpath, string newpath, bool compress)
+int32_t log_move_file(string oldpath, string newpath, bool compress, double timeout)
 {
     int32_t iretn = 0;
+    ElapsedTime timer;
     if (compress && oldpath.find(".gz") == string::npos)
     {
         char buffer[8192];
@@ -408,11 +409,16 @@ int32_t log_move_file(string oldpath, string newpath, bool compress)
             {
                 gzwrite(gzfout, buffer, nbytes);
             }
-        } while (!feof(fin));
+        } while (!feof(fin) && timer.split() < timeout);
 
         fclose(fin);
         gzclose_w(gzfout);
         fclose(fout);
+
+        if (timer.split() > timeout)
+        {
+            return GENERAL_ERROR_TIMEOUT;
+        }
         fout = data_open(newpath, "wb");
         if(fout == nullptr)
         {

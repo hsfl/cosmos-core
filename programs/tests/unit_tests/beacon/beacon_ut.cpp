@@ -114,8 +114,8 @@ TEST_F(BeaconUTest, CPU_beacon_json_is_populated)
         didx << std::setw(3) << std::setfill('0') << i;
         EXPECT_DOUBLE_EQ(j["device_cpu_utc_"+didx.str()].number_value(), decisec2mjd(agent->cinfo->node.deci));
         EXPECT_FLOAT_EQ(j["node_utcstart"].number_value(),              agent->cinfo->node.utcstart);
-        EXPECT_EQ(j["device_cpu_uptime_"+didx.str()].int_value(),       agent->cinfo->devspec.cpu[i].uptime);
-        EXPECT_EQ(j["device_cpu_boot_count_"+didx.str()].int_value(),   agent->cinfo->devspec.cpu[i].boot_count);
+        EXPECT_EQ(j["device_cpu_uptime_"+didx.str()].long_value(),       agent->cinfo->devspec.cpu[i].uptime);
+        EXPECT_EQ(j["device_cpu_boot_count_"+didx.str()].long_value(),   agent->cinfo->devspec.cpu[i].boot_count);
         EXPECT_NEAR(j["device_cpu_load_"+didx.str()].number_value(),    std::min(agent->cinfo->devspec.cpu[i].load, 65.535f),   0.1);
         EXPECT_NEAR(j["device_cpu_gib_"+didx.str()].number_value(),     std::min(agent->cinfo->devspec.cpu[i].gib, 65.535f),    0.1);
         EXPECT_NEAR(j["device_cpu_storage_"+didx.str()].number_value(), std::min(agent->cinfo->devspec.cpu[i].storage, 65.535f),0.1);

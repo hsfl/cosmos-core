@@ -182,7 +182,7 @@ namespace Cosmos {
                     { "v", v },
                     { "a", a },
                     { "j", j },
-                    { "pass", static_cast<int>(pass) }
+                    { "pass", static_cast<long>(pass) }
                 };
             }
 
@@ -200,7 +200,7 @@ namespace Cosmos {
                     if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
                     if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
                     if(!parsed["j"].is_null())		j.from_json(parsed["j"].dump());
-                    if(!parsed["pass"].is_null())	pass = parsed["pass"].int_value();
+                    if(!parsed["pass"].is_null())	pass = parsed["pass"].long_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
                 }
@@ -287,7 +287,7 @@ namespace Cosmos {
                     { "s", s },
                     { "v", v },
                     { "a", a },
-                    { "pass", static_cast<int>(pass) }
+                    { "pass", static_cast<long>(pass) }
                 };
             }
 
@@ -304,7 +304,7 @@ namespace Cosmos {
                     if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
                     if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
                     if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
-                    if(!parsed["pass"].is_null())	pass = parsed["pass"].int_value();
+                    if(!parsed["pass"].is_null())	pass = parsed["pass"].long_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
                 }
@@ -348,7 +348,7 @@ namespace Cosmos {
                     { "s", s },
                     { "v", v },
                     { "a", a },
-                    { "pass", static_cast<int>(pass) }
+                    { "pass", static_cast<long>(pass) }
                 };
             }
 
@@ -365,7 +365,7 @@ namespace Cosmos {
                     if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
                     if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
                     if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
-                    if(!parsed["pass"].is_null())	pass = parsed["pass"].int_value();
+                    if(!parsed["pass"].is_null())	pass = parsed["pass"].long_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
                 }
@@ -514,7 +514,7 @@ namespace Cosmos {
                     { "s" , s },
                     { "v" , v },
                     { "a" , a },
-                    { "pass" , static_cast<int>(pass) }
+                    { "pass" , static_cast<long>(pass) }
                 };
             }
 
@@ -531,7 +531,7 @@ namespace Cosmos {
                     if(!parsed["s"].is_null())    s.from_json(parsed["s"].dump());
                     if(!parsed["v"].is_null())    v.from_json(parsed["v"].dump());
                     if(!parsed["a"].is_null())    a.from_json(parsed["a"].dump());
-                    if(!parsed["pass"].is_null())    pass = parsed["pass"].int_value();
+                    if(!parsed["pass"].is_null())    pass = parsed["pass"].long_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
                 }
@@ -673,7 +673,7 @@ namespace Cosmos {
 
                     { "sun2earth" , sun2earth },
                     { "sun2moon"  , sun2moon },
-                    { "closest"   , closest }
+                    { "closest"   , static_cast<long>(closest) }
                 };
             }
 
@@ -713,7 +713,7 @@ namespace Cosmos {
 
                     if(!p["sun2earth"].is_null())   sun2earth.from_json(p["sun2earth"].dump());
                     if(!p["sun2moon"].is_null())    sun2moon.from_json(p["sun2moon"].dump());
-                    if(!p["closest"].is_null()) closest = p["closest"].int_value();
+                    if(!p["closest"].is_null()) closest = p["closest"].long_value();
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -731,7 +731,7 @@ namespace Cosmos {
             // JIMNOTE: remove magic number
 //            string name = string(25, ' ');
             string name = " ";
-            uint16_t snumber = 0;
+            uint32_t snumber = 0;
             string id = " ";
             //! Drag (1/Earth radii)
             double bstar = 0.;
@@ -761,7 +761,7 @@ namespace Cosmos {
                 return json11::Json::object {
                     { "utc" , utc },
                     { "name" , name },
-                    { "snumber" , snumber },
+                    { "snumber" , static_cast<long>(snumber) },
                     { "id" , id },
                     { "bstar" , bstar },
                     { "i" , i },
@@ -772,7 +772,7 @@ namespace Cosmos {
                     { "mm" , mm },
                     { "dmm" , dmm },
                     { "ddmm" , ddmm },
-                    { "orbit" , static_cast<int>(orbit) }
+                    { "orbit" , static_cast<long>(orbit) }
                 };
             }
 
@@ -787,7 +787,7 @@ namespace Cosmos {
                 if(error.empty()) {
                     if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
                     if(!parsed["name"].is_null())    name = parsed["name"].string_value();
-                    if(!parsed["snumber"].is_null())    snumber =  parsed["snumber"].int_value();
+                    if(!parsed["snumber"].is_null())    snumber =  parsed["snumber"].long_value();
                     if(!parsed["id"].is_null())    id = parsed["id"].string_value();
                     if(!parsed["bstar"].is_null())    bstar =  parsed["bstar"].number_value();
                     if(!parsed["i"].is_null())    i =  parsed["i"].number_value();
@@ -798,7 +798,7 @@ namespace Cosmos {
                     if(!parsed["mm"].is_null())    mm =  parsed["mm"].number_value();
                     if(!parsed["dmm"].is_null())    dmm =  parsed["dmm"].number_value();
                     if(!parsed["ddmm"].is_null())    ddmm =  parsed["ddmm"].number_value();
-                    if(!parsed["orbit"].is_null())    orbit =  parsed["orbit"].int_value();
+                    if(!parsed["orbit"].is_null())    orbit =  parsed["orbit"].long_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
                 }

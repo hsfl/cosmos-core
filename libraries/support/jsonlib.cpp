@@ -1825,6 +1825,30 @@ int32_t json_append(string &jstring, const char *tstring)
     return 0;
 }
 
+//! Join JSON strings
+//! /*! Catenate two JSON strings, turning them into one viable JSON string. Trailing
+//! and leading braces are replaced with a comma.
+//! \param stringina First string.
+//! \param stringinb Second string.
+//! \param stringout Resulting JSON string.
+//! \return Length of new string if successfule, negative error otherwise.
+int32_t json_join(string &stringina, string &stringinb, string &stringout)
+{
+    if (stringina.back() != '}')
+    {
+        return COSMOS_JSON_ERROR_JSTRING;
+    }
+
+    if (stringinb.front() != '{')
+    {
+        return COSMOS_JSON_ERROR_JSTRING;
+    }
+    stringout = stringina;
+    stringout.back() = ',';
+    stringout += stringinb.substr(1);
+    return stringout.length();
+}
+
 //! Single character to JSON
 /*! Appends an entry for the single character to the current JSON stream.
     \param jstring Reference to JSON stream.
@@ -2864,7 +2888,7 @@ int32_t json_out_tlestruc(string &jstring, Convert::tlestruc &value)
 
     if ((iretn=json_out_name(jstring, (char *)"snumber")) < 0)
         return iretn;
-    if ((iretn=json_out_uint16(jstring, value.snumber)) < 0)
+    if ((iretn=json_out_uint32(jstring, value.snumber)) < 0)
         return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
         return iretn;
@@ -2970,7 +2994,7 @@ int32_t json_out_tle(string &jstring, Convert::tlestruc &value)
 
     if ((iretn=json_out_name(jstring, (char *)"tle_snumber")) < 0)
         return iretn;
-    if ((iretn=json_out_uint16(jstring, value.snumber)) < 0)
+    if ((iretn=json_out_uint32(jstring, value.snumber)) < 0)
         return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
         return iretn;
@@ -3104,69 +3128,57 @@ int32_t json_out_commandevent(string &jstring,eventstruc value)
         return iretn;
     if ((iretn=json_out_double(jstring, value.utc)) < 0)
         return iretn;
-    if ((iretn=json_out_character(jstring, '}')) < 0)
-        return iretn;
 
     if (value.utcexec != 0.)
     {
-        if ((iretn=json_out_character(jstring, '{')) < 0)
+        if ((iretn=json_out_character(jstring, ',')) < 0)
             return iretn;
         if ((iretn=json_out_name(jstring, (char *)"event_utcexec")) < 0)
             return iretn;
         if ((iretn=json_out_double(jstring, value.utcexec)) < 0)
             return iretn;
-        if ((iretn=json_out_character(jstring, '}')) < 0)
-            return iretn;
     }
 
-    if ((iretn=json_out_character(jstring, '{')) < 0)
+    if ((iretn=json_out_character(jstring, ',')) < 0)
         return iretn;
     if ((iretn=json_out_name(jstring, (char *)"event_name")) < 0)
         return iretn;
     if ((iretn=json_out_string(jstring, value.name, COSMOS_MAX_NAME)) < 0)
         return iretn;
-    if ((iretn=json_out_character(jstring, '}')) < 0)
-        return iretn;
 
-    if ((iretn=json_out_character(jstring, '{')) < 0)
+    if ((iretn=json_out_character(jstring, ',')) < 0)
         return iretn;
     if ((iretn=json_out_name(jstring, (char *)"event_type")) < 0)
         return iretn;
     if ((iretn=json_out_uint32(jstring, value.type)) < 0)
         return iretn;
-    if ((iretn=json_out_character(jstring, '}')) < 0)
-        return iretn;
 
-    if ((iretn=json_out_character(jstring, '{')) < 0)
+    if ((iretn=json_out_character(jstring, ',')) < 0)
         return iretn;
     if ((iretn=json_out_name(jstring, (char *)"event_flag")) < 0)
         return iretn;
     if ((iretn=json_out_uint32(jstring, value.flag)) < 0)
         return iretn;
-    if ((iretn=json_out_character(jstring, '}')) < 0)
-        return iretn;
 
-    if ((iretn=json_out_character(jstring, '{')) < 0)
+    if ((iretn=json_out_character(jstring, ',')) < 0)
         return iretn;
     if ((iretn=json_out_name(jstring, (char *)"event_data")) < 0)
         return iretn;
     if ((iretn=json_out_string(jstring, value.data, COSMOS_MAX_DATA)) < 0)
         return iretn;
-    if ((iretn=json_out_character(jstring, '}')) < 0)
-        return iretn;
 
     if (value.flag & EVENT_FLAG_CONDITIONAL)
     {
-        if ((iretn=json_out_character(jstring, '{')) < 0)
+        if ((iretn=json_out_character(jstring, ',')) < 0)
             return iretn;
         if ((iretn=json_out_name(jstring, (char *)"event_condition")) < 0)
             return iretn;
         if ((iretn=json_out_string(jstring, value.condition, COSMOS_MAX_DATA)) < 0)
             return iretn;
-        if ((iretn=json_out_character(jstring, '}')) < 0)
-            return iretn;
     }
 
+    if ((iretn=json_out_character(jstring, '}')) < 0)
+        return iretn;
     return 0;
 }
 
@@ -6591,7 +6603,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_extract_name(ptr, empty)) < 0)
             return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_UINT16, data+(ptrdiff_t)offsetof(Convert::tlestruc,snumber), cinfo)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint32_t)JSON_TYPE_UINT32, data+(ptrdiff_t)offsetof(Convert::tlestruc,snumber), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return iretn;
@@ -10055,7 +10067,7 @@ uint16_t json_maptleentry(uint16_t tleidx, cosmosstruc *cinfo)
 
     json_addentry("tle_utc", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,utc)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
     json_addentry("tle_name", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,name)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_STRING, (uint16_t)JSON_STRUCT_TLE, cinfo);
-    json_addentry("tle_snumber", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,snumber)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_UINT16, (uint16_t)JSON_STRUCT_TLE, cinfo);
+    json_addentry("tle_snumber", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,snumber)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_UINT32, (uint16_t)JSON_STRUCT_TLE, cinfo);
     json_addentry("tle_id", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,id)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_STRING, (uint16_t)JSON_STRUCT_TLE, cinfo);
     json_addentry("tle_bstar", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,bstar)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
     json_addentry("tle_i", tleidx, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,i)+tleidx*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
@@ -13114,7 +13126,7 @@ int32_t load_tle(cosmosstruc *cinfo)
         {
             json_addentry("tle_utc",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,utc)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
             json_addentry("tle_name",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,name)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_STRING, (uint16_t)JSON_STRUCT_TLE, cinfo);
-            json_addentry("tle_snumber",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,snumber)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_UINT16, (uint16_t)JSON_STRUCT_TLE, cinfo);
+            json_addentry("tle_snumber",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,snumber)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_UINT32, (uint16_t)JSON_STRUCT_TLE, cinfo);
             json_addentry("tle_id",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,id)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_STRING, (uint16_t)JSON_STRUCT_TLE, cinfo);
             json_addentry("tle_bstar",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,bstar)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);
             json_addentry("tle_i",i, UINT16_MAX, (ptrdiff_t)offsetof(Convert::tlestruc,i)+i*sizeof(Convert::tlestruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TLE, cinfo);

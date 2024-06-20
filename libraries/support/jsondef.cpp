@@ -3531,7 +3531,7 @@ namespace Cosmos
                 add_name(basename, &tle[i], "tlestruc");
                 add_name(basename+".utc", &tle[i].utc, "double");
                 add_name(basename+".name", &tle[i].name, "char[]");
-                add_name(basename+".snumber", &tle[i].snumber, "uint16_t");
+                add_name(basename+".snumber", &tle[i].snumber, "uint32_t");
                 add_name(basename+".id", &tle[i].id, "char[]");
                 add_name(basename+".bstar", &tle[i].bstar, "double");
                 add_name(basename+".i", &tle[i].i, "double");
