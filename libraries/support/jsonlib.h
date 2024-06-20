@@ -174,6 +174,7 @@ int32_t json_table_of_list(vector<jsonentry*> &entry, string tokens, cosmosstruc
 uint16_t json_type_of_name(string token, cosmosstruc *cinfo);
 
 int32_t json_append(string &jstring, const char *tstring);
+int32_t json_join(string &stringina, string &stringinb, string &stringout);
 
 int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t type, cosmosstruc *cinfo);
 int32_t json_out_handle(string &jstring, jsonhandle handle,cosmosstruc *cinfo);

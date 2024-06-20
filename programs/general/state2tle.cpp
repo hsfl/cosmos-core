@@ -25,10 +25,19 @@ int main(int argc, char *argv[])
     double initialalt = 400000.;
     double initialangle = RADOF(54.);
     Convert::locstruc initialloc;
+    initialloc.tle.id = "00000A";
     string args(argv[1]);
     uint16_t argcount = 0;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
+    if (!jargs["snumber"].is_null())
+    {
+        ++argcount;
+        initialloc.tle.snumber = jargs["snumber"].number_value();
+    }
+    else
+    {
+    }
     if (!jargs["phys"].is_null())
     {
         ++argcount;
@@ -87,7 +96,7 @@ int main(int argc, char *argv[])
         ++argcount;
         json11::Json::object values = jargs["tle"].object_items();
         vector<Convert::tlestruc>lines;
-        string fname = get_nodedir(nodename, true) + "/" + values["filename"].string_value();
+        string fname = values["filename"].string_value();
         load_lines(fname, lines);
         if (initialutc == 0.)
         {
@@ -100,7 +109,6 @@ int main(int argc, char *argv[])
 //        type = Physics::Propagator::PositionTle;
     }
 
-    initialloc.tle.id = "00000A";
     string tlestring = tle2tlestring(initialloc.tle);
     printf("%s\n", tlestring.c_str());
 }

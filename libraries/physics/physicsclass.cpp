@@ -2417,6 +2417,7 @@ int32_t OrbitalEventGenerator::Reset()
 
 int32_t OrbitalEventGenerator::Propagate(double nextutc)
 {
+    currentinfo->event.clear();
     if (nextutc == 0.)
     {
         nextutc = currentutc + dtj;
@@ -2549,6 +2550,13 @@ void OrbitalEventGenerator::check_umbra_event(bool force_end)
     // Umbra start
     if (umbra_start == 0. && !currentinfo->node.loc.pos.sunradiance)
     {
+        // Add umbra to event list
+        eventstruc umbra_event;
+        umbra_event.name = "UMBRAIN";
+        umbra_event.type = EVENT_TYPE_UMBRA;
+        umbra_event.utc = umbra_start;
+        umbra_event.dtime = currentutc - umbra_start;
+        currentinfo->event.push_back(umbra_event);
         umbra_start = currentutc;
     }
     // Umbra end
@@ -2556,6 +2564,7 @@ void OrbitalEventGenerator::check_umbra_event(bool force_end)
     {
         // Add umbra to event list
         eventstruc umbra_event;
+        umbra_event.name = "UMBRAOUT";
         umbra_event.type = EVENT_TYPE_UMBRA;
         umbra_event.utc = umbra_start;
         umbra_event.dtime = currentutc - umbra_start;
@@ -2599,6 +2608,13 @@ void OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force
         // AoS
         if (elto_deg > i*5. && gsAOS[i].first == 0.)
         {
+            eventstruc gs_aos_event;
+            gs_aos_event.name = GS_EVENT_STRING[i] + "AOS_" + gs.name;
+            gs_aos_event.type = GS_EVENT_CODE[i];
+            gs_aos_event.utc = gsAOS[i].first;
+            gs_aos_event.dtime = currentutc - gsAOS[i].first;
+            gs_aos_event.value = gsAOS[i].second;
+            currentinfo->event.push_back(gs_aos_event);
             gsAOS[i].first = currentutc;
         }
         // LoS
@@ -2606,7 +2622,7 @@ void OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force
         {
             // Add event to event list
             eventstruc gs_aos_event;
-            gs_aos_event.name = gs.name;
+            gs_aos_event.name = GS_EVENT_STRING[i] + "LOS_" + gs.name;
             gs_aos_event.type = GS_EVENT_CODE[i];
             gs_aos_event.utc = gsAOS[i].first;
             gs_aos_event.dtime = currentutc - gsAOS[i].first;
@@ -2630,7 +2646,7 @@ void OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force
     {
         // Add event to event list
         eventstruc gs_aos_event;
-        gs_aos_event.name = gs.name;
+        gs_aos_event.name = GS_EVENT_STRING[DEGMAX] + "_" + gs.name;
         gs_aos_event.type = GS_EVENT_CODE[DEGMAX];
         gs_aos_event.utc = gsAOS[DEGMAX].first;
         gs_aos_event.dtime = 0;
@@ -2652,6 +2668,7 @@ void OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bo
         target_AoS[target.name] = {std::make_pair(0.,0.f)};
     }
     aos_pair& tAOS = target_AoS[target.name];
+    aos_pair& tMAX = target_AoS[target.name];
     // Update highest elevation values for 0/5/10 degree events
     // tAOS[i].first is the mjd timestamp of when the event began
     // tAOS[i].second is the max elevation for this AoS event
@@ -2660,6 +2677,14 @@ void OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bo
     // AoS
     if (elto_deg > 0. && tAOS.first == 0.)
     {
+        eventstruc target_aos_event;
+        target_aos_event.name = "TAOS_" + target.name;
+        target_aos_event.type = EVENT_TYPE_TARG;
+        target_aos_event.utc = tAOS.first;
+        target_aos_event.dtime = currentutc - tAOS.first;
+        target_aos_event.value = tAOS.second;
+        target_aos_event.az = target.azto;
+        currentinfo->event.push_back(target_aos_event);
         tAOS.first = currentutc;
     }
     // LoS
@@ -2667,15 +2692,40 @@ void OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bo
     {
         // Add event to event list
         eventstruc target_aos_event;
-        target_aos_event.name = target.name;
+        target_aos_event.name = "TLOS_" + target.name;
         target_aos_event.type = EVENT_TYPE_TARG;
         target_aos_event.utc = tAOS.first;
         target_aos_event.dtime = currentutc - tAOS.first;
         target_aos_event.value = tAOS.second;
+        target_aos_event.az = target.azto;
         currentinfo->event.push_back(target_aos_event);
         // Reset this AoS event
         tAOS.first = 0.;
         tAOS.second = 0.f;
+    }
+    // MAXDEG event
+    // AoS
+    if (elto_deg > 0. && elto_deg > tMAX.second)
+    {
+        // Keep track of when the max elevation was achieved
+        tMAX.first = currentutc;
+        tMAX.second = elto_deg;
+    }
+    // MAX
+    else if ((force_end || elto_deg <= 0.) && tMAX.first != 0.)
+    {
+        // Add event to event list
+        eventstruc target_max_event;
+        target_max_event.name = "TMAX_" + target.name;
+        target_max_event.type = EVENT_TYPE_TARG;
+        target_max_event.utc = tMAX.first;
+        target_max_event.dtime = 0;
+        target_max_event.value = tMAX.second;
+        target_max_event.az = target.azto;
+        currentinfo->event.push_back(target_max_event);
+        // Reset this event
+        tMAX.first = 0.;
+        tMAX.second = 0.f;
     }
 }
 

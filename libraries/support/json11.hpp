@@ -92,7 +92,11 @@ public:
     Json() noexcept;                // NUL
     Json(std::nullptr_t) noexcept;  // NUL
     Json(double value);             // NUMBER
-    Json(int value);                // NUMBER
+    Json(long value);                // NUMBER
+    Json(int32_t value);
+    Json(uint32_t value);
+    Json(uint16_t value);
+    Json(uint8_t value);
     Json(bool value);               // BOOL
     Json(const string &value); // STRING
     Json(string &&value);      // STRING
@@ -135,10 +139,10 @@ public:
     bool is_object() const { return type() == OBJECT; }
 
     // Return the enclosed value if this is a number, 0 otherwise. Note that json11 does not
-    // distinguish between integer and non-integer numbers - number_value() and int_value()
+    // distinguish between integer and non-integer numbers - number_value() and long_value()
     // can both be applied to a NUMBER-typed object.
     double number_value() const;
-    int int_value() const;
+    long long_value() const;
 
     // Return the enclosed value if this is a boolean, false otherwise.
     bool bool_value() const;
@@ -214,14 +218,14 @@ private:
 class JsonValue {
 protected:
     friend class Json;
-    friend class JsonInt;
+    friend class JsonLong;
     friend class JsonDouble;
     virtual Json::Type type() const = 0;
     virtual bool equals(const JsonValue * other) const = 0;
     virtual bool less(const JsonValue * other) const = 0;
     virtual void dump(string &out) const = 0;
     virtual double number_value() const;
-    virtual int int_value() const;
+    virtual int long_value() const;
     virtual bool bool_value() const;
     virtual const string &string_value() const;
     virtual const Json::array &array_items() const;

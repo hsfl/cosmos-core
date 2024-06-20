@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     uint32_t count=0;
     socket_channel chan;
     socket_channel chanin;
-    char buf3[10000];
+    uint8_t buf3[10000];
     int32_t lsleep;
 //    int32_t lat, lon, alt;
     uint16_t len3;
@@ -96,9 +96,9 @@ int main(int argc, char *argv[])
                 0.);
         for (uint16_t i=1; i<argc; ++i)
         {
-            sprintf((char *)&buf3[3+strlen(&buf3[3])]," %s", argv[i]);
+            sprintf((char *)&buf3[3+strlen((char *)&buf3[3])]," %s", argv[i]);
         }
-        len3 = strlen(&buf3[3]);
+        len3 = strlen((char *)&buf3[3]);
         buf3[1] = len3%256;
         buf3[2] = len3 / 256;
 

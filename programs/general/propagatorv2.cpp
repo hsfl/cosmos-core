@@ -54,6 +54,21 @@ int main(int argc, char *argv[])
     if (!jargs["maxaccel"].is_null()) maxaccel = jargs["maxaccel"].number_value();
     if (!jargs["initialutc"].is_null()) initialutc = jargs["initialutc"].number_value();
     initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+    if (!jargs["tle"].is_null())
+    {
+        json11::Json::object values = jargs["tle"].object_items();
+        vector<Convert::tlestruc>lines;
+        string fname = values["filename"].string_value();
+        load_lines(fname, lines);
+        if (initialutc == 0.)
+        {
+            initialutc = lines[0].utc;
+        }
+        initialloc.tle = lines[0];
+        tle2eci(initialutc, initialloc.tle, initialloc.pos.eci);
+        initialloc.pos.eci.pass++;
+        pos_eci(initialloc);
+    }
     if (!jargs["phys"].is_null())
     {
         json11::Json::object values = jargs["phys"].object_items();

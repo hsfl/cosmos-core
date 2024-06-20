@@ -984,7 +984,7 @@ class sim_param	{
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "name", name },
-                    { "type", type },
+                    { "type", static_cast<double>(type) },
                     { "p0", p0 },
                     { "p1", p1 },
                     { "p2", p2 }
@@ -1001,7 +1001,7 @@ class sim_param	{
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty())	{
                     if(!parsed["name"].is_null()) { name = parsed["name"].string_value(); }
-                    if(!parsed["type"].is_null()) { type = parsed["type"].int_value(); }
+                    if(!parsed["type"].is_null()) { type = parsed["type"].long_value(); }
                     if(!parsed["p0"].is_null()) { p0 = parsed["p0"].number_value(); }
                     if(!parsed["p1"].is_null()) { p1 = parsed["p1"].number_value(); }
                     if(!parsed["p2"].is_null()) { p2 = parsed["p2"].number_value(); }
@@ -1090,8 +1090,8 @@ class sim_param	{
     */
             json11::Json to_json() const {
                 return json11::Json::object {
-                    { "hash" , hash },
-                    { "index", index }
+                    { "hash" , static_cast<double>(hash) },
+                    { "index", static_cast<double>(index) }
                 };
             }
 
@@ -1104,8 +1104,8 @@ class sim_param	{
                 string error;
                 json11::Json p = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!p["hash"].is_null()) { hash = p["hash"].int_value(); }
-                    if(!p["index"].is_null()) { index = p["index"].int_value(); }
+                    if(!p["hash"].is_null()) { hash = p["hash"].long_value(); }
+                    if(!p["index"].is_null()) { index = p["index"].long_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -1294,10 +1294,10 @@ class sim_param	{
                     { "utc"   , utc },
                     { "node"  , node },
                     { "proc"  , proc },
-                    { "ntype" , static_cast<int>(ntype) },
+                    { "ntype" , static_cast<double>(ntype) },
                     { "addr"  , addr },
-                    { "port"  , port },
-                    { "bsz"   , static_cast<int>(bsz) },
+                    { "port"  , static_cast<double>(port) },
+                    { "bsz"   , static_cast<double>(bsz) },
                     { "bprd"  , bprd },
                     { "user"  , user },
                     { "cpu"   , cpu },
@@ -1320,10 +1320,10 @@ class sim_param	{
                     if(!p["utc"].is_null()) { utc = p["utc"].number_value(); }
                     if(!p["node"].is_null()) { node = p["node"].string_value(); }
                     if(!p["proc"].is_null()) { proc = p["proc"].string_value(); }
-                    if(!p["ntype"].is_null()) { ntype = static_cast<NetworkType>(p["ntype"].int_value()); }
+                    if(!p["ntype"].is_null()) { ntype = static_cast<NetworkType>(p["ntype"].long_value()); }
                     if(!p["addr"].is_null()) { strcpy(addr, p["addr"].string_value().c_str()); }
-                    if(!p["port"].is_null()) { port = p["port"].int_value(); }
-                    if(!p["bsz"].is_null()) { bsz = p["bsz"].int_value(); }
+                    if(!p["port"].is_null()) { port = p["port"].long_value(); }
+                    if(!p["bsz"].is_null()) { bsz = p["bsz"].long_value(); }
                     if(!p["bprd"].is_null()) { bprd = p["bprd"].number_value(); }
                     if(!p["user"].is_null()) { user = p["user"].string_value(); }
                     if(!p["cpu"].is_null()) { cpu = p["cpu"].number_value(); }
@@ -1400,12 +1400,12 @@ class sim_param	{
                     { "client" , client },
                     //TODO?			{ "sub"	, sub },
                     { "server" , server },
-                    { "ifcnt"  , static_cast<int>(ifcnt) },
+                    { "ifcnt"  , static_cast<double>(ifcnt) },
                     //			{ "pub"	, v_pub },
                     //			{ "req"	, req },
-                    { "pid"	, pid },
+                    { "pid"	, static_cast<double>(pid) },
                     { "aprd"   , aprd },
-                    { "stateflag" , stateflag },
+                    { "stateflag" , static_cast<double>(stateflag) },
                     //			{ "reqs"   , reqs },
                     { "beat"   , beat }
                 };
@@ -1432,9 +1432,9 @@ class sim_param	{
                     //				}
                     //			}
                     //			if(!p["req"].is_null()) req.from_json(p["req"].dump());
-                    if(!p["pid"].is_null()) { pid = p["pid"].int_value(); }
+                    if(!p["pid"].is_null()) { pid = p["pid"].long_value(); }
                     if(!p["aprd"].is_null()) { aprd = p["aprd"].number_value(); }
-                    if(!p["stateflag"].is_null()) { stateflag = p["stateflag"].int_value(); }
+                    if(!p["stateflag"].is_null()) { stateflag = p["stateflag"].long_value(); }
                     //			if(!p["reqs"].is_null()) {
                     //				for(size_t i = 0; i < reqs.size(); ++i) {
                     //					if(!p["reqs"][i].is_null()) reqs[i].from_json(p["reqs"][i].dump());
@@ -1733,6 +1733,10 @@ class sim_param	{
             float dbytes = 0.f;
             //! Event continuous bytes consumed.
             float cbytes = 0.f;
+            //! Event elevation
+            float el = 0.;
+            //! Event azimuth
+            float az = 0.;
             //! Handle of condition that caused event, NULL if timed event.
             jsonhandle handle;
             //! Event specific data.
@@ -1753,8 +1757,8 @@ class sim_param	{
                     { "node"  , node },
                     { "name"  , name },
                     { "user"  , user },
-                    { "flag"  , static_cast<int>(flag) },
-                    { "type"  , static_cast<int>(type) },
+                    { "flag"  , static_cast<double>(flag) },
+                    { "type"  , static_cast<double>(type) },
                     { "value" , value },
                     { "dtime" , dtime },
                     { "ctime" , ctime },
@@ -1764,6 +1768,8 @@ class sim_param	{
                     { "cmass"   , cmass },
                     { "dbytes"  , dbytes },
                     { "cbytes"  , cbytes },
+                    { "el", el},
+                    {"az", az},
                     { "handle"  , handle },
                     { "data"	, data },
                     { "condition" , condition }
@@ -1784,8 +1790,8 @@ class sim_param	{
                     if(!p["node"].is_null()) { node = p["node"].string_value(); }
                     if(!p["name"].is_null()) { name = p["name"].string_value(); }
                     if(!p["user"].is_null()) { user = p["user"].string_value(); }
-                    if(!p["flag"].is_null()) { flag = p["flag"].int_value(); }
-                    if(!p["type"].is_null()) { type = p["type"].int_value(); }
+                    if(!p["flag"].is_null()) { flag = p["flag"].long_value(); }
+                    if(!p["type"].is_null()) { type = p["type"].long_value(); }
                     if(!p["value"].is_null()) { value = p["value"].number_value(); }
                     if(!p["dtime"].is_null()) { dtime = p["dtime"].number_value(); }
                     if(!p["ctime"].is_null()) { ctime = p["ctime"].number_value(); }
@@ -1795,6 +1801,8 @@ class sim_param	{
                     if(!p["cmass"].is_null()) { cmass = p["cmass"].number_value(); }
                     if(!p["dbytes"].is_null()) { dbytes = p["dbytes"].number_value(); }
                     if(!p["cbytes"].is_null()) { cbytes = p["cbytes"].number_value(); }
+                    if(!p["el"].is_null()) { el = p["el"].number_value(); }
+                    if(!p["az"].is_null()) { az = p["az"].number_value(); }
                     if(!p["handle"].is_null()) { handle.from_json(p["handle"].dump()); }
                     //			if(!p["data"].is_null()) { strcpy(data, p["data"].string_value().c_str()); }
                     //			if(!p["condition"].is_null()) { strcpy(condition, p["condition"].string_value().c_str()); }
@@ -2004,7 +2012,7 @@ class sim_param	{
                 return json11::Json::object {
                     { "utc"	, utc },
                     { "name"   , name },
-                    { "type"   , type },
+                    { "type"   , static_cast<double>(type) },
                     { "azfrom" , azfrom },
                     { "elfrom" , elfrom },
                     { "azto"   , azto },
@@ -2034,7 +2042,7 @@ class sim_param	{
                 if(error.empty()) {
                     if(!p["utc"].is_null()) { utc = p["utc"].number_value(); }
                     if(!p["name"].is_null()) { name = p["name"].string_value(); }
-                    if(!p["type"].is_null()) { type = p["type"].int_value(); }
+                    if(!p["type"].is_null()) { type = p["type"].long_value(); }
                     if(!p["azfrom"].is_null()) { azfrom = p["azfrom"].number_value(); }
                     if(!p["elfrom"].is_null()) { elfrom = p["elfrom"].number_value(); }
                     if(!p["azto"].is_null()) { azto = p["azto"].number_value(); }
@@ -2091,7 +2099,7 @@ class sim_param	{
     */
             json11::Json to_json() const {
                 return json11::Json::object {
-                    { "type" , type },
+                                            { "type" , static_cast<double>(type) },
                     { "name" , name }
                 };
             }
@@ -2105,7 +2113,7 @@ class sim_param	{
                 string error;
                 json11::Json p = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!p["type"].is_null()) { type = static_cast<PORT_TYPE>(p["type"].int_value()); }
+                    if(!p["type"].is_null()) { type = static_cast<PORT_TYPE>(p["type"].long_value()); }
                     if(!p["name"].is_null()) { name = p["name"].string_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -2145,7 +2153,7 @@ class sim_param	{
     */
             json11::Json to_json() const {
                 return json11::Json::object {
-                    { "vertex_cnt" , vertex_cnt},
+                    { "vertex_cnt" , static_cast<double>(vertex_cnt)},
                     { "vertex_idx" , vertex_idx },
                     { "com"	, com },
                     { "normal" , normal },
@@ -2162,9 +2170,9 @@ class sim_param	{
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["vertex_cnt"].is_null()) { vertex_cnt = parsed["vertex_cnt"].int_value(); }
+                    if(!parsed["vertex_cnt"].is_null()) { vertex_cnt = parsed["vertex_cnt"].long_value(); }
                     for(size_t i = 0; i < vertex_idx.size(); ++i)	{
-                        if(!parsed["vertex_idx"][i].is_null())	{ vertex_idx[i] = parsed["vertex_idx"][i].int_value(); }
+                        if(!parsed["vertex_idx"][i].is_null())	{ vertex_idx[i] = parsed["vertex_idx"][i].long_value(); }
                     }
                     if(!parsed["com"].is_null()) { com.from_json(parsed["com"].dump()); }
                     if(!parsed["normal"].is_null()) { normal.from_json(parsed["normal"].dump()); }
@@ -2287,7 +2295,7 @@ class sim_param	{
                 if(error.empty()) {
                     if(!p["name"].is_null()) { name = p["name"].string_value(); }
                     if(!p["enabled"].is_null()) { enabled = p["enabled"].bool_value(); }
-                    if(!p["cidx"].is_null()) { cidx = p["cidx"].int_value(); }
+                    if(!p["cidx"].is_null()) { cidx = p["cidx"].long_value(); }
                     if(!p["density"].is_null()) { density = p["density"].number_value(); }
                     if(!p["mass"].is_null()) { mass = p["mass"].number_value(); }
                     if(!p["emi"].is_null()) { emi = p["emi"].number_value(); }
@@ -2297,11 +2305,11 @@ class sim_param	{
                     if(!p["dim"].is_null()) { dim = p["dim"].number_value(); }
                     if(!p["area"].is_null()) { area = p["area"].number_value(); }
                     if(!p["volume"].is_null()) { volume = p["volume"].number_value(); }
-                    if(!p["face_cnt"].is_null()) { face_cnt = p["face_cnt"].int_value(); }
+                    if(!p["face_cnt"].is_null()) { face_cnt = p["face_cnt"].long_value(); }
                     if(!p["face_idx"].is_null()) {
                         auto p_face_idx = p["face_idx"].array_items();
                         for(size_t i = 0; i != p_face_idx.size(); ++i) {
-                            if(!p_face_idx[i].is_null()) { face_idx[i] = p_face_idx[i].int_value(); }
+                            if(!p_face_idx[i].is_null()) { face_idx[i] = p_face_idx[i].long_value(); }
                         }
                     }
                     if(!p["com"].is_null()) { com.from_json(p["com"].dump()); }
@@ -2416,16 +2424,16 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["state"].is_null()) { state = parsed["state"].int_value(); }
-                    if(!parsed["type"].is_null()) { type = parsed["type"].int_value(); }
-                    if(!parsed["model"].is_null()) { model = parsed["model"].int_value(); }
-                    if(!parsed["flag"].is_null()) { flag = parsed["flag"].int_value(); }
-                    if(!parsed["addr"].is_null()) { addr = parsed["addr"].int_value(); }
-                    if(!parsed["cidx"].is_null()) { cidx = parsed["cidx"].int_value(); }
-                    if(!parsed["didx"].is_null()) { didx = parsed["didx"].int_value(); }
-                    if(!parsed["pidx"].is_null()) { pidx = parsed["pidx"].int_value(); }
-                    if(!parsed["bidx"].is_null()) { bidx = parsed["bidx"].int_value(); }
-                    if(!parsed["portidx"].is_null()) { portidx = parsed["portidx"].int_value(); }
+                    if(!parsed["state"].is_null()) { state = parsed["state"].long_value(); }
+                    if(!parsed["type"].is_null()) { type = parsed["type"].long_value(); }
+                    if(!parsed["model"].is_null()) { model = parsed["model"].long_value(); }
+                    if(!parsed["flag"].is_null()) { flag = parsed["flag"].long_value(); }
+                    if(!parsed["addr"].is_null()) { addr = parsed["addr"].long_value(); }
+                    if(!parsed["cidx"].is_null()) { cidx = parsed["cidx"].long_value(); }
+                    if(!parsed["didx"].is_null()) { didx = parsed["didx"].long_value(); }
+                    if(!parsed["pidx"].is_null()) { pidx = parsed["pidx"].long_value(); }
+                    if(!parsed["bidx"].is_null()) { bidx = parsed["bidx"].long_value(); }
+                    if(!parsed["portidx"].is_null()) { portidx = parsed["portidx"].long_value(); }
                     if(!parsed["namp"].is_null()) { namp = parsed["namp"].number_value(); }
                     if(!parsed["nvolt"].is_null()) { nvolt = parsed["nvolt"].number_value(); }
                     if(!parsed["amp"].is_null()) { amp = parsed["amp"].number_value(); }
@@ -2657,7 +2665,7 @@ union as a ::devicestruc.
                     if(!parsed["keyidx"].is_null()) {
                         auto p_keyidx = parsed["keyidx"].array_items();
                         for(size_t i = 0; i != p_keyidx.size(); ++i) {
-                            if(!parsed["keyidx"][i].is_null()) { keyidx[i] = p_keyidx[i].int_value(); }
+                            if(!parsed["keyidx"][i].is_null()) { keyidx[i] = p_keyidx[i].long_value(); }
                         }
                     }
                     if(!parsed["keyval"].is_null()) {
@@ -3081,13 +3089,13 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["uptime"].is_null()) { uptime = parsed["uptime"].int_value(); }
+                    if(!parsed["uptime"].is_null()) { uptime = parsed["uptime"].long_value(); }
                     if(!parsed["load"].is_null()) { load = parsed["load"].number_value(); }
                     if(!parsed["maxload"].is_null()) { maxload = parsed["maxload"].number_value(); }
                     if(!parsed["maxgib"].is_null()) { maxgib = parsed["maxgib"].number_value(); }
                     if(!parsed["gib"].is_null()) { gib = parsed["gib"].number_value(); }
                     if(!parsed["storage"].is_null()) { storage = parsed["storage"].number_value(); }
-                    if(!parsed["boot_count"].is_null()) { boot_count = parsed["boot_count"].int_value(); }
+                    if(!parsed["boot_count"].is_null()) { boot_count = parsed["boot_count"].long_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -3223,11 +3231,11 @@ union as a ::devicestruc.
                     if(!parsed["dgeods"].is_null()) { dgeods.from_json(parsed["dgeods"].dump()); }
                     if(!parsed["dgeodv"].is_null()) { dgeodv.from_json(parsed["dgeodv"].dump()); }
                     if(!parsed["heading"].is_null()) { heading = parsed["heading"].number_value(); }
-                    if(!parsed["sats_used"].is_null()) { sats_used = parsed["sats_used"].int_value(); }
-                    if(!parsed["sats_visible"].is_null()) { sats_visible = parsed["sats_visible"].int_value(); }
-                    if(!parsed["time_status"].is_null()) { time_status = parsed["time_status"].int_value(); }
-                    if(!parsed["position_type"].is_null()) { position_type = parsed["position_type"].int_value(); }
-                    if(!parsed["solution_status"].is_null()) { solution_status = parsed["solution_status"].int_value(); }
+                    if(!parsed["sats_used"].is_null()) { sats_used = parsed["sats_used"].long_value(); }
+                    if(!parsed["sats_visible"].is_null()) { sats_visible = parsed["sats_visible"].long_value(); }
+                    if(!parsed["time_status"].is_null()) { time_status = parsed["time_status"].long_value(); }
+                    if(!parsed["position_type"].is_null()) { position_type = parsed["position_type"].long_value(); }
+                    if(!parsed["solution_status"].is_null()) { solution_status = parsed["solution_status"].long_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -3373,10 +3381,10 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["opmode"].is_null()) { opmode = parsed["opmode"].int_value(); }
-                    if(!parsed["modulation"].is_null()) { modulation = parsed["modulation"].int_value(); }
-                    if(!parsed["rssi"].is_null()) { rssi = parsed["rssi"].int_value(); }
-                    if(!parsed["pktsize"].is_null()) { pktsize = parsed["pktsize"].int_value(); }
+                    if(!parsed["opmode"].is_null()) { opmode = parsed["opmode"].long_value(); }
+                    if(!parsed["modulation"].is_null()) { modulation = parsed["modulation"].long_value(); }
+                    if(!parsed["rssi"].is_null()) { rssi = parsed["rssi"].long_value(); }
+                    if(!parsed["pktsize"].is_null()) { pktsize = parsed["pktsize"].long_value(); }
                     if(!parsed["freq"].is_null()) { freq = parsed["freq"].number_value(); }
                     if(!parsed["maxfreq"].is_null()) { maxfreq = parsed["maxfreq"].number_value(); }
                     if(!parsed["minfreq"].is_null()) { minfreq = parsed["minfreq"].number_value(); }
@@ -3389,7 +3397,7 @@ union as a ::devicestruc.
                     if(!parsed["goodratio"].is_null()) { goodratio = parsed["goodratio"].number_value(); }
                     if(!parsed["utcin"].is_null()) { utcin = parsed["utcin"].number_value(); }
                     if(!parsed["uptime"].is_null()) { uptime = parsed["uptime"].number_value(); }
-                    if(!parsed["bytesin"].is_null()) { bytesin = parsed["bytesin"].int_value(); }
+                    if(!parsed["bytesin"].is_null()) { bytesin = parsed["bytesin"].long_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -3472,10 +3480,10 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["opmode"].is_null()) { opmode = parsed["opmode"].int_value(); }
-                    if(!parsed["modulation"].is_null()) { modulation = parsed["modulation"].int_value(); }
-                    if(!parsed["rssi"].is_null()) { rssi = parsed["rssi"].int_value(); }
-                    if(!parsed["pktsize"].is_null()) { pktsize = parsed["pktsize"].int_value(); }
+                    if(!parsed["opmode"].is_null()) { opmode = parsed["opmode"].long_value(); }
+                    if(!parsed["modulation"].is_null()) { modulation = parsed["modulation"].long_value(); }
+                    if(!parsed["rssi"].is_null()) { rssi = parsed["rssi"].long_value(); }
+                    if(!parsed["pktsize"].is_null()) { pktsize = parsed["pktsize"].long_value(); }
                     if(!parsed["freq"].is_null()) { freq = parsed["freq"].number_value(); }
                     if(!parsed["maxfreq"].is_null()) { maxfreq = parsed["maxfreq"].number_value(); }
                     if(!parsed["minfreq"].is_null()) { minfreq = parsed["minfreq"].number_value(); }
@@ -3488,7 +3496,7 @@ union as a ::devicestruc.
                     if(!parsed["goodratio"].is_null()) { goodratio = parsed["goodratio"].number_value(); }
                     if(!parsed["utcout"].is_null()) { utcout = parsed["utcout"].number_value(); }
                     if(!parsed["uptime"].is_null()) { uptime = parsed["uptime"].number_value(); }
-                    if(!parsed["bytesout"].is_null()) { bytesout = parsed["bytesout"].int_value(); }
+                    if(!parsed["bytesout"].is_null()) { bytesout = parsed["bytesout"].long_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -3577,10 +3585,10 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["opmode"].is_null()) { opmode = parsed["opmode"].int_value(); }
-                    if(!parsed["modulation"].is_null()) { modulation = parsed["modulation"].int_value(); }
-                    if(!parsed["rssi"].is_null()) { rssi = parsed["rssi"].int_value(); }
-                    if(!parsed["pktsize"].is_null()) { pktsize = parsed["pktsize"].int_value(); }
+                    if(!parsed["opmode"].is_null()) { opmode = parsed["opmode"].long_value(); }
+                    if(!parsed["modulation"].is_null()) { modulation = parsed["modulation"].long_value(); }
+                    if(!parsed["rssi"].is_null()) { rssi = parsed["rssi"].long_value(); }
+                    if(!parsed["pktsize"].is_null()) { pktsize = parsed["pktsize"].long_value(); }
                     if(!parsed["freq"].is_null()) { freq = parsed["freq"].number_value(); }
                     if(!parsed["maxfreq"].is_null()) { maxfreq = parsed["maxfreq"].number_value(); }
                     if(!parsed["minfreq"].is_null()) { minfreq = parsed["minfreq"].number_value(); }
@@ -3594,8 +3602,8 @@ union as a ::devicestruc.
                     if(!parsed["utcout"].is_null()) { utcout = parsed["utcout"].number_value(); }
                     if(!parsed["utcin"].is_null()) { utcin = parsed["utcin"].number_value(); }
                     if(!parsed["uptime"].is_null()) { uptime = parsed["uptime"].number_value(); }
-                    if(!parsed["bytesin"].is_null()) { bytesin = parsed["bytesin"].int_value(); }
-                    if(!parsed["bytesout"].is_null()) { bytesout = parsed["bytesout"].int_value(); }
+                    if(!parsed["bytesin"].is_null()) { bytesin = parsed["bytesin"].long_value(); }
+                    if(!parsed["bytesout"].is_null()) { bytesout = parsed["bytesout"].long_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -3642,7 +3650,7 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["bcidx"].is_null()) { bcidx = parsed["bcidx"].int_value(); }
+                    if(!parsed["bcidx"].is_null()) { bcidx = parsed["bcidx"].long_value(); }
                     if(!parsed["effbase"].is_null()) { effbase = parsed["effbase"].number_value(); }
                     if(!parsed["effslope"].is_null()) { effslope = parsed["effslope"].number_value(); }
                     if(!parsed["maxpower"].is_null()) { maxpower = parsed["maxpower"].number_value(); }
@@ -4000,8 +4008,8 @@ union as a ::devicestruc.
                     if(!parsed["att"].is_null()) { att.from_json(parsed["att"].dump()); }
                     if(!parsed["omega"].is_null()) { omega.from_json(parsed["omega"].dump()); }
                     if(!parsed["alpha"].is_null()) { alpha.from_json(parsed["alpha"].dump()); }
-                    if(!parsed["retcode"].is_null()) { retcode = parsed["retcode"].int_value(); }
-                    if(!parsed["status"].is_null()) { status = parsed["status"].int_value(); }
+                    if(!parsed["retcode"].is_null()) { retcode = parsed["retcode"].long_value(); }
+                    if(!parsed["status"].is_null()) { status = parsed["status"].long_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -4081,11 +4089,11 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["mcnt"].is_null()) { mcnt = parsed["mcnt"].int_value(); }
+                    if(!parsed["mcnt"].is_null()) { mcnt = parsed["mcnt"].long_value(); }
                     if(!parsed["mcidx"].is_null()) {
                         auto p_mcidx = parsed["mcidx"].array_items();
                         for(size_t i = 0; i != p_mcidx.size(); ++i) {
-                            if(!p_mcidx[i].is_null()) { mcidx[i] = p_mcidx[i].int_value(); }
+                            if(!p_mcidx[i].is_null()) { mcidx[i] = p_mcidx[i].long_value(); }
                         }
                     }
                 } else {
@@ -4266,9 +4274,9 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["lstep"].is_null()) { lstep = parsed["lstep"].int_value(); }
-                    if(!parsed["pwidth"].is_null()) { pwidth = parsed["pwidth"].int_value(); }
-                    if(!parsed["pheight"].is_null()) { pheight = parsed["pheight"].int_value(); }
+                    if(!parsed["lstep"].is_null()) { lstep = parsed["lstep"].long_value(); }
+                    if(!parsed["pwidth"].is_null()) { pwidth = parsed["pwidth"].long_value(); }
+                    if(!parsed["pheight"].is_null()) { pheight = parsed["pheight"].long_value(); }
                     if(!parsed["width"].is_null()) { width = parsed["width"].number_value(); }
                     if(!parsed["height"].is_null()) { height = parsed["height"].number_value(); }
                     if(!parsed["flength"].is_null()) { flength = parsed["flength"].number_value(); }
@@ -4482,12 +4490,12 @@ union as a ::devicestruc.
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["external"].is_null())	{ external = parsed["external"].int_value(); }
+                    if(!parsed["external"].is_null())	{ external = parsed["external"].long_value(); }
                     if(!parsed["com"].is_null())	{ com.from_json(parsed["com"].dump()); }
                     if(!parsed["normal"].is_null())	{ normal.from_json(parsed["normal"].dump()); }
                     if(!parsed["shove"].is_null())	{ shove.from_json(parsed["shove"].dump()); }
                     if(!parsed["twist"].is_null())	{ twist.from_json(parsed["twist"].dump()); }
-                    if(!parsed["pidx"].is_null())	{ pidx = parsed["pidx"].int_value(); }
+                    if(!parsed["pidx"].is_null())	{ pidx = parsed["pidx"].long_value(); }
 
                     // Array
                     if(!parsed["heat"].is_null())	{ heat = parsed["heat"].number_value(); }
@@ -4649,7 +4657,7 @@ union as a ::devicestruc.
                     if(!parsed["battlev"].is_null())	{ battlev = parsed["battlev"].number_value(); }
                     if(!parsed["powgen"].is_null())	{ powgen = parsed["powgen"].number_value(); }
                     if(!parsed["powuse"].is_null())	{ powuse = parsed["powuse"].number_value(); }
-                    if(!parsed["mode"].is_null())	{ mode = parsed["mode"].int_value(); }
+                    if(!parsed["mode"].is_null())	{ mode = parsed["mode"].long_value(); }
 
                     if(!parsed["ftorque"].is_null())	{ ftorque.from_json(parsed["ftorque"].dump()); }
                     if(!parsed["atorque"].is_null())	{ atorque.from_json(parsed["atorque"].dump()); }
@@ -4813,12 +4821,12 @@ union as a ::devicestruc.
 //                    if(!parsed["agent"].is_null())			{ agent = parsed["agent"].string_value(); }
                     if(!parsed["lastevent"].is_null())		{ lastevent = parsed["lastevent"].string_value(); }
                     if(!parsed["lasteventutc"].is_null())	{ lasteventutc = parsed["lasteventutc"].number_value(); }
-                    if(!parsed["type"].is_null())	{ type = parsed["type"].int_value(); }
-                    if(!parsed["state"].is_null())	{ state = parsed["state"].int_value(); }
+                    if(!parsed["type"].is_null())	{ type = parsed["type"].long_value(); }
+                    if(!parsed["state"].is_null())	{ state = parsed["state"].long_value(); }
 
-                    if(!parsed["flags"].is_null())	{ flags = parsed["flags"].int_value(); }
-                    if(!parsed["powmode"].is_null())	{ powmode = parsed["powmode"].int_value(); }
-                    if(!parsed["downtime"].is_null())	{ downtime = parsed["downtime"].int_value(); }
+                    if(!parsed["flags"].is_null())	{ flags = parsed["flags"].long_value(); }
+                    if(!parsed["powmode"].is_null())	{ powmode = parsed["powmode"].long_value(); }
+                    if(!parsed["downtime"].is_null())	{ downtime = parsed["downtime"].long_value(); }
                     if(!parsed["azfrom"].is_null())	{ azfrom = parsed["azfrom"].number_value(); }
                     if(!parsed["elfrom"].is_null())	{ elfrom = parsed["elfrom"].number_value(); }
                     if(!parsed["azto"].is_null())	{ azto = parsed["azto"].number_value(); }
@@ -4827,7 +4835,7 @@ union as a ::devicestruc.
                     if(!parsed["utcoffset"].is_null())	{ utcoffset = parsed["utcoffset"].number_value(); }
                     if(!parsed["utc"].is_null())	{ utc = parsed["utc"].number_value(); }
                     if(!parsed["utcstart"].is_null())	{ utcstart = parsed["utcstart"].number_value(); }
-                    if(!parsed["deci"].is_null())	{ deci = parsed["deci"].int_value(); }
+                    if(!parsed["deci"].is_null())	{ deci = parsed["deci"].long_value(); }
                     if(!parsed["loc"].is_null())	{ loc.from_json(parsed["loc"].dump()); }
 					if(!parsed["loc_est"].is_null()){ loc_est.from_json(parsed["loc_est"].dump()); }
 					if(!parsed["loc_std"].is_null()){ loc_std.from_json(parsed["loc_std"].dump()); }
@@ -5094,55 +5102,55 @@ union as a ::devicestruc.
                 string error;
                 json11::Json p = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    //                    if(!p["all_cnt"].is_null()) { all_cnt = p["all_cnt"].int_value(); }
-                    if(!p["ant_cnt"].is_null()) { ant_cnt = p["ant_cnt"].int_value(); }
-                    if(!p["batt_cnt"].is_null()) { batt_cnt = p["batt_cnt"].int_value(); }
-                    if(!p["bus_cnt"].is_null()) { bus_cnt = p["bus_cnt"].int_value(); }
-                    if(!p["cam_cnt"].is_null()) { cam_cnt = p["cam_cnt"].int_value(); }
+                    //                    if(!p["all_cnt"].is_null()) { all_cnt = p["all_cnt"].long_value(); }
+                    if(!p["ant_cnt"].is_null()) { ant_cnt = p["ant_cnt"].long_value(); }
+                    if(!p["batt_cnt"].is_null()) { batt_cnt = p["batt_cnt"].long_value(); }
+                    if(!p["bus_cnt"].is_null()) { bus_cnt = p["bus_cnt"].long_value(); }
+                    if(!p["cam_cnt"].is_null()) { cam_cnt = p["cam_cnt"].long_value(); }
 
-                    if(!p["cpu_cnt"].is_null()) { cpu_cnt = p["cpu_cnt"].int_value(); }
-                    if(!p["disk_cnt"].is_null()) { disk_cnt = p["disk_cnt"].int_value(); }
-                    if(!p["gps_cnt"].is_null()) { gps_cnt = p["gps_cnt"].int_value(); }
-                    if(!p["gyro_cnt"].is_null()) { gyro_cnt = p["gyro_cnt"].int_value(); }
-                    if(!p["htr_cnt"].is_null()) { htr_cnt = p["htr_cnt"].int_value(); }
-                    if(!p["imu_cnt"].is_null()) { imu_cnt = p["imu_cnt"].int_value(); }
-                    if(!p["mag_cnt"].is_null()) { mag_cnt = p["mag_cnt"].int_value(); }
+                    if(!p["cpu_cnt"].is_null()) { cpu_cnt = p["cpu_cnt"].long_value(); }
+                    if(!p["disk_cnt"].is_null()) { disk_cnt = p["disk_cnt"].long_value(); }
+                    if(!p["gps_cnt"].is_null()) { gps_cnt = p["gps_cnt"].long_value(); }
+                    if(!p["gyro_cnt"].is_null()) { gyro_cnt = p["gyro_cnt"].long_value(); }
+                    if(!p["htr_cnt"].is_null()) { htr_cnt = p["htr_cnt"].long_value(); }
+                    if(!p["imu_cnt"].is_null()) { imu_cnt = p["imu_cnt"].long_value(); }
+                    if(!p["mag_cnt"].is_null()) { mag_cnt = p["mag_cnt"].long_value(); }
 
-                    if(!p["mcc_cnt"].is_null()) { mcc_cnt = p["mcc_cnt"].int_value(); }
-                    if(!p["motr_cnt"].is_null()) { motr_cnt = p["motr_cnt"].int_value(); }
-                    if(!p["mtr_cnt"].is_null()) { mtr_cnt = p["mtr_cnt"].int_value(); }
-                    if(!p["ntelem_cnt"].is_null()) { ntelem_cnt = p["ntelem_cnt"].int_value(); }
-                    if(!p["pload_cnt"].is_null()) { pload_cnt = p["pload_cnt"].int_value(); }
-                    if(!p["prop_cnt"].is_null()) { prop_cnt = p["prop_cnt"].int_value(); }
+                    if(!p["mcc_cnt"].is_null()) { mcc_cnt = p["mcc_cnt"].long_value(); }
+                    if(!p["motr_cnt"].is_null()) { motr_cnt = p["motr_cnt"].long_value(); }
+                    if(!p["mtr_cnt"].is_null()) { mtr_cnt = p["mtr_cnt"].long_value(); }
+                    if(!p["ntelem_cnt"].is_null()) { ntelem_cnt = p["ntelem_cnt"].long_value(); }
+                    if(!p["pload_cnt"].is_null()) { pload_cnt = p["pload_cnt"].long_value(); }
+                    if(!p["prop_cnt"].is_null()) { prop_cnt = p["prop_cnt"].long_value(); }
 
-                    if(!p["psen_cnt"].is_null()) { psen_cnt = p["psen_cnt"].int_value(); }
-                    if(!p["bcreg_cnt"].is_null()) { bcreg_cnt = p["bcreg_cnt"].int_value(); }
-                    if(!p["rot_cnt"].is_null()) { rot_cnt = p["rot_cnt"].int_value(); }
-                    if(!p["rw_cnt"].is_null()) { rw_cnt = p["rw_cnt"].int_value(); }
-                    if(!p["rxr_cnt"].is_null()) { rxr_cnt = p["rxr_cnt"].int_value(); }
+                    if(!p["psen_cnt"].is_null()) { psen_cnt = p["psen_cnt"].long_value(); }
+                    if(!p["bcreg_cnt"].is_null()) { bcreg_cnt = p["bcreg_cnt"].long_value(); }
+                    if(!p["rot_cnt"].is_null()) { rot_cnt = p["rot_cnt"].long_value(); }
+                    if(!p["rw_cnt"].is_null()) { rw_cnt = p["rw_cnt"].long_value(); }
+                    if(!p["rxr_cnt"].is_null()) { rxr_cnt = p["rxr_cnt"].long_value(); }
 
-                    if(!p["ssen_cnt"].is_null()) { ssen_cnt = p["ssen_cnt"].int_value(); }
-                    if(!p["pvstrg_cnt"].is_null()) { pvstrg_cnt = p["pvstrg_cnt"].int_value(); }
-                    if(!p["stelem_cnt"].is_null()) { stelem_cnt = p["stelem_cnt"].int_value(); }
-                    if(!p["stt_cnt"].is_null()) { stt_cnt = p["stt_cnt"].int_value(); }
-                    if(!p["suchi_cnt"].is_null()) { suchi_cnt = p["suchi_cnt"].int_value(); }
-                    if(!p["swch_cnt"].is_null()) { swch_cnt = p["swch_cnt"].int_value(); }
+                    if(!p["ssen_cnt"].is_null()) { ssen_cnt = p["ssen_cnt"].long_value(); }
+                    if(!p["pvstrg_cnt"].is_null()) { pvstrg_cnt = p["pvstrg_cnt"].long_value(); }
+                    if(!p["stelem_cnt"].is_null()) { stelem_cnt = p["stelem_cnt"].long_value(); }
+                    if(!p["stt_cnt"].is_null()) { stt_cnt = p["stt_cnt"].long_value(); }
+                    if(!p["suchi_cnt"].is_null()) { suchi_cnt = p["suchi_cnt"].long_value(); }
+                    if(!p["swch_cnt"].is_null()) { swch_cnt = p["swch_cnt"].long_value(); }
 
-                    if(!p["tcu_cnt"].is_null()) { tcu_cnt = p["tcu_cnt"].int_value(); }
-                    if(!p["tcv_cnt"].is_null()) { tcv_cnt = p["tcv_cnt"].int_value(); }
-                    if(!p["telem_cnt"].is_null()) { telem_cnt = p["telem_cnt"].int_value(); }
-                    if(!p["thst_cnt"].is_null()) { thst_cnt = p["thst_cnt"].int_value(); }
-                    if(!p["tsen_cnt"].is_null()) { tsen_cnt = p["tsen_cnt"].int_value(); }
+                    if(!p["tcu_cnt"].is_null()) { tcu_cnt = p["tcu_cnt"].long_value(); }
+                    if(!p["tcv_cnt"].is_null()) { tcv_cnt = p["tcv_cnt"].long_value(); }
+                    if(!p["telem_cnt"].is_null()) { telem_cnt = p["telem_cnt"].long_value(); }
+                    if(!p["thst_cnt"].is_null()) { thst_cnt = p["thst_cnt"].long_value(); }
+                    if(!p["tsen_cnt"].is_null()) { tsen_cnt = p["tsen_cnt"].long_value(); }
 
-                    if(!p["tnc_cnt"].is_null()) { tnc_cnt = p["tnc_cnt"].int_value(); }
-                    if(!p["txr_cnt"].is_null()) { txr_cnt = p["txr_cnt"].int_value(); }
-                    if(!p["xyzsen_cnt"].is_null()) { xyzsen_cnt = p["xyzsen_cnt"].int_value(); }
+                    if(!p["tnc_cnt"].is_null()) { tnc_cnt = p["tnc_cnt"].long_value(); }
+                    if(!p["txr_cnt"].is_null()) { txr_cnt = p["txr_cnt"].long_value(); }
+                    if(!p["xyzsen_cnt"].is_null()) { xyzsen_cnt = p["xyzsen_cnt"].long_value(); }
 
                     //                    for(size_t i = 0; i < all.size(); ++i) {
-                    //                        if(!p["all"][i].is_null()) { all[i] = p["all"][i].int_value(); }
+                    //                        if(!p["all"][i].is_null()) { all[i] = p["all"][i].long_value(); }
                     //                    }
                     for(size_t i = 0; i < ant.size(); ++i) {
-                        //                        if(!p["ant"][i].is_null()) { ant[i] = p["ant"][i].int_value(); }
+                        //                        if(!p["ant"][i].is_null()) { ant[i] = p["ant"][i].long_value(); }
                         if(!p["ant"][i].is_null()) { ant[i].from_json(p["ant"][i].dump()); }
                     }
                     for(size_t i = 0; i < batt.size(); ++i) {
@@ -6170,23 +6178,23 @@ union as a ::devicestruc.
                                 } else if (type == "float")	{
                                     set_value<float>(name, p[name].number_value());
                                 } else if (type == "int")	{
-                                    set_value<int>(name, p[name].int_value());
+                                    set_value<int>(name, p[name].long_value());
                                 } else if (type == "bool")	{
                                     set_value<bool>(name, p[name].bool_value());
                                 } else if (type == "uint32_t")	{
-                                    set_value<uint32_t>(name, p[name].int_value());
+                                    set_value<uint32_t>(name, p[name].long_value());
                                 } else if (type == "int32_t")	{
-                                    set_value<int32_t>(name, p[name].int_value());
+                                    set_value<int32_t>(name, p[name].long_value());
                                 } else if (type == "uint16_t")	{
-                                    set_value<uint16_t>(name, p[name].int_value());
+                                    set_value<uint16_t>(name, p[name].long_value());
                                 } else if (type == "int16_t")	{
-                                    set_value<int16_t>(name, p[name].int_value());
+                                    set_value<int16_t>(name, p[name].long_value());
                                 } else if (type == "uint8_t")	{
-                                    set_value<uint8_t>(name, p[name].int_value());
+                                    set_value<uint8_t>(name, p[name].long_value());
                                 } else if (type == "int8_t")	{
-                                    set_value<int8_t>(name, p[name].int_value());
+                                    set_value<int8_t>(name, p[name].long_value());
                                 } else if (type == "size_t") {
-                                    set_value<size_t>(name, p[name].int_value());
+                                    set_value<size_t>(name, p[name].long_value());
 
                                     // user-defined types
 
@@ -6253,7 +6261,7 @@ union as a ::devicestruc.
                                 } else if (type == "portstruc") {
                                     get_pointer<portstruc>(name)->from_json(p[name].dump());
                                 } else if (type == "PORT_TYPE") {
-                                    set_value<PORT_TYPE>(name, static_cast<PORT_TYPE>(p[name].int_value()));
+                                    set_value<PORT_TYPE>(name, static_cast<PORT_TYPE>(p[name].long_value()));
                                 } else if (type == "posstruc") {
                                     get_pointer<Convert::posstruc>(name)->from_json(p[name].dump());
                                 } else if (type == "qatt") {
@@ -6295,112 +6303,112 @@ union as a ::devicestruc.
                                 } else if (type == "vector<uint32_t>") {
                                     for(size_t i = 0; i < get_pointer<vector<uint32_t>>(name)->size(); ++i) {
                                         if(!p[name][i].is_null()) {
-                                            get_pointer<vector<uint32_t>>(name)->at(i) = p[name][i].int_value();
+                                            get_pointer<vector<uint32_t>>(name)->at(i) = p[name][i].long_value();
                                         }
                                     }
                                 } else if (type == "vector<vector<uint32_t>>") {
                                     for(size_t i = 0; i < get_pointer<vector<vector<uint32_t>>>(name)->size(); ++i) {
                                         for(size_t j = 0; j < get_pointer<vector<vector<uint32_t>>>(name)->at(i).size(); ++j) {
                                             if(!p[name][i][j].is_null()) {
-                                                get_pointer<vector<vector<uint32_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+                                                get_pointer<vector<vector<uint32_t>>>(name)->at(i).at(j) = p[name][i][j].long_value();
                                             }
                                         }
                                     }
                                 } else if (type == "vector<int32_t>") {
                                     for(size_t i = 0; i < get_pointer<vector<int32_t>>(name)->size(); ++i) {
                                         if(!p[name][i].is_null()) {
-                                            get_pointer<vector<int32_t>>(name)->at(i) = p[name][i].int_value();
+                                            get_pointer<vector<int32_t>>(name)->at(i) = p[name][i].long_value();
                                         }
                                     }
                                 } else if (type == "vector<vector<int32_t>>") {
                                     for(size_t i = 0; i < get_pointer<vector<vector<int32_t>>>(name)->size(); ++i) {
                                         for(size_t j = 0; j < get_pointer<vector<vector<int32_t>>>(name)->at(i).size(); ++j) {
                                             if(!p[name][i][j].is_null()) {
-                                                get_pointer<vector<vector<int32_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+                                                get_pointer<vector<vector<int32_t>>>(name)->at(i).at(j) = p[name][i][j].long_value();
                                             }
                                         }
                                     }
                                 } else if (type == "vector<uint16_t>") {
                                     for(size_t i = 0; i < get_pointer<vector<uint16_t>>(name)->size(); ++i) {
                                         if(!p[name][i].is_null()) {
-                                            get_pointer<vector<uint16_t>>(name)->at(i) = p[name][i].int_value();
+                                            get_pointer<vector<uint16_t>>(name)->at(i) = p[name][i].long_value();
                                         }
                                     }
                                 } else if (type == "vector<vector<uint16_t>>") {
                                     for(size_t i = 0; i < get_pointer<vector<vector<uint16_t>>>(name)->size(); ++i) {
                                         for(size_t j = 0; j < get_pointer<vector<vector<uint16_t>>>(name)->at(i).size(); ++j) {
                                             if(!p[name][i][j].is_null()) {
-                                                get_pointer<vector<vector<uint16_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+                                                get_pointer<vector<vector<uint16_t>>>(name)->at(i).at(j) = p[name][i][j].long_value();
                                             }
                                         }
                                     }
                                 } else if (type == "vector<int16_t>") {
                                     for(size_t i = 0; i < get_pointer<vector<int16_t>>(name)->size(); ++i) {
                                         if(!p[name][i].is_null()) {
-                                            get_pointer<vector<int16_t>>(name)->at(i) = p[name][i].int_value();
+                                            get_pointer<vector<int16_t>>(name)->at(i) = p[name][i].long_value();
                                         }
                                     }
                                 } else if (type == "vector<vector<int16_t>>") {
                                     for(size_t i = 0; i < get_pointer<vector<vector<int16_t>>>(name)->size(); ++i) {
                                         for(size_t j = 0; j < get_pointer<vector<vector<int16_t>>>(name)->at(i).size(); ++j) {
                                             if(!p[name][i][j].is_null()) {
-                                                get_pointer<vector<vector<int16_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+                                                get_pointer<vector<vector<int16_t>>>(name)->at(i).at(j) = p[name][i][j].long_value();
                                             }
                                         }
                                     }
                                 } else if (type == "vector<uint8_t>") {
                                     for(size_t i = 0; i < get_pointer<vector<uint8_t>>(name)->size(); ++i) {
                                         if(!p[name][i].is_null()) {
-                                            get_pointer<vector<uint8_t>>(name)->at(i) = p[name][i].int_value();
+                                            get_pointer<vector<uint8_t>>(name)->at(i) = p[name][i].long_value();
                                         }
                                     }
                                 } else if (type == "vector<vector<uint8_t>>") {
                                     for(size_t i = 0; i < get_pointer<vector<vector<uint8_t>>>(name)->size(); ++i) {
                                         for(size_t j = 0; j < get_pointer<vector<vector<uint8_t>>>(name)->at(i).size(); ++j) {
                                             if(!p[name][i][j].is_null()) {
-                                                get_pointer<vector<vector<uint8_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+                                                get_pointer<vector<vector<uint8_t>>>(name)->at(i).at(j) = p[name][i][j].long_value();
                                             }
                                         }
                                     }
                                 } else if (type == "vector<int8_t>") {
                                     for(size_t i = 0; i < get_pointer<vector<int8_t>>(name)->size(); ++i) {
                                         if(!p[name][i].is_null()) {
-                                            get_pointer<vector<int8_t>>(name)->at(i) = p[name][i].int_value();
+                                            get_pointer<vector<int8_t>>(name)->at(i) = p[name][i].long_value();
                                         }
                                     }
                                 } else if (type == "vector<vector<int8_t>>") {
                                     for(size_t i = 0; i < get_pointer<vector<vector<int8_t>>>(name)->size(); ++i) {
                                         for(size_t j = 0; j < get_pointer<vector<vector<int8_t>>>(name)->at(i).size(); ++j) {
                                             if(!p[name][i][j].is_null()) {
-                                                get_pointer<vector<vector<int8_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+                                                get_pointer<vector<vector<int8_t>>>(name)->at(i).at(j) = p[name][i][j].long_value();
                                             }
                                         }
                                     }
                                 } else if (type == "vector<int>") {
                                     for(size_t i = 0; i < get_pointer<vector<int>>(name)->size(); ++i) {
                                         if(!p[name][i].is_null()) {
-                                            get_pointer<vector<int>>(name)->at(i) = p[name][i].int_value();
+                                            get_pointer<vector<int>>(name)->at(i) = p[name][i].long_value();
                                         }
                                     }
                                 } else if (type == "vector<vector<int>>") {
                                     for(size_t i = 0; i < get_pointer<vector<vector<int>>>(name)->size(); ++i) {
                                         for(size_t j = 0; j < get_pointer<vector<vector<int>>>(name)->at(i).size(); ++j) {
                                             if(!p[name][i][j].is_null()) {
-                                                get_pointer<vector<vector<int>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+                                                get_pointer<vector<vector<int>>>(name)->at(i).at(j) = p[name][i][j].long_value();
                                             }
                                         }
                                     }
                                 } else if (type == "vector<size_t>") {
                                     for(size_t i = 0; i < get_pointer<vector<size_t>>(name)->size(); ++i) {
                                         if(!p[name][i].is_null()) {
-                                            get_pointer<vector<size_t>>(name)->at(i) = p[name][i].int_value();
+                                            get_pointer<vector<size_t>>(name)->at(i) = p[name][i].long_value();
                                         }
                                     }
                                 } else if (type == "vector<vector<size_t>>") {
                                     for(size_t i = 0; i < get_pointer<vector<vector<size_t>>>(name)->size(); ++i) {
                                         for(size_t j = 0; j < get_pointer<vector<vector<size_t>>>(name)->at(i).size(); ++j) {
                                             if(!p[name][i][j].is_null()) {
-                                                get_pointer<vector<vector<size_t>>>(name)->at(i).at(j) = p[name][i][j].int_value();
+                                                get_pointer<vector<vector<size_t>>>(name)->at(i).at(j) = p[name][i][j].long_value();
                                             }
                                         }
                                     }
@@ -7056,17 +7064,17 @@ union as a ::devicestruc.
                     if (!p["jmapped"].is_null()) { jmapped = p["jmapped"].number_value(); }
                     if (!p["ujmapped"].is_null()) { ujmapped = p["ujmapped"].number_value(); }
 
-                    if(!p["vertex_cnt"].is_null())	{ vertex_cnt = p["vertex_cnt"].int_value(); }
-                    if(!p["normal_cnt"].is_null())	{ normal_cnt = p["normal_cnt"].int_value(); }
-                    if(!p["face_cnt"].is_null())	{ face_cnt = p["face_cnt"].int_value(); }
-                    if(!p["piece_cnt"].is_null())	{ piece_cnt = p["piece_cnt"].int_value(); }
-                    if(!p["device_cnt"].is_null())	{ device_cnt = p["device_cnt"].int_value(); }
-                    if(!p["port_cnt"].is_null())	{ port_cnt = p["port_cnt"].int_value(); }
-//                    if(!p["agent_cnt"].is_null())	{ agent_cnt = p["agent_cnt"].int_value(); }
-                    if(!p["event_cnt"].is_null())	{ event_cnt = p["event_cnt"].int_value(); }
-                    if(!p["target_cnt"].is_null())	{ target_cnt = p["target_cnt"].int_value(); }
-                    if(!p["user_cnt"].is_null())	{ user_cnt = p["user_cnt"].int_value(); }
-                    if(!p["tle_cnt"].is_null())	{ tle_cnt = p["tle_cnt"].int_value(); }
+                    if(!p["vertex_cnt"].is_null())	{ vertex_cnt = p["vertex_cnt"].long_value(); }
+                    if(!p["normal_cnt"].is_null())	{ normal_cnt = p["normal_cnt"].long_value(); }
+                    if(!p["face_cnt"].is_null())	{ face_cnt = p["face_cnt"].long_value(); }
+                    if(!p["piece_cnt"].is_null())	{ piece_cnt = p["piece_cnt"].long_value(); }
+                    if(!p["device_cnt"].is_null())	{ device_cnt = p["device_cnt"].long_value(); }
+                    if(!p["port_cnt"].is_null())	{ port_cnt = p["port_cnt"].long_value(); }
+//                    if(!p["agent_cnt"].is_null())	{ agent_cnt = p["agent_cnt"].long_value(); }
+                    if(!p["event_cnt"].is_null())	{ event_cnt = p["event_cnt"].long_value(); }
+                    if(!p["target_cnt"].is_null())	{ target_cnt = p["target_cnt"].long_value(); }
+                    if(!p["user_cnt"].is_null())	{ user_cnt = p["user_cnt"].long_value(); }
+                    if(!p["tle_cnt"].is_null())	{ tle_cnt = p["tle_cnt"].long_value(); }
 
 
                     for (size_t i = 0; i < unit.size(); ++i) {

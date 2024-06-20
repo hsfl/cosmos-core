@@ -2946,6 +2946,8 @@ namespace Cosmos
                 add_name(basename+".cmass", &event[i].cmass, "float");
                 add_name(basename+".dbytes", &event[i].dbytes, "float");
                 add_name(basename+".cbytes", &event[i].cbytes, "float");
+                add_name(basename+".el", &event[i].el, "float");
+                add_name(basename+".az", &event[i].az, "float");
                 add_name(basename+".handle", &event[i].handle, "jsonhandle");
                 add_name(basename+".handle.hash", &event[i].handle.hash, "uint16_t");
                 add_name(basename+".handle.index", &event[i].handle.index, "uint16_t");
@@ -3531,7 +3533,7 @@ namespace Cosmos
                 add_name(basename, &tle[i], "tlestruc");
                 add_name(basename+".utc", &tle[i].utc, "double");
                 add_name(basename+".name", &tle[i].name, "char[]");
-                add_name(basename+".snumber", &tle[i].snumber, "uint16_t");
+                add_name(basename+".snumber", &tle[i].snumber, "uint32_t");
                 add_name(basename+".id", &tle[i].id, "char[]");
                 add_name(basename+".bstar", &tle[i].bstar, "double");
                 add_name(basename+".i", &tle[i].i, "double");
