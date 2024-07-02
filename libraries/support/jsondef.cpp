@@ -2765,55 +2765,6 @@ namespace Cosmos
                 add_name(basename+".name", &port[i].name, "string");
             }
 
-//            add_name("agent", &agent, "vector<agentstruc>");
-//            for(size_t i = 0; i < agent.size(); ++i) {
-//                string basename = "agent[" + std::to_string(i) + "]";
-//                add_name(basename, &agent[i], "agentstruc");
-//                add_name(basename+".client", &agent[i].client, "bool");
-//                add_name(basename+".sub", &agent[i].sub, "socket_channel");
-//                add_name(basename+".sub.type", &agent[i].sub.type, "NetworkType");
-//                add_name(basename+".sub.cudp", &agent[i].sub.cudp, "int32_t");
-//                add_name(basename+".server", &agent[i].server, "bool");
-//                add_name(basename+".ifcnt", &agent[i].ifcnt, "size_t");
-//                add_name(basename+".pub", &agent[i].pub, "socket_channel[]");
-//                for(size_t j = 0; j < sizeof(agent[i].pub)/sizeof(agent[i].pub[0]); ++j) {
-//                    string rebasename = basename + ".pub[" + std::to_string(j) + "]";
-//                    add_name(rebasename, &agent[i].pub[j], "socket_channel");
-//                    add_name(rebasename+".type", &agent[i].pub[j].type, "NetworkType");
-//                    add_name(rebasename+".cudp", &agent[i].pub[j].cudp, "int32_t");
-//                }
-//                add_name(basename+".req", &agent[i].req, "socket_channel");
-//                add_name(basename+".req.type", &agent[i].req.type, "NetworkType");
-//                add_name(basename+".req.cudp", &agent[i].req.cudp, "int32_t");
-//                add_name(basename+".pid", &agent[i].pid, "int32_t");
-//                add_name(basename+".aprd", &agent[i].aprd, "double");
-//                add_name(basename+".stateflag", &agent[i].stateflag, "uint16_t");
-//                add_name(basename+".reqs", &agent[i].reqs, "vector<agent_request_entry>");
-//                for(size_t j = 0; j < agent[i].reqs.size(); ++j) {
-//                    string rebasename = basename + ".reqs[" + std::to_string(j) + "]";
-//                    add_name(rebasename, &agent[i].reqs[j], "agent_request_entry");
-//                    add_name(rebasename+".token", &agent[i].reqs[j].token, "string");
-//                    add_name(rebasename+".function", &agent[i].reqs[j].function, "agent_request_function");
-//                    add_name(rebasename+".synopsis", &agent[i].reqs[j].synopsis, "string");
-//                    add_name(rebasename+".description", &agent[i].reqs[j].description, "string");
-//                }
-//                add_name(basename+".beat", &agent[i].beat, "beatstruc");
-//                add_name(basename+".beat.utc", &agent[i].beat.utc, "double");
-//                add_name(basename+".beat.node", &agent[i].beat.node, "string");
-//                add_name(basename+".beat.proc", &agent[i].beat.proc, "string");
-//                add_name(basename+".beat.ntype", &agent[i].beat.ntype, "NetworkType");
-//                add_name(basename+".beat.addr", &agent[i].beat.addr, "char[]");
-//                add_name(basename+".beat.port", &agent[i].beat.port, "uint16_t");
-//                add_name(basename+".beat.bsz", &agent[i].beat.bsz, "uint32_t");
-//                add_name(basename+".beat.bprd", &agent[i].beat.bprd, "double");
-//                add_name(basename+".beat.user", &agent[i].beat.user, "char[]");
-//                add_name(basename+".beat.cpu", &agent[i].beat.cpu, "float");
-//                add_name(basename+".beat.memory", &agent[i].beat.memory, "float");
-//                add_name(basename+".beat.jitter", &agent[i].beat.jitter, "double");
-//                add_name(basename+".beat.dcycle", &agent[i].beat.dcycle, "double");
-//                add_name(basename+".beat.exists", &agent[i].beat.exists, "bool");
-//            }
-
             string basename = "agent0";
             add_name(basename, &agent0, "agentstruc");
             add_name(basename+".client", &agent0.client, "bool");
@@ -2846,6 +2797,7 @@ namespace Cosmos
             }
             add_name(basename+".beat", &agent0.beat, "beatstruc");
             add_name(basename+".beat.utc", &agent0.beat.utc, "double");
+            add_name(basename+".beat.realm", &agent0.beat.realm, "string");
             add_name(basename+".beat.node", &agent0.beat.node, "string");
             add_name(basename+".beat.proc", &agent0.beat.proc, "string");
             add_name(basename+".beat.ntype", &agent0.beat.ntype, "NetworkType");

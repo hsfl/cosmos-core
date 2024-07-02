@@ -32,6 +32,7 @@ namespace Cosmos {
                 DataObcPong = 0x102,
                 DataObcResponse = 0x103,
                 DataObcTime = 0x104,
+                DataObcHeartbeat = 0x105,
                 DataObcNop = 0x17f,
                 CommandObc = 0x180,
                 CommandObcReset = 0x181,
@@ -46,6 +47,7 @@ namespace Cosmos {
                 CommandObcSendBeacon = 0x18a,
                 CommandObcHalt = 0x18b,
                 CommandObcSetTle = 0x18c,
+                CommandObcHeartbeat = 0x18d,
                 CommandObcNop = 0x1ff,
 
                 DataEps = 0x200,
@@ -133,6 +135,7 @@ namespace Cosmos {
                 {TypeId::DataFileMetaData, "FileMetaData"},
                 {TypeId::DataFileChunkData, "FileChunkData"},
                 {TypeId::DataFileReqComplete, "FileReqComplete"},
+                {TypeId::DataObcHeartbeat, "Heartbeat"},
                 {TypeId::CommandObcReset, "Reset"},
                 {TypeId::CommandObcReboot, "Reboot"},
                 {TypeId::CommandObcSendBeacon, "SendBeacon"},
@@ -149,6 +152,7 @@ namespace Cosmos {
                 {TypeId::CommandFileResetQueue, "FileResetQueue"},
                 {TypeId::CommandFileStopTransfer, "FileStopTransfer"},
                 {TypeId::CommandObcInternalRequest, "InternalRequest"},
+                {TypeId::CommandObcHeartbeat, "Heartbeat"},
                 {TypeId::CommandObcPing, "Ping"},
                 {TypeId::CommandObcSetTle, "SetTle"},
                 {TypeId::CommandObcSetTime, "SetTime"},
@@ -200,6 +204,8 @@ namespace Cosmos {
                 {"FileMetaData", TypeId::DataFileMetaData},
                 {"FileChunkData", TypeId::DataFileChunkData},
                 {"FileReqComplete", TypeId::DataFileReqComplete},
+
+                {"Heartbeat", TypeId::DataObcHeartbeat},
 
                 {"Reset", TypeId::CommandObcReset},
                 {"Reboot", TypeId::CommandObcReboot},

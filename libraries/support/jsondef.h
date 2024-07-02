@@ -1258,6 +1258,8 @@ class sim_param	{
 
             /** Heartbeat timestamp */
             double utc = 0.;
+            /** Heartbeat Realm Name */
+            string realm = "";
             /** Heartbeat Node Name */
             string node = "";
             //! Heartbeat Agent Name
@@ -1292,6 +1294,7 @@ class sim_param	{
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "utc"   , utc },
+                    { "realm"  , realm },
                     { "node"  , node },
                     { "proc"  , proc },
                     { "ntype" , static_cast<double>(ntype) },
@@ -1318,6 +1321,7 @@ class sim_param	{
                 json11::Json p = json11::Json::parse(s,error);
                 if(error.empty()) {
                     if(!p["utc"].is_null()) { utc = p["utc"].number_value(); }
+                    if(!p["realm"].is_null()) { realm = p["realm"].string_value(); }
                     if(!p["node"].is_null()) { node = p["node"].string_value(); }
                     if(!p["proc"].is_null()) { proc = p["proc"].string_value(); }
                     if(!p["ntype"].is_null()) { ntype = static_cast<NetworkType>(p["ntype"].long_value()); }

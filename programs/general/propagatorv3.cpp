@@ -4,6 +4,11 @@
 #include "support/jsonclass.h"
 
 int32_t parse_control(string args);
+int32_t request_get_sat_json(string &request, string &response, Agent *agent);
+int32_t request_get_node_json(string &request, string &response, Agent *agent);
+int32_t request_get_pieces_json(string &request, string &response, Agent *agent);
+int32_t request_get_devspec_json(string &request, string &response, Agent *agent);
+int32_t request_get_devgen_json(string &request, string &response, Agent *agent);
 Physics::Simulator *sim;
 Agent *agent;
 double simdt = 1.;
@@ -30,6 +35,12 @@ int main(int argc, char *argv[])
 
     agent = new Agent(realmname, "", "propagate", 0.);
     agent->set_debug_level(0);
+    agent->add_request("get_sat_json", request_get_sat_json, "nodename", "Get JSON description of satellite for Node nodename");
+    agent->add_request("get_node_json", request_get_node_json, "nodename", "Get JSON description of node for Node nodename");
+    agent->add_request("get_pieces_json", request_get_pieces_json, "nodename", "Get JSON description of pieces for Node nodename");
+    agent->add_request("get_devgen_json", request_get_devgen_json, "nodename", "Get JSON description of general devices for Node nodename");
+    agent->add_request("get_devspec_json", request_get_devspec_json, "nodename", "Get JSON description of specific for Node nodename");
+
     sim = new Physics::Simulator();
     iretn = sim->GetError();
     if (iretn <0) {
@@ -41,12 +52,27 @@ int main(int argc, char *argv[])
     sim->ParseOrbitFile();
     sim->ParseSatFile();
     sim->ParseTargetFile();
+    if (speed == 1.)
+    {
+        agent->cinfo->agent0.aprd = simdt;
+        agent->start_active_loop();
+    }
     while (agent->running() && elapsed < runcount)
     {
         sim->Propagate();
         for (auto &state : sim->cnodes)
         {
-            if (state->currentinfo.event.size())
+            if (speed == 1.)
+            {
+                json11::Json jobj = json11::Json::object({
+                    {"node", state->currentinfo.node.name},
+                    {"offset", state->currentinfo.node.utcoffset},
+                    {"pos", state->currentinfo.node.loc.pos.eci},
+                    {"att", state->currentinfo.node.loc.att.icrf}
+                });
+                agent->post(Agent::AgentMessage::LOCATION, jobj.dump());
+            }
+            else if (state->currentinfo.event.size())
             {
                 for (eventstruc event : state->currentinfo.event)
                 {
@@ -70,6 +96,10 @@ int main(int argc, char *argv[])
                     printf("%s\n", jobj.dump().c_str());
                 }
             }
+        }
+        if (speed == 1.)
+        {
+            agent->finish_active_loop();
         }
     }
 
@@ -140,3 +170,85 @@ int32_t parse_control(string args)
     return argcount;
 }
 
+int32_t request_get_sat_json(string &request, string &response, Agent *agent)
+{
+    vector<string> args = string_split(request);
+    response.clear();
+
+    if (args.size() > 1)
+    {
+        Physics::Simulator::StateList::iterator sit = sim->GetNode(args[1]);
+        if (sit != sim->cnodes.end())
+        {
+            string temp;
+            response = json_pieces(temp, &(*sit)->currentinfo);
+            json_join(response, json_devices_general(temp, &(*sit)->currentinfo));
+            json_join(response, json_devices_specific(temp, &(*sit)->currentinfo));
+        }
+    }
+    return response.length();
+}
+
+int32_t request_get_node_json(string &request, string &response, Agent *agent)
+{
+    vector<string> args = string_split(request);
+    response.clear();
+
+    if (args.size() > 1)
+    {
+        Physics::Simulator::StateList::iterator sit = sim->GetNode(args[1]);
+        if (sit != sim->cnodes.end())
+        {
+            json_node(response, &(*sit)->currentinfo);
+        }
+    }
+    return response.length();
+}
+
+int32_t request_get_pieces_json(string &request, string &response, Agent *agent)
+{
+    vector<string> args = string_split(request);
+    response.clear();
+
+    if (args.size() > 1)
+    {
+        Physics::Simulator::StateList::iterator sit = sim->GetNode(args[1]);
+        if (sit != sim->cnodes.end())
+        {
+            json_pieces(response, &(*sit)->currentinfo);
+        }
+    }
+    return response.length();
+}
+
+int32_t request_get_devgen_json(string &request, string &response, Agent *agent)
+{
+    vector<string> args = string_split(request);
+    response.clear();
+
+    if (args.size() > 1)
+    {
+        Physics::Simulator::StateList::iterator sit = sim->GetNode(args[1]);
+        if (sit != sim->cnodes.end())
+        {
+            json_devices_general(response, &(*sit)->currentinfo);
+        }
+    }
+    return response.length();
+}
+
+int32_t request_get_devspec_json(string &request, string &response, Agent *agent)
+{
+    vector<string> args = string_split(request);
+    response.clear();
+
+    if (args.size() > 1)
+    {
+        Physics::Simulator::StateList::iterator sit = sim->GetNode(args[1]);
+        if (sit != sim->cnodes.end())
+        {
+            json_devices_specific(response, &(*sit)->currentinfo);
+        }
+    }
+    return response.length();
+}

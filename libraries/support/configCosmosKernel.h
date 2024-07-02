@@ -62,6 +62,7 @@
 
 // --------------------- FOR ALL PLATFORMS ------------------------------
 #define _USE_MATH_DEFINES
+#include <cassert>
 #include <climits>
 #include <csignal>
 #include <cstdint>

@@ -67,6 +67,7 @@ namespace Cosmos {
 //            static int32_t TransferRadio(PacketComm &packet, string &response, Agent* agent);
 //            static int32_t TransferList(PacketComm &packet, string &response, Agent* agent);
             static int32_t InternalRequest(PacketComm &packet, string &response, Agent* agent);
+            static int32_t Heartbeat(PacketComm &packet, string &response, Agent* agent);
             static int32_t Ping(PacketComm &packet, string &response, Agent* agent);
             static int32_t SetTle(PacketComm &packet, string &response, Agent* agent);
             static int32_t SetTime(PacketComm &packet, string &response, Agent* agent);

@@ -1849,6 +1849,29 @@ int32_t json_join(string &stringina, string &stringinb, string &stringout)
     return stringout.length();
 }
 
+//! Append JSON strings
+//! /*! Catenate two JSON strings in place, turning them into one viable JSON string. Trailing
+//! and leading braces are replaced with a comma.
+//! \param stringina First string.
+//! \param stringinb Second string.
+//! \param stringout Resulting JSON string.
+//! \return Length of new string if successfule, negative error otherwise.
+int32_t json_join(string &stringina, string stringinb)
+{
+    if (stringina.back() != '}')
+    {
+        return COSMOS_JSON_ERROR_JSTRING;
+    }
+
+    if (stringinb.front() != '{')
+    {
+        return COSMOS_JSON_ERROR_JSTRING;
+    }
+    stringina.back() = ',';
+    stringina += stringinb.substr(1);
+    return stringina.length();
+}
+
 //! Single character to JSON
 /*! Appends an entry for the single character to the current JSON stream.
     \param jstring Reference to JSON stream.
@@ -8307,6 +8330,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("agent_beat", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat), (uint16_t)JSON_TYPE_HBEAT, JSON_STRUCT_AGENT, cinfo);
     json_addentry("agent_bprd", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,bprd), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_AGENT, cinfo, JSON_UNIT_TIME);
     json_addentry("agent_bsz", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,bsz), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_AGENT, cinfo, JSON_UNIT_BYTES);
+    json_addentry("agent_realm", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,realm), (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_AGENT, cinfo);
     json_addentry("agent_node", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,node), (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_AGENT, cinfo);
     json_addentry("agent_ntype", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,ntype), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_AGENT, cinfo);
     json_addentry("agent_pid", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,pid), (uint16_t)JSON_TYPE_INT32, JSON_STRUCT_AGENT, cinfo);
@@ -10385,6 +10409,11 @@ const char *json_of_agent(string &jstring, cosmosstruc *cinfo)
 
     jstring.clear();
     iretn = json_out(jstring, "agent_utc", cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
+    iretn = json_out(jstring, "agent_realm", cinfo);
     if (iretn < 0)
     {
         return nullptr;
@@ -13427,6 +13456,7 @@ uint16_t device_component_index(cosmosstruc* cinfo, uint16_t type, uint16_t didx
 ::std::ostream& operator<<(::std::ostream& out, const beatstruc& b)	{
     return out<<std::fixed<<std::setprecision(9)
                <<"\tutc\t\t"<<b.utc<<endl
+               <<"\trealm name \t<"<<string(b.realm)<<">"<<endl
                <<"\tnode name \t<"<<string(b.node)<<">"<<endl
                <<"\tagent name \t<"<<string(b.proc)<<">"<<endl
                <<"\tntype\t\t"<<(int)b.ntype<<endl
