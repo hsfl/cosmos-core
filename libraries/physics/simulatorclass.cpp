@@ -1,5 +1,6 @@
 #include "simulatorclass.h"
 #include "support/jsonclass.h"
+#include "support/stringlib.h"
 
 namespace Cosmos
 {
@@ -352,14 +353,23 @@ int32_t Simulator::ParseSatFile(string filename)
 int32_t Simulator::ParseSatString(string args)
 {
     int32_t iretn;
-    double maxthrust = .1;
+    double maxthrust = 0.;
+    double maxalpha = 0.;
+    double maxomega = 0.;
+    double maxmoment = 0.;
     uint16_t argcount = 0;
     string nodename;
+    string type;
     vector<camstruc> dets;
     locstruc satloc = initialloc;
     cartpos lvlh;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
+    if (!jargs["type"].is_null())
+    {
+        ++argcount;
+        type = jargs["type"].string_value();
+    }
     if (!jargs["nodename"].is_null())
     {
         ++argcount;
@@ -374,6 +384,7 @@ int32_t Simulator::ParseSatString(string args)
         det.ifov = values["ifov"].number_value();
         det.specmin = values["specmin"].number_value();
         det.specmax = values["specmax"].number_value();
+        det.name = "det_" + to_unsigned(dets.size());
         dets.push_back(det);
         AddDetector(det);
     }
@@ -381,6 +392,21 @@ int32_t Simulator::ParseSatString(string args)
     {
         ++argcount;
         maxthrust = jargs["maxthrust"].number_value();
+    }
+    if (!jargs["maxalpha"].is_null())
+    {
+        ++argcount;
+        maxalpha = jargs["maxalpha"].number_value();
+    }
+    if (!jargs["maxomega"].is_null())
+    {
+        ++argcount;
+        maxomega = jargs["maxomega"].number_value();
+    }
+    if (!jargs["maxmoment"].is_null())
+    {
+        ++argcount;
+        maxmoment = jargs["maxmoment"].number_value();
     }
     if (!jargs["lvlh"].is_null())
     {
@@ -420,25 +446,29 @@ int32_t Simulator::ParseSatString(string args)
         {
             nodename = "mother";
         }
+        if (type.empty())
+        {
+            type = "HEX65W80H";
+        }
         if (fastcalc)
         {
-            iretn = AddNode(nodename, "HEX65W80H", Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
         }
         else
         {
-            iretn = AddNode(nodename, "HEX65W80H", Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
         }
-        Physics::Simulator::StateList::iterator sit = GetNode(nodename);
+        //        Physics::Simulator::StateList::iterator sit = GetNode(nodename);
 
         // Camera
-        for (camstruc det : dets)
-        {
-            det.volt = 5.;
-            det.amp = 20. / det.volt;
-            det.state = 0;
-            (*sit)->currentinfo.devspec.cam.push_back(det);
-        }
-        (*sit)->currentinfo.devspec.cam_cnt = dets.size();
+        //        for (camstruc det : dets)
+        //        {
+        //            det.volt = 5.;
+        //            det.amp = 20. / det.volt;
+        //            det.state = 0;
+        //            (*sit)->currentinfo.devspec.cam.push_back(det);
+        //        }
+        //        (*sit)->currentinfo.devspec.cam_cnt = dets.size();
     }
     else
     {
@@ -446,25 +476,102 @@ int32_t Simulator::ParseSatString(string args)
         {
             nodename = "child_" + to_unsigned(cnodes.size(), 2, true);
         }
-        iretn = AddNode(nodename, "U12", Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, satloc.pos.lvlh, initialloc.att.icrf);
-        Physics::Simulator::StateList::iterator sit = GetNode(nodename);
+        if (type.empty())
+        {
+            type = "U12";
+        }
+        iretn = AddNode(nodename, type, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, satloc.pos.lvlh, initialloc.att.icrf);
+        //        Physics::Simulator::StateList::iterator sit = GetNode(nodename);
 
-        // Thruster
-        thststruc thrust;
-        thrust.maxthrust = maxthrust;
-        (*sit)->currentinfo.devspec.thst.push_back(thrust);
-        (*sit)->currentinfo.devspec.thst_cnt = 1;
+        //        thststruc thrust;
+        //        thrust.maxthrust = maxthrust;
+        //        (*sit)->currentinfo.devspec.thst.push_back(thrust);
+        //        (*sit)->currentinfo.devspec.thst_cnt = 1;
 
         // Camera
-        for (camstruc det : dets)
-        {
-            det.volt = 5.;
-            det.amp = 20. / det.volt;
-            det.state = 0;
-            (*sit)->currentinfo.devspec.cam.push_back(det);
-        }
-        (*sit)->currentinfo.devspec.cam_cnt = dets.size();
+        //        for (camstruc det : dets)
+        //        {
+        //            det.volt = 5.;
+        //            det.amp = 20. / det.volt;
+        //            det.state = 0;
+        //            (*sit)->currentinfo.devspec.cam.push_back(det);
+        //        }
+        //        (*sit)->currentinfo.devspec.cam_cnt = dets.size();
     }
+
+    Physics::Simulator::StateList::iterator sit = GetNode(nodename);
+    (*sit)->currentinfo.node.type = NODE_TYPE_SATELLITE;
+
+    // Thruster
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_thrust", DeviceType::THST);
+    (*sit)->currentinfo.devspec.thst[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].maxthrust = maxthrust;
+    (*sit)->currentinfo.devspec.thst[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unitz(-1.), rv_unitx());
+
+    // Reaction wheels
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_x", DeviceType::RW);
+    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxalp = maxalpha;
+    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
+    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_y", DeviceType::RW);
+    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxalp = maxalpha;
+    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
+    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_z", DeviceType::RW);
+    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxalp = maxalpha;
+    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
+    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+
+    // Torque rods
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_x", DeviceType::MTR);
+    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
+    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_y", DeviceType::MTR);
+    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
+    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_z", DeviceType::MTR);
+    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
+    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+
+    // GPS
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gps", DeviceType::GPS);
+
+    // Magnetometer
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mag", DeviceType::MAG);
+    (*sit)->currentinfo.devspec.mag[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+
+    // Gyros
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_x", DeviceType::GYRO);
+    (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_y", DeviceType::GYRO);
+    (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_z", DeviceType::GYRO);
+    (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+
+    // Star trackers
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_stt_x+", DeviceType::STT);
+    (*sit)->currentinfo.devspec.stt[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_stt_x-", DeviceType::STT);
+    (*sit)->currentinfo.devspec.stt[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(-1.0), rv_unity());
+
+    // Sun and Earth sensors
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_xyzsen_sun", DeviceType::XYZSEN);
+    //        (*sit)->currentinfo.devspec.xyzsen[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(-1.0), rv_unity());
+    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_xyzsen_earth", DeviceType::XYZSEN);
+    //        (*sit)->currentinfo.devspec.xyzsen[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+
+
+    // Detectors
+    for (camstruc det : dets)
+    {
+        iretn = json_createpiece(&(*sit)->currentinfo, det.name, DeviceType::CAM);
+        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].volt = 5.;
+        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].amp = 20. / det.volt;
+        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].state = 0;
+    }
+
+//    json_dump_node(&(*sit)->currentinfo);
+    json_updatecosmosstruc(&(*sit)->currentinfo);
+
     return argcount;
 }
 
@@ -647,7 +754,7 @@ int32_t Simulator::NudgeNode(string nodename, cartpos pos, qatt att)
             Vector acc = (delta * aa + deltav * av + deltas * as) / delta;
             (*node)->currentinfo.node.phys.fpush = acc.to_rv();
         }
-            break;
+        break;
         default:
             break;
         }

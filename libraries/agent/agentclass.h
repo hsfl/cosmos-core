@@ -337,6 +337,7 @@ namespace Cosmos
             //    int32_t poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, float waitsec = 1.);
             int32_t poll(messstruc &mess, AgentMessage type, float waitsec = 1.);
             int32_t readring(messstruc &message, AgentMessage type = Agent::AgentMessage::ALL, float waitsec = 1., Where where=Where::TAIL, string proc="", string node="");
+            int32_t readring(messstruc &message, string realm="", string node="", AgentMessage type = Agent::AgentMessage::ALL, float waitsec = 1., Where where=Where::TAIL);
             int32_t readring(messstruc &message, vector<string> realm, AgentMessage type = Agent::AgentMessage::ALL, float waitsec = 1., Where where=Where::TAIL);
             int32_t parsering(AgentMessage type = Agent::AgentMessage::ALL, float waitsec=1., Where where=Where::HEAD, string proc="", string node="");
             int32_t resizering(size_t newsize);

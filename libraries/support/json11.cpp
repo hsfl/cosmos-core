@@ -20,11 +20,11 @@
  */
 
 #include "json11.hpp"
-#include <cassert>
-#include <cmath>
-#include <cstdlib>
-#include <cstdio>
-#include <limits>
+//#include <cassert>
+//#include <cmath>
+//#include <cstdlib>
+//#include <cstdio>
+//#include <limits>
 
 namespace json11 {
 
@@ -63,7 +63,7 @@ static void dump(double value, string &out) {
 
 static void dump(long value, string &out) {
     char buf[32];
-    snprintf(buf, sizeof buf, "%d", value);
+    snprintf(buf, sizeof buf, "%ld", value);
     out += buf;
 }
 
