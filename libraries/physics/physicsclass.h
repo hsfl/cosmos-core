@@ -597,9 +597,14 @@ namespace Cosmos
         int32_t PhysSetup(physicsstruc *phys);
         int32_t PhysCalc(locstruc* loc, physicsstruc *phys);
 
+
+
         locstruc shape2eci(double utc, double altitude, double angle, double timeshift);
         locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift);
         int32_t load_loc(string fname, locstruc& loc);
+        Vector ControlTorque(qatt tatt, qatt catt, Vector moi, double seconds);
+        Vector ControlThrust(cartpos tpos, cartpos cpos, double mass, double maxaccel, double seconds);
+
 
     } //end of namespace Physics
 } // end of namespace Cosmos

@@ -9,6 +9,7 @@ int32_t request_get_node_json(string &request, string &response, Agent *agent);
 int32_t request_get_pieces_json(string &request, string &response, Agent *agent);
 int32_t request_get_devspec_json(string &request, string &response, Agent *agent);
 int32_t request_get_devgen_json(string &request, string &response, Agent *agent);
+int32_t request_get_location(string &request, string &response, Agent *agent);
 Physics::Simulator *sim;
 Agent *agent;
 double simdt = 1.;
@@ -40,6 +41,7 @@ int main(int argc, char *argv[])
     agent->add_request("get_pieces_json", request_get_pieces_json, "nodename", "Get JSON description of pieces for Node nodename");
     agent->add_request("get_devgen_json", request_get_devgen_json, "nodename", "Get JSON description of general devices for Node nodename");
     agent->add_request("get_devspec_json", request_get_devspec_json, "nodename", "Get JSON description of specific for Node nodename");
+    agent->add_request("get_location", request_get_location, "nodename", "Get JSON of position and attitude for Node nodename");
 
     sim = new Physics::Simulator();
     iretn = sim->GetError();
@@ -62,28 +64,10 @@ int main(int argc, char *argv[])
         sim->Propagate();
         for (auto &state : sim->cnodes)
         {
-            if (speed == 1.)
-            {
-                json11::Json jobj = json11::Json::object({
-                    {"node", state->currentinfo.node.name},
-                    {"offset", state->currentinfo.node.utcoffset},
-                    {"pos", state->currentinfo.node.loc.pos.eci},
-                    {"att", state->currentinfo.node.loc.att.icrf}
-                });
-                agent->post(Agent::AgentMessage::LOCATION, jobj.dump());
-            }
-            else if (state->currentinfo.event.size())
+            if (speed > 1.0 && state->currentinfo.event.size())
             {
                 for (eventstruc event : state->currentinfo.event)
                 {
-//                    string jstringa;
-//                    json_out_commandevent(jstringa, event);
-//                    string jstringb;
-//                    json_out_geoidpos(jstringb, state->currentinfo.node.loc.pos.geod);
-//                    string jstringc;
-//                    json_join(jstringa, jstringb, jstringc);
-//                    printf("%s\n", jstringc.c_str());
-
                     json11::Json jobj = json11::Json::object({
                                           {"event_utc", event.utc},
                                           {"event_name", event.name},
@@ -248,6 +232,28 @@ int32_t request_get_devspec_json(string &request, string &response, Agent *agent
         if (sit != sim->cnodes.end())
         {
             json_devices_specific(response, &(*sit)->currentinfo);
+        }
+    }
+    return response.length();
+}
+
+int32_t request_get_location(string &request, string &response, Agent *agent)
+{
+    vector<string> args = string_split(request);
+    response.clear();
+
+    if (args.size() > 1)
+    {
+        Physics::Simulator::StateList::iterator sit = sim->GetNode(args[1]);
+        if (sit != sim->cnodes.end())
+        {
+            json11::Json jobj = json11::Json::object({
+                {"node", (*sit)->currentinfo.node.name},
+                {"offset", (*sit)->currentinfo.node.utcoffset},
+                {"pos", (*sit)->currentinfo.node.loc.pos.eci},
+                {"att", (*sit)->currentinfo.node.loc.att.icrf}
+            });
+            response = jobj.dump();
         }
     }
     return response.length();
