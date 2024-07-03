@@ -825,20 +825,282 @@ int32_t load_loc(string fname, locstruc& loc)
     return GENERAL_ERROR_ARGS;
 }
 
+Vector ControlTorque(qatt tatt, qatt catt, Vector moi, double seconds)
+{
+    Matrix mom, rm;
+    double dalp, domg, dt;
+    Vector alpha, omega, torque;
+    Vector distance;
+    Quaternion dsq2;
+    Quaternion tpos(tatt.s);
+    Vector tvel(tatt.v);
+    Quaternion cpos(catt.s);
+    Vector cvel(catt.v);
+
+    if ((dt=(tatt.utc-catt.utc)*86400.) > 0.) {
+
+        // Calculate adjustment for ICRF distance
+
+        //		if (length_q(tpos))
+        if (tpos.norm()) {
+            dsq2 = Quaternion(tpos) * Quaternion(cpos).conjugate();
+            //			q_mult(tatt.s,q_conjugate(catt.s));
+            distance.x = dsq2.x;
+            distance.y = dsq2.y;
+            distance.z = dsq2.z;
+            //			rv_quaternion2axis(dsq2);
+            domg = distance.norm();
+            //			length_rv(distance);
+            if (domg > DPI) {
+                dsq2 *= -1.;
+                //				= q_smult(-1.,dsq2);
+                distance *= -1.;
+                //				= rv_quaternion2axis(dsq2);
+            }
+            omega = distance / seconds;
+            //			rv_smult(1./lag,distance);
+        }
+        else
+        {
+            // If Target quaternion is zero, adjust only for velocity
+            omega = Vector();
+            //			rv_zero();
+        }
+
+        // Match velocity
+        omega += Vector(tvel);
+        //		= rv_add(omega,tatt.v);
+        alpha = omega - Vector(cvel);
+        //		rv_sub(omega,catt.v);
+        dalp = alpha.norm() / seconds;
+        //		length_rv(alpha) / lag;
+        alpha = dalp * alpha.normalize();
+        //		rv_smult(dalp,rv_normal(alpha));
+
+        // Conversion from ICRF to Body
+        rm = Matrix(Quaternion(cpos));
+        //		rm_quaternion2dcm(catt.s);
+        // Moment of Inertia in Body
+        mom = mom.diag(moi);
+        //		rm_diag(moi);
+        // Moment of Inertia in ICRF
+        mom = rm.transpose() * (mom * rm);
+        //		rm_mmult(rm_transloc.pos.eci.se(rm),rm_mmult(mom,rm));
+        torque = mom * alpha;
+        //		rv_mmult(mom,alpha);
+    }
+    return torque;
+}
+
+Vector ControlThrust(cartpos tpos, cartpos cpos, double mass, double maxaccel, double seconds)
+{
+    double minaccel = 0.1 * maxaccel;
+
+    Vector dpos = Vector(rv_sub(cpos.s, tpos.s));
+    Vector dvel = Vector(rv_sub(cpos.v, tpos.v));
+
+    Vector newa;
+    if (dpos.norm() > .01)
+    {
+        Vector timet;
+        double s0;
+        double v0;
+        double v2;
+        double sa2;
+        double t0;
+
+        // X
+        s0 = dpos.x;
+        v0 = dvel.x;
+        v2 = v0 * v0;
+        if ((v0 < 0 && s0 > 0) || (v0 > 0 && s0 < 0))
+        {
+            t0 = -2. * s0 / v0;
+            if (t0 > seconds && t0 > timet.x)
+            {
+                timet.x = t0;
+                double a0 = 0.5 * v2 / s0;
+                if (fabs(a0) < minaccel)
+                {
+                    newa.x = minaccel * v0 / fabs(v0);
+                }
+                else
+                {
+                    newa.x = a0;
+                }
+            }
+            else
+            {
+                timet.x = 0.;
+                newa.x = 0.;
+            }
+        }
+        else
+        {
+            timet.x = 0.;
+            newa.x = 0.;
+        }
+
+        for (double a : vector<double>{-maxaccel, maxaccel})
+        {
+            sa2 = 2. * s0 * a;
+            if (v2 > sa2 && ((v0 < 0 && s0 < 0) || (v0 > 0 && s0 > 0)))
+            {
+                t0 = (-v0 - sqrt(v2 - sa2)) / a;
+                double t1 = (-v0 + sqrt(v2 - sa2)) / a;
+                if ((t1 <= 0 || t0 <= t1) && (t0 > seconds) && t0 > timet.x)
+                {
+                    newa.x = -2. * (s0 / t0 + v0) / t0;
+                    timet.x = t0;
+                }
+                else if ((t0 <= 0 || t1 <= t0) && (t1 > seconds) && t1 > timet.x)
+                {
+                    newa.x = -2. * (s0 / t1 + v0) / t1;
+                    timet.x = t1;
+                }
+            }
+            t0 = -v0 / a;
+            if (t0 > seconds && t0 > timet.x)
+            {
+                newa.x = -v0 / t0;
+                timet.x = t0;
+            }
+        }
+
+        // Y
+        s0 = dpos.y;
+        v0 = dvel.y;
+        v2 = v0 * v0;
+        if ((v0 < 0 && s0 > 0) || (v0 > 0 && s0 < 0))
+        {
+            t0 = -2. * s0 / v0;
+            if (t0 > seconds && t0 > timet.y)
+            {
+                timet.y = t0;
+                double a0 = 0.5 * v2 / s0;
+                if (fabs(a0) < minaccel)
+                {
+                    newa.y = minaccel * v0 / fabs(v0);
+                }
+                else
+                {
+                    newa.y = a0;
+                }
+            }
+            else
+            {
+                timet.y = 0.;
+                newa.y = 0.;
+            }
+        }
+        else
+        {
+            timet.y = 0.;
+            newa.y = 0.;
+        }
+
+        for (double a : vector<double>{-maxaccel, maxaccel})
+        {
+            sa2 = 2. * s0 * a;
+            if (v2 > sa2 && ((v0 < 0 && s0 < 0) || (v0 > 0 && s0 > 0)))
+            {
+                t0 = (-v0 - sqrt(v2 - sa2)) / a;
+                double t1 = (-v0 + sqrt(v2 - sa2)) / a;
+                if ((t1 <= 0 || t0 <= t1) && (t0 > seconds) && t0 > timet.y)
+                {
+                    newa.y = -2. * (s0 / t0 + v0) / t0;
+                    timet.y = t0;
+                }
+                else if ((t0 <= 0 || t1 <= t0) && (t1 > seconds) && t1 > timet.y)
+                {
+                    newa.y = -2. * (s0 / t1 + v0) / t1;
+                    timet.y = t1;
+                }
+            }
+            t0 = -v0 / a;
+            if (t0 > seconds && t0 > timet.y)
+            {
+                newa.y = -v0 / t0;
+                timet.y = t0;
+            }
+        }
+
+        // Z
+        s0 = dpos.z;
+        v0 = dvel.z;
+        v2 = v0 * v0;
+        if ((v0 < 0 && s0 > 0) || (v0 > 0 && s0 < 0))
+        {
+            t0 = -2. * s0 / v0;
+            if (t0 > seconds && t0 > timet.z)
+            {
+                timet.z = t0;
+                double a0 = 0.5 * v2 / s0;
+                if (fabs(a0) < minaccel)
+                {
+                    newa.z = minaccel * v0 / fabs(v0);
+                }
+                else
+                {
+                    newa.z = a0;
+                }
+            }
+            else
+            {
+                timet.z = 0.;
+                newa.z = 0.;
+            }
+        }
+        else
+        {
+            timet.z = 0.;
+            newa.z = 0.;
+        }
+
+        for (double a : vector<double>{-maxaccel, maxaccel})
+        {
+            sa2 = 2. * s0 * a;
+            if (v2 > sa2 && ((v0 < 0 && s0 < 0) || (v0 > 0 && s0 > 0)))
+            {
+                t0 = (-v0 - sqrt(v2 - sa2)) / a;
+                double t1 = (-v0 + sqrt(v2 - sa2)) / a;
+                if ((t1 <= 0 || t0 <= t1) && (t0 > seconds) && t0 > timet.z)
+                {
+                    newa.z = -2. * (s0 / t0 + v0) / t0;
+                    timet.z = t0;
+                }
+                else if ((t0 <= 0 || t1 <= t0) && (t1 > seconds) && t1 > timet.z)
+                {
+                    newa.z = -2. * (s0 / t1 + v0) / t1;
+                    timet.z = t1;
+                }
+            }
+            t0 = -v0 / a;
+            if (t0 > seconds && t0 > timet.z)
+            {
+                newa.z = -v0 / t0;
+                timet.z = t0;
+            }
+        }
+        newa = newa.maxmag(maxaccel).minmag(minaccel) * mass;
+    }
+    return newa;
+}
+
 int32_t Structure::Setup(string stype)
 {
     static Enum stypes;
     if (!stypes.Size())
     {
         stypes.Init({
-            "NoType",
-            "U1","U1X","U1Y","U1XY",
-            "U1_5","U1_5X","U1_5Y","U1_5XY",
-            "U2","U2X","U2Y","U2XY",
-            "U3","U3X","U3Y","U3XY",
-            "U6","U6X","U6Y","U6XY",
-            "U12","U12X","U12Y","U12XY",
-            "HEX65W80H"
+                        "NoType",
+                        "U1","U1X","U1Y","U1XY",
+                        "U1_5","U1_5X","U1_5Y","U1_5XY",
+                        "U2","U2X","U2Y","U2XY",
+                        "U3","U3X","U3Y","U3XY",
+                        "U6","U6X","U6Y","U6XY",
+                        "U12","U12X","U12Y","U12XY",
+                        "HEX65W80H"
                     }, {0});
     }
 
@@ -1527,7 +1789,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     case Propagator::Type::AttitudeTarget:
     {
         targetattitude = new TargetAttitudePropagator(&currentinfo, dt);
-//        lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
+        //        lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
         targetattitude->Init();
     }
     break;
@@ -1705,103 +1967,103 @@ int32_t State::Propagate(locstruc &loc)
 {
     int32_t count = 0;
     double nextutc = loc.utc;
-        PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
+    PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
 
-        // Thermal
-        static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
+    // Thermal
+    static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
 
-        // Electrical
-        static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
+    // Electrical
+    static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
 
-        // Position
-        switch (ptype)
-        {
-        case Propagator::Type::PositionIterative:
-            static_cast<IterativePositionPropagator *>(itposition)->Propagate(nextutc);
-            break;
-        case Propagator::Type::PositionInertial:
-            static_cast<InertialPositionPropagator *>(inposition)->Propagate(nextutc);
-            break;
-        case Propagator::Type::PositionGaussJackson:
-            static_cast<GaussJacksonPositionPropagator *>(gjposition)->Propagate(nextutc, currentinfo.node.loc.att.icrf.s);
-            break;
-        case Propagator::Type::PositionGeo:
-            static_cast<GeoPositionPropagator *>(geoposition)->Propagate(nextutc);
-            break;
-        case Propagator::Type::PositionTle:
-            static_cast<TlePositionPropagator *>(tleposition)->Propagate(nextutc);
-            break;
-        case Propagator::Type::PositionLvlh:
-        {
-            static_cast<LvlhPositionPropagator *>(lvlhposition)->Propagate(loc);
-        }
-            break;
-        default:
-            break;
-        }
+    // Position
+    switch (ptype)
+    {
+    case Propagator::Type::PositionIterative:
+        static_cast<IterativePositionPropagator *>(itposition)->Propagate(nextutc);
+        break;
+    case Propagator::Type::PositionInertial:
+        static_cast<InertialPositionPropagator *>(inposition)->Propagate(nextutc);
+        break;
+    case Propagator::Type::PositionGaussJackson:
+        static_cast<GaussJacksonPositionPropagator *>(gjposition)->Propagate(nextutc, currentinfo.node.loc.att.icrf.s);
+        break;
+    case Propagator::Type::PositionGeo:
+        static_cast<GeoPositionPropagator *>(geoposition)->Propagate(nextutc);
+        break;
+    case Propagator::Type::PositionTle:
+        static_cast<TlePositionPropagator *>(tleposition)->Propagate(nextutc);
+        break;
+    case Propagator::Type::PositionLvlh:
+    {
+        static_cast<LvlhPositionPropagator *>(lvlhposition)->Propagate(loc);
+    }
+    break;
+    default:
+        break;
+    }
 
-        if (ptype == Propagator::PositionGeo)
-        {
-            pos_geod(currentinfo.node.loc);
-        }
-        else
-        {
-            pos_eci(currentinfo.node.loc);
-            PosAccel(currentinfo.node.loc, currentinfo.node.phys);
-        }
-        if (atype == Propagator::AttitudeGeo)
-        {
-            att_geoc(currentinfo.node.loc);
-        }
-        else
-        {
-            att_icrf(currentinfo.node.loc);
-            AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-        }
+    if (ptype == Propagator::PositionGeo)
+    {
+        pos_geod(currentinfo.node.loc);
+    }
+    else
+    {
+        pos_eci(currentinfo.node.loc);
+        PosAccel(currentinfo.node.loc, currentinfo.node.phys);
+    }
+    if (atype == Propagator::AttitudeGeo)
+    {
+        att_geoc(currentinfo.node.loc);
+    }
+    else
+    {
+        att_icrf(currentinfo.node.loc);
+        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+    }
 
-        update_target(&currentinfo);
+    update_target(&currentinfo);
 
-        // Attitude
-        switch (atype)
-        {
-        case Propagator::Type::AttitudeIterative:
-            static_cast<IterativeAttitudePropagator *>(itattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeInertial:
-            static_cast<InertialAttitudePropagator *>(inattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeLVLH:
-            static_cast<LvlhAttitudePropagator *>(lvattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeGeo:
-            static_cast<GeoAttitudePropagator *>(geoattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeSolar:
-            static_cast<SolarAttitudePropagator *>(solarattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeTarget:
-            // Update again at end after currentinfo->target update
-            static_cast<TargetAttitudePropagator *>(targetattitude)->Propagate(nextutc);
-            break;
-        default:
-            break;
-        }
+    // Attitude
+    switch (atype)
+    {
+    case Propagator::Type::AttitudeIterative:
+        static_cast<IterativeAttitudePropagator *>(itattitude)->Propagate(nextutc);
+        break;
+    case Propagator::Type::AttitudeInertial:
+        static_cast<InertialAttitudePropagator *>(inattitude)->Propagate(nextutc);
+        break;
+    case Propagator::Type::AttitudeLVLH:
+        static_cast<LvlhAttitudePropagator *>(lvattitude)->Propagate(nextutc);
+        break;
+    case Propagator::Type::AttitudeGeo:
+        static_cast<GeoAttitudePropagator *>(geoattitude)->Propagate(nextutc);
+        break;
+    case Propagator::Type::AttitudeSolar:
+        static_cast<SolarAttitudePropagator *>(solarattitude)->Propagate(nextutc);
+        break;
+    case Propagator::Type::AttitudeTarget:
+        // Update again at end after currentinfo->target update
+        static_cast<TargetAttitudePropagator *>(targetattitude)->Propagate(nextutc);
+        break;
+    default:
+        break;
+    }
 
-        // Orbital event propagator
-        if (orbitalevent != nullptr)
-        {
-            orbitalevent->Propagate(nextutc);
-        }
+    // Orbital event propagator
+    if (orbitalevent != nullptr)
+    {
+        orbitalevent->Propagate(nextutc);
+    }
 
-        // Metric propagator
-        if (metric != nullptr)
-        {
-            metric->Propagate(nextutc);
-        }
+    // Metric propagator
+    if (metric != nullptr)
+    {
+        metric->Propagate(nextutc);
+    }
 
-        // Update time
-        currentinfo.node.utc += dtj;
-        ++count;
+    // Update time
+    currentinfo.node.utc += dtj;
+    ++count;
     return count;
 }
 
@@ -2108,28 +2370,28 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
         currentinfo->node.loc.att.geoc.s = qt;
         currentinfo->node.loc.att.geoc.pass++;
         att_geoc(currentinfo->node.loc);
-//        cartpos cpointing;
-//        cpointing.s = drotate(currentinfo->node.loc.att.geoc.s, rv_unitz(-currentinfo->node.loc.pos.geod.s.h));
-//        double angle = sep_rv(cpointing.s, -currentinfo->node.loc.pos.geoc.s);
-//        cpointing.s = cpointing.s / cos(angle);
-//        cpointing.s += currentinfo->node.loc.pos.geoc.s;
-//        geoidpos gpointing;
-//        geoc2geod(cpointing, gpointing);
-//        double sep;
-//        geod2sep(gpointing.s, ctarget.loc.pos.geod.s, sep);
-//        double sep2 = sep * sep;
+        //        cartpos cpointing;
+        //        cpointing.s = drotate(currentinfo->node.loc.att.geoc.s, rv_unitz(-currentinfo->node.loc.pos.geod.s.h));
+        //        double angle = sep_rv(cpointing.s, -currentinfo->node.loc.pos.geoc.s);
+        //        cpointing.s = cpointing.s / cos(angle);
+        //        cpointing.s += currentinfo->node.loc.pos.geoc.s;
+        //        geoidpos gpointing;
+        //        geoc2geod(cpointing, gpointing);
+        //        double sep;
+        //        geod2sep(gpointing.s, ctarget.loc.pos.geod.s, sep);
+        //        double sep2 = sep * sep;
 
-//        // +Z vector in rotated frame
-//        Vector eci_z = Vector(rv_sub(ctarget.loc.pos.eci.s, currentinfo->node.loc.pos.eci.s));
-//        // Desired Y is cross product of Desired Z and velocity vector
-//        Vector eci_y = eci_z.cross(Vector(currentinfo->node.loc.pos.eci.v));
+        //        // +Z vector in rotated frame
+        //        Vector eci_z = Vector(rv_sub(ctarget.loc.pos.eci.s, currentinfo->node.loc.pos.eci.s));
+        //        // Desired Y is cross product of Desired Z and velocity vector
+        //        Vector eci_y = eci_z.cross(Vector(currentinfo->node.loc.pos.eci.v));
 
-//        currentinfo->node.loc.att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
-//        currentinfo->node.loc.att.topo.v = rv_zero();
-//        currentinfo->node.loc.att.topo.a = rv_zero();
-//        currentinfo->node.loc.att.topo.utc = currentutc;
-//        currentinfo->node.loc.att.topo.pass++;
-//        att_topo(currentinfo->node.loc);
+        //        currentinfo->node.loc.att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
+        //        currentinfo->node.loc.att.topo.v = rv_zero();
+        //        currentinfo->node.loc.att.topo.a = rv_zero();
+        //        currentinfo->node.loc.att.topo.utc = currentutc;
+        //        currentinfo->node.loc.att.topo.pass++;
+        //        att_topo(currentinfo->node.loc);
     }
     else
     {
@@ -2140,8 +2402,8 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
         currentinfo->node.loc.att.lvlh.pass++;
         att_lvlh(currentinfo->node.loc);
     }
-//    currentinfo->node.loc.att.icrf.pass++;
-//    att_icrf(currentinfo->node.loc);
+    //    currentinfo->node.loc.att.icrf.pass++;
+    //    att_icrf(currentinfo->node.loc);
     AttAccel(currentinfo->node.loc, currentinfo->node.phys);
     return 0;
 }
@@ -2468,7 +2730,7 @@ int32_t MetricGenerator::Propagate(double nextutc)
         }
     }
 
-//    bool printed = false;
+    //    bool printed = false;
     for (uint16_t it=0; it<currentinfo->target.size(); ++it)
     {
         if (currentinfo->target[it].elto > 0.)
@@ -2486,7 +2748,7 @@ int32_t MetricGenerator::Propagate(double nextutc)
                 double t4a = t2a * t2a;
                 double r = Rearth(currentinfo->node.loc.pos.geod.s.lat);
                 double lsep = (sqrt(t4a * (-4. * h2 - 8. * r * h) + t2a * 4. * r * r) + 2. * t2a * (h + r)) / (2. * (t2a + 1.));
-//                lsep = (sqrt(t4a * (-4. * h2 - 8. * r * h) + t2a * 4. * r * r) + 2. * t2a * (h + r)) / (2. * (t2a + 1.));
+                //                lsep = (sqrt(t4a * (-4. * h2 - 8. * r * h) + t2a * 4. * r * r) + 2. * t2a * (h + r)) / (2. * (t2a + 1.));
                 cpointing.s = cpointing.s * lsep / cos(angle);
                 cpointing.s += currentinfo->node.loc.pos.geoc.s;
                 geoidpos gpointing;
@@ -2528,10 +2790,10 @@ int32_t MetricGenerator::Propagate(double nextutc)
             }
         }
     }
-//    if (printed)
-//    {
-//        printf("\n");
-//    }
+    //    if (printed)
+    //    {
+    //        printf("\n");
+    //    }
     if (nextutc == 0.)
     {
         nextutc = currentutc + dtj;
@@ -2893,8 +3155,8 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
 
 int32_t TlePositionPropagator::Init()
 {
-//    eci2tle(currentutc, currentinfo->node.loc.pos.eci, tle);
-//    PosAccel(currentinfo->node.loc, currentinfo->node.phys);
+    //    eci2tle(currentutc, currentinfo->node.loc.pos.eci, tle);
+    //    PosAccel(currentinfo->node.loc, currentinfo->node.phys);
 
     return 0;
 }
@@ -3494,6 +3756,7 @@ int32_t GaussJacksonPositionPropagator::Converge()
     pos_eci(currentinfo->node.loc);
     return 0;
 }
+
 }
 
 }
