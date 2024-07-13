@@ -149,6 +149,7 @@ namespace Cosmos {
         void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, Convert::cartpos ipos, Convert::qatt iatt, physicsstruc &physics, Convert::locstruc &loc);
         void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, Convert::stkstruc &stk, physicsstruc &physics, Convert::locstruc &loc);
         void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, double altitude, double angle, double hour, Convert::locstruc &iloc, physicsstruc &physics, Convert::locstruc &loc);
+        void gauss_jackson_update_eci(gj_handle &gjh, physicsstruc &physics, Convert::locstruc &loc);
         Convert::locstruc gauss_jackson_converge_orbit(gj_handle &gjh, physicsstruc &physics);
         void gauss_jackson_converge_hardware(gj_handle &gjh, physicsstruc &physics);
         vector<Convert::locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, Convert::locstruc &loc, double mjd);

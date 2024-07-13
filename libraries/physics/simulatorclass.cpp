@@ -183,7 +183,7 @@ int32_t Simulator::AddTarget(targetstruc& targ)
 int32_t Simulator::ParseOrbitFile(string filename)
 {
     int32_t iretn = 0;
-    string  args;
+    string  line;
     FILE *fp;
     if (filename.empty())
     {
@@ -192,10 +192,10 @@ int32_t Simulator::ParseOrbitFile(string filename)
 
     if ((fp = fopen(filename.c_str(), "r")) != nullptr)
     {
-        args.resize(160);
-        while (fgets((char *)args.data(), 149, fp) != nullptr)
+        line.resize(1010);
+        while (fgets((char *)line.data(), 1000, fp) != nullptr)
         {
-            iretn = ParseOrbitString(args);
+            iretn = ParseOrbitString(line);
             if (iretn < 0)
             {
                 fclose(fp);
@@ -320,7 +320,7 @@ int32_t Simulator::ParseOrbitString(string args)
 
 int32_t Simulator::ParseSatFile(string filename)
 {
-    string  args;
+    string  line;
     FILE *fp;
     int32_t iretn;
 
@@ -331,10 +331,10 @@ int32_t Simulator::ParseSatFile(string filename)
 
     if ((fp = fopen(filename.c_str(), "r")) != nullptr)
     {
-        args.resize(160);
-        while (fgets((char *)args.data(), 149, fp) != nullptr)
+        line.resize(1010);
+        while (fgets((char *)line.data(), 1000, fp) != nullptr)
         {
-            iretn = ParseSatString(args);
+            iretn = ParseSatString(line);
             if (iretn < 0)
             {
                 fclose(fp);
@@ -458,17 +458,6 @@ int32_t Simulator::ParseSatString(string args)
         {
             iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
         }
-        //        Physics::Simulator::StateList::iterator sit = GetNode(nodename);
-
-        // Camera
-        //        for (camstruc det : dets)
-        //        {
-        //            det.volt = 5.;
-        //            det.amp = 20. / det.volt;
-        //            det.state = 0;
-        //            (*sit)->currentinfo.devspec.cam.push_back(det);
-        //        }
-        //        (*sit)->currentinfo.devspec.cam_cnt = dets.size();
     }
     else
     {
@@ -480,23 +469,16 @@ int32_t Simulator::ParseSatString(string args)
         {
             type = "U12";
         }
-        iretn = AddNode(nodename, type, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, satloc.pos.lvlh, initialloc.att.icrf);
-        //        Physics::Simulator::StateList::iterator sit = GetNode(nodename);
-
-        //        thststruc thrust;
-        //        thrust.maxthrust = maxthrust;
-        //        (*sit)->currentinfo.devspec.thst.push_back(thrust);
-        //        (*sit)->currentinfo.devspec.thst_cnt = 1;
-
-        // Camera
-        //        for (camstruc det : dets)
-        //        {
-        //            det.volt = 5.;
-        //            det.amp = 20. / det.volt;
-        //            det.state = 0;
-        //            (*sit)->currentinfo.devspec.cam.push_back(det);
-        //        }
-        //        (*sit)->currentinfo.devspec.cam_cnt = dets.size();
+//        iretn = AddNode(nodename, type, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, satloc.pos.lvlh, initialloc.att.icrf);
+        if (fastcalc)
+        {
+            eci2tle2(satloc.pos.eci, satloc.tle);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.tle, initialloc.att.icrf);
+        }
+        else
+        {
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.pos.eci, initialloc.att.icrf);
+        }
     }
 
     Physics::Simulator::StateList::iterator sit = GetNode(nodename);
@@ -592,8 +574,8 @@ int32_t Simulator::ParseTargetFile(string filename)
 
     if ((fp = fopen(filename.c_str(), "r")) != nullptr)
     {
-        line.resize(201);
-        while (fgets((char *)line.data(), 200, fp) != nullptr)
+        line.resize(1010);
+        while (fgets((char *)line.data(), 1000, fp) != nullptr)
         {
             iretn = ParseTargetString(line);
             if (iretn < 0)

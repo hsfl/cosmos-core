@@ -294,6 +294,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo);
 int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag = false);
 int32_t json_setup_node(string &node, cosmosstruc *cinfo);
 int32_t json_load_node(string node, jsonnode &json);
+int32_t json_clone_node(cosmosstruc *source, cosmosstruc *destination);
 int32_t load_tle(cosmosstruc *cinfo);
 int32_t json_dump_node(cosmosstruc *cinfo);
 int32_t json_recenter_node(cosmosstruc *cinfo);
