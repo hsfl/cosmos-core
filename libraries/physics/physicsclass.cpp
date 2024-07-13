@@ -319,6 +319,12 @@ int32_t PosAccel(locstruc* loc, physicsstruc* phys)
         da = iratt.irotate(phys->thrust);
         loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
     }
+    // Fictional force
+    if (phys->fpush.norm() > 0.)
+    {
+        da = (1. / phys->mass) * phys->fpush;
+        loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
+    }
 
     loc->pos.eci.pass++;
     iretn = pos_eci(loc);
@@ -892,197 +898,75 @@ Vector ControlTorque(qatt tatt, qatt catt, Vector moi, double seconds)
     return torque;
 }
 
-Vector ControlThrust(cartpos tpos, cartpos cpos, double mass, double maxaccel, double seconds)
+Vector ControlThrust(cartpos cpos, cartpos tpos, double mass, double maxaccel, double seconds)
+{
+    return mass * ControlAccel(cpos, tpos, maxaccel, seconds);
+}
+
+Vector ControlAccel(cartpos cpos, cartpos tpos, double maxaccel, double seconds)
 {
     double minaccel = 0.1 * maxaccel;
+    Vector newa;
 
     Vector dpos = Vector(rv_sub(cpos.s, tpos.s));
     Vector dvel = Vector(rv_sub(cpos.v, tpos.v));
 
-    Vector newa;
     if (dpos.norm() > .01)
     {
         Vector timet;
         double s0;
         double v0;
-        double v2;
-        double sa2;
-        double t0;
+        double vt;
+//        double v2;
+//        double sa2;
+//        double tsp;
+//        double tsm;
+//        double tv;
 
         // X
         s0 = dpos.x;
         v0 = dvel.x;
-        v2 = v0 * v0;
-        if ((v0 < 0 && s0 > 0) || (v0 > 0 && s0 < 0))
+//        v2 = v0 * v0;
+        if (s0 > 0)
         {
-            t0 = -2. * s0 / v0;
-            if (t0 > seconds && t0 > timet.x)
-            {
-                timet.x = t0;
-                double a0 = 0.5 * v2 / s0;
-                if (fabs(a0) < minaccel)
-                {
-                    newa.x = minaccel * v0 / fabs(v0);
-                }
-                else
-                {
-                    newa.x = a0;
-                }
-            }
-            else
-            {
-                timet.x = 0.;
-                newa.x = 0.;
-            }
+            vt = -sqrt(2.0 * maxaccel * s0);
+            newa.x = (vt - v0) / seconds;
         }
-        else
+        else if (s0 < 0)
         {
-            timet.x = 0.;
-            newa.x = 0.;
-        }
-
-        for (double a : vector<double>{-maxaccel, maxaccel})
-        {
-            sa2 = 2. * s0 * a;
-            if (v2 > sa2 && ((v0 < 0 && s0 < 0) || (v0 > 0 && s0 > 0)))
-            {
-                t0 = (-v0 - sqrt(v2 - sa2)) / a;
-                double t1 = (-v0 + sqrt(v2 - sa2)) / a;
-                if ((t1 <= 0 || t0 <= t1) && (t0 > seconds) && t0 > timet.x)
-                {
-                    newa.x = -2. * (s0 / t0 + v0) / t0;
-                    timet.x = t0;
-                }
-                else if ((t0 <= 0 || t1 <= t0) && (t1 > seconds) && t1 > timet.x)
-                {
-                    newa.x = -2. * (s0 / t1 + v0) / t1;
-                    timet.x = t1;
-                }
-            }
-            t0 = -v0 / a;
-            if (t0 > seconds && t0 > timet.x)
-            {
-                newa.x = -v0 / t0;
-                timet.x = t0;
-            }
+            vt = sqrt(2.0 * maxaccel * -s0);
+            newa.x = (vt - v0) / seconds;
         }
 
         // Y
         s0 = dpos.y;
         v0 = dvel.y;
-        v2 = v0 * v0;
-        if ((v0 < 0 && s0 > 0) || (v0 > 0 && s0 < 0))
+        if (s0 > 0)
         {
-            t0 = -2. * s0 / v0;
-            if (t0 > seconds && t0 > timet.y)
-            {
-                timet.y = t0;
-                double a0 = 0.5 * v2 / s0;
-                if (fabs(a0) < minaccel)
-                {
-                    newa.y = minaccel * v0 / fabs(v0);
-                }
-                else
-                {
-                    newa.y = a0;
-                }
-            }
-            else
-            {
-                timet.y = 0.;
-                newa.y = 0.;
-            }
+            vt = -sqrt(2.0 * maxaccel * s0);
+            newa.y = (vt - v0) / seconds;
         }
-        else
+        else if (s0 < 0)
         {
-            timet.y = 0.;
-            newa.y = 0.;
-        }
-
-        for (double a : vector<double>{-maxaccel, maxaccel})
-        {
-            sa2 = 2. * s0 * a;
-            if (v2 > sa2 && ((v0 < 0 && s0 < 0) || (v0 > 0 && s0 > 0)))
-            {
-                t0 = (-v0 - sqrt(v2 - sa2)) / a;
-                double t1 = (-v0 + sqrt(v2 - sa2)) / a;
-                if ((t1 <= 0 || t0 <= t1) && (t0 > seconds) && t0 > timet.y)
-                {
-                    newa.y = -2. * (s0 / t0 + v0) / t0;
-                    timet.y = t0;
-                }
-                else if ((t0 <= 0 || t1 <= t0) && (t1 > seconds) && t1 > timet.y)
-                {
-                    newa.y = -2. * (s0 / t1 + v0) / t1;
-                    timet.y = t1;
-                }
-            }
-            t0 = -v0 / a;
-            if (t0 > seconds && t0 > timet.y)
-            {
-                newa.y = -v0 / t0;
-                timet.y = t0;
-            }
+            vt = sqrt(2.0 * maxaccel * -s0);
+            newa.y = (vt - v0) / seconds;
         }
 
         // Z
         s0 = dpos.z;
         v0 = dvel.z;
-        v2 = v0 * v0;
-        if ((v0 < 0 && s0 > 0) || (v0 > 0 && s0 < 0))
+        if (s0 > 0)
         {
-            t0 = -2. * s0 / v0;
-            if (t0 > seconds && t0 > timet.z)
-            {
-                timet.z = t0;
-                double a0 = 0.5 * v2 / s0;
-                if (fabs(a0) < minaccel)
-                {
-                    newa.z = minaccel * v0 / fabs(v0);
-                }
-                else
-                {
-                    newa.z = a0;
-                }
-            }
-            else
-            {
-                timet.z = 0.;
-                newa.z = 0.;
-            }
+            vt = -sqrt(2.0 * maxaccel * s0);
+            newa.z = (vt - v0) / seconds;
         }
-        else
+        else if (s0 < 0)
         {
-            timet.z = 0.;
-            newa.z = 0.;
+            vt = sqrt(2.0 * maxaccel * -s0);
+            newa.z = (vt - v0) / seconds;
         }
 
-        for (double a : vector<double>{-maxaccel, maxaccel})
-        {
-            sa2 = 2. * s0 * a;
-            if (v2 > sa2 && ((v0 < 0 && s0 < 0) || (v0 > 0 && s0 > 0)))
-            {
-                t0 = (-v0 - sqrt(v2 - sa2)) / a;
-                double t1 = (-v0 + sqrt(v2 - sa2)) / a;
-                if ((t1 <= 0 || t0 <= t1) && (t0 > seconds) && t0 > timet.z)
-                {
-                    newa.z = -2. * (s0 / t0 + v0) / t0;
-                    timet.z = t0;
-                }
-                else if ((t0 <= 0 || t1 <= t0) && (t1 > seconds) && t1 > timet.z)
-                {
-                    newa.z = -2. * (s0 / t1 + v0) / t1;
-                    timet.z = t1;
-                }
-            }
-            t0 = -v0 / a;
-            if (t0 > seconds && t0 > timet.z)
-            {
-                newa.z = -v0 / t0;
-                timet.z = t0;
-            }
-        }
-        newa = newa.maxmag(maxaccel).minmag(minaccel) * mass;
+        newa = newa.maxmag(maxaccel).minmag(minaccel);
     }
     return newa;
 }
@@ -1730,6 +1614,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     structure = new Structure(&currentinfo.node.phys);
     structure->Setup(stype);
     this->stype = stype;
+    currentinfo.mass = currentinfo.node.phys.mass;
 
     switch (ptype)
     {
@@ -3204,7 +3089,7 @@ int32_t GaussJacksonPositionPropagator::Setup()
     gam.resize(order+2);
     q.resize(order+3);
     lam.resize(order+3);
-    order = 0;
+//    order = 0;
 
     dtsq = dt * dt;
 
@@ -3625,15 +3510,13 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         // Adjust for any thrust
         if (currentinfo->node.phys.fpush.norm() && currentinfo->node.phys.mass)
         {
-            rvector dacc = (currentinfo->node.phys.fpush / currentinfo->node.phys.mass).to_rv();
-            for (gjstruc &cstep : step)
-            {
-                cstep.loc.pos.eci.s = rv_add(cstep.loc.pos.eci.s, rv_smult(.5 * this->dt2, dacc));
-                cstep.loc.pos.eci.v = rv_add(cstep.loc.pos.eci.v, rv_smult(this->dt, dacc));
-            }
-            Setup();
-            Converge();
+            Vector dacc = (1./currentinfo->node.phys.mass) * currentinfo->node.phys.fpush;
+            step[order].loc.pos.eci.s = rv_add(step[order].loc.pos.eci.s, 0.5 * dt2 * dacc.to_rv());
+            step[order].loc.pos.eci.v = rv_add(step[order].loc.pos.eci.v, dt * dacc.to_rv());
+            currentinfo->node.phys.fpush.clear();
+            Update();
         }
+
     }
 
     currentinfo->node.loc.pos = step[order].loc.pos;
@@ -3749,12 +3632,161 @@ int32_t GaussJacksonPositionPropagator::Converge()
         c_cnt++;
     } while (c_cnt<10 && cflag);
 
-    currentinfo->node.loc = step[order2].loc;
+    currentinfo->node.loc = step[order].loc;
     ++currentinfo->node.loc.pos.eci.pass;
-    currentinfo->node.phys.fpush = rv_zero();
+//    currentinfo->node.phys.fpush = rv_zero();
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
     pos_eci(currentinfo->node.loc);
     return 0;
+}
+
+int32_t GaussJacksonPositionPropagator::Update()
+{
+    int32_t iretn;
+    kepstruc kep;
+    double dea;
+    quaternion q1;
+
+    ++step[order].loc.pos.eci.pass;
+    pos_eci(step[order].loc);
+    PosAccel(step[order].loc, currentinfo->node.phys);
+    AttAccel(step[order].loc, currentinfo->node.phys);
+
+    // Set central bin to last bin
+    step[order2].loc = step[order].loc;
+    eci2kep(step[order2].loc.pos.eci, kep);
+
+    // Initialize past bins
+    for (uint32_t i=order2-1; i<order2; --i)
+    {
+        step[i].loc = step[i+1].loc;
+        step[i].loc.utc -= dtj;
+        kep.utc = step[i].loc.utc;
+        kep.ma -= dt * kep.mm;
+
+        uint16_t count = 0;
+        do
+        {
+            dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+            kep.ea -= dea;
+        } while (++count < 100 && fabs(dea) > .000001);
+        step[i].loc.pos.eci.utc = kep.utc;
+        kep2eci(kep, step[i].loc.pos.eci);
+        ++step[i].loc.pos.eci.pass;
+
+        q1 = q_axis2quaternion_rv(rv_smult(-dt,step[i].loc.att.icrf.v));
+        step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
+        normalize_q(&step[i].loc.att.icrf.s);
+        // Calculate new v from da
+        step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(-dt,step[i].loc.att.icrf.a));
+        step[i].loc.att.icrf.utc = kep.utc;
+        pos_eci(step[i].loc);
+
+        PosAccel(step[i].loc, currentinfo->node.phys);
+    }
+
+    eci2kep(step[order2].loc.pos.eci, kep);
+
+    // Initialize future bins
+    for (uint32_t i=order2+1; i<=order; i++)
+    {
+        step[i] = step[i-1];
+        step[i].loc.utc += dtj;
+        kep.utc = step[i].loc.utc;
+        kep.ma += dt * kep.mm;
+
+        uint16_t count = 0;
+        do
+        {
+            dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+            kep.ea -= dea;
+        } while (++count < 100 && fabs(dea) > .000001);
+        step[i].loc.pos.eci.utc = kep.utc;
+        kep2eci(kep, step[i].loc.pos.eci);
+        ++step[i].loc.pos.eci.pass;
+
+        q1 = q_axis2quaternion_rv(rv_smult(dt,step[i].loc.att.icrf.v));
+        step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
+        normalize_q(&step[i].loc.att.icrf.s);
+        // Calculate new v from da
+        step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(dt,step[i].loc.att.icrf.a));
+        step[i].loc.att.icrf.utc = kep.utc;
+        pos_eci(step[i].loc);
+
+        PosAccel(step[i].loc, currentinfo->node.phys);
+    }
+
+    Converge();
+
+    // Set central bin to first bin
+    step[order2].loc = step[0].loc;
+    eci2kep(step[order2].loc.pos.eci, kep);
+
+    // Initialize past bins
+    for (uint32_t i=order2-1; i<order2; --i)
+    {
+        step[i].loc = step[i+1].loc;
+        step[i].loc.utc -= dtj;
+        kep.utc = step[i].loc.utc;
+        kep.ma -= dt * kep.mm;
+
+        uint16_t count = 0;
+        do
+        {
+            dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+            kep.ea -= dea;
+        } while (++count < 100 && fabs(dea) > .000001);
+        step[i].loc.pos.eci.utc = kep.utc;
+        kep2eci(kep, step[i].loc.pos.eci);
+        ++step[i].loc.pos.eci.pass;
+
+        q1 = q_axis2quaternion_rv(rv_smult(-dt,step[i].loc.att.icrf.v));
+        step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
+        normalize_q(&step[i].loc.att.icrf.s);
+        // Calculate new v from da
+        step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(-dt,step[i].loc.att.icrf.a));
+        step[i].loc.att.icrf.utc = kep.utc;
+        pos_eci(step[i].loc);
+
+        PosAccel(step[i].loc, currentinfo->node.phys);
+    }
+
+    eci2kep(step[order2].loc.pos.eci, kep);
+
+    // Initialize future bins
+    for (uint32_t i=order2+1; i<=order; i++)
+    {
+        step[i] = step[i-1];
+        step[i].loc.utc += dtj;
+        kep.utc = step[i].loc.utc;
+        kep.ma += dt * kep.mm;
+
+        uint16_t count = 0;
+        do
+        {
+            dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+            kep.ea -= dea;
+        } while (++count < 100 && fabs(dea) > .000001);
+        step[i].loc.pos.eci.utc = kep.utc;
+        kep2eci(kep, step[i].loc.pos.eci);
+        ++step[i].loc.pos.eci.pass;
+
+        q1 = q_axis2quaternion_rv(rv_smult(dt,step[i].loc.att.icrf.v));
+        step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
+        normalize_q(&step[i].loc.att.icrf.s);
+        // Calculate new v from da
+        step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(dt,step[i].loc.att.icrf.a));
+        step[i].loc.att.icrf.utc = kep.utc;
+        pos_eci(step[i].loc);
+
+        PosAccel(step[i].loc, currentinfo->node.phys);
+    }
+
+    iretn = Converge();
+
+    currentutc = step[order].loc.utc;
+    currentinfo->node.phys.utc = step[order].loc.utc;
+    return iretn;
 }
 
 }

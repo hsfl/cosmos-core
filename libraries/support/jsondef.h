@@ -1285,7 +1285,7 @@ class sim_param	{
             //! Agent Duty Cycle
             float dcycle = 1.;
             //! Existence Flag (if beat exists then flag is set to true, false otherwise)
-            bool exists = true;
+            bool exists = false;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class

@@ -3369,15 +3369,7 @@ int32_t pos_origin2lvlh(locstruc& loc, cartpos lvlh)
     rvector lvlh_y;
     rvector lvlh_z;
     locstruc tloc1 = loc;
-//    printf("Original:\n");
-//    printf("x %.1f y %.1f z %.1f mag %.1f\n", loc.pos.eci.s.col[0], loc.pos.eci.s.col[1], loc.pos.eci.s.col[2], length_rv(loc.pos.eci.s));
-//    printf("vx %.2f vy %.2f vz %.2f mag %.2f\n", loc.pos.eci.v.col[0], loc.pos.eci.v.col[1], loc.pos.eci.v.col[2], length_rv(loc.pos.eci.v));
-//    printf("ax %.3f ay %.3f az %.3f mag %.3f\n", loc.pos.eci.a.col[0], loc.pos.eci.a.col[1], loc.pos.eci.a.col[2], length_rv(loc.pos.eci.a));
-    rvector h = rv_cross(loc.pos.eci.s, loc.pos.eci.v);
-//    printf("hx %.3f hy %.3f hz %.3f mag %.3f\n", h.col[0], h.col[1], h.col[2], length_rv(h));
-//    printf("lx %.1f ly %.1f lz %.1f mag %.1f\n", lvlh.s.col[0], lvlh.s.col[1], lvlh.s.col[2], length_rv(lvlh.s));
-//    printf("lvx %.2f lvy %.2f lvz %.2f mag %.2f\n", lvlh.v.col[0], lvlh.v.col[1], lvlh.v.col[2], length_rv(lvlh.v));
-//    printf("lax %.3f lay %.3f laz %.3f mag %.3f\n", lvlh.a.col[0], lvlh.a.col[1], lvlh.a.col[2], length_rv(lvlh.a));
+//    rvector h = rv_cross(loc.pos.eci.s, loc.pos.eci.v);
 
     cartpos origin = tloc1.pos.eci;
     // 1 Get lvlh basis vectors

@@ -43,7 +43,6 @@ namespace Cosmos
 {
     namespace Physics
     {
-
         class Structure
         {
         public:
@@ -244,6 +243,7 @@ namespace Cosmos
             int32_t Converge();
             int32_t Propagate(double nextutc=0., quaternion icrf={{0.,0.,0.},1.});
             int32_t Reset(double nextutc=0.);
+            int32_t Update();
 
         private:
 
@@ -603,7 +603,8 @@ namespace Cosmos
         locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift);
         int32_t load_loc(string fname, locstruc& loc);
         Vector ControlTorque(qatt tatt, qatt catt, Vector moi, double seconds);
-        Vector ControlThrust(cartpos tpos, cartpos cpos, double mass, double maxaccel, double seconds);
+        Vector ControlAccel(cartpos cpos, cartpos tpos, double maxaccel, double seconds);
+        Vector ControlThrust(cartpos cpos, cartpos tpos, double mass, double maxaccel, double seconds);
 
 
     } //end of namespace Physics
