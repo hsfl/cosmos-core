@@ -67,17 +67,17 @@ int main(int argc, char *argv[])
     }
     while (agent->running() && elapsed < runcount)
     {
-        if (speed == 1.)
-        {
-            for (uint16_t i=1; i<sim->cnodes.size(); ++i)
-            {
-                locstruc target;
-                target.pos.eci = sim->cnodes[0]->currentinfo.node.loc.pos.eci;
-                target.pos.lvlh = lvlhoffset[i];
-                pos_lvlh2origin(target);
-                sim->UpdatePush(sim->cnodes[i]->currentinfo.node.name, Physics::ControlThrust(sim->cnodes[i]->currentinfo.node.loc.pos.eci, target.pos.eci, sim->cnodes[i]->currentinfo.mass, sim->cnodes[i]->currentinfo.devspec.thst[0].maxthrust/sim->cnodes[i]->currentinfo.mass, simdt));
-            }
-        }
+//        if (speed == 1.)
+//        {
+//            for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+//            {
+//                locstruc target;
+//                target.pos.eci = sim->cnodes[0]->currentinfo.node.loc.pos.eci;
+//                target.pos.lvlh = lvlhoffset[i];
+//                pos_lvlh2origin(target);
+//                sim->UpdatePush(sim->cnodes[i]->currentinfo.node.name, Physics::ControlThrust(sim->cnodes[i]->currentinfo.node.loc.pos.eci, target.pos.eci, sim->cnodes[i]->currentinfo.mass, sim->cnodes[i]->currentinfo.devspec.thst[0].maxthrust/sim->cnodes[i]->currentinfo.mass, simdt));
+//            }
+//        }
         sim->Propagate();
         for (auto &state : sim->cnodes)
         {

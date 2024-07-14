@@ -301,6 +301,7 @@ Agent::Agent(string realm_name,
     add_request("get_state",req_get_state,"[{] \"name1\",\"name2\",... [}]","get current state value(s) from agent");
     add_request("get_time",req_get_time,"[\"mjd\",\"humand\",\"met\"]","Return the current time of the agent. As either modified julian day, human readable, or mission elapsed time");
     add_request("get_position",req_get_position,"","return the current perifocal position of the agent");
+    add_request("get_location",req_get_location,"","return the current ECI location of the agent");
     add_request("get_position_data",req_get_position_data,"","return the current perifocal position of the agent");
     add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...","set specified value(s) in agent");
     add_request("set_value",req_set_value,"{\"name1\":value} [,] {\"name2\":value} [,] ...","set specified value(s) in agent (Namespace 2.0)");
@@ -1556,7 +1557,8 @@ int32_t Agent::req_get_position_data(string &request, string &response, Agent* a
 }
 
 // request = "get_position mjdtime"
-int32_t Agent::req_get_position(string &request, string &response, Agent* agent)	{
+int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
+{
 
     //cout<<"\tincoming request          = <"<<request<<">"<<endl;
     //cout<<"req_get_position():incoming request.size()   = "<<request.size()<<endl;
@@ -1639,6 +1641,21 @@ int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
     //response = request;
     //cout<<"req_get_position():outgoing response         = <"<<response<<">"<<endl;
     return 0;
+}
+
+int32_t Agent::req_get_location(string &request, string &response, Agent *agent)
+{
+    vector<string> args = string_split(request);
+    response.clear();
+
+    json11::Json jobj = json11::Json::object({
+        {"node", agent->cinfo->node.name},
+        {"utcoffset", agent->cinfo->node.utcoffset},
+        {"pos", agent->cinfo->node.loc.pos.eci},
+        {"att", agent->cinfo->node.loc.att.icrf}
+    });
+    response = jobj.dump();
+    return response.length();
 }
 
 
