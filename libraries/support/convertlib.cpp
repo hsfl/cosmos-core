@@ -3467,6 +3467,11 @@ int32_t pos_origin2lvlh(locstruc& loc, cartpos lvlh)
 //    printf("ax %.3f ay %.3f az %.3f mag %.3f\n", tloc.pos.eci.a.col[0], tloc.pos.eci.a.col[1], tloc.pos.eci.a.col[2], length_rv(tloc.pos.eci.a));
 //    fflush(stdout);
 
+    loc = tloc1;    
+    loc.pos.lvlh = lvlh;
+    loc.pos.lvlh.utc = loc.pos.eci.utc;
+    return 0;
+
     lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
     lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
 
@@ -3525,6 +3530,7 @@ int32_t pos_lvlh2origin(locstruc& loc)
     lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
     lvlh_z = drotate(loc.pos.extra.e2l, rvector(0., 0., 1.));
 
+    // TODO: should this be ECI, not GEOC?
     loc.pos.geoc.v -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.v);
     loc.pos.geoc.a -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.a);
     loc.pos.geoc.j -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.j);
