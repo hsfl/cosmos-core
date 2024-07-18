@@ -96,7 +96,7 @@ TEST_P(test_GEOD_to_ECI_transformation, GEOD_to_ECI) {
     //if (lat_error_to_meters(abs(before.lat - after.lat), before.h) > 100.00) {
     if (lat_error_to_meters(abs(before.lat - after.lat), before.h) > 0.001) {
         oss << "Lat mismatch at (" << params.lat << ", " << params.lon << ", " << params.h << "): "
-            << "before.lat = " << before.lat << "\tafter.lat = " << after.lat << "\t error = " << abs(before.lat - after.lat) << "\t(" << lat_error_to_meters(abs(before.lat - after.lat), before.h) << " meters)\n";
+            << "before.lat = " << before.lat << "\tafter.lat = " << after.lat << "\terror = " << abs(before.lat - after.lat) << "\t(" << lat_error_to_meters(abs(before.lat - after.lat), before.h) << " meters)\n";
         failed = true;
     }
 

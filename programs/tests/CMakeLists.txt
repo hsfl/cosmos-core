@@ -25,7 +25,7 @@ endforeach()
 
 target_link_libraries(poslvlh CosmosConvert CosmosPhysics)
 target_link_libraries(geod2eci2geod CosmosTime CosmosMath CosmosConvert CosmosNamespace)
-target_link_libraries(coordinate_transformations CosmosTime CosmosMath CosmosConvert gtest)
+target_link_libraries(test_coordinate_transformations CosmosTime CosmosMath CosmosConvert gtest)
 target_link_libraries(crctest CosmosMath)
 target_link_libraries(lsfittest CosmosMath)
 target_link_libraries(mathspeed CosmosDeviceCpu CosmosTime)
