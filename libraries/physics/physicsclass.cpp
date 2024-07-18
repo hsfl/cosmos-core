@@ -3021,11 +3021,11 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
         // Update acceleration for the new position
         PosAccel(currentinfo->node.loc, currentinfo->node.phys);
         // Apply external accelerations
-        currentinfo->node.loc.pos.eci.a = rv_add(currentinfo->node.loc.pos.eci.a, rv_smult(1./currentinfo->node.phys.mass, currentinfo->node.phys.fpush.to_rv()));
+        // currentinfo->node.loc.pos.eci.a = rv_add(currentinfo->node.loc.pos.eci.a, rv_smult(1./currentinfo->node.phys.mass, currentinfo->node.phys.fpush.to_rv()));
         // Clearing external accelerations TODO: consider if this is desireable
         // currentinfo->node.phys.fpush.clear();
-        currentinfo->node.loc.pos.eci.pass++;
-        pos_eci(currentinfo->node.loc);
+        // currentinfo->node.loc.pos.eci.pass++;
+        // pos_eci(currentinfo->node.loc);
     }
 
     return 0;
