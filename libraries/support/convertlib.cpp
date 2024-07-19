@@ -1161,8 +1161,15 @@ int32_t geoc2geod(cartpos &geoc, geoidpos &geod)
         st = sin(phi);
         // rn = radius of curvature in the vertical prime
         rn = REARTHM / sqrt(1. - e2 * st * st);
-        nh = p / cos(phi) - rn;
-        phi = atan((geoc.s.col[2] / p) / (1. - e2 * rn / (rn + h)));
+        if (p > 1e-6)
+        {
+            nh = p / cos(phi) - rn;
+            phi = atan((geoc.s.col[2] / p) / (1. - e2 * rn / (rn + h)));
+        }
+        else
+        {
+            nh =  - rn;
+        }
     } while (fabs(nh - h) > .01);
 
     geod.s.lat = phi;
@@ -3358,38 +3365,37 @@ int32_t pos_ric2eci(cartpos ric, locstruc& loc)
          * @param lvlh ::cartpos LVLH offsets to apply
          * @return int32_t 0 on success, negative on error
          */
-int32_t pos_origin2lvlh(locstruc *loc, cartpos lvlh)
+int32_t pos_origin2lvlh(locstruc *loc)
 {
-    return pos_origin2lvlh(*loc, lvlh);
+    return pos_origin2lvlh(*loc);
 }
 
-int32_t pos_origin2lvlh(locstruc& loc, cartpos lvlh)
+int32_t pos_origin2lvlh(locstruc& loc)
 {
     rvector lvlh_x;
     rvector lvlh_y;
     rvector lvlh_z;
     locstruc tloc1 = loc;
-//    rvector h = rv_cross(loc.pos.eci.s, loc.pos.eci.v);
 
-    cartpos origin = tloc1.pos.eci;
+    cartpos origin = tloc1.pos.geoc;
     // 1 Get lvlh basis vectors
     lvlh_z = -rv_normal(origin.s);
     lvlh_y = rv_normal(rv_cross(lvlh_z, origin.v));
     lvlh_x = rv_normal(rv_cross(lvlh_y, lvlh_z));
 
     // 2 Convert LVLH offsets into ECI
-    cartpos eci_offset;
-    eci_offset.s.col[0] = lvlh_x.col[0]*lvlh.s.col[0] + lvlh_y.col[0]*lvlh.s.col[1] + lvlh_z.col[0]*lvlh.s.col[2];
-    eci_offset.s.col[1] = lvlh_x.col[1]*lvlh.s.col[0] + lvlh_y.col[1]*lvlh.s.col[1] + lvlh_z.col[1]*lvlh.s.col[2];
-    eci_offset.s.col[2] = lvlh_x.col[2]*lvlh.s.col[0] + lvlh_y.col[2]*lvlh.s.col[1] + lvlh_z.col[2]*lvlh.s.col[2];
-    eci_offset.v.col[0] = lvlh_x.col[0]*lvlh.v.col[0] + lvlh_y.col[0]*lvlh.v.col[1] + lvlh_z.col[0]*lvlh.v.col[2];
-    eci_offset.v.col[1] = lvlh_x.col[1]*lvlh.v.col[0] + lvlh_y.col[1]*lvlh.v.col[1] + lvlh_z.col[1]*lvlh.v.col[2];
-    eci_offset.v.col[2] = lvlh_x.col[2]*lvlh.v.col[0] + lvlh_y.col[2]*lvlh.v.col[1] + lvlh_z.col[2]*lvlh.v.col[2];
-    eci_offset.a.col[0] = lvlh_x.col[0]*lvlh.a.col[0] + lvlh_y.col[0]*lvlh.a.col[1] + lvlh_z.col[0]*lvlh.a.col[2];
-    eci_offset.a.col[1] = lvlh_x.col[1]*lvlh.a.col[0] + lvlh_y.col[1]*lvlh.a.col[1] + lvlh_z.col[1]*lvlh.a.col[2];
-    eci_offset.a.col[2] = lvlh_x.col[2]*lvlh.a.col[0] + lvlh_y.col[2]*lvlh.a.col[1] + lvlh_z.col[2]*lvlh.a.col[2];
+    cartpos geoc_offset;
+    geoc_offset.s.col[0] = lvlh_x.col[0]*loc.pos.lvlh.s.col[0] + lvlh_y.col[0]*loc.pos.lvlh.s.col[1] + lvlh_z.col[0]*loc.pos.lvlh.s.col[2];
+    geoc_offset.s.col[1] = lvlh_x.col[1]*loc.pos.lvlh.s.col[0] + lvlh_y.col[1]*loc.pos.lvlh.s.col[1] + lvlh_z.col[1]*loc.pos.lvlh.s.col[2];
+    geoc_offset.s.col[2] = lvlh_x.col[2]*loc.pos.lvlh.s.col[0] + lvlh_y.col[2]*loc.pos.lvlh.s.col[1] + lvlh_z.col[2]*loc.pos.lvlh.s.col[2];
+    geoc_offset.v.col[0] = lvlh_x.col[0]*loc.pos.lvlh.v.col[0] + lvlh_y.col[0]*loc.pos.lvlh.v.col[1] + lvlh_z.col[0]*loc.pos.lvlh.v.col[2];
+    geoc_offset.v.col[1] = lvlh_x.col[1]*loc.pos.lvlh.v.col[0] + lvlh_y.col[1]*loc.pos.lvlh.v.col[1] + lvlh_z.col[1]*loc.pos.lvlh.v.col[2];
+    geoc_offset.v.col[2] = lvlh_x.col[2]*loc.pos.lvlh.v.col[0] + lvlh_y.col[2]*loc.pos.lvlh.v.col[1] + lvlh_z.col[2]*loc.pos.lvlh.v.col[2];
+    geoc_offset.a.col[0] = lvlh_x.col[0]*loc.pos.lvlh.a.col[0] + lvlh_y.col[0]*loc.pos.lvlh.a.col[1] + lvlh_z.col[0]*loc.pos.lvlh.a.col[2];
+    geoc_offset.a.col[1] = lvlh_x.col[1]*loc.pos.lvlh.a.col[0] + lvlh_y.col[1]*loc.pos.lvlh.a.col[1] + lvlh_z.col[1]*loc.pos.lvlh.a.col[2];
+    geoc_offset.a.col[2] = lvlh_x.col[2]*loc.pos.lvlh.a.col[0] + lvlh_y.col[2]*loc.pos.lvlh.a.col[1] + lvlh_z.col[2]*loc.pos.lvlh.a.col[2];
 
-    tloc1.pos.eci.s = origin.s + eci_offset.s;
+    loc.pos.geoc.s = loc.pos.geoc.s + geoc_offset.s;
 
     // This is the equation to find the velocity of a point using observations
     // from a translating and rotating reference frame B
@@ -3406,17 +3412,17 @@ int32_t pos_origin2lvlh(locstruc& loc, cartpos lvlh)
     // A_w_B: The angular velocity of reference frame B
     // r_P/Q: The distance between points P and Q (in reference frame A)
 
-    // B_v_P/Q = eci_offset.v
-    // A_v_Q = origin.v
+    // B_v_P/Q = geoc_offset.v
+    // A_v_Q = loc.pos.geoc.v
     // A_w_B = angular velocity = (s x v) / ||s||^2
-    rvector angular_velocity = rv_smult(1./pow(length_rv(origin.s),2),rv_cross(origin.s,origin.v));
-    // r_P/Q = eci_offset.s
+    rvector angular_velocity = rv_smult(1./pow(length_rv(loc.pos.geoc.s),2),rv_cross(loc.pos.geoc.s,loc.pos.geoc.v));
+    // r_P/Q = geoc_offset.s
 
     // A_w_B x r_P/Q
-    rvector w_x_r = rv_cross(angular_velocity, eci_offset.s);
+    rvector w_x_r = rv_cross(angular_velocity, geoc_offset.s);
 
     // Compute B_v_P/Q + A_v_Q + (A_w_B x r_P/Q)
-    tloc1.pos.eci.v = eci_offset.v + origin.v + w_x_r;
+    loc.pos.geoc.v = loc.pos.geoc.v + geoc_offset.v + w_x_r;
 
     // This is the equation to find the acceleration of a point using observations
     // from a rotating and translating reference frame B
@@ -3430,68 +3436,59 @@ int32_t pos_origin2lvlh(locstruc& loc, cartpos lvlh)
     // B_a_P/Q: The acceleration of point P in reference frame B as observed from point Q.
     // A_alpha_B = The angular acceleration of reference frame B as observed by reference frame A.
 
-    // A_a_Q = origin.a
-    // B_a_P/Q = eci_offset.a
+    // A_a_Q = loc.pos.geoc.a
+    // B_a_P/Q = geoc_offset.a
     // A_alpha_B = angular acceleration = (s x a) / ||s||^2
-    rvector angular_acceleration = rv_smult(1./pow(length_rv(origin.s),2),rv_cross(origin.s,origin.a));
+    rvector angular_acceleration = rv_smult(1./pow(length_rv(loc.pos.geoc.s),2),rv_cross(loc.pos.geoc.s,loc.pos.geoc.a));
 
     // Compute
     // A_a_P = A_a_Q + B_a_P/Q
-    tloc1.pos.eci.a = origin.a + eci_offset.a
+    loc.pos.geoc.a = loc.pos.geoc.a + geoc_offset.a
                     //     + A_alpha_B x r_P/Q        = Euler acceleration
-                    + rv_cross(angular_acceleration, eci_offset.s)
+                    + rv_cross(angular_acceleration, geoc_offset.s)
                     //     + 2 * A_w_B x B_v_P/Q      = Coriolis acceleration
-                    + 2 * rv_cross(angular_velocity, eci_offset.v)
+                    + 2 * rv_cross(angular_velocity, geoc_offset.v)
                     //     + A_w_B x (A_w_B x r_P/Q)  = Centripetal acceleration
                     + rv_cross(angular_velocity, w_x_r);
 
-    tloc1.pos.eci.pass = std::max(tloc1.pos.icrf.pass, tloc1.pos.geoc.pass) + 1;
-    tloc1.pos.eci.utc = origin.utc;
-    ++tloc1.pos.eci.pass;
-    pos_eci(tloc1);
-//    printf("Scott:\n");
-//    printf("x %.1f y %.1f z %.1f mag %.1f\n", tloc1.pos.eci.s.col[0], tloc1.pos.eci.s.col[1], tloc1.pos.eci.s.col[2], length_rv(tloc1.pos.eci.s));
-//    printf("vx %.2f vy %.2f vz %.2f mag %.2f\n", tloc1.pos.eci.v.col[0], tloc1.pos.eci.v.col[1], tloc1.pos.eci.v.col[2], length_rv(tloc1.pos.eci.v));
-//    printf("ax %.3f ay %.3f az %.3f mag %.3f\n", tloc1.pos.eci.a.col[0], tloc1.pos.eci.a.col[1], tloc1.pos.eci.a.col[2], length_rv(tloc1.pos.eci.a));
-
-    locstruc tloc = loc;
-    eci_offset.s = rv_mmult(tloc.pos.extra.p2l, lvlh.s);
-    tloc.pos.eci.s += eci_offset.s;
-    tloc.pos.eci.v += rv_mmult(tloc.pos.extra.dp2l, lvlh.v);
-    tloc.pos.eci.a += rv_mmult(tloc.pos.extra.ddp2l, lvlh.a);
-    tloc.pos.eci.pass++;
-    pos_eci(tloc);
-//    printf("Eric:\n");
-//    printf("x %.1f y %.1f z %.1f mag %.1f\n", tloc.pos.eci.s.col[0], tloc.pos.eci.s.col[1], tloc.pos.eci.s.col[2], length_rv(tloc.pos.eci.s));
-//    printf("vx %.2f vy %.2f vz %.2f mag %.2f\n", tloc.pos.eci.v.col[0], tloc.pos.eci.v.col[1], tloc.pos.eci.v.col[2], length_rv(tloc.pos.eci.v));
-//    printf("ax %.3f ay %.3f az %.3f mag %.3f\n", tloc.pos.eci.a.col[0], tloc.pos.eci.a.col[1], tloc.pos.eci.a.col[2], length_rv(tloc.pos.eci.a));
-//    fflush(stdout);
-
-    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
-    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
-
-    loc.pos.geoc.v += drotate(loc.pos.extra.e2l, lvlh.v);
-    loc.pos.geoc.a += drotate(loc.pos.extra.e2l, lvlh.a);
-    loc.pos.geoc.j += drotate(loc.pos.extra.e2l, lvlh.j);
-
-    double r = length_rv(loc.pos.geoc.s);
-
-    // Rotate around LVLH y axis by -dx/r
-    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, -lvlh.s.col[0] / r);
-
-    // Rotate forwards around LVLH x axis by dy/r
-    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, lvlh.s.col[1] / r);
-
-    // Scale the whole thing by dz/z
-    loc.pos.geoc.s *= ((r - lvlh.s.col[2]) / r);
-
-    // Set LVLH
-    loc.pos.lvlh = lvlh;
-    loc.pos.lvlh.utc = loc.pos.geoc.utc;
-
-    // Set geoc
-    ++loc.pos.geoc.pass;
+    loc.pos.geoc.pass = std::max(loc.pos.eci.pass, loc.pos.geos.pass) + 1;
+//    tloc1.pos.geoc.utc = origin.utc;
+//    ++tloc1.pos.geoc.pass;
     pos_geoc(loc);
+
+//    locstruc tloc = loc;
+//    eci_offset.s = rv_mmult(tloc.pos.extra.p2l, lvlh.s);
+//    tloc.pos.eci.s += eci_offset.s;
+//    tloc.pos.eci.v += rv_mmult(tloc.pos.extra.dp2l, lvlh.v);
+//    tloc.pos.eci.a += rv_mmult(tloc.pos.extra.ddp2l, lvlh.a);
+//    tloc.pos.eci.pass++;
+//    pos_eci(tloc);
+
+//    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
+//    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
+
+//    loc.pos.geoc.v += drotate(loc.pos.extra.e2l, lvlh.v);
+//    loc.pos.geoc.a += drotate(loc.pos.extra.e2l, lvlh.a);
+//    loc.pos.geoc.j += drotate(loc.pos.extra.e2l, lvlh.j);
+
+//    double r = length_rv(loc.pos.geoc.s);
+
+//    // Rotate around LVLH y axis by -dx/r
+//    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, -lvlh.s.col[0] / r);
+
+//    // Rotate forwards around LVLH x axis by dy/r
+//    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, lvlh.s.col[1] / r);
+
+//    // Scale the whole thing by dz/z
+//    loc.pos.geoc.s *= ((r - lvlh.s.col[2]) / r);
+
+//    // Set LVLH
+//    loc.pos.lvlh = lvlh;
+//    loc.pos.lvlh.utc = loc.pos.geoc.utc;
+
+//    // Set geoc
+//    ++loc.pos.geoc.pass;
+//    pos_geoc(loc);
 
     return 0;
 }
@@ -3541,7 +3538,7 @@ int32_t pos_lvlh2origin(locstruc& loc)
     ++loc.pos.geoc.pass;
     pos_geoc(loc);
 
-    loc.pos.lvlh = cartpos();
+//    loc.pos.lvlh = cartpos();
 
     return 0;
 }

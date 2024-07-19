@@ -9,7 +9,7 @@ int32_t request_get_node_json(string &request, string &response, Agent *agent);
 int32_t request_get_pieces_json(string &request, string &response, Agent *agent);
 int32_t request_get_devspec_json(string &request, string &response, Agent *agent);
 int32_t request_get_devgen_json(string &request, string &response, Agent *agent);
-int32_t request_get_location(string &request, string &response, Agent *agent);
+int32_t request_get_location_node(string &request, string &response, Agent *agent);
 int32_t request_set_thrust(string &request, string &response, Agent *agent);
 int32_t request_set_torque(string &request, string &response, Agent *agent);
 Physics::Simulator *sim;
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     agent->add_request("get_pieces_json", request_get_pieces_json, "nodename", "Get JSON description of pieces for Node nodename");
     agent->add_request("get_devgen_json", request_get_devgen_json, "nodename", "Get JSON description of general devices for Node nodename");
     agent->add_request("get_devspec_json", request_get_devspec_json, "nodename", "Get JSON description of specific for Node nodename");
-    agent->add_request("get_location", request_get_location, "nodename", "Get JSON of position and attitude for Node nodename");
+    agent->add_request("get_location_node", request_get_location_node, "nodename", "Get JSON of position and attitude for Node nodename");
     agent->add_request("set_thrust", request_set_thrust, "nodename {thrust}", "Set JSON Vector of thrust for Node nodename");
     agent->add_request("set_torque", request_set_torque, "nodename {torque}", "Set JSON Vector of torque for Node nodename");
 
@@ -73,8 +73,8 @@ int main(int argc, char *argv[])
 //            {
 //                locstruc target;
 //                target.pos.eci = sim->cnodes[0]->currentinfo.node.loc.pos.eci;
-//                target.pos.lvlh = lvlhoffset[i];
-//                pos_lvlh2origin(target);
+////                target.pos.lvlh = lvlhoffset[i];
+////                pos_lvlh2origin(target);
 //                sim->UpdatePush(sim->cnodes[i]->currentinfo.node.name, Physics::ControlThrust(sim->cnodes[i]->currentinfo.node.loc.pos.eci, target.pos.eci, sim->cnodes[i]->currentinfo.mass, sim->cnodes[i]->currentinfo.devspec.thst[0].maxthrust/sim->cnodes[i]->currentinfo.mass, simdt));
 //            }
 //        }
@@ -254,7 +254,7 @@ int32_t request_get_devspec_json(string &request, string &response, Agent *agent
     return response.length();
 }
 
-int32_t request_get_location(string &request, string &response, Agent *agent)
+int32_t request_get_location_node(string &request, string &response, Agent *agent)
 {
     vector<string> args = string_split(request);
     response.clear();
@@ -287,10 +287,11 @@ int32_t request_set_thrust(string &request, string &response, Agent *agent)
         if (sit != sim->cnodes.end())
         {
             string estring;
-            json11::Json jargs = json11::Json::parse(args[2], estring);
+            string jstring = request.substr(request.find("{"));
+            json11::Json jargs = json11::Json::parse(jstring, estring);
             if (estring.empty())
             {
-                (*sit)->currentinfo.node.phys.fpush.from_json(args[2]);
+                (*sit)->currentinfo.node.phys.fpush.from_json(jstring);
                 response = (*sit)->currentinfo.node.phys.fpush.to_json().dump();
             }
         }

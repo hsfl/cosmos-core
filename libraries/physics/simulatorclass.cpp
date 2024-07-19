@@ -361,7 +361,7 @@ int32_t Simulator::ParseSatString(string args)
     string nodename;
     string type;
     vector<camstruc> dets;
-    locstruc satloc = initialloc;
+    locstruc satloc;
     cartpos lvlh;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
@@ -412,33 +412,47 @@ int32_t Simulator::ParseSatString(string args)
     {
         ++argcount;
         json11::Json::object values = jargs["lvlh"].object_items();
-        Physics::Simulator::StateList::iterator sit = cnodes.begin(); //GetNode("mother");
-        initialloc = (*sit)->currentinfo.node.loc;
-        lvlh.s.col[0] = values["x"].number_value();
-        lvlh.s.col[1] = values["y"].number_value();
-        lvlh.s.col[2] = values["z"].number_value();
-        lvlh.v.col[0] = values["vx"].number_value();
-        lvlh.v.col[1] = values["vy"].number_value();
-        lvlh.v.col[2] = values["vz"].number_value();
-        lvlh.pass++;
-        pos_origin2lvlh(satloc, lvlh);
+        if (fastcalc)
+        {
+            satloc = cnodes[0]->currentinfo.node.loc;
+        }
+        else
+        {
+            satloc = initialloc;
+        }
+        satloc.pos.lvlh.s.col[0] = values["x"].number_value();
+        satloc.pos.lvlh.s.col[1] = values["y"].number_value();
+        satloc.pos.lvlh.s.col[2] = values["z"].number_value();
+        satloc.pos.lvlh.v.col[0] = values["vx"].number_value();
+        satloc.pos.lvlh.v.col[1] = values["vy"].number_value();
+        satloc.pos.lvlh.v.col[2] = values["vz"].number_value();
+        satloc.pos.lvlh.pass++;
+        pos_origin2lvlh(satloc);
+        eci2tle2(satloc.pos.eci, satloc.tle);
     }
     if (!jargs["ric"].is_null())
     {
         ++argcount;
         json11::Json::object values = jargs["ric"].object_items();
-        Convert::locstruc basepos = initialloc;
         cartpos ric;
-        lvlh.s.col[0] = values["r"].number_value();
-        lvlh.s.col[1] = values["i"].number_value();
-        lvlh.s.col[2] = values["c"].number_value();
-        lvlh.v.col[0] = values["vr"].number_value();
-        lvlh.v.col[1] = values["vi"].number_value();
-        lvlh.v.col[2] = values["vc"].number_value();
-        cartpos lvlh;
-        ric2lvlh(ric, lvlh);
+        if (fastcalc)
+        {
+            satloc = cnodes[0]->currentinfo.node.loc;
+        }
+        else
+        {
+            satloc = initialloc;
+        }
+        satloc.pos.lvlh.s.col[0] = values["r"].number_value();
+        satloc.pos.lvlh.s.col[1] = values["i"].number_value();
+        satloc.pos.lvlh.s.col[2] = values["c"].number_value();
+        satloc.pos.lvlh.v.col[0] = values["vr"].number_value();
+        satloc.pos.lvlh.v.col[1] = values["vi"].number_value();
+        satloc.pos.lvlh.v.col[2] = values["vc"].number_value();
+        ric2lvlh(satloc.pos.lvlh, satloc.pos.lvlh);
         lvlh.pass++;
-        pos_origin2lvlh(satloc, lvlh);
+        pos_origin2lvlh(satloc);
+        eci2tle2(satloc.pos.eci, satloc.tle);
     }
     if (!cnodes.size())
     {
@@ -472,7 +486,6 @@ int32_t Simulator::ParseSatString(string args)
 //        iretn = AddNode(nodename, type, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, satloc.pos.lvlh, initialloc.att.icrf);
         if (fastcalc)
         {
-            eci2tle2(satloc.pos.eci, satloc.tle);
             iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.tle, initialloc.att.icrf);
         }
         else
@@ -700,13 +713,13 @@ int32_t Simulator::NudgeNode(string nodename, cartpos pos, qatt att)
             break;
         case Propagator::Type::PositionLvlh:
         {
+            pos_lvlh2origin((*node)->currentinfo.node.loc);
             (*node)->currentinfo.node.loc.pos.lvlh.s += pos.s;
             (*node)->currentinfo.node.loc.pos.lvlh.v += pos.v;
             (*node)->currentinfo.node.loc.pos.lvlh.a += pos.a;
             (*node)->currentinfo.node.loc.pos.lvlh.j += pos.j;
             (*node)->currentinfo.node.loc.pos.lvlh.pass++;
-            cartpos lvlh = (*node)->currentinfo.node.loc.pos.lvlh;
-            pos_origin2lvlh((*node)->currentinfo.node.loc, lvlh);
+            pos_origin2lvlh((*node)->currentinfo.node.loc);
             double dt = 86400.* (pos.utc - (*node)->currentinfo.node.loc.pos.eci.utc);
             double dt2 = dt * dt;
             double dt3 = dt2 * dt;

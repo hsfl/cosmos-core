@@ -10,9 +10,9 @@ int main(int argc, char *argv[])
     locstruc cloc;
 
     iloc.pos.geod.utc = 59270.949421299999813;
-    iloc.pos.geod.s.lat = 0.371876;
-    iloc.pos.geod.s.lon = -2.755150;
-    iloc.pos.geod.s.h = 0.;
+    iloc.pos.geod.s.lat = RADOF(-90.);
+    iloc.pos.geod.s.lon = RADOF(-134.);
+    iloc.pos.geod.s.h = 200.;
     iloc.pos.geod.v = gv_zero();
     iloc.pos.geod.a = gv_zero();
     iloc.pos.geod.pass++;

@@ -320,11 +320,11 @@ int32_t PosAccel(locstruc* loc, physicsstruc* phys)
         loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
     }
     // Fictional force
-    if (phys->fpush.norm() > 0.)
-    {
-        da = (1. / phys->mass) * phys->fpush;
-        loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
-    }
+    //    if (phys->fpush.norm() > 0.)
+    //    {
+    //        da = (1. / phys->mass) * phys->fpush;
+    //        loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
+    //    }
 
     loc->pos.eci.pass++;
     iretn = pos_eci(loc);
@@ -917,16 +917,16 @@ Vector ControlAccel(cartpos cpos, cartpos tpos, double maxaccel, double seconds)
         double s0;
         double v0;
         double vt;
-//        double v2;
-//        double sa2;
-//        double tsp;
-//        double tsm;
-//        double tv;
+        //        double v2;
+        //        double sa2;
+        //        double tsp;
+        //        double tsm;
+        //        double tv;
 
         // X
         s0 = dpos.x;
         v0 = dvel.x;
-//        v2 = v0 * v0;
+        //        v2 = v0 * v0;
         if (s0 > 0)
         {
             vt = -sqrt(2.0 * maxaccel * s0);
@@ -968,6 +968,17 @@ Vector ControlAccel(cartpos cpos, cartpos tpos, double maxaccel, double seconds)
 
         newa = newa.maxmag(maxaccel).minmag(minaccel);
     }
+//    json11::Json jobj = json11::Json::object({
+//        {"cpos", cpos.s},
+//        {"tpos", tpos.s},
+//        {"cvel", cpos.v},
+//        {"tvel", tpos.v},
+//        {"dpos", dpos},
+//        {"dvel", dvel},
+//        {"newa", newa}
+//    });
+//    printf("%s\n", jobj.dump().c_str());
+    newa.clear();
     return newa;
 }
 
@@ -1565,6 +1576,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     int32_t iretn = 0;
     pos_clear(currentinfo.node.loc);
     currentinfo.node.loc.pos.eci = eci;
+    currentinfo.node.loc.pos.lvlh = lvlh;
     currentinfo.node.loc.pos.eci.pass++;
     iretn = pos_eci(currentinfo.node.loc);
     if (iretn < 0)
@@ -1594,7 +1606,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
             return iretn;
         }
     }
-    iretn = pos_origin2lvlh(currentinfo.node.loc, lvlh);
+    iretn = pos_origin2lvlh(currentinfo.node.loc);
     if (iretn < 0)
     {
         return iretn;
@@ -2910,9 +2922,7 @@ int32_t InertialPositionPropagator::Propagate(double nextutc)
 
 int32_t LvlhPositionPropagator::Init()
 {
-    cartpos lvlh = currentinfo->node.loc.pos.lvlh;
-    pos_lvlh2origin(currentinfo->node.loc);
-    pos_origin2lvlh(currentinfo->node.loc, lvlh);
+    pos_origin2lvlh(currentinfo->node.loc);
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
 
     return 0;
@@ -2920,7 +2930,8 @@ int32_t LvlhPositionPropagator::Init()
 
 int32_t LvlhPositionPropagator::Init(cartpos lvlh)
 {
-    pos_origin2lvlh(currentinfo->node.loc, lvlh);
+    currentinfo->node.loc.pos.lvlh = lvlh;
+    pos_origin2lvlh(currentinfo->node.loc);
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
 
     return 0;
@@ -2938,6 +2949,7 @@ int32_t LvlhPositionPropagator::Reset(locstruc &loc)
 int32_t LvlhPositionPropagator::Propagate(locstruc &loc)
 {
     double nextutc = loc.pos.geod.utc;
+    pos_lvlh2origin(currentinfo->node.loc);
     while ((nextutc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;
@@ -2946,10 +2958,9 @@ int32_t LvlhPositionPropagator::Propagate(locstruc &loc)
         currentinfo->node.loc.pos.lvlh.v += dt * (currentinfo->node.loc.pos.lvlh.a + (dt / 2.) * currentinfo->node.loc.pos.lvlh.j);
         currentinfo->node.loc.pos.lvlh.s += dt * (currentinfo->node.loc.pos.lvlh.v + dt * ((1/2.) * currentinfo->node.loc.pos.lvlh.a + dt * (1.6) * currentinfo->node.loc.pos.lvlh.j));
     }
-    cartpos lvlh = currentinfo->node.loc.pos.lvlh;
     currentinfo->node.loc.tle.name = "";
     currentinfo->node.loc = loc;
-    pos_origin2lvlh(currentinfo->node.loc, lvlh);
+    pos_origin2lvlh(currentinfo->node.loc);
 
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
 
@@ -3089,7 +3100,7 @@ int32_t GaussJacksonPositionPropagator::Setup()
     gam.resize(order+2);
     q.resize(order+3);
     lam.resize(order+3);
-//    order = 0;
+    //    order = 0;
 
     dtsq = dt * dt;
 
@@ -3513,8 +3524,13 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
             Vector dacc = (1./currentinfo->node.phys.mass) * currentinfo->node.phys.fpush;
             step[order].loc.pos.eci.s = rv_add(step[order].loc.pos.eci.s, 0.5 * dt2 * dacc.to_rv());
             step[order].loc.pos.eci.v = rv_add(step[order].loc.pos.eci.v, dt * dacc.to_rv());
-            currentinfo->node.phys.fpush.clear();
+            //            currentinfo->node.phys.fpush.clear();
             Update();
+            //            json11::Json jobj = json11::Json::object({
+            //                {"pos", currentinfo->node.loc.pos.eci},
+            //                {"dacc", dacc}
+            //            });
+            //            printf("%s\n", jobj.dump().c_str());
         }
 
     }
@@ -3634,7 +3650,7 @@ int32_t GaussJacksonPositionPropagator::Converge()
 
     currentinfo->node.loc = step[order].loc;
     ++currentinfo->node.loc.pos.eci.pass;
-//    currentinfo->node.phys.fpush = rv_zero();
+    //    currentinfo->node.phys.fpush = rv_zero();
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
     pos_eci(currentinfo->node.loc);
     return 0;

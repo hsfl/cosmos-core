@@ -499,15 +499,15 @@ int32_t parse_sat(string args)
         json11::Json::object values = jargs["lvlh"].object_items();
         Physics::Simulator::StateList::iterator sit = sim->GetNode("mother");
         initialloc = (*sit)->currentinfo.node.loc;
-        cartpos lvlh;
-        lvlh.s.col[0] = values["x"].number_value();
-        lvlh.s.col[1] = values["y"].number_value();
-        lvlh.s.col[2] = values["z"].number_value();
-        lvlh.v.col[0] = values["vx"].number_value();
-        lvlh.v.col[1] = values["vy"].number_value();
-        lvlh.v.col[2] = values["vz"].number_value();
-        lvlh.pass++;
-        pos_origin2lvlh(initialloc, lvlh);
+        initialloc.pos.lvlh.s.col[0] = values["x"].number_value();
+        initialloc.pos.lvlh.s.col[1] = values["y"].number_value();
+        initialloc.pos.lvlh.s.col[2] = values["z"].number_value();
+        initialloc.pos.lvlh.v.col[0] = values["vx"].number_value();
+        initialloc.pos.lvlh.v.col[1] = values["vy"].number_value();
+        initialloc.pos.lvlh.v.col[2] = values["vz"].number_value();
+        initialloc.pos.lvlh.pass++;
+        pos_origin2lvlh(initialloc);
+        eci2tle2(initialloc.pos.eci, initialloc.tle);
         type = Physics::Propagator::PositionLvlh;
     }
     if (!jargs["ric"].is_null())
@@ -516,20 +516,16 @@ int32_t parse_sat(string args)
         json11::Json::object values = jargs["ric"].object_items();
         Physics::Simulator::StateList::iterator sit = sim->GetNode("mother");
         initialloc = (*sit)->currentinfo.node.loc;
-        Convert::locstruc basepos = initialloc;
-        rvector ric = { values["r"].number_value(), values["i"].number_value(), values["c"].number_value() };
-        ric2eci((*sit)->currentinfo.node.loc.pos.eci, ric, initialloc.pos.eci);
-        initialloc.pos.eci.pass+=2;
-        pos_eci(initialloc);
-        // Store RIC as LVLH as well
-        Convert::cartpos geoc_offset;
-        geoc_offset.s = rv_sub(initialloc.pos.geoc.s, basepos.pos.geoc.s);
-        geoc_offset.v = rv_sub(initialloc.pos.geoc.v, basepos.pos.geoc.v);
-        geoc_offset.a = rv_sub(initialloc.pos.geoc.a, basepos.pos.geoc.a);
-        initialloc.pos.lvlh.s = irotate(basepos.pos.extra.e2l, geoc_offset.s);
-        initialloc.pos.lvlh.v = irotate(basepos.pos.extra.e2l, geoc_offset.v);
-        initialloc.pos.lvlh.a = irotate(basepos.pos.extra.e2l, geoc_offset.a);
-        initialloc.pos.lvlh.utc = initialloc.pos.utc;
+        initialloc.pos.lvlh.s.col[0] = values["x"].number_value();
+        initialloc.pos.lvlh.s.col[1] = values["y"].number_value();
+        initialloc.pos.lvlh.s.col[2] = values["z"].number_value();
+        initialloc.pos.lvlh.v.col[0] = values["vx"].number_value();
+        initialloc.pos.lvlh.v.col[1] = values["vy"].number_value();
+        initialloc.pos.lvlh.v.col[2] = values["vz"].number_value();
+        ric2lvlh(initialloc.pos.lvlh, initialloc.pos.lvlh);
+        initialloc.pos.lvlh.pass++;
+        pos_origin2lvlh(initialloc);
+        eci2tle2(initialloc.pos.eci, initialloc.tle);
         type = Physics::Propagator::PositionLvlh;
     }
     if (!jargs["physfast"].is_null())

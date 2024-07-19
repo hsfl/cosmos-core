@@ -77,13 +77,13 @@ namespace Cosmos
             map<string, camstruc> detectors;
             map<string, targetstruc> targets;
             string realmname;
+            double dt;
+            double dtj;
             bool fastcalc = true;
 
         private:
             bool server;
             int32_t error;
-            double dt;
-            double dtj;
 
             State RunState = State::Halted;
             //    socket_channel data_channel;
