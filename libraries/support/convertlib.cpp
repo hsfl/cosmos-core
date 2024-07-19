@@ -3522,6 +3522,7 @@ int32_t pos_lvlh2origin(locstruc& loc)
     lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
     lvlh_z = drotate(loc.pos.extra.e2l, rvector(0., 0., 1.));
 
+    // TODO: should this be ECI, not GEOC?
     loc.pos.geoc.v -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.v);
     loc.pos.geoc.a -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.a);
     loc.pos.geoc.j -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.j);

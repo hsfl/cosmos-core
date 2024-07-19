@@ -1801,7 +1801,6 @@ int32_t State::Propagate(double nextutc)
         else
         {
             pos_eci(currentinfo.node.loc);
-            PosAccel(currentinfo.node.loc, currentinfo.node.phys);
         }
         if (atype == Propagator::AttitudeGeo)
         {
@@ -1906,7 +1905,6 @@ int32_t State::Propagate(locstruc &loc)
     else
     {
         pos_eci(currentinfo.node.loc);
-        PosAccel(currentinfo.node.loc, currentinfo.node.phys);
     }
     if (atype == Propagator::AttitudeGeo)
     {
@@ -3022,18 +3020,25 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
     while ((nextutc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;
-        currentinfo->node.loc.pos.eci.a += dt * currentinfo->node.loc.pos.eci.j;
-        currentinfo->node.loc.pos.eci.v += dt * (currentinfo->node.loc.pos.eci.a + (dt / 2.) * currentinfo->node.loc.pos.eci.j);
+        currentinfo->node.loc.pos.eci.utc = currentutc;
         currentinfo->node.loc.pos.eci.s += dt * (currentinfo->node.loc.pos.eci.v + dt * ((1/2.) * currentinfo->node.loc.pos.eci.a + dt * (1.6) * currentinfo->node.loc.pos.eci.j));
+        currentinfo->node.loc.pos.eci.v += dt * (currentinfo->node.loc.pos.eci.a + (dt / 2.) * currentinfo->node.loc.pos.eci.j);
+        currentinfo->node.loc.pos.eci.a += dt * currentinfo->node.loc.pos.eci.j;
 
         //        rvector ds = rv_smult(.5 * dt * dt, currentinfo->node.loc.pos.eci.a);
         //        ds = rv_add(ds, rv_smult(dt, currentinfo->node.loc.pos.eci.v));
         //        currentinfo->node.loc.pos.eci.s = rv_add(currentinfo->node.loc.pos.eci.s, ds);
         //        currentinfo->node.loc.pos.eci.v = rv_add(currentinfo->node.loc.pos.eci.v, rv_smult(dt, currentinfo->node.loc.pos.eci.a));
         //        currentinfo->node.loc.pos.eci.utc = currentutc;
-        currentinfo->node.loc.pos.eci.pass++;
+
+        // Update acceleration for the new position
         PosAccel(currentinfo->node.loc, currentinfo->node.phys);
-        pos_eci(currentinfo->node.loc);
+        // Apply external accelerations
+        // currentinfo->node.loc.pos.eci.a = rv_add(currentinfo->node.loc.pos.eci.a, rv_smult(1./currentinfo->node.phys.mass, currentinfo->node.phys.fpush.to_rv()));
+        // Clearing external accelerations TODO: consider if this is desireable
+        // currentinfo->node.phys.fpush.clear();
+        // currentinfo->node.loc.pos.eci.pass++;
+        // pos_eci(currentinfo->node.loc);
     }
 
     return 0;
@@ -3100,7 +3105,7 @@ int32_t GaussJacksonPositionPropagator::Setup()
     gam.resize(order+2);
     q.resize(order+3);
     lam.resize(order+3);
-    //    order = 0;
+    // order = 0;
 
     dtsq = dt * dt;
 
