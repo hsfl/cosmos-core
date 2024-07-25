@@ -360,6 +360,7 @@ int32_t Simulator::ParseSatString(string args)
     uint16_t argcount = 0;
     string nodename;
     string type;
+    uint16_t nodetype = NODE_TYPE_SATELLITE;
     vector<camstruc> dets;
     locstruc satloc = initialloc;
     cartpos lvlh;
@@ -374,6 +375,11 @@ int32_t Simulator::ParseSatString(string args)
     {
         ++argcount;
         nodename = jargs["nodename"].string_value();
+    }
+    if (!jargs["nodetype"].is_null())
+    {
+        ++argcount;
+        nodetype = jargs["nodetype"].long_value();
     }
     if (!jargs["detector"].is_null())
     {
@@ -429,14 +435,15 @@ int32_t Simulator::ParseSatString(string args)
         json11::Json::object values = jargs["ric"].object_items();
         Convert::locstruc basepos = initialloc;
         cartpos ric;
-        lvlh.s.col[0] = values["r"].number_value();
-        lvlh.s.col[1] = values["i"].number_value();
-        lvlh.s.col[2] = values["c"].number_value();
-        lvlh.v.col[0] = values["vr"].number_value();
-        lvlh.v.col[1] = values["vi"].number_value();
-        lvlh.v.col[2] = values["vc"].number_value();
-        cartpos lvlh;
-        ric2lvlh(ric, lvlh);
+        ric.s.col[0] = values["r"].number_value();
+        ric.s.col[1] = values["i"].number_value();
+        ric.s.col[2] = values["c"].number_value();
+        ric.v.col[0] = values["vr"].number_value();
+        ric.v.col[1] = values["vi"].number_value();
+        ric.v.col[2] = values["vc"].number_value();
+        // TODO: Handle ric velocity?
+        ric2eci(basepos.pos.eci, ric.s, satloc.pos.eci);
+        cartpos lvlh = eci2lvlh(basepos.pos.eci, initialloc.pos.eci);
         lvlh.pass++;
         pos_origin2lvlh(satloc, lvlh);
     }
@@ -482,7 +489,7 @@ int32_t Simulator::ParseSatString(string args)
     }
 
     Physics::Simulator::StateList::iterator sit = GetNode(nodename);
-    (*sit)->currentinfo.node.type = NODE_TYPE_SATELLITE;
+    (*sit)->currentinfo.node.type = nodetype;
 
     // Thruster
     iretn = json_createpiece(&(*sit)->currentinfo, "adcs_thrust", DeviceType::THST);
