@@ -443,9 +443,8 @@ int32_t Simulator::ParseSatString(string args)
         ric.v.col[2] = values["vc"].number_value();
         // TODO: Handle ric velocity?
         ric2eci(basepos.pos.eci, ric.s, satloc.pos.eci);
-        cartpos lvlh = eci2lvlh(basepos.pos.eci, initialloc.pos.eci);
+        cartpos lvlh = eci2lvlh(basepos.pos.eci, satloc.pos.eci);
         lvlh.pass++;
-        pos_origin2lvlh(satloc, lvlh);
     }
     if (!cnodes.size())
     {
