@@ -110,7 +110,7 @@ namespace Module
         PacketComm packet;
         if (
             // In TCP Mode, only sock_out is set up
-            ((tcp_mode && socket_recvfrom(sock_out, packet.packetized, 10000 <= 0))
+            ((tcp_mode && socket_recvfrom(sock_out, packet.packetized, 10000) <= 0)
             // In UDP Mode, recv from sock_in
             || socket_recvfrom(sock_in, packet.packetized, 10000) <= 0)
             )
