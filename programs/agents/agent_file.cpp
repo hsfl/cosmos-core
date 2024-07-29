@@ -34,15 +34,10 @@
 //! \ingroup agents
 //! \defgroup agent_file File Transfer Agent program
 //! Manages file transfers and message passing between COSMOS Nodes.
+//! Utilizes the COSMOS agent discovery mechanism to discover another file agent
+//! to perform file transfers with.
 //!
-//! Both file and message transfers are handled as an interchange of packets
-//! between two instances of agent_file.
-//!
-//! Assign an id and node_name string in nodes/nodeids.ini file
-//!
-//! The transferclass version of agent_file4
-//!
-//! Usage: agent_file debug_mode target_node_name:chanip_address[:throughput]
+//! Usage: agent_file
 #include <sstream>
 #include "agent/agentclass.h"
 #include "module/file_module.h"
