@@ -47,8 +47,8 @@ WORKDIR /home/cosmosuser/cosmos/bin
 COPY --from=builder /cosmos/bin/agent .
 COPY --from=builder /cosmos/bin/agent_file .
 
-# Change ownership of the binaries to the non-root user
-RUN chown -R cosmosuser:cosmosuser .
+# Change ownership to the non-root user
+RUN chown -R cosmosuser:cosmosuser /home/cosmosuser/cosmos
 
 # Switch to the non-root user
 USER cosmosuser
