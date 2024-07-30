@@ -93,12 +93,13 @@ int main(int argc, char *argv[])
     // Initialization
     ////////////////////////////////////
     init_agent(argc, argv);
-    
+
 
     ////////////////////////////////////
     // Main Loop
     ////////////////////////////////////
     Loop();
+
 
     ////////////////////////////////////
     // Cleanup
@@ -203,6 +204,8 @@ bool check_remote_agent_activity()
     {
         return false;
     }
+    // TODO: Move this somewhere better
+    agent->channel_touch(agent->channel_number("COMM"));
     return true;
 }
 
@@ -283,21 +286,13 @@ int32_t generate_node_ids()
 {
     // If a valid entry for the remote agent is in the node list (i.e., node id is not a reserved value),
     // then use the existing entry for the remote agent, and use an auto-generated one for self.
+    bool use_existing_remote_node_id = false;
     int32_t iretn = lookup_node_id(agent->cinfo, remote_agent.node);
-    if (iretn > NODEIDUNKNOWN && iretn < NODEIDAUTO1)
+    uint8_t existing_remote_node_id = iretn;
+    if (iretn >=0 && existing_remote_node_id > NODEIDUNKNOWN && existing_remote_node_id < NODEIDAUTO1)
     {
-        remote_node_id = iretn;
-        // Generate node id for self
-        self_node_id = NODEIDAUTO1;
-        if (add_node_id(agent->cinfo, agent->cinfo->node.name, self_node_id) < 0)
-        {
-            cerr << "Error: Failed to add entry to node list for " << agent->cinfo->node.name << ", " << unsigned(self_node_id) << endl;
-            exit(0);
-        }
-        return 0;
+        use_existing_remote_node_id = true;
     }
-
-    // TODO: do comparison anyway
 
     // If no entry for the remote agent was in the node id list, then a new
     // node id must be generated for both the remote agent and self.
@@ -320,7 +315,11 @@ int32_t generate_node_ids()
         cerr << "Error: IP addresses are the same (" << self_addr << "). Not yet handled" << endl;
         exit(0);
     }
-    // Since the agentclass constructor automatically assigns a node_id, we need to change it to the generated id.
+    if (use_existing_remote_node_id)
+    {
+        remote_node_id = existing_remote_node_id;
+    }
+    // Since the agentclass constructor (can) automatically assigns a node_id, we need to change it to the generated id.
     if (change_node_id(agent->cinfo, agent->cinfo->node.name, self_node_id) < 0)
     {
         cerr << "Error: Failed to add entry to node list for " << agent->cinfo->node.name << ", " << unsigned(self_node_id) << endl;
@@ -448,4 +447,6 @@ int32_t start_subagents(Agent *agent)
 
 // TODOs:
 // - Doesn't currently handle disconnection and relatively immediate connection before reset by a new file agent on another IP. What happens?
-// - Handle radio age better. Auto pings?
+// - Add handshake before initiating file transfer. Currently, whoever is ready first will start firing packets at the other, who may not be ready yet.
+// - Add terminal argument to be able to specify the nodename of the remote agent to search for.
+// - Handle radio up-ness/age better? Auto-pings?
