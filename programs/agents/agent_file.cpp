@@ -273,7 +273,7 @@ void init_agent(int argc, char *argv[])
     }
 
     // Set channels
-    agent->channel_add("COMM", Support::Channel::PACKETCOMM_DATA_SIZE, 18000.);
+    agent->channel_add("COMM", Support::Channel::PACKETCOMM_DATA_SIZE, Support::Channel::PACKETCOMM_PACKETIZED_SIZE, 18000., 1000);
 
     // Initialize the packethandler, which helps handle and route packets
     packethandler.init(agent);

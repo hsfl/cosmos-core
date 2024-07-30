@@ -343,3 +343,5 @@ namespace Cosmos
         }
     }
 }
+
+// TODO: Investigate channel overflow (packet discards) for low maximums (try with maximum=100)
