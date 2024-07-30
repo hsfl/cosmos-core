@@ -519,49 +519,6 @@ namespace Cosmos {
                             && packets_left_to_queue_for_this_file > 0                       // Queue up to max per file
                             && total_queued_packets < max_packets_to_queue)                  // Don't exceed max
                             {
-                                file_progress tp;
-                                tp = txq[dest_node_idx].outgoing.progress[tx_id].file_info.back();
-
-                                PACKET_FILE_SIZE_TYPE byte_count = (tp.chunk_end - tp.chunk_start) + 1;
-                                if (byte_count > packet_data_size_limit)
-                                {
-                                    byte_count = packet_data_size_limit;
-                                }
-
-                                tp.chunk_end = tp.chunk_start + byte_count - 1;
-
-                                // Read the packet and send it
-                                size_t nbytes = 0;
-                                // Read bytes into chunk
-                                if (!fseek(txq[dest_node_idx].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET))
-                                {
-                                    nbytes = fread(chunk, 1, byte_count, txq[dest_node_idx].outgoing.progress[tx_id].fp);
-                                }
-                                if (nbytes == static_cast<size_t>(byte_count))
-                                {
-                                    outgoing_packet.header.nodeorig = self_node_id;
-                                    outgoing_packet.header.nodedest = dest_node_id;
-                                    serialize_data(outgoing_packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[dest_node_idx].outgoing.progress[tx_id].tx_id, txq[dest_node_idx].outgoing.progress[tx_id].file_crc, byte_count, tp.chunk_start, chunk);
-                                    int32_t current_channel_buffer_size = agent->channel_push(channel_id, outgoing_packet);
-                                    print_file_packet(outgoing_packet, 1, "Outgoing", &agent->debug_log);
-                                    --packets_left_to_queue_for_this_file;
-                                    ++total_queued_packets;
-                                    txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_start = tp.chunk_end + 1;
-                                    // Break out if channel is getting too full
-                                    if (current_channel_buffer_size < 0 || current_channel_buffer_size > channel_buffer_limit)
-                                    {
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    // Some problem with this transmission, ask other end to dequeue it
-                                    // Remove transaction
-                                    txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
-                                    txq[dest_node_idx].outgoing.progress[tx_id].complete = true;
-                                    break;
-                                }
-
                                 // Check if last chunk is finished yet
                                 if (txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_start > txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_end)
                                 {
@@ -580,10 +537,53 @@ namespace Cosmos {
                                     }
                                     break;
                                 }
+
+                                file_progress tp;
+                                tp = txq[dest_node_idx].outgoing.progress[tx_id].file_info.back();
+
+                                PACKET_FILE_SIZE_TYPE byte_count = (tp.chunk_end - tp.chunk_start) + 1;
+                                if (byte_count > packet_data_size_limit)
+                                {
+                                    byte_count = packet_data_size_limit;
+                                }
+
+                                tp.chunk_end = tp.chunk_start + byte_count - 1;
+
+                                // Read the packet and send it
+                                size_t nbytes = 0;
+                                // Read bytes into chunk
+                                if (!fseek(txq[dest_node_idx].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET))
+                                {
+                                    nbytes = fread(chunk, 1, byte_count, txq[dest_node_idx].outgoing.progress[tx_id].fp);
+                                }
+                                int32_t current_channel_buffer_size = 0;
+                                if (nbytes == static_cast<size_t>(byte_count))
+                                {
+                                    outgoing_packet.header.nodeorig = self_node_id;
+                                    outgoing_packet.header.nodedest = dest_node_id;
+                                    serialize_data(outgoing_packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), txq[dest_node_idx].outgoing.progress[tx_id].tx_id, txq[dest_node_idx].outgoing.progress[tx_id].file_crc, byte_count, tp.chunk_start, chunk);
+                                    current_channel_buffer_size = agent->channel_push(channel_id, outgoing_packet);
+                                    print_file_packet(outgoing_packet, 1, "Outgoing", &agent->debug_log);
+                                    --packets_left_to_queue_for_this_file;
+                                    ++total_queued_packets;
+                                    txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_start = tp.chunk_end + 1;
+                                }
                                 else
                                 {
-                                    write_meta(txq[dest_node_idx].outgoing.progress[tx_id]);
+                                    // Some problem with this transmission, ask other end to dequeue it
+                                    // Remove transaction
+                                    txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
+                                    txq[dest_node_idx].outgoing.progress[tx_id].complete = true;
+                                    break;
                                 }
+                                write_meta(txq[dest_node_idx].outgoing.progress[tx_id]);
+
+                                // Break out if channel is getting too full
+                                if (current_channel_buffer_size < 0 || current_channel_buffer_size > channel_buffer_limit)
+                                {
+                                    break;
+                                }
+
                                 // Break out if timeout has elapsed.
                                 // Put this at the end of the while loop so that each
                                 // file can send out at least 1 data packet per run.
