@@ -20,6 +20,7 @@ namespace Cosmos {
             typedef map<ptrdiff_t, string> BackwardEnum;
             ptrdiff_t operator [](const string name);
             string operator [](const ptrdiff_t value);
+            size_t Size();
 
         private:
             ForwardEnum forward;

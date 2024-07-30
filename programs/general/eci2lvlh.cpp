@@ -14,20 +14,20 @@
 int main(int argc, char *argv[])
 {
     if (argc != 8) {
-        std::cout << "Usage: state2tle sx sy sz vx vy vz utc" << std::endl;
+        std::cout << "Usage: state2tle utc sx sy sz vx vy vz" << std::endl;
         exit(1);
     }
 
     Convert::locstruc loc;
-    loc.pos.geoc.s.col[0] = std::stod(argv[1]);
-    loc.pos.geoc.s.col[1] = std::stod(argv[2]);
-    loc.pos.geoc.s.col[2] = std::stod(argv[3]);
-    loc.pos.geoc.v.col[0] = std::stod(argv[4]);
-    loc.pos.geoc.v.col[1] = std::stod(argv[5]);
-    loc.pos.geoc.v.col[2] = std::stod(argv[6]);
-    loc.pos.geoc.utc = std::stod(argv[7]);
-    loc.pos.geoc.pass++;
-    Convert::pos_geoc(loc);
+    loc.pos.eci.utc = std::stod(argv[1]);
+    loc.pos.eci.s.col[0] = std::stod(argv[2]);
+    loc.pos.eci.s.col[1] = std::stod(argv[3]);
+    loc.pos.eci.s.col[2] = std::stod(argv[4]);
+    loc.pos.eci.v.col[0] = std::stod(argv[5]);
+    loc.pos.eci.v.col[1] = std::stod(argv[6]);
+    loc.pos.eci.v.col[2] = std::stod(argv[7]);
+    loc.pos.eci.pass++;
+    Convert::pos_eci(loc);
 
     Convert::tlestruc tle;
     Convert::eci2tle2(loc.pos.eci, tle);
@@ -36,16 +36,16 @@ int main(int argc, char *argv[])
     Convert::tle2sgp4(tle, sgp);
 
     string output;
-    output = to_label("MJD", loc.pos.geoc.utc, 0, true);
+    output = to_label("MJD", loc.pos.lvlh.utc, 0, true);
     printf("%s\n", output.c_str());
 
-    output = "ECI -";
-    output += " " + to_label("X", loc.pos.geoc.s.col[0], 8);
-    output += " " + to_label("Y", loc.pos.geoc.s.col[1], 8);
-    output += " " + to_label("Z", loc.pos.geoc.s.col[2], 8);
-    output += " " + to_label("VX", loc.pos.geoc.v.col[0], 8);
-    output += " " + to_label("VY", loc.pos.geoc.v.col[1], 8);
-    output += " " + to_label("VZ", loc.pos.geoc.v.col[2], 8);
+    output = "LVLH -";
+    output += " " + to_label("X", loc.pos.lvlh.s.col[0], 8);
+    output += " " + to_label("Y", loc.pos.lvlh.s.col[1], 8);
+    output += " " + to_label("Z", loc.pos.lvlh.s.col[2], 8);
+    output += " " + to_label("VX", loc.pos.lvlh.v.col[0], 8);
+    output += " " + to_label("VY", loc.pos.lvlh.v.col[1], 8);
+    output += " " + to_label("VZ", loc.pos.lvlh.v.col[2], 8);
     printf("%s\n", output.c_str());
 
     output = "TLE -";

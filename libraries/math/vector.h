@@ -932,8 +932,9 @@ namespace Cosmos {
 		Quaternion drotate_around_x(double angle);
 		Quaternion drotate_around_y(double angle);
 		Quaternion drotate_around_z(double angle);
-		Quaternion drotate_around(int axis, double angle);
-		Quaternion eye(double scale = 1.);
+        Quaternion drotate_around(int axis, double angle);
+        Quaternion eye(double scale = 1.);
+        Quaternion zero();
 
 		}
 	} // end namespace Math

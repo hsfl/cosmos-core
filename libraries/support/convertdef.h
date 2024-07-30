@@ -74,6 +74,8 @@ namespace Cosmos {
         //! SI Mass * Gravitational Constant for Earth
         //#define GM static_cast<double>((3.98600441789e14))
 #define GM static_cast<double>((3.986004415e14))
+#define GM2 (GM*GM)
+#define GM3 (GM*GM2)
         //! SI Mass * Gravitational Constant for Moon
 #define GMOON  static_cast<double>((4.9028029535968e+12))
         //! SI Mass * Gravitational Constant for Sun
@@ -180,7 +182,7 @@ namespace Cosmos {
                     { "v", v },
                     { "a", a },
                     { "j", j },
-                    { "pass", static_cast<int>(pass) }
+                    { "pass", static_cast<long>(pass) }
                 };
             }
 
@@ -198,7 +200,7 @@ namespace Cosmos {
                     if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
                     if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
                     if(!parsed["j"].is_null())		j.from_json(parsed["j"].dump());
-                    if(!parsed["pass"].is_null())	pass = parsed["pass"].int_value();
+                    if(!parsed["pass"].is_null())	pass = parsed["pass"].long_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
                 }
@@ -285,7 +287,7 @@ namespace Cosmos {
                     { "s", s },
                     { "v", v },
                     { "a", a },
-                    { "pass", static_cast<int>(pass) }
+                    { "pass", static_cast<long>(pass) }
                 };
             }
 
@@ -302,7 +304,7 @@ namespace Cosmos {
                     if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
                     if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
                     if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
-                    if(!parsed["pass"].is_null())	pass = parsed["pass"].int_value();
+                    if(!parsed["pass"].is_null())	pass = parsed["pass"].long_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
                 }
@@ -346,7 +348,7 @@ namespace Cosmos {
                     { "s", s },
                     { "v", v },
                     { "a", a },
-                    { "pass", static_cast<int>(pass) }
+                    { "pass", static_cast<long>(pass) }
                 };
             }
 
@@ -363,7 +365,7 @@ namespace Cosmos {
                     if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
                     if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
                     if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
-                    if(!parsed["pass"].is_null())	pass = parsed["pass"].int_value();
+                    if(!parsed["pass"].is_null())	pass = parsed["pass"].long_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
                 }
@@ -512,7 +514,7 @@ namespace Cosmos {
                     { "s" , s },
                     { "v" , v },
                     { "a" , a },
-                    { "pass" , static_cast<int>(pass) }
+                    { "pass" , static_cast<long>(pass) }
                 };
             }
 
@@ -529,7 +531,7 @@ namespace Cosmos {
                     if(!parsed["s"].is_null())    s.from_json(parsed["s"].dump());
                     if(!parsed["v"].is_null())    v.from_json(parsed["v"].dump());
                     if(!parsed["a"].is_null())    a.from_json(parsed["a"].dump());
-                    if(!parsed["pass"].is_null())    pass = parsed["pass"].int_value();
+                    if(!parsed["pass"].is_null())    pass = parsed["pass"].long_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
                 }
@@ -576,6 +578,8 @@ namespace Cosmos {
             double ea;
             //! Mean Motion
             double mm;
+            double dmm;
+            double ddmm;
             double fa;
         };
 
@@ -620,9 +624,15 @@ namespace Cosmos {
             rmatrix ds2t;
             rmatrix t2s;
             rmatrix dt2s;
-            //! Transform between LVLH and GEOC
-            quaternion l2g;
-            quaternion g2l;
+            //! Transform between LVLH and ECI/SCI
+            quaternion l2e;
+            quaternion e2l;
+            rmatrix l2p;
+            rmatrix p2l;
+            rmatrix dl2p;
+            rmatrix dp2l;
+            rmatrix ddl2p;
+            rmatrix ddp2l;
             //! Misc
             cartpos sun2earth;
             gvector sungeo;
@@ -658,12 +668,12 @@ namespace Cosmos {
                     { "t2s"   , t2s },
                     { "dt2s"  , dt2s },
 
-                    { "l2g" , l2g },
-                    { "g2l" , g2l },
+                    { "l2e" , l2e },
+                    { "e2l" , e2l },
 
                     { "sun2earth" , sun2earth },
                     { "sun2moon"  , sun2moon },
-                    { "closest"   , closest }
+                    { "closest"   , static_cast<long>(closest) }
                 };
             }
 
@@ -698,12 +708,12 @@ namespace Cosmos {
                     if(!p["t2s"].is_null())     t2s.from_json(p["t2s"].dump());
                     if(!p["dt2s"].is_null())    dt2s.from_json(p["dt2s"].dump());
 
-                    if(!p["l2g"].is_null())     l2g.from_json(p["l2g"].dump());
-                    if(!p["g2l"].is_null())     g2l.from_json(p["g2l"].dump());
+                    if(!p["l2e"].is_null())     l2e.from_json(p["l2e"].dump());
+                    if(!p["e2l"].is_null())     e2l.from_json(p["e2l"].dump());
 
                     if(!p["sun2earth"].is_null())   sun2earth.from_json(p["sun2earth"].dump());
                     if(!p["sun2moon"].is_null())    sun2moon.from_json(p["sun2moon"].dump());
-                    if(!p["closest"].is_null()) closest = p["closest"].int_value();
+                    if(!p["closest"].is_null()) closest = p["closest"].long_value();
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -721,7 +731,7 @@ namespace Cosmos {
             // JIMNOTE: remove magic number
 //            string name = string(25, ' ');
             string name = " ";
-            uint16_t snumber = 0;
+            uint32_t snumber = 0;
             string id = " ";
             //! Drag (1/Earth radii)
             double bstar = 0.;
@@ -737,6 +747,10 @@ namespace Cosmos {
             double ma = 0.;
             //! Mean motion (radians / minute)
             double mm = 0.;
+            //! Mean motion first derivative (radians / minute)
+            double dmm = 0.;
+            //! Mean motion second derivative (radians / minute)
+            double ddmm = 0.;
             uint32_t orbit = 0;
 
             /// Convert class contents to JSON object
@@ -747,7 +761,7 @@ namespace Cosmos {
                 return json11::Json::object {
                     { "utc" , utc },
                     { "name" , name },
-                    { "snumber" , snumber },
+                    { "snumber" , static_cast<long>(snumber) },
                     { "id" , id },
                     { "bstar" , bstar },
                     { "i" , i },
@@ -756,7 +770,9 @@ namespace Cosmos {
                     { "ap" , ap },
                     { "ma" , ma },
                     { "mm" , mm },
-                    { "orbit" , static_cast<int>(orbit) }
+                    { "dmm" , dmm },
+                    { "ddmm" , ddmm },
+                    { "orbit" , static_cast<long>(orbit) }
                 };
             }
 
@@ -771,7 +787,7 @@ namespace Cosmos {
                 if(error.empty()) {
                     if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
                     if(!parsed["name"].is_null())    name = parsed["name"].string_value();
-                    if(!parsed["snumber"].is_null())    snumber =  parsed["snumber"].int_value();
+                    if(!parsed["snumber"].is_null())    snumber =  parsed["snumber"].long_value();
                     if(!parsed["id"].is_null())    id = parsed["id"].string_value();
                     if(!parsed["bstar"].is_null())    bstar =  parsed["bstar"].number_value();
                     if(!parsed["i"].is_null())    i =  parsed["i"].number_value();
@@ -780,7 +796,9 @@ namespace Cosmos {
                     if(!parsed["ap"].is_null())    ap =  parsed["ap"].number_value();
                     if(!parsed["ma"].is_null())    ma =  parsed["ma"].number_value();
                     if(!parsed["mm"].is_null())    mm =  parsed["mm"].number_value();
-                    if(!parsed["orbit"].is_null())    orbit =  parsed["orbit"].int_value();
+                    if(!parsed["dmm"].is_null())    dmm =  parsed["dmm"].number_value();
+                    if(!parsed["ddmm"].is_null())    ddmm =  parsed["ddmm"].number_value();
+                    if(!parsed["orbit"].is_null())    orbit =  parsed["orbit"].long_value();
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
                 }
@@ -1083,20 +1101,6 @@ namespace Cosmos {
             // Epoch (year.day)
             double ep = 0.;
         };
-
-		//  JIMNOTE: compiler doesn't like this defined here (multiple defined error), maybe the header guard is messed up somewhere?
-		//bool operator==(const sgp4struc& s1, const sgp4struc& s2)	{
-			//return	(
-				//s1.i == s2.i &&
-				//s1.e == s2.e &&
-				//s1.raan == s2.raan &&
-				//s1.ap == s2.ap &&
-				//s1.bstar == s2.bstar &&
-				//s1.mm == s2.mm &&
-				//s1.ma == s2.ma &&
-				//s1.ep == s2.ep
-			//);
-		//}
     }
 }
 

@@ -80,7 +80,8 @@ namespace Module
     void WebsocketModule::Loop()
     {
         agent->debug_log.Printf("Starting %s loop.\n", mychannel_name.c_str());
-        while(agent->running())
+        is_running = true;
+        while(is_running)
         {
             // Comm - External
             Receive();
@@ -102,7 +103,15 @@ namespace Module
             std::this_thread::yield();
         }
 
+        socket_close(sock_in);
+        socket_close(sock_out);
+
         return;
+    }
+
+    void WebsocketModule::shutdown()
+    {
+        is_running = false;
     }
 
     void WebsocketModule::Receive()
@@ -110,7 +119,7 @@ namespace Module
         PacketComm packet;
         if (
             // In TCP Mode, only sock_out is set up
-            ((tcp_mode && socket_recvfrom(sock_out, packet.packetized, 10000 <= 0))
+            ((tcp_mode && socket_recvfrom(sock_out, packet.packetized, 10000) <= 0)
             // In UDP Mode, recv from sock_in
             || socket_recvfrom(sock_in, packet.packetized, 10000) <= 0)
             )

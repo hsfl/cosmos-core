@@ -1298,11 +1298,21 @@ for (il=0; il<5; il++)
             // Simulate thsters
             for (i=0; i<cinfo->devspec.thst_cnt; i++)
             {
-                //        cinfo->devspec.thst[i].flw = (length_rv(cinfo->node.phys.thrust) / cinfo->devspec.thst_cnt) / cinfo->devspec.thst[i].isp;
-                cinfo->devspec.thst[i].flw = (cinfo->node.phys.thrust.norm() / cinfo->devspec.thst_cnt) / cinfo->devspec.thst[i].isp;
-                if (cinfo->devspec.thst[i].flw < .002)
+                cinfo->devspec.thst[i].flw = (cinfo->node.phys.thrust.norm() / cinfo->devspec.thst_cnt);
+                if (cinfo->devspec.thst[i].flw > cinfo->devspec.thst[i].maxthrust)
+                {
+                    cinfo->devspec.thst[i].flw = cinfo->devspec.thst[i].maxthrust / cinfo->devspec.thst[i].isp;
+                    cinfo->devspec.thst[i].utilization = 1.;
+                }
+                else
+                {
+                    cinfo->devspec.thst[i].utilization = cinfo->devspec.thst[i].flw / cinfo->devspec.thst[i].maxthrust;
+                    cinfo->devspec.thst[i].flw /= cinfo->devspec.thst[i].isp;
+                }
+                if (cinfo->devspec.thst[i].utilization < .02)
                 {
                     cinfo->devspec.thst[i].flw = 0.;
+                    cinfo->devspec.thst[i].utilization = 0.;
                 }
                 cinfo->devspec.prop[i].lev -= cinfo->node.phys.dt * cinfo->devspec.thst[i].flw;
                 cinfo->devspec.thst[i].utc = loc.utc;
@@ -2773,6 +2783,121 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
 
             gauss_jackson_init_eci(gjh, order, mode, physics.dt, utc, iloc.pos.eci, iloc.att.icrf, physics, loc);
             physics.utc = iloc.utc;
+        }
+
+        //! Update Gauss-Jackson orbit using ECI state vector
+        /*! Updates Gauss-Jackson structures using supplied current state vector.
+    \param gjh Reference to ::gj_handle for Gauss-Jackson integration.
+    \param order the order at which the integration will be performed (must be even)
+    \param mode Mode of physics propagation. Zero is free propagation.
+    \param dt Step size in seconds
+    \param utc Initial step time as UTC in Modified Julian Days
+    \param ipos Initial ECI Position
+    \param iatt Initial ICRF Attitude
+    \param physics Reference to ::physicsstruc to use.
+    \param loc Reference to ::locstruc to use.
+*/
+        // TODO: split the orbit from the attitude propagation sections of the code
+        void gauss_jackson_update_eci(gj_handle &gjh, physicsstruc &physics, Convert::locstruc &loc)
+        {
+            Convert::kepstruc kep;
+            double dea;
+//            uint32_t i;
+            quaternion q1;
+
+//            // dt is modified during setup
+//            gauss_jackson_setup(gjh, order, utc, dt);
+//            physics.dt = dt;
+//            physics.dtj = physics.dt/86400.;
+//            physics.mode = mode;
+
+//            Convert::pos_clear(loc);
+//            gjh.step[gjh.order+1].sloc = loc;
+//            ipos.pass = iatt.pass = 0;
+//            loc.pos.eci = ipos;
+//            loc.pos.eci.pass++;
+//            loc.utc = loc.pos.eci.utc= utc;
+//            Convert::pos_eci(&loc);
+
+//            // Initial attitude
+//            switch (physics.mode)
+//            {
+//            case 0:
+//                // Pure propagation
+//                loc.att.icrf = iatt;
+//                loc.att.icrf.pass++;
+//                Convert::att_icrf(&loc);
+//                break;
+//            case 1:
+//                // Force LVLH
+//                loc.att.lvlh.utc = loc.utc;
+//                loc.att.lvlh.s = q_eye();
+//                loc.att.lvlh.v = rv_zero();
+//                loc.att.lvlh.pass++;
+//                Convert::att_lvlh(&loc);
+//                break;
+//            case 2:
+//                // Force 90 degrees off LVLH
+//                loc.att.lvlh.utc = loc.utc;
+//                loc.att.lvlh.s = q_change_around_y(-DPI2);
+//                loc.att.lvlh.v = rv_zero();
+//                Convert::pos_eci2geoc(&loc);
+//                Convert::att_lvlh2icrf(&loc);
+//                break;
+//            case 3:
+//            case 4:
+//            case 5:
+//            case 6:
+//            case 7:
+//            case 8:
+//            case 9:
+//            case 10:
+//            case 11:
+//            case 12:
+//                //		loc.att.icrf.s = q_drotate_between_rv(cinfo->pieces[physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
+//                loc.att.icrf.v = rv_zero();
+//                Convert::pos_eci2geoc(&loc);
+//                Convert::att_icrf2lvlh(&loc);
+//                break;
+//            }
+
+            pos_accel(physics, loc);
+            att_accel(physics, loc);
+
+            gjh.step[gjh.order-1].sloc = loc;
+
+            // Position at t0-dt
+            Convert::eci2kep(loc.pos.eci, kep);
+            for (int32_t i=gjh.order-2; i>=0; --i)
+            {
+                gjh.step[i].sloc = gjh.step[i+1].sloc;
+                gjh.step[i].sloc.utc -= physics.dt / 86400.;
+                kep.utc = gjh.step[i].sloc.att.icrf.utc = gjh.step[i].sloc.utc;
+                kep.ma -= physics.dt * kep.mm;
+
+                uint16_t count = 0;
+                do
+                {
+                    dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+                    kep.ea -= dea;
+                } while (++count < 100 && fabs(dea) > .000001);
+                Convert::kep2eci(kep, gjh.step[i].sloc.pos.eci);
+                gjh.step[i].sloc.pos.eci.pass++;
+
+                q1 = q_axis2quaternion_rv(rv_smult(-physics.dt,gjh.step[i].sloc.att.icrf.v));
+                gjh.step[i].sloc.att.icrf.s = q_fmult(q1,gjh.step[i].sloc.att.icrf.s);
+                normalize_q(&gjh.step[i].sloc.att.icrf.s);
+                // Calculate new v from da
+                gjh.step[i].sloc.att.icrf.v = rv_add(gjh.step[i].sloc.att.icrf.v,rv_smult(-physics.dt,gjh.step[i].sloc.att.icrf.a));
+                Convert::pos_eci(&gjh.step[i].sloc);
+
+                pos_accel(physics, gjh.step[i].sloc);
+                att_accel(physics, gjh.step[i].sloc);
+            }
+
+            loc = gauss_jackson_converge_orbit(gjh, physics);
+//            gauss_jackson_converge_hardware(gjh, physics);
+            physics.utc = loc.utc;
         }
 
         Convert::locstruc gauss_jackson_converge_orbit(gj_handle &gjh, physicsstruc &physics)

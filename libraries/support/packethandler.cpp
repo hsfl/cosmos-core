@@ -28,6 +28,7 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandObcHalt, Reboot);
             add_func(PacketComm::TypeId::CommandObcInternalRequest, InternalRequest);
             add_func(PacketComm::TypeId::CommandObcPing, Ping);
+            add_func(PacketComm::TypeId::CommandObcSetTle, SetTle);
             add_func(PacketComm::TypeId::CommandObcSetTime, SetTime);
             add_func(PacketComm::TypeId::CommandObcGetTimeHuman, GetTimeHuman);
             add_func(PacketComm::TypeId::CommandObcGetTimeBinary, GetTimeBinary);
@@ -789,10 +790,16 @@ namespace Cosmos {
         int32_t PacketHandler::InternalRequest(PacketComm& packet, string &response, Agent* agent)
         {
             // Run request, return response
-//            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
             string erequest = string(packet.data.begin()+4, packet.data.end());
-//            response += "Internal Request " + erequest + "\n";
             int32_t iretn = agent->process_request(erequest, response, false);
+            packet.response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
+            return iretn;
+        }
+
+        int32_t PacketHandler::Heartbeat(PacketComm& packet, string &response, Agent* agent)
+        {
+            // post heartbeat
+            int32_t iretn = agent->post_beat();
             packet.response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             return iretn;
         }
@@ -808,6 +815,23 @@ namespace Cosmos {
             packet.header.nodedest = packet.header.nodeorig;
             packet.header.nodeorig = temp;
             iretn = agent->channel_push(packet.header.chanin, packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::SetTle(PacketComm &packet, string &response, Agent* agent)
+        {
+            // Bytes 0-7: double degrees Inclination
+            // Bytes 8-15: double Eccentricity
+            // Bytes 16-23: double degrees Right Ascension of the Ascending Node
+            // Bytes 24-31: double Argument of Perigee
+            // Bytes 32-39: double B-star term
+            // Bytes 40-47: rev/day Mean Motion
+            // Bytes 48-55: degrees Mean Anomaly
+            // Bytes 56-63: year.day Epoch
+            int32_t iretn=0;
+            Convert::sgp4struc sgp4;
+            memcpy(&sgp4, &packet.data[0], 64);
+            iretn = Convert::sgp42tle(sgp4, agent->cinfo->node.loc.tle);
             return iretn;
         }
 

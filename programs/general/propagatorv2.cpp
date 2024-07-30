@@ -54,6 +54,21 @@ int main(int argc, char *argv[])
     if (!jargs["maxaccel"].is_null()) maxaccel = jargs["maxaccel"].number_value();
     if (!jargs["initialutc"].is_null()) initialutc = jargs["initialutc"].number_value();
     initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+    if (!jargs["tle"].is_null())
+    {
+        json11::Json::object values = jargs["tle"].object_items();
+        vector<Convert::tlestruc>lines;
+        string fname = values["filename"].string_value();
+        load_lines(fname, lines);
+        if (initialutc == 0.)
+        {
+            initialutc = lines[0].utc;
+        }
+        initialloc.tle = lines[0];
+        tle2eci(initialutc, initialloc.tle, initialloc.pos.eci);
+        initialloc.pos.eci.pass++;
+        pos_eci(initialloc);
+    }
     if (!jargs["phys"].is_null())
     {
         json11::Json::object values = jargs["phys"].object_items();
@@ -111,9 +126,9 @@ int main(int argc, char *argv[])
     currentutc = initialutc;
     sim->Init(currentutc, simdt);
 
-//    iretn = sim->AddNode("mother", Physics::Structure::U12, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+//    iretn = sim->AddNode("mother", "U12", Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     initialloc.att.icrf.s = q_eye();
-    iretn = sim->AddNode("mother", Physics::Structure::HEX65W80H, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+    iretn = sim->AddNode("mother", "HEX65W80H", Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
     sit = sim->GetNode("mother");
     FILE *fp = fopen(targetfile.c_str(), "r");
     if (fp == nullptr)
@@ -128,20 +143,20 @@ int main(int argc, char *argv[])
         vector<string> args = string_split(line);
         if (args.size() == 4)
         {
-            (*sit)->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
+            sim->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
         }
         else if (args.size() == 5)
         {
-            (*sit)->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])));
+            sim->AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])));
         }
     }
-//    (*sit)->AddTarget("Punta_Arenas", RADOF(-53.1638), RADOF(-70.9171), 0.);
-//    (*sit)->AddTarget("Awarua", RADOF(-46.4923), RADOF(168.2808), 0.);
-//    (*sit)->AddTarget("Puertollano", RADOF(38.6884), RADOF(4.1079), 0.);
-//    (*sit)->AddTarget("Svalbard", RADOF(77.8750), RADOF(20.9752), 0.);
-//    (*sit)->AddTarget("CONUS", RADOF(48.8719), RADOF(-124.0436), RADOF(26.9051), RADOF(-66.3209));
-//    (*sit)->AddTarget("Sahara", RADOF(32.4981), RADOF(-1.1719), RADOF(15.9423), RADOF(31.7363));
-//    (*sit)->AddTarget("Greenland", RADOF(80.7336), RADOF(-54.8762), RADOF(73.8102), RADOF(-31.8558));
+//    sim->AddTarget("Punta_Arenas", RADOF(-53.1638), RADOF(-70.9171), 0.);
+//    sim->AddTarget("Awarua", RADOF(-46.4923), RADOF(168.2808), 0.);
+//    sim->AddTarget("Puertollano", RADOF(38.6884), RADOF(4.1079), 0.);
+//    sim->AddTarget("Svalbard", RADOF(77.8750), RADOF(20.9752), 0.);
+//    sim->AddTarget("CONUS", RADOF(48.8719), RADOF(-124.0436), RADOF(26.9051), RADOF(-66.3209));
+//    sim->AddTarget("Sahara", RADOF(32.4981), RADOF(-1.1719), RADOF(15.9423), RADOF(31.7363));
+//    sim->AddTarget("Greenland", RADOF(80.7336), RADOF(-54.8762), RADOF(73.8102), RADOF(-31.8558));
 
     string header;
     header += "Name\tSeconds\tUTC\t";

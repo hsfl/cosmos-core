@@ -176,5 +176,10 @@ namespace Cosmos {
                 return "";
             }
         }
+
+        size_t Enum::Size()
+        {
+            return forward.size();
+        }
     }
 }

@@ -174,6 +174,8 @@ int32_t json_table_of_list(vector<jsonentry*> &entry, string tokens, cosmosstruc
 uint16_t json_type_of_name(string token, cosmosstruc *cinfo);
 
 int32_t json_append(string &jstring, const char *tstring);
+int32_t json_join(string &stringina, string &stringinb, string &stringout);
+int32_t json_join(string &stringina, string stringinb);
 
 int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t type, cosmosstruc *cinfo);
 int32_t json_out_handle(string &jstring, jsonhandle handle,cosmosstruc *cinfo);
@@ -292,6 +294,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo);
 int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag = false);
 int32_t json_setup_node(string &node, cosmosstruc *cinfo);
 int32_t json_load_node(string node, jsonnode &json);
+int32_t json_clone_node(cosmosstruc *source, cosmosstruc *destination);
 int32_t load_tle(cosmosstruc *cinfo);
 int32_t json_dump_node(cosmosstruc *cinfo);
 int32_t json_recenter_node(cosmosstruc *cinfo);
@@ -353,6 +356,9 @@ int32_t load_node_ids(cosmosstruc *cinfo, string realm="");
 int32_t check_node_id(cosmosstruc *cinfo, NODE_ID_TYPE node_id);
 int32_t lookup_node_id(cosmosstruc *cinfo, string node_name);
 int32_t add_node_id(cosmosstruc *cinfo, string node_name);
+int32_t add_node_id(cosmosstruc *cinfo, string node_name, uint8_t node_id);
+int32_t change_node_id(cosmosstruc *cinfo, string node_name, uint8_t node_id);
+int32_t remove_node_id(cosmosstruc *cinfo, string node_name);
 string lookup_node_id_name(cosmosstruc *cinfo, NODE_ID_TYPE node_id);
 
 int32_t load_target(cosmosstruc *cinfo);

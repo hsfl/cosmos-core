@@ -130,7 +130,7 @@ string log_write(string node, string agent, double utc, string type, const char 
 string log_write(string node, string agent, double utc, string extra, string type, string record, string location="temp");
 int32_t log_move_agent_src(string node, string agent, string srclocation, string dstlocation, bool compress=true, float age=60.);
 int32_t log_move_agent_temp(string node, string agent, float age=60.);
-int32_t log_move_file(string oldpath, string newpath, bool compress="true");
+int32_t log_move_file(string oldpath, string newpath, bool compress="true", double timeout=10.);
 int32_t log_move_directory(string srcdir, string dstdir, bool compress="true");
 string log_read(gzFile &file, int num);
 //int check_events(eventstruc* events, int max, cosmosstruc* data);

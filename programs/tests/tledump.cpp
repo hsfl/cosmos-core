@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
         load_lines(fname, lines);
         Convert::lines2eci(lines[0].utc, lines, loc.pos.eci);
     }
-    double period = (D2PI/lines[0].mm)/1400;
+    double period = (D2PI/lines[0].mm)/86400.;
     if (argc == 3)
     {
         period = atof(argv[2]);

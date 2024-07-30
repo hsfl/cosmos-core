@@ -2930,6 +2930,12 @@ namespace Cosmos {
                 return val;
             }
 
+            Quaternion zero()
+            {
+                Quaternion val = Quaternion(0., 0., 0., 0.);
+                return val;
+            }
+
         } // end namespace Quaternions
     } // end namespace Math
 } // end namespace Cosmos

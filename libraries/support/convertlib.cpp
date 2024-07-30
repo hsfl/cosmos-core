@@ -33,6 +33,8 @@
 
 #include "support/convertlib.h"
 #include "support/jsondef.h"
+#include "support/stringlib.h"
+#include "physics/physicsclass.h"
 
 // Used to mark unused variables as known
 #ifndef UNUSED_VARIABLE_LOCALDEF
@@ -175,79 +177,112 @@ int32_t pos_extra(double utc, locstruc &loc)
     pos_eci2geoc(tloc);
     loc.pos.extra.moongeo = tloc.pos.geod.s;
 
-    pos_lvlh(utc, loc);
+//    pos_lvlh(utc, loc);
     return 0;
 }
 
-int32_t pos_lvlh(double utc, locstruc *loc)
+int32_t pos_lvlh(locstruc *loc)
 {
-    return pos_lvlh(utc, *loc);
+    return pos_lvlh(*loc);
 }
 
-int32_t pos_lvlh(double utc, locstruc &loc)
+int32_t pos_lvlh(locstruc &loc)
 {
     // Check time
-    if (!isfinite(utc) || utc == 0.)
-    {
-        return CONVERT_ERROR_UTC;
-    }
+//    if (!isfinite(utc) || utc == 0.)
+//    {
+//        return CONVERT_ERROR_UTC;
+//    }
 
-    pos_extra(utc, loc);
+//    pos_extra(utc, loc);
 
     // LVLH related
+    loc.pos.extra.p2l = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
+    loc.pos.extra.l2p = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
+    loc.pos.extra.dp2l = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
+    loc.pos.extra.dl2p = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
+    loc.pos.extra.ddp2l = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
+    loc.pos.extra.ddl2p = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
+
     quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.};
-    loc.pos.extra.g2l = {{0., 0., 0.}, 1.};
-    loc.pos.extra.l2g = {{0., 0., 0.}, 1.};
-    rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.};
-    //            qatt *patt;
+    loc.pos.extra.e2l = {{0., 0., 0.}, 1.};
+    loc.pos.extra.l2e = {{0., 0., 0.}, 1.};
+    rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, planec_z = {0., 0., 0.}, planec_y = {0., 0., 0.};
+
     cartpos *ppos;
     switch (loc.pos.extra.closest)
     {
     case COSMOS_EARTH:
     default:
         // Check time
-        if (!isfinite(loc.att.geoc.utc) || loc.att.geoc.utc == 0.)
-        {
-            return CONVERT_ERROR_UTC;
-        }
+//        if (!isfinite(loc.pos.eci.utc) || loc.pos.eci.utc == 0.)
+//        {
+//            return CONVERT_ERROR_UTC;
+//        }
 
-        //                patt = &loc.att.geoc;
-        ppos = &loc.pos.geoc;
+        ppos = &loc.pos.eci;
         break;
     case COSMOS_MOON:
         // Check time
-        if (!isfinite(loc.att.selc.utc) || loc.att.selc.utc == 0.)
-        {
-            return CONVERT_ERROR_UTC;
-        }
+//        if (!isfinite(loc.pos.sci.utc) || loc.pos.sci.utc == 0.)
+//        {
+//            return CONVERT_ERROR_UTC;
+//        }
 
-        //                patt = &loc.att.selc;
-        ppos = &loc.pos.selc;
+        ppos = &loc.pos.sci;
         break;
     }
 
+    double s = length_rv(ppos->s);
+    if (s < 1e6)
+    {
+        return CONVERT_ERROR_RADIUS;
+    }
+    loc.pos.extra.l2p.row[2] = -ppos->s / s;
+    loc.pos.extra.dl2p.row[2] = -(ppos->v - dot_rv(-loc.pos.extra.l2p.row[2], ppos->v) * (-loc.pos.extra.l2p.row[2])) / s;
+    loc.pos.extra.ddl2p.row[2] = -(ppos->a - dot_rv(-loc.pos.extra.l2p.row[2], ppos->v) * -loc.pos.extra.dl2p.row[2] - (dot_rv(-loc.pos.extra.l2p.row[2], ppos->a) + dot_rv(-loc.pos.extra.dl2p.row[2], ppos->v)) * -loc.pos.extra.l2p.row[2]) / s;
+
+    rvector hbar = rv_cross(ppos->s, ppos->v);
+    double h = length_rv(hbar);
+    if (s < 1e6)
+    {
+        return CONVERT_ERROR_RADIUS;
+    }
+    rvector hdbar = rv_cross(ppos->s, ppos->a);
+    rvector hddbar = rv_cross(ppos->s, ppos->j) + rv_cross(ppos->v, ppos->a);
+    loc.pos.extra.l2p.row[1] = -hbar / h;
+    loc.pos.extra.dl2p.row[2] = -(hdbar - dot_rv(-loc.pos.extra.l2p.row[1], hdbar) * (-loc.pos.extra.l2p.row[1])) / h;
+    loc.pos.extra.ddl2p.row[2] = -(hddbar - dot_rv(-loc.pos.extra.l2p.row[1], hdbar) * -loc.pos.extra.dl2p.row[1] - (dot_rv(-loc.pos.extra.l2p.row[1], hddbar) + dot_rv(-loc.pos.extra.dl2p.row[1], hdbar)) * -loc.pos.extra.l2p.row[1]) / h;
+
+    loc.pos.extra.l2p.row[0] = rv_cross(loc.pos.extra.l2p.row[1], loc.pos.extra.l2p.row[2]);
+    loc.pos.extra.dl2p.row[0] = rv_cross(loc.pos.extra.l2p.row[1], loc.pos.extra.dl2p.row[2]) + rv_cross(loc.pos.extra.dl2p.row[1], loc.pos.extra.l2p.row[2]);
+    loc.pos.extra.ddl2p.row[0] = rv_cross(loc.pos.extra.l2p.row[1], loc.pos.extra.ddl2p.row[2]) + 2. * rv_cross(loc.pos.extra.dl2p.row[1], loc.pos.extra.dl2p.row[2]) + rv_cross(loc.pos.extra.ddl2p.row[1], loc.pos.extra.l2p.row[2]);
+
+    loc.pos.extra.p2l = rm_transpose(loc.pos.extra.l2p);
+    loc.pos.extra.dp2l= rm_transpose(loc.pos.extra.dl2p);
+    loc.pos.extra.ddp2l = rm_transpose(loc.pos.extra.ddl2p);
+
     // LVLH Z is opposite of direction to satellite
-    geoc_z = rv_smult(-1., ppos->s);
-    normalize_rv(geoc_z);
+    planec_z = rv_smult(-1., ppos->s);
+    normalize_rv(planec_z);
 
     // LVLH Y is Cross Product of LVLH Z and velocity vector
-    geoc_y = rv_cross(geoc_z, ppos->v);
-    normalize_rv(geoc_y);
+    planec_y = rv_cross(planec_z, ppos->v);
+    normalize_rv(planec_y);
 
     // Determine intrinsic rotation of ITRF Z  into LVLH Z
-    qe_z = q_conjugate(q_drotate_between_rv(geoc_z, lvlh_z));
+    qe_z = q_conjugate(q_drotate_between_rv(planec_z, lvlh_z));
 
     // Use to intrinsically rotate ITRF Y into intermediate Y
-    //	geoc_y = drotate(qe_z,geoc_y);
-    geoc_y = irotate(qe_z, geoc_y);
+    planec_y = irotate(qe_z, planec_y);
 
     // Determine intrinsic rotation of this intermediate Y into LVLH Y
-    qe_y = q_conjugate(q_drotate_between_rv(geoc_y, lvlh_y));
+    qe_y = q_conjugate(q_drotate_between_rv(planec_y, lvlh_y));
 
     // Combine to determine intrinsic rotation of ITRF into LVLH
-    loc.pos.extra.g2l = q_fmult(qe_z, qe_y);
-    normalize_q(&loc.pos.extra.g2l);
-    loc.pos.extra.l2g = q_conjugate(loc.pos.extra.g2l);
+    loc.pos.extra.e2l = q_fmult(qe_z, qe_y);
+    normalize_q(&loc.pos.extra.e2l);
+    loc.pos.extra.l2e = q_conjugate(loc.pos.extra.e2l);
 
     return 0;
 }
@@ -282,9 +317,11 @@ int32_t pos_icrf(locstruc &loc)
     }
 
     // Determine closest planetary body
-    loc.pos.extra.closest = COSMOS_EARTH;
-    if (length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2moon.s)) < length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2earth.s)))
-        loc.pos.extra.closest = COSMOS_MOON;
+//    loc.pos.extra.closest = COSMOS_EARTH;
+//    if (length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2moon.s)) < length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2earth.s)))
+//    {
+//        loc.pos.extra.closest = COSMOS_MOON;
+//    }
 
     // Set SUN specific stuff
     distance = length_rv(loc.pos.icrf.s);
@@ -361,6 +398,16 @@ int32_t pos_eci(locstruc &loc)
         return iretn;
     }
 
+    // Set closest
+    double moongrav = MMOON / (length_rv(loc.pos.sci.s) * length_rv(loc.pos.sci.s));
+    double earthgrav = MEARTH / (length_rv(loc.pos.eci.s) * length_rv(loc.pos.eci.s));
+    loc.pos.extra.closest = COSMOS_EARTH;
+    if (earthgrav < moongrav)
+    {
+        loc.pos.extra.closest = COSMOS_MOON;
+    }
+    pos_lvlh(loc);
+
     // Set adjoining positions
     if (loc.pos.eci.pass > loc.pos.icrf.pass)
     {
@@ -403,6 +450,16 @@ int32_t pos_sci(locstruc &loc)
     {
         return iretn;
     }
+
+    // Set closest
+    double moongrav = MMOON / (length_rv(loc.pos.sci.s) * length_rv(loc.pos.sci.s));
+    double earthgrav = MEARTH / (length_rv(loc.pos.eci.s) * length_rv(loc.pos.eci.s));
+    loc.pos.extra.closest = COSMOS_EARTH;
+    if (earthgrav < moongrav)
+    {
+        loc.pos.extra.closest = COSMOS_MOON;
+    }
+    pos_lvlh(loc);
 
     // Set adjoining positions
     if (loc.pos.sci.pass > loc.pos.icrf.pass)
@@ -2057,8 +2114,8 @@ int32_t att_planec2lvlh(locstruc *loc)
 int32_t att_planec2lvlh(locstruc &loc)
 {
     //            quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.};
-    //            loc.pos.extra.g2l = {{0., 0., 0.}, 1.};
-    //            loc.pos.extra.l2g = {{0., 0., 0.}, 1.};
+    //            loc.pos.extra.e2l = {{0., 0., 0.}, 1.};
+    //            loc.pos.extra.l2e = {{0., 0., 0.}, 1.};
     //            rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.}, alpha = {0., 0., 0.};
     qatt *patt;
     cartpos *ppos;
@@ -2097,16 +2154,16 @@ int32_t att_planec2lvlh(locstruc &loc)
     // Update pass
     loc.att.lvlh.pass = patt->pass;
 
-    pos_lvlh(patt->utc, loc);
+//    pos_lvlh(patt->utc, loc);
 
     // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
     rvector alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
     loc.att.lvlh.v = rv_sub(patt->v, alpha);
 
     // Transform ITRS into LVLH
-    loc.att.lvlh.s = q_fmult(loc.pos.extra.l2g, patt->s);
-    loc.att.lvlh.v = irotate(loc.pos.extra.g2l, loc.att.lvlh.v);
-    loc.att.lvlh.a = irotate(loc.pos.extra.g2l, patt->a);
+    loc.att.lvlh.s = q_fmult(loc.pos.extra.l2e, patt->s);
+    loc.att.lvlh.v = irotate(loc.pos.extra.e2l, loc.att.lvlh.v);
+    loc.att.lvlh.a = irotate(loc.pos.extra.e2l, patt->a);
 
     return 0;
 }
@@ -2157,12 +2214,12 @@ int32_t att_lvlh2planec(locstruc &loc)
     // Update pass
     patt->pass = loc.att.lvlh.pass;
 
-    pos_lvlh(loc.att.lvlh.utc, loc);
+//    pos_lvlh(loc.att.lvlh.utc, loc);
 
     // Rotate LVLH frame into ITRS frame
-    patt->s = q_fmult(loc.pos.extra.g2l, loc.att.lvlh.s);
-    patt->v = irotate(loc.pos.extra.l2g, loc.att.lvlh.v);
-    patt->a = irotate(loc.pos.extra.l2g, loc.att.lvlh.a);
+    patt->s = q_fmult(loc.pos.extra.e2l, loc.att.lvlh.s);
+    patt->v = irotate(loc.pos.extra.l2e, loc.att.lvlh.v);
+    patt->a = irotate(loc.pos.extra.l2e, loc.att.lvlh.a);
 
     // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
     rvector alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
@@ -3308,15 +3365,119 @@ int32_t pos_origin2lvlh(locstruc *loc, cartpos lvlh)
 
 int32_t pos_origin2lvlh(locstruc& loc, cartpos lvlh)
 {
-    // Save att.lvlh at origin
-    //    qatt qlvlh = loc.att.lvlh;
+    rvector lvlh_x;
+    rvector lvlh_y;
+    rvector lvlh_z;
+    locstruc tloc1 = loc;
+//    rvector h = rv_cross(loc.pos.eci.s, loc.pos.eci.v);
 
-    rvector lvlh_x = drotate(loc.pos.extra.g2l, rvector(1., 0., 0.));
-    rvector lvlh_y = drotate(loc.pos.extra.g2l, rvector(0., 1., 0.));
+    cartpos origin = tloc1.pos.eci;
+    // 1 Get lvlh basis vectors
+    lvlh_z = -rv_normal(origin.s);
+    lvlh_y = rv_normal(rv_cross(lvlh_z, origin.v));
+    lvlh_x = rv_normal(rv_cross(lvlh_y, lvlh_z));
 
-    loc.pos.geoc.v += drotate(loc.pos.extra.g2l, lvlh.v);
-    loc.pos.geoc.a += drotate(loc.pos.extra.g2l, lvlh.a);
-    loc.pos.geoc.j += drotate(loc.pos.extra.g2l, lvlh.j);
+    // 2 Convert LVLH offsets into ECI
+    cartpos eci_offset;
+    eci_offset.s.col[0] = lvlh_x.col[0]*lvlh.s.col[0] + lvlh_y.col[0]*lvlh.s.col[1] + lvlh_z.col[0]*lvlh.s.col[2];
+    eci_offset.s.col[1] = lvlh_x.col[1]*lvlh.s.col[0] + lvlh_y.col[1]*lvlh.s.col[1] + lvlh_z.col[1]*lvlh.s.col[2];
+    eci_offset.s.col[2] = lvlh_x.col[2]*lvlh.s.col[0] + lvlh_y.col[2]*lvlh.s.col[1] + lvlh_z.col[2]*lvlh.s.col[2];
+    eci_offset.v.col[0] = lvlh_x.col[0]*lvlh.v.col[0] + lvlh_y.col[0]*lvlh.v.col[1] + lvlh_z.col[0]*lvlh.v.col[2];
+    eci_offset.v.col[1] = lvlh_x.col[1]*lvlh.v.col[0] + lvlh_y.col[1]*lvlh.v.col[1] + lvlh_z.col[1]*lvlh.v.col[2];
+    eci_offset.v.col[2] = lvlh_x.col[2]*lvlh.v.col[0] + lvlh_y.col[2]*lvlh.v.col[1] + lvlh_z.col[2]*lvlh.v.col[2];
+    eci_offset.a.col[0] = lvlh_x.col[0]*lvlh.a.col[0] + lvlh_y.col[0]*lvlh.a.col[1] + lvlh_z.col[0]*lvlh.a.col[2];
+    eci_offset.a.col[1] = lvlh_x.col[1]*lvlh.a.col[0] + lvlh_y.col[1]*lvlh.a.col[1] + lvlh_z.col[1]*lvlh.a.col[2];
+    eci_offset.a.col[2] = lvlh_x.col[2]*lvlh.a.col[0] + lvlh_y.col[2]*lvlh.a.col[1] + lvlh_z.col[2]*lvlh.a.col[2];
+
+    tloc1.pos.eci.s = origin.s + eci_offset.s;
+
+    // This is the equation to find the velocity of a point using observations
+    // from a translating and rotating reference frame B
+    // A_v_P = B_v_P/Q + A_v_Q
+    //       + (A_w_B x r_P/Q)    = Tangential velocity
+    // where:
+    // Reference frame A: The inertial reference frame
+    // Reference frame B: The rotating and translating reference frame
+    // Point P: The point that moves with respect to point Q
+    // Point Q: The origin of reference frame B
+    // A_v_P: The velocity of point P in reference frame A. The unknown quantity to solve for.
+    // B_v_P/Q: The velocity of point P in reference frame B as observed from point Q.
+    // A_v_Q: The velocity of point Q in reference frame A.
+    // A_w_B: The angular velocity of reference frame B
+    // r_P/Q: The distance between points P and Q (in reference frame A)
+
+    // B_v_P/Q = eci_offset.v
+    // A_v_Q = origin.v
+    // A_w_B = angular velocity = (s x v) / ||s||^2
+    rvector angular_velocity = rv_smult(1./pow(length_rv(origin.s),2),rv_cross(origin.s,origin.v));
+    // r_P/Q = eci_offset.s
+
+    // A_w_B x r_P/Q
+    rvector w_x_r = rv_cross(angular_velocity, eci_offset.s);
+
+    // Compute B_v_P/Q + A_v_Q + (A_w_B x r_P/Q)
+    tloc1.pos.eci.v = eci_offset.v + origin.v + w_x_r;
+
+    // This is the equation to find the acceleration of a point using observations
+    // from a rotating and translating reference frame B
+    // A_a_P = A_a_Q + B_a_P/Q
+    //       + A_alpha_B x r_P/Q        = Euler acceleration
+    //       + 2 * A_w_B x B_v_P/Q      = Coriolis acceleration
+    //       + A_w_B x (A_w_B x r_P/Q)  = Centripetal acceleration
+    // where the new terms are:
+    // A_a_P: The acceleration of point P in reference frame A. The unknown quantity to solve for.
+    // A_a_Q: The acceleration of point Q in reference frame A.
+    // B_a_P/Q: The acceleration of point P in reference frame B as observed from point Q.
+    // A_alpha_B = The angular acceleration of reference frame B as observed by reference frame A.
+
+    // A_a_Q = origin.a
+    // B_a_P/Q = eci_offset.a
+    // A_alpha_B = angular acceleration = (s x a) / ||s||^2
+    rvector angular_acceleration = rv_smult(1./pow(length_rv(origin.s),2),rv_cross(origin.s,origin.a));
+
+    // Compute
+    // A_a_P = A_a_Q + B_a_P/Q
+    tloc1.pos.eci.a = origin.a + eci_offset.a
+                    //     + A_alpha_B x r_P/Q        = Euler acceleration
+                    + rv_cross(angular_acceleration, eci_offset.s)
+                    //     + 2 * A_w_B x B_v_P/Q      = Coriolis acceleration
+                    + 2 * rv_cross(angular_velocity, eci_offset.v)
+                    //     + A_w_B x (A_w_B x r_P/Q)  = Centripetal acceleration
+                    + rv_cross(angular_velocity, w_x_r);
+
+    tloc1.pos.eci.pass = std::max(tloc1.pos.icrf.pass, tloc1.pos.geoc.pass) + 1;
+    tloc1.pos.eci.utc = origin.utc;
+    ++tloc1.pos.eci.pass;
+    pos_eci(tloc1);
+//    printf("Scott:\n");
+//    printf("x %.1f y %.1f z %.1f mag %.1f\n", tloc1.pos.eci.s.col[0], tloc1.pos.eci.s.col[1], tloc1.pos.eci.s.col[2], length_rv(tloc1.pos.eci.s));
+//    printf("vx %.2f vy %.2f vz %.2f mag %.2f\n", tloc1.pos.eci.v.col[0], tloc1.pos.eci.v.col[1], tloc1.pos.eci.v.col[2], length_rv(tloc1.pos.eci.v));
+//    printf("ax %.3f ay %.3f az %.3f mag %.3f\n", tloc1.pos.eci.a.col[0], tloc1.pos.eci.a.col[1], tloc1.pos.eci.a.col[2], length_rv(tloc1.pos.eci.a));
+
+    locstruc tloc = loc;
+    eci_offset.s = rv_mmult(tloc.pos.extra.p2l, lvlh.s);
+    tloc.pos.eci.s += eci_offset.s;
+    tloc.pos.eci.v += rv_mmult(tloc.pos.extra.dp2l, lvlh.v);
+    tloc.pos.eci.a += rv_mmult(tloc.pos.extra.ddp2l, lvlh.a);
+    tloc.pos.eci.pass++;
+    pos_eci(tloc);
+//    printf("Eric:\n");
+//    printf("x %.1f y %.1f z %.1f mag %.1f\n", tloc.pos.eci.s.col[0], tloc.pos.eci.s.col[1], tloc.pos.eci.s.col[2], length_rv(tloc.pos.eci.s));
+//    printf("vx %.2f vy %.2f vz %.2f mag %.2f\n", tloc.pos.eci.v.col[0], tloc.pos.eci.v.col[1], tloc.pos.eci.v.col[2], length_rv(tloc.pos.eci.v));
+//    printf("ax %.3f ay %.3f az %.3f mag %.3f\n", tloc.pos.eci.a.col[0], tloc.pos.eci.a.col[1], tloc.pos.eci.a.col[2], length_rv(tloc.pos.eci.a));
+//    fflush(stdout);
+
+    loc = tloc1;    
+    loc.pos.lvlh = lvlh;
+    loc.pos.lvlh.utc = loc.pos.eci.utc;
+    return 0;
+
+    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
+    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
+
+    loc.pos.geoc.v += drotate(loc.pos.extra.e2l, lvlh.v);
+    loc.pos.geoc.a += drotate(loc.pos.extra.e2l, lvlh.a);
+    loc.pos.geoc.j += drotate(loc.pos.extra.e2l, lvlh.j);
 
     double r = length_rv(loc.pos.geoc.s);
 
@@ -3365,13 +3526,14 @@ int32_t pos_lvlh2origin(locstruc& loc)
 
     double r = length_rv(loc.pos.geoc.s) +  loc.pos.lvlh.s.col[2];
 
-    lvlh_x = drotate(loc.pos.extra.g2l, rvector(1., 0., 0.));
-    lvlh_y = drotate(loc.pos.extra.g2l, rvector(0., 1., 0.));
-    lvlh_z = drotate(loc.pos.extra.g2l, rvector(0., 0., 1.));
+    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
+    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
+    lvlh_z = drotate(loc.pos.extra.e2l, rvector(0., 0., 1.));
 
-    loc.pos.geoc.v -= drotate(loc.pos.extra.g2l, loc.pos.lvlh.v);
-    loc.pos.geoc.a -= drotate(loc.pos.extra.g2l, loc.pos.lvlh.a);
-    loc.pos.geoc.j -= drotate(loc.pos.extra.g2l, loc.pos.lvlh.j);
+    // TODO: should this be ECI, not GEOC?
+    loc.pos.geoc.v -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.v);
+    loc.pos.geoc.a -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.a);
+    loc.pos.geoc.j -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.j);
 
     // Rotate around LVLH y axis by dx/r
     loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, loc.pos.lvlh.s.col[0] / r);
@@ -3451,6 +3613,258 @@ int32_t lvlh2ric(cartpos lvlh, cartpos& ric)
     return 0;
 }
 
+/**
+ * @brief Converts the ECI position and velocity of a point to an LVLH position and velocity relative to another ECI origin point.
+ * 
+ * @param origin The origin of the LVLH frame, in ECI
+ * @param point The point to transform, in ECI
+ * @return Position and velocity of point in LVLH frame
+ */
+Convert::cartpos eci2lvlh(Convert::cartpos origin, Convert::cartpos point)
+{
+    // This is the equation to find the velocity of a point in a translating and rotating reference frame B
+    // B_v_P/Q = A_v_P - A_v_Q - (A_w_B x r_P/Q)
+    // where:
+    // Reference frame A: The intertial reference frame
+    // Reference frame B: The rotating and translating reference frame
+    // Point P: The point that moves with respect to point Q
+    // Point Q: The origin of reference frame B
+    // B_v_P/Q: velocity of point P in reference frame B that has its origin at point Q. The unknown quantity to solve for.
+    // A_v_P: velocity of point P in reference frame A
+    // A_v_Q: velocity of point Q in reference frame A
+    // A_w_B: Angular velocity of reference frame B
+    // r_P/Q: distance between points P and Q (in reference frame A)
+    Convert::cartpos eci_offset, lvlh_offset;
+    // r_P/Q
+    eci_offset.s = rv_sub(point.s, origin.s);
+    // w = (s x v) / ||s||^2
+    rvector angular_velocity = rv_smult(1./pow(length_rv(origin.s),2),rv_cross(origin.s,origin.v));
+    // w x r
+    rvector w_cross_r = rv_cross(angular_velocity, eci_offset.s);
+    // compute A_v_p - A_v_Q
+    eci_offset.v = rv_sub(point.v, origin.v);
+    // subtract A_w_B x r_P/Q
+    eci_offset.v = rv_sub(eci_offset.v, w_cross_r);
+
+    // Now that the position and velocity have been computed for reference frame A,
+    // perform a basis transformation to obtain same quantities for reference frame B (i.e., LVLH)
+
+    // find R unit vectors (in ECI)
+    rvector R_unit(origin.s.col[0], origin.s.col[1], origin.s.col[2]);
+    normalize_rv(R_unit);
+
+    // find C unit vectors (in ECI)
+    rvector C_unit = rv_cross(origin.s, origin.v);
+    normalize_rv(C_unit);
+
+    // find I unit vectors (in ECI)
+    rvector I_unit = rv_cross(C_unit, R_unit);
+
+    // cross(I_x_unit, I_y_unit, I_z_unit, C_x_unit, C_y_unit, C_z_unit, R_x_unit, R_y_unit, R_z_unit);
+    // normalize2(R_x_unit, R_y_unit, R_z_unit);
+
+
+    // find unit X, unit Y, and unit Z LVLH basis vectors (in ECI)
+    // X = +I
+    // Y = -C
+    // Z = -R
+    double X_lvlh_x_unit = +I_unit.col[0];
+    double X_lvlh_y_unit = +I_unit.col[1];
+    double X_lvlh_z_unit = +I_unit.col[2];
+
+    double Y_lvlh_x_unit = -C_unit.col[0];
+    double Y_lvlh_y_unit = -C_unit.col[1];
+    double Y_lvlh_z_unit = -C_unit.col[2];
+
+    double Z_lvlh_x_unit = -R_unit.col[0];
+    double Z_lvlh_y_unit = -R_unit.col[1];
+    double Z_lvlh_z_unit = -R_unit.col[2];
+
+    // Basis vectors for LVLH frame in ECI
+    rmatrix A(
+        {X_lvlh_x_unit, Y_lvlh_x_unit, Z_lvlh_x_unit},
+        {X_lvlh_y_unit, Y_lvlh_y_unit, Z_lvlh_y_unit},
+        {X_lvlh_z_unit, Y_lvlh_z_unit, Z_lvlh_z_unit}
+    );
+    // Basis transformations
+    // Solves x for Ax = b, which in this case would just be x = A'b
+    A = rm_transpose(A);
+    rvector b(eci_offset.s.col[0],eci_offset.s.col[1],eci_offset.s.col[2]);
+    lvlh_offset.s = rv_mmult(A, b);
+    b = {eci_offset.v.col[0],eci_offset.v.col[1],eci_offset.v.col[2]};
+    lvlh_offset.v = rv_mmult(A, b);
+
+    return lvlh_offset;
+}
+
+Convert::cartpos eci2hill(const Convert::cartpos& tgteci, const Convert::cartpos& inteci)
+{
+    // RSW basis vectors and rotation matrix
+    rvector rsw_r, rsw_s, rsw_w;
+    rsw_r = rv_normal(tgteci.s);
+    rsw_w = rv_normal(rv_cross(rsw_r, tgteci.v));
+    rsw_s = rv_normal(rv_cross(rsw_w, rsw_r));
+    rmatrix rotECI2RSW(rsw_r, rsw_s, rsw_w);
+
+    //  find rotation matrix from ECI to RSW frame
+    //  convert target and interceptor, compute vector magnitudes
+    double magrtgt = length_rv(tgteci.s);            // magrtgt = norm(rtgteci);
+    double magrint = length_rv(inteci.s);            // magrint = norm(rinteci);
+    Convert::cartpos tgtrsw, intrsw;
+    tgtrsw.s = rv_mmult(rotECI2RSW, tgteci.s); // [rtgtrsw,vtgtrsw,rotECI2RSW] = rv2rsw(rtgteci, vtgteci);
+    tgtrsw.v = rv_mmult(rotECI2RSW, tgteci.v);
+    intrsw.s = rv_mmult(rotECI2RSW, inteci.s);       // rintrsw  = matvecmult( rotECI2RSW, rinteci, 3);
+    intrsw.v = rv_mmult(rotECI2RSW, inteci.v);       // vintrsw  = matvecmult( rotECI2RSW, vinteci, 3);
+
+    //  find rotation angles (radians) to go from target to interceptor
+    double sinphiint = intrsw.s.col[2] / magrint;    // sinphiint    = rintrsw(3) / magrint;
+    double phiint = asin(sinphiint);                 // phiint       = asin(sinphiint);
+    double cosphiint = cos(phiint);                  // cosphiint    = cos(phiint);
+    double lambdaint = atan2(intrsw.s.col[1], intrsw.s.col[0]); // lambdaint    = atan2(rintrsw(2), rintrsw(1));
+    double sinlambdaint = sin(lambdaint);            // sinlambdaint = sin(lambdaint);
+    double coslambdaint = cos(lambdaint);            // coslambdaint = cos(lambdaint);
+    double lambdadottgt = tgtrsw.v.col[1] / magrtgt;      // lambdadottgt = norm(vtgteci)/ magrtgt;  // if circular ==>> norm(vtgteci)/magrtgt; // if not ++>> vtgtrsw(2) / magrtgt
+
+    //  find position component positions
+    Convert::cartpos inthill;
+    inthill.s.col[0] = magrint - magrtgt;   // rhill(1) = magrint - magrtgt;
+    inthill.s.col[1] = lambdaint * magrtgt; // rhill(2) = lambdaint * magrtgt;
+    inthill.s.col[2] = phiint * magrtgt;    // rhill(3) = phiint * magrtgt;
+
+    //  find rotation matrix to go from rsw to SEZ of interceptor
+    rmatrix rotrswtoSEZ(
+    {
+        sinphiint * coslambdaint, // rotrswtoSEZ(1,1) = sinphiint * coslambdaint;
+        sinphiint * sinlambdaint, // rotrswtoSEZ(1,2) = sinphiint * sinlambdaint;
+        -cosphiint                // rotrswtoSEZ(1,3) = -cosphiint;
+    },{
+        -sinlambdaint,            // rotrswtoSEZ(2,1) = -sinlambdaint;
+        coslambdaint,             // rotrswtoSEZ(2,2) = coslambdaint;
+        0.0                       // rotrswtoSEZ(2,3) = 0.0;
+    },{
+        cosphiint * coslambdaint, // rotrswtoSEZ(3,1) = cosphiint * coslambdaint;
+        cosphiint * sinlambdaint, // rotrswtoSEZ(3,2) = cosphiint * sinlambdaint;
+        sinphiint                 // rotrswtoSEZ(3,3) = sinphiint;
+    });
+    //  find velocity component positions by using angular rates in SEZ frame
+    rvector vintSEZ = rv_mmult(rotrswtoSEZ, intrsw.v);          // vintSEZ      = matvecmult( rotrswtoSEZ, vintrsw, 3);
+    double phidotint = -vintSEZ.col[0]/magrint;                 // phidotint    = -vintSEZ(1)/magrint;
+    double lambdadotint = vintSEZ.col[1]/(magrint * cosphiint); // lambdadotint = vintSEZ(2)/(magrint * cosphiint);
+
+    inthill.v.col[0] = vintSEZ.col[2] - tgtrsw.v.col[0];        // vhill(1) = vintSEZ(3); // if circular ==>> vintSEZ(3); // if not ++>> vintSEZ(3) - vtgtrsw(1)
+    inthill.v.col[1] = magrtgt * (lambdadotint - lambdadottgt); // vhill(2) = magrtgt * (lambdadotint - lambdadottgt);
+    inthill.v.col[2] = magrtgt * phidotint;                     // vhill(3) = magrtgt * phidotint;
+
+    // Swap around to match COSMOS's definition of the axises
+    std::swap(inthill.s.col[0], inthill.s.col[2]);
+    std::swap(inthill.s.col[0], inthill.s.col[1]);
+    std::swap(inthill.v.col[0], inthill.v.col[2]);
+    std::swap(inthill.v.col[0], inthill.v.col[1]);
+    inthill.s.col[1] *= -1;
+    inthill.s.col[2] *= -1;
+    inthill.v.col[1] *= -1;
+    inthill.v.col[2] *= -1;
+
+    return inthill;
+}
+
+Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpos& inthill)
+{
+    // Swap around to match this derivation's definition of the axises,
+    // which defines the HILL frame with basis vectors:
+    // 0: Radial vector (i.e., reverse-nadir) of target
+    // 1: Normal to orbital plane in direction of velocity of target
+    // 2: Cross-product
+    Convert::cartpos hill = inthill;
+    hill.s.col[1] *= -1;
+    hill.s.col[2] *= -1;
+    hill.v.col[1] *= -1;
+    hill.v.col[2] *= -1;
+    hill.a.col[1] *= -1;
+    hill.a.col[2] *= -1;
+    std::swap(hill.s.col[0], hill.s.col[1]);
+    std::swap(hill.s.col[0], hill.s.col[2]);
+    std::swap(hill.v.col[0], hill.v.col[1]);
+    std::swap(hill.v.col[0], hill.v.col[2]);
+    std::swap(hill.a.col[0], hill.a.col[1]);
+    std::swap(hill.a.col[0], hill.a.col[2]);
+
+
+    // RSW basis vectors and rotation matrix
+    rvector rsw_r, rsw_s, rsw_w;
+    rsw_r = rv_normal(tgteci.s);
+    rsw_w = rv_normal(rv_cross(rsw_r, tgteci.v));
+    rsw_s = rv_normal(rv_cross(rsw_w, rsw_r));
+    rmatrix rotECI2RSW(rsw_r, rsw_s, rsw_w);
+
+    //  find rotation matrix from ECI to rsw frame
+    //  convert target and interceptor, compute vector magnitudes
+    double magrtgt = length_rv(tgteci.s);            // magrtgt = norm(rtgteci);
+    double magrint = magrtgt + hill.s.col[0];        // magrint = magrtgt + rinthill(1);
+    Convert::cartpos tgtrsw, intrsw;
+    tgtrsw.s = rv_mmult(rotECI2RSW, tgteci.s); // [rtgtrsw,vtgtrsw,rotECI2RSW] = rv2rsw(rtgteci, vtgteci);
+    tgtrsw.v = rv_mmult(rotECI2RSW, tgteci.v);
+    tgtrsw.a = rv_mmult(rotECI2RSW, tgteci.a);
+
+    //  find rotation angles (radians) to go from target to interecptor
+    double lambdadotdottgt = tgtrsw.a.col[1] / magrtgt;
+    double lambdadottgt = tgtrsw.v.col[1] / magrtgt;     // lambdadottgt = norm(vtgteci)/ magrtgt;  // if circular ==>> norm(vtgteci)/magrtgt; // if not ++>> vtgtrsw(2) / magrtgt
+    double phidotdottgt = tgtrsw.a.col[1] / magrtgt;
+    double lambdaint = hill.s.col[1] / magrtgt;          // lambdaint    = rinthill(2)/magrtgt;
+    double phiint = hill.s.col[2] / magrtgt;             // phiint       = rinthill(3)/magrtgt;
+    double sinphiint = sin(phiint);                      // sinphiint    = sin(phiint);
+    double cosphiint = cos(phiint);                      // cosphiint    = cos(phiint);
+    double sinlambdaint = sin(lambdaint);                // sinlambdaint = sin(lambdaint);
+    double coslambdaint = cos(lambdaint);                // coslambdaint = cos(lambdaint);
+
+    //  find rotation matrix to go from SEZ of interceptor to RSW of target
+    rmatrix rotSEZtoRSW(
+    {
+        sinphiint * coslambdaint, // rotrswtoSEZ(1,1) = sinphiint * coslambdaint;
+        -sinlambdaint,            // rotrswtoSEZ(2,1) = -sinlambdaint;
+        cosphiint * coslambdaint  // rotrswtoSEZ(3,1) = cosphiint * coslambdaint;
+    },{
+        sinphiint * sinlambdaint, // rotrswtoSEZ(1,2) = sinphiint * sinlambdaint;
+        coslambdaint,             // rotrswtoSEZ(2,2) = coslambdaint;
+        cosphiint * sinlambdaint  // rotrswtoSEZ(3,2) = cosphiint * sinlambdaint;
+    },{
+        -cosphiint,               // rotrswtoSEZ(1,3) = -cosphiint;
+        0.0,                      // rotrswtoSEZ(2,3) = 0.0;
+        sinphiint                 // rotrswtoSEZ(3,3) = sinphiint;
+    });
+
+    // find acceleration component positions by using angular rates in SEZ frame
+    double rdotdotint = hill.a.col[0];// + tgtrsw.a.col[0]; // TODO: changed
+    double lambdadotdotint = hill.a.col[1] / magrtgt;// + lambdadotdottgt; // TODO: changed
+    double phidotdotint = hill.a.col[2] / magrtgt ;//+ phidotdottgt; // TODO: added extra phidotdottgt term, check
+    rvector aintSEZ;
+    aintSEZ.col[0] = -magrint * phidotdotint;
+    aintSEZ.col[1] = magrint * lambdadotdotint * cosphiint;
+    aintSEZ.col[2] = rdotdotint;
+    Convert::cartpos inteci;
+    intrsw.a = rv_mmult(rotSEZtoRSW, aintSEZ);
+    rmatrix rotRSW2ECI = rm_transpose(rotECI2RSW);
+    inteci.a = rv_mmult(rotRSW2ECI, intrsw.a);
+
+    //  find velocity component positions by using angular rates in SEZ frame
+    double rdotint = hill.v.col[0] + tgtrsw.v.col[0];                // rdotint      = vinthill(1); // if circular ==>> vinthill(1);  // if not ++>> vinthill(1) + vtgtrsw(1)
+    double lambdadotint = hill.v.col[1] / magrtgt + lambdadottgt;    // lambdadotint = vinthill(2)/magrtgt + lambdadottgt;
+    double phidotint = hill.v.col[2] / magrtgt;                      // phidotint    = vinthill(3)/magrtgt;
+    rvector vintSEZ;
+    vintSEZ.col[0] = -magrint * phidotint;                   // vintSEZ(1) = -magrint * phidotint;
+    vintSEZ.col[1] = magrint * lambdadotint * cosphiint;     // vintSEZ(2) = magrint * lambdadotint * cosphiint;
+    vintSEZ.col[2] = rdotint;                                // vintSEZ(3) = rdotint;
+    intrsw.v = rv_mmult(rotSEZtoRSW, vintSEZ);     // vintrsw    = rotrswtoSEZ' * vintSEZ';
+    inteci.v = rv_mmult(rotRSW2ECI, intrsw.v);    // vinteci    = rotECI2RSW' * vintrsw;
+
+    //  find position component positions
+    intrsw.s.col[0] = cosphiint * magrint * coslambdaint;    // rintrsw(1) = cosphiint * magrint * coslambdaint;
+    intrsw.s.col[1] = cosphiint * magrint * sinlambdaint;    // rintrsw(2) = cosphiint * magrint * sinlambdaint;
+    intrsw.s.col[2] = sinphiint * magrint;                   // rintrsw(3) = sinphiint * magrint;
+    inteci.s = rv_mmult(rotRSW2ECI, intrsw.s);               // rinteci    = rotECI2RSW' * rintrsw';
+    return inteci;
+}
+
 int32_t kep2eci(kepstruc &kep, cartpos &eci)
 {
     rvector qpos, qvel;
@@ -3509,25 +3923,47 @@ int32_t kep2eci(kepstruc &kep, cartpos &eci)
 
 int32_t eci2kep(cartpos &eci, kepstruc &kep)
 {
-    double magr, magv, magn, sme, rdotv, temp;
+    double rmag, rmag2=D_SMALL, rmag3=D_SMALL, drmag=0.;
+    double vmag, vmag2=D_SMALL, vmag3=D_SMALL, vmag4=D_SMALL, vmag5=D_SMALL, vmag6=D_SMALL, dvmag=0.;
+    double magn, sme, rdotv, temp;
     double c1, hk, magh;
     rvector nbar, ebar, rsun, hsat;
     cartpos earthpos;
 
     kep.utc = eci.utc;
+    kep.ddmm = 0.;
 
-    magr = length_rv(eci.s);
-    if (magr < D_SMALL)
-        magr = D_SMALL;
-    magv = length_rv(eci.v);
-    if (magv < D_SMALL)
-        magv = D_SMALL;
+    rmag = length_rv(eci.s);
+    if (rmag < D_SMALL)
+    {
+        rmag = D_SMALL;
+    }
+    else
+    {
+        rmag2= rmag * rmag;
+        rmag3 = rmag * rmag2;
+        drmag = (eci.s.col[0] * eci.v.col[0] + eci.s.col[1] * eci.v.col[1] + eci.s.col[2] * eci.v.col[2]) / rmag;
+    }
+    vmag = length_rv(eci.v);
+    if (vmag < D_SMALL)
+    {
+        vmag = D_SMALL;
+    }
+    else
+    {
+        vmag2 = vmag * vmag;
+        vmag3 = vmag * vmag2;
+        vmag4 = vmag * vmag3;
+        vmag5 = vmag * vmag4;
+        vmag6 = vmag * vmag5;
+        dvmag = (eci.v.col[0] * eci.a.col[0] + eci.v.col[1] * eci.a.col[1] + eci.v.col[2] * eci.a.col[2]) / vmag;
+    }
     kep.h = rv_cross(eci.s, eci.v);
-    if (magr == D_SMALL && magv == D_SMALL)
+    if (rmag == D_SMALL && vmag == D_SMALL)
         kep.fa = acos(1. / D_SMALL);
     else
-        kep.fa = acos(length_rv(kep.h) / (magr * magv));
-    kep.eta = magv * magv / 2. - GM / magr;
+        kep.fa = acos(length_rv(kep.h) / (rmag * vmag));
+    kep.eta = vmag2 / 2. - GM / rmag;
     magh = length_rv(kep.h);
     jplpos(JPL_EARTH, JPL_SUN_BARY, utc2tt(eci.utc), &earthpos);
     earthpos.utc = eci.utc;
@@ -3544,23 +3980,31 @@ int32_t eci2kep(cartpos &eci, kepstruc &kep)
         nbar.col[1] = kep.h.col[0];
         nbar.col[2] = 0.0;
         magn = length_rv(nbar);
-        c1 = magv * magv - GM / magr;
+        c1 = vmag2 - GM / rmag;
         rdotv = dot_rv(eci.s, eci.v);
         ebar.col[0] = (c1 * eci.s.col[0] - rdotv * eci.v.col[0]) / GM;
         ebar.col[1] = (c1 * eci.s.col[1] - rdotv * eci.v.col[1]) / GM;
         ebar.col[2] = (c1 * eci.s.col[2] - rdotv * eci.v.col[2]) / GM;
         kep.e = length_rv(ebar);
 
-        sme = (magv * magv * 0.5) - (GM / magr);
+        sme = (vmag2 * 0.5) - (GM / rmag);
         if (fabs(sme) > O_SMALL)
+        {
             kep.a = -GM / (2. * sme);
+            kep.mm = sqrt(GM / pow(kep.a, 3.));
+            kep.dmm = (-6. * vmag6 / GM2 + 6. * vmag4 / (rmag * GM) - 24. * vmag / rmag2) * dvmag;
+            kep.dmm += (-6. * vmag4 / (rmag2 * GM) + 24. * vmag2 / rmag3 - 24. * GM / rmag3) * drmag;
+            kep.dmm /= 2. * kep.mm;
+        }
         else
+        {
             kep.a = O_INFINITE;
-        //	p = magh * magh / GM;
+            kep.mm = O_SMALL;
+            kep.dmm = D_SMALL;
+        }
+        kep.period = 2. * DPI / kep.mm;
 
         // find mean motion and period
-        kep.mm = sqrt(GM / pow(kep.a, 3.));
-        kep.period = 2. * DPI / kep.mm;
 
         // -----------------  find inclination   -------------------
         hk = kep.h.col[2] / magh;
@@ -3580,7 +4024,7 @@ int32_t eci2kep(cartpos &eci, kepstruc &kep)
             kep.raan = O_UNDEFINED;
 
         // Find eccentric and mean anomaly
-        kep.ea = atan2(rdotv / sqrt(kep.a * GM), 1. - magr / kep.a);
+        kep.ea = atan2(rdotv / sqrt(kep.a * GM), 1. - rmag / kep.a);
         kep.ma = kep.ea - kep.e * sin(kep.ea);
 
         // Find argument of latitude
@@ -3595,7 +4039,7 @@ int32_t eci2kep(cartpos &eci, kepstruc &kep)
     else
     {
         kep.a = kep.e = kep.i = kep.raan = O_UNDEFINED;
-        kep.ap = kep.alat = kep.ma = kep.ta = kep.ea = kep.mm = O_UNDEFINED;
+        kep.ap = kep.alat = kep.ma = kep.ta = kep.ea = kep.mm = kep.dmm = kep.ddmm = O_UNDEFINED;
     }
 
     return 0;
@@ -3792,6 +4236,8 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
     int i;
     double temp, temp1, temp2, temp3, temp4, temp5, temp6;
     double tempa, tempe, templ;
+    // Mean motion per minute
+    double mmm;
     double ao, a1, c2, c3, coef, coef1, theta4, c1sq;
     double theta2, betao2, betao, delo, del1, s4, qoms24, x1m5th, xhdot1;
     double perige, eosq, pinvsq, tsi, etasq, eeta, psisq, g, xmdf;
@@ -3815,7 +4261,8 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
         }
         // RECOVER ORIGINAL MEAN MOTION ( xnodp ) AND SEMIMAJOR AXIS (aodp)
         // FROM INPUT ELEMENTS
-        a1 = pow((SGP4_XKE / tle.mm), SGP4_TOTHRD);
+        mmm = tle.mm * 60.;
+        a1 = pow((SGP4_XKE / mmm), SGP4_TOTHRD);
         cosio = cos(tle.i);
         theta2 = cosio * cosio;
         x3thm1 = 3. * theta2 - 1.;
@@ -3825,7 +4272,7 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
         del1 = 1.5 * SGP4_CK2 * x3thm1 / (a1 * a1 * betao * betao2);
         ao = a1 * (1. - del1 * (.5 * SGP4_TOTHRD + del1 * (1. + 134. / 81. * del1)));
         delo = 1.5 * SGP4_CK2 * x3thm1 / (ao * ao * betao * betao2);
-        xnodp = tle.mm / (1. + delo);
+        xnodp = mmm / (1. + delo);
         aodp = ao / (1. - delo);
         // INITIALIZATION
         // FOR PERIGEE LESS THAN 220 KILOMETERS, THE isimp FLAG IS SET AND
@@ -4284,8 +4731,7 @@ int32_t eci2tle(cartpos eci, tlestruc &tle)
             break;
         }
     }
-    tle.mm = xke * pow(a1, -1.5);
-    //            mm = mm / (pi2 / 1440.0);
+    tle.mm = xke * pow(a1, -1.5) / 60.;
 
     return 0;
 }
@@ -4332,7 +4778,8 @@ int32_t eci2tle2(cartpos eci, tlestruc &tle)
     tle.e = kep.e;
     tle.i = kep.i;
     tle.ma = kep.ma;
-    tle.mm = kep.mm * 60.; // Keplerian in SI units (radians / seconds), convert to radians / minute.
+    tle.mm = kep.mm;
+    tle.dmm = kep.dmm * D2PI / (86400. * 86400.);
     tle.raan = kep.raan;
     tle.utc = eci.utc;
 //    eci2tle(eci, tle);
@@ -4706,6 +5153,16 @@ tlestruc get_line(uint16_t index, vector<tlestruc> lines)
          */
 int32_t loadTLE(char *fname, tlestruc &tle)
 {
+    return load_tle(fname, tle);
+}
+
+int32_t load_tle(string fname, tlestruc &tle)
+{
+    return load_tle((char *)fname.c_str(), tle);
+}
+
+int32_t load_tle(char *fname, tlestruc &tle)
+{
     FILE *fdes;
     uint16_t year;
     double jday;
@@ -4737,7 +5194,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
         // Line 1
         if (fgets(ibuf, 80, fdes) == nullptr)
             break;
-        sscanf(&ibuf[2], "%5hu", &tle.snumber);
+        sscanf(&ibuf[2], "%5u", &tle.snumber);
         tle.id = string(ibuf).substr(9, 9);
         sscanf(&ibuf[18], "%2hu", &year);
         if (year < 57)
@@ -4747,6 +5204,9 @@ int32_t loadTLE(char *fname, tlestruc &tle)
         sscanf(&ibuf[20], "%12lf", &jday);
         tle.utc = cal2mjd((int)year, 1, 0.);
         tle.utc += jday;
+        sscanf(&ibuf[33], "%lf", &tle.dmm);
+        tle.dmm *= D2PI / (86400. * 86400.);
+        tle.ddmm = 0.;
         if (strlen(ibuf) > 50)
         {
             sscanf(&ibuf[53], "%6d%2d", &bdragm, &bdrage);
@@ -4765,7 +5225,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
             tle.raan = RADOF(tle.raan);
             tle.ap = RADOF(tle.ap);
             tle.ma = RADOF(tle.ma);
-            tle.mm *= D2PI / 1440.;
+            tle.mm *= D2PI / 86400.;
             tle.e = ecc / 1.e7;
         }
     }
@@ -4814,6 +5274,10 @@ int32_t load_lines(string fname, vector<tlestruc> &lines)
         // Line 1
         if (fgets(ibuf, 80, fdes) == nullptr)
             break;
+        if (strlen(ibuf) < 68)
+        {
+            break;
+        }
         uint16_t cs = 0;
         for (uint16_t i = 0; i < 68; ++i)
         {
@@ -4827,7 +5291,7 @@ int32_t load_lines(string fname, vector<tlestruc> &lines)
             }
         }
         cs = cs % 10;
-        sscanf(&ibuf[2], "%5hu", &tle.snumber);
+        sscanf(&ibuf[2], "%5u", &tle.snumber);
         tle.id = string(ibuf).substr(9, 9);
         sscanf(&ibuf[18], "%2hu", &year);
         if (year < 57)
@@ -4837,6 +5301,9 @@ int32_t load_lines(string fname, vector<tlestruc> &lines)
         sscanf(&ibuf[20], "%12lf", &jday);
         tle.utc = cal2mjd((int)year, 1, 0.);
         tle.utc += jday;
+        sscanf(&ibuf[33], "%lf", &tle.dmm);
+        tle.dmm *= D2PI / (86400. * 86400.);
+        tle.ddmm = 0.;
         if (strlen(ibuf) > 50)
         {
             sscanf(&ibuf[53], "%6d%2d", &bdragm, &bdrage);
@@ -4868,7 +5335,7 @@ int32_t load_lines(string fname, vector<tlestruc> &lines)
             tle.raan = RADOF(tle.raan);
             tle.ap = RADOF(tle.ap);
             tle.ma = RADOF(tle.ma);
-            tle.mm *= D2PI / 1440.;
+            tle.mm *= D2PI / 86400.;
             tle.e = ecc / 1.e7;
             lines.push_back(tle);
         }
@@ -4916,7 +5383,7 @@ int32_t load_lines_multi(string fname, vector<tlestruc> &lines)
         // Line 1
         if (fgets(ibuf, 80, fdes) == nullptr)
             break;
-        sscanf(&ibuf[2], "%5hu", &tle.snumber);
+        sscanf(&ibuf[2], "%5u", &tle.snumber);
         tle.id = string(ibuf).substr(9, 9);
         sscanf(&ibuf[18], "%2hu", &year);
         if (year < 57)
@@ -4926,6 +5393,9 @@ int32_t load_lines_multi(string fname, vector<tlestruc> &lines)
         sscanf(&ibuf[20], "%12lf", &jday);
         tle.utc = cal2mjd((int)year, 1, 0.);
         tle.utc += jday;
+        sscanf(&ibuf[33], "%lf", &tle.dmm);
+        tle.dmm *= D2PI / (86400. * 86400.);
+        tle.ddmm = 0.;
         if (strlen(ibuf) > 50)
         {
             sscanf(&ibuf[53], "%6d%2d", &bdragm, &bdrage);
@@ -4944,7 +5414,7 @@ int32_t load_lines_multi(string fname, vector<tlestruc> &lines)
             tle.raan = RADOF(tle.raan);
             tle.ap = RADOF(tle.ap);
             tle.ma = RADOF(tle.ma);
-            tle.mm *= D2PI / 1440.;
+            tle.mm *= D2PI / 86400.;
             tle.e = ecc / 1.e7;
             lines.push_back(tle);
         }
@@ -5183,13 +5653,14 @@ int stk2eci(double utc, stkstruc &stk, cartpos &eci)
         << a.ta << "\t"
         << a.ea << "\t"
         << a.mm << "\t"
+        << a.dmm << "\t"
         << a.fa;
     return out;
 }
 
 ::std::istream &operator>>(::std::istream &in, kepstruc &a)
 {
-    in >> a.utc >> a.orbit >> a.period >> a.a >> a.e >> a.h >> a.beta >> a.eta >> a.i >> a.raan >> a.ap >> a.alat >> a.ma >> a.ta >> a.ea >> a.mm >> a.fa;
+    in >> a.utc >> a.orbit >> a.period >> a.a >> a.e >> a.h >> a.beta >> a.eta >> a.i >> a.raan >> a.ap >> a.alat >> a.ma >> a.ta >> a.ea >> a.mm >> a.dmm >> a.fa;
     return in;
 }
 
@@ -5225,8 +5696,8 @@ int stk2eci(double utc, stkstruc &stk, cartpos &eci)
         << a.ds2t << "\t"
         << a.t2s << "\t"
         << a.dt2s << "\t"
-        << a.l2g << "\t"
-        << a.g2l << "\t"
+        << a.l2e << "\t"
+        << a.e2l << "\t"
         << a.sun2earth << "\t"
         << a.sun2moon << "\t"
         << a.closest;
@@ -5235,7 +5706,7 @@ int stk2eci(double utc, stkstruc &stk, cartpos &eci)
 
 ::std::istream &operator>>(::std::istream &in, extrapos &a)
 {
-    in >> a.utc >> a.tt >> a.ut >> a.tdb >> a.j2e >> a.dj2e >> a.ddj2e >> a.e2j >> a.de2j >> a.dde2j >> a.j2t >> a.j2s >> a.t2j >> a.s2j >> a.s2t >> a.ds2t >> a.t2s >> a.dt2s >> a.g2l >> a.l2g >> a.sun2earth >> a.sun2moon >> a.closest;
+    in >> a.utc >> a.tt >> a.ut >> a.tdb >> a.j2e >> a.dj2e >> a.ddj2e >> a.e2j >> a.de2j >> a.dde2j >> a.j2t >> a.j2s >> a.t2j >> a.s2j >> a.s2t >> a.ds2t >> a.t2s >> a.dt2s >> a.e2l >> a.l2e >> a.sun2earth >> a.sun2moon >> a.closest;
     return in;
 }
 
@@ -5317,7 +5788,7 @@ int32_t tle2sgp4(tlestruc tle, sgp4struc &sgp4)
     sgp4.bstar = tle.bstar;
     sgp4.e = tle.e;
     sgp4.ma = DEGOF(tle.ma);
-    sgp4.mm = tle.mm * 1440. / D2PI;
+    sgp4.mm = tle.mm * 86400. / D2PI;
     calstruc cal = mjd2cal(tle.utc);
     sgp4.ep = (cal.year - 2000.) * 1000. + cal.doy + cal.hour / 24. + cal.minute / 1440. + (cal.second + cal.nsecond / 1e9) / 86400.;
     sgp4.raan = DEGOF(tle.raan);
@@ -5331,7 +5802,7 @@ int32_t sgp42tle(sgp4struc sgp4, tlestruc &tle)
     tle.bstar = sgp4.bstar;
     tle.e = sgp4.e;
     tle.ma = RADOF(sgp4.ma);
-    tle.mm = sgp4.mm * D2PI / 1440.;
+    tle.mm = sgp4.mm * D2PI / 86400.;
     tle.raan = RADOF(sgp4.raan);
     int year = sgp4.ep / 1000;
     double jday = sgp4.ep - (year * 1000);
@@ -5374,20 +5845,40 @@ string eci2tlestring(cartpos eci, tlestruc &reftle)
 
 string tle2tlestring(tlestruc reftle)
 {
-    string line_1(69, ' ');
-    string line_2(69, ' ');
+//    string line_1(69, ' ');
+//    string line_2(69, ' ');
+    string line_1;
+    string line_2;
 
     // Ignore the name line. Populate our epoch field.
-    sprintf(&line_1[0], "1 %5huU %8s %02hu%12f", reftle.id, mjd2year(reftle.utc)-2000, mjd2doy(reftle.utc));
+    line_1 = "1 ";
+    line_1 += to_unsigned(reftle.snumber, 5, true) + "U ";
+    line_1 += reftle.id + string(9-reftle.id.size(), ' ');
+    line_1 += to_unsigned(mjd2year(reftle.utc)-2000, 2, true);
+    line_1 += to_fixed(mjd2doy(reftle.utc), 12, 8, true) + " ";
+    line_1 += to_floating(reftle.dmm*86400.*86400./D2PI, 8) + " ";
+    line_1 += " 00000-0 ";
     int16_t bdrage = log10(reftle.bstar) + 5;
+    line_1 += to_unsigned(bdrage, 6, true);
     int16_t bdragm = reftle.bstar / pow(10., bdrage-5);
-    sprintf(&line_1[53], "%6d%2d", bdragm, bdrage);
-    line_1[68] = tle_checksum(line_1.data());
+    line_1 += to_unsigned(bdragm, 2, true) + " 0    0";
+    line_1 += to_unsigned(tle_checksum(line_1.data()), 1);
 
-    sprintf(&line_2[0], "2 %5hu %#08.4f %08f %07d %#08.4f %#08.4f %#011.8f%5u", reftle.id, DEGOF(reftle.i), DEGOF(reftle.raan), 1.e7*reftle.e, DEGOF(reftle.ap), (DEGOF(reftle.ma) < 0) ? 360 + DEGOF(reftle.ma) : DEGOF(reftle.ma), DEGOF(reftle.mm), reftle.orbit);
-    line_2[68] = tle_checksum(line_2.data());
+    line_2 = "2 ";
+    line_2 += to_unsigned(reftle.snumber, 5, true) + " ";
+    line_2 += to_fixed(DEGOF(reftle.i), 8, 4) + " ";
+    line_2 += to_fixed(DEGOF(reftle.raan), 8, 4) + " ";
+    line_2 += to_unsigned(1.e7*reftle.e, 7) + " ";
+    line_2 += to_fixed(DEGOF(reftle.ap), 8, 4) + " ";
+    line_2 += to_fixed((DEGOF(reftle.ma) < 0) ? 360 + DEGOF(reftle.ma) : DEGOF(reftle.ma), 8, 4) + " ";
+    line_2 += to_fixed(reftle.mm*86400./D2PI, 11, 8);
+    line_2 += "00000";
+    line_2 += to_unsigned(tle_checksum(line_1.data()), 1);
 
-    return reftle.name + "\n" + line_1 + "\n" + line_2 + "\n";
+    string response = reftle.name + "\n";
+    response += line_1 + "\n";
+    response += line_2 + "\n";
+    return response;
 }
 
 //! Nutation values

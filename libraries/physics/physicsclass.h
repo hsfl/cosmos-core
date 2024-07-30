@@ -43,7 +43,6 @@ namespace Cosmos
 {
     namespace Physics
     {
-
         class Structure
         {
         public:
@@ -92,6 +91,7 @@ namespace Cosmos
 
             }
 
+            int32_t Setup(string stype);
             int32_t Setup(Type type);
             int32_t add_hex(double width=30, double height=30, ExternalPanelType type=NoPanel);
             int32_t add_oct(double width=30, double height=30, ExternalPanelType type=NoPanel);
@@ -243,6 +243,7 @@ namespace Cosmos
             int32_t Converge();
             int32_t Propagate(double nextutc=0., quaternion icrf={{0.,0.,0.},1.});
             int32_t Reset(double nextutc=0.);
+            int32_t Update();
 
         private:
 
@@ -454,6 +455,7 @@ namespace Cosmos
             const uint8_t DEG10 = 2;
             const uint8_t DEGMAX = 3;
             const uint32_t GS_EVENT_CODE[4] = {EVENT_TYPE_GS, EVENT_TYPE_GS5, EVENT_TYPE_GS10, EVENT_TYPE_GSMAX};
+            const string GS_EVENT_STRING[4] = {"GS", "GS5", "GS10", "GSMAX"};
             //! Tracks Acquisition of Signal events for each groundstation
             map<string, target_aos_set> gs_AoS;
             //! Tracks Acquisition of Sight events for each target. Targets track only DEG0
@@ -488,7 +490,7 @@ namespace Cosmos
             vector<vector<Physics::coverage>> coverage;
 
             int32_t Init();
-            int32_t AddDetector(float fov, float ifov, float specmin, float specmax);
+//            int32_t AddDetector(float fov, float ifov, float specmin, float specmax);
             int32_t Propagate(double nextutc=0.);
             int32_t Reset(double nextutc=0.);
 
@@ -561,27 +563,28 @@ namespace Cosmos
             OrbitalEventGenerator *orbitalevent;
             MetricGenerator *metric;
 
-            Structure::Type stype;
+            string stype;
             Structure *structure;
 
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype);
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf=qatt());
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf=qatt());
-            int32_t Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, cartpos lvlh, qatt icrf=qatt());
+            int32_t Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype);
+            int32_t Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf=qatt());
+            int32_t Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf=qatt());
+            int32_t Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, cartpos lvlh, qatt icrf=qatt());
             int32_t Propagate(double nextutc=0.);
             int32_t Propagate(locstruc& nextloc);
             //! Propagates simulated physical state to the next timestep
             //! Runs any code that the propagators need to run at the end of a simulation run
             int32_t End();
             int32_t Reset(double nextutc=0.);
-            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
-            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, double area=0.);
-            int32_t AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
-            int32_t AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
-            int32_t AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type=NODE_TYPE_SQUARE);
+//            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
+//            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, double area=0.);
+//            int32_t AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
+//            int32_t AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
+//            int32_t AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type=NODE_TYPE_SQUARE);
         };
 
 
+        double Rearth(double lat);
         double Msis00Density(posstruc pos,float f107avg,float f107,float magidx);
         Vector GravityAccel(posstruc pos, uint16_t model, uint32_t degree);
         int32_t GravityParams(int16_t model);
@@ -594,8 +597,14 @@ namespace Cosmos
         int32_t PhysSetup(physicsstruc *phys);
         int32_t PhysCalc(locstruc* loc, physicsstruc *phys);
 
+
+
         locstruc shape2eci(double utc, double altitude, double angle, double timeshift);
         locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift);
+        int32_t load_loc(string fname, locstruc& loc);
+        Vector ControlTorque(qatt tatt, qatt catt, Vector moi, double seconds);
+        Vector ControlAccel(cartpos cpos, cartpos tpos, double maxaccel, double seconds);
+        Vector ControlThrust(cartpos cpos, cartpos tpos, double mass, double maxaccel, double seconds);
 
 
     } //end of namespace Physics

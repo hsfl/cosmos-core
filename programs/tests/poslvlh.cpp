@@ -14,9 +14,21 @@ int main(int argc, char *argv[])
     //Convert::qatt lvlhq = cinfo->node.loc.att.lvlh;
     Convert::cartpos lvlh;
 
-    lvlh.s.col[0] = 5000.;
-    lvlh.s.col[1] = 5000.;
-    lvlh.s.col[2] = 5000.;
+    lvlh.s.col[0] = 0.;
+    lvlh.s.col[1] = 0.;
+    lvlh.s.col[2] = 0.;
+    if (argc > 1)
+    {
+        lvlh.s.col[0] = atof(argv[1]);
+    }
+    if (argc > 2)
+    {
+        lvlh.s.col[1] = atof(argv[2]);
+    }
+    if (argc > 3)
+    {
+        lvlh.s.col[2] = atof(argv[3]);
+    }
 
     Convert::pos_origin2lvlh(cinfo->node.loc, lvlh);
     Convert::pos_lvlh2origin(cinfo->node.loc);

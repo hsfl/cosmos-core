@@ -70,7 +70,7 @@ target_link_libraries(CosmosData CosmosTime CosmosString localzlib CosmosLog Cos
 
 add_library(CosmosPacketHandler STATIC packethandler.cpp packethandler.h)
 install(TARGETS CosmosPacketHandler DESTINATION lib)
-target_link_libraries(CosmosPacketHandler CosmosBeacon CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosLog CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosPacketHandler CosmosConvert CosmosBeacon CosmosPacket CosmosAgent CosmosDeviceGeneral CosmosMath CosmosNamespace CosmosSlip CosmosLog CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosChannel STATIC channellib.cpp channellib.h)
 install(TARGETS CosmosChannel DESTINATION lib)

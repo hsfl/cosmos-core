@@ -1,4 +1,5 @@
 #include "physicsclass.h"
+#include "support/enumlib.h"
 
 namespace Cosmos
 {
@@ -318,6 +319,12 @@ int32_t PosAccel(locstruc* loc, physicsstruc* phys)
         da = iratt.irotate(phys->thrust);
         loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
     }
+    // Fictional force
+    if (phys->fpush.norm() > 0.)
+    {
+        da = (1. / phys->mass) * phys->fpush;
+        loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
+    }
 
     loc->pos.eci.pass++;
     iretn = pos_eci(loc);
@@ -635,7 +642,7 @@ double Nplgndr(uint32_t l, uint32_t m, double x)
     }
 }
 
-double rearth(double lat)
+double Rearth(double lat)
 {
     double st,ct;
     double c;
@@ -664,8 +671,8 @@ locstruc shape2eci(double utc, double latitude, double longitude, double altitud
     double st = sin(latitude);
     double c = 1./sqrt(ct * ct + FRATIO2 * st * st);
     double s = FRATIO2 * c;
-    double r = (rearth(0.) * c + altitude) * ct;
-    double z = ((rearth(0.) * s + altitude) * st);
+    double r = (Rearth(0.) * c + altitude) * ct;
+    double z = ((Rearth(0.) * s + altitude) * st);
     double radius = sqrt(r * r + z * z);
     double phi = asin(z / radius);
 
@@ -723,27 +730,272 @@ locstruc shape2eci(double utc, double latitude, double longitude, double altitud
     loc.pos.geoc.pass++;
     pos_geoc(loc);
 
-    //            kepstruc kep;
-    //            eci2kep(loc.pos.eci, kep);
-    //            if (timeshift != 0.)
-    //            {
-    //                kepstruc kep;
-    //                double dea;
-    //                eci2kep(loc.pos.eci, kep);
-    //                kep.ma += timeshift * kep.mm;
-    //                uint16_t count = 0;
-    //                do
-    //                {
-    //                    dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
-    //                    kep.ea -= dea;
-    //                } while (++count < 100 && fabs(dea) > .000001);
-    //                kep2eci(kep, loc.pos.eci);
-    //                loc.pos.eci.pass++;
-    //                pos_eci(loc);
-    //            }
-
-
     return loc;
+}
+
+//! Populate locstruc from file
+//! Read JSON in provided file and populate locstruc based on contents:
+//! - "type":"phys" : Physical orbit using ::Physics::shape2eci
+//! - "type":"eci" : Orbit expressed in ECI coordinates
+//! - "type":"kep" : Orbit expressed in Keplerian Elements
+//! - "type":"tle" : Orbit expressed as TLE
+//! \param fname File name for orbit
+//! \param loc ::Convert::locstruc in to which to place orbit
+//! \return Zero or negative error
+int32_t load_loc(string fname, locstruc& loc)
+{
+    FILE *fdes;
+    int32_t iretn;
+
+    if ((fdes = fopen(fname.c_str(), "r")) == nullptr)
+    {
+        return (-errno);
+    }
+
+    char* input = nullptr;
+    size_t n = 0;
+    if ((iretn=getline(&input, &n, fdes)) < 0)
+    {
+        return -errno;
+    }
+
+    string estring;
+    json11::Json jargs = json11::Json::parse(input, estring);
+    free(input);
+    if (!jargs["phys"].is_null())
+    {
+        json11::Json::object values = jargs["phys"].object_items();
+        loc.pos.geod.s.lat = RADOF(values["lat"].number_value());
+        loc.pos.geod.s.lon = RADOF(values["lon"].number_value());
+        loc.pos.geod.s.h = values["alt"].number_value();
+        double angle = RADOF(values["angle"].number_value());
+        loc.pos.geod.utc = values["utc"].number_value();
+        if (loc.pos.geod.utc == 0.)
+        {
+            loc.pos.geod.utc = currentmjd();
+        }
+        loc = Physics::shape2eci(loc.pos.geod.utc, loc.pos.geod.s.lat, loc.pos.geod.s.lon, loc.pos.geod.s.h,angle, 0.);
+        return 0;
+    }
+    if (!jargs["eci"].is_null())
+    {
+        json11::Json::object values = jargs["eci"].object_items();
+        loc.pos.eci.utc = (values["utc"].number_value());
+        if (loc.pos.eci.utc == 0.)
+        {
+            loc.pos.eci.utc = currentmjd();
+        }
+        loc.pos.eci.s.col[0] = (values["x"].number_value());
+        loc.pos.eci.s.col[1] = (values["y"].number_value());
+        loc.pos.eci.s.col[2] = (values["z"].number_value());
+        loc.pos.eci.v.col[0] = (values["vx"].number_value());
+        loc.pos.eci.v.col[1] = (values["vy"].number_value());
+        loc.pos.eci.v.col[2] = (values["vz"].number_value());
+        loc.pos.eci.pass++;
+        pos_eci(loc);
+        return 0;
+    }
+    if (!jargs["kep"].is_null())
+    {
+        json11::Json::object values = jargs["kep"].object_items();
+        kepstruc kep;
+        kep.utc = (values["utc"].number_value());
+        if (kep.utc == 0.)
+        {
+            kep.utc = currentmjd();
+        }
+        kep.ea = values["ea"].number_value();
+        kep.i = values["i"].number_value();
+        kep.ap = values["ap"].number_value();
+        kep.raan = values["raan"].number_value();
+        kep.e = values["e"].number_value();
+        kep.a = values["a"].number_value();
+        kep2eci(kep, loc.pos.eci);
+        loc.pos.eci.pass++;
+        pos_eci(loc);
+        return 0;
+    }
+    if (!jargs["tle"].is_null())
+    {
+        json11::Json::object values = jargs["tle"].object_items();
+        string fname = values["filename"].string_value();
+        if ((iretn=load_tle(fname, loc.tle)) < 0)
+        {
+            return iretn;
+        }
+        tle2eci(loc.tle.utc, loc.tle, loc.pos.eci);
+        loc.pos.eci.pass++;
+        pos_eci(loc);
+        return 0;
+    }
+    return GENERAL_ERROR_ARGS;
+}
+
+Vector ControlTorque(qatt tatt, qatt catt, Vector moi, double seconds)
+{
+    Matrix mom, rm;
+    double dalp, domg, dt;
+    Vector alpha, omega, torque;
+    Vector distance;
+    Quaternion dsq2;
+    Quaternion tpos(tatt.s);
+    Vector tvel(tatt.v);
+    Quaternion cpos(catt.s);
+    Vector cvel(catt.v);
+
+    if ((dt=(tatt.utc-catt.utc)*86400.) > 0.) {
+
+        // Calculate adjustment for ICRF distance
+
+        //		if (length_q(tpos))
+        if (tpos.norm()) {
+            dsq2 = Quaternion(tpos) * Quaternion(cpos).conjugate();
+            //			q_mult(tatt.s,q_conjugate(catt.s));
+            distance.x = dsq2.x;
+            distance.y = dsq2.y;
+            distance.z = dsq2.z;
+            //			rv_quaternion2axis(dsq2);
+            domg = distance.norm();
+            //			length_rv(distance);
+            if (domg > DPI) {
+                dsq2 *= -1.;
+                //				= q_smult(-1.,dsq2);
+                distance *= -1.;
+                //				= rv_quaternion2axis(dsq2);
+            }
+            omega = distance / seconds;
+            //			rv_smult(1./lag,distance);
+        }
+        else
+        {
+            // If Target quaternion is zero, adjust only for velocity
+            omega = Vector();
+            //			rv_zero();
+        }
+
+        // Match velocity
+        omega += Vector(tvel);
+        //		= rv_add(omega,tatt.v);
+        alpha = omega - Vector(cvel);
+        //		rv_sub(omega,catt.v);
+        dalp = alpha.norm() / seconds;
+        //		length_rv(alpha) / lag;
+        alpha = dalp * alpha.normalize();
+        //		rv_smult(dalp,rv_normal(alpha));
+
+        // Conversion from ICRF to Body
+        rm = Matrix(Quaternion(cpos));
+        //		rm_quaternion2dcm(catt.s);
+        // Moment of Inertia in Body
+        mom = mom.diag(moi);
+        //		rm_diag(moi);
+        // Moment of Inertia in ICRF
+        mom = rm.transpose() * (mom * rm);
+        //		rm_mmult(rm_transloc.pos.eci.se(rm),rm_mmult(mom,rm));
+        torque = mom * alpha;
+        //		rv_mmult(mom,alpha);
+    }
+    return torque;
+}
+
+Vector ControlThrust(cartpos cpos, cartpos tpos, double mass, double maxaccel, double seconds)
+{
+    return mass * ControlAccel(cpos, tpos, maxaccel, seconds);
+}
+
+Vector ControlAccel(cartpos cpos, cartpos tpos, double maxaccel, double seconds)
+{
+    double minaccel = 0.1 * maxaccel;
+    Vector newa;
+
+    Vector dpos = Vector(rv_sub(cpos.s, tpos.s));
+    Vector dvel = Vector(rv_sub(cpos.v, tpos.v));
+
+    if (dpos.norm() > .01)
+    {
+        Vector timet;
+        double s0;
+        double v0;
+        double vt;
+//        double v2;
+//        double sa2;
+//        double tsp;
+//        double tsm;
+//        double tv;
+
+        // X
+        s0 = dpos.x;
+        v0 = dvel.x;
+//        v2 = v0 * v0;
+        if (s0 > 0)
+        {
+            vt = -sqrt(2.0 * maxaccel * s0);
+            newa.x = (vt - v0) / seconds;
+        }
+        else if (s0 < 0)
+        {
+            vt = sqrt(2.0 * maxaccel * -s0);
+            newa.x = (vt - v0) / seconds;
+        }
+
+        // Y
+        s0 = dpos.y;
+        v0 = dvel.y;
+        if (s0 > 0)
+        {
+            vt = -sqrt(2.0 * maxaccel * s0);
+            newa.y = (vt - v0) / seconds;
+        }
+        else if (s0 < 0)
+        {
+            vt = sqrt(2.0 * maxaccel * -s0);
+            newa.y = (vt - v0) / seconds;
+        }
+
+        // Z
+        s0 = dpos.z;
+        v0 = dvel.z;
+        if (s0 > 0)
+        {
+            vt = -sqrt(2.0 * maxaccel * s0);
+            newa.z = (vt - v0) / seconds;
+        }
+        else if (s0 < 0)
+        {
+            vt = sqrt(2.0 * maxaccel * -s0);
+            newa.z = (vt - v0) / seconds;
+        }
+
+        newa = newa.maxmag(maxaccel).minmag(minaccel);
+    }
+    return newa;
+}
+
+int32_t Structure::Setup(string stype)
+{
+    static Enum stypes;
+    if (!stypes.Size())
+    {
+        stypes.Init({
+                        "NoType",
+                        "U1","U1X","U1Y","U1XY",
+                        "U1_5","U1_5X","U1_5Y","U1_5XY",
+                        "U2","U2X","U2Y","U2XY",
+                        "U3","U3X","U3Y","U3XY",
+                        "U6","U6X","U6Y","U6XY",
+                        "U12","U12X","U12Y","U12XY",
+                        "HEX65W80H"
+                    }, {0});
+    }
+
+    if (stypes.Exists(stype))
+    {
+        return Setup(static_cast<Type>(stypes[stype]));
+    }
+    else
+    {
+        return Type::NoType;
+    }
 }
 
 int32_t Structure::Setup(Type type)
@@ -1112,7 +1364,7 @@ int32_t Structure::add_vertex(Vector point)
 }
 
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf)
+int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf)
 {
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
@@ -1270,7 +1522,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     return 0;
 }
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf)
+int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf)
 {
     int32_t iretn = 0;
     pos_clear(currentinfo.node.loc);
@@ -1308,7 +1560,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     return Init(name, idt, stype, ptype, atype, ttype, etype);
 }
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, cartpos lvlh, qatt icrf)
+int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, cartpos lvlh, qatt icrf)
 {
     int32_t iretn = 0;
     pos_clear(currentinfo.node.loc);
@@ -1351,7 +1603,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     return Init(name, idt, stype, ptype, atype, ttype, etype);
 }
 
-int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
+int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
 {
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
@@ -1362,6 +1614,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     structure = new Structure(&currentinfo.node.phys);
     structure->Setup(stype);
     this->stype = stype;
+    currentinfo.mass = currentinfo.node.phys.mass;
 
     switch (ptype)
     {
@@ -1421,7 +1674,7 @@ int32_t State::Init(string name, double idt, Structure::Type stype, Propagator::
     case Propagator::Type::AttitudeTarget:
     {
         targetattitude = new TargetAttitudePropagator(&currentinfo, dt);
-//        lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
+        //        lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
         targetattitude->Init();
     }
     break;
@@ -1536,7 +1789,6 @@ int32_t State::Propagate(double nextutc)
         else
         {
             pos_eci(currentinfo.node.loc);
-            PosAccel(currentinfo.node.loc, currentinfo.node.phys);
         }
         if (atype == Propagator::AttitudeGeo)
         {
@@ -1599,103 +1851,102 @@ int32_t State::Propagate(locstruc &loc)
 {
     int32_t count = 0;
     double nextutc = loc.utc;
-        PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
+    PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
 
-        // Thermal
-        static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
+    // Thermal
+    static_cast<ThermalPropagator *>(thermal)->Propagate(nextutc);
 
-        // Electrical
-        static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
+    // Electrical
+    static_cast<ElectricalPropagator *>(electrical)->Propagate(nextutc);
 
-        // Position
-        switch (ptype)
-        {
-        case Propagator::Type::PositionIterative:
-            static_cast<IterativePositionPropagator *>(itposition)->Propagate(nextutc);
-            break;
-        case Propagator::Type::PositionInertial:
-            static_cast<InertialPositionPropagator *>(inposition)->Propagate(nextutc);
-            break;
-        case Propagator::Type::PositionGaussJackson:
-            static_cast<GaussJacksonPositionPropagator *>(gjposition)->Propagate(nextutc, currentinfo.node.loc.att.icrf.s);
-            break;
-        case Propagator::Type::PositionGeo:
-            static_cast<GeoPositionPropagator *>(geoposition)->Propagate(nextutc);
-            break;
-        case Propagator::Type::PositionTle:
-            static_cast<TlePositionPropagator *>(tleposition)->Propagate(nextutc);
-            break;
-        case Propagator::Type::PositionLvlh:
-        {
-            static_cast<LvlhPositionPropagator *>(lvlhposition)->Propagate(loc);
-        }
-            break;
-        default:
-            break;
-        }
+    // Position
+    switch (ptype)
+    {
+    case Propagator::Type::PositionIterative:
+        static_cast<IterativePositionPropagator *>(itposition)->Propagate(nextutc);
+        break;
+    case Propagator::Type::PositionInertial:
+        static_cast<InertialPositionPropagator *>(inposition)->Propagate(nextutc);
+        break;
+    case Propagator::Type::PositionGaussJackson:
+        static_cast<GaussJacksonPositionPropagator *>(gjposition)->Propagate(nextutc, currentinfo.node.loc.att.icrf.s);
+        break;
+    case Propagator::Type::PositionGeo:
+        static_cast<GeoPositionPropagator *>(geoposition)->Propagate(nextutc);
+        break;
+    case Propagator::Type::PositionTle:
+        static_cast<TlePositionPropagator *>(tleposition)->Propagate(nextutc);
+        break;
+    case Propagator::Type::PositionLvlh:
+    {
+        static_cast<LvlhPositionPropagator *>(lvlhposition)->Propagate(loc);
+    }
+    break;
+    default:
+        break;
+    }
 
-        if (ptype == Propagator::PositionGeo)
-        {
-            pos_geod(currentinfo.node.loc);
-        }
-        else
-        {
-            pos_eci(currentinfo.node.loc);
-            PosAccel(currentinfo.node.loc, currentinfo.node.phys);
-        }
-        if (atype == Propagator::AttitudeGeo)
-        {
-            att_geoc(currentinfo.node.loc);
-        }
-        else
-        {
-            att_icrf(currentinfo.node.loc);
-            AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-        }
+    if (ptype == Propagator::PositionGeo)
+    {
+        pos_geod(currentinfo.node.loc);
+    }
+    else
+    {
+        pos_eci(currentinfo.node.loc);
+    }
+    if (atype == Propagator::AttitudeGeo)
+    {
+        att_geoc(currentinfo.node.loc);
+    }
+    else
+    {
+        att_icrf(currentinfo.node.loc);
+        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+    }
 
-        update_target(&currentinfo);
+    update_target(&currentinfo);
 
-        // Attitude
-        switch (atype)
-        {
-        case Propagator::Type::AttitudeIterative:
-            static_cast<IterativeAttitudePropagator *>(itattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeInertial:
-            static_cast<InertialAttitudePropagator *>(inattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeLVLH:
-            static_cast<LvlhAttitudePropagator *>(lvattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeGeo:
-            static_cast<GeoAttitudePropagator *>(geoattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeSolar:
-            static_cast<SolarAttitudePropagator *>(solarattitude)->Propagate(nextutc);
-            break;
-        case Propagator::Type::AttitudeTarget:
-            // Update again at end after currentinfo->target update
-            static_cast<TargetAttitudePropagator *>(targetattitude)->Propagate(nextutc);
-            break;
-        default:
-            break;
-        }
+    // Attitude
+    switch (atype)
+    {
+    case Propagator::Type::AttitudeIterative:
+        static_cast<IterativeAttitudePropagator *>(itattitude)->Propagate(nextutc);
+        break;
+    case Propagator::Type::AttitudeInertial:
+        static_cast<InertialAttitudePropagator *>(inattitude)->Propagate(nextutc);
+        break;
+    case Propagator::Type::AttitudeLVLH:
+        static_cast<LvlhAttitudePropagator *>(lvattitude)->Propagate(nextutc);
+        break;
+    case Propagator::Type::AttitudeGeo:
+        static_cast<GeoAttitudePropagator *>(geoattitude)->Propagate(nextutc);
+        break;
+    case Propagator::Type::AttitudeSolar:
+        static_cast<SolarAttitudePropagator *>(solarattitude)->Propagate(nextutc);
+        break;
+    case Propagator::Type::AttitudeTarget:
+        // Update again at end after currentinfo->target update
+        static_cast<TargetAttitudePropagator *>(targetattitude)->Propagate(nextutc);
+        break;
+    default:
+        break;
+    }
 
-        // Orbital event propagator
-        if (orbitalevent != nullptr)
-        {
-            orbitalevent->Propagate(nextutc);
-        }
+    // Orbital event propagator
+    if (orbitalevent != nullptr)
+    {
+        orbitalevent->Propagate(nextutc);
+    }
 
-        // Metric propagator
-        if (metric != nullptr)
-        {
-            metric->Propagate(nextutc);
-        }
+    // Metric propagator
+    if (metric != nullptr)
+    {
+        metric->Propagate(nextutc);
+    }
 
-        // Update time
-        currentinfo.node.utc += dtj;
-        ++count;
+    // Update time
+    currentinfo.node.utc += dtj;
+    ++count;
     return count;
 }
 
@@ -1720,70 +1971,70 @@ int32_t State::Reset(double nextutc)
     return iretn;
 }
 
-int32_t State::AddTarget(std::string name, locstruc loc, NODE_TYPE type, gvector size)
-{
-    targetstruc ttarget;
-    ttarget.type = type;
-    ttarget.name = name;
-    ttarget.cloc = loc;
-    ttarget.area = 0.;
-    ttarget.size = size;
-    ttarget.loc = loc;
+//int32_t State::AddTarget(std::string name, locstruc loc, NODE_TYPE type, gvector size)
+//{
+//    targetstruc ttarget;
+//    ttarget.type = type;
+//    ttarget.name = name;
+//    ttarget.cloc = loc;
+//    ttarget.area = 0.;
+//    ttarget.size = size;
+//    ttarget.loc = loc;
 
-    currentinfo.target.push_back(ttarget);
-    return currentinfo.target.size();
-}
+//    currentinfo.target.push_back(ttarget);
+//    return currentinfo.target.size();
+//}
 
-int32_t State::AddTarget(std::string name, locstruc loc, NODE_TYPE type, double area)
-{
-    targetstruc ttarget;
-    ttarget.type = type;
-    ttarget.name = name;
-    ttarget.cloc = loc;
-    ttarget.size = gvector();
-    ttarget.area  = area;
-    ttarget.loc = loc;
+//int32_t State::AddTarget(std::string name, locstruc loc, NODE_TYPE type, double area)
+//{
+//    targetstruc ttarget;
+//    ttarget.type = type;
+//    ttarget.name = name;
+//    ttarget.cloc = loc;
+//    ttarget.size = gvector();
+//    ttarget.area  = area;
+//    ttarget.loc = loc;
 
-    currentinfo.target.push_back(ttarget);
-    return currentinfo.target.size();
-}
+//    currentinfo.target.push_back(ttarget);
+//    return currentinfo.target.size();
+//}
 
-int32_t State::AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type)
-{
-    return AddTarget(name, lat, lon, DPI * 1e6, alt, type);
-}
+//int32_t State::AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type)
+//{
+//    return AddTarget(name, lat, lon, DPI * 1e6, alt, type);
+//}
 
-int32_t State::AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type)
-{
-    locstruc loc;
-    loc.pos.geod.pass = 1;
-    loc.pos.geod.utc = currentinfo.node.utc;
-    loc.pos.geod.s.lat = lat;
-    loc.pos.geod.s.lon = lon;
-    loc.pos.geod.s.h = alt;
-    loc.pos.geod.v = gv_zero();
-    loc.pos.geod.a = gv_zero();
-    loc.pos.geod.pass++;
-    pos_geod(loc);
-    return AddTarget(name, loc, type, area);
-}
+//int32_t State::AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type)
+//{
+//    locstruc loc;
+//    loc.pos.geod.pass = 1;
+//    loc.pos.geod.utc = currentinfo.node.utc;
+//    loc.pos.geod.s.lat = lat;
+//    loc.pos.geod.s.lon = lon;
+//    loc.pos.geod.s.h = alt;
+//    loc.pos.geod.v = gv_zero();
+//    loc.pos.geod.a = gv_zero();
+//    loc.pos.geod.pass++;
+//    pos_geod(loc);
+//    return AddTarget(name, loc, type, area);
+//}
 
-int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type)
-{
-    locstruc loc;
-    loc.pos.geod.pass = 1;
-    loc.pos.geod.utc = currentinfo.node.utc;
-    loc.pos.geod.s.lat = (ullat + lrlat) / 2.;
-    loc.pos.geod.s.lon = (ullon + lrlon) / 2.;
-    loc.pos.geod.s.h = alt;
-    loc.pos.geod.v = gv_zero();
-    loc.pos.geod.a = gv_zero();
-    //            gvector size(ullat-lrlat, lrlon-ullon, 0.);
-    loc.pos.geod.pass++;
-    pos_geod(loc);
-    double area = (ullat-lrlat) * (cos(lrlon) * lrlon - cos(ullon) * ullon) * REARTHM * REARTHM;
-    return AddTarget(name, loc, type, area);
-}
+//int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type)
+//{
+//    locstruc loc;
+//    loc.pos.geod.pass = 1;
+//    loc.pos.geod.utc = currentinfo.node.utc;
+//    loc.pos.geod.s.lat = (ullat + lrlat) / 2.;
+//    loc.pos.geod.s.lon = (ullon + lrlon) / 2.;
+//    loc.pos.geod.s.h = alt;
+//    loc.pos.geod.v = gv_zero();
+//    loc.pos.geod.a = gv_zero();
+//    //            gvector size(ullat-lrlat, lrlon-ullon, 0.);
+//    loc.pos.geod.pass++;
+//    pos_geod(loc);
+//    double area = (ullat-lrlat) * (cos(lrlon) * lrlon - cos(ullon) * ullon) * REARTHM * REARTHM;
+//    return AddTarget(name, loc, type, area);
+//}
 
 int32_t InertialAttitudePropagator::Init()
 {
@@ -2002,28 +2253,28 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
         currentinfo->node.loc.att.geoc.s = qt;
         currentinfo->node.loc.att.geoc.pass++;
         att_geoc(currentinfo->node.loc);
-//        cartpos cpointing;
-//        cpointing.s = drotate(currentinfo->node.loc.att.geoc.s, rv_unitz(-currentinfo->node.loc.pos.geod.s.h));
-//        double angle = sep_rv(cpointing.s, -currentinfo->node.loc.pos.geoc.s);
-//        cpointing.s = cpointing.s / cos(angle);
-//        cpointing.s += currentinfo->node.loc.pos.geoc.s;
-//        geoidpos gpointing;
-//        geoc2geod(cpointing, gpointing);
-//        double sep;
-//        geod2sep(gpointing.s, ctarget.loc.pos.geod.s, sep);
-//        double sep2 = sep * sep;
+        //        cartpos cpointing;
+        //        cpointing.s = drotate(currentinfo->node.loc.att.geoc.s, rv_unitz(-currentinfo->node.loc.pos.geod.s.h));
+        //        double angle = sep_rv(cpointing.s, -currentinfo->node.loc.pos.geoc.s);
+        //        cpointing.s = cpointing.s / cos(angle);
+        //        cpointing.s += currentinfo->node.loc.pos.geoc.s;
+        //        geoidpos gpointing;
+        //        geoc2geod(cpointing, gpointing);
+        //        double sep;
+        //        geod2sep(gpointing.s, ctarget.loc.pos.geod.s, sep);
+        //        double sep2 = sep * sep;
 
-//        // +Z vector in rotated frame
-//        Vector eci_z = Vector(rv_sub(ctarget.loc.pos.eci.s, currentinfo->node.loc.pos.eci.s));
-//        // Desired Y is cross product of Desired Z and velocity vector
-//        Vector eci_y = eci_z.cross(Vector(currentinfo->node.loc.pos.eci.v));
+        //        // +Z vector in rotated frame
+        //        Vector eci_z = Vector(rv_sub(ctarget.loc.pos.eci.s, currentinfo->node.loc.pos.eci.s));
+        //        // Desired Y is cross product of Desired Z and velocity vector
+        //        Vector eci_y = eci_z.cross(Vector(currentinfo->node.loc.pos.eci.v));
 
-//        currentinfo->node.loc.att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
-//        currentinfo->node.loc.att.topo.v = rv_zero();
-//        currentinfo->node.loc.att.topo.a = rv_zero();
-//        currentinfo->node.loc.att.topo.utc = currentutc;
-//        currentinfo->node.loc.att.topo.pass++;
-//        att_topo(currentinfo->node.loc);
+        //        currentinfo->node.loc.att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
+        //        currentinfo->node.loc.att.topo.v = rv_zero();
+        //        currentinfo->node.loc.att.topo.a = rv_zero();
+        //        currentinfo->node.loc.att.topo.utc = currentutc;
+        //        currentinfo->node.loc.att.topo.pass++;
+        //        att_topo(currentinfo->node.loc);
     }
     else
     {
@@ -2034,8 +2285,8 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
         currentinfo->node.loc.att.lvlh.pass++;
         att_lvlh(currentinfo->node.loc);
     }
-//    currentinfo->node.loc.att.icrf.pass++;
-//    att_icrf(currentinfo->node.loc);
+    //    currentinfo->node.loc.att.icrf.pass++;
+    //    att_icrf(currentinfo->node.loc);
     AttAccel(currentinfo->node.loc, currentinfo->node.phys);
     return 0;
 }
@@ -2311,6 +2562,7 @@ int32_t OrbitalEventGenerator::Reset()
 
 int32_t OrbitalEventGenerator::Propagate(double nextutc)
 {
+    currentinfo->event.clear();
     if (nextutc == 0.)
     {
         nextutc = currentutc + dtj;
@@ -2339,16 +2591,16 @@ int32_t MetricGenerator::Init()
     return 0;
 }
 
-int32_t MetricGenerator::AddDetector(float fov, float ifov, float specmin, float specmax)
-{
-    camstruc det;
-    det.fov = fov;
-    det.ifov = ifov;
-    det.specmin = specmin;
-    det.specmax = specmax;
-    currentinfo->devspec.cam.push_back(det);
-    return currentinfo->devspec.cam.size();
-}
+//int32_t MetricGenerator::AddDetector(float fov, float ifov, float specmin, float specmax)
+//{
+//    camstruc det;
+//    det.fov = fov;
+//    det.ifov = ifov;
+//    det.specmin = specmin;
+//    det.specmax = specmax;
+//    currentinfo->devspec.cam.push_back(det);
+//    return currentinfo->devspec.cam.size();
+//}
 
 int32_t MetricGenerator::Propagate(double nextutc)
 {
@@ -2361,16 +2613,11 @@ int32_t MetricGenerator::Propagate(double nextutc)
         }
     }
 
-//    bool printed = false;
+    //    bool printed = false;
     for (uint16_t it=0; it<currentinfo->target.size(); ++it)
     {
         if (currentinfo->target[it].elto > 0.)
         {
-//            if (!printed)
-//            {
-//                printf("[%.2f %.2f] ", DEGOF(currentinfo->node.loc.pos.geod.s.lat), DEGOF(currentinfo->node.loc.pos.geod.s.lon));
-//                printed = true;
-//            }
             for (uint16_t id=0; id<currentinfo->devspec.cam.size(); ++id)
             {
                 double h = currentinfo->node.loc.pos.geod.s.h;
@@ -2382,9 +2629,9 @@ int32_t MetricGenerator::Propagate(double nextutc)
                 double t1a = tan(angle);
                 double t2a = t1a * t1a;
                 double t4a = t2a * t2a;
-                double r = rearth(currentinfo->node.loc.pos.geod.s.lat);
+                double r = Rearth(currentinfo->node.loc.pos.geod.s.lat);
                 double lsep = (sqrt(t4a * (-4. * h2 - 8. * r * h) + t2a * 4. * r * r) + 2. * t2a * (h + r)) / (2. * (t2a + 1.));
-//                lsep = (sqrt(t4a * (-4. * h2 - 8. * r * h) + t2a * 4. * r * r) + 2. * t2a * (h + r)) / (2. * (t2a + 1.));
+                //                lsep = (sqrt(t4a * (-4. * h2 - 8. * r * h) + t2a * 4. * r * r) + 2. * t2a * (h + r)) / (2. * (t2a + 1.));
                 cpointing.s = cpointing.s * lsep / cos(angle);
                 cpointing.s += currentinfo->node.loc.pos.geoc.s;
                 geoidpos gpointing;
@@ -2399,6 +2646,7 @@ int32_t MetricGenerator::Propagate(double nextutc)
                 double tr2 = tr * tr;
                 if (sep < dr + tr)
                 {
+                    coverage[it][id].elevation = currentinfo->target[it].elto;
                     coverage[it][id].azimuth = currentinfo->target[it].azto;
                     coverage[it][id].resolution = currentinfo->target[it].range * currentinfo->devspec.cam[id].ifov;
                     coverage[it][id].specmin = currentinfo->devspec.cam[id].specmin;
@@ -2413,20 +2661,22 @@ int32_t MetricGenerator::Propagate(double nextutc)
                     {
                         coverage[it][id].area = dr < tr ? DPI * dr2 * sin(currentinfo->target[it].elto) : currentinfo->target[it].area;
                     }
-
-//                    printf("[%u %.1f %.1f %.1f %u %.3f %.1f] ", it, DEGOF(currentinfo->target[it].azto), DEGOF(currentinfo->target[it].elto), currentinfo->target[it].range, id, coverage[it][id].area, coverage[it][id].resolution);
                 }
-//                else
-//                {
-//                    printf("[%u %.1f %.1f %.1f] ", it, DEGOF(currentinfo->target[it].azto), DEGOF(currentinfo->target[it].elto), currentinfo->target[it].range);
-//                }
+                if (coverage[it][id].area < currentinfo->target[it].area)
+                {
+                    coverage[it][id].percent = coverage[it][id].area / currentinfo->target[it].area;
+                }
+                else
+                {
+                    coverage[it][id].percent = 1.;
+                }
             }
         }
     }
-//    if (printed)
-//    {
-//        printf("\n");
-//    }
+    //    if (printed)
+    //    {
+    //        printf("\n");
+    //    }
     if (nextutc == 0.)
     {
         nextutc = currentutc + dtj;
@@ -2445,6 +2695,13 @@ void OrbitalEventGenerator::check_umbra_event(bool force_end)
     // Umbra start
     if (umbra_start == 0. && !currentinfo->node.loc.pos.sunradiance)
     {
+        // Add umbra to event list
+        eventstruc umbra_event;
+        umbra_event.name = "UMBRAIN";
+        umbra_event.type = EVENT_TYPE_UMBRA;
+        umbra_event.utc = umbra_start;
+        umbra_event.dtime = currentutc - umbra_start;
+        currentinfo->event.push_back(umbra_event);
         umbra_start = currentutc;
     }
     // Umbra end
@@ -2452,6 +2709,7 @@ void OrbitalEventGenerator::check_umbra_event(bool force_end)
     {
         // Add umbra to event list
         eventstruc umbra_event;
+        umbra_event.name = "UMBRAOUT";
         umbra_event.type = EVENT_TYPE_UMBRA;
         umbra_event.utc = umbra_start;
         umbra_event.dtime = currentutc - umbra_start;
@@ -2495,6 +2753,13 @@ void OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force
         // AoS
         if (elto_deg > i*5. && gsAOS[i].first == 0.)
         {
+            eventstruc gs_aos_event;
+            gs_aos_event.name = GS_EVENT_STRING[i] + "AOS_" + gs.name;
+            gs_aos_event.type = GS_EVENT_CODE[i];
+            gs_aos_event.utc = gsAOS[i].first;
+            gs_aos_event.dtime = currentutc - gsAOS[i].first;
+            gs_aos_event.value = gsAOS[i].second;
+            currentinfo->event.push_back(gs_aos_event);
             gsAOS[i].first = currentutc;
         }
         // LoS
@@ -2502,7 +2767,7 @@ void OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force
         {
             // Add event to event list
             eventstruc gs_aos_event;
-            gs_aos_event.name = gs.name;
+            gs_aos_event.name = GS_EVENT_STRING[i] + "LOS_" + gs.name;
             gs_aos_event.type = GS_EVENT_CODE[i];
             gs_aos_event.utc = gsAOS[i].first;
             gs_aos_event.dtime = currentutc - gsAOS[i].first;
@@ -2526,7 +2791,7 @@ void OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force
     {
         // Add event to event list
         eventstruc gs_aos_event;
-        gs_aos_event.name = gs.name;
+        gs_aos_event.name = GS_EVENT_STRING[DEGMAX] + "_" + gs.name;
         gs_aos_event.type = GS_EVENT_CODE[DEGMAX];
         gs_aos_event.utc = gsAOS[DEGMAX].first;
         gs_aos_event.dtime = 0;
@@ -2548,6 +2813,7 @@ void OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bo
         target_AoS[target.name] = {std::make_pair(0.,0.f)};
     }
     aos_pair& tAOS = target_AoS[target.name];
+    aos_pair& tMAX = target_AoS[target.name];
     // Update highest elevation values for 0/5/10 degree events
     // tAOS[i].first is the mjd timestamp of when the event began
     // tAOS[i].second is the max elevation for this AoS event
@@ -2556,6 +2822,14 @@ void OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bo
     // AoS
     if (elto_deg > 0. && tAOS.first == 0.)
     {
+        eventstruc target_aos_event;
+        target_aos_event.name = "TAOS_" + target.name;
+        target_aos_event.type = EVENT_TYPE_TARG;
+        target_aos_event.utc = tAOS.first;
+        target_aos_event.dtime = currentutc - tAOS.first;
+        target_aos_event.value = tAOS.second;
+        target_aos_event.az = target.azto;
+        currentinfo->event.push_back(target_aos_event);
         tAOS.first = currentutc;
     }
     // LoS
@@ -2563,15 +2837,40 @@ void OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bo
     {
         // Add event to event list
         eventstruc target_aos_event;
-        target_aos_event.name = target.name;
+        target_aos_event.name = "TLOS_" + target.name;
         target_aos_event.type = EVENT_TYPE_TARG;
         target_aos_event.utc = tAOS.first;
         target_aos_event.dtime = currentutc - tAOS.first;
         target_aos_event.value = tAOS.second;
+        target_aos_event.az = target.azto;
         currentinfo->event.push_back(target_aos_event);
         // Reset this AoS event
         tAOS.first = 0.;
         tAOS.second = 0.f;
+    }
+    // MAXDEG event
+    // AoS
+    if (elto_deg > 0. && elto_deg > tMAX.second)
+    {
+        // Keep track of when the max elevation was achieved
+        tMAX.first = currentutc;
+        tMAX.second = elto_deg;
+    }
+    // MAX
+    else if ((force_end || elto_deg <= 0.) && tMAX.first != 0.)
+    {
+        // Add event to event list
+        eventstruc target_max_event;
+        target_max_event.name = "TMAX_" + target.name;
+        target_max_event.type = EVENT_TYPE_TARG;
+        target_max_event.utc = tMAX.first;
+        target_max_event.dtime = 0;
+        target_max_event.value = tMAX.second;
+        target_max_event.az = target.azto;
+        currentinfo->event.push_back(target_max_event);
+        // Reset this event
+        tMAX.first = 0.;
+        tMAX.second = 0.f;
     }
 }
 
@@ -2609,9 +2908,7 @@ int32_t InertialPositionPropagator::Propagate(double nextutc)
 
 int32_t LvlhPositionPropagator::Init()
 {
-    cartpos lvlh = currentinfo->node.loc.pos.lvlh;
-    pos_lvlh2origin(currentinfo->node.loc);
-    pos_origin2lvlh(currentinfo->node.loc, lvlh);
+    // Assumes that pos_origin2lvlh() and etc have already been called because of the State::Init(...,lvlh,...) function
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
 
     return 0;
@@ -2710,18 +3007,25 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
     while ((nextutc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;
-        currentinfo->node.loc.pos.eci.a += dt * currentinfo->node.loc.pos.eci.j;
-        currentinfo->node.loc.pos.eci.v += dt * (currentinfo->node.loc.pos.eci.a + (dt / 2.) * currentinfo->node.loc.pos.eci.j);
+        currentinfo->node.loc.pos.eci.utc = currentutc;
         currentinfo->node.loc.pos.eci.s += dt * (currentinfo->node.loc.pos.eci.v + dt * ((1/2.) * currentinfo->node.loc.pos.eci.a + dt * (1.6) * currentinfo->node.loc.pos.eci.j));
+        currentinfo->node.loc.pos.eci.v += dt * (currentinfo->node.loc.pos.eci.a + (dt / 2.) * currentinfo->node.loc.pos.eci.j);
+        currentinfo->node.loc.pos.eci.a += dt * currentinfo->node.loc.pos.eci.j;
 
         //        rvector ds = rv_smult(.5 * dt * dt, currentinfo->node.loc.pos.eci.a);
         //        ds = rv_add(ds, rv_smult(dt, currentinfo->node.loc.pos.eci.v));
         //        currentinfo->node.loc.pos.eci.s = rv_add(currentinfo->node.loc.pos.eci.s, ds);
         //        currentinfo->node.loc.pos.eci.v = rv_add(currentinfo->node.loc.pos.eci.v, rv_smult(dt, currentinfo->node.loc.pos.eci.a));
         //        currentinfo->node.loc.pos.eci.utc = currentutc;
-        currentinfo->node.loc.pos.eci.pass++;
+
+        // Update acceleration for the new position
         PosAccel(currentinfo->node.loc, currentinfo->node.phys);
-        pos_eci(currentinfo->node.loc);
+        // Apply external accelerations
+        // currentinfo->node.loc.pos.eci.a = rv_add(currentinfo->node.loc.pos.eci.a, rv_smult(1./currentinfo->node.phys.mass, currentinfo->node.phys.fpush.to_rv()));
+        // Clearing external accelerations TODO: consider if this is desireable
+        // currentinfo->node.phys.fpush.clear();
+        // currentinfo->node.loc.pos.eci.pass++;
+        // pos_eci(currentinfo->node.loc);
     }
 
     return 0;
@@ -2739,8 +3043,8 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
 
 int32_t TlePositionPropagator::Init()
 {
-//    eci2tle(currentutc, currentinfo->node.loc.pos.eci, tle);
-//    PosAccel(currentinfo->node.loc, currentinfo->node.phys);
+    //    eci2tle(currentutc, currentinfo->node.loc.pos.eci, tle);
+    //    PosAccel(currentinfo->node.loc, currentinfo->node.phys);
 
     return 0;
 }
@@ -2788,7 +3092,7 @@ int32_t GaussJacksonPositionPropagator::Setup()
     gam.resize(order+2);
     q.resize(order+3);
     lam.resize(order+3);
-    order = 0;
+    // order = 0;
 
     dtsq = dt * dt;
 
@@ -3209,18 +3513,16 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         // Adjust for any thrust
         if (currentinfo->node.phys.fpush.norm() && currentinfo->node.phys.mass)
         {
-            rvector dacc = (currentinfo->node.phys.fpush / currentinfo->node.phys.mass).to_rv();
-            for (gjstruc &cstep : step)
-            {
-                cstep.loc.pos.eci.s = rv_add(cstep.loc.pos.eci.s, rv_smult(.5 * this->dt2, dacc));
-                cstep.loc.pos.eci.v = rv_add(cstep.loc.pos.eci.v, rv_smult(this->dt, dacc));
-            }
-            Setup();
-            Converge();
+            Vector dacc = (1./currentinfo->node.phys.mass) * currentinfo->node.phys.fpush;
+            step[order].loc.pos.eci.s = rv_add(step[order].loc.pos.eci.s, 0.5 * dt2 * dacc.to_rv());
+            step[order].loc.pos.eci.v = rv_add(step[order].loc.pos.eci.v, dt * dacc.to_rv());
+            currentinfo->node.phys.fpush.clear();
+            Update();
         }
+
     }
 
-    currentinfo->node.loc.pos = step[order].loc.pos;
+    currentinfo->node.loc.pos = step[order2].loc.pos;
     for (uint16_t i=order; i<=order; --i)
     {
         if (nextutc >= currentinfo->node.loc.pos.utc - dtj / 2.)
@@ -3335,11 +3637,161 @@ int32_t GaussJacksonPositionPropagator::Converge()
 
     currentinfo->node.loc = step[order2].loc;
     ++currentinfo->node.loc.pos.eci.pass;
-    currentinfo->node.phys.fpush = rv_zero();
+//    currentinfo->node.phys.fpush = rv_zero();
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
     pos_eci(currentinfo->node.loc);
     return 0;
 }
+
+int32_t GaussJacksonPositionPropagator::Update()
+{
+    int32_t iretn;
+    kepstruc kep;
+    double dea;
+    quaternion q1;
+
+    ++step[order].loc.pos.eci.pass;
+    pos_eci(step[order].loc);
+    PosAccel(step[order].loc, currentinfo->node.phys);
+    AttAccel(step[order].loc, currentinfo->node.phys);
+
+    // Set central bin to last bin
+    step[order2].loc = step[order].loc;
+    eci2kep(step[order2].loc.pos.eci, kep);
+
+    // Initialize past bins
+    for (uint32_t i=order2-1; i<order2; --i)
+    {
+        step[i].loc = step[i+1].loc;
+        step[i].loc.utc -= dtj;
+        kep.utc = step[i].loc.utc;
+        kep.ma -= dt * kep.mm;
+
+        uint16_t count = 0;
+        do
+        {
+            dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+            kep.ea -= dea;
+        } while (++count < 100 && fabs(dea) > .000001);
+        step[i].loc.pos.eci.utc = kep.utc;
+        kep2eci(kep, step[i].loc.pos.eci);
+        ++step[i].loc.pos.eci.pass;
+
+        q1 = q_axis2quaternion_rv(rv_smult(-dt,step[i].loc.att.icrf.v));
+        step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
+        normalize_q(&step[i].loc.att.icrf.s);
+        // Calculate new v from da
+        step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(-dt,step[i].loc.att.icrf.a));
+        step[i].loc.att.icrf.utc = kep.utc;
+        pos_eci(step[i].loc);
+
+        PosAccel(step[i].loc, currentinfo->node.phys);
+    }
+
+    eci2kep(step[order2].loc.pos.eci, kep);
+
+    // Initialize future bins
+    for (uint32_t i=order2+1; i<=order; i++)
+    {
+        step[i] = step[i-1];
+        step[i].loc.utc += dtj;
+        kep.utc = step[i].loc.utc;
+        kep.ma += dt * kep.mm;
+
+        uint16_t count = 0;
+        do
+        {
+            dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+            kep.ea -= dea;
+        } while (++count < 100 && fabs(dea) > .000001);
+        step[i].loc.pos.eci.utc = kep.utc;
+        kep2eci(kep, step[i].loc.pos.eci);
+        ++step[i].loc.pos.eci.pass;
+
+        q1 = q_axis2quaternion_rv(rv_smult(dt,step[i].loc.att.icrf.v));
+        step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
+        normalize_q(&step[i].loc.att.icrf.s);
+        // Calculate new v from da
+        step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(dt,step[i].loc.att.icrf.a));
+        step[i].loc.att.icrf.utc = kep.utc;
+        pos_eci(step[i].loc);
+
+        PosAccel(step[i].loc, currentinfo->node.phys);
+    }
+
+    Converge();
+
+    // Set central bin to first bin
+    step[order2].loc = step[0].loc;
+    eci2kep(step[order2].loc.pos.eci, kep);
+
+    // Initialize past bins
+    for (uint32_t i=order2-1; i<order2; --i)
+    {
+        step[i].loc = step[i+1].loc;
+        step[i].loc.utc -= dtj;
+        kep.utc = step[i].loc.utc;
+        kep.ma -= dt * kep.mm;
+
+        uint16_t count = 0;
+        do
+        {
+            dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+            kep.ea -= dea;
+        } while (++count < 100 && fabs(dea) > .000001);
+        step[i].loc.pos.eci.utc = kep.utc;
+        kep2eci(kep, step[i].loc.pos.eci);
+        ++step[i].loc.pos.eci.pass;
+
+        q1 = q_axis2quaternion_rv(rv_smult(-dt,step[i].loc.att.icrf.v));
+        step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
+        normalize_q(&step[i].loc.att.icrf.s);
+        // Calculate new v from da
+        step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(-dt,step[i].loc.att.icrf.a));
+        step[i].loc.att.icrf.utc = kep.utc;
+        pos_eci(step[i].loc);
+
+        PosAccel(step[i].loc, currentinfo->node.phys);
+    }
+
+    eci2kep(step[order2].loc.pos.eci, kep);
+
+    // Initialize future bins
+    for (uint32_t i=order2+1; i<=order; i++)
+    {
+        step[i] = step[i-1];
+        step[i].loc.utc += dtj;
+        kep.utc = step[i].loc.utc;
+        kep.ma += dt * kep.mm;
+
+        uint16_t count = 0;
+        do
+        {
+            dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+            kep.ea -= dea;
+        } while (++count < 100 && fabs(dea) > .000001);
+        step[i].loc.pos.eci.utc = kep.utc;
+        kep2eci(kep, step[i].loc.pos.eci);
+        ++step[i].loc.pos.eci.pass;
+
+        q1 = q_axis2quaternion_rv(rv_smult(dt,step[i].loc.att.icrf.v));
+        step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
+        normalize_q(&step[i].loc.att.icrf.s);
+        // Calculate new v from da
+        step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(dt,step[i].loc.att.icrf.a));
+        step[i].loc.att.icrf.utc = kep.utc;
+        pos_eci(step[i].loc);
+
+        PosAccel(step[i].loc, currentinfo->node.phys);
+    }
+
+    iretn = Converge();
+
+    currentutc = step[order].loc.utc;
+    currentinfo->node.phys.utc = step[order].loc.utc;
+    return iretn;
+}
+
 }
 
 }

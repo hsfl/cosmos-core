@@ -449,18 +449,18 @@ namespace Cosmos
                     add_name(rebasename, &node.loc.pos.extra.dt2s.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc.pos.extra.l2g", &node.loc.pos.extra.l2g, "quaternion");
-            add_name("node.loc.pos.extra.l2g.d", &node.loc.pos.extra.l2g.d, "cvector");
-            add_name("node.loc.pos.extra.l2g.d.x", &node.loc.pos.extra.l2g.d.x, "double");
-            add_name("node.loc.pos.extra.l2g.d.y", &node.loc.pos.extra.l2g.d.y, "double");
-            add_name("node.loc.pos.extra.l2g.d.z", &node.loc.pos.extra.l2g.d.z, "double");
-            add_name("node.loc.pos.extra.l2g.w", &node.loc.pos.extra.l2g.w, "double");
-            add_name("node.loc.pos.extra.g2l", &node.loc.pos.extra.g2l, "quaternion");
-            add_name("node.loc.pos.extra.g2l.d", &node.loc.pos.extra.g2l.d, "cvector");
-            add_name("node.loc.pos.extra.g2l.d.x", &node.loc.pos.extra.g2l.d.x, "double");
-            add_name("node.loc.pos.extra.g2l.d.y", &node.loc.pos.extra.g2l.d.y, "double");
-            add_name("node.loc.pos.extra.g2l.d.z", &node.loc.pos.extra.g2l.d.z, "double");
-            add_name("node.loc.pos.extra.g2l.w", &node.loc.pos.extra.g2l.w, "double");
+            add_name("node.loc.pos.extra.l2e", &node.loc.pos.extra.l2e, "quaternion");
+            add_name("node.loc.pos.extra.l2e.d", &node.loc.pos.extra.l2e.d, "cvector");
+            add_name("node.loc.pos.extra.l2e.d.x", &node.loc.pos.extra.l2e.d.x, "double");
+            add_name("node.loc.pos.extra.l2e.d.y", &node.loc.pos.extra.l2e.d.y, "double");
+            add_name("node.loc.pos.extra.l2e.d.z", &node.loc.pos.extra.l2e.d.z, "double");
+            add_name("node.loc.pos.extra.l2e.w", &node.loc.pos.extra.l2e.w, "double");
+            add_name("node.loc.pos.extra.e2l", &node.loc.pos.extra.e2l, "quaternion");
+            add_name("node.loc.pos.extra.e2l.d", &node.loc.pos.extra.e2l.d, "cvector");
+            add_name("node.loc.pos.extra.e2l.d.x", &node.loc.pos.extra.e2l.d.x, "double");
+            add_name("node.loc.pos.extra.e2l.d.y", &node.loc.pos.extra.e2l.d.y, "double");
+            add_name("node.loc.pos.extra.e2l.d.z", &node.loc.pos.extra.e2l.d.z, "double");
+            add_name("node.loc.pos.extra.e2l.w", &node.loc.pos.extra.e2l.w, "double");
             add_name("node.loc.pos.extra.sun2earth", &node.loc.pos.extra.sun2earth, "cartpos");
             add_name("node.loc.pos.extra.sun2earth.utc", &node.loc.pos.extra.sun2earth.utc, "double");
             add_name("node.loc.pos.extra.sun2earth.s", &node.loc.pos.extra.sun2earth.s, "rvector");
@@ -985,18 +985,18 @@ namespace Cosmos
                     add_name(rebasename, &node.loc_est.pos.extra.dt2s.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.l2g", &node.loc_est.pos.extra.l2g, "quaternion");
-            add_name("node.loc_est.pos.extra.l2g.d", &node.loc_est.pos.extra.l2g.d, "cvector");
-            add_name("node.loc_est.pos.extra.l2g.d.x", &node.loc_est.pos.extra.l2g.d.x, "double");
-            add_name("node.loc_est.pos.extra.l2g.d.y", &node.loc_est.pos.extra.l2g.d.y, "double");
-            add_name("node.loc_est.pos.extra.l2g.d.z", &node.loc_est.pos.extra.l2g.d.z, "double");
-            add_name("node.loc_est.pos.extra.l2g.w", &node.loc_est.pos.extra.l2g.w, "double");
-            add_name("node.loc_est.pos.extra.g2l", &node.loc_est.pos.extra.g2l, "quaternion");
-            add_name("node.loc_est.pos.extra.g2l.d", &node.loc_est.pos.extra.g2l.d, "cvector");
-            add_name("node.loc_est.pos.extra.g2l.d.x", &node.loc_est.pos.extra.g2l.d.x, "double");
-            add_name("node.loc_est.pos.extra.g2l.d.y", &node.loc_est.pos.extra.g2l.d.y, "double");
-            add_name("node.loc_est.pos.extra.g2l.d.z", &node.loc_est.pos.extra.g2l.d.z, "double");
-            add_name("node.loc_est.pos.extra.g2l.w", &node.loc_est.pos.extra.g2l.w, "double");
+            add_name("node.loc_est.pos.extra.l2e", &node.loc_est.pos.extra.l2e, "quaternion");
+            add_name("node.loc_est.pos.extra.l2e.d", &node.loc_est.pos.extra.l2e.d, "cvector");
+            add_name("node.loc_est.pos.extra.l2e.d.x", &node.loc_est.pos.extra.l2e.d.x, "double");
+            add_name("node.loc_est.pos.extra.l2e.d.y", &node.loc_est.pos.extra.l2e.d.y, "double");
+            add_name("node.loc_est.pos.extra.l2e.d.z", &node.loc_est.pos.extra.l2e.d.z, "double");
+            add_name("node.loc_est.pos.extra.l2e.w", &node.loc_est.pos.extra.l2e.w, "double");
+            add_name("node.loc_est.pos.extra.e2l", &node.loc_est.pos.extra.e2l, "quaternion");
+            add_name("node.loc_est.pos.extra.e2l.d", &node.loc_est.pos.extra.e2l.d, "cvector");
+            add_name("node.loc_est.pos.extra.e2l.d.x", &node.loc_est.pos.extra.e2l.d.x, "double");
+            add_name("node.loc_est.pos.extra.e2l.d.y", &node.loc_est.pos.extra.e2l.d.y, "double");
+            add_name("node.loc_est.pos.extra.e2l.d.z", &node.loc_est.pos.extra.e2l.d.z, "double");
+            add_name("node.loc_est.pos.extra.e2l.w", &node.loc_est.pos.extra.e2l.w, "double");
             add_name("node.loc_est.pos.extra.sun2earth", &node.loc_est.pos.extra.sun2earth, "cartpos");
             add_name("node.loc_est.pos.extra.sun2earth.utc", &node.loc_est.pos.extra.sun2earth.utc, "double");
             add_name("node.loc_est.pos.extra.sun2earth.s", &node.loc_est.pos.extra.sun2earth.s, "rvector");
@@ -1519,18 +1519,18 @@ namespace Cosmos
                     add_name(rebasename, &node.loc_std.pos.extra.dt2s.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_std.pos.extra.l2g", &node.loc_std.pos.extra.l2g, "quaternion");
-            add_name("node.loc_std.pos.extra.l2g.d", &node.loc_std.pos.extra.l2g.d, "cvector");
-            add_name("node.loc_std.pos.extra.l2g.d.x", &node.loc_std.pos.extra.l2g.d.x, "double");
-            add_name("node.loc_std.pos.extra.l2g.d.y", &node.loc_std.pos.extra.l2g.d.y, "double");
-            add_name("node.loc_std.pos.extra.l2g.d.z", &node.loc_std.pos.extra.l2g.d.z, "double");
-            add_name("node.loc_std.pos.extra.l2g.w", &node.loc_std.pos.extra.l2g.w, "double");
-            add_name("node.loc_std.pos.extra.g2l", &node.loc_std.pos.extra.g2l, "quaternion");
-            add_name("node.loc_std.pos.extra.g2l.d", &node.loc_std.pos.extra.g2l.d, "cvector");
-            add_name("node.loc_std.pos.extra.g2l.d.x", &node.loc_std.pos.extra.g2l.d.x, "double");
-            add_name("node.loc_std.pos.extra.g2l.d.y", &node.loc_std.pos.extra.g2l.d.y, "double");
-            add_name("node.loc_std.pos.extra.g2l.d.z", &node.loc_std.pos.extra.g2l.d.z, "double");
-            add_name("node.loc_std.pos.extra.g2l.w", &node.loc_std.pos.extra.g2l.w, "double");
+            add_name("node.loc_std.pos.extra.l2e", &node.loc_std.pos.extra.l2e, "quaternion");
+            add_name("node.loc_std.pos.extra.l2e.d", &node.loc_std.pos.extra.l2e.d, "cvector");
+            add_name("node.loc_std.pos.extra.l2e.d.x", &node.loc_std.pos.extra.l2e.d.x, "double");
+            add_name("node.loc_std.pos.extra.l2e.d.y", &node.loc_std.pos.extra.l2e.d.y, "double");
+            add_name("node.loc_std.pos.extra.l2e.d.z", &node.loc_std.pos.extra.l2e.d.z, "double");
+            add_name("node.loc_std.pos.extra.l2e.w", &node.loc_std.pos.extra.l2e.w, "double");
+            add_name("node.loc_std.pos.extra.e2l", &node.loc_std.pos.extra.e2l, "quaternion");
+            add_name("node.loc_std.pos.extra.e2l.d", &node.loc_std.pos.extra.e2l.d, "cvector");
+            add_name("node.loc_std.pos.extra.e2l.d.x", &node.loc_std.pos.extra.e2l.d.x, "double");
+            add_name("node.loc_std.pos.extra.e2l.d.y", &node.loc_std.pos.extra.e2l.d.y, "double");
+            add_name("node.loc_std.pos.extra.e2l.d.z", &node.loc_std.pos.extra.e2l.d.z, "double");
+            add_name("node.loc_std.pos.extra.e2l.w", &node.loc_std.pos.extra.e2l.w, "double");
             add_name("node.loc_std.pos.extra.sun2earth", &node.loc_std.pos.extra.sun2earth, "cartpos");
             add_name("node.loc_std.pos.extra.sun2earth.utc", &node.loc_std.pos.extra.sun2earth.utc, "double");
             add_name("node.loc_std.pos.extra.sun2earth.s", &node.loc_std.pos.extra.sun2earth.s, "rvector");
@@ -2652,6 +2652,8 @@ namespace Cosmos
                     add_name(basename+".align.w", &devspec.thst[didx].align.w, "double");
                     add_name(basename+".flw", &devspec.thst[didx].flw, "float");
                     add_name(basename+".isp", &devspec.thst[didx].isp, "float");
+                    add_name(basename+".maxthrust", &devspec.thst[didx].maxthrust, "float");
+                    add_name(basename+".utilization", &devspec.thst[didx].utilization, "float");
                     break;
                 case DeviceType::TNC:
                     basename = "devspec.tnc[" + std::to_string(didx) + "]";
@@ -2763,55 +2765,6 @@ namespace Cosmos
                 add_name(basename+".name", &port[i].name, "string");
             }
 
-//            add_name("agent", &agent, "vector<agentstruc>");
-//            for(size_t i = 0; i < agent.size(); ++i) {
-//                string basename = "agent[" + std::to_string(i) + "]";
-//                add_name(basename, &agent[i], "agentstruc");
-//                add_name(basename+".client", &agent[i].client, "bool");
-//                add_name(basename+".sub", &agent[i].sub, "socket_channel");
-//                add_name(basename+".sub.type", &agent[i].sub.type, "NetworkType");
-//                add_name(basename+".sub.cudp", &agent[i].sub.cudp, "int32_t");
-//                add_name(basename+".server", &agent[i].server, "bool");
-//                add_name(basename+".ifcnt", &agent[i].ifcnt, "size_t");
-//                add_name(basename+".pub", &agent[i].pub, "socket_channel[]");
-//                for(size_t j = 0; j < sizeof(agent[i].pub)/sizeof(agent[i].pub[0]); ++j) {
-//                    string rebasename = basename + ".pub[" + std::to_string(j) + "]";
-//                    add_name(rebasename, &agent[i].pub[j], "socket_channel");
-//                    add_name(rebasename+".type", &agent[i].pub[j].type, "NetworkType");
-//                    add_name(rebasename+".cudp", &agent[i].pub[j].cudp, "int32_t");
-//                }
-//                add_name(basename+".req", &agent[i].req, "socket_channel");
-//                add_name(basename+".req.type", &agent[i].req.type, "NetworkType");
-//                add_name(basename+".req.cudp", &agent[i].req.cudp, "int32_t");
-//                add_name(basename+".pid", &agent[i].pid, "int32_t");
-//                add_name(basename+".aprd", &agent[i].aprd, "double");
-//                add_name(basename+".stateflag", &agent[i].stateflag, "uint16_t");
-//                add_name(basename+".reqs", &agent[i].reqs, "vector<agent_request_entry>");
-//                for(size_t j = 0; j < agent[i].reqs.size(); ++j) {
-//                    string rebasename = basename + ".reqs[" + std::to_string(j) + "]";
-//                    add_name(rebasename, &agent[i].reqs[j], "agent_request_entry");
-//                    add_name(rebasename+".token", &agent[i].reqs[j].token, "string");
-//                    add_name(rebasename+".function", &agent[i].reqs[j].function, "agent_request_function");
-//                    add_name(rebasename+".synopsis", &agent[i].reqs[j].synopsis, "string");
-//                    add_name(rebasename+".description", &agent[i].reqs[j].description, "string");
-//                }
-//                add_name(basename+".beat", &agent[i].beat, "beatstruc");
-//                add_name(basename+".beat.utc", &agent[i].beat.utc, "double");
-//                add_name(basename+".beat.node", &agent[i].beat.node, "string");
-//                add_name(basename+".beat.proc", &agent[i].beat.proc, "string");
-//                add_name(basename+".beat.ntype", &agent[i].beat.ntype, "NetworkType");
-//                add_name(basename+".beat.addr", &agent[i].beat.addr, "char[]");
-//                add_name(basename+".beat.port", &agent[i].beat.port, "uint16_t");
-//                add_name(basename+".beat.bsz", &agent[i].beat.bsz, "uint32_t");
-//                add_name(basename+".beat.bprd", &agent[i].beat.bprd, "double");
-//                add_name(basename+".beat.user", &agent[i].beat.user, "char[]");
-//                add_name(basename+".beat.cpu", &agent[i].beat.cpu, "float");
-//                add_name(basename+".beat.memory", &agent[i].beat.memory, "float");
-//                add_name(basename+".beat.jitter", &agent[i].beat.jitter, "double");
-//                add_name(basename+".beat.dcycle", &agent[i].beat.dcycle, "double");
-//                add_name(basename+".beat.exists", &agent[i].beat.exists, "bool");
-//            }
-
             string basename = "agent0";
             add_name(basename, &agent0, "agentstruc");
             add_name(basename+".client", &agent0.client, "bool");
@@ -2844,6 +2797,7 @@ namespace Cosmos
             }
             add_name(basename+".beat", &agent0.beat, "beatstruc");
             add_name(basename+".beat.utc", &agent0.beat.utc, "double");
+            add_name(basename+".beat.realm", &agent0.beat.realm, "string");
             add_name(basename+".beat.node", &agent0.beat.node, "string");
             add_name(basename+".beat.proc", &agent0.beat.proc, "string");
             add_name(basename+".beat.ntype", &agent0.beat.ntype, "NetworkType");
@@ -2944,6 +2898,8 @@ namespace Cosmos
                 add_name(basename+".cmass", &event[i].cmass, "float");
                 add_name(basename+".dbytes", &event[i].dbytes, "float");
                 add_name(basename+".cbytes", &event[i].cbytes, "float");
+                add_name(basename+".el", &event[i].el, "float");
+                add_name(basename+".az", &event[i].az, "float");
                 add_name(basename+".handle", &event[i].handle, "jsonhandle");
                 add_name(basename+".handle.hash", &event[i].handle.hash, "uint16_t");
                 add_name(basename+".handle.index", &event[i].handle.index, "uint16_t");
@@ -3308,18 +3264,18 @@ namespace Cosmos
                         add_name(rebasename2, &target[i].loc.pos.extra.dt2s.row[j].col[k], "double");
                     }
                 }
-                add_name(basename+".loc.pos.extra.l2g", &target[i].loc.pos.extra.l2g, "quaternion");
-                add_name(basename+".loc.pos.extra.l2g.d", &target[i].loc.pos.extra.l2g.d, "cvector");
-                add_name(basename+".loc.pos.extra.l2g.d.x", &target[i].loc.pos.extra.l2g.d.x, "double");
-                add_name(basename+".loc.pos.extra.l2g.d.y", &target[i].loc.pos.extra.l2g.d.y, "double");
-                add_name(basename+".loc.pos.extra.l2g.d.z", &target[i].loc.pos.extra.l2g.d.z, "double");
-                add_name(basename+".loc.pos.extra.l2g.w", &target[i].loc.pos.extra.l2g.w, "double");
-                add_name(basename+".loc.pos.extra.g2l", &target[i].loc.pos.extra.g2l, "quaternion");
-                add_name(basename+".loc.pos.extra.g2l.d", &target[i].loc.pos.extra.g2l.d, "cvector");
-                add_name(basename+".loc.pos.extra.g2l.d.x", &target[i].loc.pos.extra.g2l.d.x, "double");
-                add_name(basename+".loc.pos.extra.g2l.d.y", &target[i].loc.pos.extra.g2l.d.y, "double");
-                add_name(basename+".loc.pos.extra.g2l.d.z", &target[i].loc.pos.extra.g2l.d.z, "double");
-                add_name(basename+".loc.pos.extra.g2l.w", &target[i].loc.pos.extra.g2l.w, "double");
+                add_name(basename+".loc.pos.extra.l2e", &target[i].loc.pos.extra.l2e, "quaternion");
+                add_name(basename+".loc.pos.extra.l2e.d", &target[i].loc.pos.extra.l2e.d, "cvector");
+                add_name(basename+".loc.pos.extra.l2e.d.x", &target[i].loc.pos.extra.l2e.d.x, "double");
+                add_name(basename+".loc.pos.extra.l2e.d.y", &target[i].loc.pos.extra.l2e.d.y, "double");
+                add_name(basename+".loc.pos.extra.l2e.d.z", &target[i].loc.pos.extra.l2e.d.z, "double");
+                add_name(basename+".loc.pos.extra.l2e.w", &target[i].loc.pos.extra.l2e.w, "double");
+                add_name(basename+".loc.pos.extra.e2l", &target[i].loc.pos.extra.e2l, "quaternion");
+                add_name(basename+".loc.pos.extra.e2l.d", &target[i].loc.pos.extra.e2l.d, "cvector");
+                add_name(basename+".loc.pos.extra.e2l.d.x", &target[i].loc.pos.extra.e2l.d.x, "double");
+                add_name(basename+".loc.pos.extra.e2l.d.y", &target[i].loc.pos.extra.e2l.d.y, "double");
+                add_name(basename+".loc.pos.extra.e2l.d.z", &target[i].loc.pos.extra.e2l.d.z, "double");
+                add_name(basename+".loc.pos.extra.e2l.w", &target[i].loc.pos.extra.e2l.w, "double");
                 add_name(basename+".loc.pos.extra.sun2earth", &target[i].loc.pos.extra.sun2earth, "cartpos");
                 add_name(basename+".loc.pos.extra.sun2earth.utc", &target[i].loc.pos.extra.sun2earth.utc, "double");
                 add_name(basename+".loc.pos.extra.sun2earth.s", &target[i].loc.pos.extra.sun2earth.s, "rvector");
@@ -3529,7 +3485,7 @@ namespace Cosmos
                 add_name(basename, &tle[i], "tlestruc");
                 add_name(basename+".utc", &tle[i].utc, "double");
                 add_name(basename+".name", &tle[i].name, "char[]");
-                add_name(basename+".snumber", &tle[i].snumber, "uint16_t");
+                add_name(basename+".snumber", &tle[i].snumber, "uint32_t");
                 add_name(basename+".id", &tle[i].id, "char[]");
                 add_name(basename+".bstar", &tle[i].bstar, "double");
                 add_name(basename+".i", &tle[i].i, "double");
@@ -3538,6 +3494,7 @@ namespace Cosmos
                 add_name(basename+".ap", &tle[i].ap, "double");
                 add_name(basename+".ma", &tle[i].ma, "double");
                 add_name(basename+".mm", &tle[i].mm, "double");
+                add_name(basename+".dmm", &tle[i].dmm, "double");
                 add_name(basename+".orbit", &tle[i].orbit, "uint32_t");
             }
 
