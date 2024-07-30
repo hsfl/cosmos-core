@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
 
 # Set up basic COSMOS directory structure
 RUN mkdir -p /cosmos/source
+RUN mkdir -p /cosmos/bin
 
 # Set the working directory
 WORKDIR /cosmos/source
@@ -25,12 +26,14 @@ WORKDIR /cosmos/source
 RUN git clone https://github.com/hsfl/cosmos-core.git core
 
 # Configure project
-WORKDIR /cosmos/source/core/build
+WORKDIR core/build
 RUN ./do_cmake_linux
 # Build project
-WORKDIR /cosmos/source/core/build/linux
+WORKDIR linux
 RUN make -j8 agent agent_file
-RUN make install
+# Manually move the compiled targets to /cosmos/bin
+WORKDIR programs/agents/
+RUN cp agent agent_file /cosmos/bin/
 
 ############################################
 # FINAL IMAGE
