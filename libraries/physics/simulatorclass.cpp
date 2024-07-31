@@ -390,6 +390,7 @@ int32_t Simulator::ParseSatString(string args)
     uint16_t argcount = 0;
     string nodename;
     string type;
+    uint16_t nodetype = NODE_TYPE_SATELLITE;
     vector<camstruc> dets;
     locstruc satloc;
     cartpos lvlh;
@@ -404,6 +405,11 @@ int32_t Simulator::ParseSatString(string args)
     {
         ++argcount;
         nodename = jargs["nodename"].string_value();
+    }
+    if (!jargs["nodetype"].is_null())
+    {
+        ++argcount;
+        nodetype = jargs["nodetype"].long_value();
     }
     if (!jargs["detector"].is_null())
     {
@@ -525,7 +531,7 @@ int32_t Simulator::ParseSatString(string args)
     }
 
     Physics::Simulator::StateList::iterator sit = GetNode(nodename);
-    (*sit)->currentinfo.node.type = NODE_TYPE_SATELLITE;
+    (*sit)->currentinfo.node.type = nodetype;
 
     // Thruster
     iretn = json_createpiece(&(*sit)->currentinfo, "adcs_thrust", DeviceType::THST);

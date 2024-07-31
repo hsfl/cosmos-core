@@ -3637,6 +3637,258 @@ int32_t lvlh2ric(cartpos lvlh, cartpos& ric)
     return 0;
 }
 
+/**
+ * @brief Converts the ECI position and velocity of a point to an LVLH position and velocity relative to another ECI origin point.
+ * 
+ * @param origin The origin of the LVLH frame, in ECI
+ * @param point The point to transform, in ECI
+ * @return Position and velocity of point in LVLH frame
+ */
+Convert::cartpos eci2lvlh(Convert::cartpos origin, Convert::cartpos point)
+{
+    // This is the equation to find the velocity of a point in a translating and rotating reference frame B
+    // B_v_P/Q = A_v_P - A_v_Q - (A_w_B x r_P/Q)
+    // where:
+    // Reference frame A: The intertial reference frame
+    // Reference frame B: The rotating and translating reference frame
+    // Point P: The point that moves with respect to point Q
+    // Point Q: The origin of reference frame B
+    // B_v_P/Q: velocity of point P in reference frame B that has its origin at point Q. The unknown quantity to solve for.
+    // A_v_P: velocity of point P in reference frame A
+    // A_v_Q: velocity of point Q in reference frame A
+    // A_w_B: Angular velocity of reference frame B
+    // r_P/Q: distance between points P and Q (in reference frame A)
+    Convert::cartpos eci_offset, lvlh_offset;
+    // r_P/Q
+    eci_offset.s = rv_sub(point.s, origin.s);
+    // w = (s x v) / ||s||^2
+    rvector angular_velocity = rv_smult(1./pow(length_rv(origin.s),2),rv_cross(origin.s,origin.v));
+    // w x r
+    rvector w_cross_r = rv_cross(angular_velocity, eci_offset.s);
+    // compute A_v_p - A_v_Q
+    eci_offset.v = rv_sub(point.v, origin.v);
+    // subtract A_w_B x r_P/Q
+    eci_offset.v = rv_sub(eci_offset.v, w_cross_r);
+
+    // Now that the position and velocity have been computed for reference frame A,
+    // perform a basis transformation to obtain same quantities for reference frame B (i.e., LVLH)
+
+    // find R unit vectors (in ECI)
+    rvector R_unit(origin.s.col[0], origin.s.col[1], origin.s.col[2]);
+    normalize_rv(R_unit);
+
+    // find C unit vectors (in ECI)
+    rvector C_unit = rv_cross(origin.s, origin.v);
+    normalize_rv(C_unit);
+
+    // find I unit vectors (in ECI)
+    rvector I_unit = rv_cross(C_unit, R_unit);
+
+    // cross(I_x_unit, I_y_unit, I_z_unit, C_x_unit, C_y_unit, C_z_unit, R_x_unit, R_y_unit, R_z_unit);
+    // normalize2(R_x_unit, R_y_unit, R_z_unit);
+
+
+    // find unit X, unit Y, and unit Z LVLH basis vectors (in ECI)
+    // X = +I
+    // Y = -C
+    // Z = -R
+    double X_lvlh_x_unit = +I_unit.col[0];
+    double X_lvlh_y_unit = +I_unit.col[1];
+    double X_lvlh_z_unit = +I_unit.col[2];
+
+    double Y_lvlh_x_unit = -C_unit.col[0];
+    double Y_lvlh_y_unit = -C_unit.col[1];
+    double Y_lvlh_z_unit = -C_unit.col[2];
+
+    double Z_lvlh_x_unit = -R_unit.col[0];
+    double Z_lvlh_y_unit = -R_unit.col[1];
+    double Z_lvlh_z_unit = -R_unit.col[2];
+
+    // Basis vectors for LVLH frame in ECI
+    rmatrix A(
+        {X_lvlh_x_unit, Y_lvlh_x_unit, Z_lvlh_x_unit},
+        {X_lvlh_y_unit, Y_lvlh_y_unit, Z_lvlh_y_unit},
+        {X_lvlh_z_unit, Y_lvlh_z_unit, Z_lvlh_z_unit}
+    );
+    // Basis transformations
+    // Solves x for Ax = b, which in this case would just be x = A'b
+    A = rm_transpose(A);
+    rvector b(eci_offset.s.col[0],eci_offset.s.col[1],eci_offset.s.col[2]);
+    lvlh_offset.s = rv_mmult(A, b);
+    b = {eci_offset.v.col[0],eci_offset.v.col[1],eci_offset.v.col[2]};
+    lvlh_offset.v = rv_mmult(A, b);
+
+    return lvlh_offset;
+}
+
+Convert::cartpos eci2hill(const Convert::cartpos& tgteci, const Convert::cartpos& inteci)
+{
+    // RSW basis vectors and rotation matrix
+    rvector rsw_r, rsw_s, rsw_w;
+    rsw_r = rv_normal(tgteci.s);
+    rsw_w = rv_normal(rv_cross(rsw_r, tgteci.v));
+    rsw_s = rv_normal(rv_cross(rsw_w, rsw_r));
+    rmatrix rotECI2RSW(rsw_r, rsw_s, rsw_w);
+
+    //  find rotation matrix from ECI to RSW frame
+    //  convert target and interceptor, compute vector magnitudes
+    double magrtgt = length_rv(tgteci.s);            // magrtgt = norm(rtgteci);
+    double magrint = length_rv(inteci.s);            // magrint = norm(rinteci);
+    Convert::cartpos tgtrsw, intrsw;
+    tgtrsw.s = rv_mmult(rotECI2RSW, tgteci.s); // [rtgtrsw,vtgtrsw,rotECI2RSW] = rv2rsw(rtgteci, vtgteci);
+    tgtrsw.v = rv_mmult(rotECI2RSW, tgteci.v);
+    intrsw.s = rv_mmult(rotECI2RSW, inteci.s);       // rintrsw  = matvecmult( rotECI2RSW, rinteci, 3);
+    intrsw.v = rv_mmult(rotECI2RSW, inteci.v);       // vintrsw  = matvecmult( rotECI2RSW, vinteci, 3);
+
+    //  find rotation angles (radians) to go from target to interceptor
+    double sinphiint = intrsw.s.col[2] / magrint;    // sinphiint    = rintrsw(3) / magrint;
+    double phiint = asin(sinphiint);                 // phiint       = asin(sinphiint);
+    double cosphiint = cos(phiint);                  // cosphiint    = cos(phiint);
+    double lambdaint = atan2(intrsw.s.col[1], intrsw.s.col[0]); // lambdaint    = atan2(rintrsw(2), rintrsw(1));
+    double sinlambdaint = sin(lambdaint);            // sinlambdaint = sin(lambdaint);
+    double coslambdaint = cos(lambdaint);            // coslambdaint = cos(lambdaint);
+    double lambdadottgt = tgtrsw.v.col[1] / magrtgt;      // lambdadottgt = norm(vtgteci)/ magrtgt;  // if circular ==>> norm(vtgteci)/magrtgt; // if not ++>> vtgtrsw(2) / magrtgt
+
+    //  find position component positions
+    Convert::cartpos inthill;
+    inthill.s.col[0] = magrint - magrtgt;   // rhill(1) = magrint - magrtgt;
+    inthill.s.col[1] = lambdaint * magrtgt; // rhill(2) = lambdaint * magrtgt;
+    inthill.s.col[2] = phiint * magrtgt;    // rhill(3) = phiint * magrtgt;
+
+    //  find rotation matrix to go from rsw to SEZ of interceptor
+    rmatrix rotrswtoSEZ(
+    {
+        sinphiint * coslambdaint, // rotrswtoSEZ(1,1) = sinphiint * coslambdaint;
+        sinphiint * sinlambdaint, // rotrswtoSEZ(1,2) = sinphiint * sinlambdaint;
+        -cosphiint                // rotrswtoSEZ(1,3) = -cosphiint;
+    },{
+        -sinlambdaint,            // rotrswtoSEZ(2,1) = -sinlambdaint;
+        coslambdaint,             // rotrswtoSEZ(2,2) = coslambdaint;
+        0.0                       // rotrswtoSEZ(2,3) = 0.0;
+    },{
+        cosphiint * coslambdaint, // rotrswtoSEZ(3,1) = cosphiint * coslambdaint;
+        cosphiint * sinlambdaint, // rotrswtoSEZ(3,2) = cosphiint * sinlambdaint;
+        sinphiint                 // rotrswtoSEZ(3,3) = sinphiint;
+    });
+    //  find velocity component positions by using angular rates in SEZ frame
+    rvector vintSEZ = rv_mmult(rotrswtoSEZ, intrsw.v);          // vintSEZ      = matvecmult( rotrswtoSEZ, vintrsw, 3);
+    double phidotint = -vintSEZ.col[0]/magrint;                 // phidotint    = -vintSEZ(1)/magrint;
+    double lambdadotint = vintSEZ.col[1]/(magrint * cosphiint); // lambdadotint = vintSEZ(2)/(magrint * cosphiint);
+
+    inthill.v.col[0] = vintSEZ.col[2] - tgtrsw.v.col[0];        // vhill(1) = vintSEZ(3); // if circular ==>> vintSEZ(3); // if not ++>> vintSEZ(3) - vtgtrsw(1)
+    inthill.v.col[1] = magrtgt * (lambdadotint - lambdadottgt); // vhill(2) = magrtgt * (lambdadotint - lambdadottgt);
+    inthill.v.col[2] = magrtgt * phidotint;                     // vhill(3) = magrtgt * phidotint;
+
+    // Swap around to match COSMOS's definition of the axises
+    std::swap(inthill.s.col[0], inthill.s.col[2]);
+    std::swap(inthill.s.col[0], inthill.s.col[1]);
+    std::swap(inthill.v.col[0], inthill.v.col[2]);
+    std::swap(inthill.v.col[0], inthill.v.col[1]);
+    inthill.s.col[1] *= -1;
+    inthill.s.col[2] *= -1;
+    inthill.v.col[1] *= -1;
+    inthill.v.col[2] *= -1;
+
+    return inthill;
+}
+
+Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpos& inthill)
+{
+    // Swap around to match this derivation's definition of the axises,
+    // which defines the HILL frame with basis vectors:
+    // 0: Radial vector (i.e., reverse-nadir) of target
+    // 1: Normal to orbital plane in direction of velocity of target
+    // 2: Cross-product
+    Convert::cartpos hill = inthill;
+    hill.s.col[1] *= -1;
+    hill.s.col[2] *= -1;
+    hill.v.col[1] *= -1;
+    hill.v.col[2] *= -1;
+    hill.a.col[1] *= -1;
+    hill.a.col[2] *= -1;
+    std::swap(hill.s.col[0], hill.s.col[1]);
+    std::swap(hill.s.col[0], hill.s.col[2]);
+    std::swap(hill.v.col[0], hill.v.col[1]);
+    std::swap(hill.v.col[0], hill.v.col[2]);
+    std::swap(hill.a.col[0], hill.a.col[1]);
+    std::swap(hill.a.col[0], hill.a.col[2]);
+
+
+    // RSW basis vectors and rotation matrix
+    rvector rsw_r, rsw_s, rsw_w;
+    rsw_r = rv_normal(tgteci.s);
+    rsw_w = rv_normal(rv_cross(rsw_r, tgteci.v));
+    rsw_s = rv_normal(rv_cross(rsw_w, rsw_r));
+    rmatrix rotECI2RSW(rsw_r, rsw_s, rsw_w);
+
+    //  find rotation matrix from ECI to rsw frame
+    //  convert target and interceptor, compute vector magnitudes
+    double magrtgt = length_rv(tgteci.s);            // magrtgt = norm(rtgteci);
+    double magrint = magrtgt + hill.s.col[0];        // magrint = magrtgt + rinthill(1);
+    Convert::cartpos tgtrsw, intrsw;
+    tgtrsw.s = rv_mmult(rotECI2RSW, tgteci.s); // [rtgtrsw,vtgtrsw,rotECI2RSW] = rv2rsw(rtgteci, vtgteci);
+    tgtrsw.v = rv_mmult(rotECI2RSW, tgteci.v);
+    tgtrsw.a = rv_mmult(rotECI2RSW, tgteci.a);
+
+    //  find rotation angles (radians) to go from target to interecptor
+    double lambdadotdottgt = tgtrsw.a.col[1] / magrtgt;
+    double lambdadottgt = tgtrsw.v.col[1] / magrtgt;     // lambdadottgt = norm(vtgteci)/ magrtgt;  // if circular ==>> norm(vtgteci)/magrtgt; // if not ++>> vtgtrsw(2) / magrtgt
+    double phidotdottgt = tgtrsw.a.col[1] / magrtgt;
+    double lambdaint = hill.s.col[1] / magrtgt;          // lambdaint    = rinthill(2)/magrtgt;
+    double phiint = hill.s.col[2] / magrtgt;             // phiint       = rinthill(3)/magrtgt;
+    double sinphiint = sin(phiint);                      // sinphiint    = sin(phiint);
+    double cosphiint = cos(phiint);                      // cosphiint    = cos(phiint);
+    double sinlambdaint = sin(lambdaint);                // sinlambdaint = sin(lambdaint);
+    double coslambdaint = cos(lambdaint);                // coslambdaint = cos(lambdaint);
+
+    //  find rotation matrix to go from SEZ of interceptor to RSW of target
+    rmatrix rotSEZtoRSW(
+    {
+        sinphiint * coslambdaint, // rotrswtoSEZ(1,1) = sinphiint * coslambdaint;
+        -sinlambdaint,            // rotrswtoSEZ(2,1) = -sinlambdaint;
+        cosphiint * coslambdaint  // rotrswtoSEZ(3,1) = cosphiint * coslambdaint;
+    },{
+        sinphiint * sinlambdaint, // rotrswtoSEZ(1,2) = sinphiint * sinlambdaint;
+        coslambdaint,             // rotrswtoSEZ(2,2) = coslambdaint;
+        cosphiint * sinlambdaint  // rotrswtoSEZ(3,2) = cosphiint * sinlambdaint;
+    },{
+        -cosphiint,               // rotrswtoSEZ(1,3) = -cosphiint;
+        0.0,                      // rotrswtoSEZ(2,3) = 0.0;
+        sinphiint                 // rotrswtoSEZ(3,3) = sinphiint;
+    });
+
+    // find acceleration component positions by using angular rates in SEZ frame
+    double rdotdotint = hill.a.col[0];// + tgtrsw.a.col[0]; // TODO: changed
+    double lambdadotdotint = hill.a.col[1] / magrtgt;// + lambdadotdottgt; // TODO: changed
+    double phidotdotint = hill.a.col[2] / magrtgt ;//+ phidotdottgt; // TODO: added extra phidotdottgt term, check
+    rvector aintSEZ;
+    aintSEZ.col[0] = -magrint * phidotdotint;
+    aintSEZ.col[1] = magrint * lambdadotdotint * cosphiint;
+    aintSEZ.col[2] = rdotdotint;
+    Convert::cartpos inteci;
+    intrsw.a = rv_mmult(rotSEZtoRSW, aintSEZ);
+    rmatrix rotRSW2ECI = rm_transpose(rotECI2RSW);
+    inteci.a = rv_mmult(rotRSW2ECI, intrsw.a);
+
+    //  find velocity component positions by using angular rates in SEZ frame
+    double rdotint = hill.v.col[0] + tgtrsw.v.col[0];                // rdotint      = vinthill(1); // if circular ==>> vinthill(1);  // if not ++>> vinthill(1) + vtgtrsw(1)
+    double lambdadotint = hill.v.col[1] / magrtgt + lambdadottgt;    // lambdadotint = vinthill(2)/magrtgt + lambdadottgt;
+    double phidotint = hill.v.col[2] / magrtgt;                      // phidotint    = vinthill(3)/magrtgt;
+    rvector vintSEZ;
+    vintSEZ.col[0] = -magrint * phidotint;                   // vintSEZ(1) = -magrint * phidotint;
+    vintSEZ.col[1] = magrint * lambdadotint * cosphiint;     // vintSEZ(2) = magrint * lambdadotint * cosphiint;
+    vintSEZ.col[2] = rdotint;                                // vintSEZ(3) = rdotint;
+    intrsw.v = rv_mmult(rotSEZtoRSW, vintSEZ);     // vintrsw    = rotrswtoSEZ' * vintSEZ';
+    inteci.v = rv_mmult(rotRSW2ECI, intrsw.v);    // vinteci    = rotECI2RSW' * vintrsw;
+
+    //  find position component positions
+    intrsw.s.col[0] = cosphiint * magrint * coslambdaint;    // rintrsw(1) = cosphiint * magrint * coslambdaint;
+    intrsw.s.col[1] = cosphiint * magrint * sinlambdaint;    // rintrsw(2) = cosphiint * magrint * sinlambdaint;
+    intrsw.s.col[2] = sinphiint * magrint;                   // rintrsw(3) = sinphiint * magrint;
+    inteci.s = rv_mmult(rotRSW2ECI, intrsw.s);               // rinteci    = rotECI2RSW' * rintrsw';
+    return inteci;
+}
+
 int32_t kep2eci(kepstruc &kep, cartpos &eci)
 {
     rvector qpos, qvel;

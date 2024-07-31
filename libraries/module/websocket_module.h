@@ -60,6 +60,11 @@ namespace Cosmos
             void Loop();
 
             /**
+             * @brief Shutdown the WebsocketModule.
+            */
+            void shutdown();
+
+            /**
              * @brief  Set the packetizing function to apply before transmitting.
              *
              * Options are: Raw, SLIP, ASM, AX25, HDLC
@@ -99,6 +104,9 @@ namespace Cosmos
             uint16_t mydatasize = 0;
             uint16_t myrawsize = 0;
             float mydataspeed = 0;
+
+            //! Returns from loop if this is set to false
+            bool is_running = true;
 
             socket_channel sock_in;
             socket_channel sock_out;

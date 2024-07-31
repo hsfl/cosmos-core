@@ -148,6 +148,34 @@ namespace Cosmos {
         int32_t ric2eci(cartpos orig, Vector ric, cartpos& result);
         int32_t ric2lvlh(cartpos ric, cartpos& lvlh);
         int32_t lvlh2ric(cartpos lvlh, cartpos& ric);
+        cartpos eci2lvlh(cartpos origin, cartpos point);
+
+        /**
+         * @brief This function finds the interceptor's hill (relative) interceptor vectors
+         * given the ECI target and ECI interceptor vectors.
+         * Routine not dependent on km or m for distance unit, but needs to be consistent!
+         * author        : sal alfano         719-573-2600   13 aug 2010
+         * author        : SG                 July 2024 (conversion to C++)
+         * 
+         * @param tgteci Target's position/velocity in ECI
+         * @param inteci Interceptor's position/velocity in ECI
+         * @return Interceptor's position/velocity in Hill-frame (relative) vectors
+         */
+        Convert::cartpos eci2hill(const Convert::cartpos& tgteci, const Convert::cartpos& inteci);
+
+        /**
+         * @brief This function finds the interceptor's ECI pos/vel/acc vectors
+         * given the ECI target and hill (relative) interceptor vectors.
+         * Routine not dependent on km or m for distance unit, but needs to be consistent!
+         * author        : sal alfano         719-573-2600   13 aug 2010
+         * author        : SG                 July 2024 (conversion to C++, added acceleration)
+         * 
+         * @param tgteci Target's position/velocity/acceleration in ECI
+         * @param inthill Interceptor's position/velocity/acceleration in Hill-frame (relative) vectors
+         * @return Interceptor's position/velocity/acceleration in ECI
+         */
+        Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpos& inthill);
+
 
         locstruc shape2eci(double utc, double altitude, double angle, double timeshift);
         locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift);

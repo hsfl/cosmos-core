@@ -1,0 +1,32 @@
+# Follow these instructions to set up a dockerx builder for multi-architecture (Linux, Windows, and ARM chip Mac) building
+# and then for building the docker image for all specified platforms.
+
+# Check existing dockerx builders
+docker buildx ls
+
+# If you've previously created a builder, use that one
+docker buildx use multiarch_builder
+
+# Otherwise, create a new one
+docker buildx create --name multiarch_builder --use
+
+# Now you can specify multiple platforms to build for when using docker buildx build
+Note: The cross-compiling process can be a bit intense and long, so do build step on very capable machines.
+Note 2: The docker buildx build --push commands below will push straight to hub.docker, which means:
+1) It will push straight to the hub.docker repo
+2) The new image won't appear in your list of images (you will need to docker pull it if you want it locally)
+
+# Login first if necessary
+docker login
+
+# Change directories to the directory containing the Dockerfile of the image you wish to build.
+# Example for building the agent_file image
+cd PATH/TO/COSMOS/CORE/docker/agents/agent_file
+
+# Build the image for x86 and ARM64
+# Change the tags to the appropriate image name
+# Change the versioning number in the tag to the appropriate number
+# The --no-cache option forces a rebuild, including the git clone. Use if the repo has updated.
+docker buildx build --push --platform linux/amd64,linux/arm64 --tag hsfl2/IMAGENAME:NEWVERSION --tag hsfl2/IMAGENAME:latest --no-cache .
+# Example for agent_file v0.1.0
+docker buildx build --push --platform linux/amd64,linux/arm64 --tag hsfl2/agent_file:0.1.0 --tag hsfl2/agent_file:latest --no-cache .
