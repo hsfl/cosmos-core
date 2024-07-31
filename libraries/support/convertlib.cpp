@@ -3375,12 +3375,12 @@ int32_t pos_origin2lvlh(locstruc& loc)
     rvector lvlh_x;
     rvector lvlh_y;
     rvector lvlh_z;
-    locstruc tloc1 = loc;
+//    locstruc tloc1 = loc;
 
-    cartpos origin = tloc1.pos.geoc;
+    cartpos origin = loc.pos.geoc;
     // 1 Get lvlh basis vectors
-    lvlh_z = -rv_normal(origin.s);
-    lvlh_y = rv_normal(rv_cross(lvlh_z, origin.v));
+    lvlh_z = -rv_normal(loc.pos.geoc.s);
+    lvlh_y = rv_normal(rv_cross(lvlh_z, loc.pos.geoc.v));
     lvlh_x = rv_normal(rv_cross(lvlh_y, lvlh_z));
 
     // 2 Convert LVLH offsets into ECI
@@ -3515,28 +3515,60 @@ int32_t pos_lvlh2origin(locstruc& loc)
     rvector lvlh_x;
     rvector lvlh_y;
     rvector lvlh_z;
+    cartpos geoc_offset1;
+    cartpos geoc_offset2;
+    locstruc tloc = loc;
 
-    double r = length_rv(loc.pos.geoc.s) +  loc.pos.lvlh.s.col[2];
+    for (uint16_t i=0; i<5; ++i)
+    {
+        geoc_offset2 = geoc_offset1;
+        lvlh_z = -rv_normal(loc.pos.geoc.s);
+        lvlh_y = rv_normal(rv_cross(lvlh_z, loc.pos.geoc.v));
+        lvlh_x = rv_normal(rv_cross(lvlh_y, lvlh_z));
 
-    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
-    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
-    lvlh_z = drotate(loc.pos.extra.e2l, rvector(0., 0., 1.));
+        geoc_offset1.s.col[0] = lvlh_x.col[0]*loc.pos.lvlh.s.col[0] + lvlh_y.col[0]*loc.pos.lvlh.s.col[1] + lvlh_z.col[0]*loc.pos.lvlh.s.col[2];
+        geoc_offset1.s.col[1] = lvlh_x.col[1]*loc.pos.lvlh.s.col[0] + lvlh_y.col[1]*loc.pos.lvlh.s.col[1] + lvlh_z.col[1]*loc.pos.lvlh.s.col[2];
+        geoc_offset1.s.col[2] = lvlh_x.col[2]*loc.pos.lvlh.s.col[0] + lvlh_y.col[2]*loc.pos.lvlh.s.col[1] + lvlh_z.col[2]*loc.pos.lvlh.s.col[2];
+        geoc_offset1.v.col[0] = lvlh_x.col[0]*loc.pos.lvlh.v.col[0] + lvlh_y.col[0]*loc.pos.lvlh.v.col[1] + lvlh_z.col[0]*loc.pos.lvlh.v.col[2];
+        geoc_offset1.v.col[1] = lvlh_x.col[1]*loc.pos.lvlh.v.col[0] + lvlh_y.col[1]*loc.pos.lvlh.v.col[1] + lvlh_z.col[1]*loc.pos.lvlh.v.col[2];
+        geoc_offset1.v.col[2] = lvlh_x.col[2]*loc.pos.lvlh.v.col[0] + lvlh_y.col[2]*loc.pos.lvlh.v.col[1] + lvlh_z.col[2]*loc.pos.lvlh.v.col[2];
+        geoc_offset1.a.col[0] = lvlh_x.col[0]*loc.pos.lvlh.a.col[0] + lvlh_y.col[0]*loc.pos.lvlh.a.col[1] + lvlh_z.col[0]*loc.pos.lvlh.a.col[2];
+        geoc_offset1.a.col[1] = lvlh_x.col[1]*loc.pos.lvlh.a.col[0] + lvlh_y.col[1]*loc.pos.lvlh.a.col[1] + lvlh_z.col[1]*loc.pos.lvlh.a.col[2];
+        geoc_offset1.a.col[2] = lvlh_x.col[2]*loc.pos.lvlh.a.col[0] + lvlh_y.col[2]*loc.pos.lvlh.a.col[1] + lvlh_z.col[2]*loc.pos.lvlh.a.col[2];
 
-    // TODO: should this be ECI, not GEOC?
-    loc.pos.geoc.v -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.v);
-    loc.pos.geoc.a -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.a);
-    loc.pos.geoc.j -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.j);
+        loc.pos.geoc.s = tloc.pos.geoc.s - geoc_offset1.s;
+        rvector angular_velocity = rv_smult(1./pow(length_rv(loc.pos.geoc.s),2),rv_cross(loc.pos.geoc.s,loc.pos.geoc.v));
+        rvector w_x_r = rv_cross(angular_velocity, geoc_offset1.s);
+        loc.pos.geoc.v = tloc.pos.geoc.v - geoc_offset1.v + w_x_r;
+        rvector angular_acceleration = rv_smult(1./pow(length_rv(loc.pos.geoc.s),2),rv_cross(loc.pos.geoc.s,loc.pos.geoc.a));
+        loc.pos.geoc.a = tloc.pos.geoc.a + geoc_offset1.a - rv_cross(angular_acceleration, geoc_offset1.s) - 2 * rv_cross(angular_velocity, geoc_offset1.v) - rv_cross(angular_velocity, w_x_r);
+        if (norm_rv(geoc_offset1.s-geoc_offset2.s) < .001)
+        {
+            break;
+        }
+    }
 
-    // Rotate around LVLH y axis by dx/r
-    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, loc.pos.lvlh.s.col[0] / r);
+//    double r = length_rv(loc.pos.geoc.s) +  loc.pos.lvlh.s.col[2];
 
-    // Rotate backwards around LVLH x axis by -dy/r
-    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, -loc.pos.lvlh.s.col[1] / r);
+//    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
+//    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
+//    lvlh_z = drotate(loc.pos.extra.e2l, rvector(0., 0., 1.));
 
-    // Scale by dz/z
-    loc.pos.geoc.s *= (r / (r - loc.pos.lvlh.s.col[2]));
+//    // TODO: should this be ECI, not GEOC?
+//    loc.pos.geoc.v -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.v);
+//    loc.pos.geoc.a -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.a);
+//    loc.pos.geoc.j -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.j);
 
-    ++loc.pos.geoc.pass;
+//    // Rotate around LVLH y axis by dx/r
+//    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, loc.pos.lvlh.s.col[0] / r);
+
+//    // Rotate backwards around LVLH x axis by -dy/r
+//    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, -loc.pos.lvlh.s.col[1] / r);
+
+//    // Scale by dz/z
+//    loc.pos.geoc.s *= (r / (r - loc.pos.lvlh.s.col[2]));
+
+    loc.pos.geoc.pass = std::max(loc.pos.eci.pass, loc.pos.geos.pass) + 1;
     pos_geoc(loc);
 
 //    loc.pos.lvlh = cartpos();

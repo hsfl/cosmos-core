@@ -72,6 +72,7 @@ namespace Cosmos
             double initialutc = 0.;
             double endutc = 0.;
             double currentutc = 0.;
+            double offsetutc = 0.;
             locstruc initialloc;
             StateList cnodes;
             map<string, camstruc> detectors;

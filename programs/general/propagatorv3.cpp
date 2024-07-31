@@ -10,6 +10,7 @@ int32_t request_get_pieces_json(string &request, string &response, Agent *agent)
 int32_t request_get_devspec_json(string &request, string &response, Agent *agent);
 int32_t request_get_devgen_json(string &request, string &response, Agent *agent);
 int32_t request_get_location_node(string &request, string &response, Agent *agent);
+int32_t request_get_offsetutc(string &request, string &response, Agent *agent);
 int32_t request_set_thrust(string &request, string &response, Agent *agent);
 int32_t request_set_torque(string &request, string &response, Agent *agent);
 Physics::Simulator *sim;
@@ -45,6 +46,7 @@ int main(int argc, char *argv[])
     agent->add_request("get_devgen_json", request_get_devgen_json, "nodename", "Get JSON description of general devices for Node nodename");
     agent->add_request("get_devspec_json", request_get_devspec_json, "nodename", "Get JSON description of specific for Node nodename");
     agent->add_request("get_location_node", request_get_location_node, "nodename", "Get JSON of position and attitude for Node nodename");
+    agent->add_request("get_offsetutc", request_get_offsetutc, "", "Get simulator offset of UTC in julian days");
     agent->add_request("set_thrust", request_set_thrust, "nodename {thrust}", "Set JSON Vector of thrust for Node nodename");
     agent->add_request("set_torque", request_set_torque, "nodename {torque}", "Set JSON Vector of torque for Node nodename");
 
@@ -65,6 +67,7 @@ int main(int argc, char *argv[])
         agent->cinfo->agent0.aprd = simdt;
         agent->start_active_loop();
     }
+    uint16_t tcount = 0;
     while (agent->running() && elapsed < runcount)
     {
 //        if (speed == 1.)
@@ -101,10 +104,30 @@ int main(int argc, char *argv[])
         if (speed == 1.)
         {
             agent->finish_active_loop();
+            if (++tcount > 10)
+            {
+                printf("%8.1f %8.1f %8.1f %8.1f %8.1f %8.1f | %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f | %8.1f %8.1f %8.1f \r",
+                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[0],
+                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[1],
+                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[2],
+                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[0],
+                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[1],
+                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[2],
+                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[0],
+                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[1],
+                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[2],
+                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[0],
+                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[1],
+                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[2],
+                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[0]-sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[0],
+                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[1]-sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[1],
+                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[2]-sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[2]
+                       );
+                fflush(stdout);
+                tcount = 0;
+            }
         }
     }
-
-
 }
 
 int32_t parse_control(string args)
@@ -273,6 +296,12 @@ int32_t request_get_location_node(string &request, string &response, Agent *agen
             response = jobj.dump();
         }
     }
+    return response.length();
+}
+
+int32_t request_get_offsetutc(string &request, string &response, Agent *agent)
+{
+    response = to_floating(sim->offsetutc, 8);
     return response.length();
 }
 

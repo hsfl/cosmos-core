@@ -968,17 +968,7 @@ Vector ControlAccel(cartpos cpos, cartpos tpos, double maxaccel, double seconds)
 
         newa = newa.maxmag(maxaccel).minmag(minaccel);
     }
-//    json11::Json jobj = json11::Json::object({
-//        {"cpos", cpos.s},
-//        {"tpos", tpos.s},
-//        {"cvel", cpos.v},
-//        {"tvel", tpos.v},
-//        {"dpos", dpos},
-//        {"dvel", dvel},
-//        {"newa", newa}
-//    });
-//    printf("%s\n", jobj.dump().c_str());
-    newa.clear();
+//    newa.clear();
     return newa;
 }
 
