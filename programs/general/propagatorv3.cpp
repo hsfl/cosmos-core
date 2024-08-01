@@ -16,7 +16,7 @@ Physics::Simulator *sim;
 Agent *agent;
 double simdt = 1.;
 double speed=1.;
-double initialutc = 60107.01;
+double initialutc = 0.;
 double endutc = 0.;
 double deltautc = 0.;
 string realmname = "propagate";
@@ -126,6 +126,10 @@ int32_t parse_control(string args)
     {
         ++argcount;
         initialutc = jargs["initialutc"].number_value();
+    }
+    else
+    {
+        initialutc = currentmjd();
     }
     if (!jargs["endutc"].is_null())
     {
