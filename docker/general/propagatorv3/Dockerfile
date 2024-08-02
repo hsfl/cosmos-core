@@ -1,4 +1,4 @@
-# Tag: hsfl2/agent_file:latest
+# Tag: hsfl2/propagatorv3:latest
 
 ############################################
 # BUILD STAGE
@@ -20,14 +20,16 @@ RUN apt-get update && apt-get install -y \
 # Set up basic COSMOS directory structure
 WORKDIR /cosmos
 RUN mkdir -p \
-    ./source \
+    ./bin \
     ./nodes \
-    ./bin
+    ./source
 
-# Set the working directory
-WORKDIR /cosmos/source
+# Clone resources. Necessary for coordinate conversions.
+WORKDIR /cosmos
+RUN git clone https://github.com/hsfl/cosmos-resources.git resources
 
 # Clone source code
+WORKDIR /cosmos/source
 RUN git clone https://github.com/hsfl/cosmos-core.git core
 
 # Configure project
@@ -35,10 +37,10 @@ WORKDIR core/build
 RUN ./do_cmake_linux
 # Build project
 WORKDIR linux
-RUN make -j8 agent agent_file
+RUN make -j8 propagatorv3
 # Manually move the compiled targets to /cosmos/bin
-WORKDIR programs/agents/
-RUN cp agent agent_file /cosmos/bin/
+WORKDIR programs/general/
+RUN cp propagatorv3 /cosmos/bin/
 
 ############################################
 # FINAL IMAGE
@@ -48,10 +50,17 @@ FROM ubuntu:20.04
 ARG UID=26767
 ARG GID=26767
 
+# Copy resources folder from the builder stage
+WORKDIR /home/cosmosuser/cosmos
+COPY --from=builder /cosmos/resources .
+
 # Copy the binaries from the builder stage
 WORKDIR /home/cosmosuser/cosmos/bin
-COPY --from=builder /cosmos/bin/agent .
-COPY --from=builder /cosmos/bin/agent_file .
+COPY --from=builder /cosmos/bin/propagatorv3 .
+
+# Copy over a demo realm
+WORKDIR /home/cosmosuser/cosmos/realms
+COPY --from=hsfl2/realms:demo /demo ./demo
 
 # Set up basic COSMOS directory structure
 WORKDIR /home/cosmosuser/cosmos
@@ -70,7 +79,6 @@ USER cosmosuser
 
 # Add cosmos binary directory to path
 ENV PATH="$PATH:/home/cosmosuser/cosmos/bin"
-
 
 COPY ./docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
