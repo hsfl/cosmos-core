@@ -27,11 +27,13 @@ RUN mkdir -p \
 
 # Clone resources. Necessary for coordinate conversions.
 WORKDIR /cosmos
-RUN git clone https://github.com/hsfl/cosmos-resources.git resources
+ADD https://api.github.com/repos/hsfl/cosmos-resources/git/refs/heads/master version.json
+RUN git clone --depth 1 https://github.com/hsfl/cosmos-resources.git resources
 
 # Clone source code
 WORKDIR /cosmos/source
-RUN git clone https://github.com/hsfl/cosmos-core.git core
+ADD https://api.github.com/repos/hsfl/cosmos-core/git/refs/heads/master version.json
+RUN git clone --depth 1 https://github.com/hsfl/cosmos-core.git core
 
 # Configure project
 WORKDIR core/build
