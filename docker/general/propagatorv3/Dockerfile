@@ -1,4 +1,5 @@
 # Tag: hsfl2/propagatorv3:latest
+# Tag: hsfl2/propagatorv3:0.1.0
 
 ############################################
 # BUILD STAGE
