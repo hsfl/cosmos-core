@@ -15,8 +15,10 @@ int32_t request_set_thrust(string &request, string &response, Agent *agent);
 int32_t request_set_torque(string &request, string &response, Agent *agent);
 Physics::Simulator *sim;
 Agent *agent;
+//uint16_t thrustctl = 0;
 double simdt = 1.;
-double speed=1.;
+uint16_t realtime=1;
+uint16_t printevent=0;
 double initialutc = 60107.01;
 double endutc = 0.;
 double deltautc = 0.;
@@ -57,34 +59,43 @@ int main(int argc, char *argv[])
         agent->shutdown();
         exit(iretn);
     }
-    sim->Init(initialutc, simdt, realmname);
+    sim->Init(simdt, realmname);
     sim->ParseOrbitFile();
     sim->ParseSatFile();
     lvlhoffset.resize(sim->cnodes.size());
     sim->ParseTargetFile();
-    if (speed == 1.)
+    if (realtime)
     {
         agent->cinfo->agent0.aprd = simdt;
         agent->start_active_loop();
     }
-    uint16_t tcount = 0;
+//    uint16_t tcount = 0;
     while (agent->running() && elapsed < runcount)
     {
-//        if (speed == 1.)
+//        if (realtime && thrustctl)
 //        {
 //            for (uint16_t i=1; i<sim->cnodes.size(); ++i)
 //            {
-//                locstruc target;
-//                target.pos.eci = sim->cnodes[0]->currentinfo.node.loc.pos.eci;
-////                target.pos.lvlh = lvlhoffset[i];
-////                pos_lvlh2origin(target);
-//                sim->UpdatePush(sim->cnodes[i]->currentinfo.node.name, Physics::ControlThrust(sim->cnodes[i]->currentinfo.node.loc.pos.eci, target.pos.eci, sim->cnodes[i]->currentinfo.mass, sim->cnodes[i]->currentinfo.devspec.thst[0].maxthrust/sim->cnodes[i]->currentinfo.mass, simdt));
+//                locstruc goal;
+//                goal.pos.geoc = sim->cnodes[0]->currentinfo.node.loc.pos.geoc;
+//                goal.pos.lvlh.s = rvector(i*1000., 0., 0.);
+//                pos_origin2lvlh(goal);
+//                switch(thrustctl)
+//                {
+//                case 1:
+//                    sim->UpdatePush(sim->cnodes[i]->currentinfo.node.name, Physics::ControlThrust(sim->cnodes[i]->currentinfo.node.loc.pos.eci, goal.pos.eci, sim->cnodes[i]->currentinfo.mass, sim->cnodes[i]->currentinfo.devspec.thst[0].maxthrust/sim->cnodes[i]->currentinfo.mass, simdt));
+//                    break;
+//                case 2:
+//                    break;
+//                default:
+//                    break;
+//                }
 //            }
 //        }
         sim->Propagate();
         for (auto &state : sim->cnodes)
         {
-            if (speed > 1.0 && state->currentinfo.event.size())
+            if (printevent && state->currentinfo.event.size())
             {
                 for (eventstruc event : state->currentinfo.event)
                 {
@@ -101,31 +112,37 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        if (speed == 1.)
+        if (realtime)
         {
             agent->finish_active_loop();
-            if (++tcount > 10)
-            {
-                printf("%8.1f %8.1f %8.1f %8.1f %8.1f %8.1f | %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f | %8.1f %8.1f %8.1f \r",
-                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[0],
-                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[1],
-                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[2],
-                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[0],
-                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[1],
-                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[2],
-                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[0],
-                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[1],
-                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[2],
-                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[0],
-                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[1],
-                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[2],
-                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[0]-sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[0],
-                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[1]-sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[1],
-                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[2]-sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[2]
-                       );
-                fflush(stdout);
-                tcount = 0;
-            }
+//            if (++tcount > 10)
+//            {
+//                printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f | %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f | %8.1f %8.1f %8.1f %8.2f %8.2f %8.2f | %8.4f %8.2f %8.1f\n",
+//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[0],
+//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[1],
+//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[2],
+//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[0],
+//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[1],
+//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[2],
+//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[0],
+//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[1],
+//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[2],
+//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[0],
+//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[1],
+//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[2],
+//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.s.col[0],
+//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.s.col[1],
+//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.s.col[2],
+//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.s.col[0],
+//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.s.col[1],
+//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.s.col[2],
+//                       length_rv(sim->cnodes[1]->currentinfo.node.loc.pos.eci.a-sim->cnodes[0]->currentinfo.node.loc.pos.eci.a),
+//                       length_rv(sim->cnodes[1]->currentinfo.node.loc.pos.eci.v-sim->cnodes[0]->currentinfo.node.loc.pos.eci.v),
+//                       length_rv(sim->cnodes[1]->currentinfo.node.loc.pos.eci.s-sim->cnodes[0]->currentinfo.node.loc.pos.eci.s)
+//                       );
+//                fflush(stdout);
+//                tcount = 0;
+//            }
         }
     }
 }
@@ -135,15 +152,25 @@ int32_t parse_control(string args)
     uint16_t argcount = 0;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
+//    if (!jargs["thrustctl"].is_null())
+//    {
+//        ++argcount;
+//        thrustctl = jargs["thrustctl"].number_value();
+//    }
+    if (!jargs["printevent"].is_null())
+    {
+        ++argcount;
+        printevent = jargs["printevent"].number_value();
+    }
     if (!jargs["runcount"].is_null())
     {
         ++argcount;
         runcount = jargs["runcount"].number_value();
     }
-    if (!jargs["speed"].is_null())
+    if (!jargs["realtime"].is_null())
     {
         ++argcount;
-        speed = jargs["speed"].number_value();
+        realtime = jargs["realtime"].number_value();
     }
     if (!jargs["initialutc"].is_null())
     {

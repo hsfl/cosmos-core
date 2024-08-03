@@ -120,7 +120,9 @@ int main(int argc, char *argv[])
         exit(iretn);
     }
     currentutc = motherutc;
-    sim->Init(currentutc, simdt);
+    sim->Init(simdt, realmname);
+    sim->ParseOrbitFile();
+    sim->ParseSatFile();
 
     // If simulation config files don't exist, copy default config files
 //    check_propagator_setup_files();

@@ -898,18 +898,18 @@ Vector ControlTorque(qatt tatt, qatt catt, Vector moi, double seconds)
     return torque;
 }
 
-Vector ControlThrust(cartpos cpos, cartpos tpos, double mass, double maxaccel, double seconds)
+Vector ControlThrust(cartpos current, cartpos goal, double mass, double maxaccel, double seconds)
 {
-    return mass * ControlAccel(cpos, tpos, maxaccel, seconds);
+    return mass * ControlAccel(current, goal, maxaccel, seconds);
 }
 
-Vector ControlAccel(cartpos cpos, cartpos tpos, double maxaccel, double seconds)
+Vector ControlAccel(cartpos current, cartpos goal, double maxaccel, double seconds)
 {
     double minaccel = 0.1 * maxaccel;
     Vector newa;
 
-    Vector dpos = Vector(rv_sub(cpos.s, tpos.s));
-    Vector dvel = Vector(rv_sub(cpos.v, tpos.v));
+    Vector dpos = Vector(rv_sub(current.s, goal.s));
+    Vector dvel = Vector(rv_sub(current.v, goal.v));
 
     if (dpos.norm() > .01)
     {
@@ -3356,7 +3356,7 @@ int32_t GaussJacksonPositionPropagator::Init()
 
         PosAccel(step[i].loc, currentinfo->node.phys);
     }
-    currentutc = step[order].loc.utc;
+    currentutc = step[order2].loc.utc;
 
     // Converge on rational set of values
     iretn = Converge();
@@ -3433,7 +3433,7 @@ int32_t GaussJacksonPositionPropagator::Init(vector<locstruc> locs)
     iretn = Converge();
 
     currentinfo->node.phys.utc = currentinfo->node.loc.utc;
-    currentutc = step[order].loc.utc;
+    currentutc = step[order2].loc.utc;
     return iretn;
 }
 
@@ -3517,15 +3517,9 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         if (currentinfo->node.phys.fpush.norm() && currentinfo->node.phys.mass)
         {
             Vector dacc = (1./currentinfo->node.phys.mass) * currentinfo->node.phys.fpush;
-            step[order].loc.pos.eci.s = rv_add(step[order].loc.pos.eci.s, 0.5 * dt2 * dacc.to_rv());
-            step[order].loc.pos.eci.v = rv_add(step[order].loc.pos.eci.v, dt * dacc.to_rv());
-            //            currentinfo->node.phys.fpush.clear();
+            step[order2].loc.pos.eci.s = rv_add(step[order2].loc.pos.eci.s, 0.5 * dt2 * dacc.to_rv());
+            step[order2].loc.pos.eci.v = rv_add(step[order2].loc.pos.eci.v, dt * dacc.to_rv());
             Update();
-            //            json11::Json jobj = json11::Json::object({
-            //                {"pos", currentinfo->node.loc.pos.eci},
-            //                {"dacc", dacc}
-            //            });
-            //            printf("%s\n", jobj.dump().c_str());
         }
 
     }
@@ -3658,13 +3652,13 @@ int32_t GaussJacksonPositionPropagator::Update()
     double dea;
     quaternion q1;
 
-    ++step[order].loc.pos.eci.pass;
-    pos_eci(step[order].loc);
-    PosAccel(step[order].loc, currentinfo->node.phys);
-    AttAccel(step[order].loc, currentinfo->node.phys);
+    ++step[order2].loc.pos.eci.pass;
+    pos_eci(step[order2].loc);
+    PosAccel(step[order2].loc, currentinfo->node.phys);
+    AttAccel(step[order2].loc, currentinfo->node.phys);
 
     // Set central bin to last bin
-    step[order2].loc = step[order].loc;
+//    step[order2].loc = step[order].loc;
     eci2kep(step[order2].loc.pos.eci, kep);
 
     // Initialize past bins
@@ -3729,74 +3723,74 @@ int32_t GaussJacksonPositionPropagator::Update()
 
     Converge();
 
-    // Set central bin to first bin
-    step[order2].loc = step[0].loc;
-    eci2kep(step[order2].loc.pos.eci, kep);
+//    // Set central bin to first bin
+//    step[order2].loc = step[0].loc;
+//    eci2kep(step[order2].loc.pos.eci, kep);
 
-    // Initialize past bins
-    for (uint32_t i=order2-1; i<order2; --i)
-    {
-        step[i].loc = step[i+1].loc;
-        step[i].loc.utc -= dtj;
-        kep.utc = step[i].loc.utc;
-        kep.ma -= dt * kep.mm;
+//    // Initialize past bins
+//    for (uint32_t i=order2-1; i<order2; --i)
+//    {
+//        step[i].loc = step[i+1].loc;
+//        step[i].loc.utc -= dtj;
+//        kep.utc = step[i].loc.utc;
+//        kep.ma -= dt * kep.mm;
 
-        uint16_t count = 0;
-        do
-        {
-            dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
-            kep.ea -= dea;
-        } while (++count < 100 && fabs(dea) > .000001);
-        step[i].loc.pos.eci.utc = kep.utc;
-        kep2eci(kep, step[i].loc.pos.eci);
-        ++step[i].loc.pos.eci.pass;
+//        uint16_t count = 0;
+//        do
+//        {
+//            dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+//            kep.ea -= dea;
+//        } while (++count < 100 && fabs(dea) > .000001);
+//        step[i].loc.pos.eci.utc = kep.utc;
+//        kep2eci(kep, step[i].loc.pos.eci);
+//        ++step[i].loc.pos.eci.pass;
 
-        q1 = q_axis2quaternion_rv(rv_smult(-dt,step[i].loc.att.icrf.v));
-        step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
-        normalize_q(&step[i].loc.att.icrf.s);
-        // Calculate new v from da
-        step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(-dt,step[i].loc.att.icrf.a));
-        step[i].loc.att.icrf.utc = kep.utc;
-        pos_eci(step[i].loc);
+//        q1 = q_axis2quaternion_rv(rv_smult(-dt,step[i].loc.att.icrf.v));
+//        step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
+//        normalize_q(&step[i].loc.att.icrf.s);
+//        // Calculate new v from da
+//        step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(-dt,step[i].loc.att.icrf.a));
+//        step[i].loc.att.icrf.utc = kep.utc;
+//        pos_eci(step[i].loc);
 
-        PosAccel(step[i].loc, currentinfo->node.phys);
-    }
+//        PosAccel(step[i].loc, currentinfo->node.phys);
+//    }
 
-    eci2kep(step[order2].loc.pos.eci, kep);
+//    eci2kep(step[order2].loc.pos.eci, kep);
 
-    // Initialize future bins
-    for (uint32_t i=order2+1; i<=order; i++)
-    {
-        step[i] = step[i-1];
-        step[i].loc.utc += dtj;
-        kep.utc = step[i].loc.utc;
-        kep.ma += dt * kep.mm;
+//    // Initialize future bins
+//    for (uint32_t i=order2+1; i<=order; i++)
+//    {
+//        step[i] = step[i-1];
+//        step[i].loc.utc += dtj;
+//        kep.utc = step[i].loc.utc;
+//        kep.ma += dt * kep.mm;
 
-        uint16_t count = 0;
-        do
-        {
-            dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
-            kep.ea -= dea;
-        } while (++count < 100 && fabs(dea) > .000001);
-        step[i].loc.pos.eci.utc = kep.utc;
-        kep2eci(kep, step[i].loc.pos.eci);
-        ++step[i].loc.pos.eci.pass;
+//        uint16_t count = 0;
+//        do
+//        {
+//            dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
+//            kep.ea -= dea;
+//        } while (++count < 100 && fabs(dea) > .000001);
+//        step[i].loc.pos.eci.utc = kep.utc;
+//        kep2eci(kep, step[i].loc.pos.eci);
+//        ++step[i].loc.pos.eci.pass;
 
-        q1 = q_axis2quaternion_rv(rv_smult(dt,step[i].loc.att.icrf.v));
-        step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
-        normalize_q(&step[i].loc.att.icrf.s);
-        // Calculate new v from da
-        step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(dt,step[i].loc.att.icrf.a));
-        step[i].loc.att.icrf.utc = kep.utc;
-        pos_eci(step[i].loc);
+//        q1 = q_axis2quaternion_rv(rv_smult(dt,step[i].loc.att.icrf.v));
+//        step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
+//        normalize_q(&step[i].loc.att.icrf.s);
+//        // Calculate new v from da
+//        step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(dt,step[i].loc.att.icrf.a));
+//        step[i].loc.att.icrf.utc = kep.utc;
+//        pos_eci(step[i].loc);
 
-        PosAccel(step[i].loc, currentinfo->node.phys);
-    }
+//        PosAccel(step[i].loc, currentinfo->node.phys);
+//    }
 
-    iretn = Converge();
+//    iretn = Converge();
 
-    currentutc = step[order].loc.utc;
-    currentinfo->node.phys.utc = step[order].loc.utc;
+    currentutc = step[order2].loc.utc;
+    currentinfo->node.phys.utc = step[order2].loc.utc;
     return iretn;
 }
 

@@ -6,18 +6,18 @@ namespace Cosmos
 {
 namespace Physics
 {
-int32_t Simulator::Init(double iutc, double idt, string realm)
+int32_t Simulator::Init(double idt, string realm, double iutc)
 {
     realmname = realm;
     initialutc = iutc;
     dt = idt;
-    if (initialutc > 3600.)
-    {
-        currentutc = initialutc;
-        offsetutc = initialutc - currentmjd();
-        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
-        dtj = dt / 86400.;
-    }
+//    if (initialutc > 3600.)
+//    {
+//        currentutc = initialutc;
+//        offsetutc = initialutc - currentmjd();
+//        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
+//        dtj = dt / 86400.;
+//    }
 
     RunState = State::Paused;
     if (server)
@@ -236,34 +236,33 @@ int32_t Simulator::ParseOrbitString(string args)
     }
     if (!jargs["phys"].is_null())
     {
-        double utc = currentmjd();
-        double initiallat = RADOF(21.3069);
-        double initiallon = RADOF(-157.8583);
-        double initialalt = 400000.;
-        double initialangle = RADOF(54.);
         ++argcount;
         json11::Json::object values = jargs["phys"].object_items();
         if (values["utc"].number_value() != 0.)
         {
-            utc = values["utc"].number_value();
+            initialutc += values["utc"].number_value();
         }
-        initiallat = RADOF(values["lat"].number_value());
-        initiallon = RADOF(values["lon"].number_value());
-        initialalt = values["alt"].number_value();
-        initialangle = RADOF(values["angle"].number_value());
-        if (fabs(initialutc) <= 3600.)
+        else
         {
-            offsetutc = initialutc;
-            initialutc += utc;
-            currentutc = initialutc;
-            dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
-            dtj = dt / 86400.;
+            initialutc += currentmjd();
         }
+        currentutc = initialutc;
+        offsetutc = initialutc - currentmjd();
+        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
+        dtj = dt / 86400.;
         if (deltautc != 0.)
         {
             endutc = initialutc + deltautc;
         }
-        initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+        double initiallat = RADOF(21.3069);
+        double initiallon = RADOF(-157.8583);
+        double initialalt = 400000.;
+        double initialangle = RADOF(54.);
+        initiallat = RADOF(values["lat"].number_value());
+        initiallon = RADOF(values["lon"].number_value());
+        initialalt = values["alt"].number_value();
+        initialangle = RADOF(values["angle"].number_value());
+       initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     }
     if (!jargs["eci"].is_null())
     {
@@ -277,32 +276,38 @@ int32_t Simulator::ParseOrbitString(string args)
         initialloc.pos.eci.v.col[1] = (values["vy"].number_value());
         initialloc.pos.eci.v.col[2] = (values["vz"].number_value());
         initialloc.pos.eci.pass++;
-        if (fabs(initialutc) <= 3600.)
+        initialutc += initialloc.pos.eci.utc;
+        currentutc = initialutc;
+        offsetutc = initialutc - currentmjd();
+        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
+        dtj = dt / 86400.;
+        if (deltautc != 0.)
         {
-            initialutc += initialloc.pos.eci.utc;
-            currentutc = initialutc;
-            offsetutc = initialutc - currentmjd();
-            dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
-            dtj = dt / 86400.;
+            endutc = initialutc + deltautc;
         }
     }
     if (!jargs["kep"].is_null())
     {
         ++argcount;
         json11::Json::object values = jargs["kep"].object_items();
-        kepstruc kep;
-        if (fabs(initialutc) <= 3600.)
+        if (values["utc"].number_value() != 0.)
         {
-            offsetutc = initialutc;
-            initialutc += currentmjd();
-            currentutc = initialutc;
-            dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
-            dtj = dt / 86400.;
+            initialutc += values["utc"].number_value();
         }
+        else
+        {
+            initialutc += currentmjd();
+        }
+        currentutc = initialutc;
+        offsetutc = initialutc - currentmjd();
+        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
+        dtj = dt / 86400.;
         if (deltautc != 0.)
         {
             endutc = initialutc + deltautc;
         }
+        kepstruc kep;
+        initialutc += currentmjd();
         kep.utc = initialutc;
         kep.ea = values["ea"].number_value();
         kep.i = values["i"].number_value();
@@ -320,14 +325,11 @@ int32_t Simulator::ParseOrbitString(string args)
         vector<Convert::tlestruc>lines;
         string fname = get_realmdir(realmname, true) + "/" + values["filename"].string_value();
         load_lines(fname, lines);
-        if (fabs(initialutc) <= 3600.)
-        {
-            initialutc += lines[0].utc;
-            currentutc = initialutc;
-            offsetutc = initialutc - currentmjd();
-            dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
-            dtj = dt / 86400.;
-        }
+        initialutc += lines[0].utc;
+        currentutc = initialutc;
+        offsetutc = initialutc - currentmjd();
+        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
+        dtj = dt / 86400.;
         if (deltautc != 0.)
         {
             endutc = initialutc + deltautc;
