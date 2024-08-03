@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
         exit(iretn);
     }
     currentutc = initialutc;
-    sim->Init(currentutc, simdt);
+    sim->Init(simdt);
 
     //    initialloc.att.icrf.s = q_eye();
     tlestruc tle;
