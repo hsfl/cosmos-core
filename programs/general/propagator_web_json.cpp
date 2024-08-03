@@ -229,7 +229,8 @@ int32_t init_propagator(prop_unit& prop, const string& args, string& response)
     }
 
     // Initialize the simulator
-    prop.sim.Init(prop.startutc, prop.simdt);
+    prop.sim.Init(prop.simdt);
+    prop.sim.ParseOrbitString(args);
 
     // Add all nodes
     // Note, adding node automatically advances it to startutc
