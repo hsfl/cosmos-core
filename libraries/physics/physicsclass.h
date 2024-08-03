@@ -114,7 +114,6 @@ namespace Cosmos
             {
 				// JIMNOTE:  dt = idt; ?
                 dt = 86400.*((currentinfo->node.loc.utc + (idt / 86400.))-currentinfo->node.loc.utc);
-                dt2 = dt * dt;
                 dtj = dt / 86400.;
                 initialloc = currentinfo->node.loc;
                 currentutc = currentinfo->node.loc.utc;
@@ -122,7 +121,6 @@ namespace Cosmos
             }
 
             double dt;
-            double dt2;
             double dtj;
             double currentutc=0.;
             locstruc initialloc;
