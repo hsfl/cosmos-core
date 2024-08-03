@@ -26,8 +26,21 @@ namespace Module
         myrawsize = agent->channel_rawsize(mychannel);
         mydataspeed = agent->channel_speed(mychannel);
 
+        // Detect if hostname or IPv4 address, convert to latter if necessary
+        string ipv4_addr = ip;
+        if (ip.find(".") == std::string::npos && ip.find(":") == std::string::npos)
+        {
+            string response;
+            int32_t iretn = hostnameToIP(ip, ipv4_addr, response);
+            if (iretn < 0)
+            {
+                agent->debug_log.Printf("Encountered error in hostnameToIP %s\n", response.c_str());
+                return iretn;
+            }
+        }
+
         // open up a socket for sending data to destination
-        iretn = socket_open(sock_out, NetworkType::TCP, ip.c_str(), port, SOCKET_TALK, SOCKET_NONBLOCKING);
+        iretn = socket_open(sock_out, NetworkType::TCP, ipv4_addr.c_str(), port, SOCKET_TALK, SOCKET_NONBLOCKING);
         if (iretn < 0)
         {
             agent->debug_log.Printf("Error in socket_open out, iretn:%d, %s\n", iretn, mychannel_name.c_str());
@@ -64,8 +77,21 @@ namespace Module
             return iretn;
         }
 
+        // Detect if hostname or IPv4 address, convert to latter if necessary
+        string ipv4_addr = ip;
+        if (ip.find(".") == std::string::npos && ip.find(":") == std::string::npos)
+        {
+            string response;
+            int32_t iretn = hostnameToIP(ip, ipv4_addr, response);
+            if (iretn < 0)
+            {
+                agent->debug_log.Printf("Encountered error in hostnameToIP %s\n", response.c_str());
+                return iretn;
+            }
+        }
+
         // open up a socket for sending data to destination
-        iretn = socket_open(sock_out, NetworkType::UDP, ip.c_str(), port_out, SOCKET_TALK, SOCKET_BLOCKING);
+        iretn = socket_open(sock_out, NetworkType::UDP, ipv4_addr.c_str(), port_out, SOCKET_TALK, SOCKET_BLOCKING);
         if (iretn < 0)
         {
             agent->debug_log.Printf("Error in socket_open out, iretn:%d, %s\n", iretn, mychannel_name.c_str());
@@ -80,7 +106,8 @@ namespace Module
     void WebsocketModule::Loop()
     {
         agent->debug_log.Printf("Starting %s loop.\n", mychannel_name.c_str());
-        while(agent->running())
+        is_running = true;
+        while(is_running)
         {
             // Comm - External
             Receive();
@@ -102,7 +129,15 @@ namespace Module
             std::this_thread::yield();
         }
 
+        socket_close(sock_in);
+        socket_close(sock_out);
+
         return;
+    }
+
+    void WebsocketModule::shutdown()
+    {
+        is_running = false;
     }
 
     void WebsocketModule::Receive()
@@ -110,7 +145,7 @@ namespace Module
         PacketComm packet;
         if (
             // In TCP Mode, only sock_out is set up
-            ((tcp_mode && socket_recvfrom(sock_out, packet.packetized, 10000 <= 0))
+            ((tcp_mode && socket_recvfrom(sock_out, packet.packetized, 10000) <= 0)
             // In UDP Mode, recv from sock_in
             || socket_recvfrom(sock_in, packet.packetized, 10000) <= 0)
             )

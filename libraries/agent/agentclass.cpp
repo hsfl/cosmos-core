@@ -174,7 +174,7 @@ Agent::Agent(string realm_name,
     }
 
     // Find Node in Realm
-    iretn = lookup_node_id(cinfo, cinfo->node.name);
+    iretn = lookup_node_id(cinfo, cinfo->node.name); // TODO: does this ever return negative?
     if (iretn < 0)
     {
         error_value = iretn;

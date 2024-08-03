@@ -13192,10 +13192,65 @@ int32_t add_node_id(cosmosstruc *cinfo, string node_name)
     nodeid = lookup_node_id(cinfo, node_name);
     if (nodeid == NODEIDUNKNOWN)
     {
-        nodeid = cinfo->realm.node_ids.size() + 1;
+        nodeid = cinfo->realm.node_ids.size() + 1; // TODO: This does not cover potential ID collisions
         cinfo->realm.node_ids[node_name] = nodeid;
     }
     return nodeid;
+}
+
+//! Adds a new entry into the node_ids list.
+//! An error is returned if an existing entry exists with the same node_name or node_id.
+//! @param cinfo Pointer to the ::cosmosstruc to use.
+//! @param node_name Name of the node to add
+//! @param node_id ID of the node to add
+//! \return node_id on success, negative on error
+int32_t add_node_id(cosmosstruc *cinfo, string node_name, uint8_t node_id)
+{
+    // Check if an entry for the given node_name already exists
+    if (lookup_node_id(cinfo, node_name) != NODEIDUNKNOWN)
+    {
+        return GENERAL_ERROR_ARGS;
+    }
+    // Check if an entry for the given node_id already exists
+    if (lookup_node_id_name(cinfo, node_id) != "")
+    {
+        return GENERAL_ERROR_ARGS;
+    }
+    cinfo->realm.node_ids[node_name] = node_id;
+    return node_id;
+}
+
+//! Updates the node id of the given node name.
+//! If an entry for the node_name does not exist, a new entry will be added.
+//! @param cinfo Pointer to the ::cosmosstruc to use.
+//! @param node_name Name of the node to update
+//! @param node_id New ID of the node
+//! \return node_id on success, negative on error
+int32_t change_node_id(cosmosstruc *cinfo, string node_name, uint8_t node_id)
+{
+    // Check if an entry for the given node_id already exists
+    if (lookup_node_id_name(cinfo, node_id) != "")
+    {
+        return GENERAL_ERROR_ARGS;
+    }
+    cinfo->realm.node_ids[node_name] = node_id;
+    return node_id;
+}
+
+//! Remove the entry for the node name.
+//! @param cinfo Pointer to the ::cosmosstruc to use.
+//! @param node_name Name of the node to remove
+//! \return node_id on success, negative if the node name was not found
+int32_t remove_node_id(cosmosstruc *cinfo, string node_name)
+{
+    int32_t node_id = lookup_node_id(cinfo, node_name);
+    // Check if an entry for the given node_name already exists
+    if (node_id == NODEIDUNKNOWN)
+    {
+        return GENERAL_ERROR_ARGS;
+    }
+    cinfo->realm.node_ids.erase(node_name);
+    return node_id;
 }
 
 //! Find the node name associated with the given node id in the node table.

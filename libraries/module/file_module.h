@@ -27,6 +27,11 @@ namespace Cosmos
              */
             int32_t Init(Agent *agent, const vector<string> file_transfer_contact_nodes);
             void Loop();
+            
+            /**
+             * @brief Shutdown the FileModule.
+            */
+            void shutdown();
 
             //! Sets the radios in radios_channel_number to use in order of their priority
             void set_radios(vector<uint8_t> radios);
@@ -61,7 +66,8 @@ namespace Cosmos
             const bool keep_errored_files = false;
 
             int32_t mychannel = 0;
-            bool running = false;
+            //! Returns from loop if this is set to false
+            bool is_running = false;
             Agent *agent;
 
             /**

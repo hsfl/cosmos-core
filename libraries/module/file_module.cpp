@@ -43,13 +43,14 @@ namespace Cosmos
             mychannel = agent->channel_number("FILE");
 
             agent->debug_log.Printf("Starting File Loop\n");
+            is_running = true;
 
             // Perform initial load
             double diskcheckwait = 30.;
             ElapsedTime disk_check_timer;
             disk_check_timer.set(diskcheckwait);
 
-            while(agent->running())
+            while(is_running)
             {
                 if (agent->running() != (uint16_t)Agent::State::IDLE)
                 {
@@ -264,6 +265,17 @@ namespace Cosmos
             return;
         }
 
+        void FileModule::shutdown()
+        {
+            out_radio = 0;
+            file_transfer_enabled = false;
+            for (auto node : contact_nodes)
+            {
+                transfer.close_file_pointers(node, 2);
+            }
+            is_running = false;
+        }
+
         void FileModule::set_radios(vector<uint8_t> radios)
         {
             // radios_channel_number and radios_available are always the same size, and indexes match
@@ -331,3 +343,5 @@ namespace Cosmos
         }
     }
 }
+
+// TODO: Investigate channel overflow (packet discards) for low maximums (try with maximum=100)

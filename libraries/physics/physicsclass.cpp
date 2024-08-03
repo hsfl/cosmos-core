@@ -3522,7 +3522,7 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
 
     }
 
-    currentinfo->node.loc.pos = step[order].loc.pos;
+    currentinfo->node.loc.pos = step[order2].loc.pos;
     for (uint16_t i=order; i<=order; --i)
     {
         if (nextutc >= currentinfo->node.loc.pos.utc - dtj / 2.)
@@ -3635,7 +3635,7 @@ int32_t GaussJacksonPositionPropagator::Converge()
         c_cnt++;
     } while (c_cnt<10 && cflag);
 
-    currentinfo->node.loc = step[order].loc;
+    currentinfo->node.loc = step[order2].loc;
     ++currentinfo->node.loc.pos.eci.pass;
 //    currentinfo->node.phys.fpush = rv_zero();
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);

@@ -356,6 +356,9 @@ int32_t load_node_ids(cosmosstruc *cinfo, string realm="");
 int32_t check_node_id(cosmosstruc *cinfo, NODE_ID_TYPE node_id);
 int32_t lookup_node_id(cosmosstruc *cinfo, string node_name);
 int32_t add_node_id(cosmosstruc *cinfo, string node_name);
+int32_t add_node_id(cosmosstruc *cinfo, string node_name, uint8_t node_id);
+int32_t change_node_id(cosmosstruc *cinfo, string node_name, uint8_t node_id);
+int32_t remove_node_id(cosmosstruc *cinfo, string node_name);
 string lookup_node_id_name(cosmosstruc *cinfo, NODE_ID_TYPE node_id);
 
 int32_t load_target(cosmosstruc *cinfo);
