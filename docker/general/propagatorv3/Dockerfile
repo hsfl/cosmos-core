@@ -54,7 +54,7 @@ ARG UID=26767
 ARG GID=26767
 
 # Copy resources folder from the builder stage
-WORKDIR /home/cosmosuser/cosmos
+WORKDIR /home/cosmosuser/cosmos/resources
 COPY --from=builder /cosmos/resources .
 
 # Copy the binaries from the builder stage
