@@ -7,7 +7,6 @@ namespace Module
     int32_t NodePropagatorModule::Init(Support::cosmosstruc *cinfo)
     {
         // sim = new Physics::Simulator();
-        // sim->Init(cinfo);
         return 0;
     }
 
