@@ -11,6 +11,7 @@ int32_t Simulator::Init(double idt, string realm, double iutc)
     realmname = realm;
     initialutc = iutc;
     dt = idt;
+    dtj = dt / 86400.;
 //    if (initialutc > 3600.)
 //    {
 //        currentutc = initialutc;
@@ -325,7 +326,10 @@ int32_t Simulator::ParseOrbitString(string args)
         vector<Convert::tlestruc>lines;
         string fname = get_realmdir(realmname, true) + "/" + values["filename"].string_value();
         load_lines(fname, lines);
-        initialutc += lines[0].utc;
+        if (fabs(initialutc) <= 3600.)
+        {
+            initialutc +=lines[0].utc;
+        }
         currentutc = initialutc;
         offsetutc = initialutc - currentmjd();
         dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
