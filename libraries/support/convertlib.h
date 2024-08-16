@@ -160,6 +160,10 @@ namespace Cosmos {
          * @param tgteci Target's position/velocity in ECI
          * @param inteci Interceptor's position/velocity in ECI
          * @return Interceptor's position/velocity in Hill-frame (relative) vectors
+         *      Output is the following axis definitions, which is the COSMOS LVLH frame:
+         *      0: Normal to orbital plane in direction of velocity vector
+         *      1: Radial vector
+         *      2: Cross-product
          */
         Convert::cartpos eci2hill(const Convert::cartpos& tgteci, const Convert::cartpos& inteci);
 
@@ -171,10 +175,15 @@ namespace Cosmos {
          * author        : SG                 July 2024 (conversion to C++, added acceleration)
          * 
          * @param tgteci Target's position/velocity/acceleration in ECI
-         * @param inthill Interceptor's position/velocity/acceleration in Hill-frame (relative) vectors
+         * @param inthill Interceptor's position/velocity/acceleration in Hill-frame (relative) vectors.
+         *      Input expects the following axis definitions, which is the COSMOS LVLH frame:
+         *      0: Normal to orbital plane in direction of velocity vector
+         *      1: Radial vector
+         *      2: Cross-product
+         * @param relative_accel If true, the acceleration returned is relative to the target (i.e., when desiring external forces only)
          * @return Interceptor's position/velocity/acceleration in ECI
          */
-        Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpos& inthill);
+        Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpos& inthill, bool relative_accel=false);
 
 
         locstruc shape2eci(double utc, double altitude, double angle, double timeshift);
