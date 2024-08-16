@@ -3768,7 +3768,7 @@ Convert::cartpos eci2hill(const Convert::cartpos& tgteci, const Convert::cartpos
     return inthill;
 }
 
-Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpos& inthill)
+Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpos& inthill, bool relative_accel)
 {
     // Swap around to match this derivation's definition of the axises,
     // which defines the HILL frame with basis vectors:
@@ -3834,9 +3834,16 @@ Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpo
     });
 
     // find acceleration component positions by using angular rates in SEZ frame
-    double rdotdotint = hill.a.col[0];// + tgtrsw.a.col[0]; // TODO: changed
-    double lambdadotdotint = hill.a.col[1] / magrtgt;// + lambdadotdottgt; // TODO: changed
-    double phidotdotint = hill.a.col[2] / magrtgt ;//+ phidotdottgt; // TODO: added extra phidotdottgt term, check
+    double rdotdotint = hill.a.col[0];
+    double lambdadotdotint = hill.a.col[1] / magrtgt;
+    double phidotdotint = hill.a.col[2] / magrtgt;
+    // Don't add back in the acceleration of the target if you want only the relative acceleration
+    if (!relative_accel)
+    {
+        rdotdotint += tgtrsw.a.col[0];
+        lambdadotdotint += lambdadotdottgt;
+        phidotdotint += phidotdottgt;
+    }
     rvector aintSEZ;
     aintSEZ.col[0] = -magrint * phidotdotint;
     aintSEZ.col[1] = magrint * lambdadotdotint * cosphiint;
