@@ -79,15 +79,21 @@ TEST_P(test_GEOD_to_ECI_transformation, GEOD_to_ECI) {
     l.pos.geod.s.lat = DEG2RAD(params.lat);
     l.pos.geod.s.lon = DEG2RAD(params.lon);
     l.pos.geod.s.h = params.h;
+
     gvector before = l.pos.geod.s;
 
+	// transform geod to eci
     l.pos.geod.pass++;
     pos_geod(l);
+
     l.pos.geod.s.lat = 0.0;
     l.pos.geod.s.lon = 0.0;
     l.pos.geod.s.h = 0.0;
+
+	// transform eci to geod
     l.pos.eci.pass++;
     pos_eci(l);
+
     gvector after = l.pos.geod.s;
 
     bool failed = false;
@@ -96,7 +102,7 @@ TEST_P(test_GEOD_to_ECI_transformation, GEOD_to_ECI) {
     //if (lat_error_to_meters(abs(before.lat - after.lat), before.h) > 100.00) {
     if (lat_error_to_meters(abs(before.lat - after.lat), before.h) > 0.001) {
         oss << "Lat mismatch at (" << params.lat << ", " << params.lon << ", " << params.h << "): "
-            << "before.lat = " << before.lat << "\tafter.lat = " << after.lat << "\terror = " << abs(before.lat - after.lat) << "\t(" << lat_error_to_meters(abs(before.lat - after.lat), before.h) << " meters)\n";
+            << "before.lat = " << before.lat << "\tafter.lat = " << after.lat << "\t error = " << abs(before.lat - after.lat) << "\t(" << lat_error_to_meters(abs(before.lat - after.lat), before.h) << " meters)\n";
         failed = true;
     }
 
