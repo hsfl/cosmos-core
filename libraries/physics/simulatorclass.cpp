@@ -1017,6 +1017,14 @@ Simulator::StateList::iterator Simulator::GetNode(string name)
     return node;
 }
 
+Simulator::StateList::const_iterator Simulator::GetNode(string name) const
+{
+    auto node = std::find_if(cnodes.begin(), cnodes.end(), [name](const Physics::State* state) {
+        return state->currentinfo.node.name == name;
+    });
+    return node;
+}
+
 Simulator::StateList::iterator Simulator::GetEnd()
 {
     return cnodes.end();

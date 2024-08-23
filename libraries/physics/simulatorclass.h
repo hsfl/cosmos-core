@@ -63,6 +63,7 @@ namespace Cosmos
             State GetState();
             int32_t GetNode(string name, Physics::State *&node);
             StateList::iterator GetNode(string name);
+            StateList::const_iterator GetNode(string name) const;
             StateList::iterator GetEnd();
             StateList GetNodes();
             int32_t NudgeNode(string name, cartpos pos=cartpos(), qatt att=qatt());
