@@ -31,6 +31,8 @@ message(STATUS "Architecture: ${CROSS_TYPE}")
 
 # by default
 
+# Enable the creating of compile_commands.json for use with code analysis tools
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #--------------------------------------------------------------------
 # automatic config
