@@ -32,12 +32,20 @@ namespace Cosmos
              */
             void Loop();
 
+            /**
+             * @brief Shutdown the module.
+            */
+            void shutdown();
+
         private:
             //! Receive a packet from socket
             PacketHandler packethandler;
             socket_channel sock_out;
 
             Agent *agent;
+
+            //! Returns from loop if this is set to false
+            bool is_running = false;
 
             string mychannel_name = "";
             int32_t mychannel = 0;
