@@ -33,7 +33,7 @@ void FileSubagentTest::SetUp(uint8_t test_num_agents)
     // Setup the test agents
     for (size_t i=0; i < num_agents; ++i)
     {
-        agents[i] = new Agent("", 0);
+        agents[i] = new Agent(0);
         agents[i]->cinfo = new cosmosstruc();
         ASSERT_GE(load_node_ids(agents[i]->cinfo, "test"), num_agents+3);
         agents[i]->cinfo->agent0.stateflag = static_cast<uint16_t>(Cosmos::Support::Agent::State::INIT);
