@@ -331,18 +331,16 @@ include(${CMAKE_SOURCE_DIR}/cmake/build_core_libs.cmake)
 #message("CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
 
 # -----------------------------------------------
-# now that the libraries have been compiled let's add the cosmos-core programs
-if(${BUILD_PROGRAMS} MATCHES "YES")
-    add_subdirectory(${PROJECT_SOURCE_DIR}/programs)
+# Enable CTests in the root directory
+if(${BUILD_PROGRAMS_TESTS} MATCHES "YES")
+    enable_testing()
+    message("Tests have been enabled.")
 endif()
 
 # -----------------------------------------------
 # now that the libraries have been compiled let's add the cosmos-core programs
-if(${BUILD_TESTS} MATCHES "YES")
-    add_subdirectory(${PROJECT_SOURCE_DIR}/programs/tests)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/programs/unit_tests)
-    # TODO change if condition to a separate one with only devices
-    add_subdirectory(${PROJECT_SOURCE_DIR}/programs/devices)
+if(${BUILD_PROGRAMS} MATCHES "YES")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/programs)
 endif()
 
 
