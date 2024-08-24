@@ -1,12 +1,6 @@
 #include "support/datalib.h"
 #include "gtest/gtest.h"
 
-// No tests implemented yet
-TEST(DatalibTest, Placeholder)
-{
-    EXPECT_EQ(1, 1);
-}
-
 // Successfully compresses and moves a file when compress is true and timeout is sufficient
 TEST(DatalibTest, File_is_compressed_and_moved_when_compress_is_true_and_timeout_is_sufficient) {
     string oldpath = "testfile.txt";
@@ -36,7 +30,7 @@ TEST(DatalibTest, Folder_compress_and_move_times_out) {
     bool compress = true;
     double timeout = 5.0;
 
-    // Create a dummy file to simulate the old file
+    // Create a directory to attempt to compress and move
     bool mkdir_result = (COSMOS_MKDIR(oldpath.c_str(), 00777) == 0  || errno == EEXIST);
     ASSERT_EQ(mkdir_result, true);
 
