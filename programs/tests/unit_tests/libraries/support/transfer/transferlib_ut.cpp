@@ -1,6 +1,3 @@
-#ifndef __TRANSFERLIB_UT_H__
-#define __TRANSFERLIB_UT_H__
-
 #include "support/transferlib.h"
 #include "gtest/gtest.h"
 
@@ -995,5 +992,3 @@ TEST(TransferlibTest, cancel_packets_are_correct)
     EXPECT_EQ(cancel.header.tx_id, tx_id);
     EXPECT_EQ(cancel.header.file_crc, file_crc);
 }
-
-#endif // End __TRANSFERLIB_UT_H__

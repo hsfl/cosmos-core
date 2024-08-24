@@ -8,7 +8,3 @@ target_link_libraries(CosmosUTChannel CosmosChannel gtest gtest_main)
 # gtest_discover_tests(CosmosUTChannel) # Update to CMake 3.10!
 add_test(NAME channel_ut COMMAND CosmosUTChannel)
 
-# Not including the ${SOURCES} into add_library here, since otherwise the sources will build twice when making a change
-# add_library(CosmosUTChannel STATIC ${INCLUDES})
-# target_link_libraries(CosmosUTChannel CosmosChannel gtest)
-# target_sources(test_all PRIVATE ${SOURCES})
