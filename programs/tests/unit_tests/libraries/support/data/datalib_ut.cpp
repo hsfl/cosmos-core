@@ -23,8 +23,8 @@ TEST(DatalibTest, File_is_compressed_and_moved_when_compress_is_true_and_timeout
     remove(newpath.c_str());
 }
 
-// Since folders cannot be compressed, the function should at least time out
-TEST(DatalibTest, Folder_compress_and_move_times_out) {
+// Since folders cannot be compressed, the function should return with an error
+TEST(DatalibTest, Folder_compress_and_move_returns_error) {
     string oldpath = "testdir";
     string newpath = "moveddir";
     bool compress = true;
@@ -36,6 +36,6 @@ TEST(DatalibTest, Folder_compress_and_move_times_out) {
 
     int32_t result = log_move_file(oldpath, newpath, compress, timeout);
 
-    ASSERT_EQ(result, GENERAL_ERROR_TIMEOUT);
+    ASSERT_EQ(result, GENERAL_ERROR_INPUT);
     remove(oldpath.c_str());
 }
