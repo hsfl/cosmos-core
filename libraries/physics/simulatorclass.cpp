@@ -6,13 +6,19 @@ namespace Cosmos
 {
 namespace Physics
 {
-int32_t Simulator::Init(double iutc, double idt, string realm)
+int32_t Simulator::Init(double idt, string realm, double iutc)
 {
     realmname = realm;
-    currentutc = iutc;
     initialutc = iutc;
-    dt = 86400.*((initialutc + (idt / 86400.))-initialutc);
+    dt = idt;
     dtj = dt / 86400.;
+//    if (initialutc > 3600.)
+//    {
+//        currentutc = initialutc;
+//        offsetutc = initialutc - currentmjd();
+//        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
+//        dtj = dt / 86400.;
+//    }
 
     RunState = State::Paused;
     if (server)
@@ -231,25 +237,33 @@ int32_t Simulator::ParseOrbitString(string args)
     }
     if (!jargs["phys"].is_null())
     {
-        double initiallat = RADOF(21.3069);
-        double initiallon = RADOF(-157.8583);
-        double initialalt = 400000.;
-        double initialangle = RADOF(54.);
         ++argcount;
         json11::Json::object values = jargs["phys"].object_items();
-        initiallat = RADOF(values["lat"].number_value());
-        initiallon = RADOF(values["lon"].number_value());
-        initialalt = values["alt"].number_value();
-        initialangle = RADOF(values["angle"].number_value());
-        if (fabs(initialutc) <= 3600.)
+        if (values["utc"].number_value() != 0.)
+        {
+            initialutc += values["utc"].number_value();
+        }
+        else
         {
             initialutc += currentmjd();
         }
+        currentutc = initialutc;
+        offsetutc = initialutc - currentmjd();
+        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
+        dtj = dt / 86400.;
         if (deltautc != 0.)
         {
             endutc = initialutc + deltautc;
         }
-        initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+        double initiallat = RADOF(21.3069);
+        double initiallon = RADOF(-157.8583);
+        double initialalt = 400000.;
+        double initialangle = RADOF(54.);
+        initiallat = RADOF(values["lat"].number_value());
+        initiallon = RADOF(values["lon"].number_value());
+        initialalt = values["alt"].number_value();
+        initialangle = RADOF(values["angle"].number_value());
+       initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     }
     if (!jargs["eci"].is_null())
     {
@@ -263,20 +277,38 @@ int32_t Simulator::ParseOrbitString(string args)
         initialloc.pos.eci.v.col[1] = (values["vy"].number_value());
         initialloc.pos.eci.v.col[2] = (values["vz"].number_value());
         initialloc.pos.eci.pass++;
+        initialutc += initialloc.pos.eci.utc;
+        currentutc = initialutc;
+        offsetutc = initialutc - currentmjd();
+        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
+        dtj = dt / 86400.;
+        if (deltautc != 0.)
+        {
+            endutc = initialutc + deltautc;
+        }
     }
     if (!jargs["kep"].is_null())
     {
         ++argcount;
         json11::Json::object values = jargs["kep"].object_items();
-        kepstruc kep;
-        if (fabs(initialutc) <= 3600.)
+        if (values["utc"].number_value() != 0.)
         {
-            initialutc +=currentmjd();
+            initialutc += values["utc"].number_value();
         }
+        else
+        {
+            initialutc += currentmjd();
+        }
+        currentutc = initialutc;
+        offsetutc = initialutc - currentmjd();
+        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
+        dtj = dt / 86400.;
         if (deltautc != 0.)
         {
             endutc = initialutc + deltautc;
         }
+        kepstruc kep;
+        initialutc += currentmjd();
         kep.utc = initialutc;
         kep.ea = values["ea"].number_value();
         kep.i = values["i"].number_value();
@@ -298,6 +330,10 @@ int32_t Simulator::ParseOrbitString(string args)
         {
             initialutc +=lines[0].utc;
         }
+        currentutc = initialutc;
+        offsetutc = initialutc - currentmjd();
+        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
+        dtj = dt / 86400.;
         if (deltautc != 0.)
         {
             endutc = initialutc + deltautc;
@@ -362,7 +398,7 @@ int32_t Simulator::ParseSatString(string args)
     string type;
     uint16_t nodetype = NODE_TYPE_SATELLITE;
     vector<camstruc> dets;
-    locstruc satloc = initialloc;
+    locstruc satloc;
     cartpos lvlh;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
@@ -418,33 +454,47 @@ int32_t Simulator::ParseSatString(string args)
     {
         ++argcount;
         json11::Json::object values = jargs["lvlh"].object_items();
-        Physics::Simulator::StateList::iterator sit = cnodes.begin(); //GetNode("mother");
-        initialloc = (*sit)->currentinfo.node.loc;
-        lvlh.s.col[0] = values["x"].number_value();
-        lvlh.s.col[1] = values["y"].number_value();
-        lvlh.s.col[2] = values["z"].number_value();
-        lvlh.v.col[0] = values["vx"].number_value();
-        lvlh.v.col[1] = values["vy"].number_value();
-        lvlh.v.col[2] = values["vz"].number_value();
-        lvlh.pass++;
-        pos_origin2lvlh(satloc, lvlh);
+        if (fastcalc)
+        {
+            satloc = cnodes[0]->currentinfo.node.loc;
+        }
+        else
+        {
+            satloc = initialloc;
+        }
+        satloc.pos.lvlh.s.col[0] = values["x"].number_value();
+        satloc.pos.lvlh.s.col[1] = values["y"].number_value();
+        satloc.pos.lvlh.s.col[2] = values["z"].number_value();
+        satloc.pos.lvlh.v.col[0] = values["vx"].number_value();
+        satloc.pos.lvlh.v.col[1] = values["vy"].number_value();
+        satloc.pos.lvlh.v.col[2] = values["vz"].number_value();
+        satloc.pos.lvlh.pass++;
+        pos_origin2lvlh(satloc);
+        eci2tle2(satloc.pos.eci, satloc.tle);
     }
     if (!jargs["ric"].is_null())
     {
         ++argcount;
         json11::Json::object values = jargs["ric"].object_items();
-        Convert::locstruc basepos = initialloc;
         cartpos ric;
-        ric.s.col[0] = values["r"].number_value();
-        ric.s.col[1] = values["i"].number_value();
-        ric.s.col[2] = values["c"].number_value();
-        ric.v.col[0] = values["vr"].number_value();
-        ric.v.col[1] = values["vi"].number_value();
-        ric.v.col[2] = values["vc"].number_value();
-        // TODO: Handle ric velocity?
-        ric2eci(basepos.pos.eci, ric.s, satloc.pos.eci);
-        cartpos lvlh = eci2lvlh(basepos.pos.eci, satloc.pos.eci);
+        if (fastcalc)
+        {
+            satloc = cnodes[0]->currentinfo.node.loc;
+        }
+        else
+        {
+            satloc = initialloc;
+        }
+        satloc.pos.lvlh.s.col[0] = values["r"].number_value();
+        satloc.pos.lvlh.s.col[1] = values["i"].number_value();
+        satloc.pos.lvlh.s.col[2] = values["c"].number_value();
+        satloc.pos.lvlh.v.col[0] = values["vr"].number_value();
+        satloc.pos.lvlh.v.col[1] = values["vi"].number_value();
+        satloc.pos.lvlh.v.col[2] = values["vc"].number_value();
+        ric2lvlh(satloc.pos.lvlh, satloc.pos.lvlh);
         lvlh.pass++;
+        pos_origin2lvlh(satloc);
+        eci2tle2(satloc.pos.eci, satloc.tle);
     }
     if (!cnodes.size())
     {
@@ -478,7 +528,6 @@ int32_t Simulator::ParseSatString(string args)
 //        iretn = AddNode(nodename, type, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, satloc.pos.lvlh, initialloc.att.icrf);
         if (fastcalc)
         {
-            eci2tle2(satloc.pos.eci, satloc.tle);
             iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.tle, initialloc.att.icrf);
         }
         else
@@ -706,13 +755,13 @@ int32_t Simulator::NudgeNode(string nodename, cartpos pos, qatt att)
             break;
         case Propagator::Type::PositionLvlh:
         {
+            pos_lvlh2origin((*node)->currentinfo.node.loc);
             (*node)->currentinfo.node.loc.pos.lvlh.s += pos.s;
             (*node)->currentinfo.node.loc.pos.lvlh.v += pos.v;
             (*node)->currentinfo.node.loc.pos.lvlh.a += pos.a;
             (*node)->currentinfo.node.loc.pos.lvlh.j += pos.j;
             (*node)->currentinfo.node.loc.pos.lvlh.pass++;
-            cartpos lvlh = (*node)->currentinfo.node.loc.pos.lvlh;
-            pos_origin2lvlh((*node)->currentinfo.node.loc, lvlh);
+            pos_origin2lvlh((*node)->currentinfo.node.loc);
             double dt = 86400.* (pos.utc - (*node)->currentinfo.node.loc.pos.eci.utc);
             double dt2 = dt * dt;
             double dt3 = dt2 * dt;
@@ -961,6 +1010,14 @@ int32_t Simulator::GetNode(string name, Physics::State* &node)
 }
 
 Simulator::StateList::iterator Simulator::GetNode(string name)
+{
+    auto node = std::find_if(cnodes.begin(), cnodes.end(), [name](const Physics::State* state) {
+        return state->currentinfo.node.name == name;
+    });
+    return node;
+}
+
+Simulator::StateList::const_iterator Simulator::GetNode(string name) const
 {
     auto node = std::find_if(cnodes.begin(), cnodes.end(), [name](const Physics::State* state) {
         return state->currentinfo.node.name == name;

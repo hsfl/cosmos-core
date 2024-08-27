@@ -1,3 +1,5 @@
+# Tag: hsfl2/agent_file:latest
+
 ############################################
 # BUILD STAGE
 FROM ubuntu:20.04 AS builder
@@ -22,11 +24,10 @@ RUN mkdir -p \
     ./nodes \
     ./bin
 
-# Set the working directory
-WORKDIR /cosmos/source
-
 # Clone source code
-RUN git clone https://github.com/hsfl/cosmos-core.git core
+WORKDIR /cosmos/source
+ADD https://api.github.com/repos/hsfl/cosmos-core/git/refs/heads/master version.json
+RUN git clone --depth 1 https://github.com/hsfl/cosmos-core.git core
 
 # Configure project
 WORKDIR core/build

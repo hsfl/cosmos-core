@@ -40,6 +40,7 @@ void FileSubagentTest::cleanup(uint8_t num_agents)
 void FileSubagentTest::TestSetup()
 {
     vector<vector<string>> transfer_node_contacts = {{"_tnode_2"}, {"_tnode_1"}};
+    ASSERT_LE(agents.size(), transfer_node_contacts.size());
     for (size_t i=0; i<agents.size(); ++i)
     {
         // File subagent setup
@@ -53,7 +54,7 @@ void FileSubagentTest::TestSetup()
         ASSERT_GE(iretn, 0);
 
         // Websocket channel adding
-        iretn = agents[i]->channel_add("SOCKRADIO", 224, 234, 1200.);
+        iretn = agents[i]->channel_add("SOCKRADIO", Support::Channel::PACKETCOMM_DATA_SIZE, Support::Channel::PACKETCOMM_PACKETIZED_SIZE, 18000., 1000);
         ASSERT_GE(iretn, 0);
         iretn = agents[i]->channel_number("SOCKRADIO");
         ASSERT_GE(iretn, 0);
@@ -67,8 +68,6 @@ void FileSubagentTest::TestSetup()
     websocket_subagents.resize(2);
     websocket_subagents[0] = new Module::WebsocketModule();
     int32_t iretn = websocket_subagents[0]->Init(agents[0], "127.0.0.1", PORT_OFFSET+0, PORT_OFFSET+1, "SOCKRADIO");
-    ASSERT_GE(iretn, 0);
-    iretn = agents[1]->channel_add("SOCKRADIO", 224, 234, 1200.);
     ASSERT_GE(iretn, 0);
     websocket_subagents[1] = new Module::WebsocketModule();
     iretn = websocket_subagents[1]->Init(agents[1], "127.0.0.1", PORT_OFFSET+1, PORT_OFFSET+0, "SOCKRADIO");
@@ -91,16 +90,16 @@ void FileSubagentTest::TestSetup()
 
 void FileSubagentTest::StartTransfers()
 {
-    PacketComm packet;
-    packet.header.type = PacketComm::TypeId::CommandFileTransferRadio;
-    packet.data.resize(2);
     for (auto& agent : agents)
     {
-        int32_t iretn = agents[0]->channel_number("SOCKRADIO");
-        ASSERT_GE(iretn, 1);
-        packet.data[0] = iretn & 0xFF;
-        packet.data[1] = 1;
-        agent->channel_push("FILE", packet);
+        // Enable file transfer
+        int32_t iretn = PacketHandler::QueueTransferRadio(agent->channel_number("SOCKRADIO"), true, agent, agent->nodeId);
+        ASSERT_GE(iretn, 0);
+        // Set channel to enable state
+        // TODO: this is a result of the channel of the websocket module needing to enter the enable state.
+        // Probably a mixture of concerns going on here. One noticeable problem could be the hardcoded timer in
+        // websocket module expiring before the test concludes.
+        agent->channel_touch(agent->channel_number("SOCKRADIO"));
     }
 }
 
@@ -128,6 +127,11 @@ int32_t FileSubagentTest::create_test_files(string orig_node, string dest_node, 
     int32_t file_size_bytes = file_size_kib * 1024;
     orig_out_dir = data_base_path(dest_node, "outgoing", test_name);
     dest_in_dir = data_base_path(orig_node, "incoming", test_name);
+    if (!data_exists(orig_out_dir) || !data_exists(dest_in_dir))
+    {
+        test_log.Printf("Error creating test directories.\n");
+        return -1;
+    }
     int32_t iretn = 0;
     for (size_t i = 0; i < this->num_files; ++i)
     {

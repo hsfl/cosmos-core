@@ -106,7 +106,7 @@ namespace Cosmos
             float mydataspeed = 0;
 
             //! Returns from loop if this is set to false
-            bool is_running = true;
+            bool is_running = false;
 
             socket_channel sock_in;
             socket_channel sock_out;

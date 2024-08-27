@@ -33,7 +33,7 @@ void FileSubagentTest::SetUp(uint8_t test_num_agents)
     // Setup the test agents
     for (size_t i=0; i < num_agents; ++i)
     {
-        agents[i] = new Agent("", 0);
+        agents[i] = new Agent(0);
         agents[i]->cinfo = new cosmosstruc();
         ASSERT_GE(load_node_ids(agents[i]->cinfo, "test"), num_agents+3);
         agents[i]->cinfo->agent0.stateflag = static_cast<uint16_t>(Cosmos::Support::Agent::State::INIT);
@@ -63,6 +63,10 @@ void FileSubagentTest::TearDown()
         agent->debug_log.Close();
         agent->cinfo->agent0.stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
     }
+
+    for (auto& ptr : file_subagents)          { ptr->shutdown(); }
+    for (auto& ptr : packethandler_subagents) { ptr->shutdown(); }
+    for (auto& ptr : websocket_subagents)     { ptr->shutdown(); }
     for (auto& thread: subagent_threads) {
         thread.join();
     }
@@ -96,9 +100,10 @@ TEST_F(FileSubagentTest, Delete_leftover_test_folders)
 // Test to ensure that the test agents can be properly created with channels and some extra fluff to make the file subagent work
 TEST_F(FileSubagentTest, Initialization_succeeds)
 {
-    const uint8_t test_num_agents = 3;
+    const uint8_t test_num_agents = 2;
 
-    ASSERT_NO_FATAL_FAILURE(SetUp(test_num_agents););
+    ASSERT_NO_FATAL_FAILURE(SetUp(test_num_agents));
+    ASSERT_NO_FATAL_FAILURE(TestSetup());
     EXPECT_EQ(num_agents, test_num_agents);
     EXPECT_EQ(agents.size(), num_agents);
     EXPECT_EQ(file_subagents.size(), num_agents);

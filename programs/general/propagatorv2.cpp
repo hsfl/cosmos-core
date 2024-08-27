@@ -123,8 +123,9 @@ int main(int argc, char *argv[])
         agent->debug_log.Printf("Error Creating Simulator: %s\n", cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
-    currentutc = initialutc;
-    sim->Init(currentutc, simdt);
+    sim->Init(simdt);
+    sim->ParseOrbitString(argv[1]);
+    currentutc = sim->initialutc;
 
 //    iretn = sim->AddNode("mother", "U12", Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeInertial, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     initialloc.att.icrf.s = q_eye();
@@ -270,7 +271,7 @@ int main(int argc, char *argv[])
         if (pcount > runcount / 100000.)
         {
             output += (*sit)->currentinfo.node.name + "\t";
-            output += to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+            output += to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - sim->initialutc)) + "\t";
             output += to_mjd((*sit)->currentinfo.node.loc.pos.eci.utc) + "\t";
 
             // Keplerian
@@ -354,7 +355,7 @@ int main(int argc, char *argv[])
         // Eclipse
         if (lastloc.pos.sunradiance && !(*sit)->currentinfo.node.loc.pos.sunradiance)
         {
-            output = to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+            output = to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - sim->initialutc)) + "\t";
             output += to_mjd((*sit)->currentinfo.node.loc.pos.eci.utc) + "\t";
 
             output += "Sun\tECLIPSE_IN\t";
@@ -368,7 +369,7 @@ int main(int argc, char *argv[])
 
         if (!lastloc.pos.sunradiance && (*sit)->currentinfo.node.loc.pos.sunradiance)
         {
-            output = to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+            output = to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - sim->initialutc)) + "\t";
             output += to_mjd((*sit)->currentinfo.node.loc.pos.eci.utc) + "\t";
 
             output += "Sun\tECLIPSE_OUT\t";
@@ -409,7 +410,7 @@ int main(int argc, char *argv[])
                 if ((latime >= 600.8 && atime < 600.9) || (latime >= 300.8 && atime <= 300.9))
                 {
                     output.clear();
-                    output += to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+                    output += to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - sim->initialutc)) + "\t";
                     output += to_mjd((*sit)->currentinfo.node.loc.pos.eci.utc) + "\t";
                     output += (*sit)->currentinfo.target[id].name + "\t";
 
@@ -439,7 +440,7 @@ int main(int argc, char *argv[])
             if (lasttargets[id].min != 2. && (*sit)->currentinfo.target[id].min == 2.)
             {
                 output.clear();
-                output += to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+                output += to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - sim->initialutc)) + "\t";
                 output += to_mjd((*sit)->currentinfo.node.loc.pos.eci.utc) + "\t";
                 output += (*sit)->currentinfo.target[id].name + "\t";
 
@@ -461,7 +462,7 @@ int main(int argc, char *argv[])
             if (lasttargets[id].min == 2. && (*sit)->currentinfo.target[id].min != 2.)
             {
                 output.clear();
-                output += to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+                output += to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - sim->initialutc)) + "\t";
                 output += to_mjd((*sit)->currentinfo.node.loc.pos.eci.utc) + "\t";
                 output += (*sit)->currentinfo.target[id].name + "\t";
 
@@ -487,7 +488,7 @@ int main(int argc, char *argv[])
                     if ((*sit)->currentinfo.target[id].elto >= el &&  lasttargets[id].elto <= el)
                     {
                         output.clear();
-                        output += to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+                        output += to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - sim->initialutc)) + "\t";
                         output += to_mjd((*sit)->currentinfo.node.loc.pos.eci.utc) + "\t";
                         output += (*sit)->currentinfo.target[id].name + "\t";
 
@@ -510,7 +511,7 @@ int main(int argc, char *argv[])
                 if ((*sit)->currentinfo.target[id].maxelto > 0. && (*sit)->currentinfo.target[id].maxelto > (*sit)->currentinfo.target[id].elto && lasttargets[id].maxelto == lasttargets[id].elto)
                 {
                     output.clear();
-                    output += to_floatany(86400.*(lasttargets[id].utc - initialutc)) + "\t";
+                    output += to_floatany(86400.*(lasttargets[id].utc - sim->initialutc)) + "\t";
                     output += to_mjd(lasttargets[id].utc) + "\t";
                     output += lasttargets[id].name + "\t";
 
@@ -537,7 +538,7 @@ int main(int argc, char *argv[])
                     if (int(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc-lasttargets[id].utc)) == dtime)
                     {
                         output.clear();
-                        output += to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - initialutc)) + "\t";
+                        output += to_floatany(86400.*((*sit)->currentinfo.node.loc.pos.eci.utc - sim->initialutc)) + "\t";
                         output += to_mjd((*sit)->currentinfo.node.loc.pos.eci.utc) + "\t";
                         output += (*sit)->currentinfo.target[id].name + "\t";
 
