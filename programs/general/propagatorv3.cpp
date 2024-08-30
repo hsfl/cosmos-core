@@ -102,8 +102,8 @@ int main(int argc, char *argv[])
                     json11::Json jobj = json11::Json::object({
                         {"event_utc", event.utc},
                         {"event_name", event.name},
-                        {"event_type", event.type},
-                        {"event_flag", event.flag},
+                        {"event_type", static_cast<int>(event.type)},
+                        {"event_flag", static_cast<int>(event.flag)},
                         {"event_el", event.el},
                         {"event_az", event.az},
                         {"geodpos", state->currentinfo.node.loc.pos.geod.s}
