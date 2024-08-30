@@ -61,6 +61,12 @@ static void dump(double value, string &out) {
     }
 }
 
+static void dump(int value, string &out) {
+    char buf[32];
+    snprintf(buf, sizeof buf, "%ld", value);
+    out += buf;
+}
+
 static void dump(long value, string &out) {
     char buf[32];
     snprintf(buf, sizeof buf, "%ld", value);
@@ -172,11 +178,21 @@ protected:
 
 class JsonDouble final : public Value<Json::NUMBER, double> {
     double number_value() const override { return m_value; }
-    int long_value() const override { return static_cast<long>(m_value); }
+    int int_value() const override { return static_cast<int>(m_value); }
+    int long_value() const override { return static_cast<long>(m_value); }  // ERIC:  you want the return value to be long, since that is what you cast it to?
     bool equals(const JsonValue * other) const override { return m_value == other->number_value(); }
     bool less(const JsonValue * other)   const override { return m_value <  other->number_value(); }
 public:
     explicit JsonDouble(double value) : Value(value) {}
+};
+
+class JsonInt final : public Value<Json::NUMBER, int> {
+    double number_value() const override { return m_value; }
+    int int_value() const override { return m_value; }
+    bool equals(const JsonValue * other) const override { return m_value == other->number_value(); }
+    bool less(const JsonValue * other)   const override { return m_value <  other->number_value(); }
+public:
+    explicit JsonInt(int value) : Value(value) {}
 };
 
 class JsonLong final : public Value<Json::NUMBER, long> {
@@ -253,11 +269,12 @@ static const Json & static_null() {
 Json::Json() noexcept                  : m_ptr(statics().null) {}
 Json::Json(std::nullptr_t) noexcept    : m_ptr(statics().null) {}
 Json::Json(double value)               : m_ptr(make_shared<JsonDouble>(value)) {}
+Json::Json(int value)                  : m_ptr(make_shared<JsonInt>(value)) {}
 Json::Json(long value)                  : m_ptr(make_shared<JsonLong>(value)) {}
-Json::Json(int32_t value)                  : m_ptr(make_shared<JsonLong>(value)) {}
-Json::Json(uint32_t value)                  : m_ptr(make_shared<JsonLong>(value)) {}
-Json::Json(uint16_t value)                  : m_ptr(make_shared<JsonLong>(value)) {}
-Json::Json(uint8_t value)                  : m_ptr(make_shared<JsonLong>(value)) {}
+//Json::Json(int32_t value)                  : m_ptr(make_shared<JsonLong>(value)) {}
+//Json::Json(uint32_t value)                  : m_ptr(make_shared<JsonLong>(value)) {}
+//Json::Json(uint16_t value)                  : m_ptr(make_shared<JsonLong>(value)) {}
+//Json::Json(uint8_t value)                  : m_ptr(make_shared<JsonLong>(value)) {}
 Json::Json(bool value)                 : m_ptr(value ? statics().t : statics().f) {}
 Json::Json(const string &value)        : m_ptr(make_shared<JsonString>(value)) {}
 Json::Json(string &&value)             : m_ptr(make_shared<JsonString>(move(value))) {}
@@ -282,7 +299,8 @@ string Json::type_name()                          const {
 	return "NULL";
 }
 double Json::number_value()                       const { return m_ptr->number_value(); }
-long Json::long_value()                             const { return m_ptr->long_value();    }
+int Json::int_value()                             const { return m_ptr->int_value();    }
+long Json::long_value()                             const { return m_ptr->long_value();    } // so this gets casts back and forth from long to int to long i think
 bool Json::bool_value()                           const { return m_ptr->bool_value();   }
 const string & Json::string_value()               const { return m_ptr->string_value(); }
 const vector<Json> & Json::array_items()          const { return m_ptr->array_items();  }
@@ -291,6 +309,7 @@ const Json & Json::operator[] (size_t i)          const { return (*m_ptr)[i];   
 const Json & Json::operator[] (const string &key) const { return (*m_ptr)[key];         }
 
 double                    JsonValue::number_value()              const { return 0; }
+int                       JsonValue::int_value()                 const { return 0; }
 int                       JsonValue::long_value()                 const { return 0; }
 bool                      JsonValue::bool_value()                const { return false; }
 const string &            JsonValue::string_value()              const { return statics().empty_string; }
@@ -832,5 +851,187 @@ bool Json::has_shape(const shape & types, string & err) const {
 
     return true;
 }
+
+
+///*
+/// return a pretty string
+string pretty_string(const json11::Json& json, unsigned int depth, unsigned int indent_spaces, bool newline_simple_array_elements) {
+	stringstream out;
+	const string base_indent(indent_spaces, ' ');
+	const string indent(depth * indent_spaces, ' ');
+
+	if (json.is_object()) {
+		out << "{\n";
+		const auto& items = json.object_items();
+		for (auto it = items.begin(); it != items.end(); ) {
+			out << indent << base_indent << "\"" << it->first << "\": ";
+			out << pretty_string(it->second, depth + 1);
+			out << (++it != items.end() ? "," : "") << "\n";
+		}
+		out << indent << "}";
+	} else if (json.is_array()) {
+		if(newline_simple_array_elements)	{
+			// this uses newline between simple array elements (i.e. not objects or arrays)
+			out << "[\n";
+			const auto& items = json.array_items();
+			for (size_t i = 0; i < items.size(); ++i) {
+				out << indent << base_indent;
+				out << pretty_string(items[i], depth + 1);
+				out << (i < items.size() - 1 ? "," : "") << "\n";
+			}
+			out << indent << "]";
+
+		} else {
+			// this uses " ," between simple array elements
+			const auto& items = json.array_items();
+			bool simpleValuesOnly = std::all_of(items.begin(), items.end(), [](const json11::Json& item) {
+				return item.is_string() || item.is_number() || item.is_bool() || item.is_null();
+			});
+			if (simpleValuesOnly) {
+				out << "[";
+				for (size_t i = 0; i < items.size(); ++i) {
+					if (i > 0) out << ", ";
+					out << pretty_string(items[i], 0);  // Pass 0 for depth to avoid indentation
+				}
+				out << "]";
+			} else {
+				out << "[\n";
+				for (size_t i = 0; i < items.size(); ++i) {
+					out << indent << base_indent;
+					out << pretty_string(items[i], depth + 1);
+					out << (i < items.size() - 1 ? "," : "") << "\n";
+				}
+				out << indent << "]";
+			}
+		}
+	} else if (json.is_string()) {
+		out << "\"" << json.string_value() << "\"";
+	} else if (json.is_number()) {
+		// Number (int or double)
+		//if (json.number_value() == json.int_value()) { // only using long_value because afraid of updating this file due to prior modifications
+		if (json.number_value() == json.long_value()) {
+			// Integer number
+			//out << json.int_value(); // only using long_value because afraid of updating this file due to prior modifications
+			out << json.long_value();
+		} else {
+			// Floating point number - this gives the best looking printing for doubles
+			out << setprecision(numeric_limits<double>::max_digits10-2);
+			// Question:  Why not using double_value() here?
+			out << json.number_value();
+			out.unsetf(std::ios_base::floatfield);
+		}
+	} else if (json.is_bool()) {
+		out << (json.bool_value() ? "true" : "false");
+	} else if (json.is_null()) {
+		out << "null";
+	}
+	return out.str();
+}
+
+std::ostream& operator<<(std::ostream& os, const json11::Json& json) {
+	os << pretty_string(json);
+	return os;
+}
+
+// Get json object from input stream
+std::istream& operator>>(std::istream& is, json11::Json& json) {
+	string str;
+	int open_brackets = 0, closed_brackets = 0;
+	char ch;
+	while (is.get(ch)) {
+		str += ch;
+		if (ch == '{') open_brackets++;
+		else if (ch == '}') closed_brackets++;
+
+		// Check if the number of open and closed brackets are equal
+		if (open_brackets > 0 && open_brackets == closed_brackets) {
+			break; // Complete JSON object is read
+		}
+	}
+
+	string err;
+	json11::Json parsed = json11::Json::parse(str, err);
+	if (!err.empty()) {
+		json = json11::Json(); // If there's an error, set json to null
+	} else {
+		json = parsed;
+	}
+
+	return is;
+}
+
+
+/// Combines two JSON objects into a composite JSON object and returns the result
+Json operator+(const Json& lhs, const Json& rhs) {
+	if (!lhs.is_object() || !rhs.is_object()) {
+		cerr<<"lhs or rhs is not a JSON object"<<endl;
+		exit(-1);
+	}
+
+	Json::object merged_obj = lhs.object_items();
+	for (const auto& kv : rhs.object_items()) {
+		merged_obj[kv.first] = kv.second; // This will overwrite if key exists
+	}
+
+	return Json(merged_obj);
+}
+
+/// Combines two JSON objects into a composite JSON object and replaces lhs
+Json& operator+=(Json& lhs, const Json& rhs) {
+
+	// handle case where lhs is null object (replace with empty object)
+	if (lhs.is_null()) lhs = Json::object{};
+
+	// handle case where rhs is null object (nothing to add, return lhs)
+	if (rhs.is_null()) return lhs;
+
+	// handle case where lhs is not an object
+	if (!lhs.is_object()) {
+		cerr << "lhs is not a JSON object" << endl;
+		exit(-1);
+	}
+
+	// handle case where rhs is not an object
+	if (!rhs.is_object()) {
+		cerr << "rhs is not a JSON object" << endl;
+		exit(-1);
+	}
+
+	Json::object merged_obj = lhs.object_items();
+	for (const auto& kv : rhs.object_items()) {
+		merged_obj[kv.first] = kv.second; // This will overwrite if key exists
+	}
+
+	lhs = Json(merged_obj); // Reassign the merged object back to lhs
+	return lhs;
+}
+
+// this function might already exist in json11
+bool has_json_key(const Json& json, const string& key) {
+	if (!json.is_object()) { return false; }
+	const auto& items = json.object_items();
+	return items.find(key) != items.end(); // Check if the key exists in the JSON object
+}
+
+// FIND JSON OBJECT BY KEY
+
+/// populate all results found with JSON key == key_name
+void find_json_object(const Json &json, const string &key_name, vector<Json> &json_results) {
+	if (json.is_object()) {
+		for (const auto &kv : json.object_items()) {
+			if (kv.first == key_name) {
+				//json_results.push_back(kv.second);
+				json_results.push_back( Json::object { {kv.first, kv.second} });
+			}
+			find_json_object(kv.second, key_name, json_results);
+		}
+	} else if (json.is_array()) {
+		for (const auto &item : json.array_items()) {
+			find_json_object(item, key_name, json_results);
+		}
+	}
+}
+
+//*/
 
 } // namespace json11
