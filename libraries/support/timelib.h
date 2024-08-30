@@ -157,6 +157,7 @@ namespace Cosmos {
         string utc2unixdate(double utc=0.);
         string utc2iso8601(double mjd=0.);
         double iso86012utc(string date);
+        double iso86012mjd(string date);
 
         // gps to another format
         void    gps2week(double gps, uint32_t& week, double& seconds);

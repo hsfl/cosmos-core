@@ -215,6 +215,10 @@ int32_t parse_control(string args)
         ++argcount;
         initialutc = jargs["initialutc"].number_value();
     }
+    else
+    {
+        initialutc = currentmjd();
+    }
     if (!jargs["endutc"].is_null())
     {
         ++argcount;

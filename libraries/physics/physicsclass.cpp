@@ -3517,8 +3517,9 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         if (currentinfo->node.phys.fpush.norm() && currentinfo->node.phys.mass)
         {
             Vector dacc = (1./currentinfo->node.phys.mass) * currentinfo->node.phys.fpush;
-            step[order2].loc.pos.eci.s = rv_add(step[order2].loc.pos.eci.s, 0.5 * dt2 * dacc.to_rv());
+            step[order2].loc.pos.eci.s = rv_add(step[order2].loc.pos.eci.s, 0.5 * dtsq * dacc.to_rv());
             step[order2].loc.pos.eci.v = rv_add(step[order2].loc.pos.eci.v, dt * dacc.to_rv());
+            currentinfo->node.phys.fpush.clear();
             Update();
         }
 

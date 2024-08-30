@@ -31,7 +31,8 @@ namespace Module
     {
         agent->debug_log.Printf("Starting %s loop.\n", mychannel_name.c_str());
         PacketComm packet;
-        while(agent->running())
+        is_running = true;
+        while(is_running)
         {
             // Comm - Internal
             if (agent->channel_pull(mychannel, packet) > 0)
@@ -49,6 +50,11 @@ namespace Module
         }
 
         return;
+    }
+
+    void PacketHandlerModule::shutdown()
+    {
+        is_running = false;
     }
 
 } // End namespace Module

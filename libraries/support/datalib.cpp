@@ -374,6 +374,15 @@ int32_t log_move_file(string oldpath, string newpath, bool compress, double time
     ElapsedTime timer;
     if (compress && oldpath.find(".gz") == string::npos)
     {
+        // The compression is only for files, not directories
+        // Consider updating the algorithm to support directories
+        struct stat st;
+        stat(oldpath.c_str(), &st);
+        if (S_ISDIR(st.st_mode))
+        {
+            return GENERAL_ERROR_INPUT;
+        }
+
         char buffer[8192];
         string temppath = oldpath + ".gz";
         newpath += ".gz";

@@ -675,6 +675,14 @@ namespace Cosmos {
             return utc;
         }
 
+        double iso86012mjd(string date)
+        {
+            int32_t iy=0, im=0, id=0, ihh, imm, iss;
+
+            sscanf(date.c_str(), "%d-%d-%dT%d:%d:%d", &iy, &im, &id, &ihh, &imm, &iss);
+            return cal2mjd(iy, im, id, ihh, imm, iss);
+        }
+
         // just call utc2iso8601(double utc)
         string mjd2iso8601(double mjd){
             return utc2iso8601(mjd);

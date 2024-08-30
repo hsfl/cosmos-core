@@ -110,11 +110,10 @@ namespace Cosmos
         class Propagator
         {
         public:
-//            Propagator(cosmosstruc *newinfo, double idt) : currentloc{newloc}, currentphys{newphys}
             Propagator(cosmosstruc *newinfo, double idt) : currentinfo{newinfo}
             {
+				// JIMNOTE:  dt = idt; ?
                 dt = 86400.*((currentinfo->node.loc.utc + (idt / 86400.))-currentinfo->node.loc.utc);
-                dt2 = dt * dt;
                 dtj = dt / 86400.;
                 initialloc = currentinfo->node.loc;
                 currentutc = currentinfo->node.loc.utc;
@@ -122,13 +121,10 @@ namespace Cosmos
             }
 
             double dt;
-            double dt2;
             double dtj;
             double currentutc=0.;
             locstruc initialloc;
-//            locstruc *currentloc;
             physicsstruc initialphys;
-//            physicsstruc *currentphys;
             cosmosstruc *currentinfo;
             bool enable = true;
 
