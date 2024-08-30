@@ -262,6 +262,7 @@ int32_t pos_lvlh(locstruc &loc)
     loc.pos.extra.dp2l= rm_transpose(loc.pos.extra.dl2p);
     loc.pos.extra.ddp2l = rm_transpose(loc.pos.extra.ddl2p);
 
+    // ECI based LVLH
     // LVLH Z is opposite of direction to satellite
     planec_z = rv_smult(-1., ppos->s);
     normalize_rv(planec_z);
@@ -283,6 +284,30 @@ int32_t pos_lvlh(locstruc &loc)
     loc.pos.extra.e2l = q_fmult(qe_z, qe_y);
     normalize_q(&loc.pos.extra.e2l);
     loc.pos.extra.l2e = q_conjugate(loc.pos.extra.e2l);
+
+    // GEOC based LVLH
+    // LVLH Z is opposite of direction to satellite
+    ppos = &loc.pos.geoc;
+    planec_z = rv_smult(-1., ppos->s);
+    normalize_rv(planec_z);
+
+    // LVLH Y is Cross Product of LVLH Z and velocity vector
+    planec_y = rv_cross(planec_z, ppos->v);
+    normalize_rv(planec_y);
+
+    // Determine intrinsic rotation of ITRF Z  into LVLH Z
+    qe_z = q_conjugate(q_drotate_between_rv(planec_z, lvlh_z));
+
+    // Use to intrinsically rotate ITRF Y into intermediate Y
+    planec_y = irotate(qe_z, planec_y);
+
+    // Determine intrinsic rotation of this intermediate Y into LVLH Y
+    qe_y = q_conjugate(q_drotate_between_rv(planec_y, lvlh_y));
+
+    // Combine to determine intrinsic rotation of ITRF into LVLH
+    loc.pos.extra.g2l = q_fmult(qe_z, qe_y);
+    normalize_q(&loc.pos.extra.g2l);
+    loc.pos.extra.l2g = q_conjugate(loc.pos.extra.g2l);
 
     return 0;
 }
@@ -3572,6 +3597,75 @@ int32_t pos_lvlh2origin(locstruc& loc)
     pos_geoc(loc);
 
 //    loc.pos.lvlh = cartpos();
+
+    return 0;
+}
+
+/**
+         * @brief Converts LVLH offset coordinates to base coordinates
+         *
+         * Requires lvlh.pos to be fully set with current LVLH offset position.
+         * Requires geoc.pos to be fully set with current LVLH offset position.
+         *
+         * @param loc ::locstruc containing Offset to convert to Origin
+         * @param lvlh ::cartpos LVLH offsets to apply
+         * @return int32_t 0 on success, negative on error
+         */
+int32_t pos_lvlh2geoc(locstruc *base, locstruc *geoc)
+{
+    return pos_lvlh2geoc(*base, *geoc);
+}
+
+int32_t pos_lvlh2geoc(locstruc &base, locstruc &geoc)
+{
+    pos_geoc(base);
+    pos_geoc(base);
+    cartpos geoc_offset;
+    geoc_offset.s = irotate(base.pos.extra.e2l, geoc_offset.s);
+    geoc_offset.v = irotate(base.pos.extra.e2l, geoc_offset.v);
+    geoc_offset.a = irotate(base.pos.extra.e2l, geoc_offset.a);
+    geoc_offset.s = rv_add(base.pos.geoc.s, geoc_offset.s);
+    geoc_offset.v = rv_add(base.pos.geoc.v, geoc_offset.v);
+    geoc_offset.a = rv_add(base.pos.geoc.a, geoc_offset.a);
+    geoc.pos.lvlh.s = rv_zero();
+    geoc.pos.lvlh.v = rv_zero();
+    geoc.pos.lvlh.a = rv_zero();
+
+    geoc.pos.geoc.pass = std::max(geoc.pos.eci.pass, geoc.pos.geos.pass) + 1;
+    pos_geoc(geoc);
+
+    return 0;
+}
+
+/**
+         * @brief Converts GEOC based LVLH offset coordinates to base coordinates
+         *
+         * Requires lvlh.pos to be fully set with current LVLH offset position.
+         * Requires geoc.pos to be fully set with current LVLH offset position.
+         *
+         * @param loc ::locstruc containing Offset to convert to Origin
+         * @param lvlh ::cartpos LVLH offsets to apply
+         * @return int32_t 0 on success, negative on error
+         */
+int32_t pos_geoc2lvlh(locstruc *geoc, locstruc *base)
+{
+    return pos_geoc2lvlh(*geoc, *base);
+}
+
+int32_t pos_geoc2lvlh(locstruc &geoc, locstruc &base)
+{
+    pos_geoc(geoc);
+    pos_geoc(base);
+    cartpos geoc_offset;
+    geoc_offset.s = rv_sub(geoc.pos.geoc.s, base.pos.geoc.s);
+    geoc_offset.v = rv_sub(geoc.pos.geoc.v, base.pos.geoc.v);
+    geoc_offset.a = rv_sub(geoc.pos.geoc.a, base.pos.geoc.a);
+    base.pos.lvlh.s = irotate(base.pos.extra.e2l, geoc_offset.s);
+    base.pos.lvlh.v = irotate(base.pos.extra.e2l, geoc_offset.v);
+    base.pos.lvlh.a = irotate(base.pos.extra.e2l, geoc_offset.a);
+
+    //    base.pos.geoc.pass = std::max(geoc.pos.eci.pass, geoc.pos.geos.pass) + 1;
+    //    pos_geoc(base);
 
     return 0;
 }

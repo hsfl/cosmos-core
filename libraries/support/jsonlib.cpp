@@ -8155,11 +8155,8 @@ int32_t json_setup_node(string &node, cosmosstruc *cinfo)
 
 int32_t json_clone_node(cosmosstruc *source, cosmosstruc *destination)
 {
-    int32_t iretn = 0;
-    struct stat fstat;
     ifstream ifs;
     string fname;
-
 
     json_init_reserve(destination);
     json_init_unit(destination);
@@ -13660,7 +13657,7 @@ string device_type_name(uint32_t type)
 
 uint16_t device_component_index(cosmosstruc* cinfo, string name, uint16_t didx)
 {
-    uint16_t cidx = 65535;
+    //uint16_t cidx = 65535; // unused?
     return device_component_index(cinfo, device_type_index(name), didx);
 }
 

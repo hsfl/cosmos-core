@@ -19,6 +19,7 @@ Agent *agent;
 double simdt = 1.;
 uint16_t realtime=1;
 uint16_t printevent=0;
+uint16_t postevent=0;
 double initialutc = 60107.01;
 double endutc = 0.;
 double deltautc = 0.;
@@ -29,6 +30,7 @@ string targetfile = "targets.dat";
 string tlefile = "tle.dat";
 double runcount = 1500;
 vector <cartpos> lvlhoffset;
+socket_bus data_channel_out;
 
 int main(int argc, char *argv[])
 {
@@ -69,80 +71,111 @@ int main(int argc, char *argv[])
         agent->cinfo->agent0.aprd = simdt;
         agent->start_active_loop();
     }
-//    uint16_t tcount = 0;
+
+    // Open socket for returning state information to simulator
+    iretn = socket_open(data_channel_out, CLIENT_PORT_OUT, 2000000);
+
+    //    uint16_t tcount = 0;
     while (agent->running() && elapsed < runcount)
     {
-//        if (realtime && thrustctl)
-//        {
-//            for (uint16_t i=1; i<sim->cnodes.size(); ++i)
-//            {
-//                locstruc goal;
-//                goal.pos.geoc = sim->cnodes[0]->currentinfo.node.loc.pos.geoc;
-//                goal.pos.lvlh.s = rvector(i*1000., 0., 0.);
-//                pos_origin2lvlh(goal);
-//                switch(thrustctl)
-//                {
-//                case 1:
-//                    sim->UpdatePush(sim->cnodes[i]->currentinfo.node.name, Physics::ControlThrust(sim->cnodes[i]->currentinfo.node.loc.pos.eci, goal.pos.eci, sim->cnodes[i]->currentinfo.mass, sim->cnodes[i]->currentinfo.devspec.thst[0].maxthrust/sim->cnodes[i]->currentinfo.mass, simdt));
-//                    break;
-//                case 2:
-//                    break;
-//                default:
-//                    break;
-//                }
-//            }
-//        }
+        //        if (realtime && thrustctl)
+        //        {
+        //            for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        //            {
+        //                locstruc goal;
+        //                goal.pos.geoc = sim->cnodes[0]->currentinfo.node.loc.pos.geoc;
+        //                goal.pos.lvlh.s = rvector(i*1000., 0., 0.);
+        //                pos_origin2lvlh(goal);
+        //                switch(thrustctl)
+        //                {
+        //                case 1:
+        //                    sim->UpdatePush(sim->cnodes[i]->currentinfo.node.name, Physics::ControlThrust(sim->cnodes[i]->currentinfo.node.loc.pos.eci, goal.pos.eci, sim->cnodes[i]->currentinfo.mass, sim->cnodes[i]->currentinfo.devspec.thst[0].maxthrust/sim->cnodes[i]->currentinfo.mass, simdt));
+        //                    break;
+        //                case 2:
+        //                    break;
+        //                default:
+        //                    break;
+        //                }
+        //            }
+        //        }
         sim->Propagate();
         for (auto &state : sim->cnodes)
         {
-            if (printevent && state->currentinfo.event.size())
+            if (state->currentinfo.event.size())
             {
                 for (eventstruc event : state->currentinfo.event)
                 {
                     json11::Json jobj = json11::Json::object({
-                        {"event_utc", event.utc},
-                        {"event_name", event.name},
-                        {"event_type", static_cast<int>(event.type)},
-                        {"event_flag", static_cast<int>(event.flag)},
-                        {"event_el", event.el},
-                        {"event_az", event.az},
+                        {"type", "event"}, // this needs a different name, can't have duplicates in names
+                        {"node", state->currentinfo.node.name},
+                        {"utc", event.utc},
+                        {"name", event.name},
+                        {"type", static_cast<int>(event.type)},
+                        {"flag", static_cast<int>(event.flag)},
+                        {"el", event.el},
+                        {"az", event.az},
                         {"geodpos", state->currentinfo.node.loc.pos.geod.s}
                     });
-                    printf("%s\n", jobj.dump().c_str());
+                    string output = jobj.dump();
+                    if (printevent)
+                    {
+                        printf("%s\n", output.c_str());
+                    }
+                    if (postevent)
+                    {
+                        iretn = socket_post(data_channel_out, output.c_str());
+                    }
                 }
+            }
+            json11::Json jobj = json11::Json::object({
+                {"type", "node"},
+                {"node", state->currentinfo.node.name},
+                {"ecipos", state->currentinfo.node.loc.pos.eci},
+                {"icrfatt", state->currentinfo.node.loc.att.icrf},
+                {"powerin", state->currentinfo.node.phys.powgen},
+                {"powerout", state->currentinfo.node.phys.powuse}
+            });
+            string output = jobj.dump();
+            if (printevent)
+            {
+                printf("%s\n", output.c_str());
+            }
+            if (postevent)
+            {
+                iretn = socket_post(data_channel_out, output.c_str());
             }
         }
         if (realtime)
         {
             agent->finish_active_loop();
-//            if (++tcount > 10)
-//            {
-//                printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f | %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f | %8.1f %8.1f %8.1f %8.2f %8.2f %8.2f | %8.4f %8.2f %8.1f\n",
-//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[0],
-//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[1],
-//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[2],
-//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[0],
-//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[1],
-//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[2],
-//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[0],
-//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[1],
-//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[2],
-//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[0],
-//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[1],
-//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[2],
-//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.s.col[0],
-//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.s.col[1],
-//                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.s.col[2],
-//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.s.col[0],
-//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.s.col[1],
-//                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.s.col[2],
-//                       length_rv(sim->cnodes[1]->currentinfo.node.loc.pos.eci.a-sim->cnodes[0]->currentinfo.node.loc.pos.eci.a),
-//                       length_rv(sim->cnodes[1]->currentinfo.node.loc.pos.eci.v-sim->cnodes[0]->currentinfo.node.loc.pos.eci.v),
-//                       length_rv(sim->cnodes[1]->currentinfo.node.loc.pos.eci.s-sim->cnodes[0]->currentinfo.node.loc.pos.eci.s)
-//                       );
-//                fflush(stdout);
-//                tcount = 0;
-//            }
+            //            if (++tcount > 10)
+            //            {
+            //                printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f | %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f | %8.1f %8.1f %8.1f %8.2f %8.2f %8.2f | %8.4f %8.2f %8.1f\n",
+            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[0],
+            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[1],
+            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[2],
+            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[0],
+            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[1],
+            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[2],
+            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[0],
+            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[1],
+            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[2],
+            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[0],
+            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[1],
+            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[2],
+            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.s.col[0],
+            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.s.col[1],
+            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.s.col[2],
+            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.s.col[0],
+            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.s.col[1],
+            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.s.col[2],
+            //                       length_rv(sim->cnodes[1]->currentinfo.node.loc.pos.eci.a-sim->cnodes[0]->currentinfo.node.loc.pos.eci.a),
+            //                       length_rv(sim->cnodes[1]->currentinfo.node.loc.pos.eci.v-sim->cnodes[0]->currentinfo.node.loc.pos.eci.v),
+            //                       length_rv(sim->cnodes[1]->currentinfo.node.loc.pos.eci.s-sim->cnodes[0]->currentinfo.node.loc.pos.eci.s)
+            //                       );
+            //                fflush(stdout);
+            //                tcount = 0;
+            //            }
         }
     }
 }
@@ -152,15 +185,20 @@ int32_t parse_control(string args)
     uint16_t argcount = 0;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
-//    if (!jargs["thrustctl"].is_null())
-//    {
-//        ++argcount;
-//        thrustctl = jargs["thrustctl"].number_value();
-//    }
+    //    if (!jargs["thrustctl"].is_null())
+    //    {
+    //        ++argcount;
+    //        thrustctl = jargs["thrustctl"].number_value();
+    //    }
     if (!jargs["printevent"].is_null())
     {
         ++argcount;
         printevent = jargs["printevent"].number_value();
+    }
+    if (!jargs["postevent"].is_null())
+    {
+        ++argcount;
+        postevent = jargs["postevent"].number_value();
     }
     if (!jargs["runcount"].is_null())
     {
