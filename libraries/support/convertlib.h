@@ -324,6 +324,7 @@ namespace Cosmos {
                 };
         //! @}
 
-    }
-}
+	json11::Json    make_tle_information_object(const string& tle_file = "/home/user/cosmos/source/core/data/demo/tle.dat");
+    } // end Convert namespace
+} // end Cosmos namespace
 #endif

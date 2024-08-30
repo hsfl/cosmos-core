@@ -6600,5 +6600,31 @@ double gps2utc(double gps)
     return (utc);
 }
 
+// Make TLE Info object (JSON)
+json11::Json    make_tle_information_object(const string& tle_file)  {
+    json11::Json tle_info;
+	tlestruc tle_tlestruc;
+	sgp4struc tle_sgp4struc;
+    string tle_string;
+
+    // the tlestruc is what gets used in the simulation
+    ifstream file(tle_file);
+    if(file.good()) {
+		// make tlestruc from file
+		load_tle(tle_file, tle_tlestruc); // check return value
+		// make sgp4struc from tlestruc
+		tle2sgp4(tle_tlestruc, tle_sgp4struc);
+		// make tlestring from tlestruc
+		tle_string = tle2tlestring(tle_tlestruc);
+    } else {
+		tle_string = "unable to load tle file <" + tle_file + ">";
+    }
+    tle_info+=json11::Json::object{{"tle_file", tle_file}};
+    tle_info+=json11::Json::object{{"tle_string", tle_string}};
+    tle_info+=json11::Json::object{{"tlestruc", tle_tlestruc}};
+    tle_info+=json11::Json::object{{"sgp4struc", tle_sgp4struc}};
+    return tle_info;
 }
-}
+
+} // end namespace Convert
+} // end namespace Cosmos
