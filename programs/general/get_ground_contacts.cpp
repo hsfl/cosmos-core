@@ -305,10 +305,10 @@ void proptrack(size_t index, double utcnow)
                 if (mode == "cal")
                 {
                     calstruc calaosa = mjd2cal(tracks[index].aos0.utc-10./24.);
-                    calstruc calaosb = mjd2cal(tracks[index].aos1.utc+1./1440.-10./24.);
-                    calstruc caltcaa = mjd2cal(tracks[index].aos1.utc-10./24.);
-                    calstruc caltcab = mjd2cal(tracks[index].los1.utc+1./1440.-10./24.);
-                    calstruc callosa = mjd2cal(tracks[index].los1.utc-10./24.);
+                    //calstruc calaosb = mjd2cal(tracks[index].aos1.utc+1./1440.-10./24.);
+                    //calstruc caltcaa = mjd2cal(tracks[index].aos1.utc-10./24.);
+                    //calstruc caltcab = mjd2cal(tracks[index].los1.utc+1./1440.-10./24.);
+                    //calstruc callosa = mjd2cal(tracks[index].los1.utc-10./24.);
                     calstruc callosb = mjd2cal(tracks[index].los0.utc+1./1440.-10./24.);
                     if (calheader)
                     {
