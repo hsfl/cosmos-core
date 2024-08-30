@@ -1100,7 +1100,52 @@ namespace Cosmos {
             double ma;
             // Epoch (year.day)
             double ep = 0.;
+
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "i" , i },
+                    { "e" , e },
+                    { "raan" , raan },
+                    { "ap" , ap },
+                    { "bstar" , bstar },
+                    { "mm" , mm },
+                    { "ma" , ma },
+                    { "ep" , ep }
+                };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param  s   JSON-formatted string to set class contents to
+        @return n/a
+    */
+            void from_json(const string& js) {
+                string error;
+                json11::Json parsed = json11::Json::parse(js,error);
+                if(error.empty()) {
+                    if(!parsed["i"].is_null())    i =  parsed["i"].number_value();
+                    if(!parsed["e"].is_null())    e =  parsed["e"].number_value();
+                    if(!parsed["raan"].is_null())    raan =  parsed["raan"].number_value();
+                    if(!parsed["ap"].is_null())    ap =  parsed["ap"].number_value();
+                    if(!parsed["bstar"].is_null())    bstar =  parsed["bstar"].number_value();
+                    if(!parsed["mm"].is_null())    mm =  parsed["mm"].number_value();
+                    if(!parsed["ma"].is_null())    ma =  parsed["ma"].number_value();
+                    if(!parsed["ep"].is_null())    ep =  parsed["ep"].number_value();
+                } else {
+                    cerr<<"ERROR = "<<error<<endl;
+                }
+                return;
+            }
         };
+
+        ::std::ostream& operator << (::std::ostream& out, const sgp4struc& a);
+        ::std::istream& operator >> (::std::istream& in, sgp4struc& a);
+
     }
 }
 
