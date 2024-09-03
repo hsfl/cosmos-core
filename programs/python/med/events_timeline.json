@@ -1,0 +1,43 @@
+[
+
+  {
+    "event_id": "Initialize Systems",
+    "start_time": "2024-08-20T01:00:00Z"
+  },
+  {
+    "event_id": "Deploy Solar Panels",
+    "start_time": "2024-08-20T02:20:35Z"
+  },
+  {
+    "event_id": "Start Communication",
+    "start_time": "2024-08-20T03:08:15Z"
+  },
+  {
+    "event_id": "Collect Data",
+    "start_time": "2024-08-20T03:10:15Z"
+  },
+  {
+    "event_id": "Pictures",
+    "start_time": "2024-08-20T03:30:15Z"
+  },
+  {
+    "event_id": "Collect Data",
+    "start_time": "2024-08-20T03:40:15Z"
+  },
+  {
+    "event_id": "Start Communication",
+    "start_time": "2024-08-20T03:58:15Z"
+  },
+  {
+    "event_id": "Enter Sleep Mode",
+    "start_time": "2024-08-20T05:10:15Z"
+  },
+  {
+    "event_id": "Collect Data",
+    "start_time": "2024-08-20T06:12:15Z"
+  },
+  {
+    "event_id": "Enter Sleep Mode",
+    "start_time": "2024-08-20T07:16:15Z"
+  }
+]
