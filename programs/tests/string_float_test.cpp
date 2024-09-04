@@ -11,6 +11,7 @@ using namespace json11;
 
 int main(int argc, char *argv[])
 {
+	/*
     for (uint16_t precision=0; precision<10; ++precision)
     {
         printf("%u ", precision);
@@ -35,7 +36,9 @@ int main(int argc, char *argv[])
         }
         printf("\n");
     }
+*/
 
+	bool make_output_files = false;
 	Cosmos::Convert::tlestruc my_tle;
 	Json mj(my_tle);
 	cout<<mj.dump()<<endl;
@@ -74,8 +77,10 @@ int main(int argc, char *argv[])
 
 	Json TLE = find_json_value<Json>(Cosmos::Convert::make_tle_information_object(), "tlestruc");
 	cout<<"TLE from JSON = "<<TLE<<endl;
+
 	Cosmos::Convert::tlestruc TTT;
 	TTT.from_json(TLE.dump());
+
 	cout<<"TLE from struc  "<<TTT.to_json()<<endl;
 
 	Json that_tle = TTT;
@@ -107,46 +112,46 @@ int main(int argc, char *argv[])
 	ofstream outfile_target5("/home/user/cosmos/source/core/build/eci_target5.dat");
 	ofstream outfile_target6("/home/user/cosmos/source/core/build/eci_target6.dat");
 
-	int max_count = 7*24*60*60;
-	int spacing_offset = 100;
+	int max_count = 24*60*60;
+	int spacing_offset = 100; // get rid of this bs way to do string of pearls, do it with TLE
 
 	int count = 0;
 	for(double t = utc - 0 * spacing_offset/86400.; t < utc+10.00; t+=1./86400.)	{
 		tle2eci(t, TTT, eci);
-		if(outfile_sat1.is_open())	outfile_sat1<<fixed<<eci.s;
-		if(outfile_sat1.is_open())	outfile_sat1<<","<<t+0.*spacing_offset/86400.<<endl;
+		if(make_output_files) if(outfile_sat1.is_open())	outfile_sat1<<fixed<<eci.s;
+		if(make_output_files) if(outfile_sat1.is_open())	outfile_sat1<<","<<t+0.*spacing_offset/86400.<<endl;
 		if(++count>=max_count)	break;
 	}
 	count = 0;
 
 	for(double t = utc - 1 * spacing_offset/86400.; t < utc+10.00; t+=1./86400.)	{
 		tle2eci(t, TTT, eci);
-		if(outfile_sat2.is_open())	outfile_sat2<<fixed<<eci.s;
-		if(outfile_sat2.is_open())	outfile_sat2<<","<<t+1.*spacing_offset/86400.<<endl;
+		if(make_output_files) if(outfile_sat2.is_open())	outfile_sat2<<fixed<<eci.s;
+		if(make_output_files) if(outfile_sat2.is_open())	outfile_sat2<<","<<t+1.*spacing_offset/86400.<<endl;
 		if(++count>=max_count)	break;
 	}
 	count = 0;
 
 	for(double t = utc - 2 * spacing_offset/86400.; t < utc+10.00; t+=1./86400.)	{
 		tle2eci(t, TTT, eci);
-		if(outfile_sat3.is_open())	outfile_sat3<<fixed<<eci.s;
-		if(outfile_sat3.is_open())	outfile_sat3<<","<<t+2.*spacing_offset/86400.<<endl;
+		if(make_output_files) if(outfile_sat3.is_open())	outfile_sat3<<fixed<<eci.s;
+		if(make_output_files) if(outfile_sat3.is_open())	outfile_sat3<<","<<t+2.*spacing_offset/86400.<<endl;
 		if(++count>=max_count)	break;
 	}
 	count = 0;
 
 	for(double t = utc - 3 * spacing_offset/86400.; t < utc+10.00; t+=1./86400.)	{
 		tle2eci(t, TTT, eci);
-		if(outfile_sat4.is_open())	outfile_sat4<<fixed<<eci.s;
-		if(outfile_sat4.is_open())	outfile_sat4<<","<<t+3.*spacing_offset/86400.<<endl;
+		if(make_output_files) if(outfile_sat4.is_open())	outfile_sat4<<fixed<<eci.s;
+		if(make_output_files) if(outfile_sat4.is_open())	outfile_sat4<<","<<t+3.*spacing_offset/86400.<<endl;
 		if(++count>=max_count)	break;
 	}
 	count = 0;
 
 	for(double t = utc - 4 * spacing_offset/86400.; t < utc+10.00; t+=1./86400.)	{
 		tle2eci(t, TTT, eci);
-		if(outfile_sat5.is_open())	outfile_sat5<<fixed<<eci.s;
-		if(outfile_sat5.is_open())	outfile_sat5<<","<<t+4.*spacing_offset/86400.<<endl;
+		if(make_output_files) if(outfile_sat5.is_open())	outfile_sat5<<fixed<<eci.s;
+		if(make_output_files) if(outfile_sat5.is_open())	outfile_sat5<<","<<t+4.*spacing_offset/86400.<<endl;
 		if(++count>=max_count)	break;
 	}
 	count = 0;
@@ -191,66 +196,61 @@ int main(int argc, char *argv[])
 	target6.loc.pos.geod.s.lon = DEG2RAD(0);
 	target6.loc.pos.geod.utc = utc;
 
-
-
-
-
-
 	for(double t = utc - 0 * spacing_offset/86400.; t < utc+10.00; t+=1./86400.)	{
 
 		target.loc.pos.geod.utc = t;
 		target.loc.pos.geod.pass++;
 		pos_geod(target.loc);
-		if(outfile_target1.is_open())	outfile_target1<<fixed<<target.loc.pos.eci.s;
+		if(make_output_files) if(outfile_target1.is_open())	outfile_target1<<fixed<<target.loc.pos.eci.s;
 
 		target2.loc.pos.geod.utc = t;
 		target2.loc.pos.geod.pass++;
 		pos_geod(target2.loc);
-		if(outfile_target2.is_open())	outfile_target2<<fixed<<target2.loc.pos.eci.s;
+		if(make_output_files) if(outfile_target2.is_open())	outfile_target2<<fixed<<target2.loc.pos.eci.s;
 
 		target3.loc.pos.geod.utc = t;
 		target3.loc.pos.geod.pass++;
 		pos_geod(target3.loc);
-		if(outfile_target3.is_open())	outfile_target3<<fixed<<target3.loc.pos.eci.s;
+		if(make_output_files) if(outfile_target3.is_open())	outfile_target3<<fixed<<target3.loc.pos.eci.s;
 
 		target4.loc.pos.geod.utc = t;
 		target4.loc.pos.geod.pass++;
 		pos_geod(target4.loc);
-		if(outfile_target4.is_open())	outfile_target4<<fixed<<target4.loc.pos.eci.s;
+		if(make_output_files) if(outfile_target4.is_open())	outfile_target4<<fixed<<target4.loc.pos.eci.s;
 
 		target5.loc.pos.geod.utc = t;
 		target5.loc.pos.geod.pass++;
 		pos_geod(target5.loc);
-		if(outfile_target5.is_open())	outfile_target5<<fixed<<target5.loc.pos.eci.s;
+		if(make_output_files) if(outfile_target5.is_open())	outfile_target5<<fixed<<target5.loc.pos.eci.s;
 
 		target6.loc.pos.geod.utc = t;
 		target6.loc.pos.geod.pass++;
 		pos_geod(target6.loc);
-		if(outfile_target6.is_open())	outfile_target6<<fixed<<target6.loc.pos.eci.s;
+		if(make_output_files) if(outfile_target6.is_open())	outfile_target6<<fixed<<target6.loc.pos.eci.s;
 
-		if(outfile_target1.is_open())	outfile_target1<<","<<t<<endl;
-		if(outfile_target2.is_open())	outfile_target2<<","<<t<<endl;
-		if(outfile_target3.is_open())	outfile_target3<<","<<t<<endl;
-		if(outfile_target4.is_open())	outfile_target4<<","<<t<<endl;
-		if(outfile_target5.is_open())	outfile_target5<<","<<t<<endl;
-		if(outfile_target6.is_open())	outfile_target6<<","<<t<<endl;
+		if(make_output_files) if(outfile_target1.is_open())	outfile_target1<<","<<t<<endl;
+		if(make_output_files) if(outfile_target2.is_open())	outfile_target2<<","<<t<<endl;
+		if(make_output_files) if(outfile_target3.is_open())	outfile_target3<<","<<t<<endl;
+		if(make_output_files) if(outfile_target4.is_open())	outfile_target4<<","<<t<<endl;
+		if(make_output_files) if(outfile_target5.is_open())	outfile_target5<<","<<t<<endl;
+		if(make_output_files) if(outfile_target6.is_open())	outfile_target6<<","<<t<<endl;
 
 		if(++count>=max_count)	break;
 
 	}
 	count = 0;
 
-	if(outfile_sat1.is_open())	outfile_sat1.close();
-	if(outfile_sat2.is_open())	outfile_sat2.close();
-	if(outfile_sat3.is_open())	outfile_sat3.close();
-	if(outfile_sat4.is_open())	outfile_sat4.close();
-	if(outfile_sat5.is_open())	outfile_sat5.close();
-	if(outfile_target1.is_open())	outfile_target1.close();
-	if(outfile_target2.is_open())	outfile_target2.close();
-	if(outfile_target3.is_open())	outfile_target3.close();
-	if(outfile_target4.is_open())	outfile_target4.close();
-	if(outfile_target5.is_open())	outfile_target5.close();
-	if(outfile_target6.is_open())	outfile_target6.close();
+	if(make_output_files) if(outfile_sat1.is_open())	outfile_sat1.close();
+	if(make_output_files) if(outfile_sat2.is_open())	outfile_sat2.close();
+	if(make_output_files) if(outfile_sat3.is_open())	outfile_sat3.close();
+	if(make_output_files) if(outfile_sat4.is_open())	outfile_sat4.close();
+	if(make_output_files) if(outfile_sat5.is_open())	outfile_sat5.close();
+	if(make_output_files) if(outfile_target1.is_open())	outfile_target1.close();
+	if(make_output_files) if(outfile_target2.is_open())	outfile_target2.close();
+	if(make_output_files) if(outfile_target3.is_open())	outfile_target3.close();
+	if(make_output_files) if(outfile_target4.is_open())	outfile_target4.close();
+	if(make_output_files) if(outfile_target5.is_open())	outfile_target5.close();
+	if(make_output_files) if(outfile_target6.is_open())	outfile_target6.close();
 
 	return 0;
 
