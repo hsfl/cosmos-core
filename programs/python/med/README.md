@@ -9,3 +9,17 @@ To run the Mission Events Display (MED), follow these steps:
 3. Upload the necessary files:
     events_timeline.json
     event_dictionary.json
+
+
+Additional Dependencies
+
+
+To perform installation:
+pip install streamlit-aggrid
+pip install streamlit
+
+
+To check installation:
+pip show streamlit-aggrid
+pip show streamlit
+
