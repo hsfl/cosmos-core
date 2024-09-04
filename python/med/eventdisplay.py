@@ -9,9 +9,54 @@ from datetime import datetime, timedelta
 
 st.set_page_config(layout="wide", initial_sidebar_state="auto")
 
+
+# CSS for styling improvements
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: #F5F7FA; /* Light background for better contrast */
+        padding: 20px;
+    }
+    .stTitle {
+        font-size: 36px;
+        color: #333333;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    .stTextInput, .stButton, .stCheckbox, .stExpander {
+        margin: 10px 0;
+    }
+    .stButton>button {
+        background-color: #007BFF;
+        color: #FFFFFF;
+        border-radius: 5px;
+        padding: 10px 20px;
+        border: none;
+    }
+    .stButton>button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+    .stTextInput>input, .stSelectbox>select, .stCheckbox>label, .stButton>button {
+        font-size: 14px;
+        padding: 8px;
+        margin: 5px 0;
+    }
+    .stExpanderHeader {
+        background-color: #E8EAF6; /* Subtle blue for expander headers */
+        padding: 10px;
+        border-radius: 5px;
+    }
+    .stSlider {
+        padding: 0 10px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
 # Read json file
-
-
 def load_json(file):
     return json.load(file)
 
@@ -237,6 +282,8 @@ if uploaded_files:
         st.session_state.scroll_value = 0
     if 'scroll_position' not in st.session_state:
         st.session_state.scroll_position = 0
+    if 'slider_max_value' not in st.session_state:
+        st.session_state.slider_max_value = 86400 
 
     no_scroll()
 
@@ -277,9 +324,14 @@ if uploaded_files:
 
     # Update the layout with the dynamic y-axis limits
     fig.update_layout(
-        title='Mission Events Display',
+        title='Mission Events Display',        
         title_x=0.5,
         title_y=1.00,  # Move the title up (0.95 means it's closer to the top)
+        font=dict(
+                family="Arial, sans-serif",
+                size=24,
+                color='#003366'
+            ),
         xaxis=dict(
             tickvals=[i for i, name in enumerate(
                 unique_event_names) if st.session_state.hash_map[i][0]],
@@ -294,7 +346,8 @@ if uploaded_files:
             range=[y_start, y_end],
             dtick=st.session_state.dtick
         ),
-        height=st.session_state.y_axis_spacing,
+    
+        height=500,
         showlegend=False,
         margin=dict(l=20, r=20, t=20, b=20)
     )
@@ -336,21 +389,26 @@ if uploaded_files:
             width=2,
         )
     )
-
+    
+    current_time = datetime.now().strftime("%H:%M:%S")  # Format as HH:MM:SS
     # Calculates the position for the countdown timer
     timer_position = len(unique_event_names) + 0.5
 
     if next_event_name == "No more events":
-        new_text = "No Upcoming Events"
+        new_text = f"<b>No Upcoming Events</b><br>(Current Time: {current_time})"
     else:
-        new_text = f"Time Until Next Event ({next_event_name}): {time_until_next_event}"
+        new_text = (
+        f"<b>Time Until Next Event:</b> {time_until_next_event}<br>"
+        f"<b>Event:</b> {next_event_name}<br>"
+        f"<b>Current Time:</b> {current_time}"
+    )
 
     # Annotation for the countdown timer
     fig.add_annotation(
         x=timer_position,
         y=y_position,
-        xshift=25,
-        yshift=15,
+        xshift=-40,
+        yshift=10,
         text=new_text,
         showarrow=False,
         font=dict(
@@ -383,7 +441,7 @@ if uploaded_files:
             st.session_state.slider_value = 0
             st.session_state.play = False
             st.session_state.scroll_position = 0
-            st.experimental_rerun()
+            st.rerun()
 
      # JavaScript to capture the scroll position
     capture_scroll_position = """
@@ -407,21 +465,23 @@ if uploaded_files:
 
     # Endpoint to save the scroll position
     def save_scroll_position():
-        if 'scroll_position' not in st.experimental_get_query_params():
+        if 'scroll_position' not in st.query_params:
             st.experimental_set_query_params(scroll_position=0)
-        scroll_position = st.experimental_get_query_params().get(
+        scroll_position = st.query_params.get(
             'scroll_position', [0])[0]
         st.session_state.scroll_position = int(scroll_position)
 
     save_scroll_position()
 
-    # Continuously update slider when playing
+    def update_slider():
+        while st.session_state.play:
+            if st.session_state.slider_value < st.session_state.slider_max_value:
+                st.session_state.slider_value += 3600  # Increase by 1 hour or adjust as needed
+            else:
+                st.session_state.play = False  # Stop playing if the slider reaches the max value
+            time.sleep(1)  # Adjust the speed of the slider
+            st.rerun()  # Refresh the app to update the slider value
+
+    # Call the function if play is active
     if st.session_state.play:
-        if st.session_state.slider_value < slider_max_value:
-            st.session_state.slider_value += 3600  # Increase by 1 minute for each play
-        else:
-            st.session_state.play = False
-        time.sleep(1)  # Adjust the speed of the slider
-        st.experimental_set_query_params(
-            slider_value=st.session_state.slider_value, scroll_position=st.session_state.scroll_position)
-        st.experimental_rerun()
+        update_slider()
