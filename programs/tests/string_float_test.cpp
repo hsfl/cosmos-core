@@ -38,35 +38,35 @@ int main(int argc, char *argv[])
     }
 */
 
-	bool make_output_files = false;
+	bool make_output_files = true;
+
+
+	// you can default construst Json from tlestruc because to_json() is defined!
 	Cosmos::Convert::tlestruc my_tle;
 	Json mj(my_tle);
-	cout<<mj.dump()<<endl;
 
-	// jsonface
-	cout<<mj<<endl;
-
-
-	// change a value
-	//update_
+	// you can load it into a stringstream (because << is overloaded for Json objects)
 	stringstream ss;
 	ss << mj;
 
 	Json mj2;
 
 	cout<<"before = "<<mj2<<endl;
+	// you can load it from a stringstream (because >> is overloaded for Json objects)
 	ss >> mj2;
 
 	cout<<"after = "<<mj2<<endl;
 
+	// you can search for values by key (regardless of their depth)
 	double my_utc = find_json_value<double>(my_tle, "utc");
+	cout<<"find_json_value<double>(my_tle, \"utc\") = "<<my_utc<<endl;
 
-	cout<<"my_utc = "<<my_utc<<endl;
-
+	// you can search for Json objects by key (regarless of their depth)
 	Json huh;
 	huh = find_json_object(my_tle, "utc");
-	cout<<"huh = "<<huh<<endl;
+	cout<<"find_json_object(my_tle, \"utc\") = "<<huh<<endl;
 
+	// you can update json values with matching key
 	update_json_value(mj2, "utc", 123.45);
 
 	cout<<"after = "<<mj2<<endl;
@@ -75,21 +75,37 @@ int main(int argc, char *argv[])
 
 	// get the tlestruc from the JSON
 
-	Json TLE = find_json_value<Json>(Cosmos::Convert::make_tle_information_object(), "tlestruc");
-	cout<<"TLE from JSON = "<<TLE<<endl;
+	Json default_tle = find_json_value<Json>(Cosmos::Convert::make_tle_information_object(), "tlestruc");
+	cout<<"default_tle from JSON = "<<default_tle<<endl;
 
 	Cosmos::Convert::tlestruc TTT;
-	TTT.from_json(TLE.dump());
+	TTT.from_json(default_tle.dump());
 
-	cout<<"TLE from struc  "<<TTT.to_json()<<endl;
-
-	Json that_tle = TTT;
-
-	cout<<"TLE from Json object  "<<that_tle<<endl;
+	cout<<"default_tle from struc  "<<TTT.to_json()<<endl;
 
 
+	int max_count = 7*24*60*60;
+	int spacing_offset = 100; // get rid of this bs way to do string of pearls, do it with TLE
 
-	double utc = Cosmos::Support::currentmjd();
+	// get TLEs with different utcs to do the string of pearls
+	Cosmos::Convert::tlestruc tle_sat1;
+	Cosmos::Convert::tlestruc tle_sat2;
+	Cosmos::Convert::tlestruc tle_sat3;
+	Cosmos::Convert::tlestruc tle_sat4;
+	Cosmos::Convert::tlestruc tle_sat5;
+	tle_sat1.from_json(default_tle.dump());
+	tle_sat2.from_json(default_tle.dump());
+	tle_sat3.from_json(default_tle.dump());
+	tle_sat4.from_json(default_tle.dump());
+	tle_sat5.from_json(default_tle.dump());
+
+	tle_sat2.utc = tle_sat1.utc - 1. * spacing_offset / 86400.;
+	tle_sat3.utc = tle_sat1.utc - 2. * spacing_offset / 86400.;
+	tle_sat4.utc = tle_sat1.utc - 3. * spacing_offset / 86400.;
+	tle_sat5.utc = tle_sat1.utc - 4. * spacing_offset / 86400.;
+
+	//double utc = Cosmos::Support::currentmjd(); // make this fixed for debugging
+	double utc = 60557.6240022; // make this fixed for debugging
 
 	cout<<"The current time = "<< std::fixed << setprecision(7) << utc <<endl;
 
@@ -98,6 +114,7 @@ int main(int argc, char *argv[])
 	tle2eci(utc, TTT, eci);
 	cout<<eci<<endl;
 
+	if(!make_output_files) return 0;
 	cout<<"now to test an orbit....\n\n\n";
 
 	ofstream outfile_sat1("/home/user/cosmos/source/core/build/eci_orbit_sat1.dat");
@@ -112,50 +129,30 @@ int main(int argc, char *argv[])
 	ofstream outfile_target5("/home/user/cosmos/source/core/build/eci_target5.dat");
 	ofstream outfile_target6("/home/user/cosmos/source/core/build/eci_target6.dat");
 
-	int max_count = 24*60*60;
-	int spacing_offset = 100; // get rid of this bs way to do string of pearls, do it with TLE
 
 	int count = 0;
-	for(double t = utc - 0 * spacing_offset/86400.; t < utc+10.00; t+=1./86400.)	{
-		tle2eci(t, TTT, eci);
-		if(make_output_files) if(outfile_sat1.is_open())	outfile_sat1<<fixed<<eci.s;
-		if(make_output_files) if(outfile_sat1.is_open())	outfile_sat1<<","<<t+0.*spacing_offset/86400.<<endl;
+	for(double t = utc; t < utc+10.00; t+=1./86400.)	{
+		tle2eci(t, tle_sat1, eci);
+		if(make_output_files) if(outfile_sat1.is_open())	outfile_sat1<<fixed<<eci.s<<","<<t<<endl;
+
+		tle2eci(t, tle_sat2, eci);
+		if(make_output_files) if(outfile_sat2.is_open())	outfile_sat2<<fixed<<eci.s<<","<<t<<endl;
+
+		tle2eci(t, tle_sat3, eci);
+		if(make_output_files) if(outfile_sat3.is_open())	outfile_sat3<<fixed<<eci.s<<","<<t<<endl;
+
+		tle2eci(t, tle_sat4, eci);
+		if(make_output_files) if(outfile_sat4.is_open())	outfile_sat4<<fixed<<eci.s<<","<<t<<endl;
+
+		tle2eci(t, tle_sat5, eci);
+		if(make_output_files) if(outfile_sat5.is_open())	outfile_sat5<<fixed<<eci.s<<","<<t<<endl;
+
 		if(++count>=max_count)	break;
 	}
 	count = 0;
 
-	for(double t = utc - 1 * spacing_offset/86400.; t < utc+10.00; t+=1./86400.)	{
-		tle2eci(t, TTT, eci);
-		if(make_output_files) if(outfile_sat2.is_open())	outfile_sat2<<fixed<<eci.s;
-		if(make_output_files) if(outfile_sat2.is_open())	outfile_sat2<<","<<t+1.*spacing_offset/86400.<<endl;
-		if(++count>=max_count)	break;
-	}
-	count = 0;
 
-	for(double t = utc - 2 * spacing_offset/86400.; t < utc+10.00; t+=1./86400.)	{
-		tle2eci(t, TTT, eci);
-		if(make_output_files) if(outfile_sat3.is_open())	outfile_sat3<<fixed<<eci.s;
-		if(make_output_files) if(outfile_sat3.is_open())	outfile_sat3<<","<<t+2.*spacing_offset/86400.<<endl;
-		if(++count>=max_count)	break;
-	}
-	count = 0;
-
-	for(double t = utc - 3 * spacing_offset/86400.; t < utc+10.00; t+=1./86400.)	{
-		tle2eci(t, TTT, eci);
-		if(make_output_files) if(outfile_sat4.is_open())	outfile_sat4<<fixed<<eci.s;
-		if(make_output_files) if(outfile_sat4.is_open())	outfile_sat4<<","<<t+3.*spacing_offset/86400.<<endl;
-		if(++count>=max_count)	break;
-	}
-	count = 0;
-
-	for(double t = utc - 4 * spacing_offset/86400.; t < utc+10.00; t+=1./86400.)	{
-		tle2eci(t, TTT, eci);
-		if(make_output_files) if(outfile_sat5.is_open())	outfile_sat5<<fixed<<eci.s;
-		if(make_output_files) if(outfile_sat5.is_open())	outfile_sat5<<","<<t+4.*spacing_offset/86400.<<endl;
-		if(++count>=max_count)	break;
-	}
-	count = 0;
-
+// load these from target.dat file
 
 	// make an outfile for a target
 	Cosmos::Support::targetstruc target;
