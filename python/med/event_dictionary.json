@@ -1,13 +1,13 @@
 {
     "Initialize Systems": {
-        "duration": 300,
+        "duration": 3000,
         "resource_profile": [
             {"Battery": -5, "CPU": -10, "Storage": -3, "Temperature": -2}
         ],
         "score": 40
     },
     "Deploy Solar Panels": {
-        "duration": 4,
+        "duration": 2000,
         "resource_profile": [
             {"Battery": -2, "CPU": -1, "Temperature": -1},
             {"Battery": -2, "CPU": -1, "Temperature": -1},
@@ -17,28 +17,28 @@
         "score": 35
     },
     "Start Communication": {
-        "duration": 150,
+        "duration": 1500,
         "resource_profile": [
             {"Battery": -3, "CPU": -5, "SignalQuality": -2}
         ],
         "score": 45
     },
     "Collect Data": {
-        "duration": 600,
+        "duration": 30000,
         "resource_profile": [
             {"Battery": -8, "CPU": -10, "Storage": -5}
         ],
         "score": 60
     },
     "Pictures": {
-        "duration": 1,
+        "duration": 4000,
         "resource_profile": [
             {"Battery": -1, "CPU": -2, "Storage": -1, "Temperature": -1}
         ],
         "score": 30
     },
     "Enter Sleep Mode": {
-        "duration": 400,
+        "duration": 9000,
         "resource_profile": [
             {"Battery": 5, "CPU": -2}
         ],
