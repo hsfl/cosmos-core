@@ -302,6 +302,25 @@ y_axis_increments = {
     60000: (y_position - timedelta(minutes=12), y_position + timedelta(minutes=12))
 }
 
+with col1:
+    if st.button("Zoom In"):
+        current_dtick = st.session_state.dtick
+        if current_dtick in zoom_levels:
+            new_dtick, y_axis_change = zoom_levels[current_dtick]
+            st.session_state.dtick = new_dtick
+            st.session_state.y_axis_spacing += y_axis_change
+        else:
+            st.warning("Cannot zoom in more")
+
+with col2:
+    if st.button("Zoom out"):
+        current_dtick = st.session_state.dtick
+        if current_dtick in reverse_zoom_levels:
+            new_dtick, y_axis_change = reverse_zoom_levels[current_dtick]
+            st.session_state.dtick = new_dtick
+            st.session_state.y_axis_spacing += y_axis_change
+        else:
+            st.warning("Cannot zoom out more")
 y_start, y_end = y_axis_increments[st.session_state.dtick]
 
     # Update the layout with the dynamic y-axis limits
@@ -445,25 +464,6 @@ with col2:
         st.session_state.scroll_position = 0
         st.rerun()
         
-with col1:
-    if st.button("Zoom In"):
-        current_dtick = st.session_state.dtick
-        if current_dtick in zoom_levels:
-            new_dtick, y_axis_change = zoom_levels[current_dtick]
-            st.session_state.dtick = new_dtick
-            st.session_state.y_axis_spacing += y_axis_change
-        else:
-            st.warning("Cannot zoom in more")
-
-with col2:
-    if st.button("Zoom out"):
-        current_dtick = st.session_state.dtick
-        if current_dtick in reverse_zoom_levels:
-            new_dtick, y_axis_change = reverse_zoom_levels[current_dtick]
-            st.session_state.dtick = new_dtick
-            st.session_state.y_axis_spacing += y_axis_change
-        else:
-            st.warning("Cannot zoom out more")
 
      # JavaScript to capture the scroll position
 capture_scroll_position = """
