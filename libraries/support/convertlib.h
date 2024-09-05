@@ -327,8 +327,11 @@ namespace Cosmos {
                     Vector a;
                 };
         //! @}
-
-	json11::Json    make_tle_information_object(const string& tle_file = "/home/user/cosmos/source/core/data/demo/tle.dat");
+	json11::Json make_swarm_information_object(const string& name, const string& desc, const vector<string>& node_names);
+	json11::Json make_sensor_information_object(const string& sensor_name, const double& fov, const double& ifov);
+	json11::Json make_constraints_information_object(const double& max_slew_rate = 0.0, const double& max_thrust_total = 0.0, const double& max_thrust_impulse = 0.0);
+	json11::Json make_tle_information_object(const string& tle_file = "/home/user/cosmos/source/core/data/demo/tle.dat");
+	json11::Json make_node_information_object(json11::Json swarm_info_obj);
     } // end Convert namespace
 } // end Cosmos namespace
 #endif
