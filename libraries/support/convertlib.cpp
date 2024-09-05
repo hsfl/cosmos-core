@@ -6723,12 +6723,17 @@ json11::Json make_sensor_information_object(const string& sensor_name, const dou
 
 // Make Constraints Info object (JSON)
 json11::Json make_constraints_information_object(const double& max_slew_rate, const double& max_thrust_total, const double& max_thrust_impulse)   {
+    //return json11::Json::object{{
+        //"constraints", json11::Json::object{{
+            //{ "max_slew_rate", max_slew_rate },
+            //{ "max_thrust_total", max_thrust_total },
+            //{ "max_thrust_impulse", max_thrust_impulse }
+        //}}
+    //}};
     return json11::Json::object{{
-        "constraints", json11::Json::object{{
             { "max_slew_rate", max_slew_rate },
             { "max_thrust_total", max_thrust_total },
             { "max_thrust_impulse", max_thrust_impulse }
-        }}
     }};
 }
 
