@@ -199,11 +199,11 @@ int main(int argc, char *argv[])
 	cout<<"node_information_object = "<<Cosmos::Convert::make_node_information_object(my_swarm_object)<<endl;
 
 
-	cout<<"Testing with cosmosstruc"<<endl;
-	Cosmos::Support::cosmosstruc c;
-	json11::Json my_json_tle_vector = find_json_value<vector<Cosmos::Convert::tlestruc>>(c, "tle");
-	cout<<"my_json_tle_vector = "<<my_json_tle_vector<<endl;
-	cout<<"my_cosmos_tle_vector = "<<c.tle<<endl;
+	//cout<<"Testing with cosmosstruc"<<endl;
+	//Cosmos::Support::cosmosstruc c;
+	//vector<Cosmos::Convert::tlestruc>> my_json_tle_vector = find_json_value<vector<Cosmos::Convert::tlestruc>>(c, "tle");
+	//cout<<"my_json_tle_vector = "<<my_json_tle_vector<<endl;
+	//cout<<"my_cosmos_tle_vector = "<<c.tle<<endl;
 	
 
 
