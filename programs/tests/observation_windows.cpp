@@ -56,7 +56,8 @@ int main(int argc, char *argv[])
 	std::vector<std::string> target_names;
 
 	// load target file names from target directory
-	std::string targets_directory = "newdat2/targets/";
+	std::string targets_directory = "../python/plot_orbit/targets/";
+	std::string satellites_directory = "../python/plot_orbit/satellites/";
 	DIR* dir = opendir(targets_directory.c_str());
 	if (dir != nullptr) {
 		struct dirent* entry;
@@ -102,9 +103,9 @@ int main(int argc, char *argv[])
 			}
 
 			// Open the satellite file
-			std::ifstream satellite_file("newdat2/" + satellite_name + ".eci");
+			std::ifstream satellite_file(satellites_directory + satellite_name + ".eci");
 			if (!satellite_file.is_open()) {
-				std::cerr << "Failed to open satellite file: " << satellite_name << ".eci" << std::endl;
+				std::cerr << "Failed to open satellite file: " << satellites_directory + satellite_name + ".eci" << std::endl;
 				return 1;
 			}
 
