@@ -47,8 +47,8 @@ double elevation_angle(const double target[], const double satellite[]) {
 int main(int argc, char *argv[])
 {
 
-	//bool make_output_files = false;
-	bool make_output_files = true;
+	bool make_output_files = false;
+	//bool make_output_files = true;
 
 
 	// you can default construst Json from tlestruc because to_json() is defined!
