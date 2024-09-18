@@ -9,36 +9,46 @@
 
 using namespace json11;
 
+//#include <cmath>
+
+// Function to compute the elevation angle in degrees
+double elevation_angle(const double target[], const double satellite[]) {
+    // Line-of-sight vector from target to satellite
+    double los[3];
+    los[0] = satellite[0] - target[0];
+    los[1] = satellite[1] - target[1];
+    los[2] = satellite[2] - target[2];
+
+    // Compute magnitudes
+    double los_mag = std::sqrt(los[0]*los[0] + los[1]*los[1] + los[2]*los[2]);
+    double tgt_mag = std::sqrt(target[0]*target[0] + target[1]*target[1] + target[2]*target[2]);
+
+    // Normalize vectors
+    double los_unit[3] = { los[0]/los_mag, los[1]/los_mag, los[2]/los_mag };
+    double up_unit[3] = { target[0]/tgt_mag, target[1]/tgt_mag, target[2]/tgt_mag };
+
+    // Compute dot product
+    double dot = los_unit[0]*up_unit[0] + los_unit[1]*up_unit[1] + los_unit[2]*up_unit[2];
+
+    // Ensure dot product is within valid range for asin()
+    if (dot > 1.0) dot = 1.0;
+    if (dot < -1.0) dot = -1.0;
+
+    // Compute elevation angle in radians
+    double elevation_rad = std::asin(dot);
+
+    // Convert to degrees
+    double elevation_deg = elevation_rad * (180.0 / M_PI);
+
+    return elevation_deg;
+}
+
+
 int main(int argc, char *argv[])
 {
-	/*
-    for (uint16_t precision=0; precision<10; ++precision)
-    {
-        printf("%u ", precision);
-        int16_t power = -9;
-        for (float value=1e-10; value<1e10; value=pow(10., ++power))
-        {
-            printf("%s ", to_floating(value, precision).c_str());
-        }
-        printf("\n");
-        printf("%u ", precision);
-        power = -9;
-        for (float value=1e-10; value<1e10; value=pow(10., ++power))
-        {
-            printf("%s ", to_floatexp(value, precision).c_str());
-        }
-        printf("\n");
-        printf("%u ", precision);
-        power = -9;
-        for (float value=1e-10; value<1e10; value=pow(10., ++power))
-        {
-            printf("%s ", to_floatany(value, precision).c_str());
-        }
-        printf("\n");
-    }
-*/
 
-	bool make_output_files = false;
+	//bool make_output_files = false;
+	bool make_output_files = true;
 
 
 	// you can default construst Json from tlestruc because to_json() is defined!
@@ -86,27 +96,27 @@ int main(int argc, char *argv[])
 	cout<<"default_tle from struc  "<<tle_mothership.to_json()<<endl;
 
 
-	int max_count = 24*60*60;
+	int max_count = 7*24*60*60;
 	int spacing_offset = 100; // get rid of this bs way to do string of pearls, do it with TLE
 
 	// get TLEs with different utcs to do the string of pearls
-	Cosmos::Convert::tlestruc tle_sat1;
-	Cosmos::Convert::tlestruc tle_sat2;
-	Cosmos::Convert::tlestruc tle_sat3;
-	Cosmos::Convert::tlestruc tle_sat4;
-	Cosmos::Convert::tlestruc tle_sat5;
-	tle_sat1.from_json(default_tle.dump());
-	tle_sat2.from_json(default_tle.dump());
-	tle_sat3.from_json(default_tle.dump());
-	tle_sat4.from_json(default_tle.dump());
-	tle_sat5.from_json(default_tle.dump());
+		// get rid of this part
+	//Cosmos::Convert::tlestruc tle_sat1;
+	//Cosmos::Convert::tlestruc tle_sat2;
+	//Cosmos::Convert::tlestruc tle_sat3;
+	//Cosmos::Convert::tlestruc tle_sat4;
+	//Cosmos::Convert::tlestruc tle_sat5;
+	//tle_sat1.from_json(default_tle.dump());
+	//tle_sat2.from_json(default_tle.dump());
+	//tle_sat3.from_json(default_tle.dump());
+	//tle_sat4.from_json(default_tle.dump());
+	//tle_sat5.from_json(default_tle.dump());
 
-	tle_sat2.utc = tle_sat1.utc - 1. * spacing_offset / 86400.;
-	tle_sat3.utc = tle_sat1.utc - 2. * spacing_offset / 86400.;
-	tle_sat4.utc = tle_sat1.utc - 3. * spacing_offset / 86400.;
-	tle_sat5.utc = tle_sat1.utc - 4. * spacing_offset / 86400.;
+	//tle_sat2.utc = tle_sat1.utc - 1. * spacing_offset / 86400.;
+	//tle_sat3.utc = tle_sat1.utc - 2. * spacing_offset / 86400.;
+	//tle_sat4.utc = tle_sat1.utc - 3. * spacing_offset / 86400.;
+	//tle_sat5.utc = tle_sat1.utc - 4. * spacing_offset / 86400.;
 
-	//double utc = Cosmos::Support::currentmjd(); // make this fixed for debugging
 	double utc = 60557.6240022; // make this fixed for debugging
 	cout<<"The current time = "<< std::fixed << setprecision(7) << utc <<endl;
 
@@ -199,26 +209,27 @@ int main(int argc, char *argv[])
 	cout<<"node_information_object = "<<Cosmos::Convert::make_node_information_object(my_swarm_object)<<endl;
 
 
-	//cout<<"Testing with cosmosstruc"<<endl;
-	//Cosmos::Support::cosmosstruc c;
-	//vector<Cosmos::Convert::tlestruc>> my_json_tle_vector = find_json_value<vector<Cosmos::Convert::tlestruc>>(c, "tle");
-	//cout<<"my_json_tle_vector = "<<my_json_tle_vector<<endl;
-	//cout<<"my_cosmos_tle_vector = "<<c.tle<<endl;
+	cout<<"Testing with cosmosstruc"<<endl;
+	Cosmos::Support::cosmosstruc c;
+	//vector<Cosmos::Convert::tlestruc> my_json_tle_vector = find_json_value<vector<Cosmos::Convert::tlestruc>>(c, "tle");
+	vector<Cosmos::Convert::tlestruc> my_json_tle_vector;
+	cout<<"my_json_tle_vector = "<<my_json_tle_vector<<endl;
+	cout<<"my_cosmos_tle_vector = "<<c.tle<<endl;
 	
-
-
 
 	if(!make_output_files) return 0;
 
+// this RIC orbit position generation is skipped for now
+/*
 	cout<<endl;
 	cout<<"Test for RIC...."<<endl<<endl;
 
 	// Mothership.dat
-	ofstream outfile_mothership("/home/user/cosmos/source/core/build/newdat/mothership.dat");
-	ofstream outfile_childsat1("/home/user/cosmos/source/core/build/newdat/childsat1.dat");
-	ofstream outfile_childsat2("/home/user/cosmos/source/core/build/newdat/childsat2.dat");
-	ofstream outfile_childsat3("/home/user/cosmos/source/core/build/newdat/childsat3.dat");
-	ofstream outfile_childsat4("/home/user/cosmos/source/core/build/newdat/childsat4.dat");
+	ofstream outfile_mothership("/home/user/cosmos/source/core/build/newdat2/mothership.dat");
+	ofstream outfile_childsat1("/home/user/cosmos/source/core/build/newdat2/childsat1.dat");
+	ofstream outfile_childsat2("/home/user/cosmos/source/core/build/newdat2/childsat2.dat");
+	ofstream outfile_childsat3("/home/user/cosmos/source/core/build/newdat2/childsat3.dat");
+	ofstream outfile_childsat4("/home/user/cosmos/source/core/build/newdat2/childsat4.dat");
 
 	cout<<"Mothership TLE = "<<tle_mothership.to_json()<<endl;
 
@@ -305,94 +316,79 @@ int main(int argc, char *argv[])
 		if(++count>=max_count)	break;
 	}
 
-
+*/
 
 	cout<<endl<<endl;
 	//if(!make_output_files) return 0;
-	cout<<"now to test an orbit....\n\n\n";
+	cout<<"now to test the targets....\n\n\n";
 
-	ofstream outfile_sat1("/home/user/cosmos/source/core/build/eci_orbit_sat1.dat");
-	ofstream outfile_sat2("/home/user/cosmos/source/core/build/eci_orbit_sat2.dat");
-	ofstream outfile_sat3("/home/user/cosmos/source/core/build/eci_orbit_sat3.dat");
-	ofstream outfile_sat4("/home/user/cosmos/source/core/build/eci_orbit_sat4.dat");
-	ofstream outfile_sat5("/home/user/cosmos/source/core/build/eci_orbit_sat5.dat");
-	ofstream outfile_target1("/home/user/cosmos/source/core/build/eci_target1.dat");
-	ofstream outfile_target2("/home/user/cosmos/source/core/build/eci_target2.dat");
-	ofstream outfile_target3("/home/user/cosmos/source/core/build/eci_target3.dat");
-	ofstream outfile_target4("/home/user/cosmos/source/core/build/eci_target4.dat");
-	ofstream outfile_target5("/home/user/cosmos/source/core/build/eci_target5.dat");
-	ofstream outfile_target6("/home/user/cosmos/source/core/build/eci_target6.dat");
-
-
-	count = 0;
-	for(double t = utc; t < utc+10.00; t+=1./86400.)	{
-		tle2eci(t, tle_sat1, eci);
-		if(make_output_files) if(outfile_sat1.is_open())	outfile_sat1<<fixed<<eci.s<<","<<t<<endl;
-
-		tle2eci(t, tle_sat2, eci);
-		if(make_output_files) if(outfile_sat2.is_open())	outfile_sat2<<fixed<<eci.s<<","<<t<<endl;
-
-		tle2eci(t, tle_sat3, eci);
-		if(make_output_files) if(outfile_sat3.is_open())	outfile_sat3<<fixed<<eci.s<<","<<t<<endl;
-
-		tle2eci(t, tle_sat4, eci);
-		if(make_output_files) if(outfile_sat4.is_open())	outfile_sat4<<fixed<<eci.s<<","<<t<<endl;
-
-		tle2eci(t, tle_sat5, eci);
-		if(make_output_files) if(outfile_sat5.is_open())	outfile_sat5<<fixed<<eci.s<<","<<t<<endl;
-
-		if(++count>=max_count)	break;
-	}
-	count = 0;
+	ofstream outfile_target1("/home/user/cosmos/source/core/build/newdat2/targets/Honolulu.eci");
+	ofstream outfile_target2("/home/user/cosmos/source/core/build/newdat2/targets/Hilo.dat");
+	ofstream outfile_target3("/home/user/cosmos/source/core/build/newdat2/targets/Kahului.dat");
+	ofstream outfile_target4("/home/user/cosmos/source/core/build/newdat2/targets/Kapaa.dat");
+	ofstream outfile_target5("/home/user/cosmos/source/core/build/newdat2/targets/Kaunakakai.dat");
+	ofstream outfile_target6("/home/user/cosmos/source/core/build/newdat2/targets/Lanai City.dat");
+	ofstream outfile_target7("/home/user/cosmos/source/core/build/newdat2/targets/Puuwai.dat");
 
 
 // load these from target.dat file
 
-	// make an outfile for a target
-	Cosmos::Support::targetstruc target;
-	target.loc.pos.geod.s.h = 10;
-	target.loc.pos.geod.s.lat = DEG2RAD(21.351);
-	target.loc.pos.geod.s.lon = DEG2RAD(-157.980);
-	target.loc.pos.geod.utc = utc;
+	// Honolulu -- update if diff successful
+	Cosmos::Support::targetstruc target1;
+	target1.loc.pos.geod.s.h = 10;
+	target1.loc.pos.geod.s.lat = DEG2RAD(21.351);
+	target1.loc.pos.geod.s.lon = DEG2RAD(-157.980);
+	target1.loc.pos.geod.utc = utc;
 
-	// some latitude lines
+	// Hilo
 	Cosmos::Support::targetstruc target2;
-	target2.loc.pos.geod.s.h = 0;
-	target2.loc.pos.geod.s.lat = DEG2RAD(60);
-	target2.loc.pos.geod.s.lon = DEG2RAD(0);
+	target2.loc.pos.geod.s.h = 18;
+	target2.loc.pos.geod.s.lat = DEG2RAD(19.7070);
+	target2.loc.pos.geod.s.lon = DEG2RAD(155.0899);
 	target2.loc.pos.geod.utc = utc;
 
+	// Kahului
 	Cosmos::Support::targetstruc target3;
-	target3.loc.pos.geod.s.h = 0;
-	target3.loc.pos.geod.s.lat = DEG2RAD(30);
-	target3.loc.pos.geod.s.lon = DEG2RAD(0);
+	target3.loc.pos.geod.s.h = 3;
+	target3.loc.pos.geod.s.lat = DEG2RAD(20.8890);
+	target3.loc.pos.geod.s.lon = DEG2RAD(156.4729);
 	target3.loc.pos.geod.utc = utc;
 
-	// equator
+	// Kapaa
 	Cosmos::Support::targetstruc target4;
-	target4.loc.pos.geod.s.h = 0;
-	target4.loc.pos.geod.s.lat = DEG2RAD(0);
-	target4.loc.pos.geod.s.lon = DEG2RAD(0);
+	target4.loc.pos.geod.s.h = 6;
+	target4.loc.pos.geod.s.lat = DEG2RAD(22.0883);
+	target4.loc.pos.geod.s.lon = DEG2RAD(159.3379);
 	target4.loc.pos.geod.utc = utc;
 
+	// Kaunakakai
 	Cosmos::Support::targetstruc target5;
-	target5.loc.pos.geod.s.h = 0;
-	target5.loc.pos.geod.s.lat = DEG2RAD(-30);
-	target5.loc.pos.geod.s.lon = DEG2RAD(0);
+	target5.loc.pos.geod.s.h = 3;
+	target5.loc.pos.geod.s.lat = DEG2RAD(21.0939);
+	target5.loc.pos.geod.s.lon = DEG2RAD(157.0194);
 	target5.loc.pos.geod.utc = utc;
 
+	// Lanai
 	Cosmos::Support::targetstruc target6;
-	target6.loc.pos.geod.s.h = 0;
-	target6.loc.pos.geod.s.lat = DEG2RAD(-60);
-	target6.loc.pos.geod.s.lon = DEG2RAD(0);
+	target6.loc.pos.geod.s.h = 500;
+	target6.loc.pos.geod.s.lat = DEG2RAD(20.8270);
+	target6.loc.pos.geod.s.lon = DEG2RAD(156.9208);
 	target6.loc.pos.geod.utc = utc;
 
-	for(double t = utc - 0 * spacing_offset/86400.; t < utc+10.00; t+=1./86400.)	{
+	// Niihau
+	Cosmos::Support::targetstruc target7;
+	target7.loc.pos.geod.s.h = 10;
+	target7.loc.pos.geod.s.lat = DEG2RAD(21.8969);
+	target7.loc.pos.geod.s.lon = DEG2RAD(160.1583);
+	target7.loc.pos.geod.utc = utc;
 
-		target.loc.pos.geod.utc = t;
-		target.loc.pos.geod.pass++;
-		pos_geod(target.loc);
-		if(make_output_files) if(outfile_target1.is_open())	outfile_target1<<fixed<<target.loc.pos.eci.s;
+	int count = 0;
+	for(double t = utc; t < utc+10.00; t+=1./86400.)	{
+
+		target1.loc.pos.geod.utc = t;
+		target1.loc.pos.geod.pass++;
+		pos_geod(target1.loc);
+		if(make_output_files) if(outfile_target1.is_open())	outfile_target1<<fixed<<target1.loc.pos.eci.s;
 
 		target2.loc.pos.geod.utc = t;
 		target2.loc.pos.geod.pass++;
@@ -419,29 +415,33 @@ int main(int argc, char *argv[])
 		pos_geod(target6.loc);
 		if(make_output_files) if(outfile_target6.is_open())	outfile_target6<<fixed<<target6.loc.pos.eci.s;
 
+		target7.loc.pos.geod.utc = t;
+		target7.loc.pos.geod.pass++;
+		pos_geod(target7.loc);
+		if(make_output_files) if(outfile_target7.is_open())	outfile_target7<<fixed<<target7.loc.pos.eci.s;
+
+
+
 		if(make_output_files) if(outfile_target1.is_open())	outfile_target1<<","<<t<<endl;
 		if(make_output_files) if(outfile_target2.is_open())	outfile_target2<<","<<t<<endl;
 		if(make_output_files) if(outfile_target3.is_open())	outfile_target3<<","<<t<<endl;
 		if(make_output_files) if(outfile_target4.is_open())	outfile_target4<<","<<t<<endl;
 		if(make_output_files) if(outfile_target5.is_open())	outfile_target5<<","<<t<<endl;
 		if(make_output_files) if(outfile_target6.is_open())	outfile_target6<<","<<t<<endl;
+		if(make_output_files) if(outfile_target7.is_open())	outfile_target7<<","<<t<<endl;
 
 		if(++count>=max_count)	break;
 
 	}
 	count = 0;
 
-	if(make_output_files) if(outfile_sat1.is_open())	outfile_sat1.close();
-	if(make_output_files) if(outfile_sat2.is_open())	outfile_sat2.close();
-	if(make_output_files) if(outfile_sat3.is_open())	outfile_sat3.close();
-	if(make_output_files) if(outfile_sat4.is_open())	outfile_sat4.close();
-	if(make_output_files) if(outfile_sat5.is_open())	outfile_sat5.close();
 	if(make_output_files) if(outfile_target1.is_open())	outfile_target1.close();
 	if(make_output_files) if(outfile_target2.is_open())	outfile_target2.close();
 	if(make_output_files) if(outfile_target3.is_open())	outfile_target3.close();
 	if(make_output_files) if(outfile_target4.is_open())	outfile_target4.close();
 	if(make_output_files) if(outfile_target5.is_open())	outfile_target5.close();
 	if(make_output_files) if(outfile_target6.is_open())	outfile_target6.close();
+	if(make_output_files) if(outfile_target7.is_open())	outfile_target7.close();
 
 	return 0;
 
