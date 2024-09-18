@@ -69,7 +69,6 @@ int main(int argc, char *argv[])
 	}
 
 	// check the values that may have been set by parse_control before creating simulator
-
 /*
 	agent = new Agent(realmname, "", "propagate", 0.);
 	agent->set_debug_level(0);
