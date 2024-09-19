@@ -1,43 +1,2434 @@
-[
-
-  {
-    "event_id": "Initialize Systems",
-    "start_time": "2024-08-20T01:00:00Z"
-  },
-  {
-    "event_id": "Deploy Solar Panels",
-    "start_time": "2024-08-20T02:20:35Z"
-  },
-  {
-    "event_id": "Start Communication",
-    "start_time": "2024-08-20T03:08:15Z"
-  },
-  {
-    "event_id": "Collect Data",
-    "start_time": "2024-08-20T03:10:15Z"
-  },
-  {
-    "event_id": "Pictures",
-    "start_time": "2024-08-20T03:30:15Z"
-  },
-  {
-    "event_id": "Collect Data",
-    "start_time": "2024-08-20T03:40:15Z"
-  },
-  {
-    "event_id": "Start Communication",
-    "start_time": "2024-08-20T03:58:15Z"
-  },
-  {
-    "event_id": "Enter Sleep Mode",
-    "start_time": "2024-08-20T05:10:15Z"
-  },
-  {
-    "event_id": "Collect Data",
-    "start_time": "2024-08-20T06:12:15Z"
-  },
-  {
-    "event_id": "Enter Sleep Mode",
-    "start_time": "2024-08-20T07:16:15Z"
-  }
-]
+{
+  "Pass Events for Mothership": [
+      {
+          "duration": 618,
+          "end_iso8601": "2024-09-04T16:03:40Z",
+          "end_mjd": 60557.669222,
+          "max_elevation": 28.2404150160476,
+          "name": "Mothership over Hilo @ 2024-09-04T15:53:22Z (max elev = 28.2 deg)",
+          "start_iso8601": "2024-09-04T15:53:22Z",
+          "start_mjd": 60557.662069,
+          "target": "Hilo"
+      },
+      {
+          "duration": 617,
+          "end_iso8601": "2024-09-04T16:04:08Z",
+          "end_mjd": 60557.669546,
+          "max_elevation": 27.4185247069694,
+          "name": "Mothership over Kahului @ 2024-09-04T15:53:51Z (max elev = 27.4 deg)",
+          "start_iso8601": "2024-09-04T15:53:51Z",
+          "start_mjd": 60557.662405,
+          "target": "Kahului"
+      },
+      {
+          "duration": 613,
+          "end_iso8601": "2024-09-04T16:04:10Z",
+          "end_mjd": 60557.669569,
+          "max_elevation": 25.8263310396879,
+          "name": "Mothership over Lanai City @ 2024-09-04T15:53:57Z (max elev = 25.8 deg)",
+          "start_iso8601": "2024-09-04T15:53:57Z",
+          "start_mjd": 60557.662474,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 615,
+          "end_iso8601": "2024-09-04T16:04:15Z",
+          "end_mjd": 60557.669627,
+          "max_elevation": 26.34611128718,
+          "name": "Mothership over Kaunakakai @ 2024-09-04T15:54:00Z (max elev = 26.3 deg)",
+          "start_iso8601": "2024-09-04T15:54:00Z",
+          "start_mjd": 60557.662509,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 605,
+          "end_iso8601": "2024-09-04T16:04:46Z",
+          "end_mjd": 60557.669986,
+          "max_elevation": 22.7736296998446,
+          "name": "Mothership over Kapaa @ 2024-09-04T15:54:41Z (max elev = 22.8 deg)",
+          "start_iso8601": "2024-09-04T15:54:41Z",
+          "start_mjd": 60557.662984,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 597,
+          "end_iso8601": "2024-09-04T16:04:48Z",
+          "end_mjd": 60557.670009,
+          "max_elevation": 20.4283463006628,
+          "name": "Mothership over Puuwai @ 2024-09-04T15:54:51Z (max elev = 20.4 deg)",
+          "start_iso8601": "2024-09-04T15:54:51Z",
+          "start_mjd": 60557.663099,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 595,
+          "end_iso8601": "2024-09-04T21:11:22Z",
+          "end_mjd": 60557.882903,
+          "max_elevation": 20.0100929177035,
+          "name": "Mothership over Honolulu @ 2024-09-04T21:01:27Z (max elev = 20.0 deg)",
+          "start_iso8601": "2024-09-04T21:01:27Z",
+          "start_mjd": 60557.876016,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 238,
+          "end_iso8601": "2024-09-04T22:37:28Z",
+          "end_mjd": 60557.942694,
+          "max_elevation": 1.37412765864998,
+          "name": "Mothership over Puuwai @ 2024-09-04T22:33:30Z (max elev = 1.4 deg)",
+          "start_iso8601": "2024-09-04T22:33:30Z",
+          "start_mjd": 60557.93994,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 212,
+          "end_iso8601": "2024-09-04T22:37:02Z",
+          "end_mjd": 60557.942393,
+          "max_elevation": 1.08022969308012,
+          "name": "Mothership over Kapaa @ 2024-09-04T22:33:30Z (max elev = 1.1 deg)",
+          "start_iso8601": "2024-09-04T22:33:30Z",
+          "start_mjd": 60557.93994,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 580,
+          "end_iso8601": "2024-09-04T22:47:47Z",
+          "end_mjd": 60557.949859,
+          "max_elevation": 17.3995336175601,
+          "name": "Mothership over Honolulu @ 2024-09-04T22:38:07Z (max elev = 17.4 deg)",
+          "start_iso8601": "2024-09-04T22:38:07Z",
+          "start_mjd": 60557.943146,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 606,
+          "end_iso8601": "2024-09-05T00:17:26Z",
+          "end_mjd": 60558.012116,
+          "max_elevation": 22.6408445011277,
+          "name": "Mothership over Kahului @ 2024-09-05T00:07:20Z (max elev = 22.6 deg)",
+          "start_iso8601": "2024-09-05T00:07:20Z",
+          "start_mjd": 60558.005102,
+          "target": "Kahului"
+      },
+      {
+          "duration": 611,
+          "end_iso8601": "2024-09-05T00:17:32Z",
+          "end_mjd": 60558.012185,
+          "max_elevation": 24.602183801176,
+          "name": "Mothership over Kaunakakai @ 2024-09-05T00:07:21Z (max elev = 24.6 deg)",
+          "start_iso8601": "2024-09-05T00:07:21Z",
+          "start_mjd": 60558.005113,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 631,
+          "end_iso8601": "2024-09-05T00:17:54Z",
+          "end_mjd": 60558.01244,
+          "max_elevation": 36.3736493913974,
+          "name": "Mothership over Kapaa @ 2024-09-05T00:07:23Z (max elev = 36.4 deg)",
+          "start_iso8601": "2024-09-05T00:07:23Z",
+          "start_mjd": 60558.005137,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 609,
+          "end_iso8601": "2024-09-05T00:17:33Z",
+          "end_mjd": 60558.012197,
+          "max_elevation": 23.595949263037,
+          "name": "Mothership over Lanai City @ 2024-09-05T00:07:24Z (max elev = 23.6 deg)",
+          "start_iso8601": "2024-09-05T00:07:24Z",
+          "start_mjd": 60558.005148,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 581,
+          "end_iso8601": "2024-09-05T00:17:13Z",
+          "end_mjd": 60558.011965,
+          "max_elevation": 17.158323375325,
+          "name": "Mothership over Hilo @ 2024-09-05T00:07:32Z (max elev = 17.2 deg)",
+          "start_iso8601": "2024-09-05T00:07:32Z",
+          "start_mjd": 60558.005241,
+          "target": "Hilo"
+      },
+      {
+          "duration": 634,
+          "end_iso8601": "2024-09-05T00:18:06Z",
+          "end_mjd": 60558.012579,
+          "max_elevation": 39.4972384969564,
+          "name": "Mothership over Puuwai @ 2024-09-05T00:07:32Z (max elev = 39.5 deg)",
+          "start_iso8601": "2024-09-05T00:07:32Z",
+          "start_mjd": 60558.005241,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 591,
+          "end_iso8601": "2024-09-05T01:53:52Z",
+          "end_mjd": 60558.079083,
+          "max_elevation": 19.5699817197771,
+          "name": "Mothership over Hilo @ 2024-09-05T01:44:01Z (max elev = 19.6 deg)",
+          "start_iso8601": "2024-09-05T01:44:01Z",
+          "start_mjd": 60558.072243,
+          "target": "Hilo"
+      },
+      {
+          "duration": 564,
+          "end_iso8601": "2024-09-05T01:53:35Z",
+          "end_mjd": 60558.078887,
+          "max_elevation": 14.9247025749855,
+          "name": "Mothership over Kahului @ 2024-09-05T01:44:11Z (max elev = 14.9 deg)",
+          "start_iso8601": "2024-09-05T01:44:11Z",
+          "start_mjd": 60558.072359,
+          "target": "Kahului"
+      },
+      {
+          "duration": 554,
+          "end_iso8601": "2024-09-05T01:53:32Z",
+          "end_mjd": 60558.078852,
+          "max_elevation": 13.7120077635643,
+          "name": "Mothership over Kaunakakai @ 2024-09-05T01:44:18Z (max elev = 13.7 deg)",
+          "start_iso8601": "2024-09-05T01:44:18Z",
+          "start_mjd": 60558.07244,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 558,
+          "end_iso8601": "2024-09-05T01:53:37Z",
+          "end_mjd": 60558.07891,
+          "max_elevation": 14.1894129174803,
+          "name": "Mothership over Lanai City @ 2024-09-05T01:44:19Z (max elev = 14.2 deg)",
+          "start_iso8601": "2024-09-05T01:44:19Z",
+          "start_mjd": 60558.072451,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 501,
+          "end_iso8601": "2024-09-05T01:53:12Z",
+          "end_mjd": 60558.07862,
+          "max_elevation": 9.26063886351211,
+          "name": "Mothership over Kapaa @ 2024-09-05T01:44:51Z (max elev = 9.3 deg)",
+          "start_iso8601": "2024-09-05T01:44:51Z",
+          "start_mjd": 60558.072822,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 487,
+          "end_iso8601": "2024-09-05T01:53:14Z",
+          "end_mjd": 60558.078644,
+          "max_elevation": 8.39885429853714,
+          "name": "Mothership over Puuwai @ 2024-09-05T01:45:07Z (max elev = 8.4 deg)",
+          "start_iso8601": "2024-09-05T01:45:07Z",
+          "start_mjd": 60558.073007,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 310,
+          "end_iso8601": "2024-09-05T10:30:32Z",
+          "end_mjd": 60558.43788,
+          "max_elevation": 2.57123549841623,
+          "name": "Mothership over Honolulu @ 2024-09-05T10:25:22Z (max elev = 2.6 deg)",
+          "start_iso8601": "2024-09-05T10:25:22Z",
+          "start_mjd": 60558.434292,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-05T12:09:34Z",
+          "end_mjd": 60558.506653,
+          "max_elevation": 86.2772807952877,
+          "name": "Mothership over Honolulu @ 2024-09-05T11:58:49Z (max elev = 86.3 deg)",
+          "start_iso8601": "2024-09-05T11:58:49Z",
+          "start_mjd": 60558.499188,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 366,
+          "end_iso8601": "2024-09-05T13:36:15Z",
+          "end_mjd": 60558.56685,
+          "max_elevation": 3.81293371242736,
+          "name": "Mothership over Hilo @ 2024-09-05T13:30:09Z (max elev = 3.8 deg)",
+          "start_iso8601": "2024-09-05T13:30:09Z",
+          "start_mjd": 60558.562614,
+          "target": "Hilo"
+      },
+      {
+          "duration": 403,
+          "end_iso8601": "2024-09-05T13:37:04Z",
+          "end_mjd": 60558.567417,
+          "max_elevation": 4.86328425813644,
+          "name": "Mothership over Lanai City @ 2024-09-05T13:30:21Z (max elev = 4.9 deg)",
+          "start_iso8601": "2024-09-05T13:30:21Z",
+          "start_mjd": 60558.562752,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 388,
+          "end_iso8601": "2024-09-05T13:36:54Z",
+          "end_mjd": 60558.567301,
+          "max_elevation": 4.38761773624337,
+          "name": "Mothership over Kahului @ 2024-09-05T13:30:26Z (max elev = 4.4 deg)",
+          "start_iso8601": "2024-09-05T13:30:26Z",
+          "start_mjd": 60558.56281,
+          "target": "Kahului"
+      },
+      {
+          "duration": 401,
+          "end_iso8601": "2024-09-05T13:37:08Z",
+          "end_mjd": 60558.567463,
+          "max_elevation": 4.79504079285545,
+          "name": "Mothership over Kaunakakai @ 2024-09-05T13:30:27Z (max elev = 4.8 deg)",
+          "start_iso8601": "2024-09-05T13:30:27Z",
+          "start_mjd": 60558.562822,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 471,
+          "end_iso8601": "2024-09-05T13:38:20Z",
+          "end_mjd": 60558.568296,
+          "max_elevation": 7.60623230793174,
+          "name": "Mothership over Puuwai @ 2024-09-05T13:30:29Z (max elev = 7.6 deg)",
+          "start_iso8601": "2024-09-05T13:30:29Z",
+          "start_mjd": 60558.562845,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 448,
+          "end_iso8601": "2024-09-05T13:38:04Z",
+          "end_mjd": 60558.568111,
+          "max_elevation": 6.52126688306923,
+          "name": "Mothership over Kapaa @ 2024-09-05T13:30:36Z (max elev = 6.5 deg)",
+          "start_iso8601": "2024-09-05T13:30:36Z",
+          "start_mjd": 60558.562926,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 403,
+          "end_iso8601": "2024-09-05T13:44:35Z",
+          "end_mjd": 60558.572637,
+          "max_elevation": 4.71135093357724,
+          "name": "Mothership over Honolulu @ 2024-09-05T13:37:52Z (max elev = 4.7 deg)",
+          "start_iso8601": "2024-09-05T13:37:52Z",
+          "start_mjd": 60558.567972,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 644,
+          "end_iso8601": "2024-09-05T15:14:51Z",
+          "end_mjd": 60558.635322,
+          "max_elevation": 67.5697008806142,
+          "name": "Mothership over Hilo @ 2024-09-05T15:04:07Z (max elev = 67.6 deg)",
+          "start_iso8601": "2024-09-05T15:04:07Z",
+          "start_mjd": 60558.627868,
+          "target": "Hilo"
+      },
+      {
+          "duration": 643,
+          "end_iso8601": "2024-09-05T15:15:18Z",
+          "end_mjd": 60558.635634,
+          "max_elevation": 64.0282192657038,
+          "name": "Mothership over Kahului @ 2024-09-05T15:04:35Z (max elev = 64.0 deg)",
+          "start_iso8601": "2024-09-05T15:04:35Z",
+          "start_mjd": 60558.628192,
+          "target": "Kahului"
+      },
+      {
+          "duration": 641,
+          "end_iso8601": "2024-09-05T15:15:21Z",
+          "end_mjd": 60558.635669,
+          "max_elevation": 59.2747092959832,
+          "name": "Mothership over Lanai City @ 2024-09-05T15:04:40Z (max elev = 59.3 deg)",
+          "start_iso8601": "2024-09-05T15:04:40Z",
+          "start_mjd": 60558.62825,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 643,
+          "end_iso8601": "2024-09-05T15:15:26Z",
+          "end_mjd": 60558.635727,
+          "max_elevation": 60.5786930440128,
+          "name": "Mothership over Kaunakakai @ 2024-09-05T15:04:43Z (max elev = 60.6 deg)",
+          "start_iso8601": "2024-09-05T15:04:43Z",
+          "start_mjd": 60558.628285,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 639,
+          "end_iso8601": "2024-09-05T15:15:59Z",
+          "end_mjd": 60558.636109,
+          "max_elevation": 49.1883031345066,
+          "name": "Mothership over Kapaa @ 2024-09-05T15:05:20Z (max elev = 49.2 deg)",
+          "start_iso8601": "2024-09-05T15:05:20Z",
+          "start_mjd": 60558.628713,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 635,
+          "end_iso8601": "2024-09-05T15:16:03Z",
+          "end_mjd": 60558.636155,
+          "max_elevation": 42.7650952670831,
+          "name": "Mothership over Puuwai @ 2024-09-05T15:05:28Z (max elev = 42.8 deg)",
+          "start_iso8601": "2024-09-05T15:05:28Z",
+          "start_mjd": 60558.628806,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 335,
+          "end_iso8601": "2024-09-05T16:49:22Z",
+          "end_mjd": 60558.700958,
+          "max_elevation": 2.98219667797857,
+          "name": "Mothership over Hilo @ 2024-09-05T16:43:47Z (max elev = 3.0 deg)",
+          "start_iso8601": "2024-09-05T16:43:47Z",
+          "start_mjd": 60558.697081,
+          "target": "Hilo"
+      },
+      {
+          "duration": 341,
+          "end_iso8601": "2024-09-05T16:49:55Z",
+          "end_mjd": 60558.70134,
+          "max_elevation": 3.11100578981387,
+          "name": "Mothership over Kahului @ 2024-09-05T16:44:14Z (max elev = 3.1 deg)",
+          "start_iso8601": "2024-09-05T16:44:14Z",
+          "start_mjd": 60558.697394,
+          "target": "Kahului"
+      },
+      {
+          "duration": 323,
+          "end_iso8601": "2024-09-05T16:49:51Z",
+          "end_mjd": 60558.701294,
+          "max_elevation": 2.74011451385268,
+          "name": "Mothership over Lanai City @ 2024-09-05T16:44:28Z (max elev = 2.7 deg)",
+          "start_iso8601": "2024-09-05T16:44:28Z",
+          "start_mjd": 60558.697556,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 332,
+          "end_iso8601": "2024-09-05T16:50:00Z",
+          "end_mjd": 60558.701398,
+          "max_elevation": 2.93285881209075,
+          "name": "Mothership over Kaunakakai @ 2024-09-05T16:44:28Z (max elev = 2.9 deg)",
+          "start_iso8601": "2024-09-05T16:44:28Z",
+          "start_mjd": 60558.697556,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 303,
+          "end_iso8601": "2024-09-05T16:50:26Z",
+          "end_mjd": 60558.701699,
+          "max_elevation": 2.36219662591235,
+          "name": "Mothership over Kapaa @ 2024-09-05T16:45:23Z (max elev = 2.4 deg)",
+          "start_iso8601": "2024-09-05T16:45:23Z",
+          "start_mjd": 60558.698192,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 262,
+          "end_iso8601": "2024-09-05T16:50:14Z",
+          "end_mjd": 60558.70156,
+          "max_elevation": 1.69705365843598,
+          "name": "Mothership over Puuwai @ 2024-09-05T16:45:52Z (max elev = 1.7 deg)",
+          "start_iso8601": "2024-09-05T16:45:52Z",
+          "start_mjd": 60558.698528,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 522,
+          "end_iso8601": "2024-09-05T20:21:36Z",
+          "end_mjd": 60558.848343,
+          "max_elevation": 10.3755951013273,
+          "name": "Mothership over Honolulu @ 2024-09-05T20:12:54Z (max elev = 10.4 deg)",
+          "start_iso8601": "2024-09-05T20:12:54Z",
+          "start_mjd": 60558.842301,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 631,
+          "end_iso8601": "2024-09-05T21:59:17Z",
+          "end_mjd": 60558.916178,
+          "max_elevation": 38.120286368932,
+          "name": "Mothership over Honolulu @ 2024-09-05T21:48:46Z (max elev = 38.1 deg)",
+          "start_iso8601": "2024-09-05T21:48:46Z",
+          "start_mjd": 60558.908875,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 587,
+          "end_iso8601": "2024-09-05T23:28:26Z",
+          "end_mjd": 60558.978088,
+          "max_elevation": 18.0345268259576,
+          "name": "Mothership over Kapaa @ 2024-09-05T23:18:39Z (max elev = 18.0 deg)",
+          "start_iso8601": "2024-09-05T23:18:39Z",
+          "start_mjd": 60558.971294,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 547,
+          "end_iso8601": "2024-09-05T23:27:52Z",
+          "end_mjd": 60558.977695,
+          "max_elevation": 12.6810172852118,
+          "name": "Mothership over Kaunakakai @ 2024-09-05T23:18:45Z (max elev = 12.7 deg)",
+          "start_iso8601": "2024-09-05T23:18:45Z",
+          "start_mjd": 60558.971364,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 537,
+          "end_iso8601": "2024-09-05T23:27:43Z",
+          "end_mjd": 60558.97759,
+          "max_elevation": 11.6771525187831,
+          "name": "Mothership over Kahului @ 2024-09-05T23:18:46Z (max elev = 11.7 deg)",
+          "start_iso8601": "2024-09-05T23:18:46Z",
+          "start_mjd": 60558.971375,
+          "target": "Kahului"
+      },
+      {
+          "duration": 593,
+          "end_iso8601": "2024-09-05T23:28:40Z",
+          "end_mjd": 60558.97825,
+          "max_elevation": 19.2203663189474,
+          "name": "Mothership over Puuwai @ 2024-09-05T23:18:47Z (max elev = 19.2 deg)",
+          "start_iso8601": "2024-09-05T23:18:47Z",
+          "start_mjd": 60558.971387,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 542,
+          "end_iso8601": "2024-09-05T23:27:51Z",
+          "end_mjd": 60558.977683,
+          "max_elevation": 12.1399049579256,
+          "name": "Mothership over Lanai City @ 2024-09-05T23:18:49Z (max elev = 12.1 deg)",
+          "start_iso8601": "2024-09-05T23:18:49Z",
+          "start_mjd": 60558.97141,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 494,
+          "end_iso8601": "2024-09-05T23:27:19Z",
+          "end_mjd": 60558.977313,
+          "max_elevation": 8.5847197651998,
+          "name": "Mothership over Hilo @ 2024-09-05T23:19:05Z (max elev = 8.6 deg)",
+          "start_iso8601": "2024-09-05T23:19:05Z",
+          "start_mjd": 60558.971595,
+          "target": "Hilo"
+      },
+      {
+          "duration": 637,
+          "end_iso8601": "2024-09-06T01:05:19Z",
+          "end_mjd": 60559.045368,
+          "max_elevation": 44.4896699354616,
+          "name": "Mothership over Hilo @ 2024-09-06T00:54:42Z (max elev = 44.5 deg)",
+          "start_iso8601": "2024-09-06T00:54:42Z",
+          "start_mjd": 60559.037996,
+          "target": "Hilo"
+      },
+      {
+          "duration": 625,
+          "end_iso8601": "2024-09-06T01:05:10Z",
+          "end_mjd": 60559.045264,
+          "max_elevation": 32.1537132888999,
+          "name": "Mothership over Kahului @ 2024-09-06T00:54:45Z (max elev = 32.2 deg)",
+          "start_iso8601": "2024-09-06T00:54:45Z",
+          "start_mjd": 60559.03803,
+          "target": "Kahului"
+      },
+      {
+          "duration": 620,
+          "end_iso8601": "2024-09-06T01:05:10Z",
+          "end_mjd": 60559.045264,
+          "max_elevation": 29.3206604434164,
+          "name": "Mothership over Kaunakakai @ 2024-09-06T00:54:50Z (max elev = 29.3 deg)",
+          "start_iso8601": "2024-09-06T00:54:50Z",
+          "start_mjd": 60559.038088,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 621,
+          "end_iso8601": "2024-09-06T01:05:13Z",
+          "end_mjd": 60559.045299,
+          "max_elevation": 30.4762972896877,
+          "name": "Mothership over Lanai City @ 2024-09-06T00:54:52Z (max elev = 30.5 deg)",
+          "start_iso8601": "2024-09-06T00:54:52Z",
+          "start_mjd": 60559.038111,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 593,
+          "end_iso8601": "2024-09-06T01:05:04Z",
+          "end_mjd": 60559.045195,
+          "max_elevation": 20.0817260965901,
+          "name": "Mothership over Kapaa @ 2024-09-06T00:55:11Z (max elev = 20.1 deg)",
+          "start_iso8601": "2024-09-06T00:55:11Z",
+          "start_mjd": 60559.038331,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 586,
+          "end_iso8601": "2024-09-06T01:05:10Z",
+          "end_mjd": 60559.045264,
+          "max_elevation": 18.5360104138184,
+          "name": "Mothership over Puuwai @ 2024-09-06T00:55:24Z (max elev = 18.5 deg)",
+          "start_iso8601": "2024-09-06T00:55:24Z",
+          "start_mjd": 60559.038482,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 630,
+          "end_iso8601": "2024-09-06T11:20:27Z",
+          "end_mjd": 60559.472544,
+          "max_elevation": 37.2632143458147,
+          "name": "Mothership over Honolulu @ 2024-09-06T11:09:57Z (max elev = 37.3 deg)",
+          "start_iso8601": "2024-09-06T11:09:57Z",
+          "start_mjd": 60559.465253,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 238,
+          "end_iso8601": "2024-09-06T12:47:31Z",
+          "end_mjd": 60559.533007,
+          "max_elevation": 1.43131145973783,
+          "name": "Mothership over Puuwai @ 2024-09-06T12:43:33Z (max elev = 1.4 deg)",
+          "start_iso8601": "2024-09-06T12:43:33Z",
+          "start_mjd": 60559.530253,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 163,
+          "end_iso8601": "2024-09-06T12:46:49Z",
+          "end_mjd": 60559.532521,
+          "max_elevation": 0.6463226189248,
+          "name": "Mothership over Kapaa @ 2024-09-06T12:44:06Z (max elev = 0.6 deg)",
+          "start_iso8601": "2024-09-06T12:44:06Z",
+          "start_mjd": 60559.530635,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 522,
+          "end_iso8601": "2024-09-06T12:56:19Z",
+          "end_mjd": 60559.539118,
+          "max_elevation": 10.500397720784,
+          "name": "Mothership over Honolulu @ 2024-09-06T12:47:37Z (max elev = 10.5 deg)",
+          "start_iso8601": "2024-09-06T12:47:37Z",
+          "start_mjd": 60559.533077,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 636,
+          "end_iso8601": "2024-09-06T14:25:47Z",
+          "end_mjd": 60559.601248,
+          "max_elevation": 46.6183080019807,
+          "name": "Mothership over Hilo @ 2024-09-06T14:15:11Z (max elev = 46.6 deg)",
+          "start_iso8601": "2024-09-06T14:15:11Z",
+          "start_mjd": 60559.593887,
+          "target": "Hilo"
+      },
+      {
+          "duration": 638,
+          "end_iso8601": "2024-09-06T14:26:16Z",
+          "end_mjd": 60559.601584,
+          "max_elevation": 49.7780198963624,
+          "name": "Mothership over Kahului @ 2024-09-06T14:15:38Z (max elev = 49.8 deg)",
+          "start_iso8601": "2024-09-06T14:15:38Z",
+          "start_mjd": 60559.594199,
+          "target": "Kahului"
+      },
+      {
+          "duration": 640,
+          "end_iso8601": "2024-09-06T14:26:20Z",
+          "end_mjd": 60559.60163,
+          "max_elevation": 53.6912158718529,
+          "name": "Mothership over Lanai City @ 2024-09-06T14:15:40Z (max elev = 53.7 deg)",
+          "start_iso8601": "2024-09-06T14:15:40Z",
+          "start_mjd": 60559.594223,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 639,
+          "end_iso8601": "2024-09-06T14:26:24Z",
+          "end_mjd": 60559.601676,
+          "max_elevation": 52.7419029303938,
+          "name": "Mothership over Kaunakakai @ 2024-09-06T14:15:45Z (max elev = 52.7 deg)",
+          "start_iso8601": "2024-09-06T14:15:45Z",
+          "start_mjd": 60559.59428,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 643,
+          "end_iso8601": "2024-09-06T14:27:00Z",
+          "end_mjd": 60559.602093,
+          "max_elevation": 66.3356404258575,
+          "name": "Mothership over Kapaa @ 2024-09-06T14:16:17Z (max elev = 66.3 deg)",
+          "start_iso8601": "2024-09-06T14:16:17Z",
+          "start_mjd": 60559.594651,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-06T14:27:06Z",
+          "end_mjd": 60559.602162,
+          "max_elevation": 76.9684915220773,
+          "name": "Mothership over Puuwai @ 2024-09-06T14:16:21Z (max elev = 77.0 deg)",
+          "start_iso8601": "2024-09-06T14:16:21Z",
+          "start_mjd": 60559.594697,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 487,
+          "end_iso8601": "2024-09-06T16:01:21Z",
+          "end_mjd": 60559.667614,
+          "max_elevation": 8.2137286895525,
+          "name": "Mothership over Hilo @ 2024-09-06T15:53:14Z (max elev = 8.2 deg)",
+          "start_iso8601": "2024-09-06T15:53:14Z",
+          "start_mjd": 60559.661977,
+          "target": "Hilo"
+      },
+      {
+          "duration": 487,
+          "end_iso8601": "2024-09-06T16:01:51Z",
+          "end_mjd": 60559.667961,
+          "max_elevation": 8.20673205064774,
+          "name": "Mothership over Kahului @ 2024-09-06T15:53:44Z (max elev = 8.2 deg)",
+          "start_iso8601": "2024-09-06T15:53:44Z",
+          "start_mjd": 60559.662324,
+          "target": "Kahului"
+      },
+      {
+          "duration": 477,
+          "end_iso8601": "2024-09-06T16:01:50Z",
+          "end_mjd": 60559.667949,
+          "max_elevation": 7.68408217272978,
+          "name": "Mothership over Lanai City @ 2024-09-06T15:53:53Z (max elev = 7.7 deg)",
+          "start_iso8601": "2024-09-06T15:53:53Z",
+          "start_mjd": 60559.662429,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 482,
+          "end_iso8601": "2024-09-06T16:01:57Z",
+          "end_mjd": 60559.66803,
+          "max_elevation": 7.91408500080874,
+          "name": "Mothership over Kaunakakai @ 2024-09-06T15:53:55Z (max elev = 7.9 deg)",
+          "start_iso8601": "2024-09-06T15:53:55Z",
+          "start_mjd": 60559.662452,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 462,
+          "end_iso8601": "2024-09-06T16:02:25Z",
+          "end_mjd": 60559.668355,
+          "max_elevation": 6.92622769555395,
+          "name": "Mothership over Kapaa @ 2024-09-06T15:54:43Z (max elev = 6.9 deg)",
+          "start_iso8601": "2024-09-06T15:54:43Z",
+          "start_mjd": 60559.663007,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 441,
+          "end_iso8601": "2024-09-06T16:02:23Z",
+          "end_mjd": 60559.668331,
+          "max_elevation": 6.02446346752544,
+          "name": "Mothership over Puuwai @ 2024-09-06T15:55:02Z (max elev = 6.0 deg)",
+          "start_iso8601": "2024-09-06T15:55:02Z",
+          "start_mjd": 60559.663227,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 400,
+          "end_iso8601": "2024-09-06T19:31:19Z",
+          "end_mjd": 60559.813424,
+          "max_elevation": 4.62525904737356,
+          "name": "Mothership over Honolulu @ 2024-09-06T19:24:39Z (max elev = 4.6 deg)",
+          "start_iso8601": "2024-09-06T19:24:39Z",
+          "start_mjd": 60559.808794,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 646,
+          "end_iso8601": "2024-09-06T21:10:25Z",
+          "end_mjd": 60559.882243,
+          "max_elevation": 84.5518875590626,
+          "name": "Mothership over Honolulu @ 2024-09-06T20:59:39Z (max elev = 84.6 deg)",
+          "start_iso8601": "2024-09-06T20:59:39Z",
+          "start_mjd": 60559.874767,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 507,
+          "end_iso8601": "2024-09-06T22:38:34Z",
+          "end_mjd": 60559.943459,
+          "max_elevation": 9.38930740554578,
+          "name": "Mothership over Kapaa @ 2024-09-06T22:30:07Z (max elev = 9.4 deg)",
+          "start_iso8601": "2024-09-06T22:30:07Z",
+          "start_mjd": 60559.937591,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 516,
+          "end_iso8601": "2024-09-06T22:38:50Z",
+          "end_mjd": 60559.943644,
+          "max_elevation": 10.0179670865819,
+          "name": "Mothership over Puuwai @ 2024-09-06T22:30:14Z (max elev = 10.0 deg)",
+          "start_iso8601": "2024-09-06T22:30:14Z",
+          "start_mjd": 60559.937672,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 442,
+          "end_iso8601": "2024-09-06T22:37:45Z",
+          "end_mjd": 60559.942892,
+          "max_elevation": 6.07794252552069,
+          "name": "Mothership over Kaunakakai @ 2024-09-06T22:30:23Z (max elev = 6.1 deg)",
+          "start_iso8601": "2024-09-06T22:30:23Z",
+          "start_mjd": 60559.937776,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 425,
+          "end_iso8601": "2024-09-06T22:37:32Z",
+          "end_mjd": 60559.942741,
+          "max_elevation": 5.41560863650352,
+          "name": "Mothership over Kahului @ 2024-09-06T22:30:27Z (max elev = 5.4 deg)",
+          "start_iso8601": "2024-09-06T22:30:27Z",
+          "start_mjd": 60559.937822,
+          "target": "Kahului"
+      },
+      {
+          "duration": 432,
+          "end_iso8601": "2024-09-06T22:37:42Z",
+          "end_mjd": 60559.942857,
+          "max_elevation": 5.70063749745824,
+          "name": "Mothership over Lanai City @ 2024-09-06T22:30:30Z (max elev = 5.7 deg)",
+          "start_iso8601": "2024-09-06T22:30:30Z",
+          "start_mjd": 60559.937857,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 347,
+          "end_iso8601": "2024-09-06T22:36:49Z",
+          "end_mjd": 60559.942243,
+          "max_elevation": 3.23219391941899,
+          "name": "Mothership over Hilo @ 2024-09-06T22:31:02Z (max elev = 3.2 deg)",
+          "start_iso8601": "2024-09-06T22:31:02Z",
+          "start_mjd": 60559.938227,
+          "target": "Hilo"
+      },
+      {
+          "duration": 319,
+          "end_iso8601": "2024-09-06T22:43:55Z",
+          "end_mjd": 60559.947174,
+          "max_elevation": 2.73824107952223,
+          "name": "Mothership over Honolulu @ 2024-09-06T22:38:36Z (max elev = 2.7 deg)",
+          "start_iso8601": "2024-09-06T22:38:36Z",
+          "start_mjd": 60559.943482,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-07T00:16:21Z",
+          "end_mjd": 60560.011364,
+          "max_elevation": 80.9720087076158,
+          "name": "Mothership over Kahului @ 2024-09-07T00:05:36Z (max elev = 81.0 deg)",
+          "start_iso8601": "2024-09-07T00:05:36Z",
+          "start_mjd": 60560.003899,
+          "target": "Kahului"
+      },
+      {
+          "duration": 644,
+          "end_iso8601": "2024-09-07T00:16:22Z",
+          "end_mjd": 60560.011375,
+          "max_elevation": 71.0479350881085,
+          "name": "Mothership over Hilo @ 2024-09-07T00:05:38Z (max elev = 71.0 deg)",
+          "start_iso8601": "2024-09-07T00:05:38Z",
+          "start_mjd": 60560.003922,
+          "target": "Hilo"
+      },
+      {
+          "duration": 644,
+          "end_iso8601": "2024-09-07T00:16:23Z",
+          "end_mjd": 60560.011387,
+          "max_elevation": 72.7509114487024,
+          "name": "Mothership over Kaunakakai @ 2024-09-07T00:05:39Z (max elev = 72.8 deg)",
+          "start_iso8601": "2024-09-07T00:05:39Z",
+          "start_mjd": 60560.003933,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-07T00:16:26Z",
+          "end_mjd": 60560.011422,
+          "max_elevation": 76.377845538228,
+          "name": "Mothership over Lanai City @ 2024-09-07T00:05:41Z (max elev = 76.4 deg)",
+          "start_iso8601": "2024-09-07T00:05:41Z",
+          "start_mjd": 60560.003956,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 636,
+          "end_iso8601": "2024-09-07T00:16:28Z",
+          "end_mjd": 60560.011445,
+          "max_elevation": 45.056213700733,
+          "name": "Mothership over Kapaa @ 2024-09-07T00:05:52Z (max elev = 45.1 deg)",
+          "start_iso8601": "2024-09-07T00:05:52Z",
+          "start_mjd": 60560.004084,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 634,
+          "end_iso8601": "2024-09-07T00:16:37Z",
+          "end_mjd": 60560.011549,
+          "max_elevation": 40.9542932352444,
+          "name": "Mothership over Puuwai @ 2024-09-07T00:06:03Z (max elev = 41.0 deg)",
+          "start_iso8601": "2024-09-07T00:06:03Z",
+          "start_mjd": 60560.004211,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 355,
+          "end_iso8601": "2024-09-07T01:50:14Z",
+          "end_mjd": 60560.076561,
+          "max_elevation": 3.53723694581222,
+          "name": "Mothership over Hilo @ 2024-09-07T01:44:19Z (max elev = 3.5 deg)",
+          "start_iso8601": "2024-09-07T01:44:19Z",
+          "start_mjd": 60560.072452,
+          "target": "Hilo"
+      },
+      {
+          "duration": 250,
+          "end_iso8601": "2024-09-07T01:49:16Z",
+          "end_mjd": 60560.075889,
+          "max_elevation": 1.58286276143017,
+          "name": "Mothership over Kahului @ 2024-09-07T01:45:06Z (max elev = 1.6 deg)",
+          "start_iso8601": "2024-09-07T01:45:06Z",
+          "start_mjd": 60560.072996,
+          "target": "Kahului"
+      },
+      {
+          "duration": 222,
+          "end_iso8601": "2024-09-07T01:49:07Z",
+          "end_mjd": 60560.075785,
+          "max_elevation": 1.2240224237348,
+          "name": "Mothership over Lanai City @ 2024-09-07T01:45:25Z (max elev = 1.2 deg)",
+          "start_iso8601": "2024-09-07T01:45:25Z",
+          "start_mjd": 60560.073216,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 202,
+          "end_iso8601": "2024-09-07T01:48:54Z",
+          "end_mjd": 60560.075635,
+          "max_elevation": 1.00762081146007,
+          "name": "Mothership over Kaunakakai @ 2024-09-07T01:45:32Z (max elev = 1.0 deg)",
+          "start_iso8601": "2024-09-07T01:45:32Z",
+          "start_mjd": 60560.073297,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 577,
+          "end_iso8601": "2024-09-07T10:31:03Z",
+          "end_mjd": 60560.438239,
+          "max_elevation": 17.0111153105081,
+          "name": "Mothership over Honolulu @ 2024-09-07T10:21:26Z (max elev = 17.0 deg)",
+          "start_iso8601": "2024-09-07T10:21:26Z",
+          "start_mjd": 60560.431561,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 596,
+          "end_iso8601": "2024-09-07T12:07:44Z",
+          "end_mjd": 60560.50538,
+          "max_elevation": 20.2720035310124,
+          "name": "Mothership over Honolulu @ 2024-09-07T11:57:48Z (max elev = 20.3 deg)",
+          "start_iso8601": "2024-09-07T11:57:48Z",
+          "start_mjd": 60560.498482,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 593,
+          "end_iso8601": "2024-09-07T13:36:27Z",
+          "end_mjd": 60560.566989,
+          "max_elevation": 20.2589197320974,
+          "name": "Mothership over Hilo @ 2024-09-07T13:26:34Z (max elev = 20.3 deg)",
+          "start_iso8601": "2024-09-07T13:26:34Z",
+          "start_mjd": 60560.560126,
+          "target": "Hilo"
+      },
+      {
+          "duration": 598,
+          "end_iso8601": "2024-09-07T13:36:57Z",
+          "end_mjd": 60560.567336,
+          "max_elevation": 21.523184963817,
+          "name": "Mothership over Kahului @ 2024-09-07T13:26:59Z (max elev = 21.5 deg)",
+          "start_iso8601": "2024-09-07T13:26:59Z",
+          "start_mjd": 60560.560415,
+          "target": "Kahului"
+      },
+      {
+          "duration": 602,
+          "end_iso8601": "2024-09-07T13:37:02Z",
+          "end_mjd": 60560.567394,
+          "max_elevation": 22.8285695216303,
+          "name": "Mothership over Lanai City @ 2024-09-07T13:27:00Z (max elev = 22.8 deg)",
+          "start_iso8601": "2024-09-07T13:27:00Z",
+          "start_mjd": 60560.560426,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 601,
+          "end_iso8601": "2024-09-07T13:37:06Z",
+          "end_mjd": 60560.56744,
+          "max_elevation": 22.5691530416639,
+          "name": "Mothership over Kaunakakai @ 2024-09-07T13:27:05Z (max elev = 22.6 deg)",
+          "start_iso8601": "2024-09-07T13:27:05Z",
+          "start_mjd": 60560.560484,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 614,
+          "end_iso8601": "2024-09-07T13:37:46Z",
+          "end_mjd": 60560.567903,
+          "max_elevation": 27.3197171445917,
+          "name": "Mothership over Kapaa @ 2024-09-07T13:27:32Z (max elev = 27.3 deg)",
+          "start_iso8601": "2024-09-07T13:27:32Z",
+          "start_mjd": 60560.560797,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 621,
+          "end_iso8601": "2024-09-07T13:37:54Z",
+          "end_mjd": 60560.567996,
+          "max_elevation": 30.9218696028611,
+          "name": "Mothership over Puuwai @ 2024-09-07T13:27:33Z (max elev = 30.9 deg)",
+          "start_iso8601": "2024-09-07T13:27:33Z",
+          "start_mjd": 60560.560808,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 577,
+          "end_iso8601": "2024-09-07T15:12:54Z",
+          "end_mjd": 60560.633968,
+          "max_elevation": 16.5276094988619,
+          "name": "Mothership over Hilo @ 2024-09-07T15:03:17Z (max elev = 16.5 deg)",
+          "start_iso8601": "2024-09-07T15:03:17Z",
+          "start_mjd": 60560.62729,
+          "target": "Hilo"
+      },
+      {
+          "duration": 576,
+          "end_iso8601": "2024-09-07T15:13:22Z",
+          "end_mjd": 60560.634292,
+          "max_elevation": 16.2556146898596,
+          "name": "Mothership over Kahului @ 2024-09-07T15:03:46Z (max elev = 16.3 deg)",
+          "start_iso8601": "2024-09-07T15:03:46Z",
+          "start_mjd": 60560.627626,
+          "target": "Kahului"
+      },
+      {
+          "duration": 569,
+          "end_iso8601": "2024-09-07T15:13:23Z",
+          "end_mjd": 60560.634304,
+          "max_elevation": 15.3822522298596,
+          "name": "Mothership over Lanai City @ 2024-09-07T15:03:54Z (max elev = 15.4 deg)",
+          "start_iso8601": "2024-09-07T15:03:54Z",
+          "start_mjd": 60560.627718,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 572,
+          "end_iso8601": "2024-09-07T15:13:28Z",
+          "end_mjd": 60560.634362,
+          "max_elevation": 15.7079922725163,
+          "name": "Mothership over Kaunakakai @ 2024-09-07T15:03:56Z (max elev = 15.7 deg)",
+          "start_iso8601": "2024-09-07T15:03:56Z",
+          "start_mjd": 60560.627741,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 558,
+          "end_iso8601": "2024-09-07T15:13:58Z",
+          "end_mjd": 60560.634709,
+          "max_elevation": 13.843934121186,
+          "name": "Mothership over Kapaa @ 2024-09-07T15:04:40Z (max elev = 13.8 deg)",
+          "start_iso8601": "2024-09-07T15:04:40Z",
+          "start_mjd": 60560.628251,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 545,
+          "end_iso8601": "2024-09-07T15:13:59Z",
+          "end_mjd": 60560.63472,
+          "max_elevation": 12.4371484491235,
+          "name": "Mothership over Puuwai @ 2024-09-07T15:04:54Z (max elev = 12.4 deg)",
+          "start_iso8601": "2024-09-07T15:04:54Z",
+          "start_mjd": 60560.628413,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 161,
+          "end_iso8601": "2024-09-07T18:39:56Z",
+          "end_mjd": 60560.777741,
+          "max_elevation": 0.608935178979506,
+          "name": "Mothership over Honolulu @ 2024-09-07T18:37:15Z (max elev = 0.6 deg)",
+          "start_iso8601": "2024-09-07T18:37:15Z",
+          "start_mjd": 60560.775878,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 629,
+          "end_iso8601": "2024-09-07T20:21:12Z",
+          "end_mjd": 60560.848065,
+          "max_elevation": 34.5866426694264,
+          "name": "Mothership over Honolulu @ 2024-09-07T20:10:43Z (max elev = 34.6 deg)",
+          "start_iso8601": "2024-09-07T20:10:43Z",
+          "start_mjd": 60560.840785,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 381,
+          "end_iso8601": "2024-09-07T21:48:12Z",
+          "end_mjd": 60560.908482,
+          "max_elevation": 4.05362270133452,
+          "name": "Mothership over Kapaa @ 2024-09-07T21:41:51Z (max elev = 4.1 deg)",
+          "start_iso8601": "2024-09-07T21:41:51Z",
+          "start_mjd": 60560.904072,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 394,
+          "end_iso8601": "2024-09-07T21:48:31Z",
+          "end_mjd": 60560.908702,
+          "max_elevation": 4.45057054118835,
+          "name": "Mothership over Puuwai @ 2024-09-07T21:41:57Z (max elev = 4.5 deg)",
+          "start_iso8601": "2024-09-07T21:41:57Z",
+          "start_mjd": 60560.904142,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 256,
+          "end_iso8601": "2024-09-07T21:46:50Z",
+          "end_mjd": 60560.907533,
+          "max_elevation": 1.63080895984356,
+          "name": "Mothership over Kaunakakai @ 2024-09-07T21:42:34Z (max elev = 1.6 deg)",
+          "start_iso8601": "2024-09-07T21:42:34Z",
+          "start_mjd": 60560.90457,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 233,
+          "end_iso8601": "2024-09-07T21:46:40Z",
+          "end_mjd": 60560.907417,
+          "max_elevation": 1.32711717876731,
+          "name": "Mothership over Lanai City @ 2024-09-07T21:42:47Z (max elev = 1.3 deg)",
+          "start_iso8601": "2024-09-07T21:42:47Z",
+          "start_mjd": 60560.904721,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 216,
+          "end_iso8601": "2024-09-07T21:46:25Z",
+          "end_mjd": 60560.907244,
+          "max_elevation": 1.12995876450991,
+          "name": "Mothership over Kahului @ 2024-09-07T21:42:49Z (max elev = 1.1 deg)",
+          "start_iso8601": "2024-09-07T21:42:49Z",
+          "start_mjd": 60560.904744,
+          "target": "Kahului"
+      },
+      {
+          "duration": 505,
+          "end_iso8601": "2024-09-07T21:56:33Z",
+          "end_mjd": 60560.914281,
+          "max_elevation": 9.48907602983943,
+          "name": "Mothership over Honolulu @ 2024-09-07T21:48:08Z (max elev = 9.5 deg)",
+          "start_iso8601": "2024-09-07T21:48:08Z",
+          "start_mjd": 60560.908436,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 635,
+          "end_iso8601": "2024-09-07T23:27:12Z",
+          "end_mjd": 60560.977232,
+          "max_elevation": 40.3583016439861,
+          "name": "Mothership over Kahului @ 2024-09-07T23:16:37Z (max elev = 40.4 deg)",
+          "start_iso8601": "2024-09-07T23:16:37Z",
+          "start_mjd": 60560.969883,
+          "target": "Kahului"
+      },
+      {
+          "duration": 637,
+          "end_iso8601": "2024-09-07T23:27:16Z",
+          "end_mjd": 60560.977278,
+          "max_elevation": 44.6655388790339,
+          "name": "Mothership over Kaunakakai @ 2024-09-07T23:16:39Z (max elev = 44.7 deg)",
+          "start_iso8601": "2024-09-07T23:16:39Z",
+          "start_mjd": 60560.969906,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 636,
+          "end_iso8601": "2024-09-07T23:27:18Z",
+          "end_mjd": 60560.977302,
+          "max_elevation": 42.5368526227996,
+          "name": "Mothership over Lanai City @ 2024-09-07T23:16:42Z (max elev = 42.5 deg)",
+          "start_iso8601": "2024-09-07T23:16:42Z",
+          "start_mjd": 60560.96994,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 622,
+          "end_iso8601": "2024-09-07T23:27:06Z",
+          "end_mjd": 60560.977163,
+          "max_elevation": 29.3660957029308,
+          "name": "Mothership over Hilo @ 2024-09-07T23:16:44Z (max elev = 29.4 deg)",
+          "start_iso8601": "2024-09-07T23:16:44Z",
+          "start_mjd": 60560.969964,
+          "target": "Hilo"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-07T23:27:31Z",
+          "end_mjd": 60560.977452,
+          "max_elevation": 71.8355532961039,
+          "name": "Mothership over Kapaa @ 2024-09-07T23:16:46Z (max elev = 71.8 deg)",
+          "start_iso8601": "2024-09-07T23:16:46Z",
+          "start_mjd": 60560.969987,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-07T23:27:41Z",
+          "end_mjd": 60560.977568,
+          "max_elevation": 78.9927065363354,
+          "name": "Mothership over Puuwai @ 2024-09-07T23:16:56Z (max elev = 79.0 deg)",
+          "start_iso8601": "2024-09-07T23:16:56Z",
+          "start_mjd": 60560.970103,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 522,
+          "end_iso8601": "2024-09-08T01:02:41Z",
+          "end_mjd": 60561.04354,
+          "max_elevation": 10.7559580753165,
+          "name": "Mothership over Hilo @ 2024-09-08T00:53:59Z (max elev = 10.8 deg)",
+          "start_iso8601": "2024-09-08T00:53:59Z",
+          "start_mjd": 60561.037498,
+          "target": "Hilo"
+      },
+      {
+          "duration": 476,
+          "end_iso8601": "2024-09-08T01:02:14Z",
+          "end_mjd": 60561.043228,
+          "max_elevation": 7.86537811726395,
+          "name": "Mothership over Kahului @ 2024-09-08T00:54:18Z (max elev = 7.9 deg)",
+          "start_iso8601": "2024-09-08T00:54:18Z",
+          "start_mjd": 60561.037718,
+          "target": "Kahului"
+      },
+      {
+          "duration": 467,
+          "end_iso8601": "2024-09-08T01:02:14Z",
+          "end_mjd": 60561.043228,
+          "max_elevation": 7.36922434441773,
+          "name": "Mothership over Lanai City @ 2024-09-08T00:54:27Z (max elev = 7.4 deg)",
+          "start_iso8601": "2024-09-08T00:54:27Z",
+          "start_mjd": 60561.037822,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 460,
+          "end_iso8601": "2024-09-08T01:02:08Z",
+          "end_mjd": 60561.043158,
+          "max_elevation": 7.05873047180292,
+          "name": "Mothership over Kaunakakai @ 2024-09-08T00:54:28Z (max elev = 7.1 deg)",
+          "start_iso8601": "2024-09-08T00:54:28Z",
+          "start_mjd": 60561.037834,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 371,
+          "end_iso8601": "2024-09-08T01:01:29Z",
+          "end_mjd": 60561.042707,
+          "max_elevation": 3.9268291547809,
+          "name": "Mothership over Kapaa @ 2024-09-08T00:55:18Z (max elev = 3.9 deg)",
+          "start_iso8601": "2024-09-08T00:55:18Z",
+          "start_mjd": 60561.038413,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 344,
+          "end_iso8601": "2024-09-08T01:01:25Z",
+          "end_mjd": 60561.04266,
+          "max_elevation": 3.27528027459469,
+          "name": "Mothership over Puuwai @ 2024-09-08T00:55:41Z (max elev = 3.3 deg)",
+          "start_iso8601": "2024-09-08T00:55:41Z",
+          "start_mjd": 60561.038679,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 469,
+          "end_iso8601": "2024-09-08T09:41:12Z",
+          "end_mjd": 60561.403621,
+          "max_elevation": 7.47308641434431,
+          "name": "Mothership over Honolulu @ 2024-09-08T09:33:23Z (max elev = 7.5 deg)",
+          "start_iso8601": "2024-09-08T09:33:23Z",
+          "start_mjd": 60561.398193,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 636,
+          "end_iso8601": "2024-09-08T11:18:56Z",
+          "end_mjd": 60561.471492,
+          "max_elevation": 42.7445288502555,
+          "name": "Mothership over Honolulu @ 2024-09-08T11:08:20Z (max elev = 42.7 deg)",
+          "start_iso8601": "2024-09-08T11:08:20Z",
+          "start_mjd": 60561.46413,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 499,
+          "end_iso8601": "2024-09-08T12:46:42Z",
+          "end_mjd": 60561.532441,
+          "max_elevation": 9.17574875066801,
+          "name": "Mothership over Hilo @ 2024-09-08T12:38:23Z (max elev = 9.2 deg)",
+          "start_iso8601": "2024-09-08T12:38:23Z",
+          "start_mjd": 60561.526665,
+          "target": "Hilo"
+      },
+      {
+          "duration": 519,
+          "end_iso8601": "2024-09-08T12:47:23Z",
+          "end_mjd": 60561.532915,
+          "max_elevation": 10.5693530640905,
+          "name": "Mothership over Lanai City @ 2024-09-08T12:38:44Z (max elev = 10.6 deg)",
+          "start_iso8601": "2024-09-08T12:38:44Z",
+          "start_mjd": 60561.526908,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 511,
+          "end_iso8601": "2024-09-08T12:47:16Z",
+          "end_mjd": 60561.532834,
+          "max_elevation": 9.91101228251992,
+          "name": "Mothership over Kahului @ 2024-09-08T12:38:45Z (max elev = 9.9 deg)",
+          "start_iso8601": "2024-09-08T12:38:45Z",
+          "start_mjd": 60561.52692,
+          "target": "Kahului"
+      },
+      {
+          "duration": 518,
+          "end_iso8601": "2024-09-08T12:47:27Z",
+          "end_mjd": 60561.532961,
+          "max_elevation": 10.461529031117,
+          "name": "Mothership over Kaunakakai @ 2024-09-08T12:38:49Z (max elev = 10.5 deg)",
+          "start_iso8601": "2024-09-08T12:38:49Z",
+          "start_mjd": 60561.526966,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 559,
+          "end_iso8601": "2024-09-08T12:48:25Z",
+          "end_mjd": 60561.533633,
+          "max_elevation": 14.4443302746337,
+          "name": "Mothership over Puuwai @ 2024-09-08T12:39:06Z (max elev = 14.4 deg)",
+          "start_iso8601": "2024-09-08T12:39:06Z",
+          "start_mjd": 60561.527163,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 545,
+          "end_iso8601": "2024-09-08T12:48:13Z",
+          "end_mjd": 60561.533494,
+          "max_elevation": 12.8448842400931,
+          "name": "Mothership over Kapaa @ 2024-09-08T12:39:08Z (max elev = 12.8 deg)",
+          "start_iso8601": "2024-09-08T12:39:08Z",
+          "start_mjd": 60561.527186,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 248,
+          "end_iso8601": "2024-09-08T12:52:59Z",
+          "end_mjd": 60561.536804,
+          "max_elevation": 1.51834146064394,
+          "name": "Mothership over Honolulu @ 2024-09-08T12:48:51Z (max elev = 1.5 deg)",
+          "start_iso8601": "2024-09-08T12:48:51Z",
+          "start_mjd": 60561.533934,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 628,
+          "end_iso8601": "2024-09-08T14:24:10Z",
+          "end_mjd": 60561.600126,
+          "max_elevation": 33.8428187055399,
+          "name": "Mothership over Hilo @ 2024-09-08T14:13:42Z (max elev = 33.8 deg)",
+          "start_iso8601": "2024-09-08T14:13:42Z",
+          "start_mjd": 60561.592857,
+          "target": "Hilo"
+      },
+      {
+          "duration": 626,
+          "end_iso8601": "2024-09-08T14:24:37Z",
+          "end_mjd": 60561.600438,
+          "max_elevation": 32.684716527202,
+          "name": "Mothership over Kahului @ 2024-09-08T14:14:11Z (max elev = 32.7 deg)",
+          "start_iso8601": "2024-09-08T14:14:11Z",
+          "start_mjd": 60561.593193,
+          "target": "Kahului"
+      },
+      {
+          "duration": 622,
+          "end_iso8601": "2024-09-08T14:24:39Z",
+          "end_mjd": 60561.600461,
+          "max_elevation": 30.6776895961307,
+          "name": "Mothership over Lanai City @ 2024-09-08T14:14:17Z (max elev = 30.7 deg)",
+          "start_iso8601": "2024-09-08T14:14:17Z",
+          "start_mjd": 60561.593262,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 624,
+          "end_iso8601": "2024-09-08T14:24:44Z",
+          "end_mjd": 60561.600519,
+          "max_elevation": 31.3056095619779,
+          "name": "Mothership over Kaunakakai @ 2024-09-08T14:14:20Z (max elev = 31.3 deg)",
+          "start_iso8601": "2024-09-08T14:14:20Z",
+          "start_mjd": 60561.593297,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 616,
+          "end_iso8601": "2024-09-08T14:25:16Z",
+          "end_mjd": 60561.60089,
+          "max_elevation": 26.7588905325641,
+          "name": "Mothership over Kapaa @ 2024-09-08T14:15:00Z (max elev = 26.8 deg)",
+          "start_iso8601": "2024-09-08T14:15:00Z",
+          "start_mjd": 60561.59376,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 609,
+          "end_iso8601": "2024-09-08T14:25:19Z",
+          "end_mjd": 60561.600924,
+          "max_elevation": 23.9011436558706,
+          "name": "Mothership over Puuwai @ 2024-09-08T14:15:10Z (max elev = 23.9 deg)",
+          "start_iso8601": "2024-09-08T14:15:10Z",
+          "start_mjd": 60561.593876,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 95,
+          "end_iso8601": "2024-09-08T15:57:35Z",
+          "end_mjd": 60561.664999,
+          "max_elevation": 0.210960797068155,
+          "name": "Mothership over Kahului @ 2024-09-08T15:56:00Z (max elev = 0.2 deg)",
+          "start_iso8601": "2024-09-08T15:56:00Z",
+          "start_mjd": 60561.663899,
+          "target": "Kahului"
+      },
+      {
+          "duration": 11,
+          "end_iso8601": "2024-09-08T15:56:22Z",
+          "end_mjd": 60561.664154,
+          "max_elevation": 0.00287344250177659,
+          "name": "Mothership over Hilo @ 2024-09-08T15:56:11Z (max elev = 0.0 deg)",
+          "start_iso8601": "2024-09-08T15:56:11Z",
+          "start_mjd": 60561.664026,
+          "target": "Hilo"
+      },
+      {
+          "duration": 61,
+          "end_iso8601": "2024-09-08T15:57:27Z",
+          "end_mjd": 60561.664906,
+          "max_elevation": 0.0876088972219018,
+          "name": "Mothership over Kaunakakai @ 2024-09-08T15:56:26Z (max elev = 0.1 deg)",
+          "start_iso8601": "2024-09-08T15:56:26Z",
+          "start_mjd": 60561.6642,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 581,
+          "end_iso8601": "2024-09-08T19:31:38Z",
+          "end_mjd": 60561.813644,
+          "max_elevation": 17.1246543424164,
+          "name": "Mothership over Honolulu @ 2024-09-08T19:21:57Z (max elev = 17.1 deg)",
+          "start_iso8601": "2024-09-08T19:21:57Z",
+          "start_mjd": 60561.80692,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 152,
+          "end_iso8601": "2024-09-08T20:57:04Z",
+          "end_mjd": 60561.872973,
+          "max_elevation": 0.543801663735462,
+          "name": "Mothership over Puuwai @ 2024-09-08T20:54:32Z (max elev = 0.5 deg)",
+          "start_iso8601": "2024-09-08T20:54:32Z",
+          "start_mjd": 60561.871214,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 109,
+          "end_iso8601": "2024-09-08T20:56:29Z",
+          "end_mjd": 60561.872568,
+          "max_elevation": 0.275552046710692,
+          "name": "Mothership over Kapaa @ 2024-09-08T20:54:40Z (max elev = 0.3 deg)",
+          "start_iso8601": "2024-09-08T20:54:40Z",
+          "start_mjd": 60561.871306,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 595,
+          "end_iso8601": "2024-09-08T21:08:20Z",
+          "end_mjd": 60561.880797,
+          "max_elevation": 20.6501993324519,
+          "name": "Mothership over Honolulu @ 2024-09-08T20:58:25Z (max elev = 20.7 deg)",
+          "start_iso8601": "2024-09-08T20:58:25Z",
+          "start_mjd": 60561.873911,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 592,
+          "end_iso8601": "2024-09-08T22:37:42Z",
+          "end_mjd": 60561.942857,
+          "max_elevation": 19.2878399419517,
+          "name": "Mothership over Kahului @ 2024-09-08T22:27:50Z (max elev = 19.3 deg)",
+          "start_iso8601": "2024-09-08T22:27:50Z",
+          "start_mjd": 60561.936006,
+          "target": "Kahului"
+      },
+      {
+          "duration": 598,
+          "end_iso8601": "2024-09-08T22:37:48Z",
+          "end_mjd": 60561.942927,
+          "max_elevation": 20.9101181270951,
+          "name": "Mothership over Kaunakakai @ 2024-09-08T22:27:50Z (max elev = 20.9 deg)",
+          "start_iso8601": "2024-09-08T22:27:50Z",
+          "start_mjd": 60561.936006,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 623,
+          "end_iso8601": "2024-09-08T22:38:13Z",
+          "end_mjd": 60561.943216,
+          "max_elevation": 30.3349338593856,
+          "name": "Mothership over Kapaa @ 2024-09-08T22:27:50Z (max elev = 30.3 deg)",
+          "start_iso8601": "2024-09-08T22:27:50Z",
+          "start_mjd": 60561.936006,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 595,
+          "end_iso8601": "2024-09-08T22:37:49Z",
+          "end_mjd": 60561.942938,
+          "max_elevation": 20.0683926697131,
+          "name": "Mothership over Lanai City @ 2024-09-08T22:27:54Z (max elev = 20.1 deg)",
+          "start_iso8601": "2024-09-08T22:27:54Z",
+          "start_mjd": 60561.936052,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 626,
+          "end_iso8601": "2024-09-08T22:38:25Z",
+          "end_mjd": 60561.943355,
+          "max_elevation": 32.7326715805268,
+          "name": "Mothership over Puuwai @ 2024-09-08T22:27:59Z (max elev = 32.7 deg)",
+          "start_iso8601": "2024-09-08T22:27:59Z",
+          "start_mjd": 60561.93611,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 563,
+          "end_iso8601": "2024-09-08T22:37:26Z",
+          "end_mjd": 60561.942672,
+          "max_elevation": 14.6328003440603,
+          "name": "Mothership over Hilo @ 2024-09-08T22:28:03Z (max elev = 14.6 deg)",
+          "start_iso8601": "2024-09-08T22:28:03Z",
+          "start_mjd": 60561.936156,
+          "target": "Hilo"
+      },
+      {
+          "duration": 605,
+          "end_iso8601": "2024-09-09T00:14:24Z",
+          "end_mjd": 60562.01001,
+          "max_elevation": 23.3312044655781,
+          "name": "Mothership over Hilo @ 2024-09-09T00:04:19Z (max elev = 23.3 deg)",
+          "start_iso8601": "2024-09-09T00:04:19Z",
+          "start_mjd": 60562.003008,
+          "target": "Hilo"
+      },
+      {
+          "duration": 582,
+          "end_iso8601": "2024-09-09T00:14:09Z",
+          "end_mjd": 60562.009837,
+          "max_elevation": 17.7372980360547,
+          "name": "Mothership over Kahului @ 2024-09-09T00:04:27Z (max elev = 17.7 deg)",
+          "start_iso8601": "2024-09-09T00:04:27Z",
+          "start_mjd": 60562.0031,
+          "target": "Kahului"
+      },
+      {
+          "duration": 572,
+          "end_iso8601": "2024-09-09T00:14:06Z",
+          "end_mjd": 60562.009802,
+          "max_elevation": 16.3155482691713,
+          "name": "Mothership over Kaunakakai @ 2024-09-09T00:04:34Z (max elev = 16.3 deg)",
+          "start_iso8601": "2024-09-09T00:04:34Z",
+          "start_mjd": 60562.003181,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 576,
+          "end_iso8601": "2024-09-09T00:14:11Z",
+          "end_mjd": 60562.00986,
+          "max_elevation": 16.8794270457186,
+          "name": "Mothership over Lanai City @ 2024-09-09T00:04:35Z (max elev = 16.9 deg)",
+          "start_iso8601": "2024-09-09T00:04:35Z",
+          "start_mjd": 60562.003193,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 527,
+          "end_iso8601": "2024-09-09T00:13:50Z",
+          "end_mjd": 60562.009617,
+          "max_elevation": 11.2143871932887,
+          "name": "Mothership over Kapaa @ 2024-09-09T00:05:03Z (max elev = 11.2 deg)",
+          "start_iso8601": "2024-09-09T00:05:03Z",
+          "start_mjd": 60562.003517,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 516,
+          "end_iso8601": "2024-09-09T00:13:54Z",
+          "end_mjd": 60562.009663,
+          "max_elevation": 10.2540863033884,
+          "name": "Mothership over Puuwai @ 2024-09-09T00:05:18Z (max elev = 10.3 deg)",
+          "start_iso8601": "2024-09-09T00:05:18Z",
+          "start_mjd": 60562.003691,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 228,
+          "end_iso8601": "2024-09-09T08:50:15Z",
+          "end_mjd": 60562.368239,
+          "max_elevation": 1.3054735303832,
+          "name": "Mothership over Honolulu @ 2024-09-09T08:46:27Z (max elev = 1.3 deg)",
+          "start_iso8601": "2024-09-09T08:46:27Z",
+          "start_mjd": 60562.365601,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-09T10:29:55Z",
+          "end_mjd": 60562.437452,
+          "max_elevation": 76.3682853843666,
+          "name": "Mothership over Honolulu @ 2024-09-09T10:19:10Z (max elev = 76.4 deg)",
+          "start_iso8601": "2024-09-09T10:19:10Z",
+          "start_mjd": 60562.429987,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 305,
+          "end_iso8601": "2024-09-09T11:56:07Z",
+          "end_mjd": 60562.497314,
+          "max_elevation": 2.45435575633186,
+          "name": "Mothership over Hilo @ 2024-09-09T11:51:02Z (max elev = 2.5 deg)",
+          "start_iso8601": "2024-09-09T11:51:02Z",
+          "start_mjd": 60562.493783,
+          "target": "Hilo"
+      },
+      {
+          "duration": 351,
+          "end_iso8601": "2024-09-09T11:57:01Z",
+          "end_mjd": 60562.497939,
+          "max_elevation": 3.43848196246566,
+          "name": "Mothership over Lanai City @ 2024-09-09T11:51:10Z (max elev = 3.4 deg)",
+          "start_iso8601": "2024-09-09T11:51:10Z",
+          "start_mjd": 60562.493876,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 434,
+          "end_iso8601": "2024-09-09T11:58:24Z",
+          "end_mjd": 60562.498899,
+          "max_elevation": 5.97040086192102,
+          "name": "Mothership over Puuwai @ 2024-09-09T11:51:10Z (max elev = 6.0 deg)",
+          "start_iso8601": "2024-09-09T11:51:10Z",
+          "start_mjd": 60562.493876,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 348,
+          "end_iso8601": "2024-09-09T11:57:04Z",
+          "end_mjd": 60562.497973,
+          "max_elevation": 3.37740514024655,
+          "name": "Mothership over Kaunakakai @ 2024-09-09T11:51:16Z (max elev = 3.4 deg)",
+          "start_iso8601": "2024-09-09T11:51:16Z",
+          "start_mjd": 60562.493945,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 331,
+          "end_iso8601": "2024-09-09T11:56:48Z",
+          "end_mjd": 60562.497788,
+          "max_elevation": 2.99756041307917,
+          "name": "Mothership over Kahului @ 2024-09-09T11:51:17Z (max elev = 3.0 deg)",
+          "start_iso8601": "2024-09-09T11:51:17Z",
+          "start_mjd": 60562.493957,
+          "target": "Kahului"
+      },
+      {
+          "duration": 406,
+          "end_iso8601": "2024-09-09T11:58:06Z",
+          "end_mjd": 60562.498691,
+          "max_elevation": 4.97948622471867,
+          "name": "Mothership over Kapaa @ 2024-09-09T11:51:20Z (max elev = 5.0 deg)",
+          "start_iso8601": "2024-09-09T11:51:20Z",
+          "start_mjd": 60562.493992,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 437,
+          "end_iso8601": "2024-09-09T12:05:09Z",
+          "end_mjd": 60562.503587,
+          "max_elevation": 5.88190521586071,
+          "name": "Mothership over Honolulu @ 2024-09-09T11:57:52Z (max elev = 5.9 deg)",
+          "start_iso8601": "2024-09-09T11:57:52Z",
+          "start_mjd": 60562.498529,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-09T13:35:12Z",
+          "end_mjd": 60562.566121,
+          "max_elevation": 84.3082959986782,
+          "name": "Mothership over Hilo @ 2024-09-09T13:24:27Z (max elev = 84.3 deg)",
+          "start_iso8601": "2024-09-09T13:24:27Z",
+          "start_mjd": 60562.558656,
+          "target": "Hilo"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-09T13:35:40Z",
+          "end_mjd": 60562.566445,
+          "max_elevation": 79.922390093542,
+          "name": "Mothership over Kahului @ 2024-09-09T13:24:55Z (max elev = 79.9 deg)",
+          "start_iso8601": "2024-09-09T13:24:55Z",
+          "start_mjd": 60562.55898,
+          "target": "Kahului"
+      },
+      {
+          "duration": 644,
+          "end_iso8601": "2024-09-09T13:35:43Z",
+          "end_mjd": 60562.56648,
+          "max_elevation": 74.2133220558294,
+          "name": "Mothership over Lanai City @ 2024-09-09T13:24:59Z (max elev = 74.2 deg)",
+          "start_iso8601": "2024-09-09T13:24:59Z",
+          "start_mjd": 60562.559027,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-09T13:35:48Z",
+          "end_mjd": 60562.566538,
+          "max_elevation": 75.7293493347731,
+          "name": "Mothership over Kaunakakai @ 2024-09-09T13:25:03Z (max elev = 75.7 deg)",
+          "start_iso8601": "2024-09-09T13:25:03Z",
+          "start_mjd": 60562.559073,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 643,
+          "end_iso8601": "2024-09-09T13:36:21Z",
+          "end_mjd": 60562.56692,
+          "max_elevation": 61.1326156615126,
+          "name": "Mothership over Kapaa @ 2024-09-09T13:25:38Z (max elev = 61.1 deg)",
+          "start_iso8601": "2024-09-09T13:25:38Z",
+          "start_mjd": 60562.559478,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 641,
+          "end_iso8601": "2024-09-09T13:36:26Z",
+          "end_mjd": 60562.566978,
+          "max_elevation": 52.7382426658183,
+          "name": "Mothership over Puuwai @ 2024-09-09T13:25:45Z (max elev = 52.7 deg)",
+          "start_iso8601": "2024-09-09T13:25:45Z",
+          "start_mjd": 60562.559559,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 380,
+          "end_iso8601": "2024-09-09T15:10:01Z",
+          "end_mjd": 60562.631966,
+          "max_elevation": 4.06107895812814,
+          "name": "Mothership over Hilo @ 2024-09-09T15:03:41Z (max elev = 4.1 deg)",
+          "start_iso8601": "2024-09-09T15:03:41Z",
+          "start_mjd": 60562.627568,
+          "target": "Hilo"
+      },
+      {
+          "duration": 384,
+          "end_iso8601": "2024-09-09T15:10:33Z",
+          "end_mjd": 60562.632337,
+          "max_elevation": 4.16192146039058,
+          "name": "Mothership over Kahului @ 2024-09-09T15:04:09Z (max elev = 4.2 deg)",
+          "start_iso8601": "2024-09-09T15:04:09Z",
+          "start_mjd": 60562.627892,
+          "target": "Kahului"
+      },
+      {
+          "duration": 377,
+          "end_iso8601": "2024-09-09T15:10:38Z",
+          "end_mjd": 60562.632395,
+          "max_elevation": 3.9623384047167,
+          "name": "Mothership over Kaunakakai @ 2024-09-09T15:04:21Z (max elev = 4.0 deg)",
+          "start_iso8601": "2024-09-09T15:04:21Z",
+          "start_mjd": 60562.628031,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 369,
+          "end_iso8601": "2024-09-09T15:10:30Z",
+          "end_mjd": 60562.632302,
+          "max_elevation": 3.76352935271774,
+          "name": "Mothership over Lanai City @ 2024-09-09T15:04:21Z (max elev = 3.8 deg)",
+          "start_iso8601": "2024-09-09T15:04:21Z",
+          "start_mjd": 60562.628031,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 351,
+          "end_iso8601": "2024-09-09T15:11:05Z",
+          "end_mjd": 60562.632707,
+          "max_elevation": 3.31165357872938,
+          "name": "Mothership over Kapaa @ 2024-09-09T15:05:14Z (max elev = 3.3 deg)",
+          "start_iso8601": "2024-09-09T15:05:14Z",
+          "start_mjd": 60562.628645,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 316,
+          "end_iso8601": "2024-09-09T15:10:56Z",
+          "end_mjd": 60562.632603,
+          "max_elevation": 2.60254617816999,
+          "name": "Mothership over Puuwai @ 2024-09-09T15:05:40Z (max elev = 2.6 deg)",
+          "start_iso8601": "2024-09-09T15:05:40Z",
+          "start_mjd": 60562.628945,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 497,
+          "end_iso8601": "2024-09-09T18:41:40Z",
+          "end_mjd": 60562.778946,
+          "max_elevation": 8.75155880333394,
+          "name": "Mothership over Honolulu @ 2024-09-09T18:33:23Z (max elev = 8.8 deg)",
+          "start_iso8601": "2024-09-09T18:33:23Z",
+          "start_mjd": 60562.773193,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 637,
+          "end_iso8601": "2024-09-09T20:19:39Z",
+          "end_mjd": 60562.84699,
+          "max_elevation": 47.1226747561507,
+          "name": "Mothership over Honolulu @ 2024-09-09T20:09:02Z (max elev = 47.1 deg)",
+          "start_iso8601": "2024-09-09T20:09:02Z",
+          "start_mjd": 60562.839617,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 570,
+          "end_iso8601": "2024-09-09T21:48:34Z",
+          "end_mjd": 60562.908737,
+          "max_elevation": 15.4496197086286,
+          "name": "Mothership over Kapaa @ 2024-09-09T21:39:04Z (max elev = 15.4 deg)",
+          "start_iso8601": "2024-09-09T21:39:04Z",
+          "start_mjd": 60562.90214,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 526,
+          "end_iso8601": "2024-09-09T21:47:57Z",
+          "end_mjd": 60562.908309,
+          "max_elevation": 10.78083508025,
+          "name": "Mothership over Kaunakakai @ 2024-09-09T21:39:11Z (max elev = 10.8 deg)",
+          "start_iso8601": "2024-09-09T21:39:11Z",
+          "start_mjd": 60562.902221,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 577,
+          "end_iso8601": "2024-09-09T21:48:49Z",
+          "end_mjd": 60562.908911,
+          "max_elevation": 16.4442847653487,
+          "name": "Mothership over Puuwai @ 2024-09-09T21:39:12Z (max elev = 16.4 deg)",
+          "start_iso8601": "2024-09-09T21:39:12Z",
+          "start_mjd": 60562.902233,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 514,
+          "end_iso8601": "2024-09-09T21:47:47Z",
+          "end_mjd": 60562.908193,
+          "max_elevation": 9.88826523144959,
+          "name": "Mothership over Kahului @ 2024-09-09T21:39:13Z (max elev = 9.9 deg)",
+          "start_iso8601": "2024-09-09T21:39:13Z",
+          "start_mjd": 60562.902244,
+          "target": "Kahului"
+      },
+      {
+          "duration": 519,
+          "end_iso8601": "2024-09-09T21:47:56Z",
+          "end_mjd": 60562.908297,
+          "max_elevation": 10.2935182127102,
+          "name": "Mothership over Lanai City @ 2024-09-09T21:39:17Z (max elev = 10.3 deg)",
+          "start_iso8601": "2024-09-09T21:39:17Z",
+          "start_mjd": 60562.90229,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 465,
+          "end_iso8601": "2024-09-09T21:47:20Z",
+          "end_mjd": 60562.907881,
+          "max_elevation": 7.08823276525117,
+          "name": "Mothership over Hilo @ 2024-09-09T21:39:35Z (max elev = 7.1 deg)",
+          "start_iso8601": "2024-09-09T21:39:35Z",
+          "start_mjd": 60562.902499,
+          "target": "Hilo"
+      },
+      {
+          "duration": 640,
+          "end_iso8601": "2024-09-09T23:25:39Z",
+          "end_mjd": 60562.976156,
+          "max_elevation": 55.7751050872116,
+          "name": "Mothership over Hilo @ 2024-09-09T23:14:59Z (max elev = 55.8 deg)",
+          "start_iso8601": "2024-09-09T23:14:59Z",
+          "start_mjd": 60562.968749,
+          "target": "Hilo"
+      },
+      {
+          "duration": 631,
+          "end_iso8601": "2024-09-09T23:25:32Z",
+          "end_mjd": 60562.976075,
+          "max_elevation": 39.328747412244,
+          "name": "Mothership over Kahului @ 2024-09-09T23:15:01Z (max elev = 39.3 deg)",
+          "start_iso8601": "2024-09-09T23:15:01Z",
+          "start_mjd": 60562.968772,
+          "target": "Kahului"
+      },
+      {
+          "duration": 628,
+          "end_iso8601": "2024-09-09T23:25:33Z",
+          "end_mjd": 60562.976087,
+          "max_elevation": 35.6263701082476,
+          "name": "Mothership over Kaunakakai @ 2024-09-09T23:15:05Z (max elev = 35.6 deg)",
+          "start_iso8601": "2024-09-09T23:15:05Z",
+          "start_mjd": 60562.968818,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 629,
+          "end_iso8601": "2024-09-09T23:25:36Z",
+          "end_mjd": 60562.976122,
+          "max_elevation": 37.152034648121,
+          "name": "Mothership over Lanai City @ 2024-09-09T23:15:07Z (max elev = 37.2 deg)",
+          "start_iso8601": "2024-09-09T23:15:07Z",
+          "start_mjd": 60562.968841,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 606,
+          "end_iso8601": "2024-09-09T23:25:30Z",
+          "end_mjd": 60562.976052,
+          "max_elevation": 23.9338975922345,
+          "name": "Mothership over Kapaa @ 2024-09-09T23:15:24Z (max elev = 23.9 deg)",
+          "start_iso8601": "2024-09-09T23:15:24Z",
+          "start_mjd": 60562.969038,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 600,
+          "end_iso8601": "2024-09-09T23:25:36Z",
+          "end_mjd": 60562.976122,
+          "max_elevation": 22.0633436882155,
+          "name": "Mothership over Puuwai @ 2024-09-09T23:15:36Z (max elev = 22.1 deg)",
+          "start_iso8601": "2024-09-09T23:15:36Z",
+          "start_mjd": 60562.969177,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 621,
+          "end_iso8601": "2024-09-10T09:40:39Z",
+          "end_mjd": 60563.40324,
+          "max_elevation": 30.5205209179144,
+          "name": "Mothership over Honolulu @ 2024-09-10T09:30:18Z (max elev = 30.5 deg)",
+          "start_iso8601": "2024-09-10T09:30:18Z",
+          "start_mjd": 60563.396052,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 95,
+          "end_iso8601": "2024-09-10T11:06:37Z",
+          "end_mjd": 60563.462939,
+          "max_elevation": 0.215199772267996,
+          "name": "Mothership over Puuwai @ 2024-09-10T11:05:02Z (max elev = 0.2 deg)",
+          "start_iso8601": "2024-09-10T11:05:02Z",
+          "start_mjd": 60563.461839,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 544,
+          "end_iso8601": "2024-09-10T11:16:43Z",
+          "end_mjd": 60563.469953,
+          "max_elevation": 12.3424569409322,
+          "name": "Mothership over Honolulu @ 2024-09-10T11:07:39Z (max elev = 12.3 deg)",
+          "start_iso8601": "2024-09-10T11:07:39Z",
+          "start_mjd": 60563.463656,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 630,
+          "end_iso8601": "2024-09-10T12:46:00Z",
+          "end_mjd": 60563.531955,
+          "max_elevation": 37.4887884978934,
+          "name": "Mothership over Hilo @ 2024-09-10T12:35:30Z (max elev = 37.5 deg)",
+          "start_iso8601": "2024-09-10T12:35:30Z",
+          "start_mjd": 60563.524663,
+          "target": "Hilo"
+      },
+      {
+          "duration": 633,
+          "end_iso8601": "2024-09-10T12:46:29Z",
+          "end_mjd": 60563.532291,
+          "max_elevation": 39.9565476516066,
+          "name": "Mothership over Kahului @ 2024-09-10T12:35:56Z (max elev = 40.0 deg)",
+          "start_iso8601": "2024-09-10T12:35:56Z",
+          "start_mjd": 60563.524964,
+          "target": "Kahului"
+      },
+      {
+          "duration": 634,
+          "end_iso8601": "2024-09-10T12:46:33Z",
+          "end_mjd": 60563.532337,
+          "max_elevation": 42.8899021868531,
+          "name": "Mothership over Lanai City @ 2024-09-10T12:35:59Z (max elev = 42.9 deg)",
+          "start_iso8601": "2024-09-10T12:35:59Z",
+          "start_mjd": 60563.524999,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 634,
+          "end_iso8601": "2024-09-10T12:46:37Z",
+          "end_mjd": 60563.532383,
+          "max_elevation": 42.2077028643813,
+          "name": "Mothership over Kaunakakai @ 2024-09-10T12:36:03Z (max elev = 42.2 deg)",
+          "start_iso8601": "2024-09-10T12:36:03Z",
+          "start_mjd": 60563.525045,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 640,
+          "end_iso8601": "2024-09-10T12:47:14Z",
+          "end_mjd": 60563.532811,
+          "max_elevation": 52.7497171431394,
+          "name": "Mothership over Kapaa @ 2024-09-10T12:36:34Z (max elev = 52.7 deg)",
+          "start_iso8601": "2024-09-10T12:36:34Z",
+          "start_mjd": 60563.525404,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 642,
+          "end_iso8601": "2024-09-10T12:47:20Z",
+          "end_mjd": 60563.532881,
+          "max_elevation": 61.303344574532,
+          "name": "Mothership over Puuwai @ 2024-09-10T12:36:38Z (max elev = 61.3 deg)",
+          "start_iso8601": "2024-09-10T12:36:38Z",
+          "start_mjd": 60563.52545,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 513,
+          "end_iso8601": "2024-09-10T14:21:46Z",
+          "end_mjd": 60563.59846,
+          "max_elevation": 9.83386931634646,
+          "name": "Mothership over Hilo @ 2024-09-10T14:13:13Z (max elev = 9.8 deg)",
+          "start_iso8601": "2024-09-10T14:13:13Z",
+          "start_mjd": 60563.592522,
+          "target": "Hilo"
+      },
+      {
+          "duration": 513,
+          "end_iso8601": "2024-09-10T14:22:15Z",
+          "end_mjd": 60563.598795,
+          "max_elevation": 9.78147933673025,
+          "name": "Mothership over Kahului @ 2024-09-10T14:13:42Z (max elev = 9.8 deg)",
+          "start_iso8601": "2024-09-10T14:13:42Z",
+          "start_mjd": 60563.592858,
+          "target": "Kahului"
+      },
+      {
+          "duration": 504,
+          "end_iso8601": "2024-09-10T14:22:15Z",
+          "end_mjd": 60563.598795,
+          "max_elevation": 9.20155193271845,
+          "name": "Mothership over Lanai City @ 2024-09-10T14:13:51Z (max elev = 9.2 deg)",
+          "start_iso8601": "2024-09-10T14:13:51Z",
+          "start_mjd": 60563.592962,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 507,
+          "end_iso8601": "2024-09-10T14:22:21Z",
+          "end_mjd": 60563.598865,
+          "max_elevation": 9.4467630064254,
+          "name": "Mothership over Kaunakakai @ 2024-09-10T14:13:54Z (max elev = 9.4 deg)",
+          "start_iso8601": "2024-09-10T14:13:54Z",
+          "start_mjd": 60563.592997,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 489,
+          "end_iso8601": "2024-09-10T14:22:50Z",
+          "end_mjd": 60563.5992,
+          "max_elevation": 8.31057937065731,
+          "name": "Mothership over Kapaa @ 2024-09-10T14:14:41Z (max elev = 8.3 deg)",
+          "start_iso8601": "2024-09-10T14:14:41Z",
+          "start_mjd": 60563.593541,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 471,
+          "end_iso8601": "2024-09-10T14:22:49Z",
+          "end_mjd": 60563.599189,
+          "max_elevation": 7.32297507918911,
+          "name": "Mothership over Puuwai @ 2024-09-10T14:14:58Z (max elev = 7.3 deg)",
+          "start_iso8601": "2024-09-10T14:14:58Z",
+          "start_mjd": 60563.593737,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 359,
+          "end_iso8601": "2024-09-10T17:51:08Z",
+          "end_mjd": 60563.743853,
+          "max_elevation": 3.51875767076207,
+          "name": "Mothership over Honolulu @ 2024-09-10T17:45:09Z (max elev = 3.5 deg)",
+          "start_iso8601": "2024-09-10T17:45:09Z",
+          "start_mjd": 60563.739698,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 644,
+          "end_iso8601": "2024-09-10T19:30:37Z",
+          "end_mjd": 60563.812939,
+          "max_elevation": 67.7967527050435,
+          "name": "Mothership over Honolulu @ 2024-09-10T19:19:53Z (max elev = 67.8 deg)",
+          "start_iso8601": "2024-09-10T19:19:53Z",
+          "start_mjd": 60563.805485,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 481,
+          "end_iso8601": "2024-09-10T20:58:31Z",
+          "end_mjd": 60563.873981,
+          "max_elevation": 7.8730296852669,
+          "name": "Mothership over Kapaa @ 2024-09-10T20:50:30Z (max elev = 7.9 deg)",
+          "start_iso8601": "2024-09-10T20:50:30Z",
+          "start_mjd": 60563.868413,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 492,
+          "end_iso8601": "2024-09-10T20:58:48Z",
+          "end_mjd": 60563.874177,
+          "max_elevation": 8.42870703878948,
+          "name": "Mothership over Puuwai @ 2024-09-10T20:50:36Z (max elev = 8.4 deg)",
+          "start_iso8601": "2024-09-10T20:50:36Z",
+          "start_mjd": 60563.868483,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 406,
+          "end_iso8601": "2024-09-10T20:57:36Z",
+          "end_mjd": 60563.873344,
+          "max_elevation": 4.84069491620753,
+          "name": "Mothership over Kaunakakai @ 2024-09-10T20:50:50Z (max elev = 4.8 deg)",
+          "start_iso8601": "2024-09-10T20:50:50Z",
+          "start_mjd": 60563.868645,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 386,
+          "end_iso8601": "2024-09-10T20:57:21Z",
+          "end_mjd": 60563.87317,
+          "max_elevation": 4.22796695141269,
+          "name": "Mothership over Kahului @ 2024-09-10T20:50:55Z (max elev = 4.2 deg)",
+          "start_iso8601": "2024-09-10T20:50:55Z",
+          "start_mjd": 60563.868703,
+          "target": "Kahului"
+      },
+      {
+          "duration": 395,
+          "end_iso8601": "2024-09-10T20:57:32Z",
+          "end_mjd": 60563.873298,
+          "max_elevation": 4.48651416814631,
+          "name": "Mothership over Lanai City @ 2024-09-10T20:50:57Z (max elev = 4.5 deg)",
+          "start_iso8601": "2024-09-10T20:50:57Z",
+          "start_mjd": 60563.868726,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 292,
+          "end_iso8601": "2024-09-10T20:56:30Z",
+          "end_mjd": 60563.87258,
+          "max_elevation": 2.17983944272151,
+          "name": "Mothership over Hilo @ 2024-09-10T20:51:38Z (max elev = 2.2 deg)",
+          "start_iso8601": "2024-09-10T20:51:38Z",
+          "start_mjd": 60563.8692,
+          "target": "Hilo"
+      },
+      {
+          "duration": 378,
+          "end_iso8601": "2024-09-10T21:04:40Z",
+          "end_mjd": 60563.878251,
+          "max_elevation": 4.11834018756827,
+          "name": "Mothership over Honolulu @ 2024-09-10T20:58:22Z (max elev = 4.1 deg)",
+          "start_iso8601": "2024-09-10T20:58:22Z",
+          "start_mjd": 60563.873876,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-10T22:36:34Z",
+          "end_mjd": 60563.942071,
+          "max_elevation": 81.1343569263421,
+          "name": "Mothership over Kahului @ 2024-09-10T22:25:49Z (max elev = 81.1 deg)",
+          "start_iso8601": "2024-09-10T22:25:49Z",
+          "start_mjd": 60563.934606,
+          "target": "Kahului"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-10T22:36:36Z",
+          "end_mjd": 60563.942094,
+          "max_elevation": 89.448351285023,
+          "name": "Mothership over Kaunakakai @ 2024-09-10T22:25:51Z (max elev = 89.4 deg)",
+          "start_iso8601": "2024-09-10T22:25:51Z",
+          "start_mjd": 60563.934629,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 641,
+          "end_iso8601": "2024-09-10T22:36:33Z",
+          "end_mjd": 60563.942059,
+          "max_elevation": 56.2833665844593,
+          "name": "Mothership over Hilo @ 2024-09-10T22:25:52Z (max elev = 56.3 deg)",
+          "start_iso8601": "2024-09-10T22:25:52Z",
+          "start_mjd": 60563.93464,
+          "target": "Hilo"
+      },
+      {
+          "duration": 645,
+          "end_iso8601": "2024-09-10T22:36:39Z",
+          "end_mjd": 60563.942129,
+          "max_elevation": 85.7823500378184,
+          "name": "Mothership over Lanai City @ 2024-09-10T22:25:54Z (max elev = 85.8 deg)",
+          "start_iso8601": "2024-09-10T22:25:54Z",
+          "start_mjd": 60563.934663,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 640,
+          "end_iso8601": "2024-09-10T22:36:43Z",
+          "end_mjd": 60563.942175,
+          "max_elevation": 56.3976660391073,
+          "name": "Mothership over Kapaa @ 2024-09-10T22:26:03Z (max elev = 56.4 deg)",
+          "start_iso8601": "2024-09-10T22:26:03Z",
+          "start_mjd": 60563.934768,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 638,
+          "end_iso8601": "2024-09-10T22:36:52Z",
+          "end_mjd": 60563.942279,
+          "max_elevation": 51.0012912259148,
+          "name": "Mothership over Puuwai @ 2024-09-10T22:26:14Z (max elev = 51.0 deg)",
+          "start_iso8601": "2024-09-10T22:26:14Z",
+          "start_mjd": 60563.934895,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 407,
+          "end_iso8601": "2024-09-11T00:10:54Z",
+          "end_mjd": 60564.00758,
+          "max_elevation": 4.99603997698455,
+          "name": "Mothership over Hilo @ 2024-09-11T00:04:07Z (max elev = 5.0 deg)",
+          "start_iso8601": "2024-09-11T00:04:07Z",
+          "start_mjd": 60564.002869,
+          "target": "Hilo"
+      },
+      {
+          "duration": 326,
+          "end_iso8601": "2024-09-11T00:10:09Z",
+          "end_mjd": 60564.007059,
+          "max_elevation": 2.88764195443304,
+          "name": "Mothership over Kahului @ 2024-09-11T00:04:43Z (max elev = 2.9 deg)",
+          "start_iso8601": "2024-09-11T00:04:43Z",
+          "start_mjd": 60564.003286,
+          "target": "Kahului"
+      },
+      {
+          "duration": 307,
+          "end_iso8601": "2024-09-11T00:10:04Z",
+          "end_mjd": 60564.007001,
+          "max_elevation": 2.50556958031434,
+          "name": "Mothership over Lanai City @ 2024-09-11T00:04:57Z (max elev = 2.5 deg)",
+          "start_iso8601": "2024-09-11T00:04:57Z",
+          "start_mjd": 60564.003448,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 294,
+          "end_iso8601": "2024-09-11T00:09:54Z",
+          "end_mjd": 60564.006886,
+          "max_elevation": 2.27340567205135,
+          "name": "Mothership over Kaunakakai @ 2024-09-11T00:05:00Z (max elev = 2.3 deg)",
+          "start_iso8601": "2024-09-11T00:05:00Z",
+          "start_mjd": 60564.003483,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 557,
+          "end_iso8601": "2024-09-11T08:51:05Z",
+          "end_mjd": 60564.368819,
+          "max_elevation": 14.1966182472682,
+          "name": "Mothership over Honolulu @ 2024-09-11T08:41:48Z (max elev = 14.2 deg)",
+          "start_iso8601": "2024-09-11T08:41:48Z",
+          "start_mjd": 60564.362372,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 609,
+          "end_iso8601": "2024-09-11T10:27:59Z",
+          "end_mjd": 60564.43611,
+          "max_elevation": 23.9197119971621,
+          "name": "Mothership over Honolulu @ 2024-09-11T10:17:50Z (max elev = 23.9 deg)",
+          "start_iso8601": "2024-09-11T10:17:50Z",
+          "start_mjd": 60564.429062,
+          "target": "Honolulu"
+      },
+      {
+          "duration": 577,
+          "end_iso8601": "2024-09-11T11:56:30Z",
+          "end_mjd": 60564.49758,
+          "max_elevation": 16.8842441229169,
+          "name": "Mothership over Hilo @ 2024-09-11T11:46:53Z (max elev = 16.9 deg)",
+          "start_iso8601": "2024-09-11T11:46:53Z",
+          "start_mjd": 60564.490902,
+          "target": "Hilo"
+      },
+      {
+          "duration": 582,
+          "end_iso8601": "2024-09-11T11:57:00Z",
+          "end_mjd": 60564.497927,
+          "max_elevation": 17.9598612859945,
+          "name": "Mothership over Kahului @ 2024-09-11T11:47:18Z (max elev = 18.0 deg)",
+          "start_iso8601": "2024-09-11T11:47:18Z",
+          "start_mjd": 60564.491191,
+          "target": "Kahului"
+      },
+      {
+          "duration": 588,
+          "end_iso8601": "2024-09-11T11:57:06Z",
+          "end_mjd": 60564.497997,
+          "max_elevation": 19.0276585910269,
+          "name": "Mothership over Lanai City @ 2024-09-11T11:47:18Z (max elev = 19.0 deg)",
+          "start_iso8601": "2024-09-11T11:47:18Z",
+          "start_mjd": 60564.491191,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 587,
+          "end_iso8601": "2024-09-11T11:57:10Z",
+          "end_mjd": 60564.498043,
+          "max_elevation": 18.825325210133,
+          "name": "Mothership over Kaunakakai @ 2024-09-11T11:47:23Z (max elev = 18.8 deg)",
+          "start_iso8601": "2024-09-11T11:47:23Z",
+          "start_mjd": 60564.491249,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 603,
+          "end_iso8601": "2024-09-11T11:57:51Z",
+          "end_mjd": 60564.498518,
+          "max_elevation": 22.7024402835035,
+          "name": "Mothership over Kapaa @ 2024-09-11T11:47:48Z (max elev = 22.7 deg)",
+          "start_iso8601": "2024-09-11T11:47:48Z",
+          "start_mjd": 60564.491539,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 611,
+          "end_iso8601": "2024-09-11T11:58:00Z",
+          "end_mjd": 60564.498622,
+          "max_elevation": 25.5458044574098,
+          "name": "Mothership over Puuwai @ 2024-09-11T11:47:49Z (max elev = 25.5 deg)",
+          "start_iso8601": "2024-09-11T11:47:49Z",
+          "start_mjd": 60564.49155,
+          "target": "Puuwai"
+      },
+      {
+          "duration": 593,
+          "end_iso8601": "2024-09-11T13:33:09Z",
+          "end_mjd": 60564.564698,
+          "max_elevation": 19.4895280016652,
+          "name": "Mothership over Hilo @ 2024-09-11T13:23:16Z (max elev = 19.5 deg)",
+          "start_iso8601": "2024-09-11T13:23:16Z",
+          "start_mjd": 60564.557835,
+          "target": "Hilo"
+      },
+      {
+          "duration": 591,
+          "end_iso8601": "2024-09-11T13:33:37Z",
+          "end_mjd": 60564.565022,
+          "max_elevation": 19.0993444184081,
+          "name": "Mothership over Kahului @ 2024-09-11T13:23:46Z (max elev = 19.1 deg)",
+          "start_iso8601": "2024-09-11T13:23:46Z",
+          "start_mjd": 60564.558182,
+          "target": "Kahului"
+      },
+      {
+          "duration": 586,
+          "end_iso8601": "2024-09-11T13:33:38Z",
+          "end_mjd": 60564.565034,
+          "max_elevation": 18.0679785712286,
+          "name": "Mothership over Lanai City @ 2024-09-11T13:23:52Z (max elev = 18.1 deg)",
+          "start_iso8601": "2024-09-11T13:23:52Z",
+          "start_mjd": 60564.558252,
+          "target": "Lanai City"
+      },
+      {
+          "duration": 588,
+          "end_iso8601": "2024-09-11T13:33:44Z",
+          "end_mjd": 60564.565103,
+          "max_elevation": 18.4368189867148,
+          "name": "Mothership over Kaunakakai @ 2024-09-11T13:23:56Z (max elev = 18.4 deg)",
+          "start_iso8601": "2024-09-11T13:23:56Z",
+          "start_mjd": 60564.558298,
+          "target": "Kaunakakai"
+      },
+      {
+          "duration": 576,
+          "end_iso8601": "2024-09-11T13:34:14Z",
+          "end_mjd": 60564.565451,
+          "max_elevation": 16.1911238553192,
+          "name": "Mothership over Kapaa @ 2024-09-11T13:24:38Z (max elev = 16.2 deg)",
+          "start_iso8601": "2024-09-11T13:24:38Z",
+          "start_mjd": 60564.558784,
+          "target": "Kapaa"
+      },
+      {
+          "duration": 564,
+          "end_iso8601": "2024-09-11T13:34:15Z",
+          "end_mjd": 60564.565462,
+          "max_elevation": 14.5693542689781,
+          "name": "Mothership over Puuwai @ 2024-09-11T13:24:51Z (max elev = 14.6 deg)",
+          "start_iso8601": "2024-09-11T13:24:51Z",
+          "start_mjd": 60564.558934,
+          "target": "Puuwai"
+      }
+  ]
+}

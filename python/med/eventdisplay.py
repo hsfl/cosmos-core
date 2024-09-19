@@ -67,11 +67,6 @@ def load_json(file_path):
         st.error(f"Error decoding JSON from file: {file_path}")
         return {}
 
-EVENT_DICTIONARY_PATH = "event_dictionary.json"
-EVENTS_TIMELINE_PATH = "events_timeline.json"
-
-event_dictionary = load_json(EVENT_DICTIONARY_PATH)
-events_timeline = load_json(EVENTS_TIMELINE_PATH)
 
 # Function to prevent automatic scrolling with time bar simulator
 def no_scroll():
@@ -128,30 +123,70 @@ def seconds_to_time_format(seconds):
     return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
 
 
+def time_to_iso_format(time_string):
+    # Extract hours, minutes, and seconds from the time_string
+    hours, minutes, seconds = map(int, time_string.split(':'))
+    
+    # Create a datetime object with today's date and the time from the string
+    now = datetime.now()
+    future_time = datetime.combine(now.date(), datetime.min.time()) + timedelta(hours=hours, minutes=minutes, seconds=seconds)
+    
+    # Return ISO 8601 formatted time
+    return future_time.isoformat()
+
+
+EVENT_DICTIONARY_PATH = "event_dictionary.json"
+EVENTS_TIMELINE_PATH = "events_timeline.json"
+WINDOWS_TIMELINE_PATH = "windows_timeline.json"
+
+
+event_dictionary = load_json(EVENT_DICTIONARY_PATH)
+events_timeline = load_json(EVENTS_TIMELINE_PATH)
+windows_timeline = load_json(WINDOWS_TIMELINE_PATH)
+
+
+
 events = []
-for event in events_timeline:
-    event_id = event["event_id"]
-    if event_id in event_dictionary:
-        duration = event_dictionary[event_id]["duration"]
-        start_seconds = event['start_time']
-        end_seconds = add_seconds(start_seconds, duration)
-        events.append({
-            "start_time": start_seconds,
-            "end_time": end_seconds,
-            "event_name": event_id,
-        })
+observation_windows = []
+for event in events_timeline["Pass Events for Mothership"]:
+    start_time = event['start_iso8601']
+    end_time = event['end_iso8601']
+    event_id = event['target']
+    events.append({
+        "start_time": start_time,
+        "end_time": end_time,
+        "event_name": event_id,
+    })
+    
+for window in windows_timeline["Observation Windows for Mothership"]:
+    start_time = window['start_iso8601']
+    end_time = window['end_iso8601']
+    event_id = window['name']
+    observation_windows.append({
+        "start_time": start_time,
+        "end_time": end_time,
+        "window_name": event_id,
+    })
+    
+
 events_json = {"events": events}
 
 events_df = pd.DataFrame(events)
+windows_df = pd.DataFrame(observation_windows)
 fig = go.Figure()
 
 # Unique event names
 unique_event_names = events_df['event_name'].unique()
+unique_window_names = windows_df['window_name'].unique()
+
 
 # Color scale and mapping
 color_scale = px.colors.qualitative.Plotly
 color_mapping = {event_name: color_scale[i % len(
     color_scale)] for i, event_name in enumerate(unique_event_names)}
+
+color_window_mapping = {window_name: color_scale[i % len(
+    color_scale)] for i, window_name in enumerate(unique_window_names)}
 
 if 'hash_map' not in st.session_state:
     st.session_state.hash_map = {}
@@ -161,9 +196,9 @@ if 'hash_map' not in st.session_state:
                                         val['start_time'],
                                         val['end_time'],
                                         True]
-
 if 'edit_mode' not in st.session_state:
     st.session_state.edit_mode = {i: False for i in range(len(events))}
+
 
 with st.expander("Edit Events"):
     num_events_per_row = 5
@@ -206,9 +241,11 @@ with st.expander("Edit Events"):
 
 # Calculate x-positions and adjust layout width
 step_size = 0.3
-x_positions = [i * step_size for i in range(len(events))]
+reset_threshold = 10
+initial_offset = 3.5
+x_positions = [(i * step_size + initial_offset) if (i * step_size + initial_offset) % reset_threshold == 0 else (i * step_size + initial_offset) % reset_threshold for i in range(len(events))]
 margin_offset = 1.0  # Adjust margin to ensure no bars are cut off
-
+fixed_position = 1
 for i in range(len(events)):
     offset = 0.01
     opacity_value = 0.35 if i % 2 == 1 else 1
@@ -224,6 +261,21 @@ for i in range(len(events)):
             hoverinfo='text',
             opacity=opacity_value,
             hovertext=f"{st.session_state.hash_map[i][0]}<br>Start: {get_hour_minute_second(st.session_state.hash_map[i][1])}<br>End: {get_hour_minute_second(st.session_state.hash_map[i][2])}"
+        ))
+    offset += 1.5
+
+fixed_x_position = -0.6  # Fixed x position for all bars
+for i in range(len(observation_windows)):
+    offset = 0.01
+    fig.add_trace(go.Scatter(
+        x=[fixed_x_position + offset, fixed_x_position + offset],
+        y=[observation_windows[i]['start_time'], observation_windows[i]['end_time']],
+            line=dict(
+                width=15, color='black'),
+            name=observation_windows[i]['window_name'] if i == 0 else None,
+            mode='lines',
+            hoverinfo='text',
+            hovertext=f"{observation_windows[i]['window_name']}<br>Start: {get_hour_minute_second(observation_windows[i]['start_time'])}<br>End: {get_hour_minute_second(observation_windows[i]['end_time'])}"
         ))
     offset += 1.5
 
@@ -266,8 +318,6 @@ if 'scroll_position' not in st.session_state:
     st.session_state.scroll_position = 0
 if 'slider_max_value' not in st.session_state:
     st.session_state.slider_max_value = 86400 
-
-no_scroll()
 
 earliest_start_time_str = events_df['start_time'].min()
 earliest_start_time = datetime.strptime(
@@ -323,6 +373,7 @@ with col2:
             st.warning("Cannot zoom out more")
 y_start, y_end = y_axis_increments[st.session_state.dtick]
 
+
     # Update the layout with the dynamic y-axis limits
 fig.update_layout(
         title='Mission Events Display',        
@@ -339,7 +390,7 @@ fig.update_layout(
             ticktext=color_coded_ticktext,
             side="top",
             tickangle=0,
-            range=[-margin_offset, len(unique_event_names) + 1 + margin_offset]
+            range=[-margin_offset, len(unique_event_names) + 7 + margin_offset]
         ),
         yaxis=dict(
             title='Time (minutes)',
@@ -347,7 +398,6 @@ fig.update_layout(
             range=[y_start, y_end],
             dtick=st.session_state.dtick
         ),
-    
         height=500,
         showlegend=False,
         margin=dict(l=20, r=20, t=20, b=20)
@@ -383,7 +433,7 @@ fig.add_shape(
         type="line",
         x0=-1,
         y0=y_position,
-        x1=len(unique_event_names) + 6.5,
+        x1=len(unique_event_names) + 9.5,
         y1=y_position,
         line=dict(
             color="green",
@@ -392,25 +442,25 @@ fig.add_shape(
 )
     
 formatted_time = seconds_to_time_format(st.session_state.slider_value)# Calculates the position for the countdown timer
+iso_time = time_to_iso_format(formatted_time)
 timer_position = len(unique_event_names) + 0.5
 
 # Annotation for the countdown timer
 fig.add_annotation(
         x=timer_position,
         y=y_position,
-        xshift=-40,
+        xshift=400,
         yshift=10,
-        text=f"<b>Current Time:</b> {formatted_time}",
+        text=f"<b>Current Time:</b> {iso_time}",
         showarrow=False,
         font=dict(
             size=14,
             color="green",
         ),
 )
-
     
 if next_event_name == "No more events":
-    next_event_text = f"<b>No Upcoming Events</b><br>(Current Time: {formatted_time})"
+    next_event_text = f"<b>No Upcoming Events</b>"
 else:
     next_event_text = (
     f"<b>Time Until Next Event: </b> {time_until_next_event}"
@@ -418,13 +468,13 @@ else:
     f"<b>Next Event: </b> {next_event_name}"
 )
         
-            
+    
 fig.add_annotation(
         x=timer_position,
         y=y_position,
         text=next_event_text,
         yshift= -200,
-        xshift= 180,
+        xshift= 500,
         showarrow=False,
         font=dict(
             size=14,
@@ -433,18 +483,13 @@ fig.add_annotation(
         align="right",  # Aligns text to the right
             xanchor="right",  # Anchors the x position to the right edge of the text box
 )
-    
-
-st.plotly_chart(fig, use_container_width=True)
-
-
 
     # Slider for time bar simulation
 slider_value = st.slider("**Time Bar Simulation**", min_value=0, max_value=slider_max_value,
                              value=st.session_state.slider_value, step=1, key='slider')
 
-    # Update session state with the current slider value
 st.session_state.slider_value = slider_value
+    # Update session state with the current slider value
 
     # Converts slider value to HH:MM:SS format
 st.write(f"Slider Value: {slider_value}")
@@ -455,7 +500,6 @@ col1, col2, _ = st.columns([1, 1, 8])
 with col1:
     if st.button('Play/Pause'):
         st.session_state.play = not st.session_state.play
-
     # Reset button
 with col2:
     if st.button('Reset'):
@@ -464,6 +508,8 @@ with col2:
         st.session_state.scroll_position = 0
         st.rerun()
         
+
+st.plotly_chart(fig, use_container_width=True)
 
      # JavaScript to capture the scroll position
 capture_scroll_position = """
