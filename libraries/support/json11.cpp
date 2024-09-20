@@ -1014,7 +1014,6 @@ bool has_json_key(const Json& json, const string& key) {
 }
 
 // FIND JSON OBJECT BY KEY
-
 /// populate all results found with JSON key == key_name
 void find_json_object(const Json &json, const string &key_name, vector<Json> &json_results) {
 	if (json.is_object()) {

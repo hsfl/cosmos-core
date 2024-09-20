@@ -435,6 +435,21 @@ inline std::vector<Json> find_json_value<std::vector<Json>>(const Json& json, co
 
 }
 
+/*
+// Overloading for vector<T>
+template <typename T>
+std::vector<T> find_json_value(const Json& json, const string& key) {
+    std::vector<T> result;
+    Json array = find_json_object(json, key)[key];
+    if (array.is_array()) {
+        for (const auto& item : array.array_items()) {
+            result.push_back(item);  // Directly push Json items into the result vector
+        }
+    }
+    return result;
+}
+*/
+
 // Specialization for multiple key
 template <typename T, typename... Keys>
 inline T find_json_value(const Json& json, const std::string& firstKey, Keys... rest) {

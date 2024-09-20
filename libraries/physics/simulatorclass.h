@@ -33,7 +33,6 @@ namespace Cosmos
             typedef vector<Physics::State*> StateList;
 
             int32_t Init(double idt=1., string realm="propagate", double iutc=0.);
-            int32_t Connect();
             StateList::iterator AddNode(string nodename, uint8_t propagation_priority);
             int32_t AddNode(string nodename, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
             int32_t AddNode(string nodename, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos origineci, Convert::cartpos lvlh, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);

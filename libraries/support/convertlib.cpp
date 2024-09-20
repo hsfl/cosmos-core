@@ -6617,6 +6617,49 @@ double gps2utc(double gps)
     return (utc);
 }
 
+
+// Create Swarm Info object (JSON)
+json11::Json    make_swarm_information_object(const string& name, const string& desc, const vector<string>& node_names) {
+    json11::Json swarm_info;
+    json11::Json::array names;
+
+    for(size_t i = 0; i < node_names.size(); ++i)   {
+        names.push_back(node_names[i]);
+    }
+    swarm_info+=json11::Json::object{{"name", name},{"desc", desc}};
+    swarm_info+=json11::Json::object{{"node_names", names }}; // obs need to fill the array from node_names
+    swarm_info+=json11::Json::object{{"number_of_nodes", static_cast<int>(names.size())}};
+
+    return json11::Json::object{{ "Swarm Information", swarm_info }};
+}
+
+// Make Sensor Info object (JSON)
+json11::Json make_sensor_information_object(const string& sensor_name, const double& fov, const double& ifov)   {
+    return json11::Json::object{{
+        sensor_name, json11::Json::object{{
+            { "fov", fov },
+            { "ifov", ifov }
+        }}
+    }};
+}
+
+
+// Make Constraints Info object (JSON)
+json11::Json make_constraints_information_object(const double& max_slew_rate, const double& max_thrust_total, const double& max_thrust_impulse)   {
+    //return json11::Json::object{{
+        //"constraints", json11::Json::object{{
+            //{ "max_slew_rate", max_slew_rate },
+            //{ "max_thrust_total", max_thrust_total },
+            //{ "max_thrust_impulse", max_thrust_impulse }
+        //}}
+    //}};
+    return json11::Json::object{{
+            { "max_slew_rate", max_slew_rate },
+            { "max_thrust_total", max_thrust_total },
+            { "max_thrust_impulse", max_thrust_impulse }
+    }};
+}
+
 // Make TLE Info object (JSON)
 json11::Json    make_tle_information_object(const string& tle_file)  {
     json11::Json tle_info;
@@ -6642,6 +6685,26 @@ json11::Json    make_tle_information_object(const string& tle_file)  {
     tle_info+=json11::Json::object{{"sgp4struc", tle_sgp4struc}};
     return tle_info;
 }
+
+// Create Node Info object (JSON)
+json11::Json make_node_information_object(json11::Json swarm_info_obj)  {
+    json11::Json node_info;
+
+    vector<string> names = json11::find_json_value<vector<string>>(swarm_info_obj, "node_names");
+    for(size_t i = 0; i < names.size(); ++i)    {
+        node_info+=json11::Json::object{{ names[i],
+            json11::Json::object{
+                {"constraints", make_constraints_information_object() },
+                {"sensors", json11::Json::array() },
+                {"type", json11::Json() },
+                {"tle", Cosmos::Convert::make_tle_information_object() }
+            }
+        }};
+    }
+
+    return json11::Json::object{{ "Node Information", node_info }};
+}
+
 
 } // end namespace Convert
 } // end namespace Cosmos

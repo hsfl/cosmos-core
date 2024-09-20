@@ -46,6 +46,7 @@ target_link_libraries(agent_simple_request CosmosAgent CosmosLog)
 target_link_libraries(errortest CosmosTime CosmosLog)
 target_link_libraries(string_test CosmosString CosmosConvert)
 target_link_libraries(string_float_test CosmosString CosmosConvert)
+target_link_libraries(observation_windows CosmosString CosmosConvert)
 target_link_libraries(log_move_test CosmosData)
 target_link_libraries(gauss_jackson_test CosmosAgent CosmosPhysics CosmosAgent)
 
