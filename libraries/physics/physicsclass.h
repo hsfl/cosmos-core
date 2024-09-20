@@ -245,8 +245,6 @@ namespace Cosmos
 
             struct gjstruc
             {
-                vector <double> a;
-                vector <double> b;
                 rvector s;
                 rvector ss;
                 rvector sa;
@@ -255,6 +253,8 @@ namespace Cosmos
                 locstruc loc;
             };
 
+            vector<vector <double>> a;
+            vector<vector <double>> b;
             vector< vector<int32_t> > binom;
             vector<double> c;
             vector<double> gam;

@@ -342,6 +342,7 @@ double DeviceCpuLinux::getLoad1minAverage()
             return -1;
         }
     }
+    fseek(f, 0, SEEK_SET);
     n = fscanf(f, "%f", &load);
 //    fclose(f);
 

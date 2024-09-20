@@ -539,6 +539,12 @@ int32_t Simulator::ParseSatString(string args)
     Physics::Simulator::StateList::iterator sit = GetNode(nodename);
     (*sit)->currentinfo.node.type = nodetype;
 
+    // CPU
+    iretn = json_createpiece(&(*sit)->currentinfo, "obc_cpu", DeviceType::CPU);
+
+    // Disk
+    iretn = json_createpiece(&(*sit)->currentinfo, "obc_disk", DeviceType::DISK);
+
     // Thruster
     iretn = json_createpiece(&(*sit)->currentinfo, "adcs_thrust", DeviceType::THST);
     (*sit)->currentinfo.devspec.thst[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].maxthrust = maxthrust;

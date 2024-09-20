@@ -177,7 +177,7 @@ int32_t pos_extra(double utc, locstruc &loc)
     pos_eci2geoc(tloc);
     loc.pos.extra.moongeo = tloc.pos.geod.s;
 
-//    pos_lvlh(utc, loc);
+    //    pos_lvlh(utc, loc);
     return 0;
 }
 
@@ -189,12 +189,12 @@ int32_t pos_lvlh(locstruc *loc)
 int32_t pos_lvlh(locstruc &loc)
 {
     // Check time
-//    if (!isfinite(utc) || utc == 0.)
-//    {
-//        return CONVERT_ERROR_UTC;
-//    }
+    //    if (!isfinite(utc) || utc == 0.)
+    //    {
+    //        return CONVERT_ERROR_UTC;
+    //    }
 
-//    pos_extra(utc, loc);
+    //    pos_extra(utc, loc);
 
     // LVLH related
     loc.pos.extra.p2l = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
@@ -215,19 +215,19 @@ int32_t pos_lvlh(locstruc &loc)
     case COSMOS_EARTH:
     default:
         // Check time
-//        if (!isfinite(loc.pos.eci.utc) || loc.pos.eci.utc == 0.)
-//        {
-//            return CONVERT_ERROR_UTC;
-//        }
+        //        if (!isfinite(loc.pos.eci.utc) || loc.pos.eci.utc == 0.)
+        //        {
+        //            return CONVERT_ERROR_UTC;
+        //        }
 
         ppos = &loc.pos.eci;
         break;
     case COSMOS_MOON:
         // Check time
-//        if (!isfinite(loc.pos.sci.utc) || loc.pos.sci.utc == 0.)
-//        {
-//            return CONVERT_ERROR_UTC;
-//        }
+        //        if (!isfinite(loc.pos.sci.utc) || loc.pos.sci.utc == 0.)
+        //        {
+        //            return CONVERT_ERROR_UTC;
+        //        }
 
         ppos = &loc.pos.sci;
         break;
@@ -342,11 +342,11 @@ int32_t pos_icrf(locstruc &loc)
     }
 
     // Determine closest planetary body
-//    loc.pos.extra.closest = COSMOS_EARTH;
-//    if (length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2moon.s)) < length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2earth.s)))
-//    {
-//        loc.pos.extra.closest = COSMOS_MOON;
-//    }
+    //    loc.pos.extra.closest = COSMOS_EARTH;
+    //    if (length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2moon.s)) < length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2earth.s)))
+    //    {
+    //        loc.pos.extra.closest = COSMOS_MOON;
+    //    }
 
     // Set SUN specific stuff
     distance = length_rv(loc.pos.icrf.s);
@@ -2186,7 +2186,7 @@ int32_t att_planec2lvlh(locstruc &loc)
     // Update pass
     loc.att.lvlh.pass = patt->pass;
 
-//    pos_lvlh(patt->utc, loc);
+    //    pos_lvlh(patt->utc, loc);
 
     // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
     rvector alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
@@ -2246,7 +2246,7 @@ int32_t att_lvlh2planec(locstruc &loc)
     // Update pass
     patt->pass = loc.att.lvlh.pass;
 
-//    pos_lvlh(loc.att.lvlh.utc, loc);
+    //    pos_lvlh(loc.att.lvlh.utc, loc);
 
     // Rotate LVLH frame into ITRS frame
     patt->s = q_fmult(loc.pos.extra.e2l, loc.att.lvlh.s);
@@ -3400,9 +3400,9 @@ int32_t pos_origin2lvlh(locstruc& loc)
     rvector lvlh_x;
     rvector lvlh_y;
     rvector lvlh_z;
-//    locstruc tloc1 = loc;
+    //    locstruc tloc1 = loc;
 
-    cartpos origin = loc.pos.geoc;
+//    cartpos origin = loc.pos.geoc;
     // 1 Get lvlh basis vectors
     lvlh_z = -rv_normal(loc.pos.geoc.s);
     lvlh_y = rv_normal(rv_cross(lvlh_z, loc.pos.geoc.v));
@@ -3469,51 +3469,51 @@ int32_t pos_origin2lvlh(locstruc& loc)
     // Compute
     // A_a_P = A_a_Q + B_a_P/Q
     loc.pos.geoc.a = loc.pos.geoc.a + geoc_offset.a
-                    //     + A_alpha_B x r_P/Q        = Euler acceleration
-                    + rv_cross(angular_acceleration, geoc_offset.s)
-                    //     + 2 * A_w_B x B_v_P/Q      = Coriolis acceleration
-                    + 2 * rv_cross(angular_velocity, geoc_offset.v)
-                    //     + A_w_B x (A_w_B x r_P/Q)  = Centripetal acceleration
-                    + rv_cross(angular_velocity, w_x_r);
+                     //     + A_alpha_B x r_P/Q        = Euler acceleration
+                     + rv_cross(angular_acceleration, geoc_offset.s)
+                     //     + 2 * A_w_B x B_v_P/Q      = Coriolis acceleration
+                     + 2 * rv_cross(angular_velocity, geoc_offset.v)
+                     //     + A_w_B x (A_w_B x r_P/Q)  = Centripetal acceleration
+                     + rv_cross(angular_velocity, w_x_r);
 
     loc.pos.geoc.pass = std::max(loc.pos.eci.pass, loc.pos.geos.pass) + 1;
-//    tloc1.pos.geoc.utc = origin.utc;
-//    ++tloc1.pos.geoc.pass;
+    //    tloc1.pos.geoc.utc = origin.utc;
+    //    ++tloc1.pos.geoc.pass;
     pos_geoc(loc);
 
-//    locstruc tloc = loc;
-//    eci_offset.s = rv_mmult(tloc.pos.extra.p2l, lvlh.s);
-//    tloc.pos.eci.s += eci_offset.s;
-//    tloc.pos.eci.v += rv_mmult(tloc.pos.extra.dp2l, lvlh.v);
-//    tloc.pos.eci.a += rv_mmult(tloc.pos.extra.ddp2l, lvlh.a);
-//    tloc.pos.eci.pass++;
-//    pos_eci(tloc);
+    //    locstruc tloc = loc;
+    //    eci_offset.s = rv_mmult(tloc.pos.extra.p2l, lvlh.s);
+    //    tloc.pos.eci.s += eci_offset.s;
+    //    tloc.pos.eci.v += rv_mmult(tloc.pos.extra.dp2l, lvlh.v);
+    //    tloc.pos.eci.a += rv_mmult(tloc.pos.extra.ddp2l, lvlh.a);
+    //    tloc.pos.eci.pass++;
+    //    pos_eci(tloc);
 
-//    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
-//    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
+    //    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
+    //    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
 
-//    loc.pos.geoc.v += drotate(loc.pos.extra.e2l, lvlh.v);
-//    loc.pos.geoc.a += drotate(loc.pos.extra.e2l, lvlh.a);
-//    loc.pos.geoc.j += drotate(loc.pos.extra.e2l, lvlh.j);
+    //    loc.pos.geoc.v += drotate(loc.pos.extra.e2l, lvlh.v);
+    //    loc.pos.geoc.a += drotate(loc.pos.extra.e2l, lvlh.a);
+    //    loc.pos.geoc.j += drotate(loc.pos.extra.e2l, lvlh.j);
 
-//    double r = length_rv(loc.pos.geoc.s);
+    //    double r = length_rv(loc.pos.geoc.s);
 
-//    // Rotate around LVLH y axis by -dx/r
-//    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, -lvlh.s.col[0] / r);
+    //    // Rotate around LVLH y axis by -dx/r
+    //    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, -lvlh.s.col[0] / r);
 
-//    // Rotate forwards around LVLH x axis by dy/r
-//    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, lvlh.s.col[1] / r);
+    //    // Rotate forwards around LVLH x axis by dy/r
+    //    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, lvlh.s.col[1] / r);
 
-//    // Scale the whole thing by dz/z
-//    loc.pos.geoc.s *= ((r - lvlh.s.col[2]) / r);
+    //    // Scale the whole thing by dz/z
+    //    loc.pos.geoc.s *= ((r - lvlh.s.col[2]) / r);
 
-//    // Set LVLH
-//    loc.pos.lvlh = lvlh;
-//    loc.pos.lvlh.utc = loc.pos.geoc.utc;
+    //    // Set LVLH
+    //    loc.pos.lvlh = lvlh;
+    //    loc.pos.lvlh.utc = loc.pos.geoc.utc;
 
-//    // Set geoc
-//    ++loc.pos.geoc.pass;
-//    pos_geoc(loc);
+    //    // Set geoc
+    //    ++loc.pos.geoc.pass;
+    //    pos_geoc(loc);
 
     return 0;
 }
@@ -3573,30 +3573,30 @@ int32_t pos_lvlh2origin(locstruc& loc)
         }
     }
 
-//    double r = length_rv(loc.pos.geoc.s) +  loc.pos.lvlh.s.col[2];
+    //    double r = length_rv(loc.pos.geoc.s) +  loc.pos.lvlh.s.col[2];
 
-//    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
-//    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
-//    lvlh_z = drotate(loc.pos.extra.e2l, rvector(0., 0., 1.));
+    //    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
+    //    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
+    //    lvlh_z = drotate(loc.pos.extra.e2l, rvector(0., 0., 1.));
 
-//    // TODO: should this be ECI, not GEOC?
-//    loc.pos.geoc.v -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.v);
-//    loc.pos.geoc.a -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.a);
-//    loc.pos.geoc.j -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.j);
+    //    // TODO: should this be ECI, not GEOC?
+    //    loc.pos.geoc.v -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.v);
+    //    loc.pos.geoc.a -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.a);
+    //    loc.pos.geoc.j -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.j);
 
-//    // Rotate around LVLH y axis by dx/r
-//    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, loc.pos.lvlh.s.col[0] / r);
+    //    // Rotate around LVLH y axis by dx/r
+    //    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, loc.pos.lvlh.s.col[0] / r);
 
-//    // Rotate backwards around LVLH x axis by -dy/r
-//    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, -loc.pos.lvlh.s.col[1] / r);
+    //    // Rotate backwards around LVLH x axis by -dy/r
+    //    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, -loc.pos.lvlh.s.col[1] / r);
 
-//    // Scale by dz/z
-//    loc.pos.geoc.s *= (r / (r - loc.pos.lvlh.s.col[2]));
+    //    // Scale by dz/z
+    //    loc.pos.geoc.s *= (r / (r - loc.pos.lvlh.s.col[2]));
 
     loc.pos.geoc.pass = std::max(loc.pos.eci.pass, loc.pos.geos.pass) + 1;
     pos_geoc(loc);
 
-//    loc.pos.lvlh = cartpos();
+    //    loc.pos.lvlh = cartpos();
 
     return 0;
 }
@@ -3803,7 +3803,7 @@ Convert::cartpos eci2lvlh(Convert::cartpos origin, Convert::cartpos point)
         {X_lvlh_x_unit, Y_lvlh_x_unit, Z_lvlh_x_unit},
         {X_lvlh_y_unit, Y_lvlh_y_unit, Z_lvlh_y_unit},
         {X_lvlh_z_unit, Y_lvlh_z_unit, Z_lvlh_z_unit}
-    );
+        );
     // Basis transformations
     // Solves x for Ax = b, which in this case would just be x = A'b
     A = rm_transpose(A);
@@ -3851,19 +3851,19 @@ Convert::cartpos eci2hill(const Convert::cartpos& tgteci, const Convert::cartpos
 
     //  find rotation matrix to go from rsw to SEZ of interceptor
     rmatrix rotrswtoSEZ(
-    {
-        sinphiint * coslambdaint, // rotrswtoSEZ(1,1) = sinphiint * coslambdaint;
-        sinphiint * sinlambdaint, // rotrswtoSEZ(1,2) = sinphiint * sinlambdaint;
-        -cosphiint                // rotrswtoSEZ(1,3) = -cosphiint;
-    },{
-        -sinlambdaint,            // rotrswtoSEZ(2,1) = -sinlambdaint;
-        coslambdaint,             // rotrswtoSEZ(2,2) = coslambdaint;
-        0.0                       // rotrswtoSEZ(2,3) = 0.0;
-    },{
-        cosphiint * coslambdaint, // rotrswtoSEZ(3,1) = cosphiint * coslambdaint;
-        cosphiint * sinlambdaint, // rotrswtoSEZ(3,2) = cosphiint * sinlambdaint;
-        sinphiint                 // rotrswtoSEZ(3,3) = sinphiint;
-    });
+        {
+            sinphiint * coslambdaint, // rotrswtoSEZ(1,1) = sinphiint * coslambdaint;
+            sinphiint * sinlambdaint, // rotrswtoSEZ(1,2) = sinphiint * sinlambdaint;
+            -cosphiint                // rotrswtoSEZ(1,3) = -cosphiint;
+        },{
+            -sinlambdaint,            // rotrswtoSEZ(2,1) = -sinlambdaint;
+            coslambdaint,             // rotrswtoSEZ(2,2) = coslambdaint;
+            0.0                       // rotrswtoSEZ(2,3) = 0.0;
+        },{
+            cosphiint * coslambdaint, // rotrswtoSEZ(3,1) = cosphiint * coslambdaint;
+            cosphiint * sinlambdaint, // rotrswtoSEZ(3,2) = cosphiint * sinlambdaint;
+            sinphiint                 // rotrswtoSEZ(3,3) = sinphiint;
+        });
     //  find velocity component positions by using angular rates in SEZ frame
     rvector vintSEZ = rv_mmult(rotrswtoSEZ, intrsw.v);          // vintSEZ      = matvecmult( rotrswtoSEZ, vintrsw, 3);
     double phidotint = -vintSEZ.col[0]/magrint;                 // phidotint    = -vintSEZ(1)/magrint;
@@ -3937,19 +3937,19 @@ Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpo
 
     //  find rotation matrix to go from SEZ of interceptor to RSW of target
     rmatrix rotSEZtoRSW(
-    {
-        sinphiint * coslambdaint, // rotrswtoSEZ(1,1) = sinphiint * coslambdaint;
-        -sinlambdaint,            // rotrswtoSEZ(2,1) = -sinlambdaint;
-        cosphiint * coslambdaint  // rotrswtoSEZ(3,1) = cosphiint * coslambdaint;
-    },{
-        sinphiint * sinlambdaint, // rotrswtoSEZ(1,2) = sinphiint * sinlambdaint;
-        coslambdaint,             // rotrswtoSEZ(2,2) = coslambdaint;
-        cosphiint * sinlambdaint  // rotrswtoSEZ(3,2) = cosphiint * sinlambdaint;
-    },{
-        -cosphiint,               // rotrswtoSEZ(1,3) = -cosphiint;
-        0.0,                      // rotrswtoSEZ(2,3) = 0.0;
-        sinphiint                 // rotrswtoSEZ(3,3) = sinphiint;
-    });
+        {
+            sinphiint * coslambdaint, // rotrswtoSEZ(1,1) = sinphiint * coslambdaint;
+            -sinlambdaint,            // rotrswtoSEZ(2,1) = -sinlambdaint;
+            cosphiint * coslambdaint  // rotrswtoSEZ(3,1) = cosphiint * coslambdaint;
+        },{
+            sinphiint * sinlambdaint, // rotrswtoSEZ(1,2) = sinphiint * sinlambdaint;
+            coslambdaint,             // rotrswtoSEZ(2,2) = coslambdaint;
+            cosphiint * sinlambdaint  // rotrswtoSEZ(3,2) = cosphiint * sinlambdaint;
+        },{
+            -cosphiint,               // rotrswtoSEZ(1,3) = -cosphiint;
+            0.0,                      // rotrswtoSEZ(2,3) = 0.0;
+            sinphiint                 // rotrswtoSEZ(3,3) = sinphiint;
+        });
 
     // find acceleration component positions by using angular rates in SEZ frame
     double rdotdotint = hill.a.col[0];
@@ -4869,35 +4869,37 @@ int32_t eci2tle(cartpos eci, tlestruc &tle)
          */
 int32_t eci2tle2(cartpos eci, tlestruc &tle)
 {
+    cartpos ecinew = eci;
+
     // ICRF to Mean of Data (undo Precession)
     rmatrix bm;
     gcrf2j2000(&bm);
-    eci.s = rv_mmult(bm,eci.s);
-    eci.v = rv_mmult(bm,eci.v);
+    ecinew.s = rv_mmult(bm,ecinew.s);
+    ecinew.v = rv_mmult(bm,ecinew.v);
 
     rmatrix pm;
-    j20002mean(eci.utc,&pm);
-    eci.s = rv_mmult(pm,eci.s);
-    eci.v = rv_mmult(pm,eci.v);
+    j20002mean(ecinew.utc,&pm);
+    ecinew.s = rv_mmult(pm,ecinew.s);
+    ecinew.v = rv_mmult(pm,ecinew.v);
 
     // Mean of Date to True of Date (undo Nutation)
     rmatrix nm;
-    mean2true(eci.utc,&nm);
-    eci.s = rv_mmult(nm,eci.s);
-    eci.v = rv_mmult(nm,eci.v);
+    mean2true(ecinew.utc,&nm);
+    ecinew.s = rv_mmult(nm,ecinew.s);
+    ecinew.v = rv_mmult(nm,ecinew.v);
 
     // True of Date to Uniform of Date (undo Equation of Equinoxes)
     rmatrix sm;
-    true2teme(eci.utc, &sm);
-    eci.s = rv_mmult(sm,eci.s);
-    eci.v = rv_mmult(sm,eci.v);
+    true2teme(ecinew.utc, &sm);
+    ecinew.s = rv_mmult(sm,ecinew.s);
+    ecinew.v = rv_mmult(sm,ecinew.v);
 
     // Convert to Keplerian Elements
     kepstruc kep;
     eci2kep(eci, kep);
 
     // Store in relevant parts of TLE
-    tle.bstar = .0001;
+    tle.bstar = 0.001;
     tle.orbit = 0;
     tle.ap = kep.ap;
     tle.e = kep.e;
@@ -4906,300 +4908,221 @@ int32_t eci2tle2(cartpos eci, tlestruc &tle)
     tle.mm = kep.mm;
     tle.dmm = kep.dmm * D2PI / (86400. * 86400.);
     tle.raan = kep.raan;
-    tle.utc = eci.utc;
-//    eci2tle(eci, tle);
-//    tle.bstar = .0001;
-    cartpos ecinew;
-//    tle2eci(eci.utc, tle, ecinew);
-    tlestruc tlenew;
-    tlenew = tle;
-    double errornew;
+    tle.utc = ecinew.utc;
+    cartpos ecinewp;
+    cartpos ecinewm;
+    tlestruc tlep;
+    tlestruc tlem;
+    double errorp;
+    double errorm;
     double error;
 
     double scale = .01;
-//    tle2eci(eci.utc, tle, ecinew);
-//    error = length_rv(ecinew.s-eci.s);
-    bool improved = false;
     size_t count = 0;
+
+    tle2eci(ecinew.utc, tle, ecinew);
+    error = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+
+
+    scale = 0.01;
+    tlep = tle;
+    tlem = tle;
     do
     {
-        tle2eci(eci.utc, tlenew, ecinew);
-        error = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        improved = false;
-
-        tlenew.bstar = (1.+scale) * tle.bstar;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
+        tlep.ap = (1.+scale) * tle.ap;
+        tle2eci(eci.utc, tlep, ecinewp);
+        errorp = length_rv(ecinewp.s-eci.s) / length_rv(eci.s) + length_rv(ecinewp.v-eci.v) / length_rv(eci.v);
+        tlem.ap = (1.-scale) * tle.ap;
+        tle2eci(eci.utc, tlem, ecinewm);
+        errorm = length_rv(ecinewm.s-eci.s) / length_rv(eci.s) + length_rv(ecinewm.v-eci.v) / length_rv(eci.v);
+        if (error > errorp || error > errorm)
         {
-            improved = true;
-            error = errornew;
-            tlenew.bstar = (1.-scale) * tle.bstar;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
+            if (errorp < errorm)
             {
-                error = errornew;
-                tle.bstar = tlenew.bstar;
+                error = errorp;
+                tle.ap = tlep.ap;
+                ecinew = ecinewp;
             }
             else
             {
-                tlenew.bstar = (1.+scale) * tle.bstar;
-                tle.bstar = tlenew.bstar;
+                error = errorm;
+                tle.ap = tlem.ap;
+                ecinew = ecinewm;
             }
         }
         else
         {
-            tlenew.bstar = (1.-scale) * tle.bstar;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.bstar = tlenew.bstar;
-            }
-            else
-            {
-                tlenew.bstar = tle.bstar;
-            }
+            scale /= 2.;
         }
+    }
+    while (scale > 1e-8);
 
-        tlenew.ap = (1.+scale) * tle.ap;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
+    scale = 0.01;
+    tlep = tle;
+    tlem = tle;
+    do
+    {
+        tlep.e = (1.+scale) * tle.e;
+        tle2eci(eci.utc, tlep, ecinewp);
+        errorp = length_rv(ecinewp.s-eci.s) / length_rv(eci.s) + length_rv(ecinewp.v-eci.v) / length_rv(eci.v);
+        tlem.e = (1.-scale) * tle.e;
+        tle2eci(eci.utc, tlem, ecinewm);
+        errorm = length_rv(ecinewm.s-eci.s) / length_rv(eci.s) + length_rv(ecinewm.v-eci.v) / length_rv(eci.v);
+        if (error > errorp || error > errorm)
         {
-            improved = true;
-            error = errornew;
-            tlenew.ap = (1.-scale) * tle.ap;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
+            if (errorp < errorm)
             {
-                error = errornew;
-                tle.ap = tlenew.ap;
+                error = errorp;
+                tle.e = tlep.e;
+                ecinew = ecinewp;
             }
             else
             {
-                tlenew.ap = (1.+scale) * tle.ap;
-                tle.ap = tlenew.ap;
+                error = errorm;
+                tle.e = tlem.e;
+                ecinew = ecinewm;
             }
         }
         else
         {
-            tlenew.ap = (1.-scale) * tle.ap;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.ap = tlenew.ap;
-            }
-            else
-            {
-                tlenew.ap = tle.ap;
-            }
+            scale /= 2.;
         }
+    }
+    while (scale > 1e-8);
 
-       tlenew.e = (1.+scale) * tle.e;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
+    scale = 0.01;
+    tlep = tle;
+    tlem = tle;
+    do
+    {
+        tlep.i = (1.+scale) * tle.i;
+        tle2eci(eci.utc, tlep, ecinewp);
+        errorp = length_rv(ecinewp.s-eci.s) / length_rv(eci.s) + length_rv(ecinewp.v-eci.v) / length_rv(eci.v);
+        tlem.i = (1.-scale) * tle.i;
+        tle2eci(eci.utc, tlem, ecinewm);
+        errorm = length_rv(ecinewm.s-eci.s) / length_rv(eci.s) + length_rv(ecinewm.v-eci.v) / length_rv(eci.v);
+        if (error > errorp || error > errorm)
         {
-            improved = true;
-            error = errornew;
-            tlenew.e = (1.-scale) * tle.e;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
+            if (errorp < errorm)
             {
-                error = errornew;
-                tle.e = tlenew.e;
+                error = errorp;
+                tle.i = tlep.i;
+                ecinew = ecinewp;
             }
             else
             {
-                tlenew.e = (1.+scale) * tle.e;
-                tle.e = tlenew.e;
+                error = errorm;
+                tle.i = tlem.i;
+                ecinew = ecinewm;
             }
         }
         else
         {
-            tlenew.e = (1.-scale) * tle.e;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.e = tlenew.e;
-            }
-            else
-            {
-                tlenew.e = tle.e;
-            }
+            scale /= 2.;
         }
+    }
+    while (scale > 1e-8);
 
-        tlenew.i = (1.+scale) * tle.i;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
+    scale = 0.01;
+    tlep = tle;
+    tlem = tle;
+    do
+    {
+        tlep.mm = (1.+scale) * tle.mm;
+        tle2eci(eci.utc, tlep, ecinewp);
+        errorp = length_rv(ecinewp.s-eci.s) / length_rv(eci.s) + length_rv(ecinewp.v-eci.v) / length_rv(eci.v);
+        tlem.mm = (1.-scale) * tle.mm;
+        tle2eci(eci.utc, tlem, ecinewm);
+        errorm = length_rv(ecinewm.s-eci.s) / length_rv(eci.s) + length_rv(ecinewm.v-eci.v) / length_rv(eci.v);
+        if (error > errorp || error > errorm)
         {
-            improved = true;
-            error = errornew;
-            tlenew.i = (1.-scale) * tle.i;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
+            if (errorp < errorm)
             {
-                error = errornew;
-                tle.i = tlenew.i;
+                error = errorp;
+                tle.mm = tlep.mm;
+                ecinew = ecinewp;
             }
             else
             {
-                tlenew.i = (1.+scale) * tle.i;
-                tle.i = tlenew.i;
+                error = errorm;
+                tle.mm = tlem.mm;
+                ecinew = ecinewm;
             }
         }
         else
         {
-            tlenew.i = (1.-scale) * tle.i;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.i = tlenew.i;
-            }
-            else
-            {
-                tlenew.i = tle.i;
-            }
+            scale /= 2.;
         }
+    }
+    while (scale > 1e-8);
 
-        tlenew.mm = (1.+scale) * tle.mm;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
+    scale = 0.01;
+    tlep = tle;
+    tlem = tle;
+    do
+    {
+        tlep.ma = (1.+scale) * tle.ma;
+        tle2eci(eci.utc, tlep, ecinewp);
+        errorp = length_rv(ecinewp.s-eci.s) / length_rv(eci.s) + length_rv(ecinewp.v-eci.v) / length_rv(eci.v);
+        tlem.ma = (1.-scale) * tle.ma;
+        tle2eci(eci.utc, tlem, ecinewm);
+        errorm = length_rv(ecinewm.s-eci.s) / length_rv(eci.s) + length_rv(ecinewm.v-eci.v) / length_rv(eci.v);
+        if (error > errorp || error > errorm)
         {
-            improved = true;
-            error = errornew;
-            tlenew.mm = (1.-scale) * tle.mm;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
+            if (errorp < errorm)
             {
-                error = errornew;
-                tle.mm = tlenew.mm;
+                error = errorp;
+                tle.ma = tlep.ma;
+                ecinew = ecinewp;
             }
             else
             {
-                tlenew.mm = (1.+scale) * tle.mm;
-                tle.mm = tlenew.mm;
+                error = errorm;
+                tle.ma = tlem.ma;
+                ecinew = ecinewm;
             }
         }
         else
         {
-            tlenew.mm = (1.-scale) * tle.mm;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.mm = tlenew.mm;
-            }
-            else
-            {
-                tlenew.mm = tle.mm;
-            }
+            scale /= 2.;
         }
+    }
+    while (scale > 1e-8);
 
-        tlenew.ma = (1.+scale) * tle.ma;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
+    scale = 0.01;
+    tlep = tle;
+    tlem = tle;
+    do
+    {
+        tlep.raan = (1.+scale) * tle.raan;
+        tle2eci(eci.utc, tlep, ecinewp);
+        errorp = length_rv(ecinewp.s-eci.s) / length_rv(eci.s) + length_rv(ecinewp.v-eci.v) / length_rv(eci.v);
+        tlem.raan = (1.-scale) * tle.raan;
+        tle2eci(eci.utc, tlem, ecinewm);
+        errorm = length_rv(ecinewm.s-eci.s) / length_rv(eci.s) + length_rv(ecinewm.v-eci.v) / length_rv(eci.v);
+        if (error > errorp || error > errorm)
         {
-            improved = true;
-            error = errornew;
-            tlenew.ma = (1.-scale) * tle.ma;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
+            if (errorp < errorm)
             {
-                error = errornew;
-                tle.ma = tlenew.ma;
+                error = errorp;
+                tle.raan = tlep.raan;
+                ecinew = ecinewp;
             }
             else
             {
-                tlenew.ma = (1.+scale) * tle.ma;
-                tle.ma = tlenew.ma;
+                error = errorm;
+                tle.raan = tlem.raan;
+                ecinew = ecinewm;
             }
         }
         else
         {
-            tlenew.ma = (1.-scale) * tle.ma;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.ma = tlenew.ma;
-            }
-            else
-            {
-                tlenew.ma = tle.ma;
-            }
+            scale /= 2.;
         }
+    }
+    while (scale > 1e-8);
 
-        tlenew.raan = (1.+scale) * tle.raan;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
-        {
-            improved = true;
-            error = errornew;
-            tlenew.raan = (1.-scale) * tle.raan;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                error = errornew;
-                tle.raan = tlenew.raan;
-            }
-            else
-            {
-                tlenew.raan = (1.+scale) * tle.raan;
-                tle.raan = tlenew.raan;
-            }
-        }
-        else
-        {
-            tlenew.raan = (1.-scale) * tle.raan;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.raan = tlenew.raan;
-            }
-            else
-            {
-                tlenew.raan = tle.raan;
-            }
-        }
-        ++count;
-
-        if (!improved)
-        {
-            scale /= 10.;
-            count = 0;
-        }
-    } while (scale > .000001);
+    ++count;
 
     return 0;
 }
@@ -5970,8 +5893,8 @@ string eci2tlestring(cartpos eci, tlestruc &reftle)
 
 string tle2tlestring(tlestruc reftle)
 {
-//    string line_1(69, ' ');
-//    string line_2(69, ' ');
+    //    string line_1(69, ' ');
+    //    string line_2(69, ' ');
     string line_1;
     string line_2;
 
@@ -6697,21 +6620,21 @@ double gps2utc(double gps)
 // Make TLE Info object (JSON)
 json11::Json    make_tle_information_object(const string& tle_file)  {
     json11::Json tle_info;
-	tlestruc tle_tlestruc;
-	sgp4struc tle_sgp4struc;
+    tlestruc tle_tlestruc;
+    sgp4struc tle_sgp4struc;
     string tle_string;
 
     // the tlestruc is what gets used in the simulation
     ifstream file(tle_file);
     if(file.good()) {
-		// make tlestruc from file
-		load_tle(tle_file, tle_tlestruc); // check return value
-		// make sgp4struc from tlestruc
-		tle2sgp4(tle_tlestruc, tle_sgp4struc);
-		// make tlestring from tlestruc
-		tle_string = tle2tlestring(tle_tlestruc);
+        // make tlestruc from file
+        load_tle(tle_file, tle_tlestruc); // check return value
+        // make sgp4struc from tlestruc
+        tle2sgp4(tle_tlestruc, tle_sgp4struc);
+        // make tlestring from tlestruc
+        tle_string = tle2tlestring(tle_tlestruc);
     } else {
-		tle_string = "unable to load tle file <" + tle_file + ">";
+        tle_string = "unable to load tle file <" + tle_file + ">";
     }
     tle_info+=json11::Json::object{{"tle_file", tle_file}};
     tle_info+=json11::Json::object{{"tle_string", tle_string}};
