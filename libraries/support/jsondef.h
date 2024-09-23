@@ -1999,7 +1999,7 @@ class sim_param	{
             float bearing;
             float distance;
             Convert::locstruc loc;
-            Convert::locstruc cloc;
+//            Convert::locstruc cloc; //Center of target
             gvector size = {0., 0., 0.};
             float area;
             float resolution;
@@ -2028,7 +2028,7 @@ class sim_param	{
                     { "bearing"	, bearing },
                     { "distance"	, distance },
                     { "loc"	, loc },
-                    { "cloc"	, cloc },
+//                    { "cloc"	, cloc },
                     { "size", size},
                     { "area", area},
                     { "resolution", resolution},
@@ -2058,7 +2058,7 @@ class sim_param	{
                     if(!p["bearing"].is_null()) { bearing = p["bearing"].number_value(); }
                     if(!p["distance"].is_null()) { distance = p["distance"].number_value(); }
                     if(!p["loc"].is_null()) { loc.from_json(p["loc"].dump()); }
-                    if(!p["cloc"].is_null()) { cloc.from_json(p["cloc"].dump()); }
+//                    if(!p["cloc"].is_null()) { cloc.from_json(p["cloc"].dump()); }
                     if(!p["size"].is_null()) { size.from_json(p["size"].dump()); }
                     if(!p["area"].is_null()) { area = p["area"].number_value(); }
                     if(!p["resolution"].is_null()) { resolution = p["resolution"].number_value(); }

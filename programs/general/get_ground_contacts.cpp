@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
             }
             free(ibuf);
         }
-        track.target.cloc = agent->cinfo->node.loc;
+        track.target.loc = agent->cinfo->node.loc;
     }
 
     if (mode != "cal")

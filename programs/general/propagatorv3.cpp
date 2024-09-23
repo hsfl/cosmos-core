@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
                     if (postevent)
                     {
                         json11::Json jobj = json11::Json::object({
-                            {"type", "event"}, // this needs a different name, can't have duplicates in names
+                            {"mtype", "event"},
                             {"node", state->currentinfo.node.name},
                             {"utc", event.utc},
                             {"name", event.name},

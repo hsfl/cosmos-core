@@ -74,7 +74,7 @@ int32_t Simulator::AddTarget(std::string name, locstruc loc, NODE_TYPE type, gve
     targetstruc ttarget;
     ttarget.type = type;
     ttarget.name = name;
-    ttarget.cloc = loc;
+//    ttarget.cloc = loc;
     ttarget.area = 0.;
     ttarget.size = size;
     ttarget.loc = loc;
@@ -94,7 +94,7 @@ int32_t Simulator::AddTarget(std::string name, locstruc loc, NODE_TYPE type, dou
     targetstruc ttarget;
     ttarget.type = type;
     ttarget.name = name;
-    ttarget.cloc = loc;
+//    ttarget.cloc = loc;
     ttarget.size = gvector();
     ttarget.area  = area;
     ttarget.loc = loc;
@@ -656,14 +656,51 @@ int32_t Simulator::ParseTargetFile(string filename)
 
 int32_t Simulator::ParseTargetString(string line)
 {
-    vector<string> args = string_split(line, " \t", true);
-    if (args.size() == 4)
+    if (line[0] == '{')
     {
-        AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
+        targetstruc targ;
+        string estring;
+        json11::Json jargs = json11::Json::parse(line, estring);
+        targ.type = 0;
+        if (!jargs["type"].is_null())
+        {
+            targ.type = jargs["type"].number_value();
+        }
+        if (!jargs["name"].is_null())
+        {
+            targ.name = jargs["name"].string_value();
+        }
+        if (!jargs["latitude"].is_null())
+        {
+            targ.loc.pos.geod.s.lat = RADOF(jargs["latitude"].number_value());
+        }
+        if (!jargs["longitude"].is_null())
+        {
+            targ.loc.pos.geod.s.lon = RADOF(jargs["longitude"].number_value());
+        }
+        targ.loc.pos.geod.s.h = 0.;
+        if (!jargs["altitude"].is_null())
+        {
+            targ.loc.pos.geod.s.h = jargs["altitude"].number_value();
+        }
+        targ.area = 1.;
+        if (!jargs["area"].is_null())
+        {
+            targ.area = jargs["area"].number_value();
+        }
+        AddTarget(targ);
     }
-    else if (args.size() == 5)
+    else
     {
-        AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])), NODE_TYPE_TARGET);
+        vector<string> args = string_split(line, " \t", true);
+        if (args.size() == 4)
+        {
+            AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
+        }
+        else if (args.size() == 5)
+        {
+            AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), RADOF(stof(args[3])), RADOF(stod(args[4])), NODE_TYPE_TARGET);
+        }
     }
     return targets.size();
 }

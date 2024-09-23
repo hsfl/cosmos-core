@@ -13431,79 +13431,79 @@ int32_t update_target(cosmosstruc *cinfo)
 int32_t update_target(Convert::locstruc source, targetstruc &target)
 {
     rvector topo, dv, ds;
+    Convert::locstruc targetloc;
 
-    //    Convert::loc_update(&target.loc);
-    target.cloc.pos.geod.utc = source.pos.geod.utc;
-    target.cloc.pos.geod.pass++;
-    Convert::loc_update(target.cloc);
-    target.loc = target.cloc;
+    target.loc.pos.geod.utc = source.pos.geod.utc;
+    target.loc.pos.geod.pass++;
+    Convert::loc_update(target.loc);
+    targetloc = target.loc;
     if (target.size.lat)
     {
-        if (source.pos.geod.s.lon >= fixangle(target.cloc.pos.geod.s.lon - target.size.lon / 2., false) && source.pos.geod.s.lon <= fixangle(target.cloc.pos.geod.s.lon + target.size.lon / 2., false))
+        if (source.pos.geod.s.lon >= fixangle(target.loc.pos.geod.s.lon - target.size.lon / 2., false) && source.pos.geod.s.lon <= fixangle(target.loc.pos.geod.s.lon + target.size.lon / 2., false))
         {
-            target.loc.pos.geod.s.lon = source.pos.geod.s.lon;
-            if (source.pos.geod.s.lat >= target.cloc.pos.geod.s.lat + target.size.lat / 2.)
+            targetloc.pos.geod.s.lon = source.pos.geod.s.lon;
+            if (source.pos.geod.s.lat >= target.loc.pos.geod.s.lat + target.size.lat / 2.)
             {
-                target.loc.pos.geod.s.lat = target.cloc.pos.geod.s.lat + target.size.lat / 2.;
-                target.loc.pos.geod.pass++;
-                Convert::pos_geod(target.loc);
+                targetloc.pos.geod.s.lat = target.loc.pos.geod.s.lat + target.size.lat / 2.;
+                targetloc.pos.geod.pass++;
+                Convert::pos_geod(targetloc);
                 if (source.pos.geod.v.lat < 0)
                 {
                     target.min = 1.;
-                    target.utc = target.loc.utc;
+                    target.utc = targetloc.utc;
                 }
                 else
                 {
                     target.min = 3.;
-                    target.utc = target.loc.utc;
+                    target.utc = targetloc.utc;
                 }
             }
-            else if (source.pos.geod.s.lat <= target.cloc.pos.geod.s.lat - target.size.lat / 2)
+            else if (source.pos.geod.s.lat <= target.loc.pos.geod.s.lat - target.size.lat / 2)
             {
-                target.loc.pos.geod.s.lat = target.cloc.pos.geod.s.lat - target.size.lat / 2.;
-                target.loc.pos.geod.pass++;
-                Convert::pos_geod(target.loc);
+                targetloc.pos.geod.s.lat = target.loc.pos.geod.s.lat - target.size.lat / 2.;
+                targetloc.pos.geod.pass++;
+                Convert::pos_geod(targetloc);
                 if (source.pos.geod.v.lat > 0)
                 {
                     target.min = 1.;
-                    target.utc = target.loc.utc;
+                    target.utc = targetloc.utc;
                 }
                 else
                 {
                     target.min = 3.;
-                    target.utc = target.loc.utc;
+                    target.utc = targetloc.utc;
                 }
             }
             else
             {
                 if (target.min != 2.)
                 {
-                    target.utc = target.loc.utc;
+                    target.utc = targetloc.utc;
                 }
-                target.loc.pos.geod.pass++;
-                Convert::pos_geod(target.loc);
+                targetloc.pos.geod.pass++;
+                Convert::pos_geod(targetloc);
                 target.min = 2.;
             }
         }
         else
         {
             target.min = 0.;
-            target.utc = target.loc.utc;
+            target.utc = targetloc.utc;
         }
     }
     else
     {
         target.min = 0.;
-        target.utc = target.loc.utc;
+        target.utc = targetloc.utc;
     }
 
     // Calculate bearing and distance
-    double dx = cos(target.loc.pos.geod.s.lat) * sin(target.loc.pos.geod.s.lon - source.pos.geod.s.lon);
-    double dy = cos(source.pos.geod.s.lat) * sin(target.loc.pos.geod.s.lat) - sin(source.pos.geod.s.lat) * cos(target.loc.pos.geod.s.lat) * cos(target.loc.pos.geod.s.lon - source.pos.geod.s.lon);
+    double dx = cos(targetloc.pos.geod.s.lat) * sin(targetloc.pos.geod.s.lon - source.pos.geod.s.lon);
+    double dy = cos(source.pos.geod.s.lat) * sin(targetloc.pos.geod.s.lat) - sin(source.pos.geod.s.lat) * cos(targetloc.pos.geod.s.lat) * cos(targetloc.pos.geod.s.lon - source.pos.geod.s.lon);
     target.bearing = atan2(dy, dx);
-    target.distance = sep_rv(source.pos.geoc.s, target.loc.pos.geoc.s);
+    target.distance = sep_rv(source.pos.geoc.s, targetloc.pos.geoc.s);
 
-    Convert::geoc2topo(target.loc.pos.geod.s, source.pos.geoc.s,topo);
+    Convert::geoc2topo(targetloc.pos.geod.s, source.pos.geoc.s,topo);
     Convert::topo2azel(topo, target.azto, target.elto);
     if (target.elto <= 0.)
     {
@@ -13514,16 +13514,16 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
         target.maxelto = target.elto;
     }
 
-    Convert::geoc2topo(source.pos.geod.s, target.loc.pos.geoc.s, topo);
+    Convert::geoc2topo(source.pos.geod.s, targetloc.pos.geoc.s, topo);
     Convert::topo2azel(topo, target.azfrom, target.elfrom);
     // Calculate direct vector from source to target
-    ds = rv_sub(target.loc.pos.geoc.s, source.pos.geoc.s);
+    ds = rv_sub(targetloc.pos.geoc.s, source.pos.geoc.s);
     target.range = length_rv(ds);
     // Calculate velocity of target WRT source
-    dv = rv_sub(target.loc.pos.geoc.v, source.pos.geoc.v);
+    dv = rv_sub(targetloc.pos.geoc.v, source.pos.geoc.v);
     // Closing speed is length of ds in 1 second minus length of ds now.
     target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
-    target.utc = target.loc.utc;
+    target.utc = targetloc.utc;
     return 0;
 }
 
