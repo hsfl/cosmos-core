@@ -37,6 +37,17 @@ socket_bus data_channel_out;
 DeviceCpu deviceCpu;
 DeviceDisk deviceDisk;
 
+// For cosmos web
+socket_channel cosmos_web_telegraf_channel, cosmos_web_api_channel;
+const string TELEGRAF_ADDR = "";
+string cosmos_web_addr = "";
+const int TELEGRAF_PORT = 10096;
+const int API_PORT = 10097;
+bool sockets_initialized = false;
+int32_t open_cosmos_web_sockets(string cosmos_web_addr);
+void reset_db(Physics::Simulator *sim);
+int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo);
+
 int main(int argc, char *argv[])
 {
     int32_t iretn;
@@ -79,6 +90,11 @@ int main(int argc, char *argv[])
 
     // Open socket for returning state information to simulator
     iretn = socket_open(data_channel_out, CLIENT_PORT_OUT, 2000000);
+
+    // Cosmos web output initializations
+    open_cosmos_web_sockets(cosmos_web_addr);
+    // Reset simulation db
+    reset_db(sim);
 
     uint16_t tcount = 0;
     while (agent->running() && elapsed < runcount)
@@ -218,6 +234,7 @@ int main(int argc, char *argv[])
                 });
                 string output = jobj.dump();
                 iretn = socket_post(data_channel_out, output.c_str());
+                send_telem_to_cosmos_web(&state->currentinfo);
             }
         }
         if (realtime)
@@ -337,6 +354,11 @@ int32_t parse_control(string args)
     {
         ++argcount;
         realmname = jargs["realmname"].string_value();
+    }
+    if (!jargs["cosmos_web_addr"].is_null())
+    {
+        ++argcount;
+        cosmos_web_addr = jargs["cosmos_web_addr"].string_value();
     }
 
     return argcount;
@@ -496,4 +518,142 @@ int32_t request_set_torque(string &request, string &response, Agent *agent)
         }
     }
     return response.length();
+}
+
+int32_t open_cosmos_web_sockets(string cosmos_web_addr)
+{
+    // No telems are to be emitted if no address was specified
+    if (cosmos_web_addr.empty())
+    {
+        return COSMOS_GENERAL_ERROR_NOTSTARTED;
+    }
+    string ipv4_address = cosmos_web_addr;
+    // If no . or : are found, then it may be a hostname instead, in which case convert to an ipv4 address
+    if (cosmos_web_addr.find(".") == std::string::npos && cosmos_web_addr.find(":") == std::string::npos)
+    {
+        string response;
+        int32_t iretn = hostnameToIP(cosmos_web_addr, ipv4_address, response);
+        if (iretn < 0)
+        {
+            cout << "Encountered error in hostnameToIP: " << response << endl;
+            exit(0);
+        }
+    }
+
+    int32_t iretn = socket_open(&cosmos_web_telegraf_channel, NetworkType::UDP, ipv4_address.c_str(), TELEGRAF_PORT, SOCKET_TALK, SOCKET_BLOCKING, 2000000 );
+    if ((iretn) < 0)
+    {
+        cout << "Failed to open socket cosmos_web_telegraf_channel: " << cosmos_error_string(iretn) << endl;
+        exit(0);
+    }
+    iretn = socket_open(&cosmos_web_api_channel, NetworkType::UDP, ipv4_address.c_str(), API_PORT, SOCKET_TALK, SOCKET_BLOCKING, 2000000);
+    if ((iretn) < 0)
+    {
+        cout << "Failed to open socket cosmos_web_api_channel: " << cosmos_error_string(iretn) << endl;
+        exit(0);
+    }
+    sockets_initialized = true;
+    return iretn;
+}
+
+/**
+ * @brief Sends a single node's telems to cosmos web
+ * 
+ * @param cinfo cosmosstruc of some node to store telems for
+ * @return int32_t 0 on success, negative on failure
+ */
+int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
+{
+    if (!sockets_initialized)
+    {
+        return COSMOS_GENERAL_ERROR_NOTSTARTED;
+    }
+    // locstruc
+    json11::Json jobj = json11::Json::object({
+        {"node_name", cinfo->node.name },
+        {"node_loc", json11::Json::object({
+            {"pos", json11::Json::object({
+                {"eci", json11::Json::object({
+                    { "utc", cinfo->node.loc.pos.eci.utc },
+                    { "s", cinfo->node.loc.pos.eci.s },
+                    { "v", cinfo->node.loc.pos.eci.v }
+                })}
+            })},
+            {"att", json11::Json::object({
+                {"icrf", json11::Json::object({
+                    { "utc", cinfo->node.loc.att.icrf.utc },
+                    { "s", cinfo->node.loc.att.icrf.s },
+                    { "v", cinfo->node.loc.att.icrf.v }
+                })}
+            })}
+        })},
+    });
+    int32_t iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+    if (iretn < 0) { return iretn; }
+
+    return 0;
+}
+
+/**
+ * @brief Reset the simulation database
+ */
+void reset_db(Physics::Simulator* sim)
+{
+    if (!sockets_initialized)
+    {
+        return;
+    }
+    socket_sendto(cosmos_web_api_channel, "{\"swchstruc\": true, \"battstruc\": true, \"bcregstruc\": true, \"cpustruc\": true, \"device\": true, \"device_type\": true, \"locstruc\": true, \"magstruc\": true, \"node\": true, \"tsenstruc\": true, \"rwstruc\": true, \"mtrstruc\": true, \"attstruc_icrf\": true, \"cosmos_event\": true, \"event_type\": true, \"gyrostruc\": true, \"locstruc_eci\": true, \"target\": true, \"cosmos_event\": true }");
+    // Iterate over sats
+    uint16_t node_id = 1;
+    for (auto sit = sim->cnodes.begin(); sit != sim->cnodes.end(); sit++)
+    {
+        // Compute node id manually until it's stored somewhere in cosmosstruc
+        uint16_t id = node_id;
+        (*sit)->currentinfo.node.name == "mother" ? id = 0 : ++node_id;
+
+        // Repopulate node table
+        json11::Json jobj = json11::Json::object({
+            {"node", json11::Json::object({
+                { "node_id", id },
+                { "node_name", (*sit)->currentinfo.node.name },
+                { "node_type", (*sit)->currentinfo.node.type },
+                { "agent_name", (*sit)->currentinfo.agent0.name },
+                { "utc", sim->currentutc },
+                { "utcstart", sim->initialutc }
+            })}
+        });
+        socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+    }
+    auto mother = sim->GetNode("mother");
+    if (mother != sim->cnodes.end())
+    {
+        // Groundstations & targets
+        json11::Json jobj = json11::Json::object({
+            {"target", [mother]() -> vector<json11::Json>
+                {
+                    vector<json11::Json> ret;
+                    uint16_t target_id = 0;
+                    for (auto target : (*mother)->currentinfo.target) {
+                        ret.push_back({
+                            json11::Json::object({
+                                { "id"  , target_id++ },
+                                { "name", target.name },
+                                { "type", target.type },
+                                { "lat" , target.loc.pos.geod.s.lat },
+                                { "lon" , target.loc.pos.geod.s.lon },
+                                { "h" , target.loc.pos.geod.s.h },
+                                { "area" , target.area }
+                            })
+                        });
+                    }
+                    return ret;
+                }()
+            }
+        });
+        socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
+    }
+    // A bit silly, but reset requires some wait time at the moment 
+    // cout << "Resetting db..." << endl;
+    secondsleep(1.);
 }
