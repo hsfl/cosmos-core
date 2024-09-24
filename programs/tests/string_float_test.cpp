@@ -338,49 +338,42 @@ int main(int argc, char *argv[])
 	target1.loc.pos.geod.s.h = 10;
 	target1.loc.pos.geod.s.lat = DEG2RAD(21.351);
 	target1.loc.pos.geod.s.lon = DEG2RAD(-157.980);
-	target1.loc.pos.geod.utc = utc;
 
 	// Hilo
 	Cosmos::Support::targetstruc target2;
 	target2.loc.pos.geod.s.h = 18;
 	target2.loc.pos.geod.s.lat = DEG2RAD(19.7070);
 	target2.loc.pos.geod.s.lon = DEG2RAD(155.0899);
-	target2.loc.pos.geod.utc = utc;
 
 	// Kahului
 	Cosmos::Support::targetstruc target3;
 	target3.loc.pos.geod.s.h = 3;
 	target3.loc.pos.geod.s.lat = DEG2RAD(20.8890);
 	target3.loc.pos.geod.s.lon = DEG2RAD(156.4729);
-	target3.loc.pos.geod.utc = utc;
 
 	// Kapaa
 	Cosmos::Support::targetstruc target4;
 	target4.loc.pos.geod.s.h = 6;
 	target4.loc.pos.geod.s.lat = DEG2RAD(22.0883);
 	target4.loc.pos.geod.s.lon = DEG2RAD(159.3379);
-	target4.loc.pos.geod.utc = utc;
 
 	// Kaunakakai
 	Cosmos::Support::targetstruc target5;
 	target5.loc.pos.geod.s.h = 3;
 	target5.loc.pos.geod.s.lat = DEG2RAD(21.0939);
 	target5.loc.pos.geod.s.lon = DEG2RAD(157.0194);
-	target5.loc.pos.geod.utc = utc;
 
 	// Lanai
 	Cosmos::Support::targetstruc target6;
 	target6.loc.pos.geod.s.h = 500;
 	target6.loc.pos.geod.s.lat = DEG2RAD(20.8270);
 	target6.loc.pos.geod.s.lon = DEG2RAD(156.9208);
-	target6.loc.pos.geod.utc = utc;
 
 	// Niihau
 	Cosmos::Support::targetstruc target7;
 	target7.loc.pos.geod.s.h = 10;
 	target7.loc.pos.geod.s.lat = DEG2RAD(21.8969);
 	target7.loc.pos.geod.s.lon = DEG2RAD(160.1583);
-	target7.loc.pos.geod.utc = utc;
 
 	int count = 0;
 	for(double t = utc; t < utc+10.00; t+=1./86400.)	{
