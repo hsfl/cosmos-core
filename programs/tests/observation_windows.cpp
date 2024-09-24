@@ -242,10 +242,18 @@ int main(int argc, char *argv[])
 	// Create an array to hold the observation windows
 	json11::Json::array observation_windows;
 
+	// Create a set to hold unique target names in the current observation window
+	std::vector<std::string> current_targets;
+
 	if (!pass_events.empty()) {
 		// Initialize the first observation window with the first pass event
 		double current_start_mjd = pass_events[0]["start_mjd"].number_value();
 		double current_end_mjd = pass_events[0]["end_mjd"].number_value();
+		// Insert the first target name in order of observation, if not already present
+		std::string target_name = pass_events[0]["target"].string_value();
+		if (std::find(current_targets.begin(), current_targets.end(), target_name) == current_targets.end()) {
+			current_targets.push_back(target_name);
+		}
 
 		// Optionally, store the earliest start_iso8601 and latest end_iso8601
 		std::string current_start_iso = pass_events[0]["start_iso8601"].string_value();
@@ -263,6 +271,11 @@ int main(int argc, char *argv[])
 					current_end_mjd = next_end_mjd;
 					current_end_iso = pass_events[i]["end_iso8601"].string_value();
 				}
+				// Insert the overlapping target name in order of observation, if not already present
+				std::string target_name = pass_events[i]["target"].string_value();
+				if (std::find(current_targets.begin(), current_targets.end(), target_name) == current_targets.end()) {
+					current_targets.push_back(target_name);
+				}
 			} else {
 				// No overlap, finalize the current observation window
 				int duration_seconds = static_cast<int>((current_end_mjd - current_start_mjd) * 86400. + 0.5);
@@ -274,8 +287,9 @@ int main(int argc, char *argv[])
 					{"end_mjd", current_end_mjd},
 					{"start_iso8601", current_start_iso},
 					{"end_iso8601", current_end_iso},
-					{"duration", duration_seconds}
-				};
+					{"duration", duration_seconds},
+					{"targets", json11::Json::array(current_targets.begin(), current_targets.end())} // Preserve the order of observation
+		};
 
 				// Add the observation window to the array
 				observation_windows.push_back(observation_window);
@@ -285,11 +299,18 @@ int main(int argc, char *argv[])
 				current_end_mjd = next_end_mjd;
 				current_start_iso = pass_events[i]["start_iso8601"].string_value();
 				current_end_iso = pass_events[i]["end_iso8601"].string_value();
+			 	current_targets.clear(); // Reset for the new observation window
+				current_targets.push_back(pass_events[i]["target"].string_value()); // Insert the first target of new window
 			}
 		}
 
 		// Add the last observation window
 		int duration_seconds = static_cast<int>((current_end_mjd - current_start_mjd) * 86400. + 0.5);
+
+		json11::Json::array targets_json;
+		for (const auto& target : current_targets) {
+			targets_json.push_back(target);
+		}
 
 		json11::Json::object observation_window{
 			{"name", satellite_name + " Observation Window #" + std::to_string(observation_windows.size())},
@@ -297,7 +318,8 @@ int main(int argc, char *argv[])
 			{"end_mjd", current_end_mjd},
 			{"start_iso8601", current_start_iso},
 			{"end_iso8601", current_end_iso},
-			{"duration", duration_seconds}
+			{"duration", duration_seconds},
+			{"targets", json11::Json::array(current_targets.begin(), current_targets.end())} // Preserve the order of observation
 		};
 
 		observation_windows.push_back(observation_window);
