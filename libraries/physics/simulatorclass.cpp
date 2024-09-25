@@ -654,8 +654,31 @@ int32_t Simulator::ParseTargetFile(string filename)
 //! @param args JSON line of target arguments.
 //! @return Number of arguments, or negative error.
 
+/* given a JSON string of targets formatted this way:
+
+{
+"target_name_1":{"lat":19.398552,"lon":-155.284714,"h":190.1,"size":230},
+"target_name_2":{"lat":19.400633,"lon":-155.271988,"h":213.2,"size":57},
+"target_name_3":{"lat":19.417826,"lon":-155.073257,"h":-10.3,"size":176},
+"target_name_4":{"lat":19.419832,"lon":-155.061142,"h":142.4,"size":438},
+...
+
+each target is loaded into cosmosstruc::target (via AddTarget(..))
+
+notes:
+
+longitude and latitude are in radians
+height is in meters
+missing fields receive a value of "" or 0
+
+*/
 int32_t Simulator::ParseTargetString(string line)
 {
+	// if valid JSON string, parse JSON string and populate cosmosstruc::target
+
+	// else not valid JSON string, use legacy target format
+
+
     if (line[0] == '{')
     {
         targetstruc targ;
