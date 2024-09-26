@@ -624,29 +624,21 @@ int32_t Simulator::ParseSatString(string args)
 
 int32_t Simulator::ParseTargetFile(string filename)
 {
-    string  line;
-    FILE *fp;
+    std::ifstream file(filename);
+    if (!file.is_open()) { return -1; }
+
+    std::string line;
     int32_t iretn;
-
-    if (filename.empty())
+    while (std::getline(file, line))
     {
-        filename = get_realmdir(realmname, true) + "/" + "targets.dat"; // this does nothing in th default core repo
-    }
-
-    if ((fp = fopen(filename.c_str(), "r")) != nullptr)
-    {
-        line.resize(1010);
-        while (fgets((char *)line.data(), 1000, fp) != nullptr)
+        iretn = ParseTargetString(line);
+        if (iretn < 0)
         {
-            iretn = ParseTargetString(line);
-            if (iretn < 0)
-            {
-                fclose(fp);
-                return iretn;
-            }
+            file.close();
+            return iretn;
         }
-        fclose(fp);
     }
+    file.close();
     return targets.size();
 }
 
