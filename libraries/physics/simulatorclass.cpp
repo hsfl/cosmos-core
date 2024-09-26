@@ -630,7 +630,7 @@ int32_t Simulator::ParseTargetFile(string filename)
 
     if (filename.empty())
     {
-        filename = get_realmdir(realmname, true) + "/" + "targets.dat";
+        filename = get_realmdir(realmname, true) + "/" + "targets.dat"; // this does nothing in th default core repo
     }
 
     if ((fp = fopen(filename.c_str(), "r")) != nullptr)
@@ -674,44 +674,47 @@ missing fields receive a value of "" or 0
 */
 int32_t Simulator::ParseTargetString(string line)
 {
-	// if valid JSON string, parse JSON string and populate cosmosstruc::target
-
-	// else not valid JSON string, use legacy target format
-
+    // if valid JSON string, parse JSON object and populate cosmosstruc::target
+    // else not valid JSON string, use legacy target format
 
     if (line[0] == '{')
     {
-        targetstruc targ;
         string estring;
         json11::Json jargs = json11::Json::parse(line, estring);
-        targ.type = 0;
-        if (!jargs["type"].is_null())
-        {
-            targ.type = jargs["type"].number_value();
+
+        // Check for any parsing errors
+        if (!estring.empty()) {
+            std::cerr << "Error parsing JSON: " << estring << std::endl;
+            return -1;
         }
-        if (!jargs["name"].is_null())
-        {
-            targ.name = jargs["name"].string_value();
+
+        // Iterate over the JSON object
+        for (const auto& item : jargs.object_items()) {
+            targetstruc targ;
+            json11::Json data = item.second;
+
+            // Extract Name
+            targ.name=item.first;
+
+            // Extract Type
+            targ.type = 0;
+            if (!data["type"].is_null()) { targ.type = data["type"].number_value(); }
+
+            // Extract GEOD
+               targ.loc.pos.geod.s.lat = 0.0;
+            if (!data["latitude"].is_null()) { targ.loc.pos.geod.s.lat = RADOF(data["latitude"].number_value()); }
+
+               targ.loc.pos.geod.s.lon = 0.0;
+            if (!data["longitude"].is_null()) { targ.loc.pos.geod.s.lon = RADOF(data["longitude"].number_value()); }
+
+            targ.loc.pos.geod.s.h = 0.;
+            if (!data["altitude"].is_null()) { targ.loc.pos.geod.s.h = data["altitude"].number_value(); }
+
+            targ.area = 1.;
+            if (!data["area"].is_null()) { targ.area = data["area"].number_value(); }
+
+            AddTarget(targ);
         }
-        if (!jargs["latitude"].is_null())
-        {
-            targ.loc.pos.geod.s.lat = RADOF(jargs["latitude"].number_value());
-        }
-        if (!jargs["longitude"].is_null())
-        {
-            targ.loc.pos.geod.s.lon = RADOF(jargs["longitude"].number_value());
-        }
-        targ.loc.pos.geod.s.h = 0.;
-        if (!jargs["altitude"].is_null())
-        {
-            targ.loc.pos.geod.s.h = jargs["altitude"].number_value();
-        }
-        targ.area = 1.;
-        if (!jargs["area"].is_null())
-        {
-            targ.area = jargs["area"].number_value();
-        }
-        AddTarget(targ);
     }
     else
     {
