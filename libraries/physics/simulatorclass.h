@@ -52,6 +52,7 @@ namespace Cosmos
             int32_t ParseSatString(string args);
             int32_t ParseTargetFile(string filename="");
             int32_t ParseTargetString(string line);
+            int32_t ParseTargetJson(json11::Json jargs);
             int32_t GetError();
             int32_t Propagate(double nextutc=0.);
             //! Ends the simulation and runs any code that the propagators need to run at the end

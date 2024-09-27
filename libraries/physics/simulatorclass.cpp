@@ -642,6 +642,38 @@ int32_t Simulator::ParseTargetFile(string filename)
     return targets.size();
 }
 
+int32_t Simulator::ParseTargetJson(json11::Json jargs)	{
+
+    // Iterate over the JSON object
+    for (const auto& item : jargs.object_items()) {
+        targetstruc targ;
+        json11::Json data = item.second;
+
+        // Extract Name
+        targ.name=item.first;
+
+        // Extract Type
+        targ.type = 0;
+        if (!data["type"].is_null()) { targ.type = data["type"].number_value(); }
+
+        // Extract GEOD
+           targ.loc.pos.geod.s.lat = 0.0;
+        if (!data["latitude"].is_null()) { targ.loc.pos.geod.s.lat = RADOF(data["latitude"].number_value()); }
+
+           targ.loc.pos.geod.s.lon = 0.0;
+        if (!data["longitude"].is_null()) { targ.loc.pos.geod.s.lon = RADOF(data["longitude"].number_value()); }
+
+        targ.loc.pos.geod.s.h = 0.;
+        if (!data["altitude"].is_null()) { targ.loc.pos.geod.s.h = data["altitude"].number_value(); }
+
+        targ.area = 1.;
+        if (!data["area"].is_null()) { targ.area = data["area"].number_value(); }
+
+        AddTarget(targ);
+    }
+}
+
+
 //! @brief Add single target from line of JSON in a string.
 //! @param args JSON line of target arguments.
 //! @return Number of arguments, or negative error.
@@ -679,34 +711,7 @@ int32_t Simulator::ParseTargetString(string line)
             std::cerr << "Error parsing JSON: " << estring << std::endl;
             return -1;
         }
-
-        // Iterate over the JSON object
-        for (const auto& item : jargs.object_items()) {
-            targetstruc targ;
-            json11::Json data = item.second;
-
-            // Extract Name
-            targ.name=item.first;
-
-            // Extract Type
-            targ.type = 0;
-            if (!data["type"].is_null()) { targ.type = data["type"].number_value(); }
-
-            // Extract GEOD
-               targ.loc.pos.geod.s.lat = 0.0;
-            if (!data["latitude"].is_null()) { targ.loc.pos.geod.s.lat = RADOF(data["latitude"].number_value()); }
-
-               targ.loc.pos.geod.s.lon = 0.0;
-            if (!data["longitude"].is_null()) { targ.loc.pos.geod.s.lon = RADOF(data["longitude"].number_value()); }
-
-            targ.loc.pos.geod.s.h = 0.;
-            if (!data["altitude"].is_null()) { targ.loc.pos.geod.s.h = data["altitude"].number_value(); }
-
-            targ.area = 1.;
-            if (!data["area"].is_null()) { targ.area = data["area"].number_value(); }
-
-            AddTarget(targ);
-        }
+		ParseTargetJson(jargs);
     }
     else
     {
