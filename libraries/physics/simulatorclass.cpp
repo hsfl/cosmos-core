@@ -241,7 +241,14 @@ int32_t Simulator::ParseOrbitString(string args)
         json11::Json::object values = jargs["phys"].object_items();
         if (values["utc"].number_value() != 0.)
         {
-            initialutc += values["utc"].number_value();
+            if (values["utc"].number_value() > 3600.)
+            {
+                initialutc = values["utc"].number_value();
+            }
+            else
+            {
+                initialutc += values["utc"].number_value();
+            }
         }
         else
         {
