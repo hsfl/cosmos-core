@@ -413,6 +413,7 @@ public:
     quaternion jerkquaternion(double x);
     vector < vector <double> > getparms();
     double getbasex();
+    bool is_ready();
 };
 
 

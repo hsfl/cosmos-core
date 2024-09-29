@@ -241,7 +241,14 @@ int32_t Simulator::ParseOrbitString(string args)
         json11::Json::object values = jargs["phys"].object_items();
         if (values["utc"].number_value() != 0.)
         {
-            initialutc += values["utc"].number_value();
+            if (values["utc"].number_value() > 3600.)
+            {
+                initialutc = values["utc"].number_value();
+            }
+            else
+            {
+                initialutc += values["utc"].number_value();
+            }
         }
         else
         {
@@ -624,31 +631,55 @@ int32_t Simulator::ParseSatString(string args)
 
 int32_t Simulator::ParseTargetFile(string filename)
 {
-    string  line;
-    FILE *fp;
+    std::ifstream file(filename);
+    if (!file.is_open()) { return -1; }
+
+    std::string line;
     int32_t iretn;
-
-    if (filename.empty())
+    while (std::getline(file, line))
     {
-        filename = get_realmdir(realmname, true) + "/" + "targets.dat";
-    }
-
-    if ((fp = fopen(filename.c_str(), "r")) != nullptr)
-    {
-        line.resize(1010);
-        while (fgets((char *)line.data(), 1000, fp) != nullptr)
+        iretn = ParseTargetString(line);
+        if (iretn < 0)
         {
-            iretn = ParseTargetString(line);
-            if (iretn < 0)
-            {
-                fclose(fp);
-                return iretn;
-            }
+            file.close();
+            return iretn;
         }
-        fclose(fp);
     }
+    file.close();
     return targets.size();
 }
+
+int32_t Simulator::ParseTargetJson(json11::Json jargs)	{
+
+    // Iterate over the JSON object
+    for (const auto& item : jargs.object_items()) {
+        targetstruc targ;
+        json11::Json data = item.second;
+
+        // Extract Name
+        targ.name=item.first;
+
+        // Extract Type
+        targ.type = 0;
+        if (!data["type"].is_null()) { targ.type = data["type"].number_value(); }
+
+        // Extract GEOD
+           targ.loc.pos.geod.s.lat = 0.0;
+        if (!data["latitude"].is_null()) { targ.loc.pos.geod.s.lat = RADOF(data["latitude"].number_value()); }
+
+           targ.loc.pos.geod.s.lon = 0.0;
+        if (!data["longitude"].is_null()) { targ.loc.pos.geod.s.lon = RADOF(data["longitude"].number_value()); }
+
+        targ.loc.pos.geod.s.h = 0.;
+        if (!data["altitude"].is_null()) { targ.loc.pos.geod.s.h = data["altitude"].number_value(); }
+
+        targ.area = 1.;
+        if (!data["area"].is_null()) { targ.area = data["area"].number_value(); }
+
+        AddTarget(targ);
+    }
+}
+
 
 //! @brief Add single target from line of JSON in a string.
 //! @param args JSON line of target arguments.
@@ -674,44 +705,20 @@ missing fields receive a value of "" or 0
 */
 int32_t Simulator::ParseTargetString(string line)
 {
-	// if valid JSON string, parse JSON string and populate cosmosstruc::target
-
-	// else not valid JSON string, use legacy target format
-
+    // if valid JSON string, parse JSON object and populate cosmosstruc::target
+    // else not valid JSON string, use legacy target format
 
     if (line[0] == '{')
     {
-        targetstruc targ;
         string estring;
         json11::Json jargs = json11::Json::parse(line, estring);
-        targ.type = 0;
-        if (!jargs["type"].is_null())
-        {
-            targ.type = jargs["type"].number_value();
+
+        // Check for any parsing errors
+        if (!estring.empty()) {
+            std::cerr << "Error parsing JSON: " << estring << std::endl;
+            return -1;
         }
-        if (!jargs["name"].is_null())
-        {
-            targ.name = jargs["name"].string_value();
-        }
-        if (!jargs["latitude"].is_null())
-        {
-            targ.loc.pos.geod.s.lat = RADOF(jargs["latitude"].number_value());
-        }
-        if (!jargs["longitude"].is_null())
-        {
-            targ.loc.pos.geod.s.lon = RADOF(jargs["longitude"].number_value());
-        }
-        targ.loc.pos.geod.s.h = 0.;
-        if (!jargs["altitude"].is_null())
-        {
-            targ.loc.pos.geod.s.h = jargs["altitude"].number_value();
-        }
-        targ.area = 1.;
-        if (!jargs["area"].is_null())
-        {
-            targ.area = jargs["area"].number_value();
-        }
-        AddTarget(targ);
+		ParseTargetJson(jargs);
     }
     else
     {
