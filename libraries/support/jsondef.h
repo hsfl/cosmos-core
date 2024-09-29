@@ -3827,7 +3827,11 @@ union as a ::devicestruc.
         @param	s	JSON-formatted string to set class contents to
         @return n/a
     */
-            void from_json(const string& s) {};
+            void from_json(const string& s) {
+                string error;
+                json11::Json::parse(s,error);
+                return;
+            }
         };
 
         //! Thruster (THST) dynamic structure
@@ -3932,7 +3936,11 @@ union as a ::devicestruc.
         @param	s	JSON-formatted string to set class contents to
         @return n/a
     */
-            void from_json(const string& s) {};
+            void from_json(const string& s) {
+                string error;
+                json11::Json::parse(s,error);
+                return;
+            }
         };
 
         //! Rotor Structure definition
@@ -4313,7 +4321,11 @@ union as a ::devicestruc.
         @param	s	JSON-formatted string to set class contents to
         @return n/a
     */
-            void from_json(const string& s) {};
+            void from_json(const string& s) {
+                string error;
+                json11::Json::parse(s,error);
+                return;
+            }
         };
 
         //! BCREG (PV Regulator) Structure definition
