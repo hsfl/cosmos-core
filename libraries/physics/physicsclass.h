@@ -598,6 +598,7 @@ namespace Cosmos
         locstruc shape2eci(double utc, double altitude, double angle, double timeshift);
         locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift);
         int32_t load_loc(string fname, locstruc& loc);
+        Vector ControlAlpha(qatt tatt, qatt catt, double seconds);
         Vector ControlTorque(qatt tatt, qatt catt, Vector moi, double seconds);
         Vector ControlAccel(cartpos cpos, cartpos tpos, double maxaccel, double seconds);
         Vector ControlThrust(cartpos cpos, cartpos tpos, double mass, double maxaccel, double seconds);
