@@ -187,16 +187,16 @@ int main(int argc, char *argv[])
                 output += to_label(" eciax", to_floating(state->currentinfo.node.loc.pos.eci.a.col[0], 3));
                 output += to_label(" eciay", to_floating(state->currentinfo.node.loc.pos.eci.a.col[1], 3));
                 output += to_label(" eciaz", to_floating(state->currentinfo.node.loc.pos.eci.a.col[2], 3));
-                output += to_label(" thetax", to_floating(state->currentinfo.node.loc.att.icrf.s.d.x, 4));
-                output += to_label(" thetay", to_floating(state->currentinfo.node.loc.att.icrf.s.d.y, 4));
-                output += to_label(" thetaz", to_floating(state->currentinfo.node.loc.att.icrf.s.d.z, 4));
-                output += to_label(" thetaw", to_floating(state->currentinfo.node.loc.att.icrf.s.w, 4));
-                output += to_label(" omegax", to_floating(state->currentinfo.node.loc.att.icrf.v.col[0], 1));
-                output += to_label(" omegay", to_floating(state->currentinfo.node.loc.att.icrf.v.col[1], 1));
-                output += to_label(" omegaz", to_floating(state->currentinfo.node.loc.att.icrf.v.col[2], 1));
-                output += to_label(" alphax", to_floating(state->currentinfo.node.loc.att.icrf.a.col[0], 1));
-                output += to_label(" alphay", to_floating(state->currentinfo.node.loc.att.icrf.a.col[1], 1));
-                output += to_label(" alphaz", to_floating(state->currentinfo.node.loc.att.icrf.a.col[2], 1));
+//                output += to_label(" thetax", to_floating(state->currentinfo.node.loc.att.icrf.s.d.x, 4));
+//                output += to_label(" thetay", to_floating(state->currentinfo.node.loc.att.icrf.s.d.y, 4));
+//                output += to_label(" thetaz", to_floating(state->currentinfo.node.loc.att.icrf.s.d.z, 4));
+//                output += to_label(" thetaw", to_floating(state->currentinfo.node.loc.att.icrf.s.w, 4));
+//                output += to_label(" omegax", to_floating(state->currentinfo.node.loc.att.icrf.v.col[0], 1));
+//                output += to_label(" omegay", to_floating(state->currentinfo.node.loc.att.icrf.v.col[1], 1));
+//                output += to_label(" omegaz", to_floating(state->currentinfo.node.loc.att.icrf.v.col[2], 1));
+//                output += to_label(" alphax", to_floating(state->currentinfo.node.loc.att.icrf.a.col[0], 1));
+//                output += to_label(" alphay", to_floating(state->currentinfo.node.loc.att.icrf.a.col[1], 1));
+//                output += to_label(" alphaz", to_floating(state->currentinfo.node.loc.att.icrf.a.col[2], 1));
                 output += to_label(" powerin", to_floating(state->currentinfo.node.phys.powgen, 2));
                 output += to_label(" powerout", to_floating(state->currentinfo.node.phys.powuse, 2));
                 state->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
@@ -206,15 +206,16 @@ int main(int argc, char *argv[])
                 output += to_label(" load", to_floating(state->currentinfo.devspec.cpu[0].load / state->currentinfo.devspec.cpu[0].maxload, 3));
                 output += to_label(" memory", to_floating(state->currentinfo.devspec.cpu[0].gib / state->currentinfo.devspec.cpu[0].maxgib, 3));
                 output += to_label(" storage", to_floating(state->currentinfo.devspec.cpu[0].storage, 4));
-                rvector ds = state->currentinfo.node.loc.pos.eci.s - sim->cnodes[0]->currentinfo.node.loc.pos.eci.s;
-                rvector dv = state->currentinfo.node.loc.pos.eci.v - sim->cnodes[0]->currentinfo.node.loc.pos.eci.v;
-                output += to_label(" deltax", to_floating(ds.col[0], 2));
-                output += to_label(" deltay", to_floating(ds.col[1], 2));
-                output += to_label(" deltaz", to_floating(ds.col[2], 2));
-                output += to_label(" deltavx", to_floating(dv.col[0], 3));
-                output += to_label(" deltavy", to_floating(dv.col[1], 3));
-                output += to_label(" deltavz", to_floating(dv.col[2], 3));
-                printf("%s\n", output.c_str());
+                cartpos delta = eci2lvlh(sim->cnodes[0]->currentinfo.node.loc.pos.eci, state->currentinfo.node.loc.pos.eci);
+//                rvector ds = state->currentinfo.node.loc.pos.eci.s - sim->cnodes[0]->currentinfo.node.loc.pos.eci.s;
+//                rvector dv = state->currentinfo.node.loc.pos.eci.v - sim->cnodes[0]->currentinfo.node.loc.pos.eci.v;
+                output += to_label(" deltax", to_floating(delta.s.col[0], 2));
+                output += to_label(" deltay", to_floating(delta.s.col[1], 2));
+                output += to_label(" deltaz", to_floating(delta.s.col[2], 2));
+                output += to_label(" deltavx", to_floating(delta.v.col[0], 3));
+                output += to_label(" deltavy", to_floating(delta.v.col[1], 3));
+                output += to_label(" deltavz", to_floating(delta.v.col[2], 3));
+                printf("%s ", output.c_str());
             }
             if (postevent)
             {
@@ -237,9 +238,15 @@ int main(int argc, char *argv[])
                 send_telem_to_cosmos_web(&state->currentinfo);
             }
         }
+        if (printevent)
+        {
+            printf("\n");
+            fflush(stdout);
+        }
         if (realtime)
         {
             agent->finish_active_loop();
+            elapsed += simdt;
             //            if (++tcount > 10)
             //            {
             //                printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f | %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f | %8.1f %8.1f %8.1f %8.2f %8.2f %8.2f | %8.4f %8.2f %8.1f\n",
