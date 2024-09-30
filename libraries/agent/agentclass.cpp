@@ -1022,7 +1022,10 @@ void Agent::message_loop() {
             else
             {
                 message_queue.push_back(mess);
-                if (message_queue.size() > MESSAGE_RING_SIZE) { message_queue.pop_front(); }
+                if (message_queue.size() > MESSAGE_RING_SIZE)
+                {
+                    message_queue.pop_front();
+                }
             }
         }
     }
