@@ -523,6 +523,8 @@ namespace Cosmos
 
             cosmosstruc currentinfo;
 
+            string sohstring;
+
             locstruc initialloc;
 
             physicsstruc initialphys;

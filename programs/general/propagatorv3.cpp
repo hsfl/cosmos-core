@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
                     {
                         json11::Json jobj = json11::Json::object({
                             {"mtype", "event"},
-                            {"node", state->currentinfo.node.name},
+                            {"node_name", state->currentinfo.node.name},
                             {"utc", event.utc},
                             {"name", event.name},
                             {"type", static_cast<int>(event.type)},
@@ -236,6 +236,10 @@ int main(int argc, char *argv[])
                 string output = jobj.dump();
                 iretn = socket_post(data_channel_out, output.c_str());
                 send_telem_to_cosmos_web(&state->currentinfo);
+
+                // Post SOH
+                string jstring;
+                agent->post(Agent::AgentMessage::SOH, json_of_list(jstring, state->sohstring, &state->currentinfo));
             }
         }
         if (printevent)

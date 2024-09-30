@@ -622,6 +622,8 @@ int32_t Simulator::ParseSatString(string args)
 //    json_dump_node(&(*sit)->currentinfo);
     json_updatecosmosstruc(&(*sit)->currentinfo);
 
+    (*sit)->sohstring = json_list_of_soh(&(*sit)->currentinfo);
+
     return argcount;
 }
 
