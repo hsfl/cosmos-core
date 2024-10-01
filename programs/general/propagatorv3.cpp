@@ -16,6 +16,7 @@ int32_t request_get_location_node(string &request, string &response, Agent *agen
 int32_t request_get_offsetutc(string &request, string &response, Agent *agent);
 int32_t request_set_thrust(string &request, string &response, Agent *agent);
 int32_t request_set_torque(string &request, string &response, Agent *agent);
+int32_t request_dump_node(string &request, string &response, Agent *agent);
 Physics::Simulator *sim;
 Agent *agent;
 //uint16_t thrustctl = 0;
@@ -69,6 +70,7 @@ int main(int argc, char *argv[])
     agent->add_request("get_offsetutc", request_get_offsetutc, "", "Get simulator offset of UTC in julian days");
     agent->add_request("set_thrust", request_set_thrust, "nodename {thrust}", "Set JSON Vector of thrust for Node nodename");
     agent->add_request("set_torque", request_set_torque, "nodename {torque}", "Set JSON Vector of torque for Node nodename");
+    agent->add_request("dump_node", request_dump_node, "nodename", "Dump description for Node nodename");
 
     sim = new Physics::Simulator();
     iretn = sim->GetError();
@@ -526,6 +528,22 @@ int32_t request_set_torque(string &request, string &response, Agent *agent)
                 (*sit)->currentinfo.node.phys.ftorque.from_json(args[2]);
                 response = (*sit)->currentinfo.node.phys.ftorque.to_json().dump();
             }
+        }
+    }
+    return response.length();
+}
+
+int32_t request_dump_node(string &request, string &response, Agent *agent)
+{
+    response.clear();
+    vector<string> args = string_split(request);
+    if (args.size() > 1)
+    {
+        Physics::Simulator::StateList::iterator sit = sim->GetNode(args[1]);
+        if (sit != sim->cnodes.end())
+        {
+            json_dump_node(&(*sit)->currentinfo);
+            response = args[1];
         }
     }
     return response.length();
