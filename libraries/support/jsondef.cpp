@@ -1850,15 +1850,15 @@ namespace Cosmos
                 add_name(basename+".pcell", &node.phys.triangles[i].pcell, "float");
                 add_name(basename+".ecellbase", &node.phys.triangles[i].ecellbase, "float");
                 add_name(basename+".ecellslope", &node.phys.triangles[i].ecellslope, "float");
-                add_name(basename+".triangleindex", &node.phys.triangles[i].triangleindex, "vector<vector<uint16_t>>");
-                for(size_t j = 0; j < node.phys.triangles[i].triangleindex.size(); ++j) {
-                    string rebasename = basename + ".triangleindex[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.phys.triangles[i].triangleindex[j], "vector<uint16_t>");
-                    for(size_t k = 0; k < node.phys.triangles[i].triangleindex[j].size(); ++k) {
-                        string rebasename2 = rebasename + "[" + std::to_string(k) + "]";
-                        add_name(rebasename2, &node.phys.triangles[i].triangleindex[j][k], "uint16_t");
-                    }
-                }
+//                add_name(basename+".triangleindex", &node.phys.triangles[i].triangleindex, "vector<vector<uint16_t>>");
+//                for(size_t j = 0; j < node.phys.triangles[i].triangleindex.size(); ++j) {
+//                    string rebasename = basename + ".triangleindex[" + std::to_string(j) + "]";
+//                    add_name(rebasename, &node.phys.triangles[i].triangleindex[j], "vector<uint16_t>");
+//                    for(size_t k = 0; k < node.phys.triangles[i].triangleindex[j].size(); ++k) {
+//                        string rebasename2 = rebasename + "[" + std::to_string(k) + "]";
+//                        add_name(rebasename2, &node.phys.triangles[i].triangleindex[j][k], "uint16_t");
+//                    }
+//                }
             }
 
 
@@ -1889,11 +1889,11 @@ namespace Cosmos
             for(size_t i = 0; i < faces.size(); ++i) {
                 string basename = "faces[" + std::to_string(i) + "]";
                 add_name(basename, &faces[i], "facestruc");
-                add_name(basename+".vertex_cnt", &faces[i].vertex_cnt, "uint16_t");
-                add_name(basename+".vertex_idx", &faces[i].vertex_idx, "vector<uint16_t>");
-                for(size_t j = 0; j < faces[i].vertex_idx.size(); ++j) {
-                    string rebasename = basename + ".vertex_idx[" + std::to_string(j) + "]";
-                    add_name(rebasename, &faces[i].vertex_idx[j], "uint16_t");
+                add_name(basename+".triangle_cnt", &faces[i].triangle_cnt, "uint16_t");
+                add_name(basename+".triangle_idx", &faces[i].triangle_idx, "vector<uint16_t>");
+                for(size_t j = 0; j < faces[i].triangle_idx.size(); ++j) {
+                    string rebasename = basename + ".triangle_idx[" + std::to_string(j) + "]";
+                    add_name(rebasename, &faces[i].triangle_idx[j], "uint16_t");
                 }
                 add_name(basename+".com", &faces[i].com, "Vector");
                 add_name(basename+".com.x", &faces[i].com.x, "double");

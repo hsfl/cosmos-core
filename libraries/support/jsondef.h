@@ -2136,17 +2136,17 @@ class sim_param	{
             size_t memoryusage()
             {
                 size_t total = sizeof(facestruc);
-                total += vertex_idx.capacity() * sizeof(uint16_t);
+                total += triangle_idx.capacity() * sizeof(uint16_t);
                 return total;
             }
 
             void shrinkusage()
             {
-                vector<uint16_t>(vertex_idx).swap(vertex_idx);
+                vector<uint16_t>(triangle_idx).swap(triangle_idx);
             }
 
-            uint16_t vertex_cnt = 0;
-            vector <uint16_t> vertex_idx;
+            uint16_t triangle_cnt = 0;
+            vector <uint16_t> triangle_idx;
             Vector com;
             Vector normal;
             double area=0.;
@@ -2157,8 +2157,8 @@ class sim_param	{
     */
             json11::Json to_json() const {
                 return json11::Json::object {
-                    { "vertex_cnt" , static_cast<double>(vertex_cnt)},
-                    { "vertex_idx" , vertex_idx },
+                    { "triangle_cnt" , static_cast<double>(triangle_cnt)},
+                    { "triangle_idx" , triangle_idx },
                     { "com"	, com },
                     { "normal" , normal },
                     { "area"   , area }
@@ -2174,9 +2174,9 @@ class sim_param	{
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["vertex_cnt"].is_null()) { vertex_cnt = parsed["vertex_cnt"].long_value(); }
-                    for(size_t i = 0; i < vertex_idx.size(); ++i)	{
-                        if(!parsed["vertex_idx"][i].is_null())	{ vertex_idx[i] = parsed["vertex_idx"][i].long_value(); }
+                    if(!parsed["triangle_cnt"].is_null()) { triangle_cnt = parsed["triangle_cnt"].long_value(); }
+                    for(size_t i = 0; i < triangle_idx.size(); ++i)	{
+                        if(!parsed["triangle_idx"][i].is_null())	{ triangle_idx[i] = parsed["triangle_idx"][i].long_value(); }
                     }
                     if(!parsed["com"].is_null()) { com.from_json(parsed["com"].dump()); }
                     if(!parsed["normal"].is_null()) { normal.from_json(parsed["normal"].dump()); }
@@ -2212,18 +2212,18 @@ class sim_param	{
             bool enabled = true;
             //! Component index: -1 if not a Component
             uint16_t cidx = 0;
-            //! Density in kg/cu m
-            float density = 0.f;
+            //! Density in kg/cu m (aluminum)
+            float density = 2700.f;
             //! Mass in kg
             float mass = 0.f;
             //! Emissivity: 0-1
-            float emi = 0.f;
+            float emi = 0.85f;
             //! Absorptivity: 0-1
-            float abs = 0.f;
-            //! Heat capacity in joules per kelvin
-            float hcap = 0.f;
-            //! Heat conductivity in Watts per meter per kelvin
-            float hcon = 0.f;
+            float abs = 0.15f;
+            //! Heat capacity in joules per kelvin (aluminum)
+            float hcap = 900.f;
+            //! Heat conductivity in Watts per meter per kelvin (aluminum)
+            float hcon = 237.f;
             //! Dimension in meters: effect is dependent on Part type
             float dim = 0.f;
             //! Area in square meters
@@ -4389,20 +4389,20 @@ union as a ::devicestruc.
             size_t memoryusage()
             {
                 size_t total = sizeof(trianglestruc);
-                for (size_t i=0; i<triangleindex.size(); ++i)
-                {
-                    total += triangleindex[i].size() * sizeof(uint16_t);
-                }
+//                for (size_t i=0; i<triangleindex.size(); ++i)
+//                {
+//                    total += triangleindex[i].size() * sizeof(uint16_t);
+//                }
                 return total;
             }
 
             void shrinkusage()
             {
-                for (size_t i=0; i<triangleindex.size(); ++i)
-                {
-                    vector<uint16_t>(triangleindex[i]).swap(triangleindex[i]);
-                }
-                vector<vector<uint16_t>>(triangleindex).swap(triangleindex);
+//                for (size_t i=0; i<triangleindex.size(); ++i)
+//                {
+//                    vector<uint16_t>(triangleindex[i]).swap(triangleindex[i]);
+//                }
+//                vector<vector<uint16_t>>(triangleindex).swap(triangleindex);
             }
 
             //! External facing sides
@@ -4460,7 +4460,7 @@ union as a ::devicestruc.
             float volt = 0.f;
             //! Current generated in amps
             float amp = 0.f;
-            vector<vector<uint16_t>> triangleindex;
+//            vector<vector<uint16_t>> triangleindex;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -4493,7 +4493,7 @@ union as a ::devicestruc.
                     { "pcell" , pcell },
                     { "ecellbase"   , ecellbase },
                     { "ecellslope"  , ecellslope },
-                    { "triangleindex" , triangleindex }
+//                    { "triangleindex" , triangleindex }
                 };
             }
 
@@ -4530,11 +4530,11 @@ union as a ::devicestruc.
                     if(!parsed["pcell"].is_null())	{ pcell = parsed["pcell"].number_value(); }
                     if(!parsed["ecellbase"].is_null())	{ ecellbase = parsed["ecellbase"].number_value(); }
                     if(!parsed["ecellslope"].is_null())	{ ecellslope = parsed["ecellslope"].number_value(); }
-                    for(size_t i = 0; i < triangleindex.size(); ++i) {
-                        for(size_t j = 0; j < triangleindex[i].size(); ++j)  {
-                            if(!parsed["triangleindex"][i][j].is_null()) { triangleindex[i][j] = parsed["triangleindex"][i][j].number_value(); }
-                        }
-                    }
+//                    for(size_t i = 0; i < triangleindex.size(); ++i) {
+//                        for(size_t j = 0; j < triangleindex[i].size(); ++j)  {
+//                            if(!parsed["triangleindex"][i][j].is_null()) { triangleindex[i][j] = parsed["triangleindex"][i][j].number_value(); }
+//                        }
+//                    }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }

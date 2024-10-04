@@ -7409,34 +7409,34 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
     // Calculate centroid, normal and area for each face
     for (size_t i=0; i<cinfo->faces.size(); ++i)
     {
-        if (cinfo->faces[i].vertex_cnt)
+        if (cinfo->faces[i].triangle_cnt)
         {
-            Vector fcentroid = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
-            fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[1]];
-            Vector v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
-            Vector v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[1]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
+            Vector fcentroid = cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[0]];
+            fcentroid += cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[1]];
+            Vector v1 = cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[0]] - cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[cinfo->faces[i].triangle_cnt-1]];
+            Vector v2 = cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[1]] - cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[0]];
             Vector fnormal = v1.cross(v2);
-            for (size_t j=2; j<cinfo->faces[i].vertex_cnt; ++j)
+            for (size_t j=2; j<cinfo->faces[i].triangle_cnt; ++j)
             {
-                fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[j]];
+                fcentroid += cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[j]];
                 v1 = v2;
-                v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[j-1]];
+                v2 = cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[j]] - cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[j-1]];
                 fnormal += v1.cross(v2);
             }
             v1 = v2;
-            v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
+            v2 = cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[0]] - cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[cinfo->faces[i].triangle_cnt-1]];
             fnormal += v1.cross(v2);
 
-            fcentroid /= cinfo->faces[i].vertex_cnt;
+            fcentroid /= cinfo->faces[i].triangle_cnt;
             fnormal.normalize();
             cinfo->faces[i].normal = fnormal;
 
             cinfo->faces[i].com = Vector();
             cinfo->faces[i].area = 0.;
-            v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]] - fcentroid;
-            for (size_t j=0; j<cinfo->faces[i].vertex_cnt; ++j)
+            v1 = cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[cinfo->faces[i].triangle_cnt-1]] - fcentroid;
+            for (size_t j=0; j<cinfo->faces[i].triangle_cnt; ++j)
             {
-                v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - fcentroid;
+                v2 = cinfo->node.phys.triangles[cinfo->faces[i].triangle_idx[j]] - fcentroid;
                 // Area of triangle made by v1, v2 and Face centroid
                 double tarea = v1.area(v2);
                 // Sum

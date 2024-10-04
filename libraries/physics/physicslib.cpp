@@ -3708,15 +3708,15 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             for (size_t i=0; i<cinfo->node.phys.triangles.size(); ++i)
             {
                 trianglestruc tface = cinfo->node.phys.triangles[i];
-                if (cinfo->node.phys.triangles[i].triangleindex.empty())
-                {
-                    cinfo->node.phys.triangles[i].triangleindex.resize(9);
-                    for (size_t j=0; j<9; ++j)
-                    {
-                        float cel = cos(RADOF(90.-(10.*j+5.)));
-                        cinfo->node.phys.triangles[i].triangleindex[j].resize((int)(cel*18+.5));
-                    }
-                }
+//                if (cinfo->node.phys.triangles[i].triangleindex.empty())
+//                {
+//                    cinfo->node.phys.triangles[i].triangleindex.resize(9);
+//                    for (size_t j=0; j<9; ++j)
+//                    {
+//                        float cel = cos(RADOF(90.-(10.*j+5.)));
+//                        cinfo->node.phys.triangles[i].triangleindex[j].resize((int)(cel*18+.5));
+//                    }
+//                }
 
                 for (size_t j=0; j<cinfo->node.phys.triangles.size(); ++j)
                 {
@@ -3733,14 +3733,14 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                             float alt = (int16_t)((DPI2 - el) / 9.) + RADOF(.5);
                             uint16_t rowi = 9 * alt / DPI2;
                             uint16_t coli = 9 * cos(alt) * az / DPI2;
-                            if (cinfo->node.phys.triangles[i].triangleindex[rowi][coli])
-                            {
-                                cinfo->node.phys.triangles[i].triangleindex[rowi][coli] = j;
-                            }
-                            else
-                            {
+//                            if (cinfo->node.phys.triangles[i].triangleindex[rowi][coli])
+//                            {
+//                                cinfo->node.phys.triangles[i].triangleindex[rowi][coli] = j;
+//                            }
+//                            else
+//                            {
 
-                            }
+//                            }
                         }
                     }
                 }
