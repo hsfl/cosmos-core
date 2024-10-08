@@ -1080,7 +1080,7 @@ int32_t Structure::Setup(Type type)
     }
 
     // Calculate physical quantities
-    iretn = PhysSetup(&currentinfo->node.phys);
+    iretn = PhysSetup(currentphys);
     if (iretn < 0)
     {
         return iretn;
@@ -1205,9 +1205,10 @@ int32_t Structure::add_oct(double width, double height, ExternalPanelType type)
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
             add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.));
-            add_panel("top", top,
-            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+            add_panel("top", top);
+            add_panel("bottom", bottom);
+//            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+//            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
 
         break;
@@ -1215,8 +1216,10 @@ int32_t Structure::add_oct(double width, double height, ExternalPanelType type)
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
             add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+            add_panel("top", top);
+            add_panel("bottom", bottom);
+//            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+//            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
 
         break;
@@ -1224,8 +1227,10 @@ int32_t Structure::add_oct(double width, double height, ExternalPanelType type)
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
             add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+            add_panel("top", top);
+            add_panel("bottom", bottom);
+//            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+//            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
 
         break;
@@ -1233,8 +1238,10 @@ int32_t Structure::add_oct(double width, double height, ExternalPanelType type)
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
             add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+            add_panel("top", top);
+            add_panel("bottom", bottom);
+//            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+//            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
 
         break;
@@ -1274,32 +1281,33 @@ int32_t Structure::add_cuboid(string name, Vector dimensions, double depth, Quat
 //! \return Face number, or negative error.
 int32_t Structure::add_panel(string name, vector<Vector> points, double thickness, uint8_t external, float pcell, Quaternion orientation, Vector offset, float density)
 {
-    int32_tiretn = 0;
-    if ((iretn=add_face(points, thickness, external, pcell, orientation, offset)) >= 0)
-    {
-        piecestruc piece;
-        piece.name = name;
-        piece.density = density;
-        piece.area = currentinfo->faces[iretn].area;
-        piece.volume = piece.area * piece * thickness;
-        piece.mass = piece.density * piece.volume;
-        piece.face_idx.push_back(iretn);
-        piece.face_cnt = 1;
-        index = currentinfo->pieces.push_back(piece);
-        if (index >= 0)
-        {
-            currentinfo->piece_cnt = currentinfo->pieces.size();
-            return currentinfo->piece_cnt;
-        }
-        else
-        {
-            return iretn;
-        }
-    }
-    else
-    {
-        return iretn;
-    }
+    return add_face(points, thickness, external, pcell, orientation, offset);
+//    int32_t iretn = 0;
+//    if ((iretn=add_face(points, thickness, external, pcell, orientation, offset)) >= 0)
+//    {
+//        piecestruc piece;
+//        piece.name = name;
+//        piece.density = density;
+//        piece.area = currentinfo->faces[iretn].area;
+//        piece.volume = piece.area * piece * thickness;
+//        piece.mass = piece.density * piece.volume;
+//        piece.face_idx.push_back(iretn);
+//        piece.face_cnt = 1;
+//        index = currentinfo->pieces.push_back(piece);
+//        if (index >= 0)
+//        {
+//            currentinfo->piece_cnt = currentinfo->pieces.size();
+//            return currentinfo->piece_cnt;
+//        }
+//        else
+//        {
+//            return iretn;
+//        }
+//    }
+//    else
+//    {
+//        return iretn;
+//    }
 }
 
 //! Add rectangular panel
@@ -1432,19 +1440,19 @@ int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, dou
     triangle.external = external;
     triangle.depth = depth;
     triangle.pcell = pcell;
-    triangle.com = (currentinfo->node.phys.vertices[triangle.tidx[0]] + currentinfo->node.phys.vertices[triangle.tidx[1]] + currentinfo->node.phys.vertices[triangle.tidx[2]]) / 3.;
-    triangle.area = (currentinfo->node.phys.vertices[triangle.tidx[1]] - currentinfo->node.phys.vertices[triangle.tidx[0]]).area(currentinfo->node.phys.vertices[triangle.tidx[2]] - currentinfo->node.phys.vertices[triangle.tidx[0]]);
-    triangle.normal = (currentinfo->node.phys.vertices[triangle.tidx[1]] - currentinfo->node.phys.vertices[triangle.tidx[0]]).cross(currentinfo->node.phys.vertices[triangle.tidx[2]] - currentinfo->node.phys.vertices[triangle.tidx[0]]).normalize(triangle.area);
+    triangle.com = (currentphys->vertices[triangle.tidx[0]] + currentphys->vertices[triangle.tidx[1]] + currentphys->vertices[triangle.tidx[2]]) / 3.;
+    triangle.area = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).area(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]);
+    triangle.normal = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).cross(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]).normalize(triangle.area);
     triangle.mass = triangle.area * triangle.depth * triangle.density;
-    triangle.perimeter = (currentinfo->node.phys.vertices[triangle.tidx[1]] - currentinfo->node.phys.vertices[triangle.tidx[0]]).norm() + (currentinfo->node.phys.vertices[triangle.tidx[2]] - currentinfo->node.phys.vertices[triangle.tidx[1]]).norm() + (currentinfo->node.phys.vertices[triangle.tidx[0]] - currentinfo->node.phys.vertices[triangle.tidx[2]]).norm();
+    triangle.perimeter = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).norm() + (currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[1]]).norm() + (currentphys->vertices[triangle.tidx[0]] - currentphys->vertices[triangle.tidx[2]]).norm();
 
     triangle.twist = (triangle.com - triangle.normal).cross(triangle.normal);
     triangle.twist = (-triangle.area/(triangle.normal.norm2()) * triangle.twist);
     triangle.shove = Vector();
     for (uint16_t i=0; i<2; i++)
     {
-        Vector tv0 = (currentinfo->node.phys.vertices[triangle.tidx[i]] - triangle.com);
-        Vector tv1 = (currentinfo->node.phys.vertices[triangle.tidx[i+1]] - triangle.com);
+        Vector tv0 = (currentphys->vertices[triangle.tidx[i]] - triangle.com);
+        Vector tv1 = (currentphys->vertices[triangle.tidx[i+1]] - triangle.com);
         double ta = (tv0.norm());
         for (uint16_t j=0; j<=ta*100; j++)
         {
@@ -1462,7 +1470,7 @@ int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, dou
     }
     triangle.shove = (triangle.shove / -10000.);
 
-    currentinfo->node.phys.triangles.push_back(triangle);
+    currentphys->triangles.push_back(triangle);
 
     return 1;
 }
@@ -1472,9 +1480,9 @@ int32_t Structure::add_vertex(Vector point)
     bool found = false;
 
     int32_t index = -1;
-    for (uint16_t i=0; i<currentinfo->node.phys.vertices.size(); ++ i)
+    for (uint16_t i=0; i<currentphys->vertices.size(); ++ i)
     {
-        if ((point - currentinfo->node.phys.vertices[i]).norm() < .001)
+        if ((point - currentphys->vertices[i]).norm() < .001)
         {
             found = true;
             index = i;
@@ -1487,8 +1495,8 @@ int32_t Structure::add_vertex(Vector point)
         return index;
     }
     else {
-        currentinfo->node.phys.vertices.push_back(point);
-        return currentinfo->node.phys.vertices.size() - 1;
+        currentphys->vertices.push_back(point);
+        return currentphys->vertices.size() - 1;
     }
 }
 
@@ -1741,7 +1749,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     currentinfo.node.name = name;
     currentinfo.agent0.name = "sim";
 
-    structure = new Structure(&currentinfo);
+    structure = new Structure(&currentinfo.node.phys);
     structure->Setup(stype);
     this->stype = stype;
     currentinfo.mass = currentinfo.node.phys.mass;
@@ -2428,11 +2436,11 @@ int32_t TargetAttitudePropagator::Reset(double nextutc)
 
 int32_t ThermalPropagator::Init(float temp)
 {
-    currentinfo->node.phys.temp = temp;
-    currentinfo->node.phys.heat = currentinfo->node.phys.temp * currentinfo->node.phys.mass * currentinfo->node.phys.hcap;
-    for (trianglestruc& triangle : currentinfo->node.phys.triangles)
+    currentphys->temp = temp;
+    currentphys->heat = currentphys->temp * currentphys->mass * currentphys->hcap;
+    for (trianglestruc& triangle : currentphys->triangles)
     {
-        triangle.temp = currentinfo->node.phys.temp;
+        triangle.temp = currentphys->temp;
         triangle.heat = triangle.temp * (triangle.mass * triangle.hcap);
     }
     return 0;
@@ -2443,16 +2451,16 @@ int32_t ThermalPropagator::Reset(float temp)
     currentutc = currentinfo->node.loc.utc;
     if (temp == 0.f)
     {
-        currentinfo->node.phys.temp = initialphys.temp;
+        currentphys->temp = initialphys.temp;
     }
     else
     {
-        currentinfo->node.phys.temp = temp;
+        currentphys->temp = temp;
     }
-    currentinfo->node.phys.heat = currentinfo->node.phys.temp * currentinfo->node.phys.mass * currentinfo->node.phys.hcap;
-    for (trianglestruc& triangle : currentinfo->node.phys.triangles)
+    currentphys->heat = currentphys->temp * currentphys->mass * currentphys->hcap;
+    for (trianglestruc& triangle : currentphys->triangles)
     {
-        triangle.temp = currentinfo->node.phys.temp;
+        triangle.temp = currentphys->temp;
         triangle.heat = triangle.temp * (triangle.mass * triangle.hcap);
     }
     return 0;
@@ -2468,13 +2476,13 @@ int32_t ThermalPropagator::Propagate(double nextutc)
     {
         currentutc += dtj;
         double energyd = 0.;
-        double heatratio = currentinfo->node.phys.heat / currentinfo->node.phys.mass;
-        currentinfo->node.phys.heat = 0.;
-        //                double ienergyd = currentinfo->node.phys.radiation / currentinfo->node.phys.mass;
-        currentinfo->node.phys.radiation = 0.;
+        double heatratio = currentphys->heat / currentphys->mass;
+        currentphys->heat = 0.;
+        //                double ienergyd = currentphys->radiation / currentphys->mass;
+        currentphys->radiation = 0.;
         double atotal = 0.;
         double rtotal = 0.;
-        for (trianglestruc& triangle : currentinfo->node.phys.triangles)
+        for (trianglestruc& triangle : currentphys->triangles)
         {
             triangle.heat = heatratio * triangle.mass;
             triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
@@ -2522,21 +2530,21 @@ int32_t ThermalPropagator::Propagate(double nextutc)
                 // External
                 triangle.heat -= 1.05 * triangle.emi * energyd;
                 rtotal += 1.05 * triangle.emi * energyd;
-                currentinfo->node.phys.radiation += 1.95 * triangle.iemi * energyd;
+                currentphys->radiation += 1.95 * triangle.iemi * energyd;
             }
             //                    else
             //                    {
             //                        // Purely internal
             //                        triangle.heat -= triangle.iemi * energyd;
-            //                        currentinfo->node.phys.radiation += triangle.iemi * energyd;
+            //                        currentphys->radiation += triangle.iemi * energyd;
             //                    }
 
             triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
-            currentinfo->node.phys.heat += triangle.heat;
+            currentphys->heat += triangle.heat;
         }
 
-        currentinfo->node.phys.temp = heatratio / currentinfo->node.phys.hcap;
-        temperature = currentinfo->node.phys.temp;
+        currentphys->temp = heatratio / currentphys->hcap;
+        temperature = currentphys->temp;
     }
 
     return 0;
@@ -2553,11 +2561,11 @@ int32_t ElectricalPropagator::Reset(float bp)
     currentutc = currentinfo->node.loc.utc;
     if (bp == 0.f)
     {
-        currentinfo->node.phys.battlev = initialphys.battlev;
+        currentphys->battlev = initialphys.battlev;
     }
     else
     {
-        currentinfo->node.phys.battlev = bp;
+        currentphys->battlev = bp;
     }
     return  0;
 }
@@ -2572,8 +2580,8 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
     while ((nextutc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;
-        currentinfo->node.phys.powgen = 0.;
-        for (trianglestruc& triangle : currentinfo->node.phys.triangles)
+        currentphys->powgen = 0.;
+        for (trianglestruc& triangle : currentphys->triangles)
         {
             if (triangle.external)
             {
@@ -2585,7 +2593,7 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
                         triangle.power = efficiency * triangle.sirradiation;
                         triangle.volt = triangle.vcell;
                         triangle.amp = -triangle.power / triangle.volt;
-                        currentinfo->node.phys.powgen += triangle.power;
+                        currentphys->powgen += triangle.power;
                     }
                 }
             }
@@ -2596,21 +2604,21 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
                 triangle.amp = 0.;
             }
         }
-        currentinfo->node.phys.powuse = 0.;
+        currentphys->powuse = 0.;
         for (devicestruc* dev : currentinfo->device)
         {
             if (dev->state)
             {
-                currentinfo->node.phys.powuse += dev->amp * dev->volt;
+                currentphys->powuse += dev->amp * dev->volt;
             }
         }
-        double pdelta = currentinfo->node.phys.powuse-currentinfo->node.phys.powgen;
+        double pdelta = currentphys->powuse-currentphys->powgen;
         if (currentinfo->devspec.batt_cnt)
         {
             double vsys = 0.;
             double vmax = currentinfo->devspec.batt_cnt * currentinfo->devspec.batt[0].maxvolt;
             double vmin = currentinfo->devspec.batt_cnt * currentinfo->devspec.batt[0].minvolt;
-            double vbat = vmin + (vmax - vmin) * currentinfo->node.phys.battlev / currentinfo->node.phys.battcap;
+            double vbat = vmin + (vmax - vmin) * currentphys->battlev / currentphys->battcap;
             // Consuming
             if (pdelta > 0.)
             {
@@ -2647,7 +2655,7 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
             {
                 currentinfo->devspec.batt[i].volt = vbat;
                 currentinfo->devspec.batt[i].amp = -dcharge / dt;
-                currentinfo->node.phys.battlev += dcharge;
+                currentphys->battlev += dcharge;
                 currentinfo->devspec.batt[i].charge += dcharge;
                 if (currentinfo->devspec.batt[i].charge > currentinfo->devspec.batt[i].capacity)
                     currentinfo->devspec.batt[i].charge = currentinfo->devspec.batt[i].capacity;
@@ -2656,18 +2664,18 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
                 currentinfo->devspec.batt[i].utc = currentinfo->node.loc.utc;
             }
 
-            if (currentinfo->node.phys.powgen > currentinfo->node.phys.powuse)
+            if (currentphys->powgen > currentphys->powuse)
                 currentinfo->node.flags |= NODE_FLAG_CHARGING;
             else
                 currentinfo->node.flags &= ~NODE_FLAG_CHARGING;
 
-            if (currentinfo->node.phys.battlev < 0.)
-                currentinfo->node.phys.battlev = 0.;
+            if (currentphys->battlev < 0.)
+                currentphys->battlev = 0.;
 
-            if (currentinfo->node.phys.battlev >= currentinfo->node.phys.battcap)
+            if (currentphys->battlev >= currentphys->battcap)
             {
                 currentinfo->node.flags &= ~NODE_FLAG_CHARGING;
-                currentinfo->node.phys.battlev = currentinfo->node.phys.battcap;
+                currentphys->battlev = currentphys->battcap;
             }
         }
 
@@ -3152,9 +3160,9 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
         // Update acceleration for the new position
         PosAccel(currentinfo->node.loc, currentinfo->node.phys);
         // Apply external accelerations
-        // currentinfo->node.loc.pos.eci.a = rv_add(currentinfo->node.loc.pos.eci.a, rv_smult(1./currentinfo->node.phys.mass, currentinfo->node.phys.fpush.to_rv()));
+        // currentinfo->node.loc.pos.eci.a = rv_add(currentinfo->node.loc.pos.eci.a, rv_smult(1./currentphys->mass, currentphys->fpush.to_rv()));
         // Clearing external accelerations TODO: consider if this is desireable
-        // currentinfo->node.phys.fpush.clear();
+        // currentphys->fpush.clear();
         // currentinfo->node.loc.pos.eci.pass++;
         // pos_eci(currentinfo->node.loc);
     }
@@ -3400,7 +3408,7 @@ int32_t GaussJacksonPositionPropagator::Init(tlestruc tle)
     }
 
     iretn = Converge();
-    currentinfo->node.phys.utc = currentinfo->node.loc.utc;
+    currentphys->utc = currentinfo->node.loc.utc;
     currentutc = currentinfo->node.loc.utc;
 
     return iretn;
@@ -3435,7 +3443,7 @@ int32_t GaussJacksonPositionPropagator::Init()
 
     initialloc = currentinfo->node.loc;
     initialphys = currentinfo->node.phys;
-    currentinfo->node.phys.utc = currentinfo->node.loc.utc;
+    currentphys->utc = currentinfo->node.loc.utc;
 
     // Zero out original N+1 bin
     loc_clear(step[order+1].loc);
@@ -3582,7 +3590,7 @@ int32_t GaussJacksonPositionPropagator::Init(vector<locstruc> locs)
     }
     iretn = Converge();
 
-    currentinfo->node.phys.utc = currentinfo->node.loc.utc;
+    currentphys->utc = currentinfo->node.loc.utc;
     currentutc = step[order2].loc.utc;
     return iretn;
 }
@@ -3667,9 +3675,9 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         }
 
         // Adjust for any thrust
-        if (currentinfo->node.phys.fpush.norm() && currentinfo->node.phys.mass)
+        if (currentphys->fpush.norm() && currentphys->mass)
         {
-            Vector dacc = (1./currentinfo->node.phys.mass) * currentinfo->node.phys.fpush;
+            Vector dacc = (1./currentphys->mass) * currentphys->fpush;
             step[order2].loc.pos.eci.s = rv_add(step[order2].loc.pos.eci.s, 0.5 * dtsq * dacc.to_rv());
             step[order2].loc.pos.eci.v = rv_add(step[order2].loc.pos.eci.v, dt * dacc.to_rv());
             Update();
@@ -3688,8 +3696,8 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         currentinfo->node.loc.utc = currentinfo->node.loc.pos.utc;
     }
 
-    Vector fp = currentinfo->node.phys.fpush;
-    currentinfo->node.phys.fpush.clear();
+    Vector fp = currentphys->fpush;
+    currentphys->fpush.clear();
 
 //    static double lastutc=0.0;
 //    if (lastutc != step[0].loc.pos.eci.utc)
@@ -3818,7 +3826,7 @@ int32_t GaussJacksonPositionPropagator::Converge()
 
     currentinfo->node.loc = step[order2].loc;
     ++currentinfo->node.loc.pos.eci.pass;
-    //    currentinfo->node.phys.fpush = rv_zero();
+    //    currentphys->fpush = rv_zero();
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
     pos_eci(currentinfo->node.loc);
     return 0;
@@ -3904,7 +3912,7 @@ int32_t GaussJacksonPositionPropagator::Update()
         PosAccel(step[i].loc, currentinfo->node.phys);
     }
     currentutc = step[order2].loc.utc;
-    currentinfo->node.phys.utc = step[order2].loc.utc;
+    currentphys->utc = step[order2].loc.utc;
 
     // Converge on rational set of values
     iretn = Converge();

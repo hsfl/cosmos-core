@@ -46,7 +46,7 @@ namespace Cosmos
         class Structure
         {
         public:
-            cosmosstruc *currentinfo;
+            physicsstruc *currentphys;
 
             enum Type
                 {
@@ -86,7 +86,7 @@ namespace Cosmos
                 XY
                 };
 
-            Structure(cosmosstruc *newinfo) : currentinfo{newinfo}
+            Structure(physicsstruc *newphys) : currentphys{newphys}
             {
 
             }

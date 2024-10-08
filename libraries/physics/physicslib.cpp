@@ -1014,11 +1014,10 @@ for (il=0; il<5; il++)
                 cinfo->pieces[i].heat -= dheat;
                 sdheat += dheat;
 
-                if (cinfo->pieces[i].face_cnt == 1)
+                if (cinfo->pieces[i].face_idx.size() == 1)
                 {
                     cinfo->pieces[i].heat -= dheat;
-                    //            vdot = dot_rv(unitv,cinfo->pieces[i].normal);
-                    vdot = unitv.dot(cinfo->faces[abs(cinfo->pieces[i].face_idx[0])].normal);
+                    vdot = unitv.dot(cinfo->node.phys.faces[abs(cinfo->pieces[i].face_idx[0])].normal);
                     if (vdot > 0)
                     {
                         if (cinfo->node.phys.mass)
@@ -1035,7 +1034,7 @@ for (il=0; il<5; il++)
                         cinfo->node.phys.adrag += da;
                     }
 
-                    sdot = units.dot(cinfo->faces[abs(cinfo->pieces[i].face_idx[0])].normal);
+                    sdot = units.dot(cinfo->node.phys.faces[abs(cinfo->pieces[i].face_idx[0])].normal);
                     if (loc.pos.sunradiance && sdot > 0)
                     {
                         ddrag = loc.pos.sunradiance * sdot / (3e8*cinfo->node.phys.mass);
@@ -1044,7 +1043,7 @@ for (il=0; il<5; il++)
                         da = ddrag * cinfo->pieces[i].shove;
                         cinfo->node.phys.rdrag += da;
 
-                        cinfo->pieces[i].insol = loc.pos.sunradiance * sdot / cinfo->faces[abs(cinfo->pieces[i].face_idx[0])].normal.norm();
+                        cinfo->pieces[i].insol = loc.pos.sunradiance * sdot / cinfo->node.phys.faces[abs(cinfo->pieces[i].face_idx[0])].normal.norm();
                         energyd =  cinfo->pieces[i].insol * cinfo->node.phys.dt;
                         cinfo->pieces[i].heat += cinfo->pieces[i].area * cinfo->pieces[i].abs * energyd;
                         if (cinfo->pieces[i].cidx<(uint16_t)DeviceType::NONE && cinfo->device[cinfo->pieces[i].cidx]->type == (uint16_t)DeviceType::PVSTRG)
@@ -1075,7 +1074,7 @@ for (il=0; il<5; il++)
                             }
                         }
                     }
-                    edot = acos(unite.dot(cinfo->faces[abs(cinfo->pieces[i].face_idx[0])].normal) / cinfo->faces[abs(cinfo->pieces[i].face_idx[0])].normal.norm()) - RADOF(5.);
+                    edot = acos(unite.dot(cinfo->node.phys.faces[abs(cinfo->pieces[i].face_idx[0])].normal) / cinfo->node.phys.faces[abs(cinfo->pieces[i].face_idx[0])].normal.norm()) - RADOF(5.);
                     if (edot < 0.)
                         edot = 1.;
                     else
@@ -1779,7 +1778,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             case 10:
             case 11:
             case 12:
-                loc.att.icrf.s = q_drotate_between_rv(cinfo->faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,loc.pos.icrf.s));
+                loc.att.icrf.s = q_drotate_between_rv(cinfo->node.phys.faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,loc.pos.icrf.s));
                 //	loc.att.icrf.s = rm_change_between_rv(cinfo->pieces[cinfo->node.phys.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
                 loc.att.icrf.v = rv_zero();
                 Convert::att_icrf2lvlh(&loc);
@@ -1874,7 +1873,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             case 10:
             case 11:
             case 12:
-                loc.att.icrf.s = q_drotate_between_rv(cinfo->faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,loc.pos.icrf.s));
+                loc.att.icrf.s = q_drotate_between_rv(cinfo->node.phys.faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,loc.pos.icrf.s));
                 //	loc.att.icrf.s = rm_change_between_rv(cinfo->pieces[cinfo->node.phys.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
                 loc.att.icrf.v = rv_zero();
                 Convert::att_icrf2lvlh(&loc);
@@ -1988,7 +1987,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             case 10:
             case 11:
             case 12:
-                sloc[0].att.icrf.s = q_drotate_between_rv(cinfo->faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,sloc[0].pos.icrf.s));
+                sloc[0].att.icrf.s = q_drotate_between_rv(cinfo->node.phys.faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,sloc[0].pos.icrf.s));
                 //	sloc[0].att.icrf.s = rm_change_between_rv(cinfo->pieces[cinfo->node.phys.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
                 sloc[0].att.icrf.v = rv_zero();
                 Convert::att_icrf2lvlh(&sloc[0]);
@@ -2182,7 +2181,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 case 9:
                 case 10:
                 case 11:
-                    lnew.att.icrf.s = q_drotate_between_rv(cinfo->faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,lnew.pos.icrf.s));
+                    lnew.att.icrf.s = q_drotate_between_rv(cinfo->node.phys.faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,lnew.pos.icrf.s));
                     //		lnew.att.icrf.s = rm_change_between_rv(cinfo->pieces[cinfo->node.phys.mode-2].normal,rv_smult(-1.,lnew.pos.icrf.s));
                     lnew.att.icrf.v = rv_zero();
                     Convert::att_icrf2lvlh(&lnew);
@@ -2432,7 +2431,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             case 10:
             case 11:
             case 12:
-                loc.att.icrf.s = q_drotate_between_rv(cinfo->faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,loc.pos.icrf.s));
+                loc.att.icrf.s = q_drotate_between_rv(cinfo->node.phys.faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,loc.pos.icrf.s));
                 loc.att.icrf.v = rv_zero();
                 Convert::att_icrf2lvlh(&loc);
                 break;
@@ -3380,7 +3379,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             case 10:
             case 11:
             case 12:
-                cinfo->node.loc.att.icrf.s = q_drotate_between_rv(cinfo->faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,cinfo->node.loc.pos.icrf.s));
+                cinfo->node.loc.att.icrf.s = q_drotate_between_rv(cinfo->node.phys.faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,cinfo->node.loc.pos.icrf.s));
                 cinfo->node.loc.att.icrf.v = rv_zero();
                 Convert::att_icrf2lvlh(&cinfo->node.loc);
                 break;
@@ -3604,7 +3603,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             case 9:
             case 10:
             case 11:
-                cinfo->node.loc.att.icrf.s = q_drotate_between_rv(cinfo->faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,cinfo->node.loc.pos.icrf.s));
+                cinfo->node.loc.att.icrf.s = q_drotate_between_rv(cinfo->node.phys.faces[abs(cinfo->pieces[cinfo->node.phys.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,cinfo->node.loc.pos.icrf.s));
                 cinfo->node.loc.att.icrf.v = rv_zero();
                 Convert::att_icrf2lvlh(&cinfo->node.loc);
                 break;
@@ -3639,14 +3638,14 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             // Initialize with existing faces broken into triangles
             for (uint16_t i=0; i<cinfo->pieces.size(); ++i)
             {
-                for (uint16_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
+                for (uint16_t j=0; j<cinfo->pieces[i].face_idx.size(); ++j)
                 {
-                    facestruc tface = cinfo->faces[cinfo->pieces[i].face_idx[j]];
+                    facestruc tface = cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]];
                     cinfo->node.phys.vertices.push_back(tface.com);
-                    cinfo->node.phys.vertices.push_back(cinfo->vertexs[tface.vertex_idx[tface.vertex_cnt-1]]);
+                    cinfo->node.phys.vertices.push_back(cinfo->node.phys.vertices[tface.vertex_idx[tface.vertex_cnt-1]]);
                     for (uint16_t k=0; k<tface.vertex_cnt; ++k)
                     {
-                        cinfo->node.phys.vertices.push_back(cinfo->vertexs[tface.vertex_idx[k]]);
+                        cinfo->node.phys.vertices.push_back(cinfo->node.phys.vertices[tface.vertex_idx[k]]);
                         trianglestruc ttriangle;
                         ttriangle.pidx = j;
                         ttriangle.normal = tface.normal;

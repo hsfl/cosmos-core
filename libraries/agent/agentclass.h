@@ -109,7 +109,7 @@
 //!     - "utcstartjson" - return the JSON representing the contents of utcstart.ini.
 //!     - "piecesjson" - return the JSON representing the contents of pieces.ini.
 //!     - "facesjson" - return the JSON representing the contents of faces.ini.
-//!     - "vertexsjson" - return the JSON representing the contents of vertexs.ini.
+//!     - "verticesjson" - return the JSON representing the contents of vertexs.ini.
 //!     - "devgenjson" - return the JSON representing the contents of devgen.ini.
 //!     - "devspecjson" - return the JSON representing the contents of devspec.ini.
 //!     - "portsjson" - return the JSON representing the contents of ports.ini.
@@ -584,7 +584,7 @@ namespace Cosmos
             static int32_t req_statejson(string &request, string &response, Agent *agent);
 //            static int32_t req_utcstartjson(string &request, string &response, Agent *agent);
             static int32_t req_piecesjson(string &request, string &response, Agent *agent);
-            static int32_t req_vertexsjson(string &request, string &response, Agent *agent);
+            static int32_t req_verticesjson(string &request, string &response, Agent *agent);
             static int32_t req_facesjson(string &request, string &response, Agent *agent);
             static int32_t req_devgenjson(string &request, string &response, Agent *agent);
             static int32_t req_devspecjson(string &request, string &response, Agent *agent);
