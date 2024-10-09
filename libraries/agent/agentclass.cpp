@@ -609,7 +609,7 @@ int32_t Agent::send_request_jsonnode(beatstruc hbeat, jsonnode &jnode, float wai
     if (iretn < 0) { return iretn; }
     iretn = send_request(hbeat, "facesjson", jnode.faces, waitsec);
     if (iretn < 0) { return iretn; }
-    iretn = send_request(hbeat, "verticesjson", jnode.vertexs, waitsec);
+    iretn = send_request(hbeat, "verticesjson", jnode.vertices, waitsec);
     if (iretn < 0) { return iretn; }
     iretn = send_request(hbeat, "devgenjson", jnode.devgen, waitsec);
     if (iretn < 0) { return iretn; }

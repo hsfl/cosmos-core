@@ -995,7 +995,7 @@ int32_t Structure::Setup(string stype)
     }
     else
     {
-        return Type::NoType;
+        return Setup(NoType);
     }
 }
 
@@ -1144,48 +1144,51 @@ int32_t Structure::add_u(double x, double y, double z, ExternalPanelType type)
         break;
     }
 
-    return 0;
+    return currentphys->struc_cnt;
 }
 
 int32_t Structure::add_hex(double width, double height, ExternalPanelType type)
 {
+    vector<Vector> top;
+    vector<Vector> bottom;
+    for (uint16_t i=0; i<6; ++i)
+    {
+        float angle = i * D2PI / 6.;
+        top.push_back(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.));
+        bottom.push_back(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.));
+    }
+    add_panel("top", top);
+    add_panel("bottom", bottom);
+
     switch (type)
     {
     case NoType:
         for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
         {
             add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, true, .4);
         }
         break;
     case X:
         for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
         {
             add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, true, .4);
         }
         break;
     case Y:
         for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
         {
             add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, true, .4);
         }
         break;
     case XY:
         for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
         {
             add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, true, .4);
         }
         break;
     }
 
-    return 0;
+    return currentphys->struc_cnt;
 }
 
 int32_t Structure::add_oct(double width, double height, ExternalPanelType type)
@@ -1247,48 +1250,62 @@ int32_t Structure::add_oct(double width, double height, ExternalPanelType type)
         break;
     }
 
-    return 0;
+    return currentphys->struc_cnt;
 }
 
 //! Add a rectilinear box
 //! Add a box with specified dimensions in X, Y and Z and walls of specified thickness.
 //! \param dimensions Siz in X, Y and Z.
-//! \param depth Thickness of walls.
+//! \param thickness Thickness of walls.
 //! \param orientation ::Quaternion indicating indirect rotation into spacecraft frame.
 //! \param Offset in apcecraft frame after rotation.
 //! \return 0 or negative error.
-int32_t Structure::add_cuboid(string name, Vector dimensions, double depth, Quaternion orientation, Vector offset)
-{
-    add_face(Vector(dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., -dimensions.y/2., dimensions.z/2.), depth, 1, 0., orientation, offset);
-    add_face(Vector(-dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), Vector(-dimensions.x/2., -dimensions.y/2., dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., -dimensions.z/2.), depth, 1, 0., orientation, offset);
-    add_face(Vector(-dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., dimensions.z/2.), depth, 1, 0., orientation, offset);
-    add_face(Vector(-dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), depth, 1, 0., orientation, offset);
-    add_face(Vector(-dimensions.x/2., -dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., -dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., dimensions.z/2.), depth, 1, 0., orientation, offset);
-    add_face(Vector(-dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), depth, 1, 0., orientation, offset);
+//int32_t Structure::add_cuboid(string name, Vector dimensions, double thickness, Quaternion orientation, Vector offset)
+//{
+//    add_face(Vector(dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., -dimensions.y/2., dimensions.z/2.), thickness, 1, 0., orientation, offset);
+//    add_face(Vector(-dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), Vector(-dimensions.x/2., -dimensions.y/2., dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., -dimensions.z/2.), thickness, 1, 0., orientation, offset);
+//    add_face(Vector(-dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., dimensions.z/2.), thickness, 1, 0., orientation, offset);
+//    add_face(Vector(-dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), thickness, 1, 0., orientation, offset);
+//    add_face(Vector(-dimensions.x/2., -dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., -dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., dimensions.z/2.), thickness, 1, 0., orientation, offset);
+//    add_face(Vector(-dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), thickness, 1, 0., orientation, offset);
 
-    return 0;
-}
+//    return 0;
+//}
 
 //! Add panel
 //! Add a single panel based on a ::vector of points at corners. Add associated triangles. Calculate associated values
 //! coi, mass, etc.
 //! \param name Unique name of piece.
 //! \param points ::vector of ::Vector of points
-//! \param depth Thickness of face.
+//! \param thickness Thickness of face.
 //! \param external Flag indicating location of panel.
 //! \param orientation Quaternion representing indirect rotation of panel into spacecraft frame.
 //! \param offset Location relative to coi.
 //! \return Face number, or negative error.
 int32_t Structure::add_panel(string name, vector<Vector> points, double thickness, uint8_t external, float pcell, Quaternion orientation, Vector offset, float density)
 {
-    return add_face(points, thickness, external, pcell, orientation, offset);
+    int32_t iretn;
+    iretn = add_face(points, thickness, external, pcell, orientation, offset);
+    if (iretn >= 0)
+    {
+        strucstruc struc;
+        struc.name = name;
+        struc.com = currentphys->faces[iretn].com;
+        struc.volume = currentphys->faces[iretn].area * thickness;
+        struc.mass = density * struc.volume;
+        struc.face_cnt = 1;
+        struc.face_idx.push_back(iretn);
+        currentphys->strucs.push_back(struc);
+        currentphys->struc_cnt = currentphys->strucs.size();
+        return currentphys->struc_cnt;
+    }
 //    int32_t iretn = 0;
 //    if ((iretn=add_face(points, thickness, external, pcell, orientation, offset)) >= 0)
 //    {
 //        piecestruc piece;
 //        piece.name = name;
 //        piece.density = density;
-//        piece.area = currentinfo->faces[iretn].area;
+//        piece.area = currentphys->faces[iretn].area;
 //        piece.volume = piece.area * piece * thickness;
 //        piece.mass = piece.density * piece.volume;
 //        piece.face_idx.push_back(iretn);
@@ -1304,10 +1321,10 @@ int32_t Structure::add_panel(string name, vector<Vector> points, double thicknes
 //            return iretn;
 //        }
 //    }
-//    else
-//    {
-//        return iretn;
-//    }
+    else
+    {
+        return iretn;
+    }
 }
 
 //! Add rectangular panel
@@ -1318,7 +1335,7 @@ int32_t Structure::add_panel(string name, vector<Vector> points, double thicknes
 //! \param point1 ::Vector of second point
 //! \param point2 ::Vector of third point
 //! \param point3 ::Vector of fourth point
-//! \param depth Thickness of face.
+//! \param thickness Thickness of face.
 //! \param external Flag indicating location of panel.
 //! \param orientation Quaternion representing indirect rotation of panel into spacecraft frame.
 //! \param offset Location relative to coi.
@@ -1327,8 +1344,7 @@ int32_t Structure::add_panel(string name, Vector point0, Vector point1, Vector p
 {
     int32_t iretn = 0;
     vector<Vector> points = {point0 ,point1, point2, point3};
-    iretn=add_face(points, thickness, external, pcell, orientation, offset);
-    return iretn;
+    return add_panel(name, points, thickness, external, pcell, orientation, offset, density);
 }
 
 //! Add rectangular face
@@ -1339,7 +1355,7 @@ int32_t Structure::add_panel(string name, Vector point0, Vector point1, Vector p
 //! \param point1 ::Vector of second point
 //! \param point2 ::Vector of third point
 //! \param point3 ::Vector of fourth point
-//! \param depth Thickness of face.
+//! \param thickness Thickness of face.
 //! \param external Flag indicating location of panel.
 //! \param orientation Quaternion representing indirect rotation of panel into spacecraft frame.
 //! \param offset Location relative to coi.
@@ -1363,6 +1379,7 @@ int32_t Structure::add_face(vector<Vector> points, double thickness, uint8_t ext
         if ((iretn=add_triangle(points[i], points[(i+1)%points.size()], cpoint, thickness, external, pcell)) >= 0)
         {
             face.triangle_idx.push_back(iretn);
+            face.triangle_cnt = face.triangle_idx.size();
         }
         else
         {
@@ -1370,7 +1387,8 @@ int32_t Structure::add_face(vector<Vector> points, double thickness, uint8_t ext
         }
     }
 
-    iretn = currentinfo->faces.push_back(face);
+    currentphys->faces.push_back(face);
+    currentphys->face_cnt = currentphys->faces.size();
 
     return iretn;
 }
@@ -1383,53 +1401,54 @@ int32_t Structure::add_face(vector<Vector> points, double thickness, uint8_t ext
 //! \param point1 ::Vector of second point
 //! \param point2 ::Vector of third point
 //! \param point3 ::Vector of fourth point
-//! \param depth Thickness of face.
+//! \param thickness Thickness of face.
 //! \param external Flag indicating location of panel.
 //! \param orientation Quaternion representing indirect rotation of panel into spacecraft frame.
 //! \param offset Location relative to coi.
 //! \return Face number, or negative error.
     int32_t Structure::add_face(Vector point0, Vector point1, Vector point2, Vector point3, double thickness, uint8_t external, float pcell, Quaternion orientation, Vector offset)
 {
-    int32_t iretn = 0;
     vector<Vector> points = {point0 ,point1, point2, point3};
-    iretn=add_face(points, thickness, external, pcell, orientation, offset);
-    return iretn;
+    return add_face(points, thickness, external, pcell, orientation, offset);
 }
 
-int32_t Structure::add_face(Vector dimensions, Quaternion orientation, Vector offset)
+int32_t Structure::add_face(Vector dimensions, uint8_t external, float pcell, Quaternion orientation, Vector offset)
 {
     Vector points[5];
 
     points[0].x = -dimensions.x / 2.;
-    points[2].x = -dimensions.x / 2.;
     points[1].x = dimensions.x / 2.;
-    points[3].x = dimensions.x / 2.;
+    points[2].x = dimensions.x / 2.;
+    points[3].x = -dimensions.x / 2.;
 
     points[0].y = -dimensions.y / 2.;
     points[1].y = -dimensions.y / 2.;
     points[2].y = dimensions.y / 2.;
     points[3].y = dimensions.y / 2.;
 
-    for (uint16_t i=0; i<5; ++i)
-    {
-        points[i] = orientation.irotate(points[i]);
-        points[i] += offset;
-    }
+    return add_face(points[0], points[1], points[2], points[3], dimensions.z, external, pcell, orientation, offset);
 
-    facestruc cface;
-    for (uint16_t i=0; i<5; ++i)
-    {
-        cface.vertex_idx.push_back(add_vertex(points[i]));
-    }
-    add_triangle(points[0], points[1], points[4], dimensions.z);
-    add_triangle(points[1], points[1], points[4], dimensions.z);
-    add_triangle(points[2], points[3], points[4], dimensions.z);
-    add_triangle(points[3], points[0], points[4], dimensions.z);
+//    facestruc cface;
+//    for (uint16_t i=0; i<5; ++i)
+//    {
+//        cface.vertex_idx.push_back(add_vertex(points[i]));
+//    }
 
-    return 4;
+//    for (uint16_t i=0; i<5; ++i)
+//    {
+//        points[i] = orientation.irotate(points[i]);
+//        points[i] += offset;
+//    }
+
+//    add_triangle(points[0], points[1], points[4], dimensions.z);
+//    add_triangle(points[1], points[1], points[4], dimensions.z);
+//    add_triangle(points[2], points[3], points[4], dimensions.z);
+//    add_triangle(points[3], points[0], points[4], dimensions.z);
+
+//    return 4;
 }
 
-int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, double depth, bool external, float pcell)
+int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, double thickness, bool external, float pcell)
 {
     trianglestruc triangle;
 
@@ -1438,12 +1457,12 @@ int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, dou
     triangle.tidx[2] = add_vertex(pointc);
 
     triangle.external = external;
-    triangle.depth = depth;
+    triangle.thickness = thickness;
     triangle.pcell = pcell;
     triangle.com = (currentphys->vertices[triangle.tidx[0]] + currentphys->vertices[triangle.tidx[1]] + currentphys->vertices[triangle.tidx[2]]) / 3.;
     triangle.area = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).area(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]);
     triangle.normal = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).cross(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]).normalize(triangle.area);
-    triangle.mass = triangle.area * triangle.depth * triangle.density;
+    triangle.mass = triangle.area * triangle.thickness * triangle.density;
     triangle.perimeter = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).norm() + (currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[1]]).norm() + (currentphys->vertices[triangle.tidx[0]] - currentphys->vertices[triangle.tidx[2]]).norm();
 
     triangle.twist = (triangle.com - triangle.normal).cross(triangle.normal);
@@ -1471,6 +1490,7 @@ int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, dou
     triangle.shove = (triangle.shove / -10000.);
 
     currentphys->triangles.push_back(triangle);
+    currentphys->triangle_cnt = currentphys->triangles.size();
 
     return 1;
 }
@@ -1496,6 +1516,7 @@ int32_t Structure::add_vertex(Vector point)
     }
     else {
         currentphys->vertices.push_back(point);
+        currentphys->vertex_cnt = currentphys->vertices.size();
         return currentphys->vertices.size() - 1;
     }
 }
@@ -1503,6 +1524,7 @@ int32_t Structure::add_vertex(Vector point)
 
 int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf)
 {
+    int32_t iretn;
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
 
@@ -1513,10 +1535,29 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     currentinfo.node.loc.tle = tle;
     currentinfo.node.loc.pos.eci.pass++;
     pos_eci(currentinfo.node.loc);
+    currentinfo.node.loc.att.icrf = icrf;
+    currentinfo.node.loc.att.icrf.pass++;
+    att_icrf(currentinfo.node.loc);
 
-    structure = new Structure(&currentinfo);
+    uint32_t ctruc_idx = currentinfo.node.phys.strucs.size();
+    structure = new Structure(&currentinfo.node.phys);
     structure->Setup(stype);
     this->stype = stype;
+    for (uint32_t i=ctruc_idx; i<currentinfo.node.phys.strucs.size(); ++i)
+    {
+        piecestruc piece;
+        piece.name = currentinfo.node.phys.strucs[i].name;
+        piece.density = currentinfo.node.phys.strucs[i].mass / currentinfo.node.phys.strucs[i].volume;
+        //        piece.area = currentphys->faces[iretn].area;
+        piece.volume = currentinfo.node.phys.strucs[i].volume;
+        piece.mass = currentinfo.node.phys.strucs[i].mass;
+        piece.com = currentinfo.node.phys.strucs[i].com;
+        piece.struc_idx = i;
+        currentinfo.pieces.push_back(piece);
+        json_mappieceentry(currentinfo.pieces.size()-1, &currentinfo);
+        json_togglepieceentry(currentinfo.pieces.size()-1, &currentinfo, true);
+    }
+    currentinfo.piece_cnt = currentinfo.pieces.size();
 
     switch (ptype)
     {
@@ -1743,15 +1784,31 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
 
 int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
 {
+    int32_t iretn;
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
 
     currentinfo.node.name = name;
     currentinfo.agent0.name = "sim";
 
+    uint32_t ctruc_idx = currentinfo.node.phys.strucs.size();
     structure = new Structure(&currentinfo.node.phys);
     structure->Setup(stype);
     this->stype = stype;
+    for (uint32_t i=ctruc_idx; i<currentinfo.node.phys.strucs.size(); ++i)
+    {
+        piecestruc piece;
+        piece.name = currentinfo.node.phys.strucs[i].name;
+        piece.density = currentinfo.node.phys.strucs[i].mass / currentinfo.node.phys.strucs[i].volume;
+        //        piece.area = currentphys->faces[iretn].area;
+        piece.volume = currentinfo.node.phys.strucs[i].volume;
+        piece.mass = currentinfo.node.phys.strucs[i].mass;
+        piece.com = currentinfo.node.phys.strucs[i].com;
+        piece.struc_idx = i;
+        currentinfo.pieces.push_back(piece);
+        json_mappieceentry(currentinfo.pieces.size()-1, &currentinfo);
+        json_togglepieceentry(currentinfo.pieces.size()-1, &currentinfo, true);
+    }
     currentinfo.mass = currentinfo.node.phys.mass;
 
     switch (ptype)
@@ -2436,11 +2493,11 @@ int32_t TargetAttitudePropagator::Reset(double nextutc)
 
 int32_t ThermalPropagator::Init(float temp)
 {
-    currentphys->temp = temp;
-    currentphys->heat = currentphys->temp * currentphys->mass * currentphys->hcap;
-    for (trianglestruc& triangle : currentphys->triangles)
+    currentinfo->node.phys.temp = temp;
+    currentinfo->node.phys.heat = currentinfo->node.phys.temp * currentinfo->node.phys.mass * currentinfo->node.phys.hcap;
+    for (trianglestruc& triangle : currentinfo->node.phys.triangles)
     {
-        triangle.temp = currentphys->temp;
+        triangle.temp = currentinfo->node.phys.temp;
         triangle.heat = triangle.temp * (triangle.mass * triangle.hcap);
     }
     return 0;
@@ -2451,16 +2508,16 @@ int32_t ThermalPropagator::Reset(float temp)
     currentutc = currentinfo->node.loc.utc;
     if (temp == 0.f)
     {
-        currentphys->temp = initialphys.temp;
+        currentinfo->node.phys.temp = initialphys.temp;
     }
     else
     {
-        currentphys->temp = temp;
+        currentinfo->node.phys.temp = temp;
     }
-    currentphys->heat = currentphys->temp * currentphys->mass * currentphys->hcap;
-    for (trianglestruc& triangle : currentphys->triangles)
+    currentinfo->node.phys.heat = currentinfo->node.phys.temp * currentinfo->node.phys.mass * currentinfo->node.phys.hcap;
+    for (trianglestruc& triangle : currentinfo->node.phys.triangles)
     {
-        triangle.temp = currentphys->temp;
+        triangle.temp = currentinfo->node.phys.temp;
         triangle.heat = triangle.temp * (triangle.mass * triangle.hcap);
     }
     return 0;
@@ -2476,13 +2533,13 @@ int32_t ThermalPropagator::Propagate(double nextutc)
     {
         currentutc += dtj;
         double energyd = 0.;
-        double heatratio = currentphys->heat / currentphys->mass;
-        currentphys->heat = 0.;
-        //                double ienergyd = currentphys->radiation / currentphys->mass;
-        currentphys->radiation = 0.;
+        double heatratio = currentinfo->node.phys.heat / currentinfo->node.phys.mass;
+        currentinfo->node.phys.heat = 0.;
+        //                double ienergyd = currentinfo->node.phys.radiation / currentinfo->node.phys.mass;
+        currentinfo->node.phys.radiation = 0.;
         double atotal = 0.;
         double rtotal = 0.;
-        for (trianglestruc& triangle : currentphys->triangles)
+        for (trianglestruc& triangle : currentinfo->node.phys.triangles)
         {
             triangle.heat = heatratio * triangle.mass;
             triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
@@ -2530,21 +2587,21 @@ int32_t ThermalPropagator::Propagate(double nextutc)
                 // External
                 triangle.heat -= 1.05 * triangle.emi * energyd;
                 rtotal += 1.05 * triangle.emi * energyd;
-                currentphys->radiation += 1.95 * triangle.iemi * energyd;
+                currentinfo->node.phys.radiation += 1.95 * triangle.iemi * energyd;
             }
             //                    else
             //                    {
             //                        // Purely internal
             //                        triangle.heat -= triangle.iemi * energyd;
-            //                        currentphys->radiation += triangle.iemi * energyd;
+            //                        currentinfo->node.phys.radiation += triangle.iemi * energyd;
             //                    }
 
             triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
-            currentphys->heat += triangle.heat;
+            currentinfo->node.phys.heat += triangle.heat;
         }
 
-        currentphys->temp = heatratio / currentphys->hcap;
-        temperature = currentphys->temp;
+        currentinfo->node.phys.temp = heatratio / currentinfo->node.phys.hcap;
+        temperature = currentinfo->node.phys.temp;
     }
 
     return 0;
@@ -2561,11 +2618,11 @@ int32_t ElectricalPropagator::Reset(float bp)
     currentutc = currentinfo->node.loc.utc;
     if (bp == 0.f)
     {
-        currentphys->battlev = initialphys.battlev;
+        currentinfo->node.phys.battlev = initialphys.battlev;
     }
     else
     {
-        currentphys->battlev = bp;
+        currentinfo->node.phys.battlev = bp;
     }
     return  0;
 }
@@ -2580,8 +2637,8 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
     while ((nextutc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;
-        currentphys->powgen = 0.;
-        for (trianglestruc& triangle : currentphys->triangles)
+        currentinfo->node.phys.powgen = 0.;
+        for (trianglestruc& triangle : currentinfo->node.phys.triangles)
         {
             if (triangle.external)
             {
@@ -2593,7 +2650,7 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
                         triangle.power = efficiency * triangle.sirradiation;
                         triangle.volt = triangle.vcell;
                         triangle.amp = -triangle.power / triangle.volt;
-                        currentphys->powgen += triangle.power;
+                        currentinfo->node.phys.powgen += triangle.power;
                     }
                 }
             }
@@ -2604,21 +2661,21 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
                 triangle.amp = 0.;
             }
         }
-        currentphys->powuse = 0.;
+        currentinfo->node.phys.powuse = 0.;
         for (devicestruc* dev : currentinfo->device)
         {
             if (dev->state)
             {
-                currentphys->powuse += dev->amp * dev->volt;
+                currentinfo->node.phys.powuse += dev->amp * dev->volt;
             }
         }
-        double pdelta = currentphys->powuse-currentphys->powgen;
+        double pdelta = currentinfo->node.phys.powuse-currentinfo->node.phys.powgen;
         if (currentinfo->devspec.batt_cnt)
         {
             double vsys = 0.;
             double vmax = currentinfo->devspec.batt_cnt * currentinfo->devspec.batt[0].maxvolt;
             double vmin = currentinfo->devspec.batt_cnt * currentinfo->devspec.batt[0].minvolt;
-            double vbat = vmin + (vmax - vmin) * currentphys->battlev / currentphys->battcap;
+            double vbat = vmin + (vmax - vmin) * currentinfo->node.phys.battlev / currentinfo->node.phys.battcap;
             // Consuming
             if (pdelta > 0.)
             {
@@ -2655,7 +2712,7 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
             {
                 currentinfo->devspec.batt[i].volt = vbat;
                 currentinfo->devspec.batt[i].amp = -dcharge / dt;
-                currentphys->battlev += dcharge;
+                currentinfo->node.phys.battlev += dcharge;
                 currentinfo->devspec.batt[i].charge += dcharge;
                 if (currentinfo->devspec.batt[i].charge > currentinfo->devspec.batt[i].capacity)
                     currentinfo->devspec.batt[i].charge = currentinfo->devspec.batt[i].capacity;
@@ -2664,18 +2721,18 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
                 currentinfo->devspec.batt[i].utc = currentinfo->node.loc.utc;
             }
 
-            if (currentphys->powgen > currentphys->powuse)
+            if (currentinfo->node.phys.powgen > currentinfo->node.phys.powuse)
                 currentinfo->node.flags |= NODE_FLAG_CHARGING;
             else
                 currentinfo->node.flags &= ~NODE_FLAG_CHARGING;
 
-            if (currentphys->battlev < 0.)
-                currentphys->battlev = 0.;
+            if (currentinfo->node.phys.battlev < 0.)
+                currentinfo->node.phys.battlev = 0.;
 
-            if (currentphys->battlev >= currentphys->battcap)
+            if (currentinfo->node.phys.battlev >= currentinfo->node.phys.battcap)
             {
                 currentinfo->node.flags &= ~NODE_FLAG_CHARGING;
-                currentphys->battlev = currentphys->battcap;
+                currentinfo->node.phys.battlev = currentinfo->node.phys.battcap;
             }
         }
 
@@ -3160,9 +3217,9 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
         // Update acceleration for the new position
         PosAccel(currentinfo->node.loc, currentinfo->node.phys);
         // Apply external accelerations
-        // currentinfo->node.loc.pos.eci.a = rv_add(currentinfo->node.loc.pos.eci.a, rv_smult(1./currentphys->mass, currentphys->fpush.to_rv()));
+        // currentinfo->node.loc.pos.eci.a = rv_add(currentinfo->node.loc.pos.eci.a, rv_smult(1./currentinfo->node.phys.mass, currentinfo->node.phys.fpush.to_rv()));
         // Clearing external accelerations TODO: consider if this is desireable
-        // currentphys->fpush.clear();
+        // currentinfo->node.phys.fpush.clear();
         // currentinfo->node.loc.pos.eci.pass++;
         // pos_eci(currentinfo->node.loc);
     }
@@ -3408,7 +3465,7 @@ int32_t GaussJacksonPositionPropagator::Init(tlestruc tle)
     }
 
     iretn = Converge();
-    currentphys->utc = currentinfo->node.loc.utc;
+    currentinfo->node.phys.utc = currentinfo->node.loc.utc;
     currentutc = currentinfo->node.loc.utc;
 
     return iretn;
@@ -3443,7 +3500,7 @@ int32_t GaussJacksonPositionPropagator::Init()
 
     initialloc = currentinfo->node.loc;
     initialphys = currentinfo->node.phys;
-    currentphys->utc = currentinfo->node.loc.utc;
+    currentinfo->node.phys.utc = currentinfo->node.loc.utc;
 
     // Zero out original N+1 bin
     loc_clear(step[order+1].loc);
@@ -3590,7 +3647,7 @@ int32_t GaussJacksonPositionPropagator::Init(vector<locstruc> locs)
     }
     iretn = Converge();
 
-    currentphys->utc = currentinfo->node.loc.utc;
+    currentinfo->node.phys.utc = currentinfo->node.loc.utc;
     currentutc = step[order2].loc.utc;
     return iretn;
 }
@@ -3607,7 +3664,6 @@ int32_t GaussJacksonPositionPropagator::Reset(double nextutc)
 
 int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icrf)
 {
-    static uint32_t tcount=0;
     if (nextutc == 0.)
     {
         nextutc = currentutc + dtj;
@@ -3675,9 +3731,9 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         }
 
         // Adjust for any thrust
-        if (currentphys->fpush.norm() && currentphys->mass)
+        if (currentinfo->node.phys.fpush.norm() && currentinfo->node.phys.mass)
         {
-            Vector dacc = (1./currentphys->mass) * currentphys->fpush;
+            Vector dacc = (1./currentinfo->node.phys.mass) * currentinfo->node.phys.fpush;
             step[order2].loc.pos.eci.s = rv_add(step[order2].loc.pos.eci.s, 0.5 * dtsq * dacc.to_rv());
             step[order2].loc.pos.eci.v = rv_add(step[order2].loc.pos.eci.v, dt * dacc.to_rv());
             Update();
@@ -3696,8 +3752,8 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         currentinfo->node.loc.utc = currentinfo->node.loc.pos.utc;
     }
 
-    Vector fp = currentphys->fpush;
-    currentphys->fpush.clear();
+//    Vector fp = currentinfo->node.phys.fpush;
+    currentinfo->node.phys.fpush.clear();
 
 //    static double lastutc=0.0;
 //    if (lastutc != step[0].loc.pos.eci.utc)
@@ -3826,7 +3882,7 @@ int32_t GaussJacksonPositionPropagator::Converge()
 
     currentinfo->node.loc = step[order2].loc;
     ++currentinfo->node.loc.pos.eci.pass;
-    //    currentphys->fpush = rv_zero();
+    //    currentinfo->node.phys.fpush = rv_zero();
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
     pos_eci(currentinfo->node.loc);
     return 0;
@@ -3912,7 +3968,7 @@ int32_t GaussJacksonPositionPropagator::Update()
         PosAccel(step[i].loc, currentinfo->node.phys);
     }
     currentutc = step[order2].loc.utc;
-    currentphys->utc = step[order2].loc.utc;
+    currentinfo->node.phys.utc = step[order2].loc.utc;
 
     // Converge on rational set of values
     iretn = Converge();

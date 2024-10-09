@@ -586,6 +586,7 @@ namespace Cosmos
             static int32_t req_piecesjson(string &request, string &response, Agent *agent);
             static int32_t req_verticesjson(string &request, string &response, Agent *agent);
             static int32_t req_facesjson(string &request, string &response, Agent *agent);
+            static int32_t req_trianglesjson(string &request, string &response, Agent *agent);
             static int32_t req_devgenjson(string &request, string &response, Agent *agent);
             static int32_t req_devspecjson(string &request, string &response, Agent *agent);
             static int32_t req_portsjson(string &request, string &response, Agent *agent);

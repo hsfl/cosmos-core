@@ -2177,11 +2177,74 @@ class sim_param	{
                 if(error.empty()) {
                     if(!parsed["triangle_cnt"].is_null()) { triangle_cnt = parsed["triangle_cnt"].long_value(); }
                     for(size_t i = 0; i < triangle_idx.size(); ++i)	{
-                        if(!parsed["triangle_idx"][i].is_null())	{ triangle_idx[i] = parsed["triangle_idx"][i].long_value(); }
+                if(!parsed["triangle_idx"][i].is_null())	{ triangle_idx[i] = parsed["triangle_idx"][i].long_value(); }
                     }
                     if(!parsed["com"].is_null()) { com.from_json(parsed["com"].dump()); }
                     if(!parsed["normal"].is_null()) { normal.from_json(parsed["normal"].dump()); }
                     if(!parsed["area"].is_null()) { area = parsed["area"].number_value(); }
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        };
+
+        //! Structure structure: information on each structure of a piece
+        class strucstruc
+        {
+        public:
+            size_t memoryusage()
+            {
+                size_t total = sizeof(strucstruc);
+                total += name.capacity();
+                total += face_idx.capacity() * sizeof(uint32_t);
+                return total;
+            }
+
+            void shrinkusage()
+            {
+                vector<uint16_t>(face_idx).swap(face_idx);
+            }
+
+            string name;
+            uint16_t face_cnt = 0;
+            vector <uint16_t> face_idx;
+            Vector com;
+            float mass;
+            float volume=0.;
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "name"	, name },
+                    { "face_cnt" , face_cnt},
+                    { "face_idx" , face_idx },
+                    { "com"	, com },
+                    { "mass"	, mass },
+                    { "volume"   , volume }
+                };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param	s	JSON-formatted string to set class contents to
+        @return n/a
+    */
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["name"].is_null()) { name = parsed["name"].string_value(); }
+                    if(!parsed["face_cnt"].is_null()) { face_cnt = parsed["face_cnt"].long_value(); }
+                    for(size_t i = 0; i < face_idx.size(); ++i)	{
+                if(!parsed["face_idx"][i].is_null())	{ face_idx[i] = parsed["face_idx"][i].long_value(); }
+                    }
+                    if(!parsed["com"].is_null()) { com.from_json(parsed["com"].dump()); }
+                    if(!parsed["mass"].is_null()) { volume = parsed["mass"].number_value(); }
+                    if(!parsed["volume"].is_null()) { volume = parsed["volume"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -2203,11 +2266,10 @@ class sim_param	{
             void shrinkusage()
             {
                 string(name).swap(name);
-                vector<uint16_t>(face_idx).swap(face_idx);
+//                vector<uint16_t>(face_idx).swap(face_idx);
             }
 
             //! Name of piece
-            //            char name[COSMOS_MAX_NAME+1] = "";
             string name;
             //! Enabled?
             bool enabled = true;
@@ -2231,10 +2293,12 @@ class sim_param	{
             float area = 0.f;
             //! Volume in cubic meters
             float volume = 0.f;
+            //! Structure index
+            uint32_t struc_idx = 0;
             //! Number of faces
-            uint16_t face_cnt = 0;
+//            uint16_t face_cnt = 0;
             //! Array of faces
-            vector <uint16_t> face_idx;
+//            vector <uint16_t> face_idx;
             //! Centroid of piece
             Vector com;
             //! Contribution of piece to linear forces
@@ -2274,8 +2338,9 @@ class sim_param	{
                     { "dim"	 , dim },
                     { "area"	, area },
                     { "volume"  , volume },
-                    { "face_cnt", face_cnt },
-                    { "face_idx", face_idx },
+//                    { "face_cnt", face_cnt },
+//                    { "face_idx", face_idx },
+                    { "struc_idx", struc_idx },
                     { "com"	 , com },
                     { "shove"   , shove },
                     { "twist"   , twist },
@@ -2310,13 +2375,14 @@ class sim_param	{
                     if(!p["dim"].is_null()) { dim = p["dim"].number_value(); }
                     if(!p["area"].is_null()) { area = p["area"].number_value(); }
                     if(!p["volume"].is_null()) { volume = p["volume"].number_value(); }
-                    if(!p["face_cnt"].is_null()) { face_cnt = p["face_cnt"].long_value(); }
-                    if(!p["face_idx"].is_null()) {
-                        auto p_face_idx = p["face_idx"].array_items();
-                        for(size_t i = 0; i != p_face_idx.size(); ++i) {
-                            if(!p_face_idx[i].is_null()) { face_idx[i] = p_face_idx[i].long_value(); }
-                        }
-                    }
+                    if(!p["struc_idx"].is_null()) { struc_idx = p["struc_idx"].number_value(); }
+//                    if(!p["face_cnt"].is_null()) { face_cnt = p["face_cnt"].long_value(); }
+//                    if(!p["face_idx"].is_null()) {
+//                        auto p_face_idx = p["face_idx"].array_items();
+//                        for(size_t i = 0; i != p_face_idx.size(); ++i) {
+//                            if(!p_face_idx[i].is_null()) { face_idx[i] = p_face_idx[i].long_value(); }
+//                        }
+//                    }
                     if(!p["com"].is_null()) { com.from_json(p["com"].dump()); }
                     if(!p["shove"].is_null()) { shove.from_json(p["shove"].dump()); }
                     if(!p["twist"].is_null()) { twist.from_json(p["twist"].dump()); }
@@ -4620,6 +4686,10 @@ union as a ::devicestruc.
             Vector fpush;
             Vector moi = Vector(1.,1.,1.);
             Vector com;
+
+            //! Vector of all structures in node.
+            vector <strucstruc> strucs;
+            uint32_t struc_cnt = 0;
 
             //! Vector of all faces in node.
             vector <facestruc> faces;

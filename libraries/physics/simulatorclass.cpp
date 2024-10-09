@@ -532,7 +532,6 @@ int32_t Simulator::ParseSatString(string args)
         {
             type = "U12";
         }
-//        iretn = AddNode(nodename, type, Physics::Propagator::PositionLvlh, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, satloc.pos.lvlh, initialloc.att.icrf);
         if (fastcalc)
         {
             iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.tle, initialloc.att.icrf);
@@ -624,6 +623,8 @@ int32_t Simulator::ParseSatString(string args)
     }
 
 //    json_dump_node(&(*sit)->currentinfo);
+    jsonnode json;
+    json_setup_node(json, &(*sit)->currentinfo, false);
     json_updatecosmosstruc(&(*sit)->currentinfo);
 
     (*sit)->sohstring = json_list_of_soh(&(*sit)->currentinfo);

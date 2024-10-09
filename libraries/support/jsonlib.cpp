@@ -750,9 +750,11 @@ int32_t json_create_mcc(string &node_name)
  * \param hcap Heat capacity
  * \param hcon Heat conductivity
  * \param density Density
+ * \param struc_idx Structure index. Create a new one if 0.
+ * \param struc ::strucstruc representing structure
  * \return Index of piece, or negative error
  */
-int32_t json_createpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi, double abs, double hcap, double hcon, double density)
+int32_t json_createpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi, double abs, double hcap, double hcon, double density, uint32_t struc_idx)
 {
     int32_t iretn = 0;
     if (name.size() > COSMOS_MAX_NAME)
@@ -760,7 +762,7 @@ int32_t json_createpiece(cosmosstruc *cinfo, string name, DeviceType ctype, doub
         name.resize(COSMOS_MAX_NAME);
     }
 
-    iretn = json_addpiece(cinfo, name, ctype, emi, abs, hcap, hcon, density);
+    iretn = json_addpiece(cinfo, name, ctype, emi, abs, hcap, hcon, density, struc_idx);
     if (iretn < 0)
     {
         return iretn;
@@ -855,9 +857,10 @@ int32_t json_findpiece(cosmosstruc *cinfo, string name)
      * \param hcap Heat capacity
      * \param hcon Heat conductivity
      * \param density Density
+     * \param strc_idx Structure index. Create a new one if 0.
      * \return Zero, or negative error
      */
-int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi, double abs, double hcap, double hcon, double density)
+int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi, double abs, double hcap, double hcon, double density, uint32_t struc_idx)
 {
     int32_t iretn = 0;
     if (name.size() > COSMOS_MAX_NAME)
@@ -874,15 +877,29 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
         }
     }
 
+    // If struc_idx is zero, make a new struc.
+    if (struc_idx == 0 || struc_idx >= cinfo->node.phys.strucs.size())
+    {
+        strucstruc struc;
+        struc.name = name;
+        struc.mass = .001;
+        struc.volume = struc.mass / density;
+    }
+
     // otherwise make a new piece
     piecestruc piece;
-    piece.name = name;
+    piece.struc_idx = struc_idx;
+    piece.name =  cinfo->node.phys.strucs[struc_idx].name;
+    piece.com =  cinfo->node.phys.strucs[struc_idx].com;
+    piece.mass =  cinfo->node.phys.strucs[struc_idx].mass;
+    piece.volume =  cinfo->node.phys.strucs[struc_idx].volume;
+    piece.density =  cinfo->node.phys.strucs[struc_idx].mass / cinfo->node.phys.strucs[struc_idx].volume;
+
     piece.emi = emi;
     piece.abs = abs;
-    piece.density = density;
-    piece.volume = .001 / density;
     piece.hcap = hcap;
     piece.hcon = hcon;
+
     if (ctype < DeviceType::COUNT)
     {
         iretn = json_adddevice(cinfo, static_cast <uint16_t>(cinfo->pieces.size()) - 1, ctype);
@@ -898,7 +915,6 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
         piece.cidx = DeviceType::NONE;
     }
     piece.enabled = true;
-    piece.face_cnt = 0;
     cinfo->pieces.push_back(piece);
     cinfo->piece_cnt = static_cast <uint16_t>(cinfo->pieces.size());
 

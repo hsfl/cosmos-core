@@ -1014,10 +1014,10 @@ for (il=0; il<5; il++)
                 cinfo->pieces[i].heat -= dheat;
                 sdheat += dheat;
 
-                if (cinfo->pieces[i].face_idx.size() == 1)
+                if (cinfo->pieces[i].struc_idx && cinfo->node.phys.strucs[i].face_idx.size() == 1)
                 {
                     cinfo->pieces[i].heat -= dheat;
-                    vdot = unitv.dot(cinfo->node.phys.faces[abs(cinfo->pieces[i].face_idx[0])].normal);
+                    vdot = unitv.dot(cinfo->node.phys.faces[abs(cinfo->node.phys.strucs[i].face_idx[0])].normal);
                     if (vdot > 0)
                     {
                         if (cinfo->node.phys.mass)
@@ -1034,7 +1034,7 @@ for (il=0; il<5; il++)
                         cinfo->node.phys.adrag += da;
                     }
 
-                    sdot = units.dot(cinfo->node.phys.faces[abs(cinfo->pieces[i].face_idx[0])].normal);
+                    sdot = units.dot(cinfo->node.phys.faces[abs(cinfo->node.phys.strucs[i].face_idx[0])].normal);
                     if (loc.pos.sunradiance && sdot > 0)
                     {
                         ddrag = loc.pos.sunradiance * sdot / (3e8*cinfo->node.phys.mass);
@@ -1043,7 +1043,7 @@ for (il=0; il<5; il++)
                         da = ddrag * cinfo->pieces[i].shove;
                         cinfo->node.phys.rdrag += da;
 
-                        cinfo->pieces[i].insol = loc.pos.sunradiance * sdot / cinfo->node.phys.faces[abs(cinfo->pieces[i].face_idx[0])].normal.norm();
+                        cinfo->pieces[i].insol = loc.pos.sunradiance * sdot / cinfo->node.phys.faces[abs(cinfo->node.phys.strucs[i].face_idx[0])].normal.norm();
                         energyd =  cinfo->pieces[i].insol * cinfo->node.phys.dt;
                         cinfo->pieces[i].heat += cinfo->pieces[i].area * cinfo->pieces[i].abs * energyd;
                         if (cinfo->pieces[i].cidx<(uint16_t)DeviceType::NONE && cinfo->device[cinfo->pieces[i].cidx]->type == (uint16_t)DeviceType::PVSTRG)
@@ -1074,7 +1074,7 @@ for (il=0; il<5; il++)
                             }
                         }
                     }
-                    edot = acos(unite.dot(cinfo->node.phys.faces[abs(cinfo->pieces[i].face_idx[0])].normal) / cinfo->node.phys.faces[abs(cinfo->pieces[i].face_idx[0])].normal.norm()) - RADOF(5.);
+                    edot = acos(unite.dot(cinfo->node.phys.faces[abs(cinfo->node.phys.strucs[i].face_idx[0])].normal) / cinfo->node.phys.faces[abs(cinfo->node.phys.strucs[i].face_idx[0])].normal.norm()) - RADOF(5.);
                     if (edot < 0.)
                         edot = 1.;
                     else
@@ -3631,122 +3631,122 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             return 0;
         }
 
-        int32_t triangularize(cosmosstruc *cinfo)
-        {
-            cinfo->node.phys.triangles.clear();
+//        int32_t triangularize(cosmosstruc *cinfo)
+//        {
+//            cinfo->node.phys.triangles.clear();
 
-            // Initialize with existing faces broken into triangles
-            for (uint16_t i=0; i<cinfo->pieces.size(); ++i)
-            {
-                for (uint16_t j=0; j<cinfo->pieces[i].face_idx.size(); ++j)
-                {
-                    facestruc tface = cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]];
-                    cinfo->node.phys.vertices.push_back(tface.com);
-                    cinfo->node.phys.vertices.push_back(cinfo->node.phys.vertices[tface.vertex_idx[tface.vertex_cnt-1]]);
-                    for (uint16_t k=0; k<tface.vertex_cnt; ++k)
-                    {
-                        cinfo->node.phys.vertices.push_back(cinfo->node.phys.vertices[tface.vertex_idx[k]]);
-                        trianglestruc ttriangle;
-                        ttriangle.pidx = j;
-                        ttriangle.normal = tface.normal;
-
-                        ttriangle.tidx[0] = cinfo->node.phys.vertices.size() - (k+2);
-                        ttriangle.tidx[1] = cinfo->node.phys.vertices.size() - 2;
-                        ttriangle.tidx[2] = cinfo->node.phys.vertices.size() - 1;
-
-                        ttriangle.com = cinfo->node.phys.vertices[ttriangle.tidx[0]].cross(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
-                        ttriangle.area = cinfo->node.phys.vertices[ttriangle.tidx[0]].area(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
-                        ttriangle.heat = cinfo->pieces[i].heat * ttriangle.area / cinfo->pieces[i].area;
-
-                        cinfo->node.phys.triangles.push_back(ttriangle);
-                    }
-                }
-            }
-
-            // Loop, breaking triangles into ever smaller triangles, until we are below required resolution (5mm squared)
-            bool modified = true;
-            while (modified)
-            {
-                modified = false;
-                for (size_t i=0; i<cinfo->node.phys.triangles.size(); ++i)
-                {
-                    trianglestruc tface = cinfo->node.phys.triangles[i];
-                    if (tface.area > 2.5e-5)
-                    {
-                        cinfo->node.phys.vertices.push_back(tface.com);
-                        trianglestruc ttriangle = tface;
-                        ttriangle.tidx[0] = cinfo->node.phys.vertices.size() - 1;
-
-                        ttriangle.tidx[1] = tface.tidx[2];
-                        ttriangle.tidx[2] = tface.tidx[0];
-                        ttriangle.com = cinfo->node.phys.vertices[ttriangle.tidx[0]].cross(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
-                        ttriangle.area = cinfo->node.phys.vertices[ttriangle.tidx[0]].area(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
-                        ttriangle.heat = tface.heat * ttriangle.area / tface.area;
-                        cinfo->node.phys.triangles.push_back(ttriangle);
-
-                        ttriangle.tidx[1] = tface.tidx[0];
-                        ttriangle.tidx[2] = tface.tidx[1];
-                        ttriangle.com = cinfo->node.phys.vertices[ttriangle.tidx[0]].cross(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
-                        ttriangle.area = cinfo->node.phys.vertices[ttriangle.tidx[0]].area(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
-                        ttriangle.heat = tface.heat * ttriangle.area / tface.area;
-                        cinfo->node.phys.triangles.push_back(ttriangle);
-
-                        ttriangle.tidx[1] = tface.tidx[1];
-                        ttriangle.tidx[2] = tface.tidx[2];
-                        ttriangle.com = cinfo->node.phys.vertices[ttriangle.tidx[0]].cross(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
-                        ttriangle.area = cinfo->node.phys.vertices[ttriangle.tidx[0]].area(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
-                        ttriangle.heat = tface.heat * ttriangle.area / tface.area;
-                        cinfo->node.phys.triangles.push_back(ttriangle);
-
-                        modified = true;
-                    }
-                }
-            }
-
-            // For each triangle, identify what is in its field of view in 10 degree resolution grid
-            for (size_t i=0; i<cinfo->node.phys.triangles.size(); ++i)
-            {
-                trianglestruc tface = cinfo->node.phys.triangles[i];
-//                if (cinfo->node.phys.triangles[i].triangleindex.empty())
+//            // Initialize with existing faces broken into triangles
+//            for (uint16_t i=0; i<cinfo->pieces.size(); ++i)
+//            {
+//                for (uint16_t j=0; j<cinfo->node.phys.strucs[i].face_idx.size(); ++j)
 //                {
-//                    cinfo->node.phys.triangles[i].triangleindex.resize(9);
-//                    for (size_t j=0; j<9; ++j)
+//                    facestruc tface = cinfo->node.phys.faces[cinfo->node.phys.strucs[i].face_idx[j]];
+//                    cinfo->node.phys.vertices.push_back(tface.com);
+//                    cinfo->node.phys.vertices.push_back(cinfo->node.phys.vertices[tface.vertex_idx[tface.vertex_cnt-1]]);
+//                    for (uint16_t k=0; k<tface.vertex_cnt; ++k)
 //                    {
-//                        float cel = cos(RADOF(90.-(10.*j+5.)));
-//                        cinfo->node.phys.triangles[i].triangleindex[j].resize((int)(cel*18+.5));
+//                        cinfo->node.phys.vertices.push_back(cinfo->node.phys.vertices[tface.vertex_idx[k]]);
+//                        trianglestruc ttriangle;
+//                        ttriangle.pidx = j;
+//                        ttriangle.normal = tface.normal;
+
+//                        ttriangle.tidx[0] = cinfo->node.phys.vertices.size() - (k+2);
+//                        ttriangle.tidx[1] = cinfo->node.phys.vertices.size() - 2;
+//                        ttriangle.tidx[2] = cinfo->node.phys.vertices.size() - 1;
+
+//                        ttriangle.com = cinfo->node.phys.vertices[ttriangle.tidx[0]].cross(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
+//                        ttriangle.area = cinfo->node.phys.vertices[ttriangle.tidx[0]].area(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
+//                        ttriangle.heat = cinfo->pieces[i].heat * ttriangle.area / cinfo->pieces[i].area;
+
+//                        cinfo->node.phys.triangles.push_back(ttriangle);
 //                    }
 //                }
+//            }
 
-                for (size_t j=0; j<cinfo->node.phys.triangles.size(); ++j)
-                {
-                    if (j != i)
-                    {
-                        double sep = cinfo->node.phys.triangles[i].com.separation(cinfo->node.phys.triangles[j].com);
-                        if (sep > DPI2)
-                        {
-                            float az;
-                            float el;
-                            Vector topo;
-                            Convert::body2topo(cinfo->node.phys.triangles[i].com, cinfo->node.phys.triangles[j].com, topo);
-                            Convert::topo2azel(topo, az, el);
-                            float alt = (int16_t)((DPI2 - el) / 9.) + RADOF(.5);
-                            uint16_t rowi = 9 * alt / DPI2;
-                            uint16_t coli = 9 * cos(alt) * az / DPI2;
-//                            if (cinfo->node.phys.triangles[i].triangleindex[rowi][coli])
-//                            {
-//                                cinfo->node.phys.triangles[i].triangleindex[rowi][coli] = j;
-//                            }
-//                            else
-//                            {
+//            // Loop, breaking triangles into ever smaller triangles, until we are below required resolution (5mm squared)
+//            bool modified = true;
+//            while (modified)
+//            {
+//                modified = false;
+//                for (size_t i=0; i<cinfo->node.phys.triangles.size(); ++i)
+//                {
+//                    trianglestruc tface = cinfo->node.phys.triangles[i];
+//                    if (tface.area > 2.5e-5)
+//                    {
+//                        cinfo->node.phys.vertices.push_back(tface.com);
+//                        trianglestruc ttriangle = tface;
+//                        ttriangle.tidx[0] = cinfo->node.phys.vertices.size() - 1;
 
-//                            }
-                        }
-                    }
-                }
-            }
+//                        ttriangle.tidx[1] = tface.tidx[2];
+//                        ttriangle.tidx[2] = tface.tidx[0];
+//                        ttriangle.com = cinfo->node.phys.vertices[ttriangle.tidx[0]].cross(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
+//                        ttriangle.area = cinfo->node.phys.vertices[ttriangle.tidx[0]].area(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
+//                        ttriangle.heat = tface.heat * ttriangle.area / tface.area;
+//                        cinfo->node.phys.triangles.push_back(ttriangle);
 
-            return cinfo->node.phys.triangles.size();
-        }
+//                        ttriangle.tidx[1] = tface.tidx[0];
+//                        ttriangle.tidx[2] = tface.tidx[1];
+//                        ttriangle.com = cinfo->node.phys.vertices[ttriangle.tidx[0]].cross(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
+//                        ttriangle.area = cinfo->node.phys.vertices[ttriangle.tidx[0]].area(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
+//                        ttriangle.heat = tface.heat * ttriangle.area / tface.area;
+//                        cinfo->node.phys.triangles.push_back(ttriangle);
+
+//                        ttriangle.tidx[1] = tface.tidx[1];
+//                        ttriangle.tidx[2] = tface.tidx[2];
+//                        ttriangle.com = cinfo->node.phys.vertices[ttriangle.tidx[0]].cross(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
+//                        ttriangle.area = cinfo->node.phys.vertices[ttriangle.tidx[0]].area(cinfo->node.phys.vertices[ttriangle.tidx[1]]);
+//                        ttriangle.heat = tface.heat * ttriangle.area / tface.area;
+//                        cinfo->node.phys.triangles.push_back(ttriangle);
+
+//                        modified = true;
+//                    }
+//                }
+//            }
+
+//            // For each triangle, identify what is in its field of view in 10 degree resolution grid
+//            for (size_t i=0; i<cinfo->node.phys.triangles.size(); ++i)
+//            {
+//                trianglestruc tface = cinfo->node.phys.triangles[i];
+////                if (cinfo->node.phys.triangles[i].triangleindex.empty())
+////                {
+////                    cinfo->node.phys.triangles[i].triangleindex.resize(9);
+////                    for (size_t j=0; j<9; ++j)
+////                    {
+////                        float cel = cos(RADOF(90.-(10.*j+5.)));
+////                        cinfo->node.phys.triangles[i].triangleindex[j].resize((int)(cel*18+.5));
+////                    }
+////                }
+
+//                for (size_t j=0; j<cinfo->node.phys.triangles.size(); ++j)
+//                {
+//                    if (j != i)
+//                    {
+//                        double sep = cinfo->node.phys.triangles[i].com.separation(cinfo->node.phys.triangles[j].com);
+//                        if (sep > DPI2)
+//                        {
+//                            float az;
+//                            float el;
+//                            Vector topo;
+//                            Convert::body2topo(cinfo->node.phys.triangles[i].com, cinfo->node.phys.triangles[j].com, topo);
+//                            Convert::topo2azel(topo, az, el);
+//                            float alt = (int16_t)((DPI2 - el) / 9.) + RADOF(.5);
+//                            uint16_t rowi = 9 * alt / DPI2;
+//                            uint16_t coli = 9 * cos(alt) * az / DPI2;
+////                            if (cinfo->node.phys.triangles[i].triangleindex[rowi][coli])
+////                            {
+////                                cinfo->node.phys.triangles[i].triangleindex[rowi][coli] = j;
+////                            }
+////                            else
+////                            {
+
+////                            }
+//                        }
+//                    }
+//                }
+//            }
+
+//            return cinfo->node.phys.triangles.size();
+//        }
 
         double rearth(double lat)
         {

@@ -96,12 +96,12 @@ namespace Cosmos
             int32_t add_hex(double width=30, double height=30, ExternalPanelType type=NoPanel);
             int32_t add_oct(double width=30, double height=30, ExternalPanelType type=NoPanel);
             int32_t add_u(double x=1, double y=1, double z=1, ExternalPanelType type=NoPanel);
-            int32_t add_cuboid(string name, Vector dimensions, double depth, Quaternion orientation, Vector offset);
+//            int32_t add_cuboid(string name, Vector dimensions, double depth, Quaternion orientation, Vector offset);
             int32_t add_panel(string name, Vector point0, Vector point1, Vector point2, Vector point3, double thickness=0.01, uint8_t external=1, float pcell=0.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector(), float density=2700.);
             int32_t add_panel(string name, vector<Vector> points, double thickness=0.01, uint8_t external=1, float pcell=0.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector(), float density=2700.);
             int32_t add_face(Vector point0, Vector point1, Vector point2, Vector point3, double thickness=0.01, uint8_t external=1, float pcell=0.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector());
             int32_t add_face(vector<Vector> points, double thickness=0.01, uint8_t external=1, float pcell=0.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector());
-            int32_t add_face(Vector dimensions, Quaternion orientation, Vector offset);
+            int32_t add_face(Vector dimensions, uint8_t external=1, float pcell=0.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector());
             int32_t add_triangle(Vector pointa, Vector pointb, Vector pointc, double depth, bool external=true, float pcell=.85);
             int32_t add_vertex(Vector point);
 

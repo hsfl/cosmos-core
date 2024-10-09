@@ -98,7 +98,6 @@ int main(int argc, char *argv[])
     // Reset simulation db
     reset_db(sim);
 
-    uint16_t tcount = 0;
     while (agent->running() && elapsed < runcount)
     {
         // Calculate thrust
