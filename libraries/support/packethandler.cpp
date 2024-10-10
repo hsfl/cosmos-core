@@ -1091,6 +1091,56 @@ namespace Cosmos {
             return iretn;
         }
 
+        int32_t PacketHandler::QueueAdcsFree(Agent* agent, NODE_ID_TYPE dest, const string& radioin)
+        {
+            int32_t iretn = 0;
+
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandAdcsFree;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = dest;
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("ADCS");
+            packet.data.clear();
+            iretn = agent->channel_push(packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::QueueAdcsLvlh(Quaternion att, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
+        {
+            int32_t iretn = 0;
+
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandAdcsLvlh;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = dest;
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("ADCS");
+            packet.data.clear();
+            packet.data.insert(packet.data.end(), (uint8_t*)&att, (uint8_t*)(&att + sizeof(att)));
+            iretn = agent->channel_push(packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::QueueAdcsInertial(Vector eci, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
+        {
+            int32_t iretn = 0;
+
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandAdcsLvlh;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = dest;
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number("ADCS");
+            packet.data.clear();
+            packet.data.insert(packet.data.end(), (uint8_t*)&eci, (uint8_t*)(&eci + sizeof(eci)));
+            iretn = agent->channel_push(packet);
+            return iretn;
+        }
+
         int32_t PacketHandler::QueueEpsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;

@@ -72,6 +72,10 @@ namespace Cosmos {
                 CommandAdcsSetRunMode = 0x383,
                 CommandAdcsGetAdcsState = 0x384,
                 CommandAdcsOrbitParameters = 0x385,
+                CommandAdcsLvlh = 0x386,
+                CommandAdcsInertial = 0x387,
+                CommandAdcsGeod = 0x388,
+                CommandAdcsFree = 0x389,
 
                 DataFile = 0x400,
                 DataFileCommand = 0x401,
