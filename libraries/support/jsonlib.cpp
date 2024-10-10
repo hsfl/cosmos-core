@@ -7432,35 +7432,56 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
     for (size_t i=0; i<cinfo->pieces.size(); ++i)
     {
         // Clean up any missing faces and calculate center of mass for each Piece using Faces
-        cinfo->pieces[i].com = Vector ();
-        for (size_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
+        if (cinfo->pieces[i].struc_idx)
         {
-            if (cinfo->node.phys.faces.size() <= cinfo->pieces[i].face_idx[j])
+            cinfo->pieces[i].com = cinfo->node.phys.strucs[cinfo->pieces[i].struc_idx].com;
+            cinfo->pieces[i].volume = cinfo->node.phys.strucs[cinfo->pieces[i].struc_idx].volume;
+            cinfo->pieces[i].mass = cinfo->node.phys.strucs[cinfo->pieces[i].struc_idx].mass;
+            if (cinfo->pieces[i].volume > 0.)
             {
-                cinfo->node.phys.faces.resize(cinfo->pieces[i].face_idx[j]+1);
-                cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]].com = Vector ();
-                cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]].area = 0.;
-                cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]].normal = Vector ();
+                cinfo->pieces[i].density = cinfo->pieces[i].mass / cinfo->pieces[i].volume;
             }
-            cinfo->pieces[i].com += cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]].com;
+            else
+            {
+                cinfo->pieces[i].density = 0.;
+            }
         }
-        if (cinfo->pieces[i].face_cnt)
+        else
         {
-            cinfo->pieces[i].com /= cinfo->pieces[i].face_cnt;
+            cinfo->pieces[i].com = Vector();
+            cinfo->pieces[i].volume = 0.;
+            cinfo->pieces[i].mass = 0.;
+            cinfo->pieces[i].density = 0.;
         }
+//        cinfo->pieces[i].com = Vector ();
+//        for (size_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
+//        {
+//            if (cinfo->node.phys.faces.size() <= cinfo->pieces[i].face_idx[j])
+//            {
+//                cinfo->node.phys.faces.resize(cinfo->pieces[i].face_idx[j]+1);
+//                cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]].com = Vector ();
+//                cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]].area = 0.;
+//                cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]].normal = Vector ();
+//            }
+//            cinfo->pieces[i].com += cinfo->node.phys.faces[cinfo->pieces[i].face_idx[j]].com;
+//        }
+//        if (cinfo->pieces[i].face_cnt)
+//        {
+//            cinfo->pieces[i].com /= cinfo->pieces[i].face_cnt;
+//        }
 
         // Calculate volume for each Piece using center of mass for each Face
         // Calculate normal for each Face that faces away from center of piece, or center of object
-        cinfo->pieces[i].volume = 0.;
-        for (size_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
-        {
-            Vector dv = cinfo->node.phys.faces[(cinfo->pieces[i].face_idx[j])].com - cinfo->pieces[i].com;
-            if (dv.norm() != 0.)
-            {
-                cinfo->pieces[i].volume += cinfo->node.phys.faces[(cinfo->pieces[i].face_idx[j])].area * dv.norm() / 3.;
-            }
-        }
-        cinfo->node.phys.face_cnt = cinfo->node.phys.faces.size();
+//        cinfo->pieces[i].volume = 0.;
+//        for (size_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
+//        {
+//            Vector dv = cinfo->node.phys.faces[(cinfo->pieces[i].face_idx[j])].com - cinfo->pieces[i].com;
+//            if (dv.norm() != 0.)
+//            {
+//                cinfo->pieces[i].volume += cinfo->node.phys.faces[(cinfo->pieces[i].face_idx[j])].area * dv.norm() / 3.;
+//            }
+//        }
+//        cinfo->node.phys.face_cnt = cinfo->node.phys.faces.size();
         tvolume += cinfo->pieces[i].volume;
         tcom +=  cinfo->pieces[i].com * cinfo->pieces[i].volume;
     }
