@@ -85,7 +85,7 @@ using std::map;
 
 #ifdef COSMOS_WIN_OS // Defined for both 32-bit and 64-bit environments 1
 
-#include <winsock2.h> // must come before <windows.h>
+//#include <winsock2.h> // must come before <windows.h>
 
 //! \addtogroup defs_macros More Special COSMOS macros
 //! @{
@@ -113,6 +113,7 @@ using std::map;
 #include <sys/time.h>
 #endif
 
+#include <sys/types.h>
 #include <thread>
 #include <io.h>
 #include <process.h>

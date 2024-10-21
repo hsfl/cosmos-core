@@ -98,7 +98,6 @@ int main(int argc, char *argv[])
     // Reset simulation db
     reset_db(sim);
 
-    uint16_t tcount = 0;
     while (agent->running() && elapsed < runcount)
     {
         // Calculate thrust
@@ -162,16 +161,20 @@ int main(int argc, char *argv[])
                         json11::Json jobj = json11::Json::object({
                             {"mtype", "event"},
                             {"node_name", state->currentinfo.node.name},
-                            {"utc", event.utc},
-                            {"name", event.name},
-                            {"type", static_cast<int>(event.type)},
-                            {"flag", static_cast<int>(event.flag)},
-                            {"el", event.el},
-                            {"az", event.az},
+                            {"event_utc", event.utc},
+                            {"event_name", event.name},
+                            {"event_type", static_cast<int>(event.type)},
+                            {"event_flag", static_cast<int>(event.flag)},
+                            {"event_el", event.el},
+                            {"event_az", event.az},
                             {"geodpos", state->currentinfo.node.loc.pos.geod.s}
                         });
                         string output = jobj.dump();
                         iretn = socket_post(data_channel_out, output.c_str());
+
+                        // Post SOH
+                        string jstring;
+                        agent->post(Agent::AgentMessage::EVENT, jobj.dump());
                     }
                 }
             }
