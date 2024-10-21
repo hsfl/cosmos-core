@@ -34,9 +34,15 @@
 #include "support/datalib.h"
 //#include "support/jsonlib.h"
 //#include "support/jsondef.h"
+#include "support/elapsedtime.h"
+#include "support/timelib.h"
 #include "support/stringlib.h"
 #include <algorithm>
-
+#include <sys/stat.h>
+#ifdef _WIN32
+#include <stdlib.h>
+#define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
+#endif
 //! \ingroup datalib
 //! \defgroup datalib_statics Static variables for Data functions.
 //! @{
@@ -343,7 +349,7 @@ string log_write(string node, string agent, double utc, string type, const char 
  * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
  * \param record String to be appended to file.
  */
-string log_write(string node, int type, double utc, const char *record, string directory)
+string log_write(string node, int type, double utc, const char *record)
 {
 
     switch (type)
@@ -1425,7 +1431,7 @@ int32_t set_cosmosroot(bool create_flag)
         // No environment variables set. Look in standard location.
 #if defined(COSMOS_WIN_OS)
         croot = "c:/cosmos";
-#elseif defined(COSMOS_MAC_OS)
+#elif defined(COSMOS_MAC_OS)
         croot = "/Applications/cosmos";
 #else
         croot = "/cosmos";

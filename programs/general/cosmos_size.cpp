@@ -108,30 +108,21 @@ int main(int argc, char* argv[])
     total += c->node.memoryusage();
     printf("Node:\t\t%lu\t%lu\n", count, total);
 
-    count = sizeof(c->vertexs);
-    total += sizeof(c->vertexs);
-    for (size_t i=0; i<c->vertexs.size(); ++i)
+    count = sizeof(c->node.phys.vertices);
+    total += sizeof(c->node.phys.vertices);
+    for (size_t i=0; i<c->node.phys.vertices.size(); ++i)
     {
-        count += sizeof(c->vertexs[i]);
-        total += sizeof(c->vertexs[i]);
+        count += sizeof(c->node.phys.vertices[i]);
+        total += sizeof(c->node.phys.vertices[i]);
     }
     printf("Vertexs:\t%lu\t%lu\n", count, total);
 
-    count = sizeof(c->normals);
-    total += sizeof(c->normals);
-    for (size_t i=0; i<c->normals.size(); ++i)
+    count = sizeof(c->node.phys.faces);
+    total += sizeof(c->node.phys.faces);
+    for (size_t i=0; i<c->node.phys.faces.size(); ++i)
     {
-        count += sizeof(c->normals[i]);
-        total += sizeof(c->normals[i]);
-    }
-    printf("Normals:\t%lu\t%lu\n", count, total);
-
-    count = sizeof(c->faces);
-    total += sizeof(c->faces);
-    for (size_t i=0; i<c->faces.size(); ++i)
-    {
-        count += c->faces[i].memoryusage();
-        total += c->faces[i].memoryusage();
+        count += c->node.phys.faces[i].memoryusage();
+        total += c->node.phys.faces[i].memoryusage();
     }
     printf("Faces:\t\t%lu\t%lu\n", count, total);
 

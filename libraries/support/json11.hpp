@@ -92,12 +92,10 @@ public:
     Json() noexcept;                // NUL
     Json(std::nullptr_t) noexcept;  // NUL
     Json(double value);             // NUMBER
-    Json(int value);                // NUMBER
-    Json(long value);                // NUMBER
-//    Json(int32_t value);
-//    Json(uint32_t value);
-//    Json(uint16_t value);
-//    Json(uint8_t value);
+    Json(int16_t value);                // NUMBER
+    Json(int32_t value);                // NUMBER
+    Json(uint16_t value);                // NUMBER
+    Json(uint32_t value);                // NUMBER
     Json(bool value);               // BOOL
     Json(const string &value); // STRING
     Json(string &&value);      // STRING
@@ -143,8 +141,10 @@ public:
     // distinguish between integer and non-integer numbers - number_value(), int_value(), and long_value()
     // can all be applied to a NUMBER-typed object.
     double number_value() const;
-    int int_value() const;
-    long long_value() const;
+    int16_t int_value() const;
+    int32_t long_value() const;
+    uint16_t uint_value() const;
+    uint32_t ulong_value() const;
 
     // Return the enclosed value if this is a boolean, false otherwise.
     bool bool_value() const;
@@ -220,16 +220,20 @@ private:
 class JsonValue {
 protected:
     friend class Json;
-    friend class JsonInt;
-    friend class JsonLong;
+    friend class JsonInt16;
+    friend class JsonInt32;
+    friend class JsonUint16;
+    friend class JsonUint32;
     friend class JsonDouble;
     virtual Json::Type type() const = 0;
     virtual bool equals(const JsonValue * other) const = 0;
     virtual bool less(const JsonValue * other) const = 0;
     virtual void dump(string &out) const = 0;
     virtual double number_value() const;
-    virtual int int_value() const;
-    virtual int long_value() const; // ERIC:  you probably meant to return long here?  I ain't touching it, though!
+    virtual int16_t int_value() const;
+    virtual int32_t long_value() const; // ERIC:  you probably meant to return long here?  I ain't touching it, though!
+    virtual uint16_t uint_value() const;
+    virtual uint32_t ulong_value() const; // ERIC:  you probably meant to return long here?  I ain't touching it, though!
     virtual bool bool_value() const;
     virtual const string &string_value() const;
     virtual const Json::array &array_items() const;
@@ -320,13 +324,40 @@ template <typename T, typename... Keys>
 inline T find_json_value(const Json& json, const std::string& firstKey, Keys... rest);
 
 
-// Specialization for int
+// Specialization for int16
 template <>
-inline int find_json_value<int>(const Json& json, const string& key) {
-	if (key.empty())
-		return json.int_value();
-	else
-		return find_json_object(json, key)[key].int_value();
+inline int16_t find_json_value<int16_t>(const Json& json, const string& key) {
+    if (key.empty())
+        return json.int_value();
+    else
+        return find_json_object(json, key)[key].int_value();
+}
+
+// Specialization for int32
+template <>
+inline int find_json_value<int32_t>(const Json& json, const string& key) {
+    if (key.empty())
+        return json.long_value();
+    else
+        return find_json_object(json, key)[key].long_value();
+}
+
+// Specialization for uint16
+template <>
+inline uint16_t find_json_value<uint16_t>(const Json& json, const string& key) {
+    if (key.empty())
+        return json.uint_value();
+    else
+        return find_json_object(json, key)[key].uint_value();
+}
+
+// Specialization for uint32
+template <>
+inline uint32_t find_json_value<uint32_t>(const Json& json, const string& key) {
+    if (key.empty())
+        return json.ulong_value();
+    else
+        return find_json_object(json, key)[key].ulong_value();
 }
 
 // Specialization for double

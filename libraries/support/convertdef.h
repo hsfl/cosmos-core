@@ -182,7 +182,7 @@ namespace Cosmos {
                     { "v", v },
                     { "a", a },
                     { "j", j },
-                    { "pass", static_cast<long>(pass) }
+                    { "pass", pass }
                 };
             }
 
@@ -287,7 +287,7 @@ namespace Cosmos {
                     { "s", s },
                     { "v", v },
                     { "a", a },
-                    { "pass", static_cast<long>(pass) }
+                    { "pass", pass }
                 };
             }
 
@@ -348,7 +348,7 @@ namespace Cosmos {
                     { "s", s },
                     { "v", v },
                     { "a", a },
-                    { "pass", static_cast<long>(pass) }
+                    { "pass", pass }
                 };
             }
 
@@ -514,7 +514,7 @@ namespace Cosmos {
                     { "s" , s },
                     { "v" , v },
                     { "a" , a },
-                    { "pass" , static_cast<long>(pass) }
+                    { "pass" , pass }
                 };
             }
 
@@ -676,7 +676,7 @@ namespace Cosmos {
 
                     { "sun2earth" , sun2earth },
                     { "sun2moon"  , sun2moon },
-                    { "closest"   , static_cast<long>(closest) }
+                    { "closest"   , closest }
                 };
             }
 
@@ -764,7 +764,7 @@ namespace Cosmos {
                 return json11::Json::object {
                     { "utc" , utc },
                     { "name" , name },
-                    { "snumber" , static_cast<long>(snumber) },
+                    { "snumber" , snumber },
                     { "id" , id },
                     { "bstar" , bstar },
                     { "i" , i },
@@ -775,7 +775,7 @@ namespace Cosmos {
                     { "mm" , mm },
                     { "dmm" , dmm },
                     { "ddmm" , ddmm },
-                    { "orbit" , static_cast<long>(orbit) }
+                    { "orbit" , orbit }
                 };
             }
 

@@ -995,7 +995,7 @@ int32_t Structure::Setup(string stype)
     }
     else
     {
-        return Type::NoType;
+        return Setup(NoType);
     }
 }
 
@@ -1007,6 +1007,7 @@ int32_t Structure::Setup(Type type)
     {
     case NoType:
         iretn = add_u();
+        break;
     case U1:
         iretn = add_u(1, 1, 1, NoPanel);
         break;
@@ -1097,203 +1098,334 @@ int32_t Structure::add_u(double x, double y, double z, ExternalPanelType type)
     switch (type)
     {
     case NoType:
-        add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01);
-        add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01);
-        add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01);
-        add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01);
-        add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
-        add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
+        add_panel("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01);
+        add_panel("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01);
+        add_panel("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01);
+        add_panel("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01);
+        add_panel("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+        add_panel("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
         break;
     case X:
-        add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01, 2, 0.);
-        add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01, 2, 0.);
-        add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .01);
-        add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .01);
+        add_panel("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01, 2, 0.);
+        add_panel("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01, 2, 0.);
+        add_panel("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .01);
+        add_panel("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .01);
 
-        add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01);
-        add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01);
+        add_panel("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01);
+        add_panel("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01);
 
-        add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
-        add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
+        add_panel("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+        add_panel("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
         break;
     case Y:
-        add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01);
-        add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01);
+        add_panel("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01);
+        add_panel("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01);
 
-        add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01, 2, 0.);
-        add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01, 2, 0.);
-        add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .01);
-        add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .01);
+        add_panel("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01, 2, 0.);
+        add_panel("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01, 2, 0.);
+        add_panel("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .01);
+        add_panel("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .01);
 
-        add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
-        add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
+        add_panel("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+        add_panel("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
         break;
     case XY:
-        add_face("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01, 2, 0.);
-        add_face("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01, 2, 0.);
-        add_face("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .01);
-        add_face("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .01);
+        add_panel("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01, 2, 0.);
+        add_panel("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01, 2, 0.);
+        add_panel("panel+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(z + x/2., y/2., -z/2.), Vector(z + x/2., -y/2., -z/2.), .01);
+        add_panel("panel-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(-z - x/2., y/2., -z/2.), Vector(-z - x/2., -y/2., -z/2.), .01);
 
-        add_face("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01, 2, 0.);
-        add_face("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01, 2, 0.);
-        add_face("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .01);
-        add_face("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .01);
+        add_panel("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01, 2, 0.);
+        add_panel("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01, 2, 0.);
+        add_panel("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .01);
+        add_panel("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .01);
 
-        add_face("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
-        add_face("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
+        add_panel("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+        add_panel("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
         break;
     }
 
-    return 0;
+    return currentphys->struc_cnt;
 }
 
 int32_t Structure::add_hex(double width, double height, ExternalPanelType type)
 {
+    vector<Vector> top;
+    vector<Vector> bottom;
+    for (uint16_t i=0; i<6; ++i)
+    {
+        float angle = i * D2PI / 6.;
+        top.push_back(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.));
+        bottom.push_back(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.));
+    }
+    add_panel("top", top);
+    add_panel("bottom", bottom);
+
     switch (type)
     {
     case NoType:
         for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
         {
-            add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, true, .4);
+            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
         }
         break;
     case X:
         for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
         {
-            add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, true, .4);
+            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
         }
         break;
     case Y:
         for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
         {
-            add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, true, .4);
+            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
         }
         break;
     case XY:
         for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
         {
-            add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, true, .4);
+            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
         }
         break;
     }
 
-    return 0;
+    return currentphys->struc_cnt;
 }
 
 int32_t Structure::add_oct(double width, double height, ExternalPanelType type)
 {
+    vector<Vector> top;
+    vector<Vector> bottom;
+    for (uint16_t i=0; i<8; ++i)
+    {
+        float angle = i * D2PI / 8.;
+        top.push_back(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.));
+        bottom.push_back(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.));
+    }
+
     switch (type)
     {
     case NoType:
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
-            add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.));
+            add_panel("top", top);
+            add_panel("bottom", bottom);
+//            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+//            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
 
         break;
     case X:
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
-            add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
+            add_panel("top", top);
+            add_panel("bottom", bottom);
+//            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+//            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
 
         break;
     case Y:
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
-            add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
+            add_panel("top", top);
+            add_panel("bottom", bottom);
+//            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+//            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
 
         break;
     case XY:
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
-            add_face("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
-            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
-            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
+            add_panel("top", top);
+            add_panel("bottom", bottom);
+//            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+//            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
 
         break;
     }
 
-    return 0;
+    return currentphys->struc_cnt;
 }
 
-int32_t Structure::add_cuboid(string name, Vector size, double depth, Quaternion orientation, Vector offset)
-{
-    add_face(name+"+x", Vector(size.x/2., -size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(size.x/2., -size.y/2., size.z/2.), depth, 1, 0., orientation, offset);
-    add_face(name+"-x", Vector(-size.x/2., -size.y/2., -size.z/2.), Vector(-size.x/2., -size.y/2., size.z/2.), Vector(-size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., size.y/2., -size.z/2.), depth, 1, 0., orientation, offset);
-    add_face(name+"+y", Vector(-size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., size.y/2., size.z/2.), depth, 1, 0., orientation, offset);
-    add_face(name+"-y", Vector(-size.x/2., -size.y/2., -size.z/2.), Vector(-size.x/2., size.y/2., size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(size.x/2., -size.y/2., -size.z/2.), depth, 1, 0., orientation, offset);
-    add_face(name+"+z", Vector(-size.x/2., -size.y/2., size.z/2.), Vector(size.x/2., -size.y/2., size.z/2.), Vector(size.x/2., size.y/2., size.z/2.), Vector(-size.x/2., size.y/2., size.z/2.), depth, 1, 0., orientation, offset);
-    add_face(name+"-z", Vector(-size.x/2., -size.y/2., -size.z/2.), Vector(-size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., size.y/2., -size.z/2.), Vector(size.x/2., -size.y/2., -size.z/2.), depth, 1, 0., orientation, offset);
+//! Add a rectilinear box
+//! Add a box with specified dimensions in X, Y and Z and walls of specified thickness.
+//! \param dimensions Siz in X, Y and Z.
+//! \param thickness Thickness of walls.
+//! \param orientation ::Quaternion indicating indirect rotation into spacecraft frame.
+//! \param Offset in apcecraft frame after rotation.
+//! \return 0 or negative error.
+//int32_t Structure::add_cuboid(string name, Vector dimensions, double thickness, Quaternion orientation, Vector offset)
+//{
+//    add_face(Vector(dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., -dimensions.y/2., dimensions.z/2.), thickness, 1, 0., orientation, offset);
+//    add_face(Vector(-dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), Vector(-dimensions.x/2., -dimensions.y/2., dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., -dimensions.z/2.), thickness, 1, 0., orientation, offset);
+//    add_face(Vector(-dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., dimensions.z/2.), thickness, 1, 0., orientation, offset);
+//    add_face(Vector(-dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), thickness, 1, 0., orientation, offset);
+//    add_face(Vector(-dimensions.x/2., -dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., -dimensions.y/2., dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., dimensions.z/2.), thickness, 1, 0., orientation, offset);
+//    add_face(Vector(-dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), Vector(-dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., dimensions.y/2., -dimensions.z/2.), Vector(dimensions.x/2., -dimensions.y/2., -dimensions.z/2.), thickness, 1, 0., orientation, offset);
 
-    return 0;
+//    return 0;
+//}
+
+//! Add panel
+//! Add a single panel based on a ::vector of points at corners. Add associated triangles. Calculate associated values
+//! coi, mass, etc.
+//! \param name Unique name of piece.
+//! \param points ::vector of ::Vector of points
+//! \param thickness Thickness of face.
+//! \param external Flag indicating location of panel.
+//! \param orientation Quaternion representing indirect rotation of panel into spacecraft frame.
+//! \param offset Location relative to coi.
+//! \return Face number, or negative error.
+int32_t Structure::add_panel(string name, vector<Vector> points, double thickness, uint8_t external, float pcell, Quaternion orientation, Vector offset, float density)
+{
+    int32_t iretn;
+    iretn = add_face(points, thickness, external, pcell, orientation, offset);
+    if (iretn >= 0)
+    {
+        strucstruc struc;
+        struc.name = name;
+        struc.com = currentphys->faces[iretn].com;
+        struc.volume = currentphys->faces[iretn].area * thickness;
+        struc.mass = density * struc.volume;
+        struc.face_cnt = 1;
+        struc.face_idx.push_back(iretn);
+        currentphys->strucs.push_back(struc);
+        currentphys->struc_cnt = currentphys->strucs.size();
+        return currentphys->struc_cnt;
+    }
+    else
+    {
+        return iretn;
+    }
 }
 
-int32_t Structure::add_face(string name, Vector point0, Vector point1, Vector point2, Vector point3, double depth, uint8_t external, float pcell, Quaternion orientation, Vector offset)
+//! Add rectangular panel
+//! Add a single panel based on four points at corners. Add associated triangles. Calculate associated values
+//! coi, mass, etc.
+//! \param name Unique name of piece.
+//! \param point0 ::Vector of first point
+//! \param point1 ::Vector of second point
+//! \param point2 ::Vector of third point
+//! \param point3 ::Vector of fourth point
+//! \param thickness Thickness of face.
+//! \param external Flag indicating location of panel.
+//! \param orientation Quaternion representing indirect rotation of panel into spacecraft frame.
+//! \param offset Location relative to coi.
+//! \return Face number, or negative error.
+int32_t Structure::add_panel(string name, Vector point0, Vector point1, Vector point2, Vector point3, double thickness, uint8_t external, float pcell, Quaternion orientation, Vector offset, float density)
 {
-    point0 = orientation.irotate(point0);
-    point0 += offset;
-    point1 = orientation.irotate(point1);
-    point1 += offset;
-    point2 = orientation.irotate(point2);
-    point2 += offset;
-    point3 = orientation.irotate(point3);
-    point3 += offset;
-    Vector point4 = (point0 + point1 + point2 + point3) / 4.;
-
-    add_triangle(point0, point1, point4, depth, external, pcell);
-    add_triangle(point1, point2, point4, depth, external, pcell);
-    add_triangle(point2, point3, point4, depth, external, pcell);
-    add_triangle(point3, point0, point4, depth, external, pcell);
-
-    return 0;
+    vector<Vector> points = {point0 ,point1, point2, point3};
+    return add_panel(name, points, thickness, external, pcell, orientation, offset, density);
 }
 
-int32_t Structure::add_face(string name, Vector size, Quaternion orientation, Vector offset)
+//! Add rectangular face
+//! Add face based on four points at corners. Add associated triangles. Calculate associated values
+//! coi, mass, etc.
+//! \param name Unique name of face.
+//! \param point0 ::Vector of first point
+//! \param point1 ::Vector of second point
+//! \param point2 ::Vector of third point
+//! \param point3 ::Vector of fourth point
+//! \param thickness Thickness of face.
+//! \param external Flag indicating location of panel.
+//! \param orientation Quaternion representing indirect rotation of panel into spacecraft frame.
+//! \param offset Location relative to coi.
+//! \return Face number, or negative error.
+int32_t Structure::add_face(vector<Vector> points, double thickness, uint8_t external, float pcell, Quaternion orientation, Vector offset)
 {
-    Vector points[5];
+    int32_t iretn;
 
-    points[0].x = -size.x / 2.;
-    points[2].x = -size.x / 2.;
-    points[1].x = size.x / 2.;
-    points[3].x = size.x / 2.;
-
-    points[0].y = -size.y / 2.;
-    points[1].y = -size.y / 2.;
-    points[2].y = size.y / 2.;
-    points[3].y = size.y / 2.;
-
-    for (uint16_t i=0; i<5; ++i)
+    facestruc face;
+    Vector cpoint;
+    for (uint16_t i=0; i<points.size(); ++i)
     {
         points[i] = orientation.irotate(points[i]);
         points[i] += offset;
+        cpoint += points[i];
     }
+    cpoint /= points.size();
 
-    add_triangle(points[0], points[1], points[4], size.z);
-    add_triangle(points[1], points[1], points[4], size.z);
-    add_triangle(points[2], points[3], points[4], size.z);
-    add_triangle(points[3], points[0], points[4], size.z);
+    face.area = 0.;
+    face.com.clear();
+    face.normal.clear();
+    double tmass = 0.;
+    for (uint16_t i=0; i<points.size(); ++i)
+    {
+        if ((iretn=add_triangle(points[i], points[(i+1)%points.size()], cpoint, thickness, external, pcell)) >= 0)
+        {
+            face.triangle_idx.push_back(iretn);
+            face.triangle_cnt = face.triangle_idx.size();
+            trianglestruc triangle = currentphys->triangles[iretn];
+            if (triangle.external <= 1)
+            {
+                face.area += triangle.area;
+            }
+            if (!triangle.external)
+            {
+                face.area += triangle.area;
+            }
+            face.normal += triangle.normal;
+            face.com += triangle.com * triangle.mass;
+            tmass += triangle.mass;
+        }
+        else
+        {
+            return iretn;
+        }
+    }
+    face.com /= tmass;
+    face.normal /= points.size();
 
-    return 4;
+    currentphys->faces.push_back(face);
+    currentphys->face_cnt = currentphys->faces.size();
+
+    return currentphys->faces.size() - 1;
 }
 
-int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, double depth, bool external, float pcell)
+//! Add rectangular face
+//! Add face based on four points at corners. Add associated triangles. Calculate associated values
+//! coi, mass, etc.
+//! \param name Unique name of face.
+//! \param point0 ::Vector of first point
+//! \param point1 ::Vector of second point
+//! \param point2 ::Vector of third point
+//! \param point3 ::Vector of fourth point
+//! \param thickness Thickness of face.
+//! \param external Flag indicating location of panel.
+//! \param orientation Quaternion representing indirect rotation of panel into spacecraft frame.
+//! \param offset Location relative to coi.
+//! \return Face number, or negative error.
+    int32_t Structure::add_face(Vector point0, Vector point1, Vector point2, Vector point3, double thickness, uint8_t external, float pcell, Quaternion orientation, Vector offset)
+{
+    vector<Vector> points = {point0 ,point1, point2, point3};
+    return add_face(points, thickness, external, pcell, orientation, offset);
+}
+
+int32_t Structure::add_face(Vector dimensions, uint8_t external, float pcell, Quaternion orientation, Vector offset)
+{
+    Vector points[5];
+
+    points[0].x = -dimensions.x / 2.;
+    points[1].x = dimensions.x / 2.;
+    points[2].x = dimensions.x / 2.;
+    points[3].x = -dimensions.x / 2.;
+
+    points[0].y = -dimensions.y / 2.;
+    points[1].y = -dimensions.y / 2.;
+    points[2].y = dimensions.y / 2.;
+    points[3].y = dimensions.y / 2.;
+
+    return add_face(points[0], points[1], points[2], points[3], dimensions.z, external, pcell, orientation, offset);
+}
+
+int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, double thickness, bool external, float pcell)
 {
     trianglestruc triangle;
 
@@ -1302,12 +1434,12 @@ int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, dou
     triangle.tidx[2] = add_vertex(pointc);
 
     triangle.external = external;
-    triangle.depth = depth;
+    triangle.thickness = thickness;
     triangle.pcell = pcell;
     triangle.com = (currentphys->vertices[triangle.tidx[0]] + currentphys->vertices[triangle.tidx[1]] + currentphys->vertices[triangle.tidx[2]]) / 3.;
     triangle.area = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).area(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]);
     triangle.normal = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).cross(currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[0]]).normalize(triangle.area);
-    triangle.mass = triangle.area * triangle.depth * triangle.density;
+    triangle.mass = triangle.area * triangle.thickness * triangle.density;
     triangle.perimeter = (currentphys->vertices[triangle.tidx[1]] - currentphys->vertices[triangle.tidx[0]]).norm() + (currentphys->vertices[triangle.tidx[2]] - currentphys->vertices[triangle.tidx[1]]).norm() + (currentphys->vertices[triangle.tidx[0]] - currentphys->vertices[triangle.tidx[2]]).norm();
 
     triangle.twist = (triangle.com - triangle.normal).cross(triangle.normal);
@@ -1335,8 +1467,9 @@ int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, dou
     triangle.shove = (triangle.shove / -10000.);
 
     currentphys->triangles.push_back(triangle);
+    currentphys->triangle_cnt = currentphys->triangles.size();
 
-    return 1;
+    return currentphys->triangles.size() - 1;
 }
 
 int32_t Structure::add_vertex(Vector point)
@@ -1358,8 +1491,10 @@ int32_t Structure::add_vertex(Vector point)
     {
         return index;
     }
-    else {
+    else
+    {
         currentphys->vertices.push_back(point);
+        currentphys->vertex_cnt = currentphys->vertices.size();
         return currentphys->vertices.size() - 1;
     }
 }
@@ -1377,10 +1512,29 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     currentinfo.node.loc.tle = tle;
     currentinfo.node.loc.pos.eci.pass++;
     pos_eci(currentinfo.node.loc);
+    currentinfo.node.loc.att.icrf = icrf;
+    currentinfo.node.loc.att.icrf.pass++;
+    att_icrf(currentinfo.node.loc);
 
+    uint32_t ctruc_idx = currentinfo.node.phys.strucs.size();
     structure = new Structure(&currentinfo.node.phys);
     structure->Setup(stype);
     this->stype = stype;
+    for (uint32_t i=ctruc_idx; i<currentinfo.node.phys.strucs.size(); ++i)
+    {
+        piecestruc piece;
+        piece.name = currentinfo.node.phys.strucs[i].name;
+        piece.density = currentinfo.node.phys.strucs[i].mass / currentinfo.node.phys.strucs[i].volume;
+        //        piece.area = currentphys->faces[iretn].area;
+        piece.volume = currentinfo.node.phys.strucs[i].volume;
+        piece.mass = currentinfo.node.phys.strucs[i].mass;
+        piece.com = currentinfo.node.phys.strucs[i].com;
+        piece.struc_idx = i;
+        currentinfo.pieces.push_back(piece);
+        json_mappieceentry(currentinfo.pieces.size()-1, &currentinfo);
+        json_togglepieceentry(currentinfo.pieces.size()-1, &currentinfo, true);
+    }
+    currentinfo.piece_cnt = currentinfo.pieces.size();
 
     switch (ptype)
     {
@@ -1613,9 +1767,24 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     currentinfo.node.name = name;
     currentinfo.agent0.name = "sim";
 
+    uint32_t ctruc_idx = currentinfo.node.phys.strucs.size();
     structure = new Structure(&currentinfo.node.phys);
     structure->Setup(stype);
     this->stype = stype;
+    for (uint32_t i=ctruc_idx; i<currentinfo.node.phys.strucs.size(); ++i)
+    {
+        piecestruc piece;
+        piece.name = currentinfo.node.phys.strucs[i].name;
+        piece.density = currentinfo.node.phys.strucs[i].mass / currentinfo.node.phys.strucs[i].volume;
+        //        piece.area = currentphys->faces[iretn].area;
+        piece.volume = currentinfo.node.phys.strucs[i].volume;
+        piece.mass = currentinfo.node.phys.strucs[i].mass;
+        piece.com = currentinfo.node.phys.strucs[i].com;
+        piece.struc_idx = i;
+        currentinfo.pieces.push_back(piece);
+    }
+    json_map_node(&currentinfo);
+
     currentinfo.mass = currentinfo.node.phys.mass;
 
     switch (ptype)
@@ -3471,7 +3640,6 @@ int32_t GaussJacksonPositionPropagator::Reset(double nextutc)
 
 int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icrf)
 {
-    static uint32_t tcount=0;
     if (nextutc == 0.)
     {
         nextutc = currentutc + dtj;
@@ -3560,7 +3728,7 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         currentinfo->node.loc.utc = currentinfo->node.loc.pos.utc;
     }
 
-    Vector fp = currentinfo->node.phys.fpush;
+//    Vector fp = currentinfo->node.phys.fpush;
     currentinfo->node.phys.fpush.clear();
 
 //    static double lastutc=0.0;

@@ -312,8 +312,10 @@ Agent::Agent(string realm_name,
     add_request("statejson",req_statejson,"","return description JSON for State vector");
     //        add_request("utcstartjson",req_utcstartjson,"","return description JSON for UTC Start time");
     add_request("piecesjson",req_piecesjson,"","return description JSON for Pieces");
-    add_request("vertexsjson",req_vertexsjson,"","return description JSON for Pieces");
+    add_request("verticesjson",req_verticesjson,"","return description JSON for Pieces");
     add_request("facesjson",req_facesjson,"","return description JSON for Pieces");
+    add_request("trianglesjson",req_trianglesjson,"","return description JSON for Pieces");
+    add_request("strucsjson",req_strucsjson,"","return description JSON for Pieces");
     add_request("devgenjson",req_devgenjson,"","return description JSON for General Devices");
     add_request("devspecjson",req_devspecjson,"","return description JSON for Specific Devices");
     add_request("portsjson",req_portsjson,"","return description JSON for Ports");
@@ -607,9 +609,13 @@ int32_t Agent::send_request_jsonnode(beatstruc hbeat, jsonnode &jnode, float wai
     if (iretn < 0) { return iretn; }
     iretn = send_request(hbeat, "piecesjson", jnode.pieces, waitsec);
     if (iretn < 0) { return iretn; }
+    iretn = send_request(hbeat, "strucsjson", jnode.strucs, waitsec);
+    if (iretn < 0) { return iretn; }
     iretn = send_request(hbeat, "facesjson", jnode.faces, waitsec);
     if (iretn < 0) { return iretn; }
-    iretn = send_request(hbeat, "vertexsjson", jnode.vertexs, waitsec);
+    iretn = send_request(hbeat, "trianglesjson", jnode.triangles, waitsec);
+    if (iretn < 0) { return iretn; }
+    iretn = send_request(hbeat, "verticesjson", jnode.vertices, waitsec);
     if (iretn < 0) { return iretn; }
     iretn = send_request(hbeat, "devgenjson", jnode.devgen, waitsec);
     if (iretn < 0) { return iretn; }
@@ -1760,9 +1766,21 @@ int32_t Agent::req_statejson(string &, string &output, Agent* agent) {
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-//        int32_t Agent::req_piecesjson(char *, char* output, Agent* agent)
 int32_t Agent::req_piecesjson(string &, string &output, Agent* agent) {
     output = agent->cinfo->json.pieces.c_str();
+    if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
+    return 0;
+}
+
+//! Built-in Return Structure JSON request
+/*! Returns a JSON string representing the Face information.
+ * \param request Text of request.
+ * \param output Text of response to request.
+ * \param agent Pointer to Cosmos::Agent to use.
+ * \return 0, or negative error.
+ */
+int32_t Agent::req_strucsjson(string &, string &output, Agent* agent) {
+    output = agent->cinfo->json.strucs.c_str();
     if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
     return 0;
 }
@@ -1774,9 +1792,21 @@ int32_t Agent::req_piecesjson(string &, string &output, Agent* agent) {
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-//        int32_t Agent::req_facesjson(char *, char* output, Agent* agent)
 int32_t Agent::req_facesjson(string &, string &output, Agent* agent) {
     output = agent->cinfo->json.faces.c_str();
+    if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
+    return 0;
+}
+
+//! Built-in Return triangle JSON request
+/*! Returns a JSON string representing the triangle information.
+ * \param request Text of request.
+ * \param output Text of response to request.
+ * \param agent Pointer to Cosmos::Agent to use.
+ * \return 0, or negative error.
+ */
+int32_t Agent::req_trianglesjson(string &, string &output, Agent* agent) {
+    output = agent->cinfo->json.triangles.c_str();
     if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
     return 0;
 }
@@ -1788,9 +1818,9 @@ int32_t Agent::req_facesjson(string &, string &output, Agent* agent) {
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-//        int32_t Agent::req_vertexsjson(char *, char* output, Agent* agent)
-int32_t Agent::req_vertexsjson(string &, string &output, Agent* agent) {
-    output = agent->cinfo->json.vertexs.c_str();
+//        int32_t Agent::req_verticesjson(char *, char* output, Agent* agent)
+int32_t Agent::req_verticesjson(string &, string &output, Agent* agent) {
+    output = agent->cinfo->json.vertices.c_str();
     if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
     return 0;
 }
