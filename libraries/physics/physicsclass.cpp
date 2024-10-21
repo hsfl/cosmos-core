@@ -1007,6 +1007,7 @@ int32_t Structure::Setup(Type type)
     {
     case NoType:
         iretn = add_u();
+        break;
     case U1:
         iretn = add_u(1, 1, 1, NoPanel);
         break;
@@ -1299,28 +1300,6 @@ int32_t Structure::add_panel(string name, vector<Vector> points, double thicknes
         currentphys->struc_cnt = currentphys->strucs.size();
         return currentphys->struc_cnt;
     }
-//    int32_t iretn = 0;
-//    if ((iretn=add_face(points, thickness, external, pcell, orientation, offset)) >= 0)
-//    {
-//        piecestruc piece;
-//        piece.name = name;
-//        piece.density = density;
-//        piece.area = currentphys->faces[iretn].area;
-//        piece.volume = piece.area * piece * thickness;
-//        piece.mass = piece.density * piece.volume;
-//        piece.face_idx.push_back(iretn);
-//        piece.face_cnt = 1;
-//        index = currentinfo->pieces.push_back(piece);
-//        if (index >= 0)
-//        {
-//            currentinfo->piece_cnt = currentinfo->pieces.size();
-//            return currentinfo->piece_cnt;
-//        }
-//        else
-//        {
-//            return iretn;
-//        }
-//    }
     else
     {
         return iretn;
@@ -1342,7 +1321,6 @@ int32_t Structure::add_panel(string name, vector<Vector> points, double thicknes
 //! \return Face number, or negative error.
 int32_t Structure::add_panel(string name, Vector point0, Vector point1, Vector point2, Vector point3, double thickness, uint8_t external, float pcell, Quaternion orientation, Vector offset, float density)
 {
-    int32_t iretn = 0;
     vector<Vector> points = {point0 ,point1, point2, point3};
     return add_panel(name, points, thickness, external, pcell, orientation, offset, density);
 }
@@ -1374,23 +1352,41 @@ int32_t Structure::add_face(vector<Vector> points, double thickness, uint8_t ext
     }
     cpoint /= points.size();
 
+    face.area = 0.;
+    face.com.clear();
+    face.normal.clear();
+    double tmass = 0.;
     for (uint16_t i=0; i<points.size(); ++i)
     {
         if ((iretn=add_triangle(points[i], points[(i+1)%points.size()], cpoint, thickness, external, pcell)) >= 0)
         {
             face.triangle_idx.push_back(iretn);
             face.triangle_cnt = face.triangle_idx.size();
+            trianglestruc triangle = currentphys->triangles[iretn];
+            if (triangle.external <= 1)
+            {
+                face.area += triangle.area;
+            }
+            if (!triangle.external)
+            {
+                face.area += triangle.area;
+            }
+            face.normal += triangle.normal;
+            face.com += triangle.com * triangle.mass;
+            tmass += triangle.mass;
         }
         else
         {
             return iretn;
         }
     }
+    face.com /= tmass;
+    face.normal /= points.size();
 
     currentphys->faces.push_back(face);
     currentphys->face_cnt = currentphys->faces.size();
 
-    return iretn;
+    return currentphys->faces.size() - 1;
 }
 
 //! Add rectangular face
@@ -1427,25 +1423,6 @@ int32_t Structure::add_face(Vector dimensions, uint8_t external, float pcell, Qu
     points[3].y = dimensions.y / 2.;
 
     return add_face(points[0], points[1], points[2], points[3], dimensions.z, external, pcell, orientation, offset);
-
-//    facestruc cface;
-//    for (uint16_t i=0; i<5; ++i)
-//    {
-//        cface.vertex_idx.push_back(add_vertex(points[i]));
-//    }
-
-//    for (uint16_t i=0; i<5; ++i)
-//    {
-//        points[i] = orientation.irotate(points[i]);
-//        points[i] += offset;
-//    }
-
-//    add_triangle(points[0], points[1], points[4], dimensions.z);
-//    add_triangle(points[1], points[1], points[4], dimensions.z);
-//    add_triangle(points[2], points[3], points[4], dimensions.z);
-//    add_triangle(points[3], points[0], points[4], dimensions.z);
-
-//    return 4;
 }
 
 int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, double thickness, bool external, float pcell)
@@ -1492,7 +1469,7 @@ int32_t Structure::add_triangle(Vector pointa, Vector pointb, Vector pointc, dou
     currentphys->triangles.push_back(triangle);
     currentphys->triangle_cnt = currentphys->triangles.size();
 
-    return 1;
+    return currentphys->triangles.size() - 1;
 }
 
 int32_t Structure::add_vertex(Vector point)
@@ -1514,7 +1491,8 @@ int32_t Structure::add_vertex(Vector point)
     {
         return index;
     }
-    else {
+    else
+    {
         currentphys->vertices.push_back(point);
         currentphys->vertex_cnt = currentphys->vertices.size();
         return currentphys->vertices.size() - 1;
@@ -1524,7 +1502,6 @@ int32_t Structure::add_vertex(Vector point)
 
 int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf)
 {
-    int32_t iretn;
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
 
@@ -1784,7 +1761,6 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
 
 int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
 {
-    int32_t iretn;
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
 
@@ -1806,9 +1782,9 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
         piece.com = currentinfo.node.phys.strucs[i].com;
         piece.struc_idx = i;
         currentinfo.pieces.push_back(piece);
-        json_mappieceentry(currentinfo.pieces.size()-1, &currentinfo);
-        json_togglepieceentry(currentinfo.pieces.size()-1, &currentinfo, true);
     }
+    json_map_node(&currentinfo);
+
     currentinfo.mass = currentinfo.node.phys.mass;
 
     switch (ptype)
