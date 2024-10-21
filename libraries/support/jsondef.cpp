@@ -1822,17 +1822,6 @@ namespace Cosmos
                 add_name(basename+".area", &node.phys.faces[i].area, "double");
             }
 
-            // vector<vertexstruc> normals
-            add_name("normals", &node.phys.normals, "vector<vertexstruc>");
-            for(size_t i = 0; i < node.phys.normals.size(); ++i) {
-                string basename = "normals[" + std::to_string(i) + "]";
-                add_name(basename, &node.phys.normals[i], "vertexstruc");
-                add_name(basename+".x", &node.phys.normals[i].x, "double");
-                add_name(basename+".y", &node.phys.normals[i].y, "double");
-                add_name(basename+".z", &node.phys.normals[i].z, "double");
-                add_name(basename+".w", &node.phys.normals[i].w, "double");
-            }
-
             add_name("node.phys.vertices", &node.phys.vertices, "vector<Vector>");
             for(size_t i = 0; i < node.phys.vertices.size(); ++i) {
                 string basename = "node.phys.vertices[" + std::to_string(i) + "]";
@@ -1914,12 +1903,13 @@ namespace Cosmos
                 add_name(basename+".dim", &pieces[i].dim, "float");
                 add_name(basename+".area", &pieces[i].area, "float");
                 add_name(basename+".volume", &pieces[i].volume, "float");
-                add_name(basename+".face_cnt", &pieces[i].face_cnt, "uint16_t");
-                add_name(basename+".face_idx", &pieces[i].face_idx, "vector<uint16_t>");
-                for(size_t j = 0; j < pieces[i].face_idx.size(); ++j) {
-                    string rebasename = basename + ".face_idx[" + std::to_string(j) + "]";
-                    add_name(rebasename, &pieces[i].face_idx[j], "uint16_t");
-                }
+                add_name(basename+".face_cnt", &pieces[i].struc_idx, "uint32_t");
+//                add_name(basename+".face_cnt", &pieces[i].face_cnt, "uint16_t");
+//                add_name(basename+".face_idx", &pieces[i].face_idx, "vector<uint16_t>");
+//                for(size_t j = 0; j < pieces[i].face_idx.size(); ++j) {
+//                    string rebasename = basename + ".face_idx[" + std::to_string(j) + "]";
+//                    add_name(rebasename, &pieces[i].face_idx[j], "uint16_t");
+//                }
                 add_name(basename+".com", &pieces[i].com, "Vector");
                 add_name(basename+".com.x", &pieces[i].com.x, "double");
                 add_name(basename+".com.y", &pieces[i].com.y, "double");

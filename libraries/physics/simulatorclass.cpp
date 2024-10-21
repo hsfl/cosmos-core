@@ -622,9 +622,9 @@ int32_t Simulator::ParseSatString(string args)
         (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].specmax = det.specmax;
     }
 
-//    json_dump_node(&(*sit)->currentinfo);
-    jsonnode json;
-    json_setup_node(json, &(*sit)->currentinfo, false);
+    json_map_node(&(*sit)->currentinfo);
+//    jsonnode json;
+//    json_setup_node(json, &(*sit)->currentinfo, false);
     json_updatecosmosstruc(&(*sit)->currentinfo);
 
     (*sit)->sohstring = json_list_of_soh(&(*sit)->currentinfo);

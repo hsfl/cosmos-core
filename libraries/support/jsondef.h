@@ -1020,9 +1020,10 @@ class sim_param	{
             string name = "";
             string node = "";
             string state = "";
-            string faces = "";
-            string triangles = "";
             string vertices = "";
+            string triangles = "";
+            string faces = "";
+            string strucs = "";
             string pieces = "";
             string devgen = "";
             string devspec = "";
@@ -1037,8 +1038,10 @@ class sim_param	{
                     { "name" , name },
                     { "node" , node },
                     { "state" , state },
-                    { "vertexs" , vertices },
+                    { "vertices" , vertices },
+                    { "triangles" , triangles },
                     { "faces" , faces },
+                    { "strucs" , strucs },
                     { "pieces" , pieces },
                     { "devgen" , devgen },
                     { "devspec" , devspec },
@@ -1058,7 +1061,9 @@ class sim_param	{
                     if(!parsed["node"].is_null())		node = parsed["node"].string_value();
                     if(!parsed["state"].is_null())		state = parsed["state"].string_value();
                     if(!parsed["vertices"].is_null())	vertices = parsed["vertices"].string_value();
+                    if(!parsed["triangles"].is_null())		triangles = parsed["triangles"].string_value();
                     if(!parsed["faces"].is_null())		faces = parsed["faces"].string_value();
+                    if(!parsed["strucs"].is_null())		strucs = parsed["strucs"].string_value();
                     if(!parsed["pieces"].is_null())		pieces = parsed["pieces"].string_value();
                     if(!parsed["devgen"].is_null())		devgen = parsed["devgen"].string_value();
                     if(!parsed["devspec"].is_null())	devspec = parsed["devspec"].string_value();
@@ -2137,17 +2142,17 @@ class sim_param	{
             size_t memoryusage()
             {
                 size_t total = sizeof(facestruc);
-                total += triangle_idx.capacity() * sizeof(uint16_t);
+                total += triangle_idx.capacity() * sizeof(uint32_t);
                 return total;
             }
 
             void shrinkusage()
             {
-                vector<uint16_t>(triangle_idx).swap(triangle_idx);
+                vector<uint32_t>(triangle_idx).swap(triangle_idx);
             }
 
-            uint16_t triangle_cnt = 0;
-            vector <uint16_t> triangle_idx;
+            uint32_t triangle_cnt = 0;
+            vector <uint32_t> triangle_idx;
             Vector com;
             Vector normal;
             double area=0.;
@@ -2203,12 +2208,12 @@ class sim_param	{
 
             void shrinkusage()
             {
-                vector<uint16_t>(face_idx).swap(face_idx);
+                vector<uint32_t>(face_idx).swap(face_idx);
             }
 
             string name;
-            uint16_t face_cnt = 0;
-            vector <uint16_t> face_idx;
+            uint32_t face_cnt = 0;
+            vector <uint32_t> face_idx;
             Vector com;
             float mass;
             float volume=0.;
@@ -2266,7 +2271,6 @@ class sim_param	{
             void shrinkusage()
             {
                 string(name).swap(name);
-//                vector<uint16_t>(face_idx).swap(face_idx);
             }
 
             //! Name of piece
@@ -2295,10 +2299,6 @@ class sim_param	{
             float volume = 0.f;
             //! Structure index
             uint32_t struc_idx = 0;
-            //! Number of faces
-//            uint16_t face_cnt = 0;
-            //! Array of faces
-//            vector <uint16_t> face_idx;
             //! Centroid of piece
             Vector com;
             //! Contribution of piece to linear forces
@@ -4313,13 +4313,13 @@ union as a ::devicestruc.
             //! Target temperature
             float ttemp = 0.f;
             //! Field of view
-            float fov = 0.001;
+            float fov = 0.001f;
             //! Instantaneous field of view
-            float ifov = 0.00001;
+            float ifov = 0.00001f;
             //! Minimum spectral wavelength
-            float specmin = 300e-9;
+            float specmin = 300e-9f;
             //! Maximum spectral wavelength
-            float specmax = 1e-6;
+            float specmax = 1e-6f;
             //! Line of Sight
             rvector los = {0., 0., 1.};
 
@@ -4456,20 +4456,11 @@ union as a ::devicestruc.
             size_t memoryusage()
             {
                 size_t total = sizeof(trianglestruc);
-//                for (size_t i=0; i<triangleindex.size(); ++i)
-//                {
-//                    total += triangleindex[i].size() * sizeof(uint16_t);
-//                }
                 return total;
             }
 
             void shrinkusage()
             {
-//                for (size_t i=0; i<triangleindex.size(); ++i)
-//                {
-//                    vector<uint16_t>(triangleindex[i]).swap(triangleindex[i]);
-//                }
-//                vector<vector<uint16_t>>(triangleindex).swap(triangleindex);
             }
 
             //! External facing sides
@@ -4484,7 +4475,7 @@ union as a ::devicestruc.
             Vector twist;
             //! Index to parent piece
             uint16_t pidx = 0;
-            uint16_t tidx[3] = {0};
+            uint32_t tidx[3] = {0};
             //! Energy content in Joules
             float heat = 0.f;
             //! Heat Capacity in Joules / (Kg Kelvin)
@@ -4527,14 +4518,13 @@ union as a ::devicestruc.
             float volt = 0.f;
             //! Current generated in amps
             float amp = 0.f;
-//            vector<vector<uint16_t>> triangleindex;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
         @return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
-                vector<uint16_t> v_tidx = vector<uint16_t>(tidx, tidx+sizeof(tidx)/sizeof(tidx[0]));
+                vector<uint32_t> v_tidx = vector<uint32_t>(tidx, tidx+sizeof(tidx)/sizeof(tidx[0]));
                 return json11::Json::object {
                     { "external" , external },
                     { "com" , com },
@@ -4629,14 +4619,14 @@ union as a ::devicestruc.
                     total += triangles[i].memoryusage();
                 }
                 total += vertices.size() * sizeof(Vector);
-                total += normals.size() * sizeof(Vector);
+//                total += normals.size() * sizeof(Vector);
                 return total;
             }
 
             void shrinkusage()
             {
                 vector<Vector>(vertices).swap(vertices);
-                vector<Vector>(normals).swap(normals);
+//                vector<Vector>(normals).swap(normals);
                 for (size_t i=0; i<faces.size(); ++i)
                 {
                     faces[i].shrinkusage();
@@ -4704,8 +4694,8 @@ union as a ::devicestruc.
             uint32_t vertex_cnt;
 
             //! Vector of all normals in node.
-            vector <vertexstruc> normals;
-            uint32_t normal_cnt = 0;
+//            vector <vertexstruc> normals;
+//            uint32_t normal_cnt = 0;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -4744,13 +4734,13 @@ union as a ::devicestruc.
                     { "moi" , moi },
                     { "com" , com },
                     { "vertex_cnt" , vertex_cnt },
-                    { "normal_cnt" , normal_cnt },
+//                    { "normal_cnt" , normal_cnt },
                     { "triangle_cnt" , triangle_cnt },
                     { "face_cnt" , face_cnt },
                     { "vertices" , vertices },
                     { "triangles" , triangles },
                     { "faces" , faces },
-                    { "normals" , normals }
+//                    { "normals" , normals }
                 };
             }
 
@@ -4796,7 +4786,7 @@ union as a ::devicestruc.
                     if(!parsed["vertex_cnt"].is_null())	{ vertex_cnt = parsed["vertex_cnt"].long_value(); }
                     if(!parsed["triangle_cnt"].is_null())	{ triangle_cnt = parsed["triangle_cnt"].long_value(); }
                     if(!parsed["face_cnt"].is_null())	{ face_cnt = parsed["face_cnt"].long_value(); }
-                    if(!parsed["normal_cnt"].is_null())	{ normal_cnt = parsed["normal_cnt"].long_value(); }
+//                    if(!parsed["normal_cnt"].is_null())	{ normal_cnt = parsed["normal_cnt"].long_value(); }
                     for(size_t i = 0; i < vertices.size(); ++i)	{
                         if(!parsed["vertices"][i].is_null())	{ vertices[i].from_json(parsed["vertices"][i].dump()); }
                     }
@@ -4806,9 +4796,9 @@ union as a ::devicestruc.
                     for(size_t i = 0; i < faces.size(); ++i)	{
                         if(!parsed["faces"][i].is_null())	{ faces[i].from_json(parsed["faces"][i].dump()); }
                     }
-                    for(size_t i = 0; i < normals.size(); ++i)	{
-                        if(!parsed["normals"][i].is_null())	{ normals[i].from_json(parsed["normals"][i].dump()); }
-                    }
+//                    for(size_t i = 0; i < normals.size(); ++i)	{
+//                        if(!parsed["normals"][i].is_null())	{ normals[i].from_json(parsed["normals"][i].dump()); }
+//                    }
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
                 }

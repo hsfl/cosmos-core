@@ -117,15 +117,6 @@ int main(int argc, char* argv[])
     }
     printf("Vertexs:\t%lu\t%lu\n", count, total);
 
-    count = sizeof(c->node.phys.normals);
-    total += sizeof(c->node.phys.normals);
-    for (size_t i=0; i<c->node.phys.normals.size(); ++i)
-    {
-        count += sizeof(c->node.phys.normals[i]);
-        total += sizeof(c->node.phys.normals[i]);
-    }
-    printf("Normals:\t%lu\t%lu\n", count, total);
-
     count = sizeof(c->node.phys.faces);
     total += sizeof(c->node.phys.faces);
     for (size_t i=0; i<c->node.phys.faces.size(); ++i)

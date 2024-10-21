@@ -432,7 +432,7 @@ void json_init_reserve(cosmosstruc* cinfo) {
     cinfo->node.phys.vertices.clear();
     cinfo->node.phys.faces.clear();
     cinfo->node.phys.triangles.clear();
-    cinfo->node.phys.normals.clear();
+//    cinfo->node.phys.normals.clear();
 
     cinfo->equation.clear();
     cinfo->pieces.clear();
@@ -7273,6 +7273,20 @@ int32_t json_load_node(string node, jsonnode &json)
         free(ibuf);
     }
 
+    fname = nodepath + "/strucs.ini";
+    if (!stat(fname.c_str(),&fstat) && fstat.st_size)
+    {
+        ifs.open(fname);
+        if (!ifs.is_open()) { return (NODE_ERROR_NODE); }
+
+        ibuf = (char *)calloc(1,fstat.st_size+1);
+        ifs.read(ibuf, fstat.st_size);
+        ifs.close();
+        ibuf[fstat.st_size] = 0;
+        json.strucs = ibuf;
+        free(ibuf);
+    }
+
     fname = nodepath + "/pieces.ini";
     if ((iretn=stat(fname.c_str(),&fstat)) == -1) { return (NODE_ERROR_NODE); }
 
@@ -7373,47 +7387,48 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
         cinfo->node.phys.faces[i].area = 0.;
         for (size_t j=0; j<cinfo->node.phys.faces[i].triangle_idx.size(); ++j)
         {
-            Vector tcentroid = cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[0]];
-            tcentroid += cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[1]];
-            Vector v1 = cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[0]] - cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[2]];
-            Vector v2 = cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[1]] - cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[0]];
+            uint32_t ti = cinfo->node.phys.faces[i].triangle_idx[j];
+            Vector tcentroid = cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[0]];
+            tcentroid += cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[1]];
+            Vector v1 = cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[0]] - cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[2]];
+            Vector v2 = cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[1]] - cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[0]];
             Vector tnormal = v1.cross(v2);
-            tcentroid += cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[2]];
+            tcentroid += cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[2]];
             v1 = v2;
-            v2 = cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[2]] - cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[1]];
+            v2 = cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[2]] - cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[1]];
             tnormal += v1.cross(v2);
             v1 = v2;
-            v2 = cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[0]] - cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[2]];
+            v2 = cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[0]] - cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[2]];
             tnormal += v1.cross(v2);
 
             tcentroid /= 3;
             tnormal.normalize();
-            cinfo->node.phys.triangles[j].normal = tnormal;
+            cinfo->node.phys.triangles[ti].normal = tnormal;
             cinfo->node.phys.faces[i].normal += tnormal;
 
-            cinfo->node.phys.triangles[j].com = Vector();
-            cinfo->node.phys.triangles[j].area = 0.;
-            v1 = cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[2]] - tcentroid;
+            cinfo->node.phys.triangles[ti].com = Vector();
+            cinfo->node.phys.triangles[ti].area = 0.;
+            v1 = cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[2]] - tcentroid;
             for (size_t k=0; k<3; ++k)
             {
-                v2 = cinfo->node.phys.vertices[cinfo->node.phys.triangles[j].tidx[k]] - tcentroid;
+                v2 = cinfo->node.phys.vertices[cinfo->node.phys.triangles[ti].tidx[k]] - tcentroid;
                 // Area of vertex made by v1, v2 and triangle centroid
                 double starea = v1.area(v2);
                 // Sum
-                cinfo->node.phys.triangles[j].area += starea;
+                cinfo->node.phys.triangles[ti].area += starea;
                 // Centroid of vertex made by v1, v2 amd Face centroid
                 Vector stcentroid = (v1 + v2 + tcentroid) / 3.;
                 // Weighted sum
-                cinfo->node.phys.triangles[j].com += stcentroid * starea;
+                cinfo->node.phys.triangles[ti].com += stcentroid * starea;
                 v1 = v2;
             }
-            cinfo->node.phys.faces[i].area += cinfo->node.phys.triangles[j].area;
-            cinfo->node.phys.faces[i].com += tcentroid * cinfo->node.phys.triangles[j].area;
+            cinfo->node.phys.faces[i].area += cinfo->node.phys.triangles[ti].area;
+            cinfo->node.phys.faces[i].com += tcentroid * cinfo->node.phys.triangles[ti].area;
 
             // Divide by summed weights
-            if (cinfo->node.phys.triangles[j].area)
+            if (cinfo->node.phys.triangles[ti].area)
             {
-                cinfo->node.phys.triangles[j].com /= cinfo->node.phys.triangles[j].area;
+                cinfo->node.phys.triangles[ti].com /= cinfo->node.phys.triangles[ti].area;
             }
         }
         // Divide by summed weights
@@ -7491,18 +7506,29 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
     }
 
     // Calculate special norm for external panels
-    for (size_t i=0; i<cinfo->pieces.size(); ++i)
+    for (uint32_t i=0; i<cinfo->node.phys.strucs.size(); ++i)
     {
-        if (cinfo->pieces[i].face_cnt == 1)
+        if (cinfo->node.phys.strucs[i].face_cnt == 1)
         {
-            Vector dv = cinfo->node.phys.faces[cinfo->pieces[i].face_idx[0]].com - tcom;
-            if (dv.separation(cinfo->node.phys.faces[cinfo->pieces[i].face_idx[0]].normal) > DPI2)
+            Vector dv = cinfo->node.phys.faces[cinfo->node.phys.strucs[i].face_idx[0]].com - tcom;
+            if (dv.separation(cinfo->node.phys.faces[cinfo->node.phys.strucs[i].face_idx[0]].normal) > DPI2)
             {
-                cinfo->node.phys.normals.push_back(-cinfo->node.phys.faces[cinfo->pieces[i].face_idx[0]].normal);
-                cinfo->pieces[i].face_idx[0] = cinfo->node.phys.normals.size() - 1;
+                cinfo->node.phys.faces[cinfo->node.phys.strucs[i].face_idx[0]].normal *= -1.;
             }
         }
     }
+//    for (size_t i=0; i<cinfo->pieces.size(); ++i)
+//    {
+//        if (cinfo->pieces[i].face_cnt == 1)
+//        {
+//            Vector dv = cinfo->node.phys.faces[cinfo->pieces[i].face_idx[0]].com - tcom;
+//            if (dv.separation(cinfo->node.phys.faces[cinfo->pieces[i].face_idx[0]].normal) > DPI2)
+//            {
+//                cinfo->node.phys.normals.push_back(-cinfo->node.phys.faces[cinfo->pieces[i].face_idx[0]].normal);
+//                cinfo->pieces[i].face_idx[0] = cinfo->node.phys.normals.size() - 1;
+//            }
+//        }
+//    }
 
     // Recenter all vectors to object center of mass
     for (size_t i=0; i<cinfo->node.phys.vertices.size(); ++i)
@@ -7736,7 +7762,7 @@ int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
     }
 
 //    cinfo->node.phys.vertex_cnt = cinfo->node.phys.vertices.size();
-    cinfo->node.phys.normal_cnt = cinfo->node.phys.normals.size();
+//    cinfo->node.phys.normal_cnt = cinfo->node.phys.normals.size();
     cinfo->node.phys.face_cnt = cinfo->node.phys.faces.size();
     cinfo->piece_cnt = cinfo->pieces.size();
     cinfo->device_cnt = cinfo->device.size();
@@ -7756,6 +7782,123 @@ int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
     }
 
     return iretn;
+}
+
+//! Map JSON Namespace using Node description JSON
+/*! Create an entry in the JSON mapping tables between each name in the Name Space and the
+ * \ref cosmosstruc. Use descriptive information already in the cosmosstruc.
+ * \param cinfo Pointer to cinfo ::cosmosstruc.
+ * \param create_flag Whether or not to create node directory if it doesn't already exist.
+   \return 0, or a negative \ref error_defines
+*/
+int32_t json_map_node(cosmosstruc *cinfo)
+{
+    // Vertices
+    if (cinfo->node.phys.vertex_cnt)
+    {
+        if (cinfo->node.phys.vertices.size() != cinfo->node.phys.vertex_cnt)
+        {
+            return (AGENT_ERROR_MEMORY);
+        }
+
+        for (uint16_t i=0; i<cinfo->node.phys.vertex_cnt; i++)
+        {
+            //Add relevant names to namespace
+            json_mapvertexentry(i, cinfo);
+        }
+    }
+
+    // Triangles
+    if (cinfo->node.phys.triangle_cnt)
+    {
+        if (cinfo->node.phys.triangles.size() != cinfo->node.phys.triangle_cnt)
+        {
+            return (AGENT_ERROR_MEMORY);
+        }
+
+        for (uint16_t i=0; i<cinfo->node.phys.triangle_cnt; i++)
+        {
+            //Add relevant names to namespace
+            json_maptriangleentry(i, cinfo);
+        }
+    }
+
+    // Faces
+    if (cinfo->node.phys.face_cnt)
+    {
+        if (cinfo->node.phys.faces.size() != cinfo->node.phys.face_cnt)
+        {
+            return (AGENT_ERROR_MEMORY);
+        }
+
+        for (uint16_t i=0; i<cinfo->node.phys.face_cnt; i++)
+        {
+            //Add relevant names to namespace
+            json_mapfaceentry(i, cinfo);
+        }
+    }
+
+    // Structures
+    if (cinfo->node.phys.struc_cnt)
+    {
+        if (cinfo->node.phys.strucs.size() != cinfo->node.phys.struc_cnt)
+        {
+            return (AGENT_ERROR_MEMORY);
+        }
+
+        for (uint16_t i=0; i<cinfo->node.phys.struc_cnt; i++)
+        {
+            //Add relevant names to namespace
+            json_mapstrucentry(i, cinfo);
+        }
+    }
+
+    // Pieces
+    if (cinfo->piece_cnt)
+    {
+        if (cinfo->pieces.size() != cinfo->piece_cnt)
+        {
+            return (AGENT_ERROR_MEMORY);
+        }
+
+        for (uint16_t i=0; i<cinfo->piece_cnt; i++)
+        {
+            // Initialize to disabled
+            cinfo->pieces[i].enabled = false;
+            //Add relevant names to namespace
+            json_mappieceentry(i, cinfo);
+            json_togglepieceentry(i, cinfo, true);
+        }
+    }
+
+    // Devices
+    if (cinfo->device_cnt)
+    {
+        if (cinfo->device.size() != cinfo->device_cnt)
+        {
+            return (AGENT_ERROR_MEMORY);
+        }
+
+        for (uint16_t i=0; i< cinfo->device_cnt; i++)
+        {
+            // Initialize to disabled
+            cinfo->device[i]->state = 0;
+            // Add relevant names for generic device to namespace
+            json_mapcompentry(i, cinfo);
+            json_mapdeviceentry(cinfo->device[i], cinfo);
+        }
+    }
+
+    // Ports
+    if (cinfo->port_cnt)
+    {
+        for (uint16_t i=0; i<cinfo->port_cnt; i++)
+        {
+            json_mapportentry(i, cinfo);
+        }
+    }
+
+    return 0;
 }
 
 //! Setup JSON Namespace using Node description JSON
@@ -7815,7 +7958,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         }
     }
 
-    // Second: enter information for pieces
+    // Second: enter information for structure
     // Vertices
     cinfo->node.phys.vertices.clear();
     if (cinfo->node.phys.vertex_cnt)
@@ -7858,6 +8001,14 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             json_maptriangleentry(i, cinfo);
         }
 
+        // Parse data for triangle information
+        if (!json.triangles.empty())
+        {
+            if ((iretn = json_parse(json.triangles, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
+            {
+                return iretn;
+            }
+        }
     }
 
     // Faces
@@ -7884,6 +8035,67 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
                 return iretn;
             }
         }
+
+        // Do it a second time to catch the triangle_cnt's
+        for (uint16_t i=0; i<cinfo->node.phys.face_cnt; i++)
+        {
+            //Add relevant names to namespace
+            cinfo->node.phys.faces[i].triangle_idx.resize(cinfo->node.phys.faces[i].triangle_cnt);
+            json_mapfaceentry(i, cinfo);
+        }
+
+        // Parse data for face information
+        if (!json.faces.empty())
+        {
+            if ((iretn = json_parse(json.faces, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
+            {
+                return iretn;
+            }
+        }
+    }
+
+    // Structures
+    cinfo->node.phys.strucs.clear();
+    if (cinfo->node.phys.struc_cnt)
+    {
+        cinfo->node.phys.strucs.resize(cinfo->node.phys.struc_cnt);
+        if (cinfo->node.phys.strucs.size() != cinfo->node.phys.struc_cnt)
+        {
+            return (AGENT_ERROR_MEMORY);
+        }
+
+        for (uint16_t i=0; i<cinfo->node.phys.struc_cnt; i++)
+        {
+            //Add relevant names to namespace
+            json_mapstrucentry(i, cinfo);
+        }
+
+        // Parse data for struc information
+        if (!json.strucs.empty())
+        {
+            if ((iretn = json_parse(json.strucs, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
+            {
+                return iretn;
+            }
+        }
+
+        // Do it a second time to catch the face_cnt's
+        for (uint16_t i=0; i<cinfo->node.phys.struc_cnt; i++)
+        {
+            //Add relevant names to namespace
+            cinfo->node.phys.strucs[i].face_idx.resize(cinfo->node.phys.strucs[i].face_cnt);
+            json_mapstrucentry(i, cinfo);
+        }
+
+        // Parse data for struc information
+        if (!json.strucs.empty())
+        {
+            if ((iretn = json_parse(json.strucs, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
+            {
+                return iretn;
+            }
+        }
+
     }
 
     // Resize, then add entries to map for pieces
@@ -7900,7 +8112,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             // Initialize to disabled
             cinfo->pieces[i].enabled = false;
-            cinfo->pieces[i].face_cnt = 0;
+            cinfo->pieces[i].struc_idx = 0;
             //Add relevant names to namespace
             json_mappieceentry(i, cinfo);
             // Initialize to no component
@@ -7917,20 +8129,19 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         }
 
         // Do it a second time, now that we know how many faces in each piece
-        for (uint16_t i=0; i<cinfo->piece_cnt; i++)
-        {
-            cinfo->pieces[i].face_idx.resize(cinfo->pieces[i].face_cnt);
-            json_mappieceentry(i, cinfo);
-        }
+//        for (uint16_t i=0; i<cinfo->piece_cnt; i++)
+//        {
+//            json_mappieceentry(i, cinfo);
+//        }
 
         // Parse data for piece information
-        if (!json.pieces.empty())
-        {
-            if ((iretn = json_parse(json.pieces, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
-            {
-                return iretn;
-            }
-        }
+//        if (!json.pieces.empty())
+//        {
+//            if ((iretn = json_parse(json.pieces, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
+//            {
+//                return iretn;
+//            }
+//        }
 
         // Work through jmap, enabling each piece for which piece_type has been enabled
         for (size_t i=0; i<cinfo->piece_cnt; i++)
@@ -8168,6 +8379,7 @@ int32_t json_clone_node(cosmosstruc *source, cosmosstruc *destination)
 
 //    nodepath = get_nodedir(destination->node.name, create_flag);
 
+    // Vertices
     destination->node.phys.vertex_cnt = source->node.phys.vertex_cnt;
     destination->node.phys.vertices.clear();
     destination->node.phys.vertices = source->node.phys.vertices;
@@ -8179,6 +8391,20 @@ int32_t json_clone_node(cosmosstruc *source, cosmosstruc *destination)
     {
         //Add relevant names to namespace
         json_mapvertexentry(i, destination);
+    }
+
+    // Triangles
+    destination->node.phys.triangle_cnt = source->node.phys.triangle_cnt;
+    destination->node.phys.triangles.clear();
+    destination->node.phys.triangles = source->node.phys.triangles;
+    if (destination->node.phys.triangles.size() != destination->node.phys.triangle_cnt)
+    {
+        return (AGENT_ERROR_MEMORY);
+    }
+    for (uint16_t i=0; i<destination->node.phys.triangle_cnt; i++)
+    {
+        //Add relevant names to namespace
+        json_maptriangleentry(i, destination);
     }
 
 
@@ -8196,13 +8422,18 @@ int32_t json_clone_node(cosmosstruc *source, cosmosstruc *destination)
         json_mapfaceentry(i, destination);
     }
 
-    // Normals
-    destination->node.phys.normal_cnt = source->node.phys.normal_cnt;
-    destination->node.phys.normals.clear();
-    destination->node.phys.normals = source->node.phys.normals;
-    if (destination->node.phys.normals.size() != destination->node.phys.normal_cnt)
+    // Structures
+    destination->node.phys.struc_cnt = source->node.phys.struc_cnt;
+    destination->node.phys.strucs.clear();
+    destination->node.phys.strucs = source->node.phys.strucs;
+    if (destination->node.phys.strucs.size() != destination->node.phys.struc_cnt)
     {
         return (AGENT_ERROR_MEMORY);
+    }
+    for (uint16_t i=0; i<destination->node.phys.struc_cnt; i++)
+    {
+        //Add relevant names to namespace
+        json_mapstrucentry(i, destination);
     }
 
     // Resize, then add entries to map for pieces
@@ -8342,8 +8573,15 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     // Vertices
     output = json_vertices(jst, cinfo);
     rename((fileloc+"/vertices.ini").c_str(), (fileloc+"/vertices.ini.old").c_str());
-    //    filename = fileloc + "/vertices.ini";
     file = fopen((fileloc + "/vertices.ini").c_str(), "w");
+    if (file == nullptr) { return -errno; }
+    fputs(output.c_str(), file);
+    fclose(file);
+
+    // cinfo->node.phys.triangles
+    output = json_triangles(jst, cinfo);
+    rename((fileloc+"/triangles.ini").c_str(), (fileloc+"/triangles.ini.old").c_str());
+    file = fopen((fileloc + "/triangles.ini").c_str(), "w");
     if (file == nullptr) { return -errno; }
     fputs(output.c_str(), file);
     fclose(file);
@@ -8351,8 +8589,15 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     // cinfo->node.phys.faces
     output = json_faces(jst, cinfo);
     rename((fileloc+"/faces.ini").c_str(), (fileloc+"/faces.ini.old").c_str());
-    //    filename = fileloc + "/faces.ini";
     file = fopen((fileloc + "/faces.ini").c_str(), "w");
+    if (file == nullptr) { return -errno; }
+    fputs(output.c_str(), file);
+    fclose(file);
+
+    // cinfo->node.phys.strucs
+    output = json_strucs(jst, cinfo);
+    rename((fileloc+"/strucs.ini").c_str(), (fileloc+"/strucs.ini.old").c_str());
+    file = fopen((fileloc + "/strucs.ini").c_str(), "w");
     if (file == nullptr) { return -errno; }
     fputs(output.c_str(), file);
     fclose(file);
@@ -8528,10 +8773,10 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("event_value", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,value), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cinfo);
 
     // Physics structure
-    json_addentry("node_face_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.face_cnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
-    json_addentry("node_triangle_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.triangle_cnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
-    json_addentry("node_vertex_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.vertex_cnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
-    json_addentry("node_normal_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.normal_cnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
+    json_addentry("node_struc_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.struc_cnt, (uint32_t)JSON_TYPE_UINT32, cinfo);
+    json_addentry("node_face_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.face_cnt, (uint32_t)JSON_TYPE_UINT32, cinfo);
+    json_addentry("node_triangle_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.triangle_cnt, (uint32_t)JSON_TYPE_UINT32, cinfo);
+    json_addentry("node_vertex_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.vertex_cnt, (uint32_t)JSON_TYPE_UINT32, cinfo);
     json_addentry("physics_dt", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,dt), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_TIME);
     json_addentry("physics_dtj", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,dtj), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_DATE);
     json_addentry("physics_mjdbase", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,utc), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_DATE);
@@ -8805,7 +9050,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
 
 // this really just adds Namespace 1.0 names
 // with Namespace 2.0 default names should already be added from MAX_NUMBER_OF_VERTEXS
-int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo)
+int32_t json_mapvertexentry(uint32_t vidx, cosmosstruc *cinfo)
 {
     int32_t iretn=0;
 
@@ -8827,7 +9072,7 @@ int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo)
 *	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
  */
-int32_t json_maptriangleentry(uint16_t tidx, cosmosstruc *cinfo)
+int32_t json_maptriangleentry(uint32_t tidx, cosmosstruc *cinfo)
 {
     int32_t iretn=0;
 
@@ -8837,7 +9082,7 @@ int32_t json_maptriangleentry(uint16_t tidx, cosmosstruc *cinfo)
     iretn = json_addentry("triangle_area", tidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.triangles[tidx].area, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     for (uint16_t j=0; j<3; ++j)
     {
-        iretn = json_addentry("triangle_vertex_idx", tidx,j,(uint8_t *)&cinfo->node.phys.triangles[tidx].tidx[j], (uint16_t)JSON_TYPE_UINT16, cinfo);
+        iretn = json_addentry("triangle_vertex_idx", tidx,j,(uint8_t *)&cinfo->node.phys.triangles[tidx].tidx[j], (uint16_t)JSON_TYPE_UINT32, cinfo);
     }
 
     if (iretn >= 0)
@@ -8856,7 +9101,7 @@ int32_t json_maptriangleentry(uint16_t tidx, cosmosstruc *cinfo)
 
 // this really just adds Namespace 1.0 names
 // with Namespace 2.0 default names should already be added from MAX_NUMBER_OF_FACES
-int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo)
+int32_t json_mapfaceentry(uint32_t fidx, cosmosstruc *cinfo)
 {
     int32_t iretn=0;
 
@@ -8864,10 +9109,40 @@ int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo)
     iretn = json_addentry("face_com", fidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.faces[fidx].com, (uint16_t)JSON_TYPE_VECTOR, cinfo);
     iretn = json_addentry("face_normal", fidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.faces[fidx].normal, (uint16_t)JSON_TYPE_VECTOR, cinfo);
     iretn = json_addentry("face_area", fidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.faces[fidx].area, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
-    iretn = json_addentry("face_triangle_cnt", fidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.faces[fidx].triangle_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    for (uint16_t j=0; j<cinfo->node.phys.faces[fidx].triangle_cnt; ++j)
+    iretn = json_addentry("face_triangle_cnt", fidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.faces[fidx].triangle_cnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
+    for (uint32_t j=0; j<cinfo->node.phys.faces[fidx].triangle_cnt; ++j)
     {
-        iretn = json_addentry("face_triangle_idx", fidx,j,(uint8_t *)&cinfo->node.phys.faces[fidx].triangle_idx[j], (uint16_t)JSON_TYPE_UINT16, cinfo);
+        iretn = json_addentry("face_triangle_idx", fidx,j,(uint8_t *)&cinfo->node.phys.faces[fidx].triangle_idx[j], (uint16_t)JSON_TYPE_UINT32, cinfo);
+    }
+
+    if (iretn >= 0)
+    {
+        iretn = cinfo->jmapped;
+    }
+    return iretn;
+}
+
+//! Add struc entry.
+/*! Add an entry for struc number fidx to the JSON Namespace map.
+ \param fidx Piece number.
+*	\param cmeta Reference to ::cosmosstruc to use.
+    \return The current number of entries, if successful, negative error if the entry could not be
+ */
+
+// this really just adds Namespace 1.0 names
+// with Namespace 2.0 default names should already be added from MAX_NUMBER_OF_FACES
+int32_t json_mapstrucentry(uint32_t sidx, cosmosstruc *cinfo)
+{
+    int32_t iretn=0;
+
+    iretn = json_addentry("struc", sidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.strucs[sidx], (uint16_t)JSON_TYPE_FACESTRUC, cinfo);
+    iretn = json_addentry("struc_com", sidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.strucs[sidx].com, (uint16_t)JSON_TYPE_VECTOR, cinfo);
+    iretn = json_addentry("struc_mass", sidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.strucs[sidx].mass, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+    iretn = json_addentry("struc_volume", sidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.strucs[sidx].volume, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+    iretn = json_addentry("struc_face_cnt", sidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.strucs[sidx].face_cnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
+    for (uint32_t j=0; j<cinfo->node.phys.strucs[sidx].face_cnt; ++j)
+    {
+        iretn = json_addentry("struc_face_idx", sidx,j,(uint8_t *)&cinfo->node.phys.strucs[sidx].face_idx[j], (uint16_t)JSON_TYPE_UINT32, cinfo);
     }
 
     if (iretn >= 0)
@@ -8905,11 +9180,7 @@ int32_t json_mappieceentry(uint16_t pidx, cosmosstruc *cinfo)
     json_addentry("piece_com", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].com, (uint16_t)JSON_TYPE_VECTOR, cinfo);
     json_addentry("piece_twist", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].twist, (uint16_t)JSON_TYPE_VECTOR, cinfo);
     json_addentry("piece_shove", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].shove, (uint16_t)JSON_TYPE_VECTOR, cinfo);
-    json_addentry("piece_face_cnt", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].face_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    for (uint16_t j=0; j<cinfo->pieces[pidx].face_cnt; ++j)
-    {
-        json_addentry("piece_face_idx", pidx,j,(uint8_t *)&cinfo->pieces[pidx].face_idx[j], (uint16_t)JSON_TYPE_UINT16, cinfo);
-    }
+    json_addentry("piece_struc_idx", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].struc_idx, (uint16_t)JSON_TYPE_UINT32, cinfo);
 
     if (iretn >= 0)
     {
@@ -11768,11 +12039,15 @@ const char *json_node(string &jstring, cosmosstruc *cinfo)
     jstring.clear();
     json_out(jstring, "node_type", cinfo);
     json_out_character(jstring, '\n');
-    json_out(jstring, "node_piece_cnt", cinfo);
+    json_out(jstring, "node_struc_cnt", cinfo);
+    json_out_character(jstring, '\n');
+    json_out(jstring, "node_face_cnt", cinfo);
+    json_out_character(jstring, '\n');
+    json_out(jstring, "node_triangle_cnt", cinfo);
     json_out_character(jstring, '\n');
     json_out(jstring, "node_vertex_cnt", cinfo);
     json_out_character(jstring, '\n');
-    json_out(jstring, "node_face_cnt", cinfo);
+    json_out(jstring, "node_piece_cnt", cinfo);
     json_out_character(jstring, '\n');
     json_out(jstring, "node_device_cnt", cinfo);
     json_out_character(jstring, '\n');
@@ -11795,13 +12070,12 @@ const char *json_vertices(string &jstring, cosmosstruc *cinfo)
 {
     jstring.clear();
     // Dump vertices
-    uint16_t *vertex_cnt = (uint16_t *)json_ptrto((char *)"node_vertex_cnt", cinfo);
+    uint32_t *vertex_cnt = (uint32_t *)json_ptrto((char *)"node_vertex_cnt", cinfo);
     if (vertex_cnt != nullptr)
     {
-        for (uint16_t i=0; i<*vertex_cnt; i++)
+        for (uint32_t i=0; i<*vertex_cnt; i++)
         {
             json_out_1d(jstring, "vertex",i, cinfo);
-            // // json_out_character(jstring, '\n');
         }
     }
 
@@ -11822,23 +12096,17 @@ const char *json_triangles(string &jstring, cosmosstruc *cinfo)
 {
     jstring.clear();
     // Dump triangles
-    uint16_t *triangle_cnt = (uint16_t *)json_ptrto((char *)"node_triangle_cnt", cinfo);
+    uint32_t *triangle_cnt = (uint32_t *)json_ptrto((char *)"node_triangle_cnt", cinfo);
     if (triangle_cnt != nullptr)
     {
-        for (uint16_t i=0; i<*triangle_cnt; i++)
+        for (uint32_t i=0; i<*triangle_cnt; i++)
         {
             json_out_1d(jstring, "triangle_normal",i, cinfo);
-            // // json_out_character(jstring, '\n');
             json_out_1d(jstring, "triangle_com",i, cinfo);
-            // // json_out_character(jstring, '\n');
             json_out_1d(jstring, "triangle_area",i, cinfo);
-            // // json_out_character(jstring, '\n');
-            json_out_1d(jstring, "triangle_vertex_cnt",i, cinfo);
-            // // json_out_character(jstring, '\n');
-            for (uint16_t j=0; j<3; j++)
+            for (uint32_t j=0; j<3; j++)
             {
                 json_out_2d(jstring, "triangle_vertex_idx",i,j, cinfo);
-                // // json_out_character(jstring, '\n');
             }
         }
     }
@@ -11860,10 +12128,10 @@ const char *json_faces(string &jstring, cosmosstruc *cinfo)
 {
     jstring.clear();
     // Dump faces
-    uint16_t *face_cnt = (uint16_t *)json_ptrto((char *)"node_face_cnt", cinfo);
+    uint32_t *face_cnt = (uint32_t *)json_ptrto((char *)"node_face_cnt", cinfo);
     if (face_cnt != nullptr)
     {
-        for (uint16_t i=0; i<*face_cnt; i++)
+        for (uint32_t i=0; i<*face_cnt; i++)
         {
             json_out_1d(jstring, "face_normal",i, cinfo);
             // // json_out_character(jstring, '\n');
@@ -11871,13 +12139,46 @@ const char *json_faces(string &jstring, cosmosstruc *cinfo)
             // // json_out_character(jstring, '\n');
             json_out_1d(jstring, "face_area",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring, "face_vertex_cnt",i, cinfo);
+            json_out_1d(jstring, "face_triangle_cnt",i, cinfo);
             // // json_out_character(jstring, '\n');
-            uint16_t cnt = (uint16_t)json_get_int((char *)"face_vertex_cnt",i, cinfo);
-            for (uint16_t j=0; j<cnt; j++)
+            uint32_t cnt = (uint32_t)json_get_int((char *)"face_triangle_cnt",i, cinfo);
+            for (uint32_t j=0; j<cnt; j++)
             {
-                json_out_2d(jstring, "face_vertex_idx",i,j, cinfo);
-                // // json_out_character(jstring, '\n');
+                json_out_2d(jstring, "face_triangle_idx",i,j, cinfo);
+            }
+        }
+    }
+
+
+    return jstring.data();
+}
+
+//! Dump Structure description
+/*! Create a JSON stream for variables specific to the cinfo->node.phys.strucs of the Node. Does not include any
+ * derivative data (eg. area).
+ \param jstring Reference to a string to build the JSON stream in.
+
+    \param cinfo Reference to ::cosmosstruc to use.
+
+ \return Pointer to the created JSON stream.
+*/
+const char *json_strucs(string &jstring, cosmosstruc *cinfo)
+{
+    jstring.clear();
+    // Dump strucs
+    uint32_t *struc_cnt = (uint32_t *)json_ptrto((char *)"node_struc_cnt", cinfo);
+    if (struc_cnt != nullptr)
+    {
+        for (uint32_t i=0; i<*struc_cnt; i++)
+        {
+            json_out_1d(jstring, "struc_com",i, cinfo);
+            json_out_1d(jstring, "struc_mass",i, cinfo);
+            json_out_1d(jstring, "struc_volume",i, cinfo);
+            json_out_1d(jstring, "struc_face_cnt",i, cinfo);
+            uint32_t cnt = (uint32_t)json_get_int((char *)"struc_face_cnt",i, cinfo);
+            for (uint32_t j=0; j<cnt; j++)
+            {
+                json_out_2d(jstring, "struc_face_idx",i,j, cinfo);
             }
         }
     }
@@ -11928,14 +12229,7 @@ const char *json_pieces(string &jstring, cosmosstruc *cinfo)
             // json_out_character(jstring, '\n');
             json_out_1d(jstring, "piece_com",i, cinfo);
             // json_out_character(jstring, '\n');
-            json_out_1d(jstring, "piece_face_cnt",i, cinfo);
-            // json_out_character(jstring, '\n');
-            uint16_t cnt = (uint16_t)json_get_int((char *)"piece_face_cnt",i, cinfo);
-            for (uint16_t j=0; j<cnt; j++)
-            {
-                json_out_2d(jstring, "piece_face_idx",i,j, cinfo);
-                // json_out_character(jstring, '\n');
-            }
+            json_out_1d(jstring, "piece_struc_idx",i, cinfo);
         }
     }
 
@@ -12609,13 +12903,25 @@ int32_t json_shrink(cosmosstruc *cinfo)
     cinfo->node.shrinkusage();
 
     vector<vertexstruc>(cinfo->node.phys.vertices).swap(cinfo->node.phys.vertices);
-    vector<vertexstruc>(cinfo->node.phys.normals).swap(cinfo->node.phys.normals);
+//    vector<vertexstruc>(cinfo->node.phys.normals).swap(cinfo->node.phys.normals);
+
+    for (size_t i=0; i<cinfo->node.phys.strucs.size(); ++i)
+    {
+        cinfo->node.phys.strucs[i].shrinkusage();
+    }
+    vector<strucstruc>(cinfo->node.phys.strucs).swap(cinfo->node.phys.strucs);
 
     for (size_t i=0; i<cinfo->node.phys.faces.size(); ++i)
     {
         cinfo->node.phys.faces[i].shrinkusage();
     }
     vector<facestruc>(cinfo->node.phys.faces).swap(cinfo->node.phys.faces);
+
+    for (size_t i=0; i<cinfo->node.phys.triangles.size(); ++i)
+    {
+        cinfo->node.phys.triangles[i].shrinkusage();
+    }
+    vector<trianglestruc>(cinfo->node.phys.triangles).swap(cinfo->node.phys.triangles);
 
     for (size_t i=0; i<cinfo->pieces.size(); ++i)
     {
@@ -12633,11 +12939,6 @@ int32_t json_shrink(cosmosstruc *cinfo)
     }
     vector<portstruc>(cinfo->port).swap(cinfo->port);
 
-    //    for (size_t i=0; i<cinfo->agent0.size(); ++i)
-    //    {
-    //        cinfo->agent[i].shrinkusage();
-    //    }
-    //    vector<agentstruc>(cinfo->agent).swap(cinfo->agent);
     cinfo->agent0.shrinkusage();
 
     for (size_t i=0; i<cinfo->event.size(); ++i)
@@ -12819,9 +13120,10 @@ int32_t node_calc(cosmosstruc *cinfo)
     for (size_t n=0; n<cinfo->pieces.size(); n++)
     {
         piecestruc *tpiece = &cinfo->pieces[n];
+        strucstruc *tstruc = &cinfo->node.phys.strucs[tpiece->struc_idx];
         tpiece->shove = Vector();
         tpiece->twist = Vector();
-        switch (cinfo->pieces[n].face_cnt)
+        switch (tstruc->face_cnt)
         {
         default:
         {
@@ -12835,8 +13137,8 @@ int32_t node_calc(cosmosstruc *cinfo)
         break;
         case 1:
         {
-            tpiece->shove = -tpiece->area * (cinfo->node.phys.faces[tpiece->face_idx[0]].normal.dot(tpiece->com)) * tpiece->com / (tpiece->com.norm() * tpiece->com.norm());
-            tpiece->twist = -tpiece->area * tpiece->com.norm() * cinfo->node.phys.faces[tpiece->face_idx[0]].normal - tpiece->com.norm() * tpiece->shove;
+            tpiece->shove = -tpiece->area * (cinfo->node.phys.faces[tstruc->face_idx[0]].normal.dot(tstruc->com)) * tstruc->com / (tstruc->com.norm() * tstruc->com.norm());
+            tpiece->twist = -tpiece->area * tstruc->com.norm() * cinfo->node.phys.faces[tstruc->face_idx[0]].normal - tstruc->com.norm() * tpiece->shove;
         }
         break;
         case 0:

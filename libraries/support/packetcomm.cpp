@@ -1,4 +1,7 @@
 #include "packetcomm.h"
+#include "math/constants.h"
+#include "math/bytelib.h"
+
 namespace Cosmos {
     namespace Support {
         PacketComm::PacketComm(uint16_t size)
@@ -11,6 +14,7 @@ namespace Cosmos {
             {
                 data.resize(4);
             }
+            ByteOrder var = ByteOrder::BIGENDIAN;
             uint32to(decisec(), &data[0], ByteOrder::LITTLEENDIAN);
             RawPacketize();
         }

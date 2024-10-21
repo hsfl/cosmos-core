@@ -3,6 +3,7 @@
 //#include <string>
 #include "envi.h"
 #include "support/datalib.h"
+#include "math/bytelib.h"
 
 int32_t read_envi_hdr(string file, envi_hdr &hdr)
 {
@@ -883,7 +884,7 @@ int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<do
     ehdr.datatype = DT_DOUBLE;
     ehdr.interleave = interleave;
     ehdr.offset = 0;
-    if (BYTE_ORDER == LITTLE_ENDIAN)
+    if (local_byte_order() == ByteOrder::LITTLEENDIAN)
     {
         ehdr.byteorder = BO_INTEL;
     }
@@ -1223,7 +1224,7 @@ int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<ui
     ehdr.datatype = DT_U_INT;
     ehdr.interleave = interleave;
     ehdr.offset = 0;
-    if (BYTE_ORDER == LITTLE_ENDIAN)
+    if (local_byte_order() == ByteOrder::LITTLEENDIAN)
     {
         ehdr.byteorder = BO_INTEL;
     }
@@ -1545,7 +1546,7 @@ int32_t write_envi_data(string name, size_t columns, size_t rows, size_t planes,
     ehdr.datatype = datatype;
     ehdr.interleave = interleave;
     ehdr.offset = 0;
-    if (BYTE_ORDER == LITTLE_ENDIAN)
+    if (local_byte_order() == ByteOrder::LITTLEENDIAN)
     {
         ehdr.byteorder = BO_INTEL;
     }

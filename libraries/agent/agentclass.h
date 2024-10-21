@@ -108,8 +108,9 @@
 //!     - "statejson" - return the JSON representing the contents of state.ini.
 //!     - "utcstartjson" - return the JSON representing the contents of utcstart.ini.
 //!     - "piecesjson" - return the JSON representing the contents of pieces.ini.
+//!     - "strucsjson" - return the JSON representing the contents of strucs.ini.
 //!     - "facesjson" - return the JSON representing the contents of faces.ini.
-//!     - "verticesjson" - return the JSON representing the contents of vertexs.ini.
+//!     - "verticesjson" - return the JSON representing the contents of vertices.ini.
 //!     - "devgenjson" - return the JSON representing the contents of devgen.ini.
 //!     - "devspecjson" - return the JSON representing the contents of devspec.ini.
 //!     - "portsjson" - return the JSON representing the contents of ports.ini.
@@ -218,7 +219,7 @@ namespace Cosmos
 #define AGENT_HEARTBEAT_PERIOD_MIN 0.01
 
             //! Default size of message ring buffer
-#define MESSAGE_RING_SIZE 100
+#define MESSAGE_RING_SIZE 1000
 
             //! Type of Agent Message. Types > 127 are binary.
             enum class AgentMessage : uint8_t {
@@ -585,6 +586,7 @@ namespace Cosmos
 //            static int32_t req_utcstartjson(string &request, string &response, Agent *agent);
             static int32_t req_piecesjson(string &request, string &response, Agent *agent);
             static int32_t req_verticesjson(string &request, string &response, Agent *agent);
+            static int32_t req_strucsjson(string &request, string &response, Agent *agent);
             static int32_t req_facesjson(string &request, string &response, Agent *agent);
             static int32_t req_trianglesjson(string &request, string &response, Agent *agent);
             static int32_t req_devgenjson(string &request, string &response, Agent *agent);
