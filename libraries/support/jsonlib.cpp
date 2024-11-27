@@ -877,6 +877,10 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
         }
     }
 
+    piecestruc piece;
+    piece.struc_idx = struc_idx;
+
+    // TODO: is this section correct? Was the intention to push the new strucstruc to the strucs vector?
     // If struc_idx is zero, make a new struc.
     if (struc_idx == 0 || struc_idx >= cinfo->node.phys.strucs.size())
     {
@@ -884,16 +888,20 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
         struc.name = name;
         struc.mass = .001;
         struc.volume = struc.mass / density;
+        piece.name =  struc.name;
+        piece.mass =  struc.mass;
+        piece.volume =  struc.volume;
+        piece.density =  struc.mass / struc.volume;
     }
-
-    // otherwise make a new piece
-    piecestruc piece;
-    piece.struc_idx = struc_idx;
-    piece.name =  cinfo->node.phys.strucs[struc_idx].name;
-    piece.com =  cinfo->node.phys.strucs[struc_idx].com;
-    piece.mass =  cinfo->node.phys.strucs[struc_idx].mass;
-    piece.volume =  cinfo->node.phys.strucs[struc_idx].volume;
-    piece.density =  cinfo->node.phys.strucs[struc_idx].mass / cinfo->node.phys.strucs[struc_idx].volume;
+    else
+    {
+        // otherwise make a new piece
+        piece.name =  cinfo->node.phys.strucs[struc_idx].name;
+        piece.com =  cinfo->node.phys.strucs[struc_idx].com;
+        piece.mass =  cinfo->node.phys.strucs[struc_idx].mass;
+        piece.volume =  cinfo->node.phys.strucs[struc_idx].volume;
+        piece.density =  cinfo->node.phys.strucs[struc_idx].mass / cinfo->node.phys.strucs[struc_idx].volume;
+    }
 
     piece.emi = emi;
     piece.abs = abs;
