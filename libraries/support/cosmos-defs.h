@@ -173,6 +173,16 @@ enum NODE_FLAG : uint16_t
 //! Command Event should run by itself
 #define EVENT_FLAG_SOLO			0x80000
 
+// bit 20-?
+
+//! Event over Land
+#define EVENT_FLAG_LAND			0x100000
+//! Event over Ground Station
+#define EVENT_FLAG_GS			0x200000
+//! Event over Target
+#define EVENT_FLAG_TARG			0x400000
+//! Event in Umbra
+#define EVENT_FLAG_UMBRA			0x800000
 //! @}
 
 //! \ingroup defs
@@ -197,8 +207,10 @@ enum NODE_FLAG : uint16_t
 #define EVENT_TYPE_LATMIN 0x1120
 #define EVENT_TYPE_APOGEE 0x1201
 #define EVENT_TYPE_PERIGEE 0x1202
-#define EVENT_TYPE_UMBRA 0x1206
+#define EVENT_TYPE_UMBRA 0x1204
 #define EVENT_TYPE_PENUMBRA 0x1208
+#define EVENT_TYPE_LAND 0x1210
+#define EVENT_TYPE_TIME 0x1220
 
 //Ground Station Events
 #define EVENT_TYPE_GS 0x1400

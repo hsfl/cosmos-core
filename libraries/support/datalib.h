@@ -132,7 +132,7 @@ int32_t log_move_agent_temp(string node, string agent, float age=60.);
 int32_t log_move_file(string oldpath, string newpath, bool compress="true", double timeout=10.);
 int32_t log_move_directory(string srcdir, string dstdir, bool compress="true");
 string log_read(gzFile &file, int num);
-//int check_events(eventstruc* events, int max, cosmosstruc* data);
+//int check_all_events(eventstruc* events, int max, cosmosstruc* data);
 vector<string> data_list_nodes();
 int32_t data_list_nodes(vector<string>& nodes);
 vector<filestruc> data_list_files(string directory);

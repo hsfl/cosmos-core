@@ -1669,6 +1669,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     }
 
     orbitalevent = new OrbitalEventGenerator(&currentinfo, dt);
+    orbitalevent->Init();
     metric = new MetricGenerator(&currentinfo, dt);
 
     initialloc = currentinfo.node.loc;
@@ -1902,6 +1903,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     }
 
     orbitalevent = new OrbitalEventGenerator(&currentinfo, dt);
+    orbitalevent->Init();
     metric = new MetricGenerator(&currentinfo, dt);
 
     initialloc = currentinfo.node.loc;
@@ -2718,7 +2720,11 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
 
 int32_t OrbitalEventGenerator::Init()
 {
+    time_start = currentinfo->node.loc.utc;
+    currentinfo->event_tick = (time_start + currentinfo->event_tick) - time_start;
+    time_end = time_start + currentinfo->event_tick;
     umbra_start = 0.;
+    land_start = 0.;
     gs_AoS.clear();
     return 0;
 }
@@ -2726,7 +2732,10 @@ int32_t OrbitalEventGenerator::Init()
 int32_t OrbitalEventGenerator::Reset()
 {
     currentutc = currentinfo->node.loc.utc;
+    time_start = currentinfo->node.loc.utc;
+    time_end = time_start + currentinfo->event_tick;
     umbra_start = 0.;
+    land_start = 0.;
     gs_AoS.clear();
     return 0;
 }
@@ -2742,8 +2751,11 @@ int32_t OrbitalEventGenerator::Propagate(double nextutc)
     {
         currentutc += dtj;
 
-        check_umbra_event(false);
-        check_target_events(false);
+//        check_umbra_event(false);
+//        check_target_events(false);
+//        check_land_event(false);
+//        check_time_event(false);
+        check_all_event(false);
     }
 
     return 0;
@@ -2752,9 +2764,12 @@ int32_t OrbitalEventGenerator::Propagate(double nextutc)
 int32_t OrbitalEventGenerator::End()
 {
     // Force event end if active
-    check_umbra_event(true);
-    check_target_events(true);
-    return 0;
+//    check_umbra_event(true);
+//    check_target_events(true);
+//    check_land_event(true);
+//    check_time_event(true);
+//    return 0;
+    return check_all_event(true);
 }
 
 int32_t MetricGenerator::Init()
@@ -2861,50 +2876,375 @@ int32_t MetricGenerator::Reset(double nextutc)
     return 0;
 }
 
-void OrbitalEventGenerator::check_umbra_event(bool force_end)
+int32_t OrbitalEventGenerator::check_all_event(bool force_end)
+{
+    int32_t iretn = 0;
+    iretn += check_umbra_event(force_end);
+    iretn += check_target_events(force_end);
+    iretn += check_land_event(force_end);
+    for (int16_t i=-8; i<9; ++i)
+    {
+        iretn += check_lat_event(force_end, i*RADOF(10.));
+    }
+    lastlat = currentinfo->node.loc.pos.geod.s.lat;
+    iretn += check_time_event(force_end);
+    return iretn;
+}
+
+int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
+{
+    int32_t iretn = 0;
+    if (currentinfo->node.loc.pos.geod.s.lat > lastlat)
+    {
+        lat_direction = 1;
+    }
+    else if (currentinfo->node.loc.pos.geod.s.lat < lastlat)
+    {
+        lat_direction = -1;
+    }
+    else
+    {
+        lat_direction = 0;
+    }
+    // Lat ascending
+    if (lat_direction > 0 && lat >= lastlat && lat <= currentinfo->node.loc.pos.geod.s.lat)
+    {
+        // Add lat to event list
+        eventstruc cevent;
+        cevent.name = "LATA" + to_signed(DEGOF(lat), 4, true);
+        cevent.type = EVENT_TYPE_LATA;
+        cevent.value = lat;
+        cevent.utc = currentutc;
+        cevent.utcexec = cevent.utc;
+        cevent.dtime = 0.;
+        if (in_land)
+        {
+            cevent.flag |= EVENT_FLAG_LAND;
+        }
+        if (in_umbra)
+        {
+            cevent.flag |= EVENT_FLAG_UMBRA;
+        }
+        if (in_gs)
+        {
+            cevent.flag |= EVENT_FLAG_GS;
+        }
+        if (in_targ)
+        {
+            cevent.flag |= EVENT_FLAG_TARG;
+        }
+        currentinfo->event.push_back(cevent);
+        ++iretn;
+    }
+    // Lat descending
+    else if (lat_direction < 0 && lat <= lastlat && lat >= currentinfo->node.loc.pos.geod.s.lat)
+    {
+        // Add lat to event list
+        eventstruc cevent;
+        cevent.name = "LATD" + to_signed(DEGOF(lat), 4, true);
+        cevent.type = EVENT_TYPE_LATD;
+        cevent.utc = currentutc;
+        cevent.utcexec = cevent.utc;
+        cevent.dtime = 0.;
+        if (in_land)
+        {
+            cevent.flag |= EVENT_FLAG_LAND;
+        }
+        if (in_umbra)
+        {
+            cevent.flag |= EVENT_FLAG_UMBRA;
+        }
+        if (in_gs)
+        {
+            cevent.flag |= EVENT_FLAG_GS;
+        }
+        if (in_targ)
+        {
+            cevent.flag |= EVENT_FLAG_TARG;
+        }
+        currentinfo->event.push_back(cevent);
+        ++iretn;
+    }
+    // Lat maximum
+    if (lat_direction > 0)
+    {
+        if (currentinfo->node.loc.pos.geod.s.lat > minlat)
+        {
+            // Add lat to event list
+            eventstruc cevent;
+            cevent.name = "LATMIN";
+            cevent.type = EVENT_TYPE_LATMIN;
+            cevent.value = minlat;
+            cevent.utc = currentutc;
+            cevent.utcexec = cevent.utc;
+            cevent.dtime = 0.;
+            if (in_land)
+            {
+                cevent.flag |= EVENT_FLAG_LAND;
+            }
+            if (in_umbra)
+            {
+                cevent.flag |= EVENT_FLAG_UMBRA;
+            }
+            if (in_gs)
+            {
+                cevent.flag |= EVENT_FLAG_GS;
+            }
+            if (in_targ)
+            {
+                cevent.flag |= EVENT_FLAG_TARG;
+            }
+            currentinfo->event.push_back(cevent);
+            ++iretn;
+            minlat = M_PI;
+        }
+        else
+        {
+            maxlat = currentinfo->node.loc.pos.geod.s.lat;
+        }
+    }
+    // Lat minimum
+    else if (lat_direction < 0)
+    {
+        if (currentinfo->node.loc.pos.geod.s.lat < maxlat)
+        {
+            // Add lat to event list
+            eventstruc cevent;
+            cevent.name = "LATMAX";
+            cevent.type = EVENT_TYPE_LATMAX;
+            cevent.value = maxlat;
+            cevent.utc = currentutc;
+            cevent.utcexec = cevent.utc;
+            cevent.dtime = 0.;
+            if (in_land)
+            {
+                cevent.flag |= EVENT_FLAG_LAND;
+            }
+            if (in_umbra)
+            {
+                cevent.flag |= EVENT_FLAG_UMBRA;
+            }
+            if (in_gs)
+            {
+                cevent.flag |= EVENT_FLAG_GS;
+            }
+            if (in_targ)
+            {
+                cevent.flag |= EVENT_FLAG_TARG;
+            }
+            currentinfo->event.push_back(cevent);
+            ++iretn;
+            maxlat = -M_PI;
+        }
+        else
+        {
+            minlat = currentinfo->node.loc.pos.geod.s.lat;
+        }
+    }
+    return iretn;
+}
+
+int32_t OrbitalEventGenerator::check_time_event(bool force_end)
+{
+    if (currentinfo->event_tick > 0. && (currentutc >= time_end || force_end))
+    {
+        // Add land to event list
+        eventstruc cevent;
+        cevent.name = "TIMEIN";
+        cevent.type = EVENT_TYPE_TIME;
+        cevent.utc = time_end;
+        cevent.utcexec = cevent.utc;
+        cevent.dtime = currentinfo->event_tick;
+        if (in_land)
+        {
+            cevent.flag |= EVENT_FLAG_LAND;
+        }
+        if (in_umbra)
+        {
+            cevent.flag |= EVENT_FLAG_UMBRA;
+        }
+        if (in_gs)
+        {
+            cevent.flag |= EVENT_FLAG_GS;
+        }
+        if (in_targ)
+        {
+            cevent.flag |= EVENT_FLAG_TARG;
+        }
+        time_start = cevent.utc;
+        time_end = time_start + currentinfo->event_tick;
+        currentinfo->event.push_back(cevent);
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int32_t OrbitalEventGenerator::check_land_event(bool force_end)
+{
+    dem_pixel val = map_dem_pixel(COSMOS_EARTH, currentinfo->node.loc.pos.geod.s.lon, currentinfo->node.loc.pos.geod.s.lat, 1./REARTHM);
+    // Land start
+    if (land_start == 0. && val.alt > 1.)
+    {
+        in_land = true;
+        // Add land to event list
+        eventstruc cevent;
+        cevent.name = "LANDIN";
+        cevent.type = EVENT_TYPE_LAND;
+        cevent.utc = currentutc;
+        cevent.utcexec = cevent.utc;
+        cevent.dtime = 0.;
+        cevent.flag = EVENT_FLAG_PAIR | EVENT_FLAG_LAND;
+        if (in_land)
+        {
+            cevent.flag |= EVENT_FLAG_LAND;
+        }
+        if (in_umbra)
+        {
+            cevent.flag |= EVENT_FLAG_UMBRA;
+        }
+        if (in_gs)
+        {
+            cevent.flag |= EVENT_FLAG_GS;
+        }
+        if (in_targ)
+        {
+            cevent.flag |= EVENT_FLAG_TARG;
+        }
+        currentinfo->event.push_back(cevent);
+        land_start = cevent.utc;
+        return 1;
+    }
+    // Land end
+    else if (land_start != 0. && (val.alt <= 1. || force_end))
+    {
+        in_land = false;
+        // Add land to event list
+        eventstruc cevent;
+        cevent.name = "LANDOUT";
+        cevent.type = EVENT_TYPE_LAND;
+        cevent.utc = currentutc;
+        cevent.utcexec = cevent.utc;
+        cevent.dtime = cevent.utc - land_start;
+        cevent.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+        if (in_land)
+        {
+            cevent.flag |= EVENT_FLAG_LAND;
+        }
+        if (in_umbra)
+        {
+            cevent.flag |= EVENT_FLAG_UMBRA;
+        }
+        if (in_gs)
+        {
+            cevent.flag |= EVENT_FLAG_GS;
+        }
+        if (in_targ)
+        {
+            cevent.flag |= EVENT_FLAG_TARG;
+        }
+        currentinfo->event.push_back(cevent);
+        land_start = 0.;
+        return 0;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
 {
     // Umbra start
     if (umbra_start == 0. && !currentinfo->node.loc.pos.sunradiance)
     {
+        in_umbra = true;
         // Add umbra to event list
-        eventstruc umbra_event;
-        umbra_event.name = "UMBRAIN";
-        umbra_event.type = EVENT_TYPE_UMBRA;
-        umbra_event.utc = umbra_start;
-        umbra_event.dtime = currentutc - umbra_start;
-        currentinfo->event.push_back(umbra_event);
-        umbra_start = currentutc;
+        eventstruc cevent;
+        cevent.name = "UMBRAIN";
+        cevent.type = EVENT_TYPE_UMBRA;
+        cevent.utc = currentutc;
+        cevent.utcexec = cevent.utc;
+        cevent.dtime = 0.;
+        cevent.flag = EVENT_FLAG_PAIR | EVENT_FLAG_UMBRA;
+        if (in_land)
+        {
+            cevent.flag |= EVENT_FLAG_LAND;
+        }
+        if (in_umbra)
+        {
+            cevent.flag |= EVENT_FLAG_UMBRA;
+        }
+        if (in_gs)
+        {
+            cevent.flag |= EVENT_FLAG_GS;
+        }
+        if (in_targ)
+        {
+            cevent.flag |= EVENT_FLAG_TARG;
+        }
+        currentinfo->event.push_back(cevent);
+        umbra_start = cevent.utc;
+        return 1;
     }
     // Umbra end
     else if (umbra_start != 0. && (currentinfo->node.loc.pos.sunradiance || force_end))
     {
+        in_umbra = false;
         // Add umbra to event list
-        eventstruc umbra_event;
-        umbra_event.name = "UMBRAOUT";
-        umbra_event.type = EVENT_TYPE_UMBRA;
-        umbra_event.utc = umbra_start;
-        umbra_event.dtime = currentutc - umbra_start;
-        currentinfo->event.push_back(umbra_event);
+        eventstruc cevent;
+        cevent.name = "UMBRAOUT";
+        cevent.type = EVENT_TYPE_UMBRA;
+        cevent.utc = currentutc;
+        cevent.utcexec = cevent.utc;
+        cevent.dtime = cevent.utc - umbra_start;
+        cevent.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+        if (in_land)
+        {
+            cevent.flag |= EVENT_FLAG_LAND;
+        }
+        if (in_umbra)
+        {
+            cevent.flag |= EVENT_FLAG_UMBRA;
+        }
+        if (in_gs)
+        {
+            cevent.flag |= EVENT_FLAG_GS;
+        }
+        if (in_targ)
+        {
+            cevent.flag |= EVENT_FLAG_TARG;
+        }
+        currentinfo->event.push_back(cevent);
         umbra_start = 0.;
+        return 0;
+    }
+    else
+    {
+        return 0;
     }
 }
 
-void OrbitalEventGenerator::check_target_events(bool force_end)
+int32_t OrbitalEventGenerator::check_target_events(bool force_end)
 {
+    int32_t iretn = 0;
     for (auto target = currentinfo->target.begin(); target != currentinfo->target.end(); target++)
     {
         if (target->type == NODE_TYPE_GROUNDSTATION)
         {
-            check_gs_aos_event(*target, force_end);
+            iretn += check_gs_aos_event(*target, force_end);
         }
         else if (target->type == NODE_TYPE_TARGET)
         {
-            check_target_aos_event(*target, force_end);
+            iretn += check_target_aos_event(*target, force_end);
         }
     }
+    return iretn;
 }
 
-void OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force_end)
+int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force_end)
 {
     // Find target sight acquisition/loss
     // Groundstation is in line-of-sight if elto (elevation from target to sat) is positive
@@ -2924,18 +3264,39 @@ void OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force
         // AoS
         if (elto_deg > i*5. && gsAOS[i].first == 0.)
         {
+            in_gs = true;
             eventstruc gs_aos_event;
             gs_aos_event.name = GS_EVENT_STRING[i] + "AOS_" + gs.name;
             gs_aos_event.type = GS_EVENT_CODE[i];
             gs_aos_event.utc = gsAOS[i].first;
             gs_aos_event.dtime = currentutc - gsAOS[i].first;
             gs_aos_event.value = gsAOS[i].second;
+            gs_aos_event.az = gs.azto;
+            gs_aos_event.el = gs.elto;
+            gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_GS;
+            if (in_land)
+            {
+                gs_aos_event.flag |= EVENT_FLAG_LAND;
+            }
+            if (in_umbra)
+            {
+                gs_aos_event.flag |= EVENT_FLAG_UMBRA;
+            }
+            if (in_gs)
+            {
+                gs_aos_event.flag |= EVENT_FLAG_GS;
+            }
+            if (in_targ)
+            {
+                gs_aos_event.flag |= EVENT_FLAG_TARG;
+            }
             currentinfo->event.push_back(gs_aos_event);
             gsAOS[i].first = currentutc;
         }
         // LoS
         else if ((force_end || elto_deg <= i*5.) && gsAOS[i].first != 0.)
         {
+            in_gs = false;
             // Add event to event list
             eventstruc gs_aos_event;
             gs_aos_event.name = GS_EVENT_STRING[i] + "LOS_" + gs.name;
@@ -2943,6 +3304,25 @@ void OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force
             gs_aos_event.utc = gsAOS[i].first;
             gs_aos_event.dtime = currentutc - gsAOS[i].first;
             gs_aos_event.value = gsAOS[i].second;
+            gs_aos_event.az = gs.azto;
+            gs_aos_event.el = gs.elto;
+            gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+            if (in_land)
+            {
+                gs_aos_event.flag |= EVENT_FLAG_LAND;
+            }
+            if (in_umbra)
+            {
+                gs_aos_event.flag |= EVENT_FLAG_UMBRA;
+            }
+            if (in_gs)
+            {
+                gs_aos_event.flag |= EVENT_FLAG_GS;
+            }
+            if (in_targ)
+            {
+                gs_aos_event.flag |= EVENT_FLAG_TARG;
+            }
             currentinfo->event.push_back(gs_aos_event);
             // Reset this AoS event
             gsAOS[i].first = 0.;
@@ -2950,16 +3330,18 @@ void OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force
         }
     }
     // MAXDEG event
-    // AoS
+    // Track max
     if (gs.elto > 0. && gs.elto > gsAOS[DEGMAX].second)
     {
         // Keep track of when the max elevation was achieved
         gsAOS[DEGMAX].first = currentutc;
         gsAOS[DEGMAX].second = gs.elto;
+        in_gs =true;
     }
-    // LoS
-    else if ((force_end || gs.elto <= 0.) && gsAOS[DEGMAX].first != 0.)
+    // Reach max
+    else if (gsAOS[DEGMAX].first != 0. && (force_end || gs.elto < gsAOS[DEGMAX].second))
     {
+        in_gs =true;
         // Add event to event list
         eventstruc gs_aos_event;
         gs_aos_event.name = GS_EVENT_STRING[DEGMAX] + "_" + gs.name;
@@ -2967,14 +3349,44 @@ void OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force
         gs_aos_event.utc = gsAOS[DEGMAX].first;
         gs_aos_event.dtime = 0;
         gs_aos_event.value = gsAOS[DEGMAX].second;
+        gs_aos_event.az = gs.azto;
+        gs_aos_event.el = gs.elto;
+        if (in_land)
+        {
+            gs_aos_event.flag |= EVENT_FLAG_LAND;
+        }
+        if (in_umbra)
+        {
+            gs_aos_event.flag |= EVENT_FLAG_UMBRA;
+        }
+        if (in_gs)
+        {
+            gs_aos_event.flag |= EVENT_FLAG_GS;
+        }
+        if (in_targ)
+        {
+            gs_aos_event.flag |= EVENT_FLAG_TARG;
+        }
         currentinfo->event.push_back(gs_aos_event);
         // Reset this AoS event
         gsAOS[DEGMAX].first = 0.;
+    }
+    else if (gs.elto <= 0.)
+    {
         gsAOS[DEGMAX].second = 0.f;
+        in_gs = false;
+    }
+    if (in_gs)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
     }
 }
 
-void OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bool force_end)
+int32_t OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bool force_end)
 {
     // Find target sight acquisition/loss
     // Target is in line-of-sight if elto (elevation from target to sat) is positive
@@ -3000,8 +3412,10 @@ void OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bo
         target_aos_event.dtime = currentutc - tAOS.first;
         target_aos_event.value = tAOS.second;
         target_aos_event.az = target.azto;
+        target_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_TARG;
         currentinfo->event.push_back(target_aos_event);
         tAOS.first = currentutc;
+        in_targ = true;
     }
     // LoS
     else if ((force_end || elto_deg <= 0.) && tAOS.first != 0.)
@@ -3014,10 +3428,12 @@ void OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bo
         target_aos_event.dtime = currentutc - tAOS.first;
         target_aos_event.value = tAOS.second;
         target_aos_event.az = target.azto;
+        target_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
         currentinfo->event.push_back(target_aos_event);
         // Reset this AoS event
         tAOS.first = 0.;
         tAOS.second = 0.f;
+        in_targ = false;
     }
     // MAXDEG event
     // AoS
@@ -3026,6 +3442,7 @@ void OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bo
         // Keep track of when the max elevation was achieved
         tMAX.first = currentutc;
         tMAX.second = elto_deg;
+        in_targ = true;
     }
     // MAX
     else if ((force_end || elto_deg <= 0.) && tMAX.first != 0.)
@@ -3042,6 +3459,15 @@ void OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bo
         // Reset this event
         tMAX.first = 0.;
         tMAX.second = 0.f;
+        in_targ = false;
+    }
+    if (in_targ)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
     }
 }
 

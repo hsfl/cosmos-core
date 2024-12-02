@@ -396,6 +396,7 @@ int32_t Simulator::ParseSatFile(string filename)
 int32_t Simulator::ParseSatString(string args)
 {
     int32_t iretn;
+    double eventtick = 60.;
     double maxthrust = 0.;
     double maxalpha = 0.;
     double maxomega = 0.;
@@ -436,6 +437,11 @@ int32_t Simulator::ParseSatString(string args)
         det.name = "det_" + to_unsigned(dets.size());
         dets.push_back(det);
         AddDetector(det);
+    }
+    if (!jargs["eventtick"].is_null())
+    {
+        ++argcount;
+        eventtick = jargs["eventtick"].number_value();
     }
     if (!jargs["maxthrust"].is_null())
     {
@@ -543,6 +549,7 @@ int32_t Simulator::ParseSatString(string args)
     }
 
     Physics::Simulator::StateList::iterator sit = GetNode(nodename);
+    (*sit)->currentinfo.event_tick = eventtick / 86400.;
     (*sit)->currentinfo.node.type = nodetype;
 
     // CPU
@@ -638,6 +645,11 @@ int32_t Simulator::ParseSatString(string args)
 
 int32_t Simulator::ParseTargetFile(string filename)
 {
+    if (filename.empty())
+    {
+        filename = get_realmdir(realmname, true) + "/" + "targets.dat";
+    }
+
     std::ifstream file(filename);
     if (!file.is_open()) { return -1; }
 
@@ -1048,6 +1060,35 @@ int32_t Simulator::Propagate(double nextutc)
         }
     }
     return iretn;
+}
+
+int32_t Simulator::Propagate(vector<vector<cosmosstruc> > &results, uint32_t runcount)
+{
+    vector<cosmosstruc> result;
+    result.resize(cnodes.size());
+    for (uint16_t i=0; i<cnodes.size(); ++i)
+    {
+        result[i].node = cnodes[i]->currentinfo.node;
+        result[i].event = cnodes[i]->currentinfo.event;
+        result[i].target = cnodes[i]->currentinfo.target;
+        result[i].devspec = cnodes[i]->currentinfo.devspec;
+    }
+    results.push_back(result);
+    uint32_t runtotal = 0;
+    while (runtotal++ < runcount)
+    {
+        Propagate(0.);
+        for (uint16_t i=0; i<cnodes.size(); ++i)
+        {
+            result[i].node = cnodes[i]->currentinfo.node;
+            result[i].event = cnodes[i]->currentinfo.event;
+            result[i].target = cnodes[i]->currentinfo.target;
+            result[i].devspec = cnodes[i]->currentinfo.devspec;
+        }
+        results.push_back(result);
+    }
+
+    return results.size();
 }
 
 int32_t Simulator::End()

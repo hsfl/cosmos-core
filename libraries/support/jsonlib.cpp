@@ -8373,6 +8373,7 @@ int32_t json_clone_node(cosmosstruc *source, cosmosstruc *destination)
 
     destination->timestamp = source->timestamp;
     destination->event_cnt = source->event_cnt;
+    destination->event_tick = source->event_tick;
 
     destination->node = source->node;
     destination->realm = source->realm;
@@ -8721,6 +8722,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_port_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->port_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_target_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->target_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_event_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->event_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_event_tick", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->event_tick, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     json_addentry("node_user_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->user_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
 
     // User structure
