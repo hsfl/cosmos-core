@@ -100,41 +100,6 @@ int main(int argc, char *argv[])
 
     while (agent->running() && elapsed < runcount)
     {
-        // Calculate thrust
-//        if (tcount++ > 5)
-//        {
-//            for (uint16_t i=1; i<sim->cnodes.size(); ++i)
-//            {
-//                locstruc goal;
-//                goal.pos.eci = sim->cnodes[0]->currentinfo.node.loc.pos.eci;
-//                goal.pos.eci.pass++;
-//                pos_eci(goal);
-//                goal.pos.lvlh.s = rvector(0., 0., 0.);
-//                pos_origin2lvlh(goal);
-//                sim->UpdatePush(sim->cnodes[i]->currentinfo.node.name, Physics::ControlThrust(sim->cnodes[i]->currentinfo.node.loc.pos.eci, goal.pos.eci, sim->cnodes[i]->currentinfo.mass, sim->cnodes[i]->currentinfo.devspec.thst[0].maxthrust/sim->cnodes[i]->currentinfo.mass, simdt));
-//            }
-//        }
-//        rvector ds = sim->cnodes[1]->currentinfo.node.loc.pos.eci.s - sim->cnodes[0]->currentinfo.node.loc.pos.eci.s;
-//        rvector dv = sim->cnodes[1]->currentinfo.node.loc.pos.eci.v - sim->cnodes[0]->currentinfo.node.loc.pos.eci.v;
-//        rvector da = sim->cnodes[1]->currentinfo.node.loc.pos.eci.a - sim->cnodes[0]->currentinfo.node.loc.pos.eci.a;
-//        Vector fp = (1./sim->cnodes[1]->currentinfo.node.phys.mass) * sim->cnodes[1]->currentinfo.node.phys.fpush;
-//        printf("ds: %f %f %f dv: %f %f %f da: % %f %f fpush: %f %f %f\n", ds.col[0], ds.col[1], ds.col[2], dv.col[0], dv.col[1], dv.col[2], da.col[0], da.col[1], da.col[2], fp.x, fp.y, fp.z);
-//        rvector ms = sim->cnodes[0]->currentinfo.node.loc.pos.eci.s;
-//        rvector mv = sim->cnodes[0]->currentinfo.node.loc.pos.eci.v;
-//        rvector ma = sim->cnodes[0]->currentinfo.node.loc.pos.eci.a;
-//        rvector cs = sim->cnodes[1]->currentinfo.node.loc.pos.eci.s;
-//        rvector cv = sim->cnodes[1]->currentinfo.node.loc.pos.eci.v;
-//        rvector ca = sim->cnodes[1]->currentinfo.node.loc.pos.eci.a;
-//        printf("%u\t", tcount++);
-//        printf("ms:\t%f\t%f\t%f\t", ms.col[0], ms.col[1], ms.col[2]);
-//        printf("mv:\t%f\t%f\t%f\t", mv.col[0], mv.col[1], mv.col[2]);
-//        printf("ma:\t%f\t%f\t%f\t", ma.col[0], ma.col[1], ma.col[2]);
-//        printf("cs:\t%f\t%f\t%f\t", cs.col[0], cs.col[1], cs.col[2]);
-//        printf("cv:\t%f\t%f\t%f\t", cv.col[0], cv.col[1], cv.col[2]);
-//        printf("ca:\t%f\t%f\t%f\t", ca.col[0], ca.col[1], ca.col[2]);
-//        printf("fp:\t%f\t%f\t%f\n", fp.x, fp.y, fp.z);
-//        fflush(stdout);
-        sim->Propagate();
         for (auto &state : sim->cnodes)
         {
             if (state->currentinfo.event.size())
@@ -144,16 +109,21 @@ int main(int argc, char *argv[])
                     if (printevent)
                     {
                         string output = "type: event";
-                        output += to_label(" node", state->currentinfo.node.name);
-                        output += to_label(" utc", to_mjd(state->currentinfo.node.utc));
-                        output += to_label(" name", event.name);
-                        output += to_label(" type", to_unsigned(static_cast<int>(event.type)));
-                        output += to_label(" flag", to_unsigned(static_cast<int>(event.flag)));
-                        output += to_label(" el", to_floating(event.el, 4));
-                        output += to_label(" az", to_floating(event.az, 4));
-                        output += to_label(" lon", to_floating(state->currentinfo.node.loc.pos.geod.s.lon, 5));
-                        output += to_label(" lat", to_floating(state->currentinfo.node.loc.pos.geod.s.lat, 5));
-                        output += to_label(" alt", to_floating(state->currentinfo.node.loc.pos.geod.s.h, 1));
+                        output += to_label("\tnode", state->currentinfo.node.name);
+                        output += to_label("\tutc", to_mjd(state->currentinfo.node.utc));
+                        output += to_label("\tname", event.name);
+                        output += to_label("\ttype", to_unsigned(static_cast<int>(event.type)));
+                        output += to_label("\tflag", to_unsigned(static_cast<int>(event.flag)));
+                        output += to_label("\tel", to_floating(event.el, 4));
+                        output += to_label("\taz", to_floating(event.az, 4));
+                        output += to_label("\tdtime", to_floating(86400.*event.dtime, 1));
+                        output += to_label("\tlon", to_floating(state->currentinfo.node.loc.pos.geod.s.lon, 5));
+                        output += to_label("\tlat", to_floating(state->currentinfo.node.loc.pos.geod.s.lat, 5));
+                        output += to_label("\talt", to_floating(state->currentinfo.node.loc.pos.geod.s.h, 1));
+                        output += to_label("\tpowerin", to_floating(state->currentinfo.node.phys.powgen, 2));
+                        output += to_label("\tland", (event.flag & EVENT_FLAG_LAND) != 0);
+                        output += to_label("\tumbra", (event.flag & EVENT_FLAG_UMBRA) != 0);
+                        output += to_label("\tgs", (event.flag & EVENT_FLAG_GS) != 0);
                         printf("%s\n", output.c_str());
                     }
                     if (postevent)
@@ -181,46 +151,46 @@ int main(int argc, char *argv[])
             if (printevent)
             {
                 string output = "type: node";
-                output += to_label(" node", state->currentinfo.node.name);
-                output += to_label(" utc", to_mjd(state->currentinfo.node.utc));
-                output += to_label(" ecix", to_floating(state->currentinfo.node.loc.pos.eci.s.col[0], 1));
-                output += to_label(" eciy", to_floating(state->currentinfo.node.loc.pos.eci.s.col[1], 1));
-                output += to_label(" eciz", to_floating(state->currentinfo.node.loc.pos.eci.s.col[2], 1));
-                output += to_label(" ecivx", to_floating(state->currentinfo.node.loc.pos.eci.v.col[0], 2));
-                output += to_label(" ecivy", to_floating(state->currentinfo.node.loc.pos.eci.v.col[1], 2));
-                output += to_label(" ecivz", to_floating(state->currentinfo.node.loc.pos.eci.v.col[2], 2));
-                output += to_label(" eciax", to_floating(state->currentinfo.node.loc.pos.eci.a.col[0], 3));
-                output += to_label(" eciay", to_floating(state->currentinfo.node.loc.pos.eci.a.col[1], 3));
-                output += to_label(" eciaz", to_floating(state->currentinfo.node.loc.pos.eci.a.col[2], 3));
-//                output += to_label(" thetax", to_floating(state->currentinfo.node.loc.att.icrf.s.d.x, 4));
-//                output += to_label(" thetay", to_floating(state->currentinfo.node.loc.att.icrf.s.d.y, 4));
-//                output += to_label(" thetaz", to_floating(state->currentinfo.node.loc.att.icrf.s.d.z, 4));
-//                output += to_label(" thetaw", to_floating(state->currentinfo.node.loc.att.icrf.s.w, 4));
-//                output += to_label(" omegax", to_floating(state->currentinfo.node.loc.att.icrf.v.col[0], 1));
-//                output += to_label(" omegay", to_floating(state->currentinfo.node.loc.att.icrf.v.col[1], 1));
-//                output += to_label(" omegaz", to_floating(state->currentinfo.node.loc.att.icrf.v.col[2], 1));
-//                output += to_label(" alphax", to_floating(state->currentinfo.node.loc.att.icrf.a.col[0], 1));
-//                output += to_label(" alphay", to_floating(state->currentinfo.node.loc.att.icrf.a.col[1], 1));
-//                output += to_label(" alphaz", to_floating(state->currentinfo.node.loc.att.icrf.a.col[2], 1));
-                output += to_label(" powerin", to_floating(state->currentinfo.node.phys.powgen, 2));
-                output += to_label(" powerout", to_floating(state->currentinfo.node.phys.powuse, 2));
+                output += to_label("\tnode", state->currentinfo.node.name);
+                output += to_label("\tutc", to_mjd(state->currentinfo.node.utc));
+                output += to_label("\tecix", to_floating(state->currentinfo.node.loc.pos.eci.s.col[0], 1));
+                output += to_label("\teciy", to_floating(state->currentinfo.node.loc.pos.eci.s.col[1], 1));
+                output += to_label("\teciz", to_floating(state->currentinfo.node.loc.pos.eci.s.col[2], 1));
+                output += to_label("\tecivx", to_floating(state->currentinfo.node.loc.pos.eci.v.col[0], 2));
+                output += to_label("\tecivy", to_floating(state->currentinfo.node.loc.pos.eci.v.col[1], 2));
+                output += to_label("\tecivz", to_floating(state->currentinfo.node.loc.pos.eci.v.col[2], 2));
+                output += to_label("\teciax", to_floating(state->currentinfo.node.loc.pos.eci.a.col[0], 3));
+                output += to_label("\teciay", to_floating(state->currentinfo.node.loc.pos.eci.a.col[1], 3));
+                output += to_label("\teciaz", to_floating(state->currentinfo.node.loc.pos.eci.a.col[2], 3));
+//                output += to_label("\tthetax", to_floating(state->currentinfo.node.loc.att.icrf.s.d.x, 4));
+//                output += to_label("\tthetay", to_floating(state->currentinfo.node.loc.att.icrf.s.d.y, 4));
+//                output += to_label("\tthetaz", to_floating(state->currentinfo.node.loc.att.icrf.s.d.z, 4));
+//                output += to_label("\tthetaw", to_floating(state->currentinfo.node.loc.att.icrf.s.w, 4));
+//                output += to_label("\tomegax", to_floating(state->currentinfo.node.loc.att.icrf.v.col[0], 1));
+//                output += to_label("\tomegay", to_floating(state->currentinfo.node.loc.att.icrf.v.col[1], 1));
+//                output += to_label("\tomegaz", to_floating(state->currentinfo.node.loc.att.icrf.v.col[2], 1));
+//                output += to_label("\talphax", to_floating(state->currentinfo.node.loc.att.icrf.a.col[0], 1));
+//                output += to_label("\talphay", to_floating(state->currentinfo.node.loc.att.icrf.a.col[1], 1));
+//                output += to_label("\talphaz", to_floating(state->currentinfo.node.loc.att.icrf.a.col[2], 1));
+                output += to_label("\tpowerin", to_floating(state->currentinfo.node.phys.powgen, 2));
+                output += to_label("\tpowerout", to_floating(state->currentinfo.node.phys.powuse, 2));
                 state->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
                 state->currentinfo.devspec.cpu[0].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/1073741824.);
                 state->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
                 state->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
-                output += to_label(" load", to_floating(state->currentinfo.devspec.cpu[0].load / state->currentinfo.devspec.cpu[0].maxload, 3));
-                output += to_label(" memory", to_floating(state->currentinfo.devspec.cpu[0].gib / state->currentinfo.devspec.cpu[0].maxgib, 3));
-                output += to_label(" storage", to_floating(state->currentinfo.devspec.cpu[0].storage, 4));
+                output += to_label("\tload", to_floating(state->currentinfo.devspec.cpu[0].load / state->currentinfo.devspec.cpu[0].maxload, 3));
+                output += to_label("\tmemory", to_floating(state->currentinfo.devspec.cpu[0].gib / state->currentinfo.devspec.cpu[0].maxgib, 3));
+                output += to_label("\tstorage", to_floating(state->currentinfo.devspec.cpu[0].storage, 4));
                 cartpos delta = eci2lvlh(sim->cnodes[0]->currentinfo.node.loc.pos.eci, state->currentinfo.node.loc.pos.eci);
 //                rvector ds = state->currentinfo.node.loc.pos.eci.s - sim->cnodes[0]->currentinfo.node.loc.pos.eci.s;
 //                rvector dv = state->currentinfo.node.loc.pos.eci.v - sim->cnodes[0]->currentinfo.node.loc.pos.eci.v;
-                output += to_label(" deltax", to_floating(delta.s.col[0], 2));
-                output += to_label(" deltay", to_floating(delta.s.col[1], 2));
-                output += to_label(" deltaz", to_floating(delta.s.col[2], 2));
-                output += to_label(" deltavx", to_floating(delta.v.col[0], 3));
-                output += to_label(" deltavy", to_floating(delta.v.col[1], 3));
-                output += to_label(" deltavz", to_floating(delta.v.col[2], 3));
-                printf("%s ", output.c_str());
+                output += to_label("\tdeltax", to_floating(delta.s.col[0], 2));
+                output += to_label("\tdeltay", to_floating(delta.s.col[1], 2));
+                output += to_label("\tdeltaz", to_floating(delta.s.col[2], 2));
+                output += to_label("\tdeltavx", to_floating(delta.v.col[0], 3));
+                output += to_label("\tdeltavy", to_floating(delta.v.col[1], 3));
+                output += to_label("\tdeltavz", to_floating(delta.v.col[2], 3));
+                printf("%s\n", output.c_str());
             }
             if (postevent)
             {
@@ -247,11 +217,12 @@ int main(int argc, char *argv[])
                 agent->post(Agent::AgentMessage::SOH, json_of_list(jstring, state->sohstring, &state->currentinfo));
             }
         }
-        if (printevent)
-        {
-            printf("\n");
-            fflush(stdout);
-        }
+//        if (printevent)
+//        {
+//            printf("\n");
+//            fflush(stdout);
+//        }
+        sim->Propagate();
         if (realtime)
         {
             agent->finish_active_loop();
