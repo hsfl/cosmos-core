@@ -5674,6 +5674,7 @@ union as a ::devicestruc.
             //! Single entry vector for event information.
             vector<eventstruc> event;
             uint16_t event_cnt = 0;
+            double event_tick= 0.;
 
             //! Vector of all targets known to node.
             vector<targetstruc> target;
@@ -7140,6 +7141,7 @@ union as a ::devicestruc.
                     { "port_cnt" , port_cnt },
 //                    { "agent_cnt" , agent_cnt },
                     { "event_cnt" , event_cnt },
+                    { "event_tick" , event_tick },
                     { "target_cnt" , target_cnt },
                     { "user_cnt" , user_cnt },
                     { "tle_cnt" , tle_cnt }
@@ -7164,6 +7166,7 @@ union as a ::devicestruc.
                     if(!p["port_cnt"].is_null())	{ port_cnt = p["port_cnt"].long_value(); }
 //                    if(!p["agent_cnt"].is_null())	{ agent_cnt = p["agent_cnt"].long_value(); }
                     if(!p["event_cnt"].is_null())	{ event_cnt = p["event_cnt"].long_value(); }
+                    if(!p["event_tick"].is_null())	{ event_tick = p["event_tick"].number_value(); }
                     if(!p["target_cnt"].is_null())	{ target_cnt = p["target_cnt"].long_value(); }
                     if(!p["user_cnt"].is_null())	{ user_cnt = p["user_cnt"].long_value(); }
                     if(!p["tle_cnt"].is_null())	{ tle_cnt = p["tle_cnt"].long_value(); }

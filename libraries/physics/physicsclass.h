@@ -36,6 +36,7 @@
 #include "support/timelib.h"
 #include "physics/nrlmsise-00.h"
 #include "support/datalib.h"
+#include "support/demlib.h"
 using namespace Cosmos::Convert;
 
 
@@ -438,6 +439,23 @@ namespace Cosmos
             int32_t Reset();
             int32_t End();
         private:
+            bool in_land = false;
+            bool in_umbra = false;
+            bool in_gs = false;
+            bool in_targ = false;
+            double time_start = 0.;
+            double time_end = 0.;
+            ElapsedTime time_alarm;
+            //! Track when a land region starts
+            double land_start = 0.;
+            //! Track lat crossings
+            int8_t lat_direction = 0;
+            double alat_start = 0.;
+            double dlat_start = 0.;
+            double lastlat = 0.;
+            double minlat_start = 0.;
+            double maxlat = 0.;
+            double minlat = 0.;
             //! Track when an umbra region starts
             double umbra_start = 0.;
 //            //! Reference to target list in cosmosstruc
@@ -460,19 +478,23 @@ namespace Cosmos
             //! Tracks Acquisition of Sight events for each target. Targets track only DEG0
             map<string, aos_pair> target_AoS;
 
+            int32_t check_all_event(bool force_end);
+            int32_t check_lat_event(bool force_end, float lat=0.0);
             //! Checks for Umbra enter/exit event
             //! \param final If true, forces end of event if active
-            void check_umbra_event(bool force_end);
+            int32_t check_umbra_event(bool force_end);
             //! Iterates over targets, then calls gs or target function depending on the type
-            void check_target_events(bool force_end);
+            int32_t check_target_events(bool force_end);
+            int32_t check_land_event(bool force_end);
+            int32_t check_time_event(bool force_end);
             //! Checks for groundstation AoS/LoS events
             //! \param gs Reference to groundstation to check
             //! \param final If true, forces end of event if active
-            void check_gs_aos_event(const targetstruc& gs, bool force_end);
+            int32_t check_gs_aos_event(const targetstruc& gs, bool force_end);
             //! Checks for target AoS/LoS events
             //! \param target Reference to target to check
             //! \param final If true, forces end of event if active
-            void check_target_aos_event(const targetstruc& target, bool force_end);
+            int32_t check_target_aos_event(const targetstruc& target, bool force_end);
         };
 
         class MetricGenerator : public Propagator
