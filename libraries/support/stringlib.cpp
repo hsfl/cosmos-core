@@ -603,15 +603,15 @@ string to_signed(int32_t value, uint16_t digits, bool zerofill)
     output.resize(digits>20?digits:20);
     if (zerofill) {
         if (digits) {
-            sprintf(&output[0], "%0*ld", digits, value);
+            sprintf(&output[0], "%+0*ld", digits, value);
         } else {
-            sprintf(&output[0], "%0ld", value);
+            sprintf(&output[0], "%+0ld", value);
         }
     } else {
         if (digits) {
-            sprintf(&output[0], "%*ld", digits, value);
+            sprintf(&output[0], "%+*ld", digits, value);
         } else {
-            sprintf(&output[0], "%ld", value);
+            sprintf(&output[0], "%+ld", value);
         }
     }
     if (digits)
