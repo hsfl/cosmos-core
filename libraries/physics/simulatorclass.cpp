@@ -209,6 +209,8 @@ int32_t Simulator::ParseOrbitFile(string filename)
             }
         }
         fclose(fp);
+    } else {
+        return -1;
     }
     return iretn;
 }
