@@ -212,9 +212,19 @@ int main(int argc, char *argv[])
 	cout<<"Testing with cosmosstruc"<<endl;
 	Cosmos::Support::cosmosstruc c;
 	//vector<Cosmos::Convert::tlestruc> my_json_tle_vector = find_json_value<vector<Cosmos::Convert::tlestruc>>(c, "tle");
-	vector<Cosmos::Convert::tlestruc> my_json_tle_vector;
-	cout<<"my_json_tle_vector = "<<my_json_tle_vector<<endl;
-	cout<<"my_cosmos_tle_vector = "<<c.tle<<endl;
+	//vector<Cosmos::Convert::tlestruc> my_json_tle_vector;
+	//cout<<"my_json_tle_vector = "<<my_json_tle_vector<<endl;
+	//cout<<"my_cosmos_tle_vector = "<<c.tle<<endl;
+
+	Cosmos::Support::eventstruc e;
+	c.event.push_back(e);
+	c.event.push_back(e);
+	c.event.push_back(e);
+	c.event.push_back(e);
+	c.event.push_back(e);
+
+	cout<<endl<<endl;
+	cout<<c.event[0].to_json()<<endl;
 	
 
 	if(!make_output_files) return 0;
