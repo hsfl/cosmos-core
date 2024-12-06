@@ -126,7 +126,6 @@ int32_t Simulator::AddTarget(string name, double lat, double lon, double alt, NO
 
 int32_t Simulator::AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type)
 {
-	cout<<"Point Target"<<endl;
     locstruc loc;
     loc.pos.geod.pass = 1;
     loc.pos.geod.utc = currentutc;
@@ -151,7 +150,6 @@ int32_t Simulator::AddTarget(string name, double lat, double lon, double area, d
 
 int32_t Simulator::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type)
 {
-	cout<<"Area Target"<<endl;
     locstruc loc;
     loc.pos.geod.pass = 1;
     loc.pos.geod.utc = currentutc;
@@ -754,6 +752,10 @@ int32_t Simulator::ParseTargetString(string line)
         else if (args.size() == 5)
         {
             AddTarget(args[0], RADOF(stod(args[1])), RADOF(stod(args[2])), stod(args[3]), stod(args[4]), NODE_TYPE_TARGET);
+        }
+        else if (args.size() == 6)
+        {
+            AddTarget(args[0], RADOF(stod(args[1])), RADOF(stod(args[2])), RADOF(stod(args[3])), RADOF(stod(args[4])), stod(args[5]), NODE_TYPE_TARGET);
         }
     }
     return targets.size();
