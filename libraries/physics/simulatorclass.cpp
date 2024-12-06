@@ -730,15 +730,56 @@ int32_t Simulator::ParseTargetString(string line)
 
     if (line[0] == '{')
     {
+        targetstruc targ;
         string estring;
-        json11::Json jargs = json11::Json::parse(line, estring);
+        json11::Json data = json11::Json::parse(line, estring);
 
         // Check for any parsing errors
         if (!estring.empty()) {
             std::cerr << "Error parsing JSON: " << estring << std::endl;
             return -1;
         }
-		ParseTargetJson(jargs);
+        targ.name = "target_" + to_unsigned(targets.size(), 3, true);
+
+        // Extract Type
+        targ.type = 0;
+        if (!data["type"].is_null())
+        {
+            targ.type = data["type"].number_value();
+        }
+
+        // Extract GEOD
+        targ.loc.pos.geod.s.lat = 0.0;
+        if (!data["latitude"].is_null())
+        {
+            targ.loc.pos.geod.s.lat = RADOF(data["latitude"].number_value());
+        }
+
+        targ.loc.pos.geod.s.lon = 0.0;
+        if (!data["longitude"].is_null())
+        {
+            targ.loc.pos.geod.s.lon = RADOF(data["longitude"].number_value());
+        }
+
+        targ.loc.pos.geod.s.h = 0.;
+        if (!data["altitude"].is_null())
+        {
+            targ.loc.pos.geod.s.h = data["altitude"].number_value();
+        }
+
+        targ.area = 1.;
+        if (!data["area"].is_null())
+        {
+            targ.area = data["area"].number_value();
+        }
+
+        if (!data["radius"].is_null())
+        {
+            targ.area = data["radius"].number_value();
+            targ.area = M_PI * targ.area * targ.area;
+        }
+
+        AddTarget(targ);
     }
     else
     {
