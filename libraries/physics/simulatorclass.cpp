@@ -126,6 +126,7 @@ int32_t Simulator::AddTarget(string name, double lat, double lon, double alt, NO
 
 int32_t Simulator::AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type)
 {
+	cout<<"Point Target"<<endl;
     locstruc loc;
     loc.pos.geod.pass = 1;
     loc.pos.geod.utc = currentutc;
@@ -150,6 +151,7 @@ int32_t Simulator::AddTarget(string name, double lat, double lon, double area, d
 
 int32_t Simulator::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type)
 {
+	cout<<"Area Target"<<endl;
     locstruc loc;
     loc.pos.geod.pass = 1;
     loc.pos.geod.utc = currentutc;
@@ -747,11 +749,11 @@ int32_t Simulator::ParseTargetString(string line)
         vector<string> args = string_split(line, " \t", true);
         if (args.size() == 4)
         {
-            AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
+            AddTarget(args[0], RADOF(stod(args[1])), RADOF(stod(args[2])), 0., stod(args[3]), NODE_TYPE_GROUNDSTATION);
         }
         else if (args.size() == 5)
         {
-            AddTarget(args[0], RADOF(stof(args[1])), RADOF(stod(args[2])), stod(args[3]), stod(args[4]), NODE_TYPE_TARGET);
+            AddTarget(args[0], RADOF(stod(args[1])), RADOF(stod(args[2])), stod(args[3]), stod(args[4]), NODE_TYPE_TARGET);
         }
     }
     return targets.size();
