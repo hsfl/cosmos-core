@@ -2751,10 +2751,6 @@ int32_t OrbitalEventGenerator::Propagate(double nextutc)
     {
         currentutc += dtj;
 
-//        check_umbra_event(false);
-//        check_target_events(false);
-//        check_land_event(false);
-//        check_time_event(false);
         check_all_event(false);
     }
 
@@ -2764,11 +2760,6 @@ int32_t OrbitalEventGenerator::Propagate(double nextutc)
 int32_t OrbitalEventGenerator::End()
 {
     // Force event end if active
-//    check_umbra_event(true);
-//    check_target_events(true);
-//    check_land_event(true);
-//    check_time_event(true);
-//    return 0;
     return check_all_event(true);
 }
 
@@ -3230,6 +3221,7 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
 int32_t OrbitalEventGenerator::check_target_events(bool force_end)
 {
     int32_t iretn = 0;
+    in_targ = false;
     for (auto target = currentinfo->target.begin(); target != currentinfo->target.end(); target++)
     {
         if (target->type == NODE_TYPE_GROUNDSTATION)
@@ -3238,7 +3230,7 @@ int32_t OrbitalEventGenerator::check_target_events(bool force_end)
         }
         else if (target->type == NODE_TYPE_TARGET)
         {
-            iretn += check_target_aos_event(*target, force_end);
+            iretn += check_target_event(*target, force_end);
         }
     }
     return iretn;
@@ -3248,7 +3240,7 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
 {
     // Find target sight acquisition/loss
     // Groundstation is in line-of-sight if elto (elevation from target to sat) is positive
-    double elto_deg = DEGOF(gs.elto);
+//    double elto_deg = DEGOF(gs.elto);
     if (gs_AoS.find(gs.name) == gs_AoS.end())
     {
         gs_AoS[gs.name] = {std::make_pair(0.,0.f),std::make_pair(0.,0.f),std::make_pair(0.,0.f),std::make_pair(0.,0.f)};
@@ -3262,7 +3254,7 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
 
         gsAOS[i].second = std::max(gsAOS[i].second, gs.elto);
         // AoS
-        if (elto_deg > i*5. && gsAOS[i].first == 0.)
+        if (DEGOF(gs.elto) > i*5. && gsAOS[i].first == 0.)
         {
             in_gs = true;
             eventstruc gs_aos_event;
@@ -3294,7 +3286,7 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
             gsAOS[i].first = currentutc;
         }
         // LoS
-        else if ((force_end || elto_deg <= i*5.) && gsAOS[i].first != 0.)
+        else if ((force_end || DEGOF(gs.elto) <= i*5.) && gsAOS[i].first != 0.)
         {
             in_gs = false;
             // Add event to event list
@@ -3386,83 +3378,96 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
     }
 }
 
-int32_t OrbitalEventGenerator::check_target_aos_event(const targetstruc& target, bool force_end)
+int32_t OrbitalEventGenerator::check_target_event(const targetstruc& target, bool force_end)
 {
     // Find target sight acquisition/loss
     // Target is in line-of-sight if elto (elevation from target to sat) is positive
-    double elto_deg = DEGOF(target.elto);
-    if (target_AoS.find(target.name) == target_AoS.end())
-    {
-        target_AoS[target.name] = {std::make_pair(0.,0.f)};
-    }
-    aos_pair& tAOS = target_AoS[target.name];
-    aos_pair& tMAX = target_AoS[target.name];
-    // Update highest elevation values for 0/5/10 degree events
-    // tAOS[i].first is the mjd timestamp of when the event began
-    // tAOS[i].second is the max elevation for this AoS event
 
-    tAOS.second = std::max(tAOS.second, target.elto);
-    // AoS
-    if (elto_deg > 0. && tAOS.first == 0.)
+    // In pass
+    if (target_AoS[target.name].utc != 0.)
     {
-        eventstruc target_aos_event;
-        target_aos_event.name = "TAOS_" + target.name;
-        target_aos_event.type = EVENT_TYPE_TARG;
-        target_aos_event.utc = tAOS.first;
-        target_aos_event.dtime = currentutc - tAOS.first;
-        target_aos_event.value = tAOS.second;
-        target_aos_event.az = target.azto;
-        target_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_TARG;
-        currentinfo->event.push_back(target_aos_event);
-        tAOS.first = currentutc;
+        // End pass
+        if (force_end ||  target.elto  <= 0.)
+        {
+            // Add event to event list
+            eventstruc target_event;
+            target_event.name = "TLOS_" + target.name;
+            target_event.type = EVENT_TYPE_TARGLOS;
+            target_event.dtime = currentutc - target_AoS[target.name].utc;
+            target_event.value = target_AoS[target.name].azto;
+            target_event.az = target_AoS[target.name].azto;
+            target_event.el = target_AoS[target.name].elto;
+            target_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+            currentinfo->event.push_back(target_event);
+            // Reset this AoS event
+            target_AoS[target.name].utc = 0.;
+            target_AoS[target.name].elto = 0.;
+            target_AoS[target.name].azto = target.azto;
+            target_AoS[target.name].range = target.range;
+            target_AoS[target.name].type = EVENT_TYPE_TARGLOS;
+        }
+        // In pass
+        else
+        {
+            // Check Min
+            if (target.elto < target_AoS[target.name].elto)
+            {
+                if(target_AoS[target.name].type != EVENT_TYPE_TARGDES && target_AoS[target.name].type != EVENT_TYPE_TARGMAX)
+                {
+                    // Add event to event list
+                    eventstruc target_event;
+                    target_event.name = "TMAX_" + target.name;
+                    target_event.type = EVENT_TYPE_TARGMAX;
+                    target_event.utc = currentutc;
+                    target_event.dtime = currentutc - target_AoS[target.name].utc;
+                    target_event.value = target_AoS[target.name].elto;
+                    target_event.az = target_AoS[target.name].azto;
+                    target_event.el = target_AoS[target.name].elto;
+                    target_event.flag = EVENT_FLAG_TARG;
+                    currentinfo->event.push_back(target_event);
+                    target_AoS[target.name].elto = target.elto;
+                    target_AoS[target.name].azto = target.azto;
+                    target_AoS[target.name].range = target.range;
+                    target_AoS[target.name].type = EVENT_TYPE_TARGMAX;
+                }
+                else
+                {
+                    target_AoS[target.name].elto = target.elto;
+                    target_AoS[target.name].azto = target.azto;
+                    target_AoS[target.name].range = target.range;
+                    target_AoS[target.name].type = EVENT_TYPE_TARGDES;
+                }
+            }
+            else
+            {
+                target_AoS[target.name].elto = target.elto;
+                target_AoS[target.name].azto = target.azto;
+                target_AoS[target.name].range = target.range;
+                target_AoS[target.name].type = EVENT_TYPE_TARGASC;
+            }
+        }
+    }
+    else if (target.elto > 0.)
+    {
+        eventstruc target_event;
+        target_event.name = "TAOS_" + target.name;
+        target_event.type = EVENT_TYPE_TARG;
+        target_event.utc = target_AoS[target.name].utc;
+        target_event.dtime = 0.;
+        target_event.value = target_AoS[target.name].elto;
+        target_event.az = target_AoS[target.name].azto;
+        target_event.el = target_AoS[target.name].elto;
+        target_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_TARG;
+        currentinfo->event.push_back(target_event);
+        target_AoS[target.name].utc = currentutc;
+        target_AoS[target.name].elto = target.elto;
+        target_AoS[target.name].azto = target.azto;
+        target_AoS[target.name].range = target.range;
+        target_AoS[target.name].type = EVENT_TYPE_TARGAOS;
+    }
+    if (target_AoS[target.name].utc != 0.)
+    {
         in_targ = true;
-    }
-    // LoS
-    else if ((force_end || elto_deg <= 0.) && tAOS.first != 0.)
-    {
-        // Add event to event list
-        eventstruc target_aos_event;
-        target_aos_event.name = "TLOS_" + target.name;
-        target_aos_event.type = EVENT_TYPE_TARG;
-        target_aos_event.utc = tAOS.first;
-        target_aos_event.dtime = currentutc - tAOS.first;
-        target_aos_event.value = tAOS.second;
-        target_aos_event.az = target.azto;
-        target_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
-        currentinfo->event.push_back(target_aos_event);
-        // Reset this AoS event
-        tAOS.first = 0.;
-        tAOS.second = 0.f;
-        in_targ = false;
-    }
-    // MAXDEG event
-    // AoS
-    if (elto_deg > 0. && elto_deg > tMAX.second)
-    {
-        // Keep track of when the max elevation was achieved
-        tMAX.first = currentutc;
-        tMAX.second = elto_deg;
-        in_targ = true;
-    }
-    // MAX
-    else if ((force_end || elto_deg <= 0.) && tMAX.first != 0.)
-    {
-        // Add event to event list
-        eventstruc target_max_event;
-        target_max_event.name = "TMAX_" + target.name;
-        target_max_event.type = EVENT_TYPE_TARG;
-        target_max_event.utc = tMAX.first;
-        target_max_event.dtime = 0;
-        target_max_event.value = tMAX.second;
-        target_max_event.az = target.azto;
-        currentinfo->event.push_back(target_max_event);
-        // Reset this event
-        tMAX.first = 0.;
-        tMAX.second = 0.f;
-        in_targ = false;
-    }
-    if (in_targ)
-    {
         return 1;
     }
     else
