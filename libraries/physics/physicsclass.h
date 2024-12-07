@@ -476,7 +476,7 @@ namespace Cosmos
             //! Tracks Acquisition of Signal events for each groundstation
             map<string, target_aos_set> gs_AoS;
             //! Tracks Acquisition of Sight events for each target. Targets track only DEG0
-            map<string, aos_pair> target_AoS;
+            map<string, targetstruc> target_AoS;
 
             int32_t check_all_event(bool force_end);
             int32_t check_lat_event(bool force_end, float lat=0.0);
@@ -494,7 +494,7 @@ namespace Cosmos
             //! Checks for target AoS/LoS events
             //! \param target Reference to target to check
             //! \param final If true, forces end of event if active
-            int32_t check_target_aos_event(const targetstruc& target, bool force_end);
+            int32_t check_target_event(const targetstruc& target, bool force_end);
         };
 
         class MetricGenerator : public Propagator
