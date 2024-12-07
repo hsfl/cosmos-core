@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 	//cout<<"after = "<<mj2<<endl;
 
 	// you can search for values by key (regardless of their depth)
-	double my_utc = find_json_value<double>(my_tle, "utc");
+	//double my_utc = find_json_value<double>(my_tle, "utc");
 	//cout<<"find_json_value<double>(my_tle, \"utc\") = "<<my_utc<<endl;
 
 	// you can search for Json objects by key (regarless of their depth)
