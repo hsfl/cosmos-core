@@ -183,6 +183,8 @@ enum NODE_FLAG : uint16_t
 #define EVENT_FLAG_TARG			0x400000
 //! Event in Umbra
 #define EVENT_FLAG_UMBRA			0x800000
+//! Event in Umbra
+#define EVENT_FLAG_ASCENDING			0x1000000
 //! @}
 
 //! \ingroup defs
@@ -220,8 +222,12 @@ enum NODE_FLAG : uint16_t
 
 //
 #define EVENT_TYPE_TARG 0x1800
-#define EVENT_TYPE_TARGMIN 0x1801
-#define EVENT_TYPE_TARG_OBSRV_WINDOW 0x1810
+#define EVENT_TYPE_TARGMAX 0x1801
+#define EVENT_TYPE_TARGASC 0x1802
+#define EVENT_TYPE_TARGDES 0x1804
+#define EVENT_TYPE_TARGAOS 0x1808
+#define EVENT_TYPE_TARGLOS 0x1810
+#define EVENT_TYPE_TARG_OBSRV_WINDOW 0x1811
 
 //Command Events
 #define EVENT_TYPE_COMMAND 0x2000
