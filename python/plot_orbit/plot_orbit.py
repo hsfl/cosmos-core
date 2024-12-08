@@ -19,6 +19,7 @@ from astropy.time import Time
 #satellite_files = ['eci_orbit_sat1.dat', 'eci_orbit_sat2.dat', 'eci_orbit_sat3.dat', 'eci_orbit_sat4.dat', 'eci_orbit_sat5.dat']
 satellite_files = ['sttr/sat_1.eci', 'sttr/sat_2.eci', 'sttr/sat_3.eci', 'sttr/sat_4.eci', 'sttr/sat_0.eci']
 target_files = ['eci_target1.dat', 'eci_target2.dat', 'eci_target3.dat', 'eci_target4.dat', 'eci_target5.dat', 'eci_target6.dat']
+
 #satellite_files = ['../../build/newdat/eci_orbit_sat1.dat', '../../build/newdat/eci_orbit_sat2.dat', '../../build/newdat/eci_orbit_sat3.dat', '../../build/newdat/eci_orbit_sat4.dat', '../../build/newdat/eci_orbit_sat5.dat']
 #satellite_files = [
 #	'../../build/newdat/mothership.dat',
@@ -200,8 +201,9 @@ def animate(i):
     # Only animate if the flag is set
     if should_animate:
         should_animate = False  # Reset the flag
-        i = int(frame_slider.val)  # Set i to the current slider value
+        i = int(frame_slider.val)+1  # Set i to the current slider value
         i = min(i, len(data_sets[0]) - 1)
+
     for j, (line, marker, data) in enumerate(zip(lines, satellite_markers, data_sets)):
         x, y, z = data[:, 0], data[:, 1], data[:, 2]
         start_idx = max(0, i - tail_length // step)  # Determine the start of the tail
@@ -239,7 +241,7 @@ def animate(i):
     frame_slider.set_val(i)
     return lines + satellite_markers + connections
 
-ani = animation.FuncAnimation(fig, animate, init_func=init, frames=len(data_sets[0]), interval=10, blit=True, repeat=True)
+ani = animation.FuncAnimation(fig, animate, init_func=init, frames=len(data_sets[0]), interval=10, repeat=True)
 
 plt.show()
 
