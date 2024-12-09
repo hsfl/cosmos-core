@@ -56,6 +56,7 @@ namespace Cosmos
             int32_t GetError();
             int32_t Propagate(double nextutc=0.);
             int32_t Propagate(vector<vector<cosmosstruc> > &results, uint32_t runcount);
+            int32_t Target();
             //! Ends the simulation and runs any code that the propagators need to run at the end
             int32_t End();
             int32_t Reset();
