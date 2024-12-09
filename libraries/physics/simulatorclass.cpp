@@ -1138,6 +1138,37 @@ int32_t Simulator::Propagate(vector<vector<cosmosstruc> > &results, uint32_t run
     return results.size();
 }
 
+int32_t Simulator::Target()
+{
+    int32_t iretn = 0;
+    for (uint16_t i=0; i<cnodes.size(); ++i)
+    {
+        cnodes[i]->targetidx = -1;
+        double targetrange = 1e9;
+        for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
+        {
+            bool taken = false;
+            for (uint16_t ii=i-1; ii<cnodes.size(); --ii)
+            {
+                if (cnodes[ii]->targetidx == j)
+                {
+                    taken = true;
+                }
+            }
+            if (!taken && cnodes[i]->currentinfo.target[j].range < targetrange)
+            {
+                if (targetrange == 1e9)
+                {
+                    ++iretn;
+                }
+                targetrange = cnodes[i]->currentinfo.target[j].range;
+                cnodes[i]->targetidx = j;
+            }
+        }
+    }
+    return iretn;
+}
+
 int32_t Simulator::End()
 {
     int32_t iretn = 0;
