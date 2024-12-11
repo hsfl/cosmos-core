@@ -2312,10 +2312,15 @@ int32_t IterativeAttitudePropagator::Propagate(double nextutc)
 
 int32_t LvlhAttitudePropagator::Init()
 {
+    currentinfo->node.loc_req.att.lvlh.utc = currentutc;
+    currentinfo->node.loc_req.att.lvlh.s = q_eye();
+    currentinfo->node.loc_req.att.lvlh.v = rv_zero();
+    currentinfo->node.loc_req.att.lvlh.a = rv_zero();
+    initialloc.att = currentinfo->node.loc_req.att;
     currentinfo->node.loc.att.lvlh.utc = currentutc;
-    currentinfo->node.loc.att.lvlh.s = q_eye();
-    currentinfo->node.loc.att.lvlh.v = rv_zero();
-    currentinfo->node.loc.att.lvlh.a = rv_zero();
+    currentinfo->node.loc.att.lvlh.s = currentinfo->node.loc_req.att.lvlh.s;
+    currentinfo->node.loc.att.lvlh.v = currentinfo->node.loc_req.att.lvlh.v;
+    currentinfo->node.loc.att.lvlh.a = currentinfo->node.loc_req.att.lvlh.a;
     ++currentinfo->node.loc.att.lvlh.pass;
     att_lvlh2icrf(currentinfo->node.loc);
     AttAccel(currentinfo->node.loc, currentinfo->node.phys);
@@ -2326,7 +2331,11 @@ int32_t LvlhAttitudePropagator::Init()
 
 int32_t LvlhAttitudePropagator::Reset(double nextutc)
 {
-    currentinfo->node.loc.att = initialloc.att;
+    currentinfo->node.loc_req.att = initialloc.att;
+    currentinfo->node.loc.att.lvlh.utc = currentinfo->node.loc_req.att.lvlh.utc;
+    currentinfo->node.loc.att.lvlh.s = currentinfo->node.loc_req.att.lvlh.s;
+    currentinfo->node.loc.att.lvlh.v = currentinfo->node.loc_req.att.lvlh.v;
+    currentinfo->node.loc.att.lvlh.a = currentinfo->node.loc_req.att.lvlh.a;
     currentutc = currentinfo->node.loc.att.utc;
     Propagate(nextutc);
 
@@ -2342,9 +2351,12 @@ int32_t LvlhAttitudePropagator::Propagate(double nextutc)
 
     currentutc = nextutc;
     currentinfo->node.loc.att.lvlh.utc = nextutc;
-    currentinfo->node.loc.att.lvlh.s = q_eye();
-    currentinfo->node.loc.att.lvlh.v = rv_zero();
-    currentinfo->node.loc.att.lvlh.a = rv_zero();
+//    currentinfo->node.loc.att.lvlh.s = q_eye();
+//    currentinfo->node.loc.att.lvlh.v = rv_zero();
+//    currentinfo->node.loc.att.lvlh.a = rv_zero();
+    currentinfo->node.loc.att.lvlh.s = currentinfo->node.loc_req.att.lvlh.s;
+    currentinfo->node.loc.att.lvlh.v = currentinfo->node.loc_req.att.lvlh.v;
+    currentinfo->node.loc.att.lvlh.a = currentinfo->node.loc_req.att.lvlh.a;
     ++currentinfo->node.loc.att.lvlh.pass;
     att_lvlh(currentinfo->node.loc);
     AttAccel(currentinfo->node.loc, currentinfo->node.phys);
@@ -2793,7 +2805,7 @@ int32_t MetricGenerator::Propagate(double nextutc)
     //    bool printed = false;
     for (uint16_t it=0; it<currentinfo->target.size(); ++it)
     {
-        if (currentinfo->target[it].elto > 0.)
+        if (currentinfo->target[it].elto > 0.175)
         {
             for (uint16_t id=0; id<currentinfo->devspec.cam.size(); ++id)
             {
@@ -2807,9 +2819,13 @@ int32_t MetricGenerator::Propagate(double nextutc)
                 double t2a = t1a * t1a;
                 double t4a = t2a * t2a;
                 double r = Rearth(currentinfo->node.loc.pos.geod.s.lat);
-                double lsep = (sqrt(t4a * (-4. * h2 - 8. * r * h) + t2a * 4. * r * r) + 2. * t2a * (h + r)) / (2. * (t2a + 1.));
-                //                lsep = (sqrt(t4a * (-4. * h2 - 8. * r * h) + t2a * 4. * r * r) + 2. * t2a * (h + r)) / (2. * (t2a + 1.));
-                cpointing.s = cpointing.s * lsep / cos(angle);
+                double s1a = sin(angle);
+                double s2a = s1a * s1a;
+//                double r1p = (r + h) * s1a + sqrt((r * r + 2 * r * h + h2) * s2a - (2 * r * h + h2));
+                double r1m = (r + h) * s1a - sqrt((r * r + 2 * r * h + h2) * s2a - (2 * r * h + h2));
+//                double lsep = (sqrt(t4a * (-4. * h2 - 8. * r * h) + t2a * 4. * r * r) + 2. * t2a * (h + r)) / (2. * (t2a + 1.));
+//                cpointing.s = cpointing.s * lsep / cos(angle);
+                cpointing.s = cpointing.s * r1m;
                 cpointing.s += currentinfo->node.loc.pos.geoc.s;
                 geoidpos gpointing;
                 geoc2geod(cpointing, gpointing);

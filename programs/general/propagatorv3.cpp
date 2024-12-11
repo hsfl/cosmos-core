@@ -100,8 +100,24 @@ int main(int argc, char *argv[])
 
     while (agent->running() && elapsed < runcount)
     {
+        sim->Target();
         for (auto &state : sim->cnodes)
         {
+            if (state->targetidx < state->currentinfo.target.size())
+            {
+                state->currentinfo.node.loc_req.att.geoc.s = q_drotate_between_rv(-state->currentinfo.node.loc.pos.geoc.s, rv_sub(state->currentinfo.target[state->targetidx].loc.pos.geoc.s, state->currentinfo.node.loc.pos.geoc.s));
+                state->currentinfo.node.loc_req.att.geoc.v = rv_zero();
+                state->currentinfo.node.loc_req.att.geoc.a = rv_zero();
+                state->currentinfo.node.loc_req.att.geoc.pass++;
+                att_geoc(state->currentinfo.node.loc);
+            }
+            else
+            {
+                state->currentinfo.node.loc_req.att.lvlh.s = q_eye();
+                state->currentinfo.node.loc_req.att.lvlh.v = rv_zero();
+                state->currentinfo.node.loc_req.att.lvlh.a = rv_zero();
+                att_lvlh(state->currentinfo.node.loc);
+            }
             if (state->currentinfo.event.size())
             {
                 for (eventstruc event : state->currentinfo.event)
