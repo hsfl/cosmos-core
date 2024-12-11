@@ -4891,7 +4891,7 @@ union as a ::devicestruc.
             //! Location structure
             Convert::locstruc loc;
 			//! Estimated location structure
-            Convert::locstruc loc_est;
+            Convert::locstruc loc_req;
 			//! Standard Deviation for location estimates
             Convert::locstruc loc_std;
             physicsstruc phys;
@@ -4920,7 +4920,7 @@ union as a ::devicestruc.
                     { "utcstart" , utcstart },
                     { "deci" , static_cast<int>(deci) },
                     { "loc" , loc },
-					{ "loc_est", loc_est },
+                    { "loc_req", loc_req },
 					{ "loc_std", loc_std },
                     { "phys" , phys }
                 };
@@ -4958,7 +4958,7 @@ union as a ::devicestruc.
                     if(!parsed["utcstart"].is_null())	{ utcstart = parsed["utcstart"].number_value(); }
                     if(!parsed["deci"].is_null())	{ deci = parsed["deci"].long_value(); }
                     if(!parsed["loc"].is_null())	{ loc.from_json(parsed["loc"].dump()); }
-					if(!parsed["loc_est"].is_null()){ loc_est.from_json(parsed["loc_est"].dump()); }
+                    if(!parsed["loc_req"].is_null()){ loc_req.from_json(parsed["loc_req"].dump()); }
 					if(!parsed["loc_std"].is_null()){ loc_std.from_json(parsed["loc_std"].dump()); }
                     if(!parsed["phys"].is_null())	{ phys.from_json(parsed["phys"].dump()); }
                 } else {
