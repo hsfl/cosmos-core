@@ -41,6 +41,53 @@ DeviceDisk deviceDisk;
 
 vector<vector<cosmosstruc>> results;
 
+// output sat positions for visualization
+void create_sat_position_files()	{
+	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
+		ofstream out;
+		// replace with your path
+		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".eci");
+		if(out.is_open())   {
+			// start at time = 1 so file lines = runcount
+			for (size_t t=1; t<results.size(); ++t) {
+				out << std::fixed << std::setprecision(6);
+				out
+					<<results[t][sat_num].node.loc.pos.eci.s.col[0]<<","
+					<<results[t][sat_num].node.loc.pos.eci.s.col[1]<<","
+					<<results[t][sat_num].node.loc.pos.eci.s.col[2]<<","
+					<<results[t][sat_num].node.loc.pos.eci.utc
+					<<endl;
+			}
+			out.close();
+		}
+	}
+	return;
+}
+
+// output target positions for visualization
+void create_target_position_files()	{
+	size_t s = 0;
+	for (size_t targ=0; targ<results[0][s].target.size(); ++targ)   {
+		ofstream out;
+		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/target_"+std::to_string(targ)+".eci");
+		if(out.is_open())   {
+			// start at time = 1 so file lines = runcount (also, NOTE: target eci / utc not set for time = 0)
+			for (size_t t=1; t<results.size(); ++t) {
+				// output position of targets
+				out << std::fixed << std::setprecision(6);
+				out
+					<<results[t][s].target[targ].loc.pos.eci.s.col[0]<<","
+					<<results[t][s].target[targ].loc.pos.eci.s.col[1]<<","
+					<<results[t][s].target[targ].loc.pos.eci.s.col[2]<<","
+					<<results[t][s].target[targ].loc.pos.eci.utc
+					<<endl;
+			}
+			out.close();
+		}
+	}
+	return;
+}
+
 // For cosmos web
 socket_channel cosmos_web_telegraf_channel, cosmos_web_api_channel;
 const string TELEGRAF_ADDR = "";
@@ -106,9 +153,9 @@ int main(int argc, char *argv[])
 	// debug print targets
 	for(size_t i = 0; i < sim->cnodes.size(); ++i)	{
 		cout<<"sim->cnodes["<<i<<"]->currentinfo.target.size() = "<<sim->cnodes[i]->currentinfo.target.size()<<endl;
-		for(size_t j = 0; j < sim->cnodes[i]->currentinfo.target.size(); ++j)	{
-			cout<<"sim->cnodes["<<i<<"]->currentinfo.target["<<j<<"].loc.pos.geod.s = ("<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lat)<<", "<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lon)<<", "<<sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.h<<")"<<endl;
-	}
+		//for(size_t j = 0; j < sim->cnodes[i]->currentinfo.target.size(); ++j)	{
+			//cout<<"sim->cnodes["<<i<<"]->currentinfo.target["<<j<<"].loc.pos.geod.s = ("<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lat)<<", "<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lon)<<", "<<sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.h<<")"<<endl;
+		//}
 	}
 
     if (realtime)
@@ -228,28 +275,10 @@ int main(int argc, char *argv[])
         ++elapsed;
     }
 
-	// output sat postions for visualization
-	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
-		ofstream out;
-		// replace with your path
-		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".eci");
-		if(out.is_open())	{
-			for (size_t t=0; t<results.size(); ++t)	{
-				out << std::fixed << std::setprecision(6);
-				out
-					<<results[t][sat_num].node.loc.pos.eci.s.col[0]<<","
-					<<results[t][sat_num].node.loc.pos.eci.s.col[1]<<","
-					<<results[t][sat_num].node.loc.pos.eci.s.col[2]<<","
-					<<results[t][sat_num].node.loc.pos.eci.utc
-					<<endl;
-			}
-			out.close();
-		}
-	}
 
-	// todo: output target postions for visualization
-
-
+	// create position files for visualization
+	create_sat_position_files();
+	create_target_position_files();
 }
 
 int32_t parse_control(string args)
