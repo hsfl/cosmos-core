@@ -14,7 +14,7 @@ namespace Cosmos {
             {
                 data.resize(4);
             }
-            ByteOrder var = ByteOrder::BIGENDIAN;
+            //ByteOrder var = ByteOrder::BIGENDIAN;
             uint32to(decisec(), &data[0], ByteOrder::LITTLEENDIAN);
             RawPacketize();
         }
