@@ -132,7 +132,8 @@ int main(int argc, char *argv[])
         exit(iretn);
     }
 	// todo: check return value
-    sim->Init(simdt, realmname);
+    iretn=sim->Init(simdt, realmname);
+	if(iretn<0)	{	cout<<"unable to initialize simulation"<<endl; exit(-1); }
 
 	// parse orbit file and do not proceed if no orbits are parsed
 	iretn=sim->ParseOrbitFile(orbitfile);
