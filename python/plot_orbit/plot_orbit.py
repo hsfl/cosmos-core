@@ -17,13 +17,12 @@ from astropy.time import Time
 
 # File names for the satellite and target data
 #satellite_files = ['eci_orbit_sat1.dat', 'eci_orbit_sat2.dat', 'eci_orbit_sat3.dat', 'eci_orbit_sat4.dat', 'eci_orbit_sat5.dat']
-#satellite_files = ['sttr/sat_1.eci', 'sttr/sat_2.eci', 'sttr/sat_3.eci', 'sttr/sat_4.eci', 'sttr/sat_0.eci']
-satellite_files = ['sttr/sat_0.eci', 'sttr/sat_1.eci']
+satellite_files = ['sttr/sat_1.eci', 'sttr/sat_2.eci', 'sttr/sat_3.eci', 'sttr/sat_4.eci', 'sttr/sat_0.eci']
 #target_files = ['eci_target1.dat', 'eci_target2.dat', 'eci_target3.dat', 'eci_target4.dat', 'eci_target5.dat', 'eci_target6.dat']
 target_files = ['sttr/target_0.eci','sttr/target_1.eci','sttr/target_2.eci','sttr/target_3.eci','sttr/target_4.eci','sttr/target_5.eci','sttr/target_6.eci','sttr/target_7.eci','sttr/target_8.eci','sttr/target_9.eci','sttr/target_10.eci','sttr/target_11.eci','sttr/target_12.eci','sttr/target_13.eci','sttr/target_14.eci','sttr/target_15.eci','sttr/target_16.eci','sttr/target_17.eci','sttr/target_18.eci','sttr/target_19.eci','sttr/target_20.eci','sttr/target_21.eci','sttr/target_22.eci','sttr/target_23.eci','sttr/target_24.eci','sttr/target_25.eci','sttr/target_26.eci','sttr/target_27.eci','sttr/target_28.eci','sttr/target_29.eci','sttr/target_30.eci','sttr/target_31.eci','sttr/target_32.eci','sttr/target_33.eci', 'sttr/target_33.eci']
 
-# Attitude file for the satellite
-att_files = [ 'sttr/sat_0.att', 'sttr/sat_1.att' ]
+# Attitude files for the satellites
+att_files = ['sttr/sat_0.att', 'sttr/sat_1.att', 'sttr/sat_2.att', 'sttr/sat_3.att', 'sttr/sat_4.att']
 
 # Load data from all files
 data_sets = [np.loadtxt(file, delimiter=',') for file in satellite_files + target_files]
