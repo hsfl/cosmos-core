@@ -147,7 +147,6 @@ colors = plt.colormaps['tab10'].colors[:num_sats]
 lines = []
 satellite_markers = []
 connections = [ax.plot([], [], [], lw=1, color='black', linestyle='--')[0] for _ in range(num_actual_sats * num_targets)]
-#att_line, = ax.plot([], [], [], 'r-', lw=2)
 att_lines = []
 for _ in att_datasets:
     att_line, = ax.plot([], [], [], 'r-', lw=2)
@@ -227,10 +226,16 @@ def animate(i):
     for k, att_data in enumerate(att_datasets):
         sat_x, sat_y, sat_z = data_sets[k][i, 0], data_sets[k][i, 1], data_sets[k][i, 2]
         att_x, att_y, att_z = att_data[i, 0], att_data[i, 1], att_data[i, 2]
+
+        # the proper way to get attitude vectors from attitude files
         scale = 500000.0
-        att_lines[k].set_data([sat_x, sat_x + att_x*scale],
-                          [sat_y, sat_y + att_y*scale])
+        att_lines[k].set_data([sat_x, sat_x + att_x*scale], [sat_y, sat_y + att_y*scale])
         att_lines[k].set_3d_properties([sat_z, sat_z + att_z*scale])
+
+        # this quick hack/test just draws to the center of the earth based on satellite position
+        #scale = 1.0
+        #att_lines[k].set_data([sat_x, 0], [sat_y, 0])
+        #att_lines[k].set_3d_properties([sat_z, 0])
 
     # Update the slider position
     frame_slider.set_val(i)
