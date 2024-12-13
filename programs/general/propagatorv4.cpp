@@ -19,7 +19,6 @@ int32_t request_set_torque(string &request, string &response, Agent *agent);
 int32_t request_dump_node(string &request, string &response, Agent *agent);
 Physics::Simulator *sim;
 Agent *agent;
-//uint16_t thrustctl = 0;
 double simdt = 1.;
 uint16_t realtime=1;
 uint16_t printevent=0;
@@ -28,12 +27,14 @@ double initialutc = 60107.01;
 double endutc = 0.;
 double deltautc = 0.;
 string realmname = "propagate";
+//string orbitfile = "/home/user/cosmos/source/projects/cosmos_sttr2020/cosmos/realms/sttr/orbit.dat";
+//string satfile = "/home/user/cosmos/source/projects/cosmos_sttr2020/cosmos/realms/sttr/sats.dat";
+//string targetfile = "/home/user/cosmos/source/projects/cosmos_sttr2020/cosmos/realms/sttr/targets.dat";
+//uint32_t runcount = 5400;
 string orbitfile = "orbit.dat";
 string satfile = "sats.dat";
 string targetfile = "targets.dat";
-string tlefile = "tle.dat";
 uint32_t runcount = 1500;
-vector <cartpos> lvlhoffset;
 socket_bus data_channel_out;
 DeviceCpu deviceCpu;
 DeviceDisk deviceDisk;
@@ -55,6 +56,8 @@ int main(int argc, char *argv[])
 {
     int32_t iretn;
     uint32_t elapsed = 0;
+
+	std::cout << std::fixed << std::setprecision(7);
 
     if (argc > 1)
     {
@@ -81,11 +84,33 @@ int main(int argc, char *argv[])
         agent->shutdown();
         exit(iretn);
     }
+	// todo: check return value
     sim->Init(simdt, realmname);
-    sim->ParseOrbitFile();
-    sim->ParseSatFile();
-    lvlhoffset.resize(sim->cnodes.size());
-    sim->ParseTargetFile();
+
+	// parse orbit file and do not proceed if no orbits are parsed
+	iretn=sim->ParseOrbitFile(orbitfile);
+	if(iretn<0)	{	cout<<"unable to parse orbitfile = <"<<orbitfile<<">"<<endl; exit(-1); }
+	cout<<"currentutc = "<<sim->currentutc<<endl; // debug
+	cout<<"initialutc = "<<sim->initialutc<<endl; // debug
+
+	// parse satellite file and do not proceed if no satellites are parsed
+	iretn=sim->ParseSatFile(satfile);
+	if(iretn<=0)	{	cout<<"unable to parse satfile = <"<<satfile<<">"<<endl; exit(-1); }
+	cout<<"sim->cnodes.size() = "<<sim->cnodes.size()<<endl; // debug
+
+	// parse target file and do not proceed if no targets are parsed
+	iretn=sim->ParseTargetFile(targetfile);
+	if(iretn<=0)	{	cout<<"unable to parse targetfile = <"<<targetfile<<">"<<endl; exit(-1); }
+	cout<<"sim->targets.size() = "<<sim->targets.size()<<endl; // debug
+
+	// debug print targets
+	for(size_t i = 0; i < sim->cnodes.size(); ++i)	{
+		cout<<"sim->cnodes["<<i<<"]->currentinfo.target.size() = "<<sim->cnodes[i]->currentinfo.target.size()<<endl;
+		for(size_t j = 0; j < sim->cnodes[i]->currentinfo.target.size(); ++j)	{
+			cout<<"sim->cnodes["<<i<<"]->currentinfo.target["<<j<<"].loc.pos.geod.s = ("<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lat)<<", "<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lon)<<", "<<sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.h<<")"<<endl;
+	}
+	}
+
     if (realtime)
     {
         agent->cinfo->agent0.aprd = simdt;
@@ -93,6 +118,13 @@ int main(int argc, char *argv[])
     }
 
     sim->Propagate(results, runcount);
+
+	// debug results
+	cout<<"runcount == "<<runcount<<endl;
+	cout<<"results.size() == "<<results.size()<<endl;
+	cout<<"results[0].size() == "<<results[0].size()<<endl;
+	cout<<"results["<<runcount-1<<"].size() == "<<results[runcount-1].size()<<endl;
+
     while (elapsed < runcount)
     {
         for (uint16_t i=0; i<results[elapsed].size(); ++i)
@@ -195,6 +227,29 @@ int main(int argc, char *argv[])
 //        }
         ++elapsed;
     }
+
+	// output sat postions for visualization
+	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
+		ofstream out;
+		// replace with your path
+		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".eci");
+		if(out.is_open())	{
+			for (size_t t=0; t<results.size(); ++t)	{
+				out << std::fixed << std::setprecision(6);
+				out
+					<<results[t][sat_num].node.loc.pos.eci.s.col[0]<<","
+					<<results[t][sat_num].node.loc.pos.eci.s.col[1]<<","
+					<<results[t][sat_num].node.loc.pos.eci.s.col[2]<<","
+					<<results[t][sat_num].node.loc.pos.eci.utc
+					<<endl;
+			}
+			out.close();
+		}
+	}
+
+	// todo: output target postions for visualization
+
+
 }
 
 int32_t parse_control(string args)
