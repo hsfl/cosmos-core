@@ -30,7 +30,7 @@ string realmname = "propagate";
 //string orbitfile = "/home/user/cosmos/source/projects/cosmos_sttr2020/cosmos/realms/sttr/orbit.dat";
 //string satfile = "/home/user/cosmos/source/projects/cosmos_sttr2020/cosmos/realms/sttr/sats.dat";
 //string targetfile = "/home/user/cosmos/source/projects/cosmos_sttr2020/cosmos/realms/sttr/targets.dat";
-//uint32_t runcount = 5400;
+//uint32_t runcount = 1000;
 string orbitfile = "orbit.dat";
 string satfile = "sats.dat";
 string targetfile = "targets.dat";
@@ -42,7 +42,7 @@ DeviceDisk deviceDisk;
 vector<vector<cosmosstruc>> results;
 
 // output sat positions for visualization
-void create_sat_position_files()	{
+void create_sat_eci_position_files()	{
 	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
 		ofstream out;
 		// replace with your path
@@ -64,11 +64,36 @@ void create_sat_position_files()	{
 	return;
 }
 
+// output sat positions for visualization
+void create_sat_geoc_position_files()	{
+	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
+		ofstream out;
+		// replace with your path
+		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".geoc");
+		if(out.is_open())   {
+			// start at time = 1 so file lines = runcount
+			for (size_t t=1; t<results.size(); ++t) {
+				out << std::fixed << std::setprecision(6);
+				out
+					<<results[t][sat_num].node.loc.pos.geoc.s.col[0]<<","
+					<<results[t][sat_num].node.loc.pos.geoc.s.col[1]<<","
+					<<results[t][sat_num].node.loc.pos.geoc.s.col[2]<<","
+					<<results[t][sat_num].node.loc.pos.geoc.utc
+					<<endl;
+			}
+			out.close();
+		}
+	}
+	return;
+}
+
 // output target positions for visualization
-void create_target_position_files()	{
+void create_target_eci_position_files()	{
+	// just using target for mothership for now
 	size_t s = 0;
 	for (size_t targ=0; targ<results[0][s].target.size(); ++targ)   {
 		ofstream out;
+		// replace with your path
 		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/target_"+std::to_string(targ)+".eci");
 		if(out.is_open())   {
 			// start at time = 1 so file lines = runcount (also, NOTE: target eci / utc not set for time = 0)
@@ -80,6 +105,56 @@ void create_target_position_files()	{
 					<<results[t][s].target[targ].loc.pos.eci.s.col[1]<<","
 					<<results[t][s].target[targ].loc.pos.eci.s.col[2]<<","
 					<<results[t][s].target[targ].loc.pos.eci.utc
+					<<endl;
+			}
+			out.close();
+		}
+	}
+	return;
+}
+
+// output target positions for visualization
+void create_target_geoc_position_files()	{
+	// just using target for mothership for now
+	size_t s = 0;
+	for (size_t targ=0; targ<results[0][s].target.size(); ++targ)   {
+		ofstream out;
+		// replace with your path
+		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/target_"+std::to_string(targ)+".geoc");
+		if(out.is_open())   {
+			// start at time = 1 so file lines = runcount (also, NOTE: target geoc / utc not set for time = 0)
+			for (size_t t=1; t<results.size(); ++t) {
+				// output position of targets
+				out << std::fixed << std::setprecision(6);
+				out
+					<<results[t][s].target[targ].loc.pos.geoc.s.col[0]<<","
+					<<results[t][s].target[targ].loc.pos.geoc.s.col[1]<<","
+					<<results[t][s].target[targ].loc.pos.geoc.s.col[2]<<","
+					<<results[t][s].target[targ].loc.pos.geoc.utc
+					<<endl;
+			}
+			out.close();
+		}
+	}
+	return;
+}
+
+// output attitude vectors for visualization
+void create_attitude_vector_files()	{
+	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
+		ofstream out;
+		// replace with your path
+		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".att");
+		if(out.is_open())   {
+			// start at time = 1 so file lines = runcount
+			for (size_t t=1; t<results.size(); ++t) {
+				out << std::fixed << std::setprecision(6);
+				out
+					<<"1, "
+					<<"0, "
+					<<"0, "
+					//<<results[t][sat_num].node.loc.pos.eci.utc
+					<<"0"
 					<<endl;
 			}
 			out.close();
@@ -132,7 +207,7 @@ int main(int argc, char *argv[])
         exit(iretn);
     }
 	// todo: check return value
-    iretn=sim->Init(simdt, realmname);
+    iretn=sim->Init(simdt, realmname, initialutc);
 	if(iretn<0)	{	cout<<"unable to initialize simulation"<<endl; exit(-1); }
 
 	// parse orbit file and do not proceed if no orbits are parsed
@@ -278,8 +353,13 @@ int main(int argc, char *argv[])
 
 
 	// create position files for visualization
-	create_sat_position_files();
-	create_target_position_files();
+	create_sat_eci_position_files();
+	create_sat_geoc_position_files();
+	create_target_eci_position_files();
+	create_target_geoc_position_files();
+
+	// todo:  create attitude vector files (eci) for visualization
+	create_attitude_vector_files();
 }
 
 int32_t parse_control(string args)

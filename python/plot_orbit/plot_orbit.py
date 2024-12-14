@@ -28,7 +28,7 @@ att_files = ['sttr/sat_0.att', 'sttr/sat_1.att', 'sttr/sat_2.att', 'sttr/sat_3.a
 data_sets = [np.loadtxt(file, delimiter=',') for file in satellite_files + target_files]
 
 # Downsample the data for the animation
-step = 24 # Adjust the step size to downsample data
+step = 10 # Adjust the step size to downsample data
 data_sets = [data[::step] for data in data_sets]
 
 # Load attitude data
