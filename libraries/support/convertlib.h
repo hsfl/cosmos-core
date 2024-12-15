@@ -257,6 +257,7 @@ namespace Cosmos {
         int32_t body2topo(Vector com, Vector body, Vector &topo);
         int32_t topo2azel(rvector tpos, float &az, float &el);
         int32_t topo2azel(Vector tpos, float &az, float &el);
+        int32_t sat2geoc(rvector sat, locstruc &loc, rvector &pos);
         int32_t geod2sep(gvector src, gvector dst, double &sep);
         double geod2sep(gvector src, gvector dst);
         int lines2eci(double mjd, vector<tlestruc> tle, cartpos &eci);
@@ -307,6 +308,7 @@ namespace Cosmos {
         double utc2theta(double mjd);
         double  tt2utc(double mjd);
         double  gps2utc(double gps);
+        double Rearth(double lat);
 
                 class Position {
 

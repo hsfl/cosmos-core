@@ -608,7 +608,7 @@ namespace Cosmos
         };
 
 
-        double Rearth(double lat);
+//        double Rearth(double lat);
         double Msis00Density(posstruc pos,float f107avg,float f107,float magidx);
         Vector GravityAccel(posstruc pos, uint16_t model, uint32_t degree);
         int32_t GravityParams(int16_t model);

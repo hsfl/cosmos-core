@@ -523,11 +523,11 @@ int32_t Simulator::ParseSatString(string args)
         }
         if (fastcalc)
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
         }
         else
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
         }
     }
     else
@@ -542,11 +542,11 @@ int32_t Simulator::ParseSatString(string args)
         }
         if (fastcalc)
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.tle, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.tle, initialloc.att.icrf);
         }
         else
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeLVLH, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.pos.eci, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.pos.eci, initialloc.att.icrf);
         }
     }
 
@@ -694,8 +694,13 @@ int32_t Simulator::ParseTargetJson(json11::Json jargs)	{
         targ.loc.pos.geod.s.h = 0.;
         if (!data["altitude"].is_null()) { targ.loc.pos.geod.s.h = data["altitude"].number_value(); }
 
-        targ.area = 1.;
+        targ.area = 10000.;
         if (!data["area"].is_null()) { targ.area = data["area"].number_value(); }
+        if (!data["radius"].is_null())
+        {
+            float radius = data["radius"].number_value();
+            targ.area = M_PI * radius * radius * 1000;
+        }
 
         AddTarget(targ);
     }
@@ -1143,6 +1148,7 @@ int32_t Simulator::Target()
     int32_t iretn = 0;
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
+        update_target(&cnodes[i]->currentinfo);
         cnodes[i]->targetidx = -1;
         double targetrange = 1e9;
         for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
