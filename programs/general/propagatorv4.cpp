@@ -19,7 +19,6 @@ int32_t request_set_torque(string &request, string &response, Agent *agent);
 int32_t request_dump_node(string &request, string &response, Agent *agent);
 Physics::Simulator *sim;
 Agent *agent;
-//uint16_t thrustctl = 0;
 double simdt = 1.;
 uint16_t realtime=1;
 uint16_t printevent=0;
@@ -28,17 +27,141 @@ double initialutc = 60107.01;
 double endutc = 0.;
 double deltautc = 0.;
 string realmname = "propagate";
+//string orbitfile = "/home/user/cosmos/source/projects/cosmos_sttr2020/cosmos/realms/sttr/orbit.dat";
+//string satfile = "/home/user/cosmos/source/projects/cosmos_sttr2020/cosmos/realms/sttr/sats.dat";
+//string targetfile = "/home/user/cosmos/source/projects/cosmos_sttr2020/cosmos/realms/sttr/targets.dat";
+//uint32_t runcount = 1000;
 string orbitfile = "orbit.dat";
 string satfile = "sats.dat";
 string targetfile = "targets.dat";
-string tlefile = "tle.dat";
 uint32_t runcount = 1500;
-vector <cartpos> lvlhoffset;
 socket_bus data_channel_out;
 DeviceCpu deviceCpu;
 DeviceDisk deviceDisk;
 
 vector<vector<cosmosstruc>> results;
+
+// output sat positions for visualization
+void create_sat_eci_position_files()	{
+	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
+		ofstream out;
+		// replace with your path
+		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".eci");
+		if(out.is_open())   {
+			// start at time = 1 so file lines = runcount
+			for (size_t t=1; t<results.size(); ++t) {
+				out << std::fixed << std::setprecision(6);
+				out
+					<<results[t][sat_num].node.loc.pos.eci.s.col[0]<<","
+					<<results[t][sat_num].node.loc.pos.eci.s.col[1]<<","
+					<<results[t][sat_num].node.loc.pos.eci.s.col[2]<<","
+					<<results[t][sat_num].node.loc.pos.eci.utc
+					<<endl;
+			}
+			out.close();
+		}
+	}
+	return;
+}
+
+// output sat positions for visualization
+void create_sat_geoc_position_files()	{
+	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
+		ofstream out;
+		// replace with your path
+		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".geoc");
+		if(out.is_open())   {
+			// start at time = 1 so file lines = runcount
+			for (size_t t=1; t<results.size(); ++t) {
+				out << std::fixed << std::setprecision(6);
+				out
+					<<results[t][sat_num].node.loc.pos.geoc.s.col[0]<<","
+					<<results[t][sat_num].node.loc.pos.geoc.s.col[1]<<","
+					<<results[t][sat_num].node.loc.pos.geoc.s.col[2]<<","
+					<<results[t][sat_num].node.loc.pos.geoc.utc
+					<<endl;
+			}
+			out.close();
+		}
+	}
+	return;
+}
+
+// output target positions for visualization
+void create_target_eci_position_files()	{
+	// just using target for mothership for now
+	size_t s = 0;
+	for (size_t targ=0; targ<results[0][s].target.size(); ++targ)   {
+		ofstream out;
+		// replace with your path
+		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/target_"+std::to_string(targ)+".eci");
+		if(out.is_open())   {
+			// start at time = 1 so file lines = runcount (also, NOTE: target eci / utc not set for time = 0)
+			for (size_t t=1; t<results.size(); ++t) {
+				// output position of targets
+				out << std::fixed << std::setprecision(6);
+				out
+					<<results[t][s].target[targ].loc.pos.eci.s.col[0]<<","
+					<<results[t][s].target[targ].loc.pos.eci.s.col[1]<<","
+					<<results[t][s].target[targ].loc.pos.eci.s.col[2]<<","
+					<<results[t][s].target[targ].loc.pos.eci.utc
+					<<endl;
+			}
+			out.close();
+		}
+	}
+	return;
+}
+
+// output target positions for visualization
+void create_target_geoc_position_files()	{
+	// just using target for mothership for now
+	size_t s = 0;
+	for (size_t targ=0; targ<results[0][s].target.size(); ++targ)   {
+		ofstream out;
+		// replace with your path
+		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/target_"+std::to_string(targ)+".geoc");
+		if(out.is_open())   {
+			// start at time = 1 so file lines = runcount (also, NOTE: target geoc / utc not set for time = 0)
+			for (size_t t=1; t<results.size(); ++t) {
+				// output position of targets
+				out << std::fixed << std::setprecision(6);
+				out
+					<<results[t][s].target[targ].loc.pos.geoc.s.col[0]<<","
+					<<results[t][s].target[targ].loc.pos.geoc.s.col[1]<<","
+					<<results[t][s].target[targ].loc.pos.geoc.s.col[2]<<","
+					<<results[t][s].target[targ].loc.pos.geoc.utc
+					<<endl;
+			}
+			out.close();
+		}
+	}
+	return;
+}
+
+// output attitude vectors for visualization
+void create_attitude_vector_files()	{
+	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
+		ofstream out;
+		// replace with your path
+		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".att");
+		if(out.is_open())   {
+			// start at time = 1 so file lines = runcount
+			for (size_t t=1; t<results.size(); ++t) {
+				out << std::fixed << std::setprecision(6);
+				out
+					<<"1, "
+					<<"0, "
+					<<"0, "
+					//<<results[t][sat_num].node.loc.pos.eci.utc
+					<<"0"
+					<<endl;
+			}
+			out.close();
+		}
+	}
+	return;
+}
 
 // For cosmos web
 socket_channel cosmos_web_telegraf_channel, cosmos_web_api_channel;
@@ -55,6 +178,8 @@ int main(int argc, char *argv[])
 {
     int32_t iretn;
     uint32_t elapsed = 0;
+
+	std::cout << std::fixed << std::setprecision(7);
 
     if (argc > 1)
     {
@@ -81,11 +206,34 @@ int main(int argc, char *argv[])
         agent->shutdown();
         exit(iretn);
     }
-    sim->Init(simdt, realmname);
-    sim->ParseOrbitFile();
-    sim->ParseSatFile();
-    lvlhoffset.resize(sim->cnodes.size());
-    sim->ParseTargetFile();
+	// todo: check return value
+    iretn=sim->Init(simdt, realmname, initialutc);
+	if(iretn<0)	{	cout<<"unable to initialize simulation"<<endl; exit(-1); }
+
+	// parse orbit file and do not proceed if no orbits are parsed
+	iretn=sim->ParseOrbitFile(orbitfile);
+	if(iretn<0)	{	cout<<"unable to parse orbitfile = <"<<orbitfile<<">"<<endl; exit(-1); }
+	cout<<"currentutc = "<<sim->currentutc<<endl; // debug
+	cout<<"initialutc = "<<sim->initialutc<<endl; // debug
+
+	// parse satellite file and do not proceed if no satellites are parsed
+	iretn=sim->ParseSatFile(satfile);
+	if(iretn<=0)	{	cout<<"unable to parse satfile = <"<<satfile<<">"<<endl; exit(-1); }
+	cout<<"sim->cnodes.size() = "<<sim->cnodes.size()<<endl; // debug
+
+	// parse target file and do not proceed if no targets are parsed
+	iretn=sim->ParseTargetFile(targetfile);
+	if(iretn<=0)	{	cout<<"unable to parse targetfile = <"<<targetfile<<">"<<endl; exit(-1); }
+	cout<<"sim->targets.size() = "<<sim->targets.size()<<endl; // debug
+
+	// debug print targets
+	for(size_t i = 0; i < sim->cnodes.size(); ++i)	{
+		cout<<"sim->cnodes["<<i<<"]->currentinfo.target.size() = "<<sim->cnodes[i]->currentinfo.target.size()<<endl;
+		//for(size_t j = 0; j < sim->cnodes[i]->currentinfo.target.size(); ++j)	{
+			//cout<<"sim->cnodes["<<i<<"]->currentinfo.target["<<j<<"].loc.pos.geod.s = ("<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lat)<<", "<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lon)<<", "<<sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.h<<")"<<endl;
+		//}
+	}
+
     if (realtime)
     {
         agent->cinfo->agent0.aprd = simdt;
@@ -93,6 +241,13 @@ int main(int argc, char *argv[])
     }
 
     sim->Propagate(results, runcount);
+
+	// debug results
+	cout<<"runcount == "<<runcount<<endl;
+	cout<<"results.size() == "<<results.size()<<endl;
+	cout<<"results[0].size() == "<<results[0].size()<<endl;
+	cout<<"results["<<runcount-1<<"].size() == "<<results[runcount-1].size()<<endl;
+
     while (elapsed < runcount)
     {
         for (uint16_t i=0; i<results[elapsed].size(); ++i)
@@ -195,6 +350,16 @@ int main(int argc, char *argv[])
 //        }
         ++elapsed;
     }
+
+
+	// create position files for visualization
+	create_sat_eci_position_files();
+	create_sat_geoc_position_files();
+	create_target_eci_position_files();
+	create_target_geoc_position_files();
+
+	// todo:  create attitude vector files (eci) for visualization
+	create_attitude_vector_files();
 }
 
 int32_t parse_control(string args)
