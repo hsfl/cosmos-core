@@ -642,16 +642,16 @@ double Nplgndr(uint32_t l, uint32_t m, double x)
     }
 }
 
-double Rearth(double lat)
-{
-    double st,ct;
-    double c;
+//double Rearth(double lat)
+//{
+//    double st,ct;
+//    double c;
 
-    st = sin(lat);
-    ct = cos(lat);
-    c = sqrt(((FRATIO2 * FRATIO2 * st * st) + (ct * ct))/((ct * ct) + (FRATIO2 * st * st)));
-    return (REARTHM * c);
-}
+//    st = sin(lat);
+//    ct = cos(lat);
+//    c = sqrt(((FRATIO2 * FRATIO2 * st * st) + (ct * ct))/((ct * ct) + (FRATIO2 * st * st)));
+//    return (REARTHM * c);
+//}
 
 locstruc shape2eci(double utc, double altitude, double angle, double timeshift)
 {
@@ -2810,23 +2810,23 @@ int32_t MetricGenerator::Propagate(double nextutc)
             for (uint16_t id=0; id<currentinfo->devspec.cam.size(); ++id)
             {
                 double h = currentinfo->node.loc.pos.geod.s.h;
-                double h2 = h * h;
+//                double h2 = h * h;
                 double nadirradius = h * currentinfo->devspec.cam[id].fov / 2.;
-                cartpos cpointing;
-                cpointing.s = drotate(currentinfo->node.loc.att.geoc.s, currentinfo->devspec.cam[id].los);
-                double angle = sep_rv(cpointing.s, -currentinfo->node.loc.pos.geoc.s);
-                double t1a = tan(angle);
-                double t2a = t1a * t1a;
-                double t4a = t2a * t2a;
-                double r = Rearth(currentinfo->node.loc.pos.geod.s.lat);
-                double s1a = sin(angle);
-                double s2a = s1a * s1a;
+//                cartpos cpointing;
+//                cpointing.s = drotate(currentinfo->node.loc.att.geoc.s, currentinfo->devspec.cam[id].los);
+//                double angle = sep_rv(cpointing.s, -currentinfo->node.loc.pos.geoc.s);
+//                double t1a = tan(angle);
+//                double t2a = t1a * t1a;
+//                double t4a = t2a * t2a;
+//                double r = Rearth(currentinfo->node.loc.pos.geod.s.lat);
+//                double s1a = sin(angle);
+//                double s2a = s1a * s1a;
 //                double r1p = (r + h) * s1a + sqrt((r * r + 2 * r * h + h2) * s2a - (2 * r * h + h2));
-                double r1m = (r + h) * s1a - sqrt((r * r + 2 * r * h + h2) * s2a - (2 * r * h + h2));
-//                double lsep = (sqrt(t4a * (-4. * h2 - 8. * r * h) + t2a * 4. * r * r) + 2. * t2a * (h + r)) / (2. * (t2a + 1.));
-//                cpointing.s = cpointing.s * lsep / cos(angle);
-                cpointing.s = cpointing.s * r1m;
-                cpointing.s += currentinfo->node.loc.pos.geoc.s;
+//                double r1m = (r + h) * s1a - sqrt((r * r + 2 * r * h + h2) * s2a - (2 * r * h + h2));
+//                cpointing.s = cpointing.s * r1m;
+//                cpointing.s += currentinfo->node.loc.pos.geoc.s;
+                cartpos cpointing;
+                sat2geoc(currentinfo->devspec.cam[id].los, currentinfo->node.loc, cpointing.s);
                 geoidpos gpointing;
                 geoc2geod(cpointing, gpointing);
                 coverage[it][id].area = 0.;
@@ -2854,14 +2854,14 @@ int32_t MetricGenerator::Propagate(double nextutc)
                     {
                         coverage[it][id].area = dr < tr ? DPI * dr2 * sin(currentinfo->target[it].elto) : currentinfo->target[it].area;
                     }
-                }
-                if (coverage[it][id].area < currentinfo->target[it].area)
-                {
-                    coverage[it][id].percent = coverage[it][id].area / currentinfo->target[it].area;
-                }
-                else
-                {
-                    coverage[it][id].percent = 1.;
+                    if (coverage[it][id].area < currentinfo->target[it].area)
+                    {
+                        coverage[it][id].percent = coverage[it][id].area / currentinfo->target[it].area;
+                    }
+                    else
+                    {
+                        coverage[it][id].percent = 1.;
+                    }
                 }
             }
         }

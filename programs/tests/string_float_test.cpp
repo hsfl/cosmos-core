@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 
 
 	int max_count = 7*24*60*60;
-	int spacing_offset = 100; // get rid of this bs way to do string of pearls, do it with TLE
+//	int spacing_offset = 100; // get rid of this bs way to do string of pearls, do it with TLE
 
 	// get TLEs with different utcs to do the string of pearls
 		// get rid of this part

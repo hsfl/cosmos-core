@@ -105,17 +105,28 @@ int main(int argc, char *argv[])
         {
             if (state->targetidx < state->currentinfo.target.size())
             {
-                state->currentinfo.node.loc_req.att.geoc.s = q_drotate_between_rv(-state->currentinfo.node.loc.pos.geoc.s, rv_sub(state->currentinfo.target[state->targetidx].loc.pos.geoc.s, state->currentinfo.node.loc.pos.geoc.s));
-                state->currentinfo.node.loc_req.att.geoc.v = rv_zero();
-                state->currentinfo.node.loc_req.att.geoc.a = rv_zero();
-                state->currentinfo.node.loc_req.att.geoc.pass++;
+                state->currentinfo.node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(state->currentinfo.node.loc.pos.geoc.s, state->currentinfo.target[state->targetidx].loc.pos.geoc.s));
+                state->currentinfo.node.loc.att.geoc.v = rv_zero();
+                state->currentinfo.node.loc.att.geoc.a = rv_zero();
+                state->currentinfo.node.loc.att.geoc.pass++;
                 att_geoc(state->currentinfo.node.loc);
+                rvector newpos;
+                iretn = sat2geoc(rv_unitz(-state->currentinfo.node.loc.pos.geod.s.h), state->currentinfo.node.loc, newpos);
+                if (iretn)
+                {
+                    rvector diff = newpos - state->currentinfo.target[state->targetidx].loc.pos.geoc.s;
+                    double distance = length_rv(diff);
+                }
+                else
+                {
+                    state->targetidx = state->currentinfo.target.size();
+                }
             }
             else
             {
-                state->currentinfo.node.loc_req.att.lvlh.s = q_eye();
-                state->currentinfo.node.loc_req.att.lvlh.v = rv_zero();
-                state->currentinfo.node.loc_req.att.lvlh.a = rv_zero();
+                state->currentinfo.node.loc.att.lvlh.s = q_eye();
+                state->currentinfo.node.loc.att.lvlh.v = rv_zero();
+                state->currentinfo.node.loc.att.lvlh.a = rv_zero();
                 att_lvlh(state->currentinfo.node.loc);
             }
             if (state->currentinfo.event.size())

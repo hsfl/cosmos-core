@@ -4291,6 +4291,51 @@ int32_t topo2azel(Vector tpos, float &az, float &el)
     return 0;
 }
 
+//! Radius of Earth
+//! Calculate the radius of the Earth at given latitude due to oblateness
+//! \param lat Latitude in radians
+//! \return Radius in meters or 0.
+double Rearth(double lat)
+{
+    double st,ct;
+    double c;
+
+    st = sin(lat);
+    ct = cos(lat);
+    c = sqrt(((FRATIO2 * FRATIO2 * st * st) + (ct * ct))/((ct * ct) + (FRATIO2 * st * st)));
+    return (REARTHM * c);
+}
+
+//! Satellite to Geocentric position
+//! Calculate the Geocentric intersection of a satellite vector given satellite attitude.
+//! \param sat rvector in satellite body frame
+//! \param loc locstruc representing satellites position and attitude
+//! \param pos rvector representing geocentric point of instersection
+//! \return Distance to position or 0
+int32_t sat2geoc(rvector sat, locstruc& loc, rvector &pos)
+{
+    pos = rv_normal(drotate(loc.att.geoc.s, sat));
+    double angle = sep_rv(pos, -loc.pos.geoc.s);
+    double r = Rearth(loc.pos.geod.s.lat);
+    double c1a = cos(angle);
+    double c2a = c1a * c1a;
+    double h = loc.pos.geod.s.h;
+    double h2 = h * h;
+    double t1 = (r * r + 2 * r * h + h2) * c1a;
+    double t2 = (2 * r * h + h2);
+    if (t1 >= t2)
+    {
+        double r1m = (r + h) - sqrt(t1 * c2a - t2);
+        pos = pos * r1m;
+        pos += loc.pos.geoc.s;
+        return length_rv((pos));
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 //! Geodetic to Separation
 //! Calculate the separation distance between two geodetic positions.
 //! \param src Starting position
