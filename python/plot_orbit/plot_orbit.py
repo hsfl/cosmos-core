@@ -18,43 +18,29 @@ from astropy.time import Time
 # File names for the satellite and target data
 #satellite_files = ['eci_orbit_sat1.dat', 'eci_orbit_sat2.dat', 'eci_orbit_sat3.dat', 'eci_orbit_sat4.dat', 'eci_orbit_sat5.dat']
 satellite_files = ['sttr/sat_1.eci', 'sttr/sat_2.eci', 'sttr/sat_3.eci', 'sttr/sat_4.eci', 'sttr/sat_0.eci']
-target_files = ['eci_target1.dat', 'eci_target2.dat', 'eci_target3.dat', 'eci_target4.dat', 'eci_target5.dat', 'eci_target6.dat']
+#target_files = ['eci_target1.dat', 'eci_target2.dat', 'eci_target3.dat', 'eci_target4.dat', 'eci_target5.dat', 'eci_target6.dat']
+target_files = ['sttr/target_0.eci','sttr/target_1.eci','sttr/target_2.eci','sttr/target_3.eci','sttr/target_4.eci','sttr/target_5.eci','sttr/target_6.eci','sttr/target_7.eci','sttr/target_8.eci','sttr/target_9.eci','sttr/target_10.eci','sttr/target_11.eci','sttr/target_12.eci','sttr/target_13.eci','sttr/target_14.eci','sttr/target_15.eci','sttr/target_16.eci','sttr/target_17.eci','sttr/target_18.eci','sttr/target_19.eci','sttr/target_20.eci','sttr/target_21.eci','sttr/target_22.eci','sttr/target_23.eci','sttr/target_24.eci','sttr/target_25.eci','sttr/target_26.eci','sttr/target_27.eci','sttr/target_28.eci','sttr/target_29.eci','sttr/target_30.eci','sttr/target_31.eci','sttr/target_32.eci','sttr/target_33.eci', 'sttr/target_33.eci']
 
-#satellite_files = ['../../build/newdat/eci_orbit_sat1.dat', '../../build/newdat/eci_orbit_sat2.dat', '../../build/newdat/eci_orbit_sat3.dat', '../../build/newdat/eci_orbit_sat4.dat', '../../build/newdat/eci_orbit_sat5.dat']
-#satellite_files = [
-#	'../../build/newdat/mothership.dat',
-#	'../../build/newdat/childsat1.dat',
-#	'../../build/newdat/childsat2.dat',
-#	'../../build/newdat/childsat3.dat',
-#	'../../build/newdat/childsat4.dat',
-#]
-
-#target_files = [
-#	'../../build/newdat/eci_target1.dat',
-#	'../../build/newdat/eci_target2.dat',
-#	'../../build/newdat/eci_target3.dat',
-#	'../../build/newdat/eci_target4.dat',
-#	'../../build/newdat/eci_target5.dat',
-#	'../../build/newdat/eci_target6.dat'
-#]
+# Attitude files for the satellites
+att_files = ['sttr/sat_0.att', 'sttr/sat_1.att', 'sttr/sat_2.att', 'sttr/sat_3.att', 'sttr/sat_4.att']
 
 # Load data from all files
 data_sets = [np.loadtxt(file, delimiter=',') for file in satellite_files + target_files]
 
 # Downsample the data for the animation
-step = 8  # Adjust the step size to downsample data
+step = 10 # Adjust the step size to downsample data
 data_sets = [data[::step] for data in data_sets]
 
+# Load attitude data
+att_datasets = [np.loadtxt(f, delimiter=',')[::step] for f in att_files]
+
 # Length of the tail in seconds
-#tail_length = 86400  # Adjust the length of the tail in seconds
 tail_length = 5400  # Adjust the length of the tail in seconds
-#tail_length = 600  # Adjust the length of the tail in seconds
 max_observation = 2000000 # length in meters
 
 # Prepare the figure and 3D axis
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-
 
 # Earth's radii
 a = 6378137  # equatorial radius in meters
@@ -72,6 +58,10 @@ earth_plot = ax.plot_surface(x_earth, y_earth, z_earth, color='b', alpha=0.1, ed
 
 # Set the aspect ratio to be equal
 ax.set_box_aspect([1, 1, 1])
+max_radius = a+500000  # Earth’s equatorial radius
+ax.set_xlim([-max_radius, max_radius])
+ax.set_ylim([-max_radius, max_radius])
+ax.set_zlim([-max_radius, max_radius])
 
 # Add a CheckButtons widget to toggle the Earth's visibility
 rax = plt.axes([0.8, 0.30, 0.15, 0.05])  # Position of the CheckButtons
@@ -101,7 +91,6 @@ frame_slider = Slider(ax_slider, 'Frame', 0, len(data_sets[0]) - 1, valinit=1, v
 
 # Text display for ISO time
 iso_time_display = ax.text2D(0.5, 0.98, "", transform=ax.transAxes, ha='center')
-
 
 # Function to toggle Earth visibility
 def toggle_earth(label):
@@ -136,7 +125,6 @@ def update(val):
 # Connect the slider to the update function
 frame_slider.on_changed(update)
 
-
 # Spacebar pausing
 
 # Global variable to track paused state
@@ -149,17 +137,6 @@ def toggle_pause(event):
 # Register the key event handler to listen for the spacebar
 fig.canvas.mpl_connect('key_press_event', toggle_pause)
 
-# Determine the limits for the plot based on all satellites
-x_min = min(data[:, 0].min() for data in data_sets)
-x_max = max(data[:, 0].max() for data in data_sets)
-y_min = min(data[:, 1].min() for data in data_sets)
-y_max = max(data[:, 1].max() for data in data_sets)
-z_min = min(data[:, 2].min() for data in data_sets)
-z_max = max(data[:, 2].max() for data in data_sets)
-ax.set_xlim([x_min, x_max])
-ax.set_ylim([y_min, y_max])
-ax.set_zlim([z_min, z_max])
-
 num_actual_sats = len(satellite_files)
 num_targets = len(target_files)
 # Define colors for each satellite trace and marker
@@ -170,6 +147,10 @@ colors = plt.colormaps['tab10'].colors[:num_sats]
 lines = []
 satellite_markers = []
 connections = [ax.plot([], [], [], lw=1, color='black', linestyle='--')[0] for _ in range(num_actual_sats * num_targets)]
+att_lines = []
+for _ in att_datasets:
+    att_line, = ax.plot([], [], [], 'r-', lw=2)
+    att_lines.append(att_line)
 
 # Initialize the lines, markers, and connections for each satellite and target pair
 for i in range(len(data_sets)):
@@ -190,7 +171,11 @@ def init():
     for connection in connections:
         connection.set_data([], [])
         connection.set_3d_properties([])
-    return lines + satellite_markers + connections
+    for att_line in att_lines:
+        att_line.set_data([], [])
+        att_line.set_3d_properties([])
+    return lines + satellite_markers + connections + att_lines
+
 
 def animate(i):
     if i == len(data_sets[0])-1:
@@ -237,9 +222,24 @@ def animate(i):
                     # Clear the connection line
                     connections[j * num_targets + t].set_data([], [])
                     connections[j * num_targets + t].set_3d_properties([])
+
+    for k, att_data in enumerate(att_datasets):
+        sat_x, sat_y, sat_z = data_sets[k][i, 0], data_sets[k][i, 1], data_sets[k][i, 2]
+        att_x, att_y, att_z = att_data[i, 0], att_data[i, 1], att_data[i, 2]
+
+        # the proper way to get attitude vectors from attitude files
+        scale = 500000.0
+        att_lines[k].set_data([sat_x, sat_x + att_x*scale], [sat_y, sat_y + att_y*scale])
+        att_lines[k].set_3d_properties([sat_z, sat_z + att_z*scale])
+
+        # this quick hack/test just draws to the center of the earth based on satellite position
+        #scale = 1.0
+        #att_lines[k].set_data([sat_x, 0], [sat_y, 0])
+        #att_lines[k].set_3d_properties([sat_z, 0])
+
     # Update the slider position
     frame_slider.set_val(i)
-    return lines + satellite_markers + connections
+    return lines + satellite_markers + connections + att_lines
 
 ani = animation.FuncAnimation(fig, animate, init_func=init, frames=len(data_sets[0]), interval=10, repeat=True)
 
