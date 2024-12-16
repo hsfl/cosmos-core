@@ -163,6 +163,20 @@ void create_attitude_vector_files()	{
 	return;
 }
 
+// print target names and data from sim->targets
+void inspect_sim_targets(Physics::Simulator* sim)	{
+
+	for(const auto& pair : sim->targets)	{
+		cout<<"Target name = "<<pair.first<<", "
+			<<"area = "<<pair.second.vis.area<<", "
+			<<"percent = "<<pair.second.vis.percent<<", "
+			<<"azimuth = "<<pair.second.vis.azimuth<<", "
+			<<"elevation = "<<pair.second.vis.elevation
+			<<endl;
+	}
+	return;
+}
+
 // For cosmos web
 socket_channel cosmos_web_telegraf_channel, cosmos_web_api_channel;
 const string TELEGRAF_ADDR = "";
@@ -360,6 +374,53 @@ int main(int argc, char *argv[])
 
 	// todo:  create attitude vector files (eci) for visualization
 	create_attitude_vector_files();
+
+
+	// analyze results
+	inspect_sim_targets(sim);
+
+	// look at coverage metrics
+
+	// see if any are non-zero
+
+	// for each sat
+	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
+		// for each target
+		for (size_t targ=0; targ<results[0][sat_num].target.size(); ++targ)   {
+			// for each time step
+			for (size_t t=0; t<results.size(); ++t)   {
+				if(results[t][sat_num].target[targ].vis.percent != 0)	{
+					cout<<"FOUND PERCENT!"<<endl;
+				}
+				if(results[t][sat_num].target[targ].vis.area != 0)	{
+					cout<<"FOUND AREA!"<<endl;
+					cout<<"sat #"<<sat_num<<", target #"<<targ<<", time = "<<t<<", area = "
+						<<results[t][sat_num].target[targ].vis.area<<endl;
+				}
+				//if(results[t][sat_num].target[targ].vis.resolution != 0)	{
+					//cout<<"FOUND RESOLUTION!"<<endl;
+				//}
+
+				//if(results[t][sat_num].target[targ].vis.specmin != 0)	{	cout<<"FOUND!"<<endl; }
+				//if(results[t][sat_num].target[targ].vis.specmax != 0)	{	cout<<"FOUND!"<<endl; }
+
+				if(results[t][sat_num].target[targ].vis.azimuth != 0)	{
+					cout<<"FOUND AZIMUTH!"<<endl;
+					cout<<"sat #"<<sat_num<<", target #"<<targ<<", time = "<<t<<", azimuth = "
+						<<results[t][sat_num].target[targ].vis.azimuth<<endl;
+				}
+
+				if(results[t][sat_num].target[targ].vis.elevation != 0)	{
+					// all elevation in cosmosstruc appear to be constant junk
+
+					//cout<<"FOUND ELEVATION!"<<endl;
+					//cout<<"sat #"<<sat_num<<", target #"<<targ<<", time = "<<t<<", elevation = "
+						//<<results[t][sat_num].target[targ].vis.elevation<<endl;
+				}
+
+			}
+		}
+	}
 }
 
 int32_t parse_control(string args)
