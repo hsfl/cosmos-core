@@ -147,6 +147,7 @@ namespace Cosmos
                 AttitudeGeo = 23,
                 AttitudeSolar = 24,
                 AttitudeTarget = 25,
+                AttitudeRequest = 26,
                 Thermal = 30,
                 Electrical = 40,
                 OrbitalEvent = 50,
@@ -386,6 +387,23 @@ namespace Cosmos
             Vector optimum{0.,0.,1.};
         };
 
+        class RequestAttitudePropagator : public Propagator
+        {
+        public:
+            RequestAttitudePropagator(cosmosstruc *newinfo, double idt)
+                : Propagator{ newinfo, idt }
+            {
+                type = AttitudeRequest;
+            }
+
+            int32_t Init();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
+
+        private:
+            Vector optimum{0.,0.,1.};
+        };
+
         class ThermalPropagator : public Propagator
         {
         public:
@@ -575,6 +593,7 @@ namespace Cosmos
             GeoAttitudePropagator *geoattitude;
             SolarAttitudePropagator *solarattitude;
             TargetAttitudePropagator *targetattitude;
+            RequestAttitudePropagator *requestattitude;
 
             Propagator::Type ttype;
             ThermalPropagator *thermal;
@@ -598,13 +617,9 @@ namespace Cosmos
             int32_t Propagate(locstruc& nextloc);
             //! Propagates simulated physical state to the next timestep
             //! Runs any code that the propagators need to run at the end of a simulation run
+            int32_t Update();
             int32_t End();
             int32_t Reset(double nextutc=0.);
-//            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
-//            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, double area=0.);
-//            int32_t AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
-//            int32_t AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
-//            int32_t AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type=NODE_TYPE_SQUARE);
         };
 
 
