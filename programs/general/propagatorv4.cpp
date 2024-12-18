@@ -168,10 +168,10 @@ void inspect_sim_targets(Physics::Simulator* sim)	{
 
 	for(const auto& pair : sim->targets)	{
 		cout<<"Target name = "<<pair.first<<", "
-			<<"area = "<<pair.second.vis.area<<", "
-			<<"percent = "<<pair.second.vis.percent<<", "
-			<<"azimuth = "<<pair.second.vis.azimuth<<", "
-			<<"elevation = "<<pair.second.vis.elevation
+            <<"area = "<<pair.second.cover[0].area<<", "
+            <<"percent = "<<pair.second.cover[0].percent<<", "
+            <<"azimuth = "<<pair.second.cover[0].azimuth<<", "
+            <<"elevation = "<<pair.second.cover[0].elevation
 			<<endl;
 	}
 	return;
@@ -389,33 +389,33 @@ int main(int argc, char *argv[])
 		for (size_t targ=0; targ<results[0][sat_num].target.size(); ++targ)   {
 			// for each time step
 			for (size_t t=0; t<results.size(); ++t)   {
-				if(results[t][sat_num].target[targ].vis.percent != 0)	{
+                if(results[t][sat_num].target[targ].cover[0].percent != 0)	{
 					cout<<"FOUND PERCENT!"<<endl;
 				}
-				if(results[t][sat_num].target[targ].vis.area != 0)	{
+                if(results[t][sat_num].target[targ].cover[0].area != 0)	{
 					cout<<"FOUND AREA!"<<endl;
 					cout<<"sat #"<<sat_num<<", target #"<<targ<<", time = "<<t<<", area = "
-						<<results[t][sat_num].target[targ].vis.area<<endl;
+                        <<results[t][sat_num].target[targ].cover[0].area<<endl;
 				}
-				//if(results[t][sat_num].target[targ].vis.resolution != 0)	{
+                //if(results[t][sat_num].target[targ].cover[0].resolution != 0)	{
 					//cout<<"FOUND RESOLUTION!"<<endl;
 				//}
 
-				//if(results[t][sat_num].target[targ].vis.specmin != 0)	{	cout<<"FOUND!"<<endl; }
-				//if(results[t][sat_num].target[targ].vis.specmax != 0)	{	cout<<"FOUND!"<<endl; }
+                //if(results[t][sat_num].target[targ].cover[0].specmin != 0)	{	cout<<"FOUND!"<<endl; }
+                //if(results[t][sat_num].target[targ].cover[0].specmax != 0)	{	cout<<"FOUND!"<<endl; }
 
-				if(results[t][sat_num].target[targ].vis.azimuth != 0)	{
+                if(results[t][sat_num].target[targ].cover[0].azimuth != 0)	{
 					cout<<"FOUND AZIMUTH!"<<endl;
 					cout<<"sat #"<<sat_num<<", target #"<<targ<<", time = "<<t<<", azimuth = "
-						<<results[t][sat_num].target[targ].vis.azimuth<<endl;
+                        <<results[t][sat_num].target[targ].cover[0].azimuth<<endl;
 				}
 
-				if(results[t][sat_num].target[targ].vis.elevation != 0)	{
+                if(results[t][sat_num].target[targ].cover[0].elevation != 0)	{
 					// all elevation in cosmosstruc appear to be constant junk
 
 					//cout<<"FOUND ELEVATION!"<<endl;
 					//cout<<"sat #"<<sat_num<<", target #"<<targ<<", time = "<<t<<", elevation = "
-						//<<results[t][sat_num].target[targ].vis.elevation<<endl;
+                        //<<results[t][sat_num].target[targ].cover[0].elevation<<endl;
 				}
 
 			}
