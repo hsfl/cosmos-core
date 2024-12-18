@@ -2009,10 +2009,11 @@ class sim_param	{
             gvector size = {0., 0., 0.};
             float area;
             float resolution;
-            Physics::coverage vis;
-            Physics::coverage swir;
-            Physics::coverage mwir;
-            Physics::coverage lwir;
+            vector <Physics::coverage> cover;
+//            Physics::coverage vis;
+//            Physics::coverage swir;
+//            Physics::coverage mwir;
+//            Physics::coverage lwir;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class

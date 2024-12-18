@@ -4314,26 +4314,44 @@ double Rearth(double lat)
 //! \return Distance to position or 0
 int32_t sat2geoc(rvector sat, locstruc& loc, rvector &pos)
 {
-    pos = rv_normal(drotate(loc.att.geoc.s, sat));
-    double angle = sep_rv(pos, -loc.pos.geoc.s);
-    double r = Rearth(loc.pos.geod.s.lat);
+    rvector tpos = rv_normal(drotate(loc.att.geoc.s, sat));
+    double angle = sep_rv(tpos, -loc.pos.geoc.s);
     double c1a = cos(angle);
     double c2a = c1a * c1a;
     double h = loc.pos.geod.s.h;
     double h2 = h * h;
-    double t1 = (r * r + 2 * r * h + h2) * c1a;
-    double t2 = (2 * r * h + h2);
-    if (t1 >= t2)
+    locstruc tloc;
+    tloc.pos.geoc.utc = loc.utc;
+    tloc.pos.geoc = loc.pos.geoc;
+    pos_geoc2geod(tloc);
+    pos = tloc.pos.geoc.s;
+    double r1 = Rearth(tloc.pos.geod.s.lat);
+    double r2;
+    double r1m;
+    do
     {
-        double r1m = (r + h) - sqrt(t1 * c2a - t2);
-        pos = pos * r1m;
-        pos += loc.pos.geoc.s;
-        return length_rv((pos));
-    }
-    else
-    {
-        return 0;
-    }
+        tloc.pos.geoc.s = pos;
+        pos_geoc2geod(tloc);
+        r2 = Rearth(tloc.pos.geod.s.lat);
+        double t1 = (r1 * r1 + 2 * r1 * h + h2) * c2a;
+        double t2 = ((r1 * r1 - r2 * r2) + 2 * r1 * h + h2);
+        if (t1 >= t2)
+        {
+            r1m = (r1 + h) * c1a - sqrt(t1 - t2);
+            // Adjust for relative curvature of earth
+            pos = tpos * r1m;
+            pos = pos + loc.pos.geoc.s;
+//            pos_geoc2geod(tloc);
+//            double rt = Rearth(tloc.pos.geod.s.lat);
+//            pos = tpos * (r1m - 3. * (rt -r) * sin(angle));
+//            pos = pos + loc.pos.geoc.s;
+        }
+        else
+        {
+            return 0;
+        }
+    } while (length_rv(tloc.pos.geoc.s-pos) > 10.);
+    return (length_rv(loc.pos.geoc.s-pos));
 }
 
 //! Geodetic to Separation
