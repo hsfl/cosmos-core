@@ -3299,6 +3299,7 @@ int32_t ric2eci(cartpos orig, Vector ric, cartpos& result)
     return 0;
 }
 
+// JIMNOTE: not sure about this one, should probably call ric2eci
 /**
          * @brief Converts Origin coordinates to RIC offset coordinates
          *
@@ -3670,6 +3671,7 @@ int32_t pos_geoc2lvlh(locstruc &geoc, locstruc &base)
     return 0;
 }
 
+// JIMNOTE: this function is wrong and should be removed
 /**
          * @brief Converts Origin coordinates to RIC offset coordinates
          *
@@ -3701,6 +3703,7 @@ int32_t ric2lvlh(cartpos ric, cartpos& lvlh)
     return 0;
 }
 
+// JIMNOTE: this function is wrong and should be removed
 /**
          * @brief Converts RIC offset coordinates to LVLH coordinates
          *
