@@ -8497,6 +8497,7 @@ int32_t json_clone_node(cosmosstruc *source, cosmosstruc *destination)
 
     //! Load targeting information
     destination->target_cnt = source->target_cnt;
+    destination->target_idx = source->target_idx;
     destination->target.clear();
     destination->target = source->target;
     if (destination->target.size() != destination->target_cnt)
@@ -8729,6 +8730,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_piece_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->piece_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_port_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->port_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_target_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->target_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_target_idx", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->target_idx, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_event_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->event_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_event_tick", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->event_tick, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     json_addentry("node_user_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->user_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -13011,6 +13013,7 @@ int32_t node_init(string node, cosmosstruc *cinfo)
 
     //! Load targeting information
     cinfo->target_cnt = (uint16_t)load_target(cinfo);
+    cinfo->target_idx = -1;
 
     return 0;
 }
@@ -13791,15 +13794,6 @@ int32_t update_target(cosmosstruc *cinfo)
     for (uint32_t i=0; i<cinfo->target.size(); ++i)
     {
         iretn = update_target(cinfo->node.loc, cinfo->target[i]);
-        //        loc_update(&cinfo->target[i].loc);
-        //        Convert::geoc2topo(cinfo->target[i].loc.pos.geod.s,cinfo->node.loc.pos.geoc.s,topo);
-        //        Convert::topo2azel(topo, cinfo->target[i].azto, cinfo->target[i].elto);
-        //        Convert::geoc2topo(cinfo->node.loc.pos.geod.s,cinfo->target[i].loc.pos.geoc.s,topo);
-        //        Convert::topo2azel(topo, cinfo->target[i].azfrom, cinfo->target[i].elfrom);
-        //        ds = rv_sub(cinfo->target[i].loc.pos.geoc.s,cinfo->node.loc.pos.geoc.s);
-        //        cinfo->target[i].range = length_rv(ds);
-        //        dv = rv_sub(cinfo->target[i].loc.pos.geoc.v,cinfo->node.loc.pos.geoc.v);
-        //        cinfo->target[i].close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
     }
     return iretn;
 }
@@ -13902,6 +13896,72 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
     target.utc = targetloc.utc;
     return 0;
 }
+
+int32_t update_metrics(cosmosstruc *currentinfo)
+{
+    int32_t iretn = 0;
+    if (currentinfo->target_idx >= currentinfo->target.size())
+    {
+        return iretn;
+    }
+    for (uint16_t id=0; id<currentinfo->devspec.cam.size(); ++id)
+    {
+        double h = currentinfo->node.loc.pos.geod.s.h;
+        double nadirradius = h * currentinfo->devspec.cam[id].fov / 2.;
+        Convert::cartpos cpointing;
+        Convert::sat2geoc(currentinfo->devspec.cam[id].los, currentinfo->node.loc, cpointing.s);
+        Convert::geoidpos gpointing;
+        Convert::geoc2geod(cpointing, gpointing);
+        for (uint16_t it=0; it<currentinfo->target.size(); ++it)
+        {
+            currentinfo->target[it].cover.clear();
+            // Must be at least 5 degrees
+            if (currentinfo->target[it].elto > 0.087)
+            {
+                Physics::coverage cover;
+                cover.specmin = currentinfo->devspec.cam[id].specmin;
+                cover.specmax = currentinfo->devspec.cam[id].specmax;
+                cover.area = 0.;
+                double dr = nadirradius / sin(currentinfo->target[it].elto);
+                double dr2 = dr * dr;
+                double sep;
+                Convert::geod2sep(gpointing.s, currentinfo->target[it].loc.pos.geod.s, sep);
+                double sep2 = sep * sep;
+                double tr = sqrt(currentinfo->target[it].area / DPI);
+                double tr2 = tr * tr;
+                if (sep < dr + tr)
+                {
+                    cover.elevation = currentinfo->target[it].elto;
+                    cover.azimuth = currentinfo->target[it].azto;
+                    cover.resolution = currentinfo->target[it].range * currentinfo->devspec.cam[id].ifov;
+                    cover.specmin = currentinfo->devspec.cam[id].specmin;
+                    cover.specmax = currentinfo->devspec.cam[id].specmax;
+                    if (sep > fabs(tr - dr))
+                    {
+                        cover.area = dr2 * acos((sep2 + dr2 - tr2) / (2 * sep * dr)) + tr2 * acos((sep2 + tr2 - dr2) / (2 * sep * tr));
+                        cover.area -= sqrt((-sep + tr + dr) * (sep + tr - dr) * (sep - tr + dr) * (sep + tr + dr)) / 2.;
+                        cover.area *= sin(currentinfo->target[it].elto);
+                    }
+                    else
+                    {
+                        cover.area = dr < tr ? DPI * dr2 * sin(currentinfo->target[it].elto) : currentinfo->target[it].area;
+                    }
+                    if (cover.area < currentinfo->target[it].area)
+                    {
+                        cover.percent = cover.area / currentinfo->target[it].area;
+                    }
+                    else
+                    {
+                        cover.percent = 1.;
+                    }
+                    currentinfo->target[it].cover.push_back(cover);
+                }
+            }
+        }
+    }
+    return iretn;
+}
+
 
 //! Load Event Dictionary
 /*! Read a specific event dictionary for a specific node. The

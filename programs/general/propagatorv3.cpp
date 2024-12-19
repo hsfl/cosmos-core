@@ -98,14 +98,15 @@ int main(int argc, char *argv[])
     // Reset simulation db
     reset_db(sim);
 
+    sim->Target();
+    sim->Metric();
     while (agent->running() && elapsed < runcount)
     {
-        sim->Target();
         for (auto &state : sim->cnodes)
         {
-            if (state->targetidx < state->currentinfo.target.size())
+            if (state->currentinfo.target_idx < state->currentinfo.target.size())
             {
-                state->currentinfo.node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(state->currentinfo.node.loc.pos.geoc.s, state->currentinfo.target[state->targetidx].loc.pos.geoc.s));
+                state->currentinfo.node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(state->currentinfo.node.loc.pos.geoc.s, state->currentinfo.target[state->currentinfo.target_idx].loc.pos.geoc.s));
                 state->currentinfo.node.loc.att.geoc.v = rv_zero();
                 state->currentinfo.node.loc.att.geoc.a = rv_zero();
                 state->currentinfo.node.loc.att.geoc.pass++;
@@ -114,12 +115,12 @@ int main(int argc, char *argv[])
                 iretn = sat2geoc(rv_unitz(-state->currentinfo.node.loc.pos.geod.s.h), state->currentinfo.node.loc, newpos);
                 if (iretn)
                 {
-                    rvector diff = newpos - state->currentinfo.target[state->targetidx].loc.pos.geoc.s;
+                    rvector diff = newpos - state->currentinfo.target[state->currentinfo.target_idx].loc.pos.geoc.s;
                     double distance = length_rv(diff);
                 }
                 else
                 {
-                    state->targetidx = state->currentinfo.target.size();
+                    state->currentinfo.target_idx = -1;
                 }
             }
             else
@@ -250,6 +251,8 @@ int main(int argc, char *argv[])
 //            fflush(stdout);
 //        }
         sim->Propagate();
+        sim->Target();
+        sim->Metric();
         if (realtime)
         {
             agent->finish_active_loop();
