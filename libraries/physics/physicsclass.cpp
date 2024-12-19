@@ -1923,6 +1923,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
 
 int32_t State::Propagate(double nextutc)
 {
+    int32_t iretn;
     int32_t count = 0;
     if (nextutc == 0.)
     {
@@ -2019,10 +2020,18 @@ int32_t State::Propagate(double nextutc)
             orbitalevent->Propagate(nextutc);
         }
 
-        // Metric propagator
-        if (metric != nullptr)
+        //    if (metric != nullptr)
+        //    {
+        //        iretn = metric->Propagate(currentinfo.node.utc);
+        //        if (iretn < 0)
+        //        {
+        //            return iretn;
+        //        }
+        //    }
+        iretn = update_metrics(&currentinfo);
+        if (iretn < 0)
         {
-            metric->Propagate(nextutc);
+            return iretn;
         }
 
         // Update time
@@ -2034,6 +2043,7 @@ int32_t State::Propagate(double nextutc)
 
 int32_t State::Propagate(locstruc &loc)
 {
+    int32_t iretn;
     int32_t count = 0;
     double nextutc = loc.utc;
     PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
@@ -2127,9 +2137,18 @@ int32_t State::Propagate(locstruc &loc)
     }
 
     // Metric propagator
-    if (metric != nullptr)
+    //    if (metric != nullptr)
+    //    {
+    //        iretn = metric->Propagate(currentinfo.node.utc);
+    //        if (iretn < 0)
+    //        {
+    //            return iretn;
+    //        }
+    //    }
+    iretn = update_metrics(&currentinfo);
+    if (iretn < 0)
     {
-        metric->Propagate(nextutc);
+        return iretn;
     }
 
     // Update time
@@ -2165,14 +2184,20 @@ int32_t State::Update()
     }
 
     // Metric propagator
-    if (metric != nullptr)
+//    if (metric != nullptr)
+//    {
+//        iretn = metric->Propagate(currentinfo.node.utc);
+//        if (iretn < 0)
+//        {
+//            return iretn;
+//        }
+//    }
+    iretn = update_metrics(&currentinfo);
+    if (iretn < 0)
     {
-        iretn = metric->Propagate(currentinfo.node.utc);
-        if (iretn < 0)
-        {
-            return iretn;
-        }
+        return iretn;
     }
+
     return 0;
 }
 
@@ -2402,30 +2427,13 @@ int32_t TargetAttitudePropagator::Init()
 
 int32_t TargetAttitudePropagator::Propagate(double nextutc)
 {
-    const double range_limit = 3000000.;
-    double range = range_limit;
-    // Closest target
-    targetstruc ctarget;
-    for (targetstruc target : currentinfo->target)
+    if (currentinfo->target_idx < currentinfo->target.size())
     {
-        if (target.elto > 0 && target.range < range)
-        {
-            range = target.range;
-            ctarget = target;
-        }
-    }
-    if (nextutc == 0.)
-    {
-        nextutc = currentutc + dtj;
-    }
-    currentutc = nextutc;
-    if (range < range_limit)
-    {
-        rvector targ = ctarget.loc.pos.geoc.s - currentinfo->node.loc.pos.geoc.s;
-        quaternion qt = q_drotate_between_rv(rv_unitz(1.), targ);
-        currentinfo->node.loc.att.geoc.s = qt;
-        currentinfo->node.loc.att.geoc.pass++;
-        att_geoc(currentinfo->node.loc);
+        currentinfo->node.loc_req.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(currentinfo->node.loc.pos.geoc.s, currentinfo->target[currentinfo->target_idx].loc.pos.geoc.s));
+        currentinfo->node.loc_req.att.geoc.v = rv_zero();
+        currentinfo->node.loc_req.att.geoc.a = rv_zero();
+        currentinfo->node.loc_req.att.geoc.pass++;
+        att_geoc(currentinfo->node.loc_req);
     }
     else
     {
@@ -2836,8 +2844,8 @@ int32_t MetricGenerator::Propagate(double nextutc)
                     {
                         cover.percent = 1.;
                     }
+                    currentinfo->target[it].cover.push_back(cover);
                 }
-                currentinfo->target[it].cover.push_back(cover);
             }
         }
     }

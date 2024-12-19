@@ -565,7 +565,7 @@ namespace Cosmos
 
 
             cosmosstruc currentinfo;
-            uint16_t targetidx = -1;
+//            uint16_t targetidx = -1;
 
             string sohstring;
 
