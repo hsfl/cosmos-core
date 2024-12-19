@@ -369,6 +369,7 @@ string lookup_node_id_name(cosmosstruc *cinfo, NODE_ID_TYPE node_id);
 int32_t load_target(cosmosstruc *cinfo);
 int32_t update_target(cosmosstruc *cinfo);
 int32_t update_target(Convert::locstruc source, targetstruc &target);
+int32_t update_metrics(cosmosstruc *currentinfo);
 size_t calc_events(vector<eventstruc> &dictionary, cosmosstruc *cinfo, vector<eventstruc> &events);
 uint16_t device_type_index(string name);
 string device_type_name(uint32_t type);
