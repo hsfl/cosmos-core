@@ -43,138 +43,155 @@ vector<vector<cosmosstruc>> results;
 
 // output sat positions for visualization
 void create_sat_eci_position_files()	{
-	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
-		ofstream out;
-		// replace with your path
-		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".eci");
-		if(out.is_open())   {
-			// start at time = 1 so file lines = runcount
-			for (size_t t=1; t<results.size(); ++t) {
-				out << std::fixed << std::setprecision(6);
-				out
-					<<results[t][sat_num].node.loc.pos.eci.s.col[0]<<","
-					<<results[t][sat_num].node.loc.pos.eci.s.col[1]<<","
-					<<results[t][sat_num].node.loc.pos.eci.s.col[2]<<","
-					<<results[t][sat_num].node.loc.pos.eci.utc
-					<<endl;
-			}
-			out.close();
-		}
-	}
-	return;
+    for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
+        ofstream out;
+        // replace with your path
+        out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".eci");
+        if(out.is_open())   {
+            // start at time = 1 so file lines = runcount
+            for (size_t t=1; t<results.size(); ++t) {
+                out << std::fixed << std::setprecision(6);
+                out
+                    <<results[t][sat_num].node.loc.pos.eci.s.col[0]<<","
+                    <<results[t][sat_num].node.loc.pos.eci.s.col[1]<<","
+                    <<results[t][sat_num].node.loc.pos.eci.s.col[2]<<","
+                    <<results[t][sat_num].node.loc.pos.eci.utc
+                    <<endl;
+            }
+            out.close();
+        }
+    }
+    return;
 }
 
 // output sat positions for visualization
 void create_sat_geoc_position_files()	{
-	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
-		ofstream out;
-		// replace with your path
-		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".geoc");
-		if(out.is_open())   {
-			// start at time = 1 so file lines = runcount
-			for (size_t t=1; t<results.size(); ++t) {
-				out << std::fixed << std::setprecision(6);
-				out
-					<<results[t][sat_num].node.loc.pos.geoc.s.col[0]<<","
-					<<results[t][sat_num].node.loc.pos.geoc.s.col[1]<<","
-					<<results[t][sat_num].node.loc.pos.geoc.s.col[2]<<","
-					<<results[t][sat_num].node.loc.pos.geoc.utc
-					<<endl;
-			}
-			out.close();
-		}
-	}
-	return;
+    for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
+        ofstream out;
+        // replace with your path
+        out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".geoc");
+        if(out.is_open())   {
+            // start at time = 1 so file lines = runcount
+            for (size_t t=1; t<results.size(); ++t) {
+                out << std::fixed << std::setprecision(6);
+                out
+                    <<results[t][sat_num].node.loc.pos.geoc.s.col[0]<<","
+                    <<results[t][sat_num].node.loc.pos.geoc.s.col[1]<<","
+                    <<results[t][sat_num].node.loc.pos.geoc.s.col[2]<<","
+                    <<results[t][sat_num].node.loc.pos.geoc.utc
+                    <<endl;
+            }
+            out.close();
+        }
+    }
+    return;
 }
 
 // output target positions for visualization
 void create_target_eci_position_files()	{
-	// just using target for mothership for now
-	size_t s = 0;
-	for (size_t targ=0; targ<results[0][s].target.size(); ++targ)   {
-		ofstream out;
-		// replace with your path
-		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/target_"+std::to_string(targ)+".eci");
-		if(out.is_open())   {
-			// start at time = 1 so file lines = runcount (also, NOTE: target eci / utc not set for time = 0)
-			for (size_t t=1; t<results.size(); ++t) {
-				// output position of targets
-				out << std::fixed << std::setprecision(6);
-				out
-					<<results[t][s].target[targ].loc.pos.eci.s.col[0]<<","
-					<<results[t][s].target[targ].loc.pos.eci.s.col[1]<<","
-					<<results[t][s].target[targ].loc.pos.eci.s.col[2]<<","
-					<<results[t][s].target[targ].loc.pos.eci.utc
-					<<endl;
-			}
-			out.close();
-		}
-	}
-	return;
+    // just using target for mothership for now
+    size_t s = 0;
+    for (size_t targ=0; targ<results[0][s].target.size(); ++targ)   {
+        ofstream out;
+        // replace with your path
+        out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/target_"+std::to_string(targ)+".eci");
+        if(out.is_open())   {
+            // start at time = 1 so file lines = runcount (also, NOTE: target eci / utc not set for time = 0)
+            for (size_t t=1; t<results.size(); ++t) {
+                // output position of targets
+                out << std::fixed << std::setprecision(6);
+                out
+                    <<results[t][s].target[targ].loc.pos.eci.s.col[0]<<","
+                    <<results[t][s].target[targ].loc.pos.eci.s.col[1]<<","
+                    <<results[t][s].target[targ].loc.pos.eci.s.col[2]<<","
+                    <<results[t][s].target[targ].loc.pos.eci.utc
+                    <<endl;
+            }
+            out.close();
+        }
+    }
+    return;
 }
 
 // output target positions for visualization
 void create_target_geoc_position_files()	{
-	// just using target for mothership for now
-	size_t s = 0;
-	for (size_t targ=0; targ<results[0][s].target.size(); ++targ)   {
-		ofstream out;
-		// replace with your path
-		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/target_"+std::to_string(targ)+".geoc");
-		if(out.is_open())   {
-			// start at time = 1 so file lines = runcount (also, NOTE: target geoc / utc not set for time = 0)
-			for (size_t t=1; t<results.size(); ++t) {
-				// output position of targets
-				out << std::fixed << std::setprecision(6);
-				out
-					<<results[t][s].target[targ].loc.pos.geoc.s.col[0]<<","
-					<<results[t][s].target[targ].loc.pos.geoc.s.col[1]<<","
-					<<results[t][s].target[targ].loc.pos.geoc.s.col[2]<<","
-					<<results[t][s].target[targ].loc.pos.geoc.utc
-					<<endl;
-			}
-			out.close();
-		}
-	}
-	return;
+    // just using target for mothership for now
+    size_t s = 0;
+    for (size_t targ=0; targ<results[0][s].target.size(); ++targ)   {
+        ofstream out;
+        // replace with your path
+        out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/target_"+std::to_string(targ)+".geoc");
+        if(out.is_open())   {
+            // start at time = 1 so file lines = runcount (also, NOTE: target geoc / utc not set for time = 0)
+            for (size_t t=1; t<results.size(); ++t) {
+                // output position of targets
+                out << std::fixed << std::setprecision(6);
+                out
+                    <<results[t][s].target[targ].loc.pos.geoc.s.col[0]<<","
+                    <<results[t][s].target[targ].loc.pos.geoc.s.col[1]<<","
+                    <<results[t][s].target[targ].loc.pos.geoc.s.col[2]<<","
+                    <<results[t][s].target[targ].loc.pos.geoc.utc
+                    <<endl;
+            }
+            out.close();
+        }
+    }
+    return;
 }
 
 // output attitude vectors for visualization
 void create_attitude_vector_files()	{
-	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
-		ofstream out;
-		// replace with your path
-		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".att");
-		if(out.is_open())   {
-			// start at time = 1 so file lines = runcount
-			for (size_t t=1; t<results.size(); ++t) {
-				out << std::fixed << std::setprecision(6);
-				out
-					<<"1, "
-					<<"0, "
-					<<"0, "
-					//<<results[t][sat_num].node.loc.pos.eci.utc
-					<<"0"
-					<<endl;
-			}
-			out.close();
-		}
-	}
-	return;
+
+    // print out quaternions
+    // for each sat
+    for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)    {
+        ofstream out;
+        // replace with your path
+        out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".att");
+        if(out.is_open())   {
+            // for each time step
+            // start at time = 1 so file lines = runcount
+            for (size_t t=1; t<results.size(); ++t)   {
+                //cout<<"sat #"<<sat_num<<", time = "<<t<<", q = "
+                    //<<results[t][sat_num].node.loc.att.icrf.s.d.x<<","
+                    //<<results[t][sat_num].node.loc.att.icrf.s.d.y<<","
+                    //<<results[t][sat_num].node.loc.att.icrf.s.d.z<<","
+                    //<<results[t][sat_num].node.loc.att.icrf.s.w<<endl; // debug
+                Quaternion Q(
+                    results[t][sat_num].node.loc.att.icrf.s.d.x,
+                    results[t][sat_num].node.loc.att.icrf.s.d.y,
+                    results[t][sat_num].node.loc.att.icrf.s.d.z,
+                    results[t][sat_num].node.loc.att.icrf.s.w
+                );
+                Vector V(1,0,0,0);
+                Vector R = Q.irotate(V);
+
+                out << std::fixed << std::setprecision(6);
+                out
+                    << R.x << ", "
+                    << R.y << ", "
+                    << R.z << ", "
+                    << 100 // utc
+                    << endl;
+            }
+            out.close();
+        }
+    }
+    return;
 }
 
 // print target names and data from sim->targets
 void inspect_sim_targets(Physics::Simulator* sim)	{
 
-	for(const auto& pair : sim->targets)	{
-		cout<<"Target name = "<<pair.first<<", "
-			<<"area = "<<pair.second.vis.area<<", "
-			<<"percent = "<<pair.second.vis.percent<<", "
-			<<"azimuth = "<<pair.second.vis.azimuth<<", "
-			<<"elevation = "<<pair.second.vis.elevation
-			<<endl;
-	}
-	return;
+    for(const auto& pair : sim->targets)	{
+        cout<<"Target name = "<<pair.first<<", "
+             <<"area = "<<pair.second.cover[0].area<<", "
+             <<"percent = "<<pair.second.cover[0].percent<<", "
+             <<"azimuth = "<<pair.second.cover[0].azimuth<<", "
+             <<"elevation = "<<pair.second.cover[0].elevation
+             <<endl;
+    }
+    return;
 }
 
 // For cosmos web
@@ -193,7 +210,7 @@ int main(int argc, char *argv[])
     int32_t iretn;
     uint32_t elapsed = 0;
 
-	std::cout << std::fixed << std::setprecision(7);
+    std::cout << std::fixed << std::setprecision(7);
 
     if (argc > 1)
     {
@@ -220,33 +237,33 @@ int main(int argc, char *argv[])
         agent->shutdown();
         exit(iretn);
     }
-	// todo: check return value
+    // todo: check return value
     iretn=sim->Init(simdt, realmname, initialutc);
-	if(iretn<0)	{	cout<<"unable to initialize simulation"<<endl; exit(-1); }
+    if(iretn<0)	{	cout<<"unable to initialize simulation"<<endl; exit(-1); }
 
-	// parse orbit file and do not proceed if no orbits are parsed
-	iretn=sim->ParseOrbitFile(orbitfile);
-	if(iretn<0)	{	cout<<"unable to parse orbitfile = <"<<orbitfile<<">"<<endl; exit(-1); }
-	cout<<"currentutc = "<<sim->currentutc<<endl; // debug
-	cout<<"initialutc = "<<sim->initialutc<<endl; // debug
+    // parse orbit file and do not proceed if no orbits are parsed
+    iretn=sim->ParseOrbitFile(orbitfile);
+    if(iretn<0)	{	cout<<"unable to parse orbitfile = <"<<orbitfile<<">"<<endl; exit(-1); }
+    cout<<"currentutc = "<<sim->currentutc<<endl; // debug
+    cout<<"initialutc = "<<sim->initialutc<<endl; // debug
 
-	// parse satellite file and do not proceed if no satellites are parsed
-	iretn=sim->ParseSatFile(satfile);
-	if(iretn<=0)	{	cout<<"unable to parse satfile = <"<<satfile<<">"<<endl; exit(-1); }
-	cout<<"sim->cnodes.size() = "<<sim->cnodes.size()<<endl; // debug
+    // parse satellite file and do not proceed if no satellites are parsed
+    iretn=sim->ParseSatFile(satfile);
+    if(iretn<=0)	{	cout<<"unable to parse satfile = <"<<satfile<<">"<<endl; exit(-1); }
+    cout<<"sim->cnodes.size() = "<<sim->cnodes.size()<<endl; // debug
 
-	// parse target file and do not proceed if no targets are parsed
-	iretn=sim->ParseTargetFile(targetfile);
-	if(iretn<=0)	{	cout<<"unable to parse targetfile = <"<<targetfile<<">"<<endl; exit(-1); }
-	cout<<"sim->targets.size() = "<<sim->targets.size()<<endl; // debug
+    // parse target file and do not proceed if no targets are parsed
+    iretn=sim->ParseTargetFile(targetfile);
+    if(iretn<=0)	{	cout<<"unable to parse targetfile = <"<<targetfile<<">"<<endl; exit(-1); }
+    cout<<"sim->targets.size() = "<<sim->targets.size()<<endl; // debug
 
-	// debug print targets
-	for(size_t i = 0; i < sim->cnodes.size(); ++i)	{
-		cout<<"sim->cnodes["<<i<<"]->currentinfo.target.size() = "<<sim->cnodes[i]->currentinfo.target.size()<<endl;
-		//for(size_t j = 0; j < sim->cnodes[i]->currentinfo.target.size(); ++j)	{
-			//cout<<"sim->cnodes["<<i<<"]->currentinfo.target["<<j<<"].loc.pos.geod.s = ("<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lat)<<", "<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lon)<<", "<<sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.h<<")"<<endl;
-		//}
-	}
+    // debug print targets
+    for(size_t i = 0; i < sim->cnodes.size(); ++i)	{
+        cout<<"sim->cnodes["<<i<<"]->currentinfo.target.size() = "<<sim->cnodes[i]->currentinfo.target.size()<<endl;
+        //for(size_t j = 0; j < sim->cnodes[i]->currentinfo.target.size(); ++j)	{
+        //cout<<"sim->cnodes["<<i<<"]->currentinfo.target["<<j<<"].loc.pos.geod.s = ("<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lat)<<", "<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lon)<<", "<<sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.h<<")"<<endl;
+        //}
+    }
 
     if (realtime)
     {
@@ -255,12 +272,14 @@ int main(int argc, char *argv[])
     }
 
     sim->Propagate(results, runcount);
+    sim->Target(results);
+    sim->Metric(results);
 
-	// debug results
-	cout<<"runcount == "<<runcount<<endl;
-	cout<<"results.size() == "<<results.size()<<endl;
-	cout<<"results[0].size() == "<<results[0].size()<<endl;
-	cout<<"results["<<runcount-1<<"].size() == "<<results[runcount-1].size()<<endl;
+    // debug results
+    cout<<"runcount == "<<runcount<<endl;
+    cout<<"results.size() == "<<results.size()<<endl;
+    cout<<"results[0].size() == "<<results[0].size()<<endl;
+    cout<<"results["<<runcount-1<<"].size() == "<<results[runcount-1].size()<<endl;
 
     while (elapsed < runcount)
     {
@@ -326,16 +345,16 @@ int main(int argc, char *argv[])
                 output += to_label("\teciax", to_floating(results[elapsed][i].node.loc.pos.eci.a.col[0], 3));
                 output += to_label("\teciay", to_floating(results[elapsed][i].node.loc.pos.eci.a.col[1], 3));
                 output += to_label("\teciaz", to_floating(results[elapsed][i].node.loc.pos.eci.a.col[2], 3));
-//                output += to_label("\tthetax", to_floating(results[elapsed][i].node.loc.att.icrf.s.d.x, 4));
-//                output += to_label("\tthetay", to_floating(results[elapsed][i].node.loc.att.icrf.s.d.y, 4));
-//                output += to_label("\tthetaz", to_floating(results[elapsed][i].node.loc.att.icrf.s.d.z, 4));
-//                output += to_label("\tthetaw", to_floating(results[elapsed][i].node.loc.att.icrf.s.w, 4));
-//                output += to_label("\tomegax", to_floating(results[elapsed][i].node.loc.att.icrf.v.col[0], 1));
-//                output += to_label("\tomegay", to_floating(results[elapsed][i].node.loc.att.icrf.v.col[1], 1));
-//                output += to_label("\tomegaz", to_floating(results[elapsed][i].node.loc.att.icrf.v.col[2], 1));
-//                output += to_label("\talphax", to_floating(results[elapsed][i].node.loc.att.icrf.a.col[0], 1));
-//                output += to_label("\talphay", to_floating(results[elapsed][i].node.loc.att.icrf.a.col[1], 1));
-//                output += to_label("\talphaz", to_floating(results[elapsed][i].node.loc.att.icrf.a.col[2], 1));
+                //                output += to_label("\tthetax", to_floating(results[elapsed][i].node.loc.att.icrf.s.d.x, 4));
+                //                output += to_label("\tthetay", to_floating(results[elapsed][i].node.loc.att.icrf.s.d.y, 4));
+                //                output += to_label("\tthetaz", to_floating(results[elapsed][i].node.loc.att.icrf.s.d.z, 4));
+                //                output += to_label("\tthetaw", to_floating(results[elapsed][i].node.loc.att.icrf.s.w, 4));
+                //                output += to_label("\tomegax", to_floating(results[elapsed][i].node.loc.att.icrf.v.col[0], 1));
+                //                output += to_label("\tomegay", to_floating(results[elapsed][i].node.loc.att.icrf.v.col[1], 1));
+                //                output += to_label("\tomegaz", to_floating(results[elapsed][i].node.loc.att.icrf.v.col[2], 1));
+                //                output += to_label("\talphax", to_floating(results[elapsed][i].node.loc.att.icrf.a.col[0], 1));
+                //                output += to_label("\talphay", to_floating(results[elapsed][i].node.loc.att.icrf.a.col[1], 1));
+                //                output += to_label("\talphaz", to_floating(results[elapsed][i].node.loc.att.icrf.a.col[2], 1));
                 output += to_label("\tpowerin", to_floating(results[elapsed][i].node.phys.powgen, 2));
                 output += to_label("\tpowerout", to_floating(results[elapsed][i].node.phys.powuse, 2));
                 results[elapsed][i].devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
@@ -346,8 +365,8 @@ int main(int argc, char *argv[])
                 output += to_label("\tmemory", to_floating(results[elapsed][i].devspec.cpu[0].gib / results[elapsed][i].devspec.cpu[0].maxgib, 3));
                 output += to_label("\tstorage", to_floating(results[elapsed][i].devspec.cpu[0].storage, 4));
                 cartpos delta = eci2lvlh(results[elapsed][0].node.loc.pos.eci, results[elapsed][i].node.loc.pos.eci);
-//                rvector ds = results[elapsed][i].node.loc.pos.eci.s - sim->cnodes[0]->currentinfo.node.loc.pos.eci.s;
-//                rvector dv = results[elapsed][i].node.loc.pos.eci.v - sim->cnodes[0]->currentinfo.node.loc.pos.eci.v;
+                //                rvector ds = results[elapsed][i].node.loc.pos.eci.s - sim->cnodes[0]->currentinfo.node.loc.pos.eci.s;
+                //                rvector dv = results[elapsed][i].node.loc.pos.eci.v - sim->cnodes[0]->currentinfo.node.loc.pos.eci.v;
                 output += to_label("\tdeltax", to_floating(delta.s.col[0], 2));
                 output += to_label("\tdeltay", to_floating(delta.s.col[1], 2));
                 output += to_label("\tdeltaz", to_floating(delta.s.col[2], 2));
@@ -357,103 +376,54 @@ int main(int argc, char *argv[])
                 printf("%s\n", output.c_str());
             }
         }
-//        if (printevent)
-//        {
-//            printf("\n");
-//            fflush(stdout);
-//        }
+        //        if (printevent)
+        //        {
+        //            printf("\n");
+        //            fflush(stdout);
+        //        }
         ++elapsed;
     }
 
 
-	// create position files for visualization
-	create_sat_eci_position_files();
-	create_sat_geoc_position_files();
-	create_target_eci_position_files();
-	create_target_geoc_position_files();
+    // create position files for visualization
+    create_sat_eci_position_files();
+    create_sat_geoc_position_files();
+    create_target_eci_position_files();
+    create_target_geoc_position_files();
 
-	// todo:  create attitude vector files (eci) for visualization
-	create_attitude_vector_files();
+    // todo:  create attitude vector files (eci) for visualization
+    create_attitude_vector_files();
 
 
-	// analyze results
-	//inspect_sim_targets(sim);
+    // analyze results
+    // note: the targets in sim are not the results, they are just the initial list, in order to populate the target vector of each sat's cosmosstruc
+    //	inspect_sim_targets(sim);
 
-	// look at coverage metrics
+    // look at coverage metrics
 
-	// see if any are non-zero
+    // see if any are non-zero
 
-	// for each sat
-	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
-		// for each target
-		for (size_t targ=0; targ<results[0][sat_num].target.size(); ++targ)   {
-			// for each time step
-			for (size_t t=0; t<results.size(); ++t)   {
-				if(results[t][sat_num].target[targ].vis.percent != 0)	{
-					cout<<"FOUND PERCENT!"<<endl;
+    // for each time step
+    for (size_t t=0; t<results.size(); ++t)	{
+    	// for each sat
+    	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
+			// for each target
+        	for (size_t targ=0; targ<results[0][sat_num].target.size(); ++targ)   {
+                if (results[t][sat_num].target[targ].cover.size())	{
+                    cout<<
+                        "sat #"<<sat_num<<
+                        ", target #"<<targ<<
+                        ", time = "<<t<<
+                        ",percent = "<<results[t][sat_num].target[targ].cover[0].percent<<
+                        ",area = "<<results[t][sat_num].target[targ].cover[0].area<<
+                        ",resolution = "<<results[t][sat_num].target[targ].cover[0].resolution<<
+                        ",specmin = "<<results[t][sat_num].target[targ].cover[0].specmin<<
+                        ",specmax = "<<results[t][sat_num].target[targ].cover[0].specmax<<
+                        ",azimuth = "<<results[t][sat_num].target[targ].cover[0].azimuth<<
+                        ",elevation = "<<results[t][sat_num].target[targ].cover[0].elevation<<
+                        endl;
 				}
-				if(results[t][sat_num].target[targ].vis.area != 0)	{
-					cout<<"FOUND AREA!"<<endl;
-					cout<<"sat #"<<sat_num<<", target #"<<targ<<", time = "<<t<<", area = "
-						<<results[t][sat_num].target[targ].vis.area<<endl;
-				}
-				//if(results[t][sat_num].target[targ].vis.resolution != 0)	{
-					//cout<<"FOUND RESOLUTION!"<<endl;
-				//}
-
-				//if(results[t][sat_num].target[targ].vis.specmin != 0)	{	cout<<"FOUND!"<<endl; }
-				//if(results[t][sat_num].target[targ].vis.specmax != 0)	{	cout<<"FOUND!"<<endl; }
-
-				if(results[t][sat_num].target[targ].vis.azimuth != 0)	{
-					cout<<"FOUND AZIMUTH!"<<endl;
-					cout<<"sat #"<<sat_num<<", target #"<<targ<<", time = "<<t<<", azimuth = "
-						<<results[t][sat_num].target[targ].vis.azimuth<<endl;
-				}
-
-				if(results[t][sat_num].target[targ].vis.elevation != 0)	{
-					// all elevation in cosmosstruc appear to be constant junk
-
-					//cout<<"FOUND ELEVATION!"<<endl;
-					//cout<<"sat #"<<sat_num<<", target #"<<targ<<", time = "<<t<<", elevation = "
-						//<<results[t][sat_num].target[targ].vis.elevation<<endl;
-				}
-
 			}
-		}
-	}
-
-	// print out quaternions
-	// for each sat
-	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
-		ofstream out;
-		// replace with your path
-		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".att");
-		if(out.is_open())   {
-			// for each time step
-			for (size_t t=1; t<results.size(); ++t)   {
-				cout<<"sat #"<<sat_num<<", time = "<<t<<", q = "
-					<<results[t][sat_num].node.loc.att.icrf.s.d.x<<","
-					<<results[t][sat_num].node.loc.att.icrf.s.d.y<<","
-					<<results[t][sat_num].node.loc.att.icrf.s.d.z<<","
-					<<results[t][sat_num].node.loc.att.icrf.s.w<<endl;
-				Quaternion Q(
-					results[t][sat_num].node.loc.att.icrf.s.d.x,
-					results[t][sat_num].node.loc.att.icrf.s.d.y,
-					results[t][sat_num].node.loc.att.icrf.s.d.z,
-					results[t][sat_num].node.loc.att.icrf.s.w
-				);
-				Vector V(1,0,0,0);
-				Vector R = Q.irotate(V);
-
-				out << std::fixed << std::setprecision(6);
-				out
-					<< R.x << ", "
-					<< R.y << ", "
-					<< R.z << ", "
-					<< 0 // utc
-					<< endl;
-			}
-			out.close();
 		}
 	}
 }
@@ -768,24 +738,24 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
     }
     // locstruc
     json11::Json jobj = json11::Json::object({
-        {"node_name", cinfo->node.name },
-        {"node_loc", json11::Json::object({
-            {"pos", json11::Json::object({
-                {"eci", json11::Json::object({
-                    { "utc", cinfo->node.loc.pos.eci.utc },
-                    { "s", cinfo->node.loc.pos.eci.s },
-                    { "v", cinfo->node.loc.pos.eci.v }
-                })}
-            })},
-            {"att", json11::Json::object({
-                {"icrf", json11::Json::object({
-                    { "utc", cinfo->node.loc.att.icrf.utc },
-                    { "s", cinfo->node.loc.att.icrf.s },
-                    { "v", cinfo->node.loc.att.icrf.v }
-                })}
-            })}
-        })},
-    });
+                                              {"node_name", cinfo->node.name },
+                                              {"node_loc", json11::Json::object({
+                                                               {"pos", json11::Json::object({
+                                                                           {"eci", json11::Json::object({
+                                                                                       { "utc", cinfo->node.loc.pos.eci.utc },
+                                                                                       { "s", cinfo->node.loc.pos.eci.s },
+                                                                                       { "v", cinfo->node.loc.pos.eci.v }
+                                                                                   })}
+                                                                       })},
+                                                               {"att", json11::Json::object({
+                                                                           {"icrf", json11::Json::object({
+                                                                                        { "utc", cinfo->node.loc.att.icrf.utc },
+                                                                                        { "s", cinfo->node.loc.att.icrf.s },
+                                                                                        { "v", cinfo->node.loc.att.icrf.v }
+                                                                                    })}
+                                                                       })}
+                                                           })},
+                                              });
     int32_t iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     if (iretn < 0) { return iretn; }
 
@@ -813,13 +783,13 @@ void reset_db(Physics::Simulator* sim)
         // Repopulate node table
         json11::Json jobj = json11::Json::object({
             {"node", json11::Json::object({
-                { "node_id", id },
-                { "node_name", (*sit)->currentinfo.node.name },
-                { "node_type", (*sit)->currentinfo.node.type },
-                { "agent_name", (*sit)->currentinfo.agent0.name },
-                { "utc", sim->currentutc },
-                { "utcstart", sim->initialutc }
-            })}
+                         { "node_id", id },
+                         { "node_name", (*sit)->currentinfo.node.name },
+                         { "node_type", (*sit)->currentinfo.node.type },
+                         { "agent_name", (*sit)->currentinfo.agent0.name },
+                         { "utc", sim->currentutc },
+                         { "utcstart", sim->initialutc }
+                     })}
         });
         socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     }

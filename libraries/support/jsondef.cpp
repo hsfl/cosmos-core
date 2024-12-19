@@ -100,6 +100,7 @@ namespace Cosmos
             add_name("event_cnt", &event_cnt, "uint16_t");
             add_name("event_tick", &event_tick, "double");
             add_name("target_cnt", &target_cnt, "uint16_t");
+            add_name("target_idx", &target_idx, "uint16_t");
             add_name("user_cnt", &user_cnt, "uint16_t");
             add_name("tle_cnt", &tle_cnt, "uint16_t");
             add_name("node.flags", &node.flags, "uint16_t");

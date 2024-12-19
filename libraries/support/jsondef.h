@@ -2009,10 +2009,11 @@ class sim_param	{
             gvector size = {0., 0., 0.};
             float area;
             float resolution;
-            Physics::coverage vis;
-            Physics::coverage swir;
-            Physics::coverage mwir;
-            Physics::coverage lwir;
+            vector <Physics::coverage> cover;
+//            Physics::coverage vis;
+//            Physics::coverage swir;
+//            Physics::coverage mwir;
+//            Physics::coverage lwir;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -5679,6 +5680,7 @@ union as a ::devicestruc.
             //! Vector of all targets known to node.
             vector<targetstruc> target;
             uint16_t target_cnt = 0;
+            uint16_t target_idx = -1;
 
             //! Single entry vector for user information.
             vector<userstruc> user;
@@ -7143,6 +7145,7 @@ union as a ::devicestruc.
                     { "event_cnt" , event_cnt },
                     { "event_tick" , event_tick },
                     { "target_cnt" , target_cnt },
+                    { "target_idx" , target_idx },
                     { "user_cnt" , user_cnt },
                     { "tle_cnt" , tle_cnt }
                 };
@@ -7168,6 +7171,7 @@ union as a ::devicestruc.
                     if(!p["event_cnt"].is_null())	{ event_cnt = p["event_cnt"].long_value(); }
                     if(!p["event_tick"].is_null())	{ event_tick = p["event_tick"].number_value(); }
                     if(!p["target_cnt"].is_null())	{ target_cnt = p["target_cnt"].long_value(); }
+                    if(!p["target_idx"].is_null())	{ target_idx = p["target_idx"].long_value(); }
                     if(!p["user_cnt"].is_null())	{ user_cnt = p["user_cnt"].long_value(); }
                     if(!p["tle_cnt"].is_null())	{ tle_cnt = p["tle_cnt"].long_value(); }
 

@@ -190,13 +190,31 @@ int32_t Simulator::ParseOrbitFile(string filename)
 {
     int32_t iretn = 0;
     string  line;
-    FILE *fp;
+    FILE *fp = nullptr;
     if (filename.empty())
     {
         filename = get_realmdir(realmname, true) + "/" + "orbit.dat";
+        fp = fopen(filename.c_str(), "r");
+        if (fp == nullptr)
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        fp = fopen(filename.c_str(), "r");
+        if (fp == nullptr)
+        {
+            filename = get_realmdir(realmname, true) + "/" + filename;
+            fp = fopen(filename.c_str(), "r");
+            if (fp == nullptr)
+            {
+                return -1;
+            }
+        }
     }
 
-    if ((fp = fopen(filename.c_str(), "r")) != nullptr)
+    if (fp != nullptr)
     {
         line.resize(1010);
         while (fgets((char *)line.data(), 1000, fp) != nullptr)
@@ -374,9 +392,27 @@ int32_t Simulator::ParseSatFile(string filename)
     if (filename.empty())
     {
         filename = get_realmdir(realmname, true) + "/" + "sats.dat";
+        fp = fopen(filename.c_str(), "r");
+        if (fp == nullptr)
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        fp = fopen(filename.c_str(), "r");
+        if (fp == nullptr)
+        {
+            filename = get_realmdir(realmname, true) + "/" + filename;
+            fp = fopen(filename.c_str(), "r");
+            if (fp == nullptr)
+            {
+                return -1;
+            }
+        }
     }
 
-    if ((fp = fopen(filename.c_str(), "r")) != nullptr)
+    if (fp != nullptr)
     {
         line.resize(1010);
         while (fgets((char *)line.data(), 1000, fp) != nullptr)
@@ -537,11 +573,11 @@ int32_t Simulator::ParseSatString(string args)
         }
         if (fastcalc)
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
         }
         else
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
         }
     }
     else
@@ -556,11 +592,11 @@ int32_t Simulator::ParseSatString(string args)
         }
         if (fastcalc)
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.tle, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.tle, initialloc.att.icrf);
         }
         else
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.pos.eci, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.pos.eci, initialloc.att.icrf);
         }
     }
 
@@ -661,26 +697,48 @@ int32_t Simulator::ParseSatString(string args)
 
 int32_t Simulator::ParseTargetFile(string filename)
 {
+    FILE *fp = nullptr;
     if (filename.empty())
     {
         filename = get_realmdir(realmname, true) + "/" + "targets.dat";
+        fp = fopen(filename.c_str(), "r");
+        if (fp == nullptr)
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        fp = fopen(filename.c_str(), "r");
+        if (fp == nullptr)
+        {
+            filename = get_realmdir(realmname, true) + "/" + filename;
+            fp = fopen(filename.c_str(), "r");
+            if (fp == nullptr)
+            {
+                return -1;
+            }
+        }
     }
 
-    std::ifstream file(filename);
-    if (!file.is_open()) { return -1; }
+    if (fp == nullptr)
+    {
+        return -1;
+    }
 
-    std::string line;
+    string line;
     int32_t iretn;
-    while (std::getline(file, line))
+    line.resize(510);
+    while (fgets((char *)line.data(), 500, fp) != nullptr)
     {
         iretn = ParseTargetString(line);
         if (iretn < 0)
         {
-            file.close();
+            fclose(fp);
             return iretn;
         }
     }
-    file.close();
+    fclose(fp);
     return targets.size();
 }
 
@@ -796,7 +854,7 @@ int32_t Simulator::ParseTargetString(string line)
 
         if (!data["radius"].is_null())
         {
-            targ.area = data["radius"].number_value();
+            targ.area = 100. * data["radius"].number_value();
             targ.area = M_PI * targ.area * targ.area;
         }
 
@@ -1134,6 +1192,7 @@ int32_t Simulator::Propagate(vector<vector<cosmosstruc> > &results, uint32_t run
     result.resize(cnodes.size());
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
+        update_metrics(&cnodes[i]->currentinfo);
         result[i].node = cnodes[i]->currentinfo.node;
         result[i].event = cnodes[i]->currentinfo.event;
         result[i].target = cnodes[i]->currentinfo.target;
@@ -1163,26 +1222,132 @@ int32_t Simulator::Target()
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
         update_target(&cnodes[i]->currentinfo);
-        cnodes[i]->targetidx = -1;
+        cnodes[i]->currentinfo.target_idx = -1;
         double targetrange = 1e9;
         for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
         {
-            bool taken = false;
-            for (uint16_t ii=i-1; ii<cnodes.size(); --ii)
+            if (cnodes[i]->currentinfo.target[j].elto > 0.087)
             {
-                if (cnodes[ii]->targetidx == j)
+                bool taken = false;
+                for (uint16_t ii=i-1; ii<cnodes.size(); --ii)
                 {
-                    taken = true;
+                    if (cnodes[ii]->currentinfo.target_idx == j)
+                    {
+                        taken = true;
+                    }
+                }
+                if (!taken && cnodes[i]->currentinfo.target[j].range < targetrange)
+                {
+                    if (targetrange == 1e9)
+                    {
+                        ++iretn;
+                    }
+                    targetrange = cnodes[i]->currentinfo.target[j].range;
+                    cnodes[i]->currentinfo.target_idx = j;
                 }
             }
-            if (!taken && cnodes[i]->currentinfo.target[j].range < targetrange)
+        }
+        if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
+        {
+            cnodes[i]->currentinfo.node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(cnodes[i]->currentinfo.node.loc.pos.geoc.s, cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.pos.geoc.s));
+            cnodes[i]->currentinfo.node.loc.att.geoc.v = rv_zero();
+            cnodes[i]->currentinfo.node.loc.att.geoc.a = rv_zero();
+            cnodes[i]->currentinfo.node.loc.att.geoc.pass++;
+            att_geoc(cnodes[i]->currentinfo.node.loc);
+        }
+        else
+        {
+            cnodes[i]->currentinfo.node.loc.att.lvlh.s = q_eye();
+            cnodes[i]->currentinfo.node.loc.att.lvlh.v = rv_zero();
+            cnodes[i]->currentinfo.node.loc.att.lvlh.a = rv_zero();
+            cnodes[i]->currentinfo.node.loc.att.lvlh.utc = currentutc;
+            cnodes[i]->currentinfo.node.loc.att.lvlh.pass++;
+            att_lvlh(cnodes[i]->currentinfo.node.loc);
+        }
+    }
+    return iretn;
+}
+
+int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
+{
+    int32_t iretn = 0;
+    for (uint32_t tstep=0; tstep<results.size(); ++tstep)
+    {
+        for (uint16_t i=0; i<results[tstep].size(); ++i)
+        {
+            update_target(&results[tstep][i]);
+            results[tstep][i].target_idx = -1;
+            double targetrange = 1e9;
+            for (uint16_t j=0; j<results[tstep][i].target.size(); ++j)
             {
-                if (targetrange == 1e9)
+                if (results[tstep][i].target[j].elto > 0.087)
                 {
-                    ++iretn;
+                    bool taken = false;
+                    for (uint16_t ii=i-1; ii<results[tstep].size(); --ii)
+                    {
+                        if (results[tstep][ii].target_idx == j)
+                        {
+                            taken = true;
+                        }
+                    }
+                    if (!taken && results[tstep][i].target[j].range < targetrange)
+                    {
+                        if (targetrange == 1e9)
+                        {
+                            ++iretn;
+                        }
+                        targetrange = results[tstep][i].target[j].range;
+                        results[tstep][i].target_idx = j;
+                    }
                 }
-                targetrange = cnodes[i]->currentinfo.target[j].range;
-                cnodes[i]->targetidx = j;
+            }
+            if (results[tstep][i].target_idx < results[tstep][i].target.size())
+            {
+                results[tstep][i].node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(results[tstep][i].node.loc.pos.geoc.s, results[tstep][i].target[results[tstep][i].target_idx].loc.pos.geoc.s));
+                results[tstep][i].node.loc.att.geoc.v = rv_zero();
+                results[tstep][i].node.loc.att.geoc.a = rv_zero();
+                results[tstep][i].node.loc.att.geoc.pass++;
+                att_geoc(results[tstep][i].node.loc);
+            }
+            else
+            {
+                results[tstep][i].node.loc.att.lvlh.s = q_eye();
+                results[tstep][i].node.loc.att.lvlh.v = rv_zero();
+                results[tstep][i].node.loc.att.lvlh.a = rv_zero();
+                results[tstep][i].node.loc.att.lvlh.utc = currentutc;
+                results[tstep][i].node.loc.att.lvlh.pass++;
+                att_lvlh(results[tstep][i].node.loc);
+            }
+        }
+    }
+    return iretn;
+}
+
+int32_t Simulator::Metric()
+{
+    int32_t iretn = 0;
+    for (uint16_t i=0; i<cnodes.size(); ++i)
+    {
+        iretn = update_metrics(&cnodes[i]->currentinfo);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+    return iretn;
+}
+
+int32_t Simulator::Metric(vector<vector<cosmosstruc> > &results)
+{
+    int32_t iretn = 0;
+    for (uint16_t tstep=0; tstep<results.size(); ++tstep)
+    {
+        for (uint16_t i=0; i<results[tstep].size(); ++i)
+        {
+            iretn = update_metrics(&results[tstep][i]);
+            if (iretn < 0)
+            {
+                return iretn;
             }
         }
     }

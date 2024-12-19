@@ -1623,6 +1623,14 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
         att_lvlh(currentinfo.node.loc);
         break;
     }
+    case Propagator::Type::AttitudeRequest:
+    {
+        requestattitude = new RequestAttitudePropagator(&currentinfo, dt);
+        currentinfo.node.loc.att.icrf = currentinfo.node.loc_req.att.icrf;
+        currentinfo.node.loc.att.icrf.pass++;
+        att_icrf(currentinfo.node.loc);
+        break;
+    }
     default:
     {
         inattitude = new InertialAttitudePropagator(&currentinfo, dt);
@@ -1844,12 +1852,13 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
         lvattitude->Init();
         break;
     case Propagator::Type::AttitudeTarget:
-    {
         targetattitude = new TargetAttitudePropagator(&currentinfo, dt);
-        //        lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
         targetattitude->Init();
-    }
-    break;
+        break;
+    case Propagator::Type::AttitudeRequest:
+        requestattitude = new RequestAttitudePropagator(&currentinfo, dt);
+        requestattitude->Init();
+        break;
     default:
         inattitude = new InertialAttitudePropagator(&currentinfo, dt);
         inattitude->Init();
@@ -1914,6 +1923,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
 
 int32_t State::Propagate(double nextutc)
 {
+    int32_t iretn;
     int32_t count = 0;
     if (nextutc == 0.)
     {
@@ -1997,6 +2007,9 @@ int32_t State::Propagate(double nextutc)
             // Update again at end after currentinfo->target update
             static_cast<TargetAttitudePropagator *>(targetattitude)->Propagate(nextutc);
             break;
+        case Propagator::Type::AttitudeRequest:
+            static_cast<RequestAttitudePropagator *>(requestattitude)->Propagate(nextutc);
+            break;
         default:
             break;
         }
@@ -2007,10 +2020,18 @@ int32_t State::Propagate(double nextutc)
             orbitalevent->Propagate(nextutc);
         }
 
-        // Metric propagator
-        if (metric != nullptr)
+        //    if (metric != nullptr)
+        //    {
+        //        iretn = metric->Propagate(currentinfo.node.utc);
+        //        if (iretn < 0)
+        //        {
+        //            return iretn;
+        //        }
+        //    }
+        iretn = update_metrics(&currentinfo);
+        if (iretn < 0)
         {
-            metric->Propagate(nextutc);
+            return iretn;
         }
 
         // Update time
@@ -2022,6 +2043,7 @@ int32_t State::Propagate(double nextutc)
 
 int32_t State::Propagate(locstruc &loc)
 {
+    int32_t iretn;
     int32_t count = 0;
     double nextutc = loc.utc;
     PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
@@ -2101,6 +2123,9 @@ int32_t State::Propagate(locstruc &loc)
         // Update again at end after currentinfo->target update
         static_cast<TargetAttitudePropagator *>(targetattitude)->Propagate(nextutc);
         break;
+    case Propagator::Type::AttitudeRequest:
+        static_cast<RequestAttitudePropagator *>(requestattitude)->Propagate(nextutc);
+        break;
     default:
         break;
     }
@@ -2112,15 +2137,68 @@ int32_t State::Propagate(locstruc &loc)
     }
 
     // Metric propagator
-    if (metric != nullptr)
+    //    if (metric != nullptr)
+    //    {
+    //        iretn = metric->Propagate(currentinfo.node.utc);
+    //        if (iretn < 0)
+    //        {
+    //            return iretn;
+    //        }
+    //    }
+    iretn = update_metrics(&currentinfo);
+    if (iretn < 0)
     {
-        metric->Propagate(nextutc);
+        return iretn;
     }
 
     // Update time
     currentinfo.node.utc += dtj;
     ++count;
     return count;
+}
+
+int32_t State::Update()
+{
+    int32_t iretn;
+
+    iretn = PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    iretn = update_target(&currentinfo);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    // Orbital event propagator
+    if (orbitalevent != nullptr)
+    {
+        iretn = orbitalevent->Propagate(currentinfo.node.utc);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+
+    // Metric propagator
+//    if (metric != nullptr)
+//    {
+//        iretn = metric->Propagate(currentinfo.node.utc);
+//        if (iretn < 0)
+//        {
+//            return iretn;
+//        }
+//    }
+    iretn = update_metrics(&currentinfo);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    return 0;
 }
 
 int32_t State::End()
@@ -2143,71 +2221,6 @@ int32_t State::Reset(double nextutc)
 
     return iretn;
 }
-
-//int32_t State::AddTarget(std::string name, locstruc loc, NODE_TYPE type, gvector size)
-//{
-//    targetstruc ttarget;
-//    ttarget.type = type;
-//    ttarget.name = name;
-//    ttarget.cloc = loc;
-//    ttarget.area = 0.;
-//    ttarget.size = size;
-//    ttarget.loc = loc;
-
-//    currentinfo.target.push_back(ttarget);
-//    return currentinfo.target.size();
-//}
-
-//int32_t State::AddTarget(std::string name, locstruc loc, NODE_TYPE type, double area)
-//{
-//    targetstruc ttarget;
-//    ttarget.type = type;
-//    ttarget.name = name;
-//    ttarget.cloc = loc;
-//    ttarget.size = gvector();
-//    ttarget.area  = area;
-//    ttarget.loc = loc;
-
-//    currentinfo.target.push_back(ttarget);
-//    return currentinfo.target.size();
-//}
-
-//int32_t State::AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type)
-//{
-//    return AddTarget(name, lat, lon, DPI * 1e6, alt, type);
-//}
-
-//int32_t State::AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type)
-//{
-//    locstruc loc;
-//    loc.pos.geod.pass = 1;
-//    loc.pos.geod.utc = currentinfo.node.utc;
-//    loc.pos.geod.s.lat = lat;
-//    loc.pos.geod.s.lon = lon;
-//    loc.pos.geod.s.h = alt;
-//    loc.pos.geod.v = gv_zero();
-//    loc.pos.geod.a = gv_zero();
-//    loc.pos.geod.pass++;
-//    pos_geod(loc);
-//    return AddTarget(name, loc, type, area);
-//}
-
-//int32_t State::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type)
-//{
-//    locstruc loc;
-//    loc.pos.geod.pass = 1;
-//    loc.pos.geod.utc = currentinfo.node.utc;
-//    loc.pos.geod.s.lat = (ullat + lrlat) / 2.;
-//    loc.pos.geod.s.lon = (ullon + lrlon) / 2.;
-//    loc.pos.geod.s.h = alt;
-//    loc.pos.geod.v = gv_zero();
-//    loc.pos.geod.a = gv_zero();
-//    //            gvector size(ullat-lrlat, lrlon-ullon, 0.);
-//    loc.pos.geod.pass++;
-//    pos_geod(loc);
-//    double area = (ullat-lrlat) * (cos(lrlon) * lrlon - cos(ullon) * ullon) * REARTHM * REARTHM;
-//    return AddTarget(name, loc, type, area);
-//}
 
 int32_t InertialAttitudePropagator::Init()
 {
@@ -2414,52 +2427,13 @@ int32_t TargetAttitudePropagator::Init()
 
 int32_t TargetAttitudePropagator::Propagate(double nextutc)
 {
-    const double range_limit = 3000000.;
-    double range = range_limit;
-    // Closest target
-    targetstruc ctarget;
-    for (targetstruc target : currentinfo->target)
+    if (currentinfo->target_idx < currentinfo->target.size())
     {
-        if (target.elto > 0 && target.range < range)
-        {
-            range = target.range;
-            ctarget = target;
-        }
-    }
-    if (nextutc == 0.)
-    {
-        nextutc = currentutc + dtj;
-    }
-    currentutc = nextutc;
-    if (range < range_limit)
-    {
-        rvector targ = ctarget.loc.pos.geoc.s - currentinfo->node.loc.pos.geoc.s;
-        quaternion qt = q_drotate_between_rv(rv_unitz(1.), targ);
-        currentinfo->node.loc.att.geoc.s = qt;
-        currentinfo->node.loc.att.geoc.pass++;
-        att_geoc(currentinfo->node.loc);
-        //        cartpos cpointing;
-        //        cpointing.s = drotate(currentinfo->node.loc.att.geoc.s, rv_unitz(-currentinfo->node.loc.pos.geod.s.h));
-        //        double angle = sep_rv(cpointing.s, -currentinfo->node.loc.pos.geoc.s);
-        //        cpointing.s = cpointing.s / cos(angle);
-        //        cpointing.s += currentinfo->node.loc.pos.geoc.s;
-        //        geoidpos gpointing;
-        //        geoc2geod(cpointing, gpointing);
-        //        double sep;
-        //        geod2sep(gpointing.s, ctarget.loc.pos.geod.s, sep);
-        //        double sep2 = sep * sep;
-
-        //        // +Z vector in rotated frame
-        //        Vector eci_z = Vector(rv_sub(ctarget.loc.pos.eci.s, currentinfo->node.loc.pos.eci.s));
-        //        // Desired Y is cross product of Desired Z and velocity vector
-        //        Vector eci_y = eci_z.cross(Vector(currentinfo->node.loc.pos.eci.v));
-
-        //        currentinfo->node.loc.att.topo.s = q_fmult(q_change_around_x(ctarget.elto),q_change_around_z(ctarget.azto));
-        //        currentinfo->node.loc.att.topo.v = rv_zero();
-        //        currentinfo->node.loc.att.topo.a = rv_zero();
-        //        currentinfo->node.loc.att.topo.utc = currentutc;
-        //        currentinfo->node.loc.att.topo.pass++;
-        //        att_topo(currentinfo->node.loc);
+        currentinfo->node.loc_req.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(currentinfo->node.loc.pos.geoc.s, currentinfo->target[currentinfo->target_idx].loc.pos.geoc.s));
+        currentinfo->node.loc_req.att.geoc.v = rv_zero();
+        currentinfo->node.loc_req.att.geoc.a = rv_zero();
+        currentinfo->node.loc_req.att.geoc.pass++;
+        att_geoc(currentinfo->node.loc_req);
     }
     else
     {
@@ -2470,13 +2444,30 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
         currentinfo->node.loc.att.lvlh.pass++;
         att_lvlh(currentinfo->node.loc);
     }
-    //    currentinfo->node.loc.att.icrf.pass++;
-    //    att_icrf(currentinfo->node.loc);
     AttAccel(currentinfo->node.loc, currentinfo->node.phys);
     return 0;
 }
 
 int32_t TargetAttitudePropagator::Reset(double nextutc)
+{
+    return 0;
+}
+
+int32_t RequestAttitudePropagator::Init()
+{
+    return 0;
+}
+
+int32_t RequestAttitudePropagator::Propagate(double nextutc)
+{
+    currentinfo->node.loc.att.icrf = currentinfo->node.loc_req.att.icrf;
+    currentinfo->node.loc.att.icrf.pass++;
+    att_icrf(currentinfo->node.loc);
+    AttAccel(currentinfo->node.loc, currentinfo->node.phys);
+    return 0;
+}
+
+int32_t RequestAttitudePropagator::Reset(double nextutc)
 {
     return 0;
 }
@@ -2803,33 +2794,24 @@ int32_t MetricGenerator::Propagate(double nextutc)
     }
 
     //    bool printed = false;
-    for (uint16_t it=0; it<currentinfo->target.size(); ++it)
+    for (uint16_t id=0; id<currentinfo->devspec.cam.size(); ++id)
     {
-        if (currentinfo->target[it].elto > 0.175)
+        double h = currentinfo->node.loc.pos.geod.s.h;
+        double nadirradius = h * currentinfo->devspec.cam[id].fov / 2.;
+        cartpos cpointing;
+        sat2geoc(currentinfo->devspec.cam[id].los, currentinfo->node.loc, cpointing.s);
+        geoidpos gpointing;
+        geoc2geod(cpointing, gpointing);
+        for (uint16_t it=0; it<currentinfo->target.size(); ++it)
         {
-            for (uint16_t id=0; id<currentinfo->devspec.cam.size(); ++id)
+            currentinfo->target[it].cover.clear();
+            // Must be at least 5 degrees
+            if (currentinfo->target[it].elto > 0.087)
             {
-                double h = currentinfo->node.loc.pos.geod.s.h;
-//                double h2 = h * h;
-                double nadirradius = h * currentinfo->devspec.cam[id].fov / 2.;
-//                cartpos cpointing;
-//                cpointing.s = drotate(currentinfo->node.loc.att.geoc.s, currentinfo->devspec.cam[id].los);
-//                double angle = sep_rv(cpointing.s, -currentinfo->node.loc.pos.geoc.s);
-//                double t1a = tan(angle);
-//                double t2a = t1a * t1a;
-//                double t4a = t2a * t2a;
-//                double r = Rearth(currentinfo->node.loc.pos.geod.s.lat);
-//                double s1a = sin(angle);
-//                double s2a = s1a * s1a;
-//                double r1p = (r + h) * s1a + sqrt((r * r + 2 * r * h + h2) * s2a - (2 * r * h + h2));
-//                double r1m = (r + h) * s1a - sqrt((r * r + 2 * r * h + h2) * s2a - (2 * r * h + h2));
-//                cpointing.s = cpointing.s * r1m;
-//                cpointing.s += currentinfo->node.loc.pos.geoc.s;
-                cartpos cpointing;
-                sat2geoc(currentinfo->devspec.cam[id].los, currentinfo->node.loc, cpointing.s);
-                geoidpos gpointing;
-                geoc2geod(cpointing, gpointing);
-                coverage[it][id].area = 0.;
+                Physics::coverage cover;
+                cover.specmin = currentinfo->devspec.cam[id].specmin;
+                cover.specmax = currentinfo->devspec.cam[id].specmax;
+                cover.area = 0.;
                 double dr = nadirradius / sin(currentinfo->target[it].elto);
                 double dr2 = dr * dr;
                 double sep;
@@ -2839,29 +2821,30 @@ int32_t MetricGenerator::Propagate(double nextutc)
                 double tr2 = tr * tr;
                 if (sep < dr + tr)
                 {
-                    coverage[it][id].elevation = currentinfo->target[it].elto;
-                    coverage[it][id].azimuth = currentinfo->target[it].azto;
-                    coverage[it][id].resolution = currentinfo->target[it].range * currentinfo->devspec.cam[id].ifov;
-                    coverage[it][id].specmin = currentinfo->devspec.cam[id].specmin;
-                    coverage[it][id].specmax = currentinfo->devspec.cam[id].specmax;
+                    cover.elevation = currentinfo->target[it].elto;
+                    cover.azimuth = currentinfo->target[it].azto;
+                    cover.resolution = currentinfo->target[it].range * currentinfo->devspec.cam[id].ifov;
+                    cover.specmin = currentinfo->devspec.cam[id].specmin;
+                    cover.specmax = currentinfo->devspec.cam[id].specmax;
                     if (sep > fabs(tr - dr))
                     {
-                        coverage[it][id].area = dr2 * acos((sep2 + dr2 - tr2) / (2 * sep * dr)) + tr2 * acos((sep2 + tr2 - dr2) / (2 * sep * tr));
-                        coverage[it][id].area -= sqrt((-sep + tr + dr) * (sep + tr - dr) * (sep - tr + dr) * (sep + tr + dr)) / 2.;
-                        coverage[it][id].area *= sin(currentinfo->target[it].elto);
+                        cover.area = dr2 * acos((sep2 + dr2 - tr2) / (2 * sep * dr)) + tr2 * acos((sep2 + tr2 - dr2) / (2 * sep * tr));
+                        cover.area -= sqrt((-sep + tr + dr) * (sep + tr - dr) * (sep - tr + dr) * (sep + tr + dr)) / 2.;
+                        cover.area *= sin(currentinfo->target[it].elto);
                     }
                     else
                     {
-                        coverage[it][id].area = dr < tr ? DPI * dr2 * sin(currentinfo->target[it].elto) : currentinfo->target[it].area;
+                        cover.area = dr < tr ? DPI * dr2 * sin(currentinfo->target[it].elto) : currentinfo->target[it].area;
                     }
-                    if (coverage[it][id].area < currentinfo->target[it].area)
+                    if (cover.area < currentinfo->target[it].area)
                     {
-                        coverage[it][id].percent = coverage[it][id].area / currentinfo->target[it].area;
+                        cover.percent = cover.area / currentinfo->target[it].area;
                     }
                     else
                     {
-                        coverage[it][id].percent = 1.;
+                        cover.percent = 1.;
                     }
+                    currentinfo->target[it].cover.push_back(cover);
                 }
             }
         }
