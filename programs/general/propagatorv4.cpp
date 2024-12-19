@@ -162,7 +162,8 @@ void create_attitude_vector_files()	{
                     results[t][sat_num].node.loc.att.icrf.s.d.z,
                     results[t][sat_num].node.loc.att.icrf.s.w
                 );
-                Vector V(1,0,0,0);
+				// this is the vector pointing toward the earth in the body frame
+                Vector V(0,-1,0,0);
                 Vector R = Q.irotate(V);
 
                 out << std::fixed << std::setprecision(6);
