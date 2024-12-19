@@ -237,6 +237,7 @@ int32_t Simulator::ParseOrbitString(string args)
             fastcalc = false;
         }
     }
+	// JIMNOTE: this is the path
     if (!jargs["phys"].is_null())
     {
         ++argcount;
@@ -268,14 +269,15 @@ int32_t Simulator::ParseOrbitString(string args)
         double initiallon = RADOF(-157.8583);
         double initialalt = 400000.;
         double initialangle = RADOF(54.);
+		// JIMNOTE: need checks for existence?
         initiallat = RADOF(values["lat"].number_value());
         initiallon = RADOF(values["lon"].number_value());
         initialalt = values["alt"].number_value();
         initialangle = RADOF(values["angle"].number_value());
-       initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
+        initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     }
     if (!jargs["eci"].is_null())
-    {
+	{
         ++argcount;
         json11::Json::object values = jargs["eci"].object_items();
         initialloc.pos.eci.utc = (values["utc"].number_value());
@@ -409,7 +411,6 @@ int32_t Simulator::ParseSatString(string args)
     uint16_t nodetype = NODE_TYPE_SATELLITE;
     vector<camstruc> dets;
     locstruc satloc;
-    cartpos lvlh;
     string estring;
     json11::Json jargs = json11::Json::parse(args, estring);
     if (!jargs["type"].is_null())
@@ -498,16 +499,29 @@ int32_t Simulator::ParseSatString(string args)
         }
         else
         {
+			// this is mothership position
             satloc = initialloc;
         }
-        satloc.pos.lvlh.s.col[0] = values["r"].number_value();
-        satloc.pos.lvlh.s.col[1] = values["i"].number_value();
-        satloc.pos.lvlh.s.col[2] = values["c"].number_value();
-        satloc.pos.lvlh.v.col[0] = values["vr"].number_value();
-        satloc.pos.lvlh.v.col[1] = values["vi"].number_value();
-        satloc.pos.lvlh.v.col[2] = values["vc"].number_value();
-        ric2lvlh(satloc.pos.lvlh, satloc.pos.lvlh);
-        lvlh.pass++;
+		//cout<<"motherloc = "<<satloc.pos.eci.s<<","<<satloc.pos.eci.utc<<endl;
+
+        double R = values["r"].number_value();
+		double I = values["i"].number_value();
+        double C = values["c"].number_value();
+        //double VR = values["vr"].number_value();
+		//double VI = values["vi"].number_value();
+        //double VC = values["vc"].number_value();
+
+		cartpos origin = satloc.pos.eci;
+		cartpos result;
+		// check return code (!)
+		ric2eci(origin, rvector(R,I,C), result);
+		//cout<<"childloc = "<<result.s<<","<<result.utc<<endl;
+
+		// now convert eci to lvlh!
+
+		satloc.pos.lvlh = eci2lvlh(origin, result);
+		// now same as lvlh case
+	    satloc.pos.lvlh.pass++;
         pos_origin2lvlh(satloc);
         eci2tle2(satloc.pos.eci, satloc.tle);
     }
