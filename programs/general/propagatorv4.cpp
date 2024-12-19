@@ -377,7 +377,7 @@ int main(int argc, char *argv[])
 
 
 	// analyze results
-	inspect_sim_targets(sim);
+	//inspect_sim_targets(sim);
 
 	// look at coverage metrics
 
@@ -419,6 +419,41 @@ int main(int argc, char *argv[])
 				}
 
 			}
+		}
+	}
+
+	// print out quaternions
+	// for each sat
+	for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
+		ofstream out;
+		// replace with your path
+		out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".att");
+		if(out.is_open())   {
+			// for each time step
+			for (size_t t=1; t<results.size(); ++t)   {
+				cout<<"sat #"<<sat_num<<", time = "<<t<<", q = "
+					<<results[t][sat_num].node.loc.att.icrf.s.d.x<<","
+					<<results[t][sat_num].node.loc.att.icrf.s.d.y<<","
+					<<results[t][sat_num].node.loc.att.icrf.s.d.z<<","
+					<<results[t][sat_num].node.loc.att.icrf.s.w<<endl;
+				Quaternion Q(
+					results[t][sat_num].node.loc.att.icrf.s.d.x,
+					results[t][sat_num].node.loc.att.icrf.s.d.y,
+					results[t][sat_num].node.loc.att.icrf.s.d.z,
+					results[t][sat_num].node.loc.att.icrf.s.w
+				);
+				Vector V(1,0,0,0);
+				Vector R = Q.irotate(V);
+
+				out << std::fixed << std::setprecision(6);
+				out
+					<< R.x << ", "
+					<< R.y << ", "
+					<< R.z << ", "
+					<< 0 // utc
+					<< endl;
+			}
+			out.close();
 		}
 	}
 }

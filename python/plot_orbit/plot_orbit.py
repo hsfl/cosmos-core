@@ -232,10 +232,13 @@ def animate(i):
         att_lines[k].set_data([sat_x, sat_x + att_x*scale], [sat_y, sat_y + att_y*scale])
         att_lines[k].set_3d_properties([sat_z, sat_z + att_z*scale])
 
-        # this quick hack/test just draws to the center of the earth based on satellite position
-        #scale = 1.0
+        # this quick improved hack/test just draws to the surface of the earth based on satellite position
+        #scale = 500/6371 
         #att_lines[k].set_data([sat_x, 0], [sat_y, 0])
         #att_lines[k].set_3d_properties([sat_z, 0])
+        #att_lines[k].set_data([sat_x, sat_x*(1-scale)], [sat_y, sat_y*(1-scale)])
+        #att_lines[k].set_3d_properties([sat_z, sat_z*(1-scale)])
+
 
     # Update the slider position
     frame_slider.set_val(i)
