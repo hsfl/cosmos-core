@@ -40,7 +40,7 @@ DeviceDisk deviceDisk;
 
 vector<vector<cosmosstruc>> results;
 
-// output sat positions for visualization
+// output sat positions for visualization (ECI)
 void create_sat_eci_position_files()	{
     for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
         ofstream out;
@@ -63,7 +63,7 @@ void create_sat_eci_position_files()	{
     return;
 }
 
-// output sat positions for visualization
+// output sat positions for visualization (GEOC)
 void create_sat_geoc_position_files()	{
     for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)	{
         ofstream out;
@@ -86,7 +86,7 @@ void create_sat_geoc_position_files()	{
     return;
 }
 
-// output target positions for visualization
+// output target positions for visualization (ECI)
 void create_target_eci_position_files()	{
     // just using target for mothership for now
     size_t s = 0;
@@ -112,7 +112,7 @@ void create_target_eci_position_files()	{
     return;
 }
 
-// output target positions for visualization
+// output target positions for visualization (GEOC)
 void create_target_geoc_position_files()	{
     // just using target for mothership for now
     size_t s = 0;
@@ -138,11 +138,11 @@ void create_target_geoc_position_files()	{
     return;
 }
 
-// output attitude vectors for visualization
+// output attitude vectors for visualization (ECI)
 void create_attitude_vector_files()	{
 
-    // print out quaternions
-    // for each sat
+	// print out quaternions
+	// for each sat
     for (size_t sat_num=0; sat_num<results[0].size(); ++sat_num)    {
         ofstream out;
         // replace with your path
@@ -180,19 +180,80 @@ void create_attitude_vector_files()	{
     return;
 }
 
-// print target names and data from sim->targets
-void inspect_sim_targets(Physics::Simulator* sim)	{
+size_t number_of_targets_observed(
+	vector<vector<cosmosstruc>>& results,
+	vector<size_t>& sat_nums,
+	vector<size_t>& target_nums,
+	size_t start_timestep=0,
+	size_t stop_timestep=runcount-1
+)
+{
+	vector<bool> target_observed(target_nums.size(), false);
 
-    for(const auto& pair : sim->targets)	{
-        cout<<"Target name = "<<pair.first<<", "
-             <<"area = "<<pair.second.cover[0].area<<", "
-             <<"percent = "<<pair.second.cover[0].percent<<", "
-             <<"azimuth = "<<pair.second.cover[0].azimuth<<", "
-             <<"elevation = "<<pair.second.cover[0].elevation
-             <<endl;
-    }
-    return;
+	// for each sat
+	for (size_t sat_num : sat_nums)	{
+		// for each time step
+		for (size_t t=start_timestep; t<=stop_timestep; ++t)	{
+			// for each target
+			for (size_t target_num : target_nums)	{
+				// if observed
+				if(!results[t][sat_num].target[target_num].cover.empty()) {
+					// note that it has been observed
+					target_observed[target_num] = true;
+				}
+			}
+		}
+	}
+	// count all targets that have been observed
+	size_t targets_observed = 0;
+	for(bool target : target_observed)	{
+		if(target)	targets_observed++;
+	}
+	return targets_observed;
 }
+
+
+// extract simulation results from results
+void extract_results(
+	string filename,
+	vector<vector<cosmosstruc>>& results,
+	vector<size_t>& sat_nums,
+	vector<size_t>& target_nums,
+	size_t start_timestep=0,
+	size_t stop_timestep=runcount-1
+)
+{
+
+	std::cout << std::fixed << std::setprecision(7);
+
+
+	if(sat_nums.empty())	return;
+
+	// check the ranges of the sat indices
+	// check the ranges of the target indices
+
+	// try to open file
+
+
+	// for each sat
+	for (size_t sat_num : sat_nums)	{
+		// for each time step
+		for (size_t t=start_timestep; t<=stop_timestep; ++t)	{
+			// for each target
+			for (size_t target_num : target_nums)	{
+				if(!results[t][sat_num].target[target_num].cover.empty()) {
+					cout<<"sat num = "<<sat_num<<", ";
+					cout<<"target num = "<<target_num<<", ";
+					cout<<"t = "<<t<<", ";
+					cout<<"cover[0].percent == "<<results[t][sat_num].target[target_num].cover[0].percent<<endl;
+				}
+			}
+		}
+	}
+
+	return;
+}
+
 
 // For cosmos web
 socket_channel cosmos_web_telegraf_channel, cosmos_web_api_channel;
@@ -396,8 +457,6 @@ int main(int argc, char *argv[])
 
 
     // analyze results
-    // note: the targets in sim are not the results, they are just the initial list, in order to populate the target vector of each sat's cosmosstruc
-    //	inspect_sim_targets(sim);
 
     // look at coverage metrics
 
@@ -426,6 +485,21 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+
+	vector<size_t> sat_nums;
+	sat_nums.push_back(0);
+	sat_nums.push_back(1);
+	//sat_nums.push_back(2);
+	//sat_nums.push_back(3);
+	sat_nums.push_back(4);
+
+	vector<size_t> target_nums;
+	for(size_t target_num = 0; target_num < 35; ++target_num)	{
+		target_nums.push_back(target_num);
+	}
+
+	extract_results("somefilename", results, sat_nums, target_nums);
+	cout<<"number of targets observed = "<<number_of_targets_observed(results, sat_nums, target_nums)<<endl;
 }
 
 int32_t parse_control(string args)
