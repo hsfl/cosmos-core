@@ -231,7 +231,6 @@ void extract_results(
 )
 {
 
-	std::cout << std::fixed << std::setprecision(7);
 
 
 	if(sat_nums.empty())	return;
@@ -239,25 +238,29 @@ void extract_results(
 	// check the ranges of the sat indices
 	// check the ranges of the target indices
 
+	ofstream out;
 	// try to open file
+	out.open(filename);
+	if(out.is_open())   {
 
-
-	// for each sat
-	for (size_t sat_num : sat_nums)	{
-		// for each time step
-		for (size_t t=start_timestep; t<=stop_timestep; ++t)	{
-			// for each target
-			for (size_t target_num : target_nums)	{
-				if(!results[t][sat_num].target[target_num].cover.empty()) {
-					cout<<"sat num = "<<sat_num<<", ";
-					cout<<"target num = "<<target_num<<", ";
-					cout<<"t = "<<t<<", ";
-					cout<<"cover[0].percent == "<<results[t][sat_num].target[target_num].cover[0].percent<<endl;
+		// for each sat
+		for (size_t sat_num : sat_nums)	{
+			// for each time step
+			for (size_t t=start_timestep; t<=stop_timestep; ++t)	{
+				// for each target
+				for (size_t target_num : target_nums)	{
+					if(!results[t][sat_num].target[target_num].cover.empty()) {
+						out << std::fixed << std::setprecision(7);
+						out<<"sat num = "<<sat_num<<", ";
+						out<<"target num = "<<target_num<<", ";
+						out<<"t = "<<t<<", ";
+						out<<"cover[0].percent == "<<results[t][sat_num].target[target_num].cover[0].percent<<endl;
+					}
 				}
 			}
 		}
+		out.close();
 	}
-
 	return;
 }
 
@@ -505,7 +508,7 @@ int main(int argc, char *argv[])
 		target_nums.push_back(target_num);
 	}
 
-	extract_results(results, sat_nums, target_nums);
+	extract_results(results, sat_nums, target_nums, "/home/user/cosmos/source/core/python/plot_orbit/sttr/result_dat.csv");
 	cout<<"number of targets observed = "<<number_of_targets_observed(results, sat_nums, target_nums)<<endl;
 	vector<size_t> target_indices = indices_of_targets_observed(results, sat_nums, target_nums);
 	for(size_t i : target_indices)	{
