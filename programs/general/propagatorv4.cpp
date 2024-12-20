@@ -148,14 +148,8 @@ void create_attitude_vector_files()	{
         // replace with your path
         out.open("/home/user/cosmos/source/core/python/plot_orbit/sttr/sat_"+std::to_string(sat_num)+".att");
         if(out.is_open())   {
-            // for each time step
-            // start at time = 1 so file lines = runcount
+            // for each time step // start at time = 1 so file lines = runcount
             for (size_t t=1; t<results.size(); ++t)   {
-                //cout<<"sat #"<<sat_num<<", time = "<<t<<", q = "
-                    //<<results[t][sat_num].node.loc.att.icrf.s.d.x<<","
-                    //<<results[t][sat_num].node.loc.att.icrf.s.d.y<<","
-                    //<<results[t][sat_num].node.loc.att.icrf.s.d.z<<","
-                    //<<results[t][sat_num].node.loc.att.icrf.s.w<<endl; // debug
                 Quaternion Q(
                     results[t][sat_num].node.loc.att.icrf.s.d.x,
                     results[t][sat_num].node.loc.att.icrf.s.d.y,
@@ -226,11 +220,12 @@ size_t number_of_targets_observed(
 }
 
 // extract simulation results from results
+// todo: fix this to be more generic...
 void extract_results(
-	string filename,
 	vector<vector<cosmosstruc>>& results,
 	vector<size_t>& sat_nums,
 	vector<size_t>& target_nums,
+	string filename="results.dat",
 	size_t start_timestep=0,
 	size_t stop_timestep=runcount-1
 )
@@ -510,7 +505,7 @@ int main(int argc, char *argv[])
 		target_nums.push_back(target_num);
 	}
 
-	extract_results("somefilename", results, sat_nums, target_nums);
+	extract_results(results, sat_nums, target_nums);
 	cout<<"number of targets observed = "<<number_of_targets_observed(results, sat_nums, target_nums)<<endl;
 	vector<size_t> target_indices = indices_of_targets_observed(results, sat_nums, target_nums);
 	for(size_t i : target_indices)	{
