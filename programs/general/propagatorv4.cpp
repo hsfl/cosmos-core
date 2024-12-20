@@ -180,7 +180,7 @@ void create_attitude_vector_files()	{
     return;
 }
 
-size_t number_of_targets_observed(
+vector<size_t> indices_of_targets_observed(
 	vector<vector<cosmosstruc>>& results,
 	vector<size_t>& sat_nums,
 	vector<size_t>& target_nums,
@@ -188,7 +188,8 @@ size_t number_of_targets_observed(
 	size_t stop_timestep=runcount-1
 )
 {
-	vector<bool> target_observed(target_nums.size(), false);
+	vector<bool>	target_observed(results[0][0].target.size(), false);
+	vector<size_t>	indices_of_targets_observed;
 
 	// for each sat
 	for (size_t sat_num : sat_nums)	{
@@ -204,14 +205,25 @@ size_t number_of_targets_observed(
 			}
 		}
 	}
-	// count all targets that have been observed
-	size_t targets_observed = 0;
-	for(bool target : target_observed)	{
-		if(target)	targets_observed++;
+	// record indices of all targets that have been observed
+	for(size_t target_num : target_nums)	{
+		if(target_observed[target_num])	{
+			indices_of_targets_observed.push_back(target_num);
+		}
 	}
-	return targets_observed;
+	return indices_of_targets_observed;
 }
 
+size_t number_of_targets_observed(
+	vector<vector<cosmosstruc>>& results,
+	vector<size_t>& sat_nums,
+	vector<size_t>& target_nums,
+	size_t start_timestep=0,
+	size_t stop_timestep=runcount-1
+)
+{
+	return indices_of_targets_observed(results, sat_nums, target_nums, start_timestep, stop_timestep).size();
+}
 
 // extract simulation results from results
 void extract_results(
@@ -489,8 +501,8 @@ int main(int argc, char *argv[])
 	vector<size_t> sat_nums;
 	sat_nums.push_back(0);
 	sat_nums.push_back(1);
-	//sat_nums.push_back(2);
-	//sat_nums.push_back(3);
+	sat_nums.push_back(2);
+	sat_nums.push_back(3);
 	sat_nums.push_back(4);
 
 	vector<size_t> target_nums;
@@ -500,6 +512,15 @@ int main(int argc, char *argv[])
 
 	extract_results("somefilename", results, sat_nums, target_nums);
 	cout<<"number of targets observed = "<<number_of_targets_observed(results, sat_nums, target_nums)<<endl;
+	vector<size_t> target_indices = indices_of_targets_observed(results, sat_nums, target_nums);
+	for(size_t i : target_indices)	{
+		cout<<"target #"<<i<<" observed."<<endl;
+	}
+	for(size_t s : sat_nums)	{
+		vector<size_t> single_sat(1, s);
+		cout<<"sat #"<<s<<" observed "<<number_of_targets_observed(results, single_sat, target_nums)<<" targets."<<endl;
+	}
+	return 0;
 }
 
 int32_t parse_control(string args)
