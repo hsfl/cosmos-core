@@ -340,7 +340,6 @@ void extract_results(
 				for (size_t target_num : target_nums)	{
 					if(!results[t][sat_num].target[target_num].cover.empty()) {
 							out<<"cover[0].resolution == "<<results[t][sat_num].target[target_num].cover[0].resolution<<endl;
-						}
 					}
 				}
 			}
