@@ -5,7 +5,6 @@
 #include "device/cpu/devicecpu.h"
 #include "device/disk/devicedisk.h"
 
-
 int32_t parse_control(string args);
 int32_t request_get_sat_json(string &request, string &response, Agent *agent);
 int32_t request_get_node_json(string &request, string &response, Agent *agent);
@@ -26,6 +25,8 @@ uint16_t postevent=0;
 double initialutc = 60107.01;
 double endutc = 0.;
 double deltautc = 0.;
+double fov_override = 0.;
+double ifov_override = 0.;
 string realmname = "propagate";
 //string orbitfile = "/home/user/cosmos/source/projects/cosmos_sttr2020/cosmos/realms/sttr/orbit.dat";
 //string satfile = "/home/user/cosmos/source/projects/cosmos_sttr2020/cosmos/realms/sttr/sats.dat";
@@ -219,8 +220,98 @@ size_t number_of_targets_observed(
 	return indices_of_targets_observed(results, sat_nums, target_nums, start_timestep, stop_timestep).size();
 }
 
+double extract_results_min_resolution(
+	vector<vector<cosmosstruc>>& results,
+	vector<size_t>& sat_nums,
+	vector<size_t>& target_nums,
+	size_t start_timestep=0,
+	size_t stop_timestep=runcount-1
+)
+{
+
+	cout<<std::fixed<<std::setprecision(7);
+	double min_resolution = std::numeric_limits<double>::max();
+	// for each sat
+	for (size_t sat_num : sat_nums)	{
+		// for each time step
+		for (size_t t=start_timestep; t<=stop_timestep; ++t)	{
+			// for each target
+			for (size_t target_num : target_nums)	{
+				// if target was observed
+				if(!results[t][sat_num].target[target_num].cover.empty()) {
+					// record minimum resolution
+					if(results[t][sat_num].target[target_num].cover[0].resolution<min_resolution)	{
+						min_resolution=results[t][sat_num].target[target_num].cover[0].resolution;
+					}
+				}
+			}
+		}
+	}
+	return min_resolution;
+}
+
+double extract_results_average_percent(
+    vector<vector<cosmosstruc>>& results,
+    vector<size_t>& sat_nums,
+    vector<size_t>& target_nums,
+    size_t start_timestep = 0,
+    size_t stop_timestep = runcount - 1
+) {
+    cout << std::fixed << std::setprecision(7);
+    double average_percent = 0.0;  // Start with 0 for running average
+    size_t count = 0;              // Number of valid percent values
+
+    // Iterate over satellites
+    for (size_t sat_num : sat_nums) {
+        // Iterate over timesteps
+        for (size_t t = start_timestep; t <= stop_timestep; ++t) {
+            // Iterate over targets
+            for (size_t target_num : target_nums) {
+                // If the target was observed
+                if (!results[t][sat_num].target[target_num].cover.empty()) {
+                    // Update the running average
+                    double percent = results[t][sat_num].target[target_num].cover[0].percent;
+                    count++;
+                    average_percent += (percent - average_percent) / count;
+                }
+            }
+        }
+    }
+
+    // Return the computed average percent
+    return average_percent;
+}
+
+double extract_results_total_area(
+    vector<vector<cosmosstruc>>& results,
+    vector<size_t>& sat_nums,
+    vector<size_t>& target_nums,
+    size_t start_timestep = 0,
+    size_t stop_timestep = runcount - 1
+) {
+    cout << std::fixed << std::setprecision(7);
+    double total_area = 0.0;  // Initialize total area to zero
+
+    // Iterate over satellites
+    for (size_t sat_num : sat_nums) {
+        // Iterate over timesteps
+        for (size_t t = start_timestep; t <= stop_timestep; ++t) {
+            // Iterate over targets
+            for (size_t target_num : target_nums) {
+                // If the target was observed
+                if (!results[t][sat_num].target[target_num].cover.empty()) {
+                    // Accumulate the area
+                    total_area += results[t][sat_num].target[target_num].cover[0].area;
+                }
+            }
+        }
+    }
+
+    // Return the total area
+    return total_area;
+}
+
 // extract simulation results from results
-// todo: fix this to be more generic...
 void extract_results(
 	vector<vector<cosmosstruc>>& results,
 	vector<size_t>& sat_nums,
@@ -231,8 +322,6 @@ void extract_results(
 )
 {
 
-
-
 	if(sat_nums.empty())	return;
 
 	// check the ranges of the sat indices
@@ -242,7 +331,7 @@ void extract_results(
 	// try to open file
 	out.open(filename);
 	if(out.is_open())   {
-
+		out<<std::fixed<<std::setprecision(7);
 		// for each sat
 		for (size_t sat_num : sat_nums)	{
 			// for each time step
@@ -250,11 +339,8 @@ void extract_results(
 				// for each target
 				for (size_t target_num : target_nums)	{
 					if(!results[t][sat_num].target[target_num].cover.empty()) {
-						out << std::fixed << std::setprecision(7);
-						out<<"sat num = "<<sat_num<<", ";
-						out<<"target num = "<<target_num<<", ";
-						out<<"t = "<<t<<", ";
-						out<<"cover[0].percent == "<<results[t][sat_num].target[target_num].cover[0].percent<<endl;
+							out<<"cover[0].resolution == "<<results[t][sat_num].target[target_num].cover[0].resolution<<endl;
+						}
 					}
 				}
 			}
@@ -286,6 +372,9 @@ int main(int argc, char *argv[])
     if (argc > 1)
     {
         parse_control(argv[1]);
+		//debug
+		//cout<<"fov_override = "<<fov_override<<endl;
+		//cout<<"ifov_override = "<<ifov_override<<endl;
     }
 
     agent = new Agent(realmname, "", "propagate", 0.);
@@ -315,22 +404,34 @@ int main(int argc, char *argv[])
     // parse orbit file and do not proceed if no orbits are parsed
     iretn=sim->ParseOrbitFile(orbitfile);
     if(iretn<0)	{	cout<<"unable to parse orbitfile = <"<<orbitfile<<">"<<endl; exit(-1); }
-    cout<<"currentutc = "<<sim->currentutc<<endl; // debug
-    cout<<"initialutc = "<<sim->initialutc<<endl; // debug
+    //cout<<"currentutc = "<<sim->currentutc<<endl; // debug
+    //cout<<"initialutc = "<<sim->initialutc<<endl; // debug
 
     // parse satellite file and do not proceed if no satellites are parsed
     iretn=sim->ParseSatFile(satfile);
     if(iretn<=0)	{	cout<<"unable to parse satfile = <"<<satfile<<">"<<endl; exit(-1); }
-    cout<<"sim->cnodes.size() = "<<sim->cnodes.size()<<endl; // debug
+    //cout<<"sim->cnodes.size() = "<<sim->cnodes.size()<<endl; // debug
+
+// override fov and ifov of all detectors
+	//cout<<"number of detectors: "<<sim->detectors.size()<<endl;
+/*
+	for(const auto& pair : sim->detectors)	{
+		cout<<"detector name = "<<pair.first<<endl;
+		cout<<"detector fov  = "<<pair.second.fov<<endl;
+		cout<<"detector ifov = "<<pair.second.ifov<<endl;
+	}
+	// old values
+	// new values
+*/
 
     // parse target file and do not proceed if no targets are parsed
     iretn=sim->ParseTargetFile(targetfile);
     if(iretn<=0)	{	cout<<"unable to parse targetfile = <"<<targetfile<<">"<<endl; exit(-1); }
-    cout<<"sim->targets.size() = "<<sim->targets.size()<<endl; // debug
+    //cout<<"sim->targets.size() = "<<sim->targets.size()<<endl; // debug
 
     // debug print targets
     for(size_t i = 0; i < sim->cnodes.size(); ++i)	{
-        cout<<"sim->cnodes["<<i<<"]->currentinfo.target.size() = "<<sim->cnodes[i]->currentinfo.target.size()<<endl;
+        //cout<<"sim->cnodes["<<i<<"]->currentinfo.target.size() = "<<sim->cnodes[i]->currentinfo.target.size()<<endl;
         //for(size_t j = 0; j < sim->cnodes[i]->currentinfo.target.size(); ++j)	{
         //cout<<"sim->cnodes["<<i<<"]->currentinfo.target["<<j<<"].loc.pos.geod.s = ("<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lat)<<", "<<RAD2DEG(sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.lon)<<", "<<sim->cnodes[i]->currentinfo.target[j].loc.pos.geod.s.h<<")"<<endl;
         //}
@@ -346,11 +447,13 @@ int main(int argc, char *argv[])
     sim->Target(results);
     sim->Metric(results);
 
+	//cout<<"number of detectors: "<<sim->detectors.size()<<endl; // why does this equal 1 ?
+
     // debug results
-    cout<<"runcount == "<<runcount<<endl;
-    cout<<"results.size() == "<<results.size()<<endl;
-    cout<<"results[0].size() == "<<results[0].size()<<endl;
-    cout<<"results["<<runcount-1<<"].size() == "<<results[runcount-1].size()<<endl;
+    //cout<<"runcount == "<<runcount<<endl;
+    //cout<<"results.size() == "<<results.size()<<endl;
+    //cout<<"results[0].size() == "<<results[0].size()<<endl;
+    //cout<<"results["<<runcount-1<<"].size() == "<<results[runcount-1].size()<<endl;
 
     while (elapsed < runcount)
     {
@@ -471,7 +574,7 @@ int main(int argc, char *argv[])
     // look at coverage metrics
 
     // see if any are non-zero
-
+/*
     // for each time step
     for (size_t t=0; t<results.size(); ++t)	{
     	// for each sat
@@ -495,9 +598,9 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-
+*/
 	vector<size_t> sat_nums;
-	sat_nums.push_back(0);
+	//sat_nums.push_back(0);
 	sat_nums.push_back(1);
 	sat_nums.push_back(2);
 	sat_nums.push_back(3);
@@ -508,15 +611,25 @@ int main(int argc, char *argv[])
 		target_nums.push_back(target_num);
 	}
 
+// RESULTS
+	// Extract the substring after the last slash
+	size_t last_slash_pos = satfile.find_last_of('/');
+	std::string filename = (last_slash_pos == std::string::npos) ? satfile : satfile.substr(last_slash_pos + 1);
+	cout<<filename<<", ";
+	cout<<extract_results_total_area(results, sat_nums, target_nums)<<", ";
+	cout<<extract_results_average_percent(results, sat_nums, target_nums)<<", ";
+	cout<<extract_results_min_resolution(results, sat_nums, target_nums)<<endl;
+
 	extract_results(results, sat_nums, target_nums, "/home/user/cosmos/source/core/python/plot_orbit/sttr/result_dat.csv");
-	cout<<"number of targets observed = "<<number_of_targets_observed(results, sat_nums, target_nums)<<endl;
+	//cout<<"number of targets observed = "<<number_of_targets_observed(results, sat_nums, target_nums)<<endl;
 	vector<size_t> target_indices = indices_of_targets_observed(results, sat_nums, target_nums);
-	for(size_t i : target_indices)	{
-		cout<<"target #"<<i<<" observed."<<endl;
+	for(size_t target_num : target_indices)	{
+		vector<size_t> single_target(1, target_num);
+		//cout<<"target #"<<target_num<<" observed."<<endl;
 	}
 	for(size_t s : sat_nums)	{
 		vector<size_t> single_sat(1, s);
-		cout<<"sat #"<<s<<" observed "<<number_of_targets_observed(results, single_sat, target_nums)<<" targets."<<endl;
+		//cout<<"sat #"<<s<<" observed "<<number_of_targets_observed(results, single_sat, target_nums)<<" targets."<<endl;
 	}
 	return 0;
 }
@@ -605,7 +718,16 @@ int32_t parse_control(string args)
         ++argcount;
         cosmos_web_addr = jargs["cosmos_web_addr"].string_value();
     }
-
+    if (!jargs["fov_override"].is_null())
+    {
+        ++argcount;
+        fov_override = jargs["fov_override"].number_value();
+    }
+    if (!jargs["ifov_override"].is_null())
+    {
+        ++argcount;
+        ifov_override = jargs["ifov_override"].number_value();
+    }
     return argcount;
 }
 
