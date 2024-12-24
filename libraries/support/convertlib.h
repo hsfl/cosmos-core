@@ -150,8 +150,8 @@ namespace Cosmos {
         int32_t peri2cart(cartpos cart, Quaternion &qcart);
         int32_t ric2eci(cartpos orig, rvector ric, cartpos& result);
         int32_t ric2eci(cartpos orig, Vector ric, cartpos& result);
-        int32_t ric2lvlh(cartpos ric, cartpos& lvlh);
-        int32_t lvlh2ric(cartpos lvlh, cartpos& ric);
+        int32_t ric2lvlh(double radius, cartpos ric, cartpos& lvlh);
+        int32_t lvlh2ric(double radius, cartpos lvlh, cartpos& ric);
         cartpos eci2lvlh(cartpos origin, cartpos point);
 
         /**

@@ -60,6 +60,8 @@ namespace Cosmos
             int32_t Target(vector<vector<cosmosstruc> > &results);
             int32_t Metric();
             int32_t Metric(vector<vector<cosmosstruc> > &results);
+            int32_t Thrust();
+            int32_t Formation(string type, double spacing);
             int32_t Update();
             //! Ends the simulation and runs any code that the propagators need to run at the end
             int32_t End();
