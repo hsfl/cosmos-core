@@ -4147,14 +4147,18 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
 
     }
 
+    cartpos tlvlh = currentinfo->node.loc.pos.lvlh;
     currentinfo->node.loc.pos = step[order2].loc.pos;
+    currentinfo->node.loc.pos.lvlh = tlvlh;
     for (uint16_t i=order; i<=order; --i)
     {
         if (nextutc >= currentinfo->node.loc.pos.utc - dtj / 2.)
         {
             break;
         }
+        tlvlh = currentinfo->node.loc.pos.lvlh;
         currentinfo->node.loc.pos = step[i].loc.pos;
+        currentinfo->node.loc.pos.lvlh = tlvlh;
         currentinfo->node.loc.utc = currentinfo->node.loc.pos.utc;
     }
 
@@ -4286,7 +4290,9 @@ int32_t GaussJacksonPositionPropagator::Converge()
         c_cnt++;
     } while (c_cnt<10 && cflag);
 
+    cartpos tlvlh = currentinfo->node.loc.pos.lvlh;
     currentinfo->node.loc = step[order2].loc;
+    currentinfo->node.loc.pos.lvlh = tlvlh;
     ++currentinfo->node.loc.pos.eci.pass;
     //    currentinfo->node.phys.fpush = rv_zero();
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
@@ -4326,7 +4332,7 @@ int32_t GaussJacksonPositionPropagator::Update()
         {
             dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
             kep.ea -= dea;
-        } while (++count < 100 && fabs(dea) > .000001);
+        } while ((++count < 100) && (fabs(dea) > .000001));
         step[i].loc.pos.eci.utc = kep.utc;
         kep2eci(kep, step[i].loc.pos.eci);
         ++step[i].loc.pos.eci.pass;
