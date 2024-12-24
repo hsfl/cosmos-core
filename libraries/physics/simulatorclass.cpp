@@ -528,36 +528,22 @@ int32_t Simulator::ParseSatString(string args)
     {
         ++argcount;
         json11::Json::object values = jargs["ric"].object_items();
-        cartpos ric;
         if (fastcalc)
         {
             satloc = cnodes[0]->currentinfo.node.loc;
         }
         else
         {
-			// this is mothership position
             satloc = initialloc;
         }
-		//cout<<"motherloc = "<<satloc.pos.eci.s<<","<<satloc.pos.eci.utc<<endl;
-
-        double R = values["r"].number_value();
-		double I = values["i"].number_value();
-        double C = values["c"].number_value();
-        //double VR = values["vr"].number_value();
-		//double VI = values["vi"].number_value();
-        //double VC = values["vc"].number_value();
-
-		cartpos origin = satloc.pos.eci;
-		cartpos result;
-		// check return code (!)
-		ric2eci(origin, rvector(R,I,C), result);
-		//cout<<"childloc = "<<result.s<<","<<result.utc<<endl;
-
-		// now convert eci to lvlh!
-
-		satloc.pos.lvlh = eci2lvlh(origin, result);
-		// now same as lvlh case
-	    satloc.pos.lvlh.pass++;
+        satloc.pos.lvlh.s.col[0] = values["r"].number_value();
+        satloc.pos.lvlh.s.col[1] = values["i"].number_value();
+        satloc.pos.lvlh.s.col[2] = values["c"].number_value();
+        satloc.pos.lvlh.v.col[0] = values["vr"].number_value();
+        satloc.pos.lvlh.v.col[1] = values["vi"].number_value();
+        satloc.pos.lvlh.v.col[2] = values["vc"].number_value();
+        ric2lvlh(length_rv(satloc.pos.eci.s), satloc.pos.lvlh, satloc.pos.lvlh);
+        satloc.pos.lvlh.pass++;
         pos_origin2lvlh(satloc);
         eci2tle2(satloc.pos.eci, satloc.tle);
     }
@@ -601,6 +587,10 @@ int32_t Simulator::ParseSatString(string args)
     }
 
     Physics::Simulator::StateList::iterator sit = GetNode(nodename);
+    if (cnodes.size())
+    {
+        (*sit)->currentinfo.node.loc.pos.lvlh = satloc.pos.lvlh;
+    }
     (*sit)->currentinfo.event_tick = eventtick / 86400.;
     (*sit)->currentinfo.node.type = nodetype;
 
@@ -1352,6 +1342,72 @@ int32_t Simulator::Metric(vector<vector<cosmosstruc> > &results)
         }
     }
     return iretn;
+}
+
+int32_t Simulator::Thrust()
+{
+    // Calculate thrust
+    for (uint16_t i=0; i<cnodes.size(); ++i)
+    {
+//        locstruc goal;
+        cnodes[i]->currentinfo.node.loc_req.pos.eci = cnodes[0]->currentinfo.node.loc.pos.eci;
+        cnodes[i]->currentinfo.node.loc_req.pos.geoc = cnodes[0]->currentinfo.node.loc.pos.geoc;
+//        cnodes[i]->currentinfo.node.loc_req.pos.eci.pass++;
+//        pos_eci(cnodes[i]->currentinfo.node.loc_req);
+        cnodes[i]->currentinfo.node.loc_req.pos.lvlh = cnodes[i]->currentinfo.node.loc.pos.lvlh;
+        pos_origin2lvlh(cnodes[i]->currentinfo.node.loc_req);
+        UpdatePush(cnodes[i]->currentinfo.node.name, Physics::ControlThrust(cnodes[i]->currentinfo.node.loc.pos.eci, cnodes[i]->currentinfo.node.loc_req.pos.eci, cnodes[i]->currentinfo.mass, cnodes[i]->currentinfo.devspec.thst[0].maxthrust/cnodes[i]->currentinfo.mass, dt));
+    }
+    return 0;
+}
+
+int32_t Simulator::Formation(string type, double spacing)
+{
+    if (type == "string")
+    {
+        for (uint16_t i=0; i<cnodes.size(); ++i)
+        {
+            cnodes[i]->currentinfo.node.loc.pos.lvlh.s = rv_zero();
+            cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * i;
+            ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+        }
+        return 1;
+    }
+    else if (type == "diamond")
+    {
+        for (uint16_t i=2; i<cnodes.size()-1; ++i)
+        {
+            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+            if (i%2)
+            {
+                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = -spacing * uint16_t((i + 1) / 2);
+            }
+            else
+            {
+                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = spacing * uint16_t((i + 1) / 2);
+            }
+            ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+        }
+        return 2;
+    }
+    else if (type == "spread")
+    {
+        for (uint16_t i=1; i<cnodes.size(); ++i)
+        {
+            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+            if (i%2)
+            {
+                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = -spacing * uint16_t((i + 1) / 2);
+            }
+            else
+            {
+                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = spacing * uint16_t((i + 1) / 2);
+            }
+            ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+        }
+        return 3;
+    }
+    return 0;
 }
 
 int32_t Simulator::End()

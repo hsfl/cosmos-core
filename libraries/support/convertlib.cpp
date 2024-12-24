@@ -3675,61 +3675,133 @@ int32_t pos_geoc2lvlh(locstruc &geoc, locstruc &base)
 /**
          * @brief Converts Origin coordinates to RIC offset coordinates
          *
-         * Convert position as if it was Origin (zero RIC offsets) into Offset (RIC offsets applied).
-         * Leaves RIC offset position, velocity and acceleration in loc.pos.lvlh.
+         * Convert RIC coordinates to equivalent LVLH coordinates.
          *
+         * @param radius ::radius of orbit at location
          * @param loc ::locstruc containing Origin to convert to Offset
          * @param lvlh ::cartpos RIC offsets to apply
          * @return int32_t 0 on success, negative on error
          */
-int32_t ric2lvlh(cartpos ric, cartpos& lvlh)
+int32_t ric2lvlh(double radius, cartpos ric, cartpos& lvlh)
 {
-    lvlh.s.col[0] = ric.s.col[1];
-    lvlh.s.col[1] = -ric.s.col[2];
-    lvlh.s.col[2] = -ric.s.col[0];
+    // First, calculations have shown that if changes are less than 1/100th
+    // orbital radius. LVLH and RIC are same magnitude to less than 10 cm.
 
-    lvlh.v.col[0] = ric.v.col[1];
-    lvlh.v.col[1] = -ric.v.col[2];
-    lvlh.v.col[2] = -ric.v.col[0];
+    double IC2 = ric.s.col[1] * ric.s.col[1] + ric.s.col[2] * ric.s.col[2];
+    if (sqrt(IC2 + ric.s.col[0] * ric.s.col[0]) / radius < .01)
+    {
+        lvlh.s.col[0] = ric.s.col[1];
+        lvlh.s.col[1] = -ric.s.col[2];
+        lvlh.s.col[2] = -ric.s.col[0];
+        lvlh.v.col[0] = ric.v.col[1];
+        lvlh.v.col[1] = -ric.v.col[2];
+        lvlh.v.col[2] = -ric.v.col[0];
+        lvlh.a.col[0] = ric.a.col[1];
+        lvlh.a.col[1] = -ric.a.col[2];
+        lvlh.a.col[2] = -ric.a.col[0];
+        lvlh.j.col[0] = ric.j.col[1];
+        lvlh.j.col[1] = -ric.j.col[2];
+        lvlh.j.col[2] = -ric.j.col[0];
+        return 0;
+    }
 
-    lvlh.a.col[0] = ric.a.col[1];
-    lvlh.a.col[1] = -ric.a.col[2];
-    lvlh.a.col[2] = -ric.a.col[0];
+    // Everything happens at current working radius
+    // Save original value for Z measurement
+    lvlh.s.col[2] = radius;
+    radius += ric.s.col[0];
 
-    lvlh.j.col[0] = ric.j.col[1];
-    lvlh.j.col[1] = -ric.j.col[2];
-    lvlh.j.col[2] = -ric.j.col[0];
+    // These are the angles along I and C, as well as the diagonal
+    double iangle = ric.s.col[1] / radius;
+    double cangle = ric.s.col[2] / radius;
+    double tangle = sqrt(IC2) / radius;
+
+    // Position
+    lvlh.s.col[0] = radius * sin(iangle);
+    lvlh.s.col[1] = -radius * sin(cangle);
+    lvlh.s.col[2] += lvlh.s.col[2] * (1. - cos(tangle)) - ric.s.col[0] * sin(tangle);
+
+    // Velocity
+    lvlh.v.col[0] = ric.v.col[1] * sin(iangle);
+    lvlh.v.col[1] = -ric.v.col[2] * sin(cangle);
+    lvlh.v.col[2] = -ric.v.col[0] * sin(tangle);
+
+    // Acceleration
+    lvlh.a.col[0] = ric.a.col[1] * sin(iangle);
+    lvlh.a.col[1] = -ric.a.col[2] * sin(cangle);
+    lvlh.a.col[2] = -ric.a.col[0] * sin(tangle);
+
+    // Jerk
+    lvlh.j.col[0] = ric.j.col[1] * sin(iangle);
+    lvlh.j.col[1] = -ric.j.col[2] * sin(cangle);
+    lvlh.j.col[2] = -ric.j.col[0] * sin(tangle);
 
     return 0;
 }
 
 // JIMNOTE: this function is wrong and should be removed
+// EJP: if something is wrong, then it should be fixed, not removed
 /**
          * @brief Converts RIC offset coordinates to LVLH coordinates
          *
          * Requires loc.pos to be fully set with current RIC offset position.
          *
+         * @param radius ::radius of orbit at location
          * @param loc ::locstruc containing Offset to convert to Origin
          * @param ric ::cartpos RIC offsets to apply
          * @return int32_t 0 on success, negative on error
          */
-int32_t lvlh2ric(cartpos lvlh, cartpos& ric)
+int32_t lvlh2ric(double radius, cartpos lvlh, cartpos& ric)
 {
-    ric.s.col[0] = -lvlh.s.col[2];
-    ric.s.col[1] = lvlh.s.col[0];
-    ric.s.col[2] = -lvlh.s.col[1];
+    // First, calculations have shown that if changes are less than 1/100th
+    // orbital radius. LVLH and RIC are same magnitude to less than 10 cm.
 
-    ric.v.col[0] = -lvlh.v.col[2];
-    ric.v.col[1] = lvlh.v.col[0];
-    ric.v.col[2] = -lvlh.v.col[1];
+    double XY2 = lvlh.s.col[0] * lvlh.s.col[0] + lvlh.s.col[1] * lvlh.s.col[1];
+    if (sqrt(XY2 + lvlh.s.col[2] * lvlh.s.col[2]) / radius < .01)
+    {
+        ric.s.col[0] = -lvlh.s.col[2];
+        ric.s.col[1] = lvlh.s.col[0];
+        ric.s.col[2] = -lvlh.s.col[1];
+        ric.v.col[0] = -lvlh.v.col[2];
+        ric.v.col[1] = lvlh.v.col[0];
+        ric.v.col[2] = -lvlh.v.col[1];
+        ric.a.col[0] = -lvlh.a.col[2];
+        ric.a.col[1] = lvlh.a.col[0];
+        ric.a.col[2] = -lvlh.a.col[1];
+        ric.j.col[0] = -lvlh.j.col[2];
+        ric.j.col[1] = lvlh.j.col[0];
+        ric.j.col[2] = -lvlh.j.col[1];
+        return 0;
+    }
 
-    ric.a.col[0] = -lvlh.a.col[2];
-    ric.a.col[1] = lvlh.a.col[0];
-    ric.a.col[2] = -lvlh.a.col[1];
+    // Everything happens at current working radius
+    // Save original value for R measurement
+    ric.s.col[0] = radius;
+    radius -= lvlh.s.col[2];
 
-    ric.j.col[0] = -lvlh.j.col[2];
-    ric.j.col[1] = lvlh.j.col[0];
-    ric.j.col[2] = -lvlh.j.col[1];
+    // These are the angles along I and C, as well as the diagonal
+    double iangle = asin(lvlh.s.col[0] / radius);
+    double cangle = asin(lvlh.s.col[1] / radius);
+    double tangle = asin(sqrt(XY2) / radius);
+
+    // Position
+    ric.s.col[0] = -(lvlh.s.col[2] - ric.s.col[0] * (1 - cos(tangle))) / sin(tangle);
+    ric.s.col[1] = radius / sin(iangle);
+    ric.s.col[2] = -radius / sin(cangle);
+
+    // Velocity
+    ric.v.col[0] = -radius / sin(tangle);
+    ric.v.col[1] = radius / sin(iangle);
+    ric.v.col[2] = -radius / sin(cangle);
+
+    // Acceleration
+    ric.a.col[0] = -radius / sin(tangle);
+    ric.a.col[1] = radius / sin(iangle);
+    ric.a.col[2] = -radius / sin(cangle);
+
+    // Jerk
+    ric.j.col[0] = -radius / sin(tangle);
+    ric.j.col[1] = radius / sin(iangle);
+    ric.j.col[2] = -radius / sin(cangle);
 
     return 0;
 }
