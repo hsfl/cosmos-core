@@ -1,0 +1,15 @@
+#!/bin/tcsh
+echo "string 1000 " > batch_string.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":1000,"satfile":"sats.dat"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_string.out
+echo "string 1500 " > batch_string.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":1500,"satfile":"sats.dat"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_string.out
+echo "string 2000 " >> batch_string.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":2000,"satfile":"sats.dat"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_string.out
+echo "string 2500 " >> batch_string.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":2500,"satfile":"sats.dat"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_string.out
+echo "string 3000 " >> batch_string.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":3000,"satfile":"sats.dat"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_string.out
+echo "string 3500 " >> batch_string.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":3500,"satfile":"sats.dat"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_string.out
+echo "string 4000 " >> batch_string.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":4000,"satfile":"sats.dat"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_string.out
