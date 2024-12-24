@@ -22,11 +22,14 @@ Agent *agent;
 //uint16_t thrustctl = 0;
 double simdt = 1.;
 uint16_t realtime=1;
+uint16_t settle=0;
 uint16_t printevent=0;
 uint16_t postevent=0;
 double initialutc = 60107.01;
 double endutc = 0.;
 double deltautc = 0.;
+string formation = "string";
+double spacing = 1000.;
 string realmname = "propagate";
 string orbitfile = "orbit.dat";
 string satfile = "sats.dat";
@@ -59,7 +62,7 @@ int main(int argc, char *argv[])
         parse_control(argv[1]);
     }
 
-    agent = new Agent(realmname, "", "propagate", 0.);
+    agent = new Agent(realmname, "", "propagate", 0., AGENTMAXBUFFER, true);
     agent->set_debug_level(0);
     agent->add_request("get_sat_json", request_get_sat_json, "nodename", "Get JSON description of satellite for Node nodename");
     agent->add_request("get_node_json", request_get_node_json, "nodename", "Get JSON description of node for Node nodename");
@@ -81,7 +84,7 @@ int main(int argc, char *argv[])
     }
     sim->Init(simdt, realmname);
     sim->ParseOrbitFile();
-    sim->ParseSatFile();
+    sim->ParseSatFile(satfile);
     lvlhoffset.resize(sim->cnodes.size());
     sim->ParseTargetFile();
     if (realtime)
@@ -90,7 +93,7 @@ int main(int argc, char *argv[])
         agent->start_active_loop();
     }
 
-    // Open socket for returning state information to simulator
+    // Open socket for returning sim->cnodes[i] information to simulator
     iretn = socket_open(data_channel_out, CLIENT_PORT_OUT, 2000000);
 
     // Cosmos web output initializations
@@ -98,57 +101,110 @@ int main(int argc, char *argv[])
     // Reset simulation db
     reset_db(sim);
 
+    vector<Vector> sumdeltav;
+    sumdeltav.resize(sim->cnodes.size());
+    vector<cartpos> delta;
+    delta.resize(sim->cnodes.size());
+    vector<bool> settled;
+    settled.resize(sim->cnodes.size());
+    for (uint16_t i=0; i<sim->cnodes.size(); ++i)
+    {
+        delta[i].s.col[0] = 1.;
+        settled[i] = false;
+    }
+    sim->Formation(formation, spacing);
+    sim->Thrust();
     sim->Target();
     sim->Metric();
     while (agent->running() && elapsed < runcount)
     {
-        for (auto &state : sim->cnodes)
+        if (settle)
         {
-            if (state->currentinfo.target_idx < state->currentinfo.target.size())
+            bool finished = true;
+            for (uint16_t i=0; i<sim->cnodes.size(); ++i)
             {
-                state->currentinfo.node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(state->currentinfo.node.loc.pos.geoc.s, state->currentinfo.target[state->currentinfo.target_idx].loc.pos.geoc.s));
-                state->currentinfo.node.loc.att.geoc.v = rv_zero();
-                state->currentinfo.node.loc.att.geoc.a = rv_zero();
-                state->currentinfo.node.loc.att.geoc.pass++;
-                att_geoc(state->currentinfo.node.loc);
-                rvector newpos;
-                iretn = sat2geoc(rv_unitz(-state->currentinfo.node.loc.pos.geod.s.h), state->currentinfo.node.loc, newpos);
-                if (iretn)
+                if (!settled[i])
                 {
-                    rvector diff = newpos - state->currentinfo.target[state->currentinfo.target_idx].loc.pos.geoc.s;
-                    double distance = length_rv(diff);
-                }
-                else
-                {
-                    state->currentinfo.target_idx = -1;
+                    finished = false;
+                    break;
                 }
             }
-            else
+            if (finished)
             {
-                state->currentinfo.node.loc.att.lvlh.s = q_eye();
-                state->currentinfo.node.loc.att.lvlh.v = rv_zero();
-                state->currentinfo.node.loc.att.lvlh.a = rv_zero();
-                att_lvlh(state->currentinfo.node.loc);
+                break;
             }
-            if (state->currentinfo.event.size())
+        }
+        sim->Formation(formation, spacing);
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
+        {
+            if (settle && settled[i])
             {
-                for (eventstruc event : state->currentinfo.event)
+                continue;
+            }
+            sumdeltav[i].x = sumdeltav[i].x + sim->dt * fabs(sim->cnodes[i]->currentinfo.node.phys.fpush.x) / sim->cnodes[i]->currentinfo.node.phys.mass;
+            sumdeltav[i].y = sumdeltav[i].y + sim->dt * fabs(sim->cnodes[i]->currentinfo.node.phys.fpush.y) / sim->cnodes[i]->currentinfo.node.phys.mass;
+            sumdeltav[i].z = sumdeltav[i].z + sim->dt * fabs(sim->cnodes[i]->currentinfo.node.phys.fpush.z) / sim->cnodes[i]->currentinfo.node.phys.mass;
+            delta[i].s = sim->cnodes[i]->currentinfo.node.loc.pos.eci.s - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.s;
+            delta[i].v = sim->cnodes[i]->currentinfo.node.loc.pos.eci.v - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.v;
+            delta[i].a = sim->cnodes[i]->currentinfo.node.loc.pos.eci.a - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.a;
+            if (settle && !settled[i] && length_rv(delta[i].s) < 5. && length_rv(delta[i].v) < .5)
+            {
+                settled[i] = true;
+                string output = "type: settled";
+                output += to_label("\tnode", sim->cnodes[i]->currentinfo.node.name);
+                output += to_label("\tdt", to_floating(86400.*(sim->cnodes[i]->currentinfo.node.utc-sim->initialutc), 1));
+                output += to_label("\tutc", to_mjd(sim->cnodes[i]->currentinfo.node.utc));
+                output += to_label("\tlvlhx", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[0], 1));
+                output += to_label("\tlvlhy", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1], 1));
+                output += to_label("\tlvlhz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2], 1));
+                output += to_label("\tlvlhvx", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.v.col[0], 2));
+                output += to_label("\tlvlhvy", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.v.col[1], 2));
+                output += to_label("\tlvlhvz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.v.col[2], 2));
+                output += to_label("\tlvlhax", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.a.col[0], 3));
+                output += to_label("\tlvlhay", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.a.col[1], 3));
+                output += to_label("\tlvlhaz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.a.col[2], 3));
+                output += to_label("\tpowerin", to_floating(sim->cnodes[i]->currentinfo.node.phys.powgen, 2));
+                output += to_label("\tpowerout", to_floating(sim->cnodes[i]->currentinfo.node.phys.powuse, 2));
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/1073741824.);
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
+                output += to_label("\tload", to_floating(sim->cnodes[i]->currentinfo.devspec.cpu[0].load / sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload, 3));
+                output += to_label("\tmemory", to_floating(sim->cnodes[i]->currentinfo.devspec.cpu[0].gib / sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib, 3));
+                output += to_label("\tstorage", to_floating(sim->cnodes[i]->currentinfo.devspec.cpu[0].storage, 4));
+                output += to_label("\tdx", to_floating(delta[i].s.col[0], 1));
+                output += to_label("\tdy", to_floating(delta[i].s.col[1], 1));
+                output += to_label("\tdz", to_floating(delta[i].s.col[2], 1));
+                output += to_label("\tdd", to_floating(length_rv(delta[i].s), 2));
+                output += to_label("\tdvx", to_floating(delta[i].v.col[0], 2));
+                output += to_label("\tdvy", to_floating(delta[i].v.col[1], 2));
+                output += to_label("\tdvz", to_floating(delta[i].v.col[2], 2));
+                output += to_label("\tddv", to_floating(length_rv(delta[i].v), 3));
+                output += to_label("\tdeltavx", to_floating(sumdeltav[i].x, 3));
+                output += to_label("\tdeltavy", to_floating(sumdeltav[i].y, 3));
+                output += to_label("\tdeltavz", to_floating(sumdeltav[i].z, 3));
+                output += to_label("\tdeltav", to_floating(sumdeltav[i].norm(), 3));
+                printf("%s\n", output.c_str());
+            }
+            if (sim->cnodes[i]->currentinfo.event.size())
+            {
+                for (eventstruc event : sim->cnodes[i]->currentinfo.event)
                 {
                     if (printevent)
                     {
                         string output = "type: event";
-                        output += to_label("\tnode", state->currentinfo.node.name);
-                        output += to_label("\tutc", to_mjd(state->currentinfo.node.utc));
+                        output += to_label("\tnode", sim->cnodes[i]->currentinfo.node.name);
+                        output += to_label("\tutc", to_mjd(sim->cnodes[i]->currentinfo.node.utc));
                         output += to_label("\tname", event.name);
                         output += to_label("\ttype", to_unsigned(static_cast<int>(event.type)));
                         output += to_label("\tflag", to_unsigned(static_cast<int>(event.flag)));
                         output += to_label("\tel", to_floating(event.el, 4));
                         output += to_label("\taz", to_floating(event.az, 4));
                         output += to_label("\tdtime", to_floating(86400.*event.dtime, 1));
-                        output += to_label("\tlon", to_floating(state->currentinfo.node.loc.pos.geod.s.lon, 5));
-                        output += to_label("\tlat", to_floating(state->currentinfo.node.loc.pos.geod.s.lat, 5));
-                        output += to_label("\talt", to_floating(state->currentinfo.node.loc.pos.geod.s.h, 1));
-                        output += to_label("\tpowerin", to_floating(state->currentinfo.node.phys.powgen, 2));
+                        output += to_label("\tlon", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.geod.s.lon, 5));
+                        output += to_label("\tlat", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.geod.s.lat, 5));
+                        output += to_label("\talt", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.geod.s.h, 1));
+                        output += to_label("\tpowerin", to_floating(sim->cnodes[i]->currentinfo.node.phys.powgen, 2));
                         output += to_label("\tland", (event.flag & EVENT_FLAG_LAND) != 0);
                         output += to_label("\tumbra", (event.flag & EVENT_FLAG_UMBRA) != 0);
                         output += to_label("\tgs", (event.flag & EVENT_FLAG_GS) != 0);
@@ -158,14 +214,14 @@ int main(int argc, char *argv[])
                     {
                         json11::Json jobj = json11::Json::object({
                             {"mtype", "event"},
-                            {"node_name", state->currentinfo.node.name},
+                            {"node_name", sim->cnodes[i]->currentinfo.node.name},
                             {"event_utc", event.utc},
                             {"event_name", event.name},
                             {"event_type", static_cast<int>(event.type)},
                             {"event_flag", static_cast<int>(event.flag)},
                             {"event_el", event.el},
                             {"event_az", event.az},
-                            {"geodpos", state->currentinfo.node.loc.pos.geod.s}
+                            {"geodpos", sim->cnodes[i]->currentinfo.node.loc.pos.geod.s}
                         });
                         string output = jobj.dump();
                         iretn = socket_post(data_channel_out, output.c_str());
@@ -179,70 +235,64 @@ int main(int argc, char *argv[])
             if (printevent)
             {
                 string output = "type: node";
-                output += to_label("\tnode", state->currentinfo.node.name);
-                output += to_label("\tutc", to_mjd(state->currentinfo.node.utc));
-                output += to_label("\tecix", to_floating(state->currentinfo.node.loc.pos.eci.s.col[0], 1));
-                output += to_label("\teciy", to_floating(state->currentinfo.node.loc.pos.eci.s.col[1], 1));
-                output += to_label("\teciz", to_floating(state->currentinfo.node.loc.pos.eci.s.col[2], 1));
-                output += to_label("\tecivx", to_floating(state->currentinfo.node.loc.pos.eci.v.col[0], 2));
-                output += to_label("\tecivy", to_floating(state->currentinfo.node.loc.pos.eci.v.col[1], 2));
-                output += to_label("\tecivz", to_floating(state->currentinfo.node.loc.pos.eci.v.col[2], 2));
-                output += to_label("\teciax", to_floating(state->currentinfo.node.loc.pos.eci.a.col[0], 3));
-                output += to_label("\teciay", to_floating(state->currentinfo.node.loc.pos.eci.a.col[1], 3));
-                output += to_label("\teciaz", to_floating(state->currentinfo.node.loc.pos.eci.a.col[2], 3));
-//                output += to_label("\tthetax", to_floating(state->currentinfo.node.loc.att.icrf.s.d.x, 4));
-//                output += to_label("\tthetay", to_floating(state->currentinfo.node.loc.att.icrf.s.d.y, 4));
-//                output += to_label("\tthetaz", to_floating(state->currentinfo.node.loc.att.icrf.s.d.z, 4));
-//                output += to_label("\tthetaw", to_floating(state->currentinfo.node.loc.att.icrf.s.w, 4));
-//                output += to_label("\tomegax", to_floating(state->currentinfo.node.loc.att.icrf.v.col[0], 1));
-//                output += to_label("\tomegay", to_floating(state->currentinfo.node.loc.att.icrf.v.col[1], 1));
-//                output += to_label("\tomegaz", to_floating(state->currentinfo.node.loc.att.icrf.v.col[2], 1));
-//                output += to_label("\talphax", to_floating(state->currentinfo.node.loc.att.icrf.a.col[0], 1));
-//                output += to_label("\talphay", to_floating(state->currentinfo.node.loc.att.icrf.a.col[1], 1));
-//                output += to_label("\talphaz", to_floating(state->currentinfo.node.loc.att.icrf.a.col[2], 1));
-                output += to_label("\tpowerin", to_floating(state->currentinfo.node.phys.powgen, 2));
-                output += to_label("\tpowerout", to_floating(state->currentinfo.node.phys.powuse, 2));
-                state->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
-                state->currentinfo.devspec.cpu[0].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/1073741824.);
-                state->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
-                state->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
-                output += to_label("\tload", to_floating(state->currentinfo.devspec.cpu[0].load / state->currentinfo.devspec.cpu[0].maxload, 3));
-                output += to_label("\tmemory", to_floating(state->currentinfo.devspec.cpu[0].gib / state->currentinfo.devspec.cpu[0].maxgib, 3));
-                output += to_label("\tstorage", to_floating(state->currentinfo.devspec.cpu[0].storage, 4));
-                cartpos delta = eci2lvlh(sim->cnodes[0]->currentinfo.node.loc.pos.eci, state->currentinfo.node.loc.pos.eci);
-//                rvector ds = state->currentinfo.node.loc.pos.eci.s - sim->cnodes[0]->currentinfo.node.loc.pos.eci.s;
-//                rvector dv = state->currentinfo.node.loc.pos.eci.v - sim->cnodes[0]->currentinfo.node.loc.pos.eci.v;
-                output += to_label("\tdeltax", to_floating(delta.s.col[0], 2));
-                output += to_label("\tdeltay", to_floating(delta.s.col[1], 2));
-                output += to_label("\tdeltaz", to_floating(delta.s.col[2], 2));
-                output += to_label("\tdeltavx", to_floating(delta.v.col[0], 3));
-                output += to_label("\tdeltavy", to_floating(delta.v.col[1], 3));
-                output += to_label("\tdeltavz", to_floating(delta.v.col[2], 3));
+                output += to_label("\tnode", sim->cnodes[i]->currentinfo.node.name);
+                output += to_label("\tdt", to_floating(86400.*(sim->cnodes[i]->currentinfo.node.utc-sim->initialutc), 1));
+                output += to_label("\tutc", to_mjd(sim->cnodes[i]->currentinfo.node.utc));
+                output += to_label("\tecix", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[0], 1));
+                output += to_label("\teciy", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[1], 1));
+                output += to_label("\teciz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[2], 1));
+                output += to_label("\tecivx", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.v.col[0], 2));
+                output += to_label("\tecivy", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.v.col[1], 2));
+                output += to_label("\tecivz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.v.col[2], 2));
+                output += to_label("\teciax", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.a.col[0], 3));
+                output += to_label("\teciay", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.a.col[1], 3));
+                output += to_label("\teciaz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.a.col[2], 3));
+                output += to_label("\tpowerin", to_floating(sim->cnodes[i]->currentinfo.node.phys.powgen, 2));
+                output += to_label("\tpowerout", to_floating(sim->cnodes[i]->currentinfo.node.phys.powuse, 2));
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/1073741824.);
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
+                output += to_label("\tload", to_floating(sim->cnodes[i]->currentinfo.devspec.cpu[0].load / sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload, 3));
+                output += to_label("\tmemory", to_floating(sim->cnodes[i]->currentinfo.devspec.cpu[0].gib / sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib, 3));
+                output += to_label("\tstorage", to_floating(sim->cnodes[i]->currentinfo.devspec.cpu[0].storage, 4));
+                output += to_label("\tdx", to_floating(delta[i].s.col[0], 1));
+                output += to_label("\tdy", to_floating(delta[i].s.col[1], 1));
+                output += to_label("\tdz", to_floating(delta[i].s.col[2], 1));
+                output += to_label("\tdd", to_floating(length_rv(delta[i].s), 2));
+                output += to_label("\tdvx", to_floating(delta[i].v.col[0], 2));
+                output += to_label("\tdvy", to_floating(delta[i].v.col[1], 2));
+                output += to_label("\tdvz", to_floating(delta[i].v.col[2], 2));
+                output += to_label("\tddv", to_floating(length_rv(delta[i].v), 3));
+                output += to_label("\tdeltavx", to_floating(sumdeltav[i].x, 3));
+                output += to_label("\tdeltavy", to_floating(sumdeltav[i].y, 3));
+                output += to_label("\tdeltavz", to_floating(sumdeltav[i].z, 3));
+                output += to_label("\tdeltav", to_floating(sumdeltav[i].norm(), 3));
                 printf("%s\n", output.c_str());
             }
             if (postevent)
             {
-                state->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
-                state->currentinfo.devspec.cpu[0].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/1073741824.);
-                state->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
-                state->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/1073741824.);
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
                 json11::Json jobj = json11::Json::object({
                     {"type", "node"},
-                    {"node", state->currentinfo.node.name},
-                    {"ecipos", state->currentinfo.node.loc.pos.eci},
-                    {"alphatt", state->currentinfo.node.loc.att.icrf},
-                    {"powerin", state->currentinfo.node.phys.powgen},
-                    {"powerout", state->currentinfo.node.phys.powuse},
-                    {"load", state->currentinfo.devspec.cpu[0].load / state->currentinfo.devspec.cpu[0].maxload},
-                    {"memory", state->currentinfo.devspec.cpu[0].gib / state->currentinfo.devspec.cpu[0].maxgib}
+                    {"node", sim->cnodes[i]->currentinfo.node.name},
+                    {"ecipos", sim->cnodes[i]->currentinfo.node.loc.pos.eci},
+                    {"alphatt", sim->cnodes[i]->currentinfo.node.loc.att.icrf},
+                    {"powerin", sim->cnodes[i]->currentinfo.node.phys.powgen},
+                    {"powerout", sim->cnodes[i]->currentinfo.node.phys.powuse},
+                    {"load", sim->cnodes[i]->currentinfo.devspec.cpu[0].load / sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload},
+                    {"memory", sim->cnodes[i]->currentinfo.devspec.cpu[0].gib / sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib}
                 });
                 string output = jobj.dump();
                 iretn = socket_post(data_channel_out, output.c_str());
-                send_telem_to_cosmos_web(&state->currentinfo);
+                send_telem_to_cosmos_web(&sim->cnodes[i]->currentinfo);
 
                 // Post SOH
                 string jstring;
-                agent->post(Agent::AgentMessage::SOH, json_of_list(jstring, state->sohstring, &state->currentinfo));
+                agent->post(Agent::AgentMessage::SOH, json_of_list(jstring, sim->cnodes[i]->sohstring, &sim->cnodes[i]->currentinfo));
             }
         }
 //        if (printevent)
@@ -251,6 +301,7 @@ int main(int argc, char *argv[])
 //            fflush(stdout);
 //        }
         sim->Propagate();
+        sim->Thrust();
         sim->Target();
         sim->Metric();
         if (realtime)
@@ -303,6 +354,11 @@ int32_t parse_control(string args)
     //        ++argcount;
     //        thrustctl = jargs["thrustctl"].number_value();
     //    }
+    if (!jargs["settle"].is_null())
+    {
+        ++argcount;
+        settle = jargs["settle"].number_value();
+    }
     if (!jargs["printevent"].is_null())
     {
         ++argcount;
@@ -376,6 +432,16 @@ int32_t parse_control(string args)
     {
         ++argcount;
         cosmos_web_addr = jargs["cosmos_web_addr"].string_value();
+    }
+    if (!jargs["formation"].is_null())
+    {
+        ++argcount;
+        formation = jargs["formation"].string_value();
+    }
+    if (!jargs["spacing"].is_null())
+    {
+        ++argcount;
+        spacing = jargs["spacing"].number_value();
     }
 
     return argcount;
